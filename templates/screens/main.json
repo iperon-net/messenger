@@ -1,0 +1,28 @@
+{
+  "name": "screens",
+  "description": "Template screen",
+  "param": [
+    "name"
+  ],
+  "selectParam": [],
+  "addFile": [
+    {
+      "name": "{name}[-s]_screen.dart",
+      "path": "",
+      "fileTemplatePath": "main_screen.tm"
+    },
+    {
+      "name": "{name}[-s]_screen_cupertino.dart",
+      "path": "",
+      "fileTemplatePath": "cupertino_screen.tm"
+    },
+    {
+      "name": "{name}[-s]_screen_material.dart",
+      "path": "",
+      "fileTemplatePath": "material_screen.tm"
+    }
+  ],
+  "insertInFile": [],
+  "extensions": [],
+  "globalBasePath": ""
+}
