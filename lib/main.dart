@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 
 import 'di.dart';
-import 'logger.dart';
-import 'repositories/repositories.dart';
-import 'settings.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
