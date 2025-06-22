@@ -62,6 +62,14 @@ class _SettingsScreenCupertino extends State<SettingsScreenCupertino> {
                           ),
                         ),
                         CupertinoListTile(
+                          leading: Icon(CupertinoIcons.lock),
+                          title: Text(context.t.privacyAndSecurity),
+                          trailing: Icon(
+                            CupertinoIcons.chevron_forward,
+                            color: CupertinoDynamicColor.resolve(CupertinoColors.systemGrey2, context),
+                          ),
+                        ),
+                        CupertinoListTile(
                           leading: Icon(CupertinoIcons.circle_lefthalf_fill),
                           title: Text(context.t.appearance),
                           trailing: Icon(

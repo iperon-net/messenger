@@ -49,6 +49,7 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
 	String get myProfile => 'My profile';
 	String get myPersonalInfo => 'My personal info';
 	String get versionApplication => 'Version application';
+	String get privacyAndSecurity => 'Privacy and security';
 }
 
 /// Flat map(s) containing all translations.
@@ -66,6 +67,7 @@ extension on Translations {
 			case 'myProfile': return 'My profile';
 			case 'myPersonalInfo': return 'My personal info';
 			case 'versionApplication': return 'Version application';
+			case 'privacyAndSecurity': return 'Privacy and security';
 			default: return null;
 		}
 	}
