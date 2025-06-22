@@ -1,7 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:messenger/i18n/translations.g.dart';
-
-import '../settings/settings_screen_cupertino.dart';
+import 'package:messenger/screens/settings/settings_screen.dart';
 
 class HomeScreenCupertino extends StatefulWidget {
   const HomeScreenCupertino({super.key});
@@ -74,7 +73,7 @@ class _HomeScreenCupertino extends State<HomeScreenCupertino> {
             );
           case 2:
             return CupertinoTabView(
-              builder: (context) => const SettingsScreenCupertino(),
+              builder: (context) => const SettingsScreen(),
             );
           default:
             return Container();
