@@ -1,18 +1,13 @@
+import 'dart:io';
+
 import 'package:flutter/widgets.dart';
 
-import '../../components/not_implemented/not_implemented_component.dart';
+import 'home_screen_cupertino.dart';
+import 'home_screen_material.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-
-    Widget widget = NotImplementedComponent();
-    // if (Platform.isIOS) {
-    //   widget = HomeScreenIOS();
-    // }
-    return widget;
-  }
-
+  Widget build(BuildContext context) => Platform.isIOS ? HomeScreenCupertino() : HomeScreenMaterial();
 }

@@ -1,3 +1,6 @@
 notImplementedScreen: "Не реализованный экран"
+contacts: "Контакты"
+chats: "Чаты"
+settings: "Настройки"
 test:
   error: "Ошибка"

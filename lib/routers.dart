@@ -14,14 +14,14 @@ class Routers {
   GoRouter router() {
     return GoRouter(
       navigatorKey: navigatorGoRouterKey,
-      initialLocation: "/auth",
+      initialLocation: "/home",
       observers: <NavigatorObserver>[
         TalkerRouteObserver(logger.getTalker()),
       ],
       routes: <RouteBase>[
         GoRoute(
-          path: "/auth",
-          name: "auth",
+          path: "/home",
+          name: "home",
           builder: (BuildContext context, GoRouterState state) => HomeScreen(),
           // routes: [
           //   GoRoute(

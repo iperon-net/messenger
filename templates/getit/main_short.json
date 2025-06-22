@@ -1,0 +1,11 @@
+{
+  "name": "getit",
+  "description": "GetIt Template",
+  "addFile": [
+    {
+      "name": "logger",
+      "filePath": "logger.tm"
+    }
+  ],
+  "globalBasePath": ""
+}

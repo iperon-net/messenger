@@ -7,6 +7,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
 import 'package:slang/generated.dart';
+
 import 'translations.g.dart';
 
 // Path: <root>
@@ -34,11 +35,14 @@ class TranslationsRu extends Translations {
 
 	late final TranslationsRu _root = this; // ignore: unused_field
 
-	@override 
+	@override
 	TranslationsRu $copyWith({TranslationMetadata<AppLocale, Translations>? meta}) => TranslationsRu(meta: meta ?? this.$meta);
 
 	// Translations
 	@override String get notImplementedScreen => 'Не реализованный экран';
+	@override String get contacts => 'Контакты';
+	@override String get chats => 'Чаты';
+	@override String get settings => 'Настройки';
 	@override late final _TranslationsTestRu test = _TranslationsTestRu._(_root);
 }
 
@@ -58,6 +62,9 @@ extension on TranslationsRu {
 	dynamic _flatMapFunction(String path) {
 		switch (path) {
 			case 'notImplementedScreen': return 'Не реализованный экран';
+			case 'contacts': return 'Контакты';
+			case 'chats': return 'Чаты';
+			case 'settings': return 'Настройки';
 			case 'test.error': return 'Ошибка';
 			default: return null;
 		}

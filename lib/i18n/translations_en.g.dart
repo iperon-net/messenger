@@ -40,6 +40,9 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
 
 	// Translations
 	String get notImplementedScreen => 'Not implemented screen';
+	String get contacts => 'Contacts';
+	String get chats => 'Chats';
+	String get settings => 'Settings';
 	late final TranslationsTestEn test = TranslationsTestEn.internal(_root);
 }
 
@@ -59,6 +62,9 @@ extension on Translations {
 	dynamic _flatMapFunction(String path) {
 		switch (path) {
 			case 'notImplementedScreen': return 'Not implemented screen';
+			case 'contacts': return 'Contacts';
+			case 'chats': return 'Chats';
+			case 'settings': return 'Settings';
 			case 'test.error': return 'Error';
 			default: return null;
 		}
