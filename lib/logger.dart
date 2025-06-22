@@ -1,4 +1,6 @@
 
+import 'dart:io';
+
 import 'package:talker/talker.dart';
 
 class Logger {
@@ -13,7 +15,12 @@ class Logger {
         useConsoleLogs: true,
         timeFormat: TimeFormat.timeAndSeconds,
       ),
-      logger: TalkerLogger(),
+      logger: TalkerLogger(
+        settings: TalkerLoggerSettings(
+          enableColors: Platform.isIOS ? false : true,
+          maxLineWidth: 120,
+        ),
+      ),
     );
     // _talker.debug("logger initialization");
   }
