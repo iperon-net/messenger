@@ -25,6 +25,10 @@ class Logger {
     // _talker.debug("logger initialization");
   }
 
+  Talker getTalker() {
+    return _talker;
+  }
+
   void debug(String message) {
     _talker.debug(message);
   }
