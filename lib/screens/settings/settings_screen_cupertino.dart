@@ -66,6 +66,15 @@ class _SettingsScreenCupertino extends State<SettingsScreenCupertino> {
                         ),
                       ),
                       CupertinoListTile(
+                        leading: Icon(CupertinoIcons.device_laptop),
+                        title: Text(context.t.devices),
+                        additionalInfo: Text("0"),
+                        trailing: Icon(
+                          CupertinoIcons.chevron_forward,
+                          color: CupertinoDynamicColor.resolve(CupertinoColors.systemGrey2, context),
+                        ),
+                      ),
+                      CupertinoListTile(
                         leading: Icon(CupertinoIcons.circle_lefthalf_fill),
                         title: Text(context.t.appearance),
                         trailing: Icon(
@@ -77,6 +86,14 @@ class _SettingsScreenCupertino extends State<SettingsScreenCupertino> {
                         leading: Icon(CupertinoIcons.globe),
                         title: Text(context.t.language),
                         additionalInfo: Text(state.languageName),
+                        trailing: Icon(
+                          CupertinoIcons.chevron_forward,
+                          color: CupertinoDynamicColor.resolve(CupertinoColors.systemGrey2, context),
+                        ),
+                      ),
+                      CupertinoListTile(
+                        leading: Icon(CupertinoIcons.arrow_2_circlepath),
+                        title: Text(context.t.updates),
                         trailing: Icon(
                           CupertinoIcons.chevron_forward,
                           color: CupertinoDynamicColor.resolve(CupertinoColors.systemGrey2, context),

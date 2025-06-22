@@ -50,6 +50,8 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
 	String get myPersonalInfo => 'My personal info';
 	String get versionApplication => 'Version application';
 	String get privacyAndSecurity => 'Privacy and security';
+	String get devices => 'Devices';
+	String get updates => 'Updates';
 }
 
 /// Flat map(s) containing all translations.
@@ -68,6 +70,8 @@ extension on Translations {
 			case 'myPersonalInfo': return 'My personal info';
 			case 'versionApplication': return 'Version application';
 			case 'privacyAndSecurity': return 'Privacy and security';
+			case 'devices': return 'Devices';
+			case 'updates': return 'Updates';
 			default: return null;
 		}
 	}

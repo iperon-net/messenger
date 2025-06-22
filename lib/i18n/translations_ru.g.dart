@@ -50,6 +50,8 @@ class TranslationsRu extends Translations {
 	@override String get myPersonalInfo => 'Моя личная информация';
 	@override String get versionApplication => 'Версия приложения';
 	@override String get privacyAndSecurity => 'Конфиденциальность';
+	@override String get devices => 'Устройства';
+	@override String get updates => 'Обновления';
 }
 
 /// Flat map(s) containing all translations.
@@ -68,6 +70,8 @@ extension on TranslationsRu {
 			case 'myPersonalInfo': return 'Моя личная информация';
 			case 'versionApplication': return 'Версия приложения';
 			case 'privacyAndSecurity': return 'Конфиденциальность';
+			case 'devices': return 'Устройства';
+			case 'updates': return 'Обновления';
 			default: return null;
 		}
 	}
