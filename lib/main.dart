@@ -35,7 +35,7 @@ class IperonMessengerCupertino extends StatelessWidget {
         primaryColor: CupertinoColors.activeBlue,
         scaffoldBackgroundColor: CupertinoDynamicColor.withBrightness(
            color: CupertinoColors.systemGrey6,
-           darkColor: CupertinoColors.darkBackgroundGray,
+           darkColor: CupertinoColors.black,
         ),
       ),
 

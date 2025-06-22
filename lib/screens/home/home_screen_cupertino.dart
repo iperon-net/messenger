@@ -102,8 +102,8 @@ class _HomeScreenCupertino extends State<HomeScreenCupertino> {
                                 leading: Icon(CupertinoIcons.book),
                                 title: Text(context.t.favorites),
                                 trailing: Icon(
-                                    CupertinoIcons.chevron_forward,
-                                    color: CupertinoDynamicColor.resolve(CupertinoColors.systemGrey2, context),
+                                  CupertinoIcons.chevron_forward,
+                                  color: CupertinoDynamicColor.resolve(CupertinoColors.systemGrey2, context),
                                 ),
                               ),
                               CupertinoListTile(
@@ -124,7 +124,15 @@ class _HomeScreenCupertino extends State<HomeScreenCupertino> {
                                 ),
                               ),
                             ],
-                          )
+                          ),
+                          CupertinoFormSection(
+                            children: [
+                              CupertinoListTile(
+                                title: Text(context.t.versionApplication),
+                                additionalInfo: Text("0.0.1"),
+                              ),
+                            ]
+                          ),
                         ],
                       ),
                     ),
