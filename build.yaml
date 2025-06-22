@@ -1,0 +1,21 @@
+targets:
+  $default:
+    builders:
+      envied_generator|envied:
+        options:
+          override: true
+      freezed:
+        options:
+          # Tells Freezed not to format .freezed.dart files.
+          # This can significantly speed up code-generation.
+          format: false
+          # Disable the generation of copyWith/== for the entire project
+          copy_with: true
+          equal: true
+          # `when` and `map` can be enabled/disabled entirely by setting them to `true`/`false`
+          map: true
+          # We can also enable/disable specific variants of `when`/`map` by setting them to `true`/`false`:
+          when:
+            when: true
+            maybe_when: true
+            when_or_null: false
