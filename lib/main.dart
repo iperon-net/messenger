@@ -32,7 +32,11 @@ class IperonMessengerCupertino extends StatelessWidget {
       locale: TranslationProvider.of(context).flutterLocale,
       routerConfig: routers.router(),
       theme: CupertinoThemeData(
-          primaryColor: CupertinoColors.activeBlue
+        primaryColor: CupertinoColors.activeBlue,
+        scaffoldBackgroundColor: CupertinoDynamicColor.withBrightness(
+           color: CupertinoColors.systemGrey6,
+           darkColor: CupertinoColors.darkBackgroundGray,
+        ),
       ),
 
       // theme: const CupertinoThemeData(

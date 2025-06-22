@@ -46,7 +46,7 @@ class TranslationsRu extends Translations {
 	@override String get language => 'Язык';
 	@override String get favorites => 'Избранное';
 	@override String get appearance => 'Оформление';
-	@override String get myprofile => 'Мой профиль';
+	@override String get myProfile => 'Мой профиль';
 }
 
 /// Flat map(s) containing all translations.
@@ -61,7 +61,7 @@ extension on TranslationsRu {
 			case 'language': return 'Язык';
 			case 'favorites': return 'Избранное';
 			case 'appearance': return 'Оформление';
-			case 'myprofile': return 'Мой профиль';
+			case 'myProfile': return 'Мой профиль';
 			default: return null;
 		}
 	}

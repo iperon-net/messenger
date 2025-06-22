@@ -74,10 +74,6 @@ class _HomeScreenCupertino extends State<HomeScreenCupertino> {
             return CupertinoTabView(
               builder: (context) {
                 return CupertinoPageScaffold(
-                  backgroundColor: CupertinoDynamicColor.withBrightness(
-                    color: CupertinoColors.systemGrey6,
-                    darkColor: CupertinoColors.darkBackgroundGray,
-                  ),
                   navigationBar: CupertinoNavigationBar(
                     middle: Text(context.t.settings),
                   ),
@@ -88,12 +84,15 @@ class _HomeScreenCupertino extends State<HomeScreenCupertino> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           CupertinoFormSection(
-                            header: Text("My personal info"),
+                            header: Text(context.t.myPersonalInfo),
                             children: [
                               CupertinoListTile(
                                 leading: Icon(CupertinoIcons.person),
-                                title: Text(context.t.myprofile),
-                                trailing: Icon(CupertinoIcons.chevron_forward),
+                                title: Text(context.t.myProfile),
+                                trailing: Icon(
+                                  CupertinoIcons.chevron_forward,
+                                  color: CupertinoDynamicColor.resolve(CupertinoColors.systemGrey2, context),
+                                ),
                               ),
                             ],
                           ),
@@ -102,18 +101,27 @@ class _HomeScreenCupertino extends State<HomeScreenCupertino> {
                               CupertinoListTile(
                                 leading: Icon(CupertinoIcons.book),
                                 title: Text(context.t.favorites),
-                                trailing: Icon(CupertinoIcons.chevron_forward),
+                                trailing: Icon(
+                                    CupertinoIcons.chevron_forward,
+                                    color: CupertinoDynamicColor.resolve(CupertinoColors.systemGrey2, context),
+                                ),
                               ),
                               CupertinoListTile(
                                 leading: Icon(CupertinoIcons.circle_lefthalf_fill),
                                 title: Text(context.t.appearance),
-                                trailing: Icon(CupertinoIcons.chevron_forward),
+                                trailing: Icon(
+                                  CupertinoIcons.chevron_forward,
+                                  color: CupertinoDynamicColor.resolve(CupertinoColors.systemGrey2, context),
+                                ),
                               ),
                               CupertinoListTile(
                                 leading: Icon(CupertinoIcons.globe),
                                 title: Text(context.t.language),
                                 additionalInfo: Text("English"),
-                                trailing: Icon(CupertinoIcons.chevron_forward),
+                                trailing: Icon(
+                                  CupertinoIcons.chevron_forward,
+                                  color: CupertinoDynamicColor.resolve(CupertinoColors.systemGrey2, context),
+                                ),
                               ),
                             ],
                           )
