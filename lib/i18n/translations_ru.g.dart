@@ -43,17 +43,10 @@ class TranslationsRu extends Translations {
 	@override String get contacts => 'Контакты';
 	@override String get chats => 'Чаты';
 	@override String get settings => 'Настройки';
-	@override late final _TranslationsTestRu test = _TranslationsTestRu._(_root);
-}
-
-// Path: test
-class _TranslationsTestRu extends TranslationsTestEn {
-	_TranslationsTestRu._(TranslationsRu root) : this._root = root, super.internal(root);
-
-	final TranslationsRu _root; // ignore: unused_field
-
-	// Translations
-	@override String get error => 'Ошибка';
+	@override String get language => 'Язык';
+	@override String get favorites => 'Избранное';
+	@override String get appearance => 'Оформление';
+	@override String get myprofile => 'Мой профиль';
 }
 
 /// Flat map(s) containing all translations.
@@ -65,7 +58,10 @@ extension on TranslationsRu {
 			case 'contacts': return 'Контакты';
 			case 'chats': return 'Чаты';
 			case 'settings': return 'Настройки';
-			case 'test.error': return 'Ошибка';
+			case 'language': return 'Язык';
+			case 'favorites': return 'Избранное';
+			case 'appearance': return 'Оформление';
+			case 'myprofile': return 'Мой профиль';
 			default: return null;
 		}
 	}

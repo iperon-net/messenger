@@ -74,11 +74,52 @@ class _HomeScreenCupertino extends State<HomeScreenCupertino> {
             return CupertinoTabView(
               builder: (context) {
                 return CupertinoPageScaffold(
+                  backgroundColor: CupertinoDynamicColor.withBrightness(
+                    color: CupertinoColors.systemGrey6,
+                    darkColor: CupertinoColors.darkBackgroundGray,
+                  ),
                   navigationBar: CupertinoNavigationBar(
                     middle: Text(context.t.settings),
                   ),
-                  child: Center(
-                    child: Text(context.t.settings),
+                  child: SafeArea(
+                    child: SingleChildScrollView(
+                      padding: EdgeInsetsGeometry.all(10),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          CupertinoFormSection(
+                            header: Text("My personal info"),
+                            children: [
+                              CupertinoListTile(
+                                leading: Icon(CupertinoIcons.person),
+                                title: Text(context.t.myprofile),
+                                trailing: Icon(CupertinoIcons.chevron_forward),
+                              ),
+                            ],
+                          ),
+                          CupertinoFormSection(
+                            children: [
+                              CupertinoListTile(
+                                leading: Icon(CupertinoIcons.book),
+                                title: Text(context.t.favorites),
+                                trailing: Icon(CupertinoIcons.chevron_forward),
+                              ),
+                              CupertinoListTile(
+                                leading: Icon(CupertinoIcons.circle_lefthalf_fill),
+                                title: Text(context.t.appearance),
+                                trailing: Icon(CupertinoIcons.chevron_forward),
+                              ),
+                              CupertinoListTile(
+                                leading: Icon(CupertinoIcons.globe),
+                                title: Text(context.t.language),
+                                additionalInfo: Text("English"),
+                                trailing: Icon(CupertinoIcons.chevron_forward),
+                              ),
+                            ],
+                          )
+                        ],
+                      ),
+                    ),
                   ),
                 );
               },
@@ -88,67 +129,6 @@ class _HomeScreenCupertino extends State<HomeScreenCupertino> {
         }
       },
     );
-
-    // return CupertinoPageScaffold(
-    //   navigationBar: CupertinoNavigationBar(
-    //     middle: Text('Чаты'),
-    //   ),
-    //   child: CupertinoTabScaffold(
-    //     tabBar: CupertinoTabBar(
-    //       iconSize: 25,
-    //       items: [
-    //         BottomNavigationBarItem(
-    //           icon: Icon(CupertinoIcons.person_2_fill),
-    //           label: 'Contacts',
-    //         ),
-    //         BottomNavigationBarItem(
-    //           icon: Icon(CupertinoIcons.chat_bubble_2_fill),
-    //           label: 'Chats',
-    //         ),
-    //         BottomNavigationBarItem(
-    //           icon: Icon(CupertinoIcons.settings),
-    //           label: 'Settings',
-    //         ),
-    //       ],
-    //     ),
-    //     tabBuilder: (BuildContext context, int index) {
-    //       switch (index) {
-    //         case 0:
-    //           return CupertinoTabView(
-    //             builder: (context) {
-    //               return CupertinoPageScaffold(
-    //                 child: Center(
-    //                   child: Text('Home'),
-    //                 ),
-    //               );
-    //             },
-    //           );
-    //         case 1:
-    //           return CupertinoTabView(
-    //             builder: (context) {
-    //               return CupertinoPageScaffold(
-    //                 child: Center(
-    //                   child: Text('Search'),
-    //                 ),
-    //               );
-    //             },
-    //           );
-    //         case 2:
-    //           return CupertinoTabView(
-    //             builder: (context) {
-    //               return CupertinoPageScaffold(
-    //                 child: Center(
-    //                   child: Text('Profile'),
-    //                 ),
-    //               );
-    //             },
-    //           );
-    //         default:
-    //           return Container();
-    //       }
-    //     },
-    //   ),
-    // );
   }
 
 }

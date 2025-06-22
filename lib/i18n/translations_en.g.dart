@@ -43,17 +43,10 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
 	String get contacts => 'Contacts';
 	String get chats => 'Chats';
 	String get settings => 'Settings';
-	late final TranslationsTestEn test = TranslationsTestEn.internal(_root);
-}
-
-// Path: test
-class TranslationsTestEn {
-	TranslationsTestEn.internal(this._root);
-
-	final Translations _root; // ignore: unused_field
-
-	// Translations
-	String get error => 'Error';
+	String get language => 'Language';
+	String get favorites => 'Favorites';
+	String get appearance => 'Appearance';
+	String get myprofile => 'My profile';
 }
 
 /// Flat map(s) containing all translations.
@@ -65,7 +58,10 @@ extension on Translations {
 			case 'contacts': return 'Contacts';
 			case 'chats': return 'Chats';
 			case 'settings': return 'Settings';
-			case 'test.error': return 'Error';
+			case 'language': return 'Language';
+			case 'favorites': return 'Favorites';
+			case 'appearance': return 'Appearance';
+			case 'myprofile': return 'My profile';
 			default: return null;
 		}
 	}
