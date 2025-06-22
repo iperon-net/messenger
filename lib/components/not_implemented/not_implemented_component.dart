@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-import '../../di.dart';
 import '../../i18n/translations.g.dart';
 
 class NotImplementedComponent extends StatelessWidget {

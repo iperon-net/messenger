@@ -3,7 +3,6 @@ import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 import 'package:messenger/screens/home/home_screen.dart';
 import 'package:talker_flutter/talker_flutter.dart';
-import 'package:messenger/i18n/translations.g.dart'; // (1) import
 
 import 'di.dart';
 import 'logger.dart';
