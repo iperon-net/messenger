@@ -32,6 +32,7 @@ class _HomeScreenCupertino extends State<HomeScreenCupertino> {
           ),
           BottomNavigationBarItem(
             icon: Icon(CupertinoIcons.settings),
+            // icon: Badge(label: Text('!'), child: const Icon(CupertinoIcons.settings)),
             label: context.t.settings,
           ),
         ],
