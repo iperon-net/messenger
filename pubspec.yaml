@@ -49,6 +49,8 @@ dependencies:
   slang: ^4.7.2
   slang_flutter: ^4.7.0
   flutter_localization: ^0.3.2
+  flutter_bloc: ^9.1.1
+  package_info_plus: ^8.3.0
 
 dev_dependencies:
   flutter_test:

@@ -1,6 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:messenger/i18n/translations.g.dart';
 
+import '../settings/settings_screen_cupertino.dart';
+
 class HomeScreenCupertino extends StatefulWidget {
   const HomeScreenCupertino({super.key});
 
@@ -72,73 +74,7 @@ class _HomeScreenCupertino extends State<HomeScreenCupertino> {
             );
           case 2:
             return CupertinoTabView(
-              builder: (context) {
-                return CupertinoPageScaffold(
-                  navigationBar: CupertinoNavigationBar(
-                    middle: Text(context.t.settings),
-                  ),
-                  child: SafeArea(
-                    child: SingleChildScrollView(
-                      padding: EdgeInsetsGeometry.all(10),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          CupertinoFormSection(
-                            header: Text(context.t.myPersonalInfo),
-                            children: [
-                              CupertinoListTile(
-                                leading: Icon(CupertinoIcons.person),
-                                title: Text(context.t.myProfile),
-                                trailing: Icon(
-                                  CupertinoIcons.chevron_forward,
-                                  color: CupertinoDynamicColor.resolve(CupertinoColors.systemGrey2, context),
-                                ),
-                              ),
-                            ],
-                          ),
-                          CupertinoFormSection(
-                            children: [
-                              CupertinoListTile(
-                                leading: Icon(CupertinoIcons.book),
-                                title: Text(context.t.favorites),
-                                trailing: Icon(
-                                  CupertinoIcons.chevron_forward,
-                                  color: CupertinoDynamicColor.resolve(CupertinoColors.systemGrey2, context),
-                                ),
-                              ),
-                              CupertinoListTile(
-                                leading: Icon(CupertinoIcons.circle_lefthalf_fill),
-                                title: Text(context.t.appearance),
-                                trailing: Icon(
-                                  CupertinoIcons.chevron_forward,
-                                  color: CupertinoDynamicColor.resolve(CupertinoColors.systemGrey2, context),
-                                ),
-                              ),
-                              CupertinoListTile(
-                                leading: Icon(CupertinoIcons.globe),
-                                title: Text(context.t.language),
-                                additionalInfo: Text("English"),
-                                trailing: Icon(
-                                  CupertinoIcons.chevron_forward,
-                                  color: CupertinoDynamicColor.resolve(CupertinoColors.systemGrey2, context),
-                                ),
-                              ),
-                            ],
-                          ),
-                          CupertinoFormSection(
-                            children: [
-                              CupertinoListTile(
-                                title: Text(context.t.versionApplication),
-                                additionalInfo: Text("0.0.1"),
-                              ),
-                            ]
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                );
-              },
+              builder: (context) => const SettingsScreenCupertino(),
             );
           default:
             return Container();

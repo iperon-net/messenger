@@ -20,6 +20,16 @@
       "name": "{name}[-s]_screen_material.dart",
       "path": "",
       "fileTemplatePath": "material_screen.tm"
+    },
+    {
+      "name": "{name}[-s]_state.dart",
+      "path": "",
+      "fileTemplatePath": "cubit_state.tm"
+    },
+    {
+      "name": "{name}[-s]_cubit.dart",
+      "path": "",
+      "fileTemplatePath": "cubit.tm"
     }
   ],
   "insertInFile": [],
