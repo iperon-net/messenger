@@ -14,4 +14,9 @@ class Settings {
   @EnviedField(varName: 'DATABASE_VERSION', defaultValue: 1)
   static const int databaseVersion = _Settings.databaseVersion;
 
+  @EnviedField(varName: 'GRPC_HOST')
+  static const String grpcHost = _Settings.grpcHost;
+
+  @EnviedField(varName: 'GRPC_PORT', defaultValue: 443)
+  static const int grpcPort = _Settings.grpcPort;
 }

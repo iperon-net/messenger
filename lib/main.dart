@@ -4,13 +4,7 @@ import 'di.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
   await configureGlobalDI();
-
-  // final repositories = getIt.get<Repositories>();
-  // repositories.users.;
-
-
   runApp(const MyApp());
 }
 
