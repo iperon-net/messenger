@@ -1,22 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
-part 'user.freezed.dart';
-part 'user.g.dart';
+part 'users.freezed.dart';
+part 'users.g.dart';
 
-
-@freezed
-abstract class Profile with _$Profile {
-  const Profile._();
-  @JsonSerializable(explicitToJson: true)
-
-  const factory Profile({
-    required bool isDelete,
-  }) = _Profile;
-
-  factory Profile.fromJson(Map<String, dynamic> json) => _$ProfileFromJson(json);
-
-}
 
 @freezed
 abstract class User with _$User {
@@ -28,7 +15,6 @@ abstract class User with _$User {
     required String email,
     required String sessionToken,
     required bool isActive,
-    required Profile profile,
   }) = _User;
 
   factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);
