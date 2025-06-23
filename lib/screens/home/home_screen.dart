@@ -9,5 +9,5 @@ class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context) => Platform.isIOS ? HomeScreenCupertino() : HomeScreenMaterial();
+  Widget build(BuildContext context) => Platform.isIOS ? const HomeScreenCupertino() : const HomeScreenMaterial();
 }

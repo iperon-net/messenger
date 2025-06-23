@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:messenger/routers.dart';
@@ -35,12 +38,32 @@ Future<void> main() async {
               create: (BuildContext context) => LanguageCubit(),
             )
           ],
-          child: const IperonMessengerCupertino()
+          child: Platform.isIOS ? const IperonMessengerCupertino() : const IperonMessengerMaterial(),
       ),
     )
   );
 }
 
+// Material app
+class IperonMessengerMaterial extends StatelessWidget {
+  const IperonMessengerMaterial({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final routers = getIt.get<Routers>();
+
+    return MaterialApp.router(
+      debugShowCheckedModeBanner: false,
+      localizationsDelegates: [
+        ...GlobalMaterialLocalizations.delegates,
+      ],
+      supportedLocales: AppLocaleUtils.supportedLocales,
+      locale: TranslationProvider.of(context).flutterLocale,
+      routerConfig: routers.router(),
+    );
+
+  }
+}
 
 // Cupertino app
 class IperonMessengerCupertino extends StatelessWidget {
