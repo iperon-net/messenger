@@ -45,7 +45,7 @@ class SettingsCubit extends Cubit<SettingsState> {
   Future<void> changeLanguage(BuildContext context, {required AppLocale language}) async {
     emit(state.copyWith(status: Status.loading));
 
-    await Future.delayed(Duration(seconds: 5));
+    // await Future.delayed(Duration(seconds: 5));
 
     LocaleSettings.setLocale(language);
 
