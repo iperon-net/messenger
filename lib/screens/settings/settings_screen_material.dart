@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-
-import '../../components/not_implemented/not_implemented_component.dart';
+import 'package:messenger/i18n/translations.g.dart';
 
 class SettingsScreenMaterial extends StatefulWidget {
   const SettingsScreenMaterial({super.key});
@@ -18,7 +17,13 @@ class _SettingsScreenMaterial extends State<SettingsScreenMaterial> {
 
   @override
   Widget build(BuildContext context) {
-    return NotImplementedComponent();
+    return Scaffold(
+      appBar: AppBar(
+        centerTitle: false,
+        title: Text(context.t.settings),
+      ),
+      body: Text("sssss"),
+    );
   }
 
 }

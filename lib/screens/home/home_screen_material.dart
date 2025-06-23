@@ -19,12 +19,15 @@ class _HomeScreenMaterial extends State<HomeScreenMaterial> {
     super.initState();
   }
 
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
   @override
   Widget build(BuildContext context) {
     final logger = getIt.get<Logger>();
     logger.debug("dddd");
 
     return Scaffold(
+      key: _scaffoldKey,
       appBar: AppBar(
         centerTitle: false,
         title: Text(""),
@@ -51,23 +54,20 @@ class _HomeScreenMaterial extends State<HomeScreenMaterial> {
               accountName: Container(),
               accountEmail: Text("kostya@yandex.ru"),
             ),
-
             ListTile(
               leading: Icon(Icons.people),
               title: Text(context.t.contacts),
             ),
-
             ListTile(
               leading: Icon(Icons.bookmark_border_outlined),
               title: Text(context.t.favorites),
             ),
-
             ListTile(
               leading: Icon(Icons.settings),
               title: Text(context.t.settings),
               onTap: () {
-                context.goNamed("settings_language");
-                // context.pop();
+                if (_scaffoldKey.currentState?.isDrawerOpen == true) _scaffoldKey.currentState?.closeDrawer();
+                context.goNamed("settings");
               },
             ),
           ],
