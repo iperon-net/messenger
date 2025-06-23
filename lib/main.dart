@@ -1,17 +1,44 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:messenger/routers.dart';
 
 import 'di.dart';
 import 'i18n/translations.g.dart';
+import 'screens/settings/language_cubit.dart';
+import 'screens/settings/settings_cubit.dart';
+import 'secure_storage.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  LocaleSettings.useDeviceLocale();
+  // LocaleSettings.useDeviceLocale();
 
   await configureGlobalDI();
+  final secureStorage = getIt.get<SecureStorage>();
 
-  runApp(TranslationProvider(child: const IperonMessengerCupertino(),));
+  // Language
+  final language = await secureStorage.read(key: "language");
+  if (language.isNotEmpty && language == "ru") {
+    LocaleSettings.setLocale(AppLocale.ru);
+  } else {
+    LocaleSettings.useDeviceLocale();
+  }
+
+  runApp(
+    TranslationProvider(
+      child: MultiBlocProvider(
+          providers: [
+            BlocProvider<SettingsCubit>(
+              create: (BuildContext context) => SettingsCubit()..loading(),
+            ),
+            BlocProvider<LanguageCubit>(
+              create: (BuildContext context) => LanguageCubit(),
+            )
+          ],
+          child: const IperonMessengerCupertino()
+      ),
+    )
+  );
 }
 
 
@@ -38,23 +65,6 @@ class IperonMessengerCupertino extends StatelessWidget {
            darkColor: CupertinoColors.black,
         ),
       ),
-
-      // theme: const CupertinoThemeData(
-      //   primaryColor: CupertinoDynamicColor.withBrightness(
-      //     color: Color(0xffffffff),
-      //     darkColor: Color(0xffffffff),
-      //   ),
-      //
-      //   barBackgroundColor: CupertinoDynamicColor.withBrightness(
-      //     color: Color(0xff605fc5),
-      //     darkColor: Color(0xff1b263b),
-      //   ),
-      //   scaffoldBackgroundColor: CupertinoDynamicColor.withBrightness(
-      //     color: Colors.grey,
-      //     darkColor: Color(0xff1b263b),
-      //   ),
-      //   // textTheme: CupertinoTextThemeData(),
-      // ),
     );
   }
 }

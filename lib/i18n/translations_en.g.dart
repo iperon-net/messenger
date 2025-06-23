@@ -52,6 +52,7 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
 	String get privacyAndSecurity => 'Privacy and security';
 	String get devices => 'Devices';
 	String get updates => 'Updates';
+	String get interfaceLanguage => 'Interface language';
 }
 
 /// Flat map(s) containing all translations.
@@ -72,6 +73,7 @@ extension on Translations {
 			case 'privacyAndSecurity': return 'Privacy and security';
 			case 'devices': return 'Devices';
 			case 'updates': return 'Updates';
+			case 'interfaceLanguage': return 'Interface language';
 			default: return null;
 		}
 	}

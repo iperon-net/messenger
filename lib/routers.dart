@@ -6,6 +6,7 @@ import 'package:talker_flutter/talker_flutter.dart';
 
 import 'di.dart';
 import 'logger.dart';
+import 'screens/settings/language_screen.dart';
 
 class Routers {
   final GlobalKey<NavigatorState> navigatorGoRouterKey = GlobalKey<NavigatorState>();
@@ -23,18 +24,13 @@ class Routers {
           path: "/home",
           name: "home",
           builder: (BuildContext context, GoRouterState state) => HomeScreen(),
-          // routes: [
-          //   GoRoute(
-          //     path: "/confirmation/:signInToken",
-          //     name: "authConfirmation",
-          //     builder: (BuildContext context, GoRouterState state) {
-          //       return BlocProvider(
-          //         create: (BuildContext context) => AuthConfirmationCubit(),
-          //         child: const AuthConfirmationScreen(),
-          //       );
-          //     },
-          //   ),
-          // ],
+          routes: [
+            GoRoute(
+              path: "/settings/language",
+              name: "settings_language",
+              builder: (BuildContext context, GoRouterState state) => LanguageScreen(),
+            ),
+          ],
         ),
       ]
     );

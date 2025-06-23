@@ -5,6 +5,10 @@
     {
       "name": "logger",
       "filePath": "logger.tm"
+    },
+    {
+      "name": "secureStorage",
+      "filePath": "secure_storage.tm"
     }
   ],
   "globalBasePath": ""

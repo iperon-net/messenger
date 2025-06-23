@@ -1,7 +1,8 @@
-
 import 'dart:io';
 
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:talker/talker.dart';
+import 'package:talker_bloc_logger/talker_bloc_logger.dart';
 
 class Logger {
   final _talker = Talker();
@@ -22,7 +23,20 @@ class Logger {
         ),
       ),
     );
-    // _talker.debug("logger initialization");
+
+    Bloc.observer = TalkerBlocObserver(
+      settings: TalkerBlocLoggerSettings(
+        enabled: true,
+        printEventFullData: true,
+        printStateFullData: true,
+        printChanges: true,
+        printClosings: true,
+        printCreations: true,
+        printEvents: true,
+        printTransitions: true,
+      ),
+      talker: _talker,
+    );
   }
 
   Talker getTalker() {

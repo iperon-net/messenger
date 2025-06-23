@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../i18n/translations.g.dart';
 import 'settings_cubit.dart';
@@ -90,6 +91,7 @@ class _SettingsScreenCupertino extends State<SettingsScreenCupertino> {
                           CupertinoIcons.chevron_forward,
                           color: CupertinoDynamicColor.resolve(CupertinoColors.systemGrey2, context),
                         ),
+                        onTap: () => context.goNamed("settings_language"),
                       ),
                       CupertinoListTile(
                         leading: Icon(CupertinoIcons.arrow_2_circlepath),

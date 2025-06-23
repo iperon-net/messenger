@@ -52,6 +52,7 @@ class TranslationsRu extends Translations {
 	@override String get privacyAndSecurity => 'Конфиденциальность';
 	@override String get devices => 'Устройства';
 	@override String get updates => 'Обновления';
+	@override String get interfaceLanguage => 'Язык интерфейса';
 }
 
 /// Flat map(s) containing all translations.
@@ -72,6 +73,7 @@ extension on TranslationsRu {
 			case 'privacyAndSecurity': return 'Конфиденциальность';
 			case 'devices': return 'Устройства';
 			case 'updates': return 'Обновления';
+			case 'interfaceLanguage': return 'Язык интерфейса';
 			default: return null;
 		}
 	}
