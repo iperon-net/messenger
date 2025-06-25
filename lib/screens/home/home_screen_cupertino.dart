@@ -20,6 +20,7 @@ class _HomeScreenCupertino extends State<HomeScreenCupertino> {
   Widget build(BuildContext context) {
     return CupertinoTabScaffold(
       tabBar: CupertinoTabBar(
+        currentIndex: 1,
         iconSize: 25,
         items: [
           BottomNavigationBarItem(
@@ -44,13 +45,15 @@ class _HomeScreenCupertino extends State<HomeScreenCupertino> {
               builder: (context) {
                 return CupertinoPageScaffold(
                   navigationBar: CupertinoNavigationBar(
-
                     middle: Text(context.t.contacts),
-                    // leading: Align( // https://github.com/flutter/flutter/issues/18536
-                    //   widthFactor: 1.0,
-                    //   alignment: Alignment.center,
-                    //   child: Text('Sor'),
-                    // ),
+                    leading: Align( // https://github.com/flutter/flutter/issues/18536
+                      widthFactor: 1.0,
+                      alignment: Alignment.center,
+                      child: GestureDetector(
+                        child: Text(context.t.sort, style: TextStyle(color: CupertinoTheme.of(context).primaryColor),),
+                        onTap: () {},
+                      ),
+                    ),
                     trailing: Icon(CupertinoIcons.add, size: 20),
                   ),
                   child: Center(

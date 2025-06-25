@@ -53,6 +53,7 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
 	String get devices => 'Devices';
 	String get updates => 'Updates';
 	String get interfaceLanguage => 'Interface language';
+	String get sort => 'Sort';
 }
 
 /// Flat map(s) containing all translations.
@@ -74,6 +75,7 @@ extension on Translations {
 			case 'devices': return 'Devices';
 			case 'updates': return 'Updates';
 			case 'interfaceLanguage': return 'Interface language';
+			case 'sort': return 'Sort';
 			default: return null;
 		}
 	}

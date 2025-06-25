@@ -53,6 +53,7 @@ class TranslationsRu extends Translations {
 	@override String get devices => 'Устройства';
 	@override String get updates => 'Обновления';
 	@override String get interfaceLanguage => 'Язык интерфейса';
+	@override String get sort => 'Сортировка';
 }
 
 /// Flat map(s) containing all translations.
@@ -74,6 +75,7 @@ extension on TranslationsRu {
 			case 'devices': return 'Устройства';
 			case 'updates': return 'Обновления';
 			case 'interfaceLanguage': return 'Язык интерфейса';
+			case 'sort': return 'Сортировка';
 			default: return null;
 		}
 	}
