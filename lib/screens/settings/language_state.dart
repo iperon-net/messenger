@@ -7,5 +7,6 @@ abstract class LanguageState with _$LanguageState {
   const factory LanguageState({
     @Default(Status.initial) Status status,
     @Default("") String errorMessage,
+    @Default(AppLocale.en) AppLocale currentLanguage,
   }) = _LanguageState;
 }

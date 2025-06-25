@@ -15,17 +15,12 @@ part 'language_state.dart';
 class LanguageCubit extends Cubit<LanguageState> {
   LanguageCubit() : super(const LanguageState());
 
-  final logger = getIt.get<Logger>();
-  final secureStorage = getIt.get<SecureStorage>();
+  final _logger = getIt.get<Logger>();
+  final _secureStorage = getIt.get<SecureStorage>();
 
-  Widget trailingIcon(BuildContext context, {required AppLocale language}) {
-    if (LocaleSettings.currentLocale == language) {
-      return Icon(
-        CupertinoIcons.check_mark_circled_solid,
-        color: CupertinoTheme.of(context).primaryColor,
-      );
-    }
-    return Container();
+  Future<void> initialization() async {
+    emit(state.copyWith(status: Status.loading));
+    emit(state.copyWith(status: Status.success, currentLanguage: LocaleSettings.currentLocale));
   }
 
   /// Changes the application language and persists the selection in secure storage.
@@ -39,15 +34,17 @@ class LanguageCubit extends Cubit<LanguageState> {
   ///
   /// Emits a loading status while the change is in progress and a success status after the process is complete.
   Future<void> changeLanguage(BuildContext context, {required AppLocale language}) async {
-    emit(state.copyWith(status: Status.loading));
+    emit(state.copyWith(status: Status.loading, currentLanguage: language));
+    await Future.delayed(Duration(seconds: 3));
 
     if (language == AppLocale.ru){
-      secureStorage.write(key: "language", value: "ru");
+      _secureStorage.write(key: "language", value: "ru");
     } else {
-      secureStorage.write(key: "language", value: "en");
+      _secureStorage.write(key: "language", value: "en");
     }
 
     LocaleSettings.setLocale(language);
-    emit(state.copyWith(status: Status.success));
+    emit(state.copyWith(status: Status.success, currentLanguage: language));
   }
+
 }

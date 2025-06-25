@@ -54,6 +54,16 @@ class TranslationsRu extends Translations {
 	@override String get updates => 'Обновления';
 	@override String get interfaceLanguage => 'Язык интерфейса';
 	@override String get sort => 'Сортировка';
+	@override String get search => 'Поиск';
+	@override String get favorite_contacts => 'Избранные контакты';
+	@override String get back => 'Назад';
+	@override String get online => 'В сети';
+	@override String last_seen_minutes({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n,
+		one: 'был(а) ${n} минуту назад',
+		few: 'был(а) ${n} минуты назад',
+		many: 'был(а) ${n} минут назад',
+		other: 'был(а) ${n} минут назад',
+	);
 }
 
 /// Flat map(s) containing all translations.
@@ -76,6 +86,16 @@ extension on TranslationsRu {
 			case 'updates': return 'Обновления';
 			case 'interfaceLanguage': return 'Язык интерфейса';
 			case 'sort': return 'Сортировка';
+			case 'search': return 'Поиск';
+			case 'favorite_contacts': return 'Избранные контакты';
+			case 'back': return 'Назад';
+			case 'online': return 'В сети';
+			case 'last_seen_minutes': return ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n,
+				one: 'был(а) ${n} минуту назад',
+				few: 'был(а) ${n} минуты назад',
+				many: 'был(а) ${n} минут назад',
+				other: 'был(а) ${n} минут назад',
+			);
 			default: return null;
 		}
 	}

@@ -8,6 +8,7 @@ import 'package:messenger/routers.dart';
 
 import 'di.dart';
 import 'i18n/translations.g.dart';
+import 'screens/contacts/contacts_cubit.dart';
 import 'screens/settings/language_cubit.dart';
 import 'screens/settings/settings_cubit.dart';
 import 'secure_storage.dart';
@@ -32,10 +33,13 @@ Future<void> main() async {
       child: MultiBlocProvider(
           providers: [
             BlocProvider<SettingsCubit>(
-              create: (BuildContext context) => SettingsCubit()..initialization(),
+              create: (BuildContext context) => SettingsCubit(),
             ),
             BlocProvider<LanguageCubit>(
               create: (BuildContext context) => LanguageCubit(),
+            ),
+            BlocProvider<ContactsCubit>(
+              create: (BuildContext context) => ContactsCubit(),
             )
           ],
           child: Platform.isIOS ? const IperonMessengerCupertino() : const IperonMessengerMaterial(),
