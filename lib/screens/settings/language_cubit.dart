@@ -35,8 +35,6 @@ class LanguageCubit extends Cubit<LanguageState> {
   /// Emits a loading status while the change is in progress and a success status after the process is complete.
   Future<void> changeLanguage(BuildContext context, {required AppLocale language}) async {
     emit(state.copyWith(status: Status.loading, currentLanguage: language));
-    await Future.delayed(Duration(seconds: 3));
-
     if (language == AppLocale.ru){
       _secureStorage.write(key: "language", value: "ru");
     } else {
