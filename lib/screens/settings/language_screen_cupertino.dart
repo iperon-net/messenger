@@ -26,7 +26,8 @@ class _LanguageScreenCupertino extends State<LanguageScreenCupertino> {
         middle: Text(context.t.language),
       ),
       child: SafeArea(
-        child: BlocBuilder<LanguageCubit, LanguageState>(
+        child: BlocConsumer<LanguageCubit, LanguageState>(
+          listener: (context, state) async => await context.read<SettingsCubit>().reloadLanguageName(),
           builder: (context, state) {
             return SingleChildScrollView(
               padding: EdgeInsetsGeometry.all(10),
@@ -42,14 +43,14 @@ class _LanguageScreenCupertino extends State<LanguageScreenCupertino> {
                             backgroundColorActivated: CupertinoDynamicColor.resolve(CupertinoColors.transparent, context),
                             title: Text("English"),
                             subtitle: Text("English"),
-                            onTap: () async => await context.read<SettingsCubit>().changeLanguage(context, language: AppLocale.en),
+                            onTap: () async => await context.read<LanguageCubit>().changeLanguage(context, language: AppLocale.en),
                             trailing: context.read<LanguageCubit>().trailingIcon(context, language: AppLocale.en),
                           ),
                           CupertinoListTile(
                             backgroundColorActivated: CupertinoDynamicColor.resolve(CupertinoColors.transparent, context),
                             title: Text("Russian"),
                             subtitle: Text("Русский"),
-                            onTap: () async => await context.read<SettingsCubit>().changeLanguage(context, language: AppLocale.ru),
+                            onTap: () async => await context.read<LanguageCubit>().changeLanguage(context, language: AppLocale.ru),
                             trailing: context.read<LanguageCubit>().trailingIcon(context, language: AppLocale.ru),
                           ),
                         ],

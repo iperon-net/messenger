@@ -32,7 +32,7 @@ Future<void> main() async {
       child: MultiBlocProvider(
           providers: [
             BlocProvider<SettingsCubit>(
-              create: (BuildContext context) => SettingsCubit()..loading(),
+              create: (BuildContext context) => SettingsCubit()..initialization(),
             ),
             BlocProvider<LanguageCubit>(
               create: (BuildContext context) => LanguageCubit(),
@@ -61,7 +61,6 @@ class IperonMessengerMaterial extends StatelessWidget {
       locale: TranslationProvider.of(context).flutterLocale,
       routerConfig: routers.router(),
     );
-
   }
 }
 
