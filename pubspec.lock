@@ -209,6 +209,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.8"
+  cupertino_sidebar:
+    dependency: "direct main"
+    description:
+      name: cupertino_sidebar
+      sha256: df3ed087b5b86d335f32862f81a84b6f08efc603090349ee21d9630abd9017c6
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.1"
   dart_style:
     dependency: transitive
     description:
@@ -773,6 +781,38 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.1.0"
+  scrollable_list_tab_scroller:
+    dependency: "direct main"
+    description:
+      name: scrollable_list_tab_scroller
+      sha256: e2f7b961b5eedde6dd94ceea73e39424db932adf2d914a99341f94dd49fc0265
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.1.1"
+  scrollable_positioned_list:
+    dependency: transitive
+    description:
+      name: scrollable_positioned_list
+      sha256: "1b54d5f1329a1e263269abc9e2543d90806131aa14fe7c6062a8054d57249287"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.3.8"
+  scrollable_tab_view:
+    dependency: "direct main"
+    description:
+      name: scrollable_tab_view
+      sha256: efff41477b7bca2c9f1bcde06478b8b13ec28f7cef3380b829a2d4ec0c2684c2
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.14"
+  scrolls_to_top:
+    dependency: transitive
+    description:
+      name: scrolls_to_top
+      sha256: "8d6684d936b9c1a19c19ee93c836251ae9c803023290762a30cb7657e88e272e"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.1.1"
   share_plus:
     dependency: transitive
     description:
@@ -1010,6 +1050,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.3.1"
+  tab_container:
+    dependency: "direct main"
+    description:
+      name: tab_container
+      sha256: "15f87032f63fd7f0a59740aa31c5bc7056af3159a37311bca546d343240f3029"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.5.3"
   talker:
     dependency: "direct main"
     description:

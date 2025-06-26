@@ -53,6 +53,10 @@ dependencies:
   package_info_plus: ^8.3.0
   talker_bloc_logger: ^4.9.1
   avatar_plus: ^0.0.5
+  tab_container: ^3.5.3
+  scrollable_tab_view: ^1.0.14
+  scrollable_list_tab_scroller: ^3.1.1
+  cupertino_sidebar: ^1.0.1
 
 dev_dependencies:
   flutter_test:
