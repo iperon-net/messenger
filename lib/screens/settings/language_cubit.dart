@@ -20,7 +20,7 @@ class LanguageCubit extends Cubit<LanguageState> {
 
   Future<void> initialization() async {
     emit(state.copyWith(status: Status.loading));
-    emit(state.copyWith(status: Status.success, currentLanguage: LocaleSettings.currentLocale));
+    emit(state.copyWith(status: Status.success, currentLanguage: LocaleSettings.currentLocale, chooseLanguage: LocaleSettings.currentLocale));
   }
 
   /// Changes the application language and persists the selection in secure storage.

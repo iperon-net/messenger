@@ -20,6 +20,7 @@ class _SettingsScreenCupertino extends State<SettingsScreenCupertino> {
   @override
   void initState() {
     context.read<SettingsCubit>().initialization();
+    context.read<LanguageCubit>().initialization();
     super.initState();
   }
 
@@ -79,7 +80,7 @@ class _SettingsScreenCupertino extends State<SettingsScreenCupertino> {
                           return CupertinoListTile(
                             leading: Icon(CupertinoIcons.globe),
                             title: Text(context.t.language, style: TextStyle(fontSize: 15),),
-                            additionalInfo: state.status == Status.success ? Text(additionalInfo): CupertinoActivityIndicator(),
+                            additionalInfo: stateLanguage.status == Status.success ? Text(additionalInfo): CupertinoActivityIndicator(),
                             trailing: CupertinoListTileChevron(),
                             onTap: () => context.goNamed("settings_language"),
                           );
