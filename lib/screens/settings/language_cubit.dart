@@ -6,6 +6,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import '../../cubit/constants.dart';
 import '../../di.dart';
 import '../../i18n/translations.g.dart';
+import '../../logger.dart';
 import '../../secure_storage.dart';
 
 part 'language_cubit.freezed.dart';
@@ -15,6 +16,7 @@ class LanguageCubit extends Cubit<LanguageState> {
   LanguageCubit() : super(const LanguageState());
 
   final _secureStorage = getIt.get<SecureStorage>();
+  final _logger = getIt.get<Logger>();
 
   Future<void> initialization() async {
     emit(state.copyWith(status: Status.loading));
@@ -33,12 +35,12 @@ class LanguageCubit extends Cubit<LanguageState> {
   /// Emits a loading status while the change is in progress and a success status after the process is complete.
   Future<void> changeLanguage(BuildContext context, {required AppLocale language}) async {
     emit(state.copyWith(status: Status.loading, chooseLanguage: language));
-    if (language == AppLocale.ru){
-      _secureStorage.write(key: "language", value: "ru");
-    } else {
-      _secureStorage.write(key: "language", value: "en");
-    }
+
+    _secureStorage.write(key: "language", value: language.languageCode);
     LocaleSettings.setLocale(language);
+
+    _logger.info("Language changed ${language.languageCode}");
+
     emit(state.copyWith(status: Status.success, currentLanguage: language, chooseLanguage: language));
   }
 
