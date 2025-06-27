@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$SettingsState {
 
- Status get status; String get errorMessage; String get versionApplication; String get languageName;
+ Status get status; String get errorMessage; String get versionApplication;
 /// Create a copy of SettingsState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -26,16 +26,16 @@ $SettingsStateCopyWith<SettingsState> get copyWith => _$SettingsStateCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SettingsState&&(identical(other.status, status) || other.status == status)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage)&&(identical(other.versionApplication, versionApplication) || other.versionApplication == versionApplication)&&(identical(other.languageName, languageName) || other.languageName == languageName));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SettingsState&&(identical(other.status, status) || other.status == status)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage)&&(identical(other.versionApplication, versionApplication) || other.versionApplication == versionApplication));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,status,errorMessage,versionApplication,languageName);
+int get hashCode => Object.hash(runtimeType,status,errorMessage,versionApplication);
 
 @override
 String toString() {
-  return 'SettingsState(status: $status, errorMessage: $errorMessage, versionApplication: $versionApplication, languageName: $languageName)';
+  return 'SettingsState(status: $status, errorMessage: $errorMessage, versionApplication: $versionApplication)';
 }
 
 
@@ -46,7 +46,7 @@ abstract mixin class $SettingsStateCopyWith<$Res>  {
   factory $SettingsStateCopyWith(SettingsState value, $Res Function(SettingsState) _then) = _$SettingsStateCopyWithImpl;
 @useResult
 $Res call({
- Status status, String errorMessage, String versionApplication, String languageName
+ Status status, String errorMessage, String versionApplication
 });
 
 
@@ -63,12 +63,11 @@ class _$SettingsStateCopyWithImpl<$Res>
 
 /// Create a copy of SettingsState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? status = null,Object? errorMessage = null,Object? versionApplication = null,Object? languageName = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? status = null,Object? errorMessage = null,Object? versionApplication = null,}) {
   return _then(_self.copyWith(
 status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as Status,errorMessage: null == errorMessage ? _self.errorMessage : errorMessage // ignore: cast_nullable_to_non_nullable
 as String,versionApplication: null == versionApplication ? _self.versionApplication : versionApplication // ignore: cast_nullable_to_non_nullable
-as String,languageName: null == languageName ? _self.languageName : languageName // ignore: cast_nullable_to_non_nullable
 as String,
   ));
 }
@@ -80,13 +79,12 @@ as String,
 
 
 class _SettingsState extends SettingsState {
-  const _SettingsState({this.status = Status.initial, this.errorMessage = "", this.versionApplication = "", this.languageName = "English"}): super._();
+  const _SettingsState({this.status = Status.initial, this.errorMessage = "", this.versionApplication = ""}): super._();
   
 
 @override@JsonKey() final  Status status;
 @override@JsonKey() final  String errorMessage;
 @override@JsonKey() final  String versionApplication;
-@override@JsonKey() final  String languageName;
 
 /// Create a copy of SettingsState
 /// with the given fields replaced by the non-null parameter values.
@@ -98,16 +96,16 @@ _$SettingsStateCopyWith<_SettingsState> get copyWith => __$SettingsStateCopyWith
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SettingsState&&(identical(other.status, status) || other.status == status)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage)&&(identical(other.versionApplication, versionApplication) || other.versionApplication == versionApplication)&&(identical(other.languageName, languageName) || other.languageName == languageName));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SettingsState&&(identical(other.status, status) || other.status == status)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage)&&(identical(other.versionApplication, versionApplication) || other.versionApplication == versionApplication));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,status,errorMessage,versionApplication,languageName);
+int get hashCode => Object.hash(runtimeType,status,errorMessage,versionApplication);
 
 @override
 String toString() {
-  return 'SettingsState(status: $status, errorMessage: $errorMessage, versionApplication: $versionApplication, languageName: $languageName)';
+  return 'SettingsState(status: $status, errorMessage: $errorMessage, versionApplication: $versionApplication)';
 }
 
 
@@ -118,7 +116,7 @@ abstract mixin class _$SettingsStateCopyWith<$Res> implements $SettingsStateCopy
   factory _$SettingsStateCopyWith(_SettingsState value, $Res Function(_SettingsState) _then) = __$SettingsStateCopyWithImpl;
 @override @useResult
 $Res call({
- Status status, String errorMessage, String versionApplication, String languageName
+ Status status, String errorMessage, String versionApplication
 });
 
 
@@ -135,12 +133,11 @@ class __$SettingsStateCopyWithImpl<$Res>
 
 /// Create a copy of SettingsState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? status = null,Object? errorMessage = null,Object? versionApplication = null,Object? languageName = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? status = null,Object? errorMessage = null,Object? versionApplication = null,}) {
   return _then(_SettingsState(
 status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as Status,errorMessage: null == errorMessage ? _self.errorMessage : errorMessage // ignore: cast_nullable_to_non_nullable
 as String,versionApplication: null == versionApplication ? _self.versionApplication : versionApplication // ignore: cast_nullable_to_non_nullable
-as String,languageName: null == languageName ? _self.languageName : languageName // ignore: cast_nullable_to_non_nullable
 as String,
   ));
 }

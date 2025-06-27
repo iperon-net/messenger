@@ -31,10 +31,9 @@ class _LanguageScreenCupertino extends State<LanguageScreenCupertino> {
         transitionBetweenRoutes: true,
       ),
       child: SafeArea(
-        child: BlocConsumer<LanguageCubit, LanguageState>(
-          listener: (context, state) async => await context.read<SettingsCubit>().reloadLanguageName(),
+        child: BlocBuilder<LanguageCubit, LanguageState>(
+          // listener: (context, state) async => await context.read<SettingsCubit>().reloadLanguageName(),
           builder: (context, state) {
-
             return SingleChildScrollView(
               child: BlocBuilder<SettingsCubit, SettingsState>(
                 builder: (context, settingsState) {

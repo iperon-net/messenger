@@ -4,7 +4,6 @@ import 'package:package_info_plus/package_info_plus.dart';
 
 import '../../cubit/constants.dart';
 import '../../di.dart';
-import '../../i18n/translations.g.dart';
 import '../../logger.dart';
 import '../../secure_storage.dart';
 
@@ -19,28 +18,8 @@ class SettingsCubit extends Cubit<SettingsState> {
 
   Future<void> initialization() async {
     emit(state.copyWith(status: Status.loading));
-
     PackageInfo packageInfo = await PackageInfo.fromPlatform();
-
-    String languageName = "English";
-    if (LocaleSettings.currentLocale == AppLocale.ru) languageName = "Русский";
-
-    emit(state.copyWith(
-      versionApplication: packageInfo.version.toString(),
-      languageName: languageName,
-      status: Status.success,
-    ));
+    emit(state.copyWith(status: Status.success, versionApplication: packageInfo.version.toString()));
   }
-
-  Future<void> reloadLanguageName() async {
-    emit(state.copyWith(status: Status.loading));
-
-    String languageName = "English";
-    if (LocaleSettings.currentLocale == AppLocale.ru) languageName = "Русский";
-
-    emit(state.copyWith(languageName: languageName, status: Status.success));
-
-  }
-
 
 }

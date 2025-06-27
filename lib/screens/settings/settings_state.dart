@@ -8,6 +8,5 @@ abstract class SettingsState with _$SettingsState {
     @Default(Status.initial) Status status,
     @Default("") String errorMessage,
     @Default("") String versionApplication,
-    @Default("English") String languageName,
   }) = _SettingsState;
 }

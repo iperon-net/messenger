@@ -38,6 +38,7 @@ class LanguageCubit extends Cubit<LanguageState> {
     } else {
       _secureStorage.write(key: "language", value: "en");
     }
+    await Future.delayed(Duration(seconds: 5));
 
     LocaleSettings.setLocale(language);
     emit(state.copyWith(status: Status.success, currentLanguage: language));

@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:messenger/screens/settings/language_cubit.dart';
 
 import '../../cubit/constants.dart';
 import '../../i18n/translations.g.dart';
@@ -70,12 +71,19 @@ class _SettingsScreenCupertino extends State<SettingsScreenCupertino> {
                         title: Text(context.t.appearance, style: TextStyle(fontSize: 15),),
                         trailing: CupertinoListTileChevron(),
                       ),
-                      CupertinoListTile(
-                        leading: Icon(CupertinoIcons.globe),
-                        title: Text(context.t.language, style: TextStyle(fontSize: 15),),
-                        additionalInfo: state.status == Status.success ? Text(state.languageName): CupertinoActivityIndicator(),
-                        trailing: CupertinoListTileChevron(),
-                        onTap: () => context.goNamed("settings_language"),
+                      BlocBuilder<LanguageCubit, LanguageState>(
+                        builder: (context, stateLanguage) {
+                          String additionalInfo = "English";
+                          if (stateLanguage.currentLanguage == AppLocale.ru) additionalInfo = "Русский";
+
+                          return CupertinoListTile(
+                            leading: Icon(CupertinoIcons.globe),
+                            title: Text(context.t.language, style: TextStyle(fontSize: 15),),
+                            additionalInfo: state.status == Status.success ? Text(additionalInfo): CupertinoActivityIndicator(),
+                            trailing: CupertinoListTileChevron(),
+                            onTap: () => context.goNamed("settings_language"),
+                          );
+                        },
                       ),
                       CupertinoListTile(
                         leading: Icon(CupertinoIcons.arrow_2_circlepath),
