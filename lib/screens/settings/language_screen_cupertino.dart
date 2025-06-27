@@ -48,8 +48,8 @@ class _LanguageScreenCupertino extends State<LanguageScreenCupertino> {
                             title: Text("English"),
                             subtitle: Text("English"),
                             onTap: () async => state.status == Status.success ? await context.read<LanguageCubit>().changeLanguage(context, language: AppLocale.en) : null,
-                            trailing: state.status == Status.loading && state.currentLanguage == AppLocale.en ? CupertinoActivityIndicator()
-                                : (state.currentLanguage == AppLocale.en ?
+                            trailing: state.status == Status.loading && state.chooseLanguage == AppLocale.en ? CupertinoActivityIndicator()
+                                : (state.chooseLanguage == AppLocale.en ?
                             Icon(CupertinoIcons.checkmark_alt, color: CupertinoTheme.of(context).primaryColor) : Container()),
                           ),
                           CupertinoListTile(
@@ -57,8 +57,8 @@ class _LanguageScreenCupertino extends State<LanguageScreenCupertino> {
                             title: Text("Russian"),
                             subtitle: Text("Русский"),
                             onTap: () async => state.status == Status.success ? await context.read<LanguageCubit>().changeLanguage(context, language: AppLocale.ru): null,
-                            trailing: state.status == Status.loading && state.currentLanguage == AppLocale.ru ? CupertinoActivityIndicator()
-                                : (state.currentLanguage == AppLocale.ru ?
+                            trailing: state.status == Status.loading && state.chooseLanguage == AppLocale.ru ? CupertinoActivityIndicator()
+                                : (state.chooseLanguage == AppLocale.ru ?
                               Icon(CupertinoIcons.checkmark_alt, color: CupertinoTheme.of(context).primaryColor) : Container())
                           ),
                         ],
