@@ -26,14 +26,15 @@ class _SettingsScreenCupertino extends State<SettingsScreenCupertino> {
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
+        transitionBetweenRoutes: false,
         middle: Text(context.t.settings),
       ),
-      child: SafeArea(
-        child: BlocBuilder<SettingsCubit, SettingsState>(
-          builder: (context, state) {
-            return SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+      child: SingleChildScrollView(
+        child: SafeArea(
+          child: BlocBuilder<SettingsCubit, SettingsState>(
+            builder: (context, state) {
+              return Column(
+                // crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   //CupertinoColors.systemGroupedBackground
                   CupertinoFormSection.insetGrouped(
@@ -92,9 +93,9 @@ class _SettingsScreenCupertino extends State<SettingsScreenCupertino> {
                     ],
                   ),
                 ],
-              ),
-            );
-          },
+              );
+            },
+          ),
         ),
       ),
     );

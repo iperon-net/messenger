@@ -28,6 +28,7 @@ class _LanguageScreenCupertino extends State<LanguageScreenCupertino> {
       navigationBar: CupertinoNavigationBar(
         previousPageTitle: t.back,
         middle: Text(context.t.language),
+        transitionBetweenRoutes: true,
       ),
       child: SafeArea(
         child: BlocConsumer<LanguageCubit, LanguageState>(

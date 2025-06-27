@@ -63,7 +63,7 @@ class IperonMessengerMaterial extends StatelessWidget {
       ],
       supportedLocales: AppLocaleUtils.supportedLocales,
       locale: TranslationProvider.of(context).flutterLocale,
-      routerConfig: routers.router(),
+      routerConfig: routers.routerMaterial(),
     );
   }
 }
@@ -83,7 +83,7 @@ class IperonMessengerCupertino extends StatelessWidget {
       ],
       supportedLocales: AppLocaleUtils.supportedLocales,
       locale: TranslationProvider.of(context).flutterLocale,
-      routerConfig: routers.router(),
+      routerConfig: routers.routerCupertino(),
       theme: CupertinoThemeData(
         primaryColor: CupertinoColors.activeBlue,
         scaffoldBackgroundColor: CupertinoDynamicColor.withBrightness(

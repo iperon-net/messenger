@@ -13,17 +13,48 @@ class Routers {
   final GlobalKey<NavigatorState> navigatorGoRouterKey = GlobalKey<NavigatorState>();
   final logger = getIt.get<Logger>();
 
-  GoRouter router() {
+  final routes = <RouteBase>[];
+
+  GoRouter routerCupertino() {
     return GoRouter(
       navigatorKey: navigatorGoRouterKey,
-      initialLocation: "/home",
+      initialLocation: "/",
       observers: <NavigatorObserver>[
         TalkerRouteObserver(logger.getTalker()),
       ],
       routes: <RouteBase>[
         GoRoute(
-          path: "/home",
-          name: "home",
+          path: "/",
+          name: "index",
+          builder: (BuildContext context, GoRouterState state) => HomeScreen(),
+          routes: [
+            GoRoute(
+              path: "/settings",
+              name: "settings",
+              builder: (BuildContext context, GoRouterState state) => SettingsScreen(),
+            ),
+            GoRoute(
+              path: "/settings/language",
+              name: "settings_language",
+              builder: (BuildContext context, GoRouterState state) => LanguageScreen(),
+            ),
+          ],
+        ),
+      ]
+    );
+  }
+
+  GoRouter routerMaterial() {
+    return GoRouter(
+      navigatorKey: navigatorGoRouterKey,
+      initialLocation: "/",
+      observers: <NavigatorObserver>[
+        TalkerRouteObserver(logger.getTalker()),
+      ],
+      routes: <RouteBase>[
+        GoRoute(
+          path: "/",
+          name: "index",
           builder: (BuildContext context, GoRouterState state) => HomeScreen(),
           routes: [
             GoRoute(
@@ -43,4 +74,5 @@ class Routers {
       ]
     );
   }
+
 }
