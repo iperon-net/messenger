@@ -28,9 +28,15 @@ class _LanguageScreenCupertino extends State<LanguageScreenCupertino> {
       navigationBar: CupertinoNavigationBar(
         previousPageTitle: t.back,
         middle: Text(context.t.language),
-        transitionBetweenRoutes: true,
+        // middle: Column(
+        //   children: [
+        //     Text(context.t.language),
+        //     Text(context.t.waiting_for_network, style: TextStyle(fontSize: 12, fontWeight: FontWeight.normal),),
+        //   ],
+        // ),
       ),
       child: SafeArea(
+        bottom: true,
         child: BlocBuilder<LanguageCubit, LanguageState>(
           // listener: (context, state) async => await context.read<SettingsCubit>().reloadLanguageName(),
           builder: (context, state) {

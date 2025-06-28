@@ -20,3 +20,4 @@ online: "Online"
 "last_seen_minutes":
   "one": "last seen $n minute ago"
   "other": "last seen $n minutes ago"
+"waiting_for_network" : "Waiting for network..."
