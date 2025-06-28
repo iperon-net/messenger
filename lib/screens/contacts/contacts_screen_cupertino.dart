@@ -33,7 +33,7 @@ class _ContactsScreenCupertino extends State<ContactsScreenCupertino> {
   Widget tabs(BuildContext context) {
     return SizedBox(
       width: MediaQuery.of(context).size.width,
-      height: 20,
+      height: 30,
       child: ListView(
         scrollDirection: Axis.horizontal,
         children: <Widget>[
@@ -43,16 +43,27 @@ class _ContactsScreenCupertino extends State<ContactsScreenCupertino> {
               child: Center(
                 child: Container(
                   decoration: BoxDecoration(
-                    border: Border(
-                      bottom: BorderSide(
-                        color: CupertinoTheme.of(context).primaryColor,
-                        width: 2.5,
+                    color: CupertinoTheme.of(context).primaryColor,
+                    border: Border.all(
+                      color: CupertinoTheme.of(context).primaryColor,
+                      width: 2,
+                      style: BorderStyle.solid,
+                      // bottom: BorderSide(
+                      //   color: CupertinoTheme.of(context).primaryColor,
+                      //   width: 2.5,
+                      // ),
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(5.0),
+                    child: Text(
+                      "Все контакты",
+                      style: TextStyle(
+                        fontSize: 15.0,
+                        color: CupertinoTheme.of(context).primaryContrastingColor,
                       ),
                     ),
-                  ),
-                  child: Text(
-                    "Все контакты",
-                    style: TextStyle(fontSize: 15.0),
                   ),
                 ),
               ),
@@ -81,7 +92,7 @@ class _ContactsScreenCupertino extends State<ContactsScreenCupertino> {
 
   Widget contacts(BuildContext context) {
     return SizedBox(
-      width: MediaQuery.of(context).size.width,
+      // width: MediaQuery.of(context).size.width,
       child: CupertinoFormSection(
         children: [
           CupertinoListTile(
@@ -225,6 +236,7 @@ class _ContactsScreenCupertino extends State<ContactsScreenCupertino> {
           child: Column(
             children: [
               search(context),
+              SizedBox(height: 15,),
               tabs(context),
               contacts(context)
             ],
