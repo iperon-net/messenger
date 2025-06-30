@@ -65,6 +65,8 @@ class TranslationsRu extends Translations {
 		other: 'был(а) ${n} минут назад',
 	);
 	@override String get waiting_for_network => 'Ожидание сети...';
+	@override String get all_contacts => 'Все контакты';
+	@override String get all => 'Все';
 }
 
 /// Flat map(s) containing all translations.
@@ -98,6 +100,8 @@ extension on TranslationsRu {
 				other: 'был(а) ${n} минут назад',
 			);
 			case 'waiting_for_network': return 'Ожидание сети...';
+			case 'all_contacts': return 'Все контакты';
+			case 'all': return 'Все';
 			default: return null;
 		}
 	}

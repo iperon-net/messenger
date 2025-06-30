@@ -7,5 +7,7 @@ abstract class ContactsState with _$ContactsState {
   const factory ContactsState({
     @Default(Status.initial) Status status,
     @Default("") String errorMessage,
+    @Default([]) List<Contact?> contacts,
+    @Default([]) List<ContactTabs?> contactTabs,
   }) = _ContactsState;
 }

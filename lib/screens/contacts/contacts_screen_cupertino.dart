@@ -1,7 +1,11 @@
 import 'package:avatar_plus/avatar_plus.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:messenger/screens/contacts/contacts_cubit.dart';
 
+import '../../di.dart';
 import '../../i18n/translations.g.dart';
+import '../../logger.dart';
 
 class ContactsScreenCupertino extends StatefulWidget {
   const ContactsScreenCupertino({super.key});
@@ -16,6 +20,7 @@ class _ContactsScreenCupertino extends State<ContactsScreenCupertino> {
 
   @override
   void initState() {
+    context.read<ContactsCubit>().initialization();
     super.initState();
   }
 
@@ -31,202 +36,130 @@ class _ContactsScreenCupertino extends State<ContactsScreenCupertino> {
   }
 
   Widget tabs(BuildContext context) {
-    return SizedBox(
-      width: MediaQuery.of(context).size.width,
-      height: 30,
-      child: ListView(
-        scrollDirection: Axis.horizontal,
-        children: <Widget>[
-          Padding(
+    return BlocBuilder<ContactsCubit, ContactsState>(
+      builder: (context, state) {
+        final tabs = <Widget>[];
+
+        for (final tab in state.contactTabs) {
+          if (tab == null) continue;
+
+          String name = tab.name;
+
+          if(tab.isSystem && tab.systemName == "all") {
+            name = context.t.all;
+          } else if (tab.isSystem && tab.systemName == "favorites") {
+            name = context.t.favorites;
+          }
+
+          tabs.add(Padding(
             padding: const EdgeInsets.fromLTRB(15, 0, 0, 0),
             child: SizedBox(
               child: Center(
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: CupertinoTheme.of(context).primaryColor,
-                    border: Border.all(
-                      color: CupertinoTheme.of(context).primaryColor,
-                      width: 2,
-                      style: BorderStyle.solid,
-                      // bottom: BorderSide(
-                      //   color: CupertinoTheme.of(context).primaryColor,
-                      //   width: 2.5,
-                      // ),
-                    ),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(5.0),
-                    child: Text(
-                      "Все контакты",
-                      style: TextStyle(
-                        fontSize: 15.0,
-                        color: CupertinoTheme.of(context).primaryContrastingColor,
-                      ),
-                    ),
-                  ),
+                child: Text(
+                  name,
+                  style: TextStyle(fontSize: 15),
                 ),
               ),
             ),
+          ));
+        }
+
+        return SizedBox(
+          width: MediaQuery.of(context).size.width,
+          height: MediaQuery.of(context).size.shortestSide * 0.08,
+          child: ListView(
+            scrollDirection: Axis.horizontal,
+            children: tabs,
+
+            // children: <Widget>[
+            //   Padding(
+            //     padding: const EdgeInsets.fromLTRB(10, 0, 0, 0),
+            //     child: SizedBox(
+            //
+            //       child: Center(
+            //         child: Container(
+            //           decoration: BoxDecoration(
+            //             color: CupertinoTheme.of(context).primaryColor,
+            //             border: Border.all(
+            //               color: CupertinoTheme.of(context).primaryColor,
+            //               width: 2,
+            //               style: BorderStyle.solid,
+            //             ),
+            //             borderRadius: BorderRadius.circular(12),
+            //           ),
+            //           child: Row(
+            //             children: [
+            //               Padding(
+            //                 padding: const EdgeInsets.all(5.0),
+            //                 child: Text(
+            //                   context.t.all_contacts,
+            //                   style: TextStyle(
+            //                     fontSize: 15.0,
+            //                     color: CupertinoTheme.of(context).primaryContrastingColor,
+            //                   ),
+            //                 ),
+            //               ),
+            //             ],
+            //           ),
+            //         ),
+            //       ),
+            //     ),
+            //   ),
+            //   Padding(
+            //     padding: const EdgeInsets.fromLTRB(15, 0, 0, 0),
+            //     child: SizedBox(child: Center(child: Text(context.t.favorites, style: TextStyle(fontSize: 15),)),),
+            //   ),
+            //   Padding(
+            //     padding: const EdgeInsets.fromLTRB(15, 0, 0, 0),
+            //     child: SizedBox(child: Center(child: Text("Рабочие контакты", style: TextStyle(fontSize: 15),)),),
+            //   ),
+            //   Padding(
+            //     padding: const EdgeInsets.fromLTRB(15, 0, 0, 0),
+            //     child: SizedBox(
+            //       child: Row(
+            //         children: [
+            //           Center(
+            //             child: Text(
+            //               "Моя семья",
+            //               style: TextStyle(fontSize: 15),
+            //             ),
+            //           ),
+            //         ],
+            //       ),
+            //     ),
+            //   ),
+            // ],
           ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(15, 0, 0, 0),
-            child: SizedBox(child: Center(child: Text("Избранные", style: TextStyle(fontSize: 15),)),),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(15, 0, 0, 0),
-            child: SizedBox(child: Center(child: Text("Рабочие контакты", style: TextStyle(fontSize: 15),)),),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(15, 0, 0, 0),
-            child: SizedBox(child: Center(child: Text("Моя семья", style: TextStyle(fontSize: 15),)),),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(15, 0, 0, 0),
-            child: SizedBox(child: Center(child: Text("Заблокированные", style: TextStyle(fontSize: 15),)),),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
   Widget contacts(BuildContext context) {
-    return SizedBox(
-      // width: MediaQuery.of(context).size.width,
-      child: CupertinoFormSection(
-        children: [
-          CupertinoListTile(
-            leading: AvatarPlus("Костя", height: 32, width: 32),
-            title: Text("Костя", style: TextStyle(fontSize: 15),),
-            subtitle: Text(t.online),
-          ),
-          CupertinoListTile(
-            leading: AvatarPlus("Алиса Тен", height: 32, width: 32),
-            title: Text("Алиса Тен", style: TextStyle(fontSize: 15),),
-            subtitle: Text("был(а) недавно"),
-          ),
-          CupertinoListTile(
-            leading: AvatarPlus("Ирина Герасимова", height: 32, width: 32),
-            title: Text("Ирина Герасимова", style: TextStyle(fontSize: 15),),
-            subtitle: Text(t.last_seen_minutes(n: 6)),
-          ),
-          CupertinoListTile(
-            leading: AvatarPlus("Тен Лариса", height: 32, width: 32),
-            title: Text("Тен Лариса", style: TextStyle(fontSize: 15),),
-            subtitle: Text("был(а) 20.06.2025"),
-          ),
-          CupertinoListTile(
-            leading: AvatarPlus("Тен Клим", height: 32, width: 32),
-            title: Text("Тен Клим", style: TextStyle(fontSize: 15),),
-            subtitle: Text("был(а) 01.05.2025"),
-          ),
-          CupertinoListTile(
-            leading: AvatarPlus("Костя", height: 32, width: 32),
-            title: Text("Костя", style: TextStyle(fontSize: 15),),
-            subtitle: Text(t.online),
-          ),
-          CupertinoListTile(
-            leading: AvatarPlus("Алиса Тен", height: 32, width: 32),
-            title: Text("Алиса Тен", style: TextStyle(fontSize: 15),),
-            subtitle: Text("был(а) недавно"),
-          ),
-          CupertinoListTile(
-            leading: AvatarPlus("Ирина Герасимова", height: 32, width: 32),
-            title: Text("Ирина Герасимова", style: TextStyle(fontSize: 15),),
-            subtitle: Text("был(а) 6 минут назад"),
-          ),
-          CupertinoListTile(
-            leading: AvatarPlus("Тен Лариса", height: 32, width: 32),
-            title: Text("Тен Лариса", style: TextStyle(fontSize: 15),),
-            subtitle: Text("был(а) 20.06.2025"),
-          ),
-          CupertinoListTile(
-            leading: AvatarPlus("Тен Клим", height: 32, width: 32),
-            title: Text("Тен Клим", style: TextStyle(fontSize: 15),),
-            subtitle: Text("был(а) 01.05.2025"),
-          ),
-          CupertinoListTile(
-            leading: AvatarPlus("Костя", height: 32, width: 32),
-            title: Text("Костя", style: TextStyle(fontSize: 15),),
-            subtitle: Text(t.online),
-          ),
-          CupertinoListTile(
-            leading: AvatarPlus("Алиса Тен", height: 32, width: 32),
-            title: Text("Алиса Тен", style: TextStyle(fontSize: 15),),
-            subtitle: Text("был(а) недавно"),
-          ),
-          CupertinoListTile(
-            leading: AvatarPlus("Ирина Герасимова", height: 32, width: 32),
-            title: Text("Ирина Герасимова", style: TextStyle(fontSize: 15),),
-            subtitle: Text("был(а) 6 минут назад"),
-          ),
-          CupertinoListTile(
-            leading: AvatarPlus("Тен Лариса", height: 32, width: 32),
-            title: Text("Тен Лариса", style: TextStyle(fontSize: 15),),
-            subtitle: Text("был(а) 20.06.2025"),
-          ),
-          CupertinoListTile(
-            leading: AvatarPlus("Тен Клим", height: 32, width: 32),
-            title: Text("Тен Клим", style: TextStyle(fontSize: 15),),
-            subtitle: Text("был(а) 01.05.2025"),
-          ),
-          CupertinoListTile(
-            leading: AvatarPlus("Костя", height: 32, width: 32),
-            title: Text("Костя", style: TextStyle(fontSize: 15),),
-            subtitle: Text(t.online),
-          ),
-          CupertinoListTile(
-            leading: AvatarPlus("Алиса Тен", height: 32, width: 32),
-            title: Text("Алиса Тен", style: TextStyle(fontSize: 15),),
-            subtitle: Text("был(а) недавно"),
-          ),
-          CupertinoListTile(
-            leading: AvatarPlus("Ирина Герасимова", height: 32, width: 32),
-            title: Text("Ирина Герасимова", style: TextStyle(fontSize: 15),),
-            subtitle: Text("был(а) 6 минут назад"),
-          ),
-          CupertinoListTile(
-            leading: AvatarPlus("Тен Лариса", height: 32, width: 32),
-            title: Text("Тен Лариса", style: TextStyle(fontSize: 15),),
-            subtitle: Text("был(а) 20.06.2025"),
-          ),
-          CupertinoListTile(
-            leading: AvatarPlus("Тен Клим", height: 32, width: 32),
-            title: Text("Тен Клим", style: TextStyle(fontSize: 15),),
-            subtitle: Text("был(а) 01.05.2025"),
-          ),
-          CupertinoListTile(
-            leading: AvatarPlus("Костя", height: 32, width: 32),
-            title: Text("Костя", style: TextStyle(fontSize: 15),),
-            subtitle: Text(t.online),
-          ),
-          CupertinoListTile(
-            leading: AvatarPlus("Алиса Тен", height: 32, width: 32),
-            title: Text("Алиса Тен", style: TextStyle(fontSize: 15),),
-            subtitle: Text("был(а) недавно"),
-          ),
-          CupertinoListTile(
-            leading: AvatarPlus("Ирина Герасимова", height: 32, width: 32),
-            title: Text("Ирина Герасимова", style: TextStyle(fontSize: 15),),
-            subtitle: Text("был(а) 6 минут назад"),
-          ),
-          CupertinoListTile(
-            leading: AvatarPlus("Тен Лариса", height: 32, width: 32),
-            title: Text("Тен Лариса", style: TextStyle(fontSize: 15),),
-            subtitle: Text("был(а) 20.06.2025"),
-          ),
-          CupertinoListTile(
-            leading: AvatarPlus("Тен Клим", height: 32, width: 32),
-            title: Text("Тен Клим", style: TextStyle(fontSize: 15),),
-            subtitle: Text("был(а) 01.05.2025"),
-          ),
-        ],
-      ),
+    return BlocBuilder<ContactsCubit, ContactsState>(
+      builder: (context, state) {
+
+        final contacts = <CupertinoListTile>[];
+        for (final contact in state.contacts) {
+          if (contact == null) continue;
+
+          contacts.add(CupertinoListTile(
+            leading: AvatarPlus(contact.contactId.toString(), height: 32, width: 32),
+            title: Text("${contact.firstName} ${contact.lastName}", style: TextStyle(fontSize: 15),),
+            subtitle: contact.lastVisitAt == 0 ? Text("n/a") : Text(t.online),
+          ));
+
+        }
+        return CupertinoFormSection(
+            children: contacts
+        );
+      },
     );
   }
 
   @override
   Widget build(BuildContext context) {
+
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
         middle: Text(context.t.contacts),
@@ -238,7 +171,23 @@ class _ContactsScreenCupertino extends State<ContactsScreenCupertino> {
               search(context),
               SizedBox(height: 15,),
               tabs(context),
-              contacts(context)
+              Dismissible(
+                key: Key("d"),
+                // crossAxisEndOffset: 1,
+                secondaryBackground: contacts(context),
+                background: contacts(context),
+                direction: DismissDirection.endToStart,
+                onDismissed: (direction) {
+                  final logger = getIt.get<Logger>();
+                  logger.debug(direction.name);
+                  return;
+                },
+                onUpdate: (details) {
+                  final logger = getIt.get<Logger>();
+                  logger.debug(details.toString());
+                },
+                child: contacts(context),
+              ),
             ],
           ),
         ),

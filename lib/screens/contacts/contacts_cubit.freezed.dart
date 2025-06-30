@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$ContactsState {
 
- Status get status; String get errorMessage;
+ Status get status; String get errorMessage; List<Contact?> get contacts; List<ContactTabs?> get contactTabs;
 /// Create a copy of ContactsState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -26,16 +26,16 @@ $ContactsStateCopyWith<ContactsState> get copyWith => _$ContactsStateCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ContactsState&&(identical(other.status, status) || other.status == status)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ContactsState&&(identical(other.status, status) || other.status == status)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage)&&const DeepCollectionEquality().equals(other.contacts, contacts)&&const DeepCollectionEquality().equals(other.contactTabs, contactTabs));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,status,errorMessage);
+int get hashCode => Object.hash(runtimeType,status,errorMessage,const DeepCollectionEquality().hash(contacts),const DeepCollectionEquality().hash(contactTabs));
 
 @override
 String toString() {
-  return 'ContactsState(status: $status, errorMessage: $errorMessage)';
+  return 'ContactsState(status: $status, errorMessage: $errorMessage, contacts: $contacts, contactTabs: $contactTabs)';
 }
 
 
@@ -46,7 +46,7 @@ abstract mixin class $ContactsStateCopyWith<$Res>  {
   factory $ContactsStateCopyWith(ContactsState value, $Res Function(ContactsState) _then) = _$ContactsStateCopyWithImpl;
 @useResult
 $Res call({
- Status status, String errorMessage
+ Status status, String errorMessage, List<Contact?> contacts, List<ContactTabs?> contactTabs
 });
 
 
@@ -63,11 +63,13 @@ class _$ContactsStateCopyWithImpl<$Res>
 
 /// Create a copy of ContactsState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? status = null,Object? errorMessage = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? status = null,Object? errorMessage = null,Object? contacts = null,Object? contactTabs = null,}) {
   return _then(_self.copyWith(
 status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as Status,errorMessage: null == errorMessage ? _self.errorMessage : errorMessage // ignore: cast_nullable_to_non_nullable
-as String,
+as String,contacts: null == contacts ? _self.contacts : contacts // ignore: cast_nullable_to_non_nullable
+as List<Contact?>,contactTabs: null == contactTabs ? _self.contactTabs : contactTabs // ignore: cast_nullable_to_non_nullable
+as List<ContactTabs?>,
   ));
 }
 
@@ -78,11 +80,25 @@ as String,
 
 
 class _ContactsState extends ContactsState {
-  const _ContactsState({this.status = Status.initial, this.errorMessage = ""}): super._();
+  const _ContactsState({this.status = Status.initial, this.errorMessage = "", final  List<Contact?> contacts = const [], final  List<ContactTabs?> contactTabs = const []}): _contacts = contacts,_contactTabs = contactTabs,super._();
   
 
 @override@JsonKey() final  Status status;
 @override@JsonKey() final  String errorMessage;
+ final  List<Contact?> _contacts;
+@override@JsonKey() List<Contact?> get contacts {
+  if (_contacts is EqualUnmodifiableListView) return _contacts;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_contacts);
+}
+
+ final  List<ContactTabs?> _contactTabs;
+@override@JsonKey() List<ContactTabs?> get contactTabs {
+  if (_contactTabs is EqualUnmodifiableListView) return _contactTabs;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_contactTabs);
+}
+
 
 /// Create a copy of ContactsState
 /// with the given fields replaced by the non-null parameter values.
@@ -94,16 +110,16 @@ _$ContactsStateCopyWith<_ContactsState> get copyWith => __$ContactsStateCopyWith
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ContactsState&&(identical(other.status, status) || other.status == status)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ContactsState&&(identical(other.status, status) || other.status == status)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage)&&const DeepCollectionEquality().equals(other._contacts, _contacts)&&const DeepCollectionEquality().equals(other._contactTabs, _contactTabs));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,status,errorMessage);
+int get hashCode => Object.hash(runtimeType,status,errorMessage,const DeepCollectionEquality().hash(_contacts),const DeepCollectionEquality().hash(_contactTabs));
 
 @override
 String toString() {
-  return 'ContactsState(status: $status, errorMessage: $errorMessage)';
+  return 'ContactsState(status: $status, errorMessage: $errorMessage, contacts: $contacts, contactTabs: $contactTabs)';
 }
 
 
@@ -114,7 +130,7 @@ abstract mixin class _$ContactsStateCopyWith<$Res> implements $ContactsStateCopy
   factory _$ContactsStateCopyWith(_ContactsState value, $Res Function(_ContactsState) _then) = __$ContactsStateCopyWithImpl;
 @override @useResult
 $Res call({
- Status status, String errorMessage
+ Status status, String errorMessage, List<Contact?> contacts, List<ContactTabs?> contactTabs
 });
 
 
@@ -131,11 +147,13 @@ class __$ContactsStateCopyWithImpl<$Res>
 
 /// Create a copy of ContactsState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? status = null,Object? errorMessage = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? status = null,Object? errorMessage = null,Object? contacts = null,Object? contactTabs = null,}) {
   return _then(_ContactsState(
 status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as Status,errorMessage: null == errorMessage ? _self.errorMessage : errorMessage // ignore: cast_nullable_to_non_nullable
-as String,
+as String,contacts: null == contacts ? _self._contacts : contacts // ignore: cast_nullable_to_non_nullable
+as List<Contact?>,contactTabs: null == contactTabs ? _self._contactTabs : contactTabs // ignore: cast_nullable_to_non_nullable
+as List<ContactTabs?>,
   ));
 }
 

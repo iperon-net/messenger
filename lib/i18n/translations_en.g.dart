@@ -63,6 +63,8 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
 		other: 'last seen ${n} minutes ago',
 	);
 	String get waiting_for_network => 'Waiting for network...';
+	String get all_contacts => 'All contacts';
+	String get all => 'All';
 }
 
 /// Flat map(s) containing all translations.
@@ -94,6 +96,8 @@ extension on Translations {
 				other: 'last seen ${n} minutes ago',
 			);
 			case 'waiting_for_network': return 'Waiting for network...';
+			case 'all_contacts': return 'All contacts';
+			case 'all': return 'All';
 			default: return null;
 		}
 	}
