@@ -22,8 +22,11 @@ Future<void> main() async {
 
   // Language
   final language = await secureStorage.read(key: "language");
+  print(language);
   if (language.isNotEmpty && language == AppLocale.ru.languageCode) {
     LocaleSettings.setLocale(AppLocale.ru);
+  } else if (language.isNotEmpty && language == AppLocale.en.languageCode) {
+    LocaleSettings.setLocale(AppLocale.en);
   } else {
     LocaleSettings.useDeviceLocale();
   }

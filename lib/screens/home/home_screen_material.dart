@@ -1,3 +1,4 @@
+import 'package:avatar_plus/avatar_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -47,12 +48,10 @@ class _HomeScreenMaterial extends State<HomeScreenMaterial> {
           padding: EdgeInsets.zero,
           children: [
             UserAccountsDrawerHeader(
-              currentAccountPicture: CircleAvatar(
-                backgroundColor: Colors.white54,
-                child: const Text('KO'),
-              ),
-              accountName: Container(),
-              accountEmail: Text("kostya@yandex.ru"),
+              currentAccountPicture: AvatarPlus("sfjkhjkshdfkehgkjdsw2hg", height: 32, width: 32),
+              accountName: Text("Костя"),
+              accountEmail: Text("@kostyaten"),
+              // accountEmail: Text("+7 909 160 00 44"),
             ),
             ListTile(
               leading: Icon(Icons.people),
