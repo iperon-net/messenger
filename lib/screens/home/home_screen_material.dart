@@ -83,7 +83,11 @@ class _HomeScreenMaterial extends State<HomeScreenMaterial> {
           ],
         ),
       ),
-      body: Center(child: Text("!!!"),)
+      body: SafeArea(
+        top: false,
+        bottom: false,
+        child: Center(child: ClipRRect(child: Text("fasdfasdfasdfasfasd")),)
+      ),
     );
   }
 
