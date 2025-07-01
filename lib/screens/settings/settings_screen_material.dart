@@ -82,17 +82,30 @@ class _SettingsScreenMaterial extends State<SettingsScreenMaterial> {
                         ),
                       ),
                       ListTile(title: Text(context.t.appearance), leading: Icon(Icons.wb_sunny_outlined)),
-                      ListTile(
-                          title: Text(context.t.language),
-                          leading: Icon(Icons.language),
-                          trailing: Text(
-                            "Русский",
-                            // style: TextStyle(fontSize: Theme.of(context).textTheme.labelLarge!.fontSize),
-                            style: TextStyle(
-                              fontSize: Theme.of(context).textTheme.titleMedium!.fontSize,
-                              fontStyle: FontStyle.normal,
-                            ),
-                          ),
+                      BlocBuilder<LanguageCubit, LanguageState>(
+                        builder: (context, stateLanguage) {
+
+                          Widget widgetLanguage = Container();
+                          if(stateLanguage.status == Status.success) {
+                            String additionalInfo = "English";
+                            if (stateLanguage.currentLanguage == AppLocale.ru) additionalInfo = "Русский";
+                            widgetLanguage = Text(
+                              additionalInfo,
+                              style: TextStyle(
+                                fontSize: Theme.of(context).textTheme.titleMedium!.fontSize,
+                                fontStyle: FontStyle.normal
+                              ),
+                            );
+                          } else {
+                            widgetLanguage = SizedBox(height: 16, width: 16, child: Center(child: CircularProgressIndicator(strokeWidth: 1.5)));
+                          }
+
+                          return ListTile(
+                            title: Text(context.t.language),
+                            leading: Icon(Icons.language),
+                            trailing: widgetLanguage,
+                          );
+                        },
                       ),
                       ListTile(title: Text(context.t.updates), leading: Icon(Icons.update)),
                     ],

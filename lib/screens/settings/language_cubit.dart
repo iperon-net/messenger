@@ -23,16 +23,6 @@ class LanguageCubit extends Cubit<LanguageState> {
     emit(state.copyWith(status: Status.success, currentLanguage: LocaleSettings.currentLocale, chooseLanguage: LocaleSettings.currentLocale));
   }
 
-  /// Changes the application language and persists the selection in secure storage.
-  ///
-  /// This method takes a [BuildContext] and a required [AppLocale] parameter to set the application's
-  /// locale. The selected language is stored in secure storage for persistence. The method also
-  /// updates the state with the new language name and a success status.
-  ///
-  /// - [context]: The current build context.
-  /// - [language]: The target locale to switch to (e.g., AppLocale.ru for Russian).
-  ///
-  /// Emits a loading status while the change is in progress and a success status after the process is complete.
   Future<void> changeLanguage(BuildContext context, {required AppLocale language}) async {
     emit(state.copyWith(status: Status.loading, chooseLanguage: language));
 
