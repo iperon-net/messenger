@@ -12,6 +12,7 @@ import 'screens/contacts/contacts_cubit.dart';
 import 'screens/settings/language_cubit.dart';
 import 'screens/settings/settings_cubit.dart';
 import 'secure_storage.dart';
+import 'theme_material.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -57,9 +58,8 @@ class IperonMessengerMaterial extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final ColorScheme colorScheme = ColorScheme.fromSeed(
-      seedColor: Colors.lightBlueAccent,
-    );
+    final ColorScheme colorSchemeLight = MaterialTheme.lightScheme();
+    final ColorScheme colorSchemeDark = MaterialTheme.darkScheme();
 
     return MediaQuery(
       data: MediaQuery.of(context).copyWith(
@@ -74,30 +74,27 @@ class IperonMessengerMaterial extends StatelessWidget {
         locale: TranslationProvider.of(context).flutterLocale,
         routerConfig: getIt.get<Routers>().routerMaterial(),
         theme: ThemeData(
-          colorScheme: colorScheme,
-          floatingActionButtonTheme: FloatingActionButtonThemeData(
-            backgroundColor: colorScheme.tertiary,
-            foregroundColor: colorScheme.onTertiary,
-          ),
+          colorScheme: colorSchemeLight,
           appBarTheme: AppBarTheme(
-            backgroundColor: colorScheme.surfaceTint,
-            foregroundColor: colorScheme.surface,
-            // titleTextStyle: Theme.of(context).textTheme.titleMedium!.copyWith(
-            // fontSize: Theme.of(context).textTheme.titleMedium!.fontSize! * 1.1,
-            // color: colorScheme.onPrimary,
-            // fontWeight: FontWeight.normal,
-            // ),
+            backgroundColor: colorSchemeLight.primary,
+            foregroundColor: colorSchemeLight.surface,
+          ),
+          scaffoldBackgroundColor: colorSchemeLight.surfaceDim,
+        ),
+        darkTheme: ThemeData(
+          colorScheme: colorSchemeDark,
+          appBarTheme: AppBarTheme(
+            backgroundColor: colorSchemeDark.onSecondary,
+            foregroundColor: colorSchemeDark.onSurface,
           ),
           drawerTheme: DrawerThemeData(
-
+            backgroundColor: colorSchemeDark.surface,
           ),
-
-
+          scaffoldBackgroundColor: colorSchemeDark.surfaceDim,
         ),
+        themeMode: ThemeMode.system,
       ),
     );
-
-
   }
 }
 
