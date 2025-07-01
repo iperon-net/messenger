@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:messenger/cubit/app_cubit.dart';
 
 import '../../i18n/translations.g.dart';
 
@@ -23,6 +21,9 @@ class _HomeScreenMaterial extends State<HomeScreenMaterial> {
 
   @override
   Widget build(BuildContext context) {
+    final List<String> entries = <String>['A', 'B', 'C'];
+    final List<int> colorCodes = <int>[600, 500, 100];
+
     return Scaffold(
       key: _scaffoldKey,
       appBar: AppBar(
@@ -85,27 +86,7 @@ class _HomeScreenMaterial extends State<HomeScreenMaterial> {
           ],
         ),
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Text(
-              'Choose your theme:',
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                ElevatedButton(
-                    onPressed: () => context.read<AppCubit>().changeThemeMode(AppBrightness.light),
-                    child: Text('Light')),
-                ElevatedButton(
-                    onPressed: () => context.read<AppCubit>().changeThemeMode(AppBrightness.dark),
-                    child: Text('Dark')),
-              ],
-            ),
-          ],
-        ),
-      ),
+      body: Center(child: Text("!!!"),)
     );
   }
 

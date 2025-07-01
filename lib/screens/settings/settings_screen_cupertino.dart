@@ -47,15 +47,16 @@ class _SettingsScreenCupertino extends State<SettingsScreenCupertino> {
                         title: Text(context.t.myProfile, style: TextStyle(fontSize: 15),),
                         trailing: CupertinoListTileChevron(),
                       ),
-                    ],
-                  ),
-                  CupertinoFormSection.insetGrouped(
-                    children: [
                       CupertinoListTile(
                         leading: Icon(CupertinoIcons.book),
                         title: Text(context.t.favorites, style: TextStyle(fontSize: 15),),
                         trailing: CupertinoListTileChevron(),
                       ),
+                    ],
+                  ),
+                  CupertinoFormSection.insetGrouped(
+                    header: Text(context.t.settings),
+                    children: [
                       CupertinoListTile(
                         leading: Icon(CupertinoIcons.lock),
                         title: Text(context.t.privacyAndSecurity),

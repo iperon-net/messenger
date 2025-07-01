@@ -94,6 +94,9 @@ class IperonMessengerMaterial extends StatelessWidget {
                 foregroundColor: colorSchemeLight.surface,
               ),
               scaffoldBackgroundColor: colorSchemeLight.surfaceDim,
+              listTileTheme: ListTileThemeData(
+                iconColor: colorSchemeLight.primary,
+              ),
             ),
             darkTheme: ThemeData(
               colorScheme: colorSchemeDark,
