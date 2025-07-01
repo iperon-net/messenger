@@ -31,7 +31,9 @@ class _HomeScreenMaterial extends State<HomeScreenMaterial> {
       key: _scaffoldKey,
       appBar: AppBar(
         centerTitle: false,
-        title: Text(""),
+        title: Text(
+          "Iperon",
+        ),
         leading: Builder(
           builder: (context) {
             return IconButton(

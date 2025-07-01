@@ -57,17 +57,47 @@ class IperonMessengerMaterial extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final routers = getIt.get<Routers>();
-
-    return MaterialApp.router(
-      debugShowCheckedModeBanner: false,
-      localizationsDelegates: [
-        ...GlobalMaterialLocalizations.delegates,
-      ],
-      supportedLocales: AppLocaleUtils.supportedLocales,
-      locale: TranslationProvider.of(context).flutterLocale,
-      routerConfig: routers.routerMaterial(),
+    final ColorScheme colorScheme = ColorScheme.fromSeed(
+      seedColor: Colors.lightBlueAccent,
     );
+
+    return MediaQuery(
+      data: MediaQuery.of(context).copyWith(
+        textScaler: TextScaler.linear(0.95)
+      ),
+      child: MaterialApp.router(
+        debugShowCheckedModeBanner: false,
+        localizationsDelegates: [
+          ...GlobalMaterialLocalizations.delegates,
+        ],
+        supportedLocales: AppLocaleUtils.supportedLocales,
+        locale: TranslationProvider.of(context).flutterLocale,
+        routerConfig: getIt.get<Routers>().routerMaterial(),
+        theme: ThemeData(
+          colorScheme: colorScheme,
+          floatingActionButtonTheme: FloatingActionButtonThemeData(
+            backgroundColor: colorScheme.tertiary,
+            foregroundColor: colorScheme.onTertiary,
+          ),
+          appBarTheme: AppBarTheme(
+            backgroundColor: colorScheme.surfaceTint,
+            foregroundColor: colorScheme.surface,
+            // titleTextStyle: Theme.of(context).textTheme.titleMedium!.copyWith(
+            // fontSize: Theme.of(context).textTheme.titleMedium!.fontSize! * 1.1,
+            // color: colorScheme.onPrimary,
+            // fontWeight: FontWeight.normal,
+            // ),
+          ),
+          drawerTheme: DrawerThemeData(
+
+          ),
+
+
+        ),
+      ),
+    );
+
+
   }
 }
 
@@ -77,8 +107,6 @@ class IperonMessengerCupertino extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final routers = getIt.get<Routers>();
-
     return CupertinoApp.router(
       debugShowCheckedModeBanner: false,
       localizationsDelegates: [
@@ -86,7 +114,7 @@ class IperonMessengerCupertino extends StatelessWidget {
       ],
       supportedLocales: AppLocaleUtils.supportedLocales,
       locale: TranslationProvider.of(context).flutterLocale,
-      routerConfig: routers.routerCupertino(),
+      routerConfig: getIt.get<Routers>().routerCupertino(),
       theme: CupertinoThemeData(
         primaryColor: CupertinoColors.activeBlue,
         scaffoldBackgroundColor: CupertinoDynamicColor.withBrightness(
