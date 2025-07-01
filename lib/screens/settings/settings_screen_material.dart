@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:grouped_list/grouped_list.dart';
 import 'package:messenger/i18n/translations.g.dart';
 import 'package:messenger/screens/settings/settings_cubit.dart';
 
@@ -54,7 +53,15 @@ class _SettingsScreenMaterial extends State<SettingsScreenMaterial> {
                   ),
                   child: Column(
                     children: [
-                      ListTile(title: Text(context.t.myPersonalInfo)),
+                      ListTile(
+                        title: Text(
+                          context.t.myPersonalInfo,
+                          style: TextStyle(
+                              fontSize: Theme.of(context).textTheme.titleSmall!.fontSize,
+                              fontStyle: FontStyle.normal
+                          ),
+                        )
+                      ),
                       ListTile(title: Text(context.t.myProfile), leading: Icon(Icons.person)),
                       ListTile(title: Text(context.t.favorites), leading: Icon(Icons.bookmark_border_outlined)),
                     ],
@@ -68,7 +75,15 @@ class _SettingsScreenMaterial extends State<SettingsScreenMaterial> {
                   ),
                   child: Column(
                     children: [
-                      ListTile(title: Text(context.t.settings)),
+                      ListTile(
+                        title: Text(
+                          context.t.settings,
+                          style: TextStyle(
+                              fontSize: Theme.of(context).textTheme.titleSmall!.fontSize,
+                              fontStyle: FontStyle.normal
+                          ),
+                        ),
+                      ),
                       ListTile(title: Text(context.t.privacyAndSecurity), leading: Icon(Icons.lock)),
                       ListTile(
                         title: Text(context.t.devices),
@@ -97,7 +112,13 @@ class _SettingsScreenMaterial extends State<SettingsScreenMaterial> {
                               ),
                             );
                           } else {
-                            widgetLanguage = SizedBox(height: 16, width: 16, child: Center(child: CircularProgressIndicator(strokeWidth: 1.5)));
+                            widgetLanguage = SizedBox(
+                              height: 16,
+                              width: 16,
+                              child: Center(
+                                child: CircularProgressIndicator(strokeWidth: 1.5),
+                              )
+                            );
                           }
 
                           return ListTile(
@@ -122,14 +143,6 @@ class _SettingsScreenMaterial extends State<SettingsScreenMaterial> {
                       ListTile(
                         title: Text(context.t.versionApplication),
                         trailing: widgetVersionApplication,
-
-                        // trailing: Text(
-                        //   ,
-                        //   style: TextStyle(
-                        //     fontSize: Theme.of(context).textTheme.titleMedium!.fontSize,
-                        //     fontStyle: FontStyle.normal,
-                        //   ),
-                        // ),
                       ),
                     ],
                   ),
@@ -141,59 +154,4 @@ class _SettingsScreenMaterial extends State<SettingsScreenMaterial> {
       },
     );
   }
-
-  _createGroupedListView() {
-    List _elements = [
-      {'name': 'Мой профиль', 'group': 'Мой профиль', "sort": 1},
-      {'name': '+ 7 909 160 00 44', 'group': 'Мой профиль', "sort": 2},
-      {'name': 'Miranda', 'group': 'Team B', "sort": 3},
-      {'name': 'Mike', 'group': 'Team C', "sort": 4},
-    ];
-
-    return GroupedListView<dynamic, String>(
-      elements: _elements,
-      groupBy: (element) => element['group'],
-      groupComparator: (value1, value2) => value2.compareTo(value1),
-      itemComparator: (item1, item2) => item1['sort'].compareTo(item2['sort']),
-      order: GroupedListOrder.ASC,
-      useStickyGroupSeparators: false,
-      groupSeparatorBuilder: (String value) {
-        return Container(
-          color: Theme.of(context).cardColor,
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(10, 20, 10, 0),
-            child: Text(value),
-          ),
-        );
-      },
-      itemBuilder: (c, element) {
-        return Container(
-          color: Theme.of(context).cardColor,
-          child: ListTile(
-            leading: const Icon(Icons.account_circle),
-            title: Text(element['name']),
-          ),
-        );
-      },
-    );
-  }
-
 }
-
-/*
-Container(
-          color: Theme.of(context).cardColor,
-          child: ListView(
-            children: <Widget>[
-              ListTile(
-                title: Text(context.t.language),
-              ),
-              ListTile(
-                leading: Icon(Icons.language),
-                title: Text(context.t.language),
-                trailing: Text("English"),
-              ),
-            ],
-          ),
-        )*
- */
