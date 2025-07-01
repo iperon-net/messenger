@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:messenger/i18n/translations.g.dart';
 import 'package:messenger/screens/settings/settings_cubit.dart';
 
+import '../../cubit/app_cubit.dart';
 import 'language_cubit.dart';
 
 class SettingsScreenMaterial extends StatefulWidget {
@@ -58,6 +59,12 @@ class _SettingsScreenMaterial extends State<SettingsScreenMaterial> {
                     trailing: Text("English", style: TextStyle(fontSize: 15, fontWeight: FontWeight.normal),),
                   ),
                   Divider(),
+                  ElevatedButton(
+                      onPressed: () => context.read<AppCubit>().changeThemeMode(AppBrightness.light),
+                    child: Text('Light')),
+                  ElevatedButton(
+                    onPressed: () => context.read<AppCubit>().changeThemeMode(AppBrightness.dark),
+                    child: Text('Dark')),
                 ],
               ),
             );

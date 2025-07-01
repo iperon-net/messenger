@@ -6,6 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:messenger/routers.dart';
 
+import 'cubit/app_cubit.dart';
 import 'di.dart';
 import 'i18n/translations.g.dart';
 import 'screens/contacts/contacts_cubit.dart';
@@ -23,7 +24,6 @@ Future<void> main() async {
 
   // Language
   final language = await secureStorage.read(key: "language");
-  print(language);
   if (language.isNotEmpty && language == AppLocale.ru.languageCode) {
     LocaleSettings.setLocale(AppLocale.ru);
   } else if (language.isNotEmpty && language == AppLocale.en.languageCode) {
@@ -36,6 +36,9 @@ Future<void> main() async {
     TranslationProvider(
       child: MultiBlocProvider(
           providers: [
+            BlocProvider<AppCubit>(
+              create: (BuildContext context) => AppCubit(),
+            ),
             BlocProvider<SettingsCubit>(
               create: (BuildContext context) => SettingsCubit(),
             ),
@@ -60,40 +63,53 @@ class IperonMessengerMaterial extends StatelessWidget {
   Widget build(BuildContext context) {
     final ColorScheme colorSchemeLight = MaterialTheme.lightScheme();
     final ColorScheme colorSchemeDark = MaterialTheme.darkScheme();
+    final routerConfig = getIt.get<Routers>().routerMaterial();
 
-    return MediaQuery(
-      data: MediaQuery.of(context).copyWith(
-        textScaler: TextScaler.linear(0.95)
-      ),
-      child: MaterialApp.router(
-        debugShowCheckedModeBanner: false,
-        localizationsDelegates: [
-          ...GlobalMaterialLocalizations.delegates,
-        ],
-        supportedLocales: AppLocaleUtils.supportedLocales,
-        locale: TranslationProvider.of(context).flutterLocale,
-        routerConfig: getIt.get<Routers>().routerMaterial(),
-        theme: ThemeData(
-          colorScheme: colorSchemeLight,
-          appBarTheme: AppBarTheme(
-            backgroundColor: colorSchemeLight.primary,
-            foregroundColor: colorSchemeLight.surface,
+    return BlocBuilder<AppCubit, AppState>(
+      builder: (context, state) {
+
+        ThemeMode themeMode = ThemeMode.system;
+        if (state.appBrightness == AppBrightness.light) {
+          themeMode = ThemeMode.light;
+        } else if(state.appBrightness == AppBrightness.dark) {
+          themeMode = ThemeMode.dark;
+        }
+
+        return MediaQuery(
+          data: MediaQuery.of(context).copyWith(
+            textScaler: TextScaler.linear(0.95)
           ),
-          scaffoldBackgroundColor: colorSchemeLight.surfaceDim,
-        ),
-        darkTheme: ThemeData(
-          colorScheme: colorSchemeDark,
-          appBarTheme: AppBarTheme(
-            backgroundColor: colorSchemeDark.onSecondary,
-            foregroundColor: colorSchemeDark.onSurface,
+          child: MaterialApp.router(
+            debugShowCheckedModeBanner: false,
+            localizationsDelegates: [
+              ...GlobalMaterialLocalizations.delegates,
+            ],
+            supportedLocales: AppLocaleUtils.supportedLocales,
+            locale: TranslationProvider.of(context).flutterLocale,
+            routerConfig: routerConfig,
+            theme: ThemeData(
+              colorScheme: colorSchemeLight,
+              appBarTheme: AppBarTheme(
+                backgroundColor: colorSchemeLight.primary,
+                foregroundColor: colorSchemeLight.surface,
+              ),
+              scaffoldBackgroundColor: colorSchemeLight.surfaceDim,
+            ),
+            darkTheme: ThemeData(
+              colorScheme: colorSchemeDark,
+              appBarTheme: AppBarTheme(
+                backgroundColor: colorSchemeDark.onSecondary,
+                foregroundColor: colorSchemeDark.onSurface,
+              ),
+              drawerTheme: DrawerThemeData(
+                backgroundColor: colorSchemeDark.surfaceContainer,
+              ),
+              scaffoldBackgroundColor: colorSchemeDark.surfaceContainer,
+            ),
+            themeMode: themeMode,
           ),
-          drawerTheme: DrawerThemeData(
-            backgroundColor: colorSchemeDark.surface,
-          ),
-          scaffoldBackgroundColor: colorSchemeDark.surfaceDim,
-        ),
-        themeMode: ThemeMode.system,
-      ),
+        );
+      },
     );
   }
 }
@@ -104,6 +120,8 @@ class IperonMessengerCupertino extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final routerConfig = getIt.get<Routers>().routerCupertino();
+
     return CupertinoApp.router(
       debugShowCheckedModeBanner: false,
       localizationsDelegates: [
@@ -111,7 +129,7 @@ class IperonMessengerCupertino extends StatelessWidget {
       ],
       supportedLocales: AppLocaleUtils.supportedLocales,
       locale: TranslationProvider.of(context).flutterLocale,
-      routerConfig: getIt.get<Routers>().routerCupertino(),
+      routerConfig: routerConfig,
       theme: CupertinoThemeData(
         primaryColor: CupertinoColors.activeBlue,
         scaffoldBackgroundColor: CupertinoDynamicColor.withBrightness(

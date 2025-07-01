@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 import 'package:messenger/screens/home/home_screen.dart';
@@ -17,6 +18,7 @@ class Routers {
 
   GoRouter routerCupertino() {
     return GoRouter(
+      debugLogDiagnostics: kDebugMode ? true: false,
       navigatorKey: navigatorGoRouterKey,
       initialLocation: "/",
       observers: <NavigatorObserver>[
@@ -46,6 +48,7 @@ class Routers {
 
   GoRouter routerMaterial() {
     return GoRouter(
+      debugLogDiagnostics: kDebugMode ? true: false,
       navigatorKey: navigatorGoRouterKey,
       initialLocation: "/",
       observers: <NavigatorObserver>[

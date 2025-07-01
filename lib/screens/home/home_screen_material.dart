@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:messenger/cubit/app_cubit.dart';
 
-import '../../di.dart';
 import '../../i18n/translations.g.dart';
-import '../../logger.dart';
 
 class HomeScreenMaterial extends StatefulWidget {
   const HomeScreenMaterial({super.key});
@@ -23,9 +23,6 @@ class _HomeScreenMaterial extends State<HomeScreenMaterial> {
 
   @override
   Widget build(BuildContext context) {
-    final logger = getIt.get<Logger>();
-    logger.debug("dddd");
-
     return Scaffold(
       key: _scaffoldKey,
       appBar: AppBar(
@@ -43,7 +40,7 @@ class _HomeScreenMaterial extends State<HomeScreenMaterial> {
         ),
       ),
       drawer: Drawer(
-        width: 350,
+        width: 340,
         child: ListView(
           // Important: Remove any padding from the ListView.
           padding: EdgeInsets.zero,
@@ -56,9 +53,18 @@ class _HomeScreenMaterial extends State<HomeScreenMaterial> {
                 backgroundColor: Colors.white60,
                 child: const Text('КО'),
               ),
-              accountName: Text("Костя"),
-              accountEmail: Text("@kostyaten"),
-              // accountEmail: Text("+7 909 160 00 44"),
+              accountName: Text(
+                "Костя",
+                overflow: TextOverflow.fade,
+                maxLines: 1,
+                softWrap: false,
+              ),
+              accountEmail: Text(
+                "+999 100 000 00 00",
+                overflow: TextOverflow.fade,
+                maxLines: 1,
+                softWrap: false,
+              ),
             ),
             ListTile(
               leading: Icon(Icons.people),
@@ -80,11 +86,25 @@ class _HomeScreenMaterial extends State<HomeScreenMaterial> {
         ),
       ),
       body: Center(
-          child: Column(
-            children: [
-              Text("dddd"),
-            ],
-          )
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Text(
+              'Choose your theme:',
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton(
+                    onPressed: () => context.read<AppCubit>().changeThemeMode(AppBrightness.light),
+                    child: Text('Light')),
+                ElevatedButton(
+                    onPressed: () => context.read<AppCubit>().changeThemeMode(AppBrightness.dark),
+                    child: Text('Dark')),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
