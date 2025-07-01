@@ -1,0 +1,11 @@
+{
+  "name": "common",
+  "description": "Common Template",
+  "addFile": [
+    {
+      "name": "delayed",
+      "filePath": "delayed.tm"
+    }
+  ],
+  "globalBasePath": ""
+}

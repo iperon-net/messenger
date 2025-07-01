@@ -1,16 +1,22 @@
 PODS:
   - Flutter (1.0.0)
+  - flutter_libphonenumber_ios (1.1.4):
+    - Flutter
+    - PhoneNumberKit/PhoneNumberKitCore (= 3.8.0)
   - flutter_localization (0.0.1):
     - Flutter
   - flutter_secure_storage (6.0.0):
     - Flutter
-  - FMDB/SQLCipher (2.7.11):
-    - SQLCipher (~> 4.0)
+  - FMDB/Core (2.7.12)
+  - FMDB/SQLCipher (2.7.12):
+    - FMDB/Core
+    - SQLCipher (~> 4.6)
   - package_info_plus (0.4.5):
     - Flutter
   - path_provider_foundation (0.0.1):
     - Flutter
     - FlutterMacOS
+  - PhoneNumberKit/PhoneNumberKitCore (3.8.0)
   - share_plus (0.0.1):
     - Flutter
   - shared_preferences_foundation (0.0.1):
@@ -22,15 +28,16 @@ PODS:
   - sqflite_sqlcipher (0.0.1):
     - Flutter
     - FMDB/SQLCipher (~> 2.7.5)
-    - SQLCipher (= 4.5.7)
-  - SQLCipher (4.5.7):
-    - SQLCipher/standard (= 4.5.7)
-  - SQLCipher/common (4.5.7)
-  - SQLCipher/standard (4.5.7):
+    - SQLCipher (= 4.9.0)
+  - SQLCipher (4.9.0):
+    - SQLCipher/standard (= 4.9.0)
+  - SQLCipher/common (4.9.0)
+  - SQLCipher/standard (4.9.0):
     - SQLCipher/common
 
 DEPENDENCIES:
   - Flutter (from `Flutter`)
+  - flutter_libphonenumber_ios (from `.symlinks/plugins/flutter_libphonenumber_ios/ios`)
   - flutter_localization (from `.symlinks/plugins/flutter_localization/ios`)
   - flutter_secure_storage (from `.symlinks/plugins/flutter_secure_storage/ios`)
   - package_info_plus (from `.symlinks/plugins/package_info_plus/ios`)
@@ -43,11 +50,14 @@ DEPENDENCIES:
 SPEC REPOS:
   trunk:
     - FMDB
+    - PhoneNumberKit
     - SQLCipher
 
 EXTERNAL SOURCES:
   Flutter:
     :path: Flutter
+  flutter_libphonenumber_ios:
+    :path: ".symlinks/plugins/flutter_libphonenumber_ios/ios"
   flutter_localization:
     :path: ".symlinks/plugins/flutter_localization/ios"
   flutter_secure_storage:
@@ -67,16 +77,18 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
+  flutter_libphonenumber_ios: 6bd2fac9dfb8f37c5732451fb7c9a992f1088d86
   flutter_localization: 72299fb6cb4e51cae587bd953ed0b958040b71e6
   flutter_secure_storage: 1ed9476fba7e7a782b22888f956cce43e2c62f13
-  FMDB: 57486c1117fd8e0e6b947b2f54c3f42bf8e57a4e
+  FMDB: 728731dd336af3936ce00f91d9d8495f5718a0e6
   package_info_plus: af8e2ca6888548050f16fa2f1938db7b5a5df499
   path_provider_foundation: 080d55be775b7414fd5a5ef3ac137b97b097e564
+  PhoneNumberKit: ec00ab8cef5342c1dc49fadb99d23fa7e66cf0ef
   share_plus: 50da8cb520a8f0f65671c6c6a99b3617ed10a58a
   shared_preferences_foundation: 9e1978ff2562383bd5676f64ec4e9aa8fa06a6f7
   sqflite_darwin: 20b2a3a3b70e43edae938624ce550a3cbf66a3d0
-  sqflite_sqlcipher: 253ead9c2add962dbd31b1fd8cd5c0c6d3c736d1
-  SQLCipher: 5e6bfb47323635c8b657b1b27d25c5f1baf63bf5
+  sqflite_sqlcipher: b58fb1d53a7c47ddf808e3b2e5c516911b67e9e2
+  SQLCipher: 31878d8ebd27e5c96db0b7cb695c96e9f8ad77da
 
 PODFILE CHECKSUM: 4305caec6b40dde0ae97be1573c53de1882a07e5
 

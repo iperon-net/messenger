@@ -52,6 +52,21 @@ class TranslationsRu extends Translations {
 	@override String get privacyAndSecurity => 'Конфиденциальность';
 	@override String get devices => 'Устройства';
 	@override String get updates => 'Обновления';
+	@override String get interfaceLanguage => 'Язык интерфейса';
+	@override String get sort => 'Сортировка';
+	@override String get search => 'Поиск';
+	@override String get favorite_contacts => 'Избранные контакты';
+	@override String get back => 'Назад';
+	@override String get online => 'В сети';
+	@override String last_seen_minutes({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n,
+		one: 'был(а) ${n} минуту назад',
+		few: 'был(а) ${n} минуты назад',
+		many: 'был(а) ${n} минут назад',
+		other: 'был(а) ${n} минут назад',
+	);
+	@override String get waiting_for_network => 'Ожидание сети...';
+	@override String get all_contacts => 'Все контакты';
+	@override String get all => 'Все';
 }
 
 /// Flat map(s) containing all translations.
@@ -72,6 +87,21 @@ extension on TranslationsRu {
 			case 'privacyAndSecurity': return 'Конфиденциальность';
 			case 'devices': return 'Устройства';
 			case 'updates': return 'Обновления';
+			case 'interfaceLanguage': return 'Язык интерфейса';
+			case 'sort': return 'Сортировка';
+			case 'search': return 'Поиск';
+			case 'favorite_contacts': return 'Избранные контакты';
+			case 'back': return 'Назад';
+			case 'online': return 'В сети';
+			case 'last_seen_minutes': return ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n,
+				one: 'был(а) ${n} минуту назад',
+				few: 'был(а) ${n} минуты назад',
+				many: 'был(а) ${n} минут назад',
+				other: 'был(а) ${n} минут назад',
+			);
+			case 'waiting_for_network': return 'Ожидание сети...';
+			case 'all_contacts': return 'Все контакты';
+			case 'all': return 'Все';
 			default: return null;
 		}
 	}

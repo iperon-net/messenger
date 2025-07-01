@@ -14,7 +14,5 @@ Future<void> configureGlobalDI() async {
   getIt.registerSingletonAsync<SecureStorage>(() async => SecureStorage(), dependsOn: [Logger]);
   getIt.registerSingletonAsync<Repositories>(() async => Repositories()..initialization(), dependsOn: [Logger, SecureStorage]);
 
-
-
   await getIt.allReady();
 }

@@ -2,8 +2,8 @@ import 'dart:io';
 
 import 'package:flutter/widgets.dart';
 
-import '{name}[-c]_screen_cupertino.dart';
-import '{name}[-c]_screen_material.dart';
+import '{name}[-s]_screen_cupertino.dart';
+import '{name}[-s]_screen_material.dart';
 
 class {name}[-C]Screen extends StatelessWidget {
   const {name}[-C]Screen({super.key});

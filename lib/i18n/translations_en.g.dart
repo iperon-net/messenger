@@ -52,6 +52,19 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
 	String get privacyAndSecurity => 'Privacy and security';
 	String get devices => 'Devices';
 	String get updates => 'Updates';
+	String get interfaceLanguage => 'Interface language';
+	String get sort => 'Sort';
+	String get search => 'Search';
+	String get favorite_contacts => 'Favorite contacts';
+	String get back => 'Back';
+	String get online => 'Online';
+	String last_seen_minutes({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n,
+		one: 'last seen ${n} minute ago',
+		other: 'last seen ${n} minutes ago',
+	);
+	String get waiting_for_network => 'Waiting for network...';
+	String get all_contacts => 'All contacts';
+	String get all => 'All';
 }
 
 /// Flat map(s) containing all translations.
@@ -72,6 +85,19 @@ extension on Translations {
 			case 'privacyAndSecurity': return 'Privacy and security';
 			case 'devices': return 'Devices';
 			case 'updates': return 'Updates';
+			case 'interfaceLanguage': return 'Interface language';
+			case 'sort': return 'Sort';
+			case 'search': return 'Search';
+			case 'favorite_contacts': return 'Favorite contacts';
+			case 'back': return 'Back';
+			case 'online': return 'Online';
+			case 'last_seen_minutes': return ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n,
+				one: 'last seen ${n} minute ago',
+				other: 'last seen ${n} minutes ago',
+			);
+			case 'waiting_for_network': return 'Waiting for network...';
+			case 'all_contacts': return 'All contacts';
+			case 'all': return 'All';
 			default: return null;
 		}
 	}

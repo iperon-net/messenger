@@ -1,4 +1,4 @@
-part of '{name}[-c]_cubit.dart';
+part of '{name}[-s]_cubit.dart';
 
 @freezed
 abstract class {name}[-C]State with _${name}[-C]State {

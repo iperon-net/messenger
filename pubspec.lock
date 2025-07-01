@@ -5,18 +5,26 @@ packages:
     dependency: transitive
     description:
       name: _fe_analyzer_shared
-      sha256: e55636ed79578b9abca5fecf9437947798f5ef7456308b5cb85720b793eac92f
+      sha256: da0d9209ca76bde579f2da330aeb9df62b6319c834fa7baae052021b0462401f
       url: "https://pub.dev"
     source: hosted
-    version: "82.0.0"
+    version: "85.0.0"
   analyzer:
     dependency: transitive
     description:
       name: analyzer
-      sha256: "904ae5bb474d32c38fb9482e2d925d5454cda04ddd0e55d2e6826bc72f6ba8c0"
+      sha256: f6154230675c44a191f2e20d16eeceb4aa18b30ca732db4efaf94c6a7d43cfa6
       url: "https://pub.dev"
     source: hosted
-    version: "7.4.5"
+    version: "7.5.2"
+  animated_text_kit:
+    dependency: "direct main"
+    description:
+      name: animated_text_kit
+      sha256: adba517adb7e6adeb1eb5e1c8a147dd7bc664dfdf2f5e92226b572a91393a93d
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.2.3"
   ansicolor:
     dependency: transitive
     description:
@@ -41,6 +49,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.13.0"
+  avatar_plus:
+    dependency: "direct main"
+    description:
+      name: avatar_plus
+      sha256: fcc16b58f0d4669084d719d0fc7dd69203aa05779ec1bdd0c95ecef85ff48367
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.5"
   bloc:
     dependency: transitive
     description:
@@ -61,10 +77,10 @@ packages:
     dependency: transitive
     description:
       name: build
-      sha256: "74273591bd8b7f82eeb1f191c1b65a6576535bbfd5ca3722778b07d5702d33cc"
+      sha256: "51dc711996cbf609b90cbe5b335bbce83143875a9d58e4b5c6d3c4f684d3dda7"
       url: "https://pub.dev"
     source: hosted
-    version: "2.5.3"
+    version: "2.5.4"
   build_config:
     dependency: transitive
     description:
@@ -85,26 +101,26 @@ packages:
     dependency: transitive
     description:
       name: build_resolvers
-      sha256: badce70566085f2e87434531c4a6bc8e833672f755fc51146d612245947e91c9
+      sha256: ee4257b3f20c0c90e72ed2b57ad637f694ccba48839a821e87db762548c22a62
       url: "https://pub.dev"
     source: hosted
-    version: "2.5.3"
+    version: "2.5.4"
   build_runner:
     dependency: "direct dev"
     description:
       name: build_runner
-      sha256: b9070a4127033777c0e63195f6f117ed16a351ed676f6313b095cf4f328c0b82
+      sha256: "382a4d649addbfb7ba71a3631df0ec6a45d5ab9b098638144faf27f02778eb53"
       url: "https://pub.dev"
     source: hosted
-    version: "2.5.3"
+    version: "2.5.4"
   build_runner_core:
     dependency: transitive
     description:
       name: build_runner_core
-      sha256: "1cdfece3eeb3f1263f7dbf5bcc0cba697bd0c22d2c866cb4b578c954dbb09bcf"
+      sha256: "85fbbb1036d576d966332a3f5ce83f2ce66a40bea1a94ad2d5fc29a19a0d3792"
       url: "https://pub.dev"
     source: hosted
-    version: "9.1.1"
+    version: "9.1.2"
   built_collection:
     dependency: transitive
     description:
@@ -137,6 +153,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.4"
+  cli_config:
+    dependency: transitive
+    description:
+      name: cli_config
+      sha256: ac20a183a07002b700f0c25e61b7ee46b23c309d76ab7b7640a028f18e4d99ec
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.2.0"
   clock:
     dependency: transitive
     description:
@@ -169,6 +193,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.1.2"
+  coverage:
+    dependency: transitive
+    description:
+      name: coverage
+      sha256: aa07dbe5f2294c827b7edb9a87bba44a9c15a3cc81bc8da2ca19b37322d30080
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.14.1"
   cross_file:
     dependency: transitive
     description:
@@ -278,6 +310,46 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "9.1.1"
+  flutter_libphonenumber:
+    dependency: "direct main"
+    description:
+      name: flutter_libphonenumber
+      sha256: fd92be0562cf88b62110452e649f5e6167bf405ac1a7806e31996a05303280ee
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.5.1"
+  flutter_libphonenumber_android:
+    dependency: transitive
+    description:
+      name: flutter_libphonenumber_android
+      sha256: "050883c2d168c3567ea9be4efb5eaf5d59e357c427e98da862beb05c3a014c55"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.4.1"
+  flutter_libphonenumber_ios:
+    dependency: transitive
+    description:
+      name: flutter_libphonenumber_ios
+      sha256: c979da7ce78f97d24f70e9c596ec37a721daa83814776dbdcb38286de1942a4f
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.4.0"
+  flutter_libphonenumber_platform_interface:
+    dependency: transitive
+    description:
+      name: flutter_libphonenumber_platform_interface
+      sha256: "9de1bd623103aefe1cb892693f85f6b2d2979ab9e6cce5d452ba10aa61ed41ed"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.1.0"
+  flutter_libphonenumber_web:
+    dependency: transitive
+    description:
+      name: flutter_libphonenumber_web
+      sha256: "3b5be4d5325e8d670f241f02a11d4bf9fd832cb5460d6b6a6926b38861b5881f"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.3.0"
   flutter_lints:
     dependency: "direct dev"
     description:
@@ -290,10 +362,10 @@ packages:
     dependency: "direct main"
     description:
       name: flutter_localization
-      sha256: "987faf0a6c13a267202b28d3ed680647e234245ead1a1c1f95f87e86c6f12490"
+      sha256: "578a73455a0deffc4169ef9372ba0562a3e2cff563e5c524ea87bc96daa519c0"
       url: "https://pub.dev"
     source: hosted
-    version: "0.3.2"
+    version: "0.3.3"
   flutter_localizations:
     dependency: transitive
     description: flutter
@@ -347,6 +419,22 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.1.2"
+  flutter_slidable:
+    dependency: "direct main"
+    description:
+      name: flutter_slidable
+      sha256: ab7dbb16f783307c9d7762ede2593ce32c220ba2ba0fd540a3db8e9a3acba71a
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.0.0"
+  flutter_svg:
+    dependency: transitive
+    description:
+      name: flutter_svg
+      sha256: cd57f7969b4679317c17af6fd16ee233c1e60a82ed209d8a475c54fd6fd6f845
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.2.0"
   flutter_test:
     dependency: "direct dev"
     description: flutter
@@ -401,10 +489,10 @@ packages:
     dependency: "direct main"
     description:
       name: go_router
-      sha256: "02ff498f6279470ff7f60c998a69b872f26696ceec237c8402e63a2133868ddf"
+      sha256: ac294be30ba841830cfa146e5a3b22bb09f8dc5a0fdd9ca9332b04b0bde99ebf
       url: "https://pub.dev"
     source: hosted
-    version: "15.2.3"
+    version: "15.2.4"
   google_identity_services_web:
     dependency: transitive
     description:
@@ -437,6 +525,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "5.3.4"
+  grouped_list:
+    dependency: "direct main"
+    description:
+      name: grouped_list
+      sha256: c52551bc17699e304634d4653b824a1aa7c6b1d3a2c1a0da1a80839f867353fb
+      url: "https://pub.dev"
+    source: hosted
+    version: "6.0.0"
   grpc:
     dependency: "direct main"
     description:
@@ -597,6 +693,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.0"
+  node_preamble:
+    dependency: transitive
+    description:
+      name: node_preamble
+      sha256: "6e7eac89047ab8a8d26cf16127b5ed26de65209847630400f9aefd7cd5c730db"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.2"
   package_config:
     dependency: transitive
     description:
@@ -629,6 +733,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.9.1"
+  path_parsing:
+    dependency: transitive
+    description:
+      name: path_parsing
+      sha256: "883402936929eac138ee0a45da5b0f2c80f89913e6dc3bf77eb65b84b409c6ca"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.1.0"
   path_provider:
     dependency: transitive
     description:
@@ -677,6 +789,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.3.0"
+  petitparser:
+    dependency: transitive
+    description:
+      name: petitparser
+      sha256: "07c8f0b1913bcde1ff0d26e57ace2f3012ccbf2b204e070290dad3bb22797646"
+      url: "https://pub.dev"
+    source: hosted
+    version: "6.1.0"
   platform:
     dependency: transitive
     description:
@@ -821,6 +941,22 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.4.2"
+  shelf_packages_handler:
+    dependency: transitive
+    description:
+      name: shelf_packages_handler
+      sha256: "89f967eca29607c933ba9571d838be31d67f53f6e4ee15147d5dc2934fee1b1e"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.0.2"
+  shelf_static:
+    dependency: transitive
+    description:
+      name: shelf_static
+      sha256: c87c3875f91262785dade62d135760c2c69cb217ac759485334c5857ad89f6e3
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.1.3"
   shelf_web_socket:
     dependency: transitive
     description:
@@ -874,6 +1010,22 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.3.5"
+  source_map_stack_trace:
+    dependency: transitive
+    description:
+      name: source_map_stack_trace
+      sha256: c0713a43e323c3302c2abe2a1cc89aa057a387101ebd280371d6a6c9fa68516b
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.1.2"
+  source_maps:
+    dependency: transitive
+    description:
+      name: source_maps
+      sha256: "190222579a448b03896e0ca6eca5998fa810fda630c1d65e2f78b3f638f54812"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.10.13"
   source_span:
     dependency: transitive
     description:
@@ -934,10 +1086,10 @@ packages:
     dependency: "direct main"
     description:
       name: sqflite_sqlcipher
-      sha256: "16033fde6c7d7bd657b71a2bc42332ab02bc8001c3212f502d2e02714e735ec9"
+      sha256: "2370759ea8b15808d7f6bfe72d6608ee97f404fae5ad7889d8f3476a803a268c"
       url: "https://pub.dev"
     source: hosted
-    version: "3.1.0+1"
+    version: "3.2.0"
   stack_trace:
     dependency: transitive
     description:
@@ -974,15 +1126,23 @@ packages:
     dependency: transitive
     description:
       name: synchronized
-      sha256: "0669c70faae6270521ee4f05bffd2919892d42d1276e6c495be80174b6bc0ef6"
+      sha256: c254ade258ec8282947a0acbbc90b9575b4f19673533ee46f2f6e9b3aeefd7c0
       url: "https://pub.dev"
     source: hosted
-    version: "3.3.1"
+    version: "3.4.0"
   talker:
     dependency: "direct main"
     description:
       name: talker
       sha256: cf02a0d294701c76022f32bc8eb7e6f943953eb17fa1f8aaee56af210848134b
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.9.1"
+  talker_bloc_logger:
+    dependency: "direct main"
+    description:
+      name: talker_bloc_logger
+      sha256: fce90b694728bb1e5cba831047eb051b38e99900256a66725b8057b3452e6730
       url: "https://pub.dev"
     source: hosted
     version: "4.9.1"
@@ -1010,6 +1170,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.2.2"
+  test:
+    dependency: "direct dev"
+    description:
+      name: test
+      sha256: "301b213cd241ca982e9ba50266bd3f5bd1ea33f1455554c5abb85d1be0e2d87e"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.25.15"
   test_api:
     dependency: transitive
     description:
@@ -1018,6 +1186,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.7.4"
+  test_core:
+    dependency: transitive
+    description:
+      name: test_core
+      sha256: "84d17c3486c8dfdbe5e12a50c8ae176d15e2a771b96909a9442b40173649ccaa"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.6.8"
   timing:
     dependency: transitive
     description:
@@ -1082,6 +1258,30 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.5.1"
+  vector_graphics:
+    dependency: transitive
+    description:
+      name: vector_graphics
+      sha256: a4f059dc26fc8295b5921376600a194c4ec7d55e72f2fe4c7d2831e103d461e6
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.1.19"
+  vector_graphics_codec:
+    dependency: transitive
+    description:
+      name: vector_graphics_codec
+      sha256: "99fd9fbd34d9f9a32efd7b6a6aae14125d8237b10403b422a6a6dfeac2806146"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.1.13"
+  vector_graphics_compiler:
+    dependency: transitive
+    description:
+      name: vector_graphics_compiler
+      sha256: "557a315b7d2a6dbb0aaaff84d857967ce6bdc96a63dc6ee2a57ce5a6ee5d3331"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.1.17"
   vector_math:
     dependency: transitive
     description:
@@ -1130,6 +1330,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.0.3"
+  webkit_inspection_protocol:
+    dependency: transitive
+    description:
+      name: webkit_inspection_protocol
+      sha256: "87d3f2333bb240704cd3f1c6b5b7acd8a10e7f0bc28c28dcf14e782014f4a572"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.2.1"
   win32:
     dependency: transitive
     description:
@@ -1146,6 +1354,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.1.0"
+  xml:
+    dependency: transitive
+    description:
+      name: xml
+      sha256: b015a8ad1c488f66851d762d3090a21c600e479dc75e68328c52774040cf9226
+      url: "https://pub.dev"
+    source: hosted
+    version: "6.5.0"
   yaml:
     dependency: transitive
     description:

@@ -1,6 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:messenger/i18n/translations.g.dart';
-import 'package:messenger/screens/settings/settings_screen.dart';
+
+import '../contacts/contacts_screen.dart';
+import '../settings/settings_screen.dart';
 
 class HomeScreenCupertino extends StatefulWidget {
   const HomeScreenCupertino({super.key});
@@ -20,6 +22,7 @@ class _HomeScreenCupertino extends State<HomeScreenCupertino> {
   Widget build(BuildContext context) {
     return CupertinoTabScaffold(
       tabBar: CupertinoTabBar(
+        currentIndex: 1,
         iconSize: 25,
         items: [
           BottomNavigationBarItem(
@@ -41,35 +44,12 @@ class _HomeScreenCupertino extends State<HomeScreenCupertino> {
         switch (index) {
           case 0:
             return CupertinoTabView(
-              builder: (context) {
-                return CupertinoPageScaffold(
-                  navigationBar: CupertinoNavigationBar(
-
-                    middle: Text(context.t.contacts),
-                    // leading: Align( // https://github.com/flutter/flutter/issues/18536
-                    //   widthFactor: 1.0,
-                    //   alignment: Alignment.center,
-                    //   child: Text('Sor'),
-                    // ),
-                    trailing: Icon(CupertinoIcons.add, size: 20),
-                  ),
-                  child: Center(
-                    child: Text(context.t.contacts),
-                  ),
-                );
-              },
+              builder: (context) => const ContactsScreen(),
             );
           case 1:
             return CupertinoTabView(
               builder: (context) {
-                return CupertinoPageScaffold(
-                  navigationBar: CupertinoNavigationBar(
-                    middle: Text(context.t.chats),
-                  ),
-                  child: Center(
-                    child: Text(context.t.chats),
-                  ),
-                );
+                return Container();
               },
             );
           case 2:
