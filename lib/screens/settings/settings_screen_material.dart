@@ -71,8 +71,8 @@ class _SettingsScreenMaterial extends State<SettingsScreenMaterial> {
                       title: Text(
                         context.t.myPersonalInfo,
                         style: TextStyle(
-                            fontSize: Theme.of(context).textTheme.titleSmall!.fontSize,
-                            fontStyle: FontStyle.normal
+                          fontSize: Theme.of(context).textTheme.titleSmall!.fontSize,
+                          fontStyle: FontStyle.normal
                         ),
                       )
                     ),
@@ -93,8 +93,8 @@ class _SettingsScreenMaterial extends State<SettingsScreenMaterial> {
                       title: Text(
                         context.t.settings,
                         style: TextStyle(
-                            fontSize: Theme.of(context).textTheme.titleSmall!.fontSize,
-                            fontStyle: FontStyle.normal
+                          fontSize: Theme.of(context).textTheme.titleSmall!.fontSize,
+                          fontStyle: FontStyle.normal
                         ),
                       ),
                     ),
@@ -110,7 +110,11 @@ class _SettingsScreenMaterial extends State<SettingsScreenMaterial> {
                         ),
                       ),
                     ),
-                    ListTile(title: Text(context.t.appearance), leading: Icon(Icons.wb_sunny_outlined)),
+                    ListTile(
+                      title: Text(context.t.appearance),
+                      leading: Icon(Icons.wb_sunny_outlined),
+                      onTap: () => context.goNamed("settings_appearance"),
+                    ),
                     ListTile(
                       title: Text(context.t.language),
                       leading: Icon(Icons.language),
