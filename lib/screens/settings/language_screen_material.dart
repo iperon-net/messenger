@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../components/progress_indicator/progress_indicator.dart';
+import '../../cubit/constants.dart';
 import '../../i18n/translations.g.dart';
 import 'language_cubit.dart';
 
@@ -18,6 +20,30 @@ class _LanguageScreenMaterial extends State<LanguageScreenMaterial> {
     super.initState();
   }
 
+  List<Map<String, dynamic>> languageList = [
+    {"title": "Russian", "subtitle": "Русский", "value": AppLocale.ru},
+    {"title": "English", "subtitle": "English", "value": AppLocale.en},
+  ];
+
+
+  List<RadioListTile> radioListTileGenerator(LanguageState state) {
+    List<RadioListTile> radioListTileGenerator = [];
+
+    for (final language in languageList){
+      radioListTileGenerator.add(
+          RadioListTile(
+            title: Text(language["title"]),
+            subtitle: Text(language["subtitle"]),
+            value: language["value"],
+            groupValue: state.chooseLanguage,
+            onChanged: state.status == Status.loading ? null : (value) async => await context.read<LanguageCubit>().changeLanguage(context, language: language["value"]),
+            secondary: (state.status == Status.loading && language["value"] == state.chooseLanguage) ? ProgressIndicatorComponent() : null,
+          )
+      );
+    }
+    return radioListTileGenerator;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -26,6 +52,8 @@ class _LanguageScreenMaterial extends State<LanguageScreenMaterial> {
       ),
       body: BlocBuilder<LanguageCubit, LanguageState>(
         builder: (context, state) {
+          // final onChanged = state.status == Status.loading ? {} : await context.read<LanguageCubit>().changeLanguage(context, language: AppLocale.en);
+
           return ListView(
               padding: EdgeInsets.all(8.0),
               shrinkWrap: true,
@@ -47,20 +75,7 @@ class _LanguageScreenMaterial extends State<LanguageScreenMaterial> {
                             ),
                           )
                       ),
-                      RadioListTile(
-                        title: Text("English"),
-                        subtitle: Text("English"),
-                        value: AppLocale.en,
-                        groupValue: state.currentLanguage,
-                        onChanged: (value) async => await context.read<LanguageCubit>().changeLanguage(context, language: AppLocale.en),
-                      ),
-                      RadioListTile(
-                        title: Text("Russian"),
-                        subtitle: Text("Русский"),
-                        value: AppLocale.ru,
-                        groupValue: state.currentLanguage,
-                        onChanged: (value) async => await context.read<LanguageCubit>().changeLanguage(context, language: AppLocale.ru),
-                      ),
+                      ...radioListTileGenerator(state),
                     ],
                   ),
                 ),

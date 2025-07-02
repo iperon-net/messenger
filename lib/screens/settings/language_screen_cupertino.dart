@@ -1,7 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:messenger/cubit/constants.dart';
-import 'package:messenger/screens/settings/settings_cubit.dart';
 
 import '../../i18n/translations.g.dart';
 import 'language_cubit.dart';
@@ -20,7 +19,30 @@ class _LanguageScreenCupertino extends State<LanguageScreenCupertino> {
     context.read<LanguageCubit>().initialization();
     super.initState();
   }
-  // state.status == Status.success ? Text(state.languageName): CupertinoActivityIndicator(),
+
+  List<Map<String, dynamic>> languageList = [
+    {"title": "Russian", "subtitle": "Русский", "value": AppLocale.ru},
+    {"title": "English", "subtitle": "English", "value": AppLocale.en},
+  ];
+
+  List<CupertinoListTile> cupertinoListTileGenerator(LanguageState state) {
+    List<CupertinoListTile> cupertinoListTileGenerator = [];
+
+    for (final language in languageList){
+      cupertinoListTileGenerator.add(
+          CupertinoListTile(
+            backgroundColorActivated: CupertinoDynamicColor.resolve(CupertinoColors.transparent, context),
+            title: Text(language["title"]),
+            subtitle: Text(language["subtitle"]),
+            onTap:( state.status == Status.loading || state.chooseLanguage == language["value"]) ? null : () async =>
+              await context.read<LanguageCubit>().changeLanguage(context, language: language["value"]),
+            trailing: (state.status == Status.loading && language["value"] == state.chooseLanguage) ? CupertinoActivityIndicator() :
+              (state.chooseLanguage == language["value"] ? Icon(CupertinoIcons.checkmark_alt, color: CupertinoTheme.of(context).primaryColor) : Container()),
+          )
+      );
+    }
+    return cupertinoListTileGenerator;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -28,50 +50,20 @@ class _LanguageScreenCupertino extends State<LanguageScreenCupertino> {
       navigationBar: CupertinoNavigationBar(
         previousPageTitle: t.back,
         middle: Text(context.t.language),
-        // middle: Column(
-        //   children: [
-        //     Text(context.t.language),
-        //     Text(context.t.waiting_for_network, style: TextStyle(fontSize: 12, fontWeight: FontWeight.normal),),
-        //   ],
-        // ),
       ),
       child: SafeArea(
         bottom: true,
         child: BlocBuilder<LanguageCubit, LanguageState>(
-          // listener: (context, state) async => await context.read<SettingsCubit>().reloadLanguageName(),
           builder: (context, state) {
             return SingleChildScrollView(
-              child: BlocBuilder<SettingsCubit, SettingsState>(
-                builder: (context, settingsState) {
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      CupertinoFormSection.insetGrouped(
-                        header: Text(context.t.interfaceLanguage),
-                        children: [
-                          CupertinoListTile(
-                            backgroundColorActivated: CupertinoDynamicColor.resolve(CupertinoColors.transparent, context),
-                            title: Text("English"),
-                            subtitle: Text("English"),
-                            onTap: () async => state.status == Status.success ? await context.read<LanguageCubit>().changeLanguage(context, language: AppLocale.en) : null,
-                            trailing: state.status == Status.loading && state.chooseLanguage == AppLocale.en ? CupertinoActivityIndicator()
-                                : (state.chooseLanguage == AppLocale.en ?
-                            Icon(CupertinoIcons.checkmark_alt, color: CupertinoTheme.of(context).primaryColor) : Container()),
-                          ),
-                          CupertinoListTile(
-                            backgroundColorActivated: CupertinoDynamicColor.resolve(CupertinoColors.transparent, context),
-                            title: Text("Russian"),
-                            subtitle: Text("Русский"),
-                            onTap: () async => state.status == Status.success ? await context.read<LanguageCubit>().changeLanguage(context, language: AppLocale.ru): null,
-                            trailing: state.status == Status.loading && state.chooseLanguage == AppLocale.ru ? CupertinoActivityIndicator()
-                                : (state.chooseLanguage == AppLocale.ru ?
-                              Icon(CupertinoIcons.checkmark_alt, color: CupertinoTheme.of(context).primaryColor) : Container())
-                          ),
-                        ],
-                      ),
-                    ],
-                  );
-                },
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CupertinoFormSection.insetGrouped(
+                    header: Text(context.t.interfaceLanguage),
+                    children: [...cupertinoListTileGenerator(state)],
+                  ),
+                ],
               ),
             );
           },

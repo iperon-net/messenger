@@ -4,9 +4,6 @@ import 'package:go_router/go_router.dart';
 import 'package:messenger/i18n/translations.g.dart';
 import 'package:messenger/screens/settings/settings_cubit.dart';
 
-import '../../cubit/constants.dart';
-import 'language_cubit.dart';
-
 class SettingsScreenMaterial extends StatefulWidget {
   const SettingsScreenMaterial({super.key});
 
@@ -19,53 +16,34 @@ class _SettingsScreenMaterial extends State<SettingsScreenMaterial> {
   @override
   void initState() {
     context.read<SettingsCubit>().initialization();
-    context.read<LanguageCubit>().initialization();
     super.initState();
   }
 
-  Widget widgetVersionApplication(SettingsState state) {
+  // Widget widgetVersionApplication(SettingsState state) {
+  //
+  //   if (state.status == Status.success) {
+  //     return Text(
+  //       state.versionApplication,
+  //       style: TextStyle(
+  //         fontSize: Theme.of(context).textTheme.titleMedium!.fontSize,
+  //         fontStyle: FontStyle.normal
+  //       ),
+  //     );
+  //   }
+  //   return ProgressIndicatorComponent();
+  // }
 
-    if (state.status == Status.success) {
-      return Text(
-        state.versionApplication,
-        style: TextStyle(
+  Widget widgetTrailingLanguage() {
+    String languageName = "English";
+    if (LocaleSettings.currentLocale == AppLocale.ru) languageName = "Русский";
+
+    return Text(
+      languageName,
+      style: TextStyle(
           fontSize: Theme.of(context).textTheme.titleMedium!.fontSize,
           fontStyle: FontStyle.normal
-        ),
-      );
-    }
-
-    return SizedBox(
-      height: 16,
-      width: 16,
-      child: Center(
-        child: CircularProgressIndicator(strokeWidth: 1.5),
       ),
     );
-
-  }
-
-  Widget widgetLanguage(LanguageState state) {
-    if (state.status == Status.success) {
-      String additionalInfo = "English";
-      if (state.currentLanguage == AppLocale.ru) additionalInfo = "Русский";
-      return Text(
-        additionalInfo,
-        style: TextStyle(
-            fontSize: Theme.of(context).textTheme.titleMedium!.fontSize,
-            fontStyle: FontStyle.normal
-        ),
-      );
-    }
-
-    return SizedBox(
-        height: 16,
-        width: 16,
-        child: Center(
-          child: CircularProgressIndicator(strokeWidth: 1.5),
-        )
-    );
-
   }
 
   @override
@@ -133,35 +111,31 @@ class _SettingsScreenMaterial extends State<SettingsScreenMaterial> {
                       ),
                     ),
                     ListTile(title: Text(context.t.appearance), leading: Icon(Icons.wb_sunny_outlined)),
-                    BlocBuilder<LanguageCubit, LanguageState>(
-                      builder: (context, stateLanguage) {
-                        return ListTile(
-                          title: Text(context.t.language),
-                          leading: Icon(Icons.language),
-                          trailing: widgetLanguage(stateLanguage),
-                          onTap: () => context.goNamed("settings_language"),
-                        );
-                      },
-                    ),
-                    ListTile(title: Text(context.t.updates), leading: Icon(Icons.update)),
-                  ],
-                ),
-              ),
-              SizedBox(height: 20),
-              Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(10.0),
-                  color: Theme.of(context).cardColor,
-                ),
-                child: Column(
-                  children: [
                     ListTile(
-                      title: Text(context.t.versionApplication),
-                      trailing: widgetVersionApplication(state),
+                      title: Text(context.t.language),
+                      leading: Icon(Icons.language),
+                      trailing: widgetTrailingLanguage(),
+                      onTap: () => context.goNamed("settings_language"),
                     ),
                   ],
                 ),
               ),
+              // SizedBox(height: 20),
+              // Container(
+              //   decoration: BoxDecoration(
+              //     borderRadius: BorderRadius.circular(10.0),
+              //     color: Theme.of(context).cardColor,
+              //   ),
+              //   child: Column(
+              //     children: [
+              //       ListTile(
+              //         leading: Icon(Icons.update),
+              //         title: Text(context.t.versionApplication),
+              //         trailing: widgetVersionApplication(state),
+              //       ),
+              //     ],
+              //   ),
+              // ),
             ],
           ),
         );

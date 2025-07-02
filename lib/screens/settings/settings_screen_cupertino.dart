@@ -1,9 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:messenger/screens/settings/language_cubit.dart';
 
-import '../../cubit/constants.dart';
 import '../../i18n/translations.g.dart';
 import 'settings_cubit.dart';
 
@@ -20,21 +18,13 @@ class _SettingsScreenCupertino extends State<SettingsScreenCupertino> {
   @override
   void initState() {
     context.read<SettingsCubit>().initialization();
-    context.read<LanguageCubit>().initialization();
     super.initState();
   }
 
-  Widget widgetVersionApplication(SettingsState state) {
-    return state.status == Status.success ? Text(state.versionApplication): CupertinoActivityIndicator();
-  }
-
-  Widget widgetLanguage(LanguageState state) {
-    if (state.status == Status.success) {
-      String additionalInfo = "English";
-      if (state.currentLanguage == AppLocale.ru) additionalInfo = "Русский";
-      return Text(additionalInfo);
-    }
-    return CupertinoActivityIndicator();
+  Widget widgetLanguage() {
+    String languageName = "English";
+    if (LocaleSettings.currentLocale == AppLocale.ru) languageName = "Русский";
+    return Text(languageName);
   }
 
   @override
@@ -86,29 +76,12 @@ class _SettingsScreenCupertino extends State<SettingsScreenCupertino> {
                         title: Text(context.t.appearance, style: TextStyle(fontSize: 15),),
                         trailing: CupertinoListTileChevron(),
                       ),
-                      BlocBuilder<LanguageCubit, LanguageState>(
-                        builder: (context, stateLanguage) {
-                          return CupertinoListTile(
-                            leading: Icon(CupertinoIcons.globe),
-                            title: Text(context.t.language, style: TextStyle(fontSize: 15),),
-                            additionalInfo: widgetLanguage(stateLanguage),
-                            trailing: CupertinoListTileChevron(),
-                            onTap: () => context.goNamed("settings_language"),
-                          );
-                        },
-                      ),
                       CupertinoListTile(
-                        leading: Icon(CupertinoIcons.arrow_2_circlepath),
-                        title: Text(context.t.updates, style: TextStyle(fontSize: 15),),
+                        leading: Icon(CupertinoIcons.globe),
+                        title: Text(context.t.language, style: TextStyle(fontSize: 15),),
+                        additionalInfo: widgetLanguage(),
                         trailing: CupertinoListTileChevron(),
-                      ),
-                    ],
-                  ),
-                  CupertinoFormSection.insetGrouped(
-                    children: [
-                      CupertinoListTile(
-                        title: Text(context.t.versionApplication, style: TextStyle(fontSize: 15),),
-                        additionalInfo: widgetVersionApplication(state),
+                        onTap: () => context.goNamed("settings_language"),
                       ),
                     ],
                   ),
