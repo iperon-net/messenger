@@ -7,6 +7,7 @@ import 'package:talker_flutter/talker_flutter.dart';
 
 import 'di.dart';
 import 'logger.dart';
+import 'screens/settings/appearance_screen.dart';
 import 'screens/settings/language_screen.dart';
 import 'screens/settings/settings_screen.dart';
 
@@ -36,7 +37,7 @@ class Routers {
               builder: (BuildContext context, GoRouterState state) => SettingsScreen(),
             ),
             GoRoute(
-              path: "/settings/language",
+              path: "/language",
               name: "settings_language",
               builder: (BuildContext context, GoRouterState state) => LanguageScreen(),
             ),
@@ -66,9 +67,14 @@ class Routers {
               builder: (BuildContext context, GoRouterState state) => SettingsScreen(),
               routes: [
                 GoRoute(
-                  path: "/settings/language",
+                  path: "/language",
                   name: "settings_language",
                   builder: (BuildContext context, GoRouterState state) => LanguageScreen(),
+                ),
+                GoRoute(
+                  path: "/appearance",
+                  name: "settings_appearance",
+                  builder: (BuildContext context, GoRouterState state) => AppearanceScreen(),
                 ),
               ],
             ),

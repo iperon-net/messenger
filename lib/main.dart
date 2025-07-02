@@ -10,6 +10,7 @@ import 'cubit/app_cubit.dart';
 import 'di.dart';
 import 'i18n/translations.g.dart';
 import 'screens/contacts/contacts_cubit.dart';
+import 'screens/settings/appearance_cubit.dart';
 import 'screens/settings/language_cubit.dart';
 import 'screens/settings/settings_cubit.dart';
 import 'secure_storage.dart';
@@ -44,6 +45,9 @@ Future<void> main() async {
             ),
             BlocProvider<LanguageCubit>(
               create: (BuildContext context) => LanguageCubit(),
+            ),
+            BlocProvider<AppearanceCubit>(
+              create: (BuildContext context) => AppearanceCubit(),
             ),
             BlocProvider<ContactsCubit>(
               create: (BuildContext context) => ContactsCubit(),
