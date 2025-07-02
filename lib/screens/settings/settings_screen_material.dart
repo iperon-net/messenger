@@ -22,17 +22,55 @@ class _SettingsScreenMaterial extends State<SettingsScreenMaterial> {
     super.initState();
   }
 
+  Widget widgetVersionApplication(SettingsState state) {
+
+    if (state.status == Status.success) {
+      return Text(
+        state.versionApplication,
+        style: TextStyle(
+          fontSize: Theme.of(context).textTheme.titleMedium!.fontSize,
+          fontStyle: FontStyle.normal
+        ),
+      );
+    }
+
+    return SizedBox(
+      height: 16,
+      width: 16,
+      child: Center(
+        child: CircularProgressIndicator(strokeWidth: 1.5),
+      ),
+    );
+
+  }
+
+  Widget widgetLanguage(LanguageState state) {
+    if (state.status == Status.success) {
+      String additionalInfo = "English";
+      if (state.currentLanguage == AppLocale.ru) additionalInfo = "Русский";
+      return Text(
+        additionalInfo,
+        style: TextStyle(
+            fontSize: Theme.of(context).textTheme.titleMedium!.fontSize,
+            fontStyle: FontStyle.normal
+        ),
+      );
+    }
+
+    return SizedBox(
+        height: 16,
+        width: 16,
+        child: Center(
+          child: CircularProgressIndicator(strokeWidth: 1.5),
+        )
+    );
+
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<SettingsCubit, SettingsState>(
       builder: (context, state) {
-
-        Widget widgetVersionApplication = Container();
-        if(state.status == Status.success) {
-          widgetVersionApplication = Text(state.versionApplication, style: TextStyle(fontSize: Theme.of(context).textTheme.titleMedium!.fontSize, fontStyle: FontStyle.normal));
-        } else {
-          widgetVersionApplication = SizedBox(height: 16, width: 16, child: Center(child: CircularProgressIndicator(strokeWidth: 1.5)));
-        }
 
         return SafeArea(
           top: false,
@@ -99,32 +137,10 @@ class _SettingsScreenMaterial extends State<SettingsScreenMaterial> {
                       ListTile(title: Text(context.t.appearance), leading: Icon(Icons.wb_sunny_outlined)),
                       BlocBuilder<LanguageCubit, LanguageState>(
                         builder: (context, stateLanguage) {
-
-                          Widget widgetLanguage = Container();
-                          if(stateLanguage.status == Status.success) {
-                            String additionalInfo = "English";
-                            if (stateLanguage.currentLanguage == AppLocale.ru) additionalInfo = "Русский";
-                            widgetLanguage = Text(
-                              additionalInfo,
-                              style: TextStyle(
-                                fontSize: Theme.of(context).textTheme.titleMedium!.fontSize,
-                                fontStyle: FontStyle.normal
-                              ),
-                            );
-                          } else {
-                            widgetLanguage = SizedBox(
-                              height: 16,
-                              width: 16,
-                              child: Center(
-                                child: CircularProgressIndicator(strokeWidth: 1.5),
-                              )
-                            );
-                          }
-
                           return ListTile(
                             title: Text(context.t.language),
                             leading: Icon(Icons.language),
-                            trailing: widgetLanguage,
+                            trailing: widgetLanguage(stateLanguage),
                           );
                         },
                       ),
@@ -142,7 +158,7 @@ class _SettingsScreenMaterial extends State<SettingsScreenMaterial> {
                     children: [
                       ListTile(
                         title: Text(context.t.versionApplication),
-                        trailing: widgetVersionApplication,
+                        trailing: widgetVersionApplication(state),
                       ),
                     ],
                   ),

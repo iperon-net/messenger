@@ -24,6 +24,19 @@ class _SettingsScreenCupertino extends State<SettingsScreenCupertino> {
     super.initState();
   }
 
+  Widget widgetVersionApplication(SettingsState state) {
+    return state.status == Status.success ? Text(state.versionApplication): CupertinoActivityIndicator();
+  }
+
+  Widget widgetLanguage(LanguageState state) {
+    if (state.status == Status.success) {
+      String additionalInfo = "English";
+      if (state.currentLanguage == AppLocale.ru) additionalInfo = "Русский";
+      return Text(additionalInfo);
+    }
+    return CupertinoActivityIndicator();
+  }
+
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
@@ -75,13 +88,10 @@ class _SettingsScreenCupertino extends State<SettingsScreenCupertino> {
                       ),
                       BlocBuilder<LanguageCubit, LanguageState>(
                         builder: (context, stateLanguage) {
-                          String additionalInfo = "English";
-                          if (stateLanguage.currentLanguage == AppLocale.ru) additionalInfo = "Русский";
-
                           return CupertinoListTile(
                             leading: Icon(CupertinoIcons.globe),
                             title: Text(context.t.language, style: TextStyle(fontSize: 15),),
-                            additionalInfo: stateLanguage.status == Status.success ? Text(additionalInfo): CupertinoActivityIndicator(),
+                            additionalInfo: widgetLanguage(stateLanguage),
                             trailing: CupertinoListTileChevron(),
                             onTap: () => context.goNamed("settings_language"),
                           );
@@ -98,7 +108,7 @@ class _SettingsScreenCupertino extends State<SettingsScreenCupertino> {
                     children: [
                       CupertinoListTile(
                         title: Text(context.t.versionApplication, style: TextStyle(fontSize: 15),),
-                        additionalInfo: state.status == Status.success ? Text(state.versionApplication): CupertinoActivityIndicator(),
+                        additionalInfo: widgetVersionApplication(state),
                       ),
                     ],
                   ),
