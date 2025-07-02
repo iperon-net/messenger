@@ -17,6 +17,7 @@ class _LanguageScreenMaterial extends State<LanguageScreenMaterial> {
 
   @override
   void initState() {
+    context.read<LanguageCubit>().initialization();
     super.initState();
   }
 
@@ -35,7 +36,7 @@ class _LanguageScreenMaterial extends State<LanguageScreenMaterial> {
             title: Text(language["title"]),
             subtitle: Text(language["subtitle"]),
             value: language["value"],
-            groupValue: state.chooseLanguage,
+            groupValue: LocaleSettings.currentLocale,
             onChanged: state.status == Status.loading ? null : (value) async => await context.read<LanguageCubit>().changeLanguage(context, language: language["value"]),
             secondary: (state.status == Status.loading && language["value"] == state.chooseLanguage) ? ProgressIndicatorComponent() : null,
           )
@@ -52,8 +53,6 @@ class _LanguageScreenMaterial extends State<LanguageScreenMaterial> {
       ),
       body: BlocBuilder<LanguageCubit, LanguageState>(
         builder: (context, state) {
-          // final onChanged = state.status == Status.loading ? {} : await context.read<LanguageCubit>().changeLanguage(context, language: AppLocale.en);
-
           return ListView(
               padding: EdgeInsets.all(8.0),
               shrinkWrap: true,

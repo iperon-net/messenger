@@ -20,7 +20,6 @@ class LanguageCubit extends Cubit<LanguageState> {
 
   Future<void> initialization() async {
     emit(state.copyWith(status: Status.loading));
-    await Future.delayed(Duration(microseconds: 10));
     emit(state.copyWith(status: Status.success, currentLanguage: LocaleSettings.currentLocale, chooseLanguage: LocaleSettings.currentLocale));
   }
 
