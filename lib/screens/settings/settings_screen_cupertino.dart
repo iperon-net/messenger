@@ -39,9 +39,7 @@ class _SettingsScreenCupertino extends State<SettingsScreenCupertino> {
           child: BlocBuilder<SettingsCubit, SettingsState>(
             builder: (context, state) {
               return Column(
-                // crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  //CupertinoColors.systemGroupedBackground
                   CupertinoFormSection.insetGrouped(
                     header: Text(context.t.myPersonalInfo),
                     children: [
