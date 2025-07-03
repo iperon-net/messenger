@@ -3,6 +3,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 
 import '../../cubit/constants.dart';
 import '../di.dart';
+import '../logger.dart';
 import '../secure_storage.dart';
 
 part 'app_cubit.freezed.dart';
@@ -12,10 +13,12 @@ class AppCubit extends Cubit<AppState> {
   AppCubit() : super(const AppState());
 
   final _secureStorage = getIt.get<SecureStorage>();
+  final _logger = getIt.get<Logger>();
 
   Future<void> changeThemeMode(AppTheme theme) async {
     emit(state.copyWith(theme: theme));
     await _secureStorage.write(key: "theme", value: theme.name);
+    _logger.info("The theme has been changed \"${theme.name}\"");
   }
 
   Future<void> loadThemeMode() async {
