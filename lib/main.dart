@@ -33,6 +33,15 @@ Future<void> main() async {
     LocaleSettings.useDeviceLocale();
   }
 
+  // Theme
+  final themeStorage = await secureStorage.read(key: "theme");
+  AppTheme theme = AppTheme.system;
+  if (themeStorage == "light"){
+    theme = AppTheme.light;
+  } else if (themeStorage == "dark"){
+    theme = AppTheme.dark;
+  }
+
   runApp(
     TranslationProvider(
       child: MultiBlocProvider(
@@ -53,7 +62,7 @@ Future<void> main() async {
               create: (BuildContext context) => ContactsCubit(),
             )
           ],
-          child: Platform.isIOS ? const IperonMessengerCupertino() : const IperonMessengerMaterial(),
+        child: Platform.isIOS ?  const IperonMessengerCupertino() :  IperonMessengerMaterial(theme: theme),
       ),
     )
   );
@@ -61,7 +70,8 @@ Future<void> main() async {
 
 // Material app
 class IperonMessengerMaterial extends StatelessWidget {
-  const IperonMessengerMaterial({super.key});
+  final AppTheme theme;
+  const IperonMessengerMaterial({super.key, required this.theme});
 
   @override
   Widget build(BuildContext context) {
@@ -73,10 +83,16 @@ class IperonMessengerMaterial extends StatelessWidget {
       builder: (context, state) {
 
         ThemeMode themeMode = ThemeMode.system;
-        if (state.appBrightness == AppBrightness.light) {
+        if (state.theme == AppTheme.light) {
           themeMode = ThemeMode.light;
-        } else if(state.appBrightness == AppBrightness.dark) {
+        } else if(state.theme == AppTheme.dark) {
           themeMode = ThemeMode.dark;
+        } else if(theme == AppTheme.light) {
+          themeMode = ThemeMode.light;
+        } else if(theme == AppTheme.dark) {
+          themeMode = ThemeMode.dark;
+        } else if(theme == AppTheme.system) {
+          themeMode = ThemeMode.system;
         }
 
         return MediaQuery(

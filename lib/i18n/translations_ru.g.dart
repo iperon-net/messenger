@@ -57,6 +57,10 @@ class TranslationsRu extends Translations {
 	@override String get search => 'Поиск';
 	@override String get favorite_contacts => 'Избранные контакты';
 	@override String get back => 'Назад';
+	@override String get theme => 'Тема';
+	@override String get themeSystem => 'Системная';
+	@override String get themeLight => 'Светлая';
+	@override String get themeDark => 'Темная';
 	@override String get online => 'В сети';
 	@override String last_seen_minutes({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n,
 		one: 'был(а) ${n} минуту назад',
@@ -92,6 +96,10 @@ extension on TranslationsRu {
 			case 'search': return 'Поиск';
 			case 'favorite_contacts': return 'Избранные контакты';
 			case 'back': return 'Назад';
+			case 'theme': return 'Тема';
+			case 'themeSystem': return 'Системная';
+			case 'themeLight': return 'Светлая';
+			case 'themeDark': return 'Темная';
 			case 'online': return 'В сети';
 			case 'last_seen_minutes': return ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n,
 				one: 'был(а) ${n} минуту назад',

@@ -57,6 +57,10 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
 	String get search => 'Search';
 	String get favorite_contacts => 'Favorite contacts';
 	String get back => 'Back';
+	String get theme => 'Theme';
+	String get themeSystem => 'System';
+	String get themeLight => 'Light';
+	String get themeDark => 'Dark';
 	String get online => 'Online';
 	String last_seen_minutes({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n,
 		one: 'last seen ${n} minute ago',
@@ -90,6 +94,10 @@ extension on Translations {
 			case 'search': return 'Search';
 			case 'favorite_contacts': return 'Favorite contacts';
 			case 'back': return 'Back';
+			case 'theme': return 'Theme';
+			case 'themeSystem': return 'System';
+			case 'themeLight': return 'Light';
+			case 'themeDark': return 'Dark';
 			case 'online': return 'Online';
 			case 'last_seen_minutes': return ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n,
 				one: 'last seen ${n} minute ago',

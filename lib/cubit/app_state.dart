@@ -1,6 +1,6 @@
 part of 'app_cubit.dart';
 
-enum AppBrightness { system, light, dark }
+enum AppTheme { system, light, dark }
 
 @freezed
 abstract class AppState with _$AppState {
@@ -8,6 +8,6 @@ abstract class AppState with _$AppState {
 
   const factory AppState({
     @Default(Status.initial) Status status,
-    @Default(AppBrightness.system) AppBrightness appBrightness,
+    @Default(AppTheme.system) AppTheme theme,
   }) = _AppState;
 }
