@@ -30,7 +30,6 @@ class AppearanceCubit extends Cubit<AppearanceState> {
     emit(state.copyWith(status: Status.success, theme: theme));
   }
 
-
   void changeThemeMode(AppTheme theme) async {
     emit(state.copyWith(theme: theme));
   }
