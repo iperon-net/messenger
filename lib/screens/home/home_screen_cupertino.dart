@@ -27,16 +27,16 @@ class _HomeScreenCupertino extends State<HomeScreenCupertino> {
         items: [
           BottomNavigationBarItem(
             icon: Icon(CupertinoIcons.person_2_fill),
-            label: context.t.contacts,
+            label: context.t.contacts.contacts,
           ),
           BottomNavigationBarItem(
             icon: Icon(CupertinoIcons.chat_bubble_2_fill),
-            label: context.t.chats,
+            label: context.t.chats.chats,
           ),
           BottomNavigationBarItem(
             icon: Icon(CupertinoIcons.settings),
             // icon: Badge(label: Text('!'), child: const Icon(CupertinoIcons.settings)),
-            label: context.t.settings,
+            label: context.t.settings.settings,
           ),
         ],
       ),

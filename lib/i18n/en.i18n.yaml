@@ -1,29 +1,36 @@
-notImplementedScreen: "Not implemented screen"
-contacts: "Contacts"
-chats: "Chats"
-settings: "Settings"
-language: "Language"
-favorites: "Favorites"
-appearance: "Appearance"
-myProfile: "My profile"
-myPersonalInfo: "My personal info"
-versionApplication: "Version application"
-privacyAndSecurity: "Privacy and security"
-devices: "Devices"
-updates: "Updates"
-interfaceLanguage: "Interface language"
-sort: "Sort"
-search: "Search"
-favorite_contacts: "Favorite contacts"
-back: "Back"
-theme: "Theme"
-themeSystem: "System"
-themeLight: "Light"
-themeDark: "Dark"
-online: "Online"
-"last_seen_minutes":
-  "one": "last seen $n minute ago"
-  "other": "last seen $n minutes ago"
-"waiting_for_network" : "Waiting for network..."
-"all_contacts" : "All contacts"
-"all" : "All"
+"notImplementedScreen": "Not implemented screen"
+
+"ui":
+  "settings": "Settings"
+
+"drawer":
+  "settings": "@:ui.settings"
+  "favorites": "Favorites"
+  "contacts": "Contacts"
+
+"contacts":
+  "contacts": "Contacts"
+  "search": "Search"
+  "tabs":
+    "all": "All"
+    "favorites": "Favorites"
+
+"chats":
+  "chats": "Chats"
+
+"settings":
+    "settings": "Settings"
+    "favorites": "Favorites"
+    "myPersonalInfo": "My personal info"
+    "myProfile": "My profile"
+    "privacyAndSecurity": "Privacy and security"
+    "devices": "Devices"
+    "updates": "Updates"
+
+    "appearance":
+      "appearance": "Appearance"
+
+    "language":
+      "language": "Language"
+      "back": "Back"
+      "interfaceLanguage": "Interface language"

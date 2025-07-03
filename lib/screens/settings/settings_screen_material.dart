@@ -53,7 +53,7 @@ class _SettingsScreenMaterial extends State<SettingsScreenMaterial> {
 
         return Scaffold(
           appBar: AppBar(
-            title: Text(context.t.settings),
+            title: Text(context.t.settings.settings),
           ),
           body: ListView(
             padding: EdgeInsets.all(8.0),
@@ -69,15 +69,15 @@ class _SettingsScreenMaterial extends State<SettingsScreenMaterial> {
                   children: [
                     ListTile(
                       title: Text(
-                        context.t.myPersonalInfo,
+                        context.t.settings.myPersonalInfo,
                         style: TextStyle(
                           fontSize: Theme.of(context).textTheme.titleSmall!.fontSize,
                           fontStyle: FontStyle.normal
                         ),
                       )
                     ),
-                    ListTile(title: Text(context.t.myProfile), leading: Icon(Icons.person)),
-                    ListTile(title: Text(context.t.favorites), leading: Icon(Icons.bookmark_border_outlined)),
+                    ListTile(title: Text(context.t.settings.myProfile), leading: Icon(Icons.person)),
+                    ListTile(title: Text(context.t.settings.favorites), leading: Icon(Icons.bookmark_border_outlined)),
                   ],
                 ),
               ),
@@ -91,16 +91,16 @@ class _SettingsScreenMaterial extends State<SettingsScreenMaterial> {
                   children: [
                     ListTile(
                       title: Text(
-                        context.t.settings,
+                        context.t.settings.settings,
                         style: TextStyle(
                           fontSize: Theme.of(context).textTheme.titleSmall!.fontSize,
                           fontStyle: FontStyle.normal
                         ),
                       ),
                     ),
-                    ListTile(title: Text(context.t.privacyAndSecurity), leading: Icon(Icons.lock)),
+                    ListTile(title: Text(context.t.settings.privacyAndSecurity), leading: Icon(Icons.lock)),
                     ListTile(
-                      title: Text(context.t.devices),
+                      title: Text(context.t.settings.devices),
                       leading: Icon(Icons.computer),
                       trailing: Text(
                         "0",
@@ -111,12 +111,12 @@ class _SettingsScreenMaterial extends State<SettingsScreenMaterial> {
                       ),
                     ),
                     ListTile(
-                      title: Text(context.t.appearance),
+                      title: Text(context.t.settings.appearance.appearance),
                       leading: Icon(Icons.wb_sunny_outlined),
                       onTap: () => context.goNamed("settings_appearance"),
                     ),
                     ListTile(
-                      title: Text(context.t.language),
+                      title: Text(context.t.settings.language.language),
                       leading: Icon(Icons.language),
                       trailing: widgetTrailingLanguage(),
                       onTap: () => context.goNamed("settings_language"),

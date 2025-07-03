@@ -48,8 +48,8 @@ class _LanguageScreenCupertino extends State<LanguageScreenCupertino> {
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
-        previousPageTitle: t.back,
-        middle: Text(context.t.language),
+        previousPageTitle: t.settings.language.back,
+        middle: Text(context.t.settings.language.language),
       ),
       child: SafeArea(
         bottom: true,
@@ -60,7 +60,7 @@ class _LanguageScreenCupertino extends State<LanguageScreenCupertino> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   CupertinoFormSection.insetGrouped(
-                    header: Text(context.t.interfaceLanguage),
+                    header: Text(context.t.settings.language.interfaceLanguage),
                     children: [...cupertinoListTileGenerator(state)],
                   ),
                 ],

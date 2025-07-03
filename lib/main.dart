@@ -14,7 +14,7 @@ import 'screens/settings/appearance_cubit.dart';
 import 'screens/settings/language_cubit.dart';
 import 'screens/settings/settings_cubit.dart';
 import 'secure_storage.dart';
-import 'theme_material.dart';
+import 'theme_material_green.dart' as theme_green;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -75,8 +75,6 @@ class IperonMessengerMaterial extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final ColorScheme colorSchemeLight = MaterialTheme.lightScheme();
-    final ColorScheme colorSchemeDark = MaterialTheme.darkScheme();
     final routerConfig = getIt.get<Routers>().routerMaterial();
 
     return BlocBuilder<AppCubit, AppState>(
@@ -94,6 +92,12 @@ class IperonMessengerMaterial extends StatelessWidget {
         } else if(theme == AppTheme.system) {
           themeMode = ThemeMode.system;
         }
+
+        // final ColorScheme colorSchemeLight = theme_blue.MaterialTheme.lightScheme();
+        // final ColorScheme colorSchemeDark = theme_blue.MaterialTheme.darkScheme();
+
+        final ColorScheme colorSchemeLight = theme_green.MaterialTheme.lightScheme();
+        final ColorScheme colorSchemeDark = theme_green.MaterialTheme.darkScheme();
 
         return MediaQuery(
           data: MediaQuery.of(context).copyWith(
@@ -117,6 +121,11 @@ class IperonMessengerMaterial extends StatelessWidget {
               listTileTheme: ListTileThemeData(
                 iconColor: colorSchemeLight.primary,
               ),
+              radioTheme: RadioThemeData(
+                visualDensity: const VisualDensity(
+                  horizontal: VisualDensity.minimumDensity,
+                ),
+              ),
             ),
             darkTheme: ThemeData(
               colorScheme: colorSchemeDark,
@@ -128,6 +137,11 @@ class IperonMessengerMaterial extends StatelessWidget {
                 backgroundColor: colorSchemeDark.surfaceContainer,
               ),
               scaffoldBackgroundColor: colorSchemeDark.surfaceContainer,
+              radioTheme: RadioThemeData(
+                visualDensity: const VisualDensity(
+                  horizontal: VisualDensity.minimumDensity,
+                ),
+              ),
             ),
             themeMode: themeMode,
           ),

@@ -1,31 +1,36 @@
-notImplementedScreen: "Не реализованный экран"
-contacts: "Контакты"
-chats: "Чаты"
-settings: "Настройки"
-language: "Язык"
-favorites: "Избранное"
-appearance: "Оформление"
-myProfile: "Мой профиль"
-myPersonalInfo: "Моя личная информация"
-versionApplication: "Версия приложения"
-privacyAndSecurity: "Конфиденциальность"
-devices: "Устройства"
-updates: "Обновления"
-interfaceLanguage: "Язык интерфейса"
-sort: "Сортировка"
-search: "Поиск"
-favorite_contacts: "Избранные контакты"
-back: "Назад"
-theme: "Тема"
-themeSystem: "Системная"
-themeLight: "Светлая"
-themeDark: "Темная"
-online: "В сети"
-"last_seen_minutes":
-  "one": "был(а) $n минуту назад"
-  "few": "был(а) $n минуты назад"
-  "many": "был(а) $n минут назад"
-  "other": "был(а) $n минут назад"
-"waiting_for_network" : "Ожидание сети..."
-"all_contacts" : "Все контакты"
-"all" : "Все"
+"notImplementedScreen": "Не реализованный экран"
+
+"ui":
+  "settings": "Настройки"
+
+"drawer":
+  "settings": "@:ui.settings"
+  "favorites": "Избранное"
+  "contacts": "Контакты"
+
+"contacts":
+  "contacts": "Контакты"
+  "search": "Поиск"
+  "tabs":
+    "all": "Все"
+    "favorites": "Избранное"
+
+"chats":
+  "chats": "Чаты"
+
+"settings":
+  "settings": "Настройки"
+  "favorites": "Избранное"
+  "myPersonalInfo": "Моя личная информация"
+  "myProfile": "Мой профиль"
+  "privacyAndSecurity": "Конфиденциальность"
+  "devices": "Девайсы"
+  "updates": "Обновления"
+
+  "appearance":
+    "appearance": "Оформление"
+
+  "language":
+    "language": "Язык"
+    "back": "Назад"
+    "interfaceLanguage": "Язык интерфейса"

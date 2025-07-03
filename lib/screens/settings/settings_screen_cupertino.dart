@@ -32,7 +32,7 @@ class _SettingsScreenCupertino extends State<SettingsScreenCupertino> {
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
         transitionBetweenRoutes: false,
-        middle: Text(context.t.settings),
+        middle: Text(context.t.settings.settings),
       ),
       child: SingleChildScrollView(
         child: SafeArea(
@@ -41,42 +41,42 @@ class _SettingsScreenCupertino extends State<SettingsScreenCupertino> {
               return Column(
                 children: [
                   CupertinoFormSection.insetGrouped(
-                    header: Text(context.t.myPersonalInfo),
+                    header: Text(context.t.settings.myPersonalInfo),
                     children: [
                       CupertinoListTile(
                         leading: Icon(CupertinoIcons.person),
-                        title: Text(context.t.myProfile, style: TextStyle(fontSize: 15),),
+                        title: Text(context.t.settings.myProfile, style: TextStyle(fontSize: 15),),
                         trailing: CupertinoListTileChevron(),
                       ),
                       CupertinoListTile(
                         leading: Icon(CupertinoIcons.book),
-                        title: Text(context.t.favorites, style: TextStyle(fontSize: 15),),
+                        title: Text(context.t.settings.favorites, style: TextStyle(fontSize: 15),),
                         trailing: CupertinoListTileChevron(),
                       ),
                     ],
                   ),
                   CupertinoFormSection.insetGrouped(
-                    header: Text(context.t.settings),
+                    header: Text(context.t.settings.settings),
                     children: [
                       CupertinoListTile(
                         leading: Icon(CupertinoIcons.lock),
-                        title: Text(context.t.privacyAndSecurity),
+                        title: Text(context.t.settings.privacyAndSecurity),
                         trailing: CupertinoListTileChevron(),
                       ),
                       CupertinoListTile(
                         leading: Icon(CupertinoIcons.device_laptop),
-                        title: Text(context.t.devices, style: TextStyle(fontSize: 15),),
+                        title: Text(context.t.settings.devices, style: TextStyle(fontSize: 15),),
                         additionalInfo: Text("0"),
                         trailing: CupertinoListTileChevron(),
                       ),
                       CupertinoListTile(
                         leading: Icon(CupertinoIcons.circle_lefthalf_fill),
-                        title: Text(context.t.appearance, style: TextStyle(fontSize: 15),),
+                        title: Text(context.t.settings.appearance.appearance, style: TextStyle(fontSize: 15),),
                         trailing: CupertinoListTileChevron(),
                       ),
                       CupertinoListTile(
                         leading: Icon(CupertinoIcons.globe),
-                        title: Text(context.t.language, style: TextStyle(fontSize: 15),),
+                        title: Text(context.t.settings.language.language, style: TextStyle(fontSize: 15),),
                         additionalInfo: widgetLanguage(),
                         trailing: CupertinoListTileChevron(),
                         onTap: () => context.goNamed("settings_language"),

@@ -30,7 +30,7 @@ class _ContactsScreenCupertino extends State<ContactsScreenCupertino> {
       width: MediaQuery.of(context).size.width,
       child: Padding(
         padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
-        child: CupertinoSearchTextField(placeholder: context.t.search),
+        child: CupertinoSearchTextField(placeholder: context.t.contacts.search),
       ),
     );
   }
@@ -46,9 +46,9 @@ class _ContactsScreenCupertino extends State<ContactsScreenCupertino> {
           String name = tab.name;
 
           if(tab.isSystem && tab.systemName == "all") {
-            name = context.t.all;
+            name = context.t.contacts.tabs.all;
           } else if (tab.isSystem && tab.systemName == "favorites") {
-            name = context.t.favorites;
+            name = context.t.contacts.tabs.favorites;
           }
 
           tabs.add(Padding(
@@ -146,7 +146,7 @@ class _ContactsScreenCupertino extends State<ContactsScreenCupertino> {
           contacts.add(CupertinoListTile(
             leading: AvatarPlus(contact.contactId.toString(), height: 32, width: 32),
             title: Text("${contact.firstName} ${contact.lastName}", style: TextStyle(fontSize: 15),),
-            subtitle: contact.lastVisitAt == 0 ? Text("n/a") : Text(t.online),
+            subtitle: Text("n/a"),
           ));
 
         }
@@ -162,7 +162,7 @@ class _ContactsScreenCupertino extends State<ContactsScreenCupertino> {
 
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
-        middle: Text(context.t.contacts),
+        middle: Text(context.t.contacts.contacts),
       ),
       child: SafeArea(
         child: SingleChildScrollView(

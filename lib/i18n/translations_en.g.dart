@@ -40,35 +40,106 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
 
 	// Translations
 	String get notImplementedScreen => 'Not implemented screen';
-	String get contacts => 'Contacts';
-	String get chats => 'Chats';
+	late final TranslationsUiEn ui = TranslationsUiEn.internal(_root);
+	late final TranslationsDrawerEn drawer = TranslationsDrawerEn.internal(_root);
+	late final TranslationsContactsEn contacts = TranslationsContactsEn.internal(_root);
+	late final TranslationsChatsEn chats = TranslationsChatsEn.internal(_root);
+	late final TranslationsSettingsEn settings = TranslationsSettingsEn.internal(_root);
+}
+
+// Path: ui
+class TranslationsUiEn {
+	TranslationsUiEn.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
 	String get settings => 'Settings';
-	String get language => 'Language';
+}
+
+// Path: drawer
+class TranslationsDrawerEn {
+	TranslationsDrawerEn.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+	String get settings => _root.ui.settings;
 	String get favorites => 'Favorites';
-	String get appearance => 'Appearance';
-	String get myProfile => 'My profile';
+	String get contacts => 'Contacts';
+}
+
+// Path: contacts
+class TranslationsContactsEn {
+	TranslationsContactsEn.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+	String get contacts => 'Contacts';
+	String get search => 'Search';
+	late final TranslationsContactsTabsEn tabs = TranslationsContactsTabsEn.internal(_root);
+}
+
+// Path: chats
+class TranslationsChatsEn {
+	TranslationsChatsEn.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+	String get chats => 'Chats';
+}
+
+// Path: settings
+class TranslationsSettingsEn {
+	TranslationsSettingsEn.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+	String get settings => 'Settings';
+	String get favorites => 'Favorites';
 	String get myPersonalInfo => 'My personal info';
-	String get versionApplication => 'Version application';
+	String get myProfile => 'My profile';
 	String get privacyAndSecurity => 'Privacy and security';
 	String get devices => 'Devices';
 	String get updates => 'Updates';
-	String get interfaceLanguage => 'Interface language';
-	String get sort => 'Sort';
-	String get search => 'Search';
-	String get favorite_contacts => 'Favorite contacts';
-	String get back => 'Back';
-	String get theme => 'Theme';
-	String get themeSystem => 'System';
-	String get themeLight => 'Light';
-	String get themeDark => 'Dark';
-	String get online => 'Online';
-	String last_seen_minutes({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n,
-		one: 'last seen ${n} minute ago',
-		other: 'last seen ${n} minutes ago',
-	);
-	String get waiting_for_network => 'Waiting for network...';
-	String get all_contacts => 'All contacts';
+	late final TranslationsSettingsAppearanceEn appearance = TranslationsSettingsAppearanceEn.internal(_root);
+	late final TranslationsSettingsLanguageEn language = TranslationsSettingsLanguageEn.internal(_root);
+}
+
+// Path: contacts.tabs
+class TranslationsContactsTabsEn {
+	TranslationsContactsTabsEn.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
 	String get all => 'All';
+	String get favorites => 'Favorites';
+}
+
+// Path: settings.appearance
+class TranslationsSettingsAppearanceEn {
+	TranslationsSettingsAppearanceEn.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+	String get appearance => 'Appearance';
+}
+
+// Path: settings.language
+class TranslationsSettingsLanguageEn {
+	TranslationsSettingsLanguageEn.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+	String get language => 'Language';
+	String get back => 'Back';
+	String get interfaceLanguage => 'Interface language';
 }
 
 /// Flat map(s) containing all translations.
@@ -77,35 +148,26 @@ extension on Translations {
 	dynamic _flatMapFunction(String path) {
 		switch (path) {
 			case 'notImplementedScreen': return 'Not implemented screen';
-			case 'contacts': return 'Contacts';
-			case 'chats': return 'Chats';
-			case 'settings': return 'Settings';
-			case 'language': return 'Language';
-			case 'favorites': return 'Favorites';
-			case 'appearance': return 'Appearance';
-			case 'myProfile': return 'My profile';
-			case 'myPersonalInfo': return 'My personal info';
-			case 'versionApplication': return 'Version application';
-			case 'privacyAndSecurity': return 'Privacy and security';
-			case 'devices': return 'Devices';
-			case 'updates': return 'Updates';
-			case 'interfaceLanguage': return 'Interface language';
-			case 'sort': return 'Sort';
-			case 'search': return 'Search';
-			case 'favorite_contacts': return 'Favorite contacts';
-			case 'back': return 'Back';
-			case 'theme': return 'Theme';
-			case 'themeSystem': return 'System';
-			case 'themeLight': return 'Light';
-			case 'themeDark': return 'Dark';
-			case 'online': return 'Online';
-			case 'last_seen_minutes': return ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n,
-				one: 'last seen ${n} minute ago',
-				other: 'last seen ${n} minutes ago',
-			);
-			case 'waiting_for_network': return 'Waiting for network...';
-			case 'all_contacts': return 'All contacts';
-			case 'all': return 'All';
+			case 'ui.settings': return 'Settings';
+			case 'drawer.settings': return _root.ui.settings;
+			case 'drawer.favorites': return 'Favorites';
+			case 'drawer.contacts': return 'Contacts';
+			case 'contacts.contacts': return 'Contacts';
+			case 'contacts.search': return 'Search';
+			case 'contacts.tabs.all': return 'All';
+			case 'contacts.tabs.favorites': return 'Favorites';
+			case 'chats.chats': return 'Chats';
+			case 'settings.settings': return 'Settings';
+			case 'settings.favorites': return 'Favorites';
+			case 'settings.myPersonalInfo': return 'My personal info';
+			case 'settings.myProfile': return 'My profile';
+			case 'settings.privacyAndSecurity': return 'Privacy and security';
+			case 'settings.devices': return 'Devices';
+			case 'settings.updates': return 'Updates';
+			case 'settings.appearance.appearance': return 'Appearance';
+			case 'settings.language.language': return 'Language';
+			case 'settings.language.back': return 'Back';
+			case 'settings.language.interfaceLanguage': return 'Interface language';
 			default: return null;
 		}
 	}

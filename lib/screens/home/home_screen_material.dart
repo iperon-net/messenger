@@ -66,15 +66,15 @@ class _HomeScreenMaterial extends State<HomeScreenMaterial> {
             ),
             ListTile(
               leading: Icon(Icons.people),
-              title: Text(context.t.contacts),
+              title: Text(context.t.drawer.contacts),
             ),
             ListTile(
               leading: Icon(Icons.bookmark_border_outlined),
-              title: Text(context.t.favorites),
+              title: Text(context.t.drawer.favorites),
             ),
             ListTile(
               leading: Icon(Icons.settings),
-              title: Text(context.t.settings),
+              title: Text(context.t.settings.settings),
               onTap: () {
                 if (_scaffoldKey.currentState?.isDrawerOpen == true) _scaffoldKey.currentState?.closeDrawer();
                 context.goNamed("settings");

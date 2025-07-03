@@ -52,7 +52,7 @@ class _LanguageScreenMaterial extends State<LanguageScreenMaterial> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-        title: Text(context.t.language),
+        title: Text(context.t.settings.language.language),
       ),
       body: BlocBuilder<LanguageCubit, LanguageState>(
         builder: (context, state) {
@@ -69,7 +69,7 @@ class _LanguageScreenMaterial extends State<LanguageScreenMaterial> {
                     children: [
                       ListTile(
                           title: Text(
-                            context.t.interfaceLanguage,
+                            context.t.settings.language.interfaceLanguage,
                             style: TextStyle(
                                 fontSize: Theme.of(context).textTheme.titleSmall!.fontSize,
                                 fontStyle: FontStyle.normal
