@@ -25,9 +25,9 @@ class _AppearanceScreenMaterial extends State<AppearanceScreenMaterial> {
     List<RadioListTile> themeGenerator = [];
 
     List<Map<String, dynamic>> themeList = [
-      {"title": "context.t.themeSystem", "value": AppTheme.system},
-      {"title": "context.t.themeLight", "value": AppTheme.light},
-      {"title": "context.t.themeDark", "value": AppTheme.dark},
+      {"title": t.settings.appearance.darkMode.system, "value": DarkMode.system},
+      {"title": t.settings.appearance.darkMode.disabled, "value": DarkMode.disabled},
+      {"title": t.settings.appearance.darkMode.alwaysOn, "value": DarkMode.alwaysOn},
     ];
 
     for (final theme in themeList){
@@ -35,8 +35,8 @@ class _AppearanceScreenMaterial extends State<AppearanceScreenMaterial> {
           RadioListTile(
             title: Text(theme["title"]),
             value: theme["value"],
-            groupValue: state.theme,
-            onChanged: state.status == Status.loading ? (value) => {} : (value) async => context.read<AppearanceCubit>().changeThemeMode(theme["value"]),
+            groupValue: state.darkMode,
+            onChanged: state.status == Status.loading ? (value) => {} : (value) async => context.read<AppearanceCubit>().changeDarkMode(theme["value"]),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(10.0),
             ),
@@ -50,11 +50,8 @@ class _AppearanceScreenMaterial extends State<AppearanceScreenMaterial> {
     List<RadioListTile> colorThemeGenerator = [];
 
     List<Map<String, dynamic>> themeList = [
-      // {"title": context.t.themeColor.system, "value": "system"},
-      // {"title": context.t.themeColor.green, "value": "green"},
-      {"title": "context.t.themeColor.system", "value": "system"},
-      {"title": "context.t.themeColor.green", "value": "green"},
-
+      {"title": t.settings.appearance.colorScheme.system, "value": "system"},
+      {"title": t.settings.appearance.colorScheme.green, "value": "green"},
     ];
 
     for (final theme in themeList){
@@ -62,8 +59,8 @@ class _AppearanceScreenMaterial extends State<AppearanceScreenMaterial> {
           RadioListTile(
             title: Text(theme["title"]),
             value: theme["value"],
-            groupValue: state.theme,
-            onChanged: state.status == Status.loading ? (value) => {} : (value) async => context.read<AppearanceCubit>().changeThemeMode(theme["value"]),
+            groupValue: state.darkMode,
+            onChanged: state.status == Status.loading ? (value) => {} : (value) async => context.read<AppearanceCubit>().changeDarkMode(theme["value"]),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(10.0),
             ),
@@ -80,13 +77,34 @@ class _AppearanceScreenMaterial extends State<AppearanceScreenMaterial> {
         title: Text(context.t.settings.appearance.appearance),
       ),
       body: BlocConsumer<AppearanceCubit, AppearanceState>(
-        listener: (context, state) async => await context.read<AppCubit>().changeThemeMode(state.theme),
+        listener: (context, state) async => await context.read<AppCubit>().changeDarkMode(state.darkMode),
         builder: (context, state) {
           return ListView(
             padding: EdgeInsets.all(8.0),
             shrinkWrap: true,
             children: <Widget>[
               SizedBox(height: 10),
+              // Container(
+              //   decoration: BoxDecoration(
+              //     borderRadius: BorderRadius.circular(10.0),
+              //     color: Theme.of(context).cardColor,
+              //   ),
+              //   child: Column(
+              //     children: [
+              //       ListTile(
+              //           title: Text(
+              //             context.t.settings.appearance.colorScheme.colorScheme,
+              //             style: TextStyle(
+              //                 fontSize: Theme.of(context).textTheme.titleSmall!.fontSize,
+              //                 fontStyle: FontStyle.normal
+              //             ),
+              //           )
+              //       ),
+              //       ...colorThemeGenerator(context, state),
+              //     ],
+              //   ),
+              // ),
+              // SizedBox(height: 20,),
               Container(
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(10.0),
@@ -96,7 +114,7 @@ class _AppearanceScreenMaterial extends State<AppearanceScreenMaterial> {
                   children: [
                     ListTile(
                       title: Text(
-                        "context.t.theme",
+                        t.settings.appearance.darkMode.darkMode,
                         style: TextStyle(
                             fontSize: Theme.of(context).textTheme.titleSmall!.fontSize,
                             fontStyle: FontStyle.normal
@@ -104,37 +122,6 @@ class _AppearanceScreenMaterial extends State<AppearanceScreenMaterial> {
                       )
                     ),
                     ...themeGenerator(context, state),
-                  //   ListTile(
-                  //       title: Text(
-                  //         context.t.theme,
-                  //         style: TextStyle(
-                  //             fontSize: Theme.of(context).textTheme.titleSmall!.fontSize,
-                  //             fontStyle: FontStyle.normal
-                  //         ),
-                  //       )
-                  //   ),
-                  //   ...colorThemeGenerator(context, state),
-                  ],
-                ),
-              ),
-              SizedBox(height: 20,),
-              Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(10.0),
-                  color: Theme.of(context).cardColor,
-                ),
-                child: Column(
-                  children: [
-                    ListTile(
-                      title: Text(
-                        "context.t.theme",
-                        style: TextStyle(
-                            fontSize: Theme.of(context).textTheme.titleSmall!.fontSize,
-                            fontStyle: FontStyle.normal
-                        ),
-                      )
-                    ),
-                    ...colorThemeGenerator(context, state),
                   ],
                 ),
               ),

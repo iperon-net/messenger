@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$AppState {
 
- Status get status; AppTheme get theme;
+ Status get status; ColorTheme get colorTheme; DarkMode get darkMode;
 /// Create a copy of AppState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -26,16 +26,16 @@ $AppStateCopyWith<AppState> get copyWith => _$AppStateCopyWithImpl<AppState>(thi
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AppState&&(identical(other.status, status) || other.status == status)&&(identical(other.theme, theme) || other.theme == theme));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AppState&&(identical(other.status, status) || other.status == status)&&(identical(other.colorTheme, colorTheme) || other.colorTheme == colorTheme)&&(identical(other.darkMode, darkMode) || other.darkMode == darkMode));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,status,theme);
+int get hashCode => Object.hash(runtimeType,status,colorTheme,darkMode);
 
 @override
 String toString() {
-  return 'AppState(status: $status, theme: $theme)';
+  return 'AppState(status: $status, colorTheme: $colorTheme, darkMode: $darkMode)';
 }
 
 
@@ -46,7 +46,7 @@ abstract mixin class $AppStateCopyWith<$Res>  {
   factory $AppStateCopyWith(AppState value, $Res Function(AppState) _then) = _$AppStateCopyWithImpl;
 @useResult
 $Res call({
- Status status, AppTheme theme
+ Status status, ColorTheme colorTheme, DarkMode darkMode
 });
 
 
@@ -63,11 +63,12 @@ class _$AppStateCopyWithImpl<$Res>
 
 /// Create a copy of AppState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? status = null,Object? theme = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? status = null,Object? colorTheme = null,Object? darkMode = null,}) {
   return _then(_self.copyWith(
 status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
-as Status,theme: null == theme ? _self.theme : theme // ignore: cast_nullable_to_non_nullable
-as AppTheme,
+as Status,colorTheme: null == colorTheme ? _self.colorTheme : colorTheme // ignore: cast_nullable_to_non_nullable
+as ColorTheme,darkMode: null == darkMode ? _self.darkMode : darkMode // ignore: cast_nullable_to_non_nullable
+as DarkMode,
   ));
 }
 
@@ -78,11 +79,12 @@ as AppTheme,
 
 
 class _AppState extends AppState {
-  const _AppState({this.status = Status.initial, this.theme = AppTheme.system}): super._();
+  const _AppState({this.status = Status.initial, this.colorTheme = ColorTheme.blue, this.darkMode = DarkMode.system}): super._();
   
 
 @override@JsonKey() final  Status status;
-@override@JsonKey() final  AppTheme theme;
+@override@JsonKey() final  ColorTheme colorTheme;
+@override@JsonKey() final  DarkMode darkMode;
 
 /// Create a copy of AppState
 /// with the given fields replaced by the non-null parameter values.
@@ -94,16 +96,16 @@ _$AppStateCopyWith<_AppState> get copyWith => __$AppStateCopyWithImpl<_AppState>
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AppState&&(identical(other.status, status) || other.status == status)&&(identical(other.theme, theme) || other.theme == theme));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AppState&&(identical(other.status, status) || other.status == status)&&(identical(other.colorTheme, colorTheme) || other.colorTheme == colorTheme)&&(identical(other.darkMode, darkMode) || other.darkMode == darkMode));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,status,theme);
+int get hashCode => Object.hash(runtimeType,status,colorTheme,darkMode);
 
 @override
 String toString() {
-  return 'AppState(status: $status, theme: $theme)';
+  return 'AppState(status: $status, colorTheme: $colorTheme, darkMode: $darkMode)';
 }
 
 
@@ -114,7 +116,7 @@ abstract mixin class _$AppStateCopyWith<$Res> implements $AppStateCopyWith<$Res>
   factory _$AppStateCopyWith(_AppState value, $Res Function(_AppState) _then) = __$AppStateCopyWithImpl;
 @override @useResult
 $Res call({
- Status status, AppTheme theme
+ Status status, ColorTheme colorTheme, DarkMode darkMode
 });
 
 
@@ -131,11 +133,12 @@ class __$AppStateCopyWithImpl<$Res>
 
 /// Create a copy of AppState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? status = null,Object? theme = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? status = null,Object? colorTheme = null,Object? darkMode = null,}) {
   return _then(_AppState(
 status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
-as Status,theme: null == theme ? _self.theme : theme // ignore: cast_nullable_to_non_nullable
-as AppTheme,
+as Status,colorTheme: null == colorTheme ? _self.colorTheme : colorTheme // ignore: cast_nullable_to_non_nullable
+as ColorTheme,darkMode: null == darkMode ? _self.darkMode : darkMode // ignore: cast_nullable_to_non_nullable
+as DarkMode,
   ));
 }
 

@@ -15,21 +15,8 @@ class AppCubit extends Cubit<AppState> {
   final _secureStorage = getIt.get<SecureStorage>();
   final _logger = getIt.get<Logger>();
 
-  Future<void> changeThemeMode(AppTheme theme) async {
-    emit(state.copyWith(theme: theme));
-    await _secureStorage.write(key: "theme", value: theme.name);
-    _logger.info("The theme has been changed \"${theme.name}\"");
-  }
-
-  Future<void> loadThemeMode() async {
-    final theme = await _secureStorage.read(key: "theme");
-    if (theme == "system"){
-      emit(state.copyWith(theme: AppTheme.system));
-    } else if (theme == "light"){
-      emit(state.copyWith(theme: AppTheme.light));
-    } else if (theme == "dark"){
-      emit(state.copyWith(theme: AppTheme.dark));
-    }
+  Future<void> changeDarkMode(DarkMode darkMode) async {
+    emit(state.copyWith(darkMode: darkMode));
   }
 
 }

@@ -128,6 +128,8 @@ class _TranslationsSettingsAppearanceRu extends TranslationsSettingsAppearanceEn
 
 	// Translations
 	@override String get appearance => 'Оформление';
+	@override late final _TranslationsSettingsAppearanceDarkModeRu darkMode = _TranslationsSettingsAppearanceDarkModeRu._(_root);
+	@override late final _TranslationsSettingsAppearanceColorSchemeRu colorScheme = _TranslationsSettingsAppearanceColorSchemeRu._(_root);
 }
 
 // Path: settings.language
@@ -140,6 +142,31 @@ class _TranslationsSettingsLanguageRu extends TranslationsSettingsLanguageEn {
 	@override String get language => 'Язык';
 	@override String get back => 'Назад';
 	@override String get interfaceLanguage => 'Язык интерфейса';
+}
+
+// Path: settings.appearance.darkMode
+class _TranslationsSettingsAppearanceDarkModeRu extends TranslationsSettingsAppearanceDarkModeEn {
+	_TranslationsSettingsAppearanceDarkModeRu._(TranslationsRu root) : this._root = root, super.internal(root);
+
+	final TranslationsRu _root; // ignore: unused_field
+
+	// Translations
+	@override String get darkMode => 'Темная тема';
+	@override String get system => 'Системная';
+	@override String get disabled => 'Выключена';
+	@override String get alwaysOn => 'Всегда включена';
+}
+
+// Path: settings.appearance.colorScheme
+class _TranslationsSettingsAppearanceColorSchemeRu extends TranslationsSettingsAppearanceColorSchemeEn {
+	_TranslationsSettingsAppearanceColorSchemeRu._(TranslationsRu root) : this._root = root, super.internal(root);
+
+	final TranslationsRu _root; // ignore: unused_field
+
+	// Translations
+	@override String get colorScheme => 'Цветовая схема';
+	@override String get system => 'Системная';
+	@override String get green => 'Зеленая';
 }
 
 /// Flat map(s) containing all translations.
@@ -165,6 +192,13 @@ extension on TranslationsRu {
 			case 'settings.devices': return 'Девайсы';
 			case 'settings.updates': return 'Обновления';
 			case 'settings.appearance.appearance': return 'Оформление';
+			case 'settings.appearance.darkMode.darkMode': return 'Темная тема';
+			case 'settings.appearance.darkMode.system': return 'Системная';
+			case 'settings.appearance.darkMode.disabled': return 'Выключена';
+			case 'settings.appearance.darkMode.alwaysOn': return 'Всегда включена';
+			case 'settings.appearance.colorScheme.colorScheme': return 'Цветовая схема';
+			case 'settings.appearance.colorScheme.system': return 'Системная';
+			case 'settings.appearance.colorScheme.green': return 'Зеленая';
 			case 'settings.language.language': return 'Язык';
 			case 'settings.language.back': return 'Назад';
 			case 'settings.language.interfaceLanguage': return 'Язык интерфейса';

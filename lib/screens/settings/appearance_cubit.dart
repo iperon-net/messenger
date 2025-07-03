@@ -17,21 +17,22 @@ class AppearanceCubit extends Cubit<AppearanceState> {
   Future<void> initialization() async {
     emit(state.copyWith(status: Status.loading));
 
-    final themeStorage = await _secureStorage.read(key: "theme");
-    AppTheme theme = AppTheme.system;
+    final darkModeStorage = await _secureStorage.read(key: "darkMode");
 
-    if (themeStorage == "light"){
-      theme = AppTheme.light;
-    } else if (themeStorage == "dark"){
-      theme = AppTheme.dark;
-    } else if (themeStorage == "system"){
-      theme = AppTheme.system;
+    DarkMode darkMode = DarkMode.system;
+
+    if (darkModeStorage == "disabled"){
+      darkMode = DarkMode.disabled;
+    } else if (darkModeStorage == "alwaysOn"){
+      darkMode = DarkMode.alwaysOn;
     }
-    emit(state.copyWith(status: Status.success, theme: theme));
+    emit(state.copyWith(status: Status.success, darkMode: darkMode));
   }
 
-  void changeThemeMode(AppTheme theme) async {
-    emit(state.copyWith(theme: theme));
+  Future<void> changeDarkMode(DarkMode darkMode) async {
+    emit(state.copyWith(status: Status.loading));
+    await _secureStorage.write(key: "darkMode", value: darkMode.name);
+    emit(state.copyWith(status: Status.success, darkMode: darkMode));
   }
 
 }

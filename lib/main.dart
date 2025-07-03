@@ -14,11 +14,11 @@ import 'screens/settings/appearance_cubit.dart';
 import 'screens/settings/language_cubit.dart';
 import 'screens/settings/settings_cubit.dart';
 import 'secure_storage.dart';
-import 'theme_material_green.dart' as theme_green;
+import 'themes/material_blue.dart' as material_blue;
+import 'themes/material_green.dart' as material_green;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // LocaleSettings.useDeviceLocale();
 
   await configureGlobalDI();
   final secureStorage = getIt.get<SecureStorage>();
@@ -31,15 +31,6 @@ Future<void> main() async {
     LocaleSettings.setLocale(AppLocale.en);
   } else {
     LocaleSettings.useDeviceLocale();
-  }
-
-  // Theme
-  final themeStorage = await secureStorage.read(key: "theme");
-  AppTheme theme = AppTheme.system;
-  if (themeStorage == "light"){
-    theme = AppTheme.light;
-  } else if (themeStorage == "dark"){
-    theme = AppTheme.dark;
   }
 
   runApp(
@@ -62,7 +53,7 @@ Future<void> main() async {
               create: (BuildContext context) => ContactsCubit(),
             )
           ],
-        child: Platform.isIOS ?  const IperonMessengerCupertino() :  IperonMessengerMaterial(theme: theme),
+        child: Platform.isIOS ?  const IperonMessengerCupertino() :  IperonMessengerMaterial(),
       ),
     )
   );
@@ -70,8 +61,7 @@ Future<void> main() async {
 
 // Material app
 class IperonMessengerMaterial extends StatelessWidget {
-  final AppTheme theme;
-  const IperonMessengerMaterial({super.key, required this.theme});
+  const IperonMessengerMaterial({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -81,23 +71,22 @@ class IperonMessengerMaterial extends StatelessWidget {
       builder: (context, state) {
 
         ThemeMode themeMode = ThemeMode.system;
-        if (state.theme == AppTheme.light) {
-          themeMode = ThemeMode.light;
-        } else if(state.theme == AppTheme.dark) {
+        if (state.darkMode == DarkMode.alwaysOn) {
           themeMode = ThemeMode.dark;
-        } else if(theme == AppTheme.light) {
+        } else if (state.darkMode == DarkMode.disabled) {
           themeMode = ThemeMode.light;
-        } else if(theme == AppTheme.dark) {
-          themeMode = ThemeMode.dark;
-        } else if(theme == AppTheme.system) {
-          themeMode = ThemeMode.system;
         }
 
-        // final ColorScheme colorSchemeLight = theme_blue.MaterialTheme.lightScheme();
-        // final ColorScheme colorSchemeDark = theme_blue.MaterialTheme.darkScheme();
+        late ColorScheme colorSchemeLight;
+        late ColorScheme colorSchemeDark;
 
-        final ColorScheme colorSchemeLight = theme_green.MaterialTheme.lightScheme();
-        final ColorScheme colorSchemeDark = theme_green.MaterialTheme.darkScheme();
+        if (state.colorTheme == ColorTheme.green) {
+          colorSchemeLight = material_green.MaterialTheme.lightScheme();
+          colorSchemeDark = material_green.MaterialTheme.darkScheme();
+        } else {
+          colorSchemeLight = material_blue.MaterialTheme.lightScheme();
+          colorSchemeDark = material_blue.MaterialTheme.darkScheme();
+        }
 
         return MediaQuery(
           data: MediaQuery.of(context).copyWith(
@@ -142,6 +131,7 @@ class IperonMessengerMaterial extends StatelessWidget {
                   horizontal: VisualDensity.minimumDensity,
                 ),
               ),
+              cardColor: colorSchemeDark.surfaceDim,
             ),
             themeMode: themeMode,
           ),

@@ -29,6 +29,15 @@
 
   "appearance":
     "appearance": "Оформление"
+    "darkMode":
+      "darkMode": "Темная тема"
+      "system": "Системная"
+      "disabled": "Выключена"
+      "alwaysOn": "Всегда включена"
+    "colorScheme":
+      "colorScheme": "Цветовая схема"
+      "system": "Системная"
+      "green": "Зеленая"
 
   "language":
     "language": "Язык"

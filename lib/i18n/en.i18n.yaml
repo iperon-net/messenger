@@ -29,6 +29,15 @@
 
     "appearance":
       "appearance": "Appearance"
+      "darkMode":
+        "darkMode": "Dark mode"
+        "system": "System"
+        "disabled": "Disabled"
+        "alwaysOn": "Always on"
+      "colorScheme":
+        "colorScheme": "Color scheme"
+        "system": "System"
+        "green": "Green"
 
     "language":
       "language": "Language"

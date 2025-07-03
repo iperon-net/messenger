@@ -128,6 +128,8 @@ class TranslationsSettingsAppearanceEn {
 
 	// Translations
 	String get appearance => 'Appearance';
+	late final TranslationsSettingsAppearanceDarkModeEn darkMode = TranslationsSettingsAppearanceDarkModeEn.internal(_root);
+	late final TranslationsSettingsAppearanceColorSchemeEn colorScheme = TranslationsSettingsAppearanceColorSchemeEn.internal(_root);
 }
 
 // Path: settings.language
@@ -140,6 +142,31 @@ class TranslationsSettingsLanguageEn {
 	String get language => 'Language';
 	String get back => 'Back';
 	String get interfaceLanguage => 'Interface language';
+}
+
+// Path: settings.appearance.darkMode
+class TranslationsSettingsAppearanceDarkModeEn {
+	TranslationsSettingsAppearanceDarkModeEn.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+	String get darkMode => 'Dark mode';
+	String get system => 'System';
+	String get disabled => 'Disabled';
+	String get alwaysOn => 'Always on';
+}
+
+// Path: settings.appearance.colorScheme
+class TranslationsSettingsAppearanceColorSchemeEn {
+	TranslationsSettingsAppearanceColorSchemeEn.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+	String get colorScheme => 'Color scheme';
+	String get system => 'System';
+	String get green => 'Green';
 }
 
 /// Flat map(s) containing all translations.
@@ -165,6 +192,13 @@ extension on Translations {
 			case 'settings.devices': return 'Devices';
 			case 'settings.updates': return 'Updates';
 			case 'settings.appearance.appearance': return 'Appearance';
+			case 'settings.appearance.darkMode.darkMode': return 'Dark mode';
+			case 'settings.appearance.darkMode.system': return 'System';
+			case 'settings.appearance.darkMode.disabled': return 'Disabled';
+			case 'settings.appearance.darkMode.alwaysOn': return 'Always on';
+			case 'settings.appearance.colorScheme.colorScheme': return 'Color scheme';
+			case 'settings.appearance.colorScheme.system': return 'System';
+			case 'settings.appearance.colorScheme.green': return 'Green';
 			case 'settings.language.language': return 'Language';
 			case 'settings.language.back': return 'Back';
 			case 'settings.language.interfaceLanguage': return 'Interface language';
