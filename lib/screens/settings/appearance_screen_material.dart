@@ -36,7 +36,10 @@ class _AppearanceScreenMaterial extends State<AppearanceScreenMaterial> {
             title: Text(theme["title"]),
             value: theme["value"],
             groupValue: state.theme,
-            onChanged: state.status == Status.loading ? null : (value) async => context.read<AppearanceCubit>().changeThemeMode(theme["value"]),
+            onChanged: state.status == Status.loading ? (value) => {} : (value) async => context.read<AppearanceCubit>().changeThemeMode(theme["value"]),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10.0),
+            ),
           )
       );
     }
@@ -56,7 +59,7 @@ class _AppearanceScreenMaterial extends State<AppearanceScreenMaterial> {
             padding: EdgeInsets.all(8.0),
             shrinkWrap: true,
             children: <Widget>[
-              SizedBox(height: 10),
+              // SizedBox(height: 10),
               Container(
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(10.0),

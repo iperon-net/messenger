@@ -39,6 +39,9 @@ class _LanguageScreenMaterial extends State<LanguageScreenMaterial> {
             groupValue: LocaleSettings.currentLocale,
             onChanged: state.status == Status.loading ? null : (value) async => await context.read<LanguageCubit>().changeLanguage(context, language: language["value"]),
             secondary: (state.status == Status.loading && language["value"] == state.chooseLanguage) ? ProgressIndicatorComponent() : null,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10.0),
+            ),
           )
       );
     }
@@ -57,7 +60,6 @@ class _LanguageScreenMaterial extends State<LanguageScreenMaterial> {
               padding: EdgeInsets.all(8.0),
               shrinkWrap: true,
               children: <Widget>[
-                SizedBox(height: 10),
                 Container(
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(10.0),
