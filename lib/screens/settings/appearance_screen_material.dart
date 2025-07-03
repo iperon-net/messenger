@@ -17,6 +17,7 @@ class _AppearanceScreenMaterial extends State<AppearanceScreenMaterial> {
 
   @override
   void initState() {
+    context.read<AppearanceCubit>().initialization();
     super.initState();
   }
 

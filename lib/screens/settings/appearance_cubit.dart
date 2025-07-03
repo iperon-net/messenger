@@ -19,12 +19,14 @@ class AppearanceCubit extends Cubit<AppearanceState> {
 
     final themeStorage = await _secureStorage.read(key: "theme");
     AppTheme theme = AppTheme.system;
+
     if (themeStorage == "light"){
       theme = AppTheme.light;
     } else if (themeStorage == "dark"){
       theme = AppTheme.dark;
+    } else if (themeStorage == "system"){
+      theme = AppTheme.system;
     }
-
     emit(state.copyWith(status: Status.success, theme: theme));
   }
 
