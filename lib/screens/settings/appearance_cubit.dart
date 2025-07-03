@@ -34,5 +34,4 @@ class AppearanceCubit extends Cubit<AppearanceState> {
     emit(state.copyWith(theme: theme));
   }
 
-
 }
