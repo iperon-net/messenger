@@ -15,8 +15,10 @@ import 'screens/settings/appearance_cubit.dart';
 import 'screens/settings/language_cubit.dart';
 import 'screens/settings/settings_cubit.dart';
 import 'secure_storage.dart';
-import 'themes/material_blue.dart' as material_blue;
-import 'themes/material_green.dart' as material_green;
+import 'themes_material.dart';
+
+// import 'themes/material_blue.dart' as material_blue;
+// import 'themes/material_green.dart' as material_green;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -83,11 +85,11 @@ class IperonMessengerMaterial extends StatelessWidget {
     late ColorScheme colorSchemeDark;
 
     if (globalThemeColor == ThemeColor.blue){
-      colorSchemeLight = material_blue.MaterialTheme.lightScheme();
-      colorSchemeDark = material_blue.MaterialTheme.darkScheme();
+      colorSchemeLight = MaterialTheme.blueLightScheme();
+      colorSchemeDark = MaterialTheme.blueDarkScheme();
     } else if (globalThemeColor == ThemeColor.green) {
-      colorSchemeLight = material_green.MaterialTheme.lightScheme();
-      colorSchemeDark = material_green.MaterialTheme.darkScheme();
+      colorSchemeLight = MaterialTheme.greenLightScheme();
+      colorSchemeDark = MaterialTheme.greenDarkScheme();
     }
 
     return BlocBuilder<AppCubit, AppState>(
@@ -102,11 +104,11 @@ class IperonMessengerMaterial extends StatelessWidget {
         }
 
         if (state.status == Status.success && state.themeColor == ThemeColor.blue) {
-          colorSchemeLight = material_blue.MaterialTheme.lightScheme();
-          colorSchemeDark = material_blue.MaterialTheme.darkScheme();
+          colorSchemeLight = MaterialTheme.blueLightScheme();
+          colorSchemeDark = MaterialTheme.blueDarkScheme();
         } else if (state.status == Status.success && state.themeColor == ThemeColor.green) {
-          colorSchemeLight = material_green.MaterialTheme.lightScheme();
-          colorSchemeDark = material_green.MaterialTheme.darkScheme();
+          colorSchemeLight = MaterialTheme.greenLightScheme();
+          colorSchemeDark = MaterialTheme.greenDarkScheme();
         }
 
         return MediaQuery(
