@@ -4,12 +4,12 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:messenger/routers.dart';
 
 import 'cubit/app_cubit.dart';
 import 'cubit/constants.dart';
 import 'di.dart';
 import 'i18n/translations.g.dart';
+import 'routers.dart';
 import 'screens/contacts/contacts_cubit.dart';
 import 'screens/settings/appearance_cubit.dart';
 import 'screens/settings/language_cubit.dart';
