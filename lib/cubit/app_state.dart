@@ -1,6 +1,6 @@
 part of 'app_cubit.dart';
 
-enum ThemeColor { blue, green }
+enum ThemeColor { blue, green,  purple }
 enum DarkMode { system, disabled, alwaysOn }
 
 @freezed

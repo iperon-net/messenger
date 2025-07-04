@@ -63,6 +63,8 @@ class SecureStorage {
 
     if (result != null && result.isNotEmpty && result == "green") {
       colorTheme = ThemeColor.green;
+    } else if (result != null && result.isNotEmpty && result == "purple") {
+      colorTheme = ThemeColor.purple;
     }
     return colorTheme;
   }

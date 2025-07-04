@@ -167,6 +167,7 @@ class TranslationsSettingsAppearanceColorSchemeEn {
 	String get colorScheme => 'Color scheme';
 	String get system => 'System';
 	String get green => 'Green';
+	String get purple => 'Purple';
 }
 
 /// Flat map(s) containing all translations.
@@ -199,6 +200,7 @@ extension on Translations {
 			case 'settings.appearance.colorScheme.colorScheme': return 'Color scheme';
 			case 'settings.appearance.colorScheme.system': return 'System';
 			case 'settings.appearance.colorScheme.green': return 'Green';
+			case 'settings.appearance.colorScheme.purple': return 'Purple';
 			case 'settings.language.language': return 'Language';
 			case 'settings.language.back': return 'Back';
 			case 'settings.language.interfaceLanguage': return 'Interface language';

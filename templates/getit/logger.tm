@@ -1,1 +1,1 @@
-final logger = getIt.get<Logger>();
+final _logger = getIt.get<Logger>();
