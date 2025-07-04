@@ -90,6 +90,9 @@ class IperonMessengerMaterial extends StatelessWidget {
     } else if (globalThemeColor == ThemeColor.green) {
       colorSchemeLight = MaterialTheme.greenLightScheme();
       colorSchemeDark = MaterialTheme.greenDarkScheme();
+    } else if (globalThemeColor == ThemeColor.purple) {
+      colorSchemeLight = MaterialTheme.purpleLightScheme();
+      colorSchemeDark = MaterialTheme.purpleDarkScheme();
     }
 
     return BlocBuilder<AppCubit, AppState>(
@@ -109,6 +112,9 @@ class IperonMessengerMaterial extends StatelessWidget {
         } else if (state.status == Status.success && state.themeColor == ThemeColor.green) {
           colorSchemeLight = MaterialTheme.greenLightScheme();
           colorSchemeDark = MaterialTheme.greenDarkScheme();
+        } else if (state.status == Status.success && state.themeColor == ThemeColor.purple) {
+          colorSchemeLight = MaterialTheme.purpleLightScheme();
+          colorSchemeDark = MaterialTheme.purpleDarkScheme();
         }
 
         return MediaQuery(

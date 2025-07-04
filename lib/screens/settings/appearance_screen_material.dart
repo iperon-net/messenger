@@ -52,6 +52,7 @@ class _AppearanceScreenMaterial extends State<AppearanceScreenMaterial> {
     List<Map<String, dynamic>> themeList = [
       {"title": t.settings.appearance.colorScheme.system, "value": ThemeColor.blue},
       {"title": t.settings.appearance.colorScheme.green, "value": ThemeColor.green},
+      {"title": t.settings.appearance.colorScheme.purple, "value": ThemeColor.purple},
     ];
 
     for (final theme in themeList){

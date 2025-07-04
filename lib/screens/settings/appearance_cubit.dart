@@ -35,6 +35,8 @@ class AppearanceCubit extends Cubit<AppearanceState> {
       themeColor = ThemeColor.blue;
     } else if (themeColorStorage.isNotEmpty && themeColorStorage == "green"){
       themeColor = ThemeColor.green;
+    } else if (themeColorStorage.isNotEmpty && themeColorStorage == "purple"){
+      themeColor = ThemeColor.purple;
     }
     emit(state.copyWith(status: Status.success, darkMode: darkMode, themeColor: themeColor));
   }

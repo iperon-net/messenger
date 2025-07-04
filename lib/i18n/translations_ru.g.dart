@@ -167,6 +167,7 @@ class _TranslationsSettingsAppearanceColorSchemeRu extends TranslationsSettingsA
 	@override String get colorScheme => 'Цветовая схема';
 	@override String get system => 'Системная';
 	@override String get green => 'Зеленая';
+	@override String get purple => 'Пурпурный';
 }
 
 /// Flat map(s) containing all translations.
@@ -199,6 +200,7 @@ extension on TranslationsRu {
 			case 'settings.appearance.colorScheme.colorScheme': return 'Цветовая схема';
 			case 'settings.appearance.colorScheme.system': return 'Системная';
 			case 'settings.appearance.colorScheme.green': return 'Зеленая';
+			case 'settings.appearance.colorScheme.purple': return 'Пурпурный';
 			case 'settings.language.language': return 'Язык';
 			case 'settings.language.back': return 'Назад';
 			case 'settings.language.interfaceLanguage': return 'Язык интерфейса';
