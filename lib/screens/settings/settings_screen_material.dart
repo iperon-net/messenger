@@ -22,20 +22,6 @@ class _SettingsScreenMaterial extends State<SettingsScreenMaterial> {
     super.initState();
   }
 
-  // Widget widgetVersionApplication(SettingsState state) {
-  //
-  //   if (state.status == Status.success) {
-  //     return Text(
-  //       state.versionApplication,
-  //       style: TextStyle(
-  //         fontSize: Theme.of(context).textTheme.titleMedium!.fontSize,
-  //         fontStyle: FontStyle.normal
-  //       ),
-  //     );
-  //   }
-  //   return ProgressIndicatorComponent();
-  // }
-
   Widget widgetTrailingLanguage() {
     String languageName = "English";
     if (LocaleSettings.currentLocale == AppLocale.ru) languageName = "Русский";
@@ -53,7 +39,6 @@ class _SettingsScreenMaterial extends State<SettingsScreenMaterial> {
   Widget build(BuildContext context) {
     return BlocBuilder<SettingsCubit, SettingsState>(
       builder: (context, state) {
-
         return Scaffold(
           appBar: AppBar(
             title: Text(context.t.settings.settings),
@@ -127,22 +112,6 @@ class _SettingsScreenMaterial extends State<SettingsScreenMaterial> {
                   ],
                 ),
               ),
-              // SizedBox(height: 20),
-              // Container(
-              //   decoration: BoxDecoration(
-              //     borderRadius: BorderRadius.circular(10.0),
-              //     color: Theme.of(context).cardColor,
-              //   ),
-              //   child: Column(
-              //     children: [
-              //       ListTile(
-              //         leading: Icon(Icons.update),
-              //         title: Text(context.t.versionApplication),
-              //         trailing: widgetVersionApplication(state),
-              //       ),
-              //     ],
-              //   ),
-              // ),
             ],
           ),
         );

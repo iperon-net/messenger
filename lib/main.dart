@@ -108,6 +108,7 @@ class IperonMessengerMaterial extends StatelessWidget {
 
         if (state.status == Status.success && state.darkMode == DarkMode.alwaysOn) {
           themeMode = ThemeMode.dark;
+          // MaterialApp
         } else if (state.status == Status.success && state.darkMode == DarkMode.disabled) {
           themeMode = ThemeMode.light;
         } else if (state.status == Status.success && state.darkMode == DarkMode.system) {
@@ -127,6 +128,7 @@ class IperonMessengerMaterial extends StatelessWidget {
             textScaler: TextScaler.linear(0.95)
           ),
           child: MaterialApp.router(
+            key: key,
             debugShowCheckedModeBanner: false,
             localizationsDelegates: [
               ...GlobalMaterialLocalizations.delegates,
