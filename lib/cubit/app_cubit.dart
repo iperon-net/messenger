@@ -16,7 +16,10 @@ class AppCubit extends Cubit<AppState> {
   final _logger = getIt.get<Logger>();
 
   Future<void> changeDarkMode(DarkMode darkMode) async {
-    emit(state.copyWith(darkMode: darkMode));
+    emit(state.copyWith(status: Status.success, darkMode: darkMode));
   }
 
+  Future<void> changeThemeColor(ThemeColor themeColor) async {
+    emit(state.copyWith(status: Status.success, themeColor: themeColor));
+  }
 }

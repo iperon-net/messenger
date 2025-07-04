@@ -7,6 +7,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:messenger/routers.dart';
 
 import 'cubit/app_cubit.dart';
+import 'cubit/constants.dart';
 import 'di.dart';
 import 'i18n/translations.g.dart';
 import 'screens/contacts/contacts_cubit.dart';
@@ -33,6 +34,26 @@ Future<void> main() async {
     LocaleSettings.useDeviceLocale();
   }
 
+  // darkMode
+  ThemeMode themeMode;
+  final darkModeStorage = await secureStorage.read(key: "darkMode");
+  if (darkModeStorage.isNotEmpty && darkModeStorage == "disabled") {
+    themeMode = ThemeMode.light;
+  } else if(darkModeStorage.isNotEmpty && darkModeStorage == "alwaysOn") {
+    themeMode = ThemeMode.dark;
+  } else {
+    themeMode = ThemeMode.system;
+  }
+
+  // color shames
+  ThemeColor colorTheme = ThemeColor.blue;
+  final colorThemeStorage = await secureStorage.read(key: "themeColor");
+  if (colorThemeStorage.isNotEmpty && colorThemeStorage == "blue") {
+    colorTheme = ThemeColor.blue;
+  } else if(colorThemeStorage.isNotEmpty && colorThemeStorage == "green") {
+    colorTheme = ThemeColor.green;
+  }
+
   runApp(
     TranslationProvider(
       child: MultiBlocProvider(
@@ -53,7 +74,9 @@ Future<void> main() async {
               create: (BuildContext context) => ContactsCubit(),
             )
           ],
-        child: Platform.isIOS ?  const IperonMessengerCupertino() :  IperonMessengerMaterial(),
+        child: Platform.isIOS ?
+          const IperonMessengerCupertino() :
+          IperonMessengerMaterial(globalThemeMode: themeMode, globalThemeColor: colorTheme),
       ),
     )
   );
@@ -61,31 +84,42 @@ Future<void> main() async {
 
 // Material app
 class IperonMessengerMaterial extends StatelessWidget {
-  const IperonMessengerMaterial({super.key});
+  final ThemeMode globalThemeMode;
+  final ThemeColor globalThemeColor;
+  const IperonMessengerMaterial({super.key, required this.globalThemeMode, required this.globalThemeColor});
 
   @override
   Widget build(BuildContext context) {
     final routerConfig = getIt.get<Routers>().routerMaterial();
+    ThemeMode themeMode = globalThemeMode;
+
+    late ColorScheme colorSchemeLight;
+    late ColorScheme colorSchemeDark;
+    if (globalThemeColor == ThemeColor.blue){
+      colorSchemeLight = material_blue.MaterialTheme.lightScheme();
+      colorSchemeDark = material_blue.MaterialTheme.darkScheme();
+    } else if (globalThemeColor == ThemeColor.green) {
+      colorSchemeLight = material_green.MaterialTheme.lightScheme();
+      colorSchemeDark = material_green.MaterialTheme.darkScheme();
+    }
 
     return BlocBuilder<AppCubit, AppState>(
       builder: (context, state) {
 
-        ThemeMode themeMode = ThemeMode.system;
-        if (state.darkMode == DarkMode.alwaysOn) {
+        if (state.status == Status.success && state.darkMode == DarkMode.alwaysOn) {
           themeMode = ThemeMode.dark;
-        } else if (state.darkMode == DarkMode.disabled) {
+        } else if (state.status == Status.success && state.darkMode == DarkMode.disabled) {
           themeMode = ThemeMode.light;
+        } else if (state.status == Status.success && state.darkMode == DarkMode.system) {
+          themeMode = ThemeMode.system;
         }
 
-        late ColorScheme colorSchemeLight;
-        late ColorScheme colorSchemeDark;
-
-        if (state.colorTheme == ColorTheme.green) {
-          colorSchemeLight = material_green.MaterialTheme.lightScheme();
-          colorSchemeDark = material_green.MaterialTheme.darkScheme();
-        } else {
+        if (state.status == Status.success && state.themeColor == ThemeColor.blue) {
           colorSchemeLight = material_blue.MaterialTheme.lightScheme();
           colorSchemeDark = material_blue.MaterialTheme.darkScheme();
+        } else if (state.status == Status.success && state.themeColor == ThemeColor.green) {
+          colorSchemeLight = material_green.MaterialTheme.lightScheme();
+          colorSchemeDark = material_green.MaterialTheme.darkScheme();
         }
 
         return MediaQuery(

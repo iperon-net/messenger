@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:messenger/i18n/translations.g.dart';
 import 'package:messenger/screens/settings/settings_cubit.dart';
 
+import 'appearance_cubit.dart';
+
 class SettingsScreenMaterial extends StatefulWidget {
   const SettingsScreenMaterial({super.key});
 
@@ -16,6 +18,7 @@ class _SettingsScreenMaterial extends State<SettingsScreenMaterial> {
   @override
   void initState() {
     context.read<SettingsCubit>().initialization();
+    context.read<AppearanceCubit>().initialization();
     super.initState();
   }
 

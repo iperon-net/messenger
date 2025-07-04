@@ -7,7 +7,7 @@ abstract class AppearanceState with _$AppearanceState {
   const factory AppearanceState({
     @Default(Status.initial) Status status,
     @Default("") String errorMessage,
-    // @Default(AppTheme.system) AppTheme theme,
+    @Default(ThemeColor.blue) ThemeColor themeColor,
     @Default(DarkMode.system) DarkMode darkMode,
   }) = _AppearanceState;
 }

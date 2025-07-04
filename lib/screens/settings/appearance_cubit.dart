@@ -18,21 +18,36 @@ class AppearanceCubit extends Cubit<AppearanceState> {
     emit(state.copyWith(status: Status.loading));
 
     final darkModeStorage = await _secureStorage.read(key: "darkMode");
+    final themeColorStorage = await _secureStorage.read(key: "themeColor");
 
     DarkMode darkMode = DarkMode.system;
 
-    if (darkModeStorage == "disabled"){
+    if (darkModeStorage.isNotEmpty && darkModeStorage == "disabled"){
       darkMode = DarkMode.disabled;
-    } else if (darkModeStorage == "alwaysOn"){
+    } else if (darkModeStorage.isNotEmpty && darkModeStorage == "alwaysOn"){
       darkMode = DarkMode.alwaysOn;
     }
-    emit(state.copyWith(status: Status.success, darkMode: darkMode));
+
+    ThemeColor themeColor = ThemeColor.blue;
+    if (themeColorStorage.isNotEmpty && themeColorStorage == "blue"){
+      themeColor = ThemeColor.blue;
+    } else if (themeColorStorage.isNotEmpty && themeColorStorage == "green"){
+      themeColor = ThemeColor.green;
+    }
+
+    emit(state.copyWith(status: Status.success, darkMode: darkMode, themeColor: themeColor));
   }
 
   Future<void> changeDarkMode(DarkMode darkMode) async {
     emit(state.copyWith(status: Status.loading));
     await _secureStorage.write(key: "darkMode", value: darkMode.name);
     emit(state.copyWith(status: Status.success, darkMode: darkMode));
+  }
+
+  Future<void> changeThemeColor(ThemeColor themeColor) async {
+    emit(state.copyWith(status: Status.loading));
+    await _secureStorage.write(key: "themeColor", value: themeColor.name);
+    emit(state.copyWith(status: Status.success, themeColor: themeColor));
   }
 
 }

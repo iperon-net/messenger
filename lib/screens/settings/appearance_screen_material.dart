@@ -50,8 +50,8 @@ class _AppearanceScreenMaterial extends State<AppearanceScreenMaterial> {
     List<RadioListTile> colorThemeGenerator = [];
 
     List<Map<String, dynamic>> themeList = [
-      {"title": t.settings.appearance.colorScheme.system, "value": "system"},
-      {"title": t.settings.appearance.colorScheme.green, "value": "green"},
+      {"title": t.settings.appearance.colorScheme.system, "value": ThemeColor.blue},
+      {"title": t.settings.appearance.colorScheme.green, "value": ThemeColor.green},
     ];
 
     for (final theme in themeList){
@@ -59,8 +59,8 @@ class _AppearanceScreenMaterial extends State<AppearanceScreenMaterial> {
           RadioListTile(
             title: Text(theme["title"]),
             value: theme["value"],
-            groupValue: state.darkMode,
-            onChanged: state.status == Status.loading ? (value) => {} : (value) async => context.read<AppearanceCubit>().changeDarkMode(theme["value"]),
+            groupValue: state.themeColor,
+            onChanged: state.status == Status.loading ? (value) => {} : (value) async => context.read<AppearanceCubit>().changeThemeColor(theme["value"]),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(10.0),
             ),
@@ -77,34 +77,37 @@ class _AppearanceScreenMaterial extends State<AppearanceScreenMaterial> {
         title: Text(context.t.settings.appearance.appearance),
       ),
       body: BlocConsumer<AppearanceCubit, AppearanceState>(
-        listener: (context, state) async => await context.read<AppCubit>().changeDarkMode(state.darkMode),
+        listener: (context, state) async {
+          if (context.mounted) await context.read<AppCubit>().changeDarkMode(state.darkMode);
+          if (context.mounted) await context.read<AppCubit>().changeThemeColor(state.themeColor);
+        },
         builder: (context, state) {
           return ListView(
             padding: EdgeInsets.all(8.0),
             shrinkWrap: true,
             children: <Widget>[
               SizedBox(height: 10),
-              // Container(
-              //   decoration: BoxDecoration(
-              //     borderRadius: BorderRadius.circular(10.0),
-              //     color: Theme.of(context).cardColor,
-              //   ),
-              //   child: Column(
-              //     children: [
-              //       ListTile(
-              //           title: Text(
-              //             context.t.settings.appearance.colorScheme.colorScheme,
-              //             style: TextStyle(
-              //                 fontSize: Theme.of(context).textTheme.titleSmall!.fontSize,
-              //                 fontStyle: FontStyle.normal
-              //             ),
-              //           )
-              //       ),
-              //       ...colorThemeGenerator(context, state),
-              //     ],
-              //   ),
-              // ),
-              // SizedBox(height: 20,),
+              Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10.0),
+                  color: Theme.of(context).cardColor,
+                ),
+                child: Column(
+                  children: [
+                    ListTile(
+                        title: Text(
+                          context.t.settings.appearance.colorScheme.colorScheme,
+                          style: TextStyle(
+                              fontSize: Theme.of(context).textTheme.titleSmall!.fontSize,
+                              fontStyle: FontStyle.normal
+                          ),
+                        )
+                    ),
+                    ...colorThemeGenerator(context, state),
+                  ],
+                ),
+              ),
+              SizedBox(height: 20,),
               Container(
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(10.0),
