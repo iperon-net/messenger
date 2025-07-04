@@ -1,8 +1,9 @@
 import 'dart:io';
 
+import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
-
+import 'cubit/app_cubit.dart';
 import 'di.dart';
 import 'logger.dart';
 
@@ -33,4 +34,36 @@ class SecureStorage {
   Future<void> delete({required String key}) async {
     await _storage.delete(key: key);
   }
+
+  Future<void> setDarkMode({required DarkMode value}) async {
+    await _storage.write(key: "darkMode", value: value.name);
+  }
+
+  Future<ThemeMode> getThemeMode() async {
+    final result = await _storage.read(key: "darkMode");
+    ThemeMode themeMode = ThemeMode.system;
+
+    if (result != null && result.isNotEmpty && result == "disabled") {
+      themeMode = ThemeMode.light;
+    } else if(result != null &&  result.isNotEmpty && result == "alwaysOn") {
+      themeMode = ThemeMode.dark;
+    }
+    return themeMode;
+  }
+
+  Future<void> setThemeColor({required ThemeColor value}) async {
+    await _storage.write(key: "themeColor", value: value.name);
+  }
+
+  Future<ThemeColor> getThemeColor() async {
+    final result = await _storage.read(key: "themeColor");
+
+    ThemeColor colorTheme = ThemeColor.blue;
+
+    if (result != null && result.isNotEmpty && result == "green") {
+      colorTheme = ThemeColor.green;
+    }
+    return colorTheme;
+  }
+
 }

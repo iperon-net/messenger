@@ -35,24 +35,10 @@ Future<void> main() async {
   }
 
   // darkMode
-  ThemeMode themeMode;
-  final darkModeStorage = await secureStorage.read(key: "darkMode");
-  if (darkModeStorage.isNotEmpty && darkModeStorage == "disabled") {
-    themeMode = ThemeMode.light;
-  } else if(darkModeStorage.isNotEmpty && darkModeStorage == "alwaysOn") {
-    themeMode = ThemeMode.dark;
-  } else {
-    themeMode = ThemeMode.system;
-  }
+  final themeMode = await secureStorage.getThemeMode();
 
   // color shames
-  ThemeColor colorTheme = ThemeColor.blue;
-  final colorThemeStorage = await secureStorage.read(key: "themeColor");
-  if (colorThemeStorage.isNotEmpty && colorThemeStorage == "blue") {
-    colorTheme = ThemeColor.blue;
-  } else if(colorThemeStorage.isNotEmpty && colorThemeStorage == "green") {
-    colorTheme = ThemeColor.green;
-  }
+  final themeColor = await secureStorage.getThemeColor();
 
   runApp(
     TranslationProvider(
@@ -76,7 +62,7 @@ Future<void> main() async {
           ],
         child: Platform.isIOS ?
           const IperonMessengerCupertino() :
-          IperonMessengerMaterial(globalThemeMode: themeMode, globalThemeColor: colorTheme),
+          IperonMessengerMaterial(globalThemeMode: themeMode, globalThemeColor: themeColor),
       ),
     )
   );
@@ -95,6 +81,7 @@ class IperonMessengerMaterial extends StatelessWidget {
 
     late ColorScheme colorSchemeLight;
     late ColorScheme colorSchemeDark;
+
     if (globalThemeColor == ThemeColor.blue){
       colorSchemeLight = material_blue.MaterialTheme.lightScheme();
       colorSchemeDark = material_blue.MaterialTheme.darkScheme();
@@ -108,7 +95,6 @@ class IperonMessengerMaterial extends StatelessWidget {
 
         if (state.status == Status.success && state.darkMode == DarkMode.alwaysOn) {
           themeMode = ThemeMode.dark;
-          // MaterialApp
         } else if (state.status == Status.success && state.darkMode == DarkMode.disabled) {
           themeMode = ThemeMode.light;
         } else if (state.status == Status.success && state.darkMode == DarkMode.system) {
@@ -138,6 +124,7 @@ class IperonMessengerMaterial extends StatelessWidget {
             routerConfig: routerConfig,
             theme: ThemeData(
               colorScheme: colorSchemeLight,
+              brightness: colorSchemeLight.brightness,
               appBarTheme: AppBarTheme(
                 backgroundColor: colorSchemeLight.primary,
                 foregroundColor: colorSchemeLight.surface,
@@ -154,6 +141,7 @@ class IperonMessengerMaterial extends StatelessWidget {
             ),
             darkTheme: ThemeData(
               colorScheme: colorSchemeDark,
+              brightness: colorSchemeDark.brightness,
               appBarTheme: AppBarTheme(
                 backgroundColor: colorSchemeDark.onSecondary,
                 foregroundColor: colorSchemeDark.onSurface,
