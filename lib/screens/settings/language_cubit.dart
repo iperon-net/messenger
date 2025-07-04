@@ -26,7 +26,7 @@ class LanguageCubit extends Cubit<LanguageState> {
   Future<void> changeLanguage(BuildContext context, {required AppLocale language}) async {
     emit(state.copyWith(status: Status.loading, chooseLanguage: language));
 
-    _secureStorage.write(key: "language", value: language.languageCode);
+    await _secureStorage.setLanguage(value: language);
     LocaleSettings.setLocale(language);
 
     _logger.info("Language changed ${language.languageCode}");

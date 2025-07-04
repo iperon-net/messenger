@@ -5,6 +5,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import 'cubit/app_cubit.dart';
 import 'di.dart';
+import 'i18n/translations.g.dart';
 import 'logger.dart';
 
 class SecureStorage {
@@ -66,4 +67,16 @@ class SecureStorage {
     return colorTheme;
   }
 
+  Future<void> setLanguage({required AppLocale value}) async {
+    await _storage.write(key: "language", value: value.name);
+  }
+
+  Future<AppLocale> getLanguage() async {
+    final result = await _storage.read(key: "language");
+
+    if (result != null && result.isNotEmpty && result == AppLocale.ru.languageCode) {
+      return AppLocale.ru;
+    }
+    return AppLocale.en;
+  }
 }
