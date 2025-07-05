@@ -102,7 +102,7 @@ class TranslationsSettingsEn {
 	String get favorites => 'Favorites';
 	String get myPersonalInfo => 'My personal info';
 	String get myProfile => 'My profile';
-	String get privacyAndSecurity => 'Privacy and security';
+	late final TranslationsSettingsPrivacyAndSecurityEn privacyAndSecurity = TranslationsSettingsPrivacyAndSecurityEn.internal(_root);
 	String get devices => 'Devices';
 	String get updates => 'Updates';
 	late final TranslationsSettingsAppearanceEn appearance = TranslationsSettingsAppearanceEn.internal(_root);
@@ -118,6 +118,18 @@ class TranslationsContactsTabsEn {
 	// Translations
 	String get all => 'All';
 	String get favorites => 'Favorites';
+}
+
+// Path: settings.privacyAndSecurity
+class TranslationsSettingsPrivacyAndSecurityEn {
+	TranslationsSettingsPrivacyAndSecurityEn.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+	String get privacyAndSecurity => 'Privacy and security';
+	String get twoStepVerification => 'Two step verification';
+	String get passcode => 'Passcode';
 }
 
 // Path: settings.appearance
@@ -190,7 +202,9 @@ extension on Translations {
 			case 'settings.favorites': return 'Favorites';
 			case 'settings.myPersonalInfo': return 'My personal info';
 			case 'settings.myProfile': return 'My profile';
-			case 'settings.privacyAndSecurity': return 'Privacy and security';
+			case 'settings.privacyAndSecurity.privacyAndSecurity': return 'Privacy and security';
+			case 'settings.privacyAndSecurity.twoStepVerification': return 'Two step verification';
+			case 'settings.privacyAndSecurity.passcode': return 'Passcode';
 			case 'settings.devices': return 'Devices';
 			case 'settings.updates': return 'Updates';
 			case 'settings.appearance.appearance': return 'Appearance';

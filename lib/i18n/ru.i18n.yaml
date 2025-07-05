@@ -23,7 +23,10 @@
   "favorites": "Избранное"
   "myPersonalInfo": "Моя личная информация"
   "myProfile": "Мой профиль"
-  "privacyAndSecurity": "Конфиденциальность"
+  "privacyAndSecurity":
+    "privacyAndSecurity": "Конфиденциальность"
+    "twoStepVerification": "Двухэтапная проверка"
+    "passcode": "Код-пароль"
   "devices": "Девайсы"
   "updates": "Обновления"
 

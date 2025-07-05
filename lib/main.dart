@@ -13,6 +13,7 @@ import 'routers.dart';
 import 'screens/contacts/contacts_cubit.dart';
 import 'screens/settings/appearance_cubit.dart';
 import 'screens/settings/language_cubit.dart';
+import 'screens/settings/privacy_and_security_cubit.dart';
 import 'screens/settings/settings_cubit.dart';
 import 'secure_storage.dart';
 import 'themes_material.dart';
@@ -60,7 +61,10 @@ Future<void> main() async {
             ),
             BlocProvider<ContactsCubit>(
               create: (BuildContext context) => ContactsCubit(),
-            )
+            ),
+            BlocProvider<PrivacyAndSecurityCubit>(
+              create: (BuildContext context) => PrivacyAndSecurityCubit(),
+            ),
           ],
         child: Platform.isIOS ?
           IperonMessengerCupertino(globalThemeMode: themeMode, globalThemeColor: themeColor) :

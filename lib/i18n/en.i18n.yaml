@@ -23,7 +23,12 @@
     "favorites": "Favorites"
     "myPersonalInfo": "My personal info"
     "myProfile": "My profile"
-    "privacyAndSecurity": "Privacy and security"
+
+    "privacyAndSecurity":
+      "privacyAndSecurity": "Privacy and security"
+      "twoStepVerification": "Two step verification"
+      "passcode": "Passcode"
+
     "devices": "Devices"
     "updates": "Updates"
 

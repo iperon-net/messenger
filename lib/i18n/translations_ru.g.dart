@@ -102,7 +102,7 @@ class _TranslationsSettingsRu extends TranslationsSettingsEn {
 	@override String get favorites => 'Избранное';
 	@override String get myPersonalInfo => 'Моя личная информация';
 	@override String get myProfile => 'Мой профиль';
-	@override String get privacyAndSecurity => 'Конфиденциальность';
+	@override late final _TranslationsSettingsPrivacyAndSecurityRu privacyAndSecurity = _TranslationsSettingsPrivacyAndSecurityRu._(_root);
 	@override String get devices => 'Девайсы';
 	@override String get updates => 'Обновления';
 	@override late final _TranslationsSettingsAppearanceRu appearance = _TranslationsSettingsAppearanceRu._(_root);
@@ -118,6 +118,18 @@ class _TranslationsContactsTabsRu extends TranslationsContactsTabsEn {
 	// Translations
 	@override String get all => 'Все';
 	@override String get favorites => 'Избранное';
+}
+
+// Path: settings.privacyAndSecurity
+class _TranslationsSettingsPrivacyAndSecurityRu extends TranslationsSettingsPrivacyAndSecurityEn {
+	_TranslationsSettingsPrivacyAndSecurityRu._(TranslationsRu root) : this._root = root, super.internal(root);
+
+	final TranslationsRu _root; // ignore: unused_field
+
+	// Translations
+	@override String get privacyAndSecurity => 'Конфиденциальность';
+	@override String get twoStepVerification => 'Двухэтапная проверка';
+	@override String get passcode => 'Код-пароль';
 }
 
 // Path: settings.appearance
@@ -190,7 +202,9 @@ extension on TranslationsRu {
 			case 'settings.favorites': return 'Избранное';
 			case 'settings.myPersonalInfo': return 'Моя личная информация';
 			case 'settings.myProfile': return 'Мой профиль';
-			case 'settings.privacyAndSecurity': return 'Конфиденциальность';
+			case 'settings.privacyAndSecurity.privacyAndSecurity': return 'Конфиденциальность';
+			case 'settings.privacyAndSecurity.twoStepVerification': return 'Двухэтапная проверка';
+			case 'settings.privacyAndSecurity.passcode': return 'Код-пароль';
 			case 'settings.devices': return 'Девайсы';
 			case 'settings.updates': return 'Обновления';
 			case 'settings.appearance.appearance': return 'Оформление';
