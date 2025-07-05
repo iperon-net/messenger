@@ -21,6 +21,7 @@ class _AppearanceScreenCupertino extends State<AppearanceScreenCupertino> {
     super.initState();
   }
 
+
   List<CupertinoListTile> themeGenerator(BuildContext context, AppearanceState state) {
     List<CupertinoListTile> themeGenerator = [];
 
@@ -44,6 +45,29 @@ class _AppearanceScreenCupertino extends State<AppearanceScreenCupertino> {
     return themeGenerator;
   }
 
+  List<CupertinoListTile> colorThemeGenerator(BuildContext context, AppearanceState state) {
+    List<CupertinoListTile> colorThemeGenerator = [];
+
+    List<Map<String, dynamic>> themeList = [
+      {"title": t.settings.appearance.colorScheme.system, "value": ThemeColor.blue},
+      {"title": t.settings.appearance.colorScheme.green, "value": ThemeColor.green},
+      {"title": t.settings.appearance.colorScheme.purple, "value": ThemeColor.purple},
+    ];
+
+    for (final theme in themeList){
+      colorThemeGenerator.add(
+          CupertinoListTile(
+            backgroundColorActivated: CupertinoDynamicColor.resolve(CupertinoColors.transparent, context),
+            title: Text(theme["title"]),
+            onTap: state.status == Status.loading ? () => null : () async => context.read<AppearanceCubit>().changeThemeColor(theme["value"]),
+            trailing: (state.status == Status.loading && theme["value"] == state.selectedThemeColor && state.action == "themeColor") ? CupertinoActivityIndicator() :
+            (state.selectedThemeColor == theme["value"] ? Icon(CupertinoIcons.checkmark_alt, color: CupertinoTheme.of(context).primaryColor) : Container()),
+          )
+      );
+    }
+    return colorThemeGenerator;
+  }
+
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
@@ -63,6 +87,12 @@ class _AppearanceScreenCupertino extends State<AppearanceScreenCupertino> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  CupertinoFormSection.insetGrouped(
+                    header: Text(context.t.settings.appearance.colorScheme.colorScheme),
+                    children: [
+                      ...colorThemeGenerator(context, state),
+                    ],
+                  ),
                   CupertinoFormSection.insetGrouped(
                     header: Text(context.t.settings.appearance.darkMode.darkMode),
                     children: [

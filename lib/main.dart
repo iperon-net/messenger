@@ -191,6 +191,15 @@ class IperonMessengerCupertino extends StatelessWidget {
       brightness = Brightness.dark;
     }
 
+    CupertinoDynamicColor colors = CupertinoColors.systemTeal;
+    if (globalThemeColor == ThemeColor.blue) {
+      colors = CupertinoColors.systemTeal;
+    } else if (globalThemeColor == ThemeColor.green) {
+      colors = CupertinoColors.activeGreen;
+    } else if (globalThemeColor == ThemeColor.purple) {
+      colors = CupertinoColors.systemPurple;
+    }
+
     return BlocBuilder<AppCubit, AppState>(
       builder: (context, state) {
 
@@ -200,6 +209,15 @@ class IperonMessengerCupertino extends StatelessWidget {
           brightness = Brightness.light;
         } else if (state.status == Status.success && state.darkMode == DarkMode.system) {
           brightness = null;
+        }
+
+
+        if (state.status == Status.success && state.themeColor == ThemeColor.blue) {
+          colors = CupertinoColors.activeBlue;
+        } else if (state.status == Status.success && state.themeColor == ThemeColor.green) {
+          colors = CupertinoColors.activeGreen;
+        } else if (state.status == Status.success && state.themeColor == ThemeColor.purple) {
+          colors = CupertinoColors.systemPurple;
         }
 
         return CupertinoApp.router(
@@ -212,7 +230,7 @@ class IperonMessengerCupertino extends StatelessWidget {
           routerConfig: routerConfig,
           theme: CupertinoThemeData(
             brightness: brightness,
-            primaryColor: CupertinoColors.activeGreen,
+            primaryColor: colors,
             scaffoldBackgroundColor: CupertinoDynamicColor.withBrightness(
                color: CupertinoColors.systemGrey6,
                darkColor: CupertinoColors.black,
