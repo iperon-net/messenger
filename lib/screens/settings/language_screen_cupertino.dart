@@ -34,10 +34,10 @@ class _LanguageScreenCupertino extends State<LanguageScreenCupertino> {
             backgroundColorActivated: CupertinoDynamicColor.resolve(CupertinoColors.transparent, context),
             title: Text(language["title"]),
             subtitle: Text(language["subtitle"]),
-            onTap:( state.status == Status.loading || state.chooseLanguage == language["value"]) ? null : () async =>
+            onTap:( state.status == Status.loading || state.selectedLanguage == language["value"]) ? null : () async =>
               await context.read<LanguageCubit>().changeLanguage(context, language: language["value"]),
-            trailing: (state.status == Status.loading && language["value"] == state.chooseLanguage) ? CupertinoActivityIndicator() :
-              (state.chooseLanguage == language["value"] ? Icon(CupertinoIcons.checkmark_alt, color: CupertinoTheme.of(context).primaryColor) : Container()),
+            trailing: (state.status == Status.loading && language["value"] == state.selectedLanguage) ? CupertinoActivityIndicator() :
+              (state.selectedLanguage == language["value"] ? Icon(CupertinoIcons.checkmark_alt, color: CupertinoTheme.of(context).primaryColor) : Container()),
           )
       );
     }

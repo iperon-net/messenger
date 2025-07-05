@@ -42,13 +42,13 @@ class AppearanceCubit extends Cubit<AppearanceState> {
   }
 
   Future<void> changeDarkMode(DarkMode darkMode) async {
-    emit(state.copyWith(status: Status.loading));
+    emit(state.copyWith(status: Status.loading, selectedDarkMode: darkMode, action: "darkMode"));
     await _secureStorage.setDarkMode(value: darkMode);
     emit(state.copyWith(status: Status.success, darkMode: darkMode));
   }
 
   Future<void> changeThemeColor(ThemeColor themeColor) async {
-    emit(state.copyWith(status: Status.loading));
+    emit(state.copyWith(status: Status.loading, selectedThemeColor: themeColor, action: "themeColor"));
     await _secureStorage.setThemeColor(value: themeColor);
     emit(state.copyWith(status: Status.success, themeColor: themeColor));
   }

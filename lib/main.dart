@@ -63,7 +63,7 @@ Future<void> main() async {
             )
           ],
         child: Platform.isIOS ?
-          const IperonMessengerCupertino() :
+          IperonMessengerCupertino(globalThemeMode: themeMode, globalThemeColor: themeColor) :
           IperonMessengerMaterial(globalThemeMode: themeMode, globalThemeColor: themeColor),
       ),
     )
@@ -175,27 +175,70 @@ class IperonMessengerMaterial extends StatelessWidget {
 
 // Cupertino app
 class IperonMessengerCupertino extends StatelessWidget {
-  const IperonMessengerCupertino({super.key});
+  final ThemeMode globalThemeMode;
+  final ThemeColor globalThemeColor;
+  const IperonMessengerCupertino({super.key, required this.globalThemeMode, required this.globalThemeColor});
 
   @override
   Widget build(BuildContext context) {
+    ThemeMode themeMode = globalThemeMode;
+    Brightness? brightness;
     final routerConfig = getIt.get<Routers>().routerCupertino();
 
-    return CupertinoApp.router(
-      debugShowCheckedModeBanner: false,
-      localizationsDelegates: [
-        ...GlobalMaterialLocalizations.delegates,
-      ],
-      supportedLocales: AppLocaleUtils.supportedLocales,
-      locale: TranslationProvider.of(context).flutterLocale,
-      routerConfig: routerConfig,
-      theme: CupertinoThemeData(
-        primaryColor: CupertinoColors.activeBlue,
-        scaffoldBackgroundColor: CupertinoDynamicColor.withBrightness(
-           color: CupertinoColors.systemGrey6,
-           darkColor: CupertinoColors.black,
-        ),
-      ),
+    if (themeMode == ThemeMode.light){
+      brightness = Brightness.light;
+    } else if (themeMode == ThemeMode.dark) {
+      brightness = Brightness.dark;
+    }
+
+    CupertinoDynamicColor colors = CupertinoColors.systemTeal;
+    if (globalThemeColor == ThemeColor.blue) {
+      colors = CupertinoColors.systemTeal;
+    } else if (globalThemeColor == ThemeColor.green) {
+      colors = CupertinoColors.activeGreen;
+    } else if (globalThemeColor == ThemeColor.purple) {
+      colors = CupertinoColors.systemPurple;
+    }
+
+    return BlocBuilder<AppCubit, AppState>(
+      builder: (context, state) {
+
+        if (state.status == Status.success && state.darkMode == DarkMode.alwaysOn) {
+          brightness = Brightness.dark;
+        } else if (state.status == Status.success && state.darkMode == DarkMode.disabled) {
+          brightness = Brightness.light;
+        } else if (state.status == Status.success && state.darkMode == DarkMode.system) {
+          brightness = null;
+        }
+
+
+        if (state.status == Status.success && state.themeColor == ThemeColor.blue) {
+          colors = CupertinoColors.activeBlue;
+        } else if (state.status == Status.success && state.themeColor == ThemeColor.green) {
+          colors = CupertinoColors.activeGreen;
+        } else if (state.status == Status.success && state.themeColor == ThemeColor.purple) {
+          colors = CupertinoColors.systemPurple;
+        }
+
+        return CupertinoApp.router(
+          debugShowCheckedModeBanner: false,
+          localizationsDelegates: [
+            ...GlobalMaterialLocalizations.delegates,
+          ],
+          supportedLocales: AppLocaleUtils.supportedLocales,
+          locale: TranslationProvider.of(context).flutterLocale,
+          routerConfig: routerConfig,
+          theme: CupertinoThemeData(
+            brightness: brightness,
+            primaryColor: colors,
+            scaffoldBackgroundColor: CupertinoDynamicColor.withBrightness(
+               color: CupertinoColors.systemGrey6,
+               darkColor: CupertinoColors.black,
+            ),
+          ),
+
+        );
+      },
     );
   }
 }
