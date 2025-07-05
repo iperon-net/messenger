@@ -37,7 +37,7 @@ class AppearanceCubit extends Cubit<AppearanceState> {
       themeColor = ThemeColor.purple;
     }
 
-    emit(state.copyWith(status: Status.success, darkMode: darkMode, themeColor: themeColor));
+    emit(state.copyWith(status: Status.success, darkMode: darkMode, themeColor: themeColor, selectedThemeColor: themeColor, selectedDarkMode: darkMode));
   }
 
   Future<void> changeDarkMode(DarkMode darkMode) async {
