@@ -8,6 +8,6 @@ abstract class LanguageState with _$LanguageState {
     @Default(Status.initial) Status status,
     @Default("") String errorMessage,
     @Default(AppLocale.en) AppLocale currentLanguage,
-    @Default(AppLocale.en) AppLocale chooseLanguage,
+    @Default(AppLocale.en) AppLocale selectedLanguage,
   }) = _LanguageState;
 }

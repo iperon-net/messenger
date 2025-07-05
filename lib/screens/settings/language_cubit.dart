@@ -20,18 +20,18 @@ class LanguageCubit extends Cubit<LanguageState> {
 
   Future<void> initialization() async {
     emit(state.copyWith(status: Status.loading));
-    emit(state.copyWith(status: Status.success, currentLanguage: LocaleSettings.currentLocale, chooseLanguage: LocaleSettings.currentLocale));
+    emit(state.copyWith(status: Status.success, currentLanguage: LocaleSettings.currentLocale, selectedLanguage: LocaleSettings.currentLocale));
   }
 
   Future<void> changeLanguage(BuildContext context, {required AppLocale language}) async {
-    emit(state.copyWith(status: Status.loading, chooseLanguage: language));
+    emit(state.copyWith(status: Status.loading, selectedLanguage: language));
 
     await _secureStorage.setLanguage(value: language);
     LocaleSettings.setLocale(language);
 
     _logger.info("Language changed ${language.languageCode}");
-
-    emit(state.copyWith(status: Status.success, currentLanguage: language, chooseLanguage: language));
+    await Future.delayed(Duration(seconds: 5));
+    emit(state.copyWith(status: Status.success, currentLanguage: language, selectedLanguage: language));
   }
 
 }

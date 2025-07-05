@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$LanguageState {
 
- Status get status; String get errorMessage; AppLocale get currentLanguage; AppLocale get chooseLanguage;
+ Status get status; String get errorMessage; AppLocale get currentLanguage; AppLocale get selectedLanguage;
 /// Create a copy of LanguageState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,16 +25,16 @@ $LanguageStateCopyWith<LanguageState> get copyWith => _$LanguageStateCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is LanguageState&&(identical(other.status, status) || other.status == status)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage)&&(identical(other.currentLanguage, currentLanguage) || other.currentLanguage == currentLanguage)&&(identical(other.chooseLanguage, chooseLanguage) || other.chooseLanguage == chooseLanguage));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is LanguageState&&(identical(other.status, status) || other.status == status)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage)&&(identical(other.currentLanguage, currentLanguage) || other.currentLanguage == currentLanguage)&&(identical(other.selectedLanguage, selectedLanguage) || other.selectedLanguage == selectedLanguage));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,status,errorMessage,currentLanguage,chooseLanguage);
+int get hashCode => Object.hash(runtimeType,status,errorMessage,currentLanguage,selectedLanguage);
 
 @override
 String toString() {
-  return 'LanguageState(status: $status, errorMessage: $errorMessage, currentLanguage: $currentLanguage, chooseLanguage: $chooseLanguage)';
+  return 'LanguageState(status: $status, errorMessage: $errorMessage, currentLanguage: $currentLanguage, selectedLanguage: $selectedLanguage)';
 }
 
 
@@ -45,7 +45,7 @@ abstract mixin class $LanguageStateCopyWith<$Res>  {
   factory $LanguageStateCopyWith(LanguageState value, $Res Function(LanguageState) _then) = _$LanguageStateCopyWithImpl;
 @useResult
 $Res call({
- Status status, String errorMessage, AppLocale currentLanguage, AppLocale chooseLanguage
+ Status status, String errorMessage, AppLocale currentLanguage, AppLocale selectedLanguage
 });
 
 
@@ -62,12 +62,12 @@ class _$LanguageStateCopyWithImpl<$Res>
 
 /// Create a copy of LanguageState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? status = null,Object? errorMessage = null,Object? currentLanguage = null,Object? chooseLanguage = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? status = null,Object? errorMessage = null,Object? currentLanguage = null,Object? selectedLanguage = null,}) {
   return _then(_self.copyWith(
 status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as Status,errorMessage: null == errorMessage ? _self.errorMessage : errorMessage // ignore: cast_nullable_to_non_nullable
 as String,currentLanguage: null == currentLanguage ? _self.currentLanguage : currentLanguage // ignore: cast_nullable_to_non_nullable
-as AppLocale,chooseLanguage: null == chooseLanguage ? _self.chooseLanguage : chooseLanguage // ignore: cast_nullable_to_non_nullable
+as AppLocale,selectedLanguage: null == selectedLanguage ? _self.selectedLanguage : selectedLanguage // ignore: cast_nullable_to_non_nullable
 as AppLocale,
   ));
 }
@@ -153,10 +153,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( Status status,  String errorMessage,  AppLocale currentLanguage,  AppLocale chooseLanguage)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( Status status,  String errorMessage,  AppLocale currentLanguage,  AppLocale selectedLanguage)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _LanguageState() when $default != null:
-return $default(_that.status,_that.errorMessage,_that.currentLanguage,_that.chooseLanguage);case _:
+return $default(_that.status,_that.errorMessage,_that.currentLanguage,_that.selectedLanguage);case _:
   return orElse();
 
 }
@@ -174,10 +174,10 @@ return $default(_that.status,_that.errorMessage,_that.currentLanguage,_that.choo
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( Status status,  String errorMessage,  AppLocale currentLanguage,  AppLocale chooseLanguage)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( Status status,  String errorMessage,  AppLocale currentLanguage,  AppLocale selectedLanguage)  $default,) {final _that = this;
 switch (_that) {
 case _LanguageState():
-return $default(_that.status,_that.errorMessage,_that.currentLanguage,_that.chooseLanguage);case _:
+return $default(_that.status,_that.errorMessage,_that.currentLanguage,_that.selectedLanguage);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -189,13 +189,13 @@ return $default(_that.status,_that.errorMessage,_that.currentLanguage,_that.choo
 
 
 class _LanguageState extends LanguageState {
-  const _LanguageState({this.status = Status.initial, this.errorMessage = "", this.currentLanguage = AppLocale.en, this.chooseLanguage = AppLocale.en}): super._();
+  const _LanguageState({this.status = Status.initial, this.errorMessage = "", this.currentLanguage = AppLocale.en, this.selectedLanguage = AppLocale.en}): super._();
   
 
 @override@JsonKey() final  Status status;
 @override@JsonKey() final  String errorMessage;
 @override@JsonKey() final  AppLocale currentLanguage;
-@override@JsonKey() final  AppLocale chooseLanguage;
+@override@JsonKey() final  AppLocale selectedLanguage;
 
 /// Create a copy of LanguageState
 /// with the given fields replaced by the non-null parameter values.
@@ -207,16 +207,16 @@ _$LanguageStateCopyWith<_LanguageState> get copyWith => __$LanguageStateCopyWith
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _LanguageState&&(identical(other.status, status) || other.status == status)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage)&&(identical(other.currentLanguage, currentLanguage) || other.currentLanguage == currentLanguage)&&(identical(other.chooseLanguage, chooseLanguage) || other.chooseLanguage == chooseLanguage));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _LanguageState&&(identical(other.status, status) || other.status == status)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage)&&(identical(other.currentLanguage, currentLanguage) || other.currentLanguage == currentLanguage)&&(identical(other.selectedLanguage, selectedLanguage) || other.selectedLanguage == selectedLanguage));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,status,errorMessage,currentLanguage,chooseLanguage);
+int get hashCode => Object.hash(runtimeType,status,errorMessage,currentLanguage,selectedLanguage);
 
 @override
 String toString() {
-  return 'LanguageState(status: $status, errorMessage: $errorMessage, currentLanguage: $currentLanguage, chooseLanguage: $chooseLanguage)';
+  return 'LanguageState(status: $status, errorMessage: $errorMessage, currentLanguage: $currentLanguage, selectedLanguage: $selectedLanguage)';
 }
 
 
@@ -227,7 +227,7 @@ abstract mixin class _$LanguageStateCopyWith<$Res> implements $LanguageStateCopy
   factory _$LanguageStateCopyWith(_LanguageState value, $Res Function(_LanguageState) _then) = __$LanguageStateCopyWithImpl;
 @override @useResult
 $Res call({
- Status status, String errorMessage, AppLocale currentLanguage, AppLocale chooseLanguage
+ Status status, String errorMessage, AppLocale currentLanguage, AppLocale selectedLanguage
 });
 
 
@@ -244,12 +244,12 @@ class __$LanguageStateCopyWithImpl<$Res>
 
 /// Create a copy of LanguageState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? status = null,Object? errorMessage = null,Object? currentLanguage = null,Object? chooseLanguage = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? status = null,Object? errorMessage = null,Object? currentLanguage = null,Object? selectedLanguage = null,}) {
   return _then(_LanguageState(
 status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as Status,errorMessage: null == errorMessage ? _self.errorMessage : errorMessage // ignore: cast_nullable_to_non_nullable
 as String,currentLanguage: null == currentLanguage ? _self.currentLanguage : currentLanguage // ignore: cast_nullable_to_non_nullable
-as AppLocale,chooseLanguage: null == chooseLanguage ? _self.chooseLanguage : chooseLanguage // ignore: cast_nullable_to_non_nullable
+as AppLocale,selectedLanguage: null == selectedLanguage ? _self.selectedLanguage : selectedLanguage // ignore: cast_nullable_to_non_nullable
 as AppLocale,
   ));
 }

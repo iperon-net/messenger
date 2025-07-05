@@ -44,6 +44,7 @@ class AppearanceCubit extends Cubit<AppearanceState> {
   Future<void> changeDarkMode(DarkMode darkMode) async {
     emit(state.copyWith(status: Status.loading));
     await _secureStorage.setDarkMode(value: darkMode);
+    await Future.delayed(Duration(seconds: 5));
     emit(state.copyWith(status: Status.success, darkMode: darkMode));
   }
 

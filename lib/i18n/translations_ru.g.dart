@@ -128,6 +128,7 @@ class _TranslationsSettingsAppearanceRu extends TranslationsSettingsAppearanceEn
 
 	// Translations
 	@override String get appearance => 'Оформление';
+	@override String get back => 'Назад';
 	@override late final _TranslationsSettingsAppearanceDarkModeRu darkMode = _TranslationsSettingsAppearanceDarkModeRu._(_root);
 	@override late final _TranslationsSettingsAppearanceColorSchemeRu colorScheme = _TranslationsSettingsAppearanceColorSchemeRu._(_root);
 }
@@ -193,6 +194,7 @@ extension on TranslationsRu {
 			case 'settings.devices': return 'Девайсы';
 			case 'settings.updates': return 'Обновления';
 			case 'settings.appearance.appearance': return 'Оформление';
+			case 'settings.appearance.back': return 'Назад';
 			case 'settings.appearance.darkMode.darkMode': return 'Темная тема';
 			case 'settings.appearance.darkMode.system': return 'Системная';
 			case 'settings.appearance.darkMode.disabled': return 'Выключена';

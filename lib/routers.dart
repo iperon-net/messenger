@@ -35,11 +35,18 @@ class Routers {
               path: "/settings",
               name: "settings",
               builder: (BuildContext context, GoRouterState state) => SettingsScreen(),
-            ),
-            GoRoute(
-              path: "/language",
-              name: "settings_language",
-              builder: (BuildContext context, GoRouterState state) => LanguageScreen(),
+              routes: [
+                GoRoute(
+                  path: "/language",
+                  name: "settings_language",
+                  builder: (BuildContext context, GoRouterState state) => LanguageScreen(),
+                ),
+                GoRoute(
+                  path: "/appearance",
+                  name: "settings_appearance",
+                  builder: (BuildContext context, GoRouterState state) => AppearanceScreen(),
+                ),
+              ],
             ),
           ],
         ),

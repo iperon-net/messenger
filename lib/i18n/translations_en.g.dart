@@ -128,6 +128,7 @@ class TranslationsSettingsAppearanceEn {
 
 	// Translations
 	String get appearance => 'Appearance';
+	String get back => 'Back';
 	late final TranslationsSettingsAppearanceDarkModeEn darkMode = TranslationsSettingsAppearanceDarkModeEn.internal(_root);
 	late final TranslationsSettingsAppearanceColorSchemeEn colorScheme = TranslationsSettingsAppearanceColorSchemeEn.internal(_root);
 }
@@ -193,6 +194,7 @@ extension on Translations {
 			case 'settings.devices': return 'Devices';
 			case 'settings.updates': return 'Updates';
 			case 'settings.appearance.appearance': return 'Appearance';
+			case 'settings.appearance.back': return 'Back';
 			case 'settings.appearance.darkMode.darkMode': return 'Dark mode';
 			case 'settings.appearance.darkMode.system': return 'System';
 			case 'settings.appearance.darkMode.disabled': return 'Disabled';

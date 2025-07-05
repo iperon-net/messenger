@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$AppearanceState {
 
- Status get status; String get errorMessage; ThemeColor get themeColor; DarkMode get darkMode;
+ Status get status; String get errorMessage; ThemeColor get themeColor; ThemeColor get chooseThemeColor; DarkMode get darkMode; DarkMode get chooseDarkMode;
 /// Create a copy of AppearanceState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,16 +25,16 @@ $AppearanceStateCopyWith<AppearanceState> get copyWith => _$AppearanceStateCopyW
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AppearanceState&&(identical(other.status, status) || other.status == status)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage)&&(identical(other.themeColor, themeColor) || other.themeColor == themeColor)&&(identical(other.darkMode, darkMode) || other.darkMode == darkMode));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AppearanceState&&(identical(other.status, status) || other.status == status)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage)&&(identical(other.themeColor, themeColor) || other.themeColor == themeColor)&&(identical(other.chooseThemeColor, chooseThemeColor) || other.chooseThemeColor == chooseThemeColor)&&(identical(other.darkMode, darkMode) || other.darkMode == darkMode)&&(identical(other.chooseDarkMode, chooseDarkMode) || other.chooseDarkMode == chooseDarkMode));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,status,errorMessage,themeColor,darkMode);
+int get hashCode => Object.hash(runtimeType,status,errorMessage,themeColor,chooseThemeColor,darkMode,chooseDarkMode);
 
 @override
 String toString() {
-  return 'AppearanceState(status: $status, errorMessage: $errorMessage, themeColor: $themeColor, darkMode: $darkMode)';
+  return 'AppearanceState(status: $status, errorMessage: $errorMessage, themeColor: $themeColor, chooseThemeColor: $chooseThemeColor, darkMode: $darkMode, chooseDarkMode: $chooseDarkMode)';
 }
 
 
@@ -45,7 +45,7 @@ abstract mixin class $AppearanceStateCopyWith<$Res>  {
   factory $AppearanceStateCopyWith(AppearanceState value, $Res Function(AppearanceState) _then) = _$AppearanceStateCopyWithImpl;
 @useResult
 $Res call({
- Status status, String errorMessage, ThemeColor themeColor, DarkMode darkMode
+ Status status, String errorMessage, ThemeColor themeColor, ThemeColor chooseThemeColor, DarkMode darkMode, DarkMode chooseDarkMode
 });
 
 
@@ -62,12 +62,14 @@ class _$AppearanceStateCopyWithImpl<$Res>
 
 /// Create a copy of AppearanceState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? status = null,Object? errorMessage = null,Object? themeColor = null,Object? darkMode = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? status = null,Object? errorMessage = null,Object? themeColor = null,Object? chooseThemeColor = null,Object? darkMode = null,Object? chooseDarkMode = null,}) {
   return _then(_self.copyWith(
 status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as Status,errorMessage: null == errorMessage ? _self.errorMessage : errorMessage // ignore: cast_nullable_to_non_nullable
 as String,themeColor: null == themeColor ? _self.themeColor : themeColor // ignore: cast_nullable_to_non_nullable
+as ThemeColor,chooseThemeColor: null == chooseThemeColor ? _self.chooseThemeColor : chooseThemeColor // ignore: cast_nullable_to_non_nullable
 as ThemeColor,darkMode: null == darkMode ? _self.darkMode : darkMode // ignore: cast_nullable_to_non_nullable
+as DarkMode,chooseDarkMode: null == chooseDarkMode ? _self.chooseDarkMode : chooseDarkMode // ignore: cast_nullable_to_non_nullable
 as DarkMode,
   ));
 }
@@ -153,10 +155,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( Status status,  String errorMessage,  ThemeColor themeColor,  DarkMode darkMode)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( Status status,  String errorMessage,  ThemeColor themeColor,  ThemeColor chooseThemeColor,  DarkMode darkMode,  DarkMode chooseDarkMode)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _AppearanceState() when $default != null:
-return $default(_that.status,_that.errorMessage,_that.themeColor,_that.darkMode);case _:
+return $default(_that.status,_that.errorMessage,_that.themeColor,_that.chooseThemeColor,_that.darkMode,_that.chooseDarkMode);case _:
   return orElse();
 
 }
@@ -174,10 +176,10 @@ return $default(_that.status,_that.errorMessage,_that.themeColor,_that.darkMode)
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( Status status,  String errorMessage,  ThemeColor themeColor,  DarkMode darkMode)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( Status status,  String errorMessage,  ThemeColor themeColor,  ThemeColor chooseThemeColor,  DarkMode darkMode,  DarkMode chooseDarkMode)  $default,) {final _that = this;
 switch (_that) {
 case _AppearanceState():
-return $default(_that.status,_that.errorMessage,_that.themeColor,_that.darkMode);case _:
+return $default(_that.status,_that.errorMessage,_that.themeColor,_that.chooseThemeColor,_that.darkMode,_that.chooseDarkMode);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -189,13 +191,15 @@ return $default(_that.status,_that.errorMessage,_that.themeColor,_that.darkMode)
 
 
 class _AppearanceState extends AppearanceState {
-  const _AppearanceState({this.status = Status.initial, this.errorMessage = "", this.themeColor = ThemeColor.blue, this.darkMode = DarkMode.system}): super._();
+  const _AppearanceState({this.status = Status.initial, this.errorMessage = "", this.themeColor = ThemeColor.blue, this.chooseThemeColor = ThemeColor.blue, this.darkMode = DarkMode.system, this.chooseDarkMode = DarkMode.system}): super._();
   
 
 @override@JsonKey() final  Status status;
 @override@JsonKey() final  String errorMessage;
 @override@JsonKey() final  ThemeColor themeColor;
+@override@JsonKey() final  ThemeColor chooseThemeColor;
 @override@JsonKey() final  DarkMode darkMode;
+@override@JsonKey() final  DarkMode chooseDarkMode;
 
 /// Create a copy of AppearanceState
 /// with the given fields replaced by the non-null parameter values.
@@ -207,16 +211,16 @@ _$AppearanceStateCopyWith<_AppearanceState> get copyWith => __$AppearanceStateCo
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AppearanceState&&(identical(other.status, status) || other.status == status)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage)&&(identical(other.themeColor, themeColor) || other.themeColor == themeColor)&&(identical(other.darkMode, darkMode) || other.darkMode == darkMode));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AppearanceState&&(identical(other.status, status) || other.status == status)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage)&&(identical(other.themeColor, themeColor) || other.themeColor == themeColor)&&(identical(other.chooseThemeColor, chooseThemeColor) || other.chooseThemeColor == chooseThemeColor)&&(identical(other.darkMode, darkMode) || other.darkMode == darkMode)&&(identical(other.chooseDarkMode, chooseDarkMode) || other.chooseDarkMode == chooseDarkMode));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,status,errorMessage,themeColor,darkMode);
+int get hashCode => Object.hash(runtimeType,status,errorMessage,themeColor,chooseThemeColor,darkMode,chooseDarkMode);
 
 @override
 String toString() {
-  return 'AppearanceState(status: $status, errorMessage: $errorMessage, themeColor: $themeColor, darkMode: $darkMode)';
+  return 'AppearanceState(status: $status, errorMessage: $errorMessage, themeColor: $themeColor, chooseThemeColor: $chooseThemeColor, darkMode: $darkMode, chooseDarkMode: $chooseDarkMode)';
 }
 
 
@@ -227,7 +231,7 @@ abstract mixin class _$AppearanceStateCopyWith<$Res> implements $AppearanceState
   factory _$AppearanceStateCopyWith(_AppearanceState value, $Res Function(_AppearanceState) _then) = __$AppearanceStateCopyWithImpl;
 @override @useResult
 $Res call({
- Status status, String errorMessage, ThemeColor themeColor, DarkMode darkMode
+ Status status, String errorMessage, ThemeColor themeColor, ThemeColor chooseThemeColor, DarkMode darkMode, DarkMode chooseDarkMode
 });
 
 
@@ -244,12 +248,14 @@ class __$AppearanceStateCopyWithImpl<$Res>
 
 /// Create a copy of AppearanceState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? status = null,Object? errorMessage = null,Object? themeColor = null,Object? darkMode = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? status = null,Object? errorMessage = null,Object? themeColor = null,Object? chooseThemeColor = null,Object? darkMode = null,Object? chooseDarkMode = null,}) {
   return _then(_AppearanceState(
 status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as Status,errorMessage: null == errorMessage ? _self.errorMessage : errorMessage // ignore: cast_nullable_to_non_nullable
 as String,themeColor: null == themeColor ? _self.themeColor : themeColor // ignore: cast_nullable_to_non_nullable
+as ThemeColor,chooseThemeColor: null == chooseThemeColor ? _self.chooseThemeColor : chooseThemeColor // ignore: cast_nullable_to_non_nullable
 as ThemeColor,darkMode: null == darkMode ? _self.darkMode : darkMode // ignore: cast_nullable_to_non_nullable
+as DarkMode,chooseDarkMode: null == chooseDarkMode ? _self.chooseDarkMode : chooseDarkMode // ignore: cast_nullable_to_non_nullable
 as DarkMode,
   ));
 }

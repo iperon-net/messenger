@@ -73,6 +73,7 @@ class _SettingsScreenCupertino extends State<SettingsScreenCupertino> {
                         leading: Icon(CupertinoIcons.circle_lefthalf_fill),
                         title: Text(context.t.settings.appearance.appearance, style: TextStyle(fontSize: 15),),
                         trailing: CupertinoListTileChevron(),
+                        onTap: () => context.goNamed("settings_appearance"),
                       ),
                       CupertinoListTile(
                         leading: Icon(CupertinoIcons.globe),

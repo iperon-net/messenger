@@ -29,6 +29,7 @@
 
     "appearance":
       "appearance": "Appearance"
+      "back": "Back"
       "darkMode":
         "darkMode": "Dark mode"
         "system": "System"
