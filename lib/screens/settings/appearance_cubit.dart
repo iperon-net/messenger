@@ -4,7 +4,6 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import '../../cubit/app_cubit.dart';
 import '../../cubit/constants.dart';
 import '../../di.dart';
-import '../../logger.dart';
 import '../../secure_storage.dart';
 
 part 'appearance_cubit.freezed.dart';
@@ -14,13 +13,12 @@ class AppearanceCubit extends Cubit<AppearanceState> {
   AppearanceCubit() : super(const AppearanceState());
 
   final _secureStorage = getIt.get<SecureStorage>();
-  final _logger = getIt.get<Logger>();
 
   Future<void> initialization() async {
-    emit(state.copyWith(status: Status.loading));
-
     final darkModeStorage = await _secureStorage.read(key: "darkMode");
     final themeColorStorage = await _secureStorage.read(key: "themeColor");
+
+    emit(state.copyWith(status: Status.loading));
 
     DarkMode darkMode = DarkMode.system;
 
@@ -38,6 +36,7 @@ class AppearanceCubit extends Cubit<AppearanceState> {
     } else if (themeColorStorage.isNotEmpty && themeColorStorage == "purple"){
       themeColor = ThemeColor.purple;
     }
+
     emit(state.copyWith(status: Status.success, darkMode: darkMode, themeColor: themeColor));
   }
 
