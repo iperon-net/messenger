@@ -86,7 +86,11 @@ class _SettingsScreenMaterial extends State<SettingsScreenMaterial> {
                         ),
                       ),
                     ),
-                    ListTile(title: Text(context.t.settings.privacyAndSecurity), leading: Icon(Icons.lock)),
+                    ListTile(
+                      title: Text(context.t.settings.privacyAndSecurity),
+                      leading: Icon(Icons.lock),
+                      onTap: () => context.goNamed("settings_privacy_security"),
+                    ),
                     ListTile(
                       title: Text(context.t.settings.devices),
                       leading: Icon(Icons.computer),

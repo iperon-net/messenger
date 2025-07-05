@@ -62,6 +62,7 @@ class _SettingsScreenCupertino extends State<SettingsScreenCupertino> {
                         leading: Icon(CupertinoIcons.lock),
                         title: Text(context.t.settings.privacyAndSecurity),
                         trailing: CupertinoListTileChevron(),
+                        onTap: () => context.goNamed("settings_privacy_security"),
                       ),
                       CupertinoListTile(
                         leading: Icon(CupertinoIcons.device_laptop),

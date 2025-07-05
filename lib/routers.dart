@@ -9,6 +9,7 @@ import 'di.dart';
 import 'logger.dart';
 import 'screens/settings/appearance_screen.dart';
 import 'screens/settings/language_screen.dart';
+import 'screens/settings/privacy_and_security_screen.dart';
 import 'screens/settings/settings_screen.dart';
 
 class Routers {
@@ -46,6 +47,11 @@ class Routers {
                   name: "settings_appearance",
                   builder: (BuildContext context, GoRouterState state) => AppearanceScreen(),
                 ),
+                GoRoute(
+                  path: "/privacy_security",
+                  name: "settings_privacy_security",
+                  builder: (BuildContext context, GoRouterState state) => PrivacyAndSecurityScreen(),
+                ),
               ],
             ),
           ],
@@ -82,6 +88,11 @@ class Routers {
                   path: "/appearance",
                   name: "settings_appearance",
                   builder: (BuildContext context, GoRouterState state) => AppearanceScreen(),
+                ),
+                GoRoute(
+                  path: "/privacy_security",
+                  name: "settings_privacy_security",
+                  builder: (BuildContext context, GoRouterState state) => PrivacyAndSecurityScreen(),
                 ),
               ],
             ),
