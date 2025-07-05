@@ -30,7 +30,6 @@ class LanguageCubit extends Cubit<LanguageState> {
     LocaleSettings.setLocale(language);
 
     _logger.info("Language changed ${language.languageCode}");
-    await Future.delayed(Duration(seconds: 5));
     emit(state.copyWith(status: Status.success, currentLanguage: language, selectedLanguage: language));
   }
 

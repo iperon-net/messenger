@@ -36,22 +36,9 @@ class _AppearanceScreenCupertino extends State<AppearanceScreenCupertino> {
             backgroundColorActivated: CupertinoDynamicColor.resolve(CupertinoColors.transparent, context),
             title: Text(theme["title"]),
             onTap: state.status == Status.loading ? () => null : () async => context.read<AppearanceCubit>().changeDarkMode(theme["value"]),
-            trailing: (state.status == Status.loading && theme["value"] == state.darkMode) ? CupertinoActivityIndicator() :
-              (state.darkMode == theme["value"] ? Icon(CupertinoIcons.checkmark_alt, color: CupertinoTheme.of(context).primaryColor) : Container()),
-
-            // trailing: (state.status == Status.loading && theme["value"] == state.darkMode) ? CupertinoActivityIndicator() :
-            //   (state.darkMode == theme["value"] ? Icon(CupertinoIcons.checkmark_alt, color: CupertinoTheme.of(context).primaryColor) : Container()),
+            trailing: (state.status == Status.loading && theme["value"] == state.selectedDarkMode && state.action == "darkMode") ? CupertinoActivityIndicator() :
+              (state.selectedDarkMode == theme["value"] ? Icon(CupertinoIcons.checkmark_alt, color: CupertinoTheme.of(context).primaryColor) : Container()),
           ),
-
-          // CupertinoListTile(
-          //   title: Text(theme["title"]),
-          //   value: theme["value"],
-            // groupValue: state.darkMode,
-            // onChanged: state.status == Status.loading ? (value) => {} : (value) async => context.read<AppearanceCubit>().changeDarkMode(theme["value"]),
-            // shape: RoundedRectangleBorder(
-            //   borderRadius: BorderRadius.circular(10.0),
-            // ),
-          // )
       );
     }
     return themeGenerator;
@@ -66,7 +53,11 @@ class _AppearanceScreenCupertino extends State<AppearanceScreenCupertino> {
       ),
       child: SafeArea(
         bottom: true,
-        child: BlocBuilder<AppearanceCubit, AppearanceState>(
+        child: BlocConsumer<AppearanceCubit, AppearanceState>(
+          listener: (context, state) async {
+            if (context.mounted) await context.read<AppCubit>().changeDarkMode(state.darkMode);
+            if (context.mounted) await context.read<AppCubit>().changeThemeColor(state.themeColor);
+          },
           builder: (context, state) {
             return SingleChildScrollView(
               child: Column(
