@@ -26,7 +26,14 @@
   "privacyAndSecurity":
     "privacyAndSecurity": "Конфиденциальность"
     "twoStepVerification": "Двухэтапная проверка"
-    "passcode": "Код-пароль"
+    "passcode":
+      "passcode": "Код-пароль"
+      "setPasscode": "Установить код-пароль"
+      "importantDescription": "Важно: Если Вы забудете код-пароль, вам нужно будет переустановить приложение"
+      "newPasscode": "Новый код-пароль"
+      "confirmNewPasscode": "Подтвердите код-пароль"
+      "cancel": "Отмена"
+
   "devices": "Девайсы"
   "updates": "Обновления"
 

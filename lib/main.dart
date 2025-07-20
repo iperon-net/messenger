@@ -13,6 +13,7 @@ import 'routers.dart';
 import 'screens/contacts/contacts_cubit.dart';
 import 'screens/settings/appearance_cubit.dart';
 import 'screens/settings/language_cubit.dart';
+import 'screens/settings/passcode_cubit.dart';
 import 'screens/settings/privacy_and_security_cubit.dart';
 import 'screens/settings/settings_cubit.dart';
 import 'secure_storage.dart';
@@ -64,6 +65,9 @@ Future<void> main() async {
             ),
             BlocProvider<PrivacyAndSecurityCubit>(
               create: (BuildContext context) => PrivacyAndSecurityCubit(),
+            ),
+            BlocProvider<PasscodeCubit>(
+              create: (BuildContext context) => PasscodeCubit(),
             ),
           ],
         child: Platform.isIOS ?
@@ -197,7 +201,7 @@ class IperonMessengerCupertino extends StatelessWidget {
 
     CupertinoDynamicColor colors = CupertinoColors.systemTeal;
     if (globalThemeColor == ThemeColor.blue) {
-      colors = CupertinoColors.systemTeal;
+      colors = CupertinoColors.activeBlue;
     } else if (globalThemeColor == ThemeColor.green) {
       colors = CupertinoColors.activeGreen;
     } else if (globalThemeColor == ThemeColor.purple) {
@@ -215,7 +219,6 @@ class IperonMessengerCupertino extends StatelessWidget {
           brightness = null;
         }
 
-
         if (state.status == Status.success && state.themeColor == ThemeColor.blue) {
           colors = CupertinoColors.activeBlue;
         } else if (state.status == Status.success && state.themeColor == ThemeColor.green) {
@@ -227,6 +230,9 @@ class IperonMessengerCupertino extends StatelessWidget {
         return CupertinoApp.router(
           debugShowCheckedModeBanner: false,
           localizationsDelegates: [
+            GlobalMaterialLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+            DefaultWidgetsLocalizations.delegate,
             ...GlobalMaterialLocalizations.delegates,
           ],
           supportedLocales: AppLocaleUtils.supportedLocales,

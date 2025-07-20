@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../i18n/translations.g.dart';
 import 'privacy_and_security_cubit.dart';
@@ -23,6 +24,7 @@ class _PrivacyAndSecurityScreenCupertino extends State<PrivacyAndSecurityScreenC
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
         transitionBetweenRoutes: false,
+        previousPageTitle: t.settings.language.back,
         middle: Text(context.t.settings.privacyAndSecurity.privacyAndSecurity),
       ),
       child: SingleChildScrollView(
@@ -40,8 +42,9 @@ class _PrivacyAndSecurityScreenCupertino extends State<PrivacyAndSecurityScreenC
                       ),
                       CupertinoListTile(
                         leading: Icon(CupertinoIcons.lock),
-                        title: Text(context.t.settings.privacyAndSecurity.passcode, style: TextStyle(fontSize: 15),),
+                        title: Text(context.t.settings.privacyAndSecurity.passcode.passcode, style: TextStyle(fontSize: 15),),
                         trailing: CupertinoListTileChevron(),
+                        onTap: () => context.goNamed("settings_privacy_security_passcode"),
                       ),
 
                     ],

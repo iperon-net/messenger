@@ -9,6 +9,7 @@ import 'di.dart';
 import 'logger.dart';
 import 'screens/settings/appearance_screen.dart';
 import 'screens/settings/language_screen.dart';
+import 'screens/settings/passcode_screen.dart';
 import 'screens/settings/privacy_and_security_screen.dart';
 import 'screens/settings/settings_screen.dart';
 
@@ -36,23 +37,28 @@ class Routers {
               path: "/settings",
               name: "settings",
               builder: (BuildContext context, GoRouterState state) => SettingsScreen(),
-              routes: [
+            ),
+            GoRoute(
+              path: "/settings/appearance",
+              name: "settings_appearance",
+              builder: (BuildContext context, GoRouterState state) => AppearanceScreen(),
+            ),
+            GoRoute(
+              path: "/settings/privacy_security",
+              name: "settings_privacy_security",
+              builder: (BuildContext context, GoRouterState state) => PrivacyAndSecurityScreen(),
+              routes: <GoRoute>[
                 GoRoute(
-                  path: "/language",
-                  name: "settings_language",
-                  builder: (BuildContext context, GoRouterState state) => LanguageScreen(),
-                ),
-                GoRoute(
-                  path: "/appearance",
-                  name: "settings_appearance",
-                  builder: (BuildContext context, GoRouterState state) => AppearanceScreen(),
-                ),
-                GoRoute(
-                  path: "/privacy_security",
-                  name: "settings_privacy_security",
-                  builder: (BuildContext context, GoRouterState state) => PrivacyAndSecurityScreen(),
+                  path: "/passcode",
+                  name: "settings_privacy_security_passcode",
+                  builder: (BuildContext context, GoRouterState state) => PasscodeScreen(),
                 ),
               ],
+            ),
+            GoRoute(
+              path: "/settings/language",
+              name: "settings_language",
+              builder: (BuildContext context, GoRouterState state) => LanguageScreen(),
             ),
           ],
         ),

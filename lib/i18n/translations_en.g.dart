@@ -129,7 +129,7 @@ class TranslationsSettingsPrivacyAndSecurityEn {
 	// Translations
 	String get privacyAndSecurity => 'Privacy and security';
 	String get twoStepVerification => 'Two step verification';
-	String get passcode => 'Passcode';
+	late final TranslationsSettingsPrivacyAndSecurityPasscodeEn passcode = TranslationsSettingsPrivacyAndSecurityPasscodeEn.internal(_root);
 }
 
 // Path: settings.appearance
@@ -155,6 +155,21 @@ class TranslationsSettingsLanguageEn {
 	String get language => 'Language';
 	String get back => 'Back';
 	String get interfaceLanguage => 'Interface language';
+}
+
+// Path: settings.privacyAndSecurity.passcode
+class TranslationsSettingsPrivacyAndSecurityPasscodeEn {
+	TranslationsSettingsPrivacyAndSecurityPasscodeEn.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+	String get passcode => 'Passcode';
+	String get setPasscode => 'Set a passcode';
+	String get importantDescription => 'Important: If you forget your passcode, you will need to reinstall the application.';
+	String get newPasscode => 'New passcode';
+	String get confirmNewPasscode => 'Confirm the passcode';
+	String get cancel => 'Cancel';
 }
 
 // Path: settings.appearance.darkMode
@@ -204,7 +219,12 @@ extension on Translations {
 			case 'settings.myProfile': return 'My profile';
 			case 'settings.privacyAndSecurity.privacyAndSecurity': return 'Privacy and security';
 			case 'settings.privacyAndSecurity.twoStepVerification': return 'Two step verification';
-			case 'settings.privacyAndSecurity.passcode': return 'Passcode';
+			case 'settings.privacyAndSecurity.passcode.passcode': return 'Passcode';
+			case 'settings.privacyAndSecurity.passcode.setPasscode': return 'Set a passcode';
+			case 'settings.privacyAndSecurity.passcode.importantDescription': return 'Important: If you forget your passcode, you will need to reinstall the application.';
+			case 'settings.privacyAndSecurity.passcode.newPasscode': return 'New passcode';
+			case 'settings.privacyAndSecurity.passcode.confirmNewPasscode': return 'Confirm the passcode';
+			case 'settings.privacyAndSecurity.passcode.cancel': return 'Cancel';
 			case 'settings.devices': return 'Devices';
 			case 'settings.updates': return 'Updates';
 			case 'settings.appearance.appearance': return 'Appearance';

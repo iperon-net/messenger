@@ -129,7 +129,7 @@ class _TranslationsSettingsPrivacyAndSecurityRu extends TranslationsSettingsPriv
 	// Translations
 	@override String get privacyAndSecurity => 'Конфиденциальность';
 	@override String get twoStepVerification => 'Двухэтапная проверка';
-	@override String get passcode => 'Код-пароль';
+	@override late final _TranslationsSettingsPrivacyAndSecurityPasscodeRu passcode = _TranslationsSettingsPrivacyAndSecurityPasscodeRu._(_root);
 }
 
 // Path: settings.appearance
@@ -155,6 +155,21 @@ class _TranslationsSettingsLanguageRu extends TranslationsSettingsLanguageEn {
 	@override String get language => 'Язык';
 	@override String get back => 'Назад';
 	@override String get interfaceLanguage => 'Язык интерфейса';
+}
+
+// Path: settings.privacyAndSecurity.passcode
+class _TranslationsSettingsPrivacyAndSecurityPasscodeRu extends TranslationsSettingsPrivacyAndSecurityPasscodeEn {
+	_TranslationsSettingsPrivacyAndSecurityPasscodeRu._(TranslationsRu root) : this._root = root, super.internal(root);
+
+	final TranslationsRu _root; // ignore: unused_field
+
+	// Translations
+	@override String get passcode => 'Код-пароль';
+	@override String get setPasscode => 'Установить код-пароль';
+	@override String get importantDescription => 'Важно: Если Вы забудете код-пароль, вам нужно будет переустановить приложение';
+	@override String get newPasscode => 'Новый код-пароль';
+	@override String get confirmNewPasscode => 'Подтвердите код-пароль';
+	@override String get cancel => 'Отмена';
 }
 
 // Path: settings.appearance.darkMode
@@ -204,7 +219,12 @@ extension on TranslationsRu {
 			case 'settings.myProfile': return 'Мой профиль';
 			case 'settings.privacyAndSecurity.privacyAndSecurity': return 'Конфиденциальность';
 			case 'settings.privacyAndSecurity.twoStepVerification': return 'Двухэтапная проверка';
-			case 'settings.privacyAndSecurity.passcode': return 'Код-пароль';
+			case 'settings.privacyAndSecurity.passcode.passcode': return 'Код-пароль';
+			case 'settings.privacyAndSecurity.passcode.setPasscode': return 'Установить код-пароль';
+			case 'settings.privacyAndSecurity.passcode.importantDescription': return 'Важно: Если Вы забудете код-пароль, вам нужно будет переустановить приложение';
+			case 'settings.privacyAndSecurity.passcode.newPasscode': return 'Новый код-пароль';
+			case 'settings.privacyAndSecurity.passcode.confirmNewPasscode': return 'Подтвердите код-пароль';
+			case 'settings.privacyAndSecurity.passcode.cancel': return 'Отмена';
 			case 'settings.devices': return 'Девайсы';
 			case 'settings.updates': return 'Обновления';
 			case 'settings.appearance.appearance': return 'Оформление';

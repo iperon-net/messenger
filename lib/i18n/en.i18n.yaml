@@ -27,7 +27,13 @@
     "privacyAndSecurity":
       "privacyAndSecurity": "Privacy and security"
       "twoStepVerification": "Two step verification"
-      "passcode": "Passcode"
+      "passcode":
+        "passcode": "Passcode"
+        "setPasscode": "Set a passcode"
+        "importantDescription": "Important: If you forget your passcode, you will need to reinstall the application."
+        "newPasscode": "New passcode"
+        "confirmNewPasscode": "Confirm the passcode"
+        "cancel": "Cancel"
 
     "devices": "Devices"
     "updates": "Updates"
