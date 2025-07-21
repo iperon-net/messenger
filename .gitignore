@@ -52,3 +52,4 @@ firebase_options.dart
 /ios/Runner/GoogleService-Info.plist
 /android/app/google-services.json
 /firebase.json
+/firepit-log.txt
