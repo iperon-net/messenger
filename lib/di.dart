@@ -1,6 +1,10 @@
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:flutter/foundation.dart';
 import 'package:get_it/get_it.dart';
 
 import 'crypto/crypto.dart';
+import 'firebase_options.dart';
 import 'logger.dart';
 import 'repositories/repositories.dart';
 import 'routers.dart';
@@ -9,6 +13,19 @@ import 'secure_storage.dart';
 GetIt getIt = GetIt.instance;
 
 Future<void> configureGlobalDI() async {
+
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  // Crashlytics
+  FlutterError.onError = (errorDetails) => FirebaseCrashlytics.instance.recordFlutterFatalError(errorDetails);
+  PlatformDispatcher.instance.onError = (error, stack) {
+    if (kReleaseMode){
+      FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+    } else {
+      throw error;
+    }
+    return true;
+  };
 
   getIt.registerSingletonAsync<Logger>(() async => Logger());
   getIt.registerSingletonAsync<Crypto>(() async => Crypto(), dependsOn: [Logger]);

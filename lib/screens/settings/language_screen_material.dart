@@ -26,7 +26,6 @@ class _LanguageScreenMaterial extends State<LanguageScreenMaterial> {
     {"title": "English", "subtitle": "English", "value": AppLocale.en},
   ];
 
-
   List<RadioListTile> radioListTileGenerator(LanguageState state) {
     List<RadioListTile> radioListTileGenerator = [];
 
@@ -50,6 +49,7 @@ class _LanguageScreenMaterial extends State<LanguageScreenMaterial> {
 
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
         appBar: AppBar(
         title: Text(context.t.settings.language.language),

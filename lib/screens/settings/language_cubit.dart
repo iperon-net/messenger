@@ -19,6 +19,7 @@ class LanguageCubit extends Cubit<LanguageState> {
   final _logger = getIt.get<Logger>();
 
   Future<void> initialization() async {
+    throw Exception("eeee");
     emit(state.copyWith(status: Status.loading));
     emit(state.copyWith(status: Status.success, currentLanguage: LocaleSettings.currentLocale, selectedLanguage: LocaleSettings.currentLocale));
   }
