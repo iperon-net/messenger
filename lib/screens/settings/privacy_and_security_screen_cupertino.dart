@@ -16,6 +16,7 @@ class _PrivacyAndSecurityScreenCupertino extends State<PrivacyAndSecurityScreenC
 
   @override
   void initState() {
+    context.read<PrivacyAndSecurityCubit>().initialization();
     super.initState();
   }
 
@@ -46,7 +47,6 @@ class _PrivacyAndSecurityScreenCupertino extends State<PrivacyAndSecurityScreenC
                         trailing: CupertinoListTileChevron(),
                         onTap: () => context.goNamed("settings_privacy_security_passcode"),
                       ),
-
                     ],
                   ),
                 ],

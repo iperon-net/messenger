@@ -8,4 +8,8 @@ part 'privacy_and_security_state.dart';
 
 class PrivacyAndSecurityCubit extends Cubit<PrivacyAndSecurityState> {
   PrivacyAndSecurityCubit() : super(const PrivacyAndSecurityState());
+
+  Future<void> initialization() async {
+  }
+
 }

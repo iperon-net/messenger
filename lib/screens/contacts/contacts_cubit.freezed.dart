@@ -14,7 +14,8 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$ContactsState {
 
- Status get status; String get errorMessage; List<Contact?> get contacts; List<ContactTabs?> get contactTabs;
+ Status get status; String get errorMessage;// @Default(PermissionStatus.denied) PermissionStatus permissionStatusContact,
+ List<Contact?> get contacts; List<ContactTabs?> get contactTabs;
 /// Create a copy of ContactsState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -194,7 +195,9 @@ class _ContactsState extends ContactsState {
 
 @override@JsonKey() final  Status status;
 @override@JsonKey() final  String errorMessage;
+// @Default(PermissionStatus.denied) PermissionStatus permissionStatusContact,
  final  List<Contact?> _contacts;
+// @Default(PermissionStatus.denied) PermissionStatus permissionStatusContact,
 @override@JsonKey() List<Contact?> get contacts {
   if (_contacts is EqualUnmodifiableListView) return _contacts;
   // ignore: implicit_dynamic_type

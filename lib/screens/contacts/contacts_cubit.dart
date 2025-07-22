@@ -13,6 +13,8 @@ class ContactsCubit extends Cubit<ContactsState> {
   Future<void> initialization() async {
     emit(state.copyWith(status: Status.loading));
 
+    // emit(state.copyWith(permissionStatusContact: await Permission.contacts.status));
+
     final contacts = <Contact>[];
     contacts.add(Contact(
       contactId: "507f191e810c19729de860ea",

@@ -27,6 +27,16 @@ Future<void> configureGlobalDI() async {
     return true;
   };
 
+  // final remoteConfig = FirebaseRemoteConfig.instance;
+  //
+  // await remoteConfig.setConfigSettings(RemoteConfigSettings(
+  //   fetchTimeout: Duration(minutes: 1),
+  //   minimumFetchInterval: kDebugMode ? Duration(hours: 1): Duration(hours: 12),
+  // ));
+  //
+  // await remoteConfig.setDefaults(const {});
+  // await remoteConfig.fetchAndActivate();
+
   getIt.registerSingletonAsync<Logger>(() async => Logger());
   getIt.registerSingletonAsync<Crypto>(() async => Crypto(), dependsOn: [Logger]);
   getIt.registerSingletonAsync<Routers>(() async => Routers(), dependsOn: [Logger]);

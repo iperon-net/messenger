@@ -70,65 +70,6 @@ class _ContactsScreenCupertino extends State<ContactsScreenCupertino> {
           child: ListView(
             scrollDirection: Axis.horizontal,
             children: tabs,
-
-            // children: <Widget>[
-            //   Padding(
-            //     padding: const EdgeInsets.fromLTRB(10, 0, 0, 0),
-            //     child: SizedBox(
-            //
-            //       child: Center(
-            //         child: Container(
-            //           decoration: BoxDecoration(
-            //             color: CupertinoTheme.of(context).primaryColor,
-            //             border: Border.all(
-            //               color: CupertinoTheme.of(context).primaryColor,
-            //               width: 2,
-            //               style: BorderStyle.solid,
-            //             ),
-            //             borderRadius: BorderRadius.circular(12),
-            //           ),
-            //           child: Row(
-            //             children: [
-            //               Padding(
-            //                 padding: const EdgeInsets.all(5.0),
-            //                 child: Text(
-            //                   context.t.all_contacts,
-            //                   style: TextStyle(
-            //                     fontSize: 15.0,
-            //                     color: CupertinoTheme.of(context).primaryContrastingColor,
-            //                   ),
-            //                 ),
-            //               ),
-            //             ],
-            //           ),
-            //         ),
-            //       ),
-            //     ),
-            //   ),
-            //   Padding(
-            //     padding: const EdgeInsets.fromLTRB(15, 0, 0, 0),
-            //     child: SizedBox(child: Center(child: Text(context.t.favorites, style: TextStyle(fontSize: 15),)),),
-            //   ),
-            //   Padding(
-            //     padding: const EdgeInsets.fromLTRB(15, 0, 0, 0),
-            //     child: SizedBox(child: Center(child: Text("Рабочие контакты", style: TextStyle(fontSize: 15),)),),
-            //   ),
-            //   Padding(
-            //     padding: const EdgeInsets.fromLTRB(15, 0, 0, 0),
-            //     child: SizedBox(
-            //       child: Row(
-            //         children: [
-            //           Center(
-            //             child: Text(
-            //               "Моя семья",
-            //               style: TextStyle(fontSize: 15),
-            //             ),
-            //           ),
-            //         ],
-            //       ),
-            //     ),
-            //   ),
-            // ],
           ),
         );
       },
@@ -169,8 +110,8 @@ class _ContactsScreenCupertino extends State<ContactsScreenCupertino> {
           child: Column(
             children: [
               search(context),
-              SizedBox(height: 15,),
-              tabs(context),
+              // SizedBox(height: 15,),
+              // tabs(context),
               Dismissible(
                 key: Key("d"),
                 // crossAxisEndOffset: 1,
