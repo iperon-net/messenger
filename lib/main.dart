@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:messenger/screens/home/home_cubit.dart';
 
 import 'cubit/app_cubit.dart';
 import 'cubit/constants.dart';
@@ -50,6 +51,9 @@ Future<void> main() async {
           providers: [
             BlocProvider<AppCubit>(
               create: (BuildContext context) => AppCubit(),
+            ),
+            BlocProvider<HomeCubit>(
+              create: (BuildContext context) => HomeCubit(),
             ),
             BlocProvider<SettingsCubit>(
               create: (BuildContext context) => SettingsCubit(),

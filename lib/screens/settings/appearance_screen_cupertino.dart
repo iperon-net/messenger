@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../components/widget_wrapper/widget_wrapper.dart';
 import '../../cubit/app_cubit.dart';
 import '../../cubit/constants.dart';
 import '../../i18n/translations.g.dart';
@@ -70,41 +71,46 @@ class _AppearanceScreenCupertino extends State<AppearanceScreenCupertino> {
 
   @override
   Widget build(BuildContext context) {
-    return CupertinoPageScaffold(
-      navigationBar: CupertinoNavigationBar(
-        previousPageTitle: t.settings.appearance.back,
-        middle: Text(context.t.settings.appearance.appearance),
-      ),
-      child: SafeArea(
-        bottom: true,
-        child: BlocConsumer<AppearanceCubit, AppearanceState>(
-          listener: (context, state) async {
-            if (context.mounted) await context.read<AppCubit>().changeDarkMode(state.darkMode);
-            if (context.mounted) await context.read<AppCubit>().changeThemeColor(state.themeColor);
-          },
-          builder: (context, state) {
-            return SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  CupertinoFormSection.insetGrouped(
-                    header: Text(context.t.settings.appearance.colorScheme.colorScheme),
+    return WidgetWrapper(
+        child: SizedBox(
+          height: double.infinity,
+          child: CupertinoPageScaffold(
+          navigationBar: CupertinoNavigationBar(
+            previousPageTitle: t.settings.appearance.back,
+            middle: Text(context.t.settings.appearance.appearance),
+          ),
+          child: SafeArea(
+            bottom: true,
+            child: BlocConsumer<AppearanceCubit, AppearanceState>(
+              listener: (context, state) async {
+                if (context.mounted) await context.read<AppCubit>().changeDarkMode(state.darkMode);
+                if (context.mounted) await context.read<AppCubit>().changeThemeColor(state.themeColor);
+              },
+              builder: (context, state) {
+                return SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      ...colorThemeGenerator(context, state),
+                      CupertinoFormSection.insetGrouped(
+                        header: Text(context.t.settings.appearance.colorScheme.colorScheme),
+                        children: [
+                          ...colorThemeGenerator(context, state),
+                        ],
+                      ),
+                      CupertinoFormSection.insetGrouped(
+                        header: Text(context.t.settings.appearance.darkMode.darkMode),
+                        children: [
+                          ...themeGenerator(context, state),
+                        ],
+                      ),
                     ],
                   ),
-                  CupertinoFormSection.insetGrouped(
-                    header: Text(context.t.settings.appearance.darkMode.darkMode),
-                    children: [
-                      ...themeGenerator(context, state),
-                    ],
-                  ),
-                ],
-              ),
-            );
-          },
+                );
+              },
+            ),
+          ),
+                ),
         ),
-      ),
     );
   }
 

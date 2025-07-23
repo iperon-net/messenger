@@ -102,6 +102,7 @@ class _TranslationsSettingsRu extends TranslationsSettingsEn {
 	@override String get favorites => 'Избранное';
 	@override String get myPersonalInfo => 'Моя личная информация';
 	@override String get myProfile => 'Мой профиль';
+	@override late final _TranslationsSettingsNotificationsRu notifications = _TranslationsSettingsNotificationsRu._(_root);
 	@override late final _TranslationsSettingsPrivacyAndSecurityRu privacyAndSecurity = _TranslationsSettingsPrivacyAndSecurityRu._(_root);
 	@override String get devices => 'Девайсы';
 	@override String get updates => 'Обновления';
@@ -118,6 +119,16 @@ class _TranslationsContactsTabsRu extends TranslationsContactsTabsEn {
 	// Translations
 	@override String get all => 'Все';
 	@override String get favorites => 'Избранное';
+}
+
+// Path: settings.notifications
+class _TranslationsSettingsNotificationsRu extends TranslationsSettingsNotificationsEn {
+	_TranslationsSettingsNotificationsRu._(TranslationsRu root) : this._root = root, super.internal(root);
+
+	final TranslationsRu _root; // ignore: unused_field
+
+	// Translations
+	@override String get notifications => 'Уведомления';
 }
 
 // Path: settings.privacyAndSecurity
@@ -217,6 +228,7 @@ extension on TranslationsRu {
 			case 'settings.favorites': return 'Избранное';
 			case 'settings.myPersonalInfo': return 'Моя личная информация';
 			case 'settings.myProfile': return 'Мой профиль';
+			case 'settings.notifications.notifications': return 'Уведомления';
 			case 'settings.privacyAndSecurity.privacyAndSecurity': return 'Конфиденциальность';
 			case 'settings.privacyAndSecurity.twoStepVerification': return 'Двухэтапная проверка';
 			case 'settings.privacyAndSecurity.passcode.passcode': return 'Код-пароль';

@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:messenger/cubit/constants.dart';
 
+import '../../components/widget_wrapper/widget_wrapper.dart';
 import '../../i18n/translations.g.dart';
 import 'language_cubit.dart';
 
@@ -46,27 +47,33 @@ class _LanguageScreenCupertino extends State<LanguageScreenCupertino> {
 
   @override
   Widget build(BuildContext context) {
-    return CupertinoPageScaffold(
-      navigationBar: CupertinoNavigationBar(
-        previousPageTitle: t.settings.language.back,
-        middle: Text(context.t.settings.language.language),
-      ),
-      child: SafeArea(
-        bottom: true,
-        child: BlocBuilder<LanguageCubit, LanguageState>(
-          builder: (context, state) {
-            return SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  CupertinoFormSection.insetGrouped(
-                    header: Text(context.t.settings.language.interfaceLanguage),
-                    children: [...cupertinoListTileGenerator(state)],
+    return WidgetWrapper(
+      child: CupertinoPageScaffold(
+        navigationBar: CupertinoNavigationBar(
+          previousPageTitle: t.settings.language.back,
+          middle: Text(context.t.settings.language.language),
+        ),
+        child: SafeArea(
+          bottom: true,
+          child: BlocBuilder<LanguageCubit, LanguageState>(
+            builder: (context, state) {
+              return SizedBox(
+                height: double.infinity,
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    // crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      CupertinoFormSection.insetGrouped(
+                        header: Text(context.t.settings.language.interfaceLanguage),
+                        children: [...cupertinoListTileGenerator(state)],
+                      ),
+                    ],
                   ),
-                ],
-              ),
-            );
-          },
+                ),
+              );
+            },
+          ),
         ),
       ),
     );

@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$SettingsState {
 
- Status get status; String get errorMessage; String get versionApplication;
+ Status get status; String get errorMessage; String get versionApplication; bool get privateBlur; PermissionStatus get notificationStatus;
 /// Create a copy of SettingsState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,16 +25,16 @@ $SettingsStateCopyWith<SettingsState> get copyWith => _$SettingsStateCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SettingsState&&(identical(other.status, status) || other.status == status)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage)&&(identical(other.versionApplication, versionApplication) || other.versionApplication == versionApplication));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SettingsState&&(identical(other.status, status) || other.status == status)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage)&&(identical(other.versionApplication, versionApplication) || other.versionApplication == versionApplication)&&(identical(other.privateBlur, privateBlur) || other.privateBlur == privateBlur)&&(identical(other.notificationStatus, notificationStatus) || other.notificationStatus == notificationStatus));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,status,errorMessage,versionApplication);
+int get hashCode => Object.hash(runtimeType,status,errorMessage,versionApplication,privateBlur,notificationStatus);
 
 @override
 String toString() {
-  return 'SettingsState(status: $status, errorMessage: $errorMessage, versionApplication: $versionApplication)';
+  return 'SettingsState(status: $status, errorMessage: $errorMessage, versionApplication: $versionApplication, privateBlur: $privateBlur, notificationStatus: $notificationStatus)';
 }
 
 
@@ -45,7 +45,7 @@ abstract mixin class $SettingsStateCopyWith<$Res>  {
   factory $SettingsStateCopyWith(SettingsState value, $Res Function(SettingsState) _then) = _$SettingsStateCopyWithImpl;
 @useResult
 $Res call({
- Status status, String errorMessage, String versionApplication
+ Status status, String errorMessage, String versionApplication, bool privateBlur, PermissionStatus notificationStatus
 });
 
 
@@ -62,12 +62,14 @@ class _$SettingsStateCopyWithImpl<$Res>
 
 /// Create a copy of SettingsState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? status = null,Object? errorMessage = null,Object? versionApplication = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? status = null,Object? errorMessage = null,Object? versionApplication = null,Object? privateBlur = null,Object? notificationStatus = null,}) {
   return _then(_self.copyWith(
 status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as Status,errorMessage: null == errorMessage ? _self.errorMessage : errorMessage // ignore: cast_nullable_to_non_nullable
 as String,versionApplication: null == versionApplication ? _self.versionApplication : versionApplication // ignore: cast_nullable_to_non_nullable
-as String,
+as String,privateBlur: null == privateBlur ? _self.privateBlur : privateBlur // ignore: cast_nullable_to_non_nullable
+as bool,notificationStatus: null == notificationStatus ? _self.notificationStatus : notificationStatus // ignore: cast_nullable_to_non_nullable
+as PermissionStatus,
   ));
 }
 
@@ -152,10 +154,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( Status status,  String errorMessage,  String versionApplication)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( Status status,  String errorMessage,  String versionApplication,  bool privateBlur,  PermissionStatus notificationStatus)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SettingsState() when $default != null:
-return $default(_that.status,_that.errorMessage,_that.versionApplication);case _:
+return $default(_that.status,_that.errorMessage,_that.versionApplication,_that.privateBlur,_that.notificationStatus);case _:
   return orElse();
 
 }
@@ -173,10 +175,10 @@ return $default(_that.status,_that.errorMessage,_that.versionApplication);case _
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( Status status,  String errorMessage,  String versionApplication)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( Status status,  String errorMessage,  String versionApplication,  bool privateBlur,  PermissionStatus notificationStatus)  $default,) {final _that = this;
 switch (_that) {
 case _SettingsState():
-return $default(_that.status,_that.errorMessage,_that.versionApplication);case _:
+return $default(_that.status,_that.errorMessage,_that.versionApplication,_that.privateBlur,_that.notificationStatus);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -188,12 +190,14 @@ return $default(_that.status,_that.errorMessage,_that.versionApplication);case _
 
 
 class _SettingsState extends SettingsState {
-  const _SettingsState({this.status = Status.initial, this.errorMessage = "", this.versionApplication = ""}): super._();
+  const _SettingsState({this.status = Status.initial, this.errorMessage = "", this.versionApplication = "", this.privateBlur = false, this.notificationStatus = PermissionStatus.denied}): super._();
   
 
 @override@JsonKey() final  Status status;
 @override@JsonKey() final  String errorMessage;
 @override@JsonKey() final  String versionApplication;
+@override@JsonKey() final  bool privateBlur;
+@override@JsonKey() final  PermissionStatus notificationStatus;
 
 /// Create a copy of SettingsState
 /// with the given fields replaced by the non-null parameter values.
@@ -205,16 +209,16 @@ _$SettingsStateCopyWith<_SettingsState> get copyWith => __$SettingsStateCopyWith
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SettingsState&&(identical(other.status, status) || other.status == status)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage)&&(identical(other.versionApplication, versionApplication) || other.versionApplication == versionApplication));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SettingsState&&(identical(other.status, status) || other.status == status)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage)&&(identical(other.versionApplication, versionApplication) || other.versionApplication == versionApplication)&&(identical(other.privateBlur, privateBlur) || other.privateBlur == privateBlur)&&(identical(other.notificationStatus, notificationStatus) || other.notificationStatus == notificationStatus));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,status,errorMessage,versionApplication);
+int get hashCode => Object.hash(runtimeType,status,errorMessage,versionApplication,privateBlur,notificationStatus);
 
 @override
 String toString() {
-  return 'SettingsState(status: $status, errorMessage: $errorMessage, versionApplication: $versionApplication)';
+  return 'SettingsState(status: $status, errorMessage: $errorMessage, versionApplication: $versionApplication, privateBlur: $privateBlur, notificationStatus: $notificationStatus)';
 }
 
 
@@ -225,7 +229,7 @@ abstract mixin class _$SettingsStateCopyWith<$Res> implements $SettingsStateCopy
   factory _$SettingsStateCopyWith(_SettingsState value, $Res Function(_SettingsState) _then) = __$SettingsStateCopyWithImpl;
 @override @useResult
 $Res call({
- Status status, String errorMessage, String versionApplication
+ Status status, String errorMessage, String versionApplication, bool privateBlur, PermissionStatus notificationStatus
 });
 
 
@@ -242,12 +246,14 @@ class __$SettingsStateCopyWithImpl<$Res>
 
 /// Create a copy of SettingsState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? status = null,Object? errorMessage = null,Object? versionApplication = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? status = null,Object? errorMessage = null,Object? versionApplication = null,Object? privateBlur = null,Object? notificationStatus = null,}) {
   return _then(_SettingsState(
 status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as Status,errorMessage: null == errorMessage ? _self.errorMessage : errorMessage // ignore: cast_nullable_to_non_nullable
 as String,versionApplication: null == versionApplication ? _self.versionApplication : versionApplication // ignore: cast_nullable_to_non_nullable
-as String,
+as String,privateBlur: null == privateBlur ? _self.privateBlur : privateBlur // ignore: cast_nullable_to_non_nullable
+as bool,notificationStatus: null == notificationStatus ? _self.notificationStatus : notificationStatus // ignore: cast_nullable_to_non_nullable
+as PermissionStatus,
   ));
 }
 

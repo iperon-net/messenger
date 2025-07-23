@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../components/progress_indicator/progress_indicator.dart';
+import '../../components/widget_wrapper/widget_wrapper.dart';
 import '../../cubit/constants.dart';
 import '../../i18n/translations.g.dart';
 import 'language_cubit.dart';
@@ -50,13 +51,14 @@ class _LanguageScreenMaterial extends State<LanguageScreenMaterial> {
   @override
   Widget build(BuildContext context) {
 
-    return Scaffold(
-        appBar: AppBar(
-        title: Text(context.t.settings.language.language),
-      ),
-      body: BlocBuilder<LanguageCubit, LanguageState>(
-        builder: (context, state) {
-          return ListView(
+    return WidgetWrapper(
+        child: Scaffold(
+          appBar: AppBar(
+          title: Text(context.t.settings.language.language),
+        ),
+        body: BlocBuilder<LanguageCubit, LanguageState>(
+          builder: (context, state) {
+            return ListView(
               padding: EdgeInsets.all(8.0),
               shrinkWrap: true,
               children: <Widget>[
@@ -82,7 +84,8 @@ class _LanguageScreenMaterial extends State<LanguageScreenMaterial> {
                 ),
               ],
             );
-        },
+          },
+        ),
       ),
     );
   }

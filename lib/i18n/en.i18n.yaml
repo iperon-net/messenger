@@ -24,6 +24,9 @@
     "myPersonalInfo": "My personal info"
     "myProfile": "My profile"
 
+    "notifications":
+      "notifications": "Notifications"
+
     "privacyAndSecurity":
       "privacyAndSecurity": "Privacy and security"
       "twoStepVerification": "Two step verification"

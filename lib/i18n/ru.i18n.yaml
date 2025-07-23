@@ -23,6 +23,10 @@
   "favorites": "Избранное"
   "myPersonalInfo": "Моя личная информация"
   "myProfile": "Мой профиль"
+
+  "notifications":
+    "notifications": "Уведомления"
+
   "privacyAndSecurity":
     "privacyAndSecurity": "Конфиденциальность"
     "twoStepVerification": "Двухэтапная проверка"

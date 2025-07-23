@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
+import 'package:lifecycle/lifecycle.dart';
 import 'package:messenger/screens/home/home_screen.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 
@@ -26,6 +27,7 @@ class Routers {
       initialLocation: "/",
       observers: <NavigatorObserver>[
         TalkerRouteObserver(logger.getTalker()),
+        defaultLifecycleObserver,
       ],
       routes: <RouteBase>[
         GoRoute(
@@ -73,6 +75,7 @@ class Routers {
       initialLocation: "/settings",
       observers: <NavigatorObserver>[
         TalkerRouteObserver(logger.getTalker()),
+        defaultLifecycleObserver,
       ],
       routes: <RouteBase>[
         GoRoute(

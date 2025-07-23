@@ -70,6 +70,8 @@ dependencies:
   firebase_analytics: ^11.5.2
   firebase_remote_config: ^5.4.7
   firebase_performance: ^0.10.1+9
+  lifecycle: ^0.10.0
+  blur: ^4.0.2
 
 dev_dependencies:
   flutter_test:

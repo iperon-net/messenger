@@ -102,6 +102,7 @@ class TranslationsSettingsEn {
 	String get favorites => 'Favorites';
 	String get myPersonalInfo => 'My personal info';
 	String get myProfile => 'My profile';
+	late final TranslationsSettingsNotificationsEn notifications = TranslationsSettingsNotificationsEn.internal(_root);
 	late final TranslationsSettingsPrivacyAndSecurityEn privacyAndSecurity = TranslationsSettingsPrivacyAndSecurityEn.internal(_root);
 	String get devices => 'Devices';
 	String get updates => 'Updates';
@@ -118,6 +119,16 @@ class TranslationsContactsTabsEn {
 	// Translations
 	String get all => 'All';
 	String get favorites => 'Favorites';
+}
+
+// Path: settings.notifications
+class TranslationsSettingsNotificationsEn {
+	TranslationsSettingsNotificationsEn.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+	String get notifications => 'Notifications';
 }
 
 // Path: settings.privacyAndSecurity
@@ -217,6 +228,7 @@ extension on Translations {
 			case 'settings.favorites': return 'Favorites';
 			case 'settings.myPersonalInfo': return 'My personal info';
 			case 'settings.myProfile': return 'My profile';
+			case 'settings.notifications.notifications': return 'Notifications';
 			case 'settings.privacyAndSecurity.privacyAndSecurity': return 'Privacy and security';
 			case 'settings.privacyAndSecurity.twoStepVerification': return 'Two step verification';
 			case 'settings.privacyAndSecurity.passcode.passcode': return 'Passcode';

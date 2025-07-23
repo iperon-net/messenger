@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:messenger/screens/settings/appearance_cubit.dart';
 
 import '../../components/progress_indicator/progress_indicator.dart';
+import '../../components/widget_wrapper/widget_wrapper.dart';
 import '../../cubit/app_cubit.dart';
 import '../../cubit/constants.dart';
 import '../../i18n/translations.g.dart';
@@ -76,67 +77,69 @@ class _AppearanceScreenMaterial extends State<AppearanceScreenMaterial> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(context.t.settings.appearance.appearance),
-      ),
-      body: BlocConsumer<AppearanceCubit, AppearanceState>(
-        listener: (context, state) async {
-          if (context.mounted) await context.read<AppCubit>().changeDarkMode(state.darkMode);
-          if (context.mounted) await context.read<AppCubit>().changeThemeColor(state.themeColor);
-        },
-        builder: (context, state) {
-          return ListView(
-            padding: EdgeInsets.all(8.0),
-            shrinkWrap: true,
-            children: <Widget>[
-              SizedBox(height: 10),
-              Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(10.0),
-                  color: Theme.of(context).cardColor,
+    return WidgetWrapper(
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(context.t.settings.appearance.appearance),
+        ),
+        body: BlocConsumer<AppearanceCubit, AppearanceState>(
+          listener: (context, state) async {
+            if (context.mounted) await context.read<AppCubit>().changeDarkMode(state.darkMode);
+            if (context.mounted) await context.read<AppCubit>().changeThemeColor(state.themeColor);
+          },
+          builder: (context, state) {
+            return ListView(
+              padding: EdgeInsets.all(8.0),
+              shrinkWrap: true,
+              children: <Widget>[
+                SizedBox(height: 10),
+                Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(10.0),
+                    color: Theme.of(context).cardColor,
+                  ),
+                  child: Column(
+                    children: [
+                      ListTile(
+                          title: Text(
+                            context.t.settings.appearance.colorScheme.colorScheme,
+                            style: TextStyle(
+                                fontSize: Theme.of(context).textTheme.titleSmall!.fontSize,
+                                fontStyle: FontStyle.normal
+                            ),
+                          )
+                      ),
+                      ...colorThemeGenerator(context, state),
+                    ],
+                  ),
                 ),
-                child: Column(
-                  children: [
-                    ListTile(
+                SizedBox(height: 20,),
+                Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(10.0),
+                    color: Theme.of(context).cardColor,
+                  ),
+                  child: Column(
+                    children: [
+                      ListTile(
                         title: Text(
-                          context.t.settings.appearance.colorScheme.colorScheme,
+                          t.settings.appearance.darkMode.darkMode,
                           style: TextStyle(
                               fontSize: Theme.of(context).textTheme.titleSmall!.fontSize,
                               fontStyle: FontStyle.normal
                           ),
                         )
-                    ),
-                    ...colorThemeGenerator(context, state),
-                  ],
+                      ),
+                      ...themeGenerator(context, state),
+                    ],
+                  ),
                 ),
-              ),
-              SizedBox(height: 20,),
-              Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(10.0),
-                  color: Theme.of(context).cardColor,
-                ),
-                child: Column(
-                  children: [
-                    ListTile(
-                      title: Text(
-                        t.settings.appearance.darkMode.darkMode,
-                        style: TextStyle(
-                            fontSize: Theme.of(context).textTheme.titleSmall!.fontSize,
-                            fontStyle: FontStyle.normal
-                        ),
-                      )
-                    ),
-                    ...themeGenerator(context, state),
-                  ],
-                ),
-              ),
-            ],
-          );
-        },
+              ],
+            );
+          },
+        ),
       ),
-    );;
+    );
   }
 
 }
