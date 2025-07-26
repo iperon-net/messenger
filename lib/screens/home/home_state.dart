@@ -6,6 +6,7 @@ abstract class HomeState with _$HomeState {
 
   const factory HomeState({
     @Default(1) int cupertinoTabIndex,
+    @Default(PermissionStatus.permanentlyDenied) PermissionStatus notificationPermissionStatus,
   }) = _HomeState;
 
 }

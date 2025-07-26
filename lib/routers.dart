@@ -72,7 +72,7 @@ class Routers {
     return GoRouter(
       debugLogDiagnostics: kDebugMode ? true: false,
       navigatorKey: navigatorGoRouterKey,
-      initialLocation: "/settings",
+      initialLocation: "/",
       observers: <NavigatorObserver>[
         TalkerRouteObserver(logger.getTalker()),
         defaultLifecycleObserver,

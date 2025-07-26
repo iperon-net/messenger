@@ -20,9 +20,6 @@ import 'screens/settings/settings_cubit.dart';
 import 'secure_storage.dart';
 import 'themes_material.dart';
 
-// import 'themes/material_blue.dart' as material_blue;
-// import 'themes/material_green.dart' as material_green;
-
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 

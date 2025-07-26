@@ -29,6 +29,8 @@ class _SettingsScreenCupertino extends State<SettingsScreenCupertino> {
 
   @override
   Widget build(BuildContext context) {
+    IconData icon = IconData(0xe106, fontFamily: 'FontAwesomeFree');
+
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
         transitionBetweenRoutes: false,

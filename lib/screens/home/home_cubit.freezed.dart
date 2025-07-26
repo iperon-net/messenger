@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$HomeState {
 
- int get cupertinoTabIndex;
+ int get cupertinoTabIndex; PermissionStatus get notificationPermissionStatus;
 /// Create a copy of HomeState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,16 +25,16 @@ $HomeStateCopyWith<HomeState> get copyWith => _$HomeStateCopyWithImpl<HomeState>
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is HomeState&&(identical(other.cupertinoTabIndex, cupertinoTabIndex) || other.cupertinoTabIndex == cupertinoTabIndex));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is HomeState&&(identical(other.cupertinoTabIndex, cupertinoTabIndex) || other.cupertinoTabIndex == cupertinoTabIndex)&&(identical(other.notificationPermissionStatus, notificationPermissionStatus) || other.notificationPermissionStatus == notificationPermissionStatus));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,cupertinoTabIndex);
+int get hashCode => Object.hash(runtimeType,cupertinoTabIndex,notificationPermissionStatus);
 
 @override
 String toString() {
-  return 'HomeState(cupertinoTabIndex: $cupertinoTabIndex)';
+  return 'HomeState(cupertinoTabIndex: $cupertinoTabIndex, notificationPermissionStatus: $notificationPermissionStatus)';
 }
 
 
@@ -45,7 +45,7 @@ abstract mixin class $HomeStateCopyWith<$Res>  {
   factory $HomeStateCopyWith(HomeState value, $Res Function(HomeState) _then) = _$HomeStateCopyWithImpl;
 @useResult
 $Res call({
- int cupertinoTabIndex
+ int cupertinoTabIndex, PermissionStatus notificationPermissionStatus
 });
 
 
@@ -62,10 +62,11 @@ class _$HomeStateCopyWithImpl<$Res>
 
 /// Create a copy of HomeState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? cupertinoTabIndex = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? cupertinoTabIndex = null,Object? notificationPermissionStatus = null,}) {
   return _then(_self.copyWith(
 cupertinoTabIndex: null == cupertinoTabIndex ? _self.cupertinoTabIndex : cupertinoTabIndex // ignore: cast_nullable_to_non_nullable
-as int,
+as int,notificationPermissionStatus: null == notificationPermissionStatus ? _self.notificationPermissionStatus : notificationPermissionStatus // ignore: cast_nullable_to_non_nullable
+as PermissionStatus,
   ));
 }
 
@@ -150,10 +151,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int cupertinoTabIndex)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int cupertinoTabIndex,  PermissionStatus notificationPermissionStatus)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _HomeState() when $default != null:
-return $default(_that.cupertinoTabIndex);case _:
+return $default(_that.cupertinoTabIndex,_that.notificationPermissionStatus);case _:
   return orElse();
 
 }
@@ -171,10 +172,10 @@ return $default(_that.cupertinoTabIndex);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int cupertinoTabIndex)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int cupertinoTabIndex,  PermissionStatus notificationPermissionStatus)  $default,) {final _that = this;
 switch (_that) {
 case _HomeState():
-return $default(_that.cupertinoTabIndex);case _:
+return $default(_that.cupertinoTabIndex,_that.notificationPermissionStatus);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -185,11 +186,12 @@ return $default(_that.cupertinoTabIndex);case _:
 /// @nodoc
 
 
-class _HomeState implements HomeState {
-  const _HomeState({this.cupertinoTabIndex = 1});
+class _HomeState extends HomeState {
+  const _HomeState({this.cupertinoTabIndex = 1, this.notificationPermissionStatus = PermissionStatus.permanentlyDenied}): super._();
   
 
 @override@JsonKey() final  int cupertinoTabIndex;
+@override@JsonKey() final  PermissionStatus notificationPermissionStatus;
 
 /// Create a copy of HomeState
 /// with the given fields replaced by the non-null parameter values.
@@ -201,16 +203,16 @@ _$HomeStateCopyWith<_HomeState> get copyWith => __$HomeStateCopyWithImpl<_HomeSt
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _HomeState&&(identical(other.cupertinoTabIndex, cupertinoTabIndex) || other.cupertinoTabIndex == cupertinoTabIndex));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _HomeState&&(identical(other.cupertinoTabIndex, cupertinoTabIndex) || other.cupertinoTabIndex == cupertinoTabIndex)&&(identical(other.notificationPermissionStatus, notificationPermissionStatus) || other.notificationPermissionStatus == notificationPermissionStatus));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,cupertinoTabIndex);
+int get hashCode => Object.hash(runtimeType,cupertinoTabIndex,notificationPermissionStatus);
 
 @override
 String toString() {
-  return 'HomeState(cupertinoTabIndex: $cupertinoTabIndex)';
+  return 'HomeState(cupertinoTabIndex: $cupertinoTabIndex, notificationPermissionStatus: $notificationPermissionStatus)';
 }
 
 
@@ -221,7 +223,7 @@ abstract mixin class _$HomeStateCopyWith<$Res> implements $HomeStateCopyWith<$Re
   factory _$HomeStateCopyWith(_HomeState value, $Res Function(_HomeState) _then) = __$HomeStateCopyWithImpl;
 @override @useResult
 $Res call({
- int cupertinoTabIndex
+ int cupertinoTabIndex, PermissionStatus notificationPermissionStatus
 });
 
 
@@ -238,10 +240,11 @@ class __$HomeStateCopyWithImpl<$Res>
 
 /// Create a copy of HomeState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? cupertinoTabIndex = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? cupertinoTabIndex = null,Object? notificationPermissionStatus = null,}) {
   return _then(_HomeState(
 cupertinoTabIndex: null == cupertinoTabIndex ? _self.cupertinoTabIndex : cupertinoTabIndex // ignore: cast_nullable_to_non_nullable
-as int,
+as int,notificationPermissionStatus: null == notificationPermissionStatus ? _self.notificationPermissionStatus : notificationPermissionStatus // ignore: cast_nullable_to_non_nullable
+as PermissionStatus,
   ));
 }
 
