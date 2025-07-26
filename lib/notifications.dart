@@ -7,6 +7,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'di.dart';
 import 'firebase_options.dart';
 import 'logger.dart';
+import 'models/notifications.dart';
 import 'routers.dart';
 
 // Documentation - https://firebase.google.com/docs/cloud-messaging/flutter/receive
@@ -25,11 +26,10 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   final notifications = getIt.get<Notifications>();
 
   final details = notifications.notificationDetails();
-  notifications.show(notificationDetails: details);
+  // notifications.show(notificationDetails: details);
 
-  logger.debug("Handling a background message: ${message.messageId}");
+  logger.debug("Handling a background message: ${message.messageId}, ${message.data}");
 }
-
 
 class Notifications {
   final _logger = getIt.get<Logger>();
@@ -38,26 +38,30 @@ class Notifications {
 
   // NotificationDetails
   NotificationDetails notificationDetails() {
-    final androidDetails = AndroidNotificationDetails(
-      "notification",
-      "General notifications",
+    final androidDetailsDefault = AndroidNotificationDetails(
+      "general_notification",
+      "General notification",
       channelDescription: "This channel will receive notifications from the messenger, we will not send spam or marketing messages",
       importance: Importance.defaultImportance,
       priority: Priority.defaultPriority,
+      enableVibration: false,
+      groupKey: "personal"
+      // actions: <AndroidNotificationAction>[
+      //   AndroidNotificationAction(
+      //     "read",
+      //     "Enter Text"
+      //   ),
+      // ],
     );
-    return NotificationDetails(android: androidDetails);
+    return NotificationDetails(android: androidDetailsDefault);
   }
 
-  void show({required NotificationDetails notificationDetails}) {
-    _notificationsPlugin.show(
-      Random().nextInt(100000000),
-      "Тестовое сообщение",
-      "В данный канал будут приходить уведомления от мессенджера",
-      notificationDetails,
-    );
+  void show({required String title, required String body, required NotificationDetails notificationDetails}) {
+    _notificationsPlugin.show(Random().nextInt(100000000), title, body, notificationDetails);
   }
 
   Future<void> initialization() async {
+
     FirebaseMessaging.instance.onTokenRefresh.listen((fcmToken) {
       _logger.info("onTokenRefresh $fcmToken");
     }).onError((err) {
@@ -65,15 +69,32 @@ class Notifications {
     });
 
     final initializationSettings = InitializationSettings(android: _androidSettings);
-    _notificationsPlugin.initialize(initializationSettings);
+
+    _notificationsPlugin.initialize(
+      initializationSettings,
+      onDidReceiveNotificationResponse: (NotificationResponse notificationResponse) async {
+        _logger.info(""
+            "event onDidReceiveNotificationResponse id=${notificationResponse.id} ${notificationResponse.data.toString()}"
+        );
+
+        // final activeNotifications = await _notificationsPlugin.getActiveNotifications();
+        //
+        // for (final item in activeNotifications) {
+        //   _logger.info("notification ${item.id}");
+        // }
+
+      }
+    );
 
     final details = notificationDetails();
 
     FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
-      show(notificationDetails: details);
+      final notificationMessage = NotificationMessage.fromJson(message.data);
 
-      _logger.info("FCM message ${message.messageId}, ${message.data}, ${message.category}");
+      show(title: notificationMessage.title, body: notificationMessage.body, notificationDetails: details);
+      _logger.info("FCM message ${message.messageId}, ${message.data}");
     });
+
 
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
   }
