@@ -16,5 +16,5 @@ watch:
 
 .PHONY: build
 build:
-	dart run build_runner build --delete-conflicting-outputs
-	dart run build_runner build --define=envied_generator:envied=path=.env.production --delete-conflicting-outputs
+	flutter build apk --release --no-tree-shake-icons --obfuscate --split-debug-info=build/app/outputs/symbols
+	flutter build appbundle --release --no-tree-shake-icons --obfuscate --split-debug-info=build/app/outputs/symbols

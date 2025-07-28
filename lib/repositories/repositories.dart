@@ -44,13 +44,21 @@ class Repositories {
 
       if (version == 1) {
         batch.execute("""
+          CREATE TABLE settingsDevice (
+            language TEXT NULL,
+            darkMode TEXT NULL,
+            themeColor TEXT NULL
+          )
+        """);
+
+        batch.execute("""
           CREATE TABLE users (
             userId TEXT NOT NULL,
             email TEXT NOT NULL,
             sessionToken TEXT NOT NULL,
             isActive INTEGER NOT NULL DEFAULT 0
           )
-      """);
+        """);
 
         batch.execute("""
           CREATE TABLE sessions (
