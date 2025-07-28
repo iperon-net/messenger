@@ -43,7 +43,13 @@ Future<void> configureGlobalDI() async {
   getIt.registerSingletonAsync<Routers>(() async => Routers(), dependsOn: [Logger]);
   getIt.registerSingletonAsync<Notifications>(() async => Notifications()..initialization(), dependsOn: [Logger]);
   getIt.registerSingletonAsync<SecureStorage>(() async => SecureStorage(), dependsOn: [Logger]);
-  getIt.registerSingletonAsync<Repositories>(() async => Repositories()..initialization(), dependsOn: [Logger, SecureStorage]);
+  getIt.registerSingletonAsync<Repositories>(() async => Repositories(), dependsOn: [Logger, SecureStorage]);
 
   await getIt.allReady();
+
+  final logger = getIt.get<Logger>();
+  final repositories = getIt.get<Repositories>();
+  await repositories.initialization();
+
+  logger.info("Configure global di initialization");
 }

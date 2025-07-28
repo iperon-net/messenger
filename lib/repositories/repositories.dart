@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/foundation.dart';
+import 'package:messenger/i18n/translations.g.dart';
 import 'package:messenger/secure_storage.dart';
 import 'package:messenger/settings.dart';
 import "package:path/path.dart" as p;
@@ -9,7 +10,9 @@ import 'package:sqflite_sqlcipher/sqflite.dart' as sqflite_sqlcipher;
 
 import '../di.dart';
 import '../logger.dart';
+import '../models/models.dart' as models;
 
+part 'settings_device.dart';
 part 'users.dart';
 
 
@@ -19,6 +22,7 @@ class Repositories {
 
   late Database _database;
   late Users users;
+  late SettingsDevice settingsDevice;
 
   Future<void> initialization() async {
 
@@ -44,7 +48,7 @@ class Repositories {
 
       if (version == 1) {
         batch.execute("""
-          CREATE TABLE settingsDevice (
+          CREATE TABLE settings_device (
             language TEXT NULL,
             darkMode TEXT NULL,
             themeColor TEXT NULL
@@ -52,27 +56,31 @@ class Repositories {
         """);
 
         batch.execute("""
-          CREATE TABLE users (
-            userId TEXT NOT NULL,
-            email TEXT NOT NULL,
-            sessionToken TEXT NOT NULL,
-            isActive INTEGER NOT NULL DEFAULT 0
-          )
+          INSERT INTO settings_device (language, darkMode, themeColor) VALUES ("", "system", "blue")
         """);
 
-        batch.execute("""
-          CREATE TABLE sessions (
-            sessionId TEXT NOT NULL,
-            createdAt TEXT NOT NULL,
-            updatedAt TEXT NOT NULL,
-            lastActivityAt TEXT NOT NULL,
-            appVersion TEXT NOT NULL,
-            appBuildNumber TEXT NOT NULL,
-            deviceName TEXT NOT NULL,
-            deviceSystemVersion TEXT NOT NULL,
-            location TEXT NOT NULL
-          )
-      """);
+      //   batch.execute("""
+      //     CREATE TABLE users (
+      //       userId TEXT NOT NULL,
+      //       email TEXT NOT NULL,
+      //       sessionToken TEXT NOT NULL,
+      //       isActive INTEGER NOT NULL DEFAULT 0
+      //     )
+      //   """);
+      //
+      //   batch.execute("""
+      //     CREATE TABLE sessions (
+      //       sessionId TEXT NOT NULL,
+      //       createdAt TEXT NOT NULL,
+      //       updatedAt TEXT NOT NULL,
+      //       lastActivityAt TEXT NOT NULL,
+      //       appVersion TEXT NOT NULL,
+      //       appBuildNumber TEXT NOT NULL,
+      //       deviceName TEXT NOT NULL,
+      //       deviceSystemVersion TEXT NOT NULL,
+      //       location TEXT NOT NULL
+      //     )
+      // """);
       }
 
       await batch.commit();
@@ -111,6 +119,7 @@ class Repositories {
     }
 
     users = Users(logger: _logger, database: _database);
+    settingsDevice = SettingsDevice(logger: _logger, database: _database);
 
     final dbVersion = await _database.getVersion();
     _logger.info("Current DB version: $dbVersion");

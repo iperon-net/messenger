@@ -7,10 +7,10 @@ abstract class AppearanceState with _$AppearanceState {
   const factory AppearanceState({
     @Default(Status.initial) Status status,
     @Default("") String errorMessage,
-    @Default(ThemeColor.blue) ThemeColor themeColor,
-    @Default(ThemeColor.blue) ThemeColor selectedThemeColor,
-    @Default(DarkMode.system) DarkMode darkMode,
-    @Default(DarkMode.system) DarkMode selectedDarkMode,
+    @Default(models.SettingsDeviceThemeColor.blue) models.SettingsDeviceThemeColor themeColor,
+    @Default(models.SettingsDeviceThemeColor.blue) models.SettingsDeviceThemeColor selectedThemeColor,
+    @Default(models.SettingsDeviceDarkMode.system) models.SettingsDeviceDarkMode darkMode,
+    @Default(models.SettingsDeviceDarkMode.system) models.SettingsDeviceDarkMode selectedDarkMode,
     @Default("") String action,
   }) = _AppearanceState;
 }

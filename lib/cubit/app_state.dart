@@ -1,15 +1,12 @@
 part of 'app_cubit.dart';
 
-enum ThemeColor { blue, green,  purple }
-enum DarkMode { system, disabled, alwaysOn }
-
 @freezed
 abstract class AppState with _$AppState {
   const AppState._();
 
   const factory AppState({
     @Default(Status.initial) Status status,
-    @Default(ThemeColor.blue) ThemeColor themeColor,
-    @Default(DarkMode.system) DarkMode darkMode,
+    @Default(models.SettingsDeviceThemeColor.blue) models.SettingsDeviceThemeColor themeColor,
+    @Default(models.SettingsDeviceDarkMode.system) models.SettingsDeviceDarkMode darkMode,
   }) = _AppState;
 }

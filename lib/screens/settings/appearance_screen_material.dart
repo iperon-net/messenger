@@ -7,6 +7,7 @@ import '../../components/widget_wrapper/widget_wrapper.dart';
 import '../../cubit/app_cubit.dart';
 import '../../cubit/constants.dart';
 import '../../i18n/translations.g.dart';
+import '../../models/models.dart' as models;
 
 class AppearanceScreenMaterial extends StatefulWidget {
   const AppearanceScreenMaterial({super.key});
@@ -27,9 +28,9 @@ class _AppearanceScreenMaterial extends State<AppearanceScreenMaterial> {
     List<RadioListTile> themeGenerator = [];
 
     List<Map<String, dynamic>> themeList = [
-      {"title": t.settings.appearance.darkMode.system, "value": DarkMode.system},
-      {"title": t.settings.appearance.darkMode.disabled, "value": DarkMode.disabled},
-      {"title": t.settings.appearance.darkMode.alwaysOn, "value": DarkMode.alwaysOn},
+      {"title": t.settings.appearance.darkMode.system, "value": models.SettingsDeviceDarkMode.system},
+      {"title": t.settings.appearance.darkMode.disabled, "value": models.SettingsDeviceDarkMode.disabled},
+      {"title": t.settings.appearance.darkMode.alwaysOn, "value": models.SettingsDeviceDarkMode.alwaysOn},
     ];
 
     for (final theme in themeList){
@@ -53,9 +54,9 @@ class _AppearanceScreenMaterial extends State<AppearanceScreenMaterial> {
     List<RadioListTile> colorThemeGenerator = [];
 
     List<Map<String, dynamic>> themeList = [
-      {"title": t.settings.appearance.colorScheme.system, "value": ThemeColor.blue},
-      {"title": t.settings.appearance.colorScheme.green, "value": ThemeColor.green},
-      {"title": t.settings.appearance.colorScheme.purple, "value": ThemeColor.purple},
+      {"title": t.settings.appearance.colorScheme.system, "value": models.SettingsDeviceThemeColor.blue},
+      {"title": t.settings.appearance.colorScheme.green, "value": models.SettingsDeviceThemeColor.green},
+      {"title": t.settings.appearance.colorScheme.purple, "value": models.SettingsDeviceThemeColor.purple},
     ];
 
     for (final theme in themeList){

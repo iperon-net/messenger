@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$AppearanceState {
 
- Status get status; String get errorMessage; ThemeColor get themeColor; ThemeColor get selectedThemeColor; DarkMode get darkMode; DarkMode get selectedDarkMode; String get action;
+ Status get status; String get errorMessage; models.SettingsDeviceThemeColor get themeColor; models.SettingsDeviceThemeColor get selectedThemeColor; models.SettingsDeviceDarkMode get darkMode; models.SettingsDeviceDarkMode get selectedDarkMode; String get action;
 /// Create a copy of AppearanceState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -45,7 +45,7 @@ abstract mixin class $AppearanceStateCopyWith<$Res>  {
   factory $AppearanceStateCopyWith(AppearanceState value, $Res Function(AppearanceState) _then) = _$AppearanceStateCopyWithImpl;
 @useResult
 $Res call({
- Status status, String errorMessage, ThemeColor themeColor, ThemeColor selectedThemeColor, DarkMode darkMode, DarkMode selectedDarkMode, String action
+ Status status, String errorMessage, models.SettingsDeviceThemeColor themeColor, models.SettingsDeviceThemeColor selectedThemeColor, models.SettingsDeviceDarkMode darkMode, models.SettingsDeviceDarkMode selectedDarkMode, String action
 });
 
 
@@ -67,10 +67,10 @@ class _$AppearanceStateCopyWithImpl<$Res>
 status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as Status,errorMessage: null == errorMessage ? _self.errorMessage : errorMessage // ignore: cast_nullable_to_non_nullable
 as String,themeColor: null == themeColor ? _self.themeColor : themeColor // ignore: cast_nullable_to_non_nullable
-as ThemeColor,selectedThemeColor: null == selectedThemeColor ? _self.selectedThemeColor : selectedThemeColor // ignore: cast_nullable_to_non_nullable
-as ThemeColor,darkMode: null == darkMode ? _self.darkMode : darkMode // ignore: cast_nullable_to_non_nullable
-as DarkMode,selectedDarkMode: null == selectedDarkMode ? _self.selectedDarkMode : selectedDarkMode // ignore: cast_nullable_to_non_nullable
-as DarkMode,action: null == action ? _self.action : action // ignore: cast_nullable_to_non_nullable
+as models.SettingsDeviceThemeColor,selectedThemeColor: null == selectedThemeColor ? _self.selectedThemeColor : selectedThemeColor // ignore: cast_nullable_to_non_nullable
+as models.SettingsDeviceThemeColor,darkMode: null == darkMode ? _self.darkMode : darkMode // ignore: cast_nullable_to_non_nullable
+as models.SettingsDeviceDarkMode,selectedDarkMode: null == selectedDarkMode ? _self.selectedDarkMode : selectedDarkMode // ignore: cast_nullable_to_non_nullable
+as models.SettingsDeviceDarkMode,action: null == action ? _self.action : action // ignore: cast_nullable_to_non_nullable
 as String,
   ));
 }
@@ -156,7 +156,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( Status status,  String errorMessage,  ThemeColor themeColor,  ThemeColor selectedThemeColor,  DarkMode darkMode,  DarkMode selectedDarkMode,  String action)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( Status status,  String errorMessage,  models.SettingsDeviceThemeColor themeColor,  models.SettingsDeviceThemeColor selectedThemeColor,  models.SettingsDeviceDarkMode darkMode,  models.SettingsDeviceDarkMode selectedDarkMode,  String action)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _AppearanceState() when $default != null:
 return $default(_that.status,_that.errorMessage,_that.themeColor,_that.selectedThemeColor,_that.darkMode,_that.selectedDarkMode,_that.action);case _:
@@ -177,7 +177,7 @@ return $default(_that.status,_that.errorMessage,_that.themeColor,_that.selectedT
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( Status status,  String errorMessage,  ThemeColor themeColor,  ThemeColor selectedThemeColor,  DarkMode darkMode,  DarkMode selectedDarkMode,  String action)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( Status status,  String errorMessage,  models.SettingsDeviceThemeColor themeColor,  models.SettingsDeviceThemeColor selectedThemeColor,  models.SettingsDeviceDarkMode darkMode,  models.SettingsDeviceDarkMode selectedDarkMode,  String action)  $default,) {final _that = this;
 switch (_that) {
 case _AppearanceState():
 return $default(_that.status,_that.errorMessage,_that.themeColor,_that.selectedThemeColor,_that.darkMode,_that.selectedDarkMode,_that.action);case _:
@@ -192,15 +192,15 @@ return $default(_that.status,_that.errorMessage,_that.themeColor,_that.selectedT
 
 
 class _AppearanceState extends AppearanceState {
-  const _AppearanceState({this.status = Status.initial, this.errorMessage = "", this.themeColor = ThemeColor.blue, this.selectedThemeColor = ThemeColor.blue, this.darkMode = DarkMode.system, this.selectedDarkMode = DarkMode.system, this.action = ""}): super._();
+  const _AppearanceState({this.status = Status.initial, this.errorMessage = "", this.themeColor = models.SettingsDeviceThemeColor.blue, this.selectedThemeColor = models.SettingsDeviceThemeColor.blue, this.darkMode = models.SettingsDeviceDarkMode.system, this.selectedDarkMode = models.SettingsDeviceDarkMode.system, this.action = ""}): super._();
   
 
 @override@JsonKey() final  Status status;
 @override@JsonKey() final  String errorMessage;
-@override@JsonKey() final  ThemeColor themeColor;
-@override@JsonKey() final  ThemeColor selectedThemeColor;
-@override@JsonKey() final  DarkMode darkMode;
-@override@JsonKey() final  DarkMode selectedDarkMode;
+@override@JsonKey() final  models.SettingsDeviceThemeColor themeColor;
+@override@JsonKey() final  models.SettingsDeviceThemeColor selectedThemeColor;
+@override@JsonKey() final  models.SettingsDeviceDarkMode darkMode;
+@override@JsonKey() final  models.SettingsDeviceDarkMode selectedDarkMode;
 @override@JsonKey() final  String action;
 
 /// Create a copy of AppearanceState
@@ -233,7 +233,7 @@ abstract mixin class _$AppearanceStateCopyWith<$Res> implements $AppearanceState
   factory _$AppearanceStateCopyWith(_AppearanceState value, $Res Function(_AppearanceState) _then) = __$AppearanceStateCopyWithImpl;
 @override @useResult
 $Res call({
- Status status, String errorMessage, ThemeColor themeColor, ThemeColor selectedThemeColor, DarkMode darkMode, DarkMode selectedDarkMode, String action
+ Status status, String errorMessage, models.SettingsDeviceThemeColor themeColor, models.SettingsDeviceThemeColor selectedThemeColor, models.SettingsDeviceDarkMode darkMode, models.SettingsDeviceDarkMode selectedDarkMode, String action
 });
 
 
@@ -255,10 +255,10 @@ class __$AppearanceStateCopyWithImpl<$Res>
 status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as Status,errorMessage: null == errorMessage ? _self.errorMessage : errorMessage // ignore: cast_nullable_to_non_nullable
 as String,themeColor: null == themeColor ? _self.themeColor : themeColor // ignore: cast_nullable_to_non_nullable
-as ThemeColor,selectedThemeColor: null == selectedThemeColor ? _self.selectedThemeColor : selectedThemeColor // ignore: cast_nullable_to_non_nullable
-as ThemeColor,darkMode: null == darkMode ? _self.darkMode : darkMode // ignore: cast_nullable_to_non_nullable
-as DarkMode,selectedDarkMode: null == selectedDarkMode ? _self.selectedDarkMode : selectedDarkMode // ignore: cast_nullable_to_non_nullable
-as DarkMode,action: null == action ? _self.action : action // ignore: cast_nullable_to_non_nullable
+as models.SettingsDeviceThemeColor,selectedThemeColor: null == selectedThemeColor ? _self.selectedThemeColor : selectedThemeColor // ignore: cast_nullable_to_non_nullable
+as models.SettingsDeviceThemeColor,darkMode: null == darkMode ? _self.darkMode : darkMode // ignore: cast_nullable_to_non_nullable
+as models.SettingsDeviceDarkMode,selectedDarkMode: null == selectedDarkMode ? _self.selectedDarkMode : selectedDarkMode // ignore: cast_nullable_to_non_nullable
+as models.SettingsDeviceDarkMode,action: null == action ? _self.action : action // ignore: cast_nullable_to_non_nullable
 as String,
   ));
 }
