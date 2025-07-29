@@ -11,7 +11,6 @@ import 'cubit/app_cubit.dart';
 import 'cubit/constants.dart';
 import 'di.dart';
 import 'i18n/translations.g.dart';
-import 'logger.dart';
 import 'models/models.dart' as models;
 import 'routers.dart';
 import 'screens/contacts/contacts_cubit.dart';
@@ -28,7 +27,6 @@ Future<void> main() async {
   await configureGlobalDI();
 
   final repositories = getIt.get<Repositories>();
-  final logger = getIt.get<Logger>();
 
   final getAllSettings = await repositories.settingsDevice.getAllSettings();
 
