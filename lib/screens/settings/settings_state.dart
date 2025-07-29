@@ -9,6 +9,6 @@ abstract class SettingsState with _$SettingsState {
     @Default("") String errorMessage,
     @Default("") String versionApplication,
     @Default(false) bool privateBlur,
-    @Default(PermissionStatus.denied) PermissionStatus notificationStatus,
+    @Default(PermissionStatus.granted) PermissionStatus notificationStatus,
   }) = _SettingsState;
 }

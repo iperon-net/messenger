@@ -28,9 +28,6 @@ Future<void> main() async {
   final logger = getIt.get<Logger>();
 
   final getAllSettings = await repositories.settingsDevice.getAllSettings();
-  logger.debug("=====");
-  logger.debug(getAllSettings.toString());
-  logger.debug("=====");
 
   // Language
   if(getAllSettings.language.isEmpty) {
