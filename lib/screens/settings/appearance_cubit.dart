@@ -5,7 +5,6 @@ import 'package:messenger/repositories/repositories.dart';
 import '../../cubit/constants.dart';
 import '../../di.dart';
 import '../../models/models.dart' as models;
-import '../../secure_storage.dart';
 
 part 'appearance_cubit.freezed.dart';
 part 'appearance_state.dart';
@@ -13,12 +12,9 @@ part 'appearance_state.dart';
 class AppearanceCubit extends Cubit<AppearanceState> {
   AppearanceCubit() : super(const AppearanceState());
 
-  final _secureStorage = getIt.get<SecureStorage>();
   final _repositories = getIt.get<Repositories>();
 
   Future<void> initialization() async {
-    emit(state.copyWith(status: Status.loading));
-
     final getAllSettings = await _repositories.settingsDevice.getAllSettings();
 
     emit(state.copyWith(
@@ -28,7 +24,6 @@ class AppearanceCubit extends Cubit<AppearanceState> {
       darkMode: getAllSettings.darkMode,
       selectedDarkMode: getAllSettings.darkMode,
     ));
-
   }
 
   Future<void> changeDarkMode(models.SettingsDeviceDarkMode darkMode) async {

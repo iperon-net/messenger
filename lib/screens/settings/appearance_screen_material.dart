@@ -39,11 +39,15 @@ class _AppearanceScreenMaterial extends State<AppearanceScreenMaterial> {
             title: Text(theme["title"]),
             value: theme["value"],
             groupValue: state.darkMode,
-            onChanged: state.status == Status.loading && state.action == "darkMode" ? null : (value) async => await context.read<AppearanceCubit>().changeDarkMode(theme["value"]),
-            secondary: (state.status == Status.loading && theme["value"] == state.selectedDarkMode && state.action == "darkMode") ? ProgressIndicatorComponent() : null,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(10.0),
             ),
+            onChanged: state.status == Status.loading && state.action == "darkMode" ? null : (value) async {
+              await context.read<AppearanceCubit>().changeDarkMode(theme["value"]);
+            },
+            secondary: (
+              state.status == Status.loading && theme["value"] == state.selectedDarkMode && state.action == "darkMode"
+            ) ? ProgressIndicatorComponent() : null,
           )
       );
     }
@@ -65,11 +69,15 @@ class _AppearanceScreenMaterial extends State<AppearanceScreenMaterial> {
             title: Text(theme["title"]),
             value: theme["value"],
             groupValue: state.themeColor,
-            onChanged: state.status == Status.loading && state.action == "themeColor" ? null : (value) async => await context.read<AppearanceCubit>().changeThemeColor(theme["value"]),
-            secondary: (state.status == Status.loading && theme["value"] == state.selectedThemeColor && state.action == "themeColor") ? ProgressIndicatorComponent() : null,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(10.0),
             ),
+            onChanged: state.status == Status.loading && state.action == "themeColor" ? null : (value) async {
+              await context.read<AppearanceCubit>().changeThemeColor(theme["value"]);
+            },
+            secondary: (
+                state.status == Status.loading && theme["value"] == state.selectedThemeColor && state.action == "themeColor"
+            ) ? ProgressIndicatorComponent() : null,
           )
       );
     }
