@@ -190,7 +190,7 @@ return $default(_that.status,_that.errorMessage,_that.versionApplication,_that.p
 
 
 class _SettingsState extends SettingsState {
-  const _SettingsState({this.status = Status.initial, this.errorMessage = "", this.versionApplication = "", this.privateBlur = false, this.notificationStatus = PermissionStatus.denied}): super._();
+  const _SettingsState({this.status = Status.initial, this.errorMessage = "", this.versionApplication = "", this.privateBlur = false, this.notificationStatus = PermissionStatus.granted}): super._();
   
 
 @override@JsonKey() final  Status status;

@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:lifecycle/lifecycle.dart';
 import 'package:messenger/i18n/translations.g.dart';
 import 'package:messenger/screens/settings/settings_cubit.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import '../../components/widget_wrapper/widget_wrapper.dart';
+import '../../di.dart';
+import '../../logger.dart';
 import 'appearance_cubit.dart';
 
 class SettingsScreenMaterial extends StatefulWidget {
@@ -15,12 +18,19 @@ class SettingsScreenMaterial extends StatefulWidget {
   State<SettingsScreenMaterial> createState() => _SettingsScreenMaterial();
 }
 
-class _SettingsScreenMaterial extends State<SettingsScreenMaterial> {
+class _SettingsScreenMaterial extends State<SettingsScreenMaterial> with LifecycleAware, LifecycleMixin {
+  final _logger = getIt.get<Logger>();
+
   @override
   void initState() {
     context.read<SettingsCubit>().initialization();
     context.read<AppearanceCubit>().initialization();
     super.initState();
+  }
+
+  @override
+  void onLifecycleEvent(LifecycleEvent event) async {
+    if (event == LifecycleEvent.visible) await context.read<SettingsCubit>().lifecycle();
   }
 
   Widget widgetTrailingLanguage() {

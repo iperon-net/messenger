@@ -29,11 +29,13 @@ class SettingsCubit extends Cubit<SettingsState> {
       privateBlur: true,
       versionApplication: packageInfo.version.toString()),
     );
+
   }
 
   Future<void> lifecycle() async {
     final notificationStatus = await Permission.notification.status;
     emit(state.copyWith(notificationStatus: notificationStatus, status: Status.success));
   }
+
 
 }
