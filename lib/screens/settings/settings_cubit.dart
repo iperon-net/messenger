@@ -37,5 +37,4 @@ class SettingsCubit extends Cubit<SettingsState> {
     emit(state.copyWith(notificationStatus: notificationStatus, status: Status.success));
   }
 
-
 }
