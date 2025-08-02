@@ -50,6 +50,9 @@ class PasscodeCubit extends Cubit<PasscodeState> {
 
         final hexDigest = _crypto.sha256.hexDigest("$identifier:$value");
         await _repositories.settingsDevice.setPassCode(hexDigest);
+
+        final settings = await _repositories.settingsDevice.getAllSettings();
+        emit(state.copyWith(passCode: settings.passCode));
         if (context.mounted) Navigator.pop(context);
       },
 

@@ -181,6 +181,8 @@ class _TranslationsSettingsPrivacyAndSecurityPasscodeRu extends TranslationsSett
 	@override String get newPasscode => 'Новый код-пароль';
 	@override String get confirmNewPasscode => 'Подтвердите код-пароль';
 	@override String get cancel => 'Отмена';
+	@override String get disable_passcode => 'Отключить код-пароль';
+	@override String get change_passcode => 'Изменить код-пароль';
 }
 
 // Path: settings.appearance.darkMode
@@ -237,6 +239,8 @@ extension on TranslationsRu {
 			case 'settings.privacyAndSecurity.passcode.newPasscode': return 'Новый код-пароль';
 			case 'settings.privacyAndSecurity.passcode.confirmNewPasscode': return 'Подтвердите код-пароль';
 			case 'settings.privacyAndSecurity.passcode.cancel': return 'Отмена';
+			case 'settings.privacyAndSecurity.passcode.disable_passcode': return 'Отключить код-пароль';
+			case 'settings.privacyAndSecurity.passcode.change_passcode': return 'Изменить код-пароль';
 			case 'settings.devices': return 'Девайсы';
 			case 'settings.updates': return 'Обновления';
 			case 'settings.appearance.appearance': return 'Оформление';

@@ -181,6 +181,8 @@ class TranslationsSettingsPrivacyAndSecurityPasscodeEn {
 	String get newPasscode => 'New passcode';
 	String get confirmNewPasscode => 'Confirm the passcode';
 	String get cancel => 'Cancel';
+	String get disable_passcode => 'Disable passcode';
+	String get change_passcode => 'Change passcode';
 }
 
 // Path: settings.appearance.darkMode
@@ -237,6 +239,8 @@ extension on Translations {
 			case 'settings.privacyAndSecurity.passcode.newPasscode': return 'New passcode';
 			case 'settings.privacyAndSecurity.passcode.confirmNewPasscode': return 'Confirm the passcode';
 			case 'settings.privacyAndSecurity.passcode.cancel': return 'Cancel';
+			case 'settings.privacyAndSecurity.passcode.disable_passcode': return 'Disable passcode';
+			case 'settings.privacyAndSecurity.passcode.change_passcode': return 'Change passcode';
 			case 'settings.devices': return 'Devices';
 			case 'settings.updates': return 'Updates';
 			case 'settings.appearance.appearance': return 'Appearance';

@@ -22,6 +22,31 @@ class _PasscodeScreenMaterial extends State<PasscodeScreenMaterial> {
 
   @override
   Widget build(BuildContext context) {
+
+    Widget createPassCode = Center(
+      child: Padding(
+        padding: const EdgeInsets.all(10.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            ElevatedButton(
+              onPressed: () => context.read<PasscodeCubit>().createPassCode(context),
+              child: Text(context.t.settings.privacyAndSecurity.passcode.setPasscode),
+            ),
+            SizedBox(height: 10),
+            Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: Text(
+                context.t.settings.privacyAndSecurity.passcode.importantDescription,
+                style: TextStyle(fontSize: 14),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+
     return WidgetWrapper(
       child: Scaffold(
         appBar: AppBar(
@@ -31,31 +56,35 @@ class _PasscodeScreenMaterial extends State<PasscodeScreenMaterial> {
           child: BlocBuilder<PasscodeCubit, PasscodeState>(
             builder: (context, state) {
               if (state.passCode.isNotEmpty) {
-                return Text("dddd");
-              } else {
-                return Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(10.0),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        ElevatedButton(
-                          onPressed: () => context.read<PasscodeCubit>().createPassCode(context),
-                          child: Text(context.t.settings.privacyAndSecurity.passcode.setPasscode),
-                        ),
-                        SizedBox(height: 10),
-                        Padding(
-                          padding: const EdgeInsets.all(20.0),
-                          child: Text(
-                            context.t.settings.privacyAndSecurity.passcode.importantDescription,
-                            style: TextStyle(fontSize: 14),
-                            textAlign: TextAlign.center,
+                return ListView(
+                  padding: EdgeInsets.all(8.0),
+                  shrinkWrap: true,
+                  children: <Widget>[
+                    SizedBox(height: 10),
+                    Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(10.0),
+                        color: Theme.of(context).cardColor,
+                      ),
+                      child: Column(
+                        children: [
+                          ListTile(
+                            title: Text(context.t.settings.privacyAndSecurity.passcode.change_passcode),
+                            leading: Icon(Icons.change_circle_sharp),
+                            onTap: () => null,
                           ),
-                        ),
-                      ],
+                          ListTile(
+                            title: Text(context.t.settings.privacyAndSecurity.passcode.disable_passcode),
+                            leading: Icon(Icons.close),
+                            onTap: () => null,
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
+                  ],
                 );
+              } else {
+                return createPassCode;
               }
             },
           ),

@@ -37,6 +37,8 @@
       "newPasscode": "Новый код-пароль"
       "confirmNewPasscode": "Подтвердите код-пароль"
       "cancel": "Отмена"
+      "disable_passcode": "Отключить код-пароль"
+      "change_passcode": "Изменить код-пароль"
 
   "devices": "Девайсы"
   "updates": "Обновления"

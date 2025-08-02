@@ -37,6 +37,8 @@
         "newPasscode": "New passcode"
         "confirmNewPasscode": "Confirm the passcode"
         "cancel": "Cancel"
+        "disable_passcode": "Disable passcode"
+        "change_passcode": "Change passcode"
 
     "devices": "Devices"
     "updates": "Updates"
