@@ -12,6 +12,7 @@ class SettingsDevice {
       "language",
       "darkMode",
       "themeColor",
+      "passCode",
     ];
 
     return await database.transaction((txn) async {
@@ -21,6 +22,7 @@ class SettingsDevice {
           language: "",
           darkMode: models.SettingsDeviceDarkMode.system,
           themeColor: models.SettingsDeviceThemeColor.blue,
+          passCode: 0,
         );
       }
       return models.SettingsDevice.fromJson(records.first);
@@ -43,7 +45,12 @@ class SettingsDevice {
     return await database.transaction((txn) async {
       await txn.update("settings_device", {"themeColor": value.name});
     });
+  }
 
+  Future<void> setPassCode(int value) async {
+    return await database.transaction((txn) async {
+      await txn.update("settings_device", {"passCode": value});
+    });
   }
 
 }

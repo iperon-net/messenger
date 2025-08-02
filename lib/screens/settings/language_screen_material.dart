@@ -23,8 +23,8 @@ class _LanguageScreenMaterial extends State<LanguageScreenMaterial> {
   }
 
   List<Map<String, dynamic>> languageList = [
-    {"title": "Russian", "subtitle": "Русский", "value": AppLocale.ru},
     {"title": "English", "subtitle": "English", "value": AppLocale.en},
+    {"title": "Russian", "subtitle": "Русский", "value": AppLocale.ru},
   ];
 
   List<RadioListTile> radioListTileGenerator(LanguageState state) {

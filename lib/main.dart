@@ -162,6 +162,14 @@ class IperonMessengerMaterial extends StatelessWidget {
                   horizontal: VisualDensity.minimumDensity,
                 ),
               ),
+              elevatedButtonTheme: ElevatedButtonThemeData(
+                style: ElevatedButton.styleFrom(
+                  padding: EdgeInsets.all(15),
+                  shape: const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(10)),
+                  ),
+                ),
+              ),
             ),
             darkTheme: ThemeData(
               colorScheme: colorSchemeDark,
@@ -180,6 +188,14 @@ class IperonMessengerMaterial extends StatelessWidget {
                 ),
               ),
               cardColor: colorSchemeDark.surfaceDim,
+              elevatedButtonTheme: ElevatedButtonThemeData(
+                style: ElevatedButton.styleFrom(
+                  padding: EdgeInsets.all(15),
+                  shape: const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(10)),
+                  ),
+                ),
+              ),
             ),
             themeMode: themeMode,
           ),

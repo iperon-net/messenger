@@ -19,8 +19,6 @@ class _PasscodeScreenCupertino extends State<PasscodeScreenCupertino> {
     super.initState();
   }
 
-
-
   bool showError = false;
 
   @override

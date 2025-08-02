@@ -102,6 +102,13 @@ class Routers {
                   path: "/privacy_security",
                   name: "settings_privacy_security",
                   builder: (BuildContext context, GoRouterState state) => PrivacyAndSecurityScreen(),
+                  routes: [
+                    GoRoute(
+                      path: "/passcode",
+                      name: "settings_privacy_security_passcode",
+                      builder: (BuildContext context, GoRouterState state) => PasscodeScreen(),
+                    ),
+                  ],
                 ),
               ],
             ),

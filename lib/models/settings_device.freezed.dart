@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$SettingsDevice implements DiagnosticableTreeMixin {
 
- String get language; SettingsDeviceDarkMode get darkMode; SettingsDeviceThemeColor get themeColor;
+ String get language; SettingsDeviceDarkMode get darkMode; SettingsDeviceThemeColor get themeColor; int get passCode;
 /// Create a copy of SettingsDevice
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -29,21 +29,21 @@ $SettingsDeviceCopyWith<SettingsDevice> get copyWith => _$SettingsDeviceCopyWith
 void debugFillProperties(DiagnosticPropertiesBuilder properties) {
   properties
     ..add(DiagnosticsProperty('type', 'SettingsDevice'))
-    ..add(DiagnosticsProperty('language', language))..add(DiagnosticsProperty('darkMode', darkMode))..add(DiagnosticsProperty('themeColor', themeColor));
+    ..add(DiagnosticsProperty('language', language))..add(DiagnosticsProperty('darkMode', darkMode))..add(DiagnosticsProperty('themeColor', themeColor))..add(DiagnosticsProperty('passCode', passCode));
 }
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SettingsDevice&&(identical(other.language, language) || other.language == language)&&(identical(other.darkMode, darkMode) || other.darkMode == darkMode)&&(identical(other.themeColor, themeColor) || other.themeColor == themeColor));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SettingsDevice&&(identical(other.language, language) || other.language == language)&&(identical(other.darkMode, darkMode) || other.darkMode == darkMode)&&(identical(other.themeColor, themeColor) || other.themeColor == themeColor)&&(identical(other.passCode, passCode) || other.passCode == passCode));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,language,darkMode,themeColor);
+int get hashCode => Object.hash(runtimeType,language,darkMode,themeColor,passCode);
 
 @override
 String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
-  return 'SettingsDevice(language: $language, darkMode: $darkMode, themeColor: $themeColor)';
+  return 'SettingsDevice(language: $language, darkMode: $darkMode, themeColor: $themeColor, passCode: $passCode)';
 }
 
 
@@ -54,7 +54,7 @@ abstract mixin class $SettingsDeviceCopyWith<$Res>  {
   factory $SettingsDeviceCopyWith(SettingsDevice value, $Res Function(SettingsDevice) _then) = _$SettingsDeviceCopyWithImpl;
 @useResult
 $Res call({
- String language, SettingsDeviceDarkMode darkMode, SettingsDeviceThemeColor themeColor
+ String language, SettingsDeviceDarkMode darkMode, SettingsDeviceThemeColor themeColor, int passCode
 });
 
 
@@ -71,12 +71,13 @@ class _$SettingsDeviceCopyWithImpl<$Res>
 
 /// Create a copy of SettingsDevice
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? language = null,Object? darkMode = null,Object? themeColor = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? language = null,Object? darkMode = null,Object? themeColor = null,Object? passCode = null,}) {
   return _then(_self.copyWith(
 language: null == language ? _self.language : language // ignore: cast_nullable_to_non_nullable
 as String,darkMode: null == darkMode ? _self.darkMode : darkMode // ignore: cast_nullable_to_non_nullable
 as SettingsDeviceDarkMode,themeColor: null == themeColor ? _self.themeColor : themeColor // ignore: cast_nullable_to_non_nullable
-as SettingsDeviceThemeColor,
+as SettingsDeviceThemeColor,passCode: null == passCode ? _self.passCode : passCode // ignore: cast_nullable_to_non_nullable
+as int,
   ));
 }
 
@@ -161,10 +162,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String language,  SettingsDeviceDarkMode darkMode,  SettingsDeviceThemeColor themeColor)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String language,  SettingsDeviceDarkMode darkMode,  SettingsDeviceThemeColor themeColor,  int passCode)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SettingsDevice() when $default != null:
-return $default(_that.language,_that.darkMode,_that.themeColor);case _:
+return $default(_that.language,_that.darkMode,_that.themeColor,_that.passCode);case _:
   return orElse();
 
 }
@@ -182,10 +183,10 @@ return $default(_that.language,_that.darkMode,_that.themeColor);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String language,  SettingsDeviceDarkMode darkMode,  SettingsDeviceThemeColor themeColor)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String language,  SettingsDeviceDarkMode darkMode,  SettingsDeviceThemeColor themeColor,  int passCode)  $default,) {final _that = this;
 switch (_that) {
 case _SettingsDevice():
-return $default(_that.language,_that.darkMode,_that.themeColor);case _:
+return $default(_that.language,_that.darkMode,_that.themeColor,_that.passCode);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -197,12 +198,13 @@ return $default(_that.language,_that.darkMode,_that.themeColor);case _:
 
 @JsonSerializable(explicitToJson: true)
 class _SettingsDevice extends SettingsDevice with DiagnosticableTreeMixin {
-  const _SettingsDevice({required this.language, required this.darkMode, required this.themeColor}): super._();
+  const _SettingsDevice({required this.language, required this.darkMode, required this.themeColor, this.passCode = 0}): super._();
   factory _SettingsDevice.fromJson(Map<String, dynamic> json) => _$SettingsDeviceFromJson(json);
 
 @override final  String language;
 @override final  SettingsDeviceDarkMode darkMode;
 @override final  SettingsDeviceThemeColor themeColor;
+@override@JsonKey() final  int passCode;
 
 /// Create a copy of SettingsDevice
 /// with the given fields replaced by the non-null parameter values.
@@ -218,21 +220,21 @@ Map<String, dynamic> toJson() {
 void debugFillProperties(DiagnosticPropertiesBuilder properties) {
   properties
     ..add(DiagnosticsProperty('type', 'SettingsDevice'))
-    ..add(DiagnosticsProperty('language', language))..add(DiagnosticsProperty('darkMode', darkMode))..add(DiagnosticsProperty('themeColor', themeColor));
+    ..add(DiagnosticsProperty('language', language))..add(DiagnosticsProperty('darkMode', darkMode))..add(DiagnosticsProperty('themeColor', themeColor))..add(DiagnosticsProperty('passCode', passCode));
 }
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SettingsDevice&&(identical(other.language, language) || other.language == language)&&(identical(other.darkMode, darkMode) || other.darkMode == darkMode)&&(identical(other.themeColor, themeColor) || other.themeColor == themeColor));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SettingsDevice&&(identical(other.language, language) || other.language == language)&&(identical(other.darkMode, darkMode) || other.darkMode == darkMode)&&(identical(other.themeColor, themeColor) || other.themeColor == themeColor)&&(identical(other.passCode, passCode) || other.passCode == passCode));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,language,darkMode,themeColor);
+int get hashCode => Object.hash(runtimeType,language,darkMode,themeColor,passCode);
 
 @override
 String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
-  return 'SettingsDevice(language: $language, darkMode: $darkMode, themeColor: $themeColor)';
+  return 'SettingsDevice(language: $language, darkMode: $darkMode, themeColor: $themeColor, passCode: $passCode)';
 }
 
 
@@ -243,7 +245,7 @@ abstract mixin class _$SettingsDeviceCopyWith<$Res> implements $SettingsDeviceCo
   factory _$SettingsDeviceCopyWith(_SettingsDevice value, $Res Function(_SettingsDevice) _then) = __$SettingsDeviceCopyWithImpl;
 @override @useResult
 $Res call({
- String language, SettingsDeviceDarkMode darkMode, SettingsDeviceThemeColor themeColor
+ String language, SettingsDeviceDarkMode darkMode, SettingsDeviceThemeColor themeColor, int passCode
 });
 
 
@@ -260,12 +262,13 @@ class __$SettingsDeviceCopyWithImpl<$Res>
 
 /// Create a copy of SettingsDevice
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? language = null,Object? darkMode = null,Object? themeColor = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? language = null,Object? darkMode = null,Object? themeColor = null,Object? passCode = null,}) {
   return _then(_SettingsDevice(
 language: null == language ? _self.language : language // ignore: cast_nullable_to_non_nullable
 as String,darkMode: null == darkMode ? _self.darkMode : darkMode // ignore: cast_nullable_to_non_nullable
 as SettingsDeviceDarkMode,themeColor: null == themeColor ? _self.themeColor : themeColor // ignore: cast_nullable_to_non_nullable
-as SettingsDeviceThemeColor,
+as SettingsDeviceThemeColor,passCode: null == passCode ? _self.passCode : passCode // ignore: cast_nullable_to_non_nullable
+as int,
   ));
 }
 

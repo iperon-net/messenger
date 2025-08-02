@@ -49,14 +49,15 @@ class Repositories {
       if (version == 1) {
         batch.execute("""
           CREATE TABLE settings_device (
-            language TEXT NULL,
-            darkMode TEXT NULL,
-            themeColor TEXT NULL
+            language TEXT NOT NULL,
+            darkMode TEXT NOT NULL,
+            themeColor TEXT NOT NULL,
+            passCode INTEGER NOT NULL
           )
         """);
 
         batch.execute("""
-          INSERT INTO settings_device (language, darkMode, themeColor) VALUES ("", "system", "blue")
+          INSERT INTO settings_device (language, darkMode, themeColor, passCode) VALUES ("", "system", "blue", 0)
         """);
 
       //   batch.execute("""
