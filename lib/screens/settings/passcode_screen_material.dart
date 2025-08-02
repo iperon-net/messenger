@@ -28,30 +28,36 @@ class _PasscodeScreenMaterial extends State<PasscodeScreenMaterial> {
           title: Text(context.t.settings.privacyAndSecurity.passcode.passcode),
         ),
         body: SafeArea(
-          child: Center(
-            child: Padding(
-              padding: const EdgeInsets.all(10.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  ElevatedButton(
-                    // style: Theme.of(context).elevatedButtonTheme.style,
-                    // style: ElevatedButton.,
-                    onPressed: () => context.read<PasscodeCubit>().createPassCode(context),
-                    child: Text(context.t.settings.privacyAndSecurity.passcode.setPasscode),
-                  ),
-                  SizedBox(height: 10),
-                  Padding(
-                    padding: const EdgeInsets.all(20.0),
-                    child: Text(
-                      context.t.settings.privacyAndSecurity.passcode.importantDescription,
-                      style: TextStyle(fontSize: 14),
-                      textAlign: TextAlign.center,
+          child: BlocBuilder<PasscodeCubit, PasscodeState>(
+            builder: (context, state) {
+              if (state.passCode.isNotEmpty) {
+                return Text("dddd");
+              } else {
+                return Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(10.0),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        ElevatedButton(
+                          onPressed: () => context.read<PasscodeCubit>().createPassCode(context),
+                          child: Text(context.t.settings.privacyAndSecurity.passcode.setPasscode),
+                        ),
+                        SizedBox(height: 10),
+                        Padding(
+                          padding: const EdgeInsets.all(20.0),
+                          child: Text(
+                            context.t.settings.privacyAndSecurity.passcode.importantDescription,
+                            style: TextStyle(fontSize: 14),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                ],
-              ),
-            ),
+                );
+              }
+            },
           ),
         ),
       ),

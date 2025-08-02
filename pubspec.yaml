@@ -73,6 +73,7 @@ dependencies:
   lifecycle: ^0.10.0
   blur: ^4.0.2
   flutter_local_notifications: ^19.4.0
+  device_info_plus: ^11.5.0
 
 
 dev_dependencies:

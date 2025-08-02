@@ -14,7 +14,7 @@ _SettingsDevice _$SettingsDeviceFromJson(Map<String, dynamic> json) =>
         _$SettingsDeviceThemeColorEnumMap,
         json['themeColor'],
       ),
-      passCode: (json['passCode'] as num?)?.toInt() ?? 0,
+      passCode: json['passCode'] as String,
     );
 
 Map<String, dynamic> _$SettingsDeviceToJson(_SettingsDevice instance) =>

@@ -16,7 +16,7 @@ abstract class SettingsDevice with _$SettingsDevice {
     required String language,
     required SettingsDeviceDarkMode darkMode,
     required SettingsDeviceThemeColor themeColor,
-    @Default(0) int passCode,
+    required String passCode,
   }) = _SettingsDevice;
 
   factory SettingsDevice.fromJson(Map<String, dynamic> json) => _$SettingsDeviceFromJson(json);

@@ -39,7 +39,7 @@ Future<void> configureGlobalDI() async {
   // await remoteConfig.fetchAndActivate();
 
   getIt.registerSingletonAsync<Logger>(() async => Logger());
-  getIt.registerSingletonAsync<Crypto>(() async => Crypto(), dependsOn: [Logger]);
+  getIt.registerSingletonAsync<Crypto>(() async => Crypto()..initialization(), dependsOn: [Logger]);
   getIt.registerSingletonAsync<Routers>(() async => Routers(), dependsOn: [Logger]);
   getIt.registerSingletonAsync<Notifications>(() async => Notifications()..initialization(), dependsOn: [Logger]);
   getIt.registerSingletonAsync<SecureStorage>(() async => SecureStorage(), dependsOn: [Logger]);

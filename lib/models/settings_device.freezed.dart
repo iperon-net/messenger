@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$SettingsDevice implements DiagnosticableTreeMixin {
 
- String get language; SettingsDeviceDarkMode get darkMode; SettingsDeviceThemeColor get themeColor; int get passCode;
+ String get language; SettingsDeviceDarkMode get darkMode; SettingsDeviceThemeColor get themeColor; String get passCode;
 /// Create a copy of SettingsDevice
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -54,7 +54,7 @@ abstract mixin class $SettingsDeviceCopyWith<$Res>  {
   factory $SettingsDeviceCopyWith(SettingsDevice value, $Res Function(SettingsDevice) _then) = _$SettingsDeviceCopyWithImpl;
 @useResult
 $Res call({
- String language, SettingsDeviceDarkMode darkMode, SettingsDeviceThemeColor themeColor, int passCode
+ String language, SettingsDeviceDarkMode darkMode, SettingsDeviceThemeColor themeColor, String passCode
 });
 
 
@@ -77,7 +77,7 @@ language: null == language ? _self.language : language // ignore: cast_nullable_
 as String,darkMode: null == darkMode ? _self.darkMode : darkMode // ignore: cast_nullable_to_non_nullable
 as SettingsDeviceDarkMode,themeColor: null == themeColor ? _self.themeColor : themeColor // ignore: cast_nullable_to_non_nullable
 as SettingsDeviceThemeColor,passCode: null == passCode ? _self.passCode : passCode // ignore: cast_nullable_to_non_nullable
-as int,
+as String,
   ));
 }
 
@@ -162,7 +162,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String language,  SettingsDeviceDarkMode darkMode,  SettingsDeviceThemeColor themeColor,  int passCode)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String language,  SettingsDeviceDarkMode darkMode,  SettingsDeviceThemeColor themeColor,  String passCode)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SettingsDevice() when $default != null:
 return $default(_that.language,_that.darkMode,_that.themeColor,_that.passCode);case _:
@@ -183,7 +183,7 @@ return $default(_that.language,_that.darkMode,_that.themeColor,_that.passCode);c
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String language,  SettingsDeviceDarkMode darkMode,  SettingsDeviceThemeColor themeColor,  int passCode)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String language,  SettingsDeviceDarkMode darkMode,  SettingsDeviceThemeColor themeColor,  String passCode)  $default,) {final _that = this;
 switch (_that) {
 case _SettingsDevice():
 return $default(_that.language,_that.darkMode,_that.themeColor,_that.passCode);case _:
@@ -198,13 +198,13 @@ return $default(_that.language,_that.darkMode,_that.themeColor,_that.passCode);c
 
 @JsonSerializable(explicitToJson: true)
 class _SettingsDevice extends SettingsDevice with DiagnosticableTreeMixin {
-  const _SettingsDevice({required this.language, required this.darkMode, required this.themeColor, this.passCode = 0}): super._();
+  const _SettingsDevice({required this.language, required this.darkMode, required this.themeColor, required this.passCode}): super._();
   factory _SettingsDevice.fromJson(Map<String, dynamic> json) => _$SettingsDeviceFromJson(json);
 
 @override final  String language;
 @override final  SettingsDeviceDarkMode darkMode;
 @override final  SettingsDeviceThemeColor themeColor;
-@override@JsonKey() final  int passCode;
+@override final  String passCode;
 
 /// Create a copy of SettingsDevice
 /// with the given fields replaced by the non-null parameter values.
@@ -245,7 +245,7 @@ abstract mixin class _$SettingsDeviceCopyWith<$Res> implements $SettingsDeviceCo
   factory _$SettingsDeviceCopyWith(_SettingsDevice value, $Res Function(_SettingsDevice) _then) = __$SettingsDeviceCopyWithImpl;
 @override @useResult
 $Res call({
- String language, SettingsDeviceDarkMode darkMode, SettingsDeviceThemeColor themeColor, int passCode
+ String language, SettingsDeviceDarkMode darkMode, SettingsDeviceThemeColor themeColor, String passCode
 });
 
 
@@ -268,7 +268,7 @@ language: null == language ? _self.language : language // ignore: cast_nullable_
 as String,darkMode: null == darkMode ? _self.darkMode : darkMode // ignore: cast_nullable_to_non_nullable
 as SettingsDeviceDarkMode,themeColor: null == themeColor ? _self.themeColor : themeColor // ignore: cast_nullable_to_non_nullable
 as SettingsDeviceThemeColor,passCode: null == passCode ? _self.passCode : passCode // ignore: cast_nullable_to_non_nullable
-as int,
+as String,
   ));
 }
 

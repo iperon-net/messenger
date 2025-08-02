@@ -7,5 +7,6 @@ abstract class PasscodeState with _$PasscodeState {
   const factory PasscodeState({
     @Default(Status.initial) Status status,
     @Default("") String errorMessage,
+    @Default("") String passCode,
   }) = _PasscodeState;
 }
