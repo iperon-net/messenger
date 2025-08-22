@@ -4,10 +4,12 @@ import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lifecycle/lifecycle.dart';
 import 'package:messenger/screens/home/home_screen.dart';
+import 'package:messenger/screens/settings/passcode_screen_material.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 
 import 'di.dart';
 import 'logger.dart';
+import 'screens/lock/lock_screen.dart';
 import 'screens/settings/appearance_screen.dart';
 import 'screens/settings/language_screen.dart';
 import 'screens/settings/passcode_screen.dart';
@@ -72,12 +74,17 @@ class Routers {
     return GoRouter(
       debugLogDiagnostics: kDebugMode ? true: false,
       navigatorKey: navigatorGoRouterKey,
-      initialLocation: "/",
+      initialLocation: "/settings",
       observers: <NavigatorObserver>[
         TalkerRouteObserver(logger.getTalker()),
         defaultLifecycleObserver,
       ],
       routes: <RouteBase>[
+        GoRoute(
+          path: "/lock",
+          name: "lock",
+          builder: (BuildContext context, GoRouterState state) => LockScreen(),
+        ),
         GoRoute(
           path: "/",
           name: "index",
@@ -106,7 +113,14 @@ class Routers {
                     GoRoute(
                       path: "/passcode",
                       name: "settings_privacy_security_passcode",
-                      builder: (BuildContext context, GoRouterState state) => PasscodeScreen(),
+                      builder: (BuildContext context, GoRouterState state) => PasscodeScreenMaterial(),
+                      routes: [
+                        GoRoute(
+                          path: "/create",
+                          name: "settings_privacy_security_passcode_create",
+                          builder: (BuildContext context, GoRouterState state) => PasscodeScreenCreateMaterial(),
+                        )
+                      ]
                     ),
                   ],
                 ),

@@ -52,6 +52,14 @@ class _WidgetWrapperState extends State<WidgetWrapper> with WidgetsBindingObserv
 
   @override
   Widget build(BuildContext context) {
+    // if(context.mounted) {
+    //   screenLock(
+    //       context: context,
+    //       correctString: '1234',
+    //       canCancel: false,
+    //   );
+    // }
+
     if (_isBlurred){
       return Blur(
         blur: 8,

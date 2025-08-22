@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$PasscodeState {
 
- Status get status; String get errorMessage; String get passCode;
+ Status get status; String get errorMessage; String get passCode; bool get unlock;
 /// Create a copy of PasscodeState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,16 +25,16 @@ $PasscodeStateCopyWith<PasscodeState> get copyWith => _$PasscodeStateCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is PasscodeState&&(identical(other.status, status) || other.status == status)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage)&&(identical(other.passCode, passCode) || other.passCode == passCode));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PasscodeState&&(identical(other.status, status) || other.status == status)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage)&&(identical(other.passCode, passCode) || other.passCode == passCode)&&(identical(other.unlock, unlock) || other.unlock == unlock));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,status,errorMessage,passCode);
+int get hashCode => Object.hash(runtimeType,status,errorMessage,passCode,unlock);
 
 @override
 String toString() {
-  return 'PasscodeState(status: $status, errorMessage: $errorMessage, passCode: $passCode)';
+  return 'PasscodeState(status: $status, errorMessage: $errorMessage, passCode: $passCode, unlock: $unlock)';
 }
 
 
@@ -45,7 +45,7 @@ abstract mixin class $PasscodeStateCopyWith<$Res>  {
   factory $PasscodeStateCopyWith(PasscodeState value, $Res Function(PasscodeState) _then) = _$PasscodeStateCopyWithImpl;
 @useResult
 $Res call({
- Status status, String errorMessage, String passCode
+ Status status, String errorMessage, String passCode, bool unlock
 });
 
 
@@ -62,12 +62,13 @@ class _$PasscodeStateCopyWithImpl<$Res>
 
 /// Create a copy of PasscodeState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? status = null,Object? errorMessage = null,Object? passCode = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? status = null,Object? errorMessage = null,Object? passCode = null,Object? unlock = null,}) {
   return _then(_self.copyWith(
 status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as Status,errorMessage: null == errorMessage ? _self.errorMessage : errorMessage // ignore: cast_nullable_to_non_nullable
 as String,passCode: null == passCode ? _self.passCode : passCode // ignore: cast_nullable_to_non_nullable
-as String,
+as String,unlock: null == unlock ? _self.unlock : unlock // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 
@@ -152,10 +153,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( Status status,  String errorMessage,  String passCode)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( Status status,  String errorMessage,  String passCode,  bool unlock)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _PasscodeState() when $default != null:
-return $default(_that.status,_that.errorMessage,_that.passCode);case _:
+return $default(_that.status,_that.errorMessage,_that.passCode,_that.unlock);case _:
   return orElse();
 
 }
@@ -173,10 +174,10 @@ return $default(_that.status,_that.errorMessage,_that.passCode);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( Status status,  String errorMessage,  String passCode)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( Status status,  String errorMessage,  String passCode,  bool unlock)  $default,) {final _that = this;
 switch (_that) {
 case _PasscodeState():
-return $default(_that.status,_that.errorMessage,_that.passCode);case _:
+return $default(_that.status,_that.errorMessage,_that.passCode,_that.unlock);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -188,12 +189,13 @@ return $default(_that.status,_that.errorMessage,_that.passCode);case _:
 
 
 class _PasscodeState extends PasscodeState {
-  const _PasscodeState({this.status = Status.initial, this.errorMessage = "", this.passCode = ""}): super._();
+  const _PasscodeState({this.status = Status.initial, this.errorMessage = "", this.passCode = "", this.unlock = false}): super._();
   
 
 @override@JsonKey() final  Status status;
 @override@JsonKey() final  String errorMessage;
 @override@JsonKey() final  String passCode;
+@override@JsonKey() final  bool unlock;
 
 /// Create a copy of PasscodeState
 /// with the given fields replaced by the non-null parameter values.
@@ -205,16 +207,16 @@ _$PasscodeStateCopyWith<_PasscodeState> get copyWith => __$PasscodeStateCopyWith
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _PasscodeState&&(identical(other.status, status) || other.status == status)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage)&&(identical(other.passCode, passCode) || other.passCode == passCode));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _PasscodeState&&(identical(other.status, status) || other.status == status)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage)&&(identical(other.passCode, passCode) || other.passCode == passCode)&&(identical(other.unlock, unlock) || other.unlock == unlock));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,status,errorMessage,passCode);
+int get hashCode => Object.hash(runtimeType,status,errorMessage,passCode,unlock);
 
 @override
 String toString() {
-  return 'PasscodeState(status: $status, errorMessage: $errorMessage, passCode: $passCode)';
+  return 'PasscodeState(status: $status, errorMessage: $errorMessage, passCode: $passCode, unlock: $unlock)';
 }
 
 
@@ -225,7 +227,7 @@ abstract mixin class _$PasscodeStateCopyWith<$Res> implements $PasscodeStateCopy
   factory _$PasscodeStateCopyWith(_PasscodeState value, $Res Function(_PasscodeState) _then) = __$PasscodeStateCopyWithImpl;
 @override @useResult
 $Res call({
- Status status, String errorMessage, String passCode
+ Status status, String errorMessage, String passCode, bool unlock
 });
 
 
@@ -242,12 +244,13 @@ class __$PasscodeStateCopyWithImpl<$Res>
 
 /// Create a copy of PasscodeState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? status = null,Object? errorMessage = null,Object? passCode = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? status = null,Object? errorMessage = null,Object? passCode = null,Object? unlock = null,}) {
   return _then(_PasscodeState(
 status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as Status,errorMessage: null == errorMessage ? _self.errorMessage : errorMessage // ignore: cast_nullable_to_non_nullable
 as String,passCode: null == passCode ? _self.passCode : passCode // ignore: cast_nullable_to_non_nullable
-as String,
+as String,unlock: null == unlock ? _self.unlock : unlock // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 

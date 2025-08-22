@@ -1,6 +1,4 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:messenger/screens/settings/passcode_cubit.dart';
 import 'package:pinput/pinput.dart';
 
 import '../../i18n/translations.g.dart';
@@ -65,7 +63,7 @@ class _PasscodeScreenCupertino extends State<PasscodeScreenCupertino> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 CupertinoButton.filled(
-                  onPressed: () => context.read<PasscodeCubit>().createPassCode(context),
+                  onPressed: () => null,
                   child: Text(context.t.settings.privacyAndSecurity.passcode.setPasscode),
                 ),
                 SizedBox(height: 20,),

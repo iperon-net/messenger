@@ -8,5 +8,6 @@ abstract class PasscodeState with _$PasscodeState {
     @Default(Status.initial) Status status,
     @Default("") String errorMessage,
     @Default("") String passCode,
+    @Default(false) bool unlock,
   }) = _PasscodeState;
 }

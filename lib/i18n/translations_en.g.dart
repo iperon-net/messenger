@@ -39,7 +39,10 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
 	Translations $copyWith({TranslationMetadata<AppLocale, Translations>? meta}) => Translations(meta: meta ?? this.$meta);
 
 	// Translations
+
+	/// en: 'Not implemented screen'
 	String get notImplementedScreen => 'Not implemented screen';
+
 	late final TranslationsUiEn ui = TranslationsUiEn.internal(_root);
 	late final TranslationsDrawerEn drawer = TranslationsDrawerEn.internal(_root);
 	late final TranslationsContactsEn contacts = TranslationsContactsEn.internal(_root);
@@ -54,6 +57,8 @@ class TranslationsUiEn {
 	final Translations _root; // ignore: unused_field
 
 	// Translations
+
+	/// en: 'Settings'
 	String get settings => 'Settings';
 }
 
@@ -64,8 +69,14 @@ class TranslationsDrawerEn {
 	final Translations _root; // ignore: unused_field
 
 	// Translations
+
+	/// en: 'Settings'
 	String get settings => _root.ui.settings;
+
+	/// en: 'Favorites'
 	String get favorites => 'Favorites';
+
+	/// en: 'Contacts'
 	String get contacts => 'Contacts';
 }
 
@@ -76,8 +87,13 @@ class TranslationsContactsEn {
 	final Translations _root; // ignore: unused_field
 
 	// Translations
+
+	/// en: 'Contacts'
 	String get contacts => 'Contacts';
+
+	/// en: 'Search'
 	String get search => 'Search';
+
 	late final TranslationsContactsTabsEn tabs = TranslationsContactsTabsEn.internal(_root);
 }
 
@@ -88,6 +104,8 @@ class TranslationsChatsEn {
 	final Translations _root; // ignore: unused_field
 
 	// Translations
+
+	/// en: 'Chats'
 	String get chats => 'Chats';
 }
 
@@ -98,14 +116,28 @@ class TranslationsSettingsEn {
 	final Translations _root; // ignore: unused_field
 
 	// Translations
+
+	/// en: 'Settings'
 	String get settings => 'Settings';
+
+	/// en: 'Favorites'
 	String get favorites => 'Favorites';
+
+	/// en: 'My personal info'
 	String get myPersonalInfo => 'My personal info';
+
+	/// en: 'My profile'
 	String get myProfile => 'My profile';
+
 	late final TranslationsSettingsNotificationsEn notifications = TranslationsSettingsNotificationsEn.internal(_root);
 	late final TranslationsSettingsPrivacyAndSecurityEn privacyAndSecurity = TranslationsSettingsPrivacyAndSecurityEn.internal(_root);
+
+	/// en: 'Devices'
 	String get devices => 'Devices';
+
+	/// en: 'Updates'
 	String get updates => 'Updates';
+
 	late final TranslationsSettingsAppearanceEn appearance = TranslationsSettingsAppearanceEn.internal(_root);
 	late final TranslationsSettingsLanguageEn language = TranslationsSettingsLanguageEn.internal(_root);
 }
@@ -117,7 +149,11 @@ class TranslationsContactsTabsEn {
 	final Translations _root; // ignore: unused_field
 
 	// Translations
+
+	/// en: 'All'
 	String get all => 'All';
+
+	/// en: 'Favorites'
 	String get favorites => 'Favorites';
 }
 
@@ -128,6 +164,8 @@ class TranslationsSettingsNotificationsEn {
 	final Translations _root; // ignore: unused_field
 
 	// Translations
+
+	/// en: 'Notifications'
 	String get notifications => 'Notifications';
 }
 
@@ -138,8 +176,13 @@ class TranslationsSettingsPrivacyAndSecurityEn {
 	final Translations _root; // ignore: unused_field
 
 	// Translations
+
+	/// en: 'Privacy and security'
 	String get privacyAndSecurity => 'Privacy and security';
+
+	/// en: 'Two step verification'
 	String get twoStepVerification => 'Two step verification';
+
 	late final TranslationsSettingsPrivacyAndSecurityPasscodeEn passcode = TranslationsSettingsPrivacyAndSecurityPasscodeEn.internal(_root);
 }
 
@@ -150,8 +193,13 @@ class TranslationsSettingsAppearanceEn {
 	final Translations _root; // ignore: unused_field
 
 	// Translations
+
+	/// en: 'Appearance'
 	String get appearance => 'Appearance';
+
+	/// en: 'Back'
 	String get back => 'Back';
+
 	late final TranslationsSettingsAppearanceDarkModeEn darkMode = TranslationsSettingsAppearanceDarkModeEn.internal(_root);
 	late final TranslationsSettingsAppearanceColorSchemeEn colorScheme = TranslationsSettingsAppearanceColorSchemeEn.internal(_root);
 }
@@ -163,8 +211,14 @@ class TranslationsSettingsLanguageEn {
 	final Translations _root; // ignore: unused_field
 
 	// Translations
+
+	/// en: 'Language'
 	String get language => 'Language';
+
+	/// en: 'Back'
 	String get back => 'Back';
+
+	/// en: 'Interface language'
 	String get interfaceLanguage => 'Interface language';
 }
 
@@ -175,13 +229,29 @@ class TranslationsSettingsPrivacyAndSecurityPasscodeEn {
 	final Translations _root; // ignore: unused_field
 
 	// Translations
+
+	/// en: 'Passcode'
 	String get passcode => 'Passcode';
+
+	/// en: 'Set a passcode'
 	String get setPasscode => 'Set a passcode';
+
+	/// en: 'Important: If you forget your passcode, you will need to reinstall the application.'
 	String get importantDescription => 'Important: If you forget your passcode, you will need to reinstall the application.';
+
+	/// en: 'New passcode'
 	String get newPasscode => 'New passcode';
+
+	/// en: 'Confirm the passcode'
 	String get confirmNewPasscode => 'Confirm the passcode';
+
+	/// en: 'Cancel'
 	String get cancel => 'Cancel';
+
+	/// en: 'Disable passcode'
 	String get disable_passcode => 'Disable passcode';
+
+	/// en: 'Change passcode'
 	String get change_passcode => 'Change passcode';
 }
 
@@ -192,9 +262,17 @@ class TranslationsSettingsAppearanceDarkModeEn {
 	final Translations _root; // ignore: unused_field
 
 	// Translations
+
+	/// en: 'Dark mode'
 	String get darkMode => 'Dark mode';
+
+	/// en: 'System'
 	String get system => 'System';
+
+	/// en: 'Disabled'
 	String get disabled => 'Disabled';
+
+	/// en: 'Always on'
 	String get alwaysOn => 'Always on';
 }
 
@@ -205,9 +283,17 @@ class TranslationsSettingsAppearanceColorSchemeEn {
 	final Translations _root; // ignore: unused_field
 
 	// Translations
+
+	/// en: 'Color scheme'
 	String get colorScheme => 'Color scheme';
+
+	/// en: 'System'
 	String get system => 'System';
+
+	/// en: 'Green'
 	String get green => 'Green';
+
+	/// en: 'Purple'
 	String get purple => 'Purple';
 }
 

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_screen_lock/flutter_screen_lock.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../components/widget_wrapper/widget_wrapper.dart';
 import '../../i18n/translations.g.dart';
@@ -17,78 +19,172 @@ class _PasscodeScreenMaterial extends State<PasscodeScreenMaterial> {
   @override
   void initState() {
     context.read<PasscodeCubit>().initialization();
+    context.read<PasscodeCubit>().lock();
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
 
-    Widget createPassCode = Center(
-      child: Padding(
-        padding: const EdgeInsets.all(10.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            ElevatedButton(
-              onPressed: () => context.read<PasscodeCubit>().createPassCode(context),
-              child: Text(context.t.settings.privacyAndSecurity.passcode.setPasscode),
-            ),
-            SizedBox(height: 10),
-            Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: Text(
-                context.t.settings.privacyAndSecurity.passcode.importantDescription,
-                style: TextStyle(fontSize: 14),
-                textAlign: TextAlign.center,
+    Widget widgetCreatePassCode(PasscodeState state) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(10.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              ElevatedButton(
+                onPressed: () => context.goNamed("settings_privacy_security_passcode_create"),
+                child: Text(context.t.settings.privacyAndSecurity.passcode.setPasscode),
               ),
-            ),
-          ],
+              SizedBox(height: 10),
+              Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Text(
+                  context.t.settings.privacyAndSecurity.passcode.importantDescription,
+                  style: TextStyle(fontSize: 14),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ],
+          ),
         ),
+      );
+    }
+
+    Widget widgetUnlock(PasscodeState state) {
+      return ScreenLock(
+        cancelButton: Text(context.t.settings.privacyAndSecurity.passcode.cancel),
+        title: Text(context.t.settings.privacyAndSecurity.passcode.passcode),
+        correctString: state.passCode,
+        onCancelled: () => context.goNamed("settings_privacy_security"),
+        onUnlocked: () async => await context.read<PasscodeCubit>().unlock(),
+        secretsConfig: SecretsConfig(
+          spacing: 15,
+          padding: const EdgeInsets.all(40),
+        ),
+        useBlur: false,
+      );
+    }
+
+    Widget widgetMenu(PasscodeState state) {
+      return ListView(
+        padding: EdgeInsets.all(8.0),
+        shrinkWrap: true,
+        children: <Widget>[
+          SizedBox(height: 10),
+          Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(10.0),
+              color: Theme.of(context).cardColor,
+            ),
+            child: Column(
+              children: [
+                ListTile(
+                  title: Text(context.t.settings.privacyAndSecurity.passcode.change_passcode),
+                  leading: Icon(Icons.change_circle_sharp),
+                  onTap: () => context.goNamed("settings_privacy_security_passcode_create"),
+                ),
+                ListTile(
+                  title: Text(context.t.settings.privacyAndSecurity.passcode.disable_passcode),
+                  leading: Icon(Icons.close),
+                  onTap: () async {
+                    await context.read<PasscodeCubit>().disablePassCode();
+                    if (context.mounted) context.goNamed("settings_privacy_security_passcode");
+                  },
+                ),
+              ],
+            ),
+          ),
+        ],
+      );
+    }
+
+    return WidgetWrapper(
+      child: BlocBuilder<PasscodeCubit, PasscodeState>(
+        builder: (context, state) {
+          if (state.passCode.isNotEmpty) {
+            if (state.unlock){
+              return Scaffold(
+                appBar: AppBar(
+                  title: Text(context.t.settings.privacyAndSecurity.passcode.passcode),
+                ),
+                body: widgetMenu(state),
+              );
+            } else {
+              return Scaffold(
+                body: widgetUnlock(state),
+              );
+            }
+          } else {
+            return Scaffold(
+              appBar: AppBar(
+                title: Text(context.t.settings.privacyAndSecurity.passcode.passcode),
+              ),
+              body: widgetCreatePassCode(state),
+            );
+          }
+        },
       ),
     );
 
-    return WidgetWrapper(
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text(context.t.settings.privacyAndSecurity.passcode.passcode),
+  }
+
+}
+
+
+// child: Scaffold(
+//   appBar: AppBar(
+//     title: Text(context.t.settings.privacyAndSecurity.passcode.passcode),
+//   ),
+//   body: SafeArea(
+//     child: BlocBuilder<PasscodeCubit, PasscodeState>(
+//       builder: (context, state) {
+//         if (state.passCode.isNotEmpty) {
+//           if (state.unlock){
+//             return widgetMenu(state);
+//           } else {
+//             return widgetUnlock(state);
+//           }
+//         } else {
+//           return widgetCreatePassCode(state);
+//         }
+//       },
+//     ),
+//   ),
+// ),
+
+class PasscodeScreenCreateMaterial extends StatefulWidget {
+  const PasscodeScreenCreateMaterial({super.key});
+
+  @override
+  State<PasscodeScreenCreateMaterial> createState() => _PasscodeScreenCreateMaterial();
+}
+
+class _PasscodeScreenCreateMaterial extends State<PasscodeScreenCreateMaterial> {
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: ScreenLock.create(
+        title: Text(context.t.settings.privacyAndSecurity.passcode.newPasscode),
+        confirmTitle: Text(context.t.settings.privacyAndSecurity.passcode.confirmNewPasscode),
+        cancelButton: Text(context.t.settings.privacyAndSecurity.passcode.cancel),
+        secretsConfig: SecretsConfig(
+          spacing: 15,
+          padding: const EdgeInsets.all(40),
         ),
-        body: SafeArea(
-          child: BlocBuilder<PasscodeCubit, PasscodeState>(
-            builder: (context, state) {
-              if (state.passCode.isNotEmpty) {
-                return ListView(
-                  padding: EdgeInsets.all(8.0),
-                  shrinkWrap: true,
-                  children: <Widget>[
-                    SizedBox(height: 10),
-                    Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(10.0),
-                        color: Theme.of(context).cardColor,
-                      ),
-                      child: Column(
-                        children: [
-                          ListTile(
-                            title: Text(context.t.settings.privacyAndSecurity.passcode.change_passcode),
-                            leading: Icon(Icons.change_circle_sharp),
-                            onTap: () => null,
-                          ),
-                          ListTile(
-                            title: Text(context.t.settings.privacyAndSecurity.passcode.disable_passcode),
-                            leading: Icon(Icons.close),
-                            onTap: () => null,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                );
-              } else {
-                return createPassCode;
-              }
-            },
-          ),
-        ),
+        onConfirmed: (String value) async {
+          await context.read<PasscodeCubit>().savePassCode(value);
+          if (context.mounted) await context.read<PasscodeCubit>().unlock();
+          if (context.mounted) context.goNamed("settings_privacy_security_passcode");
+        },
+        onCancelled: () => context.goNamed("settings_privacy_security_passcode"),
       ),
     );
   }

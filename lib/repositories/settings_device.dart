@@ -53,4 +53,10 @@ class SettingsDevice {
     });
   }
 
+  Future<void> setPassCodeTimer() async {
+    return await database.transaction((txn) async {
+      await txn.update("settings_device", {"passCodeTimer": DateTime.now().microsecondsSinceEpoch});
+    });
+  }
+
 }

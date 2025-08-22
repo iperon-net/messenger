@@ -1,3 +1,4 @@
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
@@ -5,6 +6,7 @@ import 'package:get_it/get_it.dart';
 
 import 'crypto/crypto.dart';
 import 'firebase_options.dart';
+import 'lifecycle.dart';
 import 'logger.dart';
 import 'notifications.dart';
 import 'repositories/repositories.dart';
@@ -16,6 +18,8 @@ GetIt getIt = GetIt.instance;
 Future<void> configureGlobalDI() async {
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  FirebaseAnalytics.instance.setAnalyticsCollectionEnabled(false);
 
   // Crashlytics
   FlutterError.onError = (errorDetails) => FirebaseCrashlytics.instance.recordFlutterFatalError(errorDetails);
@@ -44,6 +48,8 @@ Future<void> configureGlobalDI() async {
   getIt.registerSingletonAsync<Notifications>(() async => Notifications()..initialization(), dependsOn: [Logger]);
   getIt.registerSingletonAsync<SecureStorage>(() async => SecureStorage(), dependsOn: [Logger]);
   getIt.registerSingletonAsync<Repositories>(() async => Repositories(), dependsOn: [Logger, SecureStorage]);
+
+  getIt.registerSingletonAsync<Lifecycle>(() async => Lifecycle()..initialization(), dependsOn: [Logger, SecureStorage, Repositories]);
 
   await getIt.allReady();
 
