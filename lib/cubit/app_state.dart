@@ -8,5 +8,8 @@ abstract class AppState with _$AppState {
     @Default(Status.initial) Status status,
     @Default(models.SettingsDeviceThemeColor.blue) models.SettingsDeviceThemeColor themeColor,
     @Default(models.SettingsDeviceDarkMode.system) models.SettingsDeviceDarkMode darkMode,
+    @Default("") String passCode,
+    @Default(0) int passCodeTtl,
+    @Default(0) int passCodeTimer,
   }) = _AppState;
 }

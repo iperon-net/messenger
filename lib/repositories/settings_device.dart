@@ -13,6 +13,8 @@ class SettingsDevice {
       "darkMode",
       "themeColor",
       "passCode",
+      "passCodeTtl",
+      "passCodeTimer",
     ];
 
     return await database.transaction((txn) async {
@@ -23,6 +25,8 @@ class SettingsDevice {
           darkMode: models.SettingsDeviceDarkMode.system,
           themeColor: models.SettingsDeviceThemeColor.blue,
           passCode: "",
+          passCodeTtl: 0,
+          passCodeTimer: 0,
         );
       }
       return models.SettingsDevice.fromJson(records.first);
@@ -47,15 +51,21 @@ class SettingsDevice {
     });
   }
 
+  Future<void> setPassCodeTtl(int value) async {
+    return await database.transaction((txn) async {
+      await txn.update("settings_device", {"passCodeTtl": value});
+    });
+  }
+
   Future<void> setPassCode(String value) async {
     return await database.transaction((txn) async {
       await txn.update("settings_device", {"passCode": value});
     });
   }
 
-  Future<void> setPassCodeTimer() async {
+  Future<void> setPassCodeTimer(int value) async {
     return await database.transaction((txn) async {
-      await txn.update("settings_device", {"passCodeTimer": DateTime.now().microsecondsSinceEpoch});
+      await txn.update("settings_device", {"passCodeTimer": value});
     });
   }
 

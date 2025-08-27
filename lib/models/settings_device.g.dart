@@ -15,6 +15,10 @@ _SettingsDevice _$SettingsDeviceFromJson(Map<String, dynamic> json) =>
         json['themeColor'],
       ),
       passCode: json['passCode'] as String,
+      passCodeTtl: (json['passCodeTtl'] as num).toInt(),
+      passCodeTimer: (json['passCodeTimer'] as num).toInt(),
+      passCodeExpire: (json['passCodeExpire'] as num?)?.toInt() ?? 0,
+      passCodeLock: json['passCodeLock'] as bool? ?? false,
     );
 
 Map<String, dynamic> _$SettingsDeviceToJson(_SettingsDevice instance) =>
@@ -23,6 +27,10 @@ Map<String, dynamic> _$SettingsDeviceToJson(_SettingsDevice instance) =>
       'darkMode': _$SettingsDeviceDarkModeEnumMap[instance.darkMode]!,
       'themeColor': _$SettingsDeviceThemeColorEnumMap[instance.themeColor]!,
       'passCode': instance.passCode,
+      'passCodeTtl': instance.passCodeTtl,
+      'passCodeTimer': instance.passCodeTimer,
+      'passCodeExpire': instance.passCodeExpire,
+      'passCodeLock': instance.passCodeLock,
     };
 
 const _$SettingsDeviceDarkModeEnumMap = {

@@ -2,6 +2,8 @@
 
 "ui":
   "settings": "Settings"
+  "cancel": "Cancel"
+  "done": "Done"
 
 "drawer":
   "settings": "@:ui.settings"
@@ -39,6 +41,13 @@
         "cancel": "Cancel"
         "disable_passcode": "Disable passcode"
         "change_passcode": "Change passcode"
+        "auto_lock": "Auto-lock"
+        "auto_lock_in_disabled": "Disabled"
+        "auto_lock_timer_in_1_seconds": "Immediately"
+        "auto_lock_timer_in_1_minute": "in 1 minute"
+        "auto_lock_timer_in_5_minutes": "in 5 minutes"
+        "auto_lock_timer_in_1_hour": "in 1 hour"
+        "auto_lock_timer_in_5_hours": "in 5 hours"
 
     "devices": "Devices"
     "updates": "Updates"

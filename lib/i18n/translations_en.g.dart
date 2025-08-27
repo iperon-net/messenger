@@ -60,6 +60,12 @@ class TranslationsUiEn {
 
 	/// en: 'Settings'
 	String get settings => 'Settings';
+
+	/// en: 'Cancel'
+	String get cancel => 'Cancel';
+
+	/// en: 'Done'
+	String get done => 'Done';
 }
 
 // Path: drawer
@@ -253,6 +259,27 @@ class TranslationsSettingsPrivacyAndSecurityPasscodeEn {
 
 	/// en: 'Change passcode'
 	String get change_passcode => 'Change passcode';
+
+	/// en: 'Auto-lock'
+	String get auto_lock => 'Auto-lock';
+
+	/// en: 'Disabled'
+	String get auto_lock_in_disabled => 'Disabled';
+
+	/// en: 'Immediately'
+	String get auto_lock_timer_in_1_seconds => 'Immediately';
+
+	/// en: 'in 1 minute'
+	String get auto_lock_timer_in_1_minute => 'in 1 minute';
+
+	/// en: 'in 5 minutes'
+	String get auto_lock_timer_in_5_minutes => 'in 5 minutes';
+
+	/// en: 'in 1 hour'
+	String get auto_lock_timer_in_1_hour => 'in 1 hour';
+
+	/// en: 'in 5 hours'
+	String get auto_lock_timer_in_5_hours => 'in 5 hours';
 }
 
 // Path: settings.appearance.darkMode
@@ -304,6 +331,8 @@ extension on Translations {
 		switch (path) {
 			case 'notImplementedScreen': return 'Not implemented screen';
 			case 'ui.settings': return 'Settings';
+			case 'ui.cancel': return 'Cancel';
+			case 'ui.done': return 'Done';
 			case 'drawer.settings': return _root.ui.settings;
 			case 'drawer.favorites': return 'Favorites';
 			case 'drawer.contacts': return 'Contacts';
@@ -327,6 +356,13 @@ extension on Translations {
 			case 'settings.privacyAndSecurity.passcode.cancel': return 'Cancel';
 			case 'settings.privacyAndSecurity.passcode.disable_passcode': return 'Disable passcode';
 			case 'settings.privacyAndSecurity.passcode.change_passcode': return 'Change passcode';
+			case 'settings.privacyAndSecurity.passcode.auto_lock': return 'Auto-lock';
+			case 'settings.privacyAndSecurity.passcode.auto_lock_in_disabled': return 'Disabled';
+			case 'settings.privacyAndSecurity.passcode.auto_lock_timer_in_1_seconds': return 'Immediately';
+			case 'settings.privacyAndSecurity.passcode.auto_lock_timer_in_1_minute': return 'in 1 minute';
+			case 'settings.privacyAndSecurity.passcode.auto_lock_timer_in_5_minutes': return 'in 5 minutes';
+			case 'settings.privacyAndSecurity.passcode.auto_lock_timer_in_1_hour': return 'in 1 hour';
+			case 'settings.privacyAndSecurity.passcode.auto_lock_timer_in_5_hours': return 'in 5 hours';
 			case 'settings.devices': return 'Devices';
 			case 'settings.updates': return 'Updates';
 			case 'settings.appearance.appearance': return 'Appearance';

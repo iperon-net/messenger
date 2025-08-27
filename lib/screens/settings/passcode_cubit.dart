@@ -3,7 +3,6 @@ import 'package:flutter_screen_lock/flutter_screen_lock.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:messenger/repositories/repositories.dart';
 
-import '../../crypto/crypto.dart';
 import '../../cubit/constants.dart';
 import '../../di.dart';
 import '../../logger.dart';
@@ -16,13 +15,15 @@ class PasscodeCubit extends Cubit<PasscodeState> {
 
   final _logger = getIt.get<Logger>();
   final _repositories = getIt.get<Repositories>();
-  final _crypto = getIt.get<Crypto>();
 
   final inputController = InputController();
 
   Future<void> initialization() async {
     final settings = await _repositories.settingsDevice.getAllSettings();
-    emit(state.copyWith(passCode: settings.passCode));
+    emit(state.copyWith(
+      passCode: settings.passCode,
+      passCodeTtl: settings.passCodeTtl,
+    ));
     _logger.debug(settings.toString());
   }
 
@@ -34,8 +35,11 @@ class PasscodeCubit extends Cubit<PasscodeState> {
     emit(state.copyWith(unlock: false));
   }
 
+  Future<void> setPassCodeTtl(String value) async {
+    emit(state.copyWith(passCodeTtl: int.parse(value)));
+  }
+
   Future<void> savePassCode(String value) async {
-    await _repositories.settingsDevice.setPassCode(value);
     emit(state.copyWith(passCode: value));
   }
 

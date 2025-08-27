@@ -2,6 +2,8 @@
 
 "ui":
   "settings": "Настройки"
+  "cancel": "Отмена"
+  "done": "Готово"
 
 "drawer":
   "settings": "@:ui.settings"
@@ -39,6 +41,13 @@
       "cancel": "Отмена"
       "disable_passcode": "Отключить код-пароль"
       "change_passcode": "Изменить код-пароль"
+      "auto_lock": "Автоблокировка"
+      "auto_lock_in_disabled": "Отключена"
+      "auto_lock_timer_in_1_seconds": "Немедленно"
+      "auto_lock_timer_in_1_minute": "через 1 минуту"
+      "auto_lock_timer_in_5_minutes": "через 5 минут"
+      "auto_lock_timer_in_1_hour": "через 1 час"
+      "auto_lock_timer_in_5_hours": "через 5 часов"
 
   "devices": "Девайсы"
   "updates": "Обновления"

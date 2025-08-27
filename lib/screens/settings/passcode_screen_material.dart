@@ -4,6 +4,7 @@ import 'package:flutter_screen_lock/flutter_screen_lock.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../components/widget_wrapper/widget_wrapper.dart';
+import '../../cubit/app_cubit.dart';
 import '../../i18n/translations.g.dart';
 import 'passcode_cubit.dart';
 
@@ -68,6 +69,19 @@ class _PasscodeScreenMaterial extends State<PasscodeScreenMaterial> {
     }
 
     Widget widgetMenu(PasscodeState state) {
+      String trailingAutoLock = context.t.settings.privacyAndSecurity.passcode.auto_lock_in_disabled;
+      if (state.passCodeTtl == 1) {
+        trailingAutoLock = context.t.settings.privacyAndSecurity.passcode.auto_lock_timer_in_1_seconds;
+      } else if (state.passCodeTtl == 60) {
+          trailingAutoLock = context.t.settings.privacyAndSecurity.passcode.auto_lock_timer_in_1_minute;
+      } else if (state.passCodeTtl == 300) {
+        trailingAutoLock = context.t.settings.privacyAndSecurity.passcode.auto_lock_timer_in_5_minutes;
+      } else if (state.passCodeTtl == 3600) {
+        trailingAutoLock = context.t.settings.privacyAndSecurity.passcode.auto_lock_timer_in_1_hour;
+      } else if (state.passCodeTtl == 18000) {
+        trailingAutoLock = context.t.settings.privacyAndSecurity.passcode.auto_lock_timer_in_5_hours;
+      }
+
       return ListView(
         padding: EdgeInsets.all(8.0),
         shrinkWrap: true,
@@ -82,16 +96,78 @@ class _PasscodeScreenMaterial extends State<PasscodeScreenMaterial> {
               children: [
                 ListTile(
                   title: Text(context.t.settings.privacyAndSecurity.passcode.change_passcode),
-                  leading: Icon(Icons.change_circle_sharp),
+                  // leading: Icon(Icons.change_circle_sharp),
                   onTap: () => context.goNamed("settings_privacy_security_passcode_create"),
                 ),
                 ListTile(
                   title: Text(context.t.settings.privacyAndSecurity.passcode.disable_passcode),
-                  leading: Icon(Icons.close),
+                  // leading: Icon(Icons.close),
                   onTap: () async {
                     await context.read<PasscodeCubit>().disablePassCode();
                     if (context.mounted) context.goNamed("settings_privacy_security_passcode");
                   },
+                ),
+                ListTile(
+                  title: Text(context.t.settings.privacyAndSecurity.passcode.auto_lock),
+                  // leading: Icon(Icons.close),
+                  onTap: ()  => showDialog<String>(
+                    context: context,
+                    builder: (BuildContext context) => AlertDialog(
+                      title: Text(context.t.settings.privacyAndSecurity.passcode.auto_lock),
+                      content: RadioGroup(
+                        groupValue: context.watch<PasscodeCubit>().state.passCodeTtl.toString(),
+                        onChanged: (value) async {
+                          if(value != null){
+                            await context.read<PasscodeCubit>().setPassCodeTtl(value);
+                          }
+                        },
+                        child: SingleChildScrollView(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              RadioListTile(
+                                title: Text(context.t.settings.privacyAndSecurity.passcode.auto_lock_in_disabled),
+                                value: "0",
+                              ),
+                              RadioListTile(
+                                title: Text(context.t.settings.privacyAndSecurity.passcode.auto_lock_timer_in_1_seconds),
+                                value: "1",
+                              ),
+                              RadioListTile(
+                                title: Text(context.t.settings.privacyAndSecurity.passcode.auto_lock_timer_in_1_minute),
+                                value: "60",
+                              ),
+                              RadioListTile(
+                                title: Text(context.t.settings.privacyAndSecurity.passcode.auto_lock_timer_in_5_minutes),
+                                value: "300",
+                              ),
+                              RadioListTile(
+                                title: Text(context.t.settings.privacyAndSecurity.passcode.auto_lock_timer_in_1_hour),
+                                value: "3600",
+                              ),
+                              RadioListTile(
+                                title: Text(context.t.settings.privacyAndSecurity.passcode.auto_lock_timer_in_5_hours),
+                                value: "18000",
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      actions: <Widget>[
+                        TextButton(
+                            onPressed: () => Navigator.pop(context, context.t.ui.done),
+                            child: Text(context.t.ui.done)
+                        ),
+                      ],
+                    ),
+                  ),
+                  trailing: Text(
+                    trailingAutoLock,
+                    style: TextStyle(
+                        fontSize: Theme.of(context).textTheme.titleMedium!.fontSize,
+                        fontStyle: FontStyle.normal
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -101,7 +177,11 @@ class _PasscodeScreenMaterial extends State<PasscodeScreenMaterial> {
     }
 
     return WidgetWrapper(
-      child: BlocBuilder<PasscodeCubit, PasscodeState>(
+      child: BlocConsumer<PasscodeCubit, PasscodeState>(
+        listener: (context, state) async {
+          if (context.mounted) await context.read<AppCubit>().setPassCode(state.passCode);
+          if (context.mounted) await context.read<AppCubit>().setPassCodeTtl(state.passCodeTtl);
+        },
         builder: (context, state) {
           if (state.passCode.isNotEmpty) {
             if (state.unlock){

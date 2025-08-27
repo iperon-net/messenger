@@ -55,6 +55,8 @@ class _TranslationsUiRu extends TranslationsUiEn {
 
 	// Translations
 	@override String get settings => 'Настройки';
+	@override String get cancel => 'Отмена';
+	@override String get done => 'Готово';
 }
 
 // Path: drawer
@@ -183,6 +185,13 @@ class _TranslationsSettingsPrivacyAndSecurityPasscodeRu extends TranslationsSett
 	@override String get cancel => 'Отмена';
 	@override String get disable_passcode => 'Отключить код-пароль';
 	@override String get change_passcode => 'Изменить код-пароль';
+	@override String get auto_lock => 'Автоблокировка';
+	@override String get auto_lock_in_disabled => 'Отключена';
+	@override String get auto_lock_timer_in_1_seconds => 'Немедленно';
+	@override String get auto_lock_timer_in_1_minute => 'через 1 минуту';
+	@override String get auto_lock_timer_in_5_minutes => 'через 5 минут';
+	@override String get auto_lock_timer_in_1_hour => 'через 1 час';
+	@override String get auto_lock_timer_in_5_hours => 'через 5 часов';
 }
 
 // Path: settings.appearance.darkMode
@@ -218,6 +227,8 @@ extension on TranslationsRu {
 		switch (path) {
 			case 'notImplementedScreen': return 'Не реализованный экран';
 			case 'ui.settings': return 'Настройки';
+			case 'ui.cancel': return 'Отмена';
+			case 'ui.done': return 'Готово';
 			case 'drawer.settings': return _root.ui.settings;
 			case 'drawer.favorites': return 'Избранное';
 			case 'drawer.contacts': return 'Контакты';
@@ -241,6 +252,13 @@ extension on TranslationsRu {
 			case 'settings.privacyAndSecurity.passcode.cancel': return 'Отмена';
 			case 'settings.privacyAndSecurity.passcode.disable_passcode': return 'Отключить код-пароль';
 			case 'settings.privacyAndSecurity.passcode.change_passcode': return 'Изменить код-пароль';
+			case 'settings.privacyAndSecurity.passcode.auto_lock': return 'Автоблокировка';
+			case 'settings.privacyAndSecurity.passcode.auto_lock_in_disabled': return 'Отключена';
+			case 'settings.privacyAndSecurity.passcode.auto_lock_timer_in_1_seconds': return 'Немедленно';
+			case 'settings.privacyAndSecurity.passcode.auto_lock_timer_in_1_minute': return 'через 1 минуту';
+			case 'settings.privacyAndSecurity.passcode.auto_lock_timer_in_5_minutes': return 'через 5 минут';
+			case 'settings.privacyAndSecurity.passcode.auto_lock_timer_in_1_hour': return 'через 1 час';
+			case 'settings.privacyAndSecurity.passcode.auto_lock_timer_in_5_hours': return 'через 5 часов';
 			case 'settings.devices': return 'Девайсы';
 			case 'settings.updates': return 'Обновления';
 			case 'settings.appearance.appearance': return 'Оформление';

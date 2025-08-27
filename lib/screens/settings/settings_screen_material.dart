@@ -55,6 +55,13 @@ class _SettingsScreenMaterial extends State<SettingsScreenMaterial> with Lifecyc
         if (state.notificationStatus != PermissionStatus.granted) {
           trailingNotification = Icon(Icons.error, color: Colors.red,);
         }
+        final viewPadding = MediaQuery.of(context).viewPadding;
+        final viewInsets = MediaQuery.of(context).viewInsets;
+        final padding = MediaQuery.of(context).padding;
+        final logger = getIt.get<Logger>();
+        logger.debug(viewPadding.toString());
+        logger.debug(viewInsets.toString());
+        logger.debug(padding.toString());
 
         return WidgetWrapper(
           child: Scaffold(

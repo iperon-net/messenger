@@ -27,7 +27,6 @@ class Lifecycle {
         _logger.debug("onInactive");
       },
       onPause: () {
-        _repositories.settingsDevice.setPassCodeTimer();
         _logger.debug("onPause");
       },
       onDetach: () {

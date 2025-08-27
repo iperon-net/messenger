@@ -17,6 +17,10 @@ abstract class SettingsDevice with _$SettingsDevice {
     required SettingsDeviceDarkMode darkMode,
     required SettingsDeviceThemeColor themeColor,
     required String passCode,
+    required int passCodeTtl,
+    required int passCodeTimer,
+    @Default(0) int passCodeExpire,
+    @Default(false) bool passCodeLock,
   }) = _SettingsDevice;
 
   factory SettingsDevice.fromJson(Map<String, dynamic> json) => _$SettingsDeviceFromJson(json);
