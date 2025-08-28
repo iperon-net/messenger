@@ -17,8 +17,7 @@ _SettingsDevice _$SettingsDeviceFromJson(Map<String, dynamic> json) =>
       passCode: json['passCode'] as String,
       passCodeTtl: (json['passCodeTtl'] as num).toInt(),
       passCodeTimer: (json['passCodeTimer'] as num).toInt(),
-      passCodeExpire: (json['passCodeExpire'] as num?)?.toInt() ?? 0,
-      passCodeLock: json['passCodeLock'] as bool? ?? false,
+      passCodeLock: (json['passCodeLock'] as num).toInt(),
     );
 
 Map<String, dynamic> _$SettingsDeviceToJson(_SettingsDevice instance) =>
@@ -29,7 +28,6 @@ Map<String, dynamic> _$SettingsDeviceToJson(_SettingsDevice instance) =>
       'passCode': instance.passCode,
       'passCodeTtl': instance.passCodeTtl,
       'passCodeTimer': instance.passCodeTimer,
-      'passCodeExpire': instance.passCodeExpire,
       'passCodeLock': instance.passCodeLock,
     };
 

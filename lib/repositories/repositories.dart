@@ -54,13 +54,14 @@ class Repositories {
             themeColor TEXT NOT NULL,
             passCode TEXT NOT NULL,
             passCodeTtl INTEGER NOT NULL,
-            passCodeTimer INTEGER NOT NULL
+            passCodeTimer INTEGER NOT NULL,
+            passCodeLock INTEGER NOT NULL
           )
         """);
 
         batch.execute("""
-          INSERT INTO settings_device (language, darkMode, themeColor, passCode, passCodeTtl, passCodeTimer)
-          VALUES ("", "system", "blue", "", 0, 0)
+          INSERT INTO settings_device (language, darkMode, themeColor, passCode, passCodeTtl, passCodeTimer, passCodeLock)
+          VALUES ("", "system", "blue", "", 0, 0, 0)
         """);
 
       //   batch.execute("""

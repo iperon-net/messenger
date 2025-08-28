@@ -36,10 +36,12 @@ class PasscodeCubit extends Cubit<PasscodeState> {
   }
 
   Future<void> setPassCodeTtl(String value) async {
+    await _repositories.settingsDevice.setPassCodeTtl(int.parse(value));
     emit(state.copyWith(passCodeTtl: int.parse(value)));
   }
 
-  Future<void> savePassCode(String value) async {
+  Future<void> setPassCode(String value) async {
+    await _repositories.settingsDevice.setPassCode(value);
     emit(state.copyWith(passCode: value));
   }
 

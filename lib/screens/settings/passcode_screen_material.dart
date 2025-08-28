@@ -4,7 +4,6 @@ import 'package:flutter_screen_lock/flutter_screen_lock.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../components/widget_wrapper/widget_wrapper.dart';
-import '../../cubit/app_cubit.dart';
 import '../../i18n/translations.g.dart';
 import 'passcode_cubit.dart';
 
@@ -69,17 +68,21 @@ class _PasscodeScreenMaterial extends State<PasscodeScreenMaterial> {
     }
 
     Widget widgetMenu(PasscodeState state) {
-      String trailingAutoLock = context.t.settings.privacyAndSecurity.passcode.auto_lock_in_disabled;
-      if (state.passCodeTtl == 1) {
-        trailingAutoLock = context.t.settings.privacyAndSecurity.passcode.auto_lock_timer_in_1_seconds;
-      } else if (state.passCodeTtl == 60) {
+      String trailingAutoLock = "";
+
+      switch (state.passCodeTtl) {
+        case 1:
+          trailingAutoLock = context.t.settings.privacyAndSecurity.passcode.auto_lock_timer_in_1_seconds;
+        case 60:
           trailingAutoLock = context.t.settings.privacyAndSecurity.passcode.auto_lock_timer_in_1_minute;
-      } else if (state.passCodeTtl == 300) {
-        trailingAutoLock = context.t.settings.privacyAndSecurity.passcode.auto_lock_timer_in_5_minutes;
-      } else if (state.passCodeTtl == 3600) {
-        trailingAutoLock = context.t.settings.privacyAndSecurity.passcode.auto_lock_timer_in_1_hour;
-      } else if (state.passCodeTtl == 18000) {
-        trailingAutoLock = context.t.settings.privacyAndSecurity.passcode.auto_lock_timer_in_5_hours;
+        case 300:
+          trailingAutoLock = context.t.settings.privacyAndSecurity.passcode.auto_lock_timer_in_5_minutes;
+        case 3600:
+          trailingAutoLock = context.t.settings.privacyAndSecurity.passcode.auto_lock_timer_in_1_hour;
+        case 18000:
+          trailingAutoLock = context.t.settings.privacyAndSecurity.passcode.auto_lock_timer_in_5_hours;
+        default:
+          trailingAutoLock = context.t.settings.privacyAndSecurity.passcode.auto_lock_in_disabled;
       }
 
       return ListView(
@@ -179,8 +182,9 @@ class _PasscodeScreenMaterial extends State<PasscodeScreenMaterial> {
     return WidgetWrapper(
       child: BlocConsumer<PasscodeCubit, PasscodeState>(
         listener: (context, state) async {
-          if (context.mounted) await context.read<AppCubit>().setPassCode(state.passCode);
-          if (context.mounted) await context.read<AppCubit>().setPassCodeTtl(state.passCodeTtl);
+          // if (context.mounted) await context.read<AppCubit>().setPassCode(state.passCode);
+          // if (context.mounted) await context.read<AppCubit>().setPassCodeTtl(state.passCodeTtl);
+          // if (context.mounted && state.unlock) context.read<AppCubit>().unlock();
         },
         builder: (context, state) {
           if (state.passCode.isNotEmpty) {
@@ -260,7 +264,7 @@ class _PasscodeScreenCreateMaterial extends State<PasscodeScreenCreateMaterial> 
           padding: const EdgeInsets.all(40),
         ),
         onConfirmed: (String value) async {
-          await context.read<PasscodeCubit>().savePassCode(value);
+          await context.read<PasscodeCubit>().setPassCode(value);
           if (context.mounted) await context.read<PasscodeCubit>().unlock();
           if (context.mounted) context.goNamed("settings_privacy_security_passcode");
         },

@@ -3,14 +3,115 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screen_lock/flutter_screen_lock.dart';
-import 'package:messenger/repositories/repositories.dart';
+import 'package:lifecycle/lifecycle.dart';
 
 import '../../cubit/app_cubit.dart';
 import '../../di.dart';
 import '../../i18n/translations.g.dart';
 import '../../logger.dart';
+import '../../repositories/repositories.dart';
+
+class WidgetWrapper extends StatefulWidget {
+  final Widget child;
+  const WidgetWrapper({super.key, required this.child});
+
+  @override
+  State<WidgetWrapper> createState() => _WidgetWrapper();
+}
+
+class _WidgetWrapper extends State<WidgetWrapper> with LifecycleAware, LifecycleMixin, WidgetsBindingObserver {
+  bool _isBlurred = false;
+  bool _passCodeLock = false;
+  String _passCode = "";
+
+  final _repositories = getIt.get<Repositories>();
+  final _logger = getIt.get<Logger>();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void onLifecycleEvent(LifecycleEvent event) async {
+    if(event == LifecycleEvent.inactive) {
+      setState(() {
+        _isBlurred = true;
+      });
+    } else if (event == LifecycleEvent.active) {
+      setState(() {
+        _isBlurred = false;
+      });
+
+      final getAllSettings = await _repositories.settingsDevice.getAllSettings();
+      _logger.debug("event = ${getAllSettings.toString()}");
+
+      if(getAllSettings.passCodeLock == 1) {
+        setState(() {
+          _passCodeLock = true;
+          _passCode = getAllSettings.passCode;
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<AppCubit, AppState>(
+      builder: (context, state) {
 
 
+        // final calculateTimer = (DateTime.now().millisecondsSinceEpoch / 1000).toInt() - (state.passCodeTimer).toInt();
+        // if (state.passCodeTtl > 0 && calculateTimer >= state.passCodeTtl) {
+        //   if(!state.unlock){
+        //     context.read<AppCubit>().lock();
+        //   }
+        // }
+
+        if(_passCode.isNotEmpty && _passCodeLock) {
+          return Scaffold(
+            body: ScreenLock(
+              cancelButton: Text(context.t.settings.privacyAndSecurity.passcode.cancel),
+              title: Text(context.t.settings.privacyAndSecurity.passcode.passcode),
+              correctString: _passCode,
+              onUnlocked: () async {
+                setState(() {
+                  _passCodeLock = false;
+                });
+                await _repositories.settingsDevice.setPassCodeLock(false);
+              },
+              secretsConfig: SecretsConfig(
+                spacing: 15,
+                padding: const EdgeInsets.all(40),
+              ),
+            ),
+          );
+        }
+
+        if (_isBlurred){
+          return Blur(
+            blur: 10,
+            blurColor: CupertinoColors.transparent,
+            colorOpacity: 0,
+            child: widget.child,
+          );
+        }
+        return widget.child;
+      }
+    );
+  }
+
+}
+
+
+/*
 class WidgetWrapper extends StatefulWidget {
   final Widget child;
 
@@ -22,7 +123,7 @@ class WidgetWrapper extends StatefulWidget {
 
 class _WidgetWrapperState extends State<WidgetWrapper> with WidgetsBindingObserver {
   bool _isBlurred = false;
-  bool _isLock = false;
+  bool _isLock = true;
 
   final _logger = getIt.get<Logger>();
   final _repositories = getIt.get<Repositories>();
@@ -46,30 +147,47 @@ class _WidgetWrapperState extends State<WidgetWrapper> with WidgetsBindingObserv
       _isBlurred = state == AppLifecycleState.inactive || state == AppLifecycleState.paused;
     });
 
-    if (state == AppLifecycleState.paused) {
+    if (state == AppLifecycleState.inactive) {
       await context.read<AppCubit>().setPassCodeTimer((DateTime.now().millisecondsSinceEpoch / 1000).toInt());
     }
 
     if (state == AppLifecycleState.resumed) {
       final getAllSettings = await _repositories.settingsDevice.getAllSettings();
-      _logger.debug(getAllSettings.toString());
 
-      if (getAllSettings.passCodeTtl > 0 && (DateTime.now().millisecondsSinceEpoch / 1000).toInt() - (getAllSettings.passCodeTimer).toInt() >= getAllSettings.passCodeTtl) {
-        _isLock = true;
+      if (getAllSettings.passCode.isEmpty){
+        setState(() {
+          _isLock = false;
+        });
+        return;
+      }
+
+      if (getAllSettings.passCodeTtl <= 0){
+        setState(() {
+          _isLock = false;
+        });
+        return;
+      }
+
+      final calculateTimer = (DateTime.now().millisecondsSinceEpoch / 1000).toInt() - (getAllSettings.passCodeTimer).toInt();
+      _logger.debug("calculateTimer = ${calculateTimer.toString()}");
+      _logger.debug("passCodeTtl = ${getAllSettings.passCodeTtl.toString()}");
+
+      if (calculateTimer >= getAllSettings.passCodeTtl) {
+        setState(() {
+          _isLock = true;
+        });
       }
     }
-
   }
-
 
   @override
   Widget build(BuildContext context) {
 
     return BlocBuilder<AppCubit, AppState>(
       builder: (context, state) {
+        _logger.info("Lock application $_isLock");
 
-        if(_isLock) {
-          _logger.info("Lock application");
+        if(_isLock && state.passCode.isNotEmpty) {
           return Scaffold(
             body: ScreenLock(
               cancelButton: Text(context.t.settings.privacyAndSecurity.passcode.cancel),
@@ -84,7 +202,6 @@ class _WidgetWrapperState extends State<WidgetWrapper> with WidgetsBindingObserv
                 spacing: 15,
                 padding: const EdgeInsets.all(40),
               ),
-              useBlur: false,
             ),
           );
         }
@@ -105,8 +222,6 @@ class _WidgetWrapperState extends State<WidgetWrapper> with WidgetsBindingObserv
   }
 }
 
-
-/*
 class WidgetWrapper extends StatefulWidget {
   final Widget child;
 

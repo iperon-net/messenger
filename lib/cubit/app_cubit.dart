@@ -17,7 +17,7 @@ class AppCubit extends Cubit<AppState> {
 
   Future<void> initialization() async {
     final getAllSettings = await _repositories.settingsDevice.getAllSettings();
-    _logger.debug(getAllSettings.toString());
+    _logger.debug("getAllSettings = $getAllSettings");
 
     emit(state.copyWith(
       passCode: getAllSettings.passCode,

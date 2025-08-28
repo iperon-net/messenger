@@ -15,6 +15,7 @@ class SettingsDevice {
       "passCode",
       "passCodeTtl",
       "passCodeTimer",
+      "passCodeLock",
     ];
 
     return await database.transaction((txn) async {
@@ -27,6 +28,7 @@ class SettingsDevice {
           passCode: "",
           passCodeTtl: 0,
           passCodeTimer: 0,
+          passCodeLock: 0,
         );
       }
       return models.SettingsDevice.fromJson(records.first);
@@ -68,5 +70,16 @@ class SettingsDevice {
       await txn.update("settings_device", {"passCodeTimer": value});
     });
   }
+
+  Future<void> setPassCodeLock(bool lock) async {
+    return await database.transaction((txn) async {
+      if (lock == true) {
+        await txn.update("settings_device", {"passCodeLock": 1});
+      } else {
+        await txn.update("settings_device", {"passCodeLock": 0});
+      }
+    });
+  }
+
 
 }
