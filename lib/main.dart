@@ -14,7 +14,6 @@ import 'i18n/translations.g.dart';
 import 'models/models.dart' as models;
 import 'routers.dart';
 import 'screens/contacts/contacts_cubit.dart';
-import 'screens/lock/lock_cubit.dart';
 import 'screens/settings/appearance_cubit.dart';
 import 'screens/settings/language_cubit.dart';
 import 'screens/settings/passcode_cubit.dart';
@@ -67,9 +66,6 @@ Future<void> main() async {
             ),
             BlocProvider<PasscodeCubit>(
               create: (BuildContext context) => PasscodeCubit(),
-            ),
-            BlocProvider<LockCubit>(
-              create: (BuildContext context) => LockCubit(),
             ),
           ],
           // child: IperonMessengerMaterial(globalThemeMode: getAllSettings.darkMode, globalThemeColor: getAllSettings.themeColor),

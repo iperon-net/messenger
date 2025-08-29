@@ -14,23 +14,23 @@ class Lifecycle {
     _logger.debug("lifecycle initialization");
     appLifecycleListener = AppLifecycleListener(
       onShow: () {
-        _logger.debug("onShow");
+        // _logger.debug("onShow");
       },
       onResume: () {
-        _logger.debug("onResume");
+        // _logger.debug("onResume");
       },
       onHide: ()  {
-        _logger.debug("onHide");
+        // _logger.debug("onHide");
       },
       onInactive: () {
-        _logger.debug("onInactive");
+        // _logger.debug("onInactive");
       },
       onPause: () async {
         await _repositories.settingsDevice.setPassCodeTimer((DateTime.now().millisecondsSinceEpoch / 1000).toInt());
-        _logger.debug("onPause");
+        // _logger.debug("onPause");
       },
       onDetach: () {
-        _logger.debug("onDetach");
+        // _logger.debug("onDetach");
       },
       onRestart: () async {
         final getAllSettings = await _repositories.settingsDevice.getAllSettings();
@@ -38,10 +38,10 @@ class Lifecycle {
 
         if(getAllSettings.passCode.isNotEmpty && calculateTimer >= getAllSettings.passCodeTtl) {
           await _repositories.settingsDevice.setPassCodeLock(true);
-          _logger.debug("Lock!");
+          // _logger.debug("Lock!");
         }
 
-        _logger.debug("onRestart");
+        // _logger.debug("onRestart");
       },
     );
   }

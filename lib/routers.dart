@@ -9,7 +9,6 @@ import 'package:talker_flutter/talker_flutter.dart';
 
 import 'di.dart';
 import 'logger.dart';
-import 'screens/lock/lock_screen.dart';
 import 'screens/settings/appearance_screen.dart';
 import 'screens/settings/language_screen.dart';
 import 'screens/settings/passcode_screen.dart';
@@ -80,11 +79,6 @@ class Routers {
         defaultLifecycleObserver,
       ],
       routes: <RouteBase>[
-        GoRoute(
-          path: "/lock",
-          name: "lock",
-          builder: (BuildContext context, GoRouterState state) => LockScreen(),
-        ),
         GoRoute(
           path: "/",
           name: "index",
