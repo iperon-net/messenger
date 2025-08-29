@@ -66,15 +66,6 @@ class _WidgetWrapper extends State<WidgetWrapper> with LifecycleAware, Lifecycle
   Widget build(BuildContext context) {
     return BlocBuilder<AppCubit, AppState>(
       builder: (context, state) {
-
-
-        // final calculateTimer = (DateTime.now().millisecondsSinceEpoch / 1000).toInt() - (state.passCodeTimer).toInt();
-        // if (state.passCodeTtl > 0 && calculateTimer >= state.passCodeTtl) {
-        //   if(!state.unlock){
-        //     context.read<AppCubit>().lock();
-        //   }
-        // }
-
         if(_passCode.isNotEmpty && _passCodeLock) {
           return Scaffold(
             body: ScreenLock(

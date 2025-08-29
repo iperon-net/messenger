@@ -19,7 +19,6 @@ class _PasscodeScreenMaterial extends State<PasscodeScreenMaterial> {
   @override
   void initState() {
     context.read<PasscodeCubit>().initialization();
-    context.read<PasscodeCubit>().lock();
     super.initState();
   }
 
@@ -58,9 +57,9 @@ class _PasscodeScreenMaterial extends State<PasscodeScreenMaterial> {
         title: Text(context.t.settings.privacyAndSecurity.passcode.passcode),
         correctString: state.passCode,
         onCancelled: () => context.goNamed("settings_privacy_security"),
-        onUnlocked: () async => await context.read<PasscodeCubit>().unlock(),
+        onUnlocked: () async => await context.read<PasscodeCubit>().setPassCodeLock(false),
         secretsConfig: SecretsConfig(
-          spacing: 15,
+          spacing: 20,
           padding: const EdgeInsets.all(40),
         ),
         useBlur: false,
@@ -71,8 +70,6 @@ class _PasscodeScreenMaterial extends State<PasscodeScreenMaterial> {
       String trailingAutoLock = "";
 
       switch (state.passCodeTtl) {
-        case 1:
-          trailingAutoLock = context.t.settings.privacyAndSecurity.passcode.auto_lock_timer_in_1_seconds;
         case 60:
           trailingAutoLock = context.t.settings.privacyAndSecurity.passcode.auto_lock_timer_in_1_minute;
         case 300:
@@ -99,7 +96,6 @@ class _PasscodeScreenMaterial extends State<PasscodeScreenMaterial> {
               children: [
                 ListTile(
                   title: Text(context.t.settings.privacyAndSecurity.passcode.change_passcode),
-                  // leading: Icon(Icons.change_circle_sharp),
                   onTap: () => context.goNamed("settings_privacy_security_passcode_create"),
                 ),
                 ListTile(
@@ -131,10 +127,6 @@ class _PasscodeScreenMaterial extends State<PasscodeScreenMaterial> {
                               RadioListTile(
                                 title: Text(context.t.settings.privacyAndSecurity.passcode.auto_lock_in_disabled),
                                 value: "0",
-                              ),
-                              RadioListTile(
-                                title: Text(context.t.settings.privacyAndSecurity.passcode.auto_lock_timer_in_1_seconds),
-                                value: "1",
                               ),
                               RadioListTile(
                                 title: Text(context.t.settings.privacyAndSecurity.passcode.auto_lock_timer_in_1_minute),
@@ -180,15 +172,10 @@ class _PasscodeScreenMaterial extends State<PasscodeScreenMaterial> {
     }
 
     return WidgetWrapper(
-      child: BlocConsumer<PasscodeCubit, PasscodeState>(
-        listener: (context, state) async {
-          // if (context.mounted) await context.read<AppCubit>().setPassCode(state.passCode);
-          // if (context.mounted) await context.read<AppCubit>().setPassCodeTtl(state.passCodeTtl);
-          // if (context.mounted && state.unlock) context.read<AppCubit>().unlock();
-        },
+      child: BlocBuilder<PasscodeCubit, PasscodeState>(
         builder: (context, state) {
           if (state.passCode.isNotEmpty) {
-            if (state.unlock){
+            if (!state.passCodeLock){
               return Scaffold(
                 appBar: AppBar(
                   title: Text(context.t.settings.privacyAndSecurity.passcode.passcode),
@@ -211,32 +198,9 @@ class _PasscodeScreenMaterial extends State<PasscodeScreenMaterial> {
         },
       ),
     );
-
   }
-
 }
 
-
-// child: Scaffold(
-//   appBar: AppBar(
-//     title: Text(context.t.settings.privacyAndSecurity.passcode.passcode),
-//   ),
-//   body: SafeArea(
-//     child: BlocBuilder<PasscodeCubit, PasscodeState>(
-//       builder: (context, state) {
-//         if (state.passCode.isNotEmpty) {
-//           if (state.unlock){
-//             return widgetMenu(state);
-//           } else {
-//             return widgetUnlock(state);
-//           }
-//         } else {
-//           return widgetCreatePassCode(state);
-//         }
-//       },
-//     ),
-//   ),
-// ),
 
 class PasscodeScreenCreateMaterial extends StatefulWidget {
   const PasscodeScreenCreateMaterial({super.key});
@@ -265,7 +229,6 @@ class _PasscodeScreenCreateMaterial extends State<PasscodeScreenCreateMaterial> 
         ),
         onConfirmed: (String value) async {
           await context.read<PasscodeCubit>().setPassCode(value);
-          if (context.mounted) await context.read<PasscodeCubit>().unlock();
           if (context.mounted) context.goNamed("settings_privacy_security_passcode");
         },
         onCancelled: () => context.goNamed("settings_privacy_security_passcode"),

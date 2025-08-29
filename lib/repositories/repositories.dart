@@ -61,7 +61,7 @@ class Repositories {
 
         batch.execute("""
           INSERT INTO settings_device (language, darkMode, themeColor, passCode, passCodeTtl, passCodeTimer, passCodeLock)
-          VALUES ("", "system", "blue", "", 0, 0, 0)
+          VALUES ("", "system", "blue", "", 3600, 0, 0)
         """);
 
       //   batch.execute("""
