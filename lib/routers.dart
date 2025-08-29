@@ -10,11 +10,15 @@ import 'package:talker_flutter/talker_flutter.dart';
 import 'di.dart';
 import 'logger.dart';
 import 'screens/home/home_screen_cupertino.dart';
-import 'screens/settings/appearance_screen.dart';
-import 'screens/settings/language_screen.dart';
-import 'screens/settings/passcode_screen.dart';
-import 'screens/settings/privacy_and_security_screen.dart';
-import 'screens/settings/settings_screen.dart';
+import 'screens/settings/appearance_screen_cupertino.dart';
+import 'screens/settings/appearance_screen_material.dart';
+import 'screens/settings/language_screen_cupertino.dart';
+import 'screens/settings/language_screen_material.dart';
+import 'screens/settings/passcode_screen_cupertino.dart';
+import 'screens/settings/privacy_and_security_screen_cupertino.dart';
+import 'screens/settings/privacy_and_security_screen_material.dart';
+import 'screens/settings/settings_screen_cupertino.dart';
+import 'screens/settings/settings_screen_material.dart';
 
 class Routers {
   final GlobalKey<NavigatorState> navigatorGoRouterKey = GlobalKey<NavigatorState>();
@@ -40,29 +44,29 @@ class Routers {
             GoRoute(
               path: "/settings",
               name: "settings",
-              builder: (BuildContext context, GoRouterState state) => SettingsScreen(),
+              builder: (BuildContext context, GoRouterState state) => SettingsScreenCupertino(),
             ),
             GoRoute(
               path: "/settings/appearance",
               name: "settings_appearance",
-              builder: (BuildContext context, GoRouterState state) => AppearanceScreen(),
+              builder: (BuildContext context, GoRouterState state) => AppearanceScreenCupertino(),
             ),
             GoRoute(
               path: "/settings/privacy_security",
               name: "settings_privacy_security",
-              builder: (BuildContext context, GoRouterState state) => PrivacyAndSecurityScreen(),
+              builder: (BuildContext context, GoRouterState state) => PrivacyAndSecurityScreenCupertino(),
               routes: <GoRoute>[
                 GoRoute(
                   path: "/passcode",
                   name: "settings_privacy_security_passcode",
-                  builder: (BuildContext context, GoRouterState state) => PasscodeScreen(),
+                  builder: (BuildContext context, GoRouterState state) => PasscodeScreenCupertino(),
                 ),
               ],
             ),
             GoRoute(
               path: "/settings/language",
               name: "settings_language",
-              builder: (BuildContext context, GoRouterState state) => LanguageScreen(),
+              builder: (BuildContext context, GoRouterState state) => LanguageScreenCupertino(),
             ),
           ],
         ),
@@ -88,22 +92,22 @@ class Routers {
             GoRoute(
               path: "/settings",
               name: "settings",
-              builder: (BuildContext context, GoRouterState state) => SettingsScreen(),
+              builder: (BuildContext context, GoRouterState state) => SettingsScreenMaterial(),
               routes: [
                 GoRoute(
                   path: "/language",
                   name: "settings_language",
-                  builder: (BuildContext context, GoRouterState state) => LanguageScreen(),
+                  builder: (BuildContext context, GoRouterState state) => LanguageScreenMaterial(),
                 ),
                 GoRoute(
                   path: "/appearance",
                   name: "settings_appearance",
-                  builder: (BuildContext context, GoRouterState state) => AppearanceScreen(),
+                  builder: (BuildContext context, GoRouterState state) => AppearanceScreenMaterial(),
                 ),
                 GoRoute(
                   path: "/privacy_security",
                   name: "settings_privacy_security",
-                  builder: (BuildContext context, GoRouterState state) => PrivacyAndSecurityScreen(),
+                  builder: (BuildContext context, GoRouterState state) => PrivacyAndSecurityScreenMaterial(),
                   routes: [
                     GoRoute(
                       path: "/passcode",
