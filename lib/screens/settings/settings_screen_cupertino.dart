@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../components/widget_wrapper/widget_wrapper.dart';
 import '../../i18n/translations.g.dart';
 import 'settings_cubit.dart';
 
@@ -29,67 +30,67 @@ class _SettingsScreenCupertino extends State<SettingsScreenCupertino> {
 
   @override
   Widget build(BuildContext context) {
-    IconData icon = IconData(0xe106, fontFamily: 'FontAwesomeFree');
-
-    return CupertinoPageScaffold(
-      navigationBar: CupertinoNavigationBar(
-        transitionBetweenRoutes: false,
-        middle: Text(context.t.settings.settings),
-      ),
-      child: SingleChildScrollView(
-        child: SafeArea(
-          child: BlocBuilder<SettingsCubit, SettingsState>(
-            builder: (context, state) {
-              return Column(
-                children: [
-                  CupertinoFormSection.insetGrouped(
-                    header: Text(context.t.settings.myPersonalInfo),
-                    children: [
-                      CupertinoListTile(
-                        leading: Icon(CupertinoIcons.person),
-                        title: Text(context.t.settings.myProfile, style: TextStyle(fontSize: 15),),
-                        trailing: CupertinoListTileChevron(),
-                      ),
-                      CupertinoListTile(
-                        leading: Icon(CupertinoIcons.book),
-                        title: Text(context.t.settings.favorites, style: TextStyle(fontSize: 15),),
-                        trailing: CupertinoListTileChevron(),
-                      ),
-                    ],
-                  ),
-                  CupertinoFormSection.insetGrouped(
-                    header: Text(context.t.settings.settings),
-                    children: [
-                      CupertinoListTile(
-                        leading: Icon(CupertinoIcons.lock),
-                        title: Text(context.t.settings.privacyAndSecurity.privacyAndSecurity),
-                        trailing: CupertinoListTileChevron(),
-                        onTap: () => context.goNamed("settings_privacy_security"),
-                      ),
-                      CupertinoListTile(
-                        leading: Icon(CupertinoIcons.device_laptop),
-                        title: Text(context.t.settings.devices, style: TextStyle(fontSize: 15),),
-                        additionalInfo: Text("0"),
-                        trailing: CupertinoListTileChevron(),
-                      ),
-                      CupertinoListTile(
-                        leading: Icon(CupertinoIcons.circle_lefthalf_fill),
-                        title: Text(context.t.settings.appearance.appearance, style: TextStyle(fontSize: 15),),
-                        trailing: CupertinoListTileChevron(),
-                        onTap: () => context.goNamed("settings_appearance"),
-                      ),
-                      CupertinoListTile(
-                        leading: Icon(CupertinoIcons.globe),
-                        title: Text(context.t.settings.language.language, style: TextStyle(fontSize: 15),),
-                        additionalInfo: widgetLanguage(),
-                        trailing: CupertinoListTileChevron(),
-                        onTap: () => context.goNamed("settings_language"),
-                      ),
-                    ],
-                  ),
-                ],
-              );
-            },
+    return WidgetWrapper(
+      child: CupertinoPageScaffold(
+        navigationBar: CupertinoNavigationBar(
+          transitionBetweenRoutes: false,
+          middle: Text(context.t.settings.settings),
+        ),
+        child: SingleChildScrollView(
+          child: SafeArea(
+            child: BlocBuilder<SettingsCubit, SettingsState>(
+              builder: (context, state) {
+                return Column(
+                  children: [
+                    CupertinoFormSection.insetGrouped(
+                      header: Text(context.t.settings.myPersonalInfo),
+                      children: [
+                        CupertinoListTile(
+                          leading: Icon(CupertinoIcons.person),
+                          title: Text(context.t.settings.myProfile, style: TextStyle(fontSize: 15),),
+                          trailing: CupertinoListTileChevron(),
+                        ),
+                        CupertinoListTile(
+                          leading: Icon(CupertinoIcons.book),
+                          title: Text(context.t.settings.favorites, style: TextStyle(fontSize: 15),),
+                          trailing: CupertinoListTileChevron(),
+                        ),
+                      ],
+                    ),
+                    CupertinoFormSection.insetGrouped(
+                      header: Text(context.t.settings.settings),
+                      children: [
+                        CupertinoListTile(
+                          leading: Icon(CupertinoIcons.lock),
+                          title: Text(context.t.settings.privacyAndSecurity.privacyAndSecurity),
+                          trailing: CupertinoListTileChevron(),
+                          onTap: () => context.goNamed("settings_privacy_security"),
+                        ),
+                        CupertinoListTile(
+                          leading: Icon(CupertinoIcons.device_laptop),
+                          title: Text(context.t.settings.devices, style: TextStyle(fontSize: 15),),
+                          additionalInfo: Text("0"),
+                          trailing: CupertinoListTileChevron(),
+                        ),
+                        CupertinoListTile(
+                          leading: Icon(CupertinoIcons.circle_lefthalf_fill),
+                          title: Text(context.t.settings.appearance.appearance, style: TextStyle(fontSize: 15),),
+                          trailing: CupertinoListTileChevron(),
+                          onTap: () => context.goNamed("settings_appearance"),
+                        ),
+                        CupertinoListTile(
+                          leading: Icon(CupertinoIcons.globe),
+                          title: Text(context.t.settings.language.language, style: TextStyle(fontSize: 15),),
+                          additionalInfo: widgetLanguage(),
+                          trailing: CupertinoListTileChevron(),
+                          onTap: () => context.goNamed("settings_language"),
+                        ),
+                      ],
+                    ),
+                  ],
+                );
+              },
+            ),
           ),
         ),
       ),

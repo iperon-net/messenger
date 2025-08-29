@@ -3,7 +3,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screen_lock/flutter_screen_lock.dart';
-import 'package:lifecycle/lifecycle.dart';
 
 import '../../cubit/app_cubit.dart';
 import '../../di.dart';
@@ -19,7 +18,7 @@ class WidgetWrapper extends StatefulWidget {
   State<WidgetWrapper> createState() => _WidgetWrapper();
 }
 
-class _WidgetWrapper extends State<WidgetWrapper> with LifecycleAware, LifecycleMixin, WidgetsBindingObserver {
+class _WidgetWrapper extends State<WidgetWrapper> with WidgetsBindingObserver {
   bool _isBlurred = false;
   bool _passCodeLock = false;
   String _passCode = "";
@@ -40,16 +39,15 @@ class _WidgetWrapper extends State<WidgetWrapper> with LifecycleAware, Lifecycle
   }
 
   @override
-  void onLifecycleEvent(LifecycleEvent event) async {
-    if(event == LifecycleEvent.inactive) {
+  void didChangeAppLifecycleState(AppLifecycleState state) async {
+    if(state == AppLifecycleState.inactive) {
       setState(() {
         _isBlurred = true;
       });
-    } else if (event == LifecycleEvent.active) {
+    } else if (state == AppLifecycleState.resumed) {
       setState(() {
         _isBlurred = false;
       });
-
       final getAllSettings = await _repositories.settingsDevice.getAllSettings();
       _logger.debug("event = ${getAllSettings.toString()}");
 
