@@ -5,7 +5,6 @@ import 'package:messenger/repositories/repositories.dart';
 
 import '../../cubit/constants.dart';
 import '../../di.dart';
-import '../../logger.dart';
 
 part 'passcode_cubit.freezed.dart';
 part 'passcode_state.dart';
@@ -13,7 +12,6 @@ part 'passcode_state.dart';
 class PasscodeCubit extends Cubit<PasscodeState> {
   PasscodeCubit() : super(const PasscodeState());
 
-  final _logger = getIt.get<Logger>();
   final _repositories = getIt.get<Repositories>();
 
   final inputController = InputController();
