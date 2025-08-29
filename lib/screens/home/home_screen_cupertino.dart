@@ -4,8 +4,8 @@ import 'package:messenger/i18n/translations.g.dart';
 import 'package:messenger/screens/home/home_cubit.dart';
 
 import '../../components/widget_wrapper/widget_wrapper.dart';
-import '../contacts/contacts_screen.dart';
-import '../settings/settings_screen.dart';
+import '../contacts/contacts_screen_cupertino.dart';
+import '../settings/settings_screen_cupertino.dart';
 
 class HomeScreenCupertino extends StatefulWidget {
   const HomeScreenCupertino({super.key});
@@ -54,7 +54,7 @@ class _HomeScreenCupertino extends State<HomeScreenCupertino> {
               switch (index) {
                 case 0:
                   return CupertinoTabView(
-                    builder: (context) => const ContactsScreen(),
+                    builder: (context) => const ContactsScreenCupertino(),
                   );
                 case 1:
                   return CupertinoTabView(
@@ -62,7 +62,7 @@ class _HomeScreenCupertino extends State<HomeScreenCupertino> {
                   );
                 case 2:
                   return CupertinoTabView(
-                    builder: (context) => const SettingsScreen(),
+                    builder: (context) => const SettingsScreenCupertino(),
                   );
                 default:
                   return Container();
