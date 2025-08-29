@@ -4,6 +4,7 @@ import 'package:flutter_screen_lock/flutter_screen_lock.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../components/widget_wrapper/widget_wrapper.dart';
+import '../../cubit/constants.dart';
 import '../../i18n/translations.g.dart';
 import 'passcode_cubit.dart';
 
@@ -174,6 +175,15 @@ class _PasscodeScreenMaterial extends State<PasscodeScreenMaterial> {
     return WidgetWrapper(
       child: BlocBuilder<PasscodeCubit, PasscodeState>(
         builder: (context, state) {
+          if (state.status == Status.loading) {
+            return Scaffold(
+              appBar: AppBar(
+                title: Text(context.t.settings.privacyAndSecurity.passcode.passcode),
+              ),
+              body: Container(),
+            );
+          }
+
           if (state.passCode.isNotEmpty) {
             if (!state.passCodeLock){
               return Scaffold(
@@ -228,7 +238,8 @@ class _PasscodeScreenCreateMaterial extends State<PasscodeScreenCreateMaterial> 
           padding: const EdgeInsets.all(40),
         ),
         onConfirmed: (String value) async {
-          await context.read<PasscodeCubit>().setPassCode(value);
+          if(context.mounted) await context.read<PasscodeCubit>().setPassCode(value);
+          if(context.mounted) await context.read<PasscodeCubit>().setPassCodeLock(false);
           if (context.mounted) context.goNamed("settings_privacy_security_passcode");
         },
         onCancelled: () => context.goNamed("settings_privacy_security_passcode"),

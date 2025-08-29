@@ -17,11 +17,16 @@ class PasscodeCubit extends Cubit<PasscodeState> {
   final inputController = InputController();
 
   Future<void> initialization() async {
+    emit(state.copyWith(
+      passCodeLock: true,
+    ));
+
     final settings = await _repositories.settingsDevice.getAllSettings();
     emit(state.copyWith(
       passCode: settings.passCode,
       passCodeTtl: settings.passCodeTtl,
       passCodeLock: true,
+      status: Status.success,
     ));
   }
 
