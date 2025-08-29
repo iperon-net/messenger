@@ -3,12 +3,13 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lifecycle/lifecycle.dart';
-import 'package:messenger/screens/home/home_screen.dart';
+import 'package:messenger/screens/home/home_screen_material.dart';
 import 'package:messenger/screens/settings/passcode_screen_material.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 
 import 'di.dart';
 import 'logger.dart';
+import 'screens/home/home_screen_cupertino.dart';
 import 'screens/settings/appearance_screen.dart';
 import 'screens/settings/language_screen.dart';
 import 'screens/settings/passcode_screen.dart';
@@ -34,7 +35,7 @@ class Routers {
         GoRoute(
           path: "/",
           name: "index",
-          builder: (BuildContext context, GoRouterState state) => HomeScreen(),
+          builder: (BuildContext context, GoRouterState state) => HomeScreenCupertino(),
           routes: [
             GoRoute(
               path: "/settings",
@@ -82,7 +83,7 @@ class Routers {
         GoRoute(
           path: "/",
           name: "index",
-          builder: (BuildContext context, GoRouterState state) => HomeScreen(),
+          builder: (BuildContext context, GoRouterState state) => HomeScreenMaterial(),
           routes: [
             GoRoute(
               path: "/settings",
