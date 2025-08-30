@@ -42,6 +42,7 @@ class PasscodeCubit extends Cubit<PasscodeState> {
 
   Future<void> setPassCodeLock(bool value) async {
     emit(state.copyWith(passCodeLock: value));
+    await _repositories.settingsDevice.setPassCodeLock(value);
   }
 
   Future<void> disablePassCode() async {
