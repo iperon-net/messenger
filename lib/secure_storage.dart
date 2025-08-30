@@ -14,7 +14,6 @@ class SecureStorage {
     if (Platform.isIOS) {
       _storage = FlutterSecureStorage(iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock));
     } else {
-
       _storage = FlutterSecureStorage(aOptions: AndroidOptions(dataStore: true));
     }
   }
