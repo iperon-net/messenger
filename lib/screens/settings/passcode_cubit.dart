@@ -18,14 +18,14 @@ class PasscodeCubit extends Cubit<PasscodeState> {
 
   Future<void> initialization() async {
     emit(state.copyWith(
-      passCodeLock: true,
+      passCodeLock: 1,
     ));
 
     final settings = await _repositories.settingsDevice.getAllSettings();
     emit(state.copyWith(
       passCode: settings.passCode,
       passCodeTtl: settings.passCodeTtl,
-      passCodeLock: true,
+      passCodeLock: settings.passCodeLock,
       status: Status.success,
     ));
   }
@@ -40,7 +40,7 @@ class PasscodeCubit extends Cubit<PasscodeState> {
     emit(state.copyWith(passCode: value));
   }
 
-  Future<void> setPassCodeLock(bool value) async {
+  Future<void> setPassCodeLock(int value) async {
     emit(state.copyWith(passCodeLock: value));
     await _repositories.settingsDevice.setPassCodeLock(value);
   }

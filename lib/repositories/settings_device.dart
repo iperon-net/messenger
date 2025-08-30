@@ -71,13 +71,9 @@ class SettingsDevice {
     });
   }
 
-  Future<void> setPassCodeLock(bool lock) async {
+  Future<void> setPassCodeLock(int lock) async {
     return await database.transaction((txn) async {
-      if (lock == true) {
-        await txn.update("settings_device", {"passCodeLock": 1});
-      } else {
-        await txn.update("settings_device", {"passCodeLock": 0});
-      }
+      await txn.update("settings_device", {"passCodeLock": lock});
     });
   }
 

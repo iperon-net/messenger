@@ -57,7 +57,7 @@ class _PasscodeScreenMaterial extends State<PasscodeScreenMaterial> {
         title: Text(context.t.settings.privacyAndSecurity.passcode.passcode),
         correctString: state.passCode,
         onCancelled: () => context.goNamed("settings_privacy_security"),
-        onUnlocked: () async => await context.read<PasscodeCubit>().setPassCodeLock(false),
+        onUnlocked: () async => await context.read<PasscodeCubit>().setPassCodeLock(0),
         secretsConfig: SecretsConfig(
           spacing: 20,
           padding: const EdgeInsets.all(40),
@@ -174,17 +174,8 @@ class _PasscodeScreenMaterial extends State<PasscodeScreenMaterial> {
     return BlocBuilder<PasscodeCubit, PasscodeState>(
       builder: (context, state) {
 
-        // if (state.status == Status.loading) {
-        //   return Scaffold(
-        //     appBar: AppBar(
-        //       title: Text(context.t.settings.privacyAndSecurity.passcode.passcode),
-        //     ),
-        //     body: Container(),
-        //   );
-        // }
-
         if (state.passCode.isNotEmpty) {
-          if (!state.passCodeLock){
+          if (state.passCodeLock == 0){
             return WidgetWrapper(
               child: Scaffold(
                 appBar: AppBar(
@@ -239,7 +230,7 @@ class _PasscodeScreenCreateMaterial extends State<PasscodeScreenCreateMaterial> 
         ),
         onConfirmed: (String value) async {
           if (context.mounted) await context.read<PasscodeCubit>().setPassCode(value);
-          if (context.mounted) await context.read<PasscodeCubit>().setPassCodeLock(false);
+          if (context.mounted) await context.read<PasscodeCubit>().setPassCodeLock(0);
           if (context.mounted) context.goNamed("settings_privacy_security_passcode");
         },
         onCancelled: () => context.goNamed("settings_privacy_security_passcode"),

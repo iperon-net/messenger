@@ -37,7 +37,7 @@ class Lifecycle {
         final calculateTimer = (DateTime.now().millisecondsSinceEpoch / 1000).toInt() - (getAllSettings.passCodeTimer).toInt();
 
         if(getAllSettings.passCode.isNotEmpty && calculateTimer >= getAllSettings.passCodeTtl) {
-          await _repositories.settingsDevice.setPassCodeLock(true);
+          await _repositories.settingsDevice.setPassCodeLock(1);
           // _logger.debug("Lock!");
         }
 

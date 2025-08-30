@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$PasscodeState {
 
- Status get status; String get errorMessage; String get passCode; int get passCodeTtl; bool get passCodeLock;
+ Status get status; String get errorMessage; String get passCode; int get passCodeTtl; int get passCodeLock;
 /// Create a copy of PasscodeState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -45,7 +45,7 @@ abstract mixin class $PasscodeStateCopyWith<$Res>  {
   factory $PasscodeStateCopyWith(PasscodeState value, $Res Function(PasscodeState) _then) = _$PasscodeStateCopyWithImpl;
 @useResult
 $Res call({
- Status status, String errorMessage, String passCode, int passCodeTtl, bool passCodeLock
+ Status status, String errorMessage, String passCode, int passCodeTtl, int passCodeLock
 });
 
 
@@ -69,7 +69,7 @@ as Status,errorMessage: null == errorMessage ? _self.errorMessage : errorMessage
 as String,passCode: null == passCode ? _self.passCode : passCode // ignore: cast_nullable_to_non_nullable
 as String,passCodeTtl: null == passCodeTtl ? _self.passCodeTtl : passCodeTtl // ignore: cast_nullable_to_non_nullable
 as int,passCodeLock: null == passCodeLock ? _self.passCodeLock : passCodeLock // ignore: cast_nullable_to_non_nullable
-as bool,
+as int,
   ));
 }
 
@@ -154,7 +154,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( Status status,  String errorMessage,  String passCode,  int passCodeTtl,  bool passCodeLock)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( Status status,  String errorMessage,  String passCode,  int passCodeTtl,  int passCodeLock)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _PasscodeState() when $default != null:
 return $default(_that.status,_that.errorMessage,_that.passCode,_that.passCodeTtl,_that.passCodeLock);case _:
@@ -175,7 +175,7 @@ return $default(_that.status,_that.errorMessage,_that.passCode,_that.passCodeTtl
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( Status status,  String errorMessage,  String passCode,  int passCodeTtl,  bool passCodeLock)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( Status status,  String errorMessage,  String passCode,  int passCodeTtl,  int passCodeLock)  $default,) {final _that = this;
 switch (_that) {
 case _PasscodeState():
 return $default(_that.status,_that.errorMessage,_that.passCode,_that.passCodeTtl,_that.passCodeLock);case _:
@@ -190,14 +190,14 @@ return $default(_that.status,_that.errorMessage,_that.passCode,_that.passCodeTtl
 
 
 class _PasscodeState extends PasscodeState {
-  const _PasscodeState({this.status = Status.initial, this.errorMessage = "", this.passCode = "", this.passCodeTtl = 0, this.passCodeLock = false}): super._();
+  const _PasscodeState({this.status = Status.initial, this.errorMessage = "", this.passCode = "", this.passCodeTtl = 0, this.passCodeLock = 0}): super._();
   
 
 @override@JsonKey() final  Status status;
 @override@JsonKey() final  String errorMessage;
 @override@JsonKey() final  String passCode;
 @override@JsonKey() final  int passCodeTtl;
-@override@JsonKey() final  bool passCodeLock;
+@override@JsonKey() final  int passCodeLock;
 
 /// Create a copy of PasscodeState
 /// with the given fields replaced by the non-null parameter values.
@@ -229,7 +229,7 @@ abstract mixin class _$PasscodeStateCopyWith<$Res> implements $PasscodeStateCopy
   factory _$PasscodeStateCopyWith(_PasscodeState value, $Res Function(_PasscodeState) _then) = __$PasscodeStateCopyWithImpl;
 @override @useResult
 $Res call({
- Status status, String errorMessage, String passCode, int passCodeTtl, bool passCodeLock
+ Status status, String errorMessage, String passCode, int passCodeTtl, int passCodeLock
 });
 
 
@@ -253,7 +253,7 @@ as Status,errorMessage: null == errorMessage ? _self.errorMessage : errorMessage
 as String,passCode: null == passCode ? _self.passCode : passCode // ignore: cast_nullable_to_non_nullable
 as String,passCodeTtl: null == passCodeTtl ? _self.passCodeTtl : passCodeTtl // ignore: cast_nullable_to_non_nullable
 as int,passCodeLock: null == passCodeLock ? _self.passCodeLock : passCodeLock // ignore: cast_nullable_to_non_nullable
-as bool,
+as int,
   ));
 }
 

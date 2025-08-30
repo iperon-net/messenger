@@ -12,7 +12,8 @@ import '../../repositories/repositories.dart';
 
 class WidgetWrapper extends StatefulWidget {
   final Widget child;
-  const WidgetWrapper({super.key, required this.child});
+  final bool lock;
+  const WidgetWrapper({super.key, required this.child, this.lock = true});
 
   @override
   State<WidgetWrapper> createState() => _WidgetWrapper();
@@ -64,7 +65,7 @@ class _WidgetWrapper extends State<WidgetWrapper> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     return BlocBuilder<AppCubit, AppState>(
       builder: (context, state) {
-        if(_passCode.isNotEmpty && _passCodeLock) {
+        if(widget.lock && _passCode.isNotEmpty && _passCodeLock) {
           return Scaffold(
             body: ScreenLock(
               cancelButton: Text(context.t.settings.privacyAndSecurity.passcode.cancel),
@@ -74,7 +75,7 @@ class _WidgetWrapper extends State<WidgetWrapper> with WidgetsBindingObserver {
                 setState(() {
                   _passCodeLock = false;
                 });
-                await _repositories.settingsDevice.setPassCodeLock(false);
+                await _repositories.settingsDevice.setPassCodeLock(0);
               },
               secretsConfig: SecretsConfig(
                 spacing: 15,
