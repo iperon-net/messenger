@@ -88,6 +88,11 @@ class Routers {
           path: "/",
           name: "index",
           builder: (BuildContext context, GoRouterState state) => HomeScreenMaterial(),
+          redirect: (BuildContext context, GoRouterState state) async {
+            final logger = getIt.get<Logger>();
+            logger.debug("redirect!");
+            return;
+          },
           routes: [
             GoRoute(
               path: "/settings",

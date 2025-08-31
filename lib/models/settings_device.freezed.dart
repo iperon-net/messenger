@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$SettingsDevice implements DiagnosticableTreeMixin {
 
- String get language; SettingsDeviceDarkMode get darkMode; SettingsDeviceThemeColor get themeColor; String get passCode; int get passCodeTtl; int get passCodeTimer; int get passCodeLock;
+ String get language; SettingsDeviceDarkMode get darkMode; SettingsDeviceThemeColor get themeColor; String get passCode; int get passCodeTtl; int get passCodeTimer; int get passCodeLock; int get viewTaskSwitchingEnable;
 /// Create a copy of SettingsDevice
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -29,21 +29,21 @@ $SettingsDeviceCopyWith<SettingsDevice> get copyWith => _$SettingsDeviceCopyWith
 void debugFillProperties(DiagnosticPropertiesBuilder properties) {
   properties
     ..add(DiagnosticsProperty('type', 'SettingsDevice'))
-    ..add(DiagnosticsProperty('language', language))..add(DiagnosticsProperty('darkMode', darkMode))..add(DiagnosticsProperty('themeColor', themeColor))..add(DiagnosticsProperty('passCode', passCode))..add(DiagnosticsProperty('passCodeTtl', passCodeTtl))..add(DiagnosticsProperty('passCodeTimer', passCodeTimer))..add(DiagnosticsProperty('passCodeLock', passCodeLock));
+    ..add(DiagnosticsProperty('language', language))..add(DiagnosticsProperty('darkMode', darkMode))..add(DiagnosticsProperty('themeColor', themeColor))..add(DiagnosticsProperty('passCode', passCode))..add(DiagnosticsProperty('passCodeTtl', passCodeTtl))..add(DiagnosticsProperty('passCodeTimer', passCodeTimer))..add(DiagnosticsProperty('passCodeLock', passCodeLock))..add(DiagnosticsProperty('viewTaskSwitchingEnable', viewTaskSwitchingEnable));
 }
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SettingsDevice&&(identical(other.language, language) || other.language == language)&&(identical(other.darkMode, darkMode) || other.darkMode == darkMode)&&(identical(other.themeColor, themeColor) || other.themeColor == themeColor)&&(identical(other.passCode, passCode) || other.passCode == passCode)&&(identical(other.passCodeTtl, passCodeTtl) || other.passCodeTtl == passCodeTtl)&&(identical(other.passCodeTimer, passCodeTimer) || other.passCodeTimer == passCodeTimer)&&(identical(other.passCodeLock, passCodeLock) || other.passCodeLock == passCodeLock));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SettingsDevice&&(identical(other.language, language) || other.language == language)&&(identical(other.darkMode, darkMode) || other.darkMode == darkMode)&&(identical(other.themeColor, themeColor) || other.themeColor == themeColor)&&(identical(other.passCode, passCode) || other.passCode == passCode)&&(identical(other.passCodeTtl, passCodeTtl) || other.passCodeTtl == passCodeTtl)&&(identical(other.passCodeTimer, passCodeTimer) || other.passCodeTimer == passCodeTimer)&&(identical(other.passCodeLock, passCodeLock) || other.passCodeLock == passCodeLock)&&(identical(other.viewTaskSwitchingEnable, viewTaskSwitchingEnable) || other.viewTaskSwitchingEnable == viewTaskSwitchingEnable));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,language,darkMode,themeColor,passCode,passCodeTtl,passCodeTimer,passCodeLock);
+int get hashCode => Object.hash(runtimeType,language,darkMode,themeColor,passCode,passCodeTtl,passCodeTimer,passCodeLock,viewTaskSwitchingEnable);
 
 @override
 String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
-  return 'SettingsDevice(language: $language, darkMode: $darkMode, themeColor: $themeColor, passCode: $passCode, passCodeTtl: $passCodeTtl, passCodeTimer: $passCodeTimer, passCodeLock: $passCodeLock)';
+  return 'SettingsDevice(language: $language, darkMode: $darkMode, themeColor: $themeColor, passCode: $passCode, passCodeTtl: $passCodeTtl, passCodeTimer: $passCodeTimer, passCodeLock: $passCodeLock, viewTaskSwitchingEnable: $viewTaskSwitchingEnable)';
 }
 
 
@@ -54,7 +54,7 @@ abstract mixin class $SettingsDeviceCopyWith<$Res>  {
   factory $SettingsDeviceCopyWith(SettingsDevice value, $Res Function(SettingsDevice) _then) = _$SettingsDeviceCopyWithImpl;
 @useResult
 $Res call({
- String language, SettingsDeviceDarkMode darkMode, SettingsDeviceThemeColor themeColor, String passCode, int passCodeTtl, int passCodeTimer, int passCodeLock
+ String language, SettingsDeviceDarkMode darkMode, SettingsDeviceThemeColor themeColor, String passCode, int passCodeTtl, int passCodeTimer, int passCodeLock, int viewTaskSwitchingEnable
 });
 
 
@@ -71,7 +71,7 @@ class _$SettingsDeviceCopyWithImpl<$Res>
 
 /// Create a copy of SettingsDevice
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? language = null,Object? darkMode = null,Object? themeColor = null,Object? passCode = null,Object? passCodeTtl = null,Object? passCodeTimer = null,Object? passCodeLock = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? language = null,Object? darkMode = null,Object? themeColor = null,Object? passCode = null,Object? passCodeTtl = null,Object? passCodeTimer = null,Object? passCodeLock = null,Object? viewTaskSwitchingEnable = null,}) {
   return _then(_self.copyWith(
 language: null == language ? _self.language : language // ignore: cast_nullable_to_non_nullable
 as String,darkMode: null == darkMode ? _self.darkMode : darkMode // ignore: cast_nullable_to_non_nullable
@@ -80,6 +80,7 @@ as SettingsDeviceThemeColor,passCode: null == passCode ? _self.passCode : passCo
 as String,passCodeTtl: null == passCodeTtl ? _self.passCodeTtl : passCodeTtl // ignore: cast_nullable_to_non_nullable
 as int,passCodeTimer: null == passCodeTimer ? _self.passCodeTimer : passCodeTimer // ignore: cast_nullable_to_non_nullable
 as int,passCodeLock: null == passCodeLock ? _self.passCodeLock : passCodeLock // ignore: cast_nullable_to_non_nullable
+as int,viewTaskSwitchingEnable: null == viewTaskSwitchingEnable ? _self.viewTaskSwitchingEnable : viewTaskSwitchingEnable // ignore: cast_nullable_to_non_nullable
 as int,
   ));
 }
@@ -165,10 +166,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String language,  SettingsDeviceDarkMode darkMode,  SettingsDeviceThemeColor themeColor,  String passCode,  int passCodeTtl,  int passCodeTimer,  int passCodeLock)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String language,  SettingsDeviceDarkMode darkMode,  SettingsDeviceThemeColor themeColor,  String passCode,  int passCodeTtl,  int passCodeTimer,  int passCodeLock,  int viewTaskSwitchingEnable)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SettingsDevice() when $default != null:
-return $default(_that.language,_that.darkMode,_that.themeColor,_that.passCode,_that.passCodeTtl,_that.passCodeTimer,_that.passCodeLock);case _:
+return $default(_that.language,_that.darkMode,_that.themeColor,_that.passCode,_that.passCodeTtl,_that.passCodeTimer,_that.passCodeLock,_that.viewTaskSwitchingEnable);case _:
   return orElse();
 
 }
@@ -186,10 +187,10 @@ return $default(_that.language,_that.darkMode,_that.themeColor,_that.passCode,_t
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String language,  SettingsDeviceDarkMode darkMode,  SettingsDeviceThemeColor themeColor,  String passCode,  int passCodeTtl,  int passCodeTimer,  int passCodeLock)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String language,  SettingsDeviceDarkMode darkMode,  SettingsDeviceThemeColor themeColor,  String passCode,  int passCodeTtl,  int passCodeTimer,  int passCodeLock,  int viewTaskSwitchingEnable)  $default,) {final _that = this;
 switch (_that) {
 case _SettingsDevice():
-return $default(_that.language,_that.darkMode,_that.themeColor,_that.passCode,_that.passCodeTtl,_that.passCodeTimer,_that.passCodeLock);case _:
+return $default(_that.language,_that.darkMode,_that.themeColor,_that.passCode,_that.passCodeTtl,_that.passCodeTimer,_that.passCodeLock,_that.viewTaskSwitchingEnable);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -201,7 +202,7 @@ return $default(_that.language,_that.darkMode,_that.themeColor,_that.passCode,_t
 
 @JsonSerializable(explicitToJson: true)
 class _SettingsDevice extends SettingsDevice with DiagnosticableTreeMixin {
-  const _SettingsDevice({required this.language, required this.darkMode, required this.themeColor, required this.passCode, required this.passCodeTtl, required this.passCodeTimer, required this.passCodeLock}): super._();
+  const _SettingsDevice({required this.language, required this.darkMode, required this.themeColor, required this.passCode, required this.passCodeTtl, required this.passCodeTimer, required this.passCodeLock, required this.viewTaskSwitchingEnable}): super._();
   factory _SettingsDevice.fromJson(Map<String, dynamic> json) => _$SettingsDeviceFromJson(json);
 
 @override final  String language;
@@ -211,6 +212,7 @@ class _SettingsDevice extends SettingsDevice with DiagnosticableTreeMixin {
 @override final  int passCodeTtl;
 @override final  int passCodeTimer;
 @override final  int passCodeLock;
+@override final  int viewTaskSwitchingEnable;
 
 /// Create a copy of SettingsDevice
 /// with the given fields replaced by the non-null parameter values.
@@ -226,21 +228,21 @@ Map<String, dynamic> toJson() {
 void debugFillProperties(DiagnosticPropertiesBuilder properties) {
   properties
     ..add(DiagnosticsProperty('type', 'SettingsDevice'))
-    ..add(DiagnosticsProperty('language', language))..add(DiagnosticsProperty('darkMode', darkMode))..add(DiagnosticsProperty('themeColor', themeColor))..add(DiagnosticsProperty('passCode', passCode))..add(DiagnosticsProperty('passCodeTtl', passCodeTtl))..add(DiagnosticsProperty('passCodeTimer', passCodeTimer))..add(DiagnosticsProperty('passCodeLock', passCodeLock));
+    ..add(DiagnosticsProperty('language', language))..add(DiagnosticsProperty('darkMode', darkMode))..add(DiagnosticsProperty('themeColor', themeColor))..add(DiagnosticsProperty('passCode', passCode))..add(DiagnosticsProperty('passCodeTtl', passCodeTtl))..add(DiagnosticsProperty('passCodeTimer', passCodeTimer))..add(DiagnosticsProperty('passCodeLock', passCodeLock))..add(DiagnosticsProperty('viewTaskSwitchingEnable', viewTaskSwitchingEnable));
 }
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SettingsDevice&&(identical(other.language, language) || other.language == language)&&(identical(other.darkMode, darkMode) || other.darkMode == darkMode)&&(identical(other.themeColor, themeColor) || other.themeColor == themeColor)&&(identical(other.passCode, passCode) || other.passCode == passCode)&&(identical(other.passCodeTtl, passCodeTtl) || other.passCodeTtl == passCodeTtl)&&(identical(other.passCodeTimer, passCodeTimer) || other.passCodeTimer == passCodeTimer)&&(identical(other.passCodeLock, passCodeLock) || other.passCodeLock == passCodeLock));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SettingsDevice&&(identical(other.language, language) || other.language == language)&&(identical(other.darkMode, darkMode) || other.darkMode == darkMode)&&(identical(other.themeColor, themeColor) || other.themeColor == themeColor)&&(identical(other.passCode, passCode) || other.passCode == passCode)&&(identical(other.passCodeTtl, passCodeTtl) || other.passCodeTtl == passCodeTtl)&&(identical(other.passCodeTimer, passCodeTimer) || other.passCodeTimer == passCodeTimer)&&(identical(other.passCodeLock, passCodeLock) || other.passCodeLock == passCodeLock)&&(identical(other.viewTaskSwitchingEnable, viewTaskSwitchingEnable) || other.viewTaskSwitchingEnable == viewTaskSwitchingEnable));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,language,darkMode,themeColor,passCode,passCodeTtl,passCodeTimer,passCodeLock);
+int get hashCode => Object.hash(runtimeType,language,darkMode,themeColor,passCode,passCodeTtl,passCodeTimer,passCodeLock,viewTaskSwitchingEnable);
 
 @override
 String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
-  return 'SettingsDevice(language: $language, darkMode: $darkMode, themeColor: $themeColor, passCode: $passCode, passCodeTtl: $passCodeTtl, passCodeTimer: $passCodeTimer, passCodeLock: $passCodeLock)';
+  return 'SettingsDevice(language: $language, darkMode: $darkMode, themeColor: $themeColor, passCode: $passCode, passCodeTtl: $passCodeTtl, passCodeTimer: $passCodeTimer, passCodeLock: $passCodeLock, viewTaskSwitchingEnable: $viewTaskSwitchingEnable)';
 }
 
 
@@ -251,7 +253,7 @@ abstract mixin class _$SettingsDeviceCopyWith<$Res> implements $SettingsDeviceCo
   factory _$SettingsDeviceCopyWith(_SettingsDevice value, $Res Function(_SettingsDevice) _then) = __$SettingsDeviceCopyWithImpl;
 @override @useResult
 $Res call({
- String language, SettingsDeviceDarkMode darkMode, SettingsDeviceThemeColor themeColor, String passCode, int passCodeTtl, int passCodeTimer, int passCodeLock
+ String language, SettingsDeviceDarkMode darkMode, SettingsDeviceThemeColor themeColor, String passCode, int passCodeTtl, int passCodeTimer, int passCodeLock, int viewTaskSwitchingEnable
 });
 
 
@@ -268,7 +270,7 @@ class __$SettingsDeviceCopyWithImpl<$Res>
 
 /// Create a copy of SettingsDevice
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? language = null,Object? darkMode = null,Object? themeColor = null,Object? passCode = null,Object? passCodeTtl = null,Object? passCodeTimer = null,Object? passCodeLock = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? language = null,Object? darkMode = null,Object? themeColor = null,Object? passCode = null,Object? passCodeTtl = null,Object? passCodeTimer = null,Object? passCodeLock = null,Object? viewTaskSwitchingEnable = null,}) {
   return _then(_SettingsDevice(
 language: null == language ? _self.language : language // ignore: cast_nullable_to_non_nullable
 as String,darkMode: null == darkMode ? _self.darkMode : darkMode // ignore: cast_nullable_to_non_nullable
@@ -277,6 +279,7 @@ as SettingsDeviceThemeColor,passCode: null == passCode ? _self.passCode : passCo
 as String,passCodeTtl: null == passCodeTtl ? _self.passCodeTtl : passCodeTtl // ignore: cast_nullable_to_non_nullable
 as int,passCodeTimer: null == passCodeTimer ? _self.passCodeTimer : passCodeTimer // ignore: cast_nullable_to_non_nullable
 as int,passCodeLock: null == passCodeLock ? _self.passCodeLock : passCodeLock // ignore: cast_nullable_to_non_nullable
+as int,viewTaskSwitchingEnable: null == viewTaskSwitchingEnable ? _self.viewTaskSwitchingEnable : viewTaskSwitchingEnable // ignore: cast_nullable_to_non_nullable
 as int,
   ));
 }

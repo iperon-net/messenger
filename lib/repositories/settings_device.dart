@@ -16,6 +16,7 @@ class SettingsDevice {
       "passCodeTtl",
       "passCodeTimer",
       "passCodeLock",
+      "viewTaskSwitchingEnable",
     ];
 
     return await database.transaction((txn) async {
@@ -29,6 +30,7 @@ class SettingsDevice {
           passCodeTtl: 0,
           passCodeTimer: 0,
           passCodeLock: 0,
+          viewTaskSwitchingEnable: 0,
         );
       }
       return models.SettingsDevice.fromJson(records.first);

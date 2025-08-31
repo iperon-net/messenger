@@ -23,6 +23,7 @@ class AppCubit extends Cubit<AppState> {
       passCode: getAllSettings.passCode,
       passCodeTtl: getAllSettings.passCodeTtl,
       passCodeTimer: getAllSettings.passCodeTimer,
+      viewTaskSwitchingEnable: 1,
     ));
   }
 
@@ -48,4 +49,10 @@ class AppCubit extends Cubit<AppState> {
   Future<void> changeThemeColor(models.SettingsDeviceThemeColor value) async {
     emit(state.copyWith(status: Status.success, themeColor: value));
   }
+
+  Future<void> viewTaskSwitching(bool value) async {
+    emit(state.copyWith(viewTaskSwitching: value));
+  }
+
+
 }

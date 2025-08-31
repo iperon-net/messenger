@@ -20,6 +20,7 @@ abstract class SettingsDevice with _$SettingsDevice {
     required int passCodeTtl,
     required int passCodeTimer,
     required int passCodeLock,
+    required int viewTaskSwitchingEnable,
   }) = _SettingsDevice;
 
   factory SettingsDevice.fromJson(Map<String, dynamic> json) => _$SettingsDeviceFromJson(json);

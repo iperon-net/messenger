@@ -88,6 +88,8 @@ class IperonMessengerMaterial extends StatelessWidget {
   Widget build(BuildContext context) {
     final routerConfig = getIt.get<Routers>().routerMaterial();
 
+    context.read<AppCubit>().initialization();
+
     late ThemeMode themeMode;
     late ColorScheme colorSchemeLight;
     late ColorScheme colorSchemeDark;

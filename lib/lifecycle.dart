@@ -12,38 +12,37 @@ class Lifecycle {
 
   Future<void> initialization() async {
     _logger.debug("lifecycle initialization");
-    appLifecycleListener = AppLifecycleListener(
-      onShow: () {
-        // _logger.debug("onShow");
-      },
-      onResume: () {
-        // _logger.debug("onResume");
-      },
-      onHide: ()  {
-        // _logger.debug("onHide");
-      },
-      onInactive: () {
-        // _logger.debug("onInactive");
-      },
-      onPause: () async {
-        await _repositories.settingsDevice.setPassCodeTimer((DateTime.now().millisecondsSinceEpoch / 1000).toInt());
-        // _logger.debug("onPause");
-      },
-      onDetach: () {
-        // _logger.debug("onDetach");
-      },
-      onRestart: () async {
-        final getAllSettings = await _repositories.settingsDevice.getAllSettings();
-        final calculateTimer = (DateTime.now().millisecondsSinceEpoch / 1000).toInt() - (getAllSettings.passCodeTimer).toInt();
-
-        if(getAllSettings.passCode.isNotEmpty && calculateTimer >= getAllSettings.passCodeTtl) {
-          await _repositories.settingsDevice.setPassCodeLock(1);
-          // _logger.debug("Lock!");
-        }
-
-        // _logger.debug("onRestart");
-      },
-    );
+    // appLifecycleListener = AppLifecycleListener(
+    //   onShow: () {
+    //     // _logger.debug("onShow");
+    //   },
+    //   onResume: () {
+    //     // _logger.debug("onResume");
+    //   },
+    //   onHide: ()  {
+    //     // _logger.debug("onHide");
+    //   },
+    //   onInactive: () {
+    //     // _logger.debug("onInactive");
+    //   },
+    //   onPause: () async {
+    //     await _repositories.settingsDevice.setPassCodeTimer((DateTime.now().millisecondsSinceEpoch / 1000).toInt());
+    //   },
+    //   onDetach: () {
+    //     // _logger.debug("onDetach");
+    //   },
+    //   onRestart: () async {
+    //     final getAllSettings = await _repositories.settingsDevice.getAllSettings();
+    //     final calculateTimer = (DateTime.now().millisecondsSinceEpoch / 1000).toInt() - (getAllSettings.passCodeTimer).toInt();
+    //
+    //     if(getAllSettings.passCode.isNotEmpty && calculateTimer >= getAllSettings.passCodeTtl) {
+    //       await _repositories.settingsDevice.setPassCodeLock(1);
+    //       // _logger.debug("Lock!");
+    //     }
+    //
+    //     // _logger.debug("onRestart");
+    //   },
+    // );
   }
 
 }

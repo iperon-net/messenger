@@ -11,5 +11,8 @@ abstract class AppState with _$AppState {
     @Default("") String passCode,
     @Default(0) int passCodeTtl,
     @Default(0) int passCodeTimer,
+
+    @Default(0) int viewTaskSwitchingEnable,
+    @Default(false) bool viewTaskSwitching,
   }) = _AppState;
 }

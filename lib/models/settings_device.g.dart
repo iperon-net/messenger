@@ -18,6 +18,7 @@ _SettingsDevice _$SettingsDeviceFromJson(Map<String, dynamic> json) =>
       passCodeTtl: (json['passCodeTtl'] as num).toInt(),
       passCodeTimer: (json['passCodeTimer'] as num).toInt(),
       passCodeLock: (json['passCodeLock'] as num).toInt(),
+      viewTaskSwitchingEnable: (json['viewTaskSwitchingEnable'] as num).toInt(),
     );
 
 Map<String, dynamic> _$SettingsDeviceToJson(_SettingsDevice instance) =>
@@ -29,6 +30,7 @@ Map<String, dynamic> _$SettingsDeviceToJson(_SettingsDevice instance) =>
       'passCodeTtl': instance.passCodeTtl,
       'passCodeTimer': instance.passCodeTimer,
       'passCodeLock': instance.passCodeLock,
+      'viewTaskSwitchingEnable': instance.viewTaskSwitchingEnable,
     };
 
 const _$SettingsDeviceDarkModeEnumMap = {

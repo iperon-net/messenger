@@ -1,24 +1,64 @@
 import 'package:blur/blur.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_screen_lock/flutter_screen_lock.dart';
 
 import '../../cubit/app_cubit.dart';
-import '../../di.dart';
-import '../../i18n/translations.g.dart';
-import '../../logger.dart';
-import '../../repositories/repositories.dart';
 
 class WidgetWrapper extends StatefulWidget {
   final Widget child;
-  final bool lock;
-  const WidgetWrapper({super.key, required this.child, this.lock = true});
+  const WidgetWrapper({super.key, required this.child});
 
   @override
   State<WidgetWrapper> createState() => _WidgetWrapper();
 }
 
+
+class _WidgetWrapper extends State<WidgetWrapper> with WidgetsBindingObserver {
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) async {
+    super.didChangeAppLifecycleState(state);
+    if (state == AppLifecycleState.inactive) {
+      await context.read<AppCubit>().viewTaskSwitching(true);
+    } else if (state == AppLifecycleState.resumed) {
+      await context.read<AppCubit>().viewTaskSwitching(false);
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<AppCubit, AppState>(
+        builder: (context, state) {
+          if (state.viewTaskSwitchingEnable == 1 && state.viewTaskSwitching) {
+            return Blur(
+              blur: 10,
+              blurColor: CupertinoColors.transparent,
+              colorOpacity: 0,
+              child: widget.child,
+            );
+          } else {
+            return widget.child;
+          }
+        }
+    );
+  }
+}
+
+// ==========================================
+
+/*
 class _WidgetWrapper extends State<WidgetWrapper> with WidgetsBindingObserver {
   bool _isBlurred = false;
   bool _passCodeLock = false;
@@ -63,43 +103,53 @@ class _WidgetWrapper extends State<WidgetWrapper> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<AppCubit, AppState>(
-      builder: (context, state) {
-        if(widget.lock && _passCode.isNotEmpty && _passCodeLock) {
-          return Scaffold(
-            body: ScreenLock(
-              cancelButton: Text(context.t.settings.privacyAndSecurity.passcode.cancel),
-              title: Text(context.t.settings.privacyAndSecurity.passcode.passcode),
-              correctString: _passCode,
-              onUnlocked: () async {
-                setState(() {
-                  _passCodeLock = false;
-                });
-                await _repositories.settingsDevice.setPassCodeLock(0);
-              },
-              secretsConfig: SecretsConfig(
-                spacing: 15,
-                padding: const EdgeInsets.all(40),
-              ),
-            ),
-          );
-        }
+    if (_isBlurred){
+      return Blur(
+        blur: 10,
+        blurColor: CupertinoColors.transparent,
+        colorOpacity: 0,
+        child: widget.child,
+      );
+    }
+    return widget.child;
 
-        if (_isBlurred){
-          return Blur(
-            blur: 10,
-            blurColor: CupertinoColors.transparent,
-            colorOpacity: 0,
-            child: widget.child,
-          );
-        }
-        return widget.child;
-      }
-    );
+    // return BlocBuilder<AppCubit, AppState>(
+    //   builder: (context, state) {
+    //     if(widget.lock && _passCode.isNotEmpty && _passCodeLock) {
+    //       return Scaffold(
+    //         body: ScreenLock(
+    //           cancelButton: Text(context.t.settings.privacyAndSecurity.passcode.cancel),
+    //           title: Text(context.t.settings.privacyAndSecurity.passcode.passcode),
+    //           correctString: _passCode,
+    //           onUnlocked: () async {
+    //             setState(() {
+    //               _passCodeLock = false;
+    //             });
+    //             await _repositories.settingsDevice.setPassCodeLock(0);
+    //           },
+    //           secretsConfig: SecretsConfig(
+    //             spacing: 15,
+    //             padding: const EdgeInsets.all(40),
+    //           ),
+    //         ),
+    //       );
+    //     }
+    //
+    //     if (_isBlurred){
+    //       return Blur(
+    //         blur: 10,
+    //         blurColor: CupertinoColors.transparent,
+    //         colorOpacity: 0,
+    //         child: widget.child,
+    //       );
+    //     }
+    //     return widget.child;
+    //   }
+    // );
   }
 
 }
-
+*/
 
 /*
 class WidgetWrapper extends StatefulWidget {
