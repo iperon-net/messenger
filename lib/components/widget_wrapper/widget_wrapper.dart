@@ -1,8 +1,13 @@
 import 'package:blur/blur.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_screen_lock/flutter_screen_lock.dart';
 
 import '../../cubit/app_cubit.dart';
+import '../../di.dart';
+import '../../i18n/translations.g.dart';
+import '../../logger.dart';
 
 class WidgetWrapper extends StatefulWidget {
   final Widget child;
@@ -14,6 +19,7 @@ class WidgetWrapper extends StatefulWidget {
 
 
 class _WidgetWrapper extends State<WidgetWrapper> with WidgetsBindingObserver {
+  final _logger = getIt.get<Logger>();
 
   @override
   void initState() {
@@ -28,7 +34,10 @@ class _WidgetWrapper extends State<WidgetWrapper> with WidgetsBindingObserver {
       await context.read<AppCubit>().viewTaskSwitching(true);
     } else if (state == AppLifecycleState.resumed) {
       await context.read<AppCubit>().viewTaskSwitching(false);
+    } else if (state == AppLifecycleState.paused) {
+      await context.read<AppCubit>().setPassCodeTimer((DateTime.now().millisecondsSinceEpoch / 1000).toInt());
     }
+    _logger.debug(state.toString());
   }
 
   @override
@@ -41,6 +50,25 @@ class _WidgetWrapper extends State<WidgetWrapper> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     return BlocBuilder<AppCubit, AppState>(
         builder: (context, state) {
+
+          if (state.passCode.isNotEmpty && state.passCodeTtl > 0 && state.passCodeTimer > 0) {
+            final calculateTimer = (DateTime.now().millisecondsSinceEpoch / 1000).toInt() - (state.passCodeTimer).toInt();
+            if (calculateTimer >= state.passCodeTtl) {
+              return Scaffold(
+                body: ScreenLock(
+                  cancelButton: Text(context.t.settings.privacyAndSecurity.passcode.cancel),
+                  title: Text(context.t.settings.privacyAndSecurity.passcode.passcode),
+                  correctString: state.passCode,
+                  onUnlocked: () async => await context.read<AppCubit>().setPassCodeTimer(0),
+                  secretsConfig: SecretsConfig(
+                    spacing: 15,
+                    padding: const EdgeInsets.all(40),
+                  ),
+                ),
+              );
+            }
+          }
+
           if (state.viewTaskSwitchingEnable == 1 && state.viewTaskSwitching) {
             return Blur(
               blur: 10,

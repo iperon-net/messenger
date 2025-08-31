@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screen_lock/flutter_screen_lock.dart';
 import 'package:go_router/go_router.dart';
+import 'package:messenger/cubit/app_cubit.dart';
 
 import '../../components/widget_wrapper/widget_wrapper.dart';
 import '../../i18n/translations.g.dart';
@@ -171,7 +172,11 @@ class _PasscodeScreenMaterial extends State<PasscodeScreenMaterial> {
       );
     }
 
-    return BlocBuilder<PasscodeCubit, PasscodeState>(
+    return BlocConsumer<PasscodeCubit, PasscodeState>(
+      listener: (context, state) async {
+        if (context.mounted) await context.read<AppCubit>().setPassCodeTtl(state.passCodeTtl);
+        if (context.mounted) await context.read<AppCubit>().setPassCode(state.passCode);
+      },
       builder: (context, state) {
 
         if (state.passCode.isNotEmpty) {
