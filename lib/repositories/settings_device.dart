@@ -29,7 +29,6 @@ class SettingsDevice {
           passCode: "",
           passCodeTtl: 0,
           passCodeTimer: 0,
-          passCodeLock: 0,
           viewTaskSwitchingEnable: 0,
         );
       }
@@ -72,12 +71,5 @@ class SettingsDevice {
       await txn.update("settings_device", {"passCodeTimer": value});
     });
   }
-
-  Future<void> setPassCodeLock(int lock) async {
-    return await database.transaction((txn) async {
-      await txn.update("settings_device", {"passCodeLock": lock});
-    });
-  }
-
 
 }

@@ -1,5 +1,4 @@
 import 'package:bloc/bloc.dart';
-import 'package:flutter_screen_lock/flutter_screen_lock.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:messenger/repositories/repositories.dart';
 
@@ -13,8 +12,6 @@ class PasscodeCubit extends Cubit<PasscodeState> {
   PasscodeCubit() : super(const PasscodeState());
 
   final _repositories = getIt.get<Repositories>();
-
-  final inputController = InputController();
 
   Future<void> initialization() async {
     emit(state.copyWith(
@@ -42,7 +39,6 @@ class PasscodeCubit extends Cubit<PasscodeState> {
 
   Future<void> setPassCodeLock(int value) async {
     emit(state.copyWith(passCodeLock: value));
-    await _repositories.settingsDevice.setPassCodeLock(value);
   }
 
   Future<void> disablePassCode() async {

@@ -19,7 +19,6 @@ abstract class SettingsDevice with _$SettingsDevice {
     required String passCode,
     required int passCodeTtl,
     required int passCodeTimer,
-    required int passCodeLock,
     required int viewTaskSwitchingEnable,
   }) = _SettingsDevice;
 
