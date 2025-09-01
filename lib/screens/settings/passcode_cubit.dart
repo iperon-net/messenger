@@ -25,7 +25,7 @@ class PasscodeCubit extends Cubit<PasscodeState> {
     emit(state.copyWith(
       passCode: settings.passCode,
       passCodeTtl: settings.passCodeTtl,
-      passCodeLock: settings.passCodeLock,
+      passCodeLock: 1,
       status: Status.success,
     ));
   }

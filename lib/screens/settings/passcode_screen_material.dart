@@ -176,6 +176,7 @@ class _PasscodeScreenMaterial extends State<PasscodeScreenMaterial> {
       listener: (context, state) async {
         if (context.mounted) await context.read<AppCubit>().setPassCodeTtl(state.passCodeTtl);
         if (context.mounted) await context.read<AppCubit>().setPassCode(state.passCode);
+        if (context.mounted) await context.read<AppCubit>().setPassCodeTimer(0);
       },
       builder: (context, state) {
 
@@ -235,7 +236,6 @@ class _PasscodeScreenCreateMaterial extends State<PasscodeScreenCreateMaterial> 
         ),
         onConfirmed: (String value) async {
           if (context.mounted) await context.read<PasscodeCubit>().setPassCode(value);
-          if (context.mounted) await context.read<PasscodeCubit>().setPassCodeLock(0);
           if (context.mounted) context.goNamed("settings_privacy_security_passcode");
         },
         onCancelled: () => context.goNamed("settings_privacy_security_passcode"),
