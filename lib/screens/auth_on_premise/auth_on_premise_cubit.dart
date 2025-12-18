@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
-import '../../constants.dart';
 import '../../di.dart';
 import '../../i18n/translations.g.dart';
 import '../../logger.dart';

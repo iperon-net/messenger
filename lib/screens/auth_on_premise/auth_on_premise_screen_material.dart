@@ -1,6 +1,5 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 
@@ -62,11 +61,12 @@ class _AuthOnPremiseMaterialScreen extends State<AuthOnPremiseMaterialScreen> {
                     ),
                     keyboardType: TextInputType.url,
                     autofillHints: const [AutofillHints.url],
-                    textInputAction: TextInputAction.next,
+                    textInputAction: TextInputAction.done,
                   ),
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
+                      focusNode: context.read<AuthOnPremiseCubit>().textFocusNodeOrganizationServerUrl,
                       onPressed: () async => context.read<AuthOnPremiseCubit>().validator(context),
                       child: Text(context.t.next),
                     ),
