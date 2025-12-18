@@ -1,0 +1,5 @@
+"logs": "Логи"
+"organizationServerUrl": "URL-адрес сервера организации"
+"organizationServerUrlHelper": "URL-адрес вы можете уточнить у администратора организации"
+"next": "Далее"
+"invalidOrganizationServerUrl": "Неверный URL-адрес сервера организации"

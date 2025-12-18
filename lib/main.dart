@@ -1,107 +1,244 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
-void main() {
-  runApp(const MyApp());
-}
+import 'cubit/cubit.dart';
+import 'di.dart';
+import 'i18n/translations.g.dart';
+import 'logger.dart';
+import 'routers.dart';
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+import './screens/screens.dart';
+import 'themes_material.dart';
+import 'themes_cupertino.dart';
 
-  // This widget is the root of your application.
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        colorScheme: .fromSeed(seedColor: Colors.deepPurple),
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await configureCommonDependencies();
+
+  final logger = getIt.get<Logger>();
+
+  // Language
+  AppLocale appLocale = await LocaleSettings.useDeviceLocale();
+  logger.debug(appLocale);
+
+  LocaleSettings.setLocale(AppLocale.ru);
+
+  logger.info('Startup application');
+
+  runApp(
+    TranslationProvider(
+      child: MultiBlocProvider(
+        providers: <BlocProvider>[
+          BlocProvider<MainCubit>(
+            create: (BuildContext context) => MainCubit(),
+          ),
+          BlocProvider<AuthOnPremiseCubit>(
+            create: (BuildContext context) => AuthOnPremiseCubit(),
+          ),
+        ],
+        child: const IperonApp(),
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
-    );
-  }
+    ),
+  );
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
+class IperonApp extends StatefulWidget {
+  const IperonApp({super.key});
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<IperonApp> createState() => _IperonApp();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+class _IperonApp extends State<IperonApp> with WidgetsBindingObserver {
+  final logger = getIt.get<Logger>();
 
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
   }
 
   @override
-  Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
-    return Scaffold(
-      appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: .center,
-          children: [
-            const Text('You have pushed the button this many times:'),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) async {
+    super.didChangeAppLifecycleState(state);
+    logger.debug("lifecycle state=${state.name}");
+  }
+
+  @override
+  Widget build(BuildContext context) => Theme.of(context).platform == TargetPlatform.android ? material(context): cupertino(context);
+
+  // Material
+  Widget material(BuildContext context) {
+    final routers = getIt.get<Routers>();
+
+    final colorSchemeLight = ThemesMaterial().blueLightScheme;
+    final colorSchemeDark = ThemesMaterial().blueDarkScheme;
+
+    return BlocBuilder<MainCubit, MainState>(
+      builder: (context, state) => MaterialApp.router(
+        debugShowCheckedModeBanner: false,
+        routerConfig: routers.config,
+        localizationsDelegates: [
+          ...GlobalMaterialLocalizations.delegates,
+        ],
+        supportedLocales: AppLocaleUtils.supportedLocales,
+        locale: TranslationProvider.of(context).flutterLocale,
+        theme: ThemeData(
+          colorScheme: colorSchemeLight,
+          brightness: colorSchemeLight.brightness,
+          appBarTheme: AppBarTheme(
+            backgroundColor: colorSchemeLight.primary,
+            foregroundColor: colorSchemeLight.surface,
+          ),
+          scaffoldBackgroundColor: colorSchemeLight.surfaceDim,
+          listTileTheme: ListTileThemeData(
+            iconColor: colorSchemeLight.primary,
+          ),
+          radioTheme: RadioThemeData(
+            visualDensity: const VisualDensity(
+              horizontal: VisualDensity.minimumDensity,
             ),
-          ],
+          ),
+          elevatedButtonTheme: ElevatedButtonThemeData(
+            style: ElevatedButton.styleFrom(
+              foregroundColor: Colors.white,
+              backgroundColor: colorSchemeLight.primary,
+              disabledForegroundColor: Colors.white,
+              disabledBackgroundColor: colorSchemeLight.primary,
+              shape: const RoundedRectangleBorder(
+                borderRadius: BorderRadius.all(Radius.circular(10)),
+              ),
+            ),
+          ),
+          inputDecorationTheme: InputDecorationTheme(
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.all(Radius.circular(10.0)),
+              borderSide: BorderSide(width: 1, color: colorSchemeLight.primary),
+            ),
+            focusedErrorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.all(Radius.circular(10.0)),
+              borderSide: BorderSide(width: 1, color: colorSchemeLight.primary),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.all(Radius.circular(10.0)),
+              borderSide: BorderSide(width: 1, color: colorSchemeLight.primary),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.all(Radius.circular(10.0)),
+              borderSide: BorderSide(width: 1, color: colorSchemeLight.primary),
+            ),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.all(
+                Radius.circular(10.0),
+              ),
+            ),
+            labelStyle: TextStyle(
+              color: colorSchemeLight.primary,
+            ),
+            // isDense: true,
+            contentPadding: EdgeInsets.all(12),
+          ),
+        ),
+        darkTheme: ThemeData(
+          colorScheme: colorSchemeDark,
+          brightness: colorSchemeDark.brightness,
+          appBarTheme: AppBarTheme(
+            backgroundColor: colorSchemeDark.onSecondary,
+            foregroundColor: colorSchemeDark.onSurface,
+          ),
+          drawerTheme: DrawerThemeData(
+            backgroundColor: colorSchemeDark.surfaceContainer,
+          ),
+          scaffoldBackgroundColor: colorSchemeDark.surfaceContainer,
+          radioTheme: RadioThemeData(
+            visualDensity: const VisualDensity(
+              horizontal: VisualDensity.minimumDensity,
+            ),
+          ),
+          cardColor: colorSchemeDark.surfaceDim,
+          elevatedButtonTheme: ElevatedButtonThemeData(
+            style: ElevatedButton.styleFrom(
+              foregroundColor: Colors.white,
+              backgroundColor: colorSchemeLight.primary,
+              disabledForegroundColor: Colors.white,
+              disabledBackgroundColor: colorSchemeLight.primary,
+              shape: const RoundedRectangleBorder(
+                borderRadius: BorderRadius.all(Radius.circular(10)),
+              ),
+            ),
+          ),
+          inputDecorationTheme: InputDecorationTheme(
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.all(Radius.circular(10.0)),
+              borderSide: BorderSide(width: 1, color: colorSchemeDark.primary),
+            ),
+            focusedErrorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.all(Radius.circular(10.0)),
+              borderSide: BorderSide(width: 1, color: colorSchemeDark.primary),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.all(Radius.circular(10.0)),
+              borderSide: BorderSide(width: 1, color: colorSchemeDark.primary),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.all(Radius.circular(10.0)),
+              borderSide: BorderSide(width: 1, color: colorSchemeDark.primary),
+            ),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.all(
+                Radius.circular(10.0),
+              ),
+            ),
+            labelStyle: TextStyle(
+              color: colorSchemeDark.primary,
+            ),
+            // isDense: true,
+            contentPadding: EdgeInsets.all(12),
+          ),
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
+    );
+
+  }
+
+  // Cupertino
+  Widget cupertino(BuildContext context) {
+    final routers = getIt.get<Routers>();
+
+    final colorSchemeSystem = ThemesCupertino().blueScheme;
+
+    return BlocBuilder<MainCubit, MainState>(
+      builder: (context, state) => CupertinoApp.router(
+        debugShowCheckedModeBanner: false,
+        routerConfig: routers.config,
+        localizationsDelegates: [
+          ...GlobalMaterialLocalizations.delegates,
+          DefaultMaterialLocalizations.delegate,
+          DefaultCupertinoLocalizations.delegate,
+          DefaultWidgetsLocalizations.delegate,
+        ],
+        supportedLocales: AppLocaleUtils.supportedLocales,
+        locale: TranslationProvider.of(context).flutterLocale,
+        theme: CupertinoThemeData(
+          // brightness: Brightness.light
+          primaryColor: colorSchemeSystem,
+          scaffoldBackgroundColor: CupertinoDynamicColor.withBrightness(
+            color: CupertinoColors.systemGrey6,
+            darkColor: CupertinoColors.black,
+          ),
+        ),
       ),
     );
   }
+
 }
