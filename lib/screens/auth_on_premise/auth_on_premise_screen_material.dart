@@ -46,33 +46,36 @@ class _AuthOnPremiseMaterialScreen extends State<AuthOnPremiseMaterialScreen> {
                 spacing: 30,
                 children: [
                   SizedBox(height: 25, width: double.infinity),
-                  SvgPicture.asset(Theme.of(context).brightness == Brightness.light ? 'assets/images/logo_light.svg' : 'assets/images/logo_dark.svg'),
+                  InkWell(
+                    child: SvgPicture.asset(Theme.of(context).brightness == Brightness.light ? 'assets/images/logo_light.svg' : 'assets/images/logo_dark.svg'),
+                    onDoubleTap: () => context.read<AuthOnPremiseCubit>().switchDebugListServers(),
+                  ),
                   TextFormField(
+                    autofocus: true,
                     controller: context.read<AuthOnPremiseCubit>().textControllerOrganizationServerUrl,
-                    focusNode: context.read<AuthOnPremiseCubit>().textFocusNodeOrganizationServerUrl,
                     validator: (value) => context.read<AuthOnPremiseCubit>().validatorOrganizationServerUrl(context, value),
                     decoration: InputDecoration(
-                      errorText: context.read<AuthOnPremiseCubit>().state.errorFieldOrganizationServerUrl.isNotEmpty ?
+                      errorText: context.watch<AuthOnPremiseCubit>().state.errorFieldOrganizationServerUrl.isNotEmpty ?
                         context.read<AuthOnPremiseCubit>().state.errorFieldOrganizationServerUrl : null,
                       labelText: context.t.organizationServerUrl,
                       errorMaxLines: 2,
                       helperText: context.t.organizationServerUrlHelper,
                       helperMaxLines: 2,
                     ),
+                    onEditingComplete: () async => context.read<AuthOnPremiseCubit>().validator(context),
                     keyboardType: TextInputType.url,
                     autofillHints: const [AutofillHints.url],
-                    textInputAction: TextInputAction.done,
+                    textInputAction: TextInputAction.next,
                   ),
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      focusNode: context.read<AuthOnPremiseCubit>().textFocusNodeOrganizationServerUrl,
                       onPressed: () async => context.read<AuthOnPremiseCubit>().validator(context),
                       child: Text(context.t.next),
                     ),
                   ),
 
-                  if (kDebugMode) ...[
+                  if (kDebugMode && context.read<AuthOnPremiseCubit>().state.debugListServers) ...[
                     Column(
                       spacing: 10,
                       children: [

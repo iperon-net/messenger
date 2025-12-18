@@ -5,6 +5,8 @@ abstract class AuthOnPremiseState with _$AuthOnPremiseState {
   const factory AuthOnPremiseState({
     // @Default(Status.initialization) Status loadingStatus,
     // @Default(Status.initialization) Status processingStatus,
+
+    @Default(false) bool debugListServers,
     @Default("") String errorFieldOrganizationServerUrl,
 
     @Default("") String error,

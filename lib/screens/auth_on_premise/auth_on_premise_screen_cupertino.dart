@@ -28,7 +28,9 @@ class _AuthOnPremiseCupertinoScreen extends State<AuthOnPremiseCupertinoScreen> 
   @override
   void dispose() {
     super.dispose();
+    context.read<AuthOnPremiseCubit>().textControllerOrganizationServerUrl.dispose();
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -43,7 +45,10 @@ class _AuthOnPremiseCupertinoScreen extends State<AuthOnPremiseCupertinoScreen> 
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    SvgPicture.asset('assets/images/logo_light.svg'),
+                    GestureDetector(
+                      child: CupertinoTheme.brightnessOf(context) == Brightness.light ? SvgPicture.asset('assets/images/logo_light.svg') : SvgPicture.asset('assets/images/logo_dark.svg'),
+                      onDoubleTap: () => context.read<AuthOnPremiseCubit>().switchDebugListServers(),
+                    ),
 
                     const SizedBox(height: 30),
 
@@ -77,12 +82,12 @@ class _AuthOnPremiseCupertinoScreen extends State<AuthOnPremiseCupertinoScreen> 
                         autocorrect: true,
                         autofocus: true,
                         controller: context.read<AuthOnPremiseCubit>().textControllerOrganizationServerUrl,
-                        focusNode: context.read<AuthOnPremiseCubit>().textFocusNodeOrganizationServerUrl,
                         keyboardType: TextInputType.url,
                         autofillHints: const [AutofillHints.url],
                         placeholder: context.t.organizationServerUrl,
                         textInputAction: TextInputAction.next,
                         prefix: FaIcon(FontAwesomeIcons.satelliteDish),
+                        onEditingComplete: () async => context.read<AuthOnPremiseCubit>().validator(context),
                         validator: (value) => context.read<AuthOnPremiseCubit>().validatorOrganizationServerUrl(context, value),
                       ),
                     ),
@@ -90,13 +95,12 @@ class _AuthOnPremiseCupertinoScreen extends State<AuthOnPremiseCupertinoScreen> 
                     SizedBox(
                       width: MediaQuery.of(context).size.width,
                       child: CupertinoButton.filled(
-                        focusNode: context.read<AuthOnPremiseCubit>().textFocusNodeOrganizationServerUrl,
                         onPressed: () async => await context.read<AuthOnPremiseCubit>().validator(context),
                         child: Text(context.t.next),
                       ),
                     ),
 
-                    if (kDebugMode) ...[
+                    if (kDebugMode && context.read<AuthOnPremiseCubit>().state.debugListServers ) ...[
                       const SizedBox(height: 30),
                       Column(
                         children: [
