@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import '../../constants.dart';
 import '../../i18n/translations.g.dart';
 
 part 'auth_on_premise_state.dart';
@@ -37,14 +38,16 @@ class AuthOnPremiseCubit extends Cubit<AuthOnPremiseState> {
   }
 
   Future<void> validator(BuildContext context) async {
-    emit(state.copyWith(errorFieldOrganizationServerUrl: ""));
+    emit(state.copyWith(executeStatus: Status.loading));
 
     if (!formKey.currentState!.validate()) {
+      emit(state.copyWith(errorFieldOrganizationServerUrl: "", executeStatus: Status.success));
       return;
     }
 
+    await Future.delayed(const Duration(seconds: 2));
     // textControllerOrganizationServerUrl.clear();
-    emit(state.copyWith(errorFieldOrganizationServerUrl: "Сервер не найден"));
+    emit(state.copyWith(errorFieldOrganizationServerUrl: "Сервер не найден sfdfsdfsdfsdfsfdf dsadadasd", executeStatus: Status.success));
   }
 
   void switchDebugListServers() {

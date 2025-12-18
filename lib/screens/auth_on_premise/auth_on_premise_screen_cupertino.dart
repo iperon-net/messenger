@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
+import '../../constants.dart';
 import '../../di.dart';
 import '../../i18n/translations.g.dart';
 import '../../logger.dart';
@@ -42,7 +43,6 @@ class _AuthOnPremiseCupertinoScreen extends State<AuthOnPremiseCupertinoScreen> 
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(25, 50, 25, 0),
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     GestureDetector(
@@ -50,14 +50,18 @@ class _AuthOnPremiseCupertinoScreen extends State<AuthOnPremiseCupertinoScreen> 
                       onDoubleTap: () => context.read<AuthOnPremiseCubit>().switchDebugListServers(),
                     ),
 
-                    const SizedBox(height: 30),
+                    SizedBox(height: 20,),
 
                     if (context.watch<AuthOnPremiseCubit>().state.errorFieldOrganizationServerUrl.isNotEmpty) ...[
-                      Text(
-                        context.read<AuthOnPremiseCubit>().state.errorFieldOrganizationServerUrl,
-                        style: TextStyle(color: Colors.red, fontSize: 14),
-                      ),
-                      const SizedBox(height: 20),
+                      SizedBox(
+                        height: 30,
+                        child: Text(
+                          context.read<AuthOnPremiseCubit>().state.errorFieldOrganizationServerUrl,
+                          style: TextStyle(color: Colors.red, fontSize: 14),
+                        ),
+                      )
+                    ] else ...[
+                      SizedBox(height: 30,)
                     ],
 
                     Container(
@@ -91,17 +95,29 @@ class _AuthOnPremiseCupertinoScreen extends State<AuthOnPremiseCupertinoScreen> 
                         validator: (value) => context.read<AuthOnPremiseCubit>().validatorOrganizationServerUrl(context, value),
                       ),
                     ),
+
                     const SizedBox(height: 30),
-                    SizedBox(
-                      width: MediaQuery.of(context).size.width,
-                      child: CupertinoButton.filled(
-                        onPressed: () async => await context.read<AuthOnPremiseCubit>().validator(context),
-                        child: Text(context.t.next),
+
+                    if (context.read<AuthOnPremiseCubit>().state.executeStatus == Status.loading) ...[
+                      SizedBox(
+                        width: MediaQuery.of(context).size.width,
+                        child: CupertinoButton.filled(
+                          onPressed: () {},
+                          child: CupertinoActivityIndicator(radius: 10, color: Colors.white),
+                        ),
                       ),
-                    ),
+                    ] else ...[
+                      SizedBox(
+                        width: MediaQuery.of(context).size.width,
+                        child: CupertinoButton.filled(
+                          onPressed: () async => await context.read<AuthOnPremiseCubit>().validator(context),
+                          child: Text(context.t.next),
+                        ),
+                      ),
+                    ],
 
                     if (kDebugMode && context.read<AuthOnPremiseCubit>().state.debugListServers ) ...[
-                      const SizedBox(height: 30),
+                      // const SizedBox(height: 30),
                       Column(
                         children: [
                           CupertinoButton(

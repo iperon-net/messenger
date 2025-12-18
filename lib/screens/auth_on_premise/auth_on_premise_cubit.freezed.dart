@@ -14,9 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$AuthOnPremiseState {
 
-// @Default(Status.initialization) Status loadingStatus,
-// @Default(Status.initialization) Status processingStatus,
- bool get debugListServers; String get errorFieldOrganizationServerUrl; String get error;
+ Status get status; Status get executeStatus; bool get debugListServers; String get errorFieldOrganizationServerUrl; String get error;
 /// Create a copy of AuthOnPremiseState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -27,16 +25,16 @@ $AuthOnPremiseStateCopyWith<AuthOnPremiseState> get copyWith => _$AuthOnPremiseS
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AuthOnPremiseState&&(identical(other.debugListServers, debugListServers) || other.debugListServers == debugListServers)&&(identical(other.errorFieldOrganizationServerUrl, errorFieldOrganizationServerUrl) || other.errorFieldOrganizationServerUrl == errorFieldOrganizationServerUrl)&&(identical(other.error, error) || other.error == error));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AuthOnPremiseState&&(identical(other.status, status) || other.status == status)&&(identical(other.executeStatus, executeStatus) || other.executeStatus == executeStatus)&&(identical(other.debugListServers, debugListServers) || other.debugListServers == debugListServers)&&(identical(other.errorFieldOrganizationServerUrl, errorFieldOrganizationServerUrl) || other.errorFieldOrganizationServerUrl == errorFieldOrganizationServerUrl)&&(identical(other.error, error) || other.error == error));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,debugListServers,errorFieldOrganizationServerUrl,error);
+int get hashCode => Object.hash(runtimeType,status,executeStatus,debugListServers,errorFieldOrganizationServerUrl,error);
 
 @override
 String toString() {
-  return 'AuthOnPremiseState(debugListServers: $debugListServers, errorFieldOrganizationServerUrl: $errorFieldOrganizationServerUrl, error: $error)';
+  return 'AuthOnPremiseState(status: $status, executeStatus: $executeStatus, debugListServers: $debugListServers, errorFieldOrganizationServerUrl: $errorFieldOrganizationServerUrl, error: $error)';
 }
 
 
@@ -47,7 +45,7 @@ abstract mixin class $AuthOnPremiseStateCopyWith<$Res>  {
   factory $AuthOnPremiseStateCopyWith(AuthOnPremiseState value, $Res Function(AuthOnPremiseState) _then) = _$AuthOnPremiseStateCopyWithImpl;
 @useResult
 $Res call({
- bool debugListServers, String errorFieldOrganizationServerUrl, String error
+ Status status, Status executeStatus, bool debugListServers, String errorFieldOrganizationServerUrl, String error
 });
 
 
@@ -64,9 +62,11 @@ class _$AuthOnPremiseStateCopyWithImpl<$Res>
 
 /// Create a copy of AuthOnPremiseState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? debugListServers = null,Object? errorFieldOrganizationServerUrl = null,Object? error = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? status = null,Object? executeStatus = null,Object? debugListServers = null,Object? errorFieldOrganizationServerUrl = null,Object? error = null,}) {
   return _then(_self.copyWith(
-debugListServers: null == debugListServers ? _self.debugListServers : debugListServers // ignore: cast_nullable_to_non_nullable
+status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
+as Status,executeStatus: null == executeStatus ? _self.executeStatus : executeStatus // ignore: cast_nullable_to_non_nullable
+as Status,debugListServers: null == debugListServers ? _self.debugListServers : debugListServers // ignore: cast_nullable_to_non_nullable
 as bool,errorFieldOrganizationServerUrl: null == errorFieldOrganizationServerUrl ? _self.errorFieldOrganizationServerUrl : errorFieldOrganizationServerUrl // ignore: cast_nullable_to_non_nullable
 as String,error: null == error ? _self.error : error // ignore: cast_nullable_to_non_nullable
 as String,
@@ -154,10 +154,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( bool debugListServers,  String errorFieldOrganizationServerUrl,  String error)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( Status status,  Status executeStatus,  bool debugListServers,  String errorFieldOrganizationServerUrl,  String error)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _AuthOnPremiseState() when $default != null:
-return $default(_that.debugListServers,_that.errorFieldOrganizationServerUrl,_that.error);case _:
+return $default(_that.status,_that.executeStatus,_that.debugListServers,_that.errorFieldOrganizationServerUrl,_that.error);case _:
   return orElse();
 
 }
@@ -175,10 +175,10 @@ return $default(_that.debugListServers,_that.errorFieldOrganizationServerUrl,_th
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( bool debugListServers,  String errorFieldOrganizationServerUrl,  String error)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( Status status,  Status executeStatus,  bool debugListServers,  String errorFieldOrganizationServerUrl,  String error)  $default,) {final _that = this;
 switch (_that) {
 case _AuthOnPremiseState():
-return $default(_that.debugListServers,_that.errorFieldOrganizationServerUrl,_that.error);case _:
+return $default(_that.status,_that.executeStatus,_that.debugListServers,_that.errorFieldOrganizationServerUrl,_that.error);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -195,10 +195,10 @@ return $default(_that.debugListServers,_that.errorFieldOrganizationServerUrl,_th
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( bool debugListServers,  String errorFieldOrganizationServerUrl,  String error)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( Status status,  Status executeStatus,  bool debugListServers,  String errorFieldOrganizationServerUrl,  String error)?  $default,) {final _that = this;
 switch (_that) {
 case _AuthOnPremiseState() when $default != null:
-return $default(_that.debugListServers,_that.errorFieldOrganizationServerUrl,_that.error);case _:
+return $default(_that.status,_that.executeStatus,_that.debugListServers,_that.errorFieldOrganizationServerUrl,_that.error);case _:
   return null;
 
 }
@@ -210,11 +210,11 @@ return $default(_that.debugListServers,_that.errorFieldOrganizationServerUrl,_th
 
 
 class _AuthOnPremiseState implements AuthOnPremiseState {
-  const _AuthOnPremiseState({this.debugListServers = false, this.errorFieldOrganizationServerUrl = "", this.error = ""});
+  const _AuthOnPremiseState({this.status = Status.initialization, this.executeStatus = Status.initialization, this.debugListServers = false, this.errorFieldOrganizationServerUrl = "", this.error = ""});
   
 
-// @Default(Status.initialization) Status loadingStatus,
-// @Default(Status.initialization) Status processingStatus,
+@override@JsonKey() final  Status status;
+@override@JsonKey() final  Status executeStatus;
 @override@JsonKey() final  bool debugListServers;
 @override@JsonKey() final  String errorFieldOrganizationServerUrl;
 @override@JsonKey() final  String error;
@@ -229,16 +229,16 @@ _$AuthOnPremiseStateCopyWith<_AuthOnPremiseState> get copyWith => __$AuthOnPremi
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AuthOnPremiseState&&(identical(other.debugListServers, debugListServers) || other.debugListServers == debugListServers)&&(identical(other.errorFieldOrganizationServerUrl, errorFieldOrganizationServerUrl) || other.errorFieldOrganizationServerUrl == errorFieldOrganizationServerUrl)&&(identical(other.error, error) || other.error == error));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AuthOnPremiseState&&(identical(other.status, status) || other.status == status)&&(identical(other.executeStatus, executeStatus) || other.executeStatus == executeStatus)&&(identical(other.debugListServers, debugListServers) || other.debugListServers == debugListServers)&&(identical(other.errorFieldOrganizationServerUrl, errorFieldOrganizationServerUrl) || other.errorFieldOrganizationServerUrl == errorFieldOrganizationServerUrl)&&(identical(other.error, error) || other.error == error));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,debugListServers,errorFieldOrganizationServerUrl,error);
+int get hashCode => Object.hash(runtimeType,status,executeStatus,debugListServers,errorFieldOrganizationServerUrl,error);
 
 @override
 String toString() {
-  return 'AuthOnPremiseState(debugListServers: $debugListServers, errorFieldOrganizationServerUrl: $errorFieldOrganizationServerUrl, error: $error)';
+  return 'AuthOnPremiseState(status: $status, executeStatus: $executeStatus, debugListServers: $debugListServers, errorFieldOrganizationServerUrl: $errorFieldOrganizationServerUrl, error: $error)';
 }
 
 
@@ -249,7 +249,7 @@ abstract mixin class _$AuthOnPremiseStateCopyWith<$Res> implements $AuthOnPremis
   factory _$AuthOnPremiseStateCopyWith(_AuthOnPremiseState value, $Res Function(_AuthOnPremiseState) _then) = __$AuthOnPremiseStateCopyWithImpl;
 @override @useResult
 $Res call({
- bool debugListServers, String errorFieldOrganizationServerUrl, String error
+ Status status, Status executeStatus, bool debugListServers, String errorFieldOrganizationServerUrl, String error
 });
 
 
@@ -266,9 +266,11 @@ class __$AuthOnPremiseStateCopyWithImpl<$Res>
 
 /// Create a copy of AuthOnPremiseState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? debugListServers = null,Object? errorFieldOrganizationServerUrl = null,Object? error = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? status = null,Object? executeStatus = null,Object? debugListServers = null,Object? errorFieldOrganizationServerUrl = null,Object? error = null,}) {
   return _then(_AuthOnPremiseState(
-debugListServers: null == debugListServers ? _self.debugListServers : debugListServers // ignore: cast_nullable_to_non_nullable
+status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
+as Status,executeStatus: null == executeStatus ? _self.executeStatus : executeStatus // ignore: cast_nullable_to_non_nullable
+as Status,debugListServers: null == debugListServers ? _self.debugListServers : debugListServers // ignore: cast_nullable_to_non_nullable
 as bool,errorFieldOrganizationServerUrl: null == errorFieldOrganizationServerUrl ? _self.errorFieldOrganizationServerUrl : errorFieldOrganizationServerUrl // ignore: cast_nullable_to_non_nullable
 as String,error: null == error ? _self.error : error // ignore: cast_nullable_to_non_nullable
 as String,
