@@ -46,7 +46,10 @@ class _AuthOnPremiseCupertinoScreen extends State<AuthOnPremiseCupertinoScreen> 
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     GestureDetector(
-                      child: CupertinoTheme.brightnessOf(context) == Brightness.light ? SvgPicture.asset('assets/images/logo_light.svg') : SvgPicture.asset('assets/images/logo_dark.svg'),
+                      child: SvgPicture.asset(
+                          CupertinoTheme.brightnessOf(context) == Brightness.light ?
+                            'assets/images/logo_light.svg' : 'assets/images/logo_dark.svg'
+                      ),
                       onDoubleTap: () => context.read<AuthOnPremiseCubit>().switchDebugListServers(),
                     ),
 
