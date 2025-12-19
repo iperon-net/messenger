@@ -46,6 +46,7 @@ class _AuthOnPremiseMaterialScreen extends State<AuthOnPremiseMaterialScreen> {
                 spacing: 30,
                 children: [
                   SizedBox(height: 25, width: double.infinity),
+
                   InkWell(
                     child: SvgPicture.asset(Theme.of(context).brightness == Brightness.light ? 'assets/images/logo_light.svg' : 'assets/images/logo_dark.svg'),
                     onDoubleTap: () => context.read<AuthOnPremiseCubit>().switchDebugListServers(),
