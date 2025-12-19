@@ -119,3 +119,8 @@ app.*.symbols
 !/dev/ci/**/Gemfile.lock
 
 .idea/
+/ios/Runner/GoogleService-Info.plist
+/firebase.json
+/lib/firebase_options.dart
+/android/app/google-services.json
+

@@ -51,6 +51,7 @@ dependencies:
   font_awesome_flutter: ^10.12.0
   flutter_localizations:
     sdk: flutter
+  firebase_core: ^4.3.0
 
 dev_dependencies:
   flutter_test:
