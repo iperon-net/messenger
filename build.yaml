@@ -1,0 +1,17 @@
+targets:
+  $default:
+    builders:
+      envied_generator|envied:
+        options:
+          override: true
+      freezed:
+        options:
+          generic_argument_factories: true
+          format: false
+          copy_with: true
+          equal: true
+          map: true
+          when:
+            when: true
+            maybe_when: true
+            when_or_null: false
