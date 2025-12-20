@@ -1,6 +1,7 @@
 
 import 'package:get_it/get_it.dart';
 
+import 'api/api.dart';
 import 'routers.dart';
 import 'logger.dart';
 
@@ -13,3 +14,4 @@ Future<void> configureCommonDependencies() async {
 
   await getIt.allReady();
 }
+

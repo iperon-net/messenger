@@ -68,7 +68,7 @@ class _AuthOnPremiseCupertinoScreen extends State<AuthOnPremiseCupertinoScreen> 
                     ],
 
                     Container(
-                      padding: const EdgeInsets.fromLTRB(0, 5, 0, 5),
+                      // padding: const EdgeInsets.fromLTRB(0, 5, 0, 5),
                       decoration: BoxDecoration(
                         border: Border(
                           top: BorderSide(
@@ -93,7 +93,6 @@ class _AuthOnPremiseCupertinoScreen extends State<AuthOnPremiseCupertinoScreen> 
                         autofillHints: const [AutofillHints.url],
                         placeholder: context.t.organizationServerUrl,
                         textInputAction: TextInputAction.next,
-                        prefix: FaIcon(FontAwesomeIcons.satelliteDish),
                         onEditingComplete: () async => context.read<AuthOnPremiseCubit>().validator(context),
                         validator: (value) => context.read<AuthOnPremiseCubit>().validatorOrganizationServerUrl(context, value),
                       ),
@@ -124,7 +123,7 @@ class _AuthOnPremiseCupertinoScreen extends State<AuthOnPremiseCupertinoScreen> 
                       Column(
                         children: [
                           CupertinoButton(
-                            onPressed: () async => context.read<AuthOnPremiseCubit>().textControllerOrganizationServerUrl.text = "https://localhost.iperon.net:50051",
+                            onPressed: () async => context.read<AuthOnPremiseCubit>().textControllerOrganizationServerUrl.text = "https://development.iperon.net",
                             child: Text("Local server"),
                           ),
                           CupertinoButton(

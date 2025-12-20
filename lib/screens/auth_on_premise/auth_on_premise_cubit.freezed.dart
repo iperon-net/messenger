@@ -183,26 +183,6 @@ return $default(_that.status,_that.executeStatus,_that.debugListServers,_that.er
 
 }
 }
-/// A variant of `when` that fallback to returning `null`
-///
-/// It is equivalent to doing:
-/// ```dart
-/// switch (sealedClass) {
-///   case Subclass(:final field):
-///     return ...;
-///   case _:
-///     return null;
-/// }
-/// ```
-
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( Status status,  Status executeStatus,  bool debugListServers,  String errorFieldOrganizationServerUrl,  String error)?  $default,) {final _that = this;
-switch (_that) {
-case _AuthOnPremiseState() when $default != null:
-return $default(_that.status,_that.executeStatus,_that.debugListServers,_that.errorFieldOrganizationServerUrl,_that.error);case _:
-  return null;
-
-}
-}
 
 }
 

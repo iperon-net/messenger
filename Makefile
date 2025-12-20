@@ -8,6 +8,7 @@ gen:
 	dart run build_runner build --delete-conflicting-outputs
 	dart run slang
 
+	protoc --dart_out=grpc:lib/protobuf -I=. protos/* google/protobuf/timestamp.proto google/protobuf/empty.proto
 	#dart run build_runner clean
 	#dart run build_runner build --define=envied_generator:envied=path=.env --delete-conflicting-outputs
 	#dart run slang

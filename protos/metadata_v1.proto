@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package iperon.v1;
+option go_package = "internal/api/v1";
+
+
+import "google/protobuf/empty.proto";
+
+service Metadata {
+  rpc Info (MetadataInfoRequest) returns (MetadataInfoResponse) {}
+}
+
+message MetadataInfoRequest {}
+
+message MetadataInfoResponse {
+  string publicKey = 1;
+}

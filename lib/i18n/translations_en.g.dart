@@ -41,6 +41,9 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 
 	// Translations
 
+	/// en: 'Unknown error'
+	String get unknownError => 'Unknown error';
+
 	/// en: 'Logs'
 	String get logs => 'Logs';
 
@@ -55,6 +58,9 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 
 	/// en: 'Invalid organization server URL'
 	String get invalidOrganizationServerUrl => 'Invalid organization server URL';
+
+	/// en: 'The server does not support this version of the application.'
+	String get serverNotSupportAppVersion => 'The server does not support this version of the application.';
 }
 
 /// The flat map containing all translations for locale <en>.
@@ -65,11 +71,13 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 extension on Translations {
 	dynamic _flatMapFunction(String path) {
 		return switch (path) {
+			'unknownError' => 'Unknown error',
 			'logs' => 'Logs',
 			'organizationServerUrl' => 'Organization server URL',
 			'organizationServerUrlHelper' => 'You can check the URL with your organization administrator',
 			'next' => 'Next',
 			'invalidOrganizationServerUrl' => 'Invalid organization server URL',
+			'serverNotSupportAppVersion' => 'The server does not support this version of the application.',
 			_ => null,
 		};
 	}
