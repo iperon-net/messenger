@@ -1,0 +1,53 @@
+syntax = "proto3";
+
+package iperon.v1;
+option go_package = "internal/api/v1";
+
+import "protos/models.proto";
+
+service Auth {
+  rpc CallPassword (AuthCallPasswordRequest) returns (AuthCallPasswordResponse) {}
+  rpc CallPasswordCheck (AuthCallPasswordCheckRequest) returns (stream AuthCallPasswordCheckResponse) {}
+  rpc Confirmation (AuthConfirmationRequest) returns (AuthConfirmationResponse) {}
+}
+
+// CallPassword
+message AuthCallPasswordRequest {
+  string phoneNumber = 1;
+}
+
+message AuthCallPasswordResponse {
+  bytes callPasswordSession = 1;
+  float timeout = 2;
+  string confirmationPhoneNumber = 3;
+}
+
+// Call Password Check
+message AuthCallPasswordCheckRequest {
+  bytes callPasswordSession = 1;
+}
+
+message AuthCallPasswordCheckResponse {
+  Status status = 1;
+  optional int64 timer = 2;
+  optional string errorMessage = 3;
+  optional bytes confirmationSession = 4;
+  optional bool hasCloudPassword = 5;
+  optional bool isBlocked = 6;
+}
+
+// Confirmation
+message AuthConfirmationRequest {
+  bytes confirmationSession = 1;
+  bytes clientPublicKeyECDH = 2;
+  string deviceModel = 3;
+  int32 os = 4;
+  string osVersion = 5;
+  string appVersion = 6;
+  string appBuildNumber = 7;
+}
+
+message AuthConfirmationResponse {
+  bytes session = 1;
+  Location location = 2;
+}

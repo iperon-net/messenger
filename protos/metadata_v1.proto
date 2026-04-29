@@ -1,0 +1,59 @@
+syntax = "proto3";
+
+package iperon.v1;
+option go_package = "internal/api/v1";
+
+service Metadata {
+  rpc Info (MetadataInfoRequest) returns (MetadataInfoResponse) {}
+  rpc GeoIP (MetadataGeoIPRequest) returns (MetadataGeoIPResponse) {}
+}
+
+message MetadataInfoRequest {}
+
+message MetadataInfoResponse {
+
+  message GitCommit {
+    string full = 1;
+    string short = 2;
+  }
+
+  message ECDH {
+    bytes publicKey = 1;
+    string fingerprint = 2;
+  }
+
+  ECDH ecdh = 1;
+  GitCommit gitCommit = 2;
+  string buildDate = 3;
+  string version = 4;
+}
+
+// GeoIP
+message MetadataGeoIPRequest {
+  optional string ip = 1;
+}
+
+message MetadataGeoIPResponse {
+  message MetadataGeoIPLocation {
+      float latitude = 1;
+      float longitude = 2;
+  }
+
+  message MetadataGeoIPCountry {
+    string russianName = 1;
+    string englishName = 2;
+  }
+
+  message MetadataGeoIPCity {
+    string russianName = 1;
+    string englishName = 2;
+  }
+
+  string timeZone = 1;
+  string isoCode = 2;
+  MetadataGeoIPLocation location = 3;
+  MetadataGeoIPCountry country = 4;
+  MetadataGeoIPCity city = 5;
+  string ip = 6;
+}
+

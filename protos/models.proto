@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package iperon.v1;
+option go_package = "internal/api/v1";
+
+enum Status {
+  healthcheck = 0;
+  error = 1;
+  success = 2;
+}
+
+message Location {
+  string russianName = 1;
+  string englishName = 2;
+}
