@@ -131,7 +131,7 @@ class _AuthCallPasswordMaterialScreen extends State<AuthCallPasswordMaterialScre
                 listener: (BuildContext context, AuthCallpasswordState state) {
                   if (state.error.isNotEmpty) return context.go("/auth");
 
-                  if (state.status == Status.success && state.confirmationSession.isNotEmpty){
+                  if (state.status == Status.success && state.confirmationSession.isNotEmpty && !state.isBlocked){
                     Map<String, String> queryParams = {
                       'confirmationSession': convertor.hex.encode(state.confirmationSession),
                     };

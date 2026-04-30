@@ -29,8 +29,8 @@ class AuthCallpasswordCubit extends Cubit<AuthCallpasswordState> {
     required String callPasswordSession,
     required double timeout,
   }) async {
+    emit(AuthCallpasswordState(status: Status.loading));
     _logger.info("callPasswordSession=$callPasswordSession");
-    emit(state.copyWith(status: Status.loading, error: "", confirmationSession: []));
 
     streamCallPassword = _api.auth.callPasswordCheck(
       AuthCallPasswordCheckRequest(callPasswordSession: convertor.hex.decode(callPasswordSession)),
@@ -54,7 +54,6 @@ class AuthCallpasswordCubit extends Cubit<AuthCallpasswordState> {
 
     }, onError: (error) async {
       error as GrpcError;
-
       _logger.error("${error.codeName}, ${error.message}");
       emit(state.copyWith(error: "internalServerError"));
     }, cancelOnError: true);
