@@ -7,6 +7,7 @@ import 'package:messenger/di.dart';
 import '../../api.dart';
 import '../../constants.dart';
 import '../../i18n/translations.g.dart';
+import '../../logger.dart';
 import '../../protobuf/protos/auth_v1.pb.dart';
 import '../../utils.dart';
 
@@ -18,10 +19,13 @@ class AuthCubit extends Cubit<AuthState> {
 
   final phoneUtil = PhoneNumberUtil.instance;
 
+  final _logger = getIt.get<Logger>();
   final _utils = getIt.get<Utils>();
   final _api = getIt.get<API>();
 
   Future<void> initialization() async {
+    emit(AuthState());
+
     final packageInfo = await _utils.packageInfo();
     emit(state.copyWith(version: "v${packageInfo.appVersion}"));
   }
@@ -49,7 +53,7 @@ class AuthCubit extends Cubit<AuthState> {
 
   // Validator
   Future<void> validator(BuildContext context, GlobalKey<FormState> formKey, TextEditingController phoneNumberController) async {
-    emit(state.copyWith(status: Status.loading, error: ""));
+    emit(AuthState(status: Status.loading));
 
     if (!formKey.currentState!.validate()) {
       emit(state.copyWith(status: Status.success));
@@ -84,6 +88,9 @@ class AuthCubit extends Cubit<AuthState> {
       confirmationPhoneNumber: authCallPasswordResponse.confirmationPhoneNumber,
       timeout: authCallPasswordResponse.timeout,
     ));
+
+    _logger.info("phone number raw ${phoneNumberController.text}");
+
     return;
   }
 
