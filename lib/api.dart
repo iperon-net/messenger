@@ -73,7 +73,7 @@ class API {
         return "errorConnectingToTheServer";
       } else if ([StatusCode.deadlineExceeded].contains(err.code)) {
         return "unableToConnectToTheServer";
-      } else if ([StatusCode.cancelled].contains(err.code)) {
+      } else if ([StatusCode.cancelled, StatusCode.invalidArgument].contains(err.code)) {
         return err.message.toString();
       } else if ([StatusCode.internal].contains(err.code)) {
         return "internalServerError";

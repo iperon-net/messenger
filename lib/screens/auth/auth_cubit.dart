@@ -23,7 +23,7 @@ class AuthCubit extends Cubit<AuthState> {
 
   Future<void> initialization() async {
     final packageInfo = await _utils.packageInfo();
-    emit(state.copyWith(version: "v${packageInfo.version}"));
+    emit(state.copyWith(version: "v${packageInfo.appVersion}"));
   }
 
   // Validator phone number

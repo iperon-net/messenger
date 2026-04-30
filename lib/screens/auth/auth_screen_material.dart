@@ -106,7 +106,7 @@ class _AuthMaterialScreen extends State<AuthMaterialScreen> {
                     if (state.status == Status.success && state.callPasswordSession.isNotEmpty){
                       Map<String, String> queryParams = {
                         'callPasswordSession': convertor.hex.encode(state.callPasswordSession),
-                        'confirmationPhoneNumber': state.confirmationPhoneNumber.toString(),
+                        'confirmationPhoneNumber': state.confirmationPhoneNumber,
                         'timeout': state.timeout.toString(),
                       };
 

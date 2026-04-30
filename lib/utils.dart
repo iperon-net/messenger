@@ -54,17 +54,17 @@ class DeviceInfo {
 }
 
 class PackageInfo {
-  final String buildNumber;
-  final String version;
+  final String appBuildNumber;
+  final String appVersion;
 
   PackageInfo({
-    required this.buildNumber,
-    required this.version,
+    required this.appBuildNumber,
+    required this.appVersion,
   });
 
   @override
   String toString() {
-    return "version=$version buildNumber=$buildNumber";
+    return "appVersion=$appVersion appBuildNumber=$appBuildNumber";
   }
 }
 
@@ -97,7 +97,7 @@ class Utils {
 
   Future<PackageInfo> packageInfo() async {
     final packageInfo = await package_info.PackageInfo.fromPlatform();
-    return PackageInfo(version: packageInfo.version, buildNumber: packageInfo.buildNumber);
+    return PackageInfo(appVersion: packageInfo.version, appBuildNumber: packageInfo.buildNumber);
   }
 
   Future<DeviceInfo> deviceInfo() async {

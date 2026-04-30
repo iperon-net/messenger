@@ -16,7 +16,6 @@ import '../../utils.dart';
 part 'auth_confirmation_cubit.freezed.dart';
 part 'auth_confirmation_state.dart';
 
-const publicKeyDigestCheck = "0123041447180d6308df2c8ea6c1d1cce851a1e65dacf406776e296c63145d46";
 
 class AuthConfirmationCubit extends Cubit<AuthConfirmationState> {
   AuthConfirmationCubit() : super(const AuthConfirmationState());
@@ -48,11 +47,28 @@ class AuthConfirmationCubit extends Cubit<AuthConfirmationState> {
     }
 
     final (sharedSecretKey, clientPublicKey) = await _crypto.sharedSecretKey(serverPublicKey: metadataInfoResponse.ecdh.publicKey);
-    _logger.debug(sharedSecretKey);
+
+    final packageInfo = await _utils.packageInfo();
+    final deviceInfo = await _utils.deviceInfo();
+
+    var os = 0;
+    if (deviceInfo.os == Os.iOS) {
+      os = 1;
+    } else if (deviceInfo.os == Os.android) {
+      os = 2;
+    }
 
     late AuthConfirmationResponse authConfirmationResponse;
     final authConfirmationResponseError = await _api.call(() async {
-      final req = AuthConfirmationRequest(confirmationSession: convertor.hex.decode(confirmationSession), clientPublicKeyECDH: clientPublicKey.bytes);
+      final req = AuthConfirmationRequest(
+        confirmationSession: convertor.hex.decode(confirmationSession),
+        clientPublicKeyECDH: clientPublicKey.bytes,
+        deviceModel: deviceInfo.deviceModel,
+        os: os,
+        osVersion: deviceInfo.osVersion,
+        appVersion: packageInfo.appVersion,
+        appBuildNumber: packageInfo.appBuildNumber,
+      );
       authConfirmationResponse = await _api.auth.confirmation(req, options: await _api.callOptions());
     });
 
