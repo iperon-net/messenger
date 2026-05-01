@@ -3,8 +3,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_multi_formatter/flutter_multi_formatter.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:messenger/constants.dart';
+import 'package:convert/convert.dart' as convertor;
+import 'package:go_router/go_router.dart';
 
+import '../../constants.dart';
 import '../../di.dart';
 import '../../i18n/translations.g.dart';
 import '../../logger.dart';
@@ -113,8 +115,24 @@ class _AuthCupertinoScreen extends State<AuthCupertinoScreen> {
                   ),
                 ),
 
-                BlocBuilder<AuthCubit, AuthState>(
-                  builder: (context, state) {
+                BlocConsumer<AuthCubit, AuthState>(
+                    listener: (BuildContext context, AuthState state) {
+                      if (state.error.isNotEmpty) return context.go("/auth");
+
+                      if (state.status == Status.success && state.callPasswordSession.isNotEmpty){
+                        Map<String, String> queryParams = {
+                          'callPasswordSession': convertor.hex.encode(state.callPasswordSession),
+                          'confirmationPhoneNumber': state.confirmationPhoneNumber,
+                          'timeout': state.timeout.toString(),
+                        };
+
+                        String queryString = Uri(queryParameters: queryParams).query;
+                        if(context.mounted) {
+                          context.go("/auth/callpassword?$queryString");
+                        }
+                      }
+                    },
+                    builder: (context, state) {
                     return SizedBox(
                       width: MediaQuery.of(context).size.width,
                       child: CupertinoButton.filled(

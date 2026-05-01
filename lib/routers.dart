@@ -79,6 +79,28 @@ class Routers {
             path: '/auth',
             builder: (_, _) => AuthCupertinoScreen(),
             routes: [
+              GoRoute(
+                path: '/callpassword',
+                pageBuilder: (BuildContext context, state) {
+                  final callPasswordSession = state.uri.queryParameters["callPasswordSession"];
+                  final confirmationPhoneNumber = state.uri.queryParameters["confirmationPhoneNumber"];
+                  final timeout = double.parse(state.uri.queryParameters["timeout"] ?? "0");
+
+                  if (callPasswordSession != null && confirmationPhoneNumber != null && timeout > 0) {
+                    return MaterialPage(
+                      child: AuthCallPasswordMaterialScreen(
+                        callPasswordSession: callPasswordSession,
+                        confirmationPhoneNumber: confirmationPhoneNumber,
+                        timeout: timeout,
+                      ),
+                      maintainState: false,
+                    );
+                  }
+
+                  if (context.mounted) context.go("/auth");
+                  return MaterialPage(child: Container());
+                },
+              ),
             ],
           ),
         ]
