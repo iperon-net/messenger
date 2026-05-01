@@ -49,10 +49,6 @@ class _AuthCallPasswordMaterialScreen extends State<AuthCallPasswordMaterialScre
       timeout: widget.timeout,
     );
 
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.portraitUp,
-    ]);
-
     // Start ticker
     _ticker = createTicker((Duration elapsed) {
       if (elapsed.inSeconds >= widget.timeout.toInt()) {
@@ -67,7 +63,6 @@ class _AuthCallPasswordMaterialScreen extends State<AuthCallPasswordMaterialScre
 
   @override
   void dispose() {
-    logger.debug("dispose");
     _ticker.stop();
 
     _cubit.subscriptionCallPassword.cancel();
@@ -75,13 +70,8 @@ class _AuthCallPasswordMaterialScreen extends State<AuthCallPasswordMaterialScre
 
     WidgetsBinding.instance.removeObserver(this);
 
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.portraitUp,
-      DeviceOrientation.portraitDown,
-      DeviceOrientation.landscapeLeft,
-      DeviceOrientation.landscapeRight,
-    ]);
     super.dispose();
+    logger.debug("dispose auth_callpassword");
   }
 
   @override

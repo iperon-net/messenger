@@ -19,12 +19,7 @@ class Routers {
       routes: <RouteBase>[
         GoRoute(
           path: '/auth',
-          pageBuilder: (_, _) {
-            return MaterialPage(
-              child: AuthMaterialScreen(),
-              maintainState: false,
-            );
-          },
+          builder: (_, _) => AuthMaterialScreen(),
           routes: <RouteBase>[
             GoRoute(
               path: '/callpassword',
