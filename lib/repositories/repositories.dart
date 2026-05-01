@@ -29,7 +29,10 @@ class Repositories {
     String path = p.join(databasesPath, Settings.databaseName);
     _logger.debug("database patch $path");
 
-    final storage = FlutterSecureStorage();
+    final storage = FlutterSecureStorage(
+      aOptions: AndroidOptions(),
+      iOptions: IOSOptions(),
+    );
 
     // Delete the database
     if (Settings.isDeleteDatabase) {
