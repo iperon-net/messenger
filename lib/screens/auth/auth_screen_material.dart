@@ -40,7 +40,6 @@ class _AuthMaterialScreen extends State<AuthMaterialScreen> {
 
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
-      DeviceOrientation.portraitDown,
     ]);
     logger.debug("initState auth");
   }

@@ -51,7 +51,6 @@ class _AuthCallPasswordMaterialScreen extends State<AuthCallPasswordMaterialScre
 
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
-      DeviceOrientation.portraitDown,
     ]);
 
     // Start ticker
