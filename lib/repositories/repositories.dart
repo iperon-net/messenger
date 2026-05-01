@@ -14,14 +14,14 @@ import '../models/settings_device.dart' as models;
 import '../settings.dart';
 
 part "settings_device.dart";
-part "sessions.dart";
+part "profiles.dart";
 
 class Repositories {
   final _logger = getIt.get<Logger>();
 
   late Database _database;
   late SettingsDevice settingsDevice;
-  late Sessions sessions;
+  late Profiles profiles;
 
   Future<void> initialization() async {
 
@@ -50,7 +50,7 @@ class Repositories {
 
       if (version == 1) {
         batch.execute('''
-          CREATE TABLE settings_device (
+          CREATE TABLE settingsDevice (
             language TEXT NOT NULL,
             darkMode TEXT NOT NULL,
             themeColor TEXT NOT NULL,
@@ -59,7 +59,7 @@ class Repositories {
         ''');
 
         batch.execute('''
-          INSERT INTO settings_device
+          INSERT INTO settingsDevice
             (language, darkMode, themeColor, blurTaskSwitchingEnable)
           VALUES
             ('', 'system', 'blue', 1)
@@ -67,20 +67,23 @@ class Repositories {
 
         //
         batch.execute('''
-          CREATE TABLE sessions (
-            sessionID INTEGER PRIMARY KEY AUTOINCREMENT,
-            phoneNumber INTEGER NOT NULL,
-            session TEXT NOT NULL
-          )
+          CREATE TABLE users (
+            usersId INTEGER PRIMARY KEY AUTOINCREMENT,
+            phoneNumber TEXT NOT NULL,
+            session BLOB NOT NULL,
+            isActive INT NOT NULL DEFAULT 0
+          );
         ''');
 
         batch.execute('''
-          CREATE TABLE secretKeys (
-            secretKeyID INTEGER PRIMARY KEY AUTOINCREMENT,
-            sessionID INTEGER NOT NULL,
-            secretKey BLOB NOT NULL,
-            FOREIGN KEY (sessionID) REFERENCES sessions(sessionID) ON DELETE CASCADE ON UPDATE CASCADE
-          )
+          CREATE TABLE sharedKeys (
+              sharedKeyId INTEGER PRIMARY KEY AUTOINCREMENT,
+              usersId INTEGER NOT NULL,
+              secretKey BLOB NOT NULL,
+              isActive INTEGER NOT NULL DEFAULT 0,
+              expiredAt INTEGER NULL,
+              FOREIGN KEY (usersId) REFERENCES users(usersId) ON DELETE CASCADE ON UPDATE CASCADE
+          );
         ''');
 
       }
@@ -121,7 +124,7 @@ class Repositories {
     }
 
     settingsDevice = SettingsDevice(logger: _logger, database: _database);
-    sessions = Sessions(logger: _logger, database: _database);
+    profiles = Profiles(logger: _logger, database: _database);
 
     _logger.info("repositories initialization");
   }

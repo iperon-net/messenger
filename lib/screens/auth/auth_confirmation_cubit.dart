@@ -78,10 +78,11 @@ class AuthConfirmationCubit extends Cubit<AuthConfirmationState> {
     }
 
     // _logger.debug(authConfirmationResponse.phoneNumber);
-    _logger.debug(authConfirmationResponse.session);
-    _logger.debug(authConfirmationResponse.location.englishName);
-    _logger.debug(authConfirmationResponse.location.russianName);
-    _logger.debug(await sharedSecretKey.extractBytes());
+
+    _logger.debug("session ${authConfirmationResponse.session}");
+    _logger.debug("phoneNumber ${authConfirmationResponse.phoneNumber}");
+    _logger.debug("userID ${authConfirmationResponse.userID}");
+    _logger.debug("sharedKeyId ${authConfirmationResponse.sharedKeyId}");
 
     _logger.debug("initialization");
 

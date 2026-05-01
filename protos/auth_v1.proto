@@ -49,5 +49,7 @@ message AuthConfirmationRequest {
 
 message AuthConfirmationResponse {
   bytes session = 1;
-  Location location = 2;
+  bytes userID = 2;
+  string phoneNumber = 3;
+  bytes sharedKeyId = 4;
 }

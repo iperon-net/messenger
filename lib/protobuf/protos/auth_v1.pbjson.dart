@@ -186,19 +186,14 @@ const AuthConfirmationResponse$json = {
   '1': 'AuthConfirmationResponse',
   '2': [
     {'1': 'session', '3': 1, '4': 1, '5': 12, '10': 'session'},
-    {
-      '1': 'location',
-      '3': 2,
-      '4': 1,
-      '5': 11,
-      '6': '.iperon.v1.Location',
-      '10': 'location'
-    },
+    {'1': 'userID', '3': 2, '4': 1, '5': 12, '10': 'userID'},
+    {'1': 'phoneNumber', '3': 3, '4': 1, '5': 9, '10': 'phoneNumber'},
+    {'1': 'sharedKeyId', '3': 4, '4': 1, '5': 12, '10': 'sharedKeyId'},
   ],
 };
 
 /// Descriptor for `AuthConfirmationResponse`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List authConfirmationResponseDescriptor =
-    $convert.base64Decode(
-        'ChhBdXRoQ29uZmlybWF0aW9uUmVzcG9uc2USGAoHc2Vzc2lvbhgBIAEoDFIHc2Vzc2lvbhIvCg'
-        'hsb2NhdGlvbhgCIAEoCzITLmlwZXJvbi52MS5Mb2NhdGlvblIIbG9jYXRpb24=');
+final $typed_data.Uint8List authConfirmationResponseDescriptor = $convert.base64Decode(
+    'ChhBdXRoQ29uZmlybWF0aW9uUmVzcG9uc2USGAoHc2Vzc2lvbhgBIAEoDFIHc2Vzc2lvbhIWCg'
+    'Z1c2VySUQYAiABKAxSBnVzZXJJRBIgCgtwaG9uZU51bWJlchgDIAEoCVILcGhvbmVOdW1iZXIS'
+    'IAoLc2hhcmVkS2V5SWQYBCABKAxSC3NoYXJlZEtleUlk');

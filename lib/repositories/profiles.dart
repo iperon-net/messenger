@@ -1,10 +1,10 @@
 part of 'repositories.dart';
 
 
-class Sessions {
+class Profiles {
   final Logger logger;
   final Database database;
 
-  Sessions({required this.logger, required this.database});
+  Profiles({required this.logger, required this.database});
 
 }

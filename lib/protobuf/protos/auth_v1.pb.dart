@@ -15,7 +15,7 @@ import 'dart:core' as $core;
 import 'package:fixnum/fixnum.dart' as $fixnum;
 import 'package:protobuf/protobuf.dart' as $pb;
 
-import 'models.pb.dart' as $1;
+import 'models.pbenum.dart' as $1;
 
 export 'package:protobuf/protobuf.dart' show GeneratedMessageGenericExtensions;
 
@@ -480,11 +480,15 @@ class AuthConfirmationRequest extends $pb.GeneratedMessage {
 class AuthConfirmationResponse extends $pb.GeneratedMessage {
   factory AuthConfirmationResponse({
     $core.List<$core.int>? session,
-    $1.Location? location,
+    $core.List<$core.int>? userID,
+    $core.String? phoneNumber,
+    $core.List<$core.int>? sharedKeyId,
   }) {
     final result = create();
     if (session != null) result.session = session;
-    if (location != null) result.location = location;
+    if (userID != null) result.userID = userID;
+    if (phoneNumber != null) result.phoneNumber = phoneNumber;
+    if (sharedKeyId != null) result.sharedKeyId = sharedKeyId;
     return result;
   }
 
@@ -503,8 +507,13 @@ class AuthConfirmationResponse extends $pb.GeneratedMessage {
       createEmptyInstance: create)
     ..a<$core.List<$core.int>>(
         1, _omitFieldNames ? '' : 'session', $pb.PbFieldType.OY)
-    ..aOM<$1.Location>(2, _omitFieldNames ? '' : 'location',
-        subBuilder: $1.Location.create)
+    ..a<$core.List<$core.int>>(
+        2, _omitFieldNames ? '' : 'userID', $pb.PbFieldType.OY,
+        protoName: 'userID')
+    ..aOS(3, _omitFieldNames ? '' : 'phoneNumber', protoName: 'phoneNumber')
+    ..a<$core.List<$core.int>>(
+        4, _omitFieldNames ? '' : 'sharedKeyId', $pb.PbFieldType.OY,
+        protoName: 'sharedKeyId')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -537,15 +546,31 @@ class AuthConfirmationResponse extends $pb.GeneratedMessage {
   void clearSession() => $_clearField(1);
 
   @$pb.TagNumber(2)
-  $1.Location get location => $_getN(1);
+  $core.List<$core.int> get userID => $_getN(1);
   @$pb.TagNumber(2)
-  set location($1.Location value) => $_setField(2, value);
+  set userID($core.List<$core.int> value) => $_setBytes(1, value);
   @$pb.TagNumber(2)
-  $core.bool hasLocation() => $_has(1);
+  $core.bool hasUserID() => $_has(1);
   @$pb.TagNumber(2)
-  void clearLocation() => $_clearField(2);
-  @$pb.TagNumber(2)
-  $1.Location ensureLocation() => $_ensure(1);
+  void clearUserID() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.String get phoneNumber => $_getSZ(2);
+  @$pb.TagNumber(3)
+  set phoneNumber($core.String value) => $_setString(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasPhoneNumber() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearPhoneNumber() => $_clearField(3);
+
+  @$pb.TagNumber(4)
+  $core.List<$core.int> get sharedKeyId => $_getN(3);
+  @$pb.TagNumber(4)
+  set sharedKeyId($core.List<$core.int> value) => $_setBytes(3, value);
+  @$pb.TagNumber(4)
+  $core.bool hasSharedKeyId() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearSharedKeyId() => $_clearField(4);
 }
 
 const $core.bool _omitFieldNames =

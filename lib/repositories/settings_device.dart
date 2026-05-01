@@ -16,7 +16,7 @@ class SettingsDevice {
     ];
 
     return await database.transaction((txn) async {
-      List<Map<String, Object?>> records = await txn.query('settings_device', columns: columns);
+      List<Map<String, Object?>> records = await txn.query('settingsDevice', columns: columns);
       if (records.isEmpty) {
         return models.SettingsDevice(
           language: '',
@@ -31,28 +31,28 @@ class SettingsDevice {
 
   Future<void> setLanguage(AppLocale language) async {
     return await database.transaction((txn) async {
-      await txn.update('settings_device', {'language': language.name});
+      await txn.update('settingsDevice', {'language': language.name});
     });
   }
 
   Future<void> setDarkMode(models.SettingsDeviceDarkMode value) async {
     return await database.transaction((txn) async {
-      await txn.update('settings_device', {'darkMode': value.name});
+      await txn.update('settingsDevice', {'darkMode': value.name});
     });
   }
 
   Future<void> setThemeColor(models.SettingsDeviceThemeColor value) async {
     return await database.transaction((txn) async {
-      await txn.update('settings_device', {'themeColor': value.name});
+      await txn.update('settingsDevice', {'themeColor': value.name});
     });
   }
 
   Future<void> setBlurTaskSwitching(bool value) async {
     return await database.transaction((txn) async {
       if(value){
-        await txn.update('settings_device', {'blurTaskSwitchingEnable': 1});
+        await txn.update('settingsDevice', {'blurTaskSwitchingEnable': 1});
       } else {
-        await txn.update('settings_device', {'blurTaskSwitchingEnable': 0});
+        await txn.update('settingsDevice', {'blurTaskSwitchingEnable': 0});
       }
     });
   }
