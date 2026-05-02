@@ -37,17 +37,7 @@ class Users {
             "sharedSecretKey": Uint8List.fromList(sharedSecretKey),
           },
       );
-
-      logger.debug(sharedSecretKey);
-
     });
-
   }
-
-  // _logger.debug("session ${authConfirmationResponse.session}");
-  // _logger.debug("phoneNumber ${authConfirmationResponse.phoneNumber}");
-  // _logger.debug("userID ${authConfirmationResponse.userID}");
-  // _logger.debug("sharedKeyId ${authConfirmationResponse.sharedKeyId}");
-
 
 }
