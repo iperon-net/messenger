@@ -1,6 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import 'freezed_convertor.dart';
+
 part 'settings_device.freezed.dart';
 part 'settings_device.g.dart';
 
@@ -15,7 +17,7 @@ abstract class SettingsDevice with _$SettingsDevice {
     required String language,
     required SettingsDeviceDarkMode darkMode,
     required SettingsDeviceThemeColor themeColor,
-    required int blurTaskSwitchingEnable,
+    @BoolConverter() required bool blurTaskSwitchingEnable,
   }) = _SettingsDevice;
 
   factory SettingsDevice.fromJson(Map<String, dynamic> json) => _$SettingsDeviceFromJson(json);

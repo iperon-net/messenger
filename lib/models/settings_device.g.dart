@@ -14,7 +14,9 @@ _SettingsDevice _$SettingsDeviceFromJson(Map<String, dynamic> json) =>
         _$SettingsDeviceThemeColorEnumMap,
         json['themeColor'],
       ),
-      blurTaskSwitchingEnable: (json['blurTaskSwitchingEnable'] as num).toInt(),
+      blurTaskSwitchingEnable: const BoolConverter().fromJson(
+        (json['blurTaskSwitchingEnable'] as num).toInt(),
+      ),
     );
 
 Map<String, dynamic> _$SettingsDeviceToJson(_SettingsDevice instance) =>
@@ -22,7 +24,9 @@ Map<String, dynamic> _$SettingsDeviceToJson(_SettingsDevice instance) =>
       'language': instance.language,
       'darkMode': _$SettingsDeviceDarkModeEnumMap[instance.darkMode]!,
       'themeColor': _$SettingsDeviceThemeColorEnumMap[instance.themeColor]!,
-      'blurTaskSwitchingEnable': instance.blurTaskSwitchingEnable,
+      'blurTaskSwitchingEnable': const BoolConverter().toJson(
+        instance.blurTaskSwitchingEnable,
+      ),
     };
 
 const _$SettingsDeviceDarkModeEnumMap = {

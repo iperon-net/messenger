@@ -32,6 +32,7 @@ Future<void> main() async {
 
   // Get all settings
   final allSettings = await repositories.settingsDevice.getAllSettings();
+  logger.debug(allSettings);
 
   // Language
   if (allSettings.language == "ru"){

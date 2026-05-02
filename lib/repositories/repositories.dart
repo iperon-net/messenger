@@ -14,14 +14,14 @@ import '../models/settings_device.dart' as models;
 import '../settings.dart';
 
 part "settings_device.dart";
-part "profiles.dart";
+part "users.dart";
 
 class Repositories {
   final _logger = getIt.get<Logger>();
 
   late Database _database;
   late SettingsDevice settingsDevice;
-  late Profiles profiles;
+  late Users users;
 
   Future<void> initialization() async {
 
@@ -127,7 +127,7 @@ class Repositories {
     }
 
     settingsDevice = SettingsDevice(logger: _logger, database: _database);
-    profiles = Profiles(logger: _logger, database: _database);
+    users = Users(logger: _logger, database: _database);
 
     _logger.info("repositories initialization");
   }

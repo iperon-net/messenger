@@ -22,10 +22,10 @@ class SettingsDevice {
           language: '',
           darkMode: models.SettingsDeviceDarkMode.system,
           themeColor: models.SettingsDeviceThemeColor.blue,
-          blurTaskSwitchingEnable: 1,
+          blurTaskSwitchingEnable: true,
         );
       }
-      return models.SettingsDevice.fromJson(records.first);
+      return models.SettingsDevice.fromSqlite(records.first);
     });
   }
 
