@@ -482,13 +482,13 @@ class AuthConfirmationResponse extends $pb.GeneratedMessage {
     $core.List<$core.int>? session,
     $core.List<$core.int>? userID,
     $core.String? phoneNumber,
-    $core.List<$core.int>? sharedKeyId,
+    $core.List<$core.int>? sharedKeyID,
   }) {
     final result = create();
     if (session != null) result.session = session;
     if (userID != null) result.userID = userID;
     if (phoneNumber != null) result.phoneNumber = phoneNumber;
-    if (sharedKeyId != null) result.sharedKeyId = sharedKeyId;
+    if (sharedKeyID != null) result.sharedKeyID = sharedKeyID;
     return result;
   }
 
@@ -512,8 +512,8 @@ class AuthConfirmationResponse extends $pb.GeneratedMessage {
         protoName: 'userID')
     ..aOS(3, _omitFieldNames ? '' : 'phoneNumber', protoName: 'phoneNumber')
     ..a<$core.List<$core.int>>(
-        4, _omitFieldNames ? '' : 'sharedKeyId', $pb.PbFieldType.OY,
-        protoName: 'sharedKeyId')
+        4, _omitFieldNames ? '' : 'sharedKeyID', $pb.PbFieldType.OY,
+        protoName: 'sharedKeyID')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -564,13 +564,13 @@ class AuthConfirmationResponse extends $pb.GeneratedMessage {
   void clearPhoneNumber() => $_clearField(3);
 
   @$pb.TagNumber(4)
-  $core.List<$core.int> get sharedKeyId => $_getN(3);
+  $core.List<$core.int> get sharedKeyID => $_getN(3);
   @$pb.TagNumber(4)
-  set sharedKeyId($core.List<$core.int> value) => $_setBytes(3, value);
+  set sharedKeyID($core.List<$core.int> value) => $_setBytes(3, value);
   @$pb.TagNumber(4)
-  $core.bool hasSharedKeyId() => $_has(3);
+  $core.bool hasSharedKeyID() => $_has(3);
   @$pb.TagNumber(4)
-  void clearSharedKeyId() => $_clearField(4);
+  void clearSharedKeyID() => $_clearField(4);
 }
 
 const $core.bool _omitFieldNames =

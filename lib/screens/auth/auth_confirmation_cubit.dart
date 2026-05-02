@@ -2,6 +2,7 @@ import 'package:bloc/bloc.dart';
 import 'package:convert/convert.dart' as convertor;
 import 'package:cryptography/cryptography.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:messenger/repositories/repositories.dart';
 
 import '../../api.dart';
 import '../../constants.dart';
@@ -24,6 +25,7 @@ class AuthConfirmationCubit extends Cubit<AuthConfirmationState> {
   final _api = getIt.get<API>();
   final _crypto = getIt.get<Crypto>();
   final _utils = getIt.get<Utils>();
+  final _repositories = getIt.get<Repositories>();
 
   Future<void> initialization({required String confirmationSession}) async {
     emit(state.copyWith(error: ""));
@@ -77,15 +79,19 @@ class AuthConfirmationCubit extends Cubit<AuthConfirmationState> {
       return;
     }
 
-    // _logger.debug(authConfirmationResponse.phoneNumber);
+    _logger.debug("${authConfirmationResponse.toProto3Json()}");
 
-    _logger.debug("session ${authConfirmationResponse.session}");
-    _logger.debug("phoneNumber ${authConfirmationResponse.phoneNumber}");
-    _logger.debug("userID ${authConfirmationResponse.userID}");
-    _logger.debug("sharedKeyId ${authConfirmationResponse.sharedKeyId}");
+    final secretKeyData = await sharedSecretKey.extract();
 
-    _logger.debug("initialization");
+    await _repositories.users.create(
+      session: authConfirmationResponse.session,
+      phoneNumber: authConfirmationResponse.phoneNumber,
+      userID: authConfirmationResponse.userID,
+      sharedKeyID: authConfirmationResponse.sharedKeyID,
+      sharedSecretKey: secretKeyData.bytes,
+    );
 
+    emit(state.copyWith(status: Status.success));
   }
 
 }

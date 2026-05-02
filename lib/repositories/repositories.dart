@@ -1,8 +1,10 @@
 
 import 'dart:math';
+import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:objectid/objectid.dart';
 
 import '../di.dart';
 import '../i18n/translations.g.dart';
@@ -71,7 +73,7 @@ class Repositories {
         //
         batch.execute('''
           CREATE TABLE users (
-            usersId INTEGER PRIMARY KEY AUTOINCREMENT,
+            userID TEXT PRIMARY KEY,
             phoneNumber TEXT NOT NULL,
             session BLOB NOT NULL,
             isActive INT NOT NULL DEFAULT 0
@@ -80,12 +82,11 @@ class Repositories {
 
         batch.execute('''
           CREATE TABLE sharedKeys (
-              sharedKeyId INTEGER PRIMARY KEY AUTOINCREMENT,
-              usersId INTEGER NOT NULL,
-              secretKey BLOB NOT NULL,
-              isActive INTEGER NOT NULL DEFAULT 0,
+              sharedKeyID TEXT PRIMARY KEY,
+              userID TEXT NOT NULL,
+              sharedSecretKey BLOB NOT NULL,
               expiredAt INTEGER NULL,
-              FOREIGN KEY (usersId) REFERENCES users(usersId) ON DELETE CASCADE ON UPDATE CASCADE
+              FOREIGN KEY (userID) REFERENCES users(userID) ON DELETE CASCADE ON UPDATE CASCADE
           );
         ''');
 

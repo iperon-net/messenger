@@ -47,17 +47,28 @@ class AuthCallpasswordCubit extends Cubit<AuthCallpasswordState> {
           status: Status.success,
           confirmationSession: onData.confirmationSession,
         ));
-
-        // onData.hasCloudPassword;
-        // onData.isBlocked;
       }
 
-    }, onError: (error) async {
-      error as GrpcError;
-      _logger.error("${error.codeName}, ${error.message}");
-      emit(state.copyWith(error: "internalServerError"));
+    }, onError: (error) {
+      if (error is GrpcError) {
+        _logger.error("${error.codeName}, ${error.message}");
+        if ([StatusCode.unknown, StatusCode.unavailable].contains(error.code)) {
+          emit(state.copyWith(error: "errorConnectingToTheServer"));
+        } else {
+          emit(state.copyWith(error: "internalServerError"));
+        }
+      } else {
+        _logger.error("stream error: $error");
+        emit(state.copyWith(error: "errorConnectingToTheServer"));
+      }
     }, cancelOnError: true);
 
+  }
+
+  @override
+  Future<void> close() async {
+    await subscriptionCallPassword.cancel();
+    return super.close();
   }
 
   void setTickerSecond(int tickerSecond) {

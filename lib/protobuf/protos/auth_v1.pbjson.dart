@@ -188,7 +188,7 @@ const AuthConfirmationResponse$json = {
     {'1': 'session', '3': 1, '4': 1, '5': 12, '10': 'session'},
     {'1': 'userID', '3': 2, '4': 1, '5': 12, '10': 'userID'},
     {'1': 'phoneNumber', '3': 3, '4': 1, '5': 9, '10': 'phoneNumber'},
-    {'1': 'sharedKeyId', '3': 4, '4': 1, '5': 12, '10': 'sharedKeyId'},
+    {'1': 'sharedKeyID', '3': 4, '4': 1, '5': 12, '10': 'sharedKeyID'},
   ],
 };
 
@@ -196,4 +196,4 @@ const AuthConfirmationResponse$json = {
 final $typed_data.Uint8List authConfirmationResponseDescriptor = $convert.base64Decode(
     'ChhBdXRoQ29uZmlybWF0aW9uUmVzcG9uc2USGAoHc2Vzc2lvbhgBIAEoDFIHc2Vzc2lvbhIWCg'
     'Z1c2VySUQYAiABKAxSBnVzZXJJRBIgCgtwaG9uZU51bWJlchgDIAEoCVILcGhvbmVOdW1iZXIS'
-    'IAoLc2hhcmVkS2V5SWQYBCABKAxSC3NoYXJlZEtleUlk');
+    'IAoLc2hhcmVkS2V5SUQYBCABKAxSC3NoYXJlZEtleUlE');

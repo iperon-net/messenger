@@ -32,7 +32,6 @@ class API {
         backoffStrategy: (_) => const Duration(seconds: 60),
         keepAlive: const ClientKeepAliveOptions(
           pingInterval: Duration(seconds: 60),
-          permitWithoutCalls: true,
         ),
         codecRegistry: CodecRegistry(
           codecs: const [

@@ -7,10 +7,47 @@ class Users {
 
   Users({required this.logger, required this.database});
 
-  Future<void> setLanguage(AppLocale language) async {
+  Future<void> create({
+    required List<int> session,
+    required String phoneNumber,
+    required List<int> userID,
+    required List<int> sharedKeyID,
+    required List<int> sharedSecretKey,
+  }) async {
+
     return await database.transaction((txn) async {
-      await txn.update('settingsDevice', {'language': language.name});
+      final userObjectID = ObjectId.fromBytes(userID);
+      final sharedKeyObjectID = ObjectId.fromBytes(sharedKeyID);
+
+      await txn.delete('users', where: 'userID = ?', whereArgs: [userObjectID.hexString]);
+      await txn.insert(
+        "users",
+        {
+          "userID": userObjectID.hexString,
+          "phoneNumber": phoneNumber,
+          "session": Uint8List.fromList(session),
+          "isActive": 1,
+        }
+      );
+      await txn.insert(
+        "sharedKeys",
+          {
+            "sharedKeyID": sharedKeyObjectID.hexString,
+            "userID": userObjectID.hexString,
+            "sharedSecretKey": Uint8List.fromList(sharedSecretKey),
+          },
+      );
+
+      logger.debug(sharedSecretKey);
+
     });
+
   }
+
+  // _logger.debug("session ${authConfirmationResponse.session}");
+  // _logger.debug("phoneNumber ${authConfirmationResponse.phoneNumber}");
+  // _logger.debug("userID ${authConfirmationResponse.userID}");
+  // _logger.debug("sharedKeyId ${authConfirmationResponse.sharedKeyId}");
+
 
 }

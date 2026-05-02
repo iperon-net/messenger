@@ -51,5 +51,5 @@ message AuthConfirmationResponse {
   bytes session = 1;
   bytes userID = 2;
   string phoneNumber = 3;
-  bytes sharedKeyId = 4;
+  bytes sharedKeyID = 4;
 }
