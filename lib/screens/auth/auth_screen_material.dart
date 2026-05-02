@@ -92,6 +92,9 @@ class _AuthMaterialScreen extends State<AuthMaterialScreen> {
                         inputFormatters: [
                           PhoneInputFormatter(),
                         ],
+                        autofillHints: [
+                          AutofillHints.telephoneNumber,
+                        ],
                         textInputAction: TextInputAction.next,
                         validator: (value) => context.read<AuthCubit>().validatorPhoneNumber(context, value),
                       ),

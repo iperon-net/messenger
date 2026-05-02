@@ -105,6 +105,9 @@ class _AuthCupertinoScreen extends State<AuthCupertinoScreen> {
                             inputFormatters: [
                               PhoneInputFormatter(),
                             ],
+                            autofillHints: [
+                              AutofillHints.telephoneNumber,
+                            ],
                             placeholder: context.t.mobilePhone,
                             validator: (value) => context.read<AuthCubit>().validatorPhoneNumber(context, value),
                           ),
