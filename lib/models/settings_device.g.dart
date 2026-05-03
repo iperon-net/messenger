@@ -8,22 +8,26 @@ part of 'settings_device.dart';
 
 _SettingsDevice _$SettingsDeviceFromJson(Map<String, dynamic> json) =>
     _SettingsDevice(
-      language: json['language'] as String,
-      darkMode: $enumDecode(_$SettingsDeviceDarkModeEnumMap, json['darkMode']),
-      themeColor: $enumDecode(
-        _$SettingsDeviceThemeColorEnumMap,
-        json['themeColor'],
-      ),
-      blurTaskSwitchingEnable: const BoolConverter().fromJson(
-        (json['blurTaskSwitchingEnable'] as num).toInt(),
-      ),
+      language: json['language'] as String? ?? "",
+      darkMode:
+          $enumDecodeNullable(
+            _$SettingsDeviceDarkModeEnumMap,
+            json['darkMode'],
+          ) ??
+          SettingsDeviceDarkMode.system,
+      themeColor: json['themeColor'] ?? SettingsDeviceThemeColor.blue,
+      blurTaskSwitchingEnable: json['blurTaskSwitchingEnable'] == null
+          ? false
+          : const BoolConverter().fromJson(
+              (json['blurTaskSwitchingEnable'] as num).toInt(),
+            ),
     );
 
 Map<String, dynamic> _$SettingsDeviceToJson(_SettingsDevice instance) =>
     <String, dynamic>{
       'language': instance.language,
       'darkMode': _$SettingsDeviceDarkModeEnumMap[instance.darkMode]!,
-      'themeColor': _$SettingsDeviceThemeColorEnumMap[instance.themeColor]!,
+      'themeColor': instance.themeColor,
       'blurTaskSwitchingEnable': const BoolConverter().toJson(
         instance.blurTaskSwitchingEnable,
       ),
@@ -33,10 +37,4 @@ const _$SettingsDeviceDarkModeEnumMap = {
   SettingsDeviceDarkMode.system: 'system',
   SettingsDeviceDarkMode.disabled: 'disabled',
   SettingsDeviceDarkMode.alwaysOn: 'alwaysOn',
-};
-
-const _$SettingsDeviceThemeColorEnumMap = {
-  SettingsDeviceThemeColor.blue: 'blue',
-  SettingsDeviceThemeColor.green: 'green',
-  SettingsDeviceThemeColor.purple: 'purple',
 };

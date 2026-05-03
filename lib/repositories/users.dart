@@ -34,9 +34,44 @@ class Users {
           {
             "sharedKeyID": sharedKeyObjectID.hexString,
             "userID": userObjectID.hexString,
-            "sharedSecretKey": Uint8List.fromList(sharedSecretKey),
+            "sharedKey": Uint8List.fromList(sharedSecretKey),
           },
       );
+    });
+  }
+
+  // Get active
+  Future<models.User> getActive() async {
+    return await database.transaction((txn) async {
+      final resultsUser = await txn.query(
+        "users",
+        columns: ["userID", "phoneNumber", "session"],
+        where: 'isActive = ?',
+        whereArgs: [1],
+        limit: 1,
+      );
+      if (resultsUser.isEmpty) {
+        logger.warning("empty user");
+        return models.User();
+      }
+
+      Map<String, Object?> user = {...resultsUser.first};
+
+      final resultsSharedKeys = await txn.query(
+        "sharedKeys",
+        columns: ["sharedKeyID", "sharedKey", "expiredAt"],
+        where: 'userID = ?',
+        whereArgs: [user["userID"]],
+      );
+
+      if (resultsSharedKeys.isEmpty) {
+        logger.warning("empty sharedKey");
+        return models.User();
+      }
+
+      user["sharedKeys"] = resultsSharedKeys;
+
+      return models.User.fromSqlite(user);
     });
   }
 

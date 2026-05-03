@@ -7,7 +7,7 @@ class SettingsDevice {
 
   SettingsDevice({required this.logger, required this.database});
 
-  Future<models.SettingsDevice> getAllSettings() async {
+  Future<models.SettingsDevice> getAll() async {
     final columns = [
       'language',
       'darkMode',

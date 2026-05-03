@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$SettingsDevice implements DiagnosticableTreeMixin {
 
- String get language; SettingsDeviceDarkMode get darkMode; SettingsDeviceThemeColor get themeColor;@BoolConverter() bool get blurTaskSwitchingEnable;
+ String get language; SettingsDeviceDarkMode get darkMode; dynamic get themeColor;@BoolConverter() bool get blurTaskSwitchingEnable;
 /// Create a copy of SettingsDevice
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -34,12 +34,12 @@ void debugFillProperties(DiagnosticPropertiesBuilder properties) {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SettingsDevice&&(identical(other.language, language) || other.language == language)&&(identical(other.darkMode, darkMode) || other.darkMode == darkMode)&&(identical(other.themeColor, themeColor) || other.themeColor == themeColor)&&(identical(other.blurTaskSwitchingEnable, blurTaskSwitchingEnable) || other.blurTaskSwitchingEnable == blurTaskSwitchingEnable));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SettingsDevice&&(identical(other.language, language) || other.language == language)&&(identical(other.darkMode, darkMode) || other.darkMode == darkMode)&&const DeepCollectionEquality().equals(other.themeColor, themeColor)&&(identical(other.blurTaskSwitchingEnable, blurTaskSwitchingEnable) || other.blurTaskSwitchingEnable == blurTaskSwitchingEnable));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,language,darkMode,themeColor,blurTaskSwitchingEnable);
+int get hashCode => Object.hash(runtimeType,language,darkMode,const DeepCollectionEquality().hash(themeColor),blurTaskSwitchingEnable);
 
 @override
 String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
@@ -54,7 +54,7 @@ abstract mixin class $SettingsDeviceCopyWith<$Res>  {
   factory $SettingsDeviceCopyWith(SettingsDevice value, $Res Function(SettingsDevice) _then) = _$SettingsDeviceCopyWithImpl;
 @useResult
 $Res call({
- String language, SettingsDeviceDarkMode darkMode, SettingsDeviceThemeColor themeColor,@BoolConverter() bool blurTaskSwitchingEnable
+ String language, SettingsDeviceDarkMode darkMode, dynamic themeColor,@BoolConverter() bool blurTaskSwitchingEnable
 });
 
 
@@ -71,12 +71,12 @@ class _$SettingsDeviceCopyWithImpl<$Res>
 
 /// Create a copy of SettingsDevice
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? language = null,Object? darkMode = null,Object? themeColor = null,Object? blurTaskSwitchingEnable = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? language = null,Object? darkMode = null,Object? themeColor = freezed,Object? blurTaskSwitchingEnable = null,}) {
   return _then(_self.copyWith(
 language: null == language ? _self.language : language // ignore: cast_nullable_to_non_nullable
 as String,darkMode: null == darkMode ? _self.darkMode : darkMode // ignore: cast_nullable_to_non_nullable
-as SettingsDeviceDarkMode,themeColor: null == themeColor ? _self.themeColor : themeColor // ignore: cast_nullable_to_non_nullable
-as SettingsDeviceThemeColor,blurTaskSwitchingEnable: null == blurTaskSwitchingEnable ? _self.blurTaskSwitchingEnable : blurTaskSwitchingEnable // ignore: cast_nullable_to_non_nullable
+as SettingsDeviceDarkMode,themeColor: freezed == themeColor ? _self.themeColor : themeColor // ignore: cast_nullable_to_non_nullable
+as dynamic,blurTaskSwitchingEnable: null == blurTaskSwitchingEnable ? _self.blurTaskSwitchingEnable : blurTaskSwitchingEnable // ignore: cast_nullable_to_non_nullable
 as bool,
   ));
 }
@@ -162,7 +162,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String language,  SettingsDeviceDarkMode darkMode,  SettingsDeviceThemeColor themeColor, @BoolConverter()  bool blurTaskSwitchingEnable)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String language,  SettingsDeviceDarkMode darkMode,  dynamic themeColor, @BoolConverter()  bool blurTaskSwitchingEnable)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SettingsDevice() when $default != null:
 return $default(_that.language,_that.darkMode,_that.themeColor,_that.blurTaskSwitchingEnable);case _:
@@ -183,7 +183,7 @@ return $default(_that.language,_that.darkMode,_that.themeColor,_that.blurTaskSwi
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String language,  SettingsDeviceDarkMode darkMode,  SettingsDeviceThemeColor themeColor, @BoolConverter()  bool blurTaskSwitchingEnable)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String language,  SettingsDeviceDarkMode darkMode,  dynamic themeColor, @BoolConverter()  bool blurTaskSwitchingEnable)  $default,) {final _that = this;
 switch (_that) {
 case _SettingsDevice():
 return $default(_that.language,_that.darkMode,_that.themeColor,_that.blurTaskSwitchingEnable);case _:
@@ -198,13 +198,13 @@ return $default(_that.language,_that.darkMode,_that.themeColor,_that.blurTaskSwi
 @JsonSerializable()
 
 class _SettingsDevice extends SettingsDevice with DiagnosticableTreeMixin {
-  const _SettingsDevice({required this.language, required this.darkMode, required this.themeColor, @BoolConverter() required this.blurTaskSwitchingEnable}): super._();
+  const _SettingsDevice({this.language = "", this.darkMode = SettingsDeviceDarkMode.system, this.themeColor = SettingsDeviceThemeColor.blue, @BoolConverter() this.blurTaskSwitchingEnable = false}): super._();
   factory _SettingsDevice.fromJson(Map<String, dynamic> json) => _$SettingsDeviceFromJson(json);
 
-@override final  String language;
-@override final  SettingsDeviceDarkMode darkMode;
-@override final  SettingsDeviceThemeColor themeColor;
-@override@BoolConverter() final  bool blurTaskSwitchingEnable;
+@override@JsonKey() final  String language;
+@override@JsonKey() final  SettingsDeviceDarkMode darkMode;
+@override@JsonKey() final  dynamic themeColor;
+@override@JsonKey()@BoolConverter() final  bool blurTaskSwitchingEnable;
 
 /// Create a copy of SettingsDevice
 /// with the given fields replaced by the non-null parameter values.
@@ -225,12 +225,12 @@ void debugFillProperties(DiagnosticPropertiesBuilder properties) {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SettingsDevice&&(identical(other.language, language) || other.language == language)&&(identical(other.darkMode, darkMode) || other.darkMode == darkMode)&&(identical(other.themeColor, themeColor) || other.themeColor == themeColor)&&(identical(other.blurTaskSwitchingEnable, blurTaskSwitchingEnable) || other.blurTaskSwitchingEnable == blurTaskSwitchingEnable));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SettingsDevice&&(identical(other.language, language) || other.language == language)&&(identical(other.darkMode, darkMode) || other.darkMode == darkMode)&&const DeepCollectionEquality().equals(other.themeColor, themeColor)&&(identical(other.blurTaskSwitchingEnable, blurTaskSwitchingEnable) || other.blurTaskSwitchingEnable == blurTaskSwitchingEnable));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,language,darkMode,themeColor,blurTaskSwitchingEnable);
+int get hashCode => Object.hash(runtimeType,language,darkMode,const DeepCollectionEquality().hash(themeColor),blurTaskSwitchingEnable);
 
 @override
 String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
@@ -245,7 +245,7 @@ abstract mixin class _$SettingsDeviceCopyWith<$Res> implements $SettingsDeviceCo
   factory _$SettingsDeviceCopyWith(_SettingsDevice value, $Res Function(_SettingsDevice) _then) = __$SettingsDeviceCopyWithImpl;
 @override @useResult
 $Res call({
- String language, SettingsDeviceDarkMode darkMode, SettingsDeviceThemeColor themeColor,@BoolConverter() bool blurTaskSwitchingEnable
+ String language, SettingsDeviceDarkMode darkMode, dynamic themeColor,@BoolConverter() bool blurTaskSwitchingEnable
 });
 
 
@@ -262,12 +262,12 @@ class __$SettingsDeviceCopyWithImpl<$Res>
 
 /// Create a copy of SettingsDevice
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? language = null,Object? darkMode = null,Object? themeColor = null,Object? blurTaskSwitchingEnable = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? language = null,Object? darkMode = null,Object? themeColor = freezed,Object? blurTaskSwitchingEnable = null,}) {
   return _then(_SettingsDevice(
 language: null == language ? _self.language : language // ignore: cast_nullable_to_non_nullable
 as String,darkMode: null == darkMode ? _self.darkMode : darkMode // ignore: cast_nullable_to_non_nullable
-as SettingsDeviceDarkMode,themeColor: null == themeColor ? _self.themeColor : themeColor // ignore: cast_nullable_to_non_nullable
-as SettingsDeviceThemeColor,blurTaskSwitchingEnable: null == blurTaskSwitchingEnable ? _self.blurTaskSwitchingEnable : blurTaskSwitchingEnable // ignore: cast_nullable_to_non_nullable
+as SettingsDeviceDarkMode,themeColor: freezed == themeColor ? _self.themeColor : themeColor // ignore: cast_nullable_to_non_nullable
+as dynamic,blurTaskSwitchingEnable: null == blurTaskSwitchingEnable ? _self.blurTaskSwitchingEnable : blurTaskSwitchingEnable // ignore: cast_nullable_to_non_nullable
 as bool,
   ));
 }

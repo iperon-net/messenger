@@ -14,10 +14,10 @@ abstract class SettingsDevice with _$SettingsDevice {
   const SettingsDevice._();
 
   const factory SettingsDevice({
-    required String language,
-    required SettingsDeviceDarkMode darkMode,
-    required SettingsDeviceThemeColor themeColor,
-    @BoolConverter() required bool blurTaskSwitchingEnable,
+    @Default("") String language,
+    @Default(SettingsDeviceDarkMode.system) SettingsDeviceDarkMode darkMode,
+    @Default(SettingsDeviceThemeColor.blue) themeColor,
+    @BoolConverter() @Default(false) bool blurTaskSwitchingEnable,
   }) = _SettingsDevice;
 
   factory SettingsDevice.fromJson(Map<String, dynamic> json) => _$SettingsDeviceFromJson(json);

@@ -2,7 +2,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:messenger/cubit/main_cubit.dart';
 
 import 'di.dart';
 import 'logger.dart';
@@ -15,8 +17,20 @@ class Routers {
     return GoRouter(
       debugLogDiagnostics: kDebugMode ? true: false,
       navigatorKey: navigatorGoRouterKey,
-      initialLocation: '/auth',
+      initialLocation: '/',
+      redirect: (context, state) {
+
+        Uri uri = Uri.parse(state.fullPath ?? "/");
+        if (uri.pathSegments.isNotEmpty && uri.pathSegments[0] == "auth") return null;
+        if (context.watch<MainCubit>().state.user.userID.isEmpty) return "/auth";
+
+        return null;
+      },
       routes: <RouteBase>[
+        GoRoute(
+          path: '/',
+          builder: (_, _) => HomeMaterialScreen(),
+        ),
         GoRoute(
           path: '/auth',
           builder: (_, _) => AuthMaterialScreen(),

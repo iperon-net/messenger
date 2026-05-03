@@ -12,7 +12,7 @@ import '../logger.dart';
 import 'package:path/path.dart' as p;
 import 'package:sqflite/sqflite.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart' as sqflite_sqlcipher;
-import '../models/settings_device.dart' as models;
+import '../models/models.dart' as models;
 import '../settings.dart';
 
 part "settings_device.dart";
@@ -84,7 +84,7 @@ class Repositories {
           CREATE TABLE sharedKeys (
               sharedKeyID TEXT PRIMARY KEY,
               userID TEXT NOT NULL,
-              sharedSecretKey BLOB NOT NULL,
+              sharedKey BLOB NOT NULL,
               expiredAt INTEGER NULL,
               FOREIGN KEY (userID) REFERENCES users(userID) ON DELETE CASCADE ON UPDATE CASCADE
           );
