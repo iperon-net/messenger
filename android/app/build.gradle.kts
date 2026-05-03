@@ -28,6 +28,8 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        manifestPlaceholders["YANDEX_CLIENT_ID"] = "a001e23bf51b4743a3f408473d5f85cd"
+        manifestPlaceholders["YANDEX_OAUTH_HOST"] = "oauth.yandex.ru"
     }
 
     buildTypes {

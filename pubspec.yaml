@@ -73,6 +73,7 @@ dependencies:
   device_info_plus: ^12.4.0
   device_marketing_names: ^2.0.0
   objectid: ^4.0.3
+  yandex_login_sdk: ^0.1.5
 
 dev_dependencies:
   flutter_test:
