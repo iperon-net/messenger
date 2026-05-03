@@ -38,6 +38,7 @@ class AuthCubit extends Cubit<AuthState> {
     try {
       phoneNumber = phoneUtil.parse(value, "");
     } catch (err) {
+      _logger.error(err);
       return context.t.enterYourMobilePhoneNumber;
     }
 
