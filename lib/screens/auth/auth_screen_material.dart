@@ -97,6 +97,7 @@ class _AuthMaterialScreen extends State<AuthMaterialScreen> {
                         ],
                         textInputAction: TextInputAction.next,
                         validator: (value) => context.read<AuthCubit>().validatorPhoneNumber(context, value),
+                        onEditingComplete: () async => await context.read<AuthCubit>().validator(context, formKey, phoneNumberController),
                       ),
                     ],
                   ),

@@ -23,40 +23,29 @@ class Routers {
           routes: <RouteBase>[
             GoRoute(
               path: '/callpassword',
-              pageBuilder: (BuildContext context, state) {
+              builder: (context, state) {
                 final callPasswordSession = state.uri.queryParameters["callPasswordSession"];
                 final confirmationPhoneNumber = state.uri.queryParameters["confirmationPhoneNumber"];
                 final timeout = double.parse(state.uri.queryParameters["timeout"] ?? "0");
 
                 if (callPasswordSession != null && confirmationPhoneNumber != null && timeout > 0) {
-                  return MaterialPage(
-                    child: AuthCallPasswordMaterialScreen(
-                      callPasswordSession: callPasswordSession,
-                      confirmationPhoneNumber: confirmationPhoneNumber,
-                      timeout: timeout,
-                    ),
-                    maintainState: false,
+                  return AuthCallPasswordMaterialScreen(
+                    callPasswordSession: callPasswordSession,
+                    confirmationPhoneNumber: confirmationPhoneNumber,
+                    timeout: timeout,
                   );
                 }
 
                 if (context.mounted) context.go("/auth");
-                return MaterialPage(child: Container());
+                return Container();
               },
             ),
             GoRoute(
               path: "/confirmation",
-              pageBuilder: (BuildContext context, state) {
+              builder: (context, state) {
                 final confirmationSession = state.uri.queryParameters["confirmationSession"] ?? "";
-
-                return MaterialPage(
-                  child: AuthConfirmationMaterialScreen(confirmationSession: confirmationSession),
-                  maintainState: false,
-                );
+                return AuthConfirmationMaterialScreen(confirmationSession: confirmationSession);
               },
-              // builder: (BuildContext context, state) {
-              //   final confirmationSession = state.uri.queryParameters["confirmationSession"] ?? "";
-              //   return AuthConfirmationMaterialScreen(confirmationSession: confirmationSession);
-              // },
             ),
           ],
         ),
@@ -76,24 +65,21 @@ class Routers {
             routes: [
               GoRoute(
                 path: '/callpassword',
-                pageBuilder: (BuildContext context, state) {
+                builder: (context, state) {
                   final callPasswordSession = state.uri.queryParameters["callPasswordSession"];
                   final confirmationPhoneNumber = state.uri.queryParameters["confirmationPhoneNumber"];
                   final timeout = double.parse(state.uri.queryParameters["timeout"] ?? "0");
 
                   if (callPasswordSession != null && confirmationPhoneNumber != null && timeout > 0) {
-                    return MaterialPage(
-                      child: AuthCallPasswordMaterialScreen(
-                        callPasswordSession: callPasswordSession,
-                        confirmationPhoneNumber: confirmationPhoneNumber,
-                        timeout: timeout,
-                      ),
-                      maintainState: false,
+                    return AuthCallPasswordMaterialScreen(
+                      callPasswordSession: callPasswordSession,
+                      confirmationPhoneNumber: confirmationPhoneNumber,
+                      timeout: timeout,
                     );
                   }
 
                   if (context.mounted) context.go("/auth");
-                  return MaterialPage(child: Container());
+                  return Container();
                 },
               ),
             ],
