@@ -35,7 +35,28 @@ class _HomeMaterialScreen extends State<HomeMaterialScreen> {
     return BlocBuilder<HomeCubit, HomeState>(
       builder: (context, state) {
         return Scaffold(
-          appBar: AppBar(),
+          appBar: AppBar(
+            title: appBarTitle(context, state),
+            actions: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(0, 0, 5, 0),
+                child: PopupMenuButton<String>(
+                  icon: Icon(Icons.more_vert),
+                  offset: Offset(0.0, AppBar().preferredSize.height),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(8)),
+                  ),
+                  onSelected: (String value) {},
+                  itemBuilder: (BuildContext context) => [
+                    PopupMenuItem<String>(
+                      value: 'logout',
+                      child: Text('Выйти'),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
           bottomNavigationBar: NavigationBar(
             onDestinationSelected: (int index) => context.read<HomeCubit>().setDestinationSelectedIndex(index),
             selectedIndex: state.destinationSelectedIndex,
@@ -45,16 +66,16 @@ class _HomeMaterialScreen extends State<HomeMaterialScreen> {
                 label: 'Чаты',
               ),
               NavigationDestination(
+                icon: FaIcon(FontAwesomeIcons.phoneFlip),
+                label: 'Звонки',
+              ),
+              NavigationDestination(
                 icon: FaIcon(FontAwesomeIcons.circleUser),
                 label: 'Контакты',
               ),
               NavigationDestination(
                 icon: FaIcon(FontAwesomeIcons.gear),
                 label: 'Настройки',
-              ),
-              NavigationDestination(
-                icon: FaIcon(FontAwesomeIcons.user),
-                label: 'Профиль',
               ),
             ],
           ),
@@ -75,9 +96,21 @@ class _HomeMaterialScreen extends State<HomeMaterialScreen> {
     }else if (state.destinationSelectedIndex == 1) {
       return Text(state.destinationSelectedIndex.toString());
     } else if (state.destinationSelectedIndex == 2){
-      return SettingsMaterialScreen();
-    } else {
       return Text(state.destinationSelectedIndex.toString());
+    } else {
+      return SettingsMaterialScreen();
+    }
+  }
+
+  Widget appBarTitle(BuildContext context, HomeState state) {
+    if (state.destinationSelectedIndex == 0){
+      return Text("Чаты");
+    }else if (state.destinationSelectedIndex == 1) {
+      return Text("Звонки");
+    } else if (state.destinationSelectedIndex == 2){
+      return Text("Контакты");
+    } else {
+      return Text("Настройки");
     }
   }
 
