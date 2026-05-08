@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_multi_formatter/flutter_multi_formatter.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:convert/convert.dart' as convertor;
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../constants.dart';
@@ -74,37 +75,38 @@ class _AuthMaterialScreen extends State<AuthMaterialScreen> {
             child: Column(
               spacing: 20,
               children: [
-                Column(
-                  spacing: 30,
-                  children: [
-                    SvgPicture.asset(Theme.of(context).brightness == Brightness.light ? 'assets/images/logo_light.svg' : 'assets/images/logo_dark.svg'),
-                    TextFormField(
-                      controller: phoneNumberController,
-                      focusNode: phoneNumberFocus,
-                      autocorrect: true,
-                      keyboardType: TextInputType.phone,
-                      decoration: InputDecoration(
-                        prefixIcon: Icon(Icons.phone, color: Theme.of(context).colorScheme.primary),
-                        labelText: context.t.mobilePhone,
-                        helperText: " \n ",
-                        helperMaxLines: 2,
-                        errorMaxLines: 2,
+                Expanded(
+                  child: Column(
+                    spacing: 30,
+                    children: [
+                      SvgPicture.asset(Theme.of(context).brightness == Brightness.light ? 'assets/images/logo_light.svg' : 'assets/images/logo_dark.svg'),
+                      TextFormField(
+                        controller: phoneNumberController,
+                        focusNode: phoneNumberFocus,
+                        autocorrect: true,
+                        keyboardType: TextInputType.phone,
+                        decoration: InputDecoration(
+                          prefixIcon: Icon(Icons.phone, color: Theme.of(context).colorScheme.primary),
+                          labelText: context.t.mobilePhone,
+                          helperMaxLines: 2,
+                          errorMaxLines: 2,
+                        ),
+                        inputFormatters: [
+                          PhoneInputFormatter(),
+                        ],
+                        autofillHints: [
+                          AutofillHints.telephoneNumber,
+                        ],
+                        textInputAction: TextInputAction.next,
+                        validator: (value) {
+                          final error = context.read<AuthCubit>().validatorPhoneNumber(context, value);
+                          if (error == null) return null;
+                          return error.contains('\n') ? error : '$error\n';
+                        },
+                        onEditingComplete: () async => await context.read<AuthCubit>().validator(context, formKey, phoneNumberController),
                       ),
-                      inputFormatters: [
-                        PhoneInputFormatter(),
-                      ],
-                      autofillHints: [
-                        AutofillHints.telephoneNumber,
-                      ],
-                      textInputAction: TextInputAction.next,
-                      validator: (value) {
-                        final error = context.read<AuthCubit>().validatorPhoneNumber(context, value);
-                        if (error == null) return null;
-                        return error.contains('\n') ? error : '$error\n';
-                      },
-                      onEditingComplete: () async => await context.read<AuthCubit>().validator(context, formKey, phoneNumberController),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
                 BlocConsumer<AuthCubit, AuthState>(
                   listener: (BuildContext context, AuthState state) {
@@ -133,12 +135,28 @@ class _AuthMaterialScreen extends State<AuthMaterialScreen> {
                     );
                   },
                 ),
-                SizedBox(height: 10,),
                 dividerText(text: context.t.loginWith),
-                GestureDetector(
-                  onTap: () async => await context.read<AuthCubit>().signIn(),
-                  child: SvgPicture.asset('assets/images/yandex_id.svg'),
-                )
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  spacing: 30,
+                  children: [
+                    GestureDetector(
+                      onTap: () async => await context.read<AuthCubit>().signIn(),
+                      child: SvgPicture.asset('assets/images/yandex_id.svg'),
+                    ),
+                    Container(
+                      width: 42,
+                      height: 42,
+                      decoration: BoxDecoration(
+                        color: Colors.blue,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Center(
+                        child: SvgPicture.asset('assets/icons/user-key.svg', width: 32, theme: SvgTheme(currentColor: Colors.white),),
+                      ),
+                    ),
+                  ],
+                ),
               ],
             ),
           ),
