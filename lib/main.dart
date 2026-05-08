@@ -6,6 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:go_router/go_router.dart';
 
+import 'api.dart';
 import 'cubit/main_cubit.dart';
 import 'di.dart';
 import 'i18n/translations.g.dart';
@@ -16,6 +17,7 @@ import 'screens/auth/auth_callpassword_cubit.dart';
 import 'screens/auth/auth_confirmation_cubit.dart';
 import 'screens/auth/auth_cubit.dart';
 import 'screens/home/home_cubit.dart';
+import 'services/services.dart';
 import 'themes_cupertino.dart';
 import 'themes_material.dart';
 import 'models/models.dart' as models;
@@ -24,19 +26,16 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Dependencies
-  await configureCommonDependencies();
+  await registerCommonDependencies();
 
   //
   final logger = getIt.get<Logger>();
   final repositories = getIt.get<Repositories>();
 
-  // Initialization repository
-  await repositories.initialization();
-
   // Get all settings
   final settingsDevice = await repositories.settingsDevice.getAll();
-  logger.debug(settingsDevice);
 
+  // Get active user
   final user = await repositories.users.getActive();
 
   // Language
@@ -49,7 +48,7 @@ Future<void> main() async {
     LocaleSettings.setLocale(appLocale);
   }
 
-  logger.info('Startup application');
+  logger.info('startup application');
 
   runApp(
     TranslationProvider(
@@ -71,13 +70,11 @@ Future<void> main() async {
             create: (_) => HomeCubit(),
           ),
         ],
-
         child: Platform.isIOS ? const IperonMessengerCupertino() : IperonMessengerMaterial(settingsDevice: settingsDevice, user: user),
       ),
     ),
   );
 }
-
 
 // Material app
 class IperonMessengerMaterial extends StatefulWidget {

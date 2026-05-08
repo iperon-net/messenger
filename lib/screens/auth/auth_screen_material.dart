@@ -10,6 +10,7 @@ import '../../constants.dart';
 import '../../di.dart';
 import '../../i18n/translations.g.dart';
 import '../../logger.dart';
+import '../../widgets/divider_text.dart';
 import 'auth_cubit.dart';
 
 
@@ -41,7 +42,6 @@ class _AuthMaterialScreen extends State<AuthMaterialScreen> {
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
     ]);
-    logger.debug("initState auth");
   }
 
   @override
@@ -57,7 +57,6 @@ class _AuthMaterialScreen extends State<AuthMaterialScreen> {
       DeviceOrientation.landscapeRight,
     ]);
     super.dispose();
-    logger.debug("dispose auth");
   }
 
   @override
@@ -73,34 +72,39 @@ class _AuthMaterialScreen extends State<AuthMaterialScreen> {
           child: Padding(
             padding: const EdgeInsets.fromLTRB(25, 5, 25, 50),
             child: Column(
+              spacing: 20,
               children: [
-                Expanded(
-                  child: Column(
-                    spacing: 30,
-                    children: [
-                      SvgPicture.asset(Theme.of(context).brightness == Brightness.light ? 'assets/images/logo_light.svg' : 'assets/images/logo_dark.svg'),
-                      TextFormField(
-                        controller: phoneNumberController,
-                        focusNode: phoneNumberFocus,
-                        autocorrect: true,
-                        keyboardType: TextInputType.phone,
-                        decoration: InputDecoration(
-                          prefixIcon: Icon(Icons.phone, color: Theme.of(context).colorScheme.primary),
-                          labelText: context.t.mobilePhone,
-                          errorMaxLines: 5,
-                        ),
-                        inputFormatters: [
-                          PhoneInputFormatter(),
-                        ],
-                        autofillHints: [
-                          AutofillHints.telephoneNumber,
-                        ],
-                        textInputAction: TextInputAction.next,
-                        validator: (value) => context.read<AuthCubit>().validatorPhoneNumber(context, value),
-                        onEditingComplete: () async => await context.read<AuthCubit>().validator(context, formKey, phoneNumberController),
+                Column(
+                  spacing: 30,
+                  children: [
+                    SvgPicture.asset(Theme.of(context).brightness == Brightness.light ? 'assets/images/logo_light.svg' : 'assets/images/logo_dark.svg'),
+                    TextFormField(
+                      controller: phoneNumberController,
+                      focusNode: phoneNumberFocus,
+                      autocorrect: true,
+                      keyboardType: TextInputType.phone,
+                      decoration: InputDecoration(
+                        prefixIcon: Icon(Icons.phone, color: Theme.of(context).colorScheme.primary),
+                        labelText: context.t.mobilePhone,
+                        helperText: " \n ",
+                        helperMaxLines: 2,
+                        errorMaxLines: 2,
                       ),
-                    ],
-                  ),
+                      inputFormatters: [
+                        PhoneInputFormatter(),
+                      ],
+                      autofillHints: [
+                        AutofillHints.telephoneNumber,
+                      ],
+                      textInputAction: TextInputAction.next,
+                      validator: (value) {
+                        final error = context.read<AuthCubit>().validatorPhoneNumber(context, value);
+                        if (error == null) return null;
+                        return error.contains('\n') ? error : '$error\n';
+                      },
+                      onEditingComplete: () async => await context.read<AuthCubit>().validator(context, formKey, phoneNumberController),
+                    ),
+                  ],
                 ),
                 BlocConsumer<AuthCubit, AuthState>(
                   listener: (BuildContext context, AuthState state) {
@@ -114,16 +118,14 @@ class _AuthMaterialScreen extends State<AuthMaterialScreen> {
                       };
 
                       String queryString = Uri(queryParameters: queryParams).query;
-                      if(context.mounted) {
-                        context.go("/auth/callpassword?$queryString");
-                      }
+                      if(context.mounted) context.go("/auth/callpassword?$queryString");
                     }
 
                   },
                   builder: (context, AuthState state) {
                     return SizedBox(
                       width: double.infinity,
-                      height: 40,
+                      height: 45,
                       child: ElevatedButton(
                         onPressed: [Status.success, Status.initialization].contains(state.status) ? () async => await context.read<AuthCubit>().validator(context, formKey, phoneNumberController) : null,
                         child: [Status.success, Status.initialization].contains(state.status) ? Text(context.t.kContinue) : Transform.scale(scale: 0.5, child: CircularProgressIndicator(color: Color(0xffffffff))),
@@ -131,6 +133,12 @@ class _AuthMaterialScreen extends State<AuthMaterialScreen> {
                     );
                   },
                 ),
+                SizedBox(height: 10,),
+                dividerText(text: context.t.loginWith),
+                GestureDetector(
+                  onTap: () async => await context.read<AuthCubit>().signIn(),
+                  child: SvgPicture.asset('assets/images/yandex_id.svg'),
+                )
               ],
             ),
           ),

@@ -59,7 +59,6 @@ class API {
     version = packageInfo.version;
   }
 
-
   Future<String> call(Function() func) async {
     Logger logger = getIt.get<Logger>();
 

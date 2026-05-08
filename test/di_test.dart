@@ -5,7 +5,7 @@ import 'package:messenger/logger.dart';
 void main() {
 
   setUp(() async {
-    await configureCommonDependencies();
+    await registerCommonDependencies();
   });
 
   test('di', () async {

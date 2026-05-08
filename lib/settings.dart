@@ -17,4 +17,9 @@ class Settings {
 
   @EnviedField(varName: 'PUBLIC_KEY_ECDH_FINGERPRINT')
   static const String publicKeyECDHFingerprint = _Settings.publicKeyECDHFingerprint;
+
+  @EnviedField(varName: 'YANDEX_OAUTH_CLIENT_ID')
+  static const String yandexOauthClientId = _Settings.yandexOauthClientId;
 }
+
+

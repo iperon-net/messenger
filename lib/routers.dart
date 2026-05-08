@@ -103,11 +103,3 @@ class Routers {
   }
 
 }
-
-
-
-
-
-// logger.debug("111111");
-// context.go("/auth");
-// return Container();

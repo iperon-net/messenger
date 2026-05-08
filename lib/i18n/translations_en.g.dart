@@ -97,6 +97,9 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 
 	/// en: 'Continue'
 	String get kContinue => 'Continue';
+
+	/// en: 'Login with'
+	String get loginWith => 'Login with';
 }
 
 /// The flat map containing all translations for locale <en>.
@@ -126,6 +129,7 @@ extension on Translations {
 			'weAreExpectingYourCallWithin' => ({required Object duration}) => 'We are expecting your call within ${duration}',
 			'currentlyWeOnlySupportPhoneNumbersFromRussianMobileOperators' => 'Currently, we only support phone numbers from Russian mobile operators',
 			'kContinue' => 'Continue',
+			'loginWith' => 'Login with',
 			_ => null,
 		};
 	}

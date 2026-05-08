@@ -43,6 +43,7 @@ class AuthCallpasswordCubit extends Cubit<AuthCallpasswordState> {
       } else if (onData.status == grpc_models.Status.error) {
         if (onData.errorMessage.isNotEmpty) emit(state.copyWith(status: Status.success, error: onData.errorMessage));
       } else if (onData.status == grpc_models.Status.success) {
+        // success
         emit(state.copyWith(
           status: Status.success,
           confirmationSession: onData.confirmationSession,

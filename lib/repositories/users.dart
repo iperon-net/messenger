@@ -7,6 +7,7 @@ class Users {
 
   Users({required this.logger, required this.database});
 
+  // Create user
   Future<void> create({
     required List<int> session,
     required String phoneNumber,
@@ -40,7 +41,7 @@ class Users {
     });
   }
 
-  // Get active
+  // Get active user
   Future<models.User> getActive() async {
     return await database.transaction((txn) async {
       final resultsUser = await txn.query(
@@ -51,7 +52,6 @@ class Users {
         limit: 1,
       );
       if (resultsUser.isEmpty) {
-        logger.warning("empty user");
         return models.User();
       }
 
@@ -65,7 +65,6 @@ class Users {
       );
 
       if (resultsSharedKeys.isEmpty) {
-        logger.warning("empty sharedKey");
         return models.User();
       }
 

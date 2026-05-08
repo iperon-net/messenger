@@ -3,12 +3,14 @@ import 'package:dlibphonenumber/dlibphonenumber.dart';
 import 'package:flutter/widgets.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:messenger/di.dart';
+import 'package:yandex_login_sdk/yandex_login_sdk.dart';
 
 import '../../api.dart';
 import '../../constants.dart';
 import '../../i18n/translations.g.dart';
 import '../../logger.dart';
 import '../../protobuf/protos/auth_v1.pb.dart';
+import '../../settings.dart';
 import '../../utils.dart';
 
 part 'auth_cubit.freezed.dart';
@@ -20,14 +22,10 @@ class AuthCubit extends Cubit<AuthState> {
   final phoneUtil = PhoneNumberUtil.instance;
 
   final _logger = getIt.get<Logger>();
-  final _utils = getIt.get<Utils>();
   final _api = getIt.get<API>();
 
   Future<void> initialization() async {
     emit(AuthState());
-
-    final packageInfo = await _utils.packageInfo();
-    emit(state.copyWith(version: "v${packageInfo.appVersion}"));
   }
 
   // Validator phone number
@@ -76,7 +74,6 @@ class AuthCubit extends Cubit<AuthState> {
       final req = AuthCallPasswordRequest(phoneNumber: "${phoneNumber.countryCode}${phoneNumber.nationalNumber}");
       authCallPasswordResponse = await _api.auth.callPassword(req, options: await _api.callOptions());
     });
-
     if (context.mounted && authCallPasswordResponseError.isNotEmpty) {
       emit(state.copyWith(error: context.t[authCallPasswordResponseError] ?? context.t.unknownError, status: Status.success));
       formKey.currentState!.validate();
@@ -90,8 +87,22 @@ class AuthCubit extends Cubit<AuthState> {
       timeout: authCallPasswordResponse.timeout,
     ));
 
-    _logger.info("phone number raw ${phoneNumberController.text}");
-
+    _logger.info("waiting for a call from the phone ${phoneNumberController.text}");
     return;
   }
+
+
+  Future<void> signIn() async {
+    try {
+      final result = await YandexLoginSdk.signIn(clientId: Settings.yandexOauthClientId);
+      _logger.debug('Access token: ${result.token}');
+    } on YandexAuthCancelledException {
+      _logger.error('YandexAuthCancelledException');
+    } on YandexAuthUnsupportedException {
+      _logger.error('YandexAuthUnsupportedException');
+    } on YandexAuthException catch (e) {
+      _logger.error('Yandex SDK error: $e');
+    }
+  }
+
 }
