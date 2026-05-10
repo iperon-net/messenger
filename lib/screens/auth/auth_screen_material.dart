@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_multi_formatter/flutter_multi_formatter.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:telegram_login/telegram_login.dart';
 
 import '../../constants.dart';
@@ -117,31 +118,45 @@ class _AuthMaterialScreen extends State<AuthMaterialScreen> {
                     );
                   },
                 ),
-                dividerText(text: context.t.loginInWith),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  spacing: 30,
-                  children: [
-                    GestureDetector(
-                      onTap: () async => await context.read<AuthCubit>().signIn(),
-                      child: SvgPicture.asset('assets/images/yandex_id.svg'),
-                    ),
-                    GestureDetector(
-                      onTap: () async => null,
-                      child: Container(
-                        width: 42,
-                        height: 42,
-                        decoration: BoxDecoration(
-                          color: Colors.blue,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Center(
-                          child: SvgPicture.asset('assets/icons/user-key.svg', width: 32, theme: SvgTheme(currentColor: Colors.white),),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+                // dividerText(text: context.t.loginInWith),
+                // Row(
+                //   mainAxisAlignment: MainAxisAlignment.center,
+                //   spacing: 30,
+                //   children: [
+                //     GestureDetector(
+                //       onTap: () async => await context.read<AuthCubit>().signIn(),
+                //       child: SvgPicture.asset('assets/images/yandex_id.svg'),
+                //     ),
+                //     GestureDetector(
+                //       onTap: () async => null,
+                //       child: Container(
+                //         width: 42,
+                //         height: 42,
+                //         decoration: BoxDecoration(
+                //           color: Colors.blueAccent,
+                //           borderRadius: BorderRadius.circular(8),
+                //         ),
+                //         child: Center(
+                //           child: FaIcon(FontAwesomeIcons.telegram, size: 28, color: Colors.white),
+                //         ),
+                //       ),
+                //     ),
+                //     GestureDetector(
+                //       onTap: () async => await context.read<AuthCubit>().telegram(),
+                //       child: Container(
+                //         width: 42,
+                //         height: 42,
+                //         decoration: BoxDecoration(
+                //           color: Colors.black,
+                //           borderRadius: BorderRadius.circular(8),
+                //         ),
+                //         child: Center(
+                //           child: SvgPicture.asset('assets/icons/user-key.svg', width: 32, theme: SvgTheme(currentColor: Colors.white),),
+                //         ),
+                //       ),
+                //     ),
+                //   ],
+                // ),
               ],
             ),
           ),
