@@ -32,7 +32,6 @@ class _AuthCupertinoScreen extends State<AuthCupertinoScreen> {
   @override
   void initState() {
     super.initState();
-    context.read<AuthCubit>().initialization();
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
       DeviceOrientation.portraitDown,
@@ -149,7 +148,7 @@ class _AuthCupertinoScreen extends State<AuthCupertinoScreen> {
                     );
                   }
                 ),
-                dividerText(text: context.t.loginWith),
+                dividerText(text: context.t.loginInWith),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   spacing: 30,

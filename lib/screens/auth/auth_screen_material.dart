@@ -3,9 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_multi_formatter/flutter_multi_formatter.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:convert/convert.dart' as convertor;
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:go_router/go_router.dart';
+import 'package:telegram_login/telegram_login.dart';
 
 import '../../constants.dart';
 import '../../di.dart';
@@ -32,7 +30,6 @@ class _AuthMaterialScreen extends State<AuthMaterialScreen> {
   @override
   void initState() {
     super.initState();
-    context.read<AuthCubit>().initialization();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Future.delayed(Duration(milliseconds: 300), () {
@@ -108,22 +105,7 @@ class _AuthMaterialScreen extends State<AuthMaterialScreen> {
                     ],
                   ),
                 ),
-                BlocConsumer<AuthCubit, AuthState>(
-                  listener: (BuildContext context, AuthState state) {
-                    if (state.error.isNotEmpty) return context.go("/auth");
-
-                    if (state.status == Status.success && state.callPasswordSession.isNotEmpty){
-                      Map<String, String> queryParams = {
-                        'callPasswordSession': convertor.hex.encode(state.callPasswordSession),
-                        'confirmationPhoneNumber': state.confirmationPhoneNumber,
-                        'timeout': state.timeout.toString(),
-                      };
-
-                      String queryString = Uri(queryParameters: queryParams).query;
-                      if(context.mounted) context.go("/auth/callpassword?$queryString");
-                    }
-
-                  },
+                BlocBuilder<AuthCubit, AuthState>(
                   builder: (context, AuthState state) {
                     return SizedBox(
                       width: double.infinity,
@@ -135,7 +117,7 @@ class _AuthMaterialScreen extends State<AuthMaterialScreen> {
                     );
                   },
                 ),
-                dividerText(text: context.t.loginWith),
+                dividerText(text: context.t.loginInWith),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   spacing: 30,
@@ -144,15 +126,18 @@ class _AuthMaterialScreen extends State<AuthMaterialScreen> {
                       onTap: () async => await context.read<AuthCubit>().signIn(),
                       child: SvgPicture.asset('assets/images/yandex_id.svg'),
                     ),
-                    Container(
-                      width: 42,
-                      height: 42,
-                      decoration: BoxDecoration(
-                        color: Colors.blue,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Center(
-                        child: SvgPicture.asset('assets/icons/user-key.svg', width: 32, theme: SvgTheme(currentColor: Colors.white),),
+                    GestureDetector(
+                      onTap: () async => null,
+                      child: Container(
+                        width: 42,
+                        height: 42,
+                        decoration: BoxDecoration(
+                          color: Colors.blue,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Center(
+                          child: SvgPicture.asset('assets/icons/user-key.svg', width: 32, theme: SvgTheme(currentColor: Colors.white),),
+                        ),
                       ),
                     ),
                   ],

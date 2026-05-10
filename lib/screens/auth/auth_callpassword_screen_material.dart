@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:messenger/constants.dart';
+import 'package:messenger/cubit/main_cubit.dart';
 import 'package:messenger/utils.dart';
 import 'package:convert/convert.dart' as convertor;
 
@@ -71,7 +72,6 @@ class _AuthCallPasswordMaterialScreen extends State<AuthCallPasswordMaterialScre
     WidgetsBinding.instance.removeObserver(this);
 
     super.dispose();
-    logger.debug("dispose auth_callpassword");
   }
 
   @override
@@ -119,15 +119,10 @@ class _AuthCallPasswordMaterialScreen extends State<AuthCallPasswordMaterialScre
               BlocConsumer<AuthCallpasswordCubit, AuthCallpasswordState>(
                 listener: (BuildContext context, AuthCallpasswordState state) {
                   if (state.error.isNotEmpty) return context.go("/auth");
-
-                  if (state.status == Status.success && state.confirmationSession.isNotEmpty && !state.isBlocked){
-                    Map<String, String> queryParams = {
-                      'confirmationSession': convertor.hex.encode(state.confirmationSession),
-                    };
-                    String queryString = Uri(queryParameters: queryParams).query;
-                    context.go("/auth/confirmation?$queryString");
+                  if (state.status == Status.success && state.confirmationSession.isEmpty && !state.isBlocked && state.user.userID != ""){
+                    context.read<MainCubit>().setUser(user: state.user);
+                    return context.go("/");
                   }
-
                 },
                 builder: (context, state) {
                   return Text(context.t.weAreExpectingYourCallWithin(

@@ -4,13 +4,16 @@ import 'package:bloc/bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:grpc/grpc.dart';
 import 'package:convert/convert.dart' as convertor;
+import 'package:messenger/services/services.dart';
 
 import '../../api.dart';
 import '../../constants.dart';
 import '../../di.dart';
 import '../../logger.dart';
+import '../../models/user.dart';
 import '../../protobuf/protos/auth_v1.pb.dart';
 import '../../protobuf/protos/models.pbenum.dart' as grpc_models;
+import '../../repositories/repositories.dart';
 
 
 part 'auth_callpassword_state.dart';
@@ -21,6 +24,8 @@ class AuthCallpasswordCubit extends Cubit<AuthCallpasswordState> {
 
   final _api = getIt.get<API>();
   final _logger = getIt.get<Logger>();
+  final _services = getIt.get<Services>();
+  final _repositories = getIt.get<Repositories>();
 
   late ResponseStream<AuthCallPasswordCheckResponse> streamCallPassword;
   late StreamSubscription<AuthCallPasswordCheckResponse> subscriptionCallPassword;
@@ -37,17 +42,25 @@ class AuthCallpasswordCubit extends Cubit<AuthCallpasswordState> {
       options: await _api.callOptions(timeout: timeout),
     );
 
-    subscriptionCallPassword = streamCallPassword.listen((onData) {
+    subscriptionCallPassword = streamCallPassword.listen((onData) async {
       if (onData.status == grpc_models.Status.success && onData.timer > 0) {
-        emit(state.copyWith(status: Status.success, tickerSecond: onData.timer.toInt()));
+        emit(state.copyWith(status: Status.loading, tickerSecond: onData.timer.toInt()));
       } else if (onData.status == grpc_models.Status.error) {
         if (onData.errorMessage.isNotEmpty) emit(state.copyWith(status: Status.success, error: onData.errorMessage));
       } else if (onData.status == grpc_models.Status.success) {
-        // success
-        emit(state.copyWith(
-          status: Status.success,
-          confirmationSession: onData.confirmationSession,
-        ));
+
+        final serviceResponseConfirmation = await _services.auth.confirmation(confirmationSession: onData.confirmationSession);
+        if (serviceResponseConfirmation.error.isNotEmpty) {
+          emit(state.copyWith(
+            status: Status.success,
+            error: serviceResponseConfirmation.error,
+          ));
+          return;
+        }
+
+        emit(state.copyWith(status: Status.success, user: await _repositories.users.getActive()));
+        _logger.info("auth call password success");
+        return;
       }
 
     }, onError: (error) {

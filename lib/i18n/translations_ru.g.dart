@@ -58,7 +58,8 @@ class TranslationsRu extends Translations with BaseTranslations<AppLocale, Trans
 	@override String weAreExpectingYourCallWithin({required Object duration}) => 'Ожидаем вашего звонка в течении ${duration}';
 	@override String get currentlyWeOnlySupportPhoneNumbersFromRussianMobileOperators => 'В настоящие время мы поддерживаем только номера российских сотовых операторов';
 	@override String get kContinue => 'Продолжить';
-	@override String get loginWith => 'Войти с помощью';
+	@override String get loginInWith => 'Войти с помощью';
+	@override String get signatureVerificationError => 'Ошибка проверка подписи';
 }
 
 /// The flat map containing all translations for locale <ru>.
@@ -88,7 +89,8 @@ extension on TranslationsRu {
 			'weAreExpectingYourCallWithin' => ({required Object duration}) => 'Ожидаем вашего звонка в течении ${duration}',
 			'currentlyWeOnlySupportPhoneNumbersFromRussianMobileOperators' => 'В настоящие время мы поддерживаем только номера российских сотовых операторов',
 			'kContinue' => 'Продолжить',
-			'loginWith' => 'Войти с помощью',
+			'loginInWith' => 'Войти с помощью',
+			'signatureVerificationError' => 'Ошибка проверка подписи',
 			_ => null,
 		};
 	}

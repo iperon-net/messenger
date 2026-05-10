@@ -54,13 +54,6 @@ class Routers {
                 return Container();
               },
             ),
-            GoRoute(
-              path: "/confirmation",
-              builder: (context, state) {
-                final confirmationSession = state.uri.queryParameters["confirmationSession"] ?? "";
-                return AuthConfirmationMaterialScreen(confirmationSession: confirmationSession);
-              },
-            ),
           ],
         ),
       ]

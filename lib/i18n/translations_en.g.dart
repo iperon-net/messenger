@@ -98,8 +98,11 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	/// en: 'Continue'
 	String get kContinue => 'Continue';
 
-	/// en: 'Login with'
-	String get loginWith => 'Login with';
+	/// en: 'Login in with'
+	String get loginInWith => 'Login in with';
+
+	/// en: 'Signature verification error'
+	String get signatureVerificationError => 'Signature verification error';
 }
 
 /// The flat map containing all translations for locale <en>.
@@ -129,7 +132,8 @@ extension on Translations {
 			'weAreExpectingYourCallWithin' => ({required Object duration}) => 'We are expecting your call within ${duration}',
 			'currentlyWeOnlySupportPhoneNumbersFromRussianMobileOperators' => 'Currently, we only support phone numbers from Russian mobile operators',
 			'kContinue' => 'Continue',
-			'loginWith' => 'Login with',
+			'loginInWith' => 'Login in with',
+			'signatureVerificationError' => 'Signature verification error',
 			_ => null,
 		};
 	}

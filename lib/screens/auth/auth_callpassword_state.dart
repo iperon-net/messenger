@@ -10,6 +10,7 @@ abstract class AuthCallpasswordState with _$AuthCallpasswordState {
     @Default(0) int tickerSecond,
     @Default(false) bool isBlocked,
     @Default(false) bool hasCloudPassword,
+    @Default(User()) User user,
 
   }) = _AuthCallpasswordState;
 }

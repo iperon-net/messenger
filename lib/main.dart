@@ -14,7 +14,6 @@ import 'logger.dart';
 import 'repositories/repositories.dart';
 import 'routers.dart';
 import 'screens/auth/auth_callpassword_cubit.dart';
-import 'screens/auth/auth_confirmation_cubit.dart';
 import 'screens/auth/auth_cubit.dart';
 import 'screens/home/home_cubit.dart';
 import 'services/services.dart';
@@ -62,9 +61,6 @@ Future<void> main() async {
           ),
           BlocProvider<AuthCallpasswordCubit>(
             create: (_) => AuthCallpasswordCubit(),
-          ),
-          BlocProvider<AuthConfirmationCubit>(
-            create: (_) => AuthConfirmationCubit(),
           ),
           BlocProvider<HomeCubit>(
             create: (_) => HomeCubit(),

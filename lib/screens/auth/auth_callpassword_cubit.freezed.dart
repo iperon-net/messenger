@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$AuthCallpasswordState {
 
- Status get status; String get error; List<int> get confirmationSession; int get tickerSecond; bool get isBlocked; bool get hasCloudPassword;
+ Status get status; String get error; List<int> get confirmationSession; int get tickerSecond; bool get isBlocked; bool get hasCloudPassword; User get user;
 /// Create a copy of AuthCallpasswordState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,16 +25,16 @@ $AuthCallpasswordStateCopyWith<AuthCallpasswordState> get copyWith => _$AuthCall
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AuthCallpasswordState&&(identical(other.status, status) || other.status == status)&&(identical(other.error, error) || other.error == error)&&const DeepCollectionEquality().equals(other.confirmationSession, confirmationSession)&&(identical(other.tickerSecond, tickerSecond) || other.tickerSecond == tickerSecond)&&(identical(other.isBlocked, isBlocked) || other.isBlocked == isBlocked)&&(identical(other.hasCloudPassword, hasCloudPassword) || other.hasCloudPassword == hasCloudPassword));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AuthCallpasswordState&&(identical(other.status, status) || other.status == status)&&(identical(other.error, error) || other.error == error)&&const DeepCollectionEquality().equals(other.confirmationSession, confirmationSession)&&(identical(other.tickerSecond, tickerSecond) || other.tickerSecond == tickerSecond)&&(identical(other.isBlocked, isBlocked) || other.isBlocked == isBlocked)&&(identical(other.hasCloudPassword, hasCloudPassword) || other.hasCloudPassword == hasCloudPassword)&&(identical(other.user, user) || other.user == user));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,status,error,const DeepCollectionEquality().hash(confirmationSession),tickerSecond,isBlocked,hasCloudPassword);
+int get hashCode => Object.hash(runtimeType,status,error,const DeepCollectionEquality().hash(confirmationSession),tickerSecond,isBlocked,hasCloudPassword,user);
 
 @override
 String toString() {
-  return 'AuthCallpasswordState(status: $status, error: $error, confirmationSession: $confirmationSession, tickerSecond: $tickerSecond, isBlocked: $isBlocked, hasCloudPassword: $hasCloudPassword)';
+  return 'AuthCallpasswordState(status: $status, error: $error, confirmationSession: $confirmationSession, tickerSecond: $tickerSecond, isBlocked: $isBlocked, hasCloudPassword: $hasCloudPassword, user: $user)';
 }
 
 
@@ -45,11 +45,11 @@ abstract mixin class $AuthCallpasswordStateCopyWith<$Res>  {
   factory $AuthCallpasswordStateCopyWith(AuthCallpasswordState value, $Res Function(AuthCallpasswordState) _then) = _$AuthCallpasswordStateCopyWithImpl;
 @useResult
 $Res call({
- Status status, String error, List<int> confirmationSession, int tickerSecond, bool isBlocked, bool hasCloudPassword
+ Status status, String error, List<int> confirmationSession, int tickerSecond, bool isBlocked, bool hasCloudPassword, User user
 });
 
 
-
+$UserCopyWith<$Res> get user;
 
 }
 /// @nodoc
@@ -62,7 +62,7 @@ class _$AuthCallpasswordStateCopyWithImpl<$Res>
 
 /// Create a copy of AuthCallpasswordState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? status = null,Object? error = null,Object? confirmationSession = null,Object? tickerSecond = null,Object? isBlocked = null,Object? hasCloudPassword = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? status = null,Object? error = null,Object? confirmationSession = null,Object? tickerSecond = null,Object? isBlocked = null,Object? hasCloudPassword = null,Object? user = null,}) {
   return _then(_self.copyWith(
 status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as Status,error: null == error ? _self.error : error // ignore: cast_nullable_to_non_nullable
@@ -70,10 +70,20 @@ as String,confirmationSession: null == confirmationSession ? _self.confirmationS
 as List<int>,tickerSecond: null == tickerSecond ? _self.tickerSecond : tickerSecond // ignore: cast_nullable_to_non_nullable
 as int,isBlocked: null == isBlocked ? _self.isBlocked : isBlocked // ignore: cast_nullable_to_non_nullable
 as bool,hasCloudPassword: null == hasCloudPassword ? _self.hasCloudPassword : hasCloudPassword // ignore: cast_nullable_to_non_nullable
-as bool,
+as bool,user: null == user ? _self.user : user // ignore: cast_nullable_to_non_nullable
+as User,
   ));
 }
-
+/// Create a copy of AuthCallpasswordState
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$UserCopyWith<$Res> get user {
+  
+  return $UserCopyWith<$Res>(_self.user, (value) {
+    return _then(_self.copyWith(user: value));
+  });
+}
 }
 
 
@@ -155,10 +165,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( Status status,  String error,  List<int> confirmationSession,  int tickerSecond,  bool isBlocked,  bool hasCloudPassword)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( Status status,  String error,  List<int> confirmationSession,  int tickerSecond,  bool isBlocked,  bool hasCloudPassword,  User user)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _AuthCallpasswordState() when $default != null:
-return $default(_that.status,_that.error,_that.confirmationSession,_that.tickerSecond,_that.isBlocked,_that.hasCloudPassword);case _:
+return $default(_that.status,_that.error,_that.confirmationSession,_that.tickerSecond,_that.isBlocked,_that.hasCloudPassword,_that.user);case _:
   return orElse();
 
 }
@@ -176,10 +186,10 @@ return $default(_that.status,_that.error,_that.confirmationSession,_that.tickerS
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( Status status,  String error,  List<int> confirmationSession,  int tickerSecond,  bool isBlocked,  bool hasCloudPassword)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( Status status,  String error,  List<int> confirmationSession,  int tickerSecond,  bool isBlocked,  bool hasCloudPassword,  User user)  $default,) {final _that = this;
 switch (_that) {
 case _AuthCallpasswordState():
-return $default(_that.status,_that.error,_that.confirmationSession,_that.tickerSecond,_that.isBlocked,_that.hasCloudPassword);case _:
+return $default(_that.status,_that.error,_that.confirmationSession,_that.tickerSecond,_that.isBlocked,_that.hasCloudPassword,_that.user);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -191,7 +201,7 @@ return $default(_that.status,_that.error,_that.confirmationSession,_that.tickerS
 
 
 class _AuthCallpasswordState implements AuthCallpasswordState {
-  const _AuthCallpasswordState({this.status = Status.initialization, this.error = "", final  List<int> confirmationSession = const [], this.tickerSecond = 0, this.isBlocked = false, this.hasCloudPassword = false}): _confirmationSession = confirmationSession;
+  const _AuthCallpasswordState({this.status = Status.initialization, this.error = "", final  List<int> confirmationSession = const [], this.tickerSecond = 0, this.isBlocked = false, this.hasCloudPassword = false, this.user = const User()}): _confirmationSession = confirmationSession;
   
 
 @override@JsonKey() final  Status status;
@@ -206,6 +216,7 @@ class _AuthCallpasswordState implements AuthCallpasswordState {
 @override@JsonKey() final  int tickerSecond;
 @override@JsonKey() final  bool isBlocked;
 @override@JsonKey() final  bool hasCloudPassword;
+@override@JsonKey() final  User user;
 
 /// Create a copy of AuthCallpasswordState
 /// with the given fields replaced by the non-null parameter values.
@@ -217,16 +228,16 @@ _$AuthCallpasswordStateCopyWith<_AuthCallpasswordState> get copyWith => __$AuthC
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AuthCallpasswordState&&(identical(other.status, status) || other.status == status)&&(identical(other.error, error) || other.error == error)&&const DeepCollectionEquality().equals(other._confirmationSession, _confirmationSession)&&(identical(other.tickerSecond, tickerSecond) || other.tickerSecond == tickerSecond)&&(identical(other.isBlocked, isBlocked) || other.isBlocked == isBlocked)&&(identical(other.hasCloudPassword, hasCloudPassword) || other.hasCloudPassword == hasCloudPassword));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AuthCallpasswordState&&(identical(other.status, status) || other.status == status)&&(identical(other.error, error) || other.error == error)&&const DeepCollectionEquality().equals(other._confirmationSession, _confirmationSession)&&(identical(other.tickerSecond, tickerSecond) || other.tickerSecond == tickerSecond)&&(identical(other.isBlocked, isBlocked) || other.isBlocked == isBlocked)&&(identical(other.hasCloudPassword, hasCloudPassword) || other.hasCloudPassword == hasCloudPassword)&&(identical(other.user, user) || other.user == user));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,status,error,const DeepCollectionEquality().hash(_confirmationSession),tickerSecond,isBlocked,hasCloudPassword);
+int get hashCode => Object.hash(runtimeType,status,error,const DeepCollectionEquality().hash(_confirmationSession),tickerSecond,isBlocked,hasCloudPassword,user);
 
 @override
 String toString() {
-  return 'AuthCallpasswordState(status: $status, error: $error, confirmationSession: $confirmationSession, tickerSecond: $tickerSecond, isBlocked: $isBlocked, hasCloudPassword: $hasCloudPassword)';
+  return 'AuthCallpasswordState(status: $status, error: $error, confirmationSession: $confirmationSession, tickerSecond: $tickerSecond, isBlocked: $isBlocked, hasCloudPassword: $hasCloudPassword, user: $user)';
 }
 
 
@@ -237,11 +248,11 @@ abstract mixin class _$AuthCallpasswordStateCopyWith<$Res> implements $AuthCallp
   factory _$AuthCallpasswordStateCopyWith(_AuthCallpasswordState value, $Res Function(_AuthCallpasswordState) _then) = __$AuthCallpasswordStateCopyWithImpl;
 @override @useResult
 $Res call({
- Status status, String error, List<int> confirmationSession, int tickerSecond, bool isBlocked, bool hasCloudPassword
+ Status status, String error, List<int> confirmationSession, int tickerSecond, bool isBlocked, bool hasCloudPassword, User user
 });
 
 
-
+@override $UserCopyWith<$Res> get user;
 
 }
 /// @nodoc
@@ -254,7 +265,7 @@ class __$AuthCallpasswordStateCopyWithImpl<$Res>
 
 /// Create a copy of AuthCallpasswordState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? status = null,Object? error = null,Object? confirmationSession = null,Object? tickerSecond = null,Object? isBlocked = null,Object? hasCloudPassword = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? status = null,Object? error = null,Object? confirmationSession = null,Object? tickerSecond = null,Object? isBlocked = null,Object? hasCloudPassword = null,Object? user = null,}) {
   return _then(_AuthCallpasswordState(
 status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as Status,error: null == error ? _self.error : error // ignore: cast_nullable_to_non_nullable
@@ -262,11 +273,21 @@ as String,confirmationSession: null == confirmationSession ? _self._confirmation
 as List<int>,tickerSecond: null == tickerSecond ? _self.tickerSecond : tickerSecond // ignore: cast_nullable_to_non_nullable
 as int,isBlocked: null == isBlocked ? _self.isBlocked : isBlocked // ignore: cast_nullable_to_non_nullable
 as bool,hasCloudPassword: null == hasCloudPassword ? _self.hasCloudPassword : hasCloudPassword // ignore: cast_nullable_to_non_nullable
-as bool,
+as bool,user: null == user ? _self.user : user // ignore: cast_nullable_to_non_nullable
+as User,
   ));
 }
 
-
+/// Create a copy of AuthCallpasswordState
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$UserCopyWith<$Res> get user {
+  
+  return $UserCopyWith<$Res>(_self.user, (value) {
+    return _then(_self.copyWith(user: value));
+  });
+}
 }
 
 // dart format on

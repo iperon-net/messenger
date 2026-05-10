@@ -2,8 +2,11 @@ import 'package:bloc/bloc.dart';
 import 'package:dlibphonenumber/dlibphonenumber.dart';
 import 'package:flutter/widgets.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:go_router/go_router.dart';
 import 'package:messenger/di.dart';
+import 'package:telegram_login/telegram_login.dart';
 import 'package:yandex_login_sdk/yandex_login_sdk.dart';
+import 'package:convert/convert.dart' as convertor;
 
 import '../../api.dart';
 import '../../constants.dart';
@@ -23,10 +26,6 @@ class AuthCubit extends Cubit<AuthState> {
 
   final _logger = getIt.get<Logger>();
   final _api = getIt.get<API>();
-
-  Future<void> initialization() async {
-    emit(AuthState());
-  }
 
   // Validator phone number
   String? validatorPhoneNumber(BuildContext context, String? value) {
@@ -87,8 +86,16 @@ class AuthCubit extends Cubit<AuthState> {
       timeout: authCallPasswordResponse.timeout,
     ));
 
+    if(context.mounted) {
+      String queryString = Uri(queryParameters: {
+        'callPasswordSession': convertor.hex.encode(state.callPasswordSession),
+        'confirmationPhoneNumber': state.confirmationPhoneNumber,
+        'timeout': state.timeout.toString(),
+      }).query;
+      context.go("/auth/callpassword?$queryString");
+    }
+
     _logger.info("waiting for a call from the phone ${phoneNumberController.text}");
-    return;
   }
 
 
@@ -102,6 +109,26 @@ class AuthCubit extends Cubit<AuthState> {
       _logger.error('YandexAuthUnsupportedException');
     } on YandexAuthException catch (e) {
       _logger.error('Yandex SDK error: $e');
+    }
+  }
+
+  Future<void> telegram() async {
+    final telegramLogin = TelegramLogin();
+
+    await telegramLogin.configure(
+      const TelegramLoginConfiguration(
+        clientId: '1185732794',
+        redirectUri: 'https://app1780524360-login.tg.dev',
+        scopes: ['profile'],
+      ),
+    );
+
+    try {
+      final result = await telegramLogin.login();
+      print('ID Token: ${result.idToken}');
+      // Send result.idToken to your backend for verification.
+    } on TelegramLoginError catch (e) {
+      print('Login failed: ${e.code.name} — ${e.message}');
     }
   }
 

@@ -9,8 +9,8 @@ part 'main_cubit.freezed.dart';
 
 class MainCubit extends Cubit<MainState> {
   MainCubit() : super(MainState(
-      settingsDevice: SettingsDevice(),
-      user:User(),
+    settingsDevice: SettingsDevice(),
+    user:User(),
   ));
 
   Future<void> initialization({
@@ -20,9 +20,8 @@ class MainCubit extends Cubit<MainState> {
     emit(state.copyWith(settingsDevice: settingsDevice, user: user));
   }
 
-  Future<void> setUser({required String userID}) async {
-    await Future.delayed(const Duration(seconds: 2));
-    // emit(state.copyWith(userID: userID));
+  Future<void> setUser({required User user}) async {
+    emit(state.copyWith(user: user));
   }
 
 }
