@@ -11,7 +11,7 @@ workflows:
       flutter: stable
       ios_signing:
         distribution_type: app_store # or: ad_hoc | development | enterprise
-        bundle_identifier: net.iperon.messenger
+#        bundle_identifier: net.iperon.messenger
 
     cache:
       cache_paths:
