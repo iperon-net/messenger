@@ -22,7 +22,6 @@ class _HomeMaterialScreen extends State<HomeMaterialScreen> {
   @override
   void initState() {
     super.initState();
-    logger.debug("initState home");
   }
 
   @override

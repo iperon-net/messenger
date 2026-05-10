@@ -18,7 +18,6 @@ class _HomeCupertinoScreen extends State<HomeCupertinoScreen> {
   @override
   void initState() {
     super.initState();
-    logger.debug("initState home");
   }
 
   @override
