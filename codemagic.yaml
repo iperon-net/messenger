@@ -11,9 +11,6 @@ workflows:
       flutter: stable
       vars:
         IOS_BUNDLE_ID: net.iperon.messenger
-      ios_signing:
-        distribution_type: development # or: ad_hoc | development | enterprise
-        bundle_identifier: net.iperon.messenger
 
     cache:
       cache_paths:
