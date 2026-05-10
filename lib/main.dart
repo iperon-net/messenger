@@ -64,7 +64,7 @@ Future<void> main() async {
             create: (_) => HomeCubit(),
           ),
         ],
-        child: Platform.isIOS ? const IperonMessengerCupertino() : IperonMessengerMaterial(settingsDevice: settingsDevice, user: user),
+        child: Platform.isIOS ? IperonMessengerCupertino(settingsDevice: settingsDevice, user: user) : IperonMessengerMaterial(settingsDevice: settingsDevice, user: user),
       ),
     ),
   );
@@ -87,7 +87,14 @@ class IperonMessengerMaterial extends StatefulWidget {
 
 // Cupertino app
 class IperonMessengerCupertino extends StatefulWidget {
-  const IperonMessengerCupertino({super.key});
+  final models.SettingsDevice settingsDevice;
+  final models.User user;
+
+  const IperonMessengerCupertino({
+    required this.settingsDevice,
+    required this.user,
+    super.key,
+  });
 
   @override
   State<IperonMessengerCupertino> createState() => _IperonMessengerCupertino();
@@ -108,10 +115,6 @@ class _IperonMessengerMaterial extends State<IperonMessengerMaterial> with Widge
       settingsDevice: widget.settingsDevice,
       user: widget.user,
     );
-
-    LocaleSettings.getLocaleStream().listen((event) {
-      logger.debug(event);
-    });
 
     _router = routers.material(navigatorGoRouterKey);
     WidgetsBinding.instance.addObserver(this);
@@ -287,6 +290,12 @@ class _IperonMessengerCupertino extends State<IperonMessengerCupertino> with Wid
   @override
   void initState() {
     super.initState();
+
+    context.read<MainCubit>().initialization(
+      settingsDevice: widget.settingsDevice,
+      user: widget.user,
+    );
+
     _router = routers.cupertino(navigatorGoRouterKey);
     WidgetsBinding.instance.addObserver(this);
   }
@@ -301,32 +310,36 @@ class _IperonMessengerCupertino extends State<IperonMessengerCupertino> with Wid
   Widget build(BuildContext context) {
     final colorSchemeSystem = ThemesCupertino().blueScheme;
 
-    return MediaQuery(
-      data: MediaQuery.of(context).copyWith(
-          textScaler: TextScaler.linear(0.95)
-      ),
-      child: CupertinoApp.router(
-        debugShowCheckedModeBanner: false,
-        routerConfig: _router,
-        localizationsDelegates: [
-          ...GlobalMaterialLocalizations.delegates,
-          DefaultMaterialLocalizations.delegate,
-          DefaultCupertinoLocalizations.delegate,
-          DefaultWidgetsLocalizations.delegate,
-        ],
-        supportedLocales: AppLocaleUtils.supportedLocales,
-        locale: TranslationProvider
-            .of(context)
-            .flutterLocale,
-
-        theme: CupertinoThemeData(
-          primaryColor: colorSchemeSystem,
-          scaffoldBackgroundColor: CupertinoDynamicColor.withBrightness(
-            color: Colors.grey,
-            darkColor: Color(0xff1b263b),
+    return BlocBuilder<MainCubit, MainState>(
+      builder: (context, state) {
+        return MediaQuery(
+          data: MediaQuery.of(context).copyWith(
+              textScaler: TextScaler.linear(0.95)
           ),
-        ),
-      ),
+          child: CupertinoApp.router(
+            debugShowCheckedModeBanner: false,
+            routerConfig: _router,
+            localizationsDelegates: [
+              ...GlobalMaterialLocalizations.delegates,
+              DefaultMaterialLocalizations.delegate,
+              DefaultCupertinoLocalizations.delegate,
+              DefaultWidgetsLocalizations.delegate,
+            ],
+            supportedLocales: AppLocaleUtils.supportedLocales,
+            locale: TranslationProvider
+                .of(context)
+                .flutterLocale,
+
+            theme: CupertinoThemeData(
+              primaryColor: colorSchemeSystem,
+              scaffoldBackgroundColor: CupertinoDynamicColor.withBrightness(
+                color: Colors.grey,
+                darkColor: Color(0xff1b263b),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 

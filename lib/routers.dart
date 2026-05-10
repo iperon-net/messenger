@@ -64,8 +64,20 @@ class Routers {
     return GoRouter(
         debugLogDiagnostics: kDebugMode ? true: false,
         navigatorKey: navigatorGoRouterKey,
-        initialLocation: '/auth',
+        initialLocation: '/',
+        redirect: (context, state) {
+
+          Uri uri = Uri.parse(state.fullPath ?? "/");
+          if (uri.pathSegments.isNotEmpty && uri.pathSegments[0] == "auth") return null;
+          if (context.watch<MainCubit>().state.user.userID.isEmpty) return "/auth";
+
+          return null;
+        },
         routes: <RouteBase>[
+          GoRoute(
+            path: '/',
+            builder: (_, _) => HomeCupertinoScreen(),
+          ),
           GoRoute(
             path: '/auth',
             builder: (_, _) => AuthCupertinoScreen(),
@@ -78,7 +90,7 @@ class Routers {
                   final timeout = double.parse(state.uri.queryParameters["timeout"] ?? "0");
 
                   if (callPasswordSession != null && confirmationPhoneNumber != null && timeout > 0) {
-                    return AuthCallPasswordMaterialScreen(
+                    return AuthCallPasswordCupertinoScreen(
                       callPasswordSession: callPasswordSession,
                       confirmationPhoneNumber: confirmationPhoneNumber,
                       timeout: timeout,
