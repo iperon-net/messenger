@@ -5,7 +5,7 @@ workflows:
     max_build_duration: 60
 
     integrations:
-      app_store_connect: "6FSXCmaYfszN8DuMtKyQvhuuzwDhBlcTYcWHe3wgzCw"
+      app_store_connect: "App Store Connect API"
 
     environment:
       flutter: stable
