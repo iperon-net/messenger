@@ -5,7 +5,7 @@ workflows:
     max_build_duration: 60
 
     integrations:
-      app_store_connect: krJAplna7yPAyiZvpXWXPqspZB0QKCYy2cYrKuDY0ZQ
+      app_store_connect: "6FSXCmaYfszN8DuMtKyQvhuuzwDhBlcTYcWHe3wgzCw"
 
     environment:
       flutter: stable
