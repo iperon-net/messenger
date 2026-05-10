@@ -60,6 +60,10 @@ class TranslationsRu extends Translations with BaseTranslations<AppLocale, Trans
 	@override String get kContinue => 'Продолжить';
 	@override String get loginInWith => 'Войти с помощью';
 	@override String get signatureVerificationError => 'Ошибка проверка подписи';
+	@override String get contacts => 'Контакты';
+	@override String get calls => 'Звонки';
+	@override String get chats => 'Чаты';
+	@override String get settings => 'Настройки';
 }
 
 /// The flat map containing all translations for locale <ru>.
@@ -91,6 +95,10 @@ extension on TranslationsRu {
 			'kContinue' => 'Продолжить',
 			'loginInWith' => 'Войти с помощью',
 			'signatureVerificationError' => 'Ошибка проверка подписи',
+			'contacts' => 'Контакты',
+			'calls' => 'Звонки',
+			'chats' => 'Чаты',
+			'settings' => 'Настройки',
 			_ => null,
 		};
 	}

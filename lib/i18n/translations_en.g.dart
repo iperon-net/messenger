@@ -103,6 +103,18 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 
 	/// en: 'Signature verification error'
 	String get signatureVerificationError => 'Signature verification error';
+
+	/// en: 'Contacts'
+	String get contacts => 'Contacts';
+
+	/// en: 'Calls'
+	String get calls => 'Calls';
+
+	/// en: 'Chats'
+	String get chats => 'Chats';
+
+	/// en: 'Settings'
+	String get settings => 'Settings';
 }
 
 /// The flat map containing all translations for locale <en>.
@@ -134,6 +146,10 @@ extension on Translations {
 			'kContinue' => 'Continue',
 			'loginInWith' => 'Login in with',
 			'signatureVerificationError' => 'Signature verification error',
+			'contacts' => 'Contacts',
+			'calls' => 'Calls',
+			'chats' => 'Chats',
+			'settings' => 'Settings',
 			_ => null,
 		};
 	}

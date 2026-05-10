@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import '../../di.dart';
+import '../../i18n/translations.g.dart';
 import '../../logger.dart';
 
 class HomeCupertinoScreen extends StatefulWidget {
@@ -32,22 +33,22 @@ class _HomeCupertinoScreen extends State<HomeCupertinoScreen> {
       tabBar: CupertinoTabBar(
         height: 56,
         iconSize: 24,
-        items: const <BottomNavigationBarItem>[
+        items: <BottomNavigationBarItem>[
           BottomNavigationBarItem(
             icon: FaIcon(FontAwesomeIcons.solidCircleUser),
-            label: 'Контакты',
+            label: context.t.contacts,
           ),
           BottomNavigationBarItem(
             icon: FaIcon(FontAwesomeIcons.phoneFlip),
-            label: 'Звонки',
+            label: context.t.calls,
           ),
           BottomNavigationBarItem(
             icon: FaIcon(FontAwesomeIcons.solidComments),
-            label: 'Чаты',
+            label: context.t.chats,
           ),
           BottomNavigationBarItem(
             icon: FaIcon(FontAwesomeIcons.gear),
-            label: 'Настройки',
+            label: context.t.settings,
           ),
         ],
       ),

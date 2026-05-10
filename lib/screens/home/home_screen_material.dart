@@ -4,6 +4,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:messenger/screens/home/home_cubit.dart';
 
 import '../../di.dart';
+import '../../i18n/translations.g.dart';
 import '../../logger.dart';
 import '../screens.dart';
 
@@ -59,22 +60,22 @@ class _HomeMaterialScreen extends State<HomeMaterialScreen> {
           bottomNavigationBar: NavigationBar(
             onDestinationSelected: (int index) => context.read<HomeCubit>().setDestinationSelectedIndex(index),
             selectedIndex: state.destinationSelectedIndex,
-            destinations: const <Widget>[
+            destinations: <Widget>[
               NavigationDestination(
                 icon: FaIcon(FontAwesomeIcons.solidCircleUser),
-                label: 'Контакты',
+                label: context.t.contacts,
               ),
               NavigationDestination(
                 icon: FaIcon(FontAwesomeIcons.phoneFlip),
-                label: 'Звонки',
+                label: context.t.calls,
               ),
               NavigationDestination(
                 icon: FaIcon(FontAwesomeIcons.solidComments),
-                label: 'Чаты',
+                label: context.t.chats,
               ),
               NavigationDestination(
                 icon: FaIcon(FontAwesomeIcons.gear),
-                label: 'Настройки',
+                label: context.t.settings,
               ),
             ],
           ),
