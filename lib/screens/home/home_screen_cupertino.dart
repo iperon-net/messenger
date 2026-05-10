@@ -31,19 +31,19 @@ class _HomeCupertinoScreen extends State<HomeCupertinoScreen> {
     return CupertinoTabScaffold(
       tabBar: CupertinoTabBar(
         height: 56,
-        iconSize: 20,
+        iconSize: 24,
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
-            icon: FaIcon(FontAwesomeIcons.comments),
-            label: 'Чаты',
+            icon: FaIcon(FontAwesomeIcons.solidCircleUser),
+            label: 'Контакты',
           ),
           BottomNavigationBarItem(
             icon: FaIcon(FontAwesomeIcons.phoneFlip),
             label: 'Звонки',
           ),
           BottomNavigationBarItem(
-            icon: FaIcon(FontAwesomeIcons.circleUser),
-            label: 'Контакты',
+            icon: FaIcon(FontAwesomeIcons.solidComments),
+            label: 'Чаты',
           ),
           BottomNavigationBarItem(
             icon: FaIcon(FontAwesomeIcons.gear),

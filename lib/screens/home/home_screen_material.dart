@@ -61,16 +61,16 @@ class _HomeMaterialScreen extends State<HomeMaterialScreen> {
             selectedIndex: state.destinationSelectedIndex,
             destinations: const <Widget>[
               NavigationDestination(
-                icon: FaIcon(FontAwesomeIcons.comments),
-                label: 'Чаты',
+                icon: FaIcon(FontAwesomeIcons.solidCircleUser),
+                label: 'Контакты',
               ),
               NavigationDestination(
                 icon: FaIcon(FontAwesomeIcons.phoneFlip),
                 label: 'Звонки',
               ),
               NavigationDestination(
-                icon: FaIcon(FontAwesomeIcons.circleUser),
-                label: 'Контакты',
+                icon: FaIcon(FontAwesomeIcons.solidComments),
+                label: 'Чаты',
               ),
               NavigationDestination(
                 icon: FaIcon(FontAwesomeIcons.gear),
