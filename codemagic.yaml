@@ -1,6 +1,116 @@
 workflows:
-  ios-workflow-id:
-    name: iOS Sample Workflow
+
+  # ─────────────────────────────────────────
+  # Android: APK + AAB → Google Play (Internal)
+  # ─────────────────────────────────────────
+  android-workflow:
+    name: Android Release
+    max_build_duration: 60
+    instance_type: linux_x2
+
+    environment:
+      flutter: stable
+      java: 17
+      groups:
+        - firebase_android   # GOOGLE_SERVICES_JSON (base64)
+        - keystore           # CM_KEYSTORE (base64), CM_KEYSTORE_PASSWORD,
+                             # CM_KEY_ALIAS, CM_KEY_PASSWORD
+        - app_env            # APP_ENV_FILE (base64 of .env)
+      vars:
+        ANDROID_APP_ID: net.iperon.messenger
+
+    cache:
+      cache_paths:
+        - $FLUTTER_ROOT/.pub-cache
+        - $HOME/.gradle/caches
+        - $HOME/.gradle/wrapper
+
+    triggering:
+      events:
+        - push
+      branch_patterns:
+        - pattern: main
+          include: true
+
+    scripts:
+      - name: Restore .env
+        script: |
+          echo "$APP_ENV_FILE" | base64 --decode > "$CM_BUILD_DIR/.env"
+
+      - name: Restore google-services.json
+        script: |
+          echo "$GOOGLE_SERVICES_JSON" | base64 --decode \
+            > "$CM_BUILD_DIR/android/app/google-services.json"
+
+      - name: Set up keystore
+        script: |
+          echo "$CM_KEYSTORE" | base64 --decode > "$CM_BUILD_DIR/keystore.jks"
+          cat >> "$CM_BUILD_DIR/android/key.properties" <<EOF
+          storePassword=$CM_KEYSTORE_PASSWORD
+          keyPassword=$CM_KEY_PASSWORD
+          keyAlias=$CM_KEY_ALIAS
+          storeFile=$CM_BUILD_DIR/keystore.jks
+          EOF
+
+      - name: Install protoc
+        script: |
+          apt-get install -y protobuf-compiler
+          dart pub global activate protoc_plugin
+          echo 'export PATH="$PATH:$HOME/.pub-cache/bin"' >> ~/.bashrc
+          export PATH="$PATH:$HOME/.pub-cache/bin"
+
+      - name: Flutter pub get
+        script: flutter pub get
+
+      - name: Code generation
+        script: |
+          export PATH="$PATH:$HOME/.pub-cache/bin"
+          protoc --dart_out=grpc:lib/protobuf -I=. \
+            protos/* \
+            google/protobuf/timestamp.proto \
+            google/protobuf/empty.proto
+          dart run build_runner clean
+          dart run build_runner build \
+            --define=envied_generator:envied=path=.env \
+            --delete-conflicting-outputs
+          dart run slang
+
+      - name: Build APK + AAB
+        script: |
+          flutter build apk \
+            --release \
+            --no-tree-shake-icons \
+            --obfuscate \
+            --split-debug-info=build/app/outputs/symbols
+          flutter build appbundle \
+            --release \
+            --no-tree-shake-icons \
+            --obfuscate \
+            --split-debug-info=build/app/outputs/symbols
+
+    artifacts:
+      - build/app/outputs/flutter-apk/*.apk
+      - build/app/outputs/bundle/release/*.aab
+      - build/app/outputs/symbols/
+
+    publishing:
+      google_play:
+        credentials: $GCLOUD_SERVICE_ACCOUNT_CREDENTIALS
+        track: internal
+        submit_as_draft: true
+      email:
+        recipients:
+          - info@iperon.net
+        notify:
+          success: true
+          failure: true
+
+
+  # ─────────────────────────────────────────
+  # iOS: IPA → TestFlight
+  # ─────────────────────────────────────────
+  ios-workflow:
+    name: iOS Release
     max_build_duration: 60
     instance_type: mac_mini_m2
 
@@ -9,19 +119,57 @@ workflows:
 
     environment:
       flutter: stable
+      xcode: latest
+      cocoapods: default
+      groups:
+        - firebase_ios   # GOOGLE_SERVICE_INFO_PLIST (base64)
+        - app_env        # APP_ENV_FILE (base64 of .env)
       vars:
         IOS_BUNDLE_ID: net.iperon.messenger
 
     cache:
       cache_paths:
         - $FLUTTER_ROOT/.pub-cache
-        - $HOME/.gradle/caches
-        - $HOME/.gradle/wrapper
         - $HOME/.cocoapods
 
+    triggering:
+      events:
+        - push
+      branch_patterns:
+        - pattern: main
+          include: true
+
     scripts:
-      - name: Install Flutter dependencies
+      - name: Restore .env
+        script: |
+          echo "$APP_ENV_FILE" | base64 --decode > "$CM_BUILD_DIR/.env"
+
+      - name: Restore GoogleService-Info.plist
+        script: |
+          echo "$GOOGLE_SERVICE_INFO_PLIST" | base64 --decode \
+            > "$CM_BUILD_DIR/ios/Runner/GoogleService-Info.plist"
+
+      - name: Install protoc
+        script: |
+          brew install protobuf
+          dart pub global activate protoc_plugin
+          export PATH="$PATH:$HOME/.pub-cache/bin"
+
+      - name: Flutter pub get
         script: flutter pub get
+
+      - name: Code generation
+        script: |
+          export PATH="$PATH:$HOME/.pub-cache/bin"
+          protoc --dart_out=grpc:lib/protobuf -I=. \
+            protos/* \
+            google/protobuf/timestamp.proto \
+            google/protobuf/empty.proto
+          dart run build_runner clean
+          dart run build_runner build \
+            --define=envied_generator:envied=path=.env \
+            --delete-conflicting-outputs
+          dart run slang
 
       - name: Install CocoaPods
         script: |
@@ -38,37 +186,33 @@ workflows:
             --type IOS_APP_STORE \
             --create
 
-      # Добавление сертификатов в связку
       - name: Add certificates to keychain
         script: keychain add-certificates
 
-      # Применение профилей к Xcode проекту
       - name: Set up code signing settings
         script: xcode-project use-profiles
 
-      # Автоматическое увеличение номера сборки
-      - name: Increment build number
+      - name: Set build number
         script: |
           cd ios
-          agvtool new-version -all $(($PROJECT_BUILD_NUMBER))
+          agvtool new-version -all $PROJECT_BUILD_NUMBER
           cd ..
 
-      # Сборка IPA
       - name: Build IPA
         script: |
-          flutter build ipa --release --obfuscate --split-debug-info=build/ios/symbols
+          flutter build ipa \
+            --release \
+            --obfuscate \
+            --split-debug-info=build/ios/symbols
 
     artifacts:
       - build/ios/ipa/*.ipa
+      - build/ios/symbols/
 
     publishing:
-      # ОПЦИОНАЛЬНО: автоматическая загрузка в TestFlight
       app_store_connect:
         auth: integration
         submit_to_testflight: true
-        # submit_to_app_store: false  # раскомментировать для публикации в App Store
-
-      # Уведомления об успехе/ошибке
       email:
         recipients:
           - info@iperon.net
