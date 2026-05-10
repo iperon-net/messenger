@@ -3,6 +3,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import '../../di.dart';
 import '../../logger.dart';
+import '../../widgets/widgets.dart';
 
 class SettingsMaterialScreen extends StatefulWidget {
   const SettingsMaterialScreen({super.key});
@@ -75,19 +76,38 @@ class _SettingsMaterialScreen extends State<SettingsMaterialScreen> {
               color: Theme.of(context).cardColor,
             ),
             child: ListTile(
-              leading: Container(
-                width: 30,
-                height: 30,
-                decoration: BoxDecoration(
-                  color: Colors.blue,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Center(
-                  child: FaIcon(FontAwesomeIcons.user, size: 18, color: Colors.white),
-                ),
-              ),
-              title: Text("Аккаунт"),
-              subtitle: Text("Информация о пользователе"),
+              leading: IconFrameWidget(color: Colors.purple, icon: FaIcon(FontAwesomeIcons.paintbrush, size: 16, color: Colors.white)),
+              title: Text("Оформление"),
+            ),
+          ),
+          Container(
+            decoration: BoxDecoration(
+              color: Theme.of(context).cardColor,
+            ),
+            child: ListTile(
+              leading: IconFrameWidget(color: Colors.redAccent, icon: FaIcon(FontAwesomeIcons.shield, size: 16, color: Colors.white)),
+              title: Text("Конфидициальность"),
+              subtitle: Text("Pin-код, облачный пароль"),
+            ),
+          ),
+          Container(
+            decoration: BoxDecoration(
+              color: Theme.of(context).cardColor,
+            ),
+            child: ListTile(
+              leading: IconFrameWidget(color: Colors.orange, icon: FaIcon(FontAwesomeIcons.language, size: 16, color: Colors.white)),
+              title: Text("Устройства"),
+              subtitle: Text("Управление активными устройствами"),
+            ),
+          ),
+          Container(
+            decoration: BoxDecoration(
+              color: Theme.of(context).cardColor,
+            ),
+            child: ListTile(
+              leading: IconFrameWidget(color: Colors.green, icon: FaIcon(FontAwesomeIcons.language, size: 16, color: Colors.white)),
+              title: Text("Язык"),
+              subtitle: Text("Русский"),
             ),
           ),
           Container(
@@ -96,21 +116,10 @@ class _SettingsMaterialScreen extends State<SettingsMaterialScreen> {
               color: Theme.of(context).cardColor,
             ),
             child: ListTile(
-              leading: Container(
-                width: 30,
-                height: 30,
-                decoration: BoxDecoration(
-                  color: Colors.blue,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Center(
-                  child: FaIcon(FontAwesomeIcons.user, size: 18, color: Colors.white),
-                ),
-              ),
-              title: Text("Аккаунт"),
-              subtitle: Text("Информация о пользователе"),
+              leading: IconFrameWidget(color: Colors.teal, icon: FaIcon(FontAwesomeIcons.circleQuestion, size: 18, color: Colors.white)),
+              title: Text("Помошь"),
             ),
-          )
+          ),
         ],
       ),
     );

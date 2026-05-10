@@ -11,7 +11,7 @@ import '../../constants.dart';
 import '../../di.dart';
 import '../../i18n/translations.g.dart';
 import '../../logger.dart';
-import '../../widgets/divider_text.dart';
+import '../../widgets/widgets.dart';
 import 'auth_cubit.dart';
 
 
@@ -148,7 +148,7 @@ class _AuthCupertinoScreen extends State<AuthCupertinoScreen> {
                     );
                   }
                 ),
-                dividerText(text: context.t.loginInWith),
+                DividerTextWidget(text: context.t.loginInWith),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   spacing: 30,
