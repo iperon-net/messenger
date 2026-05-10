@@ -9,6 +9,8 @@ workflows:
 
     environment:
       flutter: stable
+      vars:
+        IOS_BUNDLE_ID: net.iperon.messenger
       ios_signing:
         distribution_type: app_store # or: ad_hoc | development | enterprise
         bundle_identifier: net.iperon.messenger
@@ -76,84 +78,3 @@ workflows:
         notify:
           success: true
           failure: true
-
-
-
-
-#workflows:
-#  ios-production:
-#    name: iOS Production Build with Auto Signing
-#    instance_type: mac_mini_m2
-#    max_build_duration: 60
-#
-#    integrations:
-#      app_store_connect: "App Store Connect API"
-#
-#    environment:
-#      flutter: stable
-#      xcode: latest
-#      cocoapods: default
-#
-#    cache:
-#      cache_paths:
-#        - $FLUTTER_ROOT/.pub-cache
-#        - $HOME/.gradle/caches
-#        - $HOME/.gradle/wrapper
-#        - $HOME/.cocoapods
-#
-#    scripts:
-#      - name: Install Flutter dependencies
-#        script: flutter pub get
-#
-#      - name: Install CocoaPods
-#        script: |
-#          cd ios
-#          pod install
-#          cd ..
-#
-#      - name: Initialize keychain
-#        script: keychain initialize
-#
-#      - name: Fetch signing files
-#        script: |
-#          app-store-connect fetch-signing-files "$IOS_BUNDLE_ID" \
-#            --type IOS_APP_STORE \
-#            --create
-#
-#      # Добавление сертификатов в связку
-#      - name: Add certificates to keychain
-#        script: keychain add-certificates
-#
-#      # Применение профилей к Xcode проекту
-#      - name: Set up code signing settings
-#        script: xcode-project use-profiles
-#
-#      # Автоматическое увеличение номера сборки
-#      - name: Increment build number
-#        script: |
-#          cd ios
-#          agvtool new-version -all $(($PROJECT_BUILD_NUMBER))
-#          cd ..
-#
-#      # Сборка IPA
-#      - name: Build IPA
-#        script: |
-#          flutter build ipa --release --obfuscate --split-debug-info=build/ios/symbols
-#
-#    artifacts:
-#      - build/ios/ipa/*.ipa
-#
-#    publishing:
-#      # ОПЦИОНАЛЬНО: автоматическая загрузка в TestFlight
-#      app_store_connect:
-#        auth: integration
-#        submit_to_testflight: true
-#        # submit_to_app_store: false  # раскомментировать для публикации в App Store
-#
-#      # Уведомления об успехе/ошибке
-#      email:
-#        recipients:
-#          - info@iperon.net
-#        notify:
-#          success: true
-#          failure: true
