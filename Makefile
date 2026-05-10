@@ -21,3 +21,4 @@ watch:
 build:
 	flutter build apk --release --no-tree-shake-icons --obfuscate --split-debug-info=build/app/outputs/symbols
 	flutter build appbundle --release --no-tree-shake-icons --obfuscate --split-debug-info=build/app/outputs/symbols
+	flutter build ipa --release --no-tree-shake-icons --obfuscate --split-debug-info=build/app/outputs/symbols
