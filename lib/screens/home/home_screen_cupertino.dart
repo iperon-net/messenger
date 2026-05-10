@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import '../../di.dart';
 import '../../logger.dart';
@@ -27,7 +28,67 @@ class _HomeCupertinoScreen extends State<HomeCupertinoScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Container();
+    return CupertinoTabScaffold(
+      tabBar: CupertinoTabBar(
+        height: 56,
+        iconSize: 20,
+        items: const <BottomNavigationBarItem>[
+          BottomNavigationBarItem(
+            icon: FaIcon(FontAwesomeIcons.comments),
+            label: 'Чаты',
+          ),
+          BottomNavigationBarItem(
+            icon: FaIcon(FontAwesomeIcons.phoneFlip),
+            label: 'Звонки',
+          ),
+          BottomNavigationBarItem(
+            icon: FaIcon(FontAwesomeIcons.circleUser),
+            label: 'Контакты',
+          ),
+          BottomNavigationBarItem(
+            icon: FaIcon(FontAwesomeIcons.gear),
+            label: 'Настройки',
+          ),
+        ],
+      ),
+      tabBuilder: (BuildContext context, int index) {
+        return CupertinoTabView(
+          builder: (BuildContext context) {
+            return CupertinoPageScaffold(
+              navigationBar: CupertinoNavigationBar(
+                middle: Text('Page 1 of tab $index'),
+              ),
+              child: Center(
+                child: CupertinoButton(
+                  child: const Text('Next page'),
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      CupertinoPageRoute<void>(
+                        builder: (BuildContext context) {
+                          return CupertinoPageScaffold(
+                            navigationBar: CupertinoNavigationBar(
+                              middle: Text('Page 2 of tab $index'),
+                            ),
+                            child: Center(
+                              child: CupertinoButton(
+                                child: const Text('Back'),
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                },
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    );
+                  },
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
   }
 
 }
