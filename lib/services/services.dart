@@ -2,7 +2,6 @@
 import 'package:cryptography/cryptography.dart';
 import 'package:dlibphonenumber/dlibphonenumber.dart';
 import 'package:dlibphonenumber/phone_number_util.dart';
-import 'package:convert/convert.dart' as convertor;
 
 import '../api.dart';
 import '../crypto.dart';
