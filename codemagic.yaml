@@ -12,10 +12,6 @@ workflows:
       xcode: latest
       cocoapods: default
 
-    ios_signing:
-      distribution_type: app_store  # или ad_hoc для Firebase, development для тестов
-      bundle_identifier: net.iperon.messenger  # ваш Bundle ID
-
     cache:
       cache_paths:
         - $FLUTTER_ROOT/.pub-cache
@@ -60,7 +56,7 @@ workflows:
       # Сборка IPA
       - name: Build IPA
         script: |
-          flutter build ipa --release
+          flutter build ipa --release --obfuscate --split-debug-info=build/ios/symbols
 
     artifacts:
       - build/ios/ipa/*.ipa
