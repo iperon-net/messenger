@@ -329,13 +329,8 @@ class _IperonMessengerCupertino extends State<IperonMessengerCupertino> with Wid
             locale: TranslationProvider
                 .of(context)
                 .flutterLocale,
-
             theme: CupertinoThemeData(
               primaryColor: colorSchemeSystem,
-              scaffoldBackgroundColor: CupertinoDynamicColor.withBrightness(
-                color: Colors.grey,
-                darkColor: Color(0xff1b263b),
-              ),
             ),
           ),
         );
