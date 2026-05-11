@@ -45,25 +45,3 @@ class _SettingsCupertinoScreen extends State<SettingsCupertinoScreen> {
     );
   }
 }
-
-// Container(
-//   decoration: BoxDecoration(
-//     borderRadius: BorderRadius.circular(10.0),
-//     color: Theme.of(context).cardColor,
-//   ),
-//   child: ListTile(
-//     leading: Container(
-//       width: 30,
-//       height: 30,
-//       decoration: BoxDecoration(
-//         color: Colors.blue,
-//         borderRadius: BorderRadius.circular(8),
-//       ),
-//       child: Center(
-//         child: FaIcon(FontAwesomeIcons.user, size: 18, color: Colors.white),
-//       ),
-//     ),
-//     title: Text("Аккаунт"),
-//     subtitle: Text("Информация о пользователе"),
-//   ),
-// ),
