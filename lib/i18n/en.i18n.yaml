@@ -38,5 +38,7 @@
 "darkModeSystem": "System"
 "darkModeAlwaysOn": "Always on"
 "darkModeDisabled": "Disabled"
-
+"darkModeSystemDescription": "As in the device settings"
+"darkModeAlwaysOnDescription": "Dark mode is always on"
+"darkModeDisabledDescription": "Dark mode is disabled"
 

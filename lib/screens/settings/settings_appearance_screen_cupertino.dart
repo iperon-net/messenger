@@ -143,7 +143,7 @@ class _SettingsAppearanceScreenCupertino extends State<SettingsAppearanceScreenC
                       ),
                       child: CupertinoListTile(
                         title: Text(context.t.darkModeSystem),
-                        subtitle: Text("Как в настройках устройства"),
+                        subtitle: Text(context.t.darkModeSystemDescription),
                         onTap: () async => await context.read<SettingsAppearanceCubit>().setDarkMode(context, darkMode: SettingsDeviceDarkMode.system),
                         additionalInfo: state.settingsDevice.darkMode == SettingsDeviceDarkMode.system ? additionalInfo : null,
                       ),
@@ -161,7 +161,7 @@ class _SettingsAppearanceScreenCupertino extends State<SettingsAppearanceScreenC
                       ),
                       child: CupertinoListTile(
                         title: Text(context.t.darkModeAlwaysOn),
-                        subtitle: Text("Тёмный режим всегда включён"),
+                        subtitle: Text(context.t.darkModeAlwaysOnDescription),
                         onTap: () async => await context.read<SettingsAppearanceCubit>().setDarkMode(context, darkMode: SettingsDeviceDarkMode.alwaysOn),                        additionalInfo: state.settingsDevice.darkMode == SettingsDeviceDarkMode.alwaysOn ? additionalInfo : null,
                       ),
                     ),
@@ -178,7 +178,7 @@ class _SettingsAppearanceScreenCupertino extends State<SettingsAppearanceScreenC
                       ),
                       child: CupertinoListTile(
                         title: Text(context.t.darkModeDisabled),
-                        subtitle: Text("Тёмный режим отключён"),
+                        subtitle: Text(context.t.darkModeDisabledDescription),
                         onTap: () async => await context.read<SettingsAppearanceCubit>().setDarkMode(context, darkMode: SettingsDeviceDarkMode.disabled),                        additionalInfo: state.settingsDevice.darkMode == SettingsDeviceDarkMode.disabled ? additionalInfo : null,
                       ),
                     ),

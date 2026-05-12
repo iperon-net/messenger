@@ -38,3 +38,6 @@
 "darkModeSystem": "Системный"
 "darkModeAlwaysOn": "Всегда включено"
 "darkModeDisabled": "Отключено"
+"darkModeSystemDescription": "Как в настройках устройства"
+"darkModeAlwaysOnDescription": "Тёмный режим всегда включён"
+"darkModeDisabledDescription": "Тёмный режим отключён"

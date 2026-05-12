@@ -160,6 +160,15 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 
 	/// en: 'Disabled'
 	String get darkModeDisabled => 'Disabled';
+
+	/// en: 'As in the device settings'
+	String get darkModeSystemDescription => 'As in the device settings';
+
+	/// en: 'Dark mode is always on'
+	String get darkModeAlwaysOnDescription => 'Dark mode is always on';
+
+	/// en: 'Dark mode is disabled'
+	String get darkModeDisabledDescription => 'Dark mode is disabled';
 }
 
 /// The flat map containing all translations for locale <en>.
@@ -210,6 +219,9 @@ extension on Translations {
 			'darkModeSystem' => 'System',
 			'darkModeAlwaysOn' => 'Always on',
 			'darkModeDisabled' => 'Disabled',
+			'darkModeSystemDescription' => 'As in the device settings',
+			'darkModeAlwaysOnDescription' => 'Dark mode is always on',
+			'darkModeDisabledDescription' => 'Dark mode is disabled',
 			_ => null,
 		};
 	}
