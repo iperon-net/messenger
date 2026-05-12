@@ -69,6 +69,8 @@ class TranslationsRu extends Translations with BaseTranslations<AppLocale, Trans
 	@override String get myProfile => 'Мой профиль';
 	@override String get privateAndSecurity => 'Конфиденциальность';
 	@override String get notifications => 'Уведомления';
+	@override String get faq => 'FAQ';
+	@override String get privacyPolicy => 'Политика конфиденциальности';
 }
 
 /// The flat map containing all translations for locale <ru>.
@@ -109,6 +111,8 @@ extension on TranslationsRu {
 			'myProfile' => 'Мой профиль',
 			'privateAndSecurity' => 'Конфиденциальность',
 			'notifications' => 'Уведомления',
+			'faq' => 'FAQ',
+			'privacyPolicy' => 'Политика конфиденциальности',
 			_ => null,
 		};
 	}

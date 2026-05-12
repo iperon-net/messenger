@@ -9,7 +9,7 @@ class SettingsDevice {
 
   Future<models.SettingsDevice> getAll() async {
     final columns = [
-      'language',
+      'locate',
       'darkMode',
       'themeColor',
       'blurTaskSwitchingEnable',
@@ -19,12 +19,12 @@ class SettingsDevice {
       List<Map<String, Object?>> records = await txn.query('settingsDevice', columns: columns);
       if (records.isEmpty) {
         return models.SettingsDevice(
-          language: '',
           darkMode: models.SettingsDeviceDarkMode.system,
           themeColor: models.SettingsDeviceThemeColor.blue,
           blurTaskSwitchingEnable: true,
         );
       }
+
       return models.SettingsDevice.fromSqlite(records.first);
     });
   }

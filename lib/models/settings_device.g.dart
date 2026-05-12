@@ -8,7 +8,7 @@ part of 'settings_device.dart';
 
 _SettingsDevice _$SettingsDeviceFromJson(Map<String, dynamic> json) =>
     _SettingsDevice(
-      language: json['language'] as String? ?? "",
+      locate: $enumDecodeNullable(_$AppLocaleEnumMap, json['locate']),
       darkMode:
           $enumDecodeNullable(
             _$SettingsDeviceDarkModeEnumMap,
@@ -25,13 +25,15 @@ _SettingsDevice _$SettingsDeviceFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$SettingsDeviceToJson(_SettingsDevice instance) =>
     <String, dynamic>{
-      'language': instance.language,
+      'locate': _$AppLocaleEnumMap[instance.locate],
       'darkMode': _$SettingsDeviceDarkModeEnumMap[instance.darkMode]!,
       'themeColor': instance.themeColor,
       'blurTaskSwitchingEnable': const BoolConverter().toJson(
         instance.blurTaskSwitchingEnable,
       ),
     };
+
+const _$AppLocaleEnumMap = {AppLocale.en: 'en', AppLocale.ru: 'ru'};
 
 const _$SettingsDeviceDarkModeEnumMap = {
   SettingsDeviceDarkMode.system: 'system',

@@ -16,6 +16,7 @@ import 'routers.dart';
 import 'screens/auth/auth_callpassword_cubit.dart';
 import 'screens/auth/auth_cubit.dart';
 import 'screens/home/home_cubit.dart';
+import 'screens/settings/settings_language_cubit.dart';
 import 'themes_cupertino.dart';
 import 'themes_material.dart';
 
@@ -30,20 +31,30 @@ Future<void> main() async {
   final repositories = getIt.get<Repositories>();
 
   // Get all settings
-  final settingsDevice = await repositories.settingsDevice.getAll();
+  var settingsDevice = await repositories.settingsDevice.getAll();
 
   // Get active user
   final user = await repositories.users.getActive();
 
-  // Language
-  if (settingsDevice.language == "ru") {
-    LocaleSettings.setLocale(AppLocale.ru);
-  } else if (settingsDevice.language == "en") {
-    LocaleSettings.setLocale(AppLocale.en);
+  // locate
+  if (settingsDevice.locate != null) {
+    LocaleSettings.setLocale(settingsDevice.locate ?? AppLocale.en);
   } else {
     AppLocale appLocale = await LocaleSettings.useDeviceLocale();
     LocaleSettings.setLocale(appLocale);
+    settingsDevice = settingsDevice.copyWith(locate: appLocale);
   }
+
+  // if (settingsDevice.locate == App) {
+  //   LocaleSettings.setLocale(AppLocale.ru);
+  // } else if (settingsDevice.language == "en") {
+  //   LocaleSettings.setLocale(AppLocale.en);
+  // } else {
+  //   AppLocale appLocale = await LocaleSettings.useDeviceLocale();
+  //   LocaleSettings.setLocale(appLocale);
+  //
+  //   settingsDevice = settingsDevice.copyWith(language: appLocale.languageCode);
+  // }
 
   logger.info('startup application');
 
@@ -62,6 +73,9 @@ Future<void> main() async {
           ),
           BlocProvider<HomeCubit>(
             create: (_) => HomeCubit(),
+          ),
+          BlocProvider<SettingsLanguageCubit>(
+            create: (_) => SettingsLanguageCubit(),
           ),
         ],
         child: Platform.isIOS ? IperonMessengerCupertino(settingsDevice: settingsDevice, user: user) : IperonMessengerMaterial(settingsDevice: settingsDevice, user: user),

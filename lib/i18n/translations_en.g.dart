@@ -130,6 +130,12 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 
 	/// en: 'Notifications'
 	String get notifications => 'Notifications';
+
+	/// en: 'FAQ'
+	String get faq => 'FAQ';
+
+	/// en: 'Privacy Policy'
+	String get privacyPolicy => 'Privacy Policy';
 }
 
 /// The flat map containing all translations for locale <en>.
@@ -170,6 +176,8 @@ extension on Translations {
 			'myProfile' => 'My profile',
 			'privateAndSecurity' => 'Private & Security',
 			'notifications' => 'Notifications',
+			'faq' => 'FAQ',
+			'privacyPolicy' => 'Privacy Policy',
 			_ => null,
 		};
 	}

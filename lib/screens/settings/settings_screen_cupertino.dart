@@ -23,7 +23,7 @@ class _SettingsCupertinoScreen extends State<SettingsCupertinoScreen> {
 
   @override
   void initState() {
-    logger.debug(context.read<MainCubit>().state.settingsDevice.language);
+    logger.debug(context.read<MainCubit>().state.settingsDevice.locate);
     super.initState();
   }
 
@@ -77,6 +77,7 @@ class _SettingsCupertinoScreen extends State<SettingsCupertinoScreen> {
 
   @override
   Widget build(BuildContext context) {
+
     return CupertinoPageScaffold(
       backgroundColor: CupertinoDynamicColor.withBrightness(
         color: CupertinoColors.systemGroupedBackground,
@@ -97,7 +98,7 @@ class _SettingsCupertinoScreen extends State<SettingsCupertinoScreen> {
                   color: Color(0xFFF80202),
                   icon: FontAwesomeIcons.solidUser,
                   borderRadius: BorderRadius.circular(10),
-                  redirectURI: "/settings_language",
+                  redirectURI: "/",
                 ),
                 SizedBox(height: 20),
                 item(
@@ -105,29 +106,52 @@ class _SettingsCupertinoScreen extends State<SettingsCupertinoScreen> {
                   color: Color(0xFF1368E6),
                   icon: FontAwesomeIcons.circleHalfStroke,
                   borderRadius: BorderRadius.zero,
-                  redirectURI: "/settings_language",
+                  redirectURI: "/",
                 ),
                 item(
                   title: Text(context.t.privateAndSecurity),
                   color: Color(0xFF049A40),
                   icon: FontAwesomeIcons.key,
                   borderRadius: BorderRadius.zero,
-                  redirectURI: "/settings_language",
+                  redirectURI: "/",
                 ),
                 item(
                   title: Text(context.t.notifications),
                   color: Color(0xFFDD0856),
                   icon: FontAwesomeIcons.solidBell,
                   borderRadius: BorderRadius.zero,
-                  redirectURI: "/settings_language",
+                  redirectURI: "/",
                 ),
                 item(
                   title: Text(context.t.language),
                   color: Color(0xFFBE0BCC),
                   icon: FontAwesomeIcons.language,
                   borderRadius: BorderRadius.zero,
-                  additionalInfo: Text("Русский"),
+                  additionalInfo: BlocBuilder<MainCubit, MainState>(
+                    builder: (context, state) {
+                      if (state.settingsDevice.locate == AppLocale.ru) {
+                        return Text("Русский");
+                      } else {
+                        return Text("English");
+                      }
+                    },
+                  ),
                   redirectURI: "/settings_language",
+                ),
+                SizedBox(height: 20),
+                item(
+                  title: Text(context.t.faq),
+                  color: Color(0xFFDC9A0F),
+                  icon: FontAwesomeIcons.solidCircleQuestion,
+                  borderRadius: BorderRadius.zero,
+                  redirectURI: "/",
+                ),
+                item(
+                  title: Text(context.t.privacyPolicy),
+                  color: Color(0xFF29A840),
+                  icon: FontAwesomeIcons.shieldHalved,
+                  borderRadius: BorderRadius.zero,
+                  redirectURI: "/",
                 ),
               ],
             ),

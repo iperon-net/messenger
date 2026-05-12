@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:messenger/i18n/translations.g.dart';
 
 import 'freezed_convertor.dart';
 
@@ -14,7 +15,7 @@ abstract class SettingsDevice with _$SettingsDevice {
   const SettingsDevice._();
 
   const factory SettingsDevice({
-    @Default("") String language,
+    AppLocale? locate,
     @Default(SettingsDeviceDarkMode.system) SettingsDeviceDarkMode darkMode,
     @Default(SettingsDeviceThemeColor.blue) themeColor,
     @BoolConverter() @Default(false) bool blurTaskSwitchingEnable,
