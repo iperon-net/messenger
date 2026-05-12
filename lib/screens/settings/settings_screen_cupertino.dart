@@ -106,7 +106,7 @@ class _SettingsCupertinoScreen extends State<SettingsCupertinoScreen> {
                   color: Color(0xFF1368E6),
                   icon: FontAwesomeIcons.circleHalfStroke,
                   borderRadius: BorderRadius.zero,
-                  redirectURI: "/",
+                  redirectURI: "/settings_appearance",
                 ),
                 item(
                   title: Text(context.t.privateAndSecurity),

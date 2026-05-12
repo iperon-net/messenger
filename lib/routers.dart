@@ -82,6 +82,10 @@ class Routers {
                 path: '/settings_language',
                 builder: (_, _) => SettingsLanguageScreenCupertino(),
               ),
+              GoRoute(
+                path: '/settings_appearance',
+                builder: (_, _) => SettingsAppearanceScreenCupertino(),
+              ),
             ],
           ),
           GoRoute(
