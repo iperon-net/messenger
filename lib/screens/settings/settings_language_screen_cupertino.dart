@@ -48,7 +48,7 @@ class _SettingsLanguageScreenCupertino extends State<SettingsLanguageScreenCuper
                   color: CupertinoDynamicColor.resolve(
                     CupertinoDynamicColor.withBrightness(
                       color: CupertinoTheme.of(context).primaryColor,
-                      darkColor: Color(0xFFF4F4F5),
+                      darkColor: CupertinoTheme.of(context).primaryColor,
                     ),
                     context,
                   ),

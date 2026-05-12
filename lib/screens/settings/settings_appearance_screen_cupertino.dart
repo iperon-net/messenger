@@ -1,5 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:messenger/cubit/main_cubit.dart';
 
 import '../../i18n/translations.g.dart';
 import '../../models/models.dart';
@@ -39,67 +41,87 @@ class _SettingsAppearanceScreenCupertino extends State<SettingsAppearanceScreenC
         child: Center(
           child: Padding(
             padding: EdgeInsetsGeometry.all(15),
-            child: ListView(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 10, left: 10),
-                  child: Text(
-                    context.t.colorTheme,
-                    style: TextStyle(
-                      fontSize: const TextScaler.linear(1.5).scale(10),
-                      color: CupertinoColors.inactiveGray,
+            child: BlocBuilder<MainCubit, MainState>(
+              builder: (context, state) {
+
+                Widget additionalInfo = FaIcon(
+                  FontAwesomeIcons.solidCircleCheck,
+                  size: 18,
+                  color: CupertinoDynamicColor.resolve(
+                    CupertinoDynamicColor.withBrightness(
+                      color: CupertinoTheme.of(context).primaryColor,
+                      darkColor: CupertinoTheme.of(context).primaryColor,
                     ),
-                  )
-                ),
-                Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.only(topLeft: Radius.circular(10), topRight: Radius.circular(10)),
-                    color: CupertinoDynamicColor.resolve(
-                      CupertinoDynamicColor.withBrightness(
-                        color: CupertinoTheme.of(context).scaffoldBackgroundColor,
-                        darkColor: Color(0xFF1C1C1E),
+                    context,
+                  ),
+                );
+
+                return ListView(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 10, left: 10),
+                      child: Text(
+                        context.t.colorTheme,
+                        style: TextStyle(
+                          fontSize: const TextScaler.linear(1.5).scale(10),
+                          color: CupertinoColors.inactiveGray,
+                        ),
+                      )
+                    ),
+                    Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.only(topLeft: Radius.circular(10), topRight: Radius.circular(10)),
+                        color: CupertinoDynamicColor.resolve(
+                          CupertinoDynamicColor.withBrightness(
+                            color: CupertinoTheme.of(context).scaffoldBackgroundColor,
+                            darkColor: Color(0xFF1C1C1E),
+                          ),
+                          context,
+                        ),
                       ),
-                      context,
-                    ),
-                  ),
-                  child: CupertinoListTile(
-                    title: Text(context.t.colorThemeDefault),
-                    onTap: () async => await context.read<SettingsAppearanceCubit>().setColorTheme(context, colorTheme: SettingsDeviceColorTheme.blue),
-                  ),
-                ),
-                Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.only(topLeft: Radius.circular(10), topRight: Radius.circular(10)),
-                    color: CupertinoDynamicColor.resolve(
-                      CupertinoDynamicColor.withBrightness(
-                        color: CupertinoTheme.of(context).scaffoldBackgroundColor,
-                        darkColor: Color(0xFF1C1C1E),
+                      child: CupertinoListTile(
+                        title: Text(context.t.colorThemeDefault),
+                        onTap: () async => await context.read<SettingsAppearanceCubit>().setColorTheme(context, colorTheme: SettingsDeviceColorTheme.blue),
+                        additionalInfo: state.settingsDevice.colorTheme == SettingsDeviceColorTheme.blue ? additionalInfo : null,
                       ),
-                      context,
                     ),
-                  ),
-                  child: CupertinoListTile(
-                    title: Text(context.t.colorThemeGreen),
-                    onTap: () async => await context.read<SettingsAppearanceCubit>().setColorTheme(context, colorTheme: SettingsDeviceColorTheme.green),
-                  ),
-                ),
-                Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.only(topLeft: Radius.circular(10), topRight: Radius.circular(10)),
-                    color: CupertinoDynamicColor.resolve(
-                      CupertinoDynamicColor.withBrightness(
-                        color: CupertinoTheme.of(context).scaffoldBackgroundColor,
-                        darkColor: Color(0xFF1C1C1E),
+                    Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.only(topLeft: Radius.circular(10), topRight: Radius.circular(10)),
+                        color: CupertinoDynamicColor.resolve(
+                          CupertinoDynamicColor.withBrightness(
+                            color: CupertinoTheme.of(context).scaffoldBackgroundColor,
+                            darkColor: Color(0xFF1C1C1E),
+                          ),
+                          context,
+                        ),
                       ),
-                      context,
+                      child: CupertinoListTile(
+                        title: Text(context.t.colorThemeGreen),
+                        onTap: () async => await context.read<SettingsAppearanceCubit>().setColorTheme(context, colorTheme: SettingsDeviceColorTheme.green),
+                        additionalInfo: state.settingsDevice.colorTheme == SettingsDeviceColorTheme.green ? additionalInfo : null,
+                      ),
                     ),
-                  ),
-                  child: CupertinoListTile(
-                    title: Text(context.t.colorThemePurple),
-                    onTap: () async => await context.read<SettingsAppearanceCubit>().setColorTheme(context, colorTheme: SettingsDeviceColorTheme.purple),
-                  ),
-                ),
-              ],
+                    Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.only(topLeft: Radius.circular(10), topRight: Radius.circular(10)),
+                        color: CupertinoDynamicColor.resolve(
+                          CupertinoDynamicColor.withBrightness(
+                            color: CupertinoTheme.of(context).scaffoldBackgroundColor,
+                            darkColor: Color(0xFF1C1C1E),
+                          ),
+                          context,
+                        ),
+                      ),
+                      child: CupertinoListTile(
+                        title: Text(context.t.colorThemePurple),
+                        onTap: () async => await context.read<SettingsAppearanceCubit>().setColorTheme(context, colorTheme: SettingsDeviceColorTheme.purple),
+                        additionalInfo: state.settingsDevice.colorTheme == SettingsDeviceColorTheme.purple ? additionalInfo : null,
+                      ),
+                    ),
+                  ],
+                );
+              },
             ),
           ),
         ),
