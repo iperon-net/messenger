@@ -75,6 +75,10 @@ class TranslationsRu extends Translations with BaseTranslations<AppLocale, Trans
 	@override String get colorThemeDefault => 'По умолчанию';
 	@override String get colorThemeGreen => 'Зеленая';
 	@override String get colorThemePurple => 'Пурпурная';
+	@override String get darkMode => 'Темный режим';
+	@override String get darkModeSystem => 'Системный';
+	@override String get darkModeAlwaysOn => 'Всегда включено';
+	@override String get darkModeDisabled => 'Отключено';
 }
 
 /// The flat map containing all translations for locale <ru>.
@@ -121,6 +125,10 @@ extension on TranslationsRu {
 			'colorThemeDefault' => 'По умолчанию',
 			'colorThemeGreen' => 'Зеленая',
 			'colorThemePurple' => 'Пурпурная',
+			'darkMode' => 'Темный режим',
+			'darkModeSystem' => 'Системный',
+			'darkModeAlwaysOn' => 'Всегда включено',
+			'darkModeDisabled' => 'Отключено',
 			_ => null,
 		};
 	}

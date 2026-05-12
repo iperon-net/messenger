@@ -37,6 +37,9 @@ class MainCubit extends Cubit<MainState> {
     emit(state.copyWith(settingsDevice: settingsDevice));
   }
 
-
+  Future<void> setDarkMode({required SettingsDeviceDarkMode darkMode}) async {
+    final settingsDevice = state.settingsDevice.copyWith(darkMode: darkMode);
+    emit(state.copyWith(settingsDevice: settingsDevice));
+  }
 
 }

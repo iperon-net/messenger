@@ -34,5 +34,9 @@
 "colorThemeDefault": "Default"
 "colorThemeGreen": "Green"
 "colorThemePurple": "Purple"
+"darkMode": "Dark mode"
+"darkModeSystem": "System"
+"darkModeAlwaysOn": "Always on"
+"darkModeDisabled": "Disabled"
 
 

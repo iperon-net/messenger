@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$SettingsDevice implements DiagnosticableTreeMixin {
 
- AppLocale? get locate; SettingsDeviceDarkMode get darkMode; dynamic get colorTheme;@BoolConverter() bool get blurTaskSwitchingEnable;
+ AppLocale? get locate; SettingsDeviceDarkMode get darkMode; SettingsDeviceColorTheme get colorTheme;@BoolConverter() bool get blurTaskSwitchingEnable;
 /// Create a copy of SettingsDevice
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -34,12 +34,12 @@ void debugFillProperties(DiagnosticPropertiesBuilder properties) {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SettingsDevice&&(identical(other.locate, locate) || other.locate == locate)&&(identical(other.darkMode, darkMode) || other.darkMode == darkMode)&&const DeepCollectionEquality().equals(other.colorTheme, colorTheme)&&(identical(other.blurTaskSwitchingEnable, blurTaskSwitchingEnable) || other.blurTaskSwitchingEnable == blurTaskSwitchingEnable));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SettingsDevice&&(identical(other.locate, locate) || other.locate == locate)&&(identical(other.darkMode, darkMode) || other.darkMode == darkMode)&&(identical(other.colorTheme, colorTheme) || other.colorTheme == colorTheme)&&(identical(other.blurTaskSwitchingEnable, blurTaskSwitchingEnable) || other.blurTaskSwitchingEnable == blurTaskSwitchingEnable));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,locate,darkMode,const DeepCollectionEquality().hash(colorTheme),blurTaskSwitchingEnable);
+int get hashCode => Object.hash(runtimeType,locate,darkMode,colorTheme,blurTaskSwitchingEnable);
 
 @override
 String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
@@ -54,7 +54,7 @@ abstract mixin class $SettingsDeviceCopyWith<$Res>  {
   factory $SettingsDeviceCopyWith(SettingsDevice value, $Res Function(SettingsDevice) _then) = _$SettingsDeviceCopyWithImpl;
 @useResult
 $Res call({
- AppLocale? locate, SettingsDeviceDarkMode darkMode, dynamic colorTheme,@BoolConverter() bool blurTaskSwitchingEnable
+ AppLocale? locate, SettingsDeviceDarkMode darkMode, SettingsDeviceColorTheme colorTheme,@BoolConverter() bool blurTaskSwitchingEnable
 });
 
 
@@ -71,12 +71,12 @@ class _$SettingsDeviceCopyWithImpl<$Res>
 
 /// Create a copy of SettingsDevice
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? locate = freezed,Object? darkMode = null,Object? colorTheme = freezed,Object? blurTaskSwitchingEnable = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? locate = freezed,Object? darkMode = null,Object? colorTheme = null,Object? blurTaskSwitchingEnable = null,}) {
   return _then(_self.copyWith(
 locate: freezed == locate ? _self.locate : locate // ignore: cast_nullable_to_non_nullable
 as AppLocale?,darkMode: null == darkMode ? _self.darkMode : darkMode // ignore: cast_nullable_to_non_nullable
-as SettingsDeviceDarkMode,colorTheme: freezed == colorTheme ? _self.colorTheme : colorTheme // ignore: cast_nullable_to_non_nullable
-as dynamic,blurTaskSwitchingEnable: null == blurTaskSwitchingEnable ? _self.blurTaskSwitchingEnable : blurTaskSwitchingEnable // ignore: cast_nullable_to_non_nullable
+as SettingsDeviceDarkMode,colorTheme: null == colorTheme ? _self.colorTheme : colorTheme // ignore: cast_nullable_to_non_nullable
+as SettingsDeviceColorTheme,blurTaskSwitchingEnable: null == blurTaskSwitchingEnable ? _self.blurTaskSwitchingEnable : blurTaskSwitchingEnable // ignore: cast_nullable_to_non_nullable
 as bool,
   ));
 }
@@ -162,7 +162,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( AppLocale? locate,  SettingsDeviceDarkMode darkMode,  dynamic colorTheme, @BoolConverter()  bool blurTaskSwitchingEnable)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( AppLocale? locate,  SettingsDeviceDarkMode darkMode,  SettingsDeviceColorTheme colorTheme, @BoolConverter()  bool blurTaskSwitchingEnable)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SettingsDevice() when $default != null:
 return $default(_that.locate,_that.darkMode,_that.colorTheme,_that.blurTaskSwitchingEnable);case _:
@@ -183,7 +183,7 @@ return $default(_that.locate,_that.darkMode,_that.colorTheme,_that.blurTaskSwitc
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( AppLocale? locate,  SettingsDeviceDarkMode darkMode,  dynamic colorTheme, @BoolConverter()  bool blurTaskSwitchingEnable)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( AppLocale? locate,  SettingsDeviceDarkMode darkMode,  SettingsDeviceColorTheme colorTheme, @BoolConverter()  bool blurTaskSwitchingEnable)  $default,) {final _that = this;
 switch (_that) {
 case _SettingsDevice():
 return $default(_that.locate,_that.darkMode,_that.colorTheme,_that.blurTaskSwitchingEnable);case _:
@@ -203,7 +203,7 @@ class _SettingsDevice extends SettingsDevice with DiagnosticableTreeMixin {
 
 @override final  AppLocale? locate;
 @override@JsonKey() final  SettingsDeviceDarkMode darkMode;
-@override@JsonKey() final  dynamic colorTheme;
+@override@JsonKey() final  SettingsDeviceColorTheme colorTheme;
 @override@JsonKey()@BoolConverter() final  bool blurTaskSwitchingEnable;
 
 /// Create a copy of SettingsDevice
@@ -225,12 +225,12 @@ void debugFillProperties(DiagnosticPropertiesBuilder properties) {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SettingsDevice&&(identical(other.locate, locate) || other.locate == locate)&&(identical(other.darkMode, darkMode) || other.darkMode == darkMode)&&const DeepCollectionEquality().equals(other.colorTheme, colorTheme)&&(identical(other.blurTaskSwitchingEnable, blurTaskSwitchingEnable) || other.blurTaskSwitchingEnable == blurTaskSwitchingEnable));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SettingsDevice&&(identical(other.locate, locate) || other.locate == locate)&&(identical(other.darkMode, darkMode) || other.darkMode == darkMode)&&(identical(other.colorTheme, colorTheme) || other.colorTheme == colorTheme)&&(identical(other.blurTaskSwitchingEnable, blurTaskSwitchingEnable) || other.blurTaskSwitchingEnable == blurTaskSwitchingEnable));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,locate,darkMode,const DeepCollectionEquality().hash(colorTheme),blurTaskSwitchingEnable);
+int get hashCode => Object.hash(runtimeType,locate,darkMode,colorTheme,blurTaskSwitchingEnable);
 
 @override
 String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
@@ -245,7 +245,7 @@ abstract mixin class _$SettingsDeviceCopyWith<$Res> implements $SettingsDeviceCo
   factory _$SettingsDeviceCopyWith(_SettingsDevice value, $Res Function(_SettingsDevice) _then) = __$SettingsDeviceCopyWithImpl;
 @override @useResult
 $Res call({
- AppLocale? locate, SettingsDeviceDarkMode darkMode, dynamic colorTheme,@BoolConverter() bool blurTaskSwitchingEnable
+ AppLocale? locate, SettingsDeviceDarkMode darkMode, SettingsDeviceColorTheme colorTheme,@BoolConverter() bool blurTaskSwitchingEnable
 });
 
 
@@ -262,12 +262,12 @@ class __$SettingsDeviceCopyWithImpl<$Res>
 
 /// Create a copy of SettingsDevice
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? locate = freezed,Object? darkMode = null,Object? colorTheme = freezed,Object? blurTaskSwitchingEnable = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? locate = freezed,Object? darkMode = null,Object? colorTheme = null,Object? blurTaskSwitchingEnable = null,}) {
   return _then(_SettingsDevice(
 locate: freezed == locate ? _self.locate : locate // ignore: cast_nullable_to_non_nullable
 as AppLocale?,darkMode: null == darkMode ? _self.darkMode : darkMode // ignore: cast_nullable_to_non_nullable
-as SettingsDeviceDarkMode,colorTheme: freezed == colorTheme ? _self.colorTheme : colorTheme // ignore: cast_nullable_to_non_nullable
-as dynamic,blurTaskSwitchingEnable: null == blurTaskSwitchingEnable ? _self.blurTaskSwitchingEnable : blurTaskSwitchingEnable // ignore: cast_nullable_to_non_nullable
+as SettingsDeviceDarkMode,colorTheme: null == colorTheme ? _self.colorTheme : colorTheme // ignore: cast_nullable_to_non_nullable
+as SettingsDeviceColorTheme,blurTaskSwitchingEnable: null == blurTaskSwitchingEnable ? _self.blurTaskSwitchingEnable : blurTaskSwitchingEnable // ignore: cast_nullable_to_non_nullable
 as bool,
   ));
 }

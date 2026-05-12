@@ -34,3 +34,7 @@
 "colorThemeDefault": "По умолчанию"
 "colorThemeGreen": "Зеленая"
 "colorThemePurple": "Пурпурная"
+"darkMode": "Темный режим"
+"darkModeSystem": "Системный"
+"darkModeAlwaysOn": "Всегда включено"
+"darkModeDisabled": "Отключено"

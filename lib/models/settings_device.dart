@@ -17,7 +17,7 @@ abstract class SettingsDevice with _$SettingsDevice {
   const factory SettingsDevice({
     AppLocale? locate,
     @Default(SettingsDeviceDarkMode.system) SettingsDeviceDarkMode darkMode,
-    @Default(SettingsDeviceColorTheme.blue) colorTheme,
+    @Default(SettingsDeviceColorTheme.blue) SettingsDeviceColorTheme colorTheme,
     @BoolConverter() @Default(false) bool blurTaskSwitchingEnable,
   }) = _SettingsDevice;
 

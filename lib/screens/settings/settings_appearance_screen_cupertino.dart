@@ -119,6 +119,70 @@ class _SettingsAppearanceScreenCupertino extends State<SettingsAppearanceScreenC
                         additionalInfo: state.settingsDevice.colorTheme == SettingsDeviceColorTheme.purple ? additionalInfo : null,
                       ),
                     ),
+
+                    Padding(
+                      padding: const EdgeInsets.only(top: 20, bottom: 10, left: 10),
+                      child: Text(
+                        context.t.darkMode,
+                        style: TextStyle(
+                          fontSize: const TextScaler.linear(1.5).scale(10),
+                          color: CupertinoColors.inactiveGray,
+                        ),
+                      )
+                    ),
+                    Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.only(topLeft: Radius.circular(10), topRight: Radius.circular(10)),
+                        color: CupertinoDynamicColor.resolve(
+                          CupertinoDynamicColor.withBrightness(
+                            color: CupertinoTheme.of(context).scaffoldBackgroundColor,
+                            darkColor: Color(0xFF1C1C1E),
+                          ),
+                          context,
+                        ),
+                      ),
+                      child: CupertinoListTile(
+                        title: Text(context.t.darkModeSystem),
+                        subtitle: Text("Как в настройках устройства"),
+                        onTap: () async => await context.read<SettingsAppearanceCubit>().setDarkMode(context, darkMode: SettingsDeviceDarkMode.system),
+                        additionalInfo: state.settingsDevice.darkMode == SettingsDeviceDarkMode.system ? additionalInfo : null,
+                      ),
+                    ),
+                    Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.only(topLeft: Radius.circular(10), topRight: Radius.circular(10)),
+                        color: CupertinoDynamicColor.resolve(
+                          CupertinoDynamicColor.withBrightness(
+                            color: CupertinoTheme.of(context).scaffoldBackgroundColor,
+                            darkColor: Color(0xFF1C1C1E),
+                          ),
+                          context,
+                        ),
+                      ),
+                      child: CupertinoListTile(
+                        title: Text(context.t.darkModeAlwaysOn),
+                        subtitle: Text("Тёмный режим всегда включён"),
+                        onTap: () async => await context.read<SettingsAppearanceCubit>().setDarkMode(context, darkMode: SettingsDeviceDarkMode.alwaysOn),                        additionalInfo: state.settingsDevice.darkMode == SettingsDeviceDarkMode.alwaysOn ? additionalInfo : null,
+                      ),
+                    ),
+                    Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.only(topLeft: Radius.circular(10), topRight: Radius.circular(10)),
+                        color: CupertinoDynamicColor.resolve(
+                          CupertinoDynamicColor.withBrightness(
+                            color: CupertinoTheme.of(context).scaffoldBackgroundColor,
+                            darkColor: Color(0xFF1C1C1E),
+                          ),
+                          context,
+                        ),
+                      ),
+                      child: CupertinoListTile(
+                        title: Text(context.t.darkModeDisabled),
+                        subtitle: Text("Тёмный режим отключён"),
+                        onTap: () async => await context.read<SettingsAppearanceCubit>().setDarkMode(context, darkMode: SettingsDeviceDarkMode.disabled),                        additionalInfo: state.settingsDevice.darkMode == SettingsDeviceDarkMode.disabled ? additionalInfo : null,
+                      ),
+                    ),
+
                   ],
                 );
               },

@@ -337,6 +337,13 @@ class _IperonMessengerCupertino extends State<IperonMessengerCupertino> with Wid
           colorSchemeSystem = CupertinoColors.systemPurple;
         }
 
+        Brightness? brightness;
+        if (state.settingsDevice.darkMode == models.SettingsDeviceDarkMode.alwaysOn) {
+          brightness = Brightness.dark;
+        } else if (state.settingsDevice.darkMode == models.SettingsDeviceDarkMode.disabled) {
+          brightness = Brightness.light;
+        }
+
         return MediaQuery(
           data: MediaQuery.of(context).copyWith(
               textScaler: TextScaler.linear(0.95)
@@ -355,6 +362,7 @@ class _IperonMessengerCupertino extends State<IperonMessengerCupertino> with Wid
                 .of(context)
                 .flutterLocale,
             theme: CupertinoThemeData(
+              brightness: brightness,
               primaryColor: colorSchemeSystem,
             ),
           ),

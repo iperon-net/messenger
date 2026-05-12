@@ -20,4 +20,9 @@ class SettingsAppearanceCubit extends Cubit<SettingsAppearanceState> {
     await repositories.settingsDevice.setColorTheme(colorTheme);
   }
 
+  Future<void> setDarkMode(BuildContext context, {required SettingsDeviceDarkMode darkMode}) async {
+    context.read<MainCubit>().setDarkMode(darkMode: darkMode);
+    await repositories.settingsDevice.setDarkMode(darkMode);
+  }
+
 }

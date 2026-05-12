@@ -148,6 +148,18 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 
 	/// en: 'Purple'
 	String get colorThemePurple => 'Purple';
+
+	/// en: 'Dark mode'
+	String get darkMode => 'Dark mode';
+
+	/// en: 'System'
+	String get darkModeSystem => 'System';
+
+	/// en: 'Always on'
+	String get darkModeAlwaysOn => 'Always on';
+
+	/// en: 'Disabled'
+	String get darkModeDisabled => 'Disabled';
 }
 
 /// The flat map containing all translations for locale <en>.
@@ -194,6 +206,10 @@ extension on Translations {
 			'colorThemeDefault' => 'Default',
 			'colorThemeGreen' => 'Green',
 			'colorThemePurple' => 'Purple',
+			'darkMode' => 'Dark mode',
+			'darkModeSystem' => 'System',
+			'darkModeAlwaysOn' => 'Always on',
+			'darkModeDisabled' => 'Disabled',
 			_ => null,
 		};
 	}
