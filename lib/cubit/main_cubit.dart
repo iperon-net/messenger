@@ -32,7 +32,7 @@ class MainCubit extends Cubit<MainState> {
     emit(state.copyWith(settingsDevice: settingsDevice));
   }
 
-  Future<void> setColorTheme({required String colorTheme}) async {
+  Future<void> setColorTheme({required SettingsDeviceColorTheme colorTheme}) async {
     final settingsDevice = state.settingsDevice.copyWith(colorTheme: colorTheme);
     emit(state.copyWith(settingsDevice: settingsDevice));
   }

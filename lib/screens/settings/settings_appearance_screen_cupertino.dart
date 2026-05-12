@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../i18n/translations.g.dart';
+import '../../models/models.dart';
 import 'settings_appearance_cubit.dart';
 
 class SettingsAppearanceScreenCupertino extends StatefulWidget {
@@ -63,7 +64,7 @@ class _SettingsAppearanceScreenCupertino extends State<SettingsAppearanceScreenC
                   ),
                   child: CupertinoListTile(
                     title: Text(context.t.colorThemeDefault),
-                    onTap: () async => await context.read<SettingsAppearanceCubit>().setColorTheme(context, colorTheme: "default"),
+                    onTap: () async => await context.read<SettingsAppearanceCubit>().setColorTheme(context, colorTheme: SettingsDeviceColorTheme.blue),
                   ),
                 ),
                 Container(
@@ -79,7 +80,7 @@ class _SettingsAppearanceScreenCupertino extends State<SettingsAppearanceScreenC
                   ),
                   child: CupertinoListTile(
                     title: Text(context.t.colorThemeGreen),
-                    onTap: () async => await context.read<SettingsAppearanceCubit>().setColorTheme(context, colorTheme: "green"),
+                    onTap: () async => await context.read<SettingsAppearanceCubit>().setColorTheme(context, colorTheme: SettingsDeviceColorTheme.green),
                   ),
                 ),
                 Container(
@@ -95,7 +96,7 @@ class _SettingsAppearanceScreenCupertino extends State<SettingsAppearanceScreenC
                   ),
                   child: CupertinoListTile(
                     title: Text(context.t.colorThemePurple),
-                    onTap: () async => await context.read<SettingsAppearanceCubit>().setColorTheme(context, colorTheme: "purple"),
+                    onTap: () async => await context.read<SettingsAppearanceCubit>().setColorTheme(context, colorTheme: SettingsDeviceColorTheme.purple),
                   ),
                 ),
               ],

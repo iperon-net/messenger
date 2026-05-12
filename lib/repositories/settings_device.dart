@@ -41,9 +41,9 @@ class SettingsDevice {
     });
   }
 
-  Future<void> setThemeColor(models.SettingsDeviceColorTheme value) async {
+  Future<void> setColorTheme(models.SettingsDeviceColorTheme value) async {
     return await database.transaction((txn) async {
-      await txn.update('settingsDevice', {'themeColor': value.name});
+      await txn.update('settingsDevice', {'colorTheme': value.name});
     });
   }
 
