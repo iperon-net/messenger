@@ -326,10 +326,17 @@ class _IperonMessengerCupertino extends State<IperonMessengerCupertino> with Wid
 
   @override
   Widget build(BuildContext context) {
-    final colorSchemeSystem = ThemesCupertino().blueScheme;
 
     return BlocBuilder<MainCubit, MainState>(
       builder: (context, state) {
+        CupertinoDynamicColor colorSchemeSystem = ThemesCupertino().blueScheme;
+
+        if (state.settingsDevice.colorTheme == models.SettingsDeviceColorTheme.green){
+          colorSchemeSystem = CupertinoColors.systemGreen;
+        } else if (state.settingsDevice.colorTheme == models.SettingsDeviceColorTheme.purple) {
+          colorSchemeSystem = CupertinoColors.systemPurple;
+        }
+
         return MediaQuery(
           data: MediaQuery.of(context).copyWith(
               textScaler: TextScaler.linear(0.95)
