@@ -29,9 +29,9 @@ class SettingsDevice {
     });
   }
 
-  Future<void> setLanguage(AppLocale language) async {
+  Future<void> setLocate({required AppLocale locate}) async {
     return await database.transaction((txn) async {
-      await txn.update('settingsDevice', {'language': language.name});
+      await txn.update('settingsDevice', {'locate': locate.languageCode});
     });
   }
 

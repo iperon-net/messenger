@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:messenger/cubit/main_cubit.dart';
 
 import '../../i18n/translations.g.dart';
 import 'settings_language_cubit.dart';
@@ -39,54 +39,62 @@ class _SettingsLanguageScreenCupertino extends State<SettingsLanguageScreenCuper
         child: Center(
           child: Padding(
             padding: EdgeInsetsGeometry.all(15),
-            child: ListView(
-              children: [
-                Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.only(topLeft: Radius.circular(10), topRight: Radius.circular(10)),
-                    color: CupertinoDynamicColor.resolve(
-                      CupertinoDynamicColor.withBrightness(
-                        color: CupertinoTheme.of(context).scaffoldBackgroundColor,
-                        darkColor: Color(0xFF1C1C1E),
-                      ),
-                      context,
+            child: BlocBuilder<MainCubit, MainState>(
+              builder: (context, state) {
+
+                Widget additionalInfo = FaIcon(
+                  FontAwesomeIcons.solidCircleCheck,
+                  size: 18,
+                  color: CupertinoDynamicColor.resolve(
+                    CupertinoDynamicColor.withBrightness(
+                      color: CupertinoTheme.of(context).primaryColor,
+                      darkColor: Color(0xFFF4F4F5),
                     ),
+                    context,
                   ),
-                  child: CupertinoListTile(
-                    title: Text("English"),
-                    subtitle: Text("English"),
-                    onTap: () async => context.read<SettingsLanguageCubit>().setLocale(context, locate: AppLocale.en),
-                  ),
-                ),
-                Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.only(bottomLeft: Radius.circular(10), bottomRight: Radius.circular(10)),
-                    color: CupertinoDynamicColor.resolve(
-                      CupertinoDynamicColor.withBrightness(
-                        color: CupertinoTheme.of(context).scaffoldBackgroundColor,
-                        darkColor: Color(0xFF1C1C1E),
-                      ),
-                      context,
-                    ),
-                  ),
-                  child: CupertinoListTile(
-                    title: Text("Russian"),
-                    subtitle: Text("Русский"),
-                    onTap: () async => context.read<SettingsLanguageCubit>().setLocale(context, locate: AppLocale.ru),
-                    additionalInfo: FaIcon(
-                      FontAwesomeIcons.solidCircleCheck,
-                      size: 18,
-                      color: CupertinoDynamicColor.resolve(
-                        CupertinoDynamicColor.withBrightness(
-                          color: CupertinoTheme.of(context).primaryColor,
-                          darkColor: Color(0xFFF4F4F5),
+                );
+
+                return ListView(
+                  children: [
+                    Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.only(topLeft: Radius.circular(10), topRight: Radius.circular(10)),
+                        color: CupertinoDynamicColor.resolve(
+                          CupertinoDynamicColor.withBrightness(
+                            color: CupertinoTheme.of(context).scaffoldBackgroundColor,
+                            darkColor: Color(0xFF1C1C1E),
+                          ),
+                          context,
                         ),
-                        context,
+                      ),
+                      child: CupertinoListTile(
+                        title: Text("English"),
+                        subtitle: Text("English"),
+                        onTap: () async => context.read<SettingsLanguageCubit>().setLocale(context, locate: AppLocale.en),
+                        additionalInfo: state.settingsDevice.locate == AppLocale.en ? additionalInfo : null,
                       ),
                     ),
-                  ),
-                ),
-              ],
+                    Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.only(bottomLeft: Radius.circular(10), bottomRight: Radius.circular(10)),
+                        color: CupertinoDynamicColor.resolve(
+                          CupertinoDynamicColor.withBrightness(
+                            color: CupertinoTheme.of(context).scaffoldBackgroundColor,
+                            darkColor: Color(0xFF1C1C1E),
+                          ),
+                          context,
+                        ),
+                      ),
+                      child: CupertinoListTile(
+                        title: Text("Russian"),
+                        subtitle: Text("Русский"),
+                        onTap: () async => context.read<SettingsLanguageCubit>().setLocale(context, locate: AppLocale.ru),
+                        additionalInfo: state.settingsDevice.locate == AppLocale.ru ? additionalInfo : null,
+                      ),
+                    ),
+                  ],
+                );
+              },
             ),
           ),
         ),

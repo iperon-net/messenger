@@ -56,7 +56,7 @@ class Repositories {
       if (version == 1) {
         batch.execute('''
           CREATE TABLE settingsDevice (
-            locate TEXT NOT NULL,
+            locate TEXT NULL,
             darkMode TEXT NOT NULL,
             themeColor TEXT NOT NULL,
             blurTaskSwitchingEnable INTEGER NOT NULL
@@ -67,7 +67,7 @@ class Repositories {
           INSERT INTO settingsDevice
             (locate, darkMode, themeColor, blurTaskSwitchingEnable)
           VALUES
-            ('', 'system', 'blue', 1)
+            (NULL, 'system', 'blue', 1)
         ''');
 
         //

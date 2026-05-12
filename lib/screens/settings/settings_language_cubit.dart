@@ -22,6 +22,7 @@ class SettingsLanguageCubit extends Cubit<SettingsLanguageState> {
   Future<void> setLocale(BuildContext context, {required AppLocale locate}) async {
     context.read<MainCubit>().setLocate(locate: locate);
     LocaleSettings.setLocale(locate);
+    await repositories.settingsDevice.setLocate(locate: locate);
   }
 
 }
