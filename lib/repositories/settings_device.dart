@@ -11,7 +11,7 @@ class SettingsDevice {
     final columns = [
       'locate',
       'darkMode',
-      'themeColor',
+      'colorTheme',
       'blurTaskSwitchingEnable',
     ];
 
@@ -20,7 +20,7 @@ class SettingsDevice {
       if (records.isEmpty) {
         return models.SettingsDevice(
           darkMode: models.SettingsDeviceDarkMode.system,
-          themeColor: models.SettingsDeviceThemeColor.blue,
+          colorTheme: models.SettingsDeviceColorTheme.blue,
           blurTaskSwitchingEnable: true,
         );
       }
@@ -41,7 +41,7 @@ class SettingsDevice {
     });
   }
 
-  Future<void> setThemeColor(models.SettingsDeviceThemeColor value) async {
+  Future<void> setThemeColor(models.SettingsDeviceColorTheme value) async {
     return await database.transaction((txn) async {
       await txn.update('settingsDevice', {'themeColor': value.name});
     });

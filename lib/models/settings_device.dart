@@ -7,7 +7,7 @@ import 'freezed_convertor.dart';
 part 'settings_device.freezed.dart';
 part 'settings_device.g.dart';
 
-enum SettingsDeviceThemeColor { blue, green,  purple }
+enum SettingsDeviceColorTheme { blue, green,  purple }
 enum SettingsDeviceDarkMode { system, disabled, alwaysOn }
 
 @freezed
@@ -17,7 +17,7 @@ abstract class SettingsDevice with _$SettingsDevice {
   const factory SettingsDevice({
     AppLocale? locate,
     @Default(SettingsDeviceDarkMode.system) SettingsDeviceDarkMode darkMode,
-    @Default(SettingsDeviceThemeColor.blue) themeColor,
+    @Default(SettingsDeviceColorTheme.blue) colorTheme,
     @BoolConverter() @Default(false) bool blurTaskSwitchingEnable,
   }) = _SettingsDevice;
 

@@ -136,6 +136,18 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 
 	/// en: 'Privacy Policy'
 	String get privacyPolicy => 'Privacy Policy';
+
+	/// en: 'Color theme'
+	String get colorTheme => 'Color theme';
+
+	/// en: 'Default'
+	String get colorThemeDefault => 'Default';
+
+	/// en: 'Green'
+	String get colorThemeGreen => 'Green';
+
+	/// en: 'Purple'
+	String get colorThemePurple => 'Purple';
 }
 
 /// The flat map containing all translations for locale <en>.
@@ -178,6 +190,10 @@ extension on Translations {
 			'notifications' => 'Notifications',
 			'faq' => 'FAQ',
 			'privacyPolicy' => 'Privacy Policy',
+			'colorTheme' => 'Color theme',
+			'colorThemeDefault' => 'Default',
+			'colorThemeGreen' => 'Green',
+			'colorThemePurple' => 'Purple',
 			_ => null,
 		};
 	}

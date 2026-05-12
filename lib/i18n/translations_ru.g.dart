@@ -71,6 +71,10 @@ class TranslationsRu extends Translations with BaseTranslations<AppLocale, Trans
 	@override String get notifications => 'Уведомления';
 	@override String get faq => 'FAQ';
 	@override String get privacyPolicy => 'Политика конфиденциальности';
+	@override String get colorTheme => 'Цветовая схема';
+	@override String get colorThemeDefault => 'По умолчанию';
+	@override String get colorThemeGreen => 'Зеленая';
+	@override String get colorThemePurple => 'Пурпурная';
 }
 
 /// The flat map containing all translations for locale <ru>.
@@ -113,6 +117,10 @@ extension on TranslationsRu {
 			'notifications' => 'Уведомления',
 			'faq' => 'FAQ',
 			'privacyPolicy' => 'Политика конфиденциальности',
+			'colorTheme' => 'Цветовая схема',
+			'colorThemeDefault' => 'По умолчанию',
+			'colorThemeGreen' => 'Зеленая',
+			'colorThemePurple' => 'Пурпурная',
 			_ => null,
 		};
 	}

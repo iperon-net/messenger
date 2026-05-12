@@ -1,4 +1,8 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+import '../../i18n/translations.g.dart';
+import 'settings_appearance_cubit.dart';
 
 class SettingsAppearanceScreenCupertino extends StatefulWidget {
   const SettingsAppearanceScreenCupertino({super.key});
@@ -20,6 +24,85 @@ class _SettingsAppearanceScreenCupertino extends State<SettingsAppearanceScreenC
 
   @override
   Widget build(BuildContext context) {
-    return Container();
+
+    return CupertinoPageScaffold(
+      backgroundColor: CupertinoDynamicColor.withBrightness(
+        color: CupertinoColors.systemGroupedBackground,
+        darkColor: CupertinoColors.darkBackgroundGray,
+      ),
+      navigationBar: CupertinoNavigationBar(
+        automaticBackgroundVisibility: false,
+        middle: Text(context.t.appearance),
+      ),
+      child: SafeArea(
+        child: Center(
+          child: Padding(
+            padding: EdgeInsetsGeometry.all(15),
+            child: ListView(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 10, left: 10),
+                  child: Text(
+                    context.t.colorTheme,
+                    style: TextStyle(
+                      fontSize: const TextScaler.linear(1.5).scale(10),
+                      color: CupertinoColors.inactiveGray,
+                    ),
+                  )
+                ),
+                Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.only(topLeft: Radius.circular(10), topRight: Radius.circular(10)),
+                    color: CupertinoDynamicColor.resolve(
+                      CupertinoDynamicColor.withBrightness(
+                        color: CupertinoTheme.of(context).scaffoldBackgroundColor,
+                        darkColor: Color(0xFF1C1C1E),
+                      ),
+                      context,
+                    ),
+                  ),
+                  child: CupertinoListTile(
+                    title: Text(context.t.colorThemeDefault),
+                    onTap: () async => await context.read<SettingsAppearanceCubit>().setColorTheme(context, colorTheme: "default"),
+                  ),
+                ),
+                Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.only(topLeft: Radius.circular(10), topRight: Radius.circular(10)),
+                    color: CupertinoDynamicColor.resolve(
+                      CupertinoDynamicColor.withBrightness(
+                        color: CupertinoTheme.of(context).scaffoldBackgroundColor,
+                        darkColor: Color(0xFF1C1C1E),
+                      ),
+                      context,
+                    ),
+                  ),
+                  child: CupertinoListTile(
+                    title: Text(context.t.colorThemeGreen),
+                    onTap: () async => await context.read<SettingsAppearanceCubit>().setColorTheme(context, colorTheme: "green"),
+                  ),
+                ),
+                Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.only(topLeft: Radius.circular(10), topRight: Radius.circular(10)),
+                    color: CupertinoDynamicColor.resolve(
+                      CupertinoDynamicColor.withBrightness(
+                        color: CupertinoTheme.of(context).scaffoldBackgroundColor,
+                        darkColor: Color(0xFF1C1C1E),
+                      ),
+                      context,
+                    ),
+                  ),
+                  child: CupertinoListTile(
+                    title: Text(context.t.colorThemePurple),
+                    onTap: () async => await context.read<SettingsAppearanceCubit>().setColorTheme(context, colorTheme: "purple"),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
