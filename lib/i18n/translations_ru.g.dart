@@ -64,6 +64,11 @@ class TranslationsRu extends Translations with BaseTranslations<AppLocale, Trans
 	@override String get calls => 'Звонки';
 	@override String get chats => 'Чаты';
 	@override String get settings => 'Настройки';
+	@override String get language => 'Язык';
+	@override String get appearance => 'Оформление';
+	@override String get myProfile => 'Мой профиль';
+	@override String get privateAndSecurity => 'Конфиденциальность';
+	@override String get notifications => 'Уведомления';
 }
 
 /// The flat map containing all translations for locale <ru>.
@@ -99,6 +104,11 @@ extension on TranslationsRu {
 			'calls' => 'Звонки',
 			'chats' => 'Чаты',
 			'settings' => 'Настройки',
+			'language' => 'Язык',
+			'appearance' => 'Оформление',
+			'myProfile' => 'Мой профиль',
+			'privateAndSecurity' => 'Конфиденциальность',
+			'notifications' => 'Уведомления',
 			_ => null,
 		};
 	}

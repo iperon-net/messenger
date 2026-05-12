@@ -1,5 +1,8 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:go_router/go_router.dart';
+import 'package:messenger/cubit/main_cubit.dart';
 
 import '../../di.dart';
 import '../../i18n/translations.g.dart';
@@ -20,8 +23,8 @@ class _SettingsCupertinoScreen extends State<SettingsCupertinoScreen> {
 
   @override
   void initState() {
+    logger.debug(context.read<MainCubit>().state.settingsDevice.language);
     super.initState();
-    logger.debug("initState home");
   }
 
   @override
@@ -29,19 +32,108 @@ class _SettingsCupertinoScreen extends State<SettingsCupertinoScreen> {
     super.dispose();
   }
 
-  void listTile() {
+  Widget item({
+    required BorderRadius borderRadius,
+    required Widget title,
+    Widget? subtitle,
+    required Color color,
+    required FaIconData icon,
+    Widget? additionalInfo,
+    required String redirectURI,
+  }) {
 
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: borderRadius,
+        color: CupertinoDynamicColor.resolve(
+          CupertinoDynamicColor.withBrightness(
+            color: CupertinoTheme.of(context).scaffoldBackgroundColor,
+            darkColor: Color(0xFF1C1C1E),
+          ),
+          context,
+        ),
+      ),
+      child: CupertinoListTile(
+        padding: EdgeInsets.all(10),
+        leading: Container(
+          width: 45,
+          height: 45,
+          decoration: BoxDecoration(
+            color: color,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Center(
+            child: FaIcon(icon, size: 16, color: Color(0xFFFFFFFF)),
+          ),
+        ),
+        onTap: () => context.go(redirectURI),
+        title: title,
+        subtitle: subtitle,
+        trailing: Icon(CupertinoIcons.forward, color: CupertinoColors.inactiveGray),
+        additionalInfo: additionalInfo,
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
-      backgroundColor: CupertinoColors.systemGroupedBackground,
+      backgroundColor: CupertinoDynamicColor.withBrightness(
+        color: CupertinoColors.systemGroupedBackground,
+        darkColor: CupertinoColors.darkBackgroundGray,
+      ),
       navigationBar: CupertinoNavigationBar(
         automaticBackgroundVisibility: false,
         middle: Text(context.t.settings),
       ),
-      child: Text("dddd"),
+      child: SafeArea(
+        child: Center(
+          child: Padding(
+            padding: EdgeInsetsGeometry.all(15),
+            child: ListView(
+              children: [
+                item(
+                  title: Text(context.t.myProfile),
+                  color: Color(0xFFF80202),
+                  icon: FontAwesomeIcons.solidUser,
+                  borderRadius: BorderRadius.circular(10),
+                  redirectURI: "/settings_language",
+                ),
+                SizedBox(height: 20),
+                item(
+                  title: Text(context.t.appearance),
+                  color: Color(0xFF1368E6),
+                  icon: FontAwesomeIcons.circleHalfStroke,
+                  borderRadius: BorderRadius.zero,
+                  redirectURI: "/settings_language",
+                ),
+                item(
+                  title: Text(context.t.privateAndSecurity),
+                  color: Color(0xFF049A40),
+                  icon: FontAwesomeIcons.key,
+                  borderRadius: BorderRadius.zero,
+                  redirectURI: "/settings_language",
+                ),
+                item(
+                  title: Text(context.t.notifications),
+                  color: Color(0xFFDD0856),
+                  icon: FontAwesomeIcons.solidBell,
+                  borderRadius: BorderRadius.zero,
+                  redirectURI: "/settings_language",
+                ),
+                item(
+                  title: Text(context.t.language),
+                  color: Color(0xFFBE0BCC),
+                  icon: FontAwesomeIcons.language,
+                  borderRadius: BorderRadius.zero,
+                  additionalInfo: Text("Русский"),
+                  redirectURI: "/settings_language",
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

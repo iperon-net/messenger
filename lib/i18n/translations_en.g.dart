@@ -115,6 +115,21 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 
 	/// en: 'Settings'
 	String get settings => 'Settings';
+
+	/// en: 'Language'
+	String get language => 'Language';
+
+	/// en: 'Appearance'
+	String get appearance => 'Appearance';
+
+	/// en: 'My profile'
+	String get myProfile => 'My profile';
+
+	/// en: 'Private & Security'
+	String get privateAndSecurity => 'Private & Security';
+
+	/// en: 'Notifications'
+	String get notifications => 'Notifications';
 }
 
 /// The flat map containing all translations for locale <en>.
@@ -150,6 +165,11 @@ extension on Translations {
 			'calls' => 'Calls',
 			'chats' => 'Chats',
 			'settings' => 'Settings',
+			'language' => 'Language',
+			'appearance' => 'Appearance',
+			'myProfile' => 'My profile',
+			'privateAndSecurity' => 'Private & Security',
+			'notifications' => 'Notifications',
 			_ => null,
 		};
 	}

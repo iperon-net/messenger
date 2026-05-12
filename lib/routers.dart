@@ -22,7 +22,7 @@ class Routers {
 
         Uri uri = Uri.parse(state.fullPath ?? "/");
         if (uri.pathSegments.isNotEmpty && uri.pathSegments[0] == "auth") return null;
-        if (context.watch<MainCubit>().state.user.userID.isEmpty) return "/auth";
+        if (context.read<MainCubit>().state.user.userID.isEmpty) return "/auth";
 
         return null;
       },
@@ -65,11 +65,11 @@ class Routers {
         debugLogDiagnostics: kDebugMode ? true: false,
         navigatorKey: navigatorGoRouterKey,
         initialLocation: '/',
-        redirect: (context, state) {
+        redirect: (context, state) async {
 
           Uri uri = Uri.parse(state.fullPath ?? "/");
           if (uri.pathSegments.isNotEmpty && uri.pathSegments[0] == "auth") return null;
-          if (context.watch<MainCubit>().state.user.userID.isEmpty) return "/auth";
+          if (context.read<MainCubit>().state.user.userID.isEmpty) return "/auth";
 
           return null;
         },
@@ -77,6 +77,12 @@ class Routers {
           GoRoute(
             path: '/',
             builder: (_, _) => HomeCupertinoScreen(),
+            routes: [
+              GoRoute(
+                path: '/settings_language',
+                builder: (_, _) => SettingsLanguageScreenCupertino(),
+              ),
+            ],
           ),
           GoRoute(
             path: '/auth',
