@@ -1,6 +1,7 @@
 export './auth/auth_screen_material.dart' show AuthMaterialScreen;
 export './auth/auth_callpassword_screen_material.dart' show AuthCallPasswordMaterialScreen;
 export './auth/auth_callpassword_screen_cupertino.dart' show AuthCallPasswordCupertinoScreen;
+export './auth/auth_sms_screen_cupertino.dart' show AuthSmsScreenCupertino;
 export './auth/auth_screen_cupertino.dart' show AuthCupertinoScreen;
 export './home/home_screen_material.dart' show HomeMaterialScreen;
 export './home/home_screen_cupertino.dart' show HomeCupertinoScreen;
@@ -8,3 +9,4 @@ export './settings/settings_screen_material.dart' show SettingsMaterialScreen;
 export './settings/settings_screen_cupertino.dart' show SettingsCupertinoScreen;
 export './settings/settings_language_screen_cupertino.dart' show SettingsLanguageScreenCupertino;
 export './settings/settings_appearance_screen_cupertino.dart' show SettingsAppearanceScreenCupertino;
+

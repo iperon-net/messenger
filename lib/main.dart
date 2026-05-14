@@ -15,6 +15,7 @@ import 'repositories/repositories.dart';
 import 'routers.dart';
 import 'screens/auth/auth_callpassword_cubit.dart';
 import 'screens/auth/auth_cubit.dart';
+import 'screens/auth/auth_sms_cubit.dart';
 import 'screens/home/home_cubit.dart';
 import 'screens/settings/settings_appearance_cubit.dart';
 import 'screens/settings/settings_language_cubit.dart';
@@ -71,6 +72,9 @@ Future<void> main() async {
           ),
           BlocProvider<AuthCallpasswordCubit>(
             create: (_) => AuthCallpasswordCubit(),
+          ),
+          BlocProvider<AuthSmsCubit>(
+            create: (_) => AuthSmsCubit(),
           ),
           BlocProvider<HomeCubit>(
             create: (_) => HomeCubit(),

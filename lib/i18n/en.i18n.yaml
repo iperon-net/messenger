@@ -41,4 +41,7 @@
 "darkModeSystemDescription": "As in the device settings"
 "darkModeAlwaysOnDescription": "Dark mode is always on"
 "darkModeDisabledDescription": "Dark mode is disabled"
+"enterTheCode": "Enter the code"
+"sentConfirmationCodeToNumber": "We sent a confirmation code to the number {phoneNumber}"
+"verificationCodeMismatch": "Verification code mismatch"
 

@@ -41,3 +41,6 @@
 "darkModeSystemDescription": "Как в настройках устройства"
 "darkModeAlwaysOnDescription": "Тёмный режим всегда включён"
 "darkModeDisabledDescription": "Тёмный режим отключён"
+"enterTheCode": "Введите код"
+"sentConfirmationCodeToNumber": "Отправили код подтверждения на номер {phoneNumber}"
+"verificationCodeMismatch": "Неверный код подтверждения"

@@ -79,12 +79,13 @@ class AuthCubit extends Cubit<AuthState> {
         formKey.currentState!.validate();
         return;
       }
-
+      // authSMSResponse.smsSession
       emit(AuthState(status: Status.success));
 
       if(context.mounted) {
         String queryString = Uri(queryParameters: {
           'smsSession': convertor.hex.encode(authSMSResponse.smsSession),
+          'phoneNumber': phoneUtil.format(phoneNumber, PhoneNumberFormat.international).toString(),
         }).query;
         context.go("/auth/sms?$queryString");
       }

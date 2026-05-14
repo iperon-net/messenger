@@ -93,6 +93,19 @@ class Routers {
             builder: (_, _) => AuthCupertinoScreen(),
             routes: [
               GoRoute(
+                path: "/sms",
+                builder: (context, state) {
+                  final smsSession = state.uri.queryParameters["smsSession"];
+                  final phoneNumber = state.uri.queryParameters["phoneNumber"];
+                  if (smsSession != null && phoneNumber != null) {
+                    return AuthSmsScreenCupertino(smsSession: smsSession, phoneNumber: phoneNumber);
+                  }
+
+                  if (context.mounted) context.go("/auth");
+                  return Container();
+                },
+              ),
+              GoRoute(
                 path: '/callpassword',
                 builder: (context, state) {
                   final callPasswordSession = state.uri.queryParameters["callPasswordSession"];

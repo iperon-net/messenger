@@ -82,6 +82,9 @@ class TranslationsRu extends Translations with BaseTranslations<AppLocale, Trans
 	@override String get darkModeSystemDescription => 'Как в настройках устройства';
 	@override String get darkModeAlwaysOnDescription => 'Тёмный режим всегда включён';
 	@override String get darkModeDisabledDescription => 'Тёмный режим отключён';
+	@override String get enterTheCode => 'Введите код';
+	@override String sentConfirmationCodeToNumber({required Object phoneNumber}) => 'Отправили код подтверждения на номер ${phoneNumber}';
+	@override String get verificationCodeMismatch => 'Неверный код подтверждения';
 }
 
 /// The flat map containing all translations for locale <ru>.
@@ -135,6 +138,9 @@ extension on TranslationsRu {
 			'darkModeSystemDescription' => 'Как в настройках устройства',
 			'darkModeAlwaysOnDescription' => 'Тёмный режим всегда включён',
 			'darkModeDisabledDescription' => 'Тёмный режим отключён',
+			'enterTheCode' => 'Введите код',
+			'sentConfirmationCodeToNumber' => ({required Object phoneNumber}) => 'Отправили код подтверждения на номер ${phoneNumber}',
+			'verificationCodeMismatch' => 'Неверный код подтверждения',
 			_ => null,
 		};
 	}

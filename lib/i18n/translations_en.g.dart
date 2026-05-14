@@ -169,6 +169,15 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 
 	/// en: 'Dark mode is disabled'
 	String get darkModeDisabledDescription => 'Dark mode is disabled';
+
+	/// en: 'Enter the code'
+	String get enterTheCode => 'Enter the code';
+
+	/// en: 'We sent a confirmation code to the number {phoneNumber}'
+	String sentConfirmationCodeToNumber({required Object phoneNumber}) => 'We sent a confirmation code to the number ${phoneNumber}';
+
+	/// en: 'Verification code mismatch'
+	String get verificationCodeMismatch => 'Verification code mismatch';
 }
 
 /// The flat map containing all translations for locale <en>.
@@ -222,6 +231,9 @@ extension on Translations {
 			'darkModeSystemDescription' => 'As in the device settings',
 			'darkModeAlwaysOnDescription' => 'Dark mode is always on',
 			'darkModeDisabledDescription' => 'Dark mode is disabled',
+			'enterTheCode' => 'Enter the code',
+			'sentConfirmationCodeToNumber' => ({required Object phoneNumber}) => 'We sent a confirmation code to the number ${phoneNumber}',
+			'verificationCodeMismatch' => 'Verification code mismatch',
 			_ => null,
 		};
 	}

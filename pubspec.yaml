@@ -75,6 +75,7 @@ dependencies:
   objectid: ^4.0.3
   yandex_login_sdk: ^0.1.5
   telegram_login: ^1.2.1
+  pin_code_fields: ^9.3.0
 
 dev_dependencies:
   flutter_test:
