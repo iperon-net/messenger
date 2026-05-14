@@ -146,6 +146,90 @@ final $typed_data.Uint8List authCallPasswordCheckResponseDescriptor = $convert.b
     'SIAQFCCAoGX3RpbWVyQg8KDV9lcnJvck1lc3NhZ2VCFgoUX2NvbmZpcm1hdGlvblNlc3Npb25C'
     'EwoRX2hhc0Nsb3VkUGFzc3dvcmRCDAoKX2lzQmxvY2tlZA==');
 
+@$core.Deprecated('Use authSMSRequestDescriptor instead')
+const AuthSMSRequest$json = {
+  '1': 'AuthSMSRequest',
+  '2': [
+    {'1': 'phoneNumber', '3': 1, '4': 1, '5': 9, '10': 'phoneNumber'},
+  ],
+};
+
+/// Descriptor for `AuthSMSRequest`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List authSMSRequestDescriptor = $convert.base64Decode(
+    'Cg5BdXRoU01TUmVxdWVzdBIgCgtwaG9uZU51bWJlchgBIAEoCVILcGhvbmVOdW1iZXI=');
+
+@$core.Deprecated('Use authSMSResponseDescriptor instead')
+const AuthSMSResponse$json = {
+  '1': 'AuthSMSResponse',
+  '2': [
+    {'1': 'smsSession', '3': 1, '4': 1, '5': 12, '10': 'smsSession'},
+  ],
+};
+
+/// Descriptor for `AuthSMSResponse`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List authSMSResponseDescriptor = $convert.base64Decode(
+    'Cg9BdXRoU01TUmVzcG9uc2USHgoKc21zU2Vzc2lvbhgBIAEoDFIKc21zU2Vzc2lvbg==');
+
+@$core.Deprecated('Use authSMSCheckRequestDescriptor instead')
+const AuthSMSCheckRequest$json = {
+  '1': 'AuthSMSCheckRequest',
+  '2': [
+    {'1': 'smsSession', '3': 1, '4': 1, '5': 12, '10': 'smsSession'},
+    {'1': 'verificationCode', '3': 2, '4': 1, '5': 9, '10': 'verificationCode'},
+  ],
+};
+
+/// Descriptor for `AuthSMSCheckRequest`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List authSMSCheckRequestDescriptor = $convert.base64Decode(
+    'ChNBdXRoU01TQ2hlY2tSZXF1ZXN0Eh4KCnNtc1Nlc3Npb24YASABKAxSCnNtc1Nlc3Npb24SKg'
+    'oQdmVyaWZpY2F0aW9uQ29kZRgCIAEoCVIQdmVyaWZpY2F0aW9uQ29kZQ==');
+
+@$core.Deprecated('Use authSMSCheckResponseDescriptor instead')
+const AuthSMSCheckResponse$json = {
+  '1': 'AuthSMSCheckResponse',
+  '2': [
+    {
+      '1': 'confirmationSession',
+      '3': 1,
+      '4': 1,
+      '5': 12,
+      '9': 0,
+      '10': 'confirmationSession',
+      '17': true
+    },
+    {
+      '1': 'hasCloudPassword',
+      '3': 2,
+      '4': 1,
+      '5': 8,
+      '9': 1,
+      '10': 'hasCloudPassword',
+      '17': true
+    },
+    {
+      '1': 'isBlocked',
+      '3': 3,
+      '4': 1,
+      '5': 8,
+      '9': 2,
+      '10': 'isBlocked',
+      '17': true
+    },
+  ],
+  '8': [
+    {'1': '_confirmationSession'},
+    {'1': '_hasCloudPassword'},
+    {'1': '_isBlocked'},
+  ],
+};
+
+/// Descriptor for `AuthSMSCheckResponse`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List authSMSCheckResponseDescriptor = $convert.base64Decode(
+    'ChRBdXRoU01TQ2hlY2tSZXNwb25zZRI1ChNjb25maXJtYXRpb25TZXNzaW9uGAEgASgMSABSE2'
+    'NvbmZpcm1hdGlvblNlc3Npb26IAQESLwoQaGFzQ2xvdWRQYXNzd29yZBgCIAEoCEgBUhBoYXND'
+    'bG91ZFBhc3N3b3JkiAEBEiEKCWlzQmxvY2tlZBgDIAEoCEgCUglpc0Jsb2NrZWSIAQFCFgoUX2'
+    'NvbmZpcm1hdGlvblNlc3Npb25CEwoRX2hhc0Nsb3VkUGFzc3dvcmRCDAoKX2lzQmxvY2tlZA==');
+
 @$core.Deprecated('Use authConfirmationRequestDescriptor instead')
 const AuthConfirmationRequest$json = {
   '1': 'AuthConfirmationRequest',

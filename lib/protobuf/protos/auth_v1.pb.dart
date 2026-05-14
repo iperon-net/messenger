@@ -342,6 +342,269 @@ class AuthCallPasswordCheckResponse extends $pb.GeneratedMessage {
   void clearIsBlocked() => $_clearField(6);
 }
 
+/// SMS
+class AuthSMSRequest extends $pb.GeneratedMessage {
+  factory AuthSMSRequest({
+    $core.String? phoneNumber,
+  }) {
+    final result = create();
+    if (phoneNumber != null) result.phoneNumber = phoneNumber;
+    return result;
+  }
+
+  AuthSMSRequest._();
+
+  factory AuthSMSRequest.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory AuthSMSRequest.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'AuthSMSRequest',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'),
+      createEmptyInstance: create)
+    ..aOS(1, _omitFieldNames ? '' : 'phoneNumber', protoName: 'phoneNumber')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  AuthSMSRequest clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  AuthSMSRequest copyWith(void Function(AuthSMSRequest) updates) =>
+      super.copyWith((message) => updates(message as AuthSMSRequest))
+          as AuthSMSRequest;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static AuthSMSRequest create() => AuthSMSRequest._();
+  @$core.override
+  AuthSMSRequest createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static AuthSMSRequest getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<AuthSMSRequest>(create);
+  static AuthSMSRequest? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.String get phoneNumber => $_getSZ(0);
+  @$pb.TagNumber(1)
+  set phoneNumber($core.String value) => $_setString(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasPhoneNumber() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearPhoneNumber() => $_clearField(1);
+}
+
+class AuthSMSResponse extends $pb.GeneratedMessage {
+  factory AuthSMSResponse({
+    $core.List<$core.int>? smsSession,
+  }) {
+    final result = create();
+    if (smsSession != null) result.smsSession = smsSession;
+    return result;
+  }
+
+  AuthSMSResponse._();
+
+  factory AuthSMSResponse.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory AuthSMSResponse.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'AuthSMSResponse',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'),
+      createEmptyInstance: create)
+    ..a<$core.List<$core.int>>(
+        1, _omitFieldNames ? '' : 'smsSession', $pb.PbFieldType.OY,
+        protoName: 'smsSession')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  AuthSMSResponse clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  AuthSMSResponse copyWith(void Function(AuthSMSResponse) updates) =>
+      super.copyWith((message) => updates(message as AuthSMSResponse))
+          as AuthSMSResponse;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static AuthSMSResponse create() => AuthSMSResponse._();
+  @$core.override
+  AuthSMSResponse createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static AuthSMSResponse getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<AuthSMSResponse>(create);
+  static AuthSMSResponse? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.List<$core.int> get smsSession => $_getN(0);
+  @$pb.TagNumber(1)
+  set smsSession($core.List<$core.int> value) => $_setBytes(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasSmsSession() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearSmsSession() => $_clearField(1);
+}
+
+/// SMS Check
+class AuthSMSCheckRequest extends $pb.GeneratedMessage {
+  factory AuthSMSCheckRequest({
+    $core.List<$core.int>? smsSession,
+    $core.String? verificationCode,
+  }) {
+    final result = create();
+    if (smsSession != null) result.smsSession = smsSession;
+    if (verificationCode != null) result.verificationCode = verificationCode;
+    return result;
+  }
+
+  AuthSMSCheckRequest._();
+
+  factory AuthSMSCheckRequest.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory AuthSMSCheckRequest.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'AuthSMSCheckRequest',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'),
+      createEmptyInstance: create)
+    ..a<$core.List<$core.int>>(
+        1, _omitFieldNames ? '' : 'smsSession', $pb.PbFieldType.OY,
+        protoName: 'smsSession')
+    ..aOS(2, _omitFieldNames ? '' : 'verificationCode',
+        protoName: 'verificationCode')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  AuthSMSCheckRequest clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  AuthSMSCheckRequest copyWith(void Function(AuthSMSCheckRequest) updates) =>
+      super.copyWith((message) => updates(message as AuthSMSCheckRequest))
+          as AuthSMSCheckRequest;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static AuthSMSCheckRequest create() => AuthSMSCheckRequest._();
+  @$core.override
+  AuthSMSCheckRequest createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static AuthSMSCheckRequest getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<AuthSMSCheckRequest>(create);
+  static AuthSMSCheckRequest? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.List<$core.int> get smsSession => $_getN(0);
+  @$pb.TagNumber(1)
+  set smsSession($core.List<$core.int> value) => $_setBytes(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasSmsSession() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearSmsSession() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.String get verificationCode => $_getSZ(1);
+  @$pb.TagNumber(2)
+  set verificationCode($core.String value) => $_setString(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasVerificationCode() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearVerificationCode() => $_clearField(2);
+}
+
+class AuthSMSCheckResponse extends $pb.GeneratedMessage {
+  factory AuthSMSCheckResponse({
+    $core.List<$core.int>? confirmationSession,
+    $core.bool? hasCloudPassword,
+    $core.bool? isBlocked,
+  }) {
+    final result = create();
+    if (confirmationSession != null)
+      result.confirmationSession = confirmationSession;
+    if (hasCloudPassword != null) result.hasCloudPassword = hasCloudPassword;
+    if (isBlocked != null) result.isBlocked = isBlocked;
+    return result;
+  }
+
+  AuthSMSCheckResponse._();
+
+  factory AuthSMSCheckResponse.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory AuthSMSCheckResponse.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'AuthSMSCheckResponse',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'),
+      createEmptyInstance: create)
+    ..a<$core.List<$core.int>>(
+        1, _omitFieldNames ? '' : 'confirmationSession', $pb.PbFieldType.OY,
+        protoName: 'confirmationSession')
+    ..aOB(2, _omitFieldNames ? '' : 'hasCloudPassword',
+        protoName: 'hasCloudPassword')
+    ..aOB(3, _omitFieldNames ? '' : 'isBlocked', protoName: 'isBlocked')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  AuthSMSCheckResponse clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  AuthSMSCheckResponse copyWith(void Function(AuthSMSCheckResponse) updates) =>
+      super.copyWith((message) => updates(message as AuthSMSCheckResponse))
+          as AuthSMSCheckResponse;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static AuthSMSCheckResponse create() => AuthSMSCheckResponse._();
+  @$core.override
+  AuthSMSCheckResponse createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static AuthSMSCheckResponse getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<AuthSMSCheckResponse>(create);
+  static AuthSMSCheckResponse? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.List<$core.int> get confirmationSession => $_getN(0);
+  @$pb.TagNumber(1)
+  set confirmationSession($core.List<$core.int> value) => $_setBytes(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasConfirmationSession() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearConfirmationSession() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.bool get hasCloudPassword => $_getBF(1);
+  @$pb.TagNumber(2)
+  set hasCloudPassword($core.bool value) => $_setBool(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasHasCloudPassword() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearHasCloudPassword() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.bool get isBlocked => $_getBF(2);
+  @$pb.TagNumber(3)
+  set isBlocked($core.bool value) => $_setBool(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasIsBlocked() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearIsBlocked() => $_clearField(3);
+}
+
 /// Confirmation
 class AuthConfirmationRequest extends $pb.GeneratedMessage {
   factory AuthConfirmationRequest({

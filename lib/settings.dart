@@ -20,6 +20,9 @@ class Settings {
 
   @EnviedField(varName: 'YANDEX_OAUTH_CLIENT_ID')
   static const String yandexOauthClientId = _Settings.yandexOauthClientId;
+
+  @EnviedField(varName: 'PHONE_NUMBER_MODERATION_APPLICATION_STORE')
+  static const String phoneNumberModerationApplicationStore = _Settings.phoneNumberModerationApplicationStore;
 }
 
 

@@ -59,7 +59,7 @@ class _HomeCupertinoScreen extends State<HomeCupertinoScreen> {
             if (index == 3) {
               return SettingsCupertinoScreen();
             }
-            return Center(child: Text("page not found"));
+            return Center(child: Text("Page not found"));
           },
         );
       },

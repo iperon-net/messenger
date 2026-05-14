@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$AuthState {
 
- Status get status; String get error; List<int> get callPasswordSession; String get confirmationPhoneNumber; double get timeout;
+ Status get status; String get error;
 /// Create a copy of AuthState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,16 +25,16 @@ $AuthStateCopyWith<AuthState> get copyWith => _$AuthStateCopyWithImpl<AuthState>
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AuthState&&(identical(other.status, status) || other.status == status)&&(identical(other.error, error) || other.error == error)&&const DeepCollectionEquality().equals(other.callPasswordSession, callPasswordSession)&&(identical(other.confirmationPhoneNumber, confirmationPhoneNumber) || other.confirmationPhoneNumber == confirmationPhoneNumber)&&(identical(other.timeout, timeout) || other.timeout == timeout));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AuthState&&(identical(other.status, status) || other.status == status)&&(identical(other.error, error) || other.error == error));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,status,error,const DeepCollectionEquality().hash(callPasswordSession),confirmationPhoneNumber,timeout);
+int get hashCode => Object.hash(runtimeType,status,error);
 
 @override
 String toString() {
-  return 'AuthState(status: $status, error: $error, callPasswordSession: $callPasswordSession, confirmationPhoneNumber: $confirmationPhoneNumber, timeout: $timeout)';
+  return 'AuthState(status: $status, error: $error)';
 }
 
 
@@ -45,7 +45,7 @@ abstract mixin class $AuthStateCopyWith<$Res>  {
   factory $AuthStateCopyWith(AuthState value, $Res Function(AuthState) _then) = _$AuthStateCopyWithImpl;
 @useResult
 $Res call({
- Status status, String error, List<int> callPasswordSession, String confirmationPhoneNumber, double timeout
+ Status status, String error
 });
 
 
@@ -62,14 +62,11 @@ class _$AuthStateCopyWithImpl<$Res>
 
 /// Create a copy of AuthState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? status = null,Object? error = null,Object? callPasswordSession = null,Object? confirmationPhoneNumber = null,Object? timeout = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? status = null,Object? error = null,}) {
   return _then(_self.copyWith(
 status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as Status,error: null == error ? _self.error : error // ignore: cast_nullable_to_non_nullable
-as String,callPasswordSession: null == callPasswordSession ? _self.callPasswordSession : callPasswordSession // ignore: cast_nullable_to_non_nullable
-as List<int>,confirmationPhoneNumber: null == confirmationPhoneNumber ? _self.confirmationPhoneNumber : confirmationPhoneNumber // ignore: cast_nullable_to_non_nullable
-as String,timeout: null == timeout ? _self.timeout : timeout // ignore: cast_nullable_to_non_nullable
-as double,
+as String,
   ));
 }
 
@@ -154,10 +151,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( Status status,  String error,  List<int> callPasswordSession,  String confirmationPhoneNumber,  double timeout)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( Status status,  String error)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _AuthState() when $default != null:
-return $default(_that.status,_that.error,_that.callPasswordSession,_that.confirmationPhoneNumber,_that.timeout);case _:
+return $default(_that.status,_that.error);case _:
   return orElse();
 
 }
@@ -175,10 +172,10 @@ return $default(_that.status,_that.error,_that.callPasswordSession,_that.confirm
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( Status status,  String error,  List<int> callPasswordSession,  String confirmationPhoneNumber,  double timeout)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( Status status,  String error)  $default,) {final _that = this;
 switch (_that) {
 case _AuthState():
-return $default(_that.status,_that.error,_that.callPasswordSession,_that.confirmationPhoneNumber,_that.timeout);case _:
+return $default(_that.status,_that.error);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -190,20 +187,11 @@ return $default(_that.status,_that.error,_that.callPasswordSession,_that.confirm
 
 
 class _AuthState implements AuthState {
-  const _AuthState({this.status = Status.initialization, this.error = "", final  List<int> callPasswordSession = const [], this.confirmationPhoneNumber = "", this.timeout = 0}): _callPasswordSession = callPasswordSession;
+  const _AuthState({this.status = Status.initialization, this.error = ""});
   
 
 @override@JsonKey() final  Status status;
 @override@JsonKey() final  String error;
- final  List<int> _callPasswordSession;
-@override@JsonKey() List<int> get callPasswordSession {
-  if (_callPasswordSession is EqualUnmodifiableListView) return _callPasswordSession;
-  // ignore: implicit_dynamic_type
-  return EqualUnmodifiableListView(_callPasswordSession);
-}
-
-@override@JsonKey() final  String confirmationPhoneNumber;
-@override@JsonKey() final  double timeout;
 
 /// Create a copy of AuthState
 /// with the given fields replaced by the non-null parameter values.
@@ -215,16 +203,16 @@ _$AuthStateCopyWith<_AuthState> get copyWith => __$AuthStateCopyWithImpl<_AuthSt
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AuthState&&(identical(other.status, status) || other.status == status)&&(identical(other.error, error) || other.error == error)&&const DeepCollectionEquality().equals(other._callPasswordSession, _callPasswordSession)&&(identical(other.confirmationPhoneNumber, confirmationPhoneNumber) || other.confirmationPhoneNumber == confirmationPhoneNumber)&&(identical(other.timeout, timeout) || other.timeout == timeout));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AuthState&&(identical(other.status, status) || other.status == status)&&(identical(other.error, error) || other.error == error));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,status,error,const DeepCollectionEquality().hash(_callPasswordSession),confirmationPhoneNumber,timeout);
+int get hashCode => Object.hash(runtimeType,status,error);
 
 @override
 String toString() {
-  return 'AuthState(status: $status, error: $error, callPasswordSession: $callPasswordSession, confirmationPhoneNumber: $confirmationPhoneNumber, timeout: $timeout)';
+  return 'AuthState(status: $status, error: $error)';
 }
 
 
@@ -235,7 +223,7 @@ abstract mixin class _$AuthStateCopyWith<$Res> implements $AuthStateCopyWith<$Re
   factory _$AuthStateCopyWith(_AuthState value, $Res Function(_AuthState) _then) = __$AuthStateCopyWithImpl;
 @override @useResult
 $Res call({
- Status status, String error, List<int> callPasswordSession, String confirmationPhoneNumber, double timeout
+ Status status, String error
 });
 
 
@@ -252,14 +240,11 @@ class __$AuthStateCopyWithImpl<$Res>
 
 /// Create a copy of AuthState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? status = null,Object? error = null,Object? callPasswordSession = null,Object? confirmationPhoneNumber = null,Object? timeout = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? status = null,Object? error = null,}) {
   return _then(_AuthState(
 status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as Status,error: null == error ? _self.error : error // ignore: cast_nullable_to_non_nullable
-as String,callPasswordSession: null == callPasswordSession ? _self._callPasswordSession : callPasswordSession // ignore: cast_nullable_to_non_nullable
-as List<int>,confirmationPhoneNumber: null == confirmationPhoneNumber ? _self.confirmationPhoneNumber : confirmationPhoneNumber // ignore: cast_nullable_to_non_nullable
-as String,timeout: null == timeout ? _self.timeout : timeout // ignore: cast_nullable_to_non_nullable
-as double,
+as String,
   ));
 }
 

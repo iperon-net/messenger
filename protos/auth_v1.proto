@@ -8,6 +8,8 @@ import "protos/models.proto";
 service Auth {
   rpc CallPassword (AuthCallPasswordRequest) returns (AuthCallPasswordResponse) {}
   rpc CallPasswordCheck (AuthCallPasswordCheckRequest) returns (stream AuthCallPasswordCheckResponse) {}
+  rpc SMS (AuthSMSRequest) returns (AuthSMSResponse) {}
+  rpc SMSCheck (AuthSMSCheckRequest) returns (AuthSMSCheckResponse) {}
   rpc Confirmation (AuthConfirmationRequest) returns (AuthConfirmationResponse) {}
 }
 
@@ -35,6 +37,38 @@ message AuthCallPasswordCheckResponse {
   optional bool hasCloudPassword = 5;
   optional bool isBlocked = 6;
 }
+
+// SMS
+message AuthSMSRequest {
+  string phoneNumber = 1;
+}
+
+message AuthSMSResponse {
+  bytes smsSession = 1;
+}
+
+// SMS Check
+message AuthSMSCheckRequest {
+  bytes smsSession = 1;
+  string verificationCode = 2;
+}
+
+message AuthSMSCheckResponse {
+  optional bytes confirmationSession = 1;
+  optional bool hasCloudPassword = 2;
+  optional bool isBlocked = 3;
+}
+
+
+// OAuthYandex
+//message OAuthYandexRequest {
+//  string accessToken = 1;
+//}
+//
+//message OAuthYandexResponse {
+//  bytes confirmationSession = 1;
+//}
+
 
 // Confirmation
 message AuthConfirmationRequest {

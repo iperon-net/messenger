@@ -48,6 +48,20 @@ class AuthClient extends $grpc.Client {
         options: options);
   }
 
+  $grpc.ResponseFuture<$0.AuthSMSResponse> sMS(
+    $0.AuthSMSRequest request, {
+    $grpc.CallOptions? options,
+  }) {
+    return $createUnaryCall(_$sMS, request, options: options);
+  }
+
+  $grpc.ResponseFuture<$0.AuthSMSCheckResponse> sMSCheck(
+    $0.AuthSMSCheckRequest request, {
+    $grpc.CallOptions? options,
+  }) {
+    return $createUnaryCall(_$sMSCheck, request, options: options);
+  }
+
   $grpc.ResponseFuture<$0.AuthConfirmationResponse> confirmation(
     $0.AuthConfirmationRequest request, {
     $grpc.CallOptions? options,
@@ -67,6 +81,16 @@ class AuthClient extends $grpc.Client {
       '/iperon.v1.Auth/CallPasswordCheck',
       ($0.AuthCallPasswordCheckRequest value) => value.writeToBuffer(),
       $0.AuthCallPasswordCheckResponse.fromBuffer);
+  static final _$sMS =
+      $grpc.ClientMethod<$0.AuthSMSRequest, $0.AuthSMSResponse>(
+          '/iperon.v1.Auth/SMS',
+          ($0.AuthSMSRequest value) => value.writeToBuffer(),
+          $0.AuthSMSResponse.fromBuffer);
+  static final _$sMSCheck =
+      $grpc.ClientMethod<$0.AuthSMSCheckRequest, $0.AuthSMSCheckResponse>(
+          '/iperon.v1.Auth/SMSCheck',
+          ($0.AuthSMSCheckRequest value) => value.writeToBuffer(),
+          $0.AuthSMSCheckResponse.fromBuffer);
   static final _$confirmation = $grpc.ClientMethod<$0.AuthConfirmationRequest,
           $0.AuthConfirmationResponse>(
       '/iperon.v1.Auth/Confirmation',
@@ -97,6 +121,22 @@ abstract class AuthServiceBase extends $grpc.Service {
         ($core.List<$core.int> value) =>
             $0.AuthCallPasswordCheckRequest.fromBuffer(value),
         ($0.AuthCallPasswordCheckResponse value) => value.writeToBuffer()));
+    $addMethod($grpc.ServiceMethod<$0.AuthSMSRequest, $0.AuthSMSResponse>(
+        'SMS',
+        sMS_Pre,
+        false,
+        false,
+        ($core.List<$core.int> value) => $0.AuthSMSRequest.fromBuffer(value),
+        ($0.AuthSMSResponse value) => value.writeToBuffer()));
+    $addMethod(
+        $grpc.ServiceMethod<$0.AuthSMSCheckRequest, $0.AuthSMSCheckResponse>(
+            'SMSCheck',
+            sMSCheck_Pre,
+            false,
+            false,
+            ($core.List<$core.int> value) =>
+                $0.AuthSMSCheckRequest.fromBuffer(value),
+            ($0.AuthSMSCheckResponse value) => value.writeToBuffer()));
     $addMethod($grpc.ServiceMethod<$0.AuthConfirmationRequest,
             $0.AuthConfirmationResponse>(
         'Confirmation',
@@ -125,6 +165,22 @@ abstract class AuthServiceBase extends $grpc.Service {
 
   $async.Stream<$0.AuthCallPasswordCheckResponse> callPasswordCheck(
       $grpc.ServiceCall call, $0.AuthCallPasswordCheckRequest request);
+
+  $async.Future<$0.AuthSMSResponse> sMS_Pre($grpc.ServiceCall $call,
+      $async.Future<$0.AuthSMSRequest> $request) async {
+    return sMS($call, await $request);
+  }
+
+  $async.Future<$0.AuthSMSResponse> sMS(
+      $grpc.ServiceCall call, $0.AuthSMSRequest request);
+
+  $async.Future<$0.AuthSMSCheckResponse> sMSCheck_Pre($grpc.ServiceCall $call,
+      $async.Future<$0.AuthSMSCheckRequest> $request) async {
+    return sMSCheck($call, await $request);
+  }
+
+  $async.Future<$0.AuthSMSCheckResponse> sMSCheck(
+      $grpc.ServiceCall call, $0.AuthSMSCheckRequest request);
 
   $async.Future<$0.AuthConfirmationResponse> confirmation_Pre(
       $grpc.ServiceCall $call,

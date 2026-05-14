@@ -66,6 +66,32 @@ class AuthCubit extends Cubit<AuthState> {
       return;
     }
 
+    // ModerationApplicationStore workflow
+    if (Settings.phoneNumberModerationApplicationStore == "${phoneNumber.countryCode}${phoneNumber.nationalNumber}") {
+      late AuthSMSResponse authSMSResponse;
+
+      final authSMSResponseError = await _api.call(() async {
+        final req = AuthSMSRequest(phoneNumber: "${phoneNumber.countryCode}${phoneNumber.nationalNumber}");
+        authSMSResponse = await _api.auth.sMS(req, options: await _api.callOptions());
+      });
+      if (context.mounted && authSMSResponseError.isNotEmpty) {
+        emit(state.copyWith(error: context.t[authSMSResponseError] ?? context.t.unknownError, status: Status.success));
+        formKey.currentState!.validate();
+        return;
+      }
+
+      emit(AuthState(status: Status.success));
+
+      if(context.mounted) {
+        String queryString = Uri(queryParameters: {
+          'smsSession': convertor.hex.encode(authSMSResponse.smsSession),
+        }).query;
+        context.go("/auth/sms?$queryString");
+      }
+      return;
+    }
+
+    // CallPassword workflow
     late AuthCallPasswordResponse authCallPasswordResponse;
 
     final authCallPasswordResponseError = await _api.call(() async {
@@ -78,18 +104,13 @@ class AuthCubit extends Cubit<AuthState> {
       return;
     }
 
-    emit(state.copyWith(
-      status: Status.success,
-      callPasswordSession: authCallPasswordResponse.callPasswordSession,
-      confirmationPhoneNumber: authCallPasswordResponse.confirmationPhoneNumber,
-      timeout: authCallPasswordResponse.timeout,
-    ));
+    emit(state.copyWith(status: Status.success));
 
     if(context.mounted) {
       String queryString = Uri(queryParameters: {
-        'callPasswordSession': convertor.hex.encode(state.callPasswordSession),
-        'confirmationPhoneNumber': state.confirmationPhoneNumber,
-        'timeout': state.timeout.toString(),
+        'callPasswordSession': convertor.hex.encode(authCallPasswordResponse.callPasswordSession),
+        'confirmationPhoneNumber': authCallPasswordResponse.confirmationPhoneNumber,
+        'timeout':authCallPasswordResponse.timeout.toString(),
       }).query;
       context.go("/auth/callpassword?$queryString");
     }
