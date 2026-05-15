@@ -7,7 +7,9 @@ import 'package:messenger/cubit/main_cubit.dart';
 import '../../di.dart';
 import '../../i18n/translations.g.dart';
 import '../../logger.dart';
+import '../../widgets/widgets.dart';
 import 'settings_cubit.dart';
+
 
 class SettingsCupertinoScreen extends StatefulWidget {
   const SettingsCupertinoScreen({super.key});
@@ -31,7 +33,7 @@ class _SettingsCupertinoScreen extends State<SettingsCupertinoScreen> {
     super.dispose();
   }
 
-  Widget item({
+  Widget _item({
     required BorderRadius borderRadius,
     required Widget title,
     Widget? subtitle,
@@ -74,6 +76,25 @@ class _SettingsCupertinoScreen extends State<SettingsCupertinoScreen> {
     );
   }
 
+  Widget _divider() {
+    return Container(
+      color: CupertinoDynamicColor.resolve(
+        CupertinoDynamicColor.withBrightness(
+          color: CupertinoTheme.of(context).scaffoldBackgroundColor,
+          darkColor: const Color(0xFF1C1C1E),
+        ),
+        context,
+      ),
+      child: Padding(
+        padding: const EdgeInsets.only(left: 50, right: 20),
+        child: Container(
+          height: 0.3,
+          color: CupertinoDynamicColor.resolve(CupertinoColors.separator, context),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
 
@@ -92,7 +113,7 @@ class _SettingsCupertinoScreen extends State<SettingsCupertinoScreen> {
             padding: EdgeInsetsGeometry.all(15),
             child: ListView(
               children: [
-                item(
+                _item(
                   title: Text(context.t.myProfile),
                   color: Color(0xFFF80202),
                   icon: FontAwesomeIcons.solidUser,
@@ -100,28 +121,31 @@ class _SettingsCupertinoScreen extends State<SettingsCupertinoScreen> {
                   onTab: () async => context.go("/"),
                 ),
                 SizedBox(height: 20),
-                item(
+                _item(
                   title: Text(context.t.appearance),
                   color: Color(0xFF1368E6),
                   icon: FontAwesomeIcons.circleHalfStroke,
                   borderRadius: BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20)),
                   onTab: () async => context.go("/settings_appearance"),
                 ),
-                item(
+                _divider(),
+                _item(
                   title: Text(context.t.privateAndSecurity),
                   color: Color(0xFF049A40),
                   icon: FontAwesomeIcons.key,
                   borderRadius: BorderRadius.zero,
                   onTab: () async => context.go("/"),
                 ),
-                item(
+                _divider(),
+                _item(
                   title: Text(context.t.notifications),
                   color: Color(0xFFDD0856),
                   icon: FontAwesomeIcons.solidBell,
                   borderRadius: BorderRadius.zero,
                   onTab: () async => context.go("/"),
                 ),
-                item(
+                _divider(),
+                _item(
                   title: Text(context.t.language),
                   color: Color(0xFFBE0BCC),
                   icon: FontAwesomeIcons.language,
@@ -138,14 +162,15 @@ class _SettingsCupertinoScreen extends State<SettingsCupertinoScreen> {
                   onTab: () async => context.go("/settings_language"),
                 ),
                 SizedBox(height: 20),
-                item(
+                _item(
                   title: Text(context.t.faq),
                   color: Color(0xFFDC9A0F),
                   icon: FontAwesomeIcons.solidCircleQuestion,
                   borderRadius: BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20)),
                   onTab: () async => context.go("/"),
                 ),
-                item(
+                _divider(),
+                _item(
                   title: Text(context.t.privacyPolicy),
                   color: Color(0xFF29A840),
                   icon: FontAwesomeIcons.shieldHalved,
@@ -153,7 +178,7 @@ class _SettingsCupertinoScreen extends State<SettingsCupertinoScreen> {
                   onTab: () async => context.go("/"),
                 ),
                 SizedBox(height: 20),
-                item(
+                _item(
                   title: Text(context.t.logout),
                   color: Color(0xFF7637DD),
                   icon: FontAwesomeIcons.rightFromBracket,

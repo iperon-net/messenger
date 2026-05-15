@@ -24,6 +24,22 @@ class _SettingsLanguageScreenCupertino extends State<SettingsLanguageScreenCuper
     super.dispose();
   }
 
+  Widget _divider() {
+    return Container(
+      color: CupertinoDynamicColor.resolve(
+        CupertinoDynamicColor.withBrightness(
+          color: CupertinoTheme.of(context).scaffoldBackgroundColor,
+          darkColor: const Color(0xFF1C1C1E),
+        ),
+        context,
+      ),
+      child: Container(
+        height: 0.3,
+        color: CupertinoDynamicColor.resolve(CupertinoColors.separator, context),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
@@ -75,6 +91,7 @@ class _SettingsLanguageScreenCupertino extends State<SettingsLanguageScreenCuper
                         additionalInfo: state.settingsDevice.locate == AppLocale.en ? additionalInfo : null,
                       ),
                     ),
+                    _divider(),
                     Container(
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.only(bottomLeft: Radius.circular(20), bottomRight: Radius.circular(20)),

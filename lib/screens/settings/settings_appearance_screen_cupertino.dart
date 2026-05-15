@@ -25,9 +25,24 @@ class _SettingsAppearanceScreenCupertino extends State<SettingsAppearanceScreenC
     super.dispose();
   }
 
+  Widget _divider() {
+    return Container(
+      color: CupertinoDynamicColor.resolve(
+        CupertinoDynamicColor.withBrightness(
+          color: CupertinoTheme.of(context).scaffoldBackgroundColor,
+          darkColor: const Color(0xFF1C1C1E),
+        ),
+        context,
+      ),
+      child: Container(
+        height: 0.3,
+        color: CupertinoDynamicColor.resolve(CupertinoColors.separator, context),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-
     return CupertinoPageScaffold(
       backgroundColor: CupertinoDynamicColor.withBrightness(
         color: CupertinoColors.systemGroupedBackground,
@@ -86,6 +101,7 @@ class _SettingsAppearanceScreenCupertino extends State<SettingsAppearanceScreenC
                         additionalInfo: state.settingsDevice.colorTheme == SettingsDeviceColorTheme.blue ? additionalInfo : null,
                       ),
                     ),
+                    _divider(),
                     Container(
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.zero,
@@ -104,6 +120,7 @@ class _SettingsAppearanceScreenCupertino extends State<SettingsAppearanceScreenC
                         additionalInfo: state.settingsDevice.colorTheme == SettingsDeviceColorTheme.green ? additionalInfo : null,
                       ),
                     ),
+                    _divider(),
                     Container(
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.only(bottomLeft: Radius.circular(20), bottomRight: Radius.circular(20)),
@@ -152,6 +169,7 @@ class _SettingsAppearanceScreenCupertino extends State<SettingsAppearanceScreenC
                         additionalInfo: state.settingsDevice.darkMode == SettingsDeviceDarkMode.system ? additionalInfo : null,
                       ),
                     ),
+                    _divider(),
                     Container(
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.zero,
@@ -170,6 +188,7 @@ class _SettingsAppearanceScreenCupertino extends State<SettingsAppearanceScreenC
                         onTap: () async => await context.read<SettingsAppearanceCubit>().setDarkMode(context, darkMode: SettingsDeviceDarkMode.alwaysOn),                        additionalInfo: state.settingsDevice.darkMode == SettingsDeviceDarkMode.alwaysOn ? additionalInfo : null,
                       ),
                     ),
+                    _divider(),
                     Container(
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.only(bottomLeft: Radius.circular(20), bottomRight: Radius.circular(20)),
