@@ -44,4 +44,5 @@
 "enterTheCode": "Enter the code"
 "sentConfirmationCodeToNumber": "We sent a confirmation code to the number {phoneNumber}"
 "verificationCodeMismatch": "Verification code mismatch"
+"logout": "Logout"
 

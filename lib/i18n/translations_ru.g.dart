@@ -85,6 +85,7 @@ class TranslationsRu extends Translations with BaseTranslations<AppLocale, Trans
 	@override String get enterTheCode => 'Введите код';
 	@override String sentConfirmationCodeToNumber({required Object phoneNumber}) => 'Отправили код подтверждения на номер ${phoneNumber}';
 	@override String get verificationCodeMismatch => 'Неверный код подтверждения';
+	@override String get logout => 'Выйти';
 }
 
 /// The flat map containing all translations for locale <ru>.
@@ -141,6 +142,7 @@ extension on TranslationsRu {
 			'enterTheCode' => 'Введите код',
 			'sentConfirmationCodeToNumber' => ({required Object phoneNumber}) => 'Отправили код подтверждения на номер ${phoneNumber}',
 			'verificationCodeMismatch' => 'Неверный код подтверждения',
+			'logout' => 'Выйти',
 			_ => null,
 		};
 	}

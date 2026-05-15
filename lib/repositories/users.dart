@@ -74,4 +74,9 @@ class Users {
     });
   }
 
+  Future<void> logout() async {
+    await database.transaction((txn) async {
+      txn.delete("users", where: 'isActive = ?', whereArgs: [1]);
+    });
+  }
 }

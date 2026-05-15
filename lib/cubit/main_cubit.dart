@@ -42,4 +42,8 @@ class MainCubit extends Cubit<MainState> {
     emit(state.copyWith(settingsDevice: settingsDevice));
   }
 
+  Future<void> logout() async {
+    emit(state.copyWith(user: User()));
+  }
+
 }

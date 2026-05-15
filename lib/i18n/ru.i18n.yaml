@@ -44,3 +44,4 @@
 "enterTheCode": "Введите код"
 "sentConfirmationCodeToNumber": "Отправили код подтверждения на номер {phoneNumber}"
 "verificationCodeMismatch": "Неверный код подтверждения"
+"logout": "Выйти"

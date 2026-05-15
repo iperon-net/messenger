@@ -178,6 +178,9 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 
 	/// en: 'Verification code mismatch'
 	String get verificationCodeMismatch => 'Verification code mismatch';
+
+	/// en: 'Logout'
+	String get logout => 'Logout';
 }
 
 /// The flat map containing all translations for locale <en>.
@@ -234,6 +237,7 @@ extension on Translations {
 			'enterTheCode' => 'Enter the code',
 			'sentConfirmationCodeToNumber' => ({required Object phoneNumber}) => 'We sent a confirmation code to the number ${phoneNumber}',
 			'verificationCodeMismatch' => 'Verification code mismatch',
+			'logout' => 'Logout',
 			_ => null,
 		};
 	}

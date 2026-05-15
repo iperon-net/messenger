@@ -41,14 +41,11 @@ class AuthSmsCubit extends Cubit<AuthSmsState> {
 
     final serviceResponseConfirmation = await _services.auth.confirmation(confirmationSession: authSMSCheckResponse.confirmationSession);
 
-    _logger.debug(serviceResponseConfirmation.error.isNotEmpty);
-
     if (serviceResponseConfirmation.error.isNotEmpty) {
       return false;
     }
 
     final user = await _repositories.users.getActive();
-    _logger.debug(user);
 
     if (context.mounted){
       context.read<MainCubit>().setUser(user: user);

@@ -8,6 +8,7 @@ import '../../di.dart';
 import '../../i18n/translations.g.dart';
 import '../../logger.dart';
 import '../../widgets/widgets.dart';
+import 'settings_cubit.dart';
 
 class SettingsCupertinoScreen extends StatefulWidget {
   const SettingsCupertinoScreen({super.key});
@@ -23,7 +24,6 @@ class _SettingsCupertinoScreen extends State<SettingsCupertinoScreen> {
 
   @override
   void initState() {
-    logger.debug(context.read<MainCubit>().state.settingsDevice.locate);
     super.initState();
   }
 
@@ -39,7 +39,7 @@ class _SettingsCupertinoScreen extends State<SettingsCupertinoScreen> {
     required Color color,
     required FaIconData icon,
     Widget? additionalInfo,
-    required String redirectURI,
+    required Future<void> Function()? onTab,
   }) {
 
     return Container(
@@ -66,7 +66,7 @@ class _SettingsCupertinoScreen extends State<SettingsCupertinoScreen> {
             child: FaIcon(icon, size: 16, color: Color(0xFFFFFFFF)),
           ),
         ),
-        onTap: () => context.go(redirectURI),
+        onTap: onTab,
         title: title,
         subtitle: subtitle,
         trailing: Icon(CupertinoIcons.forward, color: CupertinoColors.inactiveGray),
@@ -98,7 +98,7 @@ class _SettingsCupertinoScreen extends State<SettingsCupertinoScreen> {
                   color: Color(0xFFF80202),
                   icon: FontAwesomeIcons.solidUser,
                   borderRadius: BorderRadius.circular(10),
-                  redirectURI: "/",
+                  onTab: () async => context.go("/"),
                 ),
                 SizedBox(height: 20),
                 item(
@@ -106,21 +106,21 @@ class _SettingsCupertinoScreen extends State<SettingsCupertinoScreen> {
                   color: Color(0xFF1368E6),
                   icon: FontAwesomeIcons.circleHalfStroke,
                   borderRadius: BorderRadius.zero,
-                  redirectURI: "/settings_appearance",
+                  onTab: () async => context.go("/settings_appearance"),
                 ),
                 item(
                   title: Text(context.t.privateAndSecurity),
                   color: Color(0xFF049A40),
                   icon: FontAwesomeIcons.key,
                   borderRadius: BorderRadius.zero,
-                  redirectURI: "/",
+                  onTab: () async => context.go("/"),
                 ),
                 item(
                   title: Text(context.t.notifications),
                   color: Color(0xFFDD0856),
                   icon: FontAwesomeIcons.solidBell,
                   borderRadius: BorderRadius.zero,
-                  redirectURI: "/",
+                  onTab: () async => context.go("/"),
                 ),
                 item(
                   title: Text(context.t.language),
@@ -136,7 +136,7 @@ class _SettingsCupertinoScreen extends State<SettingsCupertinoScreen> {
                       }
                     },
                   ),
-                  redirectURI: "/settings_language",
+                  onTab: () async => context.go("/settings_language"),
                 ),
                 SizedBox(height: 20),
                 item(
@@ -144,14 +144,22 @@ class _SettingsCupertinoScreen extends State<SettingsCupertinoScreen> {
                   color: Color(0xFFDC9A0F),
                   icon: FontAwesomeIcons.solidCircleQuestion,
                   borderRadius: BorderRadius.zero,
-                  redirectURI: "/",
+                  onTab: () async => context.go("/"),
                 ),
                 item(
                   title: Text(context.t.privacyPolicy),
                   color: Color(0xFF29A840),
                   icon: FontAwesomeIcons.shieldHalved,
                   borderRadius: BorderRadius.zero,
-                  redirectURI: "/",
+                  onTab: () async => context.go("/"),
+                ),
+                SizedBox(height: 20),
+                item(
+                  title: Text(context.t.logout),
+                  color: Color(0xFF7637DD),
+                  icon: FontAwesomeIcons.rightFromBracket,
+                  borderRadius: BorderRadius.zero,
+                  onTab: () async => await context.read<SettingsCubit>().logout(context),
                 ),
               ],
             ),

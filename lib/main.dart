@@ -18,6 +18,7 @@ import 'screens/auth/auth_cubit.dart';
 import 'screens/auth/auth_sms_cubit.dart';
 import 'screens/home/home_cubit.dart';
 import 'screens/settings/settings_appearance_cubit.dart';
+import 'screens/settings/settings_cubit.dart';
 import 'screens/settings/settings_language_cubit.dart';
 import 'themes_cupertino.dart';
 import 'themes_material.dart';
@@ -78,6 +79,9 @@ Future<void> main() async {
           ),
           BlocProvider<HomeCubit>(
             create: (_) => HomeCubit(),
+          ),
+          BlocProvider<SettingsCubit>(
+            create: (_) => SettingsCubit(),
           ),
           BlocProvider<SettingsLanguageCubit>(
             create: (_) => SettingsLanguageCubit(),
