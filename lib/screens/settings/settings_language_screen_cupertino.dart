@@ -58,7 +58,7 @@ class _SettingsLanguageScreenCupertino extends State<SettingsLanguageScreenCuper
                   children: [
                     Container(
                       decoration: BoxDecoration(
-                        borderRadius: BorderRadius.only(topLeft: Radius.circular(10), topRight: Radius.circular(10)),
+                        borderRadius: BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20)),
                         color: CupertinoDynamicColor.resolve(
                           CupertinoDynamicColor.withBrightness(
                             color: CupertinoTheme.of(context).scaffoldBackgroundColor,
@@ -68,6 +68,7 @@ class _SettingsLanguageScreenCupertino extends State<SettingsLanguageScreenCuper
                         ),
                       ),
                       child: CupertinoListTile(
+                        padding: EdgeInsets.all(10),
                         title: Text("English"),
                         subtitle: Text("English"),
                         onTap: () async => context.read<SettingsLanguageCubit>().setLocale(context, locate: AppLocale.en),
@@ -76,7 +77,7 @@ class _SettingsLanguageScreenCupertino extends State<SettingsLanguageScreenCuper
                     ),
                     Container(
                       decoration: BoxDecoration(
-                        borderRadius: BorderRadius.only(bottomLeft: Radius.circular(10), bottomRight: Radius.circular(10)),
+                        borderRadius: BorderRadius.only(bottomLeft: Radius.circular(20), bottomRight: Radius.circular(20)),
                         color: CupertinoDynamicColor.resolve(
                           CupertinoDynamicColor.withBrightness(
                             color: CupertinoTheme.of(context).scaffoldBackgroundColor,
@@ -86,6 +87,7 @@ class _SettingsLanguageScreenCupertino extends State<SettingsLanguageScreenCuper
                         ),
                       ),
                       child: CupertinoListTile(
+                        padding: EdgeInsets.all(10),
                         title: Text("Russian"),
                         subtitle: Text("Русский"),
                         onTap: () async => context.read<SettingsLanguageCubit>().setLocale(context, locate: AppLocale.ru),

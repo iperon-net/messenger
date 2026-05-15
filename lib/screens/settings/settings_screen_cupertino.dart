@@ -96,7 +96,7 @@ class _SettingsCupertinoScreen extends State<SettingsCupertinoScreen> {
                   title: Text(context.t.myProfile),
                   color: Color(0xFFF80202),
                   icon: FontAwesomeIcons.solidUser,
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(20),
                   onTab: () async => context.go("/"),
                 ),
                 SizedBox(height: 20),
@@ -104,7 +104,7 @@ class _SettingsCupertinoScreen extends State<SettingsCupertinoScreen> {
                   title: Text(context.t.appearance),
                   color: Color(0xFF1368E6),
                   icon: FontAwesomeIcons.circleHalfStroke,
-                  borderRadius: BorderRadius.zero,
+                  borderRadius: BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20)),
                   onTab: () async => context.go("/settings_appearance"),
                 ),
                 item(
@@ -125,7 +125,7 @@ class _SettingsCupertinoScreen extends State<SettingsCupertinoScreen> {
                   title: Text(context.t.language),
                   color: Color(0xFFBE0BCC),
                   icon: FontAwesomeIcons.language,
-                  borderRadius: BorderRadius.zero,
+                  borderRadius: BorderRadius.only(bottomLeft: Radius.circular(20), bottomRight: Radius.circular(20)),
                   additionalInfo: BlocBuilder<MainCubit, MainState>(
                     builder: (context, state) {
                       if (state.settingsDevice.locate == AppLocale.ru) {
@@ -142,14 +142,14 @@ class _SettingsCupertinoScreen extends State<SettingsCupertinoScreen> {
                   title: Text(context.t.faq),
                   color: Color(0xFFDC9A0F),
                   icon: FontAwesomeIcons.solidCircleQuestion,
-                  borderRadius: BorderRadius.zero,
+                  borderRadius: BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20)),
                   onTab: () async => context.go("/"),
                 ),
                 item(
                   title: Text(context.t.privacyPolicy),
                   color: Color(0xFF29A840),
                   icon: FontAwesomeIcons.shieldHalved,
-                  borderRadius: BorderRadius.zero,
+                  borderRadius: BorderRadius.only(bottomLeft: Radius.circular(20), bottomRight: Radius.circular(20)),
                   onTab: () async => context.go("/"),
                 ),
                 SizedBox(height: 20),
@@ -157,7 +157,7 @@ class _SettingsCupertinoScreen extends State<SettingsCupertinoScreen> {
                   title: Text(context.t.logout),
                   color: Color(0xFF7637DD),
                   icon: FontAwesomeIcons.rightFromBracket,
-                  borderRadius: BorderRadius.zero,
+                  borderRadius: BorderRadius.circular(20),
                   onTab: () async => await context.read<SettingsCubit>().logout(context),
                 ),
               ],

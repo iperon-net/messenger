@@ -70,7 +70,7 @@ class _SettingsAppearanceScreenCupertino extends State<SettingsAppearanceScreenC
                     ),
                     Container(
                       decoration: BoxDecoration(
-                        borderRadius: BorderRadius.only(topLeft: Radius.circular(10), topRight: Radius.circular(10)),
+                        borderRadius: BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20)),
                         color: CupertinoDynamicColor.resolve(
                           CupertinoDynamicColor.withBrightness(
                             color: CupertinoTheme.of(context).scaffoldBackgroundColor,
@@ -80,6 +80,7 @@ class _SettingsAppearanceScreenCupertino extends State<SettingsAppearanceScreenC
                         ),
                       ),
                       child: CupertinoListTile(
+                        padding: EdgeInsets.all(10),
                         title: Text(context.t.colorThemeDefault),
                         onTap: () async => await context.read<SettingsAppearanceCubit>().setColorTheme(context, colorTheme: SettingsDeviceColorTheme.blue),
                         additionalInfo: state.settingsDevice.colorTheme == SettingsDeviceColorTheme.blue ? additionalInfo : null,
@@ -87,7 +88,7 @@ class _SettingsAppearanceScreenCupertino extends State<SettingsAppearanceScreenC
                     ),
                     Container(
                       decoration: BoxDecoration(
-                        borderRadius: BorderRadius.only(topLeft: Radius.circular(10), topRight: Radius.circular(10)),
+                        borderRadius: BorderRadius.zero,
                         color: CupertinoDynamicColor.resolve(
                           CupertinoDynamicColor.withBrightness(
                             color: CupertinoTheme.of(context).scaffoldBackgroundColor,
@@ -97,6 +98,7 @@ class _SettingsAppearanceScreenCupertino extends State<SettingsAppearanceScreenC
                         ),
                       ),
                       child: CupertinoListTile(
+                        padding: EdgeInsets.all(10),
                         title: Text(context.t.colorThemeGreen),
                         onTap: () async => await context.read<SettingsAppearanceCubit>().setColorTheme(context, colorTheme: SettingsDeviceColorTheme.green),
                         additionalInfo: state.settingsDevice.colorTheme == SettingsDeviceColorTheme.green ? additionalInfo : null,
@@ -104,7 +106,7 @@ class _SettingsAppearanceScreenCupertino extends State<SettingsAppearanceScreenC
                     ),
                     Container(
                       decoration: BoxDecoration(
-                        borderRadius: BorderRadius.only(topLeft: Radius.circular(10), topRight: Radius.circular(10)),
+                        borderRadius: BorderRadius.only(bottomLeft: Radius.circular(20), bottomRight: Radius.circular(20)),
                         color: CupertinoDynamicColor.resolve(
                           CupertinoDynamicColor.withBrightness(
                             color: CupertinoTheme.of(context).scaffoldBackgroundColor,
@@ -114,6 +116,7 @@ class _SettingsAppearanceScreenCupertino extends State<SettingsAppearanceScreenC
                         ),
                       ),
                       child: CupertinoListTile(
+                        padding: EdgeInsets.all(10),
                         title: Text(context.t.colorThemePurple),
                         onTap: () async => await context.read<SettingsAppearanceCubit>().setColorTheme(context, colorTheme: SettingsDeviceColorTheme.purple),
                         additionalInfo: state.settingsDevice.colorTheme == SettingsDeviceColorTheme.purple ? additionalInfo : null,
@@ -132,7 +135,7 @@ class _SettingsAppearanceScreenCupertino extends State<SettingsAppearanceScreenC
                     ),
                     Container(
                       decoration: BoxDecoration(
-                        borderRadius: BorderRadius.only(topLeft: Radius.circular(10), topRight: Radius.circular(10)),
+                        borderRadius: BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20)),
                         color: CupertinoDynamicColor.resolve(
                           CupertinoDynamicColor.withBrightness(
                             color: CupertinoTheme.of(context).scaffoldBackgroundColor,
@@ -142,6 +145,7 @@ class _SettingsAppearanceScreenCupertino extends State<SettingsAppearanceScreenC
                         ),
                       ),
                       child: CupertinoListTile(
+                        padding: EdgeInsets.all(10),
                         title: Text(context.t.darkModeSystem),
                         subtitle: Text(context.t.darkModeSystemDescription),
                         onTap: () async => await context.read<SettingsAppearanceCubit>().setDarkMode(context, darkMode: SettingsDeviceDarkMode.system),
@@ -150,7 +154,7 @@ class _SettingsAppearanceScreenCupertino extends State<SettingsAppearanceScreenC
                     ),
                     Container(
                       decoration: BoxDecoration(
-                        borderRadius: BorderRadius.only(topLeft: Radius.circular(10), topRight: Radius.circular(10)),
+                        borderRadius: BorderRadius.zero,
                         color: CupertinoDynamicColor.resolve(
                           CupertinoDynamicColor.withBrightness(
                             color: CupertinoTheme.of(context).scaffoldBackgroundColor,
@@ -160,6 +164,7 @@ class _SettingsAppearanceScreenCupertino extends State<SettingsAppearanceScreenC
                         ),
                       ),
                       child: CupertinoListTile(
+                        padding: EdgeInsets.all(10),
                         title: Text(context.t.darkModeAlwaysOn),
                         subtitle: Text(context.t.darkModeAlwaysOnDescription),
                         onTap: () async => await context.read<SettingsAppearanceCubit>().setDarkMode(context, darkMode: SettingsDeviceDarkMode.alwaysOn),                        additionalInfo: state.settingsDevice.darkMode == SettingsDeviceDarkMode.alwaysOn ? additionalInfo : null,
@@ -167,7 +172,7 @@ class _SettingsAppearanceScreenCupertino extends State<SettingsAppearanceScreenC
                     ),
                     Container(
                       decoration: BoxDecoration(
-                        borderRadius: BorderRadius.only(topLeft: Radius.circular(10), topRight: Radius.circular(10)),
+                        borderRadius: BorderRadius.only(bottomLeft: Radius.circular(20), bottomRight: Radius.circular(20)),
                         color: CupertinoDynamicColor.resolve(
                           CupertinoDynamicColor.withBrightness(
                             color: CupertinoTheme.of(context).scaffoldBackgroundColor,
@@ -177,6 +182,7 @@ class _SettingsAppearanceScreenCupertino extends State<SettingsAppearanceScreenC
                         ),
                       ),
                       child: CupertinoListTile(
+                        padding: EdgeInsets.all(10),
                         title: Text(context.t.darkModeDisabled),
                         subtitle: Text(context.t.darkModeDisabledDescription),
                         onTap: () async => await context.read<SettingsAppearanceCubit>().setDarkMode(context, darkMode: SettingsDeviceDarkMode.disabled),                        additionalInfo: state.settingsDevice.darkMode == SettingsDeviceDarkMode.disabled ? additionalInfo : null,
