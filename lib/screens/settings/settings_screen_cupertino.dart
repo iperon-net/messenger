@@ -7,7 +7,6 @@ import 'package:messenger/cubit/main_cubit.dart';
 import '../../di.dart';
 import '../../i18n/translations.g.dart';
 import '../../logger.dart';
-import '../../widgets/widgets.dart';
 import 'settings_cubit.dart';
 
 class SettingsCupertinoScreen extends StatefulWidget {

@@ -2,13 +2,11 @@ import 'package:bloc/bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 import '../constants.dart';
-import '../di.dart';
 import '../i18n/translations.g.dart';
-import '../logger.dart';
 import '../models/models.dart';
 
-part 'main_state.dart';
 part 'main_cubit.freezed.dart';
+part 'main_state.dart';
 
 class MainCubit extends Cubit<MainState> {
   MainCubit() : super(MainState(
