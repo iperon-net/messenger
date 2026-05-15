@@ -48,17 +48,6 @@ Future<void> main() async {
     settingsDevice = settingsDevice.copyWith(locate: appLocale);
   }
 
-  // if (settingsDevice.locate == App) {
-  //   LocaleSettings.setLocale(AppLocale.ru);
-  // } else if (settingsDevice.language == "en") {
-  //   LocaleSettings.setLocale(AppLocale.en);
-  // } else {
-  //   AppLocale appLocale = await LocaleSettings.useDeviceLocale();
-  //   LocaleSettings.setLocale(appLocale);
-  //
-  //   settingsDevice = settingsDevice.copyWith(language: appLocale.languageCode);
-  // }
-
   logger.info('startup application');
 
   runApp(
@@ -339,9 +328,9 @@ class _IperonMessengerCupertino extends State<IperonMessengerCupertino> with Wid
       builder: (context, state) {
         CupertinoDynamicColor colorSchemeSystem = ThemesCupertino().blueScheme;
 
-        if (state.settingsDevice.colorTheme == models.SettingsDeviceColorTheme.green){
+        if (state.user.userID != "" && state.settingsDevice.colorTheme == models.SettingsDeviceColorTheme.green){
           colorSchemeSystem = CupertinoColors.systemGreen;
-        } else if (state.settingsDevice.colorTheme == models.SettingsDeviceColorTheme.purple) {
+        } else if (state.user.userID != "" && state.settingsDevice.colorTheme == models.SettingsDeviceColorTheme.purple) {
           colorSchemeSystem = CupertinoColors.systemPurple;
         }
 
