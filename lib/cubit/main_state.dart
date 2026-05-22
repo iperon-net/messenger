@@ -1,11 +1,19 @@
-part of 'main_cubit.dart';
+import 'package:dart_mappable/dart_mappable.dart';
 
-@freezed
-abstract class MainState with _$MainState {
-  const factory MainState({
-    @Default(Status.initialization) Status status,
-    required SettingsDevice settingsDevice,
-    required User user,
+import '../constants.dart';
+import '../models/models.dart';
 
-  }) = _MainState;
+part 'main_state.mapper.dart';
+
+@MappableClass()
+class MainState with MainStateMappable {
+  final Status status;
+  final SettingsDevice settingsDevice;
+  final User user;
+
+  const MainState({
+    this.status = Status.initialization,
+    required this.settingsDevice,
+    required this.user,
+  });
 }

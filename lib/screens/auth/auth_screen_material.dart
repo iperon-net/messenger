@@ -9,6 +9,7 @@ import '../../di.dart';
 import '../../i18n/translations.g.dart';
 import '../../logger.dart';
 import 'auth_cubit.dart';
+import 'auth_state.dart';
 
 
 class AuthMaterialScreen extends StatefulWidget {

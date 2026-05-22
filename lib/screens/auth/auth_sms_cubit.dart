@@ -1,20 +1,16 @@
 import 'package:bloc/bloc.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:go_router/go_router.dart';
 import 'package:messenger/protobuf/protos/auth_v1.pb.dart';
 
 import '../../api.dart';
-import '../../constants.dart';
 import '../../cubit/main_cubit.dart';
 import '../../di.dart';
 import '../../logger.dart';
 import '../../repositories/repositories.dart';
 import '../../services/services.dart';
-
-part 'auth_sms_state.dart';
-part 'auth_sms_cubit.freezed.dart';
+import 'auth_sms_state.dart';
 
 class AuthSmsCubit extends Cubit<AuthSmsState> {
   AuthSmsCubit() : super(const AuthSmsState());

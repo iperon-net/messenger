@@ -1,9 +1,16 @@
-part of 'settings_cubit.dart';
+import 'package:dart_mappable/dart_mappable.dart';
 
-@freezed
-abstract class SettingsState with _$SettingsState {
-  const factory SettingsState({
-    @Default(Status.initialization) Status status,
-    @Default("") String error,
-  }) = _SettingsState;
+import '../../constants.dart';
+
+part 'settings_state.mapper.dart';
+
+@MappableClass()
+class SettingsState with SettingsStateMappable {
+  final Status status;
+  final String error;
+
+  const SettingsState({
+    this.status = Status.initialization,
+    this.error = "",
+  });
 }

@@ -1,6 +1,8 @@
-part of 'settings_appearance_cubit.dart';
+import 'package:dart_mappable/dart_mappable.dart';
 
-@freezed
-abstract class SettingsAppearanceState with _$SettingsAppearanceState {
-  const factory SettingsAppearanceState() = _SettingsAppearanceState;
+part 'settings_appearance_state.mapper.dart';
+
+@MappableClass()
+class SettingsAppearanceState with SettingsAppearanceStateMappable {
+  const SettingsAppearanceState();
 }

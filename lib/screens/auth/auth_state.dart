@@ -1,9 +1,16 @@
-part of 'auth_cubit.dart';
+import 'package:dart_mappable/dart_mappable.dart';
 
-@freezed
-abstract class AuthState with _$AuthState {
-  const factory AuthState({
-    @Default(Status.initialization) Status status,
-    @Default("") String error,
-  }) = _AuthState;
+import '../../constants.dart';
+
+part 'auth_state.mapper.dart';
+
+@MappableClass()
+class AuthState with AuthStateMappable {
+  final Status status;
+  final String error;
+
+  const AuthState({
+    this.status = Status.initialization,
+    this.error = "",
+  });
 }

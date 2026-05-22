@@ -1,9 +1,16 @@
-part of 'auth_sms_cubit.dart';
+import 'package:dart_mappable/dart_mappable.dart';
 
-@freezed
-abstract class AuthSmsState with _$AuthSmsState {
-  const factory AuthSmsState({
-    @Default(Status.initialization) Status status,
-    @Default("") String error,
-  }) = _AuthSmsState;
+import '../../constants.dart';
+
+part 'auth_sms_state.mapper.dart';
+
+@MappableClass()
+class AuthSmsState with AuthSmsStateMappable {
+  final Status status;
+  final String error;
+
+  const AuthSmsState({
+    this.status = Status.initialization,
+    this.error = "",
+  });
 }

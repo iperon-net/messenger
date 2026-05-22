@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:messenger/screens/home/home_cubit.dart';
+import 'package:messenger/screens/home/home_state.dart';
 
 import '../../di.dart';
 import '../../i18n/translations.g.dart';

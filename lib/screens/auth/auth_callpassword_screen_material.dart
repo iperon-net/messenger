@@ -11,6 +11,7 @@ import '../../di.dart';
 import '../../i18n/translations.g.dart';
 import '../../logger.dart';
 import 'auth_callpassword_cubit.dart';
+import 'auth_callpassword_state.dart';
 
 class AuthCallPasswordMaterialScreen extends StatefulWidget {
   final String callPasswordSession;

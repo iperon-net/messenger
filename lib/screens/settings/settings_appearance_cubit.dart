@@ -1,14 +1,10 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:freezed_annotation/freezed_annotation.dart';
-
 import '../../cubit/main_cubit.dart';
 import '../../di.dart';
 import '../../models/models.dart';
 import '../../repositories/repositories.dart';
-
-part 'settings_appearance_state.dart';
-part 'settings_appearance_cubit.freezed.dart';
+import 'settings_appearance_state.dart';
 
 class SettingsAppearanceCubit extends Cubit<SettingsAppearanceState> {
   SettingsAppearanceCubit() : super(const SettingsAppearanceState());

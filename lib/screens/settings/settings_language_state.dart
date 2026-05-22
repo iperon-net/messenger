@@ -1,9 +1,16 @@
-part of 'settings_language_cubit.dart';
+import 'package:dart_mappable/dart_mappable.dart';
 
-@freezed
-abstract class SettingsLanguageState with _$SettingsLanguageState {
-  const factory SettingsLanguageState({
-    @Default(Status.initialization) Status status,
-    @Default("") String error,
-  }) = _SettingsLanguageState;
+import '../../constants.dart';
+
+part 'settings_language_state.mapper.dart';
+
+@MappableClass()
+class SettingsLanguageState with SettingsLanguageStateMappable {
+  final Status status;
+  final String error;
+
+  const SettingsLanguageState({
+    this.status = Status.initialization,
+    this.error = "",
+  });
 }

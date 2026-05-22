@@ -1,29 +1,45 @@
-import 'package:flutter/foundation.dart';
-import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:dart_mappable/dart_mappable.dart';
 import 'package:messenger/i18n/translations.g.dart';
 
-import 'freezed_convertor.dart';
+part 'settings_device.mapper.dart';
 
-part 'settings_device.freezed.dart';
-part 'settings_device.g.dart';
+@MappableEnum()
+enum SettingsDeviceColorTheme { blue, green, purple }
 
-enum SettingsDeviceColorTheme { blue, green,  purple }
+@MappableEnum()
 enum SettingsDeviceDarkMode { system, disabled, alwaysOn }
 
-@freezed
-abstract class SettingsDevice with _$SettingsDevice {
-  const SettingsDevice._();
+@MappableClass()
+class SettingsDevice with SettingsDeviceMappable {
+  final AppLocale? locate;
+  final SettingsDeviceDarkMode darkMode;
+  final SettingsDeviceColorTheme colorTheme;
+  final bool blurTaskSwitchingEnable;
 
-  const factory SettingsDevice({
-    AppLocale? locate,
-    @Default(SettingsDeviceDarkMode.system) SettingsDeviceDarkMode darkMode,
-    @Default(SettingsDeviceColorTheme.blue) SettingsDeviceColorTheme colorTheme,
-    @BoolConverter() @Default(false) bool blurTaskSwitchingEnable,
-  }) = _SettingsDevice;
+  const SettingsDevice({
+    this.locate,
+    this.darkMode = SettingsDeviceDarkMode.system,
+    this.colorTheme = SettingsDeviceColorTheme.blue,
+    this.blurTaskSwitchingEnable = false,
+  });
 
-  factory SettingsDevice.fromJson(Map<String, dynamic> json) => _$SettingsDeviceFromJson(json);
+  Map<String, dynamic> toSqlite() => {
+    'locate': locate?.name,
+    'darkMode': darkMode.name,
+    'colorTheme': colorTheme.name,
+    'blurTaskSwitchingEnable': blurTaskSwitchingEnable ? 1 : 0,
+  };
 
-  Map<String, dynamic> toSqlite() => toJson();
-  factory SettingsDevice.fromSqlite(Map<String, dynamic> data) => SettingsDevice.fromJson(data);
+  factory SettingsDevice.fromSqlite(Map<String, dynamic> data) => SettingsDevice(
+    locate: data['locate'] != null
+        ? AppLocale.values.byName(data['locate'] as String)
+        : null,
+    darkMode: SettingsDeviceDarkMode.values.byName(
+      data['darkMode'] as String? ?? 'system',
+    ),
+    colorTheme: SettingsDeviceColorTheme.values.byName(
+      data['colorTheme'] as String? ?? 'blue',
+    ),
+    blurTaskSwitchingEnable: (data['blurTaskSwitchingEnable'] as int?) != 0,
+  );
 }
-

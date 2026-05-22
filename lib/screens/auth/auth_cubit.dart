@@ -2,7 +2,6 @@ import 'package:bloc/bloc.dart';
 import 'package:convert/convert.dart' as convertor;
 import 'package:dlibphonenumber/dlibphonenumber.dart';
 import 'package:flutter/widgets.dart';
-import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:go_router/go_router.dart';
 import 'package:messenger/di.dart';
 import 'package:telegram_login/telegram_login.dart';
@@ -14,9 +13,7 @@ import '../../i18n/translations.g.dart';
 import '../../logger.dart';
 import '../../protobuf/protos/auth_v1.pb.dart';
 import '../../settings.dart';
-
-part 'auth_cubit.freezed.dart';
-part 'auth_state.dart';
+import 'auth_state.dart';
 
 class AuthCubit extends Cubit<AuthState> {
   AuthCubit() : super(const AuthState());

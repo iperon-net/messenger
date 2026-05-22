@@ -1,16 +1,27 @@
-part of 'auth_callpassword_cubit.dart';
+import 'package:dart_mappable/dart_mappable.dart';
 
-@freezed
-abstract class AuthCallpasswordState with _$AuthCallpasswordState {
-  const factory AuthCallpasswordState({
-    @Default(Status.initialization) Status status,
-    @Default("") String error,
+import '../../constants.dart';
+import '../../models/user.dart';
 
-    @Default([]) List<int> confirmationSession,
-    @Default(0) int tickerSecond,
-    @Default(false) bool isBlocked,
-    @Default(false) bool hasCloudPassword,
-    @Default(User()) User user,
+part 'auth_callpassword_state.mapper.dart';
 
-  }) = _AuthCallpasswordState;
+@MappableClass()
+class AuthCallpasswordState with AuthCallpasswordStateMappable {
+  final Status status;
+  final String error;
+  final List<int> confirmationSession;
+  final int tickerSecond;
+  final bool isBlocked;
+  final bool hasCloudPassword;
+  final User user;
+
+  const AuthCallpasswordState({
+    this.status = Status.initialization,
+    this.error = "",
+    this.confirmationSession = const [],
+    this.tickerSecond = 0,
+    this.isBlocked = false,
+    this.hasCloudPassword = false,
+    this.user = const User(),
+  });
 }

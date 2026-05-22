@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:messenger/cubit/main_cubit.dart';
+import 'package:messenger/cubit/main_state.dart';
 
 import '../../i18n/translations.g.dart';
 import '../../models/models.dart';

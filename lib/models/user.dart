@@ -1,43 +1,60 @@
-import 'package:flutter/foundation.dart';
-import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:dart_mappable/dart_mappable.dart';
 
-part 'user.freezed.dart';
-part 'user.g.dart';
+part 'user.mapper.dart';
 
+@MappableClass()
+class User with UserMappable {
+  final String userID;
+  final String phoneNumber;
+  final List<int> session;
+  final List<SharedKey> sharedKeys;
 
-@freezed
-abstract class User with _$User {
-  const User._();
+  const User({
+    this.userID = "",
+    this.phoneNumber = "",
+    this.session = const [],
+    this.sharedKeys = const [],
+  });
 
-  const factory User({
-    @Default("") String userID,
-    @Default("") String phoneNumber,
-    @Default([]) List<int> session,
-    @Default([]) List<SharedKey> sharedKeys,
-  }) = _User;
-
-  factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);
-
-  Map<String, dynamic> toSqlite() => toJson();
-  factory User.fromSqlite(Map<String, dynamic> data) => User.fromJson(data);
+  factory User.fromSqlite(Map<String, dynamic> data) => User(
+    userID: data['userID'] as String? ?? '',
+    phoneNumber: data['phoneNumber'] as String? ?? '',
+    session: _toIntList(data['session']),
+    sharedKeys: (data['sharedKeys'] as List<Object?>?)
+            ?.cast<Map<String, Object?>>()
+            .map(SharedKey.fromSqlite)
+            .toList() ??
+        [],
+  );
 
   SharedKey getSharedKey() {
     return sharedKeys.firstWhere((item) => item.expiredAt == null);
   }
 }
 
-@freezed
-abstract class SharedKey with _$SharedKey {
-  const SharedKey._();
+@MappableClass()
+class SharedKey with SharedKeyMappable {
+  final String sharedKeyID;
+  final List<int> sharedKey;
+  final DateTime? expiredAt;
 
-  const factory SharedKey({
-    @Default("") String sharedKeyID,
-    @Default([]) List<int> sharedKey,
-    DateTime? expiredAt,
-  }) = _SharedKey;
+  const SharedKey({
+    this.sharedKeyID = "",
+    this.sharedKey = const [],
+    this.expiredAt,
+  });
 
-  factory SharedKey.fromJson(Map<String, dynamic> json) => _$SharedKeyFromJson(json);
+  factory SharedKey.fromSqlite(Map<String, Object?> data) => SharedKey(
+    sharedKeyID: data['sharedKeyID'] as String? ?? '',
+    sharedKey: _toIntList(data['sharedKey']),
+    expiredAt: data['expiredAt'] != null
+        ? DateTime.parse(data['expiredAt'] as String)
+        : null,
+  );
+}
 
-  Map<String, dynamic> toSqlite() => toJson();
-  factory SharedKey.fromSqlite(Map<String, dynamic> data) => SharedKey.fromJson(data);
+List<int> _toIntList(Object? value) {
+  if (value == null) return [];
+  if (value is List<int>) return value;
+  return (value as List).cast<int>();
 }

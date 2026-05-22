@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:bloc/bloc.dart';
-import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:grpc/grpc.dart';
 import 'package:convert/convert.dart' as convertor;
 import 'package:messenger/services/services.dart';
@@ -10,14 +9,10 @@ import '../../api.dart';
 import '../../constants.dart';
 import '../../di.dart';
 import '../../logger.dart';
-import '../../models/user.dart';
 import '../../protobuf/protos/auth_v1.pb.dart';
 import '../../protobuf/protos/models.pbenum.dart' as grpc_models;
 import '../../repositories/repositories.dart';
-
-
-part 'auth_callpassword_state.dart';
-part 'auth_callpassword_cubit.freezed.dart';
+import 'auth_callpassword_state.dart';
 
 class AuthCallpasswordCubit extends Cubit<AuthCallpasswordState> {
   AuthCallpasswordCubit() : super(const AuthCallpasswordState());

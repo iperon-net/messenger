@@ -1,8 +1,10 @@
-part of 'home_cubit.dart';
+import 'package:dart_mappable/dart_mappable.dart';
 
-@freezed
-abstract class HomeState with _$HomeState {
-  const factory HomeState({
-    @Default(0) int destinationSelectedIndex
-  }) = _HomeState;
+part 'home_state.mapper.dart';
+
+@MappableClass()
+class HomeState with HomeStateMappable {
+  final int destinationSelectedIndex;
+
+  const HomeState({this.destinationSelectedIndex = 0});
 }
