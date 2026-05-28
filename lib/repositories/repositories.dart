@@ -26,7 +26,6 @@ class Repositories {
   late Users users;
 
   Future<void> initialization() async {
-
     String databasesPath = await getDatabasesPath();
     String path = p.join(databasesPath, Settings.databaseName);
     _logger.debug("database patch $path");
