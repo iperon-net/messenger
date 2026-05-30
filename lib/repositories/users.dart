@@ -1,9 +1,8 @@
 part of 'repositories.dart';
 
-
 class Users {
   final Logger logger;
-  final Database database;
+  final SqliteDatabase database;
 
   Users({required this.logger, required this.database});
 
@@ -15,68 +14,69 @@ class Users {
     required List<int> sharedKeyID,
     required List<int> sharedSecretKey,
   }) async {
-
-    return await database.transaction((txn) async {
-      final userObjectID = ObjectId.fromBytes(userID);
-      final sharedKeyObjectID = ObjectId.fromBytes(sharedKeyID);
-
-      await txn.delete('users', where: 'userID = ?', whereArgs: [userObjectID.hexString]);
-      await txn.insert(
-        "users",
-        {
-          "userID": userObjectID.hexString,
-          "phoneNumber": phoneNumber,
-          "session": Uint8List.fromList(session),
-          "isActive": 1,
-        }
-      );
-      await txn.insert(
-        "sharedKeys",
-          {
-            "sharedKeyID": sharedKeyObjectID.hexString,
-            "userID": userObjectID.hexString,
-            "sharedKey": Uint8List.fromList(sharedSecretKey),
-          },
-      );
-    });
+    // return await database.transaction((txn) async {
+    //   final userObjectID = ObjectId.fromBytes(userID);
+    //   final sharedKeyObjectID = ObjectId.fromBytes(sharedKeyID);
+    //
+    //   await txn.delete('users', where: 'userID = ?', whereArgs: [userObjectID.hexString]);
+    //   await txn.insert(
+    //     "users",
+    //     {
+    //       "userID": userObjectID.hexString,
+    //       "phoneNumber": phoneNumber,
+    //       "session": Uint8List.fromList(session),
+    //       "isActive": 1,
+    //     }
+    //   );
+    //   await txn.insert(
+    //     "sharedKeys",
+    //       {
+    //         "sharedKeyID": sharedKeyObjectID.hexString,
+    //         "userID": userObjectID.hexString,
+    //         "sharedKey": Uint8List.fromList(sharedSecretKey),
+    //       },
+    //   );
+    // });
   }
 
   // Get active user
   Future<models.User> getActive() async {
-    return await database.transaction((txn) async {
-      final resultsUser = await txn.query(
-        "users",
-        columns: ["userID", "phoneNumber", "session"],
-        where: 'isActive = ?',
-        whereArgs: [1],
-        limit: 1,
-      );
-      if (resultsUser.isEmpty) {
-        return models.User();
-      }
+    return models.User();
 
-      Map<String, Object?> user = {...resultsUser.first};
-
-      final resultsSharedKeys = await txn.query(
-        "sharedKeys",
-        columns: ["sharedKeyID", "sharedKey", "expiredAt"],
-        where: 'userID = ?',
-        whereArgs: [user["userID"]],
-      );
-
-      if (resultsSharedKeys.isEmpty) {
-        return models.User();
-      }
-
-      user["sharedKeys"] = resultsSharedKeys;
-
-      return models.User.fromSqlite(user);
-    });
+    // return await database.transaction((txn) async {
+    //   final resultsUser = await txn.query(
+    //     "users",
+    //     columns: ["userID", "phoneNumber", "session"],
+    //     where: 'isActive = ?',
+    //     whereArgs: [1],
+    //     limit: 1,
+    //   );
+    //   if (resultsUser.isEmpty) {
+    //     return models.User();
+    //   }
+    //
+    //   Map<String, Object?> user = {...resultsUser.first};
+    //
+    //   final resultsSharedKeys = await txn.query(
+    //     "sharedKeys",
+    //     columns: ["sharedKeyID", "sharedKey", "expiredAt"],
+    //     where: 'userID = ?',
+    //     whereArgs: [user["userID"]],
+    //   );
+    //
+    //   if (resultsSharedKeys.isEmpty) {
+    //     return models.User();
+    //   }
+    //
+    //   user["sharedKeys"] = resultsSharedKeys;
+    //
+    //   return models.User.fromSqlite(user);
+    // });
   }
 
   Future<void> logout() async {
-    await database.transaction((txn) async {
-      txn.delete("users", where: 'isActive = ?', whereArgs: [1]);
-    });
+    // await database.transaction((txn) async {
+    //   txn.delete("users", where: 'isActive = ?', whereArgs: [1]);
+    // });
   }
 }

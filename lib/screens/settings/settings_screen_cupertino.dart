@@ -152,7 +152,7 @@ class _SettingsCupertinoScreen extends State<SettingsCupertinoScreen> {
                   borderRadius: BorderRadius.only(bottomLeft: Radius.circular(20), bottomRight: Radius.circular(20)),
                   additionalInfo: BlocBuilder<MainCubit, MainState>(
                     builder: (context, state) {
-                      if (state.settingsDevice.locate == AppLocale.ru) {
+                      if (state.settingsDevice.locale == AppLocale.ru) {
                         return Text("Русский");
                       } else {
                         return Text("English");

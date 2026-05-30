@@ -76,13 +76,13 @@ class Auth {
 
     final secretKeyData = await sharedSecretKey.extract();
 
-    await _repositories.users.create(
-      session: authConfirmationResponse.session,
-      phoneNumber: authConfirmationResponse.phoneNumber,
-      userID: authConfirmationResponse.userID,
-      sharedKeyID: authConfirmationResponse.sharedKeyID,
-      sharedSecretKey: secretKeyData.bytes,
-    );
+    // await _repositories.users.create(
+    //   session: authConfirmationResponse.session,
+    //   phoneNumber: authConfirmationResponse.phoneNumber,
+    //   userID: authConfirmationResponse.userID,
+    //   sharedSecretKey: secretKeyData.bytes,
+    //   sharedKeyID: [],
+    // );
 
     return ServiceResponse<bool>(data: true);
   }

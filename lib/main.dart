@@ -41,13 +41,13 @@ Future<void> main() async {
   // Get active user
   final user = await repositories.users.getActive();
 
-  // locate
-  if (settingsDevice.locate != null) {
-    LocaleSettings.setLocale(settingsDevice.locate ?? AppLocale.en);
+  // locale
+  if (settingsDevice.locale != null) {
+    LocaleSettings.setLocale(settingsDevice.locale ?? AppLocale.en);
   } else {
     AppLocale appLocale = await LocaleSettings.useDeviceLocale();
     LocaleSettings.setLocale(appLocale);
-    settingsDevice = settingsDevice.copyWith(locate: appLocale);
+    settingsDevice = settingsDevice.copyWith(locale: appLocale);
   }
 
   logger.info('startup application');

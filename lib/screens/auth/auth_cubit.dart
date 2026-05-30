@@ -4,7 +4,6 @@ import 'package:dlibphonenumber/dlibphonenumber.dart';
 import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 import 'package:messenger/di.dart';
-import 'package:telegram_login/telegram_login.dart';
 import 'package:yandex_login_sdk/yandex_login_sdk.dart';
 
 import '../../api.dart';
@@ -131,23 +130,6 @@ class AuthCubit extends Cubit<AuthState> {
   }
 
   Future<void> telegram() async {
-    final telegramLogin = TelegramLogin();
-
-    await telegramLogin.configure(
-      const TelegramLoginConfiguration(
-        clientId: '1185732794',
-        redirectUri: 'https://app1780524360-login.tg.dev',
-        scopes: ['profile'],
-      ),
-    );
-
-    try {
-      final result = await telegramLogin.login();
-      print('ID Token: ${result.idToken}');
-      // Send result.idToken to your backend for verification.
-    } on TelegramLoginError catch (e) {
-      print('Login failed: ${e.code.name} — ${e.message}');
-    }
   }
 
 }

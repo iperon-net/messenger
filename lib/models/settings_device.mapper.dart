@@ -129,10 +129,10 @@ class SettingsDeviceMapper extends ClassMapperBase<SettingsDevice> {
   @override
   final String id = 'SettingsDevice';
 
-  static AppLocale? _$locate(SettingsDevice v) => v.locate;
-  static const Field<SettingsDevice, AppLocale> _f$locate = Field(
-    'locate',
-    _$locate,
+  static AppLocale? _$locale(SettingsDevice v) => v.locale;
+  static const Field<SettingsDevice, AppLocale> _f$locale = Field(
+    'locale',
+    _$locale,
     opt: true,
   );
   static SettingsDeviceDarkMode _$darkMode(SettingsDevice v) => v.darkMode;
@@ -163,7 +163,7 @@ class SettingsDeviceMapper extends ClassMapperBase<SettingsDevice> {
 
   @override
   final MappableFields<SettingsDevice> fields = const {
-    #locate: _f$locate,
+    #locale: _f$locale,
     #darkMode: _f$darkMode,
     #colorTheme: _f$colorTheme,
     #blurTaskSwitchingEnable: _f$blurTaskSwitchingEnable,
@@ -171,7 +171,7 @@ class SettingsDeviceMapper extends ClassMapperBase<SettingsDevice> {
 
   static SettingsDevice _instantiate(DecodingData data) {
     return SettingsDevice(
-      locate: data.dec(_f$locate),
+      locale: data.dec(_f$locale),
       darkMode: data.dec(_f$darkMode),
       colorTheme: data.dec(_f$colorTheme),
       blurTaskSwitchingEnable: data.dec(_f$blurTaskSwitchingEnable),
@@ -241,7 +241,7 @@ extension SettingsDeviceValueCopy<$R, $Out>
 abstract class SettingsDeviceCopyWith<$R, $In extends SettingsDevice, $Out>
     implements ClassCopyWith<$R, $In, $Out> {
   $R call({
-    AppLocale? locate,
+    AppLocale? locale,
     SettingsDeviceDarkMode? darkMode,
     SettingsDeviceColorTheme? colorTheme,
     bool? blurTaskSwitchingEnable,
@@ -261,13 +261,13 @@ class _SettingsDeviceCopyWithImpl<$R, $Out>
       SettingsDeviceMapper.ensureInitialized();
   @override
   $R call({
-    Object? locate = $none,
+    Object? locale = $none,
     SettingsDeviceDarkMode? darkMode,
     SettingsDeviceColorTheme? colorTheme,
     bool? blurTaskSwitchingEnable,
   }) => $apply(
     FieldCopyWithData({
-      if (locate != $none) #locate: locate,
+      if (locale != $none) #locale: locale,
       if (darkMode != null) #darkMode: darkMode,
       if (colorTheme != null) #colorTheme: colorTheme,
       if (blurTaskSwitchingEnable != null)
@@ -276,7 +276,7 @@ class _SettingsDeviceCopyWithImpl<$R, $Out>
   );
   @override
   SettingsDevice $make(CopyWithData data) => SettingsDevice(
-    locate: data.get(#locate, or: $value.locate),
+    locale: data.get(#locale, or: $value.locale),
     darkMode: data.get(#darkMode, or: $value.darkMode),
     colorTheme: data.get(#colorTheme, or: $value.colorTheme),
     blurTaskSwitchingEnable: data.get(
