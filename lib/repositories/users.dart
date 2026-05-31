@@ -2,7 +2,7 @@ part of 'repositories.dart';
 
 class Users {
   final Logger logger;
-  final SqliteDatabase database;
+  final Database database;
 
   Users({required this.logger, required this.database});
 
