@@ -11,26 +11,28 @@ enum SettingsDeviceDarkMode { system, disabled, alwaysOn }
 
 @MappableClass()
 class SettingsDevice with SettingsDeviceMappable {
-  final AppLocale locale;
+  final AppLocale? locale;
   final SettingsDeviceDarkMode darkMode;
   final SettingsDeviceColorTheme colorTheme;
   final bool blurTaskSwitchingEnable;
 
   const SettingsDevice({
-    this.locale = AppLocale.en,
+    this.locale,
     this.darkMode = SettingsDeviceDarkMode.system,
     this.colorTheme = SettingsDeviceColorTheme.blue,
     this.blurTaskSwitchingEnable = false,
   });
 
   factory SettingsDevice.fromSqlite(Map<String, dynamic> data) {
-    final localeValue = data['locale'] ?? "en";
+    final localeValue = data['locale'];
     final darkModeValue = data['darkMode'] ?? "system";
     final colorThemeValue = data['colorTheme'] ?? "blue";
 
-    AppLocale locale = AppLocale.en;
-    if (localeValue == "ru") {
+    AppLocale? locale;
+    if (localeValue != null && localeValue == "ru") {
       locale = AppLocale.ru;
+    } else if (localeValue != null && localeValue == "en") {
+      locale = AppLocale.en;
     }
 
     SettingsDeviceDarkMode darkMode = SettingsDeviceDarkMode.system;

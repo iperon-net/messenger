@@ -129,12 +129,11 @@ class SettingsDeviceMapper extends ClassMapperBase<SettingsDevice> {
   @override
   final String id = 'SettingsDevice';
 
-  static AppLocale _$locale(SettingsDevice v) => v.locale;
+  static AppLocale? _$locale(SettingsDevice v) => v.locale;
   static const Field<SettingsDevice, AppLocale> _f$locale = Field(
     'locale',
     _$locale,
     opt: true,
-    def: AppLocale.en,
   );
   static SettingsDeviceDarkMode _$darkMode(SettingsDevice v) => v.darkMode;
   static const Field<SettingsDevice, SettingsDeviceDarkMode> _f$darkMode =
@@ -262,13 +261,13 @@ class _SettingsDeviceCopyWithImpl<$R, $Out>
       SettingsDeviceMapper.ensureInitialized();
   @override
   $R call({
-    AppLocale? locale,
+    Object? locale = $none,
     SettingsDeviceDarkMode? darkMode,
     SettingsDeviceColorTheme? colorTheme,
     bool? blurTaskSwitchingEnable,
   }) => $apply(
     FieldCopyWithData({
-      if (locale != null) #locale: locale,
+      if (locale != $none) #locale: locale,
       if (darkMode != null) #darkMode: darkMode,
       if (colorTheme != null) #colorTheme: colorTheme,
       if (blurTaskSwitchingEnable != null)

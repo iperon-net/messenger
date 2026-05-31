@@ -90,7 +90,7 @@ class Repositories {
         INSERT INTO settingsDevice
           (locale, darkMode, colorTheme, blurTaskSwitchingEnable)
         VALUES
-          (NULL, 'system', 'blue', 1)
+          (NULL, 'system', 'blue', 0)
       """);
 
       _database.execute("""
