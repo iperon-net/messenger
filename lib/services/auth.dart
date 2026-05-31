@@ -22,7 +22,7 @@ class Auth {
   final _api = getIt.get<API>();
   final _crypto = getIt.get<Crypto>();
   final _utils = getIt.get<Utils>();
-  // final _repositories = getIt.get<Repositories>();
+  final _repositories = getIt.get<Repositories>();
 
   Future<ServiceResponse<bool>> confirmation({required List<int> confirmationSession}) async {
 
@@ -75,6 +75,11 @@ class Auth {
     }
 
     final secretKeyData = await sharedSecretKey.extract();
+    logger.debug(await secretKeyData.extractBytes());
+    logger.debug(authConfirmationResponse.toString());
+
+
+    await _repositories.users.createOrUpdate(userID: authConfirmationResponse.userID, phoneNumber: authConfirmationResponse.phoneNumber);
 
     // await _repositories.users.create(
     //   session: authConfirmationResponse.session,

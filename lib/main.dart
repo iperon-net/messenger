@@ -37,6 +37,7 @@ Future<void> main() async {
 
   // Get all settings
   var settingsDevice = await repositories.settingsDevice.getAll();
+  logger.debug(settingsDevice);
 
   // Get active user
   final user = await repositories.users.getActive();

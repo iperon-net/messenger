@@ -7,74 +7,32 @@ class Users {
   Users({required this.logger, required this.database});
 
   // Create user
-  Future<void> create({
-    required List<int> session,
-    required String phoneNumber,
+  Future<void> createOrUpdate({
     required List<int> userID,
-    required List<int> sharedKeyID,
-    required List<int> sharedSecretKey,
+    required String phoneNumber,
   }) async {
-    // return await database.transaction((txn) async {
-    //   final userObjectID = ObjectId.fromBytes(userID);
-    //   final sharedKeyObjectID = ObjectId.fromBytes(sharedKeyID);
-    //
-    //   await txn.delete('users', where: 'userID = ?', whereArgs: [userObjectID.hexString]);
-    //   await txn.insert(
-    //     "users",
-    //     {
-    //       "userID": userObjectID.hexString,
-    //       "phoneNumber": phoneNumber,
-    //       "session": Uint8List.fromList(session),
-    //       "isActive": 1,
-    //     }
-    //   );
-    //   await txn.insert(
-    //     "sharedKeys",
-    //       {
-    //         "sharedKeyID": sharedKeyObjectID.hexString,
-    //         "userID": userObjectID.hexString,
-    //         "sharedKey": Uint8List.fromList(sharedSecretKey),
-    //       },
-    //   );
-    // });
+
+    database.execute("BEGIN;");
+    database.execute("UPDATE users SET isActive = 0;");
+
+    final sqlUser = database.select("SELECT userID FROM users WHERE userID = ?;", [userID]);
+    if (sqlUser.isEmpty) {
+      database.execute("INSERT INTO users (userID, phoneNumber, isActive) VALUES(?,?,1);", [userID, phoneNumber]);
+    } else {
+      database.execute("UPDATE users SET phoneNumber = ?, isActive = 1 WHERE userID = ?", [phoneNumber, userID]);
+    }
+    database.select("COMMIT;");
   }
 
   // Get active user
   Future<models.User> getActive() async {
-    return models.User();
-
-    // return await database.transaction((txn) async {
-    //   final resultsUser = await txn.query(
-    //     "users",
-    //     columns: ["userID", "phoneNumber", "session"],
-    //     where: 'isActive = ?',
-    //     whereArgs: [1],
-    //     limit: 1,
-    //   );
-    //   if (resultsUser.isEmpty) {
-    //     return models.User();
-    //   }
-    //
-    //   Map<String, Object?> user = {...resultsUser.first};
-    //
-    //   final resultsSharedKeys = await txn.query(
-    //     "sharedKeys",
-    //     columns: ["sharedKeyID", "sharedKey", "expiredAt"],
-    //     where: 'userID = ?',
-    //     whereArgs: [user["userID"]],
-    //   );
-    //
-    //   if (resultsSharedKeys.isEmpty) {
-    //     return models.User();
-    //   }
-    //
-    //   user["sharedKeys"] = resultsSharedKeys;
-    //
-    //   return models.User.fromSqlite(user);
-    // });
+    final sqlUser = database.select("SELECT userID, phoneNumber FROM users WHERE isActive = 1;");
+    if (sqlUser.isEmpty) return models.User();
+    return models.User.fromSqlite(sqlUser.first);
   }
 
   Future<void> logout() async {
+    // database.execute("DELETE FROM users WHERE ;");
     // await database.transaction((txn) async {
     //   txn.delete("users", where: 'isActive = ?', whereArgs: [1]);
     // });

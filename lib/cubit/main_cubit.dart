@@ -21,8 +21,8 @@ class MainCubit extends Cubit<MainState> {
     emit(state.copyWith(user: user));
   }
 
-  Future<void> setLocate({required AppLocale locate}) async {
-    final settingsDevice = state.settingsDevice.copyWith(locale: locate);
+  Future<void> setLocale({required AppLocale locale}) async {
+    final settingsDevice = state.settingsDevice.copyWith(locale: locale);
     emit(state.copyWith(settingsDevice: settingsDevice));
   }
 

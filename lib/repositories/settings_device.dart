@@ -15,8 +15,8 @@ class SettingsDevice {
     return models.SettingsDevice.fromSqlite(results.first);
   }
 
-  Future<void> setLocate({required AppLocale locate}) async {
-    database.execute("UPDATE settingsDevice SET locate = ?", [locate.languageCode]);
+  Future<void> setLocale({required AppLocale locale}) async {
+    database.execute("UPDATE settingsDevice SET locale = ?", [locale.languageCode]);
   }
 
   Future<void> setDarkMode(models.SettingsDeviceDarkMode value) async {

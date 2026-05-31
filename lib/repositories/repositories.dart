@@ -58,6 +58,7 @@ class Repositories {
     }
 
     _database = sqlite3.open(databasePath);
+    _logger.debug(databasePath);
 
     if (!kDebugMode) {
       String? password = await storage.read(key: "database_password");
@@ -90,6 +91,23 @@ class Repositories {
           (locale, darkMode, colorTheme, blurTaskSwitchingEnable)
         VALUES
           (NULL, 'system', 'blue', 1)
+      """);
+
+      _database.execute("""
+          CREATE TABLE users (
+            userID TEXT PRIMARY KEY,
+            phoneNumber TEXT NOT NULL,
+            isActive INT NOT NULL DEFAULT 0
+          );
+      """);
+
+      _database.execute("""
+          CREATE TABLE sessions (
+            sessionID TEXT PRIMARY KEY,
+            userID TEXT NOT NULL,
+            sharedKey BLOB NOT NULL,
+            FOREIGN KEY (userID) REFERENCES users(userID) ON DELETE CASCADE ON UPDATE CASCADE
+          );
       """);
 
       _database.execute("PRAGMA user_version = 1");
