@@ -74,20 +74,18 @@ class Auth {
       return ServiceResponse<bool>(data: false, error: authConfirmationResponseError);
     }
 
-    final secretKeyData = await sharedSecretKey.extract();
-    logger.debug(await secretKeyData.extractBytes());
-    logger.debug(authConfirmationResponse.toString());
+    final sharedKey = await sharedSecretKey.extract();
 
+    await _repositories.users.createOrUpdate(
+      userID: authConfirmationResponse.userID,
+      phoneNumber: authConfirmationResponse.phoneNumber,
+    );
 
-    await _repositories.users.createOrUpdate(userID: authConfirmationResponse.userID, phoneNumber: authConfirmationResponse.phoneNumber);
-
-    // await _repositories.users.create(
-    //   session: authConfirmationResponse.session,
-    //   phoneNumber: authConfirmationResponse.phoneNumber,
-    //   userID: authConfirmationResponse.userID,
-    //   sharedSecretKey: secretKeyData.bytes,
-    //   sharedKeyID: [],
-    // );
+    await _repositories.sessions.deleteAndCreate(
+      userID: authConfirmationResponse.userID,
+      session: authConfirmationResponse.session,
+      sharedKey: await sharedKey.extractBytes(),
+    );
 
     return ServiceResponse<bool>(data: true);
   }

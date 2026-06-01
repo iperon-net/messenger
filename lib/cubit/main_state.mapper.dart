@@ -17,6 +17,7 @@ class MainStateMapper extends ClassMapperBase<MainState> {
       MapperContainer.globals.use(_instance = MainStateMapper._());
       SettingsDeviceMapper.ensureInitialized();
       UserMapper.ensureInitialized();
+      SessionMapper.ensureInitialized();
     }
     return _instance!;
   }
@@ -38,12 +39,18 @@ class MainStateMapper extends ClassMapperBase<MainState> {
   );
   static User _$user(MainState v) => v.user;
   static const Field<MainState, User> _f$user = Field('user', _$user);
+  static Session _$session(MainState v) => v.session;
+  static const Field<MainState, Session> _f$session = Field(
+    'session',
+    _$session,
+  );
 
   @override
   final MappableFields<MainState> fields = const {
     #status: _f$status,
     #settingsDevice: _f$settingsDevice,
     #user: _f$user,
+    #session: _f$session,
   };
 
   static MainState _instantiate(DecodingData data) {
@@ -51,6 +58,7 @@ class MainStateMapper extends ClassMapperBase<MainState> {
       status: data.dec(_f$status),
       settingsDevice: data.dec(_f$settingsDevice),
       user: data.dec(_f$user),
+      session: data.dec(_f$session),
     );
   }
 
@@ -115,7 +123,13 @@ abstract class MainStateCopyWith<$R, $In extends MainState, $Out>
     implements ClassCopyWith<$R, $In, $Out> {
   SettingsDeviceCopyWith<$R, SettingsDevice, SettingsDevice> get settingsDevice;
   UserCopyWith<$R, User, User> get user;
-  $R call({Status? status, SettingsDevice? settingsDevice, User? user});
+  SessionCopyWith<$R, Session, Session> get session;
+  $R call({
+    Status? status,
+    SettingsDevice? settingsDevice,
+    User? user,
+    Session? session,
+  });
   MainStateCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
 
@@ -135,19 +149,28 @@ class _MainStateCopyWithImpl<$R, $Out>
   UserCopyWith<$R, User, User> get user =>
       $value.user.copyWith.$chain((v) => call(user: v));
   @override
-  $R call({Status? status, SettingsDevice? settingsDevice, User? user}) =>
-      $apply(
-        FieldCopyWithData({
-          if (status != null) #status: status,
-          if (settingsDevice != null) #settingsDevice: settingsDevice,
-          if (user != null) #user: user,
-        }),
-      );
+  SessionCopyWith<$R, Session, Session> get session =>
+      $value.session.copyWith.$chain((v) => call(session: v));
+  @override
+  $R call({
+    Status? status,
+    SettingsDevice? settingsDevice,
+    User? user,
+    Session? session,
+  }) => $apply(
+    FieldCopyWithData({
+      if (status != null) #status: status,
+      if (settingsDevice != null) #settingsDevice: settingsDevice,
+      if (user != null) #user: user,
+      if (session != null) #session: session,
+    }),
+  );
   @override
   MainState $make(CopyWithData data) => MainState(
     status: data.get(#status, or: $value.status),
     settingsDevice: data.get(#settingsDevice, or: $value.settingsDevice),
     user: data.get(#user, or: $value.user),
+    session: data.get(#session, or: $value.session),
   );
 
   @override

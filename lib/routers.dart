@@ -23,6 +23,7 @@ class Routers {
         Uri uri = Uri.parse(state.fullPath ?? "/");
         if (uri.pathSegments.isNotEmpty && uri.pathSegments[0] == "auth") return null;
         if (context.read<MainCubit>().state.user.userID.isEmpty) return "/auth";
+        if (context.read<MainCubit>().state.session.session.isEmpty) return "/auth";
 
         return null;
       },

@@ -8,13 +8,15 @@ class MainCubit extends Cubit<MainState> {
   MainCubit() : super(MainState(
     settingsDevice: SettingsDevice(),
     user: User(),
+    session: Session(),
   ));
 
   Future<void> initialization({
     required SettingsDevice settingsDevice,
     required User user,
+    required Session session,
   }) async {
-    emit(state.copyWith(settingsDevice: settingsDevice, user: user));
+    emit(state.copyWith(settingsDevice: settingsDevice, user: user, session: session));
   }
 
   Future<void> setUser({required User user}) async {

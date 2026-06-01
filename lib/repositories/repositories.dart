@@ -16,6 +16,7 @@ import '../settings.dart';
 
 part "settings_device.dart";
 part "users.dart";
+part "sessions.dart";
 
 class Repositories {
   final _logger = getIt.get<Logger>();
@@ -23,6 +24,7 @@ class Repositories {
   late Database _database;
   late SettingsDevice settingsDevice;
   late Users users;
+  late Sessions sessions;
 
   Future<void> initialization() async {
     String databasePath = p.join((await getApplicationSupportDirectory()).path, Settings.databaseName);
@@ -103,9 +105,10 @@ class Repositories {
 
       _database.execute("""
           CREATE TABLE sessions (
-            sessionID TEXT PRIMARY KEY,
-            userID TEXT NOT NULL,
+            session BLOB NOT NULL,
+            userID BLOB NOT NULL,
             sharedKey BLOB NOT NULL,
+            isActive INT NOT NULL DEFAULT 0,
             FOREIGN KEY (userID) REFERENCES users(userID) ON DELETE CASCADE ON UPDATE CASCADE
           );
       """);
@@ -115,6 +118,7 @@ class Repositories {
 
     settingsDevice = SettingsDevice(logger: _logger, database: _database);
     users = Users(logger: _logger, database: _database);
+    sessions = Sessions(logger: _logger, database: _database);
 
     _logger.info("repositories initialization");
   }

@@ -15,6 +15,7 @@ class UserMapper extends ClassMapperBase<User> {
   static UserMapper ensureInitialized() {
     if (_instance == null) {
       MapperContainer.globals.use(_instance = UserMapper._());
+      MapperContainer.globals.useAll([BoolMapper()]);
     }
     return _instance!;
   }

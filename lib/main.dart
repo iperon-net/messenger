@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:dart_mappable/dart_mappable.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -12,6 +13,7 @@ import 'cubit/main_state.dart';
 import 'di.dart';
 import 'i18n/translations.g.dart';
 import 'logger.dart';
+import 'models/mapper.dart';
 import 'models/models.dart' as models;
 import 'repositories/repositories.dart';
 import 'routers.dart';
@@ -40,7 +42,8 @@ Future<void> main() async {
   logger.debug(settingsDevice);
 
   // Get active user
-  final user = await repositories.users.getActive();
+  final session = await repositories.sessions.getActive();
+  final user = await repositories.users.getBySession(session: session);
 
   // locale
   if (settingsDevice.locale != null) {
@@ -85,7 +88,7 @@ Future<void> main() async {
             create: (_) => SettingsAppearanceCubit(),
           ),
         ],
-        child: Platform.isIOS ? IperonMessengerCupertino(settingsDevice: settingsDevice, user: user) : IperonMessengerMaterial(settingsDevice: settingsDevice, user: user),
+        child: Platform.isIOS ? IperonMessengerCupertino(settingsDevice: settingsDevice, user: user, session: session) : IperonMessengerMaterial(settingsDevice: settingsDevice, user: user, session: session),
       ),
     ),
   );
@@ -95,10 +98,12 @@ Future<void> main() async {
 class IperonMessengerMaterial extends StatefulWidget {
   final models.SettingsDevice settingsDevice;
   final models.User user;
+  final models.Session session;
 
   const IperonMessengerMaterial({
     required this.settingsDevice,
     required this.user,
+    required this.session,
     super.key,
   });
 
@@ -110,10 +115,12 @@ class IperonMessengerMaterial extends StatefulWidget {
 class IperonMessengerCupertino extends StatefulWidget {
   final models.SettingsDevice settingsDevice;
   final models.User user;
+  final models.Session session;
 
   const IperonMessengerCupertino({
     required this.settingsDevice,
     required this.user,
+    required this.session,
     super.key,
   });
 
@@ -135,6 +142,7 @@ class _IperonMessengerMaterial extends State<IperonMessengerMaterial> with Widge
     context.read<MainCubit>().initialization(
       settingsDevice: widget.settingsDevice,
       user: widget.user,
+      session: widget.session,
     );
 
     _router = routers.material(navigatorGoRouterKey);
@@ -315,6 +323,7 @@ class _IperonMessengerCupertino extends State<IperonMessengerCupertino> with Wid
     context.read<MainCubit>().initialization(
       settingsDevice: widget.settingsDevice,
       user: widget.user,
+      session: widget.session,
     );
 
     _router = routers.cupertino(navigatorGoRouterKey);

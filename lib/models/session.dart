@@ -2,17 +2,20 @@ import 'package:dart_mappable/dart_mappable.dart';
 
 import 'mapper.dart';
 
-part 'user.mapper.dart';
+part 'session.mapper.dart';
 
 @MappableClass(includeCustomMappers: [BoolMapper()])
-class User with UserMappable {
+class Session with SessionMappable {
+  final List<int> session;
   final List<int> userID;
-  final String phoneNumber;
+  final List<int> sharedKey;
   final bool isActive;
 
-  const User({
+  const Session({
+    this.session = const [],
     this.userID = const [],
-    this.phoneNumber = "",
+    this.sharedKey = const [],
     this.isActive = false,
   });
+
 }
