@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:dart_mappable/dart_mappable.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -13,7 +12,6 @@ import 'cubit/main_state.dart';
 import 'di.dart';
 import 'i18n/translations.g.dart';
 import 'logger.dart';
-import 'models/mapper.dart';
 import 'models/models.dart' as models;
 import 'repositories/repositories.dart';
 import 'routers.dart';
