@@ -37,26 +37,17 @@ class UserMapper extends ClassMapperBase<User> {
     opt: true,
     def: "",
   );
-  static bool _$isActive(User v) => v.isActive;
-  static const Field<User, bool> _f$isActive = Field(
-    'isActive',
-    _$isActive,
-    opt: true,
-    def: false,
-  );
 
   @override
   final MappableFields<User> fields = const {
     #userID: _f$userID,
     #phoneNumber: _f$phoneNumber,
-    #isActive: _f$isActive,
   };
 
   static User _instantiate(DecodingData data) {
     return User(
       userID: data.dec(_f$userID),
       phoneNumber: data.dec(_f$phoneNumber),
-      isActive: data.dec(_f$isActive),
     );
   }
 
@@ -107,7 +98,7 @@ extension UserValueCopy<$R, $Out> on ObjectCopyWith<$R, User, $Out> {
 abstract class UserCopyWith<$R, $In extends User, $Out>
     implements ClassCopyWith<$R, $In, $Out> {
   ListCopyWith<$R, int, ObjectCopyWith<$R, int, int>> get userID;
-  $R call({List<int>? userID, String? phoneNumber, bool? isActive});
+  $R call({List<int>? userID, String? phoneNumber});
   UserCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
 
@@ -125,18 +116,16 @@ class _UserCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, User, $Out>
         (v) => call(userID: v),
       );
   @override
-  $R call({List<int>? userID, String? phoneNumber, bool? isActive}) => $apply(
+  $R call({List<int>? userID, String? phoneNumber}) => $apply(
     FieldCopyWithData({
       if (userID != null) #userID: userID,
       if (phoneNumber != null) #phoneNumber: phoneNumber,
-      if (isActive != null) #isActive: isActive,
     }),
   );
   @override
   User $make(CopyWithData data) => User(
     userID: data.get(#userID, or: $value.userID),
     phoneNumber: data.get(#phoneNumber, or: $value.phoneNumber),
-    isActive: data.get(#isActive, or: $value.isActive),
   );
 
   @override

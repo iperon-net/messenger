@@ -98,8 +98,7 @@ class Repositories {
       _database.execute("""
           CREATE TABLE users (
             userID TEXT PRIMARY KEY,
-            phoneNumber TEXT NOT NULL,
-            isActive INT NOT NULL DEFAULT 0
+            phoneNumber TEXT NOT NULL
           );
       """);
 

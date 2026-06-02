@@ -19,7 +19,7 @@ class MainCubit extends Cubit<MainState> {
     emit(state.copyWith(settingsDevice: settingsDevice, user: user, session: session));
   }
 
-  Future<void> setUser({required User user}) async {
+  Future<void> setActive({required User user, required Session session}) async {
     emit(state.copyWith(user: user));
   }
 

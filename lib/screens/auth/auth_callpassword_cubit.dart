@@ -53,7 +53,10 @@ class AuthCallpasswordCubit extends Cubit<AuthCallpasswordState> {
           return;
         }
 
-        emit(state.copyWith(status: Status.success, user: await _repositories.users.getActive()));
+        final session = await _repositories.sessions.getActive();
+        final user = await _repositories.users.getBySession(session: session);
+
+        emit(state.copyWith(status: Status.success, user: user, session: session));
         _logger.info("auth call password success");
         return;
       }

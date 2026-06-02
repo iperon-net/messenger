@@ -1,4 +1,5 @@
 import 'package:dart_mappable/dart_mappable.dart';
+import 'package:messenger/models/models.dart';
 
 import '../../constants.dart';
 import '../../models/user.dart';
@@ -14,6 +15,7 @@ class AuthCallpasswordState with AuthCallpasswordStateMappable {
   final bool isBlocked;
   final bool hasCloudPassword;
   final User user;
+  final Session session;
 
   const AuthCallpasswordState({
     this.status = Status.initialization,
@@ -23,5 +25,6 @@ class AuthCallpasswordState with AuthCallpasswordStateMappable {
     this.isBlocked = false,
     this.hasCloudPassword = false,
     this.user = const User(),
+    this.session = const Session(),
   });
 }

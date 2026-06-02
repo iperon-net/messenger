@@ -115,11 +115,11 @@ class _AuthCallPasswordCupertinoScreen extends State<AuthCallPasswordCupertinoSc
                   textAlign: TextAlign.center
               ),
               BlocConsumer<AuthCallpasswordCubit, AuthCallpasswordState>(
-                listener: (BuildContext context, AuthCallpasswordState state) {
+                listener: (BuildContext context, AuthCallpasswordState state) async {
                   if (state.error.isNotEmpty) return context.go("/auth");
                   if (state.status == Status.success && state.confirmationSession.isEmpty && !state.isBlocked && state.user.userID != ""){
-                    context.read<MainCubit>().setUser(user: state.user);
-                    return context.go("/");
+                    await context.read<MainCubit>().setActive(user: state.user, session: state.session);
+                    if (context.mounted) return context.go("/");
                   }
                 },
                 builder: (context, state) {

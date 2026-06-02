@@ -17,6 +17,7 @@ class AuthCallpasswordStateMapper
     if (_instance == null) {
       MapperContainer.globals.use(_instance = AuthCallpasswordStateMapper._());
       UserMapper.ensureInitialized();
+      SessionMapper.ensureInitialized();
     }
     return _instance!;
   }
@@ -75,6 +76,13 @@ class AuthCallpasswordStateMapper
     opt: true,
     def: const User(),
   );
+  static Session _$session(AuthCallpasswordState v) => v.session;
+  static const Field<AuthCallpasswordState, Session> _f$session = Field(
+    'session',
+    _$session,
+    opt: true,
+    def: const Session(),
+  );
 
   @override
   final MappableFields<AuthCallpasswordState> fields = const {
@@ -85,6 +93,7 @@ class AuthCallpasswordStateMapper
     #isBlocked: _f$isBlocked,
     #hasCloudPassword: _f$hasCloudPassword,
     #user: _f$user,
+    #session: _f$session,
   };
 
   static AuthCallpasswordState _instantiate(DecodingData data) {
@@ -96,6 +105,7 @@ class AuthCallpasswordStateMapper
       isBlocked: data.dec(_f$isBlocked),
       hasCloudPassword: data.dec(_f$hasCloudPassword),
       user: data.dec(_f$user),
+      session: data.dec(_f$session),
     );
   }
 
@@ -171,6 +181,7 @@ abstract class AuthCallpasswordStateCopyWith<
     implements ClassCopyWith<$R, $In, $Out> {
   ListCopyWith<$R, int, ObjectCopyWith<$R, int, int>> get confirmationSession;
   UserCopyWith<$R, User, User> get user;
+  SessionCopyWith<$R, Session, Session> get session;
   $R call({
     Status? status,
     String? error,
@@ -179,6 +190,7 @@ abstract class AuthCallpasswordStateCopyWith<
     bool? isBlocked,
     bool? hasCloudPassword,
     User? user,
+    Session? session,
   });
   AuthCallpasswordStateCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
     Then<$Out2, $R2> t,
@@ -204,6 +216,9 @@ class _AuthCallpasswordStateCopyWithImpl<$R, $Out>
   UserCopyWith<$R, User, User> get user =>
       $value.user.copyWith.$chain((v) => call(user: v));
   @override
+  SessionCopyWith<$R, Session, Session> get session =>
+      $value.session.copyWith.$chain((v) => call(session: v));
+  @override
   $R call({
     Status? status,
     String? error,
@@ -212,6 +227,7 @@ class _AuthCallpasswordStateCopyWithImpl<$R, $Out>
     bool? isBlocked,
     bool? hasCloudPassword,
     User? user,
+    Session? session,
   }) => $apply(
     FieldCopyWithData({
       if (status != null) #status: status,
@@ -222,6 +238,7 @@ class _AuthCallpasswordStateCopyWithImpl<$R, $Out>
       if (isBlocked != null) #isBlocked: isBlocked,
       if (hasCloudPassword != null) #hasCloudPassword: hasCloudPassword,
       if (user != null) #user: user,
+      if (session != null) #session: session,
     }),
   );
   @override
@@ -236,6 +253,7 @@ class _AuthCallpasswordStateCopyWithImpl<$R, $Out>
     isBlocked: data.get(#isBlocked, or: $value.isBlocked),
     hasCloudPassword: data.get(#hasCloudPassword, or: $value.hasCloudPassword),
     user: data.get(#user, or: $value.user),
+    session: data.get(#session, or: $value.session),
   );
 
   @override

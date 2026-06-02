@@ -17,9 +17,9 @@ class Users {
 
     final sqlUser = database.select("SELECT userID FROM users WHERE userID = ?;", [userID]);
     if (sqlUser.isEmpty) {
-      database.execute("INSERT INTO users (userID, phoneNumber, isActive) VALUES(?, ?, 1);", [userID, phoneNumber]);
+      database.execute("INSERT INTO users (userID, phoneNumber) VALUES(?, ?);", [userID, phoneNumber]);
     } else {
-      database.execute("UPDATE users SET phoneNumber = ?, isActive = 1 WHERE userID = ?", [phoneNumber, userID]);
+      database.execute("UPDATE users SET phoneNumber = ? WHERE userID = ?", [phoneNumber, userID]);
     }
     database.select("COMMIT;");
   }
@@ -29,13 +29,6 @@ class Users {
     if (session.userID.isEmpty) return models.User();
 
     final sqlUser = database.select("SELECT userID, phoneNumber FROM users WHERE userID = ?;", [session.userID]);
-    if (sqlUser.isEmpty) return models.User();
-    return models.UserMapper.fromMap(sqlUser.first);
-  }
-
-  // Get active user
-  Future<models.User> getActive() async {
-    final sqlUser = database.select("SELECT userID, phoneNumber FROM users WHERE isActive = 1;");
     if (sqlUser.isEmpty) return models.User();
     return models.UserMapper.fromMap(sqlUser.first);
   }

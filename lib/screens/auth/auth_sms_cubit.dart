@@ -41,10 +41,11 @@ class AuthSmsCubit extends Cubit<AuthSmsState> {
       return false;
     }
 
-    final user = await _repositories.users.getActive();
+    final session = await _repositories.sessions.getActive();
+    final user = await _repositories.users.getBySession(session: session);
 
     if (context.mounted){
-      context.read<MainCubit>().setUser(user: user);
+      context.read<MainCubit>().setActive(user: user, session: session);
       context.go("/");
     }
 

@@ -8,11 +8,9 @@ part 'user.mapper.dart';
 class User with UserMappable {
   final List<int> userID;
   final String phoneNumber;
-  final bool isActive;
 
   const User({
     this.userID = const [],
     this.phoneNumber = "",
-    this.isActive = false,
   });
 }
