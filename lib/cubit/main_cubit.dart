@@ -1,5 +1,6 @@
 import 'package:bloc/bloc.dart';
 
+import '../constants.dart';
 import '../i18n/translations.g.dart';
 import '../models/models.dart';
 import 'main_state.dart';
@@ -16,7 +17,7 @@ class MainCubit extends Cubit<MainState> {
     required User user,
     required Session session,
   }) async {
-    emit(state.copyWith(settingsDevice: settingsDevice, user: user, session: session));
+    emit(state.copyWith(status: Status.success, settingsDevice: settingsDevice, user: user, session: session));
   }
 
   Future<void> setActive({required User user, required Session session}) async {
