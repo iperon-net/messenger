@@ -56,7 +56,9 @@ class _HomeCupertinoScreen extends State<HomeCupertinoScreen> {
       tabBuilder: (BuildContext context, int index) {
         return CupertinoTabView(
           builder: (BuildContext context) {
-            if (index == 3) {
+            if (index == 0) {
+              return ContactsScreenCupertino();
+            } else if (index == 3) {
               return SettingsCupertinoScreen();
             }
             return Center(child: Text("Page not found"));
