@@ -118,7 +118,7 @@ class _AuthCallPasswordMaterialScreen extends State<AuthCallPasswordMaterialScre
               BlocConsumer<AuthCallpasswordCubit, AuthCallpasswordState>(
                 listener: (BuildContext context, AuthCallpasswordState state) async {
                   if (state.error.isNotEmpty) return context.go("/auth");
-                  if (state.status == Status.success && state.confirmationSession.isEmpty && !state.isBlocked && state.user.userID != ""){
+                  if (state.status == Status.success && state.confirmationSession.isEmpty && !state.isBlocked && state.user.userID.isNotEmpty){
                     await context.read<MainCubit>().setActive(user: state.user, session: state.session);
                     if (context.mounted) return context.go("/");
                   }
