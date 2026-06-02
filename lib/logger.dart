@@ -47,7 +47,7 @@ class Logger {
   }
 
   void debug(dynamic message) {
-    _talker.debug(message);
+    if (kDebugMode) _talker.debug(message);
   }
 
   void warning(dynamic message) {

@@ -341,9 +341,9 @@ class _IperonMessengerCupertino extends State<IperonMessengerCupertino> with Wid
       builder: (context, state) {
         CupertinoDynamicColor colorSchemeSystem = ThemesCupertino().blueScheme;
 
-        if (state.user.userID != "" && state.settingsDevice.colorTheme == models.SettingsDeviceColorTheme.green){
-          colorSchemeSystem = CupertinoColors.systemGreen;
-        } else if (state.user.userID != "" && state.settingsDevice.colorTheme == models.SettingsDeviceColorTheme.purple) {
+        if (state.user.userID.isNotEmpty && state.settingsDevice.colorTheme == models.SettingsDeviceColorTheme.green){
+          colorSchemeSystem = ThemesCupertino().green;
+        } else if (state.user.userID.isNotEmpty && state.settingsDevice.colorTheme == models.SettingsDeviceColorTheme.purple) {
           colorSchemeSystem = CupertinoColors.systemPurple;
         }
 
