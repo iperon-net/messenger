@@ -19,4 +19,8 @@ class Sessions {
     return models.SessionMapper.fromMap(sqlSession.first);
   }
 
+  Future<void> logout() async {
+    database.execute("DELETE FROM sessions WHERE isActive = 1;");
+  }
+
 }

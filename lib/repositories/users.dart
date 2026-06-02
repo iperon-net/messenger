@@ -13,7 +13,6 @@ class Users {
   }) async {
 
     database.execute("BEGIN;");
-    database.execute("UPDATE users SET isActive = 0;");
 
     final sqlUser = database.select("SELECT userID FROM users WHERE userID = ?;", [userID]);
     if (sqlUser.isEmpty) {
@@ -31,12 +30,5 @@ class Users {
     final sqlUser = database.select("SELECT userID, phoneNumber FROM users WHERE userID = ?;", [session.userID]);
     if (sqlUser.isEmpty) return models.User();
     return models.UserMapper.fromMap(sqlUser.first);
-  }
-
-  Future<void> logout() async {
-    // database.execute("DELETE FROM users WHERE ;");
-    // await database.transaction((txn) async {
-    //   txn.delete("users", where: 'isActive = ?', whereArgs: [1]);
-    // });
   }
 }

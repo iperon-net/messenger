@@ -14,7 +14,7 @@ class SettingsCubit extends Cubit<SettingsState> {
   final repositories = getIt.get<Repositories>();
 
   Future<void> logout(BuildContext context) async {
-    await repositories.users.logout();
+    await repositories.sessions.logout();
     if (context.mounted) context.read<MainCubit>().logout();
     if (context.mounted) context.go("/");
   }
