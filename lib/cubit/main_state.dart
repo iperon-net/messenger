@@ -1,4 +1,5 @@
 import 'package:dart_mappable/dart_mappable.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 import '../constants.dart';
 import '../models/models.dart';
@@ -11,9 +12,13 @@ class MainState with MainStateMappable {
   final SettingsDevice settingsDevice;
   final User user;
   final Session session;
+  final PermissionStatus permissionStatusContacts;
+  final PermissionStatus permissionStatusNotification;
 
   const MainState({
     this.status = Status.initialization,
+    this.permissionStatusContacts = PermissionStatus.denied,
+    this.permissionStatusNotification = PermissionStatus.denied,
     required this.settingsDevice,
     required this.user,
     required this.session,

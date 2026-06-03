@@ -181,6 +181,24 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 
 	/// en: 'Logout'
 	String get logout => 'Logout';
+
+	/// en: 'Search'
+	String get search => 'Search';
+
+	/// en: 'Access to contacts'
+	String get accessToContacts => 'Access to contacts';
+
+	/// en: 'Please allow access to your contacts so that you can find your friends'
+	String get pleaseAllowAccessPhoneSeamlesslyFindYourFriends => 'Please allow access to your contacts so that you can find your friends';
+
+	/// en: 'Allow in settings'
+	String get allowInSettings => 'Allow in settings';
+
+	/// en: 'Limited access to contacts'
+	String get limitedAccessToContacts => 'Limited access to contacts';
+
+	/// en: 'The app does not have permission to access all contacts'
+	String get appDoesNotHavePermissionAccessAllContacts => 'The app does not have permission to access all contacts';
 }
 
 /// The flat map containing all translations for locale <en>.
@@ -238,6 +256,12 @@ extension on Translations {
 			'sentConfirmationCodeToNumber' => ({required Object phoneNumber}) => 'We sent a confirmation code to the number ${phoneNumber}',
 			'verificationCodeMismatch' => 'Verification code mismatch',
 			'logout' => 'Logout',
+			'search' => 'Search',
+			'accessToContacts' => 'Access to contacts',
+			'pleaseAllowAccessPhoneSeamlesslyFindYourFriends' => 'Please allow access to your contacts so that you can find your friends',
+			'allowInSettings' => 'Allow in settings',
+			'limitedAccessToContacts' => 'Limited access to contacts',
+			'appDoesNotHavePermissionAccessAllContacts' => 'The app does not have permission to access all contacts',
 			_ => null,
 		};
 	}

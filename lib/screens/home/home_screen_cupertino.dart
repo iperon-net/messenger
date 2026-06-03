@@ -1,4 +1,6 @@
+import 'package:badges/badges.dart' as badges;
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import '../../di.dart';
@@ -32,11 +34,20 @@ class _HomeCupertinoScreen extends State<HomeCupertinoScreen> {
   Widget build(BuildContext context) {
     return CupertinoTabScaffold(
       tabBar: CupertinoTabBar(
+        currentIndex: 2,
         height: 56,
         iconSize: 24,
         items: <BottomNavigationBarItem>[
           BottomNavigationBarItem(
-            icon: FaIcon(FontAwesomeIcons.solidCircleUser),
+            icon: badges.Badge(
+              badgeContent: Text(''),
+              badgeAnimation: badges.BadgeAnimation.size(toAnimate: false),
+              badgeStyle: badges.BadgeStyle(
+                badgeColor: Colors.red,
+                elevation: 1,
+              ),
+              child: FaIcon(FontAwesomeIcons.solidCircleUser),
+            ),
             label: context.t.contacts,
           ),
           BottomNavigationBarItem(

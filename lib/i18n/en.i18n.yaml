@@ -45,4 +45,9 @@
 "sentConfirmationCodeToNumber": "We sent a confirmation code to the number {phoneNumber}"
 "verificationCodeMismatch": "Verification code mismatch"
 "logout": "Logout"
-
+"search": "Search"
+"accessToContacts": "Access to contacts"
+"pleaseAllowAccessPhoneSeamlesslyFindYourFriends": "Please allow access to your contacts so that you can find your friends"
+"allowInSettings": "Allow in settings"
+"limitedAccessToContacts": "Limited access to contacts"
+"appDoesNotHavePermissionAccessAllContacts": "The app does not have permission to access all contacts"

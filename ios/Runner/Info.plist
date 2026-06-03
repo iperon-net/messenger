@@ -83,7 +83,9 @@
 	<array>
 		<string>primaryyandexloginsdk</string>
 		<string>secondaryyandexloginsdk</string>
-        <string>tel</string>
+		<string>tel</string>
 	</array>
+	<key>NSContactsUsageDescription</key>
+	<string></string>
 </dict>
 </plist>

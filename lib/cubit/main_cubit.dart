@@ -1,4 +1,5 @@
 import 'package:bloc/bloc.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 import '../constants.dart';
 import '../i18n/translations.g.dart';
@@ -17,7 +18,21 @@ class MainCubit extends Cubit<MainState> {
     required User user,
     required Session session,
   }) async {
-    emit(state.copyWith(status: Status.success, settingsDevice: settingsDevice, user: user, session: session));
+
+    final resultPermissions = await Future.wait([
+      Permission.contacts.status,
+      Permission.notification.status
+    ]);
+
+    emit(state.copyWith(
+      status: Status.success,
+      settingsDevice: settingsDevice,
+      user: user,
+      session: session,
+      permissionStatusContacts: resultPermissions[0],
+      permissionStatusNotification: resultPermissions[1],
+    ));
+
   }
 
   Future<void> setActive({required User user, required Session session}) async {

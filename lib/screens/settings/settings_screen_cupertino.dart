@@ -70,7 +70,7 @@ class _SettingsCupertinoScreen extends State<SettingsCupertinoScreen> {
         onTap: onTab,
         title: title,
         subtitle: subtitle,
-        trailing: Icon(CupertinoIcons.forward, color: CupertinoColors.inactiveGray),
+        trailing: CupertinoListTileChevron(),
         additionalInfo: additionalInfo,
       ),
     );

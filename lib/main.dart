@@ -18,6 +18,7 @@ import 'routers.dart';
 import 'screens/auth/auth_callpassword_cubit.dart';
 import 'screens/auth/auth_cubit.dart';
 import 'screens/auth/auth_sms_cubit.dart';
+import 'screens/contacts/contacts_cubit.dart';
 import 'screens/home/home_cubit.dart';
 import 'screens/settings/settings_appearance_cubit.dart';
 import 'screens/settings/settings_cubit.dart';
@@ -84,6 +85,9 @@ Future<void> main() async {
           ),
           BlocProvider<SettingsAppearanceCubit>(
             create: (_) => SettingsAppearanceCubit(),
+          ),
+          BlocProvider<ContactsCubit>(
+            create: (_) => ContactsCubit(),
           ),
         ],
         child: Platform.isIOS ? IperonMessengerCupertino(settingsDevice: settingsDevice, user: user, session: session) : IperonMessengerMaterial(settingsDevice: settingsDevice, user: user, session: session),

@@ -5,6 +5,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:messenger/cubit/main_cubit.dart';
+import 'package:messenger/repositories/repositories.dart';
 
 import 'di.dart';
 import 'logger.dart';
@@ -12,18 +13,20 @@ import 'screens/screens.dart';
 
 class Routers {
   final logger = getIt.get<Logger>();
+  final repositories = getIt.get<Repositories>();
 
   GoRouter material(GlobalKey<NavigatorState> navigatorGoRouterKey) {
     return GoRouter(
       debugLogDiagnostics: kDebugMode ? true: false,
       navigatorKey: navigatorGoRouterKey,
       initialLocation: '/',
-      redirect: (context, state) {
+      redirect: (context, state) async {
 
         Uri uri = Uri.parse(state.fullPath ?? "/");
         if (uri.pathSegments.isNotEmpty && uri.pathSegments[0] == "auth") return null;
-        if (context.read<MainCubit>().state.user.userID.isEmpty) return "/auth";
-        if (context.read<MainCubit>().state.session.session.isEmpty) return "/auth";
+
+        final session = await repositories.sessions.getActive();
+        if (!session.isActive) return "/auth";
 
         return null;
       },
@@ -70,7 +73,9 @@ class Routers {
 
           Uri uri = Uri.parse(state.fullPath ?? "/");
           if (uri.pathSegments.isNotEmpty && uri.pathSegments[0] == "auth") return null;
-          if (context.read<MainCubit>().state.user.userID.isEmpty) return "/auth";
+
+          final session = await repositories.sessions.getActive();
+          if (!session.isActive) return "/auth";
 
           return null;
         },

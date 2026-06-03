@@ -84,15 +84,17 @@ class Repositories {
           locale TEXT NULL,
           darkMode TEXT NOT NULL,
           colorTheme TEXT NOT NULL,
-          blurTaskSwitchingEnable INTEGER NOT NULL
+          isBlurTaskSwitchingEnable INTEGER NOT NULL,
+          isContactBannerDisabled INTEGER NOT NULL,
+          isNotificationBannerDisabled INTEGER NOT NULL
         )
       """);
 
       _database.execute("""
         INSERT INTO settingsDevice
-          (locale, darkMode, colorTheme, blurTaskSwitchingEnable)
+          (locale, darkMode, colorTheme, isBlurTaskSwitchingEnable, isContactBannerDisabled, isNotificationBannerDisabled)
         VALUES
-          (NULL, 'system', 'blue', 0)
+          (NULL, 'system', 'blue', 0, 0, 0)
       """);
 
       _database.execute("""
@@ -108,6 +110,17 @@ class Repositories {
             userID BLOB NOT NULL,
             sharedKey BLOB NOT NULL,
             isActive INT NOT NULL DEFAULT 0,
+            FOREIGN KEY (userID) REFERENCES users(userID) ON DELETE CASCADE ON UPDATE CASCADE
+          );
+      """);
+
+      _database.execute("""
+          CREATE TABLE contacts (
+            session BLOB NOT NULL,
+            userID BLOB NOT NULL,
+            firstName TEXT NULL,
+            lastName TEXT NULL,
+            phoneNumber TEXT NULL,
             FOREIGN KEY (userID) REFERENCES users(userID) ON DELETE CASCADE ON UPDATE CASCADE
           );
       """);

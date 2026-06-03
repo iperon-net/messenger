@@ -86,6 +86,12 @@ class TranslationsRu extends Translations with BaseTranslations<AppLocale, Trans
 	@override String sentConfirmationCodeToNumber({required Object phoneNumber}) => 'Отправили код подтверждения на номер ${phoneNumber}';
 	@override String get verificationCodeMismatch => 'Неверный код подтверждения';
 	@override String get logout => 'Выйти';
+	@override String get search => 'Поиск';
+	@override String get accessToContacts => 'Доступ к контактам';
+	@override String get pleaseAllowAccessPhoneSeamlesslyFindYourFriends => 'Пожалуйста, разрешите доступ к своим контактам, чтобы вы могли находить своих друзей';
+	@override String get allowInSettings => 'Разрешить в настройках';
+	@override String get limitedAccessToContacts => 'Ограниченный доступ к контактам';
+	@override String get appDoesNotHavePermissionAccessAllContacts => 'У приложения нет разрешения на доступ ко всем контактам';
 }
 
 /// The flat map containing all translations for locale <ru>.
@@ -143,6 +149,12 @@ extension on TranslationsRu {
 			'sentConfirmationCodeToNumber' => ({required Object phoneNumber}) => 'Отправили код подтверждения на номер ${phoneNumber}',
 			'verificationCodeMismatch' => 'Неверный код подтверждения',
 			'logout' => 'Выйти',
+			'search' => 'Поиск',
+			'accessToContacts' => 'Доступ к контактам',
+			'pleaseAllowAccessPhoneSeamlesslyFindYourFriends' => 'Пожалуйста, разрешите доступ к своим контактам, чтобы вы могли находить своих друзей',
+			'allowInSettings' => 'Разрешить в настройках',
+			'limitedAccessToContacts' => 'Ограниченный доступ к контактам',
+			'appDoesNotHavePermissionAccessAllContacts' => 'У приложения нет разрешения на доступ ко всем контактам',
 			_ => null,
 		};
 	}

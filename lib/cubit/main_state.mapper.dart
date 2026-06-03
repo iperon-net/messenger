@@ -32,6 +32,24 @@ class MainStateMapper extends ClassMapperBase<MainState> {
     opt: true,
     def: Status.initialization,
   );
+  static PermissionStatus _$permissionStatusContacts(MainState v) =>
+      v.permissionStatusContacts;
+  static const Field<MainState, PermissionStatus> _f$permissionStatusContacts =
+      Field(
+        'permissionStatusContacts',
+        _$permissionStatusContacts,
+        opt: true,
+        def: PermissionStatus.denied,
+      );
+  static PermissionStatus _$permissionStatusNotification(MainState v) =>
+      v.permissionStatusNotification;
+  static const Field<MainState, PermissionStatus>
+  _f$permissionStatusNotification = Field(
+    'permissionStatusNotification',
+    _$permissionStatusNotification,
+    opt: true,
+    def: PermissionStatus.denied,
+  );
   static SettingsDevice _$settingsDevice(MainState v) => v.settingsDevice;
   static const Field<MainState, SettingsDevice> _f$settingsDevice = Field(
     'settingsDevice',
@@ -48,6 +66,8 @@ class MainStateMapper extends ClassMapperBase<MainState> {
   @override
   final MappableFields<MainState> fields = const {
     #status: _f$status,
+    #permissionStatusContacts: _f$permissionStatusContacts,
+    #permissionStatusNotification: _f$permissionStatusNotification,
     #settingsDevice: _f$settingsDevice,
     #user: _f$user,
     #session: _f$session,
@@ -56,6 +76,8 @@ class MainStateMapper extends ClassMapperBase<MainState> {
   static MainState _instantiate(DecodingData data) {
     return MainState(
       status: data.dec(_f$status),
+      permissionStatusContacts: data.dec(_f$permissionStatusContacts),
+      permissionStatusNotification: data.dec(_f$permissionStatusNotification),
       settingsDevice: data.dec(_f$settingsDevice),
       user: data.dec(_f$user),
       session: data.dec(_f$session),
@@ -126,6 +148,8 @@ abstract class MainStateCopyWith<$R, $In extends MainState, $Out>
   SessionCopyWith<$R, Session, Session> get session;
   $R call({
     Status? status,
+    PermissionStatus? permissionStatusContacts,
+    PermissionStatus? permissionStatusNotification,
     SettingsDevice? settingsDevice,
     User? user,
     Session? session,
@@ -154,12 +178,18 @@ class _MainStateCopyWithImpl<$R, $Out>
   @override
   $R call({
     Status? status,
+    PermissionStatus? permissionStatusContacts,
+    PermissionStatus? permissionStatusNotification,
     SettingsDevice? settingsDevice,
     User? user,
     Session? session,
   }) => $apply(
     FieldCopyWithData({
       if (status != null) #status: status,
+      if (permissionStatusContacts != null)
+        #permissionStatusContacts: permissionStatusContacts,
+      if (permissionStatusNotification != null)
+        #permissionStatusNotification: permissionStatusNotification,
       if (settingsDevice != null) #settingsDevice: settingsDevice,
       if (user != null) #user: user,
       if (session != null) #session: session,
@@ -168,6 +198,14 @@ class _MainStateCopyWithImpl<$R, $Out>
   @override
   MainState $make(CopyWithData data) => MainState(
     status: data.get(#status, or: $value.status),
+    permissionStatusContacts: data.get(
+      #permissionStatusContacts,
+      or: $value.permissionStatusContacts,
+    ),
+    permissionStatusNotification: data.get(
+      #permissionStatusNotification,
+      or: $value.permissionStatusNotification,
+    ),
     settingsDevice: data.get(#settingsDevice, or: $value.settingsDevice),
     user: data.get(#user, or: $value.user),
     session: data.get(#session, or: $value.session),

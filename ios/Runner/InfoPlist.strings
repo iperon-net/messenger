@@ -1,0 +1,10 @@
+//
+//  InfoPlist.strings
+//  Runner
+//
+//  Created by Kostya Ten on 02.06.2026.
+//
+
+"NSContactsUsageDescription" = "We need access to your contacts to find friends who already use our app.";
+"NSContactsUsageDescription" = "Нам нужен доступ к вашим контактам, чтобы найти друзей, которые уже используют наше приложение.";
+
