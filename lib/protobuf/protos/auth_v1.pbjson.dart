@@ -248,11 +248,11 @@ const AuthConfirmationRequest$json = {
       '5': 12,
       '10': 'clientPublicKeyECDH'
     },
-    {'1': 'deviceModel', '3': 3, '4': 1, '5': 9, '10': 'deviceModel'},
-    {'1': 'os', '3': 4, '4': 1, '5': 5, '10': 'os'},
-    {'1': 'osVersion', '3': 5, '4': 1, '5': 9, '10': 'osVersion'},
-    {'1': 'appVersion', '3': 6, '4': 1, '5': 9, '10': 'appVersion'},
-    {'1': 'appBuildNumber', '3': 7, '4': 1, '5': 9, '10': 'appBuildNumber'},
+    {'1': 'deviceModel', '3': 4, '4': 1, '5': 9, '10': 'deviceModel'},
+    {'1': 'os', '3': 5, '4': 1, '5': 5, '10': 'os'},
+    {'1': 'osVersion', '3': 6, '4': 1, '5': 9, '10': 'osVersion'},
+    {'1': 'appVersion', '3': 7, '4': 1, '5': 9, '10': 'appVersion'},
+    {'1': 'appBuildNumber', '3': 8, '4': 1, '5': 9, '10': 'appBuildNumber'},
   ],
 };
 
@@ -260,9 +260,9 @@ const AuthConfirmationRequest$json = {
 final $typed_data.Uint8List authConfirmationRequestDescriptor = $convert.base64Decode(
     'ChdBdXRoQ29uZmlybWF0aW9uUmVxdWVzdBIwChNjb25maXJtYXRpb25TZXNzaW9uGAEgASgMUh'
     'Njb25maXJtYXRpb25TZXNzaW9uEjAKE2NsaWVudFB1YmxpY0tleUVDREgYAiABKAxSE2NsaWVu'
-    'dFB1YmxpY0tleUVDREgSIAoLZGV2aWNlTW9kZWwYAyABKAlSC2RldmljZU1vZGVsEg4KAm9zGA'
-    'QgASgFUgJvcxIcCglvc1ZlcnNpb24YBSABKAlSCW9zVmVyc2lvbhIeCgphcHBWZXJzaW9uGAYg'
-    'ASgJUgphcHBWZXJzaW9uEiYKDmFwcEJ1aWxkTnVtYmVyGAcgASgJUg5hcHBCdWlsZE51bWJlcg'
+    'dFB1YmxpY0tleUVDREgSIAoLZGV2aWNlTW9kZWwYBCABKAlSC2RldmljZU1vZGVsEg4KAm9zGA'
+    'UgASgFUgJvcxIcCglvc1ZlcnNpb24YBiABKAlSCW9zVmVyc2lvbhIeCgphcHBWZXJzaW9uGAcg'
+    'ASgJUgphcHBWZXJzaW9uEiYKDmFwcEJ1aWxkTnVtYmVyGAggASgJUg5hcHBCdWlsZE51bWJlcg'
     '==');
 
 @$core.Deprecated('Use authConfirmationResponseDescriptor instead')
@@ -272,7 +272,14 @@ const AuthConfirmationResponse$json = {
     {'1': 'session', '3': 1, '4': 1, '5': 12, '10': 'session'},
     {'1': 'userID', '3': 2, '4': 1, '5': 12, '10': 'userID'},
     {'1': 'phoneNumber', '3': 3, '4': 1, '5': 9, '10': 'phoneNumber'},
-    {'1': 'sharedKeyID', '3': 4, '4': 1, '5': 12, '10': 'sharedKeyID'},
+    {'1': 'sharedSalt', '3': 4, '4': 1, '5': 12, '10': 'sharedSalt'},
+    {
+      '1': 'sharedSaltSignature',
+      '3': 5,
+      '4': 1,
+      '5': 12,
+      '10': 'sharedSaltSignature'
+    },
   ],
 };
 
@@ -280,4 +287,5 @@ const AuthConfirmationResponse$json = {
 final $typed_data.Uint8List authConfirmationResponseDescriptor = $convert.base64Decode(
     'ChhBdXRoQ29uZmlybWF0aW9uUmVzcG9uc2USGAoHc2Vzc2lvbhgBIAEoDFIHc2Vzc2lvbhIWCg'
     'Z1c2VySUQYAiABKAxSBnVzZXJJRBIgCgtwaG9uZU51bWJlchgDIAEoCVILcGhvbmVOdW1iZXIS'
-    'IAoLc2hhcmVkS2V5SUQYBCABKAxSC3NoYXJlZEtleUlE');
+    'HgoKc2hhcmVkU2FsdBgEIAEoDFIKc2hhcmVkU2FsdBIwChNzaGFyZWRTYWx0U2lnbmF0dXJlGA'
+    'UgASgMUhNzaGFyZWRTYWx0U2lnbmF0dXJl');

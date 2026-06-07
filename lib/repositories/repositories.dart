@@ -109,6 +109,7 @@ class Repositories {
             session BLOB NOT NULL,
             userID BLOB NOT NULL,
             sharedKey BLOB NOT NULL,
+            sharedSalt BLOB NOT NULL,
             isActive INT NOT NULL DEFAULT 0,
             FOREIGN KEY (userID) REFERENCES users(userID) ON DELETE CASCADE ON UPDATE CASCADE
           );

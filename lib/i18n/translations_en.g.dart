@@ -56,6 +56,9 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	/// en: 'You can check the URL with your organization administrator'
 	String get organizationServerUrlHelper => 'You can check the URL with your organization administrator';
 
+	/// en: 'Encryption synchronization error'
+	String get encryptionSynchronizationError => 'Encryption synchronization error';
+
 	/// en: 'Next'
 	String get next => 'Next';
 
@@ -214,6 +217,7 @@ extension on Translations {
 			'logs' => 'Logs',
 			'organizationServerUrl' => 'Organization server URL',
 			'organizationServerUrlHelper' => 'You can check the URL with your organization administrator',
+			'encryptionSynchronizationError' => 'Encryption synchronization error',
 			'next' => 'Next',
 			'invalidOrganizationServerUrl' => 'Invalid organization server URL',
 			'serverNotSupportAppVersion' => 'The server does not support this version of the application.',

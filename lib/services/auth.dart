@@ -39,8 +39,8 @@ class Auth {
 
     // Check fingerprint public key
     final algorithmSHA256 = Sha256();
-    final hash = await algorithmSHA256.hash(metadataInfoResponse.ecdh.publicKey);
-    if (Settings.publicKeyECDHFingerprint != _utils.toHex(hash.bytes)) {
+    final hashECDH = await algorithmSHA256.hash(metadataInfoResponse.ecdh.publicKey);
+    if (Settings.publicKeyECDHFingerprint != _utils.toHex(hashECDH.bytes)) {
       return ServiceResponse<bool>(data: false, error: "signatureVerificationError");
     }
 
@@ -74,7 +74,23 @@ class Auth {
       return ServiceResponse<bool>(data: false, error: authConfirmationResponseError);
     }
 
+    // EdDSA
+    final hashEdDA = await algorithmSHA256.hash(metadataInfoResponse.eddsa.publicKey);
+    if (Settings.publicKeyEdDSAFingerprint != _utils.toHex(hashEdDA.bytes)) {
+      return ServiceResponse<bool>(data: false, error: "signatureVerificationError");
+    }
+
+    final edDsaPublicKey = SimplePublicKey(metadataInfoResponse.eddsa.publicKey, type: KeyPairType.ed25519);
+    final signature = Signature(authConfirmationResponse.sharedSaltSignature, publicKey: edDsaPublicKey);
+    final ed25519 = Ed25519();
+
+    if (!await ed25519.verify(authConfirmationResponse.sharedSalt, signature: signature)){
+      return ServiceResponse<bool>(data: false, error: "encryptionSynchronizationError");
+    }
+
+    //
     final sharedKey = await sharedSecretKey.extract();
+    final sharedSalt = authConfirmationResponse.sharedSalt;
 
     await _repositories.users.createOrUpdate(
       userID: authConfirmationResponse.userID,
@@ -85,6 +101,7 @@ class Auth {
       userID: authConfirmationResponse.userID,
       session: authConfirmationResponse.session,
       sharedKey: await sharedKey.extractBytes(),
+      sharedSalt: sharedSalt,
     );
 
     return ServiceResponse<bool>(data: true);

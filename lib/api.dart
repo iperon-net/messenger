@@ -7,6 +7,7 @@ import 'package:uuid/uuid.dart';
 
 import 'protobuf/protos/auth_v1.pbgrpc.dart';
 import 'protobuf/protos/metadata_v1.pbgrpc.dart';
+import 'settings.dart';
 
 class API {
   final _logger = getIt.get<Logger>();
@@ -18,11 +19,8 @@ class API {
 
   final uuid = Uuid();
   API() {
-    // final host = "development.iperon.net";
-    final host = "staging.iperon.net";
-
     _clientChannel = ClientChannel(
-      host,
+      Settings.apiHost,
       port: 443,
       options: ChannelOptions(
         connectionTimeout: const Duration(seconds: 30),

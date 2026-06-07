@@ -1,0 +1,8 @@
+syntax = "proto3";
+
+package iperon.v1;
+option go_package = "internal/api/messages";
+
+message PubSubUser {
+  bool user = 1;
+}

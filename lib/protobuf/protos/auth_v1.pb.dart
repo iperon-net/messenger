@@ -648,11 +648,11 @@ class AuthConfirmationRequest extends $pb.GeneratedMessage {
     ..a<$core.List<$core.int>>(
         2, _omitFieldNames ? '' : 'clientPublicKeyECDH', $pb.PbFieldType.OY,
         protoName: 'clientPublicKeyECDH')
-    ..aOS(3, _omitFieldNames ? '' : 'deviceModel', protoName: 'deviceModel')
-    ..aI(4, _omitFieldNames ? '' : 'os')
-    ..aOS(5, _omitFieldNames ? '' : 'osVersion', protoName: 'osVersion')
-    ..aOS(6, _omitFieldNames ? '' : 'appVersion', protoName: 'appVersion')
-    ..aOS(7, _omitFieldNames ? '' : 'appBuildNumber',
+    ..aOS(4, _omitFieldNames ? '' : 'deviceModel', protoName: 'deviceModel')
+    ..aI(5, _omitFieldNames ? '' : 'os')
+    ..aOS(6, _omitFieldNames ? '' : 'osVersion', protoName: 'osVersion')
+    ..aOS(7, _omitFieldNames ? '' : 'appVersion', protoName: 'appVersion')
+    ..aOS(8, _omitFieldNames ? '' : 'appBuildNumber',
         protoName: 'appBuildNumber')
     ..hasRequiredFields = false;
 
@@ -694,50 +694,50 @@ class AuthConfirmationRequest extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   void clearClientPublicKeyECDH() => $_clearField(2);
 
-  @$pb.TagNumber(3)
+  @$pb.TagNumber(4)
   $core.String get deviceModel => $_getSZ(2);
-  @$pb.TagNumber(3)
+  @$pb.TagNumber(4)
   set deviceModel($core.String value) => $_setString(2, value);
-  @$pb.TagNumber(3)
+  @$pb.TagNumber(4)
   $core.bool hasDeviceModel() => $_has(2);
-  @$pb.TagNumber(3)
-  void clearDeviceModel() => $_clearField(3);
-
   @$pb.TagNumber(4)
+  void clearDeviceModel() => $_clearField(4);
+
+  @$pb.TagNumber(5)
   $core.int get os => $_getIZ(3);
-  @$pb.TagNumber(4)
+  @$pb.TagNumber(5)
   set os($core.int value) => $_setSignedInt32(3, value);
-  @$pb.TagNumber(4)
+  @$pb.TagNumber(5)
   $core.bool hasOs() => $_has(3);
-  @$pb.TagNumber(4)
-  void clearOs() => $_clearField(4);
-
   @$pb.TagNumber(5)
+  void clearOs() => $_clearField(5);
+
+  @$pb.TagNumber(6)
   $core.String get osVersion => $_getSZ(4);
-  @$pb.TagNumber(5)
+  @$pb.TagNumber(6)
   set osVersion($core.String value) => $_setString(4, value);
-  @$pb.TagNumber(5)
+  @$pb.TagNumber(6)
   $core.bool hasOsVersion() => $_has(4);
-  @$pb.TagNumber(5)
-  void clearOsVersion() => $_clearField(5);
-
   @$pb.TagNumber(6)
+  void clearOsVersion() => $_clearField(6);
+
+  @$pb.TagNumber(7)
   $core.String get appVersion => $_getSZ(5);
-  @$pb.TagNumber(6)
+  @$pb.TagNumber(7)
   set appVersion($core.String value) => $_setString(5, value);
-  @$pb.TagNumber(6)
+  @$pb.TagNumber(7)
   $core.bool hasAppVersion() => $_has(5);
-  @$pb.TagNumber(6)
-  void clearAppVersion() => $_clearField(6);
+  @$pb.TagNumber(7)
+  void clearAppVersion() => $_clearField(7);
 
-  @$pb.TagNumber(7)
+  @$pb.TagNumber(8)
   $core.String get appBuildNumber => $_getSZ(6);
-  @$pb.TagNumber(7)
+  @$pb.TagNumber(8)
   set appBuildNumber($core.String value) => $_setString(6, value);
-  @$pb.TagNumber(7)
+  @$pb.TagNumber(8)
   $core.bool hasAppBuildNumber() => $_has(6);
-  @$pb.TagNumber(7)
-  void clearAppBuildNumber() => $_clearField(7);
+  @$pb.TagNumber(8)
+  void clearAppBuildNumber() => $_clearField(8);
 }
 
 class AuthConfirmationResponse extends $pb.GeneratedMessage {
@@ -745,13 +745,16 @@ class AuthConfirmationResponse extends $pb.GeneratedMessage {
     $core.List<$core.int>? session,
     $core.List<$core.int>? userID,
     $core.String? phoneNumber,
-    $core.List<$core.int>? sharedKeyID,
+    $core.List<$core.int>? sharedSalt,
+    $core.List<$core.int>? sharedSaltSignature,
   }) {
     final result = create();
     if (session != null) result.session = session;
     if (userID != null) result.userID = userID;
     if (phoneNumber != null) result.phoneNumber = phoneNumber;
-    if (sharedKeyID != null) result.sharedKeyID = sharedKeyID;
+    if (sharedSalt != null) result.sharedSalt = sharedSalt;
+    if (sharedSaltSignature != null)
+      result.sharedSaltSignature = sharedSaltSignature;
     return result;
   }
 
@@ -775,8 +778,11 @@ class AuthConfirmationResponse extends $pb.GeneratedMessage {
         protoName: 'userID')
     ..aOS(3, _omitFieldNames ? '' : 'phoneNumber', protoName: 'phoneNumber')
     ..a<$core.List<$core.int>>(
-        4, _omitFieldNames ? '' : 'sharedKeyID', $pb.PbFieldType.OY,
-        protoName: 'sharedKeyID')
+        4, _omitFieldNames ? '' : 'sharedSalt', $pb.PbFieldType.OY,
+        protoName: 'sharedSalt')
+    ..a<$core.List<$core.int>>(
+        5, _omitFieldNames ? '' : 'sharedSaltSignature', $pb.PbFieldType.OY,
+        protoName: 'sharedSaltSignature')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -827,13 +833,22 @@ class AuthConfirmationResponse extends $pb.GeneratedMessage {
   void clearPhoneNumber() => $_clearField(3);
 
   @$pb.TagNumber(4)
-  $core.List<$core.int> get sharedKeyID => $_getN(3);
+  $core.List<$core.int> get sharedSalt => $_getN(3);
   @$pb.TagNumber(4)
-  set sharedKeyID($core.List<$core.int> value) => $_setBytes(3, value);
+  set sharedSalt($core.List<$core.int> value) => $_setBytes(3, value);
   @$pb.TagNumber(4)
-  $core.bool hasSharedKeyID() => $_has(3);
+  $core.bool hasSharedSalt() => $_has(3);
   @$pb.TagNumber(4)
-  void clearSharedKeyID() => $_clearField(4);
+  void clearSharedSalt() => $_clearField(4);
+
+  @$pb.TagNumber(5)
+  $core.List<$core.int> get sharedSaltSignature => $_getN(4);
+  @$pb.TagNumber(5)
+  set sharedSaltSignature($core.List<$core.int> value) => $_setBytes(4, value);
+  @$pb.TagNumber(5)
+  $core.bool hasSharedSaltSignature() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearSharedSaltSignature() => $_clearField(5);
 }
 
 const $core.bool _omitFieldNames =

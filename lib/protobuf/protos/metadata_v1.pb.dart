@@ -192,15 +192,87 @@ class MetadataInfoResponse_ECDH extends $pb.GeneratedMessage {
   void clearFingerprint() => $_clearField(2);
 }
 
+class MetadataInfoResponse_EdDSA extends $pb.GeneratedMessage {
+  factory MetadataInfoResponse_EdDSA({
+    $core.List<$core.int>? publicKey,
+    $core.String? fingerprint,
+  }) {
+    final result = create();
+    if (publicKey != null) result.publicKey = publicKey;
+    if (fingerprint != null) result.fingerprint = fingerprint;
+    return result;
+  }
+
+  MetadataInfoResponse_EdDSA._();
+
+  factory MetadataInfoResponse_EdDSA.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory MetadataInfoResponse_EdDSA.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'MetadataInfoResponse.EdDSA',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'),
+      createEmptyInstance: create)
+    ..a<$core.List<$core.int>>(
+        1, _omitFieldNames ? '' : 'publicKey', $pb.PbFieldType.OY,
+        protoName: 'publicKey')
+    ..aOS(2, _omitFieldNames ? '' : 'fingerprint')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  MetadataInfoResponse_EdDSA clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  MetadataInfoResponse_EdDSA copyWith(
+          void Function(MetadataInfoResponse_EdDSA) updates) =>
+      super.copyWith(
+              (message) => updates(message as MetadataInfoResponse_EdDSA))
+          as MetadataInfoResponse_EdDSA;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static MetadataInfoResponse_EdDSA create() => MetadataInfoResponse_EdDSA._();
+  @$core.override
+  MetadataInfoResponse_EdDSA createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static MetadataInfoResponse_EdDSA getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<MetadataInfoResponse_EdDSA>(create);
+  static MetadataInfoResponse_EdDSA? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.List<$core.int> get publicKey => $_getN(0);
+  @$pb.TagNumber(1)
+  set publicKey($core.List<$core.int> value) => $_setBytes(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasPublicKey() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearPublicKey() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.String get fingerprint => $_getSZ(1);
+  @$pb.TagNumber(2)
+  set fingerprint($core.String value) => $_setString(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasFingerprint() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearFingerprint() => $_clearField(2);
+}
+
 class MetadataInfoResponse extends $pb.GeneratedMessage {
   factory MetadataInfoResponse({
     MetadataInfoResponse_ECDH? ecdh,
+    MetadataInfoResponse_EdDSA? eddsa,
     MetadataInfoResponse_GitCommit? gitCommit,
     $core.String? buildDate,
     $core.String? version,
   }) {
     final result = create();
     if (ecdh != null) result.ecdh = ecdh;
+    if (eddsa != null) result.eddsa = eddsa;
     if (gitCommit != null) result.gitCommit = gitCommit;
     if (buildDate != null) result.buildDate = buildDate;
     if (version != null) result.version = version;
@@ -222,11 +294,13 @@ class MetadataInfoResponse extends $pb.GeneratedMessage {
       createEmptyInstance: create)
     ..aOM<MetadataInfoResponse_ECDH>(1, _omitFieldNames ? '' : 'ecdh',
         subBuilder: MetadataInfoResponse_ECDH.create)
-    ..aOM<MetadataInfoResponse_GitCommit>(2, _omitFieldNames ? '' : 'gitCommit',
+    ..aOM<MetadataInfoResponse_EdDSA>(2, _omitFieldNames ? '' : 'eddsa',
+        subBuilder: MetadataInfoResponse_EdDSA.create)
+    ..aOM<MetadataInfoResponse_GitCommit>(3, _omitFieldNames ? '' : 'gitCommit',
         protoName: 'gitCommit',
         subBuilder: MetadataInfoResponse_GitCommit.create)
-    ..aOS(3, _omitFieldNames ? '' : 'buildDate', protoName: 'buildDate')
-    ..aOS(4, _omitFieldNames ? '' : 'version')
+    ..aOS(4, _omitFieldNames ? '' : 'buildDate', protoName: 'buildDate')
+    ..aOS(5, _omitFieldNames ? '' : 'version')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -260,33 +334,44 @@ class MetadataInfoResponse extends $pb.GeneratedMessage {
   MetadataInfoResponse_ECDH ensureEcdh() => $_ensure(0);
 
   @$pb.TagNumber(2)
-  MetadataInfoResponse_GitCommit get gitCommit => $_getN(1);
+  MetadataInfoResponse_EdDSA get eddsa => $_getN(1);
   @$pb.TagNumber(2)
-  set gitCommit(MetadataInfoResponse_GitCommit value) => $_setField(2, value);
+  set eddsa(MetadataInfoResponse_EdDSA value) => $_setField(2, value);
   @$pb.TagNumber(2)
-  $core.bool hasGitCommit() => $_has(1);
+  $core.bool hasEddsa() => $_has(1);
   @$pb.TagNumber(2)
-  void clearGitCommit() => $_clearField(2);
+  void clearEddsa() => $_clearField(2);
   @$pb.TagNumber(2)
-  MetadataInfoResponse_GitCommit ensureGitCommit() => $_ensure(1);
+  MetadataInfoResponse_EdDSA ensureEddsa() => $_ensure(1);
 
   @$pb.TagNumber(3)
-  $core.String get buildDate => $_getSZ(2);
+  MetadataInfoResponse_GitCommit get gitCommit => $_getN(2);
   @$pb.TagNumber(3)
-  set buildDate($core.String value) => $_setString(2, value);
+  set gitCommit(MetadataInfoResponse_GitCommit value) => $_setField(3, value);
   @$pb.TagNumber(3)
-  $core.bool hasBuildDate() => $_has(2);
+  $core.bool hasGitCommit() => $_has(2);
   @$pb.TagNumber(3)
-  void clearBuildDate() => $_clearField(3);
+  void clearGitCommit() => $_clearField(3);
+  @$pb.TagNumber(3)
+  MetadataInfoResponse_GitCommit ensureGitCommit() => $_ensure(2);
 
   @$pb.TagNumber(4)
-  $core.String get version => $_getSZ(3);
+  $core.String get buildDate => $_getSZ(3);
   @$pb.TagNumber(4)
-  set version($core.String value) => $_setString(3, value);
+  set buildDate($core.String value) => $_setString(3, value);
   @$pb.TagNumber(4)
-  $core.bool hasVersion() => $_has(3);
+  $core.bool hasBuildDate() => $_has(3);
   @$pb.TagNumber(4)
-  void clearVersion() => $_clearField(4);
+  void clearBuildDate() => $_clearField(4);
+
+  @$pb.TagNumber(5)
+  $core.String get version => $_getSZ(4);
+  @$pb.TagNumber(5)
+  set version($core.String value) => $_setString(4, value);
+  @$pb.TagNumber(5)
+  $core.bool hasVersion() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearVersion() => $_clearField(5);
 }
 
 /// GeoIP

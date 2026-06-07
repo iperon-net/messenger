@@ -6,10 +6,16 @@ class Sessions {
 
   Sessions({required this.logger, required this.database});
 
-  Future<void> deleteAndCreate({required List<int> userID, required List<int> session, required List<int> sharedKey}) async {
+  Future<void> deleteAndCreate({
+    required List<int> userID, required List<int> session,
+    required List<int> sharedKey, required List<int> sharedSalt,
+  }) async {
     database.execute("BEGIN;");
     database.execute("DELETE FROM sessions WHERE userID = ?;", [userID]);
-    database.execute("INSERT INTO sessions (userID, session, sharedKey, isActive) VALUES(?, ?, ?, 1);", [userID, session, sharedKey]);
+    database.execute(
+        "INSERT INTO sessions (userID, session, sharedKey, sharedSalt, isActive) VALUES(?, ?, ?, ?, 1);",
+        [userID, session, sharedKey, sharedSalt]
+    );
     database.select("COMMIT;");
   }
 

@@ -60,30 +60,21 @@ message AuthSMSCheckResponse {
 }
 
 
-// OAuthYandex
-//message OAuthYandexRequest {
-//  string accessToken = 1;
-//}
-//
-//message OAuthYandexResponse {
-//  bytes confirmationSession = 1;
-//}
-
-
 // Confirmation
 message AuthConfirmationRequest {
   bytes confirmationSession = 1;
   bytes clientPublicKeyECDH = 2;
-  string deviceModel = 3;
-  int32 os = 4;
-  string osVersion = 5;
-  string appVersion = 6;
-  string appBuildNumber = 7;
+  string deviceModel = 4;
+  int32 os = 5;
+  string osVersion = 6;
+  string appVersion = 7;
+  string appBuildNumber = 8;
 }
 
 message AuthConfirmationResponse {
   bytes session = 1;
   bytes userID = 2;
   string phoneNumber = 3;
-  bytes sharedKeyID = 4;
+  bytes sharedSalt = 4;
+  bytes sharedSaltSignature = 5;
 }

@@ -6,7 +6,7 @@ part 'settings.g.dart';
 @Envied(path: '.env')
 class Settings {
 
-  @EnviedField(varName: 'DATABASE_NAME',  defaultValue: 'iperon.db')
+  @EnviedField(varName: 'DATABASE_NAME', defaultValue: 'iperon.db')
   static const String databaseName = _Settings.databaseName;
 
   @EnviedField(varName: 'IS_DELETE_DATABASE', defaultValue: false)
@@ -18,11 +18,18 @@ class Settings {
   @EnviedField(varName: 'PUBLIC_KEY_ECDH_FINGERPRINT')
   static const String publicKeyECDHFingerprint = _Settings.publicKeyECDHFingerprint;
 
+  @EnviedField(varName: 'PUBLIC_KEY_EdDSA_FINGERPRINT')
+  static const String publicKeyEdDSAFingerprint = _Settings.publicKeyEdDSAFingerprint;
+
   @EnviedField(varName: 'YANDEX_OAUTH_CLIENT_ID')
   static const String yandexOauthClientId = _Settings.yandexOauthClientId;
 
   @EnviedField(varName: 'PHONE_NUMBER_MODERATION_APPLICATION_STORE')
   static const String phoneNumberModerationApplicationStore = _Settings.phoneNumberModerationApplicationStore;
+
+  @EnviedField(varName: 'API_HOST', defaultValue: 'api.iperon.net')
+  static const String apiHost = _Settings.apiHost;
+
 }
 
 

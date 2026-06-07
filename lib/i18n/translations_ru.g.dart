@@ -44,6 +44,7 @@ class TranslationsRu extends Translations with BaseTranslations<AppLocale, Trans
 	@override String get logs => 'Логи';
 	@override String get organizationServerUrl => 'URL-адрес сервера организации';
 	@override String get organizationServerUrlHelper => 'URL-адрес вы можете уточнить у администратора организации';
+	@override String get encryptionSynchronizationError => 'Ошибка синхронизации шифрования';
 	@override String get next => 'Далее';
 	@override String get invalidOrganizationServerUrl => 'Неверный URL-адрес сервера организации';
 	@override String get serverNotSupportAppVersion => 'Сервер не поддерживает данную версию приложения';
@@ -107,6 +108,7 @@ extension on TranslationsRu {
 			'logs' => 'Логи',
 			'organizationServerUrl' => 'URL-адрес сервера организации',
 			'organizationServerUrlHelper' => 'URL-адрес вы можете уточнить у администратора организации',
+			'encryptionSynchronizationError' => 'Ошибка синхронизации шифрования',
 			'next' => 'Далее',
 			'invalidOrganizationServerUrl' => 'Неверный URL-адрес сервера организации',
 			'serverNotSupportAppVersion' => 'Сервер не поддерживает данную версию приложения',
