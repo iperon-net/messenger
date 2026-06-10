@@ -5,7 +5,7 @@ import 'package:messenger/cubit/main_cubit.dart';
 import 'package:messenger/cubit/main_state.dart';
 
 import '../../i18n/translations.g.dart';
-import '../../models/models.dart';
+import '../../models.dart';
 import 'settings_appearance_cubit.dart';
 
 class SettingsAppearanceScreenCupertino extends StatefulWidget {

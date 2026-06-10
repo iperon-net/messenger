@@ -3,7 +3,7 @@ import 'package:permission_handler/permission_handler.dart';
 
 import '../constants.dart';
 import '../i18n/translations.g.dart';
-import '../models/models.dart';
+import '../models.dart';
 import 'main_state.dart';
 
 class MainCubit extends Cubit<MainState> {

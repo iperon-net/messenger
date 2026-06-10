@@ -12,7 +12,7 @@ import 'cubit/main_state.dart';
 import 'di.dart';
 import 'i18n/translations.g.dart';
 import 'logger.dart';
-import 'models/models.dart' as models;
+import 'models.dart' as models;
 import 'repositories/repositories.dart';
 import 'routers.dart';
 import 'screens/auth/auth_callpassword_cubit.dart';

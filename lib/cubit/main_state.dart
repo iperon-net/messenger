@@ -2,7 +2,7 @@ import 'package:dart_mappable/dart_mappable.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import '../constants.dart';
-import '../models/models.dart';
+import '../models.dart';
 
 part 'main_state.mapper.dart';
 

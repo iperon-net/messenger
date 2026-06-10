@@ -11,7 +11,7 @@ import 'package:sqlite3/sqlite3.dart';
 import '../di.dart';
 import '../i18n/translations.g.dart';
 import '../logger.dart';
-import '../models/models.dart' as models;
+import '../models.dart' as models;
 import '../settings.dart';
 
 part "settings_device.dart";
