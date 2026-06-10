@@ -20,7 +20,7 @@ class Sessions {
   }
 
   Future<models.Session> getActive() async {
-    final sqlSession = database.select("SELECT userID, session, sharedKey, isActive FROM sessions WHERE isActive = 1;");
+    final sqlSession = database.select("SELECT userID, session, sharedKey, sharedSalt, isActive FROM sessions WHERE isActive = 1;");
     if (sqlSession.isEmpty) return models.Session();
     return models.SessionMapper.fromMap(sqlSession.first);
   }

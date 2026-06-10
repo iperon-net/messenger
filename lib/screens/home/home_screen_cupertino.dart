@@ -2,6 +2,7 @@ import 'package:badges/badges.dart' as badges;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:messenger/syncer.dart';
 
 import '../../di.dart';
 import '../../i18n/translations.g.dart';
@@ -17,16 +18,34 @@ class HomeCupertinoScreen extends StatefulWidget {
 
 class _HomeCupertinoScreen extends State<HomeCupertinoScreen> {
   final logger = getIt.get<Logger>();
+  final syncer = getIt.get<Syncer>();
 
   final formKey = GlobalKey<FormState>();
 
   @override
   void initState() {
     super.initState();
+
+    syncer.connect(context);
+
+    AppLifecycleListener(
+      onStateChange: (AppLifecycleState state) {
+        logger.debug("AppLifecycleListener state = $state");
+
+        if (state == AppLifecycleState.inactive) {
+          syncer.dispose();
+        } else if (state == AppLifecycleState.resumed) {
+          syncer.connect(context);
+        }
+
+      },
+    );
+    logger.debug("initState");
   }
 
   @override
   void dispose() {
+    syncer.dispose();
     super.dispose();
   }
 

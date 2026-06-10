@@ -7,6 +7,7 @@ import 'package:uuid/uuid.dart';
 
 import 'protobuf/protos/auth_v1.pbgrpc.dart';
 import 'protobuf/protos/metadata_v1.pbgrpc.dart';
+import 'protobuf/protos/syncer_v1.pbgrpc.dart';
 import 'settings.dart';
 
 class API {
@@ -15,6 +16,7 @@ class API {
   late ClientChannel _clientChannel;
   late AuthClient auth;
   late MetadataClient metadata;
+  late SyncerClient syncer;
   late String version;
 
   final uuid = Uuid();
@@ -46,6 +48,7 @@ class API {
 
     auth = AuthClient(_clientChannel);
     metadata = MetadataClient(_clientChannel);
+    syncer = SyncerClient(_clientChannel);
 
     _logger.info("api initialization");
   }
