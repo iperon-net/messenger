@@ -7,7 +7,7 @@ import 'package:messenger/syncer.dart';
 import '../../di.dart';
 import '../../i18n/translations.g.dart';
 import '../../logger.dart';
-import '../screens.dart';
+import '../../screens.dart';
 
 class HomeCupertinoScreen extends StatefulWidget {
   const HomeCupertinoScreen({super.key});

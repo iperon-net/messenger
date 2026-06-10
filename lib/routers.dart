@@ -9,7 +9,7 @@ import 'package:messenger/repositories/repositories.dart';
 
 import 'di.dart';
 import 'logger.dart';
-import 'screens/screens.dart';
+import 'screens.dart';
 
 class Routers {
   final logger = getIt.get<Logger>();

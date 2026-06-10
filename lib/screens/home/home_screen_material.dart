@@ -7,7 +7,7 @@ import 'package:messenger/screens/home/home_state.dart';
 import '../../di.dart';
 import '../../i18n/translations.g.dart';
 import '../../logger.dart';
-import '../screens.dart';
+import '../../screens.dart';
 
 class HomeMaterialScreen extends StatefulWidget {
   const HomeMaterialScreen({super.key});
