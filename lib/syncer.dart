@@ -64,7 +64,9 @@ class Syncer {
           message: Uint8List.fromList(data.message),
         );
 
-        _logger.debug("messageByte=$messageByte");
+        final proto = message.AuthResponse.fromBuffer(messageByte);
+        _logger.debug("serverAt=${proto.serverAt.seconds}");
+
         _logger.debug("Получено=${data.message}");
       },
       onError: (err) {

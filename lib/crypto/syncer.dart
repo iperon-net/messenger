@@ -98,10 +98,47 @@ class Syncer {
   }
 
   Future<List<int>> decode({required models.Session session, required Uint8List message}) async {
-    final headerParse = await this.headerParse(message);
-    logger.debug(headerParse);
+    final headerPadding = message.sublist(0, 128);
+    final header = await headerParse(message);
 
-    return [];
+    final sharedKeyHkdf = await algorithmHkdf.deriveKey(
+      secretKey: SecretKey(session.sharedKey),
+      nonce: session.sharedSalt,
+      info: headerPadding,
+    );
+
+    final encryptedData = message.sublist(128);
+    final cipherText = encryptedData.sublist(0, encryptedData.length - 16);
+    final macBytes = encryptedData.sublist(encryptedData.length - 16);
+
+    final secretBox = SecretBox(
+      cipherText,
+      nonce: header.nonce,
+      mac: Mac(macBytes),
+    );
+
+    final decrypted = await algorithmAesGcm.decrypt(
+      secretBox,
+      secretKey: sharedKeyHkdf,
+      aad: headerPadding,
+    );
+
+    final hashSha256 = await algorithmSha256.hash(Uint8List.fromList(decrypted));
+    if (!_listEquals(hashSha256.bytes, header.sha256)) {
+      throw Exception('syncer: sha256 mismatch');
+    }
+
+    logger.debug(decrypted);
+
+    return decrypted;
+  }
+
+  bool _listEquals(List<int> a, List<int> b) {
+    if (a.length != b.length) return false;
+    for (int i = 0; i < a.length; i++) {
+      if (a[i] != b[i]) return false;
+    }
+    return true;
   }
 
    Future<Header> headerParse(Uint8List dataBytes) async {
