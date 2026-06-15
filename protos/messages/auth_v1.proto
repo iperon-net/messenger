@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package iperon.v1;
+option go_package = "internal/api/messages";
+
+import "google/protobuf/timestamp.proto";
+
+message AuthRequest {
+  bytes session = 1;
+}
+
+message AuthResponse {
+  google.protobuf.Timestamp server_at = 2;
+}
+

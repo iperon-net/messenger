@@ -1,15 +1,17 @@
 
 import 'dart:async';
+import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:flutter/widgets.dart';
-import 'package:messenger/protobuf/protos/messages/pub_sub_v1.pb.dart';
+import 'package:grpc/grpc.dart';
+import 'package:messenger/crypto/crypto.dart';
 
 import 'api.dart';
-import 'crypto.dart';
 import 'di.dart';
 import 'logger.dart';
 import 'models/session.dart' as models;
+import 'protobuf/messages.dart' as message;
 import 'protobuf/protos/syncer_v1.pb.dart';
 import 'repositories/repositories.dart';
 
@@ -18,6 +20,7 @@ class Syncer {
   final _api = getIt.get<API>();
   final _repositories = getIt.get<Repositories>();
   final _crypto = getIt.get<Crypto>();
+  final _random = Random();
 
   late StreamController<SyncerMessageRequest> _controller;
   late StreamSubscription<SyncerMessageResponse> _subscription;
@@ -35,8 +38,12 @@ class Syncer {
     _controller = StreamController<SyncerMessageRequest>(
       onListen: () async {
 
-        final message = PubSubUser(user: true).writeToBuffer();
-        final messageByte = await _crypto.syncer.encode(session: session, message: message);
+        final messageByte = await _crypto.syncer.encode(
+          session: session,
+          message: message.AuthRequest(session: session.session).writeToBuffer(),
+          messageType: MessageType.authRequest,
+          seq: _random.nextInt(512) * 2 + 1,
+        );
         _controller.add(SyncerMessageRequest(message: messageByte));
 
         _logger.debug("Syncer Подписчик подключился");
@@ -51,22 +58,28 @@ class Syncer {
       options: await _api.callOptions(timeout: 3600),
     );
 
-    _subscription = response.listen((SyncerMessageResponse data) {
-        _logger.debug("Получено $data");
+    _subscription = response.listen((SyncerMessageResponse data) async {
+        final messageByte = await _crypto.syncer.decode(
+          session: session,
+          message: Uint8List.fromList(data.message),
+        );
+
+        _logger.debug("messageByte=$messageByte");
+        _logger.debug("Получено=${data.message}");
       },
       onError: (err) {
-        _logger.error("syncer stream error: $err");
+        _logger.error("syncer stream error: $err, рестарт коннекта");
       },
       onDone: () {
-        _logger.debug("syncer stream closed");
+        _logger.debug("syncer stream closed рестарт коннекта");
       },
       cancelOnError: true,
     );
   }
 
   Future<void> send(BuildContext context, {required models.Session session, required Uint8List message}) async {
-    final messageByte = await _crypto.syncer.encode(session: session, message: message);
-    _controller.add(SyncerMessageRequest(message: messageByte));
+    // final messageByte = await _crypto.syncer.encode(session: session, message: message, messageType: MessageType.userInfoRequest, seq: 1);
+    // _controller.add(SyncerMessageRequest(message: messageByte));
   }
 
   void pause() {

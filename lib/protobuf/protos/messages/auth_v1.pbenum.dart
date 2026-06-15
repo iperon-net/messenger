@@ -1,6 +1,6 @@
 // This is a generated file - do not edit.
 //
-// Generated from protos/messages/pub_sub_v1.proto.
+// Generated from protos/messages/auth_v1.proto.
 
 // @dart = 3.3
 
