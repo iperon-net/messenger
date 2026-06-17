@@ -63,7 +63,10 @@ message AuthSMSCheckResponse {
 // Confirmation
 message AuthConfirmationRequest {
   bytes confirmationSession = 1;
-  bytes clientPublicKeyECDH = 2;
+
+  bytes cipherTextSharedKey = 2;
+  bytes cipherTextSalt = 3;
+
   string deviceModel = 4;
   int32 os = 5;
   string osVersion = 6;
@@ -73,8 +76,14 @@ message AuthConfirmationRequest {
 
 message AuthConfirmationResponse {
   bytes session = 1;
-  bytes userID = 2;
-  string phoneNumber = 3;
-  bytes sharedSalt = 4;
-  bytes sharedSaltSignature = 5;
+
+  bytes cipherTextSharedKey = 2;
+  bytes cipherTextSalt = 3;
+
+  bytes signatureSharedKey = 4;
+  bytes signatureSalt = 5;
+
+  bytes userID = 6;
+  string phoneNumber = 7;
+
 }

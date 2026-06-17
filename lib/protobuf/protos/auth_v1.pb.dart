@@ -609,7 +609,8 @@ class AuthSMSCheckResponse extends $pb.GeneratedMessage {
 class AuthConfirmationRequest extends $pb.GeneratedMessage {
   factory AuthConfirmationRequest({
     $core.List<$core.int>? confirmationSession,
-    $core.List<$core.int>? clientPublicKeyECDH,
+    $core.List<$core.int>? cipherTextSharedKey,
+    $core.List<$core.int>? cipherTextSalt,
     $core.String? deviceModel,
     $core.int? os,
     $core.String? osVersion,
@@ -619,8 +620,9 @@ class AuthConfirmationRequest extends $pb.GeneratedMessage {
     final result = create();
     if (confirmationSession != null)
       result.confirmationSession = confirmationSession;
-    if (clientPublicKeyECDH != null)
-      result.clientPublicKeyECDH = clientPublicKeyECDH;
+    if (cipherTextSharedKey != null)
+      result.cipherTextSharedKey = cipherTextSharedKey;
+    if (cipherTextSalt != null) result.cipherTextSalt = cipherTextSalt;
     if (deviceModel != null) result.deviceModel = deviceModel;
     if (os != null) result.os = os;
     if (osVersion != null) result.osVersion = osVersion;
@@ -646,8 +648,11 @@ class AuthConfirmationRequest extends $pb.GeneratedMessage {
         1, _omitFieldNames ? '' : 'confirmationSession', $pb.PbFieldType.OY,
         protoName: 'confirmationSession')
     ..a<$core.List<$core.int>>(
-        2, _omitFieldNames ? '' : 'clientPublicKeyECDH', $pb.PbFieldType.OY,
-        protoName: 'clientPublicKeyECDH')
+        2, _omitFieldNames ? '' : 'cipherTextSharedKey', $pb.PbFieldType.OY,
+        protoName: 'cipherTextSharedKey')
+    ..a<$core.List<$core.int>>(
+        3, _omitFieldNames ? '' : 'cipherTextSalt', $pb.PbFieldType.OY,
+        protoName: 'cipherTextSalt')
     ..aOS(4, _omitFieldNames ? '' : 'deviceModel', protoName: 'deviceModel')
     ..aI(5, _omitFieldNames ? '' : 'os')
     ..aOS(6, _omitFieldNames ? '' : 'osVersion', protoName: 'osVersion')
@@ -686,56 +691,65 @@ class AuthConfirmationRequest extends $pb.GeneratedMessage {
   void clearConfirmationSession() => $_clearField(1);
 
   @$pb.TagNumber(2)
-  $core.List<$core.int> get clientPublicKeyECDH => $_getN(1);
+  $core.List<$core.int> get cipherTextSharedKey => $_getN(1);
   @$pb.TagNumber(2)
-  set clientPublicKeyECDH($core.List<$core.int> value) => $_setBytes(1, value);
+  set cipherTextSharedKey($core.List<$core.int> value) => $_setBytes(1, value);
   @$pb.TagNumber(2)
-  $core.bool hasClientPublicKeyECDH() => $_has(1);
+  $core.bool hasCipherTextSharedKey() => $_has(1);
   @$pb.TagNumber(2)
-  void clearClientPublicKeyECDH() => $_clearField(2);
+  void clearCipherTextSharedKey() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.List<$core.int> get cipherTextSalt => $_getN(2);
+  @$pb.TagNumber(3)
+  set cipherTextSalt($core.List<$core.int> value) => $_setBytes(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasCipherTextSalt() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearCipherTextSalt() => $_clearField(3);
 
   @$pb.TagNumber(4)
-  $core.String get deviceModel => $_getSZ(2);
+  $core.String get deviceModel => $_getSZ(3);
   @$pb.TagNumber(4)
-  set deviceModel($core.String value) => $_setString(2, value);
+  set deviceModel($core.String value) => $_setString(3, value);
   @$pb.TagNumber(4)
-  $core.bool hasDeviceModel() => $_has(2);
+  $core.bool hasDeviceModel() => $_has(3);
   @$pb.TagNumber(4)
   void clearDeviceModel() => $_clearField(4);
 
   @$pb.TagNumber(5)
-  $core.int get os => $_getIZ(3);
+  $core.int get os => $_getIZ(4);
   @$pb.TagNumber(5)
-  set os($core.int value) => $_setSignedInt32(3, value);
+  set os($core.int value) => $_setSignedInt32(4, value);
   @$pb.TagNumber(5)
-  $core.bool hasOs() => $_has(3);
+  $core.bool hasOs() => $_has(4);
   @$pb.TagNumber(5)
   void clearOs() => $_clearField(5);
 
   @$pb.TagNumber(6)
-  $core.String get osVersion => $_getSZ(4);
+  $core.String get osVersion => $_getSZ(5);
   @$pb.TagNumber(6)
-  set osVersion($core.String value) => $_setString(4, value);
+  set osVersion($core.String value) => $_setString(5, value);
   @$pb.TagNumber(6)
-  $core.bool hasOsVersion() => $_has(4);
+  $core.bool hasOsVersion() => $_has(5);
   @$pb.TagNumber(6)
   void clearOsVersion() => $_clearField(6);
 
   @$pb.TagNumber(7)
-  $core.String get appVersion => $_getSZ(5);
+  $core.String get appVersion => $_getSZ(6);
   @$pb.TagNumber(7)
-  set appVersion($core.String value) => $_setString(5, value);
+  set appVersion($core.String value) => $_setString(6, value);
   @$pb.TagNumber(7)
-  $core.bool hasAppVersion() => $_has(5);
+  $core.bool hasAppVersion() => $_has(6);
   @$pb.TagNumber(7)
   void clearAppVersion() => $_clearField(7);
 
   @$pb.TagNumber(8)
-  $core.String get appBuildNumber => $_getSZ(6);
+  $core.String get appBuildNumber => $_getSZ(7);
   @$pb.TagNumber(8)
-  set appBuildNumber($core.String value) => $_setString(6, value);
+  set appBuildNumber($core.String value) => $_setString(7, value);
   @$pb.TagNumber(8)
-  $core.bool hasAppBuildNumber() => $_has(6);
+  $core.bool hasAppBuildNumber() => $_has(7);
   @$pb.TagNumber(8)
   void clearAppBuildNumber() => $_clearField(8);
 }
@@ -743,18 +757,23 @@ class AuthConfirmationRequest extends $pb.GeneratedMessage {
 class AuthConfirmationResponse extends $pb.GeneratedMessage {
   factory AuthConfirmationResponse({
     $core.List<$core.int>? session,
+    $core.List<$core.int>? cipherTextSharedKey,
+    $core.List<$core.int>? cipherTextSalt,
+    $core.List<$core.int>? signatureSharedKey,
+    $core.List<$core.int>? signatureSalt,
     $core.List<$core.int>? userID,
     $core.String? phoneNumber,
-    $core.List<$core.int>? sharedSalt,
-    $core.List<$core.int>? sharedSaltSignature,
   }) {
     final result = create();
     if (session != null) result.session = session;
+    if (cipherTextSharedKey != null)
+      result.cipherTextSharedKey = cipherTextSharedKey;
+    if (cipherTextSalt != null) result.cipherTextSalt = cipherTextSalt;
+    if (signatureSharedKey != null)
+      result.signatureSharedKey = signatureSharedKey;
+    if (signatureSalt != null) result.signatureSalt = signatureSalt;
     if (userID != null) result.userID = userID;
     if (phoneNumber != null) result.phoneNumber = phoneNumber;
-    if (sharedSalt != null) result.sharedSalt = sharedSalt;
-    if (sharedSaltSignature != null)
-      result.sharedSaltSignature = sharedSaltSignature;
     return result;
   }
 
@@ -774,15 +793,21 @@ class AuthConfirmationResponse extends $pb.GeneratedMessage {
     ..a<$core.List<$core.int>>(
         1, _omitFieldNames ? '' : 'session', $pb.PbFieldType.OY)
     ..a<$core.List<$core.int>>(
-        2, _omitFieldNames ? '' : 'userID', $pb.PbFieldType.OY,
+        2, _omitFieldNames ? '' : 'cipherTextSharedKey', $pb.PbFieldType.OY,
+        protoName: 'cipherTextSharedKey')
+    ..a<$core.List<$core.int>>(
+        3, _omitFieldNames ? '' : 'cipherTextSalt', $pb.PbFieldType.OY,
+        protoName: 'cipherTextSalt')
+    ..a<$core.List<$core.int>>(
+        4, _omitFieldNames ? '' : 'signatureSharedKey', $pb.PbFieldType.OY,
+        protoName: 'signatureSharedKey')
+    ..a<$core.List<$core.int>>(
+        5, _omitFieldNames ? '' : 'signatureSalt', $pb.PbFieldType.OY,
+        protoName: 'signatureSalt')
+    ..a<$core.List<$core.int>>(
+        6, _omitFieldNames ? '' : 'userID', $pb.PbFieldType.OY,
         protoName: 'userID')
-    ..aOS(3, _omitFieldNames ? '' : 'phoneNumber', protoName: 'phoneNumber')
-    ..a<$core.List<$core.int>>(
-        4, _omitFieldNames ? '' : 'sharedSalt', $pb.PbFieldType.OY,
-        protoName: 'sharedSalt')
-    ..a<$core.List<$core.int>>(
-        5, _omitFieldNames ? '' : 'sharedSaltSignature', $pb.PbFieldType.OY,
-        protoName: 'sharedSaltSignature')
+    ..aOS(7, _omitFieldNames ? '' : 'phoneNumber', protoName: 'phoneNumber')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -815,40 +840,58 @@ class AuthConfirmationResponse extends $pb.GeneratedMessage {
   void clearSession() => $_clearField(1);
 
   @$pb.TagNumber(2)
-  $core.List<$core.int> get userID => $_getN(1);
+  $core.List<$core.int> get cipherTextSharedKey => $_getN(1);
   @$pb.TagNumber(2)
-  set userID($core.List<$core.int> value) => $_setBytes(1, value);
+  set cipherTextSharedKey($core.List<$core.int> value) => $_setBytes(1, value);
   @$pb.TagNumber(2)
-  $core.bool hasUserID() => $_has(1);
+  $core.bool hasCipherTextSharedKey() => $_has(1);
   @$pb.TagNumber(2)
-  void clearUserID() => $_clearField(2);
+  void clearCipherTextSharedKey() => $_clearField(2);
 
   @$pb.TagNumber(3)
-  $core.String get phoneNumber => $_getSZ(2);
+  $core.List<$core.int> get cipherTextSalt => $_getN(2);
   @$pb.TagNumber(3)
-  set phoneNumber($core.String value) => $_setString(2, value);
+  set cipherTextSalt($core.List<$core.int> value) => $_setBytes(2, value);
   @$pb.TagNumber(3)
-  $core.bool hasPhoneNumber() => $_has(2);
+  $core.bool hasCipherTextSalt() => $_has(2);
   @$pb.TagNumber(3)
-  void clearPhoneNumber() => $_clearField(3);
+  void clearCipherTextSalt() => $_clearField(3);
 
   @$pb.TagNumber(4)
-  $core.List<$core.int> get sharedSalt => $_getN(3);
+  $core.List<$core.int> get signatureSharedKey => $_getN(3);
   @$pb.TagNumber(4)
-  set sharedSalt($core.List<$core.int> value) => $_setBytes(3, value);
+  set signatureSharedKey($core.List<$core.int> value) => $_setBytes(3, value);
   @$pb.TagNumber(4)
-  $core.bool hasSharedSalt() => $_has(3);
+  $core.bool hasSignatureSharedKey() => $_has(3);
   @$pb.TagNumber(4)
-  void clearSharedSalt() => $_clearField(4);
+  void clearSignatureSharedKey() => $_clearField(4);
 
   @$pb.TagNumber(5)
-  $core.List<$core.int> get sharedSaltSignature => $_getN(4);
+  $core.List<$core.int> get signatureSalt => $_getN(4);
   @$pb.TagNumber(5)
-  set sharedSaltSignature($core.List<$core.int> value) => $_setBytes(4, value);
+  set signatureSalt($core.List<$core.int> value) => $_setBytes(4, value);
   @$pb.TagNumber(5)
-  $core.bool hasSharedSaltSignature() => $_has(4);
+  $core.bool hasSignatureSalt() => $_has(4);
   @$pb.TagNumber(5)
-  void clearSharedSaltSignature() => $_clearField(5);
+  void clearSignatureSalt() => $_clearField(5);
+
+  @$pb.TagNumber(6)
+  $core.List<$core.int> get userID => $_getN(5);
+  @$pb.TagNumber(6)
+  set userID($core.List<$core.int> value) => $_setBytes(5, value);
+  @$pb.TagNumber(6)
+  $core.bool hasUserID() => $_has(5);
+  @$pb.TagNumber(6)
+  void clearUserID() => $_clearField(6);
+
+  @$pb.TagNumber(7)
+  $core.String get phoneNumber => $_getSZ(6);
+  @$pb.TagNumber(7)
+  set phoneNumber($core.String value) => $_setString(6, value);
+  @$pb.TagNumber(7)
+  $core.bool hasPhoneNumber() => $_has(6);
+  @$pb.TagNumber(7)
+  void clearPhoneNumber() => $_clearField(7);
 }
 
 const $core.bool _omitFieldNames =

@@ -17,21 +17,16 @@ message MetadataInfoResponse {
     string short = 2;
   }
 
-  message ECDH {
-    bytes publicKey = 1;
-    string fingerprint = 2;
-  }
-
   message EdDSA {
     bytes publicKey = 1;
     string fingerprint = 2;
   }
-  
-  ECDH ecdh = 1;
+
   EdDSA eddsa = 2;
-  GitCommit gitCommit = 3;
-  string buildDate = 4;
-  string version = 5;
+
+  GitCommit gitCommit = 4;
+  string buildDate = 5;
+  string version = 6;
 }
 
 // GeoIP

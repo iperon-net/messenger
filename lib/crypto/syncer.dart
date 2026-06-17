@@ -47,13 +47,15 @@ class Header {
 
 }
 
-
 class Syncer {
   final algorithmSha256 = Sha256();
   final algorithmAesGcm = AesGcm.with256bits();
   final algorithmHkdf = Hkdf(hmac: Hmac.sha256(), outputLength: 32);
 
   final logger = getIt.get<Logger>();
+
+  // Future<List<int>> encodeProto({required models.Session session, required Uint8List message, required MessageType messageType, required int seq}) async {
+  // }
 
   Future<List<int>> encode({required models.Session session, required Uint8List message, required MessageType messageType, required int seq}) async {
     final timestamp = DateTime.now().millisecondsSinceEpoch;

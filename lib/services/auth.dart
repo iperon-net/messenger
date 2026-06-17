@@ -24,6 +24,8 @@ class Auth {
   final _utils = getIt.get<Utils>();
   final _repositories = getIt.get<Repositories>();
 
+  final ed25519 = Ed25519();
+
   Future<ServiceResponse<bool>> confirmation({required List<int> confirmationSession}) async {
 
     late MetadataInfoResponse metadataInfoResponse;
@@ -38,13 +40,13 @@ class Auth {
     }
 
     // Check fingerprint public key
-    final algorithmSHA256 = Sha256();
-    final hashECDH = await algorithmSHA256.hash(metadataInfoResponse.ecdh.publicKey);
-    if (Settings.publicKeyECDHFingerprint != _utils.toHex(hashECDH.bytes)) {
-      return ServiceResponse<bool>(data: false, error: "signatureVerificationError");
-    }
-
-    final (sharedSecretKey, clientPublicKey) = await _crypto.sharedSecretKey(serverPublicKey: metadataInfoResponse.ecdh.publicKey);
+    // final algorithmSHA256 = Sha256();
+    // final hashECDH = await algorithmSHA256.hash(metadataInfoResponse.ecdh.publicKey);
+    // if (Settings.publicKeyECDHFingerprint != _utils.toHex(hashECDH.bytes)) {
+    //   return ServiceResponse<bool>(data: false, error: "signatureVerificationError");
+    // }
+    //
+    // final (sharedSecretKey, clientPublicKey) = await _crypto.sharedSecretKey(serverPublicKey: metadataInfoResponse.ecdh.publicKey);
 
     final packageInfo = await _utils.packageInfo();
     final deviceInfo = await _utils.deviceInfo();
@@ -56,11 +58,17 @@ class Auth {
       os = 2;
     }
 
+    final kem = PqcKem.kyber768;
+
+    final (publicKeyMLKem768, cipherTextSharedKey) = kem.generateKeyPair();
+    final (publicKeySaltMLKem768, cipherTextSalt) = kem.generateKeyPair();
+
     late AuthConfirmationResponse authConfirmationResponse;
     final authConfirmationResponseError = await _api.call(() async {
       final req = AuthConfirmationRequest(
         confirmationSession: confirmationSession,
-        clientPublicKeyECDH: clientPublicKey.bytes,
+        cipherTextSharedKey: publicKeyMLKem768,
+        cipherTextSalt: publicKeySaltMLKem768,
         deviceModel: deviceInfo.deviceModel,
         os: os,
         osVersion: deviceInfo.osVersion,
@@ -69,41 +77,47 @@ class Auth {
       );
       authConfirmationResponse = await _api.auth.confirmation(req, options: await _api.callOptions());
     });
+
     if (authConfirmationResponseError.isNotEmpty){
       _logger.error(authConfirmationResponseError);
       return ServiceResponse<bool>(data: false, error: authConfirmationResponseError);
     }
 
-    // EdDSA
-    final hashEdDA = await algorithmSHA256.hash(metadataInfoResponse.eddsa.publicKey);
-    if (Settings.publicKeyEdDSAFingerprint != _utils.toHex(hashEdDA.bytes)) {
+    final sharedKey = kem.decapsulate(cipherTextSharedKey, Uint8List.fromList(authConfirmationResponse.cipherTextSharedKey));
+    final salt = kem.decapsulate(cipherTextSalt,  Uint8List.fromList(authConfirmationResponse.cipherTextSalt));
+
+    final checkSharedKey = await ed25519.verify(
+      authConfirmationResponse.cipherTextSharedKey,
+      signature: Signature(
+        authConfirmationResponse.signatureSharedKey,
+        publicKey: SimplePublicKey(metadataInfoResponse.eddsa.publicKey, type: KeyPairType.ed25519),
+      ),
+    );
+
+    final checkSharedSalt = await ed25519.verify(
+      authConfirmationResponse.cipherTextSalt,
+      signature: Signature(
+        authConfirmationResponse.signatureSalt,
+        publicKey: SimplePublicKey(metadataInfoResponse.eddsa.publicKey, type: KeyPairType.ed25519),
+      ),
+    );
+
+    if (!checkSharedKey || !checkSharedSalt) {
+      _logger.error("Signature verification error");
       return ServiceResponse<bool>(data: false, error: "signatureVerificationError");
     }
 
-    final edDsaPublicKey = SimplePublicKey(metadataInfoResponse.eddsa.publicKey, type: KeyPairType.ed25519);
-    final signature = Signature(authConfirmationResponse.sharedSaltSignature, publicKey: edDsaPublicKey);
-    final ed25519 = Ed25519();
-
-    if (!await ed25519.verify(authConfirmationResponse.sharedSalt, signature: signature)){
-      return ServiceResponse<bool>(data: false, error: "encryptionSynchronizationError");
-    }
-
-    //
-    final sharedKey = await sharedSecretKey.extract();
-    final sharedSalt = authConfirmationResponse.sharedSalt;
-
-    await _repositories.users.createOrUpdate(
-      userID: authConfirmationResponse.userID,
-      phoneNumber: authConfirmationResponse.phoneNumber,
-    );
+    // Create user or update
+    await _repositories.users.createOrUpdate(userID: authConfirmationResponse.userID, phoneNumber: authConfirmationResponse.phoneNumber);
 
     await _repositories.sessions.deleteAndCreate(
       userID: authConfirmationResponse.userID,
       session: authConfirmationResponse.session,
-      sharedKey: await sharedKey.extractBytes(),
-      sharedSalt: sharedSalt,
+      sharedKey: sharedKey,
+      sharedSalt: salt,
     );
 
+    _logger.info("ok!");
     return ServiceResponse<bool>(data: true);
   }
 

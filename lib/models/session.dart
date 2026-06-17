@@ -1,4 +1,5 @@
 import 'package:dart_mappable/dart_mappable.dart';
+import 'package:objectid/objectid.dart';
 
 import 'mapper.dart';
 
@@ -19,5 +20,14 @@ class Session with SessionMappable {
     this.sharedSalt = const [],
     this.isActive = false,
   });
+
+  ObjectId getUserIDObjectID() {
+    return ObjectId.fromBytes(userID);
+  }
+
+  @override
+  String toString() {
+    return "session=$session userID=$userID, sharedKey=$sharedKey, sharedSalt=$sharedSalt";
+  }
 
 }

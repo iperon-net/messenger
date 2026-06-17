@@ -242,12 +242,13 @@ const AuthConfirmationRequest$json = {
       '10': 'confirmationSession'
     },
     {
-      '1': 'clientPublicKeyECDH',
+      '1': 'cipherTextSharedKey',
       '3': 2,
       '4': 1,
       '5': 12,
-      '10': 'clientPublicKeyECDH'
+      '10': 'cipherTextSharedKey'
     },
+    {'1': 'cipherTextSalt', '3': 3, '4': 1, '5': 12, '10': 'cipherTextSalt'},
     {'1': 'deviceModel', '3': 4, '4': 1, '5': 9, '10': 'deviceModel'},
     {'1': 'os', '3': 5, '4': 1, '5': 5, '10': 'os'},
     {'1': 'osVersion', '3': 6, '4': 1, '5': 9, '10': 'osVersion'},
@@ -259,33 +260,43 @@ const AuthConfirmationRequest$json = {
 /// Descriptor for `AuthConfirmationRequest`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List authConfirmationRequestDescriptor = $convert.base64Decode(
     'ChdBdXRoQ29uZmlybWF0aW9uUmVxdWVzdBIwChNjb25maXJtYXRpb25TZXNzaW9uGAEgASgMUh'
-    'Njb25maXJtYXRpb25TZXNzaW9uEjAKE2NsaWVudFB1YmxpY0tleUVDREgYAiABKAxSE2NsaWVu'
-    'dFB1YmxpY0tleUVDREgSIAoLZGV2aWNlTW9kZWwYBCABKAlSC2RldmljZU1vZGVsEg4KAm9zGA'
-    'UgASgFUgJvcxIcCglvc1ZlcnNpb24YBiABKAlSCW9zVmVyc2lvbhIeCgphcHBWZXJzaW9uGAcg'
-    'ASgJUgphcHBWZXJzaW9uEiYKDmFwcEJ1aWxkTnVtYmVyGAggASgJUg5hcHBCdWlsZE51bWJlcg'
-    '==');
+    'Njb25maXJtYXRpb25TZXNzaW9uEjAKE2NpcGhlclRleHRTaGFyZWRLZXkYAiABKAxSE2NpcGhl'
+    'clRleHRTaGFyZWRLZXkSJgoOY2lwaGVyVGV4dFNhbHQYAyABKAxSDmNpcGhlclRleHRTYWx0Ei'
+    'AKC2RldmljZU1vZGVsGAQgASgJUgtkZXZpY2VNb2RlbBIOCgJvcxgFIAEoBVICb3MSHAoJb3NW'
+    'ZXJzaW9uGAYgASgJUglvc1ZlcnNpb24SHgoKYXBwVmVyc2lvbhgHIAEoCVIKYXBwVmVyc2lvbh'
+    'ImCg5hcHBCdWlsZE51bWJlchgIIAEoCVIOYXBwQnVpbGROdW1iZXI=');
 
 @$core.Deprecated('Use authConfirmationResponseDescriptor instead')
 const AuthConfirmationResponse$json = {
   '1': 'AuthConfirmationResponse',
   '2': [
     {'1': 'session', '3': 1, '4': 1, '5': 12, '10': 'session'},
-    {'1': 'userID', '3': 2, '4': 1, '5': 12, '10': 'userID'},
-    {'1': 'phoneNumber', '3': 3, '4': 1, '5': 9, '10': 'phoneNumber'},
-    {'1': 'sharedSalt', '3': 4, '4': 1, '5': 12, '10': 'sharedSalt'},
     {
-      '1': 'sharedSaltSignature',
-      '3': 5,
+      '1': 'cipherTextSharedKey',
+      '3': 2,
       '4': 1,
       '5': 12,
-      '10': 'sharedSaltSignature'
+      '10': 'cipherTextSharedKey'
     },
+    {'1': 'cipherTextSalt', '3': 3, '4': 1, '5': 12, '10': 'cipherTextSalt'},
+    {
+      '1': 'signatureSharedKey',
+      '3': 4,
+      '4': 1,
+      '5': 12,
+      '10': 'signatureSharedKey'
+    },
+    {'1': 'signatureSalt', '3': 5, '4': 1, '5': 12, '10': 'signatureSalt'},
+    {'1': 'userID', '3': 6, '4': 1, '5': 12, '10': 'userID'},
+    {'1': 'phoneNumber', '3': 7, '4': 1, '5': 9, '10': 'phoneNumber'},
   ],
 };
 
 /// Descriptor for `AuthConfirmationResponse`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List authConfirmationResponseDescriptor = $convert.base64Decode(
-    'ChhBdXRoQ29uZmlybWF0aW9uUmVzcG9uc2USGAoHc2Vzc2lvbhgBIAEoDFIHc2Vzc2lvbhIWCg'
-    'Z1c2VySUQYAiABKAxSBnVzZXJJRBIgCgtwaG9uZU51bWJlchgDIAEoCVILcGhvbmVOdW1iZXIS'
-    'HgoKc2hhcmVkU2FsdBgEIAEoDFIKc2hhcmVkU2FsdBIwChNzaGFyZWRTYWx0U2lnbmF0dXJlGA'
-    'UgASgMUhNzaGFyZWRTYWx0U2lnbmF0dXJl');
+    'ChhBdXRoQ29uZmlybWF0aW9uUmVzcG9uc2USGAoHc2Vzc2lvbhgBIAEoDFIHc2Vzc2lvbhIwCh'
+    'NjaXBoZXJUZXh0U2hhcmVkS2V5GAIgASgMUhNjaXBoZXJUZXh0U2hhcmVkS2V5EiYKDmNpcGhl'
+    'clRleHRTYWx0GAMgASgMUg5jaXBoZXJUZXh0U2FsdBIuChJzaWduYXR1cmVTaGFyZWRLZXkYBC'
+    'ABKAxSEnNpZ25hdHVyZVNoYXJlZEtleRIkCg1zaWduYXR1cmVTYWx0GAUgASgMUg1zaWduYXR1'
+    'cmVTYWx0EhYKBnVzZXJJRBgGIAEoDFIGdXNlcklEEiAKC3Bob25lTnVtYmVyGAcgASgJUgtwaG'
+    '9uZU51bWJlcg==');
