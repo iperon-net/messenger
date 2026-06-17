@@ -7,13 +7,11 @@ import 'package:dlibphonenumber/phone_number_util.dart';
 import 'package:pqcrypto/pqcrypto.dart';
 
 import '../api.dart';
-import '../crypto/crypto.dart';
 import '../di.dart';
 import '../logger.dart';
 import '../protobuf/protos/auth_v1.pb.dart';
 import '../protobuf/protos/metadata_v1.pb.dart';
 import '../repositories/repositories.dart';
-import '../settings.dart';
 import '../utils.dart';
 
 part "auth.dart";

@@ -5,7 +5,6 @@ import 'dart:typed_data';
 
 import 'package:flutter/widgets.dart';
 import 'package:messenger/crypto/crypto.dart';
-import 'package:pqcrypto/pqcrypto.dart';
 
 import 'api.dart';
 import 'di.dart';

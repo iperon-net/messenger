@@ -20,7 +20,7 @@ class Auth {
 
   final _logger = getIt.get<Logger>();
   final _api = getIt.get<API>();
-  final _crypto = getIt.get<Crypto>();
+  // final _crypto = getIt.get<Crypto>();
   final _utils = getIt.get<Utils>();
   final _repositories = getIt.get<Repositories>();
 
