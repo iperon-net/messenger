@@ -39,14 +39,12 @@ class Auth {
       return ServiceResponse<bool>(data: false, error: metadataInfoResponseError);
     }
 
-    // Check fingerprint public key
-    // final algorithmSHA256 = Sha256();
-    // final hashECDH = await algorithmSHA256.hash(metadataInfoResponse.ecdh.publicKey);
-    // if (Settings.publicKeyECDHFingerprint != _utils.toHex(hashECDH.bytes)) {
-    //   return ServiceResponse<bool>(data: false, error: "signatureVerificationError");
-    // }
-    //
-    // final (sharedSecretKey, clientPublicKey) = await _crypto.sharedSecretKey(serverPublicKey: metadataInfoResponse.ecdh.publicKey);
+    // Checking the integrity of a certificate fingerprint
+    final hashPublicKey = await Sha256().hash(metadataInfoResponse.eddsa.publicKey);
+    if (hex.encode(hashPublicKey.bytes) != Settings.publicKeyEdDSAFingerprint) {
+      _logger.error("Invalid math hash public key");
+      return ServiceResponse<bool>(data: false, error: "signatureVerificationError");
+    }
 
     final packageInfo = await _utils.packageInfo();
     final deviceInfo = await _utils.deviceInfo();
@@ -108,7 +106,10 @@ class Auth {
     }
 
     // Create user or update
-    await _repositories.users.createOrUpdate(userID: authConfirmationResponse.userID, phoneNumber: authConfirmationResponse.phoneNumber);
+    await _repositories.users.createOrUpdate(
+      userID: authConfirmationResponse.userID,
+      phoneNumber: authConfirmationResponse.phoneNumber,
+    );
 
     await _repositories.sessions.deleteAndCreate(
       userID: authConfirmationResponse.userID,
