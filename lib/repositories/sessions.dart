@@ -13,14 +13,14 @@ class Sessions {
     database.execute("BEGIN;");
     database.execute("DELETE FROM sessions WHERE userID = ?;", [userID]);
     database.execute(
-        "INSERT INTO sessions (userID, session, sharedKey, sharedSalt, isActive) VALUES(?, ?, ?, ?, 1);",
+        "INSERT INTO sessions (userID, session, sharedKey, salt, isActive) VALUES(?, ?, ?, ?, 1);",
         [userID, session, sharedKey, sharedSalt]
     );
     database.select("COMMIT;");
   }
 
   Future<models.Session> getActive() async {
-    final sqlSession = database.select("SELECT userID, session, sharedKey, sharedSalt, isActive FROM sessions WHERE isActive = 1;");
+    final sqlSession = database.select("SELECT userID, session, sharedKey, salt, isActive FROM sessions WHERE isActive = 1;");
     if (sqlSession.isEmpty) return models.Session();
     return models.SessionMapper.fromMap(sqlSession.first);
   }

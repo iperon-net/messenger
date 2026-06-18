@@ -15,9 +15,6 @@ class Settings {
   @EnviedField(varName: 'DATABASE_VERSION', defaultValue: 1)
   static const int databaseVersion = _Settings.databaseVersion;
 
-  @EnviedField(varName: 'PUBLIC_KEY_ECDH_FINGERPRINT')
-  static const String publicKeyECDHFingerprint = _Settings.publicKeyECDHFingerprint;
-
   @EnviedField(varName: 'PUBLIC_KEY_EdDSA_FINGERPRINT')
   static const String publicKeyEdDSAFingerprint = _Settings.publicKeyEdDSAFingerprint;
 

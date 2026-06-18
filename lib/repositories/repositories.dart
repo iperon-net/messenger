@@ -100,7 +100,8 @@ class Repositories {
       _database.execute("""
           CREATE TABLE users (
             userID TEXT PRIMARY KEY,
-            phoneNumber TEXT NOT NULL
+            phoneNumber TEXT NOT NULL,
+            salt BLOB NULL
           );
       """);
 
@@ -109,7 +110,7 @@ class Repositories {
             session BLOB NOT NULL,
             userID BLOB NOT NULL,
             sharedKey BLOB NOT NULL,
-            sharedSalt BLOB NOT NULL,
+            salt BLOB NOT NULL,
             isActive INT NOT NULL DEFAULT 0,
             FOREIGN KEY (userID) REFERENCES users(userID) ON DELETE CASCADE ON UPDATE CASCADE
           );

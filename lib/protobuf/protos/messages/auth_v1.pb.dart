@@ -75,9 +75,11 @@ class AuthRequest extends $pb.GeneratedMessage {
 
 class AuthResponse extends $pb.GeneratedMessage {
   factory AuthResponse({
+    $core.List<$core.int>? salt,
     $0.Timestamp? serverAt,
   }) {
     final result = create();
+    if (salt != null) result.salt = salt;
     if (serverAt != null) result.serverAt = serverAt;
     return result;
   }
@@ -95,6 +97,8 @@ class AuthResponse extends $pb.GeneratedMessage {
       _omitMessageNames ? '' : 'AuthResponse',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'),
       createEmptyInstance: create)
+    ..a<$core.List<$core.int>>(
+        1, _omitFieldNames ? '' : 'salt', $pb.PbFieldType.OY)
     ..aOM<$0.Timestamp>(2, _omitFieldNames ? '' : 'serverAt',
         subBuilder: $0.Timestamp.create)
     ..hasRequiredFields = false;
@@ -118,16 +122,25 @@ class AuthResponse extends $pb.GeneratedMessage {
       $pb.GeneratedMessage.$_defaultFor<AuthResponse>(create);
   static AuthResponse? _defaultInstance;
 
+  @$pb.TagNumber(1)
+  $core.List<$core.int> get salt => $_getN(0);
+  @$pb.TagNumber(1)
+  set salt($core.List<$core.int> value) => $_setBytes(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasSalt() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearSalt() => $_clearField(1);
+
   @$pb.TagNumber(2)
-  $0.Timestamp get serverAt => $_getN(0);
+  $0.Timestamp get serverAt => $_getN(1);
   @$pb.TagNumber(2)
   set serverAt($0.Timestamp value) => $_setField(2, value);
   @$pb.TagNumber(2)
-  $core.bool hasServerAt() => $_has(0);
+  $core.bool hasServerAt() => $_has(1);
   @$pb.TagNumber(2)
   void clearServerAt() => $_clearField(2);
   @$pb.TagNumber(2)
-  $0.Timestamp ensureServerAt() => $_ensure(0);
+  $0.Timestamp ensureServerAt() => $_ensure(1);
 }
 
 const $core.bool _omitFieldNames =

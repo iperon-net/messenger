@@ -27,8 +27,14 @@ class Users {
   Future<models.User> getBySession({required models.Session session}) async {
     if (session.userID.isEmpty) return models.User();
 
-    final sqlUser = database.select("SELECT userID, phoneNumber FROM users WHERE userID = ?;", [session.userID]);
+    final sqlUser = database.select("SELECT userID, phoneNumber, salt FROM users WHERE userID = ?;", [session.userID]);
     if (sqlUser.isEmpty) return models.User();
     return models.UserMapper.fromMap(sqlUser.first);
   }
+
+  // Set salt
+  Future<void> setSalt({required List<int> salt, required models.Session session}) async {
+    database.execute("UPDATE users SET salt = ? WHERE userID = ?;", [salt, session.userID]);
+  }
+
 }

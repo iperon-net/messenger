@@ -37,17 +37,26 @@ class UserMapper extends ClassMapperBase<User> {
     opt: true,
     def: "",
   );
+  static List<int> _$salt(User v) => v.salt;
+  static const Field<User, List<int>> _f$salt = Field(
+    'salt',
+    _$salt,
+    opt: true,
+    def: const [],
+  );
 
   @override
   final MappableFields<User> fields = const {
     #userID: _f$userID,
     #phoneNumber: _f$phoneNumber,
+    #salt: _f$salt,
   };
 
   static User _instantiate(DecodingData data) {
     return User(
       userID: data.dec(_f$userID),
       phoneNumber: data.dec(_f$phoneNumber),
+      salt: data.dec(_f$salt),
     );
   }
 
@@ -98,7 +107,8 @@ extension UserValueCopy<$R, $Out> on ObjectCopyWith<$R, User, $Out> {
 abstract class UserCopyWith<$R, $In extends User, $Out>
     implements ClassCopyWith<$R, $In, $Out> {
   ListCopyWith<$R, int, ObjectCopyWith<$R, int, int>> get userID;
-  $R call({List<int>? userID, String? phoneNumber});
+  ListCopyWith<$R, int, ObjectCopyWith<$R, int, int>> get salt;
+  $R call({List<int>? userID, String? phoneNumber, List<int>? salt});
   UserCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
 
@@ -116,16 +126,24 @@ class _UserCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, User, $Out>
         (v) => call(userID: v),
       );
   @override
-  $R call({List<int>? userID, String? phoneNumber}) => $apply(
+  ListCopyWith<$R, int, ObjectCopyWith<$R, int, int>> get salt => ListCopyWith(
+    $value.salt,
+    (v, t) => ObjectCopyWith(v, $identity, t),
+    (v) => call(salt: v),
+  );
+  @override
+  $R call({List<int>? userID, String? phoneNumber, List<int>? salt}) => $apply(
     FieldCopyWithData({
       if (userID != null) #userID: userID,
       if (phoneNumber != null) #phoneNumber: phoneNumber,
+      if (salt != null) #salt: salt,
     }),
   );
   @override
   User $make(CopyWithData data) => User(
     userID: data.get(#userID, or: $value.userID),
     phoneNumber: data.get(#phoneNumber, or: $value.phoneNumber),
+    salt: data.get(#salt, or: $value.salt),
   );
 
   @override

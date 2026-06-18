@@ -82,7 +82,7 @@ class Syncer {
 
     final sharedKeyHkdf = await algorithmHkdf.deriveKey(
       secretKey: SecretKey(session.sharedKey),
-      nonce: session.sharedSalt,
+      nonce: session.salt,
       info: headerPadding,
     );
 
@@ -105,7 +105,7 @@ class Syncer {
 
     final sharedKeyHkdf = await algorithmHkdf.deriveKey(
       secretKey: SecretKey(session.sharedKey),
-      nonce: session.sharedSalt,
+      nonce: session.salt,
       info: headerPadding,
     );
 

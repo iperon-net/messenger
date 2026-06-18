@@ -31,6 +31,7 @@ final $typed_data.Uint8List authRequestDescriptor = $convert
 const AuthResponse$json = {
   '1': 'AuthResponse',
   '2': [
+    {'1': 'salt', '3': 1, '4': 1, '5': 12, '10': 'salt'},
     {
       '1': 'server_at',
       '3': 2,
@@ -44,5 +45,5 @@ const AuthResponse$json = {
 
 /// Descriptor for `AuthResponse`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List authResponseDescriptor = $convert.base64Decode(
-    'CgxBdXRoUmVzcG9uc2USNwoJc2VydmVyX2F0GAIgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbW'
-    'VzdGFtcFIIc2VydmVyQXQ=');
+    'CgxBdXRoUmVzcG9uc2USEgoEc2FsdBgBIAEoDFIEc2FsdBI3CglzZXJ2ZXJfYXQYAiABKAsyGi'
+    '5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wUghzZXJ2ZXJBdA==');

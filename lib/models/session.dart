@@ -10,14 +10,14 @@ class Session with SessionMappable {
   final List<int> session;
   final List<int> userID;
   final List<int> sharedKey;
-  final List<int> sharedSalt;
+  final List<int> salt;
   final bool isActive;
 
   const Session({
     this.session = const [],
     this.userID = const [],
     this.sharedKey = const [],
-    this.sharedSalt = const [],
+    this.salt = const [],
     this.isActive = false,
   });
 
@@ -27,7 +27,7 @@ class Session with SessionMappable {
 
   @override
   String toString() {
-    return "session=$session userID=$userID, sharedKey=$sharedKey, sharedSalt=$sharedSalt";
+    return "session=$session userID=$userID, sharedKey=$sharedKey, salt=$salt";
   }
 
 }
