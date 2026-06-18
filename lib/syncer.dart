@@ -22,19 +22,22 @@ class Syncer {
   final _repositories = getIt.get<Repositories>();
   final _crypto = getIt.get<Crypto>();
   final _random = Random();
-  // final _mlkem = MLKEM768();
 
   late StreamController<SyncerMessageRequest> _controller;
   late StreamSubscription<SyncerMessageResponse> _subscription;
 
   int seq = 1;
+  late models.Session session;
 
   Syncer() {
     _logger.info("syncer initialization");
   }
 
   Future<void> connect(BuildContext context) async {
-    final session = await _repositories.sessions.getActive();
+    session = await _repositories.sessions.getActive();
+    _logger.debug("111");
+    _logger.debug(session);
+    _logger.debug("222");
 
     seq = generateRandomSeq();
     bool isAuth = false;
@@ -54,7 +57,6 @@ class Syncer {
       onCancel: () async {
         await randomSleep(seconds: 5);
         if (context.mounted) await connect(context);
-        _logger.debug("Syncer Подписка отменена");
       },
     );
 
@@ -101,9 +103,14 @@ class Syncer {
 
   }
 
-  Future<void> send(BuildContext context, {required models.Session session, required Uint8List message}) async {
-    // final messageByte = await _crypto.syncer.encode(session: session, message: message, messageType: MessageType.userInfoRequest, seq: 1);
-    // _controller.add(SyncerMessageRequest(message: messageByte));
+  Future<void> send(BuildContext context, {required Uint8List message}) async {
+    final messageByte = await _crypto.syncer.encode(
+      session: session,
+      message: message,
+      messageType: MessageType.authRequest,
+      seq: seq,
+    );
+    _controller.add(SyncerMessageRequest(message: messageByte));
   }
 
 
