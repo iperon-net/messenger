@@ -75,9 +75,7 @@ class Syncer {
           final proto = message.AuthResponse.fromBuffer(messageByte);
 
           await _repositories.users.setSalt(salt: proto.salt, session: session);
-
-          _logger.debug("serverAt=${proto.serverAt.seconds}, seq=$seq");
-          _logger.debug("serverAt=${proto.salt}, seq=$seq");
+          isAuth = true;
           return;
         } else if (!isAuth) {
           _logger.warning("syncer skip message, because authorization failed, seq=$seq");
