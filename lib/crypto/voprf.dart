@@ -1,5 +1,5 @@
 part of 'crypto.dart';
 
-class OPRF {
+class VOPRF {
 
 }

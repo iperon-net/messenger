@@ -10,7 +10,7 @@ import '../logger.dart';
 import '../models/session.dart' as models;
 
 part "syncer.dart";
-part "oprf.dart";
+part "voprf.dart";
 
 class Crypto {
   final _logger = getIt.get<Logger>();
