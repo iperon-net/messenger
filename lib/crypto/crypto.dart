@@ -1,6 +1,7 @@
 
 import 'dart:math';
 import 'dart:typed_data';
+import 'dart:convert';
 
 import 'package:cryptography/cryptography.dart';
 
@@ -9,6 +10,7 @@ import '../logger.dart';
 import '../models/session.dart' as models;
 
 part "syncer.dart";
+part "oprf.dart";
 
 class Crypto {
   final _logger = getIt.get<Logger>();

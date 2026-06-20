@@ -35,9 +35,6 @@ class Syncer {
 
   Future<void> connect(BuildContext context) async {
     session = await _repositories.sessions.getActive();
-    _logger.debug("111");
-    _logger.debug(session);
-    _logger.debug("222");
 
     seq = generateRandomSeq();
     bool isAuth = false;
@@ -134,6 +131,7 @@ class Syncer {
 
   void dispose() {
     _logger.debug("Syncer dispose");
+    _subscription.cancel();
     _controller.close();
   }
 }

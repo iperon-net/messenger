@@ -21,6 +21,7 @@ class _HomeCupertinoScreen extends State<HomeCupertinoScreen> {
   final syncer = getIt.get<Syncer>();
 
   final formKey = GlobalKey<FormState>();
+  late final AppLifecycleListener _lifecycleListener;
 
   @override
   void initState() {
@@ -28,16 +29,15 @@ class _HomeCupertinoScreen extends State<HomeCupertinoScreen> {
 
     syncer.connect(context);
 
-    AppLifecycleListener(
+    _lifecycleListener = AppLifecycleListener(
       onStateChange: (AppLifecycleState state) {
         logger.debug("AppLifecycleListener state = $state");
 
         if (state == AppLifecycleState.inactive) {
           syncer.dispose();
-        } else if (state == AppLifecycleState.resumed) {
+        } else if (state == AppLifecycleState.resumed && mounted) {
           syncer.connect(context);
         }
-
       },
     );
     logger.debug("initState");
@@ -45,6 +45,7 @@ class _HomeCupertinoScreen extends State<HomeCupertinoScreen> {
 
   @override
   void dispose() {
+    _lifecycleListener.dispose();
     syncer.dispose();
     super.dispose();
   }
