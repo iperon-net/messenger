@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'dart:convert';
 
 import 'package:cryptography/cryptography.dart';
+import 'package:cryptography/dart.dart';
 
 import '../di.dart';
 import '../logger.dart';
@@ -15,10 +16,14 @@ part "voprf.dart";
 class Crypto {
   final _logger = getIt.get<Logger>();
   final algorithmECDH = X25519();
+
   late Syncer syncer;
+  late VOPRF voprf;
 
   Crypto() {
     syncer = Syncer();
+    voprf = VOPRF();
+
     _logger.info("crypto initialization");
   }
 
