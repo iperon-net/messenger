@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:device_marketing_names/device_marketing_names.dart';
+import 'package:dlibphonenumber/dlibphonenumber.dart';
 import 'package:dlibphonenumber/enums/phone_number_format.dart';
 import 'package:dlibphonenumber/phone_number_util.dart';
 import 'package:flutter/foundation.dart';
@@ -19,7 +20,7 @@ class PhoneFormat {
   final String e164;
   final String rfc3966;
 
-  PhoneFormat({
+  const PhoneFormat({
     required this.international,
     required this.national,
     required this.e164,
@@ -69,9 +70,50 @@ class PackageInfo {
 }
 
 class Utils {
+  final phoneUtil = PhoneNumberUtil.instance;
+
+  PhoneFormat phoneNormalization({required String phoneNumber}) {
+    const empty = PhoneFormat(international: "", national: "", e164: "", rfc3966: "");
+
+    // Оставляем только цифры, отбрасывая "+", пробелы, скобки, дефисы и т.п.
+    var digits = phoneNumber.replaceAll(RegExp(r'\D'), '');
+    if (digits.isEmpty) return empty;
+
+    // Российский номер: "8XXXXXXXXXX" или ошибочный "+8XXXXXXXXXX".
+    // "8" — внутренний префикс выхода на межгород, в E.164 ему соответствует код страны "7".
+    if (digits.length == 11 && digits.startsWith('8')) {
+      digits = '7${digits.substring(1)}';
+    }
+
+    PhoneNumber phoneNumberParse;
+    try {
+      if (digits.length == 10 && digits.startsWith('9')) {
+        // Номер без кода страны ("9XXXXXXXXX") считаем российским мобильным.
+        phoneNumberParse = phoneUtil.parse(digits, 'RU');
+      } else {
+        phoneNumberParse = phoneUtil.parse('+$digits', '');
+      }
+    } catch (e) {
+      return empty;
+    }
+
+    if (!phoneUtil.isValidNumber(phoneNumberParse)) return empty;
+
+    return PhoneFormat(
+      international: phoneUtil.format(phoneNumberParse, PhoneNumberFormat.international),
+      national: phoneUtil.format(phoneNumberParse, PhoneNumberFormat.national),
+      e164: phoneUtil.format(phoneNumberParse, PhoneNumberFormat.e164),
+      rfc3966: phoneUtil.format(phoneNumberParse, PhoneNumberFormat.rfc3966),
+    );
+  }
+
   PhoneFormat phoneFormat({required String phoneNumber}) {
-    final phoneUtil = PhoneNumberUtil.instance;
-    final phoneNumberParse = phoneUtil.parse("+$phoneNumber", "");
+    PhoneNumber phoneNumberParse;
+    try {
+      phoneNumberParse = phoneUtil.parse("+$phoneNumber", "");
+    } catch (e) {
+      return PhoneFormat(international: "", national: "", e164: "", rfc3966: "");
+    }
 
     return PhoneFormat(
       international: phoneUtil.format(phoneNumberParse, PhoneNumberFormat.international),

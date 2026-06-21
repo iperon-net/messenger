@@ -34,6 +34,74 @@ class _ContactsScreenCupertino extends State<ContactsScreenCupertino> {
     super.dispose();
   }
 
+  final List<Color> _colors = [
+    Colors.red,
+    Colors.redAccent,
+    Colors.deepOrange,
+    Colors.deepOrangeAccent,
+    Colors.orange,
+    Colors.pink,
+    Colors.pinkAccent,
+    Colors.deepPurple,
+    Colors.deepPurpleAccent,
+    Colors.purple,
+    Colors.purpleAccent,
+    Colors.blue,
+    Colors.blueAccent,
+    Colors.lightBlue,
+    Colors.lightBlueAccent,
+    Colors.indigo,
+    Colors.indigoAccent,
+    Colors.blueGrey,
+    Colors.green,
+    Colors.lightGreen,
+    Colors.teal,
+    Colors.amber,
+    Colors.purple,
+    Colors.purpleAccent,
+    Colors.deepPurple,
+    Colors.deepPurpleAccent,
+    Colors.brown,
+    Colors.brown.shade400,
+    Colors.brown.shade600,
+    Colors.grey,
+    Colors.grey.shade400,
+    Colors.grey.shade600,
+    Colors.amber,
+    Colors.orange,
+    Colors.orangeAccent,
+    Colors.deepOrange,
+    Colors.deepOrangeAccent,
+    Colors.red.shade300,
+    Colors.red.shade700,
+    Colors.blue.shade300,
+    Colors.blue.shade700,
+    Colors.green.shade300,
+    Colors.green.shade700,
+    Colors.purple.shade300,
+    Colors.purple.shade700,
+    Colors.orange.shade300,
+    Colors.orange.shade700,
+    Colors.teal.shade700,
+    Colors.pink.shade300,
+    Colors.pink.shade700,
+    Colors.indigo.shade300,
+    Colors.indigo.shade700,
+    Colors.cyan.shade700,
+  ];
+
+  final Random _random = Random();
+
+  Color randomColor() {
+    final cl = _colors[_random.nextInt(_colors.length)];
+
+    cl.toARGB32();
+
+    Color;
+    return cl;
+  }
+
+
   Widget bannerAccessDisabled(BuildContext context) {
     return BlocBuilder<MainCubit, MainState>(
       builder: (context, state) {
@@ -183,7 +251,9 @@ class _ContactsScreenCupertino extends State<ContactsScreenCupertino> {
                             context,
                           ),
                           leading: CircleAvatar(
-                            child: Text("T"),
+                            child: const Text("D"),
+                            backgroundColor: randomColor(),
+                            foregroundColor: Colors.white,
                           ),
                           subtitle: Text("онлайн"),
                           title: Text("Donald Trump"),

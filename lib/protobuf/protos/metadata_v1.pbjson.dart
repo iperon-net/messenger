@@ -37,6 +37,14 @@ const MetadataInfoResponse$json = {
       '10': 'eddsa'
     },
     {
+      '1': 'voprf',
+      '3': 3,
+      '4': 1,
+      '5': 11,
+      '6': '.iperon.v1.MetadataInfoResponse.VOPRF',
+      '10': 'voprf'
+    },
+    {
       '1': 'gitCommit',
       '3': 4,
       '4': 1,
@@ -47,7 +55,11 @@ const MetadataInfoResponse$json = {
     {'1': 'buildDate', '3': 5, '4': 1, '5': 9, '10': 'buildDate'},
     {'1': 'version', '3': 6, '4': 1, '5': 9, '10': 'version'},
   ],
-  '3': [MetadataInfoResponse_GitCommit$json, MetadataInfoResponse_EdDSA$json],
+  '3': [
+    MetadataInfoResponse_GitCommit$json,
+    MetadataInfoResponse_EdDSA$json,
+    MetadataInfoResponse_VOPRF$json
+  ],
 };
 
 @$core.Deprecated('Use metadataInfoResponseDescriptor instead')
@@ -68,15 +80,26 @@ const MetadataInfoResponse_EdDSA$json = {
   ],
 };
 
+@$core.Deprecated('Use metadataInfoResponseDescriptor instead')
+const MetadataInfoResponse_VOPRF$json = {
+  '1': 'VOPRF',
+  '2': [
+    {'1': 'publicKey', '3': 1, '4': 1, '5': 12, '10': 'publicKey'},
+    {'1': 'fingerprint', '3': 2, '4': 1, '5': 9, '10': 'fingerprint'},
+  ],
+};
+
 /// Descriptor for `MetadataInfoResponse`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List metadataInfoResponseDescriptor = $convert.base64Decode(
     'ChRNZXRhZGF0YUluZm9SZXNwb25zZRI7CgVlZGRzYRgCIAEoCzIlLmlwZXJvbi52MS5NZXRhZG'
-    'F0YUluZm9SZXNwb25zZS5FZERTQVIFZWRkc2ESRwoJZ2l0Q29tbWl0GAQgASgLMikuaXBlcm9u'
-    'LnYxLk1ldGFkYXRhSW5mb1Jlc3BvbnNlLkdpdENvbW1pdFIJZ2l0Q29tbWl0EhwKCWJ1aWxkRG'
-    'F0ZRgFIAEoCVIJYnVpbGREYXRlEhgKB3ZlcnNpb24YBiABKAlSB3ZlcnNpb24aNQoJR2l0Q29t'
-    'bWl0EhIKBGZ1bGwYASABKAlSBGZ1bGwSFAoFc2hvcnQYAiABKAlSBXNob3J0GkcKBUVkRFNBEh'
-    'wKCXB1YmxpY0tleRgBIAEoDFIJcHVibGljS2V5EiAKC2ZpbmdlcnByaW50GAIgASgJUgtmaW5n'
-    'ZXJwcmludA==');
+    'F0YUluZm9SZXNwb25zZS5FZERTQVIFZWRkc2ESOwoFdm9wcmYYAyABKAsyJS5pcGVyb24udjEu'
+    'TWV0YWRhdGFJbmZvUmVzcG9uc2UuVk9QUkZSBXZvcHJmEkcKCWdpdENvbW1pdBgEIAEoCzIpLm'
+    'lwZXJvbi52MS5NZXRhZGF0YUluZm9SZXNwb25zZS5HaXRDb21taXRSCWdpdENvbW1pdBIcCgli'
+    'dWlsZERhdGUYBSABKAlSCWJ1aWxkRGF0ZRIYCgd2ZXJzaW9uGAYgASgJUgd2ZXJzaW9uGjUKCU'
+    'dpdENvbW1pdBISCgRmdWxsGAEgASgJUgRmdWxsEhQKBXNob3J0GAIgASgJUgVzaG9ydBpHCgVF'
+    'ZERTQRIcCglwdWJsaWNLZXkYASABKAxSCXB1YmxpY0tleRIgCgtmaW5nZXJwcmludBgCIAEoCV'
+    'ILZmluZ2VycHJpbnQaRwoFVk9QUkYSHAoJcHVibGljS2V5GAEgASgMUglwdWJsaWNLZXkSIAoL'
+    'ZmluZ2VycHJpbnQYAiABKAlSC2ZpbmdlcnByaW50');
 
 @$core.Deprecated('Use metadataGeoIPRequestDescriptor instead')
 const MetadataGeoIPRequest$json = {

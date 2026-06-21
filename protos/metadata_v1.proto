@@ -22,7 +22,13 @@ message MetadataInfoResponse {
     string fingerprint = 2;
   }
 
+  message VOPRF {
+    bytes publicKey = 1;
+    string fingerprint = 2;
+  }
+
   EdDSA eddsa = 2;
+  VOPRF voprf = 3;
 
   GitCommit gitCommit = 4;
   string buildDate = 5;

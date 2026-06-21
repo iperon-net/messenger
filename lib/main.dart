@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:go_router/go_router.dart';
+import 'package:workmanager/workmanager.dart';
 
 import 'cubit/common_cubit.dart';
 import 'cubit/main_cubit.dart';
@@ -28,6 +29,9 @@ import 'themes_material.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Workmanager().initialize(contactsDispatcher, isInDebugMode: true);
+  // await Workmanager().registerOneOffTask("test-task", "simpleTask", initialDelay: Duration(seconds: 5));
 
   // Dependencies
   await registerCommonDependencies();
@@ -387,3 +391,12 @@ class _IperonMessengerCupertino extends State<IperonMessengerCupertino> with Wid
 
 }
 
+
+// @pragma('vm:entry-point')
+// void contactsDispatcher() {
+//   Workmanager().executeTask((task, inputData) async {
+//     print("Background task: $task");
+//     // Your background work here
+//     return Future.value(true);
+//   });
+// }

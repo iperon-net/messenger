@@ -193,15 +193,87 @@ class MetadataInfoResponse_EdDSA extends $pb.GeneratedMessage {
   void clearFingerprint() => $_clearField(2);
 }
 
+class MetadataInfoResponse_VOPRF extends $pb.GeneratedMessage {
+  factory MetadataInfoResponse_VOPRF({
+    $core.List<$core.int>? publicKey,
+    $core.String? fingerprint,
+  }) {
+    final result = create();
+    if (publicKey != null) result.publicKey = publicKey;
+    if (fingerprint != null) result.fingerprint = fingerprint;
+    return result;
+  }
+
+  MetadataInfoResponse_VOPRF._();
+
+  factory MetadataInfoResponse_VOPRF.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory MetadataInfoResponse_VOPRF.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'MetadataInfoResponse.VOPRF',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'),
+      createEmptyInstance: create)
+    ..a<$core.List<$core.int>>(
+        1, _omitFieldNames ? '' : 'publicKey', $pb.PbFieldType.OY,
+        protoName: 'publicKey')
+    ..aOS(2, _omitFieldNames ? '' : 'fingerprint')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  MetadataInfoResponse_VOPRF clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  MetadataInfoResponse_VOPRF copyWith(
+          void Function(MetadataInfoResponse_VOPRF) updates) =>
+      super.copyWith(
+              (message) => updates(message as MetadataInfoResponse_VOPRF))
+          as MetadataInfoResponse_VOPRF;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static MetadataInfoResponse_VOPRF create() => MetadataInfoResponse_VOPRF._();
+  @$core.override
+  MetadataInfoResponse_VOPRF createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static MetadataInfoResponse_VOPRF getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<MetadataInfoResponse_VOPRF>(create);
+  static MetadataInfoResponse_VOPRF? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.List<$core.int> get publicKey => $_getN(0);
+  @$pb.TagNumber(1)
+  set publicKey($core.List<$core.int> value) => $_setBytes(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasPublicKey() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearPublicKey() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.String get fingerprint => $_getSZ(1);
+  @$pb.TagNumber(2)
+  set fingerprint($core.String value) => $_setString(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasFingerprint() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearFingerprint() => $_clearField(2);
+}
+
 class MetadataInfoResponse extends $pb.GeneratedMessage {
   factory MetadataInfoResponse({
     MetadataInfoResponse_EdDSA? eddsa,
+    MetadataInfoResponse_VOPRF? voprf,
     MetadataInfoResponse_GitCommit? gitCommit,
     $core.String? buildDate,
     $core.String? version,
   }) {
     final result = create();
     if (eddsa != null) result.eddsa = eddsa;
+    if (voprf != null) result.voprf = voprf;
     if (gitCommit != null) result.gitCommit = gitCommit;
     if (buildDate != null) result.buildDate = buildDate;
     if (version != null) result.version = version;
@@ -223,6 +295,8 @@ class MetadataInfoResponse extends $pb.GeneratedMessage {
       createEmptyInstance: create)
     ..aOM<MetadataInfoResponse_EdDSA>(2, _omitFieldNames ? '' : 'eddsa',
         subBuilder: MetadataInfoResponse_EdDSA.create)
+    ..aOM<MetadataInfoResponse_VOPRF>(3, _omitFieldNames ? '' : 'voprf',
+        subBuilder: MetadataInfoResponse_VOPRF.create)
     ..aOM<MetadataInfoResponse_GitCommit>(4, _omitFieldNames ? '' : 'gitCommit',
         protoName: 'gitCommit',
         subBuilder: MetadataInfoResponse_GitCommit.create)
@@ -260,32 +334,43 @@ class MetadataInfoResponse extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   MetadataInfoResponse_EdDSA ensureEddsa() => $_ensure(0);
 
+  @$pb.TagNumber(3)
+  MetadataInfoResponse_VOPRF get voprf => $_getN(1);
+  @$pb.TagNumber(3)
+  set voprf(MetadataInfoResponse_VOPRF value) => $_setField(3, value);
+  @$pb.TagNumber(3)
+  $core.bool hasVoprf() => $_has(1);
+  @$pb.TagNumber(3)
+  void clearVoprf() => $_clearField(3);
+  @$pb.TagNumber(3)
+  MetadataInfoResponse_VOPRF ensureVoprf() => $_ensure(1);
+
   @$pb.TagNumber(4)
-  MetadataInfoResponse_GitCommit get gitCommit => $_getN(1);
+  MetadataInfoResponse_GitCommit get gitCommit => $_getN(2);
   @$pb.TagNumber(4)
   set gitCommit(MetadataInfoResponse_GitCommit value) => $_setField(4, value);
   @$pb.TagNumber(4)
-  $core.bool hasGitCommit() => $_has(1);
+  $core.bool hasGitCommit() => $_has(2);
   @$pb.TagNumber(4)
   void clearGitCommit() => $_clearField(4);
   @$pb.TagNumber(4)
-  MetadataInfoResponse_GitCommit ensureGitCommit() => $_ensure(1);
+  MetadataInfoResponse_GitCommit ensureGitCommit() => $_ensure(2);
 
   @$pb.TagNumber(5)
-  $core.String get buildDate => $_getSZ(2);
+  $core.String get buildDate => $_getSZ(3);
   @$pb.TagNumber(5)
-  set buildDate($core.String value) => $_setString(2, value);
+  set buildDate($core.String value) => $_setString(3, value);
   @$pb.TagNumber(5)
-  $core.bool hasBuildDate() => $_has(2);
+  $core.bool hasBuildDate() => $_has(3);
   @$pb.TagNumber(5)
   void clearBuildDate() => $_clearField(5);
 
   @$pb.TagNumber(6)
-  $core.String get version => $_getSZ(3);
+  $core.String get version => $_getSZ(4);
   @$pb.TagNumber(6)
-  set version($core.String value) => $_setString(3, value);
+  set version($core.String value) => $_setString(4, value);
   @$pb.TagNumber(6)
-  $core.bool hasVersion() => $_has(3);
+  $core.bool hasVersion() => $_has(4);
   @$pb.TagNumber(6)
   void clearVersion() => $_clearField(6);
 }
