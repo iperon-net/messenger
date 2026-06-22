@@ -9,6 +9,7 @@ import 'package:grpc/grpc.dart';
 import 'package:messenger/crypto/crypto.dart';
 
 import 'api.dart';
+import 'constants.dart';
 import 'di.dart';
 import 'logger.dart';
 import 'models/session.dart' as models;
@@ -44,7 +45,7 @@ class Syncer {
         final messageByte = await _crypto.syncer.encode(
           session: session,
           message: message.AuthRequest(session: session.session).writeToBuffer(),
-          messageType: MessageType.authRequest,
+          messageType: SyncerMessageType.authRequest,
           seq: seq,
         );
         _controller.add(SyncerMessageRequest(message: messageByte));
@@ -68,7 +69,7 @@ class Syncer {
             message: Uint8List.fromList(data.message),
           );
 
-        if (!isAuth && header.messageType == MessageType.authResponse) {
+        if (!isAuth && header.messageType == SyncerMessageType.authResponse) {
           // Set new seq
           seq = header.seq;
           final proto = message.AuthResponse.fromBuffer(messageByte);
@@ -100,11 +101,11 @@ class Syncer {
 
   }
 
-  Future<void> send(BuildContext context, {required Uint8List message}) async {
+  Future<void> send(BuildContext context, {required Uint8List message, required SyncerMessageType messageType}) async {
     final messageByte = await _crypto.syncer.encode(
       session: session,
       message: message,
-      messageType: MessageType.authRequest,
+      messageType: messageType,
       seq: seq,
     );
     _controller.add(SyncerMessageRequest(message: messageByte));

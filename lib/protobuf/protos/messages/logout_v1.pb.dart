@@ -14,10 +14,20 @@ import 'dart:core' as $core;
 
 import 'package:protobuf/protobuf.dart' as $pb;
 
+import 'logout_v1.pbenum.dart';
+
 export 'package:protobuf/protobuf.dart' show GeneratedMessageGenericExtensions;
 
+export 'logout_v1.pbenum.dart';
+
 class LogoutRequest extends $pb.GeneratedMessage {
-  factory LogoutRequest() => create();
+  factory LogoutRequest({
+    LogoutAction? action,
+  }) {
+    final result = create();
+    if (action != null) result.action = action;
+    return result;
+  }
 
   LogoutRequest._();
 
@@ -32,6 +42,8 @@ class LogoutRequest extends $pb.GeneratedMessage {
       _omitMessageNames ? '' : 'LogoutRequest',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'),
       createEmptyInstance: create)
+    ..aE<LogoutAction>(1, _omitFieldNames ? '' : 'action',
+        enumValues: LogoutAction.values)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -52,6 +64,15 @@ class LogoutRequest extends $pb.GeneratedMessage {
   static LogoutRequest getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<LogoutRequest>(create);
   static LogoutRequest? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  LogoutAction get action => $_getN(0);
+  @$pb.TagNumber(1)
+  set action(LogoutAction value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasAction() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearAction() => $_clearField(1);
 }
 
 class LogoutResponse extends $pb.GeneratedMessage {
@@ -92,5 +113,7 @@ class LogoutResponse extends $pb.GeneratedMessage {
   static LogoutResponse? _defaultInstance;
 }
 
+const $core.bool _omitFieldNames =
+    $core.bool.fromEnvironment('protobuf.omit_field_names');
 const $core.bool _omitMessageNames =
     $core.bool.fromEnvironment('protobuf.omit_message_names');

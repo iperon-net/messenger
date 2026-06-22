@@ -1,29 +1,13 @@
 part of 'crypto.dart';
 
 
-enum MessageType {
-  authRequest(1),
-  authResponse(2);
-
-  final int value;
-  const MessageType(this.value);
-
-  // Статический метод для получения enum по значению
-  static MessageType fromValue(int value) {
-    return values.firstWhere(
-          (type) => type.value == value,
-      orElse: () => throw ArgumentError('Invalid value: $value'),
-    );
-  }
-}
-
 class Header {
   final int version;
   final int length;
   final DateTime dateTime;
   final List<int> session;
   final List<int> sha256;
-  final MessageType messageType;
+  final SyncerMessageType messageType;
   final int seq;
   final List<int> nonce;
   final List<int> header;
@@ -57,7 +41,7 @@ class Syncer {
   // Future<List<int>> encodeProto({required models.Session session, required Uint8List message, required MessageType messageType, required int seq}) async {
   // }
 
-  Future<List<int>> encode({required models.Session session, required Uint8List message, required MessageType messageType, required int seq}) async {
+  Future<List<int>> encode({required models.Session session, required Uint8List message, required SyncerMessageType messageType, required int seq}) async {
     final timestamp = DateTime.now().millisecondsSinceEpoch;
 
     final lengthByte = ByteData(4)..setUint32(0, message.length, Endian.big);
@@ -156,7 +140,7 @@ class Syncer {
        dateTime: dateTime,
        session: dataBytes.sublist(13,45),
        sha256: dataBytes.sublist(45,77),
-       messageType: MessageType.fromValue(messageType),
+       messageType: SyncerMessageType.fromValue(messageType),
        seq: seq,
        nonce: dataBytes.sublist(85,97),
        header: dataBytes,

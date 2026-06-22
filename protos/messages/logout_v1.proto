@@ -3,6 +3,14 @@ syntax = "proto3";
 package iperon.v1;
 option go_package = "internal/api/messages";
 
-message LogoutRequest {}
+enum LogoutAction {
+  current = 0;
+  others = 1;
+  all = 2;
+}
+
+message LogoutRequest {
+  LogoutAction action = 1;
+}
 
 message LogoutResponse {}

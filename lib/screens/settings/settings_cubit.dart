@@ -3,11 +3,13 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../constants.dart';
 import '../../cubit/main_cubit.dart';
 import '../../di.dart';
 import '../../protobuf/messages.dart';
 import '../../repositories/repositories.dart';
 import '../../syncer.dart';
+import '../../crypto.dart' as crypto;
 import 'settings_state.dart';
 
 class SettingsCubit extends Cubit<SettingsState> {
@@ -18,7 +20,12 @@ class SettingsCubit extends Cubit<SettingsState> {
 
   Future<void> logout(BuildContext context) async {
     await repositories.sessions.logout();
-    if (context.mounted) await syncer.send(context, message: LogoutRequest().writeToBuffer());
+    if (context.mounted) {
+      await syncer.send(
+        context, message: LogoutRequest(action: LogoutAction.current).writeToBuffer(),
+        messageType: SyncerMessageType.logoutRequest,
+      );
+    }
     if (context.mounted) context.read<MainCubit>().logout();
     if (context.mounted) context.go("/");
   }

@@ -118,7 +118,7 @@ class Repositories {
 
       _database.execute("""
           CREATE TABLE contacts (
-            contactID INTEGER PRIMARY KEY AUTOINCREMENT,
+            contactID TEXT NOT NULL,
             userID BLOB NOT NULL,
             firstName TEXT NULL,
             lastName TEXT NULL,
@@ -133,7 +133,7 @@ class Repositories {
 
       _database.execute("""
           CREATE TABLE contactPhoneNumbers (
-            contactID INTEGER NOT NULL,
+            contactID TEXT NOT NULL,
             international TEXT NOT NULL,
             national TEXT NOT NULL,
             e164 TEXT NOT NULL,

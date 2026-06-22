@@ -9,3 +9,32 @@
 // ignore_for_file: curly_braces_in_flow_control_structures
 // ignore_for_file: deprecated_member_use_from_same_package, library_prefixes
 // ignore_for_file: non_constant_identifier_names, prefer_relative_imports
+
+import 'dart:core' as $core;
+
+import 'package:protobuf/protobuf.dart' as $pb;
+
+class LogoutAction extends $pb.ProtobufEnum {
+  static const LogoutAction current =
+      LogoutAction._(0, _omitEnumNames ? '' : 'current');
+  static const LogoutAction others =
+      LogoutAction._(1, _omitEnumNames ? '' : 'others');
+  static const LogoutAction all =
+      LogoutAction._(2, _omitEnumNames ? '' : 'all');
+
+  static const $core.List<LogoutAction> values = <LogoutAction>[
+    current,
+    others,
+    all,
+  ];
+
+  static final $core.List<LogoutAction?> _byValue =
+      $pb.ProtobufEnum.$_initByValueList(values, 2);
+  static LogoutAction? valueOf($core.int value) =>
+      value < 0 || value >= _byValue.length ? null : _byValue[value];
+
+  const LogoutAction._(super.value, super.name);
+}
+
+const $core.bool _omitEnumNames =
+    $core.bool.fromEnvironment('protobuf.omit_enum_names');
