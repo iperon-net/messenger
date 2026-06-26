@@ -18,6 +18,8 @@ class SettingsAppearanceStateMapper
       MapperContainer.globals.use(
         _instance = SettingsAppearanceStateMapper._(),
       );
+      SettingsDeviceColorThemeMapper.ensureInitialized();
+      SettingsDeviceDarkModeMapper.ensureInitialized();
     }
     return _instance!;
   }
@@ -25,11 +27,36 @@ class SettingsAppearanceStateMapper
   @override
   final String id = 'SettingsAppearanceState';
 
+  static SettingsDeviceColorTheme _$colorTheme(SettingsAppearanceState v) =>
+      v.colorTheme;
+  static const Field<SettingsAppearanceState, SettingsDeviceColorTheme>
+  _f$colorTheme = Field(
+    'colorTheme',
+    _$colorTheme,
+    opt: true,
+    def: SettingsDeviceColorTheme.blue,
+  );
+  static SettingsDeviceDarkMode _$darkMode(SettingsAppearanceState v) =>
+      v.darkMode;
+  static const Field<SettingsAppearanceState, SettingsDeviceDarkMode>
+  _f$darkMode = Field(
+    'darkMode',
+    _$darkMode,
+    opt: true,
+    def: SettingsDeviceDarkMode.system,
+  );
+
   @override
-  final MappableFields<SettingsAppearanceState> fields = const {};
+  final MappableFields<SettingsAppearanceState> fields = const {
+    #colorTheme: _f$colorTheme,
+    #darkMode: _f$darkMode,
+  };
 
   static SettingsAppearanceState _instantiate(DecodingData data) {
-    return SettingsAppearanceState();
+    return SettingsAppearanceState(
+      colorTheme: data.dec(_f$colorTheme),
+      darkMode: data.dec(_f$darkMode),
+    );
   }
 
   @override
@@ -102,7 +129,10 @@ abstract class SettingsAppearanceStateCopyWith<
   $Out
 >
     implements ClassCopyWith<$R, $In, $Out> {
-  $R call();
+  $R call({
+    SettingsDeviceColorTheme? colorTheme,
+    SettingsDeviceDarkMode? darkMode,
+  });
   SettingsAppearanceStateCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
     Then<$Out2, $R2> t,
   );
@@ -118,9 +148,20 @@ class _SettingsAppearanceStateCopyWithImpl<$R, $Out>
   late final ClassMapperBase<SettingsAppearanceState> $mapper =
       SettingsAppearanceStateMapper.ensureInitialized();
   @override
-  $R call() => $apply(FieldCopyWithData({}));
+  $R call({
+    SettingsDeviceColorTheme? colorTheme,
+    SettingsDeviceDarkMode? darkMode,
+  }) => $apply(
+    FieldCopyWithData({
+      if (colorTheme != null) #colorTheme: colorTheme,
+      if (darkMode != null) #darkMode: darkMode,
+    }),
+  );
   @override
-  SettingsAppearanceState $make(CopyWithData data) => SettingsAppearanceState();
+  SettingsAppearanceState $make(CopyWithData data) => SettingsAppearanceState(
+    colorTheme: data.get(#colorTheme, or: $value.colorTheme),
+    darkMode: data.get(#darkMode, or: $value.darkMode),
+  );
 
   @override
   SettingsAppearanceStateCopyWith<$R2, SettingsAppearanceState, $Out2>

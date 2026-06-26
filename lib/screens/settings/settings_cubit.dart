@@ -1,8 +1,6 @@
-import 'package:bloc/bloc.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:messenger/protobuf/protos/messages/sessions_v1.pb.dart';
 
 import '../../constants.dart';
 import '../../cubit/main_cubit.dart';
@@ -10,7 +8,6 @@ import '../../di.dart';
 import '../../protobuf/messages.dart';
 import '../../repositories/repositories.dart';
 import '../../syncer.dart';
-import '../../crypto.dart' as crypto;
 import 'settings_state.dart';
 
 class SettingsCubit extends Cubit<SettingsState> {

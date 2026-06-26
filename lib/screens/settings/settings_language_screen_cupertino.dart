@@ -2,7 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:messenger/cubit/main_cubit.dart';
-import 'package:messenger/cubit/main_state.dart';
+import 'package:messenger/screens/settings/settings_language_state.dart';
 
 import '../../i18n/translations.g.dart';
 import 'settings_language_cubit.dart';
@@ -18,6 +18,8 @@ class _SettingsLanguageScreenCupertino extends State<SettingsLanguageScreenCuper
   @override
   void initState() {
     super.initState();
+    final locate = context.read<MainCubit>().state.settingsDevice.locale;
+    context.read<SettingsLanguageCubit>().setLocale(locale: locate ?? AppLocale.en);
   }
 
   @override
@@ -43,35 +45,38 @@ class _SettingsLanguageScreenCupertino extends State<SettingsLanguageScreenCuper
 
   @override
   Widget build(BuildContext context) {
-    return CupertinoPageScaffold(
-      backgroundColor: CupertinoDynamicColor.withBrightness(
-        color: CupertinoColors.systemGroupedBackground,
-        darkColor: CupertinoColors.darkBackgroundGray,
-      ),
-      navigationBar: CupertinoNavigationBar(
-        automaticBackgroundVisibility: false,
-        middle: Text(context.t.language),
-      ),
-      child: SafeArea(
-        child: Center(
-          child: Padding(
-            padding: EdgeInsetsGeometry.all(15),
-            child: BlocBuilder<MainCubit, MainState>(
-              builder: (context, state) {
+    return BlocConsumer<SettingsLanguageCubit, SettingsLanguageState>(
+      listenWhen: (previous, current) => previous.locale != current.locale,
+      listener: (context, state) {
+        context.read<MainCubit>().setLocale(locale: state.locale);
+      },
+      builder: (context, state) {
+        Widget additionalInfo = FaIcon(
+          FontAwesomeIcons.solidCircleCheck,
+          size: 18,
+          color: CupertinoDynamicColor.resolve(
+            CupertinoDynamicColor.withBrightness(
+              color: CupertinoTheme.of(context).primaryColor,
+              darkColor: CupertinoTheme.of(context).primaryColor,
+            ),
+            context,
+          ),
+        );
 
-                Widget additionalInfo = FaIcon(
-                  FontAwesomeIcons.solidCircleCheck,
-                  size: 18,
-                  color: CupertinoDynamicColor.resolve(
-                    CupertinoDynamicColor.withBrightness(
-                      color: CupertinoTheme.of(context).primaryColor,
-                      darkColor: CupertinoTheme.of(context).primaryColor,
-                    ),
-                    context,
-                  ),
-                );
-
-                return ListView(
+        return CupertinoPageScaffold(
+          backgroundColor: CupertinoDynamicColor.withBrightness(
+            color: CupertinoColors.systemGroupedBackground,
+            darkColor: CupertinoColors.darkBackgroundGray,
+          ),
+          navigationBar: CupertinoNavigationBar(
+            automaticBackgroundVisibility: false,
+            middle: Text(context.t.language),
+          ),
+          child: SafeArea(
+            child: Center(
+              child: Padding(
+                padding: EdgeInsetsGeometry.all(15),
+                child: ListView(
                   children: [
                     Container(
                       decoration: BoxDecoration(
@@ -88,8 +93,8 @@ class _SettingsLanguageScreenCupertino extends State<SettingsLanguageScreenCuper
                         padding: EdgeInsets.all(10),
                         title: Text("English"),
                         subtitle: Text("English"),
-                        onTap: () async => context.read<SettingsLanguageCubit>().setLocale(context, locale: AppLocale.en),
-                        additionalInfo: state.settingsDevice.locale == AppLocale.en ? additionalInfo : null,
+                        onTap: () async => context.read<SettingsLanguageCubit>().setLocale(locale: AppLocale.en),
+                        additionalInfo: state.locale == AppLocale.en ? additionalInfo : null,
                       ),
                     ),
                     _divider(),
@@ -108,17 +113,20 @@ class _SettingsLanguageScreenCupertino extends State<SettingsLanguageScreenCuper
                         padding: EdgeInsets.all(10),
                         title: Text("Russian"),
                         subtitle: Text("Русский"),
-                        onTap: () async => context.read<SettingsLanguageCubit>().setLocale(context, locale: AppLocale.ru),
-                        additionalInfo: state.settingsDevice.locale == AppLocale.ru ? additionalInfo : null,
+                        onTap: () async => context.read<SettingsLanguageCubit>().setLocale(locale: AppLocale.ru),
+                        additionalInfo: state.locale == AppLocale.ru ? additionalInfo : null,
                       ),
                     ),
                   ],
-                );
-              },
+                ),
+              ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }
+
+
+

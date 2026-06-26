@@ -1,7 +1,4 @@
-import 'package:bloc/bloc.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:messenger/cubit/main_cubit.dart';
 
 import '../../di.dart';
 import '../../i18n/translations.g.dart';
@@ -15,10 +12,10 @@ class SettingsLanguageCubit extends Cubit<SettingsLanguageState> {
   final logger = getIt.get<Logger>();
   final repositories = getIt.get<Repositories>();
 
-  Future<void> setLocale(BuildContext context, {required AppLocale locale}) async {
-    context.read<MainCubit>().setLocale(locale: locale);
+  Future<void> setLocale({required AppLocale locale}) async {
     LocaleSettings.setLocale(locale);
     await repositories.settingsDevice.setLocale(locale: locale);
+    emit(state.copyWith(locale: locale));
   }
 
 }

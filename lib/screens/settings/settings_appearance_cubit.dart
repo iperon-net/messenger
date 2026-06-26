@@ -1,6 +1,5 @@
-import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../cubit/main_cubit.dart';
+
 import '../../di.dart';
 import '../../models.dart';
 import '../../repositories/repositories.dart';
@@ -11,14 +10,16 @@ class SettingsAppearanceCubit extends Cubit<SettingsAppearanceState> {
 
   final repositories = getIt.get<Repositories>();
 
-  Future<void> setColorTheme(BuildContext context, {required SettingsDeviceColorTheme colorTheme}) async {
-    context.read<MainCubit>().setColorTheme(colorTheme: colorTheme);
+  Future<void> setColorTheme({required SettingsDeviceColorTheme colorTheme}) async {
+    // context.read<MainCubit>().setColorTheme(colorTheme: colorTheme);
     await repositories.settingsDevice.setColorTheme(colorTheme);
+    emit(state.copyWith(colorTheme: colorTheme));
   }
 
-  Future<void> setDarkMode(BuildContext context, {required SettingsDeviceDarkMode darkMode}) async {
-    context.read<MainCubit>().setDarkMode(darkMode: darkMode);
+  Future<void> setDarkMode({required SettingsDeviceDarkMode darkMode}) async {
+    // context.read<MainCubit>().setDarkMode(darkMode: darkMode);
     await repositories.settingsDevice.setDarkMode(darkMode);
+    emit(state.copyWith(darkMode: darkMode));
   }
 
 }
