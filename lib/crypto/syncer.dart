@@ -83,7 +83,7 @@ class Syncer {
     return bytesBuilderCrypt.toBytes();
   }
 
-  Future<List<int>> decode({required models.Session session, required Uint8List message}) async {
+  Future<List<int>> decode({required models.Session session, required Uint8List message, required SyncerMessageType messageType}) async {
     final headerPadding = message.sublist(0, 128);
     final header = await headerParse(message);
 
