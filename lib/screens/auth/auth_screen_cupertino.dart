@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter_multi_formatter/flutter_multi_formatter.dart';
 import 'package:flutter_svg/svg.dart';
 
@@ -53,110 +54,126 @@ class _AuthCupertinoScreen extends State<AuthCupertinoScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return CupertinoPageScaffold(
-      backgroundColor: CupertinoDynamicColor.withBrightness(
-        color: Color(0xffffffff),
-        darkColor: Color(0xff1b263b),
-      ),
-      child: Form(
-        key: formKey,
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(25, 10, 25, 50),
-            child: Column(
-              spacing: 20,
-              children: [
-                Expanded(
-                  child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      SizedBox(height: 30, width: double.infinity),
-                      SvgPicture.asset(MediaQuery.of(context).platformBrightness == Brightness.light ? 'assets/images/logo_light.svg' : 'assets/images/logo_dark.svg'),
-                      SizedBox(height: 30, width: double.infinity),
-                      Container(
-                        padding: const EdgeInsets.fromLTRB(0, 1, 0, 1),
-                        decoration: BoxDecoration(
-                          border: Border(
-                            top: BorderSide(
-                              color: const CupertinoDynamicColor.withBrightness(
-                                color: Color(0x1F000000),
-                                darkColor: Color(0x3DFFFFFF),
-                              ).resolveFrom(context),
+    return BlocConsumer<AuthCubit, AuthState>(
+      listenWhen: (prev, current) => prev.redirectUrl != current.redirectUrl || prev.errorKey != current.errorKey,
+      listener: (context, state) {
+        // Перевалидируем и при появлении, и при сбросе errorKey,
+        // чтобы прежняя ошибка убиралась с поля.
+        formKey.currentState?.validate();
+        if (state.redirectUrl.isNotEmpty) {
+          context.read<AuthCubit>().redirectHandled();
+          context.go(state.redirectUrl);
+        }
+      },
+      builder: (context, state) {
+        return CupertinoPageScaffold(
+          backgroundColor: CupertinoDynamicColor.withBrightness(
+            color: Color(0xffffffff),
+            darkColor: Color(0xff1b263b),
+          ),
+          child: Form(
+            key: formKey,
+            child: SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(25, 10, 25, 50),
+                child: Column(
+                  spacing: 20,
+                  children: [
+                    Expanded(
+                      child: SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            SizedBox(height: 30, width: double.infinity),
+                            SvgPicture.asset(MediaQuery.of(context).platformBrightness == Brightness.light ? 'assets/images/logo_light.svg' : 'assets/images/logo_dark.svg'),
+                            SizedBox(height: 30, width: double.infinity),
+                            Container(
+                              padding: const EdgeInsets.fromLTRB(0, 1, 0, 1),
+                              decoration: BoxDecoration(
+                                border: Border(
+                                  top: BorderSide(
+                                    color: const CupertinoDynamicColor.withBrightness(
+                                      color: Color(0x1F000000),
+                                      darkColor: Color(0x3DFFFFFF),
+                                    ).resolveFrom(context),
+                                  ),
+                                  bottom: BorderSide(
+                                    color: const CupertinoDynamicColor.withBrightness(
+                                      color: Color(0x1F000000),
+                                      darkColor: Color(0x3DFFFFFF),
+                                    ).resolveFrom(context),
+                                  ),
+                                ),
+                              ),
+                              child: CupertinoTextFormFieldRow(
+                                controller: phoneNumberController,
+                                focusNode: phoneNumberFocus,
+                                autocorrect: true,
+                                keyboardType: TextInputType.phone,
+                                prefix: Padding(
+                                  padding: EdgeInsets.fromLTRB(0, 0, 10, 0),
+                                  child: Icon(
+                                    CupertinoIcons.phone,
+                                  ),
+                                ),
+                                inputFormatters: [
+                                  PhoneInputFormatter(),
+                                ],
+                                autofillHints: const [
+                                  AutofillHints.telephoneNumber,
+                                ],
+                                placeholder: context.t.mobilePhone,
+                                onChanged: (_) => context.read<AuthCubit>().clearError(),
+                                validator: (value) {
+                                  final cubit = context.read<AuthCubit>();
+                                  final errorKey = cubit.validatePhoneNumber(value) ?? (cubit.state.errorKey.isNotEmpty ? cubit.state.errorKey : null);
+
+                                  if (errorKey == null) return null;
+                                  return context.t[errorKey] ?? context.t.unknownError;
+                                },
+                              ),
                             ),
-                            bottom: BorderSide(
-                              color: const CupertinoDynamicColor.withBrightness(
-                                color: Color(0x1F000000),
-                                darkColor: Color(0x3DFFFFFF),
-                              ).resolveFrom(context),
-                            ),
-                          ),
-                        ),
-                        child: CupertinoTextFormFieldRow(
-                          controller: phoneNumberController,
-                          focusNode: phoneNumberFocus,
-                          autocorrect: true,
-                          keyboardType: TextInputType.phone,
-                          prefix: Padding(
-                            padding: EdgeInsets.fromLTRB(0, 0, 10, 0),
-                            child: Icon(
-                              CupertinoIcons.phone,
-                            ),
-                          ),
-                          inputFormatters: [
-                            PhoneInputFormatter(),
                           ],
-                          autofillHints: const [
-                            AutofillHints.telephoneNumber,
-                          ],
-                          placeholder: context.t.mobilePhone,
-                          validator: (value) => context.read<AuthCubit>().validatorPhoneNumber(context, value),
                         ),
                       ),
-                    ],
-                  ),
-                  ),
-                ),
-
-                BlocBuilder<AuthCubit, AuthState>(
-                  builder: (context, state) {
-                    return SizedBox(
+                    ),
+                    SizedBox(
                       width: MediaQuery.of(context).size.width,
                       child: CupertinoButton.filled(
                         disabledColor: Color.fromARGB(255, 56, 96, 143),
-                        onPressed: [Status.success, Status.initialization].contains(state.status) ? () async => await context.read<AuthCubit>().validator(context, formKey, phoneNumberController) : null,
+                        onPressed: [Status.success, Status.initialization].contains(state.status) ? () => context.read<AuthCubit>().submit(phoneNumberController.text) : null,
                         child: [Status.success, Status.initialization].contains(state.status) ? Text(context.t.kContinue) : CupertinoActivityIndicator(color: Color(0xffffffff)),
                       ),
-                    );
-                  }
-                ),
-                DividerTextWidget(text: context.t.loginInWith),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  spacing: 30,
-                  children: [
-                    GestureDetector(
-                      onTap: () async => await context.read<AuthCubit>().signIn(),
-                      child: SvgPicture.asset('assets/images/yandex_id.svg'),
                     ),
-                    Container(
-                      width: 42,
-                      height: 42,
-                      decoration: BoxDecoration(
-                        color: Colors.blue,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Center(
-                        child: SvgPicture.asset('assets/icons/user-key.svg', width: 32, theme: SvgTheme(currentColor: Colors.white),),
-                      ),
+                    DividerTextWidget(text: context.t.loginInWith),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      spacing: 30,
+                      children: [
+                        GestureDetector(
+                          onTap: () async => await context.read<AuthCubit>().signIn(),
+                          child: SvgPicture.asset('assets/images/yandex_id.svg'),
+                        ),
+                        Container(
+                          width: 42,
+                          height: 42,
+                          decoration: BoxDecoration(
+                            color: Colors.blue,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Center(
+                            child: SvgPicture.asset('assets/icons/user-key.svg', width: 32, theme: SvgTheme(currentColor: Colors.white),),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
-              ],
+              ),
             ),
           ),
-        ),
-      ),
+        );
+      }
     );
   }
 

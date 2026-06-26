@@ -1,14 +1,11 @@
 import 'package:bloc/bloc.dart';
 import 'package:convert/convert.dart' as convertor;
 import 'package:dlibphonenumber/dlibphonenumber.dart';
-import 'package:flutter/widgets.dart';
-import 'package:go_router/go_router.dart';
 import 'package:messenger/di.dart';
 import 'package:yandex_login_sdk/yandex_login_sdk.dart';
 
 import '../../api.dart';
 import '../../constants.dart';
-import '../../i18n/translations.g.dart';
 import '../../logger.dart';
 import '../../protobuf/protos/auth_v1.pb.dart';
 import '../../settings.dart';
@@ -22,104 +19,101 @@ class AuthCubit extends Cubit<AuthState> {
   final _logger = getIt.get<Logger>();
   final _api = getIt.get<API>();
 
-  // Validator phone number
-  String? validatorPhoneNumber(BuildContext context, String? value) {
-    if (value == null || value.isEmpty) return context.t.enterYourMobilePhoneNumber;
+  /// Синхронная валидация поля. Возвращает i18n-КЛЮЧ ошибки или null.
+  /// Локализацию выполняет экран: `context.t[key]`.
+  String? validatePhoneNumber(String? value) {
+    if (value == null || value.isEmpty) return 'enterYourMobilePhoneNumber';
 
-    PhoneNumber phoneNumber;
+    final PhoneNumber phoneNumber;
     try {
-      phoneNumber = phoneUtil.parse(value, "");
+      phoneNumber = phoneUtil.parse(value, "RU");
     } catch (err) {
       _logger.error(err);
-      return context.t.enterYourMobilePhoneNumber;
+      return 'enterYourMobilePhoneNumber';
     }
 
-    final PhoneNumberType type = phoneUtil.getNumberType(phoneNumber);
-
-    if (type != PhoneNumberType.mobile) {
-      return context.t.currentlyWeOnlySupportPhoneNumbersFromRussianMobileOperators;
+    if (phoneUtil.getNumberType(phoneNumber) != PhoneNumberType.mobile) {
+      return 'currentlyWeOnlySupportPhoneNumbersFromRussianMobileOperators';
     }
 
-    if (state.error.isNotEmpty) return state.error;
     return null;
   }
 
-  // Validator
-  Future<void> validator(BuildContext context, GlobalKey<FormState> formKey, TextEditingController phoneNumberController) async {
-    emit(AuthState(status: Status.loading));
+  /// Отправка номера. Не знает про навигацию и локализацию — кладёт в state
+  /// `errorKey` (ключ ошибки) и `redirectUrl` (маршрут перехода), а экран реагирует.
+  Future<void> submit(String rawPhone) async {
+    emit(state.copyWith(status: Status.loading, errorKey: '', redirectUrl: ''));
 
-    if (!formKey.currentState!.validate()) {
-      emit(state.copyWith(status: Status.success));
-      return;
-    }
-
-    PhoneNumber phoneNumber;
+    final PhoneNumber phoneNumber;
     try {
-      phoneNumber = phoneUtil.parse(phoneNumberController.text, "");
-    } catch (err) {
-      if (context.mounted) emit(state.copyWith(error: context.t.enterYourMobilePhoneNumber, status: Status.success));
-      formKey.currentState!.validate();
+      phoneNumber = phoneUtil.parse(rawPhone, "RU");
+    } catch (_) {
+      emit(state.copyWith(status: Status.success, errorKey: 'enterYourMobilePhoneNumber'));
       return;
     }
 
-    // ModerationApplicationStore workflow
-    if (Settings.phoneNumberModerationApplicationStore == "${phoneNumber.countryCode}${phoneNumber.nationalNumber}") {
-      late AuthSMSResponse authSMSResponse;
+    final e164 = "${phoneNumber.countryCode}${phoneNumber.nationalNumber}";
 
-      final authSMSResponseError = await _api.call(() async {
-        final req = AuthSMSRequest(phoneNumber: "${phoneNumber.countryCode}${phoneNumber.nationalNumber}");
-        authSMSResponse = await _api.auth.sMS(req, options: await _api.callOptions());
+    // ModerationApplicationStore workflow (SMS)
+    if (Settings.phoneNumberModerationApplicationStore == e164) {
+      late AuthSMSResponse res;
+      final error = await _api.call(() async {
+        res = await _api.auth.sMS(AuthSMSRequest(phoneNumber: e164), options: await _api.callOptions());
       });
-      if (context.mounted && authSMSResponseError.isNotEmpty) {
-        emit(state.copyWith(error: context.t[authSMSResponseError] ?? context.t.unknownError, status: Status.success));
-        formKey.currentState!.validate();
+
+      if (isClosed) return;
+
+      if (error.isNotEmpty) {
+        emit(state.copyWith(status: Status.success, errorKey: error));
         return;
       }
-      // authSMSResponse.smsSession
-      emit(AuthState(status: Status.success));
 
-      if(context.mounted) {
-        String queryString = Uri(queryParameters: {
-          'smsSession': convertor.hex.encode(authSMSResponse.smsSession),
-          'phoneNumber': phoneUtil.format(phoneNumber, PhoneNumberFormat.international).toString(),
-        }).query;
-        context.go("/auth/sms?$queryString");
-      }
+      final query = Uri(queryParameters: {
+        'smsSession': convertor.hex.encode(res.smsSession),
+        'phoneNumber': phoneUtil.format(phoneNumber, PhoneNumberFormat.international).toString(),
+      }).query;
+      emit(state.copyWith(status: Status.success, redirectUrl: "/auth/sms?$query"));
       return;
     }
 
     // CallPassword workflow
-    late AuthCallPasswordResponse authCallPasswordResponse;
-
-    final authCallPasswordResponseError = await _api.call(() async {
-      final req = AuthCallPasswordRequest(phoneNumber: "${phoneNumber.countryCode}${phoneNumber.nationalNumber}");
-      authCallPasswordResponse = await _api.auth.callPassword(req, options: await _api.callOptions());
+    late AuthCallPasswordResponse response;
+    final error = await _api.call(() async {
+      response = await _api.auth.callPassword(AuthCallPasswordRequest(phoneNumber: e164), options: await _api.callOptions());
     });
-    if (context.mounted && authCallPasswordResponseError.isNotEmpty) {
-      emit(state.copyWith(error: context.t[authCallPasswordResponseError] ?? context.t.unknownError, status: Status.success));
-      formKey.currentState!.validate();
+
+    if (isClosed) return;
+
+    if (error.isNotEmpty) {
+      emit(state.copyWith(status: Status.success, errorKey: error));
       return;
     }
 
-    emit(state.copyWith(status: Status.success));
+    final query = Uri(queryParameters: {
+      'callPasswordSession': convertor.hex.encode(response.callPasswordSession),
+      'confirmationPhoneNumber': response.confirmationPhoneNumber,
+      'timeout': response.timeout.toString(),
+    }).query;
+    emit(state.copyWith(status: Status.success, redirectUrl: "/auth/callpassword?$query"));
 
-    if(context.mounted) {
-      String queryString = Uri(queryParameters: {
-        'callPasswordSession': convertor.hex.encode(authCallPasswordResponse.callPasswordSession),
-        'confirmationPhoneNumber': authCallPasswordResponse.confirmationPhoneNumber,
-        'timeout':authCallPasswordResponse.timeout.toString(),
-      }).query;
-      context.go("/auth/callpassword?$queryString");
-    }
-
-    _logger.info("waiting for a call from the phone ${phoneNumberController.text}");
+    _logger.info("waiting for a call from the phone $e164");
   }
 
+  /// Экран вызывает после выполнения перехода, чтобы не навигировать повторно.
+  void redirectHandled() => emit(state.copyWith(redirectUrl: ''));
+
+  /// Сброс серверной ошибки при редактировании поля,
+  /// чтобы прежняя ошибка не «прилипала» к новому вводу.
+  void clearError() {
+    if (state.errorKey.isNotEmpty) emit(state.copyWith(errorKey: ''));
+  }
 
   Future<void> signIn() async {
     try {
       final result = await YandexLoginSdk.signIn(clientId: Settings.yandexOauthClientId);
-      _logger.debug('Access token: ${result.token}');
+      // NB: не логируем сам токен — это чувствительные данные.
+      _logger.debug('Yandex sign-in succeeded (token length: ${result.token.length})');
+      // TODO: обменять result.token на сессию и выставить redirectUrl.
     } on YandexAuthCancelledException {
       _logger.error('YandexAuthCancelledException');
     } on YandexAuthUnsupportedException {
@@ -129,7 +123,5 @@ class AuthCubit extends Cubit<AuthState> {
     }
   }
 
-  Future<void> telegram() async {
-  }
-
+  Future<void> telegram() async {}
 }

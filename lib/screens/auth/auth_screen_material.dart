@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter_multi_formatter/flutter_multi_formatter.dart';
 import 'package:flutter_svg/svg.dart';
 
@@ -58,12 +59,23 @@ class _AuthMaterialScreen extends State<AuthMaterialScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.surface,
-      appBar: AppBar(
+    return BlocListener<AuthCubit, AuthState>(
+      listenWhen: (prev, cur) => prev.redirectUrl != cur.redirectUrl || prev.errorKey != cur.errorKey,
+      listener: (context, state) {
+        // Перевалидируем и при появлении, и при сбросе errorKey,
+        // чтобы прежняя ошибка убиралась с поля.
+        formKey.currentState?.validate();
+        if (state.redirectUrl.isNotEmpty) {
+          context.read<AuthCubit>().redirectHandled();
+          context.go(state.redirectUrl);
+        }
+      },
+      child: Scaffold(
         backgroundColor: Theme.of(context).colorScheme.surface,
-      ),
-      body: Form(
+        appBar: AppBar(
+          backgroundColor: Theme.of(context).colorScheme.surface,
+        ),
+        body: Form(
         key: formKey,
         child: SafeArea(
           child: Padding(
@@ -94,12 +106,15 @@ class _AuthMaterialScreen extends State<AuthMaterialScreen> {
                           AutofillHints.telephoneNumber,
                         ],
                         textInputAction: TextInputAction.next,
+                        onChanged: (_) => context.read<AuthCubit>().clearError(),
                         validator: (value) {
-                          final error = context.read<AuthCubit>().validatorPhoneNumber(context, value);
-                          if (error == null) return null;
+                          final cubit = context.read<AuthCubit>();
+                          final key = cubit.validatePhoneNumber(value) ?? (cubit.state.errorKey.isNotEmpty ? cubit.state.errorKey : null);
+                          if (key == null) return null;
+                          final error = context.t[key] ?? context.t.unknownError;
                           return error.contains('\n') ? error : '$error\n';
                         },
-                        onEditingComplete: () async => await context.read<AuthCubit>().validator(context, formKey, phoneNumberController),
+                        onEditingComplete: () => context.read<AuthCubit>().submit(phoneNumberController.text),
                       ),
                     ],
                   ),
@@ -110,7 +125,7 @@ class _AuthMaterialScreen extends State<AuthMaterialScreen> {
                       width: double.infinity,
                       height: 45,
                       child: ElevatedButton(
-                        onPressed: [Status.success, Status.initialization].contains(state.status) ? () async => await context.read<AuthCubit>().validator(context, formKey, phoneNumberController) : null,
+                        onPressed: [Status.success, Status.initialization].contains(state.status) ? () => context.read<AuthCubit>().submit(phoneNumberController.text) : null,
                         child: [Status.success, Status.initialization].contains(state.status) ? Text(context.t.kContinue) : Transform.scale(scale: 0.5, child: CircularProgressIndicator(color: Color(0xffffffff))),
                       ),
                     );
@@ -155,7 +170,8 @@ class _AuthMaterialScreen extends State<AuthMaterialScreen> {
                 //     ),
                 //   ],
                 // ),
-              ],
+                ],
+              ),
             ),
           ),
         ),

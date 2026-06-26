@@ -29,10 +29,17 @@ class AuthStateMapper extends ClassMapperBase<AuthState> {
     opt: true,
     def: Status.initialization,
   );
-  static String _$error(AuthState v) => v.error;
-  static const Field<AuthState, String> _f$error = Field(
-    'error',
-    _$error,
+  static String _$errorKey(AuthState v) => v.errorKey;
+  static const Field<AuthState, String> _f$errorKey = Field(
+    'errorKey',
+    _$errorKey,
+    opt: true,
+    def: "",
+  );
+  static String _$redirectUrl(AuthState v) => v.redirectUrl;
+  static const Field<AuthState, String> _f$redirectUrl = Field(
+    'redirectUrl',
+    _$redirectUrl,
     opt: true,
     def: "",
   );
@@ -40,11 +47,16 @@ class AuthStateMapper extends ClassMapperBase<AuthState> {
   @override
   final MappableFields<AuthState> fields = const {
     #status: _f$status,
-    #error: _f$error,
+    #errorKey: _f$errorKey,
+    #redirectUrl: _f$redirectUrl,
   };
 
   static AuthState _instantiate(DecodingData data) {
-    return AuthState(status: data.dec(_f$status), error: data.dec(_f$error));
+    return AuthState(
+      status: data.dec(_f$status),
+      errorKey: data.dec(_f$errorKey),
+      redirectUrl: data.dec(_f$redirectUrl),
+    );
   }
 
   @override
@@ -106,7 +118,7 @@ extension AuthStateValueCopy<$R, $Out> on ObjectCopyWith<$R, AuthState, $Out> {
 
 abstract class AuthStateCopyWith<$R, $In extends AuthState, $Out>
     implements ClassCopyWith<$R, $In, $Out> {
-  $R call({Status? status, String? error});
+  $R call({Status? status, String? errorKey, String? redirectUrl});
   AuthStateCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
 
@@ -119,16 +131,18 @@ class _AuthStateCopyWithImpl<$R, $Out>
   late final ClassMapperBase<AuthState> $mapper =
       AuthStateMapper.ensureInitialized();
   @override
-  $R call({Status? status, String? error}) => $apply(
+  $R call({Status? status, String? errorKey, String? redirectUrl}) => $apply(
     FieldCopyWithData({
       if (status != null) #status: status,
-      if (error != null) #error: error,
+      if (errorKey != null) #errorKey: errorKey,
+      if (redirectUrl != null) #redirectUrl: redirectUrl,
     }),
   );
   @override
   AuthState $make(CopyWithData data) => AuthState(
     status: data.get(#status, or: $value.status),
-    error: data.get(#error, or: $value.error),
+    errorKey: data.get(#errorKey, or: $value.errorKey),
+    redirectUrl: data.get(#redirectUrl, or: $value.redirectUrl),
   );
 
   @override
