@@ -21,9 +21,15 @@ export 'package:protobuf/protobuf.dart' show GeneratedMessageGenericExtensions;
 class AuthRequest extends $pb.GeneratedMessage {
   factory AuthRequest({
     $core.List<$core.int>? session,
+    $core.String? osVersion,
+    $core.String? appVersion,
+    $core.String? appBuildNumber,
   }) {
     final result = create();
     if (session != null) result.session = session;
+    if (osVersion != null) result.osVersion = osVersion;
+    if (appVersion != null) result.appVersion = appVersion;
+    if (appBuildNumber != null) result.appBuildNumber = appBuildNumber;
     return result;
   }
 
@@ -42,6 +48,10 @@ class AuthRequest extends $pb.GeneratedMessage {
       createEmptyInstance: create)
     ..a<$core.List<$core.int>>(
         1, _omitFieldNames ? '' : 'session', $pb.PbFieldType.OY)
+    ..aOS(2, _omitFieldNames ? '' : 'osVersion', protoName: 'osVersion')
+    ..aOS(3, _omitFieldNames ? '' : 'appVersion', protoName: 'appVersion')
+    ..aOS(4, _omitFieldNames ? '' : 'appBuildNumber',
+        protoName: 'appBuildNumber')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -71,6 +81,33 @@ class AuthRequest extends $pb.GeneratedMessage {
   $core.bool hasSession() => $_has(0);
   @$pb.TagNumber(1)
   void clearSession() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.String get osVersion => $_getSZ(1);
+  @$pb.TagNumber(2)
+  set osVersion($core.String value) => $_setString(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasOsVersion() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearOsVersion() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.String get appVersion => $_getSZ(2);
+  @$pb.TagNumber(3)
+  set appVersion($core.String value) => $_setString(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasAppVersion() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearAppVersion() => $_clearField(3);
+
+  @$pb.TagNumber(4)
+  $core.String get appBuildNumber => $_getSZ(3);
+  @$pb.TagNumber(4)
+  set appBuildNumber($core.String value) => $_setString(3, value);
+  @$pb.TagNumber(4)
+  $core.bool hasAppBuildNumber() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearAppBuildNumber() => $_clearField(4);
 }
 
 class AuthResponse extends $pb.GeneratedMessage {
@@ -100,7 +137,7 @@ class AuthResponse extends $pb.GeneratedMessage {
     ..a<$core.List<$core.int>>(
         1, _omitFieldNames ? '' : 'salt', $pb.PbFieldType.OY)
     ..aOM<$0.Timestamp>(2, _omitFieldNames ? '' : 'serverAt',
-        subBuilder: $0.Timestamp.create)
+        protoName: 'serverAt', subBuilder: $0.Timestamp.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')

@@ -4,7 +4,9 @@ enum SyncerMessageType {
   authRequest(1),
   authResponse(2),
   logoutRequest(3),
-  logoutResponse(4);
+  logoutResponse(4),
+  sessionsRequest(5),
+  sessionsResponse(6);
 
   final int value;
   const SyncerMessageType(this.value);

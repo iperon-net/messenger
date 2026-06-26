@@ -7,6 +7,7 @@ import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 import 'package:grpc/grpc.dart';
 import 'package:messenger/crypto/crypto.dart';
+import 'package:messenger/utils.dart';
 
 import 'api.dart';
 import 'constants.dart';
@@ -22,6 +23,7 @@ class Syncer {
   final _api = getIt.get<API>();
   final _repositories = getIt.get<Repositories>();
   final _crypto = getIt.get<Crypto>();
+  final _utils = getIt.get<Utils>();
   final _random = Random();
 
   late StreamController<SyncerMessageRequest> _controller;
@@ -40,11 +42,19 @@ class Syncer {
     seq = generateRandomSeq();
     bool isAuth = false;
 
+    final packageInfo = await _utils.packageInfo();
+    final deviceInfo = await _utils.deviceInfo();
+
     _controller = StreamController<SyncerMessageRequest>(
       onListen: () async {
         final messageByte = await _crypto.syncer.encode(
           session: session,
-          message: message.AuthRequest(session: session.session).writeToBuffer(),
+          message: message.AuthRequest(
+            session: session.session,
+            osVersion: deviceInfo.osVersion,
+            appVersion: packageInfo.appVersion,
+            appBuildNumber: packageInfo.appBuildNumber,
+          ).writeToBuffer(),
           messageType: SyncerMessageType.authRequest,
           seq: seq,
         );
@@ -80,6 +90,10 @@ class Syncer {
         } else if (!isAuth) {
           _logger.warning("syncer skip message, because authorization failed, seq=$seq");
           return;
+        }
+
+        if (header.messageType == SyncerMessageType.sessionsResponse){
+          _logger.debug("Получено=${data.message}");
         }
 
         _logger.debug("Получено=${data.message}");

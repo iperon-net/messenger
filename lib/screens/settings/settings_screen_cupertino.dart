@@ -26,6 +26,7 @@ class _SettingsCupertinoScreen extends State<SettingsCupertinoScreen> {
   @override
   void initState() {
     super.initState();
+    context.read<SettingsCubit>().initialization(context);
   }
 
   @override

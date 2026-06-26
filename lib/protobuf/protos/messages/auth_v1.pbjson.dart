@@ -20,12 +20,17 @@ const AuthRequest$json = {
   '1': 'AuthRequest',
   '2': [
     {'1': 'session', '3': 1, '4': 1, '5': 12, '10': 'session'},
+    {'1': 'osVersion', '3': 2, '4': 1, '5': 9, '10': 'osVersion'},
+    {'1': 'appVersion', '3': 3, '4': 1, '5': 9, '10': 'appVersion'},
+    {'1': 'appBuildNumber', '3': 4, '4': 1, '5': 9, '10': 'appBuildNumber'},
   ],
 };
 
 /// Descriptor for `AuthRequest`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List authRequestDescriptor = $convert
-    .base64Decode('CgtBdXRoUmVxdWVzdBIYCgdzZXNzaW9uGAEgASgMUgdzZXNzaW9u');
+final $typed_data.Uint8List authRequestDescriptor = $convert.base64Decode(
+    'CgtBdXRoUmVxdWVzdBIYCgdzZXNzaW9uGAEgASgMUgdzZXNzaW9uEhwKCW9zVmVyc2lvbhgCIA'
+    'EoCVIJb3NWZXJzaW9uEh4KCmFwcFZlcnNpb24YAyABKAlSCmFwcFZlcnNpb24SJgoOYXBwQnVp'
+    'bGROdW1iZXIYBCABKAlSDmFwcEJ1aWxkTnVtYmVy');
 
 @$core.Deprecated('Use authResponseDescriptor instead')
 const AuthResponse$json = {
@@ -33,7 +38,7 @@ const AuthResponse$json = {
   '2': [
     {'1': 'salt', '3': 1, '4': 1, '5': 12, '10': 'salt'},
     {
-      '1': 'server_at',
+      '1': 'serverAt',
       '3': 2,
       '4': 1,
       '5': 11,
@@ -45,5 +50,5 @@ const AuthResponse$json = {
 
 /// Descriptor for `AuthResponse`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List authResponseDescriptor = $convert.base64Decode(
-    'CgxBdXRoUmVzcG9uc2USEgoEc2FsdBgBIAEoDFIEc2FsdBI3CglzZXJ2ZXJfYXQYAiABKAsyGi'
-    '5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wUghzZXJ2ZXJBdA==');
+    'CgxBdXRoUmVzcG9uc2USEgoEc2FsdBgBIAEoDFIEc2FsdBI2CghzZXJ2ZXJBdBgCIAEoCzIaLm'
+    'dvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBSCHNlcnZlckF0');

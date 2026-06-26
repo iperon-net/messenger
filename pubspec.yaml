@@ -79,7 +79,7 @@ dependencies:
   permission_handler: ^12.0.3
   badges: ^3.2.0
   pqcrypto: ^0.4.0
-  workmanager: ^0.8.0
+  workmanager: ^0.9.0+3
 
 dev_dependencies:
   flutter_test:

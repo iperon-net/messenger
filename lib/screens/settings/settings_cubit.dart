@@ -2,6 +2,7 @@ import 'package:bloc/bloc.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:messenger/protobuf/protos/messages/sessions_v1.pb.dart';
 
 import '../../constants.dart';
 import '../../cubit/main_cubit.dart';
@@ -17,6 +18,13 @@ class SettingsCubit extends Cubit<SettingsState> {
 
   final repositories = getIt.get<Repositories>();
   final syncer = getIt.get<Syncer>();
+
+  Future<void> initialization(BuildContext context) async {
+    await syncer.send(
+      context, message: SessionsResponse().writeToBuffer(),
+      messageType: SyncerMessageType.sessionsRequest,
+    );
+  }
 
   Future<void> logout(BuildContext context) async {
     await repositories.sessions.logout();
