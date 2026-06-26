@@ -1,9 +1,11 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:go_router/go_router.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
 import 'package:convert/convert.dart' as convertor;
 
+import '../../cubit/main_cubit.dart';
 import '../../i18n/translations.g.dart';
 import 'auth_sms_cubit.dart';
 
@@ -85,10 +87,19 @@ class _AuthSmsScreenCupertino extends State<AuthSmsScreenCupertino> {
                           enableAutofill: true,
                           autofillHints: [AutofillHints.oneTimeCode],
                           onCompleted: (verificationCode) async {
-                            final result = await context.read<AuthSmsCubit>().smsCheck(context, smsSession: convertor.hex.decode(widget.smsSession), verificationCode: verificationCode);
-                            if (context.mounted && !result) {
+                            final resultSmsCheck = await context.read<AuthSmsCubit>().smsCheck(
+                              smsSession: convertor.hex.decode(widget.smsSession),
+                              verificationCode: verificationCode,
+                            );
+
+                            if (!context.mounted) return;
+                            if (resultSmsCheck == null) {
                               pinInputController.triggerError();
+                              return;
                             }
+
+                            await context.read<MainCubit>().setActive(user: resultSmsCheck.user, session: resultSmsCheck.session);
+                            if (context.mounted) context.go("/");
                           },
                           autoFocus: true,
                           keyboardAppearance: brightness,

@@ -22,22 +22,26 @@ class AuthCallpasswordCubit extends Cubit<AuthCallpasswordState> {
   final _services = getIt.get<Services>();
   final _repositories = getIt.get<Repositories>();
 
-  late ResponseStream<AuthCallPasswordCheckResponse> streamCallPassword;
-  late StreamSubscription<AuthCallPasswordCheckResponse> subscriptionCallPassword;
+  ResponseStream<AuthCallPasswordCheckResponse>? streamCallPassword;
+  StreamSubscription<AuthCallPasswordCheckResponse>? subscriptionCallPassword;
 
   Future<void> callPassword({
     required String callPasswordSession,
     required double timeout,
   }) async {
-    emit(AuthCallpasswordState(status: Status.loading));
+    // Сбрасываем прежнюю подписку, чтобы не утекала при повторном вызове (resume).
+    await subscriptionCallPassword?.cancel();
+
+    emit(state.copyWith(status: Status.loading, error: ''));
     _logger.info("callPasswordSession=$callPasswordSession");
 
-    streamCallPassword = _api.auth.callPasswordCheck(
+    final stream = _api.auth.callPasswordCheck(
       AuthCallPasswordCheckRequest(callPasswordSession: convertor.hex.decode(callPasswordSession)),
       options: await _api.callOptions(timeout: timeout),
     );
+    streamCallPassword = stream;
 
-    subscriptionCallPassword = streamCallPassword.listen((onData) async {
+    subscriptionCallPassword = stream.listen((onData) async {
       if (onData.status == grpc_models.Status.success && onData.timer > 0) {
         emit(state.copyWith(status: Status.loading, tickerSecond: onData.timer.toInt()));
       } else if (onData.status == grpc_models.Status.error) {
@@ -45,6 +49,7 @@ class AuthCallpasswordCubit extends Cubit<AuthCallpasswordState> {
       } else if (onData.status == grpc_models.Status.success) {
 
         final serviceResponseConfirmation = await _services.auth.confirmation(confirmationSession: onData.confirmationSession);
+        if (isClosed) return;
         if (serviceResponseConfirmation.error.isNotEmpty) {
           emit(state.copyWith(
             status: Status.success,
@@ -55,6 +60,7 @@ class AuthCallpasswordCubit extends Cubit<AuthCallpasswordState> {
 
         final session = await _repositories.sessions.getActive();
         final user = await _repositories.users.getBySession(session: session);
+        if (isClosed) return;
 
         emit(state.copyWith(status: Status.success, user: user, session: session));
         _logger.info("auth call password success");
@@ -62,6 +68,7 @@ class AuthCallpasswordCubit extends Cubit<AuthCallpasswordState> {
       }
 
     }, onError: (error) {
+      if (isClosed) return;
       if (error is GrpcError) {
         _logger.error("${error.codeName}, ${error.message}");
         if ([StatusCode.unknown, StatusCode.unavailable].contains(error.code)) {
@@ -79,7 +86,7 @@ class AuthCallpasswordCubit extends Cubit<AuthCallpasswordState> {
 
   @override
   Future<void> close() async {
-    await subscriptionCallPassword.cancel();
+    await subscriptionCallPassword?.cancel();
     return super.close();
   }
 

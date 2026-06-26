@@ -65,8 +65,8 @@ class _AuthCallPasswordMaterialScreen extends State<AuthCallPasswordMaterialScre
   void dispose() {
     _ticker.stop();
 
-    _cubit.subscriptionCallPassword.cancel();
-    _cubit.streamCallPassword.cancel();
+    _cubit.subscriptionCallPassword?.cancel();
+    _cubit.streamCallPassword?.cancel();
 
     WidgetsBinding.instance.removeObserver(this);
 
@@ -87,8 +87,8 @@ class _AuthCallPasswordMaterialScreen extends State<AuthCallPasswordMaterialScre
 
         break;
       case AppLifecycleState.paused:
-        _cubit.subscriptionCallPassword.cancel();
-        _cubit.streamCallPassword.cancel();
+        _cubit.subscriptionCallPassword?.cancel();
+        _cubit.streamCallPassword?.cancel();
         break;
       default:
     }

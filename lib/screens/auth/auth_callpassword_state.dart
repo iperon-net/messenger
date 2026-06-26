@@ -2,7 +2,6 @@ import 'package:dart_mappable/dart_mappable.dart';
 import 'package:messenger/models.dart';
 
 import '../../constants.dart';
-import '../../models/user.dart';
 
 part 'auth_callpassword_state.mapper.dart';
 

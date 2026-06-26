@@ -1,5 +1,4 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
@@ -66,8 +65,8 @@ class _AuthCallPasswordCupertinoScreen extends State<AuthCallPasswordCupertinoSc
   void dispose() {
     _ticker.stop();
 
-    _cubit.subscriptionCallPassword.cancel();
-    _cubit.streamCallPassword.cancel();
+    _cubit.subscriptionCallPassword?.cancel();
+    _cubit.streamCallPassword?.cancel();
 
     WidgetsBinding.instance.removeObserver(this);
 
@@ -88,8 +87,8 @@ class _AuthCallPasswordCupertinoScreen extends State<AuthCallPasswordCupertinoSc
 
         break;
       case AppLifecycleState.paused:
-        _cubit.subscriptionCallPassword.cancel();
-        _cubit.streamCallPassword.cancel();
+        _cubit.subscriptionCallPassword?.cancel();
+        _cubit.streamCallPassword?.cancel();
         break;
       default:
     }
