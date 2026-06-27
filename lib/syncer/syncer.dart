@@ -72,7 +72,7 @@ class Syncer {
     if (controller == null) return;
 
     seq = generateRandomSeq();
-    await auth.request(controller, seq);
+    await auth.authRequest(controller: controller, seq: seq, session: session);
   }
 
   // Cancel

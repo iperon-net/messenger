@@ -10,8 +10,8 @@ class Auth {
 
   final StreamController<bool> controllerAuth = StreamController<bool>.broadcast();
 
-  Future<void> request(StreamController<SyncerMessageRequest> controller, int seq) async {
-    final session = await repositories.sessions.getActive();
+  Future<void> authRequest({required StreamController<SyncerMessageRequest>? controller, required int seq, required models.Session session}) async {
+    if (controller == null) return;
 
     if (!session.isActive) {
       logger.warning("Syncer the subscriber has connected without an active session, seq=$seq");
@@ -64,10 +64,8 @@ class Auth {
     controllerAuth.add(true);
   }
 
-  Future<void> logoutRequest({required StreamController<SyncerMessageRequest>? controller, required int seq}) async {
+  Future<void> logoutRequest({required StreamController<SyncerMessageRequest>? controller, required int seq, required models.Session session}) async {
     if (controller == null) return;
-
-    final session = await repositories.sessions.getActive();
 
     final messageByte = await crypto.syncer.encode(
       session: session,
@@ -82,6 +80,7 @@ class Auth {
 
     await repositories.sessions.logout();
     controllerAuth.add(false);
+
     logger.info("Syncer logout user");
   }
 
