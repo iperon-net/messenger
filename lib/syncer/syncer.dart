@@ -3,8 +3,6 @@ import 'dart:async';
 import 'dart:math';
 import 'dart:typed_data';
 
-import 'package:flutter/widgets.dart';
-import 'package:go_router/go_router.dart';
 import 'package:grpc/grpc.dart';
 import 'package:messenger/crypto/crypto.dart';
 import 'package:messenger/utils.dart';
@@ -18,8 +16,8 @@ import '../protobuf/messages.dart' as message;
 import '../protobuf/protos/syncer_v1.pb.dart';
 import '../repositories/repositories.dart';
 
-part 'sessions.dart';
 part 'auth.dart';
+part 'sessions.dart';
 
 class Syncer {
   final _logger = getIt.get<Logger>();
