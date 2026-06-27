@@ -16,24 +16,21 @@ class SettingsCubit extends Cubit<SettingsState> {
   final repositories = getIt.get<Repositories>();
   final syncer = getIt.get<Syncer>();
 
-  Future<void> initialization(BuildContext context) async {
-    await syncer.send(
-      message: SessionsResponse().writeToBuffer(),
-      messageType: SyncerMessageType.sessionsRequest,
-    );
-  }
 
-  Future<void> logout(BuildContext context) async {
-    await repositories.sessions.logout();
-    if (context.mounted) {
-      await syncer.send(
-        message: LogoutRequest(action: LogoutAction.current).writeToBuffer(),
-        messageType: SyncerMessageType.logoutRequest,
-      );
-    }
+  Future<void> logout() async {
+    await syncer.auth.logout();
+    emit(state.copyWith(logout: true));
 
-    if (context.mounted) context.read<MainCubit>().logout();
-    if (context.mounted) context.go("/");
+    // await repositories.sessions.logout();
+    // if (context.mounted) {
+    //   await syncer.send(
+    //     message: LogoutRequest(action: LogoutAction.current).writeToBuffer(),
+    //     messageType: SyncerMessageType.logoutRequest,
+    //   );
+    // }
+
+    // if (context.mounted) context.read<MainCubit>().logout();
+    // if (context.mounted) context.go("/");
   }
 
 }

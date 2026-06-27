@@ -29,10 +29,11 @@ class Syncer {
   final _utils = getIt.get<Utils>();
   final _random = Random();
 
-  late StreamController<SyncerMessageRequest> _controller;
-  late StreamSubscription<SyncerMessageResponse> _subscription;
+  StreamController<SyncerMessageRequest>? _controller;
+  StreamSubscription<SyncerMessageResponse>? _subscription;
 
-  final StreamController<bool> controllerAuth = StreamController<bool>.broadcast();
+  // true — соединение закрыто намеренно (dispose), переподключаться не нужно
+  bool _disposed = false;
 
   int seq = 1;
 
@@ -47,32 +48,54 @@ class Syncer {
   }
 
   Future<void> connect() async {
+    _disposed = false;
+
+    // снести предыдущее соединение, если оно осталось, чтобы не плодить параллельные стримы
+    await _teardown();
+
     session = await _repositories.sessions.getActive();
 
-    _controller = StreamController<SyncerMessageRequest>(onListen: () => _onListen(), onCancel: () => _onCancel());
+    late final StreamController<SyncerMessageRequest> controller;
+    controller = StreamController<SyncerMessageRequest>(onListen: () => _onListen(), onCancel: () => _onCancel(controller));
+    _controller = controller;
 
-    final response = _api.syncer.messages(_controller.stream, options: await _api.callOptions(timeout: 3600));
+    final response = _api.syncer.messages(controller.stream, options: await _api.callOptions(timeout: 3600));
 
     _subscription = response.listen((data) => _onData(data), onError: (err) => _onError(err), onDone: () => _onDone(), cancelOnError: true);
   }
 
   // Send the auth request once the subscriber has connected
   Future<void> _onListen() async {
+    final controller = _controller;
+    if (controller == null) return;
+
     seq = generateRandomSeq();
-    await auth.request(_controller, seq);
+    await auth.request(controller, seq);
   }
 
   // Cancel
-  Future<void> _onCancel() async {
+  Future<void> _onCancel(StreamController<SyncerMessageRequest> controller) async {
+    // переподключаемся только если оборвался активный коннект, а не закрытый
+    // намеренно в _teardown()/dispose() (там _controller обнуляется до close)
+    if (!identical(controller, _controller)) return;
+    await _reconnect();
+  }
+
+  // Переподключение после обрыва/таймаута. Намеренное закрытие (dispose) пропускаем.
+  Future<void> _reconnect() async {
+    if (_disposed) return;
+
     await randomSleep(seconds: 5);
+
+    // могли вызвать dispose() во время паузы — повторная проверка
+    if (_disposed) return;
+
     await connect();
   }
 
   // onDone
   Future<void> _onDone() async {
-    await randomSleep(seconds: 5);
-    await connect();
-    _logger.debug("syncer stream closed рестарт коннекта");
+    _logger.debug("syncer stream closed");
   }
 
   // onError
@@ -90,13 +113,7 @@ class Syncer {
 
     if (header.messageType == SyncerMessageType.authResponse) {
       seq = header.seq;
-      final isAuth = await auth.response(msg: data.message, header: header);
-      controllerAuth.add(isAuth);
-
-      if (!isAuth){
-        return;
-      }
-
+      await auth.response(msg: data.message, header: header);
     }
 
     // if (header.messageType == SyncerMessageType.sessionsResponse){
@@ -112,17 +129,6 @@ class Syncer {
     _logger.debug("Получено=${data.message}");
   }
 
-  // Send message
-  Future<void> send({required Uint8List message, required SyncerMessageType messageType}) async {
-    final messageByte = await _crypto.syncer.encode(
-      session: session,
-      message: message,
-      messageType: messageType,
-      seq: seq,
-    );
-    _controller.add(SyncerMessageRequest(message: messageByte));
-  }
-
   // Generate random seq
   int generateRandomSeq() => _random.nextInt(512) * 2 + 1;
 
@@ -135,17 +141,30 @@ class Syncer {
 
   void pause() {
     _logger.debug("Syncer pause");
-    if (!_subscription.isPaused) _subscription.pause();
+    final subscription = _subscription;
+    if (subscription != null && !subscription.isPaused) subscription.pause();
   }
 
   void resume() {
     _logger.debug("Syncer resume");
-    if (_subscription.isPaused) _subscription.resume();
+    final subscription = _subscription;
+    if (subscription != null && subscription.isPaused) subscription.resume();
   }
 
   void dispose() {
     _logger.debug("Syncer dispose");
-    _subscription.cancel();
-    _controller.close();
+    _disposed = true;
+    _teardown();
+  }
+
+  // Закрыть текущее соединение, не меняя флаг _disposed.
+  // Ссылки обнуляются до cancel/close, чтобы onCancel понял, что закрытие намеренное.
+  Future<void> _teardown() async {
+    final subscription = _subscription;
+    final controller = _controller;
+    _subscription = null;
+    _controller = null;
+    await subscription?.cancel();
+    await controller?.close();
   }
 }

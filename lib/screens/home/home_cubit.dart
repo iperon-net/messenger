@@ -4,17 +4,19 @@ import 'package:bloc/bloc.dart';
 import 'package:messenger/syncer.dart';
 
 import '../../di.dart';
+import '../../logger.dart';
 import 'home_state.dart';
 
 class HomeCubit extends Cubit<HomeState> {
   final _syncer = getIt.get<Syncer>();
+  final _logger = getIt.get<Logger>();
 
   StreamSubscription<bool>? _authSubscription;
 
   HomeCubit() : super(const HomeState());
 
   void initialization() {
-    _authSubscription ??= _syncer.controllerAuth.stream.listen((isAuth) {
+    _authSubscription ??= _syncer.auth.controllerAuth.stream.listen((isAuth) {
       emit(state.copyWith(isAuth: isAuth));
     });
   }
@@ -26,6 +28,7 @@ class HomeCubit extends Cubit<HomeState> {
   @override
   Future<void> close() {
     _authSubscription?.cancel();
+    _logger.debug("home cubit close");
     return super.close();
   }
 }

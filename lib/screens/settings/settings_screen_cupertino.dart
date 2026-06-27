@@ -4,6 +4,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:messenger/cubit/main_cubit.dart';
 import 'package:messenger/cubit/main_state.dart';
+import 'package:messenger/screens/settings/settings_state.dart';
 
 import '../../di.dart';
 import '../../i18n/translations.g.dart';
@@ -26,7 +27,6 @@ class _SettingsCupertinoScreen extends State<SettingsCupertinoScreen> {
   @override
   void initState() {
     super.initState();
-    context.read<SettingsCubit>().initialization(context);
   }
 
   @override
@@ -43,13 +43,14 @@ class _SettingsCupertinoScreen extends State<SettingsCupertinoScreen> {
     Widget? additionalInfo,
     required Future<void> Function()? onTab,
   }) {
-
     return Container(
       decoration: BoxDecoration(
         borderRadius: borderRadius,
         color: CupertinoDynamicColor.resolve(
           CupertinoDynamicColor.withBrightness(
-            color: CupertinoTheme.of(context).scaffoldBackgroundColor,
+            color: CupertinoTheme
+                .of(context)
+                .scaffoldBackgroundColor,
             darkColor: Color(0xFF1C1C1E),
           ),
           context,
@@ -81,7 +82,9 @@ class _SettingsCupertinoScreen extends State<SettingsCupertinoScreen> {
     return Container(
       color: CupertinoDynamicColor.resolve(
         CupertinoDynamicColor.withBrightness(
-          color: CupertinoTheme.of(context).scaffoldBackgroundColor,
+          color: CupertinoTheme
+              .of(context)
+              .scaffoldBackgroundColor,
           darkColor: const Color(0xFF1C1C1E),
         ),
         context,
@@ -98,95 +101,104 @@ class _SettingsCupertinoScreen extends State<SettingsCupertinoScreen> {
 
   @override
   Widget build(BuildContext context) {
+    return BlocListener<SettingsCubit, SettingsState>(
+      listenWhen: (previous, current) => previous.logout != current.logout,
+      listener: (context, state) {
 
-    return CupertinoPageScaffold(
-      backgroundColor: CupertinoDynamicColor.withBrightness(
-        color: CupertinoColors.systemGroupedBackground,
-        darkColor: CupertinoColors.darkBackgroundGray,
-      ),
-      navigationBar: CupertinoNavigationBar(
-        automaticBackgroundVisibility: false,
-        middle: Text(context.t.settings),
-      ),
-      child: SafeArea(
-        child: Center(
-          child: Padding(
-            padding: EdgeInsetsGeometry.all(15),
-            child: ListView(
-              children: [
-                _item(
-                  title: Text(context.t.myProfile),
-                  color: Color(0xFFF80202),
-                  icon: FontAwesomeIcons.solidUser,
-                  borderRadius: BorderRadius.circular(20),
-                  onTab: () async => context.go("/"),
-                ),
-                SizedBox(height: 20),
-                _item(
-                  title: Text(context.t.appearance),
-                  color: Color(0xFF1368E6),
-                  icon: FontAwesomeIcons.circleHalfStroke,
-                  borderRadius: BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20)),
-                  onTab: () async => context.go("/settings_appearance"),
-                ),
-                _divider(),
-                _item(
-                  title: Text(context.t.privateAndSecurity),
-                  color: Color(0xFF049A40),
-                  icon: FontAwesomeIcons.key,
-                  borderRadius: BorderRadius.zero,
-                  onTab: () async => context.go("/"),
-                ),
-                _divider(),
-                _item(
-                  title: Text(context.t.notifications),
-                  color: Color(0xFFDD0856),
-                  icon: FontAwesomeIcons.solidBell,
-                  borderRadius: BorderRadius.zero,
-                  onTab: () async => context.go("/"),
-                ),
-                _divider(),
-                _item(
-                  title: Text(context.t.language),
-                  color: Color(0xFFBE0BCC),
-                  icon: FontAwesomeIcons.language,
-                  borderRadius: BorderRadius.only(bottomLeft: Radius.circular(20), bottomRight: Radius.circular(20)),
-                  additionalInfo: BlocBuilder<MainCubit, MainState>(
-                    builder: (context, state) {
-                      if (state.settingsDevice.locale == AppLocale.ru) {
-                        return Text("Русский");
-                      } else {
-                        return Text("English");
-                      }
-                    },
+        if (state.logout) {
+          context.read<MainCubit>().logout();
+          context.go("/auth");
+        };
+      },
+      child: CupertinoPageScaffold(
+        backgroundColor: CupertinoDynamicColor.withBrightness(
+          color: CupertinoColors.systemGroupedBackground,
+          darkColor: CupertinoColors.darkBackgroundGray,
+        ),
+        navigationBar: CupertinoNavigationBar(
+          automaticBackgroundVisibility: false,
+          middle: Text(context.t.settings),
+        ),
+        child: SafeArea(
+          child: Center(
+            child: Padding(
+              padding: EdgeInsetsGeometry.all(15),
+              child: ListView(
+                children: [
+                  _item(
+                    title: Text(context.t.myProfile),
+                    color: Color(0xFFF80202),
+                    icon: FontAwesomeIcons.solidUser,
+                    borderRadius: BorderRadius.circular(20),
+                    onTab: () async => context.go("/"),
                   ),
-                  onTab: () async => context.go("/settings_language"),
-                ),
-                SizedBox(height: 20),
-                _item(
-                  title: Text(context.t.faq),
-                  color: Color(0xFFDC9A0F),
-                  icon: FontAwesomeIcons.solidCircleQuestion,
-                  borderRadius: BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20)),
-                  onTab: () async => context.go("/"),
-                ),
-                _divider(),
-                _item(
-                  title: Text(context.t.privacyPolicy),
-                  color: Color(0xFF29A840),
-                  icon: FontAwesomeIcons.shieldHalved,
-                  borderRadius: BorderRadius.only(bottomLeft: Radius.circular(20), bottomRight: Radius.circular(20)),
-                  onTab: () async => context.go("/"),
-                ),
-                SizedBox(height: 20),
-                _item(
-                  title: Text(context.t.logout),
-                  color: Color(0xFF7637DD),
-                  icon: FontAwesomeIcons.rightFromBracket,
-                  borderRadius: BorderRadius.circular(20),
-                  onTab: () async => await context.read<SettingsCubit>().logout(context),
-                ),
-              ],
+                  SizedBox(height: 20),
+                  _item(
+                    title: Text(context.t.appearance),
+                    color: Color(0xFF1368E6),
+                    icon: FontAwesomeIcons.circleHalfStroke,
+                    borderRadius: BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20)),
+                    onTab: () async => context.go("/settings_appearance"),
+                  ),
+                  _divider(),
+                  _item(
+                    title: Text(context.t.privateAndSecurity),
+                    color: Color(0xFF049A40),
+                    icon: FontAwesomeIcons.key,
+                    borderRadius: BorderRadius.zero,
+                    onTab: () async => context.go("/"),
+                  ),
+                  _divider(),
+                  _item(
+                    title: Text(context.t.notifications),
+                    color: Color(0xFFDD0856),
+                    icon: FontAwesomeIcons.solidBell,
+                    borderRadius: BorderRadius.zero,
+                    onTab: () async => context.go("/"),
+                  ),
+                  _divider(),
+                  _item(
+                    title: Text(context.t.language),
+                    color: Color(0xFFBE0BCC),
+                    icon: FontAwesomeIcons.language,
+                    borderRadius: BorderRadius.only(bottomLeft: Radius.circular(20), bottomRight: Radius.circular(20)),
+                    additionalInfo: BlocBuilder<MainCubit, MainState>(
+                      builder: (context, state) {
+                        if (state.settingsDevice.locale == AppLocale.ru) {
+                          return Text("Русский");
+                        } else {
+                          return Text("English");
+                        }
+                      },
+                    ),
+                    onTab: () async => context.go("/settings_language"),
+                  ),
+                  SizedBox(height: 20),
+                  _item(
+                    title: Text(context.t.faq),
+                    color: Color(0xFFDC9A0F),
+                    icon: FontAwesomeIcons.solidCircleQuestion,
+                    borderRadius: BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20)),
+                    onTab: () async => context.go("/"),
+                  ),
+                  _divider(),
+                  _item(
+                    title: Text(context.t.privacyPolicy),
+                    color: Color(0xFF29A840),
+                    icon: FontAwesomeIcons.shieldHalved,
+                    borderRadius: BorderRadius.only(bottomLeft: Radius.circular(20), bottomRight: Radius.circular(20)),
+                    onTab: () async => context.go("/"),
+                  ),
+                  SizedBox(height: 20),
+                  _item(
+                    title: Text(context.t.logout),
+                    color: Color(0xFF7637DD),
+                    icon: FontAwesomeIcons.rightFromBracket,
+                    borderRadius: BorderRadius.circular(20),
+                    onTab: () async => await context.read<SettingsCubit>().logout(),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

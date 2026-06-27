@@ -8,8 +8,16 @@ class Auth {
 
   Auth({required this.logger, required this.utils, required this.crypto, required this.repositories});
 
+  final StreamController<bool> controllerAuth = StreamController<bool>.broadcast();
+
   Future<void> request(StreamController<SyncerMessageRequest> controller, int seq) async {
     final session = await repositories.sessions.getActive();
+
+    if (!session.isActive) {
+      logger.warning("Syncer the subscriber has connected without an active session, seq=$seq");
+      controllerAuth.add(false);
+      return;
+    }
 
     final packageInfo = await utils.packageInfo();
     final deviceInfo = await utils.deviceInfo();
@@ -31,11 +39,12 @@ class Auth {
     logger.info("Syncer the subscriber has connected userID=${session.getUserIDObjectID().toString()}, seq=$seq");
   }
 
-  Future<bool> response({required List<int> msg, required Header header}) async {
+  Future<void> response({required List<int> msg, required Header header}) async {
     final session = await repositories.sessions.getActive();
     if (session.session.toString() != header.session.toString()) {
       logger.warning("Syncer invalid session");
-      return false;
+      controllerAuth.add(false);
+      return;
     };
 
     final messageByte = await crypto.syncer.decode(
@@ -53,8 +62,13 @@ class Auth {
     );
 
     logger.info("Syncer response received auth userID=${session.getUserIDObjectID().toString()}, serverAt=${dateTime.toIso8601String()}");
+    controllerAuth.add(true);
+  }
 
-    return true;
+  Future<void> logout() async {
+    await repositories.sessions.logout();
+    controllerAuth.add(false);
+    logger.info("Syncer logout user");
   }
 
 }
