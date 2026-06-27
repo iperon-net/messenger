@@ -32,8 +32,9 @@ class Syncer {
   late StreamController<SyncerMessageRequest> _controller;
   late StreamSubscription<SyncerMessageResponse> _subscription;
 
+  final StreamController<bool> controllerAuth = StreamController<bool>.broadcast();
+
   int seq = 1;
-  bool isAuth = false;
 
   late models.Session session;
   late Sessions sessions;
@@ -58,7 +59,7 @@ class Syncer {
   // Send the auth request once the subscriber has connected
   Future<void> _onListen() async {
     seq = generateRandomSeq();
-    await auth.auth(_controller, seq);
+    await auth.request(_controller, seq);
   }
 
   // Cancel
@@ -87,24 +88,15 @@ class Syncer {
   Future<void> _onData(SyncerMessageResponse data) async {
     final header = await _crypto.syncer.headerParse(Uint8List.fromList(data.message));
 
-    if (!isAuth && header.messageType == SyncerMessageType.authResponse) {
-      final messageByte = await _crypto.syncer.decode(
-        session: session,
-        message: Uint8List.fromList(data.message),
-        messageType: SyncerMessageType.authResponse,
-      );
-
-      // Set new seq
+    if (header.messageType == SyncerMessageType.authResponse) {
       seq = header.seq;
+      final isAuth = await auth.response(msg: data.message, header: header);
+      controllerAuth.add(isAuth);
 
-      final proto = message.AuthResponse.fromBuffer(messageByte);
+      if (!isAuth){
+        return;
+      }
 
-      await _repositories.users.setSalt(salt: proto.salt, session: session);
-      isAuth = true;
-      return;
-    } else if (!isAuth) {
-      _logger.warning("syncer skip message, because authorization failed, seq=$seq");
-      return;
     }
 
     // if (header.messageType == SyncerMessageType.sessionsResponse){
