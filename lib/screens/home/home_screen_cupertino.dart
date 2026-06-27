@@ -1,7 +1,11 @@
 import 'package:badges/badges.dart' as badges;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:go_router/go_router.dart';
+import 'package:messenger/screens/home/home_cubit.dart';
+import 'package:messenger/screens/home/home_state.dart';
 import 'package:messenger/syncer.dart';
 
 import '../../di.dart';
@@ -26,6 +30,8 @@ class _HomeCupertinoScreen extends State<HomeCupertinoScreen> {
   @override
   void initState() {
     super.initState();
+
+    context.read<HomeCubit>().initialization();
 
     syncer.connect();
 
@@ -52,7 +58,12 @@ class _HomeCupertinoScreen extends State<HomeCupertinoScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return CupertinoTabScaffold(
+    return BlocListener<HomeCubit, HomeState>(
+      listenWhen: (previous, current) => previous.isAuth != current.isAuth,
+      listener: (context, state) {
+        if (!state.isAuth) context.go("/auth");
+      },
+      child: CupertinoTabScaffold(
       tabBar: CupertinoTabBar(
         currentIndex: 2,
         height: 56,
@@ -95,7 +106,8 @@ class _HomeCupertinoScreen extends State<HomeCupertinoScreen> {
             return Center(child: Text("Page not found"));
           },
         );
-      },
+        },
+      ),
     );
   }
 
