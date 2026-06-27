@@ -27,7 +27,7 @@ class _HomeCupertinoScreen extends State<HomeCupertinoScreen> {
   void initState() {
     super.initState();
 
-    syncer.connect(context);
+    syncer.connect();
 
     _lifecycleListener = AppLifecycleListener(
       onStateChange: (AppLifecycleState state) {
@@ -36,7 +36,7 @@ class _HomeCupertinoScreen extends State<HomeCupertinoScreen> {
         if (state == AppLifecycleState.inactive) {
           syncer.dispose();
         } else if (state == AppLifecycleState.resumed && mounted) {
-          syncer.connect(context);
+          syncer.connect();
         }
       },
     );

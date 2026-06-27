@@ -19,6 +19,7 @@ import '../protobuf/protos/syncer_v1.pb.dart';
 import '../repositories/repositories.dart';
 
 part 'sessions.dart';
+part 'auth.dart';
 
 class Syncer {
   final _logger = getIt.get<Logger>();
@@ -32,104 +33,95 @@ class Syncer {
   late StreamSubscription<SyncerMessageResponse> _subscription;
 
   int seq = 1;
-  late models.Session session;
+  bool isAuth = false;
 
+  late models.Session session;
   late Sessions sessions;
+  late Auth auth;
 
   Syncer() {
     sessions = Sessions();
+    auth = Auth(logger: _logger, utils: _utils, crypto: _crypto, repositories: _repositories);
     _logger.info("syncer initialization");
   }
 
-  Future<void> connect(BuildContext context) async {
+  Future<void> connect() async {
     session = await _repositories.sessions.getActive();
 
-    seq = generateRandomSeq();
-    bool isAuth = false;
+    _controller = StreamController<SyncerMessageRequest>(onListen: () => _onListen(), onCancel: () => _onCancel());
 
-    final packageInfo = await _utils.packageInfo();
-    final deviceInfo = await _utils.deviceInfo();
-
-    _controller = StreamController<SyncerMessageRequest>(
-      onListen: () async {
-        final messageByte = await _crypto.syncer.encode(
-          session: session,
-          message: message.AuthRequest(
-            session: session.session,
-            osVersion: deviceInfo.osVersion,
-            appVersion: packageInfo.appVersion,
-            appBuildNumber: packageInfo.appBuildNumber,
-          ).writeToBuffer(),
-          messageType: SyncerMessageType.authRequest,
-          seq: seq,
-        );
-        _controller.add(SyncerMessageRequest(message: messageByte));
-
-        _logger.info("Syncer the subscriber has connected userID=${session.getUserIDObjectID().toString()}, seq=$seq");
-      },
-      onCancel: () async {
-        await randomSleep(seconds: 5);
-        if (context.mounted) await connect(context);
-      },
-    );
-
-    //
     final response = _api.syncer.messages(_controller.stream, options: await _api.callOptions(timeout: 3600));
 
-    _subscription = response.listen((SyncerMessageResponse data) async {
-      final header = await _crypto.syncer.headerParse(Uint8List.fromList(data.message));
+    _subscription = response.listen((data) => _onData(data), onError: (err) => _onError(err), onDone: () => _onDone(), cancelOnError: true);
+  }
 
-      if (!isAuth && header.messageType == SyncerMessageType.authResponse) {
-        final messageByte = await _crypto.syncer.decode(
-          session: session,
-          message: Uint8List.fromList(data.message),
-          messageType: SyncerMessageType.authResponse,
-        );
+  // Send the auth request once the subscriber has connected
+  Future<void> _onListen() async {
+    seq = generateRandomSeq();
+    await auth.auth(_controller, seq);
+  }
 
-        // Set new seq
-        seq = header.seq;
+  // Cancel
+  Future<void> _onCancel() async {
+    await randomSleep(seconds: 5);
+    await connect();
+  }
 
-        final proto = message.AuthResponse.fromBuffer(messageByte);
+  // onDone
+  Future<void> _onDone() async {
+    await randomSleep(seconds: 5);
+    await connect();
+    _logger.debug("syncer stream closed рестарт коннекта");
+  }
 
-        await _repositories.users.setSalt(salt: proto.salt, session: session);
-        isAuth = true;
-        return;
-      } else if (!isAuth) {
-        _logger.warning("syncer skip message, because authorization failed, seq=$seq");
+  // onError
+  Future<void> _onError(dynamic err) async {
+    if (err is GrpcError) {
+      if (err.code == StatusCode.unauthenticated) {
         return;
       }
+    }
+    _logger.error("syncer stream error: $err, рестарт коннекта");
+  }
 
-      // if (header.messageType == SyncerMessageType.sessionsResponse){
-      //   seq = header.seq;
-      //
-      //   final messageByte = await _crypto.syncer.decode(
-      //
-      //   );
-      //
-      //   _logger.debug("Получено=${data.message}");
-      // }
+  Future<void> _onData(SyncerMessageResponse data) async {
+    final header = await _crypto.syncer.headerParse(Uint8List.fromList(data.message));
 
-      _logger.debug("Получено=${data.message}");
-    },
-      onError: (err) {
-        if (err is GrpcError) {
-          if (err.code == StatusCode.unauthenticated) {
-            context.go("/auth");
-            return;
-          }
-        }
+    if (!isAuth && header.messageType == SyncerMessageType.authResponse) {
+      final messageByte = await _crypto.syncer.decode(
+        session: session,
+        message: Uint8List.fromList(data.message),
+        messageType: SyncerMessageType.authResponse,
+      );
 
-        _logger.error("syncer stream error: $err, рестарт коннекта");
-      },
-      onDone: () {
-        _logger.debug("syncer stream closed рестарт коннекта");
-      }, cancelOnError: true,
-    );
+      // Set new seq
+      seq = header.seq;
 
+      final proto = message.AuthResponse.fromBuffer(messageByte);
+
+      await _repositories.users.setSalt(salt: proto.salt, session: session);
+      isAuth = true;
+      return;
+    } else if (!isAuth) {
+      _logger.warning("syncer skip message, because authorization failed, seq=$seq");
+      return;
+    }
+
+    // if (header.messageType == SyncerMessageType.sessionsResponse){
+    //   seq = header.seq;
+    //
+    //   final messageByte = await _crypto.syncer.decode(
+    //
+    //   );
+    //
+    //   _logger.debug("Получено=${data.message}");
+    // }
+
+    _logger.debug("Получено=${data.message}");
   }
 
   // Send message
-  Future<void> send(BuildContext context, {required Uint8List message, required SyncerMessageType messageType}) async {
+  Future<void> send({required Uint8List message, required SyncerMessageType messageType}) async {
     final messageByte = await _crypto.syncer.encode(
       session: session,
       message: message,
