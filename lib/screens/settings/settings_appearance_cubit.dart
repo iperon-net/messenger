@@ -11,13 +11,11 @@ class SettingsAppearanceCubit extends Cubit<SettingsAppearanceState> {
   final repositories = getIt.get<Repositories>();
 
   Future<void> setColorTheme({required SettingsDeviceColorTheme colorTheme}) async {
-    // context.read<MainCubit>().setColorTheme(colorTheme: colorTheme);
     await repositories.settingsDevice.setColorTheme(colorTheme);
     emit(state.copyWith(colorTheme: colorTheme));
   }
 
   Future<void> setDarkMode({required SettingsDeviceDarkMode darkMode}) async {
-    // context.read<MainCubit>().setDarkMode(darkMode: darkMode);
     await repositories.settingsDevice.setDarkMode(darkMode);
     emit(state.copyWith(darkMode: darkMode));
   }
