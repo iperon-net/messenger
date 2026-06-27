@@ -47,6 +47,8 @@ class Syncer {
     _logger.info("syncer initialization");
   }
 
+  StreamController<SyncerMessageRequest>? getController() => _controller;
+
   Future<void> connect() async {
     _disposed = false;
 
@@ -75,6 +77,8 @@ class Syncer {
 
   // Cancel
   Future<void> _onCancel(StreamController<SyncerMessageRequest> controller) async {
+    _logger.debug("syncer stream cancel");
+
     // переподключаемся только если оборвался активный коннект, а не закрытый
     // намеренно в _teardown()/dispose() (там _controller обнуляется до close)
     if (!identical(controller, _controller)) return;
@@ -110,13 +114,15 @@ class Syncer {
 
   Future<void> _onData(SyncerMessageResponse data) async {
     final header = await _crypto.syncer.headerParse(Uint8List.fromList(data.message));
+    seq = header.seq;
 
     if (header.messageType == SyncerMessageType.authResponse) {
-      seq = header.seq;
-      await auth.response(msg: data.message, header: header);
+      await auth.authResponse(msg: data.message, header: header, session: session);
+    } else if (header.messageType == SyncerMessageType.logoutResponse) {
+      await auth.logoutResponse(msg: data.message, header: header, session: session);
     }
 
-    // if (header.messageType == SyncerMessageType.sessionsResponse){
+    // if (){
     //   seq = header.seq;
     //
     //   final messageByte = await _crypto.syncer.decode(

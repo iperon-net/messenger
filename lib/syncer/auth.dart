@@ -39,13 +39,12 @@ class Auth {
     logger.info("Syncer the subscriber has connected userID=${session.getUserIDObjectID().toString()}, seq=$seq");
   }
 
-  Future<void> response({required List<int> msg, required Header header}) async {
-    final session = await repositories.sessions.getActive();
+  Future<void> authResponse({required List<int> msg, required Header header, required models.Session session}) async {
     if (session.session.toString() != header.session.toString()) {
       logger.warning("Syncer invalid session");
       controllerAuth.add(false);
       return;
-    };
+    }
 
     final messageByte = await crypto.syncer.decode(
       session: session,
@@ -65,10 +64,42 @@ class Auth {
     controllerAuth.add(true);
   }
 
-  Future<void> logout() async {
+  Future<void> logoutRequest({required StreamController<SyncerMessageRequest>? controller, required int seq}) async {
+    if (controller == null) return;
+
+    final session = await repositories.sessions.getActive();
+
+    final messageByte = await crypto.syncer.encode(
+      session: session,
+      message: message.LogoutRequest(
+        action: message.LogoutAction.current,
+      ).writeToBuffer(),
+      messageType: SyncerMessageType.logoutRequest,
+      seq: seq,
+    );
+
+    controller.add(SyncerMessageRequest(message: messageByte));
+
     await repositories.sessions.logout();
     controllerAuth.add(false);
     logger.info("Syncer logout user");
+  }
+
+  Future<void> logoutResponse({required List<int> msg, required Header header, required models.Session session}) async {
+    if (session.session.toString() != header.session.toString()) {
+      logger.warning("Syncer invalid session");
+      controllerAuth.add(false);
+      return;
+    }
+
+    final messageByte = await crypto.syncer.decode(
+      session: session,
+      message: Uint8List.fromList(msg),
+      messageType: SyncerMessageType.logoutResponse,
+    );
+
+    final proto = message.LogoutResponse.fromBuffer(messageByte);
+    logger.debug("!!!!!!");
   }
 
 }

@@ -39,8 +39,7 @@ class _HomeCupertinoScreen extends State<HomeCupertinoScreen> {
       onStateChange: (AppLifecycleState state) {
         logger.debug("AppLifecycleListener state = $state");
 
-        if (state == AppLifecycleState.paused ||
-            state == AppLifecycleState.hidden) {
+        if (state == AppLifecycleState.paused || state == AppLifecycleState.hidden) {
           syncer.dispose();
         } else if (state == AppLifecycleState.resumed && mounted) {
           syncer.connect();

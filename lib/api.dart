@@ -28,7 +28,7 @@ class API {
         connectionTimeout: const Duration(seconds: 30),
         connectTimeout:  const Duration(seconds: 30), // The maximum allowed time to wait for a connection to be established
         userAgent: "Iperon/0.0.1",
-        idleTimeout: const Duration(minutes: 60),
+        idleTimeout: const Duration(minutes: 5),
         backoffStrategy: (_) => const Duration(seconds: 60),
         keepAlive: const ClientKeepAliveOptions(
           pingInterval: Duration(seconds: 60),
