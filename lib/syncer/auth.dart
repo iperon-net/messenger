@@ -90,15 +90,6 @@ class Auth {
       controllerAuth.add(false);
       return;
     }
-
-    final messageByte = await crypto.syncer.decode(
-      session: session,
-      message: Uint8List.fromList(msg),
-      messageType: SyncerMessageType.logoutResponse,
-    );
-
-    final proto = message.LogoutResponse.fromBuffer(messageByte);
-    logger.debug("!!!!!!");
   }
 
 }
