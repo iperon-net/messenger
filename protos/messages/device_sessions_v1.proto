@@ -5,7 +5,7 @@ option go_package = "internal/api/messages";
 
 import "google/protobuf/timestamp.proto";
 
-message Session {
+message DeviceSession {
   string deviceModel = 1;
   string osVersion = 2;
   string appVersion = 3;
@@ -15,8 +15,8 @@ message Session {
   google.protobuf.Timestamp updateAt = 7;
 }
 
-message SessionsRequest {}
+message DeviceSessionsRequest {}
 
-message SessionsResponse {
-  repeated Session sessions = 1;
+message DeviceSessionsResponse {
+  repeated DeviceSession deviceSessions = 1;
 }

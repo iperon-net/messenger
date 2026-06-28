@@ -27,6 +27,7 @@ class _SettingsCupertinoScreen extends State<SettingsCupertinoScreen> {
   @override
   void initState() {
     super.initState();
+    context.read<SettingsCubit>().initialization();
   }
 
   @override
@@ -155,6 +156,19 @@ class _SettingsCupertinoScreen extends State<SettingsCupertinoScreen> {
                     icon: FontAwesomeIcons.solidBell,
                     borderRadius: BorderRadius.zero,
                     onTab: () async => context.go("/"),
+                  ),
+                  _divider(),
+                  _item(
+                    title: Text(context.t.devices),
+                    color: Color(0xFFFF6B00),
+                    icon: FontAwesomeIcons.mobileScreen,
+                    borderRadius: BorderRadius.zero,
+                    onTab: () async => context.go("/"),
+                    additionalInfo: BlocBuilder<SettingsCubit, SettingsState>(
+                      builder: (context, state) {
+                        return Text(state.deviceCount.toString());
+                      },
+                    ),
                   ),
                   _divider(),
                   _item(

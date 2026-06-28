@@ -43,12 +43,20 @@ class SettingsStateMapper extends ClassMapperBase<SettingsState> {
     opt: true,
     def: false,
   );
+  static int _$deviceCount(SettingsState v) => v.deviceCount;
+  static const Field<SettingsState, int> _f$deviceCount = Field(
+    'deviceCount',
+    _$deviceCount,
+    opt: true,
+    def: 0,
+  );
 
   @override
   final MappableFields<SettingsState> fields = const {
     #status: _f$status,
     #error: _f$error,
     #logout: _f$logout,
+    #deviceCount: _f$deviceCount,
   };
 
   static SettingsState _instantiate(DecodingData data) {
@@ -56,6 +64,7 @@ class SettingsStateMapper extends ClassMapperBase<SettingsState> {
       status: data.dec(_f$status),
       error: data.dec(_f$error),
       logout: data.dec(_f$logout),
+      deviceCount: data.dec(_f$deviceCount),
     );
   }
 
@@ -121,7 +130,7 @@ extension SettingsStateValueCopy<$R, $Out>
 
 abstract class SettingsStateCopyWith<$R, $In extends SettingsState, $Out>
     implements ClassCopyWith<$R, $In, $Out> {
-  $R call({Status? status, String? error, bool? logout});
+  $R call({Status? status, String? error, bool? logout, int? deviceCount});
   SettingsStateCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
 
@@ -134,18 +143,21 @@ class _SettingsStateCopyWithImpl<$R, $Out>
   late final ClassMapperBase<SettingsState> $mapper =
       SettingsStateMapper.ensureInitialized();
   @override
-  $R call({Status? status, String? error, bool? logout}) => $apply(
-    FieldCopyWithData({
-      if (status != null) #status: status,
-      if (error != null) #error: error,
-      if (logout != null) #logout: logout,
-    }),
-  );
+  $R call({Status? status, String? error, bool? logout, int? deviceCount}) =>
+      $apply(
+        FieldCopyWithData({
+          if (status != null) #status: status,
+          if (error != null) #error: error,
+          if (logout != null) #logout: logout,
+          if (deviceCount != null) #deviceCount: deviceCount,
+        }),
+      );
   @override
   SettingsState $make(CopyWithData data) => SettingsState(
     status: data.get(#status, or: $value.status),
     error: data.get(#error, or: $value.error),
     logout: data.get(#logout, or: $value.logout),
+    deviceCount: data.get(#deviceCount, or: $value.deviceCount),
   );
 
   @override

@@ -11,13 +11,13 @@ import '../api.dart';
 import '../constants.dart';
 import '../di.dart';
 import '../logger.dart';
-import '../models/session.dart' as models;
+import '../models.dart' as models;
 import '../protobuf/messages.dart' as message;
 import '../protobuf/protos/syncer_v1.pb.dart';
 import '../repositories/repositories.dart';
 
 part 'auth.dart';
-part 'sessions.dart';
+part 'device_sessions.dart';
 
 class Syncer {
   final _logger = getIt.get<Logger>();
@@ -36,11 +36,11 @@ class Syncer {
   int seq = 1;
 
   late models.Session session;
-  late Sessions sessions;
+  late DeviceSessions deviceSessions;
   late Auth auth;
 
   Syncer() {
-    sessions = Sessions();
+    deviceSessions = DeviceSessions(logger: _logger, utils: _utils, crypto: _crypto, repositories: _repositories);
     auth = Auth(logger: _logger, utils: _utils, crypto: _crypto, repositories: _repositories);
     _logger.info("syncer initialization");
   }
@@ -118,6 +118,8 @@ class Syncer {
       await auth.authResponse(msg: data.message, header: header, session: session);
     } else if (header.messageType == SyncerMessageType.logoutResponse) {
       await auth.logoutResponse(msg: data.message, header: header, session: session);
+    } else if (header.messageType == SyncerMessageType.deviceSessionsResponse) {
+      await deviceSessions.getAllSessionResponse(msg: data.message, header: header, session: session);
     }
 
     // if (){

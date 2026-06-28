@@ -93,6 +93,7 @@ class TranslationsRu extends Translations with BaseTranslations<AppLocale, Trans
 	@override String get allowInSettings => 'Разрешить в настройках';
 	@override String get limitedAccessToContacts => 'Ограниченный доступ к контактам';
 	@override String get appDoesNotHavePermissionAccessAllContacts => 'У приложения нет разрешения на доступ ко всем контактам';
+	@override String get devices => 'Устройства';
 }
 
 /// The flat map containing all translations for locale <ru>.
@@ -157,6 +158,7 @@ extension on TranslationsRu {
 			'allowInSettings' => 'Разрешить в настройках',
 			'limitedAccessToContacts' => 'Ограниченный доступ к контактам',
 			'appDoesNotHavePermissionAccessAllContacts' => 'У приложения нет разрешения на доступ ко всем контактам',
+			'devices' => 'Устройства',
 			_ => null,
 		};
 	}

@@ -202,6 +202,9 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 
 	/// en: 'The app does not have permission to access all contacts'
 	String get appDoesNotHavePermissionAccessAllContacts => 'The app does not have permission to access all contacts';
+
+	/// en: 'Devices'
+	String get devices => 'Devices';
 }
 
 /// The flat map containing all translations for locale <en>.
@@ -266,6 +269,7 @@ extension on Translations {
 			'allowInSettings' => 'Allow in settings',
 			'limitedAccessToContacts' => 'Limited access to contacts',
 			'appDoesNotHavePermissionAccessAllContacts' => 'The app does not have permission to access all contacts',
+			'devices' => 'Devices',
 			_ => null,
 		};
 	}
