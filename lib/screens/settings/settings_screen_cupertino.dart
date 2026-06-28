@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:messenger/cubit/main_cubit.dart';
 import 'package:messenger/cubit/settings/settings_state.dart';
 
+import '../../cubit/settings/settings_device_sessions_cubit.dart';
 import '../../di.dart';
 import '../../i18n/translations.g.dart';
 import '../../logger.dart';
@@ -28,6 +29,7 @@ class _SettingsCupertinoScreen extends State<SettingsCupertinoScreen> {
     super.initState();
     context.read<SettingsCubit>().setLocale(locale: context.read<MainCubit>().state.settingsDevice.locale ?? AppLocale.en);
     context.read<SettingsCubit>().initialization();
+
   }
 
   @override
@@ -165,7 +167,7 @@ class _SettingsCupertinoScreen extends State<SettingsCupertinoScreen> {
                       icon: FontAwesomeIcons.mobileScreen,
                       borderRadius: BorderRadius.zero,
                       onTab: () async => context.go("/settings_device_sessions"),
-                      additionalInfo: state.deviceCount > 0 ? Text(state.deviceCount.toString()) : null,
+                      additionalInfo: state.deviceSessionsCount > 0 ? Text(state.deviceSessionsCount.toString()) : null,
                     ),
                     _divider(),
                     _item(

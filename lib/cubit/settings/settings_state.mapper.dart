@@ -15,6 +15,7 @@ class SettingsStateMapper extends ClassMapperBase<SettingsState> {
   static SettingsStateMapper ensureInitialized() {
     if (_instance == null) {
       MapperContainer.globals.use(_instance = SettingsStateMapper._());
+      models.DeviceSessionMapper.ensureInitialized();
     }
     return _instance!;
   }
@@ -43,12 +44,21 @@ class SettingsStateMapper extends ClassMapperBase<SettingsState> {
     opt: true,
     def: false,
   );
-  static int _$deviceCount(SettingsState v) => v.deviceCount;
-  static const Field<SettingsState, int> _f$deviceCount = Field(
-    'deviceCount',
-    _$deviceCount,
+  static int _$deviceSessionsCount(SettingsState v) => v.deviceSessionsCount;
+  static const Field<SettingsState, int> _f$deviceSessionsCount = Field(
+    'deviceSessionsCount',
+    _$deviceSessionsCount,
     opt: true,
     def: 0,
+  );
+  static List<models.DeviceSession> _$deviceSessions(SettingsState v) =>
+      v.deviceSessions;
+  static const Field<SettingsState, List<models.DeviceSession>>
+  _f$deviceSessions = Field(
+    'deviceSessions',
+    _$deviceSessions,
+    opt: true,
+    def: const [],
   );
   static AppLocale _$locale(SettingsState v) => v.locale;
   static const Field<SettingsState, AppLocale> _f$locale = Field(
@@ -63,7 +73,8 @@ class SettingsStateMapper extends ClassMapperBase<SettingsState> {
     #status: _f$status,
     #error: _f$error,
     #logout: _f$logout,
-    #deviceCount: _f$deviceCount,
+    #deviceSessionsCount: _f$deviceSessionsCount,
+    #deviceSessions: _f$deviceSessions,
     #locale: _f$locale,
   };
 
@@ -72,7 +83,8 @@ class SettingsStateMapper extends ClassMapperBase<SettingsState> {
       status: data.dec(_f$status),
       error: data.dec(_f$error),
       logout: data.dec(_f$logout),
-      deviceCount: data.dec(_f$deviceCount),
+      deviceSessionsCount: data.dec(_f$deviceSessionsCount),
+      deviceSessions: data.dec(_f$deviceSessions),
       locale: data.dec(_f$locale),
     );
   }
@@ -139,11 +151,18 @@ extension SettingsStateValueCopy<$R, $Out>
 
 abstract class SettingsStateCopyWith<$R, $In extends SettingsState, $Out>
     implements ClassCopyWith<$R, $In, $Out> {
+  ListCopyWith<
+    $R,
+    models.DeviceSession,
+    models.DeviceSessionCopyWith<$R, models.DeviceSession, models.DeviceSession>
+  >
+  get deviceSessions;
   $R call({
     Status? status,
     String? error,
     bool? logout,
-    int? deviceCount,
+    int? deviceSessionsCount,
+    List<models.DeviceSession>? deviceSessions,
     AppLocale? locale,
   });
   SettingsStateCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
@@ -158,18 +177,32 @@ class _SettingsStateCopyWithImpl<$R, $Out>
   late final ClassMapperBase<SettingsState> $mapper =
       SettingsStateMapper.ensureInitialized();
   @override
+  ListCopyWith<
+    $R,
+    models.DeviceSession,
+    models.DeviceSessionCopyWith<$R, models.DeviceSession, models.DeviceSession>
+  >
+  get deviceSessions => ListCopyWith(
+    $value.deviceSessions,
+    (v, t) => v.copyWith.$chain(t),
+    (v) => call(deviceSessions: v),
+  );
+  @override
   $R call({
     Status? status,
     String? error,
     bool? logout,
-    int? deviceCount,
+    int? deviceSessionsCount,
+    List<models.DeviceSession>? deviceSessions,
     AppLocale? locale,
   }) => $apply(
     FieldCopyWithData({
       if (status != null) #status: status,
       if (error != null) #error: error,
       if (logout != null) #logout: logout,
-      if (deviceCount != null) #deviceCount: deviceCount,
+      if (deviceSessionsCount != null)
+        #deviceSessionsCount: deviceSessionsCount,
+      if (deviceSessions != null) #deviceSessions: deviceSessions,
       if (locale != null) #locale: locale,
     }),
   );
@@ -178,7 +211,11 @@ class _SettingsStateCopyWithImpl<$R, $Out>
     status: data.get(#status, or: $value.status),
     error: data.get(#error, or: $value.error),
     logout: data.get(#logout, or: $value.logout),
-    deviceCount: data.get(#deviceCount, or: $value.deviceCount),
+    deviceSessionsCount: data.get(
+      #deviceSessionsCount,
+      or: $value.deviceSessionsCount,
+    ),
+    deviceSessions: data.get(#deviceSessions, or: $value.deviceSessions),
     locale: data.get(#locale, or: $value.locale),
   );
 

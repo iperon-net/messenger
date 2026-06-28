@@ -24,7 +24,7 @@ class SettingsCubit extends Cubit<SettingsState> {
     await syncer.deviceSessions.getAllSessionRequest(controller: controller, seq: syncer.seq, session: syncer.session);
 
     _deviceSessionsSubscription ??= syncer.deviceSessions.controllerDeviceSessions.stream.listen((deviceSessions) {
-      emit(state.copyWith(deviceCount: deviceSessions.length));
+      emit(state.copyWith(deviceSessionsCount: deviceSessions.length, deviceSessions: deviceSessions));
     });
 
   }

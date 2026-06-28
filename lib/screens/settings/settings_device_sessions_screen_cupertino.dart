@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:messenger/cubit/settings/settings_cubit.dart';
 import 'package:messenger/cubit/settings/settings_device_sessions_state.dart';
 
 import '../../cubit/settings/settings_device_sessions_cubit.dart';
@@ -18,7 +19,7 @@ class _SettingsDeviceSessionsScreenCupertino extends State<SettingsDeviceSession
   @override
   void initState() {
     super.initState();
-
+    context.read<SettingsDeviceSessionsCubit>().setDeviceSessions(deviceSessions: context.read<SettingsCubit>().state.deviceSessions);
   }
 
   @override
