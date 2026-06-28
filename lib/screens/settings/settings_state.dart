@@ -1,4 +1,5 @@
 import 'package:dart_mappable/dart_mappable.dart';
+import 'package:messenger/i18n/translations.g.dart';
 
 import '../../constants.dart';
 
@@ -10,11 +11,13 @@ class SettingsState with SettingsStateMappable {
   final String error;
   final bool logout;
   final int deviceCount;
+  final AppLocale locale;
 
   const SettingsState({
     this.status = Status.initialization,
     this.error = "",
     this.logout = false,
     this.deviceCount = 0,
+    this.locale = AppLocale.en,
   });
 }

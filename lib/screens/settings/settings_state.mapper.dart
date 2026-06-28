@@ -50,6 +50,13 @@ class SettingsStateMapper extends ClassMapperBase<SettingsState> {
     opt: true,
     def: 0,
   );
+  static AppLocale _$locale(SettingsState v) => v.locale;
+  static const Field<SettingsState, AppLocale> _f$locale = Field(
+    'locale',
+    _$locale,
+    opt: true,
+    def: AppLocale.en,
+  );
 
   @override
   final MappableFields<SettingsState> fields = const {
@@ -57,6 +64,7 @@ class SettingsStateMapper extends ClassMapperBase<SettingsState> {
     #error: _f$error,
     #logout: _f$logout,
     #deviceCount: _f$deviceCount,
+    #locale: _f$locale,
   };
 
   static SettingsState _instantiate(DecodingData data) {
@@ -65,6 +73,7 @@ class SettingsStateMapper extends ClassMapperBase<SettingsState> {
       error: data.dec(_f$error),
       logout: data.dec(_f$logout),
       deviceCount: data.dec(_f$deviceCount),
+      locale: data.dec(_f$locale),
     );
   }
 
@@ -130,7 +139,13 @@ extension SettingsStateValueCopy<$R, $Out>
 
 abstract class SettingsStateCopyWith<$R, $In extends SettingsState, $Out>
     implements ClassCopyWith<$R, $In, $Out> {
-  $R call({Status? status, String? error, bool? logout, int? deviceCount});
+  $R call({
+    Status? status,
+    String? error,
+    bool? logout,
+    int? deviceCount,
+    AppLocale? locale,
+  });
   SettingsStateCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
 
@@ -143,21 +158,28 @@ class _SettingsStateCopyWithImpl<$R, $Out>
   late final ClassMapperBase<SettingsState> $mapper =
       SettingsStateMapper.ensureInitialized();
   @override
-  $R call({Status? status, String? error, bool? logout, int? deviceCount}) =>
-      $apply(
-        FieldCopyWithData({
-          if (status != null) #status: status,
-          if (error != null) #error: error,
-          if (logout != null) #logout: logout,
-          if (deviceCount != null) #deviceCount: deviceCount,
-        }),
-      );
+  $R call({
+    Status? status,
+    String? error,
+    bool? logout,
+    int? deviceCount,
+    AppLocale? locale,
+  }) => $apply(
+    FieldCopyWithData({
+      if (status != null) #status: status,
+      if (error != null) #error: error,
+      if (logout != null) #logout: logout,
+      if (deviceCount != null) #deviceCount: deviceCount,
+      if (locale != null) #locale: locale,
+    }),
+  );
   @override
   SettingsState $make(CopyWithData data) => SettingsState(
     status: data.get(#status, or: $value.status),
     error: data.get(#error, or: $value.error),
     logout: data.get(#logout, or: $value.logout),
     deviceCount: data.get(#deviceCount, or: $value.deviceCount),
+    locale: data.get(#locale, or: $value.locale),
   );
 
   @override

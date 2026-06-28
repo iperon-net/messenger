@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../di.dart';
+import '../../i18n/translations.g.dart';
 import '../../logger.dart';
 import '../../repositories/repositories.dart';
 import '../../syncer.dart';
@@ -26,6 +27,10 @@ class SettingsCubit extends Cubit<SettingsState> {
       emit(state.copyWith(deviceCount: deviceSessions.length));
     });
 
+  }
+
+  Future<void> setLocale({required AppLocale locale}) async {
+    emit(state.copyWith(locale: locale));
   }
 
   Future<void> logout() async {
