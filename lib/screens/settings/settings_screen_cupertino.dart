@@ -164,7 +164,7 @@ class _SettingsCupertinoScreen extends State<SettingsCupertinoScreen> {
                       color: Color(0xFFFF6B00),
                       icon: FontAwesomeIcons.mobileScreen,
                       borderRadius: BorderRadius.zero,
-                      onTab: () async => context.go("/"),
+                      onTab: () async => context.go("/settings_device_sessions"),
                       additionalInfo: state.deviceCount > 0 ? Text(state.deviceCount.toString()) : null,
                     ),
                     _divider(),

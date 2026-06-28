@@ -24,6 +24,7 @@ import 'cubit/home/home_cubit.dart';
 import 'cubit/settings/settings_appearance_cubit.dart';
 import 'cubit/settings/settings_cubit.dart';
 import 'cubit/settings/settings_language_cubit.dart';
+import 'cubit/settings/settings_device_sessions_cubit.dart';
 import 'themes_cupertino.dart';
 import 'themes_material.dart';
 
@@ -89,6 +90,9 @@ Future<void> main() async {
           ),
           BlocProvider<SettingsAppearanceCubit>(
             create: (_) => SettingsAppearanceCubit(),
+          ),
+          BlocProvider<SettingsDeviceSessionsCubit>(
+            create: (_) => SettingsDeviceSessionsCubit(),
           ),
           BlocProvider<ContactsCubit>(
             create: (_) => ContactsCubit(),

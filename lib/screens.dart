@@ -9,4 +9,6 @@ export 'screens/settings/settings_screen_material.dart' show SettingsMaterialScr
 export 'screens/settings/settings_screen_cupertino.dart' show SettingsCupertinoScreen;
 export 'screens/settings/settings_language_screen_cupertino.dart' show SettingsLanguageScreenCupertino;
 export 'screens/settings/settings_appearance_screen_cupertino.dart' show SettingsAppearanceScreenCupertino;
+export 'screens/settings/settings_device_sessions_screen_cupertino.dart' show SettingsDeviceSessionsScreenCupertino;
 export 'screens/contacts/contacts_screen_cupertino.dart' show ContactsScreenCupertino;
+

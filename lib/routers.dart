@@ -90,6 +90,10 @@ class Routers {
                 path: '/settings_appearance',
                 builder: (_, _) => SettingsAppearanceScreenCupertino(),
               ),
+              GoRoute(
+                path: '/settings_device_sessions',
+                builder: (_, _) => SettingsDeviceSessionsScreenCupertino(),
+              ),
             ],
           ),
           GoRoute(
