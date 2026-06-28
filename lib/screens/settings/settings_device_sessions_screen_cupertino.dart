@@ -65,24 +65,49 @@ class _SettingsDeviceSessionsScreenCupertino extends State<SettingsDeviceSession
           ),
           child: SafeArea(
             child: Center(
-              child: Padding(
-                padding: EdgeInsetsGeometry.all(15),
-                child: ListView(
-                  children: [
-                    Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20)),
-                        color: CupertinoDynamicColor.resolve(
-                          CupertinoDynamicColor.withBrightness(
-                            color: CupertinoTheme.of(context).scaffoldBackgroundColor,
-                            darkColor: Color(0xFF1C1C1E),
-                          ),
-                          context,
-                        ),
-                      ),
+              child: ListView(
+                children: [
+                  CupertinoListSection.insetGrouped(
+                    header: Text(
+                      "Это устройство",
+                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.normal),
                     ),
-                  ],
-                ),
+                    footer: Text(
+                      "Выйти на всех устройствах, кроме текущего",
+                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.normal),
+                    ),
+                    children: [
+
+                      CupertinoListTile(
+                        padding: EdgeInsets.all(10),
+                        leading: Container(
+                          width: 50,
+                          height: 50,
+                          decoration: BoxDecoration(
+                            color: Color(0xFF1755DC),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Center(
+                            child: FaIcon(FontAwesomeIcons.apple, size: 18, color: Color(0xFFFFFFFF)),
+                          ),
+                        ),
+                        title: Column(
+                          spacing: 4,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text("Iphone 16 Pro"),
+                            Text(
+                              "iOS  26.5",
+                              style: TextStyle(fontSize: 16),
+                            ),
+                          ],
+                        ),
+                        subtitle: Text('Россия, Москва • в сети'),
+                      ),
+                    ],
+                  ),
+
+                ],
               ),
             ),
           ),
