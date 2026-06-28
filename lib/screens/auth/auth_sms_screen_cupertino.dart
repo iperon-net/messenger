@@ -7,7 +7,7 @@ import 'package:convert/convert.dart' as convertor;
 
 import '../../cubit/main_cubit.dart';
 import '../../i18n/translations.g.dart';
-import 'auth_sms_cubit.dart';
+import '../../cubit/auth/auth_sms_cubit.dart';
 
 class AuthSmsScreenCupertino extends StatefulWidget {
   final String smsSession;

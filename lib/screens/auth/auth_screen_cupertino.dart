@@ -11,8 +11,8 @@ import '../../di.dart';
 import '../../i18n/translations.g.dart';
 import '../../logger.dart';
 import '../../widgets/divider_text.dart';
-import 'auth_cubit.dart';
-import 'auth_state.dart';
+import '../../cubit/auth/auth_cubit.dart';
+import '../../cubit/auth/auth_state.dart';
 
 
 class AuthCupertinoScreen extends StatefulWidget {

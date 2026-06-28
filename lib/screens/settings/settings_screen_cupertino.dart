@@ -3,12 +3,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:messenger/cubit/main_cubit.dart';
-import 'package:messenger/screens/settings/settings_state.dart';
+import 'package:messenger/cubit/settings/settings_state.dart';
 
 import '../../di.dart';
 import '../../i18n/translations.g.dart';
 import '../../logger.dart';
-import 'settings_cubit.dart';
+import '../../cubit/settings/settings_cubit.dart';
 
 
 class SettingsCupertinoScreen extends StatefulWidget {

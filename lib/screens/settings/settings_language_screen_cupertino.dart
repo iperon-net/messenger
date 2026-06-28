@@ -2,11 +2,11 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:messenger/cubit/main_cubit.dart';
-import 'package:messenger/screens/settings/settings_cubit.dart';
-import 'package:messenger/screens/settings/settings_language_state.dart';
+import 'package:messenger/cubit/settings/settings_cubit.dart';
+import 'package:messenger/cubit/settings/settings_language_state.dart';
 
 import '../../i18n/translations.g.dart';
-import 'settings_language_cubit.dart';
+import '../../cubit/settings/settings_language_cubit.dart';
 
 class SettingsLanguageScreenCupertino extends StatefulWidget {
   const SettingsLanguageScreenCupertino({super.key});
