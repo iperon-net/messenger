@@ -18,6 +18,7 @@ class SettingsDeviceSessionsStateMapper
       MapperContainer.globals.use(
         _instance = SettingsDeviceSessionsStateMapper._(),
       );
+      models.DeviceSessionMapper.ensureInitialized();
     }
     return _instance!;
   }
@@ -25,11 +26,26 @@ class SettingsDeviceSessionsStateMapper
   @override
   final String id = 'SettingsDeviceSessionsState';
 
+  static List<models.DeviceSession> _$deviceSessions(
+    SettingsDeviceSessionsState v,
+  ) => v.deviceSessions;
+  static const Field<SettingsDeviceSessionsState, List<models.DeviceSession>>
+  _f$deviceSessions = Field(
+    'deviceSessions',
+    _$deviceSessions,
+    opt: true,
+    def: const [],
+  );
+
   @override
-  final MappableFields<SettingsDeviceSessionsState> fields = const {};
+  final MappableFields<SettingsDeviceSessionsState> fields = const {
+    #deviceSessions: _f$deviceSessions,
+  };
 
   static SettingsDeviceSessionsState _instantiate(DecodingData data) {
-    return SettingsDeviceSessionsState();
+    return SettingsDeviceSessionsState(
+      deviceSessions: data.dec(_f$deviceSessions),
+    );
   }
 
   @override
@@ -106,7 +122,13 @@ abstract class SettingsDeviceSessionsStateCopyWith<
   $Out
 >
     implements ClassCopyWith<$R, $In, $Out> {
-  $R call();
+  ListCopyWith<
+    $R,
+    models.DeviceSession,
+    models.DeviceSessionCopyWith<$R, models.DeviceSession, models.DeviceSession>
+  >
+  get deviceSessions;
+  $R call({List<models.DeviceSession>? deviceSessions});
   SettingsDeviceSessionsStateCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
     Then<$Out2, $R2> t,
   );
@@ -130,10 +152,27 @@ class _SettingsDeviceSessionsStateCopyWithImpl<$R, $Out>
   late final ClassMapperBase<SettingsDeviceSessionsState> $mapper =
       SettingsDeviceSessionsStateMapper.ensureInitialized();
   @override
-  $R call() => $apply(FieldCopyWithData({}));
+  ListCopyWith<
+    $R,
+    models.DeviceSession,
+    models.DeviceSessionCopyWith<$R, models.DeviceSession, models.DeviceSession>
+  >
+  get deviceSessions => ListCopyWith(
+    $value.deviceSessions,
+    (v, t) => v.copyWith.$chain(t),
+    (v) => call(deviceSessions: v),
+  );
+  @override
+  $R call({List<models.DeviceSession>? deviceSessions}) => $apply(
+    FieldCopyWithData({
+      if (deviceSessions != null) #deviceSessions: deviceSessions,
+    }),
+  );
   @override
   SettingsDeviceSessionsState $make(CopyWithData data) =>
-      SettingsDeviceSessionsState();
+      SettingsDeviceSessionsState(
+        deviceSessions: data.get(#deviceSessions, or: $value.deviceSessions),
+      );
 
   @override
   SettingsDeviceSessionsStateCopyWith<$R2, SettingsDeviceSessionsState, $Out2>
