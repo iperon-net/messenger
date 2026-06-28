@@ -1,17 +1,11 @@
-import 'dart:convert';
-
 import 'package:bloc/bloc.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:messenger/constants.dart';
 import 'package:messenger/logger.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:url_launcher/url_launcher.dart';
 
-import '../../api.dart';
-import '../../crypto/crypto.dart';
 import '../../di.dart';
 import '../../models.dart' as models;
-import '../../protobuf/protos/metadata_v1.pb.dart';
 import '../../utils.dart';
 import 'contacts_state.dart';
 
@@ -23,8 +17,6 @@ class ContactsCubit extends Cubit<ContactsState> {
   ContactsCubit() : super(const ContactsState());
 
   final _logger = getIt.get<Logger>();
-  final _crypto = getIt.get<Crypto>();
-  final _api = getIt.get<API>();
   final _utils = getIt.get<Utils>();
 
   Future<void> initialization() async {
