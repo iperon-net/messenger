@@ -3,7 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:messenger/cubit/main_cubit.dart';
-import 'package:messenger/cubit/main_state.dart';
 import 'package:messenger/screens/settings/settings_state.dart';
 
 import '../../di.dart';
