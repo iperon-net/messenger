@@ -6,6 +6,7 @@ part 'device_sessions.mapper.dart';
 
 @MappableClass(includeCustomMappers: [BoolMapper()])
 class DeviceSession with DeviceSessionMappable {
+  final List<int> session;
   final String deviceModel;
   final String osVersion;
   final int os;
@@ -14,8 +15,10 @@ class DeviceSession with DeviceSessionMappable {
   final String locationRussian;
   final String locationEnglish;
   final DateTime updateAt;
+  final bool isCurrent;
 
   DeviceSession({
+    this.session = const [],
     this.deviceModel = "",
     this.osVersion = "",
     this.os = 0,
@@ -23,12 +26,13 @@ class DeviceSession with DeviceSessionMappable {
     this.appBuildNumber = "",
     this.locationRussian = "",
     this.locationEnglish = "",
+    this.isCurrent = false,
     DateTime? updateAt,
   }) : updateAt = updateAt ?? DateTime.fromMicrosecondsSinceEpoch(0);
 
   @override
   String toString() {
-    return "device deviceModel=$deviceModel osVersion=$osVersion, appVersion=$appVersion, appBuildNumber=$appBuildNumber, "
+    return "device isCurrent=$isCurrent, deviceModel=$deviceModel osVersion=$osVersion, appVersion=$appVersion, appBuildNumber=$appBuildNumber, "
         "locationRussian=$locationRussian, locationEnglish=$locationEnglish";
   }
 

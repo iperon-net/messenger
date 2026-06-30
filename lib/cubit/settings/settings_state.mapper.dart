@@ -67,6 +67,13 @@ class SettingsStateMapper extends ClassMapperBase<SettingsState> {
     opt: true,
     def: AppLocale.en,
   );
+  static bool _$isCurrent(SettingsState v) => v.isCurrent;
+  static const Field<SettingsState, bool> _f$isCurrent = Field(
+    'isCurrent',
+    _$isCurrent,
+    opt: true,
+    def: false,
+  );
 
   @override
   final MappableFields<SettingsState> fields = const {
@@ -76,6 +83,7 @@ class SettingsStateMapper extends ClassMapperBase<SettingsState> {
     #deviceSessionsCount: _f$deviceSessionsCount,
     #deviceSessions: _f$deviceSessions,
     #locale: _f$locale,
+    #isCurrent: _f$isCurrent,
   };
 
   static SettingsState _instantiate(DecodingData data) {
@@ -86,6 +94,7 @@ class SettingsStateMapper extends ClassMapperBase<SettingsState> {
       deviceSessionsCount: data.dec(_f$deviceSessionsCount),
       deviceSessions: data.dec(_f$deviceSessions),
       locale: data.dec(_f$locale),
+      isCurrent: data.dec(_f$isCurrent),
     );
   }
 
@@ -164,6 +173,7 @@ abstract class SettingsStateCopyWith<$R, $In extends SettingsState, $Out>
     int? deviceSessionsCount,
     List<models.DeviceSession>? deviceSessions,
     AppLocale? locale,
+    bool? isCurrent,
   });
   SettingsStateCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
@@ -195,6 +205,7 @@ class _SettingsStateCopyWithImpl<$R, $Out>
     int? deviceSessionsCount,
     List<models.DeviceSession>? deviceSessions,
     AppLocale? locale,
+    bool? isCurrent,
   }) => $apply(
     FieldCopyWithData({
       if (status != null) #status: status,
@@ -204,6 +215,7 @@ class _SettingsStateCopyWithImpl<$R, $Out>
         #deviceSessionsCount: deviceSessionsCount,
       if (deviceSessions != null) #deviceSessions: deviceSessions,
       if (locale != null) #locale: locale,
+      if (isCurrent != null) #isCurrent: isCurrent,
     }),
   );
   @override
@@ -217,6 +229,7 @@ class _SettingsStateCopyWithImpl<$R, $Out>
     ),
     deviceSessions: data.get(#deviceSessions, or: $value.deviceSessions),
     locale: data.get(#locale, or: $value.locale),
+    isCurrent: data.get(#isCurrent, or: $value.isCurrent),
   );
 
   @override

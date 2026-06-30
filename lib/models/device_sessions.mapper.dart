@@ -23,6 +23,13 @@ class DeviceSessionMapper extends ClassMapperBase<DeviceSession> {
   @override
   final String id = 'DeviceSession';
 
+  static List<int> _$session(DeviceSession v) => v.session;
+  static const Field<DeviceSession, List<int>> _f$session = Field(
+    'session',
+    _$session,
+    opt: true,
+    def: const [],
+  );
   static String _$deviceModel(DeviceSession v) => v.deviceModel;
   static const Field<DeviceSession, String> _f$deviceModel = Field(
     'deviceModel',
@@ -72,6 +79,13 @@ class DeviceSessionMapper extends ClassMapperBase<DeviceSession> {
     opt: true,
     def: "",
   );
+  static bool _$isCurrent(DeviceSession v) => v.isCurrent;
+  static const Field<DeviceSession, bool> _f$isCurrent = Field(
+    'isCurrent',
+    _$isCurrent,
+    opt: true,
+    def: false,
+  );
   static DateTime _$updateAt(DeviceSession v) => v.updateAt;
   static const Field<DeviceSession, DateTime> _f$updateAt = Field(
     'updateAt',
@@ -81,6 +95,7 @@ class DeviceSessionMapper extends ClassMapperBase<DeviceSession> {
 
   @override
   final MappableFields<DeviceSession> fields = const {
+    #session: _f$session,
     #deviceModel: _f$deviceModel,
     #osVersion: _f$osVersion,
     #os: _f$os,
@@ -88,11 +103,13 @@ class DeviceSessionMapper extends ClassMapperBase<DeviceSession> {
     #appBuildNumber: _f$appBuildNumber,
     #locationRussian: _f$locationRussian,
     #locationEnglish: _f$locationEnglish,
+    #isCurrent: _f$isCurrent,
     #updateAt: _f$updateAt,
   };
 
   static DeviceSession _instantiate(DecodingData data) {
     return DeviceSession(
+      session: data.dec(_f$session),
       deviceModel: data.dec(_f$deviceModel),
       osVersion: data.dec(_f$osVersion),
       os: data.dec(_f$os),
@@ -100,6 +117,7 @@ class DeviceSessionMapper extends ClassMapperBase<DeviceSession> {
       appBuildNumber: data.dec(_f$appBuildNumber),
       locationRussian: data.dec(_f$locationRussian),
       locationEnglish: data.dec(_f$locationEnglish),
+      isCurrent: data.dec(_f$isCurrent),
       updateAt: data.dec(_f$updateAt),
     );
   }
@@ -166,7 +184,9 @@ extension DeviceSessionValueCopy<$R, $Out>
 
 abstract class DeviceSessionCopyWith<$R, $In extends DeviceSession, $Out>
     implements ClassCopyWith<$R, $In, $Out> {
+  ListCopyWith<$R, int, ObjectCopyWith<$R, int, int>> get session;
   $R call({
+    List<int>? session,
     String? deviceModel,
     String? osVersion,
     int? os,
@@ -174,6 +194,7 @@ abstract class DeviceSessionCopyWith<$R, $In extends DeviceSession, $Out>
     String? appBuildNumber,
     String? locationRussian,
     String? locationEnglish,
+    bool? isCurrent,
     DateTime? updateAt,
   });
   DeviceSessionCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
@@ -188,7 +209,15 @@ class _DeviceSessionCopyWithImpl<$R, $Out>
   late final ClassMapperBase<DeviceSession> $mapper =
       DeviceSessionMapper.ensureInitialized();
   @override
+  ListCopyWith<$R, int, ObjectCopyWith<$R, int, int>> get session =>
+      ListCopyWith(
+        $value.session,
+        (v, t) => ObjectCopyWith(v, $identity, t),
+        (v) => call(session: v),
+      );
+  @override
   $R call({
+    List<int>? session,
     String? deviceModel,
     String? osVersion,
     int? os,
@@ -196,9 +225,11 @@ class _DeviceSessionCopyWithImpl<$R, $Out>
     String? appBuildNumber,
     String? locationRussian,
     String? locationEnglish,
+    bool? isCurrent,
     Object? updateAt = $none,
   }) => $apply(
     FieldCopyWithData({
+      if (session != null) #session: session,
       if (deviceModel != null) #deviceModel: deviceModel,
       if (osVersion != null) #osVersion: osVersion,
       if (os != null) #os: os,
@@ -206,11 +237,13 @@ class _DeviceSessionCopyWithImpl<$R, $Out>
       if (appBuildNumber != null) #appBuildNumber: appBuildNumber,
       if (locationRussian != null) #locationRussian: locationRussian,
       if (locationEnglish != null) #locationEnglish: locationEnglish,
+      if (isCurrent != null) #isCurrent: isCurrent,
       if (updateAt != $none) #updateAt: updateAt,
     }),
   );
   @override
   DeviceSession $make(CopyWithData data) => DeviceSession(
+    session: data.get(#session, or: $value.session),
     deviceModel: data.get(#deviceModel, or: $value.deviceModel),
     osVersion: data.get(#osVersion, or: $value.osVersion),
     os: data.get(#os, or: $value.os),
@@ -218,6 +251,7 @@ class _DeviceSessionCopyWithImpl<$R, $Out>
     appBuildNumber: data.get(#appBuildNumber, or: $value.appBuildNumber),
     locationRussian: data.get(#locationRussian, or: $value.locationRussian),
     locationEnglish: data.get(#locationEnglish, or: $value.locationEnglish),
+    isCurrent: data.get(#isCurrent, or: $value.isCurrent),
     updateAt: data.get(#updateAt, or: $value.updateAt),
   );
 

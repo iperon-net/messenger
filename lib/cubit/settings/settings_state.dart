@@ -14,6 +14,7 @@ class SettingsState with SettingsStateMappable {
   final int deviceSessionsCount;
   final List<models.DeviceSession> deviceSessions;
   final AppLocale locale;
+  final bool isCurrent;
 
   const SettingsState({
     this.status = Status.initialization,
@@ -22,5 +23,6 @@ class SettingsState with SettingsStateMappable {
     this.deviceSessionsCount = 0,
     this.deviceSessions = const [],
     this.locale = AppLocale.en,
+    this.isCurrent = false,
   });
 }

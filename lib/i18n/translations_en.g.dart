@@ -205,6 +205,30 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 
 	/// en: 'Devices'
 	String get devices => 'Devices';
+
+	/// en: 'This device'
+	String get thisDevice => 'This device';
+
+	/// en: 'Terminate all other sessions'
+	String get terminateAllOtherSessions => 'Terminate all other sessions';
+
+	/// en: 'Logs out all devices except for this one'
+	String get logsOutAllDevicesExceptForThisOne => 'Logs out all devices except for this one';
+
+	/// en: 'Active sessions'
+	String get activeSessions => 'Active sessions';
+
+	/// en: '{location} · {updateAt}'
+	String deviceSessionListTileSubtitle({required Object location, required Object updateAt}) => '${location} · ${updateAt}';
+
+	/// en: 'today at {time}'
+	String relativeDateTimeToday({required Object time}) => 'today at ${time}';
+
+	/// en: 'yesterday at {time}'
+	String relativeDateTimeYesterday({required Object time}) => 'yesterday at ${time}';
+
+	/// en: '{date} at {time}'
+	String relativeDateTimeOther({required Object date, required Object time}) => '${date} at ${time}';
 }
 
 /// The flat map containing all translations for locale <en>.
@@ -270,6 +294,14 @@ extension on Translations {
 			'limitedAccessToContacts' => 'Limited access to contacts',
 			'appDoesNotHavePermissionAccessAllContacts' => 'The app does not have permission to access all contacts',
 			'devices' => 'Devices',
+			'thisDevice' => 'This device',
+			'terminateAllOtherSessions' => 'Terminate all other sessions',
+			'logsOutAllDevicesExceptForThisOne' => 'Logs out all devices except for this one',
+			'activeSessions' => 'Active sessions',
+			'deviceSessionListTileSubtitle' => ({required Object location, required Object updateAt}) => '${location} · ${updateAt}',
+			'relativeDateTimeToday' => ({required Object time}) => 'today at ${time}',
+			'relativeDateTimeYesterday' => ({required Object time}) => 'yesterday at ${time}',
+			'relativeDateTimeOther' => ({required Object date, required Object time}) => '${date} at ${time}',
 			_ => null,
 		};
 	}

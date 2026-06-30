@@ -34,6 +34,11 @@ class Auth {
       seq: seq,
     );
 
+    logger.debug("Syncer authRequest add (bytes=${messageByte.length}, isClosed=${controller.isClosed}, isPaused=${controller.isPaused}), seq=$seq");
+    if (controller.isClosed) {
+      logger.warning("Syncer authRequest: controller закрыт, add пропущен, seq=$seq");
+      return;
+    }
     controller.add(SyncerMessageRequest(message: messageByte));
 
     logger.info("Syncer the subscriber has connected userID=${session.getUserIDObjectID().toString()}, seq=$seq");

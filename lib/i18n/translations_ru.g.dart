@@ -94,6 +94,14 @@ class TranslationsRu extends Translations with BaseTranslations<AppLocale, Trans
 	@override String get limitedAccessToContacts => 'Ограниченный доступ к контактам';
 	@override String get appDoesNotHavePermissionAccessAllContacts => 'У приложения нет разрешения на доступ ко всем контактам';
 	@override String get devices => 'Устройства';
+	@override String get thisDevice => 'Это устройство';
+	@override String get terminateAllOtherSessions => 'Завершить сеансы, кроме текущего';
+	@override String get logsOutAllDevicesExceptForThisOne => 'Завершить все сеансы, кроме текущего';
+	@override String get activeSessions => 'Активные сеансы';
+	@override String deviceSessionListTileSubtitle({required Object location, required Object updateAt}) => '${location} · ${updateAt}';
+	@override String relativeDateTimeToday({required Object time}) => 'сегодня в ${time}';
+	@override String relativeDateTimeYesterday({required Object time}) => 'вчера в ${time}';
+	@override String relativeDateTimeOther({required Object date, required Object time}) => '${date} в ${time}';
 }
 
 /// The flat map containing all translations for locale <ru>.
@@ -159,6 +167,14 @@ extension on TranslationsRu {
 			'limitedAccessToContacts' => 'Ограниченный доступ к контактам',
 			'appDoesNotHavePermissionAccessAllContacts' => 'У приложения нет разрешения на доступ ко всем контактам',
 			'devices' => 'Устройства',
+			'thisDevice' => 'Это устройство',
+			'terminateAllOtherSessions' => 'Завершить сеансы, кроме текущего',
+			'logsOutAllDevicesExceptForThisOne' => 'Завершить все сеансы, кроме текущего',
+			'activeSessions' => 'Активные сеансы',
+			'deviceSessionListTileSubtitle' => ({required Object location, required Object updateAt}) => '${location} · ${updateAt}',
+			'relativeDateTimeToday' => ({required Object time}) => 'сегодня в ${time}',
+			'relativeDateTimeYesterday' => ({required Object time}) => 'вчера в ${time}',
+			'relativeDateTimeOther' => ({required Object date, required Object time}) => '${date} в ${time}',
 			_ => null,
 		};
 	}

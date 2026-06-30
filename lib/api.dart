@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:package_info_plus/package_info_plus.dart';
 
 import 'di.dart';
@@ -20,6 +22,7 @@ class API {
   late String version;
 
   final uuid = Uuid();
+  final _backoffRandom = Random();
   API() {
     _clientChannel = ClientChannel(
       Settings.apiHost,
@@ -29,9 +32,23 @@ class API {
         connectTimeout:  const Duration(seconds: 30), // The maximum allowed time to wait for a connection to be established
         userAgent: "Iperon/0.0.1",
         idleTimeout: const Duration(minutes: 5),
-        backoffStrategy: (_) => const Duration(seconds: 60),
+        // Экспоненциальный backoff с джиттером и потолком ~30с.
+        // Фиксированный интервал без джиттера давал «thundering herd»:
+        // сервер по MaxConnectionAge (30 мин) разом рассылает GOAWAY всем,
+        // и клиенты переподключались синхронно.
+        backoffStrategy: (lastBackoff) {
+          final base = lastBackoff == null
+              ? const Duration(seconds: 1)
+              : lastBackoff * 1.6;
+          final capped = base > const Duration(seconds: 30) ? const Duration(seconds: 30) : base;
+          return capped + Duration(milliseconds: _backoffRandom.nextInt(1000));
+        },
         keepAlive: const ClientKeepAliveOptions(
-          pingInterval: Duration(seconds: 60),
+          // pingInterval < серверного MaxConnectionIdle (15 мин) и > MinTime (5с),
+          // permitWithoutCalls в тон серверному PermitWithoutStream=true.
+          pingInterval: Duration(seconds: 30),
+          timeout: Duration(seconds: 5),
+          permitWithoutCalls: true,
         ),
         codecRegistry: CodecRegistry(
           codecs: const [
@@ -39,7 +56,6 @@ class API {
             IdentityCodec(),
           ],
         ),
-
       ),
       channelShutdownHandler: () {
         _logger.debug('channelShutdownHandler');
@@ -88,7 +104,8 @@ class API {
 
   Future<CallOptions> callOptions({double timeout = 30}) async {
     return CallOptions(
-      timeout: Duration(seconds: timeout.toInt()),
+      // timeout <= 0 — без дедлайна (для долгоживущих стримов: рвёт сервер по GOAWAY)
+      timeout: timeout <= 0 ? null : Duration(seconds: timeout.toInt()),
       metadata: {
         "x-app-version": "v$version",
         "x-request-id": uuid.v4(),

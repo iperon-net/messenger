@@ -19,9 +19,10 @@ import 'dart:typed_data' as $typed_data;
 const DeviceSession$json = {
   '1': 'DeviceSession',
   '2': [
-    {'1': 'deviceModel', '3': 1, '4': 1, '5': 9, '10': 'deviceModel'},
-    {'1': 'os', '3': 2, '4': 1, '5': 5, '10': 'os'},
-    {'1': 'osVersion', '3': 3, '4': 1, '5': 9, '10': 'osVersion'},
+    {'1': 'session', '3': 1, '4': 1, '5': 12, '10': 'session'},
+    {'1': 'deviceModel', '3': 2, '4': 1, '5': 9, '10': 'deviceModel'},
+    {'1': 'os', '3': 3, '4': 1, '5': 5, '10': 'os'},
+    {'1': 'osVersion', '3': 4, '4': 1, '5': 9, '10': 'osVersion'},
     {'1': 'appVersion', '3': 5, '4': 1, '5': 9, '10': 'appVersion'},
     {'1': 'appBuildNumber', '3': 6, '4': 1, '5': 9, '10': 'appBuildNumber'},
     {'1': 'locationRussian', '3': 7, '4': 1, '5': 9, '10': 'locationRussian'},
@@ -39,12 +40,12 @@ const DeviceSession$json = {
 
 /// Descriptor for `DeviceSession`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List deviceSessionDescriptor = $convert.base64Decode(
-    'Cg1EZXZpY2VTZXNzaW9uEiAKC2RldmljZU1vZGVsGAEgASgJUgtkZXZpY2VNb2RlbBIOCgJvcx'
-    'gCIAEoBVICb3MSHAoJb3NWZXJzaW9uGAMgASgJUglvc1ZlcnNpb24SHgoKYXBwVmVyc2lvbhgF'
-    'IAEoCVIKYXBwVmVyc2lvbhImCg5hcHBCdWlsZE51bWJlchgGIAEoCVIOYXBwQnVpbGROdW1iZX'
-    'ISKAoPbG9jYXRpb25SdXNzaWFuGAcgASgJUg9sb2NhdGlvblJ1c3NpYW4SKAoPbG9jYXRpb25F'
-    'bmdsaXNoGAggASgJUg9sb2NhdGlvbkVuZ2xpc2gSNgoIdXBkYXRlQXQYCSABKAsyGi5nb29nbG'
-    'UucHJvdG9idWYuVGltZXN0YW1wUgh1cGRhdGVBdA==');
+    'Cg1EZXZpY2VTZXNzaW9uEhgKB3Nlc3Npb24YASABKAxSB3Nlc3Npb24SIAoLZGV2aWNlTW9kZW'
+    'wYAiABKAlSC2RldmljZU1vZGVsEg4KAm9zGAMgASgFUgJvcxIcCglvc1ZlcnNpb24YBCABKAlS'
+    'CW9zVmVyc2lvbhIeCgphcHBWZXJzaW9uGAUgASgJUgphcHBWZXJzaW9uEiYKDmFwcEJ1aWxkTn'
+    'VtYmVyGAYgASgJUg5hcHBCdWlsZE51bWJlchIoCg9sb2NhdGlvblJ1c3NpYW4YByABKAlSD2xv'
+    'Y2F0aW9uUnVzc2lhbhIoCg9sb2NhdGlvbkVuZ2xpc2gYCCABKAlSD2xvY2F0aW9uRW5nbGlzaB'
+    'I2Cgh1cGRhdGVBdBgJIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBSCHVwZGF0ZUF0');
 
 @$core.Deprecated('Use deviceSessionsRequestDescriptor instead')
 const DeviceSessionsRequest$json = {

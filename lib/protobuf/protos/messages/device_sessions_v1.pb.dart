@@ -20,6 +20,7 @@ export 'package:protobuf/protobuf.dart' show GeneratedMessageGenericExtensions;
 
 class DeviceSession extends $pb.GeneratedMessage {
   factory DeviceSession({
+    $core.List<$core.int>? session,
     $core.String? deviceModel,
     $core.int? os,
     $core.String? osVersion,
@@ -30,6 +31,7 @@ class DeviceSession extends $pb.GeneratedMessage {
     $0.Timestamp? updateAt,
   }) {
     final result = create();
+    if (session != null) result.session = session;
     if (deviceModel != null) result.deviceModel = deviceModel;
     if (os != null) result.os = os;
     if (osVersion != null) result.osVersion = osVersion;
@@ -54,9 +56,11 @@ class DeviceSession extends $pb.GeneratedMessage {
       _omitMessageNames ? '' : 'DeviceSession',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'),
       createEmptyInstance: create)
-    ..aOS(1, _omitFieldNames ? '' : 'deviceModel', protoName: 'deviceModel')
-    ..aI(2, _omitFieldNames ? '' : 'os')
-    ..aOS(3, _omitFieldNames ? '' : 'osVersion', protoName: 'osVersion')
+    ..a<$core.List<$core.int>>(
+        1, _omitFieldNames ? '' : 'session', $pb.PbFieldType.OY)
+    ..aOS(2, _omitFieldNames ? '' : 'deviceModel', protoName: 'deviceModel')
+    ..aI(3, _omitFieldNames ? '' : 'os')
+    ..aOS(4, _omitFieldNames ? '' : 'osVersion', protoName: 'osVersion')
     ..aOS(5, _omitFieldNames ? '' : 'appVersion', protoName: 'appVersion')
     ..aOS(6, _omitFieldNames ? '' : 'appBuildNumber',
         protoName: 'appBuildNumber')
@@ -88,78 +92,87 @@ class DeviceSession extends $pb.GeneratedMessage {
   static DeviceSession? _defaultInstance;
 
   @$pb.TagNumber(1)
-  $core.String get deviceModel => $_getSZ(0);
+  $core.List<$core.int> get session => $_getN(0);
   @$pb.TagNumber(1)
-  set deviceModel($core.String value) => $_setString(0, value);
+  set session($core.List<$core.int> value) => $_setBytes(0, value);
   @$pb.TagNumber(1)
-  $core.bool hasDeviceModel() => $_has(0);
+  $core.bool hasSession() => $_has(0);
   @$pb.TagNumber(1)
-  void clearDeviceModel() => $_clearField(1);
+  void clearSession() => $_clearField(1);
 
   @$pb.TagNumber(2)
-  $core.int get os => $_getIZ(1);
+  $core.String get deviceModel => $_getSZ(1);
   @$pb.TagNumber(2)
-  set os($core.int value) => $_setSignedInt32(1, value);
+  set deviceModel($core.String value) => $_setString(1, value);
   @$pb.TagNumber(2)
-  $core.bool hasOs() => $_has(1);
+  $core.bool hasDeviceModel() => $_has(1);
   @$pb.TagNumber(2)
-  void clearOs() => $_clearField(2);
+  void clearDeviceModel() => $_clearField(2);
 
   @$pb.TagNumber(3)
-  $core.String get osVersion => $_getSZ(2);
+  $core.int get os => $_getIZ(2);
   @$pb.TagNumber(3)
-  set osVersion($core.String value) => $_setString(2, value);
+  set os($core.int value) => $_setSignedInt32(2, value);
   @$pb.TagNumber(3)
-  $core.bool hasOsVersion() => $_has(2);
+  $core.bool hasOs() => $_has(2);
   @$pb.TagNumber(3)
-  void clearOsVersion() => $_clearField(3);
+  void clearOs() => $_clearField(3);
+
+  @$pb.TagNumber(4)
+  $core.String get osVersion => $_getSZ(3);
+  @$pb.TagNumber(4)
+  set osVersion($core.String value) => $_setString(3, value);
+  @$pb.TagNumber(4)
+  $core.bool hasOsVersion() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearOsVersion() => $_clearField(4);
 
   @$pb.TagNumber(5)
-  $core.String get appVersion => $_getSZ(3);
+  $core.String get appVersion => $_getSZ(4);
   @$pb.TagNumber(5)
-  set appVersion($core.String value) => $_setString(3, value);
+  set appVersion($core.String value) => $_setString(4, value);
   @$pb.TagNumber(5)
-  $core.bool hasAppVersion() => $_has(3);
+  $core.bool hasAppVersion() => $_has(4);
   @$pb.TagNumber(5)
   void clearAppVersion() => $_clearField(5);
 
   @$pb.TagNumber(6)
-  $core.String get appBuildNumber => $_getSZ(4);
+  $core.String get appBuildNumber => $_getSZ(5);
   @$pb.TagNumber(6)
-  set appBuildNumber($core.String value) => $_setString(4, value);
+  set appBuildNumber($core.String value) => $_setString(5, value);
   @$pb.TagNumber(6)
-  $core.bool hasAppBuildNumber() => $_has(4);
+  $core.bool hasAppBuildNumber() => $_has(5);
   @$pb.TagNumber(6)
   void clearAppBuildNumber() => $_clearField(6);
 
   @$pb.TagNumber(7)
-  $core.String get locationRussian => $_getSZ(5);
+  $core.String get locationRussian => $_getSZ(6);
   @$pb.TagNumber(7)
-  set locationRussian($core.String value) => $_setString(5, value);
+  set locationRussian($core.String value) => $_setString(6, value);
   @$pb.TagNumber(7)
-  $core.bool hasLocationRussian() => $_has(5);
+  $core.bool hasLocationRussian() => $_has(6);
   @$pb.TagNumber(7)
   void clearLocationRussian() => $_clearField(7);
 
   @$pb.TagNumber(8)
-  $core.String get locationEnglish => $_getSZ(6);
+  $core.String get locationEnglish => $_getSZ(7);
   @$pb.TagNumber(8)
-  set locationEnglish($core.String value) => $_setString(6, value);
+  set locationEnglish($core.String value) => $_setString(7, value);
   @$pb.TagNumber(8)
-  $core.bool hasLocationEnglish() => $_has(6);
+  $core.bool hasLocationEnglish() => $_has(7);
   @$pb.TagNumber(8)
   void clearLocationEnglish() => $_clearField(8);
 
   @$pb.TagNumber(9)
-  $0.Timestamp get updateAt => $_getN(7);
+  $0.Timestamp get updateAt => $_getN(8);
   @$pb.TagNumber(9)
   set updateAt($0.Timestamp value) => $_setField(9, value);
   @$pb.TagNumber(9)
-  $core.bool hasUpdateAt() => $_has(7);
+  $core.bool hasUpdateAt() => $_has(8);
   @$pb.TagNumber(9)
   void clearUpdateAt() => $_clearField(9);
   @$pb.TagNumber(9)
-  $0.Timestamp ensureUpdateAt() => $_ensure(7);
+  $0.Timestamp ensureUpdateAt() => $_ensure(8);
 }
 
 class DeviceSessionsRequest extends $pb.GeneratedMessage {

@@ -1,8 +1,12 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:messenger/cubit/settings/settings_cubit.dart';
 import 'package:messenger/cubit/settings/settings_device_sessions_state.dart';
+import '../../extensions/date_time_extensions.dart';
+import '../../extensions/string_extensions.dart';
 
 import '../../cubit/settings/settings_device_sessions_cubit.dart';
 import '../../i18n/translations.g.dart';
@@ -36,6 +40,9 @@ class _SettingsDeviceSessionsScreenCupertino extends State<SettingsDeviceSession
         // context.read<SettingsCubit>().setLocale(locale: state.locale);
       },
       builder: (context, state) {
+
+        final currentSession = state.deviceSessions.firstWhereOrNull((data) => data.isCurrent);
+
         return CupertinoPageScaffold(
           backgroundColor: CupertinoColors.systemGroupedBackground,
           navigationBar: CupertinoNavigationBar(
@@ -47,89 +54,115 @@ class _SettingsDeviceSessionsScreenCupertino extends State<SettingsDeviceSession
               children: [
                 CupertinoListSection.insetGrouped(
                   header: Text(
-                    "ЭТО УСТРОЙСТВО",
+                    context.t.thisDevice.toUpperCase(),
                     style: TextStyle(fontSize: 13, fontWeight: FontWeight.normal),
                   ),
-                  footer: Text(
-                    "Выйти на всех устройствах, кроме текущего",
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.normal),
-                  ),
+                  // footer: Text(
+                  //   context.t.logsOutAllDevicesExceptForThisOne,
+                  //   style: TextStyle(fontSize: 14, fontWeight: FontWeight.normal),
+                  // ),
                   children: [
-
-                    CupertinoListTile(
-                      padding: EdgeInsets.all(10),
-                      leading: Container(
-                        width: 50,
-                        height: 50,
-                        decoration: BoxDecoration(
-                          color: Color(0xFF1755DC),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Center(
-                          child: FaIcon(FontAwesomeIcons.apple, size: 18, color: Color(0xFFFFFFFF)),
-                        ),
-                      ),
-                      title: Column(
-                        spacing: 4,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text("Iphone 16 Pro"),
-                          Text(
-                            "iOS  26.5",
-                            style: TextStyle(fontSize: 16),
+                    if (currentSession != null)
+                      CupertinoListTile(
+                        padding: EdgeInsets.all(10),
+                        leading: Container(
+                          width: 50,
+                          height: 50,
+                          decoration: BoxDecoration(
+                            color: Color(0xFF1755DC),
+                            borderRadius: BorderRadius.circular(8),
                           ),
-                        ],
-                      ),
-                      subtitle: Text('Россия, Москва • вчера в 12:00'),
-                    ),
-                    CupertinoListTile(
-                      padding: EdgeInsets.all(10),
-                      leading: FaIcon(FontAwesomeIcons.hand, size: 18, color: Color(0xFFF40000)),
-                      title: Text(
-                        "Завершить другие сеансы",
-                        style: TextStyle(
-                          fontWeight: FontWeight.normal,
-                          color: CupertinoColors.destructiveRed,
+                          child: Center(
+                            child: FaIcon(FontAwesomeIcons.apple, size: 18, color: Color(0xFFFFFFFF)),
+                          ),
+                        ),
+                        title: Column(
+                          spacing: 4,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(currentSession.deviceModel),
+                            Text(
+                              currentSession.os == 1 ? "iOS ${currentSession.osVersion}" : "Android ${currentSession.osVersion}",
+                              style: TextStyle(fontSize: 16),
+                            ),
+                          ],
+                        ),
+                        subtitle: Text(context.t.deviceSessionListTileSubtitle(
+                            location: LocaleSettings.currentLocale == AppLocale.ru ? currentSession.locationRussian : currentSession.locationEnglish,
+                            updateAt: currentSession.updateAt.relativeFormat(context.t)),
                         ),
                       ),
-                      onTap: () {},
-                    ),
-                  ],
-                ),
+                      if (state.deviceSessions.isNotEmpty && state.deviceSessions.any((data) => data.isCurrent == false))
+                        CupertinoListTile(
+                          padding: EdgeInsets.all(10),
+                          leading: FaIcon(FontAwesomeIcons.hand, size: 18, color: Color(0xFFF40000)),
+                          title: Text(
+                            context.t.terminateAllOtherSessions,
+                            style: TextStyle(
+                              fontWeight: FontWeight.normal,
+                              color: CupertinoColors.destructiveRed,
+                            ),
+                          ),
+                          onTap: () {},
+                        ),
+                    ],
+                  ),
 
-                if (state.deviceSessions.isNotEmpty)
+                if (state.deviceSessions.isNotEmpty && state.deviceSessions.any((data) => data.isCurrent == false))
                   CupertinoListSection.insetGrouped(
                     header: Text(
-                      "АКТИВНЫЕ СЕАНСЫ",
+                      context.t.activeSessions.toUpperCase(),
                       style: TextStyle(fontSize: 13, fontWeight: FontWeight.normal),
                     ),
                     children: [
                       for (final deviceSession in state.deviceSessions)
-                        CupertinoListTile(
-                          padding: EdgeInsets.all(10),
-                          leading: Container(
-                            width: 50,
-                            height: 50,
-                            decoration: BoxDecoration(
-                              color: Color(0xFF1755DC),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Center(
-                              child: FaIcon(deviceSession.os == 1 ? FontAwesomeIcons.apple : FontAwesomeIcons.android , size: 18, color: Color(0xFFFFFFFF)),
-                            ),
-                          ),
-                          title: Column(
-                            spacing: 4,
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                        Slidable(
+                          key: ValueKey(deviceSession.session),
+                          endActionPane: ActionPane(
+                            motion: const DrawerMotion(),
+                            extentRatio: 0.3,
                             children: [
-                              Text(deviceSession.deviceModel),
-                              Text(
-                                deviceSession.osVersion,
-                                style: TextStyle(fontSize: 16),
+                              CustomSlidableAction(
+                                onPressed: (context) {},
+                                backgroundColor: CupertinoColors.systemRed,
+                                foregroundColor: CupertinoColors.white,
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  spacing: 4,
+                                  children: const [
+                                    FaIcon(FontAwesomeIcons.circleXmark, size: 20, color: CupertinoColors.white),
+                                    Text('Terminate', style: TextStyle(fontSize: 12)),
+                                  ],
+                                ),
                               ),
                             ],
                           ),
-                          subtitle: Text(deviceSession.locationRussian),
+                          child: CupertinoListTile(
+                            padding: EdgeInsets.all(10),
+                            leading: Container(
+                              width: 50,
+                              height: 50,
+                              decoration: BoxDecoration(
+                                color: Color(0xFF1755DC),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Center(
+                                child: FaIcon(deviceSession.os == 1 ? FontAwesomeIcons.apple : FontAwesomeIcons.android , size: 18, color: Color(0xFFFFFFFF)),
+                              ),
+                            ),
+                            title: Column(
+                              spacing: 4,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(deviceSession.deviceModel),
+                                Text(
+                                  deviceSession.osVersion,
+                                  style: TextStyle(fontSize: 16),
+                                ),
+                              ],
+                            ),
+                            subtitle: LocaleSettings.currentLocale == AppLocale.ru ? Text(deviceSession.locationRussian): Text(deviceSession.locationEnglish),
+                          ),
                         ),
                     ],
                   ),

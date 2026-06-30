@@ -37,7 +37,7 @@ class DeviceSessions {
 
     final proto = message.DeviceSessionsResponse.fromBuffer(messageByte);
 
-    final deviceSessions = <models.DeviceSession>[];
+    final other = <models.DeviceSession>[];
 
     for (final item in proto.deviceSessions) {
 
@@ -46,7 +46,8 @@ class DeviceSessions {
         isUtc: true,
       );
 
-      deviceSessions.add(models.DeviceSession(
+      other.add(models.DeviceSession(
+        session: item.session,
         deviceModel: item.deviceModel,
         os: item.os,
         osVersion: item.osVersion,
@@ -55,10 +56,13 @@ class DeviceSessions {
         locationRussian: item.locationRussian,
         locationEnglish: item.locationEnglish,
         updateAt: dateTime,
+        isCurrent: ListEquality().equals(session.session, item.session),
       ));
-
     }
-    controllerDeviceSessions.add(deviceSessions);
+
+    controllerDeviceSessions.add(other);
+
+
   }
 
 }
