@@ -47,8 +47,8 @@ class _SettingsDeviceSessionsScreenCupertino extends State<SettingsDeviceSession
               children: [
                 CupertinoListSection.insetGrouped(
                   header: Text(
-                    "Это устройство",
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.normal),
+                    "ЭТО УСТРОЙСТВО",
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.normal),
                   ),
                   footer: Text(
                     "Выйти на всех устройствах, кроме текущего",
@@ -96,6 +96,44 @@ class _SettingsDeviceSessionsScreenCupertino extends State<SettingsDeviceSession
                     ),
                   ],
                 ),
+
+                if (state.deviceSessions.isNotEmpty)
+                  CupertinoListSection.insetGrouped(
+                    header: Text(
+                      "АКТИВНЫЕ СЕАНСЫ",
+                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.normal),
+                    ),
+                    children: [
+                      for (final deviceSession in state.deviceSessions)
+                        CupertinoListTile(
+                          padding: EdgeInsets.all(10),
+                          leading: Container(
+                            width: 50,
+                            height: 50,
+                            decoration: BoxDecoration(
+                              color: Color(0xFF1755DC),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Center(
+                              child: FaIcon(deviceSession.os == 1 ? FontAwesomeIcons.apple : FontAwesomeIcons.android , size: 18, color: Color(0xFFFFFFFF)),
+                            ),
+                          ),
+                          title: Column(
+                            spacing: 4,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(deviceSession.deviceModel),
+                              Text(
+                                deviceSession.osVersion,
+                                style: TextStyle(fontSize: 16),
+                              ),
+                            ],
+                          ),
+                          subtitle: Text(deviceSession.locationRussian),
+                        ),
+                    ],
+                  ),
+
               ],
             ),
           ),

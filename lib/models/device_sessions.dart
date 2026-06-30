@@ -8,6 +8,7 @@ part 'device_sessions.mapper.dart';
 class DeviceSession with DeviceSessionMappable {
   final String deviceModel;
   final String osVersion;
+  final int os;
   final String appVersion;
   final String appBuildNumber;
   final String locationRussian;
@@ -17,6 +18,7 @@ class DeviceSession with DeviceSessionMappable {
   DeviceSession({
     this.deviceModel = "",
     this.osVersion = "",
+    this.os = 0,
     this.appVersion = "",
     this.appBuildNumber = "",
     this.locationRussian = "",

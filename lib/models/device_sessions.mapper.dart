@@ -37,6 +37,13 @@ class DeviceSessionMapper extends ClassMapperBase<DeviceSession> {
     opt: true,
     def: "",
   );
+  static int _$os(DeviceSession v) => v.os;
+  static const Field<DeviceSession, int> _f$os = Field(
+    'os',
+    _$os,
+    opt: true,
+    def: 0,
+  );
   static String _$appVersion(DeviceSession v) => v.appVersion;
   static const Field<DeviceSession, String> _f$appVersion = Field(
     'appVersion',
@@ -76,6 +83,7 @@ class DeviceSessionMapper extends ClassMapperBase<DeviceSession> {
   final MappableFields<DeviceSession> fields = const {
     #deviceModel: _f$deviceModel,
     #osVersion: _f$osVersion,
+    #os: _f$os,
     #appVersion: _f$appVersion,
     #appBuildNumber: _f$appBuildNumber,
     #locationRussian: _f$locationRussian,
@@ -87,6 +95,7 @@ class DeviceSessionMapper extends ClassMapperBase<DeviceSession> {
     return DeviceSession(
       deviceModel: data.dec(_f$deviceModel),
       osVersion: data.dec(_f$osVersion),
+      os: data.dec(_f$os),
       appVersion: data.dec(_f$appVersion),
       appBuildNumber: data.dec(_f$appBuildNumber),
       locationRussian: data.dec(_f$locationRussian),
@@ -160,6 +169,7 @@ abstract class DeviceSessionCopyWith<$R, $In extends DeviceSession, $Out>
   $R call({
     String? deviceModel,
     String? osVersion,
+    int? os,
     String? appVersion,
     String? appBuildNumber,
     String? locationRussian,
@@ -181,6 +191,7 @@ class _DeviceSessionCopyWithImpl<$R, $Out>
   $R call({
     String? deviceModel,
     String? osVersion,
+    int? os,
     String? appVersion,
     String? appBuildNumber,
     String? locationRussian,
@@ -190,6 +201,7 @@ class _DeviceSessionCopyWithImpl<$R, $Out>
     FieldCopyWithData({
       if (deviceModel != null) #deviceModel: deviceModel,
       if (osVersion != null) #osVersion: osVersion,
+      if (os != null) #os: os,
       if (appVersion != null) #appVersion: appVersion,
       if (appBuildNumber != null) #appBuildNumber: appBuildNumber,
       if (locationRussian != null) #locationRussian: locationRussian,
@@ -201,6 +213,7 @@ class _DeviceSessionCopyWithImpl<$R, $Out>
   DeviceSession $make(CopyWithData data) => DeviceSession(
     deviceModel: data.get(#deviceModel, or: $value.deviceModel),
     osVersion: data.get(#osVersion, or: $value.osVersion),
+    os: data.get(#os, or: $value.os),
     appVersion: data.get(#appVersion, or: $value.appVersion),
     appBuildNumber: data.get(#appBuildNumber, or: $value.appBuildNumber),
     locationRussian: data.get(#locationRussian, or: $value.locationRussian),
