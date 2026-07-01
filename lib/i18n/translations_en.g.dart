@@ -229,6 +229,9 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 
 	/// en: '{date} at {time}'
 	String relativeDateTimeOther({required Object date, required Object time}) => '${date} at ${time}';
+
+	/// en: 'Онлайн'
+	String get online => 'Онлайн';
 }
 
 /// The flat map containing all translations for locale <en>.
@@ -302,6 +305,7 @@ extension on Translations {
 			'relativeDateTimeToday' => ({required Object time}) => 'today at ${time}',
 			'relativeDateTimeYesterday' => ({required Object time}) => 'yesterday at ${time}',
 			'relativeDateTimeOther' => ({required Object date, required Object time}) => '${date} at ${time}',
+			'online' => 'Онлайн',
 			_ => null,
 		};
 	}

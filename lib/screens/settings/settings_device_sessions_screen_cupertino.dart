@@ -93,7 +93,8 @@ class _SettingsDeviceSessionsScreenCupertino extends State<SettingsDeviceSession
                         ),
                         subtitle: Text(context.t.deviceSessionListTileSubtitle(
                             location: LocaleSettings.currentLocale == AppLocale.ru ? currentSession.locationRussian : currentSession.locationEnglish,
-                            updateAt: currentSession.updateAt.relativeFormat(context.t)),
+                            updateAt: context.t.online.toLowerCase(),
+                          ),
                         ),
                       ),
                       if (state.deviceSessions.isNotEmpty && state.deviceSessions.any((data) => data.isCurrent == false))
@@ -119,7 +120,7 @@ class _SettingsDeviceSessionsScreenCupertino extends State<SettingsDeviceSession
                       style: TextStyle(fontSize: 13, fontWeight: FontWeight.normal),
                     ),
                     children: [
-                      for (final deviceSession in state.deviceSessions)
+                      for (final deviceSession in state.deviceSessions.where((data) => data.isCurrent == false))
                         Slidable(
                           key: ValueKey(deviceSession.session),
                           endActionPane: ActionPane(
@@ -165,7 +166,10 @@ class _SettingsDeviceSessionsScreenCupertino extends State<SettingsDeviceSession
                                 ),
                               ],
                             ),
-                            subtitle: LocaleSettings.currentLocale == AppLocale.ru ? Text(deviceSession.locationRussian): Text(deviceSession.locationEnglish),
+                            subtitle: Text(context.t.deviceSessionListTileSubtitle(
+                              location: LocaleSettings.currentLocale == AppLocale.ru ? deviceSession.locationRussian : deviceSession.locationEnglish,
+                              updateAt: deviceSession.updateAt.relativeFormat(context.t)),
+                            ),
                           ),
                         ),
                     ],
