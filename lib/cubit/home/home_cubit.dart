@@ -9,7 +9,6 @@ import '../../streams.dart';
 import 'home_state.dart';
 
 class HomeCubit extends Cubit<HomeState> {
-  final _syncer = getIt.get<Syncer>();
   final _logger = getIt.get<Logger>();
   final _streams = getIt.get<Streams>();
 
