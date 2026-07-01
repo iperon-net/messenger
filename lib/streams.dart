@@ -11,5 +11,6 @@ class Streams {
   Streams();
 
   final StreamController<List<models.DeviceSession>> controllerDeviceSessions = StreamController<List<models.DeviceSession>>.broadcast();
+  final StreamController<bool> controllerAuth = StreamController<bool>.broadcast();
 
 }

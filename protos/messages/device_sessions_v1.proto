@@ -12,9 +12,9 @@ message DeviceSession {
   string osVersion = 4;
   string appVersion = 5;
   string appBuildNumber = 6;
-  string locationRussian = 7;
-  string locationEnglish = 8;
-  google.protobuf.Timestamp updateAt = 9;
+  google.protobuf.Timestamp updateAt = 7;
+  string locationRussian = 8;
+  string locationEnglish = 9;
 }
 
 message DeviceSessionsRequest {}

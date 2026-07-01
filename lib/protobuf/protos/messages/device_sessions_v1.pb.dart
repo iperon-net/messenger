@@ -26,9 +26,9 @@ class DeviceSession extends $pb.GeneratedMessage {
     $core.String? osVersion,
     $core.String? appVersion,
     $core.String? appBuildNumber,
+    $0.Timestamp? updateAt,
     $core.String? locationRussian,
     $core.String? locationEnglish,
-    $0.Timestamp? updateAt,
   }) {
     final result = create();
     if (session != null) result.session = session;
@@ -37,9 +37,9 @@ class DeviceSession extends $pb.GeneratedMessage {
     if (osVersion != null) result.osVersion = osVersion;
     if (appVersion != null) result.appVersion = appVersion;
     if (appBuildNumber != null) result.appBuildNumber = appBuildNumber;
+    if (updateAt != null) result.updateAt = updateAt;
     if (locationRussian != null) result.locationRussian = locationRussian;
     if (locationEnglish != null) result.locationEnglish = locationEnglish;
-    if (updateAt != null) result.updateAt = updateAt;
     return result;
   }
 
@@ -64,12 +64,12 @@ class DeviceSession extends $pb.GeneratedMessage {
     ..aOS(5, _omitFieldNames ? '' : 'appVersion', protoName: 'appVersion')
     ..aOS(6, _omitFieldNames ? '' : 'appBuildNumber',
         protoName: 'appBuildNumber')
-    ..aOS(7, _omitFieldNames ? '' : 'locationRussian',
-        protoName: 'locationRussian')
-    ..aOS(8, _omitFieldNames ? '' : 'locationEnglish',
-        protoName: 'locationEnglish')
-    ..aOM<$0.Timestamp>(9, _omitFieldNames ? '' : 'updateAt',
+    ..aOM<$0.Timestamp>(7, _omitFieldNames ? '' : 'updateAt',
         protoName: 'updateAt', subBuilder: $0.Timestamp.create)
+    ..aOS(8, _omitFieldNames ? '' : 'locationRussian',
+        protoName: 'locationRussian')
+    ..aOS(9, _omitFieldNames ? '' : 'locationEnglish',
+        protoName: 'locationEnglish')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -146,33 +146,33 @@ class DeviceSession extends $pb.GeneratedMessage {
   void clearAppBuildNumber() => $_clearField(6);
 
   @$pb.TagNumber(7)
-  $core.String get locationRussian => $_getSZ(6);
+  $0.Timestamp get updateAt => $_getN(6);
   @$pb.TagNumber(7)
-  set locationRussian($core.String value) => $_setString(6, value);
+  set updateAt($0.Timestamp value) => $_setField(7, value);
   @$pb.TagNumber(7)
-  $core.bool hasLocationRussian() => $_has(6);
+  $core.bool hasUpdateAt() => $_has(6);
   @$pb.TagNumber(7)
-  void clearLocationRussian() => $_clearField(7);
+  void clearUpdateAt() => $_clearField(7);
+  @$pb.TagNumber(7)
+  $0.Timestamp ensureUpdateAt() => $_ensure(6);
 
   @$pb.TagNumber(8)
-  $core.String get locationEnglish => $_getSZ(7);
+  $core.String get locationRussian => $_getSZ(7);
   @$pb.TagNumber(8)
-  set locationEnglish($core.String value) => $_setString(7, value);
+  set locationRussian($core.String value) => $_setString(7, value);
   @$pb.TagNumber(8)
-  $core.bool hasLocationEnglish() => $_has(7);
+  $core.bool hasLocationRussian() => $_has(7);
   @$pb.TagNumber(8)
-  void clearLocationEnglish() => $_clearField(8);
+  void clearLocationRussian() => $_clearField(8);
 
   @$pb.TagNumber(9)
-  $0.Timestamp get updateAt => $_getN(8);
+  $core.String get locationEnglish => $_getSZ(8);
   @$pb.TagNumber(9)
-  set updateAt($0.Timestamp value) => $_setField(9, value);
+  set locationEnglish($core.String value) => $_setString(8, value);
   @$pb.TagNumber(9)
-  $core.bool hasUpdateAt() => $_has(8);
+  $core.bool hasLocationEnglish() => $_has(8);
   @$pb.TagNumber(9)
-  void clearUpdateAt() => $_clearField(9);
-  @$pb.TagNumber(9)
-  $0.Timestamp ensureUpdateAt() => $_ensure(8);
+  void clearLocationEnglish() => $_clearField(9);
 }
 
 class DeviceSessionsRequest extends $pb.GeneratedMessage {

@@ -5,17 +5,16 @@ class Auth {
   final Utils utils;
   final Crypto crypto;
   final Repositories repositories;
+  final Streams streams;
 
-  Auth({required this.logger, required this.utils, required this.crypto, required this.repositories});
-
-  final StreamController<bool> controllerAuth = StreamController<bool>.broadcast();
+  Auth({required this.logger, required this.utils, required this.crypto, required this.repositories, required this.streams});
 
   Future<void> authRequest({required StreamController<SyncerMessageRequest>? controller, required int seq, required models.Session session}) async {
     if (controller == null) return;
 
     if (!session.isActive) {
       logger.warning("Syncer the subscriber has connected without an active session, seq=$seq");
-      controllerAuth.add(false);
+      streams.controllerAuth.add(false);
       return;
     }
 
@@ -47,7 +46,7 @@ class Auth {
   Future<void> authResponse({required List<int> msg, required Header header, required models.Session session}) async {
     if (session.session.toString() != header.session.toString()) {
       logger.warning("Syncer invalid session");
-      controllerAuth.add(false);
+      streams.controllerAuth.add(false);
       return;
     }
 
@@ -66,7 +65,7 @@ class Auth {
     );
 
     logger.info("Syncer response received auth userID=${session.getUserIDObjectID().toString()}, serverAt=${dateTime.toIso8601String()}");
-    controllerAuth.add(true);
+    streams.controllerAuth.add(true);
   }
 
   Future<void> logoutRequest({required StreamController<SyncerMessageRequest>? controller, required int seq, required models.Session session}) async {
@@ -84,7 +83,7 @@ class Auth {
     controller.add(SyncerMessageRequest(message: messageByte));
 
     await repositories.sessions.logout();
-    controllerAuth.add(false);
+    streams.controllerAuth.add(false);
 
     logger.info("Syncer logout user");
   }
@@ -92,7 +91,7 @@ class Auth {
   Future<void> logoutResponse({required List<int> msg, required Header header, required models.Session session}) async {
     if (session.session.toString() != header.session.toString()) {
       logger.warning("Syncer invalid session");
-      controllerAuth.add(false);
+      streams.controllerAuth.add(false);
       return;
     }
   }

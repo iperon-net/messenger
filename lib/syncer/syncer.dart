@@ -3,6 +3,7 @@ import 'dart:async';
 import 'dart:math';
 import 'dart:typed_data';
 
+import 'package:dlibphonenumber/dlibphonenumber.dart';
 import 'package:grpc/grpc.dart';
 import 'package:messenger/crypto/crypto.dart';
 import 'package:messenger/streams.dart';
@@ -47,8 +48,15 @@ class Syncer {
   late Auth auth;
 
   Syncer() {
-    deviceSessions = DeviceSessions(logger: _logger, utils: _utils, crypto: _crypto, repositories: _repositories, streams: _streams);
-    auth = Auth(logger: _logger, utils: _utils, crypto: _crypto, repositories: _repositories);
+    deviceSessions = DeviceSessions(
+        logger: _logger,
+        utils: _utils,
+        crypto: _crypto,
+        repositories: _repositories,
+        streams: _streams,
+        controller: getController,
+    );
+    auth = Auth(logger: _logger, utils: _utils, crypto: _crypto, repositories: _repositories, streams: _streams);
     _logger.info("syncer initialization");
   }
 

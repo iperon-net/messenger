@@ -7,9 +7,21 @@ class DeviceSessions {
   final Repositories repositories;
   final Streams streams;
 
-  DeviceSessions({required this.logger, required this.utils, required this.crypto, required this.repositories, required this.streams});
+  // Геттер актуального контроллера: _controller в Syncer переприсваивается при каждом
+  // connect(), поэтому храним не значение (оно устареет), а способ его получить.
+  final StreamController<SyncerMessageRequest>? Function() controller;
 
-  Future<void> getAllSessionRequest({required StreamController<SyncerMessageRequest>? controller, required int seq, required models.Session session}) async {
+  DeviceSessions({
+    required this.logger,
+    required this.utils,
+    required this.crypto,
+    required this.repositories,
+    required this.streams,
+    required this.controller,
+  });
+
+  Future<void> getAllSessionRequest({required int seq, required models.Session session}) async {
+    final controller = this.controller();
     if (controller == null) return;
 
     if (!session.isActive) {

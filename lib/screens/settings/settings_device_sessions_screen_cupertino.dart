@@ -141,23 +141,23 @@ class _SettingsDeviceSessionsScreenCupertino extends State<SettingsDeviceSession
                                     content: Text(context.t.areYouSureYouLogOutFromThisDevice),
                                     actions: <CupertinoDialogAction>[
                                       CupertinoDialogAction(
-                                        child: Text(context.t.cancel),
-                                        onPressed: () => Navigator.pop(context, false), // Возвращаем false
-                                      ),
-                                      CupertinoDialogAction(
                                         onPressed: () => Navigator.pop(context, true),  // Возвращаем true
                                         isDestructiveAction: true,
                                         child: Text(context.t.terminateSession), // Красный текст (опасное действие)
+                                      ),
+                                      CupertinoDialogAction(
+                                        child: Text(context.t.cancel),
+                                        onPressed: () => Navigator.pop(context, false), // Возвращаем false
                                       ),
                                     ],
                                   ),
                                 );
                                 return result ?? false;
                               },
-                              onDismissed: () {
+                              onDismissed: () async {
                                 // Убираем элемент из списка сразу — иначе flutter_slidable
                                 // кинет ассерт «dismissed Slidable widget is still part of the tree».
-                                context.read<SettingsDeviceSessionsCubit>().removeSession(deviceSession: deviceSession);
+                                await context.read<SettingsDeviceSessionsCubit>().removeSession(deviceSession: deviceSession);
                               },
                             ),
                             children: [

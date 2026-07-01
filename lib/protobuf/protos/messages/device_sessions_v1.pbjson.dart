@@ -25,16 +25,16 @@ const DeviceSession$json = {
     {'1': 'osVersion', '3': 4, '4': 1, '5': 9, '10': 'osVersion'},
     {'1': 'appVersion', '3': 5, '4': 1, '5': 9, '10': 'appVersion'},
     {'1': 'appBuildNumber', '3': 6, '4': 1, '5': 9, '10': 'appBuildNumber'},
-    {'1': 'locationRussian', '3': 7, '4': 1, '5': 9, '10': 'locationRussian'},
-    {'1': 'locationEnglish', '3': 8, '4': 1, '5': 9, '10': 'locationEnglish'},
     {
       '1': 'updateAt',
-      '3': 9,
+      '3': 7,
       '4': 1,
       '5': 11,
       '6': '.google.protobuf.Timestamp',
       '10': 'updateAt'
     },
+    {'1': 'locationRussian', '3': 8, '4': 1, '5': 9, '10': 'locationRussian'},
+    {'1': 'locationEnglish', '3': 9, '4': 1, '5': 9, '10': 'locationEnglish'},
   ],
 };
 
@@ -43,9 +43,9 @@ final $typed_data.Uint8List deviceSessionDescriptor = $convert.base64Decode(
     'Cg1EZXZpY2VTZXNzaW9uEhgKB3Nlc3Npb24YASABKAxSB3Nlc3Npb24SIAoLZGV2aWNlTW9kZW'
     'wYAiABKAlSC2RldmljZU1vZGVsEg4KAm9zGAMgASgFUgJvcxIcCglvc1ZlcnNpb24YBCABKAlS'
     'CW9zVmVyc2lvbhIeCgphcHBWZXJzaW9uGAUgASgJUgphcHBWZXJzaW9uEiYKDmFwcEJ1aWxkTn'
-    'VtYmVyGAYgASgJUg5hcHBCdWlsZE51bWJlchIoCg9sb2NhdGlvblJ1c3NpYW4YByABKAlSD2xv'
-    'Y2F0aW9uUnVzc2lhbhIoCg9sb2NhdGlvbkVuZ2xpc2gYCCABKAlSD2xvY2F0aW9uRW5nbGlzaB'
-    'I2Cgh1cGRhdGVBdBgJIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBSCHVwZGF0ZUF0');
+    'VtYmVyGAYgASgJUg5hcHBCdWlsZE51bWJlchI2Cgh1cGRhdGVBdBgHIAEoCzIaLmdvb2dsZS5w'
+    'cm90b2J1Zi5UaW1lc3RhbXBSCHVwZGF0ZUF0EigKD2xvY2F0aW9uUnVzc2lhbhgIIAEoCVIPbG'
+    '9jYXRpb25SdXNzaWFuEigKD2xvY2F0aW9uRW5nbGlzaBgJIAEoCVIPbG9jYXRpb25FbmdsaXNo');
 
 @$core.Deprecated('Use deviceSessionsRequestDescriptor instead')
 const DeviceSessionsRequest$json = {

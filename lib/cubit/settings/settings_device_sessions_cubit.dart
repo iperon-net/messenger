@@ -37,7 +37,6 @@ class SettingsDeviceSessionsCubit extends Cubit<SettingsDeviceSessionsState> {
 
   Future<void> refresh() async {
     await syncer.deviceSessions.getAllSessionRequest(
-      controller: syncer.getController(),
       seq: syncer.seq,
       session: syncer.session,
     );
@@ -50,7 +49,7 @@ class SettingsDeviceSessionsCubit extends Cubit<SettingsDeviceSessionsState> {
   /// Локально убирает сессию из списка, чтобы после dismiss виджет сразу
   /// исчез из дерева (иначе flutter_slidable кинет ассерт).
   /// TODO: отправить на сервер запрос завершения сессии [deviceSession].
-  void removeSession({required models.DeviceSession deviceSession}) {
+  Future<void> removeSession({required models.DeviceSession deviceSession}) async {
     emit(state.copyWith(
       deviceSessions: state.deviceSessions.where((data) => data != deviceSession).toList(),
     ));
