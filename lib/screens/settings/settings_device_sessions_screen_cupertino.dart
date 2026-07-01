@@ -152,11 +152,7 @@ class _SettingsDeviceSessionsScreenCupertino extends State<SettingsDeviceSession
                                 );
                                 return result ?? false;
                               },
-                              onDismissed: () async {
-                                // Убираем элемент из списка сразу — иначе flutter_slidable
-                                // кинет ассерт «dismissed Slidable widget is still part of the tree».
-                                await context.read<SettingsDeviceSessionsCubit>().removeSession(deviceSession: deviceSession);
-                              },
+                              onDismissed: () async => await context.read<SettingsDeviceSessionsCubit>().logoutSession(deviceSession: deviceSession),
                             ),
                             children: [
                               CustomSlidableAction(

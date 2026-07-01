@@ -7,9 +7,11 @@ class DeviceSessions {
   final Repositories repositories;
   final Streams streams;
 
-  // Геттер актуального контроллера: _controller в Syncer переприсваивается при каждом
-  // connect(), поэтому храним не значение (оно устареет), а способ его получить.
+  // Геттеры актуальных значений: controller/seq/session в Syncer переприсваиваются при
+  // каждом connect()/onData, поэтому храним не значение (оно устареет), а способ его получить.
   final StreamController<SyncerMessageRequest>? Function() controller;
+  final int Function() seq;
+  final models.Session Function() session;
 
   DeviceSessions({
     required this.logger,
@@ -18,11 +20,16 @@ class DeviceSessions {
     required this.repositories,
     required this.streams,
     required this.controller,
+    required this.seq,
+    required this.session,
   });
 
-  Future<void> getAllSessionRequest({required int seq, required models.Session session}) async {
+  Future<void> getAllSessionRequest() async {
     final controller = this.controller();
     if (controller == null) return;
+
+    final seq = this.seq();
+    final session = this.session();
 
     if (!session.isActive) {
       logger.warning("Syncer the subscriber has connected without an active session, seq=$seq");
@@ -39,7 +46,9 @@ class DeviceSessions {
     controller.add(SyncerMessageRequest(message: messageByte));
   }
 
-  Future<void> getAllSessionResponse({required List<int> msg, required Header header, required models.Session session}) async {
+  Future<void> getAllSessionResponse({required List<int> msg, required Header header}) async {
+    final session = this.session();
+
     final messageByte = await crypto.syncer.decode(
       session: session,
       message: Uint8List.fromList(msg),
@@ -73,6 +82,28 @@ class DeviceSessions {
 
     await repositories.deviceSessions.deleteAndCreate(session: session, deviceSessions: deviceSessions);
     streams.controllerDeviceSessions.add(deviceSessions);
+  }
+
+  Future<void> logoutSessionRequest() async {
+    final controller = this.controller();
+    if (controller == null) return;
+
+    final seq = this.seq();
+    final session = this.session();
+
+    if (!session.isActive) {
+      logger.warning("Syncer the subscriber has connected without an active session, seq=$seq");
+      return;
+    }
+
+    // final messageByte = await crypto.syncer.encode(
+    //   session: session,
+    //   message: message.DeviceSessionsRequest().writeToBuffer(),
+    //   messageType: SyncerMessageType.deviceSessionsRequest,
+    //   seq: seq,
+    // );
+    //
+    // controller.add(SyncerMessageRequest(message: messageByte));
   }
 
 }

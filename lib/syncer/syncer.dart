@@ -54,8 +54,19 @@ class Syncer {
         repositories: _repositories,
         streams: _streams,
         controller: getController,
+        seq: () => seq,
+        session: () => session,
     );
-    auth = Auth(logger: _logger, utils: _utils, crypto: _crypto, repositories: _repositories, streams: _streams);
+    auth = Auth(
+        logger: _logger,
+        utils: _utils,
+        crypto: _crypto,
+        repositories: _repositories,
+        streams: _streams,
+        controller: getController,
+        seq: () => seq,
+        session: () => session,
+    );
     _logger.info("syncer initialization");
   }
 
@@ -102,7 +113,7 @@ class Syncer {
     // _onListen вызывается fire-and-forget из onListen контроллера: без try/catch
     // исключение в authRequest (например, crypto.encode) проглотится, и auth не уйдёт
     try {
-      await auth.authRequest(controller: controller, seq: seq, session: session);
+      await auth.authRequest();
       _logger.debug("syncer _onListen: authRequest завершён, seq=$seq");
     } catch (err, st) {
       _logger.error("syncer _onListen: authRequest бросил исключение: $err\n$st");
@@ -182,11 +193,11 @@ class Syncer {
     _logger.debug("messageType=${header.messageType}");
 
     if (header.messageType == SyncerMessageType.authResponse) {
-      await auth.authResponse(msg: data.message, header: header, session: session);
+      await auth.authResponse(msg: data.message, header: header);
     } else if (header.messageType == SyncerMessageType.logoutResponse) {
-      await auth.logoutResponse(msg: data.message, header: header, session: session);
+      await auth.logoutResponse(msg: data.message, header: header);
     } else if (header.messageType == SyncerMessageType.deviceSessionsResponse) {
-      await deviceSessions.getAllSessionResponse(msg: data.message, header: header, session: session);
+      await deviceSessions.getAllSessionResponse(msg: data.message, header: header);
     }
 
     // if (){

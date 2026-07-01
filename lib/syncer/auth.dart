@@ -7,10 +7,29 @@ class Auth {
   final Repositories repositories;
   final Streams streams;
 
-  Auth({required this.logger, required this.utils, required this.crypto, required this.repositories, required this.streams});
+  // Геттеры актуальных значений: controller/seq/session в Syncer переприсваиваются при
+  // каждом connect()/onData, поэтому храним не значение (оно устареет), а способ его получить.
+  final StreamController<SyncerMessageRequest>? Function() controller;
+  final int Function() seq;
+  final models.Session Function() session;
 
-  Future<void> authRequest({required StreamController<SyncerMessageRequest>? controller, required int seq, required models.Session session}) async {
+  Auth({
+    required this.logger,
+    required this.utils,
+    required this.crypto,
+    required this.repositories,
+    required this.streams,
+    required this.controller,
+    required this.seq,
+    required this.session,
+  });
+
+  Future<void> authRequest() async {
+    final controller = this.controller();
     if (controller == null) return;
+
+    final seq = this.seq();
+    final session = this.session();
 
     if (!session.isActive) {
       logger.warning("Syncer the subscriber has connected without an active session, seq=$seq");
@@ -43,7 +62,9 @@ class Auth {
     logger.info("Syncer the subscriber has connected userID=${session.getUserIDObjectID().toString()}, seq=$seq");
   }
 
-  Future<void> authResponse({required List<int> msg, required Header header, required models.Session session}) async {
+  Future<void> authResponse({required List<int> msg, required Header header}) async {
+    final session = this.session();
+
     if (session.session.toString() != header.session.toString()) {
       logger.warning("Syncer invalid session");
       streams.controllerAuth.add(false);
@@ -68,8 +89,12 @@ class Auth {
     streams.controllerAuth.add(true);
   }
 
-  Future<void> logoutRequest({required StreamController<SyncerMessageRequest>? controller, required int seq, required models.Session session}) async {
+  Future<void> logoutRequest() async {
+    final controller = this.controller();
     if (controller == null) return;
+
+    final seq = this.seq();
+    final session = this.session();
 
     final messageByte = await crypto.syncer.encode(
       session: session,
@@ -88,7 +113,9 @@ class Auth {
     logger.info("Syncer logout user");
   }
 
-  Future<void> logoutResponse({required List<int> msg, required Header header, required models.Session session}) async {
+  Future<void> logoutResponse({required List<int> msg, required Header header}) async {
+    final session = this.session();
+
     if (session.session.toString() != header.session.toString()) {
       logger.warning("Syncer invalid session");
       streams.controllerAuth.add(false);
