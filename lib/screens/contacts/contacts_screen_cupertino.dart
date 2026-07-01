@@ -3,14 +3,13 @@ import 'dart:math';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_contacts/models/permissions/permission_status.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:messenger/cubit/contacts/contacts_state.dart';
 import 'package:messenger/cubit/main_cubit.dart';
 import 'package:messenger/cubit/main_state.dart';
-import 'package:messenger/cubit/contacts/contacts_state.dart';
 
-import '../../i18n/translations.g.dart';
 import '../../cubit/contacts/contacts_cubit.dart';
+import '../../i18n/translations.g.dart';
 
 class ContactsScreenCupertino extends StatefulWidget {
   const ContactsScreenCupertino({super.key});

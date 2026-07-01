@@ -7,11 +7,11 @@ import 'package:messenger/constants.dart';
 import 'package:messenger/cubit/main_cubit.dart';
 import 'package:messenger/utils.dart';
 
+import '../../cubit/auth/auth_callpassword_cubit.dart';
+import '../../cubit/auth/auth_callpassword_state.dart';
 import '../../di.dart';
 import '../../i18n/translations.g.dart';
 import '../../logger.dart';
-import '../../cubit/auth/auth_callpassword_cubit.dart';
-import '../../cubit/auth/auth_callpassword_state.dart';
 
 class AuthCallPasswordMaterialScreen extends StatefulWidget {
   final String callPasswordSession;

@@ -5,8 +5,8 @@ import 'package:messenger/cubit/main_cubit.dart';
 import 'package:messenger/cubit/settings/settings_cubit.dart';
 import 'package:messenger/cubit/settings/settings_language_state.dart';
 
-import '../../i18n/translations.g.dart';
 import '../../cubit/settings/settings_language_cubit.dart';
+import '../../i18n/translations.g.dart';
 
 class SettingsLanguageScreenCupertino extends StatefulWidget {
   const SettingsLanguageScreenCupertino({super.key});

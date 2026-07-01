@@ -3,12 +3,11 @@ import 'dart:async';
 import 'dart:math';
 import 'dart:typed_data';
 
-import 'package:dlibphonenumber/dlibphonenumber.dart';
+import 'package:collection/collection.dart';
 import 'package:grpc/grpc.dart';
 import 'package:messenger/crypto/crypto.dart';
 import 'package:messenger/streams.dart';
 import 'package:messenger/utils.dart';
-import 'package:collection/collection.dart';
 
 import '../api.dart';
 import '../constants.dart';

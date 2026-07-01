@@ -1,12 +1,11 @@
 import 'dart:math';
 
+import 'package:grpc/grpc.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:uuid/uuid.dart';
 
 import 'di.dart';
 import 'logger.dart';
-import 'package:grpc/grpc.dart';
-import 'package:uuid/uuid.dart';
-
 import 'protobuf/protos/auth_v1.pbgrpc.dart';
 import 'protobuf/protos/metadata_v1.pbgrpc.dart';
 import 'protobuf/protos/syncer_v1.pbgrpc.dart';

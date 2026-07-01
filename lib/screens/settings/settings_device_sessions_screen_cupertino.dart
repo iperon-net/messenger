@@ -3,13 +3,11 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:messenger/cubit/settings/settings_cubit.dart';
 import 'package:messenger/cubit/settings/settings_device_sessions_state.dart';
-import '../../di.dart';
-import '../../extensions/date_time_extensions.dart';
-import '../../extensions/string_extensions.dart';
 
 import '../../cubit/settings/settings_device_sessions_cubit.dart';
+import '../../di.dart';
+import '../../extensions/date_time_extensions.dart';
 import '../../i18n/translations.g.dart';
 import '../../streams.dart';
 

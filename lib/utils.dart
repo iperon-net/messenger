@@ -3,8 +3,6 @@ import 'dart:io';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:device_marketing_names/device_marketing_names.dart';
 import 'package:dlibphonenumber/dlibphonenumber.dart';
-import 'package:dlibphonenumber/enums/phone_number_format.dart';
-import 'package:dlibphonenumber/phone_number_util.dart';
 import 'package:flutter/foundation.dart';
 import 'package:package_info_plus/package_info_plus.dart' as package_info;
 import 'package:url_launcher/url_launcher.dart';

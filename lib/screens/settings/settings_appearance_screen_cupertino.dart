@@ -4,9 +4,9 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:messenger/cubit/main_cubit.dart';
 import 'package:messenger/cubit/settings/settings_appearance_state.dart';
 
+import '../../cubit/settings/settings_appearance_cubit.dart';
 import '../../i18n/translations.g.dart';
 import '../../models.dart';
-import '../../cubit/settings/settings_appearance_cubit.dart';
 
 class SettingsAppearanceScreenCupertino extends StatefulWidget {
   const SettingsAppearanceScreenCupertino({super.key});

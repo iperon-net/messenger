@@ -14,10 +14,10 @@ import '../logger.dart';
 import '../models.dart' as models;
 import '../settings.dart';
 
+part "device_sessions.dart";
+part "sessions.dart";
 part "settings_device.dart";
 part "users.dart";
-part "sessions.dart";
-part "device_sessions.dart";
 
 class Repositories {
   final _logger = getIt.get<Logger>();

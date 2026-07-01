@@ -6,25 +6,24 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:go_router/go_router.dart';
 
-
+import 'cubit/auth/auth_callpassword_cubit.dart';
+import 'cubit/auth/auth_cubit.dart';
+import 'cubit/auth/auth_sms_cubit.dart';
 import 'cubit/common_cubit.dart';
+import 'cubit/contacts/contacts_cubit.dart';
+import 'cubit/home/home_cubit.dart';
 import 'cubit/main_cubit.dart';
 import 'cubit/main_state.dart';
+import 'cubit/settings/settings_appearance_cubit.dart';
+import 'cubit/settings/settings_cubit.dart';
+import 'cubit/settings/settings_device_sessions_cubit.dart';
+import 'cubit/settings/settings_language_cubit.dart';
 import 'di.dart';
 import 'i18n/translations.g.dart';
 import 'logger.dart';
 import 'models.dart' as models;
 import 'repositories/repositories.dart';
 import 'routers.dart';
-import 'cubit/auth/auth_callpassword_cubit.dart';
-import 'cubit/auth/auth_cubit.dart';
-import 'cubit/auth/auth_sms_cubit.dart';
-import 'cubit/contacts/contacts_cubit.dart';
-import 'cubit/home/home_cubit.dart';
-import 'cubit/settings/settings_appearance_cubit.dart';
-import 'cubit/settings/settings_cubit.dart';
-import 'cubit/settings/settings_language_cubit.dart';
-import 'cubit/settings/settings_device_sessions_cubit.dart';
 import 'themes_cupertino.dart';
 import 'themes_material.dart';
 

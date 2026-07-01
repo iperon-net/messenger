@@ -5,10 +5,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../di.dart';
 import '../../i18n/translations.g.dart';
 import '../../logger.dart';
+import '../../models.dart' as models;
 import '../../repositories/repositories.dart';
 import '../../streams.dart';
 import '../../syncer.dart';
-import '../../models.dart' as models;
 import 'settings_state.dart';
 
 class SettingsCubit extends Cubit<SettingsState> {

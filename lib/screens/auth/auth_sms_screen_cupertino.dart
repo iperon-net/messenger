@@ -1,13 +1,13 @@
+import 'package:convert/convert.dart' as convertor;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
-import 'package:convert/convert.dart' as convertor;
 
+import '../../cubit/auth/auth_sms_cubit.dart';
 import '../../cubit/main_cubit.dart';
 import '../../i18n/translations.g.dart';
-import '../../cubit/auth/auth_sms_cubit.dart';
 
 class AuthSmsScreenCupertino extends StatefulWidget {
   final String smsSession;

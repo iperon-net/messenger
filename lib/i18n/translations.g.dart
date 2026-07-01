@@ -16,9 +16,11 @@ import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
 import 'package:slang/generated.dart';
 import 'package:slang_flutter/slang_flutter.dart';
-export 'package:slang_flutter/slang_flutter.dart';
 
 import 'translations_ru.g.dart' deferred as l_ru;
+
+export 'package:slang_flutter/slang_flutter.dart';
+
 part 'translations_en.g.dart';
 
 /// Supported locales.

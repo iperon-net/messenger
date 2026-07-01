@@ -1,4 +1,6 @@
 import 'dart:async';
+
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:messenger/repositories/repositories.dart';
 
 import '../../di.dart';
@@ -6,9 +8,6 @@ import '../../logger.dart';
 import '../../models.dart' as models;
 import '../../streams.dart';
 import '../../syncer.dart';
-
-import 'package:flutter_bloc/flutter_bloc.dart';
-
 import 'settings_device_sessions_state.dart';
 
 class SettingsDeviceSessionsCubit extends Cubit<SettingsDeviceSessionsState> {

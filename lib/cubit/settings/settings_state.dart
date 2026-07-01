@@ -2,7 +2,6 @@ import 'package:dart_mappable/dart_mappable.dart';
 import 'package:messenger/i18n/translations.g.dart';
 
 import '../../constants.dart';
-import '../../models.dart' as models;
 
 part 'settings_state.mapper.dart';
 
