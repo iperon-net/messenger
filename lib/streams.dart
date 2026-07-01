@@ -1,14 +1,12 @@
 import 'dart:async';
 
-import 'cubit/settings/settings_cubit.dart';
+import '../models.dart' as models;
 import 'di.dart';
 import 'logger.dart';
 
-import '../models.dart' as models;
-
 
 class Streams {
-  final _logger = getIt.get<Logger>();
+  // final _logger = getIt.get<Logger>();
 
   Streams();
 
