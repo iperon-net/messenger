@@ -235,6 +235,15 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 
 	/// en: 'Terminate'
 	String get terminate => 'Terminate';
+
+	/// en: 'Are you sure you want to log out from this device?'
+	String get areYouSureYouLogOutFromThisDevice => 'Are you sure you want to log out from this device?';
+
+	/// en: 'Terminate session'
+	String get terminateSession => 'Terminate session';
+
+	/// en: 'Cancel'
+	String get cancel => 'Cancel';
 }
 
 /// The flat map containing all translations for locale <en>.
@@ -310,6 +319,9 @@ extension on Translations {
 			'relativeDateTimeOther' => ({required Object date, required Object time}) => '${date} at ${time}',
 			'online' => 'Онлайн',
 			'terminate' => 'Terminate',
+			'areYouSureYouLogOutFromThisDevice' => 'Are you sure you want to log out from this device?',
+			'terminateSession' => 'Terminate session',
+			'cancel' => 'Cancel',
 			_ => null,
 		};
 	}

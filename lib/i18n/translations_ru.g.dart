@@ -104,6 +104,9 @@ class TranslationsRu extends Translations with BaseTranslations<AppLocale, Trans
 	@override String relativeDateTimeOther({required Object date, required Object time}) => '${date} в ${time}';
 	@override String get online => 'Онлайн';
 	@override String get terminate => 'Завершить';
+	@override String get areYouSureYouLogOutFromThisDevice => 'Вы уверены, что хотите выйти на этом устройстве?';
+	@override String get terminateSession => 'Завершить сеанс';
+	@override String get cancel => 'Отмена';
 }
 
 /// The flat map containing all translations for locale <ru>.
@@ -179,6 +182,9 @@ extension on TranslationsRu {
 			'relativeDateTimeOther' => ({required Object date, required Object time}) => '${date} в ${time}',
 			'online' => 'Онлайн',
 			'terminate' => 'Завершить',
+			'areYouSureYouLogOutFromThisDevice' => 'Вы уверены, что хотите выйти на этом устройстве?',
+			'terminateSession' => 'Завершить сеанс',
+			'cancel' => 'Отмена',
 			_ => null,
 		};
 	}

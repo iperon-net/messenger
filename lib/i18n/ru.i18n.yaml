@@ -63,3 +63,6 @@
 "relativeDateTimeOther": "{date} в {time}"
 "online": "Онлайн"
 "terminate": "Завершить"
+"areYouSureYouLogOutFromThisDevice": "Вы уверены, что хотите выйти на этом устройстве?"
+"terminateSession": "Завершить сеанс"
+"cancel": "Отмена"

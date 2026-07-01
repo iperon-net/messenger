@@ -47,6 +47,15 @@ class SettingsDeviceSessionsCubit extends Cubit<SettingsDeviceSessionsState> {
     emit(state.copyWith(deviceSessions: deviceSessions));
   }
 
+  /// Локально убирает сессию из списка, чтобы после dismiss виджет сразу
+  /// исчез из дерева (иначе flutter_slidable кинет ассерт).
+  /// TODO: отправить на сервер запрос завершения сессии [deviceSession].
+  void removeSession({required models.DeviceSession deviceSession}) {
+    emit(state.copyWith(
+      deviceSessions: state.deviceSessions.where((data) => data != deviceSession).toList(),
+    ));
+  }
+
   @override
   Future<void> close() {
     _deviceSessionsSubscription?.cancel();

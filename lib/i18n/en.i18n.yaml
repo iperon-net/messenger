@@ -63,3 +63,6 @@
 "relativeDateTimeOther": "{date} at {time}"
 "online": "Онлайн"
 "terminate": "Terminate"
+"areYouSureYouLogOutFromThisDevice": "Are you sure you want to log out from this device?"
+"terminateSession": "Terminate session"
+"cancel": "Cancel"

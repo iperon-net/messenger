@@ -54,7 +54,8 @@ class _SettingsDeviceSessionsScreenCupertino extends State<SettingsDeviceSession
             middle: Text(context.t.devices),
           ),
           child: SafeArea(
-            child: ListView(
+            child: SlidableAutoCloseBehavior(
+              child: ListView(
               children: [
                 CupertinoListSection.insetGrouped(
                   header: Text(
@@ -123,9 +124,42 @@ class _SettingsDeviceSessionsScreenCupertino extends State<SettingsDeviceSession
                       for (final deviceSession in state.deviceSessions.where((data) => data.isCurrent == false))
                         Slidable(
                           key: ValueKey(deviceSession.session),
+                          groupTag: 'device-sessions',
                           endActionPane: ActionPane(
                             motion: const DrawerMotion(),
-                            extentRatio: 0.3,
+                            extentRatio: 0.2,
+                            dismissible: DismissiblePane(
+                              // Если confirmDismiss вернёт false — панель сама откатится в закрытое положение.
+                              closeOnCancel: true,
+                              // Полный свайп: перед завершением показываем диалог-предупреждение.
+                              // Вернуть true — сессия завершается, false — панель откатывается назад.
+                              confirmDismiss: () async {
+                                final result = await showCupertinoDialog<bool>(
+                                  context: context,
+                                  builder: (BuildContext context) => CupertinoAlertDialog(
+                                    // title: Text(context.t.terminateSession),
+                                    content: Text(context.t.areYouSureYouLogOutFromThisDevice),
+                                    actions: <CupertinoDialogAction>[
+                                      CupertinoDialogAction(
+                                        child: Text(context.t.cancel),
+                                        onPressed: () => Navigator.pop(context, false), // Возвращаем false
+                                      ),
+                                      CupertinoDialogAction(
+                                        onPressed: () => Navigator.pop(context, true),  // Возвращаем true
+                                        isDestructiveAction: true,
+                                        child: Text(context.t.terminateSession), // Красный текст (опасное действие)
+                                      ),
+                                    ],
+                                  ),
+                                );
+                                return result ?? false;
+                              },
+                              onDismissed: () {
+                                // Убираем элемент из списка сразу — иначе flutter_slidable
+                                // кинет ассерт «dismissed Slidable widget is still part of the tree».
+                                context.read<SettingsDeviceSessionsCubit>().removeSession(deviceSession: deviceSession);
+                              },
+                            ),
                             children: [
                               CustomSlidableAction(
                                 onPressed: (context) {},
@@ -133,10 +167,10 @@ class _SettingsDeviceSessionsScreenCupertino extends State<SettingsDeviceSession
                                 foregroundColor: CupertinoColors.white,
                                 child: Column(
                                   mainAxisSize: MainAxisSize.min,
-                                  spacing: 4,
+                                  spacing: 2,
                                   children: [
                                     FaIcon(FontAwesomeIcons.circleXmark, size: 20, color: CupertinoColors.white),
-                                    Text(context.t.terminate, style: TextStyle(fontSize: 12)),
+                                    Text(context.t.terminate, style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
                                   ],
                                 ),
                               ),
@@ -176,6 +210,7 @@ class _SettingsDeviceSessionsScreenCupertino extends State<SettingsDeviceSession
                   ),
 
               ],
+              ),
             ),
           ),
         );
