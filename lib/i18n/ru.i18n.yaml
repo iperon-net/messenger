@@ -62,3 +62,4 @@
 "relativeDateTimeYesterday": "вчера в {time}"
 "relativeDateTimeOther": "{date} в {time}"
 "online": "Онлайн"
+"terminate": "Завершить"

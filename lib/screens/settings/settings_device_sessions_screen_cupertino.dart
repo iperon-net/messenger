@@ -134,9 +134,9 @@ class _SettingsDeviceSessionsScreenCupertino extends State<SettingsDeviceSession
                                 child: Column(
                                   mainAxisSize: MainAxisSize.min,
                                   spacing: 4,
-                                  children: const [
+                                  children: [
                                     FaIcon(FontAwesomeIcons.circleXmark, size: 20, color: CupertinoColors.white),
-                                    Text('Terminate', style: TextStyle(fontSize: 12)),
+                                    Text(context.t.terminate, style: TextStyle(fontSize: 12)),
                                   ],
                                 ),
                               ),
