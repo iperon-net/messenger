@@ -28,7 +28,6 @@ class _SettingsCupertinoScreen extends State<SettingsCupertinoScreen> {
     super.initState();
     context.read<SettingsCubit>().setLocale(locale: context.read<MainCubit>().state.settingsDevice.locale ?? AppLocale.en);
     context.read<SettingsCubit>().initialization();
-
   }
 
   @override

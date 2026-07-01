@@ -5,11 +5,13 @@ import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:messenger/cubit/settings/settings_cubit.dart';
 import 'package:messenger/cubit/settings/settings_device_sessions_state.dart';
+import '../../di.dart';
 import '../../extensions/date_time_extensions.dart';
 import '../../extensions/string_extensions.dart';
 
 import '../../cubit/settings/settings_device_sessions_cubit.dart';
 import '../../i18n/translations.g.dart';
+import '../../streams.dart';
 
 
 class SettingsDeviceSessionsScreenCupertino extends StatefulWidget {
@@ -20,10 +22,12 @@ class SettingsDeviceSessionsScreenCupertino extends StatefulWidget {
 }
 
 class _SettingsDeviceSessionsScreenCupertino extends State<SettingsDeviceSessionsScreenCupertino> {
+  final streams = getIt.get<Streams>();
+
   @override
   void initState() {
     super.initState();
-    context.read<SettingsDeviceSessionsCubit>().setDeviceSessions(deviceSessions: context.read<SettingsCubit>().state.deviceSessions);
+    context.read<SettingsDeviceSessionsCubit>().initialization();
   }
 
   @override

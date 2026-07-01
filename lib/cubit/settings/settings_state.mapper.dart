@@ -15,7 +15,6 @@ class SettingsStateMapper extends ClassMapperBase<SettingsState> {
   static SettingsStateMapper ensureInitialized() {
     if (_instance == null) {
       MapperContainer.globals.use(_instance = SettingsStateMapper._());
-      models.DeviceSessionMapper.ensureInitialized();
     }
     return _instance!;
   }
@@ -51,15 +50,6 @@ class SettingsStateMapper extends ClassMapperBase<SettingsState> {
     opt: true,
     def: 0,
   );
-  static List<models.DeviceSession> _$deviceSessions(SettingsState v) =>
-      v.deviceSessions;
-  static const Field<SettingsState, List<models.DeviceSession>>
-  _f$deviceSessions = Field(
-    'deviceSessions',
-    _$deviceSessions,
-    opt: true,
-    def: const [],
-  );
   static AppLocale _$locale(SettingsState v) => v.locale;
   static const Field<SettingsState, AppLocale> _f$locale = Field(
     'locale',
@@ -81,7 +71,6 @@ class SettingsStateMapper extends ClassMapperBase<SettingsState> {
     #error: _f$error,
     #logout: _f$logout,
     #deviceSessionsCount: _f$deviceSessionsCount,
-    #deviceSessions: _f$deviceSessions,
     #locale: _f$locale,
     #isCurrent: _f$isCurrent,
   };
@@ -92,7 +81,6 @@ class SettingsStateMapper extends ClassMapperBase<SettingsState> {
       error: data.dec(_f$error),
       logout: data.dec(_f$logout),
       deviceSessionsCount: data.dec(_f$deviceSessionsCount),
-      deviceSessions: data.dec(_f$deviceSessions),
       locale: data.dec(_f$locale),
       isCurrent: data.dec(_f$isCurrent),
     );
@@ -160,18 +148,11 @@ extension SettingsStateValueCopy<$R, $Out>
 
 abstract class SettingsStateCopyWith<$R, $In extends SettingsState, $Out>
     implements ClassCopyWith<$R, $In, $Out> {
-  ListCopyWith<
-    $R,
-    models.DeviceSession,
-    models.DeviceSessionCopyWith<$R, models.DeviceSession, models.DeviceSession>
-  >
-  get deviceSessions;
   $R call({
     Status? status,
     String? error,
     bool? logout,
     int? deviceSessionsCount,
-    List<models.DeviceSession>? deviceSessions,
     AppLocale? locale,
     bool? isCurrent,
   });
@@ -187,23 +168,11 @@ class _SettingsStateCopyWithImpl<$R, $Out>
   late final ClassMapperBase<SettingsState> $mapper =
       SettingsStateMapper.ensureInitialized();
   @override
-  ListCopyWith<
-    $R,
-    models.DeviceSession,
-    models.DeviceSessionCopyWith<$R, models.DeviceSession, models.DeviceSession>
-  >
-  get deviceSessions => ListCopyWith(
-    $value.deviceSessions,
-    (v, t) => v.copyWith.$chain(t),
-    (v) => call(deviceSessions: v),
-  );
-  @override
   $R call({
     Status? status,
     String? error,
     bool? logout,
     int? deviceSessionsCount,
-    List<models.DeviceSession>? deviceSessions,
     AppLocale? locale,
     bool? isCurrent,
   }) => $apply(
@@ -213,7 +182,6 @@ class _SettingsStateCopyWithImpl<$R, $Out>
       if (logout != null) #logout: logout,
       if (deviceSessionsCount != null)
         #deviceSessionsCount: deviceSessionsCount,
-      if (deviceSessions != null) #deviceSessions: deviceSessions,
       if (locale != null) #locale: locale,
       if (isCurrent != null) #isCurrent: isCurrent,
     }),
@@ -227,7 +195,6 @@ class _SettingsStateCopyWithImpl<$R, $Out>
       #deviceSessionsCount,
       or: $value.deviceSessionsCount,
     ),
-    deviceSessions: data.get(#deviceSessions, or: $value.deviceSessions),
     locale: data.get(#locale, or: $value.locale),
     isCurrent: data.get(#isCurrent, or: $value.isCurrent),
   );

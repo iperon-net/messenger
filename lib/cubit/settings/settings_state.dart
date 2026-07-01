@@ -12,7 +12,6 @@ class SettingsState with SettingsStateMappable {
   final String error;
   final bool logout;
   final int deviceSessionsCount;
-  final List<models.DeviceSession> deviceSessions;
   final AppLocale locale;
   final bool isCurrent;
 
@@ -21,7 +20,6 @@ class SettingsState with SettingsStateMappable {
     this.error = "",
     this.logout = false,
     this.deviceSessionsCount = 0,
-    this.deviceSessions = const [],
     this.locale = AppLocale.en,
     this.isCurrent = false,
   });

@@ -6,6 +6,7 @@ import '../../di.dart';
 import '../../i18n/translations.g.dart';
 import '../../logger.dart';
 import '../../repositories/repositories.dart';
+import '../../streams.dart';
 import '../../syncer.dart';
 import '../../models.dart' as models;
 import 'settings_state.dart';
@@ -16,15 +17,16 @@ class SettingsCubit extends Cubit<SettingsState> {
   final repositories = getIt.get<Repositories>();
   final syncer = getIt.get<Syncer>();
   final logger = getIt.get<Logger>();
+  final streams = getIt.get<Streams>();
 
   StreamSubscription<List<models.DeviceSession>>? _deviceSessionsSubscription;
 
   Future<void> initialization() async {
-    final controller = syncer.getController();
-    await syncer.deviceSessions.getAllSessionRequest(controller: controller, seq: syncer.seq, session: syncer.session);
+    final deviceSessions = await repositories.deviceSessions.getAll(session: syncer.session);
+    emit(state.copyWith(deviceSessionsCount: deviceSessions.length));
 
-    _deviceSessionsSubscription ??= syncer.deviceSessions.controllerDeviceSessions.stream.listen((deviceSessions) {
-      emit(state.copyWith(deviceSessionsCount: deviceSessions.length, deviceSessions: deviceSessions));
+    _deviceSessionsSubscription ??= streams.controllerDeviceSessions.stream.listen((deviceSessions) {
+      emit(state.copyWith(deviceSessionsCount: deviceSessions.length));
     });
 
   }

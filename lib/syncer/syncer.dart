@@ -5,6 +5,7 @@ import 'dart:typed_data';
 
 import 'package:grpc/grpc.dart';
 import 'package:messenger/crypto/crypto.dart';
+import 'package:messenger/streams.dart';
 import 'package:messenger/utils.dart';
 import 'package:collection/collection.dart';
 
@@ -26,6 +27,7 @@ class Syncer {
   final _repositories = getIt.get<Repositories>();
   final _crypto = getIt.get<Crypto>();
   final _utils = getIt.get<Utils>();
+  final _streams = getIt.get<Streams>();
   final _random = Random();
 
   StreamController<SyncerMessageRequest>? _controller;
@@ -45,7 +47,7 @@ class Syncer {
   late Auth auth;
 
   Syncer() {
-    deviceSessions = DeviceSessions(logger: _logger, utils: _utils, crypto: _crypto, repositories: _repositories);
+    deviceSessions = DeviceSessions(logger: _logger, utils: _utils, crypto: _crypto, repositories: _repositories, streams: _streams);
     auth = Auth(logger: _logger, utils: _utils, crypto: _crypto, repositories: _repositories);
     _logger.info("syncer initialization");
   }

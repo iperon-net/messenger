@@ -1,5 +1,6 @@
 
 import 'package:get_it/get_it.dart';
+import 'package:messenger/streams.dart';
 import 'package:messenger/syncer.dart';
 
 import 'api.dart';
@@ -20,7 +21,8 @@ Future<void> registerCommonDependencies() async {
   if (!getIt.isRegistered<Routers>()) getIt.registerSingletonAsync<Routers>(() async => Routers(), dependsOn: [Logger, Repositories]);
   if (!getIt.isRegistered<API>()) getIt.registerSingletonAsync<API>(() async => API(), dependsOn: [Logger]);
   if (!getIt.isRegistered<Services>()) getIt.registerSingletonAsync<Services>(() async => Services(), dependsOn: [API]);
-  if (!getIt.isRegistered<Syncer>()) getIt.registerSingletonAsync<Syncer>(() async => Syncer(), dependsOn: [Services]);
+  if (!getIt.isRegistered<Streams>()) getIt.registerSingletonAsync<Streams>(() async => Streams(), dependsOn: [Services]);
+  if (!getIt.isRegistered<Syncer>()) getIt.registerSingletonAsync<Syncer>(() async => Syncer(), dependsOn: [Services, Streams]);
 
   await getIt.allReady();
 
@@ -42,5 +44,6 @@ Future<void> unregisterCommonDependencies() async {
   if (getIt.isRegistered<Routers>()) await getIt.unregister<Routers>();
   if (getIt.isRegistered<API>()) await getIt.unregister<API>();
   if (getIt.isRegistered<Services>()) await getIt.unregister<Services>();
+  if (getIt.isRegistered<Streams>()) await getIt.unregister<Streams>();
   if (getIt.isRegistered<Syncer>()) await getIt.unregister<Syncer>();
 }
