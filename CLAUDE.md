@@ -52,6 +52,18 @@ gRPC clients (`AuthClient`, `MetadataClient`) generated from `protos/auth_v1.pro
 
 Streaming responses (`ResponseStream<T>`) used for real-time call password completion.
 
+## Syncer (real-time bidirectional stream)
+
+`lib/syncer/syncer.dart` (with `part "auth.dart"` / `part "device_sessions.dart"`) owns a persistent bidirectional gRPC stream (`SyncerClient.messages`) for real-time sync. It is a `get_it` singleton; only the iOS `HomeCupertinoScreen` currently drives its lifecycle — `connect()` in `initState`, `dispose()` on background/hidden, `connect()` on resume (via `AppLifecycleListener`).
+
+**Connect / auth handshake:** `connect()` tears down any prior stream, loads `sessions.getActive()`, and — if there is no active session — emits `controllerAuth.add(false)` and returns *without opening a stream* (opening one while logged out would loop: server closes it → reconnect → repeat). On open, `_onListen` sends an encrypted `AuthRequest`; the server replies with `AuthResponse` (per-user salt + server time).
+
+**Reconnect:** every stream termination (`onCancel` / `onDone` / `onError`) funnels through `_onTerminated` → `_reconnect` (random 1–5s backoff). Three guard flags: `_disposed` (intentional close, no reconnect), `_reconnecting` (dedupe termination arriving in several callbacks at once), `_unauthenticated` (session rejected — suppress reconnect until the next explicit `connect()`; reset at the top of `connect()`).
+
+**Auth rejection is trailers-only — this is the subtle part:** the server rejects an invalid session/user with a *trailers-only* gRPC response carrying `grpc-status: 16 (unauthenticated)`. grpc-dart does **not** deliver this to the response `onError`; it surfaces only as `_onCancel` plus the `response.headers` / `response.trailers` futures. `_onGrpcMetadata` inspects those maps for `grpc-status`, and `_onUnauthenticated` (idempotent) clears the local session (`sessions.logout()`), sets `_unauthenticated`, and emits `controllerAuth.add(false)`.
+
+**Global auth redirect:** `lib/streams.dart` `Streams.controllerAuth` (broadcast `StreamController<bool>`) is the single auth-state channel. The root app widgets in `main.dart` subscribe to it and call `_router.go("/auth")` on `false`. This is the *only* place that redirects to auth on session loss — do not add per-screen listeners. All logout/rejection paths (`_onUnauthenticated`, `Auth.logoutRequest`, inactive-session `connect()`) converge on `controllerAuth.add(false)`.
+
 ## Database
 
 `sqlite3mc` (SQLite Multiple Ciphers) via the `hooks.user_defines.sqlite3.source: sqlite3mc` entry in `pubspec.yaml`. Encryption password (60–100 random chars) stored in `FlutterSecureStorage`. Plain SQLite used in debug builds. `IS_DELETE_DATABASE` env flag wipes DB and key on next launch.
