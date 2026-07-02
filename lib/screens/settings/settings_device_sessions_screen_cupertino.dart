@@ -107,7 +107,12 @@ class _SettingsDeviceSessionsScreenCupertino extends State<SettingsDeviceSession
                               color: CupertinoColors.destructiveRed,
                             ),
                           ),
-                          onTap: () {},
+                          onTap: () async => await context.read<SettingsDeviceSessionsCubit>().logoutSession(
+                                sessionID: state.deviceSessions
+                                    .where((data) => data.isCurrent == false)
+                                    .map((data) => data.sessionID)
+                                    .toList(),
+                              ),
                         ),
                     ],
                   ),
