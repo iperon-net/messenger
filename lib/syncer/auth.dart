@@ -112,11 +112,20 @@ class Auth {
   Future<void> logoutResponse({required List<int> msg, required Header header}) async {
     final session = this.session();
 
+    // Сообщение адресовано конкретной сессии (NATS subject sessionID.<hex>) и шифруется
+    // сервером нашей сессией, поэтому header.session всегда должен совпадать с активной.
+    // Чужая сессия в заголовке — не наш logout, ничего не делаем.
     if (!ListEquality().equals(session.session, header.session)) {
-      logger.warning("Syncer invalid session");
-      streams.controllerAuth.add(false);
+      logger.warning("Syncer logoutResponse: сессия в заголовке не совпадает с активной — игнор");
       return;
     }
+
+    // Сервер разлогинил это устройство (выход с другого устройства). Выходим сразу:
+    // чистим локальную сессию и оповещаем UI (controllerAuth=false) — корневой слушатель
+    // уводит на /auth. Не ждём закрытия стрима и провала переавторизации на реконнекте.
+    logger.info("Syncer logoutResponse: устройство разлогинено сервером — сброс сессии и редирект на /auth");
+    await repositories.sessions.logout();
+    streams.controllerAuth.add(false);
   }
 
 }
