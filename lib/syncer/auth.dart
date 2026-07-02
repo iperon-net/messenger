@@ -65,7 +65,7 @@ class Auth {
   Future<void> authResponse({required List<int> msg, required Header header}) async {
     final session = this.session();
 
-    if (session.session.toString() != header.session.toString()) {
+    if (!ListEquality().equals(session.session, header.session)) {
       logger.warning("Syncer invalid session");
       streams.controllerAuth.add(false);
       return;
