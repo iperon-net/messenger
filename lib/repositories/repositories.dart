@@ -109,18 +109,20 @@ class Repositories {
 
       _database.execute("""
           CREATE TABLE sessions (
+            sessionID BLOB NOT NULL,
             session BLOB NOT NULL,
             userID BLOB NOT NULL,
             sharedKey BLOB NOT NULL,
             salt BLOB NOT NULL,
             isActive INTEGER NOT NULL DEFAULT 0,
+            createAt INTEGER NOT NULL,
             FOREIGN KEY (userID) REFERENCES users(userID) ON DELETE CASCADE ON UPDATE CASCADE
           );
       """);
 
       _database.execute("""
           CREATE TABLE deviceSessions (
-            session BLOB NOT NULL,
+            sessionID BLOB NOT NULL,
             userID BLOB NOT NULL,
             deviceModel TEXT NOT NULL,
             os INTEGER NOT NULL,

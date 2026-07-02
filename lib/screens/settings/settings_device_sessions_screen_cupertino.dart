@@ -119,9 +119,10 @@ class _SettingsDeviceSessionsScreenCupertino extends State<SettingsDeviceSession
                       style: TextStyle(fontSize: 13, fontWeight: FontWeight.normal),
                     ),
                     children: [
-                      for (final deviceSession in state.deviceSessions.where((data) => data.isCurrent == false))
+                      for (final deviceSession in (state.deviceSessions.where((data) => data.isCurrent == false).toList()
+                        ..sort((a, b) => b.updateAt.compareTo(a.updateAt))))
                         Slidable(
-                          key: ValueKey(deviceSession.session),
+                          key: ValueKey(deviceSession.sessionID),
                           groupTag: 'device-sessions',
                           endActionPane: ActionPane(
                             motion: const DrawerMotion(),
@@ -152,7 +153,7 @@ class _SettingsDeviceSessionsScreenCupertino extends State<SettingsDeviceSession
                                 );
                                 return result ?? false;
                               },
-                              onDismissed: () async => await context.read<SettingsDeviceSessionsCubit>().logoutSession(deviceSession: deviceSession),
+                              onDismissed: () async => await context.read<SettingsDeviceSessionsCubit>().logoutSession(sessionID: [deviceSession.sessionID]),
                             ),
                             children: [
                               CustomSlidableAction(
@@ -189,7 +190,7 @@ class _SettingsDeviceSessionsScreenCupertino extends State<SettingsDeviceSession
                               children: [
                                 Text(deviceSession.deviceModel),
                                 Text(
-                                  deviceSession.osVersion,
+                                  deviceSession.os == 1 ? "iOS ${deviceSession.osVersion}" : "Android ${deviceSession.osVersion}",
                                   style: TextStyle(fontSize: 16),
                                 ),
                               ],

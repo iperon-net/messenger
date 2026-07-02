@@ -114,11 +114,12 @@ class Auth {
     await _repositories.sessions.deleteAndCreate(
       userID: authConfirmationResponse.userID,
       session: authConfirmationResponse.session,
+      sessionID: authConfirmationResponse.sessionID,
       sharedKey: sharedKey,
       sharedSalt: salt,
+      createAt: authConfirmationResponse.createdAt.toDateTime(toLocal: false),
     );
 
-    _logger.info("ok!");
     return ServiceResponse<bool>(data: true);
   }
 

@@ -4,6 +4,7 @@ package iperon.v1;
 option go_package = "internal/api/v1";
 
 import "protos/models.proto";
+import "google/protobuf/timestamp.proto";
 
 service Auth {
   rpc CallPassword (AuthCallPasswordRequest) returns (AuthCallPasswordResponse) {}
@@ -75,15 +76,16 @@ message AuthConfirmationRequest {
 }
 
 message AuthConfirmationResponse {
-  bytes session = 1;
+  bytes sessionID = 1;
+  bytes session = 2;
 
-  bytes cipherTextSharedKey = 2;
-  bytes cipherTextSalt = 3;
+  bytes cipherTextSharedKey = 3;
+  bytes cipherTextSalt = 4;
 
-  bytes signatureSharedKey = 4;
-  bytes signatureSalt = 5;
+  bytes signatureSharedKey = 5;
+  bytes signatureSalt = 6;
 
-  bytes userID = 6;
-  string phoneNumber = 7;
-
+  bytes userID = 7;
+  string phoneNumber = 8;
+  google.protobuf.Timestamp createdAt = 9;
 }

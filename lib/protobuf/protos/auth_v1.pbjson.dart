@@ -270,33 +270,43 @@ final $typed_data.Uint8List authConfirmationRequestDescriptor = $convert.base64D
 const AuthConfirmationResponse$json = {
   '1': 'AuthConfirmationResponse',
   '2': [
-    {'1': 'session', '3': 1, '4': 1, '5': 12, '10': 'session'},
+    {'1': 'sessionID', '3': 1, '4': 1, '5': 12, '10': 'sessionID'},
+    {'1': 'session', '3': 2, '4': 1, '5': 12, '10': 'session'},
     {
       '1': 'cipherTextSharedKey',
-      '3': 2,
+      '3': 3,
       '4': 1,
       '5': 12,
       '10': 'cipherTextSharedKey'
     },
-    {'1': 'cipherTextSalt', '3': 3, '4': 1, '5': 12, '10': 'cipherTextSalt'},
+    {'1': 'cipherTextSalt', '3': 4, '4': 1, '5': 12, '10': 'cipherTextSalt'},
     {
       '1': 'signatureSharedKey',
-      '3': 4,
+      '3': 5,
       '4': 1,
       '5': 12,
       '10': 'signatureSharedKey'
     },
-    {'1': 'signatureSalt', '3': 5, '4': 1, '5': 12, '10': 'signatureSalt'},
-    {'1': 'userID', '3': 6, '4': 1, '5': 12, '10': 'userID'},
-    {'1': 'phoneNumber', '3': 7, '4': 1, '5': 9, '10': 'phoneNumber'},
+    {'1': 'signatureSalt', '3': 6, '4': 1, '5': 12, '10': 'signatureSalt'},
+    {'1': 'userID', '3': 7, '4': 1, '5': 12, '10': 'userID'},
+    {'1': 'phoneNumber', '3': 8, '4': 1, '5': 9, '10': 'phoneNumber'},
+    {
+      '1': 'createdAt',
+      '3': 9,
+      '4': 1,
+      '5': 11,
+      '6': '.google.protobuf.Timestamp',
+      '10': 'createdAt'
+    },
   ],
 };
 
 /// Descriptor for `AuthConfirmationResponse`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List authConfirmationResponseDescriptor = $convert.base64Decode(
-    'ChhBdXRoQ29uZmlybWF0aW9uUmVzcG9uc2USGAoHc2Vzc2lvbhgBIAEoDFIHc2Vzc2lvbhIwCh'
-    'NjaXBoZXJUZXh0U2hhcmVkS2V5GAIgASgMUhNjaXBoZXJUZXh0U2hhcmVkS2V5EiYKDmNpcGhl'
-    'clRleHRTYWx0GAMgASgMUg5jaXBoZXJUZXh0U2FsdBIuChJzaWduYXR1cmVTaGFyZWRLZXkYBC'
-    'ABKAxSEnNpZ25hdHVyZVNoYXJlZEtleRIkCg1zaWduYXR1cmVTYWx0GAUgASgMUg1zaWduYXR1'
-    'cmVTYWx0EhYKBnVzZXJJRBgGIAEoDFIGdXNlcklEEiAKC3Bob25lTnVtYmVyGAcgASgJUgtwaG'
-    '9uZU51bWJlcg==');
+    'ChhBdXRoQ29uZmlybWF0aW9uUmVzcG9uc2USHAoJc2Vzc2lvbklEGAEgASgMUglzZXNzaW9uSU'
+    'QSGAoHc2Vzc2lvbhgCIAEoDFIHc2Vzc2lvbhIwChNjaXBoZXJUZXh0U2hhcmVkS2V5GAMgASgM'
+    'UhNjaXBoZXJUZXh0U2hhcmVkS2V5EiYKDmNpcGhlclRleHRTYWx0GAQgASgMUg5jaXBoZXJUZX'
+    'h0U2FsdBIuChJzaWduYXR1cmVTaGFyZWRLZXkYBSABKAxSEnNpZ25hdHVyZVNoYXJlZEtleRIk'
+    'Cg1zaWduYXR1cmVTYWx0GAYgASgMUg1zaWduYXR1cmVTYWx0EhYKBnVzZXJJRBgHIAEoDFIGdX'
+    'NlcklEEiAKC3Bob25lTnVtYmVyGAggASgJUgtwaG9uZU51bWJlchI4CgljcmVhdGVkQXQYCSAB'
+    'KAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wUgljcmVhdGVkQXQ=');

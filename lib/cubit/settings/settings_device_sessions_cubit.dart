@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:messenger/repositories/repositories.dart';
 
@@ -42,11 +43,13 @@ class SettingsDeviceSessionsCubit extends Cubit<SettingsDeviceSessionsState> {
     emit(state.copyWith(deviceSessions: deviceSessions));
   }
 
-  Future<void> logoutSession({required models.DeviceSession deviceSession}) async {
-    await syncer.deviceSessions.logoutSessionRequest();
+  Future<void> logoutSession({required List<List<int>> sessionID}) async {
+    await syncer.deviceSessions.logout(sessionID: sessionID);
 
     emit(state.copyWith(
-      deviceSessions: state.deviceSessions.where((data) => data != deviceSession).toList(),
+      deviceSessions: state.deviceSessions
+          .where((data) => !sessionID.any((id) => listEquals(id, data.sessionID)))
+          .toList(),
     ));
   }
 

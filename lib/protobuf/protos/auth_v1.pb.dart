@@ -14,8 +14,10 @@ import 'dart:core' as $core;
 
 import 'package:fixnum/fixnum.dart' as $fixnum;
 import 'package:protobuf/protobuf.dart' as $pb;
+import 'package:protobuf/well_known_types/google/protobuf/timestamp.pb.dart'
+    as $1;
 
-import 'models.pbenum.dart' as $1;
+import 'models.pbenum.dart' as $2;
 
 export 'package:protobuf/protobuf.dart' show GeneratedMessageGenericExtensions;
 
@@ -222,7 +224,7 @@ class AuthCallPasswordCheckRequest extends $pb.GeneratedMessage {
 
 class AuthCallPasswordCheckResponse extends $pb.GeneratedMessage {
   factory AuthCallPasswordCheckResponse({
-    $1.Status? status,
+    $2.Status? status,
     $fixnum.Int64? timer,
     $core.String? errorMessage,
     $core.List<$core.int>? confirmationSession,
@@ -253,8 +255,8 @@ class AuthCallPasswordCheckResponse extends $pb.GeneratedMessage {
       _omitMessageNames ? '' : 'AuthCallPasswordCheckResponse',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'),
       createEmptyInstance: create)
-    ..aE<$1.Status>(1, _omitFieldNames ? '' : 'status',
-        enumValues: $1.Status.values)
+    ..aE<$2.Status>(1, _omitFieldNames ? '' : 'status',
+        enumValues: $2.Status.values)
     ..aInt64(2, _omitFieldNames ? '' : 'timer')
     ..aOS(3, _omitFieldNames ? '' : 'errorMessage', protoName: 'errorMessage')
     ..a<$core.List<$core.int>>(
@@ -288,9 +290,9 @@ class AuthCallPasswordCheckResponse extends $pb.GeneratedMessage {
   static AuthCallPasswordCheckResponse? _defaultInstance;
 
   @$pb.TagNumber(1)
-  $1.Status get status => $_getN(0);
+  $2.Status get status => $_getN(0);
   @$pb.TagNumber(1)
-  set status($1.Status value) => $_setField(1, value);
+  set status($2.Status value) => $_setField(1, value);
   @$pb.TagNumber(1)
   $core.bool hasStatus() => $_has(0);
   @$pb.TagNumber(1)
@@ -756,6 +758,7 @@ class AuthConfirmationRequest extends $pb.GeneratedMessage {
 
 class AuthConfirmationResponse extends $pb.GeneratedMessage {
   factory AuthConfirmationResponse({
+    $core.List<$core.int>? sessionID,
     $core.List<$core.int>? session,
     $core.List<$core.int>? cipherTextSharedKey,
     $core.List<$core.int>? cipherTextSalt,
@@ -763,8 +766,10 @@ class AuthConfirmationResponse extends $pb.GeneratedMessage {
     $core.List<$core.int>? signatureSalt,
     $core.List<$core.int>? userID,
     $core.String? phoneNumber,
+    $1.Timestamp? createdAt,
   }) {
     final result = create();
+    if (sessionID != null) result.sessionID = sessionID;
     if (session != null) result.session = session;
     if (cipherTextSharedKey != null)
       result.cipherTextSharedKey = cipherTextSharedKey;
@@ -774,6 +779,7 @@ class AuthConfirmationResponse extends $pb.GeneratedMessage {
     if (signatureSalt != null) result.signatureSalt = signatureSalt;
     if (userID != null) result.userID = userID;
     if (phoneNumber != null) result.phoneNumber = phoneNumber;
+    if (createdAt != null) result.createdAt = createdAt;
     return result;
   }
 
@@ -791,23 +797,28 @@ class AuthConfirmationResponse extends $pb.GeneratedMessage {
       package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'),
       createEmptyInstance: create)
     ..a<$core.List<$core.int>>(
-        1, _omitFieldNames ? '' : 'session', $pb.PbFieldType.OY)
+        1, _omitFieldNames ? '' : 'sessionID', $pb.PbFieldType.OY,
+        protoName: 'sessionID')
     ..a<$core.List<$core.int>>(
-        2, _omitFieldNames ? '' : 'cipherTextSharedKey', $pb.PbFieldType.OY,
+        2, _omitFieldNames ? '' : 'session', $pb.PbFieldType.OY)
+    ..a<$core.List<$core.int>>(
+        3, _omitFieldNames ? '' : 'cipherTextSharedKey', $pb.PbFieldType.OY,
         protoName: 'cipherTextSharedKey')
     ..a<$core.List<$core.int>>(
-        3, _omitFieldNames ? '' : 'cipherTextSalt', $pb.PbFieldType.OY,
+        4, _omitFieldNames ? '' : 'cipherTextSalt', $pb.PbFieldType.OY,
         protoName: 'cipherTextSalt')
     ..a<$core.List<$core.int>>(
-        4, _omitFieldNames ? '' : 'signatureSharedKey', $pb.PbFieldType.OY,
+        5, _omitFieldNames ? '' : 'signatureSharedKey', $pb.PbFieldType.OY,
         protoName: 'signatureSharedKey')
     ..a<$core.List<$core.int>>(
-        5, _omitFieldNames ? '' : 'signatureSalt', $pb.PbFieldType.OY,
+        6, _omitFieldNames ? '' : 'signatureSalt', $pb.PbFieldType.OY,
         protoName: 'signatureSalt')
     ..a<$core.List<$core.int>>(
-        6, _omitFieldNames ? '' : 'userID', $pb.PbFieldType.OY,
+        7, _omitFieldNames ? '' : 'userID', $pb.PbFieldType.OY,
         protoName: 'userID')
-    ..aOS(7, _omitFieldNames ? '' : 'phoneNumber', protoName: 'phoneNumber')
+    ..aOS(8, _omitFieldNames ? '' : 'phoneNumber', protoName: 'phoneNumber')
+    ..aOM<$1.Timestamp>(9, _omitFieldNames ? '' : 'createdAt',
+        protoName: 'createdAt', subBuilder: $1.Timestamp.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -831,67 +842,87 @@ class AuthConfirmationResponse extends $pb.GeneratedMessage {
   static AuthConfirmationResponse? _defaultInstance;
 
   @$pb.TagNumber(1)
-  $core.List<$core.int> get session => $_getN(0);
+  $core.List<$core.int> get sessionID => $_getN(0);
   @$pb.TagNumber(1)
-  set session($core.List<$core.int> value) => $_setBytes(0, value);
+  set sessionID($core.List<$core.int> value) => $_setBytes(0, value);
   @$pb.TagNumber(1)
-  $core.bool hasSession() => $_has(0);
+  $core.bool hasSessionID() => $_has(0);
   @$pb.TagNumber(1)
-  void clearSession() => $_clearField(1);
+  void clearSessionID() => $_clearField(1);
 
   @$pb.TagNumber(2)
-  $core.List<$core.int> get cipherTextSharedKey => $_getN(1);
+  $core.List<$core.int> get session => $_getN(1);
   @$pb.TagNumber(2)
-  set cipherTextSharedKey($core.List<$core.int> value) => $_setBytes(1, value);
+  set session($core.List<$core.int> value) => $_setBytes(1, value);
   @$pb.TagNumber(2)
-  $core.bool hasCipherTextSharedKey() => $_has(1);
+  $core.bool hasSession() => $_has(1);
   @$pb.TagNumber(2)
-  void clearCipherTextSharedKey() => $_clearField(2);
+  void clearSession() => $_clearField(2);
 
   @$pb.TagNumber(3)
-  $core.List<$core.int> get cipherTextSalt => $_getN(2);
+  $core.List<$core.int> get cipherTextSharedKey => $_getN(2);
   @$pb.TagNumber(3)
-  set cipherTextSalt($core.List<$core.int> value) => $_setBytes(2, value);
+  set cipherTextSharedKey($core.List<$core.int> value) => $_setBytes(2, value);
   @$pb.TagNumber(3)
-  $core.bool hasCipherTextSalt() => $_has(2);
+  $core.bool hasCipherTextSharedKey() => $_has(2);
   @$pb.TagNumber(3)
-  void clearCipherTextSalt() => $_clearField(3);
+  void clearCipherTextSharedKey() => $_clearField(3);
 
   @$pb.TagNumber(4)
-  $core.List<$core.int> get signatureSharedKey => $_getN(3);
+  $core.List<$core.int> get cipherTextSalt => $_getN(3);
   @$pb.TagNumber(4)
-  set signatureSharedKey($core.List<$core.int> value) => $_setBytes(3, value);
+  set cipherTextSalt($core.List<$core.int> value) => $_setBytes(3, value);
   @$pb.TagNumber(4)
-  $core.bool hasSignatureSharedKey() => $_has(3);
+  $core.bool hasCipherTextSalt() => $_has(3);
   @$pb.TagNumber(4)
-  void clearSignatureSharedKey() => $_clearField(4);
+  void clearCipherTextSalt() => $_clearField(4);
 
   @$pb.TagNumber(5)
-  $core.List<$core.int> get signatureSalt => $_getN(4);
+  $core.List<$core.int> get signatureSharedKey => $_getN(4);
   @$pb.TagNumber(5)
-  set signatureSalt($core.List<$core.int> value) => $_setBytes(4, value);
+  set signatureSharedKey($core.List<$core.int> value) => $_setBytes(4, value);
   @$pb.TagNumber(5)
-  $core.bool hasSignatureSalt() => $_has(4);
+  $core.bool hasSignatureSharedKey() => $_has(4);
   @$pb.TagNumber(5)
-  void clearSignatureSalt() => $_clearField(5);
+  void clearSignatureSharedKey() => $_clearField(5);
 
   @$pb.TagNumber(6)
-  $core.List<$core.int> get userID => $_getN(5);
+  $core.List<$core.int> get signatureSalt => $_getN(5);
   @$pb.TagNumber(6)
-  set userID($core.List<$core.int> value) => $_setBytes(5, value);
+  set signatureSalt($core.List<$core.int> value) => $_setBytes(5, value);
   @$pb.TagNumber(6)
-  $core.bool hasUserID() => $_has(5);
+  $core.bool hasSignatureSalt() => $_has(5);
   @$pb.TagNumber(6)
-  void clearUserID() => $_clearField(6);
+  void clearSignatureSalt() => $_clearField(6);
 
   @$pb.TagNumber(7)
-  $core.String get phoneNumber => $_getSZ(6);
+  $core.List<$core.int> get userID => $_getN(6);
   @$pb.TagNumber(7)
-  set phoneNumber($core.String value) => $_setString(6, value);
+  set userID($core.List<$core.int> value) => $_setBytes(6, value);
   @$pb.TagNumber(7)
-  $core.bool hasPhoneNumber() => $_has(6);
+  $core.bool hasUserID() => $_has(6);
   @$pb.TagNumber(7)
-  void clearPhoneNumber() => $_clearField(7);
+  void clearUserID() => $_clearField(7);
+
+  @$pb.TagNumber(8)
+  $core.String get phoneNumber => $_getSZ(7);
+  @$pb.TagNumber(8)
+  set phoneNumber($core.String value) => $_setString(7, value);
+  @$pb.TagNumber(8)
+  $core.bool hasPhoneNumber() => $_has(7);
+  @$pb.TagNumber(8)
+  void clearPhoneNumber() => $_clearField(8);
+
+  @$pb.TagNumber(9)
+  $1.Timestamp get createdAt => $_getN(8);
+  @$pb.TagNumber(9)
+  set createdAt($1.Timestamp value) => $_setField(9, value);
+  @$pb.TagNumber(9)
+  $core.bool hasCreatedAt() => $_has(8);
+  @$pb.TagNumber(9)
+  void clearCreatedAt() => $_clearField(9);
+  @$pb.TagNumber(9)
+  $1.Timestamp ensureCreatedAt() => $_ensure(8);
 }
 
 const $core.bool _omitFieldNames =

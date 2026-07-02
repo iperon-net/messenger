@@ -15,7 +15,7 @@ import '../../repositories/repositories.dart';
 import 'auth_callpassword_state.dart';
 
 class AuthCallpasswordCubit extends Cubit<AuthCallpasswordState> {
-  AuthCallpasswordCubit() : super(const AuthCallpasswordState());
+  AuthCallpasswordCubit() : super(AuthCallpasswordState());
 
   final _api = getIt.get<API>();
   final _logger = getIt.get<Logger>();

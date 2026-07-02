@@ -46,7 +46,7 @@ class DeviceSessions {
     controller.add(SyncerMessageRequest(message: messageByte));
   }
 
-  Future<void> getAllSessionResponse({required List<int> msg, required Header header}) async {
+  Future<void> getAllResponse({required List<int> msg, required Header header}) async {
     final session = this.session();
 
     final messageByte = await crypto.syncer.decode(
@@ -67,7 +67,7 @@ class DeviceSessions {
       );
 
       deviceSessions.add(models.DeviceSession(
-        session: item.session,
+        sessionID: item.sessionID,
         deviceModel: item.deviceModel,
         os: item.os,
         osVersion: item.osVersion,
@@ -76,7 +76,7 @@ class DeviceSessions {
         locationRussian: item.locationRussian,
         locationEnglish: item.locationEnglish,
         updateAt: dateTime,
-        isCurrent: ListEquality().equals(session.session, item.session),
+        isCurrent: ListEquality().equals(session.sessionID, item.sessionID),
       ));
     }
 
@@ -84,7 +84,7 @@ class DeviceSessions {
     streams.controllerDeviceSessions.add(deviceSessions);
   }
 
-  Future<void> logoutSessionRequest() async {
+  Future<void> logout({required List<List<int>> sessionID}) async {
     final controller = this.controller();
     if (controller == null) return;
 
@@ -96,14 +96,13 @@ class DeviceSessions {
       return;
     }
 
-    // final messageByte = await crypto.syncer.encode(
-    //   session: session,
-    //   message: message.DeviceSessionsRequest().writeToBuffer(),
-    //   messageType: SyncerMessageType.deviceSessionsRequest,
-    //   seq: seq,
-    // );
-    //
-    // controller.add(SyncerMessageRequest(message: messageByte));
+    final messageByte = await crypto.syncer.encode(
+      session: session,
+      message: message.DeviceSessionsLogoutRequest(sessionID: sessionID).writeToBuffer(),
+      messageType: SyncerMessageType.deviceSessionsLogoutRequest,
+      seq: seq,
+    );
+    controller.add(SyncerMessageRequest(message: messageByte));
   }
 
 }

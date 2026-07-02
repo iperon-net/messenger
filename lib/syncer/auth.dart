@@ -80,11 +80,7 @@ class Auth {
     final proto = message.AuthResponse.fromBuffer(messageByte);
     await repositories.users.setSalt(salt: proto.salt, session: session);
 
-    final dateTime = DateTime.fromMicrosecondsSinceEpoch(
-      proto.serverAt.seconds.toInt() * 1000000 + proto.serverAt.nanos ~/ 1000,
-      isUtc: true,
-    );
-
+    final dateTime = proto.serverAt.toDateTime();
     logger.info("Syncer response received auth userID=${session.getUserIDObjectID().toString()}, serverAt=${dateTime.toIso8601String()}");
     streams.controllerAuth.add(true);
   }

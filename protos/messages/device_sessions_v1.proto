@@ -6,7 +6,7 @@ option go_package = "internal/api/messages";
 import "google/protobuf/timestamp.proto";
 
 message DeviceSession {
-  bytes session  = 1;
+  bytes sessionID  = 1;
   string deviceModel = 2;
   int32 os = 3;
   string osVersion = 4;
@@ -22,3 +22,9 @@ message DeviceSessionsRequest {}
 message DeviceSessionsResponse {
   repeated DeviceSession deviceSessions = 1;
 }
+
+message DeviceSessionsLogoutRequest {
+  repeated bytes sessionID = 1;
+}
+
+message DeviceSessionsLogoutResponse {}

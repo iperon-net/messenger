@@ -197,7 +197,7 @@ class Syncer {
     } else if (header.messageType == SyncerMessageType.logoutResponse) {
       await auth.logoutResponse(msg: data.message, header: header);
     } else if (header.messageType == SyncerMessageType.deviceSessionsResponse) {
-      await deviceSessions.getAllSessionResponse(msg: data.message, header: header);
+      await deviceSessions.getAllResponse(msg: data.message, header: header);
     }
 
     // if (){

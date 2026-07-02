@@ -6,7 +6,7 @@ part 'device_sessions.mapper.dart';
 
 @MappableClass(includeCustomMappers: [BoolMapper()])
 class DeviceSession with DeviceSessionMappable {
-  final List<int> session;
+  final List<int> sessionID;
   final String deviceModel;
   final String osVersion;
   final int os;
@@ -18,7 +18,7 @@ class DeviceSession with DeviceSessionMappable {
   final bool isCurrent;
 
   DeviceSession({
-    this.session = const [],
+    this.sessionID = const [],
     this.deviceModel = "",
     this.osVersion = "",
     this.os = 0,

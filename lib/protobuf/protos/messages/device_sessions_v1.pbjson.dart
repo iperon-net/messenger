@@ -19,7 +19,7 @@ import 'dart:typed_data' as $typed_data;
 const DeviceSession$json = {
   '1': 'DeviceSession',
   '2': [
-    {'1': 'session', '3': 1, '4': 1, '5': 12, '10': 'session'},
+    {'1': 'sessionID', '3': 1, '4': 1, '5': 12, '10': 'sessionID'},
     {'1': 'deviceModel', '3': 2, '4': 1, '5': 9, '10': 'deviceModel'},
     {'1': 'os', '3': 3, '4': 1, '5': 5, '10': 'os'},
     {'1': 'osVersion', '3': 4, '4': 1, '5': 9, '10': 'osVersion'},
@@ -40,12 +40,13 @@ const DeviceSession$json = {
 
 /// Descriptor for `DeviceSession`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List deviceSessionDescriptor = $convert.base64Decode(
-    'Cg1EZXZpY2VTZXNzaW9uEhgKB3Nlc3Npb24YASABKAxSB3Nlc3Npb24SIAoLZGV2aWNlTW9kZW'
-    'wYAiABKAlSC2RldmljZU1vZGVsEg4KAm9zGAMgASgFUgJvcxIcCglvc1ZlcnNpb24YBCABKAlS'
-    'CW9zVmVyc2lvbhIeCgphcHBWZXJzaW9uGAUgASgJUgphcHBWZXJzaW9uEiYKDmFwcEJ1aWxkTn'
-    'VtYmVyGAYgASgJUg5hcHBCdWlsZE51bWJlchI2Cgh1cGRhdGVBdBgHIAEoCzIaLmdvb2dsZS5w'
-    'cm90b2J1Zi5UaW1lc3RhbXBSCHVwZGF0ZUF0EigKD2xvY2F0aW9uUnVzc2lhbhgIIAEoCVIPbG'
-    '9jYXRpb25SdXNzaWFuEigKD2xvY2F0aW9uRW5nbGlzaBgJIAEoCVIPbG9jYXRpb25FbmdsaXNo');
+    'Cg1EZXZpY2VTZXNzaW9uEhwKCXNlc3Npb25JRBgBIAEoDFIJc2Vzc2lvbklEEiAKC2RldmljZU'
+    '1vZGVsGAIgASgJUgtkZXZpY2VNb2RlbBIOCgJvcxgDIAEoBVICb3MSHAoJb3NWZXJzaW9uGAQg'
+    'ASgJUglvc1ZlcnNpb24SHgoKYXBwVmVyc2lvbhgFIAEoCVIKYXBwVmVyc2lvbhImCg5hcHBCdW'
+    'lsZE51bWJlchgGIAEoCVIOYXBwQnVpbGROdW1iZXISNgoIdXBkYXRlQXQYByABKAsyGi5nb29n'
+    'bGUucHJvdG9idWYuVGltZXN0YW1wUgh1cGRhdGVBdBIoCg9sb2NhdGlvblJ1c3NpYW4YCCABKA'
+    'lSD2xvY2F0aW9uUnVzc2lhbhIoCg9sb2NhdGlvbkVuZ2xpc2gYCSABKAlSD2xvY2F0aW9uRW5n'
+    'bGlzaA==');
 
 @$core.Deprecated('Use deviceSessionsRequestDescriptor instead')
 const DeviceSessionsRequest$json = {
@@ -76,3 +77,26 @@ final $typed_data.Uint8List deviceSessionsResponseDescriptor =
     $convert.base64Decode(
         'ChZEZXZpY2VTZXNzaW9uc1Jlc3BvbnNlEkAKDmRldmljZVNlc3Npb25zGAEgAygLMhguaXBlcm'
         '9uLnYxLkRldmljZVNlc3Npb25SDmRldmljZVNlc3Npb25z');
+
+@$core.Deprecated('Use deviceSessionsLogoutRequestDescriptor instead')
+const DeviceSessionsLogoutRequest$json = {
+  '1': 'DeviceSessionsLogoutRequest',
+  '2': [
+    {'1': 'sessionID', '3': 1, '4': 3, '5': 12, '10': 'sessionID'},
+  ],
+};
+
+/// Descriptor for `DeviceSessionsLogoutRequest`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List deviceSessionsLogoutRequestDescriptor =
+    $convert.base64Decode(
+        'ChtEZXZpY2VTZXNzaW9uc0xvZ291dFJlcXVlc3QSHAoJc2Vzc2lvbklEGAEgAygMUglzZXNzaW'
+        '9uSUQ=');
+
+@$core.Deprecated('Use deviceSessionsLogoutResponseDescriptor instead')
+const DeviceSessionsLogoutResponse$json = {
+  '1': 'DeviceSessionsLogoutResponse',
+};
+
+/// Descriptor for `DeviceSessionsLogoutResponse`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List deviceSessionsLogoutResponseDescriptor =
+    $convert.base64Decode('ChxEZXZpY2VTZXNzaW9uc0xvZ291dFJlc3BvbnNl');

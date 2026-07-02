@@ -23,10 +23,10 @@ class DeviceSessionMapper extends ClassMapperBase<DeviceSession> {
   @override
   final String id = 'DeviceSession';
 
-  static List<int> _$session(DeviceSession v) => v.session;
-  static const Field<DeviceSession, List<int>> _f$session = Field(
-    'session',
-    _$session,
+  static List<int> _$sessionID(DeviceSession v) => v.sessionID;
+  static const Field<DeviceSession, List<int>> _f$sessionID = Field(
+    'sessionID',
+    _$sessionID,
     opt: true,
     def: const [],
   );
@@ -95,7 +95,7 @@ class DeviceSessionMapper extends ClassMapperBase<DeviceSession> {
 
   @override
   final MappableFields<DeviceSession> fields = const {
-    #session: _f$session,
+    #sessionID: _f$sessionID,
     #deviceModel: _f$deviceModel,
     #osVersion: _f$osVersion,
     #os: _f$os,
@@ -109,7 +109,7 @@ class DeviceSessionMapper extends ClassMapperBase<DeviceSession> {
 
   static DeviceSession _instantiate(DecodingData data) {
     return DeviceSession(
-      session: data.dec(_f$session),
+      sessionID: data.dec(_f$sessionID),
       deviceModel: data.dec(_f$deviceModel),
       osVersion: data.dec(_f$osVersion),
       os: data.dec(_f$os),
@@ -184,9 +184,9 @@ extension DeviceSessionValueCopy<$R, $Out>
 
 abstract class DeviceSessionCopyWith<$R, $In extends DeviceSession, $Out>
     implements ClassCopyWith<$R, $In, $Out> {
-  ListCopyWith<$R, int, ObjectCopyWith<$R, int, int>> get session;
+  ListCopyWith<$R, int, ObjectCopyWith<$R, int, int>> get sessionID;
   $R call({
-    List<int>? session,
+    List<int>? sessionID,
     String? deviceModel,
     String? osVersion,
     int? os,
@@ -209,15 +209,15 @@ class _DeviceSessionCopyWithImpl<$R, $Out>
   late final ClassMapperBase<DeviceSession> $mapper =
       DeviceSessionMapper.ensureInitialized();
   @override
-  ListCopyWith<$R, int, ObjectCopyWith<$R, int, int>> get session =>
+  ListCopyWith<$R, int, ObjectCopyWith<$R, int, int>> get sessionID =>
       ListCopyWith(
-        $value.session,
+        $value.sessionID,
         (v, t) => ObjectCopyWith(v, $identity, t),
-        (v) => call(session: v),
+        (v) => call(sessionID: v),
       );
   @override
   $R call({
-    List<int>? session,
+    List<int>? sessionID,
     String? deviceModel,
     String? osVersion,
     int? os,
@@ -229,7 +229,7 @@ class _DeviceSessionCopyWithImpl<$R, $Out>
     Object? updateAt = $none,
   }) => $apply(
     FieldCopyWithData({
-      if (session != null) #session: session,
+      if (sessionID != null) #sessionID: sessionID,
       if (deviceModel != null) #deviceModel: deviceModel,
       if (osVersion != null) #osVersion: osVersion,
       if (os != null) #os: os,
@@ -243,7 +243,7 @@ class _DeviceSessionCopyWithImpl<$R, $Out>
   );
   @override
   DeviceSession $make(CopyWithData data) => DeviceSession(
-    session: data.get(#session, or: $value.session),
+    sessionID: data.get(#sessionID, or: $value.sessionID),
     deviceModel: data.get(#deviceModel, or: $value.deviceModel),
     osVersion: data.get(#osVersion, or: $value.osVersion),
     os: data.get(#os, or: $value.os),

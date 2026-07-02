@@ -13,12 +13,12 @@ class DeviceSessions {
     for (final deviceSession in deviceSessions) {
       database.execute(
           "INSERT INTO deviceSessions"
-              "(userID, session, deviceModel, os, osVersion, appVersion, appBuildNumber, locationRussian, locationEnglish, updateAt)"
+              "(userID, sessionID, deviceModel, os, osVersion, appVersion, appBuildNumber, locationRussian, locationEnglish, updateAt)"
               "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?);",
 
           [
             session.userID,
-            deviceSession.session,
+            deviceSession.sessionID,
             deviceSession.deviceModel,
             deviceSession.os,
             deviceSession.osVersion,
@@ -36,7 +36,7 @@ class DeviceSessions {
 
   Future<List<models.DeviceSession>> getAll({required models.Session session}) async {
     final sqlSessions = database.select(
-        "SELECT userID, session, deviceModel, os, osVersion, appVersion, appBuildNumber, locationRussian,"
+        "SELECT userID, sessionID, deviceModel, os, osVersion, appVersion, appBuildNumber, locationRussian,"
             " locationEnglish, updateAt FROM deviceSessions WHERE userID = ?;",
         [session.userID]
     );
@@ -44,7 +44,7 @@ class DeviceSessions {
     return sqlSessions.map((row) {
       final deviceSession = models.DeviceSessionMapper.fromMap(row);
       return deviceSession.copyWith(
-        isCurrent: listEquals(deviceSession.session, session.session),
+        isCurrent: listEquals(deviceSession.sessionID, session.sessionID),
       );
     }).toList();
   }

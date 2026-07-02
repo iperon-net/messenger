@@ -23,6 +23,13 @@ class SessionMapper extends ClassMapperBase<Session> {
   @override
   final String id = 'Session';
 
+  static List<int> _$sessionID(Session v) => v.sessionID;
+  static const Field<Session, List<int>> _f$sessionID = Field(
+    'sessionID',
+    _$sessionID,
+    opt: true,
+    def: const [],
+  );
   static List<int> _$session(Session v) => v.session;
   static const Field<Session, List<int>> _f$session = Field(
     'session',
@@ -58,23 +65,33 @@ class SessionMapper extends ClassMapperBase<Session> {
     opt: true,
     def: false,
   );
+  static DateTime? _$createAt(Session v) => v.createAt;
+  static const Field<Session, DateTime> _f$createAt = Field(
+    'createAt',
+    _$createAt,
+    opt: true,
+  );
 
   @override
   final MappableFields<Session> fields = const {
+    #sessionID: _f$sessionID,
     #session: _f$session,
     #userID: _f$userID,
     #sharedKey: _f$sharedKey,
     #salt: _f$salt,
     #isActive: _f$isActive,
+    #createAt: _f$createAt,
   };
 
   static Session _instantiate(DecodingData data) {
     return Session(
+      sessionID: data.dec(_f$sessionID),
       session: data.dec(_f$session),
       userID: data.dec(_f$userID),
       sharedKey: data.dec(_f$sharedKey),
       salt: data.dec(_f$salt),
       isActive: data.dec(_f$isActive),
+      createAt: data.dec(_f$createAt),
     );
   }
 
@@ -135,16 +152,19 @@ extension SessionValueCopy<$R, $Out> on ObjectCopyWith<$R, Session, $Out> {
 
 abstract class SessionCopyWith<$R, $In extends Session, $Out>
     implements ClassCopyWith<$R, $In, $Out> {
+  ListCopyWith<$R, int, ObjectCopyWith<$R, int, int>> get sessionID;
   ListCopyWith<$R, int, ObjectCopyWith<$R, int, int>> get session;
   ListCopyWith<$R, int, ObjectCopyWith<$R, int, int>> get userID;
   ListCopyWith<$R, int, ObjectCopyWith<$R, int, int>> get sharedKey;
   ListCopyWith<$R, int, ObjectCopyWith<$R, int, int>> get salt;
   $R call({
+    List<int>? sessionID,
     List<int>? session,
     List<int>? userID,
     List<int>? sharedKey,
     List<int>? salt,
     bool? isActive,
+    DateTime? createAt,
   });
   SessionCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
@@ -157,6 +177,13 @@ class _SessionCopyWithImpl<$R, $Out>
   @override
   late final ClassMapperBase<Session> $mapper =
       SessionMapper.ensureInitialized();
+  @override
+  ListCopyWith<$R, int, ObjectCopyWith<$R, int, int>> get sessionID =>
+      ListCopyWith(
+        $value.sessionID,
+        (v, t) => ObjectCopyWith(v, $identity, t),
+        (v) => call(sessionID: v),
+      );
   @override
   ListCopyWith<$R, int, ObjectCopyWith<$R, int, int>> get session =>
       ListCopyWith(
@@ -186,27 +213,33 @@ class _SessionCopyWithImpl<$R, $Out>
   );
   @override
   $R call({
+    List<int>? sessionID,
     List<int>? session,
     List<int>? userID,
     List<int>? sharedKey,
     List<int>? salt,
     bool? isActive,
+    Object? createAt = $none,
   }) => $apply(
     FieldCopyWithData({
+      if (sessionID != null) #sessionID: sessionID,
       if (session != null) #session: session,
       if (userID != null) #userID: userID,
       if (sharedKey != null) #sharedKey: sharedKey,
       if (salt != null) #salt: salt,
       if (isActive != null) #isActive: isActive,
+      if (createAt != $none) #createAt: createAt,
     }),
   );
   @override
   Session $make(CopyWithData data) => Session(
+    sessionID: data.get(#sessionID, or: $value.sessionID),
     session: data.get(#session, or: $value.session),
     userID: data.get(#userID, or: $value.userID),
     sharedKey: data.get(#sharedKey, or: $value.sharedKey),
     salt: data.get(#salt, or: $value.salt),
     isActive: data.get(#isActive, or: $value.isActive),
+    createAt: data.get(#createAt, or: $value.createAt),
   );
 
   @override

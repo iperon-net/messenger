@@ -16,7 +16,7 @@ class AuthCallpasswordState with AuthCallpasswordStateMappable {
   final User user;
   final Session session;
 
-  const AuthCallpasswordState({
+  AuthCallpasswordState({
     this.status = Status.initialization,
     this.error = "",
     this.confirmationSession = const [],
