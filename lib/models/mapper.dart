@@ -6,8 +6,6 @@ class BoolMapper extends SimpleMapper<bool> {
 
   @override
   bool decode(dynamic value) {
-    print(value);
-
     // Здесь описываем логику преобразования из JSON в Dart
     if (value == 1) return true;
     if (value == 0) return false;
@@ -19,7 +17,6 @@ class BoolMapper extends SimpleMapper<bool> {
 
   @override
   dynamic encode(bool self) {
-    print(bool);
     // Здесь описываем логику преобразования из Dart в JSON
     // Возвращаем 1 для true и 0 для false
     return self ? 1 : 0;

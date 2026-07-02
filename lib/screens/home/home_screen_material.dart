@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:go_router/go_router.dart';
 import 'package:messenger/cubit/home/home_cubit.dart';
 import 'package:messenger/cubit/home/home_state.dart';
 
@@ -25,7 +24,6 @@ class _HomeMaterialScreen extends State<HomeMaterialScreen> {
   @override
   void initState() {
     super.initState();
-    context.read<HomeCubit>().initialization();
   }
 
   @override
@@ -35,11 +33,7 @@ class _HomeMaterialScreen extends State<HomeMaterialScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocConsumer<HomeCubit, HomeState>(
-      listenWhen: (previous, current) => previous.isAuth != current.isAuth,
-      listener: (context, state) {
-        if (!state.isAuth) context.go("/auth");
-      },
+    return BlocBuilder<HomeCubit, HomeState>(
       builder: (context, state) {
         return Scaffold(
           appBar: AppBar(

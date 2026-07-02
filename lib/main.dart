@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
@@ -24,6 +25,7 @@ import 'logger.dart';
 import 'models.dart' as models;
 import 'repositories/repositories.dart';
 import 'routers.dart';
+import 'streams.dart';
 import 'themes_cupertino.dart';
 import 'themes_material.dart';
 
@@ -141,9 +143,12 @@ class IperonMessengerCupertino extends StatefulWidget {
 class _IperonMessengerMaterial extends State<IperonMessengerMaterial> with WidgetsBindingObserver {
   final logger = getIt.get<Logger>();
   final routers = getIt.get<Routers>();
+  final streams = getIt.get<Streams>();
 
   final navigatorGoRouterKey = GlobalKey<NavigatorState>();
   late final GoRouter _router;
+
+  StreamSubscription<bool>? _authSubscription;
 
   @override
   void initState() {
@@ -155,11 +160,20 @@ class _IperonMessengerMaterial extends State<IperonMessengerMaterial> with Widge
     );
 
     _router = routers.material(navigatorGoRouterKey);
+
+    // Глобальный редирект на авторизацию из любого экрана: syncer при gRPC
+    // unauthenticated (или logout) шлёт controllerAuth=false — уводим на /auth.
+    _authSubscription = streams.controllerAuth.stream.listen((isAuth) {
+      logger.debug("root controllerAuth isAuth=$isAuth${!isAuth ? ' → go(/auth)' : ''}");
+      if (!isAuth) _router.go("/auth");
+    });
+
     WidgetsBinding.instance.addObserver(this);
   }
 
   @override
   void dispose() {
+    _authSubscription?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -321,9 +335,12 @@ class _IperonMessengerMaterial extends State<IperonMessengerMaterial> with Widge
 class _IperonMessengerCupertino extends State<IperonMessengerCupertino> with WidgetsBindingObserver {
   final logger = getIt.get<Logger>();
   final routers = getIt.get<Routers>();
+  final streams = getIt.get<Streams>();
 
   final navigatorGoRouterKey = GlobalKey<NavigatorState>();
   late final GoRouter _router;
+
+  StreamSubscription<bool>? _authSubscription;
 
   @override
   void initState() {
@@ -336,11 +353,20 @@ class _IperonMessengerCupertino extends State<IperonMessengerCupertino> with Wid
     );
 
     _router = routers.cupertino(navigatorGoRouterKey);
+
+    // Глобальный редирект на авторизацию из любого экрана: syncer при gRPC
+    // unauthenticated (или logout) шлёт controllerAuth=false — уводим на /auth.
+    _authSubscription = streams.controllerAuth.stream.listen((isAuth) {
+      logger.debug("root controllerAuth isAuth=$isAuth${!isAuth ? ' → go(/auth)' : ''}");
+      if (!isAuth) _router.go("/auth");
+    });
+
     WidgetsBinding.instance.addObserver(this);
   }
 
   @override
   void dispose() {
+    _authSubscription?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }

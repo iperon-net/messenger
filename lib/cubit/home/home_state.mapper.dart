@@ -30,24 +30,15 @@ class HomeStateMapper extends ClassMapperBase<HomeState> {
     opt: true,
     def: 0,
   );
-  static bool _$isAuth(HomeState v) => v.isAuth;
-  static const Field<HomeState, bool> _f$isAuth = Field(
-    'isAuth',
-    _$isAuth,
-    opt: true,
-    def: true,
-  );
 
   @override
   final MappableFields<HomeState> fields = const {
     #destinationSelectedIndex: _f$destinationSelectedIndex,
-    #isAuth: _f$isAuth,
   };
 
   static HomeState _instantiate(DecodingData data) {
     return HomeState(
       destinationSelectedIndex: data.dec(_f$destinationSelectedIndex),
-      isAuth: data.dec(_f$isAuth),
     );
   }
 
@@ -110,7 +101,7 @@ extension HomeStateValueCopy<$R, $Out> on ObjectCopyWith<$R, HomeState, $Out> {
 
 abstract class HomeStateCopyWith<$R, $In extends HomeState, $Out>
     implements ClassCopyWith<$R, $In, $Out> {
-  $R call({int? destinationSelectedIndex, bool? isAuth});
+  $R call({int? destinationSelectedIndex});
   HomeStateCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
 
@@ -123,11 +114,10 @@ class _HomeStateCopyWithImpl<$R, $Out>
   late final ClassMapperBase<HomeState> $mapper =
       HomeStateMapper.ensureInitialized();
   @override
-  $R call({int? destinationSelectedIndex, bool? isAuth}) => $apply(
+  $R call({int? destinationSelectedIndex}) => $apply(
     FieldCopyWithData({
       if (destinationSelectedIndex != null)
         #destinationSelectedIndex: destinationSelectedIndex,
-      if (isAuth != null) #isAuth: isAuth,
     }),
   );
   @override
@@ -136,7 +126,6 @@ class _HomeStateCopyWithImpl<$R, $Out>
       #destinationSelectedIndex,
       or: $value.destinationSelectedIndex,
     ),
-    isAuth: data.get(#isAuth, or: $value.isAuth),
   );
 
   @override

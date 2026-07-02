@@ -40,6 +40,10 @@ class Syncer {
   // когда завершение приходит сразу в несколько колбэков (onError + onDone + onCancel)
   bool _reconnecting = false;
 
+  // true — сервер отклонил сессию (unauthenticated); переподключение с той же сессией
+  // зациклится, поэтому реконнект глушится до следующего явного connect() (нового логина)
+  bool _unauthenticated = false;
+
   int seq = 1;
 
   late models.Session session;
@@ -76,6 +80,7 @@ class Syncer {
     _logger.debug("syncer connect() start (disposed=$_disposed, reconnecting=$_reconnecting)");
     _disposed = false;
     _reconnecting = false;
+    _unauthenticated = false;
 
     // снести предыдущее соединение, если оно осталось, чтобы не плодить параллельные стримы
     await _teardown();
@@ -84,12 +89,28 @@ class Syncer {
     session = await _repositories.sessions.getActive();
     _logger.debug("syncer connect() session loaded (isActive=${session.isActive})");
 
+    // Без активной сессии стрим не поднимаем: иначе сервер закрывает «пустой» коннект,
+    // срабатывает reconnect → connect() → снова нет сессии → controllerAuth.add(false) →
+    // бесконечный редирект на /auth. Один раз оповещаем UI и выходим, цикл не стартует.
+    if (!session.isActive) {
+      _logger.warning("syncer connect() нет активной сессии — стрим не поднимаем");
+      _streams.controllerAuth.add(false);
+      return;
+    }
+
     late final StreamController<SyncerMessageRequest> controller;
     controller = StreamController<SyncerMessageRequest>(onListen: () => _onListen(), onCancel: () => _onCancel(controller));
     _controller = controller;
 
     // timeout: 0 — без дедлайна на стриме; соединение ресайклит сервер по MaxConnectionAge (30 мин)
     final response = _api.syncer.messages(controller.stream, options: await _api.callOptions(timeout: 0));
+
+    // При невалидной сессии сервер отвечает trailers-only (grpc-status прямо в headers,
+    // content-length: 0). grpc-dart НЕ доставляет это в onError — приходит только onCancel,
+    // а статус доступен лишь через headers/trailers. Поэтому проверяем статус здесь:
+    // headers резолвятся раньше onCancel, так что _unauthenticated успеет заглушить reconnect.
+    response.headers.then(_onGrpcMetadata).catchError((e) => _logger.debug("syncer headers error=$e"));
+    response.trailers.then(_onGrpcMetadata).catchError((e) => _logger.debug("syncer trailers error=$e"));
 
     _subscription = response.listen(
       (data) => _onData(data),
@@ -140,7 +161,8 @@ class Syncer {
 
     // невалидная сессия — переподключение бессмысленно, оно зациклится
     if (err is GrpcError && err.code == StatusCode.unauthenticated) {
-      _logger.error("syncer stream unauthenticated — reconnect пропущен (ранний return)");
+      _logger.error("syncer stream unauthenticated — сброс сессии и редирект на авторизацию");
+      await _onUnauthenticated();
       return;
     }
     _logger.error("syncer stream error: $err, рестарт коннекта");
@@ -159,19 +181,42 @@ class Syncer {
     await _reconnect();
   }
 
-  // Переподключение после обрыва/таймаута. Намеренное закрытие (dispose) пропускаем.
+  // Проверка grpc-status из headers/trailers ответа. StatusCode.unauthenticated == 16.
+  // Вызывается и для headers, и для trailers (оба несут статус в trailers-only ответе),
+  // поэтому обработка отклонённой сессии идемпотентна (см. _onUnauthenticated).
+  void _onGrpcMetadata(Map<String, String> metadata) {
+    if (metadata["grpc-status"] == "${StatusCode.unauthenticated}") {
+      _logger.error("syncer grpc-status=unauthenticated (${metadata["grpc-message"]}) — сброс сессии и редирект на /auth");
+      _onUnauthenticated();
+    }
+  }
+
+  // Сервер отклонил сессию (unauthenticated). Глушим реконнект, чистим локальную
+  // сессию и оповещаем UI (controllerAuth=false) — корневой слушатель уводит на /auth.
+  // Завершение стрима прилетает в onCancel/onError/headers/trailers, поэтому метод
+  // идемпотентен, а флаг _unauthenticated блокирует реконнект по любому колбэку (см. _reconnect).
+  Future<void> _onUnauthenticated() async {
+    if (_unauthenticated) return;
+    _unauthenticated = true;
+    await _teardown();
+    await _repositories.sessions.logout();
+    _streams.controllerAuth.add(false);
+  }
+
+  // Переподключение после обрыва/таймаута. Намеренное закрытие (dispose) и отклонённую
+  // сессию (unauthenticated) пропускаем.
   Future<void> _reconnect() async {
-    if (_disposed || _reconnecting) {
-      _logger.debug("syncer _reconnect skip (disposed=$_disposed, reconnecting=$_reconnecting)");
+    if (_disposed || _reconnecting || _unauthenticated) {
+      _logger.debug("syncer _reconnect skip (disposed=$_disposed, reconnecting=$_reconnecting, unauthenticated=$_unauthenticated)");
       return;
     }
     _reconnecting = true;
 
     await randomSleep(seconds: 5);
 
-    // могли вызвать dispose() во время паузы — повторная проверка
-    if (_disposed) {
-      _logger.debug("syncer _reconnect aborted — disposed during pause");
+    // могли вызвать dispose()/получить unauthenticated во время паузы — повторная проверка
+    if (_disposed || _unauthenticated) {
+      _logger.debug("syncer _reconnect aborted — disposed/unauthenticated during pause");
       _reconnecting = false;
       return;
     }
