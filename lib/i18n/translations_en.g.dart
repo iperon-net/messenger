@@ -244,6 +244,15 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 
 	/// en: 'Cancel'
 	String get cancel => 'Cancel';
+
+	/// en: 'Two-Step Verification'
+	String get twoStepVerification => 'Two-Step Verification';
+
+	/// en: 'Off'
+	String get off => 'Off';
+
+	/// en: 'On'
+	String get on => 'On';
 }
 
 /// The flat map containing all translations for locale <en>.
@@ -322,6 +331,9 @@ extension on Translations {
 			'areYouSureYouLogOutFromThisDevice' => 'Are you sure you want to log out from this device?',
 			'terminateSession' => 'Terminate session',
 			'cancel' => 'Cancel',
+			'twoStepVerification' => 'Two-Step Verification',
+			'off' => 'Off',
+			'on' => 'On',
 			_ => null,
 		};
 	}

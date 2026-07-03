@@ -66,3 +66,6 @@
 "areYouSureYouLogOutFromThisDevice": "Are you sure you want to log out from this device?"
 "terminateSession": "Terminate session"
 "cancel": "Cancel"
+"twoStepVerification": "Two-Step Verification"
+"off": "Off"
+"on": "On"

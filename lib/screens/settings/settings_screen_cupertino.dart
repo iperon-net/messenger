@@ -110,7 +110,7 @@ class _SettingsCupertinoScreen extends State<SettingsCupertinoScreen> {
                       title: Text(context.t.privateAndSecurity),
                       color: Color(0xFF049A40),
                       icon: FontAwesomeIcons.key,
-                      onTab: () async => context.go("/"),
+                      onTab: () async => context.go("/private_and_security"),
                     ),
                     _item(
                       title: Text(context.t.notifications),

@@ -94,7 +94,12 @@ class Routers {
                 path: '/settings_device_sessions',
                 builder: (_, _) => SettingsDeviceSessionsScreenCupertino(),
               ),
+              GoRoute(
+                path: '/private_and_security',
+                builder: (_, _) => SettingsPrivateAndSecurityScreenCupertino(),
+              ),
             ],
+
           ),
           GoRoute(
             path: '/auth',

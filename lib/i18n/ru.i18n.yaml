@@ -66,3 +66,6 @@
 "areYouSureYouLogOutFromThisDevice": "Вы уверены, что хотите выйти на этом устройстве?"
 "terminateSession": "Завершить сеанс"
 "cancel": "Отмена"
+"twoStepVerification": "Облачный пароль"
+"off": "Выкл"
+"on": "Вкл"

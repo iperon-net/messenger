@@ -107,6 +107,9 @@ class TranslationsRu extends Translations with BaseTranslations<AppLocale, Trans
 	@override String get areYouSureYouLogOutFromThisDevice => 'Вы уверены, что хотите выйти на этом устройстве?';
 	@override String get terminateSession => 'Завершить сеанс';
 	@override String get cancel => 'Отмена';
+	@override String get twoStepVerification => 'Облачный пароль';
+	@override String get off => 'Выкл';
+	@override String get on => 'Вкл';
 }
 
 /// The flat map containing all translations for locale <ru>.
@@ -185,6 +188,9 @@ extension on TranslationsRu {
 			'areYouSureYouLogOutFromThisDevice' => 'Вы уверены, что хотите выйти на этом устройстве?',
 			'terminateSession' => 'Завершить сеанс',
 			'cancel' => 'Отмена',
+			'twoStepVerification' => 'Облачный пароль',
+			'off' => 'Выкл',
+			'on' => 'Вкл',
 			_ => null,
 		};
 	}
