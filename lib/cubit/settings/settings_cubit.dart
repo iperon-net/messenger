@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:messenger/constants.dart';
 
 import '../../di.dart';
 import '../../i18n/translations.g.dart';
@@ -36,7 +37,9 @@ class SettingsCubit extends Cubit<SettingsState> {
   }
 
   Future<void> logout() async {
+    emit(state.copyWith(status: Status.loading));
     await syncer.auth.logoutRequest();
+    emit(state.copyWith(status: Status.success));
   }
 
   @override

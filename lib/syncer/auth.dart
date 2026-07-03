@@ -128,6 +128,15 @@ class Auth {
         );
         await repositories.pendingLogouts.delete(id: entry.id);
         logger.info("Syncer retryPendingLogout: logout доставлен серверу (id=${entry.id})");
+      } on GrpcError catch (err) {
+        if (err.code == StatusCode.unauthenticated) {
+          // Сессия уже не существует на сервере — удаляем без доставки
+          await repositories.pendingLogouts.delete(id: entry.id);
+          logger.warning("Syncer retryPendingLogout: сессия устарела, удалён локально (id=${entry.id})");
+        } else {
+          logger.warning("Syncer retryPendingLogout: нет сети ($err)");
+          break;
+        }
       } catch (err) {
         logger.warning("Syncer retryPendingLogout: нет сети ($err)");
         break;

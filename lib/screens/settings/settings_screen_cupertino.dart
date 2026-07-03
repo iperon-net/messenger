@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
+import 'package:messenger/constants.dart';
 import 'package:messenger/cubit/settings/settings_state.dart';
 
 import '../../cubit/main_cubit.dart';
@@ -148,7 +149,8 @@ class _SettingsCupertinoScreen extends State<SettingsCupertinoScreen> {
                       title: Text(context.t.logout),
                       color: Color(0xFF7637DD),
                       icon: FontAwesomeIcons.rightFromBracket,
-                      onTab: () async => await context.read<SettingsCubit>().logout(),
+                      onTab: () async { context.read<SettingsCubit>().logout(); },
+                      additionalInfo: state.status == Status.loading ? CupertinoActivityIndicator() : null,
                     ),
                   ],
                 ),
