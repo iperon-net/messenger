@@ -87,6 +87,9 @@ class Syncer {
     await _teardown();
     _logger.debug("syncer connect() teardown done");
 
+    // Попытка доставить отложенные логауты (не удалось отправить из-за отсутствия сети)
+    await auth.retryPendingLogouts();
+
     session = await _repositories.sessions.getActive();
     _logger.debug("syncer connect() session loaded (isActive=${session.isActive})");
 
