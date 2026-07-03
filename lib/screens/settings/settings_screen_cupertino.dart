@@ -36,7 +36,6 @@ class _SettingsCupertinoScreen extends State<SettingsCupertinoScreen> {
   }
 
   Widget _item({
-    required BorderRadius borderRadius,
     required Widget title,
     Widget? subtitle,
     required Color color,
@@ -44,59 +43,24 @@ class _SettingsCupertinoScreen extends State<SettingsCupertinoScreen> {
     Widget? additionalInfo,
     required Future<void> Function()? onTab,
   }) {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: borderRadius,
-        color: CupertinoDynamicColor.resolve(
-          CupertinoDynamicColor.withBrightness(
-            color: CupertinoTheme
-                .of(context)
-                .scaffoldBackgroundColor,
-            darkColor: Color(0xFF1C1C1E),
-          ),
-          context,
+    return CupertinoListTile(
+      padding: EdgeInsets.all(10),
+      leading: Container(
+        width: 45,
+        height: 45,
+        decoration: BoxDecoration(
+          color: color,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Center(
+          child: FaIcon(icon, size: 16, color: Color(0xFFFFFFFF)),
         ),
       ),
-      child: CupertinoListTile(
-        padding: EdgeInsets.all(10),
-        leading: Container(
-          width: 45,
-          height: 45,
-          decoration: BoxDecoration(
-            color: color,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Center(
-            child: FaIcon(icon, size: 16, color: Color(0xFFFFFFFF)),
-          ),
-        ),
-        onTap: onTab,
-        title: title,
-        subtitle: subtitle,
-        trailing: CupertinoListTileChevron(),
-        additionalInfo: additionalInfo,
-      ),
-    );
-  }
-
-  Widget _divider() {
-    return Container(
-      color: CupertinoDynamicColor.resolve(
-        CupertinoDynamicColor.withBrightness(
-          color: CupertinoTheme
-              .of(context)
-              .scaffoldBackgroundColor,
-          darkColor: const Color(0xFF1C1C1E),
-        ),
-        context,
-      ),
-      child: Padding(
-        padding: const EdgeInsets.only(left: 50, right: 20),
-        child: Container(
-          height: 0.3,
-          color: CupertinoDynamicColor.resolve(CupertinoColors.separator, context),
-        ),
-      ),
+      onTap: onTab,
+      title: title,
+      subtitle: subtitle,
+      trailing: CupertinoListTileChevron(),
+      additionalInfo: additionalInfo,
     );
   }
 
@@ -122,87 +86,81 @@ class _SettingsCupertinoScreen extends State<SettingsCupertinoScreen> {
             middle: Text(context.t.settings),
           ),
           child: SafeArea(
-            child: Center(
-              child: Padding(
-                padding: EdgeInsetsGeometry.all(15),
-                child: ListView(
+            child: ListView(
+              children: [
+                CupertinoListSection.insetGrouped(
                   children: [
                     _item(
                       title: Text(context.t.myProfile),
                       color: Color(0xFFF80202),
                       icon: FontAwesomeIcons.solidUser,
-                      borderRadius: BorderRadius.circular(20),
                       onTab: () async => context.go("/"),
                     ),
-                    SizedBox(height: 20),
+                  ],
+                ),
+                CupertinoListSection.insetGrouped(
+                  children: [
                     _item(
                       title: Text(context.t.appearance),
                       color: Color(0xFF1368E6),
                       icon: FontAwesomeIcons.circleHalfStroke,
-                      borderRadius: BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20)),
                       onTab: () async => context.go("/settings_appearance"),
                     ),
-                    _divider(),
                     _item(
                       title: Text(context.t.privateAndSecurity),
                       color: Color(0xFF049A40),
                       icon: FontAwesomeIcons.key,
-                      borderRadius: BorderRadius.zero,
                       onTab: () async => context.go("/"),
                     ),
-                    _divider(),
                     _item(
                       title: Text(context.t.notifications),
                       color: Color(0xFFDD0856),
                       icon: FontAwesomeIcons.solidBell,
-                      borderRadius: BorderRadius.zero,
                       onTab: () async => context.go("/"),
                     ),
-                    _divider(),
                     _item(
                       title: Text(context.t.devices),
                       color: Color(0xFFFF6B00),
                       icon: FontAwesomeIcons.mobileScreen,
-                      borderRadius: BorderRadius.zero,
                       onTab: () async => context.go("/settings_device_sessions"),
                       additionalInfo: state.deviceSessionsCount > 0 ? Text(state.deviceSessionsCount.toString()) : null,
                     ),
-                    _divider(),
                     _item(
                       title: Text(context.t.language),
                       color: Color(0xFFBE0BCC),
                       icon: FontAwesomeIcons.language,
-                      borderRadius: BorderRadius.only(bottomLeft: Radius.circular(20), bottomRight: Radius.circular(20)),
                       additionalInfo: state.locale == AppLocale.ru ? Text("Русский") : Text("English"),
                       onTab: () async => context.go("/settings_language"),
                     ),
-                    SizedBox(height: 20),
+                  ],
+                ),
+                CupertinoListSection.insetGrouped(
+                  children: [
                     _item(
                       title: Text(context.t.faq),
                       color: Color(0xFFDC9A0F),
                       icon: FontAwesomeIcons.solidCircleQuestion,
-                      borderRadius: BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20)),
                       onTab: () async => context.go("/"),
                     ),
-                    _divider(),
                     _item(
                       title: Text(context.t.privacyPolicy),
                       color: Color(0xFF29A840),
                       icon: FontAwesomeIcons.shieldHalved,
-                      borderRadius: BorderRadius.only(bottomLeft: Radius.circular(20), bottomRight: Radius.circular(20)),
                       onTab: () async => context.go("/"),
                     ),
-                    SizedBox(height: 20),
+                  ],
+                ),
+                CupertinoListSection.insetGrouped(
+                  children: [
                     _item(
                       title: Text(context.t.logout),
                       color: Color(0xFF7637DD),
                       icon: FontAwesomeIcons.rightFromBracket,
-                      borderRadius: BorderRadius.circular(20),
                       onTab: () async => await context.read<SettingsCubit>().logout(),
                     ),
                   ],
                 ),
-              ),
+              ],
             ),
           ),
         );
