@@ -165,7 +165,10 @@ class _IperonMessengerMaterial extends State<IperonMessengerMaterial> with Widge
     // unauthenticated (или logout) шлёт controllerAuth=false — уводим на /auth.
     _authSubscription = streams.controllerAuth.stream.listen((isAuth) {
       logger.debug("root controllerAuth isAuth=$isAuth${!isAuth ? ' → go(/auth)' : ''}");
-      if (!isAuth) _router.go("/auth");
+      if (!isAuth) {
+        context.read<MainCubit>().logout();
+        _router.go("/auth");
+      }
     });
 
     WidgetsBinding.instance.addObserver(this);
@@ -358,7 +361,10 @@ class _IperonMessengerCupertino extends State<IperonMessengerCupertino> with Wid
     // unauthenticated (или logout) шлёт controllerAuth=false — уводим на /auth.
     _authSubscription = streams.controllerAuth.stream.listen((isAuth) {
       logger.debug("root controllerAuth isAuth=$isAuth${!isAuth ? ' → go(/auth)' : ''}");
-      if (!isAuth) _router.go("/auth");
+      if (!isAuth) {
+        context.read<MainCubit>().logout();
+        _router.go("/auth");
+      }
     });
 
     WidgetsBinding.instance.addObserver(this);

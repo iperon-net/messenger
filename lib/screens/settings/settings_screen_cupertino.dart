@@ -2,9 +2,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
-import 'package:messenger/cubit/main_cubit.dart';
 import 'package:messenger/cubit/settings/settings_state.dart';
 
+import '../../cubit/main_cubit.dart';
 import '../../cubit/settings/settings_cubit.dart';
 import '../../di.dart';
 import '../../i18n/translations.g.dart';
@@ -66,15 +66,7 @@ class _SettingsCupertinoScreen extends State<SettingsCupertinoScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocConsumer<SettingsCubit, SettingsState>(
-      listenWhen: (previous, current) => previous.logout != current.logout,
-      listener: (context, state) {
-        if (state.logout) {
-          context.read<MainCubit>().logout();
-          context.go("/auth");
-          return;
-        }
-      },
+    return BlocBuilder<SettingsCubit, SettingsState>(
       builder: (context, state) {
         return CupertinoPageScaffold(
           backgroundColor: CupertinoDynamicColor.withBrightness(
@@ -168,3 +160,4 @@ class _SettingsCupertinoScreen extends State<SettingsCupertinoScreen> {
     );
   }
 }
+

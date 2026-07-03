@@ -9,7 +9,6 @@ part 'settings_state.mapper.dart';
 class SettingsState with SettingsStateMappable {
   final Status status;
   final String error;
-  final bool logout;
   final int deviceSessionsCount;
   final AppLocale locale;
   final bool isCurrent;
@@ -17,9 +16,9 @@ class SettingsState with SettingsStateMappable {
   const SettingsState({
     this.status = Status.initialization,
     this.error = "",
-    this.logout = false,
     this.deviceSessionsCount = 0,
     this.locale = AppLocale.en,
     this.isCurrent = false,
   });
 }
+

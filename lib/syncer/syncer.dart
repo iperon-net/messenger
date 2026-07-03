@@ -67,6 +67,7 @@ class Syncer {
         crypto: _crypto,
         repositories: _repositories,
         streams: _streams,
+        api: _api,
         controller: getController,
         seq: () => seq,
         session: () => session,

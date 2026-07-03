@@ -3,9 +3,8 @@ syntax = "proto3";
 package iperon.v1;
 option go_package = "internal/api/v1";
 
-//import "protos/models.proto";
-
 service Syncer {
+  rpc Message (SyncerMessageRequest) returns (SyncerMessageResponse) {}
   rpc Messages (stream SyncerMessageRequest) returns (stream SyncerMessageResponse) {}
 }
 

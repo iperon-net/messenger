@@ -36,13 +36,6 @@ class SettingsStateMapper extends ClassMapperBase<SettingsState> {
     opt: true,
     def: "",
   );
-  static bool _$logout(SettingsState v) => v.logout;
-  static const Field<SettingsState, bool> _f$logout = Field(
-    'logout',
-    _$logout,
-    opt: true,
-    def: false,
-  );
   static int _$deviceSessionsCount(SettingsState v) => v.deviceSessionsCount;
   static const Field<SettingsState, int> _f$deviceSessionsCount = Field(
     'deviceSessionsCount',
@@ -69,7 +62,6 @@ class SettingsStateMapper extends ClassMapperBase<SettingsState> {
   final MappableFields<SettingsState> fields = const {
     #status: _f$status,
     #error: _f$error,
-    #logout: _f$logout,
     #deviceSessionsCount: _f$deviceSessionsCount,
     #locale: _f$locale,
     #isCurrent: _f$isCurrent,
@@ -79,7 +71,6 @@ class SettingsStateMapper extends ClassMapperBase<SettingsState> {
     return SettingsState(
       status: data.dec(_f$status),
       error: data.dec(_f$error),
-      logout: data.dec(_f$logout),
       deviceSessionsCount: data.dec(_f$deviceSessionsCount),
       locale: data.dec(_f$locale),
       isCurrent: data.dec(_f$isCurrent),
@@ -151,7 +142,6 @@ abstract class SettingsStateCopyWith<$R, $In extends SettingsState, $Out>
   $R call({
     Status? status,
     String? error,
-    bool? logout,
     int? deviceSessionsCount,
     AppLocale? locale,
     bool? isCurrent,
@@ -171,7 +161,6 @@ class _SettingsStateCopyWithImpl<$R, $Out>
   $R call({
     Status? status,
     String? error,
-    bool? logout,
     int? deviceSessionsCount,
     AppLocale? locale,
     bool? isCurrent,
@@ -179,7 +168,6 @@ class _SettingsStateCopyWithImpl<$R, $Out>
     FieldCopyWithData({
       if (status != null) #status: status,
       if (error != null) #error: error,
-      if (logout != null) #logout: logout,
       if (deviceSessionsCount != null)
         #deviceSessionsCount: deviceSessionsCount,
       if (locale != null) #locale: locale,
@@ -190,7 +178,6 @@ class _SettingsStateCopyWithImpl<$R, $Out>
   SettingsState $make(CopyWithData data) => SettingsState(
     status: data.get(#status, or: $value.status),
     error: data.get(#error, or: $value.error),
-    logout: data.get(#logout, or: $value.logout),
     deviceSessionsCount: data.get(
       #deviceSessionsCount,
       or: $value.deviceSessionsCount,

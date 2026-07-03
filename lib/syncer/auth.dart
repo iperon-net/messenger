@@ -6,6 +6,7 @@ class Auth {
   final Crypto crypto;
   final Repositories repositories;
   final Streams streams;
+  final API api;
 
   // Геттеры актуальных значений: controller/seq/session в Syncer переприсваиваются при
   // каждом connect()/onData, поэтому храним не значение (оно устареет), а способ его получить.
@@ -19,6 +20,7 @@ class Auth {
     required this.crypto,
     required this.repositories,
     required this.streams,
+    required this.api,
     required this.controller,
     required this.seq,
     required this.session,
@@ -86,9 +88,6 @@ class Auth {
   }
 
   Future<void> logoutRequest() async {
-    final controller = this.controller();
-    if (controller == null) return;
-
     final seq = this.seq();
     final session = this.session();
 
@@ -99,7 +98,14 @@ class Auth {
       seq: seq,
     );
 
-    controller.add(SyncerMessageRequest(message: messageByte));
+    try {
+      await api.syncer.message(
+        SyncerMessageRequest(message: messageByte),
+        options: await api.callOptions(),
+      );
+    } catch (err) {
+      logger.warning("Syncer logoutRequest unary error (ignored): $err");
+    }
 
     await repositories.sessions.logout();
     streams.controllerAuth.add(false);

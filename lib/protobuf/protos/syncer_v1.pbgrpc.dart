@@ -32,6 +32,13 @@ class SyncerClient extends $grpc.Client {
 
   SyncerClient(super.channel, {super.options, super.interceptors});
 
+  $grpc.ResponseFuture<$0.SyncerMessageResponse> message(
+    $0.SyncerMessageRequest request, {
+    $grpc.CallOptions? options,
+  }) {
+    return $createUnaryCall(_$message, request, options: options);
+  }
+
   $grpc.ResponseStream<$0.SyncerMessageResponse> messages(
     $async.Stream<$0.SyncerMessageRequest> request, {
     $grpc.CallOptions? options,
@@ -41,6 +48,11 @@ class SyncerClient extends $grpc.Client {
 
   // method descriptors
 
+  static final _$message =
+      $grpc.ClientMethod<$0.SyncerMessageRequest, $0.SyncerMessageResponse>(
+          '/iperon.v1.Syncer/Message',
+          ($0.SyncerMessageRequest value) => value.writeToBuffer(),
+          $0.SyncerMessageResponse.fromBuffer);
   static final _$messages =
       $grpc.ClientMethod<$0.SyncerMessageRequest, $0.SyncerMessageResponse>(
           '/iperon.v1.Syncer/Messages',
@@ -55,6 +67,15 @@ abstract class SyncerServiceBase extends $grpc.Service {
   SyncerServiceBase() {
     $addMethod(
         $grpc.ServiceMethod<$0.SyncerMessageRequest, $0.SyncerMessageResponse>(
+            'Message',
+            message_Pre,
+            false,
+            false,
+            ($core.List<$core.int> value) =>
+                $0.SyncerMessageRequest.fromBuffer(value),
+            ($0.SyncerMessageResponse value) => value.writeToBuffer()));
+    $addMethod(
+        $grpc.ServiceMethod<$0.SyncerMessageRequest, $0.SyncerMessageResponse>(
             'Messages',
             messages,
             true,
@@ -63,6 +84,14 @@ abstract class SyncerServiceBase extends $grpc.Service {
                 $0.SyncerMessageRequest.fromBuffer(value),
             ($0.SyncerMessageResponse value) => value.writeToBuffer()));
   }
+
+  $async.Future<$0.SyncerMessageResponse> message_Pre($grpc.ServiceCall $call,
+      $async.Future<$0.SyncerMessageRequest> $request) async {
+    return message($call, await $request);
+  }
+
+  $async.Future<$0.SyncerMessageResponse> message(
+      $grpc.ServiceCall call, $0.SyncerMessageRequest request);
 
   $async.Stream<$0.SyncerMessageResponse> messages(
       $grpc.ServiceCall call, $async.Stream<$0.SyncerMessageRequest> request);

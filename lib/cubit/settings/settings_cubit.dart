@@ -37,7 +37,6 @@ class SettingsCubit extends Cubit<SettingsState> {
 
   Future<void> logout() async {
     await syncer.auth.logoutRequest();
-    emit(state.copyWith(logout: true));
   }
 
   @override
