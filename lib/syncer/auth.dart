@@ -94,9 +94,7 @@ class Auth {
 
     final messageByte = await crypto.syncer.encode(
       session: session,
-      message: message.LogoutRequest(
-        action: message.LogoutAction.current,
-      ).writeToBuffer(),
+      message: message.LogoutRequest().writeToBuffer(),
       messageType: SyncerMessageType.logoutRequest,
       seq: seq,
     );
