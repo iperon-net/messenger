@@ -1,8 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:messenger/cubit/main_cubit.dart';
-import 'package:messenger/cubit/settings/settings_cubit.dart';
+import 'package:go_router/go_router.dart';
 import 'package:messenger/cubit/settings/settings_language_state.dart';
 
 import '../../cubit/settings/settings_language_cubit.dart';
@@ -65,19 +64,6 @@ class _SettingsPrivateAndSecurityScreenCupertino extends State<SettingsPrivateAn
       listener: (context, state) {
       },
       builder: (context, state) {
-
-        Widget additionalInfo = FaIcon(
-          FontAwesomeIcons.solidCircleCheck,
-          size: 18,
-          color: CupertinoDynamicColor.resolve(
-            CupertinoDynamicColor.withBrightness(
-              color: CupertinoTheme.of(context).primaryColor,
-              darkColor: CupertinoTheme.of(context).primaryColor,
-            ),
-            context,
-          ),
-        );
-
         return CupertinoPageScaffold(
           backgroundColor: CupertinoColors.systemGroupedBackground,
           navigationBar: CupertinoNavigationBar(
@@ -93,7 +79,7 @@ class _SettingsPrivateAndSecurityScreenCupertino extends State<SettingsPrivateAn
                       title: Text(context.t.twoStepVerification),
                       color: Color(0xFFFFAF00),
                       icon: FontAwesomeIcons.lock,
-                      onTab: () async {},
+                      onTab: () async => context.go("/private_and_security/settings_two_step_verification"),
                       additionalInfo: Text(context.t.off),
                     ),
                   ],

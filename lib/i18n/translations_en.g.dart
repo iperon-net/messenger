@@ -253,6 +253,15 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 
 	/// en: 'On'
 	String get on => 'On';
+
+	/// en: 'Password'
+	String get password => 'Password';
+
+	/// en: 'New password'
+	String get newPassword => 'New password';
+
+	/// en: 'You can set a password that will be required when logging in from a new device'
+	String get youCanSetPasswordThatWillBeRequiredWhenLoggingInFromNewDevice => 'You can set a password that will be required when logging in from a new device';
 }
 
 /// The flat map containing all translations for locale <en>.
@@ -334,6 +343,9 @@ extension on Translations {
 			'twoStepVerification' => 'Two-Step Verification',
 			'off' => 'Off',
 			'on' => 'On',
+			'password' => 'Password',
+			'newPassword' => 'New password',
+			'youCanSetPasswordThatWillBeRequiredWhenLoggingInFromNewDevice' => 'You can set a password that will be required when logging in from a new device',
 			_ => null,
 		};
 	}

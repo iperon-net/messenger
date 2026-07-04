@@ -69,3 +69,6 @@
 "twoStepVerification": "Облачный пароль"
 "off": "Выкл"
 "on": "Вкл"
+"password": "Пароль"
+"newPassword": "Новый пароль"
+"youCanSetPasswordThatWillBeRequiredWhenLoggingInFromNewDevice": "Вы можете установть пароль, который будет запрашиваться при входе с нового устройства"

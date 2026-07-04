@@ -2,9 +2,11 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:messenger/repositories/repositories.dart';
 
+import 'cubit/settings/settings_two_step_verification_cubit.dart';
 import 'di.dart';
 import 'logger.dart';
 import 'screens.dart';
@@ -97,6 +99,15 @@ class Routers {
               GoRoute(
                 path: '/private_and_security',
                 builder: (_, _) => SettingsPrivateAndSecurityScreenCupertino(),
+                routes: <RouteBase>[
+                  GoRoute(
+                    path: '/settings_two_step_verification',
+                    builder: (_, _) => BlocProvider(
+                      create: (_) => SettingsTwoStepVerificationCubit(),
+                      child: SettingsTwoStepVerificationScreenCupertino(),
+                    ),
+                  ),
+                ],
               ),
             ],
 

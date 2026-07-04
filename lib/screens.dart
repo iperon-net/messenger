@@ -12,4 +12,5 @@ export 'screens/settings/settings_language_screen_cupertino.dart' show SettingsL
 export 'screens/settings/settings_screen_cupertino.dart' show SettingsCupertinoScreen;
 export 'screens/settings/settings_screen_material.dart' show SettingsMaterialScreen;
 export 'screens/settings/settings_private_and_security_screen_cupertino.dart' show SettingsPrivateAndSecurityScreenCupertino;
+export 'screens/settings/settings_two_step_verification_screen_cupertino.dart' show SettingsTwoStepVerificationScreenCupertino;
 

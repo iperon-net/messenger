@@ -19,6 +19,7 @@ import 'cubit/settings/settings_appearance_cubit.dart';
 import 'cubit/settings/settings_cubit.dart';
 import 'cubit/settings/settings_device_sessions_cubit.dart';
 import 'cubit/settings/settings_language_cubit.dart';
+import 'cubit/settings/settings_two_step_verification_cubit.dart';
 import 'di.dart';
 import 'i18n/translations.g.dart';
 import 'logger.dart';

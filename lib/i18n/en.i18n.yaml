@@ -69,3 +69,6 @@
 "twoStepVerification": "Two-Step Verification"
 "off": "Off"
 "on": "On"
+"password": "Password"
+"newPassword": "New password"
+"youCanSetPasswordThatWillBeRequiredWhenLoggingInFromNewDevice": "You can set a password that will be required when logging in from a new device"

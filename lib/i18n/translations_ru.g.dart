@@ -110,6 +110,9 @@ class TranslationsRu extends Translations with BaseTranslations<AppLocale, Trans
 	@override String get twoStepVerification => 'Облачный пароль';
 	@override String get off => 'Выкл';
 	@override String get on => 'Вкл';
+	@override String get password => 'Пароль';
+	@override String get newPassword => 'Новый пароль';
+	@override String get youCanSetPasswordThatWillBeRequiredWhenLoggingInFromNewDevice => 'Вы можете установть пароль, который будет запрашиваться при входе с нового устройства';
 }
 
 /// The flat map containing all translations for locale <ru>.
@@ -191,6 +194,9 @@ extension on TranslationsRu {
 			'twoStepVerification' => 'Облачный пароль',
 			'off' => 'Выкл',
 			'on' => 'Вкл',
+			'password' => 'Пароль',
+			'newPassword' => 'Новый пароль',
+			'youCanSetPasswordThatWillBeRequiredWhenLoggingInFromNewDevice' => 'Вы можете установть пароль, который будет запрашиваться при входе с нового устройства',
 			_ => null,
 		};
 	}
