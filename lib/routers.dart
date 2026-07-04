@@ -6,6 +6,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:messenger/repositories/repositories.dart';
 
+import 'cubit/auth/auth_callpassword_cubit.dart';
+import 'cubit/auth/auth_cubit.dart';
+import 'cubit/auth/auth_sms_cubit.dart';
 import 'cubit/main_cubit.dart';
 import 'cubit/settings/settings_language_cubit.dart';
 import 'cubit/settings/settings_two_step_verification_cubit.dart';
@@ -49,10 +52,13 @@ class Routers {
                 final timeout = double.parse(state.uri.queryParameters["timeout"] ?? "0");
 
                 if (callPasswordSession != null && confirmationPhoneNumber != null && timeout > 0) {
-                  return AuthCallPasswordMaterialScreen(
-                    callPasswordSession: callPasswordSession,
-                    confirmationPhoneNumber: confirmationPhoneNumber,
-                    timeout: timeout,
+                  return BlocProvider(
+                    create: (_) => AuthCallpasswordCubit(),
+                    child: AuthCallPasswordMaterialScreen(
+                      callPasswordSession: callPasswordSession,
+                      confirmationPhoneNumber: confirmationPhoneNumber,
+                      timeout: timeout,
+                    ),
                   );
                 }
 
@@ -123,7 +129,10 @@ class Routers {
           ),
           GoRoute(
             path: '/auth',
-            builder: (_, _) => AuthCupertinoScreen(),
+            builder: (_, _) => BlocProvider<AuthCubit>(
+              create: (_) => AuthCubit(),
+              child: AuthCupertinoScreen(),
+            ),
             routes: [
               GoRoute(
                 path: "/sms",
@@ -131,7 +140,10 @@ class Routers {
                   final smsSession = state.uri.queryParameters["smsSession"];
                   final phoneNumber = state.uri.queryParameters["phoneNumber"];
                   if (smsSession != null && phoneNumber != null) {
-                    return AuthSmsScreenCupertino(smsSession: smsSession, phoneNumber: phoneNumber);
+                    return BlocProvider(
+                      create: (_) => AuthSmsCubit(),
+                      child: AuthSmsScreenCupertino(smsSession: smsSession, phoneNumber: phoneNumber),
+                    );
                   }
 
                   if (context.mounted) context.go("/auth");
@@ -146,10 +158,13 @@ class Routers {
                   final timeout = double.parse(state.uri.queryParameters["timeout"] ?? "0");
 
                   if (callPasswordSession != null && confirmationPhoneNumber != null && timeout > 0) {
-                    return AuthCallPasswordCupertinoScreen(
-                      callPasswordSession: callPasswordSession,
-                      confirmationPhoneNumber: confirmationPhoneNumber,
-                      timeout: timeout,
+                    return BlocProvider(
+                      create: (_) => AuthCallpasswordCubit(),
+                      child: AuthCallPasswordCupertinoScreen(
+                        callPasswordSession: callPasswordSession,
+                        confirmationPhoneNumber: confirmationPhoneNumber,
+                        timeout: timeout,
+                      ),
                     );
                   }
 
