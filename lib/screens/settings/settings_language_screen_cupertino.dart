@@ -19,8 +19,6 @@ class _SettingsLanguageScreenCupertino extends State<SettingsLanguageScreenCuper
   @override
   void initState() {
     super.initState();
-    final locate = context.read<MainCubit>().state.settingsDevice.locale;
-    context.read<SettingsLanguageCubit>().setLocale(locale: locate ?? AppLocale.en);
   }
 
   @override

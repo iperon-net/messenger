@@ -12,6 +12,10 @@ class SettingsLanguageCubit extends Cubit<SettingsLanguageState> {
   final logger = getIt.get<Logger>();
   final repositories = getIt.get<Repositories>();
 
+  Future<void> initialization({required AppLocale locale}) async {
+    emit(state.copyWith(locale: locale));
+  }
+
   Future<void> setLocale({required AppLocale locale}) async {
     LocaleSettings.setLocale(locale);
     await repositories.settingsDevice.setLocale(locale: locale);

@@ -6,6 +6,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:messenger/repositories/repositories.dart';
 
+import 'cubit/main_cubit.dart';
+import 'cubit/settings/settings_language_cubit.dart';
 import 'cubit/settings/settings_two_step_verification_cubit.dart';
 import 'di.dart';
 import 'logger.dart';
@@ -86,7 +88,14 @@ class Routers {
             routes: [
               GoRoute(
                 path: '/settings_language',
-                builder: (_, _) => SettingsLanguageScreenCupertino(),
+                builder: (_, _) => BlocProvider(
+                  create: (BuildContext context) {
+                    final locate = context.read<MainCubit>().state.settingsDevice.locale;
+                    if (locate != null) return SettingsLanguageCubit()..initialization(locale: locate);
+                    return SettingsLanguageCubit();
+                  },
+                  child: SettingsLanguageScreenCupertino(),
+                ),
               ),
               GoRoute(
                 path: '/settings_appearance',

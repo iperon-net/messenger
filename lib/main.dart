@@ -69,9 +69,6 @@ Future<void> main() async {
           BlocProvider<MainCubit>(
             create: (_) => MainCubit(),
           ),
-          BlocProvider<CommonCubit>(
-            create: (_) => CommonCubit(),
-          ),
           BlocProvider<AuthCubit>(
             create: (_) => AuthCubit(),
           ),
@@ -86,9 +83,6 @@ Future<void> main() async {
           ),
           BlocProvider<SettingsCubit>(
             create: (_) => SettingsCubit(),
-          ),
-          BlocProvider<SettingsLanguageCubit>(
-            create: (_) => SettingsLanguageCubit(),
           ),
           BlocProvider<SettingsAppearanceCubit>(
             create: (_) => SettingsAppearanceCubit(),
