@@ -12,8 +12,6 @@ import 'cubit/contacts/contacts_cubit.dart';
 import 'cubit/home/home_cubit.dart';
 import 'cubit/main_cubit.dart';
 import 'cubit/main_state.dart';
-import 'cubit/settings/settings_appearance_cubit.dart';
-import 'cubit/settings/settings_cubit.dart';
 import 'cubit/settings/settings_device_sessions_cubit.dart';
 import 'di.dart';
 import 'i18n/translations.g.dart';
@@ -66,12 +64,6 @@ Future<void> main() async {
           ),
           BlocProvider<HomeCubit>(
             create: (_) => HomeCubit(),
-          ),
-          BlocProvider<SettingsCubit>(
-            create: (_) => SettingsCubit(),
-          ),
-          BlocProvider<SettingsAppearanceCubit>(
-            create: (_) => SettingsAppearanceCubit(),
           ),
           BlocProvider<SettingsDeviceSessionsCubit>(
             create: (_) => SettingsDeviceSessionsCubit(),

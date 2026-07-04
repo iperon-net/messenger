@@ -10,6 +10,8 @@ import 'cubit/auth/auth_callpassword_cubit.dart';
 import 'cubit/auth/auth_cubit.dart';
 import 'cubit/auth/auth_sms_cubit.dart';
 import 'cubit/main_cubit.dart';
+import 'cubit/settings/settings_appearance_cubit.dart';
+import 'cubit/settings/settings_cubit.dart';
 import 'cubit/settings/settings_language_cubit.dart';
 import 'cubit/settings/settings_two_step_verification_cubit.dart';
 import 'di.dart';
@@ -88,44 +90,54 @@ class Routers {
           return null;
         },
         routes: <RouteBase>[
-          GoRoute(
-            path: '/',
-            builder: (_, _) => HomeCupertinoScreen(),
+          ShellRoute(
+            builder: (context, state, child) => BlocProvider(
+              create: (_) => SettingsCubit(),
+              child: child,
+            ),
             routes: [
               GoRoute(
-                path: '/settings_language',
-                builder: (_, _) => BlocProvider(
-                  create: (BuildContext context) {
-                    final locate = context.read<MainCubit>().state.settingsDevice.locale;
-                    if (locate != null) return SettingsLanguageCubit()..initialization(locale: locate);
-                    return SettingsLanguageCubit();
-                  },
-                  child: SettingsLanguageScreenCupertino(),
-                ),
-              ),
-              GoRoute(
-                path: '/settings_appearance',
-                builder: (_, _) => SettingsAppearanceScreenCupertino(),
-              ),
-              GoRoute(
-                path: '/settings_device_sessions',
-                builder: (_, _) => SettingsDeviceSessionsScreenCupertino(),
-              ),
-              GoRoute(
-                path: '/private_and_security',
-                builder: (_, _) => SettingsPrivateAndSecurityScreenCupertino(),
-                routes: <RouteBase>[
+                path: '/',
+                builder: (_, _) => HomeCupertinoScreen(),
+                routes: [
                   GoRoute(
-                    path: '/settings_two_step_verification',
+                    path: '/settings_language',
                     builder: (_, _) => BlocProvider(
-                      create: (_) => SettingsTwoStepVerificationCubit(),
-                      child: SettingsTwoStepVerificationScreenCupertino(),
+                      create: (BuildContext context) {
+                        final locate = context.read<MainCubit>().state.settingsDevice.locale;
+                        if (locate != null) return SettingsLanguageCubit()..initialization(locale: locate);
+                        return SettingsLanguageCubit();
+                      },
+                      child: SettingsLanguageScreenCupertino(),
                     ),
+                  ),
+                  GoRoute(
+                    path: '/settings_appearance',
+                    builder: (_, _) => BlocProvider(
+                      create: (_) => SettingsAppearanceCubit(),
+                      child: SettingsAppearanceScreenCupertino(),
+                    ),
+                  ),
+                  GoRoute(
+                    path: '/settings_device_sessions',
+                    builder: (_, _) => SettingsDeviceSessionsScreenCupertino(),
+                  ),
+                  GoRoute(
+                    path: '/private_and_security',
+                    builder: (_, _) => SettingsPrivateAndSecurityScreenCupertino(),
+                    routes: <RouteBase>[
+                      GoRoute(
+                        path: '/settings_two_step_verification',
+                        builder: (_, _) => BlocProvider(
+                          create: (_) => SettingsTwoStepVerificationCubit(),
+                          child: SettingsTwoStepVerificationScreenCupertino(),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
             ],
-
           ),
           GoRoute(
             path: '/auth',
