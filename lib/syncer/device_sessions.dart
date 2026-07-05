@@ -24,7 +24,7 @@ class DeviceSessions {
     required this.session,
   });
 
-  Future<void> getAllSessionRequest() async {
+  Future<void> getAll() async {
     final controller = this.controller();
     if (controller == null) return;
 
@@ -46,7 +46,7 @@ class DeviceSessions {
     controller.add(SyncerMessageRequest(message: messageByte));
   }
 
-  Future<void> getAllResponse({required List<int> msg, required Header header}) async {
+  Future<void> getAllResult({required List<int> msg, required Header header}) async {
     final session = this.session();
 
     final messageByte = await crypto.syncer.decode(

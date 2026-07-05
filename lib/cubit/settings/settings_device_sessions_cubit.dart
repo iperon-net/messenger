@@ -36,7 +36,7 @@ class SettingsDeviceSessionsCubit extends Cubit<SettingsDeviceSessionsState> {
   }
 
   Future<void> refresh() async {
-    await syncer.deviceSessions.getAllSessionRequest();
+    await syncer.deviceSessions.getAll();
   }
 
   Future<void> setDeviceSessions({required List<models.DeviceSession> deviceSessions}) async {
