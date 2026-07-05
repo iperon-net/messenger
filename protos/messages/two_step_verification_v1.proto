@@ -3,5 +3,8 @@ syntax = "proto3";
 package iperon.v1.messages;
 option go_package = "internal/api/messages";
 
-message Logout {}
-message LogoutResult {}
+message TwoStepVerification {
+  bytes password = 1;
+}
+
+message TwoStepVerificationResult {}

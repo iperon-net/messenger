@@ -44,7 +44,7 @@ class Auth {
 
     final messageByte = await crypto.syncer.encode(
       session: session,
-      message: message.AuthRequest(
+      message: message.Auth(
         session: session.session,
         osVersion: deviceInfo.osVersion,
         appVersion: packageInfo.appVersion,
@@ -79,7 +79,7 @@ class Auth {
       messageType: SyncerMessageType.authResponse,
     );
 
-    final proto = message.AuthResponse.fromBuffer(messageByte);
+    final proto = message.AuthResult.fromBuffer(messageByte);
     await repositories.users.setSalt(salt: proto.salt, session: session);
 
     final dateTime = proto.serverAt.toDateTime();
@@ -93,7 +93,7 @@ class Auth {
 
     final messageByte = await crypto.syncer.encode(
       session: session,
-      message: message.LogoutRequest().writeToBuffer(),
+      message: message.Logout().writeToBuffer(),
       messageType: SyncerMessageType.logoutRequest,
       seq: seq,
     );

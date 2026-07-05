@@ -1,18 +1,18 @@
 syntax = "proto3";
 
-package iperon.v1;
+package iperon.v1.messages;
 option go_package = "internal/api/messages";
 
 import "google/protobuf/timestamp.proto";
 
-message AuthRequest {
+message Auth {
   bytes session = 1;
   string osVersion = 2;
   string appVersion = 3;
   string appBuildNumber = 4;
 }
 
-message AuthResponse {
+message AuthResult {
   bytes salt = 1;
   google.protobuf.Timestamp serverAt = 2;
 }

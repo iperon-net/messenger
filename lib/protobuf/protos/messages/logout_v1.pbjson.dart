@@ -15,20 +15,20 @@ import 'dart:convert' as $convert;
 import 'dart:core' as $core;
 import 'dart:typed_data' as $typed_data;
 
-@$core.Deprecated('Use logoutRequestDescriptor instead')
-const LogoutRequest$json = {
-  '1': 'LogoutRequest',
+@$core.Deprecated('Use logoutDescriptor instead')
+const Logout$json = {
+  '1': 'Logout',
 };
 
-/// Descriptor for `LogoutRequest`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List logoutRequestDescriptor =
-    $convert.base64Decode('Cg1Mb2dvdXRSZXF1ZXN0');
+/// Descriptor for `Logout`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List logoutDescriptor =
+    $convert.base64Decode('CgZMb2dvdXQ=');
 
-@$core.Deprecated('Use logoutResponseDescriptor instead')
-const LogoutResponse$json = {
-  '1': 'LogoutResponse',
+@$core.Deprecated('Use logoutResultDescriptor instead')
+const LogoutResult$json = {
+  '1': 'LogoutResult',
 };
 
-/// Descriptor for `LogoutResponse`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List logoutResponseDescriptor =
-    $convert.base64Decode('Cg5Mb2dvdXRSZXNwb25zZQ==');
+/// Descriptor for `LogoutResult`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List logoutResultDescriptor =
+    $convert.base64Decode('CgxMb2dvdXRSZXN1bHQ=');

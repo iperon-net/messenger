@@ -15,9 +15,9 @@ import 'dart:convert' as $convert;
 import 'dart:core' as $core;
 import 'dart:typed_data' as $typed_data;
 
-@$core.Deprecated('Use authRequestDescriptor instead')
-const AuthRequest$json = {
-  '1': 'AuthRequest',
+@$core.Deprecated('Use authDescriptor instead')
+const Auth$json = {
+  '1': 'Auth',
   '2': [
     {'1': 'session', '3': 1, '4': 1, '5': 12, '10': 'session'},
     {'1': 'osVersion', '3': 2, '4': 1, '5': 9, '10': 'osVersion'},
@@ -26,15 +26,15 @@ const AuthRequest$json = {
   ],
 };
 
-/// Descriptor for `AuthRequest`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List authRequestDescriptor = $convert.base64Decode(
-    'CgtBdXRoUmVxdWVzdBIYCgdzZXNzaW9uGAEgASgMUgdzZXNzaW9uEhwKCW9zVmVyc2lvbhgCIA'
-    'EoCVIJb3NWZXJzaW9uEh4KCmFwcFZlcnNpb24YAyABKAlSCmFwcFZlcnNpb24SJgoOYXBwQnVp'
-    'bGROdW1iZXIYBCABKAlSDmFwcEJ1aWxkTnVtYmVy');
+/// Descriptor for `Auth`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List authDescriptor = $convert.base64Decode(
+    'CgRBdXRoEhgKB3Nlc3Npb24YASABKAxSB3Nlc3Npb24SHAoJb3NWZXJzaW9uGAIgASgJUglvc1'
+    'ZlcnNpb24SHgoKYXBwVmVyc2lvbhgDIAEoCVIKYXBwVmVyc2lvbhImCg5hcHBCdWlsZE51bWJl'
+    'chgEIAEoCVIOYXBwQnVpbGROdW1iZXI=');
 
-@$core.Deprecated('Use authResponseDescriptor instead')
-const AuthResponse$json = {
-  '1': 'AuthResponse',
+@$core.Deprecated('Use authResultDescriptor instead')
+const AuthResult$json = {
+  '1': 'AuthResult',
   '2': [
     {'1': 'salt', '3': 1, '4': 1, '5': 12, '10': 'salt'},
     {
@@ -48,7 +48,7 @@ const AuthResponse$json = {
   ],
 };
 
-/// Descriptor for `AuthResponse`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List authResponseDescriptor = $convert.base64Decode(
-    'CgxBdXRoUmVzcG9uc2USEgoEc2FsdBgBIAEoDFIEc2FsdBI2CghzZXJ2ZXJBdBgCIAEoCzIaLm'
-    'dvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBSCHNlcnZlckF0');
+/// Descriptor for `AuthResult`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List authResultDescriptor = $convert.base64Decode(
+    'CgpBdXRoUmVzdWx0EhIKBHNhbHQYASABKAxSBHNhbHQSNgoIc2VydmVyQXQYAiABKAsyGi5nb2'
+    '9nbGUucHJvdG9idWYuVGltZXN0YW1wUghzZXJ2ZXJBdA==');

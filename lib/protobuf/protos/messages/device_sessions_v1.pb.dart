@@ -54,7 +54,8 @@ class DeviceSession extends $pb.GeneratedMessage {
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
       _omitMessageNames ? '' : 'DeviceSession',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'),
+      package:
+          const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1.messages'),
       createEmptyInstance: create)
     ..a<$core.List<$core.int>>(
         1, _omitFieldNames ? '' : 'sessionID', $pb.PbFieldType.OY,
@@ -176,47 +177,47 @@ class DeviceSession extends $pb.GeneratedMessage {
   void clearLocationEnglish() => $_clearField(9);
 }
 
-class DeviceSessionsRequest extends $pb.GeneratedMessage {
-  factory DeviceSessionsRequest() => create();
+class DeviceSessions extends $pb.GeneratedMessage {
+  factory DeviceSessions() => create();
 
-  DeviceSessionsRequest._();
+  DeviceSessions._();
 
-  factory DeviceSessionsRequest.fromBuffer($core.List<$core.int> data,
+  factory DeviceSessions.fromBuffer($core.List<$core.int> data,
           [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(data, registry);
-  factory DeviceSessionsRequest.fromJson($core.String json,
+  factory DeviceSessions.fromJson($core.String json,
           [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(json, registry);
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      _omitMessageNames ? '' : 'DeviceSessionsRequest',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'),
+      _omitMessageNames ? '' : 'DeviceSessions',
+      package:
+          const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1.messages'),
       createEmptyInstance: create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  DeviceSessionsRequest clone() => deepCopy();
+  DeviceSessions clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  DeviceSessionsRequest copyWith(
-          void Function(DeviceSessionsRequest) updates) =>
-      super.copyWith((message) => updates(message as DeviceSessionsRequest))
-          as DeviceSessionsRequest;
+  DeviceSessions copyWith(void Function(DeviceSessions) updates) =>
+      super.copyWith((message) => updates(message as DeviceSessions))
+          as DeviceSessions;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
-  static DeviceSessionsRequest create() => DeviceSessionsRequest._();
+  static DeviceSessions create() => DeviceSessions._();
   @$core.override
-  DeviceSessionsRequest createEmptyInstance() => create();
+  DeviceSessions createEmptyInstance() => create();
   @$core.pragma('dart2js:noInline')
-  static DeviceSessionsRequest getDefault() => _defaultInstance ??=
-      $pb.GeneratedMessage.$_defaultFor<DeviceSessionsRequest>(create);
-  static DeviceSessionsRequest? _defaultInstance;
+  static DeviceSessions getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<DeviceSessions>(create);
+  static DeviceSessions? _defaultInstance;
 }
 
-class DeviceSessionsResponse extends $pb.GeneratedMessage {
-  factory DeviceSessionsResponse({
+class DeviceSessionsResult extends $pb.GeneratedMessage {
+  factory DeviceSessionsResult({
     $core.Iterable<DeviceSession>? deviceSessions,
   }) {
     final result = create();
@@ -224,49 +225,49 @@ class DeviceSessionsResponse extends $pb.GeneratedMessage {
     return result;
   }
 
-  DeviceSessionsResponse._();
+  DeviceSessionsResult._();
 
-  factory DeviceSessionsResponse.fromBuffer($core.List<$core.int> data,
+  factory DeviceSessionsResult.fromBuffer($core.List<$core.int> data,
           [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(data, registry);
-  factory DeviceSessionsResponse.fromJson($core.String json,
+  factory DeviceSessionsResult.fromJson($core.String json,
           [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(json, registry);
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      _omitMessageNames ? '' : 'DeviceSessionsResponse',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'),
+      _omitMessageNames ? '' : 'DeviceSessionsResult',
+      package:
+          const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1.messages'),
       createEmptyInstance: create)
     ..pPM<DeviceSession>(1, _omitFieldNames ? '' : 'deviceSessions',
         protoName: 'deviceSessions', subBuilder: DeviceSession.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  DeviceSessionsResponse clone() => deepCopy();
+  DeviceSessionsResult clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  DeviceSessionsResponse copyWith(
-          void Function(DeviceSessionsResponse) updates) =>
-      super.copyWith((message) => updates(message as DeviceSessionsResponse))
-          as DeviceSessionsResponse;
+  DeviceSessionsResult copyWith(void Function(DeviceSessionsResult) updates) =>
+      super.copyWith((message) => updates(message as DeviceSessionsResult))
+          as DeviceSessionsResult;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
-  static DeviceSessionsResponse create() => DeviceSessionsResponse._();
+  static DeviceSessionsResult create() => DeviceSessionsResult._();
   @$core.override
-  DeviceSessionsResponse createEmptyInstance() => create();
+  DeviceSessionsResult createEmptyInstance() => create();
   @$core.pragma('dart2js:noInline')
-  static DeviceSessionsResponse getDefault() => _defaultInstance ??=
-      $pb.GeneratedMessage.$_defaultFor<DeviceSessionsResponse>(create);
-  static DeviceSessionsResponse? _defaultInstance;
+  static DeviceSessionsResult getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<DeviceSessionsResult>(create);
+  static DeviceSessionsResult? _defaultInstance;
 
   @$pb.TagNumber(1)
   $pb.PbList<DeviceSession> get deviceSessions => $_getList(0);
 }
 
-class DeviceSessionsLogoutRequest extends $pb.GeneratedMessage {
-  factory DeviceSessionsLogoutRequest({
+class DeviceSessionsLogout extends $pb.GeneratedMessage {
+  factory DeviceSessionsLogout({
     $core.Iterable<$core.List<$core.int>>? sessionID,
   }) {
     final result = create();
@@ -274,18 +275,19 @@ class DeviceSessionsLogoutRequest extends $pb.GeneratedMessage {
     return result;
   }
 
-  DeviceSessionsLogoutRequest._();
+  DeviceSessionsLogout._();
 
-  factory DeviceSessionsLogoutRequest.fromBuffer($core.List<$core.int> data,
+  factory DeviceSessionsLogout.fromBuffer($core.List<$core.int> data,
           [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(data, registry);
-  factory DeviceSessionsLogoutRequest.fromJson($core.String json,
+  factory DeviceSessionsLogout.fromJson($core.String json,
           [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(json, registry);
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      _omitMessageNames ? '' : 'DeviceSessionsLogoutRequest',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'),
+      _omitMessageNames ? '' : 'DeviceSessionsLogout',
+      package:
+          const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1.messages'),
       createEmptyInstance: create)
     ..p<$core.List<$core.int>>(
         1, _omitFieldNames ? '' : 'sessionID', $pb.PbFieldType.PY,
@@ -293,70 +295,67 @@ class DeviceSessionsLogoutRequest extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  DeviceSessionsLogoutRequest clone() => deepCopy();
+  DeviceSessionsLogout clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  DeviceSessionsLogoutRequest copyWith(
-          void Function(DeviceSessionsLogoutRequest) updates) =>
-      super.copyWith(
-              (message) => updates(message as DeviceSessionsLogoutRequest))
-          as DeviceSessionsLogoutRequest;
+  DeviceSessionsLogout copyWith(void Function(DeviceSessionsLogout) updates) =>
+      super.copyWith((message) => updates(message as DeviceSessionsLogout))
+          as DeviceSessionsLogout;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
-  static DeviceSessionsLogoutRequest create() =>
-      DeviceSessionsLogoutRequest._();
+  static DeviceSessionsLogout create() => DeviceSessionsLogout._();
   @$core.override
-  DeviceSessionsLogoutRequest createEmptyInstance() => create();
+  DeviceSessionsLogout createEmptyInstance() => create();
   @$core.pragma('dart2js:noInline')
-  static DeviceSessionsLogoutRequest getDefault() => _defaultInstance ??=
-      $pb.GeneratedMessage.$_defaultFor<DeviceSessionsLogoutRequest>(create);
-  static DeviceSessionsLogoutRequest? _defaultInstance;
+  static DeviceSessionsLogout getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<DeviceSessionsLogout>(create);
+  static DeviceSessionsLogout? _defaultInstance;
 
   @$pb.TagNumber(1)
   $pb.PbList<$core.List<$core.int>> get sessionID => $_getList(0);
 }
 
-class DeviceSessionsLogoutResponse extends $pb.GeneratedMessage {
-  factory DeviceSessionsLogoutResponse() => create();
+class DeviceSessionsLogoutResult extends $pb.GeneratedMessage {
+  factory DeviceSessionsLogoutResult() => create();
 
-  DeviceSessionsLogoutResponse._();
+  DeviceSessionsLogoutResult._();
 
-  factory DeviceSessionsLogoutResponse.fromBuffer($core.List<$core.int> data,
+  factory DeviceSessionsLogoutResult.fromBuffer($core.List<$core.int> data,
           [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(data, registry);
-  factory DeviceSessionsLogoutResponse.fromJson($core.String json,
+  factory DeviceSessionsLogoutResult.fromJson($core.String json,
           [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(json, registry);
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      _omitMessageNames ? '' : 'DeviceSessionsLogoutResponse',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'),
+      _omitMessageNames ? '' : 'DeviceSessionsLogoutResult',
+      package:
+          const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1.messages'),
       createEmptyInstance: create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  DeviceSessionsLogoutResponse clone() => deepCopy();
+  DeviceSessionsLogoutResult clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  DeviceSessionsLogoutResponse copyWith(
-          void Function(DeviceSessionsLogoutResponse) updates) =>
+  DeviceSessionsLogoutResult copyWith(
+          void Function(DeviceSessionsLogoutResult) updates) =>
       super.copyWith(
-              (message) => updates(message as DeviceSessionsLogoutResponse))
-          as DeviceSessionsLogoutResponse;
+              (message) => updates(message as DeviceSessionsLogoutResult))
+          as DeviceSessionsLogoutResult;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
-  static DeviceSessionsLogoutResponse create() =>
-      DeviceSessionsLogoutResponse._();
+  static DeviceSessionsLogoutResult create() => DeviceSessionsLogoutResult._();
   @$core.override
-  DeviceSessionsLogoutResponse createEmptyInstance() => create();
+  DeviceSessionsLogoutResult createEmptyInstance() => create();
   @$core.pragma('dart2js:noInline')
-  static DeviceSessionsLogoutResponse getDefault() => _defaultInstance ??=
-      $pb.GeneratedMessage.$_defaultFor<DeviceSessionsLogoutResponse>(create);
-  static DeviceSessionsLogoutResponse? _defaultInstance;
+  static DeviceSessionsLogoutResult getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<DeviceSessionsLogoutResult>(create);
+  static DeviceSessionsLogoutResult? _defaultInstance;
 }
 
 const $core.bool _omitFieldNames =

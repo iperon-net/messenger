@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package iperon.v1;
+package iperon.v1.messages;
 option go_package = "internal/api/messages";
 
 import "google/protobuf/timestamp.proto";
@@ -17,14 +17,14 @@ message DeviceSession {
   string locationEnglish = 9;
 }
 
-message DeviceSessionsRequest {}
+message DeviceSessions {}
 
-message DeviceSessionsResponse {
+message DeviceSessionsResult {
   repeated DeviceSession deviceSessions = 1;
 }
 
-message DeviceSessionsLogoutRequest {
+message DeviceSessionsLogout {
   repeated bytes sessionID = 1;
 }
 
-message DeviceSessionsLogoutResponse {}
+message DeviceSessionsLogoutResult {}

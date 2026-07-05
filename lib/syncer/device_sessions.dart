@@ -38,7 +38,7 @@ class DeviceSessions {
 
     final messageByte = await crypto.syncer.encode(
       session: session,
-      message: message.DeviceSessionsRequest().writeToBuffer(),
+      message: message.DeviceSessions().writeToBuffer(),
       messageType: SyncerMessageType.deviceSessionsRequest,
       seq: seq,
     );
@@ -55,7 +55,7 @@ class DeviceSessions {
       messageType: SyncerMessageType.deviceSessionsResponse,
     );
 
-    final proto = message.DeviceSessionsResponse.fromBuffer(messageByte);
+    final proto = message.DeviceSessionsResult.fromBuffer(messageByte);
 
     final deviceSessions = <models.DeviceSession>[];
 
@@ -98,7 +98,7 @@ class DeviceSessions {
 
     final messageByte = await crypto.syncer.encode(
       session: session,
-      message: message.DeviceSessionsLogoutRequest(sessionID: sessionID).writeToBuffer(),
+      message: message.DeviceSessionsLogout(sessionID: sessionID).writeToBuffer(),
       messageType: SyncerMessageType.deviceSessionsLogoutRequest,
       seq: seq,
     );

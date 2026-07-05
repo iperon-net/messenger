@@ -16,80 +16,81 @@ import 'package:protobuf/protobuf.dart' as $pb;
 
 export 'package:protobuf/protobuf.dart' show GeneratedMessageGenericExtensions;
 
-class LogoutRequest extends $pb.GeneratedMessage {
-  factory LogoutRequest() => create();
+class Logout extends $pb.GeneratedMessage {
+  factory Logout() => create();
 
-  LogoutRequest._();
+  Logout._();
 
-  factory LogoutRequest.fromBuffer($core.List<$core.int> data,
+  factory Logout.fromBuffer($core.List<$core.int> data,
           [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(data, registry);
-  factory LogoutRequest.fromJson($core.String json,
+  factory Logout.fromJson($core.String json,
           [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(json, registry);
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      _omitMessageNames ? '' : 'LogoutRequest',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'),
+      _omitMessageNames ? '' : 'Logout',
+      package:
+          const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1.messages'),
       createEmptyInstance: create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  LogoutRequest clone() => deepCopy();
+  Logout clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  LogoutRequest copyWith(void Function(LogoutRequest) updates) =>
-      super.copyWith((message) => updates(message as LogoutRequest))
-          as LogoutRequest;
+  Logout copyWith(void Function(Logout) updates) =>
+      super.copyWith((message) => updates(message as Logout)) as Logout;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
-  static LogoutRequest create() => LogoutRequest._();
+  static Logout create() => Logout._();
   @$core.override
-  LogoutRequest createEmptyInstance() => create();
+  Logout createEmptyInstance() => create();
   @$core.pragma('dart2js:noInline')
-  static LogoutRequest getDefault() => _defaultInstance ??=
-      $pb.GeneratedMessage.$_defaultFor<LogoutRequest>(create);
-  static LogoutRequest? _defaultInstance;
+  static Logout getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Logout>(create);
+  static Logout? _defaultInstance;
 }
 
-class LogoutResponse extends $pb.GeneratedMessage {
-  factory LogoutResponse() => create();
+class LogoutResult extends $pb.GeneratedMessage {
+  factory LogoutResult() => create();
 
-  LogoutResponse._();
+  LogoutResult._();
 
-  factory LogoutResponse.fromBuffer($core.List<$core.int> data,
+  factory LogoutResult.fromBuffer($core.List<$core.int> data,
           [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(data, registry);
-  factory LogoutResponse.fromJson($core.String json,
+  factory LogoutResult.fromJson($core.String json,
           [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(json, registry);
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      _omitMessageNames ? '' : 'LogoutResponse',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'),
+      _omitMessageNames ? '' : 'LogoutResult',
+      package:
+          const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1.messages'),
       createEmptyInstance: create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  LogoutResponse clone() => deepCopy();
+  LogoutResult clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  LogoutResponse copyWith(void Function(LogoutResponse) updates) =>
-      super.copyWith((message) => updates(message as LogoutResponse))
-          as LogoutResponse;
+  LogoutResult copyWith(void Function(LogoutResult) updates) =>
+      super.copyWith((message) => updates(message as LogoutResult))
+          as LogoutResult;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
-  static LogoutResponse create() => LogoutResponse._();
+  static LogoutResult create() => LogoutResult._();
   @$core.override
-  LogoutResponse createEmptyInstance() => create();
+  LogoutResult createEmptyInstance() => create();
   @$core.pragma('dart2js:noInline')
-  static LogoutResponse getDefault() => _defaultInstance ??=
-      $pb.GeneratedMessage.$_defaultFor<LogoutResponse>(create);
-  static LogoutResponse? _defaultInstance;
+  static LogoutResult getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<LogoutResult>(create);
+  static LogoutResult? _defaultInstance;
 }
 
 const $core.bool _omitMessageNames =

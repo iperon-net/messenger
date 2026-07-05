@@ -18,8 +18,8 @@ import 'package:protobuf/well_known_types/google/protobuf/timestamp.pb.dart'
 
 export 'package:protobuf/protobuf.dart' show GeneratedMessageGenericExtensions;
 
-class AuthRequest extends $pb.GeneratedMessage {
-  factory AuthRequest({
+class Auth extends $pb.GeneratedMessage {
+  factory Auth({
     $core.List<$core.int>? session,
     $core.String? osVersion,
     $core.String? appVersion,
@@ -33,18 +33,19 @@ class AuthRequest extends $pb.GeneratedMessage {
     return result;
   }
 
-  AuthRequest._();
+  Auth._();
 
-  factory AuthRequest.fromBuffer($core.List<$core.int> data,
+  factory Auth.fromBuffer($core.List<$core.int> data,
           [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(data, registry);
-  factory AuthRequest.fromJson($core.String json,
+  factory Auth.fromJson($core.String json,
           [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(json, registry);
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      _omitMessageNames ? '' : 'AuthRequest',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'),
+      _omitMessageNames ? '' : 'Auth',
+      package:
+          const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1.messages'),
       createEmptyInstance: create)
     ..a<$core.List<$core.int>>(
         1, _omitFieldNames ? '' : 'session', $pb.PbFieldType.OY)
@@ -55,23 +56,22 @@ class AuthRequest extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  AuthRequest clone() => deepCopy();
+  Auth clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  AuthRequest copyWith(void Function(AuthRequest) updates) =>
-      super.copyWith((message) => updates(message as AuthRequest))
-          as AuthRequest;
+  Auth copyWith(void Function(Auth) updates) =>
+      super.copyWith((message) => updates(message as Auth)) as Auth;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
-  static AuthRequest create() => AuthRequest._();
+  static Auth create() => Auth._();
   @$core.override
-  AuthRequest createEmptyInstance() => create();
+  Auth createEmptyInstance() => create();
   @$core.pragma('dart2js:noInline')
-  static AuthRequest getDefault() => _defaultInstance ??=
-      $pb.GeneratedMessage.$_defaultFor<AuthRequest>(create);
-  static AuthRequest? _defaultInstance;
+  static Auth getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Auth>(create);
+  static Auth? _defaultInstance;
 
   @$pb.TagNumber(1)
   $core.List<$core.int> get session => $_getN(0);
@@ -110,8 +110,8 @@ class AuthRequest extends $pb.GeneratedMessage {
   void clearAppBuildNumber() => $_clearField(4);
 }
 
-class AuthResponse extends $pb.GeneratedMessage {
-  factory AuthResponse({
+class AuthResult extends $pb.GeneratedMessage {
+  factory AuthResult({
     $core.List<$core.int>? salt,
     $0.Timestamp? serverAt,
   }) {
@@ -121,18 +121,19 @@ class AuthResponse extends $pb.GeneratedMessage {
     return result;
   }
 
-  AuthResponse._();
+  AuthResult._();
 
-  factory AuthResponse.fromBuffer($core.List<$core.int> data,
+  factory AuthResult.fromBuffer($core.List<$core.int> data,
           [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(data, registry);
-  factory AuthResponse.fromJson($core.String json,
+  factory AuthResult.fromJson($core.String json,
           [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(json, registry);
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      _omitMessageNames ? '' : 'AuthResponse',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'),
+      _omitMessageNames ? '' : 'AuthResult',
+      package:
+          const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1.messages'),
       createEmptyInstance: create)
     ..a<$core.List<$core.int>>(
         1, _omitFieldNames ? '' : 'salt', $pb.PbFieldType.OY)
@@ -141,23 +142,22 @@ class AuthResponse extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  AuthResponse clone() => deepCopy();
+  AuthResult clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  AuthResponse copyWith(void Function(AuthResponse) updates) =>
-      super.copyWith((message) => updates(message as AuthResponse))
-          as AuthResponse;
+  AuthResult copyWith(void Function(AuthResult) updates) =>
+      super.copyWith((message) => updates(message as AuthResult)) as AuthResult;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
-  static AuthResponse create() => AuthResponse._();
+  static AuthResult create() => AuthResult._();
   @$core.override
-  AuthResponse createEmptyInstance() => create();
+  AuthResult createEmptyInstance() => create();
   @$core.pragma('dart2js:noInline')
-  static AuthResponse getDefault() => _defaultInstance ??=
-      $pb.GeneratedMessage.$_defaultFor<AuthResponse>(create);
-  static AuthResponse? _defaultInstance;
+  static AuthResult getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<AuthResult>(create);
+  static AuthResult? _defaultInstance;
 
   @$pb.TagNumber(1)
   $core.List<$core.int> get salt => $_getN(0);
