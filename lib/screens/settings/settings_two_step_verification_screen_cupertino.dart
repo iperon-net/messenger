@@ -1,11 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:messenger/cubit/settings/settings_language_state.dart';
 import 'package:messenger/cubit/settings/settings_two_step_verification_state.dart';
 
-import '../../cubit/settings/settings_language_cubit.dart';
 import '../../cubit/settings/settings_two_step_verification_cubit.dart';
 import '../../di.dart';
 import '../../i18n/translations.g.dart';
@@ -26,8 +23,6 @@ class _SettingsTwoStepVerificationScreenCupertino extends State<SettingsTwoStepV
   @override
   void initState() {
     super.initState();
-    // final locate = context.read<MainCubit>().state.settingsDevice.locale;
-    // context.read<SettingsLanguageCubit>().setLocale(locale: locate ?? AppLocale.en);
   }
 
   @override

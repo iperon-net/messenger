@@ -7,12 +7,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:go_router/go_router.dart';
 
-import 'cubit/auth/auth_cubit.dart';
 import 'cubit/contacts/contacts_cubit.dart';
 import 'cubit/home/home_cubit.dart';
 import 'cubit/main_cubit.dart';
 import 'cubit/main_state.dart';
-import 'cubit/settings/settings_device_sessions_cubit.dart';
 import 'di.dart';
 import 'i18n/translations.g.dart';
 import 'logger.dart';
