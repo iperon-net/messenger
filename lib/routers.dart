@@ -12,6 +12,7 @@ import 'cubit/auth/auth_sms_cubit.dart';
 import 'cubit/main_cubit.dart';
 import 'cubit/settings/settings_appearance_cubit.dart';
 import 'cubit/settings/settings_cubit.dart';
+import 'cubit/settings/settings_device_sessions_cubit.dart';
 import 'cubit/settings/settings_language_cubit.dart';
 import 'cubit/settings/settings_two_step_verification_cubit.dart';
 import 'di.dart';
@@ -120,7 +121,10 @@ class Routers {
                   ),
                   GoRoute(
                     path: '/settings_device_sessions',
-                    builder: (_, _) => SettingsDeviceSessionsScreenCupertino(),
+                    builder: (_, _) => BlocProvider<SettingsDeviceSessionsCubit>(
+                      create: (_) => SettingsDeviceSessionsCubit()..initialization(),
+                      child: SettingsDeviceSessionsScreenCupertino(),
+                    ),
                   ),
                   GoRoute(
                     path: '/private_and_security',

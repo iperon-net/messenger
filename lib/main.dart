@@ -65,9 +65,6 @@ Future<void> main() async {
           BlocProvider<HomeCubit>(
             create: (_) => HomeCubit(),
           ),
-          BlocProvider<SettingsDeviceSessionsCubit>(
-            create: (_) => SettingsDeviceSessionsCubit(),
-          ),
           BlocProvider<ContactsCubit>(
             create: (_) => ContactsCubit(),
           ),

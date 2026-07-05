@@ -25,7 +25,6 @@ class _SettingsDeviceSessionsScreenCupertino extends State<SettingsDeviceSession
   @override
   void initState() {
     super.initState();
-    context.read<SettingsDeviceSessionsCubit>().initialization();
   }
 
   @override
