@@ -103,45 +103,13 @@ class Auth {
         SyncerMessageRequest(message: messageByte),
         options: await api.callOptions(),
       );
-      await repositories.sessions.logout();
       logger.info("Syncer logout user");
     } catch (err) {
-      // Нет сети: сохраняем уже закодированные байты — они не зависят от сессии
-      // и переживут deleteAndCreate() при следующем логине
-      logger.warning("Syncer logoutRequest нет сети, отложен для повторной доставки: $err");
-      await repositories.sessions.logout();
-      await repositories.pendingLogouts.add(encodedMessage: messageByte);
+      logger.warning("Syncer logoutRequest нет сети: $err");
     }
 
+    await repositories.sessions.logout();
     streams.controllerAuth.add(false);
-  }
-
-  Future<void> retryPendingLogouts() async {
-    final pending = await repositories.pendingLogouts.getAll();
-    if (pending.isEmpty) return;
-
-    for (final entry in pending) {
-      try {
-        await api.syncer.message(
-          SyncerMessageRequest(message: entry.encodedMessage),
-          options: await api.callOptions(),
-        );
-        await repositories.pendingLogouts.delete(id: entry.id);
-        logger.info("Syncer retryPendingLogout: logout доставлен серверу (id=${entry.id})");
-      } on GrpcError catch (err) {
-        if (err.code == StatusCode.unauthenticated) {
-          // Сессия уже не существует на сервере — удаляем без доставки
-          await repositories.pendingLogouts.delete(id: entry.id);
-          logger.warning("Syncer retryPendingLogout: сессия устарела, удалён локально (id=${entry.id})");
-        } else {
-          logger.warning("Syncer retryPendingLogout: нет сети ($err)");
-          break;
-        }
-      } catch (err) {
-        logger.warning("Syncer retryPendingLogout: нет сети ($err)");
-        break;
-      }
-    }
   }
 
   Future<void> logoutResponse({required List<int> msg, required Header header}) async {

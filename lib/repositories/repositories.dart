@@ -15,7 +15,6 @@ import '../models.dart' as models;
 import '../settings.dart';
 
 part "device_sessions.dart";
-part "pending_logouts.dart";
 part "sessions.dart";
 part "settings_device.dart";
 part "users.dart";
@@ -28,7 +27,6 @@ class Repositories {
   late Users users;
   late Sessions sessions;
   late DeviceSessions deviceSessions;
-  late PendingLogouts pendingLogouts;
 
   Future<void> initialization() async {
     String databasePath = p.join((await getApplicationSupportDirectory()).path, Settings.databaseName);
@@ -167,22 +165,10 @@ class Repositories {
       _database.execute("PRAGMA user_version = 1");
     }
 
-    if (_database.userVersion == 1) {
-      _database.execute("""
-          CREATE TABLE pendingLogouts (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            encodedMessage BLOB NOT NULL
-          );
-      """);
-      _database.execute("PRAGMA user_version = 2");
-    }
-
     settingsDevice = SettingsDevice(logger: _logger, database: _database);
     users = Users(logger: _logger, database: _database);
     sessions = Sessions(logger: _logger, database: _database);
     deviceSessions = DeviceSessions(logger: _logger, database: _database);
-    pendingLogouts = PendingLogouts(logger: _logger, database: _database);
-
     _logger.info("repositories initialization");
   }
 
