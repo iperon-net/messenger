@@ -109,12 +109,12 @@ const AuthCallPasswordCheckResponse$json = {
       '17': true
     },
     {
-      '1': 'hasCloudPassword',
+      '1': 'hasTwoStepVerification',
       '3': 5,
       '4': 1,
       '5': 8,
       '9': 3,
-      '10': 'hasCloudPassword',
+      '10': 'hasTwoStepVerification',
       '17': true
     },
     {
@@ -131,7 +131,7 @@ const AuthCallPasswordCheckResponse$json = {
     {'1': '_timer'},
     {'1': '_errorMessage'},
     {'1': '_confirmationSession'},
-    {'1': '_hasCloudPassword'},
+    {'1': '_hasTwoStepVerification'},
     {'1': '_isBlocked'},
   ],
 };
@@ -141,10 +141,10 @@ final $typed_data.Uint8List authCallPasswordCheckResponseDescriptor = $convert.b
     'Ch1BdXRoQ2FsbFBhc3N3b3JkQ2hlY2tSZXNwb25zZRIpCgZzdGF0dXMYASABKA4yES5pcGVyb2'
     '4udjEuU3RhdHVzUgZzdGF0dXMSGQoFdGltZXIYAiABKANIAFIFdGltZXKIAQESJwoMZXJyb3JN'
     'ZXNzYWdlGAMgASgJSAFSDGVycm9yTWVzc2FnZYgBARI1ChNjb25maXJtYXRpb25TZXNzaW9uGA'
-    'QgASgMSAJSE2NvbmZpcm1hdGlvblNlc3Npb26IAQESLwoQaGFzQ2xvdWRQYXNzd29yZBgFIAEo'
-    'CEgDUhBoYXNDbG91ZFBhc3N3b3JkiAEBEiEKCWlzQmxvY2tlZBgGIAEoCEgEUglpc0Jsb2NrZW'
-    'SIAQFCCAoGX3RpbWVyQg8KDV9lcnJvck1lc3NhZ2VCFgoUX2NvbmZpcm1hdGlvblNlc3Npb25C'
-    'EwoRX2hhc0Nsb3VkUGFzc3dvcmRCDAoKX2lzQmxvY2tlZA==');
+    'QgASgMSAJSE2NvbmZpcm1hdGlvblNlc3Npb26IAQESOwoWaGFzVHdvU3RlcFZlcmlmaWNhdGlv'
+    'bhgFIAEoCEgDUhZoYXNUd29TdGVwVmVyaWZpY2F0aW9uiAEBEiEKCWlzQmxvY2tlZBgGIAEoCE'
+    'gEUglpc0Jsb2NrZWSIAQFCCAoGX3RpbWVyQg8KDV9lcnJvck1lc3NhZ2VCFgoUX2NvbmZpcm1h'
+    'dGlvblNlc3Npb25CGQoXX2hhc1R3b1N0ZXBWZXJpZmljYXRpb25CDAoKX2lzQmxvY2tlZA==');
 
 @$core.Deprecated('Use authSMSRequestDescriptor instead')
 const AuthSMSRequest$json = {
@@ -198,12 +198,12 @@ const AuthSMSCheckResponse$json = {
       '17': true
     },
     {
-      '1': 'hasCloudPassword',
+      '1': 'hasTwoStepVerification',
       '3': 2,
       '4': 1,
       '5': 8,
       '9': 1,
-      '10': 'hasCloudPassword',
+      '10': 'hasTwoStepVerification',
       '17': true
     },
     {
@@ -218,7 +218,7 @@ const AuthSMSCheckResponse$json = {
   ],
   '8': [
     {'1': '_confirmationSession'},
-    {'1': '_hasCloudPassword'},
+    {'1': '_hasTwoStepVerification'},
     {'1': '_isBlocked'},
   ],
 };
@@ -226,9 +226,10 @@ const AuthSMSCheckResponse$json = {
 /// Descriptor for `AuthSMSCheckResponse`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List authSMSCheckResponseDescriptor = $convert.base64Decode(
     'ChRBdXRoU01TQ2hlY2tSZXNwb25zZRI1ChNjb25maXJtYXRpb25TZXNzaW9uGAEgASgMSABSE2'
-    'NvbmZpcm1hdGlvblNlc3Npb26IAQESLwoQaGFzQ2xvdWRQYXNzd29yZBgCIAEoCEgBUhBoYXND'
-    'bG91ZFBhc3N3b3JkiAEBEiEKCWlzQmxvY2tlZBgDIAEoCEgCUglpc0Jsb2NrZWSIAQFCFgoUX2'
-    'NvbmZpcm1hdGlvblNlc3Npb25CEwoRX2hhc0Nsb3VkUGFzc3dvcmRCDAoKX2lzQmxvY2tlZA==');
+    'NvbmZpcm1hdGlvblNlc3Npb26IAQESOwoWaGFzVHdvU3RlcFZlcmlmaWNhdGlvbhgCIAEoCEgB'
+    'UhZoYXNUd29TdGVwVmVyaWZpY2F0aW9uiAEBEiEKCWlzQmxvY2tlZBgDIAEoCEgCUglpc0Jsb2'
+    'NrZWSIAQFCFgoUX2NvbmZpcm1hdGlvblNlc3Npb25CGQoXX2hhc1R3b1N0ZXBWZXJpZmljYXRp'
+    'b25CDAoKX2lzQmxvY2tlZA==');
 
 @$core.Deprecated('Use authConfirmationRequestDescriptor instead')
 const AuthConfirmationRequest$json = {

@@ -3,8 +3,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:messenger/cubit/settings/settings_language_state.dart';
+import 'package:messenger/cubit/settings/settings_private_and_security_state.dart';
 
 import '../../cubit/settings/settings_language_cubit.dart';
+import '../../cubit/settings/settings_private_and_security_cubit.dart';
 import '../../i18n/translations.g.dart';
 
 
@@ -16,17 +18,6 @@ class SettingsPrivateAndSecurityScreenCupertino extends StatefulWidget {
 }
 
 class _SettingsPrivateAndSecurityScreenCupertino extends State<SettingsPrivateAndSecurityScreenCupertino> {
-  @override
-  void initState() {
-    super.initState();
-    // final locate = context.read<MainCubit>().state.settingsDevice.locale;
-    // context.read<SettingsLanguageCubit>().setLocale(locale: locate ?? AppLocale.en);
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-  }
 
   Widget _item({
     required Widget title,
@@ -59,7 +50,7 @@ class _SettingsPrivateAndSecurityScreenCupertino extends State<SettingsPrivateAn
 
   @override
   Widget build(BuildContext context) {
-    return BlocConsumer<SettingsLanguageCubit, SettingsLanguageState>(
+    return BlocConsumer<SettingsPrivateAndSecurityCubit, SettingsPrivateAndSecurityState>(
       // listenWhen: (previous, current) => previous.locale != current.locale,
       listener: (context, state) {
       },
@@ -69,6 +60,7 @@ class _SettingsPrivateAndSecurityScreenCupertino extends State<SettingsPrivateAn
           navigationBar: CupertinoNavigationBar(
             automaticBackgroundVisibility: false,
             middle: Text(context.t.privateAndSecurity),
+            // previousPageTitle: context.t.back,
           ),
           child: SafeArea(
             child: ListView(

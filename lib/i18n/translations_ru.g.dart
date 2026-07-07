@@ -112,7 +112,11 @@ class TranslationsRu extends Translations with BaseTranslations<AppLocale, Trans
 	@override String get on => 'Вкл';
 	@override String get password => 'Пароль';
 	@override String get newPassword => 'Новый пароль';
-	@override String get youCanSetPasswordThatWillBeRequiredWhenLoggingInFromNewDevice => 'Вы можете установть пароль, который будет запрашиваться при входе с нового устройства';
+	@override String get youCanSetPasswordThatWillBeRequiredWhenLoggingInFromNewDevice => 'Вы можете установть пароль, который будет запрашиваться при входе с нового устройства, минимальная длина пароля 5 символов';
+	@override String get passwordIsToSmall => 'Слишком короткий пароль';
+	@override String get email => 'Электронная почта';
+	@override String get emailEnglish => 'Email';
+	@override String get back => 'Назад';
 }
 
 /// The flat map containing all translations for locale <ru>.
@@ -196,7 +200,11 @@ extension on TranslationsRu {
 			'on' => 'Вкл',
 			'password' => 'Пароль',
 			'newPassword' => 'Новый пароль',
-			'youCanSetPasswordThatWillBeRequiredWhenLoggingInFromNewDevice' => 'Вы можете установть пароль, который будет запрашиваться при входе с нового устройства',
+			'youCanSetPasswordThatWillBeRequiredWhenLoggingInFromNewDevice' => 'Вы можете установть пароль, который будет запрашиваться при входе с нового устройства, минимальная длина пароля 5 символов',
+			'passwordIsToSmall' => 'Слишком короткий пароль',
+			'email' => 'Электронная почта',
+			'emailEnglish' => 'Email',
+			'back' => 'Назад',
 			_ => null,
 		};
 	}

@@ -82,7 +82,7 @@ class Auth {
     }
 
     final sharedKey = kem.decapsulate(cipherTextSharedKey, Uint8List.fromList(authConfirmationResponse.cipherTextSharedKey));
-    final salt = kem.decapsulate(cipherTextSalt,  Uint8List.fromList(authConfirmationResponse.cipherTextSalt));
+    final salt = kem.decapsulate(cipherTextSalt, Uint8List.fromList(authConfirmationResponse.cipherTextSalt));
 
     final checkSharedKey = await ed25519.verify(
       authConfirmationResponse.cipherTextSharedKey,

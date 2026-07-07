@@ -14,6 +14,7 @@ import 'cubit/settings/settings_appearance_cubit.dart';
 import 'cubit/settings/settings_cubit.dart';
 import 'cubit/settings/settings_device_sessions_cubit.dart';
 import 'cubit/settings/settings_language_cubit.dart';
+import 'cubit/settings/settings_private_and_security_cubit.dart';
 import 'cubit/settings/settings_two_step_verification_cubit.dart';
 import 'di.dart';
 import 'logger.dart';
@@ -91,51 +92,71 @@ class Routers {
           return null;
         },
         routes: <RouteBase>[
-          ShellRoute(
-            builder: (context, state, child) => BlocProvider(
-              create: (_) => SettingsCubit(),
-              child: child,
-            ),
+          GoRoute(
+            path: '/',
+            builder: (_, _) => HomeCupertinoScreen(),
             routes: [
-              GoRoute(
-                path: '/',
-                builder: (_, _) => HomeCupertinoScreen(),
+              ShellRoute(
+                builder: (context, state, child) => BlocProvider(
+                  create: (_) => SettingsCubit(),
+                  child: child,
+                ),
                 routes: [
                   GoRoute(
-                    path: '/settings_language',
-                    builder: (_, _) => BlocProvider(
-                      create: (BuildContext context) {
-                        final locate = context.read<MainCubit>().state.settingsDevice.locale;
-                        if (locate != null) return SettingsLanguageCubit()..initialization(locale: locate);
-                        return SettingsLanguageCubit();
-                      },
-                      child: SettingsLanguageScreenCupertino(),
-                    ),
-                  ),
-                  GoRoute(
-                    path: '/settings_appearance',
-                    builder: (_, _) => BlocProvider(
-                      create: (_) => SettingsAppearanceCubit(),
-                      child: SettingsAppearanceScreenCupertino(),
-                    ),
-                  ),
-                  GoRoute(
-                    path: '/settings_device_sessions',
-                    builder: (_, _) => BlocProvider<SettingsDeviceSessionsCubit>(
-                      create: (_) => SettingsDeviceSessionsCubit()..initialization(),
-                      child: SettingsDeviceSessionsScreenCupertino(),
-                    ),
-                  ),
-                  GoRoute(
-                    path: '/private_and_security',
-                    builder: (_, _) => SettingsPrivateAndSecurityScreenCupertino(),
-                    routes: <RouteBase>[
+                    path: '/settings',
+                    builder: (_, _) => SettingsCupertinoScreen(),
+                    routes: [
                       GoRoute(
-                        path: '/settings_two_step_verification',
+                        path: '/language',
                         builder: (_, _) => BlocProvider(
-                          create: (_) => SettingsTwoStepVerificationCubit(),
-                          child: SettingsTwoStepVerificationScreenCupertino(),
+                          create: (BuildContext context) {
+                            final locate = context.read<MainCubit>().state.settingsDevice.locale;
+                            if (locate != null) return SettingsLanguageCubit()..initialization(locale: locate);
+                            return SettingsLanguageCubit();
+                          },
+                          child: SettingsLanguageScreenCupertino(),
                         ),
+                      ),
+                      GoRoute(
+                        path: '/appearance',
+                        builder: (_, _) => BlocProvider(
+                          create: (_) => SettingsAppearanceCubit(),
+                          child: SettingsAppearanceScreenCupertino(),
+                        ),
+                      ),
+                      GoRoute(
+                        path: '/device_sessions',
+                        builder: (_, _) => BlocProvider<SettingsDeviceSessionsCubit>(
+                          create: (_) => SettingsDeviceSessionsCubit()..initialization(),
+                          child: SettingsDeviceSessionsScreenCupertino(),
+                        ),
+                      ),
+                      GoRoute(
+                        path: '/private_and_security',
+                        builder: (_, _) => BlocProvider(
+                          create: (_) => SettingsPrivateAndSecurityCubit(),
+                          child: SettingsPrivateAndSecurityScreenCupertino(),
+                        ),
+                        routes: <RouteBase>[
+                          // ShellRoute(
+                          //   builder: (context, state, child) => BlocProvider(
+                          //     create: (_) => SettingsTwoStepVerificationCubit(),
+                          //     child: child,
+                          //   ),
+                          //   routes: [
+                          //     GoRoute(
+                          //         path: '/settings_two_step_verification',
+                          //         builder: (_, _) => SettingsTwoStepVerificationScreenCupertino(screen: "newPassword"),
+                          //         routes: [
+                          //           GoRoute(
+                          //             path: '/new_email',
+                          //             builder: (_, _) => SettingsTwoStepVerificationScreenCupertino(screen: "newEmail"),
+                          //           ),
+                          //         ]
+                          //     ),
+                          //   ],
+                          // ),
+                        ],
                       ),
                     ],
                   ),
@@ -143,6 +164,15 @@ class Routers {
               ),
             ],
           ),
+          // ShellRoute(
+          //   builder: (context, state, child) => BlocProvider(
+          //     create: (_) => SettingsCubit(),
+          //     child: child,
+          //   ),
+          //   routes: [
+          //
+          //   ],
+          // ),
           GoRoute(
             path: '/auth',
             builder: (_, _) => BlocProvider<AuthCubit>(

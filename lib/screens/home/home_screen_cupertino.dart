@@ -1,9 +1,11 @@
 import 'package:badges/badges.dart' as badges;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:messenger/syncer.dart';
 
+import '../../cubit/settings/settings_cubit.dart';
 import '../../di.dart';
 import '../../i18n/translations.g.dart';
 import '../../logger.dart';
@@ -90,12 +92,15 @@ class _HomeCupertinoScreen extends State<HomeCupertinoScreen> {
             if (index == 0) {
               return ContactsScreenCupertino();
             } else if (index == 3) {
-              return SettingsCupertinoScreen();
+              return BlocProvider(
+                create: (_) => SettingsCubit(),
+                child: SettingsCupertinoScreen(),
+              );
             }
             return Center(child: Text("Page not found"));
           },
         );
-        },
+      },
     );
   }
 

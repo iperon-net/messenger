@@ -228,7 +228,7 @@ class AuthCallPasswordCheckResponse extends $pb.GeneratedMessage {
     $fixnum.Int64? timer,
     $core.String? errorMessage,
     $core.List<$core.int>? confirmationSession,
-    $core.bool? hasCloudPassword,
+    $core.bool? hasTwoStepVerification,
     $core.bool? isBlocked,
   }) {
     final result = create();
@@ -237,7 +237,8 @@ class AuthCallPasswordCheckResponse extends $pb.GeneratedMessage {
     if (errorMessage != null) result.errorMessage = errorMessage;
     if (confirmationSession != null)
       result.confirmationSession = confirmationSession;
-    if (hasCloudPassword != null) result.hasCloudPassword = hasCloudPassword;
+    if (hasTwoStepVerification != null)
+      result.hasTwoStepVerification = hasTwoStepVerification;
     if (isBlocked != null) result.isBlocked = isBlocked;
     return result;
   }
@@ -262,8 +263,8 @@ class AuthCallPasswordCheckResponse extends $pb.GeneratedMessage {
     ..a<$core.List<$core.int>>(
         4, _omitFieldNames ? '' : 'confirmationSession', $pb.PbFieldType.OY,
         protoName: 'confirmationSession')
-    ..aOB(5, _omitFieldNames ? '' : 'hasCloudPassword',
-        protoName: 'hasCloudPassword')
+    ..aOB(5, _omitFieldNames ? '' : 'hasTwoStepVerification',
+        protoName: 'hasTwoStepVerification')
     ..aOB(6, _omitFieldNames ? '' : 'isBlocked', protoName: 'isBlocked')
     ..hasRequiredFields = false;
 
@@ -326,13 +327,13 @@ class AuthCallPasswordCheckResponse extends $pb.GeneratedMessage {
   void clearConfirmationSession() => $_clearField(4);
 
   @$pb.TagNumber(5)
-  $core.bool get hasCloudPassword => $_getBF(4);
+  $core.bool get hasTwoStepVerification => $_getBF(4);
   @$pb.TagNumber(5)
-  set hasCloudPassword($core.bool value) => $_setBool(4, value);
+  set hasTwoStepVerification($core.bool value) => $_setBool(4, value);
   @$pb.TagNumber(5)
-  $core.bool hasHasCloudPassword() => $_has(4);
+  $core.bool hasHasTwoStepVerification() => $_has(4);
   @$pb.TagNumber(5)
-  void clearHasCloudPassword() => $_clearField(5);
+  void clearHasTwoStepVerification() => $_clearField(5);
 
   @$pb.TagNumber(6)
   $core.bool get isBlocked => $_getBF(5);
@@ -528,13 +529,14 @@ class AuthSMSCheckRequest extends $pb.GeneratedMessage {
 class AuthSMSCheckResponse extends $pb.GeneratedMessage {
   factory AuthSMSCheckResponse({
     $core.List<$core.int>? confirmationSession,
-    $core.bool? hasCloudPassword,
+    $core.bool? hasTwoStepVerification,
     $core.bool? isBlocked,
   }) {
     final result = create();
     if (confirmationSession != null)
       result.confirmationSession = confirmationSession;
-    if (hasCloudPassword != null) result.hasCloudPassword = hasCloudPassword;
+    if (hasTwoStepVerification != null)
+      result.hasTwoStepVerification = hasTwoStepVerification;
     if (isBlocked != null) result.isBlocked = isBlocked;
     return result;
   }
@@ -555,8 +557,8 @@ class AuthSMSCheckResponse extends $pb.GeneratedMessage {
     ..a<$core.List<$core.int>>(
         1, _omitFieldNames ? '' : 'confirmationSession', $pb.PbFieldType.OY,
         protoName: 'confirmationSession')
-    ..aOB(2, _omitFieldNames ? '' : 'hasCloudPassword',
-        protoName: 'hasCloudPassword')
+    ..aOB(2, _omitFieldNames ? '' : 'hasTwoStepVerification',
+        protoName: 'hasTwoStepVerification')
     ..aOB(3, _omitFieldNames ? '' : 'isBlocked', protoName: 'isBlocked')
     ..hasRequiredFields = false;
 
@@ -589,13 +591,13 @@ class AuthSMSCheckResponse extends $pb.GeneratedMessage {
   void clearConfirmationSession() => $_clearField(1);
 
   @$pb.TagNumber(2)
-  $core.bool get hasCloudPassword => $_getBF(1);
+  $core.bool get hasTwoStepVerification => $_getBF(1);
   @$pb.TagNumber(2)
-  set hasCloudPassword($core.bool value) => $_setBool(1, value);
+  set hasTwoStepVerification($core.bool value) => $_setBool(1, value);
   @$pb.TagNumber(2)
-  $core.bool hasHasCloudPassword() => $_has(1);
+  $core.bool hasHasTwoStepVerification() => $_has(1);
   @$pb.TagNumber(2)
-  void clearHasCloudPassword() => $_clearField(2);
+  void clearHasTwoStepVerification() => $_clearField(2);
 
   @$pb.TagNumber(3)
   $core.bool get isBlocked => $_getBF(2);

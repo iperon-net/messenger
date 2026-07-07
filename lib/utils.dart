@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math';
 
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:device_marketing_names/device_marketing_names.dart';
@@ -134,6 +135,15 @@ class Utils {
 
   String toHex(List<int> bytes) => bytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
   List<int> fromHex(String hex) => [for (var i = 0; i < hex.length; i += 2) int.parse(hex.substring(i, i + 2), radix: 16)];
+
+  Uint8List generateNonce(int length) {
+    final random = Random.secure();
+    final bytes = Uint8List(length);
+    for (int i = 0; i < length; i++) {
+      bytes[i] = random.nextInt(256);
+    }
+    return bytes;
+  }
 
   Future<PackageInfo> packageInfo() async {
     final packageInfo = await package_info.PackageInfo.fromPlatform();

@@ -25,18 +25,34 @@ class SettingsTwoStepVerificationStateMapper
   @override
   final String id = 'SettingsTwoStepVerificationState';
 
+  static Status _$status(SettingsTwoStepVerificationState v) => v.status;
+  static const Field<SettingsTwoStepVerificationState, Status> _f$status =
+      Field('status', _$status, opt: true, def: Status.initialization);
   static bool _$nextButton(SettingsTwoStepVerificationState v) => v.nextButton;
   static const Field<SettingsTwoStepVerificationState, bool> _f$nextButton =
       Field('nextButton', _$nextButton, opt: true, def: false);
+  static String _$password(SettingsTwoStepVerificationState v) => v.password;
+  static const Field<SettingsTwoStepVerificationState, String> _f$password =
+      Field('password', _$password, opt: true, def: "");
+  static String _$redirectURL(SettingsTwoStepVerificationState v) =>
+      v.redirectURL;
+  static const Field<SettingsTwoStepVerificationState, String> _f$redirectURL =
+      Field('redirectURL', _$redirectURL, opt: true, def: "");
 
   @override
   final MappableFields<SettingsTwoStepVerificationState> fields = const {
+    #status: _f$status,
     #nextButton: _f$nextButton,
+    #password: _f$password,
+    #redirectURL: _f$redirectURL,
   };
 
   static SettingsTwoStepVerificationState _instantiate(DecodingData data) {
     return SettingsTwoStepVerificationState(
+      status: data.dec(_f$status),
       nextButton: data.dec(_f$nextButton),
+      password: data.dec(_f$password),
+      redirectURL: data.dec(_f$redirectURL),
     );
   }
 
@@ -118,7 +134,12 @@ abstract class SettingsTwoStepVerificationStateCopyWith<
   $Out
 >
     implements ClassCopyWith<$R, $In, $Out> {
-  $R call({bool? nextButton});
+  $R call({
+    Status? status,
+    bool? nextButton,
+    String? password,
+    String? redirectURL,
+  });
   SettingsTwoStepVerificationStateCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
     Then<$Out2, $R2> t,
   );
@@ -142,13 +163,26 @@ class _SettingsTwoStepVerificationStateCopyWithImpl<$R, $Out>
   late final ClassMapperBase<SettingsTwoStepVerificationState> $mapper =
       SettingsTwoStepVerificationStateMapper.ensureInitialized();
   @override
-  $R call({bool? nextButton}) => $apply(
-    FieldCopyWithData({if (nextButton != null) #nextButton: nextButton}),
+  $R call({
+    Status? status,
+    bool? nextButton,
+    String? password,
+    String? redirectURL,
+  }) => $apply(
+    FieldCopyWithData({
+      if (status != null) #status: status,
+      if (nextButton != null) #nextButton: nextButton,
+      if (password != null) #password: password,
+      if (redirectURL != null) #redirectURL: redirectURL,
+    }),
   );
   @override
   SettingsTwoStepVerificationState $make(CopyWithData data) =>
       SettingsTwoStepVerificationState(
+        status: data.get(#status, or: $value.status),
         nextButton: data.get(#nextButton, or: $value.nextButton),
+        password: data.get(#password, or: $value.password),
+        redirectURL: data.get(#redirectURL, or: $value.redirectURL),
       );
 
   @override

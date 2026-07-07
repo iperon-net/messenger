@@ -260,8 +260,20 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	/// en: 'New password'
 	String get newPassword => 'New password';
 
-	/// en: 'You can set a password that will be required when logging in from a new device'
-	String get youCanSetPasswordThatWillBeRequiredWhenLoggingInFromNewDevice => 'You can set a password that will be required when logging in from a new device';
+	/// en: 'You can set a password that will be required when logging in from a new device, minimum password length is 5 characters'
+	String get youCanSetPasswordThatWillBeRequiredWhenLoggingInFromNewDevice => 'You can set a password that will be required when logging in from a new device, minimum password length is 5 characters';
+
+	/// en: 'Password is too small'
+	String get passwordIsToSmall => 'Password is too small';
+
+	/// en: 'Email'
+	String get email => 'Email';
+
+	/// en: 'Email'
+	String get emailEnglish => 'Email';
+
+	/// en: 'Back'
+	String get back => 'Back';
 }
 
 /// The flat map containing all translations for locale <en>.
@@ -345,7 +357,11 @@ extension on Translations {
 			'on' => 'On',
 			'password' => 'Password',
 			'newPassword' => 'New password',
-			'youCanSetPasswordThatWillBeRequiredWhenLoggingInFromNewDevice' => 'You can set a password that will be required when logging in from a new device',
+			'youCanSetPasswordThatWillBeRequiredWhenLoggingInFromNewDevice' => 'You can set a password that will be required when logging in from a new device, minimum password length is 5 characters',
+			'passwordIsToSmall' => 'Password is too small',
+			'email' => 'Email',
+			'emailEnglish' => 'Email',
+			'back' => 'Back',
 			_ => null,
 		};
 	}

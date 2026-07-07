@@ -35,7 +35,7 @@ message AuthCallPasswordCheckResponse {
   optional int64 timer = 2;
   optional string errorMessage = 3;
   optional bytes confirmationSession = 4;
-  optional bool hasCloudPassword = 5;
+  optional bool hasTwoStepVerification = 5;
   optional bool isBlocked = 6;
 }
 
@@ -56,7 +56,7 @@ message AuthSMSCheckRequest {
 
 message AuthSMSCheckResponse {
   optional bytes confirmationSession = 1;
-  optional bool hasCloudPassword = 2;
+  optional bool hasTwoStepVerification = 2;
   optional bool isBlocked = 3;
 }
 

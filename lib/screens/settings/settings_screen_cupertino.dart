@@ -97,13 +97,13 @@ class _SettingsCupertinoScreen extends State<SettingsCupertinoScreen> {
                       title: Text(context.t.appearance),
                       color: Color(0xFF1368E6),
                       icon: FontAwesomeIcons.circleHalfStroke,
-                      onTab: () async => context.go("/settings_appearance"),
+                      onTab: () async => context.go("/settings/appearance"),
                     ),
                     _item(
                       title: Text(context.t.privateAndSecurity),
                       color: Color(0xFF049A40),
                       icon: FontAwesomeIcons.key,
-                      onTab: () async => context.go("/private_and_security"),
+                      onTab: () async => context.go("/settings/private_and_security"),
                     ),
                     _item(
                       title: Text(context.t.notifications),
@@ -115,7 +115,7 @@ class _SettingsCupertinoScreen extends State<SettingsCupertinoScreen> {
                       title: Text(context.t.devices),
                       color: Color(0xFFFF6B00),
                       icon: FontAwesomeIcons.mobileScreen,
-                      onTab: () async => context.go("/settings_device_sessions"),
+                      onTab: () async => context.go("/settings/device_sessions"),
                       additionalInfo: state.deviceSessionsCount > 0 ? Text(state.deviceSessionsCount.toString()) : null,
                     ),
                     _item(
@@ -123,7 +123,7 @@ class _SettingsCupertinoScreen extends State<SettingsCupertinoScreen> {
                       color: Color(0xFFBE0BCC),
                       icon: FontAwesomeIcons.language,
                       additionalInfo: state.locale == AppLocale.ru ? Text("Русский") : Text("English"),
-                      onTab: () async => context.go("/settings_language"),
+                      onTab: () async => context.go("/settings/language"),
                     ),
                   ],
                 ),
