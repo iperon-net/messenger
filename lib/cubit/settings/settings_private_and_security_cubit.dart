@@ -12,7 +12,7 @@ class SettingsPrivateAndSecurityCubit extends Cubit<SettingsPrivateAndSecuritySt
   final logger = getIt.get<Logger>();
   final repositories = getIt.get<Repositories>();
 
-  Future<void> initialization({required AppLocale locale}) async {
+  Future<void> initialization() async {
   }
 
 }

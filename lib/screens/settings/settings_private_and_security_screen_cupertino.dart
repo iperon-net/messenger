@@ -71,7 +71,7 @@ class _SettingsPrivateAndSecurityScreenCupertino extends State<SettingsPrivateAn
                       title: Text(context.t.twoStepVerification),
                       color: Color(0xFFFFAF00),
                       icon: FontAwesomeIcons.lock,
-                      onTab: () async => context.go("/private_and_security/settings_two_step_verification"),
+                      onTab: () async => context.go("/settings/private_and_security/settings_two_step_verification"),
                       additionalInfo: Text(context.t.off),
                     ),
                   ],

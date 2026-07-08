@@ -116,7 +116,10 @@ class TranslationsRu extends Translations with BaseTranslations<AppLocale, Trans
 	@override String get passwordIsToSmall => 'Слишком короткий пароль';
 	@override String get email => 'Электронная почта';
 	@override String get emailEnglish => 'Email';
-	@override String get back => 'Назад';
+	@override String get confirmYourEmail => 'Подтвердите свой email';
+	@override String get code => 'Код';
+	@override String get invalidEmail => 'Неверный email';
+	@override String get enterYourEmailForgetYourPassword => 'Укажите почту — на случай, если забудете пароль, мы вышлем на неё код для восстановления';
 }
 
 /// The flat map containing all translations for locale <ru>.
@@ -204,7 +207,10 @@ extension on TranslationsRu {
 			'passwordIsToSmall' => 'Слишком короткий пароль',
 			'email' => 'Электронная почта',
 			'emailEnglish' => 'Email',
-			'back' => 'Назад',
+			'confirmYourEmail' => 'Подтвердите свой email',
+			'code' => 'Код',
+			'invalidEmail' => 'Неверный email',
+			'enterYourEmailForgetYourPassword' => 'Укажите почту — на случай, если забудете пароль, мы вышлем на неё код для восстановления',
 			_ => null,
 		};
 	}

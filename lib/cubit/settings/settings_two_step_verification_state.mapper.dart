@@ -34,17 +34,25 @@ class SettingsTwoStepVerificationStateMapper
   static String _$password(SettingsTwoStepVerificationState v) => v.password;
   static const Field<SettingsTwoStepVerificationState, String> _f$password =
       Field('password', _$password, opt: true, def: "");
-  static String _$redirectURL(SettingsTwoStepVerificationState v) =>
-      v.redirectURL;
-  static const Field<SettingsTwoStepVerificationState, String> _f$redirectURL =
-      Field('redirectURL', _$redirectURL, opt: true, def: "");
+  static String _$email(SettingsTwoStepVerificationState v) => v.email;
+  static const Field<SettingsTwoStepVerificationState, String> _f$email = Field(
+    'email',
+    _$email,
+    opt: true,
+    def: "",
+  );
+  static String _$redirectUrl(SettingsTwoStepVerificationState v) =>
+      v.redirectUrl;
+  static const Field<SettingsTwoStepVerificationState, String> _f$redirectUrl =
+      Field('redirectUrl', _$redirectUrl, opt: true, def: "");
 
   @override
   final MappableFields<SettingsTwoStepVerificationState> fields = const {
     #status: _f$status,
     #nextButton: _f$nextButton,
     #password: _f$password,
-    #redirectURL: _f$redirectURL,
+    #email: _f$email,
+    #redirectUrl: _f$redirectUrl,
   };
 
   static SettingsTwoStepVerificationState _instantiate(DecodingData data) {
@@ -52,7 +60,8 @@ class SettingsTwoStepVerificationStateMapper
       status: data.dec(_f$status),
       nextButton: data.dec(_f$nextButton),
       password: data.dec(_f$password),
-      redirectURL: data.dec(_f$redirectURL),
+      email: data.dec(_f$email),
+      redirectUrl: data.dec(_f$redirectUrl),
     );
   }
 
@@ -138,7 +147,8 @@ abstract class SettingsTwoStepVerificationStateCopyWith<
     Status? status,
     bool? nextButton,
     String? password,
-    String? redirectURL,
+    String? email,
+    String? redirectUrl,
   });
   SettingsTwoStepVerificationStateCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
     Then<$Out2, $R2> t,
@@ -167,13 +177,15 @@ class _SettingsTwoStepVerificationStateCopyWithImpl<$R, $Out>
     Status? status,
     bool? nextButton,
     String? password,
-    String? redirectURL,
+    String? email,
+    String? redirectUrl,
   }) => $apply(
     FieldCopyWithData({
       if (status != null) #status: status,
       if (nextButton != null) #nextButton: nextButton,
       if (password != null) #password: password,
-      if (redirectURL != null) #redirectURL: redirectURL,
+      if (email != null) #email: email,
+      if (redirectUrl != null) #redirectUrl: redirectUrl,
     }),
   );
   @override
@@ -182,7 +194,8 @@ class _SettingsTwoStepVerificationStateCopyWithImpl<$R, $Out>
         status: data.get(#status, or: $value.status),
         nextButton: data.get(#nextButton, or: $value.nextButton),
         password: data.get(#password, or: $value.password),
-        redirectURL: data.get(#redirectURL, or: $value.redirectURL),
+        email: data.get(#email, or: $value.email),
+        redirectUrl: data.get(#redirectUrl, or: $value.redirectUrl),
       );
 
   @override

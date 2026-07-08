@@ -75,4 +75,7 @@
 "passwordIsToSmall": "Слишком короткий пароль"
 "email": "Электронная почта"
 "emailEnglish": "Email"
-"back": "Назад"
+"confirmYourEmail": "Подтвердите свой email"
+"code": "Код"
+"invalidEmail": "Неверный email"
+"enterYourEmailForgetYourPassword": "Укажите почту — на случай, если забудете пароль, мы вышлем на неё код для восстановления"

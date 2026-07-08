@@ -133,30 +133,36 @@ class Routers {
                       ),
                       GoRoute(
                         path: '/private_and_security',
-                        builder: (_, _) => BlocProvider(
+                        builder: (_, _) => BlocProvider<SettingsPrivateAndSecurityCubit>(
                           create: (_) => SettingsPrivateAndSecurityCubit(),
                           child: SettingsPrivateAndSecurityScreenCupertino(),
                         ),
-                        routes: <RouteBase>[
-                          // ShellRoute(
-                          //   builder: (context, state, child) => BlocProvider(
-                          //     create: (_) => SettingsTwoStepVerificationCubit(),
-                          //     child: child,
-                          //   ),
-                          //   routes: [
-                          //     GoRoute(
-                          //         path: '/settings_two_step_verification',
-                          //         builder: (_, _) => SettingsTwoStepVerificationScreenCupertino(screen: "newPassword"),
-                          //         routes: [
-                          //           GoRoute(
-                          //             path: '/new_email',
-                          //             builder: (_, _) => SettingsTwoStepVerificationScreenCupertino(screen: "newEmail"),
-                          //           ),
-                          //         ]
-                          //     ),
-                          //   ],
-                          // ),
-                        ],
+                       routes: [
+                         ShellRoute(
+                           builder: (context, state, child) => BlocProvider(
+                             create: (_) => SettingsTwoStepVerificationCubit(),
+                             child: child,
+                           ),
+                           routes: [
+                             GoRoute(
+                               path: '/settings_two_step_verification',
+                               builder: (_, _) => SettingsTwoStepVerificationScreenCupertino(),
+                               routes: [
+                                 GoRoute(
+                                   path: '/new_email',
+                                   builder: (_, _) => SettingsTwoStepVerificationNewEmailScreenCupertino(),
+                                   routes: [
+                                     GoRoute(
+                                       path: '/email_code',
+                                       builder: (_, _) => SettingsTwoStepVerificationCodeScreenCupertino(),
+                                     ),
+                                   ]
+                                 ),
+                               ]
+                             ),
+                           ]
+                         ),
+                       ]
                       ),
                     ],
                   ),

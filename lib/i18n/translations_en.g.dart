@@ -274,6 +274,18 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 
 	/// en: 'Back'
 	String get back => 'Back';
+
+	/// en: 'Confirm your email'
+	String get confirmYourEmail => 'Confirm your email';
+
+	/// en: 'Code'
+	String get code => 'Code';
+
+	/// en: 'Invalid email'
+	String get invalidEmail => 'Invalid email';
+
+	/// en: 'Enter your email address in case you forget your password'
+	String get enterYourEmailForgetYourPassword => 'Enter your email address in case you forget your password';
 }
 
 /// The flat map containing all translations for locale <en>.
@@ -362,6 +374,10 @@ extension on Translations {
 			'email' => 'Email',
 			'emailEnglish' => 'Email',
 			'back' => 'Back',
+			'confirmYourEmail' => 'Confirm your email',
+			'code' => 'Code',
+			'invalidEmail' => 'Invalid email',
+			'enterYourEmailForgetYourPassword' => 'Enter your email address in case you forget your password',
 			_ => null,
 		};
 	}

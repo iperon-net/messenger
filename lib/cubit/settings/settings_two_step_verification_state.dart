@@ -10,13 +10,15 @@ class SettingsTwoStepVerificationState with SettingsTwoStepVerificationStateMapp
 
   bool nextButton = false;
   String password = "";
-  String redirectURL = "";
+  String email = "";
+  String redirectUrl = "";
 
   SettingsTwoStepVerificationState({
     this.status = Status.initialization,
     this.nextButton = false,
     this.password = "",
-    this.redirectURL = "",
+    this.email = "",
+    this.redirectUrl = "",
   });
 
 }

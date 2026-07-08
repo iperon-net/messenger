@@ -1,6 +1,8 @@
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:cryptography/cryptography.dart';
+import 'package:emails_validator/emails_validator.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../di.dart';
@@ -17,8 +19,24 @@ class SettingsTwoStepVerificationCubit extends Cubit<SettingsTwoStepVerification
 
   void setNextButton(bool value) => emit(state.copyWith(nextButton: value));
 
-  Future<void> submit(String password) async {
-    emit(state.copyWith(password: password, redirectURL: "/private_and_security/settings_two_step_verification/new_email"));
+  void reset() {
+    emit(state.copyWith(redirectUrl: ""));
+  }
+
+  bool emailValidator({required String? email}) {
+    if (email == null) return false;
+
+    final isValid = EmailsValidator.validate(email);
+    if (isValid) return true;
+    return false;
+  }
+
+  Future<void> setPassword(String password) async {
+    emit(state.copyWith(password: password, redirectUrl: "/settings/private_and_security/settings_two_step_verification/new_email"));
+  }
+
+  Future<void> setEmail(String email) async {
+    emit(state.copyWith(email: email, redirectUrl: "/settings/private_and_security/settings_two_step_verification/new_email/email_code"));
   }
 
 }
