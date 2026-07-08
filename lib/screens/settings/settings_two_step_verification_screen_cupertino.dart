@@ -47,7 +47,10 @@ class _SettingsTwoStepVerificationScreenCupertino extends State<SettingsTwoStepV
     return BlocConsumer<SettingsTwoStepVerificationCubit, SettingsTwoStepVerificationState>(
       listenWhen: (previous, current) => previous.redirectUrl != current.redirectUrl,
       listener: (context, state) {
-        if(state.redirectUrl.isNotEmpty) {
+        // Кубит общий для всей цепочки, поэтому пушим следующий экран
+        // только с верхнего маршрута — иначе нижние экраны, оставшиеся
+        // подписанными, продублируют переход.
+        if(state.redirectUrl.isNotEmpty && (ModalRoute.of(context)?.isCurrent ?? false)) {
           final cubit = context.read<SettingsTwoStepVerificationCubit>();
           cubit.reset();
           Navigator.of(context).push(
@@ -178,7 +181,8 @@ class _SettingsTwoStepVerificationNewEmailScreenCupertino extends State<Settings
     return BlocConsumer<SettingsTwoStepVerificationCubit, SettingsTwoStepVerificationState>(
       listenWhen: (previous, current) => previous.redirectUrl != current.redirectUrl,
       listener: (context, state) {
-        if(state.redirectUrl.isNotEmpty) {
+        // См. комментарий выше: пушим только с верхнего маршрута.
+        if(state.redirectUrl.isNotEmpty && (ModalRoute.of(context)?.isCurrent ?? false)) {
           final cubit = context.read<SettingsTwoStepVerificationCubit>();
           cubit.reset();
           Navigator.of(context).push(

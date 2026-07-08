@@ -88,6 +88,6 @@
 	<key>NSContactsUsageDescription</key>
 	<string>Allow access to your contacts to see which of your friends are already here</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
-	<true/>
+	<false/>
 </dict>
 </plist>
