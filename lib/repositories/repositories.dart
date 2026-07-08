@@ -18,6 +18,7 @@ part "device_sessions.dart";
 part "sessions.dart";
 part "settings_device.dart";
 part "users.dart";
+part "cache.dart";
 
 class Repositories {
   final _logger = getIt.get<Logger>();
@@ -27,6 +28,7 @@ class Repositories {
   late Users users;
   late Sessions sessions;
   late DeviceSessions deviceSessions;
+  late Cache cache;
 
   Future<void> initialization() async {
     String databasePath = p.join((await getApplicationSupportDirectory()).path, Settings.databaseName);
@@ -121,6 +123,16 @@ class Repositories {
       """);
 
       _database.execute("""
+          CREATE TABLE cache (
+            key TEXT NOT NULL,
+            value BLOB NOT NULL,
+            ttl INTEGER NOT NULL DEFAULT 0,
+            userID BLOB NOT NULL,
+            FOREIGN KEY (userID) REFERENCES users(userID) ON DELETE CASCADE ON UPDATE CASCADE
+          );
+      """);
+
+      _database.execute("""
           CREATE TABLE deviceSessions (
             sessionID BLOB NOT NULL,
             userID BLOB NOT NULL,
@@ -169,6 +181,7 @@ class Repositories {
     users = Users(logger: _logger, database: _database);
     sessions = Sessions(logger: _logger, database: _database);
     deviceSessions = DeviceSessions(logger: _logger, database: _database);
+    cache = Cache(logger: _logger, database: _database);
     _logger.info("repositories initialization");
   }
 
