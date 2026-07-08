@@ -86,6 +86,8 @@
 		<string>tel</string>
 	</array>
 	<key>NSContactsUsageDescription</key>
-	<string></string>
+	<string>Allow access to your contacts to see which of your friends are already here</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<true/>
 </dict>
 </plist>
