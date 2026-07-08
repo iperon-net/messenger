@@ -1,11 +1,12 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:go_router/go_router.dart';
 import 'package:messenger/cubit/settings/settings_private_and_security_state.dart';
 
 import '../../cubit/settings/settings_private_and_security_cubit.dart';
+import '../../cubit/settings/settings_two_step_verification_cubit.dart';
 import '../../i18n/translations.g.dart';
+import '../../screens.dart';
 
 
 class SettingsPrivateAndSecurityScreenCupertino extends StatefulWidget {
@@ -69,7 +70,14 @@ class _SettingsPrivateAndSecurityScreenCupertino extends State<SettingsPrivateAn
                       title: Text(context.t.twoStepVerification),
                       color: Color(0xFFFFAF00),
                       icon: FontAwesomeIcons.lock,
-                      onTab: () async => context.go("/settings/private_and_security/settings_two_step_verification"),
+                      onTab: () async => Navigator.of(context).push(
+                        CupertinoPageRoute(
+                          builder: (_) => BlocProvider(
+                            create: (_) => SettingsTwoStepVerificationCubit(),
+                            child: SettingsTwoStepVerificationScreenCupertino(),
+                          ),
+                        ),
+                      ),
                       additionalInfo: Text(context.t.off),
                     ),
                   ],

@@ -1,7 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 import 'package:messenger/cubit/settings/settings_two_step_verification_state.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
 
@@ -49,7 +48,16 @@ class _SettingsTwoStepVerificationScreenCupertino extends State<SettingsTwoStepV
       listenWhen: (previous, current) => previous.redirectUrl != current.redirectUrl,
       listener: (context, state) {
         if(state.redirectUrl.isNotEmpty) {
-          context.go(state.redirectUrl);
+          final cubit = context.read<SettingsTwoStepVerificationCubit>();
+          cubit.reset();
+          Navigator.of(context).push(
+            CupertinoPageRoute(
+              builder: (_) => BlocProvider.value(
+                value: cubit,
+                child: const SettingsTwoStepVerificationNewEmailScreenCupertino(),
+              ),
+            ),
+          );
         }
       },
       builder: (context, state) {
@@ -61,7 +69,7 @@ class _SettingsTwoStepVerificationScreenCupertino extends State<SettingsTwoStepV
             padding: const EdgeInsetsDirectional.only(start: 1, end: 16),
             leading: CupertinoButton(
               padding: EdgeInsets.zero,
-              onPressed: () => context.pop(),
+              onPressed: () => Navigator.of(context).pop(),
               child: const Icon(CupertinoIcons.back, size: 28),
             ),
             middle: Text(context.t.newPassword),
@@ -171,7 +179,16 @@ class _SettingsTwoStepVerificationNewEmailScreenCupertino extends State<Settings
       listenWhen: (previous, current) => previous.redirectUrl != current.redirectUrl,
       listener: (context, state) {
         if(state.redirectUrl.isNotEmpty) {
-          context.go(state.redirectUrl);
+          final cubit = context.read<SettingsTwoStepVerificationCubit>();
+          cubit.reset();
+          Navigator.of(context).push(
+            CupertinoPageRoute(
+              builder: (_) => BlocProvider.value(
+                value: cubit,
+                child: const SettingsTwoStepVerificationCodeScreenCupertino(),
+              ),
+            ),
+          );
         }
       },
       builder: (context, state) {

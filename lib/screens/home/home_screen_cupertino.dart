@@ -87,15 +87,21 @@ class _HomeCupertinoScreen extends State<HomeCupertinoScreen> {
         ],
       ),
       tabBuilder: (BuildContext context, int index) {
+        // SettingsCubit провайдим НАД CupertinoTabView, чтобы страницы,
+        // которые пушатся внутри navigator'а таба (язык, оформление и т.д.),
+        // имели к нему доступ и при этом сохраняли нижний таб-бар.
+        if (index == 3) {
+          return BlocProvider(
+            create: (_) => SettingsCubit(),
+            child: CupertinoTabView(
+              builder: (BuildContext context) => SettingsCupertinoScreen(),
+            ),
+          );
+        }
         return CupertinoTabView(
           builder: (BuildContext context) {
             if (index == 0) {
               return ContactsScreenCupertino();
-            } else if (index == 3) {
-              return BlocProvider(
-                create: (_) => SettingsCubit(),
-                child: SettingsCupertinoScreen(),
-              );
             }
             return Center(child: Text("Page not found"));
           },

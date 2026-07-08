@@ -6,10 +6,15 @@ import 'package:messenger/constants.dart';
 import 'package:messenger/cubit/settings/settings_state.dart';
 
 import '../../cubit/main_cubit.dart';
+import '../../cubit/settings/settings_appearance_cubit.dart';
 import '../../cubit/settings/settings_cubit.dart';
+import '../../cubit/settings/settings_device_sessions_cubit.dart';
+import '../../cubit/settings/settings_language_cubit.dart';
+import '../../cubit/settings/settings_private_and_security_cubit.dart';
 import '../../di.dart';
 import '../../i18n/translations.g.dart';
 import '../../logger.dart';
+import '../../screens.dart';
 
 
 class SettingsCupertinoScreen extends StatefulWidget {
@@ -94,13 +99,27 @@ class _SettingsCupertinoScreen extends State<SettingsCupertinoScreen> {
                       title: Text(context.t.appearance),
                       color: Color(0xFF1368E6),
                       icon: FontAwesomeIcons.circleHalfStroke,
-                      onTab: () async => context.go("/settings/appearance"),
+                      onTab: () async => Navigator.of(context, rootNavigator: true).push(
+                        CupertinoPageRoute(
+                          builder: (_) => BlocProvider(
+                            create: (_) => SettingsAppearanceCubit(),
+                            child: SettingsAppearanceScreenCupertino(),
+                          ),
+                        ),
+                      ),
                     ),
                     _item(
                       title: Text(context.t.privateAndSecurity),
                       color: Color(0xFF049A40),
                       icon: FontAwesomeIcons.key,
-                      onTab: () async => context.go("/settings/private_and_security"),
+                      onTab: () async => Navigator.of(context, rootNavigator: true).push(
+                        CupertinoPageRoute(
+                          builder: (_) => BlocProvider<SettingsPrivateAndSecurityCubit>(
+                            create: (_) => SettingsPrivateAndSecurityCubit(),
+                            child: SettingsPrivateAndSecurityScreenCupertino(),
+                          ),
+                        ),
+                      ),
                     ),
                     _item(
                       title: Text(context.t.notifications),
@@ -112,7 +131,14 @@ class _SettingsCupertinoScreen extends State<SettingsCupertinoScreen> {
                       title: Text(context.t.devices),
                       color: Color(0xFFFF6B00),
                       icon: FontAwesomeIcons.mobileScreen,
-                      onTab: () async => context.go("/settings/device_sessions"),
+                      onTab: () async => Navigator.of(context, rootNavigator: true).push(
+                        CupertinoPageRoute(
+                          builder: (_) => BlocProvider<SettingsDeviceSessionsCubit>(
+                            create: (_) => SettingsDeviceSessionsCubit()..initialization(),
+                            child: SettingsDeviceSessionsScreenCupertino(),
+                          ),
+                        ),
+                      ),
                       additionalInfo: state.deviceSessionsCount > 0 ? Text(state.deviceSessionsCount.toString()) : null,
                     ),
                     _item(
@@ -120,7 +146,28 @@ class _SettingsCupertinoScreen extends State<SettingsCupertinoScreen> {
                       color: Color(0xFFBE0BCC),
                       icon: FontAwesomeIcons.language,
                       additionalInfo: state.locale == AppLocale.ru ? Text("Русский") : Text("English"),
-                      onTab: () async => context.go("/settings/language"),
+                      onTab: () async {
+                        final locale = context.read<MainCubit>().state.settingsDevice.locale;
+                        // SettingsCubit живёт во вкладке; пробрасываем его в маршрут
+                        // корневого navigator'а, чтобы экран языка мог его обновить.
+                        final settingsCubit = context.read<SettingsCubit>();
+                        Navigator.of(context, rootNavigator: true).push(
+                          CupertinoPageRoute(
+                            builder: (_) => MultiBlocProvider(
+                              providers: [
+                                BlocProvider.value(value: settingsCubit),
+                                BlocProvider(
+                                  create: (_) {
+                                    if (locale != null) return SettingsLanguageCubit()..initialization(locale: locale);
+                                    return SettingsLanguageCubit();
+                                  },
+                                ),
+                              ],
+                              child: SettingsLanguageScreenCupertino(),
+                            ),
+                          ),
+                        );
+                      },
                     ),
                   ],
                 ),
