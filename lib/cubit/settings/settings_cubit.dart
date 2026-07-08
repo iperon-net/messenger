@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:messenger/constants.dart';
@@ -23,10 +24,17 @@ class SettingsCubit extends Cubit<SettingsState> {
   StreamSubscription<List<models.DeviceSession>>? _deviceSessionsSubscription;
 
   Future<void> initialization() async {
-    final deviceSessions = await repositories.deviceSessions.getAll(session: syncer.session);
-    emit(state.copyWith(deviceSessionsCount: deviceSessions.length));
+    final deviceSessionsCount = await repositories.cache.get(userID: syncer.session.userID, key: "deviceSessionsCount");
+    if (deviceSessionsCount.isNotEmpty) {
+      emit(state.copyWith(deviceSessionsCount: int.parse(utf8.decode(deviceSessionsCount))));
+    }
 
-    _deviceSessionsSubscription ??= streams.controllerDeviceSessions.stream.listen((deviceSessions) {
+    _deviceSessionsSubscription ??= streams.controllerDeviceSessions.stream.listen((deviceSessions) async {
+      await repositories.cache.set(
+          userID: syncer.session.userID,
+          key: "deviceSessionsCount",
+          value: utf8.encode(deviceSessions.length.toString()),
+      );
       emit(state.copyWith(deviceSessionsCount: deviceSessions.length));
     });
 

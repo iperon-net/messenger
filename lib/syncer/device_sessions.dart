@@ -81,6 +81,8 @@ class DeviceSessions {
     }
 
     await repositories.deviceSessions.deleteAndCreate(session: session, deviceSessions: deviceSessions);
+    await repositories.cache.set(userID: session.userID, key: "deviceSessionsCount", value: utf8.encode(deviceSessions.length.toString()));
+
     streams.controllerDeviceSessions.add(deviceSessions);
   }
 

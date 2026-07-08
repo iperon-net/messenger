@@ -128,7 +128,8 @@ class Repositories {
             value BLOB NOT NULL,
             ttl INTEGER NOT NULL DEFAULT 0,
             userID BLOB NOT NULL,
-            FOREIGN KEY (userID) REFERENCES users(userID) ON DELETE CASCADE ON UPDATE CASCADE
+            FOREIGN KEY (userID) REFERENCES users(userID) ON DELETE CASCADE ON UPDATE CASCADE,
+            CONSTRAINT unique_userId_key UNIQUE (userID, key)
           );
       """);
 
