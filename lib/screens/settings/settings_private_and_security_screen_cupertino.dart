@@ -2,10 +2,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
-import 'package:messenger/cubit/settings/settings_language_state.dart';
 import 'package:messenger/cubit/settings/settings_private_and_security_state.dart';
 
-import '../../cubit/settings/settings_language_cubit.dart';
 import '../../cubit/settings/settings_private_and_security_cubit.dart';
 import '../../i18n/translations.g.dart';
 
