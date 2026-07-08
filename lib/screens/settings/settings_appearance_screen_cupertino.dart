@@ -55,10 +55,7 @@ class _SettingsAppearanceScreenCupertino extends State<SettingsAppearanceScreenC
         );
 
         return CupertinoPageScaffold(
-          backgroundColor: CupertinoDynamicColor.withBrightness(
-            color: CupertinoColors.systemGroupedBackground,
-            darkColor: CupertinoColors.darkBackgroundGray,
-          ),
+          backgroundColor: CupertinoColors.systemGroupedBackground,
           navigationBar: CupertinoNavigationBar(
             automaticBackgroundVisibility: false,
             middle: Text(context.t.appearance),

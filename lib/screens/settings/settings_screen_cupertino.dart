@@ -70,10 +70,7 @@ class _SettingsCupertinoScreen extends State<SettingsCupertinoScreen> {
     return BlocBuilder<SettingsCubit, SettingsState>(
       builder: (context, state) {
         return CupertinoPageScaffold(
-          backgroundColor: CupertinoDynamicColor.withBrightness(
-            color: CupertinoColors.systemGroupedBackground,
-            darkColor: CupertinoColors.darkBackgroundGray,
-          ),
+          backgroundColor: CupertinoColors.systemGroupedBackground,
           navigationBar: CupertinoNavigationBar(
             automaticBackgroundVisibility: false,
             middle: Text(context.t.settings),
