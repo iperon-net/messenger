@@ -57,6 +57,9 @@ class _SettingsLanguageScreenCupertino extends State<SettingsLanguageScreenCuper
             child: ListView(
               children: [
                 CupertinoListSection.insetGrouped(
+                  margin: EdgeInsetsGeometry.fromLTRB(10, 20, 10, 20),
+                  dividerMargin: 0,
+                  hasLeading: false,
                   children: [
                     CupertinoListTile(
                       title: Text("English"),

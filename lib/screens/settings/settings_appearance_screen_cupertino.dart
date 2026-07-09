@@ -64,6 +64,9 @@ class _SettingsAppearanceScreenCupertino extends State<SettingsAppearanceScreenC
             child: ListView(
               children: [
                 CupertinoListSection.insetGrouped(
+                  margin: EdgeInsetsGeometry.fromLTRB(10, 5, 10, 20),
+                  dividerMargin: 0,
+                  hasLeading: false,
                   header: Text(context.t.colorTheme.toUpperCase(), style: TextStyle(fontSize: 13, fontWeight: FontWeight.normal)),
                   children: [
                     CupertinoListTile(
@@ -84,6 +87,9 @@ class _SettingsAppearanceScreenCupertino extends State<SettingsAppearanceScreenC
                   ],
                 ),
                 CupertinoListSection.insetGrouped(
+                  margin: EdgeInsetsGeometry.fromLTRB(10, 5, 10, 20),
+                  dividerMargin: 0,
+                  hasLeading: false,
                   header: Text(context.t.darkMode.toUpperCase(), style: TextStyle(fontSize: 13, fontWeight: FontWeight.normal)),
                   children: [
                     CupertinoListTile(

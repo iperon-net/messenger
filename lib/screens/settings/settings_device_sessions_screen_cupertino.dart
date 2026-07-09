@@ -55,6 +55,7 @@ class _SettingsDeviceSessionsScreenCupertino extends State<SettingsDeviceSession
               child: ListView(
               children: [
                 CupertinoListSection.insetGrouped(
+                  margin: EdgeInsetsGeometry.fromLTRB(10, 0, 10, 10),
                   header: Text(
                     context.t.thisDevice.toUpperCase(),
                     style: TextStyle(fontSize: 13, fontWeight: FontWeight.normal),
@@ -118,6 +119,7 @@ class _SettingsDeviceSessionsScreenCupertino extends State<SettingsDeviceSession
 
                 if (state.deviceSessions.isNotEmpty && state.deviceSessions.any((data) => data.isCurrent == false))
                   CupertinoListSection.insetGrouped(
+                    margin: EdgeInsetsGeometry.fromLTRB(10, 0, 10, 10),
                     header: Text(
                       context.t.activeSessions.toUpperCase(),
                       style: TextStyle(fontSize: 13, fontWeight: FontWeight.normal),
