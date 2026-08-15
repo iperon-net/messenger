@@ -18,7 +18,13 @@ class Utils {
   Utils();
 
   PhoneNumberModel phoneNormalization({required String phoneNumber}) {
-    const empty = PhoneNumberModel(international: "", national: "", e164: "", rfc3966: "", raw: "");
+    const empty = PhoneNumberModel(
+      international: "",
+      national: "",
+      e164: "",
+      rfc3966: "",
+      raw: "",
+    );
 
     var digits = phoneNumber.replaceAll(RegExp(r'\D'), '');
     if (digits.isEmpty) return empty;
@@ -42,7 +48,10 @@ class Utils {
     if (!phoneUtil.isValidNumber(phoneNumberParse)) return empty;
 
     return PhoneNumberModel(
-      international: phoneUtil.format(phoneNumberParse, PhoneNumberFormat.international),
+      international: phoneUtil.format(
+        phoneNumberParse,
+        PhoneNumberFormat.international,
+      ),
       national: phoneUtil.format(phoneNumberParse, PhoneNumberFormat.national),
       e164: phoneUtil.format(phoneNumberParse, PhoneNumberFormat.e164),
       rfc3966: phoneUtil.format(phoneNumberParse, PhoneNumberFormat.rfc3966),
@@ -64,7 +73,10 @@ class Utils {
 
   Future<PackageInfoModel> packageInfo() async {
     final packageInfo = await PackageInfo.fromPlatform();
-    return PackageInfoModel(appVersion: packageInfo.version, appBuildNumber: packageInfo.buildNumber);
+    return PackageInfoModel(
+      appVersion: packageInfo.version,
+      appBuildNumber: packageInfo.buildNumber,
+    );
   }
 
   Future<DeviceInfoModel> deviceInfo() async {
@@ -82,7 +94,6 @@ class Utils {
         osVersion: info.systemVersion,
         isPhysicalDevice: kDebugMode ? true : info.isPhysicalDevice,
       );
-
     } else {
       final info = await deviceInfo.androidInfo;
       final singleDeviceName = await deviceNames.getSingleName();
@@ -95,7 +106,6 @@ class Utils {
         isPhysicalDevice: kDebugMode ? true : info.isPhysicalDevice,
       );
     }
-
   }
 
   Future<void> makePhoneCall(String phoneNumber) async {
@@ -114,7 +124,9 @@ class Utils {
 
     try {
       if (!await canLaunchUrl(uri)) {
-        logger.warning("makePhoneCall: cannot launch $uri (no dialer available?)");
+        logger.warning(
+          "makePhoneCall: cannot launch $uri (no dialer available?)",
+        );
         return;
       }
 
@@ -126,9 +138,14 @@ class Utils {
   }
 
   String formatDuration(Duration duration) {
-    String minutes = duration.inMinutes.remainder(60).toString().padLeft(2, '0');
-    String seconds = duration.inSeconds.remainder(60).toString().padLeft(2, '0');
+    String minutes = duration.inMinutes
+        .remainder(60)
+        .toString()
+        .padLeft(2, '0');
+    String seconds = duration.inSeconds
+        .remainder(60)
+        .toString()
+        .padLeft(2, '0');
     return "$minutes:$seconds";
   }
-
 }

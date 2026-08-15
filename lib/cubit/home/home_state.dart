@@ -8,7 +8,5 @@ part 'home_state.mapper.dart';
 class HomeState with HomeStateMappable {
   final Status status;
 
-  const HomeState({
-    this.status = Status.initialization,
-  });
+  const HomeState({this.status = Status.initialization});
 }

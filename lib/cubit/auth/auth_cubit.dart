@@ -54,13 +54,19 @@ class AuthCubit extends Cubit<AuthState> {
   Future<void> onPressed(String phoneNumber) async {
     emit(state.copyWith(status: Status.loading, error: null));
 
-    final phoneNumberNormalization = utils.phoneNormalization(phoneNumber: phoneNumber);
+    final phoneNumberNormalization = utils.phoneNormalization(
+      phoneNumber: phoneNumber,
+    );
 
     // Workflow moderation application store
-    if (settings.phoneNumberModerationApplicationStoreEnable && settings.phoneNumberModerationApplicationStore == phoneNumberNormalization.raw) {
+    if (settings.phoneNumberModerationApplicationStoreEnable &&
+        settings.phoneNumberModerationApplicationStore ==
+            phoneNumberNormalization.raw) {
       final messageRequest = Message(
         messageType: MessageType.AUTH_MODERATION_APPLICATION_STORE,
-        message: AuthModerationApplicationStore_Request(phoneNumber: phoneNumberNormalization.raw).writeToBuffer(),
+        message: AuthModerationApplicationStore_Request(
+          phoneNumber: phoneNumberNormalization.raw,
+        ).writeToBuffer(),
       );
 
       late Message response;
@@ -73,26 +79,36 @@ class AuthCubit extends Cubit<AuthState> {
         return;
       }
 
-      final messageResponse = AuthModerationApplicationStore_Response.fromBuffer(response.message);
-      final moderationApplicationStoreSession = utils.bytesToHex(Uint8List.fromList(messageResponse.moderationApplicationStoreSession));
-
-      final phoneNormalization = utils.phoneNormalization(phoneNumber: phoneNumber);
-
-      final uri = Uri.parse("/auth/moderation_application_store").replace(
-          queryParameters: {
-            "moderationApplicationStoreSession": moderationApplicationStoreSession,
-            "phoneNumber": phoneNormalization.international,
-          }
+      final messageResponse =
+          AuthModerationApplicationStore_Response.fromBuffer(response.message);
+      final moderationApplicationStoreSession = utils.bytesToHex(
+        Uint8List.fromList(messageResponse.moderationApplicationStoreSession),
       );
 
-      emit(state.copyWith(status: Status.success, error: null, redirectURI: uri));
+      final phoneNormalization = utils.phoneNormalization(
+        phoneNumber: phoneNumber,
+      );
+
+      final uri = Uri.parse("/auth/moderation_application_store").replace(
+        queryParameters: {
+          "moderationApplicationStoreSession":
+              moderationApplicationStoreSession,
+          "phoneNumber": phoneNormalization.international,
+        },
+      );
+
+      emit(
+        state.copyWith(status: Status.success, error: null, redirectURI: uri),
+      );
       return;
     }
 
     // Workflow call password
     final messageRequest = Message(
-        messageType: MessageType.AUTH_CALL_PASSWORD,
-        message: AuthCallPassword_Request(phoneNumber: phoneNumberNormalization.raw).writeToBuffer(),
+      messageType: MessageType.AUTH_CALL_PASSWORD,
+      message: AuthCallPassword_Request(
+        phoneNumber: phoneNumberNormalization.raw,
+      ).writeToBuffer(),
     );
 
     late Message response;
@@ -105,21 +121,24 @@ class AuthCubit extends Cubit<AuthState> {
       return;
     }
 
-    final messageResponse = AuthCallPassword_Response.fromBuffer(response.message);
+    final messageResponse = AuthCallPassword_Response.fromBuffer(
+      response.message,
+    );
     logger.debug(messageResponse);
 
-    final callPasswordSession = utils.bytesToHex(Uint8List.fromList(messageResponse.callPasswordSession));
+    final callPasswordSession = utils.bytesToHex(
+      Uint8List.fromList(messageResponse.callPasswordSession),
+    );
 
     final uri = Uri.parse("/auth/call_password_confirmation").replace(
-        queryParameters: {
-          "callPasswordSession": callPasswordSession,
-          "confirmationPhoneNumber": messageResponse.confirmationPhoneNumber,
-          "timeout": messageResponse.timeout.toString(),
-        }
+      queryParameters: {
+        "callPasswordSession": callPasswordSession,
+        "confirmationPhoneNumber": messageResponse.confirmationPhoneNumber,
+        "timeout": messageResponse.timeout.toString(),
+      },
     );
 
     emit(state.copyWith(status: Status.success, error: null, redirectURI: uri));
     return;
   }
-
 }

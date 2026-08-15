@@ -58,7 +58,8 @@ class _SettingsCupertino extends State<SettingsCupertino> {
                       title: Text(context.t.settings.privacyAndSecurity),
                       color: Color(0xFF049A40),
                       icon: FontAwesomeIcons.key,
-                      onTab: () async => context.go("/settings/privacy_and_security"),
+                      onTab: () async =>
+                          context.go("/settings/privacy_and_security"),
                     ),
                     CupertinoListTileIcon(
                       title: Text(context.t.settings.appearance),
@@ -70,8 +71,11 @@ class _SettingsCupertino extends State<SettingsCupertino> {
                       title: Text(context.t.settings.devices),
                       color: Color(0xFFFF6B00),
                       icon: FontAwesomeIcons.mobileScreen,
-                      onTab: () async => context.go("/settings/device_sessions"),
-                      additionalInfo: state.countDeviceSessions > 0 ? Text(state.countDeviceSessions.toString()): null,
+                      onTab: () async =>
+                          context.go("/settings/device_sessions"),
+                      additionalInfo: state.countDeviceSessions > 0
+                          ? Text(state.countDeviceSessions.toString())
+                          : null,
                     ),
                     CupertinoListTileIcon(
                       title: Text(context.t.settings.language),

@@ -1,6 +1,5 @@
 import 'package:bloc/bloc.dart';
 
-
 import '../../constants.dart';
 import '../../di.dart';
 import '../../logger.dart';
@@ -15,9 +14,20 @@ class SettingsAppearanceCubit extends Cubit<SettingsAppearanceState> {
   final logger = getIt.get<Logger>();
   final repositories = getIt.get<Repositories>();
 
-  Future<void> initialization({required ColorThemeModel colorTheme, required DarkModeModel darkMode, required bool isBlurOnInactive}) async {
+  Future<void> initialization({
+    required ColorThemeModel colorTheme,
+    required DarkModeModel darkMode,
+    required bool isBlurOnInactive,
+  }) async {
     emit(state.copyWith(status: Status.loading));
-    emit(state.copyWith(status: Status.success, colorTheme: colorTheme, darkMode: darkMode, isBlurOnInactive: isBlurOnInactive));
+    emit(
+      state.copyWith(
+        status: Status.success,
+        colorTheme: colorTheme,
+        darkMode: darkMode,
+        isBlurOnInactive: isBlurOnInactive,
+      ),
+    );
   }
 
   Future<void> setColorTheme({required ColorThemeModel colorTheme}) async {
@@ -35,7 +45,11 @@ class SettingsAppearanceCubit extends Cubit<SettingsAppearanceState> {
   Future<void> setIsBlurOnInactive({required bool isBlurOnInactive}) async {
     emit(state.copyWith(status: Status.loading));
     await repositories.settingsDevice.setIsBlurOnInactive(isBlurOnInactive);
-    emit(state.copyWith(status: Status.success, isBlurOnInactive: isBlurOnInactive));
+    emit(
+      state.copyWith(
+        status: Status.success,
+        isBlurOnInactive: isBlurOnInactive,
+      ),
+    );
   }
-
 }

@@ -1,6 +1,5 @@
 part of 'repositories.dart';
 
-
 class DeviceSessions {
   final Logger logger;
   final SqliteDatabase db;
@@ -12,7 +11,10 @@ class DeviceSessions {
     return res.map(DeviceSessionsModelMapper.fromMap).toList();
   }
 
-  Future<void> deleteAndCreate({required List<DeviceSessionsModel> deviceSessionsModel, required List<int> userID}) async {
+  Future<void> deleteAndCreate({
+    required List<DeviceSessionsModel> deviceSessionsModel,
+    required List<int> userID,
+  }) async {
     await db.writeTransaction((txn) async {
       // Таблица зеркалит удалённые сессии ТЕКУЩЕГО пользователя. Чистим целиком,
       // а не WHERE userID = ?, иначе строки прошлых логинов (другие userID)
@@ -20,7 +22,8 @@ class DeviceSessions {
       await txn.execute("DELETE FROM deviceSessions;");
       if (deviceSessionsModel.isEmpty) return;
 
-      await txn.executeBatch("""
+      await txn.executeBatch(
+        """
         INSERT INTO deviceSessions (sessionID, userID, deviceModel, os, osVersion, appVersion, appBuildNumber,
         locationRussian, locationEnglish, updateAt)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -39,10 +42,8 @@ class DeviceSessions {
               item.locationEnglish,
               item.updateAt.millisecondsSinceEpoch,
             ],
-        ]
+        ],
       );
-
     });
   }
-
 }

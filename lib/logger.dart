@@ -115,5 +115,4 @@ class Logger {
   void handle(Object exception, [StackTrace? stackTrace, dynamic msg]) {
     _talker.handle(exception, stackTrace, msg);
   }
-
 }

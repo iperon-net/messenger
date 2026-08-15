@@ -11,10 +11,12 @@ class SettingsPasscodeCreateCupertino extends StatefulWidget {
   const SettingsPasscodeCreateCupertino({super.key});
 
   @override
-  State<SettingsPasscodeCreateCupertino> createState() => _SettingsPasscodeCreateCupertino();
+  State<SettingsPasscodeCreateCupertino> createState() =>
+      _SettingsPasscodeCreateCupertino();
 }
 
-class _SettingsPasscodeCreateCupertino extends State<SettingsPasscodeCreateCupertino> {
+class _SettingsPasscodeCreateCupertino
+    extends State<SettingsPasscodeCreateCupertino> {
   final formKey = GlobalKey<FormState>();
 
   @override
@@ -29,15 +31,21 @@ class _SettingsPasscodeCreateCupertino extends State<SettingsPasscodeCreateCuper
 
   @override
   Widget build(BuildContext context) {
-    return BlocConsumer<SettingsPasscodeCreateCubit, SettingsPasscodeCreateState>(
-      listenWhen: (previousState, currentState) => !listEquals(previousState.passcode, currentState.passcode),
+    return BlocConsumer<
+      SettingsPasscodeCreateCubit,
+      SettingsPasscodeCreateState
+    >(
+      listenWhen: (previousState, currentState) =>
+          !listEquals(previousState.passcode, currentState.passcode),
       listener: (context, state) async {
         await context.read<CommonCubit>().setPasscode(passcode: state.passcode);
       },
       builder: (context, state) {
         return ScreenLock.create(
           onConfirmed: (String passcode) async {
-            await context.read<SettingsPasscodeCreateCubit>().setPasscode(passcode: passcode);
+            await context.read<SettingsPasscodeCreateCubit>().setPasscode(
+              passcode: passcode,
+            );
             if (context.mounted) context.pop(true);
           },
           onCancelled: () => context.pop(false),
@@ -46,7 +54,9 @@ class _SettingsPasscodeCreateCupertino extends State<SettingsPasscodeCreateCuper
             backgroundColor: const Color(0xFF545454),
           ),
           title: Text(context.t.settings.passcode.pleaseEnterNewPasscode),
-          confirmTitle: Text(context.t.settings.passcode.pleaseEnterNewPasscodeAgain),
+          confirmTitle: Text(
+            context.t.settings.passcode.pleaseEnterNewPasscodeAgain,
+          ),
           cancelButton: Text(context.t.settings.passcode.cancel),
         );
       },

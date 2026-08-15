@@ -2,7 +2,6 @@ import 'dart:typed_data';
 
 import 'package:dart_mappable/dart_mappable.dart';
 
-
 part 'device_sessions.mapper.dart';
 
 @MappableClass()

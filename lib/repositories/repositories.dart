@@ -19,7 +19,6 @@ part "users.dart";
 part "sessions.dart";
 part "device_sessions.dart";
 
-
 base class _AppSqliteOpenFactory extends NativeSqliteOpenFactory {
   final String? password;
 
@@ -50,7 +49,6 @@ class Repositories {
   late Sessions sessions;
   late DeviceSessions deviceSessions;
 
-
   static Future<Repositories> initialization() async {
     final repositories = Repositories._();
     await repositories._initialization();
@@ -60,7 +58,10 @@ class Repositories {
   Repositories._();
 
   Future<void> _initialization() async {
-    String databasePath = p.join((await getApplicationSupportDirectory()).path, settings.databaseName);
+    String databasePath = p.join(
+      (await getApplicationSupportDirectory()).path,
+      settings.databaseName,
+    );
 
     // Secure storage
     final storage = FlutterSecureStorage(
@@ -68,8 +69,9 @@ class Repositories {
       iOptions: IOSOptions(),
     );
 
-    migrations.add(SqliteMigration(1, (tx) async {
-      await tx.execute("""
+    migrations.add(
+      SqliteMigration(1, (tx) async {
+        await tx.execute("""
         CREATE TABLE settingsDevice (
           locale TEXT NULL,
           darkMode TEXT NOT NULL,
@@ -83,7 +85,7 @@ class Repositories {
         );
       """);
 
-      await tx.execute("""
+        await tx.execute("""
         INSERT INTO settingsDevice
           (locale, darkMode, colorTheme, isBlurOnInactive,
             isContactBannerDisabled, isNotificationBannerDisabled)
@@ -91,14 +93,14 @@ class Repositories {
           (NULL, 'system', 'blue', 0, 0, 0)
       """);
 
-      await tx.execute("""
+        await tx.execute("""
         CREATE TABLE users (
           userID TEXT PRIMARY KEY,
           phoneNumber TEXT NOT NULL
         );
       """);
 
-      await tx.execute("""
+        await tx.execute("""
         CREATE TABLE sessions (
           sessionID BLOB NOT NULL,
           session BLOB NOT NULL,
@@ -111,7 +113,7 @@ class Repositories {
         );
       """);
 
-      await tx.execute("""
+        await tx.execute("""
         CREATE TABLE cache (
           key TEXT NOT NULL,
           value BLOB NOT NULL,
@@ -122,7 +124,7 @@ class Repositories {
         );
       """);
 
-      await tx.execute("""
+        await tx.execute("""
         CREATE TABLE deviceSessions (
           sessionID BLOB NOT NULL,
           userID BLOB NOT NULL,
@@ -137,16 +139,18 @@ class Repositories {
           FOREIGN KEY (userID) REFERENCES users(userID) ON DELETE CASCADE ON UPDATE CASCADE
         );
       """);
+      }),
+    );
 
-    }));
-
-    migrations.add(SqliteMigration(2, (tx) async {
-      // Персистентная «форс-блокировка»: остаётся включённой после перезапуска
-      // приложения, пока пользователь не введёт passcode.
-      await tx.execute(
-        "ALTER TABLE settingsDevice ADD COLUMN passcodeForceLocked INTEGER NOT NULL DEFAULT 0",
-      );
-    }));
+    migrations.add(
+      SqliteMigration(2, (tx) async {
+        // Персистентная «форс-блокировка»: остаётся включённой после перезапуска
+        // приложения, пока пользователь не введёт passcode.
+        await tx.execute(
+          "ALTER TABLE settingsDevice ADD COLUMN passcodeForceLocked INTEGER NOT NULL DEFAULT 0",
+        );
+      }),
+    );
 
     if (settings.isDeleteDatabase) {
       logger.warning("Deleting the database, flag set IS_DELETE_DATABASE: 1");
@@ -164,7 +168,6 @@ class Repositories {
         if (await File("$databasePath-shm").exists()) {
           await File("$databasePath-shm").delete();
         }
-
       } catch (e) {
         logger.error("error delete database $e");
       }
@@ -179,12 +182,18 @@ class Repositories {
       if (password == null) {
         password = _generatePassword();
         await storage.write(key: 'databasePassword', value: password);
-        logger.logCustom(RepositoriesLog("A new password has been set for the database"));
+        logger.logCustom(
+          RepositoriesLog("A new password has been set for the database"),
+        );
       }
 
-      db = SqliteDatabase.withFactory(_AppSqliteOpenFactory(path: databasePath, password: password));
+      db = SqliteDatabase.withFactory(
+        _AppSqliteOpenFactory(path: databasePath, password: password),
+      );
     } else {
-      db = SqliteDatabase.withFactory(_AppSqliteOpenFactory(path: databasePath));
+      db = SqliteDatabase.withFactory(
+        _AppSqliteOpenFactory(path: databasePath),
+      );
     }
 
     await migrations.migrate(db);
@@ -197,7 +206,8 @@ class Repositories {
   // Generate password
   String _generatePassword() {
     final random = Random.secure();
-    final characters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    final characters =
+        'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     String password = '';
 
     int min = 60;
@@ -209,5 +219,4 @@ class Repositories {
     }
     return password;
   }
-
 }

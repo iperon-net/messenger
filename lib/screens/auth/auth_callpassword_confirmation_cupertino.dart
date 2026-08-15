@@ -12,10 +12,12 @@ class AuthCallpasswordConfirmationCupertino extends StatefulWidget {
   const AuthCallpasswordConfirmationCupertino({super.key});
 
   @override
-  State<AuthCallpasswordConfirmationCupertino> createState() => _AuthCallpasswordConfirmationCupertino();
+  State<AuthCallpasswordConfirmationCupertino> createState() =>
+      _AuthCallpasswordConfirmationCupertino();
 }
 
-class _AuthCallpasswordConfirmationCupertino extends State<AuthCallpasswordConfirmationCupertino> {
+class _AuthCallpasswordConfirmationCupertino
+    extends State<AuthCallpasswordConfirmationCupertino> {
   final formKey = GlobalKey<FormState>();
   final utils = getIt.get<Utils>();
 
@@ -31,8 +33,12 @@ class _AuthCallpasswordConfirmationCupertino extends State<AuthCallpasswordConfi
 
   @override
   Widget build(BuildContext context) {
-    return BlocConsumer<AuthCallpasswordConfirmationCubit, AuthCallpasswordConfirmationState>(
-      listenWhen: (previous, current) => previous.redirectURI != current.redirectURI,
+    return BlocConsumer<
+      AuthCallpasswordConfirmationCubit,
+      AuthCallpasswordConfirmationState
+    >(
+      listenWhen: (previous, current) =>
+          previous.redirectURI != current.redirectURI,
       listener: (context, state) {
         // Таймаут / ошибка / блокировка уводят обратно на /auth. Успех пока
         // без перехода — второй шаг входа (two-step) ещё не реализован.
@@ -58,15 +64,30 @@ class _AuthCallpasswordConfirmationCupertino extends State<AuthCallpasswordConfi
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         SizedBox(height: 30, width: double.infinity),
-                        SvgPicture.asset(CupertinoTheme.brightnessOf(context) == Brightness.light ? 'assets/images/logo_light.svg' : 'assets/images/logo_dark.svg'),
-                        SizedBox(height: 30, width: double.infinity),
-                        Text(context.t.auth.confirmYourNumberDetail(
-                            confirmationPhoneNumberRu: utils.phoneNormalization(phoneNumber: state.confirmationPhoneNumber).international),
-                            textAlign: TextAlign.center
+                        SvgPicture.asset(
+                          CupertinoTheme.brightnessOf(context) ==
+                                  Brightness.light
+                              ? 'assets/images/logo_light.svg'
+                              : 'assets/images/logo_dark.svg',
                         ),
                         SizedBox(height: 30, width: double.infinity),
-                        Text(context.t.auth.weAreExpectingYourCallWithin(
-                            duration: utils.formatDuration(Duration(seconds: state.tickerSecond))),
+                        Text(
+                          context.t.auth.confirmYourNumberDetail(
+                            confirmationPhoneNumberRu: utils
+                                .phoneNormalization(
+                                  phoneNumber: state.confirmationPhoneNumber,
+                                )
+                                .international,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        SizedBox(height: 30, width: double.infinity),
+                        Text(
+                          context.t.auth.weAreExpectingYourCallWithin(
+                            duration: utils.formatDuration(
+                              Duration(seconds: state.tickerSecond),
+                            ),
+                          ),
                           textAlign: TextAlign.center,
                         ),
                         SizedBox(height: 50, width: double.infinity),
@@ -74,7 +95,9 @@ class _AuthCallpasswordConfirmationCupertino extends State<AuthCallpasswordConfi
                           width: double.infinity,
                           height: 50,
                           child: CupertinoButton.filled(
-                            onPressed: () async => await utils.makePhoneCall(state.confirmationPhoneNumber),
+                            onPressed: () async => await utils.makePhoneCall(
+                              state.confirmationPhoneNumber,
+                            ),
                             child: Text(context.t.auth.callForFree),
                           ),
                         ),

@@ -27,8 +27,7 @@ class _ChatsCupertino extends State<ChatsCupertino> {
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<ChatsCubit, ChatsState>(
-      listener: (context, state) {
-      },
+      listener: (context, state) {},
       builder: (context, state) {
         return CupertinoPageScaffold(
           backgroundColor: CupertinoColors.systemGroupedBackground,
@@ -41,10 +40,13 @@ class _ChatsCupertino extends State<ChatsCupertino> {
                 FaIcon(
                   FontAwesomeIcons.lockOpen,
                   size: 16,
-                  color: CupertinoTheme.brightnessOf(context) == Brightness.dark ? CupertinoColors.white : CupertinoColors.black),
-                SizedBox(width: 10,),
+                  color: CupertinoTheme.brightnessOf(context) == Brightness.dark
+                      ? CupertinoColors.white
+                      : CupertinoColors.black,
+                ),
+                SizedBox(width: 10),
                 ConnectionTitle(title: context.t.common.chats),
-              ]
+              ],
             ),
           ),
           child: Center(child: Text("ccc")),

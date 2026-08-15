@@ -121,6 +121,23 @@ jobs:
           </plist>
           EOF
 
+      - name: Create .env asset files
+        env:
+          ENV_FILE_BASE64: ${{ secrets.ENV_FILE_BASE64 }}
+        run: |
+          set -euo pipefail
+          # .env и .env.development объявлены ассетами в pubspec, но лежат в
+          # .gitignore — без них падает бандлинг ассетов. .env наполняем из
+          # секрета ENV_FILE_BASE64, если он задан (иначе пустой — значения
+          # берутся из Firebase Remote Config). .env.development релиз не читает,
+          # но файл должен существовать для бандлинга.
+          if [ -n "${ENV_FILE_BASE64:-}" ]; then
+            echo "$ENV_FILE_BASE64" | base64 --decode > .env
+          else
+            touch .env
+          fi
+          touch .env.development
+
       - name: Build IPA
         run: |
           set -euo pipefail

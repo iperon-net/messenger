@@ -12,7 +12,9 @@ class SettingsDevice {
   }
 
   Future<void> setLocale({required AppLocale locale}) async {
-    await db.execute("UPDATE settingsDevice SET locale = ?", [locale.languageCode]);
+    await db.execute("UPDATE settingsDevice SET locale = ?", [
+      locale.languageCode,
+    ]);
   }
 
   Future<void> setDarkMode(DarkModeModel value) async {
@@ -24,7 +26,9 @@ class SettingsDevice {
   }
 
   Future<void> setIsBlurOnInactive(bool value) async {
-    await db.execute("UPDATE settingsDevice SET isBlurOnInactive = ?", [value ? 1 : 0]);
+    await db.execute("UPDATE settingsDevice SET isBlurOnInactive = ?", [
+      value ? 1 : 0,
+    ]);
   }
 
   Future<void> setPasscode(List<int> value) async {
@@ -32,15 +36,20 @@ class SettingsDevice {
   }
 
   Future<void> setPasscodeBiometric({required bool biometric}) async {
-    await db.execute("UPDATE settingsDevice SET passcodeBiometric = ?", [biometric ? 1 : 0]);
+    await db.execute("UPDATE settingsDevice SET passcodeBiometric = ?", [
+      biometric ? 1 : 0,
+    ]);
   }
 
   Future<void> setPasscodeAutoLock({required int seconds}) async {
-    await db.execute("UPDATE settingsDevice SET passcodeAutoLock = ?", [seconds]);
+    await db.execute("UPDATE settingsDevice SET passcodeAutoLock = ?", [
+      seconds,
+    ]);
   }
 
   Future<void> setPasscodeForceLocked(bool value) async {
-    await db.execute("UPDATE settingsDevice SET passcodeForceLocked = ?", [value ? 1 : 0]);
+    await db.execute("UPDATE settingsDevice SET passcodeForceLocked = ?", [
+      value ? 1 : 0,
+    ]);
   }
-
 }

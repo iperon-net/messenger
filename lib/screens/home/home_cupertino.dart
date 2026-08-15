@@ -13,7 +13,10 @@ class HomeCupertino extends StatelessWidget {
 
   final StatefulNavigationShell navigationShell;
 
-  void _onTap(int index) => navigationShell.goBranch(index, initialLocation: index == navigationShell.currentIndex);
+  void _onTap(int index) => navigationShell.goBranch(
+    index,
+    initialLocation: index == navigationShell.currentIndex,
+  );
 
   @override
   Widget build(BuildContext context) {

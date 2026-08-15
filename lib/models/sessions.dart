@@ -33,5 +33,4 @@ class Session with SessionMappable {
   String toString() {
     return "sessionID=$sessionID, session=$session userID=$userID, sharedKey=$sharedKey, salt=$salt";
   }
-
 }

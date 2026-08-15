@@ -105,10 +105,7 @@ extension FrostExtension on Widget {
       blurColor: frostColor,
       borderRadius: borderRadius,
       alignment: alignment,
-      overlay: Padding(
-        padding: padding,
-        child: this,
-      ),
+      overlay: Padding(padding: padding, child: this),
       child: Container(
         height: height,
         width: width,

@@ -15,7 +15,8 @@ import '../../protobuf.dart';
 import 'settings_device_sessions_state.dart';
 
 class SettingsDeviceSessionsCubit extends Cubit<SettingsDeviceSessionsState> {
-  SettingsDeviceSessionsCubit() : super(SettingsDeviceSessionsState(deviceSessions: []));
+  SettingsDeviceSessionsCubit()
+    : super(SettingsDeviceSessionsState(deviceSessions: []));
 
   final logger = getIt.get<Logger>();
   final api = getIt.get<API>();
@@ -30,9 +31,18 @@ class SettingsDeviceSessionsCubit extends Cubit<SettingsDeviceSessionsState> {
     final deviceSessions = await repositories.deviceSessions.getAll();
     final currentSessionID = auth.session.sessionID;
 
-    emit(state.copyWith(status: Status.success, deviceSessions: deviceSessions.map((session) =>
-        session.copyWith(isCurrent: listEquals(session.sessionID, currentSessionID),
-    )).toList()));
+    emit(
+      state.copyWith(
+        status: Status.success,
+        deviceSessions: deviceSessions
+            .map(
+              (session) => session.copyWith(
+                isCurrent: listEquals(session.sessionID, currentSessionID),
+              ),
+            )
+            .toList(),
+      ),
+    );
 
     // Подписываемся до отправки запроса, чтобы не пропустить ответ, если он
     // придёт быстро.
@@ -45,32 +55,42 @@ class SettingsDeviceSessionsCubit extends Cubit<SettingsDeviceSessionsState> {
 
       for (final item in response.results) {
         final sessionID = Uint8List.fromList(item.sessionID);
-        deviceSessions.add(DeviceSessionsModel(
-          sessionID: sessionID,
-          isCurrent: listEquals(sessionID, currentSessionID),
-          updateAt: item.updateAt.toDateTime(),
-          deviceModel: item.deviceModel,
-          os: item.os,
-          osVersion: item.osVersion,
-          appVersion: item.appVersion,
-          appBuildNumber: item.appBuildNumber,
-          locationEnglish: item.locationEnglish,
-          locationRussian: item.locationRussian,
-        ));
+        deviceSessions.add(
+          DeviceSessionsModel(
+            sessionID: sessionID,
+            isCurrent: listEquals(sessionID, currentSessionID),
+            updateAt: item.updateAt.toDateTime(),
+            deviceModel: item.deviceModel,
+            os: item.os,
+            osVersion: item.osVersion,
+            appVersion: item.appVersion,
+            appBuildNumber: item.appBuildNumber,
+            locationEnglish: item.locationEnglish,
+            locationRussian: item.locationRussian,
+          ),
+        );
       }
-      emit(state.copyWith(status: Status.success, deviceSessions: deviceSessions));
+      emit(
+        state.copyWith(status: Status.success, deviceSessions: deviceSessions),
+      );
     });
 
     // sendEncoded может ждать готовности стрима (до отправки Subscribe), поэтому
     // экран мог закрыться за время await — не эмитим в закрытый кубит.
-    await api.sendEncoded(MessageType.DEVICE_SESSIONS, DeviceSessions_Request().writeToBuffer());
+    await api.sendEncoded(
+      MessageType.DEVICE_SESSIONS,
+      DeviceSessions_Request().writeToBuffer(),
+    );
     if (isClosed) return;
 
     emit(state.copyWith(status: Status.success));
   }
 
   Future<void> terminate(List<Uint8List> sessionID) async {
-    await api.sendEncoded(MessageType.DEVICE_SESSIONS_TERMINATE, DeviceSessionsTerminate_Request(sessionID: sessionID).writeToBuffer());
+    await api.sendEncoded(
+      MessageType.DEVICE_SESSIONS_TERMINATE,
+      DeviceSessionsTerminate_Request(sessionID: sessionID).writeToBuffer(),
+    );
   }
 
   @override
@@ -78,5 +98,4 @@ class SettingsDeviceSessionsCubit extends Cubit<SettingsDeviceSessionsState> {
     _subscription?.cancel();
     return super.close();
   }
-
 }

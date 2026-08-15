@@ -1,4 +1,3 @@
-
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
@@ -33,9 +32,7 @@ class CupertinoListTileIcon extends StatelessWidget {
           color: color,
           borderRadius: BorderRadius.circular(8),
         ),
-        child: Center(
-          child: FaIcon(icon, size: 16, color: Color(0xFFFFFFFF)),
-        ),
+        child: Center(child: FaIcon(icon, size: 16, color: Color(0xFFFFFFFF))),
       ),
       onTap: onTab,
       title: title,

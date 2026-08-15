@@ -27,18 +27,31 @@ class SettingsCubit extends Cubit<SettingsState> {
     emit(state.copyWith(status: Status.loading));
 
     final deviceSessions = await repositories.deviceSessions.getAll();
-    emit(state.copyWith(status: Status.loading, countDeviceSessions: deviceSessions.length));
+    emit(
+      state.copyWith(
+        status: Status.loading,
+        countDeviceSessions: deviceSessions.length,
+      ),
+    );
 
     _subscription = api.on(MessageType.DEVICE_SESSIONS).listen((payload) {
       if (isClosed) return;
 
       final response = DeviceSessions_Response.fromBuffer(payload);
-      emit(state.copyWith(status: Status.success, countDeviceSessions: response.results.length));
+      emit(
+        state.copyWith(
+          status: Status.success,
+          countDeviceSessions: response.results.length,
+        ),
+      );
     });
 
     // sendEncoded может ждать готовности стрима — за время await кубит мог
     // закрыться, поэтому не эмитим в закрытый кубит.
-    await api.sendEncoded(MessageType.DEVICE_SESSIONS, DeviceSessions_Request().writeToBuffer());
+    await api.sendEncoded(
+      MessageType.DEVICE_SESSIONS,
+      DeviceSessions_Request().writeToBuffer(),
+    );
     if (isClosed) return;
 
     emit(state.copyWith(status: Status.success));
@@ -54,15 +67,23 @@ class SettingsCubit extends Cubit<SettingsState> {
     // Не ждём ответа — локальный выход не должен зависеть от сети/сервера.
     final terminateOnServer = api.unaryEncoded(
       MessageType.DEVICE_SESSIONS_TERMINATE,
-      DeviceSessionsTerminate_Request(sessionID: [auth.session.sessionID]).writeToBuffer(),
+      DeviceSessionsTerminate_Request(
+        sessionID: [auth.session.sessionID],
+      ).writeToBuffer(),
     );
-    unawaited(terminateOnServer.then((status) {
-      if (status.status == APIStatus.error) {
-        logger.warning('device session terminate on logout failed: $status');
-      }
-    }).catchError((Object error, StackTrace stackTrace) {
-      logger.handle(error, stackTrace);
-    }));
+    unawaited(
+      terminateOnServer
+          .then((status) {
+            if (status.status == APIStatus.error) {
+              logger.warning(
+                'device session terminate on logout failed: $status',
+              );
+            }
+          })
+          .catchError((Object error, StackTrace stackTrace) {
+            logger.handle(error, stackTrace);
+          }),
+    );
 
     // Локальный выход сразу: auth.logout() чистит сессию в памяти и БД и через
     // notifyListeners() уводит go_router на /auth, не дожидаясь сервера и не
@@ -70,10 +91,9 @@ class SettingsCubit extends Cubit<SettingsState> {
     await auth.logout();
   }
 
-    @override
+  @override
   Future<void> close() {
     _subscription?.cancel();
     return super.close();
   }
-
 }

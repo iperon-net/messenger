@@ -16,4 +16,3 @@ class User with UserMappable {
     this.salt = const [],
   });
 }
-

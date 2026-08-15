@@ -11,10 +11,12 @@ class AuthModerationApplicationStoreCupertino extends StatefulWidget {
   const AuthModerationApplicationStoreCupertino({super.key});
 
   @override
-  State<AuthModerationApplicationStoreCupertino> createState() => _AuthModerationApplicationStoreCupertino();
+  State<AuthModerationApplicationStoreCupertino> createState() =>
+      _AuthModerationApplicationStoreCupertino();
 }
 
-class _AuthModerationApplicationStoreCupertino extends State<AuthModerationApplicationStoreCupertino> {
+class _AuthModerationApplicationStoreCupertino
+    extends State<AuthModerationApplicationStoreCupertino> {
   final formKey = GlobalKey<FormState>();
   final pinInputController = PinInputController();
 
@@ -30,7 +32,10 @@ class _AuthModerationApplicationStoreCupertino extends State<AuthModerationAppli
 
   @override
   Widget build(BuildContext context) {
-    return BlocConsumer<AuthModerationApplicationStoreCubit, AuthModerationApplicationStoreState>(
+    return BlocConsumer<
+      AuthModerationApplicationStoreCubit,
+      AuthModerationApplicationStoreState
+    >(
       listener: (context, state) {
         // TODO: implement listener
       },
@@ -55,19 +60,40 @@ class _AuthModerationApplicationStoreCupertino extends State<AuthModerationAppli
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
                             SizedBox(height: 30, width: double.infinity),
-                            SvgPicture.asset(CupertinoTheme.brightnessOf(context) == Brightness.light ? 'assets/images/logo_light.svg' : 'assets/images/logo_dark.svg'),
+                            SvgPicture.asset(
+                              CupertinoTheme.brightnessOf(context) ==
+                                      Brightness.light
+                                  ? 'assets/images/logo_light.svg'
+                                  : 'assets/images/logo_dark.svg',
+                            ),
                             Padding(
-                              padding: EdgeInsetsGeometry.only(top: 30, left: 30, right: 30),
+                              padding: EdgeInsetsGeometry.only(
+                                top: 30,
+                                left: 30,
+                                right: 30,
+                              ),
                               child: Text(
                                 context.t.auth.enterTheCode,
                                 textAlign: TextAlign.center,
-                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: const TextScaler.linear(1.3).scale(16)),
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: const TextScaler.linear(
+                                    1.3,
+                                  ).scale(16),
+                                ),
                               ),
                             ),
                             Padding(
-                              padding: EdgeInsetsGeometry.only(top: 10, left: 30, right: 30, bottom: 30),
+                              padding: EdgeInsetsGeometry.only(
+                                top: 10,
+                                left: 30,
+                                right: 30,
+                                bottom: 30,
+                              ),
                               child: Text(
-                                context.t.auth.sentConfirmationCodeToNumber(phoneNumber: state.phoneNumber),
+                                context.t.auth.sentConfirmationCodeToNumber(
+                                  phoneNumber: state.phoneNumber,
+                                ),
                                 textAlign: TextAlign.center,
                               ),
                             ),
@@ -77,8 +103,13 @@ class _AuthModerationApplicationStoreCupertino extends State<AuthModerationAppli
                               enableAutofill: true,
                               autofillHints: [AutofillHints.oneTimeCode],
                               onCompleted: (verificationCode) async {
-                                final cubit = context.read<AuthModerationApplicationStoreCubit>();
-                                final error = await cubit.onCompleted(verificationCode: verificationCode);
+                                final cubit = context
+                                    .read<
+                                      AuthModerationApplicationStoreCubit
+                                    >();
+                                final error = await cubit.onCompleted(
+                                  verificationCode: verificationCode,
+                                );
 
                                 if (!context.mounted) return;
 
@@ -104,51 +135,97 @@ class _AuthModerationApplicationStoreCupertino extends State<AuthModerationAppli
                                 shape: MaterialPinShape.underlined,
                                 borderRadius: BorderRadius.circular(8),
                                 cursorWidth: 1,
-                                animationDuration: const Duration(milliseconds: 0),
-                                fillColor: CupertinoDynamicColor.resolve(CupertinoDynamicColor.withBrightness(
-                                  color: Color(0xffffffff),
-                                  darkColor: Color(0xff1b263b),
-                                ), context),
-                                focusedFillColor: CupertinoDynamicColor.resolve(CupertinoDynamicColor.withBrightness(
-                                  color: Color(0xffffffff),
-                                  darkColor: Color(0xff1b263b),
-                                ), context),
-                                followingFillColor: CupertinoDynamicColor.resolve(CupertinoDynamicColor.withBrightness(
-                                  color: Color(0xffffffff),
-                                  darkColor: Color(0xff1b263b),
-                                ), context),
-                                completeFillColor: CupertinoDynamicColor.resolve(CupertinoDynamicColor.withBrightness(
-                                  color: Color(0xffffffff),
-                                  darkColor: Color(0xff1b263b),
-                                ), context),
-                                filledFillColor: CupertinoDynamicColor.resolve(CupertinoDynamicColor.withBrightness(
-                                  color: Color(0xfff4f4f5),
-                                  darkColor: Color(0xff1b263b),
-                                ), context),
-                                filledBorderColor: CupertinoDynamicColor.resolve(CupertinoDynamicColor.withBrightness(
-                                  color: Color(0xff1b263b),
-                                  darkColor: Color(0xfff4f4f5),
-                                ), context),
-                                focusedBorderColor: CupertinoDynamicColor.resolve(CupertinoDynamicColor.withBrightness(
-                                  color: Color(0xff1b263b),
-                                  darkColor: Color(0xffffffff),
-                                ), context),
-                                completeBorderColor: CupertinoDynamicColor.resolve(CupertinoDynamicColor.withBrightness(
-                                  color: Color(0xff1b263b),
-                                  darkColor: Color(0xffffffff),
-                                ), context),
-                                followingBorderColor: CupertinoDynamicColor.resolve(CupertinoDynamicColor.withBrightness(
-                                  color: Color(0xff1b263b),
-                                  darkColor: Color(0xffffffff),
-                                ), context),
-                                cursorColor: CupertinoDynamicColor.resolve(CupertinoDynamicColor.withBrightness(
-                                  color: Color(0xff1b263b),
-                                  darkColor: Color(0xffffffff),
-                                ), context),
-                                textStyle: TextStyle(color: CupertinoDynamicColor.resolve(CupertinoDynamicColor.withBrightness(
-                                  color: Color(0xff1b263b),
-                                  darkColor: Color(0xffffffff),
-                                ), context), fontSize: const TextScaler.linear(1.5).scale(16)),
+                                animationDuration: const Duration(
+                                  milliseconds: 0,
+                                ),
+                                fillColor: CupertinoDynamicColor.resolve(
+                                  CupertinoDynamicColor.withBrightness(
+                                    color: Color(0xffffffff),
+                                    darkColor: Color(0xff1b263b),
+                                  ),
+                                  context,
+                                ),
+                                focusedFillColor: CupertinoDynamicColor.resolve(
+                                  CupertinoDynamicColor.withBrightness(
+                                    color: Color(0xffffffff),
+                                    darkColor: Color(0xff1b263b),
+                                  ),
+                                  context,
+                                ),
+                                followingFillColor:
+                                    CupertinoDynamicColor.resolve(
+                                      CupertinoDynamicColor.withBrightness(
+                                        color: Color(0xffffffff),
+                                        darkColor: Color(0xff1b263b),
+                                      ),
+                                      context,
+                                    ),
+                                completeFillColor:
+                                    CupertinoDynamicColor.resolve(
+                                      CupertinoDynamicColor.withBrightness(
+                                        color: Color(0xffffffff),
+                                        darkColor: Color(0xff1b263b),
+                                      ),
+                                      context,
+                                    ),
+                                filledFillColor: CupertinoDynamicColor.resolve(
+                                  CupertinoDynamicColor.withBrightness(
+                                    color: Color(0xfff4f4f5),
+                                    darkColor: Color(0xff1b263b),
+                                  ),
+                                  context,
+                                ),
+                                filledBorderColor:
+                                    CupertinoDynamicColor.resolve(
+                                      CupertinoDynamicColor.withBrightness(
+                                        color: Color(0xff1b263b),
+                                        darkColor: Color(0xfff4f4f5),
+                                      ),
+                                      context,
+                                    ),
+                                focusedBorderColor:
+                                    CupertinoDynamicColor.resolve(
+                                      CupertinoDynamicColor.withBrightness(
+                                        color: Color(0xff1b263b),
+                                        darkColor: Color(0xffffffff),
+                                      ),
+                                      context,
+                                    ),
+                                completeBorderColor:
+                                    CupertinoDynamicColor.resolve(
+                                      CupertinoDynamicColor.withBrightness(
+                                        color: Color(0xff1b263b),
+                                        darkColor: Color(0xffffffff),
+                                      ),
+                                      context,
+                                    ),
+                                followingBorderColor:
+                                    CupertinoDynamicColor.resolve(
+                                      CupertinoDynamicColor.withBrightness(
+                                        color: Color(0xff1b263b),
+                                        darkColor: Color(0xffffffff),
+                                      ),
+                                      context,
+                                    ),
+                                cursorColor: CupertinoDynamicColor.resolve(
+                                  CupertinoDynamicColor.withBrightness(
+                                    color: Color(0xff1b263b),
+                                    darkColor: Color(0xffffffff),
+                                  ),
+                                  context,
+                                ),
+                                textStyle: TextStyle(
+                                  color: CupertinoDynamicColor.resolve(
+                                    CupertinoDynamicColor.withBrightness(
+                                      color: Color(0xff1b263b),
+                                      darkColor: Color(0xffffffff),
+                                    ),
+                                    context,
+                                  ),
+                                  fontSize: const TextScaler.linear(
+                                    1.5,
+                                  ).scale(16),
+                                ),
                               ),
                             ),
                           ],

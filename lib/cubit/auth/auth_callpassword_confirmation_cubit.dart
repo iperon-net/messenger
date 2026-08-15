@@ -17,8 +17,10 @@ import '../../utils.dart';
 import '../../protobuf.dart';
 import 'auth_callpassword_confirmation_state.dart';
 
-class AuthCallpasswordConfirmationCubit extends Cubit<AuthCallpasswordConfirmationState> {
-  AuthCallpasswordConfirmationCubit() : super(AuthCallpasswordConfirmationState());
+class AuthCallpasswordConfirmationCubit
+    extends Cubit<AuthCallpasswordConfirmationState> {
+  AuthCallpasswordConfirmationCubit()
+    : super(AuthCallpasswordConfirmationState());
 
   final logger = getIt.get<Logger>();
   final utils = getIt.get<Utils>();
@@ -44,20 +46,26 @@ class AuthCallpasswordConfirmationCubit extends Cubit<AuthCallpasswordConfirmati
   StreamController<Message>? _outgoing;
   StreamSubscription<Message>? _subscription;
 
-  Future<void> initialization({required String callPasswordSession, required String confirmationPhoneNumber, required String timeout}) async {
+  Future<void> initialization({
+    required String callPasswordSession,
+    required String confirmationPhoneNumber,
+    required String timeout,
+  }) async {
     emit(state.copyWith(status: Status.loading));
 
     // timeout приходит с сервера уже в секундах (time.Duration.Seconds() на бэкенде).
     final timeoutSeconds = (double.tryParse(timeout) ?? 0).round();
 
-    emit(state.copyWith(
-      status: Status.success,
-      callPasswordSession: utils.hexToBytes(callPasswordSession),
-      confirmationPhoneNumber: confirmationPhoneNumber,
-      timeout: timeoutSeconds,
-      tickerSecond: timeoutSeconds,
-      result: AuthCallPasswordConfirmationResult.waiting,
-    ));
+    emit(
+      state.copyWith(
+        status: Status.success,
+        callPasswordSession: utils.hexToBytes(callPasswordSession),
+        confirmationPhoneNumber: confirmationPhoneNumber,
+        timeout: timeoutSeconds,
+        tickerSecond: timeoutSeconds,
+        result: AuthCallPasswordConfirmationResult.waiting,
+      ),
+    );
 
     _startTicker();
     _openStream();
@@ -71,11 +79,13 @@ class AuthCallpasswordConfirmationCubit extends Cubit<AuthCallpasswordConfirmati
       final next = state.tickerSecond - 1;
       if (next <= 0) {
         _stop();
-        emit(state.copyWith(
-          tickerSecond: 0,
-          result: AuthCallPasswordConfirmationResult.timeout,
-          redirectURI: Uri.parse("/auth"),
-        ));
+        emit(
+          state.copyWith(
+            tickerSecond: 0,
+            result: AuthCallPasswordConfirmationResult.timeout,
+            redirectURI: Uri.parse("/auth"),
+          ),
+        );
         return;
       }
       emit(state.copyWith(tickerSecond: next));
@@ -95,12 +105,16 @@ class AuthCallpasswordConfirmationCubit extends Cubit<AuthCallpasswordConfirmati
         onError: (error, stackTrace) {
           logger.handle(error, stackTrace);
           _stop();
-          final message = error is GrpcError ? (error.message ?? "errorConnectingServer") : "errorConnectingServer";
-          emit(state.copyWith(
-            result: AuthCallPasswordConfirmationResult.error,
-            error: message,
-            redirectURI: Uri.parse("/auth"),
-          ));
+          final message = error is GrpcError
+              ? (error.message ?? "errorConnectingServer")
+              : "errorConnectingServer";
+          emit(
+            state.copyWith(
+              result: AuthCallPasswordConfirmationResult.error,
+              error: message,
+              redirectURI: Uri.parse("/auth"),
+            ),
+          );
         },
         onDone: () {
           // Сервер завершил стрим штатно (истёк серверный таймаут ожидания
@@ -109,28 +123,34 @@ class AuthCallpasswordConfirmationCubit extends Cubit<AuthCallpasswordConfirmati
           // локальному тикеру, _outgoing уже null и ветку пропускаем.
           if (_outgoing == null) return;
           _stop();
-          emit(state.copyWith(
-            result: AuthCallPasswordConfirmationResult.timeout,
-            redirectURI: Uri.parse("/auth"),
-          ));
+          emit(
+            state.copyWith(
+              result: AuthCallPasswordConfirmationResult.timeout,
+              redirectURI: Uri.parse("/auth"),
+            ),
+          );
         },
         cancelOnError: true,
       );
 
-      _outgoing!.add(Message(
-        messageType: MessageType.AUTH_CALL_PASSWORD_CONFIRMATION,
-        message: AuthCallPasswordConfirmation_Request(
-          callPasswordSession: state.callPasswordSession,
-        ).writeToBuffer(),
-      ));
+      _outgoing!.add(
+        Message(
+          messageType: MessageType.AUTH_CALL_PASSWORD_CONFIRMATION,
+          message: AuthCallPasswordConfirmation_Request(
+            callPasswordSession: state.callPasswordSession,
+          ).writeToBuffer(),
+        ),
+      );
     } catch (error, stackTrace) {
       logger.handle(error, stackTrace);
       _stop();
-      emit(state.copyWith(
-        result: AuthCallPasswordConfirmationResult.error,
-        error: "errorConnectingServer",
-        redirectURI: Uri.parse("/auth"),
-      ));
+      emit(
+        state.copyWith(
+          result: AuthCallPasswordConfirmationResult.error,
+          error: "errorConnectingServer",
+          redirectURI: Uri.parse("/auth"),
+        ),
+      );
     }
   }
 
@@ -139,11 +159,15 @@ class AuthCallpasswordConfirmationCubit extends Cubit<AuthCallpasswordConfirmati
   /// его (иначе промежуточные healthcheck сбрасывали бы отсчёт).
   Future<void> _onMessage(Message message) async {
     if (message.messageType != MessageType.AUTH_CALL_PASSWORD_CONFIRMATION) {
-      logger.debug('call password check: unexpected message type ${message.messageType}');
+      logger.debug(
+        'call password check: unexpected message type ${message.messageType}',
+      );
       return;
     }
 
-    final response = AuthCallPasswordConfirmation_Response.fromBuffer(message.message);
+    final response = AuthCallPasswordConfirmation_Response.fromBuffer(
+      message.message,
+    );
 
     // Одноразово выравниваем отсчёт по реальному серверному остатку (первый
     // healthcheck с ненулевым timer). Дальше тикер идёт локально.
@@ -157,11 +181,13 @@ class AuthCallpasswordConfirmationCubit extends Cubit<AuthCallpasswordConfirmati
 
     if (response.isBlocked) {
       _stop();
-      emit(state.copyWith(
-        result: AuthCallPasswordConfirmationResult.blocked,
-        error: response.hasErrorMessage() ? response.errorMessage : null,
-        redirectURI: Uri.parse("/auth"),
-      ));
+      emit(
+        state.copyWith(
+          result: AuthCallPasswordConfirmationResult.blocked,
+          error: response.hasErrorMessage() ? response.errorMessage : null,
+          redirectURI: Uri.parse("/auth"),
+        ),
+      );
       return;
     }
 
@@ -173,7 +199,9 @@ class AuthCallpasswordConfirmationCubit extends Cubit<AuthCallpasswordConfirmati
         // confirmationSession. См. TODO «Second login workflow is unfinished».
 
         // Meta data info
-        final messageMetaDataInfoRequest = Message(messageType: MessageType.META_DATA_INFO);
+        final messageMetaDataInfoRequest = Message(
+          messageType: MessageType.META_DATA_INFO,
+        );
 
         late Message metaDataResponse;
         final metaDataGrpcError = await api.call(() async {
@@ -181,11 +209,18 @@ class AuthCallpasswordConfirmationCubit extends Cubit<AuthCallpasswordConfirmati
         });
 
         if (metaDataGrpcError.status == APIStatus.error) {
-          emit(state.copyWith(status: Status.success, error: metaDataGrpcError.error));
+          emit(
+            state.copyWith(
+              status: Status.success,
+              error: metaDataGrpcError.error,
+            ),
+          );
           return;
         }
 
-        final metaData = MetadataInfo_Response.fromBuffer(metaDataResponse.message);
+        final metaData = MetadataInfo_Response.fromBuffer(
+          metaDataResponse.message,
+        );
 
         final (publicKeySharedKey, privateKeySharedKey) = kem.generateKeyPair();
         final (publicKeySalt, privateKeySalt) = kem.generateKeyPair();
@@ -209,52 +244,98 @@ class AuthCallpasswordConfirmationCubit extends Cubit<AuthCallpasswordConfirmati
 
         late Message messageAuthConfirmationResponse;
         final authConfirmationGrpcError = await api.call(() async {
-          messageAuthConfirmationResponse = await api.client.unary(messageAuthConfirmationRequest);
+          messageAuthConfirmationResponse = await api.client.unary(
+            messageAuthConfirmationRequest,
+          );
         });
 
-        if (authConfirmationGrpcError.status == APIStatus.error && authConfirmationGrpcError.statusCode == StatusCode.invalidArgument) {
-          emit(state.copyWith(status: Status.success, error: authConfirmationGrpcError.error, redirectURI: Uri.parse("/auth")));
+        if (authConfirmationGrpcError.status == APIStatus.error &&
+            authConfirmationGrpcError.statusCode ==
+                StatusCode.invalidArgument) {
+          emit(
+            state.copyWith(
+              status: Status.success,
+              error: authConfirmationGrpcError.error,
+              redirectURI: Uri.parse("/auth"),
+            ),
+          );
           return;
         } else if (authConfirmationGrpcError.status == APIStatus.error) {
-          emit(state.copyWith(status: Status.success, error: authConfirmationGrpcError.error));
+          emit(
+            state.copyWith(
+              status: Status.success,
+              error: authConfirmationGrpcError.error,
+            ),
+          );
           return;
         }
 
-        final authConfirmationResponse = AuthConfirmation_Response.fromBuffer(messageAuthConfirmationResponse.message);
+        final authConfirmationResponse = AuthConfirmation_Response.fromBuffer(
+          messageAuthConfirmationResponse.message,
+        );
 
         // Exchange
-        final serverPublicKey = SimplePublicKey(metaData.eddsa.publicKey, type: KeyPairType.ed25519);
+        final serverPublicKey = SimplePublicKey(
+          metaData.eddsa.publicKey,
+          type: KeyPairType.ed25519,
+        );
 
         // Ed25519 signatures must be exactly 64 bytes; an empty/short signature
         // (e.g. missing in the server response) would otherwise make verify() throw
         // instead of returning false, crashing the flow before the check below.
-        if (authConfirmationResponse.signatureSharedKey.length != 64 || authConfirmationResponse.signatureSalt.length != 64) {
+        if (authConfirmationResponse.signatureSharedKey.length != 64 ||
+            authConfirmationResponse.signatureSalt.length != 64) {
           logger.error('mlkem ciphertext signature has invalid length');
-          emit(state.copyWith(status: Status.success, error: 'signature verification failed'));
+          emit(
+            state.copyWith(
+              status: Status.success,
+              error: 'signature verification failed',
+            ),
+          );
           return;
         }
 
         final checkSharedKey = await ed25519.verify(
           authConfirmationResponse.ciphertextSharedKey,
-          signature: Signature(authConfirmationResponse.signatureSharedKey, publicKey: serverPublicKey),
+          signature: Signature(
+            authConfirmationResponse.signatureSharedKey,
+            publicKey: serverPublicKey,
+          ),
         );
 
         final checkSalt = await ed25519.verify(
           authConfirmationResponse.ciphertextSalt,
-          signature: Signature(authConfirmationResponse.signatureSalt, publicKey: serverPublicKey),
+          signature: Signature(
+            authConfirmationResponse.signatureSalt,
+            publicKey: serverPublicKey,
+          ),
         );
 
         if (!checkSharedKey || !checkSalt) {
           logger.error('mlkem ciphertext signature verification failed');
-          emit(state.copyWith(status: Status.success, error: 'signature verification failed'));
+          emit(
+            state.copyWith(
+              status: Status.success,
+              error: 'signature verification failed',
+            ),
+          );
           return;
         }
 
-        final sharedKey = kem.decapsulate(privateKeySharedKey, Uint8List.fromList(authConfirmationResponse.ciphertextSharedKey));
-        final sharedSalt = kem.decapsulate(privateKeySalt, Uint8List.fromList(authConfirmationResponse.ciphertextSalt));
+        final sharedKey = kem.decapsulate(
+          privateKeySharedKey,
+          Uint8List.fromList(authConfirmationResponse.ciphertextSharedKey),
+        );
+        final sharedSalt = kem.decapsulate(
+          privateKeySalt,
+          Uint8List.fromList(authConfirmationResponse.ciphertextSalt),
+        );
 
         // Create or update user
-        await repositories.users.createOrUpdate(userID: authConfirmationResponse.userID, phoneNumber: authConfirmationResponse.phoneNumber);
+        await repositories.users.createOrUpdate(
+          userID: authConfirmationResponse.userID,
+          phoneNumber: authConfirmationResponse.phoneNumber,
+        );
 
         await repositories.sessions.deleteAndCreate(
           session: authConfirmationResponse.session,
@@ -267,21 +348,23 @@ class AuthCallpasswordConfirmationCubit extends Cubit<AuthCallpasswordConfirmati
 
         await getIt.get<Auth>().refresh();
 
-        emit(state.copyWith(
-          redirectURI: Uri.parse("/chats"),
-        ));
+        emit(state.copyWith(redirectURI: Uri.parse("/chats")));
 
       case AuthCallPasswordStatus.error:
         _stop();
-        emit(state.copyWith(
-          result: AuthCallPasswordConfirmationResult.error,
-          error: response.hasErrorMessage() ? response.errorMessage : null,
-          redirectURI: Uri.parse("/auth"),
-        ));
+        emit(
+          state.copyWith(
+            result: AuthCallPasswordConfirmationResult.error,
+            error: response.hasErrorMessage() ? response.errorMessage : null,
+            redirectURI: Uri.parse("/auth"),
+          ),
+        );
 
       // healthcheck и прочие промежуточные статусы — продолжаем ждать звонок.
       default:
-        logger.debug('call password check: waiting (status=${response.authCallPasswordStatus})');
+        logger.debug(
+          'call password check: waiting (status=${response.authCallPasswordStatus})',
+        );
     }
   }
 

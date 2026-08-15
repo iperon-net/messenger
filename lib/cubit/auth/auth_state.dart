@@ -6,7 +6,6 @@ part 'auth_state.mapper.dart';
 
 enum AuthWorkflow { callpassword, moderationApplicationStore }
 
-
 @MappableClass()
 class AuthState with AuthStateMappable {
   final Status status;

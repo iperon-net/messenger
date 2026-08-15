@@ -18,7 +18,7 @@ env:
 
 jobs:
   analyze:
-    name: Проверки кода
+    name: Code checks
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -63,7 +63,7 @@ jobs:
         run: flutter analyze
 
   build-ios:
-    name: Сборка iOS (no codesign)
+    name: iOS build (no codesign)
     runs-on: macos-latest
     timeout-minutes: 45
     steps:
@@ -93,6 +93,14 @@ jobs:
         run: |
           dart run build_runner build --delete-conflicting-outputs
           dart run slang
+
+      - name: Create .env asset files
+        run: |
+          set -euo pipefail
+          # .env и .env.development объявлены ассетами в pubspec, но лежат в
+          # .gitignore — без них падает бандлинг ассетов. Для проверочной
+          # сборки достаточно пустых файлов (значения читаются из Remote Config).
+          touch .env .env.development
 
       - name: Build iOS
         run: flutter build ios --release --no-codesign

@@ -32,8 +32,6 @@ class HomeCubit extends Cubit<HomeState> {
     //   logger.debug(response.results);
     // });
 
-
-
     // api.incoming.listen((data){
     //   logger.debug(data);
     // });
@@ -69,5 +67,4 @@ class HomeCubit extends Cubit<HomeState> {
     _sub?.cancel();
     return super.close();
   }
-
 }

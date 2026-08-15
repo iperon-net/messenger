@@ -1,6 +1,5 @@
 import 'package:dart_mappable/dart_mappable.dart';
 
-
 part 'phone_number.mapper.dart';
 
 @MappableClass()
@@ -18,5 +17,4 @@ class PhoneNumberModel with PhoneNumberModelMappable {
     required this.rfc3966,
     required this.raw,
   });
-
 }

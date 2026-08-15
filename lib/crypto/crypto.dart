@@ -20,5 +20,4 @@ class Crypto {
   Crypto() {
     syncer = Syncer(logger: logger, utils: utils);
   }
-
 }

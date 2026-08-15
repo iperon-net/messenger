@@ -18,6 +18,4 @@ class ChatsCubit extends Cubit<ChatsState> {
 
     emit(state.copyWith(status: Status.success));
   }
-
-
 }

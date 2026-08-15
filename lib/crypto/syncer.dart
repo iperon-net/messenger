@@ -20,8 +20,8 @@ class Header {
   });
 
   @override
-  String toString () => "version=$version, length=$length, dateTime=${dateTime.toIso8601String()}";
-
+  String toString() =>
+      "version=$version, length=$length, dateTime=${dateTime.toIso8601String()}";
 }
 
 class Syncer {
@@ -34,7 +34,10 @@ class Syncer {
   final algorithmAesGcm = AesGcm.with256bits();
   final algorithmHkdf = Hkdf(hmac: Hmac.sha256(), outputLength: 32);
 
-  Future<List<int>> encode({required Session session, required Uint8List message}) async {
+  Future<List<int>> encode({
+    required Session session,
+    required Uint8List message,
+  }) async {
     final timestamp = DateTime.now().millisecondsSinceEpoch;
 
     final lengthByte = ByteData(4)..setUint32(0, message.length, Endian.big);
@@ -73,7 +76,10 @@ class Syncer {
     return bytesBuilderCrypt.toBytes();
   }
 
-  Future<List<int>> decode({required Session session, required Uint8List message}) async {
+  Future<List<int>> decode({
+    required Session session,
+    required Uint8List message,
+  }) async {
     final headerPadding = message.sublist(0, 128);
     final header = await headerParse(message);
 
@@ -99,7 +105,9 @@ class Syncer {
       aad: headerPadding,
     );
 
-    final hashSha256 = await algorithmSha256.hash(Uint8List.fromList(decrypted));
+    final hashSha256 = await algorithmSha256.hash(
+      Uint8List.fromList(decrypted),
+    );
     if (!constantTimeBytesEquality.equals(hashSha256.bytes, header.sha256)) {
       throw Exception('syncer: sha256 mismatch');
     }
@@ -109,19 +117,24 @@ class Syncer {
 
   Future<Header> headerParse(Uint8List dataBytes) async {
     final version = dataBytes[0];
-    final length = ByteData.sublistView(dataBytes, 1, 5).getUint32(0, Endian.big);
-    final dateTime = DateTime.fromMillisecondsSinceEpoch(ByteData.sublistView(dataBytes, 5, 13).getUint64(0, Endian.big)).toUtc();
+    final length = ByteData.sublistView(
+      dataBytes,
+      1,
+      5,
+    ).getUint32(0, Endian.big);
+    final dateTime = DateTime.fromMillisecondsSinceEpoch(
+      ByteData.sublistView(dataBytes, 5, 13).getUint64(0, Endian.big),
+    ).toUtc();
 
     return Header(
       version: version,
       length: length,
       dateTime: dateTime,
-      session: dataBytes.sublist(13,45),
-      sha256: dataBytes.sublist(45,77),
-      nonce: dataBytes.sublist(77,89),
+      session: dataBytes.sublist(13, 45),
+      sha256: dataBytes.sublist(45, 77),
+      nonce: dataBytes.sublist(77, 89),
       header: dataBytes,
     );
-
   }
 
   Future<Uint8List> padToSize(Uint8List data, int blockSize) async {
@@ -147,5 +160,4 @@ class Syncer {
       throw Exception('syncer: pad to size $e');
     }
   }
-
 }

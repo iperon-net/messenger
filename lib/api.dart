@@ -14,7 +14,6 @@ import 'repositories/repositories.dart';
 import 'settings.dart';
 import 'protobuf.dart';
 
-
 enum APIStatus { success, error }
 
 /// Состояние двунаправленного gRPC-стрима, наблюдаемое извне (UI/кубитами).
@@ -45,7 +44,11 @@ class APICallStatus {
   final String? error;
   final int statusCode;
 
-  const APICallStatus({required this.status, this.error, required this.statusCode});
+  const APICallStatus({
+    required this.status,
+    this.error,
+    required this.statusCode,
+  });
 
   @override
   String toString() {
@@ -128,7 +131,8 @@ class API {
   /// нескольких мест (например, из кубита статуса соединения). Значения приходят
   /// только при смене статуса; текущее берётся из [connectionStatus].
   Stream<ApiConnectionStatus> get connectionStatusStream {
-    _connectionStatusController ??= StreamController<ApiConnectionStatus>.broadcast();
+    _connectionStatusController ??=
+        StreamController<ApiConnectionStatus>.broadcast();
     return _connectionStatusController!.stream;
   }
 
@@ -175,48 +179,51 @@ class API {
   }
 
   API() {
-      logger.debug('API channel target: secure=${settings.apiSecure} ${settings.apiHost}:${settings.apiPort}');
+    logger.debug(
+      'API channel target: secure=${settings.apiSecure} ${settings.apiHost}:${settings.apiPort}',
+    );
 
-      final clientChannel = ClientChannel(
-        settings.apiHost,
-        port: settings.apiPort,
+    final clientChannel = ClientChannel(
+      settings.apiHost,
+      port: settings.apiPort,
 
-        options: ChannelOptions(
-          credentials: settings.apiSecure ? const ChannelCredentials.secure() : const ChannelCredentials.insecure(),
-          connectionTimeout: const Duration(seconds: 30),
-          connectTimeout:  const Duration(seconds: 30), // The maximum allowed time to wait for a connection to be established
-          userAgent: "Iperon/0.0.1",
-          idleTimeout: const Duration(minutes: 5),
-          backoffStrategy: (lastBackoff) {
-            final base = lastBackoff == null
-                ? const Duration(seconds: 1)
-                : lastBackoff * 1.6;
-            final capped = base > const Duration(seconds: 30) ? const Duration(seconds: 30) : base;
-            return capped + Duration(milliseconds: Random().nextInt(1000));
-          },
-          keepAlive: const ClientKeepAliveOptions(
-            pingInterval: Duration(seconds: 30),
-            timeout: Duration(seconds: 5),
-            permitWithoutCalls: true,
-          ),
-          codecRegistry: CodecRegistry(
-            codecs: const [
-              GzipCodec(),
-              IdentityCodec(),
-            ],
-          ),
-        ),
-        channelShutdownHandler: () {
-          logger.debug('channelShutdownHandler');
+      options: ChannelOptions(
+        credentials: settings.apiSecure
+            ? const ChannelCredentials.secure()
+            : const ChannelCredentials.insecure(),
+        connectionTimeout: const Duration(seconds: 30),
+        connectTimeout: const Duration(
+          seconds: 30,
+        ), // The maximum allowed time to wait for a connection to be established
+        userAgent: "Iperon/0.0.1",
+        idleTimeout: const Duration(minutes: 5),
+        backoffStrategy: (lastBackoff) {
+          final base = lastBackoff == null
+              ? const Duration(seconds: 1)
+              : lastBackoff * 1.6;
+          final capped = base > const Duration(seconds: 30)
+              ? const Duration(seconds: 30)
+              : base;
+          return capped + Duration(milliseconds: Random().nextInt(1000));
         },
-      );
+        keepAlive: const ClientKeepAliveOptions(
+          pingInterval: Duration(seconds: 30),
+          timeout: Duration(seconds: 5),
+          permitWithoutCalls: true,
+        ),
+        codecRegistry: CodecRegistry(
+          codecs: const [GzipCodec(), IdentityCodec()],
+        ),
+      ),
+      channelShutdownHandler: () {
+        logger.debug('channelShutdownHandler');
+      },
+    );
 
-      client = IperonClient(
-        clientChannel,
-        interceptors: [
-          TalkerGrpcLogger(talker: logger.talker),
-        ],
-      );
+    client = IperonClient(
+      clientChannel,
+      interceptors: [TalkerGrpcLogger(talker: logger.talker)],
+    );
   }
 
   Future<APICallStatus> call(Function() func) async {
@@ -224,7 +231,7 @@ class API {
 
     try {
       await func();
-    } on GrpcError catch(err) {
+    } on GrpcError catch (err) {
       logger.logCustom(GrpcErrorLog(err.toString()));
 
       if ([StatusCode.unauthenticated].contains(err.code)) {
@@ -232,17 +239,47 @@ class API {
         // notifyListeners() уводим пользователя на /auth (см. Auth.logout).
         // Fire-and-forget: не гейтим ответ вызывающему коду на разлогине.
         unawaited(getIt.get<Auth>().logout());
-        return APICallStatus(status: APIStatus.error, error: "unauthenticated", statusCode: err.code);
-      } else if ([StatusCode.unknown, StatusCode.unavailable].contains(err.code)) {
-        return APICallStatus(status: APIStatus.error, error: "errorConnectingServer", statusCode: err.code);
+        return APICallStatus(
+          status: APIStatus.error,
+          error: "unauthenticated",
+          statusCode: err.code,
+        );
+      } else if ([
+        StatusCode.unknown,
+        StatusCode.unavailable,
+      ].contains(err.code)) {
+        return APICallStatus(
+          status: APIStatus.error,
+          error: "errorConnectingServer",
+          statusCode: err.code,
+        );
       } else if ([StatusCode.deadlineExceeded].contains(err.code)) {
-        return APICallStatus(status: APIStatus.error, error: "unableConnectServer", statusCode: err.code);
-      } else if ([StatusCode.cancelled, StatusCode.invalidArgument].contains(err.code)) {
-        return APICallStatus(status: APIStatus.error, error: err.message?.toString(), statusCode: err.code);
+        return APICallStatus(
+          status: APIStatus.error,
+          error: "unableConnectServer",
+          statusCode: err.code,
+        );
+      } else if ([
+        StatusCode.cancelled,
+        StatusCode.invalidArgument,
+      ].contains(err.code)) {
+        return APICallStatus(
+          status: APIStatus.error,
+          error: err.message?.toString(),
+          statusCode: err.code,
+        );
       } else if ([StatusCode.internal].contains(err.code)) {
-        return APICallStatus(status: APIStatus.error, error: "internalServerError", statusCode: err.code);
+        return APICallStatus(
+          status: APIStatus.error,
+          error: "internalServerError",
+          statusCode: err.code,
+        );
       } else {
-        return APICallStatus(status: APIStatus.error, error: err.message?.toString(), statusCode: err.code);
+        return APICallStatus(
+          status: APIStatus.error,
+          error: err.message?.toString(),
+          statusCode: err.code,
+        );
       }
     }
 
@@ -330,7 +367,9 @@ class API {
           // Так сообщения не обрабатываются наперегонки и не перемешиваются.
           _processingChain = _processingChain
               .then((_) => _dispatch(message))
-              .catchError((error, stackTrace) => logger.handle(error, stackTrace))
+              .catchError(
+                (error, stackTrace) => logger.handle(error, stackTrace),
+              )
               .whenComplete(() {
                 if (--_pendingIncoming <= 0) {
                   _pendingIncoming = 0;
@@ -356,7 +395,9 @@ class API {
         cancelOnError: true,
       );
 
-      logger.debug('gRPC stream opened -> ${settings.apiHost}:${settings.apiPort}');
+      logger.debug(
+        'gRPC stream opened -> ${settings.apiHost}:${settings.apiPort}',
+      );
 
       // Сообщаем серверу, что стрим открыт (в т.ч. после каждого переподключения
       // и resume из фона). Fire-and-forget: не гейтим на этом остальной трафик —
@@ -375,34 +416,38 @@ class API {
   /// новый (живой) стрим, а не роняем подписку. Fire-and-forget: ошибки в лог,
   /// открытие стрима не роняем; прикладные [send] работают независимо.
   void _subscribe() {
-    unawaited(() async {
-      // _open() вызывается ещё из Auth.initialization() (через setAuthorized),
-      // когда Auth/Crypto ещё не зарегистрированы в get_it. Ждём готовности DI,
-      // иначе getIt.get<Auth>() бросит «not ready yet» и подписка не уйдёт.
-      await getIt.allReady();
+    unawaited(
+      () async {
+        // _open() вызывается ещё из Auth.initialization() (через setAuthorized),
+        // когда Auth/Crypto ещё не зарегистрированы в get_it. Ждём готовности DI,
+        // иначе getIt.get<Auth>() бросит «not ready yet» и подписка не уйдёт.
+        await getIt.allReady();
 
-      final crypto = getIt.get<Crypto>();
-      final auth = getIt.get<Auth>();
+        final crypto = getIt.get<Crypto>();
+        final auth = getIt.get<Auth>();
 
-      final encoded = await crypto.syncer.encode(
-        session: auth.session,
-        message: Subscribe_Request().writeToBuffer(),
-      );
+        final encoded = await crypto.syncer.encode(
+          session: auth.session,
+          message: Subscribe_Request().writeToBuffer(),
+        );
 
-      final outgoing = _outgoing;
-      if (outgoing == null || outgoing.isClosed) {
-        logger.debug('subscribe skipped: no open stream after encode');
-        return;
-      }
+        final outgoing = _outgoing;
+        if (outgoing == null || outgoing.isClosed) {
+          logger.debug('subscribe skipped: no open stream after encode');
+          return;
+        }
 
-      outgoing.add(Message(messageType: MessageType.SUBSCRIBE, message: encoded));
-      // «queued», а не «sent»: gRPC-стрим ленивый, сообщение уходит из буфера
-      // _outgoing только когда соединение реально установится. Если коннект
-      // упадёт — буфер выбросится, и subscribe переотправится на следующем _open.
-      logger.debug('subscribe queued to stream');
-    }().catchError((Object error, StackTrace stackTrace) {
-      logger.handle(error, stackTrace);
-    }));
+        outgoing.add(
+          Message(messageType: MessageType.SUBSCRIBE, message: encoded),
+        );
+        // «queued», а не «sent»: gRPC-стрим ленивый, сообщение уходит из буфера
+        // _outgoing только когда соединение реально установится. Если коннект
+        // упадёт — буфер выбросится, и subscribe переотправится на следующем _open.
+        logger.debug('subscribe queued to stream');
+      }().catchError((Object error, StackTrace stackTrace) {
+        logger.handle(error, stackTrace);
+      }),
+    );
   }
 
   /// Расшифровывает сообщение, раздаёт его живым слушателям ([incoming]/[on])
@@ -428,7 +473,10 @@ class API {
     );
     final payload = Uint8List.fromList(decoded);
 
-    final incoming = IncomingMessage(messageType: message.messageType, payload: payload);
+    final incoming = IncomingMessage(
+      messageType: message.messageType,
+      payload: payload,
+    );
 
     // Живым слушателям (UI/кубитам).
     _incoming?.add(incoming);
@@ -448,26 +496,30 @@ class API {
   Future<void> _handleMessage(IncomingMessage message, Session session) async {
     switch (message.messageType) {
       case MessageType.DEVICE_SESSIONS:
-
         final repositories = getIt.get<Repositories>();
         final payload = DeviceSessions_Response.fromBuffer(message.payload);
 
         List<DeviceSessionsModel> deviceSessionsModel = [];
         for (final item in payload.results) {
-          deviceSessionsModel.add(DeviceSessionsModel(
-            sessionID: Uint8List.fromList(item.sessionID),
-            updateAt: item.updateAt.toDateTime(),
-            deviceModel: item.deviceModel,
-            os: item.os,
-            osVersion: item.osVersion,
-            appVersion: item.appVersion,
-            appBuildNumber: item.appBuildNumber,
-            locationEnglish: item.locationEnglish,
-            locationRussian: item.locationRussian,
-          ));
+          deviceSessionsModel.add(
+            DeviceSessionsModel(
+              sessionID: Uint8List.fromList(item.sessionID),
+              updateAt: item.updateAt.toDateTime(),
+              deviceModel: item.deviceModel,
+              os: item.os,
+              osVersion: item.osVersion,
+              appVersion: item.appVersion,
+              appBuildNumber: item.appBuildNumber,
+              locationEnglish: item.locationEnglish,
+              locationRussian: item.locationRussian,
+            ),
+          );
         }
         logger.debug(deviceSessionsModel);
-        await repositories.deviceSessions.deleteAndCreate(deviceSessionsModel: deviceSessionsModel, userID: session.userID);
+        await repositories.deviceSessions.deleteAndCreate(
+          deviceSessionsModel: deviceSessionsModel,
+          userID: session.userID,
+        );
 
       case MessageType.LOGOUT:
         // Сервер принудительно отзывает сессии (например, разлогин с другого
@@ -477,7 +529,8 @@ class API {
         // notifyListeners() уведёт go_router на /auth. Разлогин чужих сессий
         // нас здесь не касается — их отобразит следующий DEVICE_SESSIONS.
         final payload = Logout_Request.fromBuffer(message.payload);
-        final revoked = payload.sessionID.isEmpty ||
+        final revoked =
+            payload.sessionID.isEmpty ||
             payload.sessionID.any((id) => listEquals(id, session.sessionID));
         if (revoked) {
           await getIt.get<Auth>().logout();
@@ -506,7 +559,9 @@ class API {
   /// поднимает его и ставит сообщение в очередь.
   void send(Message message) {
     if (!_shouldRun) {
-      logger.warning('send() dropped: stream is not running (authorized=$_authorized, foreground=$_appActive)');
+      logger.warning(
+        'send() dropped: stream is not running (authorized=$_authorized, foreground=$_appActive)',
+      );
       return;
     }
 
@@ -546,7 +601,10 @@ class API {
   /// request-контексте на канале и не зависит от жизни стрима, поэтому его
   /// серверная обработка не будет отменена закрытием стрима (иначе на сервере
   /// операция падает с "context canceled").
-  Future<APICallStatus> unaryEncoded(MessageType type, Uint8List payload) async {
+  Future<APICallStatus> unaryEncoded(
+    MessageType type,
+    Uint8List payload,
+  ) async {
     final crypto = getIt.get<Crypto>();
     final auth = getIt.get<Auth>();
 
@@ -579,7 +637,9 @@ class API {
       return;
     }
 
-    logger.debug('scheduling gRPC stream reconnect in ${_reconnectDelay.inMilliseconds}ms');
+    logger.debug(
+      'scheduling gRPC stream reconnect in ${_reconnectDelay.inMilliseconds}ms',
+    );
 
     _reconnectTimer = Timer(_reconnectDelay, () {
       _reconnectTimer = null;
@@ -646,5 +706,4 @@ class API {
 
     logger.debug('gRPC stream closed');
   }
-
 }

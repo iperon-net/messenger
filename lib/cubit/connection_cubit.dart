@@ -98,7 +98,10 @@ class ConnectionCubit extends Cubit<ConnectionState> {
   Future<void> close() {
     // cancel() у connectivity_plus может бросить MissingPluginException, если
     // нативная часть не зарегистрирована — гасим, чтобы не сыпать в консоль.
-    _connectivitySub?.cancel().catchError((Object error, StackTrace stackTrace) {
+    _connectivitySub?.cancel().catchError((
+      Object error,
+      StackTrace stackTrace,
+    ) {
       logger.handle(error, stackTrace);
     });
     _apiSub?.cancel();

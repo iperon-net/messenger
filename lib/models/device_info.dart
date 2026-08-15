@@ -1,6 +1,5 @@
 import 'package:dart_mappable/dart_mappable.dart';
 
-
 part 'device_info.mapper.dart';
 
 @MappableEnum()
@@ -21,5 +20,4 @@ class DeviceInfoModel with DeviceInfoModelMappable {
     required this.osVersion,
     required this.isPhysicalDevice,
   });
-
 }

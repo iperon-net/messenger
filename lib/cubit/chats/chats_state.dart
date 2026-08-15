@@ -8,7 +8,5 @@ part 'chats_state.mapper.dart';
 class ChatsState with ChatsStateMappable {
   final Status status;
 
-  const ChatsState({
-    this.status = Status.initialization,
-  });
+  const ChatsState({this.status = Status.initialization});
 }
