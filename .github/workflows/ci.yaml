@@ -49,7 +49,9 @@ jobs:
 
       - name: Verify generated code is up to date
         run: |
-          if ! git diff --exit-code -- '*.mapper.dart' 'lib/i18n/translations*.g.dart'; then
+          # -I игнорирует строку-таймстамп slang («Built on <дата> at <время> UTC»):
+          # она меняется при каждом запуске и иначе всегда роняла бы гейт.
+          if ! git diff --exit-code -I '^/// Built on .* at .* UTC$' -- '*.mapper.dart' 'lib/i18n/translations*.g.dart'; then
             echo "::error::Сгенерированный код устарел. Запустите 'dart run build_runner build --delete-conflicting-outputs' и 'dart run slang', затем закоммитьте изменения."
             exit 1
           fi

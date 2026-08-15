@@ -26,12 +26,8 @@ class AuthCallpasswordConfirmationStateMapper
   final String id = 'AuthCallpasswordConfirmationState';
 
   static Status _$status(AuthCallpasswordConfirmationState v) => v.status;
-  static const Field<AuthCallpasswordConfirmationState, Status> _f$status = Field(
-    'status',
-    _$status,
-    opt: true,
-    def: Status.initialization,
-  );
+  static const Field<AuthCallpasswordConfirmationState, Status> _f$status =
+      Field('status', _$status, opt: true, def: Status.initialization);
   static List<int> _$callPasswordSession(AuthCallpasswordConfirmationState v) =>
       v.callPasswordSession;
   static const Field<AuthCallpasswordConfirmationState, List<int>>
@@ -41,8 +37,9 @@ class AuthCallpasswordConfirmationStateMapper
     opt: true,
     def: const [],
   );
-  static String _$confirmationPhoneNumber(AuthCallpasswordConfirmationState v) =>
-      v.confirmationPhoneNumber;
+  static String _$confirmationPhoneNumber(
+    AuthCallpasswordConfirmationState v,
+  ) => v.confirmationPhoneNumber;
   static const Field<AuthCallpasswordConfirmationState, String>
   _f$confirmationPhoneNumber = Field(
     'confirmationPhoneNumber',
@@ -57,16 +54,17 @@ class AuthCallpasswordConfirmationStateMapper
     opt: true,
     def: 0,
   );
-  static int _$tickerSecond(AuthCallpasswordConfirmationState v) => v.tickerSecond;
-  static const Field<AuthCallpasswordConfirmationState, int> _f$tickerSecond = Field(
-    'tickerSecond',
-    _$tickerSecond,
-    opt: true,
-    def: 0,
-  );
-  static AuthCallPasswordConfirmationResult _$result(AuthCallpasswordConfirmationState v) =>
-      v.result;
-  static const Field<AuthCallpasswordConfirmationState, AuthCallPasswordConfirmationResult>
+  static int _$tickerSecond(AuthCallpasswordConfirmationState v) =>
+      v.tickerSecond;
+  static const Field<AuthCallpasswordConfirmationState, int> _f$tickerSecond =
+      Field('tickerSecond', _$tickerSecond, opt: true, def: 0);
+  static AuthCallPasswordConfirmationResult _$result(
+    AuthCallpasswordConfirmationState v,
+  ) => v.result;
+  static const Field<
+    AuthCallpasswordConfirmationState,
+    AuthCallPasswordConfirmationResult
+  >
   _f$result = Field(
     'result',
     _$result,
@@ -74,17 +72,12 @@ class AuthCallpasswordConfirmationStateMapper
     def: AuthCallPasswordConfirmationResult.waiting,
   );
   static String? _$error(AuthCallpasswordConfirmationState v) => v.error;
-  static const Field<AuthCallpasswordConfirmationState, String> _f$error = Field(
-    'error',
-    _$error,
-    opt: true,
-  );
-  static Uri? _$redirectURI(AuthCallpasswordConfirmationState v) => v.redirectURI;
-  static const Field<AuthCallpasswordConfirmationState, Uri> _f$redirectURI = Field(
-    'redirectURI',
-    _$redirectURI,
-    opt: true,
-  );
+  static const Field<AuthCallpasswordConfirmationState, String> _f$error =
+      Field('error', _$error, opt: true);
+  static Uri? _$redirectURI(AuthCallpasswordConfirmationState v) =>
+      v.redirectURI;
+  static const Field<AuthCallpasswordConfirmationState, Uri> _f$redirectURI =
+      Field('redirectURI', _$redirectURI, opt: true);
   static List<int> _$confirmationSession(AuthCallpasswordConfirmationState v) =>
       v.confirmationSession;
   static const Field<AuthCallpasswordConfirmationState, List<int>>
@@ -137,11 +130,15 @@ class AuthCallpasswordConfirmationStateMapper
   final Function instantiate = _instantiate;
 
   static AuthCallpasswordConfirmationState fromMap(Map<String, dynamic> map) {
-    return ensureInitialized().decodeMap<AuthCallpasswordConfirmationState>(map);
+    return ensureInitialized().decodeMap<AuthCallpasswordConfirmationState>(
+      map,
+    );
   }
 
   static AuthCallpasswordConfirmationState fromJson(String json) {
-    return ensureInitialized().decodeJson<AuthCallpasswordConfirmationState>(json);
+    return ensureInitialized().decodeJson<AuthCallpasswordConfirmationState>(
+      json,
+    );
   }
 }
 
@@ -172,32 +169,33 @@ mixin AuthCallpasswordConfirmationStateMappable {
       >(this as AuthCallpasswordConfirmationState, $identity, $identity);
   @override
   String toString() {
-    return AuthCallpasswordConfirmationStateMapper.ensureInitialized().stringifyValue(
-      this as AuthCallpasswordConfirmationState,
-    );
+    return AuthCallpasswordConfirmationStateMapper.ensureInitialized()
+        .stringifyValue(this as AuthCallpasswordConfirmationState);
   }
 
   @override
   bool operator ==(Object other) {
-    return AuthCallpasswordConfirmationStateMapper.ensureInitialized().equalsValue(
-      this as AuthCallpasswordConfirmationState,
-      other,
-    );
+    return AuthCallpasswordConfirmationStateMapper.ensureInitialized()
+        .equalsValue(this as AuthCallpasswordConfirmationState, other);
   }
 
   @override
   int get hashCode {
-    return AuthCallpasswordConfirmationStateMapper.ensureInitialized().hashValue(
-      this as AuthCallpasswordConfirmationState,
-    );
+    return AuthCallpasswordConfirmationStateMapper.ensureInitialized()
+        .hashValue(this as AuthCallpasswordConfirmationState);
   }
 }
 
 extension AuthCallpasswordConfirmationStateValueCopy<$R, $Out>
     on ObjectCopyWith<$R, AuthCallpasswordConfirmationState, $Out> {
-  AuthCallpasswordConfirmationStateCopyWith<$R, AuthCallpasswordConfirmationState, $Out>
+  AuthCallpasswordConfirmationStateCopyWith<
+    $R,
+    AuthCallpasswordConfirmationState,
+    $Out
+  >
   get $asAuthCallpasswordConfirmationState => $base.as(
-    (v, t, t2) => _AuthCallpasswordConfirmationStateCopyWithImpl<$R, $Out>(v, t, t2),
+    (v, t, t2) =>
+        _AuthCallpasswordConfirmationStateCopyWithImpl<$R, $Out>(v, t, t2),
   );
 }
 
@@ -234,7 +232,11 @@ class _AuthCallpasswordConfirmationStateCopyWithImpl<$R, $Out>
           AuthCallpasswordConfirmationState,
           $Out
         > {
-  _AuthCallpasswordConfirmationStateCopyWithImpl(super.value, super.then, super.then2);
+  _AuthCallpasswordConfirmationStateCopyWithImpl(
+    super.value,
+    super.then,
+    super.then2,
+  );
 
   @override
   late final ClassMapperBase<AuthCallpasswordConfirmationState> $mapper =
@@ -311,8 +313,16 @@ class _AuthCallpasswordConfirmationStateCopyWithImpl<$R, $Out>
       );
 
   @override
-  AuthCallpasswordConfirmationStateCopyWith<$R2, AuthCallpasswordConfirmationState, $Out2>
+  AuthCallpasswordConfirmationStateCopyWith<
+    $R2,
+    AuthCallpasswordConfirmationState,
+    $Out2
+  >
   $chain<$R2, $Out2>(Then<$Out2, $R2> t) =>
-      _AuthCallpasswordConfirmationStateCopyWithImpl<$R2, $Out2>($value, $cast, t);
+      _AuthCallpasswordConfirmationStateCopyWithImpl<$R2, $Out2>(
+        $value,
+        $cast,
+        t,
+      );
 }
 
