@@ -1,0 +1,3 @@
+app_identifier("net.iperon.messenger")
+# team_id и авторизация в App Store Connect приходят из App Store Connect API Key
+# (см. lane :beta в Fastfile), поэтому здесь ничего больше указывать не нужно.

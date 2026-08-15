@@ -1,0 +1,25 @@
+default_platform(:ios)
+
+platform :ios do
+  # IPA собирается флаттером в workflow (flutter build ipa) и подписывается
+  # заранее импортированными сертификатом и provisioning profile.
+  # Здесь только авторизуемся в App Store Connect и заливаем готовый IPA.
+  desc "Залить собранный IPA в TestFlight"
+  lane :beta do
+    api_key = app_store_connect_api_key(
+      key_id: ENV.fetch("ASC_KEY_ID"),
+      issuer_id: ENV.fetch("ASC_ISSUER_ID"),
+      key_content: ENV.fetch("ASC_KEY_P8_BASE64"),
+      is_key_content_base64: true,
+    )
+
+    upload_to_testflight(
+      api_key: api_key,
+      ipa: ENV.fetch("IPA_PATH"),
+      # Не ждём окончания обработки билда на стороне Apple — ускоряет CI.
+      skip_waiting_for_build_processing: true,
+      # Билд уходит только тестировщикам, ревью App Store не требуется.
+      distribute_external: false,
+    )
+  end
+end
