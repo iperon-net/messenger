@@ -1,0 +1,29 @@
+# yaml-language-server: $schema=https://taskfile.dev/schema.json
+
+version: '3'
+
+tasks:
+  default:
+    desc: Available tasks print
+    cmd: task -l
+  lang:
+    desc: Update language files
+    cmds:
+      - dart run slang
+    silent: true
+  watch:
+    desc: Watch for changes
+    cmds:
+      - dart run build_runner watch
+    silent: true
+  gen:
+    desc: Generate code
+    cmds:
+      - protoc --dart_out=grpc:lib/protobuf -I=. protos/*.proto google/protobuf/timestamp.proto google/protobuf/empty.proto
+      - dart run build_runner build
+    silent: true
+
+#  test:
+#    desc: Running all tests
+#    cmd: go test -race ./...
+#    silent: true

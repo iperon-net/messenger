@@ -1,0 +1,16 @@
+#targets:
+#  builders:
+#    envied_generator|envied:
+#      options:
+#        override: true
+
+#  $default:
+#    builders:
+#      # only to resolve build_runner conflicts
+#      dart_mappable_builder:
+#        options:
+#          build_extensions:
+#            'lib/{{path}}/{{file}}.dart':
+#              - 'lib/generated/{{path}}/{{file}}.mapper.dart'
+#              - 'lib//generated/{{path}}/{{file}}.init.dart'
+

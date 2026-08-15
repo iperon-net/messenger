@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+package iperon.v1;
+option go_package = "internal/api/v1";
+
+import "google/protobuf/timestamp.proto";
+
+message DeviceSessions {
+  message DeviceSession {
+    bytes sessionID = 1;
+    google.protobuf.Timestamp updateAt = 2;
+
+    string deviceModel = 3;
+    int32 os = 4;
+    string osVersion = 5;
+    string appVersion = 6;
+    string appBuildNumber = 7;
+    string LocationEnglish = 8;
+    string LocationRussian = 9;
+  }
+
+  message Request {}
+
+  message Response {
+    repeated DeviceSession results = 1;
+  }
+}
+
+// Device sessions terminate
+message DeviceSessionsTerminate {
+  message Request {
+    repeated bytes sessionID = 1;
+  }
+  message Response {}
+}

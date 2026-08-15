@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+package v1;
+option go_package = "internal/api/v1";
+
+import "google/protobuf/timestamp.proto";
+
+enum MessageType {
+  HEALTHCHECK = 0;
+  META_DATA_INFO = 1;
+  AUTH_CALL_PASSWORD = 2;
+  AUTH_CALL_PASSWORD_CONFIRMATION = 3;
+  AUTH_MODERATION_APPLICATION_STORE = 4;
+  AUTH_MODERATION_APPLICATION_STORE_CONFIRMATION = 5;
+  DEVICE_SESSIONS = 6;
+  LOGOUT = 7;
+  SUBSCRIBE = 8;
+  DEVICE_SESSIONS_TERMINATE = 9;
+  AUTH_CONFIRMATION = 10;
+}
+
+service Iperon {
+  rpc Unary (Message) returns (Message) {}
+  rpc Stream (stream Message) returns (stream Message) {}
+}
+
+// Messages
+message Message {
+  MessageType messageType = 1;
+  bytes message = 2;
+  google.protobuf.Timestamp currentAt = 3;
+}

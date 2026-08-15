@@ -1,0 +1,96 @@
+syntax = "proto3";
+
+package iperon.v1;
+option go_package = "internal/api/v1";
+
+import "protos/models.proto";
+
+message AuthCallPassword {
+
+  message Request {
+    string phoneNumber = 1;
+  }
+
+  message Response {
+    bytes callPasswordSession = 1;
+    float timeout = 2;
+    string confirmationPhoneNumber = 3;
+  }
+}
+
+// Call Password Check
+message AuthCallPasswordConfirmation {
+
+  message Request {
+    bytes callPasswordSession = 1;
+
+  }
+
+  message Response {
+    AuthCallPasswordStatus authCallPasswordStatus = 1;
+    optional int64 timer = 2;
+    optional string errorMessage = 3;
+    optional bytes confirmationSession = 4;
+    optional bool hasTwoStepVerification = 5;
+    optional bool isBlocked = 6;
+  }
+}
+
+// Moderation application store
+message AuthModerationApplicationStore {
+
+  message Request {
+    string phoneNumber = 1;
+  }
+
+  message Response {
+    bytes moderationApplicationStoreSession = 1;
+    string phoneNumber = 2;
+  }
+}
+
+
+message AuthModerationApplicationStoreConfirmation {
+
+  message Request {
+    bytes moderationApplicationStoreSession = 1;
+    string verificationCode = 2;
+  }
+
+  message Response {
+    bytes confirmationSession = 1;
+  }
+}
+
+
+// Confirmation
+message AuthConfirmation {
+
+  message Request {
+    bytes confirmationSession = 1;
+
+    bytes publicKeySharedKey = 2;
+    bytes publicKeySalt = 3;
+
+    string deviceModel = 4;
+    int32 os = 5;
+    string osVersion = 6;
+    string appVersion = 7;
+    string appBuildNumber = 8;
+  }
+
+  message Response {
+    bytes sessionID = 1;
+    bytes session = 2;
+
+    bytes ciphertextSharedKey = 3;
+    bytes ciphertextSalt = 4;
+
+    bytes signatureSharedKey = 5;
+    bytes signatureSalt = 6;
+
+    bytes userID = 7;
+    string phoneNumber = 8;
+  }
+
+}
