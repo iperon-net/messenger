@@ -59,6 +59,13 @@ jobs:
       - name: Check formatting
         run: dart format --output=none --set-exit-if-changed lib
 
+      - name: Create .env asset files
+        run: |
+          set -euo pipefail
+          # .env и .env.development объявлены ассетами в pubspec, но лежат в
+          # .gitignore — без них analyze ругается на asset_does_not_exist.
+          touch .env .env.development
+
       - name: Analyze
         run: flutter analyze
 
