@@ -159,8 +159,7 @@ class Routers {
                   pageBuilder: (context, state) => _page(
                     state,
                     BlocProvider<SettingsAppearanceCubit>(
-                      create: (_) =>
-                      SettingsAppearanceCubit()
+                      create: (_) => SettingsAppearanceCubit()
                         ..initialization(
                           colorTheme: context
                               .read<CommonCubit>()
