@@ -26,6 +26,26 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v7
+        with:
+          # Полная история нужна, чтобы собрать changelog из всех коммитов
+          # для поля «Сведения о тестировании» в TestFlight (см. шаг ниже).
+          fetch-depth: 0
+
+      - name: Build changelog (What to Test)
+        run: |
+          set -euo pipefail
+          # Собираем список коммитов (от новых к старым) для поля whatToTest
+          # («Сведения о тестировании») в TestFlight. Лимит Apple — 4000
+          # символов, поэтому обрезаем по нему, не разрывая строки: коммиты,
+          # которые не помещаются целиком, просто отбрасываем.
+          CHANGELOG=$(git log --pretty='- %s' --no-merges | awk '
+            { line = $0 "\n"; if (total + length(line) > 4000) exit; total += length(line); printf "%s", line }
+          ')
+          {
+            echo "CHANGELOG<<CHANGELOG_EOF"
+            echo "$CHANGELOG"
+            echo "CHANGELOG_EOF"
+          } >> "$GITHUB_ENV"
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
@@ -183,4 +203,5 @@ jobs:
           ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
           ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
           ASC_KEY_P8_BASE64: ${{ secrets.ASC_KEY_P8_BASE64 }}
+          CHANGELOG: ${{ env.CHANGELOG }}
         run: bundle exec fastlane beta

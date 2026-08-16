@@ -13,6 +13,12 @@ platform :ios do
       is_key_content_base64: true,
     )
 
+    # Текст для поля «Сведения о тестировании» (whatToTest) собирается из
+    # git-коммитов в workflow и передаётся через ENV. Если пусто — не задаём,
+    # чтобы TestFlight оставил прошлое значение.
+    changelog = ENV["CHANGELOG"]
+    changelog = nil if changelog.nil? || changelog.strip.empty?
+
     upload_to_testflight(
       api_key: api_key,
       ipa: ENV.fetch("IPA_PATH"),
@@ -20,6 +26,7 @@ platform :ios do
       skip_waiting_for_build_processing: true,
       # Билд уходит только тестировщикам, ревью App Store не требуется.
       distribute_external: false,
+      changelog: changelog,
     )
   end
 end
