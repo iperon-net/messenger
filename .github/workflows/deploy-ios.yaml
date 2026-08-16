@@ -20,7 +20,7 @@ env:
 
 jobs:
   testflight:
-    name: Сборка и загрузка в TestFlight
+    name: Build and upload to TestFlight
     runs-on: macos-latest
     timeout-minutes: 60
     steps:
@@ -52,9 +52,9 @@ jobs:
       - name: Restore firebase.json
         run: |
           set -euo pipefail
-          # firebase.json нужен build-фазе Crashlytics (flutterfire
-          # upload-crashlytics-symbols), но он в .gitignore. Секретов в нём нет
-          # (только projectId и публичные appId), поэтому пишем его прямо тут.
+          # firebase.json is needed by the Crashlytics build phase (flutterfire
+          # upload-crashlytics-symbols) but is gitignored. It holds no secrets
+          # (only projectId and public appIds), so we write it inline here.
           cat > firebase.json <<'EOF'
           {"flutter":{"platforms":{"android":{"default":{"projectId":"iperon","appId":"1:434986283436:android:4f866c85c25982c9950a09","fileOutput":"android/app/google-services.json"}},"ios":{"default":{"projectId":"iperon","appId":"1:434986283436:ios:06524099437889e9950a09","uploadDebugSymbols":false,"fileOutput":"ios/Runner/GoogleService-Info.plist"}},"dart":{"lib/firebase_options.dart":{"projectId":"iperon","configurations":{"android":"1:434986283436:android:4f866c85c25982c9950a09","ios":"1:434986283436:ios:06524099437889e9950a09"}}}}}}
           EOF
@@ -86,19 +86,19 @@ jobs:
           mkdir -p "$PROFILES_DIR"
           cp profile.mobileprovision "$PROFILES_DIR/$PROFILE_UUID.mobileprovision"
           echo "PROFILE_NAME=$PROFILE_NAME" >> "$GITHUB_ENV"
-          echo "Установлен profile: $PROFILE_NAME ($PROFILE_UUID)"
+          echo "Installed profile: $PROFILE_NAME ($PROFILE_UUID)"
 
       - name: Force manual signing for archive
         env:
           PROFILE_NAME: ${{ env.PROFILE_NAME }}
         run: |
           set -euo pipefail
-          # В pbxproj у таргета Runner (Release) нет CODE_SIGN_STYLE, поэтому по
-          # умолчанию Xcode берёт Automatic — на CI без залогиненного Apple ID
-          # archive с ручным App Store профилем падает. Эти ключи в pbxproj не
-          # заданы, значит их можно доопределить через Release.xcconfig (это
-          # baseConfigurationReference таргета, он перекрывает project-level
-          # настройки). pbxproj при этом не трогаем.
+          # The Runner target (Release) has no CODE_SIGN_STYLE in pbxproj, so
+          # Xcode defaults to Automatic — on CI without a signed-in Apple ID an
+          # archive with a manual App Store profile fails. These keys are not set
+          # in pbxproj, so we can define them via Release.xcconfig (the target's
+          # baseConfigurationReference, which overrides project-level settings).
+          # We leave pbxproj untouched.
           cat >> ios/Flutter/Release.xcconfig <<EOF
 
           CODE_SIGN_STYLE = Manual
@@ -135,9 +135,9 @@ jobs:
       - name: Install FlutterFire CLI
         run: |
           set -euo pipefail
-          # Build-фаза «FlutterFire: upload-crashlytics-symbols» вызывает CLI
-          # `flutterfire`. Ставим его и добавляем pub-cache/bin в PATH, чтобы
-          # скрипт-фаза Xcode нашла команду при archive.
+          # The "FlutterFire: upload-crashlytics-symbols" build phase calls the
+          # `flutterfire` CLI. Install it and add pub-cache/bin to PATH so the
+          # Xcode script phase can find the command during archive.
           dart pub global activate flutterfire_cli
           echo "$HOME/.pub-cache/bin" >> "$GITHUB_PATH"
 
@@ -146,11 +146,11 @@ jobs:
           ENV_FILE_BASE64: ${{ secrets.ENV_FILE_BASE64 }}
         run: |
           set -euo pipefail
-          # .env и .env.development объявлены ассетами в pubspec, но лежат в
-          # .gitignore — без них падает бандлинг ассетов. .env наполняем из
-          # секрета ENV_FILE_BASE64, если он задан (иначе пустой — значения
-          # берутся из Firebase Remote Config). .env.development релиз не читает,
-          # но файл должен существовать для бандлинга.
+          # .env and .env.development are declared as assets in pubspec but are
+          # gitignored — without them asset bundling fails. We fill .env from the
+          # ENV_FILE_BASE64 secret if set (otherwise empty — values come from
+          # Firebase Remote Config). Release does not read .env.development, but
+          # the file must exist for bundling.
           if [ -n "${ENV_FILE_BASE64:-}" ]; then
             echo "$ENV_FILE_BASE64" | base64 --decode > .env
           else
@@ -161,8 +161,8 @@ jobs:
       - name: Build IPA
         run: |
           set -euo pipefail
-          # Имя версии берём из тега (v0.0.1 → 0.0.1), номер сборки — из счётчика запусков,
-          # чтобы каждый билд в TestFlight был уникальным.
+          # Version name comes from the tag (v0.0.1 → 0.0.1), build number from
+          # the run counter, so every TestFlight build is unique.
           BUILD_NAME="${GITHUB_REF_NAME#v}"
           flutter build ipa \
             --release \

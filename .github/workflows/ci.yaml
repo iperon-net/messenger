@@ -5,7 +5,7 @@ on:
   push:
     branches: [main]
 
-# Отменяем предыдущие запуски для той же ветки/PR — экономим минуты.
+# Cancel in-progress runs for the same branch/PR to save minutes.
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -49,10 +49,10 @@ jobs:
 
       - name: Verify generated code is up to date
         run: |
-          # -I игнорирует строку-таймстамп slang («Built on <дата> at <время> UTC»):
-          # она меняется при каждом запуске и иначе всегда роняла бы гейт.
+          # -I ignores the slang timestamp line ("Built on <date> at <time> UTC"):
+          # it changes on every run and would otherwise always fail the gate.
           if ! git diff --exit-code -I '^/// Built on .* at .* UTC$' -- '*.mapper.dart' 'lib/i18n/translations*.g.dart'; then
-            echo "::error::Сгенерированный код устарел. Запустите 'dart run build_runner build --delete-conflicting-outputs' и 'dart run slang', затем закоммитьте изменения."
+            echo "::error::Generated code is out of date. Run 'dart run build_runner build --delete-conflicting-outputs' and 'dart run slang', then commit the changes."
             exit 1
           fi
 
@@ -62,8 +62,8 @@ jobs:
       - name: Create .env asset files
         run: |
           set -euo pipefail
-          # .env и .env.development объявлены ассетами в pubspec, но лежат в
-          # .gitignore — без них analyze ругается на asset_does_not_exist.
+          # .env and .env.development are declared as assets in pubspec but are
+          # gitignored — without them analyze reports asset_does_not_exist.
           touch .env .env.development
 
       - name: Analyze
@@ -96,9 +96,9 @@ jobs:
       - name: Restore firebase.json
         run: |
           set -euo pipefail
-          # firebase.json нужен build-фазе Crashlytics (flutterfire
-          # upload-crashlytics-symbols), но он в .gitignore. Секретов в нём нет
-          # (только projectId и публичные appId), поэтому пишем его прямо тут.
+          # firebase.json is needed by the Crashlytics build phase (flutterfire
+          # upload-crashlytics-symbols) but is gitignored. It holds no secrets
+          # (only projectId and public appIds), so we write it inline here.
           cat > firebase.json <<'EOF'
           {"flutter":{"platforms":{"android":{"default":{"projectId":"iperon","appId":"1:434986283436:android:4f866c85c25982c9950a09","fileOutput":"android/app/google-services.json"}},"ios":{"default":{"projectId":"iperon","appId":"1:434986283436:ios:06524099437889e9950a09","uploadDebugSymbols":false,"fileOutput":"ios/Runner/GoogleService-Info.plist"}},"dart":{"lib/firebase_options.dart":{"projectId":"iperon","configurations":{"android":"1:434986283436:android:4f866c85c25982c9950a09","ios":"1:434986283436:ios:06524099437889e9950a09"}}}}}}
           EOF
@@ -114,17 +114,18 @@ jobs:
       - name: Create .env asset files
         run: |
           set -euo pipefail
-          # .env и .env.development объявлены ассетами в pubspec, но лежат в
-          # .gitignore — без них падает бандлинг ассетов. Для проверочной
-          # сборки достаточно пустых файлов (значения читаются из Remote Config).
+          # .env and .env.development are declared as assets in pubspec but are
+          # gitignored — without them asset bundling fails. Empty files are
+          # enough for the check build (values are read from Remote Config).
           touch .env .env.development
 
       - name: Install FlutterFire CLI
         run: |
           set -euo pipefail
-          # В проекте есть build-фаза «FlutterFire: upload-crashlytics-symbols»,
-          # вызывающая CLI `flutterfire`. Ставим его и кладём pub-cache/bin в
-          # PATH (через GITHUB_PATH), чтобы скрипт-фаза Xcode нашла команду.
+          # The project has a "FlutterFire: upload-crashlytics-symbols" build
+          # phase that calls the `flutterfire` CLI. Install it and add
+          # pub-cache/bin to PATH (via GITHUB_PATH) so the Xcode script phase
+          # can find the command.
           dart pub global activate flutterfire_cli
           echo "$HOME/.pub-cache/bin" >> "$GITHUB_PATH"
 
