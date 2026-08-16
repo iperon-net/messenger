@@ -17,5 +17,18 @@ class CommonState with CommonStateMappable {
   /// нажатию на кнопку.
   final bool autoBiometrics;
 
-  const CommonState({this.status = Status.initialization, required this.settingsDevice, this.isLocked = false, this.autoBiometrics = true});
+  /// Доступна ли биометрия на самом устройстве в данный момент: железо
+  /// поддерживает Face ID / Touch ID и хотя бы один способ реально настроен
+  /// (лицо/отпечаток добавлены). Отличается от [SettingsDeviceModel.passcodeBiometric] —
+  /// то пользовательский тумблер, а это фактическое состояние ОС. Кнопку
+  /// биометрии на экране блокировки показываем только когда оба true.
+  final bool isBiometricAvailable;
+
+  const CommonState({
+    this.status = Status.initialization,
+    required this.settingsDevice,
+    this.isLocked = false,
+    this.autoBiometrics = true,
+    this.isBiometricAvailable = false,
+  });
 }

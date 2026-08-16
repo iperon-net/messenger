@@ -225,7 +225,7 @@ class _IperonMessengerCupertino extends State<IperonMessengerCupertino> with Wid
                   useBlur: false,
                   config: ScreenLockConfig.defaultConfig.copyWith(backgroundColor: const Color(0xFF545454)),
                   title: Text(context.t.settings.passcode.pleaseEnterPasscode),
-                  customizedButtonChild: state.settingsDevice.passcodeBiometric
+                  customizedButtonChild: state.settingsDevice.passcodeBiometric && state.isBiometricAvailable
                       ? SvgPicture.string(
                           utf8.decode(
                             base64.decode(
@@ -243,8 +243,11 @@ class _IperonMessengerCupertino extends State<IperonMessengerCupertino> with Wid
                         )
                       : null,
 
-                  customizedButtonTap: () async => state.settingsDevice.passcodeBiometric ? await localAuth(context) : null,
-                  onOpened: () async => state.settingsDevice.passcodeBiometric && state.autoBiometrics ? await localAuth(context) : null,
+                  customizedButtonTap: () async =>
+                      state.settingsDevice.passcodeBiometric && state.isBiometricAvailable ? await localAuth(context) : null,
+                  onOpened: () async => state.settingsDevice.passcodeBiometric && state.isBiometricAvailable && state.autoBiometrics
+                      ? await localAuth(context)
+                      : null,
                 );
               }
 

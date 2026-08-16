@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:bloc/bloc.dart';
 import 'package:cryptography/cryptography.dart';
 import 'package:flutter/foundation.dart';
+import 'package:local_auth/local_auth.dart';
 import 'package:messenger/repositories.dart';
 
 import '../constants.dart';
@@ -19,6 +20,28 @@ class CommonCubit extends Cubit<CommonState> {
   final logger = getIt.get<Logger>();
   final repositories = getIt.get<Repositories>();
 
+  final LocalAuthentication _localAuth = LocalAuthentication();
+
+  /// Проверяет, доступна ли биометрия на устройстве прямо сейчас: железо/ОС её
+  /// поддерживают и хотя бы один способ реально настроен (Face ID — задано лицо,
+  /// Touch ID — добавлен отпечаток). Если поддержки нет или ничего не настроено,
+  /// вернёт false — тогда кнопку биометрии на экране блокировки не показываем.
+  Future<bool> _isBiometricAvailable() async {
+    try {
+      final isSupported = await _localAuth.isDeviceSupported();
+      if (!isSupported) return false;
+      final canCheck = await _localAuth.canCheckBiometrics;
+      if (!canCheck) return false;
+      // getAvailableBiometrics возвращает только фактически настроенные способы —
+      // так отсекаем случай «Face ID поддерживается, но лицо не задано».
+      final available = await _localAuth.getAvailableBiometrics();
+      return available.isNotEmpty;
+    } catch (e, stack) {
+      logger.handle(e, stack);
+      return false;
+    }
+  }
+
   // Должен совпадать с параметрами хеширования в SettingsPasscodeCreateCubit,
   // иначе байты введённого PIN не сойдутся с сохранённым хешем.
   final algorithm = Argon2id(parallelism: 4, memory: 10000, iterations: 3, hashLength: 32);
@@ -32,6 +55,7 @@ class CommonCubit extends Cubit<CommonState> {
     // авто-блокировка (autoLock > 0), либо ранее была выставлена форс-блокировка.
     // Форс-блокировка персистится в БД и потому переживает перезапуск приложения.
     final locked = settingsDevice.passcode.isNotEmpty && (settingsDevice.passcodeForceLocked || settingsDevice.passcodeAutoLock > 0);
+    final isBiometricAvailable = await _isBiometricAvailable();
     // При холодном старте после принудительной блокировки биометрию сама не
     // показываем — только по кнопке. Обычная авто-блокировка биометрию разрешает.
     emit(
@@ -40,6 +64,7 @@ class CommonCubit extends Cubit<CommonState> {
         settingsDevice: settingsDevice,
         isLocked: locked,
         autoBiometrics: !settingsDevice.passcodeForceLocked,
+        isBiometricAvailable: isBiometricAvailable,
       ),
     );
   }
@@ -51,7 +76,15 @@ class CommonCubit extends Cubit<CommonState> {
     if (state.settingsDevice.passcode.isEmpty) return;
     await repositories.settingsDevice.setPasscodeForceLocked(true);
     final settingsDevice = state.settingsDevice.copyWith(passcodeForceLocked: true);
-    emit(state.copyWith(settingsDevice: settingsDevice, isLocked: true, autoBiometrics: biometrics));
+    final isBiometricAvailable = await _isBiometricAvailable();
+    emit(
+      state.copyWith(
+        settingsDevice: settingsDevice,
+        isLocked: true,
+        autoBiometrics: biometrics,
+        isBiometricAvailable: isBiometricAvailable,
+      ),
+    );
   }
 
   /// Приложение ушло в фон — запоминаем время для последующей проверки таймаута.
@@ -70,7 +103,7 @@ class CommonCubit extends Cubit<CommonState> {
   /// включена (autoLock > 0), блокируем экран, когда в фоне провели не меньше
   /// заданного числа секунд. autoLock == 0 означает «Off» — авто-блокировки в
   /// рамках одной сессии нет (экран блокируется только при холодном старте).
-  void onAppResumed() {
+  Future<void> onAppResumed() async {
     final backgroundedAt = _backgroundedAt;
     _backgroundedAt = null;
 
@@ -83,7 +116,8 @@ class CommonCubit extends Cubit<CommonState> {
     final away = DateTime.now().difference(backgroundedAt);
     if (away.inSeconds >= autoLock) {
       // Блокировка по таймауту — биометрию показываем сразу.
-      emit(state.copyWith(isLocked: true, autoBiometrics: true));
+      final isBiometricAvailable = await _isBiometricAvailable();
+      emit(state.copyWith(isLocked: true, autoBiometrics: true, isBiometricAvailable: isBiometricAvailable));
     }
   }
 

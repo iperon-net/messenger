@@ -48,6 +48,13 @@ class CommonStateMapper extends ClassMapperBase<CommonState> {
     opt: true,
     def: true,
   );
+  static bool _$isBiometricAvailable(CommonState v) => v.isBiometricAvailable;
+  static const Field<CommonState, bool> _f$isBiometricAvailable = Field(
+    'isBiometricAvailable',
+    _$isBiometricAvailable,
+    opt: true,
+    def: false,
+  );
 
   @override
   final MappableFields<CommonState> fields = const {
@@ -55,6 +62,7 @@ class CommonStateMapper extends ClassMapperBase<CommonState> {
     #settingsDevice: _f$settingsDevice,
     #isLocked: _f$isLocked,
     #autoBiometrics: _f$autoBiometrics,
+    #isBiometricAvailable: _f$isBiometricAvailable,
   };
 
   static CommonState _instantiate(DecodingData data) {
@@ -63,6 +71,7 @@ class CommonStateMapper extends ClassMapperBase<CommonState> {
       settingsDevice: data.dec(_f$settingsDevice),
       isLocked: data.dec(_f$isLocked),
       autoBiometrics: data.dec(_f$autoBiometrics),
+      isBiometricAvailable: data.dec(_f$isBiometricAvailable),
     );
   }
 
@@ -133,6 +142,7 @@ abstract class CommonStateCopyWith<$R, $In extends CommonState, $Out>
     SettingsDeviceModel? settingsDevice,
     bool? isLocked,
     bool? autoBiometrics,
+    bool? isBiometricAvailable,
   });
   CommonStateCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
@@ -155,12 +165,15 @@ class _CommonStateCopyWithImpl<$R, $Out>
     SettingsDeviceModel? settingsDevice,
     bool? isLocked,
     bool? autoBiometrics,
+    bool? isBiometricAvailable,
   }) => $apply(
     FieldCopyWithData({
       if (status != null) #status: status,
       if (settingsDevice != null) #settingsDevice: settingsDevice,
       if (isLocked != null) #isLocked: isLocked,
       if (autoBiometrics != null) #autoBiometrics: autoBiometrics,
+      if (isBiometricAvailable != null)
+        #isBiometricAvailable: isBiometricAvailable,
     }),
   );
   @override
@@ -169,6 +182,10 @@ class _CommonStateCopyWithImpl<$R, $Out>
     settingsDevice: data.get(#settingsDevice, or: $value.settingsDevice),
     isLocked: data.get(#isLocked, or: $value.isLocked),
     autoBiometrics: data.get(#autoBiometrics, or: $value.autoBiometrics),
+    isBiometricAvailable: data.get(
+      #isBiometricAvailable,
+      or: $value.isBiometricAvailable,
+    ),
   );
 
   @override
