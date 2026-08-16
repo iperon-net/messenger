@@ -182,12 +182,14 @@ jobs:
         run: |
           set -euo pipefail
           # Version name comes from the tag (v0.0.1 → 0.0.1), build number from
-          # the run counter, so every TestFlight build is unique.
+          # a UTC timestamp (YYYYMMDDHHMM), so every TestFlight build is unique
+          # and monotonically increasing, independent of the CI run counter.
           BUILD_NAME="${GITHUB_REF_NAME#v}"
+          BUILD_NUMBER="$(date -u +%Y%m%d%H%M)"
           flutter build ipa \
             --release \
             --build-name="$BUILD_NAME" \
-            --build-number="${{ github.run_number }}" \
+            --build-number="$BUILD_NUMBER" \
             --export-options-plist=ios/ExportOptions.plist
 
       - name: Locate IPA
