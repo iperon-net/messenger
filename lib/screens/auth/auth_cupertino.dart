@@ -173,7 +173,23 @@ class _AuthCupertinoScreen extends State<AuthCupertinoScreen> {
                       spacing: 30,
                       children: [
                         GestureDetector(
-                          onTap: () async => await context.read<AuthCubit>().yandexSignIn(),
+                          behavior: HitTestBehavior.opaque,
+                          onTap: () async {
+                            final result = await context.read<AuthCubit>().yandexSignIn();
+                            if (context.mounted){
+                              showCupertinoDialog(
+                                context: context,
+                                builder: (context) => CupertinoAlertDialog(
+                                  actions: [
+                                    CupertinoDialogAction(
+                                      onPressed: () => Navigator.of(context).pop(),
+                                      child: Text(result),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            }
+                          },
                           child: SvgPicture.asset('assets/images/yandex_id.svg'),
                         ),
                         //   Container(

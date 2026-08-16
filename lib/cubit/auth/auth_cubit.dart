@@ -124,15 +124,16 @@ class AuthCubit extends Cubit<AuthState> {
     return;
   }
 
-  Future<void> yandexSignIn() async {
+  Future<String> yandexSignIn() async {
     try {
       final result = await YandexLoginSdk.signIn(
         clientId: settings.yandexOauthClientID,
-        // strategy: YandexLoginStrategy.webOnly, // skip installed Yandex apps
+        strategy: YandexLoginStrategy.auto,
       );
       logger.debug('Access token: ${result.token}');
       logger.debug('JWT (iOS only): ${result.jwt}');
       logger.debug('Expires at (Android only): ${result.expiresAt}');
+      return result.token;
     } on YandexAuthCancelledException {
       // User dismissed the sheet — no need to show an error.
     } on YandexAuthInProgressException {
@@ -142,5 +143,6 @@ class AuthCubit extends Cubit<AuthState> {
     } on YandexAuthException catch (e) {
       print('Yandex SDK error: $e');
     }
+    return "";
   }
 }
