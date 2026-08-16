@@ -41,7 +41,7 @@ class _ChatsCupertino extends State<ChatsCupertino> {
                   builder: (context, stateCommon) {
                     if (stateCommon.settingsDevice.passcode.isNotEmpty) {
                       return GestureDetector(
-                        onTap: () async => await context.read<CommonCubit>().forceLock(),
+                        onTap: () async => await context.read<CommonCubit>().forceLock(biometrics: false),
                         child: FaIcon(
                           FontAwesomeIcons.lockOpen,
                           size: 16,

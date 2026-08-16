@@ -41,12 +41,20 @@ class CommonStateMapper extends ClassMapperBase<CommonState> {
     opt: true,
     def: false,
   );
+  static bool _$autoBiometrics(CommonState v) => v.autoBiometrics;
+  static const Field<CommonState, bool> _f$autoBiometrics = Field(
+    'autoBiometrics',
+    _$autoBiometrics,
+    opt: true,
+    def: true,
+  );
 
   @override
   final MappableFields<CommonState> fields = const {
     #status: _f$status,
     #settingsDevice: _f$settingsDevice,
     #isLocked: _f$isLocked,
+    #autoBiometrics: _f$autoBiometrics,
   };
 
   static CommonState _instantiate(DecodingData data) {
@@ -54,6 +62,7 @@ class CommonStateMapper extends ClassMapperBase<CommonState> {
       status: data.dec(_f$status),
       settingsDevice: data.dec(_f$settingsDevice),
       isLocked: data.dec(_f$isLocked),
+      autoBiometrics: data.dec(_f$autoBiometrics),
     );
   }
 
@@ -123,6 +132,7 @@ abstract class CommonStateCopyWith<$R, $In extends CommonState, $Out>
     Status? status,
     SettingsDeviceModel? settingsDevice,
     bool? isLocked,
+    bool? autoBiometrics,
   });
   CommonStateCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
@@ -144,11 +154,13 @@ class _CommonStateCopyWithImpl<$R, $Out>
     Status? status,
     SettingsDeviceModel? settingsDevice,
     bool? isLocked,
+    bool? autoBiometrics,
   }) => $apply(
     FieldCopyWithData({
       if (status != null) #status: status,
       if (settingsDevice != null) #settingsDevice: settingsDevice,
       if (isLocked != null) #isLocked: isLocked,
+      if (autoBiometrics != null) #autoBiometrics: autoBiometrics,
     }),
   );
   @override
@@ -156,6 +168,7 @@ class _CommonStateCopyWithImpl<$R, $Out>
     status: data.get(#status, or: $value.status),
     settingsDevice: data.get(#settingsDevice, or: $value.settingsDevice),
     isLocked: data.get(#isLocked, or: $value.isLocked),
+    autoBiometrics: data.get(#autoBiometrics, or: $value.autoBiometrics),
   );
 
   @override

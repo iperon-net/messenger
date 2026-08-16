@@ -11,5 +11,16 @@ class CommonState with CommonStateMappable {
   final SettingsDeviceModel settingsDevice;
   final bool isLocked;
 
-  const CommonState({this.status = Status.initialization, required this.settingsDevice, this.isLocked = false});
+  /// Разрешён ли автоматический показ биометрии при открытии экрана блокировки.
+  /// true — при «мягкой» блокировке (таймаут/холодный старт): Face ID / Touch ID
+  /// всплывает сразу. false — при принудительной блокировке: биометрия только по
+  /// нажатию на кнопку.
+  final bool autoBiometrics;
+
+  const CommonState({
+    this.status = Status.initialization,
+    required this.settingsDevice,
+    this.isLocked = false,
+    this.autoBiometrics = true,
+  });
 }

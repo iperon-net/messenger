@@ -32,17 +32,24 @@ class CommonCubit extends Cubit<CommonState> {
     // авто-блокировка (autoLock > 0), либо ранее была выставлена форс-блокировка.
     // Форс-блокировка персистится в БД и потому переживает перезапуск приложения.
     final locked = settingsDevice.passcode.isNotEmpty && (settingsDevice.passcodeForceLocked || settingsDevice.passcodeAutoLock > 0);
-    emit(state.copyWith(status: Status.success, settingsDevice: settingsDevice, isLocked: locked));
+    // При холодном старте после принудительной блокировки биометрию сама не
+    // показываем — только по кнопке. Обычная авто-блокировка биометрию разрешает.
+    emit(state.copyWith(
+      status: Status.success,
+      settingsDevice: settingsDevice,
+      isLocked: locked,
+      autoBiometrics: !settingsDevice.passcodeForceLocked,
+    ));
   }
 
   /// Принудительная блокировка экрана. Флаг сохраняется в БД, поэтому блокировка
   /// сохраняется даже после того, как iOS выгрузит приложение и пользователь
   /// откроет его заново — снять её можно только вводом passcode.
-  Future<void> forceLock() async {
+  Future<void> forceLock({bool biometrics = true}) async {
     if (state.settingsDevice.passcode.isEmpty) return;
     await repositories.settingsDevice.setPasscodeForceLocked(true);
     final settingsDevice = state.settingsDevice.copyWith(passcodeForceLocked: true);
-    emit(state.copyWith(settingsDevice: settingsDevice, isLocked: true));
+    emit(state.copyWith(settingsDevice: settingsDevice, isLocked: true, autoBiometrics: biometrics));
   }
 
   /// Приложение ушло в фон — запоминаем время для последующей проверки таймаута.
@@ -73,7 +80,8 @@ class CommonCubit extends Cubit<CommonState> {
 
     final away = DateTime.now().difference(backgroundedAt);
     if (away.inSeconds >= autoLock) {
-      emit(state.copyWith(isLocked: true));
+      // Блокировка по таймауту — биометрию показываем сразу.
+      emit(state.copyWith(isLocked: true, autoBiometrics: true));
     }
   }
 
@@ -94,7 +102,7 @@ class CommonCubit extends Cubit<CommonState> {
       await repositories.settingsDevice.setPasscodeForceLocked(false);
     }
     final settingsDevice = state.settingsDevice.copyWith(passcodeForceLocked: false);
-    emit(state.copyWith(settingsDevice: settingsDevice, isLocked: false));
+    emit(state.copyWith(settingsDevice: settingsDevice, isLocked: false, autoBiometrics: true));
   }
 
   Future<void> setLocale({required AppLocale locale}) async {
