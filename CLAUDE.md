@@ -43,6 +43,13 @@ Note: `taskfile.yml` at the repo root is for an unrelated Go backend project and
 - **App passcode & biometric lock**: an optional local app-lock, separate from server auth. The PIN is hashed with **Argon2id** (`package:cryptography`) and only the hash is persisted in `settingsDevice`; the create flow (`SettingsPasscodeCreateCubit`) and the verify flow (`SettingsPasscodeCubit`) **must use identical Argon2id parameters** (`parallelism/memory/iterations/hashLength`) or entered PINs will never match. The lock UI uses `flutter_screen_lock`; biometric unlock uses `local_auth` (`LocalAuthentication`) and is triggered from `main.dart`'s `didChangeAppLifecycleState` (lock on `paused`/`hidden`, prompt on `resumed`) — the app root is a `WidgetsBindingObserver`.
 - **Connection status UI**: `ConnectionCubit` (`lib/cubit/connection_cubit.dart`) merges two independent signals into one status for the UI — device network reachability (`connectivity_plus`) and the gRPC stream state (`API.connectionStatusStream`). Like other cubits it is not in `get_it`; a single instance is provided high in the shell so all tabs share the same status (rendered by `lib/components/connection_title.dart`).
 - **UI (Cupertino-first)**: screens live under `lib/screens/**` named `*_cupertino.dart`; `main.dart` runs a `CupertinoApp.router`. Theming is in `lib/themes/cupertino.dart` (`ThemesCupertino`), driven by `settingsDevice.colorTheme` + `darkMode` from `CommonCubit` state. `lib/routers.dart` keeps route lists split into `_common` (shared) plus empty `_cupertino`/`_material` slots so a Material variant can be added later.
+- **Extensions**: `lib/extensions/` holds Dart `extension`s on built-in types, barrel-exported via `lib/extensions.dart` (import through `package:messenger/extensions.dart`). Notably `DateTime.relativeFormat(t)` (`date_time_extensions.dart`) renders localized "today/yesterday/dd.MM.yyyy at HH:mm" strings via slang, and `String.capitalize()`.
+
+## CI/CD
+
+GitHub Actions live in `.github/workflows/`. `lib/firebase_options.dart` and the `.env` files are gitignored, so CI reconstructs them from secrets before building — mirror that if you add a workflow.
+- **`code_checks.yaml`** (PRs/pushes): `flutter pub get` → restore `firebase_options.dart` from a secret → generate `.env` assets → `dart format --output=none --set-exit-if-changed lib` (formatting is enforced — run `dart format lib` before pushing) → `flutter analyze`.
+- **`deploy_ios.yaml`** (on `v*` tags): builds a release IPA and uploads to TestFlight via fastlane. `BUILD_NAME` comes from the tag (`v0.0.1` → `0.0.1`); `BUILD_NUMBER` is a UTC `date` timestamp so it stays unique and monotonically increasing.
 
 ## TODO
 
