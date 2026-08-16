@@ -159,23 +159,25 @@ class Routers {
                   pageBuilder: (context, state) => _page(
                     state,
                     BlocProvider<SettingsAppearanceCubit>(
-                      create: (_) => SettingsAppearanceCubit()..initialization(
-                        colorTheme: context
-                            .read<CommonCubit>()
-                            .state
-                            .settingsDevice
-                            .colorTheme,
-                        darkMode: context
-                            .read<CommonCubit>()
-                            .state
-                            .settingsDevice
-                            .darkMode,
-                        isBlurOnInactive: context
-                            .read<CommonCubit>()
-                            .state
-                            .settingsDevice
-                            .isBlurOnInactive,
-                      ),
+                      create: (_) =>
+                      SettingsAppearanceCubit()
+                        ..initialization(
+                          colorTheme: context
+                              .read<CommonCubit>()
+                              .state
+                              .settingsDevice
+                              .colorTheme,
+                          darkMode: context
+                              .read<CommonCubit>()
+                              .state
+                              .settingsDevice
+                              .darkMode,
+                          isBlurOnInactive: context
+                              .read<CommonCubit>()
+                              .state
+                              .settingsDevice
+                              .isBlurOnInactive,
+                        ),
                       child: SettingsAppearanceCupertino(),
                     ),
                   ),
