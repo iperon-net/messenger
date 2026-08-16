@@ -86,6 +86,16 @@ jobs:
           echo "$FIREBASE_OPTIONS_DART_BASE64" | base64 --decode > lib/firebase_options.dart
           echo "$IOS_GOOGLE_SERVICE_INFO_PLIST_BASE64" | base64 --decode > ios/Runner/GoogleService-Info.plist
 
+      - name: Restore firebase.json
+        run: |
+          set -euo pipefail
+          # firebase.json нужен build-фазе Crashlytics (flutterfire
+          # upload-crashlytics-symbols), но он в .gitignore. Секретов в нём нет
+          # (только projectId и публичные appId), поэтому пишем его прямо тут.
+          cat > firebase.json <<'EOF'
+          {"flutter":{"platforms":{"android":{"default":{"projectId":"iperon","appId":"1:434986283436:android:4f866c85c25982c9950a09","fileOutput":"android/app/google-services.json"}},"ios":{"default":{"projectId":"iperon","appId":"1:434986283436:ios:06524099437889e9950a09","uploadDebugSymbols":false,"fileOutput":"ios/Runner/GoogleService-Info.plist"}},"dart":{"lib/firebase_options.dart":{"projectId":"iperon","configurations":{"android":"1:434986283436:android:4f866c85c25982c9950a09","ios":"1:434986283436:ios:06524099437889e9950a09"}}}}}}
+          EOF
+
       - name: Install dependencies
         run: flutter pub get
 
