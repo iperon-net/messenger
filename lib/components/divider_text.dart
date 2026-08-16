@@ -1,12 +1,9 @@
 import 'package:flutter/material.dart';
 
-class DividerTextWidget extends StatelessWidget{
+class DividerTextWidget extends StatelessWidget {
   final String text;
 
-  const DividerTextWidget({
-    required this.text,
-    super.key
-  });
+  const DividerTextWidget({required this.text, super.key});
 
   @override
   Widget build(BuildContext context) {
