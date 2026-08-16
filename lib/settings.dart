@@ -27,7 +27,7 @@ class Settings {
     // Default config
     await remoteConfig.setDefaults(const {
       "PUBLIC_KEY_EDDSA_FINGERPRINT": "7abfc2a7e8ea09ae384bdeb855cfeae24d60bfac3646046e754fddc8d5ab604d",
-      "YANDEX_OAUTH_CLIENT_ID": "a001e23bf51b4743a3f408473d5f85cd",
+      "YANDEX_OAUTH_CLIENT_ID": "c3ae9f778e734f70ad8b5bc96b419169",
       "API_HOST": "staging.iperon.net",
       "API_PORT": 443,
       "API_SECURE": true,

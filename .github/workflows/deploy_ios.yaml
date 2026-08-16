@@ -35,11 +35,44 @@ jobs:
         run: |
           set -euo pipefail
           # Собираем список коммитов (от новых к старым) для поля whatToTest
-          # («Сведения о тестировании») в TestFlight. Лимит Apple — 4000
-          # символов, поэтому обрезаем по нему, не разрывая строки: коммиты,
-          # которые не помещаются целиком, просто отбрасываем.
-          CHANGELOG=$(git log --pretty='- %s' --no-merges | awk '
-            { line = $0 "\n"; if (total + length(line) > 4000) exit; total += length(line); printf "%s", line }
+          # («Сведения о тестировании») в TestFlight. Берём только то, что
+          # появилось после предыдущего тега v*, а не всю историю: находим
+          # ближайший тег-предок текущего (исключая его самого) и логируем
+          # диапазон PREV..HEAD. Если предыдущего тега нет (самый первый
+          # релиз), берём всю историю.
+          PREV_TAG=$(git describe --tags --abbrev=0 --match 'v*' "${GITHUB_REF_NAME}^" 2>/dev/null || true)
+          RANGE=${PREV_TAG:+"${PREV_TAG}..${GITHUB_REF_NAME}"}
+          echo "Changelog range: ${RANGE:-<full history>}"
+          # Группируем коммиты по типу Conventional Commits (feat/fix/прочее),
+          # у каждого коммита срезаем префикс «type(scope):» и раскладываем по
+          # секциям. Лимит Apple — 4000 символов, поэтому считаем длину по мере
+          # вывода и обрезаем по нему, не разрывая строки: коммиты (и целые
+          # секции), которые не помещаются, просто отбрасываем.
+          CHANGELOG=$(git log ${RANGE} --pretty='%s' --no-merges | awk '
+            function strip(s,   r) { r = s; sub(/^[a-z]+(\([^)]*\))?!?:[ \t]*/, "", r); return r }
+            function dump(title, arr, n,   i, line, header, first) {
+              if (n == 0) return
+              header = title ":\n"
+              first = "- " arr[1] "\n"
+              # печатаем заголовок, только если влезает он и хотя бы один пункт
+              if (total + length(header) + length(first) > 4000) return
+              printf "%s", header; total += length(header)
+              for (i = 1; i <= n; i++) {
+                line = "- " arr[i] "\n"
+                if (total + length(line) > 4000) break
+                printf "%s", line; total += length(line)
+              }
+              printf "\n"; total += 1
+            }
+            /^feat(\([^)]*\))?!?:/ { feat[++nf] = strip($0); next }
+            /^fix(\([^)]*\))?!?:/  { fix[++nx]  = strip($0); next }
+                                   { other[++no] = strip($0) }
+            END {
+              total = 0
+              dump("🚀 New features", feat, nf)
+              dump("🐛 Bug fixes", fix, nx)
+              dump("🔧 Other changes", other, no)
+            }
           ')
           {
             echo "CHANGELOG<<CHANGELOG_EOF"
@@ -205,5 +238,5 @@ jobs:
           ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
           ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
           ASC_KEY_P8_BASE64: ${{ secrets.ASC_KEY_P8_BASE64 }}
-#          CHANGELOG: ${{ env.CHANGELOG }}
+          CHANGELOG: ${{ env.CHANGELOG }}
         run: bundle exec fastlane beta
