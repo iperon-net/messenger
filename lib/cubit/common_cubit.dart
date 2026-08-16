@@ -64,8 +64,15 @@ class CommonCubit extends Cubit<CommonState> {
   }
 
   /// Приложение ушло в фон — запоминаем время для последующей проверки таймаута.
+  ///
+  /// Пишем только при первом уходе из foreground (`??=`): на iOS уход в фон
+  /// проходит цепочкой `inactive → hidden → paused`, а возврат — обратной
+  /// `hidden → inactive → resumed`. Метод вызывается из всех этих не-`resumed`
+  /// состояний, и без защиты `inactive`, приходящий прямо перед `resumed`, затёр
+  /// бы реальное время ухода на «сейчас», обнулив измеренный интервал. Сбрасывает
+  /// поле только [onAppResumed] — после проверки таймаута.
   void onAppBackgrounded() {
-    _backgroundedAt = DateTime.now();
+    _backgroundedAt ??= DateTime.now();
   }
 
   /// Приложение вернулось на передний план. Если passcode задан и авто-блокировка

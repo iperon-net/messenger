@@ -177,9 +177,13 @@ class _IperonMessengerCupertino extends State<IperonMessengerCupertino>
         // Приложение завершается — полностью закрываем стрим.
         api.shutdown();
       case AppLifecycleState.inactive:
-        // Транзиентное состояние (шторка, app switcher, звонок) — игнорируем,
-        // чтобы не дёргать соединение на каждый чих.
+        // Транзиентное состояние (шторка, app switcher, звонок) — соединение не
+        // трогаем, чтобы не дёргать его на каждый чих. Но время ухода в фон
+        // фиксируем: на iOS `inactive` доставляется надёжно, а `hidden`/`paused`
+        // могут прийти уже после заморозки изолята — иначе авто-блокировка по
+        // таймауту не сработает при возврате в рамках живого процесса.
         setState(() => isBlur = true);
+        context.read<CommonCubit>().onAppBackgrounded();
     }
   }
 
