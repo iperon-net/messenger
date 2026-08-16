@@ -22,7 +22,7 @@ jobs:
   testflight:
     name: Build and upload to TestFlight
     runs-on: macos-latest
-    timeout-minutes: 15
+    timeout-minutes: 30
     steps:
       - name: Checkout
         uses: actions/checkout@v7
