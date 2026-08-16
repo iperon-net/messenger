@@ -249,7 +249,13 @@ class _IperonMessengerCupertino extends State<IperonMessengerCupertino> with Wid
               }
 
               if (state.settingsDevice.isBlurOnInactive && isBlur) {
-                return Blur(blur: 5, child: child ?? const SizedBox.shrink());
+                return Blur(
+                  blur: 5,
+                  blurColor: CupertinoTheme.brightnessOf(context) == Brightness.dark
+                      ? CupertinoColors.darkBackgroundGray
+                      : CupertinoColors.inactiveGray,
+                  child: child ?? const SizedBox.shrink(),
+                );
               }
 
               return child ?? const SizedBox.shrink();
