@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:cupertino_ui/cupertino_ui.dart' show CupertinoPage;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:talker_flutter/talker_flutter.dart';
@@ -17,6 +18,18 @@ class Routers {
   final auth = getIt.get<Auth>();
 
   final initialLocation = "/chats";
+
+  // go_router определяет тип Page по типу App-виджета через
+  // findAncestorWidgetOfExactType<CupertinoApp>() (из package:flutter).
+  // Приложение обёрнуто в CupertinoApp из cupertino_ui — это другой тип,
+  // поэтому автоопределение проваливается в NoTransitionPage (без свайпа
+  // назад). Явно отдаём CupertinoPage из cupertino_ui, чтобы вернуть
+  // iOS-переход и жест «назад».
+  Page<void> _page(GoRouterState state, Widget child) => CupertinoPage<void>(
+    key: state.pageKey,
+    name: state.name ?? state.path,
+    child: child,
+  );
 
   String? _redirect(BuildContext context, GoRouterState state) {
     final isAuthRoute = state.matchedLocation.startsWith("/auth");
@@ -84,33 +97,39 @@ class Routers {
                 GoRoute(
                   path: "privacy_and_security",
                   parentNavigatorKey: rootNavigatorKey,
-                  builder: (context, _) =>
-                      BlocProvider<SettingsPrivacyAndSecurityCubit>(
-                        create: (_) =>
-                            SettingsPrivacyAndSecurityCubit()..initialization(),
-                        child: SettingsPrivacyAndSecurityCupertino(),
-                      ),
+                  pageBuilder: (context, state) => _page(
+                    state,
+                    BlocProvider<SettingsPrivacyAndSecurityCubit>(
+                      create: (_) =>
+                          SettingsPrivacyAndSecurityCubit()..initialization(),
+                      child: SettingsPrivacyAndSecurityCupertino(),
+                    ),
+                  ),
                   routes: [
                     GoRoute(
                       path: "passcode",
                       parentNavigatorKey: rootNavigatorKey,
-                      builder: (context, _) =>
-                          BlocProvider<SettingsPasscodeCubit>(
-                            create: (_) =>
-                                SettingsPasscodeCubit()..initialization(),
-                            child: SettingsPasscodeCupertino(),
-                          ),
+                      pageBuilder: (context, state) => _page(
+                        state,
+                        BlocProvider<SettingsPasscodeCubit>(
+                          create: (_) =>
+                              SettingsPasscodeCubit()..initialization(),
+                          child: SettingsPasscodeCupertino(),
+                        ),
+                      ),
                       routes: [
                         GoRoute(
                           path: "create",
                           parentNavigatorKey: rootNavigatorKey,
-                          builder: (context, _) =>
-                              BlocProvider<SettingsPasscodeCreateCubit>(
-                                create: (_) =>
-                                    SettingsPasscodeCreateCubit()
-                                      ..initialization(),
-                                child: SettingsPasscodeCreateCupertino(),
-                              ),
+                          pageBuilder: (context, state) => _page(
+                            state,
+                            BlocProvider<SettingsPasscodeCreateCubit>(
+                              create: (_) =>
+                                  SettingsPasscodeCreateCubit()
+                                    ..initialization(),
+                              child: SettingsPasscodeCreateCupertino(),
+                            ),
+                          ),
                         ),
                       ],
                     ),
@@ -119,53 +138,59 @@ class Routers {
                 GoRoute(
                   path: "language",
                   parentNavigatorKey: rootNavigatorKey,
-                  builder: (context, _) => BlocProvider<SettingsLanguageCubit>(
-                    create: (_) => SettingsLanguageCubit()
-                      ..initialization(
-                        locale: context
-                            .read<CommonCubit>()
-                            .state
-                            .settingsDevice
-                            .locale,
-                      ),
-                    child: SettingsLanguageCupertinoScreen(),
+                  pageBuilder: (context, state) => _page(
+                    state,
+                    BlocProvider<SettingsLanguageCubit>(
+                      create: (_) => SettingsLanguageCubit()
+                        ..initialization(
+                          locale: context
+                              .read<CommonCubit>()
+                              .state
+                              .settingsDevice
+                              .locale,
+                        ),
+                      child: SettingsLanguageCupertinoScreen(),
+                    ),
                   ),
                 ),
                 GoRoute(
                   path: "appearance",
                   parentNavigatorKey: rootNavigatorKey,
-                  builder: (context, _) =>
-                      BlocProvider<SettingsAppearanceCubit>(
-                        create: (_) =>
-                            SettingsAppearanceCubit()..initialization(
-                              colorTheme: context
-                                  .read<CommonCubit>()
-                                  .state
-                                  .settingsDevice
-                                  .colorTheme,
-                              darkMode: context
-                                  .read<CommonCubit>()
-                                  .state
-                                  .settingsDevice
-                                  .darkMode,
-                              isBlurOnInactive: context
-                                  .read<CommonCubit>()
-                                  .state
-                                  .settingsDevice
-                                  .isBlurOnInactive,
-                            ),
-                        child: SettingsAppearanceCupertino(),
+                  pageBuilder: (context, state) => _page(
+                    state,
+                    BlocProvider<SettingsAppearanceCubit>(
+                      create: (_) => SettingsAppearanceCubit()..initialization(
+                        colorTheme: context
+                            .read<CommonCubit>()
+                            .state
+                            .settingsDevice
+                            .colorTheme,
+                        darkMode: context
+                            .read<CommonCubit>()
+                            .state
+                            .settingsDevice
+                            .darkMode,
+                        isBlurOnInactive: context
+                            .read<CommonCubit>()
+                            .state
+                            .settingsDevice
+                            .isBlurOnInactive,
                       ),
+                      child: SettingsAppearanceCupertino(),
+                    ),
+                  ),
                 ),
                 GoRoute(
                   path: "device_sessions",
                   parentNavigatorKey: rootNavigatorKey,
-                  builder: (context, _) =>
-                      BlocProvider<SettingsDeviceSessionsCubit>(
-                        create: (_) =>
-                            SettingsDeviceSessionsCubit()..initialization(),
-                        child: SettingsDeviceSessionsCupertino(),
-                      ),
+                  pageBuilder: (context, state) => _page(
+                    state,
+                    BlocProvider<SettingsDeviceSessionsCubit>(
+                      create: (_) =>
+                          SettingsDeviceSessionsCubit()..initialization(),
+                      child: SettingsDeviceSessionsCupertino(),
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -182,7 +207,7 @@ class Routers {
       routes: [
         GoRoute(
           path: "/call_password_confirmation",
-          builder: (context, state) {
+          pageBuilder: (context, state) {
             final callPasswordSession =
                 state.uri.queryParameters["callPasswordSession"] ?? "";
             final confirmationPhoneNumber =
@@ -195,23 +220,26 @@ class Routers {
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 if (context.mounted) context.go("/auth");
               });
-              return Container();
+              return _page(state, Container());
             }
 
-            return BlocProvider<AuthCallpasswordConfirmationCubit>(
-              create: (_) =>
-                  AuthCallpasswordConfirmationCubit()..initialization(
-                    callPasswordSession: callPasswordSession,
-                    confirmationPhoneNumber: confirmationPhoneNumber,
-                    timeout: timeout,
-                  ),
-              child: AuthCallpasswordConfirmationCupertino(),
+            return _page(
+              state,
+              BlocProvider<AuthCallpasswordConfirmationCubit>(
+                create: (_) =>
+                    AuthCallpasswordConfirmationCubit()..initialization(
+                      callPasswordSession: callPasswordSession,
+                      confirmationPhoneNumber: confirmationPhoneNumber,
+                      timeout: timeout,
+                    ),
+                child: AuthCallpasswordConfirmationCupertino(),
+              ),
             );
           },
         ),
         GoRoute(
           path: "/moderation_application_store",
-          builder: (context, state) {
+          pageBuilder: (context, state) {
             final moderationApplicationStoreSession =
                 state
                     .uri
@@ -224,17 +252,20 @@ class Routers {
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 if (context.mounted) context.go("/auth");
               });
-              return Container();
+              return _page(state, Container());
             }
 
-            return BlocProvider<AuthModerationApplicationStoreCubit>(
-              create: (_) =>
-                  AuthModerationApplicationStoreCubit()..initialization(
-                    phoneNumber: phoneNumber,
-                    moderationApplicationStoreSession:
-                        moderationApplicationStoreSession,
-                  ),
-              child: AuthModerationApplicationStoreCupertino(),
+            return _page(
+              state,
+              BlocProvider<AuthModerationApplicationStoreCubit>(
+                create: (_) =>
+                    AuthModerationApplicationStoreCubit()..initialization(
+                      phoneNumber: phoneNumber,
+                      moderationApplicationStoreSession:
+                          moderationApplicationStoreSession,
+                    ),
+                child: AuthModerationApplicationStoreCupertino(),
+              ),
             );
           },
         ),
