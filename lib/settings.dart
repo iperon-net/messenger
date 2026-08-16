@@ -21,7 +21,7 @@ class Settings {
     await dotenv.load(isOptional: true, overrideWithFiles: kDebugMode ? [".env.development"] : []);
 
     await remoteConfig.setConfigSettings(
-      RemoteConfigSettings(fetchTimeout: const Duration(seconds: 30), minimumFetchInterval: const Duration(hours: 12)),
+      RemoteConfigSettings(fetchTimeout: const Duration(seconds: 30), minimumFetchInterval: const Duration(hours: 24)),
     );
 
     // Default config
