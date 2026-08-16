@@ -176,16 +176,11 @@ class _AuthCupertinoScreen extends State<AuthCupertinoScreen> {
                           behavior: HitTestBehavior.opaque,
                           onTap: () async {
                             final result = await context.read<AuthCubit>().yandexSignIn();
-                            if (context.mounted){
+                            if (context.mounted) {
                               showCupertinoDialog(
                                 context: context,
                                 builder: (context) => CupertinoAlertDialog(
-                                  actions: [
-                                    CupertinoDialogAction(
-                                      onPressed: () => Navigator.of(context).pop(),
-                                      child: Text(result),
-                                    ),
-                                  ],
+                                  actions: [CupertinoDialogAction(onPressed: () => Navigator.of(context).pop(), child: Text(result))],
                                 ),
                               );
                             }

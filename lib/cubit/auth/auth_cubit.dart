@@ -126,10 +126,7 @@ class AuthCubit extends Cubit<AuthState> {
 
   Future<String> yandexSignIn() async {
     try {
-      final result = await YandexLoginSdk.signIn(
-        clientId: settings.yandexOauthClientID,
-        strategy: YandexLoginStrategy.auto,
-      );
+      final result = await YandexLoginSdk.signIn(clientId: settings.yandexOauthClientID, strategy: YandexLoginStrategy.auto);
       logger.debug('Access token: ${result.token}');
       logger.debug('JWT (iOS only): ${result.jwt}');
       logger.debug('Expires at (Android only): ${result.expiresAt}');
