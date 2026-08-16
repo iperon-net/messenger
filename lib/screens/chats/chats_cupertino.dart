@@ -37,13 +37,20 @@ class _ChatsCupertino extends State<ChatsCupertino> {
             middle: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                GestureDetector(
-                  onTap: () async => await context.read<CommonCubit>().forceLock(),
-                  child: FaIcon(
-                    FontAwesomeIcons.lockOpen,
-                    size: 16,
-                    color: CupertinoTheme.brightnessOf(context) == Brightness.dark ? CupertinoColors.white : CupertinoColors.black,
-                  ),
+                BlocBuilder<CommonCubit, CommonState>(
+                  builder: (context, stateCommon) {
+                    if (stateCommon.settingsDevice.passcode.isNotEmpty) {
+                      return GestureDetector(
+                        onTap: () async => await context.read<CommonCubit>().forceLock(),
+                        child: FaIcon(
+                          FontAwesomeIcons.lockOpen,
+                          size: 16,
+                          color: CupertinoTheme.brightnessOf(context) == Brightness.dark ? CupertinoColors.white : CupertinoColors.black,
+                        ),
+                      );
+                    }
+                    return Container();
+                  },
                 ),
                 SizedBox(width: 10),
                 ConnectionTitle(title: context.t.common.chats),
