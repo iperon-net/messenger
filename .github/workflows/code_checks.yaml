@@ -44,6 +44,9 @@ jobs:
           # без него analyze падает с uri_does_not_exist. Восстанавливаем из
           # секрета (тот же, что и в деплое iOS).
           echo "$FIREBASE_OPTIONS_DART_BASE64" | base64 --decode > lib/firebase_options.dart
+          # Генерируемый файл может быть неотформатирован — приводим к формату,
+          # чтобы шаг "Check formatting" не падал на восстановленном из секрета файле.
+          dart format lib/firebase_options.dart
 
       - name: Create .env asset files
         run: |
