@@ -244,8 +244,7 @@ class _IperonMessengerCupertino extends State<IperonMessengerCupertino> with Wid
                       : null,
 
                   customizedButtonTap: () async => state.settingsDevice.passcodeBiometric ? await localAuth(context) : null,
-                  onOpened: () async =>
-                      state.settingsDevice.passcodeBiometric && state.autoBiometrics ? await localAuth(context) : null,
+                  onOpened: () async => state.settingsDevice.passcodeBiometric && state.autoBiometrics ? await localAuth(context) : null,
                 );
               }
 

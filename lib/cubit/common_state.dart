@@ -17,10 +17,5 @@ class CommonState with CommonStateMappable {
   /// нажатию на кнопку.
   final bool autoBiometrics;
 
-  const CommonState({
-    this.status = Status.initialization,
-    required this.settingsDevice,
-    this.isLocked = false,
-    this.autoBiometrics = true,
-  });
+  const CommonState({this.status = Status.initialization, required this.settingsDevice, this.isLocked = false, this.autoBiometrics = true});
 }

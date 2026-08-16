@@ -34,12 +34,14 @@ class CommonCubit extends Cubit<CommonState> {
     final locked = settingsDevice.passcode.isNotEmpty && (settingsDevice.passcodeForceLocked || settingsDevice.passcodeAutoLock > 0);
     // При холодном старте после принудительной блокировки биометрию сама не
     // показываем — только по кнопке. Обычная авто-блокировка биометрию разрешает.
-    emit(state.copyWith(
-      status: Status.success,
-      settingsDevice: settingsDevice,
-      isLocked: locked,
-      autoBiometrics: !settingsDevice.passcodeForceLocked,
-    ));
+    emit(
+      state.copyWith(
+        status: Status.success,
+        settingsDevice: settingsDevice,
+        isLocked: locked,
+        autoBiometrics: !settingsDevice.passcodeForceLocked,
+      ),
+    );
   }
 
   /// Принудительная блокировка экрана. Флаг сохраняется в БД, поэтому блокировка
