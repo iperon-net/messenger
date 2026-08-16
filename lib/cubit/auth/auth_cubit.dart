@@ -138,7 +138,7 @@ class AuthCubit extends Cubit<AuthState> {
     } on YandexAuthUnsupportedException {
       // Web/desktop or unsupported — fall back to your own WebView.
     } on YandexAuthException catch (e) {
-      print('Yandex SDK error: $e');
+      logger.error('Yandex SDK error: $e');
     }
     return "";
   }
