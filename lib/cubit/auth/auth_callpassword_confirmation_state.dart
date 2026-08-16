@@ -13,17 +13,10 @@ part 'auth_callpassword_confirmation_state.mapper.dart';
 /// - [error] — сервер вернул ошибку (см. [error]);
 /// - [blocked] — номер/сессия заблокированы (`isBlocked`);
 /// - [timeout] — истёк таймер ожидания звонка.
-enum AuthCallPasswordConfirmationResult {
-  waiting,
-  success,
-  error,
-  blocked,
-  timeout,
-}
+enum AuthCallPasswordConfirmationResult { waiting, success, error, blocked, timeout }
 
 @MappableClass()
-class AuthCallpasswordConfirmationState
-    with AuthCallpasswordConfirmationStateMappable {
+class AuthCallpasswordConfirmationState with AuthCallpasswordConfirmationStateMappable {
   final Status status;
   final List<int> callPasswordSession;
   final String confirmationPhoneNumber;

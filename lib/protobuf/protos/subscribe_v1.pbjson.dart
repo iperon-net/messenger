@@ -32,5 +32,4 @@ const Subscribe_Response$json = {
 };
 
 /// Descriptor for `Subscribe`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List subscribeDescriptor =
-    $convert.base64Decode('CglTdWJzY3JpYmUaCQoHUmVxdWVzdBoKCghSZXNwb25zZQ==');
+final $typed_data.Uint8List subscribeDescriptor = $convert.base64Decode('CglTdWJzY3JpYmUaCQoHUmVxdWVzdBoKCghSZXNwb25zZQ==');

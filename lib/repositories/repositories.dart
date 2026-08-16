@@ -58,16 +58,10 @@ class Repositories {
   Repositories._();
 
   Future<void> _initialization() async {
-    String databasePath = p.join(
-      (await getApplicationSupportDirectory()).path,
-      settings.databaseName,
-    );
+    String databasePath = p.join((await getApplicationSupportDirectory()).path, settings.databaseName);
 
     // Secure storage
-    final storage = FlutterSecureStorage(
-      aOptions: AndroidOptions(),
-      iOptions: IOSOptions(),
-    );
+    final storage = FlutterSecureStorage(aOptions: AndroidOptions(), iOptions: IOSOptions());
 
     migrations.add(
       SqliteMigration(1, (tx) async {
@@ -146,9 +140,7 @@ class Repositories {
       SqliteMigration(2, (tx) async {
         // Персистентная «форс-блокировка»: остаётся включённой после перезапуска
         // приложения, пока пользователь не введёт passcode.
-        await tx.execute(
-          "ALTER TABLE settingsDevice ADD COLUMN passcodeForceLocked INTEGER NOT NULL DEFAULT 0",
-        );
+        await tx.execute("ALTER TABLE settingsDevice ADD COLUMN passcodeForceLocked INTEGER NOT NULL DEFAULT 0");
       }),
     );
 
@@ -182,18 +174,12 @@ class Repositories {
       if (password == null) {
         password = _generatePassword();
         await storage.write(key: 'databasePassword', value: password);
-        logger.logCustom(
-          RepositoriesLog("A new password has been set for the database"),
-        );
+        logger.logCustom(RepositoriesLog("A new password has been set for the database"));
       }
 
-      db = SqliteDatabase.withFactory(
-        _AppSqliteOpenFactory(path: databasePath, password: password),
-      );
+      db = SqliteDatabase.withFactory(_AppSqliteOpenFactory(path: databasePath, password: password));
     } else {
-      db = SqliteDatabase.withFactory(
-        _AppSqliteOpenFactory(path: databasePath),
-      );
+      db = SqliteDatabase.withFactory(_AppSqliteOpenFactory(path: databasePath));
     }
 
     await migrations.migrate(db);
@@ -206,8 +192,7 @@ class Repositories {
   // Generate password
   String _generatePassword() {
     final random = Random.secure();
-    final characters =
-        'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    final characters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     String password = '';
 
     int min = 60;

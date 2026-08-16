@@ -7,8 +7,5 @@ class PackageInfoModel with PackageInfoModelMappable {
   final String appBuildNumber;
   final String appVersion;
 
-  const PackageInfoModel({
-    required this.appBuildNumber,
-    required this.appVersion,
-  });
+  const PackageInfoModel({required this.appBuildNumber, required this.appVersion});
 }

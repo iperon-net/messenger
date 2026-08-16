@@ -6,8 +6,7 @@ import '../../logger.dart';
 
 import 'settings_privacy_and_security_state.dart';
 
-class SettingsPrivacyAndSecurityCubit
-    extends Cubit<SettingsPrivacyAndSecurityState> {
+class SettingsPrivacyAndSecurityCubit extends Cubit<SettingsPrivacyAndSecurityState> {
   SettingsPrivacyAndSecurityCubit() : super(SettingsPrivacyAndSecurityState());
 
   final logger = getIt.get<Logger>();

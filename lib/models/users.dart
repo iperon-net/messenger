@@ -10,9 +10,5 @@ class User with UserMappable {
   final String phoneNumber;
   final List<int> salt;
 
-  const User({
-    this.userID = const [],
-    this.phoneNumber = "",
-    this.salt = const [],
-  });
+  const User({this.userID = const [], this.phoneNumber = "", this.salt = const []});
 }

@@ -17,10 +17,8 @@ import '../../protobuf.dart';
 
 import 'auth_moderation_application_store_state.dart';
 
-class AuthModerationApplicationStoreCubit
-    extends Cubit<AuthModerationApplicationStoreState> {
-  AuthModerationApplicationStoreCubit()
-    : super(AuthModerationApplicationStoreState());
+class AuthModerationApplicationStoreCubit extends Cubit<AuthModerationApplicationStoreState> {
+  AuthModerationApplicationStoreCubit() : super(AuthModerationApplicationStoreState());
 
   final logger = getIt.get<Logger>();
   final utils = getIt.get<Utils>();
@@ -30,10 +28,7 @@ class AuthModerationApplicationStoreCubit
   final ed25519 = Ed25519();
   final kem = PqcKem.kyber768;
 
-  Future<void> initialization({
-    required String phoneNumber,
-    required String moderationApplicationStoreSession,
-  }) async {
+  Future<void> initialization({required String phoneNumber, required String moderationApplicationStoreSession}) async {
     emit(state.copyWith(status: Status.loading));
 
     // Insert code initialization
@@ -42,9 +37,7 @@ class AuthModerationApplicationStoreCubit
       state.copyWith(
         status: Status.success,
         phoneNumber: phoneNumber,
-        moderationApplicationStoreSession: utils.hexToBytes(
-          moderationApplicationStoreSession,
-        ),
+        moderationApplicationStoreSession: utils.hexToBytes(moderationApplicationStoreSession),
       ),
     );
   }
@@ -54,9 +47,7 @@ class AuthModerationApplicationStoreCubit
     final deviceInfo = await utils.deviceInfo();
 
     // Meta data info
-    final messageMetaDataInfoRequest = Message(
-      messageType: MessageType.META_DATA_INFO,
-    );
+    final messageMetaDataInfoRequest = Message(messageType: MessageType.META_DATA_INFO);
 
     late Message metaDataResponse;
     final metaDataGrpcError = await api.call(() async {
@@ -64,9 +55,7 @@ class AuthModerationApplicationStoreCubit
     });
 
     if (metaDataGrpcError.status == APIStatus.error) {
-      emit(
-        state.copyWith(status: Status.success, error: metaDataGrpcError.error),
-      );
+      emit(state.copyWith(status: Status.success, error: metaDataGrpcError.error));
       return true;
     }
 
@@ -80,24 +69,19 @@ class AuthModerationApplicationStoreCubit
       messageType: MessageType.AUTH_MODERATION_APPLICATION_STORE_CONFIRMATION,
       message: AuthModerationApplicationStoreConfirmation_Request(
         verificationCode: verificationCode.toString(),
-        moderationApplicationStoreSession:
-            state.moderationApplicationStoreSession,
+        moderationApplicationStoreSession: state.moderationApplicationStoreSession,
       ).writeToBuffer(),
     );
 
     late Message messageAuthModerationApplicationStoreConfirmationResponse;
-    final authModerationApplicationStoreConfirmationGrpcError = await api.call(
-      () async {
-        messageAuthModerationApplicationStoreConfirmationResponse = await api
-            .client
-            .unary(messageAuthModerationApplicationStoreConfirmationRequest);
-      },
-    );
+    final authModerationApplicationStoreConfirmationGrpcError = await api.call(() async {
+      messageAuthModerationApplicationStoreConfirmationResponse = await api.client.unary(
+        messageAuthModerationApplicationStoreConfirmationRequest,
+      );
+    });
 
-    if (authModerationApplicationStoreConfirmationGrpcError.status ==
-            APIStatus.error &&
-        authModerationApplicationStoreConfirmationGrpcError.statusCode ==
-            StatusCode.invalidArgument) {
+    if (authModerationApplicationStoreConfirmationGrpcError.status == APIStatus.error &&
+        authModerationApplicationStoreConfirmationGrpcError.statusCode == StatusCode.invalidArgument) {
       emit(
         state.copyWith(
           status: Status.success,
@@ -106,28 +90,20 @@ class AuthModerationApplicationStoreCubit
         ),
       );
       return true;
-    } else if (authModerationApplicationStoreConfirmationGrpcError.status ==
-        APIStatus.error) {
-      emit(
-        state.copyWith(
-          status: Status.success,
-          error: authModerationApplicationStoreConfirmationGrpcError.error,
-        ),
-      );
+    } else if (authModerationApplicationStoreConfirmationGrpcError.status == APIStatus.error) {
+      emit(state.copyWith(status: Status.success, error: authModerationApplicationStoreConfirmationGrpcError.error));
       return true;
     }
 
     //
-    final authModerationApplicationStoreConfirmationResponse =
-        AuthModerationApplicationStoreConfirmation_Response.fromBuffer(
-          messageAuthModerationApplicationStoreConfirmationResponse.message,
-        );
+    final authModerationApplicationStoreConfirmationResponse = AuthModerationApplicationStoreConfirmation_Response.fromBuffer(
+      messageAuthModerationApplicationStoreConfirmationResponse.message,
+    );
 
     final messageAuthConfirmationRequest = Message(
       messageType: MessageType.AUTH_CONFIRMATION,
       message: AuthConfirmation_Request(
-        confirmationSession: authModerationApplicationStoreConfirmationResponse
-            .confirmationSession,
+        confirmationSession: authModerationApplicationStoreConfirmationResponse.confirmationSession,
         publicKeySharedKey: publicKeySharedKey,
         publicKeySalt: publicKeySalt,
         deviceModel: deviceInfo.deviceModel,
@@ -140,97 +116,52 @@ class AuthModerationApplicationStoreCubit
 
     late Message messageAuthConfirmationResponse;
     final authConfirmationGrpcError = await api.call(() async {
-      messageAuthConfirmationResponse = await api.client.unary(
-        messageAuthConfirmationRequest,
-      );
+      messageAuthConfirmationResponse = await api.client.unary(messageAuthConfirmationRequest);
     });
 
-    if (authConfirmationGrpcError.status == APIStatus.error &&
-        authConfirmationGrpcError.statusCode == StatusCode.invalidArgument) {
-      emit(
-        state.copyWith(
-          status: Status.success,
-          error: authConfirmationGrpcError.error,
-          redirectURI: Uri.parse("/auth"),
-        ),
-      );
+    if (authConfirmationGrpcError.status == APIStatus.error && authConfirmationGrpcError.statusCode == StatusCode.invalidArgument) {
+      emit(state.copyWith(status: Status.success, error: authConfirmationGrpcError.error, redirectURI: Uri.parse("/auth")));
       return true;
     } else if (authConfirmationGrpcError.status == APIStatus.error) {
-      emit(
-        state.copyWith(
-          status: Status.success,
-          error: authConfirmationGrpcError.error,
-        ),
-      );
+      emit(state.copyWith(status: Status.success, error: authConfirmationGrpcError.error));
       return true;
     }
 
-    final authConfirmationResponse = AuthConfirmation_Response.fromBuffer(
-      messageAuthConfirmationResponse.message,
-    );
+    final authConfirmationResponse = AuthConfirmation_Response.fromBuffer(messageAuthConfirmationResponse.message);
 
     // Exchange
-    final serverPublicKey = SimplePublicKey(
-      metaData.eddsa.publicKey,
-      type: KeyPairType.ed25519,
-    );
+    final serverPublicKey = SimplePublicKey(metaData.eddsa.publicKey, type: KeyPairType.ed25519);
 
     // Ed25519 signatures must be exactly 64 bytes; an empty/short signature
     // (e.g. missing in the server response) would otherwise make verify() throw
     // instead of returning false, crashing the flow before the check below.
-    if (authConfirmationResponse.signatureSharedKey.length != 64 ||
-        authConfirmationResponse.signatureSalt.length != 64) {
+    if (authConfirmationResponse.signatureSharedKey.length != 64 || authConfirmationResponse.signatureSalt.length != 64) {
       logger.error('mlkem ciphertext signature has invalid length');
-      emit(
-        state.copyWith(
-          status: Status.success,
-          error: 'signature verification failed',
-        ),
-      );
+      emit(state.copyWith(status: Status.success, error: 'signature verification failed'));
       return true;
     }
 
     final checkSharedKey = await ed25519.verify(
       authConfirmationResponse.ciphertextSharedKey,
-      signature: Signature(
-        authConfirmationResponse.signatureSharedKey,
-        publicKey: serverPublicKey,
-      ),
+      signature: Signature(authConfirmationResponse.signatureSharedKey, publicKey: serverPublicKey),
     );
 
     final checkSalt = await ed25519.verify(
       authConfirmationResponse.ciphertextSalt,
-      signature: Signature(
-        authConfirmationResponse.signatureSalt,
-        publicKey: serverPublicKey,
-      ),
+      signature: Signature(authConfirmationResponse.signatureSalt, publicKey: serverPublicKey),
     );
 
     if (!checkSharedKey || !checkSalt) {
       logger.error('mlkem ciphertext signature verification failed');
-      emit(
-        state.copyWith(
-          status: Status.success,
-          error: 'signature verification failed',
-        ),
-      );
+      emit(state.copyWith(status: Status.success, error: 'signature verification failed'));
       return true;
     }
 
-    final sharedKey = kem.decapsulate(
-      privateKeySharedKey,
-      Uint8List.fromList(authConfirmationResponse.ciphertextSharedKey),
-    );
-    final sharedSalt = kem.decapsulate(
-      privateKeySalt,
-      Uint8List.fromList(authConfirmationResponse.ciphertextSalt),
-    );
+    final sharedKey = kem.decapsulate(privateKeySharedKey, Uint8List.fromList(authConfirmationResponse.ciphertextSharedKey));
+    final sharedSalt = kem.decapsulate(privateKeySalt, Uint8List.fromList(authConfirmationResponse.ciphertextSalt));
 
     // Create or update user
-    await repositories.users.createOrUpdate(
-      userID: authConfirmationResponse.userID,
-      phoneNumber: authConfirmationResponse.phoneNumber,
-    );
+    await repositories.users.createOrUpdate(userID: authConfirmationResponse.userID, phoneNumber: authConfirmationResponse.phoneNumber);
 
     await repositories.sessions.deleteAndCreate(
       session: authConfirmationResponse.session,

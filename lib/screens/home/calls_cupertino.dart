@@ -4,6 +4,5 @@ class CallsCupertino extends StatelessWidget {
   const CallsCupertino({super.key});
 
   @override
-  Widget build(BuildContext context) =>
-      const CupertinoPageScaffold(child: Center(child: Text('Calls')));
+  Widget build(BuildContext context) => const CupertinoPageScaffold(child: Center(child: Text('Calls')));
 }

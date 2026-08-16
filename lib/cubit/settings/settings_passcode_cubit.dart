@@ -19,12 +19,7 @@ class SettingsPasscodeCubit extends Cubit<SettingsPasscodeState> {
 
   // Должен совпадать с параметрами хеширования в SettingsPasscodeCreateCubit,
   // иначе байты введённого PIN не сойдутся с сохранённым хешем.
-  final algorithm = Argon2id(
-    parallelism: 4,
-    memory: 10000,
-    iterations: 3,
-    hashLength: 32,
-  );
+  final algorithm = Argon2id(parallelism: 4, memory: 10000, iterations: 3, hashLength: 32);
 
   Future<void> initialization() async {
     emit(state.copyWith(status: Status.loading));
@@ -46,10 +41,7 @@ class SettingsPasscodeCubit extends Cubit<SettingsPasscodeState> {
   /// полученный хеш с сохранённым в state.passcode.
   Future<bool> verifyPasscode(String passcode) async {
     if (state.passcode.isEmpty) return false;
-    final secretKey = await algorithm.deriveKey(
-      secretKey: SecretKey(utf8.encode(passcode)),
-      nonce: [],
-    );
+    final secretKey = await algorithm.deriveKey(secretKey: SecretKey(utf8.encode(passcode)), nonce: []);
     final passcodeBytes = await secretKey.extractBytes();
 
     final unlocked = listEquals(passcodeBytes, state.passcode);
@@ -77,9 +69,7 @@ class SettingsPasscodeCubit extends Cubit<SettingsPasscodeState> {
   }
 
   Future<void> setBiometric({required bool biometric}) async {
-    await repositories.settingsDevice.setPasscodeBiometric(
-      biometric: biometric,
-    );
+    await repositories.settingsDevice.setPasscodeBiometric(biometric: biometric);
     emit(state.copyWith(isBiometric: biometric));
   }
 }

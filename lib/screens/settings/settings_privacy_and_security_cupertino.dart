@@ -9,12 +9,10 @@ class SettingsPrivacyAndSecurityCupertino extends StatefulWidget {
   const SettingsPrivacyAndSecurityCupertino({super.key});
 
   @override
-  State<SettingsPrivacyAndSecurityCupertino> createState() =>
-      _SettingsPrivacyAndSecurityCupertino();
+  State<SettingsPrivacyAndSecurityCupertino> createState() => _SettingsPrivacyAndSecurityCupertino();
 }
 
-class _SettingsPrivacyAndSecurityCupertino
-    extends State<SettingsPrivacyAndSecurityCupertino> {
+class _SettingsPrivacyAndSecurityCupertino extends State<SettingsPrivacyAndSecurityCupertino> {
   @override
   void initState() {
     super.initState();
@@ -41,8 +39,7 @@ class _SettingsPrivacyAndSecurityCupertino
               title: Text(context.t.settings.passcodeAndFaceID),
               color: Color(0xFF41CA22),
               icon: FontAwesomeIcons.unlockKeyhole,
-              onTab: () async =>
-                  context.go("/settings/privacy_and_security/passcode"),
+              onTab: () async => context.go("/settings/privacy_and_security/passcode"),
             ),
           ],
         ),

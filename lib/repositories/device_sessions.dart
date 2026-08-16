@@ -11,10 +11,7 @@ class DeviceSessions {
     return res.map(DeviceSessionsModelMapper.fromMap).toList();
   }
 
-  Future<void> deleteAndCreate({
-    required List<DeviceSessionsModel> deviceSessionsModel,
-    required List<int> userID,
-  }) async {
+  Future<void> deleteAndCreate({required List<DeviceSessionsModel> deviceSessionsModel, required List<int> userID}) async {
     await db.writeTransaction((txn) async {
       // Таблица зеркалит удалённые сессии ТЕКУЩЕГО пользователя. Чистим целиком,
       // а не WHERE userID = ?, иначе строки прошлых логинов (другие userID)

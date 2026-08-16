@@ -10,8 +10,5 @@ class SettingsDeviceSessionsState with SettingsDeviceSessionsStateMappable {
   final Status status;
   final List<DeviceSessionsModel> deviceSessions;
 
-  const SettingsDeviceSessionsState({
-    this.status = Status.initialization,
-    this.deviceSessions = const <DeviceSessionsModel>[],
-  });
+  const SettingsDeviceSessionsState({this.status = Status.initialization, this.deviceSessions = const <DeviceSessionsModel>[]});
 }

@@ -20,8 +20,7 @@ class Header {
   });
 
   @override
-  String toString() =>
-      "version=$version, length=$length, dateTime=${dateTime.toIso8601String()}";
+  String toString() => "version=$version, length=$length, dateTime=${dateTime.toIso8601String()}";
 }
 
 class Syncer {
@@ -34,10 +33,7 @@ class Syncer {
   final algorithmAesGcm = AesGcm.with256bits();
   final algorithmHkdf = Hkdf(hmac: Hmac.sha256(), outputLength: 32);
 
-  Future<List<int>> encode({
-    required Session session,
-    required Uint8List message,
-  }) async {
+  Future<List<int>> encode({required Session session, required Uint8List message}) async {
     final timestamp = DateTime.now().millisecondsSinceEpoch;
 
     final lengthByte = ByteData(4)..setUint32(0, message.length, Endian.big);
@@ -57,18 +53,9 @@ class Syncer {
 
     final headerPadding = await padToSize(bytesBuilder.toBytes(), 128);
 
-    final sharedKeyHkdf = await algorithmHkdf.deriveKey(
-      secretKey: SecretKey(session.sharedKey),
-      nonce: session.salt,
-      info: headerPadding,
-    );
+    final sharedKeyHkdf = await algorithmHkdf.deriveKey(secretKey: SecretKey(session.sharedKey), nonce: session.salt, info: headerPadding);
 
-    final secretBox = await algorithmAesGcm.encrypt(
-      message,
-      secretKey: sharedKeyHkdf,
-      nonce: nonce,
-      aad: headerPadding,
-    );
+    final secretBox = await algorithmAesGcm.encrypt(message, secretKey: sharedKeyHkdf, nonce: nonce, aad: headerPadding);
 
     final bytesBuilderCrypt = BytesBuilder();
     bytesBuilderCrypt.add(headerPadding);
@@ -76,38 +63,21 @@ class Syncer {
     return bytesBuilderCrypt.toBytes();
   }
 
-  Future<List<int>> decode({
-    required Session session,
-    required Uint8List message,
-  }) async {
+  Future<List<int>> decode({required Session session, required Uint8List message}) async {
     final headerPadding = message.sublist(0, 128);
     final header = await headerParse(message);
 
-    final sharedKeyHkdf = await algorithmHkdf.deriveKey(
-      secretKey: SecretKey(session.sharedKey),
-      nonce: session.salt,
-      info: headerPadding,
-    );
+    final sharedKeyHkdf = await algorithmHkdf.deriveKey(secretKey: SecretKey(session.sharedKey), nonce: session.salt, info: headerPadding);
 
     final encryptedData = message.sublist(128);
     final cipherText = encryptedData.sublist(0, encryptedData.length - 16);
     final macBytes = encryptedData.sublist(encryptedData.length - 16);
 
-    final secretBox = SecretBox(
-      cipherText,
-      nonce: header.nonce,
-      mac: Mac(macBytes),
-    );
+    final secretBox = SecretBox(cipherText, nonce: header.nonce, mac: Mac(macBytes));
 
-    final decrypted = await algorithmAesGcm.decrypt(
-      secretBox,
-      secretKey: sharedKeyHkdf,
-      aad: headerPadding,
-    );
+    final decrypted = await algorithmAesGcm.decrypt(secretBox, secretKey: sharedKeyHkdf, aad: headerPadding);
 
-    final hashSha256 = await algorithmSha256.hash(
-      Uint8List.fromList(decrypted),
-    );
+    final hashSha256 = await algorithmSha256.hash(Uint8List.fromList(decrypted));
     if (!constantTimeBytesEquality.equals(hashSha256.bytes, header.sha256)) {
       throw Exception('syncer: sha256 mismatch');
     }
@@ -117,14 +87,8 @@ class Syncer {
 
   Future<Header> headerParse(Uint8List dataBytes) async {
     final version = dataBytes[0];
-    final length = ByteData.sublistView(
-      dataBytes,
-      1,
-      5,
-    ).getUint32(0, Endian.big);
-    final dateTime = DateTime.fromMillisecondsSinceEpoch(
-      ByteData.sublistView(dataBytes, 5, 13).getUint64(0, Endian.big),
-    ).toUtc();
+    final length = ByteData.sublistView(dataBytes, 1, 5).getUint32(0, Endian.big);
+    final dateTime = DateTime.fromMillisecondsSinceEpoch(ByteData.sublistView(dataBytes, 5, 13).getUint64(0, Endian.big)).toUtc();
 
     return Header(
       version: version,

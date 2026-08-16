@@ -18,11 +18,7 @@ import 'dart:typed_data' as $typed_data;
 @$core.Deprecated('Use deviceSessionsDescriptor instead')
 const DeviceSessions$json = {
   '1': 'DeviceSessions',
-  '3': [
-    DeviceSessions_DeviceSession$json,
-    DeviceSessions_Request$json,
-    DeviceSessions_Response$json
-  ],
+  '3': [DeviceSessions_DeviceSession$json, DeviceSessions_Request$json, DeviceSessions_Response$json],
 };
 
 @$core.Deprecated('Use deviceSessionsDescriptor instead')
@@ -30,14 +26,7 @@ const DeviceSessions_DeviceSession$json = {
   '1': 'DeviceSession',
   '2': [
     {'1': 'sessionID', '3': 1, '4': 1, '5': 12, '10': 'sessionID'},
-    {
-      '1': 'updateAt',
-      '3': 2,
-      '4': 1,
-      '5': 11,
-      '6': '.google.protobuf.Timestamp',
-      '10': 'updateAt'
-    },
+    {'1': 'updateAt', '3': 2, '4': 1, '5': 11, '6': '.google.protobuf.Timestamp', '10': 'updateAt'},
     {'1': 'deviceModel', '3': 3, '4': 1, '5': 9, '10': 'deviceModel'},
     {'1': 'os', '3': 4, '4': 1, '5': 5, '10': 'os'},
     {'1': 'osVersion', '3': 5, '4': 1, '5': 9, '10': 'osVersion'},
@@ -57,36 +46,26 @@ const DeviceSessions_Request$json = {
 const DeviceSessions_Response$json = {
   '1': 'Response',
   '2': [
-    {
-      '1': 'results',
-      '3': 1,
-      '4': 3,
-      '5': 11,
-      '6': '.iperon.v1.DeviceSessions.DeviceSession',
-      '10': 'results'
-    },
+    {'1': 'results', '3': 1, '4': 3, '5': 11, '6': '.iperon.v1.DeviceSessions.DeviceSession', '10': 'results'},
   ],
 };
 
 /// Descriptor for `DeviceSessions`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List deviceSessionsDescriptor = $convert.base64Decode(
-    'Cg5EZXZpY2VTZXNzaW9ucxrRAgoNRGV2aWNlU2Vzc2lvbhIcCglzZXNzaW9uSUQYASABKAxSCX'
-    'Nlc3Npb25JRBI2Cgh1cGRhdGVBdBgCIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBS'
-    'CHVwZGF0ZUF0EiAKC2RldmljZU1vZGVsGAMgASgJUgtkZXZpY2VNb2RlbBIOCgJvcxgEIAEoBV'
-    'ICb3MSHAoJb3NWZXJzaW9uGAUgASgJUglvc1ZlcnNpb24SHgoKYXBwVmVyc2lvbhgGIAEoCVIK'
-    'YXBwVmVyc2lvbhImCg5hcHBCdWlsZE51bWJlchgHIAEoCVIOYXBwQnVpbGROdW1iZXISKAoPTG'
-    '9jYXRpb25FbmdsaXNoGAggASgJUg9Mb2NhdGlvbkVuZ2xpc2gSKAoPTG9jYXRpb25SdXNzaWFu'
-    'GAkgASgJUg9Mb2NhdGlvblJ1c3NpYW4aCQoHUmVxdWVzdBpNCghSZXNwb25zZRJBCgdyZXN1bH'
-    'RzGAEgAygLMicuaXBlcm9uLnYxLkRldmljZVNlc3Npb25zLkRldmljZVNlc3Npb25SB3Jlc3Vs'
-    'dHM=');
+final $typed_data.Uint8List deviceSessionsDescriptor =
+    $convert.base64Decode('Cg5EZXZpY2VTZXNzaW9ucxrRAgoNRGV2aWNlU2Vzc2lvbhIcCglzZXNzaW9uSUQYASABKAxSCX'
+        'Nlc3Npb25JRBI2Cgh1cGRhdGVBdBgCIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBS'
+        'CHVwZGF0ZUF0EiAKC2RldmljZU1vZGVsGAMgASgJUgtkZXZpY2VNb2RlbBIOCgJvcxgEIAEoBV'
+        'ICb3MSHAoJb3NWZXJzaW9uGAUgASgJUglvc1ZlcnNpb24SHgoKYXBwVmVyc2lvbhgGIAEoCVIK'
+        'YXBwVmVyc2lvbhImCg5hcHBCdWlsZE51bWJlchgHIAEoCVIOYXBwQnVpbGROdW1iZXISKAoPTG'
+        '9jYXRpb25FbmdsaXNoGAggASgJUg9Mb2NhdGlvbkVuZ2xpc2gSKAoPTG9jYXRpb25SdXNzaWFu'
+        'GAkgASgJUg9Mb2NhdGlvblJ1c3NpYW4aCQoHUmVxdWVzdBpNCghSZXNwb25zZRJBCgdyZXN1bH'
+        'RzGAEgAygLMicuaXBlcm9uLnYxLkRldmljZVNlc3Npb25zLkRldmljZVNlc3Npb25SB3Jlc3Vs'
+        'dHM=');
 
 @$core.Deprecated('Use deviceSessionsTerminateDescriptor instead')
 const DeviceSessionsTerminate$json = {
   '1': 'DeviceSessionsTerminate',
-  '3': [
-    DeviceSessionsTerminate_Request$json,
-    DeviceSessionsTerminate_Response$json
-  ],
+  '3': [DeviceSessionsTerminate_Request$json, DeviceSessionsTerminate_Response$json],
 };
 
 @$core.Deprecated('Use deviceSessionsTerminateDescriptor instead')
@@ -104,6 +83,5 @@ const DeviceSessionsTerminate_Response$json = {
 
 /// Descriptor for `DeviceSessionsTerminate`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List deviceSessionsTerminateDescriptor =
-    $convert.base64Decode(
-        'ChdEZXZpY2VTZXNzaW9uc1Rlcm1pbmF0ZRonCgdSZXF1ZXN0EhwKCXNlc3Npb25JRBgBIAMoDF'
+    $convert.base64Decode('ChdEZXZpY2VTZXNzaW9uc1Rlcm1pbmF0ZRonCgdSZXF1ZXN0EhwKCXNlc3Npb25JRBgBIAMoDF'
         'IJc2Vzc2lvbklEGgoKCFJlc3BvbnNl');

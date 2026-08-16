@@ -13,10 +13,7 @@ class HomeCupertino extends StatelessWidget {
 
   final StatefulNavigationShell navigationShell;
 
-  void _onTap(int index) => navigationShell.goBranch(
-    index,
-    initialLocation: index == navigationShell.currentIndex,
-  );
+  void _onTap(int index) => navigationShell.goBranch(index, initialLocation: index == navigationShell.currentIndex);
 
   @override
   Widget build(BuildContext context) {
@@ -40,37 +37,23 @@ class HomeCupertino extends StatelessWidget {
                       padding: EdgeInsets.only(top: 8),
                       child: badges.Badge(
                         badgeContent: Text(''),
-                        badgeAnimation: badges.BadgeAnimation.size(
-                          toAnimate: false,
-                        ),
-                        badgeStyle: badges.BadgeStyle(
-                          badgeColor: Colors.red,
-                          elevation: 1,
-                        ),
+                        badgeAnimation: badges.BadgeAnimation.size(toAnimate: false),
+                        badgeStyle: badges.BadgeStyle(badgeColor: Colors.red, elevation: 1),
                         child: FaIcon(FontAwesomeIcons.solidCircleUser),
                       ),
                     ),
                     label: context.t.common.contacts,
                   ),
                   BottomNavigationBarItem(
-                    icon: const Padding(
-                      padding: EdgeInsets.only(top: 8),
-                      child: FaIcon(FontAwesomeIcons.phoneFlip),
-                    ),
+                    icon: const Padding(padding: EdgeInsets.only(top: 8), child: FaIcon(FontAwesomeIcons.phoneFlip)),
                     label: context.t.common.calls,
                   ),
                   BottomNavigationBarItem(
-                    icon: const Padding(
-                      padding: EdgeInsets.only(top: 8),
-                      child: FaIcon(FontAwesomeIcons.solidComments),
-                    ),
+                    icon: const Padding(padding: EdgeInsets.only(top: 8), child: FaIcon(FontAwesomeIcons.solidComments)),
                     label: context.t.common.chats,
                   ),
                   BottomNavigationBarItem(
-                    icon: const Padding(
-                      padding: EdgeInsets.only(top: 8),
-                      child: FaIcon(FontAwesomeIcons.gear),
-                    ),
+                    icon: const Padding(padding: EdgeInsets.only(top: 8), child: FaIcon(FontAwesomeIcons.gear)),
                     label: context.t.common.settings,
                   ),
                 ],

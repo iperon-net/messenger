@@ -11,9 +11,5 @@ class CommonState with CommonStateMappable {
   final SettingsDeviceModel settingsDevice;
   final bool isLocked;
 
-  const CommonState({
-    this.status = Status.initialization,
-    required this.settingsDevice,
-    this.isLocked = false,
-  });
+  const CommonState({this.status = Status.initialization, required this.settingsDevice, this.isLocked = false});
 }

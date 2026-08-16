@@ -11,12 +11,10 @@ class SettingsDeviceSessionsCupertino extends StatefulWidget {
   const SettingsDeviceSessionsCupertino({super.key});
 
   @override
-  State<SettingsDeviceSessionsCupertino> createState() =>
-      _SettingsDeviceSessionsCupertino();
+  State<SettingsDeviceSessionsCupertino> createState() => _SettingsDeviceSessionsCupertino();
 }
 
-class _SettingsDeviceSessionsCupertino
-    extends State<SettingsDeviceSessionsCupertino> {
+class _SettingsDeviceSessionsCupertino extends State<SettingsDeviceSessionsCupertino> {
   @override
   void initState() {
     super.initState();
@@ -29,18 +27,11 @@ class _SettingsDeviceSessionsCupertino
 
   @override
   Widget build(BuildContext context) {
-    return BlocConsumer<
-      SettingsDeviceSessionsCubit,
-      SettingsDeviceSessionsState
-    >(
+    return BlocConsumer<SettingsDeviceSessionsCubit, SettingsDeviceSessionsState>(
       listener: (context, state) {},
       builder: (context, state) {
-        final currentSessions = state.deviceSessions.where(
-          (data) => data.isCurrent,
-        );
-        final currentSession = currentSessions.isEmpty
-            ? null
-            : currentSessions.first;
+        final currentSessions = state.deviceSessions.where((data) => data.isCurrent);
+        final currentSession = currentSessions.isEmpty ? null : currentSessions.first;
 
         return CupertinoPageScaffold(
           backgroundColor: CupertinoColors.systemGroupedBackground,
@@ -57,10 +48,7 @@ class _SettingsDeviceSessionsCupertino
                       CupertinoListSection.insetGrouped(
                         header: Text(
                           context.t.settings.thisDevice.toUpperCase(),
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.normal,
-                          ),
+                          style: TextStyle(fontSize: 13, fontWeight: FontWeight.normal),
                         ),
                         children: [
                           CupertinoListTile(
@@ -68,15 +56,10 @@ class _SettingsDeviceSessionsCupertino
                             leading: Container(
                               width: 50,
                               height: 50,
-                              decoration: BoxDecoration(
-                                color: Color(0xFF1755DC),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
+                              decoration: BoxDecoration(color: Color(0xFF1755DC), borderRadius: BorderRadius.circular(8)),
                               child: Center(
                                 child: FaIcon(
-                                  currentSession.os == 1
-                                      ? FontAwesomeIcons.apple
-                                      : FontAwesomeIcons.android,
+                                  currentSession.os == 1 ? FontAwesomeIcons.apple : FontAwesomeIcons.android,
                                   size: 18,
                                   color: Color(0xFFFFFFFF),
                                 ),
@@ -88,81 +71,47 @@ class _SettingsDeviceSessionsCupertino
                               children: [
                                 Text(currentSession.deviceModel),
                                 Text(
-                                  currentSession.os == 1
-                                      ? "iOS ${currentSession.osVersion}"
-                                      : "Android ${currentSession.osVersion}",
+                                  currentSession.os == 1 ? "iOS ${currentSession.osVersion}" : "Android ${currentSession.osVersion}",
                                   style: TextStyle(fontSize: 16),
                                 ),
                               ],
                             ),
                             subtitle: Text(
                               context.t.settings.deviceSessionListTileSubtitle(
-                                location:
-                                    LocaleSettings.currentLocale == AppLocale.ru
+                                location: LocaleSettings.currentLocale == AppLocale.ru
                                     ? currentSession.locationRussian
                                     : currentSession.locationEnglish,
-                                updateAt: context.t.settings.online
-                                    .toLowerCase(),
+                                updateAt: context.t.settings.online.toLowerCase(),
                               ),
                             ),
                           ),
 
-                          if (state.deviceSessions.isNotEmpty &&
-                              state.deviceSessions.any(
-                                (data) => data.isCurrent == false,
-                              )) ...[
+                          if (state.deviceSessions.isNotEmpty && state.deviceSessions.any((data) => data.isCurrent == false)) ...[
                             CupertinoListTile(
                               padding: EdgeInsets.all(10),
-                              leading: FaIcon(
-                                FontAwesomeIcons.hand,
-                                size: 18,
-                                color: Color(0xFFF40000),
-                              ),
+                              leading: FaIcon(FontAwesomeIcons.hand, size: 18, color: Color(0xFFF40000)),
                               title: Text(
-                                context
-                                    .t
-                                    .settings
-                                    .terminateAllOtherDeviceSessions,
-                                style: TextStyle(
-                                  fontWeight: FontWeight.normal,
-                                  color: CupertinoColors.destructiveRed,
-                                ),
+                                context.t.settings.terminateAllOtherDeviceSessions,
+                                style: TextStyle(fontWeight: FontWeight.normal, color: CupertinoColors.destructiveRed),
                               ),
-                              onTap: () async => await context
-                                  .read<SettingsDeviceSessionsCubit>()
-                                  .terminate(
-                                    state.deviceSessions
-                                        .where(
-                                          (data) => data.isCurrent == false,
-                                        )
-                                        .map((data) => data.sessionID)
-                                        .toList(),
-                                  ),
+                              onTap: () async => await context.read<SettingsDeviceSessionsCubit>().terminate(
+                                state.deviceSessions.where((data) => data.isCurrent == false).map((data) => data.sessionID).toList(),
+                              ),
                             ),
                           ],
                         ],
                       ),
 
-                      if (state.deviceSessions.any(
-                        (data) => data.isCurrent == false,
-                      ))
+                      if (state.deviceSessions.any((data) => data.isCurrent == false))
                         CupertinoListSection.insetGrouped(
                           header: Text(
-                            context.t.settings.activeDeviceSession
-                                .toUpperCase(),
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.normal,
-                            ),
+                            context.t.settings.activeDeviceSession.toUpperCase(),
+                            style: TextStyle(fontSize: 13, fontWeight: FontWeight.normal),
                           ),
                           children: [
                             for (final deviceSession
-                                in (state.deviceSessions
-                                    .where((data) => data.isCurrent == false)
-                                    .toList()
-                                  ..sort(
-                                    (a, b) => b.updateAt.compareTo(a.updateAt),
-                                  ))) ...[
+                                in (state.deviceSessions.where((data) => data.isCurrent == false).toList()
+                                  ..sort((a, b) => b.updateAt.compareTo(a.updateAt)))) ...[
                               Slidable(
                                 key: ValueKey(deviceSession.sessionID),
                                 groupTag: 'device-sessions',
@@ -174,76 +123,38 @@ class _SettingsDeviceSessionsCupertino
                                     confirmDismiss: () async {
                                       final result = await showCupertinoDialog<bool>(
                                         context: context,
-                                        builder: (BuildContext context) =>
-                                            CupertinoAlertDialog(
-                                              title: Text(
-                                                context
-                                                    .t
-                                                    .settings
-                                                    .terminateDeviceSession,
-                                              ),
-                                              content: Text(
-                                                context
-                                                    .t
-                                                    .settings
-                                                    .areYouSureYouLogOutFromThisDevice,
-                                              ),
-                                              actions: <CupertinoDialogAction>[
-                                                CupertinoDialogAction(
-                                                  onPressed: () =>
-                                                      Navigator.pop(
-                                                        context,
-                                                        true,
-                                                      ),
-                                                  isDestructiveAction: true,
-                                                  child: Text(
-                                                    context
-                                                        .t
-                                                        .settings
-                                                        .terminateDeviceSession,
-                                                  ),
-                                                ),
-                                                CupertinoDialogAction(
-                                                  child: Text(
-                                                    context.t.common.cancel,
-                                                  ),
-                                                  onPressed: () =>
-                                                      Navigator.pop(
-                                                        context,
-                                                        false,
-                                                      ),
-                                                ),
-                                              ],
+                                        builder: (BuildContext context) => CupertinoAlertDialog(
+                                          title: Text(context.t.settings.terminateDeviceSession),
+                                          content: Text(context.t.settings.areYouSureYouLogOutFromThisDevice),
+                                          actions: <CupertinoDialogAction>[
+                                            CupertinoDialogAction(
+                                              onPressed: () => Navigator.pop(context, true),
+                                              isDestructiveAction: true,
+                                              child: Text(context.t.settings.terminateDeviceSession),
                                             ),
+                                            CupertinoDialogAction(
+                                              child: Text(context.t.common.cancel),
+                                              onPressed: () => Navigator.pop(context, false),
+                                            ),
+                                          ],
+                                        ),
                                       );
                                       return result ?? false;
                                     },
-                                    onDismissed: () async => await context
-                                        .read<SettingsDeviceSessionsCubit>()
-                                        .terminate([deviceSession.sessionID]),
+                                    onDismissed: () async =>
+                                        await context.read<SettingsDeviceSessionsCubit>().terminate([deviceSession.sessionID]),
                                   ),
                                   children: [
                                     CustomSlidableAction(
                                       onPressed: (context) {},
-                                      backgroundColor:
-                                          CupertinoColors.systemRed,
+                                      backgroundColor: CupertinoColors.systemRed,
                                       foregroundColor: CupertinoColors.white,
                                       child: Column(
                                         mainAxisSize: MainAxisSize.min,
                                         spacing: 2,
                                         children: [
-                                          FaIcon(
-                                            FontAwesomeIcons.circleXmark,
-                                            size: 20,
-                                            color: CupertinoColors.white,
-                                          ),
-                                          Text(
-                                            context.t.settings.terminate,
-                                            style: TextStyle(
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
+                                          FaIcon(FontAwesomeIcons.circleXmark, size: 20, color: CupertinoColors.white),
+                                          Text(context.t.settings.terminate, style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
                                         ],
                                       ),
                                     ),
@@ -254,15 +165,10 @@ class _SettingsDeviceSessionsCupertino
                                   leading: Container(
                                     width: 50,
                                     height: 50,
-                                    decoration: BoxDecoration(
-                                      color: Color(0xFF1755DC),
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
+                                    decoration: BoxDecoration(color: Color(0xFF1755DC), borderRadius: BorderRadius.circular(8)),
                                     child: Center(
                                       child: FaIcon(
-                                        deviceSession.os == 1
-                                            ? FontAwesomeIcons.apple
-                                            : FontAwesomeIcons.android,
+                                        deviceSession.os == 1 ? FontAwesomeIcons.apple : FontAwesomeIcons.android,
                                         size: 18,
                                         color: Color(0xFFFFFFFF),
                                       ),
@@ -270,29 +176,22 @@ class _SettingsDeviceSessionsCupertino
                                   ),
                                   title: Column(
                                     spacing: 4,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Text(deviceSession.deviceModel),
                                       Text(
-                                        deviceSession.os == 1
-                                            ? "iOS ${deviceSession.osVersion}"
-                                            : "Android ${deviceSession.osVersion}",
+                                        deviceSession.os == 1 ? "iOS ${deviceSession.osVersion}" : "Android ${deviceSession.osVersion}",
                                         style: TextStyle(fontSize: 16),
                                       ),
                                     ],
                                   ),
                                   subtitle: Text(
-                                    context.t.settings
-                                        .deviceSessionListTileSubtitle(
-                                          location:
-                                              LocaleSettings.currentLocale ==
-                                                  AppLocale.ru
-                                              ? deviceSession.locationRussian
-                                              : deviceSession.locationEnglish,
-                                          updateAt: deviceSession.updateAt
-                                              .relativeFormat(context.t),
-                                        ),
+                                    context.t.settings.deviceSessionListTileSubtitle(
+                                      location: LocaleSettings.currentLocale == AppLocale.ru
+                                          ? deviceSession.locationRussian
+                                          : deviceSession.locationEnglish,
+                                      updateAt: deviceSession.updateAt.relativeFormat(context.t),
+                                    ),
                                   ),
                                 ),
                               ),

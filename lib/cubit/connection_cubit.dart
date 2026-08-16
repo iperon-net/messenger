@@ -72,8 +72,7 @@ class ConnectionCubit extends Cubit<ConnectionState> {
   // connectivity_plus отдаёт список активных интерфейсов; сеть есть, если он не
   // пуст и содержит хоть что-то, кроме `none`. Это лишь наличие интерфейса, а не
   // реальная достижимость сервера — за неё отвечает [_apiStatus].
-  bool _isOnline(List<ConnectivityResult> results) =>
-      results.any((r) => r != ConnectivityResult.none);
+  bool _isOnline(List<ConnectivityResult> results) => results.any((r) => r != ConnectivityResult.none);
 
   // Приоритет: нет сети > нет стрима > идёт синхронизация > норма.
   ConnectionStatusModel _combine() {
@@ -98,10 +97,7 @@ class ConnectionCubit extends Cubit<ConnectionState> {
   Future<void> close() {
     // cancel() у connectivity_plus может бросить MissingPluginException, если
     // нативная часть не зарегистрирована — гасим, чтобы не сыпать в консоль.
-    _connectivitySub?.cancel().catchError((
-      Object error,
-      StackTrace stackTrace,
-    ) {
+    _connectivitySub?.cancel().catchError((Object error, StackTrace stackTrace) {
       logger.handle(error, stackTrace);
     });
     _apiSub?.cancel();

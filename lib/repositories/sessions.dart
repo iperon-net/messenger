@@ -18,22 +18,13 @@ class Sessions {
       await txn.execute("DELETE FROM sessions WHERE userID = ?;", [userID]);
       await txn.execute(
         "INSERT INTO sessions (sessionID, userID, session, sharedKey, salt, isActive, createAt) VALUES(?, ?, ?, ?, ?, 1, ?);",
-        [
-          sessionID,
-          userID,
-          session,
-          sharedKey,
-          sharedSalt,
-          createAt.millisecondsSinceEpoch,
-        ],
+        [sessionID, userID, session, sharedKey, sharedSalt, createAt.millisecondsSinceEpoch],
       );
     });
   }
 
   Future<Session> getActive() async {
-    final sqlSession = await db.execute(
-      "SELECT sessionID, userID, session, sharedKey, salt, isActive FROM sessions WHERE isActive = 1;",
-    );
+    final sqlSession = await db.execute("SELECT sessionID, userID, session, sharedKey, salt, isActive FROM sessions WHERE isActive = 1;");
     if (sqlSession.isEmpty) return Session();
     return SessionMapper.fromMap(sqlSession.first);
   }

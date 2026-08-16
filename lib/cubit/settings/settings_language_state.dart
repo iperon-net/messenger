@@ -10,8 +10,5 @@ class SettingsLanguageState with SettingsLanguageStateMappable {
   final Status status;
   final AppLocale locale;
 
-  const SettingsLanguageState({
-    this.status = Status.initialization,
-    this.locale = AppLocale.en,
-  });
+  const SettingsLanguageState({this.status = Status.initialization, this.locale = AppLocale.en});
 }

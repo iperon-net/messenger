@@ -15,16 +15,10 @@ Future<void> registerCommonDependencies() async {
     getIt.registerSingletonAsync<Logger>(() async => Logger());
   }
   if (!getIt.isRegistered<Settings>()) {
-    getIt.registerSingletonAsync<Settings>(
-      () async => Settings.initialization(),
-      dependsOn: [Logger],
-    );
+    getIt.registerSingletonAsync<Settings>(() async => Settings.initialization(), dependsOn: [Logger]);
   }
   if (!getIt.isRegistered<Repositories>()) {
-    getIt.registerSingletonAsync<Repositories>(
-      () async => Repositories.initialization(),
-      dependsOn: [Settings],
-    );
+    getIt.registerSingletonAsync<Repositories>(() async => Repositories.initialization(), dependsOn: [Settings]);
   }
   if (!getIt.isRegistered<Utils>()) {
     getIt.registerSingletonAsync<Utils>(() async => Utils());
@@ -33,22 +27,13 @@ Future<void> registerCommonDependencies() async {
     getIt.registerSingletonAsync<API>(() async => API(), dependsOn: [Settings]);
   }
   if (!getIt.isRegistered<Auth>()) {
-    getIt.registerSingletonAsync<Auth>(
-      () async => Auth.initialization(),
-      dependsOn: [Repositories, API],
-    );
+    getIt.registerSingletonAsync<Auth>(() async => Auth.initialization(), dependsOn: [Repositories, API]);
   }
   if (!getIt.isRegistered<Routers>()) {
-    getIt.registerSingletonAsync<Routers>(
-      () async => Routers(),
-      dependsOn: [Repositories, Auth],
-    );
+    getIt.registerSingletonAsync<Routers>(() async => Routers(), dependsOn: [Repositories, Auth]);
   }
   if (!getIt.isRegistered<Crypto>()) {
-    getIt.registerSingletonAsync<Crypto>(
-      () async => Crypto(),
-      dependsOn: [Settings, Utils],
-    );
+    getIt.registerSingletonAsync<Crypto>(() async => Crypto(), dependsOn: [Settings, Utils]);
   }
 
   await getIt.allReady();

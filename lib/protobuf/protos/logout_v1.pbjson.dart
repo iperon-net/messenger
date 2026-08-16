@@ -35,6 +35,6 @@ const Logout_Response$json = {
 };
 
 /// Descriptor for `Logout`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List logoutDescriptor = $convert.base64Decode(
-    'CgZMb2dvdXQaJwoHUmVxdWVzdBIcCglzZXNzaW9uSUQYASADKAxSCXNlc3Npb25JRBoKCghSZX'
-    'Nwb25zZQ==');
+final $typed_data.Uint8List logoutDescriptor =
+    $convert.base64Decode('CgZMb2dvdXQaJwoHUmVxdWVzdBIcCglzZXNzaW9uSUQYASADKAxSCXNlc3Npb25JRBoKCghSZX'
+        'Nwb25zZQ==');

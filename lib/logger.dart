@@ -61,12 +61,7 @@ class Logger {
         useConsoleLogs: true,
         timeFormat: TimeFormat.timeAndSeconds,
       ),
-      logger: TalkerLogger(
-        settings: TalkerLoggerSettings(
-          enableColors: Platform.isIOS ? false : true,
-          maxLineWidth: 120,
-        ),
-      ),
+      logger: TalkerLogger(settings: TalkerLoggerSettings(enableColors: Platform.isIOS ? false : true, maxLineWidth: 120)),
     );
 
     Bloc.observer = TalkerBlocObserver(

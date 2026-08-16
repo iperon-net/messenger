@@ -40,9 +40,7 @@ class Blur extends StatelessWidget {
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: blur, sigmaY: blur),
               child: Container(
-                decoration: BoxDecoration(
-                  color: blurColor.withValues(alpha: colorOpacity),
-                ),
+                decoration: BoxDecoration(color: blurColor.withValues(alpha: colorOpacity)),
                 alignment: alignment,
                 child: overlay,
               ),

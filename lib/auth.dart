@@ -36,9 +36,7 @@ class Auth extends ChangeNotifier {
 
   Future<void> refresh() async {
     _session = await repositories.sessions.getActive();
-    logger.logCustom(
-      RepositoriesLog("session refreshed, isAuthorized = $isAuthorized"),
-    );
+    logger.logCustom(RepositoriesLog("session refreshed, isAuthorized = $isAuthorized"));
     await _syncStream();
     notifyListeners();
   }

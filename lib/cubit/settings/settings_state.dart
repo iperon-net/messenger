@@ -9,8 +9,5 @@ class SettingsState with SettingsStateMappable {
   final Status status;
   final int countDeviceSessions;
 
-  const SettingsState({
-    this.status = Status.initialization,
-    this.countDeviceSessions = 0,
-  });
+  const SettingsState({this.status = Status.initialization, this.countDeviceSessions = 0});
 }

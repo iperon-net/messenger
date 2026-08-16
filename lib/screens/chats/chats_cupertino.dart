@@ -40,9 +40,7 @@ class _ChatsCupertino extends State<ChatsCupertino> {
                 FaIcon(
                   FontAwesomeIcons.lockOpen,
                   size: 16,
-                  color: CupertinoTheme.brightnessOf(context) == Brightness.dark
-                      ? CupertinoColors.white
-                      : CupertinoColors.black,
+                  color: CupertinoTheme.brightnessOf(context) == Brightness.dark ? CupertinoColors.white : CupertinoColors.black,
                 ),
                 SizedBox(width: 10),
                 ConnectionTitle(title: context.t.common.chats),

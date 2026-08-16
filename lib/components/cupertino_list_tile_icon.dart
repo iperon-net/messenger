@@ -28,10 +28,7 @@ class CupertinoListTileIcon extends StatelessWidget {
       leading: Container(
         width: 45,
         height: 45,
-        decoration: BoxDecoration(
-          color: color,
-          borderRadius: BorderRadius.circular(8),
-        ),
+        decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(8)),
         child: Center(child: FaIcon(icon, size: 16, color: Color(0xFFFFFFFF))),
       ),
       onTap: onTab,

@@ -12,20 +12,12 @@ part 'connection_state.mapper.dart';
 /// - [connecting] — сеть есть, но gRPC-стрим ещё не установлен / переподключается;
 /// - [updating] — стрим установлен, идёт разбор входящих (первичная синхронизация);
 /// - [connected] — всё в норме; в этом состоянии UI показывает обычный заголовок.
-enum ConnectionStatusModel {
-  waitingForNetwork,
-  connecting,
-  updating,
-  connected,
-}
+enum ConnectionStatusModel { waitingForNetwork, connecting, updating, connected }
 
 @MappableClass()
 class ConnectionState with ConnectionStateMappable {
   final Status status;
   final ConnectionStatusModel connection;
 
-  const ConnectionState({
-    this.status = Status.initialization,
-    this.connection = ConnectionStatusModel.connecting,
-  });
+  const ConnectionState({this.status = Status.initialization, this.connection = ConnectionStatusModel.connecting});
 }

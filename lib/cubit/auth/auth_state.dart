@@ -13,10 +13,5 @@ class AuthState with AuthStateMappable {
   final AuthWorkflow workflow;
   final Uri? redirectURI;
 
-  const AuthState({
-    this.status = Status.initialization,
-    this.error,
-    this.workflow = AuthWorkflow.callpassword,
-    this.redirectURI,
-  });
+  const AuthState({this.status = Status.initialization, this.error, this.workflow = AuthWorkflow.callpassword, this.redirectURI});
 }

@@ -13,8 +13,7 @@
 import 'dart:core' as $core;
 
 import 'package:protobuf/protobuf.dart' as $pb;
-import 'package:protobuf/well_known_types/google/protobuf/timestamp.pb.dart'
-    as $1;
+import 'package:protobuf/well_known_types/google/protobuf/timestamp.pb.dart' as $1;
 
 import 'v1.pbenum.dart';
 
@@ -38,30 +37,22 @@ class Message extends $pb.GeneratedMessage {
 
   Message._();
 
-  factory Message.fromBuffer($core.List<$core.int> data,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+  factory Message.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(data, registry);
-  factory Message.fromJson($core.String json,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+  factory Message.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(json, registry);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      _omitMessageNames ? '' : 'Message',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'v1'),
-      createEmptyInstance: create)
-    ..aE<MessageType>(1, _omitFieldNames ? '' : 'messageType',
-        protoName: 'messageType', enumValues: MessageType.values)
-    ..a<$core.List<$core.int>>(
-        2, _omitFieldNames ? '' : 'message', $pb.PbFieldType.OY)
-    ..aOM<$1.Timestamp>(3, _omitFieldNames ? '' : 'currentAt',
-        protoName: 'currentAt', subBuilder: $1.Timestamp.create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Message',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'v1'), createEmptyInstance: create)
+    ..aE<MessageType>(1, _omitFieldNames ? '' : 'messageType', protoName: 'messageType', enumValues: MessageType.values)
+    ..a<$core.List<$core.int>>(2, _omitFieldNames ? '' : 'message', $pb.PbFieldType.OY)
+    ..aOM<$1.Timestamp>(3, _omitFieldNames ? '' : 'currentAt', protoName: 'currentAt', subBuilder: $1.Timestamp.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   Message clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  Message copyWith(void Function(Message) updates) =>
-      super.copyWith((message) => updates(message as Message)) as Message;
+  Message copyWith(void Function(Message) updates) => super.copyWith((message) => updates(message as Message)) as Message;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
@@ -71,8 +62,7 @@ class Message extends $pb.GeneratedMessage {
   @$core.override
   Message createEmptyInstance() => create();
   @$core.pragma('dart2js:noInline')
-  static Message getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Message>(create);
+  static Message getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Message>(create);
   static Message? _defaultInstance;
 
   @$pb.TagNumber(1)
@@ -105,7 +95,5 @@ class Message extends $pb.GeneratedMessage {
   $1.Timestamp ensureCurrentAt() => $_ensure(2);
 }
 
-const $core.bool _omitFieldNames =
-    $core.bool.fromEnvironment('protobuf.omit_field_names');
-const $core.bool _omitMessageNames =
-    $core.bool.fromEnvironment('protobuf.omit_message_names');
+const $core.bool _omitFieldNames = $core.bool.fromEnvironment('protobuf.omit_field_names');
+const $core.bool _omitMessageNames = $core.bool.fromEnvironment('protobuf.omit_message_names');

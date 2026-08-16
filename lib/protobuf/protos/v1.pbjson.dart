@@ -34,40 +34,26 @@ const MessageType$json = {
 };
 
 /// Descriptor for `MessageType`. Decode as a `google.protobuf.EnumDescriptorProto`.
-final $typed_data.Uint8List messageTypeDescriptor = $convert.base64Decode(
-    'CgtNZXNzYWdlVHlwZRIPCgtIRUFMVEhDSEVDSxAAEhIKDk1FVEFfREFUQV9JTkZPEAESFgoSQV'
-    'VUSF9DQUxMX1BBU1NXT1JEEAISIwofQVVUSF9DQUxMX1BBU1NXT1JEX0NPTkZJUk1BVElPThAD'
-    'EiUKIUFVVEhfTU9ERVJBVElPTl9BUFBMSUNBVElPTl9TVE9SRRAEEjIKLkFVVEhfTU9ERVJBVE'
-    'lPTl9BUFBMSUNBVElPTl9TVE9SRV9DT05GSVJNQVRJT04QBRITCg9ERVZJQ0VfU0VTU0lPTlMQ'
-    'BhIKCgZMT0dPVVQQBxINCglTVUJTQ1JJQkUQCBIdChlERVZJQ0VfU0VTU0lPTlNfVEVSTUlOQV'
-    'RFEAkSFQoRQVVUSF9DT05GSVJNQVRJT04QCg==');
+final $typed_data.Uint8List messageTypeDescriptor =
+    $convert.base64Decode('CgtNZXNzYWdlVHlwZRIPCgtIRUFMVEhDSEVDSxAAEhIKDk1FVEFfREFUQV9JTkZPEAESFgoSQV'
+        'VUSF9DQUxMX1BBU1NXT1JEEAISIwofQVVUSF9DQUxMX1BBU1NXT1JEX0NPTkZJUk1BVElPThAD'
+        'EiUKIUFVVEhfTU9ERVJBVElPTl9BUFBMSUNBVElPTl9TVE9SRRAEEjIKLkFVVEhfTU9ERVJBVE'
+        'lPTl9BUFBMSUNBVElPTl9TVE9SRV9DT05GSVJNQVRJT04QBRITCg9ERVZJQ0VfU0VTU0lPTlMQ'
+        'BhIKCgZMT0dPVVQQBxINCglTVUJTQ1JJQkUQCBIdChlERVZJQ0VfU0VTU0lPTlNfVEVSTUlOQV'
+        'RFEAkSFQoRQVVUSF9DT05GSVJNQVRJT04QCg==');
 
 @$core.Deprecated('Use messageDescriptor instead')
 const Message$json = {
   '1': 'Message',
   '2': [
-    {
-      '1': 'messageType',
-      '3': 1,
-      '4': 1,
-      '5': 14,
-      '6': '.v1.MessageType',
-      '10': 'messageType'
-    },
+    {'1': 'messageType', '3': 1, '4': 1, '5': 14, '6': '.v1.MessageType', '10': 'messageType'},
     {'1': 'message', '3': 2, '4': 1, '5': 12, '10': 'message'},
-    {
-      '1': 'currentAt',
-      '3': 3,
-      '4': 1,
-      '5': 11,
-      '6': '.google.protobuf.Timestamp',
-      '10': 'currentAt'
-    },
+    {'1': 'currentAt', '3': 3, '4': 1, '5': 11, '6': '.google.protobuf.Timestamp', '10': 'currentAt'},
   ],
 };
 
 /// Descriptor for `Message`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List messageDescriptor = $convert.base64Decode(
-    'CgdNZXNzYWdlEjEKC21lc3NhZ2VUeXBlGAEgASgOMg8udjEuTWVzc2FnZVR5cGVSC21lc3NhZ2'
-    'VUeXBlEhgKB21lc3NhZ2UYAiABKAxSB21lc3NhZ2USOAoJY3VycmVudEF0GAMgASgLMhouZ29v'
-    'Z2xlLnByb3RvYnVmLlRpbWVzdGFtcFIJY3VycmVudEF0');
+final $typed_data.Uint8List messageDescriptor =
+    $convert.base64Decode('CgdNZXNzYWdlEjEKC21lc3NhZ2VUeXBlGAEgASgOMg8udjEuTWVzc2FnZVR5cGVSC21lc3NhZ2'
+        'VUeXBlEhgKB21lc3NhZ2UYAiABKAxSB21lc3NhZ2USOAoJY3VycmVudEF0GAMgASgLMhouZ29v'
+        'Z2xlLnByb3RvYnVmLlRpbWVzdGFtcFIJY3VycmVudEF0');

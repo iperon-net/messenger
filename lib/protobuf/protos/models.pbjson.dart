@@ -27,8 +27,7 @@ const AuthCallPasswordStatus$json = {
 
 /// Descriptor for `AuthCallPasswordStatus`. Decode as a `google.protobuf.EnumDescriptorProto`.
 final $typed_data.Uint8List authCallPasswordStatusDescriptor =
-    $convert.base64Decode(
-        'ChZBdXRoQ2FsbFBhc3N3b3JkU3RhdHVzEg8KC2hlYWx0aGNoZWNrEAASCQoFZXJyb3IQARILCg'
+    $convert.base64Decode('ChZBdXRoQ2FsbFBhc3N3b3JkU3RhdHVzEg8KC2hlYWx0aGNoZWNrEAASCQoFZXJyb3IQARILCg'
         'dzdWNjZXNzEAI=');
 
 @$core.Deprecated('Use locationDescriptor instead')
@@ -41,6 +40,6 @@ const Location$json = {
 };
 
 /// Descriptor for `Location`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List locationDescriptor = $convert.base64Decode(
-    'CghMb2NhdGlvbhIgCgtydXNzaWFuTmFtZRgBIAEoCVILcnVzc2lhbk5hbWUSIAoLZW5nbGlzaE'
-    '5hbWUYAiABKAlSC2VuZ2xpc2hOYW1l');
+final $typed_data.Uint8List locationDescriptor =
+    $convert.base64Decode('CghMb2NhdGlvbhIgCgtydXNzaWFuTmFtZRgBIAEoCVILcnVzc2lhbk5hbWUSIAoLZW5nbGlzaE'
+        '5hbWUYAiABKAlSC2VuZ2xpc2hOYW1l');

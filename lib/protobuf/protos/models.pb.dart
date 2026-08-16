@@ -31,17 +31,13 @@ class Location extends $pb.GeneratedMessage {
 
   Location._();
 
-  factory Location.fromBuffer($core.List<$core.int> data,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+  factory Location.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(data, registry);
-  factory Location.fromJson($core.String json,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+  factory Location.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(json, registry);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      _omitMessageNames ? '' : 'Location',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'),
-      createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Location',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'russianName', protoName: 'russianName')
     ..aOS(2, _omitFieldNames ? '' : 'englishName', protoName: 'englishName')
     ..hasRequiredFields = false;
@@ -49,8 +45,7 @@ class Location extends $pb.GeneratedMessage {
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   Location clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  Location copyWith(void Function(Location) updates) =>
-      super.copyWith((message) => updates(message as Location)) as Location;
+  Location copyWith(void Function(Location) updates) => super.copyWith((message) => updates(message as Location)) as Location;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
@@ -60,8 +55,7 @@ class Location extends $pb.GeneratedMessage {
   @$core.override
   Location createEmptyInstance() => create();
   @$core.pragma('dart2js:noInline')
-  static Location getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Location>(create);
+  static Location getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Location>(create);
   static Location? _defaultInstance;
 
   @$pb.TagNumber(1)
@@ -83,7 +77,5 @@ class Location extends $pb.GeneratedMessage {
   void clearEnglishName() => $_clearField(2);
 }
 
-const $core.bool _omitFieldNames =
-    $core.bool.fromEnvironment('protobuf.omit_field_names');
-const $core.bool _omitMessageNames =
-    $core.bool.fromEnvironment('protobuf.omit_message_names');
+const $core.bool _omitFieldNames = $core.bool.fromEnvironment('protobuf.omit_field_names');
+const $core.bool _omitMessageNames = $core.bool.fromEnvironment('protobuf.omit_message_names');

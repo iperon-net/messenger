@@ -20,14 +20,7 @@ class SettingsAppearanceCubit extends Cubit<SettingsAppearanceState> {
     required bool isBlurOnInactive,
   }) async {
     emit(state.copyWith(status: Status.loading));
-    emit(
-      state.copyWith(
-        status: Status.success,
-        colorTheme: colorTheme,
-        darkMode: darkMode,
-        isBlurOnInactive: isBlurOnInactive,
-      ),
-    );
+    emit(state.copyWith(status: Status.success, colorTheme: colorTheme, darkMode: darkMode, isBlurOnInactive: isBlurOnInactive));
   }
 
   Future<void> setColorTheme({required ColorThemeModel colorTheme}) async {
@@ -45,11 +38,6 @@ class SettingsAppearanceCubit extends Cubit<SettingsAppearanceState> {
   Future<void> setIsBlurOnInactive({required bool isBlurOnInactive}) async {
     emit(state.copyWith(status: Status.loading));
     await repositories.settingsDevice.setIsBlurOnInactive(isBlurOnInactive);
-    emit(
-      state.copyWith(
-        status: Status.success,
-        isBlurOnInactive: isBlurOnInactive,
-      ),
-    );
+    emit(state.copyWith(status: Status.success, isBlurOnInactive: isBlurOnInactive));
   }
 }

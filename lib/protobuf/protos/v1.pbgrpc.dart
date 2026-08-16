@@ -48,14 +48,10 @@ class IperonClient extends $grpc.Client {
 
   // method descriptors
 
-  static final _$unary = $grpc.ClientMethod<$0.Message, $0.Message>(
-      '/v1.Iperon/Unary',
-      ($0.Message value) => value.writeToBuffer(),
-      $0.Message.fromBuffer);
-  static final _$stream = $grpc.ClientMethod<$0.Message, $0.Message>(
-      '/v1.Iperon/Stream',
-      ($0.Message value) => value.writeToBuffer(),
-      $0.Message.fromBuffer);
+  static final _$unary =
+      $grpc.ClientMethod<$0.Message, $0.Message>('/v1.Iperon/Unary', ($0.Message value) => value.writeToBuffer(), $0.Message.fromBuffer);
+  static final _$stream =
+      $grpc.ClientMethod<$0.Message, $0.Message>('/v1.Iperon/Stream', ($0.Message value) => value.writeToBuffer(), $0.Message.fromBuffer);
 }
 
 @$pb.GrpcServiceName('v1.Iperon')
@@ -63,29 +59,17 @@ abstract class IperonServiceBase extends $grpc.Service {
   $core.String get $name => 'v1.Iperon';
 
   IperonServiceBase() {
-    $addMethod($grpc.ServiceMethod<$0.Message, $0.Message>(
-        'Unary',
-        unary_Pre,
-        false,
-        false,
-        ($core.List<$core.int> value) => $0.Message.fromBuffer(value),
-        ($0.Message value) => value.writeToBuffer()));
-    $addMethod($grpc.ServiceMethod<$0.Message, $0.Message>(
-        'Stream',
-        stream,
-        true,
-        true,
-        ($core.List<$core.int> value) => $0.Message.fromBuffer(value),
-        ($0.Message value) => value.writeToBuffer()));
+    $addMethod($grpc.ServiceMethod<$0.Message, $0.Message>('Unary', unary_Pre, false, false,
+        ($core.List<$core.int> value) => $0.Message.fromBuffer(value), ($0.Message value) => value.writeToBuffer()));
+    $addMethod($grpc.ServiceMethod<$0.Message, $0.Message>('Stream', stream, true, true,
+        ($core.List<$core.int> value) => $0.Message.fromBuffer(value), ($0.Message value) => value.writeToBuffer()));
   }
 
-  $async.Future<$0.Message> unary_Pre(
-      $grpc.ServiceCall $call, $async.Future<$0.Message> $request) async {
+  $async.Future<$0.Message> unary_Pre($grpc.ServiceCall $call, $async.Future<$0.Message> $request) async {
     return unary($call, await $request);
   }
 
   $async.Future<$0.Message> unary($grpc.ServiceCall call, $0.Message request);
 
-  $async.Stream<$0.Message> stream(
-      $grpc.ServiceCall call, $async.Stream<$0.Message> request);
+  $async.Stream<$0.Message> stream($grpc.ServiceCall call, $async.Stream<$0.Message> request);
 }

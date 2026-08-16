@@ -12,8 +12,7 @@ class SettingsPasscodeCupertino extends StatefulWidget {
   const SettingsPasscodeCupertino({super.key});
 
   @override
-  State<SettingsPasscodeCupertino> createState() =>
-      _SettingsPasscodeCupertino();
+  State<SettingsPasscodeCupertino> createState() => _SettingsPasscodeCupertino();
 }
 
 class _SettingsPasscodeCupertino extends State<SettingsPasscodeCupertino> {
@@ -49,23 +48,18 @@ class _SettingsPasscodeCupertino extends State<SettingsPasscodeCupertino> {
         final commonCubit = context.read<CommonCubit>();
         await commonCubit.setPasscode(passcode: state.passcode);
         await commonCubit.setPasscodeBiometric(biometric: state.isBiometric);
-        await commonCubit.setPasscodeAutoLockSeconds(
-          seconds: state.autoLockSeconds,
-        );
+        await commonCubit.setPasscodeAutoLockSeconds(seconds: state.autoLockSeconds);
       },
       builder: (context, state) {
         // Если passcode установлен, но ещё не разблокирован — показываем ScreenLock.
         if (state.passcode.isNotEmpty && !state.unlocked) {
           return ScreenLock(
             correctString: '0000',
-            onValidate: (input) =>
-                context.read<SettingsPasscodeCubit>().verifyPasscode(input),
+            onValidate: (input) => context.read<SettingsPasscodeCubit>().verifyPasscode(input),
             onUnlocked: () {},
             onCancelled: () => context.go("/settings/privacy_and_security"),
             useBlur: false,
-            config: ScreenLockConfig.defaultConfig.copyWith(
-              backgroundColor: const Color(0xFF545454),
-            ),
+            config: ScreenLockConfig.defaultConfig.copyWith(backgroundColor: const Color(0xFF545454)),
             title: Text(context.t.settings.passcode.pleaseEnterPasscode),
             cancelButton: Text(context.t.settings.passcode.cancel),
             // maxRetries: 3,
@@ -94,26 +88,18 @@ class _SettingsPasscodeCupertino extends State<SettingsPasscodeCupertino> {
                   CupertinoListSection.insetGrouped(
                     footer: Padding(
                       padding: const EdgeInsets.only(left: 13),
-                      child: Text(
-                        context.t.settings.passcode.note,
-                        style: TextStyle(fontSize: 13),
-                      ),
+                      child: Text(context.t.settings.passcode.note, style: TextStyle(fontSize: 13)),
                     ),
                     children: [
                       CupertinoListTile(
-                        title: Text(
-                          context.t.settings.passcode.passcodeTurnOff,
-                        ),
-                        onTap: () =>
-                            context.read<SettingsPasscodeCubit>().turnOff(),
+                        title: Text(context.t.settings.passcode.passcodeTurnOff),
+                        onTap: () => context.read<SettingsPasscodeCubit>().turnOff(),
                       ),
                       CupertinoListTile(
                         title: Text(context.t.settings.passcode.changePasscode),
                         onTap: () async {
                           final cubit = context.read<SettingsPasscodeCubit>();
-                          final created = await context.push<bool>(
-                            "/settings/privacy_and_security/passcode/create",
-                          );
+                          final created = await context.push<bool>("/settings/privacy_and_security/passcode/create");
                           await cubit.initialization();
                           if (created == true) cubit.setUnlocked(true);
                         },
@@ -128,23 +114,15 @@ class _SettingsPasscodeCupertino extends State<SettingsPasscodeCupertino> {
                           builder: (context, controller, child) {
                             return CupertinoButton(
                               padding: EdgeInsets.zero,
-                              onPressed: () => controller.isOpen
-                                  ? controller.close()
-                                  : controller.open(),
+                              onPressed: () => controller.isOpen ? controller.close() : controller.open(),
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Padding(
                                     padding: const EdgeInsets.only(right: 8),
                                     child: Text(
-                                      _autoLockLabel(
-                                        context,
-                                        state.autoLockSeconds,
-                                      ),
-                                      style: TextStyle(
-                                        color: CupertinoColors.secondaryLabel
-                                            .resolveFrom(context),
-                                      ),
+                                      _autoLockLabel(context, state.autoLockSeconds),
+                                      style: TextStyle(color: CupertinoColors.secondaryLabel.resolveFrom(context)),
                                     ),
                                   ),
                                   CupertinoListTileChevron(),
@@ -153,20 +131,10 @@ class _SettingsPasscodeCupertino extends State<SettingsPasscodeCupertino> {
                             );
                           },
                           menuChildren: [
-                            for (final seconds in const [
-                              0,
-                              60,
-                              300,
-                              3600,
-                              18000,
-                            ])
+                            for (final seconds in const [0, 60, 300, 3600, 18000])
                               CupertinoMenuItem(
-                                trailing: state.autoLockSeconds == seconds
-                                    ? const Icon(CupertinoIcons.check_mark)
-                                    : null,
-                                onPressed: () async => await context
-                                    .read<SettingsPasscodeCubit>()
-                                    .setAutoLock(seconds: seconds),
+                                trailing: state.autoLockSeconds == seconds ? const Icon(CupertinoIcons.check_mark) : null,
+                                onPressed: () async => await context.read<SettingsPasscodeCubit>().setAutoLock(seconds: seconds),
                                 child: Text(_autoLockLabel(context, seconds)),
                               ),
                           ],
@@ -176,9 +144,7 @@ class _SettingsPasscodeCupertino extends State<SettingsPasscodeCupertino> {
                         title: Text(context.t.settings.passcode.faceIDUnlock),
                         trailing: CupertinoSwitch(
                           value: state.isBiometric,
-                          onChanged: (bool value) async => await context
-                              .read<SettingsPasscodeCubit>()
-                              .setBiometric(biometric: value),
+                          onChanged: (bool value) async => await context.read<SettingsPasscodeCubit>().setBiometric(biometric: value),
                         ),
                       ),
                     ],
@@ -186,13 +152,7 @@ class _SettingsPasscodeCupertino extends State<SettingsPasscodeCupertino> {
 
                   if (kDebugMode) ...[
                     CupertinoListSection.insetGrouped(
-                      children: [
-                        CupertinoListTile(
-                          title: Text("Force Lock"),
-                          onTap: () async =>
-                              context.read<CommonCubit>().forceLock(),
-                        ),
-                      ],
+                      children: [CupertinoListTile(title: Text("Force Lock"), onTap: () async => context.read<CommonCubit>().forceLock())],
                     ),
                   ],
                 ] else ...[
@@ -202,9 +162,7 @@ class _SettingsPasscodeCupertino extends State<SettingsPasscodeCupertino> {
                         title: Text(context.t.settings.passcode.passcodeTurnOn),
                         onTap: () async {
                           final cubit = context.read<SettingsPasscodeCubit>();
-                          final created = await context.push<bool>(
-                            "/settings/privacy_and_security/passcode/create",
-                          );
+                          final created = await context.push<bool>("/settings/privacy_and_security/passcode/create");
                           await cubit.initialization();
                           if (created == true) cubit.setUnlocked(true);
                         },

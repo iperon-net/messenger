@@ -62,8 +62,7 @@ Future<void> main() async {
   final repositories = getIt.get<Repositories>();
 
   // Get all settings
-  SettingsDeviceModel settingsDevice = await repositories.settingsDevice
-      .getAll();
+  SettingsDeviceModel settingsDevice = await repositories.settingsDevice.getAll();
 
   // locale
   if (settingsDevice.locale != null) {
@@ -79,9 +78,7 @@ Future<void> main() async {
   runApp(
     TranslationProvider(
       child: MultiBlocProvider(
-        providers: <BlocProvider>[
-          BlocProvider<CommonCubit>(create: (_) => CommonCubit()),
-        ],
+        providers: <BlocProvider>[BlocProvider<CommonCubit>(create: (_) => CommonCubit())],
         // child: Platform.isIOS ? const IperonMessengerCupertino() : const IperonMessengerCupertino(),
         child: IperonMessengerCupertino(settingsDevice: settingsDevice),
       ),
@@ -98,8 +95,7 @@ class IperonMessengerCupertino extends StatefulWidget {
   State<IperonMessengerCupertino> createState() => _IperonMessengerCupertino();
 }
 
-class _IperonMessengerCupertino extends State<IperonMessengerCupertino>
-    with WidgetsBindingObserver {
+class _IperonMessengerCupertino extends State<IperonMessengerCupertino> with WidgetsBindingObserver {
   final navigatorGoRouterKey = GlobalKey<NavigatorState>();
 
   final routers = getIt.get<Routers>();
@@ -117,9 +113,7 @@ class _IperonMessengerCupertino extends State<IperonMessengerCupertino>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     goRouter = routers.cupertino(navigatorGoRouterKey);
-    context.read<CommonCubit>().initialization(
-      settingsDevice: widget.settingsDevice,
-    );
+    context.read<CommonCubit>().initialization(settingsDevice: widget.settingsDevice);
   }
 
   @override
@@ -134,9 +128,7 @@ class _IperonMessengerCupertino extends State<IperonMessengerCupertino>
     bool didAuthenticate = false;
 
     try {
-      didAuthenticate = await localAuth.authenticate(
-        localizedReason: context.t.settings.passcode.authenticateReason,
-      );
+      didAuthenticate = await localAuth.authenticate(localizedReason: context.t.settings.passcode.authenticateReason);
     } on LocalAuthException catch (e, stack) {
       if (e.code == LocalAuthExceptionCode.userCanceled) {
         logger.warning("passcode biometric user canceled");
@@ -209,41 +201,29 @@ class _IperonMessengerCupertino extends State<IperonMessengerCupertino>
         }
 
         return MediaQuery(
-          data: MediaQuery.of(
-            context,
-          ).copyWith(textScaler: TextScaler.linear(0.95)),
+          data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(0.95)),
           child: CupertinoApp.router(
             debugShowCheckedModeBanner: kDebugMode,
             routerConfig: goRouter,
             localizationsDelegates: GlobalCupertinoLocalizations.delegates,
             supportedLocales: AppLocaleUtils.supportedLocales,
             locale: TranslationProvider.of(context).flutterLocale,
-            theme: CupertinoThemeData(
-              brightness: brightness,
-              primaryColor: colorSchemeSystem,
-            ),
+            theme: CupertinoThemeData(brightness: brightness, primaryColor: colorSchemeSystem),
             builder: (context, child) {
               // На экранах авторизации (/auth и подпути) код-пароль не показываем:
               // пользователь ещё логинится, блокировать нечего.
-              final location =
-                  goRouter.routerDelegate.currentConfiguration.uri.path;
-              final isAuthRoute =
-                  location == "/auth" || location.startsWith("/auth/");
+              final location = goRouter.routerDelegate.currentConfiguration.uri.path;
+              final isAuthRoute = location == "/auth" || location.startsWith("/auth/");
 
-              if (!isAuthRoute &&
-                  state.settingsDevice.passcode.isNotEmpty &&
-                  state.isLocked) {
+              if (!isAuthRoute && state.settingsDevice.passcode.isNotEmpty && state.isLocked) {
                 return ScreenLock(
                   // correctString здесь лишь задаёт число вводимых цифр (digits),
                   // реальная проверка идёт через onValidate по сохранённому хешу.
                   correctString: '0000',
-                  onValidate: (input) =>
-                      context.read<CommonCubit>().verifyPasscode(input),
+                  onValidate: (input) => context.read<CommonCubit>().verifyPasscode(input),
                   onUnlocked: () => context.read<CommonCubit>().unlock(),
                   useBlur: false,
-                  config: ScreenLockConfig.defaultConfig.copyWith(
-                    backgroundColor: const Color(0xFF545454),
-                  ),
+                  config: ScreenLockConfig.defaultConfig.copyWith(backgroundColor: const Color(0xFF545454)),
                   title: Text(context.t.settings.passcode.pleaseEnterPasscode),
                   customizedButtonChild: state.settingsDevice.passcodeBiometric
                       ? SvgPicture.string(
@@ -259,20 +239,12 @@ class _IperonMessengerCupertino extends State<IperonMessengerCupertino>
                           ),
                           width: 48,
                           height: 48,
-                          colorFilter: const ColorFilter.mode(
-                            CupertinoColors.inactiveGray,
-                            BlendMode.srcIn,
-                          ),
+                          colorFilter: const ColorFilter.mode(CupertinoColors.inactiveGray, BlendMode.srcIn),
                         )
                       : null,
 
-                  customizedButtonTap: () async =>
-                      state.settingsDevice.passcodeBiometric
-                      ? await localAuth(context)
-                      : null,
-                  onOpened: () async => state.settingsDevice.passcodeBiometric
-                      ? await localAuth(context)
-                      : null,
+                  customizedButtonTap: () async => state.settingsDevice.passcodeBiometric ? await localAuth(context) : null,
+                  onOpened: () async => state.settingsDevice.passcodeBiometric ? await localAuth(context) : null,
                 );
               }
 

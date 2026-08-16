@@ -15,27 +15,20 @@ import 'dart:core' as $core;
 import 'package:protobuf/protobuf.dart' as $pb;
 
 class AuthCallPasswordStatus extends $pb.ProtobufEnum {
-  static const AuthCallPasswordStatus healthcheck =
-      AuthCallPasswordStatus._(0, _omitEnumNames ? '' : 'healthcheck');
-  static const AuthCallPasswordStatus error =
-      AuthCallPasswordStatus._(1, _omitEnumNames ? '' : 'error');
-  static const AuthCallPasswordStatus success =
-      AuthCallPasswordStatus._(2, _omitEnumNames ? '' : 'success');
+  static const AuthCallPasswordStatus healthcheck = AuthCallPasswordStatus._(0, _omitEnumNames ? '' : 'healthcheck');
+  static const AuthCallPasswordStatus error = AuthCallPasswordStatus._(1, _omitEnumNames ? '' : 'error');
+  static const AuthCallPasswordStatus success = AuthCallPasswordStatus._(2, _omitEnumNames ? '' : 'success');
 
-  static const $core.List<AuthCallPasswordStatus> values =
-      <AuthCallPasswordStatus>[
+  static const $core.List<AuthCallPasswordStatus> values = <AuthCallPasswordStatus>[
     healthcheck,
     error,
     success,
   ];
 
-  static final $core.List<AuthCallPasswordStatus?> _byValue =
-      $pb.ProtobufEnum.$_initByValueList(values, 2);
-  static AuthCallPasswordStatus? valueOf($core.int value) =>
-      value < 0 || value >= _byValue.length ? null : _byValue[value];
+  static final $core.List<AuthCallPasswordStatus?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 2);
+  static AuthCallPasswordStatus? valueOf($core.int value) => value < 0 || value >= _byValue.length ? null : _byValue[value];
 
   const AuthCallPasswordStatus._(super.value, super.name);
 }
 
-const $core.bool _omitEnumNames =
-    $core.bool.fromEnvironment('protobuf.omit_enum_names');
+const $core.bool _omitEnumNames = $core.bool.fromEnvironment('protobuf.omit_enum_names');

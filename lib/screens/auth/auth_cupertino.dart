@@ -67,18 +67,14 @@ class _AuthCupertinoScreen extends State<AuthCupertinoScreen> {
             serverError = state.error;
           }
           formKey.currentState?.validate();
-        } else if (state.status == Status.success &&
-            state.redirectURI != null) {
+        } else if (state.status == Status.success && state.redirectURI != null) {
           logger.debug(state.redirectURI.toString());
           context.go(state.redirectURI.toString());
         }
       },
       builder: (context, state) {
         return CupertinoPageScaffold(
-          backgroundColor: CupertinoDynamicColor.withBrightness(
-            color: Color(0xffffffff),
-            darkColor: Color(0xff1b263b),
-          ),
+          backgroundColor: CupertinoDynamicColor.withBrightness(color: Color(0xffffffff), darkColor: Color(0xff1b263b)),
           child: Form(
             key: formKey,
             child: SafeArea(
@@ -94,8 +90,7 @@ class _AuthCupertinoScreen extends State<AuthCupertinoScreen> {
                           children: [
                             SizedBox(height: 30, width: double.infinity),
                             SvgPicture.asset(
-                              CupertinoTheme.brightnessOf(context) ==
-                                      Brightness.light
+                              CupertinoTheme.brightnessOf(context) == Brightness.light
                                   ? 'assets/images/logo_light.svg'
                                   : 'assets/images/logo_dark.svg',
                             ),
@@ -105,18 +100,16 @@ class _AuthCupertinoScreen extends State<AuthCupertinoScreen> {
                               decoration: BoxDecoration(
                                 border: Border(
                                   top: BorderSide(
-                                    color:
-                                        const CupertinoDynamicColor.withBrightness(
-                                          color: Color(0x1F000000),
-                                          darkColor: Color(0x3DFFFFFF),
-                                        ).resolveFrom(context),
+                                    color: const CupertinoDynamicColor.withBrightness(
+                                      color: Color(0x1F000000),
+                                      darkColor: Color(0x3DFFFFFF),
+                                    ).resolveFrom(context),
                                   ),
                                   bottom: BorderSide(
-                                    color:
-                                        const CupertinoDynamicColor.withBrightness(
-                                          color: Color(0x1F000000),
-                                          darkColor: Color(0x3DFFFFFF),
-                                        ).resolveFrom(context),
+                                    color: const CupertinoDynamicColor.withBrightness(
+                                      color: Color(0x1F000000),
+                                      darkColor: Color(0x3DFFFFFF),
+                                    ).resolveFrom(context),
                                   ),
                                 ),
                               ),
@@ -125,26 +118,15 @@ class _AuthCupertinoScreen extends State<AuthCupertinoScreen> {
                                 focusNode: phoneNumberFocus,
                                 autocorrect: true,
                                 keyboardType: TextInputType.phone,
-                                prefix: Padding(
-                                  padding: EdgeInsets.fromLTRB(0, 0, 10, 0),
-                                  child: Icon(CupertinoIcons.phone),
-                                ),
+                                prefix: Padding(padding: EdgeInsets.fromLTRB(0, 0, 10, 0), child: Icon(CupertinoIcons.phone)),
                                 inputFormatters: [PhoneInputFormatter()],
-                                autofillHints: const [
-                                  AutofillHints.telephoneNumber,
-                                ],
+                                autofillHints: const [AutofillHints.telephoneNumber],
                                 placeholder: context.t.common.mobilePhone,
                                 validator: (value) {
-                                  final error = switch (context
-                                      .read<AuthCubit>()
-                                      .validatePhoneNumber(value)) {
-                                    PhoneValidationError.empty =>
-                                      context.t.auth.enterYourMobilePhoneNumber,
+                                  final error = switch (context.read<AuthCubit>().validatePhoneNumber(value)) {
+                                    PhoneValidationError.empty => context.t.auth.enterYourMobilePhoneNumber,
                                     PhoneValidationError.notAllowRegion =>
-                                      context
-                                          .t
-                                          .auth
-                                          .currentlyWeOnlySupportPhoneNumbersFromRussianMobileOperators,
+                                      context.t.auth.currentlyWeOnlySupportPhoneNumbersFromRussianMobileOperators,
                                     null => null,
                                   };
                                   return error ?? serverError;
@@ -158,10 +140,7 @@ class _AuthCupertinoScreen extends State<AuthCupertinoScreen> {
                                 child: Text(t.auth.insertDebugPhone),
                                 onPressed: () {
                                   phoneNumberController.text = utils
-                                      .phoneNormalization(
-                                        phoneNumber: settings
-                                            .phoneNumberModerationApplicationStore,
-                                      )
+                                      .phoneNormalization(phoneNumber: settings.phoneNumberModerationApplicationStore)
                                       .international;
                                 },
                               ),
@@ -174,29 +153,17 @@ class _AuthCupertinoScreen extends State<AuthCupertinoScreen> {
                       width: MediaQuery.of(context).size.width,
                       child: CupertinoButton.filled(
                         disabledColor: Color.fromARGB(255, 56, 96, 143),
-                        onPressed:
-                            [
-                              Status.success,
-                              Status.initialization,
-                            ].contains(state.status)
+                        onPressed: [Status.success, Status.initialization].contains(state.status)
                             ? () async {
                                 serverError = null;
                                 if (formKey.currentState!.validate()) {
-                                  await context.read<AuthCubit>().onPressed(
-                                    phoneNumberController.text,
-                                  );
+                                  await context.read<AuthCubit>().onPressed(phoneNumberController.text);
                                 }
                               }
                             : null,
-                        child:
-                            [
-                              Status.success,
-                              Status.initialization,
-                            ].contains(state.status)
+                        child: [Status.success, Status.initialization].contains(state.status)
                             ? Text(context.t.common.kContinue)
-                            : CupertinoActivityIndicator(
-                                color: Color(0xffffffff),
-                              ),
+                            : CupertinoActivityIndicator(color: Color(0xffffffff)),
                       ),
                     ),
                     // DividerTextWidget(text: context.t.loginInWith),

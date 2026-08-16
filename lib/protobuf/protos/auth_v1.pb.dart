@@ -30,27 +30,21 @@ class AuthCallPassword_Request extends $pb.GeneratedMessage {
 
   AuthCallPassword_Request._();
 
-  factory AuthCallPassword_Request.fromBuffer($core.List<$core.int> data,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+  factory AuthCallPassword_Request.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(data, registry);
-  factory AuthCallPassword_Request.fromJson($core.String json,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+  factory AuthCallPassword_Request.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(json, registry);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      _omitMessageNames ? '' : 'AuthCallPassword.Request',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'),
-      createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'AuthCallPassword.Request',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'phoneNumber', protoName: 'phoneNumber')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   AuthCallPassword_Request clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  AuthCallPassword_Request copyWith(
-          void Function(AuthCallPassword_Request) updates) =>
-      super.copyWith((message) => updates(message as AuthCallPassword_Request))
-          as AuthCallPassword_Request;
+  AuthCallPassword_Request copyWith(void Function(AuthCallPassword_Request) updates) =>
+      super.copyWith((message) => updates(message as AuthCallPassword_Request)) as AuthCallPassword_Request;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
@@ -60,8 +54,7 @@ class AuthCallPassword_Request extends $pb.GeneratedMessage {
   @$core.override
   AuthCallPassword_Request createEmptyInstance() => create();
   @$core.pragma('dart2js:noInline')
-  static AuthCallPassword_Request getDefault() => _defaultInstance ??=
-      $pb.GeneratedMessage.$_defaultFor<AuthCallPassword_Request>(create);
+  static AuthCallPassword_Request getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<AuthCallPassword_Request>(create);
   static AuthCallPassword_Request? _defaultInstance;
 
   @$pb.TagNumber(1)
@@ -81,11 +74,9 @@ class AuthCallPassword_Response extends $pb.GeneratedMessage {
     $core.String? confirmationPhoneNumber,
   }) {
     final result = create();
-    if (callPasswordSession != null)
-      result.callPasswordSession = callPasswordSession;
+    if (callPasswordSession != null) result.callPasswordSession = callPasswordSession;
     if (timeout != null) result.timeout = timeout;
-    if (confirmationPhoneNumber != null)
-      result.confirmationPhoneNumber = confirmationPhoneNumber;
+    if (confirmationPhoneNumber != null) result.confirmationPhoneNumber = confirmationPhoneNumber;
     return result;
   }
 
@@ -94,29 +85,21 @@ class AuthCallPassword_Response extends $pb.GeneratedMessage {
   factory AuthCallPassword_Response.fromBuffer($core.List<$core.int> data,
           [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(data, registry);
-  factory AuthCallPassword_Response.fromJson($core.String json,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+  factory AuthCallPassword_Response.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(json, registry);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      _omitMessageNames ? '' : 'AuthCallPassword.Response',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'),
-      createEmptyInstance: create)
-    ..a<$core.List<$core.int>>(
-        1, _omitFieldNames ? '' : 'callPasswordSession', $pb.PbFieldType.OY,
-        protoName: 'callPasswordSession')
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'AuthCallPassword.Response',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..a<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'callPasswordSession', $pb.PbFieldType.OY, protoName: 'callPasswordSession')
     ..aD(2, _omitFieldNames ? '' : 'timeout', fieldType: $pb.PbFieldType.OF)
-    ..aOS(3, _omitFieldNames ? '' : 'confirmationPhoneNumber',
-        protoName: 'confirmationPhoneNumber')
+    ..aOS(3, _omitFieldNames ? '' : 'confirmationPhoneNumber', protoName: 'confirmationPhoneNumber')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   AuthCallPassword_Response clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  AuthCallPassword_Response copyWith(
-          void Function(AuthCallPassword_Response) updates) =>
-      super.copyWith((message) => updates(message as AuthCallPassword_Response))
-          as AuthCallPassword_Response;
+  AuthCallPassword_Response copyWith(void Function(AuthCallPassword_Response) updates) =>
+      super.copyWith((message) => updates(message as AuthCallPassword_Response)) as AuthCallPassword_Response;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
@@ -126,8 +109,8 @@ class AuthCallPassword_Response extends $pb.GeneratedMessage {
   @$core.override
   AuthCallPassword_Response createEmptyInstance() => create();
   @$core.pragma('dart2js:noInline')
-  static AuthCallPassword_Response getDefault() => _defaultInstance ??=
-      $pb.GeneratedMessage.$_defaultFor<AuthCallPassword_Response>(create);
+  static AuthCallPassword_Response getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<AuthCallPassword_Response>(create);
   static AuthCallPassword_Response? _defaultInstance;
 
   @$pb.TagNumber(1)
@@ -163,25 +146,20 @@ class AuthCallPassword extends $pb.GeneratedMessage {
 
   AuthCallPassword._();
 
-  factory AuthCallPassword.fromBuffer($core.List<$core.int> data,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+  factory AuthCallPassword.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(data, registry);
-  factory AuthCallPassword.fromJson($core.String json,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+  factory AuthCallPassword.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(json, registry);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      _omitMessageNames ? '' : 'AuthCallPassword',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'),
-      createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'AuthCallPassword',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   AuthCallPassword clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   AuthCallPassword copyWith(void Function(AuthCallPassword) updates) =>
-      super.copyWith((message) => updates(message as AuthCallPassword))
-          as AuthCallPassword;
+      super.copyWith((message) => updates(message as AuthCallPassword)) as AuthCallPassword;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
@@ -191,8 +169,7 @@ class AuthCallPassword extends $pb.GeneratedMessage {
   @$core.override
   AuthCallPassword createEmptyInstance() => create();
   @$core.pragma('dart2js:noInline')
-  static AuthCallPassword getDefault() => _defaultInstance ??=
-      $pb.GeneratedMessage.$_defaultFor<AuthCallPassword>(create);
+  static AuthCallPassword getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<AuthCallPassword>(create);
   static AuthCallPassword? _defaultInstance;
 }
 
@@ -201,51 +178,40 @@ class AuthCallPasswordConfirmation_Request extends $pb.GeneratedMessage {
     $core.List<$core.int>? callPasswordSession,
   }) {
     final result = create();
-    if (callPasswordSession != null)
-      result.callPasswordSession = callPasswordSession;
+    if (callPasswordSession != null) result.callPasswordSession = callPasswordSession;
     return result;
   }
 
   AuthCallPasswordConfirmation_Request._();
 
-  factory AuthCallPasswordConfirmation_Request.fromBuffer(
-          $core.List<$core.int> data,
+  factory AuthCallPasswordConfirmation_Request.fromBuffer($core.List<$core.int> data,
           [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(data, registry);
   factory AuthCallPasswordConfirmation_Request.fromJson($core.String json,
           [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(json, registry);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      _omitMessageNames ? '' : 'AuthCallPasswordConfirmation.Request',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'),
-      createEmptyInstance: create)
-    ..a<$core.List<$core.int>>(
-        1, _omitFieldNames ? '' : 'callPasswordSession', $pb.PbFieldType.OY,
-        protoName: 'callPasswordSession')
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'AuthCallPasswordConfirmation.Request',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..a<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'callPasswordSession', $pb.PbFieldType.OY, protoName: 'callPasswordSession')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   AuthCallPasswordConfirmation_Request clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  AuthCallPasswordConfirmation_Request copyWith(
-          void Function(AuthCallPasswordConfirmation_Request) updates) =>
-      super.copyWith((message) =>
-              updates(message as AuthCallPasswordConfirmation_Request))
-          as AuthCallPasswordConfirmation_Request;
+  AuthCallPasswordConfirmation_Request copyWith(void Function(AuthCallPasswordConfirmation_Request) updates) =>
+      super.copyWith((message) => updates(message as AuthCallPasswordConfirmation_Request)) as AuthCallPasswordConfirmation_Request;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
-  static AuthCallPasswordConfirmation_Request create() =>
-      AuthCallPasswordConfirmation_Request._();
+  static AuthCallPasswordConfirmation_Request create() => AuthCallPasswordConfirmation_Request._();
   @$core.override
   AuthCallPasswordConfirmation_Request createEmptyInstance() => create();
   @$core.pragma('dart2js:noInline')
   static AuthCallPasswordConfirmation_Request getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<
-          AuthCallPasswordConfirmation_Request>(create);
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<AuthCallPasswordConfirmation_Request>(create);
   static AuthCallPasswordConfirmation_Request? _defaultInstance;
 
   @$pb.TagNumber(1)
@@ -268,74 +234,57 @@ class AuthCallPasswordConfirmation_Response extends $pb.GeneratedMessage {
     $core.bool? isBlocked,
   }) {
     final result = create();
-    if (authCallPasswordStatus != null)
-      result.authCallPasswordStatus = authCallPasswordStatus;
+    if (authCallPasswordStatus != null) result.authCallPasswordStatus = authCallPasswordStatus;
     if (timer != null) result.timer = timer;
     if (errorMessage != null) result.errorMessage = errorMessage;
-    if (confirmationSession != null)
-      result.confirmationSession = confirmationSession;
-    if (hasTwoStepVerification != null)
-      result.hasTwoStepVerification = hasTwoStepVerification;
+    if (confirmationSession != null) result.confirmationSession = confirmationSession;
+    if (hasTwoStepVerification != null) result.hasTwoStepVerification = hasTwoStepVerification;
     if (isBlocked != null) result.isBlocked = isBlocked;
     return result;
   }
 
   AuthCallPasswordConfirmation_Response._();
 
-  factory AuthCallPasswordConfirmation_Response.fromBuffer(
-          $core.List<$core.int> data,
+  factory AuthCallPasswordConfirmation_Response.fromBuffer($core.List<$core.int> data,
           [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(data, registry);
   factory AuthCallPasswordConfirmation_Response.fromJson($core.String json,
           [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(json, registry);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      _omitMessageNames ? '' : 'AuthCallPasswordConfirmation.Response',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'),
-      createEmptyInstance: create)
-    ..aE<$0.AuthCallPasswordStatus>(
-        1, _omitFieldNames ? '' : 'authCallPasswordStatus',
-        protoName: 'authCallPasswordStatus',
-        enumValues: $0.AuthCallPasswordStatus.values)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'AuthCallPasswordConfirmation.Response',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..aE<$0.AuthCallPasswordStatus>(1, _omitFieldNames ? '' : 'authCallPasswordStatus',
+        protoName: 'authCallPasswordStatus', enumValues: $0.AuthCallPasswordStatus.values)
     ..aInt64(2, _omitFieldNames ? '' : 'timer')
     ..aOS(3, _omitFieldNames ? '' : 'errorMessage', protoName: 'errorMessage')
-    ..a<$core.List<$core.int>>(
-        4, _omitFieldNames ? '' : 'confirmationSession', $pb.PbFieldType.OY,
-        protoName: 'confirmationSession')
-    ..aOB(5, _omitFieldNames ? '' : 'hasTwoStepVerification',
-        protoName: 'hasTwoStepVerification')
+    ..a<$core.List<$core.int>>(4, _omitFieldNames ? '' : 'confirmationSession', $pb.PbFieldType.OY, protoName: 'confirmationSession')
+    ..aOB(5, _omitFieldNames ? '' : 'hasTwoStepVerification', protoName: 'hasTwoStepVerification')
     ..aOB(6, _omitFieldNames ? '' : 'isBlocked', protoName: 'isBlocked')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   AuthCallPasswordConfirmation_Response clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  AuthCallPasswordConfirmation_Response copyWith(
-          void Function(AuthCallPasswordConfirmation_Response) updates) =>
-      super.copyWith((message) =>
-              updates(message as AuthCallPasswordConfirmation_Response))
-          as AuthCallPasswordConfirmation_Response;
+  AuthCallPasswordConfirmation_Response copyWith(void Function(AuthCallPasswordConfirmation_Response) updates) =>
+      super.copyWith((message) => updates(message as AuthCallPasswordConfirmation_Response)) as AuthCallPasswordConfirmation_Response;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
-  static AuthCallPasswordConfirmation_Response create() =>
-      AuthCallPasswordConfirmation_Response._();
+  static AuthCallPasswordConfirmation_Response create() => AuthCallPasswordConfirmation_Response._();
   @$core.override
   AuthCallPasswordConfirmation_Response createEmptyInstance() => create();
   @$core.pragma('dart2js:noInline')
   static AuthCallPasswordConfirmation_Response getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<
-          AuthCallPasswordConfirmation_Response>(create);
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<AuthCallPasswordConfirmation_Response>(create);
   static AuthCallPasswordConfirmation_Response? _defaultInstance;
 
   @$pb.TagNumber(1)
   $0.AuthCallPasswordStatus get authCallPasswordStatus => $_getN(0);
   @$pb.TagNumber(1)
-  set authCallPasswordStatus($0.AuthCallPasswordStatus value) =>
-      $_setField(1, value);
+  set authCallPasswordStatus($0.AuthCallPasswordStatus value) => $_setField(1, value);
   @$pb.TagNumber(1)
   $core.bool hasAuthCallPasswordStatus() => $_has(0);
   @$pb.TagNumber(1)
@@ -396,36 +345,29 @@ class AuthCallPasswordConfirmation extends $pb.GeneratedMessage {
   factory AuthCallPasswordConfirmation.fromBuffer($core.List<$core.int> data,
           [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(data, registry);
-  factory AuthCallPasswordConfirmation.fromJson($core.String json,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+  factory AuthCallPasswordConfirmation.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(json, registry);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      _omitMessageNames ? '' : 'AuthCallPasswordConfirmation',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'),
-      createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'AuthCallPasswordConfirmation',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   AuthCallPasswordConfirmation clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  AuthCallPasswordConfirmation copyWith(
-          void Function(AuthCallPasswordConfirmation) updates) =>
-      super.copyWith(
-              (message) => updates(message as AuthCallPasswordConfirmation))
-          as AuthCallPasswordConfirmation;
+  AuthCallPasswordConfirmation copyWith(void Function(AuthCallPasswordConfirmation) updates) =>
+      super.copyWith((message) => updates(message as AuthCallPasswordConfirmation)) as AuthCallPasswordConfirmation;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
-  static AuthCallPasswordConfirmation create() =>
-      AuthCallPasswordConfirmation._();
+  static AuthCallPasswordConfirmation create() => AuthCallPasswordConfirmation._();
   @$core.override
   AuthCallPasswordConfirmation createEmptyInstance() => create();
   @$core.pragma('dart2js:noInline')
-  static AuthCallPasswordConfirmation getDefault() => _defaultInstance ??=
-      $pb.GeneratedMessage.$_defaultFor<AuthCallPasswordConfirmation>(create);
+  static AuthCallPasswordConfirmation getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<AuthCallPasswordConfirmation>(create);
   static AuthCallPasswordConfirmation? _defaultInstance;
 }
 
@@ -440,42 +382,34 @@ class AuthModerationApplicationStore_Request extends $pb.GeneratedMessage {
 
   AuthModerationApplicationStore_Request._();
 
-  factory AuthModerationApplicationStore_Request.fromBuffer(
-          $core.List<$core.int> data,
+  factory AuthModerationApplicationStore_Request.fromBuffer($core.List<$core.int> data,
           [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(data, registry);
   factory AuthModerationApplicationStore_Request.fromJson($core.String json,
           [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(json, registry);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      _omitMessageNames ? '' : 'AuthModerationApplicationStore.Request',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'),
-      createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'AuthModerationApplicationStore.Request',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'phoneNumber', protoName: 'phoneNumber')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   AuthModerationApplicationStore_Request clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  AuthModerationApplicationStore_Request copyWith(
-          void Function(AuthModerationApplicationStore_Request) updates) =>
-      super.copyWith((message) =>
-              updates(message as AuthModerationApplicationStore_Request))
-          as AuthModerationApplicationStore_Request;
+  AuthModerationApplicationStore_Request copyWith(void Function(AuthModerationApplicationStore_Request) updates) =>
+      super.copyWith((message) => updates(message as AuthModerationApplicationStore_Request)) as AuthModerationApplicationStore_Request;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
-  static AuthModerationApplicationStore_Request create() =>
-      AuthModerationApplicationStore_Request._();
+  static AuthModerationApplicationStore_Request create() => AuthModerationApplicationStore_Request._();
   @$core.override
   AuthModerationApplicationStore_Request createEmptyInstance() => create();
   @$core.pragma('dart2js:noInline')
   static AuthModerationApplicationStore_Request getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<
-          AuthModerationApplicationStore_Request>(create);
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<AuthModerationApplicationStore_Request>(create);
   static AuthModerationApplicationStore_Request? _defaultInstance;
 
   @$pb.TagNumber(1)
@@ -494,31 +428,23 @@ class AuthModerationApplicationStore_Response extends $pb.GeneratedMessage {
     $core.String? phoneNumber,
   }) {
     final result = create();
-    if (moderationApplicationStoreSession != null)
-      result.moderationApplicationStoreSession =
-          moderationApplicationStoreSession;
+    if (moderationApplicationStoreSession != null) result.moderationApplicationStoreSession = moderationApplicationStoreSession;
     if (phoneNumber != null) result.phoneNumber = phoneNumber;
     return result;
   }
 
   AuthModerationApplicationStore_Response._();
 
-  factory AuthModerationApplicationStore_Response.fromBuffer(
-          $core.List<$core.int> data,
+  factory AuthModerationApplicationStore_Response.fromBuffer($core.List<$core.int> data,
           [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(data, registry);
   factory AuthModerationApplicationStore_Response.fromJson($core.String json,
           [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(json, registry);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      _omitMessageNames ? '' : 'AuthModerationApplicationStore.Response',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'),
-      createEmptyInstance: create)
-    ..a<$core.List<$core.int>>(
-        1,
-        _omitFieldNames ? '' : 'moderationApplicationStoreSession',
-        $pb.PbFieldType.OY,
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'AuthModerationApplicationStore.Response',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..a<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'moderationApplicationStoreSession', $pb.PbFieldType.OY,
         protoName: 'moderationApplicationStoreSession')
     ..aOS(2, _omitFieldNames ? '' : 'phoneNumber', protoName: 'phoneNumber')
     ..hasRequiredFields = false;
@@ -526,31 +452,25 @@ class AuthModerationApplicationStore_Response extends $pb.GeneratedMessage {
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   AuthModerationApplicationStore_Response clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  AuthModerationApplicationStore_Response copyWith(
-          void Function(AuthModerationApplicationStore_Response) updates) =>
-      super.copyWith((message) =>
-              updates(message as AuthModerationApplicationStore_Response))
-          as AuthModerationApplicationStore_Response;
+  AuthModerationApplicationStore_Response copyWith(void Function(AuthModerationApplicationStore_Response) updates) =>
+      super.copyWith((message) => updates(message as AuthModerationApplicationStore_Response)) as AuthModerationApplicationStore_Response;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
-  static AuthModerationApplicationStore_Response create() =>
-      AuthModerationApplicationStore_Response._();
+  static AuthModerationApplicationStore_Response create() => AuthModerationApplicationStore_Response._();
   @$core.override
   AuthModerationApplicationStore_Response createEmptyInstance() => create();
   @$core.pragma('dart2js:noInline')
   static AuthModerationApplicationStore_Response getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<
-          AuthModerationApplicationStore_Response>(create);
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<AuthModerationApplicationStore_Response>(create);
   static AuthModerationApplicationStore_Response? _defaultInstance;
 
   @$pb.TagNumber(1)
   $core.List<$core.int> get moderationApplicationStoreSession => $_getN(0);
   @$pb.TagNumber(1)
-  set moderationApplicationStoreSession($core.List<$core.int> value) =>
-      $_setBytes(0, value);
+  set moderationApplicationStoreSession($core.List<$core.int> value) => $_setBytes(0, value);
   @$pb.TagNumber(1)
   $core.bool hasModerationApplicationStoreSession() => $_has(0);
   @$pb.TagNumber(1)
@@ -575,109 +495,82 @@ class AuthModerationApplicationStore extends $pb.GeneratedMessage {
   factory AuthModerationApplicationStore.fromBuffer($core.List<$core.int> data,
           [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(data, registry);
-  factory AuthModerationApplicationStore.fromJson($core.String json,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+  factory AuthModerationApplicationStore.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(json, registry);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      _omitMessageNames ? '' : 'AuthModerationApplicationStore',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'),
-      createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'AuthModerationApplicationStore',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   AuthModerationApplicationStore clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  AuthModerationApplicationStore copyWith(
-          void Function(AuthModerationApplicationStore) updates) =>
-      super.copyWith(
-              (message) => updates(message as AuthModerationApplicationStore))
-          as AuthModerationApplicationStore;
+  AuthModerationApplicationStore copyWith(void Function(AuthModerationApplicationStore) updates) =>
+      super.copyWith((message) => updates(message as AuthModerationApplicationStore)) as AuthModerationApplicationStore;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
-  static AuthModerationApplicationStore create() =>
-      AuthModerationApplicationStore._();
+  static AuthModerationApplicationStore create() => AuthModerationApplicationStore._();
   @$core.override
   AuthModerationApplicationStore createEmptyInstance() => create();
   @$core.pragma('dart2js:noInline')
-  static AuthModerationApplicationStore getDefault() => _defaultInstance ??=
-      $pb.GeneratedMessage.$_defaultFor<AuthModerationApplicationStore>(create);
+  static AuthModerationApplicationStore getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<AuthModerationApplicationStore>(create);
   static AuthModerationApplicationStore? _defaultInstance;
 }
 
-class AuthModerationApplicationStoreConfirmation_Request
-    extends $pb.GeneratedMessage {
+class AuthModerationApplicationStoreConfirmation_Request extends $pb.GeneratedMessage {
   factory AuthModerationApplicationStoreConfirmation_Request({
     $core.List<$core.int>? moderationApplicationStoreSession,
     $core.String? verificationCode,
   }) {
     final result = create();
-    if (moderationApplicationStoreSession != null)
-      result.moderationApplicationStoreSession =
-          moderationApplicationStoreSession;
+    if (moderationApplicationStoreSession != null) result.moderationApplicationStoreSession = moderationApplicationStoreSession;
     if (verificationCode != null) result.verificationCode = verificationCode;
     return result;
   }
 
   AuthModerationApplicationStoreConfirmation_Request._();
 
-  factory AuthModerationApplicationStoreConfirmation_Request.fromBuffer(
-          $core.List<$core.int> data,
+  factory AuthModerationApplicationStoreConfirmation_Request.fromBuffer($core.List<$core.int> data,
           [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(data, registry);
-  factory AuthModerationApplicationStoreConfirmation_Request.fromJson(
-          $core.String json,
+  factory AuthModerationApplicationStoreConfirmation_Request.fromJson($core.String json,
           [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(json, registry);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      _omitMessageNames
-          ? ''
-          : 'AuthModerationApplicationStoreConfirmation.Request',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'),
-      createEmptyInstance: create)
-    ..a<$core.List<$core.int>>(
-        1,
-        _omitFieldNames ? '' : 'moderationApplicationStoreSession',
-        $pb.PbFieldType.OY,
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'AuthModerationApplicationStoreConfirmation.Request',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..a<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'moderationApplicationStoreSession', $pb.PbFieldType.OY,
         protoName: 'moderationApplicationStoreSession')
-    ..aOS(2, _omitFieldNames ? '' : 'verificationCode',
-        protoName: 'verificationCode')
+    ..aOS(2, _omitFieldNames ? '' : 'verificationCode', protoName: 'verificationCode')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   AuthModerationApplicationStoreConfirmation_Request clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  AuthModerationApplicationStoreConfirmation_Request copyWith(
-          void Function(AuthModerationApplicationStoreConfirmation_Request)
-              updates) =>
-      super.copyWith((message) => updates(
-              message as AuthModerationApplicationStoreConfirmation_Request))
+  AuthModerationApplicationStoreConfirmation_Request copyWith(void Function(AuthModerationApplicationStoreConfirmation_Request) updates) =>
+      super.copyWith((message) => updates(message as AuthModerationApplicationStoreConfirmation_Request))
           as AuthModerationApplicationStoreConfirmation_Request;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
-  static AuthModerationApplicationStoreConfirmation_Request create() =>
-      AuthModerationApplicationStoreConfirmation_Request._();
+  static AuthModerationApplicationStoreConfirmation_Request create() => AuthModerationApplicationStoreConfirmation_Request._();
   @$core.override
-  AuthModerationApplicationStoreConfirmation_Request createEmptyInstance() =>
-      create();
+  AuthModerationApplicationStoreConfirmation_Request createEmptyInstance() => create();
   @$core.pragma('dart2js:noInline')
   static AuthModerationApplicationStoreConfirmation_Request getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<
-          AuthModerationApplicationStoreConfirmation_Request>(create);
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<AuthModerationApplicationStoreConfirmation_Request>(create);
   static AuthModerationApplicationStoreConfirmation_Request? _defaultInstance;
 
   @$pb.TagNumber(1)
   $core.List<$core.int> get moderationApplicationStoreSession => $_getN(0);
   @$pb.TagNumber(1)
-  set moderationApplicationStoreSession($core.List<$core.int> value) =>
-      $_setBytes(0, value);
+  set moderationApplicationStoreSession($core.List<$core.int> value) => $_setBytes(0, value);
   @$pb.TagNumber(1)
   $core.bool hasModerationApplicationStoreSession() => $_has(0);
   @$pb.TagNumber(1)
@@ -693,62 +586,47 @@ class AuthModerationApplicationStoreConfirmation_Request
   void clearVerificationCode() => $_clearField(2);
 }
 
-class AuthModerationApplicationStoreConfirmation_Response
-    extends $pb.GeneratedMessage {
+class AuthModerationApplicationStoreConfirmation_Response extends $pb.GeneratedMessage {
   factory AuthModerationApplicationStoreConfirmation_Response({
     $core.List<$core.int>? confirmationSession,
   }) {
     final result = create();
-    if (confirmationSession != null)
-      result.confirmationSession = confirmationSession;
+    if (confirmationSession != null) result.confirmationSession = confirmationSession;
     return result;
   }
 
   AuthModerationApplicationStoreConfirmation_Response._();
 
-  factory AuthModerationApplicationStoreConfirmation_Response.fromBuffer(
-          $core.List<$core.int> data,
+  factory AuthModerationApplicationStoreConfirmation_Response.fromBuffer($core.List<$core.int> data,
           [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(data, registry);
-  factory AuthModerationApplicationStoreConfirmation_Response.fromJson(
-          $core.String json,
+  factory AuthModerationApplicationStoreConfirmation_Response.fromJson($core.String json,
           [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(json, registry);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      _omitMessageNames
-          ? ''
-          : 'AuthModerationApplicationStoreConfirmation.Response',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'),
-      createEmptyInstance: create)
-    ..a<$core.List<$core.int>>(
-        1, _omitFieldNames ? '' : 'confirmationSession', $pb.PbFieldType.OY,
-        protoName: 'confirmationSession')
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'AuthModerationApplicationStoreConfirmation.Response',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..a<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'confirmationSession', $pb.PbFieldType.OY, protoName: 'confirmationSession')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   AuthModerationApplicationStoreConfirmation_Response clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   AuthModerationApplicationStoreConfirmation_Response copyWith(
-          void Function(AuthModerationApplicationStoreConfirmation_Response)
-              updates) =>
-      super.copyWith((message) => updates(
-              message as AuthModerationApplicationStoreConfirmation_Response))
+          void Function(AuthModerationApplicationStoreConfirmation_Response) updates) =>
+      super.copyWith((message) => updates(message as AuthModerationApplicationStoreConfirmation_Response))
           as AuthModerationApplicationStoreConfirmation_Response;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
-  static AuthModerationApplicationStoreConfirmation_Response create() =>
-      AuthModerationApplicationStoreConfirmation_Response._();
+  static AuthModerationApplicationStoreConfirmation_Response create() => AuthModerationApplicationStoreConfirmation_Response._();
   @$core.override
-  AuthModerationApplicationStoreConfirmation_Response createEmptyInstance() =>
-      create();
+  AuthModerationApplicationStoreConfirmation_Response createEmptyInstance() => create();
   @$core.pragma('dart2js:noInline')
   static AuthModerationApplicationStoreConfirmation_Response getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<
-          AuthModerationApplicationStoreConfirmation_Response>(create);
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<AuthModerationApplicationStoreConfirmation_Response>(create);
   static AuthModerationApplicationStoreConfirmation_Response? _defaultInstance;
 
   @$pb.TagNumber(1)
@@ -766,41 +644,34 @@ class AuthModerationApplicationStoreConfirmation extends $pb.GeneratedMessage {
 
   AuthModerationApplicationStoreConfirmation._();
 
-  factory AuthModerationApplicationStoreConfirmation.fromBuffer(
-          $core.List<$core.int> data,
+  factory AuthModerationApplicationStoreConfirmation.fromBuffer($core.List<$core.int> data,
           [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(data, registry);
   factory AuthModerationApplicationStoreConfirmation.fromJson($core.String json,
           [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(json, registry);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      _omitMessageNames ? '' : 'AuthModerationApplicationStoreConfirmation',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'),
-      createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'AuthModerationApplicationStoreConfirmation',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   AuthModerationApplicationStoreConfirmation clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  AuthModerationApplicationStoreConfirmation copyWith(
-          void Function(AuthModerationApplicationStoreConfirmation) updates) =>
-      super.copyWith((message) =>
-              updates(message as AuthModerationApplicationStoreConfirmation))
+  AuthModerationApplicationStoreConfirmation copyWith(void Function(AuthModerationApplicationStoreConfirmation) updates) =>
+      super.copyWith((message) => updates(message as AuthModerationApplicationStoreConfirmation))
           as AuthModerationApplicationStoreConfirmation;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
-  static AuthModerationApplicationStoreConfirmation create() =>
-      AuthModerationApplicationStoreConfirmation._();
+  static AuthModerationApplicationStoreConfirmation create() => AuthModerationApplicationStoreConfirmation._();
   @$core.override
   AuthModerationApplicationStoreConfirmation createEmptyInstance() => create();
   @$core.pragma('dart2js:noInline')
   static AuthModerationApplicationStoreConfirmation getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<
-          AuthModerationApplicationStoreConfirmation>(create);
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<AuthModerationApplicationStoreConfirmation>(create);
   static AuthModerationApplicationStoreConfirmation? _defaultInstance;
 }
 
@@ -816,10 +687,8 @@ class AuthConfirmation_Request extends $pb.GeneratedMessage {
     $core.String? appBuildNumber,
   }) {
     final result = create();
-    if (confirmationSession != null)
-      result.confirmationSession = confirmationSession;
-    if (publicKeySharedKey != null)
-      result.publicKeySharedKey = publicKeySharedKey;
+    if (confirmationSession != null) result.confirmationSession = confirmationSession;
+    if (publicKeySharedKey != null) result.publicKeySharedKey = publicKeySharedKey;
     if (publicKeySalt != null) result.publicKeySalt = publicKeySalt;
     if (deviceModel != null) result.deviceModel = deviceModel;
     if (os != null) result.os = os;
@@ -831,41 +700,28 @@ class AuthConfirmation_Request extends $pb.GeneratedMessage {
 
   AuthConfirmation_Request._();
 
-  factory AuthConfirmation_Request.fromBuffer($core.List<$core.int> data,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+  factory AuthConfirmation_Request.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(data, registry);
-  factory AuthConfirmation_Request.fromJson($core.String json,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+  factory AuthConfirmation_Request.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(json, registry);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      _omitMessageNames ? '' : 'AuthConfirmation.Request',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'),
-      createEmptyInstance: create)
-    ..a<$core.List<$core.int>>(
-        1, _omitFieldNames ? '' : 'confirmationSession', $pb.PbFieldType.OY,
-        protoName: 'confirmationSession')
-    ..a<$core.List<$core.int>>(
-        2, _omitFieldNames ? '' : 'publicKeySharedKey', $pb.PbFieldType.OY,
-        protoName: 'publicKeySharedKey')
-    ..a<$core.List<$core.int>>(
-        3, _omitFieldNames ? '' : 'publicKeySalt', $pb.PbFieldType.OY,
-        protoName: 'publicKeySalt')
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'AuthConfirmation.Request',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..a<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'confirmationSession', $pb.PbFieldType.OY, protoName: 'confirmationSession')
+    ..a<$core.List<$core.int>>(2, _omitFieldNames ? '' : 'publicKeySharedKey', $pb.PbFieldType.OY, protoName: 'publicKeySharedKey')
+    ..a<$core.List<$core.int>>(3, _omitFieldNames ? '' : 'publicKeySalt', $pb.PbFieldType.OY, protoName: 'publicKeySalt')
     ..aOS(4, _omitFieldNames ? '' : 'deviceModel', protoName: 'deviceModel')
     ..aI(5, _omitFieldNames ? '' : 'os')
     ..aOS(6, _omitFieldNames ? '' : 'osVersion', protoName: 'osVersion')
     ..aOS(7, _omitFieldNames ? '' : 'appVersion', protoName: 'appVersion')
-    ..aOS(8, _omitFieldNames ? '' : 'appBuildNumber',
-        protoName: 'appBuildNumber')
+    ..aOS(8, _omitFieldNames ? '' : 'appBuildNumber', protoName: 'appBuildNumber')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   AuthConfirmation_Request clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  AuthConfirmation_Request copyWith(
-          void Function(AuthConfirmation_Request) updates) =>
-      super.copyWith((message) => updates(message as AuthConfirmation_Request))
-          as AuthConfirmation_Request;
+  AuthConfirmation_Request copyWith(void Function(AuthConfirmation_Request) updates) =>
+      super.copyWith((message) => updates(message as AuthConfirmation_Request)) as AuthConfirmation_Request;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
@@ -875,8 +731,7 @@ class AuthConfirmation_Request extends $pb.GeneratedMessage {
   @$core.override
   AuthConfirmation_Request createEmptyInstance() => create();
   @$core.pragma('dart2js:noInline')
-  static AuthConfirmation_Request getDefault() => _defaultInstance ??=
-      $pb.GeneratedMessage.$_defaultFor<AuthConfirmation_Request>(create);
+  static AuthConfirmation_Request getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<AuthConfirmation_Request>(create);
   static AuthConfirmation_Request? _defaultInstance;
 
   @$pb.TagNumber(1)
@@ -966,11 +821,9 @@ class AuthConfirmation_Response extends $pb.GeneratedMessage {
     final result = create();
     if (sessionID != null) result.sessionID = sessionID;
     if (session != null) result.session = session;
-    if (ciphertextSharedKey != null)
-      result.ciphertextSharedKey = ciphertextSharedKey;
+    if (ciphertextSharedKey != null) result.ciphertextSharedKey = ciphertextSharedKey;
     if (ciphertextSalt != null) result.ciphertextSalt = ciphertextSalt;
-    if (signatureSharedKey != null)
-      result.signatureSharedKey = signatureSharedKey;
+    if (signatureSharedKey != null) result.signatureSharedKey = signatureSharedKey;
     if (signatureSalt != null) result.signatureSalt = signatureSalt;
     if (userID != null) result.userID = userID;
     if (phoneNumber != null) result.phoneNumber = phoneNumber;
@@ -982,44 +835,26 @@ class AuthConfirmation_Response extends $pb.GeneratedMessage {
   factory AuthConfirmation_Response.fromBuffer($core.List<$core.int> data,
           [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(data, registry);
-  factory AuthConfirmation_Response.fromJson($core.String json,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+  factory AuthConfirmation_Response.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(json, registry);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      _omitMessageNames ? '' : 'AuthConfirmation.Response',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'),
-      createEmptyInstance: create)
-    ..a<$core.List<$core.int>>(
-        1, _omitFieldNames ? '' : 'sessionID', $pb.PbFieldType.OY,
-        protoName: 'sessionID')
-    ..a<$core.List<$core.int>>(
-        2, _omitFieldNames ? '' : 'session', $pb.PbFieldType.OY)
-    ..a<$core.List<$core.int>>(
-        3, _omitFieldNames ? '' : 'ciphertextSharedKey', $pb.PbFieldType.OY,
-        protoName: 'ciphertextSharedKey')
-    ..a<$core.List<$core.int>>(
-        4, _omitFieldNames ? '' : 'ciphertextSalt', $pb.PbFieldType.OY,
-        protoName: 'ciphertextSalt')
-    ..a<$core.List<$core.int>>(
-        5, _omitFieldNames ? '' : 'signatureSharedKey', $pb.PbFieldType.OY,
-        protoName: 'signatureSharedKey')
-    ..a<$core.List<$core.int>>(
-        6, _omitFieldNames ? '' : 'signatureSalt', $pb.PbFieldType.OY,
-        protoName: 'signatureSalt')
-    ..a<$core.List<$core.int>>(
-        7, _omitFieldNames ? '' : 'userID', $pb.PbFieldType.OY,
-        protoName: 'userID')
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'AuthConfirmation.Response',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..a<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'sessionID', $pb.PbFieldType.OY, protoName: 'sessionID')
+    ..a<$core.List<$core.int>>(2, _omitFieldNames ? '' : 'session', $pb.PbFieldType.OY)
+    ..a<$core.List<$core.int>>(3, _omitFieldNames ? '' : 'ciphertextSharedKey', $pb.PbFieldType.OY, protoName: 'ciphertextSharedKey')
+    ..a<$core.List<$core.int>>(4, _omitFieldNames ? '' : 'ciphertextSalt', $pb.PbFieldType.OY, protoName: 'ciphertextSalt')
+    ..a<$core.List<$core.int>>(5, _omitFieldNames ? '' : 'signatureSharedKey', $pb.PbFieldType.OY, protoName: 'signatureSharedKey')
+    ..a<$core.List<$core.int>>(6, _omitFieldNames ? '' : 'signatureSalt', $pb.PbFieldType.OY, protoName: 'signatureSalt')
+    ..a<$core.List<$core.int>>(7, _omitFieldNames ? '' : 'userID', $pb.PbFieldType.OY, protoName: 'userID')
     ..aOS(8, _omitFieldNames ? '' : 'phoneNumber', protoName: 'phoneNumber')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   AuthConfirmation_Response clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  AuthConfirmation_Response copyWith(
-          void Function(AuthConfirmation_Response) updates) =>
-      super.copyWith((message) => updates(message as AuthConfirmation_Response))
-          as AuthConfirmation_Response;
+  AuthConfirmation_Response copyWith(void Function(AuthConfirmation_Response) updates) =>
+      super.copyWith((message) => updates(message as AuthConfirmation_Response)) as AuthConfirmation_Response;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
@@ -1029,8 +864,8 @@ class AuthConfirmation_Response extends $pb.GeneratedMessage {
   @$core.override
   AuthConfirmation_Response createEmptyInstance() => create();
   @$core.pragma('dart2js:noInline')
-  static AuthConfirmation_Response getDefault() => _defaultInstance ??=
-      $pb.GeneratedMessage.$_defaultFor<AuthConfirmation_Response>(create);
+  static AuthConfirmation_Response getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<AuthConfirmation_Response>(create);
   static AuthConfirmation_Response? _defaultInstance;
 
   @$pb.TagNumber(1)
@@ -1112,25 +947,20 @@ class AuthConfirmation extends $pb.GeneratedMessage {
 
   AuthConfirmation._();
 
-  factory AuthConfirmation.fromBuffer($core.List<$core.int> data,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+  factory AuthConfirmation.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(data, registry);
-  factory AuthConfirmation.fromJson($core.String json,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+  factory AuthConfirmation.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(json, registry);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      _omitMessageNames ? '' : 'AuthConfirmation',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'),
-      createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'AuthConfirmation',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   AuthConfirmation clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   AuthConfirmation copyWith(void Function(AuthConfirmation) updates) =>
-      super.copyWith((message) => updates(message as AuthConfirmation))
-          as AuthConfirmation;
+      super.copyWith((message) => updates(message as AuthConfirmation)) as AuthConfirmation;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
@@ -1140,12 +970,9 @@ class AuthConfirmation extends $pb.GeneratedMessage {
   @$core.override
   AuthConfirmation createEmptyInstance() => create();
   @$core.pragma('dart2js:noInline')
-  static AuthConfirmation getDefault() => _defaultInstance ??=
-      $pb.GeneratedMessage.$_defaultFor<AuthConfirmation>(create);
+  static AuthConfirmation getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<AuthConfirmation>(create);
   static AuthConfirmation? _defaultInstance;
 }
 
-const $core.bool _omitFieldNames =
-    $core.bool.fromEnvironment('protobuf.omit_field_names');
-const $core.bool _omitMessageNames =
-    $core.bool.fromEnvironment('protobuf.omit_message_names');
+const $core.bool _omitFieldNames = $core.bool.fromEnvironment('protobuf.omit_field_names');
+const $core.bool _omitMessageNames = $core.bool.fromEnvironment('protobuf.omit_message_names');

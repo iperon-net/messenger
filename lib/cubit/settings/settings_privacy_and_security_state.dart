@@ -5,8 +5,7 @@ import '../../constants.dart';
 part 'settings_privacy_and_security_state.mapper.dart';
 
 @MappableClass()
-class SettingsPrivacyAndSecurityState
-    with SettingsPrivacyAndSecurityStateMappable {
+class SettingsPrivacyAndSecurityState with SettingsPrivacyAndSecurityStateMappable {
   final Status status;
 
   const SettingsPrivacyAndSecurityState({this.status = Status.initialization});

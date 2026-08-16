@@ -45,41 +45,25 @@ class SettingsDeviceModel with SettingsDeviceModelMappable {
     }
 
     if (darkModeValue == "disabled") {
-      settingsDeviceModel = settingsDeviceModel.copyWith(
-        darkMode: DarkModeModel.disabled,
-      );
+      settingsDeviceModel = settingsDeviceModel.copyWith(darkMode: DarkModeModel.disabled);
     } else if (darkModeValue == "alwaysOn") {
-      settingsDeviceModel = settingsDeviceModel.copyWith(
-        darkMode: DarkModeModel.alwaysOn,
-      );
+      settingsDeviceModel = settingsDeviceModel.copyWith(darkMode: DarkModeModel.alwaysOn);
     } else if (darkModeValue == "system") {
-      settingsDeviceModel = settingsDeviceModel.copyWith(
-        darkMode: DarkModeModel.system,
-      );
+      settingsDeviceModel = settingsDeviceModel.copyWith(darkMode: DarkModeModel.system);
     }
 
     if (colorThemeValue == "purple") {
-      settingsDeviceModel = settingsDeviceModel.copyWith(
-        colorTheme: ColorThemeModel.purple,
-      );
+      settingsDeviceModel = settingsDeviceModel.copyWith(colorTheme: ColorThemeModel.purple);
     } else if (colorThemeValue == "green") {
-      settingsDeviceModel = settingsDeviceModel.copyWith(
-        colorTheme: ColorThemeModel.green,
-      );
+      settingsDeviceModel = settingsDeviceModel.copyWith(colorTheme: ColorThemeModel.green);
     } else if (colorThemeValue == "red") {
-      settingsDeviceModel = settingsDeviceModel.copyWith(
-        colorTheme: ColorThemeModel.red,
-      );
+      settingsDeviceModel = settingsDeviceModel.copyWith(colorTheme: ColorThemeModel.red);
     } else if (colorThemeValue == "blue") {
-      settingsDeviceModel = settingsDeviceModel.copyWith(
-        colorTheme: ColorThemeModel.blue,
-      );
+      settingsDeviceModel = settingsDeviceModel.copyWith(colorTheme: ColorThemeModel.blue);
     }
 
     if (isBlurOnInactive > 0) {
-      settingsDeviceModel = settingsDeviceModel.copyWith(
-        isBlurOnInactive: true,
-      );
+      settingsDeviceModel = settingsDeviceModel.copyWith(isBlurOnInactive: true);
     }
 
     if (passcode.isNotEmpty) {
@@ -87,21 +71,15 @@ class SettingsDeviceModel with SettingsDeviceModelMappable {
     }
 
     if (passcodeBiometric > 0) {
-      settingsDeviceModel = settingsDeviceModel.copyWith(
-        passcodeBiometric: true,
-      );
+      settingsDeviceModel = settingsDeviceModel.copyWith(passcodeBiometric: true);
     }
 
     if (passcodeAutoLock > 0) {
-      settingsDeviceModel = settingsDeviceModel.copyWith(
-        passcodeAutoLock: passcodeAutoLock,
-      );
+      settingsDeviceModel = settingsDeviceModel.copyWith(passcodeAutoLock: passcodeAutoLock);
     }
 
     if (passcodeForceLocked > 0) {
-      settingsDeviceModel = settingsDeviceModel.copyWith(
-        passcodeForceLocked: true,
-      );
+      settingsDeviceModel = settingsDeviceModel.copyWith(passcodeForceLocked: true);
     }
 
     return settingsDeviceModel;

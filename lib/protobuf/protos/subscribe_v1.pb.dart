@@ -21,25 +21,20 @@ class Subscribe_Request extends $pb.GeneratedMessage {
 
   Subscribe_Request._();
 
-  factory Subscribe_Request.fromBuffer($core.List<$core.int> data,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+  factory Subscribe_Request.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(data, registry);
-  factory Subscribe_Request.fromJson($core.String json,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+  factory Subscribe_Request.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(json, registry);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      _omitMessageNames ? '' : 'Subscribe.Request',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'),
-      createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Subscribe.Request',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   Subscribe_Request clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   Subscribe_Request copyWith(void Function(Subscribe_Request) updates) =>
-      super.copyWith((message) => updates(message as Subscribe_Request))
-          as Subscribe_Request;
+      super.copyWith((message) => updates(message as Subscribe_Request)) as Subscribe_Request;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
@@ -49,8 +44,7 @@ class Subscribe_Request extends $pb.GeneratedMessage {
   @$core.override
   Subscribe_Request createEmptyInstance() => create();
   @$core.pragma('dart2js:noInline')
-  static Subscribe_Request getDefault() => _defaultInstance ??=
-      $pb.GeneratedMessage.$_defaultFor<Subscribe_Request>(create);
+  static Subscribe_Request getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Subscribe_Request>(create);
   static Subscribe_Request? _defaultInstance;
 }
 
@@ -59,25 +53,20 @@ class Subscribe_Response extends $pb.GeneratedMessage {
 
   Subscribe_Response._();
 
-  factory Subscribe_Response.fromBuffer($core.List<$core.int> data,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+  factory Subscribe_Response.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(data, registry);
-  factory Subscribe_Response.fromJson($core.String json,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+  factory Subscribe_Response.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(json, registry);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      _omitMessageNames ? '' : 'Subscribe.Response',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'),
-      createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Subscribe.Response',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   Subscribe_Response clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   Subscribe_Response copyWith(void Function(Subscribe_Response) updates) =>
-      super.copyWith((message) => updates(message as Subscribe_Response))
-          as Subscribe_Response;
+      super.copyWith((message) => updates(message as Subscribe_Response)) as Subscribe_Response;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
@@ -87,8 +76,7 @@ class Subscribe_Response extends $pb.GeneratedMessage {
   @$core.override
   Subscribe_Response createEmptyInstance() => create();
   @$core.pragma('dart2js:noInline')
-  static Subscribe_Response getDefault() => _defaultInstance ??=
-      $pb.GeneratedMessage.$_defaultFor<Subscribe_Response>(create);
+  static Subscribe_Response getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Subscribe_Response>(create);
   static Subscribe_Response? _defaultInstance;
 }
 
@@ -97,24 +85,19 @@ class Subscribe extends $pb.GeneratedMessage {
 
   Subscribe._();
 
-  factory Subscribe.fromBuffer($core.List<$core.int> data,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+  factory Subscribe.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(data, registry);
-  factory Subscribe.fromJson($core.String json,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+  factory Subscribe.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(json, registry);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      _omitMessageNames ? '' : 'Subscribe',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'),
-      createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Subscribe',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   Subscribe clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  Subscribe copyWith(void Function(Subscribe) updates) =>
-      super.copyWith((message) => updates(message as Subscribe)) as Subscribe;
+  Subscribe copyWith(void Function(Subscribe) updates) => super.copyWith((message) => updates(message as Subscribe)) as Subscribe;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
@@ -124,10 +107,8 @@ class Subscribe extends $pb.GeneratedMessage {
   @$core.override
   Subscribe createEmptyInstance() => create();
   @$core.pragma('dart2js:noInline')
-  static Subscribe getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Subscribe>(create);
+  static Subscribe getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Subscribe>(create);
   static Subscribe? _defaultInstance;
 }
 
-const $core.bool _omitMessageNames =
-    $core.bool.fromEnvironment('protobuf.omit_message_names');
+const $core.bool _omitMessageNames = $core.bool.fromEnvironment('protobuf.omit_message_names');

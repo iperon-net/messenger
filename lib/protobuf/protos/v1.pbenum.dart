@@ -15,32 +15,18 @@ import 'dart:core' as $core;
 import 'package:protobuf/protobuf.dart' as $pb;
 
 class MessageType extends $pb.ProtobufEnum {
-  static const MessageType HEALTHCHECK =
-      MessageType._(0, _omitEnumNames ? '' : 'HEALTHCHECK');
-  static const MessageType META_DATA_INFO =
-      MessageType._(1, _omitEnumNames ? '' : 'META_DATA_INFO');
-  static const MessageType AUTH_CALL_PASSWORD =
-      MessageType._(2, _omitEnumNames ? '' : 'AUTH_CALL_PASSWORD');
-  static const MessageType AUTH_CALL_PASSWORD_CONFIRMATION =
-      MessageType._(3, _omitEnumNames ? '' : 'AUTH_CALL_PASSWORD_CONFIRMATION');
-  static const MessageType AUTH_MODERATION_APPLICATION_STORE = MessageType._(
-      4, _omitEnumNames ? '' : 'AUTH_MODERATION_APPLICATION_STORE');
+  static const MessageType HEALTHCHECK = MessageType._(0, _omitEnumNames ? '' : 'HEALTHCHECK');
+  static const MessageType META_DATA_INFO = MessageType._(1, _omitEnumNames ? '' : 'META_DATA_INFO');
+  static const MessageType AUTH_CALL_PASSWORD = MessageType._(2, _omitEnumNames ? '' : 'AUTH_CALL_PASSWORD');
+  static const MessageType AUTH_CALL_PASSWORD_CONFIRMATION = MessageType._(3, _omitEnumNames ? '' : 'AUTH_CALL_PASSWORD_CONFIRMATION');
+  static const MessageType AUTH_MODERATION_APPLICATION_STORE = MessageType._(4, _omitEnumNames ? '' : 'AUTH_MODERATION_APPLICATION_STORE');
   static const MessageType AUTH_MODERATION_APPLICATION_STORE_CONFIRMATION =
-      MessageType._(
-          5,
-          _omitEnumNames
-              ? ''
-              : 'AUTH_MODERATION_APPLICATION_STORE_CONFIRMATION');
-  static const MessageType DEVICE_SESSIONS =
-      MessageType._(6, _omitEnumNames ? '' : 'DEVICE_SESSIONS');
-  static const MessageType LOGOUT =
-      MessageType._(7, _omitEnumNames ? '' : 'LOGOUT');
-  static const MessageType SUBSCRIBE =
-      MessageType._(8, _omitEnumNames ? '' : 'SUBSCRIBE');
-  static const MessageType DEVICE_SESSIONS_TERMINATE =
-      MessageType._(9, _omitEnumNames ? '' : 'DEVICE_SESSIONS_TERMINATE');
-  static const MessageType AUTH_CONFIRMATION =
-      MessageType._(10, _omitEnumNames ? '' : 'AUTH_CONFIRMATION');
+      MessageType._(5, _omitEnumNames ? '' : 'AUTH_MODERATION_APPLICATION_STORE_CONFIRMATION');
+  static const MessageType DEVICE_SESSIONS = MessageType._(6, _omitEnumNames ? '' : 'DEVICE_SESSIONS');
+  static const MessageType LOGOUT = MessageType._(7, _omitEnumNames ? '' : 'LOGOUT');
+  static const MessageType SUBSCRIBE = MessageType._(8, _omitEnumNames ? '' : 'SUBSCRIBE');
+  static const MessageType DEVICE_SESSIONS_TERMINATE = MessageType._(9, _omitEnumNames ? '' : 'DEVICE_SESSIONS_TERMINATE');
+  static const MessageType AUTH_CONFIRMATION = MessageType._(10, _omitEnumNames ? '' : 'AUTH_CONFIRMATION');
 
   static const $core.List<MessageType> values = <MessageType>[
     HEALTHCHECK,
@@ -56,13 +42,10 @@ class MessageType extends $pb.ProtobufEnum {
     AUTH_CONFIRMATION,
   ];
 
-  static final $core.List<MessageType?> _byValue =
-      $pb.ProtobufEnum.$_initByValueList(values, 10);
-  static MessageType? valueOf($core.int value) =>
-      value < 0 || value >= _byValue.length ? null : _byValue[value];
+  static final $core.List<MessageType?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 10);
+  static MessageType? valueOf($core.int value) => value < 0 || value >= _byValue.length ? null : _byValue[value];
 
   const MessageType._(super.value, super.name);
 }
 
-const $core.bool _omitEnumNames =
-    $core.bool.fromEnvironment('protobuf.omit_enum_names');
+const $core.bool _omitEnumNames = $core.bool.fromEnvironment('protobuf.omit_enum_names');

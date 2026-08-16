@@ -9,12 +9,10 @@ class SettingsLanguageCupertinoScreen extends StatefulWidget {
   const SettingsLanguageCupertinoScreen({super.key});
 
   @override
-  State<SettingsLanguageCupertinoScreen> createState() =>
-      _SettingsLanguageCupertinoScreen();
+  State<SettingsLanguageCupertinoScreen> createState() => _SettingsLanguageCupertinoScreen();
 }
 
-class _SettingsLanguageCupertinoScreen
-    extends State<SettingsLanguageCupertinoScreen> {
+class _SettingsLanguageCupertinoScreen extends State<SettingsLanguageCupertinoScreen> {
   @override
   void initState() {
     super.initState();
@@ -40,10 +38,8 @@ class _SettingsLanguageCupertinoScreen
     );
 
     return BlocConsumer<SettingsLanguageCubit, SettingsLanguageState>(
-      listenWhen: (previousState, currentState) =>
-          previousState.locale != currentState.locale,
-      listener: (context, state) =>
-          context.read<CommonCubit>().setLocale(locale: state.locale),
+      listenWhen: (previousState, currentState) => previousState.locale != currentState.locale,
+      listener: (context, state) => context.read<CommonCubit>().setLocale(locale: state.locale),
       builder: (context, state) {
         return CupertinoPageScaffold(
           backgroundColor: CupertinoColors.systemGroupedBackground,
@@ -58,22 +54,14 @@ class _SettingsLanguageCupertinoScreen
                 CupertinoListTile(
                   title: Text("English"),
                   subtitle: Text("English"),
-                  onTap: () async => await context
-                      .read<SettingsLanguageCubit>()
-                      .setLocale(locale: AppLocale.en),
-                  additionalInfo: state.locale == AppLocale.en
-                      ? additionalInfo
-                      : null,
+                  onTap: () async => await context.read<SettingsLanguageCubit>().setLocale(locale: AppLocale.en),
+                  additionalInfo: state.locale == AppLocale.en ? additionalInfo : null,
                 ),
                 CupertinoListTile(
                   title: Text("Russian"),
                   subtitle: Text("Русский"),
-                  onTap: () async => await context
-                      .read<SettingsLanguageCubit>()
-                      .setLocale(locale: AppLocale.ru),
-                  additionalInfo: state.locale == AppLocale.ru
-                      ? additionalInfo
-                      : null,
+                  onTap: () async => await context.read<SettingsLanguageCubit>().setLocale(locale: AppLocale.ru),
+                  additionalInfo: state.locale == AppLocale.ru ? additionalInfo : null,
                 ),
               ],
             ),

@@ -29,17 +29,13 @@ class MetadataInfo_GitCommit extends $pb.GeneratedMessage {
 
   MetadataInfo_GitCommit._();
 
-  factory MetadataInfo_GitCommit.fromBuffer($core.List<$core.int> data,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+  factory MetadataInfo_GitCommit.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(data, registry);
-  factory MetadataInfo_GitCommit.fromJson($core.String json,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+  factory MetadataInfo_GitCommit.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(json, registry);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      _omitMessageNames ? '' : 'MetadataInfo.GitCommit',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'),
-      createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'MetadataInfo.GitCommit',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'full')
     ..aOS(2, _omitFieldNames ? '' : 'short')
     ..hasRequiredFields = false;
@@ -47,10 +43,8 @@ class MetadataInfo_GitCommit extends $pb.GeneratedMessage {
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   MetadataInfo_GitCommit clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  MetadataInfo_GitCommit copyWith(
-          void Function(MetadataInfo_GitCommit) updates) =>
-      super.copyWith((message) => updates(message as MetadataInfo_GitCommit))
-          as MetadataInfo_GitCommit;
+  MetadataInfo_GitCommit copyWith(void Function(MetadataInfo_GitCommit) updates) =>
+      super.copyWith((message) => updates(message as MetadataInfo_GitCommit)) as MetadataInfo_GitCommit;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
@@ -60,8 +54,7 @@ class MetadataInfo_GitCommit extends $pb.GeneratedMessage {
   @$core.override
   MetadataInfo_GitCommit createEmptyInstance() => create();
   @$core.pragma('dart2js:noInline')
-  static MetadataInfo_GitCommit getDefault() => _defaultInstance ??=
-      $pb.GeneratedMessage.$_defaultFor<MetadataInfo_GitCommit>(create);
+  static MetadataInfo_GitCommit getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<MetadataInfo_GitCommit>(create);
   static MetadataInfo_GitCommit? _defaultInstance;
 
   @$pb.TagNumber(1)
@@ -96,20 +89,14 @@ class MetadataInfo_EdDSA extends $pb.GeneratedMessage {
 
   MetadataInfo_EdDSA._();
 
-  factory MetadataInfo_EdDSA.fromBuffer($core.List<$core.int> data,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+  factory MetadataInfo_EdDSA.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(data, registry);
-  factory MetadataInfo_EdDSA.fromJson($core.String json,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+  factory MetadataInfo_EdDSA.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(json, registry);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      _omitMessageNames ? '' : 'MetadataInfo.EdDSA',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'),
-      createEmptyInstance: create)
-    ..a<$core.List<$core.int>>(
-        1, _omitFieldNames ? '' : 'publicKey', $pb.PbFieldType.OY,
-        protoName: 'publicKey')
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'MetadataInfo.EdDSA',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..a<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'publicKey', $pb.PbFieldType.OY, protoName: 'publicKey')
     ..aOS(2, _omitFieldNames ? '' : 'fingerprint')
     ..hasRequiredFields = false;
 
@@ -117,8 +104,7 @@ class MetadataInfo_EdDSA extends $pb.GeneratedMessage {
   MetadataInfo_EdDSA clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   MetadataInfo_EdDSA copyWith(void Function(MetadataInfo_EdDSA) updates) =>
-      super.copyWith((message) => updates(message as MetadataInfo_EdDSA))
-          as MetadataInfo_EdDSA;
+      super.copyWith((message) => updates(message as MetadataInfo_EdDSA)) as MetadataInfo_EdDSA;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
@@ -128,8 +114,7 @@ class MetadataInfo_EdDSA extends $pb.GeneratedMessage {
   @$core.override
   MetadataInfo_EdDSA createEmptyInstance() => create();
   @$core.pragma('dart2js:noInline')
-  static MetadataInfo_EdDSA getDefault() => _defaultInstance ??=
-      $pb.GeneratedMessage.$_defaultFor<MetadataInfo_EdDSA>(create);
+  static MetadataInfo_EdDSA getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<MetadataInfo_EdDSA>(create);
   static MetadataInfo_EdDSA? _defaultInstance;
 
   @$pb.TagNumber(1)
@@ -164,20 +149,14 @@ class MetadataInfo_VOPRF extends $pb.GeneratedMessage {
 
   MetadataInfo_VOPRF._();
 
-  factory MetadataInfo_VOPRF.fromBuffer($core.List<$core.int> data,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+  factory MetadataInfo_VOPRF.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(data, registry);
-  factory MetadataInfo_VOPRF.fromJson($core.String json,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+  factory MetadataInfo_VOPRF.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(json, registry);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      _omitMessageNames ? '' : 'MetadataInfo.VOPRF',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'),
-      createEmptyInstance: create)
-    ..a<$core.List<$core.int>>(
-        1, _omitFieldNames ? '' : 'publicKey', $pb.PbFieldType.OY,
-        protoName: 'publicKey')
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'MetadataInfo.VOPRF',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..a<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'publicKey', $pb.PbFieldType.OY, protoName: 'publicKey')
     ..aOS(2, _omitFieldNames ? '' : 'fingerprint')
     ..hasRequiredFields = false;
 
@@ -185,8 +164,7 @@ class MetadataInfo_VOPRF extends $pb.GeneratedMessage {
   MetadataInfo_VOPRF clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   MetadataInfo_VOPRF copyWith(void Function(MetadataInfo_VOPRF) updates) =>
-      super.copyWith((message) => updates(message as MetadataInfo_VOPRF))
-          as MetadataInfo_VOPRF;
+      super.copyWith((message) => updates(message as MetadataInfo_VOPRF)) as MetadataInfo_VOPRF;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
@@ -196,8 +174,7 @@ class MetadataInfo_VOPRF extends $pb.GeneratedMessage {
   @$core.override
   MetadataInfo_VOPRF createEmptyInstance() => create();
   @$core.pragma('dart2js:noInline')
-  static MetadataInfo_VOPRF getDefault() => _defaultInstance ??=
-      $pb.GeneratedMessage.$_defaultFor<MetadataInfo_VOPRF>(create);
+  static MetadataInfo_VOPRF getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<MetadataInfo_VOPRF>(create);
   static MetadataInfo_VOPRF? _defaultInstance;
 
   @$pb.TagNumber(1)
@@ -225,25 +202,20 @@ class MetadataInfo_Request extends $pb.GeneratedMessage {
 
   MetadataInfo_Request._();
 
-  factory MetadataInfo_Request.fromBuffer($core.List<$core.int> data,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+  factory MetadataInfo_Request.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(data, registry);
-  factory MetadataInfo_Request.fromJson($core.String json,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+  factory MetadataInfo_Request.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(json, registry);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      _omitMessageNames ? '' : 'MetadataInfo.Request',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'),
-      createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'MetadataInfo.Request',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   MetadataInfo_Request clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   MetadataInfo_Request copyWith(void Function(MetadataInfo_Request) updates) =>
-      super.copyWith((message) => updates(message as MetadataInfo_Request))
-          as MetadataInfo_Request;
+      super.copyWith((message) => updates(message as MetadataInfo_Request)) as MetadataInfo_Request;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
@@ -253,8 +225,7 @@ class MetadataInfo_Request extends $pb.GeneratedMessage {
   @$core.override
   MetadataInfo_Request createEmptyInstance() => create();
   @$core.pragma('dart2js:noInline')
-  static MetadataInfo_Request getDefault() => _defaultInstance ??=
-      $pb.GeneratedMessage.$_defaultFor<MetadataInfo_Request>(create);
+  static MetadataInfo_Request getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<MetadataInfo_Request>(create);
   static MetadataInfo_Request? _defaultInstance;
 }
 
@@ -278,23 +249,16 @@ class MetadataInfo_Response extends $pb.GeneratedMessage {
 
   MetadataInfo_Response._();
 
-  factory MetadataInfo_Response.fromBuffer($core.List<$core.int> data,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+  factory MetadataInfo_Response.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(data, registry);
-  factory MetadataInfo_Response.fromJson($core.String json,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+  factory MetadataInfo_Response.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(json, registry);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      _omitMessageNames ? '' : 'MetadataInfo.Response',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'),
-      createEmptyInstance: create)
-    ..aOM<MetadataInfo_EdDSA>(2, _omitFieldNames ? '' : 'eddsa',
-        subBuilder: MetadataInfo_EdDSA.create)
-    ..aOM<MetadataInfo_VOPRF>(3, _omitFieldNames ? '' : 'voprf',
-        subBuilder: MetadataInfo_VOPRF.create)
-    ..aOM<MetadataInfo_GitCommit>(4, _omitFieldNames ? '' : 'gitCommit',
-        protoName: 'gitCommit', subBuilder: MetadataInfo_GitCommit.create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'MetadataInfo.Response',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..aOM<MetadataInfo_EdDSA>(2, _omitFieldNames ? '' : 'eddsa', subBuilder: MetadataInfo_EdDSA.create)
+    ..aOM<MetadataInfo_VOPRF>(3, _omitFieldNames ? '' : 'voprf', subBuilder: MetadataInfo_VOPRF.create)
+    ..aOM<MetadataInfo_GitCommit>(4, _omitFieldNames ? '' : 'gitCommit', protoName: 'gitCommit', subBuilder: MetadataInfo_GitCommit.create)
     ..aOS(5, _omitFieldNames ? '' : 'buildDate', protoName: 'buildDate')
     ..aOS(6, _omitFieldNames ? '' : 'version')
     ..hasRequiredFields = false;
@@ -302,10 +266,8 @@ class MetadataInfo_Response extends $pb.GeneratedMessage {
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   MetadataInfo_Response clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  MetadataInfo_Response copyWith(
-          void Function(MetadataInfo_Response) updates) =>
-      super.copyWith((message) => updates(message as MetadataInfo_Response))
-          as MetadataInfo_Response;
+  MetadataInfo_Response copyWith(void Function(MetadataInfo_Response) updates) =>
+      super.copyWith((message) => updates(message as MetadataInfo_Response)) as MetadataInfo_Response;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
@@ -315,8 +277,7 @@ class MetadataInfo_Response extends $pb.GeneratedMessage {
   @$core.override
   MetadataInfo_Response createEmptyInstance() => create();
   @$core.pragma('dart2js:noInline')
-  static MetadataInfo_Response getDefault() => _defaultInstance ??=
-      $pb.GeneratedMessage.$_defaultFor<MetadataInfo_Response>(create);
+  static MetadataInfo_Response getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<MetadataInfo_Response>(create);
   static MetadataInfo_Response? _defaultInstance;
 
   @$pb.TagNumber(2)
@@ -377,25 +338,20 @@ class MetadataInfo extends $pb.GeneratedMessage {
 
   MetadataInfo._();
 
-  factory MetadataInfo.fromBuffer($core.List<$core.int> data,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+  factory MetadataInfo.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(data, registry);
-  factory MetadataInfo.fromJson($core.String json,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+  factory MetadataInfo.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(json, registry);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      _omitMessageNames ? '' : 'MetadataInfo',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'),
-      createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'MetadataInfo',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   MetadataInfo clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   MetadataInfo copyWith(void Function(MetadataInfo) updates) =>
-      super.copyWith((message) => updates(message as MetadataInfo))
-          as MetadataInfo;
+      super.copyWith((message) => updates(message as MetadataInfo)) as MetadataInfo;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
@@ -405,8 +361,7 @@ class MetadataInfo extends $pb.GeneratedMessage {
   @$core.override
   MetadataInfo createEmptyInstance() => create();
   @$core.pragma('dart2js:noInline')
-  static MetadataInfo getDefault() => _defaultInstance ??=
-      $pb.GeneratedMessage.$_defaultFor<MetadataInfo>(create);
+  static MetadataInfo getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<MetadataInfo>(create);
   static MetadataInfo? _defaultInstance;
 }
 
@@ -423,17 +378,13 @@ class MetadataGeoIP_Location extends $pb.GeneratedMessage {
 
   MetadataGeoIP_Location._();
 
-  factory MetadataGeoIP_Location.fromBuffer($core.List<$core.int> data,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+  factory MetadataGeoIP_Location.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(data, registry);
-  factory MetadataGeoIP_Location.fromJson($core.String json,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+  factory MetadataGeoIP_Location.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(json, registry);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      _omitMessageNames ? '' : 'MetadataGeoIP.Location',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'),
-      createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'MetadataGeoIP.Location',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
     ..aD(1, _omitFieldNames ? '' : 'latitude', fieldType: $pb.PbFieldType.OF)
     ..aD(2, _omitFieldNames ? '' : 'longitude', fieldType: $pb.PbFieldType.OF)
     ..hasRequiredFields = false;
@@ -441,10 +392,8 @@ class MetadataGeoIP_Location extends $pb.GeneratedMessage {
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   MetadataGeoIP_Location clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  MetadataGeoIP_Location copyWith(
-          void Function(MetadataGeoIP_Location) updates) =>
-      super.copyWith((message) => updates(message as MetadataGeoIP_Location))
-          as MetadataGeoIP_Location;
+  MetadataGeoIP_Location copyWith(void Function(MetadataGeoIP_Location) updates) =>
+      super.copyWith((message) => updates(message as MetadataGeoIP_Location)) as MetadataGeoIP_Location;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
@@ -454,8 +403,7 @@ class MetadataGeoIP_Location extends $pb.GeneratedMessage {
   @$core.override
   MetadataGeoIP_Location createEmptyInstance() => create();
   @$core.pragma('dart2js:noInline')
-  static MetadataGeoIP_Location getDefault() => _defaultInstance ??=
-      $pb.GeneratedMessage.$_defaultFor<MetadataGeoIP_Location>(create);
+  static MetadataGeoIP_Location getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<MetadataGeoIP_Location>(create);
   static MetadataGeoIP_Location? _defaultInstance;
 
   @$pb.TagNumber(1)
@@ -490,17 +438,13 @@ class MetadataGeoIP_Country extends $pb.GeneratedMessage {
 
   MetadataGeoIP_Country._();
 
-  factory MetadataGeoIP_Country.fromBuffer($core.List<$core.int> data,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+  factory MetadataGeoIP_Country.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(data, registry);
-  factory MetadataGeoIP_Country.fromJson($core.String json,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+  factory MetadataGeoIP_Country.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(json, registry);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      _omitMessageNames ? '' : 'MetadataGeoIP.Country',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'),
-      createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'MetadataGeoIP.Country',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'russianName', protoName: 'russianName')
     ..aOS(2, _omitFieldNames ? '' : 'englishName', protoName: 'englishName')
     ..hasRequiredFields = false;
@@ -508,10 +452,8 @@ class MetadataGeoIP_Country extends $pb.GeneratedMessage {
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   MetadataGeoIP_Country clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  MetadataGeoIP_Country copyWith(
-          void Function(MetadataGeoIP_Country) updates) =>
-      super.copyWith((message) => updates(message as MetadataGeoIP_Country))
-          as MetadataGeoIP_Country;
+  MetadataGeoIP_Country copyWith(void Function(MetadataGeoIP_Country) updates) =>
+      super.copyWith((message) => updates(message as MetadataGeoIP_Country)) as MetadataGeoIP_Country;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
@@ -521,8 +463,7 @@ class MetadataGeoIP_Country extends $pb.GeneratedMessage {
   @$core.override
   MetadataGeoIP_Country createEmptyInstance() => create();
   @$core.pragma('dart2js:noInline')
-  static MetadataGeoIP_Country getDefault() => _defaultInstance ??=
-      $pb.GeneratedMessage.$_defaultFor<MetadataGeoIP_Country>(create);
+  static MetadataGeoIP_Country getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<MetadataGeoIP_Country>(create);
   static MetadataGeoIP_Country? _defaultInstance;
 
   @$pb.TagNumber(1)
@@ -557,17 +498,13 @@ class MetadataGeoIP_City extends $pb.GeneratedMessage {
 
   MetadataGeoIP_City._();
 
-  factory MetadataGeoIP_City.fromBuffer($core.List<$core.int> data,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+  factory MetadataGeoIP_City.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(data, registry);
-  factory MetadataGeoIP_City.fromJson($core.String json,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+  factory MetadataGeoIP_City.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(json, registry);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      _omitMessageNames ? '' : 'MetadataGeoIP.City',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'),
-      createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'MetadataGeoIP.City',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'russianName', protoName: 'russianName')
     ..aOS(2, _omitFieldNames ? '' : 'englishName', protoName: 'englishName')
     ..hasRequiredFields = false;
@@ -576,8 +513,7 @@ class MetadataGeoIP_City extends $pb.GeneratedMessage {
   MetadataGeoIP_City clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   MetadataGeoIP_City copyWith(void Function(MetadataGeoIP_City) updates) =>
-      super.copyWith((message) => updates(message as MetadataGeoIP_City))
-          as MetadataGeoIP_City;
+      super.copyWith((message) => updates(message as MetadataGeoIP_City)) as MetadataGeoIP_City;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
@@ -587,8 +523,7 @@ class MetadataGeoIP_City extends $pb.GeneratedMessage {
   @$core.override
   MetadataGeoIP_City createEmptyInstance() => create();
   @$core.pragma('dart2js:noInline')
-  static MetadataGeoIP_City getDefault() => _defaultInstance ??=
-      $pb.GeneratedMessage.$_defaultFor<MetadataGeoIP_City>(create);
+  static MetadataGeoIP_City getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<MetadataGeoIP_City>(create);
   static MetadataGeoIP_City? _defaultInstance;
 
   @$pb.TagNumber(1)
@@ -622,27 +557,21 @@ class MetadataGeoIP_Request extends $pb.GeneratedMessage {
 
   MetadataGeoIP_Request._();
 
-  factory MetadataGeoIP_Request.fromBuffer($core.List<$core.int> data,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+  factory MetadataGeoIP_Request.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(data, registry);
-  factory MetadataGeoIP_Request.fromJson($core.String json,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+  factory MetadataGeoIP_Request.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(json, registry);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      _omitMessageNames ? '' : 'MetadataGeoIP.Request',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'),
-      createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'MetadataGeoIP.Request',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'ip')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   MetadataGeoIP_Request clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  MetadataGeoIP_Request copyWith(
-          void Function(MetadataGeoIP_Request) updates) =>
-      super.copyWith((message) => updates(message as MetadataGeoIP_Request))
-          as MetadataGeoIP_Request;
+  MetadataGeoIP_Request copyWith(void Function(MetadataGeoIP_Request) updates) =>
+      super.copyWith((message) => updates(message as MetadataGeoIP_Request)) as MetadataGeoIP_Request;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
@@ -652,8 +581,7 @@ class MetadataGeoIP_Request extends $pb.GeneratedMessage {
   @$core.override
   MetadataGeoIP_Request createEmptyInstance() => create();
   @$core.pragma('dart2js:noInline')
-  static MetadataGeoIP_Request getDefault() => _defaultInstance ??=
-      $pb.GeneratedMessage.$_defaultFor<MetadataGeoIP_Request>(create);
+  static MetadataGeoIP_Request getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<MetadataGeoIP_Request>(create);
   static MetadataGeoIP_Request? _defaultInstance;
 
   @$pb.TagNumber(1)
@@ -688,35 +616,26 @@ class MetadataGeoIP_Response extends $pb.GeneratedMessage {
 
   MetadataGeoIP_Response._();
 
-  factory MetadataGeoIP_Response.fromBuffer($core.List<$core.int> data,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+  factory MetadataGeoIP_Response.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(data, registry);
-  factory MetadataGeoIP_Response.fromJson($core.String json,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+  factory MetadataGeoIP_Response.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(json, registry);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      _omitMessageNames ? '' : 'MetadataGeoIP.Response',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'),
-      createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'MetadataGeoIP.Response',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'timeZone', protoName: 'timeZone')
     ..aOS(2, _omitFieldNames ? '' : 'isoCode', protoName: 'isoCode')
-    ..aOM<MetadataGeoIP_Location>(3, _omitFieldNames ? '' : 'location',
-        subBuilder: MetadataGeoIP_Location.create)
-    ..aOM<MetadataGeoIP_Country>(4, _omitFieldNames ? '' : 'country',
-        subBuilder: MetadataGeoIP_Country.create)
-    ..aOM<MetadataGeoIP_City>(5, _omitFieldNames ? '' : 'city',
-        subBuilder: MetadataGeoIP_City.create)
+    ..aOM<MetadataGeoIP_Location>(3, _omitFieldNames ? '' : 'location', subBuilder: MetadataGeoIP_Location.create)
+    ..aOM<MetadataGeoIP_Country>(4, _omitFieldNames ? '' : 'country', subBuilder: MetadataGeoIP_Country.create)
+    ..aOM<MetadataGeoIP_City>(5, _omitFieldNames ? '' : 'city', subBuilder: MetadataGeoIP_City.create)
     ..aOS(6, _omitFieldNames ? '' : 'ip')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   MetadataGeoIP_Response clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  MetadataGeoIP_Response copyWith(
-          void Function(MetadataGeoIP_Response) updates) =>
-      super.copyWith((message) => updates(message as MetadataGeoIP_Response))
-          as MetadataGeoIP_Response;
+  MetadataGeoIP_Response copyWith(void Function(MetadataGeoIP_Response) updates) =>
+      super.copyWith((message) => updates(message as MetadataGeoIP_Response)) as MetadataGeoIP_Response;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
@@ -726,8 +645,7 @@ class MetadataGeoIP_Response extends $pb.GeneratedMessage {
   @$core.override
   MetadataGeoIP_Response createEmptyInstance() => create();
   @$core.pragma('dart2js:noInline')
-  static MetadataGeoIP_Response getDefault() => _defaultInstance ??=
-      $pb.GeneratedMessage.$_defaultFor<MetadataGeoIP_Response>(create);
+  static MetadataGeoIP_Response getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<MetadataGeoIP_Response>(create);
   static MetadataGeoIP_Response? _defaultInstance;
 
   @$pb.TagNumber(1)
@@ -797,25 +715,20 @@ class MetadataGeoIP extends $pb.GeneratedMessage {
 
   MetadataGeoIP._();
 
-  factory MetadataGeoIP.fromBuffer($core.List<$core.int> data,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+  factory MetadataGeoIP.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(data, registry);
-  factory MetadataGeoIP.fromJson($core.String json,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+  factory MetadataGeoIP.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(json, registry);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      _omitMessageNames ? '' : 'MetadataGeoIP',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'),
-      createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'MetadataGeoIP',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   MetadataGeoIP clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   MetadataGeoIP copyWith(void Function(MetadataGeoIP) updates) =>
-      super.copyWith((message) => updates(message as MetadataGeoIP))
-          as MetadataGeoIP;
+      super.copyWith((message) => updates(message as MetadataGeoIP)) as MetadataGeoIP;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
@@ -825,12 +738,9 @@ class MetadataGeoIP extends $pb.GeneratedMessage {
   @$core.override
   MetadataGeoIP createEmptyInstance() => create();
   @$core.pragma('dart2js:noInline')
-  static MetadataGeoIP getDefault() => _defaultInstance ??=
-      $pb.GeneratedMessage.$_defaultFor<MetadataGeoIP>(create);
+  static MetadataGeoIP getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<MetadataGeoIP>(create);
   static MetadataGeoIP? _defaultInstance;
 }
 
-const $core.bool _omitFieldNames =
-    $core.bool.fromEnvironment('protobuf.omit_field_names');
-const $core.bool _omitMessageNames =
-    $core.bool.fromEnvironment('protobuf.omit_message_names');
+const $core.bool _omitFieldNames = $core.bool.fromEnvironment('protobuf.omit_field_names');
+const $core.bool _omitMessageNames = $core.bool.fromEnvironment('protobuf.omit_message_names');

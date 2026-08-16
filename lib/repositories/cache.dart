@@ -6,19 +6,9 @@ class Cache {
 
   Cache({required this.logger, required this.db});
 
-  Future<void> set({
-    required Uint8List userID,
-    required String key,
-    required Uint8List value,
-  }) async {
-    await db.execute("DELETE FROM cache WHERE userID = ? AND key = ?;", [
-      userID,
-      key,
-    ]);
-    await db.execute(
-      "INSERT INTO cache (key, value, userID) VALUES (?, ?, ?);",
-      [key, value, userID],
-    );
+  Future<void> set({required Uint8List userID, required String key, required Uint8List value}) async {
+    await db.execute("DELETE FROM cache WHERE userID = ? AND key = ?;", [userID, key]);
+    await db.execute("INSERT INTO cache (key, value, userID) VALUES (?, ?, ?);", [key, value, userID]);
     logger.info("set cache key=$key");
   }
 
