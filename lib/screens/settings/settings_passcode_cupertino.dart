@@ -140,21 +140,17 @@ class _SettingsPasscodeCupertino extends State<SettingsPasscodeCupertino> {
                           ],
                         ),
                       ),
-                      CupertinoListTile(
-                        title: Text(context.t.settings.passcode.faceIDUnlock),
-                        trailing: CupertinoSwitch(
-                          value: state.isBiometric,
-                          onChanged: (bool value) async => await context.read<SettingsPasscodeCubit>().setBiometric(biometric: value),
+                      if (state.isBiometricAvailable) ...[
+                        CupertinoListTile(
+                          title: Text(context.t.settings.passcode.faceIDUnlock),
+                          trailing: CupertinoSwitch(
+                            value: state.isBiometric,
+                            onChanged: (bool value) async => await context.read<SettingsPasscodeCubit>().setBiometric(biometric: value),
+                          ),
                         ),
-                      ),
+                      ],
                     ],
                   ),
-
-                  if (kDebugMode) ...[
-                    CupertinoListSection.insetGrouped(
-                      children: [CupertinoListTile(title: Text("Force Lock"), onTap: () async => context.read<CommonCubit>().forceLock())],
-                    ),
-                  ],
                 ] else ...[
                   CupertinoListSection.insetGrouped(
                     children: [

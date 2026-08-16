@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:bloc/bloc.dart';
 import 'package:cryptography/cryptography.dart';
 import 'package:flutter/foundation.dart';
+import 'package:local_auth/local_auth.dart';
 
 import '../../constants.dart';
 import '../../di.dart';
@@ -17,6 +18,8 @@ class SettingsPasscodeCubit extends Cubit<SettingsPasscodeState> {
   final logger = getIt.get<Logger>();
   final repositories = getIt.get<Repositories>();
 
+  final LocalAuthentication auth = LocalAuthentication();
+
   // Должен совпадать с параметрами хеширования в SettingsPasscodeCreateCubit,
   // иначе байты введённого PIN не сойдутся с сохранённым хешем.
   final algorithm = Argon2id(parallelism: 4, memory: 10000, iterations: 3, hashLength: 32);
@@ -25,13 +28,20 @@ class SettingsPasscodeCubit extends Cubit<SettingsPasscodeState> {
     emit(state.copyWith(status: Status.loading));
     final settings = await repositories.settingsDevice.getAll();
 
-    logger.debug(settings.passcodeAutoLock);
+    final isSupportedBiometric = await auth.isDeviceSupported();
+    final isAvailableBiometric = await auth.canCheckBiometrics;
+
+    bool isBiometricAvailable = false;
+    if (isSupportedBiometric && isAvailableBiometric) {
+      isBiometricAvailable = true;
+    }
 
     emit(
       state.copyWith(
         status: Status.success,
         passcode: settings.passcode,
         isBiometric: settings.passcodeBiometric,
+        isBiometricAvailable: isBiometricAvailable,
         autoLockSeconds: settings.passcodeAutoLock,
       ),
     );

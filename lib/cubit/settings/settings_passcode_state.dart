@@ -11,6 +11,7 @@ class SettingsPasscodeState with SettingsPasscodeStateMappable {
   final bool unlocked;
   final int autoLockSeconds;
   final bool isBiometric;
+  final bool isBiometricAvailable;
 
   const SettingsPasscodeState({
     this.status = Status.initialization,
@@ -18,5 +19,6 @@ class SettingsPasscodeState with SettingsPasscodeStateMappable {
     this.unlocked = false,
     this.autoLockSeconds = 0,
     this.isBiometric = false,
+    this.isBiometricAvailable = false,
   });
 }

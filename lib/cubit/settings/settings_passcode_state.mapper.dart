@@ -58,6 +58,15 @@ class SettingsPasscodeStateMapper
     opt: true,
     def: false,
   );
+  static bool _$isBiometricAvailable(SettingsPasscodeState v) =>
+      v.isBiometricAvailable;
+  static const Field<SettingsPasscodeState, bool> _f$isBiometricAvailable =
+      Field(
+        'isBiometricAvailable',
+        _$isBiometricAvailable,
+        opt: true,
+        def: false,
+      );
 
   @override
   final MappableFields<SettingsPasscodeState> fields = const {
@@ -66,6 +75,7 @@ class SettingsPasscodeStateMapper
     #unlocked: _f$unlocked,
     #autoLockSeconds: _f$autoLockSeconds,
     #isBiometric: _f$isBiometric,
+    #isBiometricAvailable: _f$isBiometricAvailable,
   };
 
   static SettingsPasscodeState _instantiate(DecodingData data) {
@@ -75,6 +85,7 @@ class SettingsPasscodeStateMapper
       unlocked: data.dec(_f$unlocked),
       autoLockSeconds: data.dec(_f$autoLockSeconds),
       isBiometric: data.dec(_f$isBiometric),
+      isBiometricAvailable: data.dec(_f$isBiometricAvailable),
     );
   }
 
@@ -155,6 +166,7 @@ abstract class SettingsPasscodeStateCopyWith<
     bool? unlocked,
     int? autoLockSeconds,
     bool? isBiometric,
+    bool? isBiometricAvailable,
   });
   SettingsPasscodeStateCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
     Then<$Out2, $R2> t,
@@ -183,6 +195,7 @@ class _SettingsPasscodeStateCopyWithImpl<$R, $Out>
     bool? unlocked,
     int? autoLockSeconds,
     bool? isBiometric,
+    bool? isBiometricAvailable,
   }) => $apply(
     FieldCopyWithData({
       if (status != null) #status: status,
@@ -190,6 +203,8 @@ class _SettingsPasscodeStateCopyWithImpl<$R, $Out>
       if (unlocked != null) #unlocked: unlocked,
       if (autoLockSeconds != null) #autoLockSeconds: autoLockSeconds,
       if (isBiometric != null) #isBiometric: isBiometric,
+      if (isBiometricAvailable != null)
+        #isBiometricAvailable: isBiometricAvailable,
     }),
   );
   @override
@@ -199,6 +214,10 @@ class _SettingsPasscodeStateCopyWithImpl<$R, $Out>
     unlocked: data.get(#unlocked, or: $value.unlocked),
     autoLockSeconds: data.get(#autoLockSeconds, or: $value.autoLockSeconds),
     isBiometric: data.get(#isBiometric, or: $value.isBiometric),
+    isBiometricAvailable: data.get(
+      #isBiometricAvailable,
+      or: $value.isBiometricAvailable,
+    ),
   );
 
   @override
