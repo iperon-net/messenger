@@ -121,6 +121,15 @@ jobs:
           </plist>
           EOF
 
+      - name: Install FlutterFire CLI
+        run: |
+          set -euo pipefail
+          # Build-фаза «FlutterFire: upload-crashlytics-symbols» вызывает CLI
+          # `flutterfire`. Ставим его и добавляем pub-cache/bin в PATH, чтобы
+          # скрипт-фаза Xcode нашла команду при archive.
+          dart pub global activate flutterfire_cli
+          echo "$HOME/.pub-cache/bin" >> "$GITHUB_PATH"
+
       - name: Create .env asset files
         env:
           ENV_FILE_BASE64: ${{ secrets.ENV_FILE_BASE64 }}

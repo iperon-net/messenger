@@ -102,5 +102,14 @@ jobs:
           # сборки достаточно пустых файлов (значения читаются из Remote Config).
           touch .env .env.development
 
+      - name: Install FlutterFire CLI
+        run: |
+          set -euo pipefail
+          # В проекте есть build-фаза «FlutterFire: upload-crashlytics-symbols»,
+          # вызывающая CLI `flutterfire`. Ставим его и кладём pub-cache/bin в
+          # PATH (через GITHUB_PATH), чтобы скрипт-фаза Xcode нашла команду.
+          dart pub global activate flutterfire_cli
+          echo "$HOME/.pub-cache/bin" >> "$GITHUB_PATH"
+
       - name: Build iOS
         run: flutter build ios --release --no-codesign
