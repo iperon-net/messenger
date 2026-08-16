@@ -8,6 +8,7 @@
   "confirmYourNumberDetail": "Позвоните на номер {confirmationPhoneNumberRu} с телефона который указали и дождитесь сброса звонка"
   "callForFree": "Позвонить бесплатно"
   "weAreExpectingYourCallWithin": "Ожидаем вашего звонка в течении {duration}"
+  "loginInWith": "Войти с помощью"
 
 "settings":
   "myProfile": "Мой профиль"

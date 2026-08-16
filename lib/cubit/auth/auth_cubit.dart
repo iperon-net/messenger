@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:bloc/bloc.dart';
 import 'package:dlibphonenumber/dlibphonenumber.dart';
+import 'package:yandex_login_sdk/yandex_login_sdk.dart';
 
 import '../../api.dart';
 import '../../constants.dart';
@@ -121,5 +122,25 @@ class AuthCubit extends Cubit<AuthState> {
 
     emit(state.copyWith(status: Status.success, error: null, redirectURI: uri));
     return;
+  }
+
+  Future<void> yandexSignIn() async {
+    try {
+      final result = await YandexLoginSdk.signIn(
+        clientId: settings.yandexOauthClientID,
+        // strategy: YandexLoginStrategy.webOnly, // skip installed Yandex apps
+      );
+      logger.debug('Access token: ${result.token}');
+      logger.debug('JWT (iOS only): ${result.jwt}');
+      logger.debug('Expires at (Android only): ${result.expiresAt}');
+    } on YandexAuthCancelledException {
+      // User dismissed the sheet — no need to show an error.
+    } on YandexAuthInProgressException {
+      // A sign-in is already running — ignore the extra tap.
+    } on YandexAuthUnsupportedException {
+      // Web/desktop or unsupported — fall back to your own WebView.
+    } on YandexAuthException catch (e) {
+      print('Yandex SDK error: $e');
+    }
   }
 }

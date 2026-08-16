@@ -85,5 +85,16 @@
 		<string>dev.brewkits.native_workmanager.refresh</string>
 		<string>kmp_chain_executor_task</string>
 	</array>
+	<key>CFBundleURLTypes</key>
+    <array>
+        <dict>
+            <key>CFBundleTypeRole</key><string>Editor</string>
+            <key>CFBundleURLName</key><string>YandexLoginSDK</string>
+            <key>CFBundleURLSchemes</key>
+            <array>
+                <string>yxa001e23bf51b4743a3f408473d5f85cd</string>
+            </array>
+        </dict>
+    </array>
 </dict>
 </plist>

@@ -63,6 +63,7 @@ class _Translations$auth$ru extends Translations$auth$en {
 	@override String confirmYourNumberDetail({required Object confirmationPhoneNumberRu}) => 'Позвоните на номер ${confirmationPhoneNumberRu} с телефона который указали и дождитесь сброса звонка';
 	@override String get callForFree => 'Позвонить бесплатно';
 	@override String weAreExpectingYourCallWithin({required Object duration}) => 'Ожидаем вашего звонка в течении ${duration}';
+	@override String get loginInWith => 'Войти с помощью';
 }
 
 // Path: settings
@@ -206,6 +207,7 @@ extension on TranslationsRu {
 			'auth.confirmYourNumberDetail' => ({required Object confirmationPhoneNumberRu}) => 'Позвоните на номер ${confirmationPhoneNumberRu} с телефона который указали и дождитесь сброса звонка',
 			'auth.callForFree' => 'Позвонить бесплатно',
 			'auth.weAreExpectingYourCallWithin' => ({required Object duration}) => 'Ожидаем вашего звонка в течении ${duration}',
+			'auth.loginInWith' => 'Войти с помощью',
 			'settings.myProfile' => 'Мой профиль',
 			'settings.logout' => 'Выйти',
 			'settings.devices' => 'Устройства',

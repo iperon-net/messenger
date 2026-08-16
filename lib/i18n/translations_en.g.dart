@@ -82,6 +82,9 @@ class Translations$auth$en {
 
 	/// en: 'We are expecting your call within {duration}'
 	String weAreExpectingYourCallWithin({required Object duration}) => 'We are expecting your call within ${duration}';
+
+	/// en: 'Login In with'
+	String get loginInWith => 'Login In with';
 }
 
 // Path: settings
@@ -340,6 +343,7 @@ extension on Translations {
 			'auth.confirmYourNumberDetail' => ({required Object confirmationPhoneNumberRu}) => 'Call ${confirmationPhoneNumberRu} from the phone number you provided and wait for the call to be disconnected.',
 			'auth.callForFree' => 'Call for free',
 			'auth.weAreExpectingYourCallWithin' => ({required Object duration}) => 'We are expecting your call within ${duration}',
+			'auth.loginInWith' => 'Login In with',
 			'settings.myProfile' => 'My profile',
 			'settings.logout' => 'Logout',
 			'settings.devices' => 'Devices',

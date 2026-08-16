@@ -8,6 +8,7 @@
   "confirmYourNumberDetail": "Call {confirmationPhoneNumberRu} from the phone number you provided and wait for the call to be disconnected."
   "callForFree": "Call for free"
   "weAreExpectingYourCallWithin": "We are expecting your call within {duration}"
+  "loginInWith": "Login In with"
 
 "settings":
   "myProfile": "My profile"
