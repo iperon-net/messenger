@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:device_marketing_names/device_marketing_names.dart';
 import 'package:dlibphonenumber/dlibphonenumber.dart';
 import 'package:flutter/foundation.dart';
+import 'package:local_auth/local_auth.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -127,5 +128,30 @@ class Utils {
     String minutes = duration.inMinutes.remainder(60).toString().padLeft(2, '0');
     String seconds = duration.inSeconds.remainder(60).toString().padLeft(2, '0');
     return "$minutes:$seconds";
+  }
+
+  /// Доступна ли биометрия на устройстве прямо сейчас: железо/ОС её поддерживают
+  /// и хотя бы один способ реально настроен (Face ID — задано лицо, Touch ID —
+  /// добавлен отпечаток).
+  ///
+  /// [isDeviceSupported] и [canCheckBiometrics] сами по себе не отражают
+  /// enrollment: на iPhone с Face ID, но без заданного лица, оба вернут true.
+  /// Поэтому решающая проверка — [getAvailableBiometrics], который возвращает
+  /// только фактически настроенные способы (пустой список = ничего не задано).
+  Future<bool> isBiometricAvailable() async {
+    final logger = getIt.get<Logger>();
+    final auth = LocalAuthentication();
+
+    try {
+      final isSupported = await auth.isDeviceSupported();
+      if (!isSupported) return false;
+      final canCheck = await auth.canCheckBiometrics;
+      if (!canCheck) return false;
+      final available = await auth.getAvailableBiometrics();
+      return available.isNotEmpty;
+    } catch (e, stack) {
+      logger.handle(e, stack, "isBiometricAvailable: failed");
+      return false;
+    }
   }
 }

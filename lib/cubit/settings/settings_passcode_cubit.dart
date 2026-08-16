@@ -3,11 +3,11 @@ import 'dart:convert';
 import 'package:bloc/bloc.dart';
 import 'package:cryptography/cryptography.dart';
 import 'package:flutter/foundation.dart';
-import 'package:local_auth/local_auth.dart';
 
 import '../../constants.dart';
 import '../../di.dart';
 import '../../logger.dart';
+import '../../utils.dart';
 
 import '../../repositories/repositories.dart';
 import 'settings_passcode_state.dart';
@@ -17,8 +17,7 @@ class SettingsPasscodeCubit extends Cubit<SettingsPasscodeState> {
 
   final logger = getIt.get<Logger>();
   final repositories = getIt.get<Repositories>();
-
-  final LocalAuthentication auth = LocalAuthentication();
+  final utils = getIt.get<Utils>();
 
   // Должен совпадать с параметрами хеширования в SettingsPasscodeCreateCubit,
   // иначе байты введённого PIN не сойдутся с сохранённым хешем.
@@ -28,13 +27,7 @@ class SettingsPasscodeCubit extends Cubit<SettingsPasscodeState> {
     emit(state.copyWith(status: Status.loading));
     final settings = await repositories.settingsDevice.getAll();
 
-    final isSupportedBiometric = await auth.isDeviceSupported();
-    final isAvailableBiometric = await auth.canCheckBiometrics;
-
-    bool isBiometricAvailable = false;
-    if (isSupportedBiometric && isAvailableBiometric) {
-      isBiometricAvailable = true;
-    }
+    final isBiometricAvailable = await utils.isBiometricAvailable();
 
     emit(
       state.copyWith(

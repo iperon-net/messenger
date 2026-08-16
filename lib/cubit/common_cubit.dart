@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:bloc/bloc.dart';
 import 'package:cryptography/cryptography.dart';
 import 'package:flutter/foundation.dart';
-import 'package:local_auth/local_auth.dart';
 import 'package:messenger/repositories.dart';
 
 import '../constants.dart';
@@ -11,6 +10,7 @@ import '../di.dart';
 import '../i18n/translations.g.dart';
 import '../logger.dart';
 import '../models.dart';
+import '../utils.dart';
 
 import 'common_state.dart';
 
@@ -19,28 +19,7 @@ class CommonCubit extends Cubit<CommonState> {
 
   final logger = getIt.get<Logger>();
   final repositories = getIt.get<Repositories>();
-
-  final LocalAuthentication _localAuth = LocalAuthentication();
-
-  /// Проверяет, доступна ли биометрия на устройстве прямо сейчас: железо/ОС её
-  /// поддерживают и хотя бы один способ реально настроен (Face ID — задано лицо,
-  /// Touch ID — добавлен отпечаток). Если поддержки нет или ничего не настроено,
-  /// вернёт false — тогда кнопку биометрии на экране блокировки не показываем.
-  Future<bool> _isBiometricAvailable() async {
-    try {
-      final isSupported = await _localAuth.isDeviceSupported();
-      if (!isSupported) return false;
-      final canCheck = await _localAuth.canCheckBiometrics;
-      if (!canCheck) return false;
-      // getAvailableBiometrics возвращает только фактически настроенные способы —
-      // так отсекаем случай «Face ID поддерживается, но лицо не задано».
-      final available = await _localAuth.getAvailableBiometrics();
-      return available.isNotEmpty;
-    } catch (e, stack) {
-      logger.handle(e, stack);
-      return false;
-    }
-  }
+  final utils = getIt.get<Utils>();
 
   // Должен совпадать с параметрами хеширования в SettingsPasscodeCreateCubit,
   // иначе байты введённого PIN не сойдутся с сохранённым хешем.
@@ -55,7 +34,7 @@ class CommonCubit extends Cubit<CommonState> {
     // авто-блокировка (autoLock > 0), либо ранее была выставлена форс-блокировка.
     // Форс-блокировка персистится в БД и потому переживает перезапуск приложения.
     final locked = settingsDevice.passcode.isNotEmpty && (settingsDevice.passcodeForceLocked || settingsDevice.passcodeAutoLock > 0);
-    final isBiometricAvailable = await _isBiometricAvailable();
+    final isBiometricAvailable = await utils.isBiometricAvailable();
     // При холодном старте после принудительной блокировки биометрию сама не
     // показываем — только по кнопке. Обычная авто-блокировка биометрию разрешает.
     emit(
@@ -76,7 +55,7 @@ class CommonCubit extends Cubit<CommonState> {
     if (state.settingsDevice.passcode.isEmpty) return;
     await repositories.settingsDevice.setPasscodeForceLocked(true);
     final settingsDevice = state.settingsDevice.copyWith(passcodeForceLocked: true);
-    final isBiometricAvailable = await _isBiometricAvailable();
+    final isBiometricAvailable = await utils.isBiometricAvailable();
     emit(
       state.copyWith(
         settingsDevice: settingsDevice,
@@ -116,7 +95,7 @@ class CommonCubit extends Cubit<CommonState> {
     final away = DateTime.now().difference(backgroundedAt);
     if (away.inSeconds >= autoLock) {
       // Блокировка по таймауту — биометрию показываем сразу.
-      final isBiometricAvailable = await _isBiometricAvailable();
+      final isBiometricAvailable = await utils.isBiometricAvailable();
       emit(state.copyWith(isLocked: true, autoBiometrics: true, isBiometricAvailable: isBiometricAvailable));
     }
   }
