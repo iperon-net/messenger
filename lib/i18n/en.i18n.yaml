@@ -42,6 +42,7 @@
   "passcodeAndFaceID": "Passcode & Face ID"
 
   "passcode":
+    "title": "Passcode"
     "passcodeTurnOn": "Turn passcode on"
     "passcodeTurnOff": "Turn passcode off"
     "pleaseEnterPasscode": "Please enter passcode"

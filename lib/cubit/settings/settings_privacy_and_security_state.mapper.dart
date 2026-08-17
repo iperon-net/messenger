@@ -32,14 +32,27 @@ class SettingsPrivacyAndSecurityStateMapper
     opt: true,
     def: Status.initialization,
   );
+  static bool _$isBiometricAvailable(SettingsPrivacyAndSecurityState v) =>
+      v.isBiometricAvailable;
+  static const Field<SettingsPrivacyAndSecurityState, bool>
+  _f$isBiometricAvailable = Field(
+    'isBiometricAvailable',
+    _$isBiometricAvailable,
+    opt: true,
+    def: false,
+  );
 
   @override
   final MappableFields<SettingsPrivacyAndSecurityState> fields = const {
     #status: _f$status,
+    #isBiometricAvailable: _f$isBiometricAvailable,
   };
 
   static SettingsPrivacyAndSecurityState _instantiate(DecodingData data) {
-    return SettingsPrivacyAndSecurityState(status: data.dec(_f$status));
+    return SettingsPrivacyAndSecurityState(
+      status: data.dec(_f$status),
+      isBiometricAvailable: data.dec(_f$isBiometricAvailable),
+    );
   }
 
   @override
@@ -120,7 +133,7 @@ abstract class SettingsPrivacyAndSecurityStateCopyWith<
   $Out
 >
     implements ClassCopyWith<$R, $In, $Out> {
-  $R call({Status? status});
+  $R call({Status? status, bool? isBiometricAvailable});
   SettingsPrivacyAndSecurityStateCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
     Then<$Out2, $R2> t,
   );
@@ -144,12 +157,21 @@ class _SettingsPrivacyAndSecurityStateCopyWithImpl<$R, $Out>
   late final ClassMapperBase<SettingsPrivacyAndSecurityState> $mapper =
       SettingsPrivacyAndSecurityStateMapper.ensureInitialized();
   @override
-  $R call({Status? status}) =>
-      $apply(FieldCopyWithData({if (status != null) #status: status}));
+  $R call({Status? status, bool? isBiometricAvailable}) => $apply(
+    FieldCopyWithData({
+      if (status != null) #status: status,
+      if (isBiometricAvailable != null)
+        #isBiometricAvailable: isBiometricAvailable,
+    }),
+  );
   @override
   SettingsPrivacyAndSecurityState $make(CopyWithData data) =>
       SettingsPrivacyAndSecurityState(
         status: data.get(#status, or: $value.status),
+        isBiometricAvailable: data.get(
+          #isBiometricAvailable,
+          or: $value.isBiometricAvailable,
+        ),
       );
 
   @override

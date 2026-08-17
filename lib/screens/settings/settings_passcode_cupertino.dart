@@ -125,13 +125,12 @@ class _SettingsPasscodeCupertino extends State<SettingsPasscodeCupertino> {
                                       style: TextStyle(color: CupertinoColors.secondaryLabel.resolveFrom(context)),
                                     ),
                                   ),
-                                  CupertinoListTileChevron(),
                                 ],
                               ),
                             );
                           },
                           menuChildren: [
-                            for (final seconds in const [0, 60, 300, 3600, 18000])
+                            for (final seconds in const [0, 60, 300, 3600])
                               CupertinoMenuItem(
                                 trailing: state.autoLockSeconds == seconds ? const Icon(CupertinoIcons.check_mark) : null,
                                 onPressed: () async => await context.read<SettingsPasscodeCubit>().setAutoLock(seconds: seconds),

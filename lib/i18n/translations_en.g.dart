@@ -277,6 +277,9 @@ class Translations$settings$passcode$en {
 
 	// Translations
 
+	/// en: 'Passcode'
+	String get title => 'Passcode';
+
 	/// en: 'Turn passcode on'
 	String get passcodeTurnOn => 'Turn passcode on';
 
@@ -373,6 +376,7 @@ extension on Translations {
 			'settings.blurOnInactive' => 'Blur on inactive',
 			'settings.blurOnInactiveDescription' => 'The app appears blurry in the list of open apps',
 			'settings.passcodeAndFaceID' => 'Passcode & Face ID',
+			'settings.passcode.title' => 'Passcode',
 			'settings.passcode.passcodeTurnOn' => 'Turn passcode on',
 			'settings.passcode.passcodeTurnOff' => 'Turn passcode off',
 			'settings.passcode.pleaseEnterPasscode' => 'Please enter passcode',

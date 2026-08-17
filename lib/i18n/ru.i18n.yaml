@@ -42,6 +42,7 @@
   "passcodeAndFaceID": "Код-пароль и Face ID"
 
   "passcode":
+    "title": "Код-пароль"
     "passcodeTurnOn": "Включить код-пароль"
     "passcodeTurnOff": "Выключить код-пароль"
     "pleaseEnterPasscode": "Введите код-пароль"

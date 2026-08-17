@@ -164,6 +164,7 @@ class _Translations$settings$passcode$ru extends Translations$settings$passcode$
 	final TranslationsRu _root; // ignore: unused_field
 
 	// Translations
+	@override String get title => 'Код-пароль';
 	@override String get passcodeTurnOn => 'Включить код-пароль';
 	@override String get passcodeTurnOff => 'Выключить код-пароль';
 	@override String get pleaseEnterPasscode => 'Введите код-пароль';
@@ -237,6 +238,7 @@ extension on TranslationsRu {
 			'settings.blurOnInactive' => 'Размытие при фоне',
 			'settings.blurOnInactiveDescription' => 'В списке открытых приложений приложение отображается размытым',
 			'settings.passcodeAndFaceID' => 'Код-пароль и Face ID',
+			'settings.passcode.title' => 'Код-пароль',
 			'settings.passcode.passcodeTurnOn' => 'Включить код-пароль',
 			'settings.passcode.passcodeTurnOff' => 'Выключить код-пароль',
 			'settings.passcode.pleaseEnterPasscode' => 'Введите код-пароль',

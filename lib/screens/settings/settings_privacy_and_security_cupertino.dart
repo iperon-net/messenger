@@ -1,9 +1,13 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../components.dart';
+import '../../cubit.dart';
+import '../../di.dart';
 import '../../i18n/translations.g.dart';
+import '../../utils.dart';
 
 class SettingsPrivacyAndSecurityCupertino extends StatefulWidget {
   const SettingsPrivacyAndSecurityCupertino({super.key});
@@ -13,6 +17,10 @@ class SettingsPrivacyAndSecurityCupertino extends StatefulWidget {
 }
 
 class _SettingsPrivacyAndSecurityCupertino extends State<SettingsPrivacyAndSecurityCupertino> {
+  final utils = getIt.get<Utils>();
+
+  bool isBiometricAvailable = false;
+
   @override
   void initState() {
     super.initState();
@@ -25,25 +33,33 @@ class _SettingsPrivacyAndSecurityCupertino extends State<SettingsPrivacyAndSecur
 
   @override
   Widget build(BuildContext context) {
-    return CupertinoPageScaffold(
-      backgroundColor: CupertinoColors.systemGroupedBackground,
-      navigationBar: CupertinoNavigationBar(
-        automaticBackgroundVisibility: false,
-        backgroundColor: CupertinoColors.systemGroupedBackground,
-        middle: Text(context.t.settings.privacyAndSecurity),
-      ),
-      child: SafeArea(
-        child: CupertinoListSection.insetGrouped(
-          children: [
-            CupertinoListTileIcon(
-              title: Text(context.t.settings.passcodeAndFaceID),
-              color: Color(0xFF41CA22),
-              icon: FontAwesomeIcons.unlockKeyhole,
-              onTab: () async => context.go("/settings/privacy_and_security/passcode"),
+    return BlocConsumer<SettingsPrivacyAndSecurityCubit, SettingsPrivacyAndSecurityState>(
+      listener: (context, state) {
+        // TODO: implement listener
+      },
+      builder: (context, state) {
+        return CupertinoPageScaffold(
+          backgroundColor: CupertinoColors.systemGroupedBackground,
+          navigationBar: CupertinoNavigationBar(
+            automaticBackgroundVisibility: false,
+            backgroundColor: CupertinoColors.systemGroupedBackground,
+            middle: Text(context.t.settings.privacyAndSecurity),
+          ),
+          child: SafeArea(
+            child: CupertinoListSection.insetGrouped(
+              children: [
+                CupertinoListTileIcon(
+                  title: state.isBiometricAvailable ? Text(context.t.settings.passcodeAndFaceID) : Text(context.t.settings.passcode.title),
+                  color: Color(0xFF41CA22),
+                  icon: FontAwesomeIcons.unlockKeyhole,
+                  onTab: () async => context.go("/settings/privacy_and_security/passcode"),
+                  isTrailing: true,
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 }
