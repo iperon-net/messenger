@@ -59,7 +59,12 @@ class _SettingsPasscodeCupertino extends State<SettingsPasscodeCupertino> {
             onUnlocked: () {},
             onCancelled: () => context.go("/settings/privacy_and_security"),
             useBlur: false,
-            config: ScreenLockConfig.defaultConfig.copyWith(backgroundColor: const Color(0xFF545454)),
+            config: ScreenLockConfig.defaultConfig.copyWith(
+              backgroundColor: const CupertinoDynamicColor.withBrightness(
+                color: CupertinoColors.inactiveGray,
+                darkColor: CupertinoColors.black,
+              ).resolveFrom(context),
+            ),
             title: Text(context.t.settings.passcode.pleaseEnterPasscode),
             cancelButton: Text(context.t.settings.passcode.cancel),
             // maxRetries: 3,

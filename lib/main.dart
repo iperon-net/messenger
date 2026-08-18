@@ -223,7 +223,12 @@ class _IperonMessengerCupertino extends State<IperonMessengerCupertino> with Wid
                   onValidate: (input) => context.read<CommonCubit>().verifyPasscode(input),
                   onUnlocked: () => context.read<CommonCubit>().unlock(),
                   useBlur: false,
-                  config: ScreenLockConfig.defaultConfig.copyWith(backgroundColor: const Color(0xFF545454)),
+                  config: ScreenLockConfig.defaultConfig.copyWith(
+                    backgroundColor: const CupertinoDynamicColor.withBrightness(
+                      color: CupertinoColors.inactiveGray,
+                      darkColor: CupertinoColors.black,
+                    ).resolveFrom(context),
+                  ),
                   title: Text(context.t.settings.passcode.pleaseEnterPasscode),
                   customizedButtonChild: state.settingsDevice.passcodeBiometric && state.isBiometricAvailable
                       ? SvgPicture.string(
