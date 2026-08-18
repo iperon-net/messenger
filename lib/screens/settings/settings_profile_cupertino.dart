@@ -192,7 +192,7 @@ class _SettingsProfileCupertino extends State<SettingsProfileCupertino> {
                   title: const Text("Имя пользователя"),
                   color: Color(0xFF3B74BF),
                   icon: FontAwesomeIcons.at,
-                  onTab: () async => _pickBirthDate,
+                  onTab: () async {},
                   additionalInfo: Text("Указать"),
                   isTrailing: true,
                 ),
