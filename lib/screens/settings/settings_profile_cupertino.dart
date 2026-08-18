@@ -131,7 +131,16 @@ class _SettingsProfileCupertino extends State<SettingsProfileCupertino> {
                       ],
                     ),
                     const SizedBox(height: 8),
-                    Text("Изменить фото", style: TextStyle(fontSize: 16, color: CupertinoTheme.of(context).primaryColor)),
+                    Text(
+                      "Изменить фото",
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: CupertinoDynamicColor.withBrightness(
+                          color: CupertinoTheme.of(context).primaryColor,
+                          darkColor: CupertinoColors.white,
+                        ).resolveFrom(context),
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -186,6 +195,9 @@ class _SettingsProfileCupertino extends State<SettingsProfileCupertino> {
                   maxLines: 1,
                   maxLength: 140,
                   padding: EdgeInsets.symmetric(vertical: 13, horizontal: 16),
+                  // Убираем дефолтную заливку поля (в тёмной теме она чёрная),
+                  // чтобы поле сливалось с карточкой секции.
+                  decoration: null,
                 ),
               ],
             ),
