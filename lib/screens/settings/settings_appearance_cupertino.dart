@@ -1,4 +1,5 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
+import '../../themes.dart';
 
 import '../../components.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -53,11 +54,11 @@ class _SettingsAppearanceCupertino extends State<SettingsAppearanceCupertino> {
       },
       builder: (context, state) {
         return CupertinoPageScaffold(
-          backgroundColor: CupertinoColors.systemGroupedBackground,
+          backgroundColor: ThemesCupertino.groupedBackground,
           navigationBar: AppCupertinoNavigationBar(
             child: CupertinoNavigationBar(
               automaticBackgroundVisibility: false,
-              backgroundColor: CupertinoColors.systemGroupedBackground,
+              backgroundColor: ThemesCupertino.groupedBackground,
               middle: Text(context.t.settings.appearance),
             ),
           ),
@@ -65,6 +66,11 @@ class _SettingsAppearanceCupertino extends State<SettingsAppearanceCupertino> {
             child: ListView(
               children: [
                 CupertinoListSection.insetGrouped(
+                  backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
+                  decoration: BoxDecoration(
+                    color: ThemesCupertino.groupedCard.resolveFrom(context),
+                    borderRadius: const BorderRadius.all(Radius.circular(10)),
+                  ),
                   header: Text(context.t.settings.colorTheme.toUpperCase(), style: TextStyle(fontSize: 13, fontWeight: FontWeight.normal)),
                   children: [
                     CupertinoListTile(
@@ -91,6 +97,11 @@ class _SettingsAppearanceCupertino extends State<SettingsAppearanceCupertino> {
                 ),
 
                 CupertinoListSection.insetGrouped(
+                  backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
+                  decoration: BoxDecoration(
+                    color: ThemesCupertino.groupedCard.resolveFrom(context),
+                    borderRadius: const BorderRadius.all(Radius.circular(10)),
+                  ),
                   header: Text(context.t.settings.darkMode.toUpperCase(), style: TextStyle(fontSize: 13, fontWeight: FontWeight.normal)),
                   children: [
                     CupertinoListTile(
@@ -114,6 +125,11 @@ class _SettingsAppearanceCupertino extends State<SettingsAppearanceCupertino> {
                   ],
                 ),
                 CupertinoListSection.insetGrouped(
+                  backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
+                  decoration: BoxDecoration(
+                    color: ThemesCupertino.groupedCard.resolveFrom(context),
+                    borderRadius: const BorderRadius.all(Radius.circular(10)),
+                  ),
                   footer: Padding(
                     padding: const EdgeInsets.only(left: 13),
                     child: Text(

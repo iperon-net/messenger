@@ -75,7 +75,6 @@ class _AuthCupertinoScreen extends State<AuthCupertinoScreen> {
       },
       builder: (context, state) {
         return CupertinoPageScaffold(
-          backgroundColor: CupertinoDynamicColor.withBrightness(color: Color(0xffffffff), darkColor: Color(0xff1b263b)),
           child: Form(
             key: formKey,
             child: SafeArea(

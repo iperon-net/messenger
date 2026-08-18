@@ -1,4 +1,5 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
+import '../../themes.dart';
 
 import '../../components.dart';
 import 'package:flutter/foundation.dart';
@@ -82,11 +83,11 @@ class _SettingsPasscodeCupertino extends State<SettingsPasscodeCupertino> {
         }
 
         return CupertinoPageScaffold(
-          backgroundColor: CupertinoColors.systemGroupedBackground,
+          backgroundColor: ThemesCupertino.groupedBackground,
           navigationBar: AppCupertinoNavigationBar(
             child: CupertinoNavigationBar(
               automaticBackgroundVisibility: false,
-              backgroundColor: CupertinoColors.systemGroupedBackground,
+              backgroundColor: ThemesCupertino.groupedBackground,
               middle: state.isBiometricAvailable ? Text(context.t.settings.passcodeAndFaceID) : Text(context.t.settings.passcode.title),
             ),
           ),
@@ -95,6 +96,11 @@ class _SettingsPasscodeCupertino extends State<SettingsPasscodeCupertino> {
               children: [
                 if (state.passcode.isNotEmpty) ...[
                   CupertinoListSection.insetGrouped(
+                    backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
+                    decoration: BoxDecoration(
+                      color: ThemesCupertino.groupedCard.resolveFrom(context),
+                      borderRadius: const BorderRadius.all(Radius.circular(10)),
+                    ),
                     footer: Padding(
                       padding: const EdgeInsets.only(left: 13),
                       child: Text(context.t.settings.passcode.note, style: TextStyle(fontSize: 13)),
@@ -116,6 +122,11 @@ class _SettingsPasscodeCupertino extends State<SettingsPasscodeCupertino> {
                     ],
                   ),
                   CupertinoListSection.insetGrouped(
+                    backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
+                    decoration: BoxDecoration(
+                      color: ThemesCupertino.groupedCard.resolveFrom(context),
+                      borderRadius: const BorderRadius.all(Radius.circular(10)),
+                    ),
                     children: [
                       CupertinoListTile(
                         title: Text(context.t.settings.passcode.autoLock),
@@ -161,6 +172,11 @@ class _SettingsPasscodeCupertino extends State<SettingsPasscodeCupertino> {
                   ),
                 ] else ...[
                   CupertinoListSection.insetGrouped(
+                    backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
+                    decoration: BoxDecoration(
+                      color: ThemesCupertino.groupedCard.resolveFrom(context),
+                      borderRadius: const BorderRadius.all(Radius.circular(10)),
+                    ),
                     children: [
                       CupertinoListTile(
                         title: Text(context.t.settings.passcode.passcodeTurnOn),

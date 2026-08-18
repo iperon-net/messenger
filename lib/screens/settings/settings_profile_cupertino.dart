@@ -1,4 +1,5 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
+import '../../themes.dart';
 import 'package:flutter_boring_avatars/flutter_boring_avatars.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
@@ -93,11 +94,11 @@ class _SettingsProfileCupertino extends State<SettingsProfileCupertino> {
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
-      backgroundColor: CupertinoColors.systemGroupedBackground,
+      backgroundColor: ThemesCupertino.groupedBackground,
       navigationBar: AppCupertinoNavigationBar(
         child: CupertinoNavigationBar(
           automaticBackgroundVisibility: false,
-          backgroundColor: CupertinoColors.systemGroupedBackground,
+          backgroundColor: ThemesCupertino.groupedBackground,
           middle: Text(context.t.settings.myProfile),
           leading: CupertinoButton(padding: EdgeInsets.zero, onPressed: () => context.pop(), child: Text(context.t.common.cancel)),
           trailing: CupertinoButton(padding: EdgeInsets.zero, onPressed: () => context.pop(), child: Text(context.t.common.save)),
@@ -140,6 +141,11 @@ class _SettingsProfileCupertino extends State<SettingsProfileCupertino> {
             // ФИО.
             CupertinoFormSection.insetGrouped(
               clipBehavior: Clip.hardEdge,
+              backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
+              decoration: BoxDecoration(
+                color: ThemesCupertino.groupedCard.resolveFrom(context),
+                borderRadius: const BorderRadius.all(Radius.circular(18)),
+              ),
               children: [
                 CupertinoTextFormFieldRow(placeholder: "Имя"),
                 CupertinoTextFormFieldRow(placeholder: "Фамилия"),
@@ -149,8 +155,9 @@ class _SettingsProfileCupertino extends State<SettingsProfileCupertino> {
             // Дата рождения.
             CupertinoListSection.insetGrouped(
               clipBehavior: Clip.antiAlias,
+              backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
               decoration: BoxDecoration(
-                color: CupertinoColors.secondarySystemGroupedBackground.resolveFrom(context),
+                color: ThemesCupertino.groupedCard.resolveFrom(context),
                 borderRadius: const BorderRadius.all(Radius.circular(18)),
               ),
               children: [
@@ -168,8 +175,9 @@ class _SettingsProfileCupertino extends State<SettingsProfileCupertino> {
             CupertinoFormSection.insetGrouped(
               header: const Text("О СЕБЕ"),
               clipBehavior: Clip.antiAlias,
+              backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
               decoration: BoxDecoration(
-                color: CupertinoColors.secondarySystemGroupedBackground.resolveFrom(context),
+                color: ThemesCupertino.groupedCard.resolveFrom(context),
                 borderRadius: const BorderRadius.all(Radius.circular(18)),
               ),
               children: const [
@@ -185,8 +193,9 @@ class _SettingsProfileCupertino extends State<SettingsProfileCupertino> {
             // Дата рождения.
             CupertinoListSection.insetGrouped(
               clipBehavior: Clip.antiAlias,
+              backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
               decoration: BoxDecoration(
-                color: CupertinoColors.secondarySystemGroupedBackground.resolveFrom(context),
+                color: ThemesCupertino.groupedCard.resolveFrom(context),
                 borderRadius: const BorderRadius.all(Radius.circular(18)),
               ),
               children: [

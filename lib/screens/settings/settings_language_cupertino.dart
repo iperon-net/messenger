@@ -1,4 +1,5 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
+import '../../themes.dart';
 
 import '../../components.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -44,16 +45,21 @@ class _SettingsLanguageCupertinoScreen extends State<SettingsLanguageCupertinoSc
       listener: (context, state) => context.read<CommonCubit>().setLocale(locale: state.locale),
       builder: (context, state) {
         return CupertinoPageScaffold(
-          backgroundColor: CupertinoColors.systemGroupedBackground,
+          backgroundColor: ThemesCupertino.groupedBackground,
           navigationBar: AppCupertinoNavigationBar(
             child: CupertinoNavigationBar(
               automaticBackgroundVisibility: false,
-              backgroundColor: CupertinoColors.systemGroupedBackground,
+              backgroundColor: ThemesCupertino.groupedBackground,
               middle: Text(context.t.settings.language),
             ),
           ),
           child: SafeArea(
             child: CupertinoListSection.insetGrouped(
+              backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
+              decoration: BoxDecoration(
+                color: ThemesCupertino.groupedCard.resolveFrom(context),
+                borderRadius: const BorderRadius.all(Radius.circular(10)),
+              ),
               children: [
                 CupertinoListTile(
                   title: Text("English"),

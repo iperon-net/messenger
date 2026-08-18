@@ -208,7 +208,11 @@ class _IperonMessengerCupertino extends State<IperonMessengerCupertino> with Wid
             localizationsDelegates: GlobalCupertinoLocalizations.delegates,
             supportedLocales: AppLocaleUtils.supportedLocales,
             locale: TranslationProvider.of(context).flutterLocale,
-            theme: CupertinoThemeData(brightness: brightness, primaryColor: colorSchemeSystem),
+            theme: CupertinoThemeData(
+              brightness: brightness,
+              primaryColor: colorSchemeSystem,
+              scaffoldBackgroundColor: const CupertinoDynamicColor.withBrightness(color: Color(0xffffffff), darkColor: Color(0xff1b263b)),
+            ),
             builder: (context, child) {
               // На экранах авторизации (/auth и подпути) код-пароль не показываем:
               // пользователь ещё логинится, блокировать нечего.

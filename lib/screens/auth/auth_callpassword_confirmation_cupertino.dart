@@ -43,7 +43,6 @@ class _AuthCallpasswordConfirmationCupertino extends State<AuthCallpasswordConfi
       },
       builder: (context, state) {
         return CupertinoPageScaffold(
-          backgroundColor: CupertinoDynamicColor.withBrightness(color: Color(0xffffffff), darkColor: Color(0xff1b263b)),
           navigationBar: AppCupertinoNavigationBar(child: CupertinoNavigationBar()),
           child: SafeArea(
             child: Padding(

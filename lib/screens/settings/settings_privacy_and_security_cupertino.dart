@@ -1,4 +1,5 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
+import '../../themes.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
@@ -39,16 +40,21 @@ class _SettingsPrivacyAndSecurityCupertino extends State<SettingsPrivacyAndSecur
       },
       builder: (context, state) {
         return CupertinoPageScaffold(
-          backgroundColor: CupertinoColors.systemGroupedBackground,
+          backgroundColor: ThemesCupertino.groupedBackground,
           navigationBar: AppCupertinoNavigationBar(
             child: CupertinoNavigationBar(
               automaticBackgroundVisibility: false,
-              backgroundColor: CupertinoColors.systemGroupedBackground,
+              backgroundColor: ThemesCupertino.groupedBackground,
               middle: Text(context.t.settings.privacyAndSecurity),
             ),
           ),
           child: SafeArea(
             child: CupertinoListSection.insetGrouped(
+              backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
+              decoration: BoxDecoration(
+                color: ThemesCupertino.groupedCard.resolveFrom(context),
+                borderRadius: const BorderRadius.all(Radius.circular(10)),
+              ),
               children: [
                 CupertinoListTileIcon(
                   title: state.isBiometricAvailable ? Text(context.t.settings.passcodeAndFaceID) : Text(context.t.settings.passcode.title),

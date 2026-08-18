@@ -1,4 +1,5 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
+import '../../themes.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
@@ -30,11 +31,11 @@ class _ChatsCupertino extends State<ChatsCupertino> {
       listener: (context, state) {},
       builder: (context, state) {
         return CupertinoPageScaffold(
-          backgroundColor: CupertinoColors.systemGroupedBackground,
+          backgroundColor: ThemesCupertino.groupedBackground,
           navigationBar: AppCupertinoNavigationBar(
             child: CupertinoNavigationBar(
               automaticBackgroundVisibility: false,
-              backgroundColor: CupertinoColors.systemGroupedBackground,
+              backgroundColor: ThemesCupertino.groupedBackground,
               middle: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [

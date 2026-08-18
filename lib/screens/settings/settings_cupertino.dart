@@ -1,4 +1,5 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
+import '../../themes.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
@@ -33,11 +34,11 @@ class _SettingsCupertino extends State<SettingsCupertino> {
       },
       builder: (context, state) {
         return CupertinoPageScaffold(
-          backgroundColor: CupertinoColors.systemGroupedBackground,
+          backgroundColor: ThemesCupertino.groupedBackground,
           navigationBar: AppCupertinoNavigationBar(
             child: CupertinoNavigationBar(
               automaticBackgroundVisibility: false,
-              backgroundColor: CupertinoColors.systemGroupedBackground,
+              backgroundColor: ThemesCupertino.groupedBackground,
               middle: Text(context.t.common.settings),
             ),
           ),
@@ -45,6 +46,11 @@ class _SettingsCupertino extends State<SettingsCupertino> {
             child: ListView(
               children: [
                 CupertinoListSection.insetGrouped(
+                  backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
+                  decoration: BoxDecoration(
+                    color: ThemesCupertino.groupedCard.resolveFrom(context),
+                    borderRadius: const BorderRadius.all(Radius.circular(10)),
+                  ),
                   children: [
                     CupertinoListTileIcon(
                       title: Text(context.t.settings.myProfile),
@@ -56,6 +62,11 @@ class _SettingsCupertino extends State<SettingsCupertino> {
                   ],
                 ),
                 CupertinoListSection.insetGrouped(
+                  backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
+                  decoration: BoxDecoration(
+                    color: ThemesCupertino.groupedCard.resolveFrom(context),
+                    borderRadius: const BorderRadius.all(Radius.circular(10)),
+                  ),
                   children: [
                     CupertinoListTileIcon(
                       title: Text(context.t.settings.privacyAndSecurity),
@@ -89,6 +100,11 @@ class _SettingsCupertino extends State<SettingsCupertino> {
                   ],
                 ),
                 CupertinoListSection.insetGrouped(
+                  backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
+                  decoration: BoxDecoration(
+                    color: ThemesCupertino.groupedCard.resolveFrom(context),
+                    borderRadius: const BorderRadius.all(Radius.circular(10)),
+                  ),
                   children: [
                     CupertinoListTileIcon(
                       title: Text(context.t.settings.logout),
