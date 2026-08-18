@@ -54,7 +54,12 @@ class CommonCubit extends Cubit<CommonState> {
   Future<void> forceLock({bool biometrics = true}) async {
     if (state.settingsDevice.passcode.isEmpty) return;
     await repositories.settingsDevice.setPasscodeForceLocked(true);
-    final settingsDevice = state.settingsDevice.copyWith(passcodeForceLocked: true);
+    // Перечитываем настройки из БД, а не берём их из памяти: иначе флаг
+    // passcodeBiometric в state может быть устаревшим (например, включён на
+    // экране настроек, но не долетел до CommonCubit) — и кнопка биометрии на
+    // экране блокировки не появится, хотя FaceID/TouchID включён.
+    final fresh = await repositories.settingsDevice.getAll();
+    final settingsDevice = fresh.copyWith(passcodeForceLocked: true);
     final isBiometricAvailable = await utils.isBiometricAvailable();
     emit(
       state.copyWith(

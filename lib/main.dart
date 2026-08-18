@@ -244,7 +244,10 @@ class _IperonMessengerCupertino extends State<IperonMessengerCupertino> with Wid
                           ),
                           width: 48,
                           height: 48,
-                          colorFilter: const ColorFilter.mode(CupertinoColors.inactiveGray, BlendMode.srcIn),
+                          // Тот же цвет, что и у цифр клавиатуры: ScreenLock
+                          // рендерит их белыми (ScreenLockConfig.defaultConfig →
+                          // buttonStyle.foregroundColor = 0xFFFFFFFF).
+                          colorFilter: const ColorFilter.mode(Color(0xFFFFFFFF), BlendMode.srcIn),
                         )
                       : null,
 
