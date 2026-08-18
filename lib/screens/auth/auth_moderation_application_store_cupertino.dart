@@ -38,7 +38,7 @@ class _AuthModerationApplicationStoreCupertino extends State<AuthModerationAppli
       builder: (context, state) {
         return CupertinoPageScaffold(
           backgroundColor: CupertinoDynamicColor.withBrightness(color: Color(0xffffffff), darkColor: Color(0xff1b263b)),
-          navigationBar: AppNavigationBar(child: CupertinoNavigationBar()),
+          navigationBar: AppCupertinoNavigationBar(child: CupertinoNavigationBar()),
           child: Form(
             key: formKey,
             child: SafeArea(

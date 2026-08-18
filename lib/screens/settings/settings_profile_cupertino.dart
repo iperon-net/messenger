@@ -94,7 +94,7 @@ class _SettingsProfileCupertino extends State<SettingsProfileCupertino> {
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
       backgroundColor: CupertinoColors.systemGroupedBackground,
-      navigationBar: AppNavigationBar(
+      navigationBar: AppCupertinoNavigationBar(
         child: CupertinoNavigationBar(
           automaticBackgroundVisibility: false,
           backgroundColor: CupertinoColors.systemGroupedBackground,

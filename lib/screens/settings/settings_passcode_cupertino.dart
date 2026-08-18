@@ -83,7 +83,7 @@ class _SettingsPasscodeCupertino extends State<SettingsPasscodeCupertino> {
 
         return CupertinoPageScaffold(
           backgroundColor: CupertinoColors.systemGroupedBackground,
-          navigationBar: AppNavigationBar(
+          navigationBar: AppCupertinoNavigationBar(
             child: CupertinoNavigationBar(
               automaticBackgroundVisibility: false,
               backgroundColor: CupertinoColors.systemGroupedBackground,

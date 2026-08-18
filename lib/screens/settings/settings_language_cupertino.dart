@@ -45,7 +45,7 @@ class _SettingsLanguageCupertinoScreen extends State<SettingsLanguageCupertinoSc
       builder: (context, state) {
         return CupertinoPageScaffold(
           backgroundColor: CupertinoColors.systemGroupedBackground,
-          navigationBar: AppNavigationBar(
+          navigationBar: AppCupertinoNavigationBar(
             child: CupertinoNavigationBar(
               automaticBackgroundVisibility: false,
               backgroundColor: CupertinoColors.systemGroupedBackground,

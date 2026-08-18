@@ -13,10 +13,10 @@ import 'package:cupertino_ui/cupertino_ui.dart';
 ///
 /// Реализует [ObstructingPreferredSizeWidget], чтобы его можно было передавать
 /// напрямую в `CupertinoPageScaffold.navigationBar`.
-class AppNavigationBar extends StatelessWidget implements ObstructingPreferredSizeWidget {
+class AppCupertinoNavigationBar extends StatelessWidget implements ObstructingPreferredSizeWidget {
   final CupertinoNavigationBar child;
 
-  const AppNavigationBar({required this.child, super.key});
+  const AppCupertinoNavigationBar({required this.child, super.key});
 
   @override
   Widget build(BuildContext context) {

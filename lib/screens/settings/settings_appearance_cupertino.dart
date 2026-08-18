@@ -54,7 +54,7 @@ class _SettingsAppearanceCupertino extends State<SettingsAppearanceCupertino> {
       builder: (context, state) {
         return CupertinoPageScaffold(
           backgroundColor: CupertinoColors.systemGroupedBackground,
-          navigationBar: AppNavigationBar(
+          navigationBar: AppCupertinoNavigationBar(
             child: CupertinoNavigationBar(
               automaticBackgroundVisibility: false,
               backgroundColor: CupertinoColors.systemGroupedBackground,

@@ -38,7 +38,7 @@ class _SettingsDeviceSessionsCupertino extends State<SettingsDeviceSessionsCuper
 
         return CupertinoPageScaffold(
           backgroundColor: CupertinoColors.systemGroupedBackground,
-          navigationBar: AppNavigationBar(
+          navigationBar: AppCupertinoNavigationBar(
             child: CupertinoNavigationBar(
               automaticBackgroundVisibility: false,
               backgroundColor: CupertinoColors.systemGroupedBackground,
