@@ -76,6 +76,17 @@ class Routers {
                 // но parentNavigatorKey отправляет их на корневой навигатор —
                 // экран открывается на весь экран, без нижнего таб-бара.
                 GoRoute(
+                  path: "profile",
+                  parentNavigatorKey: rootNavigatorKey,
+                  pageBuilder: (context, state) => _page(
+                    state,
+                    BlocProvider<SettingsProfileCubit>(
+                      create: (_) => SettingsProfileCubit()..initialization(),
+                      child: SettingsProfileCupertino(),
+                    ),
+                  ),
+                ),
+                GoRoute(
                   path: "privacy_and_security",
                   parentNavigatorKey: rootNavigatorKey,
                   pageBuilder: (context, state) => _page(

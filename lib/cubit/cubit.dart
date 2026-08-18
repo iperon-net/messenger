@@ -23,6 +23,8 @@ export 'settings/settings_passcode_create_cubit.dart';
 export 'settings/settings_passcode_create_state.dart';
 export 'settings/settings_passcode_cubit.dart';
 export 'settings/settings_passcode_state.dart';
+export 'settings/settings_profile_cubit.dart';
+export 'settings/settings_profile_state.dart';
 export 'home/home_cubit.dart';
 export 'home/home_state.dart';
 export 'chats/chats_cubit.dart';
