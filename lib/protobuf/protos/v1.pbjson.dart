@@ -30,6 +30,8 @@ const MessageType$json = {
     {'1': 'SUBSCRIBE', '2': 8},
     {'1': 'DEVICE_SESSIONS_TERMINATE', '2': 9},
     {'1': 'AUTH_CONFIRMATION', '2': 10},
+    {'1': 'PROFILE', '2': 11},
+    {'1': 'PROFILE_EDIT', '2': 12},
   ],
 };
 
@@ -40,7 +42,8 @@ final $typed_data.Uint8List messageTypeDescriptor =
         'EiUKIUFVVEhfTU9ERVJBVElPTl9BUFBMSUNBVElPTl9TVE9SRRAEEjIKLkFVVEhfTU9ERVJBVE'
         'lPTl9BUFBMSUNBVElPTl9TVE9SRV9DT05GSVJNQVRJT04QBRITCg9ERVZJQ0VfU0VTU0lPTlMQ'
         'BhIKCgZMT0dPVVQQBxINCglTVUJTQ1JJQkUQCBIdChlERVZJQ0VfU0VTU0lPTlNfVEVSTUlOQV'
-        'RFEAkSFQoRQVVUSF9DT05GSVJNQVRJT04QCg==');
+        'RFEAkSFQoRQVVUSF9DT05GSVJNQVRJT04QChILCgdQUk9GSUxFEAsSEAoMUFJPRklMRV9FRElU'
+        'EAw=');
 
 @$core.Deprecated('Use messageDescriptor instead')
 const Message$json = {

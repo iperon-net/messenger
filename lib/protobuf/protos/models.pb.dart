@@ -18,63 +18,75 @@ export 'package:protobuf/protobuf.dart' show GeneratedMessageGenericExtensions;
 
 export 'models.pbenum.dart';
 
-class Location extends $pb.GeneratedMessage {
-  factory Location({
-    $core.String? russianName,
-    $core.String? englishName,
+class Date extends $pb.GeneratedMessage {
+  factory Date({
+    $core.int? year,
+    $core.int? month,
+    $core.int? day,
   }) {
     final result = create();
-    if (russianName != null) result.russianName = russianName;
-    if (englishName != null) result.englishName = englishName;
+    if (year != null) result.year = year;
+    if (month != null) result.month = month;
+    if (day != null) result.day = day;
     return result;
   }
 
-  Location._();
+  Date._();
 
-  factory Location.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+  factory Date.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(data, registry);
-  factory Location.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+  factory Date.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(json, registry);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Location',
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Date',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
-    ..aOS(1, _omitFieldNames ? '' : 'russianName', protoName: 'russianName')
-    ..aOS(2, _omitFieldNames ? '' : 'englishName', protoName: 'englishName')
+    ..aI(1, _omitFieldNames ? '' : 'year')
+    ..aI(2, _omitFieldNames ? '' : 'month')
+    ..aI(3, _omitFieldNames ? '' : 'day')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  Location clone() => deepCopy();
+  Date clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  Location copyWith(void Function(Location) updates) => super.copyWith((message) => updates(message as Location)) as Location;
+  Date copyWith(void Function(Date) updates) => super.copyWith((message) => updates(message as Date)) as Date;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
-  static Location create() => Location._();
+  static Date create() => Date._();
   @$core.override
-  Location createEmptyInstance() => create();
+  Date createEmptyInstance() => create();
   @$core.pragma('dart2js:noInline')
-  static Location getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Location>(create);
-  static Location? _defaultInstance;
+  static Date getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Date>(create);
+  static Date? _defaultInstance;
 
   @$pb.TagNumber(1)
-  $core.String get russianName => $_getSZ(0);
+  $core.int get year => $_getIZ(0);
   @$pb.TagNumber(1)
-  set russianName($core.String value) => $_setString(0, value);
+  set year($core.int value) => $_setSignedInt32(0, value);
   @$pb.TagNumber(1)
-  $core.bool hasRussianName() => $_has(0);
+  $core.bool hasYear() => $_has(0);
   @$pb.TagNumber(1)
-  void clearRussianName() => $_clearField(1);
+  void clearYear() => $_clearField(1);
 
   @$pb.TagNumber(2)
-  $core.String get englishName => $_getSZ(1);
+  $core.int get month => $_getIZ(1);
   @$pb.TagNumber(2)
-  set englishName($core.String value) => $_setString(1, value);
+  set month($core.int value) => $_setSignedInt32(1, value);
   @$pb.TagNumber(2)
-  $core.bool hasEnglishName() => $_has(1);
+  $core.bool hasMonth() => $_has(1);
   @$pb.TagNumber(2)
-  void clearEnglishName() => $_clearField(2);
+  void clearMonth() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.int get day => $_getIZ(2);
+  @$pb.TagNumber(3)
+  set day($core.int value) => $_setSignedInt32(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasDay() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearDay() => $_clearField(3);
 }
 
 const $core.bool _omitFieldNames = $core.bool.fromEnvironment('protobuf.omit_field_names');

@@ -30,16 +30,17 @@ final $typed_data.Uint8List authCallPasswordStatusDescriptor =
     $convert.base64Decode('ChZBdXRoQ2FsbFBhc3N3b3JkU3RhdHVzEg8KC2hlYWx0aGNoZWNrEAASCQoFZXJyb3IQARILCg'
         'dzdWNjZXNzEAI=');
 
-@$core.Deprecated('Use locationDescriptor instead')
-const Location$json = {
-  '1': 'Location',
+@$core.Deprecated('Use dateDescriptor instead')
+const Date$json = {
+  '1': 'Date',
   '2': [
-    {'1': 'russianName', '3': 1, '4': 1, '5': 9, '10': 'russianName'},
-    {'1': 'englishName', '3': 2, '4': 1, '5': 9, '10': 'englishName'},
+    {'1': 'year', '3': 1, '4': 1, '5': 5, '10': 'year'},
+    {'1': 'month', '3': 2, '4': 1, '5': 5, '10': 'month'},
+    {'1': 'day', '3': 3, '4': 1, '5': 5, '10': 'day'},
   ],
 };
 
-/// Descriptor for `Location`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List locationDescriptor =
-    $convert.base64Decode('CghMb2NhdGlvbhIgCgtydXNzaWFuTmFtZRgBIAEoCVILcnVzc2lhbk5hbWUSIAoLZW5nbGlzaE'
-        '5hbWUYAiABKAlSC2VuZ2xpc2hOYW1l');
+/// Descriptor for `Date`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List dateDescriptor =
+    $convert.base64Decode('CgREYXRlEhIKBHllYXIYASABKAVSBHllYXISFAoFbW9udGgYAiABKAVSBW1vbnRoEhAKA2RheR'
+        'gDIAEoBVIDZGF5');
