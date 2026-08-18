@@ -213,6 +213,12 @@ class Translations$common$en {
 
 	/// en: 'Cancel'
 	String get cancel => 'Cancel';
+
+	/// en: 'Back'
+	String get back => 'Back';
+
+	/// en: 'Save'
+	String get save => 'Save';
 }
 
 // Path: connection
@@ -398,6 +404,8 @@ extension on Translations {
 			'common.chats' => 'Chats',
 			'common.settings' => 'Settings',
 			'common.cancel' => 'Cancel',
+			'common.back' => 'Back',
+			'common.save' => 'Save',
 			'connection.waitingForNetwork' => 'Waiting for network',
 			'connection.connecting' => 'Connecting',
 			'connection.updating' => 'Updating',

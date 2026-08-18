@@ -119,6 +119,8 @@ class _Translations$common$ru extends Translations$common$en {
 	@override String get chats => 'Чаты';
 	@override String get settings => 'Настройки';
 	@override String get cancel => 'Отмена';
+	@override String get back => 'Назад';
+	@override String get save => 'Сохранить';
 }
 
 // Path: connection
@@ -260,6 +262,8 @@ extension on TranslationsRu {
 			'common.chats' => 'Чаты',
 			'common.settings' => 'Настройки',
 			'common.cancel' => 'Отмена',
+			'common.back' => 'Назад',
+			'common.save' => 'Сохранить',
 			'connection.waitingForNetwork' => 'Ожидание сети',
 			'connection.connecting' => 'Соединение',
 			'connection.updating' => 'Обновление',

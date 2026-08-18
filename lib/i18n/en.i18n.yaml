@@ -71,6 +71,8 @@
   "chats": "Chats"
   "settings": "Settings"
   "cancel": "Cancel"
+  "back": "Back"
+  "save": "Save"
 
 "connection":
   "waitingForNetwork": "Waiting for network"

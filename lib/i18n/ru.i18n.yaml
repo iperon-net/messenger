@@ -74,6 +74,8 @@
   "chats": "Чаты"
   "settings": "Настройки"
   "cancel": "Отмена"
+  "back": "Назад"
+  "save": "Сохранить"
 
 "connection":
   "waitingForNetwork": "Ожидание сети"
