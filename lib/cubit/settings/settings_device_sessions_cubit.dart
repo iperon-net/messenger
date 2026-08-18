@@ -77,7 +77,9 @@ class SettingsDeviceSessionsCubit extends Cubit<SettingsDeviceSessionsState> {
   }
 
   Future<void> terminate(List<Uint8List> sessionID) async {
-    await api.sendEncoded(MessageType.DEVICE_SESSIONS_TERMINATE, DeviceSessionsTerminate_Request(sessionID: sessionID).writeToBuffer());
+    emit(state.copyWith(requestStatus: Status.loading));
+    await api.unaryEncoded(MessageType.DEVICE_SESSIONS_TERMINATE, DeviceSessionsTerminate_Request(sessionID: sessionID).writeToBuffer());
+    emit(state.copyWith(requestStatus: Status.success));
   }
 
   @override

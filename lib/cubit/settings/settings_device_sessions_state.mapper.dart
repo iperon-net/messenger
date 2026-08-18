@@ -43,17 +43,28 @@ class SettingsDeviceSessionsStateMapper
     opt: true,
     def: const <DeviceSessionsModel>[],
   );
+  static Status _$requestStatus(SettingsDeviceSessionsState v) =>
+      v.requestStatus;
+  static const Field<SettingsDeviceSessionsState, Status> _f$requestStatus =
+      Field(
+        'requestStatus',
+        _$requestStatus,
+        opt: true,
+        def: Status.initialization,
+      );
 
   @override
   final MappableFields<SettingsDeviceSessionsState> fields = const {
     #status: _f$status,
     #deviceSessions: _f$deviceSessions,
+    #requestStatus: _f$requestStatus,
   };
 
   static SettingsDeviceSessionsState _instantiate(DecodingData data) {
     return SettingsDeviceSessionsState(
       status: data.dec(_f$status),
       deviceSessions: data.dec(_f$deviceSessions),
+      requestStatus: data.dec(_f$requestStatus),
     );
   }
 
@@ -137,7 +148,11 @@ abstract class SettingsDeviceSessionsStateCopyWith<
     DeviceSessionsModelCopyWith<$R, DeviceSessionsModel, DeviceSessionsModel>
   >
   get deviceSessions;
-  $R call({Status? status, List<DeviceSessionsModel>? deviceSessions});
+  $R call({
+    Status? status,
+    List<DeviceSessionsModel>? deviceSessions,
+    Status? requestStatus,
+  });
   SettingsDeviceSessionsStateCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
     Then<$Out2, $R2> t,
   );
@@ -172,18 +187,23 @@ class _SettingsDeviceSessionsStateCopyWithImpl<$R, $Out>
     (v) => call(deviceSessions: v),
   );
   @override
-  $R call({Status? status, List<DeviceSessionsModel>? deviceSessions}) =>
-      $apply(
-        FieldCopyWithData({
-          if (status != null) #status: status,
-          if (deviceSessions != null) #deviceSessions: deviceSessions,
-        }),
-      );
+  $R call({
+    Status? status,
+    List<DeviceSessionsModel>? deviceSessions,
+    Status? requestStatus,
+  }) => $apply(
+    FieldCopyWithData({
+      if (status != null) #status: status,
+      if (deviceSessions != null) #deviceSessions: deviceSessions,
+      if (requestStatus != null) #requestStatus: requestStatus,
+    }),
+  );
   @override
   SettingsDeviceSessionsState $make(CopyWithData data) =>
       SettingsDeviceSessionsState(
         status: data.get(#status, or: $value.status),
         deviceSessions: data.get(#deviceSessions, or: $value.deviceSessions),
+        requestStatus: data.get(#requestStatus, or: $value.requestStatus),
       );
 
   @override

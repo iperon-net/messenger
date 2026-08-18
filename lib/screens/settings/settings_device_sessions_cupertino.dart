@@ -2,6 +2,7 @@ import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:messenger/constants.dart';
 
 import '../../cubit.dart';
 import '../../extensions/date_time_extensions.dart';
@@ -39,6 +40,7 @@ class _SettingsDeviceSessionsCupertino extends State<SettingsDeviceSessionsCuper
             automaticBackgroundVisibility: false,
             backgroundColor: CupertinoColors.systemGroupedBackground,
             middle: Text(context.t.settings.devices),
+            trailing: state.requestStatus == Status.loading ? CupertinoActivityIndicator() : null,
           ),
           child: SafeArea(
             child: currentSession == null
@@ -90,6 +92,15 @@ class _SettingsDeviceSessionsCupertino extends State<SettingsDeviceSessionsCuper
                             CupertinoListTile(
                               padding: EdgeInsets.all(10),
                               leading: FaIcon(FontAwesomeIcons.hand, size: 18, color: Color(0xFFF40000)),
+                              // title: Shimmer.fromColors(
+                              //   baseColor: CupertinoColors.destructiveRed,
+                              //   highlightColor: CupertinoColors.white,
+                              //   period: Duration(seconds: 3),
+                              //   child: Text(
+                              //     context.t.settings.terminateAllOtherDeviceSessions,
+                              //     style: TextStyle(fontWeight: FontWeight.normal, color: CupertinoColors.destructiveRed),
+                              //   ),
+                              // ),
                               title: Text(
                                 context.t.settings.terminateAllOtherDeviceSessions,
                                 style: TextStyle(fontWeight: FontWeight.normal, color: CupertinoColors.destructiveRed),
