@@ -227,12 +227,8 @@ class _IperonMessengerCupertino extends State<IperonMessengerCupertino> with Wid
                   onValidate: (input) => context.read<CommonCubit>().verifyPasscode(input),
                   onUnlocked: () => context.read<CommonCubit>().unlock(),
                   useBlur: false,
-                  config: ScreenLockConfig.defaultConfig.copyWith(
-                    backgroundColor: const CupertinoDynamicColor.withBrightness(
-                      color: CupertinoColors.inactiveGray,
-                      darkColor: CupertinoColors.black,
-                    ).resolveFrom(context),
-                  ),
+                  keyPadConfig: ThemesCupertino.screenLockKeyPad(context),
+                  config: ThemesCupertino.screenLockConfig(context),
                   title: Text(context.t.settings.passcode.pleaseEnterPasscode),
                   customizedButtonChild: state.settingsDevice.passcodeBiometric && state.isBiometricAvailable
                       ? SvgPicture.string(
@@ -251,7 +247,13 @@ class _IperonMessengerCupertino extends State<IperonMessengerCupertino> with Wid
                           // Тот же цвет, что и у цифр клавиатуры: ScreenLock
                           // рендерит их белыми (ScreenLockConfig.defaultConfig →
                           // buttonStyle.foregroundColor = 0xFFFFFFFF).
-                          colorFilter: const ColorFilter.mode(Color(0xFFFFFFFF), BlendMode.srcIn),
+                          colorFilter: ColorFilter.mode(
+                            CupertinoDynamicColor.withBrightness(
+                              color: CupertinoTheme.of(context).primaryColor,
+                              darkColor: CupertinoColors.systemGroupedBackground,
+                            ).resolveFrom(context),
+                            BlendMode.srcIn,
+                          ),
                         )
                       : null,
 

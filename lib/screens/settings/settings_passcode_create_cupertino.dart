@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../cubit.dart';
 import '../../i18n/translations.g.dart';
+import '../../themes.dart';
 
 class SettingsPasscodeCreateCupertino extends StatefulWidget {
   const SettingsPasscodeCreateCupertino({super.key});
@@ -42,7 +43,8 @@ class _SettingsPasscodeCreateCupertino extends State<SettingsPasscodeCreateCuper
           },
           onCancelled: () => context.pop(false),
           useBlur: false,
-          config: ScreenLockConfig.defaultConfig.copyWith(backgroundColor: const Color(0xFF545454)),
+          keyPadConfig: ThemesCupertino.screenLockKeyPad(context),
+          config: ThemesCupertino.screenLockConfig(context),
           title: Text(context.t.settings.passcode.pleaseEnterNewPasscode),
           confirmTitle: Text(context.t.settings.passcode.pleaseEnterNewPasscodeAgain),
           cancelButton: Text(context.t.settings.passcode.cancel),

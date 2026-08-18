@@ -1,4 +1,5 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
+import 'package:flutter_screen_lock/flutter_screen_lock.dart';
 
 class ThemesCupertino {
   /// Фон сгруппированных экранов (настройки, чаты). В светлой теме совпадает с
@@ -40,4 +41,30 @@ class ThemesCupertino {
     highContrastColor: Color.fromARGB(255, 36, 138, 61),
     darkHighContrastColor: Color.fromARGB(255, 48, 219, 91),
   );
+
+  /// Фон экрана блокировки (`ScreenLock`): в светлой теме — системный
+  /// `systemGroupedBackground`, в тёмной — фирменный `scaffoldBackgroundColor`.
+  static Color screenLockBackground(BuildContext context) {
+    final isDark = CupertinoTheme.brightnessOf(context) == Brightness.dark;
+    return isDark
+        ? CupertinoDynamicColor.resolve(CupertinoTheme.of(context).scaffoldBackgroundColor, context)
+        : CupertinoColors.systemGroupedBackground.resolveFrom(context);
+  }
+
+  /// Общая конфигурация клавиатуры `ScreenLock`: фон кнопок — тот же
+  /// `scaffoldBackgroundColor`, но чуть другим оттенком (светлее фона в тёмной
+  /// теме, темнее — в светлой), цифры окрашены в `primaryColor` темы.
+  static KeyPadConfig screenLockKeyPad(BuildContext context) {
+    final scaffoldColor = CupertinoDynamicColor.resolve(CupertinoTheme.of(context).scaffoldBackgroundColor, context);
+    final isDark = CupertinoTheme.brightnessOf(context) == Brightness.dark;
+    final keyPadColor = Color.lerp(scaffoldColor, isDark ? CupertinoColors.extraLightBackgroundGray : CupertinoColors.black, 0.6)!;
+
+    return KeyPadConfig(
+      buttonConfig: KeyPadButtonConfig(backgroundColor: keyPadColor, foregroundColor: CupertinoTheme.of(context).primaryColor),
+    );
+  }
+
+  /// Полная конфигурация `ScreenLockConfig` с общим фоном.
+  static ScreenLockConfig screenLockConfig(BuildContext context) =>
+      ScreenLockConfig.defaultConfig.copyWith(backgroundColor: screenLockBackground(context));
 }
