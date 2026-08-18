@@ -84,7 +84,7 @@ class _SettingsPasscodeCupertino extends State<SettingsPasscodeCupertino> {
           navigationBar: CupertinoNavigationBar(
             automaticBackgroundVisibility: false,
             backgroundColor: CupertinoColors.systemGroupedBackground,
-            middle: Text(context.t.settings.passcodeAndFaceID),
+            middle: state.isBiometricAvailable ? Text(context.t.settings.passcodeAndFaceID) : Text(context.t.settings.passcode.title),
           ),
           child: SafeArea(
             child: ListView(
