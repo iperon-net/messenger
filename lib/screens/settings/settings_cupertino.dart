@@ -49,6 +49,7 @@ class _SettingsCupertino extends State<SettingsCupertino> {
                       color: Color(0xFFF80202),
                       icon: FontAwesomeIcons.solidUser,
                       onTab: () async => context.go("/settings/profile"),
+                      isTrailing: true,
                     ),
                   ],
                 ),
