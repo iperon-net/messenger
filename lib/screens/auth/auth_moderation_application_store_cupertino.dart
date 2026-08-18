@@ -4,6 +4,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
 
+import '../../components.dart';
 import '../../cubit.dart';
 import '../../i18n/translations.g.dart';
 
@@ -37,7 +38,7 @@ class _AuthModerationApplicationStoreCupertino extends State<AuthModerationAppli
       builder: (context, state) {
         return CupertinoPageScaffold(
           backgroundColor: CupertinoDynamicColor.withBrightness(color: Color(0xffffffff), darkColor: Color(0xff1b263b)),
-          navigationBar: CupertinoNavigationBar(),
+          navigationBar: AppNavigationBar(child: CupertinoNavigationBar()),
           child: Form(
             key: formKey,
             child: SafeArea(

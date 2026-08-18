@@ -40,10 +40,12 @@ class _SettingsPrivacyAndSecurityCupertino extends State<SettingsPrivacyAndSecur
       builder: (context, state) {
         return CupertinoPageScaffold(
           backgroundColor: CupertinoColors.systemGroupedBackground,
-          navigationBar: CupertinoNavigationBar(
-            automaticBackgroundVisibility: false,
-            backgroundColor: CupertinoColors.systemGroupedBackground,
-            middle: Text(context.t.settings.privacyAndSecurity),
+          navigationBar: AppNavigationBar(
+            child: CupertinoNavigationBar(
+              automaticBackgroundVisibility: false,
+              backgroundColor: CupertinoColors.systemGroupedBackground,
+              middle: Text(context.t.settings.privacyAndSecurity),
+            ),
           ),
           child: SafeArea(
             child: CupertinoListSection.insetGrouped(

@@ -1,4 +1,6 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
+
+import '../../components.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -36,11 +38,13 @@ class _SettingsDeviceSessionsCupertino extends State<SettingsDeviceSessionsCuper
 
         return CupertinoPageScaffold(
           backgroundColor: CupertinoColors.systemGroupedBackground,
-          navigationBar: CupertinoNavigationBar(
-            automaticBackgroundVisibility: false,
-            backgroundColor: CupertinoColors.systemGroupedBackground,
-            middle: Text(context.t.settings.devices),
-            trailing: state.requestStatus == Status.loading ? CupertinoActivityIndicator() : null,
+          navigationBar: AppNavigationBar(
+            child: CupertinoNavigationBar(
+              automaticBackgroundVisibility: false,
+              backgroundColor: CupertinoColors.systemGroupedBackground,
+              middle: Text(context.t.settings.devices),
+              trailing: state.requestStatus == Status.loading ? CupertinoActivityIndicator() : null,
+            ),
           ),
           child: SafeArea(
             child: currentSession == null

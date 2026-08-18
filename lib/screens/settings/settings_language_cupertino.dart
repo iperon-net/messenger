@@ -1,4 +1,6 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
+
+import '../../components.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
@@ -43,10 +45,12 @@ class _SettingsLanguageCupertinoScreen extends State<SettingsLanguageCupertinoSc
       builder: (context, state) {
         return CupertinoPageScaffold(
           backgroundColor: CupertinoColors.systemGroupedBackground,
-          navigationBar: CupertinoNavigationBar(
-            automaticBackgroundVisibility: false,
-            backgroundColor: CupertinoColors.systemGroupedBackground,
-            middle: Text(context.t.settings.language),
+          navigationBar: AppNavigationBar(
+            child: CupertinoNavigationBar(
+              automaticBackgroundVisibility: false,
+              backgroundColor: CupertinoColors.systemGroupedBackground,
+              middle: Text(context.t.settings.language),
+            ),
           ),
           child: SafeArea(
             child: CupertinoListSection.insetGrouped(

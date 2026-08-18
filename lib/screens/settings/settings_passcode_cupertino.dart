@@ -1,4 +1,6 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
+
+import '../../components.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screen_lock/flutter_screen_lock.dart';
@@ -81,10 +83,12 @@ class _SettingsPasscodeCupertino extends State<SettingsPasscodeCupertino> {
 
         return CupertinoPageScaffold(
           backgroundColor: CupertinoColors.systemGroupedBackground,
-          navigationBar: CupertinoNavigationBar(
-            automaticBackgroundVisibility: false,
-            backgroundColor: CupertinoColors.systemGroupedBackground,
-            middle: state.isBiometricAvailable ? Text(context.t.settings.passcodeAndFaceID) : Text(context.t.settings.passcode.title),
+          navigationBar: AppNavigationBar(
+            child: CupertinoNavigationBar(
+              automaticBackgroundVisibility: false,
+              backgroundColor: CupertinoColors.systemGroupedBackground,
+              middle: state.isBiometricAvailable ? Text(context.t.settings.passcodeAndFaceID) : Text(context.t.settings.passcode.title),
+            ),
           ),
           child: SafeArea(
             child: ListView(

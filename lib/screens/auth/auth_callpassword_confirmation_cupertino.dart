@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../components.dart';
 import '../../cubit.dart';
 import '../../di.dart';
 import '../../i18n/translations.g.dart';
@@ -43,7 +44,7 @@ class _AuthCallpasswordConfirmationCupertino extends State<AuthCallpasswordConfi
       builder: (context, state) {
         return CupertinoPageScaffold(
           backgroundColor: CupertinoDynamicColor.withBrightness(color: Color(0xffffffff), darkColor: Color(0xff1b263b)),
-          navigationBar: CupertinoNavigationBar(),
+          navigationBar: AppNavigationBar(child: CupertinoNavigationBar()),
           child: SafeArea(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(25, 10, 25, 50),

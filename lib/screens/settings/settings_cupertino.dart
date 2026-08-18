@@ -34,10 +34,12 @@ class _SettingsCupertino extends State<SettingsCupertino> {
       builder: (context, state) {
         return CupertinoPageScaffold(
           backgroundColor: CupertinoColors.systemGroupedBackground,
-          navigationBar: CupertinoNavigationBar(
-            automaticBackgroundVisibility: false,
-            backgroundColor: CupertinoColors.systemGroupedBackground,
-            middle: Text(context.t.common.settings),
+          navigationBar: AppNavigationBar(
+            child: CupertinoNavigationBar(
+              automaticBackgroundVisibility: false,
+              backgroundColor: CupertinoColors.systemGroupedBackground,
+              middle: Text(context.t.common.settings),
+            ),
           ),
           child: SafeArea(
             child: ListView(

@@ -31,30 +31,32 @@ class _ChatsCupertino extends State<ChatsCupertino> {
       builder: (context, state) {
         return CupertinoPageScaffold(
           backgroundColor: CupertinoColors.systemGroupedBackground,
-          navigationBar: CupertinoNavigationBar(
-            automaticBackgroundVisibility: false,
-            backgroundColor: CupertinoColors.systemGroupedBackground,
-            middle: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                BlocBuilder<CommonCubit, CommonState>(
-                  builder: (context, stateCommon) {
-                    if (stateCommon.settingsDevice.passcode.isNotEmpty) {
-                      return GestureDetector(
-                        onTap: () async => await context.read<CommonCubit>().forceLock(biometrics: false),
-                        child: FaIcon(
-                          FontAwesomeIcons.lockOpen,
-                          size: 16,
-                          color: CupertinoTheme.brightnessOf(context) == Brightness.dark ? CupertinoColors.white : CupertinoColors.black,
-                        ),
-                      );
-                    }
-                    return Container();
-                  },
-                ),
-                SizedBox(width: 10),
-                ConnectionTitle(title: context.t.common.chats),
-              ],
+          navigationBar: AppNavigationBar(
+            child: CupertinoNavigationBar(
+              automaticBackgroundVisibility: false,
+              backgroundColor: CupertinoColors.systemGroupedBackground,
+              middle: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  BlocBuilder<CommonCubit, CommonState>(
+                    builder: (context, stateCommon) {
+                      if (stateCommon.settingsDevice.passcode.isNotEmpty) {
+                        return GestureDetector(
+                          onTap: () async => await context.read<CommonCubit>().forceLock(biometrics: false),
+                          child: FaIcon(
+                            FontAwesomeIcons.lockOpen,
+                            size: 16,
+                            color: CupertinoTheme.brightnessOf(context) == Brightness.dark ? CupertinoColors.white : CupertinoColors.black,
+                          ),
+                        );
+                      }
+                      return Container();
+                    },
+                  ),
+                  SizedBox(width: 10),
+                  ConnectionTitle(title: context.t.common.chats),
+                ],
+              ),
             ),
           ),
           child: Center(child: Text("ccc")),
