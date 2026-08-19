@@ -247,13 +247,7 @@ class _IperonMessengerCupertino extends State<IperonMessengerCupertino> with Wid
                           // Тот же цвет, что и у цифр клавиатуры: ScreenLock
                           // рендерит их белыми (ScreenLockConfig.defaultConfig →
                           // buttonStyle.foregroundColor = 0xFFFFFFFF).
-                          colorFilter: ColorFilter.mode(
-                            CupertinoDynamicColor.withBrightness(
-                              color: CupertinoTheme.of(context).primaryColor,
-                              darkColor: CupertinoColors.systemGroupedBackground,
-                            ).resolveFrom(context),
-                            BlendMode.srcIn,
-                          ),
+                          colorFilter: ColorFilter.mode(ThemesCupertino.screenLockForeground(context), BlendMode.srcIn),
                         )
                       : null,
 

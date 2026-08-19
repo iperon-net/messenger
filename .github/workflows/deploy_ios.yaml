@@ -109,7 +109,7 @@ jobs:
           # upload-crashlytics-symbols) but is gitignored. It holds no secrets
           # (only projectId and public appIds), so we write it inline here.
           cat > firebase.json <<'EOF'
-          {"flutter":{"platforms":{"android":{"default":{"projectId":"iperon","appId":"1:434986283436:android:4f866c85c25982c9950a09","fileOutput":"android/app/google-services.json"}},"ios":{"default":{"projectId":"iperon","appId":"1:434986283436:ios:06524099437889e9950a09","uploadDebugSymbols":false,"fileOutput":"ios/Runner/GoogleService-Info.plist"}},"dart":{"lib/firebase_options.dart":{"projectId":"iperon","configurations":{"android":"1:434986283436:android:4f866c85c25982c9950a09","ios":"1:434986283436:ios:06524099437889e9950a09"}}}}}}
+          {"flutter":{"platforms":{"android":{"default":{"projectId":"iperon","appId":"1:434986283436:android:4f866c85c25982c9950a09","fileOutput":"android/app/google-services.json"}},"ios":{"default":{"projectId":"iperon","appId":"1:434986283436:ios:06524099437889e9950a09","uploadDebugSymbols":true,"fileOutput":"ios/Runner/GoogleService-Info.plist"}},"dart":{"lib/firebase_options.dart":{"projectId":"iperon","configurations":{"android":"1:434986283436:android:4f866c85c25982c9950a09","ios":"1:434986283436:ios:06524099437889e9950a09"}}}}}}
           EOF
 
       - name: Install dependencies

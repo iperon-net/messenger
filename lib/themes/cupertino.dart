@@ -1,4 +1,5 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_screen_lock/flutter_screen_lock.dart';
 
 class ThemesCupertino {
@@ -47,9 +48,16 @@ class ThemesCupertino {
   static Color screenLockBackground(BuildContext context) {
     final isDark = CupertinoTheme.brightnessOf(context) == Brightness.dark;
     return isDark
-        ? CupertinoDynamicColor.resolve(CupertinoTheme.of(context).scaffoldBackgroundColor, context)
-        : CupertinoTheme.of(context).primaryColor.withAlpha(180);
-    // : CupertinoColors.systemGroupedBackground.resolveFrom(context);
+        ? Color.lerp(
+            CupertinoDynamicColor.resolve(CupertinoTheme.of(context).primaryColor, context),
+            CupertinoColors.darkBackgroundGray,
+            0.5,
+          )!
+        : Color.lerp(
+            CupertinoDynamicColor.resolve(CupertinoTheme.of(context).primaryColor, context),
+            CupertinoColors.darkBackgroundGray,
+            0.5,
+          )!;
   }
 
   /// Общая конфигурация клавиатуры `ScreenLock`: фон кнопок — тот же
@@ -62,13 +70,26 @@ class ThemesCupertino {
 
     return KeyPadConfig(
       buttonConfig: KeyPadButtonConfig(
+        buttonStyle: ButtonStyle(
+          side: WidgetStatePropertyAll(
+            BorderSide(color: CupertinoDynamicColor.resolve(CupertinoTheme.of(context).scaffoldBackgroundColor, context), width: 0.5),
+          ),
+          shape: const WidgetStatePropertyAll(CircleBorder()),
+        ),
         backgroundColor: isDark
-            ? CupertinoTheme.of(context).primaryColor.withAlpha(80)
-            : CupertinoTheme.of(context).primaryColor.withAlpha(95),
+            ? CupertinoTheme.of(context).primaryColor.withAlpha(40)
+            : CupertinoTheme.of(context).primaryColor.withAlpha(40),
       ),
       // buttonConfig: KeyPadButtonConfig(backgroundColor: keyPadColor, foregroundColor: CupertinoTheme.of(context).primaryColor),
     );
   }
+
+  /// Цвет иконки/цифр `ScreenLock` (например, иконки биометрии): в светлой теме —
+  /// `primaryColor`, в тёмной — `systemGroupedBackground`.
+  static Color screenLockForeground(BuildContext context) => CupertinoDynamicColor.withBrightness(
+    color: CupertinoTheme.of(context).primaryColor,
+    darkColor: CupertinoColors.systemGroupedBackground,
+  ).resolveFrom(context);
 
   /// Полная конфигурация `ScreenLockConfig` с общим фоном.
   static ScreenLockConfig screenLockConfig(BuildContext context) =>
