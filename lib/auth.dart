@@ -43,6 +43,7 @@ class Auth extends ChangeNotifier {
 
   Future<void> logout() async {
     await repositories.sessions.deleteActive();
+    await repositories.settingsDevice.setPasscode([]);
     _session = Session();
     await _syncStream();
     notifyListeners();
