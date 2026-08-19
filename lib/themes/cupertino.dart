@@ -48,19 +48,25 @@ class ThemesCupertino {
     final isDark = CupertinoTheme.brightnessOf(context) == Brightness.dark;
     return isDark
         ? CupertinoDynamicColor.resolve(CupertinoTheme.of(context).scaffoldBackgroundColor, context)
-        : CupertinoColors.systemGroupedBackground.resolveFrom(context);
+        : CupertinoTheme.of(context).primaryColor.withAlpha(180);
+    // : CupertinoColors.systemGroupedBackground.resolveFrom(context);
   }
 
   /// Общая конфигурация клавиатуры `ScreenLock`: фон кнопок — тот же
   /// `scaffoldBackgroundColor`, но чуть другим оттенком (светлее фона в тёмной
   /// теме, темнее — в светлой), цифры окрашены в `primaryColor` темы.
   static KeyPadConfig screenLockKeyPad(BuildContext context) {
-    final scaffoldColor = CupertinoDynamicColor.resolve(CupertinoTheme.of(context).scaffoldBackgroundColor, context);
     final isDark = CupertinoTheme.brightnessOf(context) == Brightness.dark;
-    final keyPadColor = Color.lerp(scaffoldColor, isDark ? CupertinoColors.extraLightBackgroundGray : CupertinoColors.black, 0.6)!;
+    // final scaffoldColor = CupertinoDynamicColor.resolve(CupertinoTheme.of(context).scaffoldBackgroundColor, context);
+    // final keyPadColor = Color.lerp(scaffoldColor, isDark ? CupertinoColors.extraLightBackgroundGray : CupertinoColors.black, 0.6)!;
 
     return KeyPadConfig(
-      buttonConfig: KeyPadButtonConfig(backgroundColor: keyPadColor, foregroundColor: CupertinoTheme.of(context).primaryColor),
+      buttonConfig: KeyPadButtonConfig(
+        backgroundColor: isDark
+            ? CupertinoTheme.of(context).primaryColor.withAlpha(80)
+            : CupertinoTheme.of(context).primaryColor.withAlpha(95),
+      ),
+      // buttonConfig: KeyPadButtonConfig(backgroundColor: keyPadColor, foregroundColor: CupertinoTheme.of(context).primaryColor),
     );
   }
 
