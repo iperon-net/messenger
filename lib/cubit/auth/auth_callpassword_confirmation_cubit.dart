@@ -248,19 +248,33 @@ class AuthCallpasswordConfirmationCubit extends Cubit<AuthCallpasswordConfirmati
         final sharedKey = kem.decapsulate(privateKeySharedKey, Uint8List.fromList(authConfirmationResponse.ciphertextSharedKey));
         final sharedSalt = kem.decapsulate(privateKeySalt, Uint8List.fromList(authConfirmationResponse.ciphertextSalt));
 
-        // Create or update user
-        await repositories.users.createOrUpdate(userID: authConfirmationResponse.userID, phoneNumber: authConfirmationResponse.phoneNumber);
+        // Персистентность сессии обёрнута в try/catch: этот код выполняется в
+        // onData-колбэке стрима, поэтому любое исключение (например, сбой записи
+        // в SQLite) улетело бы необработанным в PlatformDispatcher.onError и
+        // уронило бы приложение как fatal. Вместо этого показываем ошибку и
+        // возвращаем на /auth.
+        try {
+          // Create or update user
+          await repositories.users.createOrUpdate(
+            userID: authConfirmationResponse.userID,
+            phoneNumber: authConfirmationResponse.phoneNumber,
+          );
 
-        await repositories.sessions.deleteAndCreate(
-          session: authConfirmationResponse.session,
-          sessionID: authConfirmationResponse.sessionID,
-          userID: authConfirmationResponse.userID,
-          sharedKey: sharedKey,
-          sharedSalt: sharedSalt,
-          createAt: DateTime.now(),
-        );
+          await repositories.sessions.deleteAndCreate(
+            session: authConfirmationResponse.session,
+            sessionID: authConfirmationResponse.sessionID,
+            userID: authConfirmationResponse.userID,
+            sharedKey: sharedKey,
+            sharedSalt: sharedSalt,
+            createAt: DateTime.now(),
+          );
 
-        await getIt.get<Auth>().refresh();
+          await getIt.get<Auth>().refresh();
+        } catch (error, stackTrace) {
+          logger.handle(error, stackTrace, "callpassword confirmation: persist session failed");
+          emit(state.copyWith(status: Status.success, error: "internalServerError", redirectURI: Uri.parse("/auth")));
+          return;
+        }
 
         emit(state.copyWith(redirectURI: Uri.parse("/chats")));
 
