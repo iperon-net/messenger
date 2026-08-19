@@ -198,11 +198,11 @@ class _IperonMessengerCupertino extends State<IperonMessengerCupertino> with Wid
         CupertinoDynamicColor colorSchemeSystem = themes.blueScheme;
 
         if (state.settingsDevice.colorTheme == ColorThemeModel.green) {
-          colorSchemeSystem = ThemesCupertino().green;
+          colorSchemeSystem = themes.green;
         } else if (state.settingsDevice.colorTheme == ColorThemeModel.purple) {
           colorSchemeSystem = CupertinoColors.systemPurple;
-        } else if (state.settingsDevice.colorTheme == ColorThemeModel.red) {
-          colorSchemeSystem = CupertinoColors.destructiveRed;
+        } else if (state.settingsDevice.colorTheme == ColorThemeModel.orange) {
+          colorSchemeSystem = themes.orange;
         }
 
         Brightness? brightness;

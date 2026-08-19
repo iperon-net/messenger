@@ -125,8 +125,8 @@ class Translations$settings$en {
 	/// en: 'Purple'
 	String get colorThemePurple => 'Purple';
 
-	/// en: 'Red'
-	String get colorThemeRed => 'Red';
+	/// en: 'Orange'
+	String get colorThemeOrange => 'Orange';
 
 	/// en: 'Dark mode'
 	String get darkMode => 'Dark mode';
@@ -363,7 +363,7 @@ extension on Translations {
 			'settings.colorThemeDefault' => 'Default',
 			'settings.colorThemeGreen' => 'Green',
 			'settings.colorThemePurple' => 'Purple',
-			'settings.colorThemeRed' => 'Red',
+			'settings.colorThemeOrange' => 'Orange',
 			'settings.darkMode' => 'Dark mode',
 			'settings.darkModeSystem' => 'System',
 			'settings.darkModeAlwaysOn' => 'Always on',

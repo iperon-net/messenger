@@ -83,7 +83,7 @@ class _Translations$settings$ru extends Translations$settings$en {
 	@override String get colorThemeDefault => 'По умолчанию';
 	@override String get colorThemeGreen => 'Зеленая';
 	@override String get colorThemePurple => 'Пурпурный';
-	@override String get colorThemeRed => 'Красная';
+	@override String get colorThemeOrange => 'Оранжевая';
 	@override String get darkMode => 'Тёмный режим';
 	@override String get darkModeSystem => 'Системный';
 	@override String get darkModeAlwaysOn => 'Всегда включено';
@@ -221,7 +221,7 @@ extension on TranslationsRu {
 			'settings.colorThemeDefault' => 'По умолчанию',
 			'settings.colorThemeGreen' => 'Зеленая',
 			'settings.colorThemePurple' => 'Пурпурный',
-			'settings.colorThemeRed' => 'Красная',
+			'settings.colorThemeOrange' => 'Оранжевая',
 			'settings.darkMode' => 'Тёмный режим',
 			'settings.darkModeSystem' => 'Системный',
 			'settings.darkModeAlwaysOn' => 'Всегда включено',

@@ -89,9 +89,9 @@ class _SettingsAppearanceCupertino extends State<SettingsAppearanceCupertino> {
                       additionalInfo: state.colorTheme == ColorThemeModel.purple ? additionalInfo : null,
                     ),
                     CupertinoListTile(
-                      title: Text(context.t.settings.colorThemeRed),
-                      onTap: () async => await context.read<SettingsAppearanceCubit>().setColorTheme(colorTheme: ColorThemeModel.red),
-                      additionalInfo: state.colorTheme == ColorThemeModel.red ? additionalInfo : null,
+                      title: Text(context.t.settings.colorThemeOrange),
+                      onTap: () async => await context.read<SettingsAppearanceCubit>().setColorTheme(colorTheme: ColorThemeModel.orange),
+                      additionalInfo: state.colorTheme == ColorThemeModel.orange ? additionalInfo : null,
                     ),
                   ],
                 ),

@@ -33,8 +33,8 @@ class ColorThemeModelMapper extends EnumMapper<ColorThemeModel> {
         return ColorThemeModel.green;
       case r'purple':
         return ColorThemeModel.purple;
-      case r'red':
-        return ColorThemeModel.red;
+      case r'orange':
+        return ColorThemeModel.orange;
       default:
         throw MapperException.unknownEnumValue(value);
     }
@@ -49,8 +49,8 @@ class ColorThemeModelMapper extends EnumMapper<ColorThemeModel> {
         return r'green';
       case ColorThemeModel.purple:
         return r'purple';
-      case ColorThemeModel.red:
-        return r'red';
+      case ColorThemeModel.orange:
+        return r'orange';
     }
   }
 }

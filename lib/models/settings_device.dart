@@ -56,8 +56,8 @@ class SettingsDeviceModel with SettingsDeviceModelMappable {
       settingsDeviceModel = settingsDeviceModel.copyWith(colorTheme: ColorThemeModel.purple);
     } else if (colorThemeValue == "green") {
       settingsDeviceModel = settingsDeviceModel.copyWith(colorTheme: ColorThemeModel.green);
-    } else if (colorThemeValue == "red") {
-      settingsDeviceModel = settingsDeviceModel.copyWith(colorTheme: ColorThemeModel.red);
+    } else if (colorThemeValue == "orange") {
+      settingsDeviceModel = settingsDeviceModel.copyWith(colorTheme: ColorThemeModel.orange);
     } else if (colorThemeValue == "blue") {
       settingsDeviceModel = settingsDeviceModel.copyWith(colorTheme: ColorThemeModel.blue);
     }

@@ -43,12 +43,12 @@ class ThemesCupertino {
     darkHighContrastColor: Color.fromARGB(255, 48, 219, 91),
   );
 
-  CupertinoDynamicColor red = const CupertinoDynamicColor.withBrightnessAndContrast(
-    debugLabel: 'systemRed',
-    color: Color.fromARGB(255, 161, 39, 33),
-    darkColor: Color.fromARGB(255, 255, 69, 58),
-    highContrastColor: Color.fromARGB(255, 215, 0, 21),
-    darkHighContrastColor: Color.fromARGB(255, 255, 105, 97),
+  CupertinoDynamicColor get orange => const CupertinoDynamicColor.withBrightnessAndContrast(
+    debugLabel: 'systemOrange',
+    color: Color.fromARGB(255, 204, 120, 0), // Темный оранжевый (базовый)
+    darkColor: Color.fromARGB(255, 230, 150, 30), // Ярче для темной темы
+    highContrastColor: Color.fromARGB(255, 180, 80, 0), // Еще темнее для контраста
+    darkHighContrastColor: Color.fromARGB(255, 255, 170, 60), // Яркий для темной + контраст
   );
 
   /// Фон экрана блокировки (`ScreenLock`): в светлой теме — системный
