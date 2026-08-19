@@ -249,16 +249,39 @@ jobs:
         # символы шлём напрямую бинарником upload-symbols из готового .xcarchive.
         # Идёт последним шагом, чтобы сбой загрузки символов не блокировал релиз.
         run: |
-          set -euo pipefail
-          UPLOAD_SYMBOLS="ios/Pods/FirebaseCrashlytics/upload-symbols"
+          set -uo pipefail
           GSP="ios/Runner/GoogleService-Info.plist"
+          DD="$HOME/Library/Developer/Xcode/DerivedData"
+
+          # upload-symbols живёт в FirebaseCrashlytics, но его расположение
+          # зависит от менеджера зависимостей: ios/Pods/... при CocoaPods либо
+          # DerivedData/.../SourcePackages/checkouts/firebase-ios-sdk/... при SPM.
+          # На CI путь не совпадает с локальным, поэтому ищем бинарник по факту.
+          echo "Searching for upload-symbols…"
+          UPLOAD_SYMBOLS=$(find ios/Pods "$DD" -type f -name upload-symbols 2>/dev/null | head -1 || true)
+          if [ -z "$UPLOAD_SYMBOLS" ]; then
+            echo "::warning::upload-symbols not found — skipping dSYM upload"
+            echo "--- ios/Pods (top level) ---"; ls ios/Pods 2>/dev/null | head -60 || true
+            echo "--- run/upload-symbols anywhere under workspace ---"
+            find . "$DD" -type f \( -name upload-symbols -o -name run \) 2>/dev/null | grep -i crashlytics | head || true
+            exit 0
+          fi
+          echo "Found: $UPLOAD_SYMBOLS"
+
+          # dSYM генерирует flutter build ipa в .xcarchive независимо от менеджера
+          # зависимостей; на всякий случай ищем и в DerivedData, если путь иной.
           DSYM_DIR="build/ios/archive/Runner.xcarchive/dSYMs"
-          if [ ! -x "$UPLOAD_SYMBOLS" ]; then
-            echo "::warning::upload-symbols not found at $UPLOAD_SYMBOLS — skipping dSYM upload"
-            exit 0
-          fi
           if [ ! -d "$DSYM_DIR" ]; then
-            echo "::warning::dSYMs dir not found at $DSYM_DIR — skipping dSYM upload"
-            exit 0
+            echo "::warning::dSYMs not at $DSYM_DIR — searching…"
+            ALT=$(find build "$DD" -type d -name dSYMs 2>/dev/null | head -1 || true)
+            if [ -z "$ALT" ]; then
+              echo "::warning::no dSYMs directory found — skipping dSYM upload"
+              find build "$DD" -type d -name "*.dSYM" 2>/dev/null | head || true
+              exit 0
+            fi
+            DSYM_DIR="$ALT"
           fi
+          echo "Uploading dSYMs from: $DSYM_DIR"
+
+          chmod +x "$UPLOAD_SYMBOLS" 2>/dev/null || true
           "$UPLOAD_SYMBOLS" -gsp "$GSP" -p ios -- "$DSYM_DIR"
