@@ -72,7 +72,7 @@ class ThemesCupertino {
       buttonConfig: KeyPadButtonConfig(
         buttonStyle: ButtonStyle(
           side: WidgetStatePropertyAll(
-            BorderSide(color: CupertinoDynamicColor.resolve(CupertinoTheme.of(context).scaffoldBackgroundColor, context), width: 0.5),
+            BorderSide(color: CupertinoDynamicColor.resolve(CupertinoTheme.of(context).primaryColor, context), width: 0.5),
           ),
           shape: const WidgetStatePropertyAll(CircleBorder()),
         ),
