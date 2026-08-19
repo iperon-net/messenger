@@ -25,16 +25,17 @@ class SettingsPasscodeCubit extends Cubit<SettingsPasscodeState> {
 
   Future<void> initialization() async {
     emit(state.copyWith(status: Status.loading));
-    final settings = await repositories.settingsDevice.getAll();
 
     final isBiometricAvailable = await utils.isBiometricAvailable();
+    emit(state.copyWith(isBiometricAvailable: isBiometricAvailable));
+
+    final settings = await repositories.settingsDevice.getAll();
 
     emit(
       state.copyWith(
         status: Status.success,
         passcode: settings.passcode,
         isBiometric: settings.passcodeBiometric,
-        isBiometricAvailable: isBiometricAvailable,
         autoLockSeconds: settings.passcodeAutoLock,
       ),
     );
