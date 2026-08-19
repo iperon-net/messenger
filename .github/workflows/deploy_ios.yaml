@@ -109,7 +109,7 @@ jobs:
           # upload-crashlytics-symbols) but is gitignored. It holds no secrets
           # (only projectId and public appIds), so we write it inline here.
           cat > firebase.json <<'EOF'
-          {"flutter":{"platforms":{"android":{"default":{"projectId":"iperon","appId":"1:434986283436:android:4f866c85c25982c9950a09","fileOutput":"android/app/google-services.json"}},"ios":{"default":{"projectId":"iperon","appId":"1:434986283436:ios:06524099437889e9950a09","uploadDebugSymbols":true,"fileOutput":"ios/Runner/GoogleService-Info.plist"}},"dart":{"lib/firebase_options.dart":{"projectId":"iperon","configurations":{"android":"1:434986283436:android:4f866c85c25982c9950a09","ios":"1:434986283436:ios:06524099437889e9950a09"}}}}}}
+          {"flutter":{"platforms":{"android":{"default":{"projectId":"iperon","appId":"1:434986283436:android:4f866c85c25982c9950a09","fileOutput":"android/app/google-services.json"}},"ios":{"default":{"projectId":"iperon","appId":"1:434986283436:ios:06524099437889e9950a09","uploadDebugSymbols":false,"fileOutput":"ios/Runner/GoogleService-Info.plist"}},"dart":{"lib/firebase_options.dart":{"projectId":"iperon","configurations":{"android":"1:434986283436:android:4f866c85c25982c9950a09","ios":"1:434986283436:ios:06524099437889e9950a09"}}}}}}
           EOF
 
       - name: Install dependencies
@@ -240,3 +240,25 @@ jobs:
           ASC_KEY_P8_BASE64: ${{ secrets.ASC_KEY_P8_BASE64 }}
           CHANGELOG: ${{ env.CHANGELOG }}
         run: bundle exec fastlane beta
+
+      - name: Upload dSYMs to Crashlytics
+        # Загружаем dSYM в Crashlytics явно, а не через build phase
+        # "FlutterFire: upload-crashlytics-symbols": на CI окружение archive-фазы
+        # не отдаёт корректный путь к FirebaseCrashlytics/run (уходит в SPM-ветку
+        # и падает), поэтому uploadDebugSymbols в firebase.json оставлен false, а
+        # символы шлём напрямую бинарником upload-symbols из готового .xcarchive.
+        # Идёт последним шагом, чтобы сбой загрузки символов не блокировал релиз.
+        run: |
+          set -euo pipefail
+          UPLOAD_SYMBOLS="ios/Pods/FirebaseCrashlytics/upload-symbols"
+          GSP="ios/Runner/GoogleService-Info.plist"
+          DSYM_DIR="build/ios/archive/Runner.xcarchive/dSYMs"
+          if [ ! -x "$UPLOAD_SYMBOLS" ]; then
+            echo "::warning::upload-symbols not found at $UPLOAD_SYMBOLS — skipping dSYM upload"
+            exit 0
+          fi
+          if [ ! -d "$DSYM_DIR" ]; then
+            echo "::warning::dSYMs dir not found at $DSYM_DIR — skipping dSYM upload"
+            exit 0
+          fi
+          "$UPLOAD_SYMBOLS" -gsp "$GSP" -p ios -- "$DSYM_DIR"
