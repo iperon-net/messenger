@@ -51,12 +51,12 @@ class ThemesCupertino {
         ? Color.lerp(
             CupertinoDynamicColor.resolve(CupertinoTheme.of(context).primaryColor, context),
             CupertinoColors.darkBackgroundGray,
-            0.5,
+            0.6,
           )!
         : Color.lerp(
             CupertinoDynamicColor.resolve(CupertinoTheme.of(context).primaryColor, context),
             CupertinoColors.darkBackgroundGray,
-            0.5,
+            0.3,
           )!;
   }
 
@@ -72,7 +72,7 @@ class ThemesCupertino {
       buttonConfig: KeyPadButtonConfig(
         buttonStyle: ButtonStyle(
           side: WidgetStatePropertyAll(
-            BorderSide(color: CupertinoDynamicColor.resolve(CupertinoTheme.of(context).primaryColor, context), width: 0.5),
+            BorderSide(color: CupertinoDynamicColor.resolve(CupertinoColors.lightBackgroundGray, context), width: 0.5),
           ),
           shape: const WidgetStatePropertyAll(CircleBorder()),
         ),
@@ -88,6 +88,12 @@ class ThemesCupertino {
   /// `primaryColor`, в тёмной — `systemGroupedBackground`.
   static Color screenLockForeground(BuildContext context) => CupertinoDynamicColor.withBrightness(
     color: CupertinoTheme.of(context).primaryColor,
+    darkColor: CupertinoColors.systemGroupedBackground,
+  ).resolveFrom(context);
+
+  /// Biometric icon
+  static Color screenLockBiometricIcon(BuildContext context) => CupertinoDynamicColor.withBrightness(
+    color: CupertinoColors.systemGroupedBackground,
     darkColor: CupertinoColors.systemGroupedBackground,
   ).resolveFrom(context);
 
