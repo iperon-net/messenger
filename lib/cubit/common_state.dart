@@ -24,11 +24,17 @@ class CommonState with CommonStateMappable {
   /// биометрии на экране блокировки показываем только когда оба true.
   final bool isBiometricAvailable;
 
+  /// Находится ли пользователь на экране авторизации (`/auth` или подпути).
+  /// На этих экранах тема принудительно синяя и не показывается код-пароль.
+  /// Обновляется из слушателя роутера в `main.dart`.
+  final bool isAuthRoute;
+
   const CommonState({
     this.status = Status.initialization,
     required this.settingsDevice,
     this.isLocked = false,
     this.autoBiometrics = true,
     this.isBiometricAvailable = false,
+    this.isAuthRoute = false,
   });
 }

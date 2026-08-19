@@ -125,6 +125,14 @@ class CommonCubit extends Cubit<CommonState> {
     emit(state.copyWith(settingsDevice: settingsDevice, isLocked: false, autoBiometrics: true));
   }
 
+  /// Обновляет признак нахождения на экране авторизации. Вызывается из слушателя
+  /// роутера в `main.dart` при каждой смене маршрута. Эмитит только при реальном
+  /// изменении, чтобы не дёргать перестроение на каждую навигацию.
+  void setIsAuthRoute({required bool isAuthRoute}) {
+    if (state.isAuthRoute == isAuthRoute) return;
+    emit(state.copyWith(isAuthRoute: isAuthRoute));
+  }
+
   Future<void> setLocale({required AppLocale locale}) async {
     final settingsDevice = state.settingsDevice.copyWith(locale: locale);
     emit(state.copyWith(settingsDevice: settingsDevice));

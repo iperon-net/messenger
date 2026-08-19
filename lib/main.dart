@@ -113,11 +113,23 @@ class _IperonMessengerCupertino extends State<IperonMessengerCupertino> with Wid
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     goRouter = routers.cupertino(navigatorGoRouterKey);
+    // Смена маршрута не меняет CommonState сама по себе (переход на /auth роутер
+    // делает через Auth.refresh → redirect). Поэтому слушаем роутер и прокидываем
+    // признак «мы на /auth» в кубит, чтобы тема и код-пароль реагировали.
+    goRouter.routerDelegate.addListener(_onRouteChanged);
     context.read<CommonCubit>().initialization(settingsDevice: widget.settingsDevice);
+    _onRouteChanged();
+  }
+
+  void _onRouteChanged() {
+    final location = goRouter.routerDelegate.currentConfiguration.uri.path;
+    final isAuthRoute = location == "/auth" || location.startsWith("/auth/");
+    context.read<CommonCubit>().setIsAuthRoute(isAuthRoute: isAuthRoute);
   }
 
   @override
   void dispose() {
+    goRouter.routerDelegate.removeListener(_onRouteChanged);
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -200,6 +212,12 @@ class _IperonMessengerCupertino extends State<IperonMessengerCupertino> with Wid
           brightness = Brightness.light;
         }
 
+        // На /auth (и подпутях) тема принудительно синяя. Признак приходит из
+        // кубита — его обновляет слушатель роутера (_onRouteChanged).
+        if (state.isAuthRoute) {
+          colorSchemeSystem = themes.blueScheme;
+        }
+
         return MediaQuery(
           data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(0.95)),
           child: CupertinoApp.router(
@@ -216,10 +234,7 @@ class _IperonMessengerCupertino extends State<IperonMessengerCupertino> with Wid
             builder: (context, child) {
               // На экранах авторизации (/auth и подпути) код-пароль не показываем:
               // пользователь ещё логинится, блокировать нечего.
-              final location = goRouter.routerDelegate.currentConfiguration.uri.path;
-              final isAuthRoute = location == "/auth" || location.startsWith("/auth/");
-
-              if (!isAuthRoute && state.settingsDevice.passcode.isNotEmpty && state.isLocked) {
+              if (!state.isAuthRoute && state.settingsDevice.passcode.isNotEmpty && state.isLocked) {
                 return ScreenLock(
                   // correctString здесь лишь задаёт число вводимых цифр (digits),
                   // реальная проверка идёт через onValidate по сохранённому хешу.

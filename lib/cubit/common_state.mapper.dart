@@ -55,6 +55,13 @@ class CommonStateMapper extends ClassMapperBase<CommonState> {
     opt: true,
     def: false,
   );
+  static bool _$isAuthRoute(CommonState v) => v.isAuthRoute;
+  static const Field<CommonState, bool> _f$isAuthRoute = Field(
+    'isAuthRoute',
+    _$isAuthRoute,
+    opt: true,
+    def: false,
+  );
 
   @override
   final MappableFields<CommonState> fields = const {
@@ -63,6 +70,7 @@ class CommonStateMapper extends ClassMapperBase<CommonState> {
     #isLocked: _f$isLocked,
     #autoBiometrics: _f$autoBiometrics,
     #isBiometricAvailable: _f$isBiometricAvailable,
+    #isAuthRoute: _f$isAuthRoute,
   };
 
   static CommonState _instantiate(DecodingData data) {
@@ -72,6 +80,7 @@ class CommonStateMapper extends ClassMapperBase<CommonState> {
       isLocked: data.dec(_f$isLocked),
       autoBiometrics: data.dec(_f$autoBiometrics),
       isBiometricAvailable: data.dec(_f$isBiometricAvailable),
+      isAuthRoute: data.dec(_f$isAuthRoute),
     );
   }
 
@@ -143,6 +152,7 @@ abstract class CommonStateCopyWith<$R, $In extends CommonState, $Out>
     bool? isLocked,
     bool? autoBiometrics,
     bool? isBiometricAvailable,
+    bool? isAuthRoute,
   });
   CommonStateCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
@@ -166,6 +176,7 @@ class _CommonStateCopyWithImpl<$R, $Out>
     bool? isLocked,
     bool? autoBiometrics,
     bool? isBiometricAvailable,
+    bool? isAuthRoute,
   }) => $apply(
     FieldCopyWithData({
       if (status != null) #status: status,
@@ -174,6 +185,7 @@ class _CommonStateCopyWithImpl<$R, $Out>
       if (autoBiometrics != null) #autoBiometrics: autoBiometrics,
       if (isBiometricAvailable != null)
         #isBiometricAvailable: isBiometricAvailable,
+      if (isAuthRoute != null) #isAuthRoute: isAuthRoute,
     }),
   );
   @override
@@ -186,6 +198,7 @@ class _CommonStateCopyWithImpl<$R, $Out>
       #isBiometricAvailable,
       or: $value.isBiometricAvailable,
     ),
+    isAuthRoute: data.get(#isAuthRoute, or: $value.isAuthRoute),
   );
 
   @override
