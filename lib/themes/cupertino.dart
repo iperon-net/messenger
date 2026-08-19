@@ -43,6 +43,14 @@ class ThemesCupertino {
     darkHighContrastColor: Color.fromARGB(255, 48, 219, 91),
   );
 
+  CupertinoDynamicColor red = const CupertinoDynamicColor.withBrightnessAndContrast(
+    debugLabel: 'systemRed',
+    color: Color.fromARGB(255, 161, 39, 33),
+    darkColor: Color.fromARGB(255, 255, 69, 58),
+    highContrastColor: Color.fromARGB(255, 215, 0, 21),
+    darkHighContrastColor: Color.fromARGB(255, 255, 105, 97),
+  );
+
   /// Фон экрана блокировки (`ScreenLock`): в светлой теме — системный
   /// `systemGroupedBackground`, в тёмной — фирменный `scaffoldBackgroundColor`.
   static Color screenLockBackground(BuildContext context) {

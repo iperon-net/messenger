@@ -32,8 +32,9 @@ class _AuthModerationApplicationStoreCupertino extends State<AuthModerationAppli
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<AuthModerationApplicationStoreCubit, AuthModerationApplicationStoreState>(
-      listener: (context, state) {
-        // TODO: implement listener
+      listenWhen: (previous, current) => previous.redirectURI != current.redirectURI,
+      listener: (context, state) async {
+        await context.read<CommonCubit>().setPasscode(passcode: []);
       },
       builder: (context, state) {
         return CupertinoPageScaffold(
