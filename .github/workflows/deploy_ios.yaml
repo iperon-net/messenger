@@ -255,10 +255,11 @@ jobs:
 
           # upload-symbols живёт в FirebaseCrashlytics, но его расположение
           # зависит от менеджера зависимостей: ios/Pods/... при CocoaPods либо
-          # DerivedData/.../SourcePackages/checkouts/firebase-ios-sdk/... при SPM.
-          # На CI путь не совпадает с локальным, поэтому ищем бинарник по факту.
+          # */SourcePackages/checkouts/firebase-ios-sdk/... при SPM. На CI Flutter
+          # кладёт SPM-checkout в build/ios/SourcePackages (а не в DerivedData),
+          # поэтому ищем и там; путь не совпадает с локальным, ищем по факту.
           echo "Searching for upload-symbols…"
-          UPLOAD_SYMBOLS=$(find ios/Pods "$DD" -type f -name upload-symbols 2>/dev/null | head -1 || true)
+          UPLOAD_SYMBOLS=$(find ios/Pods build "$DD" -type f -name upload-symbols 2>/dev/null | head -1 || true)
           if [ -z "$UPLOAD_SYMBOLS" ]; then
             echo "::warning::upload-symbols not found — skipping dSYM upload"
             echo "--- ios/Pods (top level) ---"; ls ios/Pods 2>/dev/null | head -60 || true
