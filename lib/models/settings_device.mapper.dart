@@ -76,6 +76,15 @@ class SettingsDeviceModelMapper extends ClassMapperBase<SettingsDeviceModel> {
     opt: true,
     def: false,
   );
+  static int _$passcodeBackgroundedAt(SettingsDeviceModel v) =>
+      v.passcodeBackgroundedAt;
+  static const Field<SettingsDeviceModel, int> _f$passcodeBackgroundedAt =
+      Field(
+        'passcodeBackgroundedAt',
+        _$passcodeBackgroundedAt,
+        opt: true,
+        def: 0,
+      );
 
   @override
   final MappableFields<SettingsDeviceModel> fields = const {
@@ -87,6 +96,7 @@ class SettingsDeviceModelMapper extends ClassMapperBase<SettingsDeviceModel> {
     #passcodeBiometric: _f$passcodeBiometric,
     #passcodeAutoLock: _f$passcodeAutoLock,
     #passcodeForceLocked: _f$passcodeForceLocked,
+    #passcodeBackgroundedAt: _f$passcodeBackgroundedAt,
   };
 
   static SettingsDeviceModel _instantiate(DecodingData data) {
@@ -99,6 +109,7 @@ class SettingsDeviceModelMapper extends ClassMapperBase<SettingsDeviceModel> {
       passcodeBiometric: data.dec(_f$passcodeBiometric),
       passcodeAutoLock: data.dec(_f$passcodeAutoLock),
       passcodeForceLocked: data.dec(_f$passcodeForceLocked),
+      passcodeBackgroundedAt: data.dec(_f$passcodeBackgroundedAt),
     );
   }
 
@@ -182,6 +193,7 @@ abstract class SettingsDeviceModelCopyWith<
     bool? passcodeBiometric,
     int? passcodeAutoLock,
     bool? passcodeForceLocked,
+    int? passcodeBackgroundedAt,
   });
   SettingsDeviceModelCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
     Then<$Out2, $R2> t,
@@ -213,6 +225,7 @@ class _SettingsDeviceModelCopyWithImpl<$R, $Out>
     bool? passcodeBiometric,
     int? passcodeAutoLock,
     bool? passcodeForceLocked,
+    int? passcodeBackgroundedAt,
   }) => $apply(
     FieldCopyWithData({
       if (locale != $none) #locale: locale,
@@ -224,6 +237,8 @@ class _SettingsDeviceModelCopyWithImpl<$R, $Out>
       if (passcodeAutoLock != null) #passcodeAutoLock: passcodeAutoLock,
       if (passcodeForceLocked != null)
         #passcodeForceLocked: passcodeForceLocked,
+      if (passcodeBackgroundedAt != null)
+        #passcodeBackgroundedAt: passcodeBackgroundedAt,
     }),
   );
   @override
@@ -241,6 +256,10 @@ class _SettingsDeviceModelCopyWithImpl<$R, $Out>
     passcodeForceLocked: data.get(
       #passcodeForceLocked,
       or: $value.passcodeForceLocked,
+    ),
+    passcodeBackgroundedAt: data.get(
+      #passcodeBackgroundedAt,
+      or: $value.passcodeBackgroundedAt,
     ),
   );
 

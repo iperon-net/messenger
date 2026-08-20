@@ -14,6 +14,7 @@ class SettingsDeviceModel with SettingsDeviceModelMappable {
   final bool passcodeBiometric;
   final int passcodeAutoLock;
   final bool passcodeForceLocked;
+  final int passcodeBackgroundedAt;
 
   const SettingsDeviceModel({
     this.locale,
@@ -24,6 +25,7 @@ class SettingsDeviceModel with SettingsDeviceModelMappable {
     this.passcodeBiometric = false,
     this.passcodeAutoLock = 0,
     this.passcodeForceLocked = false,
+    this.passcodeBackgroundedAt = 0,
   });
 
   factory SettingsDeviceModel.fromSqlite(Map<String, dynamic> data) {
@@ -35,6 +37,7 @@ class SettingsDeviceModel with SettingsDeviceModelMappable {
     final passcodeBiometric = data['passcodeBiometric'] ?? 0;
     final passcodeAutoLock = data['passcodeAutoLock'] ?? 0;
     final passcodeForceLocked = data['passcodeForceLocked'] ?? 0;
+    final passcodeBackgroundedAt = data['passcodeBackgroundedAt'] ?? 0;
 
     SettingsDeviceModel settingsDeviceModel = SettingsDeviceModel();
 
@@ -80,6 +83,10 @@ class SettingsDeviceModel with SettingsDeviceModelMappable {
 
     if (passcodeForceLocked > 0) {
       settingsDeviceModel = settingsDeviceModel.copyWith(passcodeForceLocked: true);
+    }
+
+    if (passcodeBackgroundedAt > 0) {
+      settingsDeviceModel = settingsDeviceModel.copyWith(passcodeBackgroundedAt: passcodeBackgroundedAt);
     }
 
     return settingsDeviceModel;

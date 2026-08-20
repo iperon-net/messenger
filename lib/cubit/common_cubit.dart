@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:bloc/bloc.dart';
@@ -30,10 +31,22 @@ class CommonCubit extends Cubit<CommonState> {
 
   Future<void> initialization({required SettingsDeviceModel settingsDevice}) async {
     emit(state.copyWith(status: Status.loading));
-    // При холодном старте блокируем экран, если passcode задан и либо включена
-    // авто-блокировка (autoLock > 0), либо ранее была выставлена форс-блокировка.
-    // Форс-блокировка персистится в БД и потому переживает перезапуск приложения.
-    final locked = settingsDevice.passcode.isNotEmpty && (settingsDevice.passcodeForceLocked || settingsDevice.passcodeAutoLock > 0);
+    // При холодном старте блокируем экран, если passcode задан и была выставлена
+    // форс-блокировка. Форс-блокировка персистится в БД и переживает перезапуск.
+    bool locked = settingsDevice.passcode.isNotEmpty && settingsDevice.passcodeForceLocked;
+
+    // Авто-блокировка по таймауту: на холодном старте блокируем НЕ всегда, а только
+    // если приложение реально провело в фоне не меньше заданного таймаута. Момент
+    // ухода в фон персистится (passcodeBackgroundedAt), поэтому переживает выгрузку
+    // приложения из памяти iOS. Без этого при большом таймауте (напр. 5 часов)
+    // блокировка ошибочно срабатывала бы при каждом «убийстве» процесса, не
+    // дожидаясь таймаута — iOS выгружает приложение из памяти и старт начинается
+    // заново, а прежний in-memory отсчёт времени теряется.
+    if (!locked && settingsDevice.passcode.isNotEmpty && settingsDevice.passcodeAutoLock > 0 && settingsDevice.passcodeBackgroundedAt > 0) {
+      final backgroundedAt = DateTime.fromMillisecondsSinceEpoch(settingsDevice.passcodeBackgroundedAt);
+      final away = DateTime.now().difference(backgroundedAt);
+      locked = away.inSeconds >= settingsDevice.passcodeAutoLock;
+    }
     final isBiometricAvailable = await utils.isBiometricAvailable();
     // При холодном старте после принудительной блокировки биометрию сама не
     // показываем — только по кнопке. Обычная авто-блокировка биометрию разрешает.
@@ -73,14 +86,29 @@ class CommonCubit extends Cubit<CommonState> {
 
   /// Приложение ушло в фон — запоминаем время для последующей проверки таймаута.
   ///
-  /// Пишем только при первом уходе из foreground (`??=`): на iOS уход в фон
-  /// проходит цепочкой `inactive → hidden → paused`, а возврат — обратной
+  /// Пишем только при первом уходе из foreground: на iOS уход в фон проходит
+  /// цепочкой `inactive → hidden → paused`, а возврат — обратной
   /// `hidden → inactive → resumed`. Метод вызывается из всех этих не-`resumed`
   /// состояний, и без защиты `inactive`, приходящий прямо перед `resumed`, затёр
   /// бы реальное время ухода на «сейчас», обнулив измеренный интервал. Сбрасывает
   /// поле только [onAppResumed] — после проверки таймаута.
+  ///
+  /// Пока экран заблокирован, отметку времени не трогаем: она должна хранить
+  /// момент последнего ухода в фон в РАЗблокированном состоянии, иначе при
+  /// «убийстве» приложения из заблокированного состояния холодный старт пересчитал
+  /// бы таймаут от свежего времени и ошибочно снял блокировку.
   void onAppBackgrounded() {
-    _backgroundedAt ??= DateTime.now();
+    if (state.isLocked) return;
+    if (_backgroundedAt != null) return;
+
+    _backgroundedAt = DateTime.now();
+
+    // Персистим момент ухода в фон, чтобы пережить выгрузку приложения из памяти
+    // и на холодном старте вычислить реальную длительность фона. Пишем только при
+    // включённой авто-блокировке — только там отметка используется.
+    if (state.settingsDevice.passcode.isNotEmpty && state.settingsDevice.passcodeAutoLock > 0) {
+      unawaited(repositories.settingsDevice.setPasscodeBackgroundedAt(_backgroundedAt!.millisecondsSinceEpoch));
+    }
   }
 
   /// Приложение вернулось на передний план. Если passcode задан и авто-блокировка
@@ -99,9 +127,16 @@ class CommonCubit extends Cubit<CommonState> {
 
     final away = DateTime.now().difference(backgroundedAt);
     if (away.inSeconds >= autoLock) {
-      // Блокировка по таймауту — биометрию показываем сразу.
+      // Блокировка по таймауту — биометрию показываем сразу. Персистентную отметку
+      // времени НЕ сбрасываем: если приложение выгрузят из памяти в заблокированном
+      // состоянии, холодный старт по ней снова заблокирует экран.
       final isBiometricAvailable = await utils.isBiometricAvailable();
       emit(state.copyWith(isLocked: true, autoBiometrics: true, isBiometricAvailable: isBiometricAvailable));
+    } else {
+      // Остались в пределах таймаута — приложение снова активно и разблокировано.
+      // Сбрасываем персистентную отметку, чтобы «убийство» процесса в foreground не
+      // привело к ложной блокировке на следующем холодном старте.
+      unawaited(repositories.settingsDevice.setPasscodeBackgroundedAt(0));
     }
   }
 
@@ -121,7 +156,10 @@ class CommonCubit extends Cubit<CommonState> {
     if (state.settingsDevice.passcodeForceLocked) {
       await repositories.settingsDevice.setPasscodeForceLocked(false);
     }
-    final settingsDevice = state.settingsDevice.copyWith(passcodeForceLocked: false);
+    // Сбрасываем персистентный момент ухода в фон: пользователь ввёл passcode,
+    // отсчёт авто-блокировки начинается заново.
+    await repositories.settingsDevice.setPasscodeBackgroundedAt(0);
+    final settingsDevice = state.settingsDevice.copyWith(passcodeForceLocked: false, passcodeBackgroundedAt: 0);
     emit(state.copyWith(settingsDevice: settingsDevice, isLocked: false, autoBiometrics: true));
   }
 

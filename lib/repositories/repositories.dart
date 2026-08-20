@@ -144,6 +144,16 @@ class Repositories {
       }),
     );
 
+    migrations.add(
+      SqliteMigration(3, (tx) async {
+        // Персистентный момент ухода приложения в фон (мс с эпохи, 0 — нет отметки).
+        // Нужен, чтобы авто-блокировка по таймауту переживала выгрузку приложения
+        // из памяти iOS и не срабатывала раньше заданного времени: при холодном
+        // старте по этой отметке вычисляем реальную длительность фона.
+        await tx.execute("ALTER TABLE settingsDevice ADD COLUMN passcodeBackgroundedAt INTEGER NOT NULL DEFAULT 0");
+      }),
+    );
+
     if (settings.isDeleteDatabase) {
       logger.warning("Deleting the database, flag set IS_DELETE_DATABASE: 1");
 

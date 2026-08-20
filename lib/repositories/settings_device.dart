@@ -42,4 +42,10 @@ class SettingsDevice {
   Future<void> setPasscodeForceLocked(bool value) async {
     await db.execute("UPDATE settingsDevice SET passcodeForceLocked = ?", [value ? 1 : 0]);
   }
+
+  /// Момент ухода приложения в фон (мс с эпохи, 0 — сброс). Персистится, чтобы
+  /// авто-блокировка по таймауту переживала выгрузку приложения из памяти iOS.
+  Future<void> setPasscodeBackgroundedAt(int millisecondsSinceEpoch) async {
+    await db.execute("UPDATE settingsDevice SET passcodeBackgroundedAt = ?", [millisecondsSinceEpoch]);
+  }
 }
