@@ -29,8 +29,12 @@ class CommonCubit extends Cubit<CommonState> {
   // Момент ухода приложения в фон — нужен для авто-блокировки по таймауту.
   DateTime? _backgroundedAt;
 
-  Future<void> initialization({required SettingsDeviceModel settingsDevice}) async {
-    emit(state.copyWith(status: Status.loading));
+  /// Синхронная (без `await`) инициализация: решение о блокировке эмитится в том
+  /// же кадре, что и первый build. Иначе между `Status.loading` и асинхронной
+  /// проверкой биометрии успевал отрисоваться разблокированный основной экран,
+  /// и блокировка «мелькала» поверх него. Поэтому доступность биометрии
+  /// вычисляется заранее в `main()` и прокидывается сюда готовым флагом.
+  void initialization({required SettingsDeviceModel settingsDevice, required bool isBiometricAvailable}) {
     // При холодном старте блокируем экран, если passcode задан и была выставлена
     // форс-блокировка. Форс-блокировка персистится в БД и переживает перезапуск.
     bool locked = settingsDevice.passcode.isNotEmpty && settingsDevice.passcodeForceLocked;
@@ -47,7 +51,6 @@ class CommonCubit extends Cubit<CommonState> {
       final away = DateTime.now().difference(backgroundedAt);
       locked = away.inSeconds >= settingsDevice.passcodeAutoLock;
     }
-    final isBiometricAvailable = await utils.isBiometricAvailable();
     // При холодном старте после принудительной блокировки биометрию сама не
     // показываем — только по кнопке. Обычная авто-блокировка биометрию разрешает.
     emit(
@@ -127,11 +130,12 @@ class CommonCubit extends Cubit<CommonState> {
 
     final away = DateTime.now().difference(backgroundedAt);
     if (away.inSeconds >= autoLock) {
-      // Блокировка по таймауту — биометрию показываем сразу. Персистентную отметку
-      // времени НЕ сбрасываем: если приложение выгрузят из памяти в заблокированном
-      // состоянии, холодный старт по ней снова заблокирует экран.
-      final isBiometricAvailable = await utils.isBiometricAvailable();
-      emit(state.copyWith(isLocked: true, autoBiometrics: true, isBiometricAvailable: isBiometricAvailable));
+      // Блокировка по таймауту — биометрию показываем сразу. Эмитим синхронно,
+      // без await проверки биометрии: иначе на возврате из фона на миг мелькает
+      // разблокированный экран, пока идёт асинхронная проверка. Доступность
+      // биометрии берём из state — она уже вычислена на старте и не меняется в
+      // рамках сессии.
+      emit(state.copyWith(isLocked: true, autoBiometrics: true));
     } else {
       // Остались в пределах таймаута — приложение снова активно и разблокировано.
       // Сбрасываем персистентную отметку, чтобы «убийство» процесса в foreground не

@@ -21,6 +21,7 @@ import 'repositories.dart';
 import 'routers.dart';
 import 'themes.dart';
 import 'components.dart';
+import 'utils.dart';
 
 // @pragma('vm:entry-point')
 // Future<bool> helloWorldWorker(Map<String, dynamic>? input) async {
@@ -75,12 +76,17 @@ Future<void> main() async {
 
   //settingsDevice.locale
 
+  // Доступность биометрии узнаём ДО первого кадра и прокидываем в кубит, чтобы
+  // экран блокировки на холодном старте эмитился синхронно (без await) — иначе
+  // на миг мелькает основной экран, пока идёт асинхронная проверка биометрии.
+  final isBiometricAvailable = await getIt.get<Utils>().isBiometricAvailable();
+
   runApp(
     TranslationProvider(
       child: MultiBlocProvider(
         providers: <BlocProvider>[BlocProvider<CommonCubit>(create: (_) => CommonCubit())],
         // child: Platform.isIOS ? const IperonMessengerCupertino() : const IperonMessengerCupertino(),
-        child: IperonMessengerCupertino(settingsDevice: settingsDevice),
+        child: IperonMessengerCupertino(settingsDevice: settingsDevice, isBiometricAvailable: isBiometricAvailable),
       ),
     ),
   );
@@ -88,8 +94,9 @@ Future<void> main() async {
 
 class IperonMessengerCupertino extends StatefulWidget {
   final SettingsDeviceModel settingsDevice;
+  final bool isBiometricAvailable;
 
-  const IperonMessengerCupertino({required this.settingsDevice, super.key});
+  const IperonMessengerCupertino({required this.settingsDevice, required this.isBiometricAvailable, super.key});
 
   @override
   State<IperonMessengerCupertino> createState() => _IperonMessengerCupertino();
@@ -117,7 +124,7 @@ class _IperonMessengerCupertino extends State<IperonMessengerCupertino> with Wid
     // делает через Auth.refresh → redirect). Поэтому слушаем роутер и прокидываем
     // признак «мы на /auth» в кубит, чтобы тема и код-пароль реагировали.
     goRouter.routerDelegate.addListener(_onRouteChanged);
-    context.read<CommonCubit>().initialization(settingsDevice: widget.settingsDevice);
+    context.read<CommonCubit>().initialization(settingsDevice: widget.settingsDevice, isBiometricAvailable: widget.isBiometricAvailable);
     _onRouteChanged();
   }
 
