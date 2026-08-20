@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:bloc/bloc.dart';
-import 'package:cryptography/cryptography.dart';
 import 'package:grpc/grpc.dart';
 import 'package:pqcrypto/pqcrypto.dart';
 
@@ -25,8 +24,8 @@ class AuthCallpasswordConfirmationCubit extends Cubit<AuthCallpasswordConfirmati
   final api = getIt.get<API>();
   final repositories = getIt.get<Repositories>();
 
-  final ed25519 = Ed25519();
   final kem = PqcKem.kyber768;
+  final mlDsa65 = DilithiumParams.mlDsa65;
 
   // Обратный отсчёт ожидания звонка.
   Timer? _ticker;
@@ -218,25 +217,23 @@ class AuthCallpasswordConfirmationCubit extends Cubit<AuthCallpasswordConfirmati
         final authConfirmationResponse = AuthConfirmation_Response.fromBuffer(messageAuthConfirmationResponse.message);
 
         // Exchange
-        final serverPublicKey = SimplePublicKey(metaData.eddsa.publicKey, type: KeyPairType.ed25519);
+        // ML-DSA-65 (FIPS 204) signatures over the ML-KEM ciphertexts, verified with
+        // the server's ML-DSA public key from the metadata response. MlDsa.verify
+        // never throws — it returns false for any malformed/short input.
+        final serverPublicKey = Uint8List.fromList(metaData.mldsa.publicKey);
 
-        // Ed25519 signatures must be exactly 64 bytes; an empty/short signature
-        // (e.g. missing in the server response) would otherwise make verify() throw
-        // instead of returning false, crashing the flow before the check below.
-        if (authConfirmationResponse.signatureSharedKey.length != 64 || authConfirmationResponse.signatureSalt.length != 64) {
-          logger.error('mlkem ciphertext signature has invalid length');
-          emit(state.copyWith(status: Status.success, error: 'signature verification failed'));
-          return;
-        }
-
-        final checkSharedKey = await ed25519.verify(
-          authConfirmationResponse.ciphertextSharedKey,
-          signature: Signature(authConfirmationResponse.signatureSharedKey, publicKey: serverPublicKey),
+        final checkSharedKey = MlDsa.verify(
+          serverPublicKey,
+          Uint8List.fromList(authConfirmationResponse.ciphertextSharedKey),
+          Uint8List.fromList(authConfirmationResponse.signatureSharedKey),
+          mlDsa65,
         );
 
-        final checkSalt = await ed25519.verify(
-          authConfirmationResponse.ciphertextSalt,
-          signature: Signature(authConfirmationResponse.signatureSalt, publicKey: serverPublicKey),
+        final checkSalt = MlDsa.verify(
+          serverPublicKey,
+          Uint8List.fromList(authConfirmationResponse.ciphertextSalt),
+          Uint8List.fromList(authConfirmationResponse.signatureSalt),
+          mlDsa65,
         );
 
         if (!checkSharedKey || !checkSalt) {

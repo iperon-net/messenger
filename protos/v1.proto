@@ -19,6 +19,7 @@ enum MessageType {
   AUTH_CONFIRMATION = 10;
   PROFILE = 11;
   PROFILE_EDIT = 12;
+  DEVICE_INFO_UPDATE = 13;
 }
 
 service Iperon {

@@ -29,6 +29,7 @@ class MessageType extends $pb.ProtobufEnum {
   static const MessageType AUTH_CONFIRMATION = MessageType._(10, _omitEnumNames ? '' : 'AUTH_CONFIRMATION');
   static const MessageType PROFILE = MessageType._(11, _omitEnumNames ? '' : 'PROFILE');
   static const MessageType PROFILE_EDIT = MessageType._(12, _omitEnumNames ? '' : 'PROFILE_EDIT');
+  static const MessageType DEVICE_INFO_UPDATE = MessageType._(13, _omitEnumNames ? '' : 'DEVICE_INFO_UPDATE');
 
   static const $core.List<MessageType> values = <MessageType>[
     HEALTHCHECK,
@@ -44,9 +45,10 @@ class MessageType extends $pb.ProtobufEnum {
     AUTH_CONFIRMATION,
     PROFILE,
     PROFILE_EDIT,
+    DEVICE_INFO_UPDATE,
   ];
 
-  static final $core.List<MessageType?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 12);
+  static final $core.List<MessageType?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 13);
   static MessageType? valueOf($core.int value) => value < 0 || value >= _byValue.length ? null : _byValue[value];
 
   const MessageType._(super.value, super.name);

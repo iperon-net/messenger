@@ -136,6 +136,66 @@ class MetadataInfo_EdDSA extends $pb.GeneratedMessage {
   void clearFingerprint() => $_clearField(2);
 }
 
+class MetadataInfo_MLDSA extends $pb.GeneratedMessage {
+  factory MetadataInfo_MLDSA({
+    $core.List<$core.int>? publicKey,
+    $core.String? fingerprint,
+  }) {
+    final result = create();
+    if (publicKey != null) result.publicKey = publicKey;
+    if (fingerprint != null) result.fingerprint = fingerprint;
+    return result;
+  }
+
+  MetadataInfo_MLDSA._();
+
+  factory MetadataInfo_MLDSA.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory MetadataInfo_MLDSA.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'MetadataInfo.MLDSA',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..a<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'publicKey', $pb.PbFieldType.OY, protoName: 'publicKey')
+    ..aOS(2, _omitFieldNames ? '' : 'fingerprint')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  MetadataInfo_MLDSA clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  MetadataInfo_MLDSA copyWith(void Function(MetadataInfo_MLDSA) updates) =>
+      super.copyWith((message) => updates(message as MetadataInfo_MLDSA)) as MetadataInfo_MLDSA;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static MetadataInfo_MLDSA create() => MetadataInfo_MLDSA._();
+  @$core.override
+  MetadataInfo_MLDSA createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static MetadataInfo_MLDSA getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<MetadataInfo_MLDSA>(create);
+  static MetadataInfo_MLDSA? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.List<$core.int> get publicKey => $_getN(0);
+  @$pb.TagNumber(1)
+  set publicKey($core.List<$core.int> value) => $_setBytes(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasPublicKey() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearPublicKey() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.String get fingerprint => $_getSZ(1);
+  @$pb.TagNumber(2)
+  set fingerprint($core.String value) => $_setString(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasFingerprint() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearFingerprint() => $_clearField(2);
+}
+
 class MetadataInfo_VOPRF extends $pb.GeneratedMessage {
   factory MetadataInfo_VOPRF({
     $core.List<$core.int>? publicKey,
@@ -234,6 +294,7 @@ class MetadataInfo_Response extends $pb.GeneratedMessage {
   factory MetadataInfo_Response({
     MetadataInfo_EdDSA? eddsa,
     MetadataInfo_VOPRF? voprf,
+    MetadataInfo_MLDSA? mldsa,
     MetadataInfo_GitCommit? gitCommit,
     $core.String? buildDate,
     $core.String? version,
@@ -241,6 +302,7 @@ class MetadataInfo_Response extends $pb.GeneratedMessage {
     final result = create();
     if (eddsa != null) result.eddsa = eddsa;
     if (voprf != null) result.voprf = voprf;
+    if (mldsa != null) result.mldsa = mldsa;
     if (gitCommit != null) result.gitCommit = gitCommit;
     if (buildDate != null) result.buildDate = buildDate;
     if (version != null) result.version = version;
@@ -258,9 +320,10 @@ class MetadataInfo_Response extends $pb.GeneratedMessage {
       package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
     ..aOM<MetadataInfo_EdDSA>(2, _omitFieldNames ? '' : 'eddsa', subBuilder: MetadataInfo_EdDSA.create)
     ..aOM<MetadataInfo_VOPRF>(3, _omitFieldNames ? '' : 'voprf', subBuilder: MetadataInfo_VOPRF.create)
-    ..aOM<MetadataInfo_GitCommit>(4, _omitFieldNames ? '' : 'gitCommit', protoName: 'gitCommit', subBuilder: MetadataInfo_GitCommit.create)
-    ..aOS(5, _omitFieldNames ? '' : 'buildDate', protoName: 'buildDate')
-    ..aOS(6, _omitFieldNames ? '' : 'version')
+    ..aOM<MetadataInfo_MLDSA>(4, _omitFieldNames ? '' : 'mldsa', subBuilder: MetadataInfo_MLDSA.create)
+    ..aOM<MetadataInfo_GitCommit>(5, _omitFieldNames ? '' : 'gitCommit', protoName: 'gitCommit', subBuilder: MetadataInfo_GitCommit.create)
+    ..aOS(6, _omitFieldNames ? '' : 'buildDate', protoName: 'buildDate')
+    ..aOS(7, _omitFieldNames ? '' : 'version')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -303,33 +366,44 @@ class MetadataInfo_Response extends $pb.GeneratedMessage {
   MetadataInfo_VOPRF ensureVoprf() => $_ensure(1);
 
   @$pb.TagNumber(4)
-  MetadataInfo_GitCommit get gitCommit => $_getN(2);
+  MetadataInfo_MLDSA get mldsa => $_getN(2);
   @$pb.TagNumber(4)
-  set gitCommit(MetadataInfo_GitCommit value) => $_setField(4, value);
+  set mldsa(MetadataInfo_MLDSA value) => $_setField(4, value);
   @$pb.TagNumber(4)
-  $core.bool hasGitCommit() => $_has(2);
+  $core.bool hasMldsa() => $_has(2);
   @$pb.TagNumber(4)
-  void clearGitCommit() => $_clearField(4);
+  void clearMldsa() => $_clearField(4);
   @$pb.TagNumber(4)
-  MetadataInfo_GitCommit ensureGitCommit() => $_ensure(2);
+  MetadataInfo_MLDSA ensureMldsa() => $_ensure(2);
 
   @$pb.TagNumber(5)
-  $core.String get buildDate => $_getSZ(3);
+  MetadataInfo_GitCommit get gitCommit => $_getN(3);
   @$pb.TagNumber(5)
-  set buildDate($core.String value) => $_setString(3, value);
+  set gitCommit(MetadataInfo_GitCommit value) => $_setField(5, value);
   @$pb.TagNumber(5)
-  $core.bool hasBuildDate() => $_has(3);
+  $core.bool hasGitCommit() => $_has(3);
   @$pb.TagNumber(5)
-  void clearBuildDate() => $_clearField(5);
+  void clearGitCommit() => $_clearField(5);
+  @$pb.TagNumber(5)
+  MetadataInfo_GitCommit ensureGitCommit() => $_ensure(3);
 
   @$pb.TagNumber(6)
-  $core.String get version => $_getSZ(4);
+  $core.String get buildDate => $_getSZ(4);
   @$pb.TagNumber(6)
-  set version($core.String value) => $_setString(4, value);
+  set buildDate($core.String value) => $_setString(4, value);
   @$pb.TagNumber(6)
-  $core.bool hasVersion() => $_has(4);
+  $core.bool hasBuildDate() => $_has(4);
   @$pb.TagNumber(6)
-  void clearVersion() => $_clearField(6);
+  void clearBuildDate() => $_clearField(6);
+
+  @$pb.TagNumber(7)
+  $core.String get version => $_getSZ(5);
+  @$pb.TagNumber(7)
+  set version($core.String value) => $_setString(5, value);
+  @$pb.TagNumber(7)
+  $core.bool hasVersion() => $_has(5);
+  @$pb.TagNumber(7)
+  void clearVersion() => $_clearField(7);
 }
 
 /// MetadataInfo

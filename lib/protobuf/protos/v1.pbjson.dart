@@ -32,6 +32,7 @@ const MessageType$json = {
     {'1': 'AUTH_CONFIRMATION', '2': 10},
     {'1': 'PROFILE', '2': 11},
     {'1': 'PROFILE_EDIT', '2': 12},
+    {'1': 'DEVICE_INFO_UPDATE', '2': 13},
   ],
 };
 
@@ -43,7 +44,7 @@ final $typed_data.Uint8List messageTypeDescriptor =
         'lPTl9BUFBMSUNBVElPTl9TVE9SRV9DT05GSVJNQVRJT04QBRITCg9ERVZJQ0VfU0VTU0lPTlMQ'
         'BhIKCgZMT0dPVVQQBxINCglTVUJTQ1JJQkUQCBIdChlERVZJQ0VfU0VTU0lPTlNfVEVSTUlOQV'
         'RFEAkSFQoRQVVUSF9DT05GSVJNQVRJT04QChILCgdQUk9GSUxFEAsSEAoMUFJPRklMRV9FRElU'
-        'EAw=');
+        'EAwSFgoSREVWSUNFX0lORk9fVVBEQVRFEA0=');
 
 @$core.Deprecated('Use messageDescriptor instead')
 const Message$json = {

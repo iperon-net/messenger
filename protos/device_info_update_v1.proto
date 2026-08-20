@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package iperon.v1;
+option go_package = "internal/api/v1";
+
+message DeviceInfoUpdate {
+  message Request {
+    string deviceModel = 1;
+    int32 os = 2;
+    string osVersion = 3;
+    string appVersion = 4;
+    string appBuildNumber = 5;
+  }
+
+  message Response {}
+}
