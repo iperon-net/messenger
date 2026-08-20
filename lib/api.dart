@@ -4,6 +4,8 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:grpc/grpc.dart';
 import 'package:messenger/models/models.dart';
+import 'package:messenger/protobuf/protos/device_info_update_v1.pb.dart';
+import 'package:messenger/utils.dart';
 import 'package:talker_grpc_logger/talker_grpc_logger.dart';
 
 import 'auth.dart';
@@ -369,8 +371,25 @@ class API {
 
         final crypto = getIt.get<Crypto>();
         final auth = getIt.get<Auth>();
+        final utils = getIt.get<Utils>();
 
-        final encoded = await crypto.syncer.encode(session: auth.session, message: Subscribe_Request().writeToBuffer());
+        // Send update device
+        final packageInfo = await utils.packageInfo();
+        final deviceInfo = await utils.deviceInfo();
+
+        final encodedDeviceInfoUpdate = await crypto.syncer.encode(
+          session: auth.session,
+          message: DeviceInfoUpdate_Request(
+            deviceModel: deviceInfo.deviceModel,
+            os: deviceInfo.osCode,
+            osVersion: deviceInfo.osVersion,
+            appVersion: packageInfo.appVersion,
+            appBuildNumber: packageInfo.appBuildNumber,
+          ).writeToBuffer(),
+        );
+
+        // Send subscribe
+        final encodedSubscribe = await crypto.syncer.encode(session: auth.session, message: Subscribe_Request().writeToBuffer());
 
         final outgoing = _outgoing;
         if (outgoing == null || outgoing.isClosed) {
@@ -378,7 +397,8 @@ class API {
           return;
         }
 
-        outgoing.add(Message(messageType: MessageType.SUBSCRIBE, message: encoded));
+        outgoing.add(Message(messageType: MessageType.SUBSCRIBE, message: encodedSubscribe));
+        outgoing.add(Message(messageType: MessageType.DEVICE_INFO_UPDATE, message: encodedDeviceInfoUpdate));
         // «queued», а не «sent»: gRPC-стрим ленивый, сообщение уходит из буфера
         // _outgoing только когда соединение реально установится. Если коннект
         // упадёт — буфер выбросится, и subscribe переотправится на следующем _open.
