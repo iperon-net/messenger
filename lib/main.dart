@@ -84,24 +84,19 @@ Future<void> main() async {
   runApp(
     TranslationProvider(
       child: MultiBlocProvider(
-        providers: <BlocProvider>[
-          // lazy: false — кубит создаётся сразу при монтировании провайдера (а не
-          // при первом чтении), чтобы к первому build уже был готов заблокированный
-          // CommonState и основной экран не мелькал.
-          BlocProvider<CommonCubit>(
-            lazy: false,
-            create: (_) => CommonCubit.initialized(settingsDevice: settingsDevice, isBiometricAvailable: isBiometricAvailable),
-          ),
-        ],
+        providers: <BlocProvider>[BlocProvider<CommonCubit>(create: (_) => CommonCubit())],
         // child: Platform.isIOS ? const IperonMessengerCupertino() : const IperonMessengerCupertino(),
-        child: const IperonMessengerCupertino(),
+        child: IperonMessengerCupertino(settingsDevice: settingsDevice, isBiometricAvailable: isBiometricAvailable),
       ),
     ),
   );
 }
 
 class IperonMessengerCupertino extends StatefulWidget {
-  const IperonMessengerCupertino({super.key});
+  final SettingsDeviceModel settingsDevice;
+  final bool isBiometricAvailable;
+
+  const IperonMessengerCupertino({required this.settingsDevice, required this.isBiometricAvailable, super.key});
 
   @override
   State<IperonMessengerCupertino> createState() => _IperonMessengerCupertino();
@@ -129,9 +124,7 @@ class _IperonMessengerCupertino extends State<IperonMessengerCupertino> with Wid
     // делает через Auth.refresh → redirect). Поэтому слушаем роутер и прокидываем
     // признак «мы на /auth» в кубит, чтобы тема и код-пароль реагировали.
     goRouter.routerDelegate.addListener(_onRouteChanged);
-    // CommonCubit создаётся уже проинициализированным (CommonCubit.initialized в
-    // main), поэтому первый кадр сразу заблокирован — здесь инициализацию не
-    // вызываем, только подхватываем текущий маршрут.
+    context.read<CommonCubit>().initialization(settingsDevice: widget.settingsDevice, isBiometricAvailable: widget.isBiometricAvailable);
     _onRouteChanged();
   }
 
@@ -287,17 +280,7 @@ class _IperonMessengerCupertino extends State<IperonMessengerCupertino> with Wid
                 );
               }
 
-              // Обложка при уходе в фон. Показываем блюр, если:
-              //  - пользователь включил isBlurOnInactive (обычная приватность), ИЛИ
-              //  - задан passcode (и мы не на /auth) — тогда обложка нужна ВСЕГДА,
-              //    независимо от тумблера: она закрывает снапшот, который iOS
-              //    снимает при уходе в фон. Иначе при возврате по таймауту iOS
-              //    показывал бы этот снапшот с чистым основным экраном на несколько
-              //    мс, пока Flutter не отрисует экран блокировки — то самое
-              //    «мелькание». С обложкой переход идёт «блюр → блокировка».
-              final coverOnBackground =
-                  isBlur && (state.settingsDevice.isBlurOnInactive || (!state.isAuthRoute && state.settingsDevice.passcode.isNotEmpty));
-              if (coverOnBackground) {
+              if (state.settingsDevice.isBlurOnInactive && isBlur) {
                 return Blur(
                   blur: 5,
                   blurColor: CupertinoTheme.brightnessOf(context) == Brightness.dark

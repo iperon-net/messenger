@@ -18,24 +18,6 @@ import 'common_state.dart';
 class CommonCubit extends Cubit<CommonState> {
   CommonCubit() : super(CommonState(settingsDevice: SettingsDeviceModel()));
 
-  /// Кубит рождается уже с финальным состоянием блокировки — чтобы САМЫЙ первый
-  /// кадр (первый build) был заблокирован, а не разблокированным дефолтом, поверх
-  /// которого блокировка «догоняет» отдельным emit. Иначе на холодном старте на
-  /// миг мелькает основной экран. Доступность биометрии вычисляется заранее в
-  /// `main()` (до `runApp`) и прокидывается сюда готовым флагом.
-  CommonCubit.initialized({required SettingsDeviceModel settingsDevice, required bool isBiometricAvailable})
-    : super(
-        CommonState(
-          status: Status.success,
-          settingsDevice: settingsDevice,
-          isLocked: _lockedOnColdStart(settingsDevice),
-          // При принудительной блокировке биометрию сама не показываем — только по
-          // кнопке. Обычная авто-блокировка биометрию разрешает.
-          autoBiometrics: !settingsDevice.passcodeForceLocked,
-          isBiometricAvailable: isBiometricAvailable,
-        ),
-      );
-
   final logger = getIt.get<Logger>();
   final repositories = getIt.get<Repositories>();
   final utils = getIt.get<Utils>();
@@ -47,25 +29,39 @@ class CommonCubit extends Cubit<CommonState> {
   // Момент ухода приложения в фон — нужен для авто-блокировки по таймауту.
   DateTime? _backgroundedAt;
 
-  /// Нужно ли блокировать экран на холодном старте.
-  ///
-  /// Блокируем, если passcode задан и либо стоит персистентная форс-блокировка,
-  /// либо авто-блокировка по таймауту: приложение реально провело в фоне не меньше
-  /// заданного времени. Момент ухода в фон персистится (passcodeBackgroundedAt),
-  /// поэтому переживает выгрузку приложения из памяти iOS. Без этого при большом
-  /// таймауте (напр. 5 часов) блокировка ошибочно срабатывала бы при каждом
-  /// «убийстве» процесса, не дожидаясь таймаута — iOS выгружает приложение из
-  /// памяти, старт начинается заново, а прежний in-memory отсчёт времени теряется.
-  static bool _lockedOnColdStart(SettingsDeviceModel settingsDevice) {
-    if (settingsDevice.passcode.isEmpty) return false;
-    if (settingsDevice.passcodeForceLocked) return true;
+  /// Синхронная (без `await`) инициализация: решение о блокировке эмитится в том
+  /// же кадре, что и первый build. Иначе между `Status.loading` и асинхронной
+  /// проверкой биометрии успевал отрисоваться разблокированный основной экран,
+  /// и блокировка «мелькала» поверх него. Поэтому доступность биометрии
+  /// вычисляется заранее в `main()` и прокидывается сюда готовым флагом.
+  void initialization({required SettingsDeviceModel settingsDevice, required bool isBiometricAvailable}) {
+    // При холодном старте блокируем экран, если passcode задан и была выставлена
+    // форс-блокировка. Форс-блокировка персистится в БД и переживает перезапуск.
+    bool locked = settingsDevice.passcode.isNotEmpty && settingsDevice.passcodeForceLocked;
 
-    if (settingsDevice.passcodeAutoLock > 0 && settingsDevice.passcodeBackgroundedAt > 0) {
+    // Авто-блокировка по таймауту: на холодном старте блокируем НЕ всегда, а только
+    // если приложение реально провело в фоне не меньше заданного таймаута. Момент
+    // ухода в фон персистится (passcodeBackgroundedAt), поэтому переживает выгрузку
+    // приложения из памяти iOS. Без этого при большом таймауте (напр. 5 часов)
+    // блокировка ошибочно срабатывала бы при каждом «убийстве» процесса, не
+    // дожидаясь таймаута — iOS выгружает приложение из памяти и старт начинается
+    // заново, а прежний in-memory отсчёт времени теряется.
+    if (!locked && settingsDevice.passcode.isNotEmpty && settingsDevice.passcodeAutoLock > 0 && settingsDevice.passcodeBackgroundedAt > 0) {
       final backgroundedAt = DateTime.fromMillisecondsSinceEpoch(settingsDevice.passcodeBackgroundedAt);
-      return DateTime.now().difference(backgroundedAt).inSeconds >= settingsDevice.passcodeAutoLock;
+      final away = DateTime.now().difference(backgroundedAt);
+      locked = away.inSeconds >= settingsDevice.passcodeAutoLock;
     }
-
-    return false;
+    // При холодном старте после принудительной блокировки биометрию сама не
+    // показываем — только по кнопке. Обычная авто-блокировка биометрию разрешает.
+    emit(
+      state.copyWith(
+        status: Status.success,
+        settingsDevice: settingsDevice,
+        isLocked: locked,
+        autoBiometrics: !settingsDevice.passcodeForceLocked,
+        isBiometricAvailable: isBiometricAvailable,
+      ),
+    );
   }
 
   /// Принудительная блокировка экрана. Флаг сохраняется в БД, поэтому блокировка
