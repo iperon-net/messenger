@@ -56,11 +56,7 @@ class ThemesCupertino {
   static Color screenLockBackground(BuildContext context) {
     final isDark = CupertinoTheme.brightnessOf(context) == Brightness.dark;
     return isDark
-        ? Color.lerp(
-            CupertinoDynamicColor.resolve(CupertinoTheme.of(context).primaryColor, context),
-            CupertinoColors.darkBackgroundGray,
-            0.6,
-          )!
+        ? Color.lerp(Color.fromARGB(255, 56, 96, 143), CupertinoColors.darkBackgroundGray, 0.6)!
         : Color.lerp(
             CupertinoDynamicColor.resolve(CupertinoTheme.of(context).primaryColor, context),
             CupertinoColors.darkBackgroundGray,
@@ -84,9 +80,7 @@ class ThemesCupertino {
           ),
           shape: const WidgetStatePropertyAll(CircleBorder()),
         ),
-        backgroundColor: isDark
-            ? CupertinoTheme.of(context).primaryColor.withAlpha(40)
-            : CupertinoTheme.of(context).primaryColor.withAlpha(40),
+        backgroundColor: isDark ? Color.fromARGB(255, 56, 96, 143).withAlpha(40) : CupertinoTheme.of(context).primaryColor.withAlpha(40),
       ),
       // buttonConfig: KeyPadButtonConfig(backgroundColor: keyPadColor, foregroundColor: CupertinoTheme.of(context).primaryColor),
     );
