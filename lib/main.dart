@@ -272,7 +272,6 @@ class _IperonMessengerCupertino extends State<IperonMessengerCupertino> with Wid
                           colorFilter: ColorFilter.mode(ThemesCupertino.screenLockBiometricIcon(context), BlendMode.srcIn),
                         )
                       : null,
-
                   customizedButtonTap: () async =>
                       state.settingsDevice.passcodeBiometric && state.isBiometricAvailable ? await localAuth(context) : null,
                   onOpened: () async => state.settingsDevice.passcodeBiometric && state.isBiometricAvailable && state.autoBiometrics
