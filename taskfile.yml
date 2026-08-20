@@ -21,6 +21,7 @@ tasks:
     cmds:
       - protoc --dart_out=grpc:lib/protobuf -I=. protos/*.proto google/protobuf/timestamp.proto google/protobuf/empty.proto
       - dart run build_runner build
+      - dart format lib/
     silent: true
   fmt:
     desc: Format code

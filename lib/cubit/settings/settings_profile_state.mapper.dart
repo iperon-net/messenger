@@ -29,14 +29,37 @@ class SettingsProfileStateMapper extends ClassMapperBase<SettingsProfileState> {
     opt: true,
     def: Status.initialization,
   );
+  static String _$boringAvatarHash(SettingsProfileState v) =>
+      v.boringAvatarHash;
+  static const Field<SettingsProfileState, String> _f$boringAvatarHash = Field(
+    'boringAvatarHash',
+    _$boringAvatarHash,
+    opt: true,
+    def: "",
+  );
+  static BoringAvatarType _$boringAvatarType(SettingsProfileState v) =>
+      v.boringAvatarType;
+  static const Field<SettingsProfileState, BoringAvatarType>
+  _f$boringAvatarType = Field(
+    'boringAvatarType',
+    _$boringAvatarType,
+    opt: true,
+    def: BoringAvatarType.ring,
+  );
 
   @override
   final MappableFields<SettingsProfileState> fields = const {
     #status: _f$status,
+    #boringAvatarHash: _f$boringAvatarHash,
+    #boringAvatarType: _f$boringAvatarType,
   };
 
   static SettingsProfileState _instantiate(DecodingData data) {
-    return SettingsProfileState(status: data.dec(_f$status));
+    return SettingsProfileState(
+      status: data.dec(_f$status),
+      boringAvatarHash: data.dec(_f$boringAvatarHash),
+      boringAvatarType: data.dec(_f$boringAvatarType),
+    );
   }
 
   @override
@@ -109,7 +132,11 @@ abstract class SettingsProfileStateCopyWith<
   $Out
 >
     implements ClassCopyWith<$R, $In, $Out> {
-  $R call({Status? status});
+  $R call({
+    Status? status,
+    String? boringAvatarHash,
+    BoringAvatarType? boringAvatarType,
+  });
   SettingsProfileStateCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
     Then<$Out2, $R2> t,
   );
@@ -124,11 +151,23 @@ class _SettingsProfileStateCopyWithImpl<$R, $Out>
   late final ClassMapperBase<SettingsProfileState> $mapper =
       SettingsProfileStateMapper.ensureInitialized();
   @override
-  $R call({Status? status}) =>
-      $apply(FieldCopyWithData({if (status != null) #status: status}));
+  $R call({
+    Status? status,
+    String? boringAvatarHash,
+    BoringAvatarType? boringAvatarType,
+  }) => $apply(
+    FieldCopyWithData({
+      if (status != null) #status: status,
+      if (boringAvatarHash != null) #boringAvatarHash: boringAvatarHash,
+      if (boringAvatarType != null) #boringAvatarType: boringAvatarType,
+    }),
+  );
   @override
-  SettingsProfileState $make(CopyWithData data) =>
-      SettingsProfileState(status: data.get(#status, or: $value.status));
+  SettingsProfileState $make(CopyWithData data) => SettingsProfileState(
+    status: data.get(#status, or: $value.status),
+    boringAvatarHash: data.get(#boringAvatarHash, or: $value.boringAvatarHash),
+    boringAvatarType: data.get(#boringAvatarType, or: $value.boringAvatarType),
+  );
 
   @override
   SettingsProfileStateCopyWith<$R2, SettingsProfileState, $Out2>

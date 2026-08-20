@@ -1,9 +1,12 @@
 import 'dart:io';
 
+import 'package:cryptography/cryptography.dart';
 import 'package:device_marketing_names/device_marketing_names.dart';
 import 'package:dlibphonenumber/dlibphonenumber.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_boring_avatars/flutter_boring_avatars.dart';
 import 'package:local_auth/local_auth.dart';
+import 'package:objectid/objectid.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -153,5 +156,28 @@ class Utils {
       logger.handle(e, stack, "isBiometricAvailable: failed");
       return false;
     }
+  }
+
+  Future<({BoringAvatarType type, String hash})> boringAvatar(ObjectId userID) async {
+    final values = [
+      BoringAvatarType.ring,
+      BoringAvatarType.bauhaus,
+      BoringAvatarType.marble,
+      BoringAvatarType.pixel,
+      BoringAvatarType.sunset,
+      BoringAvatarType.beam,
+    ];
+
+    final sha256 = Sha256();
+    final hash = await sha256.hash(userID.bytes);
+    final hashBytes = hash.bytes;
+
+    BigInt hashInt = BigInt.zero;
+    for (int i = 0; i < hashBytes.length; i++) {
+      hashInt = (hashInt << 8) | BigInt.from(hashBytes[i]);
+    }
+
+    final index = (hashInt % BigInt.from(values.length)).toInt();
+    return (type: values[index], hash: userID.toString());
   }
 }
