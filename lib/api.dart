@@ -82,6 +82,12 @@ class API {
   // Фиксированная пауза перед переподключением стрима.
   static const Duration _reconnectDelay = Duration(seconds: 3);
 
+  // Троттлинг DEVICE_INFO_UPDATE: шлём не чаще раза в этот интервал на устройство,
+  // чтобы не долбить БД сервера при каждом переподключении/resume из фона. Метка
+  // последней отправки (мс эпохи) хранится в локальном кэше по этому ключу.
+  static const Duration _deviceInfoUpdateInterval = Duration(hours: 3);
+  static const String _deviceInfoUpdateCacheKey = 'device_info_update_sent_at';
+
   // Условия работы стрима и отложенная пауза.
   bool _authorized = false;
   bool _appActive = true;
@@ -371,22 +377,6 @@ class API {
 
         final crypto = getIt.get<Crypto>();
         final auth = getIt.get<Auth>();
-        final utils = getIt.get<Utils>();
-
-        // Send update device
-        final packageInfo = await utils.packageInfo();
-        final deviceInfo = await utils.deviceInfo();
-
-        final encodedDeviceInfoUpdate = await crypto.syncer.encode(
-          session: auth.session,
-          message: DeviceInfoUpdate_Request(
-            deviceModel: deviceInfo.deviceModel,
-            os: deviceInfo.osCode,
-            osVersion: deviceInfo.osVersion,
-            appVersion: packageInfo.appVersion,
-            appBuildNumber: packageInfo.appBuildNumber,
-          ).writeToBuffer(),
-        );
 
         // Send subscribe
         final encodedSubscribe = await crypto.syncer.encode(session: auth.session, message: Subscribe_Request().writeToBuffer());
@@ -398,15 +388,64 @@ class API {
         }
 
         outgoing.add(Message(messageType: MessageType.SUBSCRIBE, message: encodedSubscribe));
-        outgoing.add(Message(messageType: MessageType.DEVICE_INFO_UPDATE, message: encodedDeviceInfoUpdate));
         // «queued», а не «sent»: gRPC-стрим ленивый, сообщение уходит из буфера
         // _outgoing только когда соединение реально установится. Если коннект
         // упадёт — буфер выбросится, и subscribe переотправится на следующем _open.
         logger.debug('subscribe queued to stream');
+
+        // DEVICE_INFO_UPDATE троттлится (см. _deviceInfoUpdateInterval): SUBSCRIBE
+        // обязателен на каждое открытие стрима, а инфо об устройстве меняется
+        // редко — незачем слать её при каждом переподключении/resume из фона.
+        await _sendDeviceInfoUpdate(crypto: crypto, auth: auth);
       }().catchError((Object error, StackTrace stackTrace) {
         logger.handle(error, stackTrace);
       }),
     );
+  }
+
+  /// Ставит в очередь DEVICE_INFO_UPDATE, но не чаще раза в
+  /// [_deviceInfoUpdateInterval] на устройство. Метка последней отправки лежит в
+  /// локальном кэше (ключ [_deviceInfoUpdateCacheKey]) по userID активной сессии:
+  /// при смене аккаунта у нового userID своя метка, апдейт уйдёт сразу. Проверка
+  /// делается до шифрования, чтобы в окне троттлинга не тратить и crypto-работу.
+  Future<void> _sendDeviceInfoUpdate({required Crypto crypto, required Auth auth}) async {
+    final repositories = getIt.get<Repositories>();
+    final userID = Uint8List.fromList(auth.session.userID);
+
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final lastSent = await repositories.cache.getInt(userID: userID, key: _deviceInfoUpdateCacheKey);
+    if (lastSent != null && now - lastSent < _deviceInfoUpdateInterval.inMilliseconds) {
+      logger.debug('device info update skipped (throttled)');
+      return;
+    }
+
+    final utils = getIt.get<Utils>();
+    final packageInfo = await utils.packageInfo();
+    final deviceInfo = await utils.deviceInfo();
+
+    final encodedDeviceInfoUpdate = await crypto.syncer.encode(
+      session: auth.session,
+      message: DeviceInfoUpdate_Request(
+        deviceModel: deviceInfo.deviceModel,
+        os: deviceInfo.osCode,
+        osVersion: deviceInfo.osVersion,
+        appVersion: packageInfo.appVersion,
+        appBuildNumber: packageInfo.appBuildNumber,
+      ).writeToBuffer(),
+    );
+
+    final outgoing = _outgoing;
+    if (outgoing == null || outgoing.isClosed) {
+      logger.debug('device info update skipped: no open stream after encode');
+      return;
+    }
+
+    outgoing.add(Message(messageType: MessageType.DEVICE_INFO_UPDATE, message: encodedDeviceInfoUpdate));
+    // Метку ставим только после постановки в живой буфер: если стрим успел
+    // закрыться (проверка выше), апдейт не ушёл — оставляем метку старой, чтобы
+    // он гарантированно ушёл на следующем открытии стрима.
+    await repositories.cache.setInt(userID: userID, key: _deviceInfoUpdateCacheKey, value: now);
+    logger.debug('device info update queued to stream');
   }
 
   /// Расшифровывает сообщение, раздаёт его живым слушателям ([incoming]/[on])

@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 import 'package:flutter/foundation.dart';
@@ -48,6 +49,7 @@ class Repositories {
   late Users users;
   late Sessions sessions;
   late DeviceSessions deviceSessions;
+  late Cache cache;
 
   static Future<Repositories> initialization() async {
     final repositories = Repositories._();
@@ -197,6 +199,7 @@ class Repositories {
     users = Users(logger: logger, db: db);
     sessions = Sessions(logger: logger, db: db);
     deviceSessions = DeviceSessions(logger: logger, db: db);
+    cache = Cache(logger: logger, db: db);
   }
 
   // Generate password
