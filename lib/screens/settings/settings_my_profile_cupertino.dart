@@ -1,8 +1,9 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../cubit.dart';
+import '../../di.dart';
+import '../../logger.dart';
 import '../../themes.dart';
-import 'package:flutter_boring_avatars/flutter_boring_avatars.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 
@@ -17,6 +18,12 @@ class SettingsMyProfileCupertino extends StatefulWidget {
 }
 
 class _SettingsMyProfileCupertino extends State<SettingsMyProfileCupertino> {
+  final formKey = GlobalKey<FormState>();
+  final firstNameController = TextEditingController();
+  final firstNameFocus = FocusNode();
+
+  final logger = getIt.get<Logger>();
+
   // Локальное состояние макета (кубит не реализуем).
   DateTime? _birthDate;
 
@@ -31,20 +38,20 @@ class _SettingsMyProfileCupertino extends State<SettingsMyProfileCupertino> {
   }
 
   // Макет выбора фотографии — реального пикера пока нет.
-  void _pickPhoto() {
-    showCupertinoModalPopup<void>(
-      context: context,
-      builder: (context) => CupertinoActionSheet(
-        title: const Text("Фото профиля"),
-        actions: [
-          CupertinoActionSheetAction(onPressed: () => Navigator.pop(context), child: const Text("Сделать фото")),
-          CupertinoActionSheetAction(onPressed: () => Navigator.pop(context), child: const Text("Выбрать из галереи")),
-          CupertinoActionSheetAction(isDestructiveAction: true, onPressed: () => Navigator.pop(context), child: const Text("Удалить фото")),
-        ],
-        cancelButton: CupertinoActionSheetAction(onPressed: () => Navigator.pop(context), child: const Text("Отмена")),
-      ),
-    );
-  }
+  // void _pickPhoto() {
+  //   showCupertinoModalPopup<void>(
+  //     context: context,
+  //     builder: (context) => CupertinoActionSheet(
+  //       title: const Text("Фото профиля"),
+  //       actions: [
+  //         CupertinoActionSheetAction(onPressed: () => Navigator.pop(context), child: const Text("Сделать фото")),
+  //         CupertinoActionSheetAction(onPressed: () => Navigator.pop(context), child: const Text("Выбрать из галереи")),
+  //         CupertinoActionSheetAction(isDestructiveAction: true, onPressed: () => Navigator.pop(context), child: const Text("Удалить фото")),
+  //       ],
+  //       cancelButton: CupertinoActionSheetAction(onPressed: () => Navigator.pop(context), child: const Text("Отмена")),
+  //     ),
+  //   );
+  // }
 
   // Выбор даты рождения снизу — как в iOS-настройках.
   void _pickBirthDate() {
@@ -104,135 +111,157 @@ class _SettingsMyProfileCupertino extends State<SettingsMyProfileCupertino> {
             child: CupertinoNavigationBar(
               automaticBackgroundVisibility: false,
               backgroundColor: ThemesCupertino.groupedBackground,
-              middle: Text(context.t.settings.myProfile),
+              middle: Text(context.t.screenMyProfile.myprofile),
               leading: CupertinoButton(padding: EdgeInsets.zero, onPressed: () => context.pop(), child: Text(context.t.common.cancel)),
-              trailing: CupertinoButton(padding: EdgeInsets.zero, onPressed: () => context.pop(), child: Text(context.t.common.save)),
+              trailing: CupertinoButton(
+                padding: EdgeInsets.zero,
+                onPressed: () {
+                  if (formKey.currentState!.validate()) {
+                    logger.debug("validate ok!");
+                  }
+                },
+                child: Text(context.t.common.save),
+              ),
             ),
           ),
-          child: SafeArea(
-            child: ListView(
-              children: [
-                const SizedBox(height: 12),
-                // Аватарка с кнопкой выбора фото.
-                Center(
-                  child: GestureDetector(
-                    onTap: _pickPhoto,
-                    behavior: HitTestBehavior.opaque,
-                    child: Column(
-                      children: [
-                        Stack(
-                          children: [
-                            SizedBox(
-                              width: 96,
-                              height: 96,
-                              child: AnimatedBoringAvatar(
-                                name: state.boringAvatarHash,
-                                type: state.boringAvatarType,
-                                shape: const CircleBorder(),
-                                curve: Curves.bounceIn,
-                                duration: const Duration(seconds: 1),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          "Изменить фото",
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: CupertinoDynamicColor.withBrightness(
-                              color: CupertinoTheme.of(context).primaryColor,
-                              darkColor: CupertinoColors.white,
-                            ).resolveFrom(context),
-                          ),
-                        ),
-                      ],
+          child: Form(
+            key: formKey,
+            child: SafeArea(
+              child: ListView(
+                children: [
+                  // const SizedBox(height: 12),
+                  // // Аватарка с кнопкой выбора фото.
+                  // Center(
+                  //   child: GestureDetector(
+                  //     onTap: _pickPhoto,
+                  //     behavior: HitTestBehavior.opaque,
+                  //     child: Column(
+                  //       children: [
+                  //         Stack(
+                  //           children: [
+                  //             SizedBox(
+                  //               width: 96,
+                  //               height: 96,
+                  //               child: AnimatedBoringAvatar(
+                  //                 name: state.boringAvatarHash,
+                  //                 type: state.boringAvatarType,
+                  //                 shape: const CircleBorder(),
+                  //                 curve: Curves.bounceIn,
+                  //                 duration: const Duration(seconds: 1),
+                  //               ),
+                  //             ),
+                  //           ],
+                  //         ),
+                  //         const SizedBox(height: 8),
+                  //         Text(
+                  //           "Изменить фото",
+                  //           style: TextStyle(
+                  //             fontSize: 16,
+                  //             color: CupertinoDynamicColor.withBrightness(
+                  //               color: CupertinoTheme.of(context).primaryColor,
+                  //               darkColor: CupertinoColors.white,
+                  //             ).resolveFrom(context),
+                  //           ),
+                  //         ),
+                  //       ],
+                  //     ),
+                  //   ),
+                  // ),
+                  const SizedBox(height: 20),
+                  CupertinoFormSection.insetGrouped(
+                    clipBehavior: Clip.hardEdge,
+                    backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
+                    decoration: BoxDecoration(
+                      color: ThemesCupertino.groupedCard.resolveFrom(context),
+                      borderRadius: const BorderRadius.all(Radius.circular(18)),
                     ),
+                    children: [
+                      CupertinoTextFormFieldRow(
+                        placeholder: context.t.screenMyProfile.myprofile,
+                        controller: firstNameController,
+                        focusNode: firstNameFocus,
+                        validator: (value) {
+                          final error = switch (context.read<SettingsMyProfileCubit>().validateFirstName(value)) {
+                            FirstNameValidationError.shotLength => "eeee",
+                            null => null,
+                          };
+                          return error;
+                        },
+                      ),
+                      CupertinoTextFormFieldRow(placeholder: "Фамилия"),
+                    ],
                   ),
-                ),
-                const SizedBox(height: 20),
-                CupertinoFormSection.insetGrouped(
-                  clipBehavior: Clip.hardEdge,
-                  backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
-                  decoration: BoxDecoration(
-                    color: ThemesCupertino.groupedCard.resolveFrom(context),
-                    borderRadius: const BorderRadius.all(Radius.circular(18)),
-                  ),
-                  children: [
-                    CupertinoTextFormFieldRow(placeholder: "Имя"),
-                    CupertinoTextFormFieldRow(placeholder: "Фамилия"),
-                  ],
-                ),
 
-                // Дата рождения.
-                CupertinoListSection.insetGrouped(
-                  clipBehavior: Clip.antiAlias,
-                  backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
-                  decoration: BoxDecoration(
-                    color: ThemesCupertino.groupedCard.resolveFrom(context),
-                    borderRadius: const BorderRadius.all(Radius.circular(18)),
-                  ),
-                  children: [
-                    CupertinoListTileIcon(
-                      title: const Text("Дата рождения"),
-                      color: Color(0xFFC50CA9),
-                      icon: FontAwesomeIcons.cakeCandles,
-                      onTab: () async => _pickBirthDate,
-                      additionalInfo: Text("Указать"),
+                  // Дата рождения.
+                  CupertinoListSection.insetGrouped(
+                    clipBehavior: Clip.antiAlias,
+                    backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
+                    decoration: BoxDecoration(
+                      color: ThemesCupertino.groupedCard.resolveFrom(context),
+                      borderRadius: const BorderRadius.all(Radius.circular(18)),
                     ),
-                  ],
-                ),
+                    children: [
+                      CupertinoListTileIcon(
+                        title: const Text("Дата рождения"),
+                        color: Color(0xFFC50CA9),
+                        icon: FontAwesomeIcons.cakeCandles,
+                        onTab: () async => _pickBirthDate,
+                        additionalInfo: Text("Указать"),
+                      ),
+                    ],
+                  ),
 
-                // О себе.
-                CupertinoFormSection.insetGrouped(
-                  header: const Text("О СЕБЕ"),
-                  clipBehavior: Clip.antiAlias,
-                  backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
-                  decoration: BoxDecoration(
-                    color: ThemesCupertino.groupedCard.resolveFrom(context),
-                    borderRadius: const BorderRadius.all(Radius.circular(18)),
-                  ),
-                  children: const [
-                    CupertinoTextField(
-                      placeholder: "Расскажите о себе",
-                      maxLines: 1,
-                      maxLength: 140,
-                      padding: EdgeInsets.symmetric(vertical: 13, horizontal: 16),
-                      // Убираем дефолтную заливку поля (в тёмной теме она чёрная),
-                      // чтобы поле сливалось с карточкой секции.
-                      decoration: null,
+                  // О себе.
+                  CupertinoFormSection.insetGrouped(
+                    header: const Text("О СЕБЕ"),
+                    clipBehavior: Clip.antiAlias,
+                    backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
+                    decoration: BoxDecoration(
+                      color: ThemesCupertino.groupedCard.resolveFrom(context),
+                      borderRadius: const BorderRadius.all(Radius.circular(18)),
                     ),
-                  ],
-                ),
+                    children: const [
+                      CupertinoTextField(
+                        placeholder: "Расскажите о себе",
+                        maxLines: 1,
+                        maxLength: 140,
+                        padding: EdgeInsets.symmetric(vertical: 13, horizontal: 16),
+                        // Убираем дефолтную заливку поля (в тёмной теме она чёрная),
+                        // чтобы поле сливалось с карточкой секции.
+                        decoration: null,
+                      ),
+                    ],
+                  ),
 
-                // Дата рождения.
-                CupertinoListSection.insetGrouped(
-                  clipBehavior: Clip.antiAlias,
-                  backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
-                  decoration: BoxDecoration(
-                    color: ThemesCupertino.groupedCard.resolveFrom(context),
-                    borderRadius: const BorderRadius.all(Radius.circular(18)),
-                  ),
-                  children: [
-                    CupertinoListTileIcon(
-                      title: const Text("Имя пользователя"),
-                      color: Color(0xFF3B74BF),
-                      icon: FontAwesomeIcons.at,
-                      onTab: () async {},
-                      additionalInfo: Text("Указать"),
-                      isTrailing: true,
+                  // Дата рождения.
+                  CupertinoListSection.insetGrouped(
+                    clipBehavior: Clip.antiAlias,
+                    backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
+                    decoration: BoxDecoration(
+                      color: ThemesCupertino.groupedCard.resolveFrom(context),
+                      borderRadius: const BorderRadius.all(Radius.circular(18)),
                     ),
-                    // CupertinoListTileIcon(
-                    //   title: const Text("Номер"),
-                    //   color: Color(0xFF049A40),
-                    //   icon: FontAwesomeIcons.phone,
-                    //   onTab: () async => _pickBirthDate,
-                    //   additionalInfo: Text("+7 909 160-00-44"),
-                    //   isTrailing: true,
-                    // ),
-                  ],
-                ),
-              ],
+                    children: [
+                      CupertinoListTileIcon(
+                        title: const Text("Имя пользователя"),
+                        color: Color(0xFF3B74BF),
+                        icon: FontAwesomeIcons.at,
+                        onTab: () async {},
+                        additionalInfo: Text("Указать"),
+                        isTrailing: true,
+                      ),
+                      // CupertinoListTileIcon(
+                      //   title: const Text("Номер"),
+                      //   color: Color(0xFF049A40),
+                      //   icon: FontAwesomeIcons.phone,
+                      //   onTab: () async => _pickBirthDate,
+                      //   additionalInfo: Text("+7 909 160-00-44"),
+                      //   isTrailing: true,
+                      // ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
         );

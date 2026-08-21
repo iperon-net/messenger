@@ -33,11 +33,11 @@ class _SettingsPasscodeCupertino extends State<SettingsPasscodeCupertino> {
   }
 
   String _autoLockLabel(BuildContext context, int seconds) {
-    if (seconds == 0) return context.t.settings.passcode.autoLockOff;
+    if (seconds == 0) return context.t.screenSettingsPasscode.autoLockOff;
     if (seconds < 3600) {
-      return context.t.settings.passcode.autoLockMinutes(n: seconds ~/ 60);
+      return context.t.screenSettingsPasscode.autoLockMinutes(n: seconds ~/ 60);
     }
-    return context.t.settings.passcode.autoLockHours(n: seconds ~/ 3600);
+    return context.t.screenSettingsPasscode.autoLockHours(n: seconds ~/ 3600);
   }
 
   @override
@@ -64,8 +64,8 @@ class _SettingsPasscodeCupertino extends State<SettingsPasscodeCupertino> {
             useBlur: false,
             keyPadConfig: ThemesCupertino.screenLockKeyPad(context),
             config: ThemesCupertino.screenLockConfig(context),
-            title: Text(context.t.settings.passcode.pleaseEnterPasscode),
-            cancelButton: Text(context.t.settings.passcode.cancel),
+            title: Text(context.t.screenSettingsPasscode.pleaseEnterPasscode),
+            cancelButton: Text(context.t.screenSettingsPasscode.cancel),
             // maxRetries: 3,
             // retryDelay: Duration(minutes: 10),
             // delayBuilder: (context, delay) => Text("delay"),
@@ -84,7 +84,9 @@ class _SettingsPasscodeCupertino extends State<SettingsPasscodeCupertino> {
             child: CupertinoNavigationBar(
               automaticBackgroundVisibility: false,
               backgroundColor: ThemesCupertino.groupedBackground,
-              middle: state.isBiometricAvailable ? Text(context.t.settings.passcodeAndFaceID) : Text(context.t.settings.passcode.title),
+              middle: state.isBiometricAvailable
+                  ? Text(context.t.screenSettingsPasscode.passcodeAndFaceID)
+                  : Text(context.t.screenSettingsPasscode.passcode),
             ),
           ),
           child: SafeArea(
@@ -99,15 +101,15 @@ class _SettingsPasscodeCupertino extends State<SettingsPasscodeCupertino> {
                     ),
                     footer: Padding(
                       padding: const EdgeInsets.only(left: 13),
-                      child: Text(context.t.settings.passcode.note, style: TextStyle(fontSize: 13)),
+                      child: Text(context.t.screenSettingsPasscode.note, style: TextStyle(fontSize: 13)),
                     ),
                     children: [
                       CupertinoListTile(
-                        title: Text(context.t.settings.passcode.passcodeTurnOff),
+                        title: Text(context.t.screenSettingsPasscode.turnOff),
                         onTap: () => context.read<SettingsPasscodeCubit>().turnOff(),
                       ),
                       CupertinoListTile(
-                        title: Text(context.t.settings.passcode.changePasscode),
+                        title: Text(context.t.screenSettingsPasscode.change),
                         onTap: () async {
                           final cubit = context.read<SettingsPasscodeCubit>();
                           final created = await context.push<bool>("/settings/privacy_and_security/passcode/create");
@@ -125,7 +127,7 @@ class _SettingsPasscodeCupertino extends State<SettingsPasscodeCupertino> {
                     ),
                     children: [
                       CupertinoListTile(
-                        title: Text(context.t.settings.passcode.autoLock),
+                        title: Text(context.t.screenSettingsPasscode.autoLock),
                         trailing: CupertinoMenuAnchor(
                           builder: (context, controller, child) {
                             return CupertinoButton(
@@ -157,7 +159,7 @@ class _SettingsPasscodeCupertino extends State<SettingsPasscodeCupertino> {
                       ),
                       if (state.isBiometricAvailable) ...[
                         CupertinoListTile(
-                          title: Text(context.t.settings.passcode.faceIDUnlock),
+                          title: Text(context.t.screenSettingsPasscode.faceIDUnlock),
                           trailing: CupertinoSwitch(
                             value: state.isBiometric,
                             onChanged: (bool value) async => await context.read<SettingsPasscodeCubit>().setBiometric(biometric: value),
@@ -175,7 +177,7 @@ class _SettingsPasscodeCupertino extends State<SettingsPasscodeCupertino> {
                     ),
                     children: [
                       CupertinoListTile(
-                        title: Text(context.t.settings.passcode.passcodeTurnOn),
+                        title: Text(context.t.screenSettingsPasscode.turnOn),
                         onTap: () async {
                           final cubit = context.read<SettingsPasscodeCubit>();
                           final created = await context.push<bool>("/settings/privacy_and_security/passcode/create");

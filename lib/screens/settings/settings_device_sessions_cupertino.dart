@@ -43,7 +43,7 @@ class _SettingsDeviceSessionsCupertino extends State<SettingsDeviceSessionsCuper
             child: CupertinoNavigationBar(
               automaticBackgroundVisibility: false,
               backgroundColor: ThemesCupertino.groupedBackground,
-              middle: Text(context.t.settings.devices),
+              middle: Text(context.t.screenSettingsDevices.devices),
               trailing: state.requestStatus == Status.loading ? CupertinoActivityIndicator() : null,
             ),
           ),
@@ -59,7 +59,7 @@ class _SettingsDeviceSessionsCupertino extends State<SettingsDeviceSessionsCuper
                           borderRadius: const BorderRadius.all(Radius.circular(10)),
                         ),
                         header: Text(
-                          context.t.settings.thisDevice.toUpperCase(),
+                          context.t.screenSettingsDevices.thisDevice.toUpperCase(),
                           style: TextStyle(fontSize: 13, fontWeight: FontWeight.normal),
                         ),
                         children: [
@@ -89,11 +89,11 @@ class _SettingsDeviceSessionsCupertino extends State<SettingsDeviceSessionsCuper
                               ],
                             ),
                             subtitle: Text(
-                              context.t.settings.deviceSessionListTileSubtitle(
+                              context.t.screenSettingsDevices.deviceSessionListTileSubtitle(
                                 location: LocaleSettings.currentLocale == AppLocale.ru
                                     ? currentSession.locationRussian
                                     : currentSession.locationEnglish,
-                                updateAt: context.t.settings.online.toLowerCase(),
+                                updateAt: context.t.screenSettingsDevices.online.toLowerCase(),
                               ),
                             ),
                           ),
@@ -102,17 +102,8 @@ class _SettingsDeviceSessionsCupertino extends State<SettingsDeviceSessionsCuper
                             CupertinoListTile(
                               padding: EdgeInsets.all(10),
                               leading: FaIcon(FontAwesomeIcons.hand, size: 18, color: Color(0xFFF40000)),
-                              // title: Shimmer.fromColors(
-                              //   baseColor: CupertinoColors.destructiveRed,
-                              //   highlightColor: CupertinoColors.white,
-                              //   period: Duration(seconds: 3),
-                              //   child: Text(
-                              //     context.t.settings.terminateAllOtherDeviceSessions,
-                              //     style: TextStyle(fontWeight: FontWeight.normal, color: CupertinoColors.destructiveRed),
-                              //   ),
-                              // ),
                               title: Text(
-                                context.t.settings.terminateAllOtherDeviceSessions,
+                                context.t.screenSettingsDevices.terminateAllOtherDeviceSessions,
                                 style: TextStyle(fontWeight: FontWeight.normal, color: CupertinoColors.destructiveRed),
                               ),
                               onTap: () async => await context.read<SettingsDeviceSessionsCubit>().terminate(
@@ -131,7 +122,7 @@ class _SettingsDeviceSessionsCupertino extends State<SettingsDeviceSessionsCuper
                             borderRadius: const BorderRadius.all(Radius.circular(10)),
                           ),
                           header: Text(
-                            context.t.settings.activeDeviceSession.toUpperCase(),
+                            context.t.screenSettingsDevices.activeDeviceSession.toUpperCase(),
                             style: TextStyle(fontSize: 13, fontWeight: FontWeight.normal),
                           ),
                           children: [
@@ -150,16 +141,16 @@ class _SettingsDeviceSessionsCupertino extends State<SettingsDeviceSessionsCuper
                                       final result = await showCupertinoDialog<bool>(
                                         context: context,
                                         builder: (BuildContext context) => CupertinoAlertDialog(
-                                          title: Text(context.t.settings.terminateDeviceSession),
-                                          content: Text(context.t.settings.areYouSureYouLogOutFromThisDevice),
+                                          title: Text(context.t.screenSettingsDevices.terminateDeviceSession),
+                                          content: Text(context.t.screenSettingsDevices.areYouSureYouLogOutFromThisDevice),
                                           actions: <CupertinoDialogAction>[
                                             CupertinoDialogAction(
                                               onPressed: () => Navigator.pop(context, true),
                                               isDestructiveAction: true,
-                                              child: Text(context.t.settings.terminateDeviceSession),
+                                              child: Text(context.t.screenSettingsDevices.terminateDeviceSession),
                                             ),
                                             CupertinoDialogAction(
-                                              child: Text(context.t.common.cancel),
+                                              child: Text(context.t.screenSettingsDevices.cancel),
                                               onPressed: () => Navigator.pop(context, false),
                                             ),
                                           ],
@@ -180,7 +171,10 @@ class _SettingsDeviceSessionsCupertino extends State<SettingsDeviceSessionsCuper
                                         spacing: 2,
                                         children: [
                                           FaIcon(FontAwesomeIcons.circleXmark, size: 20, color: CupertinoColors.white),
-                                          Text(context.t.settings.terminate, style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                                          Text(
+                                            context.t.screenSettingsDevices.terminate,
+                                            style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                                          ),
                                         ],
                                       ),
                                     ),
@@ -212,7 +206,7 @@ class _SettingsDeviceSessionsCupertino extends State<SettingsDeviceSessionsCuper
                                     ],
                                   ),
                                   subtitle: Text(
-                                    context.t.settings.deviceSessionListTileSubtitle(
+                                    context.t.screenSettingsDevices.deviceSessionListTileSubtitle(
                                       location: LocaleSettings.currentLocale == AppLocale.ru
                                           ? deviceSession.locationRussian
                                           : deviceSession.locationEnglish,

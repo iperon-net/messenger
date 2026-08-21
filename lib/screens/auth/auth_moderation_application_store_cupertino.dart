@@ -61,7 +61,7 @@ class _AuthModerationApplicationStoreCupertino extends State<AuthModerationAppli
                             Padding(
                               padding: EdgeInsetsGeometry.only(top: 30, left: 30, right: 30),
                               child: Text(
-                                context.t.auth.enterTheCode,
+                                context.t.screenAuthModerationApplicationStore.enterTheCode,
                                 textAlign: TextAlign.center,
                                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: const TextScaler.linear(1.3).scale(16)),
                               ),
@@ -69,7 +69,7 @@ class _AuthModerationApplicationStoreCupertino extends State<AuthModerationAppli
                             Padding(
                               padding: EdgeInsetsGeometry.only(top: 10, left: 30, right: 30, bottom: 30),
                               child: Text(
-                                context.t.auth.sentConfirmationCodeToNumber(phoneNumber: state.phoneNumber),
+                                context.t.screenAuthModerationApplicationStore.sentConfirmationCodeToNumber(phoneNumber: state.phoneNumber),
                                 textAlign: TextAlign.center,
                               ),
                             ),

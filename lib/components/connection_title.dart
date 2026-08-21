@@ -17,9 +17,9 @@ class ConnectionTitle extends StatelessWidget {
       builder: (context, state) {
         final (String label, bool spinner) = switch (state.connection) {
           ConnectionStatusModel.connected => (title, false),
-          ConnectionStatusModel.connecting => (context.t.connection.connecting, true),
-          ConnectionStatusModel.updating => (context.t.connection.updating, true),
-          ConnectionStatusModel.waitingForNetwork => (context.t.connection.waitingForNetwork, false),
+          ConnectionStatusModel.connecting => (context.t.componentsConnectionTitle.connecting, true),
+          ConnectionStatusModel.updating => (context.t.componentsConnectionTitle.updating, true),
+          ConnectionStatusModel.waitingForNetwork => (context.t.componentsConnectionTitle.waitingForNetwork, false),
         };
 
         if (!spinner) {

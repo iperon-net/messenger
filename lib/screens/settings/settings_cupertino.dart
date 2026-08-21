@@ -39,7 +39,7 @@ class _SettingsCupertino extends State<SettingsCupertino> {
             child: CupertinoNavigationBar(
               automaticBackgroundVisibility: false,
               backgroundColor: ThemesCupertino.groupedBackground,
-              middle: Text(context.t.common.settings),
+              middle: Text(context.t.screenSettings.settings),
             ),
           ),
           child: SafeArea(
@@ -53,7 +53,7 @@ class _SettingsCupertino extends State<SettingsCupertino> {
                   ),
                   children: [
                     CupertinoListTileIcon(
-                      title: Text(context.t.settings.myProfile),
+                      title: Text(context.t.screenSettings.myProfile),
                       color: Color(0xFFF80202),
                       icon: FontAwesomeIcons.solidUser,
                       onTab: () async => context.go("/settings/profile"),
@@ -69,21 +69,21 @@ class _SettingsCupertino extends State<SettingsCupertino> {
                   ),
                   children: [
                     CupertinoListTileIcon(
-                      title: Text(context.t.settings.privacyAndSecurity),
+                      title: Text(context.t.screenSettings.privacyAndSecurity),
                       color: Color(0xFF049A40),
                       icon: FontAwesomeIcons.key,
                       onTab: () async => context.go("/settings/privacy_and_security"),
                       isTrailing: true,
                     ),
                     CupertinoListTileIcon(
-                      title: Text(context.t.settings.appearance),
+                      title: Text(context.t.screenSettings.appearance),
                       color: Color(0xFF1368E6),
                       icon: FontAwesomeIcons.circleHalfStroke,
                       onTab: () async => context.go("/settings/appearance"),
                       isTrailing: true,
                     ),
                     CupertinoListTileIcon(
-                      title: Text(context.t.settings.devices),
+                      title: Text(context.t.screenSettings.devices),
                       color: Color(0xFFFF6B00),
                       icon: FontAwesomeIcons.mobileScreen,
                       onTab: () async => context.go("/settings/device_sessions"),
@@ -91,7 +91,7 @@ class _SettingsCupertino extends State<SettingsCupertino> {
                       isTrailing: true,
                     ),
                     CupertinoListTileIcon(
-                      title: Text(context.t.settings.language),
+                      title: Text(context.t.screenSettings.language),
                       color: Color(0xFFB818DC),
                       icon: FontAwesomeIcons.language,
                       onTab: () async => context.go("/settings/language"),
@@ -107,7 +107,7 @@ class _SettingsCupertino extends State<SettingsCupertino> {
                   ),
                   children: [
                     CupertinoListTileIcon(
-                      title: Text(context.t.settings.logout),
+                      title: Text(context.t.screenSettings.logout),
                       color: Color(0xFF5A48E6),
                       isTrailing: false,
                       icon: FontAwesomeIcons.rightFromBracket,

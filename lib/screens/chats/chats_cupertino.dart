@@ -55,7 +55,7 @@ class _ChatsCupertino extends State<ChatsCupertino> {
                     },
                   ),
                   SizedBox(width: 10),
-                  ConnectionTitle(title: context.t.common.chats),
+                  ConnectionTitle(title: context.t.screenChats.chats),
                 ],
               ),
             ),

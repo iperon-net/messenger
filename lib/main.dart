@@ -147,7 +147,7 @@ class _IperonMessengerCupertino extends State<IperonMessengerCupertino> with Wid
     bool didAuthenticate = false;
 
     try {
-      didAuthenticate = await localAuth.authenticate(localizedReason: context.t.settings.passcode.authenticateReason);
+      didAuthenticate = await localAuth.authenticate(localizedReason: context.t.common.biometricAuthenticateReason);
     } on LocalAuthException catch (e, stack) {
       if (e.code == LocalAuthExceptionCode.userCanceled) {
         logger.warning("passcode biometric user canceled");
@@ -251,7 +251,7 @@ class _IperonMessengerCupertino extends State<IperonMessengerCupertino> with Wid
                   useBlur: false,
                   keyPadConfig: ThemesCupertino.screenLockKeyPad(context),
                   config: ThemesCupertino.screenLockConfig(context),
-                  title: Text(context.t.settings.passcode.pleaseEnterPasscode),
+                  title: Text(context.t.common.biometricPleaseEnterPasscode),
                   customizedButtonChild: state.settingsDevice.passcodeBiometric && state.isBiometricAvailable
                       ? SvgPicture.string(
                           utf8.decode(

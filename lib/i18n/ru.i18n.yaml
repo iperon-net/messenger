@@ -1,91 +1,120 @@
-"auth":
-  "enterYourMobilePhoneNumber": "Введите номер мобильного телефона"
-  "currentlyWeOnlySupportPhoneNumbersFromRussianMobileOperators": "В настоящее время мы поддерживаем только номера российских мобильных операторов"
-  "phoneNumberDoesNotMatchAllowedRegion": "Номер телефона не соответствует разрешённому региону"
-  "enterTheCode": "Введите код"
-  "sentConfirmationCodeToNumber": "Мы отправили код подтверждения на номер {phoneNumber}"
-  "insertDebugPhone": "Вставить отладочный номер"
-  "confirmYourNumberDetail": "Позвоните на номер {confirmationPhoneNumberRu} с телефона который указали и дождитесь сброса звонка"
-  "callForFree": "Позвонить бесплатно"
-  "weAreExpectingYourCallWithin": "Ожидаем вашего звонка в течении {duration}"
-  "loginInWith": "Войти с помощью"
-
-"settings":
-  "myProfile": "Мой профиль"
-  "logout": "Выйти"
-  "devices": "Устройства"
-  "language": "Язык"
-  "appearance": "Оформление"
-  "privacyAndSecurity": "Конфиденциальность"
-  "colorTheme": "Цветовая схема"
-  "colorThemeDefault": "По умолчанию"
-  "colorThemeGreen": "Зеленая"
-  "colorThemePurple": "Пурпурный"
-  "colorThemeOrange": "Оранжевая"
-  "darkMode": "Тёмный режим"
-  "darkModeSystem": "Системный"
-  "darkModeAlwaysOn": "Всегда включено"
-  "darkModeDisabled": "Отключено"
-  "darkModeSystemDescription": "Как в настройках устройства"
-  "darkModeAlwaysOnDescription": "Тёмный режим всегда включён"
-  "darkModeDisabledDescription": "Тёмный режим отключён"
-  "thisDevice": "Это устройство"
-  "deviceSessionListTileSubtitle": "{location} · {updateAt}"
-  "online": "Онлайн"
-  "terminateAllOtherDeviceSessions": "Завершить сеансы, кроме текущего"
-  "activeDeviceSession": "Активные сеансы"
-  "terminateDeviceSession": "Завершить сеанс"
-  "areYouSureYouLogOutFromThisDevice": "Вы уверены, что хотите выйти на этом устройстве?"
-  "terminate": "Завершить"
-  "blurOnInactive": "Размытие при фоне"
-  "blurOnInactiveDescription": "В списке открытых приложений приложение отображается размытым"
-  "passcodeAndFaceID": "Код-пароль и Face ID"
-
-  "passcode":
-    "title": "Код-пароль"
-    "passcodeTurnOn": "Включить код-пароль"
-    "passcodeTurnOff": "Выключить код-пароль"
-    "pleaseEnterPasscode": "Введите код-пароль"
-    "authenticateReason": "Подтвердите личность для входа"
-    "pleaseEnterNewPasscode": "Введите новый код-пароль"
-    "pleaseEnterNewPasscodeAgain": "Введите новый код-пароль ещё раз"
-    "changePasscode": "Изменить код-пароль"
-    "note": "Важно: если Вы забудете код-пароль, Вам придётся переустановить приложение"
-    "cancel": "@:{common.cancel}"
-    "autoLock": "Автоблокировка"
-    "faceIDUnlock": "Разблокировка по Face ID"
-    "autoLockOff": "Выключена"
-    "autoLockMinutes(plural)":
-      one: "через {n} минуту"
-      few: "через {n} минуты"
-      many: "через {n} минут"
-      other: "через {n} минут"
-    "autoLockHours(plural)":
-      one: "через {n} час"
-      few: "через {n} часа"
-      many: "через {n} часов"
-      other: "через {n} часов"
-
 "common":
   "mobilePhone": "Номер мобильного телефона"
   "continue": "Продолжить"
-  "contacts": "Контакты"
-  "calls": "Звонки"
-  "chats": "Чаты"
-  "settings": "Настройки"
   "cancel": "Отмена"
   "back": "Назад"
   "save": "Сохранить"
+  "online": "В сети"
+  "biometricAuthenticateReason": "Пройдите аутентификацию для разблокировки"
+  "biometricPleaseEnterPasscode": "Введите код-пароль"
 
-"connection":
+"componentsConnectionTitle":
   "waitingForNetwork": "Ожидание сети"
-  "connecting": "Соединение"
+  "connecting": "Подключение"
   "updating": "Обновление"
+
+"screenHome":
+  "contacts": "Контакты"
+  "calls": "Звонки"
+  "chats": "@:screenChats.chats"
+  "settings": "@:screenSettings.settings"
+
+"screenChats":
+  "chats": "Чаты"
+
+"screenSettings":
+  "settings": "Настройки"
+  "myProfile": "Мой профиль"
+  "devices": "@:screenSettingsDevices.devices"
+  "language": "Язык"
+  "appearance": "@:screenSettingsAppearance.appearance"
+  "privacyAndSecurity": "Конфиденциальность"
+  "logout": "Выйти"
+
+"screenSettingsAppearance":
+  "appearance": "Оформление"
+  "colorTheme": "Цветовая тема"
+  "colorThemeDefault": "По умолчанию"
+  "colorThemeGreen": "Зелёная"
+  "colorThemePurple": "Фиолетовая"
+  "colorThemeOrange": "Оранжевая"
+  "darkMode": "Тёмная тема"
+  "darkModeSystem": "Системная"
+  "darkModeAlwaysOn": "Всегда включена"
+  "darkModeDisabled": "Отключена"
+  "darkModeSystemDescription": "Как в настройках устройства"
+  "darkModeAlwaysOnDescription": "Тёмная тема всегда включена"
+  "darkModeDisabledDescription": "Тёмная тема отключена"
+  "blurOnInactive": "Размытие в неактивном состоянии"
+  "blurOnInactiveDescription": "Приложение отображается размытым в списке открытых приложений"
+
+"screenSettingsDevices":
+  "devices": "Устройства"
+  "thisDevice": "Это устройство"
+  "deviceSessionListTileSubtitle": "{location} · {updateAt}"
+  "terminateAllOtherDeviceSessions": "Завершить все другие сеансы"
+  "activeDeviceSession": "Активные сеансы"
+  "terminateDeviceSession": "Завершить сеанс"
+  "areYouSureYouLogOutFromThisDevice": "Вы уверены, что хотите выйти на этом устройстве?"
+  "cancel": "@:common.cancel"
+  "online": "@:common.online"
+  "terminate": "Завершить"
+
+"screenSettingsLanguage":
+  "language": "Язык"
+
+"screenSettingsPasscode":
+  "passcode": "Код-пароль"
+  "passcodeAndFaceID": "Код-пароль и Face ID"
+  "note": "Примечание: если вы забудете код-пароль, потребуется переустановить приложение"
+  "turnOn": "Включить код-пароль"
+  "turnOff": "Отключить код-пароль"
+  "change": "Изменить код-пароль"
+  "autoLock": "Автоблокировка"
+  "faceIDUnlock": "Разблокировка с Face ID"
+  "autoLockOff": "Выключена"
+  "autoLockMinutes(plural)":
+    one: "Через {n} минуту"
+    other: "Через {n} минут"
+  "autoLockHours(plural)":
+    one: "Через {n} час"
+    other: "Через {n} часов"
+  "pleaseEnterPasscode": "Введите код-пароль"
+  "cancel": "@:common.cancel"
+
+"settingsPasscodeCreate":
+  "pleaseEnterNewPasscode": "Введите новый код-пароль"
+  "pleaseEnterNewPasscodeAgain": "Введите новый код-пароль ещё раз"
+  "cancel": "@:common.cancel"
+
+"sessionsPrivacyAndSecurity":
+  "privacyAndSecurity": "Конфиденциальность"
+  "passcodeAndFaceID": "Код-пароль и Face ID"
+  "passcode": "Код-пароль"
+
+"screenMyProfile":
+  "myprofile": "Мой профиль"
+
+"screenAuth":
+  "enterYourMobilePhoneNumber": "Введите номер мобильного телефона"
+  "currentlyWeOnlySupportPhoneNumbersFromRussianMobileOperators": "Сейчас мы поддерживаем только номера российских мобильных операторов"
+  "insertDebugPhone": "Вставить тестовый номер"
+  "callForFree": "Позвонить бесплатно"
+  "weAreExpectingYourCallWithin": "Мы ждём вашего звонка в течение {duration}"
+  "signInWith": "Войти через"
+  "continue": "@:common.kContinue"
+
+"screenAuthModerationApplicationStore":
+  "enterTheCode": "Введите код"
+  "sentConfirmationCodeToNumber": "Мы отправили код подтверждения на номер {phoneNumber}"
+
+"screenAuthCallpasswordConfirmation":
+  "weAreExpectingYourCallWithin": "Мы ждём вашего звонка в течение {duration}"
+  "confirmYourNumberDetail": "Позвоните на номер {confirmationPhoneNumberRu} с указанного вами номера телефона и дождитесь сброса вызова."
+  "callForFree": "Позвонить бесплатно"
 
 grpcError:
   "errorConnectingServer": "Ошибка подключения к серверу"
-  "unableConnectServer": "Не удалось подключиться к серверу"
-  "internalServerError": "Внутренняя ошибка сервера"
 
 dateTime:
   "relativeDateTimeToday": "сегодня в {time}"

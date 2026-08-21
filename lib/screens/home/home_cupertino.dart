@@ -43,19 +43,19 @@ class HomeCupertino extends StatelessWidget {
                   child: FaIcon(FontAwesomeIcons.solidCircleUser),
                 ),
               ),
-              label: context.t.common.contacts,
+              label: context.t.screenHome.contacts,
             ),
             BottomNavigationBarItem(
               icon: const Padding(padding: EdgeInsets.only(top: 8), child: FaIcon(FontAwesomeIcons.phoneFlip)),
-              label: context.t.common.calls,
+              label: context.t.screenHome.calls,
             ),
             BottomNavigationBarItem(
               icon: const Padding(padding: EdgeInsets.only(top: 8), child: FaIcon(FontAwesomeIcons.solidComments)),
-              label: context.t.common.chats,
+              label: context.t.screenHome.chats,
             ),
             BottomNavigationBarItem(
               icon: const Padding(padding: EdgeInsets.only(top: 8), child: FaIcon(FontAwesomeIcons.gear)),
-              label: context.t.common.settings,
+              label: context.t.screenHome.settings,
             ),
           ],
         );

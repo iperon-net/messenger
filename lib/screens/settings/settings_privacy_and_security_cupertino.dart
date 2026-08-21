@@ -45,7 +45,7 @@ class _SettingsPrivacyAndSecurityCupertino extends State<SettingsPrivacyAndSecur
             child: CupertinoNavigationBar(
               automaticBackgroundVisibility: false,
               backgroundColor: ThemesCupertino.groupedBackground,
-              middle: Text(context.t.settings.privacyAndSecurity),
+              middle: Text(context.t.sessionsPrivacyAndSecurity.privacyAndSecurity),
             ),
           ),
           child: SafeArea(
@@ -57,7 +57,9 @@ class _SettingsPrivacyAndSecurityCupertino extends State<SettingsPrivacyAndSecur
               ),
               children: [
                 CupertinoListTileIcon(
-                  title: state.isBiometricAvailable ? Text(context.t.settings.passcodeAndFaceID) : Text(context.t.settings.passcode.title),
+                  title: state.isBiometricAvailable
+                      ? Text(context.t.sessionsPrivacyAndSecurity.passcodeAndFaceID)
+                      : Text(context.t.sessionsPrivacyAndSecurity.passcode),
                   color: Color(0xFF41CA22),
                   icon: FontAwesomeIcons.unlockKeyhole,
                   onTab: () async => context.go("/settings/privacy_and_security/passcode"),

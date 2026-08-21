@@ -62,14 +62,14 @@ class _AuthCallpasswordConfirmationCupertino extends State<AuthCallpasswordConfi
                         ),
                         SizedBox(height: 30, width: double.infinity),
                         Text(
-                          context.t.auth.confirmYourNumberDetail(
+                          context.t.screenAuthCallpasswordConfirmation.confirmYourNumberDetail(
                             confirmationPhoneNumberRu: utils.phoneNormalization(phoneNumber: state.confirmationPhoneNumber).international,
                           ),
                           textAlign: TextAlign.center,
                         ),
                         SizedBox(height: 30, width: double.infinity),
                         Text(
-                          context.t.auth.weAreExpectingYourCallWithin(
+                          context.t.screenAuthCallpasswordConfirmation.weAreExpectingYourCallWithin(
                             duration: utils.formatDuration(Duration(seconds: state.tickerSecond)),
                           ),
                           textAlign: TextAlign.center,
@@ -80,7 +80,7 @@ class _AuthCallpasswordConfirmationCupertino extends State<AuthCallpasswordConfi
                           height: 50,
                           child: CupertinoButton.filled(
                             onPressed: () async => await utils.makePhoneCall(state.confirmationPhoneNumber),
-                            child: Text(context.t.auth.callForFree),
+                            child: Text(context.t.screenAuthCallpasswordConfirmation.callForFree),
                           ),
                         ),
                       ],

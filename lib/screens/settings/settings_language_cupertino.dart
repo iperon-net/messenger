@@ -50,7 +50,7 @@ class _SettingsLanguageCupertinoScreen extends State<SettingsLanguageCupertinoSc
             child: CupertinoNavigationBar(
               automaticBackgroundVisibility: false,
               backgroundColor: ThemesCupertino.groupedBackground,
-              middle: Text(context.t.settings.language),
+              middle: Text(context.t.screenSettingsLanguage.language),
             ),
           ),
           child: SafeArea(

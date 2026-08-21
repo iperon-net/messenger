@@ -59,7 +59,7 @@ class _SettingsAppearanceCupertino extends State<SettingsAppearanceCupertino> {
             child: CupertinoNavigationBar(
               automaticBackgroundVisibility: false,
               backgroundColor: ThemesCupertino.groupedBackground,
-              middle: Text(context.t.settings.appearance),
+              middle: Text(context.t.screenSettingsAppearance.appearance),
             ),
           ),
           child: SafeArea(
@@ -71,25 +71,28 @@ class _SettingsAppearanceCupertino extends State<SettingsAppearanceCupertino> {
                     color: ThemesCupertino.groupedCard.resolveFrom(context),
                     borderRadius: const BorderRadius.all(Radius.circular(10)),
                   ),
-                  header: Text(context.t.settings.colorTheme.toUpperCase(), style: TextStyle(fontSize: 13, fontWeight: FontWeight.normal)),
+                  header: Text(
+                    context.t.screenSettingsAppearance.colorTheme.toUpperCase(),
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.normal),
+                  ),
                   children: [
                     CupertinoListTile(
-                      title: Text(context.t.settings.colorThemeDefault),
+                      title: Text(context.t.screenSettingsAppearance.colorThemeDefault),
                       onTap: () async => await context.read<SettingsAppearanceCubit>().setColorTheme(colorTheme: ColorThemeModel.blue),
                       additionalInfo: state.colorTheme == ColorThemeModel.blue ? additionalInfo : null,
                     ),
                     CupertinoListTile(
-                      title: Text(context.t.settings.colorThemeGreen),
+                      title: Text(context.t.screenSettingsAppearance.colorThemeGreen),
                       onTap: () async => await context.read<SettingsAppearanceCubit>().setColorTheme(colorTheme: ColorThemeModel.green),
                       additionalInfo: state.colorTheme == ColorThemeModel.green ? additionalInfo : null,
                     ),
                     CupertinoListTile(
-                      title: Text(context.t.settings.colorThemePurple),
+                      title: Text(context.t.screenSettingsAppearance.colorThemePurple),
                       onTap: () async => await context.read<SettingsAppearanceCubit>().setColorTheme(colorTheme: ColorThemeModel.purple),
                       additionalInfo: state.colorTheme == ColorThemeModel.purple ? additionalInfo : null,
                     ),
                     CupertinoListTile(
-                      title: Text(context.t.settings.colorThemeOrange),
+                      title: Text(context.t.screenSettingsAppearance.colorThemeOrange),
                       onTap: () async => await context.read<SettingsAppearanceCubit>().setColorTheme(colorTheme: ColorThemeModel.orange),
                       additionalInfo: state.colorTheme == ColorThemeModel.orange ? additionalInfo : null,
                     ),
@@ -102,23 +105,26 @@ class _SettingsAppearanceCupertino extends State<SettingsAppearanceCupertino> {
                     color: ThemesCupertino.groupedCard.resolveFrom(context),
                     borderRadius: const BorderRadius.all(Radius.circular(10)),
                   ),
-                  header: Text(context.t.settings.darkMode.toUpperCase(), style: TextStyle(fontSize: 13, fontWeight: FontWeight.normal)),
+                  header: Text(
+                    context.t.screenSettingsAppearance.darkMode.toUpperCase(),
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.normal),
+                  ),
                   children: [
                     CupertinoListTile(
-                      title: Text(context.t.settings.darkModeSystem),
-                      subtitle: Text(context.t.settings.darkModeSystemDescription),
+                      title: Text(context.t.screenSettingsAppearance.darkModeSystem),
+                      subtitle: Text(context.t.screenSettingsAppearance.darkModeSystemDescription),
                       onTap: () async => await context.read<SettingsAppearanceCubit>().setDarkMode(darkMode: DarkModeModel.system),
                       additionalInfo: state.darkMode == DarkModeModel.system ? additionalInfo : null,
                     ),
                     CupertinoListTile(
-                      title: Text(context.t.settings.darkModeAlwaysOn),
-                      subtitle: Text(context.t.settings.darkModeAlwaysOnDescription),
+                      title: Text(context.t.screenSettingsAppearance.darkModeAlwaysOn),
+                      subtitle: Text(context.t.screenSettingsAppearance.darkModeAlwaysOnDescription),
                       onTap: () async => await context.read<SettingsAppearanceCubit>().setDarkMode(darkMode: DarkModeModel.alwaysOn),
                       additionalInfo: state.darkMode == DarkModeModel.alwaysOn ? additionalInfo : null,
                     ),
                     CupertinoListTile(
-                      title: Text(context.t.settings.darkModeDisabled),
-                      subtitle: Text(context.t.settings.darkModeDisabledDescription),
+                      title: Text(context.t.screenSettingsAppearance.darkModeDisabled),
+                      subtitle: Text(context.t.screenSettingsAppearance.darkModeDisabledDescription),
                       onTap: () async => await context.read<SettingsAppearanceCubit>().setDarkMode(darkMode: DarkModeModel.disabled),
                       additionalInfo: state.darkMode == DarkModeModel.disabled ? additionalInfo : null,
                     ),
@@ -133,13 +139,13 @@ class _SettingsAppearanceCupertino extends State<SettingsAppearanceCupertino> {
                   footer: Padding(
                     padding: const EdgeInsets.only(left: 13),
                     child: Text(
-                      context.t.settings.blurOnInactiveDescription,
+                      context.t.screenSettingsAppearance.blurOnInactiveDescription,
                       style: TextStyle(fontSize: 13, fontWeight: FontWeight.normal),
                     ),
                   ),
                   children: [
                     CupertinoListTile(
-                      title: Text(context.t.settings.blurOnInactive),
+                      title: Text(context.t.screenSettingsAppearance.blurOnInactive),
                       onTap: () async => await context.read<SettingsAppearanceCubit>().setDarkMode(darkMode: DarkModeModel.disabled),
                       trailing: CupertinoSwitch(
                         value: state.isBlurOnInactive,

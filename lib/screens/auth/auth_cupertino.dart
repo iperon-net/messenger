@@ -61,7 +61,7 @@ class _AuthCupertinoScreen extends State<AuthCupertinoScreen> {
       listener: (context, state) {
         if (state.status == Status.success && state.error != null) {
           if (state.error == "phone number does not match allowed region") {
-            serverError = context.t.auth.phoneNumberDoesNotMatchAllowedRegion;
+            serverError = context.t.screenAuth.currentlyWeOnlySupportPhoneNumbersFromRussianMobileOperators;
           } else if (state.error == "errorConnectingServer") {
             serverError = context.t.grpcError.errorConnectingServer;
           } else {
@@ -124,9 +124,9 @@ class _AuthCupertinoScreen extends State<AuthCupertinoScreen> {
                                 placeholder: context.t.common.mobilePhone,
                                 validator: (value) {
                                   final error = switch (context.read<AuthCubit>().validatePhoneNumber(value)) {
-                                    PhoneValidationError.empty => context.t.auth.enterYourMobilePhoneNumber,
+                                    PhoneValidationError.empty => context.t.screenAuth.enterYourMobilePhoneNumber,
                                     PhoneValidationError.notAllowRegion =>
-                                      context.t.auth.currentlyWeOnlySupportPhoneNumbersFromRussianMobileOperators,
+                                      context.t.screenAuth.currentlyWeOnlySupportPhoneNumbersFromRussianMobileOperators,
                                     null => null,
                                   };
                                   return error ?? serverError;
@@ -137,7 +137,7 @@ class _AuthCupertinoScreen extends State<AuthCupertinoScreen> {
                             if (kDebugMode) ...[
                               SizedBox(height: 30),
                               FilledButton.tonal(
-                                child: Text(t.auth.insertDebugPhone),
+                                child: Text(t.screenAuth.insertDebugPhone),
                                 onPressed: () {
                                   phoneNumberController.text = utils
                                       .phoneNormalization(phoneNumber: settings.phoneNumberModerationApplicationStore)
@@ -162,11 +162,11 @@ class _AuthCupertinoScreen extends State<AuthCupertinoScreen> {
                               }
                             : null,
                         child: [Status.success, Status.initialization].contains(state.status)
-                            ? Text(context.t.common.kContinue)
+                            ? Text(context.t.screenAuth.kContinue)
                             : CupertinoActivityIndicator(color: Color(0xffffffff)),
                       ),
                     ),
-                    DividerTextWidget(text: context.t.auth.loginInWith),
+                    DividerTextWidget(text: context.t.screenAuth.signInWith),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       spacing: 30,

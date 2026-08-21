@@ -45,9 +45,9 @@ class _SettingsPasscodeCreateCupertino extends State<SettingsPasscodeCreateCuper
           useBlur: false,
           keyPadConfig: ThemesCupertino.screenLockKeyPad(context),
           config: ThemesCupertino.screenLockConfig(context),
-          title: Text(context.t.settings.passcode.pleaseEnterNewPasscode),
-          confirmTitle: Text(context.t.settings.passcode.pleaseEnterNewPasscodeAgain),
-          cancelButton: Text(context.t.settings.passcode.cancel),
+          title: Text(context.t.settingsPasscodeCreate.pleaseEnterNewPasscode),
+          confirmTitle: Text(context.t.settingsPasscodeCreate.pleaseEnterNewPasscodeAgain),
+          cancelButton: Text(context.t.settingsPasscodeCreate.cancel),
         );
       },
     );

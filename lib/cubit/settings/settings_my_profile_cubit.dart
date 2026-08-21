@@ -10,6 +10,8 @@ import '../../repositories/repositories.dart';
 import '../../utils.dart';
 import 'settings_my_profile_state.dart';
 
+enum FirstNameValidationError { shotLength }
+
 class SettingsMyProfileCubit extends Cubit<SettingsMyProfileState> {
   SettingsMyProfileCubit() : super(SettingsMyProfileState());
 
@@ -26,5 +28,11 @@ class SettingsMyProfileCubit extends Cubit<SettingsMyProfileState> {
     logger.debug(avatar);
 
     emit(state.copyWith(status: Status.success, boringAvatarHash: avatar.hash, boringAvatarType: avatar.type));
+  }
+
+  FirstNameValidationError? validateFirstName(String? value) {
+    if (value != null && value.length > 25) return FirstNameValidationError.shotLength;
+
+    return null;
   }
 }
