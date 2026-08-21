@@ -151,8 +151,6 @@ class _SettingsProfileCupertino extends State<SettingsProfileCupertino> {
                   ),
                 ),
                 const SizedBox(height: 20),
-
-                // ФИО.
                 CupertinoFormSection.insetGrouped(
                   clipBehavior: Clip.hardEdge,
                   backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),

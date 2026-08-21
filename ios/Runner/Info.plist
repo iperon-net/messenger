@@ -28,6 +28,8 @@
 	<true/>
 	<key>NSFaceIDUsageDescription</key>
 	<string>Face ID is used to unlock the app and protect your messages.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Uses your photos to set an avatar and share images in chats</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
