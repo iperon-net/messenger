@@ -6,3 +6,4 @@ export './protos/metadata_v1.pb.dart';
 export './protos/device_sessions_v1.pb.dart';
 export './protos/subscribe_v1.pb.dart';
 export './protos/logout_v1.pb.dart';
+export './protos/myprofile_v1.pb.dart';

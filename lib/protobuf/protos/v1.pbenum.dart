@@ -27,8 +27,8 @@ class MessageType extends $pb.ProtobufEnum {
   static const MessageType SUBSCRIBE = MessageType._(8, _omitEnumNames ? '' : 'SUBSCRIBE');
   static const MessageType DEVICE_SESSIONS_TERMINATE = MessageType._(9, _omitEnumNames ? '' : 'DEVICE_SESSIONS_TERMINATE');
   static const MessageType AUTH_CONFIRMATION = MessageType._(10, _omitEnumNames ? '' : 'AUTH_CONFIRMATION');
-  static const MessageType PROFILE = MessageType._(11, _omitEnumNames ? '' : 'PROFILE');
-  static const MessageType PROFILE_EDIT = MessageType._(12, _omitEnumNames ? '' : 'PROFILE_EDIT');
+  static const MessageType MY_PROFILE = MessageType._(11, _omitEnumNames ? '' : 'MY_PROFILE');
+  static const MessageType MY_PROFILE_EDIT = MessageType._(12, _omitEnumNames ? '' : 'MY_PROFILE_EDIT');
   static const MessageType DEVICE_INFO_UPDATE = MessageType._(13, _omitEnumNames ? '' : 'DEVICE_INFO_UPDATE');
 
   static const $core.List<MessageType> values = <MessageType>[
@@ -43,8 +43,8 @@ class MessageType extends $pb.ProtobufEnum {
     SUBSCRIBE,
     DEVICE_SESSIONS_TERMINATE,
     AUTH_CONFIRMATION,
-    PROFILE,
-    PROFILE_EDIT,
+    MY_PROFILE,
+    MY_PROFILE_EDIT,
     DEVICE_INFO_UPDATE,
   ];
 

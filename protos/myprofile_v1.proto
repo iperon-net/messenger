@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package iperon.v1;
+option go_package = "internal/api/v1";
+
+import "protos/models.proto";
+
+
+message MyProfile {
+  message Request {}
+
+  message Response {
+    string firstName = 1;
+    string lastName = 2;
+    string aboutMe = 4;
+    Date dateBirth = 3;
+  }
+}
+
+message MyProfileEdit {
+  message Request {
+    string firstName = 1;
+    string lastName = 2;
+    string aboutMe = 4;
+    Date dateBirth = 3;
+  }
+
+  message Response {
+  }
+}

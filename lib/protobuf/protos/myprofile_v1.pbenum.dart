@@ -1,6 +1,6 @@
 // This is a generated file - do not edit.
 //
-// Generated from protos/profile_v1.proto.
+// Generated from protos/myprofile_v1.proto.
 
 // @dart = 3.3
 
