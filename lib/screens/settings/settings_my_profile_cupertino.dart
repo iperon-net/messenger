@@ -177,7 +177,7 @@ class _SettingsMyProfileCupertino extends State<SettingsMyProfileCupertino> {
                     ),
                     children: [
                       CupertinoTextFormFieldRow(
-                        placeholder: context.t.screenMyProfile.myprofile,
+                        placeholder: context.t.screenMyProfile.firstName,
                         controller: firstNameController,
                         focusNode: firstNameFocus,
                         validator: (value) {
@@ -188,7 +188,7 @@ class _SettingsMyProfileCupertino extends State<SettingsMyProfileCupertino> {
                           return error;
                         },
                       ),
-                      CupertinoTextFormFieldRow(placeholder: "Фамилия"),
+                      CupertinoTextFormFieldRow(placeholder: context.t.screenMyProfile.lastName),
                     ],
                   ),
 
@@ -202,27 +202,27 @@ class _SettingsMyProfileCupertino extends State<SettingsMyProfileCupertino> {
                     ),
                     children: [
                       CupertinoListTileIcon(
-                        title: const Text("Дата рождения"),
+                        title: Text(context.t.screenMyProfile.dateOfBirth),
                         color: Color(0xFFC50CA9),
                         icon: FontAwesomeIcons.cakeCandles,
                         onTab: () async => _pickBirthDate,
-                        additionalInfo: Text("Указать"),
+                        additionalInfo: Text(context.t.screenMyProfile.add),
                       ),
                     ],
                   ),
 
                   // О себе.
                   CupertinoFormSection.insetGrouped(
-                    header: const Text("О СЕБЕ"),
+                    header: Text(context.t.screenMyProfile.aboutMe.toUpperCase()),
                     clipBehavior: Clip.antiAlias,
                     backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
                     decoration: BoxDecoration(
                       color: ThemesCupertino.groupedCard.resolveFrom(context),
                       borderRadius: const BorderRadius.all(Radius.circular(18)),
                     ),
-                    children: const [
+                    children: [
                       CupertinoTextField(
-                        placeholder: "Расскажите о себе",
+                        placeholder: context.t.screenMyProfile.tellUsAboutYourself,
                         maxLines: 1,
                         maxLength: 140,
                         padding: EdgeInsets.symmetric(vertical: 13, horizontal: 16),
@@ -233,7 +233,6 @@ class _SettingsMyProfileCupertino extends State<SettingsMyProfileCupertino> {
                     ],
                   ),
 
-                  // Дата рождения.
                   CupertinoListSection.insetGrouped(
                     clipBehavior: Clip.antiAlias,
                     backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
@@ -243,11 +242,11 @@ class _SettingsMyProfileCupertino extends State<SettingsMyProfileCupertino> {
                     ),
                     children: [
                       CupertinoListTileIcon(
-                        title: const Text("Имя пользователя"),
+                        title: Text(context.t.screenMyProfile.username),
                         color: Color(0xFF3B74BF),
                         icon: FontAwesomeIcons.at,
                         onTab: () async {},
-                        additionalInfo: Text("Указать"),
+                        additionalInfo: Text(context.t.screenMyProfile.add),
                         isTrailing: true,
                       ),
                       // CupertinoListTileIcon(

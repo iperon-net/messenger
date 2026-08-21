@@ -94,6 +94,13 @@
 
 "screenMyProfile":
   "myprofile": "My profile"
+  "firstName": "First name"
+  "lastName": "Last name"
+  "aboutMe": "About me"
+  "tellUsAboutYourself": "Tell us about yourself"
+  "add": "Add"
+  "dateOfBirth": "Date of birth"
+  "username": "Username"
 
 "screenAuth":
   "enterYourMobilePhoneNumber": "Enter your mobile phone number"

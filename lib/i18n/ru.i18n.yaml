@@ -94,6 +94,13 @@
 
 "screenMyProfile":
   "myprofile": "Мой профиль"
+  "firstName": "Имя"
+  "lastName": "Фамилия"
+  "aboutMe": "О себе"
+  "tellUsAboutYourself": "Расскажите о себе"
+  "add": "Указать"
+  "dateOfBirth": "Дата рождения"
+  "username": "Имя пользователя"
 
 "screenAuth":
   "enterYourMobilePhoneNumber": "Введите номер мобильного телефона"

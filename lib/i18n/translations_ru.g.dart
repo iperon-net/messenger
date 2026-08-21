@@ -239,6 +239,13 @@ class _Translations$screenMyProfile$ru extends Translations$screenMyProfile$en {
 
 	// Translations
 	@override String get myprofile => 'Мой профиль';
+	@override String get firstName => 'Имя';
+	@override String get lastName => 'Фамилия';
+	@override String get aboutMe => 'О себе';
+	@override String get tellUsAboutYourself => 'Расскажите о себе';
+	@override String get add => 'Указать';
+	@override String get dateOfBirth => 'Дата рождения';
+	@override String get username => 'Имя пользователя';
 }
 
 // Path: screenAuth
@@ -379,6 +386,13 @@ extension on TranslationsRu {
 			'sessionsPrivacyAndSecurity.passcodeAndFaceID' => 'Код-пароль и Face ID',
 			'sessionsPrivacyAndSecurity.passcode' => 'Код-пароль',
 			'screenMyProfile.myprofile' => 'Мой профиль',
+			'screenMyProfile.firstName' => 'Имя',
+			'screenMyProfile.lastName' => 'Фамилия',
+			'screenMyProfile.aboutMe' => 'О себе',
+			'screenMyProfile.tellUsAboutYourself' => 'Расскажите о себе',
+			'screenMyProfile.add' => 'Указать',
+			'screenMyProfile.dateOfBirth' => 'Дата рождения',
+			'screenMyProfile.username' => 'Имя пользователя',
 			'screenAuth.enterYourMobilePhoneNumber' => 'Введите номер мобильного телефона',
 			'screenAuth.currentlyWeOnlySupportPhoneNumbersFromRussianMobileOperators' => 'Сейчас мы поддерживаем только номера российских мобильных операторов',
 			'screenAuth.insertDebugPhone' => 'Вставить тестовый номер',

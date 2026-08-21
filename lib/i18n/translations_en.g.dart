@@ -378,6 +378,27 @@ class Translations$screenMyProfile$en {
 
 	/// en: 'My profile'
 	String get myprofile => 'My profile';
+
+	/// en: 'First name'
+	String get firstName => 'First name';
+
+	/// en: 'Last name'
+	String get lastName => 'Last name';
+
+	/// en: 'About me'
+	String get aboutMe => 'About me';
+
+	/// en: 'Tell us about yourself'
+	String get tellUsAboutYourself => 'Tell us about yourself';
+
+	/// en: 'Add'
+	String get add => 'Add';
+
+	/// en: 'Date of birth'
+	String get dateOfBirth => 'Date of birth';
+
+	/// en: 'Username'
+	String get username => 'Username';
 }
 
 // Path: screenAuth
@@ -550,6 +571,13 @@ extension on Translations {
 			'sessionsPrivacyAndSecurity.passcodeAndFaceID' => 'Passcode & Face ID',
 			'sessionsPrivacyAndSecurity.passcode' => 'Passcode',
 			'screenMyProfile.myprofile' => 'My profile',
+			'screenMyProfile.firstName' => 'First name',
+			'screenMyProfile.lastName' => 'Last name',
+			'screenMyProfile.aboutMe' => 'About me',
+			'screenMyProfile.tellUsAboutYourself' => 'Tell us about yourself',
+			'screenMyProfile.add' => 'Add',
+			'screenMyProfile.dateOfBirth' => 'Date of birth',
+			'screenMyProfile.username' => 'Username',
 			'screenAuth.enterYourMobilePhoneNumber' => 'Enter your mobile phone number',
 			'screenAuth.currentlyWeOnlySupportPhoneNumbersFromRussianMobileOperators' => 'Currently, we only support phone numbers from Russian mobile operators',
 			'screenAuth.insertDebugPhone' => 'Insert debug phone',
