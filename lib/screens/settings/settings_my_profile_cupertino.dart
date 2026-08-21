@@ -9,14 +9,14 @@ import 'package:go_router/go_router.dart';
 import '../../components.dart';
 import '../../i18n/translations.g.dart';
 
-class SettingsProfileCupertino extends StatefulWidget {
-  const SettingsProfileCupertino({super.key});
+class SettingsMyProfileCupertino extends StatefulWidget {
+  const SettingsMyProfileCupertino({super.key});
 
   @override
-  State<SettingsProfileCupertino> createState() => _SettingsProfileCupertino();
+  State<SettingsMyProfileCupertino> createState() => _SettingsMyProfileCupertino();
 }
 
-class _SettingsProfileCupertino extends State<SettingsProfileCupertino> {
+class _SettingsMyProfileCupertino extends State<SettingsMyProfileCupertino> {
   // Локальное состояние макета (кубит не реализуем).
   DateTime? _birthDate;
 
@@ -95,7 +95,7 @@ class _SettingsProfileCupertino extends State<SettingsProfileCupertino> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocConsumer<SettingsProfileCubit, SettingsProfileState>(
+    return BlocConsumer<SettingsMyProfileCubit, SettingsMyProfileState>(
       listener: (context, state) {},
       builder: (context, state) {
         return CupertinoPageScaffold(

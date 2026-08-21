@@ -3,15 +3,15 @@ import 'package:flutter_boring_avatars/flutter_boring_avatars.dart';
 
 import '../../constants.dart';
 
-part 'settings_profile_state.mapper.dart';
+part 'settings_my_profile_state.mapper.dart';
 
 @MappableClass()
-class SettingsProfileState with SettingsProfileStateMappable {
+class SettingsMyProfileState with SettingsMyProfileStateMappable {
   final Status status;
   final String boringAvatarHash;
   final BoringAvatarType boringAvatarType;
 
-  const SettingsProfileState({
+  const SettingsMyProfileState({
     this.status = Status.initialization,
     this.boringAvatarHash = "",
     this.boringAvatarType = BoringAvatarType.ring,

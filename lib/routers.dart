@@ -80,9 +80,9 @@ class Routers {
                   parentNavigatorKey: rootNavigatorKey,
                   pageBuilder: (context, state) => _page(
                     state,
-                    BlocProvider<SettingsProfileCubit>(
-                      create: (_) => SettingsProfileCubit()..initialization(),
-                      child: SettingsProfileCupertino(),
+                    BlocProvider<SettingsMyProfileCubit>(
+                      create: (_) => SettingsMyProfileCubit()..initialization(),
+                      child: SettingsMyProfileCupertino(),
                     ),
                   ),
                 ),

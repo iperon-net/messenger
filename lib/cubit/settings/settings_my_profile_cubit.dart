@@ -8,10 +8,10 @@ import '../../logger.dart';
 
 import '../../repositories/repositories.dart';
 import '../../utils.dart';
-import 'settings_profile_state.dart';
+import 'settings_my_profile_state.dart';
 
-class SettingsProfileCubit extends Cubit<SettingsProfileState> {
-  SettingsProfileCubit() : super(SettingsProfileState());
+class SettingsMyProfileCubit extends Cubit<SettingsMyProfileState> {
+  SettingsMyProfileCubit() : super(SettingsMyProfileState());
 
   final logger = getIt.get<Logger>();
   final api = getIt.get<API>();
