@@ -234,13 +234,29 @@ class _SettingsMyProfileCupertino extends State<SettingsMyProfileCupertino> {
                                         children: [
                                           CupertinoButton(
                                             onPressed: () => Navigator.pop(context),
-                                            child: Text(context.t.screenMyProfile.cancel),
+                                            child: Text(
+                                              context.t.screenMyProfile.cancel,
+                                              style: TextStyle(
+                                                color: CupertinoDynamicColor.withBrightness(
+                                                  color: CupertinoTheme.of(context).primaryColor,
+                                                  darkColor: CupertinoColors.white,
+                                                ).resolveFrom(context),
+                                              ),
+                                            ),
                                           ),
                                           CupertinoButton(
                                             onPressed: () {
                                               Navigator.pop(context);
                                             },
-                                            child: Text(context.t.screenMyProfile.done),
+                                            child: Text(
+                                              context.t.screenMyProfile.done,
+                                              style: TextStyle(
+                                                color: CupertinoDynamicColor.withBrightness(
+                                                  color: CupertinoTheme.of(context).primaryColor,
+                                                  darkColor: CupertinoColors.white,
+                                                ).resolveFrom(context),
+                                              ),
+                                            ),
                                           ),
                                         ],
                                       ),
