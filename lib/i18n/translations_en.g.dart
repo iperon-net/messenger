@@ -418,8 +418,8 @@ class Translations$screenMyProfile$en {
 	/// en: 'Done'
 	String get done => _root.common.done;
 
-	/// en: '{date: yMd}'
-	String birthDayFormat({required DateTime date}) => '${DateFormat.yMd('en').format(date)}';
+	/// en: '{date}'
+	String birthDayFormat({required Object date}) => '${date}';
 }
 
 // Path: screenAuth
@@ -605,7 +605,7 @@ extension on Translations {
 			'screenMyProfile.validationAboutMeMaxLength' => 'Must contain no more than 140 characters',
 			'screenMyProfile.cancel' => _root.common.cancel,
 			'screenMyProfile.done' => _root.common.done,
-			'screenMyProfile.birthDayFormat' => ({required DateTime date}) => '${DateFormat.yMd('en').format(date)}',
+			'screenMyProfile.birthDayFormat' => ({required Object date}) => '${date}',
 			'screenAuth.enterYourMobilePhoneNumber' => 'Enter your mobile phone number',
 			'screenAuth.currentlyWeOnlySupportPhoneNumbersFromRussianMobileOperators' => 'Currently, we only support phone numbers from Russian mobile operators',
 			'screenAuth.insertDebugPhone' => 'Insert debug phone',

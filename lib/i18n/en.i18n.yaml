@@ -107,7 +107,7 @@
   "validationAboutMeMaxLength": "Must contain no more than 140 characters"
   "cancel": "@:common.cancel"
   "done": "@:common.done"
-  "birthDayFormat": "{date: yMd}"
+  "birthDayFormat": "{date}"
 
 "screenAuth":
   "enterYourMobilePhoneNumber": "Enter your mobile phone number"

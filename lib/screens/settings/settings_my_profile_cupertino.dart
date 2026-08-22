@@ -1,5 +1,6 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
 import '../../cubit.dart';
 import '../../di.dart';
 import '../../logger.dart';
@@ -160,7 +161,13 @@ class _SettingsMyProfileCupertino extends State<SettingsMyProfileCupertino> {
                         color: Color(0xFFC50CA9),
                         icon: FontAwesomeIcons.cakeCandles,
                         additionalInfo: state.birthDate != null
-                            ? Text(context.t.screenMyProfile.birthDayFormat(date: state.birthDate ?? DateTime.now()))
+                            // Дату форматирует intl (DateFormat без локали → Intl.defaultLocale,
+                            // напр. en_GB → 22/08/2026), а slang лишь вставляет готовую строку.
+                            // Формат `{date: yMd}` в slang не годится: он зашивает локаль
+                            // перевода ('en'/'ru') и игнорирует регион.
+                            ? Text(
+                                context.t.screenMyProfile.birthDayFormat(date: DateFormat.yMd().format(state.birthDate ?? DateTime.now())),
+                              )
                             : Text(context.t.screenMyProfile.add),
                         isTrailing: state.birthDate != null ? true : false,
                         onTab: () async {

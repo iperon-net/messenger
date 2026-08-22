@@ -252,7 +252,7 @@ class _Translations$screenMyProfile$ru extends Translations$screenMyProfile$en {
 	@override String get validationAboutMeMaxLength => 'Должно содержать не более 140 символов';
 	@override String get cancel => _root.common.cancel;
 	@override String get done => _root.common.done;
-	@override String birthDayFormat({required DateTime date}) => '${DateFormat.yMd('ru').format(date)}';
+	@override String birthDayFormat({required Object date}) => '${date}';
 }
 
 // Path: screenAuth
@@ -406,7 +406,7 @@ extension on TranslationsRu {
 			'screenMyProfile.validationAboutMeMaxLength' => 'Должно содержать не более 140 символов',
 			'screenMyProfile.cancel' => _root.common.cancel,
 			'screenMyProfile.done' => _root.common.done,
-			'screenMyProfile.birthDayFormat' => ({required DateTime date}) => '${DateFormat.yMd('ru').format(date)}',
+			'screenMyProfile.birthDayFormat' => ({required Object date}) => '${date}',
 			'screenAuth.enterYourMobilePhoneNumber' => 'Введите номер мобильного телефона',
 			'screenAuth.currentlyWeOnlySupportPhoneNumbersFromRussianMobileOperators' => 'Сейчас мы поддерживаем только номера российских мобильных операторов',
 			'screenAuth.insertDebugPhone' => 'Вставить тестовый номер',

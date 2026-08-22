@@ -107,7 +107,7 @@
   "validationAboutMeMaxLength": "Должно содержать не более 140 символов"
   "cancel": "@:common.cancel"
   "done": "@:common.done"
-  "birthDayFormat": "{date: yMd}"
+  "birthDayFormat": "{date}"
 
 "screenAuth":
   "enterYourMobilePhoneNumber": "Введите номер мобильного телефона"
