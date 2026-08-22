@@ -184,7 +184,7 @@ class _SettingsMyProfileCupertino extends State<SettingsMyProfileCupertino> {
                         focusNode: firstNameFocus,
                         validator: (value) {
                           final error = switch (context.read<SettingsMyProfileCubit>().validateFirstName(value)) {
-                            FirstNameValidationError.shotLength => context.t.screenMyProfile.validationFirstNameMaxLength,
+                            FirstNameValidationError.maxLength => context.t.screenMyProfile.validationFirstNameMaxLength,
                             null => null,
                           };
                           return error;
@@ -196,7 +196,7 @@ class _SettingsMyProfileCupertino extends State<SettingsMyProfileCupertino> {
                         focusNode: lastNameFocus,
                         validator: (value) {
                           final error = switch (context.read<SettingsMyProfileCubit>().validateFirstName(value)) {
-                            FirstNameValidationError.shotLength => context.t.screenMyProfile.validationLastNameMaxLength,
+                            FirstNameValidationError.maxLength => context.t.screenMyProfile.validationLastNameMaxLength,
                             null => null,
                           };
                           return error;
@@ -232,14 +232,17 @@ class _SettingsMyProfileCupertino extends State<SettingsMyProfileCupertino> {
                       borderRadius: const BorderRadius.all(Radius.circular(18)),
                     ),
                     children: [
-                      CupertinoTextField(
+                      CupertinoTextFormFieldRow(
                         placeholder: context.t.screenMyProfile.tellUsAboutYourself,
-                        maxLines: 1,
+                        maxLines: 2,
                         maxLength: 140,
-                        padding: EdgeInsets.symmetric(vertical: 13, horizontal: 16),
-                        // Убираем дефолтную заливку поля (в тёмной теме она чёрная),
-                        // чтобы поле сливалось с карточкой секции.
-                        decoration: null,
+                        validator: (value) {
+                          final error = switch (context.read<SettingsMyProfileCubit>().validateAboutMe(value)) {
+                            AboutMeValidationError.maxLength => context.t.screenMyProfile.validationAboutMeMaxLength,
+                            null => null,
+                          };
+                          return error;
+                        },
                       ),
                     ],
                   ),

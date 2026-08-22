@@ -10,9 +10,11 @@ import '../../repositories/repositories.dart';
 import '../../utils.dart';
 import 'settings_my_profile_state.dart';
 
-enum FirstNameValidationError { shotLength }
+enum FirstNameValidationError { maxLength }
 
-enum LastNameValidationError { shotLength }
+enum LastNameValidationError { maxLength }
+
+enum AboutMeValidationError { maxLength }
 
 class SettingsMyProfileCubit extends Cubit<SettingsMyProfileState> {
   SettingsMyProfileCubit() : super(SettingsMyProfileState());
@@ -33,12 +35,17 @@ class SettingsMyProfileCubit extends Cubit<SettingsMyProfileState> {
   }
 
   FirstNameValidationError? validateFirstName(String? value) {
-    if (value != null && value.length > 25) return FirstNameValidationError.shotLength;
+    if (value != null && value.length > 25) return FirstNameValidationError.maxLength;
     return null;
   }
 
   LastNameValidationError? validateLastName(String? value) {
-    if (value != null && value.length > 25) return LastNameValidationError.shotLength;
+    if (value != null && value.length > 25) return LastNameValidationError.maxLength;
+    return null;
+  }
+
+  AboutMeValidationError? validateAboutMe(String? value) {
+    if (value != null && value.length > 140) return AboutMeValidationError.maxLength;
     return null;
   }
 }

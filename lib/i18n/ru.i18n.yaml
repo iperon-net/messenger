@@ -103,6 +103,7 @@
   "username": "Имя пользователя"
   "validationFirstNameMaxLength": "Должно содержать не более 25 символов"
   "validationLastNameMaxLength": "Должно содержать не более 25 символов"
+  "validationAboutMeMaxLength": "Должно содержать не более 140 символов"
 
 "screenAuth":
   "enterYourMobilePhoneNumber": "Введите номер мобильного телефона"
