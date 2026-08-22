@@ -85,6 +85,9 @@ class Translations$common$en {
 	/// en: 'Online'
 	String get online => 'Online';
 
+	/// en: 'Done'
+	String get done => 'Done';
+
 	/// en: 'Authenticate to unlock'
 	String get biometricAuthenticateReason => 'Authenticate to unlock';
 
@@ -406,8 +409,14 @@ class Translations$screenMyProfile$en {
 	/// en: 'Must contain no more than 25 characters'
 	String get validationLastNameMaxLength => 'Must contain no more than 25 characters';
 
-	/// en: 'Must contain no more than 70 characters'
-	String get validationAboutMeMaxLength => 'Must contain no more than 70 characters';
+	/// en: 'Must contain no more than 140 characters'
+	String get validationAboutMeMaxLength => 'Must contain no more than 140 characters';
+
+	/// en: 'Cancel'
+	String get cancel => _root.common.cancel;
+
+	/// en: 'Done'
+	String get done => _root.common.done;
 }
 
 // Path: screenAuth
@@ -517,6 +526,7 @@ extension on Translations {
 			'common.back' => 'Back',
 			'common.save' => 'Save',
 			'common.online' => 'Online',
+			'common.done' => 'Done',
 			'common.biometricAuthenticateReason' => 'Authenticate to unlock',
 			'common.biometricPleaseEnterPasscode' => 'Please enter passcode',
 			'componentsConnectionTitle.waitingForNetwork' => 'Waiting for network',
@@ -589,7 +599,9 @@ extension on Translations {
 			'screenMyProfile.username' => 'Username',
 			'screenMyProfile.validationFirstNameMaxLength' => 'Must contain no more than 25 characters',
 			'screenMyProfile.validationLastNameMaxLength' => 'Must contain no more than 25 characters',
-			'screenMyProfile.validationAboutMeMaxLength' => 'Must contain no more than 70 characters',
+			'screenMyProfile.validationAboutMeMaxLength' => 'Must contain no more than 140 characters',
+			'screenMyProfile.cancel' => _root.common.cancel,
+			'screenMyProfile.done' => _root.common.done,
 			'screenAuth.enterYourMobilePhoneNumber' => 'Enter your mobile phone number',
 			'screenAuth.currentlyWeOnlySupportPhoneNumbersFromRussianMobileOperators' => 'Currently, we only support phone numbers from Russian mobile operators',
 			'screenAuth.insertDebugPhone' => 'Insert debug phone',

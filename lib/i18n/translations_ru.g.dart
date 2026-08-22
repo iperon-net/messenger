@@ -71,6 +71,7 @@ class _Translations$common$ru extends Translations$common$en {
 	@override String get back => 'Назад';
 	@override String get save => 'Сохранить';
 	@override String get online => 'В сети';
+	@override String get done => 'Готово';
 	@override String get biometricAuthenticateReason => 'Пройдите аутентификацию для разблокировки';
 	@override String get biometricPleaseEnterPasscode => 'Введите код-пароль';
 }
@@ -248,7 +249,9 @@ class _Translations$screenMyProfile$ru extends Translations$screenMyProfile$en {
 	@override String get username => 'Имя пользователя';
 	@override String get validationFirstNameMaxLength => 'Должно содержать не более 25 символов';
 	@override String get validationLastNameMaxLength => 'Должно содержать не более 25 символов';
-	@override String get validationAboutMeMaxLength => 'Должно содержать не более 70 символов';
+	@override String get validationAboutMeMaxLength => 'Должно содержать не более 140 символов';
+	@override String get cancel => _root.common.cancel;
+	@override String get done => _root.common.done;
 }
 
 // Path: screenAuth
@@ -326,6 +329,7 @@ extension on TranslationsRu {
 			'common.back' => 'Назад',
 			'common.save' => 'Сохранить',
 			'common.online' => 'В сети',
+			'common.done' => 'Готово',
 			'common.biometricAuthenticateReason' => 'Пройдите аутентификацию для разблокировки',
 			'common.biometricPleaseEnterPasscode' => 'Введите код-пароль',
 			'componentsConnectionTitle.waitingForNetwork' => 'Ожидание сети',
@@ -398,7 +402,9 @@ extension on TranslationsRu {
 			'screenMyProfile.username' => 'Имя пользователя',
 			'screenMyProfile.validationFirstNameMaxLength' => 'Должно содержать не более 25 символов',
 			'screenMyProfile.validationLastNameMaxLength' => 'Должно содержать не более 25 символов',
-			'screenMyProfile.validationAboutMeMaxLength' => 'Должно содержать не более 70 символов',
+			'screenMyProfile.validationAboutMeMaxLength' => 'Должно содержать не более 140 символов',
+			'screenMyProfile.cancel' => _root.common.cancel,
+			'screenMyProfile.done' => _root.common.done,
 			'screenAuth.enterYourMobilePhoneNumber' => 'Введите номер мобильного телефона',
 			'screenAuth.currentlyWeOnlySupportPhoneNumbersFromRussianMobileOperators' => 'Сейчас мы поддерживаем только номера российских мобильных операторов',
 			'screenAuth.insertDebugPhone' => 'Вставить тестовый номер',

@@ -5,6 +5,7 @@
   "back": "Назад"
   "save": "Сохранить"
   "online": "В сети"
+  "done": "Готово"
   "biometricAuthenticateReason": "Пройдите аутентификацию для разблокировки"
   "biometricPleaseEnterPasscode": "Введите код-пароль"
 
@@ -104,6 +105,8 @@
   "validationFirstNameMaxLength": "Должно содержать не более 25 символов"
   "validationLastNameMaxLength": "Должно содержать не более 25 символов"
   "validationAboutMeMaxLength": "Должно содержать не более 140 символов"
+  "cancel": "@:common.cancel"
+  "done": "@:common.done"
 
 "screenAuth":
   "enterYourMobilePhoneNumber": "Введите номер мобильного телефона"

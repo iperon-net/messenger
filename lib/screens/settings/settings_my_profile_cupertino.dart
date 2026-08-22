@@ -26,9 +26,6 @@ class _SettingsMyProfileCupertino extends State<SettingsMyProfileCupertino> {
 
   final logger = getIt.get<Logger>();
 
-  // Локальное состояние макета (кубит не реализуем).
-  DateTime? _birthDate;
-
   @override
   void initState() {
     super.initState();
@@ -56,45 +53,45 @@ class _SettingsMyProfileCupertino extends State<SettingsMyProfileCupertino> {
   // }
 
   // Выбор даты рождения снизу — как в iOS-настройках.
-  void _pickBirthDate() {
-    DateTime temp = _birthDate ?? DateTime(2000, 1, 1);
-    showCupertinoModalPopup<void>(
-      context: context,
-      builder: (context) => Container(
-        height: 300,
-        color: CupertinoColors.systemBackground.resolveFrom(context),
-        child: Column(
-          children: [
-            SizedBox(
-              height: 44,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  CupertinoButton(onPressed: () => Navigator.pop(context), child: const Text("Отмена")),
-                  CupertinoButton(
-                    onPressed: () {
-                      setState(() => _birthDate = temp);
-                      Navigator.pop(context);
-                    },
-                    child: const Text("Готово"),
-                  ),
-                ],
-              ),
-            ),
-            Expanded(
-              child: CupertinoDatePicker(
-                mode: CupertinoDatePickerMode.date,
-                initialDateTime: temp,
-                maximumDate: DateTime.now(),
-                minimumYear: 1900,
-                onDateTimeChanged: (value) => temp = value,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  // void _pickBirthDate() {
+  //   DateTime temp = _birthDate ?? DateTime(2000, 1, 1);
+  //   showCupertinoModalPopup<void>(
+  //     context: context,
+  //     builder: (context) => Container(
+  //       height: 300,
+  //       color: CupertinoColors.systemBackground.resolveFrom(context),
+  //       child: Column(
+  //         children: [
+  //           SizedBox(
+  //             height: 44,
+  //             child: Row(
+  //               mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  //               children: [
+  //                 CupertinoButton(onPressed: () => Navigator.pop(context), child: const Text("Отмена")),
+  //                 CupertinoButton(
+  //                   onPressed: () {
+  //                     setState(() => _birthDate = temp);
+  //                     Navigator.pop(context);
+  //                   },
+  //                   child: const Text("Готово"),
+  //                 ),
+  //               ],
+  //             ),
+  //           ),
+  //           Expanded(
+  //             child: CupertinoDatePicker(
+  //               mode: CupertinoDatePickerMode.date,
+  //               initialDateTime: temp,
+  //               maximumDate: DateTime.now(),
+  //               minimumYear: 1900,
+  //               onDateTimeChanged: (value) => temp = value,
+  //             ),
+  //           ),
+  //         ],
+  //       ),
+  //     ),
+  //   );
+  // }
 
   // String get _birthDateLabel {
   //   final d = _birthDate;
@@ -218,7 +215,53 @@ class _SettingsMyProfileCupertino extends State<SettingsMyProfileCupertino> {
                         title: Text(context.t.screenMyProfile.dateOfBirth),
                         color: Color(0xFFC50CA9),
                         icon: FontAwesomeIcons.cakeCandles,
-                        onTab: () async => _pickBirthDate,
+                        onTab: () async {
+                          showCupertinoModalPopup<void>(
+                            context: context,
+                            builder: (BuildContext context) => Container(
+                              height: 250,
+                              padding: const .only(top: 6.0),
+                              margin: .only(bottom: MediaQuery.of(context).viewInsets.bottom),
+                              color: CupertinoColors.systemBackground.resolveFrom(context),
+                              child: SafeArea(
+                                top: false,
+                                child: Column(
+                                  children: [
+                                    SizedBox(
+                                      height: 50,
+                                      child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          CupertinoButton(
+                                            onPressed: () => Navigator.pop(context),
+                                            child: Text(context.t.screenMyProfile.cancel),
+                                          ),
+                                          CupertinoButton(
+                                            onPressed: () {
+                                              Navigator.pop(context);
+                                            },
+                                            child: Text(context.t.screenMyProfile.done),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    Expanded(
+                                      child: CupertinoDatePicker(
+                                        mode: CupertinoDatePickerMode.date,
+                                        initialDateTime: DateTime.now(),
+                                        minimumDate: DateTime(DateTime.now().year - 100, DateTime.now().month, DateTime.now().day),
+                                        maximumDate: DateTime.now(),
+                                        use24hFormat: true,
+                                        showDayOfWeek: false,
+                                        onDateTimeChanged: (DateTime newDate) {},
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          );
+                        },
                         additionalInfo: Text(context.t.screenMyProfile.add),
                       ),
                     ],

@@ -5,6 +5,7 @@
   "back": "Back"
   "save": "Save"
   "online": "Online"
+  "done": "Done"
   "biometricAuthenticateReason": "Authenticate to unlock"
   "biometricPleaseEnterPasscode": "Please enter passcode"
 
@@ -104,6 +105,8 @@
   "validationFirstNameMaxLength": "Must contain no more than 25 characters"
   "validationLastNameMaxLength": "Must contain no more than 25 characters"
   "validationAboutMeMaxLength": "Must contain no more than 140 characters"
+  "cancel": "@:common.cancel"
+  "done": "@:common.done"
 
 "screenAuth":
   "enterYourMobilePhoneNumber": "Enter your mobile phone number"
