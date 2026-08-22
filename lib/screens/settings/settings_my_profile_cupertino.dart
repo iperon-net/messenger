@@ -24,6 +24,9 @@ class _SettingsMyProfileCupertino extends State<SettingsMyProfileCupertino> {
   final lastNameController = TextEditingController();
   final lastNameFocus = FocusNode();
 
+  final birthDateController = TextEditingController();
+  final birthDateFocus = FocusNode();
+
   final logger = getIt.get<Logger>();
 
   @override
@@ -35,69 +38,6 @@ class _SettingsMyProfileCupertino extends State<SettingsMyProfileCupertino> {
   void dispose() {
     super.dispose();
   }
-
-  // Макет выбора фотографии — реального пикера пока нет.
-  // void _pickPhoto() {
-  //   showCupertinoModalPopup<void>(
-  //     context: context,
-  //     builder: (context) => CupertinoActionSheet(
-  //       title: const Text("Фото профиля"),
-  //       actions: [
-  //         CupertinoActionSheetAction(onPressed: () => Navigator.pop(context), child: const Text("Сделать фото")),
-  //         CupertinoActionSheetAction(onPressed: () => Navigator.pop(context), child: const Text("Выбрать из галереи")),
-  //         CupertinoActionSheetAction(isDestructiveAction: true, onPressed: () => Navigator.pop(context), child: const Text("Удалить фото")),
-  //       ],
-  //       cancelButton: CupertinoActionSheetAction(onPressed: () => Navigator.pop(context), child: const Text("Отмена")),
-  //     ),
-  //   );
-  // }
-
-  // Выбор даты рождения снизу — как в iOS-настройках.
-  // void _pickBirthDate() {
-  //   DateTime temp = _birthDate ?? DateTime(2000, 1, 1);
-  //   showCupertinoModalPopup<void>(
-  //     context: context,
-  //     builder: (context) => Container(
-  //       height: 300,
-  //       color: CupertinoColors.systemBackground.resolveFrom(context),
-  //       child: Column(
-  //         children: [
-  //           SizedBox(
-  //             height: 44,
-  //             child: Row(
-  //               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-  //               children: [
-  //                 CupertinoButton(onPressed: () => Navigator.pop(context), child: const Text("Отмена")),
-  //                 CupertinoButton(
-  //                   onPressed: () {
-  //                     setState(() => _birthDate = temp);
-  //                     Navigator.pop(context);
-  //                   },
-  //                   child: const Text("Готово"),
-  //                 ),
-  //               ],
-  //             ),
-  //           ),
-  //           Expanded(
-  //             child: CupertinoDatePicker(
-  //               mode: CupertinoDatePickerMode.date,
-  //               initialDateTime: temp,
-  //               maximumDate: DateTime.now(),
-  //               minimumYear: 1900,
-  //               onDateTimeChanged: (value) => temp = value,
-  //             ),
-  //           ),
-  //         ],
-  //       ),
-  //     ),
-  //   );
-  // }
-
-  // String get _birthDateLabel {
-  //   final d = _birthDate;
-  //   if (d == null) return "Не указана";
-  //   return "${d.day.toString().padLeft(2, '0')}.${d.month.toString().padLeft(2, '0')}.${d.year}";
-  // }
 
   @override
   Widget build(BuildContext context) {
@@ -117,6 +57,10 @@ class _SettingsMyProfileCupertino extends State<SettingsMyProfileCupertino> {
                 onPressed: () {
                   if (formKey.currentState!.validate()) {
                     logger.debug("validate ok!");
+
+                    logger.debug("birthDate = ${birthDateController.value}");
+                    logger.debug("firstName = ${firstNameController.value}");
+                    logger.debug("lastName = ${lastNameController.value}");
                   }
                 },
                 child: Text(context.t.common.save),
@@ -212,10 +156,15 @@ class _SettingsMyProfileCupertino extends State<SettingsMyProfileCupertino> {
                     ),
                     children: [
                       CupertinoListTileIcon(
-                        title: Text(context.t.screenMyProfile.dateOfBirth),
+                        title: Text(context.t.screenMyProfile.birthDate),
                         color: Color(0xFFC50CA9),
                         icon: FontAwesomeIcons.cakeCandles,
+                        additionalInfo: state.birthDate != null
+                            ? Text(context.t.screenMyProfile.birthDayFormat(date: state.birthDate ?? DateTime.now()))
+                            : Text(context.t.screenMyProfile.add),
+                        isTrailing: state.birthDate != null ? true : false,
                         onTab: () async {
+                          final cubit = context.read<SettingsMyProfileCubit>();
                           showCupertinoModalPopup<void>(
                             context: context,
                             builder: (BuildContext context) => Container(
@@ -246,6 +195,7 @@ class _SettingsMyProfileCupertino extends State<SettingsMyProfileCupertino> {
                                           ),
                                           CupertinoButton(
                                             onPressed: () {
+                                              cubit.setBirthDate(DateTime.parse(birthDateController.text));
                                               Navigator.pop(context);
                                             },
                                             child: Text(
@@ -263,13 +213,14 @@ class _SettingsMyProfileCupertino extends State<SettingsMyProfileCupertino> {
                                     ),
                                     Expanded(
                                       child: CupertinoDatePicker(
+                                        initialDateTime: state.birthDate ?? DateTime.now(),
                                         mode: CupertinoDatePickerMode.date,
-                                        initialDateTime: DateTime.now(),
                                         minimumDate: DateTime(DateTime.now().year - 100, DateTime.now().month, DateTime.now().day),
                                         maximumDate: DateTime.now(),
-                                        use24hFormat: true,
                                         showDayOfWeek: false,
-                                        onDateTimeChanged: (DateTime newDate) {},
+                                        onDateTimeChanged: (DateTime birthDate) {
+                                          birthDateController.value = TextEditingValue(text: birthDate.toIso8601String());
+                                        },
                                       ),
                                     ),
                                   ],
@@ -278,7 +229,6 @@ class _SettingsMyProfileCupertino extends State<SettingsMyProfileCupertino> {
                             ),
                           );
                         },
-                        additionalInfo: Text(context.t.screenMyProfile.add),
                       ),
                     ],
                   ),

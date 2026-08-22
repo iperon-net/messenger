@@ -397,8 +397,8 @@ class Translations$screenMyProfile$en {
 	/// en: 'Add'
 	String get add => 'Add';
 
-	/// en: 'Date of birth'
-	String get dateOfBirth => 'Date of birth';
+	/// en: 'Birth date'
+	String get birthDate => 'Birth date';
 
 	/// en: 'Username'
 	String get username => 'Username';
@@ -417,6 +417,9 @@ class Translations$screenMyProfile$en {
 
 	/// en: 'Done'
 	String get done => _root.common.done;
+
+	/// en: '{date: yMd}'
+	String birthDayFormat({required DateTime date}) => '${DateFormat.yMd('en').format(date)}';
 }
 
 // Path: screenAuth
@@ -595,13 +598,14 @@ extension on Translations {
 			'screenMyProfile.aboutMe' => 'About me',
 			'screenMyProfile.tellUsAboutYourself' => 'Tell us about yourself',
 			'screenMyProfile.add' => 'Add',
-			'screenMyProfile.dateOfBirth' => 'Date of birth',
+			'screenMyProfile.birthDate' => 'Birth date',
 			'screenMyProfile.username' => 'Username',
 			'screenMyProfile.validationFirstNameMaxLength' => 'Must contain no more than 25 characters',
 			'screenMyProfile.validationLastNameMaxLength' => 'Must contain no more than 25 characters',
 			'screenMyProfile.validationAboutMeMaxLength' => 'Must contain no more than 140 characters',
 			'screenMyProfile.cancel' => _root.common.cancel,
 			'screenMyProfile.done' => _root.common.done,
+			'screenMyProfile.birthDayFormat' => ({required DateTime date}) => '${DateFormat.yMd('en').format(date)}',
 			'screenAuth.enterYourMobilePhoneNumber' => 'Enter your mobile phone number',
 			'screenAuth.currentlyWeOnlySupportPhoneNumbersFromRussianMobileOperators' => 'Currently, we only support phone numbers from Russian mobile operators',
 			'screenAuth.insertDebugPhone' => 'Insert debug phone',

@@ -100,13 +100,14 @@
   "aboutMe": "О себе"
   "tellUsAboutYourself": "Расскажите о себе"
   "add": "Указать"
-  "dateOfBirth": "Дата рождения"
+  "birthDate": "Дата рождения"
   "username": "Имя пользователя"
   "validationFirstNameMaxLength": "Должно содержать не более 25 символов"
   "validationLastNameMaxLength": "Должно содержать не более 25 символов"
   "validationAboutMeMaxLength": "Должно содержать не более 140 символов"
   "cancel": "@:common.cancel"
   "done": "@:common.done"
+  "birthDayFormat": "{date: yMd}"
 
 "screenAuth":
   "enterYourMobilePhoneNumber": "Введите номер мобильного телефона"

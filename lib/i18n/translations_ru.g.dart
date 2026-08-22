@@ -245,13 +245,14 @@ class _Translations$screenMyProfile$ru extends Translations$screenMyProfile$en {
 	@override String get aboutMe => 'О себе';
 	@override String get tellUsAboutYourself => 'Расскажите о себе';
 	@override String get add => 'Указать';
-	@override String get dateOfBirth => 'Дата рождения';
+	@override String get birthDate => 'Дата рождения';
 	@override String get username => 'Имя пользователя';
 	@override String get validationFirstNameMaxLength => 'Должно содержать не более 25 символов';
 	@override String get validationLastNameMaxLength => 'Должно содержать не более 25 символов';
 	@override String get validationAboutMeMaxLength => 'Должно содержать не более 140 символов';
 	@override String get cancel => _root.common.cancel;
 	@override String get done => _root.common.done;
+	@override String birthDayFormat({required DateTime date}) => '${DateFormat.yMd('ru').format(date)}';
 }
 
 // Path: screenAuth
@@ -398,13 +399,14 @@ extension on TranslationsRu {
 			'screenMyProfile.aboutMe' => 'О себе',
 			'screenMyProfile.tellUsAboutYourself' => 'Расскажите о себе',
 			'screenMyProfile.add' => 'Указать',
-			'screenMyProfile.dateOfBirth' => 'Дата рождения',
+			'screenMyProfile.birthDate' => 'Дата рождения',
 			'screenMyProfile.username' => 'Имя пользователя',
 			'screenMyProfile.validationFirstNameMaxLength' => 'Должно содержать не более 25 символов',
 			'screenMyProfile.validationLastNameMaxLength' => 'Должно содержать не более 25 символов',
 			'screenMyProfile.validationAboutMeMaxLength' => 'Должно содержать не более 140 символов',
 			'screenMyProfile.cancel' => _root.common.cancel,
 			'screenMyProfile.done' => _root.common.done,
+			'screenMyProfile.birthDayFormat' => ({required DateTime date}) => '${DateFormat.yMd('ru').format(date)}',
 			'screenAuth.enterYourMobilePhoneNumber' => 'Введите номер мобильного телефона',
 			'screenAuth.currentlyWeOnlySupportPhoneNumbersFromRussianMobileOperators' => 'Сейчас мы поддерживаем только номера российских мобильных операторов',
 			'screenAuth.insertDebugPhone' => 'Вставить тестовый номер',

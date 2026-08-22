@@ -48,4 +48,8 @@ class SettingsMyProfileCubit extends Cubit<SettingsMyProfileState> {
     if (value != null && value.length > 140) return AboutMeValidationError.maxLength;
     return null;
   }
+
+  void setBirthDate(DateTime birthDate) {
+    emit(state.copyWith(birthDate: birthDate));
+  }
 }

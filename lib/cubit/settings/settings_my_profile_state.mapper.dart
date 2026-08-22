@@ -43,12 +43,19 @@ class SettingsMyProfileStateMapper
     opt: true,
     def: BoringAvatarType.ring,
   );
+  static DateTime? _$birthDate(SettingsMyProfileState v) => v.birthDate;
+  static const Field<SettingsMyProfileState, DateTime> _f$birthDate = Field(
+    'birthDate',
+    _$birthDate,
+    opt: true,
+  );
 
   @override
   final MappableFields<SettingsMyProfileState> fields = const {
     #status: _f$status,
     #boringAvatarHash: _f$boringAvatarHash,
     #boringAvatarType: _f$boringAvatarType,
+    #birthDate: _f$birthDate,
   };
 
   static SettingsMyProfileState _instantiate(DecodingData data) {
@@ -56,6 +63,7 @@ class SettingsMyProfileStateMapper
       status: data.dec(_f$status),
       boringAvatarHash: data.dec(_f$boringAvatarHash),
       boringAvatarType: data.dec(_f$boringAvatarType),
+      birthDate: data.dec(_f$birthDate),
     );
   }
 
@@ -133,6 +141,7 @@ abstract class SettingsMyProfileStateCopyWith<
     Status? status,
     String? boringAvatarHash,
     BoringAvatarType? boringAvatarType,
+    DateTime? birthDate,
   });
   SettingsMyProfileStateCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
     Then<$Out2, $R2> t,
@@ -153,11 +162,13 @@ class _SettingsMyProfileStateCopyWithImpl<$R, $Out>
     Status? status,
     String? boringAvatarHash,
     BoringAvatarType? boringAvatarType,
+    Object? birthDate = $none,
   }) => $apply(
     FieldCopyWithData({
       if (status != null) #status: status,
       if (boringAvatarHash != null) #boringAvatarHash: boringAvatarHash,
       if (boringAvatarType != null) #boringAvatarType: boringAvatarType,
+      if (birthDate != $none) #birthDate: birthDate,
     }),
   );
   @override
@@ -165,6 +176,7 @@ class _SettingsMyProfileStateCopyWithImpl<$R, $Out>
     status: data.get(#status, or: $value.status),
     boringAvatarHash: data.get(#boringAvatarHash, or: $value.boringAvatarHash),
     boringAvatarType: data.get(#boringAvatarType, or: $value.boringAvatarType),
+    birthDate: data.get(#birthDate, or: $value.birthDate),
   );
 
   @override
