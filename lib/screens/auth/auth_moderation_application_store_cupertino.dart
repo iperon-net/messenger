@@ -96,7 +96,7 @@ class _AuthModerationApplicationStoreCupertino extends State<AuthModerationAppli
                                 return;
                               },
                               autoFocus: true,
-                              // keyboardAppearance: brightness,
+                              keyboardAppearance: CupertinoTheme.brightnessOf(context),
                               theme: MaterialPinTheme(
                                 entryAnimation: MaterialPinAnimation.none,
                                 animateCursor: false,
@@ -107,6 +107,7 @@ class _AuthModerationApplicationStoreCupertino extends State<AuthModerationAppli
                                 borderRadius: BorderRadius.circular(8),
                                 cursorWidth: 1,
                                 animationDuration: const Duration(milliseconds: 0),
+
                                 fillColor: CupertinoDynamicColor.resolve(
                                   CupertinoDynamicColor.withBrightness(color: Color(0xffffffff), darkColor: Color(0xff1b263b)),
                                   context,

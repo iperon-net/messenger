@@ -76,6 +76,8 @@ class Repositories {
           passcode BLOB NULL,
           passcodeBiometric INTEGER NULL,
           passcodeAutoLock INTEGER NULL,
+          passcodeForceLocked INTEGER NOT NULL DEFAULT 0,
+          passcodeBackgroundedAt INTEGER NOT NULL DEFAULT 0,
           isContactBannerDisabled INTEGER NOT NULL,
           isNotificationBannerDisabled INTEGER NOT NULL
         );
@@ -92,9 +94,22 @@ class Repositories {
         await tx.execute("""
         CREATE TABLE users (
           userID TEXT PRIMARY KEY,
-          phoneNumber TEXT NOT NULL
+          phoneNumber TEXT NOT NULL,
+          username TEXT NULL,
+          fistName TEXT NULL,
+          lastName TEXT NULL,
+          birthDate TEXT NULL,
+          aboutMe TEXT NULL
         );
       """);
+
+        //   await tx.execute("""
+        //   CREATE TABLE userAvatars (
+        //     userAvatarID INTEGER PRIMARY KEY,
+        //     userID BLOB NOT NULL,
+        //     FOREIGN KEY (userID) REFERENCES users(userID) ON DELETE CASCADE ON UPDATE CASCADE
+        //   );
+        // """);
 
         await tx.execute("""
         CREATE TABLE sessions (
@@ -135,24 +150,6 @@ class Repositories {
           FOREIGN KEY (userID) REFERENCES users(userID) ON DELETE CASCADE ON UPDATE CASCADE
         );
       """);
-      }),
-    );
-
-    migrations.add(
-      SqliteMigration(2, (tx) async {
-        // Персистентная «форс-блокировка»: остаётся включённой после перезапуска
-        // приложения, пока пользователь не введёт passcode.
-        await tx.execute("ALTER TABLE settingsDevice ADD COLUMN passcodeForceLocked INTEGER NOT NULL DEFAULT 0");
-      }),
-    );
-
-    migrations.add(
-      SqliteMigration(3, (tx) async {
-        // Персистентный момент ухода приложения в фон (мс с эпохи, 0 — нет отметки).
-        // Нужен, чтобы авто-блокировка по таймауту переживала выгрузку приложения
-        // из памяти iOS и не срабатывала раньше заданного времени: при холодном
-        // старте по этой отметке вычисляем реальную длительность фона.
-        await tx.execute("ALTER TABLE settingsDevice ADD COLUMN passcodeBackgroundedAt INTEGER NOT NULL DEFAULT 0");
       }),
     );
 
