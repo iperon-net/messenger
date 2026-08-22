@@ -4,6 +4,9 @@ import 'package:cryptography/cryptography.dart';
 import 'package:device_marketing_names/device_marketing_names.dart';
 import 'package:dlibphonenumber/dlibphonenumber.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
+import 'package:intl/intl.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:flutter_boring_avatars/flutter_boring_avatars.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:objectid/objectid.dart';
@@ -12,6 +15,7 @@ import 'package:device_info_plus/device_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'di.dart';
+import 'i18n/translations.g.dart';
 import 'logger.dart';
 import 'models.dart';
 import 'extensions.dart';
@@ -52,6 +56,33 @@ class Utils {
       rfc3966: phoneUtil.format(phoneNumberParse, PhoneNumberFormat.rfc3966),
       raw: digits,
     );
+  }
+
+  /// Единая точка применения локали: и slang (переведённые строки), и intl
+  /// (локале-зависимое форматирование дат/времени/чисел). Звать отовсюду, где
+  /// меняется активная локаль, иначе `DateFormat`/`NumberFormat` останутся в
+  /// старой локали до перезапуска.
+  Future<void> applyLocale(AppLocale locale) async {
+    // slang — грубая локаль (en/ru), регион ему не нужен.
+    LocaleSettings.setLocale(locale);
+
+    // intl — полный тег с регионом, чтобы различать en_US / en_GB и т.п.
+    final tag = _formattingTag(locale);
+    Intl.defaultLocale = tag;
+    await initializeDateFormatting(tag);
+  }
+
+  /// Тег для intl-форматирования. Если регион устройства относится к тому же
+  /// языку, что и выбранная локаль, — используем его (`en_GB`, `en_US`,
+  /// `ru_RU`). Иначе возвращаем голый язык: пользователь сменил язык вручную,
+  /// и регион устройства к нему не относится.
+  String _formattingTag(AppLocale locale) {
+    final device = WidgetsBinding.instance.platformDispatcher.locale;
+    final lang = locale.languageCode;
+    if (device.languageCode == lang && device.countryCode != null) {
+      return '${lang}_${device.countryCode}';
+    }
+    return lang;
   }
 
   String bytesToHex(Uint8List bytes) {

@@ -6,6 +6,7 @@ import '../../i18n/translations.g.dart';
 import '../../logger.dart';
 
 import '../../repositories.dart';
+import '../../utils.dart';
 import 'settings_language_state.dart';
 
 class SettingsLanguageCubit extends Cubit<SettingsLanguageState> {
@@ -13,6 +14,7 @@ class SettingsLanguageCubit extends Cubit<SettingsLanguageState> {
 
   final logger = getIt.get<Logger>();
   final repositories = getIt.get<Repositories>();
+  final utils = getIt.get<Utils>();
 
   Future<void> initialization({AppLocale? locale}) async {
     emit(state.copyWith(status: Status.loading));
@@ -22,7 +24,7 @@ class SettingsLanguageCubit extends Cubit<SettingsLanguageState> {
 
   Future<void> setLocale({required AppLocale locale}) async {
     emit(state.copyWith(status: Status.loading));
-    LocaleSettings.setLocale(locale);
+    await utils.applyLocale(locale);
     await repositories.settingsDevice.setLocale(locale: locale);
     emit(state.copyWith(status: Status.success, locale: locale));
   }

@@ -165,6 +165,11 @@ class _SettingsMyProfileCupertino extends State<SettingsMyProfileCupertino> {
                         isTrailing: state.birthDate != null ? true : false,
                         onTab: () async {
                           final cubit = context.read<SettingsMyProfileCubit>();
+                          // Пикер по умолчанию показывает эту дату. Держим выбор в
+                          // переменной, а не в контроллере: onDateTimeChanged
+                          // срабатывает только при прокрутке, и без него «Готово»
+                          // читало бы пустую строку → FormatException.
+                          DateTime selectedBirthDate = state.birthDate ?? DateTime.now();
                           showCupertinoModalPopup<void>(
                             context: context,
                             builder: (BuildContext context) => Container(
@@ -195,7 +200,7 @@ class _SettingsMyProfileCupertino extends State<SettingsMyProfileCupertino> {
                                           ),
                                           CupertinoButton(
                                             onPressed: () {
-                                              cubit.setBirthDate(DateTime.parse(birthDateController.text));
+                                              cubit.setBirthDate(selectedBirthDate);
                                               Navigator.pop(context);
                                             },
                                             child: Text(
@@ -219,7 +224,7 @@ class _SettingsMyProfileCupertino extends State<SettingsMyProfileCupertino> {
                                         maximumDate: DateTime.now(),
                                         showDayOfWeek: false,
                                         onDateTimeChanged: (DateTime birthDate) {
-                                          birthDateController.value = TextEditingValue(text: birthDate.toIso8601String());
+                                          selectedBirthDate = birthDate;
                                         },
                                       ),
                                     ),

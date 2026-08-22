@@ -65,16 +65,16 @@ Future<void> main() async {
   // Get all settings
   SettingsDeviceModel settingsDevice = await repositories.settingsDevice.getAll();
 
+  final utils = getIt.get<Utils>();
+
   // locale
   if (settingsDevice.locale != null) {
-    LocaleSettings.setLocale(settingsDevice.locale ?? AppLocale.en);
+    await utils.applyLocale(settingsDevice.locale ?? AppLocale.en);
   } else {
     AppLocale appLocale = await LocaleSettings.useDeviceLocale();
-    LocaleSettings.setLocale(appLocale);
+    await utils.applyLocale(appLocale);
     settingsDevice = settingsDevice.copyWith(locale: appLocale);
   }
-
-  //settingsDevice.locale
 
   // Доступность биометрии узнаём ДО первого кадра и прокидываем в кубит, чтобы
   // экран блокировки на холодном старте эмитился синхронно (без await) — иначе
