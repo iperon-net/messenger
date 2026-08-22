@@ -399,6 +399,12 @@ class Translations$screenMyProfile$en {
 
 	/// en: 'Username'
 	String get username => 'Username';
+
+	/// en: 'Must contain no more than 25 characters'
+	String get validationFirstNameMaxLength => 'Must contain no more than 25 characters';
+
+	/// en: 'Must contain no more than 25 characters'
+	String get validationLastNameMaxLength => 'Must contain no more than 25 characters';
 }
 
 // Path: screenAuth
@@ -578,6 +584,8 @@ extension on Translations {
 			'screenMyProfile.add' => 'Add',
 			'screenMyProfile.dateOfBirth' => 'Date of birth',
 			'screenMyProfile.username' => 'Username',
+			'screenMyProfile.validationFirstNameMaxLength' => 'Must contain no more than 25 characters',
+			'screenMyProfile.validationLastNameMaxLength' => 'Must contain no more than 25 characters',
 			'screenAuth.enterYourMobilePhoneNumber' => 'Enter your mobile phone number',
 			'screenAuth.currentlyWeOnlySupportPhoneNumbersFromRussianMobileOperators' => 'Currently, we only support phone numbers from Russian mobile operators',
 			'screenAuth.insertDebugPhone' => 'Insert debug phone',

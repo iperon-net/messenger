@@ -101,6 +101,8 @@
   "add": "Указать"
   "dateOfBirth": "Дата рождения"
   "username": "Имя пользователя"
+  "validationFirstNameMaxLength": "Должно содержать не более 25 символов"
+  "validationLastNameMaxLength": "Должно содержать не более 25 символов"
 
 "screenAuth":
   "enterYourMobilePhoneNumber": "Введите номер мобильного телефона"

@@ -21,6 +21,8 @@ class _SettingsMyProfileCupertino extends State<SettingsMyProfileCupertino> {
   final formKey = GlobalKey<FormState>();
   final firstNameController = TextEditingController();
   final firstNameFocus = FocusNode();
+  final lastNameController = TextEditingController();
+  final lastNameFocus = FocusNode();
 
   final logger = getIt.get<Logger>();
 
@@ -182,13 +184,24 @@ class _SettingsMyProfileCupertino extends State<SettingsMyProfileCupertino> {
                         focusNode: firstNameFocus,
                         validator: (value) {
                           final error = switch (context.read<SettingsMyProfileCubit>().validateFirstName(value)) {
-                            FirstNameValidationError.shotLength => "eeee",
+                            FirstNameValidationError.shotLength => context.t.screenMyProfile.validationFirstNameMaxLength,
                             null => null,
                           };
                           return error;
                         },
                       ),
-                      CupertinoTextFormFieldRow(placeholder: context.t.screenMyProfile.lastName),
+                      CupertinoTextFormFieldRow(
+                        placeholder: context.t.screenMyProfile.lastName,
+                        controller: lastNameController,
+                        focusNode: lastNameFocus,
+                        validator: (value) {
+                          final error = switch (context.read<SettingsMyProfileCubit>().validateFirstName(value)) {
+                            FirstNameValidationError.shotLength => context.t.screenMyProfile.validationLastNameMaxLength,
+                            null => null,
+                          };
+                          return error;
+                        },
+                      ),
                     ],
                   ),
 
@@ -210,8 +223,6 @@ class _SettingsMyProfileCupertino extends State<SettingsMyProfileCupertino> {
                       ),
                     ],
                   ),
-
-                  // О себе.
                   CupertinoFormSection.insetGrouped(
                     header: Text(context.t.screenMyProfile.aboutMe.toUpperCase()),
                     clipBehavior: Clip.antiAlias,

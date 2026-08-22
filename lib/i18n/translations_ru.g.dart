@@ -246,6 +246,8 @@ class _Translations$screenMyProfile$ru extends Translations$screenMyProfile$en {
 	@override String get add => 'Указать';
 	@override String get dateOfBirth => 'Дата рождения';
 	@override String get username => 'Имя пользователя';
+	@override String get validationFirstNameMaxLength => 'Должно содержать не более 25 символов';
+	@override String get validationLastNameMaxLength => 'Должно содержать не более 25 символов';
 }
 
 // Path: screenAuth
@@ -393,6 +395,8 @@ extension on TranslationsRu {
 			'screenMyProfile.add' => 'Указать',
 			'screenMyProfile.dateOfBirth' => 'Дата рождения',
 			'screenMyProfile.username' => 'Имя пользователя',
+			'screenMyProfile.validationFirstNameMaxLength' => 'Должно содержать не более 25 символов',
+			'screenMyProfile.validationLastNameMaxLength' => 'Должно содержать не более 25 символов',
 			'screenAuth.enterYourMobilePhoneNumber' => 'Введите номер мобильного телефона',
 			'screenAuth.currentlyWeOnlySupportPhoneNumbersFromRussianMobileOperators' => 'Сейчас мы поддерживаем только номера российских мобильных операторов',
 			'screenAuth.insertDebugPhone' => 'Вставить тестовый номер',

@@ -12,6 +12,8 @@ import 'settings_my_profile_state.dart';
 
 enum FirstNameValidationError { shotLength }
 
+enum LastNameValidationError { shotLength }
+
 class SettingsMyProfileCubit extends Cubit<SettingsMyProfileState> {
   SettingsMyProfileCubit() : super(SettingsMyProfileState());
 
@@ -32,7 +34,11 @@ class SettingsMyProfileCubit extends Cubit<SettingsMyProfileState> {
 
   FirstNameValidationError? validateFirstName(String? value) {
     if (value != null && value.length > 25) return FirstNameValidationError.shotLength;
+    return null;
+  }
 
+  LastNameValidationError? validateLastName(String? value) {
+    if (value != null && value.length > 25) return LastNameValidationError.shotLength;
     return null;
   }
 }

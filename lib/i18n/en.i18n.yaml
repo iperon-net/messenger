@@ -101,6 +101,8 @@
   "add": "Add"
   "dateOfBirth": "Date of birth"
   "username": "Username"
+  "validationFirstNameMaxLength": "Must contain no more than 25 characters"
+  "validationLastNameMaxLength": "Must contain no more than 25 characters"
 
 "screenAuth":
   "enterYourMobilePhoneNumber": "Enter your mobile phone number"
