@@ -113,7 +113,7 @@ class _SettingsMyProfileCupertino extends State<SettingsMyProfileCupertino> {
                   // ),
                   const SizedBox(height: 20),
                   CupertinoFormSection.insetGrouped(
-                    clipBehavior: Clip.hardEdge,
+                    clipBehavior: Clip.antiAlias,
                     backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
                     decoration: BoxDecoration(
                       color: ThemesCupertino.groupedCard.resolveFrom(context),
