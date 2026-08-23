@@ -1,6 +1,7 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:messenger/constants.dart';
 import '../../cubit.dart';
 import '../../di.dart';
 import '../../logger.dart';
@@ -67,7 +68,7 @@ class _SettingsMyProfileCupertino extends State<SettingsMyProfileCupertino> {
                     );
                   }
                 },
-                child: Text(context.t.common.save),
+                child: state.processStatus == Status.loading ? CupertinoActivityIndicator() : Text(context.t.common.save),
               ),
             ),
           ),

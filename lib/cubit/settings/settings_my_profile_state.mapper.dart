@@ -30,6 +30,20 @@ class SettingsMyProfileStateMapper
     opt: true,
     def: Status.initialization,
   );
+  static Status _$processStatus(SettingsMyProfileState v) => v.processStatus;
+  static const Field<SettingsMyProfileState, Status> _f$processStatus = Field(
+    'processStatus',
+    _$processStatus,
+    opt: true,
+    def: Status.initialization,
+  );
+  static String _$error(SettingsMyProfileState v) => v.error;
+  static const Field<SettingsMyProfileState, String> _f$error = Field(
+    'error',
+    _$error,
+    opt: true,
+    def: "",
+  );
   static String _$boringAvatarHash(SettingsMyProfileState v) =>
       v.boringAvatarHash;
   static const Field<SettingsMyProfileState, String> _f$boringAvatarHash =
@@ -60,6 +74,8 @@ class SettingsMyProfileStateMapper
   @override
   final MappableFields<SettingsMyProfileState> fields = const {
     #status: _f$status,
+    #processStatus: _f$processStatus,
+    #error: _f$error,
     #boringAvatarHash: _f$boringAvatarHash,
     #boringAvatarType: _f$boringAvatarType,
     #birthDate: _f$birthDate,
@@ -69,6 +85,8 @@ class SettingsMyProfileStateMapper
   static SettingsMyProfileState _instantiate(DecodingData data) {
     return SettingsMyProfileState(
       status: data.dec(_f$status),
+      processStatus: data.dec(_f$processStatus),
+      error: data.dec(_f$error),
       boringAvatarHash: data.dec(_f$boringAvatarHash),
       boringAvatarType: data.dec(_f$boringAvatarType),
       birthDate: data.dec(_f$birthDate),
@@ -148,6 +166,8 @@ abstract class SettingsMyProfileStateCopyWith<
     implements ClassCopyWith<$R, $In, $Out> {
   $R call({
     Status? status,
+    Status? processStatus,
+    String? error,
     String? boringAvatarHash,
     BoringAvatarType? boringAvatarType,
     DateTime? birthDate,
@@ -170,6 +190,8 @@ class _SettingsMyProfileStateCopyWithImpl<$R, $Out>
   @override
   $R call({
     Status? status,
+    Status? processStatus,
+    String? error,
     String? boringAvatarHash,
     BoringAvatarType? boringAvatarType,
     Object? birthDate = $none,
@@ -177,6 +199,8 @@ class _SettingsMyProfileStateCopyWithImpl<$R, $Out>
   }) => $apply(
     FieldCopyWithData({
       if (status != null) #status: status,
+      if (processStatus != null) #processStatus: processStatus,
+      if (error != null) #error: error,
       if (boringAvatarHash != null) #boringAvatarHash: boringAvatarHash,
       if (boringAvatarType != null) #boringAvatarType: boringAvatarType,
       if (birthDate != $none) #birthDate: birthDate,
@@ -186,6 +210,8 @@ class _SettingsMyProfileStateCopyWithImpl<$R, $Out>
   @override
   SettingsMyProfileState $make(CopyWithData data) => SettingsMyProfileState(
     status: data.get(#status, or: $value.status),
+    processStatus: data.get(#processStatus, or: $value.processStatus),
+    error: data.get(#error, or: $value.error),
     boringAvatarHash: data.get(#boringAvatarHash, or: $value.boringAvatarHash),
     boringAvatarType: data.get(#boringAvatarType, or: $value.boringAvatarType),
     birthDate: data.get(#birthDate, or: $value.birthDate),

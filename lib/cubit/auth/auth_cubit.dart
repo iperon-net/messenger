@@ -108,7 +108,6 @@ class AuthCubit extends Cubit<AuthState> {
     }
 
     final messageResponse = AuthCallPassword_Response.fromBuffer(response.message);
-    logger.debug(messageResponse);
 
     final callPasswordSession = utils.bytesToHex(Uint8List.fromList(messageResponse.callPasswordSession));
 

@@ -62,7 +62,11 @@ class SettingsMyProfileCubit extends Cubit<SettingsMyProfileState> {
   }
 
   Future<void> setProfile({DateTime? birthDate, required String firstName, required String lastName}) async {
+    emit(state.copyWith(processStatus: Status.loading));
+
+    await Future.delayed(Duration(seconds: 10));
+
     logger.debug("birthDate=$birthDate");
-    // emit(state.copyWith(birthDate: birthDate));
+    emit(state.copyWith(processStatus: Status.success));
   }
 }

@@ -8,6 +8,8 @@ part 'settings_my_profile_state.mapper.dart';
 @MappableClass()
 class SettingsMyProfileState with SettingsMyProfileStateMappable {
   final Status status;
+  final Status processStatus;
+  final String error;
   final String boringAvatarHash;
   final BoringAvatarType boringAvatarType;
   final DateTime? birthDate;
@@ -15,6 +17,8 @@ class SettingsMyProfileState with SettingsMyProfileStateMappable {
 
   const SettingsMyProfileState({
     this.status = Status.initialization,
+    this.processStatus = Status.initialization,
+    this.error = "",
     this.boringAvatarHash = "",
     this.boringAvatarType = BoringAvatarType.ring,
     this.birthDate,
