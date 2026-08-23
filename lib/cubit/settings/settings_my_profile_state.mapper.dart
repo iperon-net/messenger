@@ -49,6 +49,13 @@ class SettingsMyProfileStateMapper
     _$birthDate,
     opt: true,
   );
+  static int _$aboutMeLength(SettingsMyProfileState v) => v.aboutMeLength;
+  static const Field<SettingsMyProfileState, int> _f$aboutMeLength = Field(
+    'aboutMeLength',
+    _$aboutMeLength,
+    opt: true,
+    def: 0,
+  );
 
   @override
   final MappableFields<SettingsMyProfileState> fields = const {
@@ -56,6 +63,7 @@ class SettingsMyProfileStateMapper
     #boringAvatarHash: _f$boringAvatarHash,
     #boringAvatarType: _f$boringAvatarType,
     #birthDate: _f$birthDate,
+    #aboutMeLength: _f$aboutMeLength,
   };
 
   static SettingsMyProfileState _instantiate(DecodingData data) {
@@ -64,6 +72,7 @@ class SettingsMyProfileStateMapper
       boringAvatarHash: data.dec(_f$boringAvatarHash),
       boringAvatarType: data.dec(_f$boringAvatarType),
       birthDate: data.dec(_f$birthDate),
+      aboutMeLength: data.dec(_f$aboutMeLength),
     );
   }
 
@@ -142,6 +151,7 @@ abstract class SettingsMyProfileStateCopyWith<
     String? boringAvatarHash,
     BoringAvatarType? boringAvatarType,
     DateTime? birthDate,
+    int? aboutMeLength,
   });
   SettingsMyProfileStateCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
     Then<$Out2, $R2> t,
@@ -163,12 +173,14 @@ class _SettingsMyProfileStateCopyWithImpl<$R, $Out>
     String? boringAvatarHash,
     BoringAvatarType? boringAvatarType,
     Object? birthDate = $none,
+    int? aboutMeLength,
   }) => $apply(
     FieldCopyWithData({
       if (status != null) #status: status,
       if (boringAvatarHash != null) #boringAvatarHash: boringAvatarHash,
       if (boringAvatarType != null) #boringAvatarType: boringAvatarType,
       if (birthDate != $none) #birthDate: birthDate,
+      if (aboutMeLength != null) #aboutMeLength: aboutMeLength,
     }),
   );
   @override
@@ -177,6 +189,7 @@ class _SettingsMyProfileStateCopyWithImpl<$R, $Out>
     boringAvatarHash: data.get(#boringAvatarHash, or: $value.boringAvatarHash),
     boringAvatarType: data.get(#boringAvatarType, or: $value.boringAvatarType),
     birthDate: data.get(#birthDate, or: $value.birthDate),
+    aboutMeLength: data.get(#aboutMeLength, or: $value.aboutMeLength),
   );
 
   @override

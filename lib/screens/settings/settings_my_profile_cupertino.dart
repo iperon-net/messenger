@@ -28,6 +28,9 @@ class _SettingsMyProfileCupertino extends State<SettingsMyProfileCupertino> {
   final birthDateController = TextEditingController();
   final birthDateFocus = FocusNode();
 
+  final aboutMeController = TextEditingController();
+  final aboutMeFocus = FocusNode();
+
   final logger = getIt.get<Logger>();
 
   @override
@@ -55,13 +58,13 @@ class _SettingsMyProfileCupertino extends State<SettingsMyProfileCupertino> {
               leading: CupertinoButton(padding: EdgeInsets.zero, onPressed: () => context.pop(), child: Text(context.t.common.cancel)),
               trailing: CupertinoButton(
                 padding: EdgeInsets.zero,
-                onPressed: () {
+                onPressed: () async {
                   if (formKey.currentState!.validate()) {
-                    logger.debug("validate ok!");
-
-                    logger.debug("birthDate = ${birthDateController.value}");
-                    logger.debug("firstName = ${firstNameController.value}");
-                    logger.debug("lastName = ${lastNameController.value}");
+                    await context.read<SettingsMyProfileCubit>().setProfile(
+                      birthDate: birthDateController.text.isNotEmpty ? DateTime.parse(birthDateController.text) : null,
+                      firstName: firstNameController.text,
+                      lastName: lastNameController.text,
+                    );
                   }
                 },
                 child: Text(context.t.common.save),
@@ -155,6 +158,7 @@ class _SettingsMyProfileCupertino extends State<SettingsMyProfileCupertino> {
                       color: ThemesCupertino.groupedCard.resolveFrom(context),
                       borderRadius: const BorderRadius.all(Radius.circular(18)),
                     ),
+                    // footer: Text("Удалить"),
                     children: [
                       CupertinoListTileIcon(
                         title: Text(context.t.screenMyProfile.birthDate),
@@ -180,7 +184,7 @@ class _SettingsMyProfileCupertino extends State<SettingsMyProfileCupertino> {
                           showCupertinoModalPopup<void>(
                             context: context,
                             builder: (BuildContext context) => Container(
-                              height: 250,
+                              height: 350,
                               padding: const .only(top: 6.0),
                               margin: .only(bottom: MediaQuery.of(context).viewInsets.bottom),
                               color: CupertinoColors.systemBackground.resolveFrom(context),
@@ -235,6 +239,19 @@ class _SettingsMyProfileCupertino extends State<SettingsMyProfileCupertino> {
                                         },
                                       ),
                                     ),
+                                    if (state.birthDate != null) ...[
+                                      SizedBox(height: 10),
+                                      CupertinoButton(
+                                        onPressed: () {
+                                          cubit.clearBirthDate();
+                                          Navigator.pop(context);
+                                        },
+                                        child: Text(
+                                          context.t.screenMyProfile.birthDayRemove,
+                                          style: TextStyle(color: CupertinoColors.systemRed),
+                                        ),
+                                      ),
+                                    ],
                                   ],
                                 ),
                               ),
@@ -242,6 +259,15 @@ class _SettingsMyProfileCupertino extends State<SettingsMyProfileCupertino> {
                           );
                         },
                       ),
+                      // CupertinoButton(padding: EdgeInsetsGeometry.zero, child: Text("dddd"), onPressed: () {}),
+                      // CupertinoListTile(
+                      //   padding: EdgeInsets.only(left: 18),
+                      //   title: Text(
+                      //     "Удалить",
+                      //     style: TextStyle(fontWeight: FontWeight.normal, color: CupertinoColors.destructiveRed),
+                      //   ),
+                      //   onTap: () async => null,
+                      // ),
                     ],
                   ),
                   CupertinoFormSection.insetGrouped(
@@ -252,11 +278,14 @@ class _SettingsMyProfileCupertino extends State<SettingsMyProfileCupertino> {
                       color: ThemesCupertino.groupedCard.resolveFrom(context),
                       borderRadius: const BorderRadius.all(Radius.circular(18)),
                     ),
+                    footer: state.aboutMeLength > 0 ? Text("${state.aboutMeLength}/70") : null,
                     children: [
                       CupertinoTextFormFieldRow(
+                        controller: aboutMeController,
+                        focusNode: aboutMeFocus,
                         placeholder: context.t.screenMyProfile.tellUsAboutYourself,
                         maxLines: 2,
-                        maxLength: 140,
+                        maxLength: 70,
                         validator: (value) {
                           final error = switch (context.read<SettingsMyProfileCubit>().validateAboutMe(value)) {
                             AboutMeValidationError.maxLength => context.t.screenMyProfile.validationAboutMeMaxLength,
@@ -264,6 +293,7 @@ class _SettingsMyProfileCupertino extends State<SettingsMyProfileCupertino> {
                           };
                           return error;
                         },
+                        onChanged: (value) => context.read<SettingsMyProfileCubit>().setAboutMeLength(value.length),
                       ),
                     ],
                   ),

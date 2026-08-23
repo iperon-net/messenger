@@ -45,11 +45,24 @@ class SettingsMyProfileCubit extends Cubit<SettingsMyProfileState> {
   }
 
   AboutMeValidationError? validateAboutMe(String? value) {
-    if (value != null && value.length > 140) return AboutMeValidationError.maxLength;
+    if (value != null && value.length > 70) return AboutMeValidationError.maxLength;
     return null;
   }
 
   void setBirthDate(DateTime birthDate) {
     emit(state.copyWith(birthDate: birthDate));
+  }
+
+  void clearBirthDate() {
+    emit(state.copyWith(birthDate: null));
+  }
+
+  void setAboutMeLength(int aboutMeLength) {
+    emit(state.copyWith(aboutMeLength: aboutMeLength));
+  }
+
+  Future<void> setProfile({DateTime? birthDate, required String firstName, required String lastName}) async {
+    logger.debug("birthDate=$birthDate");
+    // emit(state.copyWith(birthDate: birthDate));
   }
 }

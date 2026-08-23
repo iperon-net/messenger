@@ -11,11 +11,13 @@ class SettingsMyProfileState with SettingsMyProfileStateMappable {
   final String boringAvatarHash;
   final BoringAvatarType boringAvatarType;
   final DateTime? birthDate;
+  final int aboutMeLength;
 
   const SettingsMyProfileState({
     this.status = Status.initialization,
     this.boringAvatarHash = "",
     this.boringAvatarType = BoringAvatarType.ring,
     this.birthDate,
+    this.aboutMeLength = 0,
   });
 }

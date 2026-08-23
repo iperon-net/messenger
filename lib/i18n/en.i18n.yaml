@@ -108,6 +108,7 @@
   "cancel": "@:common.cancel"
   "done": "@:common.done"
   "birthDayFormat": "{date}"
+  "birthDayRemove": "Remove date birth"
 
 "screenAuth":
   "enterYourMobilePhoneNumber": "Enter your mobile phone number"

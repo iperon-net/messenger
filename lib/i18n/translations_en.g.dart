@@ -420,6 +420,9 @@ class Translations$screenMyProfile$en {
 
 	/// en: '{date}'
 	String birthDayFormat({required Object date}) => '${date}';
+
+	/// en: 'Remove date birth'
+	String get birthDayRemove => 'Remove date birth';
 }
 
 // Path: screenAuth
@@ -606,6 +609,7 @@ extension on Translations {
 			'screenMyProfile.cancel' => _root.common.cancel,
 			'screenMyProfile.done' => _root.common.done,
 			'screenMyProfile.birthDayFormat' => ({required Object date}) => '${date}',
+			'screenMyProfile.birthDayRemove' => 'Remove date birth',
 			'screenAuth.enterYourMobilePhoneNumber' => 'Enter your mobile phone number',
 			'screenAuth.currentlyWeOnlySupportPhoneNumbersFromRussianMobileOperators' => 'Currently, we only support phone numbers from Russian mobile operators',
 			'screenAuth.insertDebugPhone' => 'Insert debug phone',

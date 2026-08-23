@@ -253,6 +253,7 @@ class _Translations$screenMyProfile$ru extends Translations$screenMyProfile$en {
 	@override String get cancel => _root.common.cancel;
 	@override String get done => _root.common.done;
 	@override String birthDayFormat({required Object date}) => '${date}';
+	@override String get birthDayRemove => 'Удалить дату рождения';
 }
 
 // Path: screenAuth
@@ -407,6 +408,7 @@ extension on TranslationsRu {
 			'screenMyProfile.cancel' => _root.common.cancel,
 			'screenMyProfile.done' => _root.common.done,
 			'screenMyProfile.birthDayFormat' => ({required Object date}) => '${date}',
+			'screenMyProfile.birthDayRemove' => 'Удалить дату рождения',
 			'screenAuth.enterYourMobilePhoneNumber' => 'Введите номер мобильного телефона',
 			'screenAuth.currentlyWeOnlySupportPhoneNumbersFromRussianMobileOperators' => 'Сейчас мы поддерживаем только номера российских мобильных операторов',
 			'screenAuth.insertDebugPhone' => 'Вставить тестовый номер',

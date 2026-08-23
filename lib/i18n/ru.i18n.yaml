@@ -108,6 +108,7 @@
   "cancel": "@:common.cancel"
   "done": "@:common.done"
   "birthDayFormat": "{date}"
+  "birthDayRemove": "Удалить дату рождения"
 
 "screenAuth":
   "enterYourMobilePhoneNumber": "Введите номер мобильного телефона"
