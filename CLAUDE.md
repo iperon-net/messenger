@@ -48,7 +48,7 @@ Note: `taskfile.yml` at the repo root is for an unrelated Go backend project and
 ## CI/CD
 
 GitHub Actions live in `.github/workflows/`. `lib/firebase_options.dart` and the `.env` files are gitignored, so CI reconstructs them from secrets before building — mirror that if you add a workflow.
-- **`code_checks.yaml`** (PRs/pushes): `flutter pub get` → restore `firebase_options.dart` from a secret → generate `.env` assets → `dart format --output=none --set-exit-if-changed lib` (formatting is enforced — run `dart format lib` before pushing) → `flutter analyze`.
+- **`test_build_in_testflight.yaml`** (PRs/pushes): `flutter pub get` → restore `firebase_options.dart` from a secret → generate `.env` assets → `dart format --output=none --set-exit-if-changed lib` (formatting is enforced — run `dart format lib` before pushing) → `flutter analyze`.
 - **`deploy_ios.yaml`** (on `v*` tags): builds a release IPA and uploads to TestFlight via fastlane. `BUILD_NAME` comes from the tag (`v0.0.1` → `0.0.1`); `BUILD_NUMBER` is a UTC `date` timestamp so it stays unique and monotonically increasing.
 
 ## TODO

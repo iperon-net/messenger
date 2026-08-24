@@ -1,0 +1,7 @@
+name: Linter
+
+on: workflow_call
+
+jobs:
+  Linter:
+    uses: iperon-net/messenger/.github/workflows/_linter.yaml@main
