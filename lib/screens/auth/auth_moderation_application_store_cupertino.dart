@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
 
 import '../../components.dart';
+import '../../constants.dart';
 import '../../cubit.dart';
 import '../../i18n/translations.g.dart';
 
@@ -19,6 +20,8 @@ class _AuthModerationApplicationStoreCupertino extends State<AuthModerationAppli
   final formKey = GlobalKey<FormState>();
   final pinInputController = PinInputController();
 
+  String? error;
+
   @override
   void initState() {
     super.initState();
@@ -32,9 +35,19 @@ class _AuthModerationApplicationStoreCupertino extends State<AuthModerationAppli
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<AuthModerationApplicationStoreCubit, AuthModerationApplicationStoreState>(
-      listenWhen: (previous, current) => previous.redirectURI != current.redirectURI,
+      listenWhen: (previous, current) => previous.redirectURI != current.redirectURI || previous.error != current.error,
       listener: (context, state) async {
-        await context.read<CommonCubit>().setPasscode(passcode: []);
+        if (state.error.isNotEmpty) {
+          pinInputController.triggerError();
+          try {
+            error = context.t[state.error];
+          } catch (e) {
+            error = context.t.grpcError.unknownError;
+          }
+        } else if (state.status == Status.success && state.redirectURI.isNotEmpty) {
+          await context.read<CommonCubit>().setPasscode(passcode: []);
+          if (context.mounted) context.go(state.redirectURI.toString());
+        }
       },
       builder: (context, state) {
         return CupertinoPageScaffold(
@@ -73,28 +86,15 @@ class _AuthModerationApplicationStoreCupertino extends State<AuthModerationAppli
                                 textAlign: TextAlign.center,
                               ),
                             ),
+
+                            // if (error != null) ...[Text(error!, style: TextStyle(color: CupertinoColors.systemRed),)],
                             MaterialPinField(
                               length: 4,
                               pinController: pinInputController,
                               enableAutofill: true,
                               autofillHints: [AutofillHints.oneTimeCode],
-                              onCompleted: (verificationCode) async {
-                                final cubit = context.read<AuthModerationApplicationStoreCubit>();
-                                final error = await cubit.onCompleted(verificationCode: verificationCode);
-
-                                if (!context.mounted) return;
-
-                                final redirectURI = cubit.state.redirectURI;
-                                if (redirectURI != null) {
-                                  context.go(redirectURI.toString());
-                                  return;
-                                } else if (error) {
-                                  pinInputController.triggerError();
-                                  return;
-                                }
-
-                                return;
-                              },
+                              onCompleted: (verificationCode) async =>
+                                  await context.read<AuthModerationApplicationStoreCubit>().onCompleted(verificationCode: verificationCode),
                               autoFocus: true,
                               keyboardAppearance: CupertinoTheme.brightnessOf(context),
                               theme: MaterialPinTheme(

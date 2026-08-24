@@ -41,7 +41,7 @@ class AuthModerationApplicationStoreCubit extends Cubit<AuthModerationApplicatio
     );
   }
 
-  Future<bool> onCompleted({required String verificationCode}) async {
+  Future<void> onCompleted({required String verificationCode}) async {
     final packageInfo = await utils.packageInfo();
     final deviceInfo = await utils.deviceInfo();
 
@@ -55,7 +55,7 @@ class AuthModerationApplicationStoreCubit extends Cubit<AuthModerationApplicatio
 
     if (metaDataGrpcError.status == APIStatus.error) {
       emit(state.copyWith(status: Status.success, error: metaDataGrpcError.error));
-      return true;
+      return;
     }
 
     final metaData = MetadataInfo_Response.fromBuffer(metaDataResponse.message);
@@ -85,13 +85,13 @@ class AuthModerationApplicationStoreCubit extends Cubit<AuthModerationApplicatio
         state.copyWith(
           status: Status.success,
           error: authModerationApplicationStoreConfirmationGrpcError.error,
-          redirectURI: Uri.parse("/auth"),
+          redirectURI: Uri.parse("/auth").toString(),
         ),
       );
-      return true;
+      return;
     } else if (authModerationApplicationStoreConfirmationGrpcError.status == APIStatus.error) {
       emit(state.copyWith(status: Status.success, error: authModerationApplicationStoreConfirmationGrpcError.error));
-      return true;
+      return;
     }
 
     //
@@ -119,11 +119,12 @@ class AuthModerationApplicationStoreCubit extends Cubit<AuthModerationApplicatio
     });
 
     if (authConfirmationGrpcError.status == APIStatus.error && authConfirmationGrpcError.statusCode == StatusCode.invalidArgument) {
-      emit(state.copyWith(status: Status.success, error: authConfirmationGrpcError.error, redirectURI: Uri.parse("/auth")));
-      return true;
+      logger.debug(authConfirmationGrpcError.error);
+      emit(state.copyWith(status: Status.success, error: authConfirmationGrpcError.error, redirectURI: Uri.parse("/auth").toString()));
+      return;
     } else if (authConfirmationGrpcError.status == APIStatus.error) {
       emit(state.copyWith(status: Status.success, error: authConfirmationGrpcError.error));
-      return true;
+      return;
     }
 
     final authConfirmationResponse = AuthConfirmation_Response.fromBuffer(messageAuthConfirmationResponse.message);
@@ -150,8 +151,8 @@ class AuthModerationApplicationStoreCubit extends Cubit<AuthModerationApplicatio
 
     if (!checkSharedKey || !checkSalt) {
       logger.error('mlkem ciphertext signature verification failed');
-      emit(state.copyWith(status: Status.success, error: 'signature verification failed'));
-      return true;
+      emit(state.copyWith(status: Status.success, error: 'screenAuthModerationApplicationStore.signatureVerificationFailed'));
+      return;
     }
 
     final sharedKey = kem.decapsulate(privateKeySharedKey, Uint8List.fromList(authConfirmationResponse.ciphertextSharedKey));
@@ -171,7 +172,7 @@ class AuthModerationApplicationStoreCubit extends Cubit<AuthModerationApplicatio
 
     await getIt.get<Auth>().refresh();
 
-    emit(state.copyWith(status: Status.success));
-    return false;
+    emit(state.copyWith(status: Status.success, error: ""));
+    return;
   }
 }

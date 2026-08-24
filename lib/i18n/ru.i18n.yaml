@@ -118,18 +118,29 @@
   "weAreExpectingYourCallWithin": "Мы ждём вашего звонка в течение {duration}"
   "signInWith": "Войти через"
   "continue": "@:common.kContinue"
+  "invalidPhoneNumber": "Неверный номер телефона"
 
 "screenAuthModerationApplicationStore":
+  "verificationCodeMismatch": "Неверный код подтверждения"
+  "moderationApplicationStoreSessionNotFound": "Сессия не найдена"
+  "invalidPublicSharedKey": "Неверный публичный общий ключ"
+  "invalidPublicSaltKey": "Неверный публичный ключ соли"
   "enterTheCode": "Введите код"
   "sentConfirmationCodeToNumber": "Мы отправили код подтверждения на номер {phoneNumber}"
+  "signatureVerificationFailed": "Не удалось проверить подпись"
 
 "screenAuthCallpasswordConfirmation":
   "weAreExpectingYourCallWithin": "Мы ждём вашего звонка в течение {duration}"
   "confirmYourNumberDetail": "Позвоните на номер {confirmationPhoneNumberRu} с указанного вами номера телефона и дождитесь сброса вызова."
   "callForFree": "Позвонить бесплатно"
+  "signatureVerificationFailed": "Не удалось проверить подпись"
 
 grpcError:
   "errorConnectingServer": "Ошибка подключения к серверу"
+  "unauthenticated": "Неавторизован"
+  "unableConnectServer": "Не удалось подключиться к серверу"
+  "internalServerError": "Внутренняя ошибка сервера"
+  "unknownError": "Unknown error"
 
 dateTime:
   "relativeDateTimeToday": "сегодня в {time}"

@@ -29,11 +29,26 @@ class AuthStateMapper extends ClassMapperBase<AuthState> {
     opt: true,
     def: Status.initialization,
   );
-  static String? _$error(AuthState v) => v.error;
+  static Status _$networkStatus(AuthState v) => v.networkStatus;
+  static const Field<AuthState, Status> _f$networkStatus = Field(
+    'networkStatus',
+    _$networkStatus,
+    opt: true,
+    def: Status.initialization,
+  );
+  static String _$error(AuthState v) => v.error;
   static const Field<AuthState, String> _f$error = Field(
     'error',
     _$error,
     opt: true,
+    def: "",
+  );
+  static String _$redirectURI(AuthState v) => v.redirectURI;
+  static const Field<AuthState, String> _f$redirectURI = Field(
+    'redirectURI',
+    _$redirectURI,
+    opt: true,
+    def: "",
   );
   static AuthWorkflow _$workflow(AuthState v) => v.workflow;
   static const Field<AuthState, AuthWorkflow> _f$workflow = Field(
@@ -42,27 +57,23 @@ class AuthStateMapper extends ClassMapperBase<AuthState> {
     opt: true,
     def: AuthWorkflow.callpassword,
   );
-  static Uri? _$redirectURI(AuthState v) => v.redirectURI;
-  static const Field<AuthState, Uri> _f$redirectURI = Field(
-    'redirectURI',
-    _$redirectURI,
-    opt: true,
-  );
 
   @override
   final MappableFields<AuthState> fields = const {
     #status: _f$status,
+    #networkStatus: _f$networkStatus,
     #error: _f$error,
-    #workflow: _f$workflow,
     #redirectURI: _f$redirectURI,
+    #workflow: _f$workflow,
   };
 
   static AuthState _instantiate(DecodingData data) {
     return AuthState(
       status: data.dec(_f$status),
+      networkStatus: data.dec(_f$networkStatus),
       error: data.dec(_f$error),
-      workflow: data.dec(_f$workflow),
       redirectURI: data.dec(_f$redirectURI),
+      workflow: data.dec(_f$workflow),
     );
   }
 
@@ -127,9 +138,10 @@ abstract class AuthStateCopyWith<$R, $In extends AuthState, $Out>
     implements ClassCopyWith<$R, $In, $Out> {
   $R call({
     Status? status,
+    Status? networkStatus,
     String? error,
+    String? redirectURI,
     AuthWorkflow? workflow,
-    Uri? redirectURI,
   });
   AuthStateCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
@@ -145,23 +157,26 @@ class _AuthStateCopyWithImpl<$R, $Out>
   @override
   $R call({
     Status? status,
-    Object? error = $none,
+    Status? networkStatus,
+    String? error,
+    String? redirectURI,
     AuthWorkflow? workflow,
-    Object? redirectURI = $none,
   }) => $apply(
     FieldCopyWithData({
       if (status != null) #status: status,
-      if (error != $none) #error: error,
+      if (networkStatus != null) #networkStatus: networkStatus,
+      if (error != null) #error: error,
+      if (redirectURI != null) #redirectURI: redirectURI,
       if (workflow != null) #workflow: workflow,
-      if (redirectURI != $none) #redirectURI: redirectURI,
     }),
   );
   @override
   AuthState $make(CopyWithData data) => AuthState(
     status: data.get(#status, or: $value.status),
+    networkStatus: data.get(#networkStatus, or: $value.networkStatus),
     error: data.get(#error, or: $value.error),
-    workflow: data.get(#workflow, or: $value.workflow),
     redirectURI: data.get(#redirectURI, or: $value.redirectURI),
+    workflow: data.get(#workflow, or: $value.workflow),
   );
 
   @override

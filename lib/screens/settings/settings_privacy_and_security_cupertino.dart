@@ -35,9 +35,7 @@ class _SettingsPrivacyAndSecurityCupertino extends State<SettingsPrivacyAndSecur
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<SettingsPrivacyAndSecurityCubit, SettingsPrivacyAndSecurityState>(
-      listener: (context, state) {
-        // TODO: implement listener
-      },
+      listener: (context, state) {},
       builder: (context, state) {
         return CupertinoPageScaffold(
           backgroundColor: ThemesCupertino.groupedBackground,

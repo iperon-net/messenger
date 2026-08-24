@@ -270,6 +270,7 @@ class _Translations$screenAuth$ru extends Translations$screenAuth$en {
 	@override String weAreExpectingYourCallWithin({required Object duration}) => 'Мы ждём вашего звонка в течение ${duration}';
 	@override String get signInWith => 'Войти через';
 	@override String get kContinue => _root.common.kContinue;
+	@override String get invalidPhoneNumber => 'Неверный номер телефона';
 }
 
 // Path: screenAuthModerationApplicationStore
@@ -279,6 +280,10 @@ class _Translations$screenAuthModerationApplicationStore$ru extends Translations
 	final TranslationsRu _root; // ignore: unused_field
 
 	// Translations
+	@override String get verificationCodeMismatch => 'Неверный код подтверждения';
+	@override String get moderationApplicationStoreSessionNotFound => 'Сессия не найдена';
+	@override String get invalidPublicSharedKey => 'Неверный публичный общий ключ';
+	@override String get invalidPublicSaltKey => 'Неверный публичный ключ соли';
 	@override String get enterTheCode => 'Введите код';
 	@override String sentConfirmationCodeToNumber({required Object phoneNumber}) => 'Мы отправили код подтверждения на номер ${phoneNumber}';
 }
@@ -303,6 +308,10 @@ class _Translations$grpcError$ru extends Translations$grpcError$en {
 
 	// Translations
 	@override String get errorConnectingServer => 'Ошибка подключения к серверу';
+	@override String get unauthenticated => 'Неавторизован';
+	@override String get unableConnectServer => 'Не удалось подключиться к серверу';
+	@override String get internalServerError => 'Внутренняя ошибка сервера';
+	@override String get unknownError => 'Unknown error';
 }
 
 // Path: dateTime
@@ -416,12 +425,21 @@ extension on TranslationsRu {
 			'screenAuth.weAreExpectingYourCallWithin' => ({required Object duration}) => 'Мы ждём вашего звонка в течение ${duration}',
 			'screenAuth.signInWith' => 'Войти через',
 			'screenAuth.kContinue' => _root.common.kContinue,
+			'screenAuth.invalidPhoneNumber' => 'Неверный номер телефона',
+			'screenAuthModerationApplicationStore.verificationCodeMismatch' => 'Неверный код подтверждения',
+			'screenAuthModerationApplicationStore.moderationApplicationStoreSessionNotFound' => 'Сессия не найдена',
+			'screenAuthModerationApplicationStore.invalidPublicSharedKey' => 'Неверный публичный общий ключ',
+			'screenAuthModerationApplicationStore.invalidPublicSaltKey' => 'Неверный публичный ключ соли',
 			'screenAuthModerationApplicationStore.enterTheCode' => 'Введите код',
 			'screenAuthModerationApplicationStore.sentConfirmationCodeToNumber' => ({required Object phoneNumber}) => 'Мы отправили код подтверждения на номер ${phoneNumber}',
 			'screenAuthCallpasswordConfirmation.weAreExpectingYourCallWithin' => ({required Object duration}) => 'Мы ждём вашего звонка в течение ${duration}',
 			'screenAuthCallpasswordConfirmation.confirmYourNumberDetail' => ({required Object confirmationPhoneNumberRu}) => 'Позвоните на номер ${confirmationPhoneNumberRu} с указанного вами номера телефона и дождитесь сброса вызова.',
 			'screenAuthCallpasswordConfirmation.callForFree' => 'Позвонить бесплатно',
 			'grpcError.errorConnectingServer' => 'Ошибка подключения к серверу',
+			'grpcError.unauthenticated' => 'Неавторизован',
+			'grpcError.unableConnectServer' => 'Не удалось подключиться к серверу',
+			'grpcError.internalServerError' => 'Внутренняя ошибка сервера',
+			'grpcError.unknownError' => 'Unknown error',
 			'dateTime.relativeDateTimeToday' => ({required Object time}) => 'сегодня в ${time}',
 			'dateTime.relativeDateTimeYesterday' => ({required Object time}) => 'вчера в ${time}',
 			'dateTime.relativeDateTimeOther' => ({required Object date, required Object time}) => '${date} в ${time}',

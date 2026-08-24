@@ -76,7 +76,9 @@ class AuthCallpasswordConfirmationCubit extends Cubit<AuthCallpasswordConfirmati
       final next = state.tickerSecond - 1;
       if (next <= 0) {
         _stop();
-        emit(state.copyWith(tickerSecond: 0, result: AuthCallPasswordConfirmationResult.timeout, redirectURI: Uri.parse("/auth")));
+        emit(
+          state.copyWith(tickerSecond: 0, result: AuthCallPasswordConfirmationResult.timeout, redirectURI: Uri.parse("/auth").toString()),
+        );
         return;
       }
       emit(state.copyWith(tickerSecond: next));
@@ -97,7 +99,9 @@ class AuthCallpasswordConfirmationCubit extends Cubit<AuthCallpasswordConfirmati
           logger.handle(error, stackTrace);
           _stop();
           final message = error is GrpcError ? (error.message ?? "errorConnectingServer") : "errorConnectingServer";
-          emit(state.copyWith(result: AuthCallPasswordConfirmationResult.error, error: message, redirectURI: Uri.parse("/auth")));
+          emit(
+            state.copyWith(result: AuthCallPasswordConfirmationResult.error, error: message, redirectURI: Uri.parse("/auth").toString()),
+          );
         },
         onDone: () {
           // Сервер завершил стрим штатно (истёк серверный таймаут ожидания
@@ -106,7 +110,7 @@ class AuthCallpasswordConfirmationCubit extends Cubit<AuthCallpasswordConfirmati
           // локальному тикеру, _outgoing уже null и ветку пропускаем.
           if (_outgoing == null) return;
           _stop();
-          emit(state.copyWith(result: AuthCallPasswordConfirmationResult.timeout, redirectURI: Uri.parse("/auth")));
+          emit(state.copyWith(result: AuthCallPasswordConfirmationResult.timeout, redirectURI: Uri.parse("/auth").toString()));
         },
         cancelOnError: true,
       );
@@ -121,7 +125,11 @@ class AuthCallpasswordConfirmationCubit extends Cubit<AuthCallpasswordConfirmati
       logger.handle(error, stackTrace);
       _stop();
       emit(
-        state.copyWith(result: AuthCallPasswordConfirmationResult.error, error: "errorConnectingServer", redirectURI: Uri.parse("/auth")),
+        state.copyWith(
+          result: AuthCallPasswordConfirmationResult.error,
+          error: "grpcError.errorConnectingServer",
+          redirectURI: Uri.parse("/auth").toString(),
+        ),
       );
     }
   }
@@ -153,7 +161,7 @@ class AuthCallpasswordConfirmationCubit extends Cubit<AuthCallpasswordConfirmati
         state.copyWith(
           result: AuthCallPasswordConfirmationResult.blocked,
           error: response.hasErrorMessage() ? response.errorMessage : null,
-          redirectURI: Uri.parse("/auth"),
+          redirectURI: Uri.parse("/auth").toString(),
         ),
       );
       return;
@@ -207,7 +215,7 @@ class AuthCallpasswordConfirmationCubit extends Cubit<AuthCallpasswordConfirmati
         });
 
         if (authConfirmationGrpcError.status == APIStatus.error && authConfirmationGrpcError.statusCode == StatusCode.invalidArgument) {
-          emit(state.copyWith(status: Status.success, error: authConfirmationGrpcError.error, redirectURI: Uri.parse("/auth")));
+          emit(state.copyWith(status: Status.success, error: authConfirmationGrpcError.error, redirectURI: Uri.parse("/auth").toString()));
           return;
         } else if (authConfirmationGrpcError.status == APIStatus.error) {
           emit(state.copyWith(status: Status.success, error: authConfirmationGrpcError.error));
@@ -238,7 +246,7 @@ class AuthCallpasswordConfirmationCubit extends Cubit<AuthCallpasswordConfirmati
 
         if (!checkSharedKey || !checkSalt) {
           logger.error('mlkem ciphertext signature verification failed');
-          emit(state.copyWith(status: Status.success, error: 'signature verification failed'));
+          emit(state.copyWith(status: Status.success, error: 'screenAuthCallpasswordConfirmation.signatureVerificationFailed'));
           return;
         }
 
@@ -269,11 +277,11 @@ class AuthCallpasswordConfirmationCubit extends Cubit<AuthCallpasswordConfirmati
           await getIt.get<Auth>().refresh();
         } catch (error, stackTrace) {
           logger.handle(error, stackTrace, "callpassword confirmation: persist session failed");
-          emit(state.copyWith(status: Status.success, error: "internalServerError", redirectURI: Uri.parse("/auth")));
+          emit(state.copyWith(status: Status.success, error: "grpcError.internalServerError", redirectURI: Uri.parse("/auth").toString()));
           return;
         }
 
-        emit(state.copyWith(redirectURI: Uri.parse("/chats")));
+        emit(state.copyWith(redirectURI: Uri.parse("/chats").toString()));
 
       case AuthCallPasswordStatus.error:
         _stop();
@@ -281,7 +289,7 @@ class AuthCallpasswordConfirmationCubit extends Cubit<AuthCallpasswordConfirmati
           state.copyWith(
             result: AuthCallPasswordConfirmationResult.error,
             error: response.hasErrorMessage() ? response.errorMessage : null,
-            redirectURI: Uri.parse("/auth"),
+            redirectURI: Uri.parse("/auth").toString(),
           ),
         );
 

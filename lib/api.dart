@@ -43,10 +43,11 @@ class IncomingMessage {
 
 class APICallStatus {
   final APIStatus status;
-  final String? error;
+  final String error;
   final int statusCode;
+  final bool isGrpc;
 
-  const APICallStatus({required this.status, this.error, required this.statusCode});
+  const APICallStatus({required this.status, this.error = "", this.isGrpc = false, required this.statusCode});
 
   @override
   String toString() {
@@ -225,17 +226,17 @@ class API {
         // notifyListeners() уводим пользователя на /auth (см. Auth.logout).
         // Fire-and-forget: не гейтим ответ вызывающему коду на разлогине.
         unawaited(getIt.get<Auth>().logout());
-        return APICallStatus(status: APIStatus.error, error: "unauthenticated", statusCode: err.code);
+        return APICallStatus(status: APIStatus.error, error: "grpcError.unauthenticated", isGrpc: true, statusCode: err.code);
       } else if ([StatusCode.unknown, StatusCode.unavailable].contains(err.code)) {
-        return APICallStatus(status: APIStatus.error, error: "errorConnectingServer", statusCode: err.code);
+        return APICallStatus(status: APIStatus.error, error: "grpcError.errorConnectingServer", isGrpc: true, statusCode: err.code);
       } else if ([StatusCode.deadlineExceeded].contains(err.code)) {
-        return APICallStatus(status: APIStatus.error, error: "unableConnectServer", statusCode: err.code);
+        return APICallStatus(status: APIStatus.error, error: "grpcError.unableConnectServer", isGrpc: true, statusCode: err.code);
       } else if ([StatusCode.cancelled, StatusCode.invalidArgument].contains(err.code)) {
-        return APICallStatus(status: APIStatus.error, error: err.message?.toString(), statusCode: err.code);
+        return APICallStatus(status: APIStatus.error, error: err.message.toString(), statusCode: err.code);
       } else if ([StatusCode.internal].contains(err.code)) {
-        return APICallStatus(status: APIStatus.error, error: "internalServerError", statusCode: err.code);
+        return APICallStatus(status: APIStatus.error, error: "grpcError.internalServerError", isGrpc: true, statusCode: err.code);
       } else {
-        return APICallStatus(status: APIStatus.error, error: err.message?.toString(), statusCode: err.code);
+        return APICallStatus(status: APIStatus.error, error: err.message.toString(), statusCode: err.code);
       }
     }
 

@@ -28,9 +28,22 @@ class AuthModerationApplicationStoreStateMapper
   static Status _$status(AuthModerationApplicationStoreState v) => v.status;
   static const Field<AuthModerationApplicationStoreState, Status> _f$status =
       Field('status', _$status, opt: true, def: Status.initialization);
-  static String? _$error(AuthModerationApplicationStoreState v) => v.error;
+  static Status _$networkStatus(AuthModerationApplicationStoreState v) =>
+      v.networkStatus;
+  static const Field<AuthModerationApplicationStoreState, Status>
+  _f$networkStatus = Field(
+    'networkStatus',
+    _$networkStatus,
+    opt: true,
+    def: Status.initialization,
+  );
+  static String _$error(AuthModerationApplicationStoreState v) => v.error;
   static const Field<AuthModerationApplicationStoreState, String> _f$error =
-      Field('error', _$error, opt: true);
+      Field('error', _$error, opt: true, def: "");
+  static String _$redirectURI(AuthModerationApplicationStoreState v) =>
+      v.redirectURI;
+  static const Field<AuthModerationApplicationStoreState, String>
+  _f$redirectURI = Field('redirectURI', _$redirectURI, opt: true, def: "");
   static Uint8List _$moderationApplicationStoreSession(
     AuthModerationApplicationStoreState v,
   ) => v.moderationApplicationStoreSession;
@@ -44,29 +57,27 @@ class AuthModerationApplicationStoreStateMapper
       v.phoneNumber;
   static const Field<AuthModerationApplicationStoreState, String>
   _f$phoneNumber = Field('phoneNumber', _$phoneNumber, opt: true, def: "");
-  static Uri? _$redirectURI(AuthModerationApplicationStoreState v) =>
-      v.redirectURI;
-  static const Field<AuthModerationApplicationStoreState, Uri> _f$redirectURI =
-      Field('redirectURI', _$redirectURI, opt: true);
 
   @override
   final MappableFields<AuthModerationApplicationStoreState> fields = const {
     #status: _f$status,
+    #networkStatus: _f$networkStatus,
     #error: _f$error,
+    #redirectURI: _f$redirectURI,
     #moderationApplicationStoreSession: _f$moderationApplicationStoreSession,
     #phoneNumber: _f$phoneNumber,
-    #redirectURI: _f$redirectURI,
   };
 
   static AuthModerationApplicationStoreState _instantiate(DecodingData data) {
     return AuthModerationApplicationStoreState(
       status: data.dec(_f$status),
+      networkStatus: data.dec(_f$networkStatus),
       error: data.dec(_f$error),
+      redirectURI: data.dec(_f$redirectURI),
       moderationApplicationStoreSession: data.dec(
         _f$moderationApplicationStoreSession,
       ),
       phoneNumber: data.dec(_f$phoneNumber),
-      redirectURI: data.dec(_f$redirectURI),
     );
   }
 
@@ -151,10 +162,11 @@ abstract class AuthModerationApplicationStoreStateCopyWith<
     implements ClassCopyWith<$R, $In, $Out> {
   $R call({
     Status? status,
+    Status? networkStatus,
     String? error,
+    String? redirectURI,
     Uint8List? moderationApplicationStoreSession,
     String? phoneNumber,
-    Uri? redirectURI,
   });
   AuthModerationApplicationStoreStateCopyWith<$R2, $In, $Out2>
   $chain<$R2, $Out2>(Then<$Out2, $R2> t);
@@ -180,31 +192,34 @@ class _AuthModerationApplicationStoreStateCopyWithImpl<$R, $Out>
   @override
   $R call({
     Status? status,
-    Object? error = $none,
+    Status? networkStatus,
+    String? error,
+    String? redirectURI,
     Object? moderationApplicationStoreSession = $none,
     String? phoneNumber,
-    Object? redirectURI = $none,
   }) => $apply(
     FieldCopyWithData({
       if (status != null) #status: status,
-      if (error != $none) #error: error,
+      if (networkStatus != null) #networkStatus: networkStatus,
+      if (error != null) #error: error,
+      if (redirectURI != null) #redirectURI: redirectURI,
       if (moderationApplicationStoreSession != $none)
         #moderationApplicationStoreSession: moderationApplicationStoreSession,
       if (phoneNumber != null) #phoneNumber: phoneNumber,
-      if (redirectURI != $none) #redirectURI: redirectURI,
     }),
   );
   @override
   AuthModerationApplicationStoreState $make(CopyWithData data) =>
       AuthModerationApplicationStoreState(
         status: data.get(#status, or: $value.status),
+        networkStatus: data.get(#networkStatus, or: $value.networkStatus),
         error: data.get(#error, or: $value.error),
+        redirectURI: data.get(#redirectURI, or: $value.redirectURI),
         moderationApplicationStoreSession: data.get(
           #moderationApplicationStoreSession,
           or: $value.moderationApplicationStoreSession,
         ),
         phoneNumber: data.get(#phoneNumber, or: $value.phoneNumber),
-        redirectURI: data.get(#redirectURI, or: $value.redirectURI),
       );
 
   @override

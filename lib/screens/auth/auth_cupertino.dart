@@ -59,17 +59,14 @@ class _AuthCupertinoScreen extends State<AuthCupertinoScreen> {
     return BlocConsumer<AuthCubit, AuthState>(
       listenWhen: (previous, current) => previous.status != current.status,
       listener: (context, state) {
-        if (state.status == Status.success && state.error != null) {
-          if (state.error == "phone number does not match allowed region") {
-            serverError = context.t.screenAuth.currentlyWeOnlySupportPhoneNumbersFromRussianMobileOperators;
-          } else if (state.error == "errorConnectingServer") {
-            serverError = context.t.grpcError.errorConnectingServer;
-          } else {
-            serverError = state.error;
+        if (state.error.isNotEmpty) {
+          try {
+            serverError = context.t[state.error];
+          } catch (e) {
+            serverError = context.t.grpcError.unknownError;
           }
           formKey.currentState?.validate();
-        } else if (state.status == Status.success && state.redirectURI != null) {
-          logger.debug(state.redirectURI.toString());
+        } else if (state.status == Status.success && state.redirectURI.isNotEmpty) {
           context.go(state.redirectURI.toString());
         }
       },

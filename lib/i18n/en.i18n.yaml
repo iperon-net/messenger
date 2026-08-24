@@ -118,18 +118,29 @@
   "weAreExpectingYourCallWithin": "We are expecting your call within {duration}"
   "signInWith": "Sign in with"
   "continue": "@:common.kContinue"
+  "invalidPhoneNumber": "Invalid phone number"
 
 "screenAuthModerationApplicationStore":
+    "verificationCodeMismatch": "Verification code mismatch"
+    "moderationApplicationStoreSessionNotFound": "Moderation application store session not found"
+    "invalidPublicSharedKey": "Invalid public shared key"
+    "invalidPublicSaltKey": "Invalid public salt key"
     "enterTheCode": "Enter the code"
     "sentConfirmationCodeToNumber": "We sent a confirmation code to the number {phoneNumber}"
+    "signatureVerificationFailed": "Signature verification failed"
 
 "screenAuthCallpasswordConfirmation":
   "weAreExpectingYourCallWithin": "We are expecting your call within {duration}"
   "confirmYourNumberDetail": "Call {confirmationPhoneNumberRu} from the phone number you provided and wait for the call to be disconnected."
   "callForFree": "Call for free"
+  "signatureVerificationFailed": "Signature verification failed"
 
 grpcError:
   "errorConnectingServer": "Error connecting to the server"
+  "unauthenticated": "Unauthenticated"
+  "unableConnectServer": "Unable to connect to the server"
+  "internalServerError": "Internal server error"
+  "unknownError": "Unknown error"
 
 dateTime:
   "relativeDateTimeToday": "today at {time}"

@@ -9,9 +9,18 @@ enum AuthWorkflow { callpassword, moderationApplicationStore }
 @MappableClass()
 class AuthState with AuthStateMappable {
   final Status status;
-  final String? error;
-  final AuthWorkflow workflow;
-  final Uri? redirectURI;
+  final Status networkStatus;
+  final String error;
+  final String redirectURI;
 
-  const AuthState({this.status = Status.initialization, this.error, this.workflow = AuthWorkflow.callpassword, this.redirectURI});
+  final AuthWorkflow workflow;
+
+  const AuthState({
+    this.status = Status.initialization,
+    this.networkStatus = Status.initialization,
+    this.error = "",
+    this.redirectURI = "",
+
+    this.workflow = AuthWorkflow.callpassword,
+  });
 }

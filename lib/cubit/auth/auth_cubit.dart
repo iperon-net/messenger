@@ -58,8 +58,8 @@ class AuthCubit extends Cubit<AuthState> {
     final phoneNumberNormalization = utils.phoneNormalization(phoneNumber: phoneNumber);
 
     // Workflow moderation application store
-    if (settings.phoneNumberModerationApplicationStoreEnable &&
-        settings.phoneNumberModerationApplicationStore == phoneNumberNormalization.raw) {
+    final phoneNumberEnable = settings.phoneNumberModerationApplicationStoreEnable;
+    if (phoneNumberEnable && settings.phoneNumberModerationApplicationStore == phoneNumberNormalization.raw) {
       final messageRequest = Message(
         messageType: MessageType.AUTH_MODERATION_APPLICATION_STORE,
         message: AuthModerationApplicationStore_Request(phoneNumber: phoneNumberNormalization.raw).writeToBuffer(),
@@ -87,7 +87,7 @@ class AuthCubit extends Cubit<AuthState> {
         },
       );
 
-      emit(state.copyWith(status: Status.success, error: null, redirectURI: uri));
+      emit(state.copyWith(status: Status.success, error: "", redirectURI: uri.toString()));
       return;
     }
 
@@ -119,7 +119,7 @@ class AuthCubit extends Cubit<AuthState> {
       },
     );
 
-    emit(state.copyWith(status: Status.success, error: null, redirectURI: uri));
+    emit(state.copyWith(status: Status.success, error: "", redirectURI: uri.toString()));
     return;
   }
 

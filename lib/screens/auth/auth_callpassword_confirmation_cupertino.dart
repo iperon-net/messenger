@@ -19,6 +19,7 @@ class AuthCallpasswordConfirmationCupertino extends StatefulWidget {
 class _AuthCallpasswordConfirmationCupertino extends State<AuthCallpasswordConfirmationCupertino> {
   final formKey = GlobalKey<FormState>();
   final utils = getIt.get<Utils>();
+  String? error;
 
   @override
   void initState() {
@@ -33,11 +34,11 @@ class _AuthCallpasswordConfirmationCupertino extends State<AuthCallpasswordConfi
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<AuthCallpasswordConfirmationCubit, AuthCallpasswordConfirmationState>(
-      listenWhen: (previous, current) => previous.redirectURI != current.redirectURI,
-      listener: (context, state) {
+      listenWhen: (previous, current) => previous.redirectURI != current.redirectURI || previous.error != current.error,
+      listener: (context, state) async {
         // Таймаут / ошибка / блокировка уводят обратно на /auth. Успех пока
         // без перехода — второй шаг входа (two-step) ещё не реализован.
-        if (state.redirectURI != null) {
+        if (state.redirectURI.toString().isNotEmpty) {
           context.go(state.redirectURI.toString());
         }
       },

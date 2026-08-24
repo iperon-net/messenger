@@ -453,6 +453,9 @@ class Translations$screenAuth$en {
 
 	/// en: 'Continue'
 	String get kContinue => _root.common.kContinue;
+
+	/// en: 'Invalid phone number'
+	String get invalidPhoneNumber => 'Invalid phone number';
 }
 
 // Path: screenAuthModerationApplicationStore
@@ -462,6 +465,18 @@ class Translations$screenAuthModerationApplicationStore$en {
 	final Translations _root; // ignore: unused_field
 
 	// Translations
+
+	/// en: 'Verification code mismatch'
+	String get verificationCodeMismatch => 'Verification code mismatch';
+
+	/// en: 'Moderation application store session not found'
+	String get moderationApplicationStoreSessionNotFound => 'Moderation application store session not found';
+
+	/// en: 'Invalid public shared key'
+	String get invalidPublicSharedKey => 'Invalid public shared key';
+
+	/// en: 'Invalid public salt key'
+	String get invalidPublicSaltKey => 'Invalid public salt key';
 
 	/// en: 'Enter the code'
 	String get enterTheCode => 'Enter the code';
@@ -498,6 +513,18 @@ class Translations$grpcError$en {
 
 	/// en: 'Error connecting to the server'
 	String get errorConnectingServer => 'Error connecting to the server';
+
+	/// en: 'Unauthenticated'
+	String get unauthenticated => 'Unauthenticated';
+
+	/// en: 'Unable to connect to the server'
+	String get unableConnectServer => 'Unable to connect to the server';
+
+	/// en: 'Internal server error'
+	String get internalServerError => 'Internal server error';
+
+	/// en: 'Unknown error'
+	String get unknownError => 'Unknown error';
 }
 
 // Path: dateTime
@@ -617,12 +644,21 @@ extension on Translations {
 			'screenAuth.weAreExpectingYourCallWithin' => ({required Object duration}) => 'We are expecting your call within ${duration}',
 			'screenAuth.signInWith' => 'Sign in with',
 			'screenAuth.kContinue' => _root.common.kContinue,
+			'screenAuth.invalidPhoneNumber' => 'Invalid phone number',
+			'screenAuthModerationApplicationStore.verificationCodeMismatch' => 'Verification code mismatch',
+			'screenAuthModerationApplicationStore.moderationApplicationStoreSessionNotFound' => 'Moderation application store session not found',
+			'screenAuthModerationApplicationStore.invalidPublicSharedKey' => 'Invalid public shared key',
+			'screenAuthModerationApplicationStore.invalidPublicSaltKey' => 'Invalid public salt key',
 			'screenAuthModerationApplicationStore.enterTheCode' => 'Enter the code',
 			'screenAuthModerationApplicationStore.sentConfirmationCodeToNumber' => ({required Object phoneNumber}) => 'We sent a confirmation code to the number ${phoneNumber}',
 			'screenAuthCallpasswordConfirmation.weAreExpectingYourCallWithin' => ({required Object duration}) => 'We are expecting your call within ${duration}',
 			'screenAuthCallpasswordConfirmation.confirmYourNumberDetail' => ({required Object confirmationPhoneNumberRu}) => 'Call ${confirmationPhoneNumberRu} from the phone number you provided and wait for the call to be disconnected.',
 			'screenAuthCallpasswordConfirmation.callForFree' => 'Call for free',
 			'grpcError.errorConnectingServer' => 'Error connecting to the server',
+			'grpcError.unauthenticated' => 'Unauthenticated',
+			'grpcError.unableConnectServer' => 'Unable to connect to the server',
+			'grpcError.internalServerError' => 'Internal server error',
+			'grpcError.unknownError' => 'Unknown error',
 			'dateTime.relativeDateTimeToday' => ({required Object time}) => 'today at ${time}',
 			'dateTime.relativeDateTimeYesterday' => ({required Object time}) => 'yesterday at ${time}',
 			'dateTime.relativeDateTimeOther' => ({required Object date, required Object time}) => '${date} at ${time}',

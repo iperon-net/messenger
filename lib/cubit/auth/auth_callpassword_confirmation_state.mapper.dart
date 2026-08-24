@@ -28,6 +28,22 @@ class AuthCallpasswordConfirmationStateMapper
   static Status _$status(AuthCallpasswordConfirmationState v) => v.status;
   static const Field<AuthCallpasswordConfirmationState, Status> _f$status =
       Field('status', _$status, opt: true, def: Status.initialization);
+  static Status _$networkStatus(AuthCallpasswordConfirmationState v) =>
+      v.networkStatus;
+  static const Field<AuthCallpasswordConfirmationState, Status>
+  _f$networkStatus = Field(
+    'networkStatus',
+    _$networkStatus,
+    opt: true,
+    def: Status.initialization,
+  );
+  static String _$error(AuthCallpasswordConfirmationState v) => v.error;
+  static const Field<AuthCallpasswordConfirmationState, String> _f$error =
+      Field('error', _$error, opt: true, def: "");
+  static String _$redirectURI(AuthCallpasswordConfirmationState v) =>
+      v.redirectURI;
+  static const Field<AuthCallpasswordConfirmationState, String> _f$redirectURI =
+      Field('redirectURI', _$redirectURI, opt: true, def: "");
   static List<int> _$callPasswordSession(AuthCallpasswordConfirmationState v) =>
       v.callPasswordSession;
   static const Field<AuthCallpasswordConfirmationState, List<int>>
@@ -71,13 +87,6 @@ class AuthCallpasswordConfirmationStateMapper
     opt: true,
     def: AuthCallPasswordConfirmationResult.waiting,
   );
-  static String? _$error(AuthCallpasswordConfirmationState v) => v.error;
-  static const Field<AuthCallpasswordConfirmationState, String> _f$error =
-      Field('error', _$error, opt: true);
-  static Uri? _$redirectURI(AuthCallpasswordConfirmationState v) =>
-      v.redirectURI;
-  static const Field<AuthCallpasswordConfirmationState, Uri> _f$redirectURI =
-      Field('redirectURI', _$redirectURI, opt: true);
   static List<int> _$confirmationSession(AuthCallpasswordConfirmationState v) =>
       v.confirmationSession;
   static const Field<AuthCallpasswordConfirmationState, List<int>>
@@ -100,13 +109,14 @@ class AuthCallpasswordConfirmationStateMapper
   @override
   final MappableFields<AuthCallpasswordConfirmationState> fields = const {
     #status: _f$status,
+    #networkStatus: _f$networkStatus,
+    #error: _f$error,
+    #redirectURI: _f$redirectURI,
     #callPasswordSession: _f$callPasswordSession,
     #confirmationPhoneNumber: _f$confirmationPhoneNumber,
     #timeout: _f$timeout,
     #tickerSecond: _f$tickerSecond,
     #result: _f$result,
-    #error: _f$error,
-    #redirectURI: _f$redirectURI,
     #confirmationSession: _f$confirmationSession,
     #hasTwoStepVerification: _f$hasTwoStepVerification,
   };
@@ -114,13 +124,14 @@ class AuthCallpasswordConfirmationStateMapper
   static AuthCallpasswordConfirmationState _instantiate(DecodingData data) {
     return AuthCallpasswordConfirmationState(
       status: data.dec(_f$status),
+      networkStatus: data.dec(_f$networkStatus),
+      error: data.dec(_f$error),
+      redirectURI: data.dec(_f$redirectURI),
       callPasswordSession: data.dec(_f$callPasswordSession),
       confirmationPhoneNumber: data.dec(_f$confirmationPhoneNumber),
       timeout: data.dec(_f$timeout),
       tickerSecond: data.dec(_f$tickerSecond),
       result: data.dec(_f$result),
-      error: data.dec(_f$error),
-      redirectURI: data.dec(_f$redirectURI),
       confirmationSession: data.dec(_f$confirmationSession),
       hasTwoStepVerification: data.dec(_f$hasTwoStepVerification),
     );
@@ -209,13 +220,14 @@ abstract class AuthCallpasswordConfirmationStateCopyWith<
   ListCopyWith<$R, int, ObjectCopyWith<$R, int, int>> get confirmationSession;
   $R call({
     Status? status,
+    Status? networkStatus,
+    String? error,
+    String? redirectURI,
     List<int>? callPasswordSession,
     String? confirmationPhoneNumber,
     int? timeout,
     int? tickerSecond,
     AuthCallPasswordConfirmationResult? result,
-    String? error,
-    Uri? redirectURI,
     List<int>? confirmationSession,
     bool? hasTwoStepVerification,
   });
@@ -258,18 +270,22 @@ class _AuthCallpasswordConfirmationStateCopyWithImpl<$R, $Out>
   @override
   $R call({
     Status? status,
+    Status? networkStatus,
+    String? error,
+    String? redirectURI,
     List<int>? callPasswordSession,
     String? confirmationPhoneNumber,
     int? timeout,
     int? tickerSecond,
     AuthCallPasswordConfirmationResult? result,
-    Object? error = $none,
-    Object? redirectURI = $none,
     List<int>? confirmationSession,
     bool? hasTwoStepVerification,
   }) => $apply(
     FieldCopyWithData({
       if (status != null) #status: status,
+      if (networkStatus != null) #networkStatus: networkStatus,
+      if (error != null) #error: error,
+      if (redirectURI != null) #redirectURI: redirectURI,
       if (callPasswordSession != null)
         #callPasswordSession: callPasswordSession,
       if (confirmationPhoneNumber != null)
@@ -277,8 +293,6 @@ class _AuthCallpasswordConfirmationStateCopyWithImpl<$R, $Out>
       if (timeout != null) #timeout: timeout,
       if (tickerSecond != null) #tickerSecond: tickerSecond,
       if (result != null) #result: result,
-      if (error != $none) #error: error,
-      if (redirectURI != $none) #redirectURI: redirectURI,
       if (confirmationSession != null)
         #confirmationSession: confirmationSession,
       if (hasTwoStepVerification != null)
@@ -289,6 +303,9 @@ class _AuthCallpasswordConfirmationStateCopyWithImpl<$R, $Out>
   AuthCallpasswordConfirmationState $make(CopyWithData data) =>
       AuthCallpasswordConfirmationState(
         status: data.get(#status, or: $value.status),
+        networkStatus: data.get(#networkStatus, or: $value.networkStatus),
+        error: data.get(#error, or: $value.error),
+        redirectURI: data.get(#redirectURI, or: $value.redirectURI),
         callPasswordSession: data.get(
           #callPasswordSession,
           or: $value.callPasswordSession,
@@ -300,8 +317,6 @@ class _AuthCallpasswordConfirmationStateCopyWithImpl<$R, $Out>
         timeout: data.get(#timeout, or: $value.timeout),
         tickerSecond: data.get(#tickerSecond, or: $value.tickerSecond),
         result: data.get(#result, or: $value.result),
-        error: data.get(#error, or: $value.error),
-        redirectURI: data.get(#redirectURI, or: $value.redirectURI),
         confirmationSession: data.get(
           #confirmationSession,
           or: $value.confirmationSession,
