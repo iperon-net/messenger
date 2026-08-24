@@ -1,4 +1,4 @@
-name: Deploy TestFlight
+name: TestFlight
 
 on:
   workflow_call:
@@ -32,7 +32,7 @@ env:
 
 jobs:
   testflight:
-    name: Build and upload to TestFlight
+    name: Build and upload
     runs-on: macos-latest
     timeout-minutes: 30
     steps:

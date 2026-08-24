@@ -47,9 +47,20 @@ Note: `taskfile.yml` at the repo root is for an unrelated Go backend project and
 
 ## CI/CD
 
-GitHub Actions live in `.github/workflows/`. `lib/firebase_options.dart` and the `.env` files are gitignored, so CI reconstructs them from secrets before building — mirror that if you add a workflow.
-- **`build_and_publish.yaml`** (PRs/pushes): `flutter pub get` → restore `firebase_options.dart` from a secret → generate `.env` assets → `dart format --output=none --set-exit-if-changed lib` (formatting is enforced — run `dart format lib` before pushing) → `flutter analyze`.
-- **`deploy_ios.yaml`** (on `v*` tags): builds a release IPA and uploads to TestFlight via fastlane. `BUILD_NAME` comes from the tag (`v0.0.1` → `0.0.1`); `BUILD_NUMBER` is a UTC `date` timestamp so it stays unique and monotonically increasing.
+GitHub Actions live in `.github/workflows/`. `lib/firebase_options.dart` and the `.env` files are gitignored, so CI reconstructs them from secrets before building (restore the base64 secret → **`dart format` the restored `firebase_options.dart`** so it doesn't fail the format check → `touch .env .env.development`) — mirror that in every job that builds/analyzes if you add a workflow. Two **reusable** workflows hold the actual work and are invoked via `uses:` (referenced by full `iperon-net/messenger/...@main` path, so they only resolve on the GitHub remote, not for `act`/local runs):
+- **`_linter.yaml`** (reusable, `workflow_call`): two parallel jobs — **Format** (`dart format --output=none --set-exit-if-changed lib`; formatting is enforced — run `dart format lib` before pushing) and **Analyze** (`flutter analyze`).
+- **`_deploy_testflight.yaml`** (reusable, `workflow_call`): builds a release IPA and uploads to TestFlight via fastlane (`bundle exec fastlane beta` in `ios/`). `BUILD_NAME` comes from the tag (`v0.0.1` → `0.0.1`); `BUILD_NUMBER` is a UTC `date -u +%y%m%d%H%M` timestamp so it stays unique and monotonically increasing, independent of the tag. It also: regenerates `dart_mappable`/`slang` code, forces **manual** code-signing via appended `ios/Flutter/Release.xcconfig` keys + a generated `ExportOptions.plist` (leaving `pbxproj` untouched), builds a Conventional-Commits changelog for the TestFlight "What to Test" field (range = previous `v*` tag..HEAD, grouped feat/fix/other, truncated to Apple's 4000-char limit), and uploads dSYMs to Crashlytics as the **last** step (best-effort — `uploadDebugSymbols` in `firebase.json` is left `false` and symbols are shipped directly with the `upload-symbols` binary, since the Xcode build-phase path is unreliable on CI).
+
+Callers:
+- **`testing.yaml`** (on PRs + pushes to `main`): calls `_linter.yaml` only.
+- **`build_and_deploy.yaml`** (on `v*` tags): calls `_linter.yaml`, then `_deploy_testflight.yaml` (`needs: Linter`).
+- **`dependabot.yaml`**: fetches Dependabot PR metadata (auto-approve scaffolding).
+
+Qodana (`qodana.yaml`, JVM-community linter, `qodana.starter` profile) is configured but not wired into a workflow that runs it here.
+
+### Local pre-commit hook
+
+The repo ships a `.githooks/pre-commit` hook that runs `dart run dart_pre_commit` (format + `analyze` with `error-level: info`, mirroring CI) against staged files. Git does not clone `core.hooksPath`, so after cloning enable it once: `git config core.hooksPath .githooks`. Config is under the `dart_pre_commit:` key in `pubspec.yaml` (`outdated`/`pull-up-dependencies` deliberately off as too noisy). Run manually with `dart run dart_pre_commit`.
 
 ## TODO
 
