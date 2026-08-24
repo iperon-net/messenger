@@ -1,0 +1,14 @@
+name: Testing code
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  Linter:
+    uses: iperon-net/messenger/.github/workflows/_linter.yaml@main
+    with:
+      flutter_version: "3.47.1"
+    secrets:
+      firebase_options_dart_base64: ${{ secrets.FIREBASE_OPTIONS_DART_BASE64 }}

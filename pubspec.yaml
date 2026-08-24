@@ -101,7 +101,7 @@ dev_dependencies:
   dart_pre_commit: ^6.1.4
 
 # Configuration for the `dart_pre_commit` git hook (see .githooks/pre-commit).
-# Mirrors the CI checks in .github/workflows/code_checks.yaml so problems are
+# Mirrors the CI checks in .github/workflows/build_and_publish.yaml so problems are
 # caught locally, before pushing.
 dart_pre_commit:
   # `format` reformats staged files (matches `dart format lib` in CI).
