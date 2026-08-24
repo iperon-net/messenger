@@ -13,7 +13,16 @@ jobs:
     secrets:
       firebase_options_dart_base64: ${{ secrets.FIREBASE_OPTIONS_DART_BASE64 }}
 
-
-#  DeployTestFlight:
-#    uses: iperon-net/messenger/.github/workflows/_deploy_testflight.yaml@main
-#    secrets: [FLUTTER_API_KEY, APPLE_API_KEY]
+  TestFlight:
+    uses: iperon-net/messenger/.github/workflows/_deploy_testflight.yaml@main
+    with:
+      flutter_version: "3.47.1"
+    secrets:
+      firebase_options_dart_base64: ${{ secrets.FIREBASE_OPTIONS_DART_BASE64 }}
+      ios_google_service_info_plist_base64: ${{ secrets.IOS_GOOGLE_SERVICE_INFO_PLIST_BASE64 }}
+      ios_dist_cert_p12_base64: ${{ secrets.IOS_DIST_CERT_P12_BASE64 }}
+      ios_dist_cert_password: ${{ secrets.IOS_DIST_CERT_PASSWORD }}
+      ios_provisioning_profile_base64: ${{ secrets.IOS_PROVISIONING_PROFILE_BASE64 }}
+      asc_key_id: ${{ secrets.ASC_KEY_ID }}
+      asc_issuer_id: ${{ secrets.ASC_ISSUER_ID }}
+      asc_key_p8_base64: ${{ secrets.ASC_KEY_P8_BASE64 }}
