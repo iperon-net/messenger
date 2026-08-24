@@ -1,0 +1,10 @@
+name: Test Flight
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  Linter:
+    uses: iperon-net/messenger/.github/workflows/_linter.yaml@main
