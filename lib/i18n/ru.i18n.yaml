@@ -30,6 +30,7 @@
   "language": "Язык"
   "appearance": "@:screenSettingsAppearance.appearance"
   "privacyAndSecurity": "Конфиденциальность"
+  "aboutApplication": "О приложении"
   "logout": "Выйти"
 
 "screenSettingsAppearance":
@@ -60,6 +61,13 @@
   "cancel": "@:common.cancel"
   "online": "@:common.online"
   "terminate": "Завершить"
+
+"screenSettingsAboutApplication":
+  "aboutApplication": "@:screenSettings.aboutApplication"
+  "version": "Версия {version} ({build})"
+  "licenses": "Лицензии"
+  "licensesCount": "Лицензий: {n}"
+  "noLicenses": "Лицензии не найдены"
 
 "screenSettingsLanguage":
   "language": "Язык"

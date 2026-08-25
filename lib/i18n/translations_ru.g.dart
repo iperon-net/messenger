@@ -46,6 +46,7 @@ class TranslationsRu extends Translations with BaseTranslations<AppLocale, Trans
 	@override late final _Translations$screenSettings$ru screenSettings = _Translations$screenSettings$ru._(_root);
 	@override late final _Translations$screenSettingsAppearance$ru screenSettingsAppearance = _Translations$screenSettingsAppearance$ru._(_root);
 	@override late final _Translations$screenSettingsDevices$ru screenSettingsDevices = _Translations$screenSettingsDevices$ru._(_root);
+	@override late final _Translations$screenSettingsAboutApplication$ru screenSettingsAboutApplication = _Translations$screenSettingsAboutApplication$ru._(_root);
 	@override late final _Translations$screenSettingsLanguage$ru screenSettingsLanguage = _Translations$screenSettingsLanguage$ru._(_root);
 	@override late final _Translations$screenSettingsPasscode$ru screenSettingsPasscode = _Translations$screenSettingsPasscode$ru._(_root);
 	@override late final _Translations$settingsPasscodeCreate$ru settingsPasscodeCreate = _Translations$settingsPasscodeCreate$ru._(_root);
@@ -124,6 +125,7 @@ class _Translations$screenSettings$ru extends Translations$screenSettings$en {
 	@override String get language => 'Язык';
 	@override String get appearance => _root.screenSettingsAppearance.appearance;
 	@override String get privacyAndSecurity => 'Конфиденциальность';
+	@override String get aboutApplication => 'О приложении';
 	@override String get logout => 'Выйти';
 }
 
@@ -168,6 +170,20 @@ class _Translations$screenSettingsDevices$ru extends Translations$screenSettings
 	@override String get cancel => _root.common.cancel;
 	@override String get online => _root.common.online;
 	@override String get terminate => 'Завершить';
+}
+
+// Path: screenSettingsAboutApplication
+class _Translations$screenSettingsAboutApplication$ru extends Translations$screenSettingsAboutApplication$en {
+	_Translations$screenSettingsAboutApplication$ru._(TranslationsRu root) : this._root = root, super.internal(root);
+
+	final TranslationsRu _root; // ignore: unused_field
+
+	// Translations
+	@override String get aboutApplication => _root.screenSettings.aboutApplication;
+	@override String version({required Object version, required Object build}) => 'Версия ${version} (${build})';
+	@override String get licenses => 'Лицензии';
+	@override String licensesCount({required Object n}) => 'Лицензий: ${n}';
+	@override String get noLicenses => 'Лицензии не найдены';
 }
 
 // Path: screenSettingsLanguage
@@ -286,6 +302,7 @@ class _Translations$screenAuthModerationApplicationStore$ru extends Translations
 	@override String get invalidPublicSaltKey => 'Неверный публичный ключ соли';
 	@override String get enterTheCode => 'Введите код';
 	@override String sentConfirmationCodeToNumber({required Object phoneNumber}) => 'Мы отправили код подтверждения на номер ${phoneNumber}';
+	@override String get signatureVerificationFailed => 'Не удалось проверить подпись';
 }
 
 // Path: screenAuthCallpasswordConfirmation
@@ -298,6 +315,7 @@ class _Translations$screenAuthCallpasswordConfirmation$ru extends Translations$s
 	@override String weAreExpectingYourCallWithin({required Object duration}) => 'Мы ждём вашего звонка в течение ${duration}';
 	@override String confirmYourNumberDetail({required Object confirmationPhoneNumberRu}) => 'Позвоните на номер ${confirmationPhoneNumberRu} с указанного вами номера телефона и дождитесь сброса вызова.';
 	@override String get callForFree => 'Позвонить бесплатно';
+	@override String get signatureVerificationFailed => 'Не удалось проверить подпись';
 }
 
 // Path: grpcError
@@ -357,6 +375,7 @@ extension on TranslationsRu {
 			'screenSettings.language' => 'Язык',
 			'screenSettings.appearance' => _root.screenSettingsAppearance.appearance,
 			'screenSettings.privacyAndSecurity' => 'Конфиденциальность',
+			'screenSettings.aboutApplication' => 'О приложении',
 			'screenSettings.logout' => 'Выйти',
 			'screenSettingsAppearance.appearance' => 'Оформление',
 			'screenSettingsAppearance.colorTheme' => 'Цветовая тема',
@@ -383,6 +402,11 @@ extension on TranslationsRu {
 			'screenSettingsDevices.cancel' => _root.common.cancel,
 			'screenSettingsDevices.online' => _root.common.online,
 			'screenSettingsDevices.terminate' => 'Завершить',
+			'screenSettingsAboutApplication.aboutApplication' => _root.screenSettings.aboutApplication,
+			'screenSettingsAboutApplication.version' => ({required Object version, required Object build}) => 'Версия ${version} (${build})',
+			'screenSettingsAboutApplication.licenses' => 'Лицензии',
+			'screenSettingsAboutApplication.licensesCount' => ({required Object n}) => 'Лицензий: ${n}',
+			'screenSettingsAboutApplication.noLicenses' => 'Лицензии не найдены',
 			'screenSettingsLanguage.language' => 'Язык',
 			'screenSettingsPasscode.passcode' => 'Код-пароль',
 			'screenSettingsPasscode.passcodeAndFaceID' => 'Код-пароль и Face ID',
@@ -432,9 +456,11 @@ extension on TranslationsRu {
 			'screenAuthModerationApplicationStore.invalidPublicSaltKey' => 'Неверный публичный ключ соли',
 			'screenAuthModerationApplicationStore.enterTheCode' => 'Введите код',
 			'screenAuthModerationApplicationStore.sentConfirmationCodeToNumber' => ({required Object phoneNumber}) => 'Мы отправили код подтверждения на номер ${phoneNumber}',
+			'screenAuthModerationApplicationStore.signatureVerificationFailed' => 'Не удалось проверить подпись',
 			'screenAuthCallpasswordConfirmation.weAreExpectingYourCallWithin' => ({required Object duration}) => 'Мы ждём вашего звонка в течение ${duration}',
 			'screenAuthCallpasswordConfirmation.confirmYourNumberDetail' => ({required Object confirmationPhoneNumberRu}) => 'Позвоните на номер ${confirmationPhoneNumberRu} с указанного вами номера телефона и дождитесь сброса вызова.',
 			'screenAuthCallpasswordConfirmation.callForFree' => 'Позвонить бесплатно',
+			'screenAuthCallpasswordConfirmation.signatureVerificationFailed' => 'Не удалось проверить подпись',
 			'grpcError.errorConnectingServer' => 'Ошибка подключения к серверу',
 			'grpcError.unauthenticated' => 'Неавторизован',
 			'grpcError.unableConnectServer' => 'Не удалось подключиться к серверу',

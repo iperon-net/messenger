@@ -30,6 +30,7 @@
   "language": "Language"
   "appearance": "@:screenSettingsAppearance.appearance"
   "privacyAndSecurity": "Privacy and security"
+  "aboutApplication": "About the application"
   "logout": "Logout"
 
 "screenSettingsAppearance":
@@ -60,6 +61,13 @@
   "cancel": "@:common.cancel"
   "online": "@:common.online"
   "terminate": "Terminate"
+
+"screenSettingsAboutApplication":
+  "aboutApplication": "@:screenSettings.aboutApplication"
+  "version": "Version {version} ({build})"
+  "licenses": "Licenses"
+  "licensesCount": "{n} licenses"
+  "noLicenses": "No licenses found"
 
 "screenSettingsLanguage":
   "language": "Language"

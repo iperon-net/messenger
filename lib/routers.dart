@@ -162,6 +162,11 @@ class Routers {
                     ),
                   ),
                 ),
+                GoRoute(
+                  path: "about",
+                  parentNavigatorKey: rootNavigatorKey,
+                  pageBuilder: (context, state) => _page(state, SettingsAboutApplicationCupertino()),
+                ),
               ],
             ),
           ],

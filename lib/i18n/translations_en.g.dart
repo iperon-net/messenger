@@ -47,6 +47,7 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	late final Translations$screenSettings$en screenSettings = Translations$screenSettings$en.internal(_root);
 	late final Translations$screenSettingsAppearance$en screenSettingsAppearance = Translations$screenSettingsAppearance$en.internal(_root);
 	late final Translations$screenSettingsDevices$en screenSettingsDevices = Translations$screenSettingsDevices$en.internal(_root);
+	late final Translations$screenSettingsAboutApplication$en screenSettingsAboutApplication = Translations$screenSettingsAboutApplication$en.internal(_root);
 	late final Translations$screenSettingsLanguage$en screenSettingsLanguage = Translations$screenSettingsLanguage$en.internal(_root);
 	late final Translations$screenSettingsPasscode$en screenSettingsPasscode = Translations$screenSettingsPasscode$en.internal(_root);
 	late final Translations$settingsPasscodeCreate$en settingsPasscodeCreate = Translations$settingsPasscodeCreate$en.internal(_root);
@@ -172,6 +173,9 @@ class Translations$screenSettings$en {
 	/// en: 'Privacy and security'
 	String get privacyAndSecurity => 'Privacy and security';
 
+	/// en: 'About the application'
+	String get aboutApplication => 'About the application';
+
 	/// en: 'Logout'
 	String get logout => 'Logout';
 }
@@ -267,6 +271,30 @@ class Translations$screenSettingsDevices$en {
 
 	/// en: 'Terminate'
 	String get terminate => 'Terminate';
+}
+
+// Path: screenSettingsAboutApplication
+class Translations$screenSettingsAboutApplication$en {
+	Translations$screenSettingsAboutApplication$en.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// en: 'About the application'
+	String get aboutApplication => _root.screenSettings.aboutApplication;
+
+	/// en: 'Version {version} ({build})'
+	String version({required Object version, required Object build}) => 'Version ${version} (${build})';
+
+	/// en: 'Licenses'
+	String get licenses => 'Licenses';
+
+	/// en: '{n} licenses'
+	String licensesCount({required Object n}) => '${n} licenses';
+
+	/// en: 'No licenses found'
+	String get noLicenses => 'No licenses found';
 }
 
 // Path: screenSettingsLanguage
@@ -483,6 +511,9 @@ class Translations$screenAuthModerationApplicationStore$en {
 
 	/// en: 'We sent a confirmation code to the number {phoneNumber}'
 	String sentConfirmationCodeToNumber({required Object phoneNumber}) => 'We sent a confirmation code to the number ${phoneNumber}';
+
+	/// en: 'Signature verification failed'
+	String get signatureVerificationFailed => 'Signature verification failed';
 }
 
 // Path: screenAuthCallpasswordConfirmation
@@ -501,6 +532,9 @@ class Translations$screenAuthCallpasswordConfirmation$en {
 
 	/// en: 'Call for free'
 	String get callForFree => 'Call for free';
+
+	/// en: 'Signature verification failed'
+	String get signatureVerificationFailed => 'Signature verification failed';
 }
 
 // Path: grpcError
@@ -576,6 +610,7 @@ extension on Translations {
 			'screenSettings.language' => 'Language',
 			'screenSettings.appearance' => _root.screenSettingsAppearance.appearance,
 			'screenSettings.privacyAndSecurity' => 'Privacy and security',
+			'screenSettings.aboutApplication' => 'About the application',
 			'screenSettings.logout' => 'Logout',
 			'screenSettingsAppearance.appearance' => 'Appearance',
 			'screenSettingsAppearance.colorTheme' => 'Color theme',
@@ -602,6 +637,11 @@ extension on Translations {
 			'screenSettingsDevices.cancel' => _root.common.cancel,
 			'screenSettingsDevices.online' => _root.common.online,
 			'screenSettingsDevices.terminate' => 'Terminate',
+			'screenSettingsAboutApplication.aboutApplication' => _root.screenSettings.aboutApplication,
+			'screenSettingsAboutApplication.version' => ({required Object version, required Object build}) => 'Version ${version} (${build})',
+			'screenSettingsAboutApplication.licenses' => 'Licenses',
+			'screenSettingsAboutApplication.licensesCount' => ({required Object n}) => '${n} licenses',
+			'screenSettingsAboutApplication.noLicenses' => 'No licenses found',
 			'screenSettingsLanguage.language' => 'Language',
 			'screenSettingsPasscode.passcode' => 'Passcode',
 			'screenSettingsPasscode.passcodeAndFaceID' => 'Passcode & Face ID',
@@ -651,9 +691,11 @@ extension on Translations {
 			'screenAuthModerationApplicationStore.invalidPublicSaltKey' => 'Invalid public salt key',
 			'screenAuthModerationApplicationStore.enterTheCode' => 'Enter the code',
 			'screenAuthModerationApplicationStore.sentConfirmationCodeToNumber' => ({required Object phoneNumber}) => 'We sent a confirmation code to the number ${phoneNumber}',
+			'screenAuthModerationApplicationStore.signatureVerificationFailed' => 'Signature verification failed',
 			'screenAuthCallpasswordConfirmation.weAreExpectingYourCallWithin' => ({required Object duration}) => 'We are expecting your call within ${duration}',
 			'screenAuthCallpasswordConfirmation.confirmYourNumberDetail' => ({required Object confirmationPhoneNumberRu}) => 'Call ${confirmationPhoneNumberRu} from the phone number you provided and wait for the call to be disconnected.',
 			'screenAuthCallpasswordConfirmation.callForFree' => 'Call for free',
+			'screenAuthCallpasswordConfirmation.signatureVerificationFailed' => 'Signature verification failed',
 			'grpcError.errorConnectingServer' => 'Error connecting to the server',
 			'grpcError.unauthenticated' => 'Unauthenticated',
 			'grpcError.unableConnectServer' => 'Unable to connect to the server',

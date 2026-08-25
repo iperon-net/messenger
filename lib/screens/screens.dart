@@ -12,4 +12,5 @@ export 'settings/settings_privacy_and_security_cupertino.dart';
 export 'settings/settings_passcode_cupertino.dart';
 export 'settings/settings_passcode_create_cupertino.dart';
 export 'settings/settings_my_profile_cupertino.dart';
+export 'settings/settings_about_application_cupertino.dart';
 export 'chats/chats_cupertino.dart';
