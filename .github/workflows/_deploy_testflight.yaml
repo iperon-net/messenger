@@ -43,31 +43,31 @@ jobs:
           # для поля «Сведения о тестировании» в TestFlight (см. шаг ниже).
           fetch-depth: 0
 
-      - name: Resolve version from latest tag
+      - name: Resolve version from tag
         run: |
           set -euo pipefail
-          # Сборка запускается по push в main, а не по тегу, поэтому имя версии
-          # (BUILD_NAME) берём из последнего git-тега v* через git describe.
+          # Сборка запускается по push тега v* (github.ref_name — имя этого тега),
+          # поэтому имя версии (BUILD_NAME) берём прямо из тега, срезая префикс v.
           # Номер билда — из UTC-даты (см. шаг «Build IPA»), так что он уникален
-          # даже при нескольких сборках на одном теге. Если тегов ещё нет,
-          # откатываемся на 0.0.0.
-          LATEST_TAG=$(git describe --tags --abbrev=0 --match 'v*' 2>/dev/null || true)
-          BUILD_NAME="${LATEST_TAG:+${LATEST_TAG#v}}"
-          BUILD_NAME="${BUILD_NAME:-0.0.0}"
-          echo "Latest tag: ${LATEST_TAG:-<none>} → BUILD_NAME=${BUILD_NAME}"
-          echo "LATEST_TAG=$LATEST_TAG" >> "$GITHUB_ENV"
+          # даже при нескольких сборках на одном теге.
+          CURRENT_TAG="${GITHUB_REF_NAME}"
+          BUILD_NAME="${CURRENT_TAG#v}"
+          echo "Tag: ${CURRENT_TAG} → BUILD_NAME=${BUILD_NAME}"
+          echo "CURRENT_TAG=$CURRENT_TAG" >> "$GITHUB_ENV"
           echo "BUILD_NAME=$BUILD_NAME" >> "$GITHUB_ENV"
 
       - name: Build changelog (What to Test)
         run: |
           set -euo pipefail
           # Собираем список коммитов (от новых к старым) для поля whatToTest
-          # («Сведения о тестировании») в TestFlight. Берём только то, что
-          # появилось после последнего тега v* (LATEST_TAG из предыдущего шага),
-          # то есть диапазон LATEST_TAG..HEAD — «что нового относительно
-          # выпущенной версии». Если тегов ещё нет, берём всю историю.
-          RANGE=${LATEST_TAG:+"${LATEST_TAG}..HEAD"}
-          echo "Changelog range: ${RANGE:-<full history>}"
+          # («Сведения о тестировании») в TestFlight. Берём диапазон между
+          # предыдущим тегом v* и текущим (тем, что запустил сборку), то есть
+          # «что вошло в этот релиз относительно прошлого». Предыдущий тег ищем
+          # через git describe от родителя текущего тега. Если предыдущего тега
+          # нет (это первый релиз), берём всю историю до текущего тега.
+          PREV_TAG=$(git describe --tags --abbrev=0 --match 'v*' "${CURRENT_TAG}^" 2>/dev/null || true)
+          RANGE=${PREV_TAG:+"${PREV_TAG}.."}${CURRENT_TAG}
+          echo "Changelog range: ${PREV_TAG:-<start>}..${CURRENT_TAG}"
           # Группируем коммиты по типу Conventional Commits (feat/fix/прочее),
           # у каждого коммита срезаем префикс «type(scope):» и раскладываем по
           # секциям. Лимит Apple — 4000 символов, поэтому считаем длину по мере
@@ -239,8 +239,8 @@ jobs:
       - name: Build IPA
         run: |
           set -euo pipefail
-          # Version name (BUILD_NAME) comes from the latest v* tag, resolved in
-          # the "Resolve version from latest tag" step; build number from a UTC
+          # Version name (BUILD_NAME) comes from the triggering v* tag, resolved
+          # in the "Resolve version from tag" step; build number from a UTC
           # timestamp (YYMMDDHHMM), so every TestFlight build is unique and
           # monotonically increasing, independent of the CI run counter.
           BUILD_NUMBER="$(date -u +%y%m%d%H%M)"
