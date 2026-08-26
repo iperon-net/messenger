@@ -8,20 +8,32 @@ part 'settings_my_profile_state.mapper.dart';
 @MappableClass()
 class SettingsMyProfileState with SettingsMyProfileStateMappable {
   final Status status;
-  final Status processStatus;
+  final Status networkStatus;
   final String error;
+  final String redirectURI;
+
+  final String firstName;
+  final String lastName;
+  final String aboutMe;
+  final DateTime? birthDate;
+
   final String boringAvatarHash;
   final BoringAvatarType boringAvatarType;
-  final DateTime? birthDate;
   final int aboutMeLength;
 
   const SettingsMyProfileState({
     this.status = Status.initialization,
-    this.processStatus = Status.initialization,
+    this.networkStatus = Status.initialization,
     this.error = "",
+    this.redirectURI = "",
+
+    this.firstName = "",
+    this.lastName = "",
+    this.aboutMe = "",
+    this.birthDate,
+
     this.boringAvatarHash = "",
     this.boringAvatarType = BoringAvatarType.ring,
-    this.birthDate,
     this.aboutMeLength = 0,
   });
 }

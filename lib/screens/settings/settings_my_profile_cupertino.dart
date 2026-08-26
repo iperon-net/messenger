@@ -47,7 +47,23 @@ class _SettingsMyProfileCupertino extends State<SettingsMyProfileCupertino> {
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<SettingsMyProfileCubit, SettingsMyProfileState>(
-      listener: (context, state) {},
+      listener: (context, state) {
+        if (state.firstName.isNotEmpty) {
+          firstNameController.text = state.firstName;
+        }
+
+        if (state.lastName.isNotEmpty) {
+          lastNameController.text = state.lastName;
+        }
+
+        if (state.aboutMe.isNotEmpty) {
+          aboutMeController.text = state.aboutMe;
+        }
+
+        if (state.birthDate != null) {
+          birthDateController.text = state.birthDate!.toIso8601String();
+        }
+      },
       builder: (context, state) {
         return CupertinoPageScaffold(
           backgroundColor: ThemesCupertino.groupedBackground,
@@ -61,14 +77,17 @@ class _SettingsMyProfileCupertino extends State<SettingsMyProfileCupertino> {
                 padding: EdgeInsets.zero,
                 onPressed: () async {
                   if (formKey.currentState!.validate()) {
+                    logger.debug(birthDateController.text);
+
                     await context.read<SettingsMyProfileCubit>().setProfile(
-                      birthDate: birthDateController.text.isNotEmpty ? DateTime.parse(birthDateController.text) : null,
+                      birthDate: birthDateController.text,
                       firstName: firstNameController.text,
                       lastName: lastNameController.text,
+                      aboutMe: aboutMeController.text,
                     );
                   }
                 },
-                child: state.processStatus == Status.loading ? CupertinoActivityIndicator() : Text(context.t.common.save),
+                child: state.networkStatus == Status.loading ? CupertinoActivityIndicator() : Text(context.t.common.save),
               ),
             ),
           ),
@@ -213,6 +232,7 @@ class _SettingsMyProfileCupertino extends State<SettingsMyProfileCupertino> {
                                           CupertinoButton(
                                             onPressed: () {
                                               cubit.setBirthDate(selectedBirthDate);
+                                              birthDateController.text = selectedBirthDate.toIso8601String();
                                               Navigator.pop(context);
                                             },
                                             child: Text(
@@ -235,9 +255,7 @@ class _SettingsMyProfileCupertino extends State<SettingsMyProfileCupertino> {
                                         minimumDate: DateTime(DateTime.now().year - 100, DateTime.now().month, DateTime.now().day),
                                         maximumDate: DateTime.now(),
                                         showDayOfWeek: false,
-                                        onDateTimeChanged: (DateTime birthDate) {
-                                          selectedBirthDate = birthDate;
-                                        },
+                                        onDateTimeChanged: (DateTime birthDate) => selectedBirthDate = birthDate,
                                       ),
                                     ),
                                     if (state.birthDate != null) ...[
@@ -245,6 +263,7 @@ class _SettingsMyProfileCupertino extends State<SettingsMyProfileCupertino> {
                                       CupertinoButton(
                                         onPressed: () {
                                           cubit.clearBirthDate();
+                                          birthDateController.text = "";
                                           Navigator.pop(context);
                                         },
                                         child: Text(

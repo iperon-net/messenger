@@ -33,16 +33,15 @@ const MyProfile_Response$json = {
     {'1': 'firstName', '3': 1, '4': 1, '5': 9, '10': 'firstName'},
     {'1': 'lastName', '3': 2, '4': 1, '5': 9, '10': 'lastName'},
     {'1': 'aboutMe', '3': 4, '4': 1, '5': 9, '10': 'aboutMe'},
-    {'1': 'dateBirth', '3': 3, '4': 1, '5': 11, '6': '.iperon.v1.Date', '10': 'dateBirth'},
+    {'1': 'birthDate', '3': 3, '4': 1, '5': 9, '10': 'birthDate'},
   ],
 };
 
 /// Descriptor for `MyProfile`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List myProfileDescriptor =
-    $convert.base64Decode('CglNeVByb2ZpbGUaCQoHUmVxdWVzdBqNAQoIUmVzcG9uc2USHAoJZmlyc3ROYW1lGAEgASgJUg'
-        'lmaXJzdE5hbWUSGgoIbGFzdE5hbWUYAiABKAlSCGxhc3ROYW1lEhgKB2Fib3V0TWUYBCABKAlS'
-        'B2Fib3V0TWUSLQoJZGF0ZUJpcnRoGAMgASgLMg8uaXBlcm9uLnYxLkRhdGVSCWRhdGVCaXJ0aA'
-        '==');
+    $convert.base64Decode('CglNeVByb2ZpbGUaCQoHUmVxdWVzdBp8CghSZXNwb25zZRIcCglmaXJzdE5hbWUYASABKAlSCW'
+        'ZpcnN0TmFtZRIaCghsYXN0TmFtZRgCIAEoCVIIbGFzdE5hbWUSGAoHYWJvdXRNZRgEIAEoCVIH'
+        'YWJvdXRNZRIcCgliaXJ0aERhdGUYAyABKAlSCWJpcnRoRGF0ZQ==');
 
 @$core.Deprecated('Use myProfileEditDescriptor instead')
 const MyProfileEdit$json = {
@@ -57,7 +56,7 @@ const MyProfileEdit_Request$json = {
     {'1': 'firstName', '3': 1, '4': 1, '5': 9, '10': 'firstName'},
     {'1': 'lastName', '3': 2, '4': 1, '5': 9, '10': 'lastName'},
     {'1': 'aboutMe', '3': 4, '4': 1, '5': 9, '10': 'aboutMe'},
-    {'1': 'dateBirth', '3': 3, '4': 1, '5': 11, '6': '.iperon.v1.Date', '10': 'dateBirth'},
+    {'1': 'birthDate', '3': 3, '4': 1, '5': 9, '10': 'birthDate'},
   ],
 };
 
@@ -68,7 +67,6 @@ const MyProfileEdit_Response$json = {
 
 /// Descriptor for `MyProfileEdit`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List myProfileEditDescriptor =
-    $convert.base64Decode('Cg1NeVByb2ZpbGVFZGl0GowBCgdSZXF1ZXN0EhwKCWZpcnN0TmFtZRgBIAEoCVIJZmlyc3ROYW'
-        '1lEhoKCGxhc3ROYW1lGAIgASgJUghsYXN0TmFtZRIYCgdhYm91dE1lGAQgASgJUgdhYm91dE1l'
-        'Ei0KCWRhdGVCaXJ0aBgDIAEoCzIPLmlwZXJvbi52MS5EYXRlUglkYXRlQmlydGgaCgoIUmVzcG'
-        '9uc2U=');
+    $convert.base64Decode('Cg1NeVByb2ZpbGVFZGl0GnsKB1JlcXVlc3QSHAoJZmlyc3ROYW1lGAEgASgJUglmaXJzdE5hbW'
+        'USGgoIbGFzdE5hbWUYAiABKAlSCGxhc3ROYW1lEhgKB2Fib3V0TWUYBCABKAlSB2Fib3V0TWUS'
+        'HAoJYmlydGhEYXRlGAMgASgJUgliaXJ0aERhdGUaCgoIUmVzcG9uc2U=');

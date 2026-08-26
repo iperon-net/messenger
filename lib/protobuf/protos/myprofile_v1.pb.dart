@@ -14,8 +14,6 @@ import 'dart:core' as $core;
 
 import 'package:protobuf/protobuf.dart' as $pb;
 
-import 'models.pb.dart' as $0;
-
 export 'package:protobuf/protobuf.dart' show GeneratedMessageGenericExtensions;
 
 class MyProfile_Request extends $pb.GeneratedMessage {
@@ -54,13 +52,13 @@ class MyProfile_Response extends $pb.GeneratedMessage {
   factory MyProfile_Response({
     $core.String? firstName,
     $core.String? lastName,
-    $0.Date? dateBirth,
+    $core.String? birthDate,
     $core.String? aboutMe,
   }) {
     final result = create();
     if (firstName != null) result.firstName = firstName;
     if (lastName != null) result.lastName = lastName;
-    if (dateBirth != null) result.dateBirth = dateBirth;
+    if (birthDate != null) result.birthDate = birthDate;
     if (aboutMe != null) result.aboutMe = aboutMe;
     return result;
   }
@@ -76,7 +74,7 @@ class MyProfile_Response extends $pb.GeneratedMessage {
       package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'firstName', protoName: 'firstName')
     ..aOS(2, _omitFieldNames ? '' : 'lastName', protoName: 'lastName')
-    ..aOM<$0.Date>(3, _omitFieldNames ? '' : 'dateBirth', protoName: 'dateBirth', subBuilder: $0.Date.create)
+    ..aOS(3, _omitFieldNames ? '' : 'birthDate', protoName: 'birthDate')
     ..aOS(4, _omitFieldNames ? '' : 'aboutMe', protoName: 'aboutMe')
     ..hasRequiredFields = false;
 
@@ -116,15 +114,13 @@ class MyProfile_Response extends $pb.GeneratedMessage {
   void clearLastName() => $_clearField(2);
 
   @$pb.TagNumber(3)
-  $0.Date get dateBirth => $_getN(2);
+  $core.String get birthDate => $_getSZ(2);
   @$pb.TagNumber(3)
-  set dateBirth($0.Date value) => $_setField(3, value);
+  set birthDate($core.String value) => $_setString(2, value);
   @$pb.TagNumber(3)
-  $core.bool hasDateBirth() => $_has(2);
+  $core.bool hasBirthDate() => $_has(2);
   @$pb.TagNumber(3)
-  void clearDateBirth() => $_clearField(3);
-  @$pb.TagNumber(3)
-  $0.Date ensureDateBirth() => $_ensure(2);
+  void clearBirthDate() => $_clearField(3);
 
   @$pb.TagNumber(4)
   $core.String get aboutMe => $_getSZ(3);
@@ -171,13 +167,13 @@ class MyProfileEdit_Request extends $pb.GeneratedMessage {
   factory MyProfileEdit_Request({
     $core.String? firstName,
     $core.String? lastName,
-    $0.Date? dateBirth,
+    $core.String? birthDate,
     $core.String? aboutMe,
   }) {
     final result = create();
     if (firstName != null) result.firstName = firstName;
     if (lastName != null) result.lastName = lastName;
-    if (dateBirth != null) result.dateBirth = dateBirth;
+    if (birthDate != null) result.birthDate = birthDate;
     if (aboutMe != null) result.aboutMe = aboutMe;
     return result;
   }
@@ -193,7 +189,7 @@ class MyProfileEdit_Request extends $pb.GeneratedMessage {
       package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'firstName', protoName: 'firstName')
     ..aOS(2, _omitFieldNames ? '' : 'lastName', protoName: 'lastName')
-    ..aOM<$0.Date>(3, _omitFieldNames ? '' : 'dateBirth', protoName: 'dateBirth', subBuilder: $0.Date.create)
+    ..aOS(3, _omitFieldNames ? '' : 'birthDate', protoName: 'birthDate')
     ..aOS(4, _omitFieldNames ? '' : 'aboutMe', protoName: 'aboutMe')
     ..hasRequiredFields = false;
 
@@ -233,15 +229,13 @@ class MyProfileEdit_Request extends $pb.GeneratedMessage {
   void clearLastName() => $_clearField(2);
 
   @$pb.TagNumber(3)
-  $0.Date get dateBirth => $_getN(2);
+  $core.String get birthDate => $_getSZ(2);
   @$pb.TagNumber(3)
-  set dateBirth($0.Date value) => $_setField(3, value);
+  set birthDate($core.String value) => $_setString(2, value);
   @$pb.TagNumber(3)
-  $core.bool hasDateBirth() => $_has(2);
+  $core.bool hasBirthDate() => $_has(2);
   @$pb.TagNumber(3)
-  void clearDateBirth() => $_clearField(3);
-  @$pb.TagNumber(3)
-  $0.Date ensureDateBirth() => $_ensure(2);
+  void clearBirthDate() => $_clearField(3);
 
   @$pb.TagNumber(4)
   $core.String get aboutMe => $_getSZ(3);

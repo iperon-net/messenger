@@ -30,10 +30,10 @@ class SettingsMyProfileStateMapper
     opt: true,
     def: Status.initialization,
   );
-  static Status _$processStatus(SettingsMyProfileState v) => v.processStatus;
-  static const Field<SettingsMyProfileState, Status> _f$processStatus = Field(
-    'processStatus',
-    _$processStatus,
+  static Status _$networkStatus(SettingsMyProfileState v) => v.networkStatus;
+  static const Field<SettingsMyProfileState, Status> _f$networkStatus = Field(
+    'networkStatus',
+    _$networkStatus,
     opt: true,
     def: Status.initialization,
   );
@@ -43,6 +43,40 @@ class SettingsMyProfileStateMapper
     _$error,
     opt: true,
     def: "",
+  );
+  static String _$redirectURI(SettingsMyProfileState v) => v.redirectURI;
+  static const Field<SettingsMyProfileState, String> _f$redirectURI = Field(
+    'redirectURI',
+    _$redirectURI,
+    opt: true,
+    def: "",
+  );
+  static String _$firstName(SettingsMyProfileState v) => v.firstName;
+  static const Field<SettingsMyProfileState, String> _f$firstName = Field(
+    'firstName',
+    _$firstName,
+    opt: true,
+    def: "",
+  );
+  static String _$lastName(SettingsMyProfileState v) => v.lastName;
+  static const Field<SettingsMyProfileState, String> _f$lastName = Field(
+    'lastName',
+    _$lastName,
+    opt: true,
+    def: "",
+  );
+  static String _$aboutMe(SettingsMyProfileState v) => v.aboutMe;
+  static const Field<SettingsMyProfileState, String> _f$aboutMe = Field(
+    'aboutMe',
+    _$aboutMe,
+    opt: true,
+    def: "",
+  );
+  static DateTime? _$birthDate(SettingsMyProfileState v) => v.birthDate;
+  static const Field<SettingsMyProfileState, DateTime> _f$birthDate = Field(
+    'birthDate',
+    _$birthDate,
+    opt: true,
   );
   static String _$boringAvatarHash(SettingsMyProfileState v) =>
       v.boringAvatarHash;
@@ -57,12 +91,6 @@ class SettingsMyProfileStateMapper
     opt: true,
     def: BoringAvatarType.ring,
   );
-  static DateTime? _$birthDate(SettingsMyProfileState v) => v.birthDate;
-  static const Field<SettingsMyProfileState, DateTime> _f$birthDate = Field(
-    'birthDate',
-    _$birthDate,
-    opt: true,
-  );
   static int _$aboutMeLength(SettingsMyProfileState v) => v.aboutMeLength;
   static const Field<SettingsMyProfileState, int> _f$aboutMeLength = Field(
     'aboutMeLength',
@@ -74,22 +102,30 @@ class SettingsMyProfileStateMapper
   @override
   final MappableFields<SettingsMyProfileState> fields = const {
     #status: _f$status,
-    #processStatus: _f$processStatus,
+    #networkStatus: _f$networkStatus,
     #error: _f$error,
+    #redirectURI: _f$redirectURI,
+    #firstName: _f$firstName,
+    #lastName: _f$lastName,
+    #aboutMe: _f$aboutMe,
+    #birthDate: _f$birthDate,
     #boringAvatarHash: _f$boringAvatarHash,
     #boringAvatarType: _f$boringAvatarType,
-    #birthDate: _f$birthDate,
     #aboutMeLength: _f$aboutMeLength,
   };
 
   static SettingsMyProfileState _instantiate(DecodingData data) {
     return SettingsMyProfileState(
       status: data.dec(_f$status),
-      processStatus: data.dec(_f$processStatus),
+      networkStatus: data.dec(_f$networkStatus),
       error: data.dec(_f$error),
+      redirectURI: data.dec(_f$redirectURI),
+      firstName: data.dec(_f$firstName),
+      lastName: data.dec(_f$lastName),
+      aboutMe: data.dec(_f$aboutMe),
+      birthDate: data.dec(_f$birthDate),
       boringAvatarHash: data.dec(_f$boringAvatarHash),
       boringAvatarType: data.dec(_f$boringAvatarType),
-      birthDate: data.dec(_f$birthDate),
       aboutMeLength: data.dec(_f$aboutMeLength),
     );
   }
@@ -166,11 +202,15 @@ abstract class SettingsMyProfileStateCopyWith<
     implements ClassCopyWith<$R, $In, $Out> {
   $R call({
     Status? status,
-    Status? processStatus,
+    Status? networkStatus,
     String? error,
+    String? redirectURI,
+    String? firstName,
+    String? lastName,
+    String? aboutMe,
+    DateTime? birthDate,
     String? boringAvatarHash,
     BoringAvatarType? boringAvatarType,
-    DateTime? birthDate,
     int? aboutMeLength,
   });
   SettingsMyProfileStateCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
@@ -190,31 +230,43 @@ class _SettingsMyProfileStateCopyWithImpl<$R, $Out>
   @override
   $R call({
     Status? status,
-    Status? processStatus,
+    Status? networkStatus,
     String? error,
+    String? redirectURI,
+    String? firstName,
+    String? lastName,
+    String? aboutMe,
+    Object? birthDate = $none,
     String? boringAvatarHash,
     BoringAvatarType? boringAvatarType,
-    Object? birthDate = $none,
     int? aboutMeLength,
   }) => $apply(
     FieldCopyWithData({
       if (status != null) #status: status,
-      if (processStatus != null) #processStatus: processStatus,
+      if (networkStatus != null) #networkStatus: networkStatus,
       if (error != null) #error: error,
+      if (redirectURI != null) #redirectURI: redirectURI,
+      if (firstName != null) #firstName: firstName,
+      if (lastName != null) #lastName: lastName,
+      if (aboutMe != null) #aboutMe: aboutMe,
+      if (birthDate != $none) #birthDate: birthDate,
       if (boringAvatarHash != null) #boringAvatarHash: boringAvatarHash,
       if (boringAvatarType != null) #boringAvatarType: boringAvatarType,
-      if (birthDate != $none) #birthDate: birthDate,
       if (aboutMeLength != null) #aboutMeLength: aboutMeLength,
     }),
   );
   @override
   SettingsMyProfileState $make(CopyWithData data) => SettingsMyProfileState(
     status: data.get(#status, or: $value.status),
-    processStatus: data.get(#processStatus, or: $value.processStatus),
+    networkStatus: data.get(#networkStatus, or: $value.networkStatus),
     error: data.get(#error, or: $value.error),
+    redirectURI: data.get(#redirectURI, or: $value.redirectURI),
+    firstName: data.get(#firstName, or: $value.firstName),
+    lastName: data.get(#lastName, or: $value.lastName),
+    aboutMe: data.get(#aboutMe, or: $value.aboutMe),
+    birthDate: data.get(#birthDate, or: $value.birthDate),
     boringAvatarHash: data.get(#boringAvatarHash, or: $value.boringAvatarHash),
     boringAvatarType: data.get(#boringAvatarType, or: $value.boringAvatarType),
-    birthDate: data.get(#birthDate, or: $value.birthDate),
     aboutMeLength: data.get(#aboutMeLength, or: $value.aboutMeLength),
   );
 

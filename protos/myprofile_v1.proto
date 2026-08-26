@@ -13,7 +13,7 @@ message MyProfile {
     string firstName = 1;
     string lastName = 2;
     string aboutMe = 4;
-    Date dateBirth = 3;
+    string birthDate = 3;
   }
 }
 
@@ -22,7 +22,7 @@ message MyProfileEdit {
     string firstName = 1;
     string lastName = 2;
     string aboutMe = 4;
-    Date dateBirth = 3;
+    string birthDate = 3;
   }
 
   message Response {

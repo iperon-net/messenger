@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:typed_data';
+
 import 'package:bloc/bloc.dart';
 
 import '../../api.dart';
@@ -6,6 +9,7 @@ import '../../constants.dart';
 import '../../di.dart';
 import '../../logger.dart';
 
+import '../../protobuf.dart';
 import '../../repositories/repositories.dart';
 import '../../utils.dart';
 import 'settings_my_profile_state.dart';
@@ -25,11 +29,30 @@ class SettingsMyProfileCubit extends Cubit<SettingsMyProfileState> {
   final utils = getIt.get<Utils>();
   final repositories = getIt.get<Repositories>();
 
+  StreamSubscription<Uint8List>? _subscription;
+
   Future<void> initialization() async {
     emit(state.copyWith(status: Status.loading));
 
+    // Subscription
+    _subscription = api.on(MessageType.MY_PROFILE).listen((payload) {
+      if (isClosed) return;
+
+      final response = MyProfile_Response.fromBuffer(payload);
+      logger.debug(response.toString());
+
+      emit(state.copyWith(firstName: response.firstName, lastName: response.lastName, aboutMe: response.aboutMe));
+
+      if (response.birthDate.isNotEmpty) {
+        emit(state.copyWith(birthDate: DateTime.parse(response.birthDate.toString())));
+      }
+    });
+
+    // Send
+    await api.sendEncoded(MessageType.MY_PROFILE, MyProfile_Request().writeToBuffer());
+    if (isClosed) return;
+
     final avatar = await utils.boringAvatar(auth.session.getUserIDObjectID());
-    logger.debug(avatar);
 
     emit(state.copyWith(status: Status.success, boringAvatarHash: avatar.hash, boringAvatarType: avatar.type));
   }
@@ -61,12 +84,30 @@ class SettingsMyProfileCubit extends Cubit<SettingsMyProfileState> {
     emit(state.copyWith(aboutMeLength: aboutMeLength));
   }
 
-  Future<void> setProfile({DateTime? birthDate, required String firstName, required String lastName}) async {
-    emit(state.copyWith(processStatus: Status.loading));
+  Future<void> setProfile({required String birthDate, required String firstName, required String lastName, required String aboutMe}) async {
+    emit(state.copyWith(networkStatus: Status.loading));
 
-    await Future.delayed(Duration(seconds: 10));
+    if (birthDate.isNotEmpty) {
+      birthDate = DateTime.parse(birthDate).toIso8601String();
+    }
+
+    final status = await api.unaryEncoded(
+      MessageType.MY_PROFILE_EDIT,
+      MyProfileEdit_Request(firstName: firstName, lastName: lastName, aboutMe: aboutMe, birthDate: birthDate).writeToBuffer(),
+    );
+
+    logger.debug("status=$status");
 
     logger.debug("birthDate=$birthDate");
-    emit(state.copyWith(processStatus: Status.success));
+    logger.debug("firstName=$firstName");
+    logger.debug("lastName=$lastName");
+    logger.debug("aboutMe=$aboutMe");
+    emit(state.copyWith(networkStatus: Status.success));
+  }
+
+  @override
+  Future<void> close() {
+    _subscription?.cancel();
+    return super.close();
   }
 }
