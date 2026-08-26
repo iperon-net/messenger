@@ -75,6 +75,7 @@ class _Translations$common$ru extends Translations$common$en {
 	@override String get done => 'Готово';
 	@override String get biometricAuthenticateReason => 'Пройдите аутентификацию для разблокировки';
 	@override String get biometricPleaseEnterPasscode => 'Введите код-пароль';
+	@override String get edit => 'Изменить';
 }
 
 // Path: componentsConnectionTitle
@@ -361,6 +362,7 @@ extension on TranslationsRu {
 			'common.done' => 'Готово',
 			'common.biometricAuthenticateReason' => 'Пройдите аутентификацию для разблокировки',
 			'common.biometricPleaseEnterPasscode' => 'Введите код-пароль',
+			'common.edit' => 'Изменить',
 			'componentsConnectionTitle.waitingForNetwork' => 'Ожидание сети',
 			'componentsConnectionTitle.connecting' => 'Подключение',
 			'componentsConnectionTitle.updating' => 'Обновление',

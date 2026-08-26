@@ -8,6 +8,7 @@
   "done": "Done"
   "biometricAuthenticateReason": "Authenticate to unlock"
   "biometricPleaseEnterPasscode": "Please enter passcode"
+  "edit": "Edit"
 
 "componentsConnectionTitle":
   "waitingForNetwork": "Waiting for network"

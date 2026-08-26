@@ -1,6 +1,6 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intl/intl.dart';
+import 'package:flutter_boring_avatars/flutter_boring_avatars.dart';
 import 'package:messenger/constants.dart';
 import '../../cubit.dart';
 import '../../di.dart';
@@ -75,19 +75,8 @@ class _SettingsMyProfileCupertino extends State<SettingsMyProfileCupertino> {
               leading: CupertinoButton(padding: EdgeInsets.zero, onPressed: () => context.pop(), child: Text(context.t.common.cancel)),
               trailing: CupertinoButton(
                 padding: EdgeInsets.zero,
-                onPressed: () async {
-                  if (formKey.currentState!.validate()) {
-                    logger.debug(birthDateController.text);
-
-                    await context.read<SettingsMyProfileCubit>().setProfile(
-                      birthDate: birthDateController.text,
-                      firstName: firstNameController.text,
-                      lastName: lastNameController.text,
-                      aboutMe: aboutMeController.text,
-                    );
-                  }
-                },
-                child: state.networkStatus == Status.loading ? CupertinoActivityIndicator() : Text(context.t.common.save),
+                onPressed: () async {},
+                child: state.networkStatus == Status.loading ? CupertinoActivityIndicator() : Text(context.t.common.edit),
               ),
             ),
           ),
@@ -96,81 +85,45 @@ class _SettingsMyProfileCupertino extends State<SettingsMyProfileCupertino> {
             child: SafeArea(
               child: ListView(
                 children: [
-                  // const SizedBox(height: 12),
-                  // // Аватарка с кнопкой выбора фото.
-                  // Center(
-                  //   child: GestureDetector(
-                  //     onTap: _pickPhoto,
-                  //     behavior: HitTestBehavior.opaque,
-                  //     child: Column(
-                  //       children: [
-                  //         Stack(
-                  //           children: [
-                  //             SizedBox(
-                  //               width: 96,
-                  //               height: 96,
-                  //               child: AnimatedBoringAvatar(
-                  //                 name: state.boringAvatarHash,
-                  //                 type: state.boringAvatarType,
-                  //                 shape: const CircleBorder(),
-                  //                 curve: Curves.bounceIn,
-                  //                 duration: const Duration(seconds: 1),
-                  //               ),
-                  //             ),
-                  //           ],
-                  //         ),
-                  //         const SizedBox(height: 8),
-                  //         Text(
-                  //           "Изменить фото",
-                  //           style: TextStyle(
-                  //             fontSize: 16,
-                  //             color: CupertinoDynamicColor.withBrightness(
-                  //               color: CupertinoTheme.of(context).primaryColor,
-                  //               darkColor: CupertinoColors.white,
-                  //             ).resolveFrom(context),
-                  //           ),
-                  //         ),
-                  //       ],
-                  //     ),
-                  //   ),
-                  // ),
-                  const SizedBox(height: 20),
-                  CupertinoFormSection.insetGrouped(
-                    clipBehavior: Clip.antiAlias,
-                    backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
-                    decoration: BoxDecoration(
-                      color: ThemesCupertino.groupedCard.resolveFrom(context),
-                      borderRadius: const BorderRadius.all(Radius.circular(18)),
+                  const SizedBox(height: 12),
+                  // Аватарка с кнопкой выбора фото.
+                  Center(
+                    child: GestureDetector(
+                      onTap: () {},
+                      behavior: HitTestBehavior.opaque,
+                      child: Column(
+                        children: [
+                          Stack(
+                            children: [
+                              SizedBox(
+                                width: 96,
+                                height: 96,
+                                child: AnimatedBoringAvatar(
+                                  name: state.boringAvatarHash,
+                                  type: state.boringAvatarType,
+                                  shape: const CircleBorder(),
+                                  curve: Curves.bounceIn,
+                                  duration: const Duration(seconds: 1),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            "Изменить фото",
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: CupertinoDynamicColor.withBrightness(
+                                color: CupertinoTheme.of(context).primaryColor,
+                                darkColor: CupertinoColors.white,
+                              ).resolveFrom(context),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                    children: [
-                      CupertinoTextFormFieldRow(
-                        placeholder: context.t.screenMyProfile.firstName,
-                        controller: firstNameController,
-                        focusNode: firstNameFocus,
-                        validator: (value) {
-                          final error = switch (context.read<SettingsMyProfileCubit>().validateFirstName(value)) {
-                            FirstNameValidationError.maxLength => context.t.screenMyProfile.validationFirstNameMaxLength,
-                            null => null,
-                          };
-                          return error;
-                        },
-                      ),
-                      CupertinoTextFormFieldRow(
-                        placeholder: context.t.screenMyProfile.lastName,
-                        controller: lastNameController,
-                        focusNode: lastNameFocus,
-                        validator: (value) {
-                          final error = switch (context.read<SettingsMyProfileCubit>().validateFirstName(value)) {
-                            FirstNameValidationError.maxLength => context.t.screenMyProfile.validationLastNameMaxLength,
-                            null => null,
-                          };
-                          return error;
-                        },
-                      ),
-                    ],
                   ),
-
-                  // Дата рождения.
+                  const SizedBox(height: 20),
                   CupertinoListSection.insetGrouped(
                     clipBehavior: Clip.antiAlias,
                     backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
@@ -180,140 +133,86 @@ class _SettingsMyProfileCupertino extends State<SettingsMyProfileCupertino> {
                     ),
                     // footer: Text("Удалить"),
                     children: [
-                      CupertinoListTileIcon(
-                        title: Text(context.t.screenMyProfile.birthDate),
-                        color: Color(0xFFC50CA9),
-                        icon: FontAwesomeIcons.cakeCandles,
-                        additionalInfo: state.birthDate != null
-                            // Дату форматирует intl (DateFormat без локали → Intl.defaultLocale,
-                            // напр. en_GB → 22/08/2026), а slang лишь вставляет готовую строку.
-                            // Формат `{date: yMd}` в slang не годится: он зашивает локаль
-                            // перевода ('en'/'ru') и игнорирует регион.
-                            ? Text(
-                                context.t.screenMyProfile.birthDayFormat(date: DateFormat.yMd().format(state.birthDate ?? DateTime.now())),
-                              )
-                            : Text(context.t.screenMyProfile.add),
-                        isTrailing: state.birthDate != null ? true : false,
-                        onTab: () async {
-                          final cubit = context.read<SettingsMyProfileCubit>();
-                          // Пикер по умолчанию показывает эту дату. Держим выбор в
-                          // переменной, а не в контроллере: onDateTimeChanged
-                          // срабатывает только при прокрутке, и без него «Готово»
-                          // читало бы пустую строку → FormatException.
-                          DateTime selectedBirthDate = state.birthDate ?? DateTime.now();
-                          showCupertinoModalPopup<void>(
-                            context: context,
-                            builder: (BuildContext context) => Container(
-                              height: 350,
-                              padding: const .only(top: 6.0),
-                              margin: .only(bottom: MediaQuery.of(context).viewInsets.bottom),
-                              color: CupertinoColors.systemBackground.resolveFrom(context),
-                              child: SafeArea(
-                                top: false,
-                                child: Column(
-                                  children: [
-                                    SizedBox(
-                                      height: 50,
-                                      child: Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          CupertinoButton(
-                                            onPressed: () => Navigator.pop(context),
-                                            child: Text(
-                                              context.t.screenMyProfile.cancel,
-                                              style: TextStyle(
-                                                color: CupertinoDynamicColor.withBrightness(
-                                                  color: CupertinoTheme.of(context).primaryColor,
-                                                  darkColor: CupertinoColors.white,
-                                                ).resolveFrom(context),
-                                              ),
-                                            ),
-                                          ),
-                                          CupertinoButton(
-                                            onPressed: () {
-                                              cubit.setBirthDate(selectedBirthDate);
-                                              birthDateController.text = selectedBirthDate.toIso8601String();
-                                              Navigator.pop(context);
-                                            },
-                                            child: Text(
-                                              context.t.screenMyProfile.done,
-                                              style: TextStyle(
-                                                color: CupertinoDynamicColor.withBrightness(
-                                                  color: CupertinoTheme.of(context).primaryColor,
-                                                  darkColor: CupertinoColors.white,
-                                                ).resolveFrom(context),
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    Expanded(
-                                      child: CupertinoDatePicker(
-                                        initialDateTime: state.birthDate ?? DateTime.now(),
-                                        mode: CupertinoDatePickerMode.date,
-                                        minimumDate: DateTime(DateTime.now().year - 100, DateTime.now().month, DateTime.now().day),
-                                        maximumDate: DateTime.now(),
-                                        showDayOfWeek: false,
-                                        onDateTimeChanged: (DateTime birthDate) => selectedBirthDate = birthDate,
-                                      ),
-                                    ),
-                                    if (state.birthDate != null) ...[
-                                      SizedBox(height: 10),
-                                      CupertinoButton(
-                                        onPressed: () {
-                                          cubit.clearBirthDate();
-                                          birthDateController.text = "";
-                                          Navigator.pop(context);
-                                        },
-                                        child: Text(
-                                          context.t.screenMyProfile.birthDayRemove,
-                                          style: TextStyle(color: CupertinoColors.systemRed),
-                                        ),
-                                      ),
-                                    ],
-                                  ],
-                                ),
+                      CupertinoListTile(
+                        title: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Фамилия', style: TextStyle(fontSize: MediaQuery.textScalerOf(context).scale(16))),
+                            Text(
+                              'Тен',
+                              style: TextStyle(
+                                fontSize: MediaQuery.textScalerOf(context).scale(17),
+                                color: CupertinoDynamicColor.withBrightness(
+                                  color: CupertinoTheme.of(context).primaryColor,
+                                  darkColor: CupertinoColors.white.withValues(alpha: 0.5),
+                                ).resolveFrom(context),
                               ),
                             ),
-                          );
-                        },
+                          ],
+                        ),
+                        padding: EdgeInsets.all(10),
+                        onTap: () {},
                       ),
-                      // CupertinoButton(padding: EdgeInsetsGeometry.zero, child: Text("dddd"), onPressed: () {}),
-                      // CupertinoListTile(
-                      //   padding: EdgeInsets.only(left: 18),
-                      //   title: Text(
-                      //     "Удалить",
-                      //     style: TextStyle(fontWeight: FontWeight.normal, color: CupertinoColors.destructiveRed),
-                      //   ),
-                      //   onTap: () async => null,
-                      // ),
-                    ],
-                  ),
-                  CupertinoFormSection.insetGrouped(
-                    header: Text(context.t.screenMyProfile.aboutMe.toUpperCase()),
-                    clipBehavior: Clip.antiAlias,
-                    backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
-                    decoration: BoxDecoration(
-                      color: ThemesCupertino.groupedCard.resolveFrom(context),
-                      borderRadius: const BorderRadius.all(Radius.circular(18)),
-                    ),
-                    footer: state.aboutMeLength > 0 ? Text("${state.aboutMeLength}/70") : null,
-                    children: [
-                      CupertinoTextFormFieldRow(
-                        controller: aboutMeController,
-                        focusNode: aboutMeFocus,
-                        placeholder: context.t.screenMyProfile.tellUsAboutYourself,
-                        maxLines: 2,
-                        maxLength: 70,
-                        validator: (value) {
-                          final error = switch (context.read<SettingsMyProfileCubit>().validateAboutMe(value)) {
-                            AboutMeValidationError.maxLength => context.t.screenMyProfile.validationAboutMeMaxLength,
-                            null => null,
-                          };
-                          return error;
-                        },
-                        onChanged: (value) => context.read<SettingsMyProfileCubit>().setAboutMeLength(value.length),
+                      CupertinoListTile(
+                        title: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Имя', style: TextStyle(fontSize: MediaQuery.textScalerOf(context).scale(16))),
+                            Text(
+                              'Костя',
+                              style: TextStyle(
+                                fontSize: MediaQuery.textScalerOf(context).scale(17),
+                                color: CupertinoDynamicColor.withBrightness(
+                                  color: CupertinoTheme.of(context).primaryColor,
+                                  darkColor: CupertinoColors.white.withValues(alpha: 0.5),
+                                ).resolveFrom(context),
+                              ),
+                            ),
+                          ],
+                        ),
+                        padding: EdgeInsets.all(10),
+                        onTap: () {},
+                      ),
+
+                      CupertinoListTile(
+                        title: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Мобильный', style: TextStyle(fontSize: MediaQuery.textScalerOf(context).scale(16))),
+                            Text(
+                              '+7 909 160 00 44',
+                              style: TextStyle(
+                                fontSize: MediaQuery.textScalerOf(context).scale(17),
+                                color: CupertinoDynamicColor.withBrightness(
+                                  color: CupertinoTheme.of(context).primaryColor,
+                                  darkColor: CupertinoColors.white.withValues(alpha: 0.5),
+                                ).resolveFrom(context),
+                              ),
+                            ),
+                          ],
+                        ),
+                        padding: EdgeInsets.all(10),
+                        onTap: () {},
+                      ),
+                      CupertinoListTile(
+                        title: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Имя пользователя', style: TextStyle(fontSize: MediaQuery.textScalerOf(context).scale(16))),
+                            Text(
+                              '@kostya',
+                              style: TextStyle(
+                                fontSize: MediaQuery.textScalerOf(context).scale(17),
+                                color: CupertinoDynamicColor.withBrightness(
+                                  color: CupertinoTheme.of(context).primaryColor,
+                                  darkColor: CupertinoColors.white.withValues(alpha: 0.5),
+                                ).resolveFrom(context),
+                              ),
+                            ),
+                          ],
+                        ),
+                        padding: EdgeInsets.all(10),
+                        onTap: () {},
                       ),
                     ],
                   ),
@@ -327,6 +226,14 @@ class _SettingsMyProfileCupertino extends State<SettingsMyProfileCupertino> {
                     ),
                     children: [
                       CupertinoListTileIcon(
+                        title: const Text("Номер"),
+                        color: Color(0xFF049A40),
+                        icon: FontAwesomeIcons.phone,
+                        onTab: () async {},
+                        additionalInfo: Text("+7 909 160-00-44"),
+                        isTrailing: true,
+                      ),
+                      CupertinoListTileIcon(
                         title: Text(context.t.screenMyProfile.username),
                         color: Color(0xFF3B74BF),
                         icon: FontAwesomeIcons.at,
@@ -334,14 +241,26 @@ class _SettingsMyProfileCupertino extends State<SettingsMyProfileCupertino> {
                         additionalInfo: Text(context.t.screenMyProfile.add),
                         isTrailing: true,
                       ),
-                      // CupertinoListTileIcon(
-                      //   title: const Text("Номер"),
-                      //   color: Color(0xFF049A40),
-                      //   icon: FontAwesomeIcons.phone,
-                      //   onTab: () async => _pickBirthDate,
-                      //   additionalInfo: Text("+7 909 160-00-44"),
-                      //   isTrailing: true,
-                      // ),
+                    ],
+                  ),
+
+                  CupertinoListSection.insetGrouped(
+                    clipBehavior: Clip.antiAlias,
+                    backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
+                    decoration: BoxDecoration(
+                      color: ThemesCupertino.groupedCard.resolveFrom(context),
+                      borderRadius: const BorderRadius.all(Radius.circular(18)),
+                    ),
+                    children: [
+                      SizedBox(
+                        width: double.infinity,
+                        child: CupertinoButton.filled(
+                          onPressed: () {},
+                          color: CupertinoColors.systemRed.withValues(alpha: 0.7),
+                          foregroundColor: CupertinoColors.white,
+                          child: Text("Удалить аккаунт"),
+                        ),
+                      ),
                     ],
                   ),
                 ],

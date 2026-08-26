@@ -94,6 +94,9 @@ class Translations$common$en {
 
 	/// en: 'Please enter passcode'
 	String get biometricPleaseEnterPasscode => 'Please enter passcode';
+
+	/// en: 'Edit'
+	String get edit => 'Edit';
 }
 
 // Path: componentsConnectionTitle
@@ -596,6 +599,7 @@ extension on Translations {
 			'common.done' => 'Done',
 			'common.biometricAuthenticateReason' => 'Authenticate to unlock',
 			'common.biometricPleaseEnterPasscode' => 'Please enter passcode',
+			'common.edit' => 'Edit',
 			'componentsConnectionTitle.waitingForNetwork' => 'Waiting for network',
 			'componentsConnectionTitle.connecting' => 'Connecting',
 			'componentsConnectionTitle.updating' => 'Updating',

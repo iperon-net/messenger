@@ -85,6 +85,19 @@ class Routers {
                       child: SettingsMyProfileCupertino(),
                     ),
                   ),
+                  routes: [
+                    GoRoute(
+                      path: "edit",
+                      parentNavigatorKey: rootNavigatorKey,
+                      pageBuilder: (context, state) => _page(
+                        state,
+                        BlocProvider<SettingsMyProfileEditCubit>(
+                          create: (_) => SettingsMyProfileEditCubit()..initialization(),
+                          child: SettingsMyProfileEditCupertino(),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
                 GoRoute(
                   path: "privacy_and_security",
