@@ -116,8 +116,14 @@
   "validationAboutMeMaxLength": "Должно содержать не более 140 символов"
   "cancel": "@:common.cancel"
   "done": "@:common.done"
+  "edit": "@:common.edit"
   "birthDayFormat": "{date}"
   "birthDayRemove": "Удалить дату рождения"
+  "editPhoto": "Изменить фото"
+  "mobilePhone": "Мобильный номер телефона"
+  "number": "Номер"
+  "copy": "Скопировать"
+  "copied": "Скопировано"
 
 "screenAuth":
   "enterYourMobilePhoneNumber": "Введите номер мобильного телефона"

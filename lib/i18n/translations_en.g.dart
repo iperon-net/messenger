@@ -449,11 +449,29 @@ class Translations$screenMyProfile$en {
 	/// en: 'Done'
 	String get done => _root.common.done;
 
+	/// en: 'Edit'
+	String get edit => _root.common.edit;
+
 	/// en: '{date}'
 	String birthDayFormat({required Object date}) => '${date}';
 
 	/// en: 'Remove date birth'
 	String get birthDayRemove => 'Remove date birth';
+
+	/// en: 'Edit photo'
+	String get editPhoto => 'Edit photo';
+
+	/// en: 'Mobile phone'
+	String get mobilePhone => 'Mobile phone';
+
+	/// en: 'Number'
+	String get number => 'Number';
+
+	/// en: 'Copy'
+	String get copy => 'Copy';
+
+	/// en: 'Copied'
+	String get copied => 'Copied';
 }
 
 // Path: screenAuth
@@ -679,8 +697,14 @@ extension on Translations {
 			'screenMyProfile.validationAboutMeMaxLength' => 'Must contain no more than 140 characters',
 			'screenMyProfile.cancel' => _root.common.cancel,
 			'screenMyProfile.done' => _root.common.done,
+			'screenMyProfile.edit' => _root.common.edit,
 			'screenMyProfile.birthDayFormat' => ({required Object date}) => '${date}',
 			'screenMyProfile.birthDayRemove' => 'Remove date birth',
+			'screenMyProfile.editPhoto' => 'Edit photo',
+			'screenMyProfile.mobilePhone' => 'Mobile phone',
+			'screenMyProfile.number' => 'Number',
+			'screenMyProfile.copy' => 'Copy',
+			'screenMyProfile.copied' => 'Copied',
 			'screenAuth.enterYourMobilePhoneNumber' => 'Enter your mobile phone number',
 			'screenAuth.currentlyWeOnlySupportPhoneNumbersFromRussianMobileOperators' => 'Currently, we only support phone numbers from Russian mobile operators',
 			'screenAuth.insertDebugPhone' => 'Insert debug phone',

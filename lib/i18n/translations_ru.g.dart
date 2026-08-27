@@ -269,8 +269,14 @@ class _Translations$screenMyProfile$ru extends Translations$screenMyProfile$en {
 	@override String get validationAboutMeMaxLength => 'Должно содержать не более 140 символов';
 	@override String get cancel => _root.common.cancel;
 	@override String get done => _root.common.done;
+	@override String get edit => _root.common.edit;
 	@override String birthDayFormat({required Object date}) => '${date}';
 	@override String get birthDayRemove => 'Удалить дату рождения';
+	@override String get editPhoto => 'Изменить фото';
+	@override String get mobilePhone => 'Мобильный номер телефона';
+	@override String get number => 'Номер';
+	@override String get copy => 'Скопировать';
+	@override String get copied => 'Скопировано';
 }
 
 // Path: screenAuth
@@ -442,8 +448,14 @@ extension on TranslationsRu {
 			'screenMyProfile.validationAboutMeMaxLength' => 'Должно содержать не более 140 символов',
 			'screenMyProfile.cancel' => _root.common.cancel,
 			'screenMyProfile.done' => _root.common.done,
+			'screenMyProfile.edit' => _root.common.edit,
 			'screenMyProfile.birthDayFormat' => ({required Object date}) => '${date}',
 			'screenMyProfile.birthDayRemove' => 'Удалить дату рождения',
+			'screenMyProfile.editPhoto' => 'Изменить фото',
+			'screenMyProfile.mobilePhone' => 'Мобильный номер телефона',
+			'screenMyProfile.number' => 'Номер',
+			'screenMyProfile.copy' => 'Скопировать',
+			'screenMyProfile.copied' => 'Скопировано',
 			'screenAuth.enterYourMobilePhoneNumber' => 'Введите номер мобильного телефона',
 			'screenAuth.currentlyWeOnlySupportPhoneNumbersFromRussianMobileOperators' => 'Сейчас мы поддерживаем только номера российских мобильных операторов',
 			'screenAuth.insertDebugPhone' => 'Вставить тестовый номер',

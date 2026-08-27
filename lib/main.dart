@@ -35,15 +35,21 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   FlutterError.onError = (errorDetails) {
+    if (kDebugMode) {
+      FlutterError.presentError(errorDetails);
+      return;
+    }
     FirebaseCrashlytics.instance.recordFlutterFatalError(errorDetails);
   };
 
   PlatformDispatcher.instance.onError = (error, stack) {
+    if (kDebugMode) return false;
     FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
     return true;
   };
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  await FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(!kDebugMode);
 
   // Registration tasks
   // await NativeWorkManager.initialize(debugMode: true);

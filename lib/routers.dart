@@ -3,6 +3,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:cupertino_ui/cupertino_ui.dart' show CupertinoPage;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:messenger/i18n/translations.g.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 
 import 'cubit.dart';
@@ -81,7 +82,9 @@ class Routers {
                   pageBuilder: (context, state) => _page(
                     state,
                     BlocProvider<SettingsMyProfileCubit>(
-                      create: (_) => SettingsMyProfileCubit()..initialization(),
+                      create: (_) =>
+                          SettingsMyProfileCubit()
+                            ..initialization(locate: context.read<CommonCubit>().state.settingsDevice.locale ?? AppLocale.en),
                       child: SettingsMyProfileCupertino(),
                     ),
                   ),

@@ -116,8 +116,14 @@
   "validationAboutMeMaxLength": "Must contain no more than 140 characters"
   "cancel": "@:common.cancel"
   "done": "@:common.done"
+  "edit": "@:common.edit"
   "birthDayFormat": "{date}"
   "birthDayRemove": "Remove date birth"
+  "editPhoto": "Edit photo"
+  "mobilePhone": "Mobile phone"
+  "number": "Number"
+  "copy": "Copy"
+  "copied": "Copied"
 
 "screenAuth":
   "enterYourMobilePhoneNumber": "Enter your mobile phone number"
