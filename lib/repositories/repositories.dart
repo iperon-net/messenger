@@ -12,13 +12,14 @@ import '../di.dart';
 import '../i18n/translations.g.dart';
 import '../logger.dart';
 import '../settings.dart';
-import '../models.dart';
+import '../models.dart' as models;
 
 part "cache.dart";
 part "settings_device.dart";
 part "users.dart";
 part "sessions.dart";
 part "device_sessions.dart";
+part "my_profile.dart";
 
 base class _AppSqliteOpenFactory extends NativeSqliteOpenFactory {
   final String? password;
@@ -50,6 +51,7 @@ class Repositories {
   late Sessions sessions;
   late DeviceSessions deviceSessions;
   late Cache cache;
+  late MyProfile myProfile;
 
   static Future<Repositories> initialization() async {
     final repositories = Repositories._();
@@ -94,22 +96,23 @@ class Repositories {
         await tx.execute("""
         CREATE TABLE users (
           userID TEXT PRIMARY KEY,
-          phoneNumber TEXT NOT NULL,
+          phoneNumber TEXT NOT NULL
+        );
+      """);
+
+        await tx.execute("""
+        CREATE TABLE myProfile (
+          myProfileID INTEGER PRIMARY KEY,
+          userID BLOB NOT NULL UNIQUE,
           username TEXT NULL,
           fistName TEXT NULL,
           lastName TEXT NULL,
           birthDate TEXT NULL,
-          aboutMe TEXT NULL
+          aboutMe TEXT NULL,
+          avatarLocalPath TEXT NULL,
+          FOREIGN KEY (userID) REFERENCES users(userID) ON DELETE CASCADE ON UPDATE CASCADE
         );
       """);
-
-        //   await tx.execute("""
-        //   CREATE TABLE userAvatars (
-        //     userAvatarID INTEGER PRIMARY KEY,
-        //     userID BLOB NOT NULL,
-        //     FOREIGN KEY (userID) REFERENCES users(userID) ON DELETE CASCADE ON UPDATE CASCADE
-        //   );
-        // """);
 
         await tx.execute("""
         CREATE TABLE sessions (
@@ -197,6 +200,7 @@ class Repositories {
     sessions = Sessions(logger: logger, db: db);
     deviceSessions = DeviceSessions(logger: logger, db: db);
     cache = Cache(logger: logger, db: db);
+    myProfile = MyProfile(logger: logger, db: db);
   }
 
   // Generate password

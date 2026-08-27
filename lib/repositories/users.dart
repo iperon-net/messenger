@@ -29,16 +29,16 @@ class Users {
   }
 
   // Get active user
-  Future<User> getBySession({required Session session}) async {
-    if (session.userID.isEmpty) return User();
+  Future<models.User> getBySession({required models.Session session}) async {
+    if (session.userID.isEmpty) return models.User();
 
     final sqlUser = await db.execute("SELECT userID, phoneNumber FROM users WHERE userID = ? LIMIT 1;", [session.userID]);
-    if (sqlUser.isEmpty) return User();
-    return UserMapper.fromMap(sqlUser.first);
+    if (sqlUser.isEmpty) return models.User();
+    return models.UserMapper.fromMap(sqlUser.first);
   }
 
   // Set salt
-  Future<void> setSalt({required List<int> salt, required Session session}) async {
+  Future<void> setSalt({required List<int> salt, required models.Session session}) async {
     await db.execute("UPDATE users SET salt = ? WHERE userID = ?;", [salt, session.userID]);
   }
 }

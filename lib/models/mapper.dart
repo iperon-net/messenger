@@ -19,6 +19,29 @@ class Uint8ListMapper extends SimpleMapper<Uint8List> {
   dynamic encode(Uint8List self) => self;
 }
 
+// Кастомный маппер для DateTime.
+// В SQLite даты хранятся как epoch-миллисекунды (см. `*.millisecondsSinceEpoch`
+// при записи), поэтому декодируем int обратно в DateTime, а не через ISO-строку,
+// которую ждёт стандартный DateTimeMapper. Для совместимости также принимаем
+// ISO-строку. Кодируем всегда в epoch-миллисекунды.
+class EpochDateTimeMapper extends SimpleMapper<DateTime> {
+  const EpochDateTimeMapper();
+
+  @override
+  DateTime decode(dynamic value) {
+    if (value is int) return DateTime.fromMillisecondsSinceEpoch(value);
+    if (value is String) {
+      final ms = int.tryParse(value);
+      if (ms != null) return DateTime.fromMillisecondsSinceEpoch(ms);
+      return DateTime.parse(value);
+    }
+    throw FormatException('Unsupported DateTime value', value);
+  }
+
+  @override
+  dynamic encode(DateTime self) => self.millisecondsSinceEpoch;
+}
+
 // Объявляем кастомный маппер для типа bool
 class BoolMapper extends SimpleMapper<bool> {
   const BoolMapper();

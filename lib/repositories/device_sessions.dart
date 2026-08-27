@@ -6,12 +6,12 @@ class DeviceSessions {
 
   DeviceSessions({required this.logger, required this.db});
 
-  Future<List<DeviceSessionsModel>> getAll() async {
+  Future<List<models.DeviceSessionsModel>> getAll() async {
     final res = await db.execute("SELECT * FROM deviceSessions");
-    return res.map(DeviceSessionsModelMapper.fromMap).toList();
+    return res.map(models.DeviceSessionsModelMapper.fromMap).toList();
   }
 
-  Future<void> deleteAndCreate({required List<DeviceSessionsModel> deviceSessionsModel, required List<int> userID}) async {
+  Future<void> deleteAndCreate({required List<models.DeviceSessionsModel> deviceSessionsModel, required List<int> userID}) async {
     await db.writeTransaction((txn) async {
       // Таблица зеркалит удалённые сессии ТЕКУЩЕГО пользователя. Чистим целиком,
       // а не WHERE userID = ?, иначе строки прошлых логинов (другие userID)

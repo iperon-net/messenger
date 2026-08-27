@@ -20,6 +20,7 @@ class SettingsMyProfileState with SettingsMyProfileStateMappable {
   final String aboutMe;
   final DateTime? birthDate;
   final String username;
+  final String phoneNumber;
 
   final String boringAvatarHash;
   final BoringAvatarType boringAvatarType;
@@ -37,6 +38,7 @@ class SettingsMyProfileState with SettingsMyProfileStateMappable {
     this.aboutMe = "",
     this.birthDate,
     this.username = "",
+    this.phoneNumber = "",
 
     this.boringAvatarHash = "",
     this.boringAvatarType = BoringAvatarType.ring,

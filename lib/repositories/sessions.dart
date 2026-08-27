@@ -23,10 +23,10 @@ class Sessions {
     });
   }
 
-  Future<Session> getActive() async {
+  Future<models.Session> getActive() async {
     final sqlSession = await db.execute("SELECT sessionID, userID, session, sharedKey, salt, isActive FROM sessions WHERE isActive = 1;");
-    if (sqlSession.isEmpty) return Session();
-    return SessionMapper.fromMap(sqlSession.first);
+    if (sqlSession.isEmpty) return models.Session();
+    return models.SessionMapper.fromMap(sqlSession.first);
   }
 
   Future<void> deleteActive() async {

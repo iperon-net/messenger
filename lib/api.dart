@@ -3,16 +3,16 @@ import 'dart:math';
 
 import 'package:flutter/foundation.dart';
 import 'package:grpc/grpc.dart';
-import 'package:messenger/models/models.dart';
 import 'package:messenger/protobuf/protos/device_info_update_v1.pb.dart';
-import 'package:messenger/utils.dart';
 import 'package:talker_grpc_logger/talker_grpc_logger.dart';
 
 import 'auth.dart';
+import 'models.dart' as models;
+import 'utils.dart';
 import 'crypto.dart';
 import 'di.dart';
 import 'logger.dart';
-import 'repositories/repositories.dart';
+import 'repositories.dart';
 import 'settings.dart';
 import 'protobuf.dart';
 
@@ -486,16 +486,17 @@ class API {
   /// Это единственное место, куда стоит добавлять персистентность входящих
   /// сообщений: `<Тип>_Response.fromBuffer(message.payload)` в зависимости от
   /// `message.messageType`.
-  Future<void> _handleMessage(IncomingMessage message, Session session) async {
+  Future<void> _handleMessage(IncomingMessage message, models.Session session) async {
+    final repositories = getIt.get<Repositories>();
+
     switch (message.messageType) {
       case MessageType.DEVICE_SESSIONS:
-        final repositories = getIt.get<Repositories>();
         final payload = DeviceSessions_Response.fromBuffer(message.payload);
 
-        List<DeviceSessionsModel> deviceSessionsModel = [];
+        List<models.DeviceSessionsModel> deviceSessionsModel = [];
         for (final item in payload.results) {
           deviceSessionsModel.add(
-            DeviceSessionsModel(
+            models.DeviceSessionsModel(
               sessionID: Uint8List.fromList(item.sessionID),
               updateAt: item.updateAt.toDateTime(),
               deviceModel: item.deviceModel,
@@ -510,6 +511,25 @@ class API {
         }
         logger.debug(deviceSessionsModel);
         await repositories.deviceSessions.deleteAndCreate(deviceSessionsModel: deviceSessionsModel, userID: session.userID);
+
+      case MessageType.MY_PROFILE:
+        final payload = MyProfile_Response.fromBuffer(message.payload);
+
+        // models.MyProfile(
+        //   userID: session.userID,
+        //   fistName: payload.firstName,
+        //   lastName: payload.lastName,
+        //   aboutMe: payload.aboutMe,
+        //   birthDate: DateTime.parse(payload.birthDate),
+        // );
+
+        await repositories.myProfile.save(
+          userID: session.userID,
+          fistName: payload.firstName,
+          lastName: payload.lastName,
+          birthDate: DateTime.parse(payload.birthDate),
+          aboutMe: payload.aboutMe,
+        );
 
       case MessageType.LOGOUT:
         // Сервер принудительно отзывает сессии (например, разлогин с другого

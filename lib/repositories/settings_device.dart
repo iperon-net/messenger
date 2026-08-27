@@ -6,20 +6,20 @@ class SettingsDevice {
 
   SettingsDevice({required this.logger, required this.db});
 
-  Future<SettingsDeviceModel> getAll() async {
+  Future<models.SettingsDeviceModel> getAll() async {
     final res = await db.get("SELECT * FROM settingsDevice");
-    return SettingsDeviceModel.fromSqlite(res);
+    return models.SettingsDeviceModel.fromSqlite(res);
   }
 
   Future<void> setLocale({required AppLocale locale}) async {
     await db.execute("UPDATE settingsDevice SET locale = ?", [locale.languageCode]);
   }
 
-  Future<void> setDarkMode(DarkModeModel value) async {
+  Future<void> setDarkMode(models.DarkModeModel value) async {
     await db.execute("UPDATE settingsDevice SET darkMode = ?", [value.name]);
   }
 
-  Future<void> setColorTheme(ColorThemeModel value) async {
+  Future<void> setColorTheme(models.ColorThemeModel value) async {
     await db.execute("UPDATE settingsDevice SET colorTheme = ?", [value.name]);
   }
 

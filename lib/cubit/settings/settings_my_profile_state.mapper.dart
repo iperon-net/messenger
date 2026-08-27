@@ -92,6 +92,13 @@ class SettingsMyProfileStateMapper
     opt: true,
     def: "",
   );
+  static String _$phoneNumber(SettingsMyProfileState v) => v.phoneNumber;
+  static const Field<SettingsMyProfileState, String> _f$phoneNumber = Field(
+    'phoneNumber',
+    _$phoneNumber,
+    opt: true,
+    def: "",
+  );
   static String _$boringAvatarHash(SettingsMyProfileState v) =>
       v.boringAvatarHash;
   static const Field<SettingsMyProfileState, String> _f$boringAvatarHash =
@@ -125,6 +132,7 @@ class SettingsMyProfileStateMapper
     #aboutMe: _f$aboutMe,
     #birthDate: _f$birthDate,
     #username: _f$username,
+    #phoneNumber: _f$phoneNumber,
     #boringAvatarHash: _f$boringAvatarHash,
     #boringAvatarType: _f$boringAvatarType,
     #aboutMeLength: _f$aboutMeLength,
@@ -142,6 +150,7 @@ class SettingsMyProfileStateMapper
       aboutMe: data.dec(_f$aboutMe),
       birthDate: data.dec(_f$birthDate),
       username: data.dec(_f$username),
+      phoneNumber: data.dec(_f$phoneNumber),
       boringAvatarHash: data.dec(_f$boringAvatarHash),
       boringAvatarType: data.dec(_f$boringAvatarType),
       aboutMeLength: data.dec(_f$aboutMeLength),
@@ -229,6 +238,7 @@ abstract class SettingsMyProfileStateCopyWith<
     String? aboutMe,
     DateTime? birthDate,
     String? username,
+    String? phoneNumber,
     String? boringAvatarHash,
     BoringAvatarType? boringAvatarType,
     int? aboutMeLength,
@@ -259,6 +269,7 @@ class _SettingsMyProfileStateCopyWithImpl<$R, $Out>
     String? aboutMe,
     Object? birthDate = $none,
     String? username,
+    String? phoneNumber,
     String? boringAvatarHash,
     BoringAvatarType? boringAvatarType,
     int? aboutMeLength,
@@ -274,6 +285,7 @@ class _SettingsMyProfileStateCopyWithImpl<$R, $Out>
       if (aboutMe != null) #aboutMe: aboutMe,
       if (birthDate != $none) #birthDate: birthDate,
       if (username != null) #username: username,
+      if (phoneNumber != null) #phoneNumber: phoneNumber,
       if (boringAvatarHash != null) #boringAvatarHash: boringAvatarHash,
       if (boringAvatarType != null) #boringAvatarType: boringAvatarType,
       if (aboutMeLength != null) #aboutMeLength: aboutMeLength,
@@ -291,6 +303,7 @@ class _SettingsMyProfileStateCopyWithImpl<$R, $Out>
     aboutMe: data.get(#aboutMe, or: $value.aboutMe),
     birthDate: data.get(#birthDate, or: $value.birthDate),
     username: data.get(#username, or: $value.username),
+    phoneNumber: data.get(#phoneNumber, or: $value.phoneNumber),
     boringAvatarHash: data.get(#boringAvatarHash, or: $value.boringAvatarHash),
     boringAvatarType: data.get(#boringAvatarType, or: $value.boringAvatarType),
     aboutMeLength: data.get(#aboutMeLength, or: $value.aboutMeLength),

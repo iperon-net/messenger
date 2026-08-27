@@ -32,14 +32,14 @@ class _SettingsMyProfileCupertino extends State<SettingsMyProfileCupertino> {
     super.dispose();
   }
 
-  Widget _lastNameTile(BuildContext context) {
+  Widget _lastNameTile(BuildContext context, String lastName) {
     return CupertinoListTile(
       title: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(context.t.screenMyProfile.lastName, style: TextStyle(fontSize: MediaQuery.textScalerOf(context).scale(16))),
           Text(
-            'Тен',
+            lastName,
             style: TextStyle(
               fontSize: MediaQuery.textScalerOf(context).scale(17),
               color: CupertinoDynamicColor.withBrightness(
@@ -55,14 +55,14 @@ class _SettingsMyProfileCupertino extends State<SettingsMyProfileCupertino> {
     );
   }
 
-  Widget _firstNameTile(BuildContext context) {
+  Widget _firstNameTile(BuildContext context, String firstName) {
     return CupertinoListTile(
       title: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(context.t.screenMyProfile.firstName, style: TextStyle(fontSize: MediaQuery.textScalerOf(context).scale(16))),
           Text(
-            'Костя',
+            firstName,
             style: TextStyle(
               fontSize: MediaQuery.textScalerOf(context).scale(17),
               color: CupertinoDynamicColor.withBrightness(
@@ -153,12 +153,19 @@ class _SettingsMyProfileCupertino extends State<SettingsMyProfileCupertino> {
                   // footer: Text("Удалить"),
                   children: [
                     // В русской локали принят порядок «фамилия, имя», в остальных — «имя, фамилия».
+                    // Плитку показываем только если соответствующее поле заполнено.
                     ...(state.locale == AppLocale.ru
-                        ? [_lastNameTile(context), _firstNameTile(context)]
-                        : [_firstNameTile(context), _lastNameTile(context)]),
+                        ? [
+                            if (state.lastName.isNotEmpty) _lastNameTile(context, state.lastName),
+                            if (state.firstName.isNotEmpty) _firstNameTile(context, state.firstName),
+                          ]
+                        : [
+                            if (state.firstName.isNotEmpty) _firstNameTile(context, state.firstName),
+                            if (state.lastName.isNotEmpty) _lastNameTile(context, state.lastName),
+                          ]),
 
                     CopyTooltip(
-                      value: '+7 909 160 00 44',
+                      value: state.phoneNumber,
                       label: context.t.screenMyProfile.copy,
                       child: CupertinoListTile(
                         title: Column(
@@ -169,7 +176,7 @@ class _SettingsMyProfileCupertino extends State<SettingsMyProfileCupertino> {
                               style: TextStyle(fontSize: MediaQuery.textScalerOf(context).scale(16)),
                             ),
                             Text(
-                              '+7 909 160 00 44',
+                              state.phoneNumber,
                               style: TextStyle(
                                 fontSize: MediaQuery.textScalerOf(context).scale(17),
                                 color: CupertinoDynamicColor.withBrightness(
