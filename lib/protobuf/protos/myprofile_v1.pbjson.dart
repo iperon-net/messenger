@@ -30,18 +30,26 @@ const MyProfile_Request$json = {
 const MyProfile_Response$json = {
   '1': 'Response',
   '2': [
-    {'1': 'firstName', '3': 1, '4': 1, '5': 9, '10': 'firstName'},
-    {'1': 'lastName', '3': 2, '4': 1, '5': 9, '10': 'lastName'},
-    {'1': 'aboutMe', '3': 4, '4': 1, '5': 9, '10': 'aboutMe'},
-    {'1': 'birthDate', '3': 3, '4': 1, '5': 9, '10': 'birthDate'},
+    {'1': 'firstName', '3': 1, '4': 1, '5': 9, '9': 0, '10': 'firstName', '17': true},
+    {'1': 'lastName', '3': 2, '4': 1, '5': 9, '9': 1, '10': 'lastName', '17': true},
+    {'1': 'aboutMe', '3': 4, '4': 1, '5': 9, '9': 2, '10': 'aboutMe', '17': true},
+    {'1': 'birthDate', '3': 3, '4': 1, '5': 11, '6': '.google.protobuf.Timestamp', '9': 3, '10': 'birthDate', '17': true},
+  ],
+  '8': [
+    {'1': '_firstName'},
+    {'1': '_lastName'},
+    {'1': '_aboutMe'},
+    {'1': '_birthDate'},
   ],
 };
 
 /// Descriptor for `MyProfile`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List myProfileDescriptor =
-    $convert.base64Decode('CglNeVByb2ZpbGUaCQoHUmVxdWVzdBp8CghSZXNwb25zZRIcCglmaXJzdE5hbWUYASABKAlSCW'
-        'ZpcnN0TmFtZRIaCghsYXN0TmFtZRgCIAEoCVIIbGFzdE5hbWUSGAoHYWJvdXRNZRgEIAEoCVIH'
-        'YWJvdXRNZRIcCgliaXJ0aERhdGUYAyABKAlSCWJpcnRoRGF0ZQ==');
+    $convert.base64Decode('CglNeVByb2ZpbGUaCQoHUmVxdWVzdBrhAQoIUmVzcG9uc2USIQoJZmlyc3ROYW1lGAEgASgJSA'
+        'BSCWZpcnN0TmFtZYgBARIfCghsYXN0TmFtZRgCIAEoCUgBUghsYXN0TmFtZYgBARIdCgdhYm91'
+        'dE1lGAQgASgJSAJSB2Fib3V0TWWIAQESPQoJYmlydGhEYXRlGAMgASgLMhouZ29vZ2xlLnByb3'
+        'RvYnVmLlRpbWVzdGFtcEgDUgliaXJ0aERhdGWIAQFCDAoKX2ZpcnN0TmFtZUILCglfbGFzdE5h'
+        'bWVCCgoIX2Fib3V0TWVCDAoKX2JpcnRoRGF0ZQ==');
 
 @$core.Deprecated('Use myProfileEditDescriptor instead')
 const MyProfileEdit$json = {
@@ -53,10 +61,16 @@ const MyProfileEdit$json = {
 const MyProfileEdit_Request$json = {
   '1': 'Request',
   '2': [
-    {'1': 'firstName', '3': 1, '4': 1, '5': 9, '10': 'firstName'},
-    {'1': 'lastName', '3': 2, '4': 1, '5': 9, '10': 'lastName'},
-    {'1': 'aboutMe', '3': 4, '4': 1, '5': 9, '10': 'aboutMe'},
-    {'1': 'birthDate', '3': 3, '4': 1, '5': 9, '10': 'birthDate'},
+    {'1': 'firstName', '3': 1, '4': 1, '5': 9, '9': 0, '10': 'firstName', '17': true},
+    {'1': 'lastName', '3': 2, '4': 1, '5': 9, '9': 1, '10': 'lastName', '17': true},
+    {'1': 'aboutMe', '3': 4, '4': 1, '5': 9, '9': 2, '10': 'aboutMe', '17': true},
+    {'1': 'birthDate', '3': 3, '4': 1, '5': 11, '6': '.google.protobuf.Timestamp', '9': 3, '10': 'birthDate', '17': true},
+  ],
+  '8': [
+    {'1': '_firstName'},
+    {'1': '_lastName'},
+    {'1': '_aboutMe'},
+    {'1': '_birthDate'},
   ],
 };
 
@@ -67,6 +81,8 @@ const MyProfileEdit_Response$json = {
 
 /// Descriptor for `MyProfileEdit`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List myProfileEditDescriptor =
-    $convert.base64Decode('Cg1NeVByb2ZpbGVFZGl0GnsKB1JlcXVlc3QSHAoJZmlyc3ROYW1lGAEgASgJUglmaXJzdE5hbW'
-        'USGgoIbGFzdE5hbWUYAiABKAlSCGxhc3ROYW1lEhgKB2Fib3V0TWUYBCABKAlSB2Fib3V0TWUS'
-        'HAoJYmlydGhEYXRlGAMgASgJUgliaXJ0aERhdGUaCgoIUmVzcG9uc2U=');
+    $convert.base64Decode('Cg1NeVByb2ZpbGVFZGl0GuABCgdSZXF1ZXN0EiEKCWZpcnN0TmFtZRgBIAEoCUgAUglmaXJzdE'
+        '5hbWWIAQESHwoIbGFzdE5hbWUYAiABKAlIAVIIbGFzdE5hbWWIAQESHQoHYWJvdXRNZRgEIAEo'
+        'CUgCUgdhYm91dE1liAEBEj0KCWJpcnRoRGF0ZRgDIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW'
+        '1lc3RhbXBIA1IJYmlydGhEYXRliAEBQgwKCl9maXJzdE5hbWVCCwoJX2xhc3ROYW1lQgoKCF9h'
+        'Ym91dE1lQgwKCl9iaXJ0aERhdGUaCgoIUmVzcG9uc2U=');

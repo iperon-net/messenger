@@ -36,8 +36,8 @@ class SettingsMyProfileCubit extends Cubit<SettingsMyProfileState> {
 
       emit(state.copyWith(firstName: response.firstName, lastName: response.lastName, aboutMe: response.aboutMe));
 
-      if (response.birthDate.isNotEmpty) {
-        emit(state.copyWith(birthDate: DateTime.parse(response.birthDate.toString())));
+      if (response.hasBirthDate()) {
+        emit(state.copyWith(birthDate: response.birthDate.toDateTime(toLocal: true)));
       }
     });
 

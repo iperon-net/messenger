@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:bloc/bloc.dart';
+import 'package:protobuf/well_known_types/google/protobuf/timestamp.pb.dart';
 
 import '../../api.dart';
 import '../../auth.dart';
@@ -43,8 +44,8 @@ class SettingsMyProfileEditCubit extends Cubit<SettingsMyProfileEditState> {
 
       emit(state.copyWith(firstName: response.firstName, lastName: response.lastName, aboutMe: response.aboutMe));
 
-      if (response.birthDate.isNotEmpty) {
-        emit(state.copyWith(birthDate: DateTime.parse(response.birthDate.toString())));
+      if (response.hasBirthDate()) {
+        emit(state.copyWith(birthDate: response.birthDate.toDateTime(toLocal: true)));
       }
     });
 
@@ -87,13 +88,16 @@ class SettingsMyProfileEditCubit extends Cubit<SettingsMyProfileEditState> {
   Future<void> setProfile({required String birthDate, required String firstName, required String lastName, required String aboutMe}) async {
     emit(state.copyWith(networkStatus: Status.loading));
 
-    if (birthDate.isNotEmpty) {
-      birthDate = DateTime.parse(birthDate).toIso8601String();
-    }
+    final birthDateValue = birthDate.isNotEmpty ? DateTime.parse(birthDate) : null;
 
     await api.unaryEncoded(
       MessageType.MY_PROFILE_EDIT,
-      MyProfileEdit_Request(firstName: firstName, lastName: lastName, aboutMe: aboutMe, birthDate: birthDate).writeToBuffer(),
+      MyProfileEdit_Request(
+        firstName: firstName,
+        lastName: lastName,
+        aboutMe: aboutMe,
+        birthDate: birthDateValue != null ? Timestamp.fromDateTime(birthDateValue) : null,
+      ).writeToBuffer(),
     );
 
     await repositories.myProfile.save(
@@ -101,7 +105,7 @@ class SettingsMyProfileEditCubit extends Cubit<SettingsMyProfileEditState> {
       fistName: firstName,
       lastName: lastName,
       aboutMe: aboutMe,
-      birthDate: birthDate.isNotEmpty ? DateTime.parse(birthDate) : null,
+      birthDate: birthDateValue,
     );
 
     emit(state.copyWith(networkStatus: Status.success, redirectURI: Uri.parse("/settings/profile").toString()));

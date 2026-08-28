@@ -13,6 +13,7 @@
 import 'dart:core' as $core;
 
 import 'package:protobuf/protobuf.dart' as $pb;
+import 'package:protobuf/well_known_types/google/protobuf/timestamp.pb.dart' as $0;
 
 export 'package:protobuf/protobuf.dart' show GeneratedMessageGenericExtensions;
 
@@ -52,7 +53,7 @@ class MyProfile_Response extends $pb.GeneratedMessage {
   factory MyProfile_Response({
     $core.String? firstName,
     $core.String? lastName,
-    $core.String? birthDate,
+    $0.Timestamp? birthDate,
     $core.String? aboutMe,
   }) {
     final result = create();
@@ -74,7 +75,7 @@ class MyProfile_Response extends $pb.GeneratedMessage {
       package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'firstName', protoName: 'firstName')
     ..aOS(2, _omitFieldNames ? '' : 'lastName', protoName: 'lastName')
-    ..aOS(3, _omitFieldNames ? '' : 'birthDate', protoName: 'birthDate')
+    ..aOM<$0.Timestamp>(3, _omitFieldNames ? '' : 'birthDate', protoName: 'birthDate', subBuilder: $0.Timestamp.create)
     ..aOS(4, _omitFieldNames ? '' : 'aboutMe', protoName: 'aboutMe')
     ..hasRequiredFields = false;
 
@@ -114,13 +115,15 @@ class MyProfile_Response extends $pb.GeneratedMessage {
   void clearLastName() => $_clearField(2);
 
   @$pb.TagNumber(3)
-  $core.String get birthDate => $_getSZ(2);
+  $0.Timestamp get birthDate => $_getN(2);
   @$pb.TagNumber(3)
-  set birthDate($core.String value) => $_setString(2, value);
+  set birthDate($0.Timestamp value) => $_setField(3, value);
   @$pb.TagNumber(3)
   $core.bool hasBirthDate() => $_has(2);
   @$pb.TagNumber(3)
   void clearBirthDate() => $_clearField(3);
+  @$pb.TagNumber(3)
+  $0.Timestamp ensureBirthDate() => $_ensure(2);
 
   @$pb.TagNumber(4)
   $core.String get aboutMe => $_getSZ(3);
@@ -167,7 +170,7 @@ class MyProfileEdit_Request extends $pb.GeneratedMessage {
   factory MyProfileEdit_Request({
     $core.String? firstName,
     $core.String? lastName,
-    $core.String? birthDate,
+    $0.Timestamp? birthDate,
     $core.String? aboutMe,
   }) {
     final result = create();
@@ -189,7 +192,7 @@ class MyProfileEdit_Request extends $pb.GeneratedMessage {
       package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'firstName', protoName: 'firstName')
     ..aOS(2, _omitFieldNames ? '' : 'lastName', protoName: 'lastName')
-    ..aOS(3, _omitFieldNames ? '' : 'birthDate', protoName: 'birthDate')
+    ..aOM<$0.Timestamp>(3, _omitFieldNames ? '' : 'birthDate', protoName: 'birthDate', subBuilder: $0.Timestamp.create)
     ..aOS(4, _omitFieldNames ? '' : 'aboutMe', protoName: 'aboutMe')
     ..hasRequiredFields = false;
 
@@ -229,13 +232,15 @@ class MyProfileEdit_Request extends $pb.GeneratedMessage {
   void clearLastName() => $_clearField(2);
 
   @$pb.TagNumber(3)
-  $core.String get birthDate => $_getSZ(2);
+  $0.Timestamp get birthDate => $_getN(2);
   @$pb.TagNumber(3)
-  set birthDate($core.String value) => $_setString(2, value);
+  set birthDate($0.Timestamp value) => $_setField(3, value);
   @$pb.TagNumber(3)
   $core.bool hasBirthDate() => $_has(2);
   @$pb.TagNumber(3)
   void clearBirthDate() => $_clearField(3);
+  @$pb.TagNumber(3)
+  $0.Timestamp ensureBirthDate() => $_ensure(2);
 
   @$pb.TagNumber(4)
   $core.String get aboutMe => $_getSZ(3);
