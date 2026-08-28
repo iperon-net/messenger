@@ -89,6 +89,12 @@ class Translations$common$en {
 	/// en: 'Done'
 	String get done => 'Done';
 
+	/// en: 'Close'
+	String get close => 'Close';
+
+	/// en: 'Error'
+	String get error => 'Error';
+
 	/// en: 'Authenticate to unlock'
 	String get biometricAuthenticateReason => 'Authenticate to unlock';
 
@@ -452,6 +458,15 @@ class Translations$screenMyProfile$en {
 	/// en: 'Edit'
 	String get edit => _root.common.edit;
 
+	/// en: 'Close'
+	String get close => _root.common.close;
+
+	/// en: 'Error'
+	String get error => _root.common.error;
+
+	/// en: 'Error saving profile'
+	String get errorSavingProfile => 'Error saving profile';
+
 	/// en: '{date}'
 	String birthDayFormat({required Object date}) => '${date}';
 
@@ -615,6 +630,8 @@ extension on Translations {
 			'common.save' => 'Save',
 			'common.online' => 'Online',
 			'common.done' => 'Done',
+			'common.close' => 'Close',
+			'common.error' => 'Error',
 			'common.biometricAuthenticateReason' => 'Authenticate to unlock',
 			'common.biometricPleaseEnterPasscode' => 'Please enter passcode',
 			'common.edit' => 'Edit',
@@ -698,6 +715,9 @@ extension on Translations {
 			'screenMyProfile.cancel' => _root.common.cancel,
 			'screenMyProfile.done' => _root.common.done,
 			'screenMyProfile.edit' => _root.common.edit,
+			'screenMyProfile.close' => _root.common.close,
+			'screenMyProfile.error' => _root.common.error,
+			'screenMyProfile.errorSavingProfile' => 'Error saving profile',
 			'screenMyProfile.birthDayFormat' => ({required Object date}) => '${date}',
 			'screenMyProfile.birthDayRemove' => 'Remove date birth',
 			'screenMyProfile.editPhoto' => 'Edit photo',

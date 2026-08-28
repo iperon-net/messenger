@@ -64,8 +64,27 @@ class _SettingsMyProfileEditCupertino extends State<SettingsMyProfileEditCuperti
           previous.lastName != current.lastName ||
           previous.aboutMe != current.aboutMe ||
           previous.birthDate != current.birthDate ||
-          previous.redirectURI != current.redirectURI,
+          previous.redirectURI != current.redirectURI ||
+          previous.error != current.error,
       listener: (context, state) {
+        if (state.error.isNotEmpty) {
+          showCupertinoDialog<void>(
+            context: context,
+            builder: (BuildContext context) => CupertinoAlertDialog(
+              title: Text(context.t.screenMyProfile.error),
+              content: Text(context.t.screenMyProfile.errorSavingProfile),
+              actions: <CupertinoDialogAction>[
+                CupertinoDialogAction(
+                  isDefaultAction: true,
+                  onPressed: () => Navigator.pop(context),
+                  child: Text(context.t.screenMyProfile.close),
+                ),
+              ],
+            ),
+          );
+          return;
+        }
+
         if (state.redirectURI.isNotEmpty && state.redirectURI == "/settings/profile") return context.pop();
 
         firstNameController.text = state.firstName;
@@ -124,6 +143,7 @@ class _SettingsMyProfileEditCupertino extends State<SettingsMyProfileEditCuperti
                         placeholder: context.t.screenMyProfile.firstName,
                         controller: firstNameController,
                         focusNode: firstNameFocus,
+                        autofillHints: [AutofillHints.name],
                         validator: (value) {
                           final error = switch (context.read<SettingsMyProfileEditCubit>().validateFirstName(value)) {
                             FirstNameValidationError.maxLength => context.t.screenMyProfile.validationFirstNameMaxLength,
@@ -136,6 +156,7 @@ class _SettingsMyProfileEditCupertino extends State<SettingsMyProfileEditCuperti
                         placeholder: context.t.screenMyProfile.lastName,
                         controller: lastNameController,
                         focusNode: lastNameFocus,
+                        autofillHints: [AutofillHints.familyName],
                         validator: (value) {
                           final error = switch (context.read<SettingsMyProfileEditCubit>().validateFirstName(value)) {
                             FirstNameValidationError.maxLength => context.t.screenMyProfile.validationLastNameMaxLength,

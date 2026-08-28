@@ -73,6 +73,8 @@ class _Translations$common$ru extends Translations$common$en {
 	@override String get save => 'Сохранить';
 	@override String get online => 'В сети';
 	@override String get done => 'Готово';
+	@override String get close => 'Закрыть';
+	@override String get error => 'Ошибка';
 	@override String get biometricAuthenticateReason => 'Пройдите аутентификацию для разблокировки';
 	@override String get biometricPleaseEnterPasscode => 'Введите код-пароль';
 	@override String get edit => 'Изменить';
@@ -270,10 +272,13 @@ class _Translations$screenMyProfile$ru extends Translations$screenMyProfile$en {
 	@override String get cancel => _root.common.cancel;
 	@override String get done => _root.common.done;
 	@override String get edit => _root.common.edit;
+	@override String get close => _root.common.close;
+	@override String get error => _root.common.error;
+	@override String get errorSavingProfile => 'Ошибка сохранения профиля';
 	@override String birthDayFormat({required Object date}) => '${date}';
 	@override String get birthDayRemove => 'Удалить дату рождения';
 	@override String get editPhoto => 'Изменить фото';
-	@override String get mobilePhone => 'Мобильный номер телефона';
+	@override String get mobilePhone => 'Номер телефона';
 	@override String get number => 'Номер';
 	@override String get copy => 'Скопировать';
 	@override String get copied => 'Скопировано';
@@ -366,6 +371,8 @@ extension on TranslationsRu {
 			'common.save' => 'Сохранить',
 			'common.online' => 'В сети',
 			'common.done' => 'Готово',
+			'common.close' => 'Закрыть',
+			'common.error' => 'Ошибка',
 			'common.biometricAuthenticateReason' => 'Пройдите аутентификацию для разблокировки',
 			'common.biometricPleaseEnterPasscode' => 'Введите код-пароль',
 			'common.edit' => 'Изменить',
@@ -449,10 +456,13 @@ extension on TranslationsRu {
 			'screenMyProfile.cancel' => _root.common.cancel,
 			'screenMyProfile.done' => _root.common.done,
 			'screenMyProfile.edit' => _root.common.edit,
+			'screenMyProfile.close' => _root.common.close,
+			'screenMyProfile.error' => _root.common.error,
+			'screenMyProfile.errorSavingProfile' => 'Ошибка сохранения профиля',
 			'screenMyProfile.birthDayFormat' => ({required Object date}) => '${date}',
 			'screenMyProfile.birthDayRemove' => 'Удалить дату рождения',
 			'screenMyProfile.editPhoto' => 'Изменить фото',
-			'screenMyProfile.mobilePhone' => 'Мобильный номер телефона',
+			'screenMyProfile.mobilePhone' => 'Номер телефона',
 			'screenMyProfile.number' => 'Номер',
 			'screenMyProfile.copy' => 'Скопировать',
 			'screenMyProfile.copied' => 'Скопировано',
