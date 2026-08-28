@@ -119,7 +119,23 @@ class _SettingsMyProfileCupertino extends State<SettingsMyProfileCupertino> {
                 Center(
                   child: GestureDetector(
                     onTap: () async {
-                      await AssetPicker.pickAssets(context, pickerConfig: AssetPickerConfig());
+                      final cupertinoTheme = CupertinoTheme.of(context);
+                      await AssetPicker.pickAssets(
+                        context,
+                        pickerConfig: AssetPickerConfig(
+                          gridCount: 3, // меньше колонок — крупнее ячейки сетки
+                          pageSize: 90, // должен быть кратен gridCount
+                          requestType: RequestType.image,
+                          maxAssets: 1,
+                          limitedPermissionOverlayPredicate: (permissionState) => false,
+                          // Синхронизируем пикер с текущей темой приложения.
+                          themeColor: cupertinoTheme.primaryColor,
+                          pickerTheme: AssetPicker.themeData(
+                            cupertinoTheme.primaryColor,
+                            light: cupertinoTheme.brightness == Brightness.light,
+                          ),
+                        ),
+                      );
                     },
                     behavior: HitTestBehavior.opaque,
                     child: Column(
