@@ -120,16 +120,38 @@ class _SettingsMyProfileCupertino extends State<SettingsMyProfileCupertino> {
                   child: GestureDetector(
                     onTap: () async {
                       final cupertinoTheme = CupertinoTheme.of(context);
-                      await AssetPicker.pickAssets(
+
+                      // pickAssetsWithDelegate не запрашивает разрешение сам —
+                      // получаем его заранее и передаём делегату.
+                      final permission = await PhotoManager.requestPermissionExtend();
+                      if (!permission.isAuth && permission != PermissionState.limited) return;
+                      if (!context.mounted) return;
+
+                      final provider = DefaultAssetPickerProvider(
+                        maxAssets: 1,
+                        pageSize: 90, // должен быть кратен gridCount
+                        requestType: RequestType.image,
+                      );
+
+                      // Типовые аргументы указываем явно: иначе Asset/Path
+                      // выводятся как dynamic и внутренний initState падает
+                      // с _TypeError при касте состояния пикера.
+                      await AssetPicker.pickAssetsWithDelegate<
+                        AssetEntity,
+                        AssetPathEntity,
+                        DefaultAssetPickerProvider,
+                        CupertinoAssetPickerDelegate
+                      >(
                         context,
-                        pickerConfig: AssetPickerConfig(
+                        delegate: CupertinoAssetPickerDelegate(
+                          provider: provider,
+                          initialPermission: permission,
                           gridCount: 3, // меньше колонок — крупнее ячейки сетки
-                          pageSize: 90, // должен быть кратен gridCount
-                          requestType: RequestType.image,
-                          maxAssets: 1,
                           limitedPermissionOverlayPredicate: (permissionState) => false,
-                          // Синхронизируем пикер с текущей темой приложения.
-                          themeColor: cupertinoTheme.primaryColor,
+                          // Локаль приложения — чтобы тексты пикера были не на китайском.
+                          locale: TranslationProvider.of(context).flutterLocale,
+                          // Синхронизируем пикер с темой приложения. themeColor и
+                          // pickerTheme взаимоисключающие — задаём только pickerTheme.
                           pickerTheme: AssetPicker.themeData(
                             cupertinoTheme.primaryColor,
                             light: cupertinoTheme.brightness == Brightness.light,
