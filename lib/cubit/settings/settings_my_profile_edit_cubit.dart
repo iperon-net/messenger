@@ -50,12 +50,27 @@ class SettingsMyProfileEditCubit extends Cubit<SettingsMyProfileEditState> {
     });
 
     // Send
-    await api.sendEncoded(MessageType.MY_PROFILE, MyProfile_Request().writeToBuffer());
+    final sendFuture = api.sendEncoded(MessageType.MY_PROFILE, MyProfile_Request().writeToBuffer());
     if (isClosed) return;
+
+    final myProfileFuture = repositories.myProfile.getByUserID(userID: auth.session.userID);
+
+    final myProfile = await myProfileFuture;
+    await sendFuture;
 
     final avatar = await utils.boringAvatar(auth.session.getUserIDObjectID());
 
-    emit(state.copyWith(status: Status.success, boringAvatarHash: avatar.hash, boringAvatarType: avatar.type));
+    emit(
+      state.copyWith(
+        status: Status.success,
+        firstName: myProfile.fistName,
+        lastName: myProfile.lastName,
+        birthDate: myProfile.birthDate,
+        aboutMe: myProfile.aboutMe,
+        boringAvatarHash: avatar.hash,
+        boringAvatarType: avatar.type,
+      ),
+    );
   }
 
   FirstNameValidationError? validateFirstName(String? value) {
@@ -99,7 +114,12 @@ class SettingsMyProfileEditCubit extends Cubit<SettingsMyProfileEditState> {
         birthDate: birthDateValue != null ? Timestamp.fromDateTime(birthDateValue) : null,
       ).writeToBuffer(),
     );
-    logger.debug(status.status);
+
+    if (status.status == APIStatus.error) {
+      logger.debug(status.status);
+      emit(state.copyWith(networkStatus: Status.success, error: ""));
+      return;
+    }
 
     await repositories.myProfile.update(
       userID: auth.session.userID,

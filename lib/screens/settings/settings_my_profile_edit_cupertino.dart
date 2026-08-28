@@ -66,9 +66,7 @@ class _SettingsMyProfileEditCupertino extends State<SettingsMyProfileEditCuperti
           previous.birthDate != current.birthDate ||
           previous.redirectURI != current.redirectURI,
       listener: (context, state) {
-        // Успешное сохранение сигналит через redirectURI: закрываем экран правки
-        // (pop), а экран профиля под ним перечитает БД в своём reload().
-        if (state.redirectURI.isNotEmpty) return context.pop();
+        if (state.redirectURI.isNotEmpty && state.redirectURI == "/settings/profile") return context.pop();
 
         firstNameController.text = state.firstName;
         lastNameController.text = state.lastName;
