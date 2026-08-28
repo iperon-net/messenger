@@ -169,7 +169,7 @@ class _SettingsMyProfileEditCupertino extends State<SettingsMyProfileEditCuperti
                         placeholder: context.t.screenMyProfile.firstName,
                         controller: firstNameController,
                         focusNode: firstNameFocus,
-                        autofillHints: [AutofillHints.name],
+                        autofillHints: [AutofillHints.givenName],
                         validator: (value) {
                           final error = switch (context.read<SettingsMyProfileEditCubit>().validateFirstName(value)) {
                             FirstNameValidationError.maxLength => context.t.screenMyProfile.validationFirstNameMaxLength,
