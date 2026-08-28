@@ -51,7 +51,7 @@ class _SettingsMyProfileCupertino extends State<SettingsMyProfileCupertino> {
         cancelButton: CupertinoActionSheetAction(
           isDefaultAction: true,
           onPressed: () => Navigator.pop(context),
-          child: Text(context.t.screenMyProfile.cancel),
+          child: Text(context.t.screenMyProfile.cancel, style: TextStyle(color: CupertinoColors.systemRed)),
         ),
       ),
     );
@@ -64,9 +64,9 @@ class _SettingsMyProfileCupertino extends State<SettingsMyProfileCupertino> {
       imageQuality: 85, // лёгкое сжатие
       maxWidth: 1024, // ресайз под аватар
     );
+
     if (image == null) return; // пользователь отменил выбор
     logger.debug('Выбран аватар: ${image.path}');
-    // TODO: передать image в кубит и загрузить на сервер/в профиль.
   }
 
   Widget _lastNameTile(BuildContext context, String lastName) {
