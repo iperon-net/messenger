@@ -91,18 +91,20 @@ class SettingsMyProfileEditCubit extends Cubit<SettingsMyProfileEditState> {
       birthDate = DateTime.parse(birthDate).toIso8601String();
     }
 
-    final status = await api.unaryEncoded(
+    await api.unaryEncoded(
       MessageType.MY_PROFILE_EDIT,
       MyProfileEdit_Request(firstName: firstName, lastName: lastName, aboutMe: aboutMe, birthDate: birthDate).writeToBuffer(),
     );
 
-    logger.debug("status=$status");
+    await repositories.myProfile.save(
+      userID: auth.session.userID,
+      fistName: firstName,
+      lastName: lastName,
+      aboutMe: aboutMe,
+      birthDate: birthDate.isNotEmpty ? DateTime.parse(birthDate) : null,
+    );
 
-    logger.debug("birthDate=$birthDate");
-    logger.debug("firstName=$firstName");
-    logger.debug("lastName=$lastName");
-    logger.debug("aboutMe=$aboutMe");
-    emit(state.copyWith(networkStatus: Status.success));
+    emit(state.copyWith(networkStatus: Status.success, redirectURI: Uri.parse("/settings/profile").toString()));
   }
 
   @override

@@ -527,7 +527,7 @@ class API {
           userID: session.userID,
           fistName: payload.firstName,
           lastName: payload.lastName,
-          birthDate: DateTime.parse(payload.birthDate),
+          birthDate: payload.birthDate.isNotEmpty ? DateTime.parse(payload.birthDate) : null,
           aboutMe: payload.aboutMe,
         );
 

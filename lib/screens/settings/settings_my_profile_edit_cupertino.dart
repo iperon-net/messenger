@@ -41,28 +41,37 @@ class _SettingsMyProfileEditCupertino extends State<SettingsMyProfileEditCuperti
 
   @override
   void dispose() {
+    firstNameController.dispose();
+    firstNameFocus.dispose();
+    lastNameController.dispose();
+    lastNameFocus.dispose();
+    birthDateController.dispose();
+    birthDateFocus.dispose();
+    aboutMeController.dispose();
+    aboutMeFocus.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<SettingsMyProfileEditCubit, SettingsMyProfileEditState>(
+      // Пробрасываем данные профиля в контроллеры только когда сам профиль
+      // изменился (загрузка / обновление из MY_PROFILE), а не на каждый emit.
+      // Ввод пользователя не меняет эти поля состояния, поэтому набранный текст
+      // не затирается.
+      listenWhen: (previous, current) =>
+          previous.firstName != current.firstName ||
+          previous.lastName != current.lastName ||
+          previous.aboutMe != current.aboutMe ||
+          previous.birthDate != current.birthDate ||
+          previous.redirectURI != current.redirectURI,
       listener: (context, state) {
-        if (state.firstName.isNotEmpty) {
-          firstNameController.text = state.firstName;
-        }
+        if (state.redirectURI.isNotEmpty) return context.go(state.redirectURI);
 
-        if (state.lastName.isNotEmpty) {
-          lastNameController.text = state.lastName;
-        }
-
-        if (state.aboutMe.isNotEmpty) {
-          aboutMeController.text = state.aboutMe;
-        }
-
-        if (state.birthDate != null) {
-          birthDateController.text = state.birthDate!.toIso8601String();
-        }
+        firstNameController.text = state.firstName;
+        lastNameController.text = state.lastName;
+        aboutMeController.text = state.aboutMe;
+        birthDateController.text = state.birthDate?.toIso8601String() ?? "";
       },
       builder: (context, state) {
         return CupertinoPageScaffold(
@@ -96,44 +105,6 @@ class _SettingsMyProfileEditCupertino extends State<SettingsMyProfileEditCuperti
             child: SafeArea(
               child: ListView(
                 children: [
-                  // const SizedBox(height: 12),
-                  // // Аватарка с кнопкой выбора фото.
-                  // Center(
-                  //   child: GestureDetector(
-                  //     onTap: _pickPhoto,
-                  //     behavior: HitTestBehavior.opaque,
-                  //     child: Column(
-                  //       children: [
-                  //         Stack(
-                  //           children: [
-                  //             SizedBox(
-                  //               width: 96,
-                  //               height: 96,
-                  //               child: AnimatedBoringAvatar(
-                  //                 name: state.boringAvatarHash,
-                  //                 type: state.boringAvatarType,
-                  //                 shape: const CircleBorder(),
-                  //                 curve: Curves.bounceIn,
-                  //                 duration: const Duration(seconds: 1),
-                  //               ),
-                  //             ),
-                  //           ],
-                  //         ),
-                  //         const SizedBox(height: 8),
-                  //         Text(
-                  //           "Изменить фото",
-                  //           style: TextStyle(
-                  //             fontSize: 16,
-                  //             color: CupertinoDynamicColor.withBrightness(
-                  //               color: CupertinoTheme.of(context).primaryColor,
-                  //               darkColor: CupertinoColors.white,
-                  //             ).resolveFrom(context),
-                  //           ),
-                  //         ),
-                  //       ],
-                  //     ),
-                  //   ),
-                  // ),
                   const SizedBox(height: 20),
                   CupertinoFormSection.insetGrouped(
                     clipBehavior: Clip.antiAlias,

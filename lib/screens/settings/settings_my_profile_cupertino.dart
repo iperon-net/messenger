@@ -97,7 +97,7 @@ class _SettingsMyProfileCupertino extends State<SettingsMyProfileCupertino> {
               ),
               trailing: CupertinoButton(
                 padding: EdgeInsets.zero,
-                onPressed: () async {},
+                onPressed: () async => context.go("/settings/profile/edit"),
                 child: state.networkStatus == Status.loading ? CupertinoActivityIndicator() : Text(context.t.screenMyProfile.edit),
               ),
             ),
