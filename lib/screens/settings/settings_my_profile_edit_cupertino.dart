@@ -34,6 +34,15 @@ class _SettingsMyProfileEditCupertino extends State<SettingsMyProfileEditCuperti
 
   final logger = getIt.get<Logger>();
 
+  // Последние значения профиля, проброшенные в контроллеры. Нужны, чтобы в
+  // listener синхронизировать только реально изменившееся поле и не затирать
+  // текст, набранный пользователем, при изменении соседнего поля (напр. даты).
+  String? _syncedFirstName;
+  String? _syncedLastName;
+  String? _syncedAboutMe;
+  DateTime? _syncedBirthDate;
+  bool _syncedBirthDateSet = false;
+
   @override
   void initState() {
     super.initState();
@@ -87,10 +96,27 @@ class _SettingsMyProfileEditCupertino extends State<SettingsMyProfileEditCuperti
 
         if (state.redirectURI.isNotEmpty && state.redirectURI == "/settings/profile") return context.pop();
 
-        firstNameController.text = state.firstName;
-        lastNameController.text = state.lastName;
-        aboutMeController.text = state.aboutMe;
-        birthDateController.text = state.birthDate?.toIso8601String() ?? "";
+        // Синхронизируем только те поля, что реально изменились с прошлой
+        // синхронизации (загрузка профиля / обновление из MY_PROFILE). Иначе
+        // изменение одного поля в state (напр. birthDate) затирало бы текст,
+        // который пользователь уже набрал в других контроллерах.
+        if (state.firstName != _syncedFirstName) {
+          firstNameController.text = state.firstName;
+          _syncedFirstName = state.firstName;
+        }
+        if (state.lastName != _syncedLastName) {
+          lastNameController.text = state.lastName;
+          _syncedLastName = state.lastName;
+        }
+        if (state.aboutMe != _syncedAboutMe) {
+          aboutMeController.text = state.aboutMe;
+          _syncedAboutMe = state.aboutMe;
+        }
+        if (!_syncedBirthDateSet || state.birthDate != _syncedBirthDate) {
+          birthDateController.text = state.birthDate?.toIso8601String() ?? "";
+          _syncedBirthDate = state.birthDate;
+          _syncedBirthDateSet = true;
+        }
       },
       builder: (context, state) {
         return CupertinoPageScaffold(

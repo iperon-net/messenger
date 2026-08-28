@@ -121,7 +121,7 @@
   "edit": "@:common.edit"
   "close": "@:common.close"
   "error": "@:common.error"
-  "errorSavingProfile": "Error saving profile"
+  "errorSavingProfile": "Saving profile"
   "birthDayFormat": "{date}"
   "birthDayRemove": "Remove date birth"
   "editPhoto": "Edit photo"

@@ -464,8 +464,8 @@ class Translations$screenMyProfile$en {
 	/// en: 'Error'
 	String get error => _root.common.error;
 
-	/// en: 'Error saving profile'
-	String get errorSavingProfile => 'Error saving profile';
+	/// en: 'Saving profile'
+	String get errorSavingProfile => 'Saving profile';
 
 	/// en: '{date}'
 	String birthDayFormat({required Object date}) => '${date}';
@@ -717,7 +717,7 @@ extension on Translations {
 			'screenMyProfile.edit' => _root.common.edit,
 			'screenMyProfile.close' => _root.common.close,
 			'screenMyProfile.error' => _root.common.error,
-			'screenMyProfile.errorSavingProfile' => 'Error saving profile',
+			'screenMyProfile.errorSavingProfile' => 'Saving profile',
 			'screenMyProfile.birthDayFormat' => ({required Object date}) => '${date}',
 			'screenMyProfile.birthDayRemove' => 'Remove date birth',
 			'screenMyProfile.editPhoto' => 'Edit photo',

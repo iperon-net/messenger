@@ -121,7 +121,7 @@
   "edit": "@:common.edit"
   "close": "@:common.close"
   "error": "@:common.error"
-  "errorSavingProfile": "Ошибка сохранения профиля"
+  "errorSavingProfile": "Сохранение профиля"
   "birthDayFormat": "{date}"
   "birthDayRemove": "Удалить дату рождения"
   "editPhoto": "Изменить фото"
