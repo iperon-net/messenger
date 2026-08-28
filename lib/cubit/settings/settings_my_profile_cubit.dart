@@ -67,6 +67,26 @@ class SettingsMyProfileCubit extends Cubit<SettingsMyProfileState> {
     // emit(state.copyWith(locale: locate, phoneNumber: "+7 909 160 00 44"));
   }
 
+  /// Перечитывает профиль из локальной БД и обновляет state.
+  ///
+  /// Экран профиля остаётся смонтированным, пока открыт экран редактирования,
+  /// поэтому [initialization] после возврата повторно не вызывается. Экран
+  /// правки дёргает этот метод по возвращении, чтобы показать только что
+  /// сохранённые значения (БД уже обновлена в `SettingsMyProfileEditCubit`).
+  Future<void> reload() async {
+    final myProfile = await repositories.myProfile.getByUserID(userID: auth.session.userID);
+    if (isClosed) return;
+
+    emit(
+      state.copyWith(
+        firstName: myProfile.fistName,
+        lastName: myProfile.lastName,
+        birthDate: myProfile.birthDate,
+        aboutMe: myProfile.aboutMe,
+      ),
+    );
+  }
+
   @override
   Future<void> close() {
     _subscription?.cancel();

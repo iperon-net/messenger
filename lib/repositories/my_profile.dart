@@ -14,7 +14,7 @@ class MyProfile {
     return models.MyProfileMapper.fromMap(sqlMyProfile.first);
   }
 
-  Future<void> save({required List<int> userID, String fistName = "", String lastName = "", DateTime? birthDate, aboutMe = ""}) async {
+  Future<void> update({required List<int> userID, String fistName = "", String lastName = "", DateTime? birthDate, aboutMe = ""}) async {
     await db.execute(
       """
       INSERT INTO myProfile (userID, fistName, lastName, birthDate, aboutMe)

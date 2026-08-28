@@ -90,7 +90,7 @@ class SettingsMyProfileEditCubit extends Cubit<SettingsMyProfileEditState> {
 
     final birthDateValue = birthDate.isNotEmpty ? DateTime.parse(birthDate) : null;
 
-    await api.unaryEncoded(
+    final status = await api.unaryEncoded(
       MessageType.MY_PROFILE_EDIT,
       MyProfileEdit_Request(
         firstName: firstName,
@@ -99,8 +99,9 @@ class SettingsMyProfileEditCubit extends Cubit<SettingsMyProfileEditState> {
         birthDate: birthDateValue != null ? Timestamp.fromDateTime(birthDateValue) : null,
       ).writeToBuffer(),
     );
+    logger.debug(status.status);
 
-    await repositories.myProfile.save(
+    await repositories.myProfile.update(
       userID: auth.session.userID,
       fistName: firstName,
       lastName: lastName,
@@ -108,6 +109,9 @@ class SettingsMyProfileEditCubit extends Cubit<SettingsMyProfileEditState> {
       birthDate: birthDateValue,
     );
 
+    // redirectURI — сигнал экрану закрыть правку (pop). Обновление профиля берёт
+    // на себя `SettingsMyProfileCubit.reload()`, вызываемый по возвращении: он
+    // перечитывает только что записанную выше локальную БД.
     emit(state.copyWith(networkStatus: Status.success, redirectURI: Uri.parse("/settings/profile").toString()));
   }
 

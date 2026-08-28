@@ -515,15 +515,7 @@ class API {
       case MessageType.MY_PROFILE:
         final payload = MyProfile_Response.fromBuffer(message.payload);
 
-        // models.MyProfile(
-        //   userID: session.userID,
-        //   fistName: payload.firstName,
-        //   lastName: payload.lastName,
-        //   aboutMe: payload.aboutMe,
-        //   birthDate: DateTime.parse(payload.birthDate),
-        // );
-
-        await repositories.myProfile.save(
+        await repositories.myProfile.update(
           userID: session.userID,
           fistName: payload.firstName,
           lastName: payload.lastName,

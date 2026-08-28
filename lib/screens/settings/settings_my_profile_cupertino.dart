@@ -97,7 +97,14 @@ class _SettingsMyProfileCupertino extends State<SettingsMyProfileCupertino> {
               ),
               trailing: CupertinoButton(
                 padding: EdgeInsets.zero,
-                onPressed: () async => context.go("/settings/profile/edit"),
+                // push (а не go): дожидаемся закрытия экрана правки и перечитываем
+                // профиль из локальной БД — экран профиля не пересоздаётся при
+                // возврате, поэтому обновляем его вручную.
+                onPressed: () async {
+                  final cubit = context.read<SettingsMyProfileCubit>();
+                  await context.push("/settings/profile/edit");
+                  await cubit.reload();
+                },
                 child: state.networkStatus == Status.loading
                     ? CupertinoActivityIndicator()
                     : Text(context.t.screenMyProfile.edit, style: TextStyle(color: ThemesCupertino.navActionColor(context))),
