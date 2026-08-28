@@ -239,7 +239,7 @@ class _IperonMessengerCupertino extends State<IperonMessengerCupertino> with Wid
             debugShowCheckedModeBanner: kDebugMode,
             routerConfig: goRouter,
             localizationsDelegates: const <LocalizationsDelegate<Object>>[
-              // wechat_assets_picker строится на Material-виджетах и требует
+              // Некоторые Material-виджеты (напр. flutter_screen_lock) требуют
               // MaterialLocalizations, которых нет в GlobalCupertinoLocalizations.delegates.
               GlobalMaterialLocalizations.delegate,
               GlobalCupertinoLocalizations.delegate,

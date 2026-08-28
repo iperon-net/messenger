@@ -61,7 +61,6 @@ class _SettingsMyProfileCupertino extends State<SettingsMyProfileCupertino> {
     // preferredCameraDevice игнорируется.
     final image = await ImagePicker().pickImage(
       source: source,
-      preferredCameraDevice: CameraDevice.rear,
       imageQuality: 85, // лёгкое сжатие
       maxWidth: 1024, // ресайз под аватар
     );
