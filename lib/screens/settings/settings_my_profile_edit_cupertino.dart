@@ -72,7 +72,7 @@ class _SettingsMyProfileEditCupertino extends State<SettingsMyProfileEditCuperti
             context: context,
             builder: (BuildContext context) => CupertinoAlertDialog(
               title: Text(context.t.screenMyProfile.error),
-              content: Text(context.t.screenMyProfile.errorSavingProfile),
+              content: Text(context.t[state.error]),
               actions: <CupertinoDialogAction>[
                 CupertinoDialogAction(
                   isDefaultAction: true,

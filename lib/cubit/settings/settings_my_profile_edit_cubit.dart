@@ -101,7 +101,7 @@ class SettingsMyProfileEditCubit extends Cubit<SettingsMyProfileEditState> {
   }
 
   Future<void> setProfile({required String birthDate, required String firstName, required String lastName, required String aboutMe}) async {
-    emit(state.copyWith(networkStatus: Status.loading));
+    emit(state.copyWith(networkStatus: Status.loading, error: ""));
 
     final birthDateValue = birthDate.isNotEmpty ? DateTime.parse(birthDate) : null;
 
@@ -117,7 +117,7 @@ class SettingsMyProfileEditCubit extends Cubit<SettingsMyProfileEditState> {
 
     if (status.status == APIStatus.error) {
       logger.debug(status.status);
-      emit(state.copyWith(networkStatus: Status.success, error: ""));
+      emit(state.copyWith(networkStatus: Status.success, error: "screenMyProfile.errorSavingProfile"));
       return;
     }
 
