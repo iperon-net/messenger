@@ -288,33 +288,6 @@ class _SettingsMyProfileEditCupertino extends State<SettingsMyProfileEditCuperti
                       ),
                     ],
                   ),
-
-                  CupertinoListSection.insetGrouped(
-                    clipBehavior: Clip.antiAlias,
-                    backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
-                    decoration: BoxDecoration(
-                      color: ThemesCupertino.groupedCard.resolveFrom(context),
-                      borderRadius: const BorderRadius.all(Radius.circular(18)),
-                    ),
-                    children: [
-                      CupertinoListTileIcon(
-                        title: Text(context.t.screenMyProfile.username),
-                        color: Color(0xFF3B74BF),
-                        icon: FontAwesomeIcons.at,
-                        onTab: () async {},
-                        additionalInfo: Text(context.t.screenMyProfile.add),
-                        isTrailing: true,
-                      ),
-                      // CupertinoListTileIcon(
-                      //   title: const Text("Номер"),
-                      //   color: Color(0xFF049A40),
-                      //   icon: FontAwesomeIcons.phone,
-                      //   onTab: () async => _pickBirthDate,
-                      //   additionalInfo: Text("+7 909 160-00-44"),
-                      //   isTrailing: true,
-                      // ),
-                    ],
-                  ),
                 ],
               ),
             ),
