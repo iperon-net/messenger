@@ -4,6 +4,8 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:flutter/foundation.dart';
+// GlobalCupertinoLocalizations уже приходит из cupertino_ui — прячем дубликат.
+import 'package:flutter_localizations/flutter_localizations.dart' hide GlobalCupertinoLocalizations;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screen_lock/flutter_screen_lock.dart';
 import 'package:flutter_svg/svg.dart';
@@ -236,7 +238,13 @@ class _IperonMessengerCupertino extends State<IperonMessengerCupertino> with Wid
           child: CupertinoApp.router(
             debugShowCheckedModeBanner: kDebugMode,
             routerConfig: goRouter,
-            localizationsDelegates: GlobalCupertinoLocalizations.delegates,
+            localizationsDelegates: const <LocalizationsDelegate<Object>>[
+              // wechat_assets_picker строится на Material-виджетах и требует
+              // MaterialLocalizations, которых нет в GlobalCupertinoLocalizations.delegates.
+              GlobalMaterialLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+            ],
             supportedLocales: AppLocaleUtils.supportedLocales,
             locale: TranslationProvider.of(context).flutterLocale,
             theme: CupertinoThemeData(

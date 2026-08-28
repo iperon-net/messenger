@@ -2,6 +2,7 @@ import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_boring_avatars/flutter_boring_avatars.dart';
 import 'package:messenger/constants.dart';
+import 'package:wechat_assets_picker/wechat_assets_picker.dart';
 import '../../cubit.dart';
 import '../../di.dart';
 import '../../logger.dart';
@@ -117,7 +118,9 @@ class _SettingsMyProfileCupertino extends State<SettingsMyProfileCupertino> {
                 const SizedBox(height: 12),
                 Center(
                   child: GestureDetector(
-                    onTap: () {},
+                    onTap: () async {
+                      await AssetPicker.pickAssets(context, pickerConfig: AssetPickerConfig());
+                    },
                     behavior: HitTestBehavior.opaque,
                     child: Column(
                       children: [
