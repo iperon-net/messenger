@@ -476,6 +476,12 @@ class Translations$screenMyProfile$en {
 	/// en: 'Edit photo'
 	String get editPhoto => 'Edit photo';
 
+	/// en: 'Take photo'
+	String get takePhoto => 'Take photo';
+
+	/// en: 'Choose from gallery'
+	String get chooseFromGallery => 'Choose from gallery';
+
 	/// en: 'Mobile phone'
 	String get mobilePhone => 'Mobile phone';
 
@@ -721,6 +727,8 @@ extension on Translations {
 			'screenMyProfile.birthDayFormat' => ({required Object date}) => '${date}',
 			'screenMyProfile.birthDayRemove' => 'Remove date birth',
 			'screenMyProfile.editPhoto' => 'Edit photo',
+			'screenMyProfile.takePhoto' => 'Take photo',
+			'screenMyProfile.chooseFromGallery' => 'Choose from gallery',
 			'screenMyProfile.mobilePhone' => 'Mobile phone',
 			'screenMyProfile.number' => 'Number',
 			'screenMyProfile.copy' => 'Copy',

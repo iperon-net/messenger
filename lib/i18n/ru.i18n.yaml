@@ -125,6 +125,8 @@
   "birthDayFormat": "{date}"
   "birthDayRemove": "Удалить дату рождения"
   "editPhoto": "Изменить фото"
+  "takePhoto": "Сделать фото"
+  "chooseFromGallery": "Выбрать из галереи"
   "mobilePhone": "Номер телефона"
   "number": "Номер"
   "copy": "Скопировать"

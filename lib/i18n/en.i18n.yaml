@@ -125,6 +125,8 @@
   "birthDayFormat": "{date}"
   "birthDayRemove": "Remove date birth"
   "editPhoto": "Edit photo"
+  "takePhoto": "Take photo"
+  "chooseFromGallery": "Choose from gallery"
   "mobilePhone": "Mobile phone"
   "number": "Number"
   "copy": "Copy"

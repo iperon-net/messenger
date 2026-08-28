@@ -1,8 +1,8 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_boring_avatars/flutter_boring_avatars.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:messenger/constants.dart';
-import 'package:wechat_assets_picker/wechat_assets_picker.dart';
 import '../../cubit.dart';
 import '../../di.dart';
 import '../../logger.dart';
@@ -31,6 +31,43 @@ class _SettingsMyProfileCupertino extends State<SettingsMyProfileCupertino> {
   @override
   void dispose() {
     super.dispose();
+  }
+
+  /// Показывает iOS-меню выбора источника аватара: камера или галерея.
+  Future<void> _pickAvatar(BuildContext context) async {
+    final source = await showCupertinoModalPopup<ImageSource>(
+      context: context,
+      builder: (context) => CupertinoActionSheet(
+        actions: [
+          CupertinoActionSheetAction(
+            onPressed: () => Navigator.pop(context, ImageSource.camera),
+            child: Text(context.t.screenMyProfile.takePhoto),
+          ),
+          CupertinoActionSheetAction(
+            onPressed: () => Navigator.pop(context, ImageSource.gallery),
+            child: Text(context.t.screenMyProfile.chooseFromGallery),
+          ),
+        ],
+        cancelButton: CupertinoActionSheetAction(
+          isDefaultAction: true,
+          onPressed: () => Navigator.pop(context),
+          child: Text(context.t.screenMyProfile.cancel),
+        ),
+      ),
+    );
+    if (source == null) return; // меню закрыто без выбора
+
+    // Камера отдаёт снимок только с задней камеры по умолчанию; для галереи
+    // preferredCameraDevice игнорируется.
+    final image = await ImagePicker().pickImage(
+      source: source,
+      preferredCameraDevice: CameraDevice.rear,
+      imageQuality: 85, // лёгкое сжатие
+      maxWidth: 1024, // ресайз под аватар
+    );
+    if (image == null) return; // пользователь отменил выбор
+    logger.debug('Выбран аватар: ${image.path}');
+    // TODO: передать image в кубит и загрузить на сервер/в профиль.
   }
 
   Widget _lastNameTile(BuildContext context, String lastName) {
@@ -118,47 +155,7 @@ class _SettingsMyProfileCupertino extends State<SettingsMyProfileCupertino> {
                 const SizedBox(height: 12),
                 Center(
                   child: GestureDetector(
-                    onTap: () async {
-                      final cupertinoTheme = CupertinoTheme.of(context);
-
-                      // pickAssetsWithDelegate не запрашивает разрешение сам —
-                      // получаем его заранее и передаём делегату.
-                      final permission = await PhotoManager.requestPermissionExtend();
-                      if (!permission.isAuth && permission != PermissionState.limited) return;
-                      if (!context.mounted) return;
-
-                      final provider = DefaultAssetPickerProvider(
-                        maxAssets: 1,
-                        pageSize: 90, // должен быть кратен gridCount
-                        requestType: RequestType.image,
-                      );
-
-                      // Типовые аргументы указываем явно: иначе Asset/Path
-                      // выводятся как dynamic и внутренний initState падает
-                      // с _TypeError при касте состояния пикера.
-                      await AssetPicker.pickAssetsWithDelegate<
-                        AssetEntity,
-                        AssetPathEntity,
-                        DefaultAssetPickerProvider,
-                        CupertinoAssetPickerDelegate
-                      >(
-                        context,
-                        delegate: CupertinoAssetPickerDelegate(
-                          provider: provider,
-                          initialPermission: permission,
-                          gridCount: 3, // меньше колонок — крупнее ячейки сетки
-                          limitedPermissionOverlayPredicate: (permissionState) => false,
-                          // Локаль приложения — чтобы тексты пикера были не на китайском.
-                          locale: TranslationProvider.of(context).flutterLocale,
-                          // Синхронизируем пикер с темой приложения. themeColor и
-                          // pickerTheme взаимоисключающие — задаём только pickerTheme.
-                          pickerTheme: AssetPicker.themeData(
-                            cupertinoTheme.primaryColor,
-                            light: cupertinoTheme.brightness == Brightness.light,
-                          ),
-                        ),
-                      );
-                    },
+                    onTap: () => _pickAvatar(context),
                     behavior: HitTestBehavior.opaque,
                     child: Column(
                       children: [
