@@ -93,12 +93,14 @@ class _SettingsMyProfileCupertino extends State<SettingsMyProfileCupertino> {
               leading: CupertinoButton(
                 padding: EdgeInsets.zero,
                 onPressed: () => context.pop(),
-                child: Text(context.t.screenMyProfile.cancel),
+                child: Text(context.t.screenMyProfile.cancel, style: TextStyle(color: ThemesCupertino.navActionColor(context))),
               ),
               trailing: CupertinoButton(
                 padding: EdgeInsets.zero,
                 onPressed: () async => context.go("/settings/profile/edit"),
-                child: state.networkStatus == Status.loading ? CupertinoActivityIndicator() : Text(context.t.screenMyProfile.edit),
+                child: state.networkStatus == Status.loading
+                    ? CupertinoActivityIndicator()
+                    : Text(context.t.screenMyProfile.edit, style: TextStyle(color: ThemesCupertino.navActionColor(context))),
               ),
             ),
           ),

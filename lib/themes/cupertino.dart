@@ -99,6 +99,21 @@ class ThemesCupertino {
     darkColor: CupertinoColors.systemGroupedBackground,
   ).resolveFrom(context);
 
+  /// Цвет кнопок-действий навбара (`leading`/`trailing`): в светлой теме —
+  /// акцентный `primaryColor`, в тёмной — белый.
+  ///
+  /// Дублирует поведение [AppCupertinoNavigationBar], но задаётся прямо на
+  /// тексте кнопки, а не через локальный [CupertinoTheme]. Это важно из-за
+  /// hero-перехода навбара (`transitionBetweenRoutes`): при переходе между
+  /// экранами `leading`/`trailing` переносятся по `GlobalKey` в overlay поверх
+  /// страницы, где теряют локальную тему навбара и заново читают ambient
+  /// `primaryColor` (синий) — кнопки на миг синеют. Явно вшитый в текст цвет
+  /// переживает этот перенос.
+  static Color navActionColor(BuildContext context) => CupertinoDynamicColor.withBrightness(
+    color: CupertinoTheme.of(context).primaryColor,
+    darkColor: CupertinoColors.white,
+  ).resolveFrom(context);
+
   /// Полная конфигурация `ScreenLockConfig` с общим фоном.
   static ScreenLockConfig screenLockConfig(BuildContext context) =>
       ScreenLockConfig.defaultConfig.copyWith(backgroundColor: screenLockBackground(context));

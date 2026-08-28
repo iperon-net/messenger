@@ -81,7 +81,11 @@ class _SettingsMyProfileEditCupertino extends State<SettingsMyProfileEditCuperti
               automaticBackgroundVisibility: false,
               backgroundColor: ThemesCupertino.groupedBackground,
               middle: Text(context.t.screenMyProfile.myprofile),
-              leading: CupertinoButton(padding: EdgeInsets.zero, onPressed: () => context.pop(), child: Text(context.t.common.cancel)),
+              leading: CupertinoButton(
+                padding: EdgeInsets.zero,
+                onPressed: () => context.pop(),
+                child: Text(context.t.common.cancel, style: TextStyle(color: ThemesCupertino.navActionColor(context))),
+              ),
               trailing: CupertinoButton(
                 padding: EdgeInsets.zero,
                 onPressed: () async {
@@ -96,7 +100,9 @@ class _SettingsMyProfileEditCupertino extends State<SettingsMyProfileEditCuperti
                     );
                   }
                 },
-                child: state.networkStatus == Status.loading ? CupertinoActivityIndicator() : Text(context.t.common.save),
+                child: state.networkStatus == Status.loading
+                    ? CupertinoActivityIndicator()
+                    : Text(context.t.common.save, style: TextStyle(color: ThemesCupertino.navActionColor(context))),
               ),
             ),
           ),
