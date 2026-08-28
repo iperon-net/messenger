@@ -119,6 +119,35 @@ class _SettingsMyProfileEditCupertino extends State<SettingsMyProfileEditCuperti
         }
       },
       builder: (context, state) {
+        final firstNameField = CupertinoTextFormFieldRow(
+          placeholder: context.t.screenMyProfile.firstName,
+          controller: firstNameController,
+          focusNode: firstNameFocus,
+          autofillHints: [AutofillHints.givenName],
+          validator: (value) {
+            final error = switch (context.read<SettingsMyProfileEditCubit>().validateFirstName(value)) {
+              FirstNameValidationError.maxLength => context.t.screenMyProfile.validationFirstNameMaxLength,
+              null => null,
+            };
+            return error;
+          },
+        );
+        final lastNameField = CupertinoTextFormFieldRow(
+          placeholder: context.t.screenMyProfile.lastName,
+          controller: lastNameController,
+          focusNode: lastNameFocus,
+          autofillHints: [AutofillHints.familyName],
+          validator: (value) {
+            final error = switch (context.read<SettingsMyProfileEditCubit>().validateFirstName(value)) {
+              FirstNameValidationError.maxLength => context.t.screenMyProfile.validationLastNameMaxLength,
+              null => null,
+            };
+            return error;
+          },
+        );
+        // Для русской локали фамилия идёт выше имени, в остальных — имя, затем фамилия.
+        final nameFields = LocaleSettings.currentLocale == AppLocale.ru ? [lastNameField, firstNameField] : [firstNameField, lastNameField];
+
         return CupertinoPageScaffold(
           backgroundColor: ThemesCupertino.groupedBackground,
           navigationBar: AppCupertinoNavigationBar(
@@ -164,34 +193,7 @@ class _SettingsMyProfileEditCupertino extends State<SettingsMyProfileEditCuperti
                       color: ThemesCupertino.groupedCard.resolveFrom(context),
                       borderRadius: const BorderRadius.all(Radius.circular(18)),
                     ),
-                    children: [
-                      CupertinoTextFormFieldRow(
-                        placeholder: context.t.screenMyProfile.firstName,
-                        controller: firstNameController,
-                        focusNode: firstNameFocus,
-                        autofillHints: [AutofillHints.givenName],
-                        validator: (value) {
-                          final error = switch (context.read<SettingsMyProfileEditCubit>().validateFirstName(value)) {
-                            FirstNameValidationError.maxLength => context.t.screenMyProfile.validationFirstNameMaxLength,
-                            null => null,
-                          };
-                          return error;
-                        },
-                      ),
-                      CupertinoTextFormFieldRow(
-                        placeholder: context.t.screenMyProfile.lastName,
-                        controller: lastNameController,
-                        focusNode: lastNameFocus,
-                        autofillHints: [AutofillHints.familyName],
-                        validator: (value) {
-                          final error = switch (context.read<SettingsMyProfileEditCubit>().validateFirstName(value)) {
-                            FirstNameValidationError.maxLength => context.t.screenMyProfile.validationLastNameMaxLength,
-                            null => null,
-                          };
-                          return error;
-                        },
-                      ),
-                    ],
+                    children: nameFields,
                   ),
 
                   // Дата рождения.

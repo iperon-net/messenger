@@ -25,7 +25,7 @@ class SettingsMyProfileCubit extends Cubit<SettingsMyProfileState> {
 
   StreamSubscription<Uint8List>? _subscription;
 
-  Future<void> initialization({required AppLocale locate}) async {
+  Future<void> initialization({required AppLocale locale}) async {
     emit(state.copyWith(status: Status.loading));
 
     // Subscription
@@ -52,7 +52,7 @@ class SettingsMyProfileCubit extends Cubit<SettingsMyProfileState> {
     final phoneNormalization = utils.phoneNormalization(phoneNumber: user.phoneNumber);
     emit(
       state.copyWith(
-        locale: locate,
+        locale: locale,
         phoneNumber: phoneNormalization.international,
         firstName: myProfile.fistName,
         lastName: myProfile.lastName,

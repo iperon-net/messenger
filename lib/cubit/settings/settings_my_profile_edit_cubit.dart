@@ -8,6 +8,7 @@ import '../../api.dart';
 import '../../auth.dart';
 import '../../constants.dart';
 import '../../di.dart';
+import '../../i18n/translations.g.dart';
 import '../../logger.dart';
 
 import '../../protobuf.dart';
@@ -32,8 +33,8 @@ class SettingsMyProfileEditCubit extends Cubit<SettingsMyProfileEditState> {
 
   StreamSubscription<Uint8List>? _subscription;
 
-  Future<void> initialization() async {
-    emit(state.copyWith(status: Status.loading));
+  Future<void> initialization({required AppLocale locale}) async {
+    emit(state.copyWith(status: Status.loading, locale: locale));
 
     // Subscription
     _subscription = api.on(MessageType.MY_PROFILE).listen((payload) {

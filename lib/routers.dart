@@ -84,7 +84,7 @@ class Routers {
                     BlocProvider<SettingsMyProfileCubit>(
                       create: (_) =>
                           SettingsMyProfileCubit()
-                            ..initialization(locate: context.read<CommonCubit>().state.settingsDevice.locale ?? AppLocale.en),
+                            ..initialization(locale: context.read<CommonCubit>().state.settingsDevice.locale ?? AppLocale.en),
                       child: SettingsMyProfileCupertino(),
                     ),
                   ),
@@ -95,7 +95,9 @@ class Routers {
                       pageBuilder: (context, state) => _page(
                         state,
                         BlocProvider<SettingsMyProfileEditCubit>(
-                          create: (_) => SettingsMyProfileEditCubit()..initialization(),
+                          create: (_) =>
+                              SettingsMyProfileEditCubit()
+                                ..initialization(locale: context.read<CommonCubit>().state.settingsDevice.locale ?? AppLocale.en),
                           child: SettingsMyProfileEditCupertino(),
                         ),
                       ),

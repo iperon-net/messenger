@@ -2,6 +2,7 @@ import 'package:dart_mappable/dart_mappable.dart';
 import 'package:flutter_boring_avatars/flutter_boring_avatars.dart';
 
 import '../../constants.dart';
+import '../../i18n/translations.g.dart';
 
 part 'settings_my_profile_edit_state.mapper.dart';
 
@@ -17,6 +18,8 @@ class SettingsMyProfileEditState with SettingsMyProfileEditStateMappable {
   final String aboutMe;
   final DateTime? birthDate;
 
+  final AppLocale locale;
+
   final String boringAvatarHash;
   final BoringAvatarType boringAvatarType;
   final int aboutMeLength;
@@ -31,6 +34,8 @@ class SettingsMyProfileEditState with SettingsMyProfileEditStateMappable {
     this.lastName = "",
     this.aboutMe = "",
     this.birthDate,
+
+    this.locale = AppLocale.en,
 
     this.boringAvatarHash = "",
     this.boringAvatarType = BoringAvatarType.ring,

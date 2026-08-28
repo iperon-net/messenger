@@ -82,6 +82,13 @@ class SettingsMyProfileEditStateMapper
     _$birthDate,
     opt: true,
   );
+  static AppLocale _$locale(SettingsMyProfileEditState v) => v.locale;
+  static const Field<SettingsMyProfileEditState, AppLocale> _f$locale = Field(
+    'locale',
+    _$locale,
+    opt: true,
+    def: AppLocale.en,
+  );
   static String _$boringAvatarHash(SettingsMyProfileEditState v) =>
       v.boringAvatarHash;
   static const Field<SettingsMyProfileEditState, String> _f$boringAvatarHash =
@@ -113,6 +120,7 @@ class SettingsMyProfileEditStateMapper
     #lastName: _f$lastName,
     #aboutMe: _f$aboutMe,
     #birthDate: _f$birthDate,
+    #locale: _f$locale,
     #boringAvatarHash: _f$boringAvatarHash,
     #boringAvatarType: _f$boringAvatarType,
     #aboutMeLength: _f$aboutMeLength,
@@ -128,6 +136,7 @@ class SettingsMyProfileEditStateMapper
       lastName: data.dec(_f$lastName),
       aboutMe: data.dec(_f$aboutMe),
       birthDate: data.dec(_f$birthDate),
+      locale: data.dec(_f$locale),
       boringAvatarHash: data.dec(_f$boringAvatarHash),
       boringAvatarType: data.dec(_f$boringAvatarType),
       aboutMeLength: data.dec(_f$aboutMeLength),
@@ -217,6 +226,7 @@ abstract class SettingsMyProfileEditStateCopyWith<
     String? lastName,
     String? aboutMe,
     DateTime? birthDate,
+    AppLocale? locale,
     String? boringAvatarHash,
     BoringAvatarType? boringAvatarType,
     int? aboutMeLength,
@@ -249,6 +259,7 @@ class _SettingsMyProfileEditStateCopyWithImpl<$R, $Out>
     String? lastName,
     String? aboutMe,
     Object? birthDate = $none,
+    AppLocale? locale,
     String? boringAvatarHash,
     BoringAvatarType? boringAvatarType,
     int? aboutMeLength,
@@ -262,6 +273,7 @@ class _SettingsMyProfileEditStateCopyWithImpl<$R, $Out>
       if (lastName != null) #lastName: lastName,
       if (aboutMe != null) #aboutMe: aboutMe,
       if (birthDate != $none) #birthDate: birthDate,
+      if (locale != null) #locale: locale,
       if (boringAvatarHash != null) #boringAvatarHash: boringAvatarHash,
       if (boringAvatarType != null) #boringAvatarType: boringAvatarType,
       if (aboutMeLength != null) #aboutMeLength: aboutMeLength,
@@ -279,6 +291,7 @@ class _SettingsMyProfileEditStateCopyWithImpl<$R, $Out>
     lastName: data.get(#lastName, or: $value.lastName),
     aboutMe: data.get(#aboutMe, or: $value.aboutMe),
     birthDate: data.get(#birthDate, or: $value.birthDate),
+    locale: data.get(#locale, or: $value.locale),
     boringAvatarHash: data.get(#boringAvatarHash, or: $value.boringAvatarHash),
     boringAvatarType: data.get(#boringAvatarType, or: $value.boringAvatarType),
     aboutMeLength: data.get(#aboutMeLength, or: $value.aboutMeLength),
