@@ -83,6 +83,15 @@ class _ToolbarAttachmentsCupertinoState extends State<ToolbarAttachmentsCupertin
   /// недоступна, тогда плитка камеры не показывается.
   CameraController? _cameraController;
 
+  /// Все доступные камеры устройства (для кнопки смены камеры).
+  List<CameraDescription> _cameras = [];
+
+  /// Индекс активной камеры в [_cameras].
+  int _cameraIndex = 0;
+
+  /// Идёт переключение камеры — чтобы не дёргать кнопку повторно.
+  bool _cameraSwitching = false;
+
   /// Инициализацию камеры пробуем один раз (запрос доступа + запуск).
   bool _cameraInitTried = false;
 
@@ -280,8 +289,11 @@ class _ToolbarAttachmentsCupertinoState extends State<ToolbarAttachmentsCupertin
     try {
       final cameras = await availableCameras();
       if (cameras.isEmpty) return;
-      final back = cameras.firstWhere((c) => c.lensDirection == CameraLensDirection.back, orElse: () => cameras.first);
-      final controller = CameraController(back, ResolutionPreset.medium, enableAudio: false);
+      _cameras = cameras;
+      // По умолчанию — фронтальная камера (если есть).
+      final front = cameras.indexWhere((c) => c.lensDirection == CameraLensDirection.front);
+      _cameraIndex = front >= 0 ? front : 0;
+      final controller = CameraController(cameras[_cameraIndex], ResolutionPreset.medium, enableAudio: false);
       await controller.initialize();
       if (!mounted) {
         await controller.dispose();
@@ -290,6 +302,32 @@ class _ToolbarAttachmentsCupertinoState extends State<ToolbarAttachmentsCupertin
       setState(() => _cameraController = controller);
     } catch (_) {
       // Камера недоступна (занята/ошибка) — просто не показываем плитку.
+    }
+  }
+
+  /// Переключает превью на следующую камеру устройства (фронт ⇄ тыл).
+  /// Доступно, когда камер больше одной.
+  Future<void> _switchCamera() async {
+    if (_cameraSwitching || _cameras.length < 2) return;
+    _cameraSwitching = true;
+    final next = (_cameraIndex + 1) % _cameras.length;
+    final previous = _cameraController;
+    try {
+      final controller = CameraController(_cameras[next], ResolutionPreset.medium, enableAudio: false);
+      await controller.initialize();
+      await previous?.dispose();
+      if (!mounted) {
+        await controller.dispose();
+        return;
+      }
+      setState(() {
+        _cameraIndex = next;
+        _cameraController = controller;
+      });
+    } catch (_) {
+      // Не удалось переключиться — оставляем текущую камеру.
+    } finally {
+      _cameraSwitching = false;
     }
   }
 
@@ -679,6 +717,23 @@ class _ToolbarAttachmentsCupertinoState extends State<ToolbarAttachmentsCupertin
               child: const FaIcon(FontAwesomeIcons.camera, size: 16, color: CupertinoColors.white),
             ),
           ),
+          // Кнопка смены камеры (фронт ⇄ тыл) — правый нижний угол, если камер >1.
+          if (_cameras.length > 1)
+            Positioned(
+              right: 4,
+              bottom: 4,
+              child: GestureDetector(
+                onTap: _switchCamera,
+                behavior: HitTestBehavior.opaque,
+                child: Container(
+                  width: 26,
+                  height: 26,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(color: CupertinoColors.black.withValues(alpha: 0.45), shape: BoxShape.circle),
+                  child: const FaIcon(FontAwesomeIcons.cameraRotate, size: 13, color: CupertinoColors.white),
+                ),
+              ),
+            ),
         ],
       ),
     );
