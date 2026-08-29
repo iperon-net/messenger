@@ -280,6 +280,9 @@ class _Translations$screenMyProfile$ru extends Translations$screenMyProfile$en {
 	@override String get editPhoto => 'Изменить фото';
 	@override String get takePhoto => 'Сделать фото';
 	@override String get chooseFromGallery => 'Выбрать из галереи';
+	@override String get chooseFile => 'Файл';
+	@override String get chooseEmoji => 'Эмодзи';
+	@override String get chooseLink => 'Ссылка';
 	@override String get mobilePhone => 'Номер телефона';
 	@override String get number => 'Номер';
 	@override String get copy => 'Скопировать';
@@ -466,6 +469,9 @@ extension on TranslationsRu {
 			'screenMyProfile.editPhoto' => 'Изменить фото',
 			'screenMyProfile.takePhoto' => 'Сделать фото',
 			'screenMyProfile.chooseFromGallery' => 'Выбрать из галереи',
+			'screenMyProfile.chooseFile' => 'Файл',
+			'screenMyProfile.chooseEmoji' => 'Эмодзи',
+			'screenMyProfile.chooseLink' => 'Ссылка',
 			'screenMyProfile.mobilePhone' => 'Номер телефона',
 			'screenMyProfile.number' => 'Номер',
 			'screenMyProfile.copy' => 'Скопировать',

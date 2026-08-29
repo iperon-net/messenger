@@ -1,7 +1,6 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_boring_avatars/flutter_boring_avatars.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:messenger/constants.dart';
 import '../../cubit.dart';
 import '../../di.dart';
@@ -33,40 +32,28 @@ class _SettingsMyProfileCupertino extends State<SettingsMyProfileCupertino> {
     super.dispose();
   }
 
-  /// Показывает iOS-меню выбора источника аватара: камера или галерея.
+  /// Открывает лист выбора источника аватара (камера / галерея / файл / эмодзи).
   Future<void> _pickAvatar(BuildContext context) async {
-    final source = await showCupertinoModalPopup<ImageSource>(
-      context: context,
-      builder: (context) => CupertinoActionSheet(
-        actions: [
-          CupertinoActionSheetAction(
-            onPressed: () => Navigator.pop(context, ImageSource.camera),
-            child: Text(context.t.screenMyProfile.takePhoto),
-          ),
-          CupertinoActionSheetAction(
-            onPressed: () => Navigator.pop(context, ImageSource.gallery),
-            child: Text(context.t.screenMyProfile.chooseFromGallery),
-          ),
-        ],
-        cancelButton: CupertinoActionSheetAction(
-          isDefaultAction: true,
-          onPressed: () => Navigator.pop(context),
-          child: Text(context.t.screenMyProfile.cancel, style: TextStyle(color: CupertinoColors.systemRed)),
-        ),
-      ),
+    final result = await showMediaSourceSheet(
+      context,
+      tabs: const [
+        // MediaSourceTabKind.camera,
+        MediaSourceTabKind.gallery,
+        MediaSourceTabKind.file,
+        MediaSourceTabKind.emoji,
+        MediaSourceTabKind.link,
+      ],
     );
-    if (source == null) return; // меню закрыто без выбора
+    if (result == null) return; // лист закрыт без выбора
 
-    // Камера отдаёт снимок только с задней камеры по умолчанию; для галереи
-    // preferredCameraDevice игнорируется.
-    final image = await ImagePicker().pickImage(
-      source: source,
-      imageQuality: 85, // лёгкое сжатие
-      maxWidth: 1024, // ресайз под аватар
-    );
-
-    if (image == null) return; // пользователь отменил выбор
-    logger.debug('Выбран аватар: ${image.path}');
+    switch (result) {
+      case MediaImageResult(:final file):
+        logger.debug('Выбран аватар: ${file.path}');
+      case MediaEmojiResult(:final emoji):
+        logger.debug('Выбран эмодзи-аватар: $emoji');
+      case MediaLinkResult(:final url):
+        logger.debug('Выбран аватар по ссылке: $url');
+    }
   }
 
   Widget _lastNameTile(BuildContext context, String lastName) {

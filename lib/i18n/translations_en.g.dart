@@ -482,6 +482,15 @@ class Translations$screenMyProfile$en {
 	/// en: 'Choose from gallery'
 	String get chooseFromGallery => 'Choose from gallery';
 
+	/// en: 'File'
+	String get chooseFile => 'File';
+
+	/// en: 'Emoji'
+	String get chooseEmoji => 'Emoji';
+
+	/// en: 'Link'
+	String get chooseLink => 'Link';
+
 	/// en: 'Mobile phone'
 	String get mobilePhone => 'Mobile phone';
 
@@ -729,6 +738,9 @@ extension on Translations {
 			'screenMyProfile.editPhoto' => 'Edit photo',
 			'screenMyProfile.takePhoto' => 'Take photo',
 			'screenMyProfile.chooseFromGallery' => 'Choose from gallery',
+			'screenMyProfile.chooseFile' => 'File',
+			'screenMyProfile.chooseEmoji' => 'Emoji',
+			'screenMyProfile.chooseLink' => 'Link',
 			'screenMyProfile.mobilePhone' => 'Mobile phone',
 			'screenMyProfile.number' => 'Number',
 			'screenMyProfile.copy' => 'Copy',
