@@ -283,6 +283,10 @@ class _Translations$screenMyProfile$ru extends Translations$screenMyProfile$en {
 	@override String get chooseFile => 'Файл';
 	@override String get chooseEmoji => 'Эмодзи';
 	@override String get chooseLink => 'Ссылка';
+	@override String get galleryEmpty => 'Нет фотографий';
+	@override String get galleryAccessDenied => 'Нет доступа к фото';
+	@override String get galleryOpenSettings => 'Открыть настройки';
+	@override String get galleryManageAccess => 'Управлять доступом';
 	@override String get mobilePhone => 'Номер телефона';
 	@override String get number => 'Номер';
 	@override String get copy => 'Скопировать';
@@ -472,6 +476,10 @@ extension on TranslationsRu {
 			'screenMyProfile.chooseFile' => 'Файл',
 			'screenMyProfile.chooseEmoji' => 'Эмодзи',
 			'screenMyProfile.chooseLink' => 'Ссылка',
+			'screenMyProfile.galleryEmpty' => 'Нет фотографий',
+			'screenMyProfile.galleryAccessDenied' => 'Нет доступа к фото',
+			'screenMyProfile.galleryOpenSettings' => 'Открыть настройки',
+			'screenMyProfile.galleryManageAccess' => 'Управлять доступом',
 			'screenMyProfile.mobilePhone' => 'Номер телефона',
 			'screenMyProfile.number' => 'Номер',
 			'screenMyProfile.copy' => 'Скопировать',

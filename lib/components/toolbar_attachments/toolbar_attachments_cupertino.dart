@@ -1,5 +1,8 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:photo_manager/photo_manager.dart';
+import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
 
 import '../../i18n/translations.g.dart';
 import '../../themes.dart';
@@ -36,6 +39,38 @@ class _ToolbarAttachmentsCupertinoState extends State<ToolbarAttachmentsCupertin
   /// лист собственным жестом и закрывать его свайпом вниз.
   final _sheetController = DraggableScrollableController();
 
+  // ─── Состояние галереи (photo_manager) ────────────────────────────────────
+
+  /// Размер страницы пагинации при подгрузке ассетов по скроллу.
+  static const _pageSize = 90;
+
+  /// Все доступные альбомы (для селектора в хедере). Первый — «все фото».
+  List<AssetPathEntity> _albums = [];
+
+  /// Текущий выбранный альбом, из которого берём ассеты постранично.
+  AssetPathEntity? _album;
+
+  /// Уже загруженные ассеты (накапливаются по мере пагинации).
+  final List<AssetEntity> _assets = [];
+
+  /// Результат запроса доступа к фото; `null` — доступ ещё не запрашивали.
+  PermissionState? _permission;
+
+  int _page = 0;
+  bool _hasMore = true;
+  bool _galleryLoading = false;
+  bool _galleryLoaded = false;
+
+  /// Скролл-контроллер листа, к которому привязан слушатель пагинации.
+  /// [DraggableScrollableSheet] отдаёт стабильный инстанс, привязываемся раз.
+  ScrollController? _boundScroll;
+
+  @override
+  void initState() {
+    super.initState();
+    if (_selected == ToolbarAttachmentTabKind.gallery) _ensureGalleryLoaded();
+  }
+
   /// Нижний «пол» — ниже [minChildSize], чтобы лист можно было стянуть вниз
   /// для закрытия. В покое лист туда не встаёт (см. `snap`/`snapSizes`).
   double get _floor => widget.minChildSize * 0.7;
@@ -45,8 +80,122 @@ class _ToolbarAttachmentsCupertinoState extends State<ToolbarAttachmentsCupertin
 
   @override
   void dispose() {
+    _boundScroll?.removeListener(_onSheetScroll);
     _sheetController.dispose();
     super.dispose();
+  }
+
+  // ─── Галерея: доступ, загрузка, пагинация ─────────────────────────────────
+
+  /// Первичная загрузка: запрашивает доступ, берёт альбом «все фото» и первую
+  /// страницу ассетов. Идемпотентна — повторные вызовы игнорируются.
+  Future<void> _ensureGalleryLoaded() async {
+    if (_galleryLoaded || _galleryLoading) return;
+    setState(() => _galleryLoading = true);
+
+    final ps = await PhotoManager.requestPermissionExtend();
+    _permission = ps;
+    if (!ps.hasAccess) {
+      if (mounted) {
+        setState(() {
+          _galleryLoading = false;
+          _galleryLoaded = true;
+        });
+      }
+      return;
+    }
+
+    final albums = await PhotoManager.getAssetPathList(
+      type: RequestType.image,
+      filterOption: FilterOptionGroup(orders: [const OrderOption(type: OrderOptionType.createDate, asc: false)]),
+    );
+    _albums = albums;
+    _album = albums.isEmpty ? null : albums.first; // первый — системный «все фото»
+    final page = _album == null ? const <AssetEntity>[] : await _album!.getAssetListPaged(page: 0, size: _pageSize);
+
+    if (!mounted) return;
+    setState(() {
+      _page = 0;
+      _assets
+        ..clear()
+        ..addAll(page);
+      _hasMore = page.length == _pageSize;
+      _galleryLoading = false;
+      _galleryLoaded = true;
+    });
+  }
+
+  /// Переключение на другой альбом из селектора: сбрасывает пагинацию и
+  /// перечитывает первую страницу выбранного альбома.
+  Future<void> _selectAlbum(AssetPathEntity album) async {
+    if (album.id == _album?.id) return;
+    setState(() {
+      _album = album;
+      _assets.clear();
+      _page = 0;
+      _hasMore = true;
+      _galleryLoading = true;
+    });
+    final page = await album.getAssetListPaged(page: 0, size: _pageSize);
+    if (!mounted) return;
+    setState(() {
+      _assets
+        ..clear()
+        ..addAll(page);
+      _hasMore = page.length == _pageSize;
+      _galleryLoading = false;
+    });
+  }
+
+  /// Открывает лист выбора альбома и применяет выбор.
+  Future<void> _openAlbumPicker() async {
+    if (_albums.isEmpty) return;
+    final selected = await showCupertinoModalPopup<AssetPathEntity>(
+      context: context,
+      builder: (_) => _AlbumPickerSheet(albums: _albums, current: _album),
+    );
+    if (selected != null && mounted) await _selectAlbum(selected);
+  }
+
+  /// Подгружает следующую страницу ассетов (по скроллу к низу листа).
+  Future<void> _loadMore() async {
+    if (_galleryLoading || !_hasMore || _album == null) return;
+    _galleryLoading = true;
+    final next = _page + 1;
+    final page = await _album!.getAssetListPaged(page: next, size: _pageSize);
+    if (!mounted) return;
+    setState(() {
+      _page = next;
+      _assets.addAll(page);
+      _hasMore = page.length == _pageSize;
+      _galleryLoading = false;
+    });
+  }
+
+  void _bindScroll(ScrollController controller) {
+    if (identical(_boundScroll, controller)) return;
+    _boundScroll?.removeListener(_onSheetScroll);
+    _boundScroll = controller..addListener(_onSheetScroll);
+  }
+
+  void _onSheetScroll() {
+    if (_selected != ToolbarAttachmentTabKind.gallery) return;
+    final c = _boundScroll;
+    if (c == null || !c.hasClients) return;
+    if (c.position.pixels >= c.position.maxScrollExtent - 400) _loadMore();
+  }
+
+  /// Тап по превью: разворачивает ассет в файл и возвращает результат.
+  Future<void> _pickAsset(AssetEntity asset) async {
+    final file = await asset.file;
+    if (file == null || !mounted) return;
+    _finish(ToolbarAttachmentImageResult(XFile(file.path), ToolbarAttachmentTabKind.gallery));
+  }
+
+  /// Снимок с камеры (photo_manager не умеет захват — используем image_picker).
+  Future<void> _takePhoto() async {
+    final image = await ImagePicker().pickImage(source: ImageSource.camera, imageQuality: 85, maxWidth: 1024);
+    if (image != null && mounted) _finish(ToolbarAttachmentImageResult(image, ToolbarAttachmentTabKind.camera));
   }
 
   // ─── Драг «хвата» ─────────────────────────────────────────────────────────
@@ -119,23 +268,33 @@ class _ToolbarAttachmentsCupertinoState extends State<ToolbarAttachmentsCupertin
 
   // ─── Хедер таба (по центру, под линией свайпа) ────────────────────────────
 
-  /// Кастомный хедер выбранного таба. Для галереи — пример-селектор альбома.
+  /// Заголовок системного альбома «все фото» показываем как «Выбрать из
+  /// галереи»; для остальных — их собственное имя.
+  String _albumTitle(BuildContext context) {
+    final album = _album;
+    if (album == null || album.isAll) return _label(context, ToolbarAttachmentTabKind.gallery);
+    return album.name;
+  }
+
+  /// Кастомный хедер выбранного таба. Для галереи — кликабельный селектор
+  /// альбома (открывает список всех альбомов).
   Widget _tabHeader(BuildContext context) {
     final style = TextStyle(fontSize: 17, fontWeight: FontWeight.w600, color: CupertinoColors.label.resolveFrom(context));
     if (_selected == ToolbarAttachmentTabKind.gallery) {
+      final enabled = _albums.length > 1;
       return GestureDetector(
-        onTap: () async {
-          // TODO: открыть выбор альбома, дождаться выбранного и обновить хедер:
-          //   final album = await pickAlbum(context);
-          //   if (album != null && mounted) setState(() => _album = album);
-        },
+        onTap: enabled ? _openAlbumPicker : null,
         behavior: HitTestBehavior.opaque,
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(_label(context, _selected), style: style),
-            const SizedBox(width: 4),
-            FaIcon(FontAwesomeIcons.chevronDown, size: 12, color: CupertinoColors.label.resolveFrom(context)),
+            Flexible(
+              child: Text(_albumTitle(context), style: style, maxLines: 1, overflow: TextOverflow.ellipsis),
+            ),
+            if (enabled) ...[
+              const SizedBox(width: 4),
+              FaIcon(FontAwesomeIcons.chevronDown, size: 12, color: CupertinoColors.label.resolveFrom(context)),
+            ],
           ],
         ),
       );
@@ -202,23 +361,11 @@ class _ToolbarAttachmentsCupertinoState extends State<ToolbarAttachmentsCupertin
         );
 
       case ToolbarAttachmentTabKind.camera:
-      case ToolbarAttachmentTabKind.gallery:
-        // Заглушка-пример: открыть нативный пикер. Замени на свой процесс
-        // (например, встроенную сетку картинок) и вызови _finish(ToolbarAttachmentImageResult(...)).
-        return Text("dddd");
-      // photo_manager
+        // photo_manager не делает снимки — захват через нативную камеру.
+        return _placeholder(context, onTap: _takePhoto);
 
-      // return _placeholder(
-      //   context,
-      //   onTap: () async {
-      //     final image = await ImagePicker().pickImage(
-      //       source: _selected == ToolbarAttachmentTabKind.camera ? ImageSource.camera : ImageSource.gallery,
-      //       imageQuality: 85,
-      //       maxWidth: 1024,
-      //     );
-      //     if (image != null && mounted) _finish(ToolbarAttachmentImageResult(image, _selected));
-      //   },
-      // );
+      case ToolbarAttachmentTabKind.gallery:
+        return _galleryBody(context);
 
       case ToolbarAttachmentTabKind.file:
       case ToolbarAttachmentTabKind.link:
@@ -240,6 +387,100 @@ class _ToolbarAttachmentsCupertinoState extends State<ToolbarAttachmentsCupertin
     );
   }
 
+  // ─── Тело таба «галерея» ──────────────────────────────────────────────────
+
+  /// Сетка превью из photo_manager. Скролл — общий, у листа (grid `shrinkWrap`
+  /// + `NeverScrollable`), пагинация — по слушателю [_onSheetScroll].
+  Widget _galleryBody(BuildContext context) {
+    // Первичная загрузка ещё идёт — крутилка.
+    if (!_galleryLoaded && _galleryLoading) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 40),
+        child: Center(child: CupertinoActivityIndicator()),
+      );
+    }
+    // Доступ не выдан.
+    if (_permission != null && !_permission!.hasAccess) return _galleryDenied(context);
+    // Доступ есть, но фото нет.
+    if (_assets.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 40),
+        child: Center(
+          child: Text(context.t.screenMyProfile.galleryEmpty, style: TextStyle(color: CupertinoColors.secondaryLabel.resolveFrom(context))),
+        ),
+      );
+    }
+
+    return Column(
+      children: [
+        // На iOS при «ограниченном» доступе — управление выбранными фото.
+        if (_permission == PermissionState.limited)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            child: Align(
+              alignment: Alignment.centerRight,
+              child: CupertinoButton(
+                padding: EdgeInsets.zero,
+                minimumSize: Size.zero,
+                onPressed: _manageLimited,
+                child: Text(context.t.screenMyProfile.galleryManageAccess),
+              ),
+            ),
+          ),
+        GridView.builder(
+          padding: const EdgeInsets.all(2),
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3, mainAxisSpacing: 2, crossAxisSpacing: 2),
+          itemCount: _assets.length,
+          itemBuilder: (context, i) {
+            final asset = _assets[i];
+            return GestureDetector(
+              onTap: () => _pickAsset(asset),
+              child: Image(
+                image: AssetEntityImageProvider(asset, isOriginal: false, thumbnailSize: const ThumbnailSize.square(240)),
+                fit: BoxFit.cover,
+                gaplessPlayback: true,
+                filterQuality: FilterQuality.low,
+              ),
+            );
+          },
+        ),
+        // Индикатор подгрузки следующей страницы.
+        if (_galleryLoading && _assets.isNotEmpty)
+          const Padding(padding: EdgeInsets.symmetric(vertical: 12), child: CupertinoActivityIndicator()),
+      ],
+    );
+  }
+
+  /// iOS: открыть системный лист управления «ограниченным» набором фото и
+  /// перечитать альбом после возврата.
+  Future<void> _manageLimited() async {
+    await PhotoManager.presentLimited();
+    _galleryLoaded = false;
+    await _ensureGalleryLoaded();
+  }
+
+  Widget _galleryDenied(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 24),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          FaIcon(FontAwesomeIcons.lock, size: 40, color: CupertinoColors.secondaryLabel.resolveFrom(context)),
+          const SizedBox(height: 16),
+          Text(
+            context.t.screenMyProfile.galleryAccessDenied,
+            textAlign: TextAlign.center,
+            style: TextStyle(color: CupertinoColors.secondaryLabel.resolveFrom(context)),
+          ),
+          const SizedBox(height: 12),
+          CupertinoButton(onPressed: PhotoManager.openSetting, child: Text(context.t.screenMyProfile.galleryOpenSettings)),
+        ],
+      ),
+    );
+  }
+
   // ─── Низ: переключатель табов ─────────────────────────────────────────────
 
   Widget _segmentTab(BuildContext context, ToolbarAttachmentTabKind kind) {
@@ -247,7 +488,10 @@ class _ToolbarAttachmentsCupertinoState extends State<ToolbarAttachmentsCupertin
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 6),
       child: GestureDetector(
-        onTap: () => setState(() => _selected = kind),
+        onTap: () {
+          setState(() => _selected = kind);
+          if (kind == ToolbarAttachmentTabKind.gallery) _ensureGalleryLoaded();
+        },
         behavior: HitTestBehavior.opaque,
         child: Container(
           width: 44,
@@ -278,6 +522,7 @@ class _ToolbarAttachmentsCupertinoState extends State<ToolbarAttachmentsCupertin
       snapSizes: [widget.minChildSize, widget.maxChildSize],
       expand: false,
       builder: (context, scrollController) {
+        _bindScroll(scrollController);
         return Container(
           decoration: BoxDecoration(
             color: ThemesCupertino.groupedBackground.resolveFrom(context),
@@ -368,6 +613,123 @@ class _ToolbarAttachmentsCupertinoState extends State<ToolbarAttachmentsCupertin
           ),
         );
       },
+    );
+  }
+}
+
+/// Модальный лист выбора альбома: строки с обложкой, именем и числом фото.
+/// Возвращает выбранный [AssetPathEntity] через `Navigator.pop`.
+class _AlbumPickerSheet extends StatelessWidget {
+  final List<AssetPathEntity> albums;
+  final AssetPathEntity? current;
+
+  const _AlbumPickerSheet({required this.albums, required this.current});
+
+  @override
+  Widget build(BuildContext context) {
+    final maxHeight = MediaQuery.sizeOf(context).height * 0.6;
+    return Container(
+      decoration: BoxDecoration(
+        color: ThemesCupertino.groupedBackground.resolveFrom(context),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
+      ),
+      child: SafeArea(
+        top: false,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxHeight: maxHeight),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 8),
+              Container(
+                width: 36,
+                height: 5,
+                decoration: BoxDecoration(
+                  color: CupertinoColors.tertiaryLabel.resolveFrom(context),
+                  borderRadius: const BorderRadius.all(Radius.circular(3)),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Flexible(
+                child: ListView.separated(
+                  shrinkWrap: true,
+                  padding: EdgeInsets.zero,
+                  itemCount: albums.length,
+                  separatorBuilder: (_, _) => Padding(
+                    padding: const EdgeInsets.only(left: 76),
+                    child: Container(height: 0.5, color: CupertinoColors.separator.resolveFrom(context)),
+                  ),
+                  itemBuilder: (context, i) => _AlbumRow(album: albums[i], selected: albums[i].id == current?.id),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Одна строка селектора альбома. Обложку и счётчик грузит асинхронно.
+class _AlbumRow extends StatelessWidget {
+  final AssetPathEntity album;
+  final bool selected;
+
+  const _AlbumRow({required this.album, required this.selected});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () => Navigator.pop(context, album),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        child: Row(
+          children: [
+            ClipRRect(
+              borderRadius: const BorderRadius.all(Radius.circular(6)),
+              child: SizedBox(
+                width: 48,
+                height: 48,
+                child: FutureBuilder<List<AssetEntity>>(
+                  future: album.getAssetListRange(start: 0, end: 1),
+                  builder: (context, snap) {
+                    final cover = (snap.data?.isNotEmpty ?? false) ? snap.data!.first : null;
+                    if (cover == null) {
+                      return ColoredBox(color: CupertinoColors.tertiarySystemFill.resolveFrom(context));
+                    }
+                    return Image(
+                      image: AssetEntityImageProvider(cover, isOriginal: false, thumbnailSize: const ThumbnailSize.square(96)),
+                      fit: BoxFit.cover,
+                      gaplessPlayback: true,
+                      filterQuality: FilterQuality.low,
+                    );
+                  },
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                album.isAll ? context.t.screenMyProfile.chooseFromGallery : album.name,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(fontSize: 16, color: CupertinoColors.label.resolveFrom(context)),
+              ),
+            ),
+            const SizedBox(width: 8),
+            FutureBuilder<int>(
+              future: album.assetCountAsync,
+              builder: (context, snap) =>
+                  Text('${snap.data ?? ''}', style: TextStyle(fontSize: 15, color: CupertinoColors.secondaryLabel.resolveFrom(context))),
+            ),
+            if (selected) ...[
+              const SizedBox(width: 8),
+              FaIcon(FontAwesomeIcons.check, size: 15, color: CupertinoTheme.of(context).primaryColor),
+            ],
+          ],
+        ),
+      ),
     );
   }
 }

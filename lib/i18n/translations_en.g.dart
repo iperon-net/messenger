@@ -491,6 +491,18 @@ class Translations$screenMyProfile$en {
 	/// en: 'Link'
 	String get chooseLink => 'Link';
 
+	/// en: 'No photos'
+	String get galleryEmpty => 'No photos';
+
+	/// en: 'No access to photos'
+	String get galleryAccessDenied => 'No access to photos';
+
+	/// en: 'Open settings'
+	String get galleryOpenSettings => 'Open settings';
+
+	/// en: 'Manage access'
+	String get galleryManageAccess => 'Manage access';
+
 	/// en: 'Mobile phone'
 	String get mobilePhone => 'Mobile phone';
 
@@ -741,6 +753,10 @@ extension on Translations {
 			'screenMyProfile.chooseFile' => 'File',
 			'screenMyProfile.chooseEmoji' => 'Emoji',
 			'screenMyProfile.chooseLink' => 'Link',
+			'screenMyProfile.galleryEmpty' => 'No photos',
+			'screenMyProfile.galleryAccessDenied' => 'No access to photos',
+			'screenMyProfile.galleryOpenSettings' => 'Open settings',
+			'screenMyProfile.galleryManageAccess' => 'Manage access',
 			'screenMyProfile.mobilePhone' => 'Mobile phone',
 			'screenMyProfile.number' => 'Number',
 			'screenMyProfile.copy' => 'Copy',
