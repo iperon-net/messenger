@@ -3,20 +3,20 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import '../../i18n/translations.g.dart';
 import '../../themes.dart';
-import 'media_source_sheet.dart';
+import 'toolbar_attachments.dart';
 
 /// Cupertino-лист выбора источника медиа. Раскрывается свайпом вверх
 /// ([DraggableScrollableSheet]); сверху — «хват», кнопка закрытия и
 /// центрированный заголовок таба; внизу — переключатель табов (скрыт, если
 /// таб один). Тело каждого таба — точка расширения под конкретный процесс.
-class MediaSourceSheetCupertino extends StatefulWidget {
-  final List<MediaSourceTabKind> tabs;
-  final MediaSourceTabKind initial;
+class ToolbarAttachmentsCupertino extends StatefulWidget {
+  final List<ToolbarAttachmentTabKind> tabs;
+  final ToolbarAttachmentTabKind initial;
   final double minChildSize;
   final double maxChildSize;
-  final ValueChanged<MediaSourceResult>? onResult;
+  final ValueChanged<ToolbarAttachmentResult>? onResult;
 
-  const MediaSourceSheetCupertino({
+  const ToolbarAttachmentsCupertino({
     required this.tabs,
     required this.initial,
     required this.minChildSize,
@@ -26,11 +26,11 @@ class MediaSourceSheetCupertino extends StatefulWidget {
   });
 
   @override
-  State<MediaSourceSheetCupertino> createState() => _MediaSourceSheetCupertinoState();
+  State<ToolbarAttachmentsCupertino> createState() => _ToolbarAttachmentsCupertinoState();
 }
 
-class _MediaSourceSheetCupertinoState extends State<MediaSourceSheetCupertino> {
-  late MediaSourceTabKind _selected = widget.initial;
+class _ToolbarAttachmentsCupertinoState extends State<ToolbarAttachmentsCupertino> {
+  late ToolbarAttachmentTabKind _selected = widget.initial;
 
   /// Управляет высотой листа: нужен, чтобы «хват» (он вне скролла) мог тянуть
   /// лист собственным жестом и закрывать его свайпом вниз.
@@ -86,35 +86,35 @@ class _MediaSourceSheetCupertinoState extends State<MediaSourceSheetCupertino> {
   ///
   /// Вызывайте из тела таба, когда процесс завершён:
   /// ```dart
-  /// _finish(MediaImageResult(xfile, MediaSourceTabKind.gallery));
-  /// _finish(const MediaEmojiResult('😀'));
-  /// _finish(const MediaLinkResult('https://example.com/pic.png'));
+  /// _finish(ToolbarAttachmentImageResult(xfile, ToolbarAttachmentTabKind.gallery));
+  /// _finish(const ToolbarAttachmentEmojiResult('😀'));
+  /// _finish(const ToolbarAttachmentLinkResult('https://example.com/pic.png'));
   /// ```
   ///
   /// Если нужно эмитить события, не закрывая лист (например, мультивыбор), —
   /// зовите `widget.onResult?.call(result)` напрямую, а `Navigator.pop` — только
   /// по кнопке «Готово».
-  void _finish(MediaSourceResult result) {
+  void _finish(ToolbarAttachmentResult result) {
     widget.onResult?.call(result);
     Navigator.pop(context, result);
   }
 
   // ─── Метаданные табов (иконка/заголовок) ──────────────────────────────────
 
-  FaIconData _icon(MediaSourceTabKind kind) => switch (kind) {
-    MediaSourceTabKind.camera => FontAwesomeIcons.camera,
-    MediaSourceTabKind.gallery => FontAwesomeIcons.images,
-    MediaSourceTabKind.file => FontAwesomeIcons.folder,
-    MediaSourceTabKind.emoji => FontAwesomeIcons.faceSmile,
-    MediaSourceTabKind.link => FontAwesomeIcons.link,
+  FaIconData _icon(ToolbarAttachmentTabKind kind) => switch (kind) {
+    ToolbarAttachmentTabKind.camera => FontAwesomeIcons.camera,
+    ToolbarAttachmentTabKind.gallery => FontAwesomeIcons.images,
+    ToolbarAttachmentTabKind.file => FontAwesomeIcons.folder,
+    ToolbarAttachmentTabKind.emoji => FontAwesomeIcons.faceSmile,
+    ToolbarAttachmentTabKind.link => FontAwesomeIcons.link,
   };
 
-  String _label(BuildContext context, MediaSourceTabKind kind) => switch (kind) {
-    MediaSourceTabKind.camera => context.t.screenMyProfile.takePhoto,
-    MediaSourceTabKind.gallery => context.t.screenMyProfile.chooseFromGallery,
-    MediaSourceTabKind.file => context.t.screenMyProfile.chooseFile,
-    MediaSourceTabKind.emoji => context.t.screenMyProfile.chooseEmoji,
-    MediaSourceTabKind.link => context.t.screenMyProfile.chooseLink,
+  String _label(BuildContext context, ToolbarAttachmentTabKind kind) => switch (kind) {
+    ToolbarAttachmentTabKind.camera => context.t.screenMyProfile.takePhoto,
+    ToolbarAttachmentTabKind.gallery => context.t.screenMyProfile.chooseFromGallery,
+    ToolbarAttachmentTabKind.file => context.t.screenMyProfile.chooseFile,
+    ToolbarAttachmentTabKind.emoji => context.t.screenMyProfile.chooseEmoji,
+    ToolbarAttachmentTabKind.link => context.t.screenMyProfile.chooseLink,
   };
 
   // ─── Хедер таба (по центру, под линией свайпа) ────────────────────────────
@@ -122,7 +122,7 @@ class _MediaSourceSheetCupertinoState extends State<MediaSourceSheetCupertino> {
   /// Кастомный хедер выбранного таба. Для галереи — пример-селектор альбома.
   Widget _tabHeader(BuildContext context) {
     final style = TextStyle(fontSize: 17, fontWeight: FontWeight.w600, color: CupertinoColors.label.resolveFrom(context));
-    if (_selected == MediaSourceTabKind.gallery) {
+    if (_selected == ToolbarAttachmentTabKind.gallery) {
       return GestureDetector(
         onTap: () async {
           // TODO: открыть выбор альбома, дождаться выбранного и обновить хедер:
@@ -151,7 +151,7 @@ class _MediaSourceSheetCupertinoState extends State<MediaSourceSheetCupertino> {
   ///
   /// Пример — таб «файл» со своим списком и возвратом результата:
   /// ```dart
-  /// case MediaSourceTabKind.file:
+  /// case ToolbarAttachmentTabKind.file:
   ///   return ListView.builder(
   ///     shrinkWrap: true,
   ///     physics: const NeverScrollableScrollPhysics(), // внешний скролл — у листа
@@ -160,7 +160,7 @@ class _MediaSourceSheetCupertinoState extends State<MediaSourceSheetCupertino> {
   ///       title: Text(_files[i].name),
   ///       onTap: () async {
   ///         final xfile = await _files[i].toXFile();
-  ///         _finish(MediaImageResult(xfile, MediaSourceTabKind.file));
+  ///         _finish(ToolbarAttachmentImageResult(xfile, ToolbarAttachmentTabKind.file));
   ///       },
   ///     ),
   ///   );
@@ -173,7 +173,7 @@ class _MediaSourceSheetCupertinoState extends State<MediaSourceSheetCupertino> {
   /// ```
   Widget _tabBody(BuildContext context) {
     switch (_selected) {
-      case MediaSourceTabKind.emoji:
+      case ToolbarAttachmentTabKind.emoji:
         // Демонстрационная сетка: тап по эмодзи возвращает результат.
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -184,7 +184,7 @@ class _MediaSourceSheetCupertinoState extends State<MediaSourceSheetCupertino> {
             children: [
               for (final e in _demoEmoji)
                 GestureDetector(
-                  onTap: () => _finish(MediaEmojiResult(e)),
+                  onTap: () => _finish(ToolbarAttachmentEmojiResult(e)),
                   behavior: HitTestBehavior.opaque,
                   child: Container(
                     width: 44,
@@ -201,10 +201,10 @@ class _MediaSourceSheetCupertinoState extends State<MediaSourceSheetCupertino> {
           ),
         );
 
-      case MediaSourceTabKind.camera:
-      case MediaSourceTabKind.gallery:
+      case ToolbarAttachmentTabKind.camera:
+      case ToolbarAttachmentTabKind.gallery:
         // Заглушка-пример: открыть нативный пикер. Замени на свой процесс
-        // (например, встроенную сетку картинок) и вызови _finish(MediaImageResult(...)).
+        // (например, встроенную сетку картинок) и вызови _finish(ToolbarAttachmentImageResult(...)).
         return Text("dddd");
       // photo_manager
 
@@ -212,16 +212,16 @@ class _MediaSourceSheetCupertinoState extends State<MediaSourceSheetCupertino> {
       //   context,
       //   onTap: () async {
       //     final image = await ImagePicker().pickImage(
-      //       source: _selected == MediaSourceTabKind.camera ? ImageSource.camera : ImageSource.gallery,
+      //       source: _selected == ToolbarAttachmentTabKind.camera ? ImageSource.camera : ImageSource.gallery,
       //       imageQuality: 85,
       //       maxWidth: 1024,
       //     );
-      //     if (image != null && mounted) _finish(MediaImageResult(image, _selected));
+      //     if (image != null && mounted) _finish(ToolbarAttachmentImageResult(image, _selected));
       //   },
       // );
 
-      case MediaSourceTabKind.file:
-      case MediaSourceTabKind.link:
+      case ToolbarAttachmentTabKind.file:
+      case ToolbarAttachmentTabKind.link:
         // TODO: реализуй процесс таба и вызови _finish(...) с результатом.
         return _placeholder(context, onTap: () {});
     }
@@ -242,7 +242,7 @@ class _MediaSourceSheetCupertinoState extends State<MediaSourceSheetCupertino> {
 
   // ─── Низ: переключатель табов ─────────────────────────────────────────────
 
-  Widget _segmentTab(BuildContext context, MediaSourceTabKind kind) {
+  Widget _segmentTab(BuildContext context, ToolbarAttachmentTabKind kind) {
     final isSelected = kind == _selected;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 6),

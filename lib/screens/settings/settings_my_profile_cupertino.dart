@@ -34,24 +34,24 @@ class _SettingsMyProfileCupertino extends State<SettingsMyProfileCupertino> {
 
   /// Открывает лист выбора источника аватара (камера / галерея / файл / эмодзи).
   Future<void> _pickAvatar(BuildContext context) async {
-    final result = await showMediaSourceSheet(
+    final result = await showToolbarAttachments(
       context,
       tabs: const [
-        // MediaSourceTabKind.camera,
-        MediaSourceTabKind.gallery,
-        MediaSourceTabKind.file,
-        MediaSourceTabKind.emoji,
-        MediaSourceTabKind.link,
+        // ToolbarAttachmentTabKind.camera,
+        ToolbarAttachmentTabKind.gallery,
+        ToolbarAttachmentTabKind.file,
+        ToolbarAttachmentTabKind.emoji,
+        ToolbarAttachmentTabKind.link,
       ],
     );
     if (result == null) return; // лист закрыт без выбора
 
     switch (result) {
-      case MediaImageResult(:final file):
+      case ToolbarAttachmentImageResult(:final file):
         logger.debug('Выбран аватар: ${file.path}');
-      case MediaEmojiResult(:final emoji):
+      case ToolbarAttachmentEmojiResult(:final emoji):
         logger.debug('Выбран эмодзи-аватар: $emoji');
-      case MediaLinkResult(:final url):
+      case ToolbarAttachmentLinkResult(:final url):
         logger.debug('Выбран аватар по ссылке: $url');
     }
   }

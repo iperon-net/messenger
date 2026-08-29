@@ -1,36 +1,36 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:image_picker/image_picker.dart';
 
-import 'media_source_sheet_cupertino.dart';
+import 'toolbar_attachments_cupertino.dart';
 
-export 'media_source_sheet_cupertino.dart';
+export 'toolbar_attachments_cupertino.dart';
 
 /// Встроенные табы источника медиа. Функционал каждого таба фиксирован внутри
 /// компонента; снаружи выбирается только набор доступных табов.
-enum MediaSourceTabKind { camera, gallery, file, emoji, link }
+enum ToolbarAttachmentTabKind { camera, gallery, file, emoji, link }
 
 /// Результат выбора, который компонент возвращает наружу.
-sealed class MediaSourceResult {
-  const MediaSourceResult();
+sealed class ToolbarAttachmentResult {
+  const ToolbarAttachmentResult();
 }
 
 /// Выбрано изображение (камера / галерея / файл).
-class MediaImageResult extends MediaSourceResult {
+class ToolbarAttachmentImageResult extends ToolbarAttachmentResult {
   final XFile file;
-  final MediaSourceTabKind source;
-  const MediaImageResult(this.file, this.source);
+  final ToolbarAttachmentTabKind source;
+  const ToolbarAttachmentImageResult(this.file, this.source);
 }
 
 /// Выбран эмодзи.
-class MediaEmojiResult extends MediaSourceResult {
+class ToolbarAttachmentEmojiResult extends ToolbarAttachmentResult {
   final String emoji;
-  const MediaEmojiResult(this.emoji);
+  const ToolbarAttachmentEmojiResult(this.emoji);
 }
 
 /// Введена / выбрана ссылка.
-class MediaLinkResult extends MediaSourceResult {
+class ToolbarAttachmentLinkResult extends ToolbarAttachmentResult {
   final String url;
-  const MediaLinkResult(this.url);
+  const ToolbarAttachmentLinkResult(this.url);
 }
 
 /// Показывает лист выбора источника медиа (аватар, вложение и т.п.).
@@ -44,52 +44,52 @@ class MediaLinkResult extends MediaSourceResult {
 /// реализуются в теле таба и по готовности вызывают возврат результата.
 ///
 /// Cupertino-first: когда появится Material-интерфейс, здесь добавится
-/// ветвление на `MediaSourceSheetMaterial` по активному дизайну.
+/// ветвление на `ToolbarAttachmentsMaterial` по активному дизайну.
 ///
 /// Пример — все табы, результат из [Future] через switch по sealed-типу:
 /// ```dart
-/// final result = await showMediaSourceSheet(
+/// final result = await showToolbarAttachments(
 ///   context,
 ///   tabs: const [
-///     MediaSourceTabKind.camera,
-///     MediaSourceTabKind.gallery,
-///     MediaSourceTabKind.file,
-///     MediaSourceTabKind.emoji,
+///     ToolbarAttachmentTabKind.camera,
+///     ToolbarAttachmentTabKind.gallery,
+///     ToolbarAttachmentTabKind.file,
+///     ToolbarAttachmentTabKind.emoji,
 ///   ],
 /// );
 /// if (result == null) return; // лист закрыт без выбора
 /// switch (result) {
-///   case MediaImageResult(:final file):  // camera / gallery / file
+///   case ToolbarAttachmentImageResult(:final file):  // camera / gallery / file
 ///     await uploadAvatar(file);
-///   case MediaEmojiResult(:final emoji):
+///   case ToolbarAttachmentEmojiResult(:final emoji):
 ///     setEmojiAvatar(emoji);
-///   case MediaLinkResult(:final url):
+///   case ToolbarAttachmentLinkResult(:final url):
 ///     setAvatarByUrl(url);
 /// }
 /// ```
 ///
 /// Пример — один таб (меню-переключатель скрывается) + callback вместо Future:
 /// ```dart
-/// await showMediaSourceSheet(
+/// await showToolbarAttachments(
 ///   context,
-///   tabs: const [MediaSourceTabKind.gallery],
+///   tabs: const [ToolbarAttachmentTabKind.gallery],
 ///   onResult: (result) {
-///     if (result case MediaImageResult(:final file)) attach(file);
+///     if (result case ToolbarAttachmentImageResult(:final file)) attach(file);
 ///   },
 /// );
 /// ```
-Future<MediaSourceResult?> showMediaSourceSheet(
+Future<ToolbarAttachmentResult?> showToolbarAttachments(
   BuildContext context, {
-  required List<MediaSourceTabKind> tabs,
-  MediaSourceTabKind? initial,
+  required List<ToolbarAttachmentTabKind> tabs,
+  ToolbarAttachmentTabKind? initial,
   double minChildSize = 0.6,
   double maxChildSize = 0.9,
-  ValueChanged<MediaSourceResult>? onResult,
+  ValueChanged<ToolbarAttachmentResult>? onResult,
 }) {
   assert(tabs.isNotEmpty, 'Нужен хотя бы один таб');
-  return showCupertinoModalPopup<MediaSourceResult>(
+  return showCupertinoModalPopup<ToolbarAttachmentResult>(
     context: context,
-    builder: (context) => MediaSourceSheetCupertino(
+    builder: (context) => ToolbarAttachmentsCupertino(
       tabs: tabs,
       initial: initial != null && tabs.contains(initial) ? initial : tabs.first,
       minChildSize: minChildSize,
