@@ -3,6 +3,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../i18n/translations.g.dart';
+import '../../themes.dart';
 import 'media_source_sheet.dart';
 
 /// Cupertino-лист выбора источника медиа. Раскрывается свайпом вверх
@@ -31,6 +32,48 @@ class MediaSourceSheetCupertino extends StatefulWidget {
 
 class _MediaSourceSheetCupertinoState extends State<MediaSourceSheetCupertino> {
   late MediaSourceTabKind _selected = widget.initial;
+
+  /// Управляет высотой листа: нужен, чтобы «хват» (он вне скролла) мог тянуть
+  /// лист собственным жестом и закрывать его свайпом вниз.
+  final _sheetController = DraggableScrollableController();
+
+  @override
+  void dispose() {
+    _sheetController.dispose();
+    super.dispose();
+  }
+
+  // ─── Драг «хвата» ─────────────────────────────────────────────────────────
+
+  /// Тянем лист вслед за пальцем в пределах [min..max]. Пиксельную дельту
+  /// переводим в долю высоты экрана.
+  void _onHandleDrag(DragUpdateDetails d) {
+    if (!_sheetController.isAttached) return;
+    final screenH = MediaQuery.sizeOf(context).height;
+    final next = _sheetController.size - (d.primaryDelta ?? 0) / screenH;
+    _sheetController.jumpTo(next.clamp(widget.minChildSize, widget.maxChildSize));
+  }
+
+  /// По отпусканию: флинг вниз в самом низу — закрыть лист; иначе — «прилипнуть»
+  /// к ближайшему из двух состояний (60% / 90%).
+  void _onHandleDragEnd(DragEndDetails d) {
+    if (!_sheetController.isAttached) return;
+    final v = d.primaryVelocity ?? 0; // > 0 — палец идёт вниз
+    final size = _sheetController.size;
+    final mid = (widget.minChildSize + widget.maxChildSize) / 2;
+    const animate = (duration: Duration(milliseconds: 200), curve: Curves.easeOut);
+
+    if (v > 300 && size <= widget.minChildSize + 0.02) {
+      Navigator.pop(context); // свайп вниз, когда лист свёрнут — закрываем
+    } else if (v > 300) {
+      _sheetController.animateTo(widget.minChildSize, duration: animate.duration, curve: animate.curve);
+    } else if (v < -300) {
+      _sheetController.animateTo(widget.maxChildSize, duration: animate.duration, curve: animate.curve);
+    } else {
+      final target = size < mid ? widget.minChildSize : widget.maxChildSize;
+      _sheetController.animateTo(target, duration: animate.duration, curve: animate.curve);
+    }
+  }
 
   /// Единая точка возврата результата: дёргает callback и закрывает лист.
   ///
@@ -213,6 +256,7 @@ class _MediaSourceSheetCupertinoState extends State<MediaSourceSheetCupertino> {
     // Меню-переключатель нужен только когда табов больше одного.
     final showTabBar = widget.tabs.length > 1;
     return DraggableScrollableSheet(
+      controller: _sheetController,
       initialChildSize: widget.minChildSize,
       minChildSize: widget.minChildSize,
       maxChildSize: widget.maxChildSize,
@@ -220,7 +264,7 @@ class _MediaSourceSheetCupertinoState extends State<MediaSourceSheetCupertino> {
       builder: (context, scrollController) {
         return Container(
           decoration: BoxDecoration(
-            color: CupertinoColors.systemBackground.resolveFrom(context),
+            color: ThemesCupertino.groupedBackground.resolveFrom(context),
             borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
           ),
           child: SafeArea(
@@ -228,19 +272,27 @@ class _MediaSourceSheetCupertinoState extends State<MediaSourceSheetCupertino> {
             child: Column(
               mainAxisSize: MainAxisSize.max,
               children: [
-                // «Хват» — на самом верху листа.
-                const SizedBox(height: 8),
-                Center(
-                  child: Container(
-                    width: 36,
-                    height: 5,
-                    decoration: BoxDecoration(
-                      color: CupertinoColors.tertiaryLabel.resolveFrom(context),
-                      borderRadius: const BorderRadius.all(Radius.circular(3)),
+                // «Хват» — на самом верху листа. Свой вертикальный жест тянет
+                // лист (60↔90%) и закрывает свайпом вниз, т.к. «хват» вне скролла
+                // и сам по себе DraggableScrollableSheet его драг не ловит.
+                GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onVerticalDragUpdate: _onHandleDrag,
+                  onVerticalDragEnd: _onHandleDragEnd,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: Center(
+                      child: Container(
+                        width: 36,
+                        height: 5,
+                        decoration: BoxDecoration(
+                          color: CupertinoColors.tertiaryLabel.resolveFrom(context),
+                          borderRadius: const BorderRadius.all(Radius.circular(3)),
+                        ),
+                      ),
                     ),
                   ),
                 ),
-                const SizedBox(height: 8),
                 // Фиксированная шапка: кнопка закрытия слева + заголовок по центру.
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 12),
