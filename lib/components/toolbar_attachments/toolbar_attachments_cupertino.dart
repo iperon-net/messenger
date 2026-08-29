@@ -1,6 +1,10 @@
+import 'dart:async';
+
+import 'package:camera/camera.dart';
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
 
@@ -15,6 +19,8 @@ import 'toolbar_attachments.dart';
 class ToolbarAttachmentsCupertino extends StatefulWidget {
   final List<ToolbarAttachmentTabKind> tabs;
   final ToolbarAttachmentTabKind initial;
+  final ToolbarAttachmentMediaType media;
+  final bool multiSelect;
   final double minChildSize;
   final double maxChildSize;
   final ValueChanged<ToolbarAttachmentResult>? onResult;
@@ -22,6 +28,8 @@ class ToolbarAttachmentsCupertino extends StatefulWidget {
   const ToolbarAttachmentsCupertino({
     required this.tabs,
     required this.initial,
+    required this.media,
+    required this.multiSelect,
     required this.minChildSize,
     required this.maxChildSize,
     this.onResult,
@@ -56,6 +64,10 @@ class _ToolbarAttachmentsCupertinoState extends State<ToolbarAttachmentsCupertin
   /// Результат запроса доступа к фото; `null` — доступ ещё не запрашивали.
   PermissionState? _permission;
 
+  /// Отмеченные в мультивыборе ассеты — по порядку отметки (для нумерации
+  /// бейджей и порядка в результате). Пусто в одиночном режиме.
+  final List<AssetEntity> _picked = [];
+
   int _page = 0;
   bool _hasMore = true;
   bool _galleryLoading = false;
@@ -65,11 +77,30 @@ class _ToolbarAttachmentsCupertinoState extends State<ToolbarAttachmentsCupertin
   /// [DraggableScrollableSheet] отдаёт стабильный инстанс, привязываемся раз.
   ScrollController? _boundScroll;
 
+  // ─── Живое превью камеры (первая плитка сетки) ────────────────────────────
+
+  /// Контроллер живого превью камеры; `null` — доступ не выдан / камера
+  /// недоступна, тогда плитка камеры не показывается.
+  CameraController? _cameraController;
+
+  /// Инициализацию камеры пробуем один раз (запрос доступа + запуск).
+  bool _cameraInitTried = false;
+
+  /// Готова ли камера к показу превью (доступ выдан и контроллер запущен).
+  bool get _cameraOn => _cameraController?.value.isInitialized ?? false;
+
   @override
   void initState() {
     super.initState();
     if (_selected == ToolbarAttachmentTabKind.gallery) _ensureGalleryLoaded();
   }
+
+  /// Тип медиа для photo_manager, выведенный из фильтра [widget.media].
+  RequestType get _requestType => switch (widget.media) {
+    ToolbarAttachmentMediaType.image => RequestType.image,
+    ToolbarAttachmentMediaType.video => RequestType.video,
+    ToolbarAttachmentMediaType.all => RequestType.common,
+  };
 
   /// Нижний «пол» — ниже [minChildSize], чтобы лист можно было стянуть вниз
   /// для закрытия. В покое лист туда не встаёт (см. `snap`/`snapSizes`).
@@ -81,6 +112,7 @@ class _ToolbarAttachmentsCupertinoState extends State<ToolbarAttachmentsCupertin
   @override
   void dispose() {
     _boundScroll?.removeListener(_onSheetScroll);
+    _cameraController?.dispose();
     _sheetController.dispose();
     super.dispose();
   }
@@ -90,6 +122,7 @@ class _ToolbarAttachmentsCupertinoState extends State<ToolbarAttachmentsCupertin
   /// Первичная загрузка: запрашивает доступ, берёт альбом «все фото» и первую
   /// страницу ассетов. Идемпотентна — повторные вызовы игнорируются.
   Future<void> _ensureGalleryLoaded() async {
+    unawaited(_ensureCamera()); // живое превью камеры — первой плиткой сетки
     if (_galleryLoaded || _galleryLoading) return;
     setState(() => _galleryLoading = true);
 
@@ -105,10 +138,17 @@ class _ToolbarAttachmentsCupertinoState extends State<ToolbarAttachmentsCupertin
       return;
     }
 
-    final albums = await PhotoManager.getAssetPathList(
-      type: RequestType.image,
+    final all = await PhotoManager.getAssetPathList(
+      type: _requestType,
       filterOption: FilterOptionGroup(orders: [const OrderOption(type: OrderOptionType.createDate, asc: false)]),
     );
+    // Скрываем пустые альбомы: считаем количество (уже с учётом фильтра типа)
+    // и оставляем только непустые.
+    final counts = await Future.wait(all.map((a) => a.assetCountAsync));
+    final albums = [
+      for (var i = 0; i < all.length; i++)
+        if (counts[i] > 0) all[i],
+    ];
     _albums = albums;
     _album = albums.isEmpty ? null : albums.first; // первый — системный «все фото»
     final page = _album == null ? const <AssetEntity>[] : await _album!.getAssetListPaged(page: 0, size: _pageSize);
@@ -185,17 +225,85 @@ class _ToolbarAttachmentsCupertinoState extends State<ToolbarAttachmentsCupertin
     if (c.position.pixels >= c.position.maxScrollExtent - 400) _loadMore();
   }
 
-  /// Тап по превью: разворачивает ассет в файл и возвращает результат.
+  /// Тап по превью. В мультирежиме — переключает отметку; иначе разворачивает
+  /// ассет в файл и сразу возвращает одиночный результат.
   Future<void> _pickAsset(AssetEntity asset) async {
+    if (widget.multiSelect) {
+      setState(() {
+        final i = _picked.indexWhere((a) => a.id == asset.id);
+        if (i >= 0) {
+          _picked.removeAt(i);
+        } else {
+          _picked.add(asset);
+        }
+      });
+      return;
+    }
     final file = await asset.file;
     if (file == null || !mounted) return;
     _finish(ToolbarAttachmentImageResult(XFile(file.path), ToolbarAttachmentTabKind.gallery));
+  }
+
+  /// Порядковый номер ассета в мультивыборе (1-based) или `null`, если не отмечен.
+  int? _pickedOrder(AssetEntity asset) {
+    final i = _picked.indexWhere((a) => a.id == asset.id);
+    return i < 0 ? null : i + 1;
+  }
+
+  /// Возвращает все отмеченные медиа как [ToolbarAttachmentMultiImageResult].
+  Future<void> _finishMulti() async {
+    if (_picked.isEmpty) return;
+    final files = <XFile>[];
+    for (final asset in _picked) {
+      final file = await asset.file;
+      if (file != null) files.add(XFile(file.path));
+    }
+    if (!mounted || files.isEmpty) return;
+    _finish(ToolbarAttachmentMultiImageResult(files));
   }
 
   /// Снимок с камеры (photo_manager не умеет захват — используем image_picker).
   Future<void> _takePhoto() async {
     final image = await ImagePicker().pickImage(source: ImageSource.camera, imageQuality: 85, maxWidth: 1024);
     if (image != null && mounted) _finish(ToolbarAttachmentImageResult(image, ToolbarAttachmentTabKind.camera));
+  }
+
+  /// Однократно запрашивает доступ к камере и запускает живое превью. При отказе
+  /// или недоступности камеры контроллер остаётся `null` — плитка не рисуется.
+  Future<void> _ensureCamera() async {
+    if (_cameraInitTried) return;
+    _cameraInitTried = true;
+
+    final status = await Permission.camera.request();
+    if (!status.isGranted) return; // доступ не выдан — плитки камеры не будет
+
+    try {
+      final cameras = await availableCameras();
+      if (cameras.isEmpty) return;
+      final back = cameras.firstWhere((c) => c.lensDirection == CameraLensDirection.back, orElse: () => cameras.first);
+      final controller = CameraController(back, ResolutionPreset.medium, enableAudio: false);
+      await controller.initialize();
+      if (!mounted) {
+        await controller.dispose();
+        return;
+      }
+      setState(() => _cameraController = controller);
+    } catch (_) {
+      // Камера недоступна (занята/ошибка) — просто не показываем плитку.
+    }
+  }
+
+  /// Захват кадра с плитки живого превью и возврат одиночным результатом.
+  Future<void> _captureFromTile() async {
+    final c = _cameraController;
+    if (c == null || !c.value.isInitialized || c.value.isTakingPicture) return;
+    try {
+      final shot = await c.takePicture();
+      if (!mounted) return;
+      _finish(ToolbarAttachmentImageResult(XFile(shot.path), ToolbarAttachmentTabKind.camera));
+    } catch (_) {
+      // Не удалось снять кадр — тихо игнорируем.
+    }
   }
 
   // ─── Драг «хвата» ─────────────────────────────────────────────────────────
@@ -302,6 +410,24 @@ class _ToolbarAttachmentsCupertinoState extends State<ToolbarAttachmentsCupertin
     return Text(_label(context, _selected), style: style);
   }
 
+  /// Кнопка «Готово» для мультивыбора: активна, когда что-то отмечено; в
+  /// подписи — число отмеченных медиа.
+  Widget _doneButton(BuildContext context) {
+    final enabled = _picked.isNotEmpty;
+    final color = enabled ? CupertinoTheme.of(context).primaryColor : CupertinoColors.tertiaryLabel.resolveFrom(context);
+    return GestureDetector(
+      onTap: enabled ? _finishMulti : null,
+      behavior: HitTestBehavior.opaque,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4),
+        child: Text(
+          enabled ? '${context.t.screenMyProfile.done} (${_picked.length})' : context.t.screenMyProfile.done,
+          style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600, color: color),
+        ),
+      ),
+    );
+  }
+
   // ─── Тело таба (точка расширения под процесс) ─────────────────────────────
 
   /// Тело выбранного таба. Здесь реализуется конкретный процесс (список файлов,
@@ -365,7 +491,9 @@ class _ToolbarAttachmentsCupertinoState extends State<ToolbarAttachmentsCupertin
         return _placeholder(context, onTap: _takePhoto);
 
       case ToolbarAttachmentTabKind.gallery:
-        return _galleryBody(context);
+        // Галерея рендерится отдельно ленивым CustomScrollView в build()
+        // (см. _galleryScrollable) — сюда не попадает.
+        return const SizedBox.shrink();
 
       case ToolbarAttachmentTabKind.file:
       case ToolbarAttachmentTabKind.link:
@@ -389,68 +517,186 @@ class _ToolbarAttachmentsCupertinoState extends State<ToolbarAttachmentsCupertin
 
   // ─── Тело таба «галерея» ──────────────────────────────────────────────────
 
-  /// Сетка превью из photo_manager. Скролл — общий, у листа (grid `shrinkWrap`
-  /// + `NeverScrollable`), пагинация — по слушателю [_onSheetScroll].
-  Widget _galleryBody(BuildContext context) {
+  /// Ленивая сетка превью из photo_manager на слайверах: `SliverGrid` строит и
+  /// переиспользует только видимые плитки (+cacheExtent), поэтому десятки фото
+  /// не декодируются разом — это убирает подтормаживание при скролле. Скролл —
+  /// общий контроллер листа (нужен для раскрытия свайпом), пагинация — по
+  /// слушателю [_onSheetScroll].
+  Widget _galleryScrollable(BuildContext context, ScrollController controller) {
+    // Пустые/промежуточные состояния должны оставаться скроллящимися, чтобы
+    // жест раскрытия листа продолжал работать (AlwaysScrollable + FillRemaining).
+    Widget filled(Widget child) => CustomScrollView(
+      controller: controller,
+      physics: const AlwaysScrollableScrollPhysics(),
+      slivers: [SliverFillRemaining(hasScrollBody: false, child: Center(child: child))],
+    );
+
     // Первичная загрузка ещё идёт — крутилка.
-    if (!_galleryLoaded && _galleryLoading) {
-      return const Padding(
-        padding: EdgeInsets.symmetric(vertical: 40),
-        child: Center(child: CupertinoActivityIndicator()),
-      );
-    }
+    if (!_galleryLoaded && _galleryLoading) return filled(const CupertinoActivityIndicator());
     // Доступ не выдан.
-    if (_permission != null && !_permission!.hasAccess) return _galleryDenied(context);
-    // Доступ есть, но фото нет.
-    if (_assets.isEmpty) {
-      return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 40),
-        child: Center(
-          child: Text(context.t.screenMyProfile.galleryEmpty, style: TextStyle(color: CupertinoColors.secondaryLabel.resolveFrom(context))),
-        ),
+    if (_permission != null && !_permission!.hasAccess) return filled(_galleryDenied(context));
+    // Доступ есть, но фото нет (и живого превью камеры тоже) — заглушка.
+    if (_assets.isEmpty && !_cameraOn) {
+      return filled(
+        Text(context.t.screenMyProfile.galleryEmpty, style: TextStyle(color: CupertinoColors.secondaryLabel.resolveFrom(context))),
       );
     }
 
-    return Column(
-      children: [
+    return CustomScrollView(
+      controller: controller,
+      physics: const AlwaysScrollableScrollPhysics(),
+      slivers: [
         // На iOS при «ограниченном» доступе — управление выбранными фото.
         if (_permission == PermissionState.limited)
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-            child: Align(
-              alignment: Alignment.centerRight,
-              child: CupertinoButton(
-                padding: EdgeInsets.zero,
-                minimumSize: Size.zero,
-                onPressed: _manageLimited,
-                child: Text(context.t.screenMyProfile.galleryManageAccess),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+              child: Align(
+                alignment: Alignment.centerRight,
+                child: CupertinoButton(
+                  padding: EdgeInsets.zero,
+                  minimumSize: Size.zero,
+                  onPressed: _manageLimited,
+                  child: Text(
+                    context.t.screenMyProfile.galleryManageAccess,
+                    style: TextStyle(
+                      color: CupertinoDynamicColor.withBrightness(
+                        color: CupertinoTheme.of(context).primaryColor,
+                        darkColor: CupertinoColors.white,
+                      ).resolveFrom(context),
+                    ),
+                  ),
+                ),
               ),
             ),
           ),
-        GridView.builder(
+        SliverPadding(
           padding: const EdgeInsets.all(2),
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3, mainAxisSpacing: 2, crossAxisSpacing: 2),
-          itemCount: _assets.length,
-          itemBuilder: (context, i) {
-            final asset = _assets[i];
-            return GestureDetector(
-              onTap: () => _pickAsset(asset),
-              child: Image(
-                image: AssetEntityImageProvider(asset, isOriginal: false, thumbnailSize: const ThumbnailSize.square(240)),
-                fit: BoxFit.cover,
-                gaplessPlayback: true,
-                filterQuality: FilterQuality.low,
-              ),
-            );
-          },
+          sliver: SliverGrid(
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3, mainAxisSpacing: 2, crossAxisSpacing: 2),
+            delegate: SliverChildBuilderDelegate(
+              // Первая плитка — живое превью камеры (когда доступна).
+              (context, i) {
+                if (_cameraOn) {
+                  if (i == 0) return _cameraTile(context);
+                  return _assetTile(context, _assets[i - 1]);
+                }
+                return _assetTile(context, _assets[i]);
+              },
+              childCount: _assets.length + (_cameraOn ? 1 : 0),
+            ),
+          ),
         ),
         // Индикатор подгрузки следующей страницы.
         if (_galleryLoading && _assets.isNotEmpty)
-          const Padding(padding: EdgeInsets.symmetric(vertical: 12), child: CupertinoActivityIndicator()),
+          const SliverToBoxAdapter(
+            child: Padding(padding: EdgeInsets.symmetric(vertical: 12), child: CupertinoActivityIndicator()),
+          ),
       ],
     );
+  }
+
+  /// Одно превью в сетке: картинка + (в мультивыборе) бейдж с порядковым
+  /// номером и — для видео — индикатор длительности.
+  Widget _assetTile(BuildContext context, AssetEntity asset) {
+    final order = widget.multiSelect ? _pickedOrder(asset) : null;
+    return GestureDetector(
+      onTap: () => _pickAsset(asset),
+      behavior: HitTestBehavior.opaque,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          Image(
+            image: AssetEntityImageProvider(asset, isOriginal: false, thumbnailSize: const ThumbnailSize.square(240)),
+            fit: BoxFit.cover,
+            gaplessPlayback: true,
+            filterQuality: FilterQuality.low,
+          ),
+          // Затемняем отмеченные превью для наглядности.
+          if (order != null) Container(color: CupertinoColors.black.withValues(alpha: 0.25)),
+          // Индикатор видео с длительностью — левый нижний угол.
+          if (asset.type == AssetType.video)
+            Positioned(
+              left: 4,
+              bottom: 4,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const FaIcon(FontAwesomeIcons.play, size: 9, color: CupertinoColors.white),
+                  const SizedBox(width: 2),
+                  Text(
+                    _formatDuration(asset.videoDuration),
+                    style: const TextStyle(fontSize: 11, color: CupertinoColors.white, fontWeight: FontWeight.w600),
+                  ),
+                ],
+              ),
+            ),
+          // Бейдж выбора — правый верхний угол.
+          if (widget.multiSelect)
+            Positioned(
+              top: 4,
+              right: 4,
+              child: Container(
+                width: 22,
+                height: 22,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: order != null ? CupertinoTheme.of(context).primaryColor : CupertinoColors.black.withValues(alpha: 0.25),
+                  shape: BoxShape.circle,
+                  border: Border.all(color: CupertinoColors.white, width: 1.5),
+                ),
+                child: order != null
+                    ? Text(
+                        '$order',
+                        style: const TextStyle(fontSize: 12, color: CupertinoColors.white, fontWeight: FontWeight.w700),
+                      )
+                    : null,
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  /// Плитка живого превью камеры (первая в сетке). Тап — захват кадра.
+  /// Превью «покрывает» квадрат: у камеры кадр альбомный, поэтому меняем
+  /// местами ширину/высоту и вписываем через `BoxFit.cover`.
+  Widget _cameraTile(BuildContext context) {
+    final controller = _cameraController!;
+    final preview = controller.value.previewSize ?? const Size(1, 1);
+    return GestureDetector(
+      onTap: _captureFromTile,
+      behavior: HitTestBehavior.opaque,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          ClipRect(
+            child: FittedBox(
+              fit: BoxFit.cover,
+              child: SizedBox(width: preview.height, height: preview.width, child: CameraPreview(controller)),
+            ),
+          ),
+          // Иконка камеры — сигнал, что это живой видоискатель, а не фото.
+          Align(
+            alignment: Alignment.center,
+            child: Container(
+              width: 34,
+              height: 34,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(color: CupertinoColors.black.withValues(alpha: 0.35), shape: BoxShape.circle),
+              child: const FaIcon(FontAwesomeIcons.camera, size: 16, color: CupertinoColors.white),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Длительность видео как `m:ss`.
+  String _formatDuration(Duration d) {
+    final m = d.inMinutes;
+    final s = (d.inSeconds % 60).toString().padLeft(2, '0');
+    return '$m:$s';
   }
 
   /// iOS: открыть системный лист управления «ограниченным» набором фото и
@@ -567,6 +813,8 @@ class _ToolbarAttachmentsCupertinoState extends State<ToolbarAttachmentsCupertin
                             alignment: Alignment.center,
                             children: [
                               Center(child: _tabHeader(context)),
+                              if (widget.multiSelect && _selected == ToolbarAttachmentTabKind.gallery)
+                                Align(alignment: Alignment.centerRight, child: _doneButton(context)),
                               Align(
                                 alignment: Alignment.centerLeft,
                                 child: GestureDetector(
@@ -593,13 +841,17 @@ class _ToolbarAttachmentsCupertinoState extends State<ToolbarAttachmentsCupertin
                   ),
                 ),
                 // Тело таба. scrollController + AlwaysScrollable позволяют
-                // раскрывать лист свайпом вверх.
+                // раскрывать лист свайпом вверх. Галерея использует свой ленивый
+                // CustomScrollView (переиспользование плиток = без подтормаживаний);
+                // остальные табы — простой SingleChildScrollView.
                 Expanded(
-                  child: SingleChildScrollView(
-                    controller: scrollController,
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    child: _tabBody(context),
-                  ),
+                  child: _selected == ToolbarAttachmentTabKind.gallery
+                      ? _galleryScrollable(context, scrollController)
+                      : SingleChildScrollView(
+                          controller: scrollController,
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          child: _tabBody(context),
+                        ),
                 ),
                 // Переключатель табов внизу (горизонтальный скролл).
                 if (showTabBar)

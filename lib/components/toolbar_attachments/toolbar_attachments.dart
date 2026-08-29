@@ -9,16 +9,27 @@ export 'toolbar_attachments_cupertino.dart';
 /// компонента; снаружи выбирается только набор доступных табов.
 enum ToolbarAttachmentTabKind { camera, gallery, file, emoji, link }
 
+/// Какие типы медиа показывать в галерее. Для аватара — только фото
+/// ([image]); для вложений в чат — фото и видео ([all]).
+enum ToolbarAttachmentMediaType { image, video, all }
+
 /// Результат выбора, который компонент возвращает наружу.
 sealed class ToolbarAttachmentResult {
   const ToolbarAttachmentResult();
 }
 
-/// Выбрано изображение (камера / галерея / файл).
+/// Выбрано одно медиа — фото или видео (камера / галерея / файл).
 class ToolbarAttachmentImageResult extends ToolbarAttachmentResult {
   final XFile file;
   final ToolbarAttachmentTabKind source;
   const ToolbarAttachmentImageResult(this.file, this.source);
+}
+
+/// Выбрано несколько медиа (мультивыбор в галерее). [files] упорядочены в том
+/// порядке, в котором пользователь их отмечал.
+class ToolbarAttachmentMultiImageResult extends ToolbarAttachmentResult {
+  final List<XFile> files;
+  const ToolbarAttachmentMultiImageResult(this.files);
 }
 
 /// Выбран эмодзи.
@@ -37,6 +48,12 @@ class ToolbarAttachmentLinkResult extends ToolbarAttachmentResult {
 ///
 /// [tabs] — какие табы показать, в этом же порядке. Если передан ровно один
 /// таб, нижнее меню-переключатель не отображается.
+///
+/// [media] фильтрует галерею по типу (фото / видео / всё). [multiSelect]
+/// включает мультивыбор: тап по превью отмечает медиа порядковым номером, а
+/// кнопка «Готово» возвращает [ToolbarAttachmentMultiImageResult] со всеми
+/// отмеченными файлами (в одиночном режиме тап сразу возвращает
+/// [ToolbarAttachmentImageResult]).
 ///
 /// Результат приходит двумя путями: как значение возвращаемого [Future] (по
 /// закрытию листа) и через необязательный [onResult] (вызывается перед
@@ -82,6 +99,8 @@ Future<ToolbarAttachmentResult?> showToolbarAttachments(
   BuildContext context, {
   required List<ToolbarAttachmentTabKind> tabs,
   ToolbarAttachmentTabKind? initial,
+  ToolbarAttachmentMediaType media = ToolbarAttachmentMediaType.image,
+  bool multiSelect = false,
   double minChildSize = 0.6,
   double maxChildSize = 0.9,
   ValueChanged<ToolbarAttachmentResult>? onResult,
@@ -92,6 +111,8 @@ Future<ToolbarAttachmentResult?> showToolbarAttachments(
     builder: (context) => ToolbarAttachmentsCupertino(
       tabs: tabs,
       initial: initial != null && tabs.contains(initial) ? initial : tabs.first,
+      media: media,
+      multiSelect: multiSelect,
       minChildSize: minChildSize,
       maxChildSize: maxChildSize,
       onResult: onResult,

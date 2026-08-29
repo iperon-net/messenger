@@ -49,6 +49,9 @@ class _SettingsMyProfileCupertino extends State<SettingsMyProfileCupertino> {
     switch (result) {
       case ToolbarAttachmentImageResult(:final file):
         logger.debug('Выбран аватар: ${file.path}');
+      case ToolbarAttachmentMultiImageResult(:final files):
+        // Аватар — одиночный выбор; мультивыбор здесь не включён.
+        logger.debug('Выбрано медиа: ${files.map((f) => f.path).join(', ')}');
       case ToolbarAttachmentEmojiResult(:final emoji):
         logger.debug('Выбран эмодзи-аватар: $emoji');
       case ToolbarAttachmentLinkResult(:final url):
