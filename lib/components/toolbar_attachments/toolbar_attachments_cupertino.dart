@@ -40,7 +40,7 @@ class ToolbarAttachmentsCupertino extends StatefulWidget {
   State<ToolbarAttachmentsCupertino> createState() => _ToolbarAttachmentsCupertinoState();
 }
 
-class _ToolbarAttachmentsCupertinoState extends State<ToolbarAttachmentsCupertino> {
+class _ToolbarAttachmentsCupertinoState extends State<ToolbarAttachmentsCupertino> with WidgetsBindingObserver {
   late ToolbarAttachmentTabKind _selected = widget.initial;
 
   /// Управляет высотой листа: нужен, чтобы «хват» (он вне скролла) мог тянуть
@@ -67,6 +67,12 @@ class _ToolbarAttachmentsCupertinoState extends State<ToolbarAttachmentsCupertin
   /// Отмеченные в мультивыборе ассеты — по порядку отметки (для нумерации
   /// бейджей и порядка в результате). Пусто в одиночном режиме.
   final List<AssetEntity> _picked = [];
+
+  /// id ассета, который сейчас экспортируется в файл перед возвратом результата
+  /// (одиночный выбор). Пока не `null` — на плитке крутится индикатор, а
+  /// повторные тапы игнорируются. Экспорт оригинала (`asset.file`) для HEIC /
+  /// iCloud-фото занимает заметное время, поэтому нужен видимый фидбэк.
+  String? _exportingId;
 
   int _page = 0;
   bool _hasMore = true;
@@ -95,13 +101,39 @@ class _ToolbarAttachmentsCupertinoState extends State<ToolbarAttachmentsCupertin
   /// Инициализацию камеры пробуем один раз (запрос доступа + запуск).
   bool _cameraInitTried = false;
 
-  /// Готова ли камера к показу превью (доступ выдан и контроллер запущен).
-  bool get _cameraOn => _cameraController?.value.isInitialized ?? false;
+  /// Плитка камеры доступна: доступ выдан и камера хотя бы раз запустилась.
+  /// Остаётся `true` во время переключения камеры (когда контроллер временно
+  /// пересоздаётся), чтобы слот в сетке не исчезал и не плыли индексы.
+  bool _cameraAvailable = false;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     if (_selected == ToolbarAttachmentTabKind.gallery) _ensureGalleryLoaded();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Живое превью камеры чувствительно к прерыванию AVCaptureSession: при уходе
+    // приложения в фон (в т.ч. когда поверх открывается нативная камера) сессия
+    // прерывается и превью «замерзает». Поэтому освобождаем контроллер на
+    // сворачивании и пересоздаём его при возврате.
+    if (!_cameraAvailable) return;
+    switch (state) {
+      case AppLifecycleState.inactive:
+      case AppLifecycleState.paused:
+      case AppLifecycleState.hidden:
+        final previous = _cameraController;
+        if (previous != null) {
+          setState(() => _cameraController = null);
+          previous.dispose();
+        }
+      case AppLifecycleState.resumed:
+        if (_cameraController == null && !_cameraSwitching) _startCamera(_cameraIndex);
+      case AppLifecycleState.detached:
+        break;
+    }
   }
 
   /// Тип медиа для photo_manager, выведенный из фильтра [widget.media].
@@ -120,6 +152,7 @@ class _ToolbarAttachmentsCupertinoState extends State<ToolbarAttachmentsCupertin
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _boundScroll?.removeListener(_onSheetScroll);
     _cameraController?.dispose();
     _sheetController.dispose();
@@ -248,9 +281,16 @@ class _ToolbarAttachmentsCupertinoState extends State<ToolbarAttachmentsCupertin
       });
       return;
     }
-    final file = await asset.file;
-    if (file == null || !mounted) return;
-    _finish(ToolbarAttachmentImageResult(XFile(file.path), ToolbarAttachmentTabKind.gallery));
+    // Экспорт уже идёт — игнорируем повторные тапы.
+    if (_exportingId != null) return;
+    setState(() => _exportingId = asset.id);
+    try {
+      final file = await asset.file;
+      if (file == null || !mounted) return;
+      _finish(ToolbarAttachmentImageResult(XFile(file.path), ToolbarAttachmentTabKind.gallery));
+    } finally {
+      if (mounted) setState(() => _exportingId = null);
+    }
   }
 
   /// Порядковый номер ассета в мультивыборе (1-based) или `null`, если не отмечен.
@@ -288,20 +328,33 @@ class _ToolbarAttachmentsCupertinoState extends State<ToolbarAttachmentsCupertin
 
     try {
       final cameras = await availableCameras();
-      if (cameras.isEmpty) return;
+      if (cameras.isEmpty || !mounted) return;
       _cameras = cameras;
       // По умолчанию — фронтальная камера (если есть).
       final front = cameras.indexWhere((c) => c.lensDirection == CameraLensDirection.front);
-      _cameraIndex = front >= 0 ? front : 0;
-      final controller = CameraController(cameras[_cameraIndex], ResolutionPreset.medium, enableAudio: false);
+      await _startCamera(front >= 0 ? front : 0);
+    } catch (_) {
+      // Камера недоступна (занята/ошибка) — просто не показываем плитку.
+    }
+  }
+
+  /// Создаёт и запускает контроллер для камеры [index] и делает её активной.
+  /// Предыдущий контроллер должен быть уже освобождён вызывающей стороной.
+  Future<void> _startCamera(int index) async {
+    try {
+      final controller = CameraController(_cameras[index], ResolutionPreset.medium, enableAudio: false);
       await controller.initialize();
       if (!mounted) {
         await controller.dispose();
         return;
       }
-      setState(() => _cameraController = controller);
+      setState(() {
+        _cameraIndex = index;
+        _cameraController = controller;
+        _cameraAvailable = true;
+      });
     } catch (_) {
-      // Камера недоступна (занята/ошибка) — просто не показываем плитку.
+      // Камера занята/ошибка — плитка останется со спиннером до след. попытки.
     }
   }
 
@@ -309,26 +362,20 @@ class _ToolbarAttachmentsCupertinoState extends State<ToolbarAttachmentsCupertin
   /// Доступно, когда камер больше одной.
   Future<void> _switchCamera() async {
     if (_cameraSwitching || _cameras.length < 2) return;
-    _cameraSwitching = true;
     final next = (_cameraIndex + 1) % _cameras.length;
     final previous = _cameraController;
-    try {
-      final controller = CameraController(_cameras[next], ResolutionPreset.medium, enableAudio: false);
-      await controller.initialize();
-      await previous?.dispose();
-      if (!mounted) {
-        await controller.dispose();
-        return;
-      }
-      setState(() {
-        _cameraIndex = next;
-        _cameraController = controller;
-      });
-    } catch (_) {
-      // Не удалось переключиться — оставляем текущую камеру.
-    } finally {
-      _cameraSwitching = false;
-    }
+
+    // Освобождаем текущую камеру ПЕРЕД инициализацией новой: на iOS два активных
+    // контроллера на одной AVCaptureSession приводят к зависанию превью. Пока
+    // идёт своп — прячем живое превью и показываем спиннер (плитка остаётся на
+    // месте благодаря [_cameraAvailable]).
+    setState(() {
+      _cameraSwitching = true;
+      _cameraController = null;
+    });
+    await previous?.dispose();
+    await _startCamera(next);
+    if (mounted) setState(() => _cameraSwitching = false);
   }
 
   /// Захват кадра с плитки живого превью и возврат одиночным результатом.
@@ -590,7 +637,7 @@ class _ToolbarAttachmentsCupertinoState extends State<ToolbarAttachmentsCupertin
     // Доступ не выдан.
     if (_permission != null && !_permission!.hasAccess) return filled(_galleryDenied(context));
     // Доступ есть, но фото нет (и живого превью камеры тоже) — заглушка.
-    if (_assets.isEmpty && !_cameraOn) {
+    if (_assets.isEmpty && !_cameraAvailable) {
       return filled(
         Text(context.t.screenMyProfile.galleryEmpty, style: TextStyle(color: CupertinoColors.secondaryLabel.resolveFrom(context))),
       );
@@ -607,13 +654,13 @@ class _ToolbarAttachmentsCupertinoState extends State<ToolbarAttachmentsCupertin
             delegate: SliverChildBuilderDelegate(
               // Первая плитка — живое превью камеры (когда доступна).
               (context, i) {
-                if (_cameraOn) {
+                if (_cameraAvailable) {
                   if (i == 0) return _cameraTile(context);
                   return _assetTile(context, _assets[i - 1]);
                 }
                 return _assetTile(context, _assets[i]);
               },
-              childCount: _assets.length + (_cameraOn ? 1 : 0),
+              childCount: _assets.length + (_cameraAvailable ? 1 : 0),
             ),
           ),
         ),
@@ -644,6 +691,13 @@ class _ToolbarAttachmentsCupertinoState extends State<ToolbarAttachmentsCupertin
           ),
           // Затемняем отмеченные превью для наглядности.
           if (order != null) Container(color: CupertinoColors.black.withValues(alpha: 0.25)),
+          // Индикатор экспорта выбранного фото (одиночный выбор).
+          if (_exportingId == asset.id)
+            Container(
+              color: CupertinoColors.black.withValues(alpha: 0.35),
+              alignment: Alignment.center,
+              child: const CupertinoActivityIndicator(color: CupertinoColors.white, radius: 12),
+            ),
           // Индикатор видео с длительностью — левый нижний угол.
           if (asset.type == AssetType.video)
             Positioned(
@@ -692,7 +746,16 @@ class _ToolbarAttachmentsCupertinoState extends State<ToolbarAttachmentsCupertin
   /// Превью «покрывает» квадрат: у камеры кадр альбомный, поэтому меняем
   /// местами ширину/высоту и вписываем через `BoxFit.cover`.
   Widget _cameraTile(BuildContext context) {
-    final controller = _cameraController!;
+    final controller = _cameraController;
+    // Во время переключения камеры контроллер временно `null` — показываем
+    // спиннер, сохраняя плитку на месте.
+    if (controller == null || !controller.value.isInitialized) {
+      return Container(
+        color: CupertinoColors.black.withValues(alpha: 0.85),
+        alignment: Alignment.center,
+        child: const CupertinoActivityIndicator(color: CupertinoColors.white, radius: 12),
+      );
+    }
     final preview = controller.value.previewSize ?? const Size(1, 1);
     return GestureDetector(
       onTap: _captureFromTile,
