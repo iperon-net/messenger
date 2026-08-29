@@ -1,12 +1,15 @@
+import 'dart:typed_data';
+
 import 'package:dart_mappable/dart_mappable.dart';
 import 'package:flutter_boring_avatars/flutter_boring_avatars.dart';
 import 'package:messenger/i18n/translations.g.dart';
+import 'package:messenger/models/mapper.dart';
 
 import '../../constants.dart';
 
 part 'settings_my_profile_state.mapper.dart';
 
-@MappableClass()
+@MappableClass(includeCustomMappers: [Uint8ListMapper()])
 class SettingsMyProfileState with SettingsMyProfileStateMappable {
   final Status status;
   final Status networkStatus;
@@ -26,6 +29,10 @@ class SettingsMyProfileState with SettingsMyProfileStateMappable {
   final BoringAvatarType boringAvatarType;
   final int aboutMeLength;
 
+  /// Локальный превью аватара, выбранного и обрезанного пользователем.
+  /// Пока не сохраняется в БД и не грузится на сервер — только показ в UI.
+  final Uint8List? avatarBytes;
+
   const SettingsMyProfileState({
     this.status = Status.initialization,
     this.networkStatus = Status.initialization,
@@ -43,5 +50,6 @@ class SettingsMyProfileState with SettingsMyProfileStateMappable {
     this.boringAvatarHash = "",
     this.boringAvatarType = BoringAvatarType.ring,
     this.aboutMeLength = 0,
+    this.avatarBytes,
   });
 }

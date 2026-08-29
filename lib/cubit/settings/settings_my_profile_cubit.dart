@@ -87,6 +87,12 @@ class SettingsMyProfileCubit extends Cubit<SettingsMyProfileState> {
     );
   }
 
+  /// Сохраняет обрезанный аватар как локальный превью (без записи в БД/сервер).
+  void setAvatar(Uint8List bytes) {
+    if (isClosed) return;
+    emit(state.copyWith(avatarBytes: bytes));
+  }
+
   @override
   Future<void> close() {
     _subscription?.cancel();

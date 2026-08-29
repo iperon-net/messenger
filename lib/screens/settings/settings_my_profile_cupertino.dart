@@ -2,6 +2,7 @@ import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_boring_avatars/flutter_boring_avatars.dart';
 import 'package:messenger/constants.dart';
+import 'package:image_cropper/image_cropper.dart';
 import '../../cubit.dart';
 import '../../di.dart';
 import '../../logger.dart';
@@ -49,6 +50,29 @@ class _SettingsMyProfileCupertino extends State<SettingsMyProfileCupertino> {
     switch (result) {
       case ToolbarAttachmentImageResult(:final file):
         logger.debug('Выбран аватар: ${file.path}');
+
+        if (!context.mounted) return;
+        final cubit = context.read<SettingsMyProfileCubit>();
+        final cropped = await ImageCropper().cropImage(
+          sourcePath: file.path,
+          aspectRatio: const CropAspectRatio(ratioX: 1, ratioY: 1),
+          compressFormat: ImageCompressFormat.jpg,
+          compressQuality: 90,
+          uiSettings: [
+            IOSUiSettings(
+              title: context.t.screenMyProfile.editPhoto,
+              cropStyle: CropStyle.circle,
+              aspectRatioLockEnabled: true,
+              resetAspectRatioEnabled: false,
+            ),
+            AndroidUiSettings(toolbarTitle: context.t.screenMyProfile.editPhoto, cropStyle: CropStyle.circle, lockAspectRatio: true),
+          ],
+        );
+        if (cropped == null) return; // отмена обрезки
+
+        final bytes = await cropped.readAsBytes();
+        cubit.setAvatar(bytes);
+
       case ToolbarAttachmentMultiImageResult(:final files):
         // Аватар — одиночный выбор; мультивыбор здесь не включён.
         logger.debug('Выбрано медиа: ${files.map((f) => f.path).join(', ')}');
@@ -153,13 +177,23 @@ class _SettingsMyProfileCupertino extends State<SettingsMyProfileCupertino> {
                             SizedBox(
                               width: 96,
                               height: 96,
-                              child: AnimatedBoringAvatar(
-                                name: state.boringAvatarHash,
-                                type: state.boringAvatarType,
-                                shape: const CircleBorder(),
-                                curve: Curves.bounceIn,
-                                duration: const Duration(seconds: 1),
-                              ),
+                              child: state.avatarBytes != null
+                                  ? ClipOval(
+                                      child: Image.memory(
+                                        state.avatarBytes!,
+                                        width: 96,
+                                        height: 96,
+                                        fit: BoxFit.cover,
+                                        gaplessPlayback: true,
+                                      ),
+                                    )
+                                  : AnimatedBoringAvatar(
+                                      name: state.boringAvatarHash,
+                                      type: state.boringAvatarType,
+                                      shape: const CircleBorder(),
+                                      curve: Curves.bounceIn,
+                                      duration: const Duration(seconds: 1),
+                                    ),
                             ),
                           ],
                         ),

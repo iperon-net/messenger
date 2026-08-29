@@ -16,6 +16,7 @@ class SettingsMyProfileStateMapper
   static SettingsMyProfileStateMapper ensureInitialized() {
     if (_instance == null) {
       MapperContainer.globals.use(_instance = SettingsMyProfileStateMapper._());
+      MapperContainer.globals.useAll([Uint8ListMapper()]);
     }
     return _instance!;
   }
@@ -119,6 +120,12 @@ class SettingsMyProfileStateMapper
     opt: true,
     def: 0,
   );
+  static Uint8List? _$avatarBytes(SettingsMyProfileState v) => v.avatarBytes;
+  static const Field<SettingsMyProfileState, Uint8List> _f$avatarBytes = Field(
+    'avatarBytes',
+    _$avatarBytes,
+    opt: true,
+  );
 
   @override
   final MappableFields<SettingsMyProfileState> fields = const {
@@ -136,6 +143,7 @@ class SettingsMyProfileStateMapper
     #boringAvatarHash: _f$boringAvatarHash,
     #boringAvatarType: _f$boringAvatarType,
     #aboutMeLength: _f$aboutMeLength,
+    #avatarBytes: _f$avatarBytes,
   };
 
   static SettingsMyProfileState _instantiate(DecodingData data) {
@@ -154,6 +162,7 @@ class SettingsMyProfileStateMapper
       boringAvatarHash: data.dec(_f$boringAvatarHash),
       boringAvatarType: data.dec(_f$boringAvatarType),
       aboutMeLength: data.dec(_f$aboutMeLength),
+      avatarBytes: data.dec(_f$avatarBytes),
     );
   }
 
@@ -242,6 +251,7 @@ abstract class SettingsMyProfileStateCopyWith<
     String? boringAvatarHash,
     BoringAvatarType? boringAvatarType,
     int? aboutMeLength,
+    Uint8List? avatarBytes,
   });
   SettingsMyProfileStateCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
     Then<$Out2, $R2> t,
@@ -273,6 +283,7 @@ class _SettingsMyProfileStateCopyWithImpl<$R, $Out>
     String? boringAvatarHash,
     BoringAvatarType? boringAvatarType,
     int? aboutMeLength,
+    Object? avatarBytes = $none,
   }) => $apply(
     FieldCopyWithData({
       if (status != null) #status: status,
@@ -289,6 +300,7 @@ class _SettingsMyProfileStateCopyWithImpl<$R, $Out>
       if (boringAvatarHash != null) #boringAvatarHash: boringAvatarHash,
       if (boringAvatarType != null) #boringAvatarType: boringAvatarType,
       if (aboutMeLength != null) #aboutMeLength: aboutMeLength,
+      if (avatarBytes != $none) #avatarBytes: avatarBytes,
     }),
   );
   @override
@@ -307,6 +319,7 @@ class _SettingsMyProfileStateCopyWithImpl<$R, $Out>
     boringAvatarHash: data.get(#boringAvatarHash, or: $value.boringAvatarHash),
     boringAvatarType: data.get(#boringAvatarType, or: $value.boringAvatarType),
     aboutMeLength: data.get(#aboutMeLength, or: $value.aboutMeLength),
+    avatarBytes: data.get(#avatarBytes, or: $value.avatarBytes),
   );
 
   @override
