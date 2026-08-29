@@ -206,6 +206,8 @@ class _MediaSourceSheetCupertinoState extends State<MediaSourceSheetCupertino> {
         // Заглушка-пример: открыть нативный пикер. Замени на свой процесс
         // (например, встроенную сетку картинок) и вызови _finish(MediaImageResult(...)).
         return Text("dddd");
+      // photo_manager
+
       // return _placeholder(
       //   context,
       //   onTap: () async {
