@@ -428,6 +428,22 @@ class _ToolbarAttachmentsCupertinoState extends State<ToolbarAttachmentsCupertin
     );
   }
 
+  /// Кнопка-иконка «Управление доступом» (iOS, «ограниченный» доступ к фото).
+  /// Круглая, в стиле кнопки закрытия — стоит справа в шапке, на её высоте.
+  Widget _manageAccessButton(BuildContext context) {
+    return GestureDetector(
+      onTap: _manageLimited,
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        width: 32,
+        height: 32,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(color: CupertinoColors.tertiarySystemFill.resolveFrom(context), shape: BoxShape.circle),
+        child: FaIcon(FontAwesomeIcons.sliders, size: 14, color: CupertinoColors.label.resolveFrom(context)),
+      ),
+    );
+  }
+
   // ─── Тело таба (точка расширения под процесс) ─────────────────────────────
 
   /// Тело выбранного таба. Здесь реализуется конкретный процесс (список файлов,
@@ -546,30 +562,6 @@ class _ToolbarAttachmentsCupertinoState extends State<ToolbarAttachmentsCupertin
       controller: controller,
       physics: const AlwaysScrollableScrollPhysics(),
       slivers: [
-        // На iOS при «ограниченном» доступе — управление выбранными фото.
-        if (_permission == PermissionState.limited)
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-              child: Align(
-                alignment: Alignment.centerRight,
-                child: CupertinoButton(
-                  padding: EdgeInsets.zero,
-                  minimumSize: Size.zero,
-                  onPressed: _manageLimited,
-                  child: Text(
-                    context.t.screenMyProfile.galleryManageAccess,
-                    style: TextStyle(
-                      color: CupertinoDynamicColor.withBrightness(
-                        color: CupertinoTheme.of(context).primaryColor,
-                        darkColor: CupertinoColors.white,
-                      ).resolveFrom(context),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
         SliverPadding(
           padding: const EdgeInsets.all(2),
           sliver: SliverGrid(
@@ -721,7 +713,18 @@ class _ToolbarAttachmentsCupertinoState extends State<ToolbarAttachmentsCupertin
             style: TextStyle(color: CupertinoColors.secondaryLabel.resolveFrom(context)),
           ),
           const SizedBox(height: 12),
-          CupertinoButton(onPressed: PhotoManager.openSetting, child: Text(context.t.screenMyProfile.galleryOpenSettings)),
+          CupertinoButton(
+            onPressed: PhotoManager.openSetting,
+            child: Text(
+              context.t.screenMyProfile.galleryOpenSettings,
+              style: TextStyle(
+                color: CupertinoDynamicColor.withBrightness(
+                  color: CupertinoTheme.of(context).primaryColor,
+                  darkColor: CupertinoColors.white,
+                ).resolveFrom(context),
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -813,8 +816,19 @@ class _ToolbarAttachmentsCupertinoState extends State<ToolbarAttachmentsCupertin
                             alignment: Alignment.center,
                             children: [
                               Center(child: _tabHeader(context)),
-                              if (widget.multiSelect && _selected == ToolbarAttachmentTabKind.gallery)
-                                Align(alignment: Alignment.centerRight, child: _doneButton(context)),
+                              if (_selected == ToolbarAttachmentTabKind.gallery)
+                                Align(
+                                  alignment: Alignment.centerRight,
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      // «Ограниченный» доступ к фото на iOS — управление набором.
+                                      if (_permission == PermissionState.limited) _manageAccessButton(context),
+                                      if (_permission == PermissionState.limited && widget.multiSelect) const SizedBox(width: 8),
+                                      if (widget.multiSelect) _doneButton(context),
+                                    ],
+                                  ),
+                                ),
                               Align(
                                 alignment: Alignment.centerLeft,
                                 child: GestureDetector(
