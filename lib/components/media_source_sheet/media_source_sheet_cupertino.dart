@@ -1,6 +1,5 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:image_picker/image_picker.dart';
 
 import '../../i18n/translations.g.dart';
 import '../../themes.dart';
@@ -37,6 +36,13 @@ class _MediaSourceSheetCupertinoState extends State<MediaSourceSheetCupertino> {
   /// лист собственным жестом и закрывать его свайпом вниз.
   final _sheetController = DraggableScrollableController();
 
+  /// Нижний «пол» — ниже [minChildSize], чтобы лист можно было стянуть вниз
+  /// для закрытия. В покое лист туда не встаёт (см. `snap`/`snapSizes`).
+  double get _floor => widget.minChildSize * 0.7;
+
+  /// Порог закрытия: если отпустить ниже него — лист скрывается.
+  double get _dismissBelow => (_floor + widget.minChildSize) / 2;
+
   @override
   void dispose() {
     _sheetController.dispose();
@@ -45,34 +51,35 @@ class _MediaSourceSheetCupertinoState extends State<MediaSourceSheetCupertino> {
 
   // ─── Драг «хвата» ─────────────────────────────────────────────────────────
 
-  /// Тянем лист вслед за пальцем в пределах [min..max]. Пиксельную дельту
-  /// переводим в долю высоты экрана.
+  /// Тянем лист вслед за пальцем в пределах [_floor..max] — «пол» ниже
+  /// [minChildSize] даёт визуальную обратную связь при стягивании вниз.
   void _onHandleDrag(DragUpdateDetails d) {
     if (!_sheetController.isAttached) return;
     final screenH = MediaQuery.sizeOf(context).height;
     final next = _sheetController.size - (d.primaryDelta ?? 0) / screenH;
-    _sheetController.jumpTo(next.clamp(widget.minChildSize, widget.maxChildSize));
+    _sheetController.jumpTo(next.clamp(_floor, widget.maxChildSize));
   }
 
-  /// По отпусканию: флинг вниз в самом низу — закрыть лист; иначе — «прилипнуть»
-  /// к ближайшему из двух состояний (60% / 90%).
+  /// По отпусканию: если стянули/бросили вниз ниже порога — закрыть лист; иначе
+  /// «прилипнуть» к ближайшему из двух состояний (60% / 90%).
   void _onHandleDragEnd(DragEndDetails d) {
     if (!_sheetController.isAttached) return;
     final v = d.primaryVelocity ?? 0; // > 0 — палец идёт вниз
     final size = _sheetController.size;
     final mid = (widget.minChildSize + widget.maxChildSize) / 2;
-    const animate = (duration: Duration(milliseconds: 200), curve: Curves.easeOut);
 
-    if (v > 300 && size <= widget.minChildSize + 0.02) {
-      Navigator.pop(context); // свайп вниз, когда лист свёрнут — закрываем
-    } else if (v > 300) {
-      _sheetController.animateTo(widget.minChildSize, duration: animate.duration, curve: animate.curve);
-    } else if (v < -300) {
-      _sheetController.animateTo(widget.maxChildSize, duration: animate.duration, curve: animate.curve);
-    } else {
-      final target = size < mid ? widget.minChildSize : widget.maxChildSize;
-      _sheetController.animateTo(target, duration: animate.duration, curve: animate.curve);
+    // Закрываем: резкий флинг вниз или медленно стянули ниже порога.
+    if ((v > 300 && size < mid) || size <= _dismissBelow) {
+      Navigator.pop(context);
+      return;
     }
+
+    final target = v < -300
+        ? widget.maxChildSize
+        : v > 300
+        ? widget.minChildSize
+        : (size < mid ? widget.minChildSize : widget.maxChildSize);
+    _sheetController.animateTo(target, duration: const Duration(milliseconds: 200), curve: Curves.easeOut);
   }
 
   /// Единая точка возврата результата: дёргает callback и закрывает лист.
@@ -117,8 +124,10 @@ class _MediaSourceSheetCupertinoState extends State<MediaSourceSheetCupertino> {
     final style = TextStyle(fontSize: 17, fontWeight: FontWeight.w600, color: CupertinoColors.label.resolveFrom(context));
     if (_selected == MediaSourceTabKind.gallery) {
       return GestureDetector(
-        onTap: () {
-          // TODO: открыть выбор альбома.
+        onTap: () async {
+          // TODO: открыть выбор альбома, дождаться выбранного и обновить хедер:
+          //   final album = await pickAlbum(context);
+          //   if (album != null && mounted) setState(() => _album = album);
         },
         behavior: HitTestBehavior.opaque,
         child: Row(
@@ -196,17 +205,18 @@ class _MediaSourceSheetCupertinoState extends State<MediaSourceSheetCupertino> {
       case MediaSourceTabKind.gallery:
         // Заглушка-пример: открыть нативный пикер. Замени на свой процесс
         // (например, встроенную сетку картинок) и вызови _finish(MediaImageResult(...)).
-        return _placeholder(
-          context,
-          onTap: () async {
-            final image = await ImagePicker().pickImage(
-              source: _selected == MediaSourceTabKind.camera ? ImageSource.camera : ImageSource.gallery,
-              imageQuality: 85,
-              maxWidth: 1024,
-            );
-            if (image != null && mounted) _finish(MediaImageResult(image, _selected));
-          },
-        );
+        return Text("dddd");
+      // return _placeholder(
+      //   context,
+      //   onTap: () async {
+      //     final image = await ImagePicker().pickImage(
+      //       source: _selected == MediaSourceTabKind.camera ? ImageSource.camera : ImageSource.gallery,
+      //       imageQuality: 85,
+      //       maxWidth: 1024,
+      //     );
+      //     if (image != null && mounted) _finish(MediaImageResult(image, _selected));
+      //   },
+      // );
 
       case MediaSourceTabKind.file:
       case MediaSourceTabKind.link:
@@ -258,8 +268,12 @@ class _MediaSourceSheetCupertinoState extends State<MediaSourceSheetCupertino> {
     return DraggableScrollableSheet(
       controller: _sheetController,
       initialChildSize: widget.minChildSize,
-      minChildSize: widget.minChildSize,
+      // «Пол» ниже min нужен только для стягивания к закрытию; snap держит лист
+      // в покое строго на 60%/90%, поэтому на «полу» он не застревает.
+      minChildSize: _floor,
       maxChildSize: widget.maxChildSize,
+      snap: true,
+      snapSizes: [widget.minChildSize, widget.maxChildSize],
       expand: false,
       builder: (context, scrollController) {
         return Container(
@@ -272,58 +286,65 @@ class _MediaSourceSheetCupertinoState extends State<MediaSourceSheetCupertino> {
             child: Column(
               mainAxisSize: MainAxisSize.max,
               children: [
-                // «Хват» — на самом верху листа. Свой вертикальный жест тянет
-                // лист (60↔90%) и закрывает свайпом вниз, т.к. «хват» вне скролла
-                // и сам по себе DraggableScrollableSheet его драг не ловит.
+                // Вся верхняя зона (хват + шапка) тянет лист вертикальным жестом
+                // и закрывает свайпом вниз. Она вне скролла, поэтому сам
+                // DraggableScrollableSheet её драг не ловит — вешаем свой.
+                // Тапы по кнопке закрытия/селектору альбома продолжают работать:
+                // вертикальный драг и тап — разные распознаватели.
                 GestureDetector(
                   behavior: HitTestBehavior.opaque,
                   onVerticalDragUpdate: _onHandleDrag,
                   onVerticalDragEnd: _onHandleDragEnd,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                    child: Center(
-                      child: Container(
-                        width: 36,
-                        height: 5,
-                        decoration: BoxDecoration(
-                          color: CupertinoColors.tertiaryLabel.resolveFrom(context),
-                          borderRadius: const BorderRadius.all(Radius.circular(3)),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                // Фиксированная шапка: кнопка закрытия слева + заголовок по центру.
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  child: SizedBox(
-                    height: 36,
-                    child: Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        Center(child: _tabHeader(context)),
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: GestureDetector(
-                            onTap: () => Navigator.pop(context),
-                            behavior: HitTestBehavior.opaque,
-                            child: Container(
-                              width: 32,
-                              height: 32,
-                              alignment: Alignment.center,
-                              decoration: BoxDecoration(
-                                color: CupertinoColors.tertiarySystemFill.resolveFrom(context),
-                                shape: BoxShape.circle,
-                              ),
-                              child: FaIcon(FontAwesomeIcons.xmark, size: 15, color: CupertinoColors.label.resolveFrom(context)),
-                            ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // «Хват» — на самом верху листа.
+                      const SizedBox(height: 8),
+                      Center(
+                        child: Container(
+                          width: 36,
+                          height: 5,
+                          decoration: BoxDecoration(
+                            color: CupertinoColors.tertiaryLabel.resolveFrom(context),
+                            borderRadius: const BorderRadius.all(Radius.circular(3)),
                           ),
                         ),
-                      ],
-                    ),
+                      ),
+                      const SizedBox(height: 8),
+                      // Фиксированная шапка: кнопка закрытия слева + заголовок по центру.
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        child: SizedBox(
+                          height: 36,
+                          child: Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              Center(child: _tabHeader(context)),
+                              Align(
+                                alignment: Alignment.centerLeft,
+                                child: GestureDetector(
+                                  onTap: () => Navigator.pop(context),
+                                  behavior: HitTestBehavior.opaque,
+                                  child: Container(
+                                    width: 32,
+                                    height: 32,
+                                    alignment: Alignment.center,
+                                    decoration: BoxDecoration(
+                                      color: CupertinoColors.tertiarySystemFill.resolveFrom(context),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: FaIcon(FontAwesomeIcons.xmark, size: 15, color: CupertinoColors.label.resolveFrom(context)),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 8),
                 // Тело таба. scrollController + AlwaysScrollable позволяют
                 // раскрывать лист свайпом вверх.
                 Expanded(
