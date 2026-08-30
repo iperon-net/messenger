@@ -255,15 +255,8 @@ class Routers {
 
   List<RouteBase> get _cupertino => <RouteBase>[];
 
-  // Временная заглушка для ещё не портированных на Material экранов.
-  Widget _materialStub(String title) => Scaffold(
-    appBar: AppBar(title: Text(title)),
-    body: Center(child: Text('$title\n(Material — TODO)', textAlign: TextAlign.center)),
-  );
-
   // Material-аналог _common: тот же StatefulShellRoute с нижней навигацией, но
-  // рендерит Material-экраны. Портированы /chats и вся ветка /auth; contacts /
-  // calls / settings — пока заглушки (см. _materialStub).
+  // рендерит Material-экраны. Портированы все вкладки и вся ветка /auth.
   List<RouteBase> _commonMaterial(GlobalKey<NavigatorState> rootNavigatorKey) => <RouteBase>[
     StatefulShellRoute.indexedStack(
       builder: (context, state, navigationShell) => MultiBlocProvider(
@@ -275,10 +268,10 @@ class Routers {
       ),
       branches: [
         StatefulShellBranch(
-          routes: [GoRoute(path: "/contacts", builder: (_, _) => _materialStub("Contacts"))],
+          routes: [GoRoute(path: "/contacts", builder: (_, _) => const ContactsMaterial())],
         ),
         StatefulShellBranch(
-          routes: [GoRoute(path: "/calls", builder: (_, _) => _materialStub("Calls"))],
+          routes: [GoRoute(path: "/calls", builder: (_, _) => const CallsMaterial())],
         ),
         StatefulShellBranch(
           routes: [
@@ -289,7 +282,119 @@ class Routers {
           ],
         ),
         StatefulShellBranch(
-          routes: [GoRoute(path: "/settings", builder: (_, _) => _materialStub("Settings"))],
+          routes: [
+            GoRoute(
+              path: "/settings",
+              builder: (_, _) =>
+                  BlocProvider<SettingsCubit>(create: (_) => SettingsCubit()..initialization(), child: const SettingsMaterial()),
+              routes: [
+                GoRoute(
+                  path: "profile",
+                  parentNavigatorKey: rootNavigatorKey,
+                  pageBuilder: (context, state) => _pageMaterial(
+                    state,
+                    BlocProvider<SettingsMyProfileCubit>(
+                      create: (_) =>
+                          SettingsMyProfileCubit()
+                            ..initialization(locale: context.read<CommonCubit>().state.settingsDevice.locale ?? AppLocale.en),
+                      child: const SettingsMyProfileMaterial(),
+                    ),
+                  ),
+                  routes: [
+                    GoRoute(
+                      path: "edit",
+                      parentNavigatorKey: rootNavigatorKey,
+                      pageBuilder: (context, state) => _pageMaterial(
+                        state,
+                        BlocProvider<SettingsMyProfileEditCubit>(
+                          create: (_) =>
+                              SettingsMyProfileEditCubit()
+                                ..initialization(locale: context.read<CommonCubit>().state.settingsDevice.locale ?? AppLocale.en),
+                          child: const SettingsMyProfileEditMaterial(),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                GoRoute(
+                  path: "privacy_and_security",
+                  parentNavigatorKey: rootNavigatorKey,
+                  pageBuilder: (context, state) => _pageMaterial(
+                    state,
+                    BlocProvider<SettingsPrivacyAndSecurityCubit>(
+                      create: (_) => SettingsPrivacyAndSecurityCubit()..initialization(),
+                      child: const SettingsPrivacyAndSecurityMaterial(),
+                    ),
+                  ),
+                  routes: [
+                    GoRoute(
+                      path: "passcode",
+                      parentNavigatorKey: rootNavigatorKey,
+                      pageBuilder: (context, state) => _pageMaterial(
+                        state,
+                        BlocProvider<SettingsPasscodeCubit>(
+                          create: (_) => SettingsPasscodeCubit()..initialization(),
+                          child: const SettingsPasscodeMaterial(),
+                        ),
+                      ),
+                      routes: [
+                        GoRoute(
+                          path: "create",
+                          parentNavigatorKey: rootNavigatorKey,
+                          pageBuilder: (context, state) => _pageMaterial(
+                            state,
+                            BlocProvider<SettingsPasscodeCreateCubit>(
+                              create: (_) => SettingsPasscodeCreateCubit()..initialization(),
+                              child: const SettingsPasscodeCreateMaterial(),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                GoRoute(
+                  path: "language",
+                  parentNavigatorKey: rootNavigatorKey,
+                  pageBuilder: (context, state) => _pageMaterial(
+                    state,
+                    BlocProvider<SettingsLanguageCubit>(
+                      create: (_) =>
+                          SettingsLanguageCubit()..initialization(locale: context.read<CommonCubit>().state.settingsDevice.locale),
+                      child: const SettingsLanguageMaterialScreen(),
+                    ),
+                  ),
+                ),
+                GoRoute(
+                  path: "appearance",
+                  parentNavigatorKey: rootNavigatorKey,
+                  pageBuilder: (context, state) => _pageMaterial(
+                    state,
+                    BlocProvider<SettingsAppearanceCubit>(
+                      create: (_) => SettingsAppearanceCubit()
+                        ..initialization(
+                          colorTheme: context.read<CommonCubit>().state.settingsDevice.colorTheme,
+                          darkMode: context.read<CommonCubit>().state.settingsDevice.darkMode,
+                          isBlurOnInactive: context.read<CommonCubit>().state.settingsDevice.isBlurOnInactive,
+                        ),
+                      child: const SettingsAppearanceMaterial(),
+                    ),
+                  ),
+                ),
+                GoRoute(
+                  path: "device_sessions",
+                  parentNavigatorKey: rootNavigatorKey,
+                  pageBuilder: (context, state) => _pageMaterial(
+                    state,
+                    BlocProvider<SettingsDeviceSessionsCubit>(
+                      create: (_) => SettingsDeviceSessionsCubit()..initialization(),
+                      child: const SettingsDeviceSessionsMaterial(),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
       ],
     ),

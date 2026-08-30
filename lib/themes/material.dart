@@ -23,10 +23,45 @@ class ThemesMaterial {
   }
 
   ThemeData theme({required ColorThemeModel colorTheme, required Brightness brightness}) {
+    final colorScheme = ColorScheme.fromSeed(seedColor: seed(colorTheme), brightness: brightness);
+
     return ThemeData(
       useMaterial3: true,
       brightness: brightness,
-      colorScheme: ColorScheme.fromSeed(seedColor: seed(colorTheme), brightness: brightness),
+      colorScheme: colorScheme,
+      listTileTheme: ListTileThemeData(iconColor: colorScheme.primary),
+      radioTheme: RadioThemeData(visualDensity: const VisualDensity(horizontal: VisualDensity.minimumDensity)),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          foregroundColor: Colors.white,
+          backgroundColor: colorScheme.primary,
+          disabledForegroundColor: Colors.white,
+          disabledBackgroundColor: colorScheme.primary,
+          shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(10))),
+        ),
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(10.0)),
+          borderSide: BorderSide(width: 1, color: colorScheme.primary),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(10.0)),
+          borderSide: BorderSide(width: 1, color: colorScheme.primary),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(10.0)),
+          borderSide: BorderSide(width: 1, color: colorScheme.primary),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(10.0)),
+          borderSide: BorderSide(width: 1, color: colorScheme.primary),
+        ),
+        border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(10.0))),
+        labelStyle: TextStyle(color: colorScheme.primary),
+        // isDense: true,
+        contentPadding: EdgeInsets.all(12),
+      ),
     );
   }
 }

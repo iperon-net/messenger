@@ -101,6 +101,7 @@ class _AuthMaterialScreen extends State<AuthMaterialScreen> {
                               inputFormatters: [PhoneInputFormatter()],
                               autofillHints: const [AutofillHints.telephoneNumber],
                               decoration: InputDecoration(
+                                errorMaxLines: 2,
                                 prefixIcon: const Icon(Icons.phone),
                                 labelText: context.t.common.mobilePhone,
                                 border: const OutlineInputBorder(),
@@ -134,7 +135,7 @@ class _AuthMaterialScreen extends State<AuthMaterialScreen> {
                     SizedBox(
                       width: double.infinity,
                       height: 50,
-                      child: FilledButton(
+                      child: ElevatedButton(
                         onPressed: isReady
                             ? () async {
                                 serverError = null;
