@@ -16,17 +16,10 @@ class SettingsMaterial extends StatefulWidget {
 
 class _SettingsMaterial extends State<SettingsMaterial> {
   /// Группа-«карточка» со скруглёнными углами (как в Telegram): несколько
-  /// плиток объединяются в один контейнер на сером фоне страницы, между
-  /// плитками — тонкие разделители.
+  /// плиток объединяются в один контейнер на сером фоне страницы.
   Widget _group(BuildContext context, List<Widget> children) {
-    final tiles = <Widget>[];
-    for (var i = 0; i < children.length; i++) {
-      if (i > 0) tiles.add(const Divider(height: 1, indent: 16, endIndent: 16));
-      tiles.add(children[i]);
-    }
-
     // Форма/скругление/цвет/отступы берутся из `cardTheme` в ThemesMaterial.
-    return Card(child: Column(children: tiles));
+    return Card(child: Column(children: children));
   }
 
   @override
