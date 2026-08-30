@@ -110,11 +110,15 @@ class _SettingsMyProfileEditMaterial extends State<SettingsMyProfileEditMaterial
         }
       },
       builder: (context, state) {
+        // Единый стиль полей ввода: чистая нижняя линия (Material underline).
+        InputDecoration decoration({required String label, String? hint}) => InputDecoration(labelText: label, hintText: hint);
+
         final firstNameField = TextFormField(
           controller: firstNameController,
           focusNode: firstNameFocus,
           autofillHints: const [AutofillHints.givenName],
-          decoration: InputDecoration(labelText: context.t.screenMyProfile.firstName, border: const OutlineInputBorder()),
+          textInputAction: TextInputAction.next,
+          decoration: decoration(label: context.t.screenMyProfile.firstName),
           validator: (value) => switch (context.read<SettingsMyProfileEditCubit>().validateFirstName(value)) {
             FirstNameValidationError.maxLength => context.t.screenMyProfile.validationFirstNameMaxLength,
             null => null,
@@ -124,11 +128,8 @@ class _SettingsMyProfileEditMaterial extends State<SettingsMyProfileEditMaterial
           controller: lastNameController,
           focusNode: lastNameFocus,
           autofillHints: const [AutofillHints.familyName],
-          decoration: InputDecoration(
-            labelText: context.t.screenMyProfile.lastName,
-
-            // border: const OutlineInputBorder(),
-          ),
+          textInputAction: TextInputAction.next,
+          decoration: decoration(label: context.t.screenMyProfile.lastName),
           validator: (value) => switch (context.read<SettingsMyProfileEditCubit>().validateFirstName(value)) {
             FirstNameValidationError.maxLength => context.t.screenMyProfile.validationLastNameMaxLength,
             null => null,
@@ -208,11 +209,7 @@ class _SettingsMyProfileEditMaterial extends State<SettingsMyProfileEditMaterial
                     focusNode: aboutMeFocus,
                     maxLines: 2,
                     maxLength: 70,
-                    decoration: InputDecoration(
-                      labelText: context.t.screenMyProfile.aboutMe,
-                      hintText: context.t.screenMyProfile.tellUsAboutYourself,
-                      border: const OutlineInputBorder(),
-                    ),
+                    decoration: decoration(label: context.t.screenMyProfile.aboutMe, hint: context.t.screenMyProfile.tellUsAboutYourself),
                     validator: (value) => switch (context.read<SettingsMyProfileEditCubit>().validateAboutMe(value)) {
                       AboutMeValidationError.maxLength => context.t.screenMyProfile.validationAboutMeMaxLength,
                       null => null,

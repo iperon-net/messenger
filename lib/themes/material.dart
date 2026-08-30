@@ -117,24 +117,28 @@ class ThemesMaterial {
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
+        isCollapsed: false,
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.all(Radius.circular(10.0)),
-          borderSide: BorderSide(width: 1, color: colorScheme.primary),
+          borderSide: BorderSide(width: .3, color: colorScheme.primary.withAlpha(100)),
         ),
         focusedErrorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.all(Radius.circular(10.0)),
-          borderSide: BorderSide(width: 1, color: colorScheme.primary),
+          borderSide: BorderSide(width: .3, color: colorScheme.primary.withAlpha(100)),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.all(Radius.circular(10.0)),
-          borderSide: BorderSide(width: 1, color: colorScheme.primary),
+          borderSide: BorderSide(width: .3, color: colorScheme.primary.withAlpha(100)),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.all(Radius.circular(10.0)),
-          borderSide: BorderSide(width: 1, color: colorScheme.primary),
+          borderSide: BorderSide(width: .3, color: colorScheme.primary.withAlpha(100)),
         ),
-        border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(10.0))),
-        labelStyle: TextStyle(color: colorScheme.primary),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(10.0)),
+          borderSide: BorderSide(width: .3, color: colorScheme.primary.withAlpha(100)),
+        ),
+        labelStyle: TextStyle(color: colorScheme.primary.withAlpha(100)),
         // isDense: true,
         contentPadding: EdgeInsets.all(12),
       ),
