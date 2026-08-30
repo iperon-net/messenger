@@ -29,6 +29,13 @@ class Routers {
   Page<void> _page(GoRouterState state, Widget child) =>
       CupertinoPage<void>(key: state.pageKey, name: state.name ?? state.path, child: child);
 
+  // Тот же нюанс, что и с _page, но для Material: приложение обёрнуто в
+  // MaterialApp из material_ui (не из package:flutter/material), поэтому
+  // go_router-автоопределение Page проваливается в NoTransitionPage. Явно
+  // отдаём MaterialPage из material_ui, чтобы вернуть штатный Android-переход.
+  Page<void> _pageMaterial(GoRouterState state, Widget child) =>
+      MaterialPage<void>(key: state.pageKey, name: state.name ?? state.path, child: child);
+
   String? _redirect(BuildContext context, GoRouterState state) {
     final isAuthRoute = state.matchedLocation.startsWith("/auth");
 
@@ -248,7 +255,103 @@ class Routers {
 
   List<RouteBase> get _cupertino => <RouteBase>[];
 
-  List<RouteBase> get _material => <RouteBase>[];
+  // Временная заглушка для ещё не портированных на Material экранов.
+  Widget _materialStub(String title) => Scaffold(
+    appBar: AppBar(title: Text(title)),
+    body: Center(child: Text('$title\n(Material — TODO)', textAlign: TextAlign.center)),
+  );
+
+  // Material-аналог _common: тот же StatefulShellRoute с нижней навигацией, но
+  // рендерит Material-экраны. Портированы /chats и вся ветка /auth; contacts /
+  // calls / settings — пока заглушки (см. _materialStub).
+  List<RouteBase> _commonMaterial(GlobalKey<NavigatorState> rootNavigatorKey) => <RouteBase>[
+    StatefulShellRoute.indexedStack(
+      builder: (context, state, navigationShell) => MultiBlocProvider(
+        providers: [
+          BlocProvider<HomeCubit>(create: (_) => HomeCubit()..initialization()),
+          BlocProvider<ConnectionCubit>(create: (_) => ConnectionCubit()..initialization()),
+        ],
+        child: HomeMaterial(navigationShell: navigationShell),
+      ),
+      branches: [
+        StatefulShellBranch(
+          routes: [GoRoute(path: "/contacts", builder: (_, _) => _materialStub("Contacts"))],
+        ),
+        StatefulShellBranch(
+          routes: [GoRoute(path: "/calls", builder: (_, _) => _materialStub("Calls"))],
+        ),
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: "/chats",
+              builder: (_, _) => BlocProvider<ChatsCubit>(create: (_) => ChatsCubit()..initialization(), child: const ChatsMaterial()),
+            ),
+          ],
+        ),
+        StatefulShellBranch(
+          routes: [GoRoute(path: "/settings", builder: (_, _) => _materialStub("Settings"))],
+        ),
+      ],
+    ),
+    GoRoute(
+      path: "/auth",
+      builder: (_, _) => BlocProvider<AuthCubit>(create: (_) => AuthCubit()..initialization(), child: const AuthMaterialScreen()),
+      routes: [
+        GoRoute(
+          path: "/call_password_confirmation",
+          pageBuilder: (context, state) {
+            final callPasswordSession = state.uri.queryParameters["callPasswordSession"] ?? "";
+            final confirmationPhoneNumber = state.uri.queryParameters["confirmationPhoneNumber"] ?? "";
+            final timeout = state.uri.queryParameters["timeout"] ?? "";
+
+            if (callPasswordSession.isEmpty || confirmationPhoneNumber.isEmpty || timeout.isEmpty) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (context.mounted) context.go("/auth");
+              });
+              return _pageMaterial(state, const SizedBox.shrink());
+            }
+
+            return _pageMaterial(
+              state,
+              BlocProvider<AuthCallpasswordConfirmationCubit>(
+                create: (_) => AuthCallpasswordConfirmationCubit()
+                  ..initialization(
+                    callPasswordSession: callPasswordSession,
+                    confirmationPhoneNumber: confirmationPhoneNumber,
+                    timeout: timeout,
+                  ),
+                child: const AuthCallpasswordConfirmationMaterial(),
+              ),
+            );
+          },
+        ),
+        GoRoute(
+          path: "/moderation_application_store",
+          pageBuilder: (context, state) {
+            final moderationApplicationStoreSession = state.uri.queryParameters["moderationApplicationStoreSession"] ?? "";
+            final phoneNumber = state.uri.queryParameters["phoneNumber"] ?? "";
+
+            if (moderationApplicationStoreSession.isEmpty || phoneNumber.isEmpty) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (context.mounted) context.go("/auth");
+              });
+              return _pageMaterial(state, const SizedBox.shrink());
+            }
+
+            return _pageMaterial(
+              state,
+              BlocProvider<AuthModerationApplicationStoreCubit>(
+                create: (_) =>
+                    AuthModerationApplicationStoreCubit()
+                      ..initialization(phoneNumber: phoneNumber, moderationApplicationStoreSession: moderationApplicationStoreSession),
+                child: const AuthModerationApplicationStoreMaterial(),
+              ),
+            );
+          },
+        ),
+      ],
+    ),
+  ];
 
   GoRouter cupertino(GlobalKey<NavigatorState> navigatorGoRouterKey) {
     return GoRouter(
@@ -269,7 +372,7 @@ class Routers {
       initialLocation: initialLocation,
       redirect: _redirect,
       refreshListenable: auth,
-      routes: [..._common(navigatorGoRouterKey), ..._material],
+      routes: [..._commonMaterial(navigatorGoRouterKey)],
     );
   }
 }

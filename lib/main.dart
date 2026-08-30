@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
@@ -13,6 +14,7 @@ import 'package:go_router/go_router.dart';
 import 'package:local_auth/local_auth.dart';
 
 import 'api.dart';
+import 'app_material.dart';
 import 'cubit.dart';
 import 'di.dart';
 import 'firebase_options.dart';
@@ -94,7 +96,9 @@ Future<void> main() async {
       child: MultiBlocProvider(
         providers: <BlocProvider>[BlocProvider<CommonCubit>(create: (_) => CommonCubit())],
         // child: Platform.isIOS ? const IperonMessengerCupertino() : const IperonMessengerCupertino(),
-        child: IperonMessengerCupertino(settingsDevice: settingsDevice, isBiometricAvailable: isBiometricAvailable),
+        child: Platform.isIOS
+            ? IperonMessengerCupertino(settingsDevice: settingsDevice, isBiometricAvailable: isBiometricAvailable)
+            : IperonMessengerMaterial(settingsDevice: settingsDevice, isBiometricAvailable: isBiometricAvailable),
       ),
     ),
   );

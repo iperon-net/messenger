@@ -1,7 +1,11 @@
 export 'auth/auth_cupertino.dart';
+export 'auth/auth_material.dart';
 export 'auth/auth_moderation_application_store_cupertino.dart';
+export 'auth/auth_moderation_application_store_material.dart';
 export 'auth/auth_callpassword_confirmation_cupertino.dart';
+export 'auth/auth_callpassword_confirmation_material.dart';
 export 'home/home_cupertino.dart';
+export 'home/home_material.dart';
 export 'home/contacts_cupertino.dart';
 export 'home/calls_cupertino.dart';
 export 'settings/settings_cupertino.dart';
@@ -14,3 +18,4 @@ export 'settings/settings_passcode_create_cupertino.dart';
 export 'settings/settings_my_profile_cupertino.dart';
 export 'settings/settings_my_profile_edit_cupertino.dart';
 export 'chats/chats_cupertino.dart';
+export 'chats/chats_material.dart';
