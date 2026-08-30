@@ -100,8 +100,6 @@ class _SettingsMyProfileMaterial extends State<SettingsMyProfileMaterial> {
         return Scaffold(
           appBar: AppBar(
             title: Text(context.t.screenMyProfile.myprofile),
-            leadingWidth: 100,
-            leading: TextButton(onPressed: () => context.pop(), child: Text(context.t.screenMyProfile.cancel)),
             actions: [
               // push (а не go): дожидаемся закрытия экрана правки и перечитываем
               // профиль из локальной БД — экран профиля не пересоздаётся при
@@ -117,7 +115,7 @@ class _SettingsMyProfileMaterial extends State<SettingsMyProfileMaterial> {
                         await context.push("/settings/profile/edit");
                         await cubit.reload();
                       },
-                      child: Text(context.t.screenMyProfile.edit),
+                      child: FaIcon(FontAwesomeIcons.penToSquare, color: Theme.of(context).colorScheme.onSurfaceVariant),
                     ),
             ],
           ),

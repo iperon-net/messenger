@@ -124,7 +124,11 @@ class _SettingsMyProfileEditMaterial extends State<SettingsMyProfileEditMaterial
           controller: lastNameController,
           focusNode: lastNameFocus,
           autofillHints: const [AutofillHints.familyName],
-          decoration: InputDecoration(labelText: context.t.screenMyProfile.lastName, border: const OutlineInputBorder()),
+          decoration: InputDecoration(
+            labelText: context.t.screenMyProfile.lastName,
+
+            // border: const OutlineInputBorder(),
+          ),
           validator: (value) => switch (context.read<SettingsMyProfileEditCubit>().validateFirstName(value)) {
             FirstNameValidationError.maxLength => context.t.screenMyProfile.validationLastNameMaxLength,
             null => null,
@@ -136,8 +140,6 @@ class _SettingsMyProfileEditMaterial extends State<SettingsMyProfileEditMaterial
         return Scaffold(
           appBar: AppBar(
             title: Text(context.t.screenMyProfile.myprofile),
-            leadingWidth: 100,
-            leading: TextButton(onPressed: () => context.pop(), child: Text(context.t.common.cancel)),
             actions: [
               state.networkStatus == Status.loading
                   ? const Padding(
@@ -147,7 +149,6 @@ class _SettingsMyProfileEditMaterial extends State<SettingsMyProfileEditMaterial
                   : TextButton(
                       onPressed: () async {
                         if (formKey.currentState!.validate()) {
-                          logger.debug(birthDateController.text);
                           await context.read<SettingsMyProfileEditCubit>().setProfile(
                             birthDate: birthDateController.text,
                             firstName: firstNameController.text,
@@ -156,7 +157,7 @@ class _SettingsMyProfileEditMaterial extends State<SettingsMyProfileEditMaterial
                           );
                         }
                       },
-                      child: Text(context.t.common.save),
+                      child: FaIcon(FontAwesomeIcons.check, color: Theme.of(context).colorScheme.onSurfaceVariant),
                     ),
             ],
           ),
