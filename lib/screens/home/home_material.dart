@@ -25,13 +25,17 @@ class HomeMaterial extends StatelessWidget {
             onDestinationSelected: _onTap,
             destinations: <NavigationDestination>[
               NavigationDestination(
-                icon: const FaIcon(FontAwesomeIcons.circleUser),
+                icon: const FaIcon(FontAwesomeIcons.solidCircleUser),
                 selectedIcon: const FaIcon(FontAwesomeIcons.solidCircleUser),
                 label: context.t.screenHome.contacts,
               ),
-              NavigationDestination(icon: const FaIcon(FontAwesomeIcons.phoneFlip), label: context.t.screenHome.calls),
               NavigationDestination(
-                icon: const FaIcon(FontAwesomeIcons.comments),
+                icon: const FaIcon(FontAwesomeIcons.phoneFlip),
+                selectedIcon: const FaIcon(FontAwesomeIcons.phoneFlip),
+                label: context.t.screenHome.calls,
+              ),
+              NavigationDestination(
+                icon: const FaIcon(FontAwesomeIcons.solidComments),
                 selectedIcon: const FaIcon(FontAwesomeIcons.solidComments),
                 label: context.t.screenHome.chats,
               ),

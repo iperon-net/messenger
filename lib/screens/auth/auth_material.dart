@@ -73,6 +73,7 @@ class _AuthMaterialScreen extends State<AuthMaterialScreen> {
         final isReady = [Status.success, Status.initialization].contains(state.status);
 
         return Scaffold(
+          backgroundColor: Theme.of(context).brightness == Brightness.light ? Colors.white : Color(0xFF27364D),
           body: Form(
             key: formKey,
             child: SafeArea(

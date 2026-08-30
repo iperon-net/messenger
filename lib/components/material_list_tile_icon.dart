@@ -37,8 +37,8 @@ class MaterialListTileIcon extends StatelessWidget {
 
     return ListTile(
       leading: Container(
-        width: 45,
-        height: 45,
+        width: 28,
+        height: 28,
         decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(8)),
         child: Center(child: FaIcon(icon, size: 16, color: const Color(0xFFFFFFFF))),
       ),

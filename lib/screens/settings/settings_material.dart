@@ -15,65 +15,71 @@ class SettingsMaterial extends StatefulWidget {
 }
 
 class _SettingsMaterial extends State<SettingsMaterial> {
+  /// Группа-«карточка» со скруглёнными углами (как в Telegram): несколько
+  /// плиток объединяются в один контейнер на сером фоне страницы, между
+  /// плитками — тонкие разделители.
+  Widget _group(BuildContext context, List<Widget> children) {
+    final tiles = <Widget>[];
+    for (var i = 0; i < children.length; i++) {
+      if (i > 0) tiles.add(const Divider(height: 1, indent: 16, endIndent: 16));
+      tiles.add(children[i]);
+    }
+
+    // Форма/скругление/цвет/отступы берутся из `cardTheme` в ThemesMaterial.
+    return Card(child: Column(children: tiles));
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<SettingsCubit, SettingsState>(
       listener: (context, state) {},
       builder: (context, state) {
         return Scaffold(
-          appBar: AppBar(title: Text(context.t.screenSettings.settings)),
+          // Серый фон страницы, на котором «плавают» скруглённые группы.
+          backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
+          appBar: AppBar(centerTitle: true, title: Text(context.t.screenSettings.settings)),
           body: SafeArea(
             child: ListView(
               children: [
-                Card(
-                  margin: const EdgeInsets.fromLTRB(12, 12, 12, 6),
-                  child: MaterialListTileIcon(
+                const SizedBox(height: 6),
+                _group(context, [
+                  MaterialListTileIcon(
                     title: Text(context.t.screenSettings.myProfile),
                     color: const Color(0xFFF80202),
                     icon: FontAwesomeIcons.solidUser,
                     onTab: () async => context.go("/settings/profile"),
                     isTrailing: true,
                   ),
-                ),
-                Card(
-                  margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  child: Column(
-                    children: [
-                      MaterialListTileIcon(
-                        title: Text(context.t.screenSettings.privacyAndSecurity),
-                        color: const Color(0xFF049A40),
-                        icon: FontAwesomeIcons.key,
-                        onTab: () async => context.go("/settings/privacy_and_security"),
-                        isTrailing: true,
-                      ),
-                      MaterialListTileIcon(
-                        title: Text(context.t.screenSettings.appearance),
-                        color: const Color(0xFF1368E6),
-                        icon: FontAwesomeIcons.circleHalfStroke,
-                        onTab: () async => context.go("/settings/appearance"),
-                        isTrailing: true,
-                      ),
-                      MaterialListTileIcon(
-                        title: Text(context.t.screenSettings.devices),
-                        color: const Color(0xFFFF6B00),
-                        icon: FontAwesomeIcons.mobileScreen,
-                        onTab: () async => context.go("/settings/device_sessions"),
-                        additionalInfo: state.countDeviceSessions > 0 ? Text(state.countDeviceSessions.toString()) : null,
-                        isTrailing: true,
-                      ),
-                      MaterialListTileIcon(
-                        title: Text(context.t.screenSettings.language),
-                        color: const Color(0xFFB818DC),
-                        icon: FontAwesomeIcons.language,
-                        onTab: () async => context.go("/settings/language"),
-                        isTrailing: true,
-                      ),
-                    ],
+                  MaterialListTileIcon(
+                    title: Text(context.t.screenSettings.privacyAndSecurity),
+                    color: const Color(0xFF049A40),
+                    icon: FontAwesomeIcons.key,
+                    onTab: () async => context.go("/settings/privacy_and_security"),
+                    isTrailing: true,
                   ),
-                ),
-                Card(
-                  margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  child: MaterialListTileIcon(
+                  MaterialListTileIcon(
+                    title: Text(context.t.screenSettings.appearance),
+                    color: const Color(0xFF1368E6),
+                    icon: FontAwesomeIcons.circleHalfStroke,
+                    onTab: () async => context.go("/settings/appearance"),
+                    isTrailing: true,
+                  ),
+                  MaterialListTileIcon(
+                    title: Text(context.t.screenSettings.devices),
+                    color: const Color(0xFFFF6B00),
+                    icon: FontAwesomeIcons.mobileScreen,
+                    onTab: () async => context.go("/settings/device_sessions"),
+                    additionalInfo: state.countDeviceSessions > 0 ? Text(state.countDeviceSessions.toString()) : null,
+                    isTrailing: true,
+                  ),
+                  MaterialListTileIcon(
+                    title: Text(context.t.screenSettings.language),
+                    color: const Color(0xFFB818DC),
+                    icon: FontAwesomeIcons.language,
+                    onTab: () async => context.go("/settings/language"),
+                    isTrailing: true,
+                  ),
+                  MaterialListTileIcon(
                     title: Text(context.t.screenSettings.logout),
                     color: const Color(0xFF5A48E6),
                     icon: FontAwesomeIcons.rightFromBracket,
@@ -81,7 +87,9 @@ class _SettingsMaterial extends State<SettingsMaterial> {
                     // дёрнет notifyListeners(), и go_router сам уведёт на /auth.
                     onTab: () async => context.read<SettingsCubit>().terminate(),
                   ),
-                ),
+                ]),
+
+                const SizedBox(height: 6),
               ],
             ),
           ),

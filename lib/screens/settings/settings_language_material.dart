@@ -22,6 +22,7 @@ class _SettingsLanguageMaterialScreen extends State<SettingsLanguageMaterialScre
       builder: (context, state) {
         return Scaffold(
           appBar: AppBar(title: Text(context.t.screenSettingsLanguage.language)),
+          backgroundColor: Theme.of(context).colorScheme.surfaceContainerLow,
           body: SafeArea(
             child: ListView(
               children: [

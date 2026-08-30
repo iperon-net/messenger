@@ -29,7 +29,24 @@ class ThemesMaterial {
       useMaterial3: true,
       brightness: brightness,
       colorScheme: colorScheme,
-      listTileTheme: ListTileThemeData(iconColor: colorScheme.primary),
+      listTileTheme: ListTileThemeData(
+        iconColor: colorScheme.primary,
+        // `onSurface` инвертируется под brightness: тёмный текст в светлой теме,
+        // светлый — в тёмной. `scrim` был всегда чёрным → невидим в тёмной теме.
+        titleTextStyle: TextStyle(fontSize: 14, color: colorScheme.onSurface),
+        // Компактные плитки настроек: меньше вертикальные отступы → ниже боксы.
+        minVerticalPadding: 10,
+      ),
+      appBarTheme: AppBarTheme(titleTextStyle: TextStyle(fontSize: 18, color: colorScheme.onSurface), centerTitle: true),
+      // Форма скруглённых групп-«карточек» (см. `_group` на экранах настроек).
+      cardTheme: CardThemeData(
+        color: colorScheme.surface,
+        elevation: 0,
+        clipBehavior: Clip.antiAlias,
+        margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(16))),
+      ),
+      scaffoldBackgroundColor: colorScheme.surfaceDim,
       radioTheme: RadioThemeData(visualDensity: const VisualDensity(horizontal: VisualDensity.minimumDensity)),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
