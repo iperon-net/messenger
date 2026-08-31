@@ -90,7 +90,7 @@ class ThemesMaterial {
         iconColor: colorScheme.primary,
         // `onSurface` инвертируется под brightness: тёмный текст в светлой теме,
         // светлый — в тёмной. `scrim` был всегда чёрным → невидим в тёмной теме.
-        titleTextStyle: TextStyle(fontSize: 14, color: colorScheme.onSurface),
+        titleTextStyle: TextStyle(fontSize: 15, color: colorScheme.onSurface),
         // Компактные плитки настроек: меньше вертикальные отступы → ниже боксы.
         minVerticalPadding: 10,
       ),

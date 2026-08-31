@@ -29,7 +29,7 @@ class MaterialListTileIcon extends StatelessWidget {
     final trailing = <Widget>[
       if (additionalInfo != null)
         DefaultTextStyle.merge(
-          style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+          style: TextStyle(fontSize: MediaQuery.textScalerOf(context).scale(14), color: Theme.of(context).colorScheme.onSurfaceVariant),
           child: additionalInfo!,
         ),
       if (isTrailing) Icon(Icons.chevron_right, color: Theme.of(context).colorScheme.onSurfaceVariant),
