@@ -65,6 +65,12 @@ class ToolbarAttachmentLinkResult extends ToolbarAttachmentResult {
 /// закрытием). Процессы внутри таба (список файлов/картинок и т.д.)
 /// реализуются в теле таба и по готовности вызывают возврат результата.
 ///
+/// [processImage] — необязательный шаг обработки одиночного фото прямо внутри
+/// листа (напр. кроп аватара). Вызывается после выбора фото из галереи/камеры;
+/// если возвращает `null` (обработка отменена) — лист **не закрывается**, и
+/// пользователь остаётся в галерее. Успешный результат закрывает лист с
+/// обработанным файлом. Для мультивыбора (вложения в чат) не применяется.
+///
 /// Cupertino-first: когда появится Material-интерфейс, здесь добавится
 /// ветвление на `ToolbarAttachmentsMaterial` по активному дизайну.
 ///
@@ -109,6 +115,7 @@ Future<ToolbarAttachmentResult?> showToolbarAttachments(
   double minChildSize = 0.6,
   double maxChildSize = 0.9,
   ValueChanged<ToolbarAttachmentResult>? onResult,
+  Future<XFile?> Function(XFile file)? processImage,
 }) {
   assert(tabs.isNotEmpty, 'Нужен хотя бы один таб');
   final resolvedInitial = initial != null && tabs.contains(initial) ? initial : tabs.first;
@@ -126,6 +133,7 @@ Future<ToolbarAttachmentResult?> showToolbarAttachments(
         minChildSize: minChildSize,
         maxChildSize: maxChildSize,
         onResult: onResult,
+        processImage: processImage,
       ),
     );
   }
@@ -144,6 +152,7 @@ Future<ToolbarAttachmentResult?> showToolbarAttachments(
       minChildSize: minChildSize,
       maxChildSize: maxChildSize,
       onResult: onResult,
+      processImage: processImage,
     ),
   );
 }

@@ -25,6 +25,10 @@ class ToolbarAttachmentsCupertino extends StatefulWidget {
   final double maxChildSize;
   final ValueChanged<ToolbarAttachmentResult>? onResult;
 
+  /// Шаг обработки одиночного фото прямо внутри листа (напр. кроп аватара).
+  /// `null` из коллбэка — обработка отменена, лист остаётся открытым.
+  final Future<XFile?> Function(XFile file)? processImage;
+
   const ToolbarAttachmentsCupertino({
     required this.tabs,
     required this.initial,
@@ -33,6 +37,7 @@ class ToolbarAttachmentsCupertino extends StatefulWidget {
     required this.minChildSize,
     required this.maxChildSize,
     this.onResult,
+    this.processImage,
     super.key,
   });
 
@@ -289,10 +294,24 @@ class _ToolbarAttachmentsCupertinoState extends State<ToolbarAttachmentsCupertin
     try {
       final file = await asset.file;
       if (file == null || !mounted) return;
-      _finish(ToolbarAttachmentImageResult(XFile(file.path), ToolbarAttachmentTabKind.gallery));
+      await _processAndFinish(XFile(file.path), ToolbarAttachmentTabKind.gallery);
     } finally {
       if (mounted) setState(() => _exportingId = null);
     }
+  }
+
+  /// Прогоняет выбранное фото через [widget.processImage] (напр. кроп аватара) и
+  /// закрывает лист с результатом. Если обработка вернула `null` (отмена) — лист
+  /// остаётся открытым, пользователь возвращается в галерею.
+  Future<void> _processAndFinish(XFile xfile, ToolbarAttachmentTabKind source) async {
+    var file = xfile;
+    final process = widget.processImage;
+    if (process != null) {
+      final processed = await process(file);
+      if (processed == null || !mounted) return;
+      file = processed;
+    }
+    _finish(ToolbarAttachmentImageResult(file, source));
   }
 
   /// Порядковый номер ассета в мультивыборе (1-based) или `null`, если не отмечен.
@@ -317,7 +336,7 @@ class _ToolbarAttachmentsCupertinoState extends State<ToolbarAttachmentsCupertin
   /// полноэкранный экран камеры [openCamera]).
   Future<void> _takePhoto() async {
     final image = await openCamera(context);
-    if (image != null && mounted) _finish(ToolbarAttachmentImageResult(image, ToolbarAttachmentTabKind.camera));
+    if (image != null && mounted) await _processAndFinish(image, ToolbarAttachmentTabKind.camera);
   }
 
   /// Однократно запрашивает доступ к камере и запускает живое превью. При отказе

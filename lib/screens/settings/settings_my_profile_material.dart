@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_boring_avatars/flutter_boring_avatars.dart';
 import 'package:messenger/constants.dart';
 import 'package:image_cropper/image_cropper.dart';
+import 'package:image_picker/image_picker.dart' show XFile;
 import '../../cubit.dart';
 import '../../di.dart';
 import '../../logger.dart';
@@ -24,6 +25,9 @@ class _SettingsMyProfileMaterial extends State<SettingsMyProfileMaterial> {
 
   /// Открывает лист выбора источника аватара (галерея / файл / эмодзи / ссылка).
   Future<void> _pickAvatar(BuildContext context) async {
+    // Заголовок кропа берём заранее: коллбэк [processImage] отработает уже из
+    // открытого листа, где своего доступа к этому контексту у него нет.
+    final editTitle = context.t.screenMyProfile.editPhoto;
     final result = await showToolbarAttachments(
       context,
       tabs: const [
@@ -32,34 +36,19 @@ class _SettingsMyProfileMaterial extends State<SettingsMyProfileMaterial> {
         ToolbarAttachmentTabKind.emoji,
         ToolbarAttachmentTabKind.link,
       ],
+      // Кроп аватара — внутри листа: отмена возвращает в галерею, а не закрывает
+      // лист. Лист закроется лишь при успешном кропе.
+      processImage: (file) => _cropAvatar(file, editTitle),
     );
     if (result == null) return; // лист закрыт без выбора
 
     switch (result) {
       case ToolbarAttachmentImageResult(:final file):
+        // Файл уже обрезан внутри листа ([_cropAvatar]).
         logger.debug('Выбран аватар: ${file.path}');
-
+        final bytes = await file.readAsBytes();
         if (!context.mounted) return;
-        final cubit = context.read<SettingsMyProfileCubit>();
-        final cropped = await ImageCropper().cropImage(
-          sourcePath: file.path,
-          aspectRatio: const CropAspectRatio(ratioX: 1, ratioY: 1),
-          compressFormat: ImageCompressFormat.jpg,
-          compressQuality: 90,
-          uiSettings: [
-            IOSUiSettings(
-              title: context.t.screenMyProfile.editPhoto,
-              cropStyle: CropStyle.circle,
-              aspectRatioLockEnabled: true,
-              resetAspectRatioEnabled: false,
-            ),
-            AndroidUiSettings(toolbarTitle: context.t.screenMyProfile.editPhoto, cropStyle: CropStyle.circle, lockAspectRatio: true),
-          ],
-        );
-        if (cropped == null) return; // отмена обрезки
-
-        final bytes = await cropped.readAsBytes();
-        cubit.setAvatar(bytes);
+        context.read<SettingsMyProfileCubit>().setAvatar(bytes);
 
       case ToolbarAttachmentMultiImageResult(:final files):
         logger.debug('Выбрано медиа: ${files.map((f) => f.path).join(', ')}');
@@ -68,6 +57,22 @@ class _SettingsMyProfileMaterial extends State<SettingsMyProfileMaterial> {
       case ToolbarAttachmentLinkResult(:final url):
         logger.debug('Выбран аватар по ссылке: $url');
     }
+  }
+
+  /// Круглый кроп 1:1 выбранного фото. Возвращает обрезанный файл или `null`,
+  /// если пользователь отменил обрезку (тогда лист остаётся открытым).
+  Future<XFile?> _cropAvatar(XFile file, String title) async {
+    final cropped = await ImageCropper().cropImage(
+      sourcePath: file.path,
+      aspectRatio: const CropAspectRatio(ratioX: 1, ratioY: 1),
+      compressFormat: ImageCompressFormat.jpg,
+      compressQuality: 90,
+      uiSettings: [
+        IOSUiSettings(title: title, cropStyle: CropStyle.circle, aspectRatioLockEnabled: true, resetAspectRatioEnabled: false),
+        AndroidUiSettings(toolbarTitle: title, cropStyle: CropStyle.circle, lockAspectRatio: true),
+      ],
+    );
+    return cropped == null ? null : XFile(cropped.path);
   }
 
   Widget _fieldTile(BuildContext context, String label, String value) {
