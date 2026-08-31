@@ -42,6 +42,7 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	// Translations
 	late final Translations$common$en common = Translations$common$en.internal(_root);
 	late final Translations$componentsConnectionTitle$en componentsConnectionTitle = Translations$componentsConnectionTitle$en.internal(_root);
+	late final Translations$componentsCamera$en componentsCamera = Translations$componentsCamera$en.internal(_root);
 	late final Translations$screenHome$en screenHome = Translations$screenHome$en.internal(_root);
 	late final Translations$screenChats$en screenChats = Translations$screenChats$en.internal(_root);
 	late final Translations$screenSettings$en screenSettings = Translations$screenSettings$en.internal(_root);
@@ -121,6 +122,24 @@ class Translations$componentsConnectionTitle$en {
 
 	/// en: 'Updating'
 	String get updating => 'Updating';
+}
+
+// Path: componentsCamera
+class Translations$componentsCamera$en {
+	Translations$componentsCamera$en.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// en: 'Camera unavailable'
+	String get unavailable => 'Camera unavailable';
+
+	/// en: 'No access to camera'
+	String get accessDenied => 'No access to camera';
+
+	/// en: 'Open settings'
+	String get openSettings => 'Open settings';
 }
 
 // Path: screenHome
@@ -665,6 +684,9 @@ extension on Translations {
 			'componentsConnectionTitle.waitingForNetwork' => 'Waiting for network',
 			'componentsConnectionTitle.connecting' => 'Connecting',
 			'componentsConnectionTitle.updating' => 'Updating',
+			'componentsCamera.unavailable' => 'Camera unavailable',
+			'componentsCamera.accessDenied' => 'No access to camera',
+			'componentsCamera.openSettings' => 'Open settings',
 			'screenHome.contacts' => 'Contacts',
 			'screenHome.calls' => 'Calls',
 			'screenHome.chats' => _root.screenChats.chats,

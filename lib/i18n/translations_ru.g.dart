@@ -41,6 +41,7 @@ class TranslationsRu extends Translations with BaseTranslations<AppLocale, Trans
 	// Translations
 	@override late final _Translations$common$ru common = _Translations$common$ru._(_root);
 	@override late final _Translations$componentsConnectionTitle$ru componentsConnectionTitle = _Translations$componentsConnectionTitle$ru._(_root);
+	@override late final _Translations$componentsCamera$ru componentsCamera = _Translations$componentsCamera$ru._(_root);
 	@override late final _Translations$screenHome$ru screenHome = _Translations$screenHome$ru._(_root);
 	@override late final _Translations$screenChats$ru screenChats = _Translations$screenChats$ru._(_root);
 	@override late final _Translations$screenSettings$ru screenSettings = _Translations$screenSettings$ru._(_root);
@@ -90,6 +91,18 @@ class _Translations$componentsConnectionTitle$ru extends Translations$components
 	@override String get waitingForNetwork => 'Ожидание сети';
 	@override String get connecting => 'Подключение';
 	@override String get updating => 'Обновление';
+}
+
+// Path: componentsCamera
+class _Translations$componentsCamera$ru extends Translations$componentsCamera$en {
+	_Translations$componentsCamera$ru._(TranslationsRu root) : this._root = root, super.internal(root);
+
+	final TranslationsRu _root; // ignore: unused_field
+
+	// Translations
+	@override String get unavailable => 'Камера недоступна';
+	@override String get accessDenied => 'Нет доступа к камере';
+	@override String get openSettings => 'Открыть настройки';
 }
 
 // Path: screenHome
@@ -388,6 +401,9 @@ extension on TranslationsRu {
 			'componentsConnectionTitle.waitingForNetwork' => 'Ожидание сети',
 			'componentsConnectionTitle.connecting' => 'Подключение',
 			'componentsConnectionTitle.updating' => 'Обновление',
+			'componentsCamera.unavailable' => 'Камера недоступна',
+			'componentsCamera.accessDenied' => 'Нет доступа к камере',
+			'componentsCamera.openSettings' => 'Открыть настройки',
 			'screenHome.contacts' => 'Контакты',
 			'screenHome.calls' => 'Звонки',
 			'screenHome.chats' => _root.screenChats.chats,

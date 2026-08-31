@@ -17,6 +17,11 @@
   "connecting": "Connecting"
   "updating": "Updating"
 
+"componentsCamera":
+  "unavailable": "Camera unavailable"
+  "accessDenied": "No access to camera"
+  "openSettings": "Open settings"
+
 "screenHome":
   "contacts": "Contacts"
   "calls": "Calls"

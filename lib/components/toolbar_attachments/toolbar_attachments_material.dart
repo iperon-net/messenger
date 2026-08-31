@@ -3,12 +3,12 @@ import 'dart:async';
 import 'package:camera/camera.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
 
 import '../../i18n/translations.g.dart';
+import '../camera/camera.dart';
 import 'toolbar_attachments.dart';
 
 /// Material-лист выбора источника медиа (аватар, вложение). Функционально —
@@ -94,9 +94,6 @@ class _ToolbarAttachmentsMaterialState extends State<ToolbarAttachmentsMaterial>
   /// Индекс активной камеры в [_cameras].
   int _cameraIndex = 0;
 
-  /// Идёт переключение камеры — чтобы не дёргать кнопку повторно.
-  bool _cameraSwitching = false;
-
   /// Инициализацию камеры пробуем один раз (запрос доступа + запуск).
   bool _cameraInitTried = false;
 
@@ -127,7 +124,7 @@ class _ToolbarAttachmentsMaterialState extends State<ToolbarAttachmentsMaterial>
           previous.dispose();
         }
       case AppLifecycleState.resumed:
-        if (_cameraController == null && !_cameraSwitching) _startCamera(_cameraIndex);
+        if (_cameraController == null) _startCamera(_cameraIndex);
       case AppLifecycleState.detached:
         break;
     }
@@ -314,9 +311,10 @@ class _ToolbarAttachmentsMaterialState extends State<ToolbarAttachmentsMaterial>
     _finish(ToolbarAttachmentMultiImageResult(files));
   }
 
-  /// Снимок с камеры (photo_manager не умеет захват — используем image_picker).
+  /// Снимок с камеры (photo_manager не умеет захват — открываем собственный
+  /// полноэкранный экран камеры [openCamera]).
   Future<void> _takePhoto() async {
-    final image = await ImagePicker().pickImage(source: ImageSource.camera, imageQuality: 85, maxWidth: 1024);
+    final image = await openCamera(context);
     if (image != null && mounted) _finish(ToolbarAttachmentImageResult(image, ToolbarAttachmentTabKind.camera));
   }
 
@@ -358,39 +356,6 @@ class _ToolbarAttachmentsMaterialState extends State<ToolbarAttachmentsMaterial>
       });
     } catch (_) {
       // Камера занята/ошибка — плитка останется со спиннером до след. попытки.
-    }
-  }
-
-  /// Переключает превью на следующую камеру устройства (фронт ⇄ тыл).
-  /// Доступно, когда камер больше одной.
-  Future<void> _switchCamera() async {
-    if (_cameraSwitching || _cameras.length < 2) return;
-    final next = (_cameraIndex + 1) % _cameras.length;
-    final previous = _cameraController;
-
-    // Освобождаем текущую камеру ПЕРЕД инициализацией новой: два активных
-    // контроллера на одной сессии захвата приводят к зависанию превью. Пока
-    // идёт своп — прячем живое превью и показываем спиннер (плитка остаётся на
-    // месте благодаря [_cameraAvailable]).
-    setState(() {
-      _cameraSwitching = true;
-      _cameraController = null;
-    });
-    await previous?.dispose();
-    await _startCamera(next);
-    if (mounted) setState(() => _cameraSwitching = false);
-  }
-
-  /// Захват кадра с плитки живого превью и возврат одиночным результатом.
-  Future<void> _captureFromTile() async {
-    final c = _cameraController;
-    if (c == null || !c.value.isInitialized || c.value.isTakingPicture) return;
-    try {
-      final shot = await c.takePicture();
-      if (!mounted) return;
-      _finish(ToolbarAttachmentImageResult(XFile(shot.path), ToolbarAttachmentTabKind.camera));
-    } catch (_) {
-      // Не удалось снять кадр — тихо игнорируем.
     }
   }
 
@@ -704,7 +669,8 @@ class _ToolbarAttachmentsMaterialState extends State<ToolbarAttachmentsMaterial>
     );
   }
 
-  /// Плитка живого превью камеры (первая в сетке). Тап — захват кадра.
+  /// Плитка живого превью камеры (первая в сетке). Тап открывает полную
+  /// нативную камеру ([_takePhoto]); живое превью здесь — только видоискатель.
   /// Превью «покрывает» квадрат: у камеры кадр альбомный, поэтому меняем
   /// местами ширину/высоту и вписываем через `BoxFit.cover`.
   Widget _cameraTile(BuildContext context) {
@@ -720,7 +686,7 @@ class _ToolbarAttachmentsMaterialState extends State<ToolbarAttachmentsMaterial>
     }
     final preview = controller.value.previewSize ?? const Size(1, 1);
     return GestureDetector(
-      onTap: _captureFromTile,
+      onTap: _takePhoto,
       behavior: HitTestBehavior.opaque,
       child: Stack(
         fit: StackFit.expand,
@@ -742,23 +708,6 @@ class _ToolbarAttachmentsMaterialState extends State<ToolbarAttachmentsMaterial>
               child: const FaIcon(FontAwesomeIcons.camera, size: 16, color: Colors.white),
             ),
           ),
-          // Кнопка смены камеры (фронт ⇄ тыл) — правый нижний угол, если камер >1.
-          if (_cameras.length > 1)
-            Positioned(
-              right: 4,
-              bottom: 4,
-              child: GestureDetector(
-                onTap: _switchCamera,
-                behavior: HitTestBehavior.opaque,
-                child: Container(
-                  width: 26,
-                  height: 26,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(color: Colors.black.withValues(alpha: 0.45), shape: BoxShape.circle),
-                  child: const FaIcon(FontAwesomeIcons.cameraRotate, size: 13, color: Colors.white),
-                ),
-              ),
-            ),
         ],
       ),
     );
