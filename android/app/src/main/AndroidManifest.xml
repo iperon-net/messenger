@@ -1,6 +1,12 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- photo_manager: чтение изображений из галереи (Android 13+ и ниже) -->
+    <!-- photo_manager: чтение медиа из галереи (Android 13+ и ниже).
+         READ_MEDIA_IMAGES и READ_MEDIA_VIDEO нужны обе (требование photo_manager),
+         иначе на Android 14 выбор «Разрешить всё» некорректно маппится в limited. -->
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
+    <!-- Android 14 granular photo access: без этой декларации «Разрешить всё»
+         не распознаётся как полный доступ (getAuthValue вернёт limited). -->
+    <uses-permission android:name="android.permission.READ_MEDIA_VISUAL_USER_SELECTED" />
     <uses-permission
         android:name="android.permission.READ_EXTERNAL_STORAGE"
         android:maxSdkVersion="32" />
