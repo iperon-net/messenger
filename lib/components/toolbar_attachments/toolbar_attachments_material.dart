@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:camera/camera.dart';
-import 'package:cupertino_ui/cupertino_ui.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -9,14 +9,15 @@ import 'package:photo_manager/photo_manager.dart';
 import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
 
 import '../../i18n/translations.g.dart';
-import '../../themes.dart';
 import 'toolbar_attachments.dart';
 
-/// Cupertino-лист выбора источника медиа. Раскрывается свайпом вверх
-/// ([DraggableScrollableSheet]); сверху — «хват», кнопка закрытия и
-/// центрированный заголовок таба; внизу — переключатель табов (скрыт, если
-/// таб один). Тело каждого таба — точка расширения под конкретный процесс.
-class ToolbarAttachmentsCupertino extends StatefulWidget {
+/// Material-лист выбора источника медиа (аватар, вложение). Функционально —
+/// зеркало [ToolbarAttachmentsCupertino]: раскрывается свайпом вверх
+/// ([DraggableScrollableSheet]), сверху «хват», кнопка закрытия и заголовок
+/// таба, внизу — переключатель табов (скрыт, если таб один). Отличается только
+/// оформлением: Material-цвета (`Theme.of(context).colorScheme`), индикаторы и
+/// кнопки. Логика доступа/пагинации/камеры идентична Cupertino-варианту.
+class ToolbarAttachmentsMaterial extends StatefulWidget {
   final List<ToolbarAttachmentTabKind> tabs;
   final ToolbarAttachmentTabKind initial;
   final ToolbarAttachmentMediaType media;
@@ -25,7 +26,7 @@ class ToolbarAttachmentsCupertino extends StatefulWidget {
   final double maxChildSize;
   final ValueChanged<ToolbarAttachmentResult>? onResult;
 
-  const ToolbarAttachmentsCupertino({
+  const ToolbarAttachmentsMaterial({
     required this.tabs,
     required this.initial,
     required this.media,
@@ -37,10 +38,10 @@ class ToolbarAttachmentsCupertino extends StatefulWidget {
   });
 
   @override
-  State<ToolbarAttachmentsCupertino> createState() => _ToolbarAttachmentsCupertinoState();
+  State<ToolbarAttachmentsMaterial> createState() => _ToolbarAttachmentsMaterialState();
 }
 
-class _ToolbarAttachmentsCupertinoState extends State<ToolbarAttachmentsCupertino> with WidgetsBindingObserver {
+class _ToolbarAttachmentsMaterialState extends State<ToolbarAttachmentsMaterial> with WidgetsBindingObserver {
   late ToolbarAttachmentTabKind _selected = widget.initial;
 
   /// Управляет высотой листа: нужен, чтобы «хват» (он вне скролла) мог тянуть
@@ -70,8 +71,7 @@ class _ToolbarAttachmentsCupertinoState extends State<ToolbarAttachmentsCupertin
 
   /// id ассета, который сейчас экспортируется в файл перед возвратом результата
   /// (одиночный выбор). Пока не `null` — на плитке крутится индикатор, а
-  /// повторные тапы игнорируются. Экспорт оригинала (`asset.file`) для HEIC /
-  /// iCloud-фото занимает заметное время, поэтому нужен видимый фидбэк.
+  /// повторные тапы игнорируются.
   String? _exportingId;
 
   int _page = 0;
@@ -80,7 +80,6 @@ class _ToolbarAttachmentsCupertinoState extends State<ToolbarAttachmentsCupertin
   bool _galleryLoaded = false;
 
   /// Скролл-контроллер листа, к которому привязан слушатель пагинации.
-  /// [DraggableScrollableSheet] отдаёт стабильный инстанс, привязываемся раз.
   ScrollController? _boundScroll;
 
   // ─── Живое превью камеры (первая плитка сетки) ────────────────────────────
@@ -102,8 +101,6 @@ class _ToolbarAttachmentsCupertinoState extends State<ToolbarAttachmentsCupertin
   bool _cameraInitTried = false;
 
   /// Плитка камеры доступна: доступ выдан и камера хотя бы раз запустилась.
-  /// Остаётся `true` во время переключения камеры (когда контроллер временно
-  /// пересоздаётся), чтобы слот в сетке не исчезал и не плыли индексы.
   bool _cameraAvailable = false;
 
   @override
@@ -115,7 +112,7 @@ class _ToolbarAttachmentsCupertinoState extends State<ToolbarAttachmentsCupertin
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    // Живое превью камеры чувствительно к прерыванию AVCaptureSession: при уходе
+    // Живое превью камеры чувствительно к прерыванию сессии захвата: при уходе
     // приложения в фон (в т.ч. когда поверх открывается нативная камера) сессия
     // прерывается и превью «замерзает». Поэтому освобождаем контроллер на
     // сворачивании и пересоздаём его при возврате.
@@ -237,8 +234,9 @@ class _ToolbarAttachmentsCupertinoState extends State<ToolbarAttachmentsCupertin
   /// Открывает лист выбора альбома и применяет выбор.
   Future<void> _openAlbumPicker() async {
     if (_albums.isEmpty) return;
-    final selected = await showCupertinoModalPopup<AssetPathEntity>(
+    final selected = await showModalBottomSheet<AssetPathEntity>(
       context: context,
+      backgroundColor: Colors.transparent,
       builder: (_) => _AlbumPickerSheet(albums: _albums, current: _album),
     );
     if (selected != null && mounted) await _selectAlbum(selected);
@@ -370,8 +368,8 @@ class _ToolbarAttachmentsCupertinoState extends State<ToolbarAttachmentsCupertin
     final next = (_cameraIndex + 1) % _cameras.length;
     final previous = _cameraController;
 
-    // Освобождаем текущую камеру ПЕРЕД инициализацией новой: на iOS два активных
-    // контроллера на одной AVCaptureSession приводят к зависанию превью. Пока
+    // Освобождаем текущую камеру ПЕРЕД инициализацией новой: два активных
+    // контроллера на одной сессии захвата приводят к зависанию превью. Пока
     // идёт своп — прячем живое превью и показываем спиннер (плитка остаётся на
     // месте благодаря [_cameraAvailable]).
     setState(() {
@@ -430,17 +428,6 @@ class _ToolbarAttachmentsCupertinoState extends State<ToolbarAttachmentsCupertin
   }
 
   /// Единая точка возврата результата: дёргает callback и закрывает лист.
-  ///
-  /// Вызывайте из тела таба, когда процесс завершён:
-  /// ```dart
-  /// _finish(ToolbarAttachmentImageResult(xfile, ToolbarAttachmentTabKind.gallery));
-  /// _finish(const ToolbarAttachmentEmojiResult('😀'));
-  /// _finish(const ToolbarAttachmentLinkResult('https://example.com/pic.png'));
-  /// ```
-  ///
-  /// Если нужно эмитить события, не закрывая лист (например, мультивыбор), —
-  /// зовите `widget.onResult?.call(result)` напрямую, а `Navigator.pop` — только
-  /// по кнопке «Готово».
   void _finish(ToolbarAttachmentResult result) {
     widget.onResult?.call(result);
     Navigator.pop(context, result);
@@ -477,7 +464,8 @@ class _ToolbarAttachmentsCupertinoState extends State<ToolbarAttachmentsCupertin
   /// Кастомный хедер выбранного таба. Для галереи — кликабельный селектор
   /// альбома (открывает список всех альбомов).
   Widget _tabHeader(BuildContext context) {
-    final style = TextStyle(fontSize: 17, fontWeight: FontWeight.w600, color: CupertinoColors.label.resolveFrom(context));
+    final colors = Theme.of(context).colorScheme;
+    final style = TextStyle(fontSize: 17, fontWeight: FontWeight.w600, color: colors.onSurface);
     if (_selected == ToolbarAttachmentTabKind.gallery) {
       final enabled = _albums.length > 1;
       return GestureDetector(
@@ -489,10 +477,7 @@ class _ToolbarAttachmentsCupertinoState extends State<ToolbarAttachmentsCupertin
             Flexible(
               child: Text(_albumTitle(context), style: style, maxLines: 1, overflow: TextOverflow.ellipsis),
             ),
-            if (enabled) ...[
-              const SizedBox(width: 4),
-              FaIcon(FontAwesomeIcons.chevronDown, size: 12, color: CupertinoColors.label.resolveFrom(context)),
-            ],
+            if (enabled) ...[const SizedBox(width: 4), FaIcon(FontAwesomeIcons.chevronDown, size: 12, color: colors.onSurface)],
           ],
         ),
       );
@@ -503,66 +488,36 @@ class _ToolbarAttachmentsCupertinoState extends State<ToolbarAttachmentsCupertin
   /// Кнопка «Готово» для мультивыбора: активна, когда что-то отмечено; в
   /// подписи — число отмеченных медиа.
   Widget _doneButton(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
     final enabled = _picked.isNotEmpty;
-    final color = enabled ? CupertinoTheme.of(context).primaryColor : CupertinoColors.tertiaryLabel.resolveFrom(context);
-    return GestureDetector(
-      onTap: enabled ? _finishMulti : null,
-      behavior: HitTestBehavior.opaque,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 4),
-        child: Text(
-          enabled ? '${context.t.screenMyProfile.done} (${_picked.length})' : context.t.screenMyProfile.done,
-          style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600, color: color),
+    return TextButton(
+      onPressed: enabled ? _finishMulti : null,
+      child: Text(
+        enabled ? '${context.t.screenMyProfile.done} (${_picked.length})' : context.t.screenMyProfile.done,
+        style: TextStyle(
+          fontSize: 17,
+          fontWeight: FontWeight.w600,
+          color: enabled ? colors.primary : colors.onSurface.withValues(alpha: 0.38),
         ),
       ),
     );
   }
 
-  /// Кнопка-иконка «Управление доступом» (iOS, «ограниченный» доступ к фото).
-  /// Круглая, в стиле кнопки закрытия — стоит справа в шапке, на её высоте.
+  /// Кнопка-иконка «Управление доступом» («ограниченный» доступ к фото).
   Widget _manageAccessButton(BuildContext context) {
-    return GestureDetector(
-      onTap: _manageLimited,
-      behavior: HitTestBehavior.opaque,
-      child: Container(
-        width: 32,
-        height: 32,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(color: CupertinoColors.tertiarySystemFill.resolveFrom(context), shape: BoxShape.circle),
-        child: FaIcon(FontAwesomeIcons.sliders, size: 14, color: CupertinoColors.label.resolveFrom(context)),
-      ),
+    return IconButton.filledTonal(
+      onPressed: _manageLimited,
+      iconSize: 16,
+      icon: FaIcon(FontAwesomeIcons.sliders, size: 16, color: Theme.of(context).colorScheme.onSurface),
     );
   }
 
   // ─── Тело таба (точка расширения под процесс) ─────────────────────────────
 
   /// Тело выбранного таба. Здесь реализуется конкретный процесс (список файлов,
-  /// сетка картинок/эмодзи, поле ссылки и т.д.) и по готовности вызывается
-  /// [_finish] с результатом.
-  ///
-  /// Пример — таб «файл» со своим списком и возвратом результата:
-  /// ```dart
-  /// case ToolbarAttachmentTabKind.file:
-  ///   return ListView.builder(
-  ///     shrinkWrap: true,
-  ///     physics: const NeverScrollableScrollPhysics(), // внешний скролл — у листа
-  ///     itemCount: _files.length,
-  ///     itemBuilder: (context, i) => CupertinoListTile(
-  ///       title: Text(_files[i].name),
-  ///       onTap: () async {
-  ///         final xfile = await _files[i].toXFile();
-  ///         _finish(ToolbarAttachmentImageResult(xfile, ToolbarAttachmentTabKind.file));
-  ///       },
-  ///     ),
-  ///   );
-  /// ```
-  ///
-  /// Пример — асинхронная загрузка с индикатором (файлы храните в state класса):
-  /// ```dart
-  /// if (_loading) return const Center(child: CupertinoActivityIndicator());
-  /// // грузите в initState/при смене таба, затем setState(() => _loading = false);
-  /// ```
+  /// сетка эмодзи, поле ссылки и т.д.) и по готовности вызывается [_finish].
   Widget _tabBody(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
     switch (_selected) {
       case ToolbarAttachmentTabKind.emoji:
         // Демонстрационная сетка: тап по эмодзи возвращает результат.
@@ -582,7 +537,7 @@ class _ToolbarAttachmentsCupertinoState extends State<ToolbarAttachmentsCupertin
                     height: 44,
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
-                      color: CupertinoColors.tertiarySystemFill.resolveFrom(context),
+                      color: colors.surfaceContainerHighest,
                       borderRadius: const BorderRadius.all(Radius.circular(10)),
                     ),
                     child: Text(e, style: const TextStyle(fontSize: 24)),
@@ -615,7 +570,7 @@ class _ToolbarAttachmentsCupertinoState extends State<ToolbarAttachmentsCupertin
         child: GestureDetector(
           onTap: onTap,
           behavior: HitTestBehavior.opaque,
-          child: FaIcon(_icon(_selected), size: 48, color: CupertinoTheme.of(context).primaryColor),
+          child: FaIcon(_icon(_selected), size: 48, color: Theme.of(context).colorScheme.primary),
         ),
       ),
     );
@@ -625,10 +580,10 @@ class _ToolbarAttachmentsCupertinoState extends State<ToolbarAttachmentsCupertin
 
   /// Ленивая сетка превью из photo_manager на слайверах: `SliverGrid` строит и
   /// переиспользует только видимые плитки (+cacheExtent), поэтому десятки фото
-  /// не декодируются разом — это убирает подтормаживание при скролле. Скролл —
-  /// общий контроллер листа (нужен для раскрытия свайпом), пагинация — по
-  /// слушателю [_onSheetScroll].
+  /// не декодируются разом. Скролл — общий контроллер листа (нужен для раскрытия
+  /// свайпом), пагинация — по слушателю [_onSheetScroll].
   Widget _galleryScrollable(BuildContext context, ScrollController controller) {
+    final colors = Theme.of(context).colorScheme;
     // Пустые/промежуточные состояния должны оставаться скроллящимися, чтобы
     // жест раскрытия листа продолжал работать (AlwaysScrollable + FillRemaining).
     Widget filled(Widget child) => CustomScrollView(
@@ -638,14 +593,12 @@ class _ToolbarAttachmentsCupertinoState extends State<ToolbarAttachmentsCupertin
     );
 
     // Первичная загрузка ещё идёт — крутилка.
-    if (!_galleryLoaded && _galleryLoading) return filled(const CupertinoActivityIndicator());
+    if (!_galleryLoaded && _galleryLoading) return filled(const CircularProgressIndicator());
     // Доступ не выдан.
     if (_permission != null && !_permission!.hasAccess) return filled(_galleryDenied(context));
     // Доступ есть, но фото нет (и живого превью камеры тоже) — заглушка.
     if (_assets.isEmpty && !_cameraAvailable) {
-      return filled(
-        Text(context.t.screenMyProfile.galleryEmpty, style: TextStyle(color: CupertinoColors.secondaryLabel.resolveFrom(context))),
-      );
+      return filled(Text(context.t.screenMyProfile.galleryEmpty, style: TextStyle(color: colors.onSurfaceVariant)));
     }
 
     return CustomScrollView(
@@ -672,7 +625,10 @@ class _ToolbarAttachmentsCupertinoState extends State<ToolbarAttachmentsCupertin
         // Индикатор подгрузки следующей страницы.
         if (_galleryLoading && _assets.isNotEmpty)
           const SliverToBoxAdapter(
-            child: Padding(padding: EdgeInsets.symmetric(vertical: 12), child: CupertinoActivityIndicator()),
+            child: Padding(
+              padding: EdgeInsets.symmetric(vertical: 12),
+              child: Center(child: CircularProgressIndicator()),
+            ),
           ),
       ],
     );
@@ -681,6 +637,7 @@ class _ToolbarAttachmentsCupertinoState extends State<ToolbarAttachmentsCupertin
   /// Одно превью в сетке: картинка + (в мультивыборе) бейдж с порядковым
   /// номером и — для видео — индикатор длительности.
   Widget _assetTile(BuildContext context, AssetEntity asset) {
+    final colors = Theme.of(context).colorScheme;
     final order = widget.multiSelect ? _pickedOrder(asset) : null;
     return GestureDetector(
       onTap: () => _pickAsset(asset),
@@ -695,13 +652,13 @@ class _ToolbarAttachmentsCupertinoState extends State<ToolbarAttachmentsCupertin
             filterQuality: FilterQuality.low,
           ),
           // Затемняем отмеченные превью для наглядности.
-          if (order != null) Container(color: CupertinoColors.black.withValues(alpha: 0.25)),
+          if (order != null) Container(color: Colors.black.withValues(alpha: 0.25)),
           // Индикатор экспорта выбранного фото (одиночный выбор).
           if (_exportingId == asset.id)
             Container(
-              color: CupertinoColors.black.withValues(alpha: 0.35),
+              color: Colors.black.withValues(alpha: 0.35),
               alignment: Alignment.center,
-              child: const CupertinoActivityIndicator(color: CupertinoColors.white, radius: 12),
+              child: const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)),
             ),
           // Индикатор видео с длительностью — левый нижний угол.
           if (asset.type == AssetType.video)
@@ -711,11 +668,11 @@ class _ToolbarAttachmentsCupertinoState extends State<ToolbarAttachmentsCupertin
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const FaIcon(FontAwesomeIcons.play, size: 9, color: CupertinoColors.white),
+                  const FaIcon(FontAwesomeIcons.play, size: 9, color: Colors.white),
                   const SizedBox(width: 2),
                   Text(
                     _formatDuration(asset.videoDuration),
-                    style: const TextStyle(fontSize: 11, color: CupertinoColors.white, fontWeight: FontWeight.w600),
+                    style: const TextStyle(fontSize: 11, color: Colors.white, fontWeight: FontWeight.w600),
                   ),
                 ],
               ),
@@ -730,14 +687,14 @@ class _ToolbarAttachmentsCupertinoState extends State<ToolbarAttachmentsCupertin
                 height: 22,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: order != null ? CupertinoTheme.of(context).primaryColor : CupertinoColors.black.withValues(alpha: 0.25),
+                  color: order != null ? colors.primary : Colors.black.withValues(alpha: 0.25),
                   shape: BoxShape.circle,
-                  border: Border.all(color: CupertinoColors.white, width: 1.5),
+                  border: Border.all(color: Colors.white, width: 1.5),
                 ),
                 child: order != null
                     ? Text(
                         '$order',
-                        style: const TextStyle(fontSize: 12, color: CupertinoColors.white, fontWeight: FontWeight.w700),
+                        style: const TextStyle(fontSize: 12, color: Colors.white, fontWeight: FontWeight.w700),
                       )
                     : null,
               ),
@@ -756,9 +713,9 @@ class _ToolbarAttachmentsCupertinoState extends State<ToolbarAttachmentsCupertin
     // спиннер, сохраняя плитку на месте.
     if (controller == null || !controller.value.isInitialized) {
       return Container(
-        color: CupertinoColors.black.withValues(alpha: 0.85),
+        color: Colors.black.withValues(alpha: 0.85),
         alignment: Alignment.center,
-        child: const CupertinoActivityIndicator(color: CupertinoColors.white, radius: 12),
+        child: const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)),
       );
     }
     final preview = controller.value.previewSize ?? const Size(1, 1);
@@ -781,8 +738,8 @@ class _ToolbarAttachmentsCupertinoState extends State<ToolbarAttachmentsCupertin
               width: 34,
               height: 34,
               alignment: Alignment.center,
-              decoration: BoxDecoration(color: CupertinoColors.black.withValues(alpha: 0.35), shape: BoxShape.circle),
-              child: const FaIcon(FontAwesomeIcons.camera, size: 16, color: CupertinoColors.white),
+              decoration: BoxDecoration(color: Colors.black.withValues(alpha: 0.35), shape: BoxShape.circle),
+              child: const FaIcon(FontAwesomeIcons.camera, size: 16, color: Colors.white),
             ),
           ),
           // Кнопка смены камеры (фронт ⇄ тыл) — правый нижний угол, если камер >1.
@@ -797,8 +754,8 @@ class _ToolbarAttachmentsCupertinoState extends State<ToolbarAttachmentsCupertin
                   width: 26,
                   height: 26,
                   alignment: Alignment.center,
-                  decoration: BoxDecoration(color: CupertinoColors.black.withValues(alpha: 0.45), shape: BoxShape.circle),
-                  child: const FaIcon(FontAwesomeIcons.cameraRotate, size: 13, color: CupertinoColors.white),
+                  decoration: BoxDecoration(color: Colors.black.withValues(alpha: 0.45), shape: BoxShape.circle),
+                  child: const FaIcon(FontAwesomeIcons.cameraRotate, size: 13, color: Colors.white),
                 ),
               ),
             ),
@@ -814,7 +771,7 @@ class _ToolbarAttachmentsCupertinoState extends State<ToolbarAttachmentsCupertin
     return '$m:$s';
   }
 
-  /// iOS: открыть системный лист управления «ограниченным» набором фото и
+  /// Открыть системный лист управления «ограниченным» набором фото и
   /// перечитать альбом после возврата.
   Future<void> _manageLimited() async {
     await PhotoManager.presentLimited();
@@ -823,30 +780,23 @@ class _ToolbarAttachmentsCupertinoState extends State<ToolbarAttachmentsCupertin
   }
 
   Widget _galleryDenied(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 24),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          FaIcon(FontAwesomeIcons.lock, size: 40, color: CupertinoColors.secondaryLabel.resolveFrom(context)),
+          FaIcon(FontAwesomeIcons.lock, size: 40, color: colors.onSurfaceVariant),
           const SizedBox(height: 16),
           Text(
             context.t.screenMyProfile.galleryAccessDenied,
             textAlign: TextAlign.center,
-            style: TextStyle(color: CupertinoColors.secondaryLabel.resolveFrom(context)),
+            style: TextStyle(color: colors.onSurfaceVariant),
           ),
           const SizedBox(height: 12),
-          CupertinoButton(
+          TextButton(
             onPressed: PhotoManager.openSetting,
-            child: Text(
-              context.t.screenMyProfile.galleryOpenSettings,
-              style: TextStyle(
-                color: CupertinoDynamicColor.withBrightness(
-                  color: CupertinoTheme.of(context).primaryColor,
-                  darkColor: CupertinoColors.white,
-                ).resolveFrom(context),
-              ),
-            ),
+            child: Text(context.t.screenMyProfile.galleryOpenSettings, style: TextStyle(color: colors.primary)),
           ),
         ],
       ),
@@ -856,6 +806,7 @@ class _ToolbarAttachmentsCupertinoState extends State<ToolbarAttachmentsCupertin
   // ─── Низ: переключатель табов ─────────────────────────────────────────────
 
   Widget _segmentTab(BuildContext context, ToolbarAttachmentTabKind kind) {
+    final colors = Theme.of(context).colorScheme;
     final isSelected = kind == _selected;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 6),
@@ -869,11 +820,8 @@ class _ToolbarAttachmentsCupertinoState extends State<ToolbarAttachmentsCupertin
           width: 44,
           height: 44,
           alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: isSelected ? CupertinoTheme.of(context).primaryColor : CupertinoColors.tertiarySystemFill.resolveFrom(context),
-            shape: BoxShape.circle,
-          ),
-          child: FaIcon(_icon(kind), size: 17, color: isSelected ? CupertinoColors.white : CupertinoColors.label.resolveFrom(context)),
+          decoration: BoxDecoration(color: isSelected ? colors.primary : colors.surfaceContainerHighest, shape: BoxShape.circle),
+          child: FaIcon(_icon(kind), size: 17, color: isSelected ? colors.onPrimary : colors.onSurface),
         ),
       ),
     );
@@ -881,6 +829,7 @@ class _ToolbarAttachmentsCupertinoState extends State<ToolbarAttachmentsCupertin
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
     // Меню-переключатель нужен только когда табов больше одного.
     final showTabBar = widget.tabs.length > 1;
     return DraggableScrollableSheet(
@@ -897,8 +846,8 @@ class _ToolbarAttachmentsCupertinoState extends State<ToolbarAttachmentsCupertin
         _bindScroll(scrollController);
         return Container(
           decoration: BoxDecoration(
-            color: ThemesCupertino.groupedBackground.resolveFrom(context),
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
+            color: colors.surface,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
           ),
           child: SafeArea(
             top: false,
@@ -908,8 +857,6 @@ class _ToolbarAttachmentsCupertinoState extends State<ToolbarAttachmentsCupertin
                 // Вся верхняя зона (хват + шапка) тянет лист вертикальным жестом
                 // и закрывает свайпом вниз. Она вне скролла, поэтому сам
                 // DraggableScrollableSheet её драг не ловит — вешаем свой.
-                // Тапы по кнопке закрытия/селектору альбома продолжают работать:
-                // вертикальный драг и тап — разные распознаватели.
                 GestureDetector(
                   behavior: HitTestBehavior.opaque,
                   onVerticalDragUpdate: _onHandleDrag,
@@ -918,14 +865,14 @@ class _ToolbarAttachmentsCupertinoState extends State<ToolbarAttachmentsCupertin
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       // «Хват» — на самом верху листа.
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 12),
                       Center(
                         child: Container(
-                          width: 36,
-                          height: 5,
+                          width: 32,
+                          height: 4,
                           decoration: BoxDecoration(
-                            color: CupertinoColors.tertiaryLabel.resolveFrom(context),
-                            borderRadius: const BorderRadius.all(Radius.circular(3)),
+                            color: colors.onSurfaceVariant.withValues(alpha: 0.4),
+                            borderRadius: const BorderRadius.all(Radius.circular(2)),
                           ),
                         ),
                       ),
@@ -934,7 +881,7 @@ class _ToolbarAttachmentsCupertinoState extends State<ToolbarAttachmentsCupertin
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 12),
                         child: SizedBox(
-                          height: 36,
+                          height: 40,
                           child: Stack(
                             alignment: Alignment.center,
                             children: [
@@ -945,28 +892,19 @@ class _ToolbarAttachmentsCupertinoState extends State<ToolbarAttachmentsCupertin
                                   child: Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      // «Ограниченный» доступ к фото на iOS — управление набором.
+                                      // «Ограниченный» доступ к фото — управление набором.
                                       if (_permission == PermissionState.limited) _manageAccessButton(context),
-                                      if (_permission == PermissionState.limited && widget.multiSelect) const SizedBox(width: 8),
+                                      if (_permission == PermissionState.limited && widget.multiSelect) const SizedBox(width: 4),
                                       if (widget.multiSelect) _doneButton(context),
                                     ],
                                   ),
                                 ),
                               Align(
                                 alignment: Alignment.centerLeft,
-                                child: GestureDetector(
-                                  onTap: () => Navigator.pop(context),
-                                  behavior: HitTestBehavior.opaque,
-                                  child: Container(
-                                    width: 32,
-                                    height: 32,
-                                    alignment: Alignment.center,
-                                    decoration: BoxDecoration(
-                                      color: CupertinoColors.tertiarySystemFill.resolveFrom(context),
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: FaIcon(FontAwesomeIcons.xmark, size: 15, color: CupertinoColors.label.resolveFrom(context)),
-                                  ),
+                                child: IconButton.filledTonal(
+                                  onPressed: () => Navigator.pop(context),
+                                  iconSize: 16,
+                                  icon: FaIcon(FontAwesomeIcons.xmark, size: 16, color: colors.onSurface),
                                 ),
                               ),
                             ],
@@ -979,8 +917,7 @@ class _ToolbarAttachmentsCupertinoState extends State<ToolbarAttachmentsCupertin
                 ),
                 // Тело таба. scrollController + AlwaysScrollable позволяют
                 // раскрывать лист свайпом вверх. Галерея использует свой ленивый
-                // CustomScrollView (переиспользование плиток = без подтормаживаний);
-                // остальные табы — простой SingleChildScrollView.
+                // CustomScrollView; остальные табы — простой SingleChildScrollView.
                 Expanded(
                   child: _selected == ToolbarAttachmentTabKind.gallery
                       ? _galleryScrollable(context, scrollController)
@@ -1016,11 +953,12 @@ class _AlbumPickerSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
     final maxHeight = MediaQuery.sizeOf(context).height * 0.6;
     return Container(
       decoration: BoxDecoration(
-        color: ThemesCupertino.groupedBackground.resolveFrom(context),
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
+        color: colors.surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
       ),
       child: SafeArea(
         top: false,
@@ -1029,13 +967,13 @@ class _AlbumPickerSheet extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const SizedBox(height: 8),
+              const SizedBox(height: 12),
               Container(
-                width: 36,
-                height: 5,
+                width: 32,
+                height: 4,
                 decoration: BoxDecoration(
-                  color: CupertinoColors.tertiaryLabel.resolveFrom(context),
-                  borderRadius: const BorderRadius.all(Radius.circular(3)),
+                  color: colors.onSurfaceVariant.withValues(alpha: 0.4),
+                  borderRadius: const BorderRadius.all(Radius.circular(2)),
                 ),
               ),
               const SizedBox(height: 8),
@@ -1046,7 +984,7 @@ class _AlbumPickerSheet extends StatelessWidget {
                   itemCount: albums.length,
                   separatorBuilder: (_, _) => Padding(
                     padding: const EdgeInsets.only(left: 76),
-                    child: Container(height: 0.5, color: CupertinoColors.separator.resolveFrom(context)),
+                    child: Divider(height: 0.5, thickness: 0.5, color: colors.outlineVariant),
                   ),
                   itemBuilder: (context, i) => _AlbumRow(album: albums[i], selected: albums[i].id == current?.id),
                 ),
@@ -1068,6 +1006,7 @@ class _AlbumRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () => Navigator.pop(context, album),
@@ -1085,7 +1024,7 @@ class _AlbumRow extends StatelessWidget {
                   builder: (context, snap) {
                     final cover = (snap.data?.isNotEmpty ?? false) ? snap.data!.first : null;
                     if (cover == null) {
-                      return ColoredBox(color: CupertinoColors.tertiarySystemFill.resolveFrom(context));
+                      return ColoredBox(color: colors.surfaceContainerHighest);
                     }
                     return Image(
                       image: AssetEntityImageProvider(cover, isOriginal: false, thumbnailSize: const ThumbnailSize.square(96)),
@@ -1103,19 +1042,15 @@ class _AlbumRow extends StatelessWidget {
                 album.isAll ? context.t.screenMyProfile.chooseFromGallery : album.name,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: TextStyle(fontSize: 16, color: CupertinoColors.label.resolveFrom(context)),
+                style: TextStyle(fontSize: 16, color: colors.onSurface),
               ),
             ),
             const SizedBox(width: 8),
             FutureBuilder<int>(
               future: album.assetCountAsync,
-              builder: (context, snap) =>
-                  Text('${snap.data ?? ''}', style: TextStyle(fontSize: 15, color: CupertinoColors.secondaryLabel.resolveFrom(context))),
+              builder: (context, snap) => Text('${snap.data ?? ''}', style: TextStyle(fontSize: 15, color: colors.onSurfaceVariant)),
             ),
-            if (selected) ...[
-              const SizedBox(width: 8),
-              FaIcon(FontAwesomeIcons.check, size: 15, color: CupertinoTheme.of(context).primaryColor),
-            ],
+            if (selected) ...[const SizedBox(width: 8), FaIcon(FontAwesomeIcons.check, size: 15, color: colors.primary)],
           ],
         ),
       ),

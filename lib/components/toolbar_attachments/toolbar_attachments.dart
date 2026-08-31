@@ -1,9 +1,14 @@
+import 'dart:io';
+
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:material_ui/material_ui.dart' show showModalBottomSheet, Colors;
 
 import 'toolbar_attachments_cupertino.dart';
+import 'toolbar_attachments_material.dart';
 
 export 'toolbar_attachments_cupertino.dart';
+export 'toolbar_attachments_material.dart';
 
 /// Встроенные табы источника медиа. Функционал каждого таба фиксирован внутри
 /// компонента; снаружи выбирается только набор доступных табов.
@@ -106,11 +111,34 @@ Future<ToolbarAttachmentResult?> showToolbarAttachments(
   ValueChanged<ToolbarAttachmentResult>? onResult,
 }) {
   assert(tabs.isNotEmpty, 'Нужен хотя бы один таб');
-  return showCupertinoModalPopup<ToolbarAttachmentResult>(
+  final resolvedInitial = initial != null && tabs.contains(initial) ? initial : tabs.first;
+
+  // Выбор дизайна — по платформе, как и весь app-scaffolding (см. main.dart):
+  // iOS → Cupertino-лист, Android → Material-лист.
+  if (Platform.isIOS) {
+    return showCupertinoModalPopup<ToolbarAttachmentResult>(
+      context: context,
+      builder: (context) => ToolbarAttachmentsCupertino(
+        tabs: tabs,
+        initial: resolvedInitial,
+        media: media,
+        multiSelect: multiSelect,
+        minChildSize: minChildSize,
+        maxChildSize: maxChildSize,
+        onResult: onResult,
+      ),
+    );
+  }
+
+  // Material: DraggableScrollableSheet сам управляет высотой, поэтому лист —
+  // на всю высоту (`isScrollControlled`) и без своего фона (`transparent`).
+  return showModalBottomSheet<ToolbarAttachmentResult>(
     context: context,
-    builder: (context) => ToolbarAttachmentsCupertino(
+    isScrollControlled: true,
+    backgroundColor: Colors.transparent,
+    builder: (context) => ToolbarAttachmentsMaterial(
       tabs: tabs,
-      initial: initial != null && tabs.contains(initial) ? initial : tabs.first,
+      initial: resolvedInitial,
       media: media,
       multiSelect: multiSelect,
       minChildSize: minChildSize,
