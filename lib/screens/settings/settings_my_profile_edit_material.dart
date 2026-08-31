@@ -188,7 +188,7 @@ class _SettingsMyProfileEditMaterial extends State<SettingsMyProfileEditMaterial
                     child: Column(
                       children: [
                         Padding(padding: const EdgeInsets.only(bottom: 8), child: nameFields[0]),
-                        const Divider(height: 1),
+                        const Divider(height: .3, color: Colors.black12),
                         Padding(padding: const EdgeInsets.only(bottom: 8), child: nameFields[1]),
                       ],
                     ),
