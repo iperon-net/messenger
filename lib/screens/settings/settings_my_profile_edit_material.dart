@@ -181,7 +181,7 @@ class _SettingsMyProfileEditMaterial extends State<SettingsMyProfileEditMaterial
             key: formKey,
             child: SafeArea(
               child: ListView(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(10),
                 children: [
                   Card(
                     clipBehavior: Clip.antiAlias,
