@@ -48,6 +48,7 @@ class _AuthModerationApplicationStoreMaterial extends State<AuthModerationApplic
 
         return Scaffold(
           appBar: AppBar(backgroundColor: Theme.of(context).brightness == Brightness.light ? Colors.white : Color(0xFF1B263B)),
+          backgroundColor: Theme.of(context).brightness == Brightness.light ? Colors.white : Color(0xFF1B263B),
           body: Form(
             key: formKey,
             child: SafeArea(
