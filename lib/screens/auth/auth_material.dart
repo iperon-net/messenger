@@ -99,6 +99,7 @@ class _AuthMaterialScreen extends State<AuthMaterialScreen> {
                               focusNode: phoneNumberFocus,
                               autocorrect: true,
                               keyboardType: TextInputType.phone,
+                              keyboardAppearance: Theme.of(context).brightness,
                               inputFormatters: [PhoneInputFormatter()],
                               autofillHints: const [AutofillHints.telephoneNumber],
                               decoration: InputDecoration(

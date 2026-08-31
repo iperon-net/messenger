@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../cubit.dart';
 import '../../i18n/translations.g.dart';
+import '../../themes.dart';
 
 class SettingsPasscodeCreateMaterial extends StatefulWidget {
   const SettingsPasscodeCreateMaterial({super.key});
@@ -32,6 +33,8 @@ class _SettingsPasscodeCreateMaterial extends State<SettingsPasscodeCreateMateri
           },
           onCancelled: () => context.pop(false),
           useBlur: false,
+          keyPadConfig: ThemesMaterial.screenLockKeyPad(context),
+          config: ThemesMaterial.screenLockConfig(context),
           title: Text(context.t.settingsPasscodeCreate.pleaseEnterNewPasscode),
           confirmTitle: Text(context.t.settingsPasscodeCreate.pleaseEnterNewPasscodeAgain),
           cancelButton: Text(context.t.settingsPasscodeCreate.cancel),

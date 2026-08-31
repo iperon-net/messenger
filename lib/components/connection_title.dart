@@ -5,10 +5,13 @@ import '../cubit.dart';
 import '../i18n/translations.g.dart';
 
 class ConnectionTitle extends StatelessWidget {
-  const ConnectionTitle({super.key, required this.title});
+  const ConnectionTitle({super.key, required this.title, this.leading});
 
   /// Что показать, когда соединение в норме.
   final String title;
+
+  /// Необязательный виджет перед текстом (напр. кнопка блокировки).
+  final Widget? leading;
 
   @override
   Widget build(BuildContext context) {
@@ -22,13 +25,13 @@ class ConnectionTitle extends StatelessWidget {
           ConnectionStatusModel.waitingForNetwork => (context.t.componentsConnectionTitle.waitingForNetwork, false),
         };
 
-        if (!spinner) {
-          return Text(label);
-        }
-
         return Row(
           mainAxisSize: MainAxisSize.min,
-          children: [const CupertinoActivityIndicator(radius: 8), const SizedBox(width: 8), Text(label)],
+          children: [
+            if (spinner) ...[const CupertinoActivityIndicator(radius: 8), const SizedBox(width: 8)],
+            ?leading,
+            Text(label),
+          ],
         );
       },
     );

@@ -7,6 +7,7 @@ import 'package:pin_code_fields/pin_code_fields.dart';
 
 import '../../i18n/translations.g.dart';
 import '../../cubit.dart';
+import '../../themes.dart';
 
 class SettingsPasscodeMaterial extends StatefulWidget {
   const SettingsPasscodeMaterial({super.key});
@@ -48,6 +49,8 @@ class _SettingsPasscodeMaterial extends State<SettingsPasscodeMaterial> {
             onValidate: (input) => context.read<SettingsPasscodeCubit>().verifyPasscode(input),
             onUnlocked: () {},
             onCancelled: () => context.go("/settings/privacy_and_security"),
+            keyPadConfig: ThemesMaterial.screenLockKeyPad(context),
+            config: ThemesMaterial.screenLockConfig(context),
             useBlur: false,
             title: Text(context.t.screenSettingsPasscode.pleaseEnterPasscode),
             cancelButton: Text(context.t.screenSettingsPasscode.cancel),

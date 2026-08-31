@@ -22,17 +22,22 @@ class _ChatsMaterial extends State<ChatsMaterial> {
         return Scaffold(
           appBar: AppBar(
             centerTitle: true,
-            title: ConnectionTitle(title: context.t.screenChats.chats),
-            leading: BlocBuilder<CommonCubit, CommonState>(
-              builder: (context, stateCommon) {
-                if (stateCommon.settingsDevice.passcode.isNotEmpty) {
-                  return IconButton(
-                    icon: const FaIcon(FontAwesomeIcons.lockOpen, size: 18),
-                    onPressed: () async => await context.read<CommonCubit>().forceLock(biometrics: false),
-                  );
-                }
-                return const SizedBox.shrink();
-              },
+            title: ConnectionTitle(
+              title: context.t.screenChats.chats,
+              leading: BlocBuilder<CommonCubit, CommonState>(
+                builder: (context, stateCommon) {
+                  if (stateCommon.settingsDevice.passcode.isNotEmpty) {
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: GestureDetector(
+                        onTap: () async => await context.read<CommonCubit>().forceLock(biometrics: false),
+                        child: const FaIcon(FontAwesomeIcons.lockOpen, size: 18),
+                      ),
+                    );
+                  }
+                  return const SizedBox.shrink();
+                },
+              ),
             ),
           ),
           body: const Center(child: Text("ccc")),

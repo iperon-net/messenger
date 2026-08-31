@@ -1,4 +1,9 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:flutter_screen_lock/flutter_screen_lock.dart';
+// flutter_screen_lock ждёт `ButtonStyle`/`WidgetStatePropertyAll`/`BorderSide`
+// именно из flutter/material — одноимённые типы material_ui несовместимы. Тянем
+// их под префиксом, чтобы не конфликтовать с material_ui в остальном файле.
+import 'package:flutter/material.dart' as fm show ButtonStyle, WidgetStatePropertyAll, CircleBorder, BorderSide;
 
 import '../models.dart';
 
@@ -144,4 +149,42 @@ class ThemesMaterial {
       ),
     );
   }
+
+  // --- Экран блокировки (`ScreenLock`) ---
+  // Material-аналоги хелперов [ThemesCupertino] для `flutter_screen_lock`.
+  // Читают тему через `Theme.of(context)`, а не `CupertinoTheme`, но повторяют
+  // ту же визуальную логику, чтобы код-пароль на Android и iOS выглядел одинаково.
+
+  /// Фон экрана блокировки: в светлой теме — притемнённый `primary`, в тёмной —
+  /// фирменный синий, сдвинутый к почти-чёрному. Совпадает по духу с
+  /// [ThemesCupertino.screenLockBackground].
+  static Color screenLockBackground(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    const nearBlack = Color(0xFF1C1C1E);
+    return isDark
+        ? Color.lerp(const Color.fromARGB(255, 56, 96, 143), nearBlack, 0.6)!
+        : Color.lerp(theme.colorScheme.primary, nearBlack, 0.3)!;
+  }
+
+  /// Конфигурация клавиатуры: круглые кнопки с тонкой рамкой и полупрозрачной
+  /// заливкой `primary` — как [ThemesCupertino.screenLockKeyPad].
+  static KeyPadConfig screenLockKeyPad(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return KeyPadConfig(
+      buttonConfig: KeyPadButtonConfig(
+        buttonStyle: fm.ButtonStyle(
+          side: fm.WidgetStatePropertyAll(fm.BorderSide(color: Colors.white.withAlpha(60), width: 0.5)),
+          shape: const fm.WidgetStatePropertyAll(fm.CircleBorder()),
+        ),
+        backgroundColor: isDark ? const Color.fromARGB(255, 56, 96, 143).withAlpha(40) : theme.colorScheme.primary.withAlpha(40),
+      ),
+    );
+  }
+
+  /// Полная конфигурация `ScreenLockConfig` с общим фоном.
+  static ScreenLockConfig screenLockConfig(BuildContext context) =>
+      ScreenLockConfig.defaultConfig.copyWith(backgroundColor: screenLockBackground(context));
 }

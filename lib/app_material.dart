@@ -7,6 +7,14 @@ import 'package:flutter/foundation.dart';
 // GlobalMaterialLocalizations уже приходит из material_ui — прячем дубликат.
 // GlobalCupertinoLocalizations берём из cupertino_ui — тоже прячем flutter-версию.
 import 'package:flutter_localizations/flutter_localizations.dart' hide GlobalMaterialLocalizations, GlobalCupertinoLocalizations;
+// Настоящие Flutter-овские Material/Cupertino Localizations. material_ui и
+// cupertino_ui поставляют только СВОИ типы, а Flutter-виджеты из сторонних
+// пакетов (pin_code_fields → Adaptive/Cupertino/Material тулбар выделения)
+// требуют flutter-версии, иначе бросают «No CupertinoLocalizations found».
+// Тянем делегаты под префиксом, чтобы не конфликтовать с *_ui.
+import 'package:flutter_localizations/flutter_localizations.dart'
+    as flutter_l10n
+    show GlobalMaterialLocalizations, GlobalCupertinoLocalizations;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screen_lock/flutter_screen_lock.dart';
 import 'package:go_router/go_router.dart';
@@ -136,6 +144,10 @@ class _IperonMessengerMaterial extends State<IperonMessengerMaterial> with Widge
           localizationsDelegates: const <LocalizationsDelegate<Object>>[
             GlobalMaterialLocalizations.delegate,
             GlobalCupertinoLocalizations.delegate,
+            // Flutter-овские Material/Cupertino Localizations (см. импорт выше) —
+            // нужны Flutter-виджетам (тулбар выделения текста в pin_code_fields).
+            flutter_l10n.GlobalMaterialLocalizations.delegate,
+            flutter_l10n.GlobalCupertinoLocalizations.delegate,
             GlobalWidgetsLocalizations.delegate,
           ],
           supportedLocales: AppLocaleUtils.supportedLocales,
@@ -150,6 +162,8 @@ class _IperonMessengerMaterial extends State<IperonMessengerMaterial> with Widge
                 onValidate: (input) => context.read<CommonCubit>().verifyPasscode(input),
                 onUnlocked: () => context.read<CommonCubit>().unlock(),
                 useBlur: false,
+                keyPadConfig: ThemesMaterial.screenLockKeyPad(context),
+                config: ThemesMaterial.screenLockConfig(context),
                 title: Text(context.t.common.biometricPleaseEnterPasscode),
                 customizedButtonChild: state.settingsDevice.passcodeBiometric && state.isBiometricAvailable
                     ? const Icon(Icons.fingerprint, size: 48)
