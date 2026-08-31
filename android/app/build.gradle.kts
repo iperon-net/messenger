@@ -10,7 +10,9 @@ plugins {
 
 android {
     namespace = "net.iperon.messenger"
-    compileSdk = flutter.compileSdkVersion
+    // flutter_secure_storage and permission_handler_android require SDK 37.
+    // Overriding flutter.compileSdkVersion (36) until Flutter bumps its default.
+    compileSdk = 37
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
@@ -23,10 +25,14 @@ android {
         applicationId = "net.iperon.messenger"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = flutter.minSdkVersion
+        // native_workmanager requires minSdk 26 (overriding flutter.minSdkVersion = 24).
+        minSdk = 26
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+
+        // Required by yandex_login_sdk: substitutes ${YANDEX_CLIENT_ID} in its manifest.
+        manifestPlaceholders["YANDEX_CLIENT_ID"] = "c3ae9f778e734f70ad8b5bc96b419169"
     }
 
     buildTypes {

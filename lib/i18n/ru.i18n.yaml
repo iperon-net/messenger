@@ -17,6 +17,11 @@
   "connecting": "Подключение"
   "updating": "Обновление"
 
+"componentsCamera":
+  "unavailable": "Камера недоступна"
+  "accessDenied": "Нет доступа к камере"
+  "openSettings": "Открыть настройки"
+
 "screenHome":
   "contacts": "Контакты"
   "calls": "Звонки"

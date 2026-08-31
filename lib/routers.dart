@@ -29,6 +29,13 @@ class Routers {
   Page<void> _page(GoRouterState state, Widget child) =>
       CupertinoPage<void>(key: state.pageKey, name: state.name ?? state.path, child: child);
 
+  // Тот же нюанс, что и с _page, но для Material: приложение обёрнуто в
+  // MaterialApp из material_ui (не из package:flutter/material), поэтому
+  // go_router-автоопределение Page проваливается в NoTransitionPage. Явно
+  // отдаём MaterialPage из material_ui, чтобы вернуть штатный Android-переход.
+  Page<void> _pageMaterial(GoRouterState state, Widget child) =>
+      MaterialPage<void>(key: state.pageKey, name: state.name ?? state.path, child: child);
+
   String? _redirect(BuildContext context, GoRouterState state) {
     final isAuthRoute = state.matchedLocation.startsWith("/auth");
 
@@ -248,7 +255,208 @@ class Routers {
 
   List<RouteBase> get _cupertino => <RouteBase>[];
 
-  List<RouteBase> get _material => <RouteBase>[];
+  // Material-аналог _common: тот же StatefulShellRoute с нижней навигацией, но
+  // рендерит Material-экраны. Портированы все вкладки и вся ветка /auth.
+  List<RouteBase> _commonMaterial(GlobalKey<NavigatorState> rootNavigatorKey) => <RouteBase>[
+    StatefulShellRoute.indexedStack(
+      builder: (context, state, navigationShell) => MultiBlocProvider(
+        providers: [
+          BlocProvider<HomeCubit>(create: (_) => HomeCubit()..initialization()),
+          BlocProvider<ConnectionCubit>(create: (_) => ConnectionCubit()..initialization()),
+        ],
+        child: HomeMaterial(navigationShell: navigationShell),
+      ),
+      branches: [
+        StatefulShellBranch(
+          routes: [GoRoute(path: "/contacts", builder: (_, _) => const ContactsMaterial())],
+        ),
+        StatefulShellBranch(
+          routes: [GoRoute(path: "/calls", builder: (_, _) => const CallsMaterial())],
+        ),
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: "/chats",
+              builder: (_, _) => BlocProvider<ChatsCubit>(create: (_) => ChatsCubit()..initialization(), child: const ChatsMaterial()),
+            ),
+          ],
+        ),
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: "/settings",
+              builder: (_, _) =>
+                  BlocProvider<SettingsCubit>(create: (_) => SettingsCubit()..initialization(), child: const SettingsMaterial()),
+              routes: [
+                GoRoute(
+                  path: "profile",
+                  parentNavigatorKey: rootNavigatorKey,
+                  pageBuilder: (context, state) => _pageMaterial(
+                    state,
+                    BlocProvider<SettingsMyProfileCubit>(
+                      create: (_) =>
+                          SettingsMyProfileCubit()
+                            ..initialization(locale: context.read<CommonCubit>().state.settingsDevice.locale ?? AppLocale.en),
+                      child: const SettingsMyProfileMaterial(),
+                    ),
+                  ),
+                  routes: [
+                    GoRoute(
+                      path: "edit",
+                      parentNavigatorKey: rootNavigatorKey,
+                      pageBuilder: (context, state) => _pageMaterial(
+                        state,
+                        BlocProvider<SettingsMyProfileEditCubit>(
+                          create: (_) =>
+                              SettingsMyProfileEditCubit()
+                                ..initialization(locale: context.read<CommonCubit>().state.settingsDevice.locale ?? AppLocale.en),
+                          child: const SettingsMyProfileEditMaterial(),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                GoRoute(
+                  path: "privacy_and_security",
+                  parentNavigatorKey: rootNavigatorKey,
+                  pageBuilder: (context, state) => _pageMaterial(
+                    state,
+                    BlocProvider<SettingsPrivacyAndSecurityCubit>(
+                      create: (_) => SettingsPrivacyAndSecurityCubit()..initialization(),
+                      child: const SettingsPrivacyAndSecurityMaterial(),
+                    ),
+                  ),
+                  routes: [
+                    GoRoute(
+                      path: "passcode",
+                      parentNavigatorKey: rootNavigatorKey,
+                      pageBuilder: (context, state) => _pageMaterial(
+                        state,
+                        BlocProvider<SettingsPasscodeCubit>(
+                          create: (_) => SettingsPasscodeCubit()..initialization(),
+                          child: const SettingsPasscodeMaterial(),
+                        ),
+                      ),
+                      routes: [
+                        GoRoute(
+                          path: "create",
+                          parentNavigatorKey: rootNavigatorKey,
+                          pageBuilder: (context, state) => _pageMaterial(
+                            state,
+                            BlocProvider<SettingsPasscodeCreateCubit>(
+                              create: (_) => SettingsPasscodeCreateCubit()..initialization(),
+                              child: const SettingsPasscodeCreateMaterial(),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                GoRoute(
+                  path: "language",
+                  parentNavigatorKey: rootNavigatorKey,
+                  pageBuilder: (context, state) => _pageMaterial(
+                    state,
+                    BlocProvider<SettingsLanguageCubit>(
+                      create: (_) =>
+                          SettingsLanguageCubit()..initialization(locale: context.read<CommonCubit>().state.settingsDevice.locale),
+                      child: const SettingsLanguageMaterialScreen(),
+                    ),
+                  ),
+                ),
+                GoRoute(
+                  path: "appearance",
+                  parentNavigatorKey: rootNavigatorKey,
+                  pageBuilder: (context, state) => _pageMaterial(
+                    state,
+                    BlocProvider<SettingsAppearanceCubit>(
+                      create: (_) => SettingsAppearanceCubit()
+                        ..initialization(
+                          colorTheme: context.read<CommonCubit>().state.settingsDevice.colorTheme,
+                          darkMode: context.read<CommonCubit>().state.settingsDevice.darkMode,
+                          isBlurOnInactive: context.read<CommonCubit>().state.settingsDevice.isBlurOnInactive,
+                        ),
+                      child: const SettingsAppearanceMaterial(),
+                    ),
+                  ),
+                ),
+                GoRoute(
+                  path: "device_sessions",
+                  parentNavigatorKey: rootNavigatorKey,
+                  pageBuilder: (context, state) => _pageMaterial(
+                    state,
+                    BlocProvider<SettingsDeviceSessionsCubit>(
+                      create: (_) => SettingsDeviceSessionsCubit()..initialization(),
+                      child: const SettingsDeviceSessionsMaterial(),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ],
+    ),
+    GoRoute(
+      path: "/auth",
+      builder: (_, _) => BlocProvider<AuthCubit>(create: (_) => AuthCubit()..initialization(), child: const AuthMaterialScreen()),
+      routes: [
+        GoRoute(
+          path: "/call_password_confirmation",
+          pageBuilder: (context, state) {
+            final callPasswordSession = state.uri.queryParameters["callPasswordSession"] ?? "";
+            final confirmationPhoneNumber = state.uri.queryParameters["confirmationPhoneNumber"] ?? "";
+            final timeout = state.uri.queryParameters["timeout"] ?? "";
+
+            if (callPasswordSession.isEmpty || confirmationPhoneNumber.isEmpty || timeout.isEmpty) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (context.mounted) context.go("/auth");
+              });
+              return _pageMaterial(state, const SizedBox.shrink());
+            }
+
+            return _pageMaterial(
+              state,
+              BlocProvider<AuthCallpasswordConfirmationCubit>(
+                create: (_) => AuthCallpasswordConfirmationCubit()
+                  ..initialization(
+                    callPasswordSession: callPasswordSession,
+                    confirmationPhoneNumber: confirmationPhoneNumber,
+                    timeout: timeout,
+                  ),
+                child: const AuthCallpasswordConfirmationMaterial(),
+              ),
+            );
+          },
+        ),
+        GoRoute(
+          path: "/moderation_application_store",
+          pageBuilder: (context, state) {
+            final moderationApplicationStoreSession = state.uri.queryParameters["moderationApplicationStoreSession"] ?? "";
+            final phoneNumber = state.uri.queryParameters["phoneNumber"] ?? "";
+
+            if (moderationApplicationStoreSession.isEmpty || phoneNumber.isEmpty) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (context.mounted) context.go("/auth");
+              });
+              return _pageMaterial(state, const SizedBox.shrink());
+            }
+
+            return _pageMaterial(
+              state,
+              BlocProvider<AuthModerationApplicationStoreCubit>(
+                create: (_) =>
+                    AuthModerationApplicationStoreCubit()
+                      ..initialization(phoneNumber: phoneNumber, moderationApplicationStoreSession: moderationApplicationStoreSession),
+                child: const AuthModerationApplicationStoreMaterial(),
+              ),
+            );
+          },
+        ),
+      ],
+    ),
+  ];
 
   GoRouter cupertino(GlobalKey<NavigatorState> navigatorGoRouterKey) {
     return GoRouter(
@@ -269,7 +477,7 @@ class Routers {
       initialLocation: initialLocation,
       redirect: _redirect,
       refreshListenable: auth,
-      routes: [..._common(navigatorGoRouterKey), ..._material],
+      routes: [..._commonMaterial(navigatorGoRouterKey)],
     );
   }
 }
