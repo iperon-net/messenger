@@ -47,7 +47,7 @@ class _AuthModerationApplicationStoreMaterial extends State<AuthModerationApplic
         final accent = isDark ? const Color(0xffffffff) : const Color(0xff1b263b);
 
         return Scaffold(
-          appBar: AppBar(),
+          appBar: AppBar(backgroundColor: Theme.of(context).brightness == Brightness.light ? Colors.white : Color(0xFF1B263B)),
           body: Form(
             key: formKey,
             child: SafeArea(
@@ -81,8 +81,6 @@ class _AuthModerationApplicationStoreMaterial extends State<AuthModerationApplic
                             MaterialPinField(
                               length: 4,
                               pinController: pinInputController,
-                              enableAutofill: true,
-                              autofillHints: const [AutofillHints.oneTimeCode],
                               onCompleted: (verificationCode) async =>
                                   await context.read<AuthModerationApplicationStoreCubit>().onCompleted(verificationCode: verificationCode),
                               autoFocus: true,

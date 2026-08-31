@@ -73,7 +73,7 @@ class _AuthMaterialScreen extends State<AuthMaterialScreen> {
         final isReady = [Status.success, Status.initialization].contains(state.status);
 
         return Scaffold(
-          backgroundColor: Theme.of(context).brightness == Brightness.light ? Colors.white : Color(0xFF27364D),
+          backgroundColor: Theme.of(context).brightness == Brightness.light ? Colors.white : Color(0xFF1B263B),
           body: Form(
             key: formKey,
             child: SafeArea(
@@ -137,6 +137,12 @@ class _AuthMaterialScreen extends State<AuthMaterialScreen> {
                       width: double.infinity,
                       height: 50,
                       child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Theme.of(context).brightness == Brightness.dark ? Color.fromARGB(255, 56, 96, 143) : null,
+
+                          // null = дефолт темы для светлой
+                          // foregroundColor: ... // при необходимости цвет текста/иконки
+                        ),
                         onPressed: isReady
                             ? () async {
                                 serverError = null;

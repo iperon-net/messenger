@@ -110,8 +110,23 @@ class _SettingsMyProfileEditMaterial extends State<SettingsMyProfileEditMaterial
         }
       },
       builder: (context, state) {
-        // Единый стиль полей ввода: чистая нижняя линия (Material underline).
-        InputDecoration decoration({required String label, String? hint}) => InputDecoration(labelText: label, hintText: hint);
+        // Единый стиль полей ввода: без рамки, чтобы жить внутри белого блока (Card),
+        // как и плитка даты рождения.
+        InputDecoration decoration({required String label, String? hint}) => InputDecoration(
+          labelText: label,
+          hintText: hint,
+          // Убираем рамку во всех состояниях: глобальная тема (inputDecorationTheme)
+          // задаёт OutlineInputBorder для enabled/focused, поэтому одного border мало.
+          border: InputBorder.none,
+          enabledBorder: InputBorder.none,
+          focusedBorder: InputBorder.none,
+          errorBorder: InputBorder.none,
+          focusedErrorBorder: InputBorder.none,
+          disabledBorder: InputBorder.none,
+          contentPadding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+          // Подтягиваем текст ошибки ближе к полю (без рамки дефолтный зазор смотрится оторванным).
+          errorStyle: const TextStyle(height: 0.8),
+        );
 
         final firstNameField = TextFormField(
           controller: firstNameController,
@@ -168,7 +183,17 @@ class _SettingsMyProfileEditMaterial extends State<SettingsMyProfileEditMaterial
               child: ListView(
                 padding: const EdgeInsets.all(16),
                 children: [
-                  ...nameFields.expand((field) => [field, const SizedBox(height: 16)]),
+                  Card(
+                    clipBehavior: Clip.antiAlias,
+                    child: Column(
+                      children: [
+                        Padding(padding: const EdgeInsets.only(bottom: 8), child: nameFields[0]),
+                        const Divider(height: 1),
+                        Padding(padding: const EdgeInsets.only(bottom: 8), child: nameFields[1]),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
                   Card(
                     clipBehavior: Clip.antiAlias,
                     child: Column(
@@ -204,17 +229,26 @@ class _SettingsMyProfileEditMaterial extends State<SettingsMyProfileEditMaterial
                     ),
                   ),
                   const SizedBox(height: 16),
-                  TextFormField(
-                    controller: aboutMeController,
-                    focusNode: aboutMeFocus,
-                    maxLines: 2,
-                    maxLength: 70,
-                    decoration: decoration(label: context.t.screenMyProfile.aboutMe, hint: context.t.screenMyProfile.tellUsAboutYourself),
-                    validator: (value) => switch (context.read<SettingsMyProfileEditCubit>().validateAboutMe(value)) {
-                      AboutMeValidationError.maxLength => context.t.screenMyProfile.validationAboutMeMaxLength,
-                      null => null,
-                    },
-                    onChanged: (value) => context.read<SettingsMyProfileEditCubit>().setAboutMeLength(value.length),
+                  Card(
+                    clipBehavior: Clip.antiAlias,
+                    child: Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: TextFormField(
+                        controller: aboutMeController,
+                        focusNode: aboutMeFocus,
+                        maxLines: 2,
+                        maxLength: 70,
+                        decoration: decoration(
+                          label: context.t.screenMyProfile.aboutMe,
+                          hint: context.t.screenMyProfile.tellUsAboutYourself,
+                        ),
+                        validator: (value) => switch (context.read<SettingsMyProfileEditCubit>().validateAboutMe(value)) {
+                          AboutMeValidationError.maxLength => context.t.screenMyProfile.validationAboutMeMaxLength,
+                          null => null,
+                        },
+                        onChanged: (value) => context.read<SettingsMyProfileEditCubit>().setAboutMeLength(value.length),
+                      ),
+                    ),
                   ),
                 ],
               ),

@@ -33,7 +33,7 @@ class _AuthCallpasswordConfirmationMaterial extends State<AuthCallpasswordConfir
       },
       builder: (context, state) {
         return Scaffold(
-          appBar: AppBar(),
+          appBar: AppBar(backgroundColor: Theme.of(context).brightness == Brightness.light ? Colors.white : Color(0xFF1B263B)),
           body: SafeArea(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(25, 10, 25, 50),
