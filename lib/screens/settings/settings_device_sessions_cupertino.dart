@@ -68,7 +68,10 @@ class _SettingsDeviceSessionsCupertino extends State<SettingsDeviceSessionsCuper
                             leading: Container(
                               width: 50,
                               height: 50,
-                              decoration: BoxDecoration(color: Color(0xFF1755DC), borderRadius: BorderRadius.circular(8)),
+                              decoration: BoxDecoration(
+                                color: currentSession.os == 1 ? const Color(0xFF1755DC) : const Color(0xFF78C257),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
                               child: Center(
                                 child: FaIcon(
                                   currentSession.os == 1 ? FontAwesomeIcons.apple : FontAwesomeIcons.android,
@@ -185,7 +188,10 @@ class _SettingsDeviceSessionsCupertino extends State<SettingsDeviceSessionsCuper
                                   leading: Container(
                                     width: 50,
                                     height: 50,
-                                    decoration: BoxDecoration(color: Color(0xFF1755DC), borderRadius: BorderRadius.circular(8)),
+                                    decoration: BoxDecoration(
+                                      color: deviceSession.os == 1 ? const Color(0xFF1755DC) : const Color(0xFF78C257),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
                                     child: Center(
                                       child: FaIcon(
                                         deviceSession.os == 1 ? FontAwesomeIcons.apple : FontAwesomeIcons.android,

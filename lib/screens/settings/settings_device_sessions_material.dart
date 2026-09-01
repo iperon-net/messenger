@@ -22,9 +22,9 @@ class _SettingsDeviceSessionsMaterial extends State<SettingsDeviceSessionsMateri
   );
 
   Widget _deviceLeading(int os) => Container(
-    width: 50,
-    height: 50,
-    decoration: BoxDecoration(color: const Color(0xFF1755DC), borderRadius: BorderRadius.circular(8)),
+    width: 32,
+    height: 32,
+    decoration: BoxDecoration(color: os == 1 ? const Color(0xFF1755DC) : const Color(0xFF78C257), borderRadius: BorderRadius.circular(8)),
     child: Center(child: FaIcon(os == 1 ? FontAwesomeIcons.apple : FontAwesomeIcons.android, size: 18, color: const Color(0xFFFFFFFF))),
   );
 
@@ -86,7 +86,7 @@ class _SettingsDeviceSessionsMaterial extends State<SettingsDeviceSessionsMateri
                                 leading: const FaIcon(FontAwesomeIcons.hand, size: 18, color: Color(0xFFF40000)),
                                 title: Text(
                                   context.t.screenSettingsDevices.terminateAllOtherDeviceSessions,
-                                  style: TextStyle(color: Theme.of(context).colorScheme.error),
+                                  style: TextStyle(color: Color(0xFFF40000)),
                                 ),
                                 onTap: () async => await context.read<SettingsDeviceSessionsCubit>().terminate(
                                   others.map((data) => data.sessionID).toList(),
