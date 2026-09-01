@@ -351,6 +351,9 @@ class Translations$screenSettingsPasscode$en {
 	/// en: 'Passcode & Face ID'
 	String get passcodeAndFaceID => 'Passcode & Face ID';
 
+	/// en: 'Passcode & Biometric'
+	String get passcodeAndBiometric => 'Passcode & Biometric';
+
 	/// en: 'Note: If you forget your passcode, you will need to reinstall the app'
 	String get note => 'Note: If you forget your passcode, you will need to reinstall the app';
 
@@ -368,6 +371,9 @@ class Translations$screenSettingsPasscode$en {
 
 	/// en: 'Unlock with Face ID'
 	String get faceIDUnlock => 'Unlock with Face ID';
+
+	/// en: 'Unlock with biometric'
+	String get biometricUnlock => 'Unlock with biometric';
 
 	/// en: 'Off'
 	String get autoLockOff => 'Off';
@@ -422,6 +428,9 @@ class Translations$sessionsPrivacyAndSecurity$en {
 
 	/// en: 'Passcode & Face ID'
 	String get passcodeAndFaceID => 'Passcode & Face ID';
+
+	/// en: 'Passcode & Biometric'
+	String get passcodeAndBiometric => 'Passcode & Biometric';
 
 	/// en: 'Passcode'
 	String get passcode => 'Passcode';
@@ -733,12 +742,14 @@ extension on Translations {
 			'screenSettingsLanguage.language' => 'Language',
 			'screenSettingsPasscode.passcode' => 'Passcode',
 			'screenSettingsPasscode.passcodeAndFaceID' => 'Passcode & Face ID',
+			'screenSettingsPasscode.passcodeAndBiometric' => 'Passcode & Biometric',
 			'screenSettingsPasscode.note' => 'Note: If you forget your passcode, you will need to reinstall the app',
 			'screenSettingsPasscode.turnOn' => 'Turn passcode on',
 			'screenSettingsPasscode.turnOff' => 'Turn passcode off',
 			'screenSettingsPasscode.change' => 'Change passcode',
 			'screenSettingsPasscode.autoLock' => 'Auto-Lock',
 			'screenSettingsPasscode.faceIDUnlock' => 'Unlock with Face ID',
+			'screenSettingsPasscode.biometricUnlock' => 'Unlock with biometric',
 			'screenSettingsPasscode.autoLockOff' => 'Off',
 			'screenSettingsPasscode.autoLockMinutes' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: 'After ${n} minute', other: 'After ${n} minutes', ), 
 			'screenSettingsPasscode.autoLockHours' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: 'After ${n} hour', other: 'After ${n} hours', ), 
@@ -749,6 +760,7 @@ extension on Translations {
 			'settingsPasscodeCreate.cancel' => _root.common.cancel,
 			'sessionsPrivacyAndSecurity.privacyAndSecurity' => 'Privacy and security',
 			'sessionsPrivacyAndSecurity.passcodeAndFaceID' => 'Passcode & Face ID',
+			'sessionsPrivacyAndSecurity.passcodeAndBiometric' => 'Passcode & Biometric',
 			'sessionsPrivacyAndSecurity.passcode' => 'Passcode',
 			'screenMyProfile.myprofile' => 'My profile',
 			'screenMyProfile.firstName' => 'First name',

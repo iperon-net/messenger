@@ -60,7 +60,7 @@ class _SettingsPasscodeMaterial extends State<SettingsPasscodeMaterial> {
         return Scaffold(
           appBar: AppBar(
             title: state.isBiometricAvailable
-                ? Text(context.t.screenSettingsPasscode.passcodeAndFaceID)
+                ? Text(context.t.screenSettingsPasscode.passcodeAndBiometric)
                 : Text(context.t.screenSettingsPasscode.passcode),
           ),
           body: SafeArea(
@@ -121,7 +121,7 @@ class _SettingsPasscodeMaterial extends State<SettingsPasscodeMaterial> {
                         ),
                         if (state.isBiometricAvailable)
                           SwitchListTile(
-                            title: Text(context.t.screenSettingsPasscode.faceIDUnlock),
+                            title: Text(context.t.screenSettingsPasscode.biometricUnlock),
                             value: state.isBiometric,
                             onChanged: (bool value) async => await context.read<SettingsPasscodeCubit>().setBiometric(biometric: value),
                           ),

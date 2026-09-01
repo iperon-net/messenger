@@ -83,12 +83,14 @@
 "screenSettingsPasscode":
   "passcode": "Passcode"
   "passcodeAndFaceID": "Passcode & Face ID"
+  "passcodeAndBiometric": "Passcode & Biometric"
   "note": "Note: If you forget your passcode, you will need to reinstall the app"
   "turnOn": "Turn passcode on"
   "turnOff": "Turn passcode off"
   "change": "Change passcode"
   "autoLock": "Auto-Lock"
   "faceIDUnlock": "Unlock with Face ID"
+  "biometricUnlock": "Unlock with biometric"
   "autoLockOff": "Off"
   "autoLockMinutes(plural)":
     one: "After {n} minute"
@@ -107,6 +109,7 @@
 "sessionsPrivacyAndSecurity":
   "privacyAndSecurity": "Privacy and security"
   "passcodeAndFaceID": "Passcode & Face ID"
+  "passcodeAndBiometric": "Passcode & Biometric"
   "passcode": "Passcode"
 
 "screenMyProfile":

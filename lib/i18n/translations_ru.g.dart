@@ -221,12 +221,14 @@ class _Translations$screenSettingsPasscode$ru extends Translations$screenSetting
 	// Translations
 	@override String get passcode => 'Код-пароль';
 	@override String get passcodeAndFaceID => 'Код-пароль и Face ID';
+	@override String get passcodeAndBiometric => 'Код-пароль и биометрия';
 	@override String get note => 'Примечание: если вы забудете код-пароль, потребуется переустановить приложение';
 	@override String get turnOn => 'Включить код-пароль';
 	@override String get turnOff => 'Отключить код-пароль';
 	@override String get change => 'Изменить код-пароль';
 	@override String get autoLock => 'Автоблокировка';
 	@override String get faceIDUnlock => 'Разблокировка с Face ID';
+	@override String get biometricUnlock => 'Разблокировка по биометрии';
 	@override String get autoLockOff => 'Выключена';
 	@override String autoLockMinutes({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n,
 		one: 'Через ${n} минуту',
@@ -261,6 +263,7 @@ class _Translations$sessionsPrivacyAndSecurity$ru extends Translations$sessionsP
 	// Translations
 	@override String get privacyAndSecurity => 'Конфиденциальность';
 	@override String get passcodeAndFaceID => 'Код-пароль и Face ID';
+	@override String get passcodeAndBiometric => 'Код-пароль и биометрия';
 	@override String get passcode => 'Код-пароль';
 }
 
@@ -450,12 +453,14 @@ extension on TranslationsRu {
 			'screenSettingsLanguage.language' => 'Язык',
 			'screenSettingsPasscode.passcode' => 'Код-пароль',
 			'screenSettingsPasscode.passcodeAndFaceID' => 'Код-пароль и Face ID',
+			'screenSettingsPasscode.passcodeAndBiometric' => 'Код-пароль и биометрия',
 			'screenSettingsPasscode.note' => 'Примечание: если вы забудете код-пароль, потребуется переустановить приложение',
 			'screenSettingsPasscode.turnOn' => 'Включить код-пароль',
 			'screenSettingsPasscode.turnOff' => 'Отключить код-пароль',
 			'screenSettingsPasscode.change' => 'Изменить код-пароль',
 			'screenSettingsPasscode.autoLock' => 'Автоблокировка',
 			'screenSettingsPasscode.faceIDUnlock' => 'Разблокировка с Face ID',
+			'screenSettingsPasscode.biometricUnlock' => 'Разблокировка по биометрии',
 			'screenSettingsPasscode.autoLockOff' => 'Выключена',
 			'screenSettingsPasscode.autoLockMinutes' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: 'Через ${n} минуту', other: 'Через ${n} минут', ), 
 			'screenSettingsPasscode.autoLockHours' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: 'Через ${n} час', other: 'Через ${n} часов', ), 
@@ -466,6 +471,7 @@ extension on TranslationsRu {
 			'settingsPasscodeCreate.cancel' => _root.common.cancel,
 			'sessionsPrivacyAndSecurity.privacyAndSecurity' => 'Конфиденциальность',
 			'sessionsPrivacyAndSecurity.passcodeAndFaceID' => 'Код-пароль и Face ID',
+			'sessionsPrivacyAndSecurity.passcodeAndBiometric' => 'Код-пароль и биометрия',
 			'sessionsPrivacyAndSecurity.passcode' => 'Код-пароль',
 			'screenMyProfile.myprofile' => 'Мой профиль',
 			'screenMyProfile.firstName' => 'Имя',

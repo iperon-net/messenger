@@ -33,7 +33,7 @@ class _SettingsPrivacyAndSecurityMaterial extends State<SettingsPrivacyAndSecuri
                   margin: const EdgeInsets.all(12),
                   child: MaterialListTileIcon(
                     title: state.isBiometricAvailable
-                        ? Text(context.t.sessionsPrivacyAndSecurity.passcodeAndFaceID)
+                        ? Text(context.t.sessionsPrivacyAndSecurity.passcodeAndBiometric)
                         : Text(context.t.sessionsPrivacyAndSecurity.passcode),
                     color: const Color(0xFF41CA22),
                     icon: FontAwesomeIcons.unlockKeyhole,
