@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:material_ui/material_ui.dart' show showModalBottomSheet, Colors;
+import 'package:material_ui/material_ui.dart' show showModalBottomSheet, Colors, BoxConstraints;
 
 import 'toolbar_attachments_cupertino.dart';
 import 'toolbar_attachments_material.dart';
@@ -140,10 +140,13 @@ Future<ToolbarAttachmentResult?> showToolbarAttachments(
 
   // Material: DraggableScrollableSheet сам управляет высотой, поэтому лист —
   // на всю высоту (`isScrollControlled`) и без своего фона (`transparent`).
+  // constraints снимают дефолтный M3-лимит ширины (~640dp c центрированием),
+  // из-за которого в ландшафте лист не растягивался на всю ширину экрана.
   return showModalBottomSheet<ToolbarAttachmentResult>(
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
+    constraints: const BoxConstraints(maxWidth: double.infinity),
     builder: (context) => ToolbarAttachmentsMaterial(
       tabs: tabs,
       initial: resolvedInitial,

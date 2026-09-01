@@ -4,6 +4,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import '../../i18n/translations.g.dart';
+import 'camera.dart';
 
 /// Кастомный полноэкранный экран камеры (Material) — замена нативному
 /// `ImagePicker(source: camera)` там, где нужен собственный UI видоискателя.
@@ -40,6 +41,13 @@ class _CameraScreenMaterialState extends State<CameraScreenMaterial> with Widget
 
   /// Идёт съёмка кадра — блокируем повторные нажатия затвора.
   bool _capturing = false;
+
+  /// Разрешить `Navigator.pop` (через [PopScope]). Ставится в `true` только
+  /// после того, как контроллер камеры освобождён в [_leave].
+  bool _canPop = false;
+
+  /// Идёт выход с экрана — защищает [_leave] от повторного входа.
+  bool _leaving = false;
 
   @override
   void initState() {
@@ -148,10 +156,28 @@ class _CameraScreenMaterialState extends State<CameraScreenMaterial> with Widget
     try {
       final shot = await c.takePicture();
       if (!mounted) return;
-      Navigator.pop(context, XFile(shot.path));
+      await _leave(XFile(shot.path));
     } catch (_) {
       if (mounted) setState(() => _capturing = false);
     }
+  }
+
+  /// Единственный путь выхода с экрана. Освобождает контроллер камеры ДО
+  /// `Navigator.pop`, чтобы к моменту возврата из [openCamera] сессия захвата
+  /// была уже свободна — иначе живое превью тулбара пересоздаётся на ещё
+  /// занятой камере и зависает. Через [PopScope] сюда сходятся все способы
+  /// закрытия: крестик, системный «назад», iOS-свайп и возврат со снимком.
+  Future<void> _leave([XFile? result]) async {
+    if (_leaving) return;
+    _leaving = true;
+    final c = _cameraController;
+    if (c != null) {
+      setState(() => _cameraController = null);
+      await c.dispose();
+    }
+    if (!mounted) return;
+    _canPop = true;
+    Navigator.pop(context, result);
   }
 
   FaIconData get _flashIcon => switch (_flashMode) {
@@ -162,7 +188,15 @@ class _CameraScreenMaterialState extends State<CameraScreenMaterial> with Widget
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(backgroundColor: Colors.black, body: _denied || _unavailable ? _message(context) : _camera(context));
+    // canPop=false: перехватываем ЛЮБОЙ pop (системный «назад», жест), чтобы
+    // сперва освободить камеру в [_leave], а затем закрыть экран.
+    return PopScope(
+      canPop: _canPop,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) _leave();
+      },
+      child: Scaffold(backgroundColor: Colors.black, body: _denied || _unavailable ? _message(context) : _camera(context)),
+    );
   }
 
   /// Экран-заглушка при отказе в доступе / недоступности камеры.
@@ -238,20 +272,29 @@ class _CameraScreenMaterialState extends State<CameraScreenMaterial> with Widget
     );
   }
 
-  /// Превью «покрывает» экран: у камеры кадр альбомный, поэтому меняем местами
-  /// ширину/высоту и вписываем через `BoxFit.cover`.
+  /// Превью «покрывает» экран. `CameraPreview` сам подбирает соотношение сторон
+  /// и разворот под текущую ориентацию устройства, поэтому НЕ навязываем ему
+  /// размер (иначе кадр растягивается): даём его собственное соотношение
+  /// сторон и вписываем через `BoxFit.cover`.
   Widget _fullPreview(CameraController controller) {
-    final preview = controller.value.previewSize ?? const Size(1, 1);
-    return ClipRect(
-      child: FittedBox(
-        fit: BoxFit.cover,
-        child: SizedBox(width: preview.height, height: preview.width, child: CameraPreview(controller)),
-      ),
+    // Слушаем контроллер: при повороте устройства меняется
+    // `deviceOrientation`, и превью нужно пересобрать с новым соотношением.
+    return ValueListenableBuilder<CameraValue>(
+      valueListenable: controller,
+      builder: (context, value, child) {
+        final ar = cameraPreviewAspectRatio(controller);
+        return ClipRect(
+          child: FittedBox(
+            fit: BoxFit.cover,
+            child: SizedBox(width: ar, height: 1, child: CameraPreview(controller)),
+          ),
+        );
+      },
     );
   }
 
   Widget _closeButton(BuildContext context) {
-    return _roundButton(icon: FontAwesomeIcons.xmark, onTap: () => Navigator.pop(context));
+    return _roundButton(icon: FontAwesomeIcons.xmark, onTap: () => _leave());
   }
 
   /// Кнопка-затвор: белое кольцо с заполненным центром; во время съёмки —

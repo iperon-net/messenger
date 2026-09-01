@@ -142,12 +142,34 @@ class _ToolbarAttachmentsMaterialState extends State<ToolbarAttachmentsMaterial>
     ToolbarAttachmentMediaType.all => RequestType.common,
   };
 
+  /// В ландшафте высота экрана мала, поэтому лист раскрываем на всю высоту
+  /// (одно состояние на весь экран) вместо двух состояний 60%/90%.
+  bool get _isLandscape {
+    final size = MediaQuery.sizeOf(context);
+    return size.width > size.height;
+  }
+
+  /// Эффективный максимум высоты листа: в ландшафте — на всю доступную высоту,
+  /// но не заходя под статус-бар (часы), т.е. до верхней safe-area.
+  double get _maxSize {
+    if (!_isLandscape) return widget.maxChildSize;
+    final mq = MediaQuery.of(context);
+    final h = mq.size.height;
+    if (h <= 0) return widget.maxChildSize;
+    // Доля высоты за вычетом статус-бара (часов), затем 90% от неё.
+    return ((h - mq.padding.top) / h * widget.maxChildSize).clamp(0.0, 1.0);
+  }
+
+  /// Эффективный минимум/стартовая высота: в ландшафте открываемся сразу
+  /// на всю доступную высоту (промежуточное состояние там бессмысленно).
+  double get _minSize => _isLandscape ? _maxSize : widget.minChildSize;
+
   /// Нижний «пол» — ниже [minChildSize], чтобы лист можно было стянуть вниз
   /// для закрытия. В покое лист туда не встаёт (см. `snap`/`snapSizes`).
-  double get _floor => widget.minChildSize * 0.7;
+  double get _floor => _minSize * 0.7;
 
   /// Порог закрытия: если отпустить ниже него — лист скрывается.
-  double get _dismissBelow => (_floor + widget.minChildSize) / 2;
+  double get _dismissBelow => (_floor + _minSize) / 2;
 
   @override
   void dispose() {
@@ -332,9 +354,40 @@ class _ToolbarAttachmentsMaterialState extends State<ToolbarAttachmentsMaterial>
 
   /// Снимок с камеры (photo_manager не умеет захват — открываем собственный
   /// полноэкранный экран камеры [openCamera]).
+  ///
+  /// Полноэкранная камера создаёт собственный контроллер на той же сессии
+  /// захвата. Два активных контроллера на одной камере приводят к зависанию
+  /// превью, поэтому перед открытием освобождаем превью тулбара (плитка
+  /// показывает спиннер), а после возврата без снимка — пересоздаём его.
   Future<void> _takePhoto() async {
+    final previous = _cameraController;
+    if (previous != null) {
+      setState(() => _cameraController = null);
+      await previous.dispose();
+      if (!mounted) return;
+    }
     final image = await openCamera(context);
-    if (image != null && mounted) await _processAndFinish(image, ToolbarAttachmentTabKind.camera);
+    if (!mounted) return;
+    if (image != null) {
+      await _processAndFinish(image, ToolbarAttachmentTabKind.camera);
+      return;
+    }
+    // Вернулись без снимка — восстанавливаем живое превью.
+    await _restartPreview();
+  }
+
+  /// Пересоздаёт превью после возврата с полноэкранной камеры. Та освобождает
+  /// свой контроллер только по завершении анимации закрытия (уже ПОСЛЕ возврата
+  /// из [openCamera]), поэтому камера может быть ещё занята — пробуем несколько
+  /// раз с паузой, пока `initialize()` не пройдёт.
+  Future<void> _restartPreview() async {
+    if (_cameras.isEmpty) return;
+    for (var attempt = 0; attempt < 6; attempt++) {
+      await _startCamera(_cameraIndex);
+      if (!mounted || _cameraController != null) return;
+      await Future.delayed(const Duration(milliseconds: 250));
+      if (!mounted) return;
+    }
   }
 
   /// Однократно запрашивает доступ к камере и запускает живое превью. При отказе
@@ -361,8 +414,9 @@ class _ToolbarAttachmentsMaterialState extends State<ToolbarAttachmentsMaterial>
   /// Создаёт и запускает контроллер для камеры [index] и делает её активной.
   /// Предыдущий контроллер должен быть уже освобождён вызывающей стороной.
   Future<void> _startCamera(int index) async {
+    CameraController? controller;
     try {
-      final controller = CameraController(_cameras[index], ResolutionPreset.medium, enableAudio: false);
+      controller = CameraController(_cameras[index], ResolutionPreset.medium, enableAudio: false);
       await controller.initialize();
       if (!mounted) {
         await controller.dispose();
@@ -374,7 +428,11 @@ class _ToolbarAttachmentsMaterialState extends State<ToolbarAttachmentsMaterial>
         _cameraAvailable = true;
       });
     } catch (_) {
-      // Камера занята/ошибка — плитка останется со спиннером до след. попытки.
+      // Камера занята/ошибка — освобождаем неудавшийся контроллер (иначе он
+      // держит сессию и мешает повторной попытке), плитка остаётся со спиннером.
+      try {
+        await controller?.dispose();
+      } catch (_) {}
     }
   }
 
@@ -386,7 +444,7 @@ class _ToolbarAttachmentsMaterialState extends State<ToolbarAttachmentsMaterial>
     if (!_sheetController.isAttached) return;
     final screenH = MediaQuery.sizeOf(context).height;
     final next = _sheetController.size - (d.primaryDelta ?? 0) / screenH;
-    _sheetController.jumpTo(next.clamp(_floor, widget.maxChildSize));
+    _sheetController.jumpTo(next.clamp(_floor, _maxSize));
   }
 
   /// По отпусканию: если стянули/бросили вниз ниже порога — закрыть лист; иначе
@@ -395,7 +453,7 @@ class _ToolbarAttachmentsMaterialState extends State<ToolbarAttachmentsMaterial>
     if (!_sheetController.isAttached) return;
     final v = d.primaryVelocity ?? 0; // > 0 — палец идёт вниз
     final size = _sheetController.size;
-    final mid = (widget.minChildSize + widget.maxChildSize) / 2;
+    final mid = (_minSize + _maxSize) / 2;
 
     // Закрываем: резкий флинг вниз или медленно стянули ниже порога.
     if ((v > 300 && size < mid) || size <= _dismissBelow) {
@@ -404,10 +462,10 @@ class _ToolbarAttachmentsMaterialState extends State<ToolbarAttachmentsMaterial>
     }
 
     final target = v < -300
-        ? widget.maxChildSize
+        ? _maxSize
         : v > 300
-        ? widget.minChildSize
-        : (size < mid ? widget.minChildSize : widget.maxChildSize);
+        ? _minSize
+        : (size < mid ? _minSize : _maxSize);
     _sheetController.animateTo(target, duration: const Duration(milliseconds: 200), curve: Curves.easeOut);
   }
 
@@ -592,7 +650,9 @@ class _ToolbarAttachmentsMaterialState extends State<ToolbarAttachmentsMaterial>
         SliverPadding(
           padding: const EdgeInsets.all(2),
           sliver: SliverGrid(
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3, mainAxisSpacing: 2, crossAxisSpacing: 2),
+            // Адаптивная сетка: число колонок подстраивается под ширину листа
+            // (≈3 в портрете телефона, больше — в ландшафте / на планшете).
+            gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(maxCrossAxisExtent: 120, mainAxisSpacing: 2, crossAxisSpacing: 2),
             delegate: SliverChildBuilderDelegate(
               // Первая плитка — живое превью камеры (когда доступна).
               (context, i) {
@@ -690,8 +750,10 @@ class _ToolbarAttachmentsMaterialState extends State<ToolbarAttachmentsMaterial>
 
   /// Плитка живого превью камеры (первая в сетке). Тап открывает полную
   /// нативную камеру ([_takePhoto]); живое превью здесь — только видоискатель.
-  /// Превью «покрывает» квадрат: у камеры кадр альбомный, поэтому меняем
-  /// местами ширину/высоту и вписываем через `BoxFit.cover`.
+  /// Превью «покрывает» квадрат через `BoxFit.cover`. `CameraPreview` сам
+  /// подбирает соотношение сторон и разворот под ориентацию устройства, поэтому
+  /// НЕ навязываем ему размер (иначе кадр растягивается) — даём его собственное
+  /// соотношение сторон.
   Widget _cameraTile(BuildContext context) {
     final controller = _cameraController;
     // Во время переключения камеры контроллер временно `null` — показываем
@@ -703,17 +765,21 @@ class _ToolbarAttachmentsMaterialState extends State<ToolbarAttachmentsMaterial>
         child: const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)),
       );
     }
-    final preview = controller.value.previewSize ?? const Size(1, 1);
     return GestureDetector(
       onTap: _takePhoto,
       behavior: HitTestBehavior.opaque,
       child: Stack(
         fit: StackFit.expand,
         children: [
-          ClipRect(
-            child: FittedBox(
-              fit: BoxFit.cover,
-              child: SizedBox(width: preview.height, height: preview.width, child: CameraPreview(controller)),
+          // Слушаем контроллер: при повороте меняется `deviceOrientation`,
+          // и превью нужно пересобрать с новым соотношением сторон.
+          ValueListenableBuilder<CameraValue>(
+            valueListenable: controller,
+            builder: (context, value, child) => ClipRect(
+              child: FittedBox(
+                fit: BoxFit.cover,
+                child: SizedBox(width: cameraPreviewAspectRatio(controller), height: 1, child: CameraPreview(controller)),
+              ),
             ),
           ),
           // Иконка камеры — сигнал, что это живой видоискатель, а не фото.
@@ -802,13 +868,14 @@ class _ToolbarAttachmentsMaterialState extends State<ToolbarAttachmentsMaterial>
     final showTabBar = widget.tabs.length > 1;
     return DraggableScrollableSheet(
       controller: _sheetController,
-      initialChildSize: widget.minChildSize,
+      initialChildSize: _minSize,
       // «Пол» ниже min нужен только для стягивания к закрытию; snap держит лист
-      // в покое строго на 60%/90%, поэтому на «полу» он не застревает.
+      // в покое строго на 60%/90% (в ландшафте — только на весь экран), поэтому
+      // на «полу» он не застревает.
       minChildSize: _floor,
-      maxChildSize: widget.maxChildSize,
+      maxChildSize: _maxSize,
       snap: true,
-      snapSizes: [widget.minChildSize, widget.maxChildSize],
+      snapSizes: _isLandscape ? [_maxSize] : [widget.minChildSize, widget.maxChildSize],
       expand: false,
       builder: (context, scrollController) {
         _bindScroll(scrollController);
