@@ -32,9 +32,9 @@ class _SettingsMyProfileMaterial extends State<SettingsMyProfileMaterial> {
       context,
       tabs: const [
         ToolbarAttachmentTabKind.gallery,
-        ToolbarAttachmentTabKind.file,
-        ToolbarAttachmentTabKind.emoji,
-        ToolbarAttachmentTabKind.link,
+        // ToolbarAttachmentTabKind.file,
+        // ToolbarAttachmentTabKind.emoji,
+        // ToolbarAttachmentTabKind.link,
       ],
       // Кроп аватара — внутри листа: отмена возвращает в галерею, а не закрывает
       // лист. Лист закроется лишь при успешном кропе.
