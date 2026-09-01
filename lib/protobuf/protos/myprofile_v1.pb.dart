@@ -166,8 +166,8 @@ class MyProfile extends $pb.GeneratedMessage {
   static MyProfile? _defaultInstance;
 }
 
-class MyProfileEdit_Request extends $pb.GeneratedMessage {
-  factory MyProfileEdit_Request({
+class MyProfileUpdate_Request extends $pb.GeneratedMessage {
+  factory MyProfileUpdate_Request({
     $core.String? firstName,
     $core.String? lastName,
     $0.Timestamp? birthDate,
@@ -181,14 +181,14 @@ class MyProfileEdit_Request extends $pb.GeneratedMessage {
     return result;
   }
 
-  MyProfileEdit_Request._();
+  MyProfileUpdate_Request._();
 
-  factory MyProfileEdit_Request.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+  factory MyProfileUpdate_Request.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(data, registry);
-  factory MyProfileEdit_Request.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+  factory MyProfileUpdate_Request.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(json, registry);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'MyProfileEdit.Request',
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'MyProfileUpdate.Request',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'firstName', protoName: 'firstName')
     ..aOS(2, _omitFieldNames ? '' : 'lastName', protoName: 'lastName')
@@ -197,21 +197,21 @@ class MyProfileEdit_Request extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  MyProfileEdit_Request clone() => deepCopy();
+  MyProfileUpdate_Request clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  MyProfileEdit_Request copyWith(void Function(MyProfileEdit_Request) updates) =>
-      super.copyWith((message) => updates(message as MyProfileEdit_Request)) as MyProfileEdit_Request;
+  MyProfileUpdate_Request copyWith(void Function(MyProfileUpdate_Request) updates) =>
+      super.copyWith((message) => updates(message as MyProfileUpdate_Request)) as MyProfileUpdate_Request;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
-  static MyProfileEdit_Request create() => MyProfileEdit_Request._();
+  static MyProfileUpdate_Request create() => MyProfileUpdate_Request._();
   @$core.override
-  MyProfileEdit_Request createEmptyInstance() => create();
+  MyProfileUpdate_Request createEmptyInstance() => create();
   @$core.pragma('dart2js:noInline')
-  static MyProfileEdit_Request getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<MyProfileEdit_Request>(create);
-  static MyProfileEdit_Request? _defaultInstance;
+  static MyProfileUpdate_Request getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<MyProfileUpdate_Request>(create);
+  static MyProfileUpdate_Request? _defaultInstance;
 
   @$pb.TagNumber(1)
   $core.String get firstName => $_getSZ(0);
@@ -252,68 +252,68 @@ class MyProfileEdit_Request extends $pb.GeneratedMessage {
   void clearAboutMe() => $_clearField(4);
 }
 
-class MyProfileEdit_Response extends $pb.GeneratedMessage {
-  factory MyProfileEdit_Response() => create();
+class MyProfileUpdate_Response extends $pb.GeneratedMessage {
+  factory MyProfileUpdate_Response() => create();
 
-  MyProfileEdit_Response._();
+  MyProfileUpdate_Response._();
 
-  factory MyProfileEdit_Response.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+  factory MyProfileUpdate_Response.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(data, registry);
-  factory MyProfileEdit_Response.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+  factory MyProfileUpdate_Response.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(json, registry);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'MyProfileEdit.Response',
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'MyProfileUpdate.Response',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  MyProfileEdit_Response clone() => deepCopy();
+  MyProfileUpdate_Response clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  MyProfileEdit_Response copyWith(void Function(MyProfileEdit_Response) updates) =>
-      super.copyWith((message) => updates(message as MyProfileEdit_Response)) as MyProfileEdit_Response;
+  MyProfileUpdate_Response copyWith(void Function(MyProfileUpdate_Response) updates) =>
+      super.copyWith((message) => updates(message as MyProfileUpdate_Response)) as MyProfileUpdate_Response;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
-  static MyProfileEdit_Response create() => MyProfileEdit_Response._();
+  static MyProfileUpdate_Response create() => MyProfileUpdate_Response._();
   @$core.override
-  MyProfileEdit_Response createEmptyInstance() => create();
+  MyProfileUpdate_Response createEmptyInstance() => create();
   @$core.pragma('dart2js:noInline')
-  static MyProfileEdit_Response getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<MyProfileEdit_Response>(create);
-  static MyProfileEdit_Response? _defaultInstance;
+  static MyProfileUpdate_Response getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<MyProfileUpdate_Response>(create);
+  static MyProfileUpdate_Response? _defaultInstance;
 }
 
-class MyProfileEdit extends $pb.GeneratedMessage {
-  factory MyProfileEdit() => create();
+class MyProfileUpdate extends $pb.GeneratedMessage {
+  factory MyProfileUpdate() => create();
 
-  MyProfileEdit._();
+  MyProfileUpdate._();
 
-  factory MyProfileEdit.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+  factory MyProfileUpdate.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(data, registry);
-  factory MyProfileEdit.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+  factory MyProfileUpdate.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(json, registry);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'MyProfileEdit',
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'MyProfileUpdate',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  MyProfileEdit clone() => deepCopy();
+  MyProfileUpdate clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  MyProfileEdit copyWith(void Function(MyProfileEdit) updates) =>
-      super.copyWith((message) => updates(message as MyProfileEdit)) as MyProfileEdit;
+  MyProfileUpdate copyWith(void Function(MyProfileUpdate) updates) =>
+      super.copyWith((message) => updates(message as MyProfileUpdate)) as MyProfileUpdate;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
-  static MyProfileEdit create() => MyProfileEdit._();
+  static MyProfileUpdate create() => MyProfileUpdate._();
   @$core.override
-  MyProfileEdit createEmptyInstance() => create();
+  MyProfileUpdate createEmptyInstance() => create();
   @$core.pragma('dart2js:noInline')
-  static MyProfileEdit getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<MyProfileEdit>(create);
-  static MyProfileEdit? _defaultInstance;
+  static MyProfileUpdate getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<MyProfileUpdate>(create);
+  static MyProfileUpdate? _defaultInstance;
 }
 
 const $core.bool _omitFieldNames = $core.bool.fromEnvironment('protobuf.omit_field_names');

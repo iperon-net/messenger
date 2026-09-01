@@ -107,8 +107,8 @@ class SettingsMyProfileEditCubit extends Cubit<SettingsMyProfileEditState> {
     final birthDateValue = birthDate.isNotEmpty ? DateTime.parse(birthDate) : null;
 
     final status = await api.unaryEncoded(
-      MessageType.MY_PROFILE_EDIT,
-      MyProfileEdit_Request(
+      MessageType.MY_PROFILE_UPDATE,
+      MyProfileUpdate_Request(
         firstName: firstName,
         lastName: lastName,
         aboutMe: aboutMe,

@@ -51,14 +51,14 @@ final $typed_data.Uint8List myProfileDescriptor =
         'RvYnVmLlRpbWVzdGFtcEgDUgliaXJ0aERhdGWIAQFCDAoKX2ZpcnN0TmFtZUILCglfbGFzdE5h'
         'bWVCCgoIX2Fib3V0TWVCDAoKX2JpcnRoRGF0ZQ==');
 
-@$core.Deprecated('Use myProfileEditDescriptor instead')
-const MyProfileEdit$json = {
-  '1': 'MyProfileEdit',
-  '3': [MyProfileEdit_Request$json, MyProfileEdit_Response$json],
+@$core.Deprecated('Use myProfileUpdateDescriptor instead')
+const MyProfileUpdate$json = {
+  '1': 'MyProfileUpdate',
+  '3': [MyProfileUpdate_Request$json, MyProfileUpdate_Response$json],
 };
 
-@$core.Deprecated('Use myProfileEditDescriptor instead')
-const MyProfileEdit_Request$json = {
+@$core.Deprecated('Use myProfileUpdateDescriptor instead')
+const MyProfileUpdate_Request$json = {
   '1': 'Request',
   '2': [
     {'1': 'firstName', '3': 1, '4': 1, '5': 9, '9': 0, '10': 'firstName', '17': true},
@@ -74,15 +74,15 @@ const MyProfileEdit_Request$json = {
   ],
 };
 
-@$core.Deprecated('Use myProfileEditDescriptor instead')
-const MyProfileEdit_Response$json = {
+@$core.Deprecated('Use myProfileUpdateDescriptor instead')
+const MyProfileUpdate_Response$json = {
   '1': 'Response',
 };
 
-/// Descriptor for `MyProfileEdit`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List myProfileEditDescriptor =
-    $convert.base64Decode('Cg1NeVByb2ZpbGVFZGl0GuABCgdSZXF1ZXN0EiEKCWZpcnN0TmFtZRgBIAEoCUgAUglmaXJzdE'
-        '5hbWWIAQESHwoIbGFzdE5hbWUYAiABKAlIAVIIbGFzdE5hbWWIAQESHQoHYWJvdXRNZRgEIAEo'
-        'CUgCUgdhYm91dE1liAEBEj0KCWJpcnRoRGF0ZRgDIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW'
-        '1lc3RhbXBIA1IJYmlydGhEYXRliAEBQgwKCl9maXJzdE5hbWVCCwoJX2xhc3ROYW1lQgoKCF9h'
-        'Ym91dE1lQgwKCl9iaXJ0aERhdGUaCgoIUmVzcG9uc2U=');
+/// Descriptor for `MyProfileUpdate`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List myProfileUpdateDescriptor =
+    $convert.base64Decode('Cg9NeVByb2ZpbGVVcGRhdGUa4AEKB1JlcXVlc3QSIQoJZmlyc3ROYW1lGAEgASgJSABSCWZpcn'
+        'N0TmFtZYgBARIfCghsYXN0TmFtZRgCIAEoCUgBUghsYXN0TmFtZYgBARIdCgdhYm91dE1lGAQg'
+        'ASgJSAJSB2Fib3V0TWWIAQESPQoJYmlydGhEYXRlGAMgASgLMhouZ29vZ2xlLnByb3RvYnVmLl'
+        'RpbWVzdGFtcEgDUgliaXJ0aERhdGWIAQFCDAoKX2ZpcnN0TmFtZUILCglfbGFzdE5hbWVCCgoI'
+        'X2Fib3V0TWVCDAoKX2JpcnRoRGF0ZRoKCghSZXNwb25zZQ==');

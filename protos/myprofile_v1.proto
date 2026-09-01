@@ -16,7 +16,7 @@ message MyProfile {
   }
 }
 
-message MyProfileEdit {
+message MyProfileUpdate {
   message Request {
     optional string firstName = 1;
     optional string lastName = 2;
@@ -27,3 +27,4 @@ message MyProfileEdit {
   message Response {
   }
 }
+
