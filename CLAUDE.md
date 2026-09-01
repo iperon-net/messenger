@@ -13,7 +13,7 @@ A Flutter messenger app (Android + iOS, Firebase project `iperon`, product name 
 - `flutter analyze` — static analysis (uses `analysis_options.yaml`, based on `flutter_lints`).
 - `flutter test` — run tests (there are no tests yet under `test/`).
 - `flutter test test/some_test.dart` — run a single test file.
-- `dart run build_runner build --delete-conflicting-outputs` — regenerate `dart_mappable` code (`*.mapper.dart` files under `lib/models/` and `lib/cubit/`). Run this after changing any `@MappableClass()` model. `dart_mappable_builder` runs under this builder. (`envied_generator` is present in `dev_dependencies` but there is currently no `@Envied` usage under `lib/` — runtime config comes from `Settings`/dotenv/Remote Config instead.)
+- `dart run build_runner build --delete-conflicting-outputs` — regenerate `dart_mappable` code (`*.mapper.dart` files under `lib/models/` and `lib/cubit/`). Run this after changing any `@MappableClass()` model. `dart_mappable_builder` runs under this builder. Runtime config comes from `Settings`/dotenv/Remote Config (see the Settings section).
 - `dart run slang` — regenerate i18n code (`lib/i18n/translations*.g.dart`) from the `lib/i18n/*.i18n.yaml` sources (config in `slang.yaml`). Run after editing translations.
 - Protobuf: the `*.pb*.dart` under `lib/protobuf/` are generated from the `.proto` files in `protos/` at the repo root via `protoc` (no in-repo script). Do not hand-edit the generated Dart.
 

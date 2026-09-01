@@ -1,9 +1,4 @@
 #targets:
-#  builders:
-#    envied_generator|envied:
-#      options:
-#        override: true
-
 #  $default:
 #    builders:
 #      # only to resolve build_runner conflicts
