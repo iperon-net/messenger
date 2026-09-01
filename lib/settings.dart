@@ -18,7 +18,7 @@ class Settings {
   Settings._();
 
   Future<void> _initialization() async {
-    await dotenv.load(isOptional: true, overrideWithFiles: kDebugMode ? [".env.development"] : []);
+    if (kDebugMode) await dotenv.load(isOptional: true);
 
     await remoteConfig.setConfigSettings(
       RemoteConfigSettings(fetchTimeout: const Duration(seconds: 30), minimumFetchInterval: const Duration(hours: 24)),
