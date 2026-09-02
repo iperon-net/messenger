@@ -7,6 +7,7 @@ import 'package:messenger/constants.dart';
 import '../../cubit.dart';
 import '../../extensions/date_time_extensions.dart';
 import '../../i18n/translations.g.dart';
+import '../../themes.dart';
 
 class SettingsDeviceSessionsMaterial extends StatefulWidget {
   const SettingsDeviceSessionsMaterial({super.key});
@@ -18,7 +19,10 @@ class SettingsDeviceSessionsMaterial extends StatefulWidget {
 class _SettingsDeviceSessionsMaterial extends State<SettingsDeviceSessionsMaterial> {
   Widget _sectionHeader(BuildContext context, String text) => Padding(
     padding: const EdgeInsets.fromLTRB(24, 16, 24, 4),
-    child: Text(text.toUpperCase(), style: TextStyle(fontSize: 13, color: Theme.of(context).colorScheme.primary)),
+    child: Text(
+      text.toUpperCase(),
+      style: TextStyle(fontSize: AppFontSizes.caption, color: Theme.of(context).colorScheme.primary),
+    ),
   );
 
   Widget _deviceLeading(int os) => Container(
@@ -68,7 +72,7 @@ class _SettingsDeviceSessionsMaterial extends State<SettingsDeviceSessionsMateri
                                   Text(currentSession.deviceModel),
                                   Text(
                                     currentSession.os == 1 ? "iOS ${currentSession.osVersion}" : "Android ${currentSession.osVersion}",
-                                    style: const TextStyle(fontSize: 16),
+                                    style: const TextStyle(fontSize: AppFontSizes.body),
                                   ),
                                 ],
                               ),
@@ -154,7 +158,7 @@ class _SettingsDeviceSessionsMaterial extends State<SettingsDeviceSessionsMateri
                                         Text(deviceSession.deviceModel),
                                         Text(
                                           deviceSession.os == 1 ? "iOS ${deviceSession.osVersion}" : "Android ${deviceSession.osVersion}",
-                                          style: const TextStyle(fontSize: 16),
+                                          style: const TextStyle(fontSize: AppFontSizes.body),
                                         ),
                                       ],
                                     ),

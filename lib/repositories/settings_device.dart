@@ -27,6 +27,10 @@ class SettingsDevice {
     await db.execute("UPDATE settingsDevice SET isBlurOnInactive = ?", [value ? 1 : 0]);
   }
 
+  Future<void> setFontScale(double value) async {
+    await db.execute("UPDATE settingsDevice SET fontScale = ?", [value]);
+  }
+
   Future<void> setPasscode(List<int> value) async {
     await db.execute("UPDATE settingsDevice SET passcode = ?", [value]);
   }

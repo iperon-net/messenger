@@ -12,6 +12,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../components.dart';
 import '../../i18n/translations.g.dart';
+import '../../themes.dart';
 
 class SettingsMyProfileMaterial extends StatefulWidget {
   const SettingsMyProfileMaterial({super.key});
@@ -80,10 +81,10 @@ class _SettingsMyProfileMaterial extends State<SettingsMyProfileMaterial> {
       title: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: TextStyle(fontSize: MediaQuery.textScalerOf(context).scale(14))),
+          Text(label, style: TextStyle(fontSize: AppFontSizes.label)),
           Text(
             value,
-            style: TextStyle(fontSize: MediaQuery.textScalerOf(context).scale(17), color: Theme.of(context).colorScheme.primary),
+            style: TextStyle(fontSize: AppFontSizes.value, color: Theme.of(context).colorScheme.primary),
           ),
         ],
       ),
@@ -152,7 +153,7 @@ class _SettingsMyProfileMaterial extends State<SettingsMyProfileMaterial> {
                         const SizedBox(height: 8),
                         Text(
                           context.t.screenMyProfile.editPhoto,
-                          style: TextStyle(fontSize: 16, color: Theme.of(context).colorScheme.primary),
+                          style: TextStyle(fontSize: AppFontSizes.body, color: Theme.of(context).colorScheme.primary),
                         ),
                       ],
                     ),

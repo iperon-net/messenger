@@ -16,6 +16,10 @@ class SettingsDeviceModel with SettingsDeviceModelMappable {
   final bool passcodeForceLocked;
   final int passcodeBackgroundedAt;
 
+  /// Пользовательский множитель размера шрифта (1.0 — обычный). Применяется
+  /// глобально через `MediaQuery.textScaler` в корнях приложения.
+  final double fontScale;
+
   const SettingsDeviceModel({
     this.locale,
     this.darkMode = DarkModeModel.system,
@@ -26,6 +30,7 @@ class SettingsDeviceModel with SettingsDeviceModelMappable {
     this.passcodeAutoLock = 0,
     this.passcodeForceLocked = false,
     this.passcodeBackgroundedAt = 0,
+    this.fontScale = 1.0,
   });
 
   factory SettingsDeviceModel.fromSqlite(Map<String, dynamic> data) {
@@ -38,6 +43,7 @@ class SettingsDeviceModel with SettingsDeviceModelMappable {
     final passcodeAutoLock = data['passcodeAutoLock'] ?? 0;
     final passcodeForceLocked = data['passcodeForceLocked'] ?? 0;
     final passcodeBackgroundedAt = data['passcodeBackgroundedAt'] ?? 0;
+    final fontScale = (data['fontScale'] as num?)?.toDouble() ?? 1.0;
 
     SettingsDeviceModel settingsDeviceModel = SettingsDeviceModel();
 
@@ -88,6 +94,8 @@ class SettingsDeviceModel with SettingsDeviceModelMappable {
     if (passcodeBackgroundedAt > 0) {
       settingsDeviceModel = settingsDeviceModel.copyWith(passcodeBackgroundedAt: passcodeBackgroundedAt);
     }
+
+    settingsDeviceModel = settingsDeviceModel.copyWith(fontScale: fontScale);
 
     return settingsDeviceModel;
   }

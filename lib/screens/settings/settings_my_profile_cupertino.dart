@@ -93,11 +93,11 @@ class _SettingsMyProfileCupertino extends State<SettingsMyProfileCupertino> {
       title: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(context.t.screenMyProfile.lastName, style: TextStyle(fontSize: MediaQuery.textScalerOf(context).scale(16))),
+          Text(context.t.screenMyProfile.lastName, style: TextStyle(fontSize: AppFontSizes.body)),
           Text(
             lastName,
             style: TextStyle(
-              fontSize: MediaQuery.textScalerOf(context).scale(17),
+              fontSize: AppFontSizes.value,
               color: CupertinoDynamicColor.withBrightness(
                 color: CupertinoTheme.of(context).primaryColor,
                 darkColor: CupertinoColors.white.withValues(alpha: 0.5),
@@ -116,11 +116,11 @@ class _SettingsMyProfileCupertino extends State<SettingsMyProfileCupertino> {
       title: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(context.t.screenMyProfile.firstName, style: TextStyle(fontSize: MediaQuery.textScalerOf(context).scale(16))),
+          Text(context.t.screenMyProfile.firstName, style: TextStyle(fontSize: AppFontSizes.body)),
           Text(
             firstName,
             style: TextStyle(
-              fontSize: MediaQuery.textScalerOf(context).scale(17),
+              fontSize: AppFontSizes.value,
               color: CupertinoDynamicColor.withBrightness(
                 color: CupertinoTheme.of(context).primaryColor,
                 darkColor: CupertinoColors.white.withValues(alpha: 0.5),
@@ -206,7 +206,7 @@ class _SettingsMyProfileCupertino extends State<SettingsMyProfileCupertino> {
                         Text(
                           context.t.screenMyProfile.editPhoto,
                           style: TextStyle(
-                            fontSize: 16,
+                            fontSize: AppFontSizes.body,
                             color: CupertinoDynamicColor.withBrightness(
                               color: CupertinoTheme.of(context).primaryColor,
                               darkColor: CupertinoColors.white,
@@ -246,14 +246,11 @@ class _SettingsMyProfileCupertino extends State<SettingsMyProfileCupertino> {
                         title: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              context.t.screenMyProfile.mobilePhone,
-                              style: TextStyle(fontSize: MediaQuery.textScalerOf(context).scale(16)),
-                            ),
+                            Text(context.t.screenMyProfile.mobilePhone, style: TextStyle(fontSize: AppFontSizes.body)),
                             Text(
                               state.phoneNumber,
                               style: TextStyle(
-                                fontSize: MediaQuery.textScalerOf(context).scale(17),
+                                fontSize: AppFontSizes.value,
                                 color: CupertinoDynamicColor.withBrightness(
                                   color: CupertinoTheme.of(context).primaryColor,
                                   darkColor: CupertinoColors.white.withValues(alpha: 0.5),
@@ -273,14 +270,11 @@ class _SettingsMyProfileCupertino extends State<SettingsMyProfileCupertino> {
                           title: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                context.t.screenMyProfile.username,
-                                style: TextStyle(fontSize: MediaQuery.textScalerOf(context).scale(16)),
-                              ),
+                              Text(context.t.screenMyProfile.username, style: TextStyle(fontSize: AppFontSizes.body)),
                               Text(
                                 '@${state.username}',
                                 style: TextStyle(
-                                  fontSize: MediaQuery.textScalerOf(context).scale(17),
+                                  fontSize: AppFontSizes.value,
                                   color: CupertinoDynamicColor.withBrightness(
                                     color: CupertinoTheme.of(context).primaryColor,
                                     darkColor: CupertinoColors.white.withValues(alpha: 0.5),

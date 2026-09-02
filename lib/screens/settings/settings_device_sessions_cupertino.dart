@@ -60,7 +60,7 @@ class _SettingsDeviceSessionsCupertino extends State<SettingsDeviceSessionsCuper
                         ),
                         header: Text(
                           context.t.screenSettingsDevices.thisDevice.toUpperCase(),
-                          style: TextStyle(fontSize: 13, fontWeight: FontWeight.normal),
+                          style: TextStyle(fontSize: AppFontSizes.caption, fontWeight: FontWeight.normal),
                         ),
                         children: [
                           CupertinoListTile(
@@ -87,7 +87,7 @@ class _SettingsDeviceSessionsCupertino extends State<SettingsDeviceSessionsCuper
                                 Text(currentSession.deviceModel),
                                 Text(
                                   currentSession.os == 1 ? "iOS ${currentSession.osVersion}" : "Android ${currentSession.osVersion}",
-                                  style: TextStyle(fontSize: 16),
+                                  style: TextStyle(fontSize: AppFontSizes.body),
                                 ),
                               ],
                             ),
@@ -126,7 +126,7 @@ class _SettingsDeviceSessionsCupertino extends State<SettingsDeviceSessionsCuper
                           ),
                           header: Text(
                             context.t.screenSettingsDevices.activeDeviceSession.toUpperCase(),
-                            style: TextStyle(fontSize: 13, fontWeight: FontWeight.normal),
+                            style: TextStyle(fontSize: AppFontSizes.caption, fontWeight: FontWeight.normal),
                           ),
                           children: [
                             for (final deviceSession
@@ -176,7 +176,7 @@ class _SettingsDeviceSessionsCupertino extends State<SettingsDeviceSessionsCuper
                                           FaIcon(FontAwesomeIcons.circleXmark, size: 20, color: CupertinoColors.white),
                                           Text(
                                             context.t.screenSettingsDevices.terminate,
-                                            style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                                            style: TextStyle(fontSize: AppFontSizes.badge, fontWeight: FontWeight.bold),
                                           ),
                                         ],
                                       ),
@@ -207,7 +207,7 @@ class _SettingsDeviceSessionsCupertino extends State<SettingsDeviceSessionsCuper
                                       Text(deviceSession.deviceModel),
                                       Text(
                                         deviceSession.os == 1 ? "iOS ${deviceSession.osVersion}" : "Android ${deviceSession.osVersion}",
-                                        style: TextStyle(fontSize: 16),
+                                        style: TextStyle(fontSize: AppFontSizes.body),
                                       ),
                                     ],
                                   ),

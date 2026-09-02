@@ -164,7 +164,8 @@ class _IperonMessengerCupertino extends State<IperonMessengerCupertino> with Wid
         }
 
         return MediaQuery(
-          data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(0.95)),
+          // Компактный базовый масштаб (`uiScale`) × пользовательский `fontScale`.
+          data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(AppFontSizes.uiScale * state.settingsDevice.fontScale)),
           child: CupertinoApp.router(
             debugShowCheckedModeBanner: kDebugMode,
             routerConfig: goRouter,

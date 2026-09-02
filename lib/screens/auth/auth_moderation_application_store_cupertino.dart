@@ -8,6 +8,7 @@ import '../../components.dart';
 import '../../constants.dart';
 import '../../cubit.dart';
 import '../../i18n/translations.g.dart';
+import '../../themes.dart';
 
 class AuthModerationApplicationStoreCupertino extends StatefulWidget {
   const AuthModerationApplicationStoreCupertino({super.key});
@@ -76,7 +77,7 @@ class _AuthModerationApplicationStoreCupertino extends State<AuthModerationAppli
                               child: Text(
                                 context.t.screenAuthModerationApplicationStore.enterTheCode,
                                 textAlign: TextAlign.center,
-                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: const TextScaler.linear(1.3).scale(16)),
+                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: AppFontSizes.emphasis),
                               ),
                             ),
                             Padding(
@@ -153,7 +154,7 @@ class _AuthModerationApplicationStoreCupertino extends State<AuthModerationAppli
                                     CupertinoDynamicColor.withBrightness(color: Color(0xff1b263b), darkColor: Color(0xffffffff)),
                                     context,
                                   ),
-                                  fontSize: const TextScaler.linear(1.5).scale(16),
+                                  fontSize: AppFontSizes.emphasisLarge,
                                 ),
                               ),
                             ),

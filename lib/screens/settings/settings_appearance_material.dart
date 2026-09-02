@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../cubit.dart';
 import '../../i18n/translations.g.dart';
 import '../../models/constants.dart';
+import '../../themes.dart';
 
 class SettingsAppearanceMaterial extends StatefulWidget {
   const SettingsAppearanceMaterial({super.key});
@@ -15,7 +16,10 @@ class SettingsAppearanceMaterial extends StatefulWidget {
 class _SettingsAppearanceMaterial extends State<SettingsAppearanceMaterial> {
   Widget _sectionHeader(BuildContext context, String text) => Padding(
     padding: const EdgeInsets.fromLTRB(24, 16, 24, 4),
-    child: Text(text.toUpperCase(), style: TextStyle(fontSize: 13, color: Theme.of(context).colorScheme.primary)),
+    child: Text(
+      text.toUpperCase(),
+      style: TextStyle(fontSize: AppFontSizes.caption, color: Theme.of(context).colorScheme.primary),
+    ),
   );
 
   @override
@@ -100,7 +104,64 @@ class _SettingsAppearanceMaterial extends State<SettingsAppearanceMaterial> {
                   padding: const EdgeInsets.fromLTRB(24, 8, 24, 16),
                   child: Text(
                     context.t.screenSettingsAppearance.blurOnInactiveDescription,
-                    style: TextStyle(fontSize: 13, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                    style: TextStyle(fontSize: AppFontSizes.caption, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                  ),
+                ),
+                _sectionHeader(context, context.t.screenSettingsAppearance.fontSize),
+                Card(
+                  margin: const EdgeInsets.symmetric(horizontal: 12),
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+                    // Живой предпросмотр: слайдер двигает CommonCubit (без записи в БД),
+                    // сам масштаб глобально применяется через MediaQuery в корне
+                    // приложения — поэтому и образец, и весь экран растут сразу.
+                    // Запись в БД — на onChangeEnd через SettingsAppearanceCubit.
+                    child: BlocBuilder<CommonCubit, CommonState>(
+                      builder: (context, common) {
+                        final scale = common.settingsDevice.fontScale;
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(context.t.screenSettingsAppearance.fontSizeSample),
+                            Row(
+                              children: [
+                                Text('A', style: TextStyle(fontSize: AppFontSizes.caption)),
+                                Expanded(
+                                  child: Slider(
+                                    value: scale,
+                                    min: AppFontSizes.minFontScale,
+                                    max: AppFontSizes.maxFontScale,
+                                    divisions: AppFontSizes.fontScaleDivisions,
+                                    onChanged: (v) => context.read<CommonCubit>().setFontScale(scale: v),
+                                    onChangeEnd: (v) => context.read<SettingsAppearanceCubit>().setFontScale(fontScale: v),
+                                  ),
+                                ),
+                                Text('A', style: TextStyle(fontSize: AppFontSizes.appBarTitle)),
+                              ],
+                            ),
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: TextButton(
+                                onPressed: scale == 1.0
+                                    ? null
+                                    : () {
+                                        context.read<CommonCubit>().setFontScale(scale: 1.0);
+                                        context.read<SettingsAppearanceCubit>().setFontScale(fontScale: 1.0);
+                                      },
+                                child: Text(context.t.screenSettingsAppearance.fontSizeReset),
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 8, 24, 16),
+                  child: Text(
+                    context.t.screenSettingsAppearance.fontSizeDescription,
+                    style: TextStyle(fontSize: AppFontSizes.caption, color: Theme.of(context).colorScheme.onSurfaceVariant),
                   ),
                 ),
               ],

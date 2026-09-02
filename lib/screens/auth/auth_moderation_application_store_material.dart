@@ -7,6 +7,7 @@ import 'package:pin_code_fields/pin_code_fields.dart';
 import '../../constants.dart';
 import '../../cubit.dart';
 import '../../i18n/translations.g.dart';
+import '../../themes.dart';
 
 class AuthModerationApplicationStoreMaterial extends StatefulWidget {
   const AuthModerationApplicationStoreMaterial({super.key});
@@ -69,7 +70,7 @@ class _AuthModerationApplicationStoreMaterial extends State<AuthModerationApplic
                               child: Text(
                                 context.t.screenAuthModerationApplicationStore.enterTheCode,
                                 textAlign: TextAlign.center,
-                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: const TextScaler.linear(1.3).scale(16)),
+                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: AppFontSizes.emphasis),
                               ),
                             ),
                             Padding(
@@ -106,7 +107,7 @@ class _AuthModerationApplicationStoreMaterial extends State<AuthModerationApplic
                                 completeBorderColor: accent,
                                 followingBorderColor: accent,
                                 cursorColor: accent,
-                                textStyle: TextStyle(color: accent, fontSize: const TextScaler.linear(1.5).scale(16)),
+                                textStyle: TextStyle(color: accent, fontSize: AppFontSizes.emphasisLarge),
                               ),
                             ),
                           ],

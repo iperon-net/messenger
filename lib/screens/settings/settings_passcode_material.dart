@@ -91,7 +91,7 @@ class _SettingsPasscodeMaterial extends State<SettingsPasscodeMaterial> {
                     padding: const EdgeInsets.fromLTRB(24, 8, 24, 12),
                     child: Text(
                       context.t.screenSettingsPasscode.note,
-                      style: TextStyle(fontSize: 13, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                      style: TextStyle(fontSize: AppFontSizes.caption, color: Theme.of(context).colorScheme.onSurfaceVariant),
                     ),
                   ),
                   Card(

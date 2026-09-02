@@ -156,6 +156,13 @@ class Repositories {
       }),
     );
 
+    migrations.add(
+      SqliteMigration(2, (tx) async {
+        // Пользовательский множитель размера шрифта (1.0 — обычный).
+        await tx.execute("ALTER TABLE settingsDevice ADD COLUMN fontScale REAL NOT NULL DEFAULT 1.0");
+      }),
+    );
+
     if (settings.isDeleteDatabase) {
       logger.warning("Deleting the database, flag set IS_DELETE_DATABASE: 1");
 

@@ -101,7 +101,7 @@ class _SettingsPasscodeCupertino extends State<SettingsPasscodeCupertino> {
                     ),
                     footer: Padding(
                       padding: const EdgeInsets.only(left: 13),
-                      child: Text(context.t.screenSettingsPasscode.note, style: TextStyle(fontSize: 13)),
+                      child: Text(context.t.screenSettingsPasscode.note, style: TextStyle(fontSize: AppFontSizes.caption)),
                     ),
                     children: [
                       CupertinoListTile(

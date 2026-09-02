@@ -6,6 +6,7 @@ import 'package:flutter_screen_lock/flutter_screen_lock.dart';
 import 'package:flutter/material.dart' as fm show ButtonStyle, WidgetStatePropertyAll, CircleBorder, BorderSide;
 
 import '../models.dart';
+import 'typography.dart';
 
 /// Material-темы приложения (Android). Собираются из выбранного пользователем
 /// [ColorThemeModel] через `ColorScheme.fromSeed`, аналогично тому, как
@@ -48,8 +49,14 @@ class ThemesMaterial {
   static const Color _navBarLight = Color(0xFFF9F9F9);
   static const Color _navBarDark = Color(0xFF12192A);
 
-  ThemeData theme({required ColorThemeModel colorTheme, required Brightness brightness}) {
+  ThemeData theme({required ColorThemeModel colorTheme, required Brightness brightness, double baseFontSize = AppFontSizes.base}) {
     final isDark = brightness == Brightness.dark;
+
+    // Размеры темы считаются как коэффициент семантической роли к базе
+    // ([AppFontSizes]), поэтому `baseFontSize` пропорционально масштабирует
+    // всю типографику (задел под пользовательскую настройку размера текста).
+    final listTitleSize = baseFontSize * (AppFontSizes.listTitle / AppFontSizes.base);
+    final appBarTitleSize = baseFontSize * (AppFontSizes.appBarTitle / AppFontSizes.base);
 
     final grouped = isDark ? _groupedBackgroundDark : _groupedBackgroundLight;
     final card = isDark ? _cardDark : _cardLight;
@@ -90,14 +97,14 @@ class ThemesMaterial {
         iconColor: colorScheme.primary,
         // `onSurface` инвертируется под brightness: тёмный текст в светлой теме,
         // светлый — в тёмной. `scrim` был всегда чёрным → невидим в тёмной теме.
-        titleTextStyle: TextStyle(fontSize: 15, color: colorScheme.onSurface),
+        titleTextStyle: TextStyle(fontSize: listTitleSize, color: colorScheme.onSurface),
         // Компактные плитки настроек: меньше вертикальные отступы → ниже боксы.
         minVerticalPadding: 10,
       ),
       // AppBar — в тон карточек (`card`), плоский: без тонирования по elevation
       // при скролле, как навбар Cupertino.
       appBarTheme: AppBarTheme(
-        titleTextStyle: TextStyle(fontSize: 18, color: colorScheme.onSurface),
+        titleTextStyle: TextStyle(fontSize: appBarTitleSize, color: colorScheme.onSurface),
         centerTitle: true,
         backgroundColor: card,
         surfaceTintColor: Colors.transparent,

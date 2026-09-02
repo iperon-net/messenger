@@ -138,54 +138,58 @@ class _IperonMessengerMaterial extends State<IperonMessengerMaterial> with Widge
           themeMode = ThemeMode.light;
         }
 
-        return MaterialApp.router(
-          debugShowCheckedModeBanner: kDebugMode,
-          routerConfig: goRouter,
-          localizationsDelegates: const <LocalizationsDelegate<Object>>[
-            GlobalMaterialLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-            // Flutter-овские Material/Cupertino Localizations (см. импорт выше) —
-            // нужны Flutter-виджетам (тулбар выделения текста в pin_code_fields).
-            flutter_l10n.GlobalMaterialLocalizations.delegate,
-            flutter_l10n.GlobalCupertinoLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-          ],
-          supportedLocales: AppLocaleUtils.supportedLocales,
-          locale: TranslationProvider.of(context).flutterLocale,
-          theme: themes.theme(colorTheme: colorTheme, brightness: Brightness.light),
-          darkTheme: themes.theme(colorTheme: colorTheme, brightness: Brightness.dark),
-          themeMode: themeMode,
-          builder: (context, child) {
-            if (!state.isAuthRoute && state.settingsDevice.passcode.isNotEmpty && state.isLocked) {
-              return ScreenLock(
-                correctString: '0000',
-                onValidate: (input) => context.read<CommonCubit>().verifyPasscode(input),
-                onUnlocked: () => context.read<CommonCubit>().unlock(),
-                useBlur: false,
-                keyPadConfig: ThemesMaterial.screenLockKeyPad(context),
-                config: ThemesMaterial.screenLockConfig(context),
-                title: Text(context.t.common.biometricPleaseEnterPasscode),
-                customizedButtonChild: state.settingsDevice.passcodeBiometric && state.isBiometricAvailable
-                    ? const Icon(Icons.fingerprint, size: 48)
-                    : null,
-                customizedButtonTap: () async =>
-                    state.settingsDevice.passcodeBiometric && state.isBiometricAvailable ? await localAuth(context) : null,
-                onOpened: () async => state.settingsDevice.passcodeBiometric && state.isBiometricAvailable && state.autoBiometrics
-                    ? await localAuth(context)
-                    : null,
-              );
-            }
+        return MediaQuery(
+          // Компактный базовый масштаб (`uiScale`) × пользовательский `fontScale`.
+          data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(AppFontSizes.uiScale * state.settingsDevice.fontScale)),
+          child: MaterialApp.router(
+            debugShowCheckedModeBanner: kDebugMode,
+            routerConfig: goRouter,
+            localizationsDelegates: const <LocalizationsDelegate<Object>>[
+              GlobalMaterialLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+              // Flutter-овские Material/Cupertino Localizations (см. импорт выше) —
+              // нужны Flutter-виджетам (тулбар выделения текста в pin_code_fields).
+              flutter_l10n.GlobalMaterialLocalizations.delegate,
+              flutter_l10n.GlobalCupertinoLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+            ],
+            supportedLocales: AppLocaleUtils.supportedLocales,
+            locale: TranslationProvider.of(context).flutterLocale,
+            theme: themes.theme(colorTheme: colorTheme, brightness: Brightness.light),
+            darkTheme: themes.theme(colorTheme: colorTheme, brightness: Brightness.dark),
+            themeMode: themeMode,
+            builder: (context, child) {
+              if (!state.isAuthRoute && state.settingsDevice.passcode.isNotEmpty && state.isLocked) {
+                return ScreenLock(
+                  correctString: '0000',
+                  onValidate: (input) => context.read<CommonCubit>().verifyPasscode(input),
+                  onUnlocked: () => context.read<CommonCubit>().unlock(),
+                  useBlur: false,
+                  keyPadConfig: ThemesMaterial.screenLockKeyPad(context),
+                  config: ThemesMaterial.screenLockConfig(context),
+                  title: Text(context.t.common.biometricPleaseEnterPasscode),
+                  customizedButtonChild: state.settingsDevice.passcodeBiometric && state.isBiometricAvailable
+                      ? const Icon(Icons.fingerprint, size: 48)
+                      : null,
+                  customizedButtonTap: () async =>
+                      state.settingsDevice.passcodeBiometric && state.isBiometricAvailable ? await localAuth(context) : null,
+                  onOpened: () async => state.settingsDevice.passcodeBiometric && state.isBiometricAvailable && state.autoBiometrics
+                      ? await localAuth(context)
+                      : null,
+                );
+              }
 
-            if (state.settingsDevice.isBlurOnInactive && isBlur) {
-              return Blur(
-                blur: 5,
-                blurColor: Theme.of(context).brightness == Brightness.dark ? Colors.black54 : Colors.white54,
-                child: child ?? const SizedBox.shrink(),
-              );
-            }
+              if (state.settingsDevice.isBlurOnInactive && isBlur) {
+                return Blur(
+                  blur: 5,
+                  blurColor: Theme.of(context).brightness == Brightness.dark ? Colors.black54 : Colors.white54,
+                  child: child ?? const SizedBox.shrink(),
+                );
+              }
 
-            return child ?? const SizedBox.shrink();
-          },
+              return child ?? const SizedBox.shrink();
+            },
+          ),
         );
       },
     );

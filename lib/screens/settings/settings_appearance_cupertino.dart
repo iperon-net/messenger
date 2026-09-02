@@ -73,7 +73,7 @@ class _SettingsAppearanceCupertino extends State<SettingsAppearanceCupertino> {
                   ),
                   header: Text(
                     context.t.screenSettingsAppearance.colorTheme.toUpperCase(),
-                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.normal),
+                    style: TextStyle(fontSize: AppFontSizes.caption, fontWeight: FontWeight.normal),
                   ),
                   children: [
                     CupertinoListTile(
@@ -107,7 +107,7 @@ class _SettingsAppearanceCupertino extends State<SettingsAppearanceCupertino> {
                   ),
                   header: Text(
                     context.t.screenSettingsAppearance.darkMode.toUpperCase(),
-                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.normal),
+                    style: TextStyle(fontSize: AppFontSizes.caption, fontWeight: FontWeight.normal),
                   ),
                   children: [
                     CupertinoListTile(
@@ -140,7 +140,7 @@ class _SettingsAppearanceCupertino extends State<SettingsAppearanceCupertino> {
                     padding: const EdgeInsets.only(left: 13),
                     child: Text(
                       context.t.screenSettingsAppearance.blurOnInactiveDescription,
-                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.normal),
+                      style: TextStyle(fontSize: AppFontSizes.caption, fontWeight: FontWeight.normal),
                     ),
                   ),
                   children: [
@@ -152,6 +152,71 @@ class _SettingsAppearanceCupertino extends State<SettingsAppearanceCupertino> {
                         onChanged: (bool value) async =>
                             await context.read<SettingsAppearanceCubit>().setIsBlurOnInactive(isBlurOnInactive: value),
                       ),
+                    ),
+                  ],
+                ),
+                CupertinoListSection.insetGrouped(
+                  backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
+                  decoration: BoxDecoration(
+                    color: ThemesCupertino.groupedCard.resolveFrom(context),
+                    borderRadius: const BorderRadius.all(Radius.circular(10)),
+                  ),
+                  header: Text(
+                    context.t.screenSettingsAppearance.fontSize.toUpperCase(),
+                    style: TextStyle(fontSize: AppFontSizes.caption, fontWeight: FontWeight.normal),
+                  ),
+                  footer: Padding(
+                    padding: const EdgeInsets.only(left: 13),
+                    child: Text(
+                      context.t.screenSettingsAppearance.fontSizeDescription,
+                      style: TextStyle(fontSize: AppFontSizes.caption, fontWeight: FontWeight.normal),
+                    ),
+                  ),
+                  // Живой предпросмотр: слайдер двигает CommonCubit (без записи в
+                  // БД) — масштаб применяется глобально через MediaQuery в корне
+                  // приложения. Запись в БД — на onChangeEnd через кубит экрана.
+                  children: [
+                    CupertinoListTile(title: Text(context.t.screenSettingsAppearance.fontSizeSample)),
+                    BlocBuilder<CommonCubit, CommonState>(
+                      builder: (context, common) {
+                        final scale = common.settingsDevice.fontScale;
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                          child: Column(
+                            children: [
+                              Row(
+                                children: [
+                                  Text('A', style: TextStyle(fontSize: AppFontSizes.caption)),
+                                  Expanded(
+                                    child: CupertinoSlider(
+                                      value: scale,
+                                      min: AppFontSizes.minFontScale,
+                                      max: AppFontSizes.maxFontScale,
+                                      divisions: AppFontSizes.fontScaleDivisions,
+                                      onChanged: (v) => context.read<CommonCubit>().setFontScale(scale: v),
+                                      onChangeEnd: (v) => context.read<SettingsAppearanceCubit>().setFontScale(fontScale: v),
+                                    ),
+                                  ),
+                                  Text('A', style: TextStyle(fontSize: AppFontSizes.appBarTitle)),
+                                ],
+                              ),
+                              Align(
+                                alignment: Alignment.centerRight,
+                                child: CupertinoButton(
+                                  padding: EdgeInsets.zero,
+                                  onPressed: scale == 1.0
+                                      ? null
+                                      : () {
+                                          context.read<CommonCubit>().setFontScale(scale: 1.0);
+                                          context.read<SettingsAppearanceCubit>().setFontScale(fontScale: 1.0);
+                                        },
+                                  child: Text(context.t.screenSettingsAppearance.fontSizeReset),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
                     ),
                   ],
                 ),
