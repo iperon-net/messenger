@@ -11,13 +11,11 @@ class SettingsAppearanceState with SettingsAppearanceStateMappable {
   final ColorThemeModel colorTheme;
   final DarkModeModel darkMode;
   final bool isBlurOnInactive;
-  final double fontScale;
 
   const SettingsAppearanceState({
     this.status = Status.initialization,
     this.colorTheme = ColorThemeModel.blue,
     this.darkMode = DarkModeModel.system,
     this.isBlurOnInactive = false,
-    this.fontScale = 1.0,
   });
 }

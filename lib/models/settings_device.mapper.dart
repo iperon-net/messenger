@@ -85,13 +85,6 @@ class SettingsDeviceModelMapper extends ClassMapperBase<SettingsDeviceModel> {
         opt: true,
         def: 0,
       );
-  static double _$fontScale(SettingsDeviceModel v) => v.fontScale;
-  static const Field<SettingsDeviceModel, double> _f$fontScale = Field(
-    'fontScale',
-    _$fontScale,
-    opt: true,
-    def: 1.0,
-  );
 
   @override
   final MappableFields<SettingsDeviceModel> fields = const {
@@ -104,7 +97,6 @@ class SettingsDeviceModelMapper extends ClassMapperBase<SettingsDeviceModel> {
     #passcodeAutoLock: _f$passcodeAutoLock,
     #passcodeForceLocked: _f$passcodeForceLocked,
     #passcodeBackgroundedAt: _f$passcodeBackgroundedAt,
-    #fontScale: _f$fontScale,
   };
 
   static SettingsDeviceModel _instantiate(DecodingData data) {
@@ -118,7 +110,6 @@ class SettingsDeviceModelMapper extends ClassMapperBase<SettingsDeviceModel> {
       passcodeAutoLock: data.dec(_f$passcodeAutoLock),
       passcodeForceLocked: data.dec(_f$passcodeForceLocked),
       passcodeBackgroundedAt: data.dec(_f$passcodeBackgroundedAt),
-      fontScale: data.dec(_f$fontScale),
     );
   }
 
@@ -203,7 +194,6 @@ abstract class SettingsDeviceModelCopyWith<
     int? passcodeAutoLock,
     bool? passcodeForceLocked,
     int? passcodeBackgroundedAt,
-    double? fontScale,
   });
   SettingsDeviceModelCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
     Then<$Out2, $R2> t,
@@ -236,7 +226,6 @@ class _SettingsDeviceModelCopyWithImpl<$R, $Out>
     int? passcodeAutoLock,
     bool? passcodeForceLocked,
     int? passcodeBackgroundedAt,
-    double? fontScale,
   }) => $apply(
     FieldCopyWithData({
       if (locale != $none) #locale: locale,
@@ -250,7 +239,6 @@ class _SettingsDeviceModelCopyWithImpl<$R, $Out>
         #passcodeForceLocked: passcodeForceLocked,
       if (passcodeBackgroundedAt != null)
         #passcodeBackgroundedAt: passcodeBackgroundedAt,
-      if (fontScale != null) #fontScale: fontScale,
     }),
   );
   @override
@@ -273,7 +261,6 @@ class _SettingsDeviceModelCopyWithImpl<$R, $Out>
       #passcodeBackgroundedAt,
       or: $value.passcodeBackgroundedAt,
     ),
-    fontScale: data.get(#fontScale, or: $value.fontScale),
   );
 
   @override

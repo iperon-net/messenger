@@ -57,10 +57,6 @@
   "darkModeDisabledDescription": "Dark mode is disabled"
   "blurOnInactive": "Blur on inactive"
   "blurOnInactiveDescription": "The app appears blurry in the list of open apps"
-  "fontSize": "Text size"
-  "fontSizeDescription": "Affects text size throughout the app"
-  "fontSizeSample": "The quick brown fox"
-  "fontSizeReset": "Reset"
 
 "screenSettingsDevices":
   "devices": "Devices"

@@ -57,10 +57,6 @@
   "darkModeDisabledDescription": "Тёмная тема отключена"
   "blurOnInactive": "Размытие в неактивном состоянии"
   "blurOnInactiveDescription": "Приложение отображается размытым в списке открытых приложений"
-  "fontSize": "Размер текста"
-  "fontSizeDescription": "Влияет на размер текста во всём приложении"
-  "fontSizeSample": "Съешь ещё этих булочек"
-  "fontSizeReset": "Сбросить"
 
 "screenSettingsDevices":
   "devices": "Устройства"

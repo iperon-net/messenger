@@ -49,13 +49,6 @@ class SettingsAppearanceStateMapper
     opt: true,
     def: false,
   );
-  static double _$fontScale(SettingsAppearanceState v) => v.fontScale;
-  static const Field<SettingsAppearanceState, double> _f$fontScale = Field(
-    'fontScale',
-    _$fontScale,
-    opt: true,
-    def: 1.0,
-  );
 
   @override
   final MappableFields<SettingsAppearanceState> fields = const {
@@ -63,7 +56,6 @@ class SettingsAppearanceStateMapper
     #colorTheme: _f$colorTheme,
     #darkMode: _f$darkMode,
     #isBlurOnInactive: _f$isBlurOnInactive,
-    #fontScale: _f$fontScale,
   };
 
   static SettingsAppearanceState _instantiate(DecodingData data) {
@@ -72,7 +64,6 @@ class SettingsAppearanceStateMapper
       colorTheme: data.dec(_f$colorTheme),
       darkMode: data.dec(_f$darkMode),
       isBlurOnInactive: data.dec(_f$isBlurOnInactive),
-      fontScale: data.dec(_f$fontScale),
     );
   }
 
@@ -151,7 +142,6 @@ abstract class SettingsAppearanceStateCopyWith<
     ColorThemeModel? colorTheme,
     DarkModeModel? darkMode,
     bool? isBlurOnInactive,
-    double? fontScale,
   });
   SettingsAppearanceStateCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
     Then<$Out2, $R2> t,
@@ -173,14 +163,12 @@ class _SettingsAppearanceStateCopyWithImpl<$R, $Out>
     ColorThemeModel? colorTheme,
     DarkModeModel? darkMode,
     bool? isBlurOnInactive,
-    double? fontScale,
   }) => $apply(
     FieldCopyWithData({
       if (status != null) #status: status,
       if (colorTheme != null) #colorTheme: colorTheme,
       if (darkMode != null) #darkMode: darkMode,
       if (isBlurOnInactive != null) #isBlurOnInactive: isBlurOnInactive,
-      if (fontScale != null) #fontScale: fontScale,
     }),
   );
   @override
@@ -189,7 +177,6 @@ class _SettingsAppearanceStateCopyWithImpl<$R, $Out>
     colorTheme: data.get(#colorTheme, or: $value.colorTheme),
     darkMode: data.get(#darkMode, or: $value.darkMode),
     isBlurOnInactive: data.get(#isBlurOnInactive, or: $value.isBlurOnInactive),
-    fontScale: data.get(#fontScale, or: $value.fontScale),
   );
 
   @override

@@ -11,24 +11,6 @@ abstract final class AppFontSizes {
   /// Базовый размер, от которого считаются остальные (Material-роль `bodyLarge`).
   static const double base = 16.0;
 
-  /// Глобальный масштаб текста всего приложения — компактный вид «как было».
-  /// Применяется через `MediaQuery.textScaler` в корнях `app_*.dart` и
-  /// домножается на пользовательский [SettingsDeviceModel.fontScale].
-  static const double uiScale = 0.95;
-
-  /// Границы и шаг пользовательской настройки размера текста (множитель вокруг
-  /// 1.0 = «обычный»). Используются слайдером на экране внешнего вида.
-  static const double minFontScale = 0.85;
-  static const double maxFontScale = 1.30;
-  static const int fontScaleDivisions = 9; // шаг 0.05 на диапазоне 0.85..1.30
-
-  /// Ближайшее к [value] допустимое значение множителя, привязанное к сетке
-  /// делений слайдера. Защищает от «грязных» значений из БД/UI.
-  static double clampFontScale(double value) {
-    if (value.isNaN) return 1.0;
-    return value.clamp(minFontScale, maxFontScale).toDouble();
-  }
-
   /// 12 — мелкие бейджи (напр. метка текущей сессии).
   static const double badge = base * (12 / 16);
 

@@ -139,8 +139,7 @@ class _IperonMessengerMaterial extends State<IperonMessengerMaterial> with Widge
         }
 
         return MediaQuery(
-          // Компактный базовый масштаб (`uiScale`) × пользовательский `fontScale`.
-          data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(AppFontSizes.uiScale * state.settingsDevice.fontScale)),
+          data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(0.95)),
           child: MaterialApp.router(
             debugShowCheckedModeBanner: kDebugMode,
             routerConfig: goRouter,

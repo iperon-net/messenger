@@ -260,18 +260,6 @@ class Translations$screenSettingsAppearance$en {
 
 	/// en: 'The app appears blurry in the list of open apps'
 	String get blurOnInactiveDescription => 'The app appears blurry in the list of open apps';
-
-	/// en: 'Text size'
-	String get fontSize => 'Text size';
-
-	/// en: 'Affects text size throughout the app'
-	String get fontSizeDescription => 'Affects text size throughout the app';
-
-	/// en: 'The quick brown fox'
-	String get fontSizeSample => 'The quick brown fox';
-
-	/// en: 'Reset'
-	String get fontSizeReset => 'Reset';
 }
 
 // Path: screenSettingsDevices
@@ -736,10 +724,6 @@ extension on Translations {
 			'screenSettingsAppearance.darkModeDisabledDescription' => 'Dark mode is disabled',
 			'screenSettingsAppearance.blurOnInactive' => 'Blur on inactive',
 			'screenSettingsAppearance.blurOnInactiveDescription' => 'The app appears blurry in the list of open apps',
-			'screenSettingsAppearance.fontSize' => 'Text size',
-			'screenSettingsAppearance.fontSizeDescription' => 'Affects text size throughout the app',
-			'screenSettingsAppearance.fontSizeSample' => 'The quick brown fox',
-			'screenSettingsAppearance.fontSizeReset' => 'Reset',
 			'screenSettingsDevices.devices' => 'Devices',
 			'screenSettingsDevices.thisDevice' => 'This device',
 			'screenSettingsDevices.deviceSessionListTileSubtitle' => ({required Object location, required Object updateAt}) => '${location} · ${updateAt}',

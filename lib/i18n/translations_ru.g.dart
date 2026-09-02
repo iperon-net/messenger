@@ -167,10 +167,6 @@ class _Translations$screenSettingsAppearance$ru extends Translations$screenSetti
 	@override String get darkModeDisabledDescription => 'Тёмная тема отключена';
 	@override String get blurOnInactive => 'Размытие в неактивном состоянии';
 	@override String get blurOnInactiveDescription => 'Приложение отображается размытым в списке открытых приложений';
-	@override String get fontSize => 'Размер текста';
-	@override String get fontSizeDescription => 'Влияет на размер текста во всём приложении';
-	@override String get fontSizeSample => 'Съешь ещё этих булочек';
-	@override String get fontSizeReset => 'Сбросить';
 }
 
 // Path: screenSettingsDevices
@@ -439,10 +435,6 @@ extension on TranslationsRu {
 			'screenSettingsAppearance.darkModeDisabledDescription' => 'Тёмная тема отключена',
 			'screenSettingsAppearance.blurOnInactive' => 'Размытие в неактивном состоянии',
 			'screenSettingsAppearance.blurOnInactiveDescription' => 'Приложение отображается размытым в списке открытых приложений',
-			'screenSettingsAppearance.fontSize' => 'Размер текста',
-			'screenSettingsAppearance.fontSizeDescription' => 'Влияет на размер текста во всём приложении',
-			'screenSettingsAppearance.fontSizeSample' => 'Съешь ещё этих булочек',
-			'screenSettingsAppearance.fontSizeReset' => 'Сбросить',
 			'screenSettingsDevices.devices' => 'Устройства',
 			'screenSettingsDevices.thisDevice' => 'Это устройство',
 			'screenSettingsDevices.deviceSessionListTileSubtitle' => ({required Object location, required Object updateAt}) => '${location} · ${updateAt}',

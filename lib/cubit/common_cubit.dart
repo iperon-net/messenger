@@ -11,7 +11,6 @@ import '../di.dart';
 import '../i18n/translations.g.dart';
 import '../logger.dart';
 import '../models.dart';
-import '../themes.dart';
 import '../utils.dart';
 
 import 'common_state.dart';
@@ -193,13 +192,6 @@ class CommonCubit extends Cubit<CommonState> {
 
   Future<void> setIsBlurOnInactive({required bool isBlurOnInactive}) async {
     final settingsDevice = state.settingsDevice.copyWith(isBlurOnInactive: isBlurOnInactive);
-    emit(state.copyWith(status: Status.success, settingsDevice: settingsDevice));
-  }
-
-  /// Живое применение масштаба шрифта (persist — в [SettingsAppearanceCubit]).
-  /// Значение приводится к допустимому диапазону перед показом.
-  Future<void> setFontScale({required double scale}) async {
-    final settingsDevice = state.settingsDevice.copyWith(fontScale: AppFontSizes.clampFontScale(scale));
     emit(state.copyWith(status: Status.success, settingsDevice: settingsDevice));
   }
 

@@ -6,7 +6,6 @@ import '../../logger.dart';
 import '../../repositories.dart';
 
 import '../../models/constants.dart';
-import '../../themes.dart';
 import 'settings_appearance_state.dart';
 
 class SettingsAppearanceCubit extends Cubit<SettingsAppearanceState> {
@@ -19,18 +18,9 @@ class SettingsAppearanceCubit extends Cubit<SettingsAppearanceState> {
     required ColorThemeModel colorTheme,
     required DarkModeModel darkMode,
     required bool isBlurOnInactive,
-    required double fontScale,
   }) async {
     emit(state.copyWith(status: Status.loading));
-    emit(
-      state.copyWith(
-        status: Status.success,
-        colorTheme: colorTheme,
-        darkMode: darkMode,
-        isBlurOnInactive: isBlurOnInactive,
-        fontScale: fontScale,
-      ),
-    );
+    emit(state.copyWith(status: Status.success, colorTheme: colorTheme, darkMode: darkMode, isBlurOnInactive: isBlurOnInactive));
   }
 
   Future<void> setColorTheme({required ColorThemeModel colorTheme}) async {
@@ -49,11 +39,5 @@ class SettingsAppearanceCubit extends Cubit<SettingsAppearanceState> {
     emit(state.copyWith(status: Status.loading));
     await repositories.settingsDevice.setIsBlurOnInactive(isBlurOnInactive);
     emit(state.copyWith(status: Status.success, isBlurOnInactive: isBlurOnInactive));
-  }
-
-  Future<void> setFontScale({required double fontScale}) async {
-    final clamped = AppFontSizes.clampFontScale(fontScale);
-    await repositories.settingsDevice.setFontScale(clamped);
-    emit(state.copyWith(status: Status.success, fontScale: clamped));
   }
 }
