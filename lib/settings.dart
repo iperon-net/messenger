@@ -18,7 +18,13 @@ class Settings {
   Settings._();
 
   Future<void> _initialization() async {
-    if (kDebugMode) await dotenv.load(isOptional: true);
+    // dotenv нужно грузить в ОБОИХ режимах: flutter_dotenv 6.x бросает
+    // NotInitializedError на любой dotenv.get(...) даже с fallback, если load()
+    // не вызывали. Раньше (до fd0770e) загрузка была безусловной; ограничение
+    // её дебагом ломало release-старт (крэш в Repositories на settings.databaseName).
+    // isOptional: true — если ассета .env нет, load всё равно инициализирует dotenv,
+    // а геттеры откатятся к Remote Config.
+    await dotenv.load(isOptional: true);
 
     await remoteConfig.setConfigSettings(
       RemoteConfigSettings(fetchTimeout: const Duration(seconds: 30), minimumFetchInterval: const Duration(hours: 24)),
