@@ -107,7 +107,12 @@ class _Bubble extends StatelessWidget {
             ),
             child: Text(
               label,
-              style: const TextStyle(color: CupertinoColors.white, fontSize: 15, fontWeight: FontWeight.w400),
+              style: const TextStyle(
+                color: CupertinoColors.white,
+                fontSize: 15,
+                fontWeight: FontWeight.w400,
+                decoration: TextDecoration.none,
+              ),
             ),
           ),
           // Треугольный «хвостик» пузырька.
