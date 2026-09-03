@@ -130,6 +130,7 @@
   "close": "@:common.close"
   "error": "@:common.error"
   "errorSavingProfile": "Saving profile"
+  "errorSavingAvatar": "Saving avatar"
   "birthDayFormat": "{date}"
   "birthDayRemove": "Remove date birth"
   "editPhoto": "Edit photo"

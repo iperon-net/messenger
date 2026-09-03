@@ -130,6 +130,7 @@
   "close": "@:common.close"
   "error": "@:common.error"
   "errorSavingProfile": "Сохранение профиля"
+  "errorSavingAvatar": "Сохранение аватара"
   "birthDayFormat": "{date}"
   "birthDayRemove": "Удалить дату рождения"
   "editPhoto": "Изменить фото"

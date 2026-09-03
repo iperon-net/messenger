@@ -44,3 +44,25 @@ const Date$json = {
 final $typed_data.Uint8List dateDescriptor =
     $convert.base64Decode('CgREYXRlEhIKBHllYXIYASABKAVSBHllYXISFAoFbW9udGgYAiABKAVSBW1vbnRoEhAKA2RheR'
         'gDIAEoBVIDZGF5');
+
+@$core.Deprecated('Use cDNDescriptor instead')
+const CDN$json = {
+  '1': 'CDN',
+  '2': [
+    {'1': 'cdnID', '3': 1, '4': 1, '5': 12, '10': 'cdnID'},
+    {'1': 'url', '3': 2, '4': 1, '5': 9, '10': 'url'},
+    {'1': 'hashSum', '3': 3, '4': 1, '5': 12, '10': 'hashSum'},
+    {'1': 'hashSumEncrypted', '3': 4, '4': 1, '5': 12, '10': 'hashSumEncrypted'},
+    {'1': 'signatureKey', '3': 5, '4': 1, '5': 12, '10': 'signatureKey'},
+    {'1': 'salt', '3': 6, '4': 1, '5': 12, '10': 'salt'},
+    {'1': 'createAt', '3': 7, '4': 1, '5': 11, '6': '.google.protobuf.Timestamp', '10': 'createAt'},
+  ],
+};
+
+/// Descriptor for `CDN`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List cDNDescriptor =
+    $convert.base64Decode('CgNDRE4SFAoFY2RuSUQYASABKAxSBWNkbklEEhAKA3VybBgCIAEoCVIDdXJsEhgKB2hhc2hTdW'
+        '0YAyABKAxSB2hhc2hTdW0SKgoQaGFzaFN1bUVuY3J5cHRlZBgEIAEoDFIQaGFzaFN1bUVuY3J5'
+        'cHRlZBIiCgxzaWduYXR1cmVLZXkYBSABKAxSDHNpZ25hdHVyZUtleRISCgRzYWx0GAYgASgMUg'
+        'RzYWx0EjYKCGNyZWF0ZUF0GAcgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcFIIY3Jl'
+        'YXRlQXQ=');

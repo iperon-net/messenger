@@ -43,6 +43,9 @@ class _SettingsMaterial extends State<SettingsMaterial> {
                     onTab: () async => context.go("/settings/profile"),
                     isTrailing: true,
                   ),
+                ]),
+                const SizedBox(height: 6),
+                _group(context, [
                   MaterialListTileIcon(
                     title: Text(context.t.screenSettings.privacyAndSecurity),
                     color: const Color(0xFF049A40),

@@ -291,6 +291,7 @@ class _Translations$screenMyProfile$ru extends Translations$screenMyProfile$en {
 	@override String get close => _root.common.close;
 	@override String get error => _root.common.error;
 	@override String get errorSavingProfile => 'Сохранение профиля';
+	@override String get errorSavingAvatar => 'Сохранение аватара';
 	@override String birthDayFormat({required Object date}) => '${date}';
 	@override String get birthDayRemove => 'Удалить дату рождения';
 	@override String get editPhoto => 'Изменить фото';
@@ -490,6 +491,7 @@ extension on TranslationsRu {
 			'screenMyProfile.close' => _root.common.close,
 			'screenMyProfile.error' => _root.common.error,
 			'screenMyProfile.errorSavingProfile' => 'Сохранение профиля',
+			'screenMyProfile.errorSavingAvatar' => 'Сохранение аватара',
 			'screenMyProfile.birthDayFormat' => ({required Object date}) => '${date}',
 			'screenMyProfile.birthDayRemove' => 'Удалить дату рождения',
 			'screenMyProfile.editPhoto' => 'Изменить фото',

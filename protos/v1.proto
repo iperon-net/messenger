@@ -20,6 +20,7 @@ enum MessageType {
   MY_PROFILE = 11;
   MY_PROFILE_UPDATE = 12;
   DEVICE_INFO_UPDATE = 13;
+  MY_PROFILE_AVATAR_UPDATE = 14;
 }
 
 service Iperon {

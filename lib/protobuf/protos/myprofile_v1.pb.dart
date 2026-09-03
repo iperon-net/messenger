@@ -15,6 +15,8 @@ import 'dart:core' as $core;
 import 'package:protobuf/protobuf.dart' as $pb;
 import 'package:protobuf/well_known_types/google/protobuf/timestamp.pb.dart' as $0;
 
+import 'models.pb.dart' as $1;
+
 export 'package:protobuf/protobuf.dart' show GeneratedMessageGenericExtensions;
 
 class MyProfile_Request extends $pb.GeneratedMessage {
@@ -55,12 +57,14 @@ class MyProfile_Response extends $pb.GeneratedMessage {
     $core.String? lastName,
     $0.Timestamp? birthDate,
     $core.String? aboutMe,
+    $1.CDN? avatar,
   }) {
     final result = create();
     if (firstName != null) result.firstName = firstName;
     if (lastName != null) result.lastName = lastName;
     if (birthDate != null) result.birthDate = birthDate;
     if (aboutMe != null) result.aboutMe = aboutMe;
+    if (avatar != null) result.avatar = avatar;
     return result;
   }
 
@@ -77,6 +81,7 @@ class MyProfile_Response extends $pb.GeneratedMessage {
     ..aOS(2, _omitFieldNames ? '' : 'lastName', protoName: 'lastName')
     ..aOM<$0.Timestamp>(3, _omitFieldNames ? '' : 'birthDate', protoName: 'birthDate', subBuilder: $0.Timestamp.create)
     ..aOS(4, _omitFieldNames ? '' : 'aboutMe', protoName: 'aboutMe')
+    ..aOM<$1.CDN>(5, _omitFieldNames ? '' : 'avatar', subBuilder: $1.CDN.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -133,6 +138,17 @@ class MyProfile_Response extends $pb.GeneratedMessage {
   $core.bool hasAboutMe() => $_has(3);
   @$pb.TagNumber(4)
   void clearAboutMe() => $_clearField(4);
+
+  @$pb.TagNumber(5)
+  $1.CDN get avatar => $_getN(4);
+  @$pb.TagNumber(5)
+  set avatar($1.CDN value) => $_setField(5, value);
+  @$pb.TagNumber(5)
+  $core.bool hasAvatar() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearAvatar() => $_clearField(5);
+  @$pb.TagNumber(5)
+  $1.CDN ensureAvatar() => $_ensure(4);
 }
 
 class MyProfile extends $pb.GeneratedMessage {
@@ -314,6 +330,140 @@ class MyProfileUpdate extends $pb.GeneratedMessage {
   @$core.pragma('dart2js:noInline')
   static MyProfileUpdate getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<MyProfileUpdate>(create);
   static MyProfileUpdate? _defaultInstance;
+}
+
+class MyProfileAvatarUpdate_Request extends $pb.GeneratedMessage {
+  factory MyProfileAvatarUpdate_Request({
+    $core.List<$core.int>? avatar,
+  }) {
+    final result = create();
+    if (avatar != null) result.avatar = avatar;
+    return result;
+  }
+
+  MyProfileAvatarUpdate_Request._();
+
+  factory MyProfileAvatarUpdate_Request.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory MyProfileAvatarUpdate_Request.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'MyProfileAvatarUpdate.Request',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..a<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'avatar', $pb.PbFieldType.OY)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  MyProfileAvatarUpdate_Request clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  MyProfileAvatarUpdate_Request copyWith(void Function(MyProfileAvatarUpdate_Request) updates) =>
+      super.copyWith((message) => updates(message as MyProfileAvatarUpdate_Request)) as MyProfileAvatarUpdate_Request;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static MyProfileAvatarUpdate_Request create() => MyProfileAvatarUpdate_Request._();
+  @$core.override
+  MyProfileAvatarUpdate_Request createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static MyProfileAvatarUpdate_Request getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<MyProfileAvatarUpdate_Request>(create);
+  static MyProfileAvatarUpdate_Request? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.List<$core.int> get avatar => $_getN(0);
+  @$pb.TagNumber(1)
+  set avatar($core.List<$core.int> value) => $_setBytes(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasAvatar() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearAvatar() => $_clearField(1);
+}
+
+class MyProfileAvatarUpdate_Response extends $pb.GeneratedMessage {
+  factory MyProfileAvatarUpdate_Response({
+    $1.CDN? avatar,
+  }) {
+    final result = create();
+    if (avatar != null) result.avatar = avatar;
+    return result;
+  }
+
+  MyProfileAvatarUpdate_Response._();
+
+  factory MyProfileAvatarUpdate_Response.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory MyProfileAvatarUpdate_Response.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'MyProfileAvatarUpdate.Response',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..aOM<$1.CDN>(1, _omitFieldNames ? '' : 'avatar', subBuilder: $1.CDN.create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  MyProfileAvatarUpdate_Response clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  MyProfileAvatarUpdate_Response copyWith(void Function(MyProfileAvatarUpdate_Response) updates) =>
+      super.copyWith((message) => updates(message as MyProfileAvatarUpdate_Response)) as MyProfileAvatarUpdate_Response;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static MyProfileAvatarUpdate_Response create() => MyProfileAvatarUpdate_Response._();
+  @$core.override
+  MyProfileAvatarUpdate_Response createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static MyProfileAvatarUpdate_Response getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<MyProfileAvatarUpdate_Response>(create);
+  static MyProfileAvatarUpdate_Response? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $1.CDN get avatar => $_getN(0);
+  @$pb.TagNumber(1)
+  set avatar($1.CDN value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasAvatar() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearAvatar() => $_clearField(1);
+  @$pb.TagNumber(1)
+  $1.CDN ensureAvatar() => $_ensure(0);
+}
+
+class MyProfileAvatarUpdate extends $pb.GeneratedMessage {
+  factory MyProfileAvatarUpdate() => create();
+
+  MyProfileAvatarUpdate._();
+
+  factory MyProfileAvatarUpdate.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory MyProfileAvatarUpdate.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'MyProfileAvatarUpdate',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  MyProfileAvatarUpdate clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  MyProfileAvatarUpdate copyWith(void Function(MyProfileAvatarUpdate) updates) =>
+      super.copyWith((message) => updates(message as MyProfileAvatarUpdate)) as MyProfileAvatarUpdate;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static MyProfileAvatarUpdate create() => MyProfileAvatarUpdate._();
+  @$core.override
+  MyProfileAvatarUpdate createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static MyProfileAvatarUpdate getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<MyProfileAvatarUpdate>(create);
+  static MyProfileAvatarUpdate? _defaultInstance;
 }
 
 const $core.bool _omitFieldNames = $core.bool.fromEnvironment('protobuf.omit_field_names');

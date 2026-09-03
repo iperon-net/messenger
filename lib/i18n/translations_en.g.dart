@@ -495,6 +495,9 @@ class Translations$screenMyProfile$en {
 	/// en: 'Saving profile'
 	String get errorSavingProfile => 'Saving profile';
 
+	/// en: 'Saving avatar'
+	String get errorSavingAvatar => 'Saving avatar';
+
 	/// en: '{date}'
 	String birthDayFormat({required Object date}) => '${date}';
 
@@ -779,6 +782,7 @@ extension on Translations {
 			'screenMyProfile.close' => _root.common.close,
 			'screenMyProfile.error' => _root.common.error,
 			'screenMyProfile.errorSavingProfile' => 'Saving profile',
+			'screenMyProfile.errorSavingAvatar' => 'Saving avatar',
 			'screenMyProfile.birthDayFormat' => ({required Object date}) => '${date}',
 			'screenMyProfile.birthDayRemove' => 'Remove date birth',
 			'screenMyProfile.editPhoto' => 'Edit photo',

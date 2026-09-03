@@ -3,6 +3,8 @@ syntax = "proto3";
 package iperon.v1;
 option go_package = "internal/api/v1";
 
+import "google/protobuf/timestamp.proto";
+
 enum AuthCallPasswordStatus {
   healthcheck = 0;
   error = 1;
@@ -13,4 +15,15 @@ message Date {
   int32 year = 1;   // 2026
   int32 month = 2;  // 8
   int32 day = 3;    // 17
+}
+
+message CDN {
+  bytes cdnID = 1;
+  string url = 2;
+  bytes hashSum = 3;
+  bytes hashSumEncrypted = 4;
+
+  bytes signatureKey = 5;
+  bytes salt = 6;
+  google.protobuf.Timestamp createAt = 7;
 }

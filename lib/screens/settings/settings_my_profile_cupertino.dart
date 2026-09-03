@@ -137,7 +137,25 @@ class _SettingsMyProfileCupertino extends State<SettingsMyProfileCupertino> {
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<SettingsMyProfileCubit, SettingsMyProfileState>(
-      listener: (context, state) {},
+      listenWhen: (previous, current) => previous.error != current.error,
+      listener: (context, state) {
+        if (state.error.isNotEmpty) {
+          showCupertinoDialog<void>(
+            context: context,
+            builder: (BuildContext context) => CupertinoAlertDialog(
+              title: Text(context.t.screenMyProfile.error),
+              content: Text(context.t[state.error]),
+              actions: <CupertinoDialogAction>[
+                CupertinoDialogAction(
+                  isDefaultAction: true,
+                  onPressed: () => Navigator.pop(context),
+                  child: Text(context.t.screenMyProfile.close),
+                ),
+              ],
+            ),
+          );
+        }
+      },
       builder: (context, state) {
         return CupertinoPageScaffold(
           backgroundColor: ThemesCupertino.groupedBackground,

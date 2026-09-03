@@ -4,6 +4,8 @@ package iperon.v1;
 option go_package = "internal/api/v1";
 
 import "google/protobuf/timestamp.proto";
+import "protos/models.proto";
+
 
 message MyProfile {
   message Request {}
@@ -13,6 +15,7 @@ message MyProfile {
     optional string lastName = 2;
     optional string aboutMe = 4;
     optional google.protobuf.Timestamp birthDate = 3;
+    optional CDN avatar = 5;
   }
 }
 
@@ -28,3 +31,12 @@ message MyProfileUpdate {
   }
 }
 
+message MyProfileAvatarUpdate {
+  message Request {
+    optional bytes avatar = 1;
+  }
+
+  message Response {
+    optional CDN avatar = 1;
+  }
+}

@@ -94,7 +94,19 @@ class _SettingsMyProfileMaterial extends State<SettingsMyProfileMaterial> {
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<SettingsMyProfileCubit, SettingsMyProfileState>(
-      listener: (context, state) {},
+      listenWhen: (previous, current) => previous.error != current.error,
+      listener: (context, state) {
+        if (state.error.isNotEmpty) {
+          showDialog<void>(
+            context: context,
+            builder: (BuildContext context) => AlertDialog(
+              title: Text(context.t.screenMyProfile.error),
+              content: Text(context.t[state.error]),
+              actions: <Widget>[TextButton(onPressed: () => Navigator.pop(context), child: Text(context.t.screenMyProfile.close))],
+            ),
+          );
+        }
+      },
       builder: (context, state) {
         final firstNameTile = state.firstName.isNotEmpty ? _fieldTile(context, context.t.screenMyProfile.firstName, state.firstName) : null;
         final lastNameTile = state.lastName.isNotEmpty ? _fieldTile(context, context.t.screenMyProfile.lastName, state.lastName) : null;

@@ -13,6 +13,7 @@
 import 'dart:core' as $core;
 
 import 'package:protobuf/protobuf.dart' as $pb;
+import 'package:protobuf/well_known_types/google/protobuf/timestamp.pb.dart' as $0;
 
 export 'package:protobuf/protobuf.dart' show GeneratedMessageGenericExtensions;
 
@@ -87,6 +88,127 @@ class Date extends $pb.GeneratedMessage {
   $core.bool hasDay() => $_has(2);
   @$pb.TagNumber(3)
   void clearDay() => $_clearField(3);
+}
+
+class CDN extends $pb.GeneratedMessage {
+  factory CDN({
+    $core.List<$core.int>? cdnID,
+    $core.String? url,
+    $core.List<$core.int>? hashSum,
+    $core.List<$core.int>? hashSumEncrypted,
+    $core.List<$core.int>? signatureKey,
+    $core.List<$core.int>? salt,
+    $0.Timestamp? createAt,
+  }) {
+    final result = create();
+    if (cdnID != null) result.cdnID = cdnID;
+    if (url != null) result.url = url;
+    if (hashSum != null) result.hashSum = hashSum;
+    if (hashSumEncrypted != null) result.hashSumEncrypted = hashSumEncrypted;
+    if (signatureKey != null) result.signatureKey = signatureKey;
+    if (salt != null) result.salt = salt;
+    if (createAt != null) result.createAt = createAt;
+    return result;
+  }
+
+  CDN._();
+
+  factory CDN.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory CDN.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'CDN',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..a<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'cdnID', $pb.PbFieldType.OY, protoName: 'cdnID')
+    ..aOS(2, _omitFieldNames ? '' : 'url')
+    ..a<$core.List<$core.int>>(3, _omitFieldNames ? '' : 'hashSum', $pb.PbFieldType.OY, protoName: 'hashSum')
+    ..a<$core.List<$core.int>>(4, _omitFieldNames ? '' : 'hashSumEncrypted', $pb.PbFieldType.OY, protoName: 'hashSumEncrypted')
+    ..a<$core.List<$core.int>>(5, _omitFieldNames ? '' : 'signatureKey', $pb.PbFieldType.OY, protoName: 'signatureKey')
+    ..a<$core.List<$core.int>>(6, _omitFieldNames ? '' : 'salt', $pb.PbFieldType.OY)
+    ..aOM<$0.Timestamp>(7, _omitFieldNames ? '' : 'createAt', protoName: 'createAt', subBuilder: $0.Timestamp.create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  CDN clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  CDN copyWith(void Function(CDN) updates) => super.copyWith((message) => updates(message as CDN)) as CDN;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static CDN create() => CDN._();
+  @$core.override
+  CDN createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static CDN getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<CDN>(create);
+  static CDN? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.List<$core.int> get cdnID => $_getN(0);
+  @$pb.TagNumber(1)
+  set cdnID($core.List<$core.int> value) => $_setBytes(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasCdnID() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearCdnID() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.String get url => $_getSZ(1);
+  @$pb.TagNumber(2)
+  set url($core.String value) => $_setString(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasUrl() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearUrl() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.List<$core.int> get hashSum => $_getN(2);
+  @$pb.TagNumber(3)
+  set hashSum($core.List<$core.int> value) => $_setBytes(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasHashSum() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearHashSum() => $_clearField(3);
+
+  @$pb.TagNumber(4)
+  $core.List<$core.int> get hashSumEncrypted => $_getN(3);
+  @$pb.TagNumber(4)
+  set hashSumEncrypted($core.List<$core.int> value) => $_setBytes(3, value);
+  @$pb.TagNumber(4)
+  $core.bool hasHashSumEncrypted() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearHashSumEncrypted() => $_clearField(4);
+
+  @$pb.TagNumber(5)
+  $core.List<$core.int> get signatureKey => $_getN(4);
+  @$pb.TagNumber(5)
+  set signatureKey($core.List<$core.int> value) => $_setBytes(4, value);
+  @$pb.TagNumber(5)
+  $core.bool hasSignatureKey() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearSignatureKey() => $_clearField(5);
+
+  @$pb.TagNumber(6)
+  $core.List<$core.int> get salt => $_getN(5);
+  @$pb.TagNumber(6)
+  set salt($core.List<$core.int> value) => $_setBytes(5, value);
+  @$pb.TagNumber(6)
+  $core.bool hasSalt() => $_has(5);
+  @$pb.TagNumber(6)
+  void clearSalt() => $_clearField(6);
+
+  @$pb.TagNumber(7)
+  $0.Timestamp get createAt => $_getN(6);
+  @$pb.TagNumber(7)
+  set createAt($0.Timestamp value) => $_setField(7, value);
+  @$pb.TagNumber(7)
+  $core.bool hasCreateAt() => $_has(6);
+  @$pb.TagNumber(7)
+  void clearCreateAt() => $_clearField(7);
+  @$pb.TagNumber(7)
+  $0.Timestamp ensureCreateAt() => $_ensure(6);
 }
 
 const $core.bool _omitFieldNames = $core.bool.fromEnvironment('protobuf.omit_field_names');

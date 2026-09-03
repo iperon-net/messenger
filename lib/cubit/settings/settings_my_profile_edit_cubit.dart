@@ -117,7 +117,6 @@ class SettingsMyProfileEditCubit extends Cubit<SettingsMyProfileEditState> {
     );
 
     if (status.status == APIStatus.error) {
-      logger.debug(status.status);
       emit(state.copyWith(networkStatus: Status.success, error: "screenMyProfile.errorSavingProfile"));
       return;
     }
