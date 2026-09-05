@@ -150,6 +150,26 @@ void main() {
     });
   });
 
+  group('FileEncryptor.totalCipherSize', () {
+    test('matches the actual ciphertext length produced by encryptFile', () async {
+      final encryptor = FileEncryptor(logger: logger, chunkSize: 16);
+
+      for (final fileLength in [0, 16, 16 * 3, 16 * 3 + 5, 50]) {
+        final plaintext = List<int>.generate(fileLength, (i) => i % 256);
+        final file = await writeTempFile(plaintext);
+
+        final fileKey = encryptor.generateFileKey();
+        final hkdfSalt = encryptor.generateHkdfSalt();
+        final noncePrefix = encryptor.generateNoncePrefix();
+
+        final chunks = await encryptor.encryptFile(file: file, fileKey: fileKey, hkdfSalt: hkdfSalt, noncePrefix: noncePrefix).toList();
+        final actualCipherSize = chunks.fold<int>(0, (sum, chunk) => sum + chunk.length);
+
+        expect(encryptor.totalCipherSize(fileLength), actualCipherSize, reason: 'fileLength=$fileLength');
+      }
+    });
+  });
+
   group('FileEncryptor.chunkIndexForReceivedBytes', () {
     test('returns totalChunks once everything is received', () {
       final encryptor = FileEncryptor(logger: logger, chunkSize: 16);

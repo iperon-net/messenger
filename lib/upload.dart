@@ -4,6 +4,7 @@ import 'dart:typed_data';
 
 import 'package:cryptography/helpers.dart';
 import 'package:fixnum/fixnum.dart';
+import 'package:grpc/grpc.dart';
 import 'package:path/path.dart' as p;
 
 import 'api.dart';
@@ -54,6 +55,18 @@ class UploadManager {
   /// вызывающему коду.
   static const int _maxStreamAttempts = 3;
   static const Duration _retryDelay = Duration(seconds: 2);
+
+  /// Число автоматических повторов `UPLOAD_CONFIRM` при транзиентном обрыве
+  /// соединения — сервер temp-файл не трогает до успешного confirm (см.
+  /// `shimmying-tumbling-owl.md`), поэтому повтор безопасен и не требует
+  /// повторной заливки файла.
+  static const int _maxConfirmAttempts = 3;
+
+  /// gRPC-коды, при которых имеет смысл повторить `UPLOAD_CONFIRM` — обрыв
+  /// соединения/таймаут, а не осмысленный отказ сервера (тот же confirm с теми
+  /// же данными не станет валиднее от повтора, например `InvalidArgument`,
+  /// `NotFound`, `PermissionDenied`).
+  static const Set<int> _transientStatusCodes = {StatusCode.unavailable, StatusCode.unknown, StatusCode.deadlineExceeded};
 
   /// Шифрует [file] на клиенте, заливает с докачкой (этап 1) и подтверждает
   /// загрузку (этап 2). Резюмирует уже поставленную в очередь, но не
@@ -136,13 +149,22 @@ class UploadManager {
   Future<models.UploadState> _runUploadStream(models.UploadState state, {void Function(int sentBytes, int totalBytes)? onProgress}) async {
     final outgoing = StreamController<Upload_Request>();
     final responses = StreamIterator(api.client.upload(outgoing.stream));
+    var completedCleanly = false;
 
     try {
       final sessionIDHex = utils.bytesToHex(Uint8List.fromList(auth.session.session));
 
       outgoing.add(
         Upload_Request(
-          init: Upload_Init(sessionId: sessionIDHex, fileSize: Int64(state.fileSize), resumeUploadId: state.uploadID),
+          init: Upload_Init(
+            sessionId: sessionIDHex,
+            // Сервер меряет байты потока (шифротекст), а не plaintext —
+            // state.fileSize исходного файла тут занизит лимит на 16 байт
+            // (AEAD-тег) на каждый чанк и ChunkAck на последнем чанке
+            // отклонится как "upload size exceeded".
+            fileSize: Int64(crypto.fileEncryptor.totalCipherSize(state.fileSize)),
+            resumeUploadId: state.uploadID,
+          ),
         ),
       );
 
@@ -193,10 +215,20 @@ class UploadManager {
       // (иначе стрим завершился бы ошибкой InvalidArgument) — дублировать
       // проверку на клиенте незачем.
 
+      completedCleanly = true;
       return uploadState;
     } finally {
       await outgoing.close();
-      await responses.cancel();
+
+      // cancel() шлёт RST_STREAM — уместно только если стрим прервали сами
+      // (исключение выше). Звать его и после штатного CompleteAck (сервер уже
+      // сам закрыл стрим) — попытка отменить то, что уже полностью завершено
+      // по HTTP/2, что как минимум одна реализация трактует как protocol
+      // error и рвёт всё gRPC-соединение целиком (включая персистентный
+      // Stream API) — именно это било по последующему UPLOAD_CONFIRM.
+      if (!completedCleanly) {
+        await responses.cancel();
+      }
     }
   }
 
@@ -214,19 +246,28 @@ class UploadManager {
       contentType: state.contentType,
       folder: state.folder,
     );
+    final payload = request.writeToBuffer();
 
-    final (status, payload) = await api.unaryEncodedWithResponse(MessageType.UPLOAD_CONFIRM, request.writeToBuffer());
-    if (status.status == APIStatus.error || payload == null) {
+    for (var attempt = 1; ; attempt++) {
+      final (status, response) = await api.unaryEncodedWithResponse(MessageType.UPLOAD_CONFIRM, payload);
+
+      if (status.status == APIStatus.success && response != null) {
+        final cdn = UploadConfirm_Response.fromBuffer(response).cdn;
+        await repositories.uploads.delete(state.localID);
+        return cdn;
+      }
+
       // Temp-файл на сервере не тронут (см. shimmying-tumbling-owl.md) —
-      // локальную строку не удаляем, чтобы вызывающий код мог повторить
-      // именно confirm (без повторной заливки файла).
-      throw UploadException('upload: confirm failed: $status');
+      // локальную строку не удаляем в любом случае, чтобы вызывающий код мог
+      // повторить именно confirm (без повторной заливки файла) даже после
+      // исчерпания автоматических попыток здесь.
+      final retryable = status.isGrpc && _transientStatusCodes.contains(status.statusCode);
+      if (!retryable || attempt >= _maxConfirmAttempts) {
+        throw UploadException('upload: confirm failed: $status');
+      }
+
+      logger.debug('upload: confirm attempt $attempt failed ($status), retrying');
+      await Future.delayed(_retryDelay * attempt);
     }
-
-    final cdn = UploadConfirm_Response.fromBuffer(payload).cdn;
-
-    await repositories.uploads.delete(state.localID);
-
-    return cdn;
   }
 }

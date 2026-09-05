@@ -56,6 +56,12 @@ class FileEncryptor {
     return (fileLength / chunkSize).ceil();
   }
 
+  /// Итоговый размер шифротекста для файла [fileLength] байт — то, что нужно
+  /// заявлять в `Upload.Init.fileSize` (сервер меряет байты потока, а не
+  /// plaintext). Каждый чанк даёт ровно [_fileEncryptorTagSize] байт
+  /// оверхеда, независимо от того, полный он или последний укороченный.
+  int totalCipherSize(int fileLength) => fileLength + totalChunks(fileLength) * _fileEncryptorTagSize;
+
   int _plainSizeOf(int chunkIndex, int fileLength) {
     final remaining = fileLength - chunkIndex * chunkSize;
     return remaining < chunkSize ? remaining : chunkSize;

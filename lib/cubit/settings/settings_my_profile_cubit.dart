@@ -1,8 +1,10 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:bloc/bloc.dart';
 import 'package:messenger/i18n/translations.g.dart';
+import 'package:path/path.dart' as p;
 
 import '../../api.dart';
 import '../../auth.dart';
@@ -11,6 +13,7 @@ import '../../di.dart';
 import '../../logger.dart';
 import '../../protobuf.dart';
 import '../../repositories/repositories.dart';
+import '../../upload.dart';
 import '../../utils.dart';
 import 'settings_my_profile_state.dart';
 
@@ -87,23 +90,40 @@ class SettingsMyProfileCubit extends Cubit<SettingsMyProfileState> {
     );
   }
 
-  /// Сохраняет обрезанный аватар как локальный превью (без записи в БД/сервер).
-  void setAvatar(Uint8List bytes) async {
+  /// Сохраняет обрезанный аватар как локальный превью и заливает его на
+  /// сервер через [UploadManager] (этапы 1+2 — см.
+  /// `docs/plans/client-media-upload-stage-1-2.md`). Привязка полученного
+  /// `cdn_id` к профилю — отдельная, ещё не реализованная серверная задача
+  /// (см. `shimmying-tumbling-owl.md`), поэтому пока просто логируем `CDN`.
+  Future<void> setAvatar(Uint8List bytes) async {
     if (isClosed) return;
 
-    emit(state.copyWith(error: ""));
+    emit(state.copyWith(error: "", avatarBytes: bytes));
 
-    final error = await api.unaryEncoded(
-      MessageType.MY_PROFILE_AVATAR_UPDATE,
-      MyProfileAvatarUpdate_Request(avatar: bytes).writeToBuffer(),
-    );
+    final uploadManager = getIt.get<UploadManager>();
 
-    if (error.status == APIStatus.error) {
-      emit(state.copyWith(networkStatus: Status.success, error: "screenMyProfile.errorSavingAvatar"));
-      return;
+    try {
+      final tmpFile = await File(
+        p.join(Directory.systemTemp.path, 'avatar_${DateTime.now().millisecondsSinceEpoch}.jpg'),
+      ).writeAsBytes(bytes, flush: true);
+
+      final cdn = await uploadManager.uploadFile(
+        file: tmpFile,
+        folder: 'avatars',
+        contentType: 'image/jpeg',
+        onProgress: (sent, total) {
+          logger.debug('upload progress: $sent / $total');
+        },
+      );
+      logger.debug(cdn.toString());
+    } catch (error, stackTrace) {
+      logger.handle(error, stackTrace);
+      if (isClosed) return;
+      // Локальный превью (avatarBytes) уже показан выше — не откатываем его
+      // из-за сбоя сети: пользователь продолжает видеть выбранную картинку,
+      // просто получает сигнал, что сохранение на сервере не удалось.
+      emit(state.copyWith(error: "screenMyProfile.errorSavingAvatar"));
     }
-
-    emit(state.copyWith(avatarBytes: bytes));
   }
 
   @override
