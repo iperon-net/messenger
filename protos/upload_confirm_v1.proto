@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package iperon.v1;
+option go_package = "internal/api/v1";
+
+import "protos/models.proto";
+
+message UploadConfirm {
+  message Request {
+    string uploadId = 1;
+    bytes encryptionKey = 2;
+    bytes hkdfSalt = 3;
+    string fileName = 4;
+    string contentType = 5;
+    string folder = 6;
+  }
+
+  message Response {
+    CDN cdn = 1;
+  }
+}

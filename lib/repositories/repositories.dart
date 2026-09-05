@@ -20,6 +20,7 @@ part "users.dart";
 part "sessions.dart";
 part "device_sessions.dart";
 part "my_profile.dart";
+part "uploads.dart";
 
 base class _AppSqliteOpenFactory extends NativeSqliteOpenFactory {
   final String? password;
@@ -52,6 +53,7 @@ class Repositories {
   late DeviceSessions deviceSessions;
   late Cache cache;
   late MyProfile myProfile;
+  late Uploads uploads;
 
   static Future<Repositories> initialization() async {
     final repositories = Repositories._();
@@ -156,6 +158,29 @@ class Repositories {
       }),
     );
 
+    // Локальное состояние докачки (см. docs/plans/client-media-upload-stage-1-2.md
+    // в репозитории клиента) — отдельная миграция, а не часть миграции 1,
+    // т.к. добавлена позже и миграции не переписываются задним числом.
+    migrations.add(
+      SqliteMigration(2, (tx) async {
+        await tx.execute("""
+        CREATE TABLE uploads (
+          localID TEXT PRIMARY KEY,
+          uploadID TEXT NULL,
+          filePath TEXT NOT NULL,
+          fileSize INTEGER NOT NULL,
+          fileKey BLOB NOT NULL,
+          hkdfSalt BLOB NOT NULL,
+          noncePrefix BLOB NOT NULL,
+          folder TEXT NOT NULL,
+          contentType TEXT NOT NULL,
+          fileName TEXT NOT NULL,
+          createdAt INTEGER NOT NULL
+        );
+      """);
+      }),
+    );
+
     if (settings.isDeleteDatabase) {
       logger.warning("Deleting the database, flag set IS_DELETE_DATABASE: 1");
 
@@ -201,6 +226,7 @@ class Repositories {
     deviceSessions = DeviceSessions(logger: logger, db: db);
     cache = Cache(logger: logger, db: db);
     myProfile = MyProfile(logger: logger, db: db);
+    uploads = Uploads(logger: logger, db: db);
   }
 
   // Generate password

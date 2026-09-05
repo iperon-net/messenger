@@ -46,12 +46,21 @@ class IperonClient extends $grpc.Client {
     return $createStreamingCall(_$stream, request, options: options);
   }
 
+  $grpc.ResponseStream<$0.Upload_Response> upload(
+    $async.Stream<$0.Upload_Request> request, {
+    $grpc.CallOptions? options,
+  }) {
+    return $createStreamingCall(_$upload, request, options: options);
+  }
+
   // method descriptors
 
   static final _$unary =
       $grpc.ClientMethod<$0.Message, $0.Message>('/v1.Iperon/Unary', ($0.Message value) => value.writeToBuffer(), $0.Message.fromBuffer);
   static final _$stream =
       $grpc.ClientMethod<$0.Message, $0.Message>('/v1.Iperon/Stream', ($0.Message value) => value.writeToBuffer(), $0.Message.fromBuffer);
+  static final _$upload = $grpc.ClientMethod<$0.Upload_Request, $0.Upload_Response>(
+      '/v1.Iperon/Upload', ($0.Upload_Request value) => value.writeToBuffer(), $0.Upload_Response.fromBuffer);
 }
 
 @$pb.GrpcServiceName('v1.Iperon')
@@ -63,6 +72,8 @@ abstract class IperonServiceBase extends $grpc.Service {
         ($core.List<$core.int> value) => $0.Message.fromBuffer(value), ($0.Message value) => value.writeToBuffer()));
     $addMethod($grpc.ServiceMethod<$0.Message, $0.Message>('Stream', stream, true, true,
         ($core.List<$core.int> value) => $0.Message.fromBuffer(value), ($0.Message value) => value.writeToBuffer()));
+    $addMethod($grpc.ServiceMethod<$0.Upload_Request, $0.Upload_Response>('Upload', upload, true, true,
+        ($core.List<$core.int> value) => $0.Upload_Request.fromBuffer(value), ($0.Upload_Response value) => value.writeToBuffer()));
   }
 
   $async.Future<$0.Message> unary_Pre($grpc.ServiceCall $call, $async.Future<$0.Message> $request) async {
@@ -72,4 +83,6 @@ abstract class IperonServiceBase extends $grpc.Service {
   $async.Future<$0.Message> unary($grpc.ServiceCall call, $0.Message request);
 
   $async.Stream<$0.Message> stream($grpc.ServiceCall call, $async.Stream<$0.Message> request);
+
+  $async.Stream<$0.Upload_Response> upload($grpc.ServiceCall call, $async.Stream<$0.Upload_Request> request);
 }

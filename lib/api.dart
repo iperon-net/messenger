@@ -607,6 +607,28 @@ class API {
     });
   }
 
+  /// Как [unaryEncoded], но также расшифровывает и возвращает тело ответа
+  /// (тем же `crypto.syncer.decode`, что [_dispatch] использует для входящих
+  /// сообщений стрима) — для вызовов, чей `_Response` не пуст (например,
+  /// `UPLOAD_CONFIRM`, который должен вернуть `CDN`). [unaryEncoded] его
+  /// специально отбрасывает и трогать не нужно — большинству unary-вызовов
+  /// тело ответа не требуется.
+  Future<(APICallStatus, Uint8List?)> unaryEncodedWithResponse(MessageType type, Uint8List payload) async {
+    final crypto = getIt.get<Crypto>();
+    final auth = getIt.get<Auth>();
+
+    final encoded = await crypto.syncer.encode(session: auth.session, message: payload);
+
+    Uint8List? responsePayload;
+    final status = await call(() async {
+      final response = await client.unary(Message(messageType: type, message: encoded));
+      final decoded = await crypto.syncer.decode(session: auth.session, message: Uint8List.fromList(response.message));
+      responsePayload = Uint8List.fromList(decoded);
+    });
+
+    return (status, responsePayload);
+  }
+
   /// Планирует переподключение стрима через фиксированные [_reconnectDelay].
   /// Ничего не делает, если стрим сейчас не должен работать (разлогин или фон).
   ///

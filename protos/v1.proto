@@ -21,11 +21,13 @@ enum MessageType {
   MY_PROFILE_UPDATE = 12;
   DEVICE_INFO_UPDATE = 13;
   MY_PROFILE_AVATAR_UPDATE = 14;
+  UPLOAD_CONFIRM = 15;
 }
 
 service Iperon {
   rpc Unary (Message) returns (Message) {}
   rpc Stream (stream Message) returns (stream Message) {}
+  rpc Upload (stream Upload.Request) returns (stream Upload.Response) {}
 }
 
 // Messages
@@ -33,4 +35,51 @@ message Message {
   MessageType messageType = 1;
   bytes message = 2;
   google.protobuf.Timestamp currentAt = 3;
+}
+
+// Upload (media files)
+message Upload {
+  message Init {
+    string sessionId = 1;
+    int64 fileSize = 2;
+    optional string resumeUploadId = 3;
+  }
+
+  message Chunk {
+    bytes data = 1;
+  }
+
+  message Done {
+  }
+
+  message InitAck {
+    string uploadId = 1;
+    int64 receivedBytes = 2;
+  }
+
+  message ChunkAck {
+    int64 receivedBytes = 1;
+  }
+
+  message CompleteAck {
+    string uploadId = 1;
+    int64 receivedBytes = 2;
+  }
+
+  message Request {
+    oneof payload {
+      Init init = 1;
+      Chunk chunk = 2;
+      Done done = 3;
+    }
+
+  }
+
+  message Response {
+    oneof payload {
+      InitAck initAck = 1;
+      ChunkAck chunkAck = 2;
+      CompleteAck completeAck = 3;
+    }
+  }
 }
