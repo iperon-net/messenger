@@ -53,7 +53,7 @@ class Repositories {
   late DeviceSessions deviceSessions;
   late Cache cache;
   late MyProfile myProfile;
-  late Cdn cdn;
+  late CDN cdn;
 
   static Future<Repositories> initialization() async {
     final repositories = Repositories._();
@@ -218,7 +218,7 @@ class Repositories {
     deviceSessions = DeviceSessions(logger: logger, db: db);
     cache = Cache(logger: logger, db: db);
     myProfile = MyProfile(logger: logger, db: db);
-    cdn = Cdn(logger: logger, db: db);
+    cdn = CDN(logger: logger, db: db);
   }
 
   // Generate password

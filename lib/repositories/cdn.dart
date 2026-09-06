@@ -3,11 +3,11 @@ part of 'repositories.dart';
 /// Хранит [models.UploadState] для докачки после обрыва соединения или
 /// перезапуска приложения (см. `docs/plans/client-media-upload-stage-1-2.md`).
 /// Строка живёт от постановки файла в очередь до успешного `UPLOAD_CONFIRM`.
-class Cdn {
+class CDN {
   final Logger logger;
   final SqliteDatabase db;
 
-  Cdn({required this.logger, required this.db});
+  CDN({required this.logger, required this.db});
 
   static const _columns = "localID, uploadID, filePath, fileSize, fileKey, hkdfSalt, noncePrefix, folder, contentType, createdAt";
 

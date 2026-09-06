@@ -11,7 +11,7 @@ import '../../di.dart';
 import '../../logger.dart';
 import '../../protobuf.dart';
 import '../../repositories/repositories.dart';
-import '../../upload.dart';
+import '../../cdn.dart';
 import '../../utils.dart';
 import 'settings_my_profile_state.dart';
 
@@ -89,7 +89,7 @@ class SettingsMyProfileCubit extends Cubit<SettingsMyProfileState> {
   }
 
   /// Сохраняет обрезанный аватар как локальный превью и заливает его на
-  /// сервер через [UploadManager] (этапы 1+2 — см.
+  /// сервер через [CDNManager] (этапы 1+2 — см.
   /// `docs/plans/client-media-upload-stage-1-2.md`). Привязка полученного
   /// `cdn_id` к профилю — отдельная, ещё не реализованная серверная задача
   /// (см. `shimmying-tumbling-owl.md`), поэтому пока просто логируем `CDN`.
@@ -98,7 +98,7 @@ class SettingsMyProfileCubit extends Cubit<SettingsMyProfileState> {
 
     emit(state.copyWith(error: "", avatarBytes: bytes));
 
-    final uploadManager = getIt.get<UploadManager>();
+    final uploadManager = getIt.get<CDNManager>();
 
     try {
       final cdn = await uploadManager.uploadBytes(

@@ -24,7 +24,7 @@ class FileEncryptor {
   final Logger logger;
 
   /// Размер plaintext-чанка. По умолчанию 256 KiB — совпадает с сетевым
-  /// чанком `Upload.Chunk.data` (см. [UploadManager]), лишней прослойки нет.
+  /// чанком `Upload.Chunk.data` (см. [CDNManager]), лишней прослойки нет.
   /// Параметризован (а не константа) ради быстрых юнит-тестов на маленьких
   /// файлах.
   final int chunkSize;

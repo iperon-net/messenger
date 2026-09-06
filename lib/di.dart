@@ -7,7 +7,7 @@ import 'settings.dart';
 import 'utils.dart';
 import 'api.dart';
 import 'crypto.dart';
-import 'upload.dart';
+import 'cdn.dart';
 
 GetIt getIt = GetIt.instance;
 
@@ -36,8 +36,8 @@ Future<void> registerCommonDependencies() async {
   if (!getIt.isRegistered<Crypto>()) {
     getIt.registerSingletonAsync<Crypto>(() async => Crypto(), dependsOn: [Settings, Utils]);
   }
-  if (!getIt.isRegistered<UploadManager>()) {
-    getIt.registerSingletonAsync<UploadManager>(() async => UploadManager(), dependsOn: [API, Crypto, Auth, Repositories]);
+  if (!getIt.isRegistered<CDNManager>()) {
+    getIt.registerSingletonAsync<CDNManager>(() async => CDNManager(), dependsOn: [API, Crypto, Auth, Repositories]);
   }
 
   await getIt.allReady();
@@ -54,5 +54,5 @@ Future<void> unregisterCommonDependencies() async {
   if (getIt.isRegistered<Utils>()) await getIt.unregister<Utils>();
   if (getIt.isRegistered<API>()) await getIt.unregister<API>();
   if (getIt.isRegistered<Crypto>()) await getIt.unregister<Crypto>();
-  if (getIt.isRegistered<UploadManager>()) await getIt.unregister<UploadManager>();
+  if (getIt.isRegistered<CDNManager>()) await getIt.unregister<CDNManager>();
 }

@@ -14,7 +14,7 @@ import 'di.dart';
 import 'logger.dart';
 import 'models.dart' as models;
 import 'protobuf.dart';
-import 'repositories.dart';
+import 'repositories.dart' hide CDN;
 import 'utils.dart';
 
 /// Ошибка загрузки/подтверждения файла, не сведённая к обычному
@@ -28,7 +28,7 @@ class UploadException implements Exception {
   String toString() => 'UploadException: $message';
 }
 
-/// `UploadManager` — этапы 1+2 загрузки больших зашифрованных на клиенте
+/// `CDNManager` — этапы 1+2 загрузки больших зашифрованных на клиенте
 /// медиафайлов (см. `docs/plans/client-media-upload-stage-1-2.md` и, на
 /// сервере, `docs/plans/breezy-uploading-courier.md` /
 /// `docs/plans/shimmying-tumbling-owl.md` в репозитории `iperon`).
@@ -42,7 +42,7 @@ class UploadException implements Exception {
 /// ключ) — привязку к конкретной сущности (аватарка, вложение в чат и т.п.)
 /// делает вызывающий код, когда такая сущность появится (см. "Заметки на
 /// будущее" в `shimmying-tumbling-owl.md`).
-class UploadManager {
+class CDNManager {
   final logger = getIt.get<Logger>();
   final api = getIt.get<API>();
   final crypto = getIt.get<Crypto>();
@@ -79,7 +79,7 @@ class UploadManager {
   /// вызывающего кода, у которого данные уже в памяти (обрезанный аватар и
   /// т.п.), а не на диске. Расширение [extension] (без точки) идёт в имя temp-
   /// файла.
-  Future<CDN> uploadBytes({
+  Future<models.CDN> uploadBytes({
     required Uint8List bytes,
     required String folder,
     required String contentType,
@@ -103,7 +103,7 @@ class UploadManager {
     }
   }
 
-  Future<CDN> uploadFile({
+  Future<models.CDN> uploadFile({
     required File file,
     required String folder,
     required String contentType,
@@ -253,7 +253,7 @@ class UploadManager {
     }
   }
 
-  Future<CDN> _confirm(models.UploadState state) async {
+  Future<models.CDN> _confirm(models.UploadState state) async {
     final uploadID = state.uploadID;
     if (uploadID == null) {
       throw const UploadException('upload: confirm called before InitAck ever succeeded');
@@ -272,7 +272,7 @@ class UploadManager {
       final (status, response) = await api.unaryEncodedWithResponse(MessageType.UPLOAD_CONFIRM, payload);
 
       if (status.status == APIStatus.success && response != null) {
-        final cdn = UploadConfirm_Response.fromBuffer(response).cdn;
+        final cdn = models.CDN.fromProto(UploadConfirm_Response.fromBuffer(response).cdn);
         await repositories.cdn.delete(state.localID);
         return cdn;
       }

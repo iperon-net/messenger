@@ -6,7 +6,7 @@ import 'dart:typed_data';
 /// файла в очередь до успешного `UPLOAD_CONFIRM`, после чего удаляется.
 ///
 /// Не dart_mappable-модель: это внутреннее техническое состояние
-/// [UploadManager]/[Uploads], а не доменные данные, отображаемые в UI через
+/// [CDNManager]/[CDN], а не доменные данные, отображаемые в UI через
 /// cubit state (copyWith/equality здесь не нужны).
 class UploadState {
   final String localID;
