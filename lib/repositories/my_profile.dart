@@ -28,4 +28,21 @@ class MyProfile {
       [userID, fistName, lastName, birthDate?.millisecondsSinceEpoch, aboutMe],
     );
   }
+
+  /// Привязывает загруженный на CDN аватар к локальному профилю: пишет
+  /// [cdnID] в колонку `avatarCdnID`. Строка `downloads` с этим `cdnID` к
+  /// этому моменту уже создана аплоад-флоу (`_seedDownloadCache` в [CDNManager]),
+  /// поэтому внешний ключ `avatarCdnID → downloads(cdnID)` соблюдён. Upsert —
+  /// на случай, если строки профиля для [userID] ещё нет.
+  Future<void> updateAvatarByCdnID({required List<int> userID, required List<int> cdnID}) async {
+    await db.execute(
+      """
+      INSERT INTO myProfile (userID, avatarCdnID)
+      VALUES(?, ?)
+      ON CONFLICT(userID) DO UPDATE SET
+        avatarCdnID = excluded.avatarCdnID;
+      """,
+      [userID, cdnID],
+    );
+  }
 }

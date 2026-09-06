@@ -90,6 +90,37 @@ class Repositories {
       """);
 
         await tx.execute("""
+        CREATE TABLE uploads (
+          localID TEXT PRIMARY KEY,
+          uploadID TEXT NULL,
+          filePath TEXT NOT NULL,
+          fileSize INTEGER NOT NULL,
+          fileKey BLOB NOT NULL,
+          hkdfSalt BLOB NOT NULL,
+          folder TEXT NOT NULL,
+          contentType TEXT NOT NULL,
+          createdAt INTEGER NOT NULL
+        );
+      """);
+
+        await tx.execute("""
+        CREATE TABLE downloads (
+          cdnID BLOB PRIMARY KEY,
+          url TEXT NOT NULL,
+          tmpPath TEXT NOT NULL,
+          targetPath TEXT NULL,
+          encryptionKey BLOB NOT NULL,
+          hkdfSalt BLOB NOT NULL,
+          contentType TEXT NOT NULL,
+          hashSumEncrypted BLOB NOT NULL,
+          cipherSize INTEGER NULL,
+          receivedBytes INTEGER NOT NULL DEFAULT 0,
+          status TEXT NOT NULL,
+          createdAt INTEGER NOT NULL
+        );
+      """);
+
+        await tx.execute("""
         INSERT INTO settingsDevice
           (locale, darkMode, colorTheme, isBlurOnInactive,
             isContactBannerDisabled, isNotificationBannerDisabled)
@@ -113,7 +144,8 @@ class Repositories {
           lastName TEXT NULL,
           birthDate TEXT NULL,
           aboutMe TEXT NULL,
-          avatarLocalPath TEXT NULL,
+          avatarCdnID BLOB NULL,
+          FOREIGN KEY (avatarCdnID) REFERENCES downloads(cdnID) ON DELETE CASCADE ON UPDATE CASCADE,
           FOREIGN KEY (userID) REFERENCES users(userID) ON DELETE CASCADE ON UPDATE CASCADE
         );
       """);
@@ -155,37 +187,6 @@ class Repositories {
           locationEnglish TEXT NOT NULL,
           updateAt INTEGER NOT NULL,
           FOREIGN KEY (userID) REFERENCES users(userID) ON DELETE CASCADE ON UPDATE CASCADE
-        );
-      """);
-
-        await tx.execute("""
-        CREATE TABLE uploads (
-          localID TEXT PRIMARY KEY,
-          uploadID TEXT NULL,
-          filePath TEXT NOT NULL,
-          fileSize INTEGER NOT NULL,
-          fileKey BLOB NOT NULL,
-          hkdfSalt BLOB NOT NULL,
-          folder TEXT NOT NULL,
-          contentType TEXT NOT NULL,
-          createdAt INTEGER NOT NULL
-        );
-      """);
-
-        await tx.execute("""
-        CREATE TABLE downloads (
-          cdnID BLOB PRIMARY KEY,
-          url TEXT NOT NULL,
-          tmpPath TEXT NOT NULL,
-          targetPath TEXT NULL,
-          encryptionKey BLOB NOT NULL,
-          hkdfSalt BLOB NOT NULL,
-          contentType TEXT NOT NULL,
-          hashSumEncrypted BLOB NOT NULL,
-          cipherSize INTEGER NULL,
-          receivedBytes INTEGER NOT NULL DEFAULT 0,
-          status TEXT NOT NULL,
-          createdAt INTEGER NOT NULL
         );
       """);
       }),

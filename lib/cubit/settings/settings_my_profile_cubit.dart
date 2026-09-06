@@ -110,7 +110,8 @@ class SettingsMyProfileCubit extends Cubit<SettingsMyProfileState> {
           logger.debug('upload progress: $sent / $total');
         },
       );
-      logger.debug(cdn.toString());
+
+      await repositories.myProfile.updateAvatarByCdnID(userID: auth.session.userID, cdnID: cdn.cdnID);
     } catch (error, stackTrace) {
       logger.handle(error, stackTrace);
       if (isClosed) return;
