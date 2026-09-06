@@ -20,7 +20,7 @@ part "users.dart";
 part "sessions.dart";
 part "device_sessions.dart";
 part "my_profile.dart";
-part "uploads.dart";
+part "cdn.dart";
 
 base class _AppSqliteOpenFactory extends NativeSqliteOpenFactory {
   final String? password;
@@ -53,7 +53,7 @@ class Repositories {
   late DeviceSessions deviceSessions;
   late Cache cache;
   late MyProfile myProfile;
-  late Uploads uploads;
+  late Cdn cdn;
 
   static Future<Repositories> initialization() async {
     final repositories = Repositories._();
@@ -155,14 +155,7 @@ class Repositories {
           FOREIGN KEY (userID) REFERENCES users(userID) ON DELETE CASCADE ON UPDATE CASCADE
         );
       """);
-      }),
-    );
 
-    // Локальное состояние докачки (см. docs/plans/client-media-upload-stage-1-2.md
-    // в репозитории клиента) — отдельная миграция, а не часть миграции 1,
-    // т.к. добавлена позже и миграции не переписываются задним числом.
-    migrations.add(
-      SqliteMigration(2, (tx) async {
         await tx.execute("""
         CREATE TABLE uploads (
           localID TEXT PRIMARY KEY,
@@ -175,6 +168,31 @@ class Repositories {
           folder TEXT NOT NULL,
           contentType TEXT NOT NULL,
           fileName TEXT NOT NULL,
+          createdAt INTEGER NOT NULL
+        );
+      """);
+      }),
+    );
+
+    // Переименование uploads → cdn и удаление колонки fileName (её больше нет
+    // в UploadState). Отдельная миграция, а не правка миграции 2: та уже
+    // применена на устройствах, поэтому переписывать её задним числом нельзя.
+    // Таблица хранит лишь эфемерное состояние незавершённых загрузок, так что
+    // потеря содержимого при пересоздании безопасна.
+    migrations.add(
+      SqliteMigration(3, (tx) async {
+        await tx.execute("DROP TABLE IF EXISTS uploads;");
+        await tx.execute("""
+        CREATE TABLE cdn (
+          localID TEXT PRIMARY KEY,
+          uploadID TEXT NULL,
+          filePath TEXT NOT NULL,
+          fileSize INTEGER NOT NULL,
+          fileKey BLOB NOT NULL,
+          hkdfSalt BLOB NOT NULL,
+          noncePrefix BLOB NOT NULL,
+          folder TEXT NOT NULL,
+          contentType TEXT NOT NULL,
           createdAt INTEGER NOT NULL
         );
       """);
@@ -226,7 +244,7 @@ class Repositories {
     deviceSessions = DeviceSessions(logger: logger, db: db);
     cache = Cache(logger: logger, db: db);
     myProfile = MyProfile(logger: logger, db: db);
-    uploads = Uploads(logger: logger, db: db);
+    cdn = Cdn(logger: logger, db: db);
   }
 
   // Generate password

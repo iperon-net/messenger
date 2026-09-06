@@ -1,10 +1,8 @@
 import 'dart:async';
-import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:bloc/bloc.dart';
 import 'package:messenger/i18n/translations.g.dart';
-import 'package:path/path.dart' as p;
 
 import '../../api.dart';
 import '../../auth.dart';
@@ -103,14 +101,11 @@ class SettingsMyProfileCubit extends Cubit<SettingsMyProfileState> {
     final uploadManager = getIt.get<UploadManager>();
 
     try {
-      final tmpFile = await File(
-        p.join(Directory.systemTemp.path, 'avatar_${DateTime.now().millisecondsSinceEpoch}.jpg'),
-      ).writeAsBytes(bytes, flush: true);
-
-      final cdn = await uploadManager.uploadFile(
-        file: tmpFile,
+      final cdn = await uploadManager.uploadBytes(
+        bytes: bytes,
         folder: 'avatars',
         contentType: 'image/jpeg',
+        extension: 'jpg',
         onProgress: (sent, total) {
           logger.debug('upload progress: $sent / $total');
         },

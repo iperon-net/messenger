@@ -28,10 +28,13 @@ const UploadConfirm_Request$json = {
     {'1': 'uploadId', '3': 1, '4': 1, '5': 9, '10': 'uploadId'},
     {'1': 'encryptionKey', '3': 2, '4': 1, '5': 12, '10': 'encryptionKey'},
     {'1': 'hkdfSalt', '3': 3, '4': 1, '5': 12, '10': 'hkdfSalt'},
-    {'1': 'fileName', '3': 4, '4': 1, '5': 9, '10': 'fileName'},
     {'1': 'contentType', '3': 5, '4': 1, '5': 9, '10': 'contentType'},
     {'1': 'folder', '3': 6, '4': 1, '5': 9, '10': 'folder'},
   ],
+  '9': [
+    {'1': 4, '2': 5},
+  ],
+  '10': ['fileName'],
 };
 
 @$core.Deprecated('Use uploadConfirmDescriptor instead')
@@ -44,8 +47,8 @@ const UploadConfirm_Response$json = {
 
 /// Descriptor for `UploadConfirm`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List uploadConfirmDescriptor =
-    $convert.base64Decode('Cg1VcGxvYWRDb25maXJtGr0BCgdSZXF1ZXN0EhoKCHVwbG9hZElkGAEgASgJUgh1cGxvYWRJZB'
+    $convert.base64Decode('Cg1VcGxvYWRDb25maXJtGrEBCgdSZXF1ZXN0EhoKCHVwbG9hZElkGAEgASgJUgh1cGxvYWRJZB'
         'IkCg1lbmNyeXB0aW9uS2V5GAIgASgMUg1lbmNyeXB0aW9uS2V5EhoKCGhrZGZTYWx0GAMgASgM'
-        'Ughoa2RmU2FsdBIaCghmaWxlTmFtZRgEIAEoCVIIZmlsZU5hbWUSIAoLY29udGVudFR5cGUYBS'
-        'ABKAlSC2NvbnRlbnRUeXBlEhYKBmZvbGRlchgGIAEoCVIGZm9sZGVyGiwKCFJlc3BvbnNlEiAK'
-        'A2NkbhgBIAEoCzIOLmlwZXJvbi52MS5DRE5SA2Nkbg==');
+        'Ughoa2RmU2FsdBIgCgtjb250ZW50VHlwZRgFIAEoCVILY29udGVudFR5cGUSFgoGZm9sZGVyGA'
+        'YgASgJUgZmb2xkZXJKBAgEEAVSCGZpbGVOYW1lGiwKCFJlc3BvbnNlEiAKA2NkbhgBIAEoCzIO'
+        'LmlwZXJvbi52MS5DRE5SA2Nkbg==');

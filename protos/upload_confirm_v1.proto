@@ -10,7 +10,8 @@ message UploadConfirm {
     string uploadId = 1;
     bytes encryptionKey = 2;
     bytes hkdfSalt = 3;
-    string fileName = 4;
+    reserved 4;
+    reserved "fileName";
     string contentType = 5;
     string folder = 6;
   }

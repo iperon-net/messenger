@@ -1,6 +1,6 @@
 import 'dart:typed_data';
 
-/// Локальное состояние одной загрузки файла (таблица `uploads`), достаточное
+/// Локальное состояние одной загрузки файла (таблица `cdn`), достаточное
 /// для докачки после обрыва соединения или перезапуска приложения — см.
 /// `docs/plans/client-media-upload-stage-1-2.md`. Строка живёт от постановки
 /// файла в очередь до успешного `UPLOAD_CONFIRM`, после чего удаляется.
@@ -18,7 +18,6 @@ class UploadState {
   final Uint8List noncePrefix;
   final String folder;
   final String contentType;
-  final String fileName;
   final DateTime createdAt;
 
   const UploadState({
@@ -31,7 +30,6 @@ class UploadState {
     required this.noncePrefix,
     required this.folder,
     required this.contentType,
-    required this.fileName,
     required this.createdAt,
   });
 
@@ -45,7 +43,6 @@ class UploadState {
     noncePrefix: noncePrefix,
     folder: folder,
     contentType: contentType,
-    fileName: fileName,
     createdAt: createdAt,
   );
 }

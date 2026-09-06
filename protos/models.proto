@@ -20,10 +20,9 @@ message Date {
 message CDN {
   bytes cdnID = 1;
   string url = 2;
-  bytes hashSum = 3;
-  bytes hashSumEncrypted = 4;
-
-  bytes signatureKey = 5;
-  bytes salt = 6;
+  bytes hashSumEncrypted = 3;
+  string contentType = 4;
+  bytes encryptionKey = 5;
+  bytes hkdfSalt = 6;
   google.protobuf.Timestamp createAt = 7;
 }

@@ -23,7 +23,6 @@ class UploadConfirm_Request extends $pb.GeneratedMessage {
     $core.String? uploadId,
     $core.List<$core.int>? encryptionKey,
     $core.List<$core.int>? hkdfSalt,
-    $core.String? fileName,
     $core.String? contentType,
     $core.String? folder,
   }) {
@@ -31,7 +30,6 @@ class UploadConfirm_Request extends $pb.GeneratedMessage {
     if (uploadId != null) result.uploadId = uploadId;
     if (encryptionKey != null) result.encryptionKey = encryptionKey;
     if (hkdfSalt != null) result.hkdfSalt = hkdfSalt;
-    if (fileName != null) result.fileName = fileName;
     if (contentType != null) result.contentType = contentType;
     if (folder != null) result.folder = folder;
     return result;
@@ -49,7 +47,6 @@ class UploadConfirm_Request extends $pb.GeneratedMessage {
     ..aOS(1, _omitFieldNames ? '' : 'uploadId', protoName: 'uploadId')
     ..a<$core.List<$core.int>>(2, _omitFieldNames ? '' : 'encryptionKey', $pb.PbFieldType.OY, protoName: 'encryptionKey')
     ..a<$core.List<$core.int>>(3, _omitFieldNames ? '' : 'hkdfSalt', $pb.PbFieldType.OY, protoName: 'hkdfSalt')
-    ..aOS(4, _omitFieldNames ? '' : 'fileName', protoName: 'fileName')
     ..aOS(5, _omitFieldNames ? '' : 'contentType', protoName: 'contentType')
     ..aOS(6, _omitFieldNames ? '' : 'folder')
     ..hasRequiredFields = false;
@@ -98,30 +95,21 @@ class UploadConfirm_Request extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   void clearHkdfSalt() => $_clearField(3);
 
-  @$pb.TagNumber(4)
-  $core.String get fileName => $_getSZ(3);
-  @$pb.TagNumber(4)
-  set fileName($core.String value) => $_setString(3, value);
-  @$pb.TagNumber(4)
-  $core.bool hasFileName() => $_has(3);
-  @$pb.TagNumber(4)
-  void clearFileName() => $_clearField(4);
-
   @$pb.TagNumber(5)
-  $core.String get contentType => $_getSZ(4);
+  $core.String get contentType => $_getSZ(3);
   @$pb.TagNumber(5)
-  set contentType($core.String value) => $_setString(4, value);
+  set contentType($core.String value) => $_setString(3, value);
   @$pb.TagNumber(5)
-  $core.bool hasContentType() => $_has(4);
+  $core.bool hasContentType() => $_has(3);
   @$pb.TagNumber(5)
   void clearContentType() => $_clearField(5);
 
   @$pb.TagNumber(6)
-  $core.String get folder => $_getSZ(5);
+  $core.String get folder => $_getSZ(4);
   @$pb.TagNumber(6)
-  set folder($core.String value) => $_setString(5, value);
+  set folder($core.String value) => $_setString(4, value);
   @$pb.TagNumber(6)
-  $core.bool hasFolder() => $_has(5);
+  $core.bool hasFolder() => $_has(4);
   @$pb.TagNumber(6)
   void clearFolder() => $_clearField(6);
 }

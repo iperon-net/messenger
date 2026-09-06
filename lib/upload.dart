@@ -75,14 +75,41 @@ class UploadManager {
   ///
   /// [onProgress] — необязательный колбэк (уже посланные/подтверждённые
   /// сервером байты шифротекста, полный размер шифротекста) для UI-прогресса.
+  /// Пишет [bytes] во временный файл и заливает его через [uploadFile] — для
+  /// вызывающего кода, у которого данные уже в памяти (обрезанный аватар и
+  /// т.п.), а не на диске. Расширение [extension] (без точки) идёт в имя temp-
+  /// файла.
+  Future<CDN> uploadBytes({
+    required Uint8List bytes,
+    required String folder,
+    required String contentType,
+    String extension = 'bin',
+    void Function(int sentBytes, int totalBytes)? onProgress,
+  }) async {
+    final tmpFile = await File(
+      p.join(Directory.systemTemp.path, 'upload_${DateTime.now().millisecondsSinceEpoch}.$extension'),
+    ).writeAsBytes(bytes, flush: true);
+
+    try {
+      return await uploadFile(file: tmpFile, folder: folder, contentType: contentType, onProgress: onProgress);
+    } finally {
+      // Temp-файл нужен только на время заливки (uploadFile читает его с диска
+      // при докачке), поэтому чистим и после успеха, и после ошибки.
+      try {
+        await tmpFile.delete();
+      } catch (error, stackTrace) {
+        logger.handle(error, stackTrace);
+      }
+    }
+  }
+
   Future<CDN> uploadFile({
     required File file,
     required String folder,
     required String contentType,
-    String? fileName,
     void Function(int sentBytes, int totalBytes)? onProgress,
   }) async {
-    var state = await _resolveUploadState(file: file, folder: folder, contentType: contentType, fileName: fileName);
+    var state = await _resolveUploadState(file: file, folder: folder, contentType: contentType);
 
     for (var attempt = 1; ; attempt++) {
       try {
@@ -100,7 +127,7 @@ class UploadManager {
         // Между попытками мог сохраниться uploadID (первая попытка успела
         // получить InitAck перед обрывом) — перечитываем состояние, чтобы
         // докачка стартовала не с нуля.
-        final reloaded = await repositories.uploads.getByLocalID(state.localID);
+        final reloaded = await repositories.cdn.getByLocalID(state.localID);
         if (reloaded == null) {
           throw const UploadException('upload: local state disappeared between retries');
         }
@@ -111,13 +138,8 @@ class UploadManager {
     return _confirm(state);
   }
 
-  Future<models.UploadState> _resolveUploadState({
-    required File file,
-    required String folder,
-    required String contentType,
-    String? fileName,
-  }) async {
-    final existing = await repositories.uploads.getByFilePath(file.path);
+  Future<models.UploadState> _resolveUploadState({required File file, required String folder, required String contentType}) async {
+    final existing = await repositories.cdn.getByFilePath(file.path);
     if (existing != null) {
       return existing;
     }
@@ -134,11 +156,10 @@ class UploadManager {
       noncePrefix: Uint8List.fromList(crypto.fileEncryptor.generateNoncePrefix()),
       folder: folder,
       contentType: contentType,
-      fileName: fileName ?? p.basename(file.path),
       createdAt: DateTime.now(),
     );
 
-    await repositories.uploads.create(state);
+    await repositories.cdn.create(state);
     return state;
   }
 
@@ -176,7 +197,7 @@ class UploadManager {
 
       var uploadState = state;
       if (uploadState.uploadID == null) {
-        await repositories.uploads.setUploadID(localID: uploadState.localID, uploadID: initAck.uploadId);
+        await repositories.cdn.setUploadID(localID: uploadState.localID, uploadID: initAck.uploadId);
         uploadState = uploadState.copyWithUploadID(initAck.uploadId);
       }
 
@@ -242,7 +263,6 @@ class UploadManager {
       uploadId: uploadID,
       encryptionKey: state.fileKey,
       hkdfSalt: state.hkdfSalt,
-      fileName: state.fileName,
       contentType: state.contentType,
       folder: state.folder,
     );
@@ -253,7 +273,7 @@ class UploadManager {
 
       if (status.status == APIStatus.success && response != null) {
         final cdn = UploadConfirm_Response.fromBuffer(response).cdn;
-        await repositories.uploads.delete(state.localID);
+        await repositories.cdn.delete(state.localID);
         return cdn;
       }
 

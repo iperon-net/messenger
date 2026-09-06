@@ -94,19 +94,19 @@ class CDN extends $pb.GeneratedMessage {
   factory CDN({
     $core.List<$core.int>? cdnID,
     $core.String? url,
-    $core.List<$core.int>? hashSum,
     $core.List<$core.int>? hashSumEncrypted,
-    $core.List<$core.int>? signatureKey,
-    $core.List<$core.int>? salt,
+    $core.String? contentType,
+    $core.List<$core.int>? encryptionKey,
+    $core.List<$core.int>? hkdfSalt,
     $0.Timestamp? createAt,
   }) {
     final result = create();
     if (cdnID != null) result.cdnID = cdnID;
     if (url != null) result.url = url;
-    if (hashSum != null) result.hashSum = hashSum;
     if (hashSumEncrypted != null) result.hashSumEncrypted = hashSumEncrypted;
-    if (signatureKey != null) result.signatureKey = signatureKey;
-    if (salt != null) result.salt = salt;
+    if (contentType != null) result.contentType = contentType;
+    if (encryptionKey != null) result.encryptionKey = encryptionKey;
+    if (hkdfSalt != null) result.hkdfSalt = hkdfSalt;
     if (createAt != null) result.createAt = createAt;
     return result;
   }
@@ -122,10 +122,10 @@ class CDN extends $pb.GeneratedMessage {
       package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
     ..a<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'cdnID', $pb.PbFieldType.OY, protoName: 'cdnID')
     ..aOS(2, _omitFieldNames ? '' : 'url')
-    ..a<$core.List<$core.int>>(3, _omitFieldNames ? '' : 'hashSum', $pb.PbFieldType.OY, protoName: 'hashSum')
-    ..a<$core.List<$core.int>>(4, _omitFieldNames ? '' : 'hashSumEncrypted', $pb.PbFieldType.OY, protoName: 'hashSumEncrypted')
-    ..a<$core.List<$core.int>>(5, _omitFieldNames ? '' : 'signatureKey', $pb.PbFieldType.OY, protoName: 'signatureKey')
-    ..a<$core.List<$core.int>>(6, _omitFieldNames ? '' : 'salt', $pb.PbFieldType.OY)
+    ..a<$core.List<$core.int>>(3, _omitFieldNames ? '' : 'hashSumEncrypted', $pb.PbFieldType.OY, protoName: 'hashSumEncrypted')
+    ..aOS(4, _omitFieldNames ? '' : 'contentType', protoName: 'contentType')
+    ..a<$core.List<$core.int>>(5, _omitFieldNames ? '' : 'encryptionKey', $pb.PbFieldType.OY, protoName: 'encryptionKey')
+    ..a<$core.List<$core.int>>(6, _omitFieldNames ? '' : 'hkdfSalt', $pb.PbFieldType.OY, protoName: 'hkdfSalt')
     ..aOM<$0.Timestamp>(7, _omitFieldNames ? '' : 'createAt', protoName: 'createAt', subBuilder: $0.Timestamp.create)
     ..hasRequiredFields = false;
 
@@ -164,40 +164,40 @@ class CDN extends $pb.GeneratedMessage {
   void clearUrl() => $_clearField(2);
 
   @$pb.TagNumber(3)
-  $core.List<$core.int> get hashSum => $_getN(2);
+  $core.List<$core.int> get hashSumEncrypted => $_getN(2);
   @$pb.TagNumber(3)
-  set hashSum($core.List<$core.int> value) => $_setBytes(2, value);
+  set hashSumEncrypted($core.List<$core.int> value) => $_setBytes(2, value);
   @$pb.TagNumber(3)
-  $core.bool hasHashSum() => $_has(2);
+  $core.bool hasHashSumEncrypted() => $_has(2);
   @$pb.TagNumber(3)
-  void clearHashSum() => $_clearField(3);
+  void clearHashSumEncrypted() => $_clearField(3);
 
   @$pb.TagNumber(4)
-  $core.List<$core.int> get hashSumEncrypted => $_getN(3);
+  $core.String get contentType => $_getSZ(3);
   @$pb.TagNumber(4)
-  set hashSumEncrypted($core.List<$core.int> value) => $_setBytes(3, value);
+  set contentType($core.String value) => $_setString(3, value);
   @$pb.TagNumber(4)
-  $core.bool hasHashSumEncrypted() => $_has(3);
+  $core.bool hasContentType() => $_has(3);
   @$pb.TagNumber(4)
-  void clearHashSumEncrypted() => $_clearField(4);
+  void clearContentType() => $_clearField(4);
 
   @$pb.TagNumber(5)
-  $core.List<$core.int> get signatureKey => $_getN(4);
+  $core.List<$core.int> get encryptionKey => $_getN(4);
   @$pb.TagNumber(5)
-  set signatureKey($core.List<$core.int> value) => $_setBytes(4, value);
+  set encryptionKey($core.List<$core.int> value) => $_setBytes(4, value);
   @$pb.TagNumber(5)
-  $core.bool hasSignatureKey() => $_has(4);
+  $core.bool hasEncryptionKey() => $_has(4);
   @$pb.TagNumber(5)
-  void clearSignatureKey() => $_clearField(5);
+  void clearEncryptionKey() => $_clearField(5);
 
   @$pb.TagNumber(6)
-  $core.List<$core.int> get salt => $_getN(5);
+  $core.List<$core.int> get hkdfSalt => $_getN(5);
   @$pb.TagNumber(6)
-  set salt($core.List<$core.int> value) => $_setBytes(5, value);
+  set hkdfSalt($core.List<$core.int> value) => $_setBytes(5, value);
   @$pb.TagNumber(6)
-  $core.bool hasSalt() => $_has(5);
+  $core.bool hasHkdfSalt() => $_has(5);
   @$pb.TagNumber(6)
-  void clearSalt() => $_clearField(6);
+  void clearHkdfSalt() => $_clearField(6);
 
   @$pb.TagNumber(7)
   $0.Timestamp get createAt => $_getN(6);

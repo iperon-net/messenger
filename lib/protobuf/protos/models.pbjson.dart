@@ -51,18 +51,18 @@ const CDN$json = {
   '2': [
     {'1': 'cdnID', '3': 1, '4': 1, '5': 12, '10': 'cdnID'},
     {'1': 'url', '3': 2, '4': 1, '5': 9, '10': 'url'},
-    {'1': 'hashSum', '3': 3, '4': 1, '5': 12, '10': 'hashSum'},
-    {'1': 'hashSumEncrypted', '3': 4, '4': 1, '5': 12, '10': 'hashSumEncrypted'},
-    {'1': 'signatureKey', '3': 5, '4': 1, '5': 12, '10': 'signatureKey'},
-    {'1': 'salt', '3': 6, '4': 1, '5': 12, '10': 'salt'},
+    {'1': 'hashSumEncrypted', '3': 3, '4': 1, '5': 12, '10': 'hashSumEncrypted'},
+    {'1': 'contentType', '3': 4, '4': 1, '5': 9, '10': 'contentType'},
+    {'1': 'encryptionKey', '3': 5, '4': 1, '5': 12, '10': 'encryptionKey'},
+    {'1': 'hkdfSalt', '3': 6, '4': 1, '5': 12, '10': 'hkdfSalt'},
     {'1': 'createAt', '3': 7, '4': 1, '5': 11, '6': '.google.protobuf.Timestamp', '10': 'createAt'},
   ],
 };
 
 /// Descriptor for `CDN`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List cDNDescriptor =
-    $convert.base64Decode('CgNDRE4SFAoFY2RuSUQYASABKAxSBWNkbklEEhAKA3VybBgCIAEoCVIDdXJsEhgKB2hhc2hTdW'
-        '0YAyABKAxSB2hhc2hTdW0SKgoQaGFzaFN1bUVuY3J5cHRlZBgEIAEoDFIQaGFzaFN1bUVuY3J5'
-        'cHRlZBIiCgxzaWduYXR1cmVLZXkYBSABKAxSDHNpZ25hdHVyZUtleRISCgRzYWx0GAYgASgMUg'
-        'RzYWx0EjYKCGNyZWF0ZUF0GAcgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcFIIY3Jl'
-        'YXRlQXQ=');
+    $convert.base64Decode('CgNDRE4SFAoFY2RuSUQYASABKAxSBWNkbklEEhAKA3VybBgCIAEoCVIDdXJsEioKEGhhc2hTdW'
+        '1FbmNyeXB0ZWQYAyABKAxSEGhhc2hTdW1FbmNyeXB0ZWQSIAoLY29udGVudFR5cGUYBCABKAlS'
+        'C2NvbnRlbnRUeXBlEiQKDWVuY3J5cHRpb25LZXkYBSABKAxSDWVuY3J5cHRpb25LZXkSGgoIaG'
+        'tkZlNhbHQYBiABKAxSCGhrZGZTYWx0EjYKCGNyZWF0ZUF0GAcgASgLMhouZ29vZ2xlLnByb3Rv'
+        'YnVmLlRpbWVzdGFtcFIIY3JlYXRlQXQ=');

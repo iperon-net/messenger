@@ -44,7 +44,7 @@ class FileEncryptor {
   /// HKDF-соль файла — уходит в `UploadConfirm.Request.hkdfSalt`.
   List<int> generateHkdfSalt() => randomBytes(32);
 
-  /// 8-байтовый nonce-префикс — хранится только локально (таблица `uploads`),
+  /// 8-байтовый nonce-префикс — хранится только локально (таблица `cdn`),
   /// на сервер не передаётся (сервер ciphertext не расшифровывает).
   List<int> generateNoncePrefix() => randomBytes(8);
 
