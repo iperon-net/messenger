@@ -13,6 +13,7 @@ import '../../protobuf.dart';
 import '../../repositories/repositories.dart';
 import '../../cdn.dart';
 import '../../utils.dart';
+import '../../models.dart' as models;
 import 'settings_my_profile_state.dart';
 
 class SettingsMyProfileCubit extends Cubit<SettingsMyProfileState> {
@@ -23,6 +24,7 @@ class SettingsMyProfileCubit extends Cubit<SettingsMyProfileState> {
   final auth = getIt.get<Auth>();
   final utils = getIt.get<Utils>();
   final repositories = getIt.get<Repositories>();
+  final cdnManager = getIt.get<CDNManager>();
 
   StreamSubscription<Uint8List>? _subscription;
 
@@ -30,7 +32,7 @@ class SettingsMyProfileCubit extends Cubit<SettingsMyProfileState> {
     emit(state.copyWith(status: Status.loading));
 
     // Subscription
-    _subscription = api.on(MessageType.MY_PROFILE).listen((payload) {
+    _subscription = api.on(MessageType.MY_PROFILE).listen((payload) async {
       if (isClosed) return;
 
       final response = MyProfile_Response.fromBuffer(payload);
@@ -39,6 +41,19 @@ class SettingsMyProfileCubit extends Cubit<SettingsMyProfileState> {
 
       if (response.hasBirthDate()) {
         emit(state.copyWith(birthDate: response.birthDate.toDateTime(toLocal: true)));
+      }
+
+      // Аватар приходит как ссылка на CDN — качаем ciphertext, расшифровываем
+      // локально (download отдаёт файл plaintext из кэша) и показываем в профиле.
+      // Первый показ может стоить сети, дальше — cache-hit без сети.
+      if (response.hasAvatar()) {
+        try {
+          final file = await cdnManager.download(cdn: models.CDN.fromProto(response.avatar));
+          if (isClosed) return;
+          emit(state.copyWith(avatarBytes: await file.readAsBytes()));
+        } catch (error, stackTrace) {
+          logger.handle(error, stackTrace);
+        }
       }
     });
 
@@ -98,10 +113,10 @@ class SettingsMyProfileCubit extends Cubit<SettingsMyProfileState> {
 
     emit(state.copyWith(error: "", avatarBytes: bytes));
 
-    final uploadManager = getIt.get<CDNManager>();
+    late models.CDN cdn;
 
     try {
-      final cdn = await uploadManager.uploadBytes(
+      cdn = await cdnManager.uploadBytes(
         bytes: bytes,
         folder: 'avatars',
         contentType: 'image/jpeg',
@@ -110,8 +125,6 @@ class SettingsMyProfileCubit extends Cubit<SettingsMyProfileState> {
           logger.debug('upload progress: $sent / $total');
         },
       );
-
-      await repositories.myProfile.updateAvatarByCdnID(userID: auth.session.userID, cdnID: cdn.cdnID);
     } catch (error, stackTrace) {
       logger.handle(error, stackTrace);
       if (isClosed) return;
@@ -119,7 +132,21 @@ class SettingsMyProfileCubit extends Cubit<SettingsMyProfileState> {
       // из-за сбоя сети: пользователь продолжает видеть выбранную картинку,
       // просто получает сигнал, что сохранение на сервере не удалось.
       emit(state.copyWith(error: "screenMyProfile.errorSavingAvatar"));
+      return;
     }
+
+    final status = await api.unaryEncoded(
+      MessageType.MY_PROFILE_AVATAR_UPDATE,
+      MyProfileAvatarUpdate_Request(cdnID: cdn.cdnID).writeToBuffer(),
+    );
+    if (isClosed) return;
+
+    if (status.status == APIStatus.error) {
+      emit(state.copyWith(error: "screenMyProfile.errorSavingAvatar"));
+      return;
+    }
+
+    await repositories.myProfile.updateAvatarByCdnID(userID: auth.session.userID, cdnID: cdn.cdnID);
   }
 
   @override

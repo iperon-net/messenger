@@ -334,10 +334,10 @@ class MyProfileUpdate extends $pb.GeneratedMessage {
 
 class MyProfileAvatarUpdate_Request extends $pb.GeneratedMessage {
   factory MyProfileAvatarUpdate_Request({
-    $core.List<$core.int>? avatar,
+    $core.List<$core.int>? cdnID,
   }) {
     final result = create();
-    if (avatar != null) result.avatar = avatar;
+    if (cdnID != null) result.cdnID = cdnID;
     return result;
   }
 
@@ -351,7 +351,7 @@ class MyProfileAvatarUpdate_Request extends $pb.GeneratedMessage {
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'MyProfileAvatarUpdate.Request',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
-    ..a<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'avatar', $pb.PbFieldType.OY)
+    ..a<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'cdnID', $pb.PbFieldType.OY, protoName: 'cdnID')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -373,13 +373,13 @@ class MyProfileAvatarUpdate_Request extends $pb.GeneratedMessage {
   static MyProfileAvatarUpdate_Request? _defaultInstance;
 
   @$pb.TagNumber(1)
-  $core.List<$core.int> get avatar => $_getN(0);
+  $core.List<$core.int> get cdnID => $_getN(0);
   @$pb.TagNumber(1)
-  set avatar($core.List<$core.int> value) => $_setBytes(0, value);
+  set cdnID($core.List<$core.int> value) => $_setBytes(0, value);
   @$pb.TagNumber(1)
-  $core.bool hasAvatar() => $_has(0);
+  $core.bool hasCdnID() => $_has(0);
   @$pb.TagNumber(1)
-  void clearAvatar() => $_clearField(1);
+  void clearCdnID() => $_clearField(1);
 }
 
 class MyProfileAvatarUpdate_Response extends $pb.GeneratedMessage {

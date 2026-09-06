@@ -33,7 +33,7 @@ message MyProfileUpdate {
 
 message MyProfileAvatarUpdate {
   message Request {
-    optional bytes avatar = 1;
+    bytes cdnID = 1;
   }
 
   message Response {

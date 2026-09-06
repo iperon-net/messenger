@@ -100,10 +100,7 @@ const MyProfileAvatarUpdate$json = {
 const MyProfileAvatarUpdate_Request$json = {
   '1': 'Request',
   '2': [
-    {'1': 'avatar', '3': 1, '4': 1, '5': 12, '9': 0, '10': 'avatar', '17': true},
-  ],
-  '8': [
-    {'1': '_avatar'},
+    {'1': 'cdnID', '3': 1, '4': 1, '5': 12, '10': 'cdnID'},
   ],
 };
 
@@ -120,6 +117,6 @@ const MyProfileAvatarUpdate_Response$json = {
 
 /// Descriptor for `MyProfileAvatarUpdate`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List myProfileAvatarUpdateDescriptor =
-    $convert.base64Decode('ChVNeVByb2ZpbGVBdmF0YXJVcGRhdGUaMQoHUmVxdWVzdBIbCgZhdmF0YXIYASABKAxIAFIGYX'
-        'ZhdGFyiAEBQgkKB19hdmF0YXIaQgoIUmVzcG9uc2USKwoGYXZhdGFyGAEgASgLMg4uaXBlcm9u'
-        'LnYxLkNETkgAUgZhdmF0YXKIAQFCCQoHX2F2YXRhcg==');
+    $convert.base64Decode('ChVNeVByb2ZpbGVBdmF0YXJVcGRhdGUaHwoHUmVxdWVzdBIUCgVjZG5JRBgBIAEoDFIFY2RuSU'
+        'QaQgoIUmVzcG9uc2USKwoGYXZhdGFyGAEgASgLMg4uaXBlcm9uLnYxLkNETkgAUgZhdmF0YXKI'
+        'AQFCCQoHX2F2YXRhcg==');
