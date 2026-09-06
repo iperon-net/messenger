@@ -11,15 +11,16 @@ const int _fileEncryptorTagSize = 16;
 /// В отличие от [Syncer] (одноразовый AES-GCM над всем сообщением сессионного
 /// конверта), это не подходит для больших файлов и докачки — здесь нужна
 /// возможность детерминированно восстановить шифротекст любого чанка по его
-/// индексу (тот же fileKey/hkdfSalt/noncePrefix → тот же ciphertext), чтобы при
+/// индексу (тот же fileKey/hkdfSalt → тот же ciphertext), чтобы при
 /// обрыве соединения можно было продолжить ровно с чанка, который сервер ещё не
 /// подтвердил, а не шифровать файл заново.
 ///
-/// Nonce-схема (STREAM-конструкция, см. план): 8 случайных байт-префикс на
-/// файл + 4-байтовый big-endian номер чанка = 12 байт, как того ждёт
-/// `AesGcm.with256bits()`. У последнего чанка инвертирован старший бит
-/// счётчика — это защита от усечения потока (получатель на этапе 3 обязан
-/// проверить бит финального чанка, иначе конец файла можно молча обрезать).
+/// Nonce-схема (STREAM-конструкция, см. план): 8-байтовый префикс на файл,
+/// выведенный из `fileKey`/`hkdfSalt` ([deriveNoncePrefix]), + 4-байтовый
+/// big-endian номер чанка = 12 байт, как того ждёт `AesGcm.with256bits()`. У
+/// последнего чанка инвертирован старший бит счётчика — защита от усечения
+/// потока: [decryptFile] выставляет этот бит ровно на финальном фрейме, поэтому
+/// обрезанный/дописанный поток не пройдёт AEAD-проверку.
 class FileEncryptor {
   final Logger logger;
 
@@ -35,6 +36,7 @@ class FileEncryptor {
   final algorithmHkdf = Hkdf(hmac: Hmac.sha256(), outputLength: 32);
 
   static final List<int> _hkdfInfo = utf8.encode('iperon-media-file-v1');
+  static final List<int> _hkdfNonceInfo = utf8.encode('iperon-media-nonce-v1');
 
   /// Ключ файла — генерируется один раз на файл, уходит в
   /// `UploadConfirm.Request.encryptionKey` (сервер заворачивает его своим
@@ -44,9 +46,18 @@ class FileEncryptor {
   /// HKDF-соль файла — уходит в `UploadConfirm.Request.hkdfSalt`.
   List<int> generateHkdfSalt() => randomBytes(32);
 
-  /// 8-байтовый nonce-префикс — хранится только локально (таблица `cdn`),
-  /// на сервер не передаётся (сервер ciphertext не расшифровывает).
-  List<int> generateNoncePrefix() => randomBytes(8);
+  /// 8-байтовый nonce-префикс файла — **не** случайный и **не** хранится: он
+  /// детерминированно выводится из `fileKey`/`hkdfSalt`, которые есть и у
+  /// заливающего, и у скачивающего (последнему они приезжают вместе с `CDN`).
+  /// Значит на сервер его слать/хранить не нужно, а скачивающий восстановит его
+  /// сам для расшифровки. Уникальность (никакого реюза (key, nonce)) держится на
+  /// свежем случайном `fileKey` на каждый файл. Отдельный `info`-лейбл делает
+  /// вывод независимым от `chunkKey` (тот же примитив, другой `info`).
+  Future<List<int>> deriveNoncePrefix({required List<int> fileKey, required List<int> hkdfSalt}) async {
+    final key = await algorithmHkdf.deriveKey(secretKey: SecretKey(fileKey), nonce: hkdfSalt, info: _hkdfNonceInfo);
+    final bytes = await key.extractBytes();
+    return bytes.sublist(0, 8);
+  }
 
   /// Сколько чанков займёт файл размера [fileLength] при текущем [chunkSize].
   /// Пустой файл (0 байт) — тоже один (пустой) чанк, а не ноль: серверу всё
@@ -102,16 +113,17 @@ class FileEncryptor {
   /// Шифрует [file] чанками, начиная с [startChunkIndex] (см.
   /// [chunkIndexForReceivedBytes] — для докачки после обрыва), и отдаёт готовые
   /// к отправке шифро-чанки (`ciphertext + tag`) по одному. Детерминированно:
-  /// один и тот же [fileKey]/[hkdfSalt]/[noncePrefix] всегда дают один и тот же
-  /// ciphertext на том же индексе чанка.
+  /// один и тот же [fileKey]/[hkdfSalt] всегда дают один и тот же ciphertext на
+  /// том же индексе чанка (nonce-префикс выводится из них же, см.
+  /// [deriveNoncePrefix]).
   Stream<Uint8List> encryptFile({
     required File file,
     required List<int> fileKey,
     required List<int> hkdfSalt,
-    required List<int> noncePrefix,
     int startChunkIndex = 0,
   }) async* {
     final chunkKey = await algorithmHkdf.deriveKey(secretKey: SecretKey(fileKey), nonce: hkdfSalt, info: _hkdfInfo);
+    final noncePrefix = await deriveNoncePrefix(fileKey: fileKey, hkdfSalt: hkdfSalt);
 
     final fileLength = await file.length();
     final chunks = totalChunks(fileLength);
@@ -135,6 +147,67 @@ class FileEncryptor {
       }
     } finally {
       await raf.close();
+    }
+  }
+
+  /// Сколько шифро-фреймов в файле ciphertext длины [cipherLength]. Каждый чанк
+  /// добавляет ровно [_fileEncryptorTagSize] байт тега, все фреймы кроме
+  /// последнего — полные ([chunkSize] + тег). Обратно к [totalCipherSize].
+  int _cipherFrameCount(int cipherLength) {
+    final fullFrame = chunkSize + _fileEncryptorTagSize;
+    return (cipherLength - _fileEncryptorTagSize) ~/ fullFrame + 1;
+  }
+
+  /// Расшифровывает [cipherFile] (скачанный ciphertext, как его отдаёт
+  /// [encryptFile]) в [outFile] по одному фрейму за раз — весь файл в памяти не
+  /// держим. [fileKey]/[hkdfSalt] приезжают скачивающему вместе с `CDN`,
+  /// nonce-префикс выводится из них ([deriveNoncePrefix]).
+  ///
+  /// Защита от усечения — бесплатно из nonce-схемы: у финального фрейма
+  /// инвертирован старший бит счётчика (см. [_nonceFor]). Если поток обрезали
+  /// (или, наоборот, дописали хвост), какой-то фрейм расшифруется с nonce не
+  /// того "финальности" → AEAD-проверка тега упадёт, и метод бросит исключение,
+  /// а не молча отдаст обрезанный файл.
+  Future<void> decryptFile({
+    required File cipherFile,
+    required File outFile,
+    required List<int> fileKey,
+    required List<int> hkdfSalt,
+  }) async {
+    final chunkKey = await algorithmHkdf.deriveKey(secretKey: SecretKey(fileKey), nonce: hkdfSalt, info: _hkdfInfo);
+    final noncePrefix = await deriveNoncePrefix(fileKey: fileKey, hkdfSalt: hkdfSalt);
+
+    final cipherLength = await cipherFile.length();
+    if (cipherLength < _fileEncryptorTagSize) {
+      throw FormatException('decryptFile: ciphertext shorter than a single AEAD tag ($cipherLength bytes)');
+    }
+    final frames = _cipherFrameCount(cipherLength);
+    final fullFrame = chunkSize + _fileEncryptorTagSize;
+
+    final inRaf = await cipherFile.open();
+    final outRaf = await outFile.open(mode: FileMode.write);
+    try {
+      for (var index = 0; index < frames; index++) {
+        final frame = await inRaf.read(fullFrame);
+        final isFinal = index == frames - 1;
+
+        final cipherText = frame.sublist(0, frame.length - _fileEncryptorTagSize);
+        final mac = Mac(frame.sublist(frame.length - _fileEncryptorTagSize));
+
+        final plainChunk = await algorithmAesGcm.decrypt(
+          SecretBox(
+            cipherText,
+            nonce: _nonceFor(noncePrefix, index, isFinal: isFinal),
+            mac: mac,
+          ),
+          secretKey: chunkKey,
+        );
+
+        await outRaf.writeFrom(plainChunk);
+      }
+    } finally {
+      await inRaf.close();
+      await outRaf.close();
     }
   }
 }

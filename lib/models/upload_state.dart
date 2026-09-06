@@ -1,6 +1,6 @@
 import 'dart:typed_data';
 
-/// Локальное состояние одной загрузки файла (таблица `cdn`), достаточное
+/// Локальное состояние одной загрузки файла (таблица `uploads`), достаточное
 /// для докачки после обрыва соединения или перезапуска приложения — см.
 /// `docs/plans/client-media-upload-stage-1-2.md`. Строка живёт от постановки
 /// файла в очередь до успешного `UPLOAD_CONFIRM`, после чего удаляется.
@@ -15,7 +15,6 @@ class UploadState {
   final int fileSize;
   final Uint8List fileKey;
   final Uint8List hkdfSalt;
-  final Uint8List noncePrefix;
   final String folder;
   final String contentType;
   final DateTime createdAt;
@@ -27,7 +26,6 @@ class UploadState {
     required this.fileSize,
     required this.fileKey,
     required this.hkdfSalt,
-    required this.noncePrefix,
     required this.folder,
     required this.contentType,
     required this.createdAt,
@@ -40,7 +38,6 @@ class UploadState {
     fileSize: fileSize,
     fileKey: fileKey,
     hkdfSalt: hkdfSalt,
-    noncePrefix: noncePrefix,
     folder: folder,
     contentType: contentType,
     createdAt: createdAt,

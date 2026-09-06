@@ -20,7 +20,8 @@ part "users.dart";
 part "sessions.dart";
 part "device_sessions.dart";
 part "my_profile.dart";
-part "cdn.dart";
+part "uploads.dart";
+part "downloads.dart";
 
 base class _AppSqliteOpenFactory extends NativeSqliteOpenFactory {
   final String? password;
@@ -53,7 +54,8 @@ class Repositories {
   late DeviceSessions deviceSessions;
   late Cache cache;
   late MyProfile myProfile;
-  late CDN cdn;
+  late Uploads uploads;
+  late Downloads downloads;
 
   static Future<Repositories> initialization() async {
     final repositories = Repositories._();
@@ -157,16 +159,32 @@ class Repositories {
       """);
 
         await tx.execute("""
-        CREATE TABLE cdn (
+        CREATE TABLE uploads (
           localID TEXT PRIMARY KEY,
           uploadID TEXT NULL,
           filePath TEXT NOT NULL,
           fileSize INTEGER NOT NULL,
           fileKey BLOB NOT NULL,
           hkdfSalt BLOB NOT NULL,
-          noncePrefix BLOB NOT NULL,
           folder TEXT NOT NULL,
           contentType TEXT NOT NULL,
+          createdAt INTEGER NOT NULL
+        );
+      """);
+
+        await tx.execute("""
+        CREATE TABLE downloads (
+          cdnID BLOB PRIMARY KEY,
+          url TEXT NOT NULL,
+          tmpPath TEXT NOT NULL,
+          targetPath TEXT NULL,
+          encryptionKey BLOB NOT NULL,
+          hkdfSalt BLOB NOT NULL,
+          contentType TEXT NOT NULL,
+          hashSumEncrypted BLOB NOT NULL,
+          cipherSize INTEGER NULL,
+          receivedBytes INTEGER NOT NULL DEFAULT 0,
+          status TEXT NOT NULL,
           createdAt INTEGER NOT NULL
         );
       """);
@@ -218,7 +236,8 @@ class Repositories {
     deviceSessions = DeviceSessions(logger: logger, db: db);
     cache = Cache(logger: logger, db: db);
     myProfile = MyProfile(logger: logger, db: db);
-    cdn = CDN(logger: logger, db: db);
+    uploads = Uploads(logger: logger, db: db);
+    downloads = Downloads(logger: logger, db: db);
   }
 
   // Generate password

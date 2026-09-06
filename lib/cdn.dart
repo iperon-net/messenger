@@ -2,10 +2,12 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:cryptography/cryptography.dart';
 import 'package:cryptography/helpers.dart';
 import 'package:fixnum/fixnum.dart';
 import 'package:grpc/grpc.dart';
 import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 
 import 'api.dart';
 import 'auth.dart';
@@ -14,7 +16,7 @@ import 'di.dart';
 import 'logger.dart';
 import 'models.dart' as models;
 import 'protobuf.dart';
-import 'repositories.dart' hide CDN;
+import 'repositories.dart';
 import 'utils.dart';
 
 /// Ошибка загрузки/подтверждения файла, не сведённая к обычному
@@ -26,6 +28,19 @@ class UploadException implements Exception {
 
   @override
   String toString() => 'UploadException: $message';
+}
+
+/// Фатальная (не-транзиентная) ошибка скачивания/расшифровки файла: сервер
+/// вернул осмысленный отказ (4xx), не сошёлся хеш ciphertext или провалилась
+/// AEAD-проверка при расшифровке. В отличие от сетевого обрыва повтор тут не
+/// поможет, поэтому [CDNManager.download] такие ошибки не ретраит, а пробрасывает
+/// сразу.
+class DownloadException implements Exception {
+  final String message;
+  const DownloadException(this.message);
+
+  @override
+  String toString() => 'DownloadException: $message';
 }
 
 /// `CDNManager` — этапы 1+2 загрузки больших зашифрованных на клиенте
@@ -127,7 +142,7 @@ class CDNManager {
         // Между попытками мог сохраниться uploadID (первая попытка успела
         // получить InitAck перед обрывом) — перечитываем состояние, чтобы
         // докачка стартовала не с нуля.
-        final reloaded = await repositories.cdn.getByLocalID(state.localID);
+        final reloaded = await repositories.uploads.getByLocalID(state.localID);
         if (reloaded == null) {
           throw const UploadException('upload: local state disappeared between retries');
         }
@@ -135,11 +150,60 @@ class CDNManager {
       }
     }
 
-    return _confirm(state);
+    final cdn = await _confirm(state);
+
+    // Plaintext уже лежит на устройстве — засеиваем им media-кэш, чтобы
+    // последующий download(cdn) для только что залитого файла (аватарка и т.п.)
+    // был cache-hit без сети и без расшифровки.
+    await _seedDownloadCache(file: file, cdn: cdn);
+
+    return cdn;
+  }
+
+  /// Кладёт plaintext только что залитого [file] в media-кэш как готовый
+  /// результат скачивания [cdn] (строка `downloads` со статусом `ready`).
+  /// Best-effort: ошибка кэширования не должна валить успешный аплоад, поэтому
+  /// глотается в лог.
+  Future<void> _seedDownloadCache({required File file, required models.CDN cdn}) async {
+    try {
+      if (await repositories.downloads.getByCdnID(cdn.cdnID) != null) {
+        return;
+      }
+
+      final target = File(await _targetPath(cdn));
+      await file.copy(target.path);
+
+      final cdnHex = utils.bytesToHex(cdn.cdnID);
+      final mediaDir = await _mediaDir();
+      final plaintextSize = await file.length();
+
+      await repositories.downloads.create(
+        models.DownloadState(
+          cdnID: cdn.cdnID,
+          url: cdn.url,
+          // Времянник ciphertext для сида не нужен, но путь держим консистентным
+          // с download-флоу — вдруг файл кэша потом удалят и потребуется перекачка.
+          tmpPath: p.join(mediaDir.path, '.part', '$cdnHex.part'),
+          targetPath: target.path,
+          encryptionKey: cdn.encryptionKey,
+          hkdfSalt: cdn.hkdfSalt,
+          contentType: cdn.contentType,
+          hashSumEncrypted: cdn.hashSumEncrypted,
+          // Полный размер ciphertext известен и без сети — чтобы cache-hit
+          // отдавал корректный total в onProgress.
+          cipherSize: crypto.fileEncryptor.totalCipherSize(plaintextSize),
+          receivedBytes: 0,
+          status: models.DownloadStatus.ready,
+          createdAt: DateTime.now(),
+        ),
+      );
+    } catch (error, stackTrace) {
+      logger.handle(error, stackTrace);
+    }
   }
 
   Future<models.UploadState> _resolveUploadState({required File file, required String folder, required String contentType}) async {
-    final existing = await repositories.cdn.getByFilePath(file.path);
+    final existing = await repositories.uploads.getByFilePath(file.path);
     if (existing != null) {
       return existing;
     }
@@ -153,13 +217,12 @@ class CDNManager {
       fileSize: fileSize,
       fileKey: Uint8List.fromList(crypto.fileEncryptor.generateFileKey()),
       hkdfSalt: Uint8List.fromList(crypto.fileEncryptor.generateHkdfSalt()),
-      noncePrefix: Uint8List.fromList(crypto.fileEncryptor.generateNoncePrefix()),
       folder: folder,
       contentType: contentType,
       createdAt: DateTime.now(),
     );
 
-    await repositories.cdn.create(state);
+    await repositories.uploads.create(state);
     return state;
   }
 
@@ -197,7 +260,7 @@ class CDNManager {
 
       var uploadState = state;
       if (uploadState.uploadID == null) {
-        await repositories.cdn.setUploadID(localID: uploadState.localID, uploadID: initAck.uploadId);
+        await repositories.uploads.setUploadID(localID: uploadState.localID, uploadID: initAck.uploadId);
         uploadState = uploadState.copyWithUploadID(initAck.uploadId);
       }
 
@@ -210,7 +273,6 @@ class CDNManager {
         file: File(uploadState.filePath),
         fileKey: uploadState.fileKey,
         hkdfSalt: uploadState.hkdfSalt,
-        noncePrefix: uploadState.noncePrefix,
         startChunkIndex: startChunkIndex,
       );
 
@@ -273,7 +335,7 @@ class CDNManager {
 
       if (status.status == APIStatus.success && response != null) {
         final cdn = models.CDN.fromProto(UploadConfirm_Response.fromBuffer(response).cdn);
-        await repositories.cdn.delete(state.localID);
+        await repositories.uploads.delete(state.localID);
         return cdn;
       }
 
@@ -288,6 +350,254 @@ class CDNManager {
 
       logger.debug('upload: confirm attempt $attempt failed ($status), retrying');
       await Future.delayed(_retryDelay * attempt);
+    }
+  }
+
+  // --- Скачивание (этап 3) --------------------------------------------------
+
+  /// Как часто (в байтах ciphertext) сбрасывать прогресс докачки в БД: слишком
+  /// часто — лишние записи на каждый сетевой чанк, слишком редко — при обрыве
+  /// докачаем меньше. 1 MiB — разумный компромисс.
+  static const int _downloadPersistInterval = 1024 * 1024;
+
+  /// Скачивает ciphertext файла [cdn] с CDN (докачка после обрыва + сетевые
+  /// ретраи), проверяет целостность по `hashSumEncrypted`, расшифровывает
+  /// локально ([Crypto.fileEncryptor]) и возвращает файл plaintext в кэше
+  /// приложения (`<cache>/media/<cdnID>`). Повторный вызов для уже скачанного
+  /// [cdn] отдаёт файл из кэша без сети.
+  ///
+  /// [onProgress] — необязательный колбэк (скачанные/полные **байты
+  /// ciphertext**), симметрично `onProgress` аплоада; фаза расшифровки прогресс
+  /// не двигает.
+  ///
+  /// Бросает [DownloadException] при фатальной ошибке (отказ сервера, битый хеш,
+  /// провал расшифровки); сетевые обрывы обрабатывает докачкой и ретраями.
+  Future<File> download({required models.CDN cdn, void Function(int receivedBytes, int totalBytes)? onProgress}) async {
+    var state = await _resolveDownloadState(cdn);
+
+    // Cache-hit: файл уже скачан и расшифрован.
+    if (state.status == models.DownloadStatus.ready && state.targetPath != null) {
+      final ready = File(state.targetPath!);
+      if (await ready.exists()) {
+        final size = state.cipherSize ?? 0;
+        onProgress?.call(size, size);
+        return ready;
+      }
+      // Расшифрованный файл кто-то удалил — качаем заново с нуля.
+      await repositories.downloads.delete(cdn.cdnID);
+      state = await _resolveDownloadState(cdn);
+    }
+
+    // 1. Закачка ciphertext с докачкой; сетевые обрывы — ретраим.
+    for (var attempt = 1; ; attempt++) {
+      try {
+        await _runDownloadPass(state, onProgress: onProgress);
+        break;
+      } catch (error, stackTrace) {
+        if (error is DownloadException) rethrow;
+
+        logger.handle(error, stackTrace);
+        if (attempt >= _maxStreamAttempts) {
+          throw DownloadException('download: network failure after $attempt attempts: $error');
+        }
+
+        await Future.delayed(_retryDelay * attempt);
+
+        final reloaded = await repositories.downloads.getByCdnID(cdn.cdnID);
+        if (reloaded == null) {
+          throw const DownloadException('download: local state disappeared between retries');
+        }
+        state = reloaded;
+      }
+    }
+
+    // 2. Целостность ciphertext (URL сам по себе бесполезен без ключа, но хеш
+    //    ловит порчу при передаче/хранении до расшифровки).
+    final tmp = File(state.tmpPath);
+    await _verifyHash(tmp, cdn.hashSumEncrypted);
+
+    // 3. Расшифровка на диск.
+    final target = File(await _targetPath(cdn));
+    try {
+      await crypto.fileEncryptor.decryptFile(cipherFile: tmp, outFile: target, fileKey: cdn.encryptionKey, hkdfSalt: cdn.hkdfSalt);
+    } catch (error, stackTrace) {
+      logger.handle(error, stackTrace);
+      throw DownloadException('download: decryption failed: $error');
+    }
+
+    // 4. Финал: времянник больше не нужен, строка остаётся реестром кэша.
+    try {
+      await tmp.delete();
+    } catch (error, stackTrace) {
+      logger.handle(error, stackTrace);
+    }
+    await repositories.downloads.markReady(cdnID: cdn.cdnID, targetPath: target.path);
+
+    return target;
+  }
+
+  Future<models.DownloadState> _resolveDownloadState(models.CDN cdn) async {
+    final existing = await repositories.downloads.getByCdnID(cdn.cdnID);
+    if (existing != null) {
+      return existing;
+    }
+
+    final cdnHex = utils.bytesToHex(cdn.cdnID);
+    final mediaDir = await _mediaDir();
+    final tmpPath = p.join(mediaDir.path, '.part', '$cdnHex.part');
+    await Directory(p.dirname(tmpPath)).create(recursive: true);
+
+    final state = models.DownloadState(
+      cdnID: cdn.cdnID,
+      url: cdn.url,
+      tmpPath: tmpPath,
+      targetPath: null,
+      encryptionKey: cdn.encryptionKey,
+      hkdfSalt: cdn.hkdfSalt,
+      contentType: cdn.contentType,
+      hashSumEncrypted: cdn.hashSumEncrypted,
+      cipherSize: null,
+      receivedBytes: 0,
+      status: models.DownloadStatus.downloading,
+      createdAt: DateTime.now(),
+    );
+
+    await repositories.downloads.create(state);
+    return state;
+  }
+
+  /// Один проход закачки ciphertext в `state.tmpPath`. Стартовый оффсет берём из
+  /// фактической длины времянника (устойчиво к рассинхрону БД/диска после
+  /// обрыва), докачиваем через `Range`. Сетевые обрывы пробрасывает как обычные
+  /// исключения (не [DownloadException]) — их ретраит [download]; осмысленный
+  /// отказ сервера (4xx) — как [DownloadException] (ретрай бесполезен).
+  Future<void> _runDownloadPass(models.DownloadState state, {void Function(int receivedBytes, int totalBytes)? onProgress}) async {
+    final tmp = File(state.tmpPath);
+    var received = await tmp.exists() ? await tmp.length() : 0;
+
+    final client = HttpClient();
+    try {
+      final request = await client.getUrl(Uri.parse(state.url));
+      if (received > 0) {
+        request.headers.add(HttpHeaders.rangeHeader, 'bytes=$received-');
+      }
+      final response = await request.close();
+
+      int? total;
+      IOSink sink;
+      switch (response.statusCode) {
+        case HttpStatus.partialContent:
+          total = response.contentLength >= 0 ? received + response.contentLength : null;
+          sink = tmp.openWrite(mode: FileMode.append);
+        case HttpStatus.ok:
+          // Сервер проигнорировал Range и отдаёт файл целиком — пишем с нуля.
+          received = 0;
+          total = response.contentLength >= 0 ? response.contentLength : null;
+          sink = tmp.openWrite(mode: FileMode.write);
+        default:
+          if (response.statusCode >= 500) {
+            // 5xx — транзиентно, пусть ретраит download.
+            throw HttpException('download: server error ${response.statusCode}', uri: Uri.parse(state.url));
+          }
+          throw DownloadException('download: unexpected HTTP status ${response.statusCode}');
+      }
+
+      if (total != null) {
+        await repositories.downloads.setCipherSize(cdnID: state.cdnID, cipherSize: total);
+      }
+      onProgress?.call(received, total ?? received);
+
+      var sincePersist = 0;
+      try {
+        await for (final chunk in response) {
+          sink.add(chunk);
+          received += chunk.length;
+          sincePersist += chunk.length;
+          if (sincePersist >= _downloadPersistInterval) {
+            await sink.flush();
+            await repositories.downloads.setReceivedBytes(cdnID: state.cdnID, receivedBytes: received);
+            sincePersist = 0;
+          }
+          onProgress?.call(received, total ?? received);
+        }
+      } finally {
+        await sink.close();
+      }
+
+      await repositories.downloads.setReceivedBytes(cdnID: state.cdnID, receivedBytes: received);
+
+      if (total != null && received != total) {
+        // Поток закрылся чисто, но короче обещанного — не финальная ошибка,
+        // докачаем на следующем проходе (не DownloadException → ретраится).
+        throw HttpException('download: incomplete stream ($received/$total bytes)', uri: Uri.parse(state.url));
+      }
+    } finally {
+      client.close();
+    }
+  }
+
+  /// Стриминговый sha256 по ciphertext-времяннику — сверяем с `hashSumEncrypted`
+  /// из `CDN`, не держа файл в памяти целиком.
+  Future<void> _verifyHash(File file, Uint8List expected) async {
+    final sink = Sha256().newHashSink();
+    await for (final chunk in file.openRead()) {
+      sink.add(chunk);
+    }
+    sink.close();
+    final hash = await sink.hash();
+
+    if (!_bytesEqual(hash.bytes, expected)) {
+      throw const DownloadException('download: ciphertext hash mismatch');
+    }
+  }
+
+  bool _bytesEqual(List<int> a, List<int> b) {
+    if (a.length != b.length) return false;
+    for (var i = 0; i < a.length; i++) {
+      if (a[i] != b[i]) return false;
+    }
+    return true;
+  }
+
+  Future<Directory> _mediaDir() async {
+    final cache = await getApplicationCacheDirectory();
+    final dir = Directory(p.join(cache.path, 'media'));
+    await dir.create(recursive: true);
+    return dir;
+  }
+
+  Future<String> _targetPath(models.CDN cdn) async {
+    final mediaDir = await _mediaDir();
+    final cdnHex = utils.bytesToHex(cdn.cdnID);
+    return p.join(mediaDir.path, '$cdnHex${_extensionForContentType(cdn.contentType)}');
+  }
+
+  /// Расширение файла (с точкой) по MIME contentType — чтобы системные
+  /// вьюеры/шаринг узнавали тип. Неизвестный тип → без расширения.
+  String _extensionForContentType(String contentType) {
+    switch (contentType.split(';').first.trim().toLowerCase()) {
+      case 'image/jpeg':
+        return '.jpg';
+      case 'image/png':
+        return '.png';
+      case 'image/gif':
+        return '.gif';
+      case 'image/webp':
+        return '.webp';
+      case 'image/heic':
+        return '.heic';
+      case 'video/mp4':
+        return '.mp4';
+      case 'video/quicktime':
+        return '.mov';
+      case 'audio/mpeg':
+        return '.mp3';
+      case 'audio/aac':
+        return '.aac';
+      case 'application/pdf':
+        return '.pdf';
+      default:
+        return '';
     }
   }
 }
