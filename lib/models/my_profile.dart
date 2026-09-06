@@ -13,5 +13,18 @@ class MyProfile with MyProfileMappable {
   final DateTime? birthDate;
   final String aboutMe;
 
-  const MyProfile({this.userID = const [], this.username = "", this.fistName = "", this.lastName = "", this.birthDate, this.aboutMe = ""});
+  /// `cdn_id` привязанного аватара (колонка `avatarCdnID`, FK на
+  /// `downloads(cdnID)`). `null`, пока аватар не задан. По нему [CDNManager]
+  /// достаёт уже расшифрованный файл из media-кэша без обращения к сети.
+  final List<int>? avatarCdnID;
+
+  const MyProfile({
+    this.userID = const [],
+    this.username = "",
+    this.fistName = "",
+    this.lastName = "",
+    this.birthDate,
+    this.aboutMe = "",
+    this.avatarCdnID,
+  });
 }

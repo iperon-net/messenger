@@ -7,9 +7,10 @@ class MyProfile {
   MyProfile({required this.logger, required this.db});
 
   Future<models.MyProfile> getByUserID({required List<int> userID}) async {
-    final sqlMyProfile = await db.execute("SELECT username, fistName, lastName, birthDate, aboutMe FROM myProfile WHERE userID = ?;", [
-      userID,
-    ]);
+    final sqlMyProfile = await db.execute(
+      "SELECT username, fistName, lastName, birthDate, aboutMe, avatarCdnID FROM myProfile WHERE userID = ?;",
+      [userID],
+    );
     if (sqlMyProfile.isEmpty) return models.MyProfile();
     return models.MyProfileMapper.fromMap(sqlMyProfile.first);
   }

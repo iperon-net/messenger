@@ -462,6 +462,19 @@ class CDNManager {
     return target;
   }
 
+  /// Отдаёт уже скачанный и расшифрованный файл [cdnID] из media-кэша, если он
+  /// там есть и лежит на диске (cache-hit **без сети**). Иначе `null` — в
+  /// отличие от [download] сюда не ходит в сеть и ничего не качает, поэтому
+  /// годится для «показать, если уже есть» (аватар из локального профиля и т.п.).
+  Future<File?> cachedFile(Uint8List cdnID) async {
+    final state = await repositories.downloads.getByCdnID(cdnID);
+    if (state == null || state.status != models.DownloadStatus.ready || state.targetPath == null) {
+      return null;
+    }
+    final file = File(state.targetPath!);
+    return await file.exists() ? file : null;
+  }
+
   Future<models.DownloadState> _resolveDownloadState(models.CDN cdn) async {
     final existing = await repositories.downloads.getByCdnID(cdn.cdnID);
     if (existing != null) {

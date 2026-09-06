@@ -80,6 +80,23 @@ class SettingsMyProfileCubit extends Cubit<SettingsMyProfileState> {
 
     if (isClosed) return;
 
+    // Аватар из кэша: если профиль уже привязан к CDN и расшифрованный файл
+    // лежит на диске — показываем сразу, без сети. Актуальную версию всё равно
+    // принесёт MY_PROFILE-стрим выше (и при необходимости перезапишет показанное),
+    // но здесь пользователь видит аватар мгновенно на cache-hit.
+    final avatarCdnID = myProfile.avatarCdnID;
+    if (avatarCdnID != null && avatarCdnID.isNotEmpty) {
+      try {
+        final file = await cdnManager.cachedFile(Uint8List.fromList(avatarCdnID));
+        if (isClosed) return;
+        if (file != null) {
+          emit(state.copyWith(avatarBytes: await file.readAsBytes()));
+        }
+      } catch (error, stackTrace) {
+        logger.handle(error, stackTrace);
+      }
+    }
+
     // emit(state.copyWith(locale: locate, phoneNumber: "+7 909 160 00 44"));
   }
 

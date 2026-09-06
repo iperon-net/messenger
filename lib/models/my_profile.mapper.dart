@@ -64,6 +64,12 @@ class MyProfileMapper extends ClassMapperBase<MyProfile> {
     opt: true,
     def: "",
   );
+  static List<int>? _$avatarCdnID(MyProfile v) => v.avatarCdnID;
+  static const Field<MyProfile, List<int>> _f$avatarCdnID = Field(
+    'avatarCdnID',
+    _$avatarCdnID,
+    opt: true,
+  );
 
   @override
   final MappableFields<MyProfile> fields = const {
@@ -73,6 +79,7 @@ class MyProfileMapper extends ClassMapperBase<MyProfile> {
     #lastName: _f$lastName,
     #birthDate: _f$birthDate,
     #aboutMe: _f$aboutMe,
+    #avatarCdnID: _f$avatarCdnID,
   };
 
   static MyProfile _instantiate(DecodingData data) {
@@ -83,6 +90,7 @@ class MyProfileMapper extends ClassMapperBase<MyProfile> {
       lastName: data.dec(_f$lastName),
       birthDate: data.dec(_f$birthDate),
       aboutMe: data.dec(_f$aboutMe),
+      avatarCdnID: data.dec(_f$avatarCdnID),
     );
   }
 
@@ -146,6 +154,7 @@ extension MyProfileValueCopy<$R, $Out> on ObjectCopyWith<$R, MyProfile, $Out> {
 abstract class MyProfileCopyWith<$R, $In extends MyProfile, $Out>
     implements ClassCopyWith<$R, $In, $Out> {
   ListCopyWith<$R, int, ObjectCopyWith<$R, int, int>> get userID;
+  ListCopyWith<$R, int, ObjectCopyWith<$R, int, int>>? get avatarCdnID;
   $R call({
     List<int>? userID,
     String? username,
@@ -153,6 +162,7 @@ abstract class MyProfileCopyWith<$R, $In extends MyProfile, $Out>
     String? lastName,
     DateTime? birthDate,
     String? aboutMe,
+    List<int>? avatarCdnID,
   });
   MyProfileCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
@@ -173,6 +183,15 @@ class _MyProfileCopyWithImpl<$R, $Out>
         (v) => call(userID: v),
       );
   @override
+  ListCopyWith<$R, int, ObjectCopyWith<$R, int, int>>? get avatarCdnID =>
+      $value.avatarCdnID != null
+      ? ListCopyWith(
+          $value.avatarCdnID!,
+          (v, t) => ObjectCopyWith(v, $identity, t),
+          (v) => call(avatarCdnID: v),
+        )
+      : null;
+  @override
   $R call({
     List<int>? userID,
     String? username,
@@ -180,6 +199,7 @@ class _MyProfileCopyWithImpl<$R, $Out>
     String? lastName,
     Object? birthDate = $none,
     String? aboutMe,
+    Object? avatarCdnID = $none,
   }) => $apply(
     FieldCopyWithData({
       if (userID != null) #userID: userID,
@@ -188,6 +208,7 @@ class _MyProfileCopyWithImpl<$R, $Out>
       if (lastName != null) #lastName: lastName,
       if (birthDate != $none) #birthDate: birthDate,
       if (aboutMe != null) #aboutMe: aboutMe,
+      if (avatarCdnID != $none) #avatarCdnID: avatarCdnID,
     }),
   );
   @override
@@ -198,6 +219,7 @@ class _MyProfileCopyWithImpl<$R, $Out>
     lastName: data.get(#lastName, or: $value.lastName),
     birthDate: data.get(#birthDate, or: $value.birthDate),
     aboutMe: data.get(#aboutMe, or: $value.aboutMe),
+    avatarCdnID: data.get(#avatarCdnID, or: $value.avatarCdnID),
   );
 
   @override
