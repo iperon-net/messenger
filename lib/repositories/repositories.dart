@@ -157,32 +157,6 @@ class Repositories {
       """);
 
         await tx.execute("""
-        CREATE TABLE uploads (
-          localID TEXT PRIMARY KEY,
-          uploadID TEXT NULL,
-          filePath TEXT NOT NULL,
-          fileSize INTEGER NOT NULL,
-          fileKey BLOB NOT NULL,
-          hkdfSalt BLOB NOT NULL,
-          noncePrefix BLOB NOT NULL,
-          folder TEXT NOT NULL,
-          contentType TEXT NOT NULL,
-          fileName TEXT NOT NULL,
-          createdAt INTEGER NOT NULL
-        );
-      """);
-      }),
-    );
-
-    // Переименование uploads → cdn и удаление колонки fileName (её больше нет
-    // в UploadState). Отдельная миграция, а не правка миграции 2: та уже
-    // применена на устройствах, поэтому переписывать её задним числом нельзя.
-    // Таблица хранит лишь эфемерное состояние незавершённых загрузок, так что
-    // потеря содержимого при пересоздании безопасна.
-    migrations.add(
-      SqliteMigration(3, (tx) async {
-        await tx.execute("DROP TABLE IF EXISTS uploads;");
-        await tx.execute("""
         CREATE TABLE cdn (
           localID TEXT PRIMARY KEY,
           uploadID TEXT NULL,
