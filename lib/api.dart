@@ -61,6 +61,11 @@ class API {
 
   late IperonClient client;
 
+  /// Отдельный клиент только для стрима `Upload` — на своём [ClientChannel],
+  /// чтобы обрывы/отмены upload-стрима не рвали общее gRPC-соединение (см.
+  /// конструктор).
+  late IperonClient uploadClient;
+
   // Двунаправленный стрим (rpc Stream в v1.proto).
   //
   // `_outgoing` — очередь исходящих сообщений, которые уходят серверу;
@@ -183,7 +188,22 @@ class API {
   API() {
     logger.debug('API channel target: secure=${settings.apiSecure} ${settings.apiHost}:${settings.apiPort}');
 
-    final clientChannel = ClientChannel(
+    client = IperonClient(_buildChannel('main'), interceptors: [TalkerGrpcLogger(talker: logger.talker)]);
+
+    // `Upload` живёт на СВОЁМ канале, а не на общем с персистентным `Stream`/
+    // unary-вызовами. Стрим `Upload` открывается/рвётся/отменяется на каждую
+    // попытку заливки (см. `CDNManager._runUploadStream`), а RST_STREAM при его
+    // отмене одна из реализаций grpc-dart трактует как protocol error и рвёт
+    // всё gRPC-соединение целиком — тогда заодно валится персистентный `Stream`.
+    // Отдельный канал изолирует эти обрывы: они не задевают основной трафик.
+    uploadClient = IperonClient(_buildChannel('upload'), interceptors: [TalkerGrpcLogger(talker: logger.talker)]);
+  }
+
+  /// Строит один [ClientChannel] с общими для приложения опциями (TLS, backoff,
+  /// keepAlive, кодеки). [label] — только для логов, чтобы различать основной и
+  /// upload-канал.
+  ClientChannel _buildChannel(String label) {
+    return ClientChannel(
       settings.apiHost,
       port: settings.apiPort,
 
@@ -206,11 +226,9 @@ class API {
         codecRegistry: CodecRegistry(codecs: const [GzipCodec(), IdentityCodec()]),
       ),
       channelShutdownHandler: () {
-        logger.debug('channelShutdownHandler');
+        logger.debug('channelShutdownHandler ($label)');
       },
     );
-
-    client = IperonClient(clientChannel, interceptors: [TalkerGrpcLogger(talker: logger.talker)]);
   }
 
   Future<APICallStatus> call(Function() func) async {

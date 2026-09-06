@@ -65,9 +65,12 @@ class CDNManager {
   final repositories = getIt.get<Repositories>();
   final utils = getIt.get<Utils>();
 
-  /// Число автоматических попыток переоткрыть стрим `Upload` после обрыва
-  /// (докачка с оффсета из свежего `InitAck`), прежде чем пробросить ошибку
-  /// вызывающему коду.
+  /// Максимум подряд идущих попыток переоткрыть стрим `Upload` **без прогресса**
+  /// (оффсет докачки не сдвинулся), прежде чем пробросить ошибку вызывающему
+  /// коду. Попытки, в которых оффсет вырос, счётчик сбрасывают — заливка,
+  /// которую сеть/прокси рвёт регулярно, но которая каждый раз продвигается,
+  /// дойдёт до конца перезапусками стрима (см. [uploadFile]). У скачивания
+  /// [download] тот же лимит применяется как обычное число сетевых ретраев.
   static const int _maxStreamAttempts = 3;
   static const Duration _retryDelay = Duration(seconds: 2);
 
@@ -126,18 +129,41 @@ class CDNManager {
   }) async {
     var state = await _resolveUploadState(file: file, folder: folder, contentType: contentType);
 
-    for (var attempt = 1; ; attempt++) {
+    // Считаем не общее число попыток, а число подряд идущих попыток БЕЗ
+    // прогресса: некоторые сети/прокси рвут стрим `Upload` регулярно (например,
+    // лимит на стриминговый body каждые ~N КБ), но докачка при этом каждый раз
+    // продвигается вперёд. Пока оффсет растёт — продолжаем (заливка дойдёт до
+    // конца перезапусками стрима); сдаёмся, только если стрим падает
+    // [_maxStreamAttempts] раз подряд, не сдвинув оффсет ни на байт.
+    var maxReceived = 0;
+    var stalledAttempts = 0;
+
+    for (;;) {
+      final receivedBefore = maxReceived;
       try {
-        state = await _runUploadStream(state, onProgress: onProgress);
+        state = await _runUploadStream(
+          state,
+          onProgress: (sentBytes, totalBytes) {
+            if (sentBytes > maxReceived) maxReceived = sentBytes;
+            onProgress?.call(sentBytes, totalBytes);
+          },
+        );
         break;
       } catch (error, stackTrace) {
         logger.handle(error, stackTrace);
 
-        if (attempt >= _maxStreamAttempts) {
-          rethrow;
+        if (maxReceived > receivedBefore) {
+          // Стрим оборвался, но докачка продвинулась — обрыв не считаем
+          // «застреванием», сбрасываем счётчик и продолжаем.
+          stalledAttempts = 0;
+        } else {
+          stalledAttempts++;
+          if (stalledAttempts >= _maxStreamAttempts) {
+            rethrow;
+          }
         }
 
-        await Future.delayed(_retryDelay * attempt);
+        await Future.delayed(_retryDelay * (stalledAttempts + 1));
 
         // Между попытками мог сохраниться uploadID (первая попытка успела
         // получить InitAck перед обрывом) — перечитываем состояние, чтобы
@@ -232,7 +258,7 @@ class CDNManager {
   /// переоткрывать стрим или нет; сама функция стрим не переоткрывает.
   Future<models.UploadState> _runUploadStream(models.UploadState state, {void Function(int sentBytes, int totalBytes)? onProgress}) async {
     final outgoing = StreamController<Upload_Request>();
-    final responses = StreamIterator(api.client.upload(outgoing.stream));
+    final responses = StreamIterator(api.uploadClient.upload(outgoing.stream));
     var completedCleanly = false;
 
     try {
