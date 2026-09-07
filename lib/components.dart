@@ -7,3 +7,4 @@ export './components/divider_text.dart';
 export './components/toolbar_attachments/toolbar_attachments.dart';
 export './components/app_cupertino_navigation_bar.dart';
 export './components/shimmer.dart';
+export './components/calls/call_gate.dart';

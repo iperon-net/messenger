@@ -1,0 +1,40 @@
+syntax = "proto3";
+
+package iperon.v1;
+option go_package = "internal/api/v1";
+
+// Call — сигналинг WebRTC-звонков 1-на-1. Сервер выступает только реле: снимает
+// крипто-конверт, аутентифицирует отправителя, перезаписывает fromUserID из
+// сессии и публикует Signal адресату (toUserID) через NATS. Медиа (SRTP) идёт
+// p2p мимо сервера. Тип действия (offer/answer/candidate/hangup/reject) задаёт
+// MessageType конверта — Signal один на все действия.
+message Call {
+  message Signal {
+    // callId — идентификатор звонка (генерит звонящий), одинаков для всех
+    // сигналов одного звонка. Нужен клиенту, чтобы отличать сигналы разных
+    // звонков и гасить гонки при звонке на несколько устройств.
+    string callId = 1;
+    // toUserID — адресат (bson.ObjectID, 12 байт). Кому публикуем.
+    bytes toUserID = 2;
+    // fromUserID — отправитель. Проставляет СЕРВЕР из сессии; всё, что прислал
+    // сюда клиент, игнорируется и перезаписывается.
+    bytes fromUserID = 3;
+
+    enum CallType {
+      AUDIO = 0;
+      VIDEO = 1;
+    }
+    CallType callType = 4;
+
+    oneof body {
+      string sdp = 5;             // для CALL_OFFER / CALL_ANSWER
+      IceCandidate candidate = 6; // для CALL_ICE_CANDIDATE (trickle)
+    }
+  }
+
+  message IceCandidate {
+    string candidate = 1;
+    string sdpMid = 2;
+    int32 sdpMLineIndex = 3;
+  }
+}
