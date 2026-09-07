@@ -279,6 +279,7 @@ class Calls {
     }
 
     final from = signal.fromUserID;
+    logger.debug('call: <- $type callId=${signal.callId} from=${from.length}b status=${_snapshot.status}');
 
     switch (type) {
       case MessageType.CALL_OFFER:
@@ -410,16 +411,44 @@ class Calls {
     };
 
     pc.onTrack = (event) {
+      logger.debug('call: remote track ${event.track.kind}, streams=${event.streams.length}');
       if (event.streams.isNotEmpty) {
         remoteRenderer.srcObject = event.streams.first;
       }
     };
 
+    // ICE-состояние — основной и самый надёжный признак «поднялось/сорвалось»:
+    // агрегированный onConnectionState на iOS/Android во flutter_webrtc
+    // срабатывает не всегда, поэтому в active/failed переводим именно отсюда.
+    pc.onIceConnectionState = (state) {
+      logger.debug('call: ice connection state $state');
+      switch (state) {
+        case RTCIceConnectionState.RTCIceConnectionStateConnected:
+        case RTCIceConnectionState.RTCIceConnectionStateCompleted:
+          if (_snapshot.status != CallStatus.ended && _snapshot.status != CallStatus.idle) {
+            _emit(_snapshot.copyWith(status: CallStatus.active));
+          }
+        case RTCIceConnectionState.RTCIceConnectionStateFailed:
+          _teardown(CallEndReason.failed);
+        case RTCIceConnectionState.RTCIceConnectionStateClosed:
+        case RTCIceConnectionState.RTCIceConnectionStateDisconnected:
+          // Временный разрыв ICE — не рвём сразу, даём переподключиться.
+          break;
+        default:
+          break;
+      }
+    };
+
+    pc.onIceGatheringState = (state) => logger.debug('call: ice gathering state $state');
+    pc.onSignalingState = (state) => logger.debug('call: signaling state $state');
+
     pc.onConnectionState = (state) {
       logger.debug('call: peer connection state $state');
       switch (state) {
         case RTCPeerConnectionState.RTCPeerConnectionStateConnected:
-          if (_snapshot.status != CallStatus.ended) _emit(_snapshot.copyWith(status: CallStatus.active));
+          if (_snapshot.status != CallStatus.ended && _snapshot.status != CallStatus.idle) {
+            _emit(_snapshot.copyWith(status: CallStatus.active));
+          }
         case RTCPeerConnectionState.RTCPeerConnectionStateFailed:
         case RTCPeerConnectionState.RTCPeerConnectionStateClosed:
           _teardown(CallEndReason.failed);
