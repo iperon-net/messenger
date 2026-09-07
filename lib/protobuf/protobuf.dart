@@ -8,3 +8,4 @@ export './protos/subscribe_v1.pb.dart';
 export './protos/logout_v1.pb.dart';
 export './protos/myprofile_v1.pb.dart';
 export './protos/upload_confirm_v1.pb.dart';
+export './protos/call_v1.pb.dart';

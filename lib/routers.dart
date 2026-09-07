@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:messenger/i18n/translations.g.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 
+import 'components.dart';
 import 'cubit.dart';
 import 'di.dart';
 import 'logger.dart';
@@ -55,7 +56,7 @@ class Routers {
           // shell, чтобы навбары любой вкладки могли его показать.
           BlocProvider<ConnectionCubit>(create: (_) => ConnectionCubit()..initialization()),
         ],
-        child: HomeCupertino(navigationShell: navigationShell),
+        child: CallGate(child: HomeCupertino(navigationShell: navigationShell)),
       ),
       branches: [
         StatefulShellBranch(
@@ -194,6 +195,12 @@ class Routers {
       ],
     ),
     GoRoute(
+      path: "/call",
+      parentNavigatorKey: rootNavigatorKey,
+      pageBuilder: (context, state) =>
+          _page(state, BlocProvider<CallCubit>(create: (_) => CallCubit()..initialization(), child: const CallCupertino())),
+    ),
+    GoRoute(
       path: "/auth",
       builder: (_, _) => BlocProvider<AuthCubit>(create: (_) => AuthCubit()..initialization(), child: AuthCupertinoScreen()),
       routes: [
@@ -264,7 +271,7 @@ class Routers {
           BlocProvider<HomeCubit>(create: (_) => HomeCubit()..initialization()),
           BlocProvider<ConnectionCubit>(create: (_) => ConnectionCubit()..initialization()),
         ],
-        child: HomeMaterial(navigationShell: navigationShell),
+        child: CallGate(child: HomeMaterial(navigationShell: navigationShell)),
       ),
       branches: [
         StatefulShellBranch(
@@ -397,6 +404,12 @@ class Routers {
           ],
         ),
       ],
+    ),
+    GoRoute(
+      path: "/call",
+      parentNavigatorKey: rootNavigatorKey,
+      pageBuilder: (context, state) =>
+          _pageMaterial(state, BlocProvider<CallCubit>(create: (_) => CallCubit()..initialization(), child: const CallMaterial())),
     ),
     GoRoute(
       path: "/auth",

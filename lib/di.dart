@@ -6,6 +6,7 @@ import 'auth.dart';
 import 'settings.dart';
 import 'utils.dart';
 import 'api.dart';
+import 'calls.dart';
 import 'crypto.dart';
 import 'cdn.dart';
 
@@ -39,6 +40,9 @@ Future<void> registerCommonDependencies() async {
   if (!getIt.isRegistered<CDNManager>()) {
     getIt.registerSingletonAsync<CDNManager>(() async => CDNManager(), dependsOn: [API, Crypto, Auth, Repositories]);
   }
+  if (!getIt.isRegistered<Calls>()) {
+    getIt.registerSingletonAsync<Calls>(() async => Calls(), dependsOn: [API, Auth]);
+  }
 
   await getIt.allReady();
 }
@@ -55,4 +59,5 @@ Future<void> unregisterCommonDependencies() async {
   if (getIt.isRegistered<API>()) await getIt.unregister<API>();
   if (getIt.isRegistered<Crypto>()) await getIt.unregister<Crypto>();
   if (getIt.isRegistered<CDNManager>()) await getIt.unregister<CDNManager>();
+  if (getIt.isRegistered<Calls>()) await getIt.unregister<Calls>();
 }
