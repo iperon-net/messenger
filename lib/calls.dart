@@ -96,20 +96,27 @@ class CallSnapshot {
 /// shell (см. `CallGate`). Медиа (SRTP) идёт p2p мимо сервера; сервер — только
 /// реле offer/answer/ICE.
 ///
-/// Фаза 1: только STUN (публичный), TURN добавит фаза 2. Только foreground —
-/// стрим [API] открыт лишь на переднем плане; фон/пуш — фаза 4.
+/// Фаза 2: ICE-серверы (STUN + эфемерный TURN с HMAC-кредами) запрашиваем у
+/// сервера перед каждым звонком (`CALL_ICE_SERVERS`), см. [_fetchIceServers].
+/// Только foreground — стрим [API] открыт лишь на переднем плане; фон/пуш —
+/// фаза 4.
 class Calls {
   final logger = getIt.get<Logger>();
   final api = getIt.get<API>();
   final auth = getIt.get<Auth>();
 
-  // Фаза 1: публичный STUN. Фаза 2 заменит на эфемерные ICE-серверы с сервера.
-  static const Map<String, dynamic> _iceConfig = {
-    'iceServers': [
-      {
-        'urls': ['stun:stun.l.google.com:19302'],
-      },
-    ],
+  // Фаза 2: ICE-серверы (STUN + эфемерный TURN) запрашиваем у сервера перед
+  // каждым звонком (CALL_ICE_SERVERS) — TURN-креды короткоживущие. Если запрос
+  // не удался, падаем на публичный STUN: звонок в пределах доступного NAT ещё
+  // поднимется, за symmetric NAT — нет.
+  static const List<Map<String, dynamic>> _fallbackIceServers = [
+    {
+      'urls': ['stun:stun.l.google.com:19302'],
+    },
+  ];
+
+  static Map<String, dynamic> _iceConfigFrom(List<Map<String, dynamic>> iceServers) => {
+    'iceServers': iceServers,
     'sdpSemantics': 'unified-plan',
   };
 
@@ -417,8 +424,40 @@ class Calls {
   // Peer connection
   // ---------------------------------------------------------------------------
 
+  /// Запрашивает у сервера ICE-серверы (STUN + эфемерный TURN) для звонка.
+  /// При любой ошибке/пустом ответе возвращает публичный STUN-fallback, чтобы
+  /// звонок всё равно попытался подняться.
+  Future<List<Map<String, dynamic>>> _fetchIceServers() async {
+    try {
+      final (status, payload) = await api.unaryEncodedWithResponse(MessageType.CALL_ICE_SERVERS, IceServers_Request().writeToBuffer());
+
+      if (status.status != APIStatus.success || payload == null) {
+        logger.warning('call: ice servers request failed (${status.error}), falling back to STUN');
+        return _fallbackIceServers;
+      }
+
+      final response = IceServers_Response.fromBuffer(payload);
+      final servers = <Map<String, dynamic>>[];
+      for (final server in response.servers) {
+        if (server.urls.isEmpty) continue;
+        final entry = <String, dynamic>{'urls': server.urls.toList()};
+        if (server.username.isNotEmpty) entry['username'] = server.username;
+        if (server.credential.isNotEmpty) entry['credential'] = server.credential;
+        servers.add(entry);
+      }
+
+      if (servers.isEmpty) return _fallbackIceServers;
+      _dbg('ice servers ${servers.length}');
+      return servers;
+    } catch (error, stackTrace) {
+      logger.handle(error, stackTrace);
+      return _fallbackIceServers;
+    }
+  }
+
   Future<void> _createPeerConnection({required List<int> remoteUserID, required bool video}) async {
-    final pc = await createPeerConnection(_iceConfig);
+    final iceServers = await _fetchIceServers();
+    final pc = await createPeerConnection(_iceConfigFrom(iceServers));
     _pc = pc;
     _sawLocalCand = false;
     _sawRemoteCand = false;

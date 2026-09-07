@@ -67,3 +67,40 @@ final $typed_data.Uint8List callDescriptor =
         'FCBgoEYm9keRpqCgxJY2VDYW5kaWRhdGUSHAoJY2FuZGlkYXRlGAEgASgJUgljYW5kaWRhdGUS'
         'FgoGc2RwTWlkGAIgASgJUgZzZHBNaWQSJAoNc2RwTUxpbmVJbmRleBgDIAEoBVINc2RwTUxpbm'
         'VJbmRleA==');
+
+@$core.Deprecated('Use iceServersDescriptor instead')
+const IceServers$json = {
+  '1': 'IceServers',
+  '3': [IceServers_Request$json, IceServers_Server$json, IceServers_Response$json],
+};
+
+@$core.Deprecated('Use iceServersDescriptor instead')
+const IceServers_Request$json = {
+  '1': 'Request',
+};
+
+@$core.Deprecated('Use iceServersDescriptor instead')
+const IceServers_Server$json = {
+  '1': 'Server',
+  '2': [
+    {'1': 'urls', '3': 1, '4': 3, '5': 9, '10': 'urls'},
+    {'1': 'username', '3': 2, '4': 1, '5': 9, '10': 'username'},
+    {'1': 'credential', '3': 3, '4': 1, '5': 9, '10': 'credential'},
+  ],
+};
+
+@$core.Deprecated('Use iceServersDescriptor instead')
+const IceServers_Response$json = {
+  '1': 'Response',
+  '2': [
+    {'1': 'servers', '3': 1, '4': 3, '5': 11, '6': '.iperon.v1.IceServers.Server', '10': 'servers'},
+    {'1': 'ttl', '3': 2, '4': 1, '5': 3, '10': 'ttl'},
+  ],
+};
+
+/// Descriptor for `IceServers`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List iceServersDescriptor =
+    $convert.base64Decode('CgpJY2VTZXJ2ZXJzGgkKB1JlcXVlc3QaWAoGU2VydmVyEhIKBHVybHMYASADKAlSBHVybHMSGg'
+        'oIdXNlcm5hbWUYAiABKAlSCHVzZXJuYW1lEh4KCmNyZWRlbnRpYWwYAyABKAlSCmNyZWRlbnRp'
+        'YWwaVAoIUmVzcG9uc2USNgoHc2VydmVycxgBIAMoCzIcLmlwZXJvbi52MS5JY2VTZXJ2ZXJzLl'
+        'NlcnZlclIHc2VydmVycxIQCgN0dGwYAiABKANSA3R0bA==');

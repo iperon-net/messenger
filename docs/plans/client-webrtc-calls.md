@@ -42,7 +42,7 @@ Caller                     Server (relay)                    Callee
 - **Perfect negotiation** — роль polite/impolite выбираем детерминированно
   (сравнение своего и чужого `userID`), чтобы гасить glare.
 
-## Фаза 0 — медиа-слой
+## Фаза 0 — медиа-слой ✅
 
 - `flutter_webrtc` в `pubspec.yaml`.
 - iOS: добавить `NSMicrophoneUsageDescription` **локализованно** в
@@ -53,7 +53,14 @@ Caller                     Server (relay)                    Callee
 - Проверка: локальный `RTCVideoRenderer` с камерой/микрофоном рендерится.
 - Нативный плагин требует полного `flutter run` + `pod install`, не hot reload.
 
-## Фаза 1 — сигналинг + первый p2p-звонок (foreground, STUN)
+## Фаза 1 — сигналинг + первый p2p-звонок (foreground, STUN) ✅
+
+> **Готово.** p2p-звонок (аудио/видео) между двумя устройствами в одной сети
+> поднимается на STUN. Переход в `active` драйвится `onIceConnectionState`
+> (агрегированный `onConnectionState` на мобильных ненадёжен — оставлен как
+> вторичный). На экране звонка временно включена строка-диагностика
+> (`CallSnapshot.debug` → `CallState.debug` → `call_view.dart`) и временный
+> диалер на `/calls` — **снимем вместе в фазе 3**.
 
 - Перегенерить protobuf после изменений в `protos/` (`CALL_*` типы + `call_v1.proto`).
   Серверная часть — в `webrtc-signaling-relay.md`.
@@ -77,7 +84,26 @@ Caller                     Server (relay)                    Callee
 - **Цель фазы:** успешный p2p-звонок между двумя устройствами в одной сети
   (только STUN).
 
-## Фаза 2 — ICE / TURN
+## Фаза 2 — ICE / TURN ✅
+
+> **Готово end-to-end.** coturn развёрнут на прод-сервере, relay-кандидат
+> подтверждён через Trickle ICE (клиент → `CALL_ICE_SERVERS` → эфемерные
+> HMAC-креды → relay-аллокация на coturn). Ниже — что было сделано.
+>
+> - Proto: `MessageType CALL_ICE_SERVERS = 21` + `IceServers.{Request,Server,
+>   Response}` в `call_v1.proto` (синхронно в клиенте и сервере, перегенерено).
+> - Сервер: хендлер `CALL_ICE_SERVERS` через `exchangeEncrypted` →
+>   `V1.iceServers()` генерит эфемерные TURN-креды по схеме coturn
+>   `use-auth-secret` (username = `<expiry>:<userID hex>`, credential =
+>   base64(HMAC-SHA1(secret, username))). Конфиг — блок `turn:` в `iperon.yaml`
+>   (`secret`/`ttl`/`stunUrls`/`turnUrls`); пустой `secret` ⇒ только STUN.
+> - Клиент: `Calls._fetchIceServers()` запрашивает серверы unary-вызовом
+>   (`unaryEncodedWithResponse`) перед каждым `_createPeerConnection`; при
+>   ошибке/пустом ответе — fallback на публичный STUN.
+>
+> **Остаётся:** развернуть coturn (`use-auth-secret`, тот же `secret`, что в
+> `iperon.yaml`), прописать реальные `stunUrls`/`turnUrls`. До этого звонки
+> ходят только STUN (в пределах доступного NAT).
 
 - Клиент запрашивает у сервера эфемерные ICE-серверы (новый Unary-RPC,
   напр. `IceServers` — детали в серверном плане): `urls`, `username`,

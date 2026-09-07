@@ -12,6 +12,7 @@
 
 import 'dart:core' as $core;
 
+import 'package:fixnum/fixnum.dart' as $fixnum;
 import 'package:protobuf/protobuf.dart' as $pb;
 
 import 'call_v1.pbenum.dart';
@@ -256,6 +257,194 @@ class Call extends $pb.GeneratedMessage {
   @$core.pragma('dart2js:noInline')
   static Call getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Call>(create);
   static Call? _defaultInstance;
+}
+
+class IceServers_Request extends $pb.GeneratedMessage {
+  factory IceServers_Request() => create();
+
+  IceServers_Request._();
+
+  factory IceServers_Request.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory IceServers_Request.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'IceServers.Request',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  IceServers_Request clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  IceServers_Request copyWith(void Function(IceServers_Request) updates) =>
+      super.copyWith((message) => updates(message as IceServers_Request)) as IceServers_Request;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static IceServers_Request create() => IceServers_Request._();
+  @$core.override
+  IceServers_Request createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static IceServers_Request getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<IceServers_Request>(create);
+  static IceServers_Request? _defaultInstance;
+}
+
+class IceServers_Server extends $pb.GeneratedMessage {
+  factory IceServers_Server({
+    $core.Iterable<$core.String>? urls,
+    $core.String? username,
+    $core.String? credential,
+  }) {
+    final result = create();
+    if (urls != null) result.urls.addAll(urls);
+    if (username != null) result.username = username;
+    if (credential != null) result.credential = credential;
+    return result;
+  }
+
+  IceServers_Server._();
+
+  factory IceServers_Server.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory IceServers_Server.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'IceServers.Server',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..pPS(1, _omitFieldNames ? '' : 'urls')
+    ..aOS(2, _omitFieldNames ? '' : 'username')
+    ..aOS(3, _omitFieldNames ? '' : 'credential')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  IceServers_Server clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  IceServers_Server copyWith(void Function(IceServers_Server) updates) =>
+      super.copyWith((message) => updates(message as IceServers_Server)) as IceServers_Server;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static IceServers_Server create() => IceServers_Server._();
+  @$core.override
+  IceServers_Server createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static IceServers_Server getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<IceServers_Server>(create);
+  static IceServers_Server? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $pb.PbList<$core.String> get urls => $_getList(0);
+
+  @$pb.TagNumber(2)
+  $core.String get username => $_getSZ(1);
+  @$pb.TagNumber(2)
+  set username($core.String value) => $_setString(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasUsername() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearUsername() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.String get credential => $_getSZ(2);
+  @$pb.TagNumber(3)
+  set credential($core.String value) => $_setString(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasCredential() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearCredential() => $_clearField(3);
+}
+
+class IceServers_Response extends $pb.GeneratedMessage {
+  factory IceServers_Response({
+    $core.Iterable<IceServers_Server>? servers,
+    $fixnum.Int64? ttl,
+  }) {
+    final result = create();
+    if (servers != null) result.servers.addAll(servers);
+    if (ttl != null) result.ttl = ttl;
+    return result;
+  }
+
+  IceServers_Response._();
+
+  factory IceServers_Response.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory IceServers_Response.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'IceServers.Response',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..pPM<IceServers_Server>(1, _omitFieldNames ? '' : 'servers', subBuilder: IceServers_Server.create)
+    ..aInt64(2, _omitFieldNames ? '' : 'ttl')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  IceServers_Response clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  IceServers_Response copyWith(void Function(IceServers_Response) updates) =>
+      super.copyWith((message) => updates(message as IceServers_Response)) as IceServers_Response;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static IceServers_Response create() => IceServers_Response._();
+  @$core.override
+  IceServers_Response createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static IceServers_Response getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<IceServers_Response>(create);
+  static IceServers_Response? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $pb.PbList<IceServers_Server> get servers => $_getList(0);
+
+  @$pb.TagNumber(2)
+  $fixnum.Int64 get ttl => $_getI64(1);
+  @$pb.TagNumber(2)
+  set ttl($fixnum.Int64 value) => $_setInt64(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasTtl() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearTtl() => $_clearField(2);
+}
+
+/// IceServers — эфемерные ICE-серверы (STUN + TURN) для звонка. Клиент
+/// запрашивает их отдельным шифрованным unary-типом CALL_ICE_SERVERS перед
+/// КАЖДЫМ звонком: TURN-креды короткоживущие (HMAC use-auth-secret), секрет
+/// TURN живёт только на сервере. Server.urls группирует адреса с одними
+/// кредами (STUN-серверы идут без username/credential).
+class IceServers extends $pb.GeneratedMessage {
+  factory IceServers() => create();
+
+  IceServers._();
+
+  factory IceServers.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory IceServers.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'IceServers',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  IceServers clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  IceServers copyWith(void Function(IceServers) updates) => super.copyWith((message) => updates(message as IceServers)) as IceServers;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static IceServers create() => IceServers._();
+  @$core.override
+  IceServers createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static IceServers getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<IceServers>(create);
+  static IceServers? _defaultInstance;
 }
 
 const $core.bool _omitFieldNames = $core.bool.fromEnvironment('protobuf.omit_field_names');

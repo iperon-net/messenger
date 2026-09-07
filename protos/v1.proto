@@ -27,6 +27,7 @@ enum MessageType {
   CALL_ICE_CANDIDATE = 18;
   CALL_HANGUP = 19;
   CALL_REJECT = 20;
+  CALL_ICE_SERVERS = 21;
 }
 
 service Iperon {

@@ -38,3 +38,23 @@ message Call {
     int32 sdpMLineIndex = 3;
   }
 }
+
+// IceServers — эфемерные ICE-серверы (STUN + TURN) для звонка. Клиент
+// запрашивает их отдельным шифрованным unary-типом CALL_ICE_SERVERS перед
+// КАЖДЫМ звонком: TURN-креды короткоживущие (HMAC use-auth-secret), секрет
+// TURN живёт только на сервере. Server.urls группирует адреса с одними
+// кредами (STUN-серверы идут без username/credential).
+message IceServers {
+  message Request {}
+
+  message Server {
+    repeated string urls = 1;
+    string username = 2;   // "<expiry unix>:<userID hex>" для TURN; пусто для STUN
+    string credential = 3; // base64(HMAC-SHA1(turnSecret, username)); пусто для STUN
+  }
+
+  message Response {
+    repeated Server servers = 1;
+    int64 ttl = 2; // секунды жизни TURN-кредов (для клиентского рефетча)
+  }
+}
