@@ -32,6 +32,8 @@
 	<string>Uses your photos to set an avatar and share images in chats</string>
 	<key>NSCameraUsageDescription</key>
 	<string>Uses the camera to take a photo for your avatar and to share in chats</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Uses the microphone for voice and video calls</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
