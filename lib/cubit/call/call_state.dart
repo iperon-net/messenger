@@ -18,6 +18,7 @@ class CallState with CallStateMappable {
   final bool cameraOff;
   final bool speakerOn;
   final CallEndReason endReason;
+  final String debug;
 
   const CallState({
     this.status = Status.initialization,
@@ -29,5 +30,6 @@ class CallState with CallStateMappable {
     this.cameraOff = false,
     this.speakerOn = false,
     this.endReason = CallEndReason.none,
+    this.debug = '',
   });
 }

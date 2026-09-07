@@ -43,6 +43,11 @@ class CallSnapshot {
   final bool speakerOn;
   final CallEndReason endReason;
 
+  /// Диагностическая строка-хлебные-крошки (этапы сигналинга/ICE/медиа).
+  /// Фаза 1: показываем прямо на экране звонка для отладки на реальных
+  /// устройствах без выгрузки логов. Уберём вместе с временным диалером.
+  final String debug;
+
   const CallSnapshot({
     this.status = CallStatus.idle,
     this.callId = '',
@@ -52,6 +57,7 @@ class CallSnapshot {
     this.cameraOff = false,
     this.speakerOn = false,
     this.endReason = CallEndReason.none,
+    this.debug = '',
   });
 
   CallSnapshot copyWith({
@@ -63,6 +69,7 @@ class CallSnapshot {
     bool? cameraOff,
     bool? speakerOn,
     CallEndReason? endReason,
+    String? debug,
   }) {
     return CallSnapshot(
       status: status ?? this.status,
@@ -73,6 +80,7 @@ class CallSnapshot {
       cameraOff: cameraOff ?? this.cameraOff,
       speakerOn: speakerOn ?? this.speakerOn,
       endReason: endReason ?? this.endReason,
+      debug: debug ?? this.debug,
     );
   }
 }
@@ -118,12 +126,19 @@ class Calls {
   final List<RTCIceCandidate> _pendingRemoteCandidates = [];
   bool _remoteDescriptionSet = false;
 
+  // Разово отмечаем, что кандидаты пошли в каждую сторону (диагностика ICE).
+  bool _sawLocalCand = false;
+  bool _sawRemoteCand = false;
+
   // Перфект-негошиэйшн: вежливая сторона уступает при гонке (glare). Роль
   // детерминирована — вежлив тот, чей userID «меньше».
   bool _polite = false;
 
   CallSnapshot _snapshot = const CallSnapshot();
   final _snapshotController = StreamController<CallSnapshot>.broadcast();
+
+  // Накапливаемая строка-диагностика текущего звонка (хлебные крошки этапов).
+  String _diag = '';
 
   final List<StreamSubscription<Uint8List>> _signalSubs = [];
   bool _renderersReady = false;
@@ -149,6 +164,14 @@ class Calls {
     if (!_snapshotController.isClosed) _snapshotController.add(snapshot);
   }
 
+  /// Добавляет этап в диагностику и тут же переиздаёт снимок, чтобы строка
+  /// обновилась на экране звонка. [reset] очищает крошки (начало нового звонка).
+  void _dbg(String token, {bool reset = false}) {
+    _diag = reset ? token : (_diag.isEmpty ? token : '$_diag · $token');
+    logger.debug('call: $_diag');
+    _emit(_snapshot.copyWith(debug: _diag));
+  }
+
   Future<void> _ensureRenderers() async {
     if (_renderersReady) return;
     await localRenderer.initialize();
@@ -172,6 +195,7 @@ class Calls {
     _polite = _isPolite(toUserID);
 
     _emit(CallSnapshot(status: CallStatus.outgoing, callId: callId, remoteUserID: toUserID, video: video, speakerOn: video));
+    _dbg('outgoing ${video ? 'video' : 'audio'}', reset: true);
 
     try {
       await _ensureRenderers();
@@ -187,6 +211,7 @@ class Calls {
         video: video,
         signal: Call_Signal(sdp: offer.sdp),
       );
+      _dbg('offer sent');
     } catch (error, stackTrace) {
       logger.handle(error, stackTrace);
       await _teardown(CallEndReason.failed);
@@ -201,6 +226,7 @@ class Calls {
     }
 
     _emit(_snapshot.copyWith(status: CallStatus.connecting));
+    _dbg('accepted');
 
     try {
       final answer = await _pc!.createAnswer(_offerAnswerConstraints);
@@ -213,6 +239,7 @@ class Calls {
         video: _snapshot.video,
         signal: Call_Signal(sdp: answer.sdp),
       );
+      _dbg('answer sent');
     } catch (error, stackTrace) {
       logger.handle(error, stackTrace);
       await _teardown(CallEndReason.failed);
@@ -329,6 +356,7 @@ class Calls {
       await _drainPendingCandidates();
 
       _emit(CallSnapshot(status: CallStatus.incoming, callId: signal.callId, remoteUserID: from, video: video, speakerOn: video));
+      _dbg('offer recv', reset: true);
     } catch (error, stackTrace) {
       logger.handle(error, stackTrace);
       await _teardown(CallEndReason.failed);
@@ -343,6 +371,7 @@ class Calls {
       _remoteDescriptionSet = true;
       await _drainPendingCandidates();
       _emit(_snapshot.copyWith(status: CallStatus.connecting));
+      _dbg('answer recv');
     } catch (error, stackTrace) {
       logger.handle(error, stackTrace);
       await _teardown(CallEndReason.failed);
@@ -351,6 +380,11 @@ class Calls {
 
   Future<void> _onRemoteCandidate(Call_Signal signal, List<int> from) async {
     if (!_isCurrentPeer(signal.callId, from)) return;
+
+    if (!_sawRemoteCand) {
+      _sawRemoteCand = true;
+      _dbg('cand<-');
+    }
 
     final c = signal.candidate;
     final candidate = RTCIceCandidate(c.candidate, c.sdpMid, c.sdpMLineIndex);
@@ -386,6 +420,8 @@ class Calls {
   Future<void> _createPeerConnection({required List<int> remoteUserID, required bool video}) async {
     final pc = await createPeerConnection(_iceConfig);
     _pc = pc;
+    _sawLocalCand = false;
+    _sawRemoteCand = false;
 
     _localStream = await navigator.mediaDevices.getUserMedia({
       'audio': true,
@@ -398,6 +434,10 @@ class Calls {
     }
 
     pc.onIceCandidate = (candidate) {
+      if (!_sawLocalCand) {
+        _sawLocalCand = true;
+        _dbg('cand->');
+      }
       // Trickle ICE: шлём кандидатов по мере сбора.
       _sendSignal(
         MessageType.CALL_ICE_CANDIDATE,
@@ -411,7 +451,7 @@ class Calls {
     };
 
     pc.onTrack = (event) {
-      logger.debug('call: remote track ${event.track.kind}, streams=${event.streams.length}');
+      _dbg('track ${event.track.kind}');
       if (event.streams.isNotEmpty) {
         remoteRenderer.srcObject = event.streams.first;
       }
@@ -421,7 +461,7 @@ class Calls {
     // агрегированный onConnectionState на iOS/Android во flutter_webrtc
     // срабатывает не всегда, поэтому в active/failed переводим именно отсюда.
     pc.onIceConnectionState = (state) {
-      logger.debug('call: ice connection state $state');
+      _dbg('ice ${state.name.replaceFirst('RTCIceConnectionState', '')}');
       switch (state) {
         case RTCIceConnectionState.RTCIceConnectionStateConnected:
         case RTCIceConnectionState.RTCIceConnectionStateCompleted:
@@ -487,7 +527,8 @@ class Calls {
       await pc.close();
     }
 
-    _emit(CallSnapshot(status: CallStatus.ended, callId: callId, remoteUserID: remote, video: video, endReason: reason));
+    _diag = _diag.isEmpty ? 'ended:${reason.name}' : '$_diag · ended:${reason.name}';
+    _emit(CallSnapshot(status: CallStatus.ended, callId: callId, remoteUserID: remote, video: video, endReason: reason, debug: _diag));
   }
 
   // ---------------------------------------------------------------------------

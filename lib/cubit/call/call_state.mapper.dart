@@ -85,6 +85,13 @@ class CallStateMapper extends ClassMapperBase<CallState> {
     opt: true,
     def: CallEndReason.none,
   );
+  static String _$debug(CallState v) => v.debug;
+  static const Field<CallState, String> _f$debug = Field(
+    'debug',
+    _$debug,
+    opt: true,
+    def: '',
+  );
 
   @override
   final MappableFields<CallState> fields = const {
@@ -97,6 +104,7 @@ class CallStateMapper extends ClassMapperBase<CallState> {
     #cameraOff: _f$cameraOff,
     #speakerOn: _f$speakerOn,
     #endReason: _f$endReason,
+    #debug: _f$debug,
   };
 
   static CallState _instantiate(DecodingData data) {
@@ -110,6 +118,7 @@ class CallStateMapper extends ClassMapperBase<CallState> {
       cameraOff: data.dec(_f$cameraOff),
       speakerOn: data.dec(_f$speakerOn),
       endReason: data.dec(_f$endReason),
+      debug: data.dec(_f$debug),
     );
   }
 
@@ -183,6 +192,7 @@ abstract class CallStateCopyWith<$R, $In extends CallState, $Out>
     bool? cameraOff,
     bool? speakerOn,
     CallEndReason? endReason,
+    String? debug,
   });
   CallStateCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
@@ -213,6 +223,7 @@ class _CallStateCopyWithImpl<$R, $Out>
     bool? cameraOff,
     bool? speakerOn,
     CallEndReason? endReason,
+    String? debug,
   }) => $apply(
     FieldCopyWithData({
       if (status != null) #status: status,
@@ -224,6 +235,7 @@ class _CallStateCopyWithImpl<$R, $Out>
       if (cameraOff != null) #cameraOff: cameraOff,
       if (speakerOn != null) #speakerOn: speakerOn,
       if (endReason != null) #endReason: endReason,
+      if (debug != null) #debug: debug,
     }),
   );
   @override
@@ -237,6 +249,7 @@ class _CallStateCopyWithImpl<$R, $Out>
     cameraOff: data.get(#cameraOff, or: $value.cameraOff),
     speakerOn: data.get(#speakerOn, or: $value.speakerOn),
     endReason: data.get(#endReason, or: $value.endReason),
+    debug: data.get(#debug, or: $value.debug),
   );
 
   @override

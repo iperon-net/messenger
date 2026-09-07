@@ -81,6 +81,17 @@ class _Overlay extends StatelessWidget {
                   textAlign: TextAlign.center,
                   style: const TextStyle(color: CallView._dim, fontSize: 15),
                 ),
+                // Фаза 1: диагностика соединения прямо на экране — видно стадию
+                // сигналинга/ICE/медиа без выгрузки логов с устройства.
+                if (state.debug.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 12),
+                    child: Text(
+                      state.debug,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(color: CallView._dim, fontSize: 11),
+                    ),
+                  ),
               ],
             ),
             _controls(cubit, state),

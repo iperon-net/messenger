@@ -40,6 +40,7 @@ class CallCubit extends Cubit<CallState> {
     cameraOff: s.cameraOff,
     speakerOn: s.speakerOn,
     endReason: s.endReason,
+    debug: s.debug,
   );
 
   Future<void> accept() => _calls.accept();
