@@ -20,20 +20,21 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	/// Constructing via the enum [AppLocale.build] is preferred.
 	Translations({Map<String, Node>? overrides, PluralResolver? cardinalResolver, PluralResolver? ordinalResolver, TranslationMetadata<AppLocale, Translations>? meta})
 		: assert(overrides == null, 'Set "translation_overrides: true" in order to enable this feature.'),
-		  $meta = meta ?? TranslationMetadata(
+		  _meta = meta ?? TranslationMetadata(
 		    locale: AppLocale.en,
 		    overrides: overrides ?? {},
 		    cardinalResolver: cardinalResolver,
 		    ordinalResolver: ordinalResolver,
 		  ) {
-		$meta.setFlatMapFunction(_flatMapFunction);
+		_meta.setFlatMapFunction(_flatMapFunction);
 	}
 
 	/// Metadata for the translations of <en>.
-	@override final TranslationMetadata<AppLocale, Translations> $meta;
+	final TranslationMetadata<AppLocale, Translations> _meta;
+	@override TranslationMetadata<AppLocale, Translations> get $meta => _meta;
 
 	/// Access flat map
-	dynamic operator[](String key) => $meta.getTranslation(key);
+	dynamic operator[](String key) => _meta.getTranslation(key);
 
 	late final Translations _root = this; // ignore: unused_field
 
@@ -545,6 +546,21 @@ class Translations$screenMyProfile$en {
 
 	/// en: 'Copied'
 	String get copied => 'Copied';
+
+	/// en: 'username'
+	String get usernameHint => 'username';
+
+	/// en: 'You can choose a username. Use 5–24 characters: lowercase Latin letters, digits and underscores'
+	String get usernameDescription => 'You can choose a username. Use 5–24 characters: lowercase Latin letters, digits and underscores';
+
+	/// en: 'Username must contain 5–24 characters: lowercase Latin letters, digits and underscores'
+	String get usernameInvalid => 'Username must contain 5–24 characters:\nlowercase Latin letters, digits and underscores';
+
+	/// en: 'This username is already taken'
+	String get usernameTaken => 'This username is already taken';
+
+	/// en: 'Saving username'
+	String get errorSavingUsername => 'Saving username';
 }
 
 // Path: screenAuth
@@ -799,6 +815,11 @@ extension on Translations {
 			'screenMyProfile.number' => 'Number',
 			'screenMyProfile.copy' => 'Copy',
 			'screenMyProfile.copied' => 'Copied',
+			'screenMyProfile.usernameHint' => 'username',
+			'screenMyProfile.usernameDescription' => 'You can choose a username. Use 5–24 characters: lowercase Latin letters, digits and underscores',
+			'screenMyProfile.usernameInvalid' => 'Username must contain 5–24 characters:\nlowercase Latin letters, digits and underscores',
+			'screenMyProfile.usernameTaken' => 'This username is already taken',
+			'screenMyProfile.errorSavingUsername' => 'Saving username',
 			'screenAuth.enterYourMobilePhoneNumber' => 'Enter your mobile phone number',
 			'screenAuth.currentlyWeOnlySupportPhoneNumbersFromRussianMobileOperators' => 'Currently, we only support phone numbers from Russian mobile operators',
 			'screenAuth.insertDebugPhone' => 'Insert debug phone',

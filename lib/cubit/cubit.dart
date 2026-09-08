@@ -27,6 +27,8 @@ export 'settings/settings_my_profile_cubit.dart';
 export 'settings/settings_my_profile_state.dart';
 export 'settings/settings_my_profile_edit_cubit.dart';
 export 'settings/settings_my_profile_edit_state.dart';
+export 'settings/settings_my_profile_username_cubit.dart';
+export 'settings/settings_my_profile_username_state.dart';
 export 'home/home_cubit.dart';
 export 'home/home_state.dart';
 export 'chats/chats_cubit.dart';

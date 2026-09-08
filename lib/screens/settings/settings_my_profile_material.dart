@@ -183,12 +183,6 @@ class _SettingsMyProfileMaterial extends State<SettingsMyProfileMaterial> {
                         label: context.t.screenMyProfile.copy,
                         child: _fieldTile(context, context.t.screenMyProfile.mobilePhone, state.phoneNumber),
                       ),
-                      if (state.username.isNotEmpty)
-                        CopyTooltip(
-                          value: '@${state.username}',
-                          label: context.t.screenMyProfile.copy,
-                          child: _fieldTile(context, context.t.screenMyProfile.username, '@${state.username}'),
-                        ),
                     ],
                   ),
                 ),
@@ -196,10 +190,16 @@ class _SettingsMyProfileMaterial extends State<SettingsMyProfileMaterial> {
                   margin: const EdgeInsets.fromLTRB(12, 16, 12, 12),
                   clipBehavior: Clip.antiAlias,
                   child: MaterialListTileIcon(
-                    title: Text(context.t.screenMyProfile.username),
+                    title: Text(state.username.isNotEmpty ? state.username : context.t.screenMyProfile.username),
                     color: const Color(0xFF3B74BF),
                     icon: FontAwesomeIcons.at,
-                    onTab: () async {},
+                    // push (а не go): дожидаемся закрытия экрана и перечитываем
+                    // профиль из локальной БД — экран профиля не пересоздаётся.
+                    onTab: () async {
+                      final cubit = context.read<SettingsMyProfileCubit>();
+                      await context.push("/settings/profile/username");
+                      await cubit.reload();
+                    },
                     additionalInfo: Text(state.username.isNotEmpty ? context.t.screenMyProfile.edit : context.t.screenMyProfile.add),
                     isTrailing: true,
                   ),

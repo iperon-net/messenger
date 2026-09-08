@@ -58,6 +58,7 @@ class MyProfile_Response extends $pb.GeneratedMessage {
     $0.Timestamp? birthDate,
     $core.String? aboutMe,
     $1.CDN? avatar,
+    $core.String? username,
   }) {
     final result = create();
     if (firstName != null) result.firstName = firstName;
@@ -65,6 +66,7 @@ class MyProfile_Response extends $pb.GeneratedMessage {
     if (birthDate != null) result.birthDate = birthDate;
     if (aboutMe != null) result.aboutMe = aboutMe;
     if (avatar != null) result.avatar = avatar;
+    if (username != null) result.username = username;
     return result;
   }
 
@@ -82,6 +84,7 @@ class MyProfile_Response extends $pb.GeneratedMessage {
     ..aOM<$0.Timestamp>(3, _omitFieldNames ? '' : 'birthDate', protoName: 'birthDate', subBuilder: $0.Timestamp.create)
     ..aOS(4, _omitFieldNames ? '' : 'aboutMe', protoName: 'aboutMe')
     ..aOM<$1.CDN>(5, _omitFieldNames ? '' : 'avatar', subBuilder: $1.CDN.create)
+    ..aOS(6, _omitFieldNames ? '' : 'username')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -149,6 +152,15 @@ class MyProfile_Response extends $pb.GeneratedMessage {
   void clearAvatar() => $_clearField(5);
   @$pb.TagNumber(5)
   $1.CDN ensureAvatar() => $_ensure(4);
+
+  @$pb.TagNumber(6)
+  $core.String get username => $_getSZ(5);
+  @$pb.TagNumber(6)
+  set username($core.String value) => $_setString(5, value);
+  @$pb.TagNumber(6)
+  $core.bool hasUsername() => $_has(5);
+  @$pb.TagNumber(6)
+  void clearUsername() => $_clearField(6);
 }
 
 class MyProfile extends $pb.GeneratedMessage {
@@ -464,6 +476,122 @@ class MyProfileAvatarUpdate extends $pb.GeneratedMessage {
   @$core.pragma('dart2js:noInline')
   static MyProfileAvatarUpdate getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<MyProfileAvatarUpdate>(create);
   static MyProfileAvatarUpdate? _defaultInstance;
+}
+
+class MyProfileUserNameUpdate_Request extends $pb.GeneratedMessage {
+  factory MyProfileUserNameUpdate_Request({
+    $core.String? username,
+  }) {
+    final result = create();
+    if (username != null) result.username = username;
+    return result;
+  }
+
+  MyProfileUserNameUpdate_Request._();
+
+  factory MyProfileUserNameUpdate_Request.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory MyProfileUserNameUpdate_Request.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'MyProfileUserNameUpdate.Request',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..aOS(1, _omitFieldNames ? '' : 'username')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  MyProfileUserNameUpdate_Request clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  MyProfileUserNameUpdate_Request copyWith(void Function(MyProfileUserNameUpdate_Request) updates) =>
+      super.copyWith((message) => updates(message as MyProfileUserNameUpdate_Request)) as MyProfileUserNameUpdate_Request;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static MyProfileUserNameUpdate_Request create() => MyProfileUserNameUpdate_Request._();
+  @$core.override
+  MyProfileUserNameUpdate_Request createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static MyProfileUserNameUpdate_Request getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<MyProfileUserNameUpdate_Request>(create);
+  static MyProfileUserNameUpdate_Request? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.String get username => $_getSZ(0);
+  @$pb.TagNumber(1)
+  set username($core.String value) => $_setString(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasUsername() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearUsername() => $_clearField(1);
+}
+
+class MyProfileUserNameUpdate_Response extends $pb.GeneratedMessage {
+  factory MyProfileUserNameUpdate_Response() => create();
+
+  MyProfileUserNameUpdate_Response._();
+
+  factory MyProfileUserNameUpdate_Response.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory MyProfileUserNameUpdate_Response.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'MyProfileUserNameUpdate.Response',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  MyProfileUserNameUpdate_Response clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  MyProfileUserNameUpdate_Response copyWith(void Function(MyProfileUserNameUpdate_Response) updates) =>
+      super.copyWith((message) => updates(message as MyProfileUserNameUpdate_Response)) as MyProfileUserNameUpdate_Response;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static MyProfileUserNameUpdate_Response create() => MyProfileUserNameUpdate_Response._();
+  @$core.override
+  MyProfileUserNameUpdate_Response createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static MyProfileUserNameUpdate_Response getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<MyProfileUserNameUpdate_Response>(create);
+  static MyProfileUserNameUpdate_Response? _defaultInstance;
+}
+
+class MyProfileUserNameUpdate extends $pb.GeneratedMessage {
+  factory MyProfileUserNameUpdate() => create();
+
+  MyProfileUserNameUpdate._();
+
+  factory MyProfileUserNameUpdate.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory MyProfileUserNameUpdate.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'MyProfileUserNameUpdate',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  MyProfileUserNameUpdate clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  MyProfileUserNameUpdate copyWith(void Function(MyProfileUserNameUpdate) updates) =>
+      super.copyWith((message) => updates(message as MyProfileUserNameUpdate)) as MyProfileUserNameUpdate;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static MyProfileUserNameUpdate create() => MyProfileUserNameUpdate._();
+  @$core.override
+  MyProfileUserNameUpdate createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static MyProfileUserNameUpdate getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<MyProfileUserNameUpdate>(create);
+  static MyProfileUserNameUpdate? _defaultInstance;
 }
 
 const $core.bool _omitFieldNames = $core.bool.fromEnvironment('protobuf.omit_field_names');

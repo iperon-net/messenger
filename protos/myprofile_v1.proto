@@ -16,6 +16,7 @@ message MyProfile {
     optional string aboutMe = 4;
     optional google.protobuf.Timestamp birthDate = 3;
     optional CDN avatar = 5;
+    optional string username = 6;
   }
 }
 
@@ -38,5 +39,14 @@ message MyProfileAvatarUpdate {
 
   message Response {
     optional CDN avatar = 1;
+  }
+}
+
+message MyProfileUserNameUpdate {
+  message Request {
+    string username = 1;
+  }
+
+  message Response {
   }
 }

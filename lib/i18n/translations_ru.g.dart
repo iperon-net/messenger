@@ -16,22 +16,22 @@ class TranslationsRu extends Translations with BaseTranslations<AppLocale, Trans
 	/// Constructing via the enum [AppLocale.build] is preferred.
 	TranslationsRu({Map<String, Node>? overrides, PluralResolver? cardinalResolver, PluralResolver? ordinalResolver, TranslationMetadata<AppLocale, Translations>? meta})
 		: assert(overrides == null, 'Set "translation_overrides: true" in order to enable this feature.'),
-		  $meta = meta ?? TranslationMetadata(
+		  _meta = meta ?? TranslationMetadata(
 		    locale: AppLocale.ru,
 		    overrides: overrides ?? {},
 		    cardinalResolver: cardinalResolver,
 		    ordinalResolver: ordinalResolver,
 		  ),
 		  super(cardinalResolver: cardinalResolver, ordinalResolver: ordinalResolver) {
-		super.$meta.setFlatMapFunction($meta.getTranslation); // copy base translations to super.$meta
-		$meta.setFlatMapFunction(_flatMapFunction);
+		_meta.setFlatMapFunction(_flatMapFunction);
 	}
 
 	/// Metadata for the translations of <ru>.
-	@override final TranslationMetadata<AppLocale, Translations> $meta;
+	final TranslationMetadata<AppLocale, Translations> _meta;
+	@override TranslationMetadata<AppLocale, Translations> get $meta => _meta;
 
 	/// Access flat map
-	@override dynamic operator[](String key) => $meta.getTranslation(key) ?? super.$meta.getTranslation(key);
+	@override dynamic operator[](String key) => _meta.getTranslation(key) ?? super[key];
 
 	late final TranslationsRu _root = this; // ignore: unused_field
 
@@ -308,6 +308,11 @@ class _Translations$screenMyProfile$ru extends Translations$screenMyProfile$en {
 	@override String get number => 'Номер';
 	@override String get copy => 'Скопировать';
 	@override String get copied => 'Скопировано';
+	@override String get usernameHint => 'имя пользователя';
+	@override String get usernameDescription => 'Вы можете выбрать имя пользователя. Используйте 5–24 символа: строчные латинские буквы, цифры и подчёркивания';
+	@override String get usernameInvalid => 'Имя пользователя должно содержать 5–24 символа:\nстрочные латинские буквы, цифры и подчёркивания';
+	@override String get usernameTaken => 'Это имя пользователя уже занято';
+	@override String get errorSavingUsername => 'Сохранение имени пользователя';
 }
 
 // Path: screenAuth
@@ -508,6 +513,11 @@ extension on TranslationsRu {
 			'screenMyProfile.number' => 'Номер',
 			'screenMyProfile.copy' => 'Скопировать',
 			'screenMyProfile.copied' => 'Скопировано',
+			'screenMyProfile.usernameHint' => 'имя пользователя',
+			'screenMyProfile.usernameDescription' => 'Вы можете выбрать имя пользователя. Используйте 5–24 символа: строчные латинские буквы, цифры и подчёркивания',
+			'screenMyProfile.usernameInvalid' => 'Имя пользователя должно содержать 5–24 символа:\nстрочные латинские буквы, цифры и подчёркивания',
+			'screenMyProfile.usernameTaken' => 'Это имя пользователя уже занято',
+			'screenMyProfile.errorSavingUsername' => 'Сохранение имени пользователя',
 			'screenAuth.enterYourMobilePhoneNumber' => 'Введите номер мобильного телефона',
 			'screenAuth.currentlyWeOnlySupportPhoneNumbersFromRussianMobileOperators' => 'Сейчас мы поддерживаем только номера российских мобильных операторов',
 			'screenAuth.insertDebugPhone' => 'Вставить тестовый номер',

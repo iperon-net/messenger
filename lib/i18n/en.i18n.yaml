@@ -147,6 +147,11 @@
   "number": "Number"
   "copy": "Copy"
   "copied": "Copied"
+  "usernameHint": "username"
+  "usernameDescription": "You can choose a username. Use 5–24 characters: lowercase Latin letters, digits and underscores"
+  "usernameInvalid": "Username must contain 5–24 characters:\nlowercase Latin letters, digits and underscores"
+  "usernameTaken": "This username is already taken"
+  "errorSavingUsername": "Saving username"
 
 "screenAuth":
   "enterYourMobilePhoneNumber": "Enter your mobile phone number"

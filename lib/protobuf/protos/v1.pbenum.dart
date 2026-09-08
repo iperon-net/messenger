@@ -38,6 +38,7 @@ class MessageType extends $pb.ProtobufEnum {
   static const MessageType CALL_HANGUP = MessageType._(19, _omitEnumNames ? '' : 'CALL_HANGUP');
   static const MessageType CALL_REJECT = MessageType._(20, _omitEnumNames ? '' : 'CALL_REJECT');
   static const MessageType CALL_ICE_SERVERS = MessageType._(21, _omitEnumNames ? '' : 'CALL_ICE_SERVERS');
+  static const MessageType MY_PROFILE_USERNAME_UPDATE = MessageType._(22, _omitEnumNames ? '' : 'MY_PROFILE_USERNAME_UPDATE');
 
   static const $core.List<MessageType> values = <MessageType>[
     HEALTHCHECK,
@@ -62,9 +63,10 @@ class MessageType extends $pb.ProtobufEnum {
     CALL_HANGUP,
     CALL_REJECT,
     CALL_ICE_SERVERS,
+    MY_PROFILE_USERNAME_UPDATE,
   ];
 
-  static final $core.List<MessageType?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 21);
+  static final $core.List<MessageType?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 22);
   static MessageType? valueOf($core.int value) => value < 0 || value >= _byValue.length ? null : _byValue[value];
 
   const MessageType._(super.value, super.name);

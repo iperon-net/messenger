@@ -44,9 +44,9 @@ class _SettingsMyProfileCupertino extends State<SettingsMyProfileCupertino> {
       tabs: const [
         // ToolbarAttachmentTabKind.camera,
         ToolbarAttachmentTabKind.gallery,
-        ToolbarAttachmentTabKind.file,
-        ToolbarAttachmentTabKind.emoji,
-        ToolbarAttachmentTabKind.link,
+        // ToolbarAttachmentTabKind.file,
+        // ToolbarAttachmentTabKind.emoji,
+        // ToolbarAttachmentTabKind.link,
       ],
       // Кроп аватара — внутри листа: отмена возвращает в галерею, а не закрывает
       // лист. Лист закроется лишь при успешном кропе.
@@ -280,31 +280,6 @@ class _SettingsMyProfileCupertino extends State<SettingsMyProfileCupertino> {
                         padding: EdgeInsets.all(10),
                       ),
                     ),
-                    if (state.username.isNotEmpty) ...[
-                      CopyTooltip(
-                        value: '@${state.username}',
-                        label: context.t.screenMyProfile.copy,
-                        child: CupertinoListTile(
-                          title: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(context.t.screenMyProfile.username, style: TextStyle(fontSize: AppFontSizes.body)),
-                              Text(
-                                '@${state.username}',
-                                style: TextStyle(
-                                  fontSize: AppFontSizes.value,
-                                  color: CupertinoDynamicColor.withBrightness(
-                                    color: CupertinoTheme.of(context).primaryColor,
-                                    darkColor: CupertinoColors.white.withValues(alpha: 0.5),
-                                  ).resolveFrom(context),
-                                ),
-                              ),
-                            ],
-                          ),
-                          padding: EdgeInsets.all(10),
-                        ),
-                      ),
-                    ],
                   ],
                 ),
 
@@ -325,10 +300,16 @@ class _SettingsMyProfileCupertino extends State<SettingsMyProfileCupertino> {
                     //   isTrailing: true,
                     // ),
                     CupertinoListTileIcon(
-                      title: Text(context.t.screenMyProfile.username),
+                      title: Text(state.username.isNotEmpty ? state.username : context.t.screenMyProfile.username),
                       color: Color(0xFF3B74BF),
                       icon: FontAwesomeIcons.at,
-                      onTab: () async {},
+                      // push (а не go): дожидаемся закрытия экрана и перечитываем
+                      // профиль из локальной БД — экран профиля не пересоздаётся.
+                      onTab: () async {
+                        final cubit = context.read<SettingsMyProfileCubit>();
+                        await context.push("/settings/profile/username");
+                        await cubit.reload();
+                      },
                       additionalInfo: Text(state.username.isNotEmpty ? context.t.screenMyProfile.edit : context.t.screenMyProfile.add),
                       isTrailing: true,
                     ),

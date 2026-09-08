@@ -37,7 +37,15 @@ class SettingsMyProfileCubit extends Cubit<SettingsMyProfileState> {
 
       final response = MyProfile_Response.fromBuffer(payload);
 
-      emit(state.copyWith(firstName: response.firstName, lastName: response.lastName, aboutMe: response.aboutMe));
+      emit(
+        state.copyWith(firstName: response.firstName, lastName: response.lastName, aboutMe: response.aboutMe, username: response.username),
+      );
+
+      // username приходит в этом же MY_PROFILE-сообщении (в т.ч. после
+      // MY_PROFILE_USERNAME_UPDATE, который сервер публикует обратно) — кэшируем
+      // локально, чтобы показать без сети при следующем открытии профиля.
+      await repositories.myProfile.updateUsername(userID: auth.session.userID, username: response.username);
+      if (isClosed) return;
 
       if (response.hasBirthDate()) {
         emit(state.copyWith(birthDate: response.birthDate.toDateTime(toLocal: true)));
@@ -74,6 +82,7 @@ class SettingsMyProfileCubit extends Cubit<SettingsMyProfileState> {
         lastName: myProfile.lastName,
         birthDate: myProfile.birthDate,
         aboutMe: myProfile.aboutMe,
+        username: myProfile.username,
         boringAvatarHash: phoneNormalization.international,
       ),
     );
@@ -116,6 +125,7 @@ class SettingsMyProfileCubit extends Cubit<SettingsMyProfileState> {
         lastName: myProfile.lastName,
         birthDate: myProfile.birthDate,
         aboutMe: myProfile.aboutMe,
+        username: myProfile.username,
       ),
     );
   }

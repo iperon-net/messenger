@@ -35,6 +35,7 @@ const MyProfile_Response$json = {
     {'1': 'aboutMe', '3': 4, '4': 1, '5': 9, '9': 2, '10': 'aboutMe', '17': true},
     {'1': 'birthDate', '3': 3, '4': 1, '5': 11, '6': '.google.protobuf.Timestamp', '9': 3, '10': 'birthDate', '17': true},
     {'1': 'avatar', '3': 5, '4': 1, '5': 11, '6': '.iperon.v1.CDN', '9': 4, '10': 'avatar', '17': true},
+    {'1': 'username', '3': 6, '4': 1, '5': 9, '9': 5, '10': 'username', '17': true},
   ],
   '8': [
     {'1': '_firstName'},
@@ -42,17 +43,19 @@ const MyProfile_Response$json = {
     {'1': '_aboutMe'},
     {'1': '_birthDate'},
     {'1': '_avatar'},
+    {'1': '_username'},
   ],
 };
 
 /// Descriptor for `MyProfile`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List myProfileDescriptor =
-    $convert.base64Decode('CglNeVByb2ZpbGUaCQoHUmVxdWVzdBqZAgoIUmVzcG9uc2USIQoJZmlyc3ROYW1lGAEgASgJSA'
+    $convert.base64Decode('CglNeVByb2ZpbGUaCQoHUmVxdWVzdBrHAgoIUmVzcG9uc2USIQoJZmlyc3ROYW1lGAEgASgJSA'
         'BSCWZpcnN0TmFtZYgBARIfCghsYXN0TmFtZRgCIAEoCUgBUghsYXN0TmFtZYgBARIdCgdhYm91'
         'dE1lGAQgASgJSAJSB2Fib3V0TWWIAQESPQoJYmlydGhEYXRlGAMgASgLMhouZ29vZ2xlLnByb3'
         'RvYnVmLlRpbWVzdGFtcEgDUgliaXJ0aERhdGWIAQESKwoGYXZhdGFyGAUgASgLMg4uaXBlcm9u'
-        'LnYxLkNETkgEUgZhdmF0YXKIAQFCDAoKX2ZpcnN0TmFtZUILCglfbGFzdE5hbWVCCgoIX2Fib3'
-        'V0TWVCDAoKX2JpcnRoRGF0ZUIJCgdfYXZhdGFy');
+        'LnYxLkNETkgEUgZhdmF0YXKIAQESHwoIdXNlcm5hbWUYBiABKAlIBVIIdXNlcm5hbWWIAQFCDA'
+        'oKX2ZpcnN0TmFtZUILCglfbGFzdE5hbWVCCgoIX2Fib3V0TWVCDAoKX2JpcnRoRGF0ZUIJCgdf'
+        'YXZhdGFyQgsKCV91c2VybmFtZQ==');
 
 @$core.Deprecated('Use myProfileUpdateDescriptor instead')
 const MyProfileUpdate$json = {
@@ -120,3 +123,27 @@ final $typed_data.Uint8List myProfileAvatarUpdateDescriptor =
     $convert.base64Decode('ChVNeVByb2ZpbGVBdmF0YXJVcGRhdGUaHwoHUmVxdWVzdBIUCgVjZG5JRBgBIAEoDFIFY2RuSU'
         'QaQgoIUmVzcG9uc2USKwoGYXZhdGFyGAEgASgLMg4uaXBlcm9uLnYxLkNETkgAUgZhdmF0YXKI'
         'AQFCCQoHX2F2YXRhcg==');
+
+@$core.Deprecated('Use myProfileUserNameUpdateDescriptor instead')
+const MyProfileUserNameUpdate$json = {
+  '1': 'MyProfileUserNameUpdate',
+  '3': [MyProfileUserNameUpdate_Request$json, MyProfileUserNameUpdate_Response$json],
+};
+
+@$core.Deprecated('Use myProfileUserNameUpdateDescriptor instead')
+const MyProfileUserNameUpdate_Request$json = {
+  '1': 'Request',
+  '2': [
+    {'1': 'username', '3': 1, '4': 1, '5': 9, '10': 'username'},
+  ],
+};
+
+@$core.Deprecated('Use myProfileUserNameUpdateDescriptor instead')
+const MyProfileUserNameUpdate_Response$json = {
+  '1': 'Response',
+};
+
+/// Descriptor for `MyProfileUserNameUpdate`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List myProfileUserNameUpdateDescriptor =
+    $convert.base64Decode('ChdNeVByb2ZpbGVVc2VyTmFtZVVwZGF0ZRolCgdSZXF1ZXN0EhoKCHVzZXJuYW1lGAEgASgJUg'
+        'h1c2VybmFtZRoKCghSZXNwb25zZQ==');

@@ -30,6 +30,22 @@ class MyProfile {
     );
   }
 
+  /// Сохраняет локально выбранное имя пользователя. Сервер хранит его в
+  /// нижнем регистре и обеспечивает уникальность (unique-индекс), поэтому
+  /// пишем уже нормализованное значение. Upsert — на случай, если строки
+  /// профиля для [userID] ещё нет.
+  Future<void> updateUsername({required List<int> userID, required String username}) async {
+    await db.execute(
+      """
+      INSERT INTO myProfile (userID, username)
+      VALUES(?, ?)
+      ON CONFLICT(userID) DO UPDATE SET
+        username = excluded.username;
+      """,
+      [userID, username],
+    );
+  }
+
   /// Привязывает загруженный на CDN аватар к локальному профилю: пишет
   /// [cdnID] в колонку `avatarCdnID`. Строка `downloads` с этим `cdnID` к
   /// этому моменту уже создана аплоад-флоу (`_seedDownloadCache` в [CDNManager]),

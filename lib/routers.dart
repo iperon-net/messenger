@@ -110,6 +110,19 @@ class Routers {
                         ),
                       ),
                     ),
+                    GoRoute(
+                      path: "username",
+                      parentNavigatorKey: rootNavigatorKey,
+                      pageBuilder: (context, state) => _page(
+                        state,
+                        BlocProvider<SettingsMyProfileUsernameCubit>(
+                          create: (_) =>
+                              SettingsMyProfileUsernameCubit()
+                                ..initialization(locale: context.read<CommonCubit>().state.settingsDevice.locale ?? AppLocale.en),
+                          child: SettingsMyProfileUsernameCupertino(),
+                        ),
+                      ),
+                    ),
                   ],
                 ),
                 GoRoute(
@@ -318,6 +331,19 @@ class Routers {
                               SettingsMyProfileEditCubit()
                                 ..initialization(locale: context.read<CommonCubit>().state.settingsDevice.locale ?? AppLocale.en),
                           child: const SettingsMyProfileEditMaterial(),
+                        ),
+                      ),
+                    ),
+                    GoRoute(
+                      path: "username",
+                      parentNavigatorKey: rootNavigatorKey,
+                      pageBuilder: (context, state) => _pageMaterial(
+                        state,
+                        BlocProvider<SettingsMyProfileUsernameCubit>(
+                          create: (_) =>
+                              SettingsMyProfileUsernameCubit()
+                                ..initialization(locale: context.read<CommonCubit>().state.settingsDevice.locale ?? AppLocale.en),
+                          child: const SettingsMyProfileUsernameMaterial(),
                         ),
                       ),
                     ),
