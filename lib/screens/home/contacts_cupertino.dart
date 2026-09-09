@@ -99,13 +99,6 @@ class ContactsCupertino extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Padding(
-          padding: const EdgeInsetsDirectional.fromSTEB(16, 16, 16, 6),
-          child: Text(
-            header.toUpperCase(),
-            style: TextStyle(fontSize: 13, letterSpacing: -0.08, color: CupertinoColors.secondaryLabel.resolveFrom(context)),
-          ),
-        ),
         Container(
           color: ThemesCupertino.groupedCard.resolveFrom(context),
           child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: children),
