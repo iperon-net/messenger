@@ -153,6 +153,15 @@
   "usernameTaken": "Это имя пользователя уже занято"
   "errorSavingUsername": "Сохранение имени пользователя"
 
+"screenProfile":
+  "profile": "Профиль"
+  "firstName": "@:screenMyProfile.firstName"
+  "lastName": "@:screenMyProfile.lastName"
+  "mobilePhone": "@:screenMyProfile.mobilePhone"
+  "username": "@:screenMyProfile.username"
+  "aboutMe": "@:screenMyProfile.aboutMe"
+  "copy": "@:screenMyProfile.copy"
+
 "screenAuth":
   "enterYourMobilePhoneNumber": "Введите номер мобильного телефона"
   "currentlyWeOnlySupportPhoneNumbersFromRussianMobileOperators": "Сейчас мы поддерживаем только номера российских мобильных операторов"

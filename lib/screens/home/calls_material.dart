@@ -1,4 +1,5 @@
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../auth.dart';
@@ -71,6 +72,8 @@ class _CallsMaterialState extends State<CallsMaterial> {
             FilledButton(onPressed: () => _start(false), child: const Text('Аудиозвонок')),
             const SizedBox(height: 12),
             FilledButton(onPressed: () => _start(true), child: const Text('Видеозвонок')),
+            const SizedBox(height: 12),
+            OutlinedButton(onPressed: () => context.go('/profile/$_myUserID'), child: const Text('Мой профиль')),
           ],
         ),
       ),

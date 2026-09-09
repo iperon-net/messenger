@@ -7,6 +7,7 @@ import 'package:messenger/protobuf/protos/device_info_update_v1.pb.dart';
 import 'package:talker_grpc_logger/talker_grpc_logger.dart';
 
 import 'auth.dart';
+import 'cdn.dart';
 import 'models.dart' as models;
 import 'utils.dart';
 import 'crypto.dart';
@@ -540,6 +541,38 @@ class API {
           birthDate: payload.hasBirthDate() ? payload.birthDate.toDateTime(toLocal: true) : null,
           aboutMe: payload.aboutMe,
         );
+
+      case MessageType.PROFILE:
+        // Публичный профиль чужого пользователя. userID приходит в самом ответе
+        // (в отличие от MY_PROFILE, где это всегда текущая сессия) — по нему
+        // раскладываем в локальный кэш. Аватар скачиваем и привязываем: download
+        // cache-aware, поэтому повторный вызов из ProfileCubit даст cache-hit.
+        final payload = Profile_Response.fromBuffer(message.payload);
+        final userID = Uint8List.fromList(payload.userID);
+        if (userID.isEmpty) {
+          logger.warning('PROFILE message without userID, skipping');
+          break;
+        }
+
+        await repositories.profiles.upsert(
+          userID: userID,
+          username: payload.username,
+          fistName: payload.firstName,
+          lastName: payload.lastName,
+          birthDate: payload.hasBirthDate() ? payload.birthDate.toDateTime(toLocal: true) : null,
+          aboutMe: payload.aboutMe,
+          phoneNumber: payload.phoneNumber,
+        );
+
+        if (payload.hasAvatar()) {
+          try {
+            final cdn = models.CDN.fromProto(payload.avatar);
+            await getIt.get<CDNManager>().download(cdn: cdn);
+            await repositories.profiles.updateAvatarByCdnID(userID: userID, cdnID: cdn.cdnID);
+          } catch (error, stackTrace) {
+            logger.handle(error, stackTrace);
+          }
+        }
 
       case MessageType.LOGOUT:
         // Сервер принудительно отзывает сессии (например, разлогин с другого

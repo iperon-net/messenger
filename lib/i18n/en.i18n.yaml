@@ -153,6 +153,15 @@
   "usernameTaken": "This username is already taken"
   "errorSavingUsername": "Saving username"
 
+"screenProfile":
+  "profile": "Profile"
+  "firstName": "@:screenMyProfile.firstName"
+  "lastName": "@:screenMyProfile.lastName"
+  "mobilePhone": "@:screenMyProfile.mobilePhone"
+  "username": "@:screenMyProfile.username"
+  "aboutMe": "@:screenMyProfile.aboutMe"
+  "copy": "@:screenMyProfile.copy"
+
 "screenAuth":
   "enterYourMobilePhoneNumber": "Enter your mobile phone number"
   "currentlyWeOnlySupportPhoneNumbersFromRussianMobileOperators": "Currently, we only support phone numbers from Russian mobile operators"

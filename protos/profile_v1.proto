@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+package iperon.v1;
+option go_package = "internal/api/v1";
+
+import "google/protobuf/timestamp.proto";
+import "protos/models.proto";
+
+
+message Profile {
+  message Request {
+    // Профиль запрашивается либо по userID (сырые байты ObjectID), либо по
+    // username. Ровно один идентификатор.
+    oneof identifier {
+      bytes userID = 1;
+      string username = 2;
+    }
+  }
+
+  message Response {
+    optional string firstName = 1;
+    optional string lastName = 2;
+    optional string aboutMe = 4;
+    optional google.protobuf.Timestamp birthDate = 3;
+    optional CDN avatar = 5;
+    optional string username = 6;
+    optional string phoneNumber = 7;
+    // userID владельца профиля — нужен клиенту, чтобы разложить ответ по
+    // локальному кэшу (таблица profiles) при приёме в стриме.
+    optional bytes userID = 8;
+  }
+}

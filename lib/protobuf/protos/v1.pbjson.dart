@@ -44,6 +44,7 @@ const MessageType$json = {
     {'1': 'CALL_REJECT', '2': 20},
     {'1': 'CALL_ICE_SERVERS', '2': 21},
     {'1': 'MY_PROFILE_USERNAME_UPDATE', '2': 22},
+    {'1': 'PROFILE', '2': 23},
   ],
 };
 
@@ -59,7 +60,7 @@ final $typed_data.Uint8List messageTypeDescriptor =
         '9VUERBVEUQDhISCg5VUExPQURfQ09ORklSTRAPEg4KCkNBTExfT0ZGRVIQEBIPCgtDQUxMX0FO'
         'U1dFUhAREhYKEkNBTExfSUNFX0NBTkRJREFURRASEg8KC0NBTExfSEFOR1VQEBMSDwoLQ0FMTF'
         '9SRUpFQ1QQFBIUChBDQUxMX0lDRV9TRVJWRVJTEBUSHgoaTVlfUFJPRklMRV9VU0VSTkFNRV9V'
-        'UERBVEUQFg==');
+        'UERBVEUQFhILCgdQUk9GSUxFEBc=');
 
 @$core.Deprecated('Use messageDescriptor instead')
 const Message$json = {

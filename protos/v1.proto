@@ -29,6 +29,7 @@ enum MessageType {
   CALL_REJECT = 20;
   CALL_ICE_SERVERS = 21;
   MY_PROFILE_USERNAME_UPDATE = 22;
+  PROFILE = 23;
 }
 
 service Iperon {

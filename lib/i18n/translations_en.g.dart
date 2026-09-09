@@ -55,6 +55,7 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	late final Translations$settingsPasscodeCreate$en settingsPasscodeCreate = Translations$settingsPasscodeCreate$en.internal(_root);
 	late final Translations$sessionsPrivacyAndSecurity$en sessionsPrivacyAndSecurity = Translations$sessionsPrivacyAndSecurity$en.internal(_root);
 	late final Translations$screenMyProfile$en screenMyProfile = Translations$screenMyProfile$en.internal(_root);
+	late final Translations$screenProfile$en screenProfile = Translations$screenProfile$en.internal(_root);
 	late final Translations$screenAuth$en screenAuth = Translations$screenAuth$en.internal(_root);
 	late final Translations$screenAuthModerationApplicationStore$en screenAuthModerationApplicationStore = Translations$screenAuthModerationApplicationStore$en.internal(_root);
 	late final Translations$screenAuthCallpasswordConfirmation$en screenAuthCallpasswordConfirmation = Translations$screenAuthCallpasswordConfirmation$en.internal(_root);
@@ -563,6 +564,36 @@ class Translations$screenMyProfile$en {
 	String get errorSavingUsername => 'Saving username';
 }
 
+// Path: screenProfile
+class Translations$screenProfile$en {
+	Translations$screenProfile$en.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// en: 'Profile'
+	String get profile => 'Profile';
+
+	/// en: 'First name'
+	String get firstName => _root.screenMyProfile.firstName;
+
+	/// en: 'Last name'
+	String get lastName => _root.screenMyProfile.lastName;
+
+	/// en: 'Mobile phone'
+	String get mobilePhone => _root.screenMyProfile.mobilePhone;
+
+	/// en: 'Username'
+	String get username => _root.screenMyProfile.username;
+
+	/// en: 'About me'
+	String get aboutMe => _root.screenMyProfile.aboutMe;
+
+	/// en: 'Copy'
+	String get copy => _root.screenMyProfile.copy;
+}
+
 // Path: screenAuth
 class Translations$screenAuth$en {
 	Translations$screenAuth$en.internal(this._root);
@@ -820,6 +851,13 @@ extension on Translations {
 			'screenMyProfile.usernameInvalid' => 'Username must contain 5–24 characters:\nlowercase Latin letters, digits and underscores',
 			'screenMyProfile.usernameTaken' => 'This username is already taken',
 			'screenMyProfile.errorSavingUsername' => 'Saving username',
+			'screenProfile.profile' => 'Profile',
+			'screenProfile.firstName' => _root.screenMyProfile.firstName,
+			'screenProfile.lastName' => _root.screenMyProfile.lastName,
+			'screenProfile.mobilePhone' => _root.screenMyProfile.mobilePhone,
+			'screenProfile.username' => _root.screenMyProfile.username,
+			'screenProfile.aboutMe' => _root.screenMyProfile.aboutMe,
+			'screenProfile.copy' => _root.screenMyProfile.copy,
 			'screenAuth.enterYourMobilePhoneNumber' => 'Enter your mobile phone number',
 			'screenAuth.currentlyWeOnlySupportPhoneNumbersFromRussianMobileOperators' => 'Currently, we only support phone numbers from Russian mobile operators',
 			'screenAuth.insertDebugPhone' => 'Insert debug phone',

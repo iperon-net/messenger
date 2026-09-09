@@ -20,6 +20,7 @@ part "users.dart";
 part "sessions.dart";
 part "device_sessions.dart";
 part "my_profile.dart";
+part "profiles.dart";
 part "uploads.dart";
 part "downloads.dart";
 
@@ -54,6 +55,7 @@ class Repositories {
   late DeviceSessions deviceSessions;
   late Cache cache;
   late MyProfile myProfile;
+  late Profiles profiles;
   late Uploads uploads;
   late Downloads downloads;
 
@@ -189,6 +191,25 @@ class Repositories {
           FOREIGN KEY (userID) REFERENCES users(userID) ON DELETE CASCADE ON UPDATE CASCADE
         );
       """);
+
+        await tx.execute("""
+        CREATE TABLE profiles (
+          profileID INTEGER PRIMARY KEY,
+          userID BLOB NOT NULL UNIQUE,
+          username TEXT NULL,
+          fistName TEXT NULL,
+          lastName TEXT NULL,
+          birthDate TEXT NULL,
+          aboutMe TEXT NULL,
+          phoneNumber TEXT NULL,
+          avatarCdnID BLOB NULL,
+          FOREIGN KEY (avatarCdnID) REFERENCES downloads(cdnID) ON DELETE CASCADE ON UPDATE CASCADE
+        );
+      """);
+
+        await tx.execute("""
+        CREATE INDEX idx_profiles_username ON profiles(username);
+      """);
       }),
     );
 
@@ -237,6 +258,7 @@ class Repositories {
     deviceSessions = DeviceSessions(logger: logger, db: db);
     cache = Cache(logger: logger, db: db);
     myProfile = MyProfile(logger: logger, db: db);
+    profiles = Profiles(logger: logger, db: db);
     uploads = Uploads(logger: logger, db: db);
     downloads = Downloads(logger: logger, db: db);
   }

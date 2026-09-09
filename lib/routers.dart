@@ -13,6 +13,7 @@ import 'logger.dart';
 import 'repositories.dart';
 import 'screens.dart';
 import 'auth.dart';
+import 'utils.dart';
 
 class Routers {
   final logger = getIt.get<Logger>();
@@ -212,6 +213,21 @@ class Routers {
       parentNavigatorKey: rootNavigatorKey,
       pageBuilder: (context, state) =>
           _page(state, BlocProvider<CallCubit>(create: (_) => CallCubit()..initialization(), child: const CallCupertino())),
+    ),
+    GoRoute(
+      path: "/profile/:userID",
+      parentNavigatorKey: rootNavigatorKey,
+      pageBuilder: (context, state) => _page(
+        state,
+        BlocProvider<ProfileCubit>(
+          create: (_) => ProfileCubit()
+            ..initialization(
+              userID: getIt.get<Utils>().hexToBytes(state.pathParameters['userID'] ?? ''),
+              locale: context.read<CommonCubit>().state.settingsDevice.locale ?? AppLocale.en,
+            ),
+          child: const ProfileCupertino(),
+        ),
+      ),
     ),
     GoRoute(
       path: "/auth",
@@ -436,6 +452,21 @@ class Routers {
       parentNavigatorKey: rootNavigatorKey,
       pageBuilder: (context, state) =>
           _pageMaterial(state, BlocProvider<CallCubit>(create: (_) => CallCubit()..initialization(), child: const CallMaterial())),
+    ),
+    GoRoute(
+      path: "/profile/:userID",
+      parentNavigatorKey: rootNavigatorKey,
+      pageBuilder: (context, state) => _pageMaterial(
+        state,
+        BlocProvider<ProfileCubit>(
+          create: (_) => ProfileCubit()
+            ..initialization(
+              userID: getIt.get<Utils>().hexToBytes(state.pathParameters['userID'] ?? ''),
+              locale: context.read<CommonCubit>().state.settingsDevice.locale ?? AppLocale.en,
+            ),
+          child: const ProfileMaterial(),
+        ),
+      ),
     ),
     GoRoute(
       path: "/auth",

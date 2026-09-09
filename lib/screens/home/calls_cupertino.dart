@@ -1,5 +1,6 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../auth.dart';
 import '../../calls.dart';
@@ -86,6 +87,8 @@ class _CallsCupertinoState extends State<CallsCupertino> {
               CupertinoButton.filled(onPressed: () => _start(false), child: const Text('Аудиозвонок')),
               const SizedBox(height: 12),
               CupertinoButton.filled(onPressed: () => _start(true), child: const Text('Видеозвонок')),
+              const SizedBox(height: 12),
+              CupertinoButton(onPressed: () => context.go('/profile/$_myUserID'), child: const Text('Мой профиль')),
             ],
           ),
         ),

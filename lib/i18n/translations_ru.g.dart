@@ -53,6 +53,7 @@ class TranslationsRu extends Translations with BaseTranslations<AppLocale, Trans
 	@override late final _Translations$settingsPasscodeCreate$ru settingsPasscodeCreate = _Translations$settingsPasscodeCreate$ru._(_root);
 	@override late final _Translations$sessionsPrivacyAndSecurity$ru sessionsPrivacyAndSecurity = _Translations$sessionsPrivacyAndSecurity$ru._(_root);
 	@override late final _Translations$screenMyProfile$ru screenMyProfile = _Translations$screenMyProfile$ru._(_root);
+	@override late final _Translations$screenProfile$ru screenProfile = _Translations$screenProfile$ru._(_root);
 	@override late final _Translations$screenAuth$ru screenAuth = _Translations$screenAuth$ru._(_root);
 	@override late final _Translations$screenAuthModerationApplicationStore$ru screenAuthModerationApplicationStore = _Translations$screenAuthModerationApplicationStore$ru._(_root);
 	@override late final _Translations$screenAuthCallpasswordConfirmation$ru screenAuthCallpasswordConfirmation = _Translations$screenAuthCallpasswordConfirmation$ru._(_root);
@@ -315,6 +316,22 @@ class _Translations$screenMyProfile$ru extends Translations$screenMyProfile$en {
 	@override String get errorSavingUsername => 'Сохранение имени пользователя';
 }
 
+// Path: screenProfile
+class _Translations$screenProfile$ru extends Translations$screenProfile$en {
+	_Translations$screenProfile$ru._(TranslationsRu root) : this._root = root, super.internal(root);
+
+	final TranslationsRu _root; // ignore: unused_field
+
+	// Translations
+	@override String get profile => 'Профиль';
+	@override String get firstName => _root.screenMyProfile.firstName;
+	@override String get lastName => _root.screenMyProfile.lastName;
+	@override String get mobilePhone => _root.screenMyProfile.mobilePhone;
+	@override String get username => _root.screenMyProfile.username;
+	@override String get aboutMe => _root.screenMyProfile.aboutMe;
+	@override String get copy => _root.screenMyProfile.copy;
+}
+
 // Path: screenAuth
 class _Translations$screenAuth$ru extends Translations$screenAuth$en {
 	_Translations$screenAuth$ru._(TranslationsRu root) : this._root = root, super.internal(root);
@@ -518,6 +535,13 @@ extension on TranslationsRu {
 			'screenMyProfile.usernameInvalid' => 'Имя пользователя должно содержать 5–24 символа:\nстрочные латинские буквы, цифры и подчёркивания',
 			'screenMyProfile.usernameTaken' => 'Это имя пользователя уже занято',
 			'screenMyProfile.errorSavingUsername' => 'Сохранение имени пользователя',
+			'screenProfile.profile' => 'Профиль',
+			'screenProfile.firstName' => _root.screenMyProfile.firstName,
+			'screenProfile.lastName' => _root.screenMyProfile.lastName,
+			'screenProfile.mobilePhone' => _root.screenMyProfile.mobilePhone,
+			'screenProfile.username' => _root.screenMyProfile.username,
+			'screenProfile.aboutMe' => _root.screenMyProfile.aboutMe,
+			'screenProfile.copy' => _root.screenMyProfile.copy,
 			'screenAuth.enterYourMobilePhoneNumber' => 'Введите номер мобильного телефона',
 			'screenAuth.currentlyWeOnlySupportPhoneNumbersFromRussianMobileOperators' => 'Сейчас мы поддерживаем только номера российских мобильных операторов',
 			'screenAuth.insertDebugPhone' => 'Вставить тестовый номер',
