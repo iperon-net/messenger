@@ -24,6 +24,8 @@ class ContactsCupertino extends StatefulWidget {
 }
 
 class _ContactsCupertinoState extends State<ContactsCupertino> {
+  final _searchController = TextEditingController();
+
   @override
   void initState() {
     super.initState();
@@ -32,6 +34,12 @@ class _ContactsCupertinoState extends State<ContactsCupertino> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) context.read<ContactsCubit>().discoverOnFirstView();
     });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   bool _matchesQuery(ContactItem item, String query) {
@@ -70,24 +78,37 @@ class _ContactsCupertinoState extends State<ContactsCupertino> {
             final registered = state.registered.where((item) => _matchesQuery(item, state.query)).toList();
             final invitable = state.invitable.where((item) => _matchesQuery(item, state.query)).toList();
 
-            return ListView(
+            // Поле поиска — вне списка, чтобы не пересоздаваться при каждом emit
+            // (иначе оно теряет фокус и onChanged перестаёт срабатывать по клавише).
+            return Column(
               children: [
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   child: CupertinoSearchTextField(
+                    controller: _searchController,
                     placeholder: context.t.screenContacts.search,
                     onChanged: (value) => context.read<ContactsCubit>().search(value),
                   ),
                 ),
-                if (registered.isNotEmpty)
-                  _sheet(context, context.t.screenContacts.onIperon, registered.map((item) => _registeredTile(context, item)).toList()),
-                if (invitable.isNotEmpty)
-                  _sheet(context, context.t.screenContacts.invite, invitable.map((item) => _invitableTile(context, item)).toList()),
-                if (registered.isEmpty && invitable.isEmpty)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 60),
-                    child: Center(child: Text(context.t.screenContacts.empty)),
+                Expanded(
+                  child: ListView(
+                    children: [
+                      if (registered.isNotEmpty)
+                        _sheet(
+                          context,
+                          context.t.screenContacts.onContacts,
+                          registered.map((item) => _registeredTile(context, item)).toList(),
+                        ),
+                      if (invitable.isNotEmpty)
+                        _sheet(context, context.t.screenContacts.invite, invitable.map((item) => _invitableTile(context, item)).toList()),
+                      if (registered.isEmpty && invitable.isEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 60),
+                          child: Center(child: Text(context.t.screenContacts.empty)),
+                        ),
+                    ],
                   ),
+                ),
               ],
             );
           },
@@ -114,6 +135,13 @@ class _ContactsCupertinoState extends State<ContactsCupertino> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        Padding(
+          padding: const EdgeInsetsDirectional.fromSTEB(16, 16, 16, 6),
+          child: Text(
+            header.toUpperCase(),
+            style: TextStyle(fontSize: 13, letterSpacing: -0.08, color: CupertinoColors.secondaryLabel.resolveFrom(context)),
+          ),
+        ),
         Container(
           color: ThemesCupertino.groupedCard.resolveFrom(context),
           child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: children),

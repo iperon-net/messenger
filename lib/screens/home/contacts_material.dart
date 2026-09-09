@@ -23,6 +23,8 @@ class ContactsMaterial extends StatefulWidget {
 }
 
 class _ContactsMaterialState extends State<ContactsMaterial> {
+  final _searchController = TextEditingController();
+
   @override
   void initState() {
     super.initState();
@@ -31,6 +33,12 @@ class _ContactsMaterialState extends State<ContactsMaterial> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) context.read<ContactsCubit>().discoverOnFirstView();
     });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   bool _matchesQuery(ContactItem item, String query) {
@@ -67,11 +75,14 @@ class _ContactsMaterialState extends State<ContactsMaterial> {
           final registered = state.registered.where((item) => _matchesQuery(item, state.query)).toList();
           final invitable = state.invitable.where((item) => _matchesQuery(item, state.query)).toList();
 
-          return ListView(
+          // Поле поиска — вне списка, чтобы не пересоздаваться при каждом emit
+          // (иначе оно теряет фокус и onChanged перестаёт срабатывать по клавише).
+          return Column(
             children: [
               Padding(
                 padding: const EdgeInsets.all(12),
                 child: TextField(
+                  controller: _searchController,
                   decoration: InputDecoration(
                     prefixIcon: const Icon(Icons.search),
                     hintText: context.t.screenContacts.search,
@@ -81,15 +92,25 @@ class _ContactsMaterialState extends State<ContactsMaterial> {
                   onChanged: (value) => context.read<ContactsCubit>().search(value),
                 ),
               ),
-              if (registered.isNotEmpty)
-                _sheet(context, context.t.screenContacts.onIperon, registered.map((item) => _registeredTile(context, item)).toList()),
-              if (invitable.isNotEmpty)
-                _sheet(context, context.t.screenContacts.invite, invitable.map((item) => _invitableTile(context, item)).toList()),
-              if (registered.isEmpty && invitable.isEmpty)
-                Padding(
-                  padding: const EdgeInsets.only(top: 60),
-                  child: Center(child: Text(context.t.screenContacts.empty)),
+              Expanded(
+                child: ListView(
+                  children: [
+                    if (registered.isNotEmpty)
+                      _sheet(
+                        context,
+                        context.t.screenContacts.onContacts,
+                        registered.map((item) => _registeredTile(context, item)).toList(),
+                      ),
+                    if (invitable.isNotEmpty)
+                      _sheet(context, context.t.screenContacts.invite, invitable.map((item) => _invitableTile(context, item)).toList()),
+                    if (registered.isEmpty && invitable.isEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 60),
+                        child: Center(child: Text(context.t.screenContacts.empty)),
+                      ),
+                  ],
                 ),
+              ),
             ],
           );
         },

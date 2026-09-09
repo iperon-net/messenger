@@ -342,6 +342,7 @@ class _Translations$screenContacts$ru extends Translations$screenContacts$en {
 	// Translations
 	@override String get title => 'Контакты';
 	@override String get onIperon => 'В Iperon';
+	@override String get onContacts => 'В контактах';
 	@override String get invite => 'Пригласить';
 	@override String get inviteAction => 'Пригласить';
 	@override String get search => 'Поиск';
@@ -568,6 +569,7 @@ extension on TranslationsRu {
 			'screenProfile.copy' => _root.screenMyProfile.copy,
 			'screenContacts.title' => 'Контакты',
 			'screenContacts.onIperon' => 'В Iperon',
+			'screenContacts.onContacts' => 'В контактах',
 			'screenContacts.invite' => 'Пригласить',
 			'screenContacts.inviteAction' => 'Пригласить',
 			'screenContacts.search' => 'Поиск',

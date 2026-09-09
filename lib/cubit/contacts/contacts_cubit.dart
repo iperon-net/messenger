@@ -112,12 +112,19 @@ class ContactsCubit extends Cubit<ContactsState> {
       final deviceContacts = await FlutterContacts.getAll(properties: {ContactProperty.name, ContactProperty.phone});
       if (isClosed) return;
 
+      // Собственный номер (из сессии) — его не показываем среди контактов.
+      final ownUser = await repositories.users.getBySession(session: auth.session);
+      if (isClosed) return;
+      final ownPhoneE164 = utils.phoneNormalization(phoneNumber: ownUser.phoneNumber).e164;
+
       // Уникальные записи по e164; первое встреченное имя выигрывает.
       final entries = <String, _Entry>{};
       for (final contact in deviceContacts) {
         for (final phone in contact.phones) {
           final normalization = utils.phoneNormalization(phoneNumber: phone.number);
           if (normalization.e164.isEmpty || normalization.raw.isEmpty) continue;
+          // Пропускаем собственный номер — себя в контактах не показываем.
+          if (ownPhoneE164.isNotEmpty && normalization.e164 == ownPhoneE164) continue;
 
           entries.putIfAbsent(
             normalization.e164,

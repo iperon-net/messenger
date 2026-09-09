@@ -609,6 +609,9 @@ class Translations$screenContacts$en {
 	/// en: 'On Iperon'
 	String get onIperon => 'On Iperon';
 
+	/// en: 'On Contacts'
+	String get onContacts => 'On Contacts';
+
 	/// en: 'Invite'
 	String get invite => 'Invite';
 
@@ -912,6 +915,7 @@ extension on Translations {
 			'screenProfile.copy' => _root.screenMyProfile.copy,
 			'screenContacts.title' => 'Contacts',
 			'screenContacts.onIperon' => 'On Iperon',
+			'screenContacts.onContacts' => 'On Contacts',
 			'screenContacts.invite' => 'Invite',
 			'screenContacts.inviteAction' => 'Invite',
 			'screenContacts.search' => 'Search',

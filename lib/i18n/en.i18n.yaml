@@ -165,6 +165,7 @@
 "screenContacts":
   "title": "Contacts"
   "onIperon": "On Iperon"
+  "onContacts": "On Contacts"
   "invite": "Invite"
   "inviteAction": "Invite"
   "search": "Search"
