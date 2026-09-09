@@ -21,6 +21,7 @@ part "sessions.dart";
 part "device_sessions.dart";
 part "my_profile.dart";
 part "profiles.dart";
+part "contacts.dart";
 part "uploads.dart";
 part "downloads.dart";
 
@@ -56,6 +57,7 @@ class Repositories {
   late Cache cache;
   late MyProfile myProfile;
   late Profiles profiles;
+  late Contacts contacts;
   late Uploads uploads;
   late Downloads downloads;
 
@@ -213,6 +215,21 @@ class Repositories {
       }),
     );
 
+    migrations.add(
+      SqliteMigration(2, (tx) async {
+        // Кэш совпадений приватного поиска контактов: номер из телефонной книги
+        // (e164) ↔ userID зарегистрированного пользователя. Наполняется после
+        // OPRF-раунда Match; см. lib/cubit/contacts/.
+        await tx.execute("""
+        CREATE TABLE contacts (
+          phoneE164 TEXT PRIMARY KEY,
+          userID BLOB NOT NULL,
+          updatedAt INTEGER NOT NULL
+        );
+      """);
+      }),
+    );
+
     if (settings.isDeleteDatabase) {
       logger.warning("Deleting the database, flag set IS_DELETE_DATABASE: 1");
 
@@ -259,6 +276,7 @@ class Repositories {
     cache = Cache(logger: logger, db: db);
     myProfile = MyProfile(logger: logger, db: db);
     profiles = Profiles(logger: logger, db: db);
+    contacts = Contacts(logger: logger, db: db);
     uploads = Uploads(logger: logger, db: db);
     downloads = Downloads(logger: logger, db: db);
   }

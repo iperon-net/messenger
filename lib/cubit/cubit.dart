@@ -31,6 +31,8 @@ export 'settings/settings_my_profile_username_cubit.dart';
 export 'settings/settings_my_profile_username_state.dart';
 export 'profile/profile_cubit.dart';
 export 'profile/profile_state.dart';
+export 'contacts/contacts_cubit.dart';
+export 'contacts/contacts_state.dart';
 export 'home/home_cubit.dart';
 export 'home/home_state.dart';
 export 'chats/chats_cubit.dart';

@@ -61,7 +61,13 @@ class Routers {
       ),
       branches: [
         StatefulShellBranch(
-          routes: [GoRoute(path: "/contacts", builder: (_, _) => const ContactsCupertino())],
+          routes: [
+            GoRoute(
+              path: "/contacts",
+              builder: (_, _) =>
+                  BlocProvider<ContactsCubit>(create: (_) => ContactsCubit()..initialization(), child: const ContactsCupertino()),
+            ),
+          ],
         ),
         StatefulShellBranch(
           routes: [GoRoute(path: "/calls", builder: (_, _) => const CallsCupertino())],
@@ -304,7 +310,13 @@ class Routers {
       ),
       branches: [
         StatefulShellBranch(
-          routes: [GoRoute(path: "/contacts", builder: (_, _) => const ContactsMaterial())],
+          routes: [
+            GoRoute(
+              path: "/contacts",
+              builder: (_, _) =>
+                  BlocProvider<ContactsCubit>(create: (_) => ContactsCubit()..initialization(), child: const ContactsMaterial()),
+            ),
+          ],
         ),
         StatefulShellBranch(
           routes: [GoRoute(path: "/calls", builder: (_, _) => const CallsMaterial())],

@@ -1,0 +1,45 @@
+syntax = "proto3";
+
+package iperon.v1;
+option go_package = "internal/api/v1";
+
+// Приватный поиск контактов через OPRF (шифронабор ristretto255-SHA512, режим
+// VOPRF, RFC 9497 / github.com/bytemare/voprf). Клиент «ослепляет» (blind)
+// номера телефонов, сервер вычисляет над ними OPRF своим приватным ключом, не
+// узнавая сами номера. Протокол в два раунда:
+//   1) ContactsDiscoveryEvaluate — слепая оценка;
+//   2) ContactsDiscoveryMatch    — проверка членства по OPRF-отпечаткам.
+
+// Раунд 1: клиент шлёт ослеплённые элементы, сервер возвращает результат оценки.
+message ContactsDiscoveryEvaluate {
+  message Request {
+    // Ослеплённые элементы ristretto255 (по одному на номер), 32 байта каждый.
+    repeated bytes blindedElements = 1;
+  }
+
+  message Response {
+    // Сериализованные Evaluation (элемент + DLEQ-пруф) в порядке запроса.
+    repeated bytes evaluatedElements = 1;
+  }
+}
+
+// Раунд 2: клиент шлёт финализированные OPRF-выходы, сервер отвечает, какие из
+// них соответствуют зарегистрированным пользователям (совпадение по user.oprf).
+message ContactsDiscoveryMatch {
+  message Request {
+    // Финализированные OPRF-выходы (SHA-512, 64 байта), по одному на номер.
+    repeated bytes oprfOutputs = 1;
+  }
+
+  message Match {
+    // OPRF-отпечаток совпавшего пользователя — клиент по нему находит локальный
+    // номер, соответствующий контакту.
+    bytes oprf = 1;
+    // userID найденного пользователя (сырые байты ObjectID).
+    bytes userID = 2;
+  }
+
+  message Response {
+    repeated Match matches = 1;
+  }
+}

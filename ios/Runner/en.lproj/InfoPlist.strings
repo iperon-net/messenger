@@ -2,3 +2,4 @@
 "NSPhotoLibraryUsageDescription" = "Uses your photos to set an avatar and share images in chats";
 "NSCameraUsageDescription" = "Uses the camera to take a photo for your avatar and to share in chats";
 "NSMicrophoneUsageDescription" = "Uses the microphone for voice and video calls";
+"NSContactsUsageDescription" = "Finds which of your contacts are on Iperon. Phone numbers never leave your device in the clear — they are matched privately.";

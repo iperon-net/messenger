@@ -54,6 +54,7 @@ class TranslationsRu extends Translations with BaseTranslations<AppLocale, Trans
 	@override late final _Translations$sessionsPrivacyAndSecurity$ru sessionsPrivacyAndSecurity = _Translations$sessionsPrivacyAndSecurity$ru._(_root);
 	@override late final _Translations$screenMyProfile$ru screenMyProfile = _Translations$screenMyProfile$ru._(_root);
 	@override late final _Translations$screenProfile$ru screenProfile = _Translations$screenProfile$ru._(_root);
+	@override late final _Translations$screenContacts$ru screenContacts = _Translations$screenContacts$ru._(_root);
 	@override late final _Translations$screenAuth$ru screenAuth = _Translations$screenAuth$ru._(_root);
 	@override late final _Translations$screenAuthModerationApplicationStore$ru screenAuthModerationApplicationStore = _Translations$screenAuthModerationApplicationStore$ru._(_root);
 	@override late final _Translations$screenAuthCallpasswordConfirmation$ru screenAuthCallpasswordConfirmation = _Translations$screenAuthCallpasswordConfirmation$ru._(_root);
@@ -332,6 +333,26 @@ class _Translations$screenProfile$ru extends Translations$screenProfile$en {
 	@override String get copy => _root.screenMyProfile.copy;
 }
 
+// Path: screenContacts
+class _Translations$screenContacts$ru extends Translations$screenContacts$en {
+	_Translations$screenContacts$ru._(TranslationsRu root) : this._root = root, super.internal(root);
+
+	final TranslationsRu _root; // ignore: unused_field
+
+	// Translations
+	@override String get title => 'Контакты';
+	@override String get onIperon => 'В Iperon';
+	@override String get invite => 'Пригласить';
+	@override String get inviteAction => 'Пригласить';
+	@override String get search => 'Поиск';
+	@override String get permissionTitle => 'Нужен доступ к контактам';
+	@override String get permissionMessage => 'Разрешите доступ к контактам, чтобы найти друзей, которые уже в Iperon. Ваши номера сверяются приватно и не раскрываются серверу.';
+	@override String get allowAccess => 'Разрешить доступ';
+	@override String get openSettings => 'Открыть настройки';
+	@override String get empty => 'Контакты не найдены';
+	@override String get inviteMessage => 'Давай общаться в Iperon';
+}
+
 // Path: screenAuth
 class _Translations$screenAuth$ru extends Translations$screenAuth$en {
 	_Translations$screenAuth$ru._(TranslationsRu root) : this._root = root, super.internal(root);
@@ -542,6 +563,17 @@ extension on TranslationsRu {
 			'screenProfile.username' => _root.screenMyProfile.username,
 			'screenProfile.aboutMe' => _root.screenMyProfile.aboutMe,
 			'screenProfile.copy' => _root.screenMyProfile.copy,
+			'screenContacts.title' => 'Контакты',
+			'screenContacts.onIperon' => 'В Iperon',
+			'screenContacts.invite' => 'Пригласить',
+			'screenContacts.inviteAction' => 'Пригласить',
+			'screenContacts.search' => 'Поиск',
+			'screenContacts.permissionTitle' => 'Нужен доступ к контактам',
+			'screenContacts.permissionMessage' => 'Разрешите доступ к контактам, чтобы найти друзей, которые уже в Iperon. Ваши номера сверяются приватно и не раскрываются серверу.',
+			'screenContacts.allowAccess' => 'Разрешить доступ',
+			'screenContacts.openSettings' => 'Открыть настройки',
+			'screenContacts.empty' => 'Контакты не найдены',
+			'screenContacts.inviteMessage' => 'Давай общаться в Iperon',
 			'screenAuth.enterYourMobilePhoneNumber' => 'Введите номер мобильного телефона',
 			'screenAuth.currentlyWeOnlySupportPhoneNumbersFromRussianMobileOperators' => 'Сейчас мы поддерживаем только номера российских мобильных операторов',
 			'screenAuth.insertDebugPhone' => 'Вставить тестовый номер',

@@ -56,6 +56,7 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	late final Translations$sessionsPrivacyAndSecurity$en sessionsPrivacyAndSecurity = Translations$sessionsPrivacyAndSecurity$en.internal(_root);
 	late final Translations$screenMyProfile$en screenMyProfile = Translations$screenMyProfile$en.internal(_root);
 	late final Translations$screenProfile$en screenProfile = Translations$screenProfile$en.internal(_root);
+	late final Translations$screenContacts$en screenContacts = Translations$screenContacts$en.internal(_root);
 	late final Translations$screenAuth$en screenAuth = Translations$screenAuth$en.internal(_root);
 	late final Translations$screenAuthModerationApplicationStore$en screenAuthModerationApplicationStore = Translations$screenAuthModerationApplicationStore$en.internal(_root);
 	late final Translations$screenAuthCallpasswordConfirmation$en screenAuthCallpasswordConfirmation = Translations$screenAuthCallpasswordConfirmation$en.internal(_root);
@@ -594,6 +595,48 @@ class Translations$screenProfile$en {
 	String get copy => _root.screenMyProfile.copy;
 }
 
+// Path: screenContacts
+class Translations$screenContacts$en {
+	Translations$screenContacts$en.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// en: 'Contacts'
+	String get title => 'Contacts';
+
+	/// en: 'On Iperon'
+	String get onIperon => 'On Iperon';
+
+	/// en: 'Invite'
+	String get invite => 'Invite';
+
+	/// en: 'Invite'
+	String get inviteAction => 'Invite';
+
+	/// en: 'Search'
+	String get search => 'Search';
+
+	/// en: 'Contacts access needed'
+	String get permissionTitle => 'Contacts access needed';
+
+	/// en: 'Allow access to your contacts to find friends already on Iperon. Your phone numbers are matched privately and never revealed to the server.'
+	String get permissionMessage => 'Allow access to your contacts to find friends already on Iperon. Your phone numbers are matched privately and never revealed to the server.';
+
+	/// en: 'Allow access'
+	String get allowAccess => 'Allow access';
+
+	/// en: 'Open settings'
+	String get openSettings => 'Open settings';
+
+	/// en: 'No contacts found'
+	String get empty => 'No contacts found';
+
+	/// en: 'Let's chat on Iperon'
+	String get inviteMessage => 'Let\'s chat on Iperon';
+}
+
 // Path: screenAuth
 class Translations$screenAuth$en {
 	Translations$screenAuth$en.internal(this._root);
@@ -858,6 +901,17 @@ extension on Translations {
 			'screenProfile.username' => _root.screenMyProfile.username,
 			'screenProfile.aboutMe' => _root.screenMyProfile.aboutMe,
 			'screenProfile.copy' => _root.screenMyProfile.copy,
+			'screenContacts.title' => 'Contacts',
+			'screenContacts.onIperon' => 'On Iperon',
+			'screenContacts.invite' => 'Invite',
+			'screenContacts.inviteAction' => 'Invite',
+			'screenContacts.search' => 'Search',
+			'screenContacts.permissionTitle' => 'Contacts access needed',
+			'screenContacts.permissionMessage' => 'Allow access to your contacts to find friends already on Iperon. Your phone numbers are matched privately and never revealed to the server.',
+			'screenContacts.allowAccess' => 'Allow access',
+			'screenContacts.openSettings' => 'Open settings',
+			'screenContacts.empty' => 'No contacts found',
+			'screenContacts.inviteMessage' => 'Let\'s chat on Iperon',
 			'screenAuth.enterYourMobilePhoneNumber' => 'Enter your mobile phone number',
 			'screenAuth.currentlyWeOnlySupportPhoneNumbersFromRussianMobileOperators' => 'Currently, we only support phone numbers from Russian mobile operators',
 			'screenAuth.insertDebugPhone' => 'Insert debug phone',

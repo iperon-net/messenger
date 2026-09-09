@@ -162,6 +162,19 @@
   "aboutMe": "@:screenMyProfile.aboutMe"
   "copy": "@:screenMyProfile.copy"
 
+"screenContacts":
+  "title": "Контакты"
+  "onIperon": "В Iperon"
+  "invite": "Пригласить"
+  "inviteAction": "Пригласить"
+  "search": "Поиск"
+  "permissionTitle": "Нужен доступ к контактам"
+  "permissionMessage": "Разрешите доступ к контактам, чтобы найти друзей, которые уже в Iperon. Ваши номера сверяются приватно и не раскрываются серверу."
+  "allowAccess": "Разрешить доступ"
+  "openSettings": "Открыть настройки"
+  "empty": "Контакты не найдены"
+  "inviteMessage": "Давай общаться в Iperon"
+
 "screenAuth":
   "enterYourMobilePhoneNumber": "Введите номер мобильного телефона"
   "currentlyWeOnlySupportPhoneNumbersFromRussianMobileOperators": "Сейчас мы поддерживаем только номера российских мобильных операторов"

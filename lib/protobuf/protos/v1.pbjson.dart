@@ -45,6 +45,8 @@ const MessageType$json = {
     {'1': 'CALL_ICE_SERVERS', '2': 21},
     {'1': 'MY_PROFILE_USERNAME_UPDATE', '2': 22},
     {'1': 'PROFILE', '2': 23},
+    {'1': 'CONTACTS_DISCOVERY_EVALUATE', '2': 24},
+    {'1': 'CONTACTS_DISCOVERY_MATCH', '2': 25},
   ],
 };
 

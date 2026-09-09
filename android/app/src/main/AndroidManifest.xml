@@ -18,6 +18,9 @@
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <!-- flutter_contacts: приватный поиск контактов (чтение телефонной книги;
+         номера не покидают устройство в открытом виде — сверка через OPRF). -->
+    <uses-permission android:name="android.permission.READ_CONTACTS" />
     <application
         android:label="Iperon"
         android:name="${applicationName}"

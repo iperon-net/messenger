@@ -34,6 +34,8 @@
 	<string>Uses the camera to take a photo for your avatar and to share in chats</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Uses the microphone for voice and video calls</string>
+	<key>NSContactsUsageDescription</key>
+	<string>Finds which of your contacts are on Iperon. Phone numbers never leave your device in the clear — they are matched privately.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
