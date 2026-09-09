@@ -8,6 +8,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../constants.dart';
 import '../../cubit.dart';
 import '../../di.dart';
+import '../../extensions.dart';
 import '../../themes.dart';
 import '../../components.dart';
 import '../../utils.dart';
@@ -34,11 +35,11 @@ class ContactsCupertino extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
-      backgroundColor: ThemesCupertino.groupedBackground,
+      backgroundColor: ThemesCupertino.groupedCard,
       navigationBar: AppCupertinoNavigationBar(
         child: CupertinoNavigationBar(
           automaticBackgroundVisibility: false,
-          backgroundColor: ThemesCupertino.groupedBackground,
+          backgroundColor: ThemesCupertino.groupedCard,
           middle: Text(context.t.screenContacts.title),
         ),
       ),
@@ -64,9 +65,9 @@ class ContactsCupertino extends StatelessWidget {
                   ),
                 ),
                 if (registered.isNotEmpty)
-                  _section(context, context.t.screenContacts.onIperon, registered.map((item) => _registeredTile(context, item)).toList()),
+                  _sheet(context, context.t.screenContacts.onIperon, registered.map((item) => _registeredTile(context, item)).toList()),
                 if (invitable.isNotEmpty)
-                  _section(context, context.t.screenContacts.invite, invitable.map((item) => _invitableTile(context, item)).toList()),
+                  _sheet(context, context.t.screenContacts.invite, invitable.map((item) => _invitableTile(context, item)).toList()),
                 if (registered.isEmpty && invitable.isEmpty)
                   Padding(
                     padding: const EdgeInsets.only(top: 60),
@@ -80,22 +81,42 @@ class ContactsCupertino extends StatelessWidget {
     );
   }
 
-  Widget _section(BuildContext context, String header, List<Widget> children) {
-    return CupertinoListSection.insetGrouped(
-      header: Text(header),
-      clipBehavior: Clip.antiAlias,
-      backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
-      decoration: BoxDecoration(
-        color: ThemesCupertino.groupedCard.resolveFrom(context),
-        borderRadius: const BorderRadius.all(Radius.circular(18)),
-      ),
-      children: children,
+  /// Белая подложка без обрамления (без инсет-полей и скруглений) — контакты
+  /// лежат на сплошном листе во всю ширину, разделённые тонкими линиями.
+  Widget _sheet(BuildContext context, String header, List<Widget> tiles) {
+    final divider = Container(
+      margin: const EdgeInsetsDirectional.only(start: 60),
+      height: 0.5,
+      color: CupertinoColors.separator.resolveFrom(context),
+    );
+
+    final children = <Widget>[];
+    for (var i = 0; i < tiles.length; i++) {
+      if (i > 0) children.add(divider);
+      children.add(tiles[i]);
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: const EdgeInsetsDirectional.fromSTEB(16, 16, 16, 6),
+          child: Text(
+            header.toUpperCase(),
+            style: TextStyle(fontSize: 13, letterSpacing: -0.08, color: CupertinoColors.secondaryLabel.resolveFrom(context)),
+          ),
+        ),
+        Container(
+          color: ThemesCupertino.groupedCard.resolveFrom(context),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: children),
+        ),
+      ],
     );
   }
 
   Widget _avatar(String hash) => SizedBox(
-    width: 36,
-    height: 36,
+    width: 40,
+    height: 40,
     child: AnimatedBoringAvatar(
       name: hash,
       type: BoringAvatarType.beam,
@@ -104,14 +125,39 @@ class ContactsCupertino extends StatelessWidget {
     ),
   );
 
+  /// Статус контакта: «в сети» (зелёная точка), «был(а) <дата>» или «был(а) недавно».
+  /// TODO: подключить реальные данные о присутствии — сейчас плейсхолдер.
+  Widget _status(BuildContext context, {bool online = false, DateTime? lastSeen}) {
+    if (online) {
+      final green = ThemesCupertino().green.resolveFrom(context);
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 7,
+            height: 7,
+            decoration: BoxDecoration(color: green, shape: BoxShape.circle),
+          ),
+          const SizedBox(width: 5),
+          Text(context.t.screenContacts.statusOnline, style: TextStyle(fontSize: 14, color: green)),
+        ],
+      );
+    }
+    final text = lastSeen != null
+        ? context.t.screenContacts.statusLastSeen(date: lastSeen.relativeFormat(context.t))
+        : context.t.screenContacts.statusLastSeenRecently;
+    return Text(text, style: TextStyle(fontSize: 14, color: CupertinoColors.secondaryLabel.resolveFrom(context)));
+  }
+
   Widget _registeredTile(BuildContext context, ContactItem item) {
     final hex = getIt.get<Utils>().bytesToHex(item.userID!);
     return CupertinoListTile(
       leading: _avatar(hex),
       title: Text(item.displayName),
-      subtitle: Text(item.phone),
+      // TODO: заменить плейсхолдер на реальную дату последнего визита из данных о присутствии.
+      subtitle: _status(context, lastSeen: DateTime.now().subtract(const Duration(days: 1, hours: 2))),
       trailing: const CupertinoListTileChevron(),
-      onTap: () => context.go('/profile/$hex'),
+      onTap: () => context.push('/profile/$hex'),
     );
   }
 

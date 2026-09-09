@@ -8,6 +8,8 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../constants.dart';
 import '../../cubit.dart';
 import '../../di.dart';
+import '../../extensions.dart';
+import '../../themes.dart';
 import '../../utils.dart';
 import '../../i18n/translations.g.dart';
 
@@ -31,8 +33,14 @@ class ContactsMaterial extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Белый фон в светлой теме, в ночной — тот же оттенок, что у Cupertino (`groupedCard`),
+    // чтобы обе платформы читались одинаково.
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final background = isDark ? ThemesCupertino.groupedCard.darkColor : ThemesCupertino.groupedCard.color;
+
     return Scaffold(
-      appBar: AppBar(title: Text(context.t.screenContacts.title)),
+      backgroundColor: background,
+      appBar: AppBar(backgroundColor: background, title: Text(context.t.screenContacts.title)),
       body: BlocBuilder<ContactsCubit, ContactsState>(
         builder: (context, state) {
           if (state.permissionDenied) return _permission(context);
@@ -58,10 +66,10 @@ class ContactsMaterial extends StatelessWidget {
                   onChanged: (value) => context.read<ContactsCubit>().search(value),
                 ),
               ),
-              if (registered.isNotEmpty) _header(context, context.t.screenContacts.onIperon),
-              ...registered.map((item) => _registeredTile(context, item)),
-              if (invitable.isNotEmpty) _header(context, context.t.screenContacts.invite),
-              ...invitable.map((item) => _invitableTile(context, item)),
+              if (registered.isNotEmpty)
+                _sheet(context, context.t.screenContacts.onIperon, registered.map((item) => _registeredTile(context, item)).toList()),
+              if (invitable.isNotEmpty)
+                _sheet(context, context.t.screenContacts.invite, invitable.map((item) => _invitableTile(context, item)).toList()),
               if (registered.isEmpty && invitable.isEmpty)
                 Padding(
                   padding: const EdgeInsets.only(top: 60),
@@ -74,10 +82,22 @@ class ContactsMaterial extends StatelessWidget {
     );
   }
 
-  Widget _header(BuildContext context, String text) => Padding(
-    padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-    child: Text(text, style: Theme.of(context).textTheme.labelLarge?.copyWith(color: Theme.of(context).colorScheme.primary)),
-  );
+  /// Белая подложка под контактами: сплошной лист во всю ширину с заголовком секции.
+  Widget _sheet(BuildContext context, String header, List<Widget> tiles) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+          child: Text(header, style: Theme.of(context).textTheme.labelLarge?.copyWith(color: Theme.of(context).colorScheme.primary)),
+        ),
+        Material(
+          type: MaterialType.transparency,
+          child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: tiles),
+        ),
+      ],
+    );
+  }
 
   Widget _avatar(String hash) => SizedBox(
     width: 40,
@@ -90,14 +110,38 @@ class ContactsMaterial extends StatelessWidget {
     ),
   );
 
+  /// Статус контакта: «в сети» (зелёная точка), «был(а) <дата>» или «был(а) недавно».
+  /// TODO: подключить реальные данные о присутствии — сейчас плейсхолдер.
+  Widget _status(BuildContext context, {bool online = false, DateTime? lastSeen}) {
+    if (online) {
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 8,
+            height: 8,
+            decoration: const BoxDecoration(color: Colors.green, shape: BoxShape.circle),
+          ),
+          const SizedBox(width: 6),
+          Text(context.t.screenContacts.statusOnline, style: const TextStyle(color: Colors.green)),
+        ],
+      );
+    }
+    final text = lastSeen != null
+        ? context.t.screenContacts.statusLastSeen(date: lastSeen.relativeFormat(context.t))
+        : context.t.screenContacts.statusLastSeenRecently;
+    return Text(text, style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant));
+  }
+
   Widget _registeredTile(BuildContext context, ContactItem item) {
     final hex = getIt.get<Utils>().bytesToHex(item.userID!);
     return ListTile(
       leading: _avatar(hex),
       title: Text(item.displayName),
-      subtitle: Text(item.phone),
+      // TODO: заменить плейсхолдер на реальную дату последнего визита из данных о присутствии.
+      subtitle: _status(context, lastSeen: DateTime.now().subtract(const Duration(days: 1, hours: 2))),
       trailing: const Icon(Icons.chevron_right),
-      onTap: () => context.go('/profile/$hex'),
+      onTap: () => context.push('/profile/$hex'),
     );
   }
 

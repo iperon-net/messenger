@@ -88,7 +88,7 @@ class _CallsCupertinoState extends State<CallsCupertino> {
               const SizedBox(height: 12),
               CupertinoButton.filled(onPressed: () => _start(true), child: const Text('Видеозвонок')),
               const SizedBox(height: 12),
-              CupertinoButton(onPressed: () => context.go('/profile/$_myUserID'), child: const Text('Мой профиль')),
+              CupertinoButton(onPressed: () => context.push('/profile/$_myUserID'), child: const Text('Мой профиль')),
             ],
           ),
         ),

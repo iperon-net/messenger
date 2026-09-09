@@ -73,7 +73,7 @@ class _CallsMaterialState extends State<CallsMaterial> {
             const SizedBox(height: 12),
             FilledButton(onPressed: () => _start(true), child: const Text('Видеозвонок')),
             const SizedBox(height: 12),
-            OutlinedButton(onPressed: () => context.go('/profile/$_myUserID'), child: const Text('Мой профиль')),
+            OutlinedButton(onPressed: () => context.push('/profile/$_myUserID'), child: const Text('Мой профиль')),
           ],
         ),
       ),

@@ -351,6 +351,9 @@ class _Translations$screenContacts$ru extends Translations$screenContacts$en {
 	@override String get openSettings => 'Открыть настройки';
 	@override String get empty => 'Контакты не найдены';
 	@override String get inviteMessage => 'Давай общаться в Iperon';
+	@override String get statusOnline => 'в сети';
+	@override String get statusLastSeenRecently => 'был(а) недавно';
+	@override String statusLastSeen({required Object date}) => 'был(а) ${date}';
 }
 
 // Path: screenAuth
@@ -574,6 +577,9 @@ extension on TranslationsRu {
 			'screenContacts.openSettings' => 'Открыть настройки',
 			'screenContacts.empty' => 'Контакты не найдены',
 			'screenContacts.inviteMessage' => 'Давай общаться в Iperon',
+			'screenContacts.statusOnline' => 'в сети',
+			'screenContacts.statusLastSeenRecently' => 'был(а) недавно',
+			'screenContacts.statusLastSeen' => ({required Object date}) => 'был(а) ${date}',
 			'screenAuth.enterYourMobilePhoneNumber' => 'Введите номер мобильного телефона',
 			'screenAuth.currentlyWeOnlySupportPhoneNumbersFromRussianMobileOperators' => 'Сейчас мы поддерживаем только номера российских мобильных операторов',
 			'screenAuth.insertDebugPhone' => 'Вставить тестовый номер',

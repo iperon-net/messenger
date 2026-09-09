@@ -635,6 +635,15 @@ class Translations$screenContacts$en {
 
 	/// en: 'Let's chat on Iperon'
 	String get inviteMessage => 'Let\'s chat on Iperon';
+
+	/// en: 'online'
+	String get statusOnline => 'online';
+
+	/// en: 'last seen recently'
+	String get statusLastSeenRecently => 'last seen recently';
+
+	/// en: 'last seen {date}'
+	String statusLastSeen({required Object date}) => 'last seen ${date}';
 }
 
 // Path: screenAuth
@@ -912,6 +921,9 @@ extension on Translations {
 			'screenContacts.openSettings' => 'Open settings',
 			'screenContacts.empty' => 'No contacts found',
 			'screenContacts.inviteMessage' => 'Let\'s chat on Iperon',
+			'screenContacts.statusOnline' => 'online',
+			'screenContacts.statusLastSeenRecently' => 'last seen recently',
+			'screenContacts.statusLastSeen' => ({required Object date}) => 'last seen ${date}',
 			'screenAuth.enterYourMobilePhoneNumber' => 'Enter your mobile phone number',
 			'screenAuth.currentlyWeOnlySupportPhoneNumbersFromRussianMobileOperators' => 'Currently, we only support phone numbers from Russian mobile operators',
 			'screenAuth.insertDebugPhone' => 'Insert debug phone',
