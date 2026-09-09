@@ -6,6 +6,7 @@ import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:permission_handler/permission_handler.dart' as ph;
 
 import '../../api.dart';
+import '../../auth.dart';
 import '../../constants.dart';
 import '../../crypto.dart';
 import '../../di.dart';
@@ -38,10 +39,17 @@ class ContactsCubit extends Cubit<ContactsState> {
   final utils = getIt.get<Utils>();
   final crypto = getIt.get<Crypto>();
   final repositories = getIt.get<Repositories>();
+  final auth = getIt.get<Auth>();
 
   // Батч discovery. Совпадает по духу с серверным contactsDiscoveryBatchLimit
   // (1024) — держим ниже лимита, чтобы большая книга уходила пачками.
   static const int _batchSize = 512;
+
+  // Ключ кэша с отпечатком книги (набор номеров, по которому уже был OPRF) и
+  // интервал, дольше которого не доверяем неизменной книге — пересинхронизируемся,
+  // чтобы подхватить контакты, зарегистрировавшиеся в Iperon после прошлого поиска.
+  static const String _fingerprintKey = "contacts_book_fingerprint";
+  static const Duration _resyncInterval = Duration(hours: 24);
 
   // Один discover идёт за раз (guard от параллельных запусков), а _discoverStarted
   // помнит, был ли он вообще запущен в этой сессии — чтобы первый показ вкладки не
@@ -81,7 +89,12 @@ class ContactsCubit extends Cubit<ContactsState> {
 
   /// Фаза B — запрос разрешения, чтение книги и OPRF-поиск. Вызывается при первом
   /// показе вкладки (осознанный запрос разрешения) и из refresh().
-  Future<void> discover() async {
+  ///
+  /// Дорогой OPRF-раунд пропускается, если набор номеров в книге не изменился с
+  /// прошлого поиска и тот ещё не «протух» ([_resyncInterval]); [force] (ручной
+  /// refresh) обходит эту проверку. Чтение книги и обновление снимка (в т.ч. имён)
+  /// выполняются всегда — они дёшевы.
+  Future<void> discover({bool force = false}) async {
     if (_discovering) return;
     _discovering = true;
     _discoverStarted = true;
@@ -135,6 +148,19 @@ class ContactsCubit extends Cubit<ContactsState> {
       await _writeSnapshot(entries, known);
       if (isClosed) return;
 
+      // Книга не менялась и прошлый поиск ещё свежий (запись жива по TTL) —
+      // пропускаем дорогой OPRF, registered уже корректны из снимка.
+      final userID = Uint8List.fromList(auth.session.userID);
+      final fingerprint = _bookFingerprint(entries.values);
+      if (!force) {
+        final saved = await repositories.cache.getString(userID: userID, key: _fingerprintKey);
+        if (isClosed) return;
+        if (saved == fingerprint) {
+          emit(state.copyWith(status: Status.success));
+          return;
+        }
+      }
+
       // OPRF-поиск. Ошибка сети не критична — остаёмся на данных из снимка.
       try {
         final matched = await _discoverOprf(entries.values.toList(growable: false));
@@ -142,6 +168,8 @@ class ContactsCubit extends Cubit<ContactsState> {
 
         _emitLists(entries, matched);
         await _writeSnapshot(entries, matched);
+        // Запоминаем отпечаток успешно синхронизированной книги (с TTL-страховкой).
+        await repositories.cache.setString(userID: userID, key: _fingerprintKey, value: fingerprint, ttl: _resyncInterval);
       } catch (error, stackTrace) {
         logger.handle(error, stackTrace);
         if (!isClosed) emit(state.copyWith(status: Status.success));
@@ -155,8 +183,17 @@ class ContactsCubit extends Cubit<ContactsState> {
   /// вызывается при первом построении экрана, чтобы не дублировать фоновую дозагрузку.
   Future<void> discoverOnFirstView() => _discoverStarted ? Future.value() : discover();
 
-  /// Повторный запуск поиска (pull-to-refresh / после выдачи разрешения).
-  Future<void> refresh() => discover();
+  /// Повторный запуск поиска (pull-to-refresh / после выдачи разрешения) —
+  /// форсирует OPRF даже при неизменной книге.
+  Future<void> refresh() => discover(force: true);
+
+  /// Отпечаток книги для OPRF: отсортированный набор номеров (e164). Имена/номера
+  /// показа в него не входят — они не влияют на результат поиска и обновляются в
+  /// снимке отдельно.
+  String _bookFingerprint(Iterable<_Entry> entries) {
+    final keys = entries.map((entry) => entry.phoneE164).toList()..sort();
+    return keys.join("|");
+  }
 
   void search(String query) => emit(state.copyWith(query: query));
 
@@ -168,14 +205,11 @@ class ContactsCubit extends Cubit<ContactsState> {
     for (var offset = 0; offset < allEntries.length; offset += _batchSize) {
       final chunk = allEntries.sublist(offset, (offset + _batchSize).clamp(0, allEntries.length));
 
-      // Раунд 1: ослепляем и просим сервер оценить.
-      final blinds = <Uint8List>[];
-      final blindedElements = <List<int>>[];
-      for (final entry in chunk) {
-        final (blind, blindedElement) = await crypto.oprf.blind(utf8.encode(entry.raw));
-        blinds.add(blind);
-        blindedElements.add(blindedElement);
-      }
+      // Входы OPRF в порядке чанка — общий порядок для blind/evaluate/finalize.
+      final inputs = [for (final entry in chunk) utf8.encode(entry.raw)];
+
+      // Раунд 1: ослепляем (в фоновом изоляте, чтобы не морозить UI) и просим сервер оценить.
+      final (blinds, blindedElements) = await crypto.oprf.blindBatch(inputs);
 
       final (evaluateStatus, evaluatePayload) = await api.unaryEncodedWithResponse(
         MessageType.CONTACTS_DISCOVERY_EVALUATE,
@@ -186,18 +220,13 @@ class ContactsCubit extends Cubit<ContactsState> {
       }
       final evaluateResponse = ContactsDiscoveryEvaluate_Response.fromBuffer(evaluatePayload);
 
-      // Финализируем каждый ответ → OPRF-отпечаток (== user.oprf на сервере).
-      final oprfOutputs = <List<int>>[];
-      final entryByOprf = <String, _Entry>{};
-      for (var i = 0; i < chunk.length; i++) {
-        final output = await crypto.oprf.finalize(
-          input: utf8.encode(chunk[i].raw),
-          blind: blinds[i],
-          evaluation: Uint8List.fromList(evaluateResponse.evaluatedElements[i]),
-        );
-        oprfOutputs.add(output);
-        entryByOprf[utils.bytesToHex(output)] = chunk[i];
-      }
+      // Финализируем всю пачку в фоновом изоляте → OPRF-отпечатки (== user.oprf на сервере).
+      final oprfOutputs = await crypto.oprf.finalizeBatch(
+        inputs: inputs,
+        blinds: blinds,
+        evaluations: [for (final element in evaluateResponse.evaluatedElements) Uint8List.fromList(element)],
+      );
+      final entryByOprf = <String, _Entry>{for (var i = 0; i < chunk.length; i++) utils.bytesToHex(oprfOutputs[i]): chunk[i]};
 
       // Раунд 2: проверка членства.
       final (matchStatus, matchPayload) = await api.unaryEncodedWithResponse(

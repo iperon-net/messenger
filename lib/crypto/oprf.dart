@@ -12,9 +12,11 @@ part of 'crypto.dart';
 /// DLEQ-пруф из VOPRF-ответа сейчас НЕ проверяется (для матчинга это не нужно
 /// при честном сервере); проверка — задача на будущее (hardening).
 class Oprf {
-  final Logger logger;
+  final Logger? logger;
 
-  Oprf({required this.logger});
+  // logger не обязателен: батч-методы пересоздают Oprf внутри фонового изолята,
+  // где getIt (и, значит, Logger) недоступен.
+  Oprf({this.logger});
 
   // contextString = "OPRFV1-" || 0x01 (режим VOPRF) || "-ristretto255-SHA512".
   static final Uint8List _contextString = Uint8List.fromList([...utf8.encode('OPRFV1-'), 0x01, ...utf8.encode('-ristretto255-SHA512')]);
@@ -41,6 +43,40 @@ class Oprf {
     blinded.scalarMult(blindScalar, p);
 
     return (Uint8List.fromList(blindScalar.encode()), Uint8List.fromList(blinded.encode()));
+  }
+
+  /// Ослепляет пачку входов в фоновом изоляте — тяжёлые ristretto-умножения и
+  /// SHA-512 не блокируют UI (важно для большой телефонной книги). Порядок
+  /// результата совпадает с порядком [inputs]. Возвращает `(blinds, blindedElements)`.
+  Future<(List<Uint8List> blinds, List<Uint8List> blindedElements)> blindBatch(List<List<int>> inputs) {
+    return Isolate.run(() async {
+      final oprf = Oprf();
+      final blinds = <Uint8List>[];
+      final blindedElements = <Uint8List>[];
+      for (final input in inputs) {
+        final (blind, blindedElement) = await oprf.blind(input);
+        blinds.add(blind);
+        blindedElements.add(blindedElement);
+      }
+      return (blinds, blindedElements);
+    });
+  }
+
+  /// Финализирует пачку ответов сервера в фоновом изоляте. [inputs]/[blinds]/
+  /// [evaluations] должны идти в одном порядке; возвращает OPRF-выходы в том же.
+  Future<List<Uint8List>> finalizeBatch({
+    required List<List<int>> inputs,
+    required List<Uint8List> blinds,
+    required List<Uint8List> evaluations,
+  }) {
+    return Isolate.run(() async {
+      final oprf = Oprf();
+      final outputs = <Uint8List>[];
+      for (var i = 0; i < inputs.length; i++) {
+        outputs.add(await oprf.finalize(input: inputs[i], blind: blinds[i], evaluation: evaluations[i]));
+      }
+      return outputs;
+    });
   }
 
   /// Финализирует протокол: по исходному [input], использованному [blind] и
