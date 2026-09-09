@@ -1,7 +1,6 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_boring_avatars/flutter_boring_avatars.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../cubit.dart';
@@ -63,11 +62,7 @@ class _ProfileCupertino extends State<ProfileCupertino> {
               automaticBackgroundVisibility: false,
               backgroundColor: ThemesCupertino.groupedBackground,
               middle: Text(context.t.screenProfile.profile),
-              leading: CupertinoButton(
-                padding: EdgeInsets.zero,
-                onPressed: () => context.pop(),
-                child: Icon(CupertinoIcons.back, color: ThemesCupertino.navActionColor(context)),
-              ),
+              leading: CupertinoNavigationBarBackButton(color: ThemesCupertino.navActionColor(context), onPressed: () => context.pop()),
             ),
           ),
           child: SafeArea(
@@ -90,7 +85,7 @@ class _ProfileCupertino extends State<ProfileCupertino> {
                   ),
                 ),
                 const SizedBox(height: 20),
-                if (nameTiles.isNotEmpty || state.phoneNumber.isNotEmpty)
+                if (nameTiles.isNotEmpty || state.phoneNumber.isNotEmpty || state.username.isNotEmpty)
                   CupertinoListSection.insetGrouped(
                     clipBehavior: Clip.antiAlias,
                     backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
@@ -106,29 +101,12 @@ class _ProfileCupertino extends State<ProfileCupertino> {
                           label: context.t.screenProfile.copy,
                           child: _fieldTile(context, context.t.screenProfile.mobilePhone, state.phoneNumber),
                         ),
-                    ],
-                  ),
-                if (state.username.isNotEmpty)
-                  CupertinoListSection.insetGrouped(
-                    clipBehavior: Clip.antiAlias,
-                    backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
-                    decoration: BoxDecoration(
-                      color: ThemesCupertino.groupedCard.resolveFrom(context),
-                      borderRadius: const BorderRadius.all(Radius.circular(18)),
-                    ),
-                    children: [
-                      CopyTooltip(
-                        value: state.username,
-                        label: context.t.screenProfile.copy,
-                        child: CupertinoListTileIcon(
-                          title: Text(state.username),
-                          color: Color(0xFF3B74BF),
-                          icon: FontAwesomeIcons.at,
-                          onTab: null,
-                          additionalInfo: Text(context.t.screenProfile.username),
-                          isTrailing: true,
+                      if (state.username.isNotEmpty)
+                        CopyTooltip(
+                          value: state.username,
+                          label: context.t.screenProfile.copy,
+                          child: _fieldTile(context, context.t.screenProfile.username, state.username),
                         ),
-                      ),
                     ],
                   ),
                 if (state.aboutMe.isNotEmpty)
