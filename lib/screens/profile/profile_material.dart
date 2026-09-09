@@ -1,7 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_boring_avatars/flutter_boring_avatars.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import '../../cubit.dart';
 import '../../di.dart';
@@ -27,7 +26,7 @@ class _ProfileMaterial extends State<ProfileMaterial> {
       title: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: TextStyle(fontSize: AppFontSizes.label)),
+          Text(label, style: TextStyle(fontSize: AppFontSizes.body)),
           Text(
             value,
             style: TextStyle(fontSize: AppFontSizes.value, color: Theme.of(context).colorScheme.primary),
@@ -70,7 +69,7 @@ class _ProfileMaterial extends State<ProfileMaterial> {
                   ),
                 ),
                 const SizedBox(height: 20),
-                if (nameTiles.isNotEmpty || state.phoneNumber.isNotEmpty)
+                if (nameTiles.isNotEmpty || state.phoneNumber.isNotEmpty || state.username.isNotEmpty)
                   Card(
                     margin: const EdgeInsets.symmetric(horizontal: 12),
                     clipBehavior: Clip.antiAlias,
@@ -83,24 +82,13 @@ class _ProfileMaterial extends State<ProfileMaterial> {
                             label: context.t.screenProfile.copy,
                             child: _fieldTile(context, context.t.screenProfile.mobilePhone, state.phoneNumber),
                           ),
+                        if (state.username.isNotEmpty)
+                          CopyTooltip(
+                            value: state.username,
+                            label: context.t.screenProfile.copy,
+                            child: _fieldTile(context, context.t.screenProfile.username, state.username),
+                          ),
                       ],
-                    ),
-                  ),
-                if (state.username.isNotEmpty)
-                  Card(
-                    margin: const EdgeInsets.fromLTRB(12, 16, 12, 0),
-                    clipBehavior: Clip.antiAlias,
-                    child: CopyTooltip(
-                      value: state.username,
-                      label: context.t.screenProfile.copy,
-                      child: MaterialListTileIcon(
-                        title: Text(state.username),
-                        color: const Color(0xFF3B74BF),
-                        icon: FontAwesomeIcons.at,
-                        onTab: null,
-                        additionalInfo: Text(context.t.screenProfile.username),
-                        isTrailing: true,
-                      ),
                     ),
                   ),
                 if (state.aboutMe.isNotEmpty)
