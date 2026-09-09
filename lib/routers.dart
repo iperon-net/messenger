@@ -56,18 +56,15 @@ class Routers {
           // Статус соединения общий для всех вкладок — провайдим на уровне
           // shell, чтобы навбары любой вкладки могли его показать.
           BlocProvider<ConnectionCubit>(create: (_) => ConnectionCubit()..initialization()),
+          // Контакты живут на уровне shell, чтобы к моменту открытия вкладки
+          // список уже был показан из кэша и (при выданном доступе) освежён.
+          BlocProvider<ContactsCubit>(create: (_) => ContactsCubit()..bootstrap()),
         ],
         child: CallGate(child: HomeCupertino(navigationShell: navigationShell)),
       ),
       branches: [
         StatefulShellBranch(
-          routes: [
-            GoRoute(
-              path: "/contacts",
-              builder: (_, _) =>
-                  BlocProvider<ContactsCubit>(create: (_) => ContactsCubit()..initialization(), child: const ContactsCupertino()),
-            ),
-          ],
+          routes: [GoRoute(path: "/contacts", builder: (_, _) => const ContactsCupertino())],
         ),
         StatefulShellBranch(
           routes: [GoRoute(path: "/calls", builder: (_, _) => const CallsCupertino())],
@@ -305,18 +302,15 @@ class Routers {
         providers: [
           BlocProvider<HomeCubit>(create: (_) => HomeCubit()..initialization()),
           BlocProvider<ConnectionCubit>(create: (_) => ConnectionCubit()..initialization()),
+          // Контакты живут на уровне shell, чтобы к моменту открытия вкладки
+          // список уже был показан из кэша и (при выданном доступе) освежён.
+          BlocProvider<ContactsCubit>(create: (_) => ContactsCubit()..bootstrap()),
         ],
         child: CallGate(child: HomeMaterial(navigationShell: navigationShell)),
       ),
       branches: [
         StatefulShellBranch(
-          routes: [
-            GoRoute(
-              path: "/contacts",
-              builder: (_, _) =>
-                  BlocProvider<ContactsCubit>(create: (_) => ContactsCubit()..initialization(), child: const ContactsMaterial()),
-            ),
-          ],
+          routes: [GoRoute(path: "/contacts", builder: (_, _) => const ContactsMaterial())],
         ),
         StatefulShellBranch(
           routes: [GoRoute(path: "/calls", builder: (_, _) => const CallsMaterial())],

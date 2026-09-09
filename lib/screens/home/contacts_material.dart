@@ -15,8 +15,23 @@ import '../../i18n/translations.g.dart';
 
 /// Экран «Контакты» (Android): найденные в Iperon + приглашения. Приватный поиск
 /// через OPRF (см. ContactsCubit).
-class ContactsMaterial extends StatelessWidget {
+class ContactsMaterial extends StatefulWidget {
   const ContactsMaterial({super.key});
+
+  @override
+  State<ContactsMaterial> createState() => _ContactsMaterialState();
+}
+
+class _ContactsMaterialState extends State<ContactsMaterial> {
+  @override
+  void initState() {
+    super.initState();
+    // Первый показ вкладки — осознанный момент запросить доступ и запустить поиск
+    // (если фоновая дозагрузка на shell ещё не стартовала при уже выданном доступе).
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) context.read<ContactsCubit>().discoverOnFirstView();
+    });
+  }
 
   bool _matchesQuery(ContactItem item, String query) {
     if (query.isEmpty) return true;

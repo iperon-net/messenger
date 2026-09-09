@@ -230,6 +230,31 @@ class Repositories {
       }),
     );
 
+    migrations.add(
+      SqliteMigration(3, (tx) async {
+        // Расширяем кэш до полного снимка телефонной книги: помимо совпадений
+        // (userID != null) храним и записи для приглашения (userID == null) с
+        // именем и номером — чтобы при следующем открытии экрана мгновенно
+        // показать оба списка целиком, ещё до чтения книги и OPRF-поиска.
+        // SQLite не умеет снять NOT NULL через ALTER, поэтому пересоздаём таблицу.
+        await tx.execute("""
+        CREATE TABLE contacts_new (
+          phoneE164 TEXT PRIMARY KEY,
+          displayName TEXT NOT NULL DEFAULT '',
+          phone TEXT NOT NULL DEFAULT '',
+          userID BLOB,
+          updatedAt INTEGER NOT NULL
+        );
+      """);
+        await tx.execute("""
+        INSERT INTO contacts_new (phoneE164, userID, updatedAt)
+        SELECT phoneE164, userID, updatedAt FROM contacts;
+      """);
+        await tx.execute("DROP TABLE contacts;");
+        await tx.execute("ALTER TABLE contacts_new RENAME TO contacts;");
+      }),
+    );
+
     if (settings.isDeleteDatabase) {
       logger.warning("Deleting the database, flag set IS_DELETE_DATABASE: 1");
 

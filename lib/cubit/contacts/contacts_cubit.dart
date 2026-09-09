@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:bloc/bloc.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
+import 'package:permission_handler/permission_handler.dart' as ph;
 
 import '../../api.dart';
 import '../../constants.dart';
@@ -42,73 +43,126 @@ class ContactsCubit extends Cubit<ContactsState> {
   // (1024) — держим ниже лимита, чтобы большая книга уходила пачками.
   static const int _batchSize = 512;
 
-  Future<void> initialization() async {
-    emit(state.copyWith(status: Status.loading, permissionDenied: false, error: ""));
+  // Один discover идёт за раз (guard от параллельных запусков), а _discoverStarted
+  // помнит, был ли он вообще запущен в этой сессии — чтобы первый показ вкладки не
+  // дублировал уже стартовавшую фоновую дозагрузку.
+  bool _discovering = false;
+  bool _discoverStarted = false;
 
-    final permission = await FlutterContacts.permissions.request(PermissionType.read);
+  /// Старт на уровне shell: сперва мгновенный показ снимка из БД, затем — тихая
+  /// фоновая дозагрузка, если доступ к контактам уже выдан (без диалога).
+  Future<void> bootstrap() async {
+    await preload();
+    await discoverIfAlreadyGranted();
+  }
+
+  /// Фаза A — мгновенный показ полного снимка из БД, без разрешений и без сети.
+  /// Вызывается на уровне shell при старте, ещё до открытия вкладки.
+  Future<void> preload() async {
+    final cached = await repositories.contacts.getAll();
+    if (isClosed || cached.isEmpty) return;
+
+    // Пустое имя = legacy-запись из миграции 2→3 (до неё имя/номер не хранились) —
+    // её нечем показать, пропускаем; первый же discover перезапишет снимок целиком.
+    final visible = cached.where((entry) => entry.displayName.isNotEmpty).toList(growable: false);
+    if (visible.isEmpty) return;
+
+    _emitFromCache(visible);
+  }
+
+  /// Фаза B без диалога: если доступ к контактам уже выдан, тихо запускаем полный
+  /// discover в фоне (номера и так доступны — системного диалога не будет).
+  /// Иначе ничего не делаем: запрос разрешения откладываем до открытия вкладки.
+  Future<void> discoverIfAlreadyGranted() async {
+    final status = await ph.Permission.contacts.status;
     if (isClosed) return;
-    // granted / limited (iOS 18+ частичный доступ) — этого достаточно для поиска.
-    if (permission != PermissionStatus.granted && permission != PermissionStatus.limited) {
-      emit(state.copyWith(status: Status.success, permissionDenied: true));
-      return;
-    }
+    if (status.isGranted || status.isLimited) await discover();
+  }
 
-    final deviceContacts = await FlutterContacts.getAll(properties: {ContactProperty.name, ContactProperty.phone});
-    if (isClosed) return;
-
-    // Уникальные записи по e164; первое встреченное имя выигрывает.
-    final entries = <String, _Entry>{};
-    for (final contact in deviceContacts) {
-      for (final phone in contact.phones) {
-        final normalization = utils.phoneNormalization(phoneNumber: phone.number);
-        if (normalization.e164.isEmpty || normalization.raw.isEmpty) continue;
-
-        entries.putIfAbsent(
-          normalization.e164,
-          () => _Entry(
-            raw: normalization.raw,
-            phoneE164: normalization.e164,
-            phone: normalization.international,
-            displayName: (contact.displayName?.isNotEmpty ?? false) ? contact.displayName! : normalization.international,
-          ),
-        );
-      }
-    }
-
-    if (entries.isEmpty) {
-      emit(state.copyWith(status: Status.success, registered: const [], invitable: const []));
-      return;
-    }
-
-    // Мгновенный показ зарегистрированных из кэша прошлого поиска.
-    final cached = await repositories.contacts.getRegistered();
-    if (isClosed) return;
-    final cachedUsers = {for (final match in cached) match.phoneE164: Uint8List.fromList(match.userID)};
-    _emitLists(entries, cachedUsers);
-
-    // OPRF-поиск. Ошибка сети не критична — остаёмся на данных из кэша.
+  /// Фаза B — запрос разрешения, чтение книги и OPRF-поиск. Вызывается при первом
+  /// показе вкладки (осознанный запрос разрешения) и из refresh().
+  Future<void> discover() async {
+    if (_discovering) return;
+    _discovering = true;
+    _discoverStarted = true;
     try {
-      final matched = await _discover(entries.values.toList(growable: false));
+      emit(state.copyWith(status: Status.loading, permissionDenied: false, error: ""));
+
+      final permission = await FlutterContacts.permissions.request(PermissionType.read);
+      if (isClosed) return;
+      // granted / limited (iOS 18+ частичный доступ) — этого достаточно для поиска.
+      if (permission != PermissionStatus.granted && permission != PermissionStatus.limited) {
+        emit(state.copyWith(status: Status.success, permissionDenied: true));
+        return;
+      }
+
+      final deviceContacts = await FlutterContacts.getAll(properties: {ContactProperty.name, ContactProperty.phone});
       if (isClosed) return;
 
-      _emitLists(entries, {for (final entry in matched.entries) entry.key: entry.value});
-      await repositories.contacts.replaceAll([
-        for (final entry in matched.entries) ContactMatch(phoneE164: entry.key, userID: entry.value),
-      ]);
-    } catch (error, stackTrace) {
-      logger.handle(error, stackTrace);
-      if (!isClosed) emit(state.copyWith(status: Status.success));
+      // Уникальные записи по e164; первое встреченное имя выигрывает.
+      final entries = <String, _Entry>{};
+      for (final contact in deviceContacts) {
+        for (final phone in contact.phones) {
+          final normalization = utils.phoneNormalization(phoneNumber: phone.number);
+          if (normalization.e164.isEmpty || normalization.raw.isEmpty) continue;
+
+          entries.putIfAbsent(
+            normalization.e164,
+            () => _Entry(
+              raw: normalization.raw,
+              phoneE164: normalization.e164,
+              phone: normalization.international,
+              displayName: (contact.displayName?.isNotEmpty ?? false) ? contact.displayName! : normalization.international,
+            ),
+          );
+        }
+      }
+
+      // Книга пуста (или частичный доступ ничего не отдал) — не трогаем снимок,
+      // чтобы не стереть прошлый кэш; просто показываем пусто.
+      if (entries.isEmpty) {
+        emit(state.copyWith(status: Status.success, registered: const [], invitable: const []));
+        return;
+      }
+
+      // Сразу перерисовываем оба списка по свежей книге, используя лучшие known-userID
+      // (из уже показанного снимка), и записываем обновлённый снимок в БД.
+      final known = {
+        for (final item in state.registered)
+          if (item.userID != null) item.phoneE164: item.userID!,
+      };
+      _emitLists(entries, known);
+      await _writeSnapshot(entries, known);
+      if (isClosed) return;
+
+      // OPRF-поиск. Ошибка сети не критична — остаёмся на данных из снимка.
+      try {
+        final matched = await _discoverOprf(entries.values.toList(growable: false));
+        if (isClosed) return;
+
+        _emitLists(entries, matched);
+        await _writeSnapshot(entries, matched);
+      } catch (error, stackTrace) {
+        logger.handle(error, stackTrace);
+        if (!isClosed) emit(state.copyWith(status: Status.success));
+      }
+    } finally {
+      _discovering = false;
     }
   }
 
+  /// Запускает discover только если он ещё ни разу не стартовал в этой сессии —
+  /// вызывается при первом построении экрана, чтобы не дублировать фоновую дозагрузку.
+  Future<void> discoverOnFirstView() => _discoverStarted ? Future.value() : discover();
+
   /// Повторный запуск поиска (pull-to-refresh / после выдачи разрешения).
-  Future<void> refresh() => initialization();
+  Future<void> refresh() => discover();
 
   void search(String query) => emit(state.copyWith(query: query));
 
   /// Выполняет двухраундовый OPRF-поиск по [allEntries] пачками и возвращает
   /// карту `e164 -> userID` для зарегистрированных.
-  Future<Map<String, Uint8List>> _discover(List<_Entry> allEntries) async {
+  Future<Map<String, Uint8List>> _discoverOprf(List<_Entry> allEntries) async {
     final result = <String, Uint8List>{};
 
     for (var offset = 0; offset < allEntries.length; offset += _batchSize) {
@@ -178,9 +232,46 @@ class ContactsCubit extends Cubit<ContactsState> {
       (userID != null ? registered : invitable).add(item);
     }
 
+    _emitSorted(registered, invitable);
+  }
+
+  /// Показ полного снимка из БД (фаза A) — без нормализации, прямо из кэша.
+  void _emitFromCache(List<ContactCacheEntry> cached) {
+    final registered = <ContactItem>[];
+    final invitable = <ContactItem>[];
+
+    for (final entry in cached) {
+      final userID = entry.userID;
+      final item = ContactItem(
+        displayName: entry.displayName,
+        phone: entry.phone,
+        phoneE164: entry.phoneE164,
+        userID: userID == null ? null : Uint8List.fromList(userID),
+      );
+      (userID != null ? registered : invitable).add(item);
+    }
+
+    _emitSorted(registered, invitable);
+  }
+
+  void _emitSorted(List<ContactItem> registered, List<ContactItem> invitable) {
     registered.sort((a, b) => a.displayName.toLowerCase().compareTo(b.displayName.toLowerCase()));
     invitable.sort((a, b) => a.displayName.toLowerCase().compareTo(b.displayName.toLowerCase()));
 
     emit(state.copyWith(status: Status.success, permissionDenied: false, registered: registered, invitable: invitable));
+  }
+
+  /// Сохраняет полный снимок книги (registered + invitable) в БД для мгновенного
+  /// показа при следующем запуске.
+  Future<void> _writeSnapshot(Map<String, _Entry> entries, Map<String, Uint8List> userByE164) {
+    return repositories.contacts.replaceAll([
+      for (final entry in entries.values)
+        ContactCacheEntry(
+          phoneE164: entry.phoneE164,
+          displayName: entry.displayName,
+          phone: entry.phone,
+          userID: userByE164[entry.phoneE164],
+        ),
+    ]);
   }
 }

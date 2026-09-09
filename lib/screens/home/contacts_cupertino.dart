@@ -16,8 +16,23 @@ import '../../i18n/translations.g.dart';
 
 /// Экран «Контакты»: сверху — найденные в Iperon (тап → профиль), ниже —
 /// остальные с кнопкой «Пригласить». Приватный поиск через OPRF (см. ContactsCubit).
-class ContactsCupertino extends StatelessWidget {
+class ContactsCupertino extends StatefulWidget {
   const ContactsCupertino({super.key});
+
+  @override
+  State<ContactsCupertino> createState() => _ContactsCupertinoState();
+}
+
+class _ContactsCupertinoState extends State<ContactsCupertino> {
+  @override
+  void initState() {
+    super.initState();
+    // Первый показ вкладки — осознанный момент запросить доступ и запустить поиск
+    // (если фоновая дозагрузка на shell ещё не стартовала при уже выданном доступе).
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) context.read<ContactsCubit>().discoverOnFirstView();
+    });
+  }
 
   bool _matchesQuery(ContactItem item, String query) {
     if (query.isEmpty) return true;
