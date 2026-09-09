@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:bloc/bloc.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:permission_handler/permission_handler.dart' as ph;
 
@@ -31,8 +33,15 @@ class _Entry {
 /// Экран «Контакты»: находит, кто из телефонной книги зарегистрирован в Iperon,
 /// не раскрывая серверу сырые номера. Раунд 1 — слепая OPRF-оценка, раунд 2 —
 /// проверка членства по отпечаткам. См. docs/plans/functional-stirring-giraffe.md.
-class ContactsCubit extends Cubit<ContactsState> {
-  ContactsCubit() : super(const ContactsState());
+class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
+  ContactsCubit() : super(const ContactsState()) {
+    // Реагируем на изменения книги устройства (добавили/изменили/удалили
+    // контакт), пока приложение открыто, и на возврат в foreground — иначе
+    // discover() крутится лишь при старте shell, первом показе вкладки и
+    // pull-to-refresh, и новый контакт не появляется до перезапуска вкладки.
+    WidgetsBinding.instance.addObserver(this);
+    _bookChangeSub = FlutterContacts.onDatabaseChange.listen((_) => _onBookChanged());
+  }
 
   final logger = getIt.get<Logger>();
   final api = getIt.get<API>();
@@ -56,6 +65,12 @@ class ContactsCubit extends Cubit<ContactsState> {
   // дублировал уже стартовавшую фоновую дозагрузку.
   bool _discovering = false;
   bool _discoverStarted = false;
+
+  // Подписка на изменения телефонной книги + дебаунс: нативный слушатель при
+  // массовой синхронизации сыпет событиями пачкой, гоняем discover один раз.
+  StreamSubscription<void>? _bookChangeSub;
+  Timer? _bookChangeDebounce;
+  static const Duration _bookChangeDebounceDelay = Duration(milliseconds: 700);
 
   /// Старт на уровне shell: сперва мгновенный показ снимка из БД, затем — тихая
   /// фоновая дозагрузка, если доступ к контактам уже выдан (без диалога).
@@ -85,6 +100,32 @@ class ContactsCubit extends Cubit<ContactsState> {
     final status = await ph.Permission.contacts.status;
     if (isClosed) return;
     if (status.isGranted || status.isLimited) await discover();
+  }
+
+  /// Изменилась книга устройства: дебаунсим всплеск событий и тихо
+  /// пересинхронизируемся (без диалога разрешений). Дешёвая перерисовка идёт
+  /// всегда; OPRF — только если поменялся набор номеров (fingerprint).
+  void _onBookChanged() {
+    _bookChangeDebounce?.cancel();
+    _bookChangeDebounce = Timer(_bookChangeDebounceDelay, () {
+      if (isClosed) return;
+      discoverIfAlreadyGranted();
+    });
+  }
+
+  /// Подстраховка к нативному слушателю: если книгу изменили, пока приложение
+  /// было свёрнуто (нотификация могла не долететь), подхватываем на возврате.
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) discoverIfAlreadyGranted();
+  }
+
+  @override
+  Future<void> close() {
+    WidgetsBinding.instance.removeObserver(this);
+    _bookChangeDebounce?.cancel();
+    _bookChangeSub?.cancel();
+    return super.close();
   }
 
   /// Фаза B — запрос разрешения, чтение книги и OPRF-поиск. Вызывается при первом
@@ -193,6 +234,23 @@ class ContactsCubit extends Cubit<ContactsState> {
   /// Повторный запуск поиска (pull-to-refresh / после выдачи разрешения) —
   /// форсирует OPRF даже при неизменной книге.
   Future<void> refresh() => discover(force: true);
+
+  /// Кнопка «Разрешить доступ» на экране-заглушке. Пробуем штатный системный
+  /// диалог (тем же плагином, что и discover — иначе статусы двух плагинов
+  /// расходятся). Если доступ выдан — сразу ищем; если система диалог уже не
+  /// показывает (отклонён навсегда / разовое решение iOS), request просто вернёт
+  /// не-granted — тогда единственный путь это системные настройки, туда и ведём.
+  /// По возврату из настроек выданный доступ подхватит resumed-хук
+  /// (didChangeAppLifecycleState → discoverIfAlreadyGranted).
+  Future<void> requestAccess() async {
+    final permission = await FlutterContacts.permissions.request(PermissionType.read);
+    if (isClosed) return;
+    if (permission == PermissionStatus.granted || permission == PermissionStatus.limited) {
+      await discover(force: true);
+      return;
+    }
+    await ph.openAppSettings();
+  }
 
   /// Отпечаток книги для OPRF: отсортированный набор номеров (e164). Имена/номера
   /// показа в него не входят — они не влияют на результат поиска и обновляются в

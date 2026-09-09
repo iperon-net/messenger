@@ -2,7 +2,6 @@ import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_boring_avatars/flutter_boring_avatars.dart';
 import 'package:go_router/go_router.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../constants.dart';
@@ -228,10 +227,9 @@ class _ContactsCupertinoState extends State<ContactsCupertino> {
             Text(context.t.screenContacts.permissionMessage, textAlign: TextAlign.center),
             const SizedBox(height: 20),
             CupertinoButton.filled(
-              onPressed: () => context.read<ContactsCubit>().refresh(),
+              onPressed: () => context.read<ContactsCubit>().requestAccess(),
               child: Text(context.t.screenContacts.allowAccess),
             ),
-            CupertinoButton(onPressed: openAppSettings, child: Text(context.t.screenContacts.openSettings)),
           ],
         ),
       ),
