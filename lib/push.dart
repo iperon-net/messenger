@@ -94,9 +94,15 @@ class PushManager {
 
     final userID = Uint8List.fromList(auth.session.userID);
 
-    // Дедуп: тот же токен второй раз на сервер не шлём.
+    // Дедуп привязан к паре (сессия + токен), а не к одному токену: токен
+    // хранится на сервере per-session (по _id сессии), а один и тот же токен
+    // устройства переживает перелогин. Если ключом дедупа был бы только токен,
+    // после перелогина (новая сессия, тот же токен) отправку бы пропустили —
+    // и НОВАЯ сессия осталась бы без токена, пуши бы молчали. Поэтому в маркер
+    // подмешиваем sessionID: смена сессии заставит переотправить токен.
+    final marker = '${_hex(auth.session.sessionID)}:$token';
     final lastSent = await repositories.cache.getString(userID: userID, key: cacheKey);
-    if (lastSent == token) {
+    if (lastSent == marker) {
       logger.debug('push: token unchanged ($cacheKey), skip');
       return;
     }
@@ -105,12 +111,14 @@ class PushManager {
     final status = await api.unaryEncoded(MessageType.REGISTER_PUSH_TOKEN, request.writeToBuffer());
 
     if (status.status == APIStatus.success) {
-      await repositories.cache.setString(userID: userID, key: cacheKey, value: token);
+      await repositories.cache.setString(userID: userID, key: cacheKey, value: marker);
       logger.debug('push: token registered ($cacheKey)');
     } else {
       logger.warning('push: token register failed ($cacheKey): ${status.error}');
     }
   }
+
+  static String _hex(List<int> bytes) => bytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
 
   Future<void> dispose() async {
     await _fcmRefreshSub?.cancel();

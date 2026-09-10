@@ -6,6 +6,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_callkit_incoming/entities/entities.dart';
 import 'package:flutter_callkit_incoming/flutter_callkit_incoming.dart';
 
+import 'auth.dart';
 import 'calls.dart';
 import 'di.dart';
 import 'firebase_options.dart';
@@ -96,6 +97,7 @@ class CallPush {
   final calls = getIt.get<Calls>();
   final utils = getIt.get<Utils>();
   final pushManager = getIt.get<PushManager>();
+  final auth = getIt.get<Auth>();
 
   StreamSubscription<CallEvent?>? _eventSub;
   StreamSubscription<CallSnapshot>? _callSub;
@@ -140,6 +142,30 @@ class CallPush {
         if (snapshot.callId.isNotEmpty) unawaited(FlutterCallkitIncoming.endCall(snapshot.callId));
       }
     });
+
+    // Регистрация push-токенов на старте (main.dart / выше) гейтится на
+    // авторизацию: на свежей установке в этот момент сессии ещё нет, поэтому
+    // токен не уходит на сервер, и после логина в том же запуске повторно не
+    // отправляется — сервер не может разбудить входящий, пока приложение не
+    // перезапустят уже залогиненным. Реагируем на смену состояния Auth
+    // (ChangeNotifier) и досылаем токен, как только пользователь авторизовался.
+    // Идемпотентно: PushManager дедуплицирует уже отправленный токен.
+    auth.addListener(_onAuthChanged);
+  }
+
+  /// При переходе в авторизованное состояние досылает push-токен текущего
+  /// канала (FCM на Android, VoIP на iOS). Разлогин игнорируем.
+  void _onAuthChanged() {
+    if (!auth.isAuthorized) return;
+    unawaited(_syncTokens());
+  }
+
+  Future<void> _syncTokens() async {
+    if (Platform.isAndroid) {
+      await pushManager.syncFcmToken();
+    } else if (Platform.isIOS) {
+      await _syncVoipToken();
+    }
   }
 
   Future<void> _onEvent(CallEvent? event) async {
@@ -181,6 +207,7 @@ class CallPush {
   }
 
   Future<void> dispose() async {
+    auth.removeListener(_onAuthChanged);
     await _eventSub?.cancel();
     _eventSub = null;
     await _callSub?.cancel();
