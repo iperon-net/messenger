@@ -57,11 +57,11 @@ class _ContactsCupertinoState extends State<ContactsCupertino> {
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
-      backgroundColor: ThemesCupertino.groupedCard,
+      backgroundColor: ThemesCupertino.appBackground,
       navigationBar: AppCupertinoNavigationBar(
         child: CupertinoNavigationBar(
           automaticBackgroundVisibility: false,
-          backgroundColor: ThemesCupertino.groupedCard,
+          backgroundColor: ThemesCupertino.appBackground,
           middle: Text(context.t.screenContacts.title),
         ),
       ),

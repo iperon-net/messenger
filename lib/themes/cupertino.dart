@@ -3,6 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screen_lock/flutter_screen_lock.dart';
 
 class ThemesCupertino {
+  static const CupertinoDynamicColor appBackground = CupertinoDynamicColor.withBrightness(
+    color: Color(0xFFFFFFFF),
+    darkColor: Color(0xFF1B263B),
+  );
+
   /// Фон сгруппированных экранов (настройки, чаты). В светлой теме совпадает с
   /// системным `systemGroupedBackground`, в тёмной вместо чёрного использует
   /// фирменный `#1b263b`.

@@ -61,6 +61,12 @@ class HomeCupertino extends StatelessWidget {
         );
 
         return CupertinoPageScaffold(
+          // Не поднимаем весь Stack на высоту клавиатуры — иначе таб-бар
+          // (Positioned bottom:0) всплывает над клавиатурой и перекрывает нижние
+          // результаты. Так таб-бар остаётся у физического низа (за клавиатурой),
+          // а viewInsets доходят до navigationShell, и внутренний экран сам ужимает
+          // свой контент над клавиатурой.
+          resizeToAvoidBottomInset: false,
           child: Stack(
             children: [
               // Контент занимает всю высоту (в т.ч. под баром), а нижний отступ
