@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:firebase_core/firebase_core.dart';
@@ -10,6 +11,8 @@ import 'app_cupertino.dart';
 import 'app_material.dart';
 import 'cubit.dart';
 import 'di.dart';
+import 'push.dart';
+import 'call_push.dart';
 import 'firebase_options.dart';
 import 'i18n/translations.g.dart';
 import 'models.dart';
@@ -83,6 +86,15 @@ Future<void> main() async {
     await utils.applyLocale(appLocale);
     settingsDevice = settingsDevice.copyWith(locale: appLocale);
   }
+
+  // Регистрируем push-токен устройства (Android FCM) для побудки входящих
+  // звонков при закрытом стриме. Fire-and-forget и само-гейтится на авторизацию;
+  // на iOS — no-op (там VoIP-токен приходит из нативного PushKit). См.
+  // docs/plans/melodic-beaming-elephant.md.
+  unawaited(getIt.get<PushManager>().syncFcmToken());
+
+  // Мост call-пуш → нативный входящий (CallKit/ConnectionService) → Calls.
+  getIt.get<CallPush>().start();
 
   // Доступность биометрии узнаём ДО первого кадра и прокидываем в кубит, чтобы
   // экран блокировки на холодном старте эмитился синхронно (без await) — иначе

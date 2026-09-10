@@ -161,6 +161,13 @@ class Calls {
   // Таймер повторной отправки исходящего offer (см. _offerRetransmitInterval).
   Timer? _offerRetransmitTimer;
 
+  // callId звонка, который пользователь уже принял в нативном экране (CallKit/
+  // ConnectionService) из push-уведомления — но offer по стриму мог ещё не
+  // прийти (клиент только проснулся). Когда offer этого звонка дойдёт до
+  // _onOffer, принимаем автоматически, не дожидаясь второго действия. См.
+  // фазу 4, lib/call_push.dart.
+  String? _pushAcceptedCallId;
+
   /// Текущий снимок без подписки (стартовое значение для UI).
   CallSnapshot get snapshot => _snapshot;
 
@@ -263,6 +270,31 @@ class Calls {
       logger.handle(error, stackTrace);
       await _teardown(CallEndReason.failed);
     }
+  }
+
+  /// Принимает входящий звонок, инициированный из нативного экрана (CallKit/
+  /// ConnectionService) по push. Если offer уже пришёл по стриму — принимаем
+  /// сразу; иначе запоминаем [callId] и примем автоматически в [_onOffer], когда
+  /// offer дойдёт (клиент только проснулся из push — см. lib/call_push.dart).
+  Future<void> acceptFromPush(String callId) async {
+    if (_snapshot.status == CallStatus.incoming && _snapshot.callId == callId) {
+      await accept();
+      return;
+    }
+    _pushAcceptedCallId = callId;
+  }
+
+  /// Отклоняет звонок из нативного экрана по push. Если offer уже поднят как
+  /// входящий — обычный [reject]; иначе (offer ещё в пути) шлём CALL_REJECT
+  /// напрямую по [fromUserID] из push, чтобы звонящий перестал ретранслировать
+  /// offer и сразу увидел «отклонён».
+  Future<void> rejectFromPush(String callId, List<int> fromUserID) async {
+    _pushAcceptedCallId = null;
+    if (_snapshot.status == CallStatus.incoming && _snapshot.callId == callId) {
+      await reject();
+      return;
+    }
+    await _sendSignal(MessageType.CALL_REJECT, toUserID: fromUserID, callId: callId, video: false);
   }
 
   /// Отклоняет входящий звонок (посылает CALL_REJECT).
@@ -397,6 +429,13 @@ class Calls {
 
       _emit(CallSnapshot(status: CallStatus.incoming, callId: signal.callId, remoteUserID: from, video: video, speakerOn: video));
       _dbg('offer recv', reset: true);
+
+      // Пользователь уже принял звонок в нативном экране из push, пока offer
+      // ехал по стриму — принимаем сразу, не дожидаясь второго действия.
+      if (_pushAcceptedCallId == signal.callId) {
+        _pushAcceptedCallId = null;
+        await accept();
+      }
     } catch (error, stackTrace) {
       logger.handle(error, stackTrace);
       await _teardown(CallEndReason.failed);
@@ -578,6 +617,7 @@ class Calls {
 
   Future<void> _teardown(CallEndReason reason) async {
     _stopOfferRetransmit();
+    _pushAcceptedCallId = null;
     _remoteDescriptionSet = false;
     _pendingRemoteCandidates.clear();
 

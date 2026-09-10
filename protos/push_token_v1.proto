@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+package iperon.v1;
+option go_package = "internal/api/v1";
+
+// RegisterPushToken — регистрация push-токена устройства, чтобы будить входящий
+// звонок, когда персистентный стрим закрыт (приложение в фоне/выгружено). Токен
+// привязывается сервером к текущей сессии (устройству) из крипто-конверта.
+//
+// На iOS VoIP-токен (PushKit) отличается от FCM-токена, поэтому тип канала
+// задаётся TokenType: одно устройство может зарегистрировать и FCM (для data-
+// побудки на Android), и APNS_VOIP (для CallKit на iOS). Пустой token стирает
+// ранее сохранённый токен этого типа (разлогин/отзыв).
+message RegisterPushToken {
+  message Request {
+    string token = 1;
+    TokenType type = 2;
+    Platform platform = 3;
+  }
+
+  message Response {}
+
+  enum TokenType {
+    FCM = 0;       // Android FCM high-priority data-message.
+    APNS_VOIP = 1; // iOS PushKit VoIP через APNs (обязателен для CallKit).
+  }
+
+  enum Platform {
+    UNKNOWN = 0;
+    ANDROID = 1;
+    IOS = 2;
+  }
+}

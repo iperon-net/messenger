@@ -11,3 +11,4 @@ export './protos/profile_v1.pb.dart';
 export './protos/contacts_v1.pb.dart';
 export './protos/upload_confirm_v1.pb.dart';
 export './protos/call_v1.pb.dart';
+export './protos/push_token_v1.pb.dart';

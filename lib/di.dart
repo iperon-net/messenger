@@ -9,6 +9,8 @@ import 'api.dart';
 import 'calls.dart';
 import 'crypto.dart';
 import 'cdn.dart';
+import 'push.dart';
+import 'call_push.dart';
 
 GetIt getIt = GetIt.instance;
 
@@ -43,6 +45,12 @@ Future<void> registerCommonDependencies() async {
   if (!getIt.isRegistered<Calls>()) {
     getIt.registerSingletonAsync<Calls>(() async => Calls(), dependsOn: [API, Auth]);
   }
+  if (!getIt.isRegistered<PushManager>()) {
+    getIt.registerSingletonAsync<PushManager>(() async => PushManager(), dependsOn: [API, Auth, Repositories]);
+  }
+  if (!getIt.isRegistered<CallPush>()) {
+    getIt.registerSingletonAsync<CallPush>(() async => CallPush(), dependsOn: [Calls, Utils, PushManager]);
+  }
 
   await getIt.allReady();
 }
@@ -60,4 +68,6 @@ Future<void> unregisterCommonDependencies() async {
   if (getIt.isRegistered<Crypto>()) await getIt.unregister<Crypto>();
   if (getIt.isRegistered<CDNManager>()) await getIt.unregister<CDNManager>();
   if (getIt.isRegistered<Calls>()) await getIt.unregister<Calls>();
+  if (getIt.isRegistered<PushManager>()) await getIt.unregister<PushManager>();
+  if (getIt.isRegistered<CallPush>()) await getIt.unregister<CallPush>();
 }
