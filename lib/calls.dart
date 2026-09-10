@@ -225,6 +225,9 @@ class Calls {
     try {
       await _ensureRenderers();
       await _createPeerConnection(remoteUserID: toUserID, video: video);
+      // Исходящий: локальное медиа нужно до createOffer, чтобы offer нёс m-line'ы
+      // аудио/видео.
+      await _acquireLocalMedia(video: video);
 
       final offer = await _pc!.createOffer(_offerAnswerConstraints);
       await _pc!.setLocalDescription(offer);
@@ -255,6 +258,12 @@ class Calls {
     _dbg('accepted');
 
     try {
+      // Локальное медиа захватываем только при принятии звонка (а не на приёме
+      // offer) — иначе входящий не показать без выданного разрешения на
+      // микрофон, и звонок молча падал бы. addTrack до createAnswer наполняет
+      // answer m-line'ами.
+      await _acquireLocalMedia(video: _snapshot.video);
+
       final answer = await _pc!.createAnswer(_offerAnswerConstraints);
       await _pc!.setLocalDescription(answer);
 
@@ -537,16 +546,6 @@ class Calls {
     _sawLocalCand = false;
     _sawRemoteCand = false;
 
-    _localStream = await navigator.mediaDevices.getUserMedia({
-      'audio': true,
-      'video': video ? {'facingMode': 'user'} : false,
-    });
-    localRenderer.srcObject = _localStream;
-
-    for (final track in _localStream!.getTracks()) {
-      await pc.addTrack(track, _localStream!);
-    }
-
     pc.onIceCandidate = (candidate) {
       if (!_sawLocalCand) {
         _sawLocalCand = true;
@@ -613,6 +612,26 @@ class Calls {
           break;
       }
     };
+  }
+
+  /// Захватывает локальный медиапоток (микрофон + камера для видео) и добавляет
+  /// его дорожки в peer connection. Вынесено из [_createPeerConnection]: у
+  /// звонящего вызывается до createOffer, у принимающего — в [accept] (а не на
+  /// приёме offer), чтобы входящий экран показывался без ожидания разрешения на
+  /// микрофон. Идемпотентно: если поток уже захвачен, ничего не делает.
+  Future<void> _acquireLocalMedia({required bool video}) async {
+    if (_localStream != null || _pc == null) return;
+
+    final stream = await navigator.mediaDevices.getUserMedia({
+      'audio': true,
+      'video': video ? {'facingMode': 'user'} : false,
+    });
+    _localStream = stream;
+    localRenderer.srcObject = stream;
+
+    for (final track in stream.getTracks()) {
+      await _pc!.addTrack(track, stream);
+    }
   }
 
   Future<void> _teardown(CallEndReason reason) async {
