@@ -1,8 +1,10 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_boring_avatars/flutter_boring_avatars.dart';
-import 'package:go_router/go_router.dart';
 
+import '../../auth.dart';
+import '../../calls.dart';
 import '../../cubit.dart';
 import '../../di.dart';
 import '../../logger.dart';
@@ -21,6 +23,9 @@ class ProfileCupertino extends StatefulWidget {
 
 class _ProfileCupertino extends State<ProfileCupertino> {
   final logger = getIt.get<Logger>();
+
+  /// Свой ли это профиль — на нём кнопку звонка не показываем.
+  bool _isSelf(List<int> userID) => listEquals(userID, getIt.get<Auth>().session.userID);
 
   Widget _fieldTile(BuildContext context, String label, String value) {
     return CupertinoListTile(
@@ -62,7 +67,14 @@ class _ProfileCupertino extends State<ProfileCupertino> {
               automaticBackgroundVisibility: false,
               backgroundColor: ThemesCupertino.groupedBackground,
               middle: Text(context.t.screenProfile.profile),
-              leading: CupertinoNavigationBarBackButton(color: ThemesCupertino.navActionColor(context), onPressed: () => context.pop()),
+              trailing: (state.userID.isNotEmpty && !_isSelf(state.userID))
+                  ? CupertinoButton(
+                      padding: EdgeInsets.zero,
+                      minimumSize: Size.zero,
+                      onPressed: () => getIt.get<Calls>().startCall(toUserID: state.userID, video: false),
+                      child: Icon(CupertinoIcons.phone, color: ThemesCupertino.navActionColor(context)),
+                    )
+                  : null,
             ),
           ),
           child: SafeArea(

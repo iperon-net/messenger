@@ -16,6 +16,10 @@ class ProfileState with ProfileStateMappable {
 
   final AppLocale locale;
 
+  /// Сырые байты ObjectID пользователя, чей профиль показываем. Нужны, чтобы с
+  /// экрана можно было инициировать звонок (`Calls.startCall`).
+  final List<int> userID;
+
   final String firstName;
   final String lastName;
   final String aboutMe;
@@ -33,6 +37,7 @@ class ProfileState with ProfileStateMappable {
     this.status = Status.initialization,
     this.error = "",
     this.locale = AppLocale.en,
+    this.userID = const [],
 
     this.firstName = "",
     this.lastName = "",

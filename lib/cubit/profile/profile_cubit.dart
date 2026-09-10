@@ -31,7 +31,7 @@ class ProfileCubit extends Cubit<ProfileState> {
 
   /// [userID] — сырые байты ObjectID пользователя, чей профиль показываем.
   Future<void> initialization({required List<int> userID, required AppLocale locale}) async {
-    emit(state.copyWith(status: Status.loading, locale: locale));
+    emit(state.copyWith(status: Status.loading, locale: locale, userID: userID));
 
     // Слушаем PROFILE: сервер отвечает на наш запрос тем же типом. Фильтруем по
     // userID (в одном стриме могут прийти профили разных пользователей).

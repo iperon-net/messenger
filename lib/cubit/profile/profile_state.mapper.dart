@@ -44,6 +44,13 @@ class ProfileStateMapper extends ClassMapperBase<ProfileState> {
     opt: true,
     def: AppLocale.en,
   );
+  static List<int> _$userID(ProfileState v) => v.userID;
+  static const Field<ProfileState, List<int>> _f$userID = Field(
+    'userID',
+    _$userID,
+    opt: true,
+    def: const [],
+  );
   static String _$firstName(ProfileState v) => v.firstName;
   static const Field<ProfileState, String> _f$firstName = Field(
     'firstName',
@@ -113,6 +120,7 @@ class ProfileStateMapper extends ClassMapperBase<ProfileState> {
     #status: _f$status,
     #error: _f$error,
     #locale: _f$locale,
+    #userID: _f$userID,
     #firstName: _f$firstName,
     #lastName: _f$lastName,
     #aboutMe: _f$aboutMe,
@@ -129,6 +137,7 @@ class ProfileStateMapper extends ClassMapperBase<ProfileState> {
       status: data.dec(_f$status),
       error: data.dec(_f$error),
       locale: data.dec(_f$locale),
+      userID: data.dec(_f$userID),
       firstName: data.dec(_f$firstName),
       lastName: data.dec(_f$lastName),
       aboutMe: data.dec(_f$aboutMe),
@@ -203,10 +212,12 @@ extension ProfileStateValueCopy<$R, $Out>
 
 abstract class ProfileStateCopyWith<$R, $In extends ProfileState, $Out>
     implements ClassCopyWith<$R, $In, $Out> {
+  ListCopyWith<$R, int, ObjectCopyWith<$R, int, int>> get userID;
   $R call({
     Status? status,
     String? error,
     AppLocale? locale,
+    List<int>? userID,
     String? firstName,
     String? lastName,
     String? aboutMe,
@@ -229,10 +240,18 @@ class _ProfileStateCopyWithImpl<$R, $Out>
   late final ClassMapperBase<ProfileState> $mapper =
       ProfileStateMapper.ensureInitialized();
   @override
+  ListCopyWith<$R, int, ObjectCopyWith<$R, int, int>> get userID =>
+      ListCopyWith(
+        $value.userID,
+        (v, t) => ObjectCopyWith(v, $identity, t),
+        (v) => call(userID: v),
+      );
+  @override
   $R call({
     Status? status,
     String? error,
     AppLocale? locale,
+    List<int>? userID,
     String? firstName,
     String? lastName,
     String? aboutMe,
@@ -247,6 +266,7 @@ class _ProfileStateCopyWithImpl<$R, $Out>
       if (status != null) #status: status,
       if (error != null) #error: error,
       if (locale != null) #locale: locale,
+      if (userID != null) #userID: userID,
       if (firstName != null) #firstName: firstName,
       if (lastName != null) #lastName: lastName,
       if (aboutMe != null) #aboutMe: aboutMe,
@@ -263,6 +283,7 @@ class _ProfileStateCopyWithImpl<$R, $Out>
     status: data.get(#status, or: $value.status),
     error: data.get(#error, or: $value.error),
     locale: data.get(#locale, or: $value.locale),
+    userID: data.get(#userID, or: $value.userID),
     firstName: data.get(#firstName, or: $value.firstName),
     lastName: data.get(#lastName, or: $value.lastName),
     aboutMe: data.get(#aboutMe, or: $value.aboutMe),

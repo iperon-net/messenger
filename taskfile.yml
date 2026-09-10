@@ -33,4 +33,8 @@ tasks:
     cmds:
       - dart analyze lib/
     silent: true
-
+  apk:
+    desc: Build apk
+    cmds:
+      - flutter build apk --release --split-per-abi
+    silent: true

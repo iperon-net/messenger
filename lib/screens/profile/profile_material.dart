@@ -1,7 +1,10 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_boring_avatars/flutter_boring_avatars.dart';
 
+import '../../auth.dart';
+import '../../calls.dart';
 import '../../cubit.dart';
 import '../../di.dart';
 import '../../logger.dart';
@@ -20,6 +23,9 @@ class ProfileMaterial extends StatefulWidget {
 
 class _ProfileMaterial extends State<ProfileMaterial> {
   final logger = getIt.get<Logger>();
+
+  /// Свой ли это профиль — на нём кнопку звонка не показываем.
+  bool _isSelf(List<int> userID) => listEquals(userID, getIt.get<Auth>().session.userID);
 
   Widget _fieldTile(BuildContext context, String label, String value) {
     return ListTile(
@@ -48,7 +54,16 @@ class _ProfileMaterial extends State<ProfileMaterial> {
         ];
 
         return Scaffold(
-          appBar: AppBar(title: Text(context.t.screenProfile.profile)),
+          appBar: AppBar(
+            title: Text(context.t.screenProfile.profile),
+            actions: [
+              if (state.userID.isNotEmpty && !_isSelf(state.userID))
+                IconButton(
+                  icon: const Icon(Icons.call),
+                  onPressed: () => getIt.get<Calls>().startCall(toUserID: state.userID, video: false),
+                ),
+            ],
+          ),
           body: SafeArea(
             child: ListView(
               children: [
