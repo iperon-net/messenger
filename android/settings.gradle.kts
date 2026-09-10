@@ -19,6 +19,9 @@ pluginManagement {
 
 plugins {
     id("dev.flutter.flutter-plugin-loader") version "1.0.0"
+    // Позволяет Gradle автоматически скачать нужный JDK-toolchain (JDK 17 требует
+    // flutter_callkit_incoming и app/build.gradle.kts), если его нет в системе.
+    id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
     id("com.android.application") version "9.0.1" apply false
     // START: FlutterFire Configuration
     id("com.google.gms.google-services") version("4.4.4") apply false
