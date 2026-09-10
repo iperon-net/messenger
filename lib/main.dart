@@ -49,7 +49,7 @@ Future<void> main() async {
 
   PlatformDispatcher.instance.onError = (error, stack) {
     if (kDebugMode) return false;
-    FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+    FirebaseCrashlytics.instance.recordError(error, stack, fatal: false);
     return true;
   };
 

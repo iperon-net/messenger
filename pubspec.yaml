@@ -68,7 +68,7 @@ dependencies:
   cryptography_flutter: ^2.3.4
   ristretto255: ^1.0.2
   native_workmanager: ^1.4.3
-  flutter_callkit_incoming: ^2.5.4
+  flutter_callkit_incoming: ^3.1.5
   talker_grpc_logger: ^5.1.19
   pqcrypto: ^0.4.0
   package_info_plus: ^10.2.1

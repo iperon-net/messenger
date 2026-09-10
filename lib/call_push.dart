@@ -145,25 +145,26 @@ class CallPush {
   Future<void> _onEvent(CallEvent? event) async {
     if (event == null) return;
 
-    final body = event.body;
-    final callId = (body is Map ? body['id'] : null)?.toString() ?? '';
-    final extra = (body is Map && body['extra'] is Map) ? Map<dynamic, dynamic>.from(body['extra']) : const {};
-    final fromUserIDHex = (extra[_kFromUserID] ?? '').toString();
-
-    switch (event.event) {
-      case Event.actionCallAccept:
+    // v3: CallEvent — sealed class; данные звонка приходят в event.callKitParams
+    // (id + extra), а не в бывшем event.body. VoIP-токен из события больше не
+    // достать — при его обновлении перечитываем через getDevicePushTokenVoIP().
+    switch (event) {
+      case CallEventActionCallAccept(:final callKitParams):
+        final callId = callKitParams.id;
         if (callId.isNotEmpty) await calls.acceptFromPush(callId);
-      case Event.actionCallDecline:
+      case CallEventActionCallDecline(:final callKitParams):
+        final callId = callKitParams.id;
         if (callId.isNotEmpty) {
+          final fromUserIDHex = (callKitParams.extra?[_kFromUserID] ?? '').toString();
           final fromUserID = fromUserIDHex.isEmpty ? <int>[] : utils.hexToBytes(fromUserIDHex);
           await calls.rejectFromPush(callId, fromUserID);
         }
-      case Event.actionCallEnded:
+      case CallEventActionCallEnded():
         await calls.hangup();
-      case Event.actionDidUpdateDevicePushTokenVoip:
-        // iOS выдал/сменил VoIP-токен PushKit — регистрируем на сервере.
-        final token = (body is Map ? body['deviceTokenVoIP'] : null)?.toString() ?? '';
-        if (token.isNotEmpty) await pushManager.registerVoipToken(token);
+      case CallEventActionDidUpdateDevicePushTokenVoip():
+        // iOS выдал/сменил VoIP-токен PushKit — событие не несёт сам токен,
+        // забираем актуальный из плагина и регистрируем на сервере.
+        await _syncVoipToken();
       default:
         break;
     }
