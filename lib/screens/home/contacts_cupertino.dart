@@ -151,7 +151,7 @@ class _ContactsCupertinoState extends State<ContactsCupertino> {
           ),
         ),
         Container(
-          color: ThemesCupertino.groupedCard.resolveFrom(context),
+          color: ThemesCupertino.appBackground.resolveFrom(context),
           child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: children),
         ),
       ],
