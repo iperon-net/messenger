@@ -386,11 +386,27 @@ class CDNManager {
   /// докачаем меньше. 1 MiB — разумный компромисс.
   static const int _downloadPersistInterval = 1024 * 1024;
 
+  /// Активные (ещё не завершённые) закачки по `cdnID` (hex) — дедупликация
+  /// одновременных [download] одного и того же файла. Один и тот же аватар при
+  /// открытии профиля качают сразу два независимых потребителя стрима: слушатель
+  /// `ProfileCubit` (для показа) и `API._handleMessage` (для персиста в БД). Без
+  /// дедупликации оба доходят до [_resolveDownloadState] с пустой строкой и оба
+  /// делают `INSERT` в `downloads` (PK = `cdnID`) — второй падает на UNIQUE, и
+  /// `_handleMessage` не успевает привязать `avatarCdnID` к профилю, из-за чего
+  /// cache-hit при следующем открытии больше никогда не срабатывает (аватар
+  /// каждый раз тянется по сети заново). Разделяя один `Future`, оба получают
+  /// один и тот же результат без гонки и без двойной сетевой закачки.
+  final Map<String, Future<File>> _inFlightDownloads = {};
+
   /// Скачивает ciphertext файла [cdn] с CDN (докачка после обрыва + сетевые
   /// ретраи), проверяет целостность по `hashSumEncrypted`, расшифровывает
   /// локально ([Crypto.fileEncryptor]) и возвращает файл plaintext в кэше
   /// приложения (`<cache>/media/<cdnID>`). Повторный вызов для уже скачанного
   /// [cdn] отдаёт файл из кэша без сети.
+  ///
+  /// Одновременные вызовы для одного [cdn] дедуплицируются ([_inFlightDownloads]):
+  /// разделяют один сетевой проход и один результат. Прогресс при этом получает
+  /// только первый вызвавший (его [onProgress]); остальным вернётся готовый файл.
   ///
   /// [onProgress] — необязательный колбэк (скачанные/полные **байты
   /// ciphertext**), симметрично `onProgress` аплоада; фаза расшифровки прогресс
@@ -399,6 +415,20 @@ class CDNManager {
   /// Бросает [DownloadException] при фатальной ошибке (отказ сервера, битый хеш,
   /// провал расшифровки); сетевые обрывы обрабатывает докачкой и ретраями.
   Future<File> download({required models.CDN cdn, void Function(int receivedBytes, int totalBytes)? onProgress}) async {
+    final key = utils.bytesToHex(cdn.cdnID);
+    final existing = _inFlightDownloads[key];
+    if (existing != null) return existing;
+
+    final future = _download(cdn: cdn, onProgress: onProgress);
+    _inFlightDownloads[key] = future;
+    try {
+      return await future;
+    } finally {
+      _inFlightDownloads.remove(key);
+    }
+  }
+
+  Future<File> _download({required models.CDN cdn, void Function(int receivedBytes, int totalBytes)? onProgress}) async {
     var state = await _resolveDownloadState(cdn);
 
     // Cache-hit: файл уже скачан и расшифрован.

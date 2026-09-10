@@ -65,6 +65,7 @@ dependencies:
   protobuf: ^6.0.0
   pin_code_fields: ^9.4.0
   cryptography: ^2.9.0
+  cryptography_flutter: ^2.3.4
   ristretto255: ^1.0.2
   native_workmanager: ^1.4.3
   talker_grpc_logger: ^5.1.19

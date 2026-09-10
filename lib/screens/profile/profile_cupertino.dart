@@ -74,7 +74,19 @@ class _ProfileCupertino extends State<ProfileCupertino> {
                     width: 96,
                     height: 96,
                     child: state.avatarBytes != null
-                        ? ClipOval(child: Image.memory(state.avatarBytes!, width: 96, height: 96, fit: BoxFit.cover, gaplessPlayback: true))
+                        ? ClipOval(
+                            child: Image.memory(
+                              state.avatarBytes!,
+                              width: 96,
+                              height: 96,
+                              fit: BoxFit.cover,
+                              gaplessPlayback: true,
+                              // См. profile_material.dart: декодируем под размер слота, а не
+                              // в полный битмап исходной (крупной) аватарки.
+                              cacheWidth: (96 * MediaQuery.devicePixelRatioOf(context)).round(),
+                              cacheHeight: (96 * MediaQuery.devicePixelRatioOf(context)).round(),
+                            ),
+                          )
                         : AnimatedBoringAvatar(
                             name: state.boringAvatarHash,
                             type: state.boringAvatarType,

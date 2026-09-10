@@ -80,6 +80,13 @@ class _SettingsMyProfileCupertino extends State<SettingsMyProfileCupertino> {
       aspectRatio: const CropAspectRatio(ratioX: 1, ratioY: 1),
       compressFormat: ImageCompressFormat.jpg,
       compressQuality: 90,
+      // Ужимаем аватар до заливки: сервер файл не пересжимает (upload
+      // E2E-шифруется на клиенте, plaintext серверу недоступен), а исходник с
+      // камеры/галереи — это 2000+ px / ~1 МБ, который потом декодируется в
+      // многомегабайтный битмап у КАЖДОГО получателя. 512² с запасом хватает и
+      // для слота 96, и для полноэкранного просмотра.
+      maxWidth: 512,
+      maxHeight: 512,
       uiSettings: [
         IOSUiSettings(title: title, cropStyle: CropStyle.circle, aspectRatioLockEnabled: true, resetAspectRatioEnabled: false),
         AndroidUiSettings(toolbarTitle: title, cropStyle: CropStyle.circle, lockAspectRatio: true),
@@ -208,6 +215,10 @@ class _SettingsMyProfileCupertino extends State<SettingsMyProfileCupertino> {
                                         height: 96,
                                         fit: BoxFit.cover,
                                         gaplessPlayback: true,
+                                        // См. profile_material.dart: декодируем под размер
+                                        // слота, а не в полный битмап крупной аватарки.
+                                        cacheWidth: (96 * MediaQuery.devicePixelRatioOf(context)).round(),
+                                        cacheHeight: (96 * MediaQuery.devicePixelRatioOf(context)).round(),
                                       ),
                                     )
                                   : AnimatedBoringAvatar(

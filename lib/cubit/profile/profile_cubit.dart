@@ -70,35 +70,51 @@ class ProfileCubit extends Cubit<ProfileState> {
     final sendFuture = api.sendEncoded(MessageType.PROFILE, Profile_Request(userID: userID).writeToBuffer());
 
     final profile = await profileFuture;
-    await sendFuture;
     if (isClosed) return;
 
-    final phoneNormalization = utils.phoneNormalization(phoneNumber: profile.phoneNumber);
-    emit(
-      state.copyWith(
-        firstName: profile.fistName,
-        lastName: profile.lastName,
-        aboutMe: profile.aboutMe,
-        username: profile.username,
-        phoneNumber: phoneNormalization.international,
-        birthDate: profile.birthDate,
-        boringAvatarHash: utils.bytesToHex(Uint8List.fromList(userID)),
-      ),
-    );
-
-    // Аватар из кэша — мгновенно, без сети. Актуальную версию принесёт стрим выше.
+    // Аватар из кэша читаем ДО первого emit, чтобы профиль и аватар нарисовались
+    // ОДНИМ кадром. Иначе (текст отдельным emit, аватар — вторым) между ними
+    // проскакивает кадр с `avatarBytes == null`, где рисуется BoringAvatar-
+    // плейсхолдер, и он тут же сменяется картинкой — тот самый видимый «лаг на
+    // несколько миллисекунд». На экране СВОЕГО профиля этого нет не потому, что
+    // там быстрее, а потому что его кубит долгоживущий и avatarBytes уже лежит в
+    // state с прошлого открытия; чужой профиль пушится заново каждый раз.
+    // Читаем без сети (cachedFile); актуальную версию принесёт стрим выше.
+    Uint8List? avatarBytes;
     final avatarCdnID = profile.avatarCdnID;
     if (avatarCdnID != null && avatarCdnID.isNotEmpty) {
       try {
         final file = await cdnManager.cachedFile(Uint8List.fromList(avatarCdnID));
         if (isClosed) return;
         if (file != null) {
-          emit(state.copyWith(avatarBytes: await file.readAsBytes()));
+          avatarBytes = await file.readAsBytes();
         }
       } catch (error, stackTrace) {
         logger.handle(error, stackTrace);
       }
     }
+    if (isClosed) return;
+
+    final phoneNormalization = utils.phoneNormalization(phoneNumber: profile.phoneNumber);
+    var next = state.copyWith(
+      firstName: profile.fistName,
+      lastName: profile.lastName,
+      aboutMe: profile.aboutMe,
+      username: profile.username,
+      phoneNumber: phoneNormalization.international,
+      birthDate: profile.birthDate,
+      boringAvatarHash: utils.bytesToHex(Uint8List.fromList(userID)),
+    );
+    // copyWith(avatarBytes: null) не отличает «не менять» от «обнулить», поэтому
+    // аватар подставляем только когда он реально есть в кэше.
+    if (avatarBytes != null) {
+      next = next.copyWith(avatarBytes: avatarBytes);
+    }
+    emit(next);
+
+    // Отправку ждём в конце: она не должна задерживать показ кэша. Await сохраняем,
+    // чтобы ошибка шифрования/отправки всплыла в лог, а не потерялась молча.
+    await sendFuture;
   }
 
   @override

@@ -27,6 +27,15 @@ import 'utils.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Пакет cryptography_flutter подключён как зависимость намеренно: он
+  // автоматически (через регистрацию плагина) подменяет pure-Dart реализации
+  // AES-GCM/SHA-256/HKDF в package:cryptography на нативные (платформенные).
+  // Расшифровка аватаров и медиа (CDNManager.download → FileEncryptor.decryptFile
+  // + Sha256) — CPU-тяжёлая и раньше блокировала UI-изолят на медленных
+  // Android-устройствах на несколько секунд; нативный бэкенд ускоряет её кратно.
+  // Явный FlutterCryptography.enable() больше не нужен (deprecated) — плагин
+  // включается сам.
+
   FlutterError.onError = (errorDetails) {
     if (kDebugMode) {
       FlutterError.presentError(errorDetails);

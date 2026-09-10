@@ -58,7 +58,22 @@ class _ProfileMaterial extends State<ProfileMaterial> {
                     width: 96,
                     height: 96,
                     child: state.avatarBytes != null
-                        ? ClipOval(child: Image.memory(state.avatarBytes!, width: 96, height: 96, fit: BoxFit.cover, gaplessPlayback: true))
+                        ? ClipOval(
+                            child: Image.memory(
+                              state.avatarBytes!,
+                              width: 96,
+                              height: 96,
+                              fit: BoxFit.cover,
+                              gaplessPlayback: true,
+                              // Аватар может прийти в исходном разрешении (2000+ px, ~1 МБ).
+                              // Без cacheWidth/cacheHeight движок декодирует его в полный
+                              // битмап (для 2316² это ~21 МБ) на слот 96×96 — отсюда сотни мс
+                              // декода и дропнутые кадры при открытии. Декодируем сразу под
+                              // размер слота в физических пикселях.
+                              cacheWidth: (96 * MediaQuery.devicePixelRatioOf(context)).round(),
+                              cacheHeight: (96 * MediaQuery.devicePixelRatioOf(context)).round(),
+                            ),
+                          )
                         : AnimatedBoringAvatar(
                             name: state.boringAvatarHash,
                             type: state.boringAvatarType,
