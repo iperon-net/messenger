@@ -122,6 +122,14 @@ class Calls {
 
   static const Map<String, dynamic> _offerAnswerConstraints = {'mandatory': {}, 'optional': []};
 
+  // Ретрансмит исходящего offer. Сигналинг идёт через core NATS PublishToUser
+  // (fire-and-forget, без гарантии доставки): если стрим адресата в этот момент
+  // не подписан (типично на сотовой сети — переподключения/NAT-rebinding), offer
+  // молча теряется. Поэтому повторяем CALL_OFFER, пока не придёт answer/reject
+  // либо не выйдет таймаут. Relay идемпотентен, приёмник дедупит по callId.
+  static const Duration _offerRetransmitInterval = Duration(milliseconds: 1500);
+  static const Duration _offerRetransmitTimeout = Duration(seconds: 30);
+
   final localRenderer = RTCVideoRenderer();
   final remoteRenderer = RTCVideoRenderer();
 
@@ -149,6 +157,9 @@ class Calls {
 
   final List<StreamSubscription<Uint8List>> _signalSubs = [];
   bool _renderersReady = false;
+
+  // Таймер повторной отправки исходящего offer (см. _offerRetransmitInterval).
+  Timer? _offerRetransmitTimer;
 
   /// Текущий снимок без подписки (стартовое значение для UI).
   CallSnapshot get snapshot => _snapshot;
@@ -219,6 +230,7 @@ class Calls {
         signal: Call_Signal(sdp: offer.sdp),
       );
       _dbg('offer sent');
+      _startOfferRetransmit(toUserID: toUserID, callId: callId, video: video, sdp: offer.sdp);
     } catch (error, stackTrace) {
       logger.handle(error, stackTrace);
       await _teardown(CallEndReason.failed);
@@ -338,6 +350,27 @@ class Calls {
 
     _polite = _isPolite(from);
 
+    // Повторный offer того же звонка (A ретранслирует CALL_OFFER, пока не получит
+    // answer). Сессию заново не переустанавливаем — это сломало бы уже
+    // установленный remote description. Если мы уже приняли звонок
+    // (connecting/active), значит наш answer до A не дошёл (его доставка тоже без
+    // гарантии) — переотправляем текущий answer в ответ на дубликат.
+    if (active && sameCall) {
+      if (_snapshot.status != CallStatus.incoming) {
+        final localDesc = await _pc?.getLocalDescription();
+        if (localDesc != null && localDesc.type == 'answer') {
+          await _sendSignal(
+            MessageType.CALL_ANSWER,
+            toUserID: from,
+            callId: signal.callId,
+            video: _snapshot.video,
+            signal: Call_Signal(sdp: localDesc.sdp),
+          );
+        }
+      }
+      return;
+    }
+
     if (glare) {
       // Столкновение (оба позвонили одновременно тому же абоненту). По perfect
       // negotiation вежливая сторона уступает — сносит свой исходящий и
@@ -372,6 +405,9 @@ class Calls {
 
   Future<void> _onAnswer(Call_Signal signal, List<int> from) async {
     if (!_isCurrentPeer(signal.callId, from) || _pc == null) return;
+
+    // Answer пришёл — исходящий offer больше повторять не нужно.
+    _stopOfferRetransmit();
 
     try {
       await _pc!.setRemoteDescription(RTCSessionDescription(signal.sdp, 'answer'));
@@ -541,6 +577,7 @@ class Calls {
   }
 
   Future<void> _teardown(CallEndReason reason) async {
+    _stopOfferRetransmit();
     _remoteDescriptionSet = false;
     _pendingRemoteCandidates.clear();
 
@@ -593,6 +630,41 @@ class Calls {
     } catch (error, stackTrace) {
       logger.handle(error, stackTrace);
     }
+  }
+
+  /// Запускает периодический повтор исходящего offer до прихода answer/reject
+  /// или до таймаута. Останавливается сам, как только звонок перестаёт быть
+  /// [CallStatus.outgoing] (пришёл answer → connecting, либо reject/сброс →
+  /// ended). По таймауту завершает звонок как [CallEndReason.failed] — абонент
+  /// недоступен (его стрим так и не принял offer).
+  void _startOfferRetransmit({required List<int> toUserID, required String callId, required bool video, required String? sdp}) {
+    _stopOfferRetransmit();
+    final deadline = DateTime.now().add(_offerRetransmitTimeout);
+
+    _offerRetransmitTimer = Timer.periodic(_offerRetransmitInterval, (timer) {
+      if (_snapshot.status != CallStatus.outgoing || _snapshot.callId != callId) {
+        _stopOfferRetransmit();
+        return;
+      }
+      if (DateTime.now().isAfter(deadline)) {
+        _stopOfferRetransmit();
+        _teardown(CallEndReason.failed);
+        return;
+      }
+      _dbg('offer resent');
+      _sendSignal(
+        MessageType.CALL_OFFER,
+        toUserID: toUserID,
+        callId: callId,
+        video: video,
+        signal: Call_Signal(sdp: sdp),
+      );
+    });
+  }
+
+  void _stopOfferRetransmit() {
+    _offerRetransmitTimer?.cancel();
+    _offerRetransmitTimer = null;
   }
 
   // Совпадает ли сигнал с текущим звонком: тот же callId и тот же собеседник.
