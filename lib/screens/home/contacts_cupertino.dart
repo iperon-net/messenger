@@ -66,31 +66,40 @@ class _ContactsCupertinoState extends State<ContactsCupertino> {
         ),
       ),
       child: SafeArea(
-        child: BlocBuilder<ContactsCubit, ContactsState>(
-          builder: (context, state) {
-            if (state.permissionDenied) return _permission(context);
-
-            if (state.status != Status.success && state.registered.isEmpty && state.invitable.isEmpty) {
-              return const Center(child: CupertinoActivityIndicator());
-            }
-
-            final registered = state.registered.where((item) => _matchesQuery(item, state.query)).toList();
-            final invitable = state.invitable.where((item) => _matchesQuery(item, state.query)).toList();
-
-            // Поле поиска — вне списка, чтобы не пересоздаваться при каждом emit
-            // (иначе оно теряет фокус и onChanged перестаёт срабатывать по клавише).
-            return Column(
-              children: [
-                Padding(
+        // Поле поиска — вне BlocBuilder, чтобы не пересоздаваться на каждый emit
+        // от search(). На iOS перестроение CupertinoTextField во время ввода
+        // сбрасывает область композиции клавиатуры, из-за чего onChanged
+        // «залипал» и результат появлялся только после нажатия Enter.
+        // BlocSelector перестраивает поле только при смене permissionDenied.
+        child: Column(
+          children: [
+            BlocSelector<ContactsCubit, ContactsState, bool>(
+              selector: (state) => state.permissionDenied,
+              builder: (context, permissionDenied) {
+                if (permissionDenied) return const SizedBox.shrink();
+                return Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   child: CupertinoSearchTextField(
                     controller: _searchController,
                     placeholder: context.t.screenContacts.search,
                     onChanged: (value) => context.read<ContactsCubit>().search(value),
                   ),
-                ),
-                Expanded(
-                  child: ListView(
+                );
+              },
+            ),
+            Expanded(
+              child: BlocBuilder<ContactsCubit, ContactsState>(
+                builder: (context, state) {
+                  if (state.permissionDenied) return _permission(context);
+
+                  if (state.status != Status.success && state.registered.isEmpty && state.invitable.isEmpty) {
+                    return const Center(child: CupertinoActivityIndicator());
+                  }
+
+                  final registered = state.registered.where((item) => _matchesQuery(item, state.query)).toList();
+                  final invitable = state.invitable.where((item) => _matchesQuery(item, state.query)).toList();
+
+                  return ListView(
                     children: [
                       if (registered.isNotEmpty)
                         _sheet(
@@ -106,11 +115,11 @@ class _ContactsCupertinoState extends State<ContactsCupertino> {
                           child: Center(child: Text(context.t.screenContacts.empty)),
                         ),
                     ],
-                  ),
-                ),
-              ],
-            );
-          },
+                  );
+                },
+              ),
+            ),
+          ],
         ),
       ),
     );

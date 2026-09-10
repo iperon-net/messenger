@@ -63,22 +63,16 @@ class _ContactsMaterialState extends State<ContactsMaterial> {
     return Scaffold(
       backgroundColor: background,
       appBar: AppBar(backgroundColor: background, title: Text(context.t.screenContacts.title)),
-      body: BlocBuilder<ContactsCubit, ContactsState>(
-        builder: (context, state) {
-          if (state.permissionDenied) return _permission(context);
-
-          if (state.status != Status.success && state.registered.isEmpty && state.invitable.isEmpty) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          final registered = state.registered.where((item) => _matchesQuery(item, state.query)).toList();
-          final invitable = state.invitable.where((item) => _matchesQuery(item, state.query)).toList();
-
-          // Поле поиска — вне списка, чтобы не пересоздаваться при каждом emit
-          // (иначе оно теряет фокус и onChanged перестаёт срабатывать по клавише).
-          return Column(
-            children: [
-              Padding(
+      // Поле поиска — вне BlocBuilder, чтобы не пересоздаваться на каждый emit
+      // от search() (иначе теряется фокус/область композиции при вводе).
+      // BlocSelector перестраивает поле только при смене permissionDenied.
+      body: Column(
+        children: [
+          BlocSelector<ContactsCubit, ContactsState, bool>(
+            selector: (state) => state.permissionDenied,
+            builder: (context, permissionDenied) {
+              if (permissionDenied) return const SizedBox.shrink();
+              return Padding(
                 padding: const EdgeInsets.all(12),
                 child: TextField(
                   controller: _searchController,
@@ -90,9 +84,22 @@ class _ContactsMaterialState extends State<ContactsMaterial> {
                   ),
                   onChanged: (value) => context.read<ContactsCubit>().search(value),
                 ),
-              ),
-              Expanded(
-                child: ListView(
+              );
+            },
+          ),
+          Expanded(
+            child: BlocBuilder<ContactsCubit, ContactsState>(
+              builder: (context, state) {
+                if (state.permissionDenied) return _permission(context);
+
+                if (state.status != Status.success && state.registered.isEmpty && state.invitable.isEmpty) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+
+                final registered = state.registered.where((item) => _matchesQuery(item, state.query)).toList();
+                final invitable = state.invitable.where((item) => _matchesQuery(item, state.query)).toList();
+
+                return ListView(
                   children: [
                     if (registered.isNotEmpty)
                       _sheet(
@@ -108,11 +115,11 @@ class _ContactsMaterialState extends State<ContactsMaterial> {
                         child: Center(child: Text(context.t.screenContacts.empty)),
                       ),
                   ],
-                ),
-              ),
-            ],
-          );
-        },
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
