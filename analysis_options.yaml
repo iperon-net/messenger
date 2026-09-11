@@ -16,6 +16,15 @@ analyzer:
     - windows/**
     - macos/**
     - linux/**
+    # Сгенерированный protobuf-код (protoc-gen-dart) — правится только
+    # регенерацией из protos/*.proto, не руками. Свежий пакет protobuf
+    # депрекейтит Timestamp.create, на который ещё ссылается генерённый код;
+    # держать эти файлы вне анализатора, чтобы deprecation не валил CI-линтер.
+    - lib/protobuf/**/*.pb.dart
+    - lib/protobuf/**/*.pbenum.dart
+    - lib/protobuf/**/*.pbjson.dart
+    - lib/protobuf/**/*.pbgrpc.dart
+    - lib/protobuf/**/*.pbserver.dart
 include: package:flutter_lints/flutter.yaml
 
 formatter:
