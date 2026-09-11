@@ -177,6 +177,17 @@ class Calls {
   // DUPLICATE_IDENTITY — и звонок мгновенно рвётся). Сбрасывается в [_teardown].
   bool _connectingRoom = false;
 
+  // Комната LiveKit дошла до состояния «подключено» (`room.connect` завершился
+  // успехом). До этого момента фаза подключения принадлежит самому `connect()`:
+  // на транзиентный `RoomDisconnected` во время неё НЕ реагируем teardown-ом.
+  // Иначе disconnect от выбитого дубля (DUPLICATE_IDENTITY) при внутреннем
+  // реконнекте SDK рвёт ещё живой второй connect (`CLIENT_REQUEST_LEAVE`), а
+  // осиротевший `room.connect()` висит до 10-секундного ICE-таймаута — звонок
+  // падает без звука. Реальный провал connect бросит исключение (его ловит
+  // [accept]); успех — выставит этот флаг, и только тогда disconnect = конец
+  // звонка. Сбрасывается в [_teardown].
+  bool _roomConnected = false;
+
   /// Текущий снимок без подписки (стартовое значение для UI).
   CallSnapshot get snapshot => _snapshot;
 
@@ -503,6 +514,7 @@ class Calls {
     _wireRoomEvents(_roomListener!);
 
     await room.connect(response.url, response.token);
+    _roomConnected = true;
     _dbg('room connected');
 
     await _publishLocalMedia(video: video);
@@ -619,8 +631,12 @@ class Calls {
         _teardown(CallEndReason.hangup);
       })
       ..on<RoomDisconnectedEvent>((event) {
-        // Нас отключило от SFU (сеть/сервер). Если звонок ещё «жив» — сворачиваем.
-        if (_hasActiveCall) {
+        // Нас отключило от SFU (сеть/сервер). Реагируем только после того, как
+        // `room.connect` подтвердил подключение (`_roomConnected`). Во время
+        // самой фазы подключения disconnect может прийти от выбитого дубля при
+        // внутреннем реконнекте SDK — teardown тут прибил бы ещё живой connect
+        // и дал бы ложный ICE-таймаут (см. [_roomConnected]).
+        if (_hasActiveCall && _roomConnected) {
           _dbg('room disconnected');
           _teardown(CallEndReason.failed);
         }
@@ -656,6 +672,7 @@ class Calls {
     _pushAcceptedCallId = null;
     _handlingCallId = null;
     _connectingRoom = false;
+    _roomConnected = false;
     // Звонок завершён — отпускаем удержание стрима (вернётся к foreground-гейту).
     api.setCallActive(false);
 
