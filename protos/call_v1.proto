@@ -58,3 +58,26 @@ message IceServers {
     int64 ttl = 2; // секунды жизни TURN-кредов (для клиентского рефетча)
   }
 }
+
+// CallToken — выдача доступа в комнату LiveKit SFU. Клиент запрашивает
+// шифрованным unary-типом CALL_TOKEN перед подключением к звонку (и звонящий,
+// и принимающий). Сервер чеканит LiveKit JWT: room = callId, identity =
+// userID hex сессии, гранты join/publish/subscribe. Секрет LiveKit
+// (api-secret) живёт только на сервере. Заменяет ручной SDP/ICE-сигналинг:
+// весь offer/answer/ICE-обмен LiveKit берёт на себя.
+message CallToken {
+  message Request {
+    // callId — идентификатор звонка (генерит звонящий), одинаков для обеих
+    // сторон; становится именем комнаты LiveKit.
+    string callId = 1;
+    // toUserID — адресат (bson.ObjectID, 12 байт). Для проверки права звонить.
+    bytes toUserID = 2;
+  }
+
+  message Response {
+    // url — wss-адрес LiveKit-сервера, к которому подключается клиент.
+    string url = 1;
+    // token — LiveKit JWT для Room.connect.
+    string token = 2;
+  }
+}

@@ -33,6 +33,7 @@ enum MessageType {
   CONTACTS_DISCOVERY_EVALUATE = 24;
   CONTACTS_DISCOVERY_MATCH = 25;
   REGISTER_PUSH_TOKEN = 26;
+  CALL_TOKEN = 27;
 }
 
 service Iperon {
