@@ -137,19 +137,6 @@ class Calls {
   // Позиция фронтальной/тыловой камеры для switchCamera.
   CameraPosition _cameraPosition = CameraPosition.front;
 
-  // iOS: отвечаем ли на ТЕКУЩИЙ звонок через CallKit (cold-start по VoIP-push,
-  // где активацию AVAudioSession ведёт сама CallKit), или это foreground/
-  // исходящий путь без CallKit. От этого зависит режим аудио LiveKit:
-  //   • CallKit  → externalCallSystem: LiveKit НЕ активирует сессию сам, движок
-  //     держим выключенным и включаем по событию CallKit `didActivate`
-  //     (ToggleAudioSession → [setAudioEngineActive]). Иначе LiveKit конфликтует
-  //     с CallKit за сессию — активация падает «early exit due to failure», звук
-  //     не идёт.
-  //   • foreground/исходящий → automatic: CallKit не участвует, LiveKit сам
-  //     ставит категорию, активирует сессию и рулит движком.
-  // Ставится в [acceptFromPush] (true), сбрасывается в [_teardown] (false).
-  bool _viaCallKit = false;
-
   CallSnapshot _snapshot = const CallSnapshot();
   final _snapshotController = StreamController<CallSnapshot>.broadcast();
 
@@ -325,11 +312,6 @@ class Calls {
       logger.warning('acceptFromPush ignored: already handling $callId');
       return;
     }
-    // Отвечаем через CallKit — AVAudioSession активирует она, LiveKit переводим
-    // в externalCallSystem (см. [_viaCallKit]/[_configureIosAudioForCall]). Ставим
-    // до любого accept(): и прямого ниже, и отложенного через [_onRing], когда
-    // ждём ring ради fromUserID.
-    _viaCallKit = true;
     // Входящий уже поднят по стриму (ring обогнал) — просто принимаем.
     // `_handlingCallId` НЕ выставляем здесь: [accept] сам ставит его синхронно
     // (до первого await), а преждевременная пометка заставила бы [accept] выйти
@@ -562,19 +544,16 @@ class Calls {
     await WebRTC.initialize();
   }
 
-  /// iOS: настраивает режим аудио LiveKit под путь ответа на ТЕКУЩИЙ звонок.
-  /// Вызывается на каждый коннект (режим — глобальный синглтон AudioManager,
-  /// поэтому его надо выставлять под каждый звонок, а не один раз).
+  /// iOS: настраивает режим аудио LiveKit под ТЕКУЩИЙ звонок. Вызывается на
+  /// каждый коннект (режим — глобальный синглтон AudioManager, поэтому его надо
+  /// выставлять под каждый звонок, а не один раз).
   ///
-  ///  • [_viaCallKit] (cold-start по VoIP-push): `externalCallSystem` — LiveKit
-  ///    конфигурирует категорию, но НЕ активирует сессию; движок держим
-  ///    выключенным (`AudioEngineAvailability.none`) и включаем в
-  ///    [setAudioEngineActive] по событию CallKit `didActivate`. Так LiveKit не
-  ///    конфликтует с CallKit за активацию (иначе «early exit due to failure» →
-  ///    тишина).
-  ///  • иначе (foreground-ответ по стриму / исходящий, без CallKit):
-  ///    `automatic` — LiveKit сам ставит категорию, активирует сессию и рулит
-  ///    движком по жизненному циклу комнаты (как на Android).
+  /// ВСЕГДА `automatic` — и на CallKit cold-start (VoIP-push), и на foreground:
+  /// LiveKit единолично владеет AVAudioSession (ставит `PlayAndRecord`, сам её
+  /// активирует и рулит движком по жизненному циклу комнаты, как на Android).
+  /// Схему `externalCallSystem` (ждать активацию от CallKit `didActivate`)
+  /// убрали: на нашем cold-start-ответе `didActivate` не приходит вовсе — см.
+  /// подробности в теле метода и в [setAudioEngineActive].
   ///
   /// `WebRTC.initialize` — идемпотентная прогрузка нативной фабрики, нужна до
   /// обращения к AudioManager (см. [_ensureWebRtcInitialized]). No-op вне iOS.
@@ -582,36 +561,35 @@ class Calls {
     if (!Platform.isIOS) return;
     try {
       await _ensureWebRtcInitialized();
-      if (_viaCallKit) {
-        await AudioManager.instance.setAudioSessionManagementMode(AudioSessionManagementMode.externalCallSystem);
-        // Гейтим движок до CallKit `didActivate`. Публикация микрофона/подписка
-        // на удалённое аудио, сделанные пока движок выключен, не теряются —
-        // LiveKit включит их, как только доступность разрешит.
-        await AudioManager.instance.setEngineAvailability(AudioEngineAvailability.none);
-      } else {
-        await AudioManager.instance.setAudioSessionManagementMode(AudioSessionManagementMode.automatic);
-      }
+      // ВСЕГДА `automatic` — и на CallKit cold-start, и на foreground. LiveKit
+      // сам ставит `PlayAndRecord`, САМ активирует AVAudioSession и запускает
+      // движок по жизненному циклу комнаты, не дожидаясь никого извне.
+      //
+      // Схема `externalCallSystem` (LiveKit ставит категорию, но НЕ активирует —
+      // ждёт CallKit `provider(didActivate:)`) на нашем пути ответа не работает:
+      // cold-start-ответ по VoIP-push НЕ проходит через `CXAnswerCallAction`
+      // плагина, поэтому ни плагин, ни CallKit сессию не активируют, `didActivate`
+      // не приходит вовсе (в in-app talker-логах строки `ToggleAudioSession event
+      // received` нет), категория весь звонок остаётся `SoloAmbientSound` —
+      // движок не заводится, тишина. Подтверждено на устройстве дважды.
+      //
+      // Двойного владения с CallKit нет: CallKit активирует ту же сессию, которую
+      // LiveKit уже перевёл в `PlayAndRecord`, — активация проходит успешно.
+      await AudioManager.instance.setAudioSessionManagementMode(AudioSessionManagementMode.automatic);
     } catch (error, stackTrace) {
       logger.handle(error, stackTrace);
     }
   }
 
-  /// Включает/выключает WebRTC-аудиодвижок LiveKit по событию CallKit
-  /// ToggleAudioSession (`provider(didActivate:)`/`didDeactivate:`), которое
-  /// прилетает из [CallPush]. Значимо только на CallKit-пути
-  /// (`externalCallSystem`): там активацией сессии владеет CallKit, и движок
-  /// LiveKit надо поднять ровно в окне между didActivate и didDeactivate. На
-  /// foreground-пути (automatic) движком рулит сам LiveKit — вызов игнорируем,
-  /// чтобы не вмешиваться (ранний ручной вызов на неактивной сессии давал -3010).
+  /// Обработчик CallKit-события ToggleAudioSession
+  /// (`provider(didActivate:)`/`didDeactivate:`) из [CallPush]. Теперь **no-op**:
+  /// аудио на всех путях управляется режимом `automatic`, где движком LiveKit
+  /// рулит сам по жизненному циклу комнаты. Ручное дёрганье `setEngineAvailability`
+  /// на неактивной сессии давало -3010 и не нужно — оставляем как явную заглушку,
+  /// чтобы приходящее из плагина событие не приводило ни к чему.
   Future<void> setAudioEngineActive(bool active) async {
-    if (!Platform.isIOS || !_viaCallKit) return;
-    try {
-      await AudioManager.instance.setEngineAvailability(
-        active ? AudioEngineAvailability.defaultAvailability : AudioEngineAvailability.none,
-      );
-    } catch (error, stackTrace) {
-      logger.handle(error, stackTrace);
-    }
+    if (!Platform.isIOS) return;
+    logger.info('call: ToggleAudioSession event received (isActive=$active) — no-op (automatic mode)');
   }
 
   Future<void> _publishLocalMedia({required bool video}) async {
@@ -697,7 +675,6 @@ class Calls {
     _handlingCallId = null;
     _connectingRoom = false;
     _roomConnected = false;
-    _viaCallKit = false;
     // Звонок завершён — отпускаем удержание стрима (вернётся к foreground-гейту).
     api.setCallActive(false);
 
