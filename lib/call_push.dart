@@ -78,7 +78,23 @@ CallKitParams _incomingParams(Map<String, dynamic> data, String callId) {
       incomingCallNotificationChannelName: 'Входящие звонки',
       missedCallNotificationChannelName: 'Пропущенные звонки',
     ),
-    ios: const IOSParams(handleType: 'generic', supportsVideo: true),
+    // configureAudioSession: false — категорию/активацию AVAudioSession ведём
+    // через LiveKit (externalCallSystem) + CallKit didActivate, а не через плагин,
+    // иначе двойное владение сессией даёт звонок без звука.
+    ios: const IOSParams(handleType: 'generic', supportsVideo: true, configureAudioSession: false),
+  );
+}
+
+/// Параметры для регистрации ИСХОДЯЩЕГО звонка в CallKit (iOS). Нужно, чтобы
+/// аудиосессией управляла единая call-система и прилетел provider(didActivate:).
+CallKitParams _outgoingParams(CallSnapshot snapshot) {
+  return CallKitParams(
+    id: snapshot.callId,
+    nameCaller: 'Iperon',
+    appName: 'Iperon',
+    handle: snapshot.video ? 'Видеозвонок' : 'Аудиозвонок',
+    type: snapshot.video ? 1 : 0,
+    ios: const IOSParams(handleType: 'generic', supportsVideo: true, configureAudioSession: false),
   );
 }
 
@@ -101,6 +117,10 @@ class CallPush {
 
   StreamSubscription<CallEvent?>? _eventSub;
   StreamSubscription<CallSnapshot>? _callSub;
+
+  // callId исходящего, уже отрепорченного в CallKit (iOS), чтобы не регистрировать
+  // его повторно на каждый снимок со статусом outgoing.
+  String? _reportedOutgoingCallId;
 
   /// Инициализирует обработчики. Идемпотентно.
   void start() {
@@ -135,11 +155,25 @@ class CallPush {
 
     _eventSub ??= FlutterCallkitIncoming.onEvent.listen(_onEvent);
 
-    // Когда звонок завершается в Calls — снимаем нативный экран, если он ещё
-    // висит (например, приняли из push, но звонок сорвался).
+    // Мост Calls → CallKit по снимкам:
+    // - outgoing (iOS): регистрируем исходящий в CallKit, чтобы аудиосессией
+    //   владела единая call-система. Иначе для исходящего не прилетит
+    //   provider(didActivate:) → аудиодвижок LiveKit не включится → нет звука.
+    // - ended/idle: снимаем нативный экран, если он ещё висит (например, приняли
+    //   из push, но звонок сорвался).
     _callSub ??= calls.snapshots.listen((snapshot) {
-      if (snapshot.status == CallStatus.ended || snapshot.status == CallStatus.idle) {
-        if (snapshot.callId.isNotEmpty) unawaited(FlutterCallkitIncoming.endCall(snapshot.callId));
+      switch (snapshot.status) {
+        case CallStatus.outgoing:
+          if (Platform.isIOS && snapshot.callId.isNotEmpty && _reportedOutgoingCallId != snapshot.callId) {
+            _reportedOutgoingCallId = snapshot.callId;
+            unawaited(FlutterCallkitIncoming.startCall(_outgoingParams(snapshot)));
+          }
+        case CallStatus.ended:
+        case CallStatus.idle:
+          _reportedOutgoingCallId = null;
+          if (snapshot.callId.isNotEmpty) unawaited(FlutterCallkitIncoming.endCall(snapshot.callId));
+        default:
+          break;
       }
     });
 
@@ -193,6 +227,11 @@ class CallPush {
           final fromUserID = fromUserIDHex.isEmpty ? <int>[] : utils.hexToBytes(fromUserIDHex);
           await calls.rejectFromPush(callId, fromUserID);
         }
+      case CallEventActionCallToggleAudioSession(:final isActive):
+        // iOS CallKit активировал/деактивировал аудиосессию (provider
+        // didActivate/didDeactivate) — синхронно открываем/закрываем
+        // WebRTC-аудиодвижок LiveKit (см. Calls.setAudioEngineActive).
+        await calls.setAudioEngineActive(isActive);
       case CallEventActionCallEnded():
         await calls.hangup();
       case CallEventActionDidUpdateDevicePushTokenVoip():

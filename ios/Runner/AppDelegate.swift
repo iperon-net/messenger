@@ -87,6 +87,10 @@ import flutter_callkit_incoming
     data.supportsHolding = false
     data.supportsGrouping = false
     data.supportsUngrouping = false
+    // Категорию/активацию AVAudioSession ведёт LiveKit (externalCallSystem) в
+    // связке с CallKit didActivate, а не плагин — иначе двойное владение сессией
+    // даёт звонок без звука. См. lib/calls.dart, lib/call_push.dart.
+    data.configureAudioSession = false
 
     SwiftFlutterCallkitIncomingPlugin.sharedInstance?.showCallkitIncoming(data, fromPushKit: true) {
       if action == "cancel" {

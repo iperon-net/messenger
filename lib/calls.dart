@@ -1,4 +1,11 @@
+// Аудио-API LiveKit для интеграции с CallKit (AudioManager.setEngineAvailability
+// / setAudioSessionManagementMode, AudioEngineAvailability, AudioSessionManagementMode)
+// помечены @experimental в SDK 2.12, но это единственный поддерживаемый способ
+// отдать владение AVAudioSession внешней call-системе (CallKit). Подавляем шум
+// анализатора точечно для всего файла — иначе flutter analyze падает на warning.
+// ignore_for_file: experimental_member_use
 import 'dart:async';
+import 'dart:io';
 import 'dart:math';
 
 import 'package:flutter/foundation.dart';
@@ -128,6 +135,9 @@ class Calls {
 
   // Позиция фронтальной/тыловой камеры для switchCamera.
   CameraPosition _cameraPosition = CameraPosition.front;
+
+  // iOS: LiveKit один раз переведён в режим внешней call-системы (CallKit).
+  bool _iosAudioModeConfigured = false;
 
   CallSnapshot _snapshot = const CallSnapshot();
   final _snapshotController = StreamController<CallSnapshot>.broadcast();
@@ -392,6 +402,20 @@ class Calls {
     }
     _dbg('token ok');
 
+    // iOS + CallKit: аудиосессией владеет CallKit, а не LiveKit. Переводим
+    // LiveKit в externalCallSystem (он конфигурирует категорию, но НЕ активирует
+    // сессию) и держим аудиодвижок выключенным до provider(didActivate:) —
+    // событие плагина ToggleAudioSession дёрнет [setAudioEngineActive]. Без этого
+    // LiveKit и CallKit дерутся за AVAudioSession и звонок идёт без звука.
+    await _ensureIosCallKitAudioMode();
+    if (Platform.isIOS) {
+      try {
+        await AudioManager.instance.setEngineAvailability(AudioEngineAvailability.none);
+      } catch (error, stackTrace) {
+        logger.handle(error, stackTrace);
+      }
+    }
+
     final room = Room();
     _room = room;
     _roomListener = room.createListener();
@@ -408,6 +432,36 @@ class Calls {
     if (room.remoteParticipants.isNotEmpty) {
       _adoptRemoteTracks();
       _markActive();
+    }
+  }
+
+  /// iOS: один раз переводит LiveKit в режим внешней call-системы (CallKit).
+  /// LiveKit продолжает настраивать категорию AVAudioSession из жизненного цикла
+  /// движка (как в automatic), но НЕ активирует/деактивирует её — активацией
+  /// владеет CallKit (provider didActivate/didDeactivate). No-op вне iOS.
+  Future<void> _ensureIosCallKitAudioMode() async {
+    if (!Platform.isIOS || _iosAudioModeConfigured) return;
+    try {
+      await AudioManager.instance.setAudioSessionManagementMode(AudioSessionManagementMode.externalCallSystem);
+      _iosAudioModeConfigured = true;
+    } catch (error, stackTrace) {
+      logger.handle(error, stackTrace);
+    }
+  }
+
+  /// Открывает/закрывает WebRTC-аудиодвижок под управлением CallKit. Зовётся из
+  /// [CallPush] по событию плагина `ToggleAudioSession` (iOS provider
+  /// didActivate/didDeactivate): движок работает только внутри окна активной
+  /// аудиосессии CallKit. No-op вне iOS.
+  Future<void> setAudioEngineActive(bool active) async {
+    if (!Platform.isIOS) return;
+    try {
+      await AudioManager.instance.setEngineAvailability(
+        active ? AudioEngineAvailability.defaultAvailability : AudioEngineAvailability.none,
+      );
+      _dbg(active ? 'audio on' : 'audio off');
+    } catch (error, stackTrace) {
+      logger.handle(error, stackTrace);
     }
   }
 
