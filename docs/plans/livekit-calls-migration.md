@@ -75,33 +75,65 @@ SDP/ICE-слой.
 
 Выход: сервер умеет выдавать токен.
 
-## Фаза 2 — LiveKit-движок на клиенте + снос старого (rip-and-replace)
+## Фаза 2 — LiveKit-движок на клиенте + снос старого (rip-and-replace) — ГОТОВО (2026-09-11)
 
 Один заход, старое и новое не сосуществуют:
 
-- Добавить `livekit_client` в `pubspec.yaml`.
-- Переписать нутро `lib/calls.dart` на LiveKit: `startCall/accept` →
-  запрос `CALL_TOKEN` → `Room.connect(url, token)` → `publishTrack(audio/video)`
-  → события комнаты (`ParticipantConnected`, `TrackSubscribed`, `Disconnected`)
-  маппятся в тот же `CallSnapshot`.
-- **Ring поверх своего же NATS/стрима, без SDP:** звонящий шлёт лёгкий
-  `CALL_RING` (callId, toUserID, video) → сервер релеит в стрим адресата **и**
-  дёргает `SendCallPush` (переиспользуем `push.go` целиком). Отмена/отклонение —
-  существующие `CALL_HANGUP`/`CALL_REJECT`. Отдельный сигнал «принял» не нужен:
-  звонящий видит это как `ParticipantConnected` в комнате.
-- **Удалить старый механизм:** perfect-negotiation (`_polite`/`_isPolite`),
-  offer-retransmit, glare, ICE-буфер, `_createPeerConnection`,
-  `_onOffer/_onAnswer/_onRemoteCandidate`, `_sendSignal`, `_fetchIceServers`
-  в `calls.dart`; на сервере — SDP-кейсы `relayCallSignal`, `CALL_ICE_SERVERS`
-  (TURN-HMAC), `Call.Signal`/`IceServers` из `call_v1.proto`.
-- Побудку (`call_push.dart`, `push.dart`, `push.go`) НЕ трогаем.
+- `pubspec.yaml`: добавлен `livekit_client: ^2.12.0`; `flutter_webrtc`
+  запинен ровно на `1.6.0` (livekit пинит эту версию — `^1.6.1` конфликтует).
+- `lib/calls.dart` переписан на LiveKit, публичный API к UI неизменен:
+  `startCall/accept` → `CALL_TOKEN` (`api.unaryEncodedWithResponse`) →
+  `Room.connect(url, token)` → `setMicrophoneEnabled/setCameraEnabled` →
+  события комнаты (`ParticipantConnected`, `TrackSubscribed/Unsubscribed`,
+  `ParticipantDisconnected`, `RoomDisconnected`) маппятся в тот же
+  `CallSnapshot`. Видеодорожки (`VideoTrack`) живут в сервисе (не immutable),
+  UI читает их геттерами `localVideoTrack`/`remoteVideoTrack`; смену дорожек
+  сигналит новый монотонный `CallSnapshot.mediaEpoch` (иначе mappable-equality
+  снимков не различит их). Громкая связь — `AudioManager.instance
+  .setSpeakerOutputPreferred` (не устаревший `Hardware.setSpeakerphoneOn`).
+- **Ring без SDP:** `CallRing{callId, toUserID, fromUserID, video}` — один
+  message на `CALL_RING`/`CALL_HANGUP`/`CALL_REJECT` (тип задаёт конверт).
+  Звонящий шлёт `CALL_RING` → сервер релеит в стрим адресата **и** дёргает
+  `SendCallPush`. «Принял» отдельным сигналом не шлём — звонящий видит
+  `ParticipantConnected`.
+- **Снесено:** на клиенте — perfect-negotiation, offer-retransmit, glare,
+  ICE-буфер, `_createPeerConnection`, `_onOffer/_onAnswer/_onRemoteCandidate`,
+  `_sendSignal`, `_fetchIceServers`, RTC-рендереры. На сервере — SDP-кейсы
+  `relayCallSignal`, `CALL_ICE_SERVERS`/`iceServers()` (TURN-HMAC),
+  `Call.Signal`/`IceServers` из `call_v1.proto`; в `v1.proto`
+  `CALL_OFFER/ANSWER/ICE_CANDIDATE/ICE_SERVERS` удалены и `reserved 16,17,18,21`.
+- Клиентский Dart-pb регенерирован (отложенное из Фазы 1).
+- **Адаптирован UI, чтобы репо компилировалось** (формально Фаза 3):
+  `call_cubit.dart` отдаёт `VideoTrack?`-геттеры + `mediaEpoch`;
+  `call_state.dart` получил поле `mediaEpoch` (+ build_runner);
+  `call_view.dart` рендерит `VideoTrackRenderer` вместо `RTCVideoView`.
+- Побудку (`call_push.dart`, `push.dart`, `push.go`) НЕ трогали.
+- `flutter analyze` зелёный, `dart format lib` прогнан.
 
 Выход: звонок работает только через LiveKit.
 
-## Фаза 3 — UI под LiveKit
+## Фаза 3 — UI под LiveKit — ГОТОВО (2026-09-11)
 
-- `call_view.dart` / `local_media_preview.dart`: рендерят треки участников
-  виджетами LiveKit. `call_gate.dart` без изменений (навигация по `CallSnapshot`).
+- `call_view.dart`: удалённое видео — `VideoTrackRenderer` на весь экран,
+  локальное — PiP (сделано ещё в Фазе 2). Добавлена **личность собеседника**:
+  имя вместо заглушки «Звонок» + аватар (для аудиозвонка; для видео не дублируем,
+  лицо уже на экране). Плейсхолдер — `AnimatedBoringAvatar` (сид = hex userID),
+  как на экране профиля.
+- `call_cubit.dart` / `call_state.dart`: `CallState` получил `displayName`,
+  `boringAvatarHash`, `avatarBytes` (+ `Uint8ListMapper`). `CallCubit` разрешает
+  профиль собеседника по `remoteUserID` тем же путём, что и `ProfileCubit`:
+  мгновенно из кэша БД (`repositories.profiles` + `cdnManager.cachedFile`) и
+  из стрима `PROFILE` (запрос + слушатель) — чтобы дозаполнить незнакомца
+  (входящий от не-контакта). Имя собирается с учётом локали (RU: «Фамилия Имя»),
+  фолбэк — телефон → username.
+- Удалён мёртвый `local_media_preview.dart` — спайк-виджет Фазы 0 на
+  `flutter_webrtc`, нигде не использовался после переезда на LiveKit.
+- `call_gate.dart` без изменений (навигация по `CallSnapshot`).
+- `flutter analyze` зелёный, `dart format lib` прогнан.
+
+**Не входит в эту фазу** (нужен бэкенд, которого нет): полноценный список
+вызовов/история на вкладке «Звонки» — там пока временный диалер по hex-userID
+(`calls_cupertino/material.dart`). Отдельная фича, вне миграции.
 
 ## Фаза 4 — Валидация 1-на-1
 

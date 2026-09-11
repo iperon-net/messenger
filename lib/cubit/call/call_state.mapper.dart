@@ -15,6 +15,7 @@ class CallStateMapper extends ClassMapperBase<CallState> {
   static CallStateMapper ensureInitialized() {
     if (_instance == null) {
       MapperContainer.globals.use(_instance = CallStateMapper._());
+      MapperContainer.globals.useAll([Uint8ListMapper()]);
     }
     return _instance!;
   }
@@ -92,6 +93,33 @@ class CallStateMapper extends ClassMapperBase<CallState> {
     opt: true,
     def: '',
   );
+  static int _$mediaEpoch(CallState v) => v.mediaEpoch;
+  static const Field<CallState, int> _f$mediaEpoch = Field(
+    'mediaEpoch',
+    _$mediaEpoch,
+    opt: true,
+    def: 0,
+  );
+  static String _$displayName(CallState v) => v.displayName;
+  static const Field<CallState, String> _f$displayName = Field(
+    'displayName',
+    _$displayName,
+    opt: true,
+    def: '',
+  );
+  static String _$boringAvatarHash(CallState v) => v.boringAvatarHash;
+  static const Field<CallState, String> _f$boringAvatarHash = Field(
+    'boringAvatarHash',
+    _$boringAvatarHash,
+    opt: true,
+    def: '',
+  );
+  static Uint8List? _$avatarBytes(CallState v) => v.avatarBytes;
+  static const Field<CallState, Uint8List> _f$avatarBytes = Field(
+    'avatarBytes',
+    _$avatarBytes,
+    opt: true,
+  );
 
   @override
   final MappableFields<CallState> fields = const {
@@ -105,6 +133,10 @@ class CallStateMapper extends ClassMapperBase<CallState> {
     #speakerOn: _f$speakerOn,
     #endReason: _f$endReason,
     #debug: _f$debug,
+    #mediaEpoch: _f$mediaEpoch,
+    #displayName: _f$displayName,
+    #boringAvatarHash: _f$boringAvatarHash,
+    #avatarBytes: _f$avatarBytes,
   };
 
   static CallState _instantiate(DecodingData data) {
@@ -119,6 +151,10 @@ class CallStateMapper extends ClassMapperBase<CallState> {
       speakerOn: data.dec(_f$speakerOn),
       endReason: data.dec(_f$endReason),
       debug: data.dec(_f$debug),
+      mediaEpoch: data.dec(_f$mediaEpoch),
+      displayName: data.dec(_f$displayName),
+      boringAvatarHash: data.dec(_f$boringAvatarHash),
+      avatarBytes: data.dec(_f$avatarBytes),
     );
   }
 
@@ -193,6 +229,10 @@ abstract class CallStateCopyWith<$R, $In extends CallState, $Out>
     bool? speakerOn,
     CallEndReason? endReason,
     String? debug,
+    int? mediaEpoch,
+    String? displayName,
+    String? boringAvatarHash,
+    Uint8List? avatarBytes,
   });
   CallStateCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
@@ -224,6 +264,10 @@ class _CallStateCopyWithImpl<$R, $Out>
     bool? speakerOn,
     CallEndReason? endReason,
     String? debug,
+    int? mediaEpoch,
+    String? displayName,
+    String? boringAvatarHash,
+    Object? avatarBytes = $none,
   }) => $apply(
     FieldCopyWithData({
       if (status != null) #status: status,
@@ -236,6 +280,10 @@ class _CallStateCopyWithImpl<$R, $Out>
       if (speakerOn != null) #speakerOn: speakerOn,
       if (endReason != null) #endReason: endReason,
       if (debug != null) #debug: debug,
+      if (mediaEpoch != null) #mediaEpoch: mediaEpoch,
+      if (displayName != null) #displayName: displayName,
+      if (boringAvatarHash != null) #boringAvatarHash: boringAvatarHash,
+      if (avatarBytes != $none) #avatarBytes: avatarBytes,
     }),
   );
   @override
@@ -250,6 +298,10 @@ class _CallStateCopyWithImpl<$R, $Out>
     speakerOn: data.get(#speakerOn, or: $value.speakerOn),
     endReason: data.get(#endReason, or: $value.endReason),
     debug: data.get(#debug, or: $value.debug),
+    mediaEpoch: data.get(#mediaEpoch, or: $value.mediaEpoch),
+    displayName: data.get(#displayName, or: $value.displayName),
+    boringAvatarHash: data.get(#boringAvatarHash, or: $value.boringAvatarHash),
+    avatarBytes: data.get(#avatarBytes, or: $value.avatarBytes),
   );
 
   @override

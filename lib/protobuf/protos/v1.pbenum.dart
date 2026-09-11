@@ -32,17 +32,15 @@ class MessageType extends $pb.ProtobufEnum {
   static const MessageType DEVICE_INFO_UPDATE = MessageType._(13, _omitEnumNames ? '' : 'DEVICE_INFO_UPDATE');
   static const MessageType MY_PROFILE_AVATAR_UPDATE = MessageType._(14, _omitEnumNames ? '' : 'MY_PROFILE_AVATAR_UPDATE');
   static const MessageType UPLOAD_CONFIRM = MessageType._(15, _omitEnumNames ? '' : 'UPLOAD_CONFIRM');
-  static const MessageType CALL_OFFER = MessageType._(16, _omitEnumNames ? '' : 'CALL_OFFER');
-  static const MessageType CALL_ANSWER = MessageType._(17, _omitEnumNames ? '' : 'CALL_ANSWER');
-  static const MessageType CALL_ICE_CANDIDATE = MessageType._(18, _omitEnumNames ? '' : 'CALL_ICE_CANDIDATE');
   static const MessageType CALL_HANGUP = MessageType._(19, _omitEnumNames ? '' : 'CALL_HANGUP');
   static const MessageType CALL_REJECT = MessageType._(20, _omitEnumNames ? '' : 'CALL_REJECT');
-  static const MessageType CALL_ICE_SERVERS = MessageType._(21, _omitEnumNames ? '' : 'CALL_ICE_SERVERS');
   static const MessageType MY_PROFILE_USERNAME_UPDATE = MessageType._(22, _omitEnumNames ? '' : 'MY_PROFILE_USERNAME_UPDATE');
   static const MessageType PROFILE = MessageType._(23, _omitEnumNames ? '' : 'PROFILE');
   static const MessageType CONTACTS_DISCOVERY_EVALUATE = MessageType._(24, _omitEnumNames ? '' : 'CONTACTS_DISCOVERY_EVALUATE');
   static const MessageType CONTACTS_DISCOVERY_MATCH = MessageType._(25, _omitEnumNames ? '' : 'CONTACTS_DISCOVERY_MATCH');
   static const MessageType REGISTER_PUSH_TOKEN = MessageType._(26, _omitEnumNames ? '' : 'REGISTER_PUSH_TOKEN');
+  static const MessageType CALL_TOKEN = MessageType._(27, _omitEnumNames ? '' : 'CALL_TOKEN');
+  static const MessageType CALL_RING = MessageType._(28, _omitEnumNames ? '' : 'CALL_RING');
 
   static const $core.List<MessageType> values = <MessageType>[
     HEALTHCHECK,
@@ -61,20 +59,18 @@ class MessageType extends $pb.ProtobufEnum {
     DEVICE_INFO_UPDATE,
     MY_PROFILE_AVATAR_UPDATE,
     UPLOAD_CONFIRM,
-    CALL_OFFER,
-    CALL_ANSWER,
-    CALL_ICE_CANDIDATE,
     CALL_HANGUP,
     CALL_REJECT,
-    CALL_ICE_SERVERS,
     MY_PROFILE_USERNAME_UPDATE,
     PROFILE,
     CONTACTS_DISCOVERY_EVALUATE,
     CONTACTS_DISCOVERY_MATCH,
     REGISTER_PUSH_TOKEN,
+    CALL_TOKEN,
+    CALL_RING,
   ];
 
-  static final $core.List<MessageType?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 26);
+  static final $core.List<MessageType?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 28);
   static MessageType? valueOf($core.int value) => value < 0 || value >= _byValue.length ? null : _byValue[value];
 
   const MessageType._(super.value, super.name);

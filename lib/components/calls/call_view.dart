@@ -1,15 +1,16 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_webrtc/flutter_webrtc.dart';
+import 'package:flutter_boring_avatars/flutter_boring_avatars.dart';
+import 'package:livekit_client/livekit_client.dart';
 
 import '../../calls.dart';
 import '../../cubit.dart';
 
-/// Экран звонка (общий для обеих платформ, как [LocalMediaPreview]): рендерит
-/// удалённое видео на весь экран, локальное — картинкой-в-картинке, и панель
-/// управления, зависящую от стадии звонка ([CallStatus]). Действия проксируются
-/// в [CallCubit] → [Calls]. Платформенные обёртки (`CallCupertino`/
-/// `CallMaterial`) лишь дают Scaffold и фон. Полный UI/UX — фаза 3.
+/// Экран звонка (общий для обеих платформ): рендерит удалённое видео на весь
+/// экран, локальное — картинкой-в-картинке, а для аудиозвонка — аватар/имя
+/// собеседника, плюс панель управления, зависящую от стадии звонка
+/// ([CallStatus]). Действия проксируются в [CallCubit] → [Calls]. Платформенные
+/// обёртки (`CallCupertino`/`CallMaterial`) лишь дают Scaffold и фон.
 class CallView extends StatelessWidget {
   const CallView({super.key});
 
@@ -24,14 +25,19 @@ class CallView extends StatelessWidget {
         final cubit = context.read<CallCubit>();
         final video = state.video;
         final showVideo = video && (state.callStatus == CallStatus.active || state.callStatus == CallStatus.connecting);
+        // Дорожки берём из сервиса; mediaEpoch в state гарантирует, что при их
+        // появлении/смене BlocBuilder перестроит рендереры (сами VideoTrack не
+        // участвуют в equality состояния).
+        final remoteTrack = cubit.remoteVideoTrack;
+        final localTrack = cubit.localVideoTrack;
 
         return ColoredBox(
           color: _bg,
           child: Stack(
             fit: StackFit.expand,
             children: [
-              if (showVideo) RTCVideoView(cubit.remoteRenderer, objectFit: RTCVideoViewObjectFit.RTCVideoViewObjectFitCover),
-              if (showVideo)
+              if (showVideo && remoteTrack != null) VideoTrackRenderer(remoteTrack, fit: VideoViewFit.cover),
+              if (showVideo && localTrack != null)
                 Positioned(
                   right: 16,
                   top: 48,
@@ -39,7 +45,7 @@ class CallView extends StatelessWidget {
                   height: 160,
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(12),
-                    child: RTCVideoView(cubit.localRenderer, mirror: true, objectFit: RTCVideoViewObjectFit.RTCVideoViewObjectFitCover),
+                    child: VideoTrackRenderer(localTrack, fit: VideoViewFit.cover, mirrorMode: VideoViewMirrorMode.mirror),
                   ),
                 ),
               _Overlay(state: state, showVideo: showVideo),
@@ -70,6 +76,9 @@ class _Overlay extends StatelessWidget {
             Column(
               children: [
                 const SizedBox(height: 8),
+                // Для видеозвонка лицо собеседника уже на весь экран — аватар не
+                // дублируем. Для аудио (или до старта видео) показываем аватар.
+                if (!showVideo) ...[_Avatar(state: state), const SizedBox(height: 20)],
                 Text(
                   _title(state),
                   textAlign: TextAlign.center,
@@ -150,9 +159,9 @@ class _Overlay extends StatelessWidget {
   }
 
   String _title(CallState state) {
-    // Собеседника пока показываем по короткому идентификатору — имя/аватар из
-    // профиля подключит фаза 3.
-    return 'Звонок';
+    // Имя собеседника из профиля (кэш/стрим, см. CallCubit); пока не разрешено —
+    // нейтральный фолбэк.
+    return state.displayName.isNotEmpty ? state.displayName : 'Звонок';
   }
 
   String _subtitle(CallState state) {
@@ -180,6 +189,47 @@ class _Overlay extends StatelessWidget {
       case CallStatus.idle:
         return '';
     }
+  }
+}
+
+/// Аватар собеседника на экране аудиозвонка: скачанная картинка либо
+/// BoringAvatar-плейсхолдер (сид — hex userID), как на экране профиля.
+class _Avatar extends StatelessWidget {
+  final CallState state;
+
+  const _Avatar({required this.state});
+
+  static const _size = 128.0;
+
+  @override
+  Widget build(BuildContext context) {
+    final bytes = state.avatarBytes;
+    return SizedBox(
+      width: _size,
+      height: _size,
+      child: bytes != null
+          ? ClipOval(
+              child: Image.memory(
+                bytes,
+                width: _size,
+                height: _size,
+                fit: BoxFit.cover,
+                gaplessPlayback: true,
+                cacheWidth: (_size * MediaQuery.devicePixelRatioOf(context)).round(),
+                cacheHeight: (_size * MediaQuery.devicePixelRatioOf(context)).round(),
+              ),
+            )
+          : (state.boringAvatarHash.isNotEmpty
+                ? AnimatedBoringAvatar(
+                    name: state.boringAvatarHash,
+                    type: BoringAvatarType.beam,
+                    shape: const CircleBorder(),
+                    duration: const Duration(milliseconds: 600),
+                  )
+                : const DecoratedBox(
+                    decoration: BoxDecoration(color: Color(0xFF2C2C2E), shape: BoxShape.circle),
+                  )),
+    );
   }
 }
 

@@ -15,6 +15,8 @@ import 'dart:convert' as $convert;
 import 'dart:core' as $core;
 import 'dart:typed_data' as $typed_data;
 
+import 'package:protobuf/well_known_types/google/protobuf/timestamp.pbjson.dart' as $0;
+
 @$core.Deprecated('Use messageTypeDescriptor instead')
 const MessageType$json = {
   '1': 'MessageType',
@@ -35,17 +37,21 @@ const MessageType$json = {
     {'1': 'DEVICE_INFO_UPDATE', '2': 13},
     {'1': 'MY_PROFILE_AVATAR_UPDATE', '2': 14},
     {'1': 'UPLOAD_CONFIRM', '2': 15},
-    {'1': 'CALL_OFFER', '2': 16},
-    {'1': 'CALL_ANSWER', '2': 17},
-    {'1': 'CALL_ICE_CANDIDATE', '2': 18},
     {'1': 'CALL_HANGUP', '2': 19},
     {'1': 'CALL_REJECT', '2': 20},
-    {'1': 'CALL_ICE_SERVERS', '2': 21},
     {'1': 'MY_PROFILE_USERNAME_UPDATE', '2': 22},
     {'1': 'PROFILE', '2': 23},
     {'1': 'CONTACTS_DISCOVERY_EVALUATE', '2': 24},
     {'1': 'CONTACTS_DISCOVERY_MATCH', '2': 25},
     {'1': 'REGISTER_PUSH_TOKEN', '2': 26},
+    {'1': 'CALL_TOKEN', '2': 27},
+    {'1': 'CALL_RING', '2': 28},
+  ],
+  '4': [
+    {'1': 16, '2': 16},
+    {'1': 17, '2': 17},
+    {'1': 18, '2': 18},
+    {'1': 21, '2': 21},
   ],
 };
 
@@ -58,11 +64,11 @@ final $typed_data.Uint8List messageTypeDescriptor =
         'BhIKCgZMT0dPVVQQBxINCglTVUJTQ1JJQkUQCBIdChlERVZJQ0VfU0VTU0lPTlNfVEVSTUlOQV'
         'RFEAkSFQoRQVVUSF9DT05GSVJNQVRJT04QChIOCgpNWV9QUk9GSUxFEAsSFQoRTVlfUFJPRklM'
         'RV9VUERBVEUQDBIWChJERVZJQ0VfSU5GT19VUERBVEUQDRIcChhNWV9QUk9GSUxFX0FWQVRBUl'
-        '9VUERBVEUQDhISCg5VUExPQURfQ09ORklSTRAPEg4KCkNBTExfT0ZGRVIQEBIPCgtDQUxMX0FO'
-        'U1dFUhAREhYKEkNBTExfSUNFX0NBTkRJREFURRASEg8KC0NBTExfSEFOR1VQEBMSDwoLQ0FMTF'
-        '9SRUpFQ1QQFBIUChBDQUxMX0lDRV9TRVJWRVJTEBUSHgoaTVlfUFJPRklMRV9VU0VSTkFNRV9V'
-        'UERBVEUQFhILCgdQUk9GSUxFEBcSHwobQ09OVEFDVFNfRElTQ09WRVJZX0VWQUxVQVRFEBgSHA'
-        'oYQ09OVEFDVFNfRElTQ09WRVJZX01BVENIEBkSFwoTUkVHSVNURVJfUFVTSF9UT0tFThAa');
+        '9VUERBVEUQDhISCg5VUExPQURfQ09ORklSTRAPEg8KC0NBTExfSEFOR1VQEBMSDwoLQ0FMTF9S'
+        'RUpFQ1QQFBIeChpNWV9QUk9GSUxFX1VTRVJOQU1FX1VQREFURRAWEgsKB1BST0ZJTEUQFxIfCh'
+        'tDT05UQUNUU19ESVNDT1ZFUllfRVZBTFVBVEUQGBIcChhDT05UQUNUU19ESVNDT1ZFUllfTUFU'
+        'Q0gQGRIXChNSRUdJU1RFUl9QVVNIX1RPS0VOEBoSDgoKQ0FMTF9UT0tFThAbEg0KCUNBTExfUk'
+        'lORxAcIgQIEBAQIgQIERARIgQIEhASIgQIFRAV');
 
 @$core.Deprecated('Use messageDescriptor instead')
 const Message$json = {
@@ -188,3 +194,32 @@ final $typed_data.Uint8List uploadDescriptor =
         'KAsyEi52MS5VcGxvYWQuSW5pdEFja0gAUgdpbml0QWNrEjEKCGNodW5rQWNrGAIgASgLMhMudj'
         'EuVXBsb2FkLkNodW5rQWNrSABSCGNodW5rQWNrEjoKC2NvbXBsZXRlQWNrGAMgASgLMhYudjEu'
         'VXBsb2FkLkNvbXBsZXRlQWNrSABSC2NvbXBsZXRlQWNrQgkKB3BheWxvYWQ=');
+
+const $core.Map<$core.String, $core.dynamic> IperonServiceBase$json = {
+  '1': 'Iperon',
+  '2': [
+    {'1': 'Unary', '2': '.v1.Message', '3': '.v1.Message', '4': {}},
+    {'1': 'Stream', '2': '.v1.Message', '3': '.v1.Message', '4': {}, '5': true, '6': true},
+    {'1': 'Upload', '2': '.v1.Upload.Request', '3': '.v1.Upload.Response', '4': {}, '5': true, '6': true},
+  ],
+};
+
+@$core.Deprecated('Use iperonServiceDescriptor instead')
+const $core.Map<$core.String, $core.Map<$core.String, $core.dynamic>> IperonServiceBase$messageJson = {
+  '.v1.Message': Message$json,
+  '.google.protobuf.Timestamp': $0.Timestamp$json,
+  '.v1.Upload.Request': Upload_Request$json,
+  '.v1.Upload.Init': Upload_Init$json,
+  '.v1.Upload.Chunk': Upload_Chunk$json,
+  '.v1.Upload.Done': Upload_Done$json,
+  '.v1.Upload.Response': Upload_Response$json,
+  '.v1.Upload.InitAck': Upload_InitAck$json,
+  '.v1.Upload.ChunkAck': Upload_ChunkAck$json,
+  '.v1.Upload.CompleteAck': Upload_CompleteAck$json,
+};
+
+/// Descriptor for `Iperon`. Decode as a `google.protobuf.ServiceDescriptorProto`.
+final $typed_data.Uint8List iperonServiceDescriptor =
+    $convert.base64Decode('CgZJcGVyb24SIwoFVW5hcnkSCy52MS5NZXNzYWdlGgsudjEuTWVzc2FnZSIAEigKBlN0cmVhbR'
+        'ILLnYxLk1lc3NhZ2UaCy52MS5NZXNzYWdlIgAoATABEjcKBlVwbG9hZBISLnYxLlVwbG9hZC5S'
+        'ZXF1ZXN0GhMudjEuVXBsb2FkLlJlc3BvbnNlIgAoATAB');

@@ -3,60 +3,28 @@ syntax = "proto3";
 package iperon.v1;
 option go_package = "internal/api/v1";
 
-// Call — сигналинг WebRTC-звонков 1-на-1. Сервер выступает только реле: снимает
-// крипто-конверт, аутентифицирует отправителя, перезаписывает fromUserID из
-// сессии и публикует Signal адресату (toUserID) через NATS. Медиа (SRTP) идёт
-// p2p мимо сервера. Тип действия (offer/answer/candidate/hangup/reject) задаёт
-// MessageType конверта — Signal один на все действия.
-message Call {
-  message Signal {
-    // callId — идентификатор звонка (генерит звонящий), одинаков для всех
-    // сигналов одного звонка. Нужен клиенту, чтобы отличать сигналы разных
-    // звонков и гасить гонки при звонке на несколько устройств.
-    string callId = 1;
-    // toUserID — адресат (bson.ObjectID, 12 байт). Кому публикуем.
-    bytes toUserID = 2;
-    // fromUserID — отправитель. Проставляет СЕРВЕР из сессии; всё, что прислал
-    // сюда клиент, игнорируется и перезаписывается.
-    bytes fromUserID = 3;
-
-    enum CallType {
-      AUDIO = 0;
-      VIDEO = 1;
-    }
-    CallType callType = 4;
-
-    oneof body {
-      string sdp = 5;             // для CALL_OFFER / CALL_ANSWER
-      IceCandidate candidate = 6; // для CALL_ICE_CANDIDATE (trickle)
-    }
-  }
-
-  message IceCandidate {
-    string candidate = 1;
-    string sdpMid = 2;
-    int32 sdpMLineIndex = 3;
-  }
-}
-
-// IceServers — эфемерные ICE-серверы (STUN + TURN) для звонка. Клиент
-// запрашивает их отдельным шифрованным unary-типом CALL_ICE_SERVERS перед
-// КАЖДЫМ звонком: TURN-креды короткоживущие (HMAC use-auth-secret), секрет
-// TURN живёт только на сервере. Server.urls группирует адреса с одними
-// кредами (STUN-серверы идут без username/credential).
-message IceServers {
-  message Request {}
-
-  message Server {
-    repeated string urls = 1;
-    string username = 2;   // "<expiry unix>:<userID hex>" для TURN; пусто для STUN
-    string credential = 3; // base64(HMAC-SHA1(turnSecret, username)); пусто для STUN
-  }
-
-  message Response {
-    repeated Server servers = 1;
-    int64 ttl = 2; // секунды жизни TURN-кредов (для клиентского рефетча)
-  }
+// CallRing — лёгкий сигнал управления звонком поверх NATS/стрима, БЕЗ SDP/ICE:
+// весь медиа-сигналинг (offer/answer/candidate) LiveKit берёт на себя внутри
+// комнаты. Тип действия задаёт MessageType конверта — один CallRing на все три:
+//   - CALL_RING   — «звоню тебе»: сервер релеит адресату и дёргает call-пуш
+//                   (побудка). Ответа «принял» нет — звонящий видит подключение
+//                   абонента как ParticipantConnected в комнате LiveKit.
+//   - CALL_HANGUP — отмена/завершение звонящим или завершение разговора.
+//   - CALL_REJECT — отклонение входящего адресатом.
+// Сервер, как и раньше, аутентифицирует отправителя, перезаписывает fromUserID
+// из сессии и публикует адресату (toUserID) через NATS.
+message CallRing {
+  // callId — идентификатор звонка (генерит звонящий), одинаков для обеих
+  // сторон; становится именем комнаты LiveKit. Приёмник дедупит сигналы по нему.
+  string callId = 1;
+  // toUserID — адресат (bson.ObjectID, 12 байт). Кому релеим.
+  bytes toUserID = 2;
+  // fromUserID — отправитель. Проставляет СЕРВЕР из сессии; клиентское значение
+  // игнорируется и перезаписывается.
+  bytes fromUserID = 3;
+  // video — видеозвонок? Значимо для CALL_RING (тип входящего экрана/пуша);
+  // для HANGUP/REJECT игнорируется.
+  bool video = 4;
 }
 
 // CallToken — выдача доступа в комнату LiveKit SFU. Клиент запрашивает
