@@ -76,6 +76,13 @@ class _SettingsMaterial extends State<SettingsMaterial> {
                     isTrailing: true,
                   ),
                   MaterialListTileIcon(
+                    title: Text(context.t.screenSettings.logs),
+                    color: const Color(0xFF8E8E93),
+                    icon: FontAwesomeIcons.fileLines,
+                    onTab: () async => context.go("/settings/logs"),
+                    isTrailing: true,
+                  ),
+                  MaterialListTileIcon(
                     title: Text(context.t.screenSettings.logout),
                     color: const Color(0xFF5A48E6),
                     icon: FontAwesomeIcons.rightFromBracket,

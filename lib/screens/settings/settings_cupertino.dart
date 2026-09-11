@@ -97,6 +97,13 @@ class _SettingsCupertino extends State<SettingsCupertino> {
                       onTab: () async => context.go("/settings/language"),
                       isTrailing: true,
                     ),
+                    CupertinoListTileIcon(
+                      title: Text(context.t.screenSettings.logs),
+                      color: Color(0xFF8E8E93),
+                      icon: FontAwesomeIcons.fileLines,
+                      onTab: () async => context.go("/settings/logs"),
+                      isTrailing: true,
+                    ),
                   ],
                 ),
                 CupertinoListSection.insetGrouped(

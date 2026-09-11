@@ -39,6 +39,7 @@
   "appearance": "@:screenSettingsAppearance.appearance"
   "privacyAndSecurity": "Privacy and security"
   "aboutApplication": "About the application"
+  "logs": "Logs"
   "logout": "Logout"
 
 "screenSettingsAppearance":

@@ -88,6 +88,7 @@ class Routers {
                 // Вложенные пути (/settings/language, /settings/appearance),
                 // но parentNavigatorKey отправляет их на корневой навигатор —
                 // экран открывается на весь экран, без нижнего таб-бара.
+
                 GoRoute(
                   path: "profile",
                   parentNavigatorKey: rootNavigatorKey,
@@ -165,6 +166,11 @@ class Routers {
                       ],
                     ),
                   ],
+                ),
+                GoRoute(
+                  path: "logs",
+                  parentNavigatorKey: rootNavigatorKey,
+                  pageBuilder: (context, state) => _page(state, TalkerScreen(talker: logger.talker)),
                 ),
                 GoRoute(
                   path: "language",
@@ -407,6 +413,11 @@ class Routers {
                       ],
                     ),
                   ],
+                ),
+                GoRoute(
+                  path: "logs",
+                  parentNavigatorKey: rootNavigatorKey,
+                  pageBuilder: (context, state) => _pageMaterial(state, TalkerScreen(talker: logger.talker)),
                 ),
                 GoRoute(
                   path: "language",

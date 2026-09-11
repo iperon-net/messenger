@@ -144,6 +144,7 @@ class _Translations$screenSettings$ru extends Translations$screenSettings$en {
 	@override String get appearance => _root.screenSettingsAppearance.appearance;
 	@override String get privacyAndSecurity => 'Конфиденциальность';
 	@override String get aboutApplication => 'О приложении';
+	@override String get logs => 'Логи';
 	@override String get logout => 'Выйти';
 }
 
@@ -467,6 +468,7 @@ extension on TranslationsRu {
 			'screenSettings.appearance' => _root.screenSettingsAppearance.appearance,
 			'screenSettings.privacyAndSecurity' => 'Конфиденциальность',
 			'screenSettings.aboutApplication' => 'О приложении',
+			'screenSettings.logs' => 'Логи',
 			'screenSettings.logout' => 'Выйти',
 			'screenSettingsAppearance.appearance' => 'Оформление',
 			'screenSettingsAppearance.colorTheme' => 'Цветовая тема',

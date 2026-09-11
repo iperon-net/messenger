@@ -207,6 +207,9 @@ class Translations$screenSettings$en {
 	/// en: 'About the application'
 	String get aboutApplication => 'About the application';
 
+	/// en: 'Logs'
+	String get logs => 'Logs';
+
 	/// en: 'Logout'
 	String get logout => 'Logout';
 }
@@ -813,6 +816,7 @@ extension on Translations {
 			'screenSettings.appearance' => _root.screenSettingsAppearance.appearance,
 			'screenSettings.privacyAndSecurity' => 'Privacy and security',
 			'screenSettings.aboutApplication' => 'About the application',
+			'screenSettings.logs' => 'Logs',
 			'screenSettings.logout' => 'Logout',
 			'screenSettingsAppearance.appearance' => 'Appearance',
 			'screenSettingsAppearance.colorTheme' => 'Color theme',

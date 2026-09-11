@@ -39,6 +39,7 @@
   "appearance": "@:screenSettingsAppearance.appearance"
   "privacyAndSecurity": "Конфиденциальность"
   "aboutApplication": "О приложении"
+  "logs": "Логи"
   "logout": "Выйти"
 
 "screenSettingsAppearance":
