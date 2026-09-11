@@ -9,6 +9,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter_webrtc/flutter_webrtc.dart' show WebRTC;
 import 'package:livekit_client/livekit_client.dart';
 
 import 'api.dart';
@@ -476,6 +477,7 @@ class Calls {
     await _ensureIosCallKitAudioMode();
     if (Platform.isIOS) {
       try {
+        await _ensureWebRtcInitialized();
         await AudioManager.instance.setEngineAvailability(AudioEngineAvailability.none);
       } catch (error, stackTrace) {
         logger.handle(error, stackTrace);
@@ -521,6 +523,19 @@ class Calls {
   /// LiveKit продолжает настраивать категорию AVAudioSession из жизненного цикла
   /// движка (как в automatic), но НЕ активирует/деактивирует её — активацией
   /// владеет CallKit (provider didActivate/didDeactivate). No-op вне iOS.
+  /// Принудительно инициализирует нативный WebRTC (создаёт
+  /// `RTCPeerConnectionFactory` + audio device module). В flutter_webrtc 1.6.0
+  /// фабрика создаётся только в нативном `initialize:`, который с Dart-стороны
+  /// дёргается лишь при первом реальном использовании WebRTC (коннект комнаты /
+  /// getUserMedia). Экспериментальный `AudioManager.setEngineAvailability`
+  /// ходит к `peerConnectionFactory.audioDeviceModule` и кидает
+  /// «audio device module is unavailable», если его зовут раньше. `WebRTC.initialize`
+  /// идемпотентен (хранит флаг `initialized`), так что повторные вызовы дёшевы.
+  Future<void> _ensureWebRtcInitialized() async {
+    if (!Platform.isIOS) return;
+    await WebRTC.initialize();
+  }
+
   Future<void> _ensureIosCallKitAudioMode() async {
     if (!Platform.isIOS || _iosAudioModeConfigured) return;
     try {
@@ -538,6 +553,12 @@ class Calls {
   Future<void> setAudioEngineActive(bool active) async {
     if (!Platform.isIOS) return;
     try {
+      // CallKit provider(didActivate:) может опередить вход в комнату, а
+      // нативный AudioManager гейтит через peerConnectionFactory.audioDeviceModule,
+      // который в flutter_webrtc 1.6.0 создаётся лениво лишь при первом
+      // использовании WebRTC — до этого setEngineAvailability кидает
+      // «audio device module is unavailable». Прогреваем фабрику заранее.
+      await _ensureWebRtcInitialized();
       await AudioManager.instance.setEngineAvailability(
         active ? AudioEngineAvailability.defaultAvailability : AudioEngineAvailability.none,
       );
