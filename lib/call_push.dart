@@ -287,6 +287,7 @@ class CallPush {
         // iOS CallKit активировал/деактивировал аудиосессию (provider
         // didActivate/didDeactivate) — синхронно открываем/закрываем
         // WebRTC-аудиодвижок LiveKit (см. Calls.setAudioEngineActive).
+        logger.info('call: ToggleAudioSession event received (isActive=$isActive)');
         await calls.setAudioEngineActive(isActive);
       case CallEventActionCallEnded():
         _acceptedCallId = null;

@@ -654,7 +654,9 @@ public class SwiftFlutterCallkitIncomingPlugin: NSObject, FlutterPlugin, CXProvi
     }
     
     public func provider(_ provider: CXProvider, perform action: CXAnswerCallAction) {
+        NSLog("IPERON_CALL provider answer: uuid=\(action.callUUID.uuidString)")
         guard let call = self.callManager.callWithUUID(uuid: action.callUUID) else{
+            NSLog("IPERON_CALL provider answer FAIL: no call for uuid")
             action.fail()
             return
         }
@@ -671,8 +673,10 @@ public class SwiftFlutterCallkitIncomingPlugin: NSObject, FlutterPlugin, CXProvi
         self.answerCall = call
         sendEvent(SwiftFlutterCallkitIncomingPlugin.ACTION_CALL_ACCEPT, call.data.toJSON())
         if let appDelegate = UIApplication.shared.delegate as? CallkitIncomingAppDelegate {
+            NSLog("IPERON_CALL provider answer: delegating fulfill to AppDelegate.onAccept")
             appDelegate.onAccept(call, action)
         }else {
+            NSLog("IPERON_CALL provider answer: action.fulfill()")
             action.fulfill()
         }
     }
@@ -786,16 +790,19 @@ public class SwiftFlutterCallkitIncomingPlugin: NSObject, FlutterPlugin, CXProvi
     }
     
     public func provider(_ provider: CXProvider, didActivate audioSession: AVAudioSession) {
+        NSLog("IPERON_CALL provider didActivate: answerConnected=\(self.answerCall?.hasConnected ?? false) outgoingConnected=\(self.outgoingCall?.hasConnected ?? false)")
 
         if let appDelegate = UIApplication.shared.delegate as? CallkitIncomingAppDelegate {
             appDelegate.didActivateAudioSession(audioSession)
         }
 
         if(self.answerCall?.hasConnected ?? false){
+            NSLog("IPERON_CALL didActivate early-return (answer hasConnected) — TOGGLE_AUDIO_SESSION NOT sent")
             sendDefaultAudioInterruptionNotificationToStartAudioResource()
             return
         }
         if(self.outgoingCall?.hasConnected ?? false){
+            NSLog("IPERON_CALL didActivate early-return (outgoing hasConnected) — TOGGLE_AUDIO_SESSION NOT sent")
             sendDefaultAudioInterruptionNotificationToStartAudioResource()
             return
         }
@@ -813,11 +820,13 @@ public class SwiftFlutterCallkitIncomingPlugin: NSObject, FlutterPlugin, CXProvi
         sendDefaultAudioInterruptionNotificationToStartAudioResource()
         configureAudioSession()
 
+        NSLog("IPERON_CALL didActivate: sending TOGGLE_AUDIO_SESSION isActive=true")
         self.sendEvent(SwiftFlutterCallkitIncomingPlugin.ACTION_CALL_TOGGLE_AUDIO_SESSION, [ "isActive": true ])
     }
-    
+
     public func provider(_ provider: CXProvider, didDeactivate audioSession: AVAudioSession) {
-        
+        NSLog("IPERON_CALL provider didDeactivate: sending TOGGLE_AUDIO_SESSION isActive=false")
+
         if let appDelegate = UIApplication.shared.delegate as? CallkitIncomingAppDelegate {
             appDelegate.didDeactivateAudioSession(audioSession)
         }

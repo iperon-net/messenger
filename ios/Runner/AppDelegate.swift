@@ -36,6 +36,7 @@ import flutter_callkit_incoming
   func pushRegistry(_ registry: PKPushRegistry, didUpdate credentials: PKPushCredentials, for type: PKPushType) {
     guard type == .voIP else { return }
     let token = credentials.token.map { String(format: "%02x", $0) }.joined()
+    NSLog("IPERON_CALL voip token updated: \(token.count) chars")
     SwiftFlutterCallkitIncomingPlugin.sharedInstance?.setDevicePushTokenVoIP(token)
   }
 
@@ -65,6 +66,7 @@ import flutter_callkit_incoming
     let fromUserID = (dict["fromUserID"] as? String) ?? ""
     // video приходит строкой "true"/"false" (map<string,string> у FCM/APNs).
     let isVideo = ((dict["video"] as? String) ?? "false") == "true" || (dict["video"] as? Bool ?? false)
+    NSLog("IPERON_CALL voip push received: callId=\(callId) action=\(action) video=\(isVideo)")
 
     guard !callId.isEmpty else {
       // Всё равно обязаны отрепортить звонок, иначе iOS накажет — репортим
