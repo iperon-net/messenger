@@ -289,6 +289,17 @@ class Calls {
 
     try {
       await _connectRoom(callId: _snapshot.callId, remoteUserID: _snapshot.remoteUserID, video: _snapshot.video);
+      // iOS: аудиодвижок LiveKit включается по событию плагина ToggleAudioSession
+      // (CallKit provider didActivate). Это broadcast-событие: на холодном старте
+      // (accept поднял процесс из убитого) оно может уйти ДО того, как [CallPush]
+      // подпишется на onEvent, и потеряться — тогда движок остаётся `none`, и
+      // звонок идёт без звука в обе стороны. Отвеченный звонок к этому моменту в
+      // CallKit уже активен (система активировала AVAudioSession после
+      // action.fulfill), поэтому включаем движок сами. [setAudioEngineActive]
+      // идемпотентен — при живом событии повторный вызов безвреден. Только для
+      // приёма: на исходящем CallKit активирует сессию позже, там ранний вызов
+      // мог бы подраться за AVAudioSession, поэтому его оставляем на событии.
+      if (Platform.isIOS) await setAudioEngineActive(true);
     } catch (error, stackTrace) {
       logger.handle(error, stackTrace);
       await _teardown(CallEndReason.failed);
