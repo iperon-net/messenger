@@ -456,6 +456,11 @@ class Calls {
     }
     _connectingRoom = true;
 
+    // Держим gRPC-стрим живым на всё время звонка: на iOS CallKit забирает
+    // передний план (приходит paused/hidden), и без этого сигналинг звонка
+    // дропался бы с `foreground=false`. Снимается в [_teardown].
+    api.setCallActive(true);
+
     final request = CallToken_Request(callId: callId, toUserID: Uint8List.fromList(remoteUserID));
     final (status, payload) = await api.unaryEncodedWithResponse(MessageType.CALL_TOKEN, request.writeToBuffer());
 
@@ -646,6 +651,8 @@ class Calls {
     _pushAcceptedCallId = null;
     _handlingCallId = null;
     _connectingRoom = false;
+    // Звонок завершён — отпускаем удержание стрима (вернётся к foreground-гейту).
+    api.setCallActive(false);
 
     final remote = _snapshot.remoteUserID;
     final video = _snapshot.video;

@@ -98,15 +98,21 @@ class API {
   // Условия работы стрима и отложенная пауза.
   bool _authorized = false;
   bool _appActive = true;
+  // Активный звонок: во время звонка приложение на iOS отдаёт передний план
+  // CallKit (приходит paused/hidden, а resumed при возврате из CallKit может не
+  // прийти) — [_appActive] залипает в false и стрим дропает сигналинг
+  // (CALL_HANGUP и т.п.). Пока звонок идёт, держим стрим живым независимо от
+  // foreground. Ставит/снимает [Calls] (setCallActive).
+  bool _callActive = false;
   Timer? _pauseTimer;
 
   // Задержка перед паузой при уходе в фон: быстрый «свернул-развернул» не должен
   // пересобирать gRPC-соединение.
   static const Duration _backgroundGrace = Duration(seconds: 3);
 
-  // Стрим должен работать, только когда пользователь авторизован и приложение
-  // на переднем плане.
-  bool get _shouldRun => _authorized && _appActive;
+  // Стрим должен работать, когда пользователь авторизован и приложение на
+  // переднем плане ИЛИ идёт активный звонок (см. [_callActive]).
+  bool get _shouldRun => _authorized && (_appActive || _callActive);
 
   // Соединение считается открытым, пока жив исходящий контроллер.
   bool get _isRunning => _outgoing != null && !_outgoing!.isClosed;
@@ -278,11 +284,21 @@ class API {
     _reconcile();
   }
 
+  /// Сообщает, идёт ли активный звонок. Во время звонка стрим держится открытым
+  /// даже в фоне (CallKit забирает передний план) — иначе сигналинг звонка
+  /// (`CALL_HANGUP` и т.п.) дропается. Ставит/снимает [Calls].
+  void setCallActive(bool value) {
+    if (_callActive == value) return;
+    _callActive = value;
+    _reconcile();
+  }
+
   /// Полностью закрывает стрим (в т.ч. broadcast) при завершении приложения
   /// (`AppLifecycleState.detached`).
   Future<void> shutdown() async {
     _appActive = false;
     _authorized = false;
+    _callActive = false;
     await _close();
 
     // Только здесь (реальное завершение процесса/DI) закрываем broadcast
