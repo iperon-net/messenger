@@ -1,3 +1,9 @@
+# ВЕНДОРЕННЫЙ ФОРК (Iperon) плагина flutter_callkit_incoming 3.1.5.
+# Подключён через dependency_overrides в корневом pubspec.yaml.
+# Единственный патч: в android/.../CallkitIncomingActivity.kt из onAcceptClick
+# удалён requestDismissKeyguard() — ответ на звонок с локскрина не требует
+# отпечатка (экран звонка рисует MainActivity с showWhenLocked). При апдейте
+# плагина патч переносить вручную. example/ и images/ при копировании исключены.
 name: flutter_callkit_incoming
 description: Flutter Callkit Incoming to show callkit screen in your Flutter app.
 version: 3.1.5

@@ -302,6 +302,7 @@ class Calls {
     }
     // Входящий уже поднят по стриму (ring обогнал) — просто принимаем.
     if (_snapshot.status == CallStatus.incoming && _snapshot.callId == callId) {
+      _handlingCallId = callId; // синхронно, до await — второй accept отсечётся выше
       await accept();
       return;
     }
@@ -316,6 +317,10 @@ class Calls {
       return;
     }
 
+    // Синхронно (до await) метим звонок как обрабатываемый — если натив пришлёт
+    // accept повторно, второй acceptFromPush отсечётся верхним гардом ещё до
+    // эмита/CALL_TOKEN, а не только на уровне _connectRoom.
+    _handlingCallId = callId;
     _emit(CallSnapshot(status: CallStatus.incoming, callId: callId, remoteUserID: fromUserID, video: video, speakerOn: video));
     _dbg('ring from push', reset: true);
     await accept();
@@ -489,6 +494,19 @@ class Calls {
     _dbg('room connected');
 
     await _publishLocalMedia(video: video);
+
+    // Начальный маршрут аудио. LiveKit (LKAudioSwitchManager) по умолчанию уходит
+    // в громкую связь (в логах Telecom: `setCommunicationDevice type:speaker`),
+    // а для аудиозвонка ожидается разговорный динамик (earpiece). Задаём явно по
+    // `speakerOn` снимка (аудио → false/earpiece, видео → true/speaker). Только
+    // Android: на iOS маршрутом владеет CallKit, туда не вмешиваемся.
+    if (Platform.isAndroid) {
+      try {
+        await AudioManager.instance.setSpeakerOutputPreferred(_snapshot.speakerOn);
+      } catch (error, stackTrace) {
+        logger.handle(error, stackTrace);
+      }
+    }
 
     // Собеседник мог войти в комнату раньше нас (мы принимаем звонок) — тогда
     // события ParticipantConnected/TrackSubscribed уже прошли; переводим в

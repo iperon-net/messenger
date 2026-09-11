@@ -183,12 +183,65 @@ false`), затем проверить:
 Мелкий остаток: при пропущенном (не принятом) звонке из фона Dart не узнаёт о
 завершении (стрим был закрыт) → флаг снимется только на следующем снимке. Не
 блокер.
-**ОТКРЫТО, отдельный баг:** killed-кейс (приложение выгружено свайпом) — после
-фикса баннер/keyguard ок, но **связь не устанавливается**. Гипотеза: событие
-`ACCEPT` от плагина прилетает раньше, чем `CallPush` успел подписаться на
-`onEvent` при холодном старте → `acceptFromPush` не вызывается. Подтвердить
-логами и, если так, забирать «пропущенное» действие на старте (плагин хранит
-активные звонки — `activeCalls()` / initial-event).
+**ОБНОВЛЕНО (валидация на Pixel 9, см. ниже):** описанный выше keyguard-подход
+через `showWhenLocked` на `MainActivity` оказался НЕДОСТАТОЧНЫМ (биометрию зовёт
+активити плагина `CallkitIncomingActivity`, а не наша) → перешли на вендоринг
+плагина. А «связь не устанавливается» — это была НЕ проблема killed-кейса, а
+сочетание оборванной подписки `_incoming` + двойного приёма
+(`DUPLICATE_IDENTITY`); оба ПОЧИНЕНЫ (см. следующий подраздел).
+
+### Android: валидация на Pixel 9 (Android 17/API37) + логи LiveKit — 3 корневые причины, ВСЁ ПОЧИНЕНО (2026-09-11, не коммичено)
+
+Проверено на реальном устройстве и логами LiveKit-сервера. **Инфраструктура
+LiveKit ИСПРАВНА** (iPhone соединяется по UDP ~0.8с, обе стороны publish/subscribe,
+`connectionType udp`) — прежние подозрения на ICE/coturn были НЕВЕРНЫ. Все три
+бага — клиентские:
+
+1. **Входящий не обрабатывался вообще (и foreground, и push).** `api.dart._close()`
+   (вызывается из `_reconcile` при `!_authorized`) закрывал и обнулял broadcast
+   `_incoming`. На старте `_reconcile` успевает вызвать `_close()` (сессия ещё
+   грузится), а `Calls` уже подписан на `api.on(CALL_RING)` в конструкторе → старый
+   контроллер уничтожался, `_open()` создавал новый, подписка `Calls` навсегда
+   висела на мёртвом. Симптом: `unhandled stream message type: CALL_RING`, но
+   `Calls._handleSignal` не вызывался. **Фикс:** `_close()` больше не трогает
+   `_incoming` (живёт как синглтон `API`; закрываем только в `shutdown()` при
+   завершении процесса). Доставка чужой сессии безопасна — `_dispatch` гейтится на
+   `auth.isAuthorized`.
+2. **Биометрия при ответе с локскрина.** Полноэкранный входящий рисует активити
+   плагина `CallkitIncomingActivity` (fullScreenIntent), её `onAcceptClick()`
+   жёстко зовёт `requestDismissKeyguard()` (лог: `Activity requesting to dismiss
+   Keyguard: CallkitIncomingActivity`). Конфигом не отключить. **Фикс:** вендоринг
+   плагина в `third_party/flutter_callkit_incoming` + `dependency_overrides` в
+   корневом `pubspec.yaml`; из `CallkitIncomingActivity.onAcceptClick` удалён
+   `dismissKeyguard()` (и метод + импорт `KeyguardManager`). Ответ идёт сразу на
+   `MainActivity` (showWhenLocked) без отпечатка. Проверено: `dismiss Keyguard` в
+   логах ответа больше нет. Патч переносить вручную при апдейте плагина.
+3. **«Нет голоса»/«сразу отрубается» = ДВОЙНОЙ ПРИЁМ → `DUPLICATE_IDENTITY`.** Плагин
+   шлёт accept дважды (действие `CallkitNotificationService` + broadcast из
+   `TransparentActivity`) → два `acceptFromPush` → два `Room.connect` с одной
+   identity → сервер выбивает участника (`removing duplicate participant reason:
+   DUPLICATE_IDENTITY`, `session 0s`), звонок рвётся мгновенно. Ключ: одиночный
+   чистый звонок держится и **звук есть** — значит инфра/аудио ок, дело в дубле.
+   Слоёные гарды `_acceptedCallId`(call_push) и `_handlingCallId`(calls.accept)
+   оказались ненадёжны. **Решил** синхронный флаг `_connectingRoom` в choke-point
+   `Calls._connectRoom`: `_room` выставляется только ПОСЛЕ `await CALL_TOKEN`,
+   поэтому одной проверки `_room != null` мало (оба видят null); `_connectingRoom=
+   true` до первого await закрывает окно. Сброс в `_teardown`, снятие после
+   `_room=room`. Проверено на устройстве: одиночный join, `connectionType udp`,
+   **двусторонний звук есть**.
+
+**Дожато в коде (analyze зелёный, устройство отключено — НЕ проверено вживую):**
+- дедуп-лог: в `acceptFromPush` на обоих proceed-путях `_handlingCallId=callId`
+  ставится синхронно (до await) — повторный accept отсекается верхним гардом ещё
+  до эмита/`CALL_TOKEN`, а не только `_connectingRoom` на уровне комнаты;
+- earpiece: в `_connectRoom` после `_publishLocalMedia` на Android явный
+  `AudioManager.setSpeakerOutputPreferred(_snapshot.speakerOn)` (аудио → earpiece,
+  видео → speaker) — иначе LiveKit по умолчанию уходит в speaker.
+
+Инфра LiveKit (для истории): coturn УБРАН, встроенный TURN LiveKit. `livekit.yaml`:
+`node_ip 217.168.244.230`, `use_external_ip:false`, udp-mux `7882`, tcp `7881`,
+`turn.enabled` tls `5349` domain `livekit.iperon.net` (cert `*.iperon.net` валиден).
+Порты открыты/проброшены, DNS ок, nginx→7880 health `OK`.
 
 **Android: тап по ongoing-нотификации не возвращал на экран звонка — ПОЧИНЕНО
 (не коммичено).** Если во время звонка свернуть экран `/call` (свайп-назад/домой),
