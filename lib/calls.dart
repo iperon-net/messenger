@@ -218,7 +218,10 @@ class Calls {
   /// обновилась на экране звонка. [reset] очищает крошки (начало нового звонка).
   void _dbg(String token, {bool reset = false}) {
     _diag = reset ? token : (_diag.isEmpty ? token : '$_diag · $token');
-    logger.debug('call: $_diag');
+    // Пишем крошки на уровне info (не debug): так та же цепочка, что видна на
+    // экране звонка, попадает и в экран логов — по ней видно, на каком шаге
+    // звонок умер (ring from push · token ok · room connected · …).
+    logger.info('call: $_diag');
     _emit(_snapshot.copyWith(debug: _diag));
   }
 
@@ -302,8 +305,10 @@ class Calls {
       return;
     }
     // Входящий уже поднят по стриму (ring обогнал) — просто принимаем.
+    // `_handlingCallId` НЕ выставляем здесь: [accept] сам ставит его синхронно
+    // (до первого await), а преждевременная пометка заставила бы [accept] выйти
+    // по собственному дедуп-гарду, не подключившись (крошка застрянет на приёме).
     if (_snapshot.status == CallStatus.incoming && _snapshot.callId == callId) {
-      _handlingCallId = callId; // синхронно, до await — второй accept отсечётся выше
       await accept();
       return;
     }
@@ -318,10 +323,10 @@ class Calls {
       return;
     }
 
-    // Синхронно (до await) метим звонок как обрабатываемый — если натив пришлёт
-    // accept повторно, второй acceptFromPush отсечётся верхним гардом ещё до
-    // эмита/CALL_TOKEN, а не только на уровне _connectRoom.
-    _handlingCallId = callId;
+    // Поднимаем входящий из данных push и принимаем. `_handlingCallId` ставит
+    // сам [accept] синхронно (до первого await) — повторный acceptFromPush после
+    // этого отсечётся верхним гардом. Здесь его НЕ трогаем: иначе [accept] выйдет
+    // по своему дедуп-гарду, не подключившись (крошка застрянет на приёме).
     _emit(CallSnapshot(status: CallStatus.incoming, callId: callId, remoteUserID: fromUserID, video: video, speakerOn: video));
     _dbg('ring from push', reset: true);
     await accept();
