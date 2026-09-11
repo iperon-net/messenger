@@ -685,6 +685,7 @@ class AuthConfirmation_Request extends $pb.GeneratedMessage {
     $core.String? osVersion,
     $core.String? appVersion,
     $core.String? appBuildNumber,
+    $core.String? deviceId,
   }) {
     final result = create();
     if (confirmationSession != null) result.confirmationSession = confirmationSession;
@@ -695,6 +696,7 @@ class AuthConfirmation_Request extends $pb.GeneratedMessage {
     if (osVersion != null) result.osVersion = osVersion;
     if (appVersion != null) result.appVersion = appVersion;
     if (appBuildNumber != null) result.appBuildNumber = appBuildNumber;
+    if (deviceId != null) result.deviceId = deviceId;
     return result;
   }
 
@@ -715,6 +717,7 @@ class AuthConfirmation_Request extends $pb.GeneratedMessage {
     ..aOS(6, _omitFieldNames ? '' : 'osVersion', protoName: 'osVersion')
     ..aOS(7, _omitFieldNames ? '' : 'appVersion', protoName: 'appVersion')
     ..aOS(8, _omitFieldNames ? '' : 'appBuildNumber', protoName: 'appBuildNumber')
+    ..aOS(9, _omitFieldNames ? '' : 'deviceId', protoName: 'deviceId')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -805,6 +808,20 @@ class AuthConfirmation_Request extends $pb.GeneratedMessage {
   $core.bool hasAppBuildNumber() => $_has(7);
   @$pb.TagNumber(8)
   void clearAppBuildNumber() => $_clearField(8);
+
+  /// Стабильный идентификатор установки приложения (генерируется клиентом,
+  /// хранится в защищённом хранилище). Нужен серверу, чтобы при повторном
+  /// логине/переустановке на том же устройстве заменять его прежнюю сессию, а
+  /// не плодить дубли (иначе на одно устройство летит несколько call-пушей).
+  /// Пустой у старых клиентов — тогда дедуп по устройству не выполняется.
+  @$pb.TagNumber(9)
+  $core.String get deviceId => $_getSZ(8);
+  @$pb.TagNumber(9)
+  set deviceId($core.String value) => $_setString(8, value);
+  @$pb.TagNumber(9)
+  $core.bool hasDeviceId() => $_has(8);
+  @$pb.TagNumber(9)
+  void clearDeviceId() => $_clearField(9);
 }
 
 class AuthConfirmation_Response extends $pb.GeneratedMessage {

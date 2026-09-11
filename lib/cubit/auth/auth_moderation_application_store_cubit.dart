@@ -44,6 +44,7 @@ class AuthModerationApplicationStoreCubit extends Cubit<AuthModerationApplicatio
   Future<void> onCompleted({required String verificationCode}) async {
     final packageInfo = await utils.packageInfo();
     final deviceInfo = await utils.deviceInfo();
+    final deviceID = await utils.deviceID();
 
     // Meta data info
     final messageMetaDataInfoRequest = Message(messageType: MessageType.META_DATA_INFO);
@@ -110,6 +111,7 @@ class AuthModerationApplicationStoreCubit extends Cubit<AuthModerationApplicatio
         osVersion: deviceInfo.osVersion,
         appVersion: packageInfo.appVersion,
         appBuildNumber: packageInfo.appBuildNumber,
+        deviceId: deviceID,
       ).writeToBuffer(),
     );
 

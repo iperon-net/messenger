@@ -5,6 +5,7 @@ import 'package:device_marketing_names/device_marketing_names.dart';
 import 'package:dlibphonenumber/dlibphonenumber.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:flutter_boring_avatars/flutter_boring_avatars.dart';
@@ -100,6 +101,28 @@ class Utils {
   Future<PackageInfoModel> packageInfo() async {
     final packageInfo = await PackageInfo.fromPlatform();
     return PackageInfoModel(appVersion: packageInfo.version, appBuildNumber: packageInfo.buildNumber);
+  }
+
+  /// Стабильный идентификатор установки приложения. Генерируется один раз и
+  /// хранится в защищённом хранилище (Keychain на iOS, Keystore/
+  /// EncryptedSharedPreferences на Android). Уезжает на сервер при логине
+  /// (AUTH_CONFIRMATION), чтобы сервер держал одну сессию на устройство и при
+  /// повторном логине/переустановке заменял прежнюю сессию, а не плодил дубли —
+  /// иначе на одно устройство приходит несколько call-пушей.
+  ///
+  /// На iOS Keychain переживает переустановку, поэтому id тот же и сессия
+  /// корректно обновляется. На Android хранилище стирается при удалении
+  /// приложения — тогда id новый (это ок: старую сессию добьёт очистка мёртвого
+  /// FCM-токена на сервере).
+  Future<String> deviceID() async {
+    const storage = FlutterSecureStorage(aOptions: AndroidOptions(), iOptions: IOSOptions());
+
+    String? id = await storage.read(key: "deviceID");
+    if (id == null || id.isEmpty) {
+      id = ObjectId().hexString;
+      await storage.write(key: "deviceID", value: id);
+    }
+    return id;
   }
 
   Future<DeviceInfoModel> deviceInfo() async {
