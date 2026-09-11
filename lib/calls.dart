@@ -185,6 +185,17 @@ class Calls {
   // звонка. Сбрасывается в [_teardown].
   bool _roomConnected = false;
 
+  // Идёт ли уже разбор текущего звонка. `_teardown` зовётся из многих мест
+  // (кнопка отбоя, CALL_HANGUP/REJECT по стриму, события LiveKit
+  // Participant/RoomDisconnected, ошибки connect), а сам `room.disconnect()`
+  // внутри него ПОРОЖДАЕТ эти события — то есть повторный вход в `_teardown`,
+  // пока первый ещё висит в `room.dispose()`. Два конкурентных прохода дают два
+  // одновременных нативных `RTCPeerConnection.close()` → use-after-free на
+  // ICE-потоке libwebrtc (EXC_BAD_ACCESS 0x28), см. livekit client-sdk-flutter
+  // #1186. Флаг сериализует разбор: первый вызов делает работу, остальные —
+  // no-op. Сбрасывается в самом конце `_teardown`.
+  bool _tearingDown = false;
+
   /// Текущий снимок без подписки (стартовое значение для UI).
   CallSnapshot get snapshot => _snapshot;
 
@@ -671,6 +682,12 @@ class Calls {
   }
 
   Future<void> _teardown(CallEndReason reason) async {
+    // Повторный вход (в т.ч. из события LiveKit, которое породил наш же
+    // `room.disconnect()` ниже) — выходим, чтобы не запустить второй
+    // конкурентный `pc.close()` (см. [_tearingDown]).
+    if (_tearingDown) return;
+    _tearingDown = true;
+
     _pushAcceptedCallId = null;
     _handlingCallId = null;
     _connectingRoom = false;
@@ -701,6 +718,10 @@ class Calls {
 
     _diag = _diag.isEmpty ? 'ended:${reason.name}' : '$_diag · ended:${reason.name}';
     _emit(CallSnapshot(status: CallStatus.ended, callId: callId, remoteUserID: remote, video: video, endReason: reason, debug: _diag));
+
+    // Комната разобрана и `_room == null` — повторный `pc.close()` уже
+    // невозможен; снимаем флаг, чтобы следующий звонок мог завершиться.
+    _tearingDown = false;
   }
 
   // ---------------------------------------------------------------------------
