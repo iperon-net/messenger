@@ -289,17 +289,6 @@ class Calls {
 
     try {
       await _connectRoom(callId: _snapshot.callId, remoteUserID: _snapshot.remoteUserID, video: _snapshot.video);
-      // iOS: аудиодвижок LiveKit включается по событию плагина ToggleAudioSession
-      // (CallKit provider didActivate). Это broadcast-событие: на холодном старте
-      // (accept поднял процесс из убитого) оно может уйти ДО того, как [CallPush]
-      // подпишется на onEvent, и потеряться — тогда движок остаётся `none`, и
-      // звонок идёт без звука в обе стороны. Отвеченный звонок к этому моменту в
-      // CallKit уже активен (система активировала AVAudioSession после
-      // action.fulfill), поэтому включаем движок сами. [setAudioEngineActive]
-      // идемпотентен — при живом событии повторный вызов безвреден. Только для
-      // приёма: на исходящем CallKit активирует сессию позже, там ранний вызов
-      // мог бы подраться за AVAudioSession, поэтому его оставляем на событии.
-      if (Platform.isIOS) await setAudioEngineActive(true);
     } catch (error, stackTrace) {
       logger.handle(error, stackTrace);
       await _teardown(CallEndReason.failed);
@@ -501,20 +490,20 @@ class Calls {
     }
     _dbg('token ok');
 
-    // iOS + CallKit: аудиосессией владеет CallKit, а не LiveKit. Переводим
-    // LiveKit в externalCallSystem (он конфигурирует категорию, но НЕ активирует
-    // сессию) и держим аудиодвижок выключенным до provider(didActivate:) —
-    // событие плагина ToggleAudioSession дёрнет [setAudioEngineActive]. Без этого
-    // LiveKit и CallKit дерутся за AVAudioSession и звонок идёт без звука.
-    await _ensureIosCallKitAudioMode();
-    if (Platform.isIOS) {
-      try {
-        await _ensureWebRtcInitialized();
-        await AudioManager.instance.setEngineAvailability(AudioEngineAvailability.none);
-      } catch (error, stackTrace) {
-        logger.handle(error, stackTrace);
-      }
-    }
+    // iOS: аудиосессией управляет сам LiveKit (режим automatic) — он ставит
+    // PlayAndRecord/voiceChat, АКТИВИРУЕТ сессию и запускает аудиодвижок по
+    // жизненному циклу комнаты, ровно как на Android. CallKit остаётся только для
+    // экрана входящего и VoIP-пушей и в аудиосессию не вмешивается.
+    //
+    // Раньше здесь был externalCallSystem: LiveKit лишь конфигурировал категорию,
+    // а активацию сессии и включение движка ждал от CallKit `provider(didActivate:)`
+    // через событие плагина ToggleAudioSession. На холодном старте это событие до
+    // Dart не доходило — сессия оставалась неактивной, `setEngineAvailability` падал
+    // с -3010, и звонок шёл без звука в обе стороны (подтверждено нативными логами
+    // iOS: категория PlayAndRecord ставилась, но сессия так и не активировалась).
+    // `WebRTC.initialize` — идемпотентная прогрузка нативной фабрики, нужна до
+    // обращения к AudioManager (см. [_ensureWebRtcInitialized]).
+    await _ensureIosAudioMode();
 
     final room = Room();
     _room = room;
@@ -552,53 +541,41 @@ class Calls {
     }
   }
 
-  /// iOS: один раз переводит LiveKit в режим внешней call-системы (CallKit).
-  /// LiveKit продолжает настраивать категорию AVAudioSession из жизненного цикла
-  /// движка (как в automatic), но НЕ активирует/деактивирует её — активацией
-  /// владеет CallKit (provider didActivate/didDeactivate). No-op вне iOS.
   /// Принудительно инициализирует нативный WebRTC (создаёт
   /// `RTCPeerConnectionFactory` + audio device module). В flutter_webrtc 1.6.0
   /// фабрика создаётся только в нативном `initialize:`, который с Dart-стороны
   /// дёргается лишь при первом реальном использовании WebRTC (коннект комнаты /
-  /// getUserMedia). Экспериментальный `AudioManager.setEngineAvailability`
-  /// ходит к `peerConnectionFactory.audioDeviceModule` и кидает
-  /// «audio device module is unavailable», если его зовут раньше. `WebRTC.initialize`
-  /// идемпотентен (хранит флаг `initialized`), так что повторные вызовы дёшевы.
+  /// getUserMedia). AudioManager ходит к `peerConnectionFactory.audioDeviceModule`
+  /// и кидает «audio device module is unavailable», если его зовут раньше.
+  /// `WebRTC.initialize` идемпотентен (хранит флаг `initialized`), повторные
+  /// вызовы дёшевы. No-op вне iOS.
   Future<void> _ensureWebRtcInitialized() async {
     if (!Platform.isIOS) return;
     await WebRTC.initialize();
   }
 
-  Future<void> _ensureIosCallKitAudioMode() async {
+  /// iOS: отдаёт управление AVAudioSession самому LiveKit (режим automatic) — он
+  /// ставит категорию, активирует сессию и запускает аудиодвижок по жизненному
+  /// циклу комнаты. CallKit в аудиосессию не вмешивается (только экран входящего
+  /// и VoIP-пуши). Идемпотентно, one-shot. No-op вне iOS.
+  Future<void> _ensureIosAudioMode() async {
     if (!Platform.isIOS || _iosAudioModeConfigured) return;
     try {
-      await AudioManager.instance.setAudioSessionManagementMode(AudioSessionManagementMode.externalCallSystem);
+      await _ensureWebRtcInitialized();
+      await AudioManager.instance.setAudioSessionManagementMode(AudioSessionManagementMode.automatic);
       _iosAudioModeConfigured = true;
     } catch (error, stackTrace) {
       logger.handle(error, stackTrace);
     }
   }
 
-  /// Открывает/закрывает WebRTC-аудиодвижок под управлением CallKit. Зовётся из
-  /// [CallPush] по событию плагина `ToggleAudioSession` (iOS provider
-  /// didActivate/didDeactivate): движок работает только внутри окна активной
-  /// аудиосессии CallKit. No-op вне iOS.
+  /// Ранее включал/выключал WebRTC-аудиодвижок вручную под управлением CallKit
+  /// (`externalCallSystem`). Теперь аудиосессией и движком владеет сам LiveKit
+  /// (режим automatic, см. [_ensureIosAudioMode]), поэтому вмешательство извне
+  /// не нужно и вредно (ранний вызов на неактивной сессии давал -3010). Оставлен
+  /// no-op'ом ради вызова из [CallPush] по событию CallKit ToggleAudioSession.
   Future<void> setAudioEngineActive(bool active) async {
-    if (!Platform.isIOS) return;
-    try {
-      // CallKit provider(didActivate:) может опередить вход в комнату, а
-      // нативный AudioManager гейтит через peerConnectionFactory.audioDeviceModule,
-      // который в flutter_webrtc 1.6.0 создаётся лениво лишь при первом
-      // использовании WebRTC — до этого setEngineAvailability кидает
-      // «audio device module is unavailable». Прогреваем фабрику заранее.
-      await _ensureWebRtcInitialized();
-      await AudioManager.instance.setEngineAvailability(
-        active ? AudioEngineAvailability.defaultAvailability : AudioEngineAvailability.none,
-      );
-      _dbg(active ? 'audio on' : 'audio off');
-    } catch (error, stackTrace) {
-      logger.handle(error, stackTrace);
-    }
+    // Намеренно ничего не делаем: движком управляет LiveKit (automatic).
   }
 
   Future<void> _publishLocalMedia({required bool video}) async {
