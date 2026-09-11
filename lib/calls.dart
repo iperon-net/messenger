@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:flutter/foundation.dart';
 import 'package:livekit_client/livekit_client.dart';
@@ -227,15 +228,38 @@ class Calls {
   }
 
   /// Принимает входящий звонок, инициированный из нативного экрана (CallKit/
-  /// ConnectionService) по push. Если `CALL_RING` уже пришёл по стриму —
-  /// принимаем сразу; иначе запоминаем [callId] и примем в [_onRing], когда ring
-  /// дойдёт (клиент только проснулся из push — см. lib/call_push.dart).
-  Future<void> acceptFromPush(String callId) async {
+  /// ConnectionService) по push.
+  ///
+  /// Ключевой момент: сервер релеит `CALL_RING` только в **живой** стрим и не
+  /// переигрывает его при переподключении (см. `relayCallSignal`). Клиент,
+  /// разбуженный из фона/убитого push-ом, открывает стрим уже ПОСЛЕ того, как
+  /// ring улетел «в никуда», — ждать его в [_onRing] бессмысленно, входящий так
+  /// и не поднимется. Поэтому поднимаем входящий прямо из данных push
+  /// ([callId]/[fromUserID]/[video]) и сразу подключаемся к комнате.
+  ///
+  /// [fromUserID] может быть пустым, если натив не донёс `extra` — тогда падаем
+  /// на старую схему: запоминаем [callId] и примем в [_onRing], если ring всё же
+  /// придёт (foreground-гонка, когда стрим был жив).
+  Future<void> acceptFromPush(String callId, {required List<int> fromUserID, required bool video}) async {
+    // Входящий уже поднят по стриму (ring обогнал) — просто принимаем.
     if (_snapshot.status == CallStatus.incoming && _snapshot.callId == callId) {
       await accept();
       return;
     }
-    _pushAcceptedCallId = callId;
+    // Уже обрабатываем этот же звонок — не дублируем.
+    if (_hasActiveCall && _snapshot.callId == callId) return;
+    // Заняты другим звонком — не перебиваем.
+    if (_hasActiveCall) return;
+
+    if (fromUserID.isEmpty) {
+      // Нет собеседника из push — подключиться к комнате нечем; ждём ring.
+      _pushAcceptedCallId = callId;
+      return;
+    }
+
+    _emit(CallSnapshot(status: CallStatus.incoming, callId: callId, remoteUserID: fromUserID, video: video, speakerOn: video));
+    _dbg('ring from push', reset: true);
+    await accept();
   }
 
   /// Отклоняет звонок из нативного экрана по push. Если входящий уже поднят —
@@ -508,10 +532,21 @@ class Calls {
     return _snapshot.callId == callId && listEquals(_snapshot.remoteUserID, from);
   }
 
+  // callId обязан быть валидным UUID: на iOS flutter_callkit_incoming кладёт его
+  // прямо в CallKit как `CXProvider` UUID, и при невалидной строке молча НЕ
+  // репортит входящий (`reportNewIncomingCall` не вызывается) — баннер входящего
+  // звонка не показывается вовсе. Прежний `<micros>-[#hash]` этому не
+  // удовлетворял. Заодно это имя комнаты LiveKit. Генерируем UUID v4 из
+  // криптослучайных байт, без внешнего пакета (`uuid` — лишь транзитивная зависимость).
   String _generateCallId() {
-    final now = DateTime.now().microsecondsSinceEpoch;
-    final rand = UniqueKey().toString();
-    return '$now-$rand';
+    final random = Random.secure();
+    final bytes = List<int>.generate(16, (_) => random.nextInt(256));
+    bytes[6] = (bytes[6] & 0x0f) | 0x40; // версия 4
+    bytes[8] = (bytes[8] & 0x3f) | 0x80; // вариант 10xx
+    final hex = bytes.map((b) => b.toRadixString(16).padLeft(2, '0')).toList();
+    return '${hex.sublist(0, 4).join()}-${hex.sublist(4, 6).join()}-'
+        '${hex.sublist(6, 8).join()}-${hex.sublist(8, 10).join()}-'
+        '${hex.sublist(10, 16).join()}';
   }
 
   Future<void> dispose() async {

@@ -177,7 +177,15 @@ class CallPush {
     switch (event) {
       case CallEventActionCallAccept(:final callKitParams):
         final callId = callKitParams.id;
-        if (callId.isNotEmpty) await calls.acceptFromPush(callId);
+        if (callId.isNotEmpty) {
+          // extra донесли из показа входящего (см. _incomingParams / iOS
+          // AppDelegate) — по ним поднимаем звонок, не дожидаясь CALL_RING по
+          // стриму (сервер его не переигрывает после пробуждения из push).
+          final fromUserIDHex = (callKitParams.extra?[_kFromUserID] ?? '').toString();
+          final fromUserID = fromUserIDHex.isEmpty ? <int>[] : utils.hexToBytes(fromUserIDHex);
+          final video = callKitParams.extra?[_kVideo] == true || (callKitParams.extra?[_kVideo] ?? '').toString() == 'true';
+          await calls.acceptFromPush(callId, fromUserID: fromUserID, video: video);
+        }
       case CallEventActionCallDecline(:final callKitParams):
         final callId = callKitParams.id;
         if (callId.isNotEmpty) {
