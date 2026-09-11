@@ -487,6 +487,14 @@ class Calls {
     }
     _connectingRoom = true;
 
+    // iOS: выставляем режим аудио LiveKit под путь ответа (CallKit vs foreground)
+    // ДО любого await. На CallKit-пути это гейтит движок (externalCallSystem +
+    // engineAvailability=none) раньше, чем CallKit успеет прислать `didActivate`
+    // (его триггерит активация сессии плагином на ответе). Иначе флип движка в
+    // `default` по didActivate мог бы прийти в окне ожидания токена и быть затёрт
+    // последующим `none` — движок остался бы выключен, звонок без звука.
+    await _configureIosAudioForCall();
+
     // Держим gRPC-стрим живым на всё время звонка: на iOS CallKit забирает
     // передний план (приходит paused/hidden), и без этого сигналинг звонка
     // дропался бы с `foreground=false`. Снимается в [_teardown].
@@ -504,10 +512,6 @@ class Calls {
       throw StateError('call token response empty');
     }
     _dbg('token ok');
-
-    // iOS: выбираем режим аудио LiveKit под путь ответа (CallKit vs foreground)
-    // — см. [_configureIosAudioForCall]/[_viaCallKit].
-    await _configureIosAudioForCall();
 
     final room = Room();
     _room = room;

@@ -83,10 +83,16 @@ CallKitParams _incomingParams(Map<String, dynamic> data, String callId) {
       incomingCallNotificationChannelName: 'Входящие звонки',
       missedCallNotificationChannelName: 'Пропущенные звонки',
     ),
-    // configureAudioSession: false — категорию/активацию AVAudioSession ведём
-    // через LiveKit (externalCallSystem) + CallKit didActivate, а не через плагин,
-    // иначе двойное владение сессией даёт звонок без звука.
-    ios: const IOSParams(handleType: 'generic', supportsVideo: true, configureAudioSession: false),
+    // configureAudioSession: true — на CallKit-пути (cold-start по VoIP-push)
+    // плагин на ответе ставит категорию PlayAndRecord и активирует сессию. Без
+    // этого её не ставит НИКТО: LiveKit в externalCallSystem держит движок
+    // выключенным и ждёт CallKit `didActivate`, а сам didActivate приходит только
+    // ПОСЛЕ успешной активации сессии — а активировать SoloAmbientSound-сессию
+    // CallKit не может («early exit due to failure»). Тупик: без PlayAndRecord нет
+    // didActivate, без didActivate нет движка. Плагин ставит категорию → CallKit
+    // активирует → didActivate → ToggleAudioSession → LiveKit включает движок.
+    // Двойного владения нет: LiveKit (externalCallSystem) сам сессию не активирует.
+    ios: const IOSParams(handleType: 'generic', supportsVideo: true, configureAudioSession: true),
   );
 }
 
