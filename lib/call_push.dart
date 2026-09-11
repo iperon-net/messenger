@@ -181,6 +181,17 @@ class CallPush {
 
     _eventSub ??= FlutterCallkitIncoming.onEvent.listen(_onEvent);
 
+    // Холодный старт из killed-state (Android): пользователь принял звонок из
+    // нативного экрана, MainActivity подняла приложение с нуля — но событие
+    // ACTION_CALL_ACCEPT плагин эмитит в onEvent ДО того, как мы успели на него
+    // подписаться (DI ещё грузился), а onEvent — broadcast-стрим и теряет
+    // события без слушателя. Итог: acceptFromPush не вызывался, в комнату
+    // LiveKit не входили. Плагин хранит принятый звонок в ACTIVE_CALLS
+    // (isAccepted=true) — переигрываем accept по нему. Дедуп [_acceptedCallId]
+    // (и [Calls._handlingCallId]) не даёт двойного входа, если живое событие всё
+    // же придёт следом.
+    if (Platform.isAndroid) unawaited(_resumeAcceptedCallFromColdStart());
+
     // Мост Calls → CallKit по снимкам:
     // - outgoing (iOS): регистрируем исходящий в CallKit, чтобы аудиосессией
     //   владела единая call-система. Иначе для исходящего не прилетит
@@ -286,6 +297,34 @@ class CallPush {
         await _syncVoipToken();
       default:
         break;
+    }
+  }
+
+  /// Переигрывает accept, потерянный на холодном старте (см. [start]). Читает
+  /// принятый звонок из ACTIVE_CALLS плагина (`isAccepted == true`) и поднимает
+  /// его тем же путём, что и живое событие accept.
+  Future<void> _resumeAcceptedCallFromColdStart() async {
+    try {
+      final active = await FlutterCallkitIncoming.activeCallsRaw();
+      for (final data in active) {
+        final accepted = data['isAccepted'] == true || (data['isAccepted'] ?? '').toString() == 'true';
+        final callId = (data['id'] ?? '').toString();
+        if (!accepted || callId.isEmpty) continue;
+
+        // Тот же синхронный дедуп, что и в [_onEvent]: если живое событие всё же
+        // придёт, оно отсечётся по [_acceptedCallId].
+        if (_acceptedCallId == callId) continue;
+        _acceptedCallId = callId;
+
+        final extra = data['extra'];
+        final fromUserIDHex = (extra is Map ? (extra[_kFromUserID] ?? '') : '').toString();
+        final fromUserID = fromUserIDHex.isEmpty ? <int>[] : utils.hexToBytes(fromUserIDHex);
+        final video = extra is Map && (extra[_kVideo] == true || (extra[_kVideo] ?? '').toString() == 'true');
+        await calls.acceptFromPush(callId, fromUserID: fromUserID, video: video);
+        return;
+      }
+    } catch (error, stackTrace) {
+      logger.handle(error, stackTrace);
     }
   }
 

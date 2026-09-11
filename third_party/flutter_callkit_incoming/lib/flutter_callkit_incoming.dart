@@ -196,6 +196,25 @@ class FlutterCallkitIncoming {
     }).toList();
   }
 
+  /// Get active calls as raw maps.
+  ///
+  /// [activeCalls] maps each entry into [CallKitParams], which drops
+  /// native-only fields such as `isAccepted` (Android persists it in
+  /// `ACTIVE_CALLS`). This variant returns the maps verbatim so callers can read
+  /// those fields — used to recover an accepted call after a cold start, where
+  /// the `ACTION_CALL_ACCEPT` event was emitted on [onEvent] before the app had
+  /// subscribed (the broadcast stream drops events with no listener).
+  static Future<List<Map<String, dynamic>>> activeCallsRaw() async {
+    final result = await _channel.invokeMethod("activeCalls");
+    if (result is! List) {
+      return [];
+    }
+
+    return result
+        .map((data) => _convertMap(data) as Map<String, dynamic>)
+        .toList();
+  }
+
   /// Get device push token VoIP.
   /// On iOS: return deviceToken for VoIP.
   /// On Android: return Empty
