@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_callkit_incoming/entities/entities.dart';
 import 'package:flutter_callkit_incoming/flutter_callkit_incoming.dart';
 
@@ -22,6 +23,10 @@ const _kVideo = 'video';
 const _kAction = 'action';
 const _kActionIncoming = 'incoming';
 const _kActionCancel = 'cancel';
+
+// Канал к MainActivity (Android): показ Flutter-экрана звонка поверх экрана
+// блокировки. См. android/.../MainActivity.kt.
+const _callWindowChannel = MethodChannel('net.iperon.messenger/call_window');
 
 /// Обработчик FCM-сообщений в фоновом/выгруженном состоянии (Android). Работает в
 /// отдельном isolate «с нуля», поэтому не трогает DI/`Calls` — только показывает
@@ -122,10 +127,31 @@ class CallPush {
   // его повторно на каждый снимок со статусом outgoing.
   String? _reportedOutgoingCallId;
 
+  // Последнее переданное в MainActivity значение флага «поверх локскрина»
+  // (Android) — чтобы не дёргать канал на каждый снимок.
+  bool? _overLockscreen;
+
+  // callId, для которого мы уже обработали событие «принял». Плагин
+  // flutter_callkit_incoming шлёт accept ДВАЖДЫ (действие
+  // CallkitNotificationService + broadcast из TransparentActivity), и оба
+  // прилетают в [_onEvent]. Без дедупа получаются два входа в комнату LiveKit с
+  // одинаковой identity → сервер выбивает участника (DUPLICATE_IDENTITY),
+  // соединение рушится и звук не идёт. Ставим синхронно, до любого await, чтобы
+  // второй event гарантированно отсёкся. Сбрасываем по decline/ended.
+  String? _acceptedCallId;
+
   /// Инициализирует обработчики. Идемпотентно.
   void start() {
-    // Android 13+: без разрешения на уведомления входящий звонок не показать.
     if (Platform.isAndroid) {
+      // Натив зовёт focusCall при тапе по ongoing-нотификации звонка — просим
+      // CallGate снова открыть экран текущего звонка. Метод в обратную сторону
+      // (allowOverLockscreen) обрабатывает MainActivity.
+      _callWindowChannel.setMethodCallHandler((call) async {
+        if (call.method == 'focusCall') calls.requestFocus();
+        return null;
+      });
+
+      // Android 13+: без разрешения на уведомления входящий звонок не показать.
       unawaited(
         FlutterCallkitIncoming.requestNotificationPermission({
           'rationaleMessagePermission': 'Разрешение нужно, чтобы показывать входящие звонки.',
@@ -162,6 +188,15 @@ class CallPush {
     // - ended/idle: снимаем нативный экран, если он ещё висит (например, приняли
     //   из push, но звонок сорвался).
     _callSub ??= calls.snapshots.listen((snapshot) {
+      // Android: пока звонок активен, разрешаем экрану звонка показываться
+      // поверх экрана блокировки (иначе ответ с локскрина требует разблокировки).
+      // Снимаем флаг по завершении, чтобы весь мессенджер не оставался виден
+      // поверх блокировки.
+      _setOverLockscreen(switch (snapshot.status) {
+        CallStatus.idle || CallStatus.ended => false,
+        _ => true,
+      });
+
       switch (snapshot.status) {
         case CallStatus.outgoing:
           if (Platform.isIOS && snapshot.callId.isNotEmpty && _reportedOutgoingCallId != snapshot.callId) {
@@ -212,6 +247,15 @@ class CallPush {
       case CallEventActionCallAccept(:final callKitParams):
         final callId = callKitParams.id;
         if (callId.isNotEmpty) {
+          // Дедуп повторного accept того же звонка (плагин шлёт его дважды) —
+          // синхронно, ДО любого await, иначе два входа в комнату LiveKit дают
+          // DUPLICATE_IDENTITY и звонок падает без звука (см. [_acceptedCallId]).
+          if (_acceptedCallId == callId) {
+            logger.warning('accept event ignored: duplicate for $callId');
+            break;
+          }
+          _acceptedCallId = callId;
+
           // extra донесли из показа входящего (см. _incomingParams / iOS
           // AppDelegate) — по ним поднимаем звонок, не дожидаясь CALL_RING по
           // стриму (сервер его не переигрывает после пробуждения из push).
@@ -223,6 +267,7 @@ class CallPush {
       case CallEventActionCallDecline(:final callKitParams):
         final callId = callKitParams.id;
         if (callId.isNotEmpty) {
+          if (_acceptedCallId == callId) _acceptedCallId = null;
           final fromUserIDHex = (callKitParams.extra?[_kFromUserID] ?? '').toString();
           final fromUserID = fromUserIDHex.isEmpty ? <int>[] : utils.hexToBytes(fromUserIDHex);
           await calls.rejectFromPush(callId, fromUserID);
@@ -233,6 +278,7 @@ class CallPush {
         // WebRTC-аудиодвижок LiveKit (см. Calls.setAudioEngineActive).
         await calls.setAudioEngineActive(isActive);
       case CallEventActionCallEnded():
+        _acceptedCallId = null;
         await calls.hangup();
       case CallEventActionDidUpdateDevicePushTokenVoip():
         // iOS выдал/сменил VoIP-токен PushKit — событие не несёт сам токен,
@@ -241,6 +287,20 @@ class CallPush {
       default:
         break;
     }
+  }
+
+  /// Android: разрешает/запрещает показ экрана звонка поверх экрана блокировки.
+  /// На iOS no-op (там локскрин ведёт CallKit).
+  void _setOverLockscreen(bool allow) {
+    if (!Platform.isAndroid || _overLockscreen == allow) return;
+    _overLockscreen = allow;
+    unawaited(() async {
+      try {
+        await _callWindowChannel.invokeMethod<void>('allowOverLockscreen', allow);
+      } catch (error, stackTrace) {
+        logger.handle(error, stackTrace);
+      }
+    }());
   }
 
   /// Забирает уже выданный VoIP-токен из плагина (iOS) и регистрирует его.

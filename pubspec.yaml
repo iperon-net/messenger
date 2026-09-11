@@ -113,6 +113,16 @@ dev_dependencies:
   dart_mappable_builder: ^4.9.0
   dart_pre_commit: ^6.1.4
 
+# Локальный форк flutter_callkit_incoming (см. third_party/flutter_callkit_incoming).
+# Патч: в CallkitIncomingActivity.onAcceptClick убран requestDismissKeyguard(),
+# чтобы ответ на звонок с заблокированного экрана не требовал отпечатка/PIN —
+# экран звонка рисуется поверх локскрина через showWhenLocked нашего MainActivity.
+# Версия в third_party/.../pubspec.yaml должна совпадать с constraint в
+# dependencies выше; при апдейте плагина патч переносится вручную.
+dependency_overrides:
+  flutter_callkit_incoming:
+    path: third_party/flutter_callkit_incoming
+
 # Configuration for the `dart_pre_commit` git hook (see .githooks/pre-commit).
 # Mirrors the CI checks in .github/workflows/build_and_deploy.yaml so problems are
 # caught locally, before pushing.

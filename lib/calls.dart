@@ -142,6 +142,12 @@ class Calls {
   CallSnapshot _snapshot = const CallSnapshot();
   final _snapshotController = StreamController<CallSnapshot>.broadcast();
 
+  // Запросы «вывести экран звонка на передний план» — например, тап по
+  // ongoing-нотификации активного звонка в шторке (Android). Отдельно от
+  // снимков: статус звонка при этом не меняется, а [CallGate] должен снова
+  // открыть `/call`, если пользователь до этого свернул его. См. lib/call_push.dart.
+  final _focusController = StreamController<void>.broadcast();
+
   // Накапливаемая строка-диагностика текущего звонка (хлебные крошки этапов).
   String _diag = '';
 
@@ -153,11 +159,38 @@ class Calls {
   // принимаем автоматически. См. lib/call_push.dart.
   String? _pushAcceptedCallId;
 
+  // callId, для которого мы уже начали приём/подключение к комнате. Выставляется
+  // СИНХРОННО (до первого await) в начале accept()/startCall() и служит защитой
+  // от повторного приёма одного и того же звонка: нативный плагин
+  // (flutter_callkit_incoming) может прислать событие «принял» дважды, и без
+  // этого гарда оба вызова успевают пройти проверки статуса до первого await и
+  // войти в одну комнату LiveKit с одинаковой identity — второй участник
+  // выбивает первого, комната рвётся и звонок падает (ended:failed). Сбрасывается
+  // в [_teardown].
+  String? _handlingCallId;
+
+  // Идёт подключение к комнате LiveKit. Выставляется СИНХРОННО в начале
+  // [_connectRoom] (до await за CALL_TOKEN) и вместе с проверкой `_room != null`
+  // гарантирует единственный вход в комнату: двойной accept от нативного плагина
+  // не создаёт второй Room с той же identity (иначе сервер выбивает участника —
+  // DUPLICATE_IDENTITY — и звонок мгновенно рвётся). Сбрасывается в [_teardown].
+  bool _connectingRoom = false;
+
   /// Текущий снимок без подписки (стартовое значение для UI).
   CallSnapshot get snapshot => _snapshot;
 
   /// Изменения снимка звонка (широковещательный поток).
   Stream<CallSnapshot> get snapshots => _snapshotController.stream;
+
+  /// Запросы вывести экран текущего звонка на передний план (тап по
+  /// ongoing-нотификации). [CallGate] переоткрывает `/call`, если звонок активен.
+  Stream<void> get focusRequests => _focusController.stream;
+
+  /// Просит показать экран текущего звонка (если он активен). No-op, если звонка
+  /// нет — [CallGate] сам проверит статус.
+  void requestFocus() {
+    if (!_focusController.isClosed) _focusController.add(null);
+  }
 
   /// Локальная видеодорожка (картинка-в-картинке). null для аудиозвонка/до
   /// публикации/при выключенной камере.
@@ -203,6 +236,7 @@ class Calls {
     }
 
     final callId = _generateCallId();
+    _handlingCallId = callId;
     _emit(CallSnapshot(status: CallStatus.outgoing, callId: callId, remoteUserID: toUserID, video: video, speakerOn: video));
     _dbg('outgoing ${video ? 'video' : 'audio'}', reset: true);
 
@@ -225,6 +259,15 @@ class Calls {
       logger.warning('accept ignored: no incoming call');
       return;
     }
+
+    // Синхронный дедуп: повторный accept того же звонка (двойное событие от
+    // нативного плагина) отбрасываем до любого await, чтобы не войти в комнату
+    // LiveKit дважды. Выставляем ДО _emit/await.
+    if (_handlingCallId == _snapshot.callId) {
+      logger.warning('accept ignored: already handling ${_snapshot.callId}');
+      return;
+    }
+    _handlingCallId = _snapshot.callId;
 
     _emit(_snapshot.copyWith(status: CallStatus.connecting));
     _dbg('accepted');
@@ -251,6 +294,12 @@ class Calls {
   /// на старую схему: запоминаем [callId] и примем в [_onRing], если ring всё же
   /// придёт (foreground-гонка, когда стрим был жив).
   Future<void> acceptFromPush(String callId, {required List<int> fromUserID, required bool video}) async {
+    // Повторное событие «принял» того же звонка от нативного плагина —
+    // отбрасываем синхронно, до любого await (см. [_handlingCallId]).
+    if (_handlingCallId == callId) {
+      logger.warning('acceptFromPush ignored: already handling $callId');
+      return;
+    }
     // Входящий уже поднят по стриму (ring обогнал) — просто принимаем.
     if (_snapshot.status == CallStatus.incoming && _snapshot.callId == callId) {
       await accept();
@@ -389,6 +438,18 @@ class Calls {
   /// `callId` и публикует локальное медиа. Бросает при ошибке — вызывающий
   /// сворачивает звонок как [CallEndReason.failed].
   Future<void> _connectRoom({required String callId, required List<int> remoteUserID, required bool video}) async {
+    // Единственный вход в комнату. Двойной accept от плагина приводит сюда дважды;
+    // `_room` выставляется только ПОСЛЕ await за токеном, поэтому одной проверки
+    // `_room != null` мало — оба вызова успели бы увидеть null. Синхронный
+    // `_connectingRoom` (до первого await) закрывает это окно: второй вызов
+    // выходит, не создавая второй Room (иначе DUPLICATE_IDENTITY и мгновенный
+    // обрыв). Сбрасывается в [_teardown].
+    if (_room != null || _connectingRoom) {
+      logger.warning('_connectRoom skipped: already connecting/connected ($callId)');
+      return;
+    }
+    _connectingRoom = true;
+
     final request = CallToken_Request(callId: callId, toUserID: Uint8List.fromList(remoteUserID));
     final (status, payload) = await api.unaryEncodedWithResponse(MessageType.CALL_TOKEN, request.writeToBuffer());
 
@@ -418,6 +479,9 @@ class Calls {
 
     final room = Room();
     _room = room;
+    // С этого момента дубли отсекает `_room != null` — синхронный флаг больше не
+    // нужен (снимаем, чтобы возможный ретрай/следующий звонок не заблокировался).
+    _connectingRoom = false;
     _roomListener = room.createListener();
     _wireRoomEvents(_roomListener!);
 
@@ -541,6 +605,8 @@ class Calls {
 
   Future<void> _teardown(CallEndReason reason) async {
     _pushAcceptedCallId = null;
+    _handlingCallId = null;
+    _connectingRoom = false;
 
     final remote = _snapshot.remoteUserID;
     final video = _snapshot.video;
@@ -610,5 +676,6 @@ class Calls {
     _signalSubs.clear();
     await _teardown(CallEndReason.none);
     await _snapshotController.close();
+    await _focusController.close();
   }
 }
