@@ -83,15 +83,13 @@ CallKitParams _incomingParams(Map<String, dynamic> data, String callId) {
       incomingCallNotificationChannelName: 'Входящие звонки',
       missedCallNotificationChannelName: 'Пропущенные звонки',
     ),
-    // configureAudioSession: false — плагин НЕ трогает AVAudioSession. Аудио на
-    // всех путях управляет LiveKit в режиме `automatic` (см. calls.dart
-    // `_configureIosAudioForCall`): он единственный владелец сессии — ставит
-    // `PlayAndRecord`, активирует её и рулит движком по жизненному циклу комнаты.
-    // Если разрешить плагину тоже настраивать/активировать сессию, получаем гонку
-    // двух владельцев. Прошлый тупик был при `false + externalCallSystem` (сессию
-    // не активировал НИКТО); теперь `false + automatic` — активирует LiveKit сам,
-    // не дожидаясь CallKit `didActivate` (который на cold-start-ответе не приходит).
-    ios: const IOSParams(handleType: 'generic', supportsVideo: true, configureAudioSession: false),
+    // ВНИМАНИЕ: на iOS этот путь (Dart-репорт входящего) НЕ используется —
+    // cold-start-входящий репортит натив из VoIP-push (ios/Runner/AppDelegate.swift
+    // `pushRegistry didReceiveIncomingPush`), а foreground показывает свой in-app
+    // экран. Флаг `configureAudioSession` для CallKit-аудио задаётся ТАМ
+    // (`data.configureAudioSession = true`), не здесь. Значение ниже влияет только
+    // на платформы/пути, где showCallkitIncoming зовётся из Dart (Android).
+    ios: const IOSParams(handleType: 'generic', supportsVideo: true, configureAudioSession: true),
   );
 }
 

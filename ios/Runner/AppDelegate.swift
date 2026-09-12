@@ -89,10 +89,19 @@ import flutter_callkit_incoming
     data.supportsHolding = false
     data.supportsGrouping = false
     data.supportsUngrouping = false
-    // Категорию/активацию AVAudioSession ведёт LiveKit (externalCallSystem) в
-    // связке с CallKit didActivate, а не плагин — иначе двойное владение сессией
-    // даёт звонок без звука. См. lib/calls.dart, lib/call_push.dart.
-    data.configureAudioSession = false
+    // configureAudioSession = true — на ответе плагин
+    // (SwiftFlutterCallkitIncomingPlugin `provider(perform: CXAnswerCallAction)`)
+    // ставит категорию `PlayAndRecord` и `setActive(true)`. Это ЕДИНСТВЕННОЕ
+    // место, где флаг применяется на cold-start: входящий по VoIP-push репортит
+    // натив отсюда, Dart `_incomingParams` в этот путь НЕ попадает. Без активации
+    // сессии плагином CallKit не шлёт `provider(didActivate:)`, LiveKit в
+    // `externalCallSystem` держит движок выключенным и ждёт его вечно → тишина; а
+    // если бы LiveKit был в `automatic` и активировал сам — гонка `startCapture`
+    // на неготовой сессии (ошибка -4100). Итог: активацией владеет CallKit
+    // (через плагин), движок LiveKit поднимается по `didActivate` →
+    // ACTION_CALL_TOGGLE_AUDIO_SESSION → calls.dart `setAudioEngineActive`.
+    // См. lib/calls.dart `_configureIosAudioForCall`, lib/call_push.dart.
+    data.configureAudioSession = true
 
     SwiftFlutterCallkitIncomingPlugin.sharedInstance?.showCallkitIncoming(data, fromPushKit: true) {
       if action == "cancel" {
