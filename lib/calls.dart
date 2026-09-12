@@ -726,17 +726,30 @@ class Calls {
     _localVideoTrack = null;
     _remoteVideoTrack = null;
 
-    await _roomListener?.dispose();
-    _roomListener = null;
-
+    // Забираем комнату синхронно (до await), чтобы повторный вход видел null.
     final room = _room;
     _room = null;
+
     if (room != null) {
+      // `disconnect()` — ПЕРВЫМ действием разбора, до диспоза слушателя и всего
+      // прочего. Внутри `engine.disconnect()` сразу ставит `_isClosed = true`, а
+      // авто-реконнект SDK стартует только при `!_isClosed` (engine.dart). Если
+      // собеседник вышел, SFU может прислать LeaveRequest RECONNECT → движок лезет
+      // пересоздавать ICE-транспорты параллельно нашему teardown → две гонки
+      // `pc.close()` и падение на ICE-потоке (upstream livekit #1186). Ранний
+      // `_isClosed` подавляет этот реконнект — окно гонки сужается до минимума.
+      // Полностью баг лечится только в SDK (#1186), см. память проекта.
       try {
         await room.disconnect();
       } catch (error, stackTrace) {
         logger.handle(error, stackTrace);
       }
+    }
+
+    await _roomListener?.dispose();
+    _roomListener = null;
+
+    if (room != null) {
       await room.dispose();
     }
 
