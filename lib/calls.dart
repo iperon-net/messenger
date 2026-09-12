@@ -555,32 +555,20 @@ class Calls {
     }
   }
 
-  /// Прогревает нативный WebRTC на старте приложения (см. [_ensureWebRtcInitialized]),
-  /// ДО того как вообще возможен звонок. Так на cold-start по VoIP-push фабрика
-  /// уже существует, и `CreateModularPeerConnectionFactory` не выполняется на
-  /// главном потоке параллельно с поднятием ICE-транспортов комнаты — гонка,
-  /// падавшая на ICE-потоке libwebrtc (EXC_BAD_ACCESS 0x28, см. [_teardown] и
-  /// livekit #1186), закрывается по построению. Fire-and-forget, no-op вне iOS.
-  void warmUp() {
-    unawaited(_ensureWebRtcInitialized());
-  }
-
   /// Принудительно инициализирует нативный WebRTC (создаёт
-  /// `RTCPeerConnectionFactory` + audio device module). В flutter_webrtc 1.6.0
-  /// фабрика создаётся только в нативном `initialize:`, который с Dart-стороны
-  /// дёргается лишь при первом реальном использовании WebRTC (коннект комнаты /
-  /// getUserMedia). AudioManager ходит к `peerConnectionFactory.audioDeviceModule`
-  /// и кидает «audio device module is unavailable», если его зовут раньше.
+  /// `RTCPeerConnectionFactory` + audio device module). В flutter_webrtc фабрика
+  /// создаётся только в нативном `initialize:`, который с Dart-стороны дёргается
+  /// лишь при первом реальном использовании WebRTC (коннект комнаты / getUserMedia).
+  /// AudioManager ходит к `peerConnectionFactory.audioDeviceModule` и кидает
+  /// «audio device module is unavailable», если его зовут раньше — поэтому
+  /// [_configureIosAudioForCall] и [setAudioEngineActive] дожидаются его первыми.
   ///
-  /// `WebRTC.initialize` идемпотентен по флагу `initialized`, НО этот флаг
-  /// выставляется только по завершении нативного `initialize:`, а сам вызов —
-  /// синхронный блокирующий `CreateModularPeerConnectionFactory` на главном
-  /// потоке (висит в cond_wait, пока не поднимутся WebRTC-потоки). Два
-  /// конкурентных вызова на cold-start (наш `_configureIosAudioForCall` +
-  /// `setAudioEngineActive` по CallKit `didActivate`) успевают оба увидеть флаг
-  /// снятым и запускают две гонки создания фабрики → падение на ICE-потоке.
-  /// Мемоизируем сам Future: все конкурентные вызывающие ждут ОДИН нативный
-  /// `initialize:`, повторной фабрики не создаётся. No-op вне iOS.
+  /// `WebRTC.initialize` идемпотентен по флагу `initialized`, НО флаг выставляется
+  /// только по завершении нативного `initialize:` (синхронный блокирующий вызов на
+  /// главном потоке). Два конкурентных вызова (наш `_configureIosAudioForCall` +
+  /// `setAudioEngineActive` по CallKit `didActivate`) успели бы оба увидеть флаг
+  /// снятым. Мемоизируем сам Future: все конкурентные вызывающие ждут ОДИН нативный
+  /// `initialize:`. No-op вне iOS.
   Future<void>? _webRtcInit;
 
   Future<void> _ensureWebRtcInitialized() {
