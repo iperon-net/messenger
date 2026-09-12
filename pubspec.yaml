@@ -94,10 +94,22 @@ dependencies:
   camera: ^0.12.0+2
   image_cropper: ^12.2.1
   settings_ui: ^3.0.1
-  # LiveKit SFU-клиент (звонки). Пинит flutter_webrtc ровно на 1.6.0, поэтому
-  # наш flutter_webrtc держим на той же версии (не ^1.6.1) — иначе конфликт.
-  flutter_webrtc: 1.6.0
-  livekit_client: ^2.12.0
+  # LiveKit SFU-клиент (звонки). Оба (livekit_client и flutter_webrtc) тянут общий
+  # нативный под WebRTC-SDK, поэтому версия flutter_webrtc обязана совпадать с той,
+  # что пинит livekit_client, иначе конфликт CocoaPods/ABI.
+  #
+  # ВРЕМЕННО на git main livekit (после релиза 2.12.0), ради обновления нативного
+  # libwebrtc m144 → m150 (коммит #1187) — проверяем, чинит ли новый WebRTC
+  # cold-start ICE-краш (EXC_BAD_ACCESS 0x28 на ICE-потоке; на m144 воспроизводился
+  # стабильно). Пин на конкретный коммит ed1dd712e (#1187 m150 + #1193 hotfix), не
+  # на плавающий main. Соответственно flutter_webrtc = 1.6.2+hotfix.1 (→ WebRTC-SDK
+  # 150.7871.01), как пинит этот коммит livekit. Вернуть на pub-релиз, когда
+  # livekit опубликует версию с m150.
+  flutter_webrtc: 1.6.2+hotfix.1
+  livekit_client:
+    git:
+      url: https://github.com/livekit/client-sdk-flutter.git
+      ref: ed1dd712e
 
 dev_dependencies:
   flutter_test:
