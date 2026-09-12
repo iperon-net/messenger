@@ -180,6 +180,14 @@
   "statusLastSeenRecently": "last seen recently"
   "statusLastSeen": "last seen {date}"
 
+"screenCalls":
+  "title": "Calls"
+  "empty": "Your calls will appear here"
+  "permissionTitle": "Microphone access needed"
+  "permissionMessage": "Allow microphone access to make and receive calls on Iperon."
+  "allowAccess": "Allow access"
+  "openSettings": "Open settings"
+
 "screenAuth":
   "enterYourMobilePhoneNumber": "Enter your mobile phone number"
   "currentlyWeOnlySupportPhoneNumbersFromRussianMobileOperators": "Currently, we only support phone numbers from Russian mobile operators"

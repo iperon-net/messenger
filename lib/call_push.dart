@@ -13,6 +13,7 @@ import 'di.dart';
 import 'firebase_options.dart';
 import 'logger.dart';
 import 'push.dart';
+import 'repositories.dart';
 import 'utils.dart';
 
 // Ключи полезной нагрузки call-пуша. Должны совпадать с сервером —
@@ -21,6 +22,10 @@ const _kCallId = 'callId';
 const _kFromUserID = 'fromUserID';
 const _kVideo = 'video';
 const _kAction = 'action';
+// Имя звонящего для показа в системной звонилке (CallKit/ConnectionService).
+// Сервер кладёт его из профиля звонящего (имя/фамилия, иначе телефон); см.
+// internal/services/push.go. Пусто/нет ключа — показываем 'Iperon'.
+const _kNameCaller = 'nameCaller';
 const _kActionIncoming = 'incoming';
 const _kActionCancel = 'cancel';
 
@@ -67,12 +72,17 @@ Future<void> _handleCallData(Map<String, dynamic> data) async {
 CallKitParams _incomingParams(Map<String, dynamic> data, String callId) {
   final isVideo = (data[_kVideo] ?? '').toString() == 'true';
   final fromUserID = (data[_kFromUserID] ?? '').toString();
+  final nameCaller = (data[_kNameCaller] ?? '').toString();
 
   return CallKitParams(
     id: callId,
-    nameCaller: 'Iperon',
+    // Имя звонящего из push (профиль/телефон); пусто — фолбэк на 'Iperon'.
+    nameCaller: nameCaller.isNotEmpty ? nameCaller : 'Iperon',
     appName: 'Iperon',
-    handle: isVideo ? 'Видеозвонок' : 'Аудиозвонок',
+    // handle = userID звонящего (hex): по нему система «Недавних» умеет
+    // перезвонить (INStartCallIntent → CallPush._onEvent callback). Само имя
+    // показывает nameCaller, handle в баннере не выводится (handleType generic).
+    handle: fromUserID.isNotEmpty ? fromUserID : (isVideo ? 'Видеозвонок' : 'Аудиозвонок'),
     type: isVideo ? 1 : 0,
     // extra доедет до события accept/decline — оттуда берём собеседника и тип.
     extra: {_kFromUserID: fromUserID, _kVideo: isVideo},
@@ -95,12 +105,15 @@ CallKitParams _incomingParams(Map<String, dynamic> data, String callId) {
 
 /// Параметры для регистрации ИСХОДЯЩЕГО звонка в CallKit (iOS). Нужно, чтобы
 /// аудиосессией управляла единая call-система и прилетел provider(didActivate:).
-CallKitParams _outgoingParams(CallSnapshot snapshot) {
+/// [nameCaller] — имя абонента (резолвим локально из профиля, см.
+/// [_resolveDisplayName]); попадает в системные «Недавние». [handle] — userID
+/// абонента (hex) для перезвона из «Недавних».
+CallKitParams _outgoingParams(CallSnapshot snapshot, String nameCaller, String handle) {
   return CallKitParams(
     id: snapshot.callId,
-    nameCaller: 'Iperon',
+    nameCaller: nameCaller.isNotEmpty ? nameCaller : 'Iperon',
     appName: 'Iperon',
-    handle: snapshot.video ? 'Видеозвонок' : 'Аудиозвонок',
+    handle: handle.isNotEmpty ? handle : (snapshot.video ? 'Видеозвонок' : 'Аудиозвонок'),
     type: snapshot.video ? 1 : 0,
     ios: const IOSParams(handleType: 'generic', supportsVideo: true, configureAudioSession: false),
   );
@@ -122,6 +135,7 @@ class CallPush {
   final utils = getIt.get<Utils>();
   final pushManager = getIt.get<PushManager>();
   final auth = getIt.get<Auth>();
+  final repositories = getIt.get<Repositories>();
 
   StreamSubscription<CallEvent?>? _eventSub;
   StreamSubscription<CallSnapshot>? _callSub;
@@ -153,15 +167,13 @@ class CallPush {
         if (call.method == 'focusCall') calls.requestFocus();
         return null;
       });
-
-      // Android 13+: без разрешения на уведомления входящий звонок не показать.
-      unawaited(
-        FlutterCallkitIncoming.requestNotificationPermission({
-          'rationaleMessagePermission': 'Разрешение нужно, чтобы показывать входящие звонки.',
-          'postNotificationMessageRequired': 'Разрешите уведомления в настройках, чтобы видеть входящие звонки.',
-        }),
-      );
     }
+
+    // Android 13+: без разрешения на уведомления входящий звонок не показать.
+    // Запрашиваем НЕ на старте (иначе диалог всплывает ещё на экране авторизации,
+    // до логина), а только когда пользователь уже авторизован: сразу здесь, если
+    // сессия уже есть при запуске, и в _onAuthChanged — после успешного логина.
+    if (auth.isAuthorized) _requestNotificationPermission();
 
     // iOS: VoIP-токен уже мог быть выдан PushKit до подписки на события —
     // забираем его из плагина и регистрируем сразу. Дальнейшие смены токена
@@ -215,7 +227,7 @@ class CallPush {
         case CallStatus.outgoing:
           if (Platform.isIOS && snapshot.callId.isNotEmpty && _reportedOutgoingCallId != snapshot.callId) {
             _reportedOutgoingCallId = snapshot.callId;
-            unawaited(FlutterCallkitIncoming.startCall(_outgoingParams(snapshot)));
+            unawaited(_reportOutgoing(snapshot));
           }
         case CallStatus.ended:
         case CallStatus.idle:
@@ -241,6 +253,22 @@ class CallPush {
   void _onAuthChanged() {
     if (!auth.isAuthorized) return;
     unawaited(_syncTokens());
+    // Разрешение на уведомления просим здесь (после логина), а не на старте — см.
+    // start(). Идемпотентно: система покажет диалог лишь при первом запросе.
+    _requestNotificationPermission();
+  }
+
+  /// Android 13+: разрешение POST_NOTIFICATIONS нужно, чтобы показать входящий
+  /// звонок (нотификацию). На iOS no-op (CallKit не требует разрешения на
+  /// уведомления). Идемпотентно.
+  void _requestNotificationPermission() {
+    if (!Platform.isAndroid) return;
+    unawaited(
+      FlutterCallkitIncoming.requestNotificationPermission({
+        'rationaleMessagePermission': 'Разрешение нужно, чтобы показывать входящие звонки.',
+        'postNotificationMessageRequired': 'Разрешите уведомления в настройках, чтобы видеть входящие звонки.',
+      }),
+    );
   }
 
   Future<void> _syncTokens() async {
@@ -248,6 +276,51 @@ class CallPush {
       await pushManager.syncFcmToken();
     } else if (Platform.isIOS) {
       await _syncVoipToken();
+    }
+  }
+
+  /// Регистрирует исходящий звонок в CallKit (iOS), предварительно разрешив имя
+  /// абонента локально (профиль → телефон), чтобы в системной звонилке и
+  /// «Недавних» стояло имя, а не 'Iperon'.
+  Future<void> _reportOutgoing(CallSnapshot snapshot) async {
+    final name = await _resolveDisplayName(snapshot.remoteUserID);
+    final handle = utils.bytesToHex(Uint8List.fromList(snapshot.remoteUserID));
+    // Пока имя резолвилось, звонок мог завершиться/смениться — не регистрируем
+    // устаревший.
+    if (_reportedOutgoingCallId != snapshot.callId) return;
+    await FlutterCallkitIncoming.startCall(_outgoingParams(snapshot, name, handle));
+  }
+
+  /// Стартует исходящий по перезвону из системного списка «Недавние». [id] —
+  /// userID абонента (hex, 24 символа), который мы кладём в handle звонка. Пустой
+  /// / невалидный id игнорируем. Звоним аудио; видео пользователь включит на
+  /// экране звонка.
+  Future<void> _startCallbackCall(String id) async {
+    if (id.length != 24 || !RegExp(r'^[0-9a-fA-F]{24}$').hasMatch(id)) {
+      logger.warning('call: callback with non-userID handle "$id" — ignored');
+      return;
+    }
+    await calls.startCall(toUserID: utils.hexToBytes(id), video: false);
+  }
+
+  /// Отображаемое имя абонента по [userID] из локального кэша профилей
+  /// (имя/фамилия → телефон → username). Пусто, если профиля в кэше ещё нет —
+  /// тогда вызывающий покажет фолбэк 'Iperon'. Без сети: имя для системной
+  /// звонилки должно резолвиться мгновенно.
+  Future<String> _resolveDisplayName(List<int> userID) async {
+    if (userID.isEmpty) return '';
+    try {
+      final profile = await repositories.profiles.getByUserID(userID: userID);
+      final phone = utils.phoneNormalization(phoneNumber: profile.phoneNumber).international;
+      return utils.composeDisplayName(
+        firstName: profile.fistName,
+        lastName: profile.lastName,
+        phoneNumber: phone.isNotEmpty ? phone : profile.phoneNumber,
+        username: profile.username,
+      );
+    } catch (error, stackTrace) {
+      logger.handle(error, stackTrace);
+      return '';
     }
   }
 
@@ -295,6 +368,14 @@ class CallPush {
       case CallEventActionCallEnded():
         _acceptedCallId = null;
         await calls.hangup();
+      case CallEventActionCallCallback(:final id):
+        // Пользователь перезванивает из системного списка «Недавние» (iOS
+        // INStartCallIntent → AppDelegate.continue userActivity →
+        // sendCallbackEvent; Android — действие «Перезвонить» на пропущенном).
+        // В [id] лежит userID абонента (hex) из handle прошлого звонка —
+        // открываем нашу звонилку и звоним. Тип аудио (видео можно поднять уже
+        // на экране звонка).
+        await _startCallbackCall(id);
       case CallEventActionDidUpdateDevicePushTokenVoip():
         // iOS выдал/сменил VoIP-токен PushKit — событие не несёт сам токен,
         // забираем актуальный из плагина и регистрируем на сервере.

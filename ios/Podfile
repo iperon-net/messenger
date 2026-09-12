@@ -39,5 +39,18 @@ end
 post_install do |installer|
   installer.pods_project.targets.each do |target|
     flutter_additional_ios_build_settings(target)
+
+    # permission_handler на iOS компилирует обработчик каждого разрешения только
+    # при заданном препроцессорном макросе PERMISSION_* = 1 (по умолчанию 0 —
+    # тогда request() молча возвращает denied без системного диалога). Включаем
+    # ровно те разрешения, которые запрашиваем через permission_handler:
+    # микрофон (экран «Звонки») и контакты (фоновый preload на экране «Контакты»).
+    target.build_configurations.each do |config|
+      config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] ||= [
+        '$(inherited)',
+        'PERMISSION_MICROPHONE=1',
+        'PERMISSION_CONTACTS=1',
+      ]
+    end
   end
 end

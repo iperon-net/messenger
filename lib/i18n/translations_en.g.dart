@@ -57,6 +57,7 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	late final Translations$screenMyProfile$en screenMyProfile = Translations$screenMyProfile$en.internal(_root);
 	late final Translations$screenProfile$en screenProfile = Translations$screenProfile$en.internal(_root);
 	late final Translations$screenContacts$en screenContacts = Translations$screenContacts$en.internal(_root);
+	late final Translations$screenCalls$en screenCalls = Translations$screenCalls$en.internal(_root);
 	late final Translations$screenAuth$en screenAuth = Translations$screenAuth$en.internal(_root);
 	late final Translations$screenAuthModerationApplicationStore$en screenAuthModerationApplicationStore = Translations$screenAuthModerationApplicationStore$en.internal(_root);
 	late final Translations$screenAuthCallpasswordConfirmation$en screenAuthCallpasswordConfirmation = Translations$screenAuthCallpasswordConfirmation$en.internal(_root);
@@ -652,6 +653,33 @@ class Translations$screenContacts$en {
 	String statusLastSeen({required Object date}) => 'last seen ${date}';
 }
 
+// Path: screenCalls
+class Translations$screenCalls$en {
+	Translations$screenCalls$en.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// en: 'Calls'
+	String get title => 'Calls';
+
+	/// en: 'Your calls will appear here'
+	String get empty => 'Your calls will appear here';
+
+	/// en: 'Microphone access needed'
+	String get permissionTitle => 'Microphone access needed';
+
+	/// en: 'Allow microphone access to make and receive calls on Iperon.'
+	String get permissionMessage => 'Allow microphone access to make and receive calls on Iperon.';
+
+	/// en: 'Allow access'
+	String get allowAccess => 'Allow access';
+
+	/// en: 'Open settings'
+	String get openSettings => 'Open settings';
+}
+
 // Path: screenAuth
 class Translations$screenAuth$en {
 	Translations$screenAuth$en.internal(this._root);
@@ -932,6 +960,12 @@ extension on Translations {
 			'screenContacts.statusOnline' => 'online',
 			'screenContacts.statusLastSeenRecently' => 'last seen recently',
 			'screenContacts.statusLastSeen' => ({required Object date}) => 'last seen ${date}',
+			'screenCalls.title' => 'Calls',
+			'screenCalls.empty' => 'Your calls will appear here',
+			'screenCalls.permissionTitle' => 'Microphone access needed',
+			'screenCalls.permissionMessage' => 'Allow microphone access to make and receive calls on Iperon.',
+			'screenCalls.allowAccess' => 'Allow access',
+			'screenCalls.openSettings' => 'Open settings',
 			'screenAuth.enterYourMobilePhoneNumber' => 'Enter your mobile phone number',
 			'screenAuth.currentlyWeOnlySupportPhoneNumbersFromRussianMobileOperators' => 'Currently, we only support phone numbers from Russian mobile operators',
 			'screenAuth.insertDebugPhone' => 'Insert debug phone',

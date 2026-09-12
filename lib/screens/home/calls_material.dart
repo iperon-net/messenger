@@ -1,16 +1,12 @@
-import 'package:flutter/services.dart';
-import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:permission_handler/permission_handler.dart';
 
-import '../../auth.dart';
-import '../../calls.dart';
-import '../../di.dart';
 import '../../i18n/translations.g.dart';
-import '../../utils.dart';
 
-/// Вкладка «Звонки» (Android). Фаза 1: временный диалер для теста p2p-звонков —
-/// свой userID показываем, чужой вводим руками. Полноценный список
-/// вызовов/контактов подключит фаза 3.
+/// Вкладка «Звонки» (Android). При первом показе запрашивает доступ к микрофону
+/// (нужен для звонков); если доступ не выдан — показывает заглушку с переходом
+/// в системные настройки (как на экране «Контакты»). Список последних звонков
+/// подключит отдельная задача — пока пустое состояние.
 class CallsMaterial extends StatefulWidget {
   const CallsMaterial({super.key});
 
@@ -18,62 +14,94 @@ class CallsMaterial extends StatefulWidget {
   State<CallsMaterial> createState() => _CallsMaterialState();
 }
 
-class _CallsMaterialState extends State<CallsMaterial> {
-  final _controller = TextEditingController();
-  final _utils = getIt.get<Utils>();
+class _CallsMaterialState extends State<CallsMaterial> with WidgetsBindingObserver {
+  // null — статус ещё не известен (первая проверка идёт), иначе последний
+  // известный статус разрешения на микрофон.
+  PermissionStatus? _status;
 
-  String get _myUserID => _utils.bytesToHex(Uint8List.fromList(getIt.get<Auth>().session.userID));
-
-  Future<void> _copy() async {
-    await Clipboard.setData(ClipboardData(text: _myUserID));
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('userID скопирован')));
-  }
-
-  void _start(bool video) {
-    final hex = _controller.text.trim();
-    if (hex.length != 24) return;
-    getIt.get<Calls>().startCall(toUserID: _utils.hexToBytes(hex), video: video);
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    // Первый показ вкладки — осознанный момент запросить доступ к микрофону.
+    WidgetsBinding.instance.addPostFrameCallback((_) => _requestOnFirstView());
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
+  }
+
+  /// Возврат из системных настроек — перечитываем статус (доступ могли выдать там).
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) _refreshStatus();
+  }
+
+  /// Первый показ: штатный системный диалог запроса микрофона.
+  Future<void> _requestOnFirstView() async {
+    final status = await Permission.microphone.request();
+    if (mounted) setState(() => _status = status);
+  }
+
+  /// Тихая перепроверка статуса без диалога (после возврата из настроек).
+  Future<void> _refreshStatus() async {
+    final status = await Permission.microphone.status;
+    if (mounted) setState(() => _status = status);
+  }
+
+  /// Кнопка «Разрешить доступ»: пробуем системный диалог; если система его уже не
+  /// показывает (отклонён навсегда) — ведём в настройки приложения. По возврату
+  /// оттуда статус подхватит resumed-хук.
+  Future<void> _requestAccess() async {
+    final status = await Permission.microphone.request();
+    if (mounted) setState(() => _status = status);
+    if (!status.isGranted) await openAppSettings();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(context.t.screenHome.calls)),
-      body: Padding(
-        padding: const EdgeInsets.all(24),
+      appBar: AppBar(title: Text(context.t.screenCalls.title)),
+      body: _body(context),
+    );
+  }
+
+  Widget _body(BuildContext context) {
+    final status = _status;
+    if (status == null) return const Center(child: CircularProgressIndicator());
+    if (!status.isGranted) return _permission(context);
+    return _empty(context);
+  }
+
+  Widget _empty(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Text(context.t.screenCalls.empty, textAlign: TextAlign.center),
+      ),
+    );
+  }
+
+  Widget _permission(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('Мой userID (для звонка с другого устройства):'),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Expanded(
-                  child: SelectableText(_myUserID, style: const TextStyle(fontWeight: FontWeight.w600)),
-                ),
-                IconButton(icon: const Icon(Icons.copy), tooltip: 'Скопировать', onPressed: _copy),
-              ],
-            ),
-            const SizedBox(height: 24),
-            TextField(
-              controller: _controller,
-              decoration: const InputDecoration(labelText: 'userID собеседника (hex, 24 символа)', border: OutlineInputBorder()),
-              inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9a-fA-F]'))],
-              maxLength: 24,
-            ),
+            const Icon(Icons.mic, size: 56),
             const SizedBox(height: 16),
-            FilledButton(onPressed: () => _start(false), child: const Text('Аудиозвонок')),
-            const SizedBox(height: 12),
-            FilledButton(onPressed: () => _start(true), child: const Text('Видеозвонок')),
-            const SizedBox(height: 12),
-            OutlinedButton(onPressed: () => context.push('/profile/$_myUserID'), child: const Text('Мой профиль')),
+            Text(
+              context.t.screenCalls.permissionTitle,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            Text(context.t.screenCalls.permissionMessage, textAlign: TextAlign.center),
+            const SizedBox(height: 20),
+            FilledButton(onPressed: _requestAccess, child: Text(context.t.screenCalls.allowAccess)),
           ],
         ),
       ),

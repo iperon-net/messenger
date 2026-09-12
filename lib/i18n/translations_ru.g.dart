@@ -55,6 +55,7 @@ class TranslationsRu extends Translations with BaseTranslations<AppLocale, Trans
 	@override late final _Translations$screenMyProfile$ru screenMyProfile = _Translations$screenMyProfile$ru._(_root);
 	@override late final _Translations$screenProfile$ru screenProfile = _Translations$screenProfile$ru._(_root);
 	@override late final _Translations$screenContacts$ru screenContacts = _Translations$screenContacts$ru._(_root);
+	@override late final _Translations$screenCalls$ru screenCalls = _Translations$screenCalls$ru._(_root);
 	@override late final _Translations$screenAuth$ru screenAuth = _Translations$screenAuth$ru._(_root);
 	@override late final _Translations$screenAuthModerationApplicationStore$ru screenAuthModerationApplicationStore = _Translations$screenAuthModerationApplicationStore$ru._(_root);
 	@override late final _Translations$screenAuthCallpasswordConfirmation$ru screenAuthCallpasswordConfirmation = _Translations$screenAuthCallpasswordConfirmation$ru._(_root);
@@ -358,6 +359,21 @@ class _Translations$screenContacts$ru extends Translations$screenContacts$en {
 	@override String statusLastSeen({required Object date}) => 'был(а) ${date}';
 }
 
+// Path: screenCalls
+class _Translations$screenCalls$ru extends Translations$screenCalls$en {
+	_Translations$screenCalls$ru._(TranslationsRu root) : this._root = root, super.internal(root);
+
+	final TranslationsRu _root; // ignore: unused_field
+
+	// Translations
+	@override String get title => 'Звонки';
+	@override String get empty => 'Здесь появятся ваши звонки';
+	@override String get permissionTitle => 'Нужен доступ к микрофону';
+	@override String get permissionMessage => 'Разрешите доступ к микрофону, чтобы совершать и принимать звонки в Iperon.';
+	@override String get allowAccess => 'Разрешить доступ';
+	@override String get openSettings => 'Открыть настройки';
+}
+
 // Path: screenAuth
 class _Translations$screenAuth$ru extends Translations$screenAuth$en {
 	_Translations$screenAuth$ru._(TranslationsRu root) : this._root = root, super.internal(root);
@@ -584,6 +600,12 @@ extension on TranslationsRu {
 			'screenContacts.statusOnline' => 'в сети',
 			'screenContacts.statusLastSeenRecently' => 'был(а) недавно',
 			'screenContacts.statusLastSeen' => ({required Object date}) => 'был(а) ${date}',
+			'screenCalls.title' => 'Звонки',
+			'screenCalls.empty' => 'Здесь появятся ваши звонки',
+			'screenCalls.permissionTitle' => 'Нужен доступ к микрофону',
+			'screenCalls.permissionMessage' => 'Разрешите доступ к микрофону, чтобы совершать и принимать звонки в Iperon.',
+			'screenCalls.allowAccess' => 'Разрешить доступ',
+			'screenCalls.openSettings' => 'Открыть настройки',
 			'screenAuth.enterYourMobilePhoneNumber' => 'Введите номер мобильного телефона',
 			'screenAuth.currentlyWeOnlySupportPhoneNumbersFromRussianMobileOperators' => 'Сейчас мы поддерживаем только номера российских мобильных операторов',
 			'screenAuth.insertDebugPhone' => 'Вставить тестовый номер',

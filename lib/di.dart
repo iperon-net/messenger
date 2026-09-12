@@ -49,7 +49,7 @@ Future<void> registerCommonDependencies() async {
     getIt.registerSingletonAsync<PushManager>(() async => PushManager(), dependsOn: [API, Auth, Repositories]);
   }
   if (!getIt.isRegistered<CallPush>()) {
-    getIt.registerSingletonAsync<CallPush>(() async => CallPush(), dependsOn: [Calls, Utils, PushManager]);
+    getIt.registerSingletonAsync<CallPush>(() async => CallPush(), dependsOn: [Calls, Utils, PushManager, Repositories]);
   }
 
   await getIt.allReady();

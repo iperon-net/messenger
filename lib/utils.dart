@@ -26,6 +26,18 @@ class Utils {
 
   Utils();
 
+  /// Отображаемое имя человека из полей профиля с учётом локали (RU: «Фамилия
+  /// Имя»), с фолбэком на телефон, затем username. Общая точка для экрана звонка
+  /// ([CallCubit]) и регистрации звонка в системной звонилке ([CallPush]) —
+  /// чтобы «Iperon» в CallKit/недавних заменялось единообразно.
+  String composeDisplayName({required String firstName, required String lastName, required String phoneNumber, required String username}) {
+    final ru = LocaleSettings.currentLocale == AppLocale.ru;
+    final parts = (ru ? [lastName, firstName] : [firstName, lastName]).where((p) => p.isNotEmpty).toList();
+    if (parts.isNotEmpty) return parts.join(' ');
+    if (phoneNumber.isNotEmpty) return phoneNumber;
+    return username;
+  }
+
   PhoneNumberModel phoneNormalization({required String phoneNumber}) {
     const empty = PhoneNumberModel(international: "", national: "", e164: "", rfc3966: "", raw: "");
 

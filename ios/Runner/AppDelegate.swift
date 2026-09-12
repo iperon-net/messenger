@@ -64,6 +64,9 @@ import flutter_callkit_incoming
     let callId = (dict["callId"] as? String) ?? ""
     let action = (dict["action"] as? String) ?? "incoming"
     let fromUserID = (dict["fromUserID"] as? String) ?? ""
+    // Имя звонящего для CallKit-баннера и «Недавних» — сервер кладёт его из
+    // профиля (имя/фамилия, иначе телефон). Пусто — фолбэк на "Iperon".
+    let nameCaller = (dict["nameCaller"] as? String) ?? ""
     // video приходит строкой "true"/"false" (map<string,string> у FCM/APNs).
     let isVideo = ((dict["video"] as? String) ?? "false") == "true" || (dict["video"] as? Bool ?? false)
     NSLog("IPERON_CALL voip push received: callId=\(callId) action=\(action) video=\(isVideo)")
@@ -81,8 +84,11 @@ import flutter_callkit_incoming
 
     let data = flutter_callkit_incoming.Data(
       id: callId,
-      nameCaller: "Iperon",
-      handle: isVideo ? "Видеозвонок" : "Аудиозвонок",
+      nameCaller: nameCaller.isEmpty ? "Iperon" : nameCaller,
+      // handle = userID звонящего (hex): по нему система «Недавних» перезванивает
+      // (INStartCallIntent → application(continue:) → sendCallbackEvent). Имя
+      // показывает nameCaller; handle в баннере не выводится (handleType generic).
+      handle: fromUserID.isEmpty ? (isVideo ? "Видеозвонок" : "Аудиозвонок") : fromUserID,
       type: isVideo ? 1 : 0
     )
     data.extra = ["fromUserID": fromUserID, "video": isVideo]

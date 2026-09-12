@@ -9,7 +9,6 @@ import '../../calls.dart';
 import '../../cdn.dart';
 import '../../constants.dart';
 import '../../di.dart';
-import '../../i18n/translations.g.dart';
 import '../../logger.dart';
 import '../../models.dart' as models;
 import '../../protobuf.dart';
@@ -75,7 +74,16 @@ class CallCubit extends Cubit<CallState> {
       final response = Profile_Response.fromBuffer(payload);
       if (!listEquals(response.userID, userID)) return;
 
-      emit(state.copyWith(displayName: _composeName(response.firstName, response.lastName, response.phoneNumber, response.username)));
+      emit(
+        state.copyWith(
+          displayName: utils.composeDisplayName(
+            firstName: response.firstName,
+            lastName: response.lastName,
+            phoneNumber: response.phoneNumber,
+            username: response.username,
+          ),
+        ),
+      );
 
       if (response.hasAvatar()) {
         try {
@@ -109,7 +117,12 @@ class CallCubit extends Cubit<CallState> {
     }
     if (isClosed) return;
 
-    final name = _composeName(profile.fistName, profile.lastName, phoneNormalization.international, profile.username);
+    final name = utils.composeDisplayName(
+      firstName: profile.fistName,
+      lastName: profile.lastName,
+      phoneNumber: phoneNormalization.international,
+      username: profile.username,
+    );
     var next = name.isNotEmpty ? state.copyWith(displayName: name) : state;
     // copyWith(avatarBytes: null) не отличает «не менять» от «обнулить», поэтому
     // подставляем аватар только когда он реально есть в кэше.
@@ -117,16 +130,6 @@ class CallCubit extends Cubit<CallState> {
     emit(next);
 
     await sendFuture;
-  }
-
-  /// Собирает отображаемое имя с учётом локали (RU: «Фамилия Имя»), с фолбэком на
-  /// телефон, затем username.
-  String _composeName(String firstName, String lastName, String phoneNumber, String username) {
-    final ru = LocaleSettings.currentLocale == AppLocale.ru;
-    final parts = (ru ? [lastName, firstName] : [firstName, lastName]).where((p) => p.isNotEmpty).toList();
-    if (parts.isNotEmpty) return parts.join(' ');
-    if (phoneNumber.isNotEmpty) return phoneNumber;
-    return username;
   }
 
   Future<void> accept() => _calls.accept();
