@@ -79,10 +79,7 @@ CallKitParams _incomingParams(Map<String, dynamic> data, String callId) {
     // Имя звонящего из push (профиль/телефон); пусто — фолбэк на 'Iperon'.
     nameCaller: nameCaller.isNotEmpty ? nameCaller : 'Iperon',
     appName: 'Iperon',
-    // handle = userID звонящего (hex): по нему система «Недавних» умеет
-    // перезвонить (INStartCallIntent → CallPush._onEvent callback). Само имя
-    // показывает nameCaller, handle в баннере не выводится (handleType generic).
-    handle: fromUserID.isNotEmpty ? fromUserID : (isVideo ? 'Видеозвонок' : 'Аудиозвонок'),
+    handle: isVideo ? 'Видеозвонок' : 'Аудиозвонок',
     type: isVideo ? 1 : 0,
     // extra доедет до события accept/decline — оттуда берём собеседника и тип.
     extra: {_kFromUserID: fromUserID, _kVideo: isVideo},
@@ -99,23 +96,25 @@ CallKitParams _incomingParams(Map<String, dynamic> data, String callId) {
     // экран. Флаг `configureAudioSession` для CallKit-аудио задаётся ТАМ
     // (`data.configureAudioSession = true`), не здесь. Значение ниже влияет только
     // на платформы/пути, где showCallkitIncoming зовётся из Dart (Android).
-    ios: const IOSParams(handleType: 'generic', supportsVideo: true, configureAudioSession: true),
+    // includesCallsInRecents: false — не пишем звонки приложения в системный
+    // журнал iOS «Недавние»/историю «Телефона».
+    ios: const IOSParams(handleType: 'generic', supportsVideo: true, configureAudioSession: true, includesCallsInRecents: false),
   );
 }
 
 /// Параметры для регистрации ИСХОДЯЩЕГО звонка в CallKit (iOS). Нужно, чтобы
 /// аудиосессией управляла единая call-система и прилетел provider(didActivate:).
 /// [nameCaller] — имя абонента (резолвим локально из профиля, см.
-/// [_resolveDisplayName]); попадает в системные «Недавние». [handle] — userID
-/// абонента (hex) для перезвона из «Недавних».
-CallKitParams _outgoingParams(CallSnapshot snapshot, String nameCaller, String handle) {
+/// [_resolveDisplayName]) для показа в системной звонилке.
+CallKitParams _outgoingParams(CallSnapshot snapshot, String nameCaller) {
   return CallKitParams(
     id: snapshot.callId,
     nameCaller: nameCaller.isNotEmpty ? nameCaller : 'Iperon',
     appName: 'Iperon',
-    handle: handle.isNotEmpty ? handle : (snapshot.video ? 'Видеозвонок' : 'Аудиозвонок'),
+    handle: snapshot.video ? 'Видеозвонок' : 'Аудиозвонок',
     type: snapshot.video ? 1 : 0,
-    ios: const IOSParams(handleType: 'generic', supportsVideo: true, configureAudioSession: false),
+    // includesCallsInRecents: false — исходящие тоже не попадают в «Недавние».
+    ios: const IOSParams(handleType: 'generic', supportsVideo: true, configureAudioSession: false, includesCallsInRecents: false),
   );
 }
 
@@ -284,23 +283,10 @@ class CallPush {
   /// «Недавних» стояло имя, а не 'Iperon'.
   Future<void> _reportOutgoing(CallSnapshot snapshot) async {
     final name = await _resolveDisplayName(snapshot.remoteUserID);
-    final handle = utils.bytesToHex(Uint8List.fromList(snapshot.remoteUserID));
     // Пока имя резолвилось, звонок мог завершиться/смениться — не регистрируем
     // устаревший.
     if (_reportedOutgoingCallId != snapshot.callId) return;
-    await FlutterCallkitIncoming.startCall(_outgoingParams(snapshot, name, handle));
-  }
-
-  /// Стартует исходящий по перезвону из системного списка «Недавние». [id] —
-  /// userID абонента (hex, 24 символа), который мы кладём в handle звонка. Пустой
-  /// / невалидный id игнорируем. Звоним аудио; видео пользователь включит на
-  /// экране звонка.
-  Future<void> _startCallbackCall(String id) async {
-    if (id.length != 24 || !RegExp(r'^[0-9a-fA-F]{24}$').hasMatch(id)) {
-      logger.warning('call: callback with non-userID handle "$id" — ignored');
-      return;
-    }
-    await calls.startCall(toUserID: utils.hexToBytes(id), video: false);
+    await FlutterCallkitIncoming.startCall(_outgoingParams(snapshot, name));
   }
 
   /// Отображаемое имя абонента по [userID] из локального кэша профилей
@@ -368,14 +354,6 @@ class CallPush {
       case CallEventActionCallEnded():
         _acceptedCallId = null;
         await calls.hangup();
-      case CallEventActionCallCallback(:final id):
-        // Пользователь перезванивает из системного списка «Недавние» (iOS
-        // INStartCallIntent → AppDelegate.continue userActivity →
-        // sendCallbackEvent; Android — действие «Перезвонить» на пропущенном).
-        // В [id] лежит userID абонента (hex) из handle прошлого звонка —
-        // открываем нашу звонилку и звоним. Тип аудио (видео можно поднять уже
-        // на экране звонка).
-        await _startCallbackCall(id);
       case CallEventActionDidUpdateDevicePushTokenVoip():
         // iOS выдал/сменил VoIP-токен PushKit — событие не несёт сам токен,
         // забираем актуальный из плагина и регистрируем на сервере.

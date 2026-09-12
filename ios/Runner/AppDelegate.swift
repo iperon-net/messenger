@@ -64,8 +64,8 @@ import flutter_callkit_incoming
     let callId = (dict["callId"] as? String) ?? ""
     let action = (dict["action"] as? String) ?? "incoming"
     let fromUserID = (dict["fromUserID"] as? String) ?? ""
-    // Имя звонящего для CallKit-баннера и «Недавних» — сервер кладёт его из
-    // профиля (имя/фамилия, иначе телефон). Пусто — фолбэк на "Iperon".
+    // Имя звонящего для CallKit-баннера — сервер кладёт его из профиля
+    // (имя/фамилия, иначе телефон). Пусто — фолбэк на "Iperon".
     let nameCaller = (dict["nameCaller"] as? String) ?? ""
     // video приходит строкой "true"/"false" (map<string,string> у FCM/APNs).
     let isVideo = ((dict["video"] as? String) ?? "false") == "true" || (dict["video"] as? Bool ?? false)
@@ -75,6 +75,7 @@ import flutter_callkit_incoming
       // Всё равно обязаны отрепортить звонок, иначе iOS накажет — репортим
       // «пустой» и сразу завершаем.
       let data = flutter_callkit_incoming.Data(id: UUID().uuidString, nameCaller: "Iperon", handle: "", type: 0)
+      data.includesCallsInRecents = false
       SwiftFlutterCallkitIncomingPlugin.sharedInstance?.showCallkitIncoming(data, fromPushKit: true) {
         SwiftFlutterCallkitIncomingPlugin.sharedInstance?.endAllCalls()
         completion()
@@ -85,16 +86,16 @@ import flutter_callkit_incoming
     let data = flutter_callkit_incoming.Data(
       id: callId,
       nameCaller: nameCaller.isEmpty ? "Iperon" : nameCaller,
-      // handle = userID звонящего (hex): по нему система «Недавних» перезванивает
-      // (INStartCallIntent → application(continue:) → sendCallbackEvent). Имя
-      // показывает nameCaller; handle в баннере не выводится (handleType generic).
-      handle: fromUserID.isEmpty ? (isVideo ? "Видеозвонок" : "Аудиозвонок") : fromUserID,
+      handle: isVideo ? "Видеозвонок" : "Аудиозвонок",
       type: isVideo ? 1 : 0
     )
     data.extra = ["fromUserID": fromUserID, "video": isVideo]
     data.supportsHolding = false
     data.supportsGrouping = false
     data.supportsUngrouping = false
+    // Не добавляем звонки приложения в системный журнал iOS «Недавние»/историю
+    // «Телефона» (CXProviderConfiguration.includesCallsInRecents).
+    data.includesCallsInRecents = false
     // configureAudioSession = true — на ответе плагин
     // (SwiftFlutterCallkitIncomingPlugin `provider(perform: CXAnswerCallAction)`)
     // ставит категорию `PlayAndRecord` и `setActive(true)`. Это ЕДИНСТВЕННОЕ
