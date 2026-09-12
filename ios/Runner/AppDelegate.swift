@@ -75,6 +75,9 @@ import flutter_callkit_incoming
       // Всё равно обязаны отрепортить звонок, иначе iOS накажет — репортим
       // «пустой» и сразу завершаем.
       let data = flutter_callkit_incoming.Data(id: UUID().uuidString, nameCaller: "Iperon", handle: "", type: 0)
+      // appName → CXProviderConfiguration.localizedName (подпись «Аудиовызов
+      // <appName>»). Иначе плагин подставит дефолт "Callkit".
+      data.appName = "Iperon"
       data.includesCallsInRecents = false
       SwiftFlutterCallkitIncomingPlugin.sharedInstance?.showCallkitIncoming(data, fromPushKit: true) {
         SwiftFlutterCallkitIncomingPlugin.sharedInstance?.endAllCalls()
@@ -90,6 +93,9 @@ import flutter_callkit_incoming
       type: isVideo ? 1 : 0
     )
     data.extra = ["fromUserID": fromUserID, "video": isVideo]
+    // appName → CXProviderConfiguration.localizedName (подпись «Аудиовызов
+    // <appName>»). Иначе плагин подставит дефолт "Callkit".
+    data.appName = "Iperon"
     data.supportsHolding = false
     data.supportsGrouping = false
     data.supportsUngrouping = false

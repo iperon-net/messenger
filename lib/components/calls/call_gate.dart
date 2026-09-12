@@ -56,11 +56,11 @@ class _CallGateState extends State<CallGate> {
     _wasActive = active;
 
     if (snapshot.status == CallStatus.ended && _routeOpen) {
-      // Даём короткую паузу, чтобы пользователь увидел причину завершения,
-      // затем закрываем экран звонка.
-      Timer(const Duration(milliseconds: 1200), () {
-        if (!mounted) return;
-        if (!_routeOpen) return;
+      // Звонок завершён — сразу закрываем экран звонка, не задерживаясь на
+      // состоянии «завершён»: пользователь возвращается туда, где был, а не
+      // «попадает» на экран звонилки после разговора.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted || !_routeOpen) return;
         final router = GoRouter.of(context);
         if (router.canPop()) router.pop();
       });
