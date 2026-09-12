@@ -555,17 +555,37 @@ class Calls {
     }
   }
 
+  /// Прогревает нативный WebRTC на старте приложения (см. [_ensureWebRtcInitialized]),
+  /// ДО того как вообще возможен звонок. Так на cold-start по VoIP-push фабрика
+  /// уже существует, и `CreateModularPeerConnectionFactory` не выполняется на
+  /// главном потоке параллельно с поднятием ICE-транспортов комнаты — гонка,
+  /// падавшая на ICE-потоке libwebrtc (EXC_BAD_ACCESS 0x28, см. [_teardown] и
+  /// livekit #1186), закрывается по построению. Fire-and-forget, no-op вне iOS.
+  void warmUp() {
+    unawaited(_ensureWebRtcInitialized());
+  }
+
   /// Принудительно инициализирует нативный WebRTC (создаёт
   /// `RTCPeerConnectionFactory` + audio device module). В flutter_webrtc 1.6.0
   /// фабрика создаётся только в нативном `initialize:`, который с Dart-стороны
   /// дёргается лишь при первом реальном использовании WebRTC (коннект комнаты /
   /// getUserMedia). AudioManager ходит к `peerConnectionFactory.audioDeviceModule`
   /// и кидает «audio device module is unavailable», если его зовут раньше.
-  /// `WebRTC.initialize` идемпотентен (хранит флаг `initialized`), повторные
-  /// вызовы дёшевы. No-op вне iOS.
-  Future<void> _ensureWebRtcInitialized() async {
-    if (!Platform.isIOS) return;
-    await WebRTC.initialize();
+  ///
+  /// `WebRTC.initialize` идемпотентен по флагу `initialized`, НО этот флаг
+  /// выставляется только по завершении нативного `initialize:`, а сам вызов —
+  /// синхронный блокирующий `CreateModularPeerConnectionFactory` на главном
+  /// потоке (висит в cond_wait, пока не поднимутся WebRTC-потоки). Два
+  /// конкурентных вызова на cold-start (наш `_configureIosAudioForCall` +
+  /// `setAudioEngineActive` по CallKit `didActivate`) успевают оба увидеть флаг
+  /// снятым и запускают две гонки создания фабрики → падение на ICE-потоке.
+  /// Мемоизируем сам Future: все конкурентные вызывающие ждут ОДИН нативный
+  /// `initialize:`, повторной фабрики не создаётся. No-op вне iOS.
+  Future<void>? _webRtcInit;
+
+  Future<void> _ensureWebRtcInitialized() {
+    if (!Platform.isIOS) return Future<void>.value();
+    return _webRtcInit ??= WebRTC.initialize();
   }
 
   /// iOS: настраивает режим аудио LiveKit под путь ответа на ТЕКУЩИЙ звонок.
@@ -618,6 +638,12 @@ class Calls {
     logger.info('call: ToggleAudioSession event received (isActive=$active)');
     if (!Platform.isIOS || !_viaCallKit) return;
     try {
+      // CallKit `didActivate` на cold-start может обогнать создание фабрики в
+      // `_connectRoom` → `_configureIosAudioForCall`. Обращаться к AudioManager
+      // (он лезет в `peerConnectionFactory.audioDeviceModule`) до готовности
+      // фабрики нельзя — это одна из веток гонки. Ждём тот же мемоизированный
+      // init, что и путь коннекта.
+      await _ensureWebRtcInitialized();
       await AudioManager.instance.setEngineAvailability(
         active ? AudioEngineAvailability.defaultAvailability : AudioEngineAvailability.none,
       );

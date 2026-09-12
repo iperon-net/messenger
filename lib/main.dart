@@ -9,6 +9,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'app_cupertino.dart';
 import 'app_material.dart';
+import 'calls.dart';
 import 'cubit.dart';
 import 'di.dart';
 import 'push.dart';
@@ -95,6 +96,12 @@ Future<void> main() async {
 
   // Мост call-пуш → нативный входящий (CallKit/ConnectionService) → Calls.
   getIt.get<CallPush>().start();
+
+  // iOS: прогреваем нативную WebRTC-фабрику заранее, ДО первого звонка, чтобы на
+  // cold-start по VoIP-push `CreateModularPeerConnectionFactory` не выполнялся на
+  // главном потоке параллельно с поднятием ICE комнаты (гонка → EXC_BAD_ACCESS на
+  // ICE-потоке, livekit #1186). Fire-and-forget, no-op вне iOS. См. Calls.warmUp.
+  getIt.get<Calls>().warmUp();
 
   // Доступность биометрии узнаём ДО первого кадра и прокидываем в кубит, чтобы
   // экран блокировки на холодном старте эмитился синхронно (без await) — иначе
