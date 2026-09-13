@@ -195,16 +195,19 @@ class CallPush {
 
     _eventSub ??= FlutterCallkitIncoming.onEvent.listen(_onEvent);
 
-    // Холодный старт из killed-state (Android): пользователь принял звонок из
-    // нативного экрана, MainActivity подняла приложение с нуля — но событие
+    // Холодный старт из killed-state (обе платформы): пользователь принял звонок
+    // из нативного экрана, а приложение поднялось с нуля (Android — MainActivity
+    // из ConnectionService; iOS — Flutter-engine из VoIP-push). Событие
     // ACTION_CALL_ACCEPT плагин эмитит в onEvent ДО того, как мы успели на него
-    // подписаться (DI ещё грузился), а onEvent — broadcast-стрим и теряет
+    // подписаться (DI/БД ещё грузились), а onEvent — broadcast-стрим и теряет
     // события без слушателя. Итог: acceptFromPush не вызывался, в комнату
-    // LiveKit не входили. Плагин хранит принятый звонок в ACTIVE_CALLS
-    // (isAccepted=true) — переигрываем accept по нему. Дедуп [_acceptedCallId]
-    // (и [Calls._handlingCallId]) не даёт двойного входа, если живое событие всё
-    // же придёт следом.
-    if (Platform.isAndroid) unawaited(_resumeAcceptedCallFromColdStart());
+    // LiveKit не входили (белый экран + нет медиа). Плагин хранит принятый звонок
+    // в ACTIVE_CALLS (isAccepted=true) — переигрываем accept по нему. Дедуп
+    // [_acceptedCallId] (и [Calls._handlingCallId]) не даёт двойного входа, если
+    // живое событие всё же придёт следом. На iOS этот путь ещё и форсирует
+    // аудиодвижок (см. [_resumeAcceptedCallFromColdStart]), т.к. CallKit
+    // `didActivate` теряется той же гонкой.
+    unawaited(_resumeAcceptedCallFromColdStart());
 
     // Мост Calls → CallKit по снимкам:
     // - outgoing (iOS): регистрируем исходящий в CallKit, чтобы аудиосессией
@@ -365,7 +368,8 @@ class CallPush {
 
   /// Переигрывает accept, потерянный на холодном старте (см. [start]). Читает
   /// принятый звонок из ACTIVE_CALLS плагина (`isAccepted == true`) и поднимает
-  /// его тем же путём, что и живое событие accept.
+  /// его тем же путём, что и живое событие accept. Кроссплатформенно: на Android
+  /// приложение поднимает MainActivity, на iOS — VoIP-push (Flutter-engine с нуля).
   Future<void> _resumeAcceptedCallFromColdStart() async {
     try {
       final active = await FlutterCallkitIncoming.activeCallsRaw();
@@ -384,6 +388,18 @@ class CallPush {
         final fromUserID = fromUserIDHex.isEmpty ? <int>[] : utils.hexToBytes(fromUserIDHex);
         final video = extra is Map && (extra[_kVideo] == true || (extra[_kVideo] ?? '').toString() == 'true');
         await calls.acceptFromPush(callId, fromUserID: fromUserID, video: video);
+
+        // iOS cold-start: событие CallKit `didActivate`
+        // (ACTION_CALL_TOGGLE_AUDIO_SESSION) прилетело в onEvent до нашей подписки
+        // и потеряно той же гонкой, что и accept. Аудиосессией на этом пути владеет
+        // CallKit — и она уже активна (звонок принят), — но движок LiveKit
+        // гейтится по `didActivate` и без него остаётся выключен
+        // (AudioEngineAvailability.none) → тишина. Форсируем активацию движка сами.
+        // setAudioEngineActive идемпотентна и ждёт готовности WebRTC-фабрики (тот
+        // же мемоизированный init, что и коннект), поэтому безопасна и если живой
+        // `didActivate` всё же придёт следом. На Android no-op (там движком рулит
+        // сам LiveKit в `automatic`).
+        if (Platform.isIOS) await calls.setAudioEngineActive(true);
         return;
       }
     } catch (error, stackTrace) {

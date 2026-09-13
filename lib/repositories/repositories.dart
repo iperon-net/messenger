@@ -72,8 +72,20 @@ class Repositories {
   Future<void> _initialization() async {
     String databasePath = p.join((await getApplicationSupportDirectory()).path, settings.databaseName);
 
-    // Secure storage
-    final storage = FlutterSecureStorage(aOptions: AndroidOptions(), iOptions: IOSOptions());
+    // Secure storage. iOS: accessibility = afterFirstUnlockThisDeviceOnly (не
+    // дефолтный whenUnlocked) — иначе на cold-start от VoIP-push (входящий звонок
+    // на залоченном/только что разбуженном экране) Keychain-элемент с паролем БД
+    // недоступен, и `storage.read` ВИСНЕТ → `Repositories` не готов → `allReady()`
+    // не завершается → `main` не доходит до `runApp` (белый экран) и `CallPush`
+    // не стартует (входящий не поднимается, нет звука). afterFirstUnlock даёт
+    // доступ в фоне после первой разблокировки с момента загрузки — стандарт для
+    // VoIP/фоновых приложений. Вариант ThisDeviceOnly: пароль локальной БД не
+    // переносится в бэкап/на другое устройство (ему это и не нужно) — чуть строже
+    // по безопасности.
+    final storage = FlutterSecureStorage(
+      aOptions: AndroidOptions(),
+      iOptions: const IOSOptions(accessibility: KeychainAccessibility.first_unlock_this_device),
+    );
 
     migrations.add(
       SqliteMigration(1, (tx) async {
@@ -286,6 +298,14 @@ class Repositories {
         password = _generatePassword();
         await storage.write(key: 'databasePassword', value: password);
         logger.logCustom(RepositoriesLog("A new password has been set for the database"));
+      } else {
+        // Миграция класса доступности: пароль, записанный старым дефолтом
+        // (whenUnlocked), недоступен на cold-start от VoIP-push. Перезаписываем
+        // его теми же (afterFirstUnlock) iOSOptions — так существующие установки
+        // получают доступ в фоне без сброса БД. Идемпотентно, no-op-эквивалент
+        // после первой миграции. Выполняется на обычном (foreground) запуске,
+        // где read уже успешен.
+        await storage.write(key: 'databasePassword', value: password);
       }
 
       db = SqliteDatabase.withFactory(_AppSqliteOpenFactory(path: databasePath, password: password));
