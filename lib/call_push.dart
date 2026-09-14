@@ -103,22 +103,6 @@ CallKitParams _incomingParams(Map<String, dynamic> data, String callId) {
   );
 }
 
-/// Параметры для регистрации ИСХОДЯЩЕГО звонка в CallKit (iOS). Нужно, чтобы
-/// аудиосессией управляла единая call-система и прилетел provider(didActivate:).
-/// [nameCaller] — имя абонента (резолвим локально из профиля, см.
-/// [_resolveDisplayName]) для показа в системной звонилке.
-CallKitParams _outgoingParams(CallSnapshot snapshot, String nameCaller) {
-  return CallKitParams(
-    id: snapshot.callId,
-    nameCaller: nameCaller.isNotEmpty ? nameCaller : 'Iperon',
-    appName: 'Iperon',
-    handle: snapshot.video ? 'Видеозвонок' : 'Аудиозвонок',
-    type: snapshot.video ? 1 : 0,
-    // includesCallsInRecents: false — исходящие тоже не попадают в «Недавние».
-    ios: const IOSParams(handleType: 'generic', supportsVideo: true, configureAudioSession: false, includesCallsInRecents: false),
-  );
-}
-
 /// Мост между call-пушами / нативным экраном звонка (CallKit/ConnectionService)
 /// и сервисом [Calls] в основном isolate. Регистрируется в `get_it` (см.
 /// `di.dart`, `dependsOn: [Calls]`) и стартует один раз через [start].
@@ -142,10 +126,6 @@ class CallPush {
   StreamSubscription<CallEvent?>? _eventSub;
   StreamSubscription<CallSnapshot>? _callSub;
   StreamSubscription<CallSnapshot>? _incomingRingSub;
-
-  // callId исходящего, уже отрепорченного в CallKit (iOS), чтобы не регистрировать
-  // его повторно на каждый снимок со статусом outgoing.
-  String? _reportedOutgoingCallId;
 
   // Последнее переданное в MainActivity значение флага «поверх локскрина»
   // (Android) — чтобы не дёргать канал на каждый снимок.
@@ -221,11 +201,15 @@ class CallPush {
     unawaited(_resumeAcceptedCallFromColdStart());
 
     // Мост Calls → CallKit по снимкам:
-    // - outgoing (iOS): регистрируем исходящий в CallKit, чтобы аудиосессией
-    //   владела единая call-система. Иначе для исходящего не прилетит
-    //   provider(didActivate:) → аудиодвижок LiveKit не включится → нет звука.
     // - ended/idle: снимаем нативный экран, если он ещё висит (например, приняли
-    //   из push, но звонок сорвался).
+    //   входящий из push/стрима, но звонок сорвался).
+    //
+    // Исходящий в CallKit НЕ регистрируем: на iOS это поднимало системную
+    // звонилку поверх нашего экрана. Аудио исходящего едет режимом `automatic`
+    // (LiveKit сам ставит категорию/активирует сессию, см.
+    // Calls._configureIosAudioForCall) — CallKit для этого не нужен. Так исходящий
+    // показывает только наш `CallView`, а системную звонилку видим лишь на
+    // входящем (системный рингтон).
     _callSub ??= calls.snapshots.listen((snapshot) {
       // Android: пока звонок активен, разрешаем экрану звонка показываться
       // поверх экрана блокировки (иначе ответ с локскрина требует разблокировки).
@@ -237,14 +221,8 @@ class CallPush {
       });
 
       switch (snapshot.status) {
-        case CallStatus.outgoing:
-          if (Platform.isIOS && snapshot.callId.isNotEmpty && _reportedOutgoingCallId != snapshot.callId) {
-            _reportedOutgoingCallId = snapshot.callId;
-            unawaited(_reportOutgoing(snapshot));
-          }
         case CallStatus.ended:
         case CallStatus.idle:
-          _reportedOutgoingCallId = null;
           if (snapshot.callId.isNotEmpty) unawaited(FlutterCallkitIncoming.endCall(snapshot.callId));
         default:
           break;
@@ -330,17 +308,6 @@ class CallPush {
       // механизм, что и на cold-start из VoIP-push.
       ios: const IOSParams(handleType: 'generic', supportsVideo: true, configureAudioSession: true, includesCallsInRecents: false),
     );
-  }
-
-  /// Регистрирует исходящий звонок в CallKit (iOS), предварительно разрешив имя
-  /// абонента локально (профиль → телефон), чтобы в системной звонилке и
-  /// «Недавних» стояло имя, а не 'Iperon'.
-  Future<void> _reportOutgoing(CallSnapshot snapshot) async {
-    final name = await _resolveDisplayName(snapshot.remoteUserID);
-    // Пока имя резолвилось, звонок мог завершиться/смениться — не регистрируем
-    // устаревший.
-    if (_reportedOutgoingCallId != snapshot.callId) return;
-    await FlutterCallkitIncoming.startCall(_outgoingParams(snapshot, name));
   }
 
   /// Отображаемое имя абонента по [userID] из локального кэша профилей

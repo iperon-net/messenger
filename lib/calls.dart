@@ -557,9 +557,14 @@ class Calls {
     // Начальный маршрут аудио. LiveKit (LKAudioSwitchManager) по умолчанию уходит
     // в громкую связь (в логах Telecom: `setCommunicationDevice type:speaker`),
     // а для аудиозвонка ожидается разговорный динамик (earpiece). Задаём явно по
-    // `speakerOn` снимка (аудио → false/earpiece, видео → true/speaker). Только
-    // Android: на iOS маршрутом владеет CallKit, туда не вмешиваемся.
-    if (Platform.isAndroid) {
+    // `speakerOn` снимка (аудио → false/earpiece, видео → true/speaker).
+    //
+    // Делаем это, когда аудиосессией владеет сам LiveKit (режим `automatic`): весь
+    // Android и iOS-исходящий/foreground без CallKit. На CallKit-пути iOS
+    // (`_viaCallKit` → `externalCallSystem`) маршрутом владеет CallKit — туда не
+    // вмешиваемся. Без этого iOS-исходящий уходил бы в динамик сразу (LiveKit по
+    // умолчанию включает громкую связь), т.к. CallKit его больше не ведёт.
+    if (Platform.isAndroid || !_viaCallKit) {
       try {
         await AudioManager.instance.setSpeakerOutputPreferred(_snapshot.speakerOn);
       } catch (error, stackTrace) {
