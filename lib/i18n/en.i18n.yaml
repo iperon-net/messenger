@@ -241,7 +241,7 @@ dateTime:
   "hangup": "End"
   "micOn": "Unmute"
   "micOff": "Mute"
-  "speaker": "Speaker"
+  "speakerOn": "Speaker on"
   "speakerOff": "Speaker off"
   "cameraOn": "Camera on"
   "cameraOff": "Camera off"

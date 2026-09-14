@@ -232,7 +232,7 @@ class _Overlay extends StatelessWidget {
                   onTap: cubit.toggleMic,
                 ),
                 _CircleButton(
-                  label: state.speakerOn ? t.speaker : t.speakerOff,
+                  label: state.speakerOn ? t.speakerOff : t.speakerOn,
                   icon: state.speakerOn ? CupertinoIcons.speaker_3_fill : CupertinoIcons.speaker_1_fill,
                   color: state.speakerOn ? palette.controlActiveBg : palette.controlBg,
                   iconColor: palette.fg,

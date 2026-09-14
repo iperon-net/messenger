@@ -469,8 +469,8 @@ class _Translations$screenCall$ru extends Translations$screenCall$en {
 	@override String get hangup => 'Завершить';
 	@override String get micOn => 'Вкл. звук';
 	@override String get micOff => 'Выкл. звук';
-	@override String get speaker => 'Динамик';
-	@override String get speakerOff => 'Тихо';
+	@override String get speakerOn => 'Вкл. динамик';
+	@override String get speakerOff => 'Выкл. динамик';
 	@override String get cameraOn => 'Вкл. камеру';
 	@override String get cameraOff => 'Выкл. камеру';
 	@override String get switchCamera => 'Камера';
@@ -681,8 +681,8 @@ extension on TranslationsRu {
 			'screenCall.hangup' => 'Завершить',
 			'screenCall.micOn' => 'Вкл. звук',
 			'screenCall.micOff' => 'Выкл. звук',
-			'screenCall.speaker' => 'Динамик',
-			'screenCall.speakerOff' => 'Тихо',
+			'screenCall.speakerOn' => 'Вкл. динамик',
+			'screenCall.speakerOff' => 'Выкл. динамик',
 			'screenCall.cameraOn' => 'Вкл. камеру',
 			'screenCall.cameraOff' => 'Выкл. камеру',
 			'screenCall.switchCamera' => 'Камера',

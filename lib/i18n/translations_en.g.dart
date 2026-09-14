@@ -860,8 +860,8 @@ class Translations$screenCall$en {
 	/// en: 'Mute'
 	String get micOff => 'Mute';
 
-	/// en: 'Speaker'
-	String get speaker => 'Speaker';
+	/// en: 'Speaker on'
+	String get speakerOn => 'Speaker on';
 
 	/// en: 'Speaker off'
 	String get speakerOff => 'Speaker off';
@@ -1087,7 +1087,7 @@ extension on Translations {
 			'screenCall.hangup' => 'End',
 			'screenCall.micOn' => 'Unmute',
 			'screenCall.micOff' => 'Mute',
-			'screenCall.speaker' => 'Speaker',
+			'screenCall.speakerOn' => 'Speaker on',
 			'screenCall.speakerOff' => 'Speaker off',
 			'screenCall.cameraOn' => 'Camera on',
 			'screenCall.cameraOff' => 'Camera off',
