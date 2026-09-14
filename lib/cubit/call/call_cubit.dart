@@ -58,6 +58,8 @@ class CallCubit extends Cubit<CallState> {
     speakerOn: s.speakerOn,
     endReason: s.endReason,
     debug: s.debug,
+    connectedAt: s.connectedAt,
+    quality: s.quality,
     mediaEpoch: s.mediaEpoch,
   );
 

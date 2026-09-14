@@ -61,6 +61,7 @@ class TranslationsRu extends Translations with BaseTranslations<AppLocale, Trans
 	@override late final _Translations$screenAuthCallpasswordConfirmation$ru screenAuthCallpasswordConfirmation = _Translations$screenAuthCallpasswordConfirmation$ru._(_root);
 	@override late final _Translations$grpcError$ru grpcError = _Translations$grpcError$ru._(_root);
 	@override late final _Translations$dateTime$ru dateTime = _Translations$dateTime$ru._(_root);
+	@override late final _Translations$screenCall$ru screenCall = _Translations$screenCall$ru._(_root);
 }
 
 // Path: common
@@ -446,6 +447,38 @@ class _Translations$dateTime$ru extends Translations$dateTime$en {
 	@override String relativeDateTimeOther({required Object date, required Object time}) => '${date} в ${time}';
 }
 
+// Path: screenCall
+class _Translations$screenCall$ru extends Translations$screenCall$en {
+	_Translations$screenCall$ru._(TranslationsRu root) : this._root = root, super.internal(root);
+
+	final TranslationsRu _root; // ignore: unused_field
+
+	// Translations
+	@override String get title => 'Звонок';
+	@override String get incomingAudio => 'Входящий звонок';
+	@override String get incomingVideo => 'Входящий видеозвонок';
+	@override String get calling => 'Вызов…';
+	@override String get connecting => 'Соединение…';
+	@override String get talking => 'Идёт разговор';
+	@override String get endedRejected => 'Звонок отклонён';
+	@override String get endedFailed => 'Не удалось соединиться';
+	@override String get endedBusy => 'Занято';
+	@override String get ended => 'Звонок завершён';
+	@override String get decline => 'Отклонить';
+	@override String get accept => 'Принять';
+	@override String get hangup => 'Завершить';
+	@override String get micOn => 'Вкл. звук';
+	@override String get micOff => 'Выкл. звук';
+	@override String get speaker => 'Динамик';
+	@override String get speakerOff => 'Тихо';
+	@override String get cameraOn => 'Вкл. камеру';
+	@override String get cameraOff => 'Выкл. камеру';
+	@override String get switchCamera => 'Камера';
+	@override String get qualityPoor => 'Слабый сигнал';
+	@override String get qualityGood => 'Хорошее соединение';
+	@override String get qualityExcellent => 'Отличное соединение';
+}
+
 /// The flat map containing all translations for locale <ru>.
 /// Only for edge cases! For simple maps, use the map function of this library.
 ///
@@ -633,6 +666,29 @@ extension on TranslationsRu {
 			'dateTime.relativeDateTimeToday' => ({required Object time}) => 'сегодня в ${time}',
 			'dateTime.relativeDateTimeYesterday' => ({required Object time}) => 'вчера в ${time}',
 			'dateTime.relativeDateTimeOther' => ({required Object date, required Object time}) => '${date} в ${time}',
+			'screenCall.title' => 'Звонок',
+			'screenCall.incomingAudio' => 'Входящий звонок',
+			'screenCall.incomingVideo' => 'Входящий видеозвонок',
+			'screenCall.calling' => 'Вызов…',
+			'screenCall.connecting' => 'Соединение…',
+			'screenCall.talking' => 'Идёт разговор',
+			'screenCall.endedRejected' => 'Звонок отклонён',
+			'screenCall.endedFailed' => 'Не удалось соединиться',
+			'screenCall.endedBusy' => 'Занято',
+			'screenCall.ended' => 'Звонок завершён',
+			'screenCall.decline' => 'Отклонить',
+			'screenCall.accept' => 'Принять',
+			'screenCall.hangup' => 'Завершить',
+			'screenCall.micOn' => 'Вкл. звук',
+			'screenCall.micOff' => 'Выкл. звук',
+			'screenCall.speaker' => 'Динамик',
+			'screenCall.speakerOff' => 'Тихо',
+			'screenCall.cameraOn' => 'Вкл. камеру',
+			'screenCall.cameraOff' => 'Выкл. камеру',
+			'screenCall.switchCamera' => 'Камера',
+			'screenCall.qualityPoor' => 'Слабый сигнал',
+			'screenCall.qualityGood' => 'Хорошее соединение',
+			'screenCall.qualityExcellent' => 'Отличное соединение',
 			_ => null,
 		};
 	}

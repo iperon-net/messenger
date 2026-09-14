@@ -25,6 +25,13 @@ class CallState with CallStateMappable {
   final CallEndReason endReason;
   final String debug;
 
+  /// Момент установления соединения ([CallStatus.active]) — точка отсчёта таймера
+  /// разговора. `null`, пока звонок не активен. См. [CallSnapshot.connectedAt].
+  final DateTime? connectedAt;
+
+  /// Качество соединения собеседника для индикатора. См. [CallSnapshot.quality].
+  final CallQuality quality;
+
   /// Счётчик смен медиа-дорожек (см. [CallSnapshot.mediaEpoch]). Меняется при
   /// появлении/исчезновении локального или удалённого [VideoTrack], чтобы
   /// mappable-равенство состояний различало снимки и UI перестраивал рендереры
@@ -54,6 +61,8 @@ class CallState with CallStateMappable {
     this.speakerOn = false,
     this.endReason = CallEndReason.none,
     this.debug = '',
+    this.connectedAt,
+    this.quality = CallQuality.unknown,
     this.mediaEpoch = 0,
     this.displayName = '',
     this.boringAvatarHash = '',

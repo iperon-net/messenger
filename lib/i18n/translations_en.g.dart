@@ -63,6 +63,7 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	late final Translations$screenAuthCallpasswordConfirmation$en screenAuthCallpasswordConfirmation = Translations$screenAuthCallpasswordConfirmation$en.internal(_root);
 	late final Translations$grpcError$en grpcError = Translations$grpcError$en.internal(_root);
 	late final Translations$dateTime$en dateTime = Translations$dateTime$en.internal(_root);
+	late final Translations$screenCall$en screenCall = Translations$screenCall$en.internal(_root);
 }
 
 // Path: common
@@ -806,6 +807,84 @@ class Translations$dateTime$en {
 	String relativeDateTimeOther({required Object date, required Object time}) => '${date} at ${time}';
 }
 
+// Path: screenCall
+class Translations$screenCall$en {
+	Translations$screenCall$en.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// en: 'Call'
+	String get title => 'Call';
+
+	/// en: 'Incoming call'
+	String get incomingAudio => 'Incoming call';
+
+	/// en: 'Incoming video call'
+	String get incomingVideo => 'Incoming video call';
+
+	/// en: 'Calling…'
+	String get calling => 'Calling…';
+
+	/// en: 'Connecting…'
+	String get connecting => 'Connecting…';
+
+	/// en: 'In call'
+	String get talking => 'In call';
+
+	/// en: 'Call declined'
+	String get endedRejected => 'Call declined';
+
+	/// en: 'Couldn’t connect'
+	String get endedFailed => 'Couldn’t connect';
+
+	/// en: 'Busy'
+	String get endedBusy => 'Busy';
+
+	/// en: 'Call ended'
+	String get ended => 'Call ended';
+
+	/// en: 'Decline'
+	String get decline => 'Decline';
+
+	/// en: 'Accept'
+	String get accept => 'Accept';
+
+	/// en: 'End'
+	String get hangup => 'End';
+
+	/// en: 'Unmute'
+	String get micOn => 'Unmute';
+
+	/// en: 'Mute'
+	String get micOff => 'Mute';
+
+	/// en: 'Speaker'
+	String get speaker => 'Speaker';
+
+	/// en: 'Speaker off'
+	String get speakerOff => 'Speaker off';
+
+	/// en: 'Camera on'
+	String get cameraOn => 'Camera on';
+
+	/// en: 'Camera off'
+	String get cameraOff => 'Camera off';
+
+	/// en: 'Flip'
+	String get switchCamera => 'Flip';
+
+	/// en: 'Poor connection'
+	String get qualityPoor => 'Poor connection';
+
+	/// en: 'Good connection'
+	String get qualityGood => 'Good connection';
+
+	/// en: 'Excellent connection'
+	String get qualityExcellent => 'Excellent connection';
+}
+
 /// The flat map containing all translations for locale <en>.
 /// Only for edge cases! For simple maps, use the map function of this library.
 ///
@@ -993,6 +1072,29 @@ extension on Translations {
 			'dateTime.relativeDateTimeToday' => ({required Object time}) => 'today at ${time}',
 			'dateTime.relativeDateTimeYesterday' => ({required Object time}) => 'yesterday at ${time}',
 			'dateTime.relativeDateTimeOther' => ({required Object date, required Object time}) => '${date} at ${time}',
+			'screenCall.title' => 'Call',
+			'screenCall.incomingAudio' => 'Incoming call',
+			'screenCall.incomingVideo' => 'Incoming video call',
+			'screenCall.calling' => 'Calling…',
+			'screenCall.connecting' => 'Connecting…',
+			'screenCall.talking' => 'In call',
+			'screenCall.endedRejected' => 'Call declined',
+			'screenCall.endedFailed' => 'Couldn’t connect',
+			'screenCall.endedBusy' => 'Busy',
+			'screenCall.ended' => 'Call ended',
+			'screenCall.decline' => 'Decline',
+			'screenCall.accept' => 'Accept',
+			'screenCall.hangup' => 'End',
+			'screenCall.micOn' => 'Unmute',
+			'screenCall.micOff' => 'Mute',
+			'screenCall.speaker' => 'Speaker',
+			'screenCall.speakerOff' => 'Speaker off',
+			'screenCall.cameraOn' => 'Camera on',
+			'screenCall.cameraOff' => 'Camera off',
+			'screenCall.switchCamera' => 'Flip',
+			'screenCall.qualityPoor' => 'Poor connection',
+			'screenCall.qualityGood' => 'Good connection',
+			'screenCall.qualityExcellent' => 'Excellent connection',
 			_ => null,
 		};
 	}

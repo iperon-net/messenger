@@ -93,6 +93,19 @@ class CallStateMapper extends ClassMapperBase<CallState> {
     opt: true,
     def: '',
   );
+  static DateTime? _$connectedAt(CallState v) => v.connectedAt;
+  static const Field<CallState, DateTime> _f$connectedAt = Field(
+    'connectedAt',
+    _$connectedAt,
+    opt: true,
+  );
+  static CallQuality _$quality(CallState v) => v.quality;
+  static const Field<CallState, CallQuality> _f$quality = Field(
+    'quality',
+    _$quality,
+    opt: true,
+    def: CallQuality.unknown,
+  );
   static int _$mediaEpoch(CallState v) => v.mediaEpoch;
   static const Field<CallState, int> _f$mediaEpoch = Field(
     'mediaEpoch',
@@ -133,6 +146,8 @@ class CallStateMapper extends ClassMapperBase<CallState> {
     #speakerOn: _f$speakerOn,
     #endReason: _f$endReason,
     #debug: _f$debug,
+    #connectedAt: _f$connectedAt,
+    #quality: _f$quality,
     #mediaEpoch: _f$mediaEpoch,
     #displayName: _f$displayName,
     #boringAvatarHash: _f$boringAvatarHash,
@@ -151,6 +166,8 @@ class CallStateMapper extends ClassMapperBase<CallState> {
       speakerOn: data.dec(_f$speakerOn),
       endReason: data.dec(_f$endReason),
       debug: data.dec(_f$debug),
+      connectedAt: data.dec(_f$connectedAt),
+      quality: data.dec(_f$quality),
       mediaEpoch: data.dec(_f$mediaEpoch),
       displayName: data.dec(_f$displayName),
       boringAvatarHash: data.dec(_f$boringAvatarHash),
@@ -229,6 +246,8 @@ abstract class CallStateCopyWith<$R, $In extends CallState, $Out>
     bool? speakerOn,
     CallEndReason? endReason,
     String? debug,
+    DateTime? connectedAt,
+    CallQuality? quality,
     int? mediaEpoch,
     String? displayName,
     String? boringAvatarHash,
@@ -264,6 +283,8 @@ class _CallStateCopyWithImpl<$R, $Out>
     bool? speakerOn,
     CallEndReason? endReason,
     String? debug,
+    Object? connectedAt = $none,
+    CallQuality? quality,
     int? mediaEpoch,
     String? displayName,
     String? boringAvatarHash,
@@ -280,6 +301,8 @@ class _CallStateCopyWithImpl<$R, $Out>
       if (speakerOn != null) #speakerOn: speakerOn,
       if (endReason != null) #endReason: endReason,
       if (debug != null) #debug: debug,
+      if (connectedAt != $none) #connectedAt: connectedAt,
+      if (quality != null) #quality: quality,
       if (mediaEpoch != null) #mediaEpoch: mediaEpoch,
       if (displayName != null) #displayName: displayName,
       if (boringAvatarHash != null) #boringAvatarHash: boringAvatarHash,
@@ -298,6 +321,8 @@ class _CallStateCopyWithImpl<$R, $Out>
     speakerOn: data.get(#speakerOn, or: $value.speakerOn),
     endReason: data.get(#endReason, or: $value.endReason),
     debug: data.get(#debug, or: $value.debug),
+    connectedAt: data.get(#connectedAt, or: $value.connectedAt),
+    quality: data.get(#quality, or: $value.quality),
     mediaEpoch: data.get(#mediaEpoch, or: $value.mediaEpoch),
     displayName: data.get(#displayName, or: $value.displayName),
     boringAvatarHash: data.get(#boringAvatarHash, or: $value.boringAvatarHash),

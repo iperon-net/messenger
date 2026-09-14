@@ -32,6 +32,11 @@ enum CallStatus { idle, outgoing, incoming, connecting, active, ended }
 /// Причина завершения звонка — для текста на экране «завершено».
 enum CallEndReason { none, hangup, rejected, failed, busy }
 
+/// Качество соединения звонка для индикатора на экране. Агрегируем из LiveKit
+/// [ConnectionQuality] собеседника (см. [Calls._mapQuality]); `unknown` — пока
+/// LiveKit не прислал оценку (индикатор не показываем).
+enum CallQuality { unknown, poor, good, excellent }
+
 /// Неизменяемый снимок текущего звонка. [Calls] публикует его в [Calls.snapshots]
 /// на каждое изменение; [CallCubit] переводит снимок в состояние экрана.
 @immutable
@@ -62,6 +67,14 @@ class CallSnapshot {
   /// выгрузки логов. Уберём вместе с временным диалером.
   final String debug;
 
+  /// Момент перехода звонка в [CallStatus.active] (соединение установлено) —
+  /// точка отсчёта таймера разговора на экране. `null`, пока звонок не активен.
+  final DateTime? connectedAt;
+
+  /// Качество соединения собеседника (индикатор на экране). `unknown` — оценки
+  /// ещё нет. См. [Calls._mapQuality].
+  final CallQuality quality;
+
   const CallSnapshot({
     this.status = CallStatus.idle,
     this.callId = '',
@@ -73,6 +86,8 @@ class CallSnapshot {
     this.endReason = CallEndReason.none,
     this.mediaEpoch = 0,
     this.debug = '',
+    this.connectedAt,
+    this.quality = CallQuality.unknown,
   });
 
   CallSnapshot copyWith({
@@ -86,6 +101,8 @@ class CallSnapshot {
     CallEndReason? endReason,
     int? mediaEpoch,
     String? debug,
+    DateTime? connectedAt,
+    CallQuality? quality,
   }) {
     return CallSnapshot(
       status: status ?? this.status,
@@ -98,6 +115,8 @@ class CallSnapshot {
       endReason: endReason ?? this.endReason,
       mediaEpoch: mediaEpoch ?? this.mediaEpoch,
       debug: debug ?? this.debug,
+      connectedAt: connectedAt ?? this.connectedAt,
+      quality: quality ?? this.quality,
     );
   }
 }
@@ -701,6 +720,14 @@ class Calls {
           _emit(_snapshot.copyWith(mediaEpoch: _snapshot.mediaEpoch + 1));
         }
       })
+      ..on<ParticipantConnectionQualityUpdatedEvent>((event) {
+        // Индикатор показывает качество собеседника — локального участника
+        // игнорируем. Обновляем только для живого звонка.
+        if (event.participant is LocalParticipant || !_hasActiveCall) return;
+        final quality = _mapQuality(event.connectionQuality);
+        if (quality == _snapshot.quality) return;
+        _emit(_snapshot.copyWith(quality: quality));
+      })
       ..on<ParticipantDisconnectedEvent>((event) {
         // Собеседник вышел из комнаты — для звонка 1-на-1 это конец разговора.
         _dbg('peer left');
@@ -740,8 +767,25 @@ class Calls {
   void _markActive() {
     if (!_hasActiveCall) return;
     if (_snapshot.status == CallStatus.active) return;
-    _emit(_snapshot.copyWith(status: CallStatus.active));
+    // Ставим точку отсчёта таймера разговора ровно на переход в active.
+    _emit(_snapshot.copyWith(status: CallStatus.active, connectedAt: DateTime.now()));
     _dbg('active');
+  }
+
+  /// Маппит LiveKit [ConnectionQuality] в [CallQuality] для индикатора.
+  /// `lost` трактуем как `poor` (соединение есть, но плохое).
+  static CallQuality _mapQuality(ConnectionQuality quality) {
+    switch (quality) {
+      case ConnectionQuality.excellent:
+        return CallQuality.excellent;
+      case ConnectionQuality.good:
+        return CallQuality.good;
+      case ConnectionQuality.poor:
+      case ConnectionQuality.lost:
+        return CallQuality.poor;
+      case ConnectionQuality.unknown:
+        return CallQuality.unknown;
+    }
   }
 
   Future<void> _teardown(CallEndReason reason) async {
