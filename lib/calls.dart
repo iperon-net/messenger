@@ -653,6 +653,14 @@ class Calls {
         await AudioManager.instance.setEngineAvailability(AudioEngineAvailability.none);
       } else {
         await AudioManager.instance.setAudioSessionManagementMode(AudioSessionManagementMode.automatic);
+        // Восстанавливаем доступность движка. AudioManager — глобальный синглтон:
+        // предыдущий CallKit-звонок (externalCallSystem) на своём завершении
+        // (`didDeactivate` → setAudioEngineActive(false)) оставляет движок в
+        // `none`. Без сброса в automatic LiveKit не сможет его поднять, и
+        // `startCapture` упадёт с `audio engine error -4100` (тишина/провал
+        // исходящего). В automatic движком рулит сам LiveKit, поэтому базовое
+        // состояние — `defaultAvailability`. Идемпотентно.
+        await AudioManager.instance.setEngineAvailability(AudioEngineAvailability.defaultAvailability);
       }
     } catch (error, stackTrace) {
       logger.handle(error, stackTrace);
