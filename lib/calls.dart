@@ -6,6 +6,7 @@
 // ignore_for_file: experimental_member_use
 import 'dart:async';
 import 'dart:io';
+import 'dart:isolate';
 import 'dart:math';
 
 import 'package:flutter/foundation.dart';
@@ -297,6 +298,18 @@ class Calls {
 
   bool get _hasActiveCall => _snapshot.status != CallStatus.idle && _snapshot.status != CallStatus.ended;
 
+  // ВРЕМЕННАЯ ДИАГНОСТИКА двойного входа в комнату (DUPLICATE_IDENTITY).
+  // Пишем на info с легко грепаемым префиксом CALLDIAG — виден и в logcat, и в
+  // in-app-логе. По pid/isolate/room# разделяем: второй изолят vs дырявый гард
+  // vs reconnect самого LiveKit-SDK. Счётчик входов в _connectRoom — глобальный
+  // на изолят (у второго изолята свой отсчёт с 0). Убрать после локализации.
+  static int _connectSeq = 0;
+  void _diag2(String token) {
+    logger.info(
+      'CALLDIAG pid=$pid iso=${Isolate.current.debugName} inst=${identityHashCode(this)} room#=${identityHashCode(_room)} | $token',
+    );
+  }
+
   // ---------------------------------------------------------------------------
   // Публичный API для UI
   // ---------------------------------------------------------------------------
@@ -350,6 +363,11 @@ class Calls {
       await _connectRoom(callId: _snapshot.callId, remoteUserID: _snapshot.remoteUserID, video: _snapshot.video);
     } catch (error, stackTrace) {
       logger.handle(error, stackTrace);
+      // ДИАГНОСТИКА (наблюдение, поведение не меняем): фиксируем, был ли звонок
+      // уже active в момент ошибки connect — это сигнатура «осиротевший дубль
+      // (DUPLICATE_IDENTITY) кинул ICE-таймаут поверх живой комнаты». По итогам
+      // локализации здесь появится точечное подавление teardown.
+      _diag2('accept catch: teardown failed (wasActive=${_snapshot.status == CallStatus.active} roomConnected=$_roomConnected) err=$error');
       await _teardown(CallEndReason.failed);
     }
   }
@@ -554,11 +572,15 @@ class Calls {
     // `_connectingRoom` (до первого await) закрывает это окно: второй вызов
     // выходит, не создавая второй Room (иначе DUPLICATE_IDENTITY и мгновенный
     // обрыв). Сбрасывается в [_teardown].
+    final seq = ++_connectSeq;
+    _diag2('_connectRoom ENTER seq=$seq callId=$callId _room=${_room != null} _connecting=$_connectingRoom _handling=$_handlingCallId');
     if (_room != null || _connectingRoom) {
       logger.warning('_connectRoom skipped: already connecting/connected ($callId)');
+      _diag2('_connectRoom SKIP seq=$seq (guard hit)');
       return;
     }
     _connectingRoom = true;
+    _diag2('_connectRoom PASS seq=$seq (guard passed, connecting)');
 
     // iOS: выставляем режим аудио LiveKit под путь ответа (CallKit vs foreground)
     // ДО любого await. На CallKit-пути это гейтит движок (externalCallSystem +
@@ -588,13 +610,16 @@ class Calls {
 
     final room = Room();
     _room = room;
+    _diag2('Room CREATED seq=$seq room#=${identityHashCode(room)} url=${response.url}');
     // С этого момента дубли отсекает `_room != null` — синхронный флаг больше не
     // нужен (снимаем, чтобы возможный ретрай/следующий звонок не заблокировался).
     _connectingRoom = false;
     _roomListener = room.createListener();
     _wireRoomEvents(_roomListener!);
 
+    _diag2('room.connect CALL seq=$seq room#=${identityHashCode(room)}');
     await room.connect(response.url, response.token);
+    _diag2('room.connect DONE seq=$seq room#=${identityHashCode(room)}');
     _roomConnected = true;
     _dbg('room connected');
 
@@ -784,6 +809,7 @@ class Calls {
         _teardown(CallEndReason.hangup);
       })
       ..on<RoomDisconnectedEvent>((event) {
+        _diag2('RoomDisconnected reason=${event.reason} _roomConnected=$_roomConnected status=${_snapshot.status}');
         // Нас отключило от SFU (сеть/сервер). Реагируем только после того, как
         // `room.connect` подтвердил подключение (`_roomConnected`). Во время
         // самой фазы подключения disconnect может прийти от выбитого дубля при
