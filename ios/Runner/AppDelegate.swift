@@ -39,10 +39,14 @@ import flutter_callkit_incoming
         switch call.method {
         case "setSpeaker":
           let on = (call.arguments as? [String: Any])?["on"] as? Bool ?? false
+          let route = session.currentRoute.outputs.map { $0.portType.rawValue }.joined(separator: ",")
+          NSLog("IPERON_CALL setSpeaker on=\(on) category=\(session.category.rawValue) mode=\(session.mode.rawValue) route=[\(route)]")
           do {
             try session.overrideOutputAudioPort(on ? .speaker : .none)
+            NSLog("IPERON_CALL setSpeaker on=\(on) · overrideOutputAudioPort ok")
             result(nil)
           } catch {
+            NSLog("IPERON_CALL setSpeaker on=\(on) · FAILED: \(error.localizedDescription)")
             result(FlutterError(code: "audio_session", message: error.localizedDescription, details: nil))
           }
         // Явная активация AVAudioSession для исходящего/foreground-звонка без

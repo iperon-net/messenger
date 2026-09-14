@@ -455,6 +455,7 @@ class Calls {
   /// Переключает динамик/разговорный (громкая связь).
   Future<void> toggleSpeaker() async {
     final on = !_snapshot.speakerOn;
+    logger.info('call: toggleSpeaker -> $on (viaCallKit=$_viaCallKit, status=${_snapshot.status})');
     if (Platform.isIOS) {
       // На iOS сессией владеет внешняя система (externalCallSystem: CallKit или мы),
       // поэтому маршрут меняем нативным `overrideOutputAudioPort`. LiveKit
@@ -462,6 +463,7 @@ class Calls {
       // соединение (см. ios/Runner/AppDelegate.swift).
       try {
         await _setIosSpeaker(on);
+        logger.info('call: toggleSpeaker -> $on · native ok');
       } catch (error, stackTrace) {
         logger.handle(error, stackTrace);
       }

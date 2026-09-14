@@ -158,3 +158,6 @@ ios/fastlane/Preview.html
 ios/fastlane/test_output
 ios/ExportOptions.plist
 *.mobileprovision
+
+# Local MCP config (not shared)
+.mcp.json
