@@ -218,12 +218,19 @@ class Calls {
   bool _roomConnected = false;
 
   // iOS: отвечаем ли на ТЕКУЩИЙ звонок через CallKit (cold-start по VoIP-push,
-  // активацию AVAudioSession ведёт CallKit), или это foreground/исходящий путь
-  // без CallKit. От этого зависит режим аудио LiveKit (см.
-  // [_configureIosAudioForCall]): CallKit → `externalCallSystem` + гейт движка по
-  // `didActivate`; иначе → `automatic`. Ставится в [acceptFromPush] (true),
-  // сбрасывается в [_teardown] (false).
+  // активацию AVAudioSession ведёт CallKit). На iOS звонок ВСЕГДА идёт в режиме
+  // `externalCallSystem` (сессией владеет внешняя система), а этот флаг решает,
+  // КТО активирует сессию: CallKit (true → гейт движка по `didActivate`) или мы
+  // сами нативно (false → см. [_iosManualAudioSession]). Ставится в
+  // [acceptFromPush] (true), сбрасывается в [_teardown] (false).
   bool _viaCallKit = false;
+
+  // iOS: активировали ли мы AVAudioSession сами (исходящий/foreground без
+  // CallKit). В этом режиме LiveKit держим в `externalCallSystem`, сессию
+  // поднимаем нативно ДО `startCapture` (иначе гонка -4100 в `automatic` на
+  // повторных звонках) и по завершении деактивируем нативно. Ставится в
+  // [_configureIosAudioForCall], снимается в [_teardown].
+  bool _iosManualAudioSession = false;
 
   // Идёт ли уже разбор текущего звонка. `_teardown` зовётся из многих мест
   // (кнопка отбоя, CALL_HANGUP/REJECT по стриму, события LiveKit
@@ -448,19 +455,18 @@ class Calls {
   /// Переключает динамик/разговорный (громкая связь).
   Future<void> toggleSpeaker() async {
     final on = !_snapshot.speakerOn;
-    if (Platform.isIOS && _viaCallKit) {
-      // CallKit-путь (externalCallSystem): AVAudioSession владеет CallKit.
-      // LiveKit `setSpeakerOutputPreferred` тут переконфигурировал бы сессию
-      // вручную (`_configureAppleAudioSession`) — а это конфликтует с CallKit,
-      // вызывает route change/деактивацию сессии и рвёт звонок. Маршрут меняем
-      // нативным `overrideOutputAudioPort` (см. ios/Runner/AppDelegate.swift).
+    if (Platform.isIOS) {
+      // На iOS сессией владеет внешняя система (externalCallSystem: CallKit или мы),
+      // поэтому маршрут меняем нативным `overrideOutputAudioPort`. LiveKit
+      // `setSpeakerOutputPreferred` тут переконфигурировал бы сессию вручную и рвал
+      // соединение (см. ios/Runner/AppDelegate.swift).
       try {
-        await _callAudioChannel.invokeMethod<void>('setSpeaker', {'on': on});
+        await _setIosSpeaker(on);
       } catch (error, stackTrace) {
         logger.handle(error, stackTrace);
       }
     } else {
-      // automatic-путь (Android + iOS-исходящий) — сессией владеет LiveKit.
+      // Android — сессией владеет LiveKit (его audioswitch handler).
       await AudioManager.instance.setSpeakerOutputPreferred(on);
     }
     _emit(_snapshot.copyWith(speakerOn: on));
@@ -592,22 +598,22 @@ class Calls {
 
     await _publishLocalMedia(video: video);
 
-    // Начальный маршрут аудио. LiveKit (LKAudioSwitchManager) по умолчанию уходит
-    // в громкую связь (в логах Telecom: `setCommunicationDevice type:speaker`),
-    // а для аудиозвонка ожидается разговорный динамик (earpiece). Задаём явно по
-    // `speakerOn` снимка (аудио → false/earpiece, видео → true/speaker).
-    //
-    // Делаем это, когда аудиосессией владеет сам LiveKit (режим `automatic`): весь
-    // Android и iOS-исходящий/foreground без CallKit. На CallKit-пути iOS
-    // (`_viaCallKit` → `externalCallSystem`) маршрутом владеет CallKit — туда не
-    // вмешиваемся. Без этого iOS-исходящий уходил бы в динамик сразу (LiveKit по
-    // умолчанию включает громкую связь), т.к. CallKit его больше не ведёт.
-    if (Platform.isAndroid || !_viaCallKit) {
-      try {
+    // Начальный маршрут аудио. Для аудиозвонка ожидается разговорный динамик
+    // (earpiece), для видео — громкая связь (speaker), см. `speakerOn`.
+    //  • Android: маршрутом владеет LiveKit → setSpeakerOutputPreferred.
+    //  • iOS: сессией владеет внешняя система (externalCallSystem). Разговорный
+    //    динамик — уже дефолт активной сессии (voiceChat / CallKit), поэтому
+    //    вмешиваемся только когда нужен именно динамик (видео/speakerOn), нативным
+    //    overrideOutputAudioPort. LiveKit `setSpeakerOutputPreferred` на iOS
+    //    переконфигурировал бы сессию и рвал соединение.
+    try {
+      if (Platform.isAndroid) {
         await AudioManager.instance.setSpeakerOutputPreferred(_snapshot.speakerOn);
-      } catch (error, stackTrace) {
-        logger.handle(error, stackTrace);
+      } else if (Platform.isIOS && _snapshot.speakerOn) {
+        await _setIosSpeaker(true);
       }
+    } catch (error, stackTrace) {
+      logger.handle(error, stackTrace);
     }
 
     // Собеседник мог войти в комнату раньше нас (мы принимаем звонок) — тогда
@@ -664,21 +670,22 @@ class Calls {
     if (!Platform.isIOS) return;
     try {
       await _ensureWebRtcInitialized();
+      // На iOS всегда отдаём AVAudioSession внешней call-системе — LiveKit сам её
+      // НЕ активирует. Так избегаем гонки `startCapture` на ещё не активной сессии
+      // в `automatic` (ошибка -4100), которая всплывает на повторных исходящих, и
+      // не даём mute/unmute переконфигурировать сессию (рвал соединение).
+      await AudioManager.instance.setAudioSessionManagementMode(AudioSessionManagementMode.externalCallSystem);
       if (_viaCallKit) {
-        await AudioManager.instance.setAudioSessionManagementMode(AudioSessionManagementMode.externalCallSystem);
-        // Гейтим движок до CallKit `didActivate`. Публикация микрофона/подписка
-        // на удалённое аудио, сделанные пока движок выключен, не теряются —
-        // LiveKit включит их, как только доступность разрешит.
+        // Сессию активирует CallKit → гейтим движок до `didActivate`. Публикация
+        // микрофона/подписка на удалённое аудио, сделанные пока движок выключен,
+        // не теряются — LiveKit включит их, как только доступность разрешит.
         await AudioManager.instance.setEngineAvailability(AudioEngineAvailability.none);
       } else {
-        await AudioManager.instance.setAudioSessionManagementMode(AudioSessionManagementMode.automatic);
-        // Восстанавливаем доступность движка. AudioManager — глобальный синглтон:
-        // предыдущий CallKit-звонок (externalCallSystem) на своём завершении
-        // (`didDeactivate` → setAudioEngineActive(false)) оставляет движок в
-        // `none`. Без сброса в automatic LiveKit не сможет его поднять, и
-        // `startCapture` упадёт с `audio engine error -4100` (тишина/провал
-        // исходящего). В automatic движком рулит сам LiveKit, поэтому базовое
-        // состояние — `defaultAvailability`. Идемпотентно.
+        // Нет CallKit (исходящий/foreground) → внешняя система активации — это мы.
+        // Поднимаем сессию нативно ДО подключения/публикации, затем открываем
+        // движок. Явная активация (вместо ленивой в automatic) убирает гонку -4100.
+        await _setIosAudioSessionActive(true);
+        _iosManualAudioSession = true;
         await AudioManager.instance.setEngineAvailability(AudioEngineAvailability.defaultAvailability);
       }
     } catch (error, stackTrace) {
@@ -686,14 +693,28 @@ class Calls {
     }
   }
 
+  /// iOS: активирует/деактивирует AVAudioSession нативно (см.
+  /// ios/Runner/AppDelegate.swift) для звонка без CallKit. No-op вне iOS.
+  Future<void> _setIosAudioSessionActive(bool active) async {
+    if (!Platform.isIOS) return;
+    await _callAudioChannel.invokeMethod<void>(active ? 'activateSession' : 'deactivateSession');
+  }
+
+  /// iOS: переключает маршрут на динамик/разговорный нативным
+  /// overrideOutputAudioPort (сессией владеет внешняя система — CallKit или мы).
+  Future<void> _setIosSpeaker(bool on) async {
+    if (!Platform.isIOS) return;
+    await _callAudioChannel.invokeMethod<void>('setSpeaker', {'on': on});
+  }
+
   /// Включает/выключает WebRTC-аудиодвижок LiveKit по событию CallKit
   /// ToggleAudioSession (`provider(didActivate:)`/`didDeactivate:`), которое
   /// прилетает из [CallPush]. Значимо только на CallKit-пути
   /// ([_viaCallKit] → `externalCallSystem`): там активацией сессии владеет
   /// CallKit, и движок LiveKit надо поднять ровно в окне между didActivate и
-  /// didDeactivate. На foreground-пути (`automatic`) движком рулит сам LiveKit —
-  /// вызов игнорируем, чтобы не вмешиваться (ранний ручной вызов на неактивной
-  /// сессии давал -3010).
+  /// didDeactivate. На пути без CallKit (исходящий/foreground) таких событий нет —
+  /// сессию активируем сами, а доступность движка выставляем прямо в
+  /// [_configureIosAudioForCall]; здесь вызов игнорируем (`!_viaCallKit`).
   Future<void> setAudioEngineActive(bool active) async {
     logger.info('call: ToggleAudioSession event received (isActive=$active)');
     if (!Platform.isIOS || !_viaCallKit) return;
@@ -862,6 +883,19 @@ class Calls {
 
     if (room != null) {
       await room.dispose();
+    }
+
+    // iOS без CallKit: сессию активировали мы — деактивируем нативно после того,
+    // как движок остановлен (room disconnected/disposed). Иначе активная сессия
+    // осталась бы висеть между звонками. На CallKit-пути деактивацией владеет
+    // CallKit (`didDeactivate`), сами не трогаем.
+    if (_iosManualAudioSession) {
+      _iosManualAudioSession = false;
+      try {
+        await _setIosAudioSessionActive(false);
+      } catch (error, stackTrace) {
+        logger.handle(error, stackTrace);
+      }
     }
 
     _diag = _diag.isEmpty ? 'ended:${reason.name}' : '$_diag · ended:${reason.name}';

@@ -35,12 +35,31 @@ import flutter_callkit_incoming
     if let messenger = engineBridge.pluginRegistry.registrar(forPlugin: "IperonCallAudio")?.messenger() {
       let channel = FlutterMethodChannel(name: "net.iperon.messenger/call_audio", binaryMessenger: messenger)
       channel.setMethodCallHandler { call, result in
+        let session = AVAudioSession.sharedInstance()
         switch call.method {
         case "setSpeaker":
           let on = (call.arguments as? [String: Any])?["on"] as? Bool ?? false
           do {
-            let session = AVAudioSession.sharedInstance()
             try session.overrideOutputAudioPort(on ? .speaker : .none)
+            result(nil)
+          } catch {
+            result(FlutterError(code: "audio_session", message: error.localizedDescription, details: nil))
+          }
+        // Явная активация AVAudioSession для исходящего/foreground-звонка без
+        // CallKit (LiveKit в externalCallSystem не активирует сессию сам). Категория
+        // playAndRecord + режим voiceChat (по умолчанию разговорный динамик), с
+        // Bluetooth-гарнитурами. См. lib/calls.dart _configureIosAudioForCall.
+        case "activateSession":
+          do {
+            try session.setCategory(.playAndRecord, mode: .voiceChat, options: [.allowBluetooth, .allowBluetoothA2DP])
+            try session.setActive(true)
+            result(nil)
+          } catch {
+            result(FlutterError(code: "audio_session", message: error.localizedDescription, details: nil))
+          }
+        case "deactivateSession":
+          do {
+            try session.setActive(false, options: [.notifyOthersOnDeactivation])
             result(nil)
           } catch {
             result(FlutterError(code: "audio_session", message: error.localizedDescription, details: nil))
