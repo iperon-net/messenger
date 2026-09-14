@@ -9,6 +9,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' show WebRTC;
 import 'package:livekit_client/livekit_client.dart';
 
@@ -143,6 +144,10 @@ class Calls {
   final logger = getIt.get<Logger>();
   final api = getIt.get<API>();
   final auth = getIt.get<Auth>();
+
+  // iOS-канал к AppDelegate для смены маршрута аудио на CallKit-пути
+  // (overrideOutputAudioPort). См. [toggleSpeaker], ios/Runner/AppDelegate.swift.
+  static const _callAudioChannel = MethodChannel('net.iperon.messenger/call_audio');
 
   Room? _room;
   EventsListener<RoomEvent>? _roomListener;
@@ -443,7 +448,21 @@ class Calls {
   /// Переключает динамик/разговорный (громкая связь).
   Future<void> toggleSpeaker() async {
     final on = !_snapshot.speakerOn;
-    await AudioManager.instance.setSpeakerOutputPreferred(on);
+    if (Platform.isIOS && _viaCallKit) {
+      // CallKit-путь (externalCallSystem): AVAudioSession владеет CallKit.
+      // LiveKit `setSpeakerOutputPreferred` тут переконфигурировал бы сессию
+      // вручную (`_configureAppleAudioSession`) — а это конфликтует с CallKit,
+      // вызывает route change/деактивацию сессии и рвёт звонок. Маршрут меняем
+      // нативным `overrideOutputAudioPort` (см. ios/Runner/AppDelegate.swift).
+      try {
+        await _callAudioChannel.invokeMethod<void>('setSpeaker', {'on': on});
+      } catch (error, stackTrace) {
+        logger.handle(error, stackTrace);
+      }
+    } else {
+      // automatic-путь (Android + iOS-исходящий) — сессией владеет LiveKit.
+      await AudioManager.instance.setSpeakerOutputPreferred(on);
+    }
     _emit(_snapshot.copyWith(speakerOn: on));
   }
 

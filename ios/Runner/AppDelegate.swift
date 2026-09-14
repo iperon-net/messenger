@@ -2,6 +2,7 @@ import Flutter
 import UIKit
 import PushKit
 import CallKit
+import AVFoundation
 import flutter_callkit_incoming
 
 @main
@@ -26,6 +27,29 @@ import flutter_callkit_incoming
 
   func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
     GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
+
+    // Канал смены маршрута аудио на CallKit-пути (externalCallSystem): сессией
+    // владеет CallKit, поэтому LiveKit `setSpeakerOutputPreferred` использовать
+    // нельзя (он переконфигурирует сессию и рвёт звонок). Динамик/разговорный
+    // переключаем нативным overrideOutputAudioPort. См. lib/calls.dart toggleSpeaker.
+    if let messenger = engineBridge.pluginRegistry.registrar(forPlugin: "IperonCallAudio")?.messenger() {
+      let channel = FlutterMethodChannel(name: "net.iperon.messenger/call_audio", binaryMessenger: messenger)
+      channel.setMethodCallHandler { call, result in
+        switch call.method {
+        case "setSpeaker":
+          let on = (call.arguments as? [String: Any])?["on"] as? Bool ?? false
+          do {
+            let session = AVAudioSession.sharedInstance()
+            try session.overrideOutputAudioPort(on ? .speaker : .none)
+            result(nil)
+          } catch {
+            result(FlutterError(code: "audio_session", message: error.localizedDescription, details: nil))
+          }
+        default:
+          result(FlutterMethodNotImplemented)
+        }
+      }
+    }
   }
 
   // MARK: - PushKit (VoIP)
