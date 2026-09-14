@@ -848,9 +848,28 @@ class Calls {
     _diag = _diag.isEmpty ? 'ended:${reason.name}' : '$_diag · ended:${reason.name}';
     _emit(CallSnapshot(status: CallStatus.ended, callId: callId, remoteUserID: remote, video: video, endReason: reason, debug: _diag));
 
+    // `ended` — переходное состояние (краткая обратная связь на нашем экране).
+    // Сбрасываем его в idle через паузу, иначе снимок «завис» бы на «завершён»
+    // до следующего звонка: когда звонок прошёл целиком на локскрине/в фоне
+    // (CallKit), кадры не рендерятся и pop экрана в [CallGate] мог не отработать —
+    // при возврате в приложение висел бы экран «Звонок завершён». Сброс отменяет
+    // сам себя, если уже стартовал новый звонок (проверка по callId).
+    _scheduleIdleReset(callId);
+
     // Комната разобрана и `_room == null` — повторный `pc.close()` уже
     // невозможен; снимаем флаг, чтобы следующий звонок мог завершиться.
     _tearingDown = false;
+  }
+
+  /// Сбрасывает снимок в [CallStatus.idle] через паузу после завершения звонка,
+  /// если к тому моменту всё ещё показан тот же завершённый звонок ([callId]).
+  void _scheduleIdleReset(String callId) {
+    Future<void>.delayed(const Duration(seconds: 2), () {
+      if (_snapshotController.isClosed) return;
+      if (_snapshot.status == CallStatus.ended && _snapshot.callId == callId) {
+        _emit(const CallSnapshot());
+      }
+    });
   }
 
   // ---------------------------------------------------------------------------

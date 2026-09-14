@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/cupertino.dart' show CupertinoIcons;
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_boring_avatars/flutter_boring_avatars.dart';
@@ -69,6 +70,9 @@ class CallView extends StatelessWidget {
   static const _red = Color(0xFFFF3B30);
   static const _green = Color(0xFF34C759);
   static const _amber = Color(0xFFFF9F0A);
+
+  // Цвет иконки на цветной (красной/зелёной) кнопке — всегда белый в обеих темах.
+  static const _onAccent = Color(0xFFFFFFFF);
 
   @override
   Widget build(BuildContext context) {
@@ -185,13 +189,34 @@ class _Overlay extends StatelessWidget {
         return Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            _CircleButton(label: t.decline, color: CallView._red, palette: palette, onTap: cubit.reject),
-            _CircleButton(label: t.accept, color: CallView._green, palette: palette, onTap: cubit.accept),
+            _CircleButton(
+              label: t.decline,
+              icon: CupertinoIcons.phone_down_fill,
+              color: CallView._red,
+              iconColor: CallView._onAccent,
+              palette: palette,
+              onTap: cubit.reject,
+            ),
+            _CircleButton(
+              label: t.accept,
+              icon: CupertinoIcons.phone_fill,
+              color: CallView._green,
+              iconColor: CallView._onAccent,
+              palette: palette,
+              onTap: cubit.accept,
+            ),
           ],
         );
       case CallStatus.outgoing:
       case CallStatus.connecting:
-        return _CircleButton(label: t.hangup, color: CallView._red, palette: palette, onTap: cubit.hangup);
+        return _CircleButton(
+          label: t.hangup,
+          icon: CupertinoIcons.phone_down_fill,
+          color: CallView._red,
+          iconColor: CallView._onAccent,
+          palette: palette,
+          onTap: cubit.hangup,
+        );
       case CallStatus.active:
         return Column(
           children: [
@@ -200,29 +225,49 @@ class _Overlay extends StatelessWidget {
               children: [
                 _CircleButton(
                   label: state.micMuted ? t.micOn : t.micOff,
+                  icon: state.micMuted ? CupertinoIcons.mic_slash_fill : CupertinoIcons.mic_fill,
                   color: state.micMuted ? palette.controlActiveBg : palette.controlBg,
+                  iconColor: palette.fg,
                   palette: palette,
                   onTap: cubit.toggleMic,
                 ),
                 _CircleButton(
                   label: state.speakerOn ? t.speaker : t.speakerOff,
+                  icon: state.speakerOn ? CupertinoIcons.speaker_3_fill : CupertinoIcons.speaker_1_fill,
                   color: state.speakerOn ? palette.controlActiveBg : palette.controlBg,
+                  iconColor: palette.fg,
                   palette: palette,
                   onTap: cubit.toggleSpeaker,
                 ),
                 if (state.video)
                   _CircleButton(
                     label: state.cameraOff ? t.cameraOn : t.cameraOff,
+                    icon: state.cameraOff ? CupertinoIcons.video_camera : CupertinoIcons.video_camera_solid,
                     color: state.cameraOff ? palette.controlActiveBg : palette.controlBg,
+                    iconColor: palette.fg,
                     palette: palette,
                     onTap: cubit.toggleCamera,
                   ),
                 if (state.video)
-                  _CircleButton(label: t.switchCamera, color: palette.controlBg, palette: palette, onTap: cubit.switchCamera),
+                  _CircleButton(
+                    label: t.switchCamera,
+                    icon: CupertinoIcons.switch_camera_solid,
+                    color: palette.controlBg,
+                    iconColor: palette.fg,
+                    palette: palette,
+                    onTap: cubit.switchCamera,
+                  ),
               ],
             ),
             const SizedBox(height: 24),
-            _CircleButton(label: t.hangup, color: CallView._red, palette: palette, onTap: cubit.hangup),
+            _CircleButton(
+              label: t.hangup,
+              icon: CupertinoIcons.phone_down_fill,
+              color: CallView._red,
+              iconColor: CallView._onAccent,
+              palette: palette,
+              onTap: cubit.hangup,
+            ),
           ],
         );
       case CallStatus.ended:
@@ -397,11 +442,20 @@ class _Avatar extends StatelessWidget {
 
 class _CircleButton extends StatelessWidget {
   final String label;
+  final IconData icon;
   final Color color;
+  final Color iconColor;
   final _CallPalette palette;
   final VoidCallback onTap;
 
-  const _CircleButton({required this.label, required this.color, required this.palette, required this.onTap});
+  const _CircleButton({
+    required this.label,
+    required this.icon,
+    required this.color,
+    required this.iconColor,
+    required this.palette,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -415,6 +469,8 @@ class _CircleButton extends StatelessWidget {
             width: 68,
             height: 68,
             decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+            alignment: Alignment.center,
+            child: Icon(icon, color: iconColor, size: 28),
           ),
           const SizedBox(height: 8),
           Text(label, style: TextStyle(color: palette.fg, fontSize: 13)),

@@ -62,10 +62,12 @@ class _CallGateState extends State<CallGate> {
     if (active && !_wasActive) _openCall();
     _wasActive = active;
 
-    if (snapshot.status == CallStatus.ended && _routeOpen) {
-      // Звонок завершён — сразу закрываем экран звонка, не задерживаясь на
-      // состоянии «завершён»: пользователь возвращается туда, где был, а не
-      // «попадает» на экран звонилки после разговора.
+    if ((snapshot.status == CallStatus.ended || snapshot.status == CallStatus.idle) && _routeOpen) {
+      // Звонок завершён (ended) или уже сброшен в idle (см. Calls._scheduleIdleReset)
+      // — сразу закрываем экран звонка, не задерживаясь на «завершён»: пользователь
+      // возвращается туда, где был, а не «попадает» на экран звонилки после
+      // разговора. Обрабатываем и idle, т.к. звонок с локскрина/фона мог
+      // завершиться, пока приложение не рисовало кадры, и pop по ended не отработал.
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted || !_routeOpen) return;
         final router = GoRouter.of(context);
