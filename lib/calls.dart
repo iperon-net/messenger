@@ -146,6 +146,14 @@ class Calls {
   // открыть `/call`, если пользователь до этого свернул его. См. lib/call_push.dart.
   final _focusController = StreamController<void>.broadcast();
 
+  // Запросы «показать входящий через системную звонилку» (CallKit/
+  // ConnectionService). Эмитятся ТОЛЬКО из foreground-приёма [_onRing] — когда
+  // `CALL_RING` пришёл по живому стриму. Так входящий на переднем плане тоже
+  // ведётся нативной call-системой (единый системный рингтон и UI, как из фона),
+  // а не рисуется собственным экраном без звука. Слушает [CallPush], который
+  // владеет зависимостью на flutter_callkit_incoming. См. lib/call_push.dart.
+  final _incomingRingController = StreamController<CallSnapshot>.broadcast();
+
   // Накапливаемая строка-диагностика текущего звонка (хлебные крошки этапов).
   String _diag = '';
 
@@ -213,6 +221,10 @@ class Calls {
   /// Запросы вывести экран текущего звонка на передний план (тап по
   /// ongoing-нотификации). [CallGate] переоткрывает `/call`, если звонок активен.
   Stream<void> get focusRequests => _focusController.stream;
+
+  /// Запросы показать входящий через системную звонилку (foreground-приём по
+  /// стриму). [CallPush] на каждый вызывает `showCallkitIncoming`. См. [_onRing].
+  Stream<CallSnapshot> get incomingRings => _incomingRingController.stream;
 
   /// Просит показать экран текущего звонка (если он активен). No-op, если звонка
   /// нет — [CallGate] сам проверит статус.
@@ -470,7 +482,16 @@ class Calls {
     if (_pushAcceptedCallId == ring.callId) {
       _pushAcceptedCallId = null;
       await accept();
+      return;
     }
+
+    // Foreground-приём: ring пришёл по живому стриму (в этом состоянии сервер не
+    // слал call-пуш — гейт по онлайн-сессии). Просим [CallPush] показать входящий
+    // через системную звонилку — так на переднем плане играет системный рингтон и
+    // UI ведёт CallKit/ConnectionService, как из фона. Ответ/отбой прилетят
+    // обратно тем же путём (onEvent → acceptFromPush/rejectFromPush), а отмену
+    // звонящим (`CALL_HANGUP`/`CALL_REJECT`) снимет [_teardown] → endCall.
+    if (!_incomingRingController.isClosed) _incomingRingController.add(_snapshot);
   }
 
   // ---------------------------------------------------------------------------
@@ -819,5 +840,6 @@ class Calls {
     await _teardown(CallEndReason.none);
     await _snapshotController.close();
     await _focusController.close();
+    await _incomingRingController.close();
   }
 }

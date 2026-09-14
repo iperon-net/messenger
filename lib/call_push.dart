@@ -90,10 +90,11 @@ CallKitParams _incomingParams(Map<String, dynamic> data, String callId) {
       incomingCallNotificationChannelName: 'Входящие звонки',
       missedCallNotificationChannelName: 'Пропущенные звонки',
     ),
-    // ВНИМАНИЕ: на iOS этот путь (Dart-репорт входящего) НЕ используется —
-    // cold-start-входящий репортит натив из VoIP-push (ios/Runner/AppDelegate.swift
-    // `pushRegistry didReceiveIncomingPush`), а foreground показывает свой in-app
-    // экран. Флаг `configureAudioSession` для CallKit-аудио задаётся ТАМ
+    // ВНИМАНИЕ: на iOS этот путь (Dart-репорт входящего из FCM-фона) НЕ
+    // используется — cold-start-входящий репортит натив из VoIP-push
+    // (ios/Runner/AppDelegate.swift `pushRegistry didReceiveIncomingPush`), а
+    // foreground-входящий поднимается через _incomingParamsFromSnapshot (см.
+    // _onIncomingRing). Флаг `configureAudioSession` для CallKit-аудио задаётся ТАМ
     // (`data.configureAudioSession = true`), не здесь. Значение ниже влияет только
     // на платформы/пути, где showCallkitIncoming зовётся из Dart (Android).
     // includesCallsInRecents: false — не пишем звонки приложения в системный
@@ -122,8 +123,10 @@ CallKitParams _outgoingParams(CallSnapshot snapshot, String nameCaller) {
 /// и сервисом [Calls] в основном isolate. Регистрируется в `get_it` (см.
 /// `di.dart`, `dependsOn: [Calls]`) и стартует один раз через [start].
 ///
-/// - **foreground**: входящий приходит по открытому стриму — `Calls` сам покажет
-///   in-app экран, push игнорируем (иначе двойной звонок).
+/// - **foreground**: входящий приходит по открытому стриму — `Calls` эмитит его
+///   в [Calls.incomingRings], а [CallPush] показывает системную звонилку
+///   (`showCallkitIncoming`) с системным рингтоном; call-пуш при этом не приходит
+///   (серверный гейт по онлайн-сессии), так что двойного звонка нет.
 /// - **фон/killed (Android)**: [callPushBackgroundHandler] показывает нативный
 ///   входящий; действия пользователя прилетают в [_onEvent] и переводятся в
 ///   `Calls.acceptFromPush`/`rejectFromPush`.
@@ -138,6 +141,7 @@ class CallPush {
 
   StreamSubscription<CallEvent?>? _eventSub;
   StreamSubscription<CallSnapshot>? _callSub;
+  StreamSubscription<CallSnapshot>? _incomingRingSub;
 
   // callId исходящего, уже отрепорченного в CallKit (iOS), чтобы не регистрировать
   // его повторно на каждый снимок со статусом outgoing.
@@ -183,9 +187,9 @@ class CallPush {
 
     FirebaseMessaging.onBackgroundMessage(callPushBackgroundHandler);
 
-    // foreground: входящий уже придёт по стриму (Calls), нативный экран из push
-    // не показываем — во избежание двойного звонка. Оставляем только cancel,
-    // чтобы снять возможный подвисший нативный экран.
+    // foreground: входящий приходит по стриму и поднимается через системную
+    // звонилку из [Calls.incomingRings] (см. _onIncomingRing), не из FCM. Здесь
+    // обрабатываем только cancel — снять возможный подвисший нативный экран.
     FirebaseMessaging.onMessage.listen((message) {
       if (message.data[_kAction] == _kActionCancel) {
         final callId = (message.data[_kCallId] ?? '').toString();
@@ -194,6 +198,13 @@ class CallPush {
     });
 
     _eventSub ??= FlutterCallkitIncoming.onEvent.listen(_onEvent);
+
+    // Foreground-входящий: `Calls` поймал `CALL_RING` по живому стриму и просит
+    // показать его через системную звонилку (см. Calls.incomingRings). Так на
+    // переднем плане играет системный рингтон и UI ведёт CallKit/
+    // ConnectionService — единообразно с приёмом из фона. Ответ/отбой прилетят в
+    // [_onEvent] тем же путём, что и из push.
+    _incomingRingSub ??= calls.incomingRings.listen(_onIncomingRing);
 
     // Холодный старт из killed-state (обе платформы): пользователь принял звонок
     // из нативного экрана, а приложение поднялось с нуля (Android — MainActivity
@@ -279,6 +290,46 @@ class CallPush {
     } else if (Platform.isIOS) {
       await _syncVoipToken();
     }
+  }
+
+  /// Показывает foreground-входящий через системную звонилку (см. [start] →
+  /// [Calls.incomingRings]). Имя звонящего резолвим локально из кэша профилей (как
+  /// для исходящего), extra донесёт собеседника/тип до accept/decline в [_onEvent].
+  Future<void> _onIncomingRing(CallSnapshot snapshot) async {
+    if (snapshot.callId.isEmpty) return;
+    final name = await _resolveDisplayName(snapshot.remoteUserID);
+    // Пока имя резолвилось, звонок мог завершиться/смениться (звонящий отменил,
+    // приняли из push) — не поднимаем устаревший входящий.
+    if (calls.snapshot.status != CallStatus.incoming || calls.snapshot.callId != snapshot.callId) return;
+    await FlutterCallkitIncoming.showCallkitIncoming(_incomingParamsFromSnapshot(snapshot, name));
+  }
+
+  /// [CallKitParams] для foreground-входящего из [CallSnapshot] (данные ring'а
+  /// пришли по стриму, а не из push). Формат extra совпадает с [_incomingParams],
+  /// чтобы [_onEvent] разбирал их единообразно.
+  CallKitParams _incomingParamsFromSnapshot(CallSnapshot snapshot, String nameCaller) {
+    final isVideo = snapshot.video;
+    final fromUserIDHex = utils.bytesToHex(Uint8List.fromList(snapshot.remoteUserID));
+    return CallKitParams(
+      id: snapshot.callId,
+      nameCaller: nameCaller.isNotEmpty ? nameCaller : 'Iperon',
+      appName: 'Iperon',
+      handle: isVideo ? 'Видеозвонок' : 'Аудиозвонок',
+      type: isVideo ? 1 : 0,
+      extra: {_kFromUserID: fromUserIDHex, _kVideo: isVideo},
+      android: const AndroidParams(
+        isCustomNotification: true,
+        isShowFullLockedScreen: true,
+        isImportant: true,
+        incomingCallNotificationChannelName: 'Входящие звонки',
+        missedCallNotificationChannelName: 'Пропущенные звонки',
+      ),
+      // configureAudioSession: true — на ответе плагин активирует AVAudioSession,
+      // CXProvider шлёт didActivate → ACTION_CALL_TOGGLE_AUDIO_SESSION →
+      // Calls.setAudioEngineActive (движок LiveKit в `externalCallSystem`). Тот же
+      // механизм, что и на cold-start из VoIP-push.
+      ios: const IOSParams(handleType: 'generic', supportsVideo: true, configureAudioSession: true, includesCallsInRecents: false),
+    );
   }
 
   /// Регистрирует исходящий звонок в CallKit (iOS), предварительно разрешив имя
@@ -437,5 +488,7 @@ class CallPush {
     _eventSub = null;
     await _callSub?.cancel();
     _callSub = null;
+    await _incomingRingSub?.cancel();
+    _incomingRingSub = null;
   }
 }

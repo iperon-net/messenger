@@ -49,9 +49,16 @@ class _CallGateState extends State<CallGate> {
   }
 
   void _sync(CallSnapshot snapshot) {
-    final active = snapshot.status != CallStatus.idle && snapshot.status != CallStatus.ended;
+    // Входящий (`incoming`) НЕ открывает наш экран: в foreground его ведёт
+    // системная звонилка (CallKit/ConnectionService) с системным рингтоном, а не
+    // наш `CallView` (см. Calls.incomingRings / CallPush). Свой экран поднимаем
+    // только с момента принятия (`connecting`/`active`) или на исходящий.
+    final active = switch (snapshot.status) {
+      CallStatus.idle || CallStatus.ended || CallStatus.incoming => false,
+      _ => true,
+    };
 
-    // Авто-открытие только на переходе idle/ended → активный (старт звонка).
+    // Авто-открытие только на переходе не-активный → активный (старт звонка).
     if (active && !_wasActive) _openCall();
     _wasActive = active;
 
@@ -72,7 +79,8 @@ class _CallGateState extends State<CallGate> {
   void _openCall() {
     if (_routeOpen) return;
     final status = _calls.snapshot.status;
-    if (status == CallStatus.idle || status == CallStatus.ended) return;
+    // incoming ведёт системная звонилка — свой экран не открываем (см. [_sync]).
+    if (status == CallStatus.idle || status == CallStatus.ended || status == CallStatus.incoming) return;
 
     _routeOpen = true;
     WidgetsBinding.instance.addPostFrameCallback((_) {
