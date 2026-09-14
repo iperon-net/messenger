@@ -79,6 +79,13 @@ class CallStateMapper extends ClassMapperBase<CallState> {
     opt: true,
     def: false,
   );
+  static bool _$remoteMicMuted(CallState v) => v.remoteMicMuted;
+  static const Field<CallState, bool> _f$remoteMicMuted = Field(
+    'remoteMicMuted',
+    _$remoteMicMuted,
+    opt: true,
+    def: false,
+  );
   static CallEndReason _$endReason(CallState v) => v.endReason;
   static const Field<CallState, CallEndReason> _f$endReason = Field(
     'endReason',
@@ -144,6 +151,7 @@ class CallStateMapper extends ClassMapperBase<CallState> {
     #micMuted: _f$micMuted,
     #cameraOff: _f$cameraOff,
     #speakerOn: _f$speakerOn,
+    #remoteMicMuted: _f$remoteMicMuted,
     #endReason: _f$endReason,
     #debug: _f$debug,
     #connectedAt: _f$connectedAt,
@@ -164,6 +172,7 @@ class CallStateMapper extends ClassMapperBase<CallState> {
       micMuted: data.dec(_f$micMuted),
       cameraOff: data.dec(_f$cameraOff),
       speakerOn: data.dec(_f$speakerOn),
+      remoteMicMuted: data.dec(_f$remoteMicMuted),
       endReason: data.dec(_f$endReason),
       debug: data.dec(_f$debug),
       connectedAt: data.dec(_f$connectedAt),
@@ -244,6 +253,7 @@ abstract class CallStateCopyWith<$R, $In extends CallState, $Out>
     bool? micMuted,
     bool? cameraOff,
     bool? speakerOn,
+    bool? remoteMicMuted,
     CallEndReason? endReason,
     String? debug,
     DateTime? connectedAt,
@@ -281,6 +291,7 @@ class _CallStateCopyWithImpl<$R, $Out>
     bool? micMuted,
     bool? cameraOff,
     bool? speakerOn,
+    bool? remoteMicMuted,
     CallEndReason? endReason,
     String? debug,
     Object? connectedAt = $none,
@@ -299,6 +310,7 @@ class _CallStateCopyWithImpl<$R, $Out>
       if (micMuted != null) #micMuted: micMuted,
       if (cameraOff != null) #cameraOff: cameraOff,
       if (speakerOn != null) #speakerOn: speakerOn,
+      if (remoteMicMuted != null) #remoteMicMuted: remoteMicMuted,
       if (endReason != null) #endReason: endReason,
       if (debug != null) #debug: debug,
       if (connectedAt != $none) #connectedAt: connectedAt,
@@ -319,6 +331,7 @@ class _CallStateCopyWithImpl<$R, $Out>
     micMuted: data.get(#micMuted, or: $value.micMuted),
     cameraOff: data.get(#cameraOff, or: $value.cameraOff),
     speakerOn: data.get(#speakerOn, or: $value.speakerOn),
+    remoteMicMuted: data.get(#remoteMicMuted, or: $value.remoteMicMuted),
     endReason: data.get(#endReason, or: $value.endReason),
     debug: data.get(#debug, or: $value.debug),
     connectedAt: data.get(#connectedAt, or: $value.connectedAt),

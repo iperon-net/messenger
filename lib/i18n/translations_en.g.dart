@@ -883,6 +883,9 @@ class Translations$screenCall$en {
 
 	/// en: 'Excellent connection'
 	String get qualityExcellent => 'Excellent connection';
+
+	/// en: 'Microphone off'
+	String get remoteMicMuted => 'Microphone off';
 }
 
 /// The flat map containing all translations for locale <en>.
@@ -1095,6 +1098,7 @@ extension on Translations {
 			'screenCall.qualityPoor' => 'Poor connection',
 			'screenCall.qualityGood' => 'Good connection',
 			'screenCall.qualityExcellent' => 'Excellent connection',
+			'screenCall.remoteMicMuted' => 'Microphone off',
 			_ => null,
 		};
 	}

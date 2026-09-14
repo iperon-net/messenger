@@ -22,6 +22,10 @@ class CallState with CallStateMappable {
   final bool micMuted;
   final bool cameraOff;
   final bool speakerOn;
+
+  /// Микрофон собеседника выключен (см. [CallSnapshot.remoteMicMuted]).
+  final bool remoteMicMuted;
+
   final CallEndReason endReason;
   final String debug;
 
@@ -59,6 +63,7 @@ class CallState with CallStateMappable {
     this.micMuted = false,
     this.cameraOff = false,
     this.speakerOn = false,
+    this.remoteMicMuted = false,
     this.endReason = CallEndReason.none,
     this.debug = '',
     this.connectedAt,

@@ -56,6 +56,12 @@ class CallSnapshot {
   final bool micMuted;
   final bool cameraOff;
   final bool speakerOn;
+
+  /// Микрофон СОБЕСЕДНИКА выключен. Отражает mute-состояние удалённой
+  /// аудиодорожки в комнате LiveKit (события `TrackMuted`/`TrackUnmuted`), а не
+  /// наш [micMuted]. `false`, пока участника/дорожки нет.
+  final bool remoteMicMuted;
+
   final CallEndReason endReason;
 
   /// Монотонный счётчик смены медиадорожек (local/remote video track). Дорожки
@@ -85,6 +91,7 @@ class CallSnapshot {
     this.micMuted = false,
     this.cameraOff = false,
     this.speakerOn = false,
+    this.remoteMicMuted = false,
     this.endReason = CallEndReason.none,
     this.mediaEpoch = 0,
     this.debug = '',
@@ -100,6 +107,7 @@ class CallSnapshot {
     bool? micMuted,
     bool? cameraOff,
     bool? speakerOn,
+    bool? remoteMicMuted,
     CallEndReason? endReason,
     int? mediaEpoch,
     String? debug,
@@ -114,6 +122,7 @@ class CallSnapshot {
       micMuted: micMuted ?? this.micMuted,
       cameraOff: cameraOff ?? this.cameraOff,
       speakerOn: speakerOn ?? this.speakerOn,
+      remoteMicMuted: remoteMicMuted ?? this.remoteMicMuted,
       endReason: endReason ?? this.endReason,
       mediaEpoch: mediaEpoch ?? this.mediaEpoch,
       debug: debug ?? this.debug,
@@ -648,6 +657,7 @@ class Calls {
     // active по факту присутствия участника.
     if (room.remoteParticipants.isNotEmpty) {
       _adoptRemoteTracks();
+      _syncRemoteMic();
       _markActive();
     }
   }
@@ -795,6 +805,13 @@ class Calls {
           _emit(_snapshot.copyWith(mediaEpoch: _snapshot.mediaEpoch + 1));
         }
       })
+      // Собеседник выключил/включил микрофон (или опубликовал дорожку уже
+      // замьюченной) — отражаем состояние удалённой аудиодорожки в снимке для
+      // индикатора на экране. Свои (локальные) события игнорируем — их ведёт
+      // [toggleMic] через [micMuted].
+      ..on<TrackMutedEvent>((event) => _syncRemoteMic())
+      ..on<TrackUnmutedEvent>((event) => _syncRemoteMic())
+      ..on<TrackPublishedEvent>((event) => _syncRemoteMic())
       ..on<ParticipantConnectionQualityUpdatedEvent>((event) {
         // Индикатор показывает качество собеседника — локального участника
         // игнорируем. Обновляем только для живого звонка.
@@ -820,6 +837,25 @@ class Calls {
           _teardown(CallEndReason.failed);
         }
       });
+  }
+
+  // Пересчитывает mute-состояние микрофона собеседника по текущим аудиодорожкам
+  // удалённых участников и переиздаёт снимок, если оно изменилось. Считаем
+  // микрофон выключенным, когда аудиодорожки ещё нет (участник не опубликовал) —
+  // индикатор появится/исчезнет по факту публикации. Для звонка 1-на-1 берём
+  // первого удалённого участника. Вызывается из событий комнаты и при late-join.
+  void _syncRemoteMic() {
+    final room = _room;
+    if (room == null) return;
+    var muted = true;
+    for (final participant in room.remoteParticipants.values) {
+      final audio = participant.audioTrackPublications;
+      if (audio.isEmpty) continue;
+      muted = audio.every((publication) => publication.muted);
+      break;
+    }
+    if (muted == _snapshot.remoteMicMuted) return;
+    _emit(_snapshot.copyWith(remoteMicMuted: muted));
   }
 
   // Забирает уже опубликованные видеодорожки присутствующих участников (когда мы

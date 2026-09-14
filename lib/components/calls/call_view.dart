@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/cupertino.dart' show CupertinoIcons;
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_boring_avatars/flutter_boring_avatars.dart';
@@ -62,7 +63,7 @@ class _CallPalette {
 /// обёртки (`CallCupertino`/`CallMaterial`) лишь дают Scaffold и фон. Палитра
 /// следует теме приложения (светлая/тёмная), а поверх активного видео всегда
 /// светлая — см. [_CallPalette].
-class CallView extends StatelessWidget {
+class CallView extends StatefulWidget {
   const CallView({super.key});
 
   // Семантические цвета кнопок/индикатора — одинаковы в обеих темах (хорошо
@@ -73,6 +74,26 @@ class CallView extends StatelessWidget {
 
   // Цвет иконки на цветной (красной/зелёной) кнопке — всегда белый в обеих темах.
   static const _onAccent = Color(0xFFFFFFFF);
+
+  @override
+  State<CallView> createState() => _CallViewState();
+}
+
+class _CallViewState extends State<CallView> {
+  @override
+  void initState() {
+    super.initState();
+    // Экран звонка — только портрет: в ландшафте вертикальная колонка контролов
+    // не влезала и кнопка отбоя уезжала за пределы экрана. Возвращаем свободную
+    // ориентацию при уходе с экрана.
+    SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+  }
+
+  @override
+  void dispose() {
+    SystemChrome.setPreferredOrientations(DeviceOrientation.values);
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -162,6 +183,8 @@ class _Overlay extends StatelessWidget {
                   const SizedBox(height: 8),
                   _QualityIndicator(quality: state.quality, dim: palette.dim),
                 ],
+                // Микрофон собеседника выключен — значок ниже статуса связи.
+                if (active && state.remoteMicMuted) ...[const SizedBox(height: 8), _RemoteMicIndicator(dim: palette.dim)],
                 // Диагностика соединения прямо на экране (этапы сигналинга/ICE/
                 // медиа) — без выгрузки логов с устройства.
                 if (state.debug.isNotEmpty)
@@ -393,6 +416,26 @@ class _QualityIndicator extends StatelessWidget {
           ),
         const SizedBox(width: 6),
         Text(label, style: TextStyle(color: color, fontSize: 12)),
+      ],
+    );
+  }
+}
+
+/// Значок «микрофон собеседника выключен»: перечёркнутый микрофон + подпись.
+/// Показывается под индикатором качества связи на активном звонке.
+class _RemoteMicIndicator extends StatelessWidget {
+  final Color dim;
+
+  const _RemoteMicIndicator({required this.dim});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(CupertinoIcons.mic_slash_fill, color: dim, size: 14),
+        const SizedBox(width: 6),
+        Text(context.t.screenCall.remoteMicMuted, style: TextStyle(color: dim, fontSize: 12)),
       ],
     );
   }

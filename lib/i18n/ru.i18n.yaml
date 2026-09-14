@@ -249,3 +249,4 @@ dateTime:
   "qualityPoor": "Слабый сигнал"
   "qualityGood": "Хорошее соединение"
   "qualityExcellent": "Отличное соединение"
+  "remoteMicMuted": "Микрофон выключен"
