@@ -19,6 +19,7 @@ import 'auth.dart';
 import 'di.dart';
 import 'logger.dart';
 import 'protobuf.dart';
+import 'settings.dart';
 
 /// Стадия звонка 1-на-1.
 ///
@@ -154,10 +155,30 @@ class Calls {
   final logger = getIt.get<Logger>();
   final api = getIt.get<API>();
   final auth = getIt.get<Auth>();
+  final settings = getIt.get<Settings>();
 
   // iOS-канал к AppDelegate для смены маршрута аудио на CallKit-пути
   // (overrideOutputAudioPort). См. [toggleSpeaker], ios/Runner/AppDelegate.swift.
   static const _callAudioChannel = MethodChannel('net.iperon.messenger/call_audio');
+
+  // Сколько раз пробуем начальный connect к комнате перед провалом звонка (см.
+  // [_connectRoom]). Первый connect LiveKit не переигрывает сам, а на холодном
+  // старте сеть ещё не готова — поэтому повторяем сами. Значение — из Remote
+  // Config (`CALL_CONNECT_MAX_ATTEMPTS`), чтобы крутить без пересборки.
+  int get _maxConnectAttempts => settings.callConnectMaxAttempts;
+
+  // Таймауты подключения к комнате. `peerConnection` укорочен относительно
+  // дефолтных 10 с SDK (из Remote Config `CALL_PEER_CONNECTION_TIMEOUT_SECONDS`),
+  // чтобы мёртвая ICE-попытка отваливалась быстрее и повтор шёл живее; прочие —
+  // как в [Timeouts.defaultTimeouts].
+  Timeouts get _callTimeouts => Timeouts(
+    connection: const Duration(seconds: 10),
+    debounce: const Duration(milliseconds: 20),
+    publish: const Duration(seconds: 10),
+    subscribe: const Duration(seconds: 10),
+    peerConnection: Duration(seconds: settings.callPeerConnectionTimeoutSeconds),
+    iceRestart: const Duration(seconds: 10),
+  );
 
   Room? _room;
   EventsListener<RoomEvent>? _roomListener;
@@ -617,21 +638,64 @@ class Calls {
     }
     _dbg('token ok');
 
-    final room = Room();
-    _room = room;
-    _diag2('Room CREATED seq=$seq room#=${identityHashCode(room)} url=${response.url}');
-    // С этого момента дубли отсекает `_room != null` — синхронный флаг больше не
-    // нужен (снимаем, чтобы возможный ретрай/следующий звонок не заблокировался).
-    _connectingRoom = false;
-    _roomListener = room.createListener();
-    _wireRoomEvents(_roomListener!);
+    // Подключаемся к комнате с ограниченным числом повторов. Встроенный
+    // авто-реконнект LiveKit включается ТОЛЬКО после первого успешного connect;
+    // провал самого первого connect (ICE/PeerConnection timeout) SDK не
+    // переигрывает. На холодном старте (приём из VoIP-push) сеть/радио ещё
+    // поднимаются и ICE-gathering не успевает за дефолтные 10 с — короткий повтор
+    // с чистой комнатой обычно ловит уже прогретую сеть. `_connectingRoom` держим
+    // взведённым на весь цикл (гард от повторного входа) и снимаем после успеха;
+    // при полном провале его сбросит [_teardown].
+    final maxAttempts = _maxConnectAttempts;
+    final timeouts = _callTimeouts;
+    var attempt = 0;
+    while (true) {
+      attempt++;
+      final room = Room();
+      _room = room;
+      _diag2('Room CREATED seq=$seq attempt=$attempt room#=${identityHashCode(room)} url=${response.url}');
+      _roomListener = room.createListener();
+      _wireRoomEvents(_roomListener!);
 
-    _diag2('room.connect CALL seq=$seq room#=${identityHashCode(room)}');
-    await room.connect(response.url, response.token);
-    _diag2('room.connect DONE seq=$seq room#=${identityHashCode(room)}');
+      try {
+        _diag2('room.connect CALL seq=$seq attempt=$attempt room#=${identityHashCode(room)}');
+        await room.connect(response.url, response.token, connectOptions: ConnectOptions(timeouts: timeouts));
+        _diag2('room.connect DONE seq=$seq attempt=$attempt room#=${identityHashCode(room)}');
+        break;
+      } on MediaConnectException catch (error, stackTrace) {
+        logger.warning('room.connect attempt $attempt/$maxAttempts failed: $error');
+        logger.handle(error, stackTrace);
+        _dbg('ice timeout #$attempt');
+        // Разбираем полуоткрытую комнату перед повтором: слушатель + сам Room.
+        // `_roomConnected` ещё false — RoomDisconnected на этой фазе teardown не
+        // запускает (см. [_wireRoomEvents]). Поля читаем актуальные: если во время
+        // await сюда пришёл [_teardown] (отбой) — он уже обнулил `_room`/слушателя,
+        // и мы их повторно не диспозим.
+        await _roomListener?.dispose();
+        _roomListener = null;
+        final failed = _room;
+        _room = null;
+        _remoteVideoTrack = null;
+        try {
+          await failed?.dispose();
+        } catch (disposeError, disposeStack) {
+          logger.handle(disposeError, disposeStack);
+        }
+        // Исчерпали попытки или звонок уже свернули (отбой/hangup во время
+        // подключения) — пробрасываем; вызывающий свернёт звонок как failed.
+        if (attempt >= maxAttempts || !_hasActiveCall) rethrow;
+        // Между попытками показываем «соединение» (на прошлой попытке могли
+        // пометить active по ParticipantConnected) и сбрасываем состояние медиа
+        // уже мёртвой комнаты.
+        _emit(_snapshot.copyWith(status: CallStatus.connecting, remoteMicMuted: false, mediaEpoch: _snapshot.mediaEpoch + 1));
+        await Future<void>.delayed(Duration(milliseconds: 400 * attempt));
+      }
+    }
+    _connectingRoom = false;
     _roomConnected = true;
     _dbg('room connected');
 
+    final room = _room!;
     await _publishLocalMedia(video: video);
 
     // Начальный маршрут аудио. Для аудиозвонка ожидается разговорный динамик

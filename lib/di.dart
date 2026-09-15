@@ -43,7 +43,7 @@ Future<void> registerCommonDependencies() async {
     getIt.registerSingletonAsync<CDNManager>(() async => CDNManager(), dependsOn: [API, Crypto, Auth, Repositories]);
   }
   if (!getIt.isRegistered<Calls>()) {
-    getIt.registerSingletonAsync<Calls>(() async => Calls(), dependsOn: [API, Auth]);
+    getIt.registerSingletonAsync<Calls>(() async => Calls(), dependsOn: [Settings, API, Auth]);
   }
   if (!getIt.isRegistered<PushManager>()) {
     getIt.registerSingletonAsync<PushManager>(() async => PushManager(), dependsOn: [API, Auth, Repositories]);

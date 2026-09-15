@@ -38,6 +38,8 @@ class Settings {
       "API_PORT": 443,
       "API_SECURE": true,
       "PHONE_NUMBER_MODERATION_APPLICATION_STORE_ENABLE": false,
+      "CALL_CONNECT_MAX_ATTEMPTS": 3,
+      "CALL_PEER_CONNECTION_TIMEOUT_SECONDS": 7,
     });
 
     try {
@@ -81,5 +83,25 @@ class Settings {
       return dotenv.getBool('PHONE_NUMBER_MODERATION_APPLICATION_STORE_ENABLE', fallback: false);
     }
     return remoteConfig.getBool("PHONE_NUMBER_MODERATION_APPLICATION_STORE_ENABLE");
+  }
+
+  /// Сколько раз пробовать начальный connect к комнате LiveKit перед провалом
+  /// звонка (см. `Calls._connectRoom`). `dotenv` перекрывает Remote Config; при
+  /// невалидном/нулевом значении откатываемся на 3.
+  int get callConnectMaxAttempts {
+    final res = dotenv.getInt('CALL_CONNECT_MAX_ATTEMPTS', fallback: 0);
+    if (res > 0) return res;
+    final rc = remoteConfig.getInt("CALL_CONNECT_MAX_ATTEMPTS");
+    return rc > 0 ? rc : 3;
+  }
+
+  /// Таймаут установления PeerConnection (ICE) для connect к комнате LiveKit, в
+  /// секундах. Укорочен относительно дефолтных 10 с SDK ради живых повторов.
+  /// `dotenv` перекрывает Remote Config; при невалидном/нулевом — откат на 7.
+  int get callPeerConnectionTimeoutSeconds {
+    final res = dotenv.getInt('CALL_PEER_CONNECTION_TIMEOUT_SECONDS', fallback: 0);
+    if (res > 0) return res;
+    final rc = remoteConfig.getInt("CALL_PEER_CONNECTION_TIMEOUT_SECONDS");
+    return rc > 0 ? rc : 7;
   }
 }
