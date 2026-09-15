@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+
+    <string name="text_accept">Ответить</string>
+    <string name="text_decline">Отклонить</string>
+    <string name="text_missed_call">Пропущенный звонок</string>
+    <string name="text_call_back">Перезвонить</string>
+    <string name="text_calling">Вызов…</string>
+    <string name="text_hang_up">Завершить</string>
+    <string name="text_title_post_notification">Разрешение на уведомления</string>
+    <string name="text_post_notification_message_required">Требуется разрешение на уведомления. Пожалуйста, включите его в настройках.</string>
+    <string name="explanation_for_special_use">Показ активного уведомления о звонке, пока пользователь не завершит вызов</string>
+</resources>

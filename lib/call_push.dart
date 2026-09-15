@@ -33,6 +33,21 @@ const _kActionCancel = 'cancel';
 // блокировки. См. android/.../MainActivity.kt.
 const _callWindowChannel = MethodChannel('net.iperon.messenger/call_window');
 
+// Локаль для строк системной звонилки берём СИСТЕМНУЮ (Platform.localeName), а
+// не in-app slang-локаль: часть этого кода (_incomingParams) исполняется в
+// фоновом isolate без DI/БД, где slang не поднят, а нативный экран входящего
+// Android и так локализуется по системной локали (values-ru/ вендоренного
+// плагина). Так все строки звонилки — заголовок, каналы, кнопки, запрос
+// разрешения — следуют одной локали в обоих isolate'ах.
+bool get _isRu => Platform.localeName.toLowerCase().startsWith('ru');
+
+// Подпись звонка (handle) в системной звонилке.
+String _handleText(bool isVideo) => _isRu ? (isVideo ? 'Видеозвонок' : 'Аудиозвонок') : (isVideo ? 'Video call' : 'Voice call');
+
+// Названия каналов уведомлений о звонках.
+String get _incomingChannelName => _isRu ? 'Входящие звонки' : 'Incoming calls';
+String get _missedChannelName => _isRu ? 'Пропущенные звонки' : 'Missed calls';
+
 /// Обработчик FCM-сообщений в фоновом/выгруженном состоянии (Android). Работает в
 /// отдельном isolate «с нуля», поэтому не трогает DI/`Calls` — только показывает
 /// нативный экран входящего (CallKit/ConnectionService) или снимает его. Когда
@@ -79,16 +94,19 @@ CallKitParams _incomingParams(Map<String, dynamic> data, String callId) {
     // Имя звонящего из push (профиль/телефон); пусто — фолбэк на 'Iperon'.
     nameCaller: nameCaller.isNotEmpty ? nameCaller : 'Iperon',
     appName: 'Iperon',
-    handle: isVideo ? 'Видеозвонок' : 'Аудиозвонок',
+    handle: _handleText(isVideo),
     type: isVideo ? 1 : 0,
     // extra доедет до события accept/decline — оттуда берём собеседника и тип.
     extra: {_kFromUserID: fromUserID, _kVideo: isVideo},
-    android: const AndroidParams(
+    android: AndroidParams(
       isCustomNotification: true,
       isShowFullLockedScreen: true,
       isImportant: true,
-      incomingCallNotificationChannelName: 'Входящие звонки',
-      missedCallNotificationChannelName: 'Пропущенные звонки',
+      incomingCallNotificationChannelName: _incomingChannelName,
+      missedCallNotificationChannelName: _missedChannelName,
+      // textAccept/textDecline НЕ задаём: пустые — и плагин берёт нативные
+      // R.string.text_accept/text_decline, которые Android локализует по
+      // системной локали (values/ = EN, values-ru/ = RU в вендоренном плагине).
     ),
     // ВНИМАНИЕ: на iOS этот путь (Dart-репорт входящего из FCM-фона) НЕ
     // используется — cold-start-входящий репортит натив из VoIP-push
@@ -256,8 +274,12 @@ class CallPush {
     if (!Platform.isAndroid) return;
     unawaited(
       FlutterCallkitIncoming.requestNotificationPermission({
-        'rationaleMessagePermission': 'Разрешение нужно, чтобы показывать входящие звонки.',
-        'postNotificationMessageRequired': 'Разрешите уведомления в настройках, чтобы видеть входящие звонки.',
+        'rationaleMessagePermission': _isRu
+            ? 'Разрешение нужно, чтобы показывать входящие звонки.'
+            : 'Permission is required to show incoming calls.',
+        'postNotificationMessageRequired': _isRu
+            ? 'Разрешите уведомления в настройках, чтобы видеть входящие звонки.'
+            : 'Please enable notifications in settings to receive incoming calls.',
       }),
     );
   }
@@ -292,15 +314,17 @@ class CallPush {
       id: snapshot.callId,
       nameCaller: nameCaller.isNotEmpty ? nameCaller : 'Iperon',
       appName: 'Iperon',
-      handle: isVideo ? 'Видеозвонок' : 'Аудиозвонок',
+      handle: _handleText(isVideo),
       type: isVideo ? 1 : 0,
       extra: {_kFromUserID: fromUserIDHex, _kVideo: isVideo},
-      android: const AndroidParams(
+      android: AndroidParams(
         isCustomNotification: true,
         isShowFullLockedScreen: true,
         isImportant: true,
-        incomingCallNotificationChannelName: 'Входящие звонки',
-        missedCallNotificationChannelName: 'Пропущенные звонки',
+        incomingCallNotificationChannelName: _incomingChannelName,
+        missedCallNotificationChannelName: _missedChannelName,
+        // См. коммент в _incomingParams: textAccept/textDecline не задаём —
+        // локализация идёт через R.string (values/ + values-ru/) плагина.
       ),
       // configureAudioSession: true — на ответе плагин активирует AVAudioSession,
       // CXProvider шлёт didActivate → ACTION_CALL_TOGGLE_AUDIO_SESSION →

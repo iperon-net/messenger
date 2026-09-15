@@ -69,8 +69,11 @@ class _ProfileCupertino extends State<ProfileCupertino> {
               middle: Text(context.t.screenProfile.profile),
               trailing: (state.userID.isNotEmpty && !_isSelf(state.userID))
                   ? CupertinoButton(
-                      padding: EdgeInsets.zero,
-                      minimumSize: Size.zero,
+                      // 44×44 — минимальная зона нажатия по HIG; прежние
+                      // padding:zero + minimumSize:zero давали хит-area размером с
+                      // саму иконку (~20pt), поэтому тап часто не срабатывал.
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      minimumSize: const Size(44, 44),
                       onPressed: () => getIt.get<Calls>().startCall(toUserID: state.userID, video: false),
                       child: Icon(CupertinoIcons.phone, color: ThemesCupertino.navActionColor(context)),
                     )

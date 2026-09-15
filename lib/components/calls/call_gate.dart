@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../calls.dart';
 import '../../di.dart';
+import '../../logger.dart';
 
 /// Слушатель звонков в шелле: подписан на [Calls.snapshots] и открывает
 /// полноэкранный `/call` на входящий/исходящий звонок, а по завершении —
@@ -24,6 +25,7 @@ class CallGate extends StatefulWidget {
 
 class _CallGateState extends State<CallGate> {
   final _calls = getIt.get<Calls>();
+  final _logger = getIt.get<Logger>();
 
   StreamSubscription<CallSnapshot>? _sub;
   StreamSubscription<void>? _focusSub;
@@ -59,7 +61,10 @@ class _CallGateState extends State<CallGate> {
     };
 
     // Авто-открытие только на переходе не-активный → активный (старт звонка).
-    if (active && !_wasActive) _openCall();
+    if (active && !_wasActive) {
+      _logger.info('call_gate: sync -> active (status=${snapshot.status}), opening /call (routeOpen=$_routeOpen)');
+      _openCall();
+    }
     _wasActive = active;
 
     if ((snapshot.status == CallStatus.ended || snapshot.status == CallStatus.idle) && _routeOpen) {
@@ -79,21 +84,32 @@ class _CallGateState extends State<CallGate> {
   /// Открывает `/call`, если звонок активен и экран ещё не показан. Отслеживает
   /// закрытие через future от push().
   void _openCall() {
-    if (_routeOpen) return;
+    if (_routeOpen) {
+      _logger.info('call_gate: openCall skipped (already open)');
+      return;
+    }
     final status = _calls.snapshot.status;
     // incoming ведёт системная звонилка — свой экран не открываем (см. [_sync]).
-    if (status == CallStatus.idle || status == CallStatus.ended || status == CallStatus.incoming) return;
+    if (status == CallStatus.idle || status == CallStatus.ended || status == CallStatus.incoming) {
+      _logger.info('call_gate: openCall skipped (status=$status)');
+      return;
+    }
 
     _routeOpen = true;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) {
+        _logger.warning('call_gate: openCall aborted (not mounted)');
         _routeOpen = false;
         return;
       }
+      _logger.info('call_gate: pushing /call');
       final future = GoRouter.of(context).push('/call');
       // Когда экран звонка закрыт (pop / свайп-назад), сбрасываем флаг, чтобы
       // его можно было открыть снова из шторки при живом звонке.
-      future.whenComplete(() => _routeOpen = false);
+      future.whenComplete(() {
+        _logger.info('call_gate: /call route closed');
+        _routeOpen = false;
+      });
     });
   }
 
