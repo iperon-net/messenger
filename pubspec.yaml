@@ -51,6 +51,12 @@ dependencies:
   flutter_dotenv: ^6.0.1
   path_provider: ^2.1.6
   flutter_secure_storage: ^11.0.0
+  # Экспорт логов (share-меню) из скрытого экрана «Разработчик» и мост подробных
+  # логов LiveKit (package:logging) в talker. Обе уже приходят транзитивно
+  # (share_plus — через talker_flutter, logging — через livekit_client),
+  # объявляем прямыми, т.к. используем их напрямую в коде.
+  share_plus: ^13.3.0
+  logging: ^1.3.0
   sqlite_async: ^0.14.3
   path:
   go_router: ^18.0.0

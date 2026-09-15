@@ -45,6 +45,7 @@ class TranslationsRu extends Translations with BaseTranslations<AppLocale, Trans
 	@override late final _Translations$screenHome$ru screenHome = _Translations$screenHome$ru._(_root);
 	@override late final _Translations$screenChats$ru screenChats = _Translations$screenChats$ru._(_root);
 	@override late final _Translations$screenSettings$ru screenSettings = _Translations$screenSettings$ru._(_root);
+	@override late final _Translations$screenDeveloper$ru screenDeveloper = _Translations$screenDeveloper$ru._(_root);
 	@override late final _Translations$screenSettingsAppearance$ru screenSettingsAppearance = _Translations$screenSettingsAppearance$ru._(_root);
 	@override late final _Translations$screenSettingsDevices$ru screenSettingsDevices = _Translations$screenSettingsDevices$ru._(_root);
 	@override late final _Translations$screenSettingsAboutApplication$ru screenSettingsAboutApplication = _Translations$screenSettingsAboutApplication$ru._(_root);
@@ -148,6 +149,18 @@ class _Translations$screenSettings$ru extends Translations$screenSettings$en {
 	@override String get aboutApplication => 'О приложении';
 	@override String get logs => 'Логи';
 	@override String get logout => 'Выйти';
+}
+
+// Path: screenDeveloper
+class _Translations$screenDeveloper$ru extends Translations$screenDeveloper$en {
+	_Translations$screenDeveloper$ru._(TranslationsRu root) : this._root = root, super.internal(root);
+
+	final TranslationsRu _root; // ignore: unused_field
+
+	// Translations
+	@override String get developer => 'Разработчик';
+	@override String get logs => _root.screenSettings.logs;
+	@override String get exportLogs => 'Экспорт логов';
 }
 
 // Path: screenSettingsAppearance
@@ -520,6 +533,9 @@ extension on TranslationsRu {
 			'screenSettings.aboutApplication' => 'О приложении',
 			'screenSettings.logs' => 'Логи',
 			'screenSettings.logout' => 'Выйти',
+			'screenDeveloper.developer' => 'Разработчик',
+			'screenDeveloper.logs' => _root.screenSettings.logs,
+			'screenDeveloper.exportLogs' => 'Экспорт логов',
 			'screenSettingsAppearance.appearance' => 'Оформление',
 			'screenSettingsAppearance.colorTheme' => 'Цветовая тема',
 			'screenSettingsAppearance.colorThemeDefault' => 'По умолчанию',

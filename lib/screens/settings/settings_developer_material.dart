@@ -1,0 +1,59 @@
+import 'package:material_ui/material_ui.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:go_router/go_router.dart';
+
+import '../../i18n/translations.g.dart';
+import '../../components.dart';
+import '../../di.dart';
+import '../../logger.dart';
+import 'developer_export_logs.dart';
+
+/// Скрытый экран «Разработчик». Открывается 5 быстрыми тапами по кнопке
+/// «Настройки» в нижнем таб-баре (см. `HomeMaterial`), в обычном меню настроек
+/// не показан. Пока один раздел — «Логи»; в будущем добавятся другие
+/// диагностические разделы.
+class SettingsDeveloperMaterial extends StatelessWidget {
+  const SettingsDeveloperMaterial({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
+      appBar: AppBar(centerTitle: true, title: Text(context.t.screenDeveloper.developer)),
+      body: SafeArea(
+        child: ListView(
+          children: [
+            const SizedBox(height: 6),
+            Card(
+              child: Column(
+                children: [
+                  MaterialListTileIcon(
+                    title: Text(context.t.screenDeveloper.logs),
+                    color: const Color(0xFF8E8E93),
+                    icon: FontAwesomeIcons.fileLines,
+                    onTab: () async => context.go("/settings/developer/logs"),
+                    isTrailing: true,
+                  ),
+                  MaterialListTileIcon(
+                    title: Text(context.t.screenDeveloper.exportLogs),
+                    color: const Color(0xFF34C759),
+                    icon: FontAwesomeIcons.fileExport,
+                    onTab: () async {
+                      try {
+                        await exportDeviceLogs();
+                      } catch (error, stackTrace) {
+                        getIt.get<Logger>().handle(error, stackTrace);
+                      }
+                    },
+                    isTrailing: true,
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 6),
+          ],
+        ),
+      ),
+    );
+  }
+}

@@ -11,6 +11,7 @@ import 'app_cupertino.dart';
 import 'app_material.dart';
 import 'cubit.dart';
 import 'di.dart';
+import 'logger_livekit.dart';
 import 'push.dart';
 import 'call_push.dart';
 import 'firebase_options.dart';
@@ -70,6 +71,10 @@ Future<void> main() async {
 
   // Dependencies
   await registerCommonDependencies();
+
+  // Подробные логи LiveKit (FINE) → talker: диагностика ICE/TURN звонков видна в
+  // экране «Логи» и в экспорте логов (экран «Разработчик»).
+  attachLiveKitLogging();
 
   final repositories = getIt.get<Repositories>();
 

@@ -168,9 +168,18 @@ class Routers {
                   ],
                 ),
                 GoRoute(
-                  path: "logs",
+                  // Скрытый раздел «Разработчик» (открывается 5 тапами по вкладке
+                  // «Настройки», см. HomeCupertino). Логи теперь живут здесь.
+                  path: "developer",
                   parentNavigatorKey: rootNavigatorKey,
-                  pageBuilder: (context, state) => _page(state, TalkerScreen(talker: logger.talker)),
+                  pageBuilder: (context, state) => _page(state, const SettingsDeveloperCupertino()),
+                  routes: [
+                    GoRoute(
+                      path: "logs",
+                      parentNavigatorKey: rootNavigatorKey,
+                      pageBuilder: (context, state) => _page(state, TalkerScreen(talker: logger.talker)),
+                    ),
+                  ],
                 ),
                 GoRoute(
                   path: "language",
@@ -415,9 +424,18 @@ class Routers {
                   ],
                 ),
                 GoRoute(
-                  path: "logs",
+                  // Скрытый раздел «Разработчик» (открывается 5 тапами по вкладке
+                  // «Настройки», см. HomeMaterial). Логи теперь живут здесь.
+                  path: "developer",
                   parentNavigatorKey: rootNavigatorKey,
-                  pageBuilder: (context, state) => _pageMaterial(state, TalkerScreen(talker: logger.talker)),
+                  pageBuilder: (context, state) => _pageMaterial(state, const SettingsDeveloperMaterial()),
+                  routes: [
+                    GoRoute(
+                      path: "logs",
+                      parentNavigatorKey: rootNavigatorKey,
+                      pageBuilder: (context, state) => _pageMaterial(state, TalkerScreen(talker: logger.talker)),
+                    ),
+                  ],
                 ),
                 GoRoute(
                   path: "language",

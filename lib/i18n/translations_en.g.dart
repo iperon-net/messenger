@@ -47,6 +47,7 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	late final Translations$screenHome$en screenHome = Translations$screenHome$en.internal(_root);
 	late final Translations$screenChats$en screenChats = Translations$screenChats$en.internal(_root);
 	late final Translations$screenSettings$en screenSettings = Translations$screenSettings$en.internal(_root);
+	late final Translations$screenDeveloper$en screenDeveloper = Translations$screenDeveloper$en.internal(_root);
 	late final Translations$screenSettingsAppearance$en screenSettingsAppearance = Translations$screenSettingsAppearance$en.internal(_root);
 	late final Translations$screenSettingsDevices$en screenSettingsDevices = Translations$screenSettingsDevices$en.internal(_root);
 	late final Translations$screenSettingsAboutApplication$en screenSettingsAboutApplication = Translations$screenSettingsAboutApplication$en.internal(_root);
@@ -214,6 +215,24 @@ class Translations$screenSettings$en {
 
 	/// en: 'Logout'
 	String get logout => 'Logout';
+}
+
+// Path: screenDeveloper
+class Translations$screenDeveloper$en {
+	Translations$screenDeveloper$en.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// en: 'Developer'
+	String get developer => 'Developer';
+
+	/// en: 'Logs'
+	String get logs => _root.screenSettings.logs;
+
+	/// en: 'Export logs'
+	String get exportLogs => 'Export logs';
 }
 
 // Path: screenSettingsAppearance
@@ -928,6 +947,9 @@ extension on Translations {
 			'screenSettings.aboutApplication' => 'About the application',
 			'screenSettings.logs' => 'Logs',
 			'screenSettings.logout' => 'Logout',
+			'screenDeveloper.developer' => 'Developer',
+			'screenDeveloper.logs' => _root.screenSettings.logs,
+			'screenDeveloper.exportLogs' => 'Export logs',
 			'screenSettingsAppearance.appearance' => 'Appearance',
 			'screenSettingsAppearance.colorTheme' => 'Color theme',
 			'screenSettingsAppearance.colorThemeDefault' => 'Default',

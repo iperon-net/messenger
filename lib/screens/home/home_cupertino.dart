@@ -9,12 +9,46 @@ import '../../i18n/translations.g.dart';
 import '../../cubit.dart';
 import '../../themes.dart';
 
-class HomeCupertino extends StatelessWidget {
+class HomeCupertino extends StatefulWidget {
   const HomeCupertino({super.key, required this.navigationShell});
 
   final StatefulNavigationShell navigationShell;
 
-  void _onTap(int index) => navigationShell.goBranch(index, initialLocation: index == navigationShell.currentIndex);
+  @override
+  State<HomeCupertino> createState() => _HomeCupertinoState();
+}
+
+class _HomeCupertinoState extends State<HomeCupertino> {
+  // Счётчик быстрых тапов по вкладке «Настройки» для открытия скрытого экрана
+  // «Разработчик» (5 тапов подряд). Сбрасывается при паузе или тапе по другой
+  // вкладке. См. [_onTap].
+  int _settingsTaps = 0;
+  DateTime? _lastSettingsTap;
+
+  void _onTap(int index) {
+    widget.navigationShell.goBranch(index, initialLocation: index == widget.navigationShell.currentIndex);
+    _maybeOpenDeveloper(index);
+  }
+
+  // 5 тапов подряд (с паузами ≤ 2 c) по вкладке «Настройки» открывают скрытый
+  // экран «Разработчик». Тап по любой другой вкладке сбрасывает счётчик.
+  void _maybeOpenDeveloper(int index) {
+    const settingsIndex = 3;
+    if (index != settingsIndex) {
+      _settingsTaps = 0;
+      return;
+    }
+    final now = DateTime.now();
+    if (_lastSettingsTap == null || now.difference(_lastSettingsTap!) > const Duration(seconds: 2)) {
+      _settingsTaps = 0;
+    }
+    _lastSettingsTap = now;
+    _settingsTaps++;
+    if (_settingsTaps >= 5) {
+      _settingsTaps = 0;
+      context.go("/settings/developer");
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +62,7 @@ class HomeCupertino extends StatelessWidget {
 
         final tabBar = CupertinoTabBar(
           backgroundColor: ThemesCupertino.tabBarBackground.resolveFrom(context),
-          currentIndex: navigationShell.currentIndex,
+          currentIndex: widget.navigationShell.currentIndex,
           onTap: _onTap,
           height: tabBarHeight,
           iconSize: 24,
@@ -78,7 +112,7 @@ class HomeCupertino extends StatelessWidget {
                   data: MediaQuery.of(
                     context,
                   ).copyWith(padding: MediaQuery.of(context).padding.copyWith(bottom: tabBarHeight + bottomInset)),
-                  child: navigationShell,
+                  child: widget.navigationShell,
                 ),
               ),
               Positioned(left: 0, right: 0, bottom: 0, child: tabBar),

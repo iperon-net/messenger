@@ -57,7 +57,10 @@ class Logger {
       settings: TalkerSettings(
         enabled: true,
         useHistory: true,
-        maxHistoryItems: 1000,
+        // Подробные логи LiveKit (FINE) объёмны — держим больше истории, чтобы
+        // диагностика звонка целиком помещалась в экспорт логов (см.
+        // attachLiveKitLogging / экран «Разработчик»).
+        maxHistoryItems: 5000,
         useConsoleLogs: true,
         timeFormat: TimeFormat.timeAndSeconds,
       ),

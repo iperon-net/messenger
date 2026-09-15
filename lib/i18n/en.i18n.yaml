@@ -42,6 +42,11 @@
   "logs": "Logs"
   "logout": "Logout"
 
+"screenDeveloper":
+  "developer": "Developer"
+  "logs": "@:screenSettings.logs"
+  "exportLogs": "Export logs"
+
 "screenSettingsAppearance":
   "appearance": "Appearance"
   "colorTheme": "Color theme"

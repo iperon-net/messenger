@@ -12,6 +12,8 @@ export 'home/calls_cupertino.dart';
 export 'home/calls_material.dart';
 export 'settings/settings_cupertino.dart';
 export 'settings/settings_material.dart';
+export 'settings/settings_developer_cupertino.dart';
+export 'settings/settings_developer_material.dart';
 export 'settings/settings_language_cupertino.dart';
 export 'settings/settings_language_material.dart';
 export 'settings/settings_appearance_cupertino.dart';

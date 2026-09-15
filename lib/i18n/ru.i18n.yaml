@@ -42,6 +42,11 @@
   "logs": "Логи"
   "logout": "Выйти"
 
+"screenDeveloper":
+  "developer": "Разработчик"
+  "logs": "@:screenSettings.logs"
+  "exportLogs": "Экспорт логов"
+
 "screenSettingsAppearance":
   "appearance": "Оформление"
   "colorTheme": "Цветовая тема"

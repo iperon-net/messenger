@@ -11,8 +11,15 @@ class Cache {
   /// Протухшую запись отсекает [get] на чтении.
   Future<void> set({required Uint8List userID, required String key, required Uint8List value, Duration? ttl}) async {
     final expiresAt = ttl == null ? 0 : DateTime.now().millisecondsSinceEpoch + ttl.inMilliseconds;
-    await db.execute("DELETE FROM cache WHERE userID = ? AND key = ?;", [userID, key]);
-    await db.execute("INSERT INTO cache (key, value, ttl, userID) VALUES (?, ?, ?, ?);", [key, value, expiresAt, userID]);
+    // Атомарный upsert по UNIQUE(userID, key). Прежний DELETE+INSERT двумя
+    // запросами не был атомарен: два параллельных set одного ключа (например,
+    // device_info_update_sent_at при cold-start и push одновременно) успевали оба
+    // удалить, затем оба вставить — второй INSERT падал с UNIQUE constraint (2067).
+    await db.execute(
+      "INSERT INTO cache (key, value, ttl, userID) VALUES (?, ?, ?, ?) "
+      "ON CONFLICT(userID, key) DO UPDATE SET value = excluded.value, ttl = excluded.ttl;",
+      [key, value, expiresAt, userID],
+    );
     logger.info("set cache key=$key");
   }
 
