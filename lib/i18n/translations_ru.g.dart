@@ -477,7 +477,7 @@ class _Translations$screenCall$ru extends Translations$screenCall$en {
 	@override String get qualityPoor => 'Слабый сигнал';
 	@override String get qualityGood => 'Хорошее соединение';
 	@override String get qualityExcellent => 'Отличное соединение';
-	@override String get remoteMicMuted => 'Микрофон выключен';
+	@override String get remoteMicMuted => 'Микрофон собеседника выключен';
 }
 
 /// The flat map containing all translations for locale <ru>.
@@ -690,7 +690,7 @@ extension on TranslationsRu {
 			'screenCall.qualityPoor' => 'Слабый сигнал',
 			'screenCall.qualityGood' => 'Хорошее соединение',
 			'screenCall.qualityExcellent' => 'Отличное соединение',
-			'screenCall.remoteMicMuted' => 'Микрофон выключен',
+			'screenCall.remoteMicMuted' => 'Микрофон собеседника выключен',
 			_ => null,
 		};
 	}

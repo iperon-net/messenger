@@ -797,6 +797,11 @@ class Calls {
           _dbg('remote video');
           _emit(_snapshot.copyWith(mediaEpoch: _snapshot.mediaEpoch + 1));
         }
+        // Подписались на аудиодорожку собеседника — считываем её начальное
+        // mute-состояние. TrackMuted/Unmuted летят только ПОСЛЕ подписки (SDK
+        // навешивает слушателя на трек в момент подписки), поэтому исходный мьют
+        // ловим здесь, иначе индикатор не появится до первого переключения.
+        _syncRemoteMic();
         _markActive();
       })
       ..on<TrackUnsubscribedEvent>((event) {
@@ -847,13 +852,11 @@ class Calls {
   void _syncRemoteMic() {
     final room = _room;
     if (room == null) return;
-    var muted = true;
-    for (final participant in room.remoteParticipants.values) {
-      final audio = participant.audioTrackPublications;
-      if (audio.isEmpty) continue;
-      muted = audio.every((publication) => publication.muted);
-      break;
-    }
+    final participant = room.remoteParticipants.values.firstOrNull;
+    // `isMuted` читает метаданные публикации (обновляются с сервера всегда, даже
+    // до подписки на дорожку) и трактует отсутствие аудио как «выключен».
+    final muted = participant?.isMuted ?? true;
+    logger.info('call: remote mic muted=$muted (participants=${room.remoteParticipants.length})');
     if (muted == _snapshot.remoteMicMuted) return;
     _emit(_snapshot.copyWith(remoteMicMuted: muted));
   }

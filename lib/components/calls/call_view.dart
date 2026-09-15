@@ -454,31 +454,66 @@ class _Avatar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bytes = state.avatarBytes;
+    final avatar = bytes != null
+        ? ClipOval(
+            child: Image.memory(
+              bytes,
+              width: _size,
+              height: _size,
+              fit: BoxFit.cover,
+              gaplessPlayback: true,
+              cacheWidth: (_size * MediaQuery.devicePixelRatioOf(context)).round(),
+              cacheHeight: (_size * MediaQuery.devicePixelRatioOf(context)).round(),
+            ),
+          )
+        : (state.boringAvatarHash.isNotEmpty
+              ? AnimatedBoringAvatar(
+                  name: state.boringAvatarHash,
+                  type: BoringAvatarType.beam,
+                  shape: const CircleBorder(),
+                  duration: const Duration(milliseconds: 600),
+                )
+              : DecoratedBox(
+                  decoration: BoxDecoration(color: palette.controlBg, shape: BoxShape.circle),
+                ));
+
     return SizedBox(
       width: _size,
       height: _size,
-      child: bytes != null
-          ? ClipOval(
-              child: Image.memory(
-                bytes,
-                width: _size,
-                height: _size,
-                fit: BoxFit.cover,
-                gaplessPlayback: true,
-                cacheWidth: (_size * MediaQuery.devicePixelRatioOf(context)).round(),
-                cacheHeight: (_size * MediaQuery.devicePixelRatioOf(context)).round(),
-              ),
-            )
-          : (state.boringAvatarHash.isNotEmpty
-                ? AnimatedBoringAvatar(
-                    name: state.boringAvatarHash,
-                    type: BoringAvatarType.beam,
-                    shape: const CircleBorder(),
-                    duration: const Duration(milliseconds: 600),
-                  )
-                : DecoratedBox(
-                    decoration: BoxDecoration(color: palette.controlBg, shape: BoxShape.circle),
-                  )),
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Positioned.fill(child: avatar),
+          // Бейдж «микрофон собеседника выключен» — перечёркнутый микрофон в углу
+          // аватара, чтобы было однозначно видно, чей это микрофон.
+          if (state.remoteMicMuted) Positioned(right: -2, bottom: -2, child: _MicBadge(palette: palette)),
+        ],
+      ),
+    );
+  }
+}
+
+/// Круглый бейдж с перечёркнутым микрофоном поверх угла аватара собеседника.
+/// Обводка цветом фона экрана визуально «вырезает» бейдж из аватара.
+class _MicBadge extends StatelessWidget {
+  final _CallPalette palette;
+
+  const _MicBadge({required this.palette});
+
+  static const _size = 36.0;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: _size,
+      height: _size,
+      decoration: BoxDecoration(
+        color: CallView._red,
+        shape: BoxShape.circle,
+        border: Border.all(color: palette.bg, width: 3),
+      ),
+      alignment: Alignment.center,
+      child: const Icon(CupertinoIcons.mic_slash_fill, color: CallView._onAccent, size: 18),
     );
   }
 }
