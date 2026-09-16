@@ -248,6 +248,9 @@ dateTime:
 
 "screenCall":
   "title": "Call"
+  "returnToCall": "Tap to return to the call"
+  "bannerRinging": "Call"
+  "bannerActive": "In call"
   "incomingAudio": "Incoming call"
   "incomingVideo": "Incoming video call"
   "calling": "Calling…"

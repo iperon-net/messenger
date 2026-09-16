@@ -248,6 +248,9 @@ dateTime:
 
 "screenCall":
   "title": "Звонок"
+  "returnToCall": "Коснитесь, чтобы вернуться к звонку"
+  "bannerRinging": "Вызов"
+  "bannerActive": "Идёт разговор"
   "incomingAudio": "Входящий звонок"
   "incomingVideo": "Входящий видеозвонок"
   "calling": "Вызов…"

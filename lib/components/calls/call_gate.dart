@@ -1,16 +1,20 @@
 import 'dart:async';
 
 import 'package:flutter/widgets.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../calls.dart';
 import '../../di.dart';
+import '../../i18n/translations.g.dart';
 import '../../logger.dart';
 
 /// Слушатель звонков в шелле: подписан на [Calls.snapshots] и открывает
 /// полноэкранный `/call` на входящий/исходящий звонок, а по завершении —
-/// закрывает его. Живёт под роутером (обёрнут вокруг `navigationShell`), поэтому
-/// у него есть валидный контекст для навигации на корневом навигаторе.
+/// закрывает его. Пока звонок активен, но экран `/call` свёрнут, показывает
+/// сверху зелёную полоску «вернуться к звонку» — тап переоткрывает `/call`.
+/// Живёт под роутером (обёрнут вокруг `navigationShell`), поэтому у него есть
+/// валидный контекст для навигации на корневом навигаторе.
 ///
 /// Провайдится один раз в обоих шеллах (см. `routers.dart`), чтобы входящий
 /// ловился на любой вкладке.
@@ -30,10 +34,14 @@ class _CallGateState extends State<CallGate> {
   StreamSubscription<CallSnapshot>? _sub;
   StreamSubscription<void>? _focusSub;
 
+  // Последний снимок звонка — для отрисовки полоски возврата. Обновляется в
+  // [_handle] (через setState на события стрима).
+  CallSnapshot _snapshot = const CallSnapshot();
+
   // Открыт ли сейчас `/call` в стеке навигации. Синхронизируется через future
   // от push(): когда экран закрывают (в т.ч. свайпом-назад при живом звонке),
-  // future завершается и флаг сбрасывается — тогда тап по ongoing-нотификации
-  // сможет открыть экран заново.
+  // future завершается и флаг сбрасывается — тогда полоска возврата (или тап по
+  // ongoing-нотификации) сможет открыть экран заново.
   bool _routeOpen = false;
 
   // Был ли звонок активен на прошлом снимке — чтобы авто-открывать `/call`
@@ -44,21 +52,26 @@ class _CallGateState extends State<CallGate> {
   @override
   void initState() {
     super.initState();
-    _sync(_calls.snapshot);
-    _sub = _calls.snapshots.listen(_sync);
+    // Начальная синхронизация без setState (билд ещё не прошёл).
+    _snapshot = _calls.snapshot;
+    _handle(_snapshot, initial: true);
+    _sub = _calls.snapshots.listen((s) => _handle(s, initial: false));
     // Тап по ongoing-нотификации звонка (Android) — переоткрываем `/call`.
     _focusSub = _calls.focusRequests.listen((_) => _openCall());
   }
 
-  void _sync(CallSnapshot snapshot) {
+  void _handle(CallSnapshot snapshot, {required bool initial}) {
+    if (!initial && mounted) {
+      setState(() => _snapshot = snapshot);
+    } else {
+      _snapshot = snapshot;
+    }
+
     // Входящий (`incoming`) НЕ открывает наш экран: в foreground его ведёт
     // системная звонилка (CallKit/ConnectionService) с системным рингтоном, а не
     // наш `CallView` (см. Calls.incomingRings / CallPush). Свой экран поднимаем
     // только с момента принятия (`connecting`/`active`) или на исходящий.
-    final active = switch (snapshot.status) {
-      CallStatus.idle || CallStatus.ended || CallStatus.incoming => false,
-      _ => true,
-    };
+    final active = _isActive(snapshot.status);
 
     // Авто-открытие только на переходе не-активный → активный (старт звонка).
     if (active && !_wasActive) {
@@ -81,6 +94,16 @@ class _CallGateState extends State<CallGate> {
     }
   }
 
+  // Активен ли звонок в смысле «ведём свой экран» (исходящий/соединение/разговор).
+  // `incoming` ведёт системная звонилка, `idle`/`ended` — звонка нет.
+  static bool _isActive(CallStatus status) => switch (status) {
+    CallStatus.idle || CallStatus.ended || CallStatus.incoming => false,
+    _ => true,
+  };
+
+  // Показывать ли полоску возврата: звонок активен, но экран `/call` свёрнут.
+  bool get _shouldShowBanner => !_routeOpen && _isActive(_snapshot.status);
+
   /// Открывает `/call`, если звонок активен и экран ещё не показан. Отслеживает
   /// закрытие через future от push().
   void _openCall() {
@@ -89,28 +112,35 @@ class _CallGateState extends State<CallGate> {
       return;
     }
     final status = _calls.snapshot.status;
-    // incoming ведёт системная звонилка — свой экран не открываем (см. [_sync]).
+    // incoming ведёт системная звонилка — свой экран не открываем (см. [_handle]).
     if (status == CallStatus.idle || status == CallStatus.ended || status == CallStatus.incoming) {
       _logger.info('call_gate: openCall skipped (status=$status)');
       return;
     }
 
-    _routeOpen = true;
+    _setRouteOpen(true);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) {
         _logger.warning('call_gate: openCall aborted (not mounted)');
-        _routeOpen = false;
+        _setRouteOpen(false);
         return;
       }
       _logger.info('call_gate: pushing /call');
       final future = GoRouter.of(context).push('/call');
       // Когда экран звонка закрыт (pop / свайп-назад), сбрасываем флаг, чтобы
-      // его можно было открыть снова из шторки при живом звонке.
+      // его можно было открыть снова полоской возврата при живом звонке.
       future.whenComplete(() {
         _logger.info('call_gate: /call route closed');
-        _routeOpen = false;
+        _setRouteOpen(false);
       });
     });
+  }
+
+  // Меняет [_routeOpen] и перерисовывает полоску (её видимость зависит от флага).
+  void _setRouteOpen(bool value) {
+    if (_routeOpen == value) return;
+    _routeOpen = value;
+    if (mounted) setState(() {});
   }
 
   @override
@@ -121,5 +151,131 @@ class _CallGateState extends State<CallGate> {
   }
 
   @override
-  Widget build(BuildContext context) => widget.child;
+  Widget build(BuildContext context) {
+    if (!_shouldShowBanner) return widget.child;
+    // Полоска съедает верхний системный инсет своим SafeArea (рисуется под
+    // статус-баром), поэтому у содержимого ниже убираем верхний padding —
+    // иначе его собственный SafeArea добавил бы второй отступ и появился бы зазор.
+    return Column(
+      children: [
+        _CallReturnBanner(snapshot: _snapshot, onTap: _openCall),
+        Expanded(
+          child: MediaQuery.removePadding(context: context, removeTop: true, child: widget.child),
+        ),
+      ],
+    );
+  }
+}
+
+/// Зелёная полоска активного звонка поверх содержимого: иконка + статус/таймер,
+/// по тапу — переоткрывает `/call`. Тикает раз в секунду для таймера разговора.
+class _CallReturnBanner extends StatefulWidget {
+  final CallSnapshot snapshot;
+  final VoidCallback onTap;
+
+  const _CallReturnBanner({required this.snapshot, required this.onTap});
+
+  @override
+  State<_CallReturnBanner> createState() => _CallReturnBannerState();
+}
+
+class _CallReturnBannerState extends State<_CallReturnBanner> {
+  // Зелёный «активного звонка» — чуть темнее системного iOS-green.
+  static const _green = Color(0xFF248A3D);
+
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (mounted) setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  static String _formatDuration(Duration d) {
+    final total = d.inSeconds < 0 ? 0 : d.inSeconds;
+    final h = total ~/ 3600;
+    final m = (total % 3600) ~/ 60;
+    final ss = (total % 60).toString().padLeft(2, '0');
+    if (h > 0) return '$h:${m.toString().padLeft(2, '0')}:$ss';
+    return '$m:$ss';
+  }
+
+  // Статус-слово полоски (подчёркнутое): «Вызов» до ответа, «Идёт разговор» в
+  // разговоре.
+  String _statusWord(BuildContext context) {
+    final t = context.t.screenCall;
+    return widget.snapshot.status == CallStatus.active ? t.bannerActive : t.bannerRinging;
+  }
+
+  // Таймер разговора (пусто, пока не active) — рядом со статусом, без подчёркивания.
+  String _timerText() {
+    final at = widget.snapshot.connectedAt;
+    if (widget.snapshot.status != CallStatus.active || at == null) return '';
+    return _formatDuration(DateTime.now().difference(at));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.t.screenCall;
+    const white = Color(0xFFFFFFFF);
+    final timer = _timerText();
+    return Semantics(
+      button: true,
+      label: t.returnToCall,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: widget.onTap,
+        child: Container(
+          color: _green,
+          child: SafeArea(
+            bottom: false,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              // Полоска рисуется ВЫШЕ Scaffold — там нет валидного DefaultTextStyle,
+              // и Text по умолчанию получил бы дебажное жёлтое двойное подчёркивание.
+              // Задаём чистый базовый стиль (в т.ч. decoration: none) для всего текста.
+              child: DefaultTextStyle(
+                style: const TextStyle(color: white, decoration: TextDecoration.none),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const FaIcon(FontAwesomeIcons.phone, size: 15, color: white),
+                    const SizedBox(width: 10),
+                    Flexible(
+                      child: Text(
+                        _statusWord(context),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(color: white, fontSize: 14, fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                    if (timer.isNotEmpty) ...[
+                      const SizedBox(width: 8),
+                      Text(
+                        timer,
+                        style: const TextStyle(
+                          color: white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          fontFeatures: [FontFeature.tabularFigures()],
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }

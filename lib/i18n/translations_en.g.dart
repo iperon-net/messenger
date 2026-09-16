@@ -885,6 +885,15 @@ class Translations$screenCall$en {
 	/// en: 'Call'
 	String get title => 'Call';
 
+	/// en: 'Tap to return to the call'
+	String get returnToCall => 'Tap to return to the call';
+
+	/// en: 'Call'
+	String get bannerRinging => 'Call';
+
+	/// en: 'In call'
+	String get bannerActive => 'In call';
+
 	/// en: 'Incoming call'
 	String get incomingAudio => 'Incoming call';
 
@@ -1165,6 +1174,9 @@ extension on Translations {
 			'dateTime.relativeDateTimeYesterday' => ({required Object time}) => 'yesterday at ${time}',
 			'dateTime.relativeDateTimeOther' => ({required Object date, required Object time}) => '${date} at ${time}',
 			'screenCall.title' => 'Call',
+			'screenCall.returnToCall' => 'Tap to return to the call',
+			'screenCall.bannerRinging' => 'Call',
+			'screenCall.bannerActive' => 'In call',
 			'screenCall.incomingAudio' => 'Incoming call',
 			'screenCall.incomingVideo' => 'Incoming video call',
 			'screenCall.calling' => 'Calling…',

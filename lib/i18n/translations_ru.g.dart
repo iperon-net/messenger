@@ -484,6 +484,9 @@ class _Translations$screenCall$ru extends Translations$screenCall$en {
 
 	// Translations
 	@override String get title => 'Звонок';
+	@override String get returnToCall => 'Коснитесь, чтобы вернуться к звонку';
+	@override String get bannerRinging => 'Вызов';
+	@override String get bannerActive => 'Идёт разговор';
 	@override String get incomingAudio => 'Входящий звонок';
 	@override String get incomingVideo => 'Входящий видеозвонок';
 	@override String get calling => 'Вызов…';
@@ -717,6 +720,9 @@ extension on TranslationsRu {
 			'dateTime.relativeDateTimeYesterday' => ({required Object time}) => 'вчера в ${time}',
 			'dateTime.relativeDateTimeOther' => ({required Object date, required Object time}) => '${date} в ${time}',
 			'screenCall.title' => 'Звонок',
+			'screenCall.returnToCall' => 'Коснитесь, чтобы вернуться к звонку',
+			'screenCall.bannerRinging' => 'Вызов',
+			'screenCall.bannerActive' => 'Идёт разговор',
 			'screenCall.incomingAudio' => 'Входящий звонок',
 			'screenCall.incomingVideo' => 'Входящий видеозвонок',
 			'screenCall.calling' => 'Вызов…',
