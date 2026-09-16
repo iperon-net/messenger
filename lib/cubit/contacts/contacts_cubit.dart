@@ -30,6 +30,27 @@ class _Entry {
   const _Entry({required this.raw, required this.phoneE164, required this.phone, required this.displayName});
 }
 
+/// Контакт, добавленный вручную по номеру (источник MANUAL). В отличие от записей
+/// из телефонной книги его нет в устройстве, поэтому он хранится отдельно (в кэше)
+/// и подмешивается в каждый discover — иначе replace-all снимка стёр бы его.
+class _ManualContact {
+  final String raw;
+  final String phoneE164;
+  final String phone;
+  final String displayName;
+
+  const _ManualContact({required this.raw, required this.phoneE164, required this.phone, required this.displayName});
+
+  Map<String, dynamic> toJson() => {"raw": raw, "e164": phoneE164, "phone": phone, "name": displayName};
+
+  factory _ManualContact.fromJson(Map<String, dynamic> json) => _ManualContact(
+    raw: json["raw"] as String,
+    phoneE164: json["e164"] as String,
+    phone: json["phone"] as String,
+    displayName: json["name"] as String,
+  );
+}
+
 /// Итог ручного добавления контакта по номеру (для текста пользователю).
 enum ContactAddResult { addedRegistered, addedPending, invalidNumber, failed }
 
@@ -68,6 +89,12 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
   // следующий discovery вернул бы его рёбром OPRF. Держим в памяти + в кэше.
   static const String _excludedKey = "contacts_excluded_e164";
   Set<String>? _excluded;
+
+  // Локально добавленные вручную контакты (`addByNumber`), keyed by e164. Их нет
+  // в телефонной книге, поэтому храним отдельно и подмешиваем в discover, чтобы
+  // replace-all снимка их не стёр. В памяти + в кэше.
+  static const String _manualKey = "contacts_manual";
+  Map<String, _ManualContact>? _manual;
 
   // Один discover идёт за раз (guard от параллельных запусков), а _discoverStarted
   // помнит, был ли он вообще запущен в этой сессии — чтобы первый показ вкладки не
@@ -197,6 +224,18 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
       final excluded = await _loadExcluded();
       if (isClosed) return;
       entries.removeWhere((e164, _) => excluded.contains(e164));
+
+      // Подмешиваем добавленные вручную контакты (их нет в книге устройства).
+      // Запись из книги имеет приоритет — putIfAbsent не перезапишет её именем/номером.
+      final manual = await _loadManual();
+      if (isClosed) return;
+      for (final contact in manual.values) {
+        if (excluded.contains(contact.phoneE164)) continue;
+        entries.putIfAbsent(
+          contact.phoneE164,
+          () => _Entry(raw: contact.raw, phoneE164: contact.phoneE164, phone: contact.phone, displayName: contact.displayName),
+        );
+      }
 
       // Книга пуста (или частичный доступ ничего не отдал) — не трогаем снимок,
       // чтобы не стереть прошлый кэш; просто показываем пусто.
@@ -377,14 +416,19 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
   /// Ручное добавление контакта по номеру (источник MANUAL). Прогоняет OPRF по
   /// одному номеру, кладёт ребро в облачную книгу (`CONTACTS_UPSERT`, full=false —
   /// добавление, не replace-all) и проверяет членство (`MATCH`), чтобы сообщить
-  /// пользователю, зарегистрирован ли контакт. Снимает номер из локального
-  /// exclusion-set (если ранее удаляли), чтобы discovery снова его не прятал.
-  /// Возвращает [ContactAddResult].
-  Future<ContactAddResult> addByNumber(String rawNumber) async {
+  /// пользователю, зарегистрирован ли контакт. Имя/фамилия формируют отображаемое
+  /// имя (при пустом — показываем сам номер). Контакт сразу появляется в списке:
+  /// кладём его в локальный manual-set (переживает ре-синхронизацию, т.к. в книге
+  /// устройства его нет), в снимок БД и в текущее состояние. Снимает номер из
+  /// exclusion-set (если ранее удаляли). Возвращает [ContactAddResult].
+  Future<ContactAddResult> addByNumber({required String firstName, required String lastName, required String rawNumber}) async {
     final normalization = utils.phoneNormalization(phoneNumber: rawNumber);
     if (normalization.e164.isEmpty || normalization.raw.isEmpty) {
       return ContactAddResult.invalidNumber;
     }
+
+    final name = [firstName.trim(), lastName.trim()].where((part) => part.isNotEmpty).join(" ");
+    final displayName = name.isNotEmpty ? name : normalization.international;
 
     try {
       final oprfOutputs = await _oprfOutputs([utf8.encode(normalization.raw)]);
@@ -406,13 +450,41 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
       // Ранее удалённый номер снова разрешаем показывать/синхронизировать.
       await _unexclude(normalization.e164);
 
-      // Членство: зарегистрирован ли контакт (для текста пользователю).
-      final registered = await _isRegistered(oprf);
-      return registered ? ContactAddResult.addedRegistered : ContactAddResult.addedPending;
+      // Членство: userID зарегистрированного контакта (или null — ещё не в Iperon).
+      final userID = await _matchUserID(oprf);
+
+      // Запоминаем как ручной контакт (переживёт replace-all снимка) и сразу
+      // показываем: обновляем состояние и снимок БД.
+      final contact = _ManualContact(
+        raw: normalization.raw,
+        phoneE164: normalization.e164,
+        phone: normalization.international,
+        displayName: displayName,
+      );
+      await _addManual(contact);
+      _insertContact(contact, userID);
+      await repositories.contacts.upsertOne(
+        ContactCacheEntry(phoneE164: contact.phoneE164, displayName: contact.displayName, phone: contact.phone, userID: userID),
+      );
+
+      return userID != null ? ContactAddResult.addedRegistered : ContactAddResult.addedPending;
     } catch (error, stackTrace) {
       logger.handle(error, stackTrace);
       return ContactAddResult.failed;
     }
+  }
+
+  /// Вставляет/обновляет один контакт в текущем состоянии (registered/invitable)
+  /// по e164 и пересортировывает — для мгновенного показа после ручного добавления.
+  void _insertContact(_ManualContact contact, Uint8List? userID) {
+    if (isClosed) return;
+
+    final item = ContactItem(displayName: contact.displayName, phone: contact.phone, phoneE164: contact.phoneE164, userID: userID);
+    final registered = state.registered.where((c) => c.phoneE164 != contact.phoneE164).toList();
+    final invitable = state.invitable.where((c) => c.phoneE164 != contact.phoneE164).toList();
+    (userID != null ? registered : invitable).add(item);
+
+    _emitSorted(registered, invitable);
   }
 
   /// Удаляет контакт из облачной книги (`CONTACTS_REMOVE` по OPRF-отпечатку его
@@ -433,6 +505,8 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
       }
 
       await _exclude(item.phoneE164);
+      // Если контакт был добавлен вручную — убираем и из manual-set.
+      await _removeManual(item.phoneE164);
 
       // Убираем из показа сразу, не дожидаясь следующего discovery.
       if (!isClosed) {
@@ -448,14 +522,17 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
     }
   }
 
-  /// Проверка членства одного OPRF-отпечатка через `MATCH`.
-  Future<bool> _isRegistered(Uint8List oprf) async {
+  /// Членство одного OPRF-отпечатка через `MATCH`: userID зарегистрированного
+  /// пользователя или `null`, если он ещё не в Iperon.
+  Future<Uint8List?> _matchUserID(Uint8List oprf) async {
     final (matchStatus, matchPayload) = await api.unaryEncodedWithResponse(
       MessageType.CONTACTS_DISCOVERY_MATCH,
       ContactsDiscoveryMatch_Request(oprfOutputs: [oprf]).writeToBuffer(),
     );
-    if (matchStatus.status != APIStatus.success || matchPayload == null) return false;
-    return ContactsDiscoveryMatch_Response.fromBuffer(matchPayload).matches.isNotEmpty;
+    if (matchStatus.status != APIStatus.success || matchPayload == null) return null;
+    final matches = ContactsDiscoveryMatch_Response.fromBuffer(matchPayload).matches;
+    if (matches.isEmpty) return null;
+    return Uint8List.fromList(matches.first.userID);
   }
 
   /// Ленивая загрузка exclusion-set из кэша (один раз за сессию, затем из памяти).
@@ -483,6 +560,40 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
   Future<void> _unexclude(String e164) async {
     final excluded = await _loadExcluded();
     if (excluded.remove(e164)) await _saveExcluded(excluded);
+  }
+
+  /// Ленивая загрузка manual-set из кэша (один раз за сессию, затем из памяти).
+  Future<Map<String, _ManualContact>> _loadManual() async {
+    final cached = _manual;
+    if (cached != null) return cached;
+
+    final userID = Uint8List.fromList(auth.session.userID);
+    final raw = await repositories.cache.getString(userID: userID, key: _manualKey);
+    final loaded = <String, _ManualContact>{};
+    if (raw != null) {
+      for (final item in jsonDecode(raw) as List) {
+        final contact = _ManualContact.fromJson(item as Map<String, dynamic>);
+        loaded[contact.phoneE164] = contact;
+      }
+    }
+    _manual = loaded;
+    return loaded;
+  }
+
+  Future<void> _saveManual(Map<String, _ManualContact> manual) async {
+    final userID = Uint8List.fromList(auth.session.userID);
+    await repositories.cache.setString(userID: userID, key: _manualKey, value: jsonEncode([for (final c in manual.values) c.toJson()]));
+  }
+
+  Future<void> _addManual(_ManualContact contact) async {
+    final manual = await _loadManual();
+    manual[contact.phoneE164] = contact;
+    await _saveManual(manual);
+  }
+
+  Future<void> _removeManual(String e164) async {
+    final manual = await _loadManual();
+    if (manual.remove(e164) != null) await _saveManual(manual);
   }
 
   void _emitLists(Map<String, _Entry> entries, Map<String, Uint8List> userByE164) {

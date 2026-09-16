@@ -189,6 +189,8 @@
   "statusLastSeen": "last seen {date}"
   "addByNumber": "Add by number"
   "addByNumberHint": "Phone number"
+  "addFirstName": "First name"
+  "addLastName": "Last name"
   "add": "Add"
   "addedRegistered": "Contact added"
   "addedPending": "Added. They aren’t on Iperon yet — you’ll be able to reach them once they join."

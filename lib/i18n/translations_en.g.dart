@@ -687,6 +687,12 @@ class Translations$screenContacts$en {
 	/// en: 'Phone number'
 	String get addByNumberHint => 'Phone number';
 
+	/// en: 'First name'
+	String get addFirstName => 'First name';
+
+	/// en: 'Last name'
+	String get addLastName => 'Last name';
+
 	/// en: 'Add'
 	String get add => 'Add';
 
@@ -1111,6 +1117,8 @@ extension on Translations {
 			'screenContacts.statusLastSeen' => ({required Object date}) => 'last seen ${date}',
 			'screenContacts.addByNumber' => 'Add by number',
 			'screenContacts.addByNumberHint' => 'Phone number',
+			'screenContacts.addFirstName' => 'First name',
+			'screenContacts.addLastName' => 'Last name',
 			'screenContacts.add' => 'Add',
 			'screenContacts.addedRegistered' => 'Contact added',
 			'screenContacts.addedPending' => 'Added. They aren’t on Iperon yet — you’ll be able to reach them once they join.',

@@ -38,6 +38,19 @@ class Contacts {
         .toList(growable: false);
   }
 
+  /// Добавляет/обновляет одну запись снимка (по e164) — для мгновенного показа
+  /// вручную добавленного контакта, не переписывая весь кэш.
+  Future<void> upsertOne(ContactCacheEntry entry) async {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await db.execute("INSERT OR REPLACE INTO contacts (phoneE164, displayName, phone, userID, updatedAt) VALUES (?, ?, ?, ?, ?);", [
+      entry.phoneE164,
+      entry.displayName,
+      entry.phone,
+      entry.userID,
+      now,
+    ]);
+  }
+
   /// Полностью заменяет кэш свежим снимком (последний проход — источник истины:
   /// контакты книги и статус регистрации могли измениться).
   Future<void> replaceAll(List<ContactCacheEntry> entries) async {

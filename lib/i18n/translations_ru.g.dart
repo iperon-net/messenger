@@ -376,6 +376,8 @@ class _Translations$screenContacts$ru extends Translations$screenContacts$en {
 	@override String statusLastSeen({required Object date}) => 'был(а) ${date}';
 	@override String get addByNumber => 'Добавить по номеру';
 	@override String get addByNumberHint => 'Номер телефона';
+	@override String get addFirstName => 'Имя';
+	@override String get addLastName => 'Фамилия';
 	@override String get add => 'Добавить';
 	@override String get addedRegistered => 'Контакт добавлен';
 	@override String get addedPending => 'Добавлено. Пользователя пока нет в Iperon — вы сможете связаться, когда он зарегистрируется.';
@@ -669,6 +671,8 @@ extension on TranslationsRu {
 			'screenContacts.statusLastSeen' => ({required Object date}) => 'был(а) ${date}',
 			'screenContacts.addByNumber' => 'Добавить по номеру',
 			'screenContacts.addByNumberHint' => 'Номер телефона',
+			'screenContacts.addFirstName' => 'Имя',
+			'screenContacts.addLastName' => 'Фамилия',
 			'screenContacts.add' => 'Добавить',
 			'screenContacts.addedRegistered' => 'Контакт добавлен',
 			'screenContacts.addedPending' => 'Добавлено. Пользователя пока нет в Iperon — вы сможете связаться, когда он зарегистрируется.',

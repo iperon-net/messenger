@@ -1,5 +1,6 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_multi_formatter/flutter_multi_formatter.dart';
 import 'package:flutter_boring_avatars/flutter_boring_avatars.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -243,39 +244,59 @@ class _ContactsCupertinoState extends State<ContactsCupertino> {
     return confirmed ?? false;
   }
 
-  /// Диалог ручного добавления контакта по номеру. По подтверждению зовёт
-  /// cubit.addByNumber и показывает результат.
+  /// Диалог ручного добавления контакта по номеру (имя, фамилия, телефон с
+  /// форматированием). По подтверждению зовёт cubit.addByNumber и показывает результат.
   Future<void> _showAddByNumber(BuildContext context) async {
     final cubit = context.read<ContactsCubit>();
-    final controller = TextEditingController();
+    final t = context.t.screenContacts;
+    final firstNameController = TextEditingController();
+    final lastNameController = TextEditingController();
+    final phoneController = TextEditingController();
 
-    final number = await showCupertinoDialog<String>(
+    final confirmed = await showCupertinoDialog<bool>(
       context: context,
       builder: (dialogContext) => CupertinoAlertDialog(
-        title: Text(context.t.screenContacts.addByNumber),
+        title: Text(t.addByNumber),
         content: Padding(
           padding: const EdgeInsets.only(top: 12),
-          child: CupertinoTextField(
-            controller: controller,
-            autofocus: true,
-            keyboardType: TextInputType.phone,
-            placeholder: context.t.screenContacts.addByNumberHint,
+          child: Column(
+            children: [
+              CupertinoTextField(
+                controller: firstNameController,
+                autofocus: true,
+                textCapitalization: TextCapitalization.words,
+                placeholder: t.addFirstName,
+              ),
+              const SizedBox(height: 8),
+              CupertinoTextField(controller: lastNameController, textCapitalization: TextCapitalization.words, placeholder: t.addLastName),
+              const SizedBox(height: 8),
+              CupertinoTextField(
+                controller: phoneController,
+                keyboardType: TextInputType.phone,
+                inputFormatters: [PhoneInputFormatter()],
+                prefix: const Padding(padding: EdgeInsets.only(left: 8), child: Icon(CupertinoIcons.phone, size: 18)),
+                placeholder: t.addByNumberHint,
+              ),
+            ],
           ),
         ),
         actions: [
-          CupertinoDialogAction(onPressed: () => Navigator.of(dialogContext).pop(), child: Text(context.t.common.cancel)),
-          CupertinoDialogAction(
-            onPressed: () => Navigator.of(dialogContext).pop(controller.text.trim()),
-            child: Text(context.t.screenContacts.add),
-          ),
+          CupertinoDialogAction(onPressed: () => Navigator.of(dialogContext).pop(false), child: Text(context.t.common.cancel)),
+          CupertinoDialogAction(onPressed: () => Navigator.of(dialogContext).pop(true), child: Text(t.add)),
         ],
       ),
     );
-    controller.dispose();
 
-    if (number == null || number.isEmpty) return;
+    final firstName = firstNameController.text.trim();
+    final lastName = lastNameController.text.trim();
+    final phone = phoneController.text.trim();
+    firstNameController.dispose();
+    lastNameController.dispose();
+    phoneController.dispose();
 
-    final result = await cubit.addByNumber(number);
+    if (confirmed != true || phone.isEmpty) return;
+
+    final result = await cubit.addByNumber(firstName: firstName, lastName: lastName, rawNumber: phone);
     if (!context.mounted) return;
     _showAddResult(context, result);
   }

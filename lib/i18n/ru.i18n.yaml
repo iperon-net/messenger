@@ -189,6 +189,8 @@
   "statusLastSeen": "был(а) {date}"
   "addByNumber": "Добавить по номеру"
   "addByNumberHint": "Номер телефона"
+  "addFirstName": "Имя"
+  "addLastName": "Фамилия"
   "add": "Добавить"
   "addedRegistered": "Контакт добавлен"
   "addedPending": "Добавлено. Пользователя пока нет в Iperon — вы сможете связаться, когда он зарегистрируется."
