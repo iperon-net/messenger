@@ -183,6 +183,9 @@ class _CallReturnBannerState extends State<_CallReturnBanner> {
   // Зелёный «активного звонка» — чуть темнее системного iOS-green.
   static const _green = Color(0xFF248A3D);
 
+  // Приглушённый (не яркий) красный — когда свой микрофон выключен.
+  static const _mutedRed = Color(0xFFA6413B);
+
   Timer? _timer;
 
   @override
@@ -227,6 +230,11 @@ class _CallReturnBannerState extends State<_CallReturnBanner> {
     final t = context.t.screenCall;
     const white = Color(0xFFFFFFFF);
     final timer = _timerText();
+    // Индикация mute — только в разговоре: до соединения remoteMicMuted=true
+    // (дорожки ещё нет), и красный/иконка вводили бы в заблуждение.
+    final active = widget.snapshot.status == CallStatus.active;
+    final localMuted = active && widget.snapshot.micMuted;
+    final remoteMuted = active && widget.snapshot.remoteMicMuted;
     return Semantics(
       button: true,
       label: t.returnToCall,
@@ -234,7 +242,8 @@ class _CallReturnBannerState extends State<_CallReturnBanner> {
         behavior: HitTestBehavior.opaque,
         onTap: widget.onTap,
         child: Container(
-          color: _green,
+          // Свой микрофон выключен — приглушённый красный, иначе зелёный.
+          color: localMuted ? _mutedRed : _green,
           child: SafeArea(
             bottom: false,
             child: Padding(
@@ -248,6 +257,9 @@ class _CallReturnBannerState extends State<_CallReturnBanner> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     const FaIcon(FontAwesomeIcons.phone, size: 15, color: white),
+                    // Собеседник выключил микрофон — иконка перечёркнутого микрофона
+                    // сразу после трубки.
+                    if (remoteMuted) ...[const SizedBox(width: 8), const FaIcon(FontAwesomeIcons.microphoneSlash, size: 15, color: white)],
                     const SizedBox(width: 10),
                     Flexible(
                       child: Text(
