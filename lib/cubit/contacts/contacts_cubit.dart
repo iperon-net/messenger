@@ -54,6 +54,16 @@ class _ManualContact {
 /// Итог ручного добавления контакта по номеру (для текста пользователю).
 enum ContactAddResult { addedRegistered, addedPending, invalidNumber, failed }
 
+/// Данные формы добавления контакта — возвращаются экраном добавления в список
+/// контактов, который затем вызывает [ContactsCubit.addByNumber].
+class ContactAddInput {
+  final String firstName;
+  final String lastName;
+  final String phone;
+
+  const ContactAddInput({required this.firstName, required this.lastName, required this.phone});
+}
+
 /// Экран «Контакты»: находит, кто из телефонной книги зарегистрирован в Iperon,
 /// не раскрывая серверу сырые номера. Раунд 1 — слепая OPRF-оценка, раунд 2 —
 /// проверка членства по отпечаткам. См. docs/plans/functional-stirring-giraffe.md.

@@ -8,6 +8,8 @@ export 'home/home_cupertino.dart';
 export 'home/home_material.dart';
 export 'home/contacts_cupertino.dart';
 export 'home/contacts_material.dart';
+export 'home/contacts_add_cupertino.dart';
+export 'home/contacts_add_material.dart';
 export 'home/calls_cupertino.dart';
 export 'home/calls_material.dart';
 export 'settings/settings_cupertino.dart';

@@ -64,7 +64,19 @@ class Routers {
       ),
       branches: [
         StatefulShellBranch(
-          routes: [GoRoute(path: "/contacts", builder: (_, _) => const ContactsCupertino())],
+          routes: [
+            GoRoute(
+              path: "/contacts",
+              builder: (_, _) => const ContactsCupertino(),
+              routes: [
+                GoRoute(
+                  path: "add",
+                  parentNavigatorKey: rootNavigatorKey,
+                  pageBuilder: (context, state) => _page(state, const ContactsAddCupertino()),
+                ),
+              ],
+            ),
+          ],
         ),
         StatefulShellBranch(
           routes: [GoRoute(path: "/calls", builder: (_, _) => const CallsCupertino())],
@@ -325,7 +337,19 @@ class Routers {
       ),
       branches: [
         StatefulShellBranch(
-          routes: [GoRoute(path: "/contacts", builder: (_, _) => const ContactsMaterial())],
+          routes: [
+            GoRoute(
+              path: "/contacts",
+              builder: (_, _) => const ContactsMaterial(),
+              routes: [
+                GoRoute(
+                  path: "add",
+                  parentNavigatorKey: rootNavigatorKey,
+                  pageBuilder: (context, state) => _pageMaterial(state, const ContactsAddMaterial()),
+                ),
+              ],
+            ),
+          ],
         ),
         StatefulShellBranch(
           routes: [GoRoute(path: "/calls", builder: (_, _) => const CallsMaterial())],

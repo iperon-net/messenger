@@ -1,6 +1,5 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_multi_formatter/flutter_multi_formatter.dart';
 import 'package:flutter_boring_avatars/flutter_boring_avatars.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -249,62 +248,17 @@ class _ContactsMaterialState extends State<ContactsMaterial> {
     return confirmed ?? false;
   }
 
-  /// Диалог ручного добавления контакта по номеру (имя, фамилия, телефон с
-  /// форматированием). По подтверждению зовёт cubit.addByNumber и показывает
-  /// результат снэкбаром.
+  /// Открывает полноэкранную форму добавления по номеру; по возврату (pop с
+  /// [ContactAddInput]) зовёт cubit.addByNumber и показывает результат снэкбаром.
   Future<void> _showAddByNumber(BuildContext context) async {
     final cubit = context.read<ContactsCubit>();
     final messenger = ScaffoldMessenger.of(context);
     final t = context.t.screenContacts;
-    final firstNameController = TextEditingController();
-    final lastNameController = TextEditingController();
-    final phoneController = TextEditingController();
 
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(t.addByNumber),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: firstNameController,
-              autofocus: true,
-              textCapitalization: TextCapitalization.words,
-              decoration: InputDecoration(labelText: t.addFirstName),
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: lastNameController,
-              textCapitalization: TextCapitalization.words,
-              decoration: InputDecoration(labelText: t.addLastName),
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: phoneController,
-              keyboardType: TextInputType.phone,
-              inputFormatters: [PhoneInputFormatter()],
-              decoration: InputDecoration(labelText: t.addByNumberHint, prefixIcon: const Icon(Icons.phone)),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.of(dialogContext).pop(false), child: Text(context.t.common.cancel)),
-          TextButton(onPressed: () => Navigator.of(dialogContext).pop(true), child: Text(t.add)),
-        ],
-      ),
-    );
+    final input = await context.push<ContactAddInput>('/contacts/add');
+    if (input == null) return;
 
-    final firstName = firstNameController.text.trim();
-    final lastName = lastNameController.text.trim();
-    final phone = phoneController.text.trim();
-    firstNameController.dispose();
-    lastNameController.dispose();
-    phoneController.dispose();
-
-    if (confirmed != true || phone.isEmpty) return;
-
-    final result = await cubit.addByNumber(firstName: firstName, lastName: lastName, rawNumber: phone);
+    final result = await cubit.addByNumber(firstName: input.firstName, lastName: input.lastName, rawNumber: input.phone);
     final message = switch (result) {
       ContactAddResult.addedRegistered => t.addedRegistered,
       ContactAddResult.addedPending => t.addedPending,
