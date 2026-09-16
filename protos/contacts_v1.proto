@@ -43,3 +43,42 @@ message ContactsDiscoveryMatch {
     repeated Match matches = 1;
   }
 }
+
+// Серверный граф контактов (облачная адресная книга) — запись рёбер владельца.
+// MATCH выше остаётся чистым discovery; здесь клиент фиксирует, кого держать в
+// книге. Контакт адресуется OPRF-отпечатком номера; сам номер сервер не видит.
+// contactUserID сервер резолвит сам через user.oprf — в запросе его нет.
+message ContactsUpsert {
+  // Источник записи: OPRF — обнаружено в системной книге; MANUAL — добавлено
+  // вручную по номеру (клиент прогоняет OPRF по одному номеру).
+  enum Source {
+    OPRF = 0;
+    MANUAL = 1;
+  }
+
+  message Item {
+    // Финализированный OPRF-выход номера контакта (SHA-512, 64 байта).
+    bytes oprf = 1;
+    Source source = 2;
+  }
+
+  message Request {
+    repeated Item items = 1;
+    // true → полный доступ к книге: заменить весь OPRF-набор владельца (удалить
+    // рёбра source=OPRF, чьих oprf нет в items). false → только добавить/обновить
+    // (iOS limited-доступ, ручное добавление) — ничего не удаляем.
+    bool full = 2;
+  }
+
+  message Response {}
+}
+
+// Удаление рёбер владельца по OPRF-отпечаткам (отзыв контакта / права звонка).
+// Работает одинаково для pending, резолвленных и ручных записей.
+message ContactsRemove {
+  message Request {
+    repeated bytes oprf = 1;
+  }
+
+  message Response {}
+}

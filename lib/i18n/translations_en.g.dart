@@ -461,6 +461,15 @@ class Translations$sessionsPrivacyAndSecurity$en {
 
 	/// en: 'Passcode'
 	String get passcode => 'Passcode';
+
+	/// en: 'Who can call me'
+	String get whoCanCall => 'Who can call me';
+
+	/// en: 'Everybody'
+	String get callsEverybody => 'Everybody';
+
+	/// en: 'My contacts'
+	String get callsContacts => 'My contacts';
 }
 
 // Path: screenMyProfile
@@ -671,6 +680,36 @@ class Translations$screenContacts$en {
 
 	/// en: 'last seen {date}'
 	String statusLastSeen({required Object date}) => 'last seen ${date}';
+
+	/// en: 'Add by number'
+	String get addByNumber => 'Add by number';
+
+	/// en: 'Phone number'
+	String get addByNumberHint => 'Phone number';
+
+	/// en: 'Add'
+	String get add => 'Add';
+
+	/// en: 'Contact added'
+	String get addedRegistered => 'Contact added';
+
+	/// en: 'Added. They aren’t on Iperon yet — you’ll be able to reach them once they join.'
+	String get addedPending => 'Added. They aren’t on Iperon yet — you’ll be able to reach them once they join.';
+
+	/// en: 'Invalid phone number'
+	String get addInvalidNumber => 'Invalid phone number';
+
+	/// en: 'Couldn’t add contact'
+	String get addFailed => 'Couldn’t add contact';
+
+	/// en: 'Remove'
+	String get remove => 'Remove';
+
+	/// en: 'Remove contact?'
+	String get removeTitle => 'Remove contact?';
+
+	/// en: 'They will no longer be able to call you unless your call privacy allows everyone.'
+	String get removeMessage => 'They will no longer be able to call you unless your call privacy allows everyone.';
 }
 
 // Path: screenCalls
@@ -861,6 +900,9 @@ class Translations$screenCall$en {
 	/// en: 'Busy'
 	String get endedBusy => 'Busy';
 
+	/// en: 'Can’t call this user'
+	String get endedNotAllowed => 'Can’t call this user';
+
 	/// en: 'Call ended'
 	String get ended => 'Call ended';
 
@@ -1003,6 +1045,9 @@ extension on Translations {
 			'sessionsPrivacyAndSecurity.passcodeAndFaceID' => 'Passcode & Face ID',
 			'sessionsPrivacyAndSecurity.passcodeAndBiometric' => 'Passcode & Biometric',
 			'sessionsPrivacyAndSecurity.passcode' => 'Passcode',
+			'sessionsPrivacyAndSecurity.whoCanCall' => 'Who can call me',
+			'sessionsPrivacyAndSecurity.callsEverybody' => 'Everybody',
+			'sessionsPrivacyAndSecurity.callsContacts' => 'My contacts',
 			'screenMyProfile.myprofile' => 'My profile',
 			'screenMyProfile.firstName' => 'First name',
 			'screenMyProfile.lastName' => 'Last name',
@@ -1064,6 +1109,16 @@ extension on Translations {
 			'screenContacts.statusOnline' => 'online',
 			'screenContacts.statusLastSeenRecently' => 'last seen recently',
 			'screenContacts.statusLastSeen' => ({required Object date}) => 'last seen ${date}',
+			'screenContacts.addByNumber' => 'Add by number',
+			'screenContacts.addByNumberHint' => 'Phone number',
+			'screenContacts.add' => 'Add',
+			'screenContacts.addedRegistered' => 'Contact added',
+			'screenContacts.addedPending' => 'Added. They aren’t on Iperon yet — you’ll be able to reach them once they join.',
+			'screenContacts.addInvalidNumber' => 'Invalid phone number',
+			'screenContacts.addFailed' => 'Couldn’t add contact',
+			'screenContacts.remove' => 'Remove',
+			'screenContacts.removeTitle' => 'Remove contact?',
+			'screenContacts.removeMessage' => 'They will no longer be able to call you unless your call privacy allows everyone.',
 			'screenCalls.title' => 'Calls',
 			'screenCalls.empty' => 'Your calls will appear here',
 			'screenCalls.permissionTitle' => 'Microphone access needed',
@@ -1106,6 +1161,7 @@ extension on Translations {
 			'screenCall.endedRejected' => 'Call declined',
 			'screenCall.endedFailed' => 'Couldn’t connect',
 			'screenCall.endedBusy' => 'Busy',
+			'screenCall.endedNotAllowed' => 'Can’t call this user',
 			'screenCall.ended' => 'Call ended',
 			'screenCall.decline' => 'Decline',
 			'screenCall.accept' => 'Accept',

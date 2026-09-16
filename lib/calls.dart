@@ -12,6 +12,7 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' show WebRTC;
+import 'package:grpc/grpc.dart' show StatusCode;
 import 'package:livekit_client/livekit_client.dart';
 
 import 'api.dart';
@@ -33,7 +34,7 @@ import 'settings.dart';
 enum CallStatus { idle, outgoing, incoming, connecting, active, ended }
 
 /// Причина завершения звонка — для текста на экране «завершено».
-enum CallEndReason { none, hangup, rejected, failed, busy }
+enum CallEndReason { none, hangup, rejected, failed, busy, notAllowed }
 
 /// Качество соединения звонка для индикатора на экране. Агрегируем из LiveKit
 /// [ConnectionQuality] собеседника (см. [Calls._mapQuality]); `unknown` — пока
@@ -361,7 +362,17 @@ class Calls {
       await _connectRoom(callId: callId, remoteUserID: toUserID, video: video);
       // Будим абонента: сервер релеит CALL_RING в его стрим и шлёт call-пуш.
       // Ответа «принял» нет — увидим подключение как ParticipantConnected.
-      await _sendRing(MessageType.CALL_RING, toUserID: toUserID, callId: callId, video: video);
+      //
+      // Инициирующий RING шлём unary (не через стрим): только так до нас дойдёт
+      // серверный гейт звонков — PermissionDenied, если абонент запретил звонки
+      // не-контактам и мы не у него в книге. При отказе сворачиваем звонок как
+      // notAllowed (абонент так и не зазвонит).
+      final ringStatus = await _sendRingInitiating(toUserID: toUserID, callId: callId, video: video);
+      if (ringStatus.statusCode == StatusCode.permissionDenied) {
+        logger.info('startCall denied by gate: not allowed to call this user');
+        await _teardown(CallEndReason.notAllowed);
+        return;
+      }
       _dbg('ring sent');
     } catch (error, stackTrace) {
       logger.handle(error, stackTrace);
@@ -1068,6 +1079,15 @@ class Calls {
     } catch (error, stackTrace) {
       logger.handle(error, stackTrace);
     }
+  }
+
+  /// Инициирующий CALL_RING (unary) — возвращает статус вызова, чтобы поймать
+  /// серверный гейт (PermissionDenied). В отличие от [_sendRing] (стрим,
+  /// fire-and-forget для RING/HANGUP/REJECT), здесь важен ответ сервера.
+  Future<APICallStatus> _sendRingInitiating({required List<int> toUserID, required String callId, required bool video}) async {
+    final ring = CallRing(callId: callId, toUserID: Uint8List.fromList(toUserID), video: video);
+    // fromUserID проставит сервер из сессии — здесь не заполняем.
+    return api.unaryEncoded(MessageType.CALL_RING, ring.writeToBuffer());
   }
 
   // Совпадает ли сигнал с текущим звонком: тот же callId и тот же собеседник.

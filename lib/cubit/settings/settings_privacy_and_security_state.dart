@@ -4,10 +4,22 @@ import '../../constants.dart';
 
 part 'settings_privacy_and_security_state.mapper.dart';
 
+/// Кто может звонить пользователю (этап 1 приватности звонков). Совпадает с
+/// серверным PrivacySettings.Audience.
+enum CallsPrivacyAudience { everybody, contacts }
+
 @MappableClass()
 class SettingsPrivacyAndSecurityState with SettingsPrivacyAndSecurityStateMappable {
   final Status status;
   final bool isBiometricAvailable;
 
-  const SettingsPrivacyAndSecurityState({this.status = Status.initialization, this.isBiometricAvailable = false});
+  /// Настройка «кто может мне звонить». Дефолт — только контакты (совпадает с
+  /// серверным дефолтом, когда документ настроек ещё не создан).
+  final CallsPrivacyAudience callsAudience;
+
+  const SettingsPrivacyAndSecurityState({
+    this.status = Status.initialization,
+    this.isBiometricAvailable = false,
+    this.callsAudience = CallsPrivacyAudience.contacts,
+  });
 }

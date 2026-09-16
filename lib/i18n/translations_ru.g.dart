@@ -283,6 +283,9 @@ class _Translations$sessionsPrivacyAndSecurity$ru extends Translations$sessionsP
 	@override String get passcodeAndFaceID => 'Код-пароль и Face ID';
 	@override String get passcodeAndBiometric => 'Код-пароль и биометрия';
 	@override String get passcode => 'Код-пароль';
+	@override String get whoCanCall => 'Кто может звонить';
+	@override String get callsEverybody => 'Все';
+	@override String get callsContacts => 'Мои контакты';
 }
 
 // Path: screenMyProfile
@@ -371,6 +374,16 @@ class _Translations$screenContacts$ru extends Translations$screenContacts$en {
 	@override String get statusOnline => 'в сети';
 	@override String get statusLastSeenRecently => 'был(а) недавно';
 	@override String statusLastSeen({required Object date}) => 'был(а) ${date}';
+	@override String get addByNumber => 'Добавить по номеру';
+	@override String get addByNumberHint => 'Номер телефона';
+	@override String get add => 'Добавить';
+	@override String get addedRegistered => 'Контакт добавлен';
+	@override String get addedPending => 'Добавлено. Пользователя пока нет в Iperon — вы сможете связаться, когда он зарегистрируется.';
+	@override String get addInvalidNumber => 'Неверный номер телефона';
+	@override String get addFailed => 'Не удалось добавить контакт';
+	@override String get remove => 'Удалить';
+	@override String get removeTitle => 'Удалить контакт?';
+	@override String get removeMessage => 'Он больше не сможет вам звонить, если в настройках приватности не разрешены звонки от всех.';
 }
 
 // Path: screenCalls
@@ -476,6 +489,7 @@ class _Translations$screenCall$ru extends Translations$screenCall$en {
 	@override String get endedRejected => 'Звонок отклонён';
 	@override String get endedFailed => 'Не удалось соединиться';
 	@override String get endedBusy => 'Занято';
+	@override String get endedNotAllowed => 'Нельзя позвонить этому пользователю';
 	@override String get ended => 'Звонок завершён';
 	@override String get decline => 'Отклонить';
 	@override String get accept => 'Принять';
@@ -589,6 +603,9 @@ extension on TranslationsRu {
 			'sessionsPrivacyAndSecurity.passcodeAndFaceID' => 'Код-пароль и Face ID',
 			'sessionsPrivacyAndSecurity.passcodeAndBiometric' => 'Код-пароль и биометрия',
 			'sessionsPrivacyAndSecurity.passcode' => 'Код-пароль',
+			'sessionsPrivacyAndSecurity.whoCanCall' => 'Кто может звонить',
+			'sessionsPrivacyAndSecurity.callsEverybody' => 'Все',
+			'sessionsPrivacyAndSecurity.callsContacts' => 'Мои контакты',
 			'screenMyProfile.myprofile' => 'Мой профиль',
 			'screenMyProfile.firstName' => 'Имя',
 			'screenMyProfile.lastName' => 'Фамилия',
@@ -650,6 +667,16 @@ extension on TranslationsRu {
 			'screenContacts.statusOnline' => 'в сети',
 			'screenContacts.statusLastSeenRecently' => 'был(а) недавно',
 			'screenContacts.statusLastSeen' => ({required Object date}) => 'был(а) ${date}',
+			'screenContacts.addByNumber' => 'Добавить по номеру',
+			'screenContacts.addByNumberHint' => 'Номер телефона',
+			'screenContacts.add' => 'Добавить',
+			'screenContacts.addedRegistered' => 'Контакт добавлен',
+			'screenContacts.addedPending' => 'Добавлено. Пользователя пока нет в Iperon — вы сможете связаться, когда он зарегистрируется.',
+			'screenContacts.addInvalidNumber' => 'Неверный номер телефона',
+			'screenContacts.addFailed' => 'Не удалось добавить контакт',
+			'screenContacts.remove' => 'Удалить',
+			'screenContacts.removeTitle' => 'Удалить контакт?',
+			'screenContacts.removeMessage' => 'Он больше не сможет вам звонить, если в настройках приватности не разрешены звонки от всех.',
 			'screenCalls.title' => 'Звонки',
 			'screenCalls.empty' => 'Здесь появятся ваши звонки',
 			'screenCalls.permissionTitle' => 'Нужен доступ к микрофону',
@@ -692,6 +719,7 @@ extension on TranslationsRu {
 			'screenCall.endedRejected' => 'Звонок отклонён',
 			'screenCall.endedFailed' => 'Не удалось соединиться',
 			'screenCall.endedBusy' => 'Занято',
+			'screenCall.endedNotAllowed' => 'Нельзя позвонить этому пользователю',
 			'screenCall.ended' => 'Звонок завершён',
 			'screenCall.decline' => 'Отклонить',
 			'screenCall.accept' => 'Принять',

@@ -35,6 +35,13 @@ enum MessageType {
   REGISTER_PUSH_TOKEN = 26;
   CALL_TOKEN = 27;
   CALL_RING = 28;
+  // Облачная адресная книга / серверный граф контактов (этап 1: гейт звонков).
+  // UPSERT/REMOVE пишут рёбра владельца, PRIVACY_SETTINGS(_UPDATE) — настройку
+  // «кто может звонить». См. contacts_v1.proto / privacy_v1.proto.
+  CONTACTS_UPSERT = 29;
+  CONTACTS_REMOVE = 30;
+  PRIVACY_SETTINGS = 31;
+  PRIVACY_SETTINGS_UPDATE = 32;
 }
 
 service Iperon {

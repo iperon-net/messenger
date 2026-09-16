@@ -19,6 +19,35 @@ class SettingsPrivacyAndSecurityMaterial extends StatefulWidget {
 class _SettingsPrivacyAndSecurityMaterial extends State<SettingsPrivacyAndSecurityMaterial> {
   final utils = getIt.get<Utils>();
 
+  String _audienceLabel(BuildContext context, CallsPrivacyAudience audience) {
+    return audience == CallsPrivacyAudience.everybody
+        ? context.t.sessionsPrivacyAndSecurity.callsEverybody
+        : context.t.sessionsPrivacyAndSecurity.callsContacts;
+  }
+
+  /// Выбор аудитории звонков через диалог. Значение применяет cubit.
+  void _pickCallsAudience(BuildContext context, CallsPrivacyAudience current) {
+    final cubit = context.read<SettingsPrivacyAndSecurityCubit>();
+
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) => SimpleDialog(
+        title: Text(context.t.sessionsPrivacyAndSecurity.whoCanCall),
+        children: [
+          for (final audience in CallsPrivacyAudience.values)
+            ListTile(
+              title: Text(_audienceLabel(context, audience)),
+              trailing: audience == current ? const FaIcon(FontAwesomeIcons.check, color: Color(0xFF007AFF), size: 18) : null,
+              onTap: () {
+                Navigator.of(dialogContext).pop();
+                cubit.setCallsAudience(audience);
+              },
+            ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<SettingsPrivacyAndSecurityCubit, SettingsPrivacyAndSecurityState>(
@@ -38,6 +67,17 @@ class _SettingsPrivacyAndSecurityMaterial extends State<SettingsPrivacyAndSecuri
                     color: const Color(0xFF41CA22),
                     icon: FontAwesomeIcons.unlockKeyhole,
                     onTab: () async => context.go("/settings/privacy_and_security/passcode"),
+                    isTrailing: true,
+                  ),
+                ),
+                Card(
+                  margin: const EdgeInsets.symmetric(horizontal: 12),
+                  child: MaterialListTileIcon(
+                    title: Text(context.t.sessionsPrivacyAndSecurity.whoCanCall),
+                    additionalInfo: Text(_audienceLabel(context, state.callsAudience)),
+                    color: const Color(0xFF007AFF),
+                    icon: FontAwesomeIcons.phone,
+                    onTab: () async => _pickCallsAudience(context, state.callsAudience),
                     isTrailing: true,
                   ),
                 ),

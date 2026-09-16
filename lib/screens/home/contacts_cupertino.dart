@@ -63,6 +63,11 @@ class _ContactsCupertinoState extends State<ContactsCupertino> {
           automaticBackgroundVisibility: false,
           backgroundColor: ThemesCupertino.appBackground,
           middle: Text(context.t.screenContacts.title),
+          trailing: CupertinoButton(
+            padding: EdgeInsets.zero,
+            onPressed: () => _showAddByNumber(context),
+            child: const Icon(CupertinoIcons.add),
+          ),
         ),
       ),
       child: SafeArea(
@@ -195,13 +200,101 @@ class _ContactsCupertinoState extends State<ContactsCupertino> {
 
   Widget _registeredTile(BuildContext context, ContactItem item) {
     final hex = getIt.get<Utils>().bytesToHex(item.userID!);
-    return CupertinoListTile(
-      leading: _avatar(hex),
-      title: Text(item.displayName),
-      // TODO: заменить плейсхолдер на реальную дату последнего визита из данных о присутствии.
-      subtitle: _status(context, lastSeen: DateTime.now().subtract(const Duration(days: 1, hours: 2))),
-      trailing: const CupertinoListTileChevron(),
-      onTap: () => context.push('/profile/$hex'),
+    final cubit = context.read<ContactsCubit>();
+    return Dismissible(
+      key: ValueKey('contact_${item.phoneE164}'),
+      direction: DismissDirection.endToStart,
+      confirmDismiss: (_) => _confirmRemove(context),
+      onDismissed: (_) => cubit.removeContact(item),
+      background: Container(
+        color: CupertinoColors.destructiveRed,
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: Text(context.t.screenContacts.remove, style: const TextStyle(color: CupertinoColors.white)),
+      ),
+      child: CupertinoListTile(
+        leading: _avatar(hex),
+        title: Text(item.displayName),
+        // TODO: заменить плейсхолдер на реальную дату последнего визита из данных о присутствии.
+        subtitle: _status(context, lastSeen: DateTime.now().subtract(const Duration(days: 1, hours: 2))),
+        trailing: const CupertinoListTileChevron(),
+        onTap: () => context.push('/profile/$hex'),
+      ),
+    );
+  }
+
+  /// Диалог подтверждения удаления контакта из облачной книги.
+  Future<bool> _confirmRemove(BuildContext context) async {
+    final confirmed = await showCupertinoDialog<bool>(
+      context: context,
+      builder: (dialogContext) => CupertinoAlertDialog(
+        title: Text(context.t.screenContacts.removeTitle),
+        content: Text(context.t.screenContacts.removeMessage),
+        actions: [
+          CupertinoDialogAction(onPressed: () => Navigator.of(dialogContext).pop(false), child: Text(context.t.common.cancel)),
+          CupertinoDialogAction(
+            isDestructiveAction: true,
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(context.t.screenContacts.remove),
+          ),
+        ],
+      ),
+    );
+    return confirmed ?? false;
+  }
+
+  /// Диалог ручного добавления контакта по номеру. По подтверждению зовёт
+  /// cubit.addByNumber и показывает результат.
+  Future<void> _showAddByNumber(BuildContext context) async {
+    final cubit = context.read<ContactsCubit>();
+    final controller = TextEditingController();
+
+    final number = await showCupertinoDialog<String>(
+      context: context,
+      builder: (dialogContext) => CupertinoAlertDialog(
+        title: Text(context.t.screenContacts.addByNumber),
+        content: Padding(
+          padding: const EdgeInsets.only(top: 12),
+          child: CupertinoTextField(
+            controller: controller,
+            autofocus: true,
+            keyboardType: TextInputType.phone,
+            placeholder: context.t.screenContacts.addByNumberHint,
+          ),
+        ),
+        actions: [
+          CupertinoDialogAction(onPressed: () => Navigator.of(dialogContext).pop(), child: Text(context.t.common.cancel)),
+          CupertinoDialogAction(
+            onPressed: () => Navigator.of(dialogContext).pop(controller.text.trim()),
+            child: Text(context.t.screenContacts.add),
+          ),
+        ],
+      ),
+    );
+    controller.dispose();
+
+    if (number == null || number.isEmpty) return;
+
+    final result = await cubit.addByNumber(number);
+    if (!context.mounted) return;
+    _showAddResult(context, result);
+  }
+
+  void _showAddResult(BuildContext context, ContactAddResult result) {
+    final t = context.t.screenContacts;
+    final message = switch (result) {
+      ContactAddResult.addedRegistered => t.addedRegistered,
+      ContactAddResult.addedPending => t.addedPending,
+      ContactAddResult.invalidNumber => t.addInvalidNumber,
+      ContactAddResult.failed => t.addFailed,
+    };
+
+    showCupertinoDialog<void>(
+      context: context,
+      builder: (dialogContext) => CupertinoAlertDialog(
+        content: Text(message),
+        actions: [CupertinoDialogAction(onPressed: () => Navigator.of(dialogContext).pop(), child: Text(context.t.common.done))],
+      ),
     );
   }
 

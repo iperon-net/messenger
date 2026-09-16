@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+package iperon.v1;
+option go_package = "internal/api/v1";
+
+// Настройки приватности per-channel (этап 1 — только звонки). Проверка «кто
+// может» всегда по стороне получателя. Документ настроек не материализуется до
+// первого изменения: отсутствие значения трактуется гейтом как дефолт CONTACTS.
+message PrivacySettings {
+  // Аудитория канала: EVERYBODY — кто угодно; CONTACTS — только те, у кого
+  // отправитель есть в контактах (ребро owner→sender). favorites/messages/
+  // group_invites — следующие этапы.
+  enum Audience {
+    EVERYBODY = 0;
+    CONTACTS = 1;
+  }
+
+  // Чтение текущих настроек.
+  message Request {}
+
+  message Response {
+    Audience calls = 1;
+  }
+}
+
+// Изменение настроек приватности.
+message PrivacySettingsUpdate {
+  message Request {
+    PrivacySettings.Audience calls = 1;
+  }
+
+  message Response {}
+}

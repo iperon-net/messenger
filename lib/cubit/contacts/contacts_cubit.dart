@@ -30,6 +30,9 @@ class _Entry {
   const _Entry({required this.raw, required this.phoneE164, required this.phone, required this.displayName});
 }
 
+/// Итог ручного добавления контакта по номеру (для текста пользователю).
+enum ContactAddResult { addedRegistered, addedPending, invalidNumber, failed }
+
 /// Экран «Контакты»: находит, кто из телефонной книги зарегистрирован в Iperon,
 /// не раскрывая серверу сырые номера. Раунд 1 — слепая OPRF-оценка, раунд 2 —
 /// проверка членства по отпечаткам. См. docs/plans/functional-stirring-giraffe.md.
@@ -60,6 +63,12 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
   static const String _fingerprintKey = "contacts_book_fingerprint";
   static const Duration _resyncInterval = Duration(hours: 24);
 
+  // Локальный exclusion-set: e164 контактов, удалённых пользователем вручную
+  // (`removeContact`). Номер ещё в телефонной книге, поэтому без этого набора
+  // следующий discovery вернул бы его рёбром OPRF. Держим в памяти + в кэше.
+  static const String _excludedKey = "contacts_excluded_e164";
+  Set<String>? _excluded;
+
   // Один discover идёт за раз (guard от параллельных запусков), а _discoverStarted
   // помнит, был ли он вообще запущен в этой сессии — чтобы первый показ вкладки не
   // дублировал уже стартовавшую фоновую дозагрузку.
@@ -87,7 +96,11 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
 
     // Пустое имя = legacy-запись из миграции 2→3 (до неё имя/номер не хранились) —
     // её нечем показать, пропускаем; первый же discover перезапишет снимок целиком.
-    final visible = cached.where((entry) => entry.displayName.isNotEmpty).toList(growable: false);
+    // Вручную удалённые (exclusion-set) тоже прячем — снимок мог быть записан до
+    // удаления, а перезапишется он лишь на следующем discover.
+    final excluded = await _loadExcluded();
+    if (isClosed) return;
+    final visible = cached.where((entry) => entry.displayName.isNotEmpty && !excluded.contains(entry.phoneE164)).toList(growable: false);
     if (visible.isEmpty) return;
 
     _emitFromCache(visible);
@@ -179,6 +192,12 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
         }
       }
 
+      // Прячем вручную удалённые контакты: их не показываем и не отправляем в
+      // граф (иначе OPRF-ребро вернулось бы, т.к. номер ещё в книге).
+      final excluded = await _loadExcluded();
+      if (isClosed) return;
+      entries.removeWhere((e164, _) => excluded.contains(e164));
+
       // Книга пуста (или частичный доступ ничего не отдал) — не трогаем снимок,
       // чтобы не стереть прошлый кэш; просто показываем пусто.
       if (entries.isEmpty) {
@@ -210,8 +229,12 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
       }
 
       // OPRF-поиск. Ошибка сети не критична — остаёмся на данных из снимка.
+      // fullAccess: при полном доступе к книге серверу разрешаем replace-all
+      // (стереть OPRF-рёбра, которых больше нет в книге); при iOS limited —
+      // только добавление, чтобы не потерять легитимные рёбра вне выборки.
       try {
-        final matched = await _discoverOprf(entries.values.toList(growable: false));
+        final fullAccess = permission == PermissionStatus.granted;
+        final matched = await _discoverOprf(entries.values.toList(growable: false), fullAccess: fullAccess);
         if (isClosed) return;
 
         _emitLists(entries, matched);
@@ -263,9 +286,14 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
   void search(String query) => emit(state.copyWith(query: query));
 
   /// Выполняет двухраундовый OPRF-поиск по [allEntries] пачками и возвращает
-  /// карту `e164 -> userID` для зарегистрированных.
-  Future<Map<String, Uint8List>> _discoverOprf(List<_Entry> allEntries) async {
+  /// карту `e164 -> userID` для зарегистрированных. Попутно (best-effort)
+  /// синхронизирует серверный граф контактов (облачную адресную книгу) через
+  /// `CONTACTS_UPSERT`: те же OPRF-отпечатки уходят рёбрами источника OPRF, что
+  /// наполняет граф для гейта звонков. [fullAccess] → на первой пачке разрешаем
+  /// серверу replace-all (снести устаревшие OPRF-рёбра).
+  Future<Map<String, Uint8List>> _discoverOprf(List<_Entry> allEntries, {required bool fullAccess}) async {
     final result = <String, Uint8List>{};
+    var firstBatch = true;
 
     for (var offset = 0; offset < allEntries.length; offset += _batchSize) {
       final chunk = allEntries.sublist(offset, (offset + _batchSize).clamp(0, allEntries.length));
@@ -273,24 +301,8 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
       // Входы OPRF в порядке чанка — общий порядок для blind/evaluate/finalize.
       final inputs = [for (final entry in chunk) utf8.encode(entry.raw)];
 
-      // Раунд 1: ослепляем (в фоновом изоляте, чтобы не морозить UI) и просим сервер оценить.
-      final (blinds, blindedElements) = await crypto.oprf.blindBatch(inputs);
-
-      final (evaluateStatus, evaluatePayload) = await api.unaryEncodedWithResponse(
-        MessageType.CONTACTS_DISCOVERY_EVALUATE,
-        ContactsDiscoveryEvaluate_Request(blindedElements: blindedElements).writeToBuffer(),
-      );
-      if (evaluateStatus.status != APIStatus.success || evaluatePayload == null) {
-        throw Exception('contacts: evaluate failed (${evaluateStatus.error})');
-      }
-      final evaluateResponse = ContactsDiscoveryEvaluate_Response.fromBuffer(evaluatePayload);
-
-      // Финализируем всю пачку в фоновом изоляте → OPRF-отпечатки (== user.oprf на сервере).
-      final oprfOutputs = await crypto.oprf.finalizeBatch(
-        inputs: inputs,
-        blinds: blinds,
-        evaluations: [for (final element in evaluateResponse.evaluatedElements) Uint8List.fromList(element)],
-      );
+      // Раунд 1 + финализация → OPRF-отпечатки (== user.oprf на сервере).
+      final oprfOutputs = await _oprfOutputs(inputs);
       final entryByOprf = <String, _Entry>{for (var i = 0; i < chunk.length; i++) utils.bytesToHex(oprfOutputs[i]): chunk[i]};
 
       // Раунд 2: проверка членства.
@@ -309,9 +321,168 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
           result[entry.phoneE164] = Uint8List.fromList(match.userID);
         }
       }
+
+      // Наполнение серверного графа контактов теми же отпечатками (best-effort:
+      // сбой не должен ломать discovery). full — только на первой пачке, чтобы
+      // replace-all не стёр ещё не отправленные пачки.
+      await _upsertGraph(oprfOutputs, full: fullAccess && firstBatch);
+      firstBatch = false;
     }
 
     return result;
+  }
+
+  /// Отправляет OPRF-отпечатки пачки в серверный граф контактов
+  /// (`CONTACTS_UPSERT`, источник OPRF). Best-effort — ошибку только логируем.
+  Future<void> _upsertGraph(List<Uint8List> oprfOutputs, {required bool full}) async {
+    if (oprfOutputs.isEmpty) return;
+
+    try {
+      final request = ContactsUpsert_Request(
+        full: full,
+        items: [for (final oprf in oprfOutputs) ContactsUpsert_Item(oprf: oprf, source: ContactsUpsert_Source.OPRF)],
+      );
+
+      final status = await api.unaryEncoded(MessageType.CONTACTS_UPSERT, request.writeToBuffer());
+      if (status.status != APIStatus.success) {
+        logger.warning('contacts: graph upsert failed (${status.error})');
+      }
+    } catch (error, stackTrace) {
+      logger.handle(error, stackTrace);
+    }
+  }
+
+  /// Раунд 1 OPRF (blind → серверный evaluate → finalize) для [inputs] (≤ пачки).
+  /// Возвращает финализированные OPRF-отпечатки в порядке входа. Кидает при
+  /// сетевой/серверной ошибке. Общий примитив для discovery и ручного add/remove.
+  Future<List<Uint8List>> _oprfOutputs(List<List<int>> inputs) async {
+    final (blinds, blindedElements) = await crypto.oprf.blindBatch(inputs);
+
+    final (evaluateStatus, evaluatePayload) = await api.unaryEncodedWithResponse(
+      MessageType.CONTACTS_DISCOVERY_EVALUATE,
+      ContactsDiscoveryEvaluate_Request(blindedElements: blindedElements).writeToBuffer(),
+    );
+    if (evaluateStatus.status != APIStatus.success || evaluatePayload == null) {
+      throw Exception('contacts: evaluate failed (${evaluateStatus.error})');
+    }
+    final evaluateResponse = ContactsDiscoveryEvaluate_Response.fromBuffer(evaluatePayload);
+
+    return crypto.oprf.finalizeBatch(
+      inputs: inputs,
+      blinds: blinds,
+      evaluations: [for (final element in evaluateResponse.evaluatedElements) Uint8List.fromList(element)],
+    );
+  }
+
+  /// Ручное добавление контакта по номеру (источник MANUAL). Прогоняет OPRF по
+  /// одному номеру, кладёт ребро в облачную книгу (`CONTACTS_UPSERT`, full=false —
+  /// добавление, не replace-all) и проверяет членство (`MATCH`), чтобы сообщить
+  /// пользователю, зарегистрирован ли контакт. Снимает номер из локального
+  /// exclusion-set (если ранее удаляли), чтобы discovery снова его не прятал.
+  /// Возвращает [ContactAddResult].
+  Future<ContactAddResult> addByNumber(String rawNumber) async {
+    final normalization = utils.phoneNormalization(phoneNumber: rawNumber);
+    if (normalization.e164.isEmpty || normalization.raw.isEmpty) {
+      return ContactAddResult.invalidNumber;
+    }
+
+    try {
+      final oprfOutputs = await _oprfOutputs([utf8.encode(normalization.raw)]);
+      if (oprfOutputs.isEmpty) return ContactAddResult.failed;
+      final oprf = oprfOutputs.first;
+
+      final upsertStatus = await api.unaryEncoded(
+        MessageType.CONTACTS_UPSERT,
+        ContactsUpsert_Request(
+          full: false,
+          items: [ContactsUpsert_Item(oprf: oprf, source: ContactsUpsert_Source.MANUAL)],
+        ).writeToBuffer(),
+      );
+      if (upsertStatus.status != APIStatus.success) {
+        logger.warning('contacts: manual add failed (${upsertStatus.error})');
+        return ContactAddResult.failed;
+      }
+
+      // Ранее удалённый номер снова разрешаем показывать/синхронизировать.
+      await _unexclude(normalization.e164);
+
+      // Членство: зарегистрирован ли контакт (для текста пользователю).
+      final registered = await _isRegistered(oprf);
+      return registered ? ContactAddResult.addedRegistered : ContactAddResult.addedPending;
+    } catch (error, stackTrace) {
+      logger.handle(error, stackTrace);
+      return ContactAddResult.failed;
+    }
+  }
+
+  /// Удаляет контакт из облачной книги (`CONTACTS_REMOVE` по OPRF-отпечатку его
+  /// номера) и запоминает номер в локальном exclusion-set, чтобы следующий
+  /// discovery не вернул его обратно рёбром OPRF (номер ещё в телефонной книге).
+  Future<void> removeContact(ContactItem item) async {
+    final normalization = utils.phoneNormalization(phoneNumber: item.phoneE164);
+    if (normalization.raw.isEmpty) return;
+
+    try {
+      final oprfOutputs = await _oprfOutputs([utf8.encode(normalization.raw)]);
+      if (oprfOutputs.isEmpty) return;
+
+      final status = await api.unaryEncoded(MessageType.CONTACTS_REMOVE, ContactsRemove_Request(oprf: [oprfOutputs.first]).writeToBuffer());
+      if (status.status != APIStatus.success) {
+        logger.warning('contacts: remove failed (${status.error})');
+        return;
+      }
+
+      await _exclude(item.phoneE164);
+
+      // Убираем из показа сразу, не дожидаясь следующего discovery.
+      if (!isClosed) {
+        emit(
+          state.copyWith(
+            registered: state.registered.where((c) => c.phoneE164 != item.phoneE164).toList(growable: false),
+            invitable: state.invitable.where((c) => c.phoneE164 != item.phoneE164).toList(growable: false),
+          ),
+        );
+      }
+    } catch (error, stackTrace) {
+      logger.handle(error, stackTrace);
+    }
+  }
+
+  /// Проверка членства одного OPRF-отпечатка через `MATCH`.
+  Future<bool> _isRegistered(Uint8List oprf) async {
+    final (matchStatus, matchPayload) = await api.unaryEncodedWithResponse(
+      MessageType.CONTACTS_DISCOVERY_MATCH,
+      ContactsDiscoveryMatch_Request(oprfOutputs: [oprf]).writeToBuffer(),
+    );
+    if (matchStatus.status != APIStatus.success || matchPayload == null) return false;
+    return ContactsDiscoveryMatch_Response.fromBuffer(matchPayload).matches.isNotEmpty;
+  }
+
+  /// Ленивая загрузка exclusion-set из кэша (один раз за сессию, затем из памяти).
+  Future<Set<String>> _loadExcluded() async {
+    final cached = _excluded;
+    if (cached != null) return cached;
+
+    final userID = Uint8List.fromList(auth.session.userID);
+    final raw = await repositories.cache.getString(userID: userID, key: _excludedKey);
+    final loaded = raw == null ? <String>{} : (jsonDecode(raw) as List).cast<String>().toSet();
+    _excluded = loaded;
+    return loaded;
+  }
+
+  Future<void> _saveExcluded(Set<String> excluded) async {
+    final userID = Uint8List.fromList(auth.session.userID);
+    await repositories.cache.setString(userID: userID, key: _excludedKey, value: jsonEncode(excluded.toList()));
+  }
+
+  Future<void> _exclude(String e164) async {
+    final excluded = await _loadExcluded();
+    if (excluded.add(e164)) await _saveExcluded(excluded);
+  }
+
+  Future<void> _unexclude(String e164) async {
+    final excluded = await _loadExcluded();
+    if (excluded.remove(e164)) await _saveExcluded(excluded);
   }
 
   void _emitLists(Map<String, _Entry> entries, Map<String, Uint8List> userByE164) {

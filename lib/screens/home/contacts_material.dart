@@ -62,7 +62,17 @@ class _ContactsMaterialState extends State<ContactsMaterial> {
 
     return Scaffold(
       backgroundColor: background,
-      appBar: AppBar(backgroundColor: background, title: Text(context.t.screenContacts.title)),
+      appBar: AppBar(
+        backgroundColor: background,
+        title: Text(context.t.screenContacts.title),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.add),
+            tooltip: context.t.screenContacts.addByNumber,
+            onPressed: () => _showAddByNumber(context),
+          ),
+        ],
+      ),
       // Поле поиска — вне BlocBuilder, чтобы не пересоздаваться на каждый emit
       // от search() (иначе теряется фокус/область композиции при вводе).
       // BlocSelector перестраивает поле только при смене permissionDenied.
@@ -177,14 +187,81 @@ class _ContactsMaterialState extends State<ContactsMaterial> {
 
   Widget _registeredTile(BuildContext context, ContactItem item) {
     final hex = getIt.get<Utils>().bytesToHex(item.userID!);
-    return ListTile(
-      leading: _avatar(hex),
-      title: Text(item.displayName),
-      // TODO: заменить плейсхолдер на реальную дату последнего визита из данных о присутствии.
-      subtitle: _status(context, lastSeen: DateTime.now().subtract(const Duration(days: 1, hours: 2))),
-      trailing: const Icon(Icons.chevron_right),
-      onTap: () => context.push('/profile/$hex'),
+    final cubit = context.read<ContactsCubit>();
+    return Dismissible(
+      key: ValueKey('contact_${item.phoneE164}'),
+      direction: DismissDirection.endToStart,
+      confirmDismiss: (_) => _confirmRemove(context),
+      onDismissed: (_) => cubit.removeContact(item),
+      background: Container(
+        color: Colors.red,
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: Text(context.t.screenContacts.remove, style: const TextStyle(color: Colors.white)),
+      ),
+      child: ListTile(
+        leading: _avatar(hex),
+        title: Text(item.displayName),
+        // TODO: заменить плейсхолдер на реальную дату последнего визита из данных о присутствии.
+        subtitle: _status(context, lastSeen: DateTime.now().subtract(const Duration(days: 1, hours: 2))),
+        trailing: const Icon(Icons.chevron_right),
+        onTap: () => context.push('/profile/$hex'),
+      ),
     );
+  }
+
+  /// Диалог подтверждения удаления контакта из облачной книги.
+  Future<bool> _confirmRemove(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(context.t.screenContacts.removeTitle),
+        content: Text(context.t.screenContacts.removeMessage),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(dialogContext).pop(false), child: Text(context.t.common.cancel)),
+          TextButton(onPressed: () => Navigator.of(dialogContext).pop(true), child: Text(context.t.screenContacts.remove)),
+        ],
+      ),
+    );
+    return confirmed ?? false;
+  }
+
+  /// Диалог ручного добавления контакта по номеру. По подтверждению зовёт
+  /// cubit.addByNumber и показывает результат снэкбаром.
+  Future<void> _showAddByNumber(BuildContext context) async {
+    final cubit = context.read<ContactsCubit>();
+    final messenger = ScaffoldMessenger.of(context);
+    final t = context.t.screenContacts;
+    final controller = TextEditingController();
+
+    final number = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(context.t.screenContacts.addByNumber),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          keyboardType: TextInputType.phone,
+          decoration: InputDecoration(hintText: context.t.screenContacts.addByNumberHint),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: Text(context.t.common.cancel)),
+          TextButton(onPressed: () => Navigator.of(dialogContext).pop(controller.text.trim()), child: Text(context.t.screenContacts.add)),
+        ],
+      ),
+    );
+    controller.dispose();
+
+    if (number == null || number.isEmpty) return;
+
+    final result = await cubit.addByNumber(number);
+    final message = switch (result) {
+      ContactAddResult.addedRegistered => t.addedRegistered,
+      ContactAddResult.addedPending => t.addedPending,
+      ContactAddResult.invalidNumber => t.addInvalidNumber,
+      ContactAddResult.failed => t.addFailed,
+    };
+    messenger.showSnackBar(SnackBar(content: Text(message)));
   }
 
   Widget _invitableTile(BuildContext context, ContactItem item) {

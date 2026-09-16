@@ -41,17 +41,29 @@ class SettingsPrivacyAndSecurityStateMapper
     opt: true,
     def: false,
   );
+  static CallsPrivacyAudience _$callsAudience(
+    SettingsPrivacyAndSecurityState v,
+  ) => v.callsAudience;
+  static const Field<SettingsPrivacyAndSecurityState, CallsPrivacyAudience>
+  _f$callsAudience = Field(
+    'callsAudience',
+    _$callsAudience,
+    opt: true,
+    def: CallsPrivacyAudience.contacts,
+  );
 
   @override
   final MappableFields<SettingsPrivacyAndSecurityState> fields = const {
     #status: _f$status,
     #isBiometricAvailable: _f$isBiometricAvailable,
+    #callsAudience: _f$callsAudience,
   };
 
   static SettingsPrivacyAndSecurityState _instantiate(DecodingData data) {
     return SettingsPrivacyAndSecurityState(
       status: data.dec(_f$status),
       isBiometricAvailable: data.dec(_f$isBiometricAvailable),
+      callsAudience: data.dec(_f$callsAudience),
     );
   }
 
@@ -133,7 +145,11 @@ abstract class SettingsPrivacyAndSecurityStateCopyWith<
   $Out
 >
     implements ClassCopyWith<$R, $In, $Out> {
-  $R call({Status? status, bool? isBiometricAvailable});
+  $R call({
+    Status? status,
+    bool? isBiometricAvailable,
+    CallsPrivacyAudience? callsAudience,
+  });
   SettingsPrivacyAndSecurityStateCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
     Then<$Out2, $R2> t,
   );
@@ -157,11 +173,16 @@ class _SettingsPrivacyAndSecurityStateCopyWithImpl<$R, $Out>
   late final ClassMapperBase<SettingsPrivacyAndSecurityState> $mapper =
       SettingsPrivacyAndSecurityStateMapper.ensureInitialized();
   @override
-  $R call({Status? status, bool? isBiometricAvailable}) => $apply(
+  $R call({
+    Status? status,
+    bool? isBiometricAvailable,
+    CallsPrivacyAudience? callsAudience,
+  }) => $apply(
     FieldCopyWithData({
       if (status != null) #status: status,
       if (isBiometricAvailable != null)
         #isBiometricAvailable: isBiometricAvailable,
+      if (callsAudience != null) #callsAudience: callsAudience,
     }),
   );
   @override
@@ -172,6 +193,7 @@ class _SettingsPrivacyAndSecurityStateCopyWithImpl<$R, $Out>
           #isBiometricAvailable,
           or: $value.isBiometricAvailable,
         ),
+        callsAudience: data.get(#callsAudience, or: $value.callsAudience),
       );
 
   @override

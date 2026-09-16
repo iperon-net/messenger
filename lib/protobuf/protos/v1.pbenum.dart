@@ -41,6 +41,10 @@ class MessageType extends $pb.ProtobufEnum {
   static const MessageType REGISTER_PUSH_TOKEN = MessageType._(26, _omitEnumNames ? '' : 'REGISTER_PUSH_TOKEN');
   static const MessageType CALL_TOKEN = MessageType._(27, _omitEnumNames ? '' : 'CALL_TOKEN');
   static const MessageType CALL_RING = MessageType._(28, _omitEnumNames ? '' : 'CALL_RING');
+  static const MessageType CONTACTS_UPSERT = MessageType._(29, _omitEnumNames ? '' : 'CONTACTS_UPSERT');
+  static const MessageType CONTACTS_REMOVE = MessageType._(30, _omitEnumNames ? '' : 'CONTACTS_REMOVE');
+  static const MessageType PRIVACY_SETTINGS = MessageType._(31, _omitEnumNames ? '' : 'PRIVACY_SETTINGS');
+  static const MessageType PRIVACY_SETTINGS_UPDATE = MessageType._(32, _omitEnumNames ? '' : 'PRIVACY_SETTINGS_UPDATE');
 
   static const $core.List<MessageType> values = <MessageType>[
     HEALTHCHECK,
@@ -68,9 +72,13 @@ class MessageType extends $pb.ProtobufEnum {
     REGISTER_PUSH_TOKEN,
     CALL_TOKEN,
     CALL_RING,
+    CONTACTS_UPSERT,
+    CONTACTS_REMOVE,
+    PRIVACY_SETTINGS,
+    PRIVACY_SETTINGS_UPDATE,
   ];
 
-  static final $core.List<MessageType?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 28);
+  static final $core.List<MessageType?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 32);
   static MessageType? valueOf($core.int value) => value < 0 || value >= _byValue.length ? null : _byValue[value];
 
   const MessageType._(super.value, super.name);

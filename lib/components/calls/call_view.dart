@@ -324,6 +324,8 @@ class _Overlay extends StatelessWidget {
             return t.endedFailed;
           case CallEndReason.busy:
             return t.endedBusy;
+          case CallEndReason.notAllowed:
+            return t.endedNotAllowed;
           case CallEndReason.hangup:
           case CallEndReason.none:
             return t.ended;

@@ -117,6 +117,9 @@
   "passcodeAndFaceID": "Passcode & Face ID"
   "passcodeAndBiometric": "Passcode & Biometric"
   "passcode": "Passcode"
+  "whoCanCall": "Who can call me"
+  "callsEverybody": "Everybody"
+  "callsContacts": "My contacts"
 
 "screenMyProfile":
   "myprofile": "My profile"
@@ -184,6 +187,16 @@
   "statusOnline": "online"
   "statusLastSeenRecently": "last seen recently"
   "statusLastSeen": "last seen {date}"
+  "addByNumber": "Add by number"
+  "addByNumberHint": "Phone number"
+  "add": "Add"
+  "addedRegistered": "Contact added"
+  "addedPending": "Added. They aren’t on Iperon yet — you’ll be able to reach them once they join."
+  "addInvalidNumber": "Invalid phone number"
+  "addFailed": "Couldn’t add contact"
+  "remove": "Remove"
+  "removeTitle": "Remove contact?"
+  "removeMessage": "They will no longer be able to call you unless your call privacy allows everyone."
 
 "screenCalls":
   "title": "Calls"
@@ -240,6 +253,7 @@ dateTime:
   "endedRejected": "Call declined"
   "endedFailed": "Couldn’t connect"
   "endedBusy": "Busy"
+  "endedNotAllowed": "Can’t call this user"
   "ended": "Call ended"
   "decline": "Decline"
   "accept": "Accept"

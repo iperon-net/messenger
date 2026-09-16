@@ -44,6 +44,10 @@ const MessageType$json = {
     {'1': 'REGISTER_PUSH_TOKEN', '2': 26},
     {'1': 'CALL_TOKEN', '2': 27},
     {'1': 'CALL_RING', '2': 28},
+    {'1': 'CONTACTS_UPSERT', '2': 29},
+    {'1': 'CONTACTS_REMOVE', '2': 30},
+    {'1': 'PRIVACY_SETTINGS', '2': 31},
+    {'1': 'PRIVACY_SETTINGS_UPDATE', '2': 32},
   ],
   '4': [
     {'1': 16, '2': 16},

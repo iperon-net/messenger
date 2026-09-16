@@ -32,6 +32,40 @@ class _SettingsPrivacyAndSecurityCupertino extends State<SettingsPrivacyAndSecur
     super.dispose();
   }
 
+  String _audienceLabel(BuildContext context, CallsPrivacyAudience audience) {
+    return audience == CallsPrivacyAudience.everybody
+        ? context.t.sessionsPrivacyAndSecurity.callsEverybody
+        : context.t.sessionsPrivacyAndSecurity.callsContacts;
+  }
+
+  /// Выбор аудитории звонков через action sheet. Значение применяет cubit
+  /// (оптимистично + запрос на сервер).
+  void _pickCallsAudience(BuildContext context, CallsPrivacyAudience current) {
+    final cubit = context.read<SettingsPrivacyAndSecurityCubit>();
+
+    showCupertinoModalPopup<void>(
+      context: context,
+      builder: (sheetContext) => CupertinoActionSheet(
+        title: Text(context.t.sessionsPrivacyAndSecurity.whoCanCall),
+        actions: [
+          for (final audience in CallsPrivacyAudience.values)
+            CupertinoActionSheetAction(
+              onPressed: () {
+                Navigator.of(sheetContext).pop();
+                cubit.setCallsAudience(audience);
+              },
+              child: Text(_audienceLabel(context, audience)),
+            ),
+        ],
+        cancelButton: CupertinoActionSheetAction(
+          isDefaultAction: true,
+          onPressed: () => Navigator.of(sheetContext).pop(),
+          child: Text(context.t.common.cancel),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<SettingsPrivacyAndSecurityCubit, SettingsPrivacyAndSecurityState>(
@@ -47,21 +81,42 @@ class _SettingsPrivacyAndSecurityCupertino extends State<SettingsPrivacyAndSecur
             ),
           ),
           child: SafeArea(
-            child: CupertinoListSection.insetGrouped(
-              backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
-              decoration: BoxDecoration(
-                color: ThemesCupertino.groupedCard.resolveFrom(context),
-                borderRadius: const BorderRadius.all(Radius.circular(10)),
-              ),
+            child: ListView(
               children: [
-                CupertinoListTileIcon(
-                  title: state.isBiometricAvailable
-                      ? Text(context.t.sessionsPrivacyAndSecurity.passcodeAndFaceID)
-                      : Text(context.t.sessionsPrivacyAndSecurity.passcode),
-                  color: Color(0xFF41CA22),
-                  icon: FontAwesomeIcons.unlockKeyhole,
-                  onTab: () async => context.go("/settings/privacy_and_security/passcode"),
-                  isTrailing: true,
+                CupertinoListSection.insetGrouped(
+                  backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
+                  decoration: BoxDecoration(
+                    color: ThemesCupertino.groupedCard.resolveFrom(context),
+                    borderRadius: const BorderRadius.all(Radius.circular(10)),
+                  ),
+                  children: [
+                    CupertinoListTileIcon(
+                      title: state.isBiometricAvailable
+                          ? Text(context.t.sessionsPrivacyAndSecurity.passcodeAndFaceID)
+                          : Text(context.t.sessionsPrivacyAndSecurity.passcode),
+                      color: Color(0xFF41CA22),
+                      icon: FontAwesomeIcons.unlockKeyhole,
+                      onTab: () async => context.go("/settings/privacy_and_security/passcode"),
+                      isTrailing: true,
+                    ),
+                  ],
+                ),
+                CupertinoListSection.insetGrouped(
+                  backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
+                  decoration: BoxDecoration(
+                    color: ThemesCupertino.groupedCard.resolveFrom(context),
+                    borderRadius: const BorderRadius.all(Radius.circular(10)),
+                  ),
+                  children: [
+                    CupertinoListTileIcon(
+                      title: Text(context.t.sessionsPrivacyAndSecurity.whoCanCall),
+                      color: Color(0xFF007AFF),
+                      icon: FontAwesomeIcons.phone,
+                      onTab: () async => _pickCallsAudience(context, state.callsAudience),
+                      additionalInfo: Text(_audienceLabel(context, state.callsAudience)),
+                      isTrailing: true,
+                    ),
+                  ],
                 ),
               ],
             ),
