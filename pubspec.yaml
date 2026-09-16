@@ -83,6 +83,7 @@ dependencies:
   intl: ^0.20.2
   objectid: ^4.0.3
   connectivity_plus: ^7.3.1
+  audioplayers: ^6.1.0
   font_awesome_flutter: ^11.0.0
   badges: ^3.2.0
   flutter_slidable: ^4.0.3
@@ -173,6 +174,7 @@ flutter:
     - .env
     - assets/images/
     - assets/icons/
+    - assets/audio/
 
   # To add assets to your application, add an assets section, like this:
   # assets:

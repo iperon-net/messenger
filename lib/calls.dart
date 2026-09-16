@@ -9,6 +9,7 @@ import 'dart:io';
 import 'dart:isolate';
 import 'dart:math';
 
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' show WebRTC;
@@ -161,6 +162,29 @@ class Calls {
   // iOS-канал к AppDelegate для смены маршрута аудио на CallKit-пути
   // (overrideOutputAudioPort). См. [toggleSpeaker], ios/Runner/AppDelegate.swift.
   static const _callAudioChannel = MethodChannel('net.iperon.messenger/call_audio');
+
+  // Проигрыватель гудков (ringback) исходящего звонка: зациклённый тон
+  // assets/audio/ringback.wav (425 Гц, 1с/4с — RU-стандарт) звучит, пока ждём
+  // ответа абонента (статус outgoing), и глушится при подключении собеседника
+  // ([_markActive]) или завершении ([_teardown]). Создаётся лениво в
+  // [_startRingback]. Контекст сессии выставлен так, чтобы уживаться с активной
+  // call-аудиосессией LiveKit/CallKit (mixWithOthers на iOS, без захвата
+  // аудиофокуса на Android) и не глушить/не рвать её при play/stop.
+  AudioPlayer? _ringback;
+
+  static final AudioContext _ringbackAudioContext = AudioContext(
+    iOS: AudioContextIOS(
+      category: AVAudioSessionCategory.playAndRecord,
+      options: const {AVAudioSessionOptions.mixWithOthers, AVAudioSessionOptions.allowBluetooth},
+    ),
+    android: const AudioContextAndroid(
+      isSpeakerphoneOn: false,
+      stayAwake: false,
+      contentType: AndroidContentType.speech,
+      usageType: AndroidUsageType.voiceCommunication,
+      audioFocus: AndroidAudioFocus.none,
+    ),
+  );
 
   // Сколько раз пробуем начальный connect к комнате перед провалом звонка (см.
   // [_connectRoom]). Первый connect LiveKit не переигрывает сам, а на холодном
@@ -374,6 +398,12 @@ class Calls {
         return;
       }
       _dbg('ring sent');
+      // Абонент вызван — заводим гудки до его подключения. Аудиосессия к этому
+      // моменту уже поднята в [_connectRoom] (на iOS — нативно), так что ringback
+      // играет в разговорный динамик, как в телефоне. Гасится в [_markActive] по
+      // подключению собеседника или в [_teardown] при завершении. Если абонент
+      // успел подключиться раньше (уже active) — не заводим.
+      if (_snapshot.status == CallStatus.outgoing) unawaited(_startRingback());
     } catch (error, stackTrace) {
       logger.handle(error, stackTrace);
       await _teardown(CallEndReason.failed);
@@ -953,10 +983,39 @@ class Calls {
     }
   }
 
+  // Запускает гудки исходящего (зациклённый ringback). Идемпотентно: повторный
+  // вызов не создаёт второй проигрыватель. Ошибки проигрывания глушим — гудки
+  // косметика, звонок из-за них падать не должен.
+  Future<void> _startRingback() async {
+    try {
+      final player = _ringback ??= AudioPlayer();
+      await player.setAudioContext(_ringbackAudioContext);
+      await player.setReleaseMode(ReleaseMode.loop);
+      await player.setVolume(0.6);
+      await player.play(AssetSource('audio/ringback.wav'));
+    } catch (error, stackTrace) {
+      logger.handle(error, stackTrace);
+    }
+  }
+
+  // Глушит гудки. Проигрыватель не диспозим (переиспользуем на следующий звонок);
+  // финальный dispose — в [dispose].
+  Future<void> _stopRingback() async {
+    final player = _ringback;
+    if (player == null) return;
+    try {
+      await player.stop();
+    } catch (error, stackTrace) {
+      logger.handle(error, stackTrace);
+    }
+  }
+
   // Переводит звонок в active, если он ещё жив и не завершён.
   void _markActive() {
     if (!_hasActiveCall) return;
     if (_snapshot.status == CallStatus.active) return;
+    // Абонент ответил — гудки больше не нужны.
+    unawaited(_stopRingback());
     // Ставим точку отсчёта таймера разговора ровно на переход в active.
     _emit(_snapshot.copyWith(status: CallStatus.active, connectedAt: DateTime.now()));
     _dbg('active');
@@ -984,6 +1043,9 @@ class Calls {
     // конкурентный `pc.close()` (см. [_tearingDown]).
     if (_tearingDown) return;
     _tearingDown = true;
+
+    // Гасим гудки исходящего (если играли) — звонок завершается/переходит дальше.
+    unawaited(_stopRingback());
 
     _pushAcceptedCallId = null;
     _handlingCallId = null;
@@ -1118,6 +1180,8 @@ class Calls {
     }
     _signalSubs.clear();
     await _teardown(CallEndReason.none);
+    await _ringback?.dispose();
+    _ringback = null;
     await _snapshotController.close();
     await _focusController.close();
     await _incomingRingController.close();
