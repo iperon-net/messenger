@@ -645,6 +645,9 @@ class Translations$screenContacts$en {
 	/// en: 'On Contacts'
 	String get onContacts => 'On Contacts';
 
+	/// en: 'Cloud contacts'
+	String get cloudContacts => 'Cloud contacts';
+
 	/// en: 'Invite'
 	String get invite => 'Invite';
 
@@ -1103,6 +1106,7 @@ extension on Translations {
 			'screenContacts.title' => 'Contacts',
 			'screenContacts.onIperon' => 'On Iperon',
 			'screenContacts.onContacts' => 'On Contacts',
+			'screenContacts.cloudContacts' => 'Cloud contacts',
 			'screenContacts.invite' => 'Invite',
 			'screenContacts.inviteAction' => 'Invite',
 			'screenContacts.search' => 'Search',

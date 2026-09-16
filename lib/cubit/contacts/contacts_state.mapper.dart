@@ -214,6 +214,13 @@ class ContactsStateMapper extends ClassMapperBase<ContactsState> {
     opt: true,
     def: const [],
   );
+  static List<ContactItem> _$cloud(ContactsState v) => v.cloud;
+  static const Field<ContactsState, List<ContactItem>> _f$cloud = Field(
+    'cloud',
+    _$cloud,
+    opt: true,
+    def: const [],
+  );
   static String _$query(ContactsState v) => v.query;
   static const Field<ContactsState, String> _f$query = Field(
     'query',
@@ -229,6 +236,7 @@ class ContactsStateMapper extends ClassMapperBase<ContactsState> {
     #permissionDenied: _f$permissionDenied,
     #registered: _f$registered,
     #invitable: _f$invitable,
+    #cloud: _f$cloud,
     #query: _f$query,
   };
 
@@ -239,6 +247,7 @@ class ContactsStateMapper extends ClassMapperBase<ContactsState> {
       permissionDenied: data.dec(_f$permissionDenied),
       registered: data.dec(_f$registered),
       invitable: data.dec(_f$invitable),
+      cloud: data.dec(_f$cloud),
       query: data.dec(_f$query),
     );
   }
@@ -317,12 +326,19 @@ abstract class ContactsStateCopyWith<$R, $In extends ContactsState, $Out>
     ContactItemCopyWith<$R, ContactItem, ContactItem>
   >
   get invitable;
+  ListCopyWith<
+    $R,
+    ContactItem,
+    ContactItemCopyWith<$R, ContactItem, ContactItem>
+  >
+  get cloud;
   $R call({
     Status? status,
     String? error,
     bool? permissionDenied,
     List<ContactItem>? registered,
     List<ContactItem>? invitable,
+    List<ContactItem>? cloud,
     String? query,
   });
   ContactsStateCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
@@ -359,12 +375,24 @@ class _ContactsStateCopyWithImpl<$R, $Out>
     (v) => call(invitable: v),
   );
   @override
+  ListCopyWith<
+    $R,
+    ContactItem,
+    ContactItemCopyWith<$R, ContactItem, ContactItem>
+  >
+  get cloud => ListCopyWith(
+    $value.cloud,
+    (v, t) => v.copyWith.$chain(t),
+    (v) => call(cloud: v),
+  );
+  @override
   $R call({
     Status? status,
     String? error,
     bool? permissionDenied,
     List<ContactItem>? registered,
     List<ContactItem>? invitable,
+    List<ContactItem>? cloud,
     String? query,
   }) => $apply(
     FieldCopyWithData({
@@ -373,6 +401,7 @@ class _ContactsStateCopyWithImpl<$R, $Out>
       if (permissionDenied != null) #permissionDenied: permissionDenied,
       if (registered != null) #registered: registered,
       if (invitable != null) #invitable: invitable,
+      if (cloud != null) #cloud: cloud,
       if (query != null) #query: query,
     }),
   );
@@ -383,6 +412,7 @@ class _ContactsStateCopyWithImpl<$R, $Out>
     permissionDenied: data.get(#permissionDenied, or: $value.permissionDenied),
     registered: data.get(#registered, or: $value.registered),
     invitable: data.get(#invitable, or: $value.invitable),
+    cloud: data.get(#cloud, or: $value.cloud),
     query: data.get(#query, or: $value.query),
   );
 

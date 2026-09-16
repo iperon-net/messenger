@@ -36,9 +36,13 @@ class ContactsState with ContactsStateMappable {
   /// Разрешение на чтение книги отклонено — показываем экран-объяснение.
   final bool permissionDenied;
 
-  /// Найденные в Iperon (сверху) и остальные — для приглашения.
+  /// Из телефонной книги: найденные в Iperon ([registered]) и остальные — для
+  /// приглашения ([invitable]). [cloud] — добавленные вручную «облачные» контакты
+  /// (источник MANUAL), которых нет в книге устройства; они могут быть как
+  /// зарегистрированы, так и ещё нет.
   final List<ContactItem> registered;
   final List<ContactItem> invitable;
+  final List<ContactItem> cloud;
 
   /// Текущий поисковый запрос (фильтрация в UI).
   final String query;
@@ -49,6 +53,7 @@ class ContactsState with ContactsStateMappable {
     this.permissionDenied = false,
     this.registered = const [],
     this.invitable = const [],
+    this.cloud = const [],
     this.query = "",
   });
 }

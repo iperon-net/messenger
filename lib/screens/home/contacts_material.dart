@@ -109,6 +109,7 @@ class _ContactsMaterialState extends State<ContactsMaterial> {
 
                 final registered = state.registered.where((item) => _matchesQuery(item, state.query)).toList();
                 final invitable = state.invitable.where((item) => _matchesQuery(item, state.query)).toList();
+                final cloud = state.cloud.where((item) => _matchesQuery(item, state.query)).toList();
 
                 return ListView(
                   children: [
@@ -118,9 +119,15 @@ class _ContactsMaterialState extends State<ContactsMaterial> {
                         context.t.screenContacts.onContacts,
                         registered.map((item) => _registeredTile(context, item)).toList(),
                       ),
+                    if (cloud.isNotEmpty)
+                      _sheet(
+                        context,
+                        context.t.screenContacts.cloudContacts,
+                        cloud.map((item) => item.isRegistered ? _registeredTile(context, item) : _invitableTile(context, item)).toList(),
+                      ),
                     if (invitable.isNotEmpty)
                       _sheet(context, context.t.screenContacts.invite, invitable.map((item) => _invitableTile(context, item)).toList()),
-                    if (registered.isEmpty && invitable.isEmpty)
+                    if (registered.isEmpty && invitable.isEmpty && cloud.isEmpty)
                       Padding(
                         padding: const EdgeInsets.only(top: 60),
                         child: Center(child: Text(context.t.screenContacts.empty)),
@@ -293,11 +300,24 @@ class _ContactsMaterialState extends State<ContactsMaterial> {
   }
 
   Widget _invitableTile(BuildContext context, ContactItem item) {
-    return ListTile(
-      leading: _avatar(item.phoneE164),
-      title: Text(item.displayName),
-      subtitle: Text(item.phone),
-      trailing: TextButton(onPressed: () => _invite(item.phoneE164), child: Text(context.t.screenContacts.inviteAction)),
+    final cubit = context.read<ContactsCubit>();
+    return Dismissible(
+      key: ValueKey('contact_${item.phoneE164}'),
+      direction: DismissDirection.endToStart,
+      confirmDismiss: (_) => _confirmRemove(context),
+      onDismissed: (_) => cubit.removeContact(item),
+      background: Container(
+        color: Colors.red,
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: Text(context.t.screenContacts.remove, style: const TextStyle(color: Colors.white)),
+      ),
+      child: ListTile(
+        leading: _avatar(item.phoneE164),
+        title: Text(item.displayName),
+        subtitle: Text(item.phone),
+        trailing: TextButton(onPressed: () => _invite(item.phoneE164), child: Text(context.t.screenContacts.inviteAction)),
+      ),
     );
   }
 

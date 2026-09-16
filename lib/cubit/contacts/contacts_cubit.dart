@@ -130,7 +130,9 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
     final visible = cached.where((entry) => entry.displayName.isNotEmpty && !excluded.contains(entry.phoneE164)).toList(growable: false);
     if (visible.isEmpty) return;
 
-    _emitFromCache(visible);
+    final manual = await _loadManual();
+    if (isClosed) return;
+    _emitFromCache(visible, manual.keys.toSet());
   }
 
   /// Фаза B без диалога: если доступ к контактам уже выдан, тихо запускаем полный
@@ -229,6 +231,7 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
       // Запись из книги имеет приоритет — putIfAbsent не перезапишет её именем/номером.
       final manual = await _loadManual();
       if (isClosed) return;
+      final manualE164 = manual.keys.toSet();
       for (final contact in manual.values) {
         if (excluded.contains(contact.phoneE164)) continue;
         entries.putIfAbsent(
@@ -240,17 +243,17 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
       // Книга пуста (или частичный доступ ничего не отдал) — не трогаем снимок,
       // чтобы не стереть прошлый кэш; просто показываем пусто.
       if (entries.isEmpty) {
-        emit(state.copyWith(status: Status.success, registered: const [], invitable: const []));
+        emit(state.copyWith(status: Status.success, registered: const [], invitable: const [], cloud: const []));
         return;
       }
 
-      // Сразу перерисовываем оба списка по свежей книге, используя лучшие known-userID
-      // (из уже показанного снимка), и записываем обновлённый снимок в БД.
+      // Сразу перерисовываем списки по свежей книге, используя лучшие known-userID
+      // (из уже показанного снимка, включая облачные), и записываем снимок в БД.
       final known = {
-        for (final item in state.registered)
+        for (final item in [...state.registered, ...state.cloud])
           if (item.userID != null) item.phoneE164: item.userID!,
       };
-      _emitLists(entries, known);
+      _emitLists(entries, known, manualE164);
       await _writeSnapshot(entries, known);
       if (isClosed) return;
 
@@ -276,7 +279,7 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
         final matched = await _discoverOprf(entries.values.toList(growable: false), fullAccess: fullAccess);
         if (isClosed) return;
 
-        _emitLists(entries, matched);
+        _emitLists(entries, matched, manualE164);
         await _writeSnapshot(entries, matched);
         // Запоминаем отпечаток успешно синхронизированной книги (с TTL-страховкой).
         await repositories.cache.setString(userID: userID, key: _fingerprintKey, value: fingerprint, ttl: _resyncInterval);
@@ -462,7 +465,7 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
         displayName: displayName,
       );
       await _addManual(contact);
-      _insertContact(contact, userID);
+      await _insertContact(contact, userID);
       await repositories.contacts.upsertOne(
         ContactCacheEntry(phoneE164: contact.phoneE164, displayName: contact.displayName, phone: contact.phone, userID: userID),
       );
@@ -474,17 +477,22 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
     }
   }
 
-  /// Вставляет/обновляет один контакт в текущем состоянии (registered/invitable)
-  /// по e164 и пересортировывает — для мгновенного показа после ручного добавления.
-  void _insertContact(_ManualContact contact, Uint8List? userID) {
+  /// Вставляет/обновляет один контакт в текущем состоянии по e164 и
+  /// перераскладывает по группам — для мгновенного показа после ручного
+  /// добавления (он попадёт в «Облачные контакты», т.к. уже в manual-set).
+  Future<void> _insertContact(_ManualContact contact, Uint8List? userID) async {
     if (isClosed) return;
 
     final item = ContactItem(displayName: contact.displayName, phone: contact.phone, phoneE164: contact.phoneE164, userID: userID);
-    final registered = state.registered.where((c) => c.phoneE164 != contact.phoneE164).toList();
-    final invitable = state.invitable.where((c) => c.phoneE164 != contact.phoneE164).toList();
-    (userID != null ? registered : invitable).add(item);
+    final all = [
+      for (final c in [...state.registered, ...state.cloud, ...state.invitable])
+        if (c.phoneE164 != contact.phoneE164) c,
+      item,
+    ];
 
-    _emitSorted(registered, invitable);
+    final manual = await _loadManual();
+    if (isClosed) return;
+    _emitPartitioned(all, manual.keys.toSet());
   }
 
   /// Удаляет контакт из облачной книги (`CONTACTS_REMOVE` по OPRF-отпечатку его
@@ -514,6 +522,7 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
           state.copyWith(
             registered: state.registered.where((c) => c.phoneE164 != item.phoneE164).toList(growable: false),
             invitable: state.invitable.where((c) => c.phoneE164 != item.phoneE164).toList(growable: false),
+            cloud: state.cloud.where((c) => c.phoneE164 != item.phoneE164).toList(growable: false),
           ),
         );
       }
@@ -596,45 +605,56 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
     if (manual.remove(e164) != null) await _saveManual(manual);
   }
 
-  void _emitLists(Map<String, _Entry> entries, Map<String, Uint8List> userByE164) {
+  void _emitLists(Map<String, _Entry> entries, Map<String, Uint8List> userByE164, Set<String> manualE164) {
+    if (isClosed) return;
+
+    final items = [
+      for (final entry in entries.values)
+        ContactItem(displayName: entry.displayName, phone: entry.phone, phoneE164: entry.phoneE164, userID: userByE164[entry.phoneE164]),
+    ];
+    _emitPartitioned(items, manualE164);
+  }
+
+  /// Показ полного снимка из БД (фаза A) — без нормализации, прямо из кэша.
+  void _emitFromCache(List<ContactCacheEntry> cached, Set<String> manualE164) {
+    final items = [
+      for (final entry in cached)
+        ContactItem(
+          displayName: entry.displayName,
+          phone: entry.phone,
+          phoneE164: entry.phoneE164,
+          userID: entry.userID == null ? null : Uint8List.fromList(entry.userID!),
+        ),
+    ];
+    _emitPartitioned(items, manualE164);
+  }
+
+  /// Раскладывает контакты по трём группам и эмитит отсортированными: «облачные»
+  /// (в [manualE164] — добавлены вручную, любого статуса), «в контактах»
+  /// (из книги, зарегистрированы) и «пригласить» (из книги, не в Iperon).
+  void _emitPartitioned(List<ContactItem> items, Set<String> manualE164) {
     if (isClosed) return;
 
     final registered = <ContactItem>[];
     final invitable = <ContactItem>[];
+    final cloud = <ContactItem>[];
 
-    for (final entry in entries.values) {
-      final userID = userByE164[entry.phoneE164];
-      final item = ContactItem(displayName: entry.displayName, phone: entry.phone, phoneE164: entry.phoneE164, userID: userID);
-      (userID != null ? registered : invitable).add(item);
+    for (final item in items) {
+      if (manualE164.contains(item.phoneE164)) {
+        cloud.add(item);
+      } else if (item.userID != null) {
+        registered.add(item);
+      } else {
+        invitable.add(item);
+      }
     }
 
-    _emitSorted(registered, invitable);
-  }
+    int byName(ContactItem a, ContactItem b) => a.displayName.toLowerCase().compareTo(b.displayName.toLowerCase());
+    registered.sort(byName);
+    invitable.sort(byName);
+    cloud.sort(byName);
 
-  /// Показ полного снимка из БД (фаза A) — без нормализации, прямо из кэша.
-  void _emitFromCache(List<ContactCacheEntry> cached) {
-    final registered = <ContactItem>[];
-    final invitable = <ContactItem>[];
-
-    for (final entry in cached) {
-      final userID = entry.userID;
-      final item = ContactItem(
-        displayName: entry.displayName,
-        phone: entry.phone,
-        phoneE164: entry.phoneE164,
-        userID: userID == null ? null : Uint8List.fromList(userID),
-      );
-      (userID != null ? registered : invitable).add(item);
-    }
-
-    _emitSorted(registered, invitable);
-  }
-
-  void _emitSorted(List<ContactItem> registered, List<ContactItem> invitable) {
-    registered.sort((a, b) => a.displayName.toLowerCase().compareTo(b.displayName.toLowerCase()));
-    invitable.sort((a, b) => a.displayName.toLowerCase().compareTo(b.displayName.toLowerCase()));
-
-    emit(state.copyWith(status: Status.success, permissionDenied: false, registered: registered, invitable: invitable));
+    emit(state.copyWith(status: Status.success, permissionDenied: false, registered: registered, invitable: invitable, cloud: cloud));
   }
 
   /// Сохраняет полный снимок книги (registered + invitable) в БД для мгновенного
