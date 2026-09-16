@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_multi_formatter/flutter_multi_formatter.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../cubit.dart';
@@ -42,7 +43,12 @@ class _ContactsAddMaterialState extends State<ContactsAddMaterial> {
     return Scaffold(
       appBar: AppBar(
         title: Text(t.addByNumber),
-        actions: [TextButton(onPressed: _submit, child: Text(t.add))],
+        actions: [
+          TextButton(
+            onPressed: _submit,
+            child: FaIcon(FontAwesomeIcons.check, color: Theme.of(context).colorScheme.onSurfaceVariant),
+          ),
+        ],
       ),
       body: SafeArea(
         child: ListView(
