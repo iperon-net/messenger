@@ -123,7 +123,13 @@ class _ContactsMaterialState extends State<ContactsMaterial> {
                       _sheet(
                         context,
                         context.t.screenContacts.cloudContacts,
-                        cloud.map((item) => item.isRegistered ? _registeredTile(context, item) : _invitableTile(context, item)).toList(),
+                        cloud
+                            .map(
+                              (item) => item.isRegistered
+                                  ? _registeredTile(context, item, removable: true)
+                                  : _invitableTile(context, item, removable: true),
+                            )
+                            .toList(),
                       ),
                     if (invitable.isNotEmpty)
                       _sheet(context, context.t.screenContacts.invite, invitable.map((item) => _invitableTile(context, item)).toList()),
@@ -193,8 +199,24 @@ class _ContactsMaterialState extends State<ContactsMaterial> {
     return Text(text, style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant));
   }
 
-  Widget _registeredTile(BuildContext context, ContactItem item) {
+  /// Свайп-удаление ([removable]) есть только у «облачных» контактов — их
+  /// пользователь добавил вручную и ими управляет в приложении. Контакты из
+  /// телефонной книги не удаляются здесь (их место — системная адресная книга).
+  Widget _registeredTile(BuildContext context, ContactItem item, {bool removable = false}) {
     final hex = getIt.get<Utils>().bytesToHex(item.userID!);
+    final tile = ListTile(
+      leading: _avatar(hex),
+      title: Text(item.displayName),
+      // TODO: заменить плейсхолдер на реальную дату последнего визита из данных о присутствии.
+      subtitle: _status(context, lastSeen: DateTime.now().subtract(const Duration(days: 1, hours: 2))),
+      trailing: const Icon(Icons.chevron_right),
+      onTap: () => context.push('/profile/$hex'),
+    );
+    return removable ? _dismissible(context, item, tile) : tile;
+  }
+
+  /// Обёртка свайпа «удалить» (только для облачных контактов).
+  Widget _dismissible(BuildContext context, ContactItem item, Widget child) {
     final cubit = context.read<ContactsCubit>();
     return Dismissible(
       key: ValueKey('contact_${item.phoneE164}'),
@@ -207,14 +229,7 @@ class _ContactsMaterialState extends State<ContactsMaterial> {
         padding: const EdgeInsets.symmetric(horizontal: 20),
         child: Text(context.t.screenContacts.remove, style: const TextStyle(color: Colors.white)),
       ),
-      child: ListTile(
-        leading: _avatar(hex),
-        title: Text(item.displayName),
-        // TODO: заменить плейсхолдер на реальную дату последнего визита из данных о присутствии.
-        subtitle: _status(context, lastSeen: DateTime.now().subtract(const Duration(days: 1, hours: 2))),
-        trailing: const Icon(Icons.chevron_right),
-        onTap: () => context.push('/profile/$hex'),
-      ),
+      child: child,
     );
   }
 
@@ -299,26 +314,14 @@ class _ContactsMaterialState extends State<ContactsMaterial> {
     messenger.showSnackBar(SnackBar(content: Text(message)));
   }
 
-  Widget _invitableTile(BuildContext context, ContactItem item) {
-    final cubit = context.read<ContactsCubit>();
-    return Dismissible(
-      key: ValueKey('contact_${item.phoneE164}'),
-      direction: DismissDirection.endToStart,
-      confirmDismiss: (_) => _confirmRemove(context),
-      onDismissed: (_) => cubit.removeContact(item),
-      background: Container(
-        color: Colors.red,
-        alignment: Alignment.centerRight,
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        child: Text(context.t.screenContacts.remove, style: const TextStyle(color: Colors.white)),
-      ),
-      child: ListTile(
-        leading: _avatar(item.phoneE164),
-        title: Text(item.displayName),
-        subtitle: Text(item.phone),
-        trailing: TextButton(onPressed: () => _invite(item.phoneE164), child: Text(context.t.screenContacts.inviteAction)),
-      ),
+  Widget _invitableTile(BuildContext context, ContactItem item, {bool removable = false}) {
+    final tile = ListTile(
+      leading: _avatar(item.phoneE164),
+      title: Text(item.displayName),
+      subtitle: Text(item.phone),
+      trailing: TextButton(onPressed: () => _invite(item.phoneE164), child: Text(context.t.screenContacts.inviteAction)),
     );
+    return removable ? _dismissible(context, item, tile) : tile;
   }
 
   Widget _permission(BuildContext context) {
