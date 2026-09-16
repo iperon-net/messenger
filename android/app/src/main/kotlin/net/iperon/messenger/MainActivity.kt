@@ -6,6 +6,8 @@ import android.os.Bundle
 import android.view.WindowManager
 import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine
+import io.flutter.embedding.engine.FlutterEngineCache
+import io.flutter.embedding.engine.dart.DartExecutor
 import io.flutter.plugin.common.MethodChannel
 
 /// Хост Flutter-приложения на Android.
@@ -16,11 +18,44 @@ import io.flutter.plugin.common.MethodChannel
 /// плагин `flutter_callkit_incoming` поднимает нас обычным launch-intent из
 /// своей `TransparentActivity`, а Activity без флага `showWhenLocked` система
 /// не рисует поверх keyguard.
+///
+/// Использует ОДИН кэшированный [FlutterEngine] на весь процесс (см.
+/// [getCachedEngineId]). Без этого повторный запуск Activity под входящий звонок
+/// (приложение свёрнуто, но процесс жив; старый движок ещё резидентен, т.к. его
+/// isolate держит gRPC-стрим/DI-синглтоны) создавал ВТОРОЙ движок и прогонял
+/// `main()` заново. Тогда в одном процессе жили два isolate'а, каждый со своим
+/// `Calls`/`CallPush`; оба ловили нативный ACTION_CALL_ACCEPT и оба входили в
+/// комнату LiveKit с одной identity → сервер выбивал участника
+/// (DUPLICATE_IDENTITY), звонок падал с ICE-таймаутом. Внутриизолятные дедуп-
+/// гарды такое не ловят — они не переживают границу isolate'а.
+///
+/// ВАЖНО: движок отдаётся через [getCachedEngineId] (путь `withCachedEngine` +
+/// `destroyEngineWithFragment=false`), а НЕ через `provideFlutterEngine()`.
+/// Последний на `FlutterFragmentActivity` идёт по «new engine»-пути
+/// (`destroyEngineWithHost=true`): при перезапуске Activity новый `FlutterFragment`
+/// цеплялся к тому же кэш-движку, ещё «принадлежащему» прошлой Activity →
+/// `java.lang.AssertionError: The internal FlutterEngine ... has been attached to
+/// by another activity` → краш процесса ~через 2с после старта звонка. Кэш-путь
+/// этого не делает, а `launchMode=singleTask` (см. манифест) гарантирует
+/// единственный инстанс Activity — движок всегда прикреплён ровно к одному хосту.
 class MainActivity : FlutterFragmentActivity() {
     private val channelName = "net.iperon.messenger/call_window"
     private var callWindowChannel: MethodChannel? = null
 
+    /// Имя кэшированного движка, к которому цепляется `FlutterFragment`. Сам движок
+    /// кладётся в кэш в [onCreate] ДО `super.onCreate` (см. [ensureEngine]) — иначе
+    /// восстановленный из saved-state фрагмент на cold-start не найдёт его и упадёт
+    /// `IllegalStateException: The requested cached FlutterEngine did not exist`.
+    override fun getCachedEngineId(): String = ENGINE_ID
+
     override fun onCreate(savedInstanceState: Bundle?) {
+        // Движок должен быть в кэше ДО super.onCreate: там FlutterFragmentActivity
+        // создаёт/восстанавливает FlutterFragment, а тот сразу цепляется к
+        // кэш-движку по [getCachedEngineId]. Ленивое создание здесь (а не прогрев
+        // в Application.onCreate) не поднимает полный DI/БД, когда процесс стартовал
+        // только ради фонового FCM-обработчика (тот в отдельном isolate, Activity
+        // не поднимает).
+        ensureEngine()
         // Холодный старт для ответа на звонок: плагин запускает нас с action
         // ...ACTION_CALL_*. Включаем показ поверх локскрина ещё до отрисовки
         // окна, иначе keyguard успеет потребовать разблокировку.
@@ -30,7 +65,8 @@ class MainActivity : FlutterFragmentActivity() {
 
     override fun onNewIntent(intent: Intent) {
         // Тёплый старт (приложение уже живо): тот же call-intent приходит сюда,
-        // т.к. Activity в singleTop.
+        // т.к. Activity в singleTask (единственный инстанс, повторный launch =
+        // onNewIntent).
         applyCallLaunchFlags(intent)
         super.onNewIntent(intent)
     }
@@ -85,5 +121,30 @@ class MainActivity : FlutterFragmentActivity() {
                     WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
             if (show) window.addFlags(flags) else window.clearFlags(flags)
         }
+    }
+
+    /// Лениво создаёт единственный на процесс движок и кладёт в
+    /// [FlutterEngineCache] под [ENGINE_ID]. `FlutterEngine(context)` сам
+    /// авторегистрирует плагины (embedding v2), затем гоняем `main()`.
+    /// Идемпотентно и потокобезопасно: под звонок Activity может подниматься
+    /// гонкой (full-screen intent + «Ответить»), а два создания вернули бы нас к
+    /// исходной проблеме двух isolate'ов.
+    private fun ensureEngine() {
+        val cache = FlutterEngineCache.getInstance()
+        synchronized(engineLock) {
+            if (cache.get(ENGINE_ID) == null) {
+                val engine = FlutterEngine(applicationContext)
+                engine.dartExecutor.executeDartEntrypoint(DartExecutor.DartEntrypoint.createDefault())
+                cache.put(ENGINE_ID, engine)
+            }
+        }
+    }
+
+    companion object {
+        // Ключ единственного на процесс движка в FlutterEngineCache.
+        private const val ENGINE_ID = "net.iperon.messenger/main_engine"
+
+        // Сериализует ленивое создание движка (см. [ensureEngine]).
+        private val engineLock = Any()
     }
 }
