@@ -186,6 +186,29 @@ class Calls {
     ),
   );
 
+  // Таймер отмены исходящего недозвона. Заводится на старте исходящего; если
+  // абонент не подключился за [Settings.callRingTimeoutSeconds], сам вызывает
+  // [hangup] → уходит `CALL_HANGUP`, и сервер снимает у абонента баннер входящего
+  // cancel-пушем. Без этого недозвон, который звонящий бросил не нажав отбой,
+  // оставляет у абонента висящий баннер. Снимается в [_markActive] (ответили) и
+  // в [_teardown] (любое завершение). См. [_startRingTimeout]/[_cancelRingTimeout].
+  Timer? _ringTimer;
+
+  // Бэкстоп-таймер входящего (callee): если звонок так и не приняли за чуть
+  // больше времени, чем каллер-таймаут ([_incomingTimeout]), локально сворачиваем
+  // звонок — переход в `ended` дёргает [CallPush] `endCall` и гасит зависший
+  // баннер. Нужен на случай, когда звонящего убили ДО срабатывания его таймера
+  // (тогда `CALL_HANGUP`/cancel-пуш не придут). Маржа сверх каллер-таймаута —
+  // чтобы штатную отмену обычно успевал сделать cancel-пуш, а этот таймер оставался
+  // лишь страховкой. Снимается в [accept]/[reject]/[_teardown]. Работает только
+  // пока Dart жив (foreground/фон); cold-start-баннер убитого приложения этим не
+  // покрыт — там страхуют каллер-cancel и нативные таймауты (iOS 30с). См.
+  // [_startIncomingTimeout]/[_cancelIncomingTimeout].
+  Timer? _incomingTimer;
+
+  // Сколько ждём ответа на входящий, прежде чем снять баннер как пропущенный.
+  Duration get _incomingTimeout => Duration(seconds: settings.callRingTimeoutSeconds + 15);
+
   // Сколько раз пробуем начальный connect к комнате перед провалом звонка (см.
   // [_connectRoom]). Первый connect LiveKit не переигрывает сам, а на холодном
   // старте сеть ещё не готова — поэтому повторяем сами. Значение — из Remote
@@ -402,8 +425,13 @@ class Calls {
       // моменту уже поднята в [_connectRoom] (на iOS — нативно), так что ringback
       // играет в разговорный динамик, как в телефоне. Гасится в [_markActive] по
       // подключению собеседника или в [_teardown] при завершении. Если абонент
-      // успел подключиться раньше (уже active) — не заводим.
-      if (_snapshot.status == CallStatus.outgoing) unawaited(_startRingback());
+      // успел подключиться раньше (уже active) — не заводим. Тем же условием
+      // заводим таймер отмены недозвона — иначе брошенный звонок оставит у абонента
+      // висящий баннер входящего.
+      if (_snapshot.status == CallStatus.outgoing) {
+        unawaited(_startRingback());
+        _startRingTimeout(callId);
+      }
     } catch (error, stackTrace) {
       logger.handle(error, stackTrace);
       await _teardown(CallEndReason.failed);
@@ -426,6 +454,8 @@ class Calls {
       return;
     }
     _handlingCallId = _snapshot.callId;
+    // Приняли — бэкстоп-таймер входящего больше не нужен.
+    _cancelIncomingTimeout();
 
     _emit(_snapshot.copyWith(status: CallStatus.connecting));
     _dbg('accepted');
@@ -619,6 +649,10 @@ class Calls {
       await accept();
       return;
     }
+
+    // Бэкстоп на висящий баннер: если не ответят и звонящий не снимет звонок —
+    // сами свернём через [_incomingTimeout] (см. [_startIncomingTimeout]).
+    _startIncomingTimeout(ring.callId);
 
     // Foreground-приём: ring пришёл по живому стриму (в этом состоянии сервер не
     // слал call-пуш — гейт по онлайн-сессии). Просим [CallPush] показать входящий
@@ -1010,12 +1044,52 @@ class Calls {
     }
   }
 
+  // Заводит таймер отмены исходящего недозвона (см. [_ringTimer]). По истечении —
+  // если абонент так и не подключился (звонок ещё в статусе outgoing именно с
+  // этим callId) — вешаем трубку сами. `hangup` шлёт `CALL_HANGUP` (сервер снимет
+  // баннер у абонента) и делает `_teardown`. Привязка к callId защищает от гонки:
+  // если пока таймер тикал начался другой звонок, старый таймер его не тронет
+  // (хотя [_cancelRingTimeout] в [_teardown] и так снимает предыдущий).
+  void _startRingTimeout(String callId) {
+    _cancelRingTimeout();
+    _ringTimer = Timer(Duration(seconds: settings.callRingTimeoutSeconds), () {
+      if (_snapshot.status == CallStatus.outgoing && _snapshot.callId == callId) {
+        _dbg('ring timeout — cancelling unanswered call');
+        unawaited(hangup());
+      }
+    });
+  }
+
+  void _cancelRingTimeout() {
+    _ringTimer?.cancel();
+    _ringTimer = null;
+  }
+
+  // Заводит бэкстоп-таймер входящего (см. [_incomingTimer]). По истечении — если
+  // звонок всё ещё «звонит» (статус incoming именно с этим callId, т.е. не приняли
+  // и не отменили) — локально сворачиваем: `ended` → [CallPush] снимет баннер.
+  void _startIncomingTimeout(String callId) {
+    _cancelIncomingTimeout();
+    _incomingTimer = Timer(_incomingTimeout, () {
+      if (_snapshot.status == CallStatus.incoming && _snapshot.callId == callId) {
+        _dbg('incoming timeout — dismissing unanswered call');
+        unawaited(_teardown(CallEndReason.none));
+      }
+    });
+  }
+
+  void _cancelIncomingTimeout() {
+    _incomingTimer?.cancel();
+    _incomingTimer = null;
+  }
+
   // Переводит звонок в active, если он ещё жив и не завершён.
   void _markActive() {
     if (!_hasActiveCall) return;
     if (_snapshot.status == CallStatus.active) return;
-    // Абонент ответил — гудки больше не нужны.
+    // Абонент ответил — гудки и таймер отмены недозвона больше не нужны.
     unawaited(_stopRingback());
+    _cancelRingTimeout();
     // Ставим точку отсчёта таймера разговора ровно на переход в active.
     _emit(_snapshot.copyWith(status: CallStatus.active, connectedAt: DateTime.now()));
     _dbg('active');
@@ -1044,8 +1118,11 @@ class Calls {
     if (_tearingDown) return;
     _tearingDown = true;
 
-    // Гасим гудки исходящего (если играли) — звонок завершается/переходит дальше.
+    // Гасим гудки исходящего (если играли) и снимаем таймеры дозвона/входящего —
+    // звонок завершается/переходит дальше.
     unawaited(_stopRingback());
+    _cancelRingTimeout();
+    _cancelIncomingTimeout();
 
     _pushAcceptedCallId = null;
     _handlingCallId = null;

@@ -149,6 +149,12 @@ import flutter_callkit_incoming
     // Не добавляем звонки приложения в системный журнал iOS «Недавние»/историю
     // «Телефона» (CXProviderConfiguration.includesCallsInRecents).
     data.includesCallsInRecents = false
+    // Авто-снятие входящего как пропущенного через 60с (плагинный дефолт — 30с,
+    // короче каллер-таймаута 45с: callee показал бы «пропущен», пока звонящий ещё
+    // звонит). Держим чуть больше каллер-таймаута — штатную отмену обычно успевает
+    // cancel-пуш. Совпадает с _kIncomingBannerTimeoutMs в lib/call_push.dart.
+    data.duration = 60000
+
     // configureAudioSession = true — на ответе плагин
     // (SwiftFlutterCallkitIncomingPlugin `provider(perform: CXAnswerCallAction)`)
     // ставит категорию `PlayAndRecord` и `setActive(true)`. Это ЕДИНСТВЕННОЕ

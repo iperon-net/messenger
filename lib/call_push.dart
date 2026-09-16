@@ -29,6 +29,15 @@ const _kNameCaller = 'nameCaller';
 const _kActionIncoming = 'incoming';
 const _kActionCancel = 'cancel';
 
+// Через сколько мс баннер входящего сам снимается как пропущенный, если на него
+// не ответили и звонящий не прислал отмену. Бэкстоп на висящий баннер параллельно
+// Dart-таймеру в [Calls] (Calls._incomingTimeout) — но этот работает и на нативном
+// пути (full-screen Activity плагина), когда Dart мог не успеть. Держим чуть больше
+// каллер-таймаута (CALL_RING_TIMEOUT_SECONDS=45 + маржа), чтобы штатную отмену
+// обычно успевал cancel-пуш. Константа (не из Settings): применяется и в
+// FCM-фоне, где DI может быть ещё не готов.
+const _kIncomingBannerTimeoutMs = 60000;
+
 // Канал к MainActivity (Android): показ Flutter-экрана звонка поверх экрана
 // блокировки. См. android/.../MainActivity.kt.
 const _callWindowChannel = MethodChannel('net.iperon.messenger/call_window');
@@ -96,6 +105,8 @@ CallKitParams _incomingParams(Map<String, dynamic> data, String callId) {
     appName: 'Iperon',
     handle: _handleText(isVideo),
     type: isVideo ? 1 : 0,
+    // Авто-снятие баннера как пропущенного, если не ответили (см. _kIncomingBannerTimeoutMs).
+    duration: _kIncomingBannerTimeoutMs,
     // extra доедет до события accept/decline — оттуда берём собеседника и тип.
     extra: {_kFromUserID: fromUserID, _kVideo: isVideo},
     android: AndroidParams(
@@ -316,6 +327,8 @@ class CallPush {
       appName: 'Iperon',
       handle: _handleText(isVideo),
       type: isVideo ? 1 : 0,
+      // Авто-снятие баннера как пропущенного, если не ответили (см. _kIncomingBannerTimeoutMs).
+      duration: _kIncomingBannerTimeoutMs,
       extra: {_kFromUserID: fromUserIDHex, _kVideo: isVideo},
       android: AndroidParams(
         isCustomNotification: true,

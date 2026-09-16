@@ -40,6 +40,7 @@ class Settings {
       "PHONE_NUMBER_MODERATION_APPLICATION_STORE_ENABLE": false,
       "CALL_CONNECT_MAX_ATTEMPTS": 3,
       "CALL_PEER_CONNECTION_TIMEOUT_SECONDS": 7,
+      "CALL_RING_TIMEOUT_SECONDS": 45,
     });
 
     try {
@@ -103,5 +104,17 @@ class Settings {
     if (res > 0) return res;
     final rc = remoteConfig.getInt("CALL_PEER_CONNECTION_TIMEOUT_SECONDS");
     return rc > 0 ? rc : 7;
+  }
+
+  /// Сколько секунд звоним абоненту, прежде чем автоматически отменить исходящий
+  /// недозвон (звонящий шлёт `CALL_HANGUP` → сервер снимает у абонента баннер
+  /// входящего cancel-пушем). Без этого баннер у абонента висит, пока звонящий
+  /// не нажмёт отбой вручную. `dotenv` перекрывает Remote Config; при
+  /// невалидном/нулевом — откат на 45.
+  int get callRingTimeoutSeconds {
+    final res = dotenv.getInt('CALL_RING_TIMEOUT_SECONDS', fallback: 0);
+    if (res > 0) return res;
+    final rc = remoteConfig.getInt("CALL_RING_TIMEOUT_SECONDS");
+    return rc > 0 ? rc : 45;
   }
 }
