@@ -21,7 +21,9 @@ class MaterialInlineDropdown<T> extends StatelessWidget {
     return PopupMenuButton<T>(
       initialValue: value,
       onSelected: onSelected,
-      itemBuilder: (context) => [for (final item in items) PopupMenuItem<T>(value: item, child: Text(labelBuilder(item)))],
+      itemBuilder: (context) => [
+        for (final item in items) CheckedPopupMenuItem<T>(value: item, checked: item == value, child: Text(labelBuilder(item))),
+      ],
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [

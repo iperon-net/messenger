@@ -119,6 +119,16 @@ class ThemesMaterial {
         shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(16))),
       ),
       radioTheme: RadioThemeData(visualDensity: const VisualDensity(horizontal: VisualDensity.minimumDensity)),
+      // Выпадающее меню выбора (`MaterialInlineDropdown` на экранах настроек):
+      // скруглённая карточка в тон секций, без тонирования по elevation, шрифт
+      // пунктов — семантическая роль `listTitle` (как заголовки плиток).
+      popupMenuTheme: PopupMenuThemeData(
+        color: card,
+        surfaceTintColor: Colors.transparent,
+        elevation: 3,
+        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(14))),
+        labelTextStyle: WidgetStatePropertyAll(TextStyle(fontSize: listTitleSize, color: colorScheme.onSurface)),
+      ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           foregroundColor: Colors.white,
