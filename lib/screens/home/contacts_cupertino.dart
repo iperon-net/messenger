@@ -283,6 +283,7 @@ class _ContactsCupertinoState extends State<ContactsCupertino> {
       ContactAddResult.addedRegistered => t.addedRegistered,
       ContactAddResult.addedPending => t.addedPending,
       ContactAddResult.invalidNumber => t.addInvalidNumber,
+      ContactAddResult.limitReached => t.validationCloudLimitReached,
       ContactAddResult.failed => t.addFailed,
     };
 

@@ -15,17 +15,17 @@
 ## Принятые решения
 
 - **Гранулярность выбора — вариант A (зафиксировано).** `addByNumber` (ручное добавление) = **всегда** облачный. Контакты из телефонной книги = **всегда** локальные/приватные (как сейчас). Никакого per-contact/глобального тумблера на старте. Per-contact «в облако» для книжных — потенциальный Этап 4, если появится спрос.
-- **Источник облачного ребра — правило без enum (вариант A, зафиксировано).** «Пришло непустое `phoneNumber` ⇒ ребро облачное». Маркер в БД — наличие `phoneEnc`. Новый `Source CLOUD` не вводим (при решении 1A книжных облачных не существует — все облачные это `MANUAL`).
+- **Источник облачного ребра — правило без enum (вариант A, зафиксировано).** «Пришло непустое `phoneNumber` ⇒ ребро облачное». Маркер в БД — наличие `phoneNumberEncrypted`. Новый `Source CLOUD` не вводим (при решении 1A книжных облачных не существует — все облачные это `MANUAL`).
 - **`ContactsList` — полный список без пагинации (вариант A, зафиксировано).** Курсор в `Request` резервируем на будущее, не реализуем.
 - **Лимит облачных контактов на владельца — 5000, вынесен в конфиг (зафиксировано).** Проверка в `ServiceContacts.Upsert`; значение читается из настроек (`config.Contacts.CloudLimit`, `env-default:"5000"`), а не хардкодом.
 - **Две дорожки сосуществуют.** Обычные контакты (телефонная книга) — без изменений: OPRF-discovery, PII локально, на сервере только OPRF-ребро. Облачные — новый опциональный слой поверх того же ребра: дополнительно PII на сервере + синхронизация.
 - **Шифрование at-rest, НЕ E2E.** Ключ у сервера (`crypto.Encryptor`, `settings.GetEncryptorSecret()`). Защищает от кражи дампа БД, **не от оператора**: чтобы отдать контакт на другое устройство, сервер его расшифровывает. Это осознанная жертва ради простоты (растворяет проблему передачи ключа между устройствами — передавать нечего).
   - **UI-честность:** тумблер называть по свойству — «Синхронизировать между устройствами» / «Облачные контакты», **не** «приватные». Приватный — это OPRF-путь. (Telegram-модель как опция поверх Signal-модели.)
-- **Пофайловое шифрование** (не единый blob): три отдельных BLOB — `firstNameEnc`, `lastNameEnc`, `phoneEnc`. С точки зрения приватности разницы нет (ключ всё равно у сервера) — это выбор формы схемы: чище колонки, частичное обновление. Цена — 3×128 байт header'а на контакт (~75 КБ на 300 контактов, мелочь).
+- **Пофайловое шифрование** (не единый blob): три отдельных BLOB — `firstNameEncrypted`, `lastNameEncrypted`, `phoneNumberEncrypted`. С точки зрения приватности разницы нет (ключ всё равно у сервера) — это выбор формы схемы: чище колонки, частичное обновление. Цена — 3×128 байт header'а на контакт (~75 КБ на 300 контактов, мелочь).
 - **`displayName` не храним** — производный (`firstName + " " + lastName`, фолбэк на номер), клиент восстановит сам.
 - **Nonce-колонок нет.** `Encryptor` — самодостаточный контейнер: 128-байтный `headerPadding` несёт version/length/sha256/nonce/contentType, дальше GCM-шифротекст. `HeaderParse` читает `Nonce = dataBytes[41:53]`. Один BLOB на поле.
-- **`hkdfSalt = []byte(ownerUserID.Hex())`** — привязка шифротекста к владельцу; доступен и на encrypt, и на decrypt. `contentType = EncryptorContentTypeApplicationOctetStream`, один `Encrypt` на поле.
-- **Маркер «облачный» = наличие `phoneEnc`.** У облачного контакта номер есть всегда (add-by-number или книжный контакт с номером). У OPRF-only рёбер и call-рёбер `phoneEnc` нет. Надёжно отличает. (Альтернатива — явный `cloud bool`; не берём, лишнее поле.)
+- **`hkdfSalt = []byte(ownerUserID.Hex())`** — привязка шифротекста к владельцу; доступен и на encrypt, и на decrypt. Один вызов шифрования на поле через `EncryptJson`/`DecryptJson` (string) — тот же `Encrypt`-контейнер, но без расширения `CryptoEncryptorInterface` до raw `Encrypt`/octet-stream.
+- **Маркер «облачный» = наличие `phoneNumberEncrypted`.** У облачного контакта номер есть всегда (add-by-number или книжный контакт с номером). У OPRF-only рёбер и call-рёбер `phoneNumberEncrypted` нет. Надёжно отличает. (Альтернатива — явный `cloud bool`; не берём, лишнее поле.)
 - **PII в proto — открытым текстом.** Клиент шлёт `firstName/lastName/phoneNumber` строками; канал уже защищён сессией (`exchangeEncrypted`). Сервер шифрует **перед записью**, расшифровывает **перед отдачей**. В proto никаких `_enc`/`_nonce`.
 - **Правило «PII присутствует ⇒ облачное ребро»** — не плодим новый `Source`. `MANUAL` остаётся, книжный контакт в облаке идёт `source=OPRF` + PII.
 
@@ -35,9 +35,9 @@
 
 ```
 _id, userID, oprf, contactUserID, source, createdAt, updateAt   // как сейчас
-firstNameEnc  BinData(0x00)   // Encryptor output; omitempty
-lastNameEnc   BinData(0x00)   // omitempty (пустая фамилия ⇒ нет поля)
-phoneEnc      BinData(0x00)   // omitempty; наличие = «облачный контакт»
+firstNameEncrypted    BinData(0x00)   // Encryptor output; omitempty
+lastNameEncrypted     BinData(0x00)   // omitempty (пустая фамилия ⇒ нет поля)
+phoneNumberEncrypted  BinData(0x00)   // omitempty; наличие = «облачный контакт»
 ```
 
 **Индексы — без изменений.** Облачные запросы идут по `userID` (покрыт `userID_oprf`). По зашифрованным полям не ищем (детерминированного шифрования нет — для поиска по номеру уже есть `oprf`).
@@ -53,9 +53,9 @@ type ContactEdge struct {
 	ContactUserID *bson.ObjectID
 	Source        ContactSource
 	// Облачные PII, зашифрованные at-rest (nil ⇒ приватное OPRF-ребро).
-	FirstNameEnc []byte
-	LastNameEnc  []byte
-	PhoneEnc     []byte
+	FirstNameEncrypted []byte
+	LastNameEncrypted  []byte
+	PhoneNumberEncrypted     []byte
 	CreatedAt time.Time
 	UpdateAt  time.Time
 }
@@ -84,7 +84,7 @@ message Contact {
 message ContactsList {
   message Request {}               // владелец из сессии
   message Response {
-    repeated Contact contacts = 1; // только рёбра с PII (phoneEnc exists)
+    repeated Contact contacts = 1; // только рёбра с PII (phoneNumberEncrypted exists)
   }
 }
 
@@ -121,9 +121,9 @@ CONTACTS_UPDATED = 34;   // push-дельта на устройства влад
 
 ## Серверная часть (Go, `~/GolandProjects/iperon`)
 
-1. **`models.ContactEdge`** — добавить `FirstNameEnc/LastNameEnc/PhoneEnc []byte` (см. выше).
-2. **`RepositoryContacts.Upsert`** (`internal/repositories/contacts.go`) — в `$set` класть непустые блобы `bson.Binary{Subtype: 0x00, Data: edge.FirstNameEnc}` и т.д. `replaceAllDelete` не трогаем (по `source=OPRF`; книжный облачный контакт переживёт replace-all, пока его `oprf` в наборе книги — приемлемо).
-3. **`RepositoryContacts.List(ctx, userID)`** — новый метод: `Find(bson.M{"userID": userID, "phoneEnc": bson.M{"$exists": true}})` → `[]ContactEdge` с блобами. Плюс `CountCloud(ctx, userID)` — `CountDocuments({userID, phoneEnc: {$exists: true}})` для проверки лимита.
+1. **`models.ContactEdge`** — добавить `FirstNameEncrypted/LastNameEncrypted/PhoneNumberEncrypted []byte` (см. выше).
+2. **`RepositoryContacts.Upsert`** (`internal/repositories/contacts.go`) — в `$set` класть непустые блобы `bson.Binary{Subtype: 0x00, Data: edge.FirstNameEncrypted}` и т.д. `replaceAllDelete` не трогаем (по `source=OPRF`; книжный облачный контакт переживёт replace-all, пока его `oprf` в наборе книги — приемлемо).
+3. **`RepositoryContacts.List(ctx, userID)`** — новый метод: `Find(bson.M{"userID": userID, "phoneNumberEncrypted": bson.M{"$exists": true}})` → `[]ContactEdge` с блобами. Плюс `CountCloud(ctx, userID)` — `CountDocuments({userID, phoneNumberEncrypted: {$exists: true}})` для проверки лимита.
 4. **Конфиг лимита** (`internal/settings/settings.go`): добавить в `Config` блок
    ```go
    Contacts struct {
@@ -133,8 +133,8 @@ CONTACTS_UPDATED = 34;   // push-дельта на устройства влад
    + геттер `GetContactsCloudLimit() int` в `Settings` и в `SettingsInterface` сервиса контактов.
 5. **`ServiceContacts`** (`internal/services/contacts.go`):
    - инжект `cryptoEncryptor CryptoEncryptorInterface` (как в `ServiceMyProfile`/`ServiceAuth`) + `publisher *ServicePublisher` + `settings` (для лимита).
-   - `Upsert`: **лимит** — перед записью облачных рёбер `repositoryContacts.CountCloud(userID) + len(новые облачные) > GetContactsCloudLimit()` → `codes.ResourceExhausted`. Для рёбер с PII — `Encrypt(ctx, salt, strings.NewReader(field), &buf, OctetStream)`, `salt = []byte(ownerUserID.Hex())` → `edge.*Enc = buf.Bytes()`. После записи — пуш дельты.
-   - `List(ctx, ownerUserID) ([]Contact, error)`: repo.List → `Decrypt` каждого `*Enc` → открытые строки.
+   - `Upsert`: **лимит** — перед записью облачных рёбер `repositoryContacts.CountCloud(userID) + len(новые облачные) > GetContactsCloudLimit()` → `codes.ResourceExhausted`. Для рёбер с PII — `Encrypt(ctx, salt, strings.NewReader(field), &buf, OctetStream)`, `salt = []byte(ownerUserID.Hex())` → `edge.*Encrypted = buf.Bytes()`. После записи — пуш дельты.
+   - `List(ctx, ownerUserID) ([]Contact, error)`: repo.List → `Decrypt` каждого `*Encrypted` → открытые строки.
    - вспомогательные `encryptField`/`decryptField` (пусто ⇒ nil / "").
 6. **API-хендлеры** (`internal/api/v1.go`):
    - `CONTACTS_UPSERT`: из `item` вычитывать `GetFirstName/GetLastName/GetPhoneNumber` в `edge` (пусто — не облачный).
@@ -161,8 +161,20 @@ CONTACTS_UPDATED = 34;   // push-дельта на устройства влад
 ## Порядок работ (этапы)
 
 - **Этап 1 — proto + генерация** (оба репа). ✅ **ГОТОВО.** В `contacts_v1.proto` добавлены `Contact`/`ContactsList`/`ContactsUpdated` + PII-поля в `ContactsUpsert.Item`; в `v1.proto` — `CONTACTS_LIST=33`/`CONTACTS_UPDATED=34`. Оба репа синхронизированы (файлы идентичны). Сервер: `protoc --go_out=. --go-grpc_out=.` (плагины в `./bin`+`~/go/bin`) → `internal/api/v1/*.pb.go`, `go build` проходит. Клиент: `protoc --dart_out=lib/protobuf -I. protos/{contacts_v1,v1}.proto` → `lib/protobuf/protos/*.dart`, `dart format` применён, analyze чистый (одно пре-существующее `info` про deprecated Timestamp.create). _Прим.: генерация без `grpc:`-опции создаёт лишний `v1.pbserver.dart` — удалять; grpc-стабы живут в `v1.pbgrpc.dart` и при изменении только enum не требуют регенерации._
-- **Этап 2 — сервер:** model + repo (`Upsert` enc, `List`) + service (enc/dec, инжекты) + хендлеры `CONTACTS_UPSERT`(PII)/`CONTACTS_LIST` + пуш `CONTACTS_UPDATED`. Тесты. Деплой на staging.
-- **Этап 3 — клиент:** выпилить `_manual`, `CONTACTS_LIST` на bootstrap, `api.on(CONTACTS_UPDATED)`, `addByNumber` с PII, снимок с `isCloud`, backfill. E2E на двух устройствах.
+- **Этап 2 — сервер:** ✅ **ГОТОВО** (сборка `CGO_ENABLED=0 go build ./...` чистая, `go vet` и весь тест-сьют зелёные, `golangci-lint` — 0 issues). Сделано:
+  - `models.ContactEdge` — плейнтекст `FirstName/LastName/PhoneNumber` + шифр `FirstNameEncrypted/LastNameEncrypted/PhoneNumberEncrypted`.
+  - `settings` — `Contacts.CloudLimit` (`env-default:"5000"`) + `GetContactsCloudLimit()`.
+  - `RepositoryContacts` — `Upsert` пишет `*Encrypted`-блобы; новые `List`/`CountCloud`/`ListCloudByOprf` (маркер `phoneNumberEncrypted exists`).
+  - `ServiceContacts` — инжекты `cryptoEncryptor`/`publisher`/`settings`; `Upsert` (лимит → `ErrCloudLimitReached`, шифрование PII, пуш `CONTACTS_UPDATED`), `Remove` (пуш removedOprf), `List` (дешифр → `[]*v1.Contact`), `NotifyResolved` (резолв-пуш). Шифрование через `EncryptJson`/`DecryptJson` per-field (вместо raw `Encrypt`+octet-stream — тот же контейнер, без правки `CryptoEncryptorInterface`).
+  - `api/v1.go` — `CONTACTS_UPSERT` читает PII + мапит `ErrCloudLimitReached`→`ResourceExhausted` (`screenContacts.validationCloudLimitReached`); новый `CONTACTS_LIST`.
+  - `ServiceAuth` — зависимость `*ServiceContacts`, вызов `NotifyResolved` после успешного создания пользователя в обоих auth-путях (SMS + callpassword).
+  - Тесты: сервис (лимит) + repo (List/CountCloud/ListCloudByOprf на реальном Mongo); моки перегенерированы (`task mockery`).
+  - _Прим.: остался деплой на staging (делается вручную)._
+- **Этап 3 — клиент:** ✅ **ГОТОВО** (код; `flutter analyze` — 0 issues, `dart format` — чисто, `dart run slang` перегенерирован). Сделано:
+  - `repositories/contacts.dart` + миграция 4 — снимок с `isCloud`/`oprf`; методы `replaceBook`/`replaceCloud`/`upsertCloudOne`/`removeCloudOne`, `getAll` отдаёт обе группы.
+  - `ContactsCubit` переписан: убран локальный `_manual`-костыль; модель `_book` (книжные) + `_cloud` (server-truth, keyed by e164) → `_emitAll` собирает 3 группы (облако главнее при совпадении номера). `bootstrap`: preload → `_fetchCloud` (`CONTACTS_LIST`) ∥ discover → `_backfillLegacyManual`. Подписка `api.on(CONTACTS_UPDATED)` → applyDelta (upsert по e164, remove по `oprfHex`↔`removedOprf`). `addByNumber` шлёт PII (`phoneNumber = e164`), оптимистично кажет, мапит `ResourceExhausted`→`ContactAddResult.limitReached`. `removeContact` чистит облако+книгу+exclusion. `refresh` тянет и облако.
+  - i18n `screenContacts.validationCloudLimitReached` (en/ru) + обработка `ContactAddResult.limitReached` в обоих экранах.
+  - _Осталось: E2E-проверка на двух устройствах (вручную)._
 - **Этап 4 (бонус):** `ResolvePending`-пуш; UI-тумблер «в облако» для книжных контактов.
 
 ## Решённые вопросы

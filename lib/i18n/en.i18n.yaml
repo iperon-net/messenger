@@ -198,6 +198,7 @@
   "addedPending": "Added. They aren’t on Iperon yet — you’ll be able to reach them once they join."
   "addInvalidNumber": "Invalid phone number"
   "addFailed": "Couldn’t add contact"
+  "validationCloudLimitReached": "Cloud contacts limit reached"
   "remove": "Remove"
   "removeTitle": "Remove contact?"
   "removeMessage": "They will no longer be able to call you unless your call privacy allows everyone."

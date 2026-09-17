@@ -267,6 +267,18 @@ class Repositories {
       }),
     );
 
+    migrations.add(
+      SqliteMigration(4, (tx) async {
+        // Облачные контакты (синхронизируемые между устройствами) живут в том же
+        // снимке, помеченные isCloud=1: их источник истины — сервер (CONTACTS_LIST
+        // + CONTACTS_UPDATED), а не телефонная книга. oprf хранится для облачных,
+        // чтобы сопоставлять входящее удаление (CONTACTS_UPDATED.removedOprf) с
+        // локальной записью после холодного старта.
+        await tx.execute("ALTER TABLE contacts ADD COLUMN isCloud INTEGER NOT NULL DEFAULT 0;");
+        await tx.execute("ALTER TABLE contacts ADD COLUMN oprf BLOB;");
+      }),
+    );
+
     if (settings.isDeleteDatabase) {
       logger.warning("Deleting the database, flag set IS_DELETE_DATABASE: 1");
 

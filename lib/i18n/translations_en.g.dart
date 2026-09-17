@@ -714,6 +714,9 @@ class Translations$screenContacts$en {
 	/// en: 'Couldn’t add contact'
 	String get addFailed => 'Couldn’t add contact';
 
+	/// en: 'Cloud contacts limit reached'
+	String get validationCloudLimitReached => 'Cloud contacts limit reached';
+
 	/// en: 'Remove'
 	String get remove => 'Remove';
 
@@ -1141,6 +1144,7 @@ extension on Translations {
 			'screenContacts.addedPending' => 'Added. They aren’t on Iperon yet — you’ll be able to reach them once they join.',
 			'screenContacts.addInvalidNumber' => 'Invalid phone number',
 			'screenContacts.addFailed' => 'Couldn’t add contact',
+			'screenContacts.validationCloudLimitReached' => 'Cloud contacts limit reached',
 			'screenContacts.remove' => 'Remove',
 			'screenContacts.removeTitle' => 'Remove contact?',
 			'screenContacts.removeMessage' => 'They will no longer be able to call you unless your call privacy allows everyone.',

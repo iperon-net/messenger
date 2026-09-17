@@ -5,6 +5,7 @@ import 'dart:typed_data';
 import 'package:bloc/bloc.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
+import 'package:grpc/grpc.dart' show StatusCode;
 import 'package:permission_handler/permission_handler.dart' as ph;
 
 import '../../api.dart';
@@ -14,6 +15,7 @@ import '../../crypto.dart';
 import '../../di.dart';
 import '../../logger.dart';
 import '../../protobuf.dart';
+import '../../protobuf.dart' as pb show Contact;
 import '../../repositories/repositories.dart';
 import '../../utils.dart';
 import 'contacts_state.dart';
@@ -30,29 +32,21 @@ class _Entry {
   const _Entry({required this.raw, required this.phoneE164, required this.phone, required this.displayName});
 }
 
-/// Контакт, добавленный вручную по номеру (источник MANUAL). В отличие от записей
-/// из телефонной книги его нет в устройстве, поэтому он хранится отдельно (в кэше)
-/// и подмешивается в каждый discover — иначе replace-all снимка стёр бы его.
-class _ManualContact {
-  final String raw;
-  final String phoneE164;
-  final String phone;
+/// Облачный контакт (синхронизируемый между устройствами; источник истины —
+/// сервер). [oprfHex] — отпечаток номера, по которому сопоставляется входящее
+/// удаление (`CONTACTS_UPDATED.removedOprf`).
+class _CloudContact {
+  final String e164;
   final String displayName;
+  final String phone;
+  final Uint8List? userID;
+  final String oprfHex;
 
-  const _ManualContact({required this.raw, required this.phoneE164, required this.phone, required this.displayName});
-
-  Map<String, dynamic> toJson() => {"raw": raw, "e164": phoneE164, "phone": phone, "name": displayName};
-
-  factory _ManualContact.fromJson(Map<String, dynamic> json) => _ManualContact(
-    raw: json["raw"] as String,
-    phoneE164: json["e164"] as String,
-    phone: json["phone"] as String,
-    displayName: json["name"] as String,
-  );
+  const _CloudContact({required this.e164, required this.displayName, required this.phone, this.userID, required this.oprfHex});
 }
 
 /// Итог ручного добавления контакта по номеру (для текста пользователю).
-enum ContactAddResult { addedRegistered, addedPending, invalidNumber, failed }
+enum ContactAddResult { addedRegistered, addedPending, invalidNumber, limitReached, failed }
 
 /// Данные формы добавления контакта — возвращаются экраном добавления в список
 /// контактов, который затем вызывает [ContactsCubit.addByNumber].
@@ -64,9 +58,15 @@ class ContactAddInput {
   const ContactAddInput({required this.firstName, required this.lastName, required this.phone});
 }
 
-/// Экран «Контакты»: находит, кто из телефонной книги зарегистрирован в Iperon,
-/// не раскрывая серверу сырые номера. Раунд 1 — слепая OPRF-оценка, раунд 2 —
-/// проверка членства по отпечаткам. См. docs/plans/functional-stirring-giraffe.md.
+/// Экран «Контакты». Держит две дорожки:
+///   • книжные контакты — приватный поиск через OPRF (кто из телефонной книги
+///     зарегистрирован в Iperon), сырые номера серверу не раскрываются; имена/
+///     номера живут только локально;
+///   • облачные контакты — добавленные вручную по номеру, синхронизируемые между
+///     устройствами. Их PII (имя/номер) сервер хранит зашифрованными at-rest и
+///     рассылает на устройства владельца (`CONTACTS_LIST` — pull, `CONTACTS_UPDATED`
+///     — push). Источник истины по ним — сервер.
+/// См. docs/plans/functional-stirring-giraffe.md и docs/plans/cloud-contacts-sync.md.
 class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
   ContactsCubit() : super(const ContactsState()) {
     // Реагируем на изменения книги устройства (добавили/изменили/удалили
@@ -75,6 +75,9 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
     // pull-to-refresh, и новый контакт не появляется до перезапуска вкладки.
     WidgetsBinding.instance.addObserver(this);
     _bookChangeSub = FlutterContacts.onDatabaseChange.listen((_) => _onBookChanged());
+    // Дельты облачных контактов с сервера (add/update/remove/резолв) на все
+    // устройства владельца — держим локальную книгу облачных в синхроне.
+    _updatedSub = api.on(MessageType.CONTACTS_UPDATED).listen(_onCloudUpdated);
   }
 
   final logger = getIt.get<Logger>();
@@ -94,17 +97,20 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
   static const String _fingerprintKey = "contacts_book_fingerprint";
   static const Duration _resyncInterval = Duration(hours: 24);
 
-  // Локальный exclusion-set: e164 контактов, удалённых пользователем вручную
-  // (`removeContact`). Номер ещё в телефонной книге, поэтому без этого набора
-  // следующий discovery вернул бы его рёбром OPRF. Держим в памяти + в кэше.
+  // Локальный exclusion-set: e164 книжных контактов, удалённых пользователем
+  // вручную (`removeContact`). Номер ещё в телефонной книге, поэтому без этого
+  // набора следующий discovery вернул бы его рёбром OPRF. Держим в памяти + в кэше.
   static const String _excludedKey = "contacts_excluded_e164";
   Set<String>? _excluded;
 
-  // Локально добавленные вручную контакты (`addByNumber`), keyed by e164. Их нет
-  // в телефонной книге, поэтому храним отдельно и подмешиваем в discover, чтобы
-  // replace-all снимка их не стёр. В памяти + в кэше.
-  static const String _manualKey = "contacts_manual";
-  Map<String, _ManualContact>? _manual;
+  // Legacy-ключ локальных ручных контактов (до облачной синхронизации). Разово
+  // переносится в облако (_backfillLegacyManual) и очищается.
+  static const String _legacyManualKey = "contacts_manual";
+
+  // Текущий книжный список (до разбивки на группы) и облачные контакты (keyed by
+  // e164). Из них [_emitAll] собирает три группы состояния.
+  List<ContactItem> _book = const [];
+  final Map<String, _CloudContact> _cloud = {};
 
   // Один discover идёт за раз (guard от параллельных запусков), а _discoverStarted
   // помнит, был ли он вообще запущен в этой сессии — чтобы первый показ вкладки не
@@ -118,11 +124,16 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
   Timer? _bookChangeDebounce;
   static const Duration _bookChangeDebounceDelay = Duration(milliseconds: 700);
 
-  /// Старт на уровне shell: сперва мгновенный показ снимка из БД, затем — тихая
-  /// фоновая дозагрузка, если доступ к контактам уже выдан (без диалога).
+  // Подписка на push-дельты облачных контактов.
+  StreamSubscription<Uint8List>? _updatedSub;
+
+  /// Старт на уровне shell: мгновенный показ снимка из БД, затем облачная
+  /// синхронизация с сервером, тихая фоновая книжная дозагрузка (если доступ уже
+  /// выдан) и разовый перенос legacy-ручных контактов в облако.
   Future<void> bootstrap() async {
     await preload();
-    await discoverIfAlreadyGranted();
+    await Future.wait([_fetchCloud(), discoverIfAlreadyGranted()]);
+    await _backfillLegacyManual();
   }
 
   /// Фаза A — мгновенный показ полного снимка из БД, без разрешений и без сети.
@@ -131,18 +142,38 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
     final cached = await repositories.contacts.getAll();
     if (isClosed || cached.isEmpty) return;
 
-    // Пустое имя = legacy-запись из миграции 2→3 (до неё имя/номер не хранились) —
-    // её нечем показать, пропускаем; первый же discover перезапишет снимок целиком.
-    // Вручную удалённые (exclusion-set) тоже прячем — снимок мог быть записан до
-    // удаления, а перезапишется он лишь на следующем discover.
     final excluded = await _loadExcluded();
     if (isClosed) return;
-    final visible = cached.where((entry) => entry.displayName.isNotEmpty && !excluded.contains(entry.phoneE164)).toList(growable: false);
-    if (visible.isEmpty) return;
 
-    final manual = await _loadManual();
-    if (isClosed) return;
-    _emitFromCache(visible, manual.keys.toSet());
+    final book = <ContactItem>[];
+    _cloud.clear();
+    for (final entry in cached) {
+      if (entry.isCloud) {
+        _cloud[entry.phoneE164] = _CloudContact(
+          e164: entry.phoneE164,
+          displayName: entry.displayName,
+          phone: entry.phone,
+          userID: entry.userID == null ? null : Uint8List.fromList(entry.userID!),
+          oprfHex: entry.oprf == null ? "" : utils.bytesToHex(Uint8List.fromList(entry.oprf!)),
+        );
+        continue;
+      }
+      // Пустое имя = legacy-запись из миграции 2→3 (до неё имя/номер не хранились) —
+      // её нечем показать. Вручную удалённые (exclusion-set) тоже прячем.
+      if (entry.displayName.isEmpty || excluded.contains(entry.phoneE164)) continue;
+      book.add(
+        ContactItem(
+          displayName: entry.displayName,
+          phone: entry.phone,
+          phoneE164: entry.phoneE164,
+          userID: entry.userID == null ? null : Uint8List.fromList(entry.userID!),
+        ),
+      );
+    }
+
+    _book = book;
+    if (_book.isEmpty && _cloud.isEmpty) return;
+    _emitAll();
   }
 
   /// Фаза B без диалога: если доступ к контактам уже выдан, тихо запускаем полный
@@ -155,8 +186,7 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
   }
 
   /// Изменилась книга устройства: дебаунсим всплеск событий и тихо
-  /// пересинхронизируемся (без диалога разрешений). Дешёвая перерисовка идёт
-  /// всегда; OPRF — только если поменялся набор номеров (fingerprint).
+  /// пересинхронизируемся (без диалога разрешений).
   void _onBookChanged() {
     _bookChangeDebounce?.cancel();
     _bookChangeDebounce = Timer(_bookChangeDebounceDelay, () {
@@ -177,6 +207,7 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
     WidgetsBinding.instance.removeObserver(this);
     _bookChangeDebounce?.cancel();
     _bookChangeSub?.cancel();
+    _updatedSub?.cancel();
     return super.close();
   }
 
@@ -231,40 +262,31 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
         }
       }
 
-      // Прячем вручную удалённые контакты: их не показываем и не отправляем в
-      // граф (иначе OPRF-ребро вернулось бы, т.к. номер ещё в книге).
+      // Прячем вручную удалённые книжные контакты: их не показываем и не
+      // отправляем в граф (иначе OPRF-ребро вернулось бы, т.к. номер ещё в книге).
       final excluded = await _loadExcluded();
       if (isClosed) return;
       entries.removeWhere((e164, _) => excluded.contains(e164));
 
-      // Подмешиваем добавленные вручную контакты (их нет в книге устройства).
-      // Запись из книги имеет приоритет — putIfAbsent не перезапишет её именем/номером.
-      final manual = await _loadManual();
-      if (isClosed) return;
-      final manualE164 = manual.keys.toSet();
-      for (final contact in manual.values) {
-        if (excluded.contains(contact.phoneE164)) continue;
-        entries.putIfAbsent(
-          contact.phoneE164,
-          () => _Entry(raw: contact.raw, phoneE164: contact.phoneE164, phone: contact.phone, displayName: contact.displayName),
-        );
-      }
-
-      // Книга пуста (или частичный доступ ничего не отдал) — не трогаем снимок,
-      // чтобы не стереть прошлый кэш; просто показываем пусто.
+      // Книга пуста (или частичный доступ ничего не отдал) — не трогаем книжный
+      // снимок, чтобы не стереть прошлый кэш; просто показываем облачные.
       if (entries.isEmpty) {
-        emit(state.copyWith(status: Status.success, registered: const [], invitable: const [], cloud: const []));
+        _book = const [];
+        _emitAll();
         return;
       }
 
       // Сразу перерисовываем списки по свежей книге, используя лучшие known-userID
       // (из уже показанного снимка, включая облачные), и записываем снимок в БД.
-      final known = {
-        for (final item in [...state.registered, ...state.cloud])
+      final known = <String, Uint8List>{
+        for (final item in _book)
           if (item.userID != null) item.phoneE164: item.userID!,
+        for (final contact in _cloud.values)
+          if (contact.userID != null) contact.e164: contact.userID!,
       };
-      _emitLists(entries, known, manualE164);
-      await _writeSnapshot(entries, known);
+      _book = _bookItems(entries, known);
+      _emitAll();
+      await repositories.contacts.replaceBook(_bookSnapshot(entries, known));
       if (isClosed) return;
 
       // Книга не менялась и прошлый поиск ещё свежий (запись жива по TTL) —
@@ -281,16 +303,14 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
       }
 
       // OPRF-поиск. Ошибка сети не критична — остаёмся на данных из снимка.
-      // fullAccess: при полном доступе к книге серверу разрешаем replace-all
-      // (стереть OPRF-рёбра, которых больше нет в книге); при iOS limited —
-      // только добавление, чтобы не потерять легитимные рёбра вне выборки.
       try {
         final fullAccess = permission == PermissionStatus.granted;
         final matched = await _discoverOprf(entries.values.toList(growable: false), fullAccess: fullAccess);
         if (isClosed) return;
 
-        _emitLists(entries, matched, manualE164);
-        await _writeSnapshot(entries, matched);
+        _book = _bookItems(entries, matched);
+        _emitAll();
+        await repositories.contacts.replaceBook(_bookSnapshot(entries, matched));
         // Запоминаем отпечаток успешно синхронизированной книги (с TTL-страховкой).
         await repositories.cache.setString(userID: userID, key: _fingerprintKey, value: fingerprint, ttl: _resyncInterval);
       } catch (error, stackTrace) {
@@ -307,16 +327,16 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
   Future<void> discoverOnFirstView() => _discoverStarted ? Future.value() : discover();
 
   /// Повторный запуск поиска (pull-to-refresh / после выдачи разрешения) —
-  /// форсирует OPRF даже при неизменной книге.
-  Future<void> refresh() => discover(force: true);
+  /// форсирует OPRF даже при неизменной книге; заодно пересинхронизирует облачные.
+  Future<void> refresh() async {
+    await Future.wait([discover(force: true), _fetchCloud()]);
+  }
 
   /// Кнопка «Разрешить доступ» на экране-заглушке. Пробуем штатный системный
   /// диалог (тем же плагином, что и discover — иначе статусы двух плагинов
   /// расходятся). Если доступ выдан — сразу ищем; если система диалог уже не
   /// показывает (отклонён навсегда / разовое решение iOS), request просто вернёт
   /// не-granted — тогда единственный путь это системные настройки, туда и ведём.
-  /// По возврату из настроек выданный доступ подхватит resumed-хук
-  /// (didChangeAppLifecycleState → discoverIfAlreadyGranted).
   Future<void> requestAccess() async {
     final permission = await FlutterContacts.permissions.request(PermissionType.read);
     if (isClosed) return;
@@ -328,8 +348,7 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
   }
 
   /// Отпечаток книги для OPRF: отсортированный набор номеров (e164). Имена/номера
-  /// показа в него не входят — они не влияют на результат поиска и обновляются в
-  /// снимке отдельно.
+  /// показа в него не входят — они не влияют на результат поиска.
   String _bookFingerprint(Iterable<_Entry> entries) {
     final keys = entries.map((entry) => entry.phoneE164).toList()..sort();
     return keys.join("|");
@@ -337,10 +356,184 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
 
   void search(String query) => emit(state.copyWith(query: query));
 
+  /// Тянет полный список облачных контактов владельца (`CONTACTS_LIST`), заменяет
+  /// локальную облачную книгу и снимок. Ошибка сети не критична — остаёмся на кэше.
+  Future<void> _fetchCloud() async {
+    final (status, payload) = await api.unaryEncodedWithResponse(MessageType.CONTACTS_LIST, ContactsList_Request().writeToBuffer());
+    if (isClosed || status.status != APIStatus.success || payload == null) return;
+
+    final response = ContactsList_Response.fromBuffer(payload);
+    _cloud
+      ..clear()
+      ..addEntries(
+        response.contacts.map((contact) {
+          final cloud = _cloudFromProto(contact);
+          return MapEntry(cloud.e164, cloud);
+        }),
+      );
+
+    await repositories.contacts.replaceCloud([for (final contact in _cloud.values) _cacheEntry(contact)]);
+    if (isClosed) return;
+    _emitAll();
+  }
+
+  /// Push-дельта облачных контактов: применяем upsert/remove к локальной книге и
+  /// снимку, затем перерисовываем.
+  void _onCloudUpdated(Uint8List payload) {
+    if (isClosed) return;
+
+    final updated = ContactsUpdated.fromBuffer(payload);
+    var changed = false;
+
+    for (final contact in updated.upserted) {
+      final cloud = _cloudFromProto(contact);
+      _cloud[cloud.e164] = cloud;
+      unawaited(repositories.contacts.upsertCloudOne(_cacheEntry(cloud)));
+      changed = true;
+    }
+
+    for (final oprf in updated.removedOprf) {
+      final hex = utils.bytesToHex(Uint8List.fromList(oprf));
+      final e164 = _e164ByOprf(hex);
+      if (e164 != null) {
+        _cloud.remove(e164);
+        unawaited(repositories.contacts.removeCloudOne(e164));
+        changed = true;
+      }
+    }
+
+    if (changed) _emitAll();
+  }
+
+  /// Ручное добавление контакта по номеру (облачный, источник MANUAL). Прогоняет
+  /// OPRF по номеру, кладёт ребро с PII в облачную книгу (`CONTACTS_UPSERT`,
+  /// full=false) и проверяет членство (`MATCH`), чтобы сообщить, зарегистрирован
+  /// ли контакт. Контакт сразу появляется в списке (оптимистично; серверный
+  /// `CONTACTS_UPDATED` затем согласует состояние на всех устройствах). Снимает
+  /// номер из exclusion-set. Возвращает [ContactAddResult].
+  Future<ContactAddResult> addByNumber({required String firstName, required String lastName, required String rawNumber}) async {
+    final normalization = utils.phoneNormalization(phoneNumber: rawNumber);
+    if (normalization.e164.isEmpty || normalization.raw.isEmpty) {
+      return ContactAddResult.invalidNumber;
+    }
+
+    final name = [firstName.trim(), lastName.trim()].where((part) => part.isNotEmpty).join(" ");
+    final displayName = name.isNotEmpty ? name : normalization.international;
+
+    try {
+      final oprfOutputs = await _oprfOutputs([utf8.encode(normalization.raw)]);
+      if (oprfOutputs.isEmpty) return ContactAddResult.failed;
+      final oprf = oprfOutputs.first;
+
+      // PII (имя/фамилия/номер) уходят открытым текстом в защищённом сессией
+      // канале; сервер шифрует их at-rest. Номер — каноническим e164 (ключ книги).
+      final upsertStatus = await api.unaryEncoded(
+        MessageType.CONTACTS_UPSERT,
+        ContactsUpsert_Request(
+          full: false,
+          items: [
+            ContactsUpsert_Item(
+              oprf: oprf,
+              source: ContactsUpsert_Source.MANUAL,
+              firstName: firstName.trim(),
+              lastName: lastName.trim(),
+              phoneNumber: normalization.e164,
+            ),
+          ],
+        ).writeToBuffer(),
+      );
+      if (upsertStatus.status != APIStatus.success) {
+        if (upsertStatus.statusCode == StatusCode.resourceExhausted) return ContactAddResult.limitReached;
+        logger.warning('contacts: manual add failed (${upsertStatus.error})');
+        return ContactAddResult.failed;
+      }
+
+      // Ранее удалённый номер снова разрешаем показывать/синхронизировать.
+      await _unexclude(normalization.e164);
+
+      // Членство: userID зарегистрированного контакта (или null — ещё не в Iperon).
+      final userID = await _matchUserID(oprf);
+
+      // Оптимистично показываем сразу (push согласует на всех устройствах).
+      final cloud = _CloudContact(
+        e164: normalization.e164,
+        displayName: displayName,
+        phone: normalization.international,
+        userID: userID,
+        oprfHex: utils.bytesToHex(oprf),
+      );
+      _cloud[cloud.e164] = cloud;
+      await repositories.contacts.upsertCloudOne(_cacheEntry(cloud));
+      if (!isClosed) _emitAll();
+
+      return userID != null ? ContactAddResult.addedRegistered : ContactAddResult.addedPending;
+    } catch (error, stackTrace) {
+      logger.handle(error, stackTrace);
+      return ContactAddResult.failed;
+    }
+  }
+
+  /// Удаляет контакт из графа (`CONTACTS_REMOVE` по OPRF-отпечатку номера).
+  /// Убирает из облачной книги (если был облачным) и заносит номер в exclusion-set,
+  /// чтобы следующий discovery не вернул книжный контакт обратно рёбром OPRF.
+  Future<void> removeContact(ContactItem item) async {
+    final normalization = utils.phoneNormalization(phoneNumber: item.phoneE164);
+    if (normalization.raw.isEmpty) return;
+
+    try {
+      final oprfOutputs = await _oprfOutputs([utf8.encode(normalization.raw)]);
+      if (oprfOutputs.isEmpty) return;
+
+      final status = await api.unaryEncoded(MessageType.CONTACTS_REMOVE, ContactsRemove_Request(oprf: [oprfOutputs.first]).writeToBuffer());
+      if (status.status != APIStatus.success) {
+        logger.warning('contacts: remove failed (${status.error})');
+        return;
+      }
+
+      await _exclude(item.phoneE164);
+      _cloud.remove(item.phoneE164);
+      await repositories.contacts.removeCloudOne(item.phoneE164);
+      _book = _book.where((c) => c.phoneE164 != item.phoneE164).toList(growable: false);
+
+      if (!isClosed) _emitAll();
+    } catch (error, stackTrace) {
+      logger.handle(error, stackTrace);
+    }
+  }
+
+  /// Разовый перенос legacy-ручных контактов (локальный ключ `contacts_manual`,
+  /// до облачной синхронизации) в облако — иначе они «повиснут» лишь на старом
+  /// устройстве. После переноса ключ очищаем, чтобы не повторять.
+  Future<void> _backfillLegacyManual() async {
+    final userID = Uint8List.fromList(auth.session.userID);
+    final raw = await repositories.cache.getString(userID: userID, key: _legacyManualKey);
+    if (isClosed || raw == null) return;
+
+    try {
+      final items = jsonDecode(raw) as List;
+      for (final item in items) {
+        final map = item as Map<String, dynamic>;
+        final e164 = (map["e164"] as String?) ?? "";
+        if (e164.isEmpty) continue;
+        final name = ((map["name"] as String?) ?? "").trim();
+        final space = name.indexOf(" ");
+        final firstName = space < 0 ? name : name.substring(0, space);
+        final lastName = space < 0 ? "" : name.substring(space + 1);
+        await addByNumber(firstName: firstName, lastName: lastName, rawNumber: e164);
+        if (isClosed) return;
+      }
+    } catch (error, stackTrace) {
+      logger.handle(error, stackTrace);
+    }
+
+    // Очищаем legacy-ключ, чтобы перенос не повторялся.
+    await repositories.cache.setString(userID: userID, key: _legacyManualKey, value: jsonEncode(const []));
+  }
+
   /// Выполняет двухраундовый OPRF-поиск по [allEntries] пачками и возвращает
   /// карту `e164 -> userID` для зарегистрированных. Попутно (best-effort)
-  /// синхронизирует серверный граф контактов (облачную адресную книгу) через
-  /// `CONTACTS_UPSERT`: те же OPRF-отпечатки уходят рёбрами источника OPRF, что
+  /// синхронизирует серверный граф контактов через `CONTACTS_UPSERT`: те же
+  /// OPRF-отпечатки уходят рёбрами источника OPRF (без PII — приватные), что
   /// наполняет граф для гейта звонков. [fullAccess] → на первой пачке разрешаем
   /// серверу replace-all (снести устаревшие OPRF-рёбра).
   Future<Map<String, Uint8List>> _discoverOprf(List<_Entry> allEntries, {required bool fullAccess}) async {
@@ -385,7 +578,7 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
   }
 
   /// Отправляет OPRF-отпечатки пачки в серверный граф контактов
-  /// (`CONTACTS_UPSERT`, источник OPRF). Best-effort — ошибку только логируем.
+  /// (`CONTACTS_UPSERT`, источник OPRF, без PII). Best-effort — ошибку логируем.
   Future<void> _upsertGraph(List<Uint8List> oprfOutputs, {required bool full}) async {
     if (oprfOutputs.isEmpty) return;
 
@@ -424,121 +617,6 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
       blinds: blinds,
       evaluations: [for (final element in evaluateResponse.evaluatedElements) Uint8List.fromList(element)],
     );
-  }
-
-  /// Ручное добавление контакта по номеру (источник MANUAL). Прогоняет OPRF по
-  /// одному номеру, кладёт ребро в облачную книгу (`CONTACTS_UPSERT`, full=false —
-  /// добавление, не replace-all) и проверяет членство (`MATCH`), чтобы сообщить
-  /// пользователю, зарегистрирован ли контакт. Имя/фамилия формируют отображаемое
-  /// имя (при пустом — показываем сам номер). Контакт сразу появляется в списке:
-  /// кладём его в локальный manual-set (переживает ре-синхронизацию, т.к. в книге
-  /// устройства его нет), в снимок БД и в текущее состояние. Снимает номер из
-  /// exclusion-set (если ранее удаляли). Возвращает [ContactAddResult].
-  Future<ContactAddResult> addByNumber({required String firstName, required String lastName, required String rawNumber}) async {
-    final normalization = utils.phoneNormalization(phoneNumber: rawNumber);
-    if (normalization.e164.isEmpty || normalization.raw.isEmpty) {
-      return ContactAddResult.invalidNumber;
-    }
-
-    final name = [firstName.trim(), lastName.trim()].where((part) => part.isNotEmpty).join(" ");
-    final displayName = name.isNotEmpty ? name : normalization.international;
-
-    try {
-      final oprfOutputs = await _oprfOutputs([utf8.encode(normalization.raw)]);
-      if (oprfOutputs.isEmpty) return ContactAddResult.failed;
-      final oprf = oprfOutputs.first;
-
-      final upsertStatus = await api.unaryEncoded(
-        MessageType.CONTACTS_UPSERT,
-        ContactsUpsert_Request(
-          full: false,
-          items: [ContactsUpsert_Item(oprf: oprf, source: ContactsUpsert_Source.MANUAL)],
-        ).writeToBuffer(),
-      );
-      if (upsertStatus.status != APIStatus.success) {
-        logger.warning('contacts: manual add failed (${upsertStatus.error})');
-        return ContactAddResult.failed;
-      }
-
-      // Ранее удалённый номер снова разрешаем показывать/синхронизировать.
-      await _unexclude(normalization.e164);
-
-      // Членство: userID зарегистрированного контакта (или null — ещё не в Iperon).
-      final userID = await _matchUserID(oprf);
-
-      // Запоминаем как ручной контакт (переживёт replace-all снимка) и сразу
-      // показываем: обновляем состояние и снимок БД.
-      final contact = _ManualContact(
-        raw: normalization.raw,
-        phoneE164: normalization.e164,
-        phone: normalization.international,
-        displayName: displayName,
-      );
-      await _addManual(contact);
-      await _insertContact(contact, userID);
-      await repositories.contacts.upsertOne(
-        ContactCacheEntry(phoneE164: contact.phoneE164, displayName: contact.displayName, phone: contact.phone, userID: userID),
-      );
-
-      return userID != null ? ContactAddResult.addedRegistered : ContactAddResult.addedPending;
-    } catch (error, stackTrace) {
-      logger.handle(error, stackTrace);
-      return ContactAddResult.failed;
-    }
-  }
-
-  /// Вставляет/обновляет один контакт в текущем состоянии по e164 и
-  /// перераскладывает по группам — для мгновенного показа после ручного
-  /// добавления (он попадёт в «Облачные контакты», т.к. уже в manual-set).
-  Future<void> _insertContact(_ManualContact contact, Uint8List? userID) async {
-    if (isClosed) return;
-
-    final item = ContactItem(displayName: contact.displayName, phone: contact.phone, phoneE164: contact.phoneE164, userID: userID);
-    final all = [
-      for (final c in [...state.registered, ...state.cloud, ...state.invitable])
-        if (c.phoneE164 != contact.phoneE164) c,
-      item,
-    ];
-
-    final manual = await _loadManual();
-    if (isClosed) return;
-    _emitPartitioned(all, manual.keys.toSet());
-  }
-
-  /// Удаляет контакт из облачной книги (`CONTACTS_REMOVE` по OPRF-отпечатку его
-  /// номера) и запоминает номер в локальном exclusion-set, чтобы следующий
-  /// discovery не вернул его обратно рёбром OPRF (номер ещё в телефонной книге).
-  Future<void> removeContact(ContactItem item) async {
-    final normalization = utils.phoneNormalization(phoneNumber: item.phoneE164);
-    if (normalization.raw.isEmpty) return;
-
-    try {
-      final oprfOutputs = await _oprfOutputs([utf8.encode(normalization.raw)]);
-      if (oprfOutputs.isEmpty) return;
-
-      final status = await api.unaryEncoded(MessageType.CONTACTS_REMOVE, ContactsRemove_Request(oprf: [oprfOutputs.first]).writeToBuffer());
-      if (status.status != APIStatus.success) {
-        logger.warning('contacts: remove failed (${status.error})');
-        return;
-      }
-
-      await _exclude(item.phoneE164);
-      // Если контакт был добавлен вручную — убираем и из manual-set.
-      await _removeManual(item.phoneE164);
-
-      // Убираем из показа сразу, не дожидаясь следующего discovery.
-      if (!isClosed) {
-        emit(
-          state.copyWith(
-            registered: state.registered.where((c) => c.phoneE164 != item.phoneE164).toList(growable: false),
-            invitable: state.invitable.where((c) => c.phoneE164 != item.phoneE164).toList(growable: false),
-            cloud: state.cloud.where((c) => c.phoneE164 != item.phoneE164).toList(growable: false),
-          ),
-        );
-      }
-    } catch (error, stackTrace) {
-      logger.handle(error, stackTrace);
-    }
   }
 
   /// Членство одного OPRF-отпечатка через `MATCH`: userID зарегистрированного
@@ -581,96 +659,17 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
     if (excluded.remove(e164)) await _saveExcluded(excluded);
   }
 
-  /// Ленивая загрузка manual-set из кэша (один раз за сессию, затем из памяти).
-  Future<Map<String, _ManualContact>> _loadManual() async {
-    final cached = _manual;
-    if (cached != null) return cached;
-
-    final userID = Uint8List.fromList(auth.session.userID);
-    final raw = await repositories.cache.getString(userID: userID, key: _manualKey);
-    final loaded = <String, _ManualContact>{};
-    if (raw != null) {
-      for (final item in jsonDecode(raw) as List) {
-        final contact = _ManualContact.fromJson(item as Map<String, dynamic>);
-        loaded[contact.phoneE164] = contact;
-      }
-    }
-    _manual = loaded;
-    return loaded;
-  }
-
-  Future<void> _saveManual(Map<String, _ManualContact> manual) async {
-    final userID = Uint8List.fromList(auth.session.userID);
-    await repositories.cache.setString(userID: userID, key: _manualKey, value: jsonEncode([for (final c in manual.values) c.toJson()]));
-  }
-
-  Future<void> _addManual(_ManualContact contact) async {
-    final manual = await _loadManual();
-    manual[contact.phoneE164] = contact;
-    await _saveManual(manual);
-  }
-
-  Future<void> _removeManual(String e164) async {
-    final manual = await _loadManual();
-    if (manual.remove(e164) != null) await _saveManual(manual);
-  }
-
-  void _emitLists(Map<String, _Entry> entries, Map<String, Uint8List> userByE164, Set<String> manualE164) {
-    if (isClosed) return;
-
-    final items = [
+  /// Собирает книжные [ContactItem] из записей книги с известными userID.
+  List<ContactItem> _bookItems(Map<String, _Entry> entries, Map<String, Uint8List> userByE164) {
+    return [
       for (final entry in entries.values)
         ContactItem(displayName: entry.displayName, phone: entry.phone, phoneE164: entry.phoneE164, userID: userByE164[entry.phoneE164]),
     ];
-    _emitPartitioned(items, manualE164);
   }
 
-  /// Показ полного снимка из БД (фаза A) — без нормализации, прямо из кэша.
-  void _emitFromCache(List<ContactCacheEntry> cached, Set<String> manualE164) {
-    final items = [
-      for (final entry in cached)
-        ContactItem(
-          displayName: entry.displayName,
-          phone: entry.phone,
-          phoneE164: entry.phoneE164,
-          userID: entry.userID == null ? null : Uint8List.fromList(entry.userID!),
-        ),
-    ];
-    _emitPartitioned(items, manualE164);
-  }
-
-  /// Раскладывает контакты по трём группам и эмитит отсортированными: «облачные»
-  /// (в [manualE164] — добавлены вручную, любого статуса), «в контактах»
-  /// (из книги, зарегистрированы) и «пригласить» (из книги, не в Iperon).
-  void _emitPartitioned(List<ContactItem> items, Set<String> manualE164) {
-    if (isClosed) return;
-
-    final registered = <ContactItem>[];
-    final invitable = <ContactItem>[];
-    final cloud = <ContactItem>[];
-
-    for (final item in items) {
-      if (manualE164.contains(item.phoneE164)) {
-        cloud.add(item);
-      } else if (item.userID != null) {
-        registered.add(item);
-      } else {
-        invitable.add(item);
-      }
-    }
-
-    int byName(ContactItem a, ContactItem b) => a.displayName.toLowerCase().compareTo(b.displayName.toLowerCase());
-    registered.sort(byName);
-    invitable.sort(byName);
-    cloud.sort(byName);
-
-    emit(state.copyWith(status: Status.success, permissionDenied: false, registered: registered, invitable: invitable, cloud: cloud));
-  }
-
-  /// Сохраняет полный снимок книги (registered + invitable) в БД для мгновенного
-  /// показа при следующем запуске.
-  Future<void> _writeSnapshot(Map<String, _Entry> entries, Map<String, Uint8List> userByE164) {
-    return repositories.contacts.replaceAll([
+  /// Книжный снимок для БД (полный проход по книге).
+  List<ContactCacheEntry> _bookSnapshot(Map<String, _Entry> entries, Map<String, Uint8List> userByE164) {
+    return [
       for (final entry in entries.values)
         ContactCacheEntry(
           phoneE164: entry.phoneE164,
@@ -678,6 +677,68 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
           phone: entry.phone,
           userID: userByE164[entry.phoneE164],
         ),
-    ]);
+    ];
+  }
+
+  _CloudContact _cloudFromProto(pb.Contact contact) {
+    // Номер приходит каноническим e164 (клиент отправил его при добавлении).
+    final e164 = contact.phoneNumber;
+    final normalization = utils.phoneNormalization(phoneNumber: e164);
+    final display = normalization.international.isNotEmpty ? normalization.international : e164;
+    final name = [contact.firstName.trim(), contact.lastName.trim()].where((part) => part.isNotEmpty).join(" ");
+    return _CloudContact(
+      e164: e164,
+      displayName: name.isNotEmpty ? name : display,
+      phone: display,
+      userID: contact.contactUserID.isEmpty ? null : Uint8List.fromList(contact.contactUserID),
+      oprfHex: utils.bytesToHex(Uint8List.fromList(contact.oprf)),
+    );
+  }
+
+  ContactCacheEntry _cacheEntry(_CloudContact contact) {
+    return ContactCacheEntry(
+      phoneE164: contact.e164,
+      displayName: contact.displayName,
+      phone: contact.phone,
+      userID: contact.userID,
+      isCloud: true,
+      oprf: contact.oprfHex.isEmpty ? null : utils.hexToBytes(contact.oprfHex),
+    );
+  }
+
+  String? _e164ByOprf(String oprfHex) {
+    for (final entry in _cloud.entries) {
+      if (entry.value.oprfHex == oprfHex) return entry.key;
+    }
+    return null;
+  }
+
+  /// Собирает три группы состояния из книжного списка [_book] и облачных [_cloud]:
+  /// «облачные» (server-truth, любого статуса регистрации), «в контактах» (из
+  /// книги, зарегистрированы) и «пригласить» (из книги, не в Iperon). Номер,
+  /// присутствующий и в книге, и в облаке, показываем только как облачный.
+  void _emitAll() {
+    if (isClosed) return;
+
+    final cloudKeys = _cloud.keys.toSet();
+    final registered = <ContactItem>[];
+    final invitable = <ContactItem>[];
+
+    for (final item in _book) {
+      if (cloudKeys.contains(item.phoneE164)) continue;
+      (item.userID != null ? registered : invitable).add(item);
+    }
+
+    final cloud = [
+      for (final contact in _cloud.values)
+        ContactItem(displayName: contact.displayName, phone: contact.phone, phoneE164: contact.e164, userID: contact.userID),
+    ];
+
+    int byName(ContactItem a, ContactItem b) => a.displayName.toLowerCase().compareTo(b.displayName.toLowerCase());
+    registered.sort(byName);
+    invitable.sort(byName);
+    cloud.sort(byName);
+
+    emit(state.copyWith(status: Status.success, permissionDenied: false, registered: registered, invitable: invitable, cloud: cloud));
   }
 }
