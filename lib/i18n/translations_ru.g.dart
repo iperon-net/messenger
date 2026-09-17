@@ -376,6 +376,7 @@ class _Translations$screenContacts$ru extends Translations$screenContacts$en {
 	@override String get statusLastSeenRecently => 'был(а) недавно';
 	@override String statusLastSeen({required Object date}) => 'был(а) ${date}';
 	@override String get addByNumber => 'Добавить по номеру';
+	@override String get addContact => 'Добавить контакт';
 	@override String get addByNumberHint => 'Номер телефона';
 	@override String get addFirstName => 'Имя';
 	@override String get addLastName => 'Фамилия';
@@ -675,6 +676,7 @@ extension on TranslationsRu {
 			'screenContacts.statusLastSeenRecently' => 'был(а) недавно',
 			'screenContacts.statusLastSeen' => ({required Object date}) => 'был(а) ${date}',
 			'screenContacts.addByNumber' => 'Добавить по номеру',
+			'screenContacts.addContact' => 'Добавить контакт',
 			'screenContacts.addByNumberHint' => 'Номер телефона',
 			'screenContacts.addFirstName' => 'Имя',
 			'screenContacts.addLastName' => 'Фамилия',

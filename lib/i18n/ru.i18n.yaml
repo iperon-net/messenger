@@ -189,6 +189,7 @@
   "statusLastSeenRecently": "был(а) недавно"
   "statusLastSeen": "был(а) {date}"
   "addByNumber": "Добавить по номеру"
+  "addContact": "Добавить контакт"
   "addByNumberHint": "Номер телефона"
   "addFirstName": "Имя"
   "addLastName": "Фамилия"

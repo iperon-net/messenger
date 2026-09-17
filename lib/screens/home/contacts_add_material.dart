@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../cubit.dart';
 import '../../i18n/translations.g.dart';
+import '../../themes.dart';
 
 /// Полноэкранная форма добавления контакта по номеру (имя, фамилия, телефон с
 /// форматированием). Экран не имеет доступа к [ContactsCubit] (он живёт на уровне
@@ -39,10 +40,13 @@ class _ContactsAddMaterialState extends State<ContactsAddMaterial> {
   @override
   Widget build(BuildContext context) {
     final t = context.t.screenContacts;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final background = isDark ? ThemesCupertino.groupedCard.darkColor : ThemesCupertino.groupedCard.color;
 
     return Scaffold(
+      backgroundColor: background,
       appBar: AppBar(
-        title: Text(t.addByNumber),
+        title: Text(t.addContact),
         actions: [
           TextButton(
             onPressed: _submit,

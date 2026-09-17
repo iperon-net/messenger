@@ -687,6 +687,9 @@ class Translations$screenContacts$en {
 	/// en: 'Add by number'
 	String get addByNumber => 'Add by number';
 
+	/// en: 'Add contact'
+	String get addContact => 'Add contact';
+
 	/// en: 'Phone number'
 	String get addByNumberHint => 'Phone number';
 
@@ -1129,6 +1132,7 @@ extension on Translations {
 			'screenContacts.statusLastSeenRecently' => 'last seen recently',
 			'screenContacts.statusLastSeen' => ({required Object date}) => 'last seen ${date}',
 			'screenContacts.addByNumber' => 'Add by number',
+			'screenContacts.addContact' => 'Add contact',
 			'screenContacts.addByNumberHint' => 'Phone number',
 			'screenContacts.addFirstName' => 'First name',
 			'screenContacts.addLastName' => 'Last name',

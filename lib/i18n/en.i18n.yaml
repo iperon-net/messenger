@@ -189,6 +189,7 @@
   "statusLastSeenRecently": "last seen recently"
   "statusLastSeen": "last seen {date}"
   "addByNumber": "Add by number"
+  "addContact": "Add contact"
   "addByNumberHint": "Phone number"
   "addFirstName": "First name"
   "addLastName": "Last name"

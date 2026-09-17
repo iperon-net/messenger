@@ -47,7 +47,7 @@ class _ContactsAddCupertinoState extends State<ContactsAddCupertino> {
         child: CupertinoNavigationBar(
           automaticBackgroundVisibility: false,
           backgroundColor: ThemesCupertino.groupedBackground,
-          middle: Text(t.addByNumber),
+          middle: Text(t.addContact),
           trailing: CupertinoButton(padding: EdgeInsets.zero, onPressed: _submit, child: Text(t.add)),
         ),
       ),
