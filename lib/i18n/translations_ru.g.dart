@@ -386,6 +386,7 @@ class _Translations$screenContacts$ru extends Translations$screenContacts$en {
 	@override String get addInvalidNumber => 'Неверный номер телефона';
 	@override String get addFailed => 'Не удалось добавить контакт';
 	@override String get validationCloudLimitReached => 'Достигнут лимит облачных контактов';
+	@override String get addSyncHint => 'Контакт будет доступен на всех ваших устройствах';
 	@override String get remove => 'Удалить';
 	@override String get removeTitle => 'Удалить контакт?';
 	@override String get removeMessage => 'Он больше не сможет вам звонить, если в настройках приватности не разрешены звонки от всех.';
@@ -687,6 +688,7 @@ extension on TranslationsRu {
 			'screenContacts.addInvalidNumber' => 'Неверный номер телефона',
 			'screenContacts.addFailed' => 'Не удалось добавить контакт',
 			'screenContacts.validationCloudLimitReached' => 'Достигнут лимит облачных контактов',
+			'screenContacts.addSyncHint' => 'Контакт будет доступен на всех ваших устройствах',
 			'screenContacts.remove' => 'Удалить',
 			'screenContacts.removeTitle' => 'Удалить контакт?',
 			'screenContacts.removeMessage' => 'Он больше не сможет вам звонить, если в настройках приватности не разрешены звонки от всех.',

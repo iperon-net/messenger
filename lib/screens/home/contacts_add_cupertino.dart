@@ -61,6 +61,9 @@ class _ContactsAddCupertinoState extends State<ContactsAddCupertino> {
                 color: ThemesCupertino.groupedCard.resolveFrom(context),
                 borderRadius: const BorderRadius.all(Radius.circular(10)),
               ),
+              // Добавленный вручную контакт — облачный, синхронизируется между
+              // устройствами владельца.
+              footer: Text(t.addSyncHint),
               children: [
                 CupertinoTextFormFieldRow(
                   controller: _firstNameController,

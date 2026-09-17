@@ -48,10 +48,9 @@ class _ContactsAddMaterialState extends State<ContactsAddMaterial> {
 
     // Единый стиль полей ввода с экраном правки профиля: без рамки, чтобы жить
     // внутри белого блока (Card) сгруппированным списком.
-    InputDecoration decoration({required String label, String? hint, Widget? prefixIcon}) => InputDecoration(
+    InputDecoration decoration({required String label, String? hint}) => InputDecoration(
       labelText: label,
       hintText: hint,
-      prefixIcon: prefixIcon,
       // Label всегда сверху: поля пустые (в отличие от правки профиля, где они
       // заполнены), поэтому иначе label «улетает» вверх при фокусе.
       floatingLabelBehavior: FloatingLabelBehavior.always,
@@ -117,12 +116,18 @@ class _ContactsAddMaterialState extends State<ContactsAddMaterial> {
                       focusNode: _phoneFocus,
                       keyboardType: TextInputType.phone,
                       inputFormatters: [PhoneInputFormatter()],
-                      decoration: decoration(label: t.addByNumberHint, prefixIcon: const Icon(Icons.phone)),
+                      decoration: decoration(label: t.addByNumberHint),
                       onFieldSubmitted: (_) => _submit(),
                     ),
                   ),
                 ],
               ),
+            ),
+            // Grouped-style подпись: добавленный вручную контакт — облачный,
+            // синхронизируется между устройствами владельца.
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+              child: Text(t.addSyncHint, style: TextStyle(fontSize: 13, color: Theme.of(context).colorScheme.onSurfaceVariant)),
             ),
           ],
         ),

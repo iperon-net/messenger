@@ -717,6 +717,9 @@ class Translations$screenContacts$en {
 	/// en: 'Cloud contacts limit reached'
 	String get validationCloudLimitReached => 'Cloud contacts limit reached';
 
+	/// en: 'This contact will be available on all your devices'
+	String get addSyncHint => 'This contact will be available on all your devices';
+
 	/// en: 'Remove'
 	String get remove => 'Remove';
 
@@ -1145,6 +1148,7 @@ extension on Translations {
 			'screenContacts.addInvalidNumber' => 'Invalid phone number',
 			'screenContacts.addFailed' => 'Couldn’t add contact',
 			'screenContacts.validationCloudLimitReached' => 'Cloud contacts limit reached',
+			'screenContacts.addSyncHint' => 'This contact will be available on all your devices',
 			'screenContacts.remove' => 'Remove',
 			'screenContacts.removeTitle' => 'Remove contact?',
 			'screenContacts.removeMessage' => 'They will no longer be able to call you unless your call privacy allows everyone.',

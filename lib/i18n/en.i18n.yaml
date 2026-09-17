@@ -199,6 +199,7 @@
   "addInvalidNumber": "Invalid phone number"
   "addFailed": "Couldn’t add contact"
   "validationCloudLimitReached": "Cloud contacts limit reached"
+  "addSyncHint": "This contact will be available on all your devices"
   "remove": "Remove"
   "removeTitle": "Remove contact?"
   "removeMessage": "They will no longer be able to call you unless your call privacy allows everyone."
