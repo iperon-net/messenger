@@ -74,7 +74,10 @@ class _SettingsPrivacyAndSecurityCupertino extends State<SettingsPrivacyAndSecur
                   ],
                 ),
                 CupertinoListSection.insetGrouped(
-                  header: Text(context.t.sessionsPrivacyAndSecurity.privacyAndSecurity),
+                  header: Text(
+                    context.t.sessionsPrivacyAndSecurity.privacyAndSecurity,
+                    style: TextStyle(fontSize: AppFontSizes.base, fontWeight: FontWeight.normal),
+                  ),
                   backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
                   decoration: BoxDecoration(
                     color: ThemesCupertino.groupedCard.resolveFrom(context),
@@ -89,6 +92,7 @@ class _SettingsPrivacyAndSecurityCupertino extends State<SettingsPrivacyAndSecur
                       trailing: CupertinoMenuAnchor(
                         builder: (context, controller, child) {
                           return CupertinoButton(
+                            sizeStyle: CupertinoButtonSize.small,
                             padding: EdgeInsets.zero,
                             onPressed: () => controller.isOpen ? controller.close() : controller.open(),
                             child: Row(
