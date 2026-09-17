@@ -209,6 +209,17 @@ class Calls {
   // Сколько ждём ответа на входящий, прежде чем снять баннер как пропущенный.
   Duration get _incomingTimeout => Duration(seconds: settings.callRingTimeoutSeconds + 15);
 
+  // Сторож соединения: после accept звонок висит в `connecting`, пока собеседник
+  // не появится в комнате (ParticipantConnected → [_markActive] → active). У
+  // `outgoing` от недозвона страхует [_ringTimer], у `incoming` — [_incomingTimer],
+  // а у `connecting` своего таймаута нет: если собеседник так и не подключился, а
+  // `CALL_HANGUP` не дошёл, teardown не позовёт никто и снимок навсегда застрянет
+  // в `connecting` — `_hasActiveCall` останется true, и клиент будет
+  // авто-отклонять (`_onRing` → «занято») все входящие до перезапуска приложения
+  // («зомби-звонок»). Этот таймер — страховка от такого залипания. Снимается в
+  // [_markActive]/[_teardown]. См. [_startConnectTimeout].
+  Timer? _connectTimer;
+
   // Сколько раз пробуем начальный connect к комнате перед провалом звонка (см.
   // [_connectRoom]). Первый connect LiveKit не переигрывает сам, а на холодном
   // старте сеть ещё не готова — поэтому повторяем сами. Значение — из Remote
@@ -459,6 +470,9 @@ class Calls {
 
     _emit(_snapshot.copyWith(status: CallStatus.connecting));
     _dbg('accepted');
+    // Страховка от залипания в `connecting`: если собеседник не войдёт в комнату
+    // и отмена не придёт — свернём сами (см. [_connectTimer]).
+    _startConnectTimeout(_snapshot.callId);
 
     try {
       await _connectRoom(callId: _snapshot.callId, remoteUserID: _snapshot.remoteUserID, video: _snapshot.video);
@@ -1083,13 +1097,33 @@ class Calls {
     _incomingTimer = null;
   }
 
+  // Заводит сторож перехода `connecting` → `active` (см. [_connectTimer]). По
+  // истечении — если звонок всё ещё «соединяется» именно с этим callId (собеседник
+  // не вошёл в комнату и отмена не пришла) — принудительно сворачиваем как failed,
+  // возвращая машину звонков в idle.
+  void _startConnectTimeout(String callId) {
+    _cancelConnectTimeout();
+    _connectTimer = Timer(_incomingTimeout, () {
+      if (_hasActiveCall && _snapshot.status == CallStatus.connecting && _snapshot.callId == callId) {
+        _dbg('connect timeout — peer never joined, tearing down');
+        unawaited(_teardown(CallEndReason.failed));
+      }
+    });
+  }
+
+  void _cancelConnectTimeout() {
+    _connectTimer?.cancel();
+    _connectTimer = null;
+  }
+
   // Переводит звонок в active, если он ещё жив и не завершён.
   void _markActive() {
     if (!_hasActiveCall) return;
     if (_snapshot.status == CallStatus.active) return;
-    // Абонент ответил — гудки и таймер отмены недозвона больше не нужны.
+    // Абонент ответил — гудки и таймеры дозвона/соединения больше не нужны.
     unawaited(_stopRingback());
     _cancelRingTimeout();
+    _cancelConnectTimeout();
     // Ставим точку отсчёта таймера разговора ровно на переход в active.
     _emit(_snapshot.copyWith(status: CallStatus.active, connectedAt: DateTime.now()));
     _dbg('active');
@@ -1118,81 +1152,98 @@ class Calls {
     if (_tearingDown) return;
     _tearingDown = true;
 
-    // Гасим гудки исходящего (если играли) и снимаем таймеры дозвона/входящего —
-    // звонок завершается/переходит дальше.
-    unawaited(_stopRingback());
-    _cancelRingTimeout();
-    _cancelIncomingTimeout();
-
-    _pushAcceptedCallId = null;
-    _handlingCallId = null;
-    _connectingRoom = false;
-    _roomConnected = false;
-    _viaCallKit = false;
-    // Звонок завершён — отпускаем удержание стрима (вернётся к foreground-гейту).
-    api.setCallActive(false);
-
     final remote = _snapshot.remoteUserID;
     final video = _snapshot.video;
     final callId = _snapshot.callId;
 
-    _localVideoTrack = null;
-    _remoteVideoTrack = null;
+    // Разбор комнаты может бросить/зависнуть (гонка реконнекта SDK и `pc.close()`,
+    // upstream livekit #1186). Что бы ни упало внутри — в `finally` мы ОБЯЗАНЫ
+    // эмитнуть `ended`, назначить сброс в `idle` и снять `_tearingDown`. Иначе
+    // снимок застревал бы в не-`idle` статусе, `_hasActiveCall` оставался бы
+    // `true`, и клиент авто-отклонял бы (`_onRing` → «занято») все входящие до
+    // перезапуска приложения — «зомби-звонок».
+    try {
+      // Гасим гудки исходящего (если играли) и снимаем таймеры дозвона/входящего —
+      // звонок завершается/переходит дальше.
+      unawaited(_stopRingback());
+      _cancelRingTimeout();
+      _cancelIncomingTimeout();
+      _cancelConnectTimeout();
 
-    // Забираем комнату синхронно (до await), чтобы повторный вход видел null.
-    final room = _room;
-    _room = null;
+      _pushAcceptedCallId = null;
+      _handlingCallId = null;
+      _connectingRoom = false;
+      _roomConnected = false;
+      _viaCallKit = false;
+      // Звонок завершён — отпускаем удержание стрима (вернётся к foreground-гейту).
+      api.setCallActive(false);
 
-    if (room != null) {
-      // `disconnect()` — ПЕРВЫМ действием разбора, до диспоза слушателя и всего
-      // прочего. Внутри `engine.disconnect()` сразу ставит `_isClosed = true`, а
-      // авто-реконнект SDK стартует только при `!_isClosed` (engine.dart). Если
-      // собеседник вышел, SFU может прислать LeaveRequest RECONNECT → движок лезет
-      // пересоздавать ICE-транспорты параллельно нашему teardown → две гонки
-      // `pc.close()` и падение на ICE-потоке (upstream livekit #1186). Ранний
-      // `_isClosed` подавляет этот реконнект — окно гонки сужается до минимума.
-      // Полностью баг лечится только в SDK (#1186), см. память проекта.
+      _localVideoTrack = null;
+      _remoteVideoTrack = null;
+
+      // Забираем комнату синхронно (до await), чтобы повторный вход видел null.
+      final room = _room;
+      _room = null;
+
+      if (room != null) {
+        // `disconnect()` — ПЕРВЫМ действием разбора, до диспоза слушателя и всего
+        // прочего. Внутри `engine.disconnect()` сразу ставит `_isClosed = true`, а
+        // авто-реконнект SDK стартует только при `!_isClosed` (engine.dart). Если
+        // собеседник вышел, SFU может прислать LeaveRequest RECONNECT → движок лезет
+        // пересоздавать ICE-транспорты параллельно нашему teardown → две гонки
+        // `pc.close()` и падение на ICE-потоке (upstream livekit #1186). Ранний
+        // `_isClosed` подавляет этот реконнект — окно гонки сужается до минимума.
+        // Полностью баг лечится только в SDK (#1186), см. память проекта.
+        try {
+          await room.disconnect();
+        } catch (error, stackTrace) {
+          logger.handle(error, stackTrace);
+        }
+      }
+
       try {
-        await room.disconnect();
+        await _roomListener?.dispose();
       } catch (error, stackTrace) {
         logger.handle(error, stackTrace);
       }
-    }
+      _roomListener = null;
 
-    await _roomListener?.dispose();
-    _roomListener = null;
-
-    if (room != null) {
-      await room.dispose();
-    }
-
-    // iOS без CallKit: сессию активировали мы — деактивируем нативно после того,
-    // как движок остановлен (room disconnected/disposed). Иначе активная сессия
-    // осталась бы висеть между звонками. На CallKit-пути деактивацией владеет
-    // CallKit (`didDeactivate`), сами не трогаем.
-    if (_iosManualAudioSession) {
-      _iosManualAudioSession = false;
-      try {
-        await _setIosAudioSessionActive(false);
-      } catch (error, stackTrace) {
-        logger.handle(error, stackTrace);
+      if (room != null) {
+        try {
+          await room.dispose();
+        } catch (error, stackTrace) {
+          logger.handle(error, stackTrace);
+        }
       }
+
+      // iOS без CallKit: сессию активировали мы — деактивируем нативно после того,
+      // как движок остановлен (room disconnected/disposed). Иначе активная сессия
+      // осталась бы висеть между звонками. На CallKit-пути деактивацией владеет
+      // CallKit (`didDeactivate`), сами не трогаем.
+      if (_iosManualAudioSession) {
+        _iosManualAudioSession = false;
+        try {
+          await _setIosAudioSessionActive(false);
+        } catch (error, stackTrace) {
+          logger.handle(error, stackTrace);
+        }
+      }
+    } finally {
+      _diag = _diag.isEmpty ? 'ended:${reason.name}' : '$_diag · ended:${reason.name}';
+      _emit(CallSnapshot(status: CallStatus.ended, callId: callId, remoteUserID: remote, video: video, endReason: reason, debug: _diag));
+
+      // `ended` — переходное состояние (краткая обратная связь на нашем экране).
+      // Сбрасываем его в idle через паузу, иначе снимок «завис» бы на «завершён»
+      // до следующего звонка: когда звонок прошёл целиком на локскрине/в фоне
+      // (CallKit), кадры не рендерятся и pop экрана в [CallGate] мог не отработать —
+      // при возврате в приложение висел бы экран «Звонок завершён». Сброс отменяет
+      // сам себя, если уже стартовал новый звонок (проверка по callId).
+      _scheduleIdleReset(callId);
+
+      // Комната разобрана — повторный `pc.close()` уже невозможен; снимаем флаг,
+      // чтобы следующий звонок мог завершиться.
+      _tearingDown = false;
     }
-
-    _diag = _diag.isEmpty ? 'ended:${reason.name}' : '$_diag · ended:${reason.name}';
-    _emit(CallSnapshot(status: CallStatus.ended, callId: callId, remoteUserID: remote, video: video, endReason: reason, debug: _diag));
-
-    // `ended` — переходное состояние (краткая обратная связь на нашем экране).
-    // Сбрасываем его в idle через паузу, иначе снимок «завис» бы на «завершён»
-    // до следующего звонка: когда звонок прошёл целиком на локскрине/в фоне
-    // (CallKit), кадры не рендерятся и pop экрана в [CallGate] мог не отработать —
-    // при возврате в приложение висел бы экран «Звонок завершён». Сброс отменяет
-    // сам себя, если уже стартовал новый звонок (проверка по callId).
-    _scheduleIdleReset(callId);
-
-    // Комната разобрана и `_room == null` — повторный `pc.close()` уже
-    // невозможен; снимаем флаг, чтобы следующий звонок мог завершиться.
-    _tearingDown = false;
   }
 
   /// Сбрасывает снимок в [CallStatus.idle] через паузу после завершения звонка,
