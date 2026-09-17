@@ -69,6 +69,19 @@ class ThemesCupertino {
           )!;
   }
 
+  /// Фон экрана звонка: оттенок акцентного `primaryColor` темы — в тёмной теме
+  /// притемнённый почти до чёрного, в светлой — сильно осветлённый. За счёт того,
+  /// что берётся `primaryColor`, фон меняется вместе с выбранным оформлением
+  /// (синий/зелёный/фиолетовый/оранжевый). По духу — как [screenLockBackground],
+  /// но собственный для экрана звонка.
+  static Color callBackground(BuildContext context) {
+    final isDark = CupertinoTheme.brightnessOf(context) == Brightness.dark;
+    final primary = CupertinoDynamicColor.resolve(CupertinoTheme.of(context).primaryColor, context);
+    const nearBlack = Color(0xFF1C1C1E);
+    const nearWhite = Color(0xFFF2F2F7);
+    return isDark ? Color.lerp(primary, nearBlack, 0.5)! : Color.lerp(primary, nearWhite, 0.7)!;
+  }
+
   /// Общая конфигурация клавиатуры `ScreenLock`: фон кнопок — тот же
   /// `scaffoldBackgroundColor`, но чуть другим оттенком (светлее фона в тёмной
   /// теме, темнее — в светлой), цифры окрашены в `primaryColor` темы.

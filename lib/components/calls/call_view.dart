@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io' show Platform;
 
 import 'package:flutter/cupertino.dart' show CupertinoIcons;
 import 'package:flutter/services.dart';
@@ -11,6 +12,8 @@ import '../../calls.dart';
 import '../../cubit.dart';
 import '../../i18n/translations.g.dart';
 import '../../models/constants.dart';
+import '../../themes/cupertino.dart';
+import '../../themes/material.dart';
 
 /// Палитра экрана звонка. Две версии — светлая/тёмная (см. [_CallPalette.of]),
 /// плюс «поверх медиа» ([_CallPalette.overMedia]): когда на весь экран идёт видео
@@ -44,15 +47,21 @@ class _CallPalette {
   /// Поверх видео — та же тёмная палитра (светлый текст на картинке).
   static const overMedia = _dark;
 
+  _CallPalette _withBg(Color bg) => _CallPalette(bg: bg, fg: fg, dim: dim, controlBg: controlBg, controlActiveBg: controlActiveBg);
+
   /// Палитра под тему приложения: [darkMode] из настроек (система/светлая/тёмная),
-  /// для `system` берём яркость платформы.
+  /// для `system` берём яркость платформы. Фон подменяется на зависящий от
+  /// оформления [ThemesCupertino.callBackground] / [ThemesMaterial.callBackground],
+  /// а остальные цвета (текст/контролы) остаются под яркость.
   static _CallPalette of(BuildContext context, DarkModeModel darkMode) {
     final brightness = switch (darkMode) {
       DarkModeModel.alwaysOn => Brightness.dark,
       DarkModeModel.disabled => Brightness.light,
       DarkModeModel.system => MediaQuery.platformBrightnessOf(context),
     };
-    return brightness == Brightness.dark ? _dark : _light;
+    final base = brightness == Brightness.dark ? _dark : _light;
+    final bg = Platform.isIOS ? ThemesCupertino.callBackground(context) : ThemesMaterial.callBackground(context);
+    return base._withBg(bg);
   }
 }
 

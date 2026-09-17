@@ -184,6 +184,18 @@ class ThemesMaterial {
         : Color.lerp(theme.colorScheme.primary, nearBlack, 0.3)!;
   }
 
+  /// Фон экрана звонка: оттенок `primary` текущей темы — в тёмной теме
+  /// притемнённый почти до чёрного, в светлой — сильно осветлённый. Зависит от
+  /// выбранного оформления. Material-аналог [ThemesCupertino.callBackground].
+  static Color callBackground(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final primary = theme.colorScheme.primary;
+    const nearBlack = Color(0xFF1C1C1E);
+    const nearWhite = Color(0xFFF2F2F7);
+    return isDark ? Color.lerp(primary, nearBlack, 0.5)! : Color.lerp(primary, nearWhite, 0.7)!;
+  }
+
   /// Конфигурация клавиатуры: круглые кнопки с тонкой рамкой и полупрозрачной
   /// заливкой `primary` — как [ThemesCupertino.screenLockKeyPad].
   static KeyPadConfig screenLockKeyPad(BuildContext context) {
