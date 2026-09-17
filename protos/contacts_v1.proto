@@ -60,6 +60,14 @@ message ContactsUpsert {
     // Финализированный OPRF-выход номера контакта (SHA-512, 64 байта).
     bytes oprf = 1;
     Source source = 2;
+    // Ниже — только для облачных контактов (синхронизируемых между устройствами).
+    // Непустой phoneNumber ⇒ ребро облачное: сервер шифрует эти поля at-rest
+    // (Encryptor, ключ на сервере — это НЕ E2E) и рассылает их на устройства
+    // владельца. Пусто ⇒ приватное OPRF-ребро, PII не покидает устройство.
+    // Открытый текст здесь защищён шифрованием сессии, не хранением на сервере.
+    string firstName = 3;
+    string lastName = 4;
+    string phoneNumber = 5;
   }
 
   message Request {
@@ -81,4 +89,41 @@ message ContactsRemove {
   }
 
   message Response {}
+}
+
+// Облачный контакт — PII, синхронизируемое между устройствами владельца. Сервер
+// хранит firstName/lastName/phoneNumber зашифрованными at-rest (Encryptor,
+// hkdfSalt = ownerUserID), но ДЕРЖИТ КЛЮЧ — это не E2E: сервис технически может
+// их прочитать. В List/Updated поля приходят уже расшифрованными (канал защищён
+// сессией). Пустые PII-поля ⇒ приватное OPRF-ребро (в облачные списки не входит).
+message Contact {
+  // OPRF-отпечаток номера контакта — адрес ребра.
+  bytes oprf = 1;
+  // userID резолвленного контакта (сырые байты ObjectID); пусто пока pending.
+  bytes contactUserID = 2;
+  ContactsUpsert.Source source = 3;
+  string firstName = 4;
+  string lastName = 5;
+  string phoneNumber = 6;
+  // Момент последнего изменения ребра (epoch ms) — для дельт/сортировки.
+  int64 updatedAt = 7;
+}
+
+// Полный список облачных контактов владельца — тянется новым устройством на
+// bootstrap (владелец берётся из сессии). Сервер отдаёт PII расшифрованными.
+message ContactsList {
+  message Request {}
+
+  message Response {
+    repeated Contact contacts = 1;
+  }
+}
+
+// Push-дельта облачных контактов, рассылаемая на все устройства владельца при
+// add/update/remove/resolve (тип сообщения CONTACTS_UPDATED, без Request/Response).
+message ContactsUpdated {
+  // Добавленные/обновлённые облачные контакты (PII расшифрованы).
+  repeated Contact upserted = 1;
+  // OPRF-отпечатки удалённых рёбер.
+  repeated bytes removedOprf = 2;
 }

@@ -12,6 +12,7 @@
 
 import 'dart:core' as $core;
 
+import 'package:fixnum/fixnum.dart' as $fixnum;
 import 'package:protobuf/protobuf.dart' as $pb;
 
 import 'contacts_v1.pbenum.dart';
@@ -337,10 +338,16 @@ class ContactsUpsert_Item extends $pb.GeneratedMessage {
   factory ContactsUpsert_Item({
     $core.List<$core.int>? oprf,
     ContactsUpsert_Source? source,
+    $core.String? firstName,
+    $core.String? lastName,
+    $core.String? phoneNumber,
   }) {
     final result = create();
     if (oprf != null) result.oprf = oprf;
     if (source != null) result.source = source;
+    if (firstName != null) result.firstName = firstName;
+    if (lastName != null) result.lastName = lastName;
+    if (phoneNumber != null) result.phoneNumber = phoneNumber;
     return result;
   }
 
@@ -355,6 +362,9 @@ class ContactsUpsert_Item extends $pb.GeneratedMessage {
       package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
     ..a<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'oprf', $pb.PbFieldType.OY)
     ..aE<ContactsUpsert_Source>(2, _omitFieldNames ? '' : 'source', enumValues: ContactsUpsert_Source.values)
+    ..aOS(3, _omitFieldNames ? '' : 'firstName', protoName: 'firstName')
+    ..aOS(4, _omitFieldNames ? '' : 'lastName', protoName: 'lastName')
+    ..aOS(5, _omitFieldNames ? '' : 'phoneNumber', protoName: 'phoneNumber')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -392,6 +402,38 @@ class ContactsUpsert_Item extends $pb.GeneratedMessage {
   $core.bool hasSource() => $_has(1);
   @$pb.TagNumber(2)
   void clearSource() => $_clearField(2);
+
+  /// Ниже — только для облачных контактов (синхронизируемых между устройствами).
+  /// Непустой phoneNumber ⇒ ребро облачное: сервер шифрует эти поля at-rest
+  /// (Encryptor, ключ на сервере — это НЕ E2E) и рассылает их на устройства
+  /// владельца. Пусто ⇒ приватное OPRF-ребро, PII не покидает устройство.
+  /// Открытый текст здесь защищён шифрованием сессии, не хранением на сервере.
+  @$pb.TagNumber(3)
+  $core.String get firstName => $_getSZ(2);
+  @$pb.TagNumber(3)
+  set firstName($core.String value) => $_setString(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasFirstName() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearFirstName() => $_clearField(3);
+
+  @$pb.TagNumber(4)
+  $core.String get lastName => $_getSZ(3);
+  @$pb.TagNumber(4)
+  set lastName($core.String value) => $_setString(3, value);
+  @$pb.TagNumber(4)
+  $core.bool hasLastName() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearLastName() => $_clearField(4);
+
+  @$pb.TagNumber(5)
+  $core.String get phoneNumber => $_getSZ(4);
+  @$pb.TagNumber(5)
+  set phoneNumber($core.String value) => $_setString(4, value);
+  @$pb.TagNumber(5)
+  $core.bool hasPhoneNumber() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearPhoneNumber() => $_clearField(5);
 }
 
 class ContactsUpsert_Request extends $pb.GeneratedMessage {
@@ -625,6 +667,293 @@ class ContactsRemove extends $pb.GeneratedMessage {
   @$core.pragma('dart2js:noInline')
   static ContactsRemove getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<ContactsRemove>(create);
   static ContactsRemove? _defaultInstance;
+}
+
+/// Облачный контакт — PII, синхронизируемое между устройствами владельца. Сервер
+/// хранит firstName/lastName/phoneNumber зашифрованными at-rest (Encryptor,
+/// hkdfSalt = ownerUserID), но ДЕРЖИТ КЛЮЧ — это не E2E: сервис технически может
+/// их прочитать. В List/Updated поля приходят уже расшифрованными (канал защищён
+/// сессией). Пустые PII-поля ⇒ приватное OPRF-ребро (в облачные списки не входит).
+class Contact extends $pb.GeneratedMessage {
+  factory Contact({
+    $core.List<$core.int>? oprf,
+    $core.List<$core.int>? contactUserID,
+    ContactsUpsert_Source? source,
+    $core.String? firstName,
+    $core.String? lastName,
+    $core.String? phoneNumber,
+    $fixnum.Int64? updatedAt,
+  }) {
+    final result = create();
+    if (oprf != null) result.oprf = oprf;
+    if (contactUserID != null) result.contactUserID = contactUserID;
+    if (source != null) result.source = source;
+    if (firstName != null) result.firstName = firstName;
+    if (lastName != null) result.lastName = lastName;
+    if (phoneNumber != null) result.phoneNumber = phoneNumber;
+    if (updatedAt != null) result.updatedAt = updatedAt;
+    return result;
+  }
+
+  Contact._();
+
+  factory Contact.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Contact.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Contact',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..a<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'oprf', $pb.PbFieldType.OY)
+    ..a<$core.List<$core.int>>(2, _omitFieldNames ? '' : 'contactUserID', $pb.PbFieldType.OY, protoName: 'contactUserID')
+    ..aE<ContactsUpsert_Source>(3, _omitFieldNames ? '' : 'source', enumValues: ContactsUpsert_Source.values)
+    ..aOS(4, _omitFieldNames ? '' : 'firstName', protoName: 'firstName')
+    ..aOS(5, _omitFieldNames ? '' : 'lastName', protoName: 'lastName')
+    ..aOS(6, _omitFieldNames ? '' : 'phoneNumber', protoName: 'phoneNumber')
+    ..aInt64(7, _omitFieldNames ? '' : 'updatedAt', protoName: 'updatedAt')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Contact clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Contact copyWith(void Function(Contact) updates) => super.copyWith((message) => updates(message as Contact)) as Contact;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static Contact create() => Contact._();
+  @$core.override
+  Contact createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static Contact getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Contact>(create);
+  static Contact? _defaultInstance;
+
+  /// OPRF-отпечаток номера контакта — адрес ребра.
+  @$pb.TagNumber(1)
+  $core.List<$core.int> get oprf => $_getN(0);
+  @$pb.TagNumber(1)
+  set oprf($core.List<$core.int> value) => $_setBytes(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasOprf() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearOprf() => $_clearField(1);
+
+  /// userID резолвленного контакта (сырые байты ObjectID); пусто пока pending.
+  @$pb.TagNumber(2)
+  $core.List<$core.int> get contactUserID => $_getN(1);
+  @$pb.TagNumber(2)
+  set contactUserID($core.List<$core.int> value) => $_setBytes(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasContactUserID() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearContactUserID() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  ContactsUpsert_Source get source => $_getN(2);
+  @$pb.TagNumber(3)
+  set source(ContactsUpsert_Source value) => $_setField(3, value);
+  @$pb.TagNumber(3)
+  $core.bool hasSource() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearSource() => $_clearField(3);
+
+  @$pb.TagNumber(4)
+  $core.String get firstName => $_getSZ(3);
+  @$pb.TagNumber(4)
+  set firstName($core.String value) => $_setString(3, value);
+  @$pb.TagNumber(4)
+  $core.bool hasFirstName() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearFirstName() => $_clearField(4);
+
+  @$pb.TagNumber(5)
+  $core.String get lastName => $_getSZ(4);
+  @$pb.TagNumber(5)
+  set lastName($core.String value) => $_setString(4, value);
+  @$pb.TagNumber(5)
+  $core.bool hasLastName() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearLastName() => $_clearField(5);
+
+  @$pb.TagNumber(6)
+  $core.String get phoneNumber => $_getSZ(5);
+  @$pb.TagNumber(6)
+  set phoneNumber($core.String value) => $_setString(5, value);
+  @$pb.TagNumber(6)
+  $core.bool hasPhoneNumber() => $_has(5);
+  @$pb.TagNumber(6)
+  void clearPhoneNumber() => $_clearField(6);
+
+  /// Момент последнего изменения ребра (epoch ms) — для дельт/сортировки.
+  @$pb.TagNumber(7)
+  $fixnum.Int64 get updatedAt => $_getI64(6);
+  @$pb.TagNumber(7)
+  set updatedAt($fixnum.Int64 value) => $_setInt64(6, value);
+  @$pb.TagNumber(7)
+  $core.bool hasUpdatedAt() => $_has(6);
+  @$pb.TagNumber(7)
+  void clearUpdatedAt() => $_clearField(7);
+}
+
+class ContactsList_Request extends $pb.GeneratedMessage {
+  factory ContactsList_Request() => create();
+
+  ContactsList_Request._();
+
+  factory ContactsList_Request.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory ContactsList_Request.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'ContactsList.Request',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ContactsList_Request clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ContactsList_Request copyWith(void Function(ContactsList_Request) updates) =>
+      super.copyWith((message) => updates(message as ContactsList_Request)) as ContactsList_Request;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static ContactsList_Request create() => ContactsList_Request._();
+  @$core.override
+  ContactsList_Request createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static ContactsList_Request getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<ContactsList_Request>(create);
+  static ContactsList_Request? _defaultInstance;
+}
+
+class ContactsList_Response extends $pb.GeneratedMessage {
+  factory ContactsList_Response({
+    $core.Iterable<Contact>? contacts,
+  }) {
+    final result = create();
+    if (contacts != null) result.contacts.addAll(contacts);
+    return result;
+  }
+
+  ContactsList_Response._();
+
+  factory ContactsList_Response.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory ContactsList_Response.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'ContactsList.Response',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..pPM<Contact>(1, _omitFieldNames ? '' : 'contacts', subBuilder: Contact.create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ContactsList_Response clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ContactsList_Response copyWith(void Function(ContactsList_Response) updates) =>
+      super.copyWith((message) => updates(message as ContactsList_Response)) as ContactsList_Response;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static ContactsList_Response create() => ContactsList_Response._();
+  @$core.override
+  ContactsList_Response createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static ContactsList_Response getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<ContactsList_Response>(create);
+  static ContactsList_Response? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $pb.PbList<Contact> get contacts => $_getList(0);
+}
+
+/// Полный список облачных контактов владельца — тянется новым устройством на
+/// bootstrap (владелец берётся из сессии). Сервер отдаёт PII расшифрованными.
+class ContactsList extends $pb.GeneratedMessage {
+  factory ContactsList() => create();
+
+  ContactsList._();
+
+  factory ContactsList.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory ContactsList.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'ContactsList',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ContactsList clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ContactsList copyWith(void Function(ContactsList) updates) =>
+      super.copyWith((message) => updates(message as ContactsList)) as ContactsList;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static ContactsList create() => ContactsList._();
+  @$core.override
+  ContactsList createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static ContactsList getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<ContactsList>(create);
+  static ContactsList? _defaultInstance;
+}
+
+/// Push-дельта облачных контактов, рассылаемая на все устройства владельца при
+/// add/update/remove/resolve (тип сообщения CONTACTS_UPDATED, без Request/Response).
+class ContactsUpdated extends $pb.GeneratedMessage {
+  factory ContactsUpdated({
+    $core.Iterable<Contact>? upserted,
+    $core.Iterable<$core.List<$core.int>>? removedOprf,
+  }) {
+    final result = create();
+    if (upserted != null) result.upserted.addAll(upserted);
+    if (removedOprf != null) result.removedOprf.addAll(removedOprf);
+    return result;
+  }
+
+  ContactsUpdated._();
+
+  factory ContactsUpdated.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory ContactsUpdated.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'ContactsUpdated',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..pPM<Contact>(1, _omitFieldNames ? '' : 'upserted', subBuilder: Contact.create)
+    ..p<$core.List<$core.int>>(2, _omitFieldNames ? '' : 'removedOprf', $pb.PbFieldType.PY, protoName: 'removedOprf')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ContactsUpdated clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ContactsUpdated copyWith(void Function(ContactsUpdated) updates) =>
+      super.copyWith((message) => updates(message as ContactsUpdated)) as ContactsUpdated;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static ContactsUpdated create() => ContactsUpdated._();
+  @$core.override
+  ContactsUpdated createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static ContactsUpdated getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<ContactsUpdated>(create);
+  static ContactsUpdated? _defaultInstance;
+
+  /// Добавленные/обновлённые облачные контакты (PII расшифрованы).
+  @$pb.TagNumber(1)
+  $pb.PbList<Contact> get upserted => $_getList(0);
+
+  /// OPRF-отпечатки удалённых рёбер.
+  @$pb.TagNumber(2)
+  $pb.PbList<$core.List<$core.int>> get removedOprf => $_getList(1);
 }
 
 const $core.bool _omitFieldNames = $core.bool.fromEnvironment('protobuf.omit_field_names');

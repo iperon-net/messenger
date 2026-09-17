@@ -42,6 +42,11 @@ enum MessageType {
   CONTACTS_REMOVE = 30;
   PRIVACY_SETTINGS = 31;
   PRIVACY_SETTINGS_UPDATE = 32;
+  // Облачные контакты (синхронизация PII между устройствами): LIST — pull всего
+  // списка на bootstrap; UPDATED — push-дельта на устройства владельца. См.
+  // contacts_v1.proto (Contact / ContactsList / ContactsUpdated).
+  CONTACTS_LIST = 33;
+  CONTACTS_UPDATED = 34;
 }
 
 service Iperon {

@@ -41,10 +41,20 @@ class MessageType extends $pb.ProtobufEnum {
   static const MessageType REGISTER_PUSH_TOKEN = MessageType._(26, _omitEnumNames ? '' : 'REGISTER_PUSH_TOKEN');
   static const MessageType CALL_TOKEN = MessageType._(27, _omitEnumNames ? '' : 'CALL_TOKEN');
   static const MessageType CALL_RING = MessageType._(28, _omitEnumNames ? '' : 'CALL_RING');
+
+  /// Облачная адресная книга / серверный граф контактов (этап 1: гейт звонков).
+  /// UPSERT/REMOVE пишут рёбра владельца, PRIVACY_SETTINGS(_UPDATE) — настройку
+  /// «кто может звонить». См. contacts_v1.proto / privacy_v1.proto.
   static const MessageType CONTACTS_UPSERT = MessageType._(29, _omitEnumNames ? '' : 'CONTACTS_UPSERT');
   static const MessageType CONTACTS_REMOVE = MessageType._(30, _omitEnumNames ? '' : 'CONTACTS_REMOVE');
   static const MessageType PRIVACY_SETTINGS = MessageType._(31, _omitEnumNames ? '' : 'PRIVACY_SETTINGS');
   static const MessageType PRIVACY_SETTINGS_UPDATE = MessageType._(32, _omitEnumNames ? '' : 'PRIVACY_SETTINGS_UPDATE');
+
+  /// Облачные контакты (синхронизация PII между устройствами): LIST — pull всего
+  /// списка на bootstrap; UPDATED — push-дельта на устройства владельца. См.
+  /// contacts_v1.proto (Contact / ContactsList / ContactsUpdated).
+  static const MessageType CONTACTS_LIST = MessageType._(33, _omitEnumNames ? '' : 'CONTACTS_LIST');
+  static const MessageType CONTACTS_UPDATED = MessageType._(34, _omitEnumNames ? '' : 'CONTACTS_UPDATED');
 
   static const $core.List<MessageType> values = <MessageType>[
     HEALTHCHECK,
@@ -76,9 +86,11 @@ class MessageType extends $pb.ProtobufEnum {
     CONTACTS_REMOVE,
     PRIVACY_SETTINGS,
     PRIVACY_SETTINGS_UPDATE,
+    CONTACTS_LIST,
+    CONTACTS_UPDATED,
   ];
 
-  static final $core.List<MessageType?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 32);
+  static final $core.List<MessageType?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 34);
   static MessageType? valueOf($core.int value) => value < 0 || value >= _byValue.length ? null : _byValue[value];
 
   const MessageType._(super.value, super.name);

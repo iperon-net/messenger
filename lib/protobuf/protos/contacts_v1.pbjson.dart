@@ -94,6 +94,9 @@ const ContactsUpsert_Item$json = {
   '2': [
     {'1': 'oprf', '3': 1, '4': 1, '5': 12, '10': 'oprf'},
     {'1': 'source', '3': 2, '4': 1, '5': 14, '6': '.iperon.v1.ContactsUpsert.Source', '10': 'source'},
+    {'1': 'firstName', '3': 3, '4': 1, '5': 9, '10': 'firstName'},
+    {'1': 'lastName', '3': 4, '4': 1, '5': 9, '10': 'lastName'},
+    {'1': 'phoneNumber', '3': 5, '4': 1, '5': 9, '10': 'phoneNumber'},
   ],
 };
 
@@ -122,11 +125,12 @@ const ContactsUpsert_Source$json = {
 
 /// Descriptor for `ContactsUpsert`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List contactsUpsertDescriptor =
-    $convert.base64Decode('Cg5Db250YWN0c1Vwc2VydBpUCgRJdGVtEhIKBG9wcmYYASABKAxSBG9wcmYSOAoGc291cmNlGA'
-        'IgASgOMiAuaXBlcm9uLnYxLkNvbnRhY3RzVXBzZXJ0LlNvdXJjZVIGc291cmNlGlMKB1JlcXVl'
-        'c3QSNAoFaXRlbXMYASADKAsyHi5pcGVyb24udjEuQ29udGFjdHNVcHNlcnQuSXRlbVIFaXRlbX'
-        'MSEgoEZnVsbBgCIAEoCFIEZnVsbBoKCghSZXNwb25zZSIeCgZTb3VyY2USCAoET1BSRhAAEgoK'
-        'Bk1BTlVBTBAB');
+    $convert.base64Decode('Cg5Db250YWN0c1Vwc2VydBqwAQoESXRlbRISCgRvcHJmGAEgASgMUgRvcHJmEjgKBnNvdXJjZR'
+        'gCIAEoDjIgLmlwZXJvbi52MS5Db250YWN0c1Vwc2VydC5Tb3VyY2VSBnNvdXJjZRIcCglmaXJz'
+        'dE5hbWUYAyABKAlSCWZpcnN0TmFtZRIaCghsYXN0TmFtZRgEIAEoCVIIbGFzdE5hbWUSIAoLcG'
+        'hvbmVOdW1iZXIYBSABKAlSC3Bob25lTnVtYmVyGlMKB1JlcXVlc3QSNAoFaXRlbXMYASADKAsy'
+        'Hi5pcGVyb24udjEuQ29udGFjdHNVcHNlcnQuSXRlbVIFaXRlbXMSEgoEZnVsbBgCIAEoCFIEZn'
+        'VsbBoKCghSZXNwb25zZSIeCgZTb3VyY2USCAoET1BSRhAAEgoKBk1BTlVBTBAB');
 
 @$core.Deprecated('Use contactsRemoveDescriptor instead')
 const ContactsRemove$json = {
@@ -151,3 +155,63 @@ const ContactsRemove_Response$json = {
 final $typed_data.Uint8List contactsRemoveDescriptor =
     $convert.base64Decode('Cg5Db250YWN0c1JlbW92ZRodCgdSZXF1ZXN0EhIKBG9wcmYYASADKAxSBG9wcmYaCgoIUmVzcG'
         '9uc2U=');
+
+@$core.Deprecated('Use contactDescriptor instead')
+const Contact$json = {
+  '1': 'Contact',
+  '2': [
+    {'1': 'oprf', '3': 1, '4': 1, '5': 12, '10': 'oprf'},
+    {'1': 'contactUserID', '3': 2, '4': 1, '5': 12, '10': 'contactUserID'},
+    {'1': 'source', '3': 3, '4': 1, '5': 14, '6': '.iperon.v1.ContactsUpsert.Source', '10': 'source'},
+    {'1': 'firstName', '3': 4, '4': 1, '5': 9, '10': 'firstName'},
+    {'1': 'lastName', '3': 5, '4': 1, '5': 9, '10': 'lastName'},
+    {'1': 'phoneNumber', '3': 6, '4': 1, '5': 9, '10': 'phoneNumber'},
+    {'1': 'updatedAt', '3': 7, '4': 1, '5': 3, '10': 'updatedAt'},
+  ],
+};
+
+/// Descriptor for `Contact`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List contactDescriptor =
+    $convert.base64Decode('CgdDb250YWN0EhIKBG9wcmYYASABKAxSBG9wcmYSJAoNY29udGFjdFVzZXJJRBgCIAEoDFINY2'
+        '9udGFjdFVzZXJJRBI4CgZzb3VyY2UYAyABKA4yIC5pcGVyb24udjEuQ29udGFjdHNVcHNlcnQu'
+        'U291cmNlUgZzb3VyY2USHAoJZmlyc3ROYW1lGAQgASgJUglmaXJzdE5hbWUSGgoIbGFzdE5hbW'
+        'UYBSABKAlSCGxhc3ROYW1lEiAKC3Bob25lTnVtYmVyGAYgASgJUgtwaG9uZU51bWJlchIcCgl1'
+        'cGRhdGVkQXQYByABKANSCXVwZGF0ZWRBdA==');
+
+@$core.Deprecated('Use contactsListDescriptor instead')
+const ContactsList$json = {
+  '1': 'ContactsList',
+  '3': [ContactsList_Request$json, ContactsList_Response$json],
+};
+
+@$core.Deprecated('Use contactsListDescriptor instead')
+const ContactsList_Request$json = {
+  '1': 'Request',
+};
+
+@$core.Deprecated('Use contactsListDescriptor instead')
+const ContactsList_Response$json = {
+  '1': 'Response',
+  '2': [
+    {'1': 'contacts', '3': 1, '4': 3, '5': 11, '6': '.iperon.v1.Contact', '10': 'contacts'},
+  ],
+};
+
+/// Descriptor for `ContactsList`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List contactsListDescriptor =
+    $convert.base64Decode('CgxDb250YWN0c0xpc3QaCQoHUmVxdWVzdBo6CghSZXNwb25zZRIuCghjb250YWN0cxgBIAMoCz'
+        'ISLmlwZXJvbi52MS5Db250YWN0Ughjb250YWN0cw==');
+
+@$core.Deprecated('Use contactsUpdatedDescriptor instead')
+const ContactsUpdated$json = {
+  '1': 'ContactsUpdated',
+  '2': [
+    {'1': 'upserted', '3': 1, '4': 3, '5': 11, '6': '.iperon.v1.Contact', '10': 'upserted'},
+    {'1': 'removedOprf', '3': 2, '4': 3, '5': 12, '10': 'removedOprf'},
+  ],
+};
+
+/// Descriptor for `ContactsUpdated`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List contactsUpdatedDescriptor =
+    $convert.base64Decode('Cg9Db250YWN0c1VwZGF0ZWQSLgoIdXBzZXJ0ZWQYASADKAsyEi5pcGVyb24udjEuQ29udGFjdF'
+        'IIdXBzZXJ0ZWQSIAoLcmVtb3ZlZE9wcmYYAiADKAxSC3JlbW92ZWRPcHJm');

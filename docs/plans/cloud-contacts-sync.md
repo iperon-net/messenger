@@ -14,6 +14,10 @@
 
 ## Принятые решения
 
+- **Гранулярность выбора — вариант A (зафиксировано).** `addByNumber` (ручное добавление) = **всегда** облачный. Контакты из телефонной книги = **всегда** локальные/приватные (как сейчас). Никакого per-contact/глобального тумблера на старте. Per-contact «в облако» для книжных — потенциальный Этап 4, если появится спрос.
+- **Источник облачного ребра — правило без enum (вариант A, зафиксировано).** «Пришло непустое `phoneNumber` ⇒ ребро облачное». Маркер в БД — наличие `phoneEnc`. Новый `Source CLOUD` не вводим (при решении 1A книжных облачных не существует — все облачные это `MANUAL`).
+- **`ContactsList` — полный список без пагинации (вариант A, зафиксировано).** Курсор в `Request` резервируем на будущее, не реализуем.
+- **Лимит облачных контактов на владельца — 5000, вынесен в конфиг (зафиксировано).** Проверка в `ServiceContacts.Upsert`; значение читается из настроек (`config.Contacts.CloudLimit`, `env-default:"5000"`), а не хардкодом.
 - **Две дорожки сосуществуют.** Обычные контакты (телефонная книга) — без изменений: OPRF-discovery, PII локально, на сервере только OPRF-ребро. Облачные — новый опциональный слой поверх того же ребра: дополнительно PII на сервере + синхронизация.
 - **Шифрование at-rest, НЕ E2E.** Ключ у сервера (`crypto.Encryptor`, `settings.GetEncryptorSecret()`). Защищает от кражи дампа БД, **не от оператора**: чтобы отдать контакт на другое устройство, сервер его расшифровывает. Это осознанная жертва ради простоты (растворяет проблему передачи ключа между устройствами — передавать нечего).
   - **UI-честность:** тумблер называть по свойству — «Синхронизировать между устройствами» / «Облачные контакты», **не** «приватные». Приватный — это OPRF-путь. (Telegram-модель как опция поверх Signal-модели.)
@@ -119,18 +123,25 @@ CONTACTS_UPDATED = 34;   // push-дельта на устройства влад
 
 1. **`models.ContactEdge`** — добавить `FirstNameEnc/LastNameEnc/PhoneEnc []byte` (см. выше).
 2. **`RepositoryContacts.Upsert`** (`internal/repositories/contacts.go`) — в `$set` класть непустые блобы `bson.Binary{Subtype: 0x00, Data: edge.FirstNameEnc}` и т.д. `replaceAllDelete` не трогаем (по `source=OPRF`; книжный облачный контакт переживёт replace-all, пока его `oprf` в наборе книги — приемлемо).
-3. **`RepositoryContacts.List(ctx, userID)`** — новый метод: `Find(bson.M{"userID": userID, "phoneEnc": bson.M{"$exists": true}})` → `[]ContactEdge` с блобами.
-4. **`ServiceContacts`** (`internal/services/contacts.go`):
-   - инжект `cryptoEncryptor CryptoEncryptorInterface` (как в `ServiceMyProfile`/`ServiceAuth`) + `publisher *ServicePublisher`.
-   - `Upsert`: для рёбер с PII — `Encrypt(ctx, salt, strings.NewReader(field), &buf, OctetStream)`, `salt = []byte(ownerUserID.Hex())` → `edge.*Enc = buf.Bytes()`. После записи — пуш дельты.
+3. **`RepositoryContacts.List(ctx, userID)`** — новый метод: `Find(bson.M{"userID": userID, "phoneEnc": bson.M{"$exists": true}})` → `[]ContactEdge` с блобами. Плюс `CountCloud(ctx, userID)` — `CountDocuments({userID, phoneEnc: {$exists: true}})` для проверки лимита.
+4. **Конфиг лимита** (`internal/settings/settings.go`): добавить в `Config` блок
+   ```go
+   Contacts struct {
+       CloudLimit int `yaml:"cloudLimit" env-default:"5000"`
+   } `yaml:"contacts"`
+   ```
+   + геттер `GetContactsCloudLimit() int` в `Settings` и в `SettingsInterface` сервиса контактов.
+5. **`ServiceContacts`** (`internal/services/contacts.go`):
+   - инжект `cryptoEncryptor CryptoEncryptorInterface` (как в `ServiceMyProfile`/`ServiceAuth`) + `publisher *ServicePublisher` + `settings` (для лимита).
+   - `Upsert`: **лимит** — перед записью облачных рёбер `repositoryContacts.CountCloud(userID) + len(новые облачные) > GetContactsCloudLimit()` → `codes.ResourceExhausted`. Для рёбер с PII — `Encrypt(ctx, salt, strings.NewReader(field), &buf, OctetStream)`, `salt = []byte(ownerUserID.Hex())` → `edge.*Enc = buf.Bytes()`. После записи — пуш дельты.
    - `List(ctx, ownerUserID) ([]Contact, error)`: repo.List → `Decrypt` каждого `*Enc` → открытые строки.
    - вспомогательные `encryptField`/`decryptField` (пусто ⇒ nil / "").
-5. **API-хендлеры** (`internal/api/v1.go`):
+6. **API-хендлеры** (`internal/api/v1.go`):
    - `CONTACTS_UPSERT`: из `item` вычитывать `GetFirstName/GetLastName/GetPhoneNumber` в `edge` (пусто — не облачный).
    - `CONTACTS_LIST` (новый `case`, шаблон — `MY_PROFILE` / `exchangeEncrypted`): `serviceContacts.List(session.UserID)` → `ContactsList_Response{Contacts: ...}`.
    - пуш `CONTACTS_UPDATED` через `publisher.PublishToUser(ctx, ownerUserID, CONTACTS_UPDATED, &v1.ContactsUpdated{...})` после `Upsert`/`Remove`.
-6. **`ResolvePending`** (бонус): контакт зарегистрировался → пуш `CONTACTS_UPDATED` затронутым владельцам (по reverse-index `contactUserID`), чтобы `contactUserID` прилетел без ре-синка. Можно отдельным этапом.
-7. **Тесты** — дополнить `internal/services/contacts_test.go` / `contacts_repo_test.go`: enc-roundtrip, List отдаёт только облачные, upsert без PII не создаёт облачное ребро.
+7. **`ResolvePending`** (в объёме Этапа 2): контакт зарегистрировался → пуш `CONTACTS_UPDATED` затронутым владельцам (по reverse-index `contactUserID`), чтобы `contactUserID` прилетел без ре-синка. Дельта для пуша — облачные рёбра этих владельцев с данным `oprf` (расшифровать PII перед пушем).
+8. **Тесты** — дополнить `internal/services/contacts_test.go` / `contacts_repo_test.go`: enc-roundtrip, List отдаёт только облачные, upsert без PII не создаёт облачное ребро, лимит `CloudLimit` отдаёт `ResourceExhausted`.
 
 ## Клиентская часть (Flutter)
 
@@ -145,19 +156,24 @@ CONTACTS_UPDATED = 34;   // push-дельта на устройства влад
 3. **Разметка групп** (`_emitPartitioned`): `cloud` теперь определяется не локальным `manualE164`, а тем, что контакт пришёл из `CONTACTS_LIST`/`CONTACTS_UPDATED` (server-truth). Держать `Set<String> _cloudE164` из серверных данных.
 4. **`repositories/contacts.dart`**: снимок остаётся для мгновенного показа; облачные писать с флагом-источником, чтобы `preload()` разложил их в `cloud` до ответа `CONTACTS_LIST`. (Добавить колонку `isCloud`/переиспользовать — миграция снимка.)
 5. **Одноразовый backfill:** при первом запуске после апдейта — если в старом `contacts_manual` что-то есть, ре-апсертнуть в облако с PII, затем очистить локальный ключ. Иначе ручные контакты «повиснут» только на старом устройстве.
-6. **UI:** тумблер «Синхронизировать» (per-contact для книжных и/или глобальный). Стартовый минимум: `addByNumber` = всегда облачный; книжные — локальные; отдельный пункт «в облако» — второй этап.
+6. **UI:** по решению 1A **тумблера нет** — `addByNumber` всегда облачный, книжные всегда локальные. Обработать новую ошибку лимита (`ResourceExhausted`) в `addByNumber` → `ContactAddResult.limitReached` с сообщением пользователю. (Per-contact «в облако» — Этап 4, если понадобится.)
 
 ## Порядок работ (этапы)
 
-- **Этап 1 — proto + генерация** (оба репа). Мерджим сообщения/типы, генерим, коммитим сгенерённое.
+- **Этап 1 — proto + генерация** (оба репа). ✅ **ГОТОВО.** В `contacts_v1.proto` добавлены `Contact`/`ContactsList`/`ContactsUpdated` + PII-поля в `ContactsUpsert.Item`; в `v1.proto` — `CONTACTS_LIST=33`/`CONTACTS_UPDATED=34`. Оба репа синхронизированы (файлы идентичны). Сервер: `protoc --go_out=. --go-grpc_out=.` (плагины в `./bin`+`~/go/bin`) → `internal/api/v1/*.pb.go`, `go build` проходит. Клиент: `protoc --dart_out=lib/protobuf -I. protos/{contacts_v1,v1}.proto` → `lib/protobuf/protos/*.dart`, `dart format` применён, analyze чистый (одно пре-существующее `info` про deprecated Timestamp.create). _Прим.: генерация без `grpc:`-опции создаёт лишний `v1.pbserver.dart` — удалять; grpc-стабы живут в `v1.pbgrpc.dart` и при изменении только enum не требуют регенерации._
 - **Этап 2 — сервер:** model + repo (`Upsert` enc, `List`) + service (enc/dec, инжекты) + хендлеры `CONTACTS_UPSERT`(PII)/`CONTACTS_LIST` + пуш `CONTACTS_UPDATED`. Тесты. Деплой на staging.
 - **Этап 3 — клиент:** выпилить `_manual`, `CONTACTS_LIST` на bootstrap, `api.on(CONTACTS_UPDATED)`, `addByNumber` с PII, снимок с `isCloud`, backfill. E2E на двух устройствах.
 - **Этап 4 (бонус):** `ResolvePending`-пуш; UI-тумблер «в облако» для книжных контактов.
 
+## Решённые вопросы
+
+- **Гранулярность выбора → A.** `addByNumber` = всегда облако; книжные всегда локальны; тумблера нет.
+- **Источник ребра → A.** Правило «есть PII ⇒ облачное», без `Source CLOUD`.
+- **`ContactsList` пагинация → A.** Полный список; курсор зарезервирован, не реализуем.
+- **Лимит → 5000, в конфиге** (`config.Contacts.CloudLimit`, `env-default:"5000"`), проверка в `ServiceContacts.Upsert` → `ResourceExhausted`.
+
+- **`ResolvePending`-пуш → Этап 2.** Приглашённый контакт «оживает» на устройствах владельца сразу после его регистрации (пуш `CONTACTS_UPDATED` по reverse-index).
+
 ## Открытые вопросы
 
-- **Гранулярность выбора:** только `addByNumber`=облако (минимум) или per-contact тумблер для книжных с самого начала? (Влияет на объём Этапа 3/UI.)
-- **Явный `Source CLOUD`** vs правило «PII ⇒ облачное»? Пока правило — меньше движения; если UI нужно различать «ручной» и «книжный в облаке», добавить enum.
-- **`ContactsList` пагинация:** сейчас полный список (300 контактов — норм). Курсор в `Request` — на будущее, не реализуем.
-- **Лимит облачных контактов** на владельца (антиабьюз хранилища)? Задать потолок в сервисе.
-- **`ResolvePending`-пуш** — Этап 4 или сразу в Этап 2?
+_(нет — все решены)_
