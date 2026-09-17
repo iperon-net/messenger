@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/widgets.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -67,10 +68,12 @@ class _CallGateState extends State<CallGate> {
       _snapshot = snapshot;
     }
 
-    // Входящий (`incoming`) НЕ открывает наш экран: в foreground его ведёт
-    // системная звонилка (CallKit/ConnectionService) с системным рингтоном, а не
-    // наш `CallView` (см. Calls.incomingRings / CallPush). Свой экран поднимаем
-    // только с момента принятия (`connecting`/`active`) или на исходящий.
+    // Входящий (`incoming`): на iOS открываем наш экран (`CallView` рисует
+    // «Принять/Отклонить») — CallKit в активном foreground баннер НЕ показывает,
+    // поэтому системной звонилке его не отдаём. На Android входящий в foreground
+    // ведёт системная звонилка (ConnectionService) с системным рингтоном, свой
+    // экран поднимаем только с принятия (`connecting`/`active`). Исходящий
+    // открываем всегда. См. Calls.incomingRings / CallPush._onIncomingRing.
     final active = _isActive(snapshot.status);
 
     // Авто-открытие только на переходе не-активный → активный (старт звонка).
@@ -95,9 +98,12 @@ class _CallGateState extends State<CallGate> {
   }
 
   // Активен ли звонок в смысле «ведём свой экран» (исходящий/соединение/разговор).
-  // `incoming` ведёт системная звонилка, `idle`/`ended` — звонка нет.
+  // `idle`/`ended` — звонка нет. `incoming` активен только на iOS: там свой экран
+  // (foreground CallKit-баннер не показывает); на Android входящий ведёт системная
+  // звонилка, до принятия экран не открываем.
   static bool _isActive(CallStatus status) => switch (status) {
-    CallStatus.idle || CallStatus.ended || CallStatus.incoming => false,
+    CallStatus.idle || CallStatus.ended => false,
+    CallStatus.incoming => Platform.isIOS,
     _ => true,
   };
 
@@ -112,8 +118,10 @@ class _CallGateState extends State<CallGate> {
       return;
     }
     final status = _calls.snapshot.status;
-    // incoming ведёт системная звонилка — свой экран не открываем (см. [_handle]).
-    if (status == CallStatus.idle || status == CallStatus.ended || status == CallStatus.incoming) {
+    // idle/ended — звонка нет. `incoming` открываем только на iOS (foreground-
+    // входящий, см. [_isActive]); на Android его ведёт системная звонилка —
+    // свой экран поднимаем лишь с принятия (connecting/active).
+    if (status == CallStatus.idle || status == CallStatus.ended || (status == CallStatus.incoming && !Platform.isIOS)) {
       _logger.info('call_gate: openCall skipped (status=$status)');
       return;
     }

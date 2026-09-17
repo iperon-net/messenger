@@ -308,6 +308,13 @@ class CallPush {
   /// для исходящего), extra донесёт собеседника/тип до accept/decline в [_onEvent].
   Future<void> _onIncomingRing(CallSnapshot snapshot) async {
     if (snapshot.callId.isEmpty) return;
+    // iOS: в активном foreground CallKit баннер не показывает (reportNewIncomingCall
+    // не поднимает системный UI), поэтому foreground-входящий ведём СВОИМ экраном —
+    // [CallGate] открывает `/call`, [CallView] рисует «Принять/Отклонить», приём/
+    // отбой идут прямо в Calls.accept/reject. CallKit остаётся для фона/локскрина/
+    // cold-start (VoIP-push → AppDelegate). Здесь на iOS ничего не делаем, иначе
+    // создали бы фантомный CallKit-звонок поверх нашего экрана.
+    if (Platform.isIOS) return;
     final name = await _resolveDisplayName(snapshot.remoteUserID);
     // Пока имя резолвилось, звонок мог завершиться/смениться (звонящий отменил,
     // приняли из push) — не поднимаем устаревший входящий.
