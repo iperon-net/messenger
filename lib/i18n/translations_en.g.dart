@@ -465,6 +465,9 @@ class Translations$sessionsPrivacyAndSecurity$en {
 	/// en: 'Who can call me'
 	String get whoCanCall => 'Who can call me';
 
+	/// en: 'Calls'
+	String get calls => 'Calls';
+
 	/// en: 'Everybody'
 	String get callsEverybody => 'Everybody';
 
@@ -1073,6 +1076,7 @@ extension on Translations {
 			'sessionsPrivacyAndSecurity.passcodeAndBiometric' => 'Passcode & Biometric',
 			'sessionsPrivacyAndSecurity.passcode' => 'Passcode',
 			'sessionsPrivacyAndSecurity.whoCanCall' => 'Who can call me',
+			'sessionsPrivacyAndSecurity.calls' => 'Calls',
 			'sessionsPrivacyAndSecurity.callsEverybody' => 'Everybody',
 			'sessionsPrivacyAndSecurity.callsContacts' => 'My contacts',
 			'screenMyProfile.myprofile' => 'My profile',

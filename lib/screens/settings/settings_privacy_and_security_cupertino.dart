@@ -38,34 +38,6 @@ class _SettingsPrivacyAndSecurityCupertino extends State<SettingsPrivacyAndSecur
         : context.t.sessionsPrivacyAndSecurity.callsContacts;
   }
 
-  /// Выбор аудитории звонков через action sheet. Значение применяет cubit
-  /// (оптимистично + запрос на сервер).
-  void _pickCallsAudience(BuildContext context, CallsPrivacyAudience current) {
-    final cubit = context.read<SettingsPrivacyAndSecurityCubit>();
-
-    showCupertinoModalPopup<void>(
-      context: context,
-      builder: (sheetContext) => CupertinoActionSheet(
-        title: Text(context.t.sessionsPrivacyAndSecurity.whoCanCall),
-        actions: [
-          for (final audience in CallsPrivacyAudience.values)
-            CupertinoActionSheetAction(
-              onPressed: () {
-                Navigator.of(sheetContext).pop();
-                cubit.setCallsAudience(audience);
-              },
-              child: Text(_audienceLabel(context, audience)),
-            ),
-        ],
-        cancelButton: CupertinoActionSheetAction(
-          isDefaultAction: true,
-          onPressed: () => Navigator.of(sheetContext).pop(),
-          child: Text(context.t.common.cancel),
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<SettingsPrivacyAndSecurityCubit, SettingsPrivacyAndSecurityState>(
@@ -102,6 +74,7 @@ class _SettingsPrivacyAndSecurityCupertino extends State<SettingsPrivacyAndSecur
                   ],
                 ),
                 CupertinoListSection.insetGrouped(
+                  header: Text(context.t.sessionsPrivacyAndSecurity.privacyAndSecurity),
                   backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
                   decoration: BoxDecoration(
                     color: ThemesCupertino.groupedCard.resolveFrom(context),
@@ -109,12 +82,38 @@ class _SettingsPrivacyAndSecurityCupertino extends State<SettingsPrivacyAndSecur
                   ),
                   children: [
                     CupertinoListTileIcon(
-                      title: Text(context.t.sessionsPrivacyAndSecurity.whoCanCall),
+                      title: Text(context.t.sessionsPrivacyAndSecurity.calls),
                       color: Color(0xFF007AFF),
                       icon: FontAwesomeIcons.phone,
-                      onTab: () async => _pickCallsAudience(context, state.callsAudience),
-                      additionalInfo: Text(_audienceLabel(context, state.callsAudience)),
-                      isTrailing: true,
+                      onTab: null,
+                      trailing: CupertinoMenuAnchor(
+                        builder: (context, controller, child) {
+                          return CupertinoButton(
+                            padding: EdgeInsets.zero,
+                            onPressed: () => controller.isOpen ? controller.close() : controller.open(),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.only(right: 8),
+                                  child: Text(
+                                    _audienceLabel(context, state.callsAudience),
+                                    style: TextStyle(color: CupertinoColors.secondaryLabel.resolveFrom(context)),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                        menuChildren: [
+                          for (final audience in CallsPrivacyAudience.values)
+                            CupertinoMenuItem(
+                              trailing: state.callsAudience == audience ? const Icon(CupertinoIcons.check_mark) : null,
+                              onPressed: () => context.read<SettingsPrivacyAndSecurityCubit>().setCallsAudience(audience),
+                              child: Text(_audienceLabel(context, audience)),
+                            ),
+                        ],
+                      ),
                     ),
                   ],
                 ),

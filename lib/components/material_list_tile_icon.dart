@@ -8,6 +8,7 @@ class MaterialListTileIcon extends StatelessWidget {
   final Widget title;
   final Widget? subtitle;
   final Widget? additionalInfo;
+  final Widget? trailing;
   final Color color;
   final FaIconData icon;
   final bool isTrailing;
@@ -17,6 +18,7 @@ class MaterialListTileIcon extends StatelessWidget {
     required this.title,
     this.subtitle,
     this.additionalInfo,
+    this.trailing,
     this.isTrailing = false,
     required this.color,
     required this.icon,
@@ -45,7 +47,7 @@ class MaterialListTileIcon extends StatelessWidget {
       onTap: onTab == null ? null : () => onTab!(),
       title: title,
       subtitle: subtitle,
-      trailing: trailing.isEmpty ? null : Row(mainAxisSize: MainAxisSize.min, spacing: 6, children: trailing),
+      trailing: this.trailing ?? (trailing.isEmpty ? null : Row(mainAxisSize: MainAxisSize.min, spacing: 6, children: trailing)),
     );
   }
 }

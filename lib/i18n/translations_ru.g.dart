@@ -284,6 +284,7 @@ class _Translations$sessionsPrivacyAndSecurity$ru extends Translations$sessionsP
 	@override String get passcodeAndBiometric => 'Код-пароль и биометрия';
 	@override String get passcode => 'Код-пароль';
 	@override String get whoCanCall => 'Кто может звонить';
+	@override String get calls => 'Звонки';
 	@override String get callsEverybody => 'Все';
 	@override String get callsContacts => 'Мои контакты';
 }
@@ -613,6 +614,7 @@ extension on TranslationsRu {
 			'sessionsPrivacyAndSecurity.passcodeAndBiometric' => 'Код-пароль и биометрия',
 			'sessionsPrivacyAndSecurity.passcode' => 'Код-пароль',
 			'sessionsPrivacyAndSecurity.whoCanCall' => 'Кто может звонить',
+			'sessionsPrivacyAndSecurity.calls' => 'Звонки',
 			'sessionsPrivacyAndSecurity.callsEverybody' => 'Все',
 			'sessionsPrivacyAndSecurity.callsContacts' => 'Мои контакты',
 			'screenMyProfile.myprofile' => 'Мой профиль',

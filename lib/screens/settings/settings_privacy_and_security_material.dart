@@ -7,6 +7,7 @@ import '../../components.dart';
 import '../../cubit.dart';
 import '../../di.dart';
 import '../../i18n/translations.g.dart';
+import '../../themes.dart';
 import '../../utils.dart';
 
 class SettingsPrivacyAndSecurityMaterial extends StatefulWidget {
@@ -23,29 +24,6 @@ class _SettingsPrivacyAndSecurityMaterial extends State<SettingsPrivacyAndSecuri
     return audience == CallsPrivacyAudience.everybody
         ? context.t.sessionsPrivacyAndSecurity.callsEverybody
         : context.t.sessionsPrivacyAndSecurity.callsContacts;
-  }
-
-  /// Выбор аудитории звонков через диалог. Значение применяет cubit.
-  void _pickCallsAudience(BuildContext context, CallsPrivacyAudience current) {
-    final cubit = context.read<SettingsPrivacyAndSecurityCubit>();
-
-    showDialog<void>(
-      context: context,
-      builder: (dialogContext) => SimpleDialog(
-        title: Text(context.t.sessionsPrivacyAndSecurity.whoCanCall),
-        children: [
-          for (final audience in CallsPrivacyAudience.values)
-            ListTile(
-              title: Text(_audienceLabel(context, audience)),
-              trailing: audience == current ? const FaIcon(FontAwesomeIcons.check, color: Color(0xFF007AFF), size: 18) : null,
-              onTap: () {
-                Navigator.of(dialogContext).pop();
-                cubit.setCallsAudience(audience);
-              },
-            ),
-        ],
-      ),
-    );
   }
 
   @override
@@ -70,15 +48,26 @@ class _SettingsPrivacyAndSecurityMaterial extends State<SettingsPrivacyAndSecuri
                     isTrailing: true,
                   ),
                 ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 8, 24, 8),
+                  child: Text(
+                    context.t.sessionsPrivacyAndSecurity.privacyAndSecurity,
+                    style: TextStyle(fontSize: AppFontSizes.caption, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                  ),
+                ),
                 Card(
                   margin: const EdgeInsets.symmetric(horizontal: 12),
                   child: MaterialListTileIcon(
-                    title: Text(context.t.sessionsPrivacyAndSecurity.whoCanCall),
-                    additionalInfo: Text(_audienceLabel(context, state.callsAudience)),
+                    title: Text(context.t.sessionsPrivacyAndSecurity.calls),
                     color: const Color(0xFF007AFF),
                     icon: FontAwesomeIcons.phone,
-                    onTab: () async => _pickCallsAudience(context, state.callsAudience),
-                    isTrailing: true,
+                    onTab: null,
+                    trailing: MaterialInlineDropdown<CallsPrivacyAudience>(
+                      value: state.callsAudience,
+                      items: CallsPrivacyAudience.values,
+                      labelBuilder: (audience) => _audienceLabel(context, audience),
+                      onSelected: (audience) => context.read<SettingsPrivacyAndSecurityCubit>().setCallsAudience(audience),
+                    ),
                   ),
                 ),
               ],

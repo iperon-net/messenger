@@ -5,6 +5,7 @@ import 'package:flutter_screen_lock/flutter_screen_lock.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
 
+import '../../components.dart';
 import '../../i18n/translations.g.dart';
 import '../../cubit.dart';
 import '../../themes.dart';
@@ -100,23 +101,11 @@ class _SettingsPasscodeMaterial extends State<SettingsPasscodeMaterial> {
                       children: [
                         ListTile(
                           title: Text(context.t.screenSettingsPasscode.autoLock),
-                          trailing: PopupMenuButton<int>(
-                            initialValue: state.autoLockSeconds,
+                          trailing: MaterialInlineDropdown<int>(
+                            value: state.autoLockSeconds,
+                            items: const [0, 60, 300, 3600, 18000],
+                            labelBuilder: (seconds) => _autoLockLabel(context, seconds),
                             onSelected: (seconds) async => await context.read<SettingsPasscodeCubit>().setAutoLock(seconds: seconds),
-                            itemBuilder: (context) => [
-                              for (final seconds in const [0, 60, 300, 3600, 18000])
-                                PopupMenuItem<int>(value: seconds, child: Text(_autoLockLabel(context, seconds))),
-                            ],
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  _autoLockLabel(context, state.autoLockSeconds),
-                                  style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
-                                ),
-                                const Icon(Icons.arrow_drop_down),
-                              ],
-                            ),
                           ),
                         ),
                         if (state.isBiometricAvailable)

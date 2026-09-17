@@ -5,6 +5,7 @@ class CupertinoListTileIcon extends StatelessWidget {
   final Widget title;
   final Widget? subtitle;
   final Widget? additionalInfo;
+  final Widget? trailing;
   final Color color;
   final FaIconData icon;
   final bool isTrailing;
@@ -14,6 +15,7 @@ class CupertinoListTileIcon extends StatelessWidget {
     required this.title,
     this.subtitle,
     this.additionalInfo,
+    this.trailing,
     this.isTrailing = false,
     required this.color,
     required this.icon,
@@ -34,7 +36,7 @@ class CupertinoListTileIcon extends StatelessWidget {
       onTap: onTab,
       title: title,
       subtitle: subtitle,
-      trailing: isTrailing ? CupertinoListTileChevron() : null,
+      trailing: trailing ?? (isTrailing ? CupertinoListTileChevron() : null),
       additionalInfo: additionalInfo,
     );
   }
