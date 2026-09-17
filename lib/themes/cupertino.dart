@@ -79,7 +79,7 @@ class ThemesCupertino {
     final primary = CupertinoDynamicColor.resolve(CupertinoTheme.of(context).primaryColor, context);
     const nearBlack = Color(0xFF1C1C1E);
     const nearWhite = Color(0xFFF2F2F7);
-    return isDark ? Color.lerp(primary, nearBlack, 0.5)! : Color.lerp(primary, nearWhite, 0.7)!;
+    return isDark ? Color.lerp(primary, nearBlack, 0.72)! : Color.lerp(primary, nearWhite, 0.85)!;
   }
 
   /// Общая конфигурация клавиатуры `ScreenLock`: фон кнопок — тот же
