@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io' show Platform;
 
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/cupertino.dart' show CupertinoIcons;
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
@@ -89,6 +90,30 @@ class CallView extends StatefulWidget {
 }
 
 class _CallViewState extends State<CallView> {
+  // Рингтон входящего. Играет ТОЛЬКО пока звонок в статусе `incoming` и только
+  // там, где входящий ведёт наш экран (iOS-foreground — см. CallGate); на Android
+  // и на фоне/локскрине/cold-start iOS входящий ведёт системная звонилка и звонит
+  // сама. Зациклённый; гасится при уходе из `incoming` (принятие/отбой) и в
+  // [dispose]. Ошибки проигрывания глушим — рингтон косметика, звонок из-за него
+  // падать не должен.
+  AudioPlayer? _ringtone;
+
+  // Аудио-контекст рингтона. На iOS категория `ambient` — её ГЛУШИТ аппаратный
+  // переключатель «без звука» (в отличие от `playback`), т.е. рингтон уважает
+  // беззвучный режим. `mixWithOthers` — не выбиваем чужое аудио. Android: usage
+  // `notificationRingtone` следует громкости/режиму звонка (в текущем потоке экран
+  // входящего показывается лишь на iOS, но контекст задаём корректный).
+  static final AudioContext _ringtoneAudioContext = AudioContext(
+    iOS: AudioContextIOS(category: AVAudioSessionCategory.ambient, options: const {AVAudioSessionOptions.mixWithOthers}),
+    android: const AudioContextAndroid(
+      isSpeakerphoneOn: false,
+      stayAwake: false,
+      contentType: AndroidContentType.sonification,
+      usageType: AndroidUsageType.notificationRingtone,
+      audioFocus: AndroidAudioFocus.gainTransientMayDuck,
+    ),
+  );
+
   @override
   void initState() {
     super.initState();
@@ -96,19 +121,62 @@ class _CallViewState extends State<CallView> {
     // не влезала и кнопка отбоя уезжала за пределы экрана. Возвращаем свободную
     // ориентацию при уходе с экрана.
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+    // Экран мог открыться сразу на входящем (CallGate пушит `/call` по `incoming`).
+    // Слушатель ниже ловит только СМЕНЫ статуса, поэтому стартовый `incoming`
+    // заводим здесь, после первого кадра (нужен доступ к CallCubit из контекста).
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      if (context.read<CallCubit>().state.callStatus == CallStatus.incoming) {
+        unawaited(_startRingtone());
+      }
+    });
   }
 
   @override
   void dispose() {
+    unawaited(_stopRingtone());
     SystemChrome.setPreferredOrientations(DeviceOrientation.values);
     super.dispose();
+  }
+
+  Future<void> _startRingtone() async {
+    if (!Platform.isIOS || _ringtone != null) return;
+    try {
+      final player = _ringtone = AudioPlayer();
+      await player.setAudioContext(_ringtoneAudioContext);
+      await player.setReleaseMode(ReleaseMode.loop);
+      await player.setVolume(0.9);
+      await player.play(AssetSource('audio/ringtone.wav'));
+    } catch (_) {
+      // Рингтон косметика — проигрывание не критично.
+    }
+  }
+
+  Future<void> _stopRingtone() async {
+    final player = _ringtone;
+    _ringtone = null;
+    if (player == null) return;
+    try {
+      await player.stop();
+      await player.dispose();
+    } catch (_) {}
   }
 
   @override
   Widget build(BuildContext context) {
     final darkMode = context.select((CommonCubit c) => c.state.settingsDevice.darkMode);
 
-    return BlocBuilder<CallCubit, CallState>(
+    return BlocConsumer<CallCubit, CallState>(
+      // Рингтон завязан на статус: заводим на входящем, гасим при любом другом
+      // (принятие → connecting, отбой → ended). Реагируем только на смену статуса.
+      listenWhen: (prev, curr) => prev.callStatus != curr.callStatus,
+      listener: (context, state) {
+        if (state.callStatus == CallStatus.incoming) {
+          unawaited(_startRingtone());
+        } else {
+          unawaited(_stopRingtone());
+        }
+      },
       builder: (context, state) {
         final cubit = context.read<CallCubit>();
         final video = state.video;
