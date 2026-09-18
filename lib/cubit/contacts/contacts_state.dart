@@ -23,7 +23,20 @@ class ContactItem with ContactItemMappable {
   /// userID зарегистрированного пользователя (сырые байты ObjectID) или `null`.
   final Uint8List? userID;
 
-  const ContactItem({required this.displayName, required this.phone, required this.phoneE164, this.userID});
+  /// Присутствие (заполняется PRESENCE-запросом, см. ContactsCubit): сейчас в
+  /// сети и время последнего онлайна. `lastSeen == null` — статус ещё неизвестен
+  /// (пока не пришёл ответ) либо пользователь никогда не подключался.
+  final bool online;
+  final DateTime? lastSeen;
+
+  const ContactItem({
+    required this.displayName,
+    required this.phone,
+    required this.phoneE164,
+    this.userID,
+    this.online = false,
+    this.lastSeen,
+  });
 
   bool get isRegistered => userID != null;
 }

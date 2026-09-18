@@ -207,8 +207,7 @@ class _ContactsCupertinoState extends State<ContactsCupertino> {
     final tile = CupertinoListTile(
       leading: UserAvatar(userID: item.userID, placeholderName: hex),
       title: Text(item.displayName),
-      // TODO: заменить плейсхолдер на реальную дату последнего визита из данных о присутствии.
-      subtitle: _status(context, lastSeen: DateTime.now().subtract(const Duration(days: 1, hours: 2))),
+      subtitle: _status(context, online: item.online, lastSeen: item.lastSeen),
       trailing: const CupertinoListTileChevron(),
       onTap: () => context.push('/profile/$hex'),
     );

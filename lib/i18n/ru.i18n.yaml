@@ -196,8 +196,6 @@
   "addFirstName": "Имя"
   "addLastName": "Фамилия"
   "add": "Добавить"
-  "addedRegistered": "Контакт добавлен"
-  "addedPending": "Добавлено. Пользователя пока нет в Iperon — вы сможете связаться, когда он зарегистрируется."
   "addInvalidNumber": "Неверный номер телефона"
   "addFailed": "Не удалось добавить контакт"
   "validationCloudLimitReached": "Достигнут лимит облачных контактов"

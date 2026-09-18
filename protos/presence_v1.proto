@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package iperon.v1;
+option go_package = "internal/api/v1";
+
+// Присутствие (online / last-seen) для списка контактов. Транспорт — pull по
+// стриму (batch по userID контактов), симметрично Profile. Видимость каждого
+// целевого пользователя гейтится звонковой приватностью (ServiceContacts.CanCall
+// со стороны цели: её audience + ребро контакта) — отдельной настройки last-seen
+// на этом этапе нет.
+message Presence {
+  message Request {
+    // userID контактов (сырые байты ObjectID), по которым спрашиваем статус.
+    repeated bytes userIDs = 1;
+  }
+
+  message Item {
+    bytes userID = 1;
+    // Сейчас онлайн (открыт персистентный Stream = приложение в foreground).
+    bool online = 2;
+    // Unix-время (секунды) последнего онлайна; 0 — никогда не подключался.
+    int64 lastSeen = 3;
+  }
+
+  message Response {
+    // Только пользователи, чью видимость пропустил гейт приватности; остальные
+    // просто отсутствуют в ответе.
+    repeated Item items = 1;
+  }
+}

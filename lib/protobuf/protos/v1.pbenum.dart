@@ -56,6 +56,10 @@ class MessageType extends $pb.ProtobufEnum {
   static const MessageType CONTACTS_LIST = MessageType._(33, _omitEnumNames ? '' : 'CONTACTS_LIST');
   static const MessageType CONTACTS_UPDATED = MessageType._(34, _omitEnumNames ? '' : 'CONTACTS_UPDATED');
 
+  /// Присутствие (online / last-seen) для списка контактов — pull batch по userID
+  /// (см. presence_v1.proto). Видимость гейтится звонковой приватностью.
+  static const MessageType PRESENCE = MessageType._(35, _omitEnumNames ? '' : 'PRESENCE');
+
   static const $core.List<MessageType> values = <MessageType>[
     HEALTHCHECK,
     META_DATA_INFO,
@@ -88,9 +92,10 @@ class MessageType extends $pb.ProtobufEnum {
     PRIVACY_SETTINGS_UPDATE,
     CONTACTS_LIST,
     CONTACTS_UPDATED,
+    PRESENCE,
   ];
 
-  static final $core.List<MessageType?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 34);
+  static final $core.List<MessageType?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 35);
   static MessageType? valueOf($core.int value) => value < 0 || value >= _byValue.length ? null : _byValue[value];
 
   const MessageType._(super.value, super.name);

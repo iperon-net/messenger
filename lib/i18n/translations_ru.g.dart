@@ -383,8 +383,6 @@ class _Translations$screenContacts$ru extends Translations$screenContacts$en {
 	@override String get addFirstName => 'Имя';
 	@override String get addLastName => 'Фамилия';
 	@override String get add => 'Добавить';
-	@override String get addedRegistered => 'Контакт добавлен';
-	@override String get addedPending => 'Добавлено. Пользователя пока нет в Iperon — вы сможете связаться, когда он зарегистрируется.';
 	@override String get addInvalidNumber => 'Неверный номер телефона';
 	@override String get addFailed => 'Не удалось добавить контакт';
 	@override String get validationCloudLimitReached => 'Достигнут лимит облачных контактов';
@@ -687,8 +685,6 @@ extension on TranslationsRu {
 			'screenContacts.addFirstName' => 'Имя',
 			'screenContacts.addLastName' => 'Фамилия',
 			'screenContacts.add' => 'Добавить',
-			'screenContacts.addedRegistered' => 'Контакт добавлен',
-			'screenContacts.addedPending' => 'Добавлено. Пользователя пока нет в Iperon — вы сможете связаться, когда он зарегистрируется.',
 			'screenContacts.addInvalidNumber' => 'Неверный номер телефона',
 			'screenContacts.addFailed' => 'Не удалось добавить контакт',
 			'screenContacts.validationCloudLimitReached' => 'Достигнут лимит облачных контактов',

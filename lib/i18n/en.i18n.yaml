@@ -196,8 +196,6 @@
   "addFirstName": "First name"
   "addLastName": "Last name"
   "add": "Add"
-  "addedRegistered": "Contact added"
-  "addedPending": "Added. They aren’t on Iperon yet — you’ll be able to reach them once they join."
   "addInvalidNumber": "Invalid phone number"
   "addFailed": "Couldn’t add contact"
   "validationCloudLimitReached": "Cloud contacts limit reached"

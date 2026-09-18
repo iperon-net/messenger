@@ -41,6 +41,19 @@ class ContactItemMapper extends ClassMapperBase<ContactItem> {
     _$userID,
     opt: true,
   );
+  static bool _$online(ContactItem v) => v.online;
+  static const Field<ContactItem, bool> _f$online = Field(
+    'online',
+    _$online,
+    opt: true,
+    def: false,
+  );
+  static DateTime? _$lastSeen(ContactItem v) => v.lastSeen;
+  static const Field<ContactItem, DateTime> _f$lastSeen = Field(
+    'lastSeen',
+    _$lastSeen,
+    opt: true,
+  );
 
   @override
   final MappableFields<ContactItem> fields = const {
@@ -48,6 +61,8 @@ class ContactItemMapper extends ClassMapperBase<ContactItem> {
     #phone: _f$phone,
     #phoneE164: _f$phoneE164,
     #userID: _f$userID,
+    #online: _f$online,
+    #lastSeen: _f$lastSeen,
   };
 
   static ContactItem _instantiate(DecodingData data) {
@@ -56,6 +71,8 @@ class ContactItemMapper extends ClassMapperBase<ContactItem> {
       phone: data.dec(_f$phone),
       phoneE164: data.dec(_f$phoneE164),
       userID: data.dec(_f$userID),
+      online: data.dec(_f$online),
+      lastSeen: data.dec(_f$lastSeen),
     );
   }
 
@@ -124,6 +141,8 @@ abstract class ContactItemCopyWith<$R, $In extends ContactItem, $Out>
     String? phone,
     String? phoneE164,
     Uint8List? userID,
+    bool? online,
+    DateTime? lastSeen,
   });
   ContactItemCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
@@ -142,12 +161,16 @@ class _ContactItemCopyWithImpl<$R, $Out>
     String? phone,
     String? phoneE164,
     Object? userID = $none,
+    bool? online,
+    Object? lastSeen = $none,
   }) => $apply(
     FieldCopyWithData({
       if (displayName != null) #displayName: displayName,
       if (phone != null) #phone: phone,
       if (phoneE164 != null) #phoneE164: phoneE164,
       if (userID != $none) #userID: userID,
+      if (online != null) #online: online,
+      if (lastSeen != $none) #lastSeen: lastSeen,
     }),
   );
   @override
@@ -156,6 +179,8 @@ class _ContactItemCopyWithImpl<$R, $Out>
     phone: data.get(#phone, or: $value.phone),
     phoneE164: data.get(#phoneE164, or: $value.phoneE164),
     userID: data.get(#userID, or: $value.userID),
+    online: data.get(#online, or: $value.online),
+    lastSeen: data.get(#lastSeen, or: $value.lastSeen),
   );
 
   @override

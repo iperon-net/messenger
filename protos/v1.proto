@@ -47,6 +47,9 @@ enum MessageType {
   // contacts_v1.proto (Contact / ContactsList / ContactsUpdated).
   CONTACTS_LIST = 33;
   CONTACTS_UPDATED = 34;
+  // Присутствие (online / last-seen) для списка контактов — pull batch по userID
+  // (см. presence_v1.proto). Видимость гейтится звонковой приватностью.
+  PRESENCE = 35;
 }
 
 service Iperon {

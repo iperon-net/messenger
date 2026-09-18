@@ -78,6 +78,13 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
     // Дельты облачных контактов с сервера (add/update/remove/резолв) на все
     // устройства владельца — держим локальную книгу облачных в синхроне.
     _updatedSub = api.on(MessageType.CONTACTS_UPDATED).listen(_onCloudUpdated);
+    // Присутствие (online/last-seen) видимых контактов. Два источника:
+    //   • push (реактивно) — сервер шлёт PRESENCE при смене статуса контакта;
+    //   • pull (страховка) — периодический тик + вход на вкладку / pull-to-refresh,
+    //     на случай пропущенного push (свёрнутое приложение) и «залипшего» онлайна
+    //     при жёстком обрыве контакта (там push не приходит, статус тухнет по TTL).
+    _presenceSub = api.on(MessageType.PRESENCE).listen(_onPresencePush);
+    _presenceTimer = Timer.periodic(_presenceRefreshInterval, (_) => refreshPresence());
   }
 
   final logger = getIt.get<Logger>();
@@ -127,6 +134,14 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
   // Подписка на push-дельты облачных контактов.
   StreamSubscription<Uint8List>? _updatedSub;
 
+  // Присутствие видимых контактов, keyed by userID (hex). Живёт только в памяти
+  // (не персистим: online — эфемерно, после рестарта показал бы «залипший»
+  // онлайн). Наполняется [refreshPresence], сливается в элементы в [_emitAll].
+  final Map<String, ({bool online, DateTime? lastSeen})> _presence = {};
+  Timer? _presenceTimer;
+  StreamSubscription<Uint8List>? _presenceSub;
+  static const Duration _presenceRefreshInterval = Duration(seconds: 60);
+
   /// Старт на уровне shell: мгновенный показ снимка из БД, затем облачная
   /// синхронизация с сервером, тихая фоновая книжная дозагрузка (если доступ уже
   /// выдан) и разовый перенос legacy-ручных контактов в облако.
@@ -134,6 +149,68 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
     await preload();
     await Future.wait([_fetchCloud(), discoverIfAlreadyGranted()]);
     await _backfillLegacyManual();
+    await refreshPresence();
+  }
+
+  /// Тянет присутствие (online/last-seen) всех зарегистрированных контактов
+  /// (книжных + облачных) одним batch-запросом PRESENCE и обновляет списки.
+  /// Видимость гейтится на сервере звонковой приватностью цели, поэтому в ответе
+  /// приходят только доступные — недоступные остаются без статуса. Ошибка сети не
+  /// критична: остаёмся на прошлых данных.
+  Future<void> refreshPresence() async {
+    final ids = <Uint8List>[];
+    final seen = <String>{};
+    void add(Uint8List? userID) {
+      if (userID == null) return;
+      if (seen.add(utils.bytesToHex(userID))) ids.add(userID);
+    }
+
+    for (final item in _book) {
+      add(item.userID);
+    }
+    for (final contact in _cloud.values) {
+      add(contact.userID);
+    }
+    if (ids.isEmpty) return;
+
+    final (status, payload) = await api.unaryEncodedWithResponse(MessageType.PRESENCE, Presence_Request(userIDs: ids).writeToBuffer());
+    if (isClosed || status.status != APIStatus.success || payload == null) return;
+
+    final response = Presence_Response.fromBuffer(payload);
+    _applyPresenceItems(response.items);
+    if (!isClosed) _emitAll();
+  }
+
+  /// Реактивный push: сервер прислал смену статуса контакта (PRESENCE с одним
+  /// item при переходе online/offline). Сливаем и сразу перерисовываем.
+  void _onPresencePush(Uint8List payload) {
+    if (isClosed) return;
+    final response = Presence_Response.fromBuffer(payload);
+    if (response.items.isEmpty) return;
+    _applyPresenceItems(response.items);
+    _emitAll();
+  }
+
+  /// Кладёт присутствие из PRESENCE-items в [_presence] (общий код pull и push).
+  void _applyPresenceItems(List<Presence_Item> items) {
+    for (final item in items) {
+      final seconds = item.lastSeen.toInt();
+      _presence[utils.bytesToHex(Uint8List.fromList(item.userID))] = (
+        online: item.online,
+        // 0 — никогда не подключался: статус неизвестен, пусть UI покажет
+        // «был(а) недавно», а не эпоху 1970.
+        lastSeen: seconds > 0 ? DateTime.fromMillisecondsSinceEpoch(seconds * 1000) : null,
+      );
+    }
+  }
+
+  /// Дополняет контакт присутствием из [_presence] (если известно).
+  ContactItem _withPresence(ContactItem item) {
+    final userID = item.userID;
+    if (userID == null) return item;
+    final presence = _presence[utils.bytesToHex(userID)];
+    if (presence == null) return item;
+    return item.copyWith(online: presence.online, lastSeen: presence.lastSeen);
   }
 
   /// Фаза A — мгновенный показ полного снимка из БД, без разрешений и без сети.
@@ -208,6 +285,8 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
     _bookChangeDebounce?.cancel();
     _bookChangeSub?.cancel();
     _updatedSub?.cancel();
+    _presenceTimer?.cancel();
+    _presenceSub?.cancel();
     return super.close();
   }
 
@@ -324,12 +403,17 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
 
   /// Запускает discover только если он ещё ни разу не стартовал в этой сессии —
   /// вызывается при первом построении экрана, чтобы не дублировать фоновую дозагрузку.
-  Future<void> discoverOnFirstView() => _discoverStarted ? Future.value() : discover();
+  Future<void> discoverOnFirstView() {
+    // Открытие вкладки — хороший момент обновить присутствие, не дожидаясь тика.
+    unawaited(refreshPresence());
+    return _discoverStarted ? Future.value() : discover();
+  }
 
   /// Повторный запуск поиска (pull-to-refresh / после выдачи разрешения) —
-  /// форсирует OPRF даже при неизменной книге; заодно пересинхронизирует облачные.
+  /// форсирует OPRF даже при неизменной книге; заодно пересинхронизирует облачные
+  /// и присутствие.
   Future<void> refresh() async {
-    await Future.wait([discover(force: true), _fetchCloud()]);
+    await Future.wait([discover(force: true), _fetchCloud(), refreshPresence()]);
   }
 
   /// Кнопка «Разрешить доступ» на экране-заглушке. Пробуем штатный системный
@@ -726,12 +810,17 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
 
     for (final item in _book) {
       if (cloudKeys.contains(item.phoneE164)) continue;
-      (item.userID != null ? registered : invitable).add(item);
+      // Присутствие только у зарегистрированных (есть userID); приглашаемым не нужно.
+      if (item.userID != null) {
+        registered.add(_withPresence(item));
+      } else {
+        invitable.add(item);
+      }
     }
 
     final cloud = [
       for (final contact in _cloud.values)
-        ContactItem(displayName: contact.displayName, phone: contact.phone, phoneE164: contact.e164, userID: contact.userID),
+        _withPresence(ContactItem(displayName: contact.displayName, phone: contact.phone, phoneE164: contact.e164, userID: contact.userID)),
     ];
 
     int byName(ContactItem a, ContactItem b) => a.displayName.toLowerCase().compareTo(b.displayName.toLowerCase());

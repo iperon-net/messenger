@@ -708,12 +708,6 @@ class Translations$screenContacts$en {
 	/// en: 'Add'
 	String get add => 'Add';
 
-	/// en: 'Contact added'
-	String get addedRegistered => 'Contact added';
-
-	/// en: 'Added. They aren’t on Iperon yet — you’ll be able to reach them once they join.'
-	String get addedPending => 'Added. They aren’t on Iperon yet — you’ll be able to reach them once they join.';
-
 	/// en: 'Invalid phone number'
 	String get addInvalidNumber => 'Invalid phone number';
 
@@ -1151,8 +1145,6 @@ extension on Translations {
 			'screenContacts.addFirstName' => 'First name',
 			'screenContacts.addLastName' => 'Last name',
 			'screenContacts.add' => 'Add',
-			'screenContacts.addedRegistered' => 'Contact added',
-			'screenContacts.addedPending' => 'Added. They aren’t on Iperon yet — you’ll be able to reach them once they join.',
 			'screenContacts.addInvalidNumber' => 'Invalid phone number',
 			'screenContacts.addFailed' => 'Couldn’t add contact',
 			'screenContacts.validationCloudLimitReached' => 'Cloud contacts limit reached',
