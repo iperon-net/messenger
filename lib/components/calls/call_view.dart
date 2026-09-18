@@ -301,18 +301,18 @@ class _Overlay extends StatelessWidget {
                   _QualityIndicator(quality: state.quality, dim: palette.dim),
                 ],
                 // Микрофон собеседника выключен — значок ниже статуса связи.
-                if (active && state.remoteMicMuted) ...[const SizedBox(height: 8), _RemoteMicIndicator(dim: palette.dim)],
+                // if (active && state.remoteMicMuted) ...[const SizedBox(height: 8), _RemoteMicIndicator(dim: palette.dim)],
                 // Диагностика соединения прямо на экране (этапы сигналинга/ICE/
                 // медиа) — без выгрузки логов с устройства.
-                if (state.debug.isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 12),
-                    child: Text(
-                      state.debug,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: palette.dim, fontSize: 11),
-                    ),
-                  ),
+                // if (state.debug.isNotEmpty)
+                //   Padding(
+                //     padding: const EdgeInsets.only(top: 12),
+                //     child: Text(
+                //       state.debug,
+                //       textAlign: TextAlign.center,
+                //       style: TextStyle(color: palette.dim, fontSize: 11),
+                //     ),
+                //   ),
               ],
             ),
             _controls(context, cubit, state),
@@ -542,23 +542,23 @@ class _QualityIndicator extends StatelessWidget {
 
 /// Значок «микрофон собеседника выключен»: перечёркнутый микрофон + подпись.
 /// Показывается под индикатором качества связи на активном звонке.
-class _RemoteMicIndicator extends StatelessWidget {
-  final Color dim;
-
-  const _RemoteMicIndicator({required this.dim});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(CupertinoIcons.mic_slash_fill, color: dim, size: 14),
-        const SizedBox(width: 6),
-        Text(context.t.screenCall.remoteMicMuted, style: TextStyle(color: dim, fontSize: 12)),
-      ],
-    );
-  }
-}
+// class _RemoteMicIndicator extends StatelessWidget {
+//   final Color dim;
+//
+//   const _RemoteMicIndicator({required this.dim});
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     return Row(
+//       mainAxisSize: MainAxisSize.min,
+//       children: [
+//         Icon(CupertinoIcons.mic_slash_fill, color: dim, size: 14),
+//         const SizedBox(width: 6),
+//         Text(context.t.screenCall.remoteMicMuted, style: TextStyle(color: dim, fontSize: 12)),
+//       ],
+//     );
+//   }
+// }
 
 /// Аватар собеседника на экране аудиозвонка: скачанная картинка либо
 /// BoringAvatar-плейсхолдер (сид — hex userID), как на экране профиля.
