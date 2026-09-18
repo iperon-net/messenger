@@ -279,6 +279,16 @@ class Repositories {
       }),
     );
 
+    migrations.add(
+      SqliteMigration(5, (tx) async {
+        // Кэш last-seen контакта (epoch-millis). Свойство пользователя (userID),
+        // поэтому живёт в profiles рядом с avatarCdnID, а не в contacts (там строки
+        // пересоздаются на каждом OPRF-проходе). Нужен для показа даты последнего
+        // визита на cold-start / без сети, пока не пришёл снимок присутствия.
+        await tx.execute("ALTER TABLE profiles ADD COLUMN lastSeenAt INTEGER NULL;");
+      }),
+    );
+
     if (settings.isDeleteDatabase) {
       logger.warning("Deleting the database, flag set IS_DELETE_DATABASE: 1");
 

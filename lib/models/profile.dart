@@ -22,6 +22,11 @@ class Profile with ProfileMappable {
   /// достаёт уже расшифрованный файл из media-кэша без обращения к сети.
   final List<int>? avatarCdnID;
 
+  /// Кэш last-seen (последний уход в оффлайн). Для показа даты последнего визита
+  /// на cold-start / без сети, пока не пришёл снимок присутствия. `null`, если
+  /// ещё не знаем. online здесь НЕ храним — он эфемерный.
+  final DateTime? lastSeenAt;
+
   const Profile({
     this.userID = const [],
     this.username = "",
@@ -31,5 +36,6 @@ class Profile with ProfileMappable {
     this.aboutMe = "",
     this.phoneNumber = "",
     this.avatarCdnID,
+    this.lastSeenAt,
   });
 }

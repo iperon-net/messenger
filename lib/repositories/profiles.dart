@@ -11,11 +11,45 @@ class Profiles {
 
   Future<models.Profile> getByUserID({required List<int> userID}) async {
     final rows = await db.execute(
-      "SELECT userID, username, fistName, lastName, birthDate, aboutMe, phoneNumber, avatarCdnID FROM profiles WHERE userID = ?;",
+      "SELECT userID, username, fistName, lastName, birthDate, aboutMe, phoneNumber, avatarCdnID, lastSeenAt FROM profiles WHERE userID = ?;",
       [userID],
     );
     if (rows.isEmpty) return models.Profile();
     return models.ProfileMapper.fromMap(rows.first);
+  }
+
+  /// Кэш last-seen по набору userID для мгновенного показа на cold-start (батч,
+  /// один запрос). Возвращает карту `userID(hex) -> DateTime` только по тем, у
+  /// кого дата известна. [toHex] — Utils.bytesToHex (ключ, совместимый с кубитом).
+  Future<Map<String, DateTime>> getLastSeenByUserIDs({required List<List<int>> userIDs, required String Function(List<int>) toHex}) async {
+    if (userIDs.isEmpty) return {};
+    final placeholders = List.filled(userIDs.length, '?').join(',');
+    final rows = await db.execute(
+      "SELECT userID, lastSeenAt FROM profiles WHERE lastSeenAt IS NOT NULL AND userID IN ($placeholders);",
+      userIDs,
+    );
+    final result = <String, DateTime>{};
+    for (final row in rows) {
+      final id = row["userID"] as List<int>?;
+      final ms = row["lastSeenAt"] as int?;
+      if (id == null || ms == null) continue;
+      result[toHex(id)] = DateTime.fromMillisecondsSinceEpoch(ms);
+    }
+    return result;
+  }
+
+  /// Пишет last-seen пользователя (epoch-millis) — upsert по userID. Обновления
+  /// присутствия приходят из ContactsCubit при получении PRESENCE.
+  Future<void> updateLastSeen({required List<int> userID, required DateTime lastSeen}) async {
+    await db.execute(
+      """
+      INSERT INTO profiles (userID, lastSeenAt)
+      VALUES(?, ?)
+      ON CONFLICT(userID) DO UPDATE SET
+        lastSeenAt = excluded.lastSeenAt;
+      """,
+      [userID, lastSeen.millisecondsSinceEpoch],
+    );
   }
 
   /// Upsert всех текстовых полей профиля разом (кроме аватара — он привязывается

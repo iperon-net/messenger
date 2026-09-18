@@ -193,13 +193,21 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
   /// Кладёт присутствие из PRESENCE-items в [_presence] (общий код pull и push).
   void _applyPresenceItems(List<Presence_Item> items) {
     for (final item in items) {
+      final userID = Uint8List.fromList(item.userID);
       final seconds = item.lastSeen.toInt();
-      _presence[utils.bytesToHex(Uint8List.fromList(item.userID))] = (
-        online: item.online,
-        // 0 — никогда не подключался: статус неизвестен, пусть UI покажет
-        // «был(а) недавно», а не эпоху 1970.
-        lastSeen: seconds > 0 ? DateTime.fromMillisecondsSinceEpoch(seconds * 1000) : null,
-      );
+      // 0 — статус неизвестен (никогда не выходил): пусть UI покажет «недавно».
+      final lastSeen = seconds > 0 ? DateTime.fromMillisecondsSinceEpoch(seconds * 1000) : null;
+      _presence[utils.bytesToHex(userID)] = (online: item.online, lastSeen: lastSeen);
+
+      // Персистим last-seen в кэш профиля — чтобы показать дату на cold-start /
+      // без сети до прихода снимка. online НЕ сохраняем (эфемерный). Best-effort.
+      if (lastSeen != null) {
+        unawaited(
+          repositories.profiles
+              .updateLastSeen(userID: userID, lastSeen: lastSeen)
+              .catchError((Object e, StackTrace s) => logger.handle(e, s)),
+        );
+      }
     }
   }
 
@@ -249,7 +257,36 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
 
     _book = book;
     if (_book.isEmpty && _cloud.isEmpty) return;
+    // Поднимаем кэш last-seen из БД как offline-дефолт (online=false) — чтобы дата
+    // последнего визита была видна сразу, до снимка присутствия по стриму.
+    await _seedPresenceFromCache();
     _emitAll();
+  }
+
+  /// Засевает [_presence] последними known last-seen из локального кэша профилей
+  /// (батч, один запрос) — как offline-дефолт со статусом «не в сети». Живой
+  /// снимок/push затем перекрывают это в памяти. Не трогает уже известные записи.
+  Future<void> _seedPresenceFromCache() async {
+    final ids = <List<int>>[];
+    final seen = <String>{};
+    void add(Uint8List? userID) {
+      if (userID == null) return;
+      if (seen.add(utils.bytesToHex(userID))) ids.add(userID);
+    }
+
+    for (final item in _book) {
+      add(item.userID);
+    }
+    for (final contact in _cloud.values) {
+      add(contact.userID);
+    }
+    if (ids.isEmpty) return;
+
+    final cached = await repositories.profiles.getLastSeenByUserIDs(userIDs: ids, toHex: (id) => utils.bytesToHex(Uint8List.fromList(id)));
+    if (isClosed) return;
+    cached.forEach((hex, date) {
+      _presence.putIfAbsent(hex, () => (online: false, lastSeen: date));
+    });
   }
 
   /// Фаза B без диалога: если доступ к контактам уже выдан, тихо запускаем полный

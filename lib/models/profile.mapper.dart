@@ -77,6 +77,12 @@ class ProfileMapper extends ClassMapperBase<Profile> {
     _$avatarCdnID,
     opt: true,
   );
+  static DateTime? _$lastSeenAt(Profile v) => v.lastSeenAt;
+  static const Field<Profile, DateTime> _f$lastSeenAt = Field(
+    'lastSeenAt',
+    _$lastSeenAt,
+    opt: true,
+  );
 
   @override
   final MappableFields<Profile> fields = const {
@@ -88,6 +94,7 @@ class ProfileMapper extends ClassMapperBase<Profile> {
     #aboutMe: _f$aboutMe,
     #phoneNumber: _f$phoneNumber,
     #avatarCdnID: _f$avatarCdnID,
+    #lastSeenAt: _f$lastSeenAt,
   };
 
   static Profile _instantiate(DecodingData data) {
@@ -100,6 +107,7 @@ class ProfileMapper extends ClassMapperBase<Profile> {
       aboutMe: data.dec(_f$aboutMe),
       phoneNumber: data.dec(_f$phoneNumber),
       avatarCdnID: data.dec(_f$avatarCdnID),
+      lastSeenAt: data.dec(_f$lastSeenAt),
     );
   }
 
@@ -171,6 +179,7 @@ abstract class ProfileCopyWith<$R, $In extends Profile, $Out>
     String? aboutMe,
     String? phoneNumber,
     List<int>? avatarCdnID,
+    DateTime? lastSeenAt,
   });
   ProfileCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
@@ -209,6 +218,7 @@ class _ProfileCopyWithImpl<$R, $Out>
     String? aboutMe,
     String? phoneNumber,
     Object? avatarCdnID = $none,
+    Object? lastSeenAt = $none,
   }) => $apply(
     FieldCopyWithData({
       if (userID != null) #userID: userID,
@@ -219,6 +229,7 @@ class _ProfileCopyWithImpl<$R, $Out>
       if (aboutMe != null) #aboutMe: aboutMe,
       if (phoneNumber != null) #phoneNumber: phoneNumber,
       if (avatarCdnID != $none) #avatarCdnID: avatarCdnID,
+      if (lastSeenAt != $none) #lastSeenAt: lastSeenAt,
     }),
   );
   @override
@@ -231,6 +242,7 @@ class _ProfileCopyWithImpl<$R, $Out>
     aboutMe: data.get(#aboutMe, or: $value.aboutMe),
     phoneNumber: data.get(#phoneNumber, or: $value.phoneNumber),
     avatarCdnID: data.get(#avatarCdnID, or: $value.avatarCdnID),
+    lastSeenAt: data.get(#lastSeenAt, or: $value.lastSeenAt),
   );
 
   @override
