@@ -91,6 +91,11 @@ class _CallGateState extends State<CallGate> {
       // завершиться, пока приложение не рисовало кадры, и pop по ended не отработал.
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted || !_routeOpen) return;
+        // За время отложенного pop мог стартовать новый звонок (быстрый повторный
+        // набор): тогда `_openCall` уже был пропущен как «already open», и если
+        // сейчас закрыть экран — новый звонок останется без `/call` (только полоска
+        // возврата). Не закрываем: тот же экран перерисуется под новый звонок.
+        if (_isActive(_snapshot.status)) return;
         final router = GoRouter.of(context);
         if (router.canPop()) router.pop();
       });
