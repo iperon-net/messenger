@@ -326,26 +326,31 @@ class _Overlay extends StatelessWidget {
     final t = context.t.screenCall;
     switch (state.callStatus) {
       case CallStatus.incoming:
-        return Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            _CircleButton(
-              label: t.decline,
-              icon: CupertinoIcons.phone_down_fill,
-              color: CallView._red,
-              iconColor: CallView._onAccent,
-              palette: palette,
-              onTap: cubit.reject,
-            ),
-            _CircleButton(
-              label: t.accept,
-              icon: CupertinoIcons.phone_fill,
-              color: CallView._green,
-              iconColor: CallView._onAccent,
-              palette: palette,
-              onTap: cubit.accept,
-            ),
-          ],
+        // Кнопки «отклонить»/«принять» разнесены к краям экрана (spaceBetween +
+        // боковой отступ), чтобы их было труднее нажать по ошибке.
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              _CircleButton(
+                label: t.decline,
+                icon: CupertinoIcons.phone_down_fill,
+                color: CallView._red,
+                iconColor: CallView._onAccent,
+                palette: palette,
+                onTap: cubit.reject,
+              ),
+              _CircleButton(
+                label: t.accept,
+                icon: CupertinoIcons.phone_fill,
+                color: CallView._green,
+                iconColor: CallView._onAccent,
+                palette: palette,
+                onTap: cubit.accept,
+              ),
+            ],
+          ),
         );
       case CallStatus.outgoing:
       case CallStatus.connecting:
