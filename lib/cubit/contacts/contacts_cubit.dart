@@ -310,9 +310,16 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
 
   /// Подстраховка к нативному слушателю: если книгу изменили, пока приложение
   /// было свёрнуто (нотификация могла не долететь), подхватываем на возврате.
+  /// Заодно догоняем присутствие: снимок при подписке (subscribe) одноразовый и
+  /// «broadcast» — на возврате из фона стрим переоткрывается, и снимок может
+  /// разойтись с моментом готовности слушателя; явный pull гарантирует свежий
+  /// статус сразу, не дожидаясь следующего push.
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) discoverIfAlreadyGranted();
+    if (state == AppLifecycleState.resumed) {
+      discoverIfAlreadyGranted();
+      unawaited(refreshPresence());
+    }
   }
 
   @override
@@ -438,7 +445,13 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
 
   /// Запускает discover только если он ещё ни разу не стартовал в этой сессии —
   /// вызывается при первом построении экрана, чтобы не дублировать фоновую дозагрузку.
-  Future<void> discoverOnFirstView() => _discoverStarted ? Future.value() : discover();
+  Future<void> discoverOnFirstView() {
+    // Открытие вкладки — надёжный момент догнать присутствие явным pull'ом:
+    // одноразовый снимок при подписке мог разойтись по таймингу с подпиской
+    // кубита (broadcast без буфера), тогда без pull статус ждал бы следующего push.
+    unawaited(refreshPresence());
+    return _discoverStarted ? Future.value() : discover();
+  }
 
   /// Повторный запуск поиска (pull-to-refresh / после выдачи разрешения) —
   /// форсирует OPRF даже при неизменной книге; заодно пересинхронизирует облачные
