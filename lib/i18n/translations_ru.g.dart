@@ -161,6 +161,7 @@ class _Translations$screenDeveloper$ru extends Translations$screenDeveloper$en {
 	@override String get developer => 'Разработчик';
 	@override String get logs => _root.screenSettings.logs;
 	@override String get exportLogs => 'Экспорт логов';
+	@override String get callPreview => 'Превью экрана звонка';
 }
 
 // Path: screenSettingsAppearance
@@ -560,6 +561,7 @@ extension on TranslationsRu {
 			'screenDeveloper.developer' => 'Разработчик',
 			'screenDeveloper.logs' => _root.screenSettings.logs,
 			'screenDeveloper.exportLogs' => 'Экспорт логов',
+			'screenDeveloper.callPreview' => 'Превью экрана звонка',
 			'screenSettingsAppearance.appearance' => 'Оформление',
 			'screenSettingsAppearance.colorTheme' => 'Цветовая тема',
 			'screenSettingsAppearance.colorThemeDefault' => 'По умолчанию',

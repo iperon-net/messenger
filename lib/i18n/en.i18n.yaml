@@ -46,6 +46,7 @@
   "developer": "Developer"
   "logs": "@:screenSettings.logs"
   "exportLogs": "Export logs"
+  "callPreview": "Call screen preview"
 
 "screenSettingsAppearance":
   "appearance": "Appearance"

@@ -233,6 +233,9 @@ class Translations$screenDeveloper$en {
 
 	/// en: 'Export logs'
 	String get exportLogs => 'Export logs';
+
+	/// en: 'Call screen preview'
+	String get callPreview => 'Call screen preview';
 }
 
 // Path: screenSettingsAppearance
@@ -1022,6 +1025,7 @@ extension on Translations {
 			'screenDeveloper.developer' => 'Developer',
 			'screenDeveloper.logs' => _root.screenSettings.logs,
 			'screenDeveloper.exportLogs' => 'Export logs',
+			'screenDeveloper.callPreview' => 'Call screen preview',
 			'screenSettingsAppearance.appearance' => 'Appearance',
 			'screenSettingsAppearance.colorTheme' => 'Color theme',
 			'screenSettingsAppearance.colorThemeDefault' => 'Default',

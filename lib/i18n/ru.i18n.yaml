@@ -46,6 +46,7 @@
   "developer": "Разработчик"
   "logs": "@:screenSettings.logs"
   "exportLogs": "Экспорт логов"
+  "callPreview": "Превью экрана звонка"
 
 "screenSettingsAppearance":
   "appearance": "Оформление"

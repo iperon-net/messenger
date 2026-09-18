@@ -191,6 +191,13 @@ class Routers {
                       parentNavigatorKey: rootNavigatorKey,
                       pageBuilder: (context, state) => _page(state, TalkerScreen(talker: logger.talker)),
                     ),
+                    // DEBUG-only превью экрана звонка без реального звонка.
+                    if (kDebugMode)
+                      GoRoute(
+                        path: "call_preview",
+                        parentNavigatorKey: rootNavigatorKey,
+                        pageBuilder: (context, state) => _page(state, const CallPreview()),
+                      ),
                   ],
                 ),
                 GoRoute(
@@ -459,6 +466,13 @@ class Routers {
                       parentNavigatorKey: rootNavigatorKey,
                       pageBuilder: (context, state) => _pageMaterial(state, TalkerScreen(talker: logger.talker)),
                     ),
+                    // DEBUG-only превью экрана звонка без реального звонка.
+                    if (kDebugMode)
+                      GoRoute(
+                        path: "call_preview",
+                        parentNavigatorKey: rootNavigatorKey,
+                        pageBuilder: (context, state) => _pageMaterial(state, const CallPreview()),
+                      ),
                   ],
                 ),
                 GoRoute(

@@ -27,14 +27,40 @@ class _CallPalette {
   final Color controlBg;
   final Color controlActiveBg;
 
-  const _CallPalette({required this.bg, required this.fg, required this.dim, required this.controlBg, required this.controlActiveBg});
+  /// Цвет имени собеседника (заголовок).
+  final Color name;
+
+  /// Цвет строки статуса соединения (calling/connecting/talking/ended…).
+  final Color status;
+
+  /// Цвет таймера разговора на активном звонке.
+  final Color timer;
+
+  /// Цвет подписей под круглыми кнопками управления.
+  final Color buttonLabel;
+
+  const _CallPalette({
+    required this.bg,
+    required this.fg,
+    required this.dim,
+    required this.controlBg,
+    required this.controlActiveBg,
+    required this.name,
+    required this.status,
+    required this.timer,
+    required this.buttonLabel,
+  });
 
   static const _dark = _CallPalette(
-    bg: Color(0xFF1C1C1E),
-    fg: Color(0xFFFFFFFF),
-    dim: Color(0xFFB0B0B5),
-    controlBg: Color(0xFF2C2C2E),
-    controlActiveBg: Color(0xFF48484A),
+    bg: Color(0xFFF2F2F7),
+    fg: Color(0xFF1C1C1E),
+    dim: Color(0xFF6C6C70),
+    controlBg: Color(0xFFE3E3E8),
+    controlActiveBg: Color(0xFFCED0D6),
+    name: Color(0xFFCED0D6),
+    status: Color(0xFFCED0D6),
+    timer: Color(0xFFCED0D6),
+    buttonLabel: Color(0xFFFFFFFF),
   );
 
   static const _light = _CallPalette(
@@ -43,12 +69,26 @@ class _CallPalette {
     dim: Color(0xFF6C6C70),
     controlBg: Color(0xFFE3E3E8),
     controlActiveBg: Color(0xFFCED0D6),
+    name: Color(0xFFCED0D6),
+    status: Color(0xFFCED0D6),
+    timer: Color(0xFFCED0D6),
+    buttonLabel: Color(0xFFFFFFFF),
   );
 
   /// Поверх видео — та же тёмная палитра (светлый текст на картинке).
   static const overMedia = _dark;
 
-  _CallPalette _withBg(Color bg) => _CallPalette(bg: bg, fg: fg, dim: dim, controlBg: controlBg, controlActiveBg: controlActiveBg);
+  _CallPalette _withBg(Color bg) => _CallPalette(
+    bg: bg,
+    fg: fg,
+    dim: dim,
+    controlBg: controlBg,
+    controlActiveBg: controlActiveBg,
+    name: name,
+    status: status,
+    timer: timer,
+    buttonLabel: buttonLabel,
+  );
 
   /// Палитра под тему приложения: [darkMode] из настроек (система/светлая/тёмная),
   /// для `system` берём яркость платформы. Фон подменяется на зависящий от
@@ -242,17 +282,17 @@ class _Overlay extends StatelessWidget {
                 Text(
                   _title(context),
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: palette.fg, fontSize: 22, fontWeight: FontWeight.w600),
+                  style: TextStyle(color: palette.name, fontSize: 22, fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(height: 8),
                 // На активном звонке подпись — таймер разговора; иначе — статус.
                 if (active && state.connectedAt != null)
-                  _CallTimer(connectedAt: state.connectedAt!, color: palette.dim)
+                  _CallTimer(connectedAt: state.connectedAt!, color: palette.timer)
                 else
                   Text(
                     _subtitle(context),
                     textAlign: TextAlign.center,
-                    style: TextStyle(color: palette.dim, fontSize: 15),
+                    style: TextStyle(color: palette.status, fontSize: 15),
                   ),
                 // Индикатор качества связи (только на активном звонке, когда
                 // LiveKit уже прислал оценку).
@@ -630,7 +670,7 @@ class _CircleButton extends StatelessWidget {
             child: Icon(icon, color: iconColor, size: 28),
           ),
           const SizedBox(height: 8),
-          Text(label, style: TextStyle(color: palette.fg, fontSize: 13)),
+          Text(label, style: TextStyle(color: palette.buttonLabel, fontSize: 13)),
         ],
       ),
     );

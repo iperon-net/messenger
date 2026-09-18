@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 
@@ -47,6 +48,14 @@ class SettingsDeveloperMaterial extends StatelessWidget {
                     },
                     isTrailing: true,
                   ),
+                  if (kDebugMode)
+                    MaterialListTileIcon(
+                      title: Text(context.t.screenDeveloper.callPreview),
+                      color: const Color(0xFF007AFF),
+                      icon: FontAwesomeIcons.phone,
+                      onTab: () async => context.go("/settings/developer/call_preview"),
+                      isTrailing: true,
+                    ),
                 ],
               ),
             ),
