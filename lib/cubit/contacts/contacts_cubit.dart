@@ -818,13 +818,31 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
     ];
 
     int byName(ContactItem a, ContactItem b) => a.displayName.toLowerCase().compareTo(b.displayName.toLowerCase());
-    registered.sort(byName);
+
+    // Сортировка по присутствию: сначала «в сети», затем оффлайн по свежести
+    // last-seen (недавние выше; неизвестный статус — в самый низ), при равенстве —
+    // по имени.
+    int byPresence(ContactItem a, ContactItem b) {
+      if (a.online != b.online) return a.online ? -1 : 1;
+      if (!a.online) {
+        final at = a.lastSeen;
+        final bt = b.lastSeen;
+        if (at == null || bt == null) {
+          if (at != bt) return at == null ? 1 : -1;
+        } else if (at != bt) {
+          return bt.compareTo(at);
+        }
+      }
+      return byName(a, b);
+    }
+
+    registered.sort(byPresence);
     invitable.sort(byName);
-    // В облачных сначала уже зарегистрированные в Iperon, затем ожидающие —
-    // внутри каждой части по имени.
+    // В облачных сначала уже зарегистрированные в Iperon (среди них — по присутствию),
+    // затем ожидающие (по имени; у них нет присутствия).
     cloud.sort((a, b) {
       if (a.isRegistered != b.isRegistered) return a.isRegistered ? -1 : 1;
-      return byName(a, b);
+      return byPresence(a, b);
     });
 
     emit(state.copyWith(status: Status.success, permissionDenied: false, registered: registered, invitable: invitable, cloud: cloud));
