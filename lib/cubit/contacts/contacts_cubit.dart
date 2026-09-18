@@ -737,7 +737,12 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
     int byName(ContactItem a, ContactItem b) => a.displayName.toLowerCase().compareTo(b.displayName.toLowerCase());
     registered.sort(byName);
     invitable.sort(byName);
-    cloud.sort(byName);
+    // В облачных сначала уже зарегистрированные в Iperon, затем ожидающие —
+    // внутри каждой части по имени.
+    cloud.sort((a, b) {
+      if (a.isRegistered != b.isRegistered) return a.isRegistered ? -1 : 1;
+      return byName(a, b);
+    });
 
     emit(state.copyWith(status: Status.success, permissionDenied: false, registered: registered, invitable: invitable, cloud: cloud));
   }

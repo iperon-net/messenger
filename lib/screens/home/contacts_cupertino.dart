@@ -1,6 +1,5 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_boring_avatars/flutter_boring_avatars.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -176,17 +175,6 @@ class _ContactsCupertinoState extends State<ContactsCupertino> {
     );
   }
 
-  Widget _avatar(String hash) => SizedBox(
-    width: 40,
-    height: 40,
-    child: AnimatedBoringAvatar(
-      name: hash,
-      type: BoringAvatarType.beam,
-      shape: const CircleBorder(),
-      duration: const Duration(milliseconds: 400),
-    ),
-  );
-
   /// Статус контакта: «в сети» (зелёная точка), «был(а) <дата>» или «был(а) недавно».
   /// TODO: подключить реальные данные о присутствии — сейчас плейсхолдер.
   Widget _status(BuildContext context, {bool online = false, DateTime? lastSeen}) {
@@ -217,7 +205,7 @@ class _ContactsCupertinoState extends State<ContactsCupertino> {
   Widget _registeredTile(BuildContext context, ContactItem item, {bool removable = false}) {
     final hex = getIt.get<Utils>().bytesToHex(item.userID!);
     final tile = CupertinoListTile(
-      leading: _avatar(hex),
+      leading: UserAvatar(userID: item.userID, placeholderName: hex),
       title: Text(item.displayName),
       // TODO: заменить плейсхолдер на реальную дату последнего визита из данных о присутствии.
       subtitle: _status(context, lastSeen: DateTime.now().subtract(const Duration(days: 1, hours: 2))),
@@ -279,13 +267,15 @@ class _ContactsCupertinoState extends State<ContactsCupertino> {
 
   void _showAddResult(BuildContext context, ContactAddResult result) {
     final t = context.t.screenContacts;
+    // Успех не показываем: добавленный контакт сразу появляется в списке
+    // (оптимистично) — баннер лишний. Сообщаем только об ошибках.
     final message = switch (result) {
-      ContactAddResult.addedRegistered => t.addedRegistered,
-      ContactAddResult.addedPending => t.addedPending,
+      ContactAddResult.addedRegistered || ContactAddResult.addedPending => null,
       ContactAddResult.invalidNumber => t.addInvalidNumber,
       ContactAddResult.limitReached => t.validationCloudLimitReached,
       ContactAddResult.failed => t.addFailed,
     };
+    if (message == null) return;
 
     showCupertinoDialog<void>(
       context: context,
@@ -298,7 +288,7 @@ class _ContactsCupertinoState extends State<ContactsCupertino> {
 
   Widget _invitableTile(BuildContext context, ContactItem item, {bool removable = false}) {
     final tile = CupertinoListTile(
-      leading: _avatar(item.phoneE164),
+      leading: UserAvatar(userID: item.userID, placeholderName: item.phoneE164),
       title: Text(item.displayName),
       subtitle: Text(item.phone),
       trailing: CupertinoButton(
