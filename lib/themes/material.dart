@@ -191,10 +191,10 @@ class ThemesMaterial {
   static Color callBackground(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final primary = theme.colorScheme.primary;
     const nearBlack = Color(0xFF1C1C1E);
-    const nearWhite = Color(0xFFF2F2F7);
-    return isDark ? Color.lerp(primary, nearBlack, 0.72)! : Color.lerp(primary, nearWhite, 0.5)!;
+    return isDark
+        ? Color.lerp(const Color.fromARGB(255, 56, 96, 143), nearBlack, 0.6)!
+        : Color.lerp(theme.colorScheme.primary, nearBlack, 0.3)!;
   }
 
   /// Конфигурация клавиатуры: круглые кнопки с тонкой рамкой и полупрозрачной
