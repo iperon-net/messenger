@@ -78,13 +78,13 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
     // Дельты облачных контактов с сервера (add/update/remove/резолв) на все
     // устройства владельца — держим локальную книгу облачных в синхроне.
     _updatedSub = api.on(MessageType.CONTACTS_UPDATED).listen(_onCloudUpdated);
-    // Присутствие (online/last-seen) видимых контактов. Два источника:
-    //   • push (реактивно) — сервер шлёт PRESENCE при смене статуса контакта;
-    //   • pull (страховка) — периодический тик + вход на вкладку / pull-to-refresh,
-    //     на случай пропущенного push (свёрнутое приложение) и «залипшего» онлайна
-    //     при жёстком обрыве контакта (там push не приходит, статус тухнет по TTL).
+    // Присутствие (online/last-seen) видимых контактов приходит по стриму:
+    //   • начальный снимок — сервер шлёт PRESENCE сразу при подписке (subscribe);
+    //   • дальше — push на каждый переход online/offline контакта.
+    // Отдельного поллинга нет; ручной pull-to-refresh делает refreshPresence().
+    // Реконнект стрима присылает снимок заново — так освежается «залипший» онлайн
+    // после жёсткого обрыва контакта (offline-push в этом случае не приходит).
     _presenceSub = api.on(MessageType.PRESENCE).listen(_onPresencePush);
-    _presenceTimer = Timer.periodic(_presenceRefreshInterval, (_) => refreshPresence());
   }
 
   final logger = getIt.get<Logger>();
@@ -138,9 +138,7 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
   // (не персистим: online — эфемерно, после рестарта показал бы «залипший»
   // онлайн). Наполняется [refreshPresence], сливается в элементы в [_emitAll].
   final Map<String, ({bool online, DateTime? lastSeen})> _presence = {};
-  Timer? _presenceTimer;
   StreamSubscription<Uint8List>? _presenceSub;
-  static const Duration _presenceRefreshInterval = Duration(seconds: 60);
 
   /// Старт на уровне shell: мгновенный показ снимка из БД, затем облачная
   /// синхронизация с сервером, тихая фоновая книжная дозагрузка (если доступ уже
@@ -149,13 +147,14 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
     await preload();
     await Future.wait([_fetchCloud(), discoverIfAlreadyGranted()]);
     await _backfillLegacyManual();
-    await refreshPresence();
+    // Присутствие не тянем здесь: начальный снимок придёт по стриму (subscribe).
   }
 
   /// Тянет присутствие (online/last-seen) всех зарегистрированных контактов
   /// (книжных + облачных) одним batch-запросом PRESENCE и обновляет списки.
-  /// Видимость гейтится на сервере звонковой приватностью цели, поэтому в ответе
-  /// приходят только доступные — недоступные остаются без статуса. Ошибка сети не
+  /// Используется под ручной pull-to-refresh (в т.ч. чтобы принудительно сбросить
+  /// «залипший» онлайн). Обычные обновления приходят по стриму (снимок + push).
+  /// Видимость гейтится на сервере звонковой приватностью цели. Ошибка сети не
   /// критична: остаёмся на прошлых данных.
   Future<void> refreshPresence() async {
     final ids = <Uint8List>[];
@@ -285,7 +284,6 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
     _bookChangeDebounce?.cancel();
     _bookChangeSub?.cancel();
     _updatedSub?.cancel();
-    _presenceTimer?.cancel();
     _presenceSub?.cancel();
     return super.close();
   }
@@ -403,11 +401,7 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
 
   /// Запускает discover только если он ещё ни разу не стартовал в этой сессии —
   /// вызывается при первом построении экрана, чтобы не дублировать фоновую дозагрузку.
-  Future<void> discoverOnFirstView() {
-    // Открытие вкладки — хороший момент обновить присутствие, не дожидаясь тика.
-    unawaited(refreshPresence());
-    return _discoverStarted ? Future.value() : discover();
-  }
+  Future<void> discoverOnFirstView() => _discoverStarted ? Future.value() : discover();
 
   /// Повторный запуск поиска (pull-to-refresh / после выдачи разрешения) —
   /// форсирует OPRF даже при неизменной книге; заодно пересинхронизирует облачные
