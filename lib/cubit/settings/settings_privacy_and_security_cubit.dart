@@ -59,9 +59,10 @@ class SettingsPrivacyAndSecurityCubit extends Cubit<SettingsPrivacyAndSecuritySt
       final response = PrivacySettings_Response.fromBuffer(payload);
       final audience = _fromProto(response.calls);
       final allow = response.callsAllow.map(Uint8List.fromList).toList(growable: false);
+      final deny = response.callsDeny.map(Uint8List.fromList).toList(growable: false);
       await _writeCache(audience);
       if (!isClosed) {
-        emit(state.copyWith(callsAudience: audience, callsAllow: allow, callsLoadError: false, callsReadOnly: false));
+        emit(state.copyWith(callsAudience: audience, callsAllow: allow, callsDeny: deny, callsLoadError: false, callsReadOnly: false));
       }
     } catch (error, stackTrace) {
       logger.handle(error, stackTrace);
@@ -117,6 +118,29 @@ class SettingsPrivacyAndSecurityCubit extends Cubit<SettingsPrivacyAndSecuritySt
     }
 
     if (!isClosed) emit(state.copyWith(callsAllow: List<Uint8List>.unmodifiable(userIDs)));
+    return true;
+  }
+
+  /// Полностью заменяет deny-list «всегда запрещать» для звонков. Как и смена
+  /// аудитории — серверная операция, offline недоступна. Возвращает `false`,
+  /// если не применилось (offline/ошибка).
+  Future<bool> setCallsDeny(List<Uint8List> userIDs) async {
+    if (!await utils.hasNetwork()) {
+      logger.info('privacy: set calls deny aborted, no network');
+      return false;
+    }
+
+    final status = await api.unaryEncoded(
+      MessageType.PRIVACY_CALLS_DENY_UPDATE,
+      PrivacyCallsDenyUpdate_Request(userIds: userIDs).writeToBuffer(),
+    );
+
+    if (status.status != APIStatus.success) {
+      logger.warning('privacy: update calls deny failed (${status.error})');
+      return false;
+    }
+
+    if (!isClosed) emit(state.copyWith(callsDeny: List<Uint8List>.unmodifiable(userIDs)));
     return true;
   }
 

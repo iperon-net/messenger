@@ -33,6 +33,7 @@ const PrivacySettings_Response$json = {
   '2': [
     {'1': 'calls', '3': 1, '4': 1, '5': 14, '6': '.iperon.v1.PrivacySettings.Audience', '10': 'calls'},
     {'1': 'calls_allow', '3': 2, '4': 3, '5': 12, '10': 'callsAllow'},
+    {'1': 'calls_deny', '3': 3, '4': 3, '5': 12, '10': 'callsDeny'},
   ],
 };
 
@@ -48,10 +49,10 @@ const PrivacySettings_Audience$json = {
 
 /// Descriptor for `PrivacySettings`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List privacySettingsDescriptor =
-    $convert.base64Decode('Cg9Qcml2YWN5U2V0dGluZ3MaCQoHUmVxdWVzdBpmCghSZXNwb25zZRI5CgVjYWxscxgBIAEoDj'
-        'IjLmlwZXJvbi52MS5Qcml2YWN5U2V0dGluZ3MuQXVkaWVuY2VSBWNhbGxzEh8KC2NhbGxzX2Fs'
-        'bG93GAIgAygMUgpjYWxsc0FsbG93IjMKCEF1ZGllbmNlEg0KCUVWRVJZQk9EWRAAEgwKCENPTl'
-        'RBQ1RTEAESCgoGTk9CT0RZEAI=');
+    $convert.base64Decode('Cg9Qcml2YWN5U2V0dGluZ3MaCQoHUmVxdWVzdBqFAQoIUmVzcG9uc2USOQoFY2FsbHMYASABKA'
+        '4yIy5pcGVyb24udjEuUHJpdmFjeVNldHRpbmdzLkF1ZGllbmNlUgVjYWxscxIfCgtjYWxsc19h'
+        'bGxvdxgCIAMoDFIKY2FsbHNBbGxvdxIdCgpjYWxsc19kZW55GAMgAygMUgljYWxsc0RlbnkiMw'
+        'oIQXVkaWVuY2USDQoJRVZFUllCT0RZEAASDAoIQ09OVEFDVFMQARIKCgZOT0JPRFkQAg==');
 
 @$core.Deprecated('Use privacySettingsUpdateDescriptor instead')
 const PrivacySettingsUpdate$json = {
@@ -100,3 +101,27 @@ const PrivacyCallsAllowUpdate_Response$json = {
 final $typed_data.Uint8List privacyCallsAllowUpdateDescriptor =
     $convert.base64Decode('ChdQcml2YWN5Q2FsbHNBbGxvd1VwZGF0ZRokCgdSZXF1ZXN0EhkKCHVzZXJfaWRzGAEgAygMUg'
         'd1c2VySWRzGgoKCFJlc3BvbnNl');
+
+@$core.Deprecated('Use privacyCallsDenyUpdateDescriptor instead')
+const PrivacyCallsDenyUpdate$json = {
+  '1': 'PrivacyCallsDenyUpdate',
+  '3': [PrivacyCallsDenyUpdate_Request$json, PrivacyCallsDenyUpdate_Response$json],
+};
+
+@$core.Deprecated('Use privacyCallsDenyUpdateDescriptor instead')
+const PrivacyCallsDenyUpdate_Request$json = {
+  '1': 'Request',
+  '2': [
+    {'1': 'user_ids', '3': 1, '4': 3, '5': 12, '10': 'userIds'},
+  ],
+};
+
+@$core.Deprecated('Use privacyCallsDenyUpdateDescriptor instead')
+const PrivacyCallsDenyUpdate_Response$json = {
+  '1': 'Response',
+};
+
+/// Descriptor for `PrivacyCallsDenyUpdate`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List privacyCallsDenyUpdateDescriptor =
+    $convert.base64Decode('ChZQcml2YWN5Q2FsbHNEZW55VXBkYXRlGiQKB1JlcXVlc3QSGQoIdXNlcl9pZHMYASADKAxSB3'
+        'VzZXJJZHMaCgoIUmVzcG9uc2U=');

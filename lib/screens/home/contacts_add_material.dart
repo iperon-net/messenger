@@ -70,7 +70,7 @@ class _ContactsAddMaterialState extends State<ContactsAddMaterial> {
     final firstNameField = TextFormField(
       controller: _firstNameController,
       focusNode: _firstNameFocus,
-      autofocus: true,
+      autofocus: LocaleSettings.currentLocale == AppLocale.en ? true : false,
       textCapitalization: TextCapitalization.words,
       textInputAction: TextInputAction.next,
       autofillHints: const [AutofillHints.givenName],
@@ -79,6 +79,7 @@ class _ContactsAddMaterialState extends State<ContactsAddMaterial> {
     final lastNameField = TextFormField(
       controller: _lastNameController,
       focusNode: _lastNameFocus,
+      autofocus: LocaleSettings.currentLocale == AppLocale.en ? false : true,
       textCapitalization: TextCapitalization.words,
       textInputAction: TextInputAction.next,
       autofillHints: const [AutofillHints.familyName],

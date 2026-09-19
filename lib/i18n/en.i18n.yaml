@@ -130,6 +130,7 @@
   "retry": "Retry"
   "exceptions": "Exceptions"
   "callsAlwaysAllow": "Always allow"
+  "callsAlwaysDeny": "Always deny"
   "callsAllowEmpty": "No contacts registered on Iperon"
 
 "screenMyProfile":

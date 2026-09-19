@@ -8,9 +8,9 @@ import '../../cubit.dart';
 import '../../i18n/translations.g.dart';
 import '../../themes.dart';
 
-/// Детейл-экран приватности звонков (drill-down с «Конфиденциальности»).
-/// Пока держит только выбор аудитории «кто может звонить»; секции ниже
-/// (исключения, favorites) добавятся следующими этапами.
+/// Детейл-экран приватности звонков (drill-down с «Конфиденциальности»):
+/// выбор аудитории «кто может звонить» + секция «Исключения» (allow-list под
+/// «Никто», deny-list под «Мои контакты»).
 class SettingsPrivacyCallsCupertino extends StatelessWidget {
   const SettingsPrivacyCallsCupertino({super.key});
 
@@ -45,12 +45,42 @@ class SettingsPrivacyCallsCupertino extends StatelessWidget {
     );
   }
 
-  /// Открывает пикер allow-list «Всегда разрешать», передав текущий выбор; по
-  /// возврату перечитывает настройку, чтобы счётчик обновился.
-  Future<void> _openAllow(BuildContext context, SettingsPrivacyAndSecurityState state) async {
+  /// Открывает пикер списка-исключений ([kind]: allow «всегда разрешать» под
+  /// «Никто» / deny «всегда запрещать» под «Мои контакты»), передав текущий
+  /// выбор; по возврату перечитывает настройку, чтобы счётчик обновился.
+  Future<void> _openList(BuildContext context, SettingsPrivacyAndSecurityState state, CallsListKind kind) async {
     final cubit = context.read<SettingsPrivacyAndSecurityCubit>();
-    await context.push("/settings/privacy_and_security/calls/allow", extra: state.callsAllow);
+    final isAllow = kind == CallsListKind.allow;
+    await context.push(
+      isAllow ? "/settings/privacy_and_security/calls/allow" : "/settings/privacy_and_security/calls/deny",
+      extra: isAllow ? state.callsAllow : state.callsDeny,
+    );
     await cubit.reloadCalls();
+  }
+
+  /// Секция «Исключения» с одной строкой-пунктом (allow/deny), показывающей
+  /// счётчик и открывающей пикер. Общая для обеих аудиторий — различается
+  /// только подписью, счётчиком и [kind].
+  Widget _exceptionsSection(BuildContext context, {required String label, required int count, required VoidCallback? onTap}) {
+    return CupertinoListSection.insetGrouped(
+      header: Text(
+        context.t.sessionsPrivacyAndSecurity.exceptions,
+        style: TextStyle(fontSize: AppFontSizes.base, fontWeight: FontWeight.normal),
+      ),
+      backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
+      decoration: BoxDecoration(
+        color: ThemesCupertino.groupedCard.resolveFrom(context),
+        borderRadius: const BorderRadius.all(Radius.circular(10)),
+      ),
+      children: [
+        CupertinoListTile(
+          title: Text(label),
+          additionalInfo: Text("$count", style: TextStyle(color: CupertinoColors.secondaryLabel.resolveFrom(context))),
+          trailing: const CupertinoListTileChevron(),
+          onTap: onTap,
+        ),
+      ],
+    );
   }
 
   @override
@@ -136,30 +166,23 @@ class SettingsPrivacyCallsCupertino extends StatelessWidget {
                         ),
                   ],
                 ),
-                // Исключения показываем только при «Никто»: allow-list «всегда
-                // разрешать» перекрывает запрет для выбранных контактов.
+                // Исключения под «Никто»: allow-list «всегда разрешать»
+                // перекрывает запрет для выбранных контактов.
                 if (state.callsAudience == CallsPrivacyAudience.nobody && !state.callsLoadError)
-                  CupertinoListSection.insetGrouped(
-                    header: Text(
-                      context.t.sessionsPrivacyAndSecurity.exceptions,
-                      style: TextStyle(fontSize: AppFontSizes.base, fontWeight: FontWeight.normal),
-                    ),
-                    backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
-                    decoration: BoxDecoration(
-                      color: ThemesCupertino.groupedCard.resolveFrom(context),
-                      borderRadius: const BorderRadius.all(Radius.circular(10)),
-                    ),
-                    children: [
-                      CupertinoListTile(
-                        title: Text(context.t.sessionsPrivacyAndSecurity.callsAlwaysAllow),
-                        additionalInfo: Text(
-                          "${state.callsAllow.length}",
-                          style: TextStyle(color: CupertinoColors.secondaryLabel.resolveFrom(context)),
-                        ),
-                        trailing: const CupertinoListTileChevron(),
-                        onTap: state.callsReadOnly ? null : () => _openAllow(context, state),
-                      ),
-                    ],
+                  _exceptionsSection(
+                    context,
+                    label: context.t.sessionsPrivacyAndSecurity.callsAlwaysAllow,
+                    count: state.callsAllow.length,
+                    onTap: state.callsReadOnly ? null : () => _openList(context, state, CallsListKind.allow),
+                  ),
+                // Исключения под «Мои контакты»: deny-list «всегда запрещать»
+                // блокирует звонки от выбранных контактов.
+                if (state.callsAudience == CallsPrivacyAudience.contacts && !state.callsLoadError)
+                  _exceptionsSection(
+                    context,
+                    label: context.t.sessionsPrivacyAndSecurity.callsAlwaysDeny,
+                    count: state.callsDeny.length,
+                    onTap: state.callsReadOnly ? null : () => _openList(context, state, CallsListKind.deny),
                   ),
               ],
             ),

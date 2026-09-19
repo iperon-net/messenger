@@ -53,6 +53,9 @@ enum MessageType {
   // Полная замена allow-list «всегда разрешать» для звонков (см.
   // privacy_v1.proto, PrivacyCallsAllowUpdate).
   PRIVACY_CALLS_ALLOW_UPDATE = 36;
+  // Полная замена deny-list «всегда запрещать» для звонков (см.
+  // privacy_v1.proto, PrivacyCallsDenyUpdate).
+  PRIVACY_CALLS_DENY_UPDATE = 37;
 }
 
 service Iperon {

@@ -176,7 +176,24 @@ class Routers {
                             state,
                             BlocProvider<SettingsPrivacyAndSecurityCubit>(
                               create: (_) => SettingsPrivacyAndSecurityCubit(),
-                              child: SettingsPrivacyCallsAllowCupertino(initialSelected: (state.extra as List<Uint8List>?) ?? const []),
+                              child: SettingsPrivacyCallsAllowCupertino(
+                                kind: CallsListKind.allow,
+                                initialSelected: (state.extra as List<Uint8List>?) ?? const [],
+                              ),
+                            ),
+                          ),
+                        ),
+                        GoRoute(
+                          path: "deny",
+                          parentNavigatorKey: rootNavigatorKey,
+                          pageBuilder: (context, state) => _page(
+                            state,
+                            BlocProvider<SettingsPrivacyAndSecurityCubit>(
+                              create: (_) => SettingsPrivacyAndSecurityCubit(),
+                              child: SettingsPrivacyCallsAllowCupertino(
+                                kind: CallsListKind.deny,
+                                initialSelected: (state.extra as List<Uint8List>?) ?? const [],
+                              ),
                             ),
                           ),
                         ),
@@ -480,7 +497,24 @@ class Routers {
                             state,
                             BlocProvider<SettingsPrivacyAndSecurityCubit>(
                               create: (_) => SettingsPrivacyAndSecurityCubit(),
-                              child: SettingsPrivacyCallsAllowMaterial(initialSelected: (state.extra as List<Uint8List>?) ?? const []),
+                              child: SettingsPrivacyCallsAllowMaterial(
+                                kind: CallsListKind.allow,
+                                initialSelected: (state.extra as List<Uint8List>?) ?? const [],
+                              ),
+                            ),
+                          ),
+                        ),
+                        GoRoute(
+                          path: "deny",
+                          parentNavigatorKey: rootNavigatorKey,
+                          pageBuilder: (context, state) => _pageMaterial(
+                            state,
+                            BlocProvider<SettingsPrivacyAndSecurityCubit>(
+                              create: (_) => SettingsPrivacyAndSecurityCubit(),
+                              child: SettingsPrivacyCallsAllowMaterial(
+                                kind: CallsListKind.deny,
+                                initialSelected: (state.extra as List<Uint8List>?) ?? const [],
+                              ),
                             ),
                           ),
                         ),

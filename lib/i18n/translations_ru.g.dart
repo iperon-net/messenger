@@ -296,6 +296,7 @@ class _Translations$sessionsPrivacyAndSecurity$ru extends Translations$sessionsP
 	@override String get retry => 'Повторить';
 	@override String get exceptions => 'Исключения';
 	@override String get callsAlwaysAllow => 'Всегда разрешать';
+	@override String get callsAlwaysDeny => 'Всегда запрещать';
 	@override String get callsAllowEmpty => 'Нет контактов, зарегистрированных в Iperon';
 }
 
@@ -654,6 +655,7 @@ extension on TranslationsRu {
 			'sessionsPrivacyAndSecurity.retry' => 'Повторить',
 			'sessionsPrivacyAndSecurity.exceptions' => 'Исключения',
 			'sessionsPrivacyAndSecurity.callsAlwaysAllow' => 'Всегда разрешать',
+			'sessionsPrivacyAndSecurity.callsAlwaysDeny' => 'Всегда запрещать',
 			'sessionsPrivacyAndSecurity.callsAllowEmpty' => 'Нет контактов, зарегистрированных в Iperon',
 			'screenMyProfile.myprofile' => 'Мой профиль',
 			'screenMyProfile.firstName' => 'Имя',

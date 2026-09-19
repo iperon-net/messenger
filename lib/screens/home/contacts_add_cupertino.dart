@@ -63,7 +63,10 @@ class _ContactsAddCupertinoState extends State<ContactsAddCupertino> {
               ),
               // Добавленный вручную контакт — облачный, синхронизируется между
               // устройствами владельца.
-              footer: Text(t.addSyncHint),
+              footer: Padding(
+                padding: const EdgeInsets.only(left: 13),
+                child: Text(t.addSyncHint, style: TextStyle(fontSize: AppFontSizes.caption)),
+              ),
               children: [
                 CupertinoTextFormFieldRow(
                   controller: _firstNameController,

@@ -12,6 +12,10 @@ part 'settings_privacy_and_security_state.mapper.dart';
 /// итерирует `values`) — по убыванию доступности: все → контакты → никто.
 enum CallsPrivacyAudience { everybody, contacts, nobody }
 
+/// Какой список исключений редактирует экран-пикер: allow («всегда разрешать»,
+/// секция под «Никто») или deny («всегда запрещать», секция под «Мои контакты»).
+enum CallsListKind { allow, deny }
+
 @MappableClass(includeCustomMappers: [Uint8ListMapper()])
 class SettingsPrivacyAndSecurityState with SettingsPrivacyAndSecurityStateMappable {
   final Status status;
@@ -37,6 +41,11 @@ class SettingsPrivacyAndSecurityState with SettingsPrivacyAndSecurityStateMappab
   /// экране-пикере; используется секцией «Исключения» под «Никто».
   final List<Uint8List> callsAllow;
 
+  /// Deny-list «всегда запрещать» для звонков: userID (сырые байты ObjectID),
+  /// которым звонок запрещён независимо от [callsAudience]. Редактируется на
+  /// экране-пикере; используется секцией «Исключения» под «Мои контакты».
+  final List<Uint8List> callsDeny;
+
   const SettingsPrivacyAndSecurityState({
     this.status = Status.initialization,
     this.isBiometricAvailable = false,
@@ -44,5 +53,6 @@ class SettingsPrivacyAndSecurityState with SettingsPrivacyAndSecurityStateMappab
     this.callsLoadError = false,
     this.callsReadOnly = false,
     this.callsAllow = const [],
+    this.callsDeny = const [],
   });
 }

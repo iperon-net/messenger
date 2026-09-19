@@ -12,14 +12,17 @@ import '../../repositories/repositories.dart';
 import '../../themes.dart';
 import '../../utils.dart';
 
-/// Пикер allow-list «Всегда разрешать» для звонков. Показывает контакты
-/// (книжные + облачные), зарегистрированные в Iperon (у которых есть userID);
-/// незарегистрированные скрыты — гейт работает только по userID. Множественный
-/// выбор, сохранение заменяет список целиком через [SettingsPrivacyAndSecurityCubit].
+/// Пикер списка-исключений для звонков — allow «Всегда разрешать» (под «Никто»)
+/// или deny «Всегда запрещать» (под «Мои контакты»), выбирается [kind]. Показывает
+/// контакты (книжные + облачные), зарегистрированные в Iperon (у которых есть
+/// userID); незарегистрированные скрыты — гейт работает только по userID.
+/// Множественный выбор, сохранение заменяет список целиком через
+/// [SettingsPrivacyAndSecurityCubit].
 class SettingsPrivacyCallsAllowCupertino extends StatefulWidget {
+  final CallsListKind kind;
   final List<Uint8List> initialSelected;
 
-  const SettingsPrivacyCallsAllowCupertino({required this.initialSelected, super.key});
+  const SettingsPrivacyCallsAllowCupertino({required this.kind, required this.initialSelected, super.key});
 
   @override
   State<SettingsPrivacyCallsAllowCupertino> createState() => _SettingsPrivacyCallsAllowCupertino();
@@ -73,7 +76,8 @@ class _SettingsPrivacyCallsAllowCupertino extends State<SettingsPrivacyCallsAllo
     if (_saving) return;
     setState(() => _saving = true);
     final selectedIDs = _candidates.where((c) => _selected.contains(c.hex)).map((c) => c.userID).toList(growable: false);
-    final ok = await context.read<SettingsPrivacyAndSecurityCubit>().setCallsAllow(selectedIDs);
+    final cubit = context.read<SettingsPrivacyAndSecurityCubit>();
+    final ok = widget.kind == CallsListKind.allow ? await cubit.setCallsAllow(selectedIDs) : await cubit.setCallsDeny(selectedIDs);
     if (!mounted) return;
     if (ok) {
       Navigator.of(context).pop();
@@ -104,7 +108,11 @@ class _SettingsPrivacyCallsAllowCupertino extends State<SettingsPrivacyCallsAllo
         child: CupertinoNavigationBar(
           automaticBackgroundVisibility: false,
           backgroundColor: ThemesCupertino.groupedBackground,
-          middle: Text(context.t.sessionsPrivacyAndSecurity.callsAlwaysAllow),
+          middle: Text(
+            widget.kind == CallsListKind.allow
+                ? context.t.sessionsPrivacyAndSecurity.callsAlwaysAllow
+                : context.t.sessionsPrivacyAndSecurity.callsAlwaysDeny,
+          ),
           trailing: _saving
               ? const CupertinoActivityIndicator()
               : CupertinoButton(padding: EdgeInsets.zero, onPressed: _save, child: Text(context.t.common.done)),

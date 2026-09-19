@@ -64,6 +64,10 @@ class SettingsPrivacyAndSecurityStateMapper
       v.callsAllow;
   static const Field<SettingsPrivacyAndSecurityState, List<Uint8List>>
   _f$callsAllow = Field('callsAllow', _$callsAllow, opt: true, def: const []);
+  static List<Uint8List> _$callsDeny(SettingsPrivacyAndSecurityState v) =>
+      v.callsDeny;
+  static const Field<SettingsPrivacyAndSecurityState, List<Uint8List>>
+  _f$callsDeny = Field('callsDeny', _$callsDeny, opt: true, def: const []);
 
   @override
   final MappableFields<SettingsPrivacyAndSecurityState> fields = const {
@@ -73,6 +77,7 @@ class SettingsPrivacyAndSecurityStateMapper
     #callsLoadError: _f$callsLoadError,
     #callsReadOnly: _f$callsReadOnly,
     #callsAllow: _f$callsAllow,
+    #callsDeny: _f$callsDeny,
   };
 
   static SettingsPrivacyAndSecurityState _instantiate(DecodingData data) {
@@ -83,6 +88,7 @@ class SettingsPrivacyAndSecurityStateMapper
       callsLoadError: data.dec(_f$callsLoadError),
       callsReadOnly: data.dec(_f$callsReadOnly),
       callsAllow: data.dec(_f$callsAllow),
+      callsDeny: data.dec(_f$callsDeny),
     );
   }
 
@@ -166,6 +172,8 @@ abstract class SettingsPrivacyAndSecurityStateCopyWith<
     implements ClassCopyWith<$R, $In, $Out> {
   ListCopyWith<$R, Uint8List, ObjectCopyWith<$R, Uint8List, Uint8List>>
   get callsAllow;
+  ListCopyWith<$R, Uint8List, ObjectCopyWith<$R, Uint8List, Uint8List>>
+  get callsDeny;
   $R call({
     Status? status,
     bool? isBiometricAvailable,
@@ -173,6 +181,7 @@ abstract class SettingsPrivacyAndSecurityStateCopyWith<
     bool? callsLoadError,
     bool? callsReadOnly,
     List<Uint8List>? callsAllow,
+    List<Uint8List>? callsDeny,
   });
   SettingsPrivacyAndSecurityStateCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
     Then<$Out2, $R2> t,
@@ -204,6 +213,13 @@ class _SettingsPrivacyAndSecurityStateCopyWithImpl<$R, $Out>
     (v) => call(callsAllow: v),
   );
   @override
+  ListCopyWith<$R, Uint8List, ObjectCopyWith<$R, Uint8List, Uint8List>>
+  get callsDeny => ListCopyWith(
+    $value.callsDeny,
+    (v, t) => ObjectCopyWith(v, $identity, t),
+    (v) => call(callsDeny: v),
+  );
+  @override
   $R call({
     Status? status,
     bool? isBiometricAvailable,
@@ -211,6 +227,7 @@ class _SettingsPrivacyAndSecurityStateCopyWithImpl<$R, $Out>
     bool? callsLoadError,
     bool? callsReadOnly,
     List<Uint8List>? callsAllow,
+    List<Uint8List>? callsDeny,
   }) => $apply(
     FieldCopyWithData({
       if (status != null) #status: status,
@@ -220,6 +237,7 @@ class _SettingsPrivacyAndSecurityStateCopyWithImpl<$R, $Out>
       if (callsLoadError != null) #callsLoadError: callsLoadError,
       if (callsReadOnly != null) #callsReadOnly: callsReadOnly,
       if (callsAllow != null) #callsAllow: callsAllow,
+      if (callsDeny != null) #callsDeny: callsDeny,
     }),
   );
   @override
@@ -234,6 +252,7 @@ class _SettingsPrivacyAndSecurityStateCopyWithImpl<$R, $Out>
         callsLoadError: data.get(#callsLoadError, or: $value.callsLoadError),
         callsReadOnly: data.get(#callsReadOnly, or: $value.callsReadOnly),
         callsAllow: data.get(#callsAllow, or: $value.callsAllow),
+        callsDeny: data.get(#callsDeny, or: $value.callsDeny),
       );
 
   @override

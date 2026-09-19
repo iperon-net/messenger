@@ -9,14 +9,17 @@ import '../../i18n/translations.g.dart';
 import '../../repositories/repositories.dart';
 import '../../utils.dart';
 
-/// Пикер allow-list «Всегда разрешать» для звонков. Показывает контакты
-/// (книжные + облачные), зарегистрированные в Iperon (у которых есть userID);
-/// незарегистрированные скрыты — гейт работает только по userID. Множественный
-/// выбор, сохранение заменяет список целиком через [SettingsPrivacyAndSecurityCubit].
+/// Пикер списка-исключений для звонков — allow «Всегда разрешать» (под «Никто»)
+/// или deny «Всегда запрещать» (под «Мои контакты»), выбирается [kind]. Показывает
+/// контакты (книжные + облачные), зарегистрированные в Iperon (у которых есть
+/// userID); незарегистрированные скрыты — гейт работает только по userID.
+/// Множественный выбор, сохранение заменяет список целиком через
+/// [SettingsPrivacyAndSecurityCubit].
 class SettingsPrivacyCallsAllowMaterial extends StatefulWidget {
+  final CallsListKind kind;
   final List<Uint8List> initialSelected;
 
-  const SettingsPrivacyCallsAllowMaterial({required this.initialSelected, super.key});
+  const SettingsPrivacyCallsAllowMaterial({required this.kind, required this.initialSelected, super.key});
 
   @override
   State<SettingsPrivacyCallsAllowMaterial> createState() => _SettingsPrivacyCallsAllowMaterial();
@@ -70,7 +73,8 @@ class _SettingsPrivacyCallsAllowMaterial extends State<SettingsPrivacyCallsAllow
     final selectedIDs = _candidates.where((c) => _selected.contains(c.hex)).map((c) => c.userID).toList(growable: false);
     final messenger = ScaffoldMessenger.of(context);
     final message = context.t.common.noConnectionMessage;
-    final ok = await context.read<SettingsPrivacyAndSecurityCubit>().setCallsAllow(selectedIDs);
+    final cubit = context.read<SettingsPrivacyAndSecurityCubit>();
+    final ok = widget.kind == CallsListKind.allow ? await cubit.setCallsAllow(selectedIDs) : await cubit.setCallsDeny(selectedIDs);
     if (!mounted) return;
     if (ok) {
       Navigator.of(context).pop();
@@ -87,7 +91,11 @@ class _SettingsPrivacyCallsAllowMaterial extends State<SettingsPrivacyCallsAllow
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surfaceContainerLow,
       appBar: AppBar(
-        title: Text(context.t.sessionsPrivacyAndSecurity.callsAlwaysAllow),
+        title: Text(
+          widget.kind == CallsListKind.allow
+              ? context.t.sessionsPrivacyAndSecurity.callsAlwaysAllow
+              : context.t.sessionsPrivacyAndSecurity.callsAlwaysDeny,
+        ),
         actions: [
           _saving
               ? const Padding(

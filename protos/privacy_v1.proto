@@ -24,6 +24,9 @@ message PrivacySettings {
     // Allow-list «всегда разрешать» для звонков: userID (ObjectID, 12 байт),
     // которым звонок разрешён независимо от `calls` (в т.ч. при NOBODY).
     repeated bytes calls_allow = 2;
+    // Deny-list «всегда запрещать» для звонков: userID (ObjectID, 12 байт),
+    // которым звонок запрещён независимо от `calls` (в т.ч. при CONTACTS).
+    repeated bytes calls_deny = 3;
   }
 }
 
@@ -38,6 +41,15 @@ message PrivacySettingsUpdate {
 
 // Полная замена allow-list «всегда разрешать» для звонков.
 message PrivacyCallsAllowUpdate {
+  message Request {
+    repeated bytes user_ids = 1;
+  }
+
+  message Response {}
+}
+
+// Полная замена deny-list «всегда запрещать» для звонков.
+message PrivacyCallsDenyUpdate {
   message Request {
     repeated bytes user_ids = 1;
   }

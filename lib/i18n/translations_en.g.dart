@@ -501,6 +501,9 @@ class Translations$sessionsPrivacyAndSecurity$en {
 	/// en: 'Always allow'
 	String get callsAlwaysAllow => 'Always allow';
 
+	/// en: 'Always deny'
+	String get callsAlwaysDeny => 'Always deny';
+
 	/// en: 'No contacts registered on Iperon'
 	String get callsAllowEmpty => 'No contacts registered on Iperon';
 }
@@ -1172,6 +1175,7 @@ extension on Translations {
 			'sessionsPrivacyAndSecurity.retry' => 'Retry',
 			'sessionsPrivacyAndSecurity.exceptions' => 'Exceptions',
 			'sessionsPrivacyAndSecurity.callsAlwaysAllow' => 'Always allow',
+			'sessionsPrivacyAndSecurity.callsAlwaysDeny' => 'Always deny',
 			'sessionsPrivacyAndSecurity.callsAllowEmpty' => 'No contacts registered on Iperon',
 			'screenMyProfile.myprofile' => 'My profile',
 			'screenMyProfile.firstName' => 'First name',
