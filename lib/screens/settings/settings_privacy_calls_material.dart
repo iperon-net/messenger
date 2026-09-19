@@ -84,9 +84,9 @@ class SettingsPrivacyCallsMaterial extends StatelessWidget {
                             style: TextStyle(fontSize: AppFontSizes.caption, color: Theme.of(context).colorScheme.onSurfaceVariant),
                           ),
                         ),
-                        TextButton(
+                        IconButton(
                           onPressed: () => context.read<SettingsPrivacyAndSecurityCubit>().reloadCalls(),
-                          child: Text(context.t.sessionsPrivacyAndSecurity.retry),
+                          icon: const Icon(Icons.refresh, size: 20),
                         ),
                       ],
                     ),

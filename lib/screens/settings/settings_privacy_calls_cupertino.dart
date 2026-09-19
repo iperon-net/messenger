@@ -73,18 +73,26 @@ class SettingsPrivacyCallsCupertino extends StatelessWidget {
                     style: TextStyle(fontSize: AppFontSizes.base, fontWeight: FontWeight.normal),
                   ),
                   // Показываем значение из кэша, но менять нельзя — нет сети.
-                  // Даём повтор, чтобы перепроверить сеть не выходя с экрана.
+                  // Даём повтор (иконкой), чтобы перепроверить сеть не выходя с экрана.
                   footer: state.callsReadOnly
-                      ? Row(
-                          children: [
-                            Expanded(child: Text(context.t.sessionsPrivacyAndSecurity.callsOfflineNote)),
-                            CupertinoButton(
-                              sizeStyle: CupertinoButtonSize.small,
-                              padding: EdgeInsets.zero,
-                              onPressed: () => context.read<SettingsPrivacyAndSecurityCubit>().reloadCalls(),
-                              child: Text(context.t.sessionsPrivacyAndSecurity.retry),
-                            ),
-                          ],
+                      ? Padding(
+                          padding: const EdgeInsets.only(left: 13),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  context.t.sessionsPrivacyAndSecurity.callsOfflineNote,
+                                  style: TextStyle(fontSize: AppFontSizes.caption),
+                                ),
+                              ),
+                              CupertinoButton(
+                                sizeStyle: CupertinoButtonSize.small,
+                                padding: EdgeInsets.zero,
+                                onPressed: () => context.read<SettingsPrivacyAndSecurityCubit>().reloadCalls(),
+                                child: const Icon(CupertinoIcons.arrow_clockwise, size: 20),
+                              ),
+                            ],
+                          ),
                         )
                       : null,
                   backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
