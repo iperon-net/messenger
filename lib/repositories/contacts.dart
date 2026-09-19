@@ -54,6 +54,24 @@ class Contacts {
         .toList(growable: false);
   }
 
+  /// Первая запись контакта с этим [userID] (имя/номер) — для показа в журнале
+  /// звонков, когда профиль ещё не попал в кэш. `null`, если такого нет.
+  Future<ContactCacheEntry?> getByUserID(List<int> userID) async {
+    final rows = await db.execute("SELECT phoneE164, displayName, phone, userID, isCloud, oprf FROM contacts WHERE userID = ? LIMIT 1;", [
+      userID,
+    ]);
+    if (rows.isEmpty) return null;
+    final row = rows.first;
+    return ContactCacheEntry(
+      phoneE164: row["phoneE164"] as String,
+      displayName: row["displayName"] as String,
+      phone: row["phone"] as String,
+      userID: row["userID"] as List<int>?,
+      isCloud: (row["isCloud"] as int? ?? 0) != 0,
+      oprf: row["oprf"] as List<int>?,
+    );
+  }
+
   /// Полностью заменяет книжную часть снимка (isCloud=0) свежим OPRF-проходом.
   /// Облачные строки не трогаем; `OR IGNORE` не даёт книжной записи затереть
   /// облачную с тем же номером (облачная в показе главнее).

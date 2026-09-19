@@ -125,13 +125,13 @@ class _CallsMaterialState extends State<CallsMaterial> {
       );
     }
 
-    return ListView.builder(itemCount: items.length, itemBuilder: (context, index) => _tile(context, items[index]));
+    return ListView.builder(itemCount: items.length, itemBuilder: (context, index) => _tile(context, state, items[index]));
   }
 
-  Widget _tile(BuildContext context, models.CallLog log) {
+  Widget _tile(BuildContext context, CallsState state, models.CallLog log) {
     final utils = getIt.get<Utils>();
     final hex = utils.bytesToHex(log.userID);
-    final name = log.displayName.isNotEmpty ? log.displayName : context.t.screenCalls.unknown;
+    final name = _displayName(context, state, log);
     final red = Theme.of(context).colorScheme.error;
     final secondary = Theme.of(context).colorScheme.onSurfaceVariant;
 
@@ -214,9 +214,17 @@ class _CallsMaterialState extends State<CallsMaterial> {
     return state.calls.where((log) {
       if (state.filter == CallsFilter.missed && !log.missed) return false;
       if (query.isEmpty) return true;
-      final name = log.displayName.isNotEmpty ? log.displayName : context.t.screenCalls.unknown;
-      return name.toLowerCase().contains(query);
+      return _displayName(context, state, log).toLowerCase().contains(query);
     }).toList();
+  }
+
+  /// Имя собеседника: актуальное из кэша профилей ([CallsState.names]) с откатом
+  /// на снимок из строки журнала, затем на «Неизвестный».
+  String _displayName(BuildContext context, CallsState state, models.CallLog log) {
+    final live = state.names[getIt.get<Utils>().bytesToHex(log.userID)];
+    if (live != null && live.isNotEmpty) return live;
+    if (log.displayName.isNotEmpty) return log.displayName;
+    return context.t.screenCalls.unknown;
   }
 
   IconData _directionIcon(models.CallLog log) {

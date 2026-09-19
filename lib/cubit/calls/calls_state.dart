@@ -19,7 +19,18 @@ class CallsState with CallsStateMappable {
   final String query;
   final CallsFilter filter;
 
-  const CallsState({this.status = Status.initialization, this.calls = const [], this.query = "", this.filter = CallsFilter.all});
+  /// Актуальные имена собеседников из кэша профилей: hex(userID) → имя. Имеют
+  /// приоритет над снимком [models.CallLog.displayName] (профиль мог обновиться
+  /// после звонка). Нет записи по userID — берём снимок, затем «Неизвестный».
+  final Map<String, String> names;
+
+  const CallsState({
+    this.status = Status.initialization,
+    this.calls = const [],
+    this.query = "",
+    this.filter = CallsFilter.all,
+    this.names = const {},
+  });
 
   /// Есть ли хоть один пропущенный звонок — для показа/скрытия фильтра.
   bool get hasMissed => calls.any((c) => c.missed);

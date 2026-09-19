@@ -77,12 +77,16 @@ class CallCubit extends Cubit<CallState> {
       final response = Profile_Response.fromBuffer(payload);
       if (!listEquals(response.userID, userID)) return;
 
+      // Форматируем номер (как в кэш-пути ниже и в CallKit): при пустом имени
+      // фолбэк на номер должен быть в международном виде, а не «сырыми» цифрами.
+      // Если распарсить не удалось — оставляем исходный номер.
+      final phone = utils.phoneNormalization(phoneNumber: response.phoneNumber).international;
       emit(
         state.copyWith(
           displayName: utils.composeDisplayName(
             firstName: response.firstName,
             lastName: response.lastName,
-            phoneNumber: response.phoneNumber,
+            phoneNumber: phone.isNotEmpty ? phone : response.phoneNumber,
             username: response.username,
           ),
         ),

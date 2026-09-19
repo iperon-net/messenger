@@ -98,6 +98,13 @@ class CallsStateMapper extends ClassMapperBase<CallsState> {
     opt: true,
     def: CallsFilter.all,
   );
+  static Map<String, String> _$names(CallsState v) => v.names;
+  static const Field<CallsState, Map<String, String>> _f$names = Field(
+    'names',
+    _$names,
+    opt: true,
+    def: const {},
+  );
 
   @override
   final MappableFields<CallsState> fields = const {
@@ -105,6 +112,7 @@ class CallsStateMapper extends ClassMapperBase<CallsState> {
     #calls: _f$calls,
     #query: _f$query,
     #filter: _f$filter,
+    #names: _f$names,
   };
 
   static CallsState _instantiate(DecodingData data) {
@@ -113,6 +121,7 @@ class CallsStateMapper extends ClassMapperBase<CallsState> {
       calls: data.dec(_f$calls),
       query: data.dec(_f$query),
       filter: data.dec(_f$filter),
+      names: data.dec(_f$names),
     );
   }
 
@@ -182,11 +191,13 @@ abstract class CallsStateCopyWith<$R, $In extends CallsState, $Out>
     models.CallLogCopyWith<$R, models.CallLog, models.CallLog>
   >
   get calls;
+  MapCopyWith<$R, String, String, ObjectCopyWith<$R, String, String>> get names;
   $R call({
     Status? status,
     List<models.CallLog>? calls,
     String? query,
     CallsFilter? filter,
+    Map<String, String>? names,
   });
   CallsStateCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
@@ -211,17 +222,26 @@ class _CallsStateCopyWithImpl<$R, $Out>
     (v) => call(calls: v),
   );
   @override
+  MapCopyWith<$R, String, String, ObjectCopyWith<$R, String, String>>
+  get names => MapCopyWith(
+    $value.names,
+    (v, t) => ObjectCopyWith(v, $identity, t),
+    (v) => call(names: v),
+  );
+  @override
   $R call({
     Status? status,
     List<models.CallLog>? calls,
     String? query,
     CallsFilter? filter,
+    Map<String, String>? names,
   }) => $apply(
     FieldCopyWithData({
       if (status != null) #status: status,
       if (calls != null) #calls: calls,
       if (query != null) #query: query,
       if (filter != null) #filter: filter,
+      if (names != null) #names: names,
     }),
   );
   @override
@@ -230,6 +250,7 @@ class _CallsStateCopyWithImpl<$R, $Out>
     calls: data.get(#calls, or: $value.calls),
     query: data.get(#query, or: $value.query),
     filter: data.get(#filter, or: $value.filter),
+    names: data.get(#names, or: $value.names),
   );
 
   @override
