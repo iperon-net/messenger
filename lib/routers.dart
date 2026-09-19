@@ -159,6 +159,17 @@ class Routers {
                   ),
                   routes: [
                     GoRoute(
+                      path: "calls",
+                      parentNavigatorKey: rootNavigatorKey,
+                      pageBuilder: (context, state) => _page(
+                        state,
+                        BlocProvider<SettingsPrivacyAndSecurityCubit>(
+                          create: (_) => SettingsPrivacyAndSecurityCubit()..initialization(),
+                          child: const SettingsPrivacyCallsCupertino(),
+                        ),
+                      ),
+                    ),
+                    GoRoute(
                       path: "passcode",
                       parentNavigatorKey: rootNavigatorKey,
                       pageBuilder: (context, state) => _page(
@@ -438,6 +449,17 @@ class Routers {
                     ),
                   ),
                   routes: [
+                    GoRoute(
+                      path: "calls",
+                      parentNavigatorKey: rootNavigatorKey,
+                      pageBuilder: (context, state) => _pageMaterial(
+                        state,
+                        BlocProvider<SettingsPrivacyAndSecurityCubit>(
+                          create: (_) => SettingsPrivacyAndSecurityCubit()..initialization(),
+                          child: const SettingsPrivacyCallsMaterial(),
+                        ),
+                      ),
+                    ),
                     GoRoute(
                       path: "passcode",
                       parentNavigatorKey: rootNavigatorKey,

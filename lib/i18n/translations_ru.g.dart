@@ -290,6 +290,8 @@ class _Translations$sessionsPrivacyAndSecurity$ru extends Translations$sessionsP
 	@override String get calls => 'Звонки';
 	@override String get callsEverybody => 'Все';
 	@override String get callsContacts => 'Мои контакты';
+	@override String get callsLoadError => 'Не удалось загрузить настройку';
+	@override String get retry => 'Повторить';
 }
 
 // Path: screenMyProfile
@@ -641,6 +643,8 @@ extension on TranslationsRu {
 			'sessionsPrivacyAndSecurity.calls' => 'Звонки',
 			'sessionsPrivacyAndSecurity.callsEverybody' => 'Все',
 			'sessionsPrivacyAndSecurity.callsContacts' => 'Мои контакты',
+			'sessionsPrivacyAndSecurity.callsLoadError' => 'Не удалось загрузить настройку',
+			'sessionsPrivacyAndSecurity.retry' => 'Повторить',
 			'screenMyProfile.myprofile' => 'Мой профиль',
 			'screenMyProfile.firstName' => 'Имя',
 			'screenMyProfile.lastName' => 'Фамилия',

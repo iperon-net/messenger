@@ -22,27 +22,45 @@ class SettingsPrivacyAndSecurityCubit extends Cubit<SettingsPrivacyAndSecuritySt
     await _loadCalls();
   }
 
-  /// Загружает серверную настройку «кто может звонить». Ошибка не критична —
-  /// остаёмся на дефолте (только контакты).
+  /// Перечитывает серверную настройку звонков. Вызывается родительским экраном
+  /// «Конфиденциальность» после возврата с детейл-экрана «Звонки» (у которого
+  /// свой инстанс cubit), чтобы label в списке не остался устаревшим.
+  Future<void> reloadCalls() => _loadCalls();
+
+  /// Загружает серверную настройку «кто может звонить». Настройка
+  /// server-authoritative, локального кэша нет — поэтому при сбое (offline или
+  /// ошибка) НЕ выдаём дефолт за реальное значение, а поднимаем [callsLoadError]:
+  /// экран покажет «не загрузилось» + повтор (см. offline-раздел CLAUDE.md).
   Future<void> _loadCalls() async {
     try {
       final (status, payload) = await api.unaryEncodedWithResponse(MessageType.PRIVACY_SETTINGS, PrivacySettings_Request().writeToBuffer());
-      if (isClosed || status.status != APIStatus.success || payload == null) return;
+      if (isClosed) return;
+
+      if (status.status != APIStatus.success || payload == null) {
+        logger.warning('privacy: load calls audience failed (${status.error})');
+        emit(state.copyWith(callsLoadError: true));
+        return;
+      }
 
       final response = PrivacySettings_Response.fromBuffer(payload);
-      emit(state.copyWith(callsAudience: _fromProto(response.calls)));
+      emit(state.copyWith(callsAudience: _fromProto(response.calls), callsLoadError: false));
     } catch (error, stackTrace) {
       logger.handle(error, stackTrace);
+      if (!isClosed) emit(state.copyWith(callsLoadError: true));
     }
   }
 
-  /// Меняет настройку «кто может звонить». Оптимистично обновляем UI, при сбое —
-  /// откатываем к прежнему значению.
-  Future<void> setCallsAudience(CallsPrivacyAudience audience) async {
-    if (audience == state.callsAudience) return;
+  /// Меняет настройку «кто может звонить». Настройку нельзя применить offline
+  /// (гейт серверный) — поэтому сперва проверяем сеть и НЕ делаем оптимистичный
+  /// emit с откатом (галочка визуально не прыгает). Возвращает `false`, если
+  /// изменение не применилось (offline/ошибка) — UI показывает фидбек.
+  Future<bool> setCallsAudience(CallsPrivacyAudience audience) async {
+    if (audience == state.callsAudience && !state.callsLoadError) return true;
 
-    final previous = state.callsAudience;
-    emit(state.copyWith(callsAudience: audience));
+    if (!await utils.hasNetwork()) {
+      logger.info('privacy: set calls audience aborted, no network');
+      return false;
+    }
 
     final status = await api.unaryEncoded(
       MessageType.PRIVACY_SETTINGS_UPDATE,
@@ -51,8 +69,12 @@ class SettingsPrivacyAndSecurityCubit extends Cubit<SettingsPrivacyAndSecuritySt
 
     if (status.status != APIStatus.success) {
       logger.warning('privacy: update calls audience failed (${status.error})');
-      if (!isClosed) emit(state.copyWith(callsAudience: previous));
+      return false;
     }
+
+    // Успех подтверждает и связь, и новое значение — фиксируем, снимаем ошибку.
+    if (!isClosed) emit(state.copyWith(callsAudience: audience, callsLoadError: false));
+    return true;
   }
 
   CallsPrivacyAudience _fromProto(PrivacySettings_Audience audience) {

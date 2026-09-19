@@ -124,6 +124,8 @@
   "calls": "Звонки"
   "callsEverybody": "Все"
   "callsContacts": "Мои контакты"
+  "callsLoadError": "Не удалось загрузить настройку"
+  "retry": "Повторить"
 
 "screenMyProfile":
   "myprofile": "Мой профиль"

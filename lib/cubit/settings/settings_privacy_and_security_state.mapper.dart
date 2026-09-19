@@ -51,12 +51,17 @@ class SettingsPrivacyAndSecurityStateMapper
     opt: true,
     def: CallsPrivacyAudience.contacts,
   );
+  static bool _$callsLoadError(SettingsPrivacyAndSecurityState v) =>
+      v.callsLoadError;
+  static const Field<SettingsPrivacyAndSecurityState, bool> _f$callsLoadError =
+      Field('callsLoadError', _$callsLoadError, opt: true, def: false);
 
   @override
   final MappableFields<SettingsPrivacyAndSecurityState> fields = const {
     #status: _f$status,
     #isBiometricAvailable: _f$isBiometricAvailable,
     #callsAudience: _f$callsAudience,
+    #callsLoadError: _f$callsLoadError,
   };
 
   static SettingsPrivacyAndSecurityState _instantiate(DecodingData data) {
@@ -64,6 +69,7 @@ class SettingsPrivacyAndSecurityStateMapper
       status: data.dec(_f$status),
       isBiometricAvailable: data.dec(_f$isBiometricAvailable),
       callsAudience: data.dec(_f$callsAudience),
+      callsLoadError: data.dec(_f$callsLoadError),
     );
   }
 
@@ -149,6 +155,7 @@ abstract class SettingsPrivacyAndSecurityStateCopyWith<
     Status? status,
     bool? isBiometricAvailable,
     CallsPrivacyAudience? callsAudience,
+    bool? callsLoadError,
   });
   SettingsPrivacyAndSecurityStateCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
     Then<$Out2, $R2> t,
@@ -177,12 +184,14 @@ class _SettingsPrivacyAndSecurityStateCopyWithImpl<$R, $Out>
     Status? status,
     bool? isBiometricAvailable,
     CallsPrivacyAudience? callsAudience,
+    bool? callsLoadError,
   }) => $apply(
     FieldCopyWithData({
       if (status != null) #status: status,
       if (isBiometricAvailable != null)
         #isBiometricAvailable: isBiometricAvailable,
       if (callsAudience != null) #callsAudience: callsAudience,
+      if (callsLoadError != null) #callsLoadError: callsLoadError,
     }),
   );
   @override
@@ -194,6 +203,7 @@ class _SettingsPrivacyAndSecurityStateCopyWithImpl<$R, $Out>
           or: $value.isBiometricAvailable,
         ),
         callsAudience: data.get(#callsAudience, or: $value.callsAudience),
+        callsLoadError: data.get(#callsLoadError, or: $value.callsLoadError),
       );
 
   @override

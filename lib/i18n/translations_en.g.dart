@@ -482,6 +482,12 @@ class Translations$sessionsPrivacyAndSecurity$en {
 
 	/// en: 'My contacts'
 	String get callsContacts => 'My contacts';
+
+	/// en: 'Couldn't load the setting'
+	String get callsLoadError => 'Couldn\'t load the setting';
+
+	/// en: 'Retry'
+	String get retry => 'Retry';
 }
 
 // Path: screenMyProfile
@@ -1145,6 +1151,8 @@ extension on Translations {
 			'sessionsPrivacyAndSecurity.calls' => 'Calls',
 			'sessionsPrivacyAndSecurity.callsEverybody' => 'Everybody',
 			'sessionsPrivacyAndSecurity.callsContacts' => 'My contacts',
+			'sessionsPrivacyAndSecurity.callsLoadError' => 'Couldn\'t load the setting',
+			'sessionsPrivacyAndSecurity.retry' => 'Retry',
 			'screenMyProfile.myprofile' => 'My profile',
 			'screenMyProfile.firstName' => 'First name',
 			'screenMyProfile.lastName' => 'Last name',

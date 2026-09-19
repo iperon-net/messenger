@@ -61,13 +61,15 @@ class _SettingsPrivacyAndSecurityMaterial extends State<SettingsPrivacyAndSecuri
                     title: Text(context.t.sessionsPrivacyAndSecurity.calls),
                     color: const Color(0xFF007AFF),
                     icon: FontAwesomeIcons.phone,
-                    onTab: null,
-                    trailing: MaterialInlineDropdown<CallsPrivacyAudience>(
-                      value: state.callsAudience,
-                      items: CallsPrivacyAudience.values,
-                      labelBuilder: (audience) => _audienceLabel(context, audience),
-                      onSelected: (audience) => context.read<SettingsPrivacyAndSecurityCubit>().setCallsAudience(audience),
-                    ),
+                    isTrailing: true,
+                    additionalInfo: Text(state.callsLoadError ? "—" : _audienceLabel(context, state.callsAudience)),
+                    onTab: () async {
+                      final cubit = context.read<SettingsPrivacyAndSecurityCubit>();
+                      await context.push("/settings/privacy_and_security/calls");
+                      // Детейл-экран правит свой инстанс cubit — по возврату
+                      // перечитываем значение, чтобы label не остался старым.
+                      await cubit.reloadCalls();
+                    },
                   ),
                 ),
               ],

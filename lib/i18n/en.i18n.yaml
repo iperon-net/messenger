@@ -124,6 +124,8 @@
   "calls": "Calls"
   "callsEverybody": "Everybody"
   "callsContacts": "My contacts"
+  "callsLoadError": "Couldn't load the setting"
+  "retry": "Retry"
 
 "screenMyProfile":
   "myprofile": "My profile"

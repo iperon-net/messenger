@@ -88,36 +88,18 @@ class _SettingsPrivacyAndSecurityCupertino extends State<SettingsPrivacyAndSecur
                       title: Text(context.t.sessionsPrivacyAndSecurity.calls),
                       color: Color(0xFF007AFF),
                       icon: FontAwesomeIcons.phone,
-                      onTab: null,
-                      trailing: CupertinoMenuAnchor(
-                        builder: (context, controller, child) {
-                          return CupertinoButton(
-                            sizeStyle: CupertinoButtonSize.small,
-                            padding: EdgeInsets.zero,
-                            onPressed: () => controller.isOpen ? controller.close() : controller.open(),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.only(right: 8),
-                                  child: Text(
-                                    _audienceLabel(context, state.callsAudience),
-                                    style: TextStyle(color: CupertinoColors.secondaryLabel.resolveFrom(context)),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                        },
-                        menuChildren: [
-                          for (final audience in CallsPrivacyAudience.values)
-                            CupertinoMenuItem(
-                              trailing: state.callsAudience == audience ? const Icon(CupertinoIcons.check_mark) : null,
-                              onPressed: () => context.read<SettingsPrivacyAndSecurityCubit>().setCallsAudience(audience),
-                              child: Text(_audienceLabel(context, audience)),
-                            ),
-                        ],
+                      isTrailing: true,
+                      additionalInfo: Text(
+                        state.callsLoadError ? "—" : _audienceLabel(context, state.callsAudience),
+                        style: TextStyle(color: CupertinoColors.secondaryLabel.resolveFrom(context)),
                       ),
+                      onTab: () async {
+                        final cubit = context.read<SettingsPrivacyAndSecurityCubit>();
+                        await context.push("/settings/privacy_and_security/calls");
+                        // Детейл-экран правит свой инстанс cubit — по возврату
+                        // перечитываем значение, чтобы label не остался старым.
+                        await cubit.reloadCalls();
+                      },
                     ),
                   ],
                 ),

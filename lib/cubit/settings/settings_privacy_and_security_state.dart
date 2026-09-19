@@ -17,9 +17,15 @@ class SettingsPrivacyAndSecurityState with SettingsPrivacyAndSecurityStateMappab
   /// серверным дефолтом, когда документ настроек ещё не создан).
   final CallsPrivacyAudience callsAudience;
 
+  /// Не удалось загрузить серверную настройку звонков (offline/ошибка). Пока
+  /// `true`, экран не выдаёт [callsAudience] за реальное значение, а показывает
+  /// состояние «не загрузилось» + повтор. Сбрасывается при успешной загрузке.
+  final bool callsLoadError;
+
   const SettingsPrivacyAndSecurityState({
     this.status = Status.initialization,
     this.isBiometricAvailable = false,
     this.callsAudience = CallsPrivacyAudience.contacts,
+    this.callsLoadError = false,
   });
 }
