@@ -415,6 +415,10 @@ class _Translations$screenCalls$ru extends Translations$screenCalls$en {
 	@override String get outgoing => 'Исходящий';
 	@override String get missed => 'Пропущенный';
 	@override String get cancelled => 'Отменённый';
+	@override String durationSec({required Object s}) => '${s} сек';
+	@override String durationMin({required Object m}) => '${m} мин';
+	@override String durationHour({required Object h}) => '${h} час';
+	@override String durationHourMin({required Object h, required Object m}) => '${h} час ${m} мин';
 	@override String get unknown => 'Неизвестный';
 	@override String get delete => 'Удалить';
 	@override String get clear => 'Очистить';
@@ -726,6 +730,10 @@ extension on TranslationsRu {
 			'screenCalls.outgoing' => 'Исходящий',
 			'screenCalls.missed' => 'Пропущенный',
 			'screenCalls.cancelled' => 'Отменённый',
+			'screenCalls.durationSec' => ({required Object s}) => '${s} сек',
+			'screenCalls.durationMin' => ({required Object m}) => '${m} мин',
+			'screenCalls.durationHour' => ({required Object h}) => '${h} час',
+			'screenCalls.durationHourMin' => ({required Object h, required Object m}) => '${h} час ${m} мин',
 			'screenCalls.unknown' => 'Неизвестный',
 			'screenCalls.delete' => 'Удалить',
 			'screenCalls.clear' => 'Очистить',

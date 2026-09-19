@@ -162,7 +162,7 @@ class _CallsCupertinoState extends State<CallsCupertino> {
           const SizedBox(width: 4),
           Flexible(
             child: Text(
-              _subtitle(context, log),
+              _typeLine(context, log),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(fontSize: 14, color: secondary),
@@ -170,13 +170,20 @@ class _CallsCupertinoState extends State<CallsCupertino> {
           ),
         ],
       ),
-      trailing: CupertinoButton(
-        padding: EdgeInsets.zero,
-        onPressed: () => getIt.get<Calls>().startCall(toUserID: log.userID, video: log.video),
-        child: Icon(
-          log.video ? CupertinoIcons.videocam_fill : CupertinoIcons.phone_fill,
-          color: ThemesCupertino().green.resolveFrom(context),
-        ),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(log.createdAt.relativeFormat(context.t), style: TextStyle(fontSize: 13, color: secondary)),
+          const SizedBox(width: 4),
+          CupertinoButton(
+            padding: EdgeInsets.zero,
+            onPressed: () => getIt.get<Calls>().startCall(toUserID: log.userID, video: log.video),
+            child: Icon(
+              log.video ? CupertinoIcons.videocam_fill : CupertinoIcons.phone_fill,
+              color: CupertinoTheme.of(context).primaryColor,
+            ),
+          ),
+        ],
       ),
       onTap: () => context.push('/profile/$hex'),
     );
@@ -195,13 +202,12 @@ class _CallsCupertinoState extends State<CallsCupertino> {
     );
   }
 
-  /// «Входящий · 2:31 · сегодня в 12:00» — направление (или «Пропущенный»),
-  /// длительность (если ответили) и дата.
-  String _subtitle(BuildContext context, models.CallLog log) {
-    final parts = <String>[_directionWord(context, log)];
-    if (log.durationSeconds > 0) parts.add(_formatDuration(log.durationSeconds));
-    parts.add(log.createdAt.relativeFormat(context.t));
-    return parts.join(' · ');
+  /// «Входящий (14 мин)» — тип звонка и, если разговор состоялся, длительность
+  /// в скобках. Дата вынесена в правую часть строки (см. trailing).
+  String _typeLine(BuildContext context, models.CallLog log) {
+    final word = _directionWord(context, log);
+    if (log.durationSeconds <= 0) return word;
+    return '$word (${_humanDuration(context, log.durationSeconds)})';
   }
 
   Future<void> _confirmClear(BuildContext context) async {
@@ -248,11 +254,14 @@ class _CallsCupertinoState extends State<CallsCupertino> {
     return log.durationSeconds > 0 ? t.outgoing : t.cancelled;
   }
 
-  static String _formatDuration(int totalSeconds) {
+  /// Человекочитаемая длительность: «10 сек», «14 мин», «1 час 30 мин».
+  String _humanDuration(BuildContext context, int totalSeconds) {
+    final t = context.t.screenCalls;
+    if (totalSeconds < 60) return t.durationSec(s: totalSeconds);
     final h = totalSeconds ~/ 3600;
     final m = (totalSeconds % 3600) ~/ 60;
-    final s = totalSeconds % 60;
-    if (h > 0) return '$h:${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
-    return '$m:${s.toString().padLeft(2, '0')}';
+    if (h == 0) return t.durationMin(m: m);
+    if (m == 0) return t.durationHour(h: h);
+    return t.durationHourMin(h: h, m: m);
   }
 }

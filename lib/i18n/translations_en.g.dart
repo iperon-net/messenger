@@ -786,6 +786,18 @@ class Translations$screenCalls$en {
 	/// en: 'Cancelled'
 	String get cancelled => 'Cancelled';
 
+	/// en: '{s} sec'
+	String durationSec({required Object s}) => '${s} sec';
+
+	/// en: '{m} min'
+	String durationMin({required Object m}) => '${m} min';
+
+	/// en: '{h} h'
+	String durationHour({required Object h}) => '${h} h';
+
+	/// en: '{h} h {m} min'
+	String durationHourMin({required Object h, required Object m}) => '${h} h ${m} min';
+
 	/// en: 'Unknown'
 	String get unknown => 'Unknown';
 
@@ -1222,6 +1234,10 @@ extension on Translations {
 			'screenCalls.outgoing' => 'Outgoing',
 			'screenCalls.missed' => 'Missed',
 			'screenCalls.cancelled' => 'Cancelled',
+			'screenCalls.durationSec' => ({required Object s}) => '${s} sec',
+			'screenCalls.durationMin' => ({required Object m}) => '${m} min',
+			'screenCalls.durationHour' => ({required Object h}) => '${h} h',
+			'screenCalls.durationHourMin' => ({required Object h, required Object m}) => '${h} h ${m} min',
 			'screenCalls.unknown' => 'Unknown',
 			'screenCalls.delete' => 'Delete',
 			'screenCalls.clear' => 'Clear',

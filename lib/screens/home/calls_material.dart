@@ -149,7 +149,7 @@ class _CallsMaterialState extends State<CallsMaterial> {
           const SizedBox(width: 4),
           Flexible(
             child: Text(
-              _subtitle(context, log),
+              _typeLine(context, log),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(color: secondary),
@@ -157,9 +157,16 @@ class _CallsMaterialState extends State<CallsMaterial> {
           ),
         ],
       ),
-      trailing: IconButton(
-        icon: Icon(log.video ? Icons.videocam : Icons.call, color: Colors.green),
-        onPressed: () => getIt.get<Calls>().startCall(toUserID: log.userID, video: log.video),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(log.createdAt.relativeFormat(context.t), style: TextStyle(fontSize: 12, color: secondary)),
+          const SizedBox(width: 4),
+          IconButton(
+            icon: Icon(log.video ? Icons.videocam : Icons.call, color: Theme.of(context).colorScheme.primary),
+            onPressed: () => getIt.get<Calls>().startCall(toUserID: log.userID, video: log.video),
+          ),
+        ],
       ),
       onTap: () => context.push('/profile/$hex'),
     );
@@ -178,11 +185,12 @@ class _CallsMaterialState extends State<CallsMaterial> {
     );
   }
 
-  String _subtitle(BuildContext context, models.CallLog log) {
-    final parts = <String>[_directionWord(context, log)];
-    if (log.durationSeconds > 0) parts.add(_formatDuration(log.durationSeconds));
-    parts.add(log.createdAt.relativeFormat(context.t));
-    return parts.join(' · ');
+  /// «Входящий (14 мин)» — тип звонка и, если разговор состоялся, длительность
+  /// в скобках. Дата вынесена в правую часть строки (см. trailing).
+  String _typeLine(BuildContext context, models.CallLog log) {
+    final word = _directionWord(context, log);
+    if (log.durationSeconds <= 0) return word;
+    return '$word (${_humanDuration(context, log.durationSeconds)})';
   }
 
   Future<void> _confirmClear(BuildContext context) async {
@@ -224,11 +232,14 @@ class _CallsMaterialState extends State<CallsMaterial> {
     return log.durationSeconds > 0 ? t.outgoing : t.cancelled;
   }
 
-  static String _formatDuration(int totalSeconds) {
+  /// Человекочитаемая длительность: «10 сек», «14 мин», «1 час 30 мин».
+  String _humanDuration(BuildContext context, int totalSeconds) {
+    final t = context.t.screenCalls;
+    if (totalSeconds < 60) return t.durationSec(s: totalSeconds);
     final h = totalSeconds ~/ 3600;
     final m = (totalSeconds % 3600) ~/ 60;
-    final s = totalSeconds % 60;
-    if (h > 0) return '$h:${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
-    return '$m:${s.toString().padLeft(2, '0')}';
+    if (h == 0) return t.durationMin(m: m);
+    if (m == 0) return t.durationHour(h: h);
+    return t.durationHourMin(h: h, m: m);
   }
 }
