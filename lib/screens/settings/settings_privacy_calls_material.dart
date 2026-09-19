@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../cubit.dart';
 import '../../i18n/translations.g.dart';
@@ -12,9 +13,14 @@ class SettingsPrivacyCallsMaterial extends StatelessWidget {
   const SettingsPrivacyCallsMaterial({super.key});
 
   String _audienceLabel(BuildContext context, CallsPrivacyAudience audience) {
-    return audience == CallsPrivacyAudience.everybody
-        ? context.t.sessionsPrivacyAndSecurity.callsEverybody
-        : context.t.sessionsPrivacyAndSecurity.callsContacts;
+    switch (audience) {
+      case CallsPrivacyAudience.everybody:
+        return context.t.sessionsPrivacyAndSecurity.callsEverybody;
+      case CallsPrivacyAudience.contacts:
+        return context.t.sessionsPrivacyAndSecurity.callsContacts;
+      case CallsPrivacyAudience.nobody:
+        return context.t.sessionsPrivacyAndSecurity.callsNobody;
+    }
   }
 
   /// Пытается применить выбор; при неудаче (offline/ошибка) — SnackBar «нет сети».
@@ -26,6 +32,14 @@ class SettingsPrivacyCallsMaterial extends StatelessWidget {
     messenger
       ..hideCurrentSnackBar()
       ..showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  /// Открывает пикер allow-list «Всегда разрешать», передав текущий выбор; по
+  /// возврату перечитывает настройку, чтобы счётчик обновился.
+  Future<void> _openAllow(BuildContext context, SettingsPrivacyAndSecurityState state) async {
+    final cubit = context.read<SettingsPrivacyAndSecurityCubit>();
+    await context.push("/settings/privacy_and_security/calls/allow", extra: state.callsAllow);
+    await cubit.reloadCalls();
   }
 
   @override
@@ -91,6 +105,32 @@ class SettingsPrivacyCallsMaterial extends StatelessWidget {
                       ],
                     ),
                   ),
+                // Исключения показываем только при «Никто»: allow-list «всегда
+                // разрешать» перекрывает запрет для выбранных контактов.
+                if (state.callsAudience == CallsPrivacyAudience.nobody && !state.callsLoadError) ...[
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
+                    child: Text(
+                      context.t.sessionsPrivacyAndSecurity.exceptions,
+                      style: TextStyle(fontSize: AppFontSizes.caption, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                    ),
+                  ),
+                  Card(
+                    margin: const EdgeInsets.symmetric(horizontal: 12),
+                    child: ListTile(
+                      title: Text(context.t.sessionsPrivacyAndSecurity.callsAlwaysAllow),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        spacing: 6,
+                        children: [
+                          Text("${state.callsAllow.length}", style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                          Icon(Icons.chevron_right, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                        ],
+                      ),
+                      onTap: state.callsReadOnly ? null : () async => _openAllow(context, state),
+                    ),
+                  ),
+                ],
               ],
             ),
           ),

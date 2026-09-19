@@ -15,18 +15,20 @@ import 'dart:core' as $core;
 import 'package:protobuf/protobuf.dart' as $pb;
 
 /// Аудитория канала: EVERYBODY — кто угодно; CONTACTS — только те, у кого
-/// отправитель есть в контактах (ребро owner→sender). favorites/messages/
-/// group_invites — следующие этапы.
+/// отправитель есть в контактах (ребро owner→sender); NOBODY — никто (действие
+/// запрещено всем). favorites/messages/group_invites — следующие этапы.
 class PrivacySettings_Audience extends $pb.ProtobufEnum {
   static const PrivacySettings_Audience EVERYBODY = PrivacySettings_Audience._(0, _omitEnumNames ? '' : 'EVERYBODY');
   static const PrivacySettings_Audience CONTACTS = PrivacySettings_Audience._(1, _omitEnumNames ? '' : 'CONTACTS');
+  static const PrivacySettings_Audience NOBODY = PrivacySettings_Audience._(2, _omitEnumNames ? '' : 'NOBODY');
 
   static const $core.List<PrivacySettings_Audience> values = <PrivacySettings_Audience>[
     EVERYBODY,
     CONTACTS,
+    NOBODY,
   ];
 
-  static final $core.List<PrivacySettings_Audience?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 1);
+  static final $core.List<PrivacySettings_Audience?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 2);
   static PrivacySettings_Audience? valueOf($core.int value) => value < 0 || value >= _byValue.length ? null : _byValue[value];
 
   const PrivacySettings_Audience._(super.value, super.name);

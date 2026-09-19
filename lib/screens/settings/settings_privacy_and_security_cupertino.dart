@@ -33,9 +33,14 @@ class _SettingsPrivacyAndSecurityCupertino extends State<SettingsPrivacyAndSecur
   }
 
   String _audienceLabel(BuildContext context, CallsPrivacyAudience audience) {
-    return audience == CallsPrivacyAudience.everybody
-        ? context.t.sessionsPrivacyAndSecurity.callsEverybody
-        : context.t.sessionsPrivacyAndSecurity.callsContacts;
+    switch (audience) {
+      case CallsPrivacyAudience.everybody:
+        return context.t.sessionsPrivacyAndSecurity.callsEverybody;
+      case CallsPrivacyAudience.contacts:
+        return context.t.sessionsPrivacyAndSecurity.callsContacts;
+      case CallsPrivacyAudience.nobody:
+        return context.t.sessionsPrivacyAndSecurity.callsNobody;
+    }
   }
 
   @override

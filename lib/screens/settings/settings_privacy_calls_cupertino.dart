@@ -1,6 +1,7 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../components.dart';
 import '../../cubit.dart';
@@ -14,9 +15,14 @@ class SettingsPrivacyCallsCupertino extends StatelessWidget {
   const SettingsPrivacyCallsCupertino({super.key});
 
   String _audienceLabel(BuildContext context, CallsPrivacyAudience audience) {
-    return audience == CallsPrivacyAudience.everybody
-        ? context.t.sessionsPrivacyAndSecurity.callsEverybody
-        : context.t.sessionsPrivacyAndSecurity.callsContacts;
+    switch (audience) {
+      case CallsPrivacyAudience.everybody:
+        return context.t.sessionsPrivacyAndSecurity.callsEverybody;
+      case CallsPrivacyAudience.contacts:
+        return context.t.sessionsPrivacyAndSecurity.callsContacts;
+      case CallsPrivacyAudience.nobody:
+        return context.t.sessionsPrivacyAndSecurity.callsNobody;
+    }
   }
 
   /// Пытается применить выбор; при неудаче (offline/ошибка) — диалог «нет сети».
@@ -37,6 +43,14 @@ class SettingsPrivacyCallsCupertino extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  /// Открывает пикер allow-list «Всегда разрешать», передав текущий выбор; по
+  /// возврату перечитывает настройку, чтобы счётчик обновился.
+  Future<void> _openAllow(BuildContext context, SettingsPrivacyAndSecurityState state) async {
+    final cubit = context.read<SettingsPrivacyAndSecurityCubit>();
+    await context.push("/settings/privacy_and_security/calls/allow", extra: state.callsAllow);
+    await cubit.reloadCalls();
   }
 
   @override
@@ -122,6 +136,31 @@ class SettingsPrivacyCallsCupertino extends StatelessWidget {
                         ),
                   ],
                 ),
+                // Исключения показываем только при «Никто»: allow-list «всегда
+                // разрешать» перекрывает запрет для выбранных контактов.
+                if (state.callsAudience == CallsPrivacyAudience.nobody && !state.callsLoadError)
+                  CupertinoListSection.insetGrouped(
+                    header: Text(
+                      context.t.sessionsPrivacyAndSecurity.exceptions,
+                      style: TextStyle(fontSize: AppFontSizes.base, fontWeight: FontWeight.normal),
+                    ),
+                    backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
+                    decoration: BoxDecoration(
+                      color: ThemesCupertino.groupedCard.resolveFrom(context),
+                      borderRadius: const BorderRadius.all(Radius.circular(10)),
+                    ),
+                    children: [
+                      CupertinoListTile(
+                        title: Text(context.t.sessionsPrivacyAndSecurity.callsAlwaysAllow),
+                        additionalInfo: Text(
+                          "${state.callsAllow.length}",
+                          style: TextStyle(color: CupertinoColors.secondaryLabel.resolveFrom(context)),
+                        ),
+                        trailing: const CupertinoListTileChevron(),
+                        onTap: state.callsReadOnly ? null : () => _openAllow(context, state),
+                      ),
+                    ],
+                  ),
               ],
             ),
           ),

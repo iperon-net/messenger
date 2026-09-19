@@ -168,6 +168,19 @@ class Routers {
                           child: const SettingsPrivacyCallsCupertino(),
                         ),
                       ),
+                      routes: [
+                        GoRoute(
+                          path: "allow",
+                          parentNavigatorKey: rootNavigatorKey,
+                          pageBuilder: (context, state) => _page(
+                            state,
+                            BlocProvider<SettingsPrivacyAndSecurityCubit>(
+                              create: (_) => SettingsPrivacyAndSecurityCubit(),
+                              child: SettingsPrivacyCallsAllowCupertino(initialSelected: (state.extra as List<Uint8List>?) ?? const []),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                     GoRoute(
                       path: "passcode",
@@ -459,6 +472,19 @@ class Routers {
                           child: const SettingsPrivacyCallsMaterial(),
                         ),
                       ),
+                      routes: [
+                        GoRoute(
+                          path: "allow",
+                          parentNavigatorKey: rootNavigatorKey,
+                          pageBuilder: (context, state) => _pageMaterial(
+                            state,
+                            BlocProvider<SettingsPrivacyAndSecurityCubit>(
+                              create: (_) => SettingsPrivacyAndSecurityCubit(),
+                              child: SettingsPrivacyCallsAllowMaterial(initialSelected: (state.extra as List<Uint8List>?) ?? const []),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                     GoRoute(
                       path: "passcode",

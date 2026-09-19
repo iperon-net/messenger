@@ -483,6 +483,9 @@ class Translations$sessionsPrivacyAndSecurity$en {
 	/// en: 'My contacts'
 	String get callsContacts => 'My contacts';
 
+	/// en: 'Nobody'
+	String get callsNobody => 'Nobody';
+
 	/// en: 'Couldn't load the setting'
 	String get callsLoadError => 'Couldn\'t load the setting';
 
@@ -491,6 +494,15 @@ class Translations$sessionsPrivacyAndSecurity$en {
 
 	/// en: 'Retry'
 	String get retry => 'Retry';
+
+	/// en: 'Exceptions'
+	String get exceptions => 'Exceptions';
+
+	/// en: 'Always allow'
+	String get callsAlwaysAllow => 'Always allow';
+
+	/// en: 'No contacts registered on Iperon'
+	String get callsAllowEmpty => 'No contacts registered on Iperon';
 }
 
 // Path: screenMyProfile
@@ -1154,9 +1166,13 @@ extension on Translations {
 			'sessionsPrivacyAndSecurity.calls' => 'Calls',
 			'sessionsPrivacyAndSecurity.callsEverybody' => 'Everybody',
 			'sessionsPrivacyAndSecurity.callsContacts' => 'My contacts',
+			'sessionsPrivacyAndSecurity.callsNobody' => 'Nobody',
 			'sessionsPrivacyAndSecurity.callsLoadError' => 'Couldn\'t load the setting',
 			'sessionsPrivacyAndSecurity.callsOfflineNote' => 'No connection. You can change this once you\'re back online.',
 			'sessionsPrivacyAndSecurity.retry' => 'Retry',
+			'sessionsPrivacyAndSecurity.exceptions' => 'Exceptions',
+			'sessionsPrivacyAndSecurity.callsAlwaysAllow' => 'Always allow',
+			'sessionsPrivacyAndSecurity.callsAllowEmpty' => 'No contacts registered on Iperon',
 			'screenMyProfile.myprofile' => 'My profile',
 			'screenMyProfile.firstName' => 'First name',
 			'screenMyProfile.lastName' => 'Last name',

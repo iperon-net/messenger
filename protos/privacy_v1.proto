@@ -8,11 +8,12 @@ option go_package = "internal/api/v1";
 // первого изменения: отсутствие значения трактуется гейтом как дефолт CONTACTS.
 message PrivacySettings {
   // Аудитория канала: EVERYBODY — кто угодно; CONTACTS — только те, у кого
-  // отправитель есть в контактах (ребро owner→sender). favorites/messages/
-  // group_invites — следующие этапы.
+  // отправитель есть в контактах (ребро owner→sender); NOBODY — никто (действие
+  // запрещено всем). favorites/messages/group_invites — следующие этапы.
   enum Audience {
     EVERYBODY = 0;
     CONTACTS = 1;
+    NOBODY = 2;
   }
 
   // Чтение текущих настроек.
@@ -20,13 +21,25 @@ message PrivacySettings {
 
   message Response {
     Audience calls = 1;
+    // Allow-list «всегда разрешать» для звонков: userID (ObjectID, 12 байт),
+    // которым звонок разрешён независимо от `calls` (в т.ч. при NOBODY).
+    repeated bytes calls_allow = 2;
   }
 }
 
-// Изменение настроек приватности.
+// Изменение аудитории «кто может звонить».
 message PrivacySettingsUpdate {
   message Request {
     PrivacySettings.Audience calls = 1;
+  }
+
+  message Response {}
+}
+
+// Полная замена allow-list «всегда разрешать» для звонков.
+message PrivacyCallsAllowUpdate {
+  message Request {
+    repeated bytes user_ids = 1;
   }
 
   message Response {}

@@ -290,9 +290,13 @@ class _Translations$sessionsPrivacyAndSecurity$ru extends Translations$sessionsP
 	@override String get calls => 'Звонки';
 	@override String get callsEverybody => 'Все';
 	@override String get callsContacts => 'Мои контакты';
+	@override String get callsNobody => 'Никто';
 	@override String get callsLoadError => 'Не удалось загрузить настройку';
 	@override String get callsOfflineNote => 'Нет соединения. Изменение станет доступно, когда появится сеть.';
 	@override String get retry => 'Повторить';
+	@override String get exceptions => 'Исключения';
+	@override String get callsAlwaysAllow => 'Всегда разрешать';
+	@override String get callsAllowEmpty => 'Нет контактов, зарегистрированных в Iperon';
 }
 
 // Path: screenMyProfile
@@ -644,9 +648,13 @@ extension on TranslationsRu {
 			'sessionsPrivacyAndSecurity.calls' => 'Звонки',
 			'sessionsPrivacyAndSecurity.callsEverybody' => 'Все',
 			'sessionsPrivacyAndSecurity.callsContacts' => 'Мои контакты',
+			'sessionsPrivacyAndSecurity.callsNobody' => 'Никто',
 			'sessionsPrivacyAndSecurity.callsLoadError' => 'Не удалось загрузить настройку',
 			'sessionsPrivacyAndSecurity.callsOfflineNote' => 'Нет соединения. Изменение станет доступно, когда появится сеть.',
 			'sessionsPrivacyAndSecurity.retry' => 'Повторить',
+			'sessionsPrivacyAndSecurity.exceptions' => 'Исключения',
+			'sessionsPrivacyAndSecurity.callsAlwaysAllow' => 'Всегда разрешать',
+			'sessionsPrivacyAndSecurity.callsAllowEmpty' => 'Нет контактов, зарегистрированных в Iperon',
 			'screenMyProfile.myprofile' => 'Мой профиль',
 			'screenMyProfile.firstName' => 'Имя',
 			'screenMyProfile.lastName' => 'Фамилия',

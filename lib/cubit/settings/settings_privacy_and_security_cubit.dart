@@ -56,9 +56,13 @@ class SettingsPrivacyAndSecurityCubit extends Cubit<SettingsPrivacyAndSecuritySt
         return;
       }
 
-      final audience = _fromProto(PrivacySettings_Response.fromBuffer(payload).calls);
+      final response = PrivacySettings_Response.fromBuffer(payload);
+      final audience = _fromProto(response.calls);
+      final allow = response.callsAllow.map(Uint8List.fromList).toList(growable: false);
       await _writeCache(audience);
-      if (!isClosed) emit(state.copyWith(callsAudience: audience, callsLoadError: false, callsReadOnly: false));
+      if (!isClosed) {
+        emit(state.copyWith(callsAudience: audience, callsAllow: allow, callsLoadError: false, callsReadOnly: false));
+      }
     } catch (error, stackTrace) {
       logger.handle(error, stackTrace);
       if (!isClosed) emit(state.copyWith(callsLoadError: cached == null, callsReadOnly: cached != null));
@@ -93,6 +97,29 @@ class SettingsPrivacyAndSecurityCubit extends Cubit<SettingsPrivacyAndSecuritySt
     return true;
   }
 
+  /// Полностью заменяет allow-list «всегда разрешать» для звонков. Как и смена
+  /// аудитории — серверная операция, offline недоступна. Возвращает `false`,
+  /// если не применилось (offline/ошибка).
+  Future<bool> setCallsAllow(List<Uint8List> userIDs) async {
+    if (!await utils.hasNetwork()) {
+      logger.info('privacy: set calls allow aborted, no network');
+      return false;
+    }
+
+    final status = await api.unaryEncoded(
+      MessageType.PRIVACY_CALLS_ALLOW_UPDATE,
+      PrivacyCallsAllowUpdate_Request(userIds: userIDs).writeToBuffer(),
+    );
+
+    if (status.status != APIStatus.success) {
+      logger.warning('privacy: update calls allow failed (${status.error})');
+      return false;
+    }
+
+    if (!isClosed) emit(state.copyWith(callsAllow: List<Uint8List>.unmodifiable(userIDs)));
+    return true;
+  }
+
   /// Читает закэшированное значение звонков; null — кэша нет или он битый.
   Future<CallsPrivacyAudience?> _readCache() async {
     try {
@@ -114,10 +141,24 @@ class SettingsPrivacyAndSecurityCubit extends Cubit<SettingsPrivacyAndSecuritySt
   }
 
   CallsPrivacyAudience _fromProto(PrivacySettings_Audience audience) {
-    return audience == PrivacySettings_Audience.EVERYBODY ? CallsPrivacyAudience.everybody : CallsPrivacyAudience.contacts;
+    switch (audience) {
+      case PrivacySettings_Audience.EVERYBODY:
+        return CallsPrivacyAudience.everybody;
+      case PrivacySettings_Audience.NOBODY:
+        return CallsPrivacyAudience.nobody;
+      default:
+        return CallsPrivacyAudience.contacts;
+    }
   }
 
   PrivacySettings_Audience _toProto(CallsPrivacyAudience audience) {
-    return audience == CallsPrivacyAudience.everybody ? PrivacySettings_Audience.EVERYBODY : PrivacySettings_Audience.CONTACTS;
+    switch (audience) {
+      case CallsPrivacyAudience.everybody:
+        return PrivacySettings_Audience.EVERYBODY;
+      case CallsPrivacyAudience.nobody:
+        return PrivacySettings_Audience.NOBODY;
+      case CallsPrivacyAudience.contacts:
+        return PrivacySettings_Audience.CONTACTS;
+    }
   }
 }

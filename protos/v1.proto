@@ -50,6 +50,9 @@ enum MessageType {
   // Присутствие (online / last-seen) для списка контактов — pull batch по userID
   // (см. presence_v1.proto). Видимость гейтится звонковой приватностью.
   PRESENCE = 35;
+  // Полная замена allow-list «всегда разрешать» для звонков (см.
+  // privacy_v1.proto, PrivacyCallsAllowUpdate).
+  PRIVACY_CALLS_ALLOW_UPDATE = 36;
 }
 
 service Iperon {

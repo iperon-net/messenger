@@ -18,6 +18,7 @@ class SettingsPrivacyAndSecurityStateMapper
       MapperContainer.globals.use(
         _instance = SettingsPrivacyAndSecurityStateMapper._(),
       );
+      MapperContainer.globals.useAll([Uint8ListMapper()]);
     }
     return _instance!;
   }
@@ -59,6 +60,10 @@ class SettingsPrivacyAndSecurityStateMapper
       v.callsReadOnly;
   static const Field<SettingsPrivacyAndSecurityState, bool> _f$callsReadOnly =
       Field('callsReadOnly', _$callsReadOnly, opt: true, def: false);
+  static List<Uint8List> _$callsAllow(SettingsPrivacyAndSecurityState v) =>
+      v.callsAllow;
+  static const Field<SettingsPrivacyAndSecurityState, List<Uint8List>>
+  _f$callsAllow = Field('callsAllow', _$callsAllow, opt: true, def: const []);
 
   @override
   final MappableFields<SettingsPrivacyAndSecurityState> fields = const {
@@ -67,6 +72,7 @@ class SettingsPrivacyAndSecurityStateMapper
     #callsAudience: _f$callsAudience,
     #callsLoadError: _f$callsLoadError,
     #callsReadOnly: _f$callsReadOnly,
+    #callsAllow: _f$callsAllow,
   };
 
   static SettingsPrivacyAndSecurityState _instantiate(DecodingData data) {
@@ -76,6 +82,7 @@ class SettingsPrivacyAndSecurityStateMapper
       callsAudience: data.dec(_f$callsAudience),
       callsLoadError: data.dec(_f$callsLoadError),
       callsReadOnly: data.dec(_f$callsReadOnly),
+      callsAllow: data.dec(_f$callsAllow),
     );
   }
 
@@ -157,12 +164,15 @@ abstract class SettingsPrivacyAndSecurityStateCopyWith<
   $Out
 >
     implements ClassCopyWith<$R, $In, $Out> {
+  ListCopyWith<$R, Uint8List, ObjectCopyWith<$R, Uint8List, Uint8List>>
+  get callsAllow;
   $R call({
     Status? status,
     bool? isBiometricAvailable,
     CallsPrivacyAudience? callsAudience,
     bool? callsLoadError,
     bool? callsReadOnly,
+    List<Uint8List>? callsAllow,
   });
   SettingsPrivacyAndSecurityStateCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
     Then<$Out2, $R2> t,
@@ -187,12 +197,20 @@ class _SettingsPrivacyAndSecurityStateCopyWithImpl<$R, $Out>
   late final ClassMapperBase<SettingsPrivacyAndSecurityState> $mapper =
       SettingsPrivacyAndSecurityStateMapper.ensureInitialized();
   @override
+  ListCopyWith<$R, Uint8List, ObjectCopyWith<$R, Uint8List, Uint8List>>
+  get callsAllow => ListCopyWith(
+    $value.callsAllow,
+    (v, t) => ObjectCopyWith(v, $identity, t),
+    (v) => call(callsAllow: v),
+  );
+  @override
   $R call({
     Status? status,
     bool? isBiometricAvailable,
     CallsPrivacyAudience? callsAudience,
     bool? callsLoadError,
     bool? callsReadOnly,
+    List<Uint8List>? callsAllow,
   }) => $apply(
     FieldCopyWithData({
       if (status != null) #status: status,
@@ -201,6 +219,7 @@ class _SettingsPrivacyAndSecurityStateCopyWithImpl<$R, $Out>
       if (callsAudience != null) #callsAudience: callsAudience,
       if (callsLoadError != null) #callsLoadError: callsLoadError,
       if (callsReadOnly != null) #callsReadOnly: callsReadOnly,
+      if (callsAllow != null) #callsAllow: callsAllow,
     }),
   );
   @override
@@ -214,6 +233,7 @@ class _SettingsPrivacyAndSecurityStateCopyWithImpl<$R, $Out>
         callsAudience: data.get(#callsAudience, or: $value.callsAudience),
         callsLoadError: data.get(#callsLoadError, or: $value.callsLoadError),
         callsReadOnly: data.get(#callsReadOnly, or: $value.callsReadOnly),
+        callsAllow: data.get(#callsAllow, or: $value.callsAllow),
       );
 
   @override

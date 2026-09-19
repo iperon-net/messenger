@@ -60,6 +60,10 @@ class MessageType extends $pb.ProtobufEnum {
   /// (см. presence_v1.proto). Видимость гейтится звонковой приватностью.
   static const MessageType PRESENCE = MessageType._(35, _omitEnumNames ? '' : 'PRESENCE');
 
+  /// Полная замена allow-list «всегда разрешать» для звонков (см.
+  /// privacy_v1.proto, PrivacyCallsAllowUpdate).
+  static const MessageType PRIVACY_CALLS_ALLOW_UPDATE = MessageType._(36, _omitEnumNames ? '' : 'PRIVACY_CALLS_ALLOW_UPDATE');
+
   static const $core.List<MessageType> values = <MessageType>[
     HEALTHCHECK,
     META_DATA_INFO,
@@ -93,9 +97,10 @@ class MessageType extends $pb.ProtobufEnum {
     CONTACTS_LIST,
     CONTACTS_UPDATED,
     PRESENCE,
+    PRIVACY_CALLS_ALLOW_UPDATE,
   ];
 
-  static final $core.List<MessageType?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 35);
+  static final $core.List<MessageType?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 36);
   static MessageType? valueOf($core.int value) => value < 0 || value >= _byValue.length ? null : _byValue[value];
 
   const MessageType._(super.value, super.name);

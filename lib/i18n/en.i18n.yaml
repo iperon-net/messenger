@@ -124,9 +124,13 @@
   "calls": "Calls"
   "callsEverybody": "Everybody"
   "callsContacts": "My contacts"
+  "callsNobody": "Nobody"
   "callsLoadError": "Couldn't load the setting"
   "callsOfflineNote": "No connection. You can change this once you're back online."
   "retry": "Retry"
+  "exceptions": "Exceptions"
+  "callsAlwaysAllow": "Always allow"
+  "callsAllowEmpty": "No contacts registered on Iperon"
 
 "screenMyProfile":
   "myprofile": "My profile"

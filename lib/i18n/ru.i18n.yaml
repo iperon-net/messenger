@@ -124,9 +124,13 @@
   "calls": "Звонки"
   "callsEverybody": "Все"
   "callsContacts": "Мои контакты"
+  "callsNobody": "Никто"
   "callsLoadError": "Не удалось загрузить настройку"
   "callsOfflineNote": "Нет соединения. Изменение станет доступно, когда появится сеть."
   "retry": "Повторить"
+  "exceptions": "Исключения"
+  "callsAlwaysAllow": "Всегда разрешать"
+  "callsAllowEmpty": "Нет контактов, зарегистрированных в Iperon"
 
 "screenMyProfile":
   "myprofile": "Мой профиль"
