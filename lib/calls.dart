@@ -22,6 +22,7 @@ import 'di.dart';
 import 'logger.dart';
 import 'protobuf.dart';
 import 'settings.dart';
+import 'utils.dart';
 
 /// Стадия звонка 1-на-1.
 ///
@@ -35,7 +36,7 @@ import 'settings.dart';
 enum CallStatus { idle, outgoing, incoming, connecting, active, ended }
 
 /// Причина завершения звонка — для текста на экране «завершено».
-enum CallEndReason { none, hangup, rejected, failed, busy, notAllowed }
+enum CallEndReason { none, hangup, rejected, failed, busy, notAllowed, noConnection }
 
 /// Качество соединения звонка для индикатора на экране. Агрегируем из LiveKit
 /// [ConnectionQuality] собеседника (см. [Calls._mapQuality]); `unknown` — пока
@@ -158,6 +159,7 @@ class Calls {
   final api = getIt.get<API>();
   final auth = getIt.get<Auth>();
   final settings = getIt.get<Settings>();
+  final utils = getIt.get<Utils>();
 
   // iOS-канал к AppDelegate для смены маршрута аудио на CallKit-пути
   // (overrideOutputAudioPort). См. [toggleSpeaker], ios/Runner/AppDelegate.swift.
@@ -408,6 +410,26 @@ class Calls {
   Future<void> startCall({required List<int> toUserID, required bool video}) async {
     if (_hasActiveCall) {
       logger.warning('startCall ignored: call already in progress (${_snapshot.status})');
+      return;
+    }
+
+    // Нет сети — не начинаем звонок и не открываем экран `/call`: иначе запрос
+    // токена (`CALL_TOKEN`) висел бы в gRPC до таймаута (десятки секунд) без
+    // обратной связи. Отдаём в UI причину noConnection терминальным снимком —
+    // CallGate покажет алерт/плашку «нет интернета», не поднимая экран звонка.
+    if (!await utils.hasNetwork()) {
+      logger.info('startCall aborted: no network connection');
+      final noNetCallId = _generateCallId();
+      _emit(
+        CallSnapshot(
+          status: CallStatus.ended,
+          callId: noNetCallId,
+          remoteUserID: toUserID,
+          video: video,
+          endReason: CallEndReason.noConnection,
+        ),
+      );
+      _scheduleIdleReset(noNetCallId);
       return;
     }
 

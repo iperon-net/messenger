@@ -81,6 +81,8 @@ class _Translations$common$ru extends Translations$common$en {
 	@override String get done => 'Готово';
 	@override String get close => 'Закрыть';
 	@override String get error => 'Ошибка';
+	@override String get noConnectionTitle => 'Нет соединения с интернетом';
+	@override String get noConnectionMessage => 'Проверьте подключение и попробуйте снова.';
 	@override String get biometricAuthenticateReason => 'Пройдите аутентификацию для разблокировки';
 	@override String get biometricPleaseEnterPasscode => 'Введите код-пароль';
 	@override String get edit => 'Изменить';
@@ -499,6 +501,9 @@ class _Translations$screenCall$ru extends Translations$screenCall$en {
 	@override String get endedFailed => 'Не удалось соединиться';
 	@override String get endedBusy => 'Занято';
 	@override String get endedNotAllowed => 'Нельзя позвонить этому пользователю';
+	@override String get notAllowedTitle => 'Звонок недоступен';
+	@override String get notAllowedMessage => 'Этот пользователь принимает звонки только от своих контактов. Чтобы вы могли позвонить, он должен добавить вас в контакты.';
+	@override String get endedNoConnection => 'Нет соединения с интернетом';
 	@override String get ended => 'Звонок завершён';
 	@override String get decline => 'Отклонить';
 	@override String get accept => 'Принять';
@@ -533,6 +538,8 @@ extension on TranslationsRu {
 			'common.done' => 'Готово',
 			'common.close' => 'Закрыть',
 			'common.error' => 'Ошибка',
+			'common.noConnectionTitle' => 'Нет соединения с интернетом',
+			'common.noConnectionMessage' => 'Проверьте подключение и попробуйте снова.',
 			'common.biometricAuthenticateReason' => 'Пройдите аутентификацию для разблокировки',
 			'common.biometricPleaseEnterPasscode' => 'Введите код-пароль',
 			'common.edit' => 'Изменить',
@@ -738,6 +745,9 @@ extension on TranslationsRu {
 			'screenCall.endedFailed' => 'Не удалось соединиться',
 			'screenCall.endedBusy' => 'Занято',
 			'screenCall.endedNotAllowed' => 'Нельзя позвонить этому пользователю',
+			'screenCall.notAllowedTitle' => 'Звонок недоступен',
+			'screenCall.notAllowedMessage' => 'Этот пользователь принимает звонки только от своих контактов. Чтобы вы могли позвонить, он должен добавить вас в контакты.',
+			'screenCall.endedNoConnection' => 'Нет соединения с интернетом',
 			'screenCall.ended' => 'Звонок завершён',
 			'screenCall.decline' => 'Отклонить',
 			'screenCall.accept' => 'Принять',

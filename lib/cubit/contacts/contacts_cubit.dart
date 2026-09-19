@@ -46,7 +46,7 @@ class _CloudContact {
 }
 
 /// Итог ручного добавления контакта по номеру (для текста пользователю).
-enum ContactAddResult { addedRegistered, addedPending, invalidNumber, limitReached, failed }
+enum ContactAddResult { addedRegistered, addedPending, invalidNumber, limitReached, noConnection, failed }
 
 /// Данные формы добавления контакта — возвращаются экраном добавления в список
 /// контактов, который затем вызывает [ContactsCubit.addByNumber].
@@ -544,6 +544,10 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
     if (normalization.e164.isEmpty || normalization.raw.isEmpty) {
       return ContactAddResult.invalidNumber;
     }
+
+    // Нет сети — сразу говорим об этом, не уходя в OPRF/CONTACTS_UPSERT, которые
+    // без интернета висли бы до таймаута gRPC и вернули невнятный `failed`.
+    if (!await utils.hasNetwork()) return ContactAddResult.noConnection;
 
     final name = [firstName.trim(), lastName.trim()].where((part) => part.isNotEmpty).join(" ");
     final displayName = name.isNotEmpty ? name : normalization.international;

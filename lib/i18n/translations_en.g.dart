@@ -102,6 +102,12 @@ class Translations$common$en {
 	/// en: 'Error'
 	String get error => 'Error';
 
+	/// en: 'No internet connection'
+	String get noConnectionTitle => 'No internet connection';
+
+	/// en: 'Check your connection and try again.'
+	String get noConnectionMessage => 'Check your connection and try again.';
+
 	/// en: 'Authenticate to unlock'
 	String get biometricAuthenticateReason => 'Authenticate to unlock';
 
@@ -930,6 +936,15 @@ class Translations$screenCall$en {
 	/// en: 'Can’t call this user'
 	String get endedNotAllowed => 'Can’t call this user';
 
+	/// en: 'Call not available'
+	String get notAllowedTitle => 'Call not available';
+
+	/// en: 'This user only accepts calls from their contacts. They need to add you before you can call them.'
+	String get notAllowedMessage => 'This user only accepts calls from their contacts. They need to add you before you can call them.';
+
+	/// en: 'No internet connection'
+	String get endedNoConnection => 'No internet connection';
+
 	/// en: 'Call ended'
 	String get ended => 'Call ended';
 
@@ -993,6 +1008,8 @@ extension on Translations {
 			'common.done' => 'Done',
 			'common.close' => 'Close',
 			'common.error' => 'Error',
+			'common.noConnectionTitle' => 'No internet connection',
+			'common.noConnectionMessage' => 'Check your connection and try again.',
 			'common.biometricAuthenticateReason' => 'Authenticate to unlock',
 			'common.biometricPleaseEnterPasscode' => 'Please enter passcode',
 			'common.edit' => 'Edit',
@@ -1198,6 +1215,9 @@ extension on Translations {
 			'screenCall.endedFailed' => 'Couldn’t connect',
 			'screenCall.endedBusy' => 'Busy',
 			'screenCall.endedNotAllowed' => 'Can’t call this user',
+			'screenCall.notAllowedTitle' => 'Call not available',
+			'screenCall.notAllowedMessage' => 'This user only accepts calls from their contacts. They need to add you before you can call them.',
+			'screenCall.endedNoConnection' => 'No internet connection',
 			'screenCall.ended' => 'Call ended',
 			'screenCall.decline' => 'Decline',
 			'screenCall.accept' => 'Accept',

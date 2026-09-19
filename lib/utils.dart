@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:cryptography/cryptography.dart';
 import 'package:device_marketing_names/device_marketing_names.dart';
 import 'package:dlibphonenumber/dlibphonenumber.dart';
@@ -221,6 +222,22 @@ class Utils {
     } catch (e, stack) {
       logger.handle(e, stack, "isBiometricAvailable: failed");
       return false;
+    }
+  }
+
+  /// Есть ли на устройстве активный сетевой интерфейс (`connectivity_plus`).
+  /// Это лишь наличие интерфейса, а не реальная достижимость сервера, но именно
+  /// «нет сети» — тот случай, когда сетевой запрос гарантированно не пройдёт и
+  /// лучше сразу сказать об этом пользователю, а не ждать таймаут gRPC. Если
+  /// плагин не ответил — не блокируем операцию (считаем, что сеть есть).
+  Future<bool> hasNetwork() async {
+    final logger = getIt.get<Logger>();
+    try {
+      final results = await Connectivity().checkConnectivity();
+      return results.any((r) => r != ConnectivityResult.none);
+    } catch (error, stackTrace) {
+      logger.handle(error, stackTrace);
+      return true;
     }
   }
 

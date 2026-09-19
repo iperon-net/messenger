@@ -266,12 +266,18 @@ class _ContactsCupertinoState extends State<ContactsCupertino> {
 
   void _showAddResult(BuildContext context, ContactAddResult result) {
     final t = context.t.screenContacts;
+    // Нет сети — общий алерт «нет интернета» (единый для звонков и контактов).
+    if (result == ContactAddResult.noConnection) {
+      showNoConnectionAlert(context);
+      return;
+    }
     // Успех не показываем: добавленный контакт сразу появляется в списке
     // (оптимистично) — баннер лишний. Сообщаем только об ошибках.
     final message = switch (result) {
       ContactAddResult.addedRegistered || ContactAddResult.addedPending => null,
       ContactAddResult.invalidNumber => t.addInvalidNumber,
       ContactAddResult.limitReached => t.validationCloudLimitReached,
+      ContactAddResult.noConnection => null,
       ContactAddResult.failed => t.addFailed,
     };
     if (message == null) return;

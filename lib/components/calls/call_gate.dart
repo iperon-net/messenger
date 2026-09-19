@@ -9,6 +9,8 @@ import '../../calls.dart';
 import '../../di.dart';
 import '../../i18n/translations.g.dart';
 import '../../logger.dart';
+import '../no_connection_alert.dart';
+import 'call_alerts.dart';
 
 /// Слушатель звонков в шелле: подписан на [Calls.snapshots] и открывает
 /// полноэкранный `/call` на входящий/исходящий звонок, а по завершении —
@@ -49,6 +51,11 @@ class _CallGateState extends State<CallGate> {
   // только на переходе в активное состояние (начало звонка), а не переоткрывать
   // после того, как пользователь сам свернул экран во время звонка.
   bool _wasActive = false;
+
+  // callId звонка, для которого уже показали пояснительный алерт/плашку
+  // (запрещён приватностью или нет сети). Дедуп: снимок `ended` приходит раз, но
+  // защищаемся и от повторов, чтобы не открыть уведомление дважды на один звонок.
+  String? _alertShownCallId;
 
   @override
   void initState() {
@@ -99,6 +106,30 @@ class _CallGateState extends State<CallGate> {
         final router = GoRouter.of(context);
         if (router.canPop()) router.pop();
       });
+    }
+
+    // Исходящий звонок не состоялся по объяснимой причине — показываем явное
+    // уведомление (алерт на iOS, нижнюю плашку на Android) вместо мелькающего
+    // экрана «Звонок завершён»:
+    //  - notAllowed  — серверный гейт приватности (абонент принимает звонки
+    //    только от контактов, а нас у него в книге нет);
+    //  - noConnection — нет сети (звонок даже не начинали, экран не открывался).
+    // Экран `/call` (если открылся на `outgoing`) уже закрывается блоком выше —
+    // алерт регистрируем следующим post-frame, поэтому он всплывёт поверх того
+    // экрана, откуда звонили.
+    if (snapshot.status == CallStatus.ended && snapshot.callId != _alertShownCallId) {
+      final showAlert = switch (snapshot.endReason) {
+        CallEndReason.notAllowed => showCallNotAllowed,
+        CallEndReason.noConnection => showNoConnectionAlert,
+        _ => null,
+      };
+      if (showAlert != null) {
+        _alertShownCallId = snapshot.callId;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          showAlert(context);
+        });
+      }
     }
   }
 

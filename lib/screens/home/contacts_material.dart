@@ -247,12 +247,19 @@ class _ContactsMaterialState extends State<ContactsMaterial> {
     if (input == null) return;
 
     final result = await cubit.addByNumber(firstName: input.firstName, lastName: input.lastName, rawNumber: input.phone);
+    // Нет сети — общий алерт «нет интернета» (нижняя плашка), единый для звонков
+    // и контактов; ему нужен живой контекст, поэтому проверяем mounted.
+    if (result == ContactAddResult.noConnection) {
+      if (context.mounted) showNoConnectionAlert(context);
+      return;
+    }
     // Успех не показываем: добавленный контакт сразу появляется в списке
     // (оптимистично) — снэкбар лишний. Сообщаем только об ошибках.
     final message = switch (result) {
       ContactAddResult.addedRegistered || ContactAddResult.addedPending => null,
       ContactAddResult.invalidNumber => t.addInvalidNumber,
       ContactAddResult.limitReached => t.validationCloudLimitReached,
+      ContactAddResult.noConnection => null,
       ContactAddResult.failed => t.addFailed,
     };
     if (message == null) return;
