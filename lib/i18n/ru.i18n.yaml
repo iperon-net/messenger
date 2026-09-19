@@ -125,6 +125,7 @@
   "callsEverybody": "Все"
   "callsContacts": "Мои контакты"
   "callsLoadError": "Не удалось загрузить настройку"
+  "callsOfflineNote": "Нет соединения. Изменение станет доступно, когда появится сеть."
   "retry": "Повторить"
 
 "screenMyProfile":

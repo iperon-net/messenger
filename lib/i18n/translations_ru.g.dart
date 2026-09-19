@@ -291,6 +291,7 @@ class _Translations$sessionsPrivacyAndSecurity$ru extends Translations$sessionsP
 	@override String get callsEverybody => 'Все';
 	@override String get callsContacts => 'Мои контакты';
 	@override String get callsLoadError => 'Не удалось загрузить настройку';
+	@override String get callsOfflineNote => 'Нет соединения. Изменение станет доступно, когда появится сеть.';
 	@override String get retry => 'Повторить';
 }
 
@@ -644,6 +645,7 @@ extension on TranslationsRu {
 			'sessionsPrivacyAndSecurity.callsEverybody' => 'Все',
 			'sessionsPrivacyAndSecurity.callsContacts' => 'Мои контакты',
 			'sessionsPrivacyAndSecurity.callsLoadError' => 'Не удалось загрузить настройку',
+			'sessionsPrivacyAndSecurity.callsOfflineNote' => 'Нет соединения. Изменение станет доступно, когда появится сеть.',
 			'sessionsPrivacyAndSecurity.retry' => 'Повторить',
 			'screenMyProfile.myprofile' => 'Мой профиль',
 			'screenMyProfile.firstName' => 'Имя',

@@ -55,6 +55,10 @@ class SettingsPrivacyAndSecurityStateMapper
       v.callsLoadError;
   static const Field<SettingsPrivacyAndSecurityState, bool> _f$callsLoadError =
       Field('callsLoadError', _$callsLoadError, opt: true, def: false);
+  static bool _$callsReadOnly(SettingsPrivacyAndSecurityState v) =>
+      v.callsReadOnly;
+  static const Field<SettingsPrivacyAndSecurityState, bool> _f$callsReadOnly =
+      Field('callsReadOnly', _$callsReadOnly, opt: true, def: false);
 
   @override
   final MappableFields<SettingsPrivacyAndSecurityState> fields = const {
@@ -62,6 +66,7 @@ class SettingsPrivacyAndSecurityStateMapper
     #isBiometricAvailable: _f$isBiometricAvailable,
     #callsAudience: _f$callsAudience,
     #callsLoadError: _f$callsLoadError,
+    #callsReadOnly: _f$callsReadOnly,
   };
 
   static SettingsPrivacyAndSecurityState _instantiate(DecodingData data) {
@@ -70,6 +75,7 @@ class SettingsPrivacyAndSecurityStateMapper
       isBiometricAvailable: data.dec(_f$isBiometricAvailable),
       callsAudience: data.dec(_f$callsAudience),
       callsLoadError: data.dec(_f$callsLoadError),
+      callsReadOnly: data.dec(_f$callsReadOnly),
     );
   }
 
@@ -156,6 +162,7 @@ abstract class SettingsPrivacyAndSecurityStateCopyWith<
     bool? isBiometricAvailable,
     CallsPrivacyAudience? callsAudience,
     bool? callsLoadError,
+    bool? callsReadOnly,
   });
   SettingsPrivacyAndSecurityStateCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
     Then<$Out2, $R2> t,
@@ -185,6 +192,7 @@ class _SettingsPrivacyAndSecurityStateCopyWithImpl<$R, $Out>
     bool? isBiometricAvailable,
     CallsPrivacyAudience? callsAudience,
     bool? callsLoadError,
+    bool? callsReadOnly,
   }) => $apply(
     FieldCopyWithData({
       if (status != null) #status: status,
@@ -192,6 +200,7 @@ class _SettingsPrivacyAndSecurityStateCopyWithImpl<$R, $Out>
         #isBiometricAvailable: isBiometricAvailable,
       if (callsAudience != null) #callsAudience: callsAudience,
       if (callsLoadError != null) #callsLoadError: callsLoadError,
+      if (callsReadOnly != null) #callsReadOnly: callsReadOnly,
     }),
   );
   @override
@@ -204,6 +213,7 @@ class _SettingsPrivacyAndSecurityStateCopyWithImpl<$R, $Out>
         ),
         callsAudience: data.get(#callsAudience, or: $value.callsAudience),
         callsLoadError: data.get(#callsLoadError, or: $value.callsLoadError),
+        callsReadOnly: data.get(#callsReadOnly, or: $value.callsReadOnly),
       );
 
   @override

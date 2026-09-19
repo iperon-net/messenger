@@ -17,15 +17,22 @@ class SettingsPrivacyAndSecurityState with SettingsPrivacyAndSecurityStateMappab
   /// серверным дефолтом, когда документ настроек ещё не создан).
   final CallsPrivacyAudience callsAudience;
 
-  /// Не удалось загрузить серверную настройку звонков (offline/ошибка). Пока
-  /// `true`, экран не выдаёт [callsAudience] за реальное значение, а показывает
-  /// состояние «не загрузилось» + повтор. Сбрасывается при успешной загрузке.
+  /// Нечего показать: серверную настройку не загрузили и локального кэша нет
+  /// (offline при первом запуске / ошибка). Пока `true`, экран не выдаёт
+  /// [callsAudience] за реальное значение, а показывает «не загрузилось» +
+  /// повтор. Сбрасывается, как только появляется значение (кэш или сервер).
   final bool callsLoadError;
+
+  /// Значение показываем из локального кэша, но изменить его сейчас нельзя —
+  /// нет сети (гейт серверный). Экран блокирует выбор и поясняет почему.
+  /// Сбрасывается при успешной загрузке/сохранении с сервера.
+  final bool callsReadOnly;
 
   const SettingsPrivacyAndSecurityState({
     this.status = Status.initialization,
     this.isBiometricAvailable = false,
     this.callsAudience = CallsPrivacyAudience.contacts,
     this.callsLoadError = false,
+    this.callsReadOnly = false,
   });
 }

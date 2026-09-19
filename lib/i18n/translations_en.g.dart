@@ -486,6 +486,9 @@ class Translations$sessionsPrivacyAndSecurity$en {
 	/// en: 'Couldn't load the setting'
 	String get callsLoadError => 'Couldn\'t load the setting';
 
+	/// en: 'No connection. You can change this once you're back online.'
+	String get callsOfflineNote => 'No connection. You can change this once you\'re back online.';
+
 	/// en: 'Retry'
 	String get retry => 'Retry';
 }
@@ -1152,6 +1155,7 @@ extension on Translations {
 			'sessionsPrivacyAndSecurity.callsEverybody' => 'Everybody',
 			'sessionsPrivacyAndSecurity.callsContacts' => 'My contacts',
 			'sessionsPrivacyAndSecurity.callsLoadError' => 'Couldn\'t load the setting',
+			'sessionsPrivacyAndSecurity.callsOfflineNote' => 'No connection. You can change this once you\'re back online.',
 			'sessionsPrivacyAndSecurity.retry' => 'Retry',
 			'screenMyProfile.myprofile' => 'My profile',
 			'screenMyProfile.firstName' => 'First name',

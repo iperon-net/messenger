@@ -72,6 +72,21 @@ class SettingsPrivacyCallsCupertino extends StatelessWidget {
                     context.t.sessionsPrivacyAndSecurity.whoCanCall,
                     style: TextStyle(fontSize: AppFontSizes.base, fontWeight: FontWeight.normal),
                   ),
+                  // Показываем значение из кэша, но менять нельзя — нет сети.
+                  // Даём повтор, чтобы перепроверить сеть не выходя с экрана.
+                  footer: state.callsReadOnly
+                      ? Row(
+                          children: [
+                            Expanded(child: Text(context.t.sessionsPrivacyAndSecurity.callsOfflineNote)),
+                            CupertinoButton(
+                              sizeStyle: CupertinoButtonSize.small,
+                              padding: EdgeInsets.zero,
+                              onPressed: () => context.read<SettingsPrivacyAndSecurityCubit>().reloadCalls(),
+                              child: Text(context.t.sessionsPrivacyAndSecurity.retry),
+                            ),
+                          ],
+                        )
+                      : null,
                   backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
                   decoration: BoxDecoration(
                     color: ThemesCupertino.groupedCard.resolveFrom(context),
@@ -95,7 +110,7 @@ class SettingsPrivacyCallsCupertino extends StatelessWidget {
                         CupertinoListTile(
                           title: Text(_audienceLabel(context, audience)),
                           additionalInfo: state.callsAudience == audience ? check : null,
-                          onTap: () => _onSelect(context, audience),
+                          onTap: state.callsReadOnly ? null : () => _onSelect(context, audience),
                         ),
                   ],
                 ),

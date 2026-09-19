@@ -65,12 +65,32 @@ class SettingsPrivacyCallsMaterial extends StatelessWidget {
                         for (final audience in CallsPrivacyAudience.values)
                           ListTile(
                             title: Text(_audienceLabel(context, audience)),
-                            onTap: () async => _onSelect(context, audience),
+                            onTap: state.callsReadOnly ? null : () async => _onSelect(context, audience),
                             trailing: state.callsAudience == audience ? check : null,
                           ),
                     ],
                   ),
                 ),
+                // Показываем значение из кэша, но менять нельзя — нет сети.
+                // Даём повтор, чтобы перепроверить сеть не выходя с экрана.
+                if (state.callsReadOnly)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(24, 8, 12, 8),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            context.t.sessionsPrivacyAndSecurity.callsOfflineNote,
+                            style: TextStyle(fontSize: AppFontSizes.caption, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: () => context.read<SettingsPrivacyAndSecurityCubit>().reloadCalls(),
+                          child: Text(context.t.sessionsPrivacyAndSecurity.retry),
+                        ),
+                      ],
+                    ),
+                  ),
               ],
             ),
           ),

@@ -125,6 +125,7 @@
   "callsEverybody": "Everybody"
   "callsContacts": "My contacts"
   "callsLoadError": "Couldn't load the setting"
+  "callsOfflineNote": "No connection. You can change this once you're back online."
   "retry": "Retry"
 
 "screenMyProfile":
