@@ -20,7 +20,9 @@ import 'api.dart';
 import 'auth.dart';
 import 'di.dart';
 import 'logger.dart';
+import 'models.dart' as models;
 import 'protobuf.dart';
+import 'repositories/repositories.dart';
 import 'settings.dart';
 import 'utils.dart';
 
@@ -270,6 +272,17 @@ class Calls {
   // владеет зависимостью на flutter_callkit_incoming. См. lib/call_push.dart.
   final _incomingRingController = StreamController<CallSnapshot>.broadcast();
 
+  // Направление текущего звонка для журнала недавних. Ставится на старте
+  // исходящего ([startCall]) и на подъёме входящего ([_onRing]/[acceptFromPush]),
+  // читается в [_teardown] при записи строки журнала и сбрасывается там же в null
+  // — между звонками остаётся null, чтобы разбор без активного звонка (dispose)
+  // не записал фантомную строку.
+  models.CallDirection? _logDirection;
+
+  // Уведомление «в журнал звонков добавлена запись» — [CallsCubit] по нему
+  // перечитывает список. Эмитится из [_recordCallLog] после успешной вставки.
+  final _callLoggedController = StreamController<void>.broadcast();
+
   // Накапливаемая строка-диагностика текущего звонка (хлебные крошки этапов).
   String _diag = '';
 
@@ -348,6 +361,10 @@ class Calls {
   /// Запросы показать входящий через системную звонилку (foreground-приём по
   /// стриму). [CallPush] на каждый вызывает `showCallkitIncoming`. См. [_onRing].
   Stream<CallSnapshot> get incomingRings => _incomingRingController.stream;
+
+  /// Уведомления о добавлении записи в журнал звонков (после завершения звонка).
+  /// Вкладка «Звонки» ([CallsCubit]) по нему перечитывает список.
+  Stream<void> get callLogged => _callLoggedController.stream;
 
   /// Просит показать экран текущего звонка (если он активен). No-op, если звонка
   /// нет — [CallGate] сам проверит статус.
@@ -429,12 +446,26 @@ class Calls {
           endReason: CallEndReason.noConnection,
         ),
       );
+      // Звонок даже не начался (нет сети) — [_teardown] не зовётся, поэтому строку
+      // журнала пишем здесь напрямую: исходящий с нулевой длительностью, в UI —
+      // «Отменённый».
+      unawaited(
+        _recordCallLog(
+          callId: noNetCallId,
+          remoteUserID: toUserID,
+          video: video,
+          direction: models.CallDirection.outgoing,
+          missed: false,
+          durationSeconds: 0,
+        ),
+      );
       _scheduleIdleReset(noNetCallId);
       return;
     }
 
     final callId = _generateCallId();
     _handlingCallId = callId;
+    _logDirection = models.CallDirection.outgoing;
     _emit(CallSnapshot(status: CallStatus.outgoing, callId: callId, remoteUserID: toUserID, video: video, speakerOn: video));
     _dbg('outgoing ${video ? 'video' : 'audio'}', reset: true);
 
@@ -557,6 +588,7 @@ class Calls {
     // сам [accept] синхронно (до первого await) — повторный acceptFromPush после
     // этого отсечётся верхним гардом. Здесь его НЕ трогаем: иначе [accept] выйдет
     // по своему дедуп-гарду, не подключившись (крошка застрянет на приёме).
+    _logDirection = models.CallDirection.incoming;
     _emit(CallSnapshot(status: CallStatus.incoming, callId: callId, remoteUserID: fromUserID, video: video, speakerOn: video));
     _dbg('ring from push', reset: true);
     await accept();
@@ -675,6 +707,7 @@ class Calls {
       return;
     }
 
+    _logDirection = models.CallDirection.incoming;
     _emit(CallSnapshot(status: CallStatus.incoming, callId: ring.callId, remoteUserID: from, video: ring.video, speakerOn: ring.video));
     _dbg('ring recv', reset: true);
 
@@ -1177,6 +1210,10 @@ class Calls {
     final remote = _snapshot.remoteUserID;
     final video = _snapshot.video;
     final callId = _snapshot.callId;
+    // Данные для журнала звонков фиксируем ДО разбора: направление и момент
+    // соединения (по нему считаем длительность и «отвечен ли звонок»).
+    final direction = _logDirection;
+    final connectedAt = _snapshot.connectedAt;
 
     // Разбор комнаты может бросить/зависнуть (гонка реконнекта SDK и `pc.close()`,
     // upstream livekit #1186). Что бы ни упало внутри — в `finally` мы ОБЯЗАНЫ
@@ -1254,6 +1291,29 @@ class Calls {
       _diag = _diag.isEmpty ? 'ended:${reason.name}' : '$_diag · ended:${reason.name}';
       _emit(CallSnapshot(status: CallStatus.ended, callId: callId, remoteUserID: remote, video: video, endReason: reason, debug: _diag));
 
+      // Пишем строку журнала звонков (сервер историю не хранит). Только для
+      // реального звонка: направление известно (взведено в startCall/_onRing/
+      // acceptFromPush) и есть собеседник. `_logDirection` сбрасываем, чтобы
+      // повторный разбор без активного звонка (dispose) не записал фантом.
+      if (direction != null && remote.isNotEmpty && callId.isNotEmpty) {
+        final answered = connectedAt != null;
+        final durationSeconds = answered ? DateTime.now().difference(connectedAt).inSeconds : 0;
+        // Пропущенный — входящий, на который не ответили и который сами не
+        // отклонили (отклонённый показываем как обычный входящий, не красным).
+        final missed = direction == models.CallDirection.incoming && !answered && reason != CallEndReason.rejected;
+        unawaited(
+          _recordCallLog(
+            callId: callId,
+            remoteUserID: remote,
+            video: video,
+            direction: direction,
+            missed: missed,
+            durationSeconds: durationSeconds < 0 ? 0 : durationSeconds,
+          ),
+        );
+      }
+      _logDirection = null;
+
       // `ended` — переходное состояние (краткая обратная связь на нашем экране).
       // Сбрасываем его в idle через паузу, иначе снимок «завис» бы на «завершён»
       // до следующего звонка: когда звонок прошёл целиком на локскрине/в фоне
@@ -1265,6 +1325,53 @@ class Calls {
       // Комната разобрана — повторный `pc.close()` уже невозможен; снимаем флаг,
       // чтобы следующий звонок мог завершиться.
       _tearingDown = false;
+    }
+  }
+
+  /// Пишет строку журнала звонков и уведомляет подписчиков ([callLogged]). Имя
+  /// собеседника берём снимком из кэша профиля (может быть пусто — тогда UI
+  /// покажет «Неизвестный»); аватар в списке подтягивается «вживую» по userID.
+  /// Best-effort: ошибки логируем, но звонок из-за журнала падать не должен.
+  Future<void> _recordCallLog({
+    required String callId,
+    required List<int> remoteUserID,
+    required bool video,
+    required models.CallDirection direction,
+    required bool missed,
+    required int durationSeconds,
+  }) async {
+    try {
+      final repositories = getIt.get<Repositories>();
+      var displayName = '';
+      try {
+        final profile = await repositories.profiles.getByUserID(userID: remoteUserID);
+        final phone = utils.phoneNormalization(phoneNumber: profile.phoneNumber);
+        displayName = utils.composeDisplayName(
+          firstName: profile.fistName,
+          lastName: profile.lastName,
+          phoneNumber: phone.international,
+          username: profile.username,
+        );
+      } catch (error, stackTrace) {
+        logger.handle(error, stackTrace);
+      }
+
+      await repositories.callLogs.insert(
+        models.CallLog(
+          callID: callId,
+          userID: Uint8List.fromList(remoteUserID),
+          displayName: displayName,
+          direction: direction,
+          video: video,
+          missed: missed,
+          durationSeconds: durationSeconds,
+          createdAt: DateTime.now(),
+        ),
+      );
+
+      if (!_callLoggedController.isClosed) _callLoggedController.add(null);
+    } catch (error, stackTrace) {
+      logger.handle(error, stackTrace);
     }
   }
 
@@ -1335,5 +1442,6 @@ class Calls {
     await _snapshotController.close();
     await _focusController.close();
     await _incomingRingController.close();
+    await _callLoggedController.close();
   }
 }

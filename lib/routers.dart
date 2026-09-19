@@ -79,7 +79,12 @@ class Routers {
           ],
         ),
         StatefulShellBranch(
-          routes: [GoRoute(path: "/calls", builder: (_, _) => const CallsCupertino())],
+          routes: [
+            GoRoute(
+              path: "/calls",
+              builder: (_, _) => BlocProvider<CallsCubit>(create: (_) => CallsCubit()..initialization(), child: const CallsCupertino()),
+            ),
+          ],
         ),
         StatefulShellBranch(
           routes: [
@@ -359,7 +364,12 @@ class Routers {
           ],
         ),
         StatefulShellBranch(
-          routes: [GoRoute(path: "/calls", builder: (_, _) => const CallsMaterial())],
+          routes: [
+            GoRoute(
+              path: "/calls",
+              builder: (_, _) => BlocProvider<CallsCubit>(create: (_) => CallsCubit()..initialization(), child: const CallsMaterial()),
+            ),
+          ],
         ),
         StatefulShellBranch(
           routes: [

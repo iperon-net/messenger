@@ -403,10 +403,23 @@ class _Translations$screenCalls$ru extends Translations$screenCalls$en {
 	// Translations
 	@override String get title => 'Звонки';
 	@override String get empty => 'Здесь появятся ваши звонки';
+	@override String get emptyMissed => 'Нет пропущенных звонков';
 	@override String get permissionTitle => 'Нужен доступ к микрофону';
 	@override String get permissionMessage => 'Разрешите доступ к микрофону, чтобы совершать и принимать звонки в Iperon.';
 	@override String get allowAccess => 'Разрешить доступ';
 	@override String get openSettings => 'Открыть настройки';
+	@override String get search => 'Поиск';
+	@override String get filterAll => 'Все';
+	@override String get filterMissed => 'Пропущенные';
+	@override String get incoming => 'Входящий';
+	@override String get outgoing => 'Исходящий';
+	@override String get missed => 'Пропущенный';
+	@override String get cancelled => 'Отменённый';
+	@override String get unknown => 'Неизвестный';
+	@override String get delete => 'Удалить';
+	@override String get clear => 'Очистить';
+	@override String get clearTitle => 'Очистить историю звонков?';
+	@override String get clearMessage => 'Все записи о звонках будут удалены. Это действие необратимо.';
 }
 
 // Path: screenAuth
@@ -701,10 +714,23 @@ extension on TranslationsRu {
 			'screenContacts.removeMessage' => 'Он больше не сможет вам звонить, если в настройках приватности не разрешены звонки от всех.',
 			'screenCalls.title' => 'Звонки',
 			'screenCalls.empty' => 'Здесь появятся ваши звонки',
+			'screenCalls.emptyMissed' => 'Нет пропущенных звонков',
 			'screenCalls.permissionTitle' => 'Нужен доступ к микрофону',
 			'screenCalls.permissionMessage' => 'Разрешите доступ к микрофону, чтобы совершать и принимать звонки в Iperon.',
 			'screenCalls.allowAccess' => 'Разрешить доступ',
 			'screenCalls.openSettings' => 'Открыть настройки',
+			'screenCalls.search' => 'Поиск',
+			'screenCalls.filterAll' => 'Все',
+			'screenCalls.filterMissed' => 'Пропущенные',
+			'screenCalls.incoming' => 'Входящий',
+			'screenCalls.outgoing' => 'Исходящий',
+			'screenCalls.missed' => 'Пропущенный',
+			'screenCalls.cancelled' => 'Отменённый',
+			'screenCalls.unknown' => 'Неизвестный',
+			'screenCalls.delete' => 'Удалить',
+			'screenCalls.clear' => 'Очистить',
+			'screenCalls.clearTitle' => 'Очистить историю звонков?',
+			'screenCalls.clearMessage' => 'Все записи о звонках будут удалены. Это действие необратимо.',
 			'screenAuth.enterYourMobilePhoneNumber' => 'Введите номер мобильного телефона',
 			'screenAuth.currentlyWeOnlySupportPhoneNumbersFromRussianMobileOperators' => 'Сейчас мы поддерживаем только номера российских мобильных операторов',
 			'screenAuth.insertDebugPhone' => 'Вставить тестовый номер',

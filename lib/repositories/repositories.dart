@@ -24,6 +24,7 @@ part "profiles.dart";
 part "contacts.dart";
 part "uploads.dart";
 part "downloads.dart";
+part "call_logs.dart";
 
 base class _AppSqliteOpenFactory extends NativeSqliteOpenFactory {
   final String? password;
@@ -60,6 +61,7 @@ class Repositories {
   late Contacts contacts;
   late Uploads uploads;
   late Downloads downloads;
+  late CallLogs callLogs;
 
   static Future<Repositories> initialization() async {
     final repositories = Repositories._();
@@ -289,6 +291,28 @@ class Repositories {
       }),
     );
 
+    migrations.add(
+      SqliteMigration(6, (tx) async {
+        // Локальный журнал звонков: пишется при завершении звонка (сервер историю
+        // не хранит), читается вкладкой «Звонки». direction — 'incoming'/'outgoing'
+        // (имя enum CallDirection), missed/video — 0/1, createdAt — epoch-millis.
+        await tx.execute("""
+        CREATE TABLE callLogs (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          callID TEXT NOT NULL,
+          userID BLOB NOT NULL,
+          displayName TEXT NOT NULL DEFAULT '',
+          direction TEXT NOT NULL,
+          video INTEGER NOT NULL DEFAULT 0,
+          missed INTEGER NOT NULL DEFAULT 0,
+          durationSeconds INTEGER NOT NULL DEFAULT 0,
+          createdAt INTEGER NOT NULL
+        );
+      """);
+        await tx.execute("CREATE INDEX idx_callLogs_createdAt ON callLogs(createdAt);");
+      }),
+    );
+
     if (settings.isDeleteDatabase) {
       logger.warning("Deleting the database, flag set IS_DELETE_DATABASE: 1");
 
@@ -346,6 +370,7 @@ class Repositories {
     contacts = Contacts(logger: logger, db: db);
     uploads = Uploads(logger: logger, db: db);
     downloads = Downloads(logger: logger, db: db);
+    callLogs = CallLogs(logger: logger, db: db);
   }
 
   // Generate password

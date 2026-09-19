@@ -750,6 +750,9 @@ class Translations$screenCalls$en {
 	/// en: 'Your calls will appear here'
 	String get empty => 'Your calls will appear here';
 
+	/// en: 'No missed calls'
+	String get emptyMissed => 'No missed calls';
+
 	/// en: 'Microphone access needed'
 	String get permissionTitle => 'Microphone access needed';
 
@@ -761,6 +764,42 @@ class Translations$screenCalls$en {
 
 	/// en: 'Open settings'
 	String get openSettings => 'Open settings';
+
+	/// en: 'Search'
+	String get search => 'Search';
+
+	/// en: 'All'
+	String get filterAll => 'All';
+
+	/// en: 'Missed'
+	String get filterMissed => 'Missed';
+
+	/// en: 'Incoming'
+	String get incoming => 'Incoming';
+
+	/// en: 'Outgoing'
+	String get outgoing => 'Outgoing';
+
+	/// en: 'Missed'
+	String get missed => 'Missed';
+
+	/// en: 'Cancelled'
+	String get cancelled => 'Cancelled';
+
+	/// en: 'Unknown'
+	String get unknown => 'Unknown';
+
+	/// en: 'Delete'
+	String get delete => 'Delete';
+
+	/// en: 'Clear'
+	String get clear => 'Clear';
+
+	/// en: 'Clear call history?'
+	String get clearTitle => 'Clear call history?';
+
+	/// en: 'All call records will be deleted. This cannot be undone.'
+	String get clearMessage => 'All call records will be deleted. This cannot be undone.';
 }
 
 // Path: screenAuth
@@ -1171,10 +1210,23 @@ extension on Translations {
 			'screenContacts.removeMessage' => 'They will no longer be able to call you unless your call privacy allows everyone.',
 			'screenCalls.title' => 'Calls',
 			'screenCalls.empty' => 'Your calls will appear here',
+			'screenCalls.emptyMissed' => 'No missed calls',
 			'screenCalls.permissionTitle' => 'Microphone access needed',
 			'screenCalls.permissionMessage' => 'Allow microphone access to make and receive calls on Iperon.',
 			'screenCalls.allowAccess' => 'Allow access',
 			'screenCalls.openSettings' => 'Open settings',
+			'screenCalls.search' => 'Search',
+			'screenCalls.filterAll' => 'All',
+			'screenCalls.filterMissed' => 'Missed',
+			'screenCalls.incoming' => 'Incoming',
+			'screenCalls.outgoing' => 'Outgoing',
+			'screenCalls.missed' => 'Missed',
+			'screenCalls.cancelled' => 'Cancelled',
+			'screenCalls.unknown' => 'Unknown',
+			'screenCalls.delete' => 'Delete',
+			'screenCalls.clear' => 'Clear',
+			'screenCalls.clearTitle' => 'Clear call history?',
+			'screenCalls.clearMessage' => 'All call records will be deleted. This cannot be undone.',
 			'screenAuth.enterYourMobilePhoneNumber' => 'Enter your mobile phone number',
 			'screenAuth.currentlyWeOnlySupportPhoneNumbersFromRussianMobileOperators' => 'Currently, we only support phone numbers from Russian mobile operators',
 			'screenAuth.insertDebugPhone' => 'Insert debug phone',

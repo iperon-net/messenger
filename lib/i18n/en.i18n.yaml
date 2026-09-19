@@ -209,10 +209,23 @@
 "screenCalls":
   "title": "Calls"
   "empty": "Your calls will appear here"
+  "emptyMissed": "No missed calls"
   "permissionTitle": "Microphone access needed"
   "permissionMessage": "Allow microphone access to make and receive calls on Iperon."
   "allowAccess": "Allow access"
   "openSettings": "Open settings"
+  "search": "Search"
+  "filterAll": "All"
+  "filterMissed": "Missed"
+  "incoming": "Incoming"
+  "outgoing": "Outgoing"
+  "missed": "Missed"
+  "cancelled": "Cancelled"
+  "unknown": "Unknown"
+  "delete": "Delete"
+  "clear": "Clear"
+  "clearTitle": "Clear call history?"
+  "clearMessage": "All call records will be deleted. This cannot be undone."
 
 "screenAuth":
   "enterYourMobilePhoneNumber": "Enter your mobile phone number"

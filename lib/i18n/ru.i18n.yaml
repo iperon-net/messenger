@@ -209,10 +209,23 @@
 "screenCalls":
   "title": "Звонки"
   "empty": "Здесь появятся ваши звонки"
+  "emptyMissed": "Нет пропущенных звонков"
   "permissionTitle": "Нужен доступ к микрофону"
   "permissionMessage": "Разрешите доступ к микрофону, чтобы совершать и принимать звонки в Iperon."
   "allowAccess": "Разрешить доступ"
   "openSettings": "Открыть настройки"
+  "search": "Поиск"
+  "filterAll": "Все"
+  "filterMissed": "Пропущенные"
+  "incoming": "Входящий"
+  "outgoing": "Исходящий"
+  "missed": "Пропущенный"
+  "cancelled": "Отменённый"
+  "unknown": "Неизвестный"
+  "delete": "Удалить"
+  "clear": "Очистить"
+  "clearTitle": "Очистить историю звонков?"
+  "clearMessage": "Все записи о звонках будут удалены. Это действие необратимо."
 
 "screenAuth":
   "enterYourMobilePhoneNumber": "Введите номер мобильного телефона"
