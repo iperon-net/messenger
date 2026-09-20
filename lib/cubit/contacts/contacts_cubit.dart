@@ -525,7 +525,9 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
       final e164 = _e164ByOprf(hex);
       if (e164 != null) {
         _cloud.remove(e164);
-        unawaited(repositories.contacts.removeCloudOne(e164));
+        // Снимаем облачную строку и, если номер ещё книжный, возвращаем книжную —
+        // иначе на следующем cold-start контакт пропал бы до OPRF-прохода.
+        unawaited(_persistCloudRemoval(e164));
         changed = true;
       }
     }
@@ -627,31 +629,9 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
       _cloud.remove(item.phoneE164);
       await repositories.contacts.removeCloudOne(item.phoneE164);
 
-      // Номер в книге ищем в текущем книжном снимке (там оседают все совпадения
-      // OPRF-прохода, в т.ч. те, что были перекрыты облаком в показе).
-      ContactItem? bookItem;
-      for (final c in _book) {
-        if (c.phoneE164 == item.phoneE164) {
-          bookItem = c;
-          break;
-        }
-      }
-
-      if (bookItem != null) {
-        // Восстанавливаем книжную строку в БД: её затёр upsertCloudOne при
-        // добавлении в облако (phoneE164 — PK, облачная строка перекрыла книжную),
-        // а removeCloudOne только что удалил облачную. Без этого на cold-start
-        // preload не покажет контакт до следующего OPRF-прохода.
-        await repositories.contacts.upsertBookOne(
-          ContactCacheEntry(
-            phoneE164: bookItem.phoneE164,
-            displayName: bookItem.displayName,
-            phone: bookItem.phone,
-            userID: bookItem.userID?.toList(),
-          ),
-        );
-      } else {
-        // Чисто ручной контакт (номера в книге нет) — прячем от будущего discovery.
+      // Если номер всё ещё книжный — вернули книжную строку в БД (helper), иначе
+      // это чисто ручной контакт: прячем его от будущего discovery.
+      if (!await _restoreBookRowIfPresent(item.phoneE164)) {
         await _exclude(item.phoneE164);
         _book = _book.where((c) => c.phoneE164 != item.phoneE164).toList(growable: false);
       }
@@ -660,6 +640,42 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
     } catch (error, stackTrace) {
       logger.handle(error, stackTrace);
     }
+  }
+
+  /// После снятия облачного контакта: если [phoneE164] всё ещё есть в книжном
+  /// снимке [_book] (там оседают все совпадения OPRF-прохода, в т.ч. перекрытые
+  /// облаком в показе), восстанавливает книжную строку в БД и возвращает true.
+  /// Строку затёр `upsertCloudOne` при добавлении в облако (phoneE164 — PK,
+  /// облачная строка перекрыла книжную), а `removeCloudOne` удалил облачную; без
+  /// восстановления на cold-start `preload` не покажет контакт до OPRF-прохода.
+  /// false — номера в книге нет (чисто ручной контакт): вызывающий решает сам.
+  Future<bool> _restoreBookRowIfPresent(String phoneE164) async {
+    ContactItem? bookItem;
+    for (final c in _book) {
+      if (c.phoneE164 == phoneE164) {
+        bookItem = c;
+        break;
+      }
+    }
+    if (bookItem == null) return false;
+    await repositories.contacts.upsertBookOne(
+      ContactCacheEntry(
+        phoneE164: bookItem.phoneE164,
+        displayName: bookItem.displayName,
+        phone: bookItem.phone,
+        userID: bookItem.userID?.toList(),
+      ),
+    );
+    return true;
+  }
+
+  /// Персистит снятие облачного контакта из push-дельты (`removedOprf`): удаляет
+  /// облачную строку, затем — строго после — восстанавливает книжную, если номер
+  /// ещё книжный. Строгий порядок держим здесь, чтобы вызывающий мог запустить
+  /// её как unawaited, не рискуя гонкой DELETE/INSERT по одному phoneE164.
+  Future<void> _persistCloudRemoval(String phoneE164) async {
+    await repositories.contacts.removeCloudOne(phoneE164);
+    await _restoreBookRowIfPresent(phoneE164);
   }
 
   /// Разовый перенос legacy-ручных контактов (локальный ключ `contacts_manual`,
