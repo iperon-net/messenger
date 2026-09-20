@@ -531,8 +531,8 @@ class Translations$sessionsPrivacyAndSecurity$en {
 	/// en: 'Who can see my last seen'
 	String get whoCanSeeLastSeen => 'Who can see my last seen';
 
-	/// en: 'If you choose Nobody, you won't see others' last seen or online status either (except with a premium subscription).'
-	String get lastSeenReciprocityNote => 'If you choose Nobody, you won\'t see others\' last seen or online status either (except with a premium subscription).';
+	/// en: 'If you choose Nobody, you won't see others' last seen or online status either.'
+	String get lastSeenReciprocityNote => 'If you choose Nobody, you won\'t see others\' last seen or online status either.';
 }
 
 // Path: screenMyProfile
@@ -1221,7 +1221,7 @@ extension on Translations {
 			'sessionsPrivacyAndSecurity.whoCanSeeAboutMe' => 'Who can see my About me',
 			'sessionsPrivacyAndSecurity.lastSeen' => 'Last seen',
 			'sessionsPrivacyAndSecurity.whoCanSeeLastSeen' => 'Who can see my last seen',
-			'sessionsPrivacyAndSecurity.lastSeenReciprocityNote' => 'If you choose Nobody, you won\'t see others\' last seen or online status either (except with a premium subscription).',
+			'sessionsPrivacyAndSecurity.lastSeenReciprocityNote' => 'If you choose Nobody, you won\'t see others\' last seen or online status either.',
 			'screenMyProfile.myprofile' => 'My profile',
 			'screenMyProfile.firstName' => 'First name',
 			'screenMyProfile.lastName' => 'Last name',
