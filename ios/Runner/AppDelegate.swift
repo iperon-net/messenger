@@ -3,6 +3,7 @@ import UIKit
 import PushKit
 import CallKit
 import AVFoundation
+import AVKit
 import flutter_callkit_incoming
 
 @main
@@ -27,6 +28,16 @@ import flutter_callkit_incoming
 
   func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
     GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
+
+    // PlatformView системного пикера аудио-маршрутов (AVRoutePickerView) для
+    // экрана звонка — «полный» выбор выхода на iOS (iPhone/Speaker/BT/CarPlay/
+    // AirPlay). См. RoutePickerViewFactory и lib/components/calls/route_picker_button.dart.
+    if let registrar = engineBridge.pluginRegistry.registrar(forPlugin: "IperonRoutePicker") {
+      registrar.register(
+        RoutePickerViewFactory(messenger: registrar.messenger()),
+        withId: "net.iperon.messenger/route_picker"
+      )
+    }
 
     // Канал явной активации AVAudioSession на пути без CallKit
     // (externalCallSystem: исходящий/foreground) — LiveKit сессию сам не
@@ -195,5 +206,66 @@ import flutter_callkit_incoming
         NSLog("Failed to exclude \(url.path) from backup: \(error)")
       }
     }
+  }
+}
+
+/// PlatformView-фабрика системного `AVRoutePickerView` — «полный» выбор
+/// аудио-выхода на iOS: одна кнопка, по тапу открывается системный список
+/// маршрутов (iPhone / Speaker / Bluetooth / CarPlay / AirPlay) с галочкой на
+/// текущем. Apple не даёт приложению программно выбирать произвольный выход, а
+/// этот пикер — штатный путь (так делает FaceTime). Работает с активной
+/// AVAudioSession звонка (CallKit / наш externalCallSystem), см. lib/calls.dart.
+///
+/// Регистрируется в [AppDelegate.didInitializeImplicitFlutterEngine] под viewType
+/// `net.iperon.messenger/route_picker`. Живёт в этом файле (а не отдельном), т.к.
+/// он уже в target Runner — новый .swift пришлось бы вручную прописывать в
+/// project.pbxproj. Цвета иконки приходят из Flutter через creationParams
+/// (`tint`/`activeTint` — ARGB int), см. route_picker_button.dart.
+class RoutePickerViewFactory: NSObject, FlutterPlatformViewFactory {
+  private let messenger: FlutterBinaryMessenger
+
+  init(messenger: FlutterBinaryMessenger) {
+    self.messenger = messenger
+    super.init()
+  }
+
+  func create(withFrame frame: CGRect, viewIdentifier viewId: Int64, arguments args: Any?) -> FlutterPlatformView {
+    return RoutePickerPlatformView(frame: frame, args: args)
+  }
+
+  func createArgsCodec() -> FlutterMessageCodec & NSObjectProtocol {
+    return FlutterStandardMessageCodec.sharedInstance()
+  }
+}
+
+private class RoutePickerPlatformView: NSObject, FlutterPlatformView {
+  private let picker: AVRoutePickerView
+
+  init(frame: CGRect, args: Any?) {
+    picker = AVRoutePickerView(frame: frame)
+    picker.prioritizesVideoDevices = false
+    super.init()
+
+    if let params = args as? [String: Any] {
+      if let tint = params["tint"] as? NSNumber {
+        picker.tintColor = RoutePickerPlatformView.color(fromARGB: tint.intValue)
+      }
+      if let activeTint = params["activeTint"] as? NSNumber {
+        picker.activeTintColor = RoutePickerPlatformView.color(fromARGB: activeTint.intValue)
+      }
+    }
+    picker.backgroundColor = .clear
+  }
+
+  func view() -> UIView {
+    return picker
+  }
+
+  private static func color(fromARGB argb: Int) -> UIColor {
+    let a = CGFloat((argb >> 24) & 0xFF) / 255.0
+    let r = CGFloat((argb >> 16) & 0xFF) / 255.0
+    let g = CGFloat((argb >> 8) & 0xFF) / 255.0
+    let b = CGFloat(argb & 0xFF) / 255.0
+    return UIColor(red: r, green: g, blue: b, alpha: a)
   }
 }

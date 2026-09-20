@@ -1080,6 +1080,33 @@ class Translations$screenCall$en {
 	/// en: 'Speaker off'
 	String get speakerOff => 'Speaker off';
 
+	/// en: 'Audio output'
+	String get audioOutput => 'Audio output';
+
+	/// en: 'Phone'
+	String get routeEarpiece => 'Phone';
+
+	/// en: 'Speaker'
+	String get routeSpeaker => 'Speaker';
+
+	/// en: 'Headphones'
+	String get routeWiredHeadset => 'Headphones';
+
+	/// en: 'Bluetooth'
+	String get routeBluetooth => 'Bluetooth';
+
+	/// en: 'Hearing aid'
+	String get routeHearingAid => 'Hearing aid';
+
+	/// en: 'Car'
+	String get routeCar => 'Car';
+
+	/// en: 'Other'
+	String get routeUnknown => 'Other';
+
+	/// en: 'No audio outputs available'
+	String get routeUnavailable => 'No audio outputs available';
+
 	/// en: 'Camera on'
 	String get cameraOn => 'Camera on';
 
@@ -1373,6 +1400,15 @@ extension on Translations {
 			'screenCall.micOff' => 'Mute',
 			'screenCall.speakerOn' => 'Speaker on',
 			'screenCall.speakerOff' => 'Speaker off',
+			'screenCall.audioOutput' => 'Audio output',
+			'screenCall.routeEarpiece' => 'Phone',
+			'screenCall.routeSpeaker' => 'Speaker',
+			'screenCall.routeWiredHeadset' => 'Headphones',
+			'screenCall.routeBluetooth' => 'Bluetooth',
+			'screenCall.routeHearingAid' => 'Hearing aid',
+			'screenCall.routeCar' => 'Car',
+			'screenCall.routeUnknown' => 'Other',
+			'screenCall.routeUnavailable' => 'No audio outputs available',
 			'screenCall.cameraOn' => 'Camera on',
 			'screenCall.cameraOff' => 'Camera off',
 			'screenCall.switchCamera' => 'Flip',

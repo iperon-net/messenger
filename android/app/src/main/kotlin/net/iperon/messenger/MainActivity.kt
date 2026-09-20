@@ -42,6 +42,10 @@ class MainActivity : FlutterFragmentActivity() {
     private val channelName = "net.iperon.messenger/call_window"
     private var callWindowChannel: MethodChannel? = null
 
+    // Свой выбор аудио-выхода звонка (setCommunicationDevice, API 31+). См.
+    // AudioDevicesHandler и lib/audio_routes.dart.
+    private var audioDevicesHandler: AudioDevicesHandler? = null
+
     /// Имя кэшированного движка, к которому цепляется `FlutterFragment`. Сам движок
     /// кладётся в кэш в [onCreate] ДО `super.onCreate` (см. [ensureEngine]) — иначе
     /// восстановленный из saved-state фрагмент на cold-start не найдёт его и упадёт
@@ -73,6 +77,11 @@ class MainActivity : FlutterFragmentActivity() {
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
+        // Каналы выбора аудио-выхода звонка. Движок один на процесс и переживает
+        // пересоздание Activity — переинициализируем handler на каждую привязку,
+        // старый освобождаем, чтобы не текли AudioDeviceCallback/каналы.
+        audioDevicesHandler?.dispose()
+        audioDevicesHandler = AudioDevicesHandler(applicationContext, flutterEngine.dartExecutor.binaryMessenger)
         callWindowChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, channelName)
             .also { it.setMethodCallHandler { call, result ->
                 when (call.method) {

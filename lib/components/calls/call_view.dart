@@ -15,6 +15,8 @@ import '../../i18n/translations.g.dart';
 import '../../models/constants.dart';
 import '../../themes/cupertino.dart';
 import '../../themes/material.dart';
+import 'audio_routes_sheet.dart';
+import 'route_picker_button.dart';
 
 /// Палитра экрана звонка. Две версии — светлая/тёмная (см. [_CallPalette.of]),
 /// плюс «поверх медиа» ([_CallPalette.overMedia]): когда на весь экран идёт видео
@@ -384,14 +386,20 @@ class _Overlay extends StatelessWidget {
               palette: palette,
               onTap: cubit.toggleMic,
             ),
-            _CircleButton(
-              label: state.speakerOn ? t.speakerOff : t.speakerOn,
-              icon: state.speakerOn ? CupertinoIcons.speaker_3_fill : CupertinoIcons.speaker_1_fill,
-              color: state.speakerOn ? palette.controlActiveBg : palette.controlBg,
-              iconColor: palette.fg,
-              palette: palette,
-              onTap: cubit.toggleSpeaker,
-            ),
+            // Выбор аудио-выхода. iOS — системный пикер (AVRoutePickerView:
+            // iPhone/Speaker/BT/CarPlay/AirPlay); Android — свой лист устройств
+            // (setCommunicationDevice). См. route_picker_button.dart /
+            // audio_routes_sheet.dart.
+            if (Platform.isIOS)
+              RoutePickerButton(
+                label: t.audioOutput,
+                backgroundColor: palette.controlBg,
+                iconColor: palette.fg,
+                activeIconColor: palette.fg,
+                labelColor: palette.buttonLabel,
+              )
+            else
+              AudioOutputButton(backgroundColor: palette.controlBg, iconColor: palette.fg, labelColor: palette.buttonLabel),
             if (state.video)
               _CircleButton(
                 label: state.cameraOff ? t.cameraOn : t.cameraOff,
