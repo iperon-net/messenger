@@ -660,6 +660,15 @@ class Translations$screenProfile$en {
 	/// en: 'About me'
 	String get aboutMe => _root.screenMyProfile.aboutMe;
 
+	/// en: 'Birth date'
+	String get birthDate => _root.screenMyProfile.birthDate;
+
+	/// en: '(one) {{n} year} (other) {{n} years}'
+	String age({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n,
+		one: '${n} year',
+		other: '${n} years',
+	);
+
 	/// en: 'Copy'
 	String get copy => _root.screenMyProfile.copy;
 }
@@ -1222,6 +1231,8 @@ extension on Translations {
 			'screenProfile.mobilePhone' => _root.screenMyProfile.mobilePhone,
 			'screenProfile.username' => _root.screenMyProfile.username,
 			'screenProfile.aboutMe' => _root.screenMyProfile.aboutMe,
+			'screenProfile.birthDate' => _root.screenMyProfile.birthDate,
+			'screenProfile.age' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: '${n} year', other: '${n} years', ), 
 			'screenProfile.copy' => _root.screenMyProfile.copy,
 			'screenContacts.title' => 'Contacts',
 			'screenContacts.onIperon' => 'On Iperon',

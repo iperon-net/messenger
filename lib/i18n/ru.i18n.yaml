@@ -181,6 +181,12 @@
   "mobilePhone": "@:screenMyProfile.mobilePhone"
   "username": "@:screenMyProfile.username"
   "aboutMe": "@:screenMyProfile.aboutMe"
+  "birthDate": "@:screenMyProfile.birthDate"
+  "age(plural)":
+    one: "{n} год"
+    few: "{n} года"
+    many: "{n} лет"
+    other: "{n} года"
   "copy": "@:screenMyProfile.copy"
 
 "screenContacts":

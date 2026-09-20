@@ -361,6 +361,13 @@ class _Translations$screenProfile$ru extends Translations$screenProfile$en {
 	@override String get mobilePhone => _root.screenMyProfile.mobilePhone;
 	@override String get username => _root.screenMyProfile.username;
 	@override String get aboutMe => _root.screenMyProfile.aboutMe;
+	@override String get birthDate => _root.screenMyProfile.birthDate;
+	@override String age({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n,
+		one: '${n} год',
+		few: '${n} года',
+		many: '${n} лет',
+		other: '${n} года',
+	);
 	@override String get copy => _root.screenMyProfile.copy;
 }
 
@@ -702,6 +709,8 @@ extension on TranslationsRu {
 			'screenProfile.mobilePhone' => _root.screenMyProfile.mobilePhone,
 			'screenProfile.username' => _root.screenMyProfile.username,
 			'screenProfile.aboutMe' => _root.screenMyProfile.aboutMe,
+			'screenProfile.birthDate' => _root.screenMyProfile.birthDate,
+			'screenProfile.age' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: '${n} год', few: '${n} года', many: '${n} лет', other: '${n} года', ), 
 			'screenProfile.copy' => _root.screenMyProfile.copy,
 			'screenContacts.title' => 'Контакты',
 			'screenContacts.onIperon' => 'В Iperon',

@@ -2,6 +2,9 @@ import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_boring_avatars/flutter_boring_avatars.dart';
+import 'package:intl/intl.dart';
+
+import '../../extensions.dart';
 
 import '../../auth.dart';
 import '../../calls.dart';
@@ -60,6 +63,17 @@ class _ProfileCupertino extends State<ProfileCupertino> {
           if (state.locale == AppLocale.ru) ...[?lastNameTile, ?firstNameTile] else ...[?firstNameTile, ?lastNameTile],
         ];
 
+        final birthDate = state.birthDate;
+        final birthDateTile = birthDate != null
+            ? _fieldTile(
+                context,
+                context.t.screenProfile.birthDate,
+                // «22.08.1990 · 36 лет» — дата в формате активной локали + возраст.
+                '${DateFormat.yMd().format(birthDate)} · ${context.t.screenProfile.age(n: birthDate.ageInYears())}',
+              )
+            : null;
+        final hasSection = nameTiles.isNotEmpty || birthDateTile != null || state.phoneNumber.isNotEmpty || state.username.isNotEmpty;
+
         return CupertinoPageScaffold(
           backgroundColor: ThemesCupertino.groupedBackground,
           navigationBar: AppCupertinoNavigationBar(
@@ -112,7 +126,7 @@ class _ProfileCupertino extends State<ProfileCupertino> {
                   ),
                 ),
                 const SizedBox(height: 20),
-                if (nameTiles.isNotEmpty || state.phoneNumber.isNotEmpty || state.username.isNotEmpty)
+                if (hasSection)
                   CupertinoListSection.insetGrouped(
                     clipBehavior: Clip.antiAlias,
                     backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
@@ -122,6 +136,7 @@ class _ProfileCupertino extends State<ProfileCupertino> {
                     ),
                     children: [
                       ...nameTiles,
+                      ?birthDateTile,
                       if (state.phoneNumber.isNotEmpty)
                         CopyTooltip(
                           value: state.phoneNumber,

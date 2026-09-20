@@ -2,6 +2,9 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_boring_avatars/flutter_boring_avatars.dart';
+import 'package:intl/intl.dart';
+
+import '../../extensions.dart';
 
 import '../../auth.dart';
 import '../../calls.dart';
@@ -53,6 +56,17 @@ class _ProfileMaterial extends State<ProfileMaterial> {
           if (state.locale == AppLocale.ru) ...[?lastNameTile, ?firstNameTile] else ...[?firstNameTile, ?lastNameTile],
         ];
 
+        final birthDate = state.birthDate;
+        final birthDateTile = birthDate != null
+            ? _fieldTile(
+                context,
+                context.t.screenProfile.birthDate,
+                // «22.08.1990 · 36 лет» — дата в формате активной локали + возраст.
+                '${DateFormat.yMd().format(birthDate)} · ${context.t.screenProfile.age(n: birthDate.ageInYears())}',
+              )
+            : null;
+        final hasSection = nameTiles.isNotEmpty || birthDateTile != null || state.phoneNumber.isNotEmpty || state.username.isNotEmpty;
+
         return Scaffold(
           appBar: AppBar(
             title: Text(context.t.screenProfile.profile),
@@ -99,13 +113,14 @@ class _ProfileMaterial extends State<ProfileMaterial> {
                   ),
                 ),
                 const SizedBox(height: 20),
-                if (nameTiles.isNotEmpty || state.phoneNumber.isNotEmpty || state.username.isNotEmpty)
+                if (hasSection)
                   Card(
                     margin: const EdgeInsets.symmetric(horizontal: 12),
                     clipBehavior: Clip.antiAlias,
                     child: Column(
                       children: [
                         ...nameTiles,
+                        ?birthDateTile,
                         if (state.phoneNumber.isNotEmpty)
                           CopyTooltip(
                             value: state.phoneNumber,

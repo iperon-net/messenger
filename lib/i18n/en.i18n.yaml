@@ -181,6 +181,10 @@
   "mobilePhone": "@:screenMyProfile.mobilePhone"
   "username": "@:screenMyProfile.username"
   "aboutMe": "@:screenMyProfile.aboutMe"
+  "birthDate": "@:screenMyProfile.birthDate"
+  "age(plural)":
+    one: "{n} year"
+    other: "{n} years"
   "copy": "@:screenMyProfile.copy"
 
 "screenContacts":

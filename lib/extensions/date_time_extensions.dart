@@ -31,4 +31,15 @@ extension RelativeDateTimeExtension on DateTime {
     final dateStr = DateFormat.yMd().format(local);
     return t.dateTime.relativeDateTimeOther(date: dateStr, time: time);
   }
+
+  /// Полных лет от этой даты (даты рождения) до `now` (по умолчанию — текущий
+  /// момент). День рождения ещё не наступил в этом году → возраст на 1 меньше.
+  int ageInYears([DateTime? now]) {
+    final today = now ?? DateTime.now();
+    var age = today.year - year;
+    if (today.month < month || (today.month == month && today.day < day)) {
+      age--;
+    }
+    return age;
+  }
 }
