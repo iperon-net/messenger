@@ -7,6 +7,7 @@ import android.media.AudioManager
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodChannel
@@ -21,9 +22,11 @@ import io.flutter.plugin.common.MethodChannel
  * владеет audioswitch LiveKit — он держит автоматический выбор по
  * preferredDeviceList и пересчитывает лучший маршрут на hot-plug/активацию. Наш
  * ручной [setCommunicationDevice] перебивает его до следующего такого пересчёта.
- * Чтобы они не «спорили», предпочтение динамика в LiveKit подравнивает Dart-
- * сторона (`AudioManager.setSpeakerOutputPreferred`) ПЕРЕД вызовом [select] — см.
- * lib/audio_routes.dart, чтобы последним словом остался наш setCommunicationDevice.
+ * Встроенный ДИНАМИК Dart сюда НЕ шлёт — он идёт через LiveKit
+ * `setSpeakerOutputPreferred(force)` (его штатный путь), иначе наш вызов гонялся с
+ * audioswitch и динамик «не включался». Сюда приходят только не-динамик выходы
+ * (разговорный/BT/проводная), и Dart уже снял предпочтение динамика в LiveKit
+ * перед вызовом, чтобы последним словом остался наш setCommunicationDevice.
  *
  * Каналы:
  *  - method `net.iperon.messenger/audio_devices`: `list` → List<Map>, `select {id}`.
@@ -89,11 +92,16 @@ class AudioDevicesHandler(
 
     private fun selectDevice(id: String) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return
-        val device = availableCommunicationDevices().firstOrNull { it.id.toString() == id } ?: return
-        // Предпочтение динамика в LiveKit Dart уже подравнял ПЕРЕД этим вызовом
-        // (см. lib/audio_routes.dart), поэтому здесь просто ставим устройство —
-        // оно и остаётся последним словом.
-        audioManager.setCommunicationDevice(device)
+        // Dart зовёт нас ТОЛЬКО для не-динамика (динамик идёт через LiveKit force,
+        // см. lib/audio_routes.dart) и уже снял предпочтение динамика в LiveKit,
+        // поэтому здесь просто ставим устройство — оно и остаётся последним словом.
+        val device = availableCommunicationDevices().firstOrNull { it.id.toString() == id }
+        if (device == null) {
+            Log.w(TAG, "selectDevice: no device for id=$id")
+            return
+        }
+        val ok = audioManager.setCommunicationDevice(device)
+        Log.i(TAG, "selectDevice id=$id type=${device.type} setCommunicationDevice=$ok -> active=${activeDeviceId()}")
         emitDevices()
     }
 
@@ -157,5 +165,6 @@ class AudioDevicesHandler(
     companion object {
         private const val METHOD_CHANNEL = "net.iperon.messenger/audio_devices"
         private const val EVENT_CHANNEL = "net.iperon.messenger/audio_devices_events"
+        private const val TAG = "IperonAudioDevices"
     }
 }

@@ -90,15 +90,26 @@ class AudioRoutes {
     }
   }
 
-  /// Выбирает выход [route]. Сначала подравнивает предпочтение динамика в LiveKit
-  /// (`setSpeakerOutputPreferred`), чтобы его audioswitch не тянул маршрут
-  /// обратно, затем ставит устройство нативно (`setCommunicationDevice`).
+  /// Выбирает выход [route].
+  ///
+  /// Встроенный динамик — ТОЛЬКО через LiveKit `setSpeakerOutputPreferred(true,
+  /// force:true)`: это штатный путь его audioswitch, он владеет маршрутом на
+  /// Android. Наш нативный `setCommunicationDevice(speaker)` здесь только вредил —
+  /// либо гонялся с пересчётом audioswitch, либо тот возвращал маршрут обратно
+  /// (динамик «не включался»). Остальные выходы (разговорный/BT/проводная) LiveKit
+  /// в один вызов не выражает, поэтому: снимаем предпочтение динамика
+  /// (`setSpeakerOutputPreferred(false)`), затем ставим устройство нативно.
   Future<void> select(AudioRoute route) async {
     if (!isSupported) return;
+    final isSpeaker = route.type == AudioRouteType.speaker;
+    _logger.info('audioRoutes.select ${route.type.name} id=${route.id} isSpeaker=$isSpeaker');
     try {
-      final isSpeaker = route.type == AudioRouteType.speaker;
-      await AudioManager.instance.setSpeakerOutputPreferred(isSpeaker, force: isSpeaker);
-      await _method.invokeMethod<void>('select', {'id': route.id});
+      if (isSpeaker) {
+        await AudioManager.instance.setSpeakerOutputPreferred(true, force: true);
+      } else {
+        await AudioManager.instance.setSpeakerOutputPreferred(false);
+        await _method.invokeMethod<void>('select', {'id': route.id});
+      }
     } catch (error, stackTrace) {
       _logger.handle(error, stackTrace);
     }
