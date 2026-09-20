@@ -101,7 +101,7 @@ class _ProfileCupertino extends State<ProfileCupertino> {
                           padding: const EdgeInsets.symmetric(horizontal: 8),
                           minimumSize: const Size(44, 44),
                           onPressed: () => getIt.get<Calls>().startCall(toUserID: state.userID, video: true),
-                          child: Icon(CupertinoIcons.video_camera_solid, color: ThemesCupertino.navActionColor(context)),
+                          child: Icon(CupertinoIcons.video_camera, color: ThemesCupertino.navActionColor(context)),
                         ),
                       ],
                     )
