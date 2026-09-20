@@ -352,73 +352,77 @@ class _Overlay extends StatelessWidget {
             ],
           ),
         );
+      // Исходящий/соединение показывают тот же набор управления, что и активный
+      // разговор (микрофон/динамик/камера + отбой): на исходящем комната LiveKit
+      // уже подключена и локальный трек опубликован (см. Calls.startCall →
+      // _connectRoom), поэтому mute/динамик работают ещё до ответа абонента.
       case CallStatus.outgoing:
       case CallStatus.connecting:
-        return _CircleButton(
+      case CallStatus.active:
+        return _mediaControls(context, cubit, state);
+      case CallStatus.ended:
+      case CallStatus.idle:
+        return const SizedBox.shrink();
+    }
+  }
+
+  /// Ряд кнопок управления медиа (микрофон/динамик, для видео — камера и её
+  /// переключение) плюс кнопка отбоя. Общий для исходящего, соединения и
+  /// активного разговора.
+  Widget _mediaControls(BuildContext context, CallCubit cubit, CallState state) {
+    final t = context.t.screenCall;
+    return Column(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            _CircleButton(
+              label: state.micMuted ? t.micOn : t.micOff,
+              icon: state.micMuted ? CupertinoIcons.mic_slash_fill : CupertinoIcons.mic_fill,
+              color: state.micMuted ? palette.controlActiveBg : palette.controlBg,
+              iconColor: palette.fg,
+              palette: palette,
+              onTap: cubit.toggleMic,
+            ),
+            _CircleButton(
+              label: state.speakerOn ? t.speakerOff : t.speakerOn,
+              icon: state.speakerOn ? CupertinoIcons.speaker_3_fill : CupertinoIcons.speaker_1_fill,
+              color: state.speakerOn ? palette.controlActiveBg : palette.controlBg,
+              iconColor: palette.fg,
+              palette: palette,
+              onTap: cubit.toggleSpeaker,
+            ),
+            if (state.video)
+              _CircleButton(
+                label: state.cameraOff ? t.cameraOn : t.cameraOff,
+                icon: state.cameraOff ? CupertinoIcons.video_camera : CupertinoIcons.video_camera_solid,
+                color: state.cameraOff ? palette.controlActiveBg : palette.controlBg,
+                iconColor: palette.fg,
+                palette: palette,
+                onTap: cubit.toggleCamera,
+              ),
+            if (state.video)
+              _CircleButton(
+                label: t.switchCamera,
+                icon: CupertinoIcons.switch_camera_solid,
+                color: palette.controlBg,
+                iconColor: palette.fg,
+                palette: palette,
+                onTap: cubit.switchCamera,
+              ),
+          ],
+        ),
+        const SizedBox(height: 24),
+        _CircleButton(
           label: t.hangup,
           icon: CupertinoIcons.phone_down_fill,
           color: CallView._red,
           iconColor: CallView._onAccent,
           palette: palette,
           onTap: cubit.hangup,
-        );
-      case CallStatus.active:
-        return Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                _CircleButton(
-                  label: state.micMuted ? t.micOn : t.micOff,
-                  icon: state.micMuted ? CupertinoIcons.mic_slash_fill : CupertinoIcons.mic_fill,
-                  color: state.micMuted ? palette.controlActiveBg : palette.controlBg,
-                  iconColor: palette.fg,
-                  palette: palette,
-                  onTap: cubit.toggleMic,
-                ),
-                _CircleButton(
-                  label: state.speakerOn ? t.speakerOff : t.speakerOn,
-                  icon: state.speakerOn ? CupertinoIcons.speaker_3_fill : CupertinoIcons.speaker_1_fill,
-                  color: state.speakerOn ? palette.controlActiveBg : palette.controlBg,
-                  iconColor: palette.fg,
-                  palette: palette,
-                  onTap: cubit.toggleSpeaker,
-                ),
-                if (state.video)
-                  _CircleButton(
-                    label: state.cameraOff ? t.cameraOn : t.cameraOff,
-                    icon: state.cameraOff ? CupertinoIcons.video_camera : CupertinoIcons.video_camera_solid,
-                    color: state.cameraOff ? palette.controlActiveBg : palette.controlBg,
-                    iconColor: palette.fg,
-                    palette: palette,
-                    onTap: cubit.toggleCamera,
-                  ),
-                if (state.video)
-                  _CircleButton(
-                    label: t.switchCamera,
-                    icon: CupertinoIcons.switch_camera_solid,
-                    color: palette.controlBg,
-                    iconColor: palette.fg,
-                    palette: palette,
-                    onTap: cubit.switchCamera,
-                  ),
-              ],
-            ),
-            const SizedBox(height: 24),
-            _CircleButton(
-              label: t.hangup,
-              icon: CupertinoIcons.phone_down_fill,
-              color: CallView._red,
-              iconColor: CallView._onAccent,
-              palette: palette,
-              onTap: cubit.hangup,
-            ),
-          ],
-        );
-      case CallStatus.ended:
-      case CallStatus.idle:
-        return const SizedBox.shrink();
-    }
+        ),
+      ],
+    );
   }
 
   String _title(BuildContext context) {
