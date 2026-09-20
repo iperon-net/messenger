@@ -51,6 +51,7 @@ class ProfileCubit extends Cubit<ProfileState> {
           username: response.username,
           phoneNumber: phoneNormalization.international,
           birthDate: response.hasBirthDate() ? response.birthDate.toDateTime(toLocal: true) : null,
+          hideBirthYear: response.hideBirthYear,
         ),
       );
 
@@ -103,6 +104,7 @@ class ProfileCubit extends Cubit<ProfileState> {
       username: profile.username,
       phoneNumber: phoneNormalization.international,
       birthDate: profile.birthDate,
+      hideBirthYear: profile.hideBirthYear,
       boringAvatarHash: utils.bytesToHex(Uint8List.fromList(userID)),
     );
     // copyWith(avatarBytes: null) не отличает «не менять» от «обнулить», поэтому

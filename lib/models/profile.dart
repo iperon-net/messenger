@@ -7,13 +7,19 @@ part 'profile.mapper.dart';
 /// Публичный профиль чужого пользователя (кэш таблицы `profiles`). В отличие от
 /// [MyProfile] содержит номер телефона (`phoneNumber`), который сервер отдаёт
 /// только при публичном просмотре.
-@MappableClass(includeCustomMappers: [EpochDateTimeMapper()])
+@MappableClass(includeCustomMappers: [EpochDateTimeMapper(), BoolMapper()])
 class Profile with ProfileMappable {
   final List<int> userID;
   final String username;
   final String fistName;
   final String lastName;
   final DateTime? birthDate;
+
+  /// Владелец скрыл год рождения: [birthDate] пришёл с обнулённым годом
+  /// (sentinel), поэтому показываем только день и месяц, без возраста. Ставится
+  /// из `Profile.hide_birth_year` (см. `API._handleMessage`).
+  final bool hideBirthYear;
+
   final String aboutMe;
   final String phoneNumber;
 
@@ -33,6 +39,7 @@ class Profile with ProfileMappable {
     this.fistName = "",
     this.lastName = "",
     this.birthDate,
+    this.hideBirthYear = false,
     this.aboutMe = "",
     this.phoneNumber = "",
     this.avatarCdnID,

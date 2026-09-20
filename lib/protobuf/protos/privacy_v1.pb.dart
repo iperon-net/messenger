@@ -58,11 +58,19 @@ class PrivacySettings_Response extends $pb.GeneratedMessage {
     PrivacySettings_Audience? calls,
     $core.Iterable<$core.List<$core.int>>? callsAllow,
     $core.Iterable<$core.List<$core.int>>? callsDeny,
+    PrivacySettings_Audience? birthday,
+    $core.Iterable<$core.List<$core.int>>? birthdayAllow,
+    $core.Iterable<$core.List<$core.int>>? birthdayDeny,
+    $core.bool? hideBirthYear,
   }) {
     final result = create();
     if (calls != null) result.calls = calls;
     if (callsAllow != null) result.callsAllow.addAll(callsAllow);
     if (callsDeny != null) result.callsDeny.addAll(callsDeny);
+    if (birthday != null) result.birthday = birthday;
+    if (birthdayAllow != null) result.birthdayAllow.addAll(birthdayAllow);
+    if (birthdayDeny != null) result.birthdayDeny.addAll(birthdayDeny);
+    if (hideBirthYear != null) result.hideBirthYear = hideBirthYear;
     return result;
   }
 
@@ -78,6 +86,10 @@ class PrivacySettings_Response extends $pb.GeneratedMessage {
     ..aE<PrivacySettings_Audience>(1, _omitFieldNames ? '' : 'calls', enumValues: PrivacySettings_Audience.values)
     ..p<$core.List<$core.int>>(2, _omitFieldNames ? '' : 'callsAllow', $pb.PbFieldType.PY)
     ..p<$core.List<$core.int>>(3, _omitFieldNames ? '' : 'callsDeny', $pb.PbFieldType.PY)
+    ..aE<PrivacySettings_Audience>(4, _omitFieldNames ? '' : 'birthday', enumValues: PrivacySettings_Audience.values)
+    ..p<$core.List<$core.int>>(5, _omitFieldNames ? '' : 'birthdayAllow', $pb.PbFieldType.PY)
+    ..p<$core.List<$core.int>>(6, _omitFieldNames ? '' : 'birthdayDeny', $pb.PbFieldType.PY)
+    ..aOB(7, _omitFieldNames ? '' : 'hideBirthYear')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -115,6 +127,35 @@ class PrivacySettings_Response extends $pb.GeneratedMessage {
   /// которым звонок запрещён независимо от `calls` (в т.ч. при CONTACTS).
   @$pb.TagNumber(3)
   $pb.PbList<$core.List<$core.int>> get callsDeny => $_getList(2);
+
+  /// Аудитория «кто может видеть мою дату рождения» + её allow/deny-списки
+  /// (та же семантика, что у звонков). Гейт применяется на стороне владельца
+  /// профиля при отдаче Profile.Response.
+  @$pb.TagNumber(4)
+  PrivacySettings_Audience get birthday => $_getN(3);
+  @$pb.TagNumber(4)
+  set birthday(PrivacySettings_Audience value) => $_setField(4, value);
+  @$pb.TagNumber(4)
+  $core.bool hasBirthday() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearBirthday() => $_clearField(4);
+
+  @$pb.TagNumber(5)
+  $pb.PbList<$core.List<$core.int>> get birthdayAllow => $_getList(4);
+
+  @$pb.TagNumber(6)
+  $pb.PbList<$core.List<$core.int>> get birthdayDeny => $_getList(5);
+
+  /// Скрывать год рождения (и возраст) от тех, кому дата рождения видна: сервер
+  /// отдаёт им дату с обнулённым годом (sentinel) и Profile.hide_birth_year=true.
+  @$pb.TagNumber(7)
+  $core.bool get hideBirthYear => $_getBF(6);
+  @$pb.TagNumber(7)
+  set hideBirthYear($core.bool value) => $_setBool(6, value);
+  @$pb.TagNumber(7)
+  $core.bool hasHideBirthYear() => $_has(6);
+  @$pb.TagNumber(7)
+  void clearHideBirthYear() => $_clearField(7);
 }
 
 /// Настройки приватности per-channel (этап 1 — только звонки). Проверка «кто
@@ -489,6 +530,468 @@ class PrivacyCallsDenyUpdate extends $pb.GeneratedMessage {
   @$core.pragma('dart2js:noInline')
   static PrivacyCallsDenyUpdate getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<PrivacyCallsDenyUpdate>(create);
   static PrivacyCallsDenyUpdate? _defaultInstance;
+}
+
+class PrivacyBirthdayUpdate_Request extends $pb.GeneratedMessage {
+  factory PrivacyBirthdayUpdate_Request({
+    PrivacySettings_Audience? birthday,
+  }) {
+    final result = create();
+    if (birthday != null) result.birthday = birthday;
+    return result;
+  }
+
+  PrivacyBirthdayUpdate_Request._();
+
+  factory PrivacyBirthdayUpdate_Request.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory PrivacyBirthdayUpdate_Request.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'PrivacyBirthdayUpdate.Request',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..aE<PrivacySettings_Audience>(1, _omitFieldNames ? '' : 'birthday', enumValues: PrivacySettings_Audience.values)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyBirthdayUpdate_Request clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyBirthdayUpdate_Request copyWith(void Function(PrivacyBirthdayUpdate_Request) updates) =>
+      super.copyWith((message) => updates(message as PrivacyBirthdayUpdate_Request)) as PrivacyBirthdayUpdate_Request;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static PrivacyBirthdayUpdate_Request create() => PrivacyBirthdayUpdate_Request._();
+  @$core.override
+  PrivacyBirthdayUpdate_Request createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static PrivacyBirthdayUpdate_Request getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<PrivacyBirthdayUpdate_Request>(create);
+  static PrivacyBirthdayUpdate_Request? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  PrivacySettings_Audience get birthday => $_getN(0);
+  @$pb.TagNumber(1)
+  set birthday(PrivacySettings_Audience value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasBirthday() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearBirthday() => $_clearField(1);
+}
+
+class PrivacyBirthdayUpdate_Response extends $pb.GeneratedMessage {
+  factory PrivacyBirthdayUpdate_Response() => create();
+
+  PrivacyBirthdayUpdate_Response._();
+
+  factory PrivacyBirthdayUpdate_Response.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory PrivacyBirthdayUpdate_Response.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'PrivacyBirthdayUpdate.Response',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyBirthdayUpdate_Response clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyBirthdayUpdate_Response copyWith(void Function(PrivacyBirthdayUpdate_Response) updates) =>
+      super.copyWith((message) => updates(message as PrivacyBirthdayUpdate_Response)) as PrivacyBirthdayUpdate_Response;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static PrivacyBirthdayUpdate_Response create() => PrivacyBirthdayUpdate_Response._();
+  @$core.override
+  PrivacyBirthdayUpdate_Response createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static PrivacyBirthdayUpdate_Response getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<PrivacyBirthdayUpdate_Response>(create);
+  static PrivacyBirthdayUpdate_Response? _defaultInstance;
+}
+
+/// Изменение аудитории «кто может видеть мою дату рождения».
+class PrivacyBirthdayUpdate extends $pb.GeneratedMessage {
+  factory PrivacyBirthdayUpdate() => create();
+
+  PrivacyBirthdayUpdate._();
+
+  factory PrivacyBirthdayUpdate.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory PrivacyBirthdayUpdate.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'PrivacyBirthdayUpdate',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyBirthdayUpdate clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyBirthdayUpdate copyWith(void Function(PrivacyBirthdayUpdate) updates) =>
+      super.copyWith((message) => updates(message as PrivacyBirthdayUpdate)) as PrivacyBirthdayUpdate;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static PrivacyBirthdayUpdate create() => PrivacyBirthdayUpdate._();
+  @$core.override
+  PrivacyBirthdayUpdate createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static PrivacyBirthdayUpdate getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<PrivacyBirthdayUpdate>(create);
+  static PrivacyBirthdayUpdate? _defaultInstance;
+}
+
+class PrivacyBirthdayAllowUpdate_Request extends $pb.GeneratedMessage {
+  factory PrivacyBirthdayAllowUpdate_Request({
+    $core.Iterable<$core.List<$core.int>>? userIds,
+  }) {
+    final result = create();
+    if (userIds != null) result.userIds.addAll(userIds);
+    return result;
+  }
+
+  PrivacyBirthdayAllowUpdate_Request._();
+
+  factory PrivacyBirthdayAllowUpdate_Request.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory PrivacyBirthdayAllowUpdate_Request.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'PrivacyBirthdayAllowUpdate.Request',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..p<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'userIds', $pb.PbFieldType.PY)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyBirthdayAllowUpdate_Request clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyBirthdayAllowUpdate_Request copyWith(void Function(PrivacyBirthdayAllowUpdate_Request) updates) =>
+      super.copyWith((message) => updates(message as PrivacyBirthdayAllowUpdate_Request)) as PrivacyBirthdayAllowUpdate_Request;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static PrivacyBirthdayAllowUpdate_Request create() => PrivacyBirthdayAllowUpdate_Request._();
+  @$core.override
+  PrivacyBirthdayAllowUpdate_Request createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static PrivacyBirthdayAllowUpdate_Request getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<PrivacyBirthdayAllowUpdate_Request>(create);
+  static PrivacyBirthdayAllowUpdate_Request? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $pb.PbList<$core.List<$core.int>> get userIds => $_getList(0);
+}
+
+class PrivacyBirthdayAllowUpdate_Response extends $pb.GeneratedMessage {
+  factory PrivacyBirthdayAllowUpdate_Response() => create();
+
+  PrivacyBirthdayAllowUpdate_Response._();
+
+  factory PrivacyBirthdayAllowUpdate_Response.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory PrivacyBirthdayAllowUpdate_Response.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'PrivacyBirthdayAllowUpdate.Response',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyBirthdayAllowUpdate_Response clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyBirthdayAllowUpdate_Response copyWith(void Function(PrivacyBirthdayAllowUpdate_Response) updates) =>
+      super.copyWith((message) => updates(message as PrivacyBirthdayAllowUpdate_Response)) as PrivacyBirthdayAllowUpdate_Response;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static PrivacyBirthdayAllowUpdate_Response create() => PrivacyBirthdayAllowUpdate_Response._();
+  @$core.override
+  PrivacyBirthdayAllowUpdate_Response createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static PrivacyBirthdayAllowUpdate_Response getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<PrivacyBirthdayAllowUpdate_Response>(create);
+  static PrivacyBirthdayAllowUpdate_Response? _defaultInstance;
+}
+
+/// Полная замена allow-list «всегда разрешать» для дня рождения.
+class PrivacyBirthdayAllowUpdate extends $pb.GeneratedMessage {
+  factory PrivacyBirthdayAllowUpdate() => create();
+
+  PrivacyBirthdayAllowUpdate._();
+
+  factory PrivacyBirthdayAllowUpdate.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory PrivacyBirthdayAllowUpdate.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'PrivacyBirthdayAllowUpdate',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyBirthdayAllowUpdate clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyBirthdayAllowUpdate copyWith(void Function(PrivacyBirthdayAllowUpdate) updates) =>
+      super.copyWith((message) => updates(message as PrivacyBirthdayAllowUpdate)) as PrivacyBirthdayAllowUpdate;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static PrivacyBirthdayAllowUpdate create() => PrivacyBirthdayAllowUpdate._();
+  @$core.override
+  PrivacyBirthdayAllowUpdate createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static PrivacyBirthdayAllowUpdate getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<PrivacyBirthdayAllowUpdate>(create);
+  static PrivacyBirthdayAllowUpdate? _defaultInstance;
+}
+
+class PrivacyBirthdayDenyUpdate_Request extends $pb.GeneratedMessage {
+  factory PrivacyBirthdayDenyUpdate_Request({
+    $core.Iterable<$core.List<$core.int>>? userIds,
+  }) {
+    final result = create();
+    if (userIds != null) result.userIds.addAll(userIds);
+    return result;
+  }
+
+  PrivacyBirthdayDenyUpdate_Request._();
+
+  factory PrivacyBirthdayDenyUpdate_Request.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory PrivacyBirthdayDenyUpdate_Request.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'PrivacyBirthdayDenyUpdate.Request',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..p<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'userIds', $pb.PbFieldType.PY)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyBirthdayDenyUpdate_Request clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyBirthdayDenyUpdate_Request copyWith(void Function(PrivacyBirthdayDenyUpdate_Request) updates) =>
+      super.copyWith((message) => updates(message as PrivacyBirthdayDenyUpdate_Request)) as PrivacyBirthdayDenyUpdate_Request;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static PrivacyBirthdayDenyUpdate_Request create() => PrivacyBirthdayDenyUpdate_Request._();
+  @$core.override
+  PrivacyBirthdayDenyUpdate_Request createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static PrivacyBirthdayDenyUpdate_Request getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<PrivacyBirthdayDenyUpdate_Request>(create);
+  static PrivacyBirthdayDenyUpdate_Request? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $pb.PbList<$core.List<$core.int>> get userIds => $_getList(0);
+}
+
+class PrivacyBirthdayDenyUpdate_Response extends $pb.GeneratedMessage {
+  factory PrivacyBirthdayDenyUpdate_Response() => create();
+
+  PrivacyBirthdayDenyUpdate_Response._();
+
+  factory PrivacyBirthdayDenyUpdate_Response.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory PrivacyBirthdayDenyUpdate_Response.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'PrivacyBirthdayDenyUpdate.Response',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyBirthdayDenyUpdate_Response clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyBirthdayDenyUpdate_Response copyWith(void Function(PrivacyBirthdayDenyUpdate_Response) updates) =>
+      super.copyWith((message) => updates(message as PrivacyBirthdayDenyUpdate_Response)) as PrivacyBirthdayDenyUpdate_Response;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static PrivacyBirthdayDenyUpdate_Response create() => PrivacyBirthdayDenyUpdate_Response._();
+  @$core.override
+  PrivacyBirthdayDenyUpdate_Response createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static PrivacyBirthdayDenyUpdate_Response getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<PrivacyBirthdayDenyUpdate_Response>(create);
+  static PrivacyBirthdayDenyUpdate_Response? _defaultInstance;
+}
+
+/// Полная замена deny-list «всегда запрещать» для дня рождения.
+class PrivacyBirthdayDenyUpdate extends $pb.GeneratedMessage {
+  factory PrivacyBirthdayDenyUpdate() => create();
+
+  PrivacyBirthdayDenyUpdate._();
+
+  factory PrivacyBirthdayDenyUpdate.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory PrivacyBirthdayDenyUpdate.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'PrivacyBirthdayDenyUpdate',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyBirthdayDenyUpdate clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyBirthdayDenyUpdate copyWith(void Function(PrivacyBirthdayDenyUpdate) updates) =>
+      super.copyWith((message) => updates(message as PrivacyBirthdayDenyUpdate)) as PrivacyBirthdayDenyUpdate;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static PrivacyBirthdayDenyUpdate create() => PrivacyBirthdayDenyUpdate._();
+  @$core.override
+  PrivacyBirthdayDenyUpdate createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static PrivacyBirthdayDenyUpdate getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<PrivacyBirthdayDenyUpdate>(create);
+  static PrivacyBirthdayDenyUpdate? _defaultInstance;
+}
+
+class PrivacyHideBirthYearUpdate_Request extends $pb.GeneratedMessage {
+  factory PrivacyHideBirthYearUpdate_Request({
+    $core.bool? hide,
+  }) {
+    final result = create();
+    if (hide != null) result.hide = hide;
+    return result;
+  }
+
+  PrivacyHideBirthYearUpdate_Request._();
+
+  factory PrivacyHideBirthYearUpdate_Request.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory PrivacyHideBirthYearUpdate_Request.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'PrivacyHideBirthYearUpdate.Request',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..aOB(1, _omitFieldNames ? '' : 'hide')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyHideBirthYearUpdate_Request clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyHideBirthYearUpdate_Request copyWith(void Function(PrivacyHideBirthYearUpdate_Request) updates) =>
+      super.copyWith((message) => updates(message as PrivacyHideBirthYearUpdate_Request)) as PrivacyHideBirthYearUpdate_Request;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static PrivacyHideBirthYearUpdate_Request create() => PrivacyHideBirthYearUpdate_Request._();
+  @$core.override
+  PrivacyHideBirthYearUpdate_Request createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static PrivacyHideBirthYearUpdate_Request getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<PrivacyHideBirthYearUpdate_Request>(create);
+  static PrivacyHideBirthYearUpdate_Request? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.bool get hide => $_getBF(0);
+  @$pb.TagNumber(1)
+  set hide($core.bool value) => $_setBool(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasHide() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearHide() => $_clearField(1);
+}
+
+class PrivacyHideBirthYearUpdate_Response extends $pb.GeneratedMessage {
+  factory PrivacyHideBirthYearUpdate_Response() => create();
+
+  PrivacyHideBirthYearUpdate_Response._();
+
+  factory PrivacyHideBirthYearUpdate_Response.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory PrivacyHideBirthYearUpdate_Response.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'PrivacyHideBirthYearUpdate.Response',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyHideBirthYearUpdate_Response clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyHideBirthYearUpdate_Response copyWith(void Function(PrivacyHideBirthYearUpdate_Response) updates) =>
+      super.copyWith((message) => updates(message as PrivacyHideBirthYearUpdate_Response)) as PrivacyHideBirthYearUpdate_Response;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static PrivacyHideBirthYearUpdate_Response create() => PrivacyHideBirthYearUpdate_Response._();
+  @$core.override
+  PrivacyHideBirthYearUpdate_Response createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static PrivacyHideBirthYearUpdate_Response getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<PrivacyHideBirthYearUpdate_Response>(create);
+  static PrivacyHideBirthYearUpdate_Response? _defaultInstance;
+}
+
+/// Переключение «скрывать год рождения и возраст».
+class PrivacyHideBirthYearUpdate extends $pb.GeneratedMessage {
+  factory PrivacyHideBirthYearUpdate() => create();
+
+  PrivacyHideBirthYearUpdate._();
+
+  factory PrivacyHideBirthYearUpdate.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory PrivacyHideBirthYearUpdate.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'PrivacyHideBirthYearUpdate',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyHideBirthYearUpdate clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyHideBirthYearUpdate copyWith(void Function(PrivacyHideBirthYearUpdate) updates) =>
+      super.copyWith((message) => updates(message as PrivacyHideBirthYearUpdate)) as PrivacyHideBirthYearUpdate;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static PrivacyHideBirthYearUpdate create() => PrivacyHideBirthYearUpdate._();
+  @$core.override
+  PrivacyHideBirthYearUpdate createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static PrivacyHideBirthYearUpdate getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<PrivacyHideBirthYearUpdate>(create);
+  static PrivacyHideBirthYearUpdate? _defaultInstance;
 }
 
 const $core.bool _omitFieldNames = $core.bool.fromEnvironment('protobuf.omit_field_names');

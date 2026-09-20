@@ -28,6 +28,8 @@ export 'settings/settings_privacy_calls_cupertino.dart';
 export 'settings/settings_privacy_calls_material.dart';
 export 'settings/settings_privacy_calls_allow_cupertino.dart';
 export 'settings/settings_privacy_calls_allow_material.dart';
+export 'settings/settings_privacy_birthday_cupertino.dart';
+export 'settings/settings_privacy_birthday_material.dart';
 export 'settings/settings_passcode_cupertino.dart';
 export 'settings/settings_passcode_material.dart';
 export 'settings/settings_passcode_create_cupertino.dart';

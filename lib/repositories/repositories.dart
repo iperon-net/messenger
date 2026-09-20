@@ -313,6 +313,16 @@ class Repositories {
       }),
     );
 
+    migrations.add(
+      SqliteMigration(7, (tx) async {
+        // Флаг «владелец скрыл год рождения» из Profile.hide_birth_year: birthDate
+        // тогда приходит с обнулённым годом (sentinel), и профиль показывает
+        // только день и месяц, без возраста. Кэшируем рядом с самим birthDate,
+        // чтобы корректно рисовать дату рождения и offline / на cold-start.
+        await tx.execute("ALTER TABLE profiles ADD COLUMN hideBirthYear INTEGER NOT NULL DEFAULT 0;");
+      }),
+    );
+
     if (settings.isDeleteDatabase) {
       logger.warning("Deleting the database, flag set IS_DELETE_DATABASE: 1");
 

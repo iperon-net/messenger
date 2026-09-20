@@ -298,6 +298,10 @@ class _Translations$sessionsPrivacyAndSecurity$ru extends Translations$sessionsP
 	@override String get callsAlwaysAllow => 'Всегда разрешать';
 	@override String get callsAlwaysDeny => 'Всегда запрещать';
 	@override String get callsAllowEmpty => 'Нет контактов, зарегистрированных в Iperon';
+	@override String get birthday => 'День рождения';
+	@override String get whoCanSeeBirthday => 'Кто может видеть мой день рождения';
+	@override String get hideBirthYear => 'Скрывать год рождения';
+	@override String get hideBirthYearNote => 'Контакты увидят только день и месяц — без года рождения и возраста.';
 }
 
 // Path: screenMyProfile
@@ -664,6 +668,10 @@ extension on TranslationsRu {
 			'sessionsPrivacyAndSecurity.callsAlwaysAllow' => 'Всегда разрешать',
 			'sessionsPrivacyAndSecurity.callsAlwaysDeny' => 'Всегда запрещать',
 			'sessionsPrivacyAndSecurity.callsAllowEmpty' => 'Нет контактов, зарегистрированных в Iperon',
+			'sessionsPrivacyAndSecurity.birthday' => 'День рождения',
+			'sessionsPrivacyAndSecurity.whoCanSeeBirthday' => 'Кто может видеть мой день рождения',
+			'sessionsPrivacyAndSecurity.hideBirthYear' => 'Скрывать год рождения',
+			'sessionsPrivacyAndSecurity.hideBirthYearNote' => 'Контакты увидят только день и месяц — без года рождения и возраста.',
 			'screenMyProfile.myprofile' => 'Мой профиль',
 			'screenMyProfile.firstName' => 'Имя',
 			'screenMyProfile.lastName' => 'Фамилия',

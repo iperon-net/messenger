@@ -19,7 +19,16 @@ class SettingsPrivacyCallsAllowMaterial extends StatefulWidget {
   final CallsListKind kind;
   final List<Uint8List> initialSelected;
 
-  const SettingsPrivacyCallsAllowMaterial({required this.kind, required this.initialSelected, super.key});
+  /// Канал, чей список исключений редактируем: звонки или день рождения. Пикер
+  /// один на оба — от [channel]+[kind] зависит только, какой сеттер cubit вызвать.
+  final PrivacyChannel channel;
+
+  const SettingsPrivacyCallsAllowMaterial({
+    required this.kind,
+    required this.initialSelected,
+    this.channel = PrivacyChannel.calls,
+    super.key,
+  });
 
   @override
   State<SettingsPrivacyCallsAllowMaterial> createState() => _SettingsPrivacyCallsAllowMaterial();
@@ -74,7 +83,14 @@ class _SettingsPrivacyCallsAllowMaterial extends State<SettingsPrivacyCallsAllow
     final messenger = ScaffoldMessenger.of(context);
     final message = context.t.common.noConnectionMessage;
     final cubit = context.read<SettingsPrivacyAndSecurityCubit>();
-    final ok = widget.kind == CallsListKind.allow ? await cubit.setCallsAllow(selectedIDs) : await cubit.setCallsDeny(selectedIDs);
+    final isAllow = widget.kind == CallsListKind.allow;
+    final bool ok;
+    switch (widget.channel) {
+      case PrivacyChannel.calls:
+        ok = isAllow ? await cubit.setCallsAllow(selectedIDs) : await cubit.setCallsDeny(selectedIDs);
+      case PrivacyChannel.birthday:
+        ok = isAllow ? await cubit.setBirthdayAllow(selectedIDs) : await cubit.setBirthdayDeny(selectedIDs);
+    }
     if (!mounted) return;
     if (ok) {
       Navigator.of(context).pop();

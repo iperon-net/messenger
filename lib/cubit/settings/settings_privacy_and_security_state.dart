@@ -16,6 +16,11 @@ enum CallsPrivacyAudience { everybody, contacts, nobody }
 /// секция под «Никто») или deny («всегда запрещать», секция под «Мои контакты»).
 enum CallsListKind { allow, deny }
 
+/// Канал приватности, к которому относится экран-пикер исключений: звонки или
+/// день рождения. Пикер контактов один на оба — различается только тем, какой
+/// список настройки он заменяет через [SettingsPrivacyAndSecurityCubit].
+enum PrivacyChannel { calls, birthday }
+
 @MappableClass(includeCustomMappers: [Uint8ListMapper()])
 class SettingsPrivacyAndSecurityState with SettingsPrivacyAndSecurityStateMappable {
   final Status status;
@@ -46,6 +51,19 @@ class SettingsPrivacyAndSecurityState with SettingsPrivacyAndSecurityStateMappab
   /// экране-пикере; используется секцией «Исключения» под «Мои контакты».
   final List<Uint8List> callsDeny;
 
+  /// Настройка «кто может видеть мою дату рождения». Семантика и дефолт — как у
+  /// [callsAudience] (та же серверная аудитория). Приходит в том же ответе
+  /// PRIVACY_SETTINGS, поэтому [callsLoadError]/[callsReadOnly] покрывают и её.
+  final CallsPrivacyAudience birthdayAudience;
+
+  /// Allow/deny-списки исключений для дня рождения (см. [callsAllow]/[callsDeny]).
+  final List<Uint8List> birthdayAllow;
+  final List<Uint8List> birthdayDeny;
+
+  /// Скрывать год рождения и возраст от тех, кому дата рождения видна. Дефолт —
+  /// `false` (год виден). Применяется на сервере при отдаче чужого профиля.
+  final bool hideBirthYear;
+
   const SettingsPrivacyAndSecurityState({
     this.status = Status.initialization,
     this.isBiometricAvailable = false,
@@ -54,5 +72,9 @@ class SettingsPrivacyAndSecurityState with SettingsPrivacyAndSecurityStateMappab
     this.callsReadOnly = false,
     this.callsAllow = const [],
     this.callsDeny = const [],
+    this.birthdayAudience = CallsPrivacyAudience.contacts,
+    this.birthdayAllow = const [],
+    this.birthdayDeny = const [],
+    this.hideBirthYear = false,
   });
 }

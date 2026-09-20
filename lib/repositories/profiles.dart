@@ -11,7 +11,7 @@ class Profiles {
 
   Future<models.Profile> getByUserID({required List<int> userID}) async {
     final rows = await db.execute(
-      "SELECT userID, username, fistName, lastName, birthDate, aboutMe, phoneNumber, avatarCdnID, lastSeenAt FROM profiles WHERE userID = ?;",
+      "SELECT userID, username, fistName, lastName, birthDate, hideBirthYear, aboutMe, phoneNumber, avatarCdnID, lastSeenAt FROM profiles WHERE userID = ?;",
       [userID],
     );
     if (rows.isEmpty) return models.Profile();
@@ -61,22 +61,24 @@ class Profiles {
     String fistName = "",
     String lastName = "",
     DateTime? birthDate,
+    bool hideBirthYear = false,
     String aboutMe = "",
     String phoneNumber = "",
   }) async {
     await db.execute(
       """
-      INSERT INTO profiles (userID, username, fistName, lastName, birthDate, aboutMe, phoneNumber)
-      VALUES(?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO profiles (userID, username, fistName, lastName, birthDate, hideBirthYear, aboutMe, phoneNumber)
+      VALUES(?, ?, ?, ?, ?, ?, ?, ?)
       ON CONFLICT(userID) DO UPDATE SET
         username = excluded.username,
         fistName = excluded.fistName,
         lastName = excluded.lastName,
         birthDate = excluded.birthDate,
+        hideBirthYear = excluded.hideBirthYear,
         aboutMe = excluded.aboutMe,
         phoneNumber = excluded.phoneNumber;
       """,
-      [userID, username, fistName, lastName, birthDate?.millisecondsSinceEpoch, aboutMe, phoneNumber],
+      [userID, username, fistName, lastName, birthDate?.millisecondsSinceEpoch, hideBirthYear ? 1 : 0, aboutMe, phoneNumber],
     );
   }
 

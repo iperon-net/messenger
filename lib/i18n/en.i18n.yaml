@@ -132,6 +132,10 @@
   "callsAlwaysAllow": "Always allow"
   "callsAlwaysDeny": "Always deny"
   "callsAllowEmpty": "No contacts registered on Iperon"
+  "birthday": "Birthday"
+  "whoCanSeeBirthday": "Who can see my birthday"
+  "hideBirthYear": "Hide birth year"
+  "hideBirthYearNote": "Contacts will see only the day and month — no birth year or age."
 
 "screenMyProfile":
   "myprofile": "My profile"

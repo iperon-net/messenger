@@ -24,6 +24,11 @@ class ProfileState with ProfileStateMappable {
   final String lastName;
   final String aboutMe;
   final DateTime? birthDate;
+
+  /// Владелец скрыл год рождения: [birthDate] с обнулённым годом (sentinel),
+  /// показываем только день и месяц, без возраста.
+  final bool hideBirthYear;
+
   final String username;
   final String phoneNumber;
 
@@ -43,6 +48,7 @@ class ProfileState with ProfileStateMappable {
     this.lastName = "",
     this.aboutMe = "",
     this.birthDate,
+    this.hideBirthYear = false,
     this.username = "",
     this.phoneNumber = "",
 

@@ -78,6 +78,13 @@ class ProfileStateMapper extends ClassMapperBase<ProfileState> {
     _$birthDate,
     opt: true,
   );
+  static bool _$hideBirthYear(ProfileState v) => v.hideBirthYear;
+  static const Field<ProfileState, bool> _f$hideBirthYear = Field(
+    'hideBirthYear',
+    _$hideBirthYear,
+    opt: true,
+    def: false,
+  );
   static String _$username(ProfileState v) => v.username;
   static const Field<ProfileState, String> _f$username = Field(
     'username',
@@ -125,6 +132,7 @@ class ProfileStateMapper extends ClassMapperBase<ProfileState> {
     #lastName: _f$lastName,
     #aboutMe: _f$aboutMe,
     #birthDate: _f$birthDate,
+    #hideBirthYear: _f$hideBirthYear,
     #username: _f$username,
     #phoneNumber: _f$phoneNumber,
     #boringAvatarHash: _f$boringAvatarHash,
@@ -142,6 +150,7 @@ class ProfileStateMapper extends ClassMapperBase<ProfileState> {
       lastName: data.dec(_f$lastName),
       aboutMe: data.dec(_f$aboutMe),
       birthDate: data.dec(_f$birthDate),
+      hideBirthYear: data.dec(_f$hideBirthYear),
       username: data.dec(_f$username),
       phoneNumber: data.dec(_f$phoneNumber),
       boringAvatarHash: data.dec(_f$boringAvatarHash),
@@ -222,6 +231,7 @@ abstract class ProfileStateCopyWith<$R, $In extends ProfileState, $Out>
     String? lastName,
     String? aboutMe,
     DateTime? birthDate,
+    bool? hideBirthYear,
     String? username,
     String? phoneNumber,
     String? boringAvatarHash,
@@ -256,6 +266,7 @@ class _ProfileStateCopyWithImpl<$R, $Out>
     String? lastName,
     String? aboutMe,
     Object? birthDate = $none,
+    bool? hideBirthYear,
     String? username,
     String? phoneNumber,
     String? boringAvatarHash,
@@ -271,6 +282,7 @@ class _ProfileStateCopyWithImpl<$R, $Out>
       if (lastName != null) #lastName: lastName,
       if (aboutMe != null) #aboutMe: aboutMe,
       if (birthDate != $none) #birthDate: birthDate,
+      if (hideBirthYear != null) #hideBirthYear: hideBirthYear,
       if (username != null) #username: username,
       if (phoneNumber != null) #phoneNumber: phoneNumber,
       if (boringAvatarHash != null) #boringAvatarHash: boringAvatarHash,
@@ -288,6 +300,7 @@ class _ProfileStateCopyWithImpl<$R, $Out>
     lastName: data.get(#lastName, or: $value.lastName),
     aboutMe: data.get(#aboutMe, or: $value.aboutMe),
     birthDate: data.get(#birthDate, or: $value.birthDate),
+    hideBirthYear: data.get(#hideBirthYear, or: $value.hideBirthYear),
     username: data.get(#username, or: $value.username),
     phoneNumber: data.get(#phoneNumber, or: $value.phoneNumber),
     boringAvatarHash: data.get(#boringAvatarHash, or: $value.boringAvatarHash),

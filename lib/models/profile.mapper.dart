@@ -15,7 +15,7 @@ class ProfileMapper extends ClassMapperBase<Profile> {
   static ProfileMapper ensureInitialized() {
     if (_instance == null) {
       MapperContainer.globals.use(_instance = ProfileMapper._());
-      MapperContainer.globals.useAll([EpochDateTimeMapper()]);
+      MapperContainer.globals.useAll([EpochDateTimeMapper(), BoolMapper()]);
     }
     return _instance!;
   }
@@ -57,6 +57,13 @@ class ProfileMapper extends ClassMapperBase<Profile> {
     _$birthDate,
     opt: true,
   );
+  static bool _$hideBirthYear(Profile v) => v.hideBirthYear;
+  static const Field<Profile, bool> _f$hideBirthYear = Field(
+    'hideBirthYear',
+    _$hideBirthYear,
+    opt: true,
+    def: false,
+  );
   static String _$aboutMe(Profile v) => v.aboutMe;
   static const Field<Profile, String> _f$aboutMe = Field(
     'aboutMe',
@@ -91,6 +98,7 @@ class ProfileMapper extends ClassMapperBase<Profile> {
     #fistName: _f$fistName,
     #lastName: _f$lastName,
     #birthDate: _f$birthDate,
+    #hideBirthYear: _f$hideBirthYear,
     #aboutMe: _f$aboutMe,
     #phoneNumber: _f$phoneNumber,
     #avatarCdnID: _f$avatarCdnID,
@@ -104,6 +112,7 @@ class ProfileMapper extends ClassMapperBase<Profile> {
       fistName: data.dec(_f$fistName),
       lastName: data.dec(_f$lastName),
       birthDate: data.dec(_f$birthDate),
+      hideBirthYear: data.dec(_f$hideBirthYear),
       aboutMe: data.dec(_f$aboutMe),
       phoneNumber: data.dec(_f$phoneNumber),
       avatarCdnID: data.dec(_f$avatarCdnID),
@@ -176,6 +185,7 @@ abstract class ProfileCopyWith<$R, $In extends Profile, $Out>
     String? fistName,
     String? lastName,
     DateTime? birthDate,
+    bool? hideBirthYear,
     String? aboutMe,
     String? phoneNumber,
     List<int>? avatarCdnID,
@@ -215,6 +225,7 @@ class _ProfileCopyWithImpl<$R, $Out>
     String? fistName,
     String? lastName,
     Object? birthDate = $none,
+    bool? hideBirthYear,
     String? aboutMe,
     String? phoneNumber,
     Object? avatarCdnID = $none,
@@ -226,6 +237,7 @@ class _ProfileCopyWithImpl<$R, $Out>
       if (fistName != null) #fistName: fistName,
       if (lastName != null) #lastName: lastName,
       if (birthDate != $none) #birthDate: birthDate,
+      if (hideBirthYear != null) #hideBirthYear: hideBirthYear,
       if (aboutMe != null) #aboutMe: aboutMe,
       if (phoneNumber != null) #phoneNumber: phoneNumber,
       if (avatarCdnID != $none) #avatarCdnID: avatarCdnID,
@@ -239,6 +251,7 @@ class _ProfileCopyWithImpl<$R, $Out>
     fistName: data.get(#fistName, or: $value.fistName),
     lastName: data.get(#lastName, or: $value.lastName),
     birthDate: data.get(#birthDate, or: $value.birthDate),
+    hideBirthYear: data.get(#hideBirthYear, or: $value.hideBirthYear),
     aboutMe: data.get(#aboutMe, or: $value.aboutMe),
     phoneNumber: data.get(#phoneNumber, or: $value.phoneNumber),
     avatarCdnID: data.get(#avatarCdnID, or: $value.avatarCdnID),

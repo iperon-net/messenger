@@ -506,6 +506,18 @@ class Translations$sessionsPrivacyAndSecurity$en {
 
 	/// en: 'No contacts registered on Iperon'
 	String get callsAllowEmpty => 'No contacts registered on Iperon';
+
+	/// en: 'Birthday'
+	String get birthday => 'Birthday';
+
+	/// en: 'Who can see my birthday'
+	String get whoCanSeeBirthday => 'Who can see my birthday';
+
+	/// en: 'Hide birth year'
+	String get hideBirthYear => 'Hide birth year';
+
+	/// en: 'Contacts will see only the day and month — no birth year or age.'
+	String get hideBirthYearNote => 'Contacts will see only the day and month — no birth year or age.';
 }
 
 // Path: screenMyProfile
@@ -1186,6 +1198,10 @@ extension on Translations {
 			'sessionsPrivacyAndSecurity.callsAlwaysAllow' => 'Always allow',
 			'sessionsPrivacyAndSecurity.callsAlwaysDeny' => 'Always deny',
 			'sessionsPrivacyAndSecurity.callsAllowEmpty' => 'No contacts registered on Iperon',
+			'sessionsPrivacyAndSecurity.birthday' => 'Birthday',
+			'sessionsPrivacyAndSecurity.whoCanSeeBirthday' => 'Who can see my birthday',
+			'sessionsPrivacyAndSecurity.hideBirthYear' => 'Hide birth year',
+			'sessionsPrivacyAndSecurity.hideBirthYearNote' => 'Contacts will see only the day and month — no birth year or age.',
 			'screenMyProfile.myprofile' => 'My profile',
 			'screenMyProfile.firstName' => 'First name',
 			'screenMyProfile.lastName' => 'Last name',

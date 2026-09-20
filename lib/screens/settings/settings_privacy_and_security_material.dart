@@ -77,6 +77,21 @@ class _SettingsPrivacyAndSecurityMaterial extends State<SettingsPrivacyAndSecuri
                     },
                   ),
                 ),
+                Card(
+                  margin: const EdgeInsets.fromLTRB(12, 8, 12, 0),
+                  child: MaterialListTileIcon(
+                    title: Text(context.t.sessionsPrivacyAndSecurity.birthday),
+                    color: const Color(0xFFFF2D55),
+                    icon: FontAwesomeIcons.cakeCandles,
+                    isTrailing: true,
+                    additionalInfo: Text(state.callsLoadError ? "—" : _audienceLabel(context, state.birthdayAudience)),
+                    onTab: () async {
+                      final cubit = context.read<SettingsPrivacyAndSecurityCubit>();
+                      await context.push("/settings/privacy_and_security/birthday");
+                      await cubit.reloadBirthday();
+                    },
+                  ),
+                ),
               ],
             ),
           ),

@@ -56,6 +56,12 @@ enum MessageType {
   // Полная замена deny-list «всегда запрещать» для звонков (см.
   // privacy_v1.proto, PrivacyCallsDenyUpdate).
   PRIVACY_CALLS_DENY_UPDATE = 37;
+  // Приватность дня рождения (аудитория + allow/deny + «скрыть год»). См.
+  // privacy_v1.proto (PrivacyBirthday*Update / PrivacyHideBirthYearUpdate).
+  PRIVACY_BIRTHDAY_UPDATE = 38;
+  PRIVACY_BIRTHDAY_ALLOW_UPDATE = 39;
+  PRIVACY_BIRTHDAY_DENY_UPDATE = 40;
+  PRIVACY_HIDE_BIRTH_YEAR_UPDATE = 41;
 }
 
 service Iperon {

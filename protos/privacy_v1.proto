@@ -27,6 +27,15 @@ message PrivacySettings {
     // Deny-list «всегда запрещать» для звонков: userID (ObjectID, 12 байт),
     // которым звонок запрещён независимо от `calls` (в т.ч. при CONTACTS).
     repeated bytes calls_deny = 3;
+    // Аудитория «кто может видеть мою дату рождения» + её allow/deny-списки
+    // (та же семантика, что у звонков). Гейт применяется на стороне владельца
+    // профиля при отдаче Profile.Response.
+    Audience birthday = 4;
+    repeated bytes birthday_allow = 5;
+    repeated bytes birthday_deny = 6;
+    // Скрывать год рождения (и возраст) от тех, кому дата рождения видна: сервер
+    // отдаёт им дату с обнулённым годом (sentinel) и Profile.hide_birth_year=true.
+    bool hide_birth_year = 7;
   }
 }
 
@@ -52,6 +61,42 @@ message PrivacyCallsAllowUpdate {
 message PrivacyCallsDenyUpdate {
   message Request {
     repeated bytes user_ids = 1;
+  }
+
+  message Response {}
+}
+
+// Изменение аудитории «кто может видеть мою дату рождения».
+message PrivacyBirthdayUpdate {
+  message Request {
+    PrivacySettings.Audience birthday = 1;
+  }
+
+  message Response {}
+}
+
+// Полная замена allow-list «всегда разрешать» для дня рождения.
+message PrivacyBirthdayAllowUpdate {
+  message Request {
+    repeated bytes user_ids = 1;
+  }
+
+  message Response {}
+}
+
+// Полная замена deny-list «всегда запрещать» для дня рождения.
+message PrivacyBirthdayDenyUpdate {
+  message Request {
+    repeated bytes user_ids = 1;
+  }
+
+  message Response {}
+}
+
+// Переключение «скрывать год рождения и возраст».
+message PrivacyHideBirthYearUpdate {
+  message Request {
+    bool hide = 1;
   }
 
   message Response {}

@@ -581,6 +581,7 @@ class API {
           fistName: payload.firstName,
           lastName: payload.lastName,
           birthDate: payload.hasBirthDate() ? payload.birthDate.toDateTime(toLocal: true) : null,
+          hideBirthYear: payload.hideBirthYear,
           aboutMe: payload.aboutMe,
           phoneNumber: payload.phoneNumber,
         );

@@ -104,6 +104,7 @@ class Profile_Response extends $pb.GeneratedMessage {
     $core.String? username,
     $core.String? phoneNumber,
     $core.List<$core.int>? userID,
+    $core.bool? hideBirthYear,
   }) {
     final result = create();
     if (firstName != null) result.firstName = firstName;
@@ -114,6 +115,7 @@ class Profile_Response extends $pb.GeneratedMessage {
     if (username != null) result.username = username;
     if (phoneNumber != null) result.phoneNumber = phoneNumber;
     if (userID != null) result.userID = userID;
+    if (hideBirthYear != null) result.hideBirthYear = hideBirthYear;
     return result;
   }
 
@@ -134,6 +136,7 @@ class Profile_Response extends $pb.GeneratedMessage {
     ..aOS(6, _omitFieldNames ? '' : 'username')
     ..aOS(7, _omitFieldNames ? '' : 'phoneNumber', protoName: 'phoneNumber')
     ..a<$core.List<$core.int>>(8, _omitFieldNames ? '' : 'userID', $pb.PbFieldType.OY, protoName: 'userID')
+    ..aOB(9, _omitFieldNames ? '' : 'hideBirthYear')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -230,6 +233,19 @@ class Profile_Response extends $pb.GeneratedMessage {
   $core.bool hasUserID() => $_has(7);
   @$pb.TagNumber(8)
   void clearUserID() => $_clearField(8);
+
+  /// Владелец скрыл год рождения: birthDate отдаётся с обнулённым годом
+  /// (sentinel), клиент показывает только день и месяц, без возраста. Дата
+  /// рождения вовсе отсутствует (birthDate не задан), если приватность дня
+  /// рождения не разрешает смотрящему её видеть.
+  @$pb.TagNumber(9)
+  $core.bool get hideBirthYear => $_getBF(8);
+  @$pb.TagNumber(9)
+  set hideBirthYear($core.bool value) => $_setBool(8, value);
+  @$pb.TagNumber(9)
+  $core.bool hasHideBirthYear() => $_has(8);
+  @$pb.TagNumber(9)
+  void clearHideBirthYear() => $_clearField(9);
 }
 
 class Profile extends $pb.GeneratedMessage {

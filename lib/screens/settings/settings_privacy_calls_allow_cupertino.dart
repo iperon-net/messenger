@@ -22,7 +22,16 @@ class SettingsPrivacyCallsAllowCupertino extends StatefulWidget {
   final CallsListKind kind;
   final List<Uint8List> initialSelected;
 
-  const SettingsPrivacyCallsAllowCupertino({required this.kind, required this.initialSelected, super.key});
+  /// Канал, чей список исключений редактируем: звонки или день рождения. Пикер
+  /// один на оба — от [channel]+[kind] зависит только, какой сеттер cubit вызвать.
+  final PrivacyChannel channel;
+
+  const SettingsPrivacyCallsAllowCupertino({
+    required this.kind,
+    required this.initialSelected,
+    this.channel = PrivacyChannel.calls,
+    super.key,
+  });
 
   @override
   State<SettingsPrivacyCallsAllowCupertino> createState() => _SettingsPrivacyCallsAllowCupertino();
@@ -77,7 +86,14 @@ class _SettingsPrivacyCallsAllowCupertino extends State<SettingsPrivacyCallsAllo
     setState(() => _saving = true);
     final selectedIDs = _candidates.where((c) => _selected.contains(c.hex)).map((c) => c.userID).toList(growable: false);
     final cubit = context.read<SettingsPrivacyAndSecurityCubit>();
-    final ok = widget.kind == CallsListKind.allow ? await cubit.setCallsAllow(selectedIDs) : await cubit.setCallsDeny(selectedIDs);
+    final isAllow = widget.kind == CallsListKind.allow;
+    final bool ok;
+    switch (widget.channel) {
+      case PrivacyChannel.calls:
+        ok = isAllow ? await cubit.setCallsAllow(selectedIDs) : await cubit.setCallsDeny(selectedIDs);
+      case PrivacyChannel.birthday:
+        ok = isAllow ? await cubit.setBirthdayAllow(selectedIDs) : await cubit.setBirthdayDeny(selectedIDs);
+    }
     if (!mounted) return;
     if (ok) {
       Navigator.of(context).pop();

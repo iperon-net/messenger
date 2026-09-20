@@ -68,8 +68,11 @@ class _ProfileCupertino extends State<ProfileCupertino> {
             ? _fieldTile(
                 context,
                 context.t.screenProfile.birthDate,
-                // «9 мая 1981 (43 года)» — день, название месяца и год (без « г.») + возраст в скобках.
-                '${DateFormat('d MMMM y').format(birthDate)} (${context.t.screenProfile.age(n: birthDate.ageInYears())})',
+                // Владелец скрыл год → только «9 мая» (без года и возраста).
+                // Иначе «9 мая 1981 (43 года)» — день, месяц, год + возраст в скобках.
+                state.hideBirthYear
+                    ? DateFormat('d MMMM').format(birthDate)
+                    : '${DateFormat('d MMMM y').format(birthDate)} (${context.t.screenProfile.age(n: birthDate.ageInYears())})',
               )
             : null;
         final hasSection = nameTiles.isNotEmpty || birthDateTile != null || state.phoneNumber.isNotEmpty || state.username.isNotEmpty;

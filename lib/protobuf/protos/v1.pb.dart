@@ -10,12 +10,11 @@
 // ignore_for_file: deprecated_member_use_from_same_package, library_prefixes
 // ignore_for_file: non_constant_identifier_names, prefer_relative_imports
 
-import 'dart:async' as $async;
 import 'dart:core' as $core;
 
 import 'package:fixnum/fixnum.dart' as $fixnum;
 import 'package:protobuf/protobuf.dart' as $pb;
-import 'package:protobuf/well_known_types/google/protobuf/timestamp.pb.dart' as $0;
+import 'package:protobuf/well_known_types/google/protobuf/timestamp.pb.dart' as $1;
 
 import 'v1.pbenum.dart';
 
@@ -28,7 +27,7 @@ class Message extends $pb.GeneratedMessage {
   factory Message({
     MessageType? messageType,
     $core.List<$core.int>? message,
-    $0.Timestamp? currentAt,
+    $1.Timestamp? currentAt,
   }) {
     final result = create();
     if (messageType != null) result.messageType = messageType;
@@ -48,7 +47,7 @@ class Message extends $pb.GeneratedMessage {
       package: const $pb.PackageName(_omitMessageNames ? '' : 'v1'), createEmptyInstance: create)
     ..aE<MessageType>(1, _omitFieldNames ? '' : 'messageType', protoName: 'messageType', enumValues: MessageType.values)
     ..a<$core.List<$core.int>>(2, _omitFieldNames ? '' : 'message', $pb.PbFieldType.OY)
-    ..aOM<$0.Timestamp>(3, _omitFieldNames ? '' : 'currentAt', protoName: 'currentAt', subBuilder: $0.Timestamp.create)
+    ..aOM<$1.Timestamp>(3, _omitFieldNames ? '' : 'currentAt', protoName: 'currentAt', subBuilder: $1.Timestamp.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -86,15 +85,15 @@ class Message extends $pb.GeneratedMessage {
   void clearMessage() => $_clearField(2);
 
   @$pb.TagNumber(3)
-  $0.Timestamp get currentAt => $_getN(2);
+  $1.Timestamp get currentAt => $_getN(2);
   @$pb.TagNumber(3)
-  set currentAt($0.Timestamp value) => $_setField(3, value);
+  set currentAt($1.Timestamp value) => $_setField(3, value);
   @$pb.TagNumber(3)
   $core.bool hasCurrentAt() => $_has(2);
   @$pb.TagNumber(3)
   void clearCurrentAt() => $_clearField(3);
   @$pb.TagNumber(3)
-  $0.Timestamp ensureCurrentAt() => $_ensure(2);
+  $1.Timestamp ensureCurrentAt() => $_ensure(2);
 }
 
 class Upload_Init extends $pb.GeneratedMessage {
@@ -637,19 +636,6 @@ class Upload extends $pb.GeneratedMessage {
   @$core.pragma('dart2js:noInline')
   static Upload getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Upload>(create);
   static Upload? _defaultInstance;
-}
-
-class IperonApi {
-  final $pb.RpcClient _client;
-
-  IperonApi(this._client);
-
-  $async.Future<Message> unary($pb.ClientContext? ctx, Message request) =>
-      _client.invoke<Message>(ctx, 'Iperon', 'Unary', request, Message());
-  $async.Future<Message> stream($pb.ClientContext? ctx, Message request) =>
-      _client.invoke<Message>(ctx, 'Iperon', 'Stream', request, Message());
-  $async.Future<Upload_Response> upload($pb.ClientContext? ctx, Upload_Request request) =>
-      _client.invoke<Upload_Response>(ctx, 'Iperon', 'Upload', request, Upload_Response());
 }
 
 const $core.bool _omitFieldNames = $core.bool.fromEnvironment('protobuf.omit_field_names');

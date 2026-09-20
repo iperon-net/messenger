@@ -106,6 +106,21 @@ class _SettingsPrivacyAndSecurityCupertino extends State<SettingsPrivacyAndSecur
                         await cubit.reloadCalls();
                       },
                     ),
+                    CupertinoListTileIcon(
+                      title: Text(context.t.sessionsPrivacyAndSecurity.birthday),
+                      color: Color(0xFFFF2D55),
+                      icon: FontAwesomeIcons.cakeCandles,
+                      isTrailing: true,
+                      additionalInfo: Text(
+                        state.callsLoadError ? "—" : _audienceLabel(context, state.birthdayAudience),
+                        style: TextStyle(color: CupertinoColors.secondaryLabel.resolveFrom(context)),
+                      ),
+                      onTab: () async {
+                        final cubit = context.read<SettingsPrivacyAndSecurityCubit>();
+                        await context.push("/settings/privacy_and_security/birthday");
+                        await cubit.reloadBirthday();
+                      },
+                    ),
                   ],
                 ),
               ],
