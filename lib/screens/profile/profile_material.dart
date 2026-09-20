@@ -74,11 +74,16 @@ class _ProfileMaterial extends State<ProfileMaterial> {
           appBar: AppBar(
             title: Text(context.t.screenProfile.profile),
             actions: [
-              if (state.userID.isNotEmpty && !_isSelf(state.userID))
+              if (state.userID.isNotEmpty && !_isSelf(state.userID)) ...[
                 IconButton(
                   icon: const Icon(Icons.call),
                   onPressed: () => getIt.get<Calls>().startCall(toUserID: state.userID, video: false),
                 ),
+                IconButton(
+                  icon: const Icon(Icons.videocam),
+                  onPressed: () => getIt.get<Calls>().startCall(toUserID: state.userID, video: true),
+                ),
+              ],
             ],
           ),
           body: SafeArea(

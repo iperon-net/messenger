@@ -93,7 +93,7 @@ class _AudioRoutesSheetState extends State<_AudioRoutesSheet> {
             padding: const EdgeInsets.fromLTRB(20, 4, 20, 12),
             child: Align(
               alignment: AlignmentDirectional.centerStart,
-              child: Text(t.audioOutput, style: Theme.of(context).textTheme.titleMedium),
+              child: Text(t.audioOutputTitle, style: Theme.of(context).textTheme.titleMedium),
             ),
           ),
           if (_routes.isEmpty)

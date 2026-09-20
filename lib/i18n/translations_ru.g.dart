@@ -553,7 +553,8 @@ class _Translations$screenCall$ru extends Translations$screenCall$en {
 	@override String get micOff => 'Выкл. звук';
 	@override String get speakerOn => 'Вкл. динамик';
 	@override String get speakerOff => 'Выкл. динамик';
-	@override String get audioOutput => 'Вывод звука';
+	@override String get audioOutput => 'Динамик';
+	@override String get audioOutputTitle => 'Вывод звука';
 	@override String get routeEarpiece => 'Телефон';
 	@override String get routeSpeaker => 'Динамик';
 	@override String get routeWiredHeadset => 'Наушники';
@@ -842,7 +843,8 @@ extension on TranslationsRu {
 			'screenCall.micOff' => 'Выкл. звук',
 			'screenCall.speakerOn' => 'Вкл. динамик',
 			'screenCall.speakerOff' => 'Выкл. динамик',
-			'screenCall.audioOutput' => 'Вывод звука',
+			'screenCall.audioOutput' => 'Динамик',
+			'screenCall.audioOutputTitle' => 'Вывод звука',
 			'screenCall.routeEarpiece' => 'Телефон',
 			'screenCall.routeSpeaker' => 'Динамик',
 			'screenCall.routeWiredHeadset' => 'Наушники',

@@ -1080,8 +1080,11 @@ class Translations$screenCall$en {
 	/// en: 'Speaker off'
 	String get speakerOff => 'Speaker off';
 
+	/// en: 'Speaker'
+	String get audioOutput => 'Speaker';
+
 	/// en: 'Audio output'
-	String get audioOutput => 'Audio output';
+	String get audioOutputTitle => 'Audio output';
 
 	/// en: 'Phone'
 	String get routeEarpiece => 'Phone';
@@ -1400,7 +1403,8 @@ extension on Translations {
 			'screenCall.micOff' => 'Mute',
 			'screenCall.speakerOn' => 'Speaker on',
 			'screenCall.speakerOff' => 'Speaker off',
-			'screenCall.audioOutput' => 'Audio output',
+			'screenCall.audioOutput' => 'Speaker',
+			'screenCall.audioOutputTitle' => 'Audio output',
 			'screenCall.routeEarpiece' => 'Phone',
 			'screenCall.routeSpeaker' => 'Speaker',
 			'screenCall.routeWiredHeadset' => 'Headphones',

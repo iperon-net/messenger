@@ -85,14 +85,25 @@ class _ProfileCupertino extends State<ProfileCupertino> {
               backgroundColor: ThemesCupertino.groupedBackground,
               middle: Text(context.t.screenProfile.profile),
               trailing: (state.userID.isNotEmpty && !_isSelf(state.userID))
-                  ? CupertinoButton(
-                      // 44×44 — минимальная зона нажатия по HIG; прежние
-                      // padding:zero + minimumSize:zero давали хит-area размером с
-                      // саму иконку (~20pt), поэтому тап часто не срабатывал.
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                      minimumSize: const Size(44, 44),
-                      onPressed: () => getIt.get<Calls>().startCall(toUserID: state.userID, video: false),
-                      child: Icon(CupertinoIcons.phone, color: ThemesCupertino.navActionColor(context)),
+                  ? Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        CupertinoButton(
+                          // 44×44 — минимальная зона нажатия по HIG; прежние
+                          // padding:zero + minimumSize:zero давали хит-area размером с
+                          // саму иконку (~20pt), поэтому тап часто не срабатывал.
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                          minimumSize: const Size(44, 44),
+                          onPressed: () => getIt.get<Calls>().startCall(toUserID: state.userID, video: false),
+                          child: Icon(CupertinoIcons.phone, color: ThemesCupertino.navActionColor(context)),
+                        ),
+                        CupertinoButton(
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                          minimumSize: const Size(44, 44),
+                          onPressed: () => getIt.get<Calls>().startCall(toUserID: state.userID, video: true),
+                          child: Icon(CupertinoIcons.video_camera_solid, color: ThemesCupertino.navActionColor(context)),
+                        ),
+                      ],
                     )
                   : null,
             ),
