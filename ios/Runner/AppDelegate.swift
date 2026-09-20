@@ -28,27 +28,17 @@ import flutter_callkit_incoming
   func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
     GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
 
-    // Канал смены маршрута аудио на CallKit-пути (externalCallSystem): сессией
-    // владеет CallKit, поэтому LiveKit `setSpeakerOutputPreferred` использовать
-    // нельзя (он переконфигурирует сессию и рвёт звонок). Динамик/разговорный
-    // переключаем нативным overrideOutputAudioPort. См. lib/calls.dart toggleSpeaker.
+    // Канал явной активации AVAudioSession на пути без CallKit
+    // (externalCallSystem: исходящий/foreground) — LiveKit сессию сам не
+    // активирует. Смену маршрута на динамик/разговорный делает Dart через
+    // flutter_webrtc `Helper.setSpeakerphoneOn` (override внутри RTCAudioSession),
+    // а НЕ здесь: override на «голом» AVAudioSession в обход RTCAudioSession
+    // затирается аудио-юнитом WebRTC. См. lib/calls.dart _setIosSpeaker.
     if let messenger = engineBridge.pluginRegistry.registrar(forPlugin: "IperonCallAudio")?.messenger() {
       let channel = FlutterMethodChannel(name: "net.iperon.messenger/call_audio", binaryMessenger: messenger)
       channel.setMethodCallHandler { call, result in
         let session = AVAudioSession.sharedInstance()
         switch call.method {
-        case "setSpeaker":
-          let on = (call.arguments as? [String: Any])?["on"] as? Bool ?? false
-          let route = session.currentRoute.outputs.map { $0.portType.rawValue }.joined(separator: ",")
-          NSLog("IPERON_CALL setSpeaker on=\(on) category=\(session.category.rawValue) mode=\(session.mode.rawValue) route=[\(route)]")
-          do {
-            try session.overrideOutputAudioPort(on ? .speaker : .none)
-            NSLog("IPERON_CALL setSpeaker on=\(on) · overrideOutputAudioPort ok")
-            result(nil)
-          } catch {
-            NSLog("IPERON_CALL setSpeaker on=\(on) · FAILED: \(error.localizedDescription)")
-            result(FlutterError(code: "audio_session", message: error.localizedDescription, details: nil))
-          }
         // Явная активация AVAudioSession для исходящего/foreground-звонка без
         // CallKit (LiveKit в externalCallSystem не активирует сессию сам). Категория
         // playAndRecord + режим voiceChat (по умолчанию разговорный динамик), с
