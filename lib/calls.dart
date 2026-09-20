@@ -12,7 +12,7 @@ import 'dart:math';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_webrtc/flutter_webrtc.dart' show Helper, WebRTC;
+import 'package:flutter_webrtc/flutter_webrtc.dart' show WebRTC;
 import 'package:grpc/grpc.dart' show StatusCode;
 import 'package:livekit_client/livekit_client.dart';
 
@@ -164,9 +164,9 @@ class Calls {
   final utils = getIt.get<Utils>();
 
   // iOS-канал к AppDelegate для явной активации/деактивации AVAudioSession на
-  // пути без CallKit (см. [_setIosAudioSessionActive]). Маршрут на динамик
-  // переключается через flutter_webrtc [Helper.setSpeakerphoneOn], а не тут
-  // (см. [_setIosSpeaker], ios/Runner/AppDelegate.swift).
+  // пути без CallKit (см. [_setIosAudioSessionActive]). Маршрут на динамик/
+  // разговорный переключает LiveKit `AudioManager.setSpeakerOutputPreferred`
+  // (см. [toggleSpeaker]), а не этот канал.
   static const _callAudioChannel = MethodChannel('net.iperon.messenger/call_audio');
 
   // Проигрыватель гудков (ringback) исходящего звонка: зациклённый тон
@@ -642,23 +642,24 @@ class Calls {
   }
 
   /// Переключает динамик/разговорный (громкая связь).
+  ///
+  /// Маршрутом аудио звонка на ОБЕИХ платформах владеет LiveKit
+  /// (`AudioManager.setSpeakerOutputPreferred`), а НЕ flutter_webrtc
+  /// `Helper.setSpeakerphoneOn`: LiveKit безусловно отключает собственный
+  /// audio-session-менеджмент flutter_webrtc (`audioSessionManagementEnabled`),
+  /// поэтому нативный `enableSpeakerphone` в нём гейтится этим флагом и оказывается
+  /// no-op (иконка `speakerOn` переключалась, а звук — нет). На iOS в режиме
+  /// `externalCallSystem` `setSpeakerOutputPreferred` меняет только категорию/режим
+  /// (`videoChat` = динамик / `voiceChat` = разговорный) + port override через
+  /// движок и НЕ активирует сессию заново (`sessionActivationEnabled=false`), т.е.
+  /// не рвёт внешнюю call-сессию (CallKit/наш `activateSession`).
   Future<void> toggleSpeaker() async {
     final on = !_snapshot.speakerOn;
     logger.info('call: toggleSpeaker -> $on (viaCallKit=$_viaCallKit, status=${_snapshot.status})');
-    if (Platform.isIOS) {
-      // На iOS сессией владеет внешняя система (externalCallSystem: CallKit или мы),
-      // поэтому маршрут меняем нативным `overrideOutputAudioPort`. LiveKit
-      // `setSpeakerOutputPreferred` тут переконфигурировал бы сессию вручную и рвал
-      // соединение (см. ios/Runner/AppDelegate.swift).
-      try {
-        await _setIosSpeaker(on);
-        logger.info('call: toggleSpeaker -> $on · native ok');
-      } catch (error, stackTrace) {
-        logger.handle(error, stackTrace);
-      }
-    } else {
-      // Android — сессией владеет LiveKit (его audioswitch handler).
+    try {
       await AudioManager.instance.setSpeakerOutputPreferred(on);
+    } catch (error, stackTrace) {
+      logger.handle(error, stackTrace);
     }
     _emit(_snapshot.copyWith(speakerOn: on));
   }
@@ -845,19 +846,13 @@ class Calls {
     await _publishLocalMedia(video: video);
 
     // Начальный маршрут аудио. Для аудиозвонка ожидается разговорный динамик
-    // (earpiece), для видео — громкая связь (speaker), см. `speakerOn`.
-    //  • Android: маршрутом владеет LiveKit → setSpeakerOutputPreferred.
-    //  • iOS: сессией владеет внешняя система (externalCallSystem). Разговорный
-    //    динамик — уже дефолт активной сессии (voiceChat / CallKit), поэтому
-    //    вмешиваемся только когда нужен именно динамик (видео/speakerOn), нативным
-    //    overrideOutputAudioPort. LiveKit `setSpeakerOutputPreferred` на iOS
-    //    переконфигурировал бы сессию и рвал соединение.
+    // (earpiece), для видео — громкая связь (speaker), см. `speakerOn`. Маршрутом
+    // на обеих платформах владеет LiveKit (`setSpeakerOutputPreferred`, см.
+    // [toggleSpeaker]): на iOS в `externalCallSystem` он выставляет режим
+    // (`videoChat`=динамик / `voiceChat`=разговорный) через движок, не активируя
+    // сессию заново.
     try {
-      if (Platform.isAndroid) {
-        await AudioManager.instance.setSpeakerOutputPreferred(_snapshot.speakerOn);
-      } else if (Platform.isIOS && _snapshot.speakerOn) {
-        await _setIosSpeaker(true);
-      }
+      await AudioManager.instance.setSpeakerOutputPreferred(_snapshot.speakerOn);
     } catch (error, stackTrace) {
       logger.handle(error, stackTrace);
     }
@@ -945,23 +940,6 @@ class Calls {
   Future<void> _setIosAudioSessionActive(bool active) async {
     if (!Platform.isIOS) return;
     await _callAudioChannel.invokeMethod<void>(active ? 'activateSession' : 'deactivateSession');
-  }
-
-  /// iOS: переключает маршрут на динамик/разговорный.
-  ///
-  /// Через flutter_webrtc `Helper.setSpeakerphoneOn`, а НЕ через свой нативный
-  /// `overrideOutputAudioPort` на «голом» `AVAudioSession.sharedInstance()`:
-  /// аудио-юнитом звонка владеет WebRTC/LiveKit через `RTCAudioSession`, который
-  /// кэширует конфигурацию и переустанавливает её — override в обход него
-  /// игнорируется/затирается (иконка `speakerOn` переключалась, а звук нет).
-  /// `Helper` делает тот же `overrideOutputAudioPort`, но ВНУТРИ
-  /// `RTCAudioSession.lockForConfiguration` (см. flutter_webrtc
-  /// common/darwin/Classes/AudioUtils.m), поэтому маршрут держится. В отличие от
-  /// LiveKit `AudioManager.setSpeakerOutputPreferred`, он не активирует сессию
-  /// заново (нет `setActive`), т.е. не рвёт externalCallSystem/CallKit-звонок.
-  Future<void> _setIosSpeaker(bool on) async {
-    if (!Platform.isIOS) return;
-    await Helper.setSpeakerphoneOn(on);
   }
 
   /// Включает/выключает WebRTC-аудиодвижок LiveKit по событию CallKit

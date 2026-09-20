@@ -31,9 +31,9 @@ import flutter_callkit_incoming
     // Канал явной активации AVAudioSession на пути без CallKit
     // (externalCallSystem: исходящий/foreground) — LiveKit сессию сам не
     // активирует. Смену маршрута на динамик/разговорный делает Dart через
-    // flutter_webrtc `Helper.setSpeakerphoneOn` (override внутри RTCAudioSession),
-    // а НЕ здесь: override на «голом» AVAudioSession в обход RTCAudioSession
-    // затирается аудио-юнитом WebRTC. См. lib/calls.dart _setIosSpeaker.
+    // LiveKit `AudioManager.setSpeakerOutputPreferred` (в externalCallSystem он
+    // меняет режим videoChat/voiceChat через движок, не активируя сессию заново),
+    // а НЕ здесь. См. lib/calls.dart toggleSpeaker.
     if let messenger = engineBridge.pluginRegistry.registrar(forPlugin: "IperonCallAudio")?.messenger() {
       let channel = FlutterMethodChannel(name: "net.iperon.messenger/call_audio", binaryMessenger: messenger)
       channel.setMethodCallHandler { call, result in
