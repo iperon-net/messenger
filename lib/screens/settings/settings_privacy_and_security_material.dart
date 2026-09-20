@@ -92,6 +92,21 @@ class _SettingsPrivacyAndSecurityMaterial extends State<SettingsPrivacyAndSecuri
                     },
                   ),
                 ),
+                Card(
+                  margin: const EdgeInsets.fromLTRB(12, 8, 12, 0),
+                  child: MaterialListTileIcon(
+                    title: Text(context.t.sessionsPrivacyAndSecurity.aboutMe),
+                    color: const Color(0xFFAF52DE),
+                    icon: FontAwesomeIcons.circleInfo,
+                    isTrailing: true,
+                    additionalInfo: Text(state.callsLoadError ? "—" : _audienceLabel(context, state.aboutMeAudience)),
+                    onTab: () async {
+                      final cubit = context.read<SettingsPrivacyAndSecurityCubit>();
+                      await context.push("/settings/privacy_and_security/about_me");
+                      await cubit.reloadAboutMe();
+                    },
+                  ),
+                ),
               ],
             ),
           ),

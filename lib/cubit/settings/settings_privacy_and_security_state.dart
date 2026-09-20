@@ -16,10 +16,10 @@ enum CallsPrivacyAudience { everybody, contacts, nobody }
 /// секция под «Никто») или deny («всегда запрещать», секция под «Мои контакты»).
 enum CallsListKind { allow, deny }
 
-/// Канал приватности, к которому относится экран-пикер исключений: звонки или
-/// день рождения. Пикер контактов один на оба — различается только тем, какой
-/// список настройки он заменяет через [SettingsPrivacyAndSecurityCubit].
-enum PrivacyChannel { calls, birthday }
+/// Канал приватности, к которому относится экран-пикер исключений: звонки, день
+/// рождения или «О себе». Пикер контактов один на все — различается только тем,
+/// какой список настройки он заменяет через [SettingsPrivacyAndSecurityCubit].
+enum PrivacyChannel { calls, birthday, aboutMe }
 
 @MappableClass(includeCustomMappers: [Uint8ListMapper()])
 class SettingsPrivacyAndSecurityState with SettingsPrivacyAndSecurityStateMappable {
@@ -64,6 +64,15 @@ class SettingsPrivacyAndSecurityState with SettingsPrivacyAndSecurityStateMappab
   /// `false` (год виден). Применяется на сервере при отдаче чужого профиля.
   final bool hideBirthYear;
 
+  /// Настройка «кто может видеть моё „О себе“». Семантика и дефолт — как у
+  /// [callsAudience]. Приходит в том же ответе PRIVACY_SETTINGS, поэтому
+  /// [callsLoadError]/[callsReadOnly] покрывают и её.
+  final CallsPrivacyAudience aboutMeAudience;
+
+  /// Allow/deny-списки исключений для «О себе» (см. [callsAllow]/[callsDeny]).
+  final List<Uint8List> aboutMeAllow;
+  final List<Uint8List> aboutMeDeny;
+
   const SettingsPrivacyAndSecurityState({
     this.status = Status.initialization,
     this.isBiometricAvailable = false,
@@ -76,5 +85,8 @@ class SettingsPrivacyAndSecurityState with SettingsPrivacyAndSecurityStateMappab
     this.birthdayAllow = const [],
     this.birthdayDeny = const [],
     this.hideBirthYear = false,
+    this.aboutMeAudience = CallsPrivacyAudience.contacts,
+    this.aboutMeAllow = const [],
+    this.aboutMeDeny = const [],
   });
 }

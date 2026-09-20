@@ -36,6 +36,12 @@ message PrivacySettings {
     // Скрывать год рождения (и возраст) от тех, кому дата рождения видна: сервер
     // отдаёт им дату с обнулённым годом (sentinel) и Profile.hide_birth_year=true.
     bool hide_birth_year = 7;
+    // Аудитория «кто может видеть моё „О себе“» + её allow/deny-списки (та же
+    // семантика, что у звонков/дня рождения). Гейт применяется на стороне
+    // владельца профиля: не разрешено — aboutMe в Profile.Response не отдаётся.
+    Audience about_me = 8;
+    repeated bytes about_me_allow = 9;
+    repeated bytes about_me_deny = 10;
   }
 }
 
@@ -97,6 +103,33 @@ message PrivacyBirthdayDenyUpdate {
 message PrivacyHideBirthYearUpdate {
   message Request {
     bool hide = 1;
+  }
+
+  message Response {}
+}
+
+// Изменение аудитории «кто может видеть моё „О себе“».
+message PrivacyAboutMeUpdate {
+  message Request {
+    PrivacySettings.Audience about_me = 1;
+  }
+
+  message Response {}
+}
+
+// Полная замена allow-list «всегда разрешать» для «О себе».
+message PrivacyAboutMeAllowUpdate {
+  message Request {
+    repeated bytes user_ids = 1;
+  }
+
+  message Response {}
+}
+
+// Полная замена deny-list «всегда запрещать» для «О себе».
+message PrivacyAboutMeDenyUpdate {
+  message Request {
+    repeated bytes user_ids = 1;
   }
 
   message Response {}

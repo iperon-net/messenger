@@ -28,6 +28,9 @@ class SettingsPrivacyAndSecurityCubit extends Cubit<SettingsPrivacyAndSecuritySt
   static const _birthdayCacheKey = "privacy.birthday.audience";
   static const _hideBirthYearCacheKey = "privacy.birthday.hideYear";
 
+  /// Ключ локального кэша настройки «кто может видеть „О себе“».
+  static const _aboutMeCacheKey = "privacy.aboutMe.audience";
+
   Future<void> initialization() async {
     emit(state.copyWith(status: Status.loading));
     final isBiometricAvailable = await utils.isBiometricAvailable();
@@ -44,6 +47,9 @@ class SettingsPrivacyAndSecurityCubit extends Cubit<SettingsPrivacyAndSecuritySt
   /// Алиас [reloadCalls] для читаемости на экране дня рождения (тот же ответ).
   Future<void> reloadBirthday() => _loadCalls();
 
+  /// Алиас [reloadCalls] для читаемости на экране «О себе» (тот же ответ).
+  Future<void> reloadAboutMe() => _loadCalls();
+
   /// Загружает настройку «кто может звонить». Сначала мгновенно поднимаем
   /// последнее значение из локального кэша (видно и offline), затем пробуем
   /// сервер. Успех — обновляем значение + кэш, снимаем блокировки. Сбой:
@@ -53,10 +59,12 @@ class SettingsPrivacyAndSecurityCubit extends Cubit<SettingsPrivacyAndSecuritySt
     final cached = await _readCache();
     final cachedBirthday = await _readBirthdayCache();
     final cachedHideBirthYear = await _readHideBirthYearCache();
+    final cachedAboutMe = await _readAboutMeCache();
     if (isClosed) return;
     if (cached != null) emit(state.copyWith(callsAudience: cached, callsLoadError: false));
     if (cachedBirthday != null) emit(state.copyWith(birthdayAudience: cachedBirthday));
     if (cachedHideBirthYear != null) emit(state.copyWith(hideBirthYear: cachedHideBirthYear));
+    if (cachedAboutMe != null) emit(state.copyWith(aboutMeAudience: cachedAboutMe));
 
     try {
       final (status, payload) = await api.unaryEncodedWithResponse(MessageType.PRIVACY_SETTINGS, PrivacySettings_Request().writeToBuffer());
@@ -75,9 +83,13 @@ class SettingsPrivacyAndSecurityCubit extends Cubit<SettingsPrivacyAndSecuritySt
       final birthday = _fromProto(response.birthday);
       final birthdayAllow = response.birthdayAllow.map(Uint8List.fromList).toList(growable: false);
       final birthdayDeny = response.birthdayDeny.map(Uint8List.fromList).toList(growable: false);
+      final aboutMe = _fromProto(response.aboutMe);
+      final aboutMeAllow = response.aboutMeAllow.map(Uint8List.fromList).toList(growable: false);
+      final aboutMeDeny = response.aboutMeDeny.map(Uint8List.fromList).toList(growable: false);
       await _writeCache(audience);
       await _writeBirthdayCache(birthday);
       await _writeHideBirthYearCache(response.hideBirthYear);
+      await _writeAboutMeCache(aboutMe);
       if (!isClosed) {
         emit(
           state.copyWith(
@@ -88,6 +100,9 @@ class SettingsPrivacyAndSecurityCubit extends Cubit<SettingsPrivacyAndSecuritySt
             birthdayAllow: birthdayAllow,
             birthdayDeny: birthdayDeny,
             hideBirthYear: response.hideBirthYear,
+            aboutMeAudience: aboutMe,
+            aboutMeAllow: aboutMeAllow,
+            aboutMeDeny: aboutMeDeny,
             callsLoadError: false,
             callsReadOnly: false,
           ),
@@ -266,6 +281,73 @@ class SettingsPrivacyAndSecurityCubit extends Cubit<SettingsPrivacyAndSecuritySt
     return true;
   }
 
+  /// Меняет настройку «кто может видеть „О себе“». Как и звонки — серверная
+  /// операция, offline недоступна. Возвращает `false`, если не применилось.
+  Future<bool> setAboutMeAudience(CallsPrivacyAudience audience) async {
+    if (audience == state.aboutMeAudience && !state.callsLoadError && !state.callsReadOnly) return true;
+
+    if (!await utils.hasNetwork()) {
+      logger.info('privacy: set about me audience aborted, no network');
+      return false;
+    }
+
+    final status = await api.unaryEncoded(
+      MessageType.PRIVACY_ABOUT_ME_UPDATE,
+      PrivacyAboutMeUpdate_Request(aboutMe: _toProto(audience)).writeToBuffer(),
+    );
+
+    if (status.status != APIStatus.success) {
+      logger.warning('privacy: update about me audience failed (${status.error})');
+      return false;
+    }
+
+    await _writeAboutMeCache(audience);
+    if (!isClosed) emit(state.copyWith(aboutMeAudience: audience, callsLoadError: false, callsReadOnly: false));
+    return true;
+  }
+
+  /// Полностью заменяет allow-list «всегда разрешать» для «О себе».
+  Future<bool> setAboutMeAllow(List<Uint8List> userIDs) async {
+    if (!await utils.hasNetwork()) {
+      logger.info('privacy: set about me allow aborted, no network');
+      return false;
+    }
+
+    final status = await api.unaryEncoded(
+      MessageType.PRIVACY_ABOUT_ME_ALLOW_UPDATE,
+      PrivacyAboutMeAllowUpdate_Request(userIds: userIDs).writeToBuffer(),
+    );
+
+    if (status.status != APIStatus.success) {
+      logger.warning('privacy: update about me allow failed (${status.error})');
+      return false;
+    }
+
+    if (!isClosed) emit(state.copyWith(aboutMeAllow: List<Uint8List>.unmodifiable(userIDs)));
+    return true;
+  }
+
+  /// Полностью заменяет deny-list «всегда запрещать» для «О себе».
+  Future<bool> setAboutMeDeny(List<Uint8List> userIDs) async {
+    if (!await utils.hasNetwork()) {
+      logger.info('privacy: set about me deny aborted, no network');
+      return false;
+    }
+
+    final status = await api.unaryEncoded(
+      MessageType.PRIVACY_ABOUT_ME_DENY_UPDATE,
+      PrivacyAboutMeDenyUpdate_Request(userIds: userIDs).writeToBuffer(),
+    );
+
+    if (status.status != APIStatus.success) {
+      logger.warning('privacy: update about me deny failed (${status.error})');
+      return false;
+    }
+
+    if (!isClosed) emit(state.copyWith(aboutMeDeny: List<Uint8List>.unmodifiable(userIDs)));
+    return true;
+  }
+
   /// Читает закэшированное значение звонков; null — кэша нет или он битый.
   Future<CallsPrivacyAudience?> _readCache() async {
     try {
@@ -325,6 +407,26 @@ class SettingsPrivacyAndSecurityCubit extends Cubit<SettingsPrivacyAndSecuritySt
         key: _hideBirthYearCacheKey,
         value: hide ? "1" : "0",
       );
+    } catch (error, stackTrace) {
+      logger.handle(error, stackTrace);
+    }
+  }
+
+  /// Читает закэшированную аудиторию «О себе»; null — кэша нет или он битый.
+  Future<CallsPrivacyAudience?> _readAboutMeCache() async {
+    try {
+      final raw = await repositories.cache.getString(userID: Uint8List.fromList(auth.session.userID), key: _aboutMeCacheKey);
+      if (raw == null) return null;
+      return CallsPrivacyAudience.values.asNameMap()[raw];
+    } catch (error, stackTrace) {
+      logger.handle(error, stackTrace);
+      return null;
+    }
+  }
+
+  Future<void> _writeAboutMeCache(CallsPrivacyAudience audience) async {
+    try {
+      await repositories.cache.setString(userID: Uint8List.fromList(auth.session.userID), key: _aboutMeCacheKey, value: audience.name);
     } catch (error, stackTrace) {
       logger.handle(error, stackTrace);
     }

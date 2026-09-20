@@ -518,6 +518,12 @@ class Translations$sessionsPrivacyAndSecurity$en {
 
 	/// en: 'Contacts will see only the day and month — no birth year or age.'
 	String get hideBirthYearNote => 'Contacts will see only the day and month — no birth year or age.';
+
+	/// en: 'About me'
+	String get aboutMe => 'About me';
+
+	/// en: 'Who can see my About me'
+	String get whoCanSeeAboutMe => 'Who can see my About me';
 }
 
 // Path: screenMyProfile
@@ -1202,6 +1208,8 @@ extension on Translations {
 			'sessionsPrivacyAndSecurity.whoCanSeeBirthday' => 'Who can see my birthday',
 			'sessionsPrivacyAndSecurity.hideBirthYear' => 'Hide birth year',
 			'sessionsPrivacyAndSecurity.hideBirthYearNote' => 'Contacts will see only the day and month — no birth year or age.',
+			'sessionsPrivacyAndSecurity.aboutMe' => 'About me',
+			'sessionsPrivacyAndSecurity.whoCanSeeAboutMe' => 'Who can see my About me',
 			'screenMyProfile.myprofile' => 'My profile',
 			'screenMyProfile.firstName' => 'First name',
 			'screenMyProfile.lastName' => 'Last name',

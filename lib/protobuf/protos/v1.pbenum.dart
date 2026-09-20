@@ -75,6 +75,12 @@ class MessageType extends $pb.ProtobufEnum {
   static const MessageType PRIVACY_BIRTHDAY_DENY_UPDATE = MessageType._(40, _omitEnumNames ? '' : 'PRIVACY_BIRTHDAY_DENY_UPDATE');
   static const MessageType PRIVACY_HIDE_BIRTH_YEAR_UPDATE = MessageType._(41, _omitEnumNames ? '' : 'PRIVACY_HIDE_BIRTH_YEAR_UPDATE');
 
+  /// Приватность «О себе» (аудитория + allow/deny). См. privacy_v1.proto
+  /// (PrivacyAboutMe*Update). Не разрешено — aboutMe в Profile.Response не отдаётся.
+  static const MessageType PRIVACY_ABOUT_ME_UPDATE = MessageType._(42, _omitEnumNames ? '' : 'PRIVACY_ABOUT_ME_UPDATE');
+  static const MessageType PRIVACY_ABOUT_ME_ALLOW_UPDATE = MessageType._(43, _omitEnumNames ? '' : 'PRIVACY_ABOUT_ME_ALLOW_UPDATE');
+  static const MessageType PRIVACY_ABOUT_ME_DENY_UPDATE = MessageType._(44, _omitEnumNames ? '' : 'PRIVACY_ABOUT_ME_DENY_UPDATE');
+
   static const $core.List<MessageType> values = <MessageType>[
     HEALTHCHECK,
     META_DATA_INFO,
@@ -114,9 +120,12 @@ class MessageType extends $pb.ProtobufEnum {
     PRIVACY_BIRTHDAY_ALLOW_UPDATE,
     PRIVACY_BIRTHDAY_DENY_UPDATE,
     PRIVACY_HIDE_BIRTH_YEAR_UPDATE,
+    PRIVACY_ABOUT_ME_UPDATE,
+    PRIVACY_ABOUT_ME_ALLOW_UPDATE,
+    PRIVACY_ABOUT_ME_DENY_UPDATE,
   ];
 
-  static final $core.List<MessageType?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 41);
+  static final $core.List<MessageType?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 44);
   static MessageType? valueOf($core.int value) => value < 0 || value >= _byValue.length ? null : _byValue[value];
 
   const MessageType._(super.value, super.name);

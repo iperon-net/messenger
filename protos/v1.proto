@@ -62,6 +62,11 @@ enum MessageType {
   PRIVACY_BIRTHDAY_ALLOW_UPDATE = 39;
   PRIVACY_BIRTHDAY_DENY_UPDATE = 40;
   PRIVACY_HIDE_BIRTH_YEAR_UPDATE = 41;
+  // Приватность «О себе» (аудитория + allow/deny). См. privacy_v1.proto
+  // (PrivacyAboutMe*Update). Не разрешено — aboutMe в Profile.Response не отдаётся.
+  PRIVACY_ABOUT_ME_UPDATE = 42;
+  PRIVACY_ABOUT_ME_ALLOW_UPDATE = 43;
+  PRIVACY_ABOUT_ME_DENY_UPDATE = 44;
 }
 
 service Iperon {

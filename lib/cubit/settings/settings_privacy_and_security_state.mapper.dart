@@ -100,6 +100,34 @@ class SettingsPrivacyAndSecurityStateMapper
       v.hideBirthYear;
   static const Field<SettingsPrivacyAndSecurityState, bool> _f$hideBirthYear =
       Field('hideBirthYear', _$hideBirthYear, opt: true, def: false);
+  static CallsPrivacyAudience _$aboutMeAudience(
+    SettingsPrivacyAndSecurityState v,
+  ) => v.aboutMeAudience;
+  static const Field<SettingsPrivacyAndSecurityState, CallsPrivacyAudience>
+  _f$aboutMeAudience = Field(
+    'aboutMeAudience',
+    _$aboutMeAudience,
+    opt: true,
+    def: CallsPrivacyAudience.contacts,
+  );
+  static List<Uint8List> _$aboutMeAllow(SettingsPrivacyAndSecurityState v) =>
+      v.aboutMeAllow;
+  static const Field<SettingsPrivacyAndSecurityState, List<Uint8List>>
+  _f$aboutMeAllow = Field(
+    'aboutMeAllow',
+    _$aboutMeAllow,
+    opt: true,
+    def: const [],
+  );
+  static List<Uint8List> _$aboutMeDeny(SettingsPrivacyAndSecurityState v) =>
+      v.aboutMeDeny;
+  static const Field<SettingsPrivacyAndSecurityState, List<Uint8List>>
+  _f$aboutMeDeny = Field(
+    'aboutMeDeny',
+    _$aboutMeDeny,
+    opt: true,
+    def: const [],
+  );
 
   @override
   final MappableFields<SettingsPrivacyAndSecurityState> fields = const {
@@ -114,6 +142,9 @@ class SettingsPrivacyAndSecurityStateMapper
     #birthdayAllow: _f$birthdayAllow,
     #birthdayDeny: _f$birthdayDeny,
     #hideBirthYear: _f$hideBirthYear,
+    #aboutMeAudience: _f$aboutMeAudience,
+    #aboutMeAllow: _f$aboutMeAllow,
+    #aboutMeDeny: _f$aboutMeDeny,
   };
 
   static SettingsPrivacyAndSecurityState _instantiate(DecodingData data) {
@@ -129,6 +160,9 @@ class SettingsPrivacyAndSecurityStateMapper
       birthdayAllow: data.dec(_f$birthdayAllow),
       birthdayDeny: data.dec(_f$birthdayDeny),
       hideBirthYear: data.dec(_f$hideBirthYear),
+      aboutMeAudience: data.dec(_f$aboutMeAudience),
+      aboutMeAllow: data.dec(_f$aboutMeAllow),
+      aboutMeDeny: data.dec(_f$aboutMeDeny),
     );
   }
 
@@ -218,6 +252,10 @@ abstract class SettingsPrivacyAndSecurityStateCopyWith<
   get birthdayAllow;
   ListCopyWith<$R, Uint8List, ObjectCopyWith<$R, Uint8List, Uint8List>>
   get birthdayDeny;
+  ListCopyWith<$R, Uint8List, ObjectCopyWith<$R, Uint8List, Uint8List>>
+  get aboutMeAllow;
+  ListCopyWith<$R, Uint8List, ObjectCopyWith<$R, Uint8List, Uint8List>>
+  get aboutMeDeny;
   $R call({
     Status? status,
     bool? isBiometricAvailable,
@@ -230,6 +268,9 @@ abstract class SettingsPrivacyAndSecurityStateCopyWith<
     List<Uint8List>? birthdayAllow,
     List<Uint8List>? birthdayDeny,
     bool? hideBirthYear,
+    CallsPrivacyAudience? aboutMeAudience,
+    List<Uint8List>? aboutMeAllow,
+    List<Uint8List>? aboutMeDeny,
   });
   SettingsPrivacyAndSecurityStateCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
     Then<$Out2, $R2> t,
@@ -282,6 +323,20 @@ class _SettingsPrivacyAndSecurityStateCopyWithImpl<$R, $Out>
     (v) => call(birthdayDeny: v),
   );
   @override
+  ListCopyWith<$R, Uint8List, ObjectCopyWith<$R, Uint8List, Uint8List>>
+  get aboutMeAllow => ListCopyWith(
+    $value.aboutMeAllow,
+    (v, t) => ObjectCopyWith(v, $identity, t),
+    (v) => call(aboutMeAllow: v),
+  );
+  @override
+  ListCopyWith<$R, Uint8List, ObjectCopyWith<$R, Uint8List, Uint8List>>
+  get aboutMeDeny => ListCopyWith(
+    $value.aboutMeDeny,
+    (v, t) => ObjectCopyWith(v, $identity, t),
+    (v) => call(aboutMeDeny: v),
+  );
+  @override
   $R call({
     Status? status,
     bool? isBiometricAvailable,
@@ -294,6 +349,9 @@ class _SettingsPrivacyAndSecurityStateCopyWithImpl<$R, $Out>
     List<Uint8List>? birthdayAllow,
     List<Uint8List>? birthdayDeny,
     bool? hideBirthYear,
+    CallsPrivacyAudience? aboutMeAudience,
+    List<Uint8List>? aboutMeAllow,
+    List<Uint8List>? aboutMeDeny,
   }) => $apply(
     FieldCopyWithData({
       if (status != null) #status: status,
@@ -308,6 +366,9 @@ class _SettingsPrivacyAndSecurityStateCopyWithImpl<$R, $Out>
       if (birthdayAllow != null) #birthdayAllow: birthdayAllow,
       if (birthdayDeny != null) #birthdayDeny: birthdayDeny,
       if (hideBirthYear != null) #hideBirthYear: hideBirthYear,
+      if (aboutMeAudience != null) #aboutMeAudience: aboutMeAudience,
+      if (aboutMeAllow != null) #aboutMeAllow: aboutMeAllow,
+      if (aboutMeDeny != null) #aboutMeDeny: aboutMeDeny,
     }),
   );
   @override
@@ -330,6 +391,9 @@ class _SettingsPrivacyAndSecurityStateCopyWithImpl<$R, $Out>
         birthdayAllow: data.get(#birthdayAllow, or: $value.birthdayAllow),
         birthdayDeny: data.get(#birthdayDeny, or: $value.birthdayDeny),
         hideBirthYear: data.get(#hideBirthYear, or: $value.hideBirthYear),
+        aboutMeAudience: data.get(#aboutMeAudience, or: $value.aboutMeAudience),
+        aboutMeAllow: data.get(#aboutMeAllow, or: $value.aboutMeAllow),
+        aboutMeDeny: data.get(#aboutMeDeny, or: $value.aboutMeDeny),
       );
 
   @override
