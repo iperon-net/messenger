@@ -605,9 +605,11 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
     }
   }
 
-  /// Удаляет контакт из графа (`CONTACTS_REMOVE` по OPRF-отпечатку номера).
-  /// Убирает из облачной книги (если был облачным) и заносит номер в exclusion-set,
-  /// чтобы следующий discovery не вернул книжный контакт обратно рёбром OPRF.
+  /// Удаляет контакт из графа (`CONTACTS_REMOVE` по OPRF-отпечатку номера) и из
+  /// облачной книги. Если номер всё ещё в телефонной книге — возвращаем его в
+  /// книжный список (источник истины — книга) и НЕ трогаем exclusion-set. Иначе
+  /// (чисто ручной контакт, номера в книге нет) заносим в exclusion-set, чтобы
+  /// следующий discovery не вернул его обратно рёбром OPRF.
   Future<void> removeContact(ContactItem item) async {
     final normalization = utils.phoneNormalization(phoneNumber: item.phoneE164);
     if (normalization.raw.isEmpty) return;
@@ -622,10 +624,37 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
         return;
       }
 
-      await _exclude(item.phoneE164);
       _cloud.remove(item.phoneE164);
       await repositories.contacts.removeCloudOne(item.phoneE164);
-      _book = _book.where((c) => c.phoneE164 != item.phoneE164).toList(growable: false);
+
+      // Номер в книге ищем в текущем книжном снимке (там оседают все совпадения
+      // OPRF-прохода, в т.ч. те, что были перекрыты облаком в показе).
+      ContactItem? bookItem;
+      for (final c in _book) {
+        if (c.phoneE164 == item.phoneE164) {
+          bookItem = c;
+          break;
+        }
+      }
+
+      if (bookItem != null) {
+        // Восстанавливаем книжную строку в БД: её затёр upsertCloudOne при
+        // добавлении в облако (phoneE164 — PK, облачная строка перекрыла книжную),
+        // а removeCloudOne только что удалил облачную. Без этого на cold-start
+        // preload не покажет контакт до следующего OPRF-прохода.
+        await repositories.contacts.upsertBookOne(
+          ContactCacheEntry(
+            phoneE164: bookItem.phoneE164,
+            displayName: bookItem.displayName,
+            phone: bookItem.phone,
+            userID: bookItem.userID?.toList(),
+          ),
+        );
+      } else {
+        // Чисто ручной контакт (номера в книге нет) — прячем от будущего discovery.
+        await _exclude(item.phoneE164);
+        _book = _book.where((c) => c.phoneE164 != item.phoneE164).toList(growable: false);
+      }
 
       if (!isClosed) _emitAll();
     } catch (error, stackTrace) {

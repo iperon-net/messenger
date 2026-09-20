@@ -116,4 +116,16 @@ class Contacts {
   Future<void> removeCloudOne(String phoneE164) async {
     await db.execute("DELETE FROM contacts WHERE phoneE164 = ? AND isCloud = 1;", [phoneE164]);
   }
+
+  /// Восстанавливает/обновляет одну книжную строку (isCloud=0) — например, когда
+  /// снятый из облака контакт всё ещё есть в телефонной книге и должен вернуться
+  /// в книжный список. `OR REPLACE` перекрывает строку любого типа с тем же
+  /// номером (облачную книжной делать безопасно: облачную снимает вызывающий).
+  Future<void> upsertBookOne(ContactCacheEntry entry) async {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await db.execute(
+      "INSERT OR REPLACE INTO contacts (phoneE164, displayName, phone, userID, isCloud, oprf, updatedAt) VALUES (?, ?, ?, ?, 0, NULL, ?);",
+      [entry.phoneE164, entry.displayName, entry.phone, entry.userID, now],
+    );
+  }
 }
