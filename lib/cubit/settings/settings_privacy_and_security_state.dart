@@ -17,9 +17,10 @@ enum CallsPrivacyAudience { everybody, contacts, nobody }
 enum CallsListKind { allow, deny }
 
 /// Канал приватности, к которому относится экран-пикер исключений: звонки, день
-/// рождения или «О себе». Пикер контактов один на все — различается только тем,
-/// какой список настройки он заменяет через [SettingsPrivacyAndSecurityCubit].
-enum PrivacyChannel { calls, birthday, aboutMe }
+/// рождения, «О себе» или последнее посещение. Пикер контактов один на все —
+/// различается только тем, какой список настройки он заменяет через
+/// [SettingsPrivacyAndSecurityCubit].
+enum PrivacyChannel { calls, birthday, aboutMe, lastSeen }
 
 @MappableClass(includeCustomMappers: [Uint8ListMapper()])
 class SettingsPrivacyAndSecurityState with SettingsPrivacyAndSecurityStateMappable {
@@ -73,6 +74,16 @@ class SettingsPrivacyAndSecurityState with SettingsPrivacyAndSecurityStateMappab
   final List<Uint8List> aboutMeAllow;
   final List<Uint8List> aboutMeDeny;
 
+  /// Настройка «кто может видеть моё последнее посещение и онлайн-статус».
+  /// Семантика и дефолт — как у [callsAudience]. Приходит в том же ответе
+  /// PRIVACY_SETTINGS. ВЗАИМНОСТЬ: если выбрано «Никто», пользователь и сам не
+  /// видит чужое присутствие (кроме премиум) — гейт применяется на сервере.
+  final CallsPrivacyAudience lastSeenAudience;
+
+  /// Allow/deny-списки исключений для последнего посещения (см. [callsAllow]).
+  final List<Uint8List> lastSeenAllow;
+  final List<Uint8List> lastSeenDeny;
+
   const SettingsPrivacyAndSecurityState({
     this.status = Status.initialization,
     this.isBiometricAvailable = false,
@@ -88,5 +99,8 @@ class SettingsPrivacyAndSecurityState with SettingsPrivacyAndSecurityStateMappab
     this.aboutMeAudience = CallsPrivacyAudience.contacts,
     this.aboutMeAllow = const [],
     this.aboutMeDeny = const [],
+    this.lastSeenAudience = CallsPrivacyAudience.contacts,
+    this.lastSeenAllow = const [],
+    this.lastSeenDeny = const [],
   });
 }

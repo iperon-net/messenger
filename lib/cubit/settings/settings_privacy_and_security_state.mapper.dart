@@ -128,6 +128,34 @@ class SettingsPrivacyAndSecurityStateMapper
     opt: true,
     def: const [],
   );
+  static CallsPrivacyAudience _$lastSeenAudience(
+    SettingsPrivacyAndSecurityState v,
+  ) => v.lastSeenAudience;
+  static const Field<SettingsPrivacyAndSecurityState, CallsPrivacyAudience>
+  _f$lastSeenAudience = Field(
+    'lastSeenAudience',
+    _$lastSeenAudience,
+    opt: true,
+    def: CallsPrivacyAudience.contacts,
+  );
+  static List<Uint8List> _$lastSeenAllow(SettingsPrivacyAndSecurityState v) =>
+      v.lastSeenAllow;
+  static const Field<SettingsPrivacyAndSecurityState, List<Uint8List>>
+  _f$lastSeenAllow = Field(
+    'lastSeenAllow',
+    _$lastSeenAllow,
+    opt: true,
+    def: const [],
+  );
+  static List<Uint8List> _$lastSeenDeny(SettingsPrivacyAndSecurityState v) =>
+      v.lastSeenDeny;
+  static const Field<SettingsPrivacyAndSecurityState, List<Uint8List>>
+  _f$lastSeenDeny = Field(
+    'lastSeenDeny',
+    _$lastSeenDeny,
+    opt: true,
+    def: const [],
+  );
 
   @override
   final MappableFields<SettingsPrivacyAndSecurityState> fields = const {
@@ -145,6 +173,9 @@ class SettingsPrivacyAndSecurityStateMapper
     #aboutMeAudience: _f$aboutMeAudience,
     #aboutMeAllow: _f$aboutMeAllow,
     #aboutMeDeny: _f$aboutMeDeny,
+    #lastSeenAudience: _f$lastSeenAudience,
+    #lastSeenAllow: _f$lastSeenAllow,
+    #lastSeenDeny: _f$lastSeenDeny,
   };
 
   static SettingsPrivacyAndSecurityState _instantiate(DecodingData data) {
@@ -163,6 +194,9 @@ class SettingsPrivacyAndSecurityStateMapper
       aboutMeAudience: data.dec(_f$aboutMeAudience),
       aboutMeAllow: data.dec(_f$aboutMeAllow),
       aboutMeDeny: data.dec(_f$aboutMeDeny),
+      lastSeenAudience: data.dec(_f$lastSeenAudience),
+      lastSeenAllow: data.dec(_f$lastSeenAllow),
+      lastSeenDeny: data.dec(_f$lastSeenDeny),
     );
   }
 
@@ -256,6 +290,10 @@ abstract class SettingsPrivacyAndSecurityStateCopyWith<
   get aboutMeAllow;
   ListCopyWith<$R, Uint8List, ObjectCopyWith<$R, Uint8List, Uint8List>>
   get aboutMeDeny;
+  ListCopyWith<$R, Uint8List, ObjectCopyWith<$R, Uint8List, Uint8List>>
+  get lastSeenAllow;
+  ListCopyWith<$R, Uint8List, ObjectCopyWith<$R, Uint8List, Uint8List>>
+  get lastSeenDeny;
   $R call({
     Status? status,
     bool? isBiometricAvailable,
@@ -271,6 +309,9 @@ abstract class SettingsPrivacyAndSecurityStateCopyWith<
     CallsPrivacyAudience? aboutMeAudience,
     List<Uint8List>? aboutMeAllow,
     List<Uint8List>? aboutMeDeny,
+    CallsPrivacyAudience? lastSeenAudience,
+    List<Uint8List>? lastSeenAllow,
+    List<Uint8List>? lastSeenDeny,
   });
   SettingsPrivacyAndSecurityStateCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
     Then<$Out2, $R2> t,
@@ -337,6 +378,20 @@ class _SettingsPrivacyAndSecurityStateCopyWithImpl<$R, $Out>
     (v) => call(aboutMeDeny: v),
   );
   @override
+  ListCopyWith<$R, Uint8List, ObjectCopyWith<$R, Uint8List, Uint8List>>
+  get lastSeenAllow => ListCopyWith(
+    $value.lastSeenAllow,
+    (v, t) => ObjectCopyWith(v, $identity, t),
+    (v) => call(lastSeenAllow: v),
+  );
+  @override
+  ListCopyWith<$R, Uint8List, ObjectCopyWith<$R, Uint8List, Uint8List>>
+  get lastSeenDeny => ListCopyWith(
+    $value.lastSeenDeny,
+    (v, t) => ObjectCopyWith(v, $identity, t),
+    (v) => call(lastSeenDeny: v),
+  );
+  @override
   $R call({
     Status? status,
     bool? isBiometricAvailable,
@@ -352,6 +407,9 @@ class _SettingsPrivacyAndSecurityStateCopyWithImpl<$R, $Out>
     CallsPrivacyAudience? aboutMeAudience,
     List<Uint8List>? aboutMeAllow,
     List<Uint8List>? aboutMeDeny,
+    CallsPrivacyAudience? lastSeenAudience,
+    List<Uint8List>? lastSeenAllow,
+    List<Uint8List>? lastSeenDeny,
   }) => $apply(
     FieldCopyWithData({
       if (status != null) #status: status,
@@ -369,32 +427,36 @@ class _SettingsPrivacyAndSecurityStateCopyWithImpl<$R, $Out>
       if (aboutMeAudience != null) #aboutMeAudience: aboutMeAudience,
       if (aboutMeAllow != null) #aboutMeAllow: aboutMeAllow,
       if (aboutMeDeny != null) #aboutMeDeny: aboutMeDeny,
+      if (lastSeenAudience != null) #lastSeenAudience: lastSeenAudience,
+      if (lastSeenAllow != null) #lastSeenAllow: lastSeenAllow,
+      if (lastSeenDeny != null) #lastSeenDeny: lastSeenDeny,
     }),
   );
   @override
-  SettingsPrivacyAndSecurityState $make(CopyWithData data) =>
-      SettingsPrivacyAndSecurityState(
-        status: data.get(#status, or: $value.status),
-        isBiometricAvailable: data.get(
-          #isBiometricAvailable,
-          or: $value.isBiometricAvailable,
-        ),
-        callsAudience: data.get(#callsAudience, or: $value.callsAudience),
-        callsLoadError: data.get(#callsLoadError, or: $value.callsLoadError),
-        callsReadOnly: data.get(#callsReadOnly, or: $value.callsReadOnly),
-        callsAllow: data.get(#callsAllow, or: $value.callsAllow),
-        callsDeny: data.get(#callsDeny, or: $value.callsDeny),
-        birthdayAudience: data.get(
-          #birthdayAudience,
-          or: $value.birthdayAudience,
-        ),
-        birthdayAllow: data.get(#birthdayAllow, or: $value.birthdayAllow),
-        birthdayDeny: data.get(#birthdayDeny, or: $value.birthdayDeny),
-        hideBirthYear: data.get(#hideBirthYear, or: $value.hideBirthYear),
-        aboutMeAudience: data.get(#aboutMeAudience, or: $value.aboutMeAudience),
-        aboutMeAllow: data.get(#aboutMeAllow, or: $value.aboutMeAllow),
-        aboutMeDeny: data.get(#aboutMeDeny, or: $value.aboutMeDeny),
-      );
+  SettingsPrivacyAndSecurityState $make(
+    CopyWithData data,
+  ) => SettingsPrivacyAndSecurityState(
+    status: data.get(#status, or: $value.status),
+    isBiometricAvailable: data.get(
+      #isBiometricAvailable,
+      or: $value.isBiometricAvailable,
+    ),
+    callsAudience: data.get(#callsAudience, or: $value.callsAudience),
+    callsLoadError: data.get(#callsLoadError, or: $value.callsLoadError),
+    callsReadOnly: data.get(#callsReadOnly, or: $value.callsReadOnly),
+    callsAllow: data.get(#callsAllow, or: $value.callsAllow),
+    callsDeny: data.get(#callsDeny, or: $value.callsDeny),
+    birthdayAudience: data.get(#birthdayAudience, or: $value.birthdayAudience),
+    birthdayAllow: data.get(#birthdayAllow, or: $value.birthdayAllow),
+    birthdayDeny: data.get(#birthdayDeny, or: $value.birthdayDeny),
+    hideBirthYear: data.get(#hideBirthYear, or: $value.hideBirthYear),
+    aboutMeAudience: data.get(#aboutMeAudience, or: $value.aboutMeAudience),
+    aboutMeAllow: data.get(#aboutMeAllow, or: $value.aboutMeAllow),
+    aboutMeDeny: data.get(#aboutMeDeny, or: $value.aboutMeDeny),
+    lastSeenAudience: data.get(#lastSeenAudience, or: $value.lastSeenAudience),
+    lastSeenAllow: data.get(#lastSeenAllow, or: $value.lastSeenAllow),
+    lastSeenDeny: data.get(#lastSeenDeny, or: $value.lastSeenDeny),
+  );
 
   @override
   SettingsPrivacyAndSecurityStateCopyWith<

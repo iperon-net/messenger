@@ -67,6 +67,12 @@ enum MessageType {
   PRIVACY_ABOUT_ME_UPDATE = 42;
   PRIVACY_ABOUT_ME_ALLOW_UPDATE = 43;
   PRIVACY_ABOUT_ME_DENY_UPDATE = 44;
+  // Приватность последнего посещения (аудитория + allow/deny). Гейтит весь
+  // presence (online + last-seen); взаимность для NOBODY. См. privacy_v1.proto
+  // (PrivacyLastSeen*Update).
+  PRIVACY_LAST_SEEN_UPDATE = 45;
+  PRIVACY_LAST_SEEN_ALLOW_UPDATE = 46;
+  PRIVACY_LAST_SEEN_DENY_UPDATE = 47;
 }
 
 service Iperon {

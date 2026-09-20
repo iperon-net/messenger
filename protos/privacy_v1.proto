@@ -42,6 +42,13 @@ message PrivacySettings {
     Audience about_me = 8;
     repeated bytes about_me_allow = 9;
     repeated bytes about_me_deny = 10;
+    // Аудитория «кто может видеть моё последнее посещение и статус онлайн» + её
+    // allow/deny-списки (та же семантика). Гейтит весь Presence_Item (и online, и
+    // last-seen). ВЗАИМНОСТЬ: если у смотрящего свой last_seen = NOBODY, он не
+    // видит ничьё присутствие — «скрылся от всех ⇒ сам никого не видит».
+    Audience last_seen = 11;
+    repeated bytes last_seen_allow = 12;
+    repeated bytes last_seen_deny = 13;
   }
 }
 
@@ -128,6 +135,33 @@ message PrivacyAboutMeAllowUpdate {
 
 // Полная замена deny-list «всегда запрещать» для «О себе».
 message PrivacyAboutMeDenyUpdate {
+  message Request {
+    repeated bytes user_ids = 1;
+  }
+
+  message Response {}
+}
+
+// Изменение аудитории «кто может видеть моё последнее посещение».
+message PrivacyLastSeenUpdate {
+  message Request {
+    PrivacySettings.Audience last_seen = 1;
+  }
+
+  message Response {}
+}
+
+// Полная замена allow-list «всегда разрешать» для последнего посещения.
+message PrivacyLastSeenAllowUpdate {
+  message Request {
+    repeated bytes user_ids = 1;
+  }
+
+  message Response {}
+}
+
+// Полная замена deny-list «всегда запрещать» для последнего посещения.
+message PrivacyLastSeenDenyUpdate {
   message Request {
     repeated bytes user_ids = 1;
   }

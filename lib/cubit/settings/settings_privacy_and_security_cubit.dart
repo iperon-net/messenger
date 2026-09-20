@@ -31,6 +31,9 @@ class SettingsPrivacyAndSecurityCubit extends Cubit<SettingsPrivacyAndSecuritySt
   /// Ключ локального кэша настройки «кто может видеть „О себе“».
   static const _aboutMeCacheKey = "privacy.aboutMe.audience";
 
+  /// Ключ локального кэша настройки «кто может видеть последнее посещение».
+  static const _lastSeenCacheKey = "privacy.lastSeen.audience";
+
   Future<void> initialization() async {
     emit(state.copyWith(status: Status.loading));
     final isBiometricAvailable = await utils.isBiometricAvailable();
@@ -50,6 +53,9 @@ class SettingsPrivacyAndSecurityCubit extends Cubit<SettingsPrivacyAndSecuritySt
   /// Алиас [reloadCalls] для читаемости на экране «О себе» (тот же ответ).
   Future<void> reloadAboutMe() => _loadCalls();
 
+  /// Алиас [reloadCalls] для читаемости на экране «Последнее посещение».
+  Future<void> reloadLastSeen() => _loadCalls();
+
   /// Загружает настройку «кто может звонить». Сначала мгновенно поднимаем
   /// последнее значение из локального кэша (видно и offline), затем пробуем
   /// сервер. Успех — обновляем значение + кэш, снимаем блокировки. Сбой:
@@ -60,11 +66,13 @@ class SettingsPrivacyAndSecurityCubit extends Cubit<SettingsPrivacyAndSecuritySt
     final cachedBirthday = await _readBirthdayCache();
     final cachedHideBirthYear = await _readHideBirthYearCache();
     final cachedAboutMe = await _readAboutMeCache();
+    final cachedLastSeen = await _readLastSeenCache();
     if (isClosed) return;
     if (cached != null) emit(state.copyWith(callsAudience: cached, callsLoadError: false));
     if (cachedBirthday != null) emit(state.copyWith(birthdayAudience: cachedBirthday));
     if (cachedHideBirthYear != null) emit(state.copyWith(hideBirthYear: cachedHideBirthYear));
     if (cachedAboutMe != null) emit(state.copyWith(aboutMeAudience: cachedAboutMe));
+    if (cachedLastSeen != null) emit(state.copyWith(lastSeenAudience: cachedLastSeen));
 
     try {
       final (status, payload) = await api.unaryEncodedWithResponse(MessageType.PRIVACY_SETTINGS, PrivacySettings_Request().writeToBuffer());
@@ -86,10 +94,14 @@ class SettingsPrivacyAndSecurityCubit extends Cubit<SettingsPrivacyAndSecuritySt
       final aboutMe = _fromProto(response.aboutMe);
       final aboutMeAllow = response.aboutMeAllow.map(Uint8List.fromList).toList(growable: false);
       final aboutMeDeny = response.aboutMeDeny.map(Uint8List.fromList).toList(growable: false);
+      final lastSeen = _fromProto(response.lastSeen);
+      final lastSeenAllow = response.lastSeenAllow.map(Uint8List.fromList).toList(growable: false);
+      final lastSeenDeny = response.lastSeenDeny.map(Uint8List.fromList).toList(growable: false);
       await _writeCache(audience);
       await _writeBirthdayCache(birthday);
       await _writeHideBirthYearCache(response.hideBirthYear);
       await _writeAboutMeCache(aboutMe);
+      await _writeLastSeenCache(lastSeen);
       if (!isClosed) {
         emit(
           state.copyWith(
@@ -103,6 +115,9 @@ class SettingsPrivacyAndSecurityCubit extends Cubit<SettingsPrivacyAndSecuritySt
             aboutMeAudience: aboutMe,
             aboutMeAllow: aboutMeAllow,
             aboutMeDeny: aboutMeDeny,
+            lastSeenAudience: lastSeen,
+            lastSeenAllow: lastSeenAllow,
+            lastSeenDeny: lastSeenDeny,
             callsLoadError: false,
             callsReadOnly: false,
           ),
@@ -348,6 +363,73 @@ class SettingsPrivacyAndSecurityCubit extends Cubit<SettingsPrivacyAndSecuritySt
     return true;
   }
 
+  /// Меняет настройку «кто может видеть последнее посещение». Серверная операция,
+  /// offline недоступна. Возвращает `false`, если не применилось.
+  Future<bool> setLastSeenAudience(CallsPrivacyAudience audience) async {
+    if (audience == state.lastSeenAudience && !state.callsLoadError && !state.callsReadOnly) return true;
+
+    if (!await utils.hasNetwork()) {
+      logger.info('privacy: set last seen audience aborted, no network');
+      return false;
+    }
+
+    final status = await api.unaryEncoded(
+      MessageType.PRIVACY_LAST_SEEN_UPDATE,
+      PrivacyLastSeenUpdate_Request(lastSeen: _toProto(audience)).writeToBuffer(),
+    );
+
+    if (status.status != APIStatus.success) {
+      logger.warning('privacy: update last seen audience failed (${status.error})');
+      return false;
+    }
+
+    await _writeLastSeenCache(audience);
+    if (!isClosed) emit(state.copyWith(lastSeenAudience: audience, callsLoadError: false, callsReadOnly: false));
+    return true;
+  }
+
+  /// Полностью заменяет allow-list «всегда разрешать» для последнего посещения.
+  Future<bool> setLastSeenAllow(List<Uint8List> userIDs) async {
+    if (!await utils.hasNetwork()) {
+      logger.info('privacy: set last seen allow aborted, no network');
+      return false;
+    }
+
+    final status = await api.unaryEncoded(
+      MessageType.PRIVACY_LAST_SEEN_ALLOW_UPDATE,
+      PrivacyLastSeenAllowUpdate_Request(userIds: userIDs).writeToBuffer(),
+    );
+
+    if (status.status != APIStatus.success) {
+      logger.warning('privacy: update last seen allow failed (${status.error})');
+      return false;
+    }
+
+    if (!isClosed) emit(state.copyWith(lastSeenAllow: List<Uint8List>.unmodifiable(userIDs)));
+    return true;
+  }
+
+  /// Полностью заменяет deny-list «всегда запрещать» для последнего посещения.
+  Future<bool> setLastSeenDeny(List<Uint8List> userIDs) async {
+    if (!await utils.hasNetwork()) {
+      logger.info('privacy: set last seen deny aborted, no network');
+      return false;
+    }
+
+    final status = await api.unaryEncoded(
+      MessageType.PRIVACY_LAST_SEEN_DENY_UPDATE,
+      PrivacyLastSeenDenyUpdate_Request(userIds: userIDs).writeToBuffer(),
+    );
+
+    if (status.status != APIStatus.success) {
+      logger.warning('privacy: update last seen deny failed (${status.error})');
+      return false;
+    }
+
+    if (!isClosed) emit(state.copyWith(lastSeenDeny: List<Uint8List>.unmodifiable(userIDs)));
+    return true;
+  }
+
   /// Читает закэшированное значение звонков; null — кэша нет или он битый.
   Future<CallsPrivacyAudience?> _readCache() async {
     try {
@@ -427,6 +509,26 @@ class SettingsPrivacyAndSecurityCubit extends Cubit<SettingsPrivacyAndSecuritySt
   Future<void> _writeAboutMeCache(CallsPrivacyAudience audience) async {
     try {
       await repositories.cache.setString(userID: Uint8List.fromList(auth.session.userID), key: _aboutMeCacheKey, value: audience.name);
+    } catch (error, stackTrace) {
+      logger.handle(error, stackTrace);
+    }
+  }
+
+  /// Читает закэшированную аудиторию последнего посещения; null — кэша нет/битый.
+  Future<CallsPrivacyAudience?> _readLastSeenCache() async {
+    try {
+      final raw = await repositories.cache.getString(userID: Uint8List.fromList(auth.session.userID), key: _lastSeenCacheKey);
+      if (raw == null) return null;
+      return CallsPrivacyAudience.values.asNameMap()[raw];
+    } catch (error, stackTrace) {
+      logger.handle(error, stackTrace);
+      return null;
+    }
+  }
+
+  Future<void> _writeLastSeenCache(CallsPrivacyAudience audience) async {
+    try {
+      await repositories.cache.setString(userID: Uint8List.fromList(auth.session.userID), key: _lastSeenCacheKey, value: audience.name);
     } catch (error, stackTrace) {
       logger.handle(error, stackTrace);
     }

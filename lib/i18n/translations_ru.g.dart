@@ -304,6 +304,9 @@ class _Translations$sessionsPrivacyAndSecurity$ru extends Translations$sessionsP
 	@override String get hideBirthYearNote => 'Контакты увидят только день и месяц — без года рождения и возраста.';
 	@override String get aboutMe => 'О себе';
 	@override String get whoCanSeeAboutMe => 'Кто может видеть моё «О себе»';
+	@override String get lastSeen => 'Последнее посещение';
+	@override String get whoCanSeeLastSeen => 'Кто может видеть моё время посещения';
+	@override String get lastSeenReciprocityNote => 'Если выбрано «Никто», вы тоже не будете видеть время последнего посещения и статус других (кроме премиум-подписки).';
 }
 
 // Path: screenMyProfile
@@ -676,6 +679,9 @@ extension on TranslationsRu {
 			'sessionsPrivacyAndSecurity.hideBirthYearNote' => 'Контакты увидят только день и месяц — без года рождения и возраста.',
 			'sessionsPrivacyAndSecurity.aboutMe' => 'О себе',
 			'sessionsPrivacyAndSecurity.whoCanSeeAboutMe' => 'Кто может видеть моё «О себе»',
+			'sessionsPrivacyAndSecurity.lastSeen' => 'Последнее посещение',
+			'sessionsPrivacyAndSecurity.whoCanSeeLastSeen' => 'Кто может видеть моё время посещения',
+			'sessionsPrivacyAndSecurity.lastSeenReciprocityNote' => 'Если выбрано «Никто», вы тоже не будете видеть время последнего посещения и статус других (кроме премиум-подписки).',
 			'screenMyProfile.myprofile' => 'Мой профиль',
 			'screenMyProfile.firstName' => 'Имя',
 			'screenMyProfile.lastName' => 'Фамилия',

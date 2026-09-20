@@ -138,6 +138,9 @@
   "hideBirthYearNote": "Contacts will see only the day and month — no birth year or age."
   "aboutMe": "About me"
   "whoCanSeeAboutMe": "Who can see my About me"
+  "lastSeen": "Last seen"
+  "whoCanSeeLastSeen": "Who can see my last seen"
+  "lastSeenReciprocityNote": "If you choose Nobody, you won't see others' last seen or online status either (except with a premium subscription)."
 
 "screenMyProfile":
   "myprofile": "My profile"

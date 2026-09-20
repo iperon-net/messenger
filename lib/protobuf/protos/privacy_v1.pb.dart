@@ -65,6 +65,9 @@ class PrivacySettings_Response extends $pb.GeneratedMessage {
     PrivacySettings_Audience? aboutMe,
     $core.Iterable<$core.List<$core.int>>? aboutMeAllow,
     $core.Iterable<$core.List<$core.int>>? aboutMeDeny,
+    PrivacySettings_Audience? lastSeen,
+    $core.Iterable<$core.List<$core.int>>? lastSeenAllow,
+    $core.Iterable<$core.List<$core.int>>? lastSeenDeny,
   }) {
     final result = create();
     if (calls != null) result.calls = calls;
@@ -77,6 +80,9 @@ class PrivacySettings_Response extends $pb.GeneratedMessage {
     if (aboutMe != null) result.aboutMe = aboutMe;
     if (aboutMeAllow != null) result.aboutMeAllow.addAll(aboutMeAllow);
     if (aboutMeDeny != null) result.aboutMeDeny.addAll(aboutMeDeny);
+    if (lastSeen != null) result.lastSeen = lastSeen;
+    if (lastSeenAllow != null) result.lastSeenAllow.addAll(lastSeenAllow);
+    if (lastSeenDeny != null) result.lastSeenDeny.addAll(lastSeenDeny);
     return result;
   }
 
@@ -99,6 +105,9 @@ class PrivacySettings_Response extends $pb.GeneratedMessage {
     ..aE<PrivacySettings_Audience>(8, _omitFieldNames ? '' : 'aboutMe', enumValues: PrivacySettings_Audience.values)
     ..p<$core.List<$core.int>>(9, _omitFieldNames ? '' : 'aboutMeAllow', $pb.PbFieldType.PY)
     ..p<$core.List<$core.int>>(10, _omitFieldNames ? '' : 'aboutMeDeny', $pb.PbFieldType.PY)
+    ..aE<PrivacySettings_Audience>(11, _omitFieldNames ? '' : 'lastSeen', enumValues: PrivacySettings_Audience.values)
+    ..p<$core.List<$core.int>>(12, _omitFieldNames ? '' : 'lastSeenAllow', $pb.PbFieldType.PY)
+    ..p<$core.List<$core.int>>(13, _omitFieldNames ? '' : 'lastSeenDeny', $pb.PbFieldType.PY)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -183,6 +192,25 @@ class PrivacySettings_Response extends $pb.GeneratedMessage {
 
   @$pb.TagNumber(10)
   $pb.PbList<$core.List<$core.int>> get aboutMeDeny => $_getList(9);
+
+  /// Аудитория «кто может видеть моё последнее посещение и статус онлайн» + её
+  /// allow/deny-списки (та же семантика). Гейтит весь Presence_Item (и online, и
+  /// last-seen). ВЗАИМНОСТЬ: если у смотрящего свой last_seen = NOBODY, он не
+  /// видит ничьё присутствие — «скрылся от всех ⇒ сам никого не видит».
+  @$pb.TagNumber(11)
+  PrivacySettings_Audience get lastSeen => $_getN(10);
+  @$pb.TagNumber(11)
+  set lastSeen(PrivacySettings_Audience value) => $_setField(11, value);
+  @$pb.TagNumber(11)
+  $core.bool hasLastSeen() => $_has(10);
+  @$pb.TagNumber(11)
+  void clearLastSeen() => $_clearField(11);
+
+  @$pb.TagNumber(12)
+  $pb.PbList<$core.List<$core.int>> get lastSeenAllow => $_getList(11);
+
+  @$pb.TagNumber(13)
+  $pb.PbList<$core.List<$core.int>> get lastSeenDeny => $_getList(12);
 }
 
 /// Настройки приватности per-channel (этап 1 — только звонки). Проверка «кто
@@ -1360,6 +1388,349 @@ class PrivacyAboutMeDenyUpdate extends $pb.GeneratedMessage {
   @$core.pragma('dart2js:noInline')
   static PrivacyAboutMeDenyUpdate getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<PrivacyAboutMeDenyUpdate>(create);
   static PrivacyAboutMeDenyUpdate? _defaultInstance;
+}
+
+class PrivacyLastSeenUpdate_Request extends $pb.GeneratedMessage {
+  factory PrivacyLastSeenUpdate_Request({
+    PrivacySettings_Audience? lastSeen,
+  }) {
+    final result = create();
+    if (lastSeen != null) result.lastSeen = lastSeen;
+    return result;
+  }
+
+  PrivacyLastSeenUpdate_Request._();
+
+  factory PrivacyLastSeenUpdate_Request.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory PrivacyLastSeenUpdate_Request.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'PrivacyLastSeenUpdate.Request',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..aE<PrivacySettings_Audience>(1, _omitFieldNames ? '' : 'lastSeen', enumValues: PrivacySettings_Audience.values)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyLastSeenUpdate_Request clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyLastSeenUpdate_Request copyWith(void Function(PrivacyLastSeenUpdate_Request) updates) =>
+      super.copyWith((message) => updates(message as PrivacyLastSeenUpdate_Request)) as PrivacyLastSeenUpdate_Request;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static PrivacyLastSeenUpdate_Request create() => PrivacyLastSeenUpdate_Request._();
+  @$core.override
+  PrivacyLastSeenUpdate_Request createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static PrivacyLastSeenUpdate_Request getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<PrivacyLastSeenUpdate_Request>(create);
+  static PrivacyLastSeenUpdate_Request? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  PrivacySettings_Audience get lastSeen => $_getN(0);
+  @$pb.TagNumber(1)
+  set lastSeen(PrivacySettings_Audience value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasLastSeen() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearLastSeen() => $_clearField(1);
+}
+
+class PrivacyLastSeenUpdate_Response extends $pb.GeneratedMessage {
+  factory PrivacyLastSeenUpdate_Response() => create();
+
+  PrivacyLastSeenUpdate_Response._();
+
+  factory PrivacyLastSeenUpdate_Response.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory PrivacyLastSeenUpdate_Response.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'PrivacyLastSeenUpdate.Response',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyLastSeenUpdate_Response clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyLastSeenUpdate_Response copyWith(void Function(PrivacyLastSeenUpdate_Response) updates) =>
+      super.copyWith((message) => updates(message as PrivacyLastSeenUpdate_Response)) as PrivacyLastSeenUpdate_Response;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static PrivacyLastSeenUpdate_Response create() => PrivacyLastSeenUpdate_Response._();
+  @$core.override
+  PrivacyLastSeenUpdate_Response createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static PrivacyLastSeenUpdate_Response getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<PrivacyLastSeenUpdate_Response>(create);
+  static PrivacyLastSeenUpdate_Response? _defaultInstance;
+}
+
+/// Изменение аудитории «кто может видеть моё последнее посещение».
+class PrivacyLastSeenUpdate extends $pb.GeneratedMessage {
+  factory PrivacyLastSeenUpdate() => create();
+
+  PrivacyLastSeenUpdate._();
+
+  factory PrivacyLastSeenUpdate.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory PrivacyLastSeenUpdate.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'PrivacyLastSeenUpdate',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyLastSeenUpdate clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyLastSeenUpdate copyWith(void Function(PrivacyLastSeenUpdate) updates) =>
+      super.copyWith((message) => updates(message as PrivacyLastSeenUpdate)) as PrivacyLastSeenUpdate;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static PrivacyLastSeenUpdate create() => PrivacyLastSeenUpdate._();
+  @$core.override
+  PrivacyLastSeenUpdate createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static PrivacyLastSeenUpdate getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<PrivacyLastSeenUpdate>(create);
+  static PrivacyLastSeenUpdate? _defaultInstance;
+}
+
+class PrivacyLastSeenAllowUpdate_Request extends $pb.GeneratedMessage {
+  factory PrivacyLastSeenAllowUpdate_Request({
+    $core.Iterable<$core.List<$core.int>>? userIds,
+  }) {
+    final result = create();
+    if (userIds != null) result.userIds.addAll(userIds);
+    return result;
+  }
+
+  PrivacyLastSeenAllowUpdate_Request._();
+
+  factory PrivacyLastSeenAllowUpdate_Request.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory PrivacyLastSeenAllowUpdate_Request.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'PrivacyLastSeenAllowUpdate.Request',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..p<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'userIds', $pb.PbFieldType.PY)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyLastSeenAllowUpdate_Request clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyLastSeenAllowUpdate_Request copyWith(void Function(PrivacyLastSeenAllowUpdate_Request) updates) =>
+      super.copyWith((message) => updates(message as PrivacyLastSeenAllowUpdate_Request)) as PrivacyLastSeenAllowUpdate_Request;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static PrivacyLastSeenAllowUpdate_Request create() => PrivacyLastSeenAllowUpdate_Request._();
+  @$core.override
+  PrivacyLastSeenAllowUpdate_Request createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static PrivacyLastSeenAllowUpdate_Request getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<PrivacyLastSeenAllowUpdate_Request>(create);
+  static PrivacyLastSeenAllowUpdate_Request? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $pb.PbList<$core.List<$core.int>> get userIds => $_getList(0);
+}
+
+class PrivacyLastSeenAllowUpdate_Response extends $pb.GeneratedMessage {
+  factory PrivacyLastSeenAllowUpdate_Response() => create();
+
+  PrivacyLastSeenAllowUpdate_Response._();
+
+  factory PrivacyLastSeenAllowUpdate_Response.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory PrivacyLastSeenAllowUpdate_Response.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'PrivacyLastSeenAllowUpdate.Response',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyLastSeenAllowUpdate_Response clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyLastSeenAllowUpdate_Response copyWith(void Function(PrivacyLastSeenAllowUpdate_Response) updates) =>
+      super.copyWith((message) => updates(message as PrivacyLastSeenAllowUpdate_Response)) as PrivacyLastSeenAllowUpdate_Response;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static PrivacyLastSeenAllowUpdate_Response create() => PrivacyLastSeenAllowUpdate_Response._();
+  @$core.override
+  PrivacyLastSeenAllowUpdate_Response createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static PrivacyLastSeenAllowUpdate_Response getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<PrivacyLastSeenAllowUpdate_Response>(create);
+  static PrivacyLastSeenAllowUpdate_Response? _defaultInstance;
+}
+
+/// Полная замена allow-list «всегда разрешать» для последнего посещения.
+class PrivacyLastSeenAllowUpdate extends $pb.GeneratedMessage {
+  factory PrivacyLastSeenAllowUpdate() => create();
+
+  PrivacyLastSeenAllowUpdate._();
+
+  factory PrivacyLastSeenAllowUpdate.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory PrivacyLastSeenAllowUpdate.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'PrivacyLastSeenAllowUpdate',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyLastSeenAllowUpdate clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyLastSeenAllowUpdate copyWith(void Function(PrivacyLastSeenAllowUpdate) updates) =>
+      super.copyWith((message) => updates(message as PrivacyLastSeenAllowUpdate)) as PrivacyLastSeenAllowUpdate;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static PrivacyLastSeenAllowUpdate create() => PrivacyLastSeenAllowUpdate._();
+  @$core.override
+  PrivacyLastSeenAllowUpdate createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static PrivacyLastSeenAllowUpdate getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<PrivacyLastSeenAllowUpdate>(create);
+  static PrivacyLastSeenAllowUpdate? _defaultInstance;
+}
+
+class PrivacyLastSeenDenyUpdate_Request extends $pb.GeneratedMessage {
+  factory PrivacyLastSeenDenyUpdate_Request({
+    $core.Iterable<$core.List<$core.int>>? userIds,
+  }) {
+    final result = create();
+    if (userIds != null) result.userIds.addAll(userIds);
+    return result;
+  }
+
+  PrivacyLastSeenDenyUpdate_Request._();
+
+  factory PrivacyLastSeenDenyUpdate_Request.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory PrivacyLastSeenDenyUpdate_Request.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'PrivacyLastSeenDenyUpdate.Request',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..p<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'userIds', $pb.PbFieldType.PY)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyLastSeenDenyUpdate_Request clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyLastSeenDenyUpdate_Request copyWith(void Function(PrivacyLastSeenDenyUpdate_Request) updates) =>
+      super.copyWith((message) => updates(message as PrivacyLastSeenDenyUpdate_Request)) as PrivacyLastSeenDenyUpdate_Request;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static PrivacyLastSeenDenyUpdate_Request create() => PrivacyLastSeenDenyUpdate_Request._();
+  @$core.override
+  PrivacyLastSeenDenyUpdate_Request createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static PrivacyLastSeenDenyUpdate_Request getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<PrivacyLastSeenDenyUpdate_Request>(create);
+  static PrivacyLastSeenDenyUpdate_Request? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $pb.PbList<$core.List<$core.int>> get userIds => $_getList(0);
+}
+
+class PrivacyLastSeenDenyUpdate_Response extends $pb.GeneratedMessage {
+  factory PrivacyLastSeenDenyUpdate_Response() => create();
+
+  PrivacyLastSeenDenyUpdate_Response._();
+
+  factory PrivacyLastSeenDenyUpdate_Response.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory PrivacyLastSeenDenyUpdate_Response.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'PrivacyLastSeenDenyUpdate.Response',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyLastSeenDenyUpdate_Response clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyLastSeenDenyUpdate_Response copyWith(void Function(PrivacyLastSeenDenyUpdate_Response) updates) =>
+      super.copyWith((message) => updates(message as PrivacyLastSeenDenyUpdate_Response)) as PrivacyLastSeenDenyUpdate_Response;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static PrivacyLastSeenDenyUpdate_Response create() => PrivacyLastSeenDenyUpdate_Response._();
+  @$core.override
+  PrivacyLastSeenDenyUpdate_Response createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static PrivacyLastSeenDenyUpdate_Response getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<PrivacyLastSeenDenyUpdate_Response>(create);
+  static PrivacyLastSeenDenyUpdate_Response? _defaultInstance;
+}
+
+/// Полная замена deny-list «всегда запрещать» для последнего посещения.
+class PrivacyLastSeenDenyUpdate extends $pb.GeneratedMessage {
+  factory PrivacyLastSeenDenyUpdate() => create();
+
+  PrivacyLastSeenDenyUpdate._();
+
+  factory PrivacyLastSeenDenyUpdate.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory PrivacyLastSeenDenyUpdate.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'PrivacyLastSeenDenyUpdate',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyLastSeenDenyUpdate clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyLastSeenDenyUpdate copyWith(void Function(PrivacyLastSeenDenyUpdate) updates) =>
+      super.copyWith((message) => updates(message as PrivacyLastSeenDenyUpdate)) as PrivacyLastSeenDenyUpdate;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static PrivacyLastSeenDenyUpdate create() => PrivacyLastSeenDenyUpdate._();
+  @$core.override
+  PrivacyLastSeenDenyUpdate createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static PrivacyLastSeenDenyUpdate getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<PrivacyLastSeenDenyUpdate>(create);
+  static PrivacyLastSeenDenyUpdate? _defaultInstance;
 }
 
 const $core.bool _omitFieldNames = $core.bool.fromEnvironment('protobuf.omit_field_names');

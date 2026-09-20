@@ -81,6 +81,13 @@ class MessageType extends $pb.ProtobufEnum {
   static const MessageType PRIVACY_ABOUT_ME_ALLOW_UPDATE = MessageType._(43, _omitEnumNames ? '' : 'PRIVACY_ABOUT_ME_ALLOW_UPDATE');
   static const MessageType PRIVACY_ABOUT_ME_DENY_UPDATE = MessageType._(44, _omitEnumNames ? '' : 'PRIVACY_ABOUT_ME_DENY_UPDATE');
 
+  /// Приватность последнего посещения (аудитория + allow/deny). Гейтит весь
+  /// presence (online + last-seen); взаимность для NOBODY. См. privacy_v1.proto
+  /// (PrivacyLastSeen*Update).
+  static const MessageType PRIVACY_LAST_SEEN_UPDATE = MessageType._(45, _omitEnumNames ? '' : 'PRIVACY_LAST_SEEN_UPDATE');
+  static const MessageType PRIVACY_LAST_SEEN_ALLOW_UPDATE = MessageType._(46, _omitEnumNames ? '' : 'PRIVACY_LAST_SEEN_ALLOW_UPDATE');
+  static const MessageType PRIVACY_LAST_SEEN_DENY_UPDATE = MessageType._(47, _omitEnumNames ? '' : 'PRIVACY_LAST_SEEN_DENY_UPDATE');
+
   static const $core.List<MessageType> values = <MessageType>[
     HEALTHCHECK,
     META_DATA_INFO,
@@ -123,9 +130,12 @@ class MessageType extends $pb.ProtobufEnum {
     PRIVACY_ABOUT_ME_UPDATE,
     PRIVACY_ABOUT_ME_ALLOW_UPDATE,
     PRIVACY_ABOUT_ME_DENY_UPDATE,
+    PRIVACY_LAST_SEEN_UPDATE,
+    PRIVACY_LAST_SEEN_ALLOW_UPDATE,
+    PRIVACY_LAST_SEEN_DENY_UPDATE,
   ];
 
-  static final $core.List<MessageType?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 44);
+  static final $core.List<MessageType?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 47);
   static MessageType? valueOf($core.int value) => value < 0 || value >= _byValue.length ? null : _byValue[value];
 
   const MessageType._(super.value, super.name);

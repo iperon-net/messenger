@@ -32,6 +32,8 @@ export 'settings/settings_privacy_birthday_cupertino.dart';
 export 'settings/settings_privacy_birthday_material.dart';
 export 'settings/settings_privacy_about_me_cupertino.dart';
 export 'settings/settings_privacy_about_me_material.dart';
+export 'settings/settings_privacy_last_seen_cupertino.dart';
+export 'settings/settings_privacy_last_seen_material.dart';
 export 'settings/settings_passcode_cupertino.dart';
 export 'settings/settings_passcode_material.dart';
 export 'settings/settings_passcode_create_cupertino.dart';

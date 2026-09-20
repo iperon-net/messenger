@@ -524,6 +524,15 @@ class Translations$sessionsPrivacyAndSecurity$en {
 
 	/// en: 'Who can see my About me'
 	String get whoCanSeeAboutMe => 'Who can see my About me';
+
+	/// en: 'Last seen'
+	String get lastSeen => 'Last seen';
+
+	/// en: 'Who can see my last seen'
+	String get whoCanSeeLastSeen => 'Who can see my last seen';
+
+	/// en: 'If you choose Nobody, you won't see others' last seen or online status either (except with a premium subscription).'
+	String get lastSeenReciprocityNote => 'If you choose Nobody, you won\'t see others\' last seen or online status either (except with a premium subscription).';
 }
 
 // Path: screenMyProfile
@@ -1210,6 +1219,9 @@ extension on Translations {
 			'sessionsPrivacyAndSecurity.hideBirthYearNote' => 'Contacts will see only the day and month — no birth year or age.',
 			'sessionsPrivacyAndSecurity.aboutMe' => 'About me',
 			'sessionsPrivacyAndSecurity.whoCanSeeAboutMe' => 'Who can see my About me',
+			'sessionsPrivacyAndSecurity.lastSeen' => 'Last seen',
+			'sessionsPrivacyAndSecurity.whoCanSeeLastSeen' => 'Who can see my last seen',
+			'sessionsPrivacyAndSecurity.lastSeenReciprocityNote' => 'If you choose Nobody, you won\'t see others\' last seen or online status either (except with a premium subscription).',
 			'screenMyProfile.myprofile' => 'My profile',
 			'screenMyProfile.firstName' => 'First name',
 			'screenMyProfile.lastName' => 'Last name',

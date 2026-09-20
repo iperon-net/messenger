@@ -286,6 +286,49 @@ class Routers {
                       ],
                     ),
                     GoRoute(
+                      path: "last_seen",
+                      parentNavigatorKey: rootNavigatorKey,
+                      pageBuilder: (context, state) => _page(
+                        state,
+                        BlocProvider<SettingsPrivacyAndSecurityCubit>(
+                          create: (_) => SettingsPrivacyAndSecurityCubit()..initialization(),
+                          child: const SettingsPrivacyLastSeenCupertino(),
+                        ),
+                      ),
+                      routes: [
+                        GoRoute(
+                          path: "allow",
+                          parentNavigatorKey: rootNavigatorKey,
+                          pageBuilder: (context, state) => _page(
+                            state,
+                            BlocProvider<SettingsPrivacyAndSecurityCubit>(
+                              create: (_) => SettingsPrivacyAndSecurityCubit(),
+                              child: SettingsPrivacyCallsAllowCupertino(
+                                kind: CallsListKind.allow,
+                                channel: PrivacyChannel.lastSeen,
+                                initialSelected: (state.extra as List<Uint8List>?) ?? const [],
+                              ),
+                            ),
+                          ),
+                        ),
+                        GoRoute(
+                          path: "deny",
+                          parentNavigatorKey: rootNavigatorKey,
+                          pageBuilder: (context, state) => _page(
+                            state,
+                            BlocProvider<SettingsPrivacyAndSecurityCubit>(
+                              create: (_) => SettingsPrivacyAndSecurityCubit(),
+                              child: SettingsPrivacyCallsAllowCupertino(
+                                kind: CallsListKind.deny,
+                                channel: PrivacyChannel.lastSeen,
+                                initialSelected: (state.extra as List<Uint8List>?) ?? const [],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    GoRoute(
                       path: "passcode",
                       parentNavigatorKey: rootNavigatorKey,
                       pageBuilder: (context, state) => _page(
@@ -685,6 +728,49 @@ class Routers {
                               child: SettingsPrivacyCallsAllowMaterial(
                                 kind: CallsListKind.deny,
                                 channel: PrivacyChannel.aboutMe,
+                                initialSelected: (state.extra as List<Uint8List>?) ?? const [],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    GoRoute(
+                      path: "last_seen",
+                      parentNavigatorKey: rootNavigatorKey,
+                      pageBuilder: (context, state) => _pageMaterial(
+                        state,
+                        BlocProvider<SettingsPrivacyAndSecurityCubit>(
+                          create: (_) => SettingsPrivacyAndSecurityCubit()..initialization(),
+                          child: const SettingsPrivacyLastSeenMaterial(),
+                        ),
+                      ),
+                      routes: [
+                        GoRoute(
+                          path: "allow",
+                          parentNavigatorKey: rootNavigatorKey,
+                          pageBuilder: (context, state) => _pageMaterial(
+                            state,
+                            BlocProvider<SettingsPrivacyAndSecurityCubit>(
+                              create: (_) => SettingsPrivacyAndSecurityCubit(),
+                              child: SettingsPrivacyCallsAllowMaterial(
+                                kind: CallsListKind.allow,
+                                channel: PrivacyChannel.lastSeen,
+                                initialSelected: (state.extra as List<Uint8List>?) ?? const [],
+                              ),
+                            ),
+                          ),
+                        ),
+                        GoRoute(
+                          path: "deny",
+                          parentNavigatorKey: rootNavigatorKey,
+                          pageBuilder: (context, state) => _pageMaterial(
+                            state,
+                            BlocProvider<SettingsPrivacyAndSecurityCubit>(
+                              create: (_) => SettingsPrivacyAndSecurityCubit(),
+                              child: SettingsPrivacyCallsAllowMaterial(
+                                kind: CallsListKind.deny,
+                                channel: PrivacyChannel.lastSeen,
                                 initialSelected: (state.extra as List<Uint8List>?) ?? const [],
                               ),
                             ),
