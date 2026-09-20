@@ -68,6 +68,12 @@ class CallSnapshot {
   /// наш [micMuted]. `false`, пока участника/дорожки нет.
   final bool remoteMicMuted;
 
+  /// Камера СОБЕСЕДНИКА выключена (или ещё не опубликована). При выключении
+  /// камеры LiveKit мьютит видеодорожку, но НЕ отписывает её — без этого флага у
+  /// нас на экране застыл бы последний кадр. Когда `true`, UI показывает аватар
+  /// вместо рендера. Актуально только для видеозвонка.
+  final bool remoteVideoOff;
+
   final CallEndReason endReason;
 
   /// Монотонный счётчик смены медиадорожек (local/remote video track). Дорожки
@@ -98,6 +104,7 @@ class CallSnapshot {
     this.cameraOff = false,
     this.speakerOn = false,
     this.remoteMicMuted = false,
+    this.remoteVideoOff = true,
     this.endReason = CallEndReason.none,
     this.mediaEpoch = 0,
     this.debug = '',
@@ -114,6 +121,7 @@ class CallSnapshot {
     bool? cameraOff,
     bool? speakerOn,
     bool? remoteMicMuted,
+    bool? remoteVideoOff,
     CallEndReason? endReason,
     int? mediaEpoch,
     String? debug,
@@ -129,6 +137,7 @@ class CallSnapshot {
       cameraOff: cameraOff ?? this.cameraOff,
       speakerOn: speakerOn ?? this.speakerOn,
       remoteMicMuted: remoteMicMuted ?? this.remoteMicMuted,
+      remoteVideoOff: remoteVideoOff ?? this.remoteVideoOff,
       endReason: endReason ?? this.endReason,
       mediaEpoch: mediaEpoch ?? this.mediaEpoch,
       debug: debug ?? this.debug,
@@ -1000,6 +1009,7 @@ class Calls {
         // навешивает слушателя на трек в момент подписки), поэтому исходный мьют
         // ловим здесь, иначе индикатор не появится до первого переключения.
         _syncRemoteMic();
+        _syncRemoteVideo();
         _markActive();
       })
       ..on<TrackUnsubscribedEvent>((event) {
@@ -1007,14 +1017,25 @@ class Calls {
           _remoteVideoTrack = null;
           _emit(_snapshot.copyWith(mediaEpoch: _snapshot.mediaEpoch + 1));
         }
+        _syncRemoteVideo();
       })
-      // Собеседник выключил/включил микрофон (или опубликовал дорожку уже
-      // замьюченной) — отражаем состояние удалённой аудиодорожки в снимке для
-      // индикатора на экране. Свои (локальные) события игнорируем — их ведёт
-      // [toggleMic] через [micMuted].
-      ..on<TrackMutedEvent>((event) => _syncRemoteMic())
-      ..on<TrackUnmutedEvent>((event) => _syncRemoteMic())
-      ..on<TrackPublishedEvent>((event) => _syncRemoteMic())
+      // Собеседник выключил/включил микрофон или камеру (или опубликовал дорожку
+      // уже замьюченной) — отражаем состояние удалённых дорожек в снимке для
+      // индикатора (аудио) и подмены рендера аватаром (видео). Свои (локальные)
+      // события игнорируем — их ведут [toggleMic]/[toggleCamera].
+      ..on<TrackMutedEvent>((event) {
+        _syncRemoteMic();
+        _syncRemoteVideo();
+      })
+      ..on<TrackUnmutedEvent>((event) {
+        _syncRemoteMic();
+        _syncRemoteVideo();
+      })
+      ..on<TrackPublishedEvent>((event) {
+        _syncRemoteMic();
+        _syncRemoteVideo();
+      })
+      ..on<TrackUnpublishedEvent>((event) => _syncRemoteVideo())
       ..on<ParticipantConnectionQualityUpdatedEvent>((event) {
         // Индикатор показывает качество собеседника — локального участника
         // игнорируем. Обновляем только для живого звонка.
@@ -1057,6 +1078,29 @@ class Calls {
     logger.info('call: remote mic muted=$muted (participants=${room.remoteParticipants.length})');
     if (muted == _snapshot.remoteMicMuted) return;
     _emit(_snapshot.copyWith(remoteMicMuted: muted));
+  }
+
+  // Пересчитывает состояние камеры собеседника по его видеопубликации и
+  // переиздаёт снимок, если оно изменилось. При выключении камеры LiveKit мьютит
+  // дорожку (не отписывает), поэтому ориентируемся на `muted` публикации камеры;
+  // нет публикации камеры — считаем выключенной. Без этого удалённый видел бы
+  // застывший последний кадр (см. [CallSnapshot.remoteVideoOff]).
+  void _syncRemoteVideo() {
+    final room = _room;
+    if (room == null) return;
+    final participant = room.remoteParticipants.values.firstOrNull;
+    var off = true;
+    if (participant != null) {
+      for (final publication in participant.videoTrackPublications) {
+        if (publication.source == TrackSource.camera) {
+          off = publication.muted;
+          break;
+        }
+      }
+    }
+    if (off == _snapshot.remoteVideoOff) return;
+    logger.info('call: remote video off=$off');
+    _emit(_snapshot.copyWith(remoteVideoOff: off));
   }
 
   // Забирает уже опубликованные видеодорожки присутствующих участников (когда мы

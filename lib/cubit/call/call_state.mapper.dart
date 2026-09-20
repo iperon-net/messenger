@@ -86,6 +86,13 @@ class CallStateMapper extends ClassMapperBase<CallState> {
     opt: true,
     def: false,
   );
+  static bool _$remoteVideoOff(CallState v) => v.remoteVideoOff;
+  static const Field<CallState, bool> _f$remoteVideoOff = Field(
+    'remoteVideoOff',
+    _$remoteVideoOff,
+    opt: true,
+    def: true,
+  );
   static CallEndReason _$endReason(CallState v) => v.endReason;
   static const Field<CallState, CallEndReason> _f$endReason = Field(
     'endReason',
@@ -152,6 +159,7 @@ class CallStateMapper extends ClassMapperBase<CallState> {
     #cameraOff: _f$cameraOff,
     #speakerOn: _f$speakerOn,
     #remoteMicMuted: _f$remoteMicMuted,
+    #remoteVideoOff: _f$remoteVideoOff,
     #endReason: _f$endReason,
     #debug: _f$debug,
     #connectedAt: _f$connectedAt,
@@ -173,6 +181,7 @@ class CallStateMapper extends ClassMapperBase<CallState> {
       cameraOff: data.dec(_f$cameraOff),
       speakerOn: data.dec(_f$speakerOn),
       remoteMicMuted: data.dec(_f$remoteMicMuted),
+      remoteVideoOff: data.dec(_f$remoteVideoOff),
       endReason: data.dec(_f$endReason),
       debug: data.dec(_f$debug),
       connectedAt: data.dec(_f$connectedAt),
@@ -254,6 +263,7 @@ abstract class CallStateCopyWith<$R, $In extends CallState, $Out>
     bool? cameraOff,
     bool? speakerOn,
     bool? remoteMicMuted,
+    bool? remoteVideoOff,
     CallEndReason? endReason,
     String? debug,
     DateTime? connectedAt,
@@ -292,6 +302,7 @@ class _CallStateCopyWithImpl<$R, $Out>
     bool? cameraOff,
     bool? speakerOn,
     bool? remoteMicMuted,
+    bool? remoteVideoOff,
     CallEndReason? endReason,
     String? debug,
     Object? connectedAt = $none,
@@ -311,6 +322,7 @@ class _CallStateCopyWithImpl<$R, $Out>
       if (cameraOff != null) #cameraOff: cameraOff,
       if (speakerOn != null) #speakerOn: speakerOn,
       if (remoteMicMuted != null) #remoteMicMuted: remoteMicMuted,
+      if (remoteVideoOff != null) #remoteVideoOff: remoteVideoOff,
       if (endReason != null) #endReason: endReason,
       if (debug != null) #debug: debug,
       if (connectedAt != $none) #connectedAt: connectedAt,
@@ -332,6 +344,7 @@ class _CallStateCopyWithImpl<$R, $Out>
     cameraOff: data.get(#cameraOff, or: $value.cameraOff),
     speakerOn: data.get(#speakerOn, or: $value.speakerOn),
     remoteMicMuted: data.get(#remoteMicMuted, or: $value.remoteMicMuted),
+    remoteVideoOff: data.get(#remoteVideoOff, or: $value.remoteVideoOff),
     endReason: data.get(#endReason, or: $value.endReason),
     debug: data.get(#debug, or: $value.debug),
     connectedAt: data.get(#connectedAt, or: $value.connectedAt),

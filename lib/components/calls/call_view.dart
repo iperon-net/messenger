@@ -222,22 +222,29 @@ class _CallViewState extends State<CallView> {
       builder: (context, state) {
         final cubit = context.read<CallCubit>();
         final video = state.video;
-        final showVideo = video && (state.callStatus == CallStatus.active || state.callStatus == CallStatus.connecting);
-        // Поверх видео — светлая палитра (контраст над картинкой); иначе — под тему.
-        final palette = showVideo ? _CallPalette.overMedia : _CallPalette.of(context, darkMode);
+        final isVideoCall = video && (state.callStatus == CallStatus.active || state.callStatus == CallStatus.connecting);
         // Дорожки берём из сервиса; mediaEpoch в state гарантирует, что при их
         // появлении/смене BlocBuilder перестроит рендереры (сами VideoTrack не
         // участвуют в equality состояния).
         final remoteTrack = cubit.remoteVideoTrack;
         final localTrack = cubit.localVideoTrack;
+        // Удалённое видео реально видно, только когда дорожка есть И камера
+        // собеседника не выключена: при выключении LiveKit мьютит дорожку, но не
+        // отписывает — рендер застыл бы на последнем кадре, поэтому вместо него
+        // показываем аватар (см. [CallSnapshot.remoteVideoOff]).
+        final remoteVideoVisible = isVideoCall && remoteTrack != null && !state.remoteVideoOff;
+        // Поверх видео — светлая палитра (контраст над картинкой); иначе — под тему.
+        final palette = remoteVideoVisible ? _CallPalette.overMedia : _CallPalette.of(context, darkMode);
 
         return ColoredBox(
           color: palette.bg,
           child: Stack(
             fit: StackFit.expand,
             children: [
-              if (showVideo && remoteTrack != null) VideoTrackRenderer(remoteTrack, fit: VideoViewFit.cover),
-              if (showVideo && localTrack != null)
+              if (remoteVideoVisible) VideoTrackRenderer(remoteTrack, fit: VideoViewFit.cover),
+              // Локальное видео (наша камера) — картинкой-в-картинке, пока наша
+              // камера включена, независимо от камеры собеседника.
+              if (isVideoCall && localTrack != null)
                 Positioned(
                   right: 16,
                   top: 48,
@@ -248,7 +255,7 @@ class _CallViewState extends State<CallView> {
                     child: VideoTrackRenderer(localTrack, fit: VideoViewFit.cover, mirrorMode: VideoViewMirrorMode.mirror),
                   ),
                 ),
-              _Overlay(state: state, showVideo: showVideo, palette: palette),
+              _Overlay(state: state, showVideo: remoteVideoVisible, palette: palette),
             ],
           ),
         );

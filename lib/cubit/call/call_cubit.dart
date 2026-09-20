@@ -57,6 +57,7 @@ class CallCubit extends Cubit<CallState> {
     cameraOff: s.cameraOff,
     speakerOn: s.speakerOn,
     remoteMicMuted: s.remoteMicMuted,
+    remoteVideoOff: s.remoteVideoOff,
     endReason: s.endReason,
     debug: s.debug,
     connectedAt: s.connectedAt,
