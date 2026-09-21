@@ -105,6 +105,17 @@ class CallsStateMapper extends ClassMapperBase<CallsState> {
     opt: true,
     def: const {},
   );
+  static Map<String, String> _$hiddenHashByHex(CallsState v) =>
+      v.hiddenHashByHex;
+  static const Field<CallsState, Map<String, String>> _f$hiddenHashByHex =
+      Field('hiddenHashByHex', _$hiddenHashByHex, opt: true, def: const {});
+  static Set<String> _$revealedHex(CallsState v) => v.revealedHex;
+  static const Field<CallsState, Set<String>> _f$revealedHex = Field(
+    'revealedHex',
+    _$revealedHex,
+    opt: true,
+    def: const {},
+  );
 
   @override
   final MappableFields<CallsState> fields = const {
@@ -113,6 +124,8 @@ class CallsStateMapper extends ClassMapperBase<CallsState> {
     #query: _f$query,
     #filter: _f$filter,
     #names: _f$names,
+    #hiddenHashByHex: _f$hiddenHashByHex,
+    #revealedHex: _f$revealedHex,
   };
 
   static CallsState _instantiate(DecodingData data) {
@@ -122,6 +135,8 @@ class CallsStateMapper extends ClassMapperBase<CallsState> {
       query: data.dec(_f$query),
       filter: data.dec(_f$filter),
       names: data.dec(_f$names),
+      hiddenHashByHex: data.dec(_f$hiddenHashByHex),
+      revealedHex: data.dec(_f$revealedHex),
     );
   }
 
@@ -192,12 +207,16 @@ abstract class CallsStateCopyWith<$R, $In extends CallsState, $Out>
   >
   get calls;
   MapCopyWith<$R, String, String, ObjectCopyWith<$R, String, String>> get names;
+  MapCopyWith<$R, String, String, ObjectCopyWith<$R, String, String>>
+  get hiddenHashByHex;
   $R call({
     Status? status,
     List<models.CallLog>? calls,
     String? query,
     CallsFilter? filter,
     Map<String, String>? names,
+    Map<String, String>? hiddenHashByHex,
+    Set<String>? revealedHex,
   });
   CallsStateCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
@@ -229,12 +248,21 @@ class _CallsStateCopyWithImpl<$R, $Out>
     (v) => call(names: v),
   );
   @override
+  MapCopyWith<$R, String, String, ObjectCopyWith<$R, String, String>>
+  get hiddenHashByHex => MapCopyWith(
+    $value.hiddenHashByHex,
+    (v, t) => ObjectCopyWith(v, $identity, t),
+    (v) => call(hiddenHashByHex: v),
+  );
+  @override
   $R call({
     Status? status,
     List<models.CallLog>? calls,
     String? query,
     CallsFilter? filter,
     Map<String, String>? names,
+    Map<String, String>? hiddenHashByHex,
+    Set<String>? revealedHex,
   }) => $apply(
     FieldCopyWithData({
       if (status != null) #status: status,
@@ -242,6 +270,8 @@ class _CallsStateCopyWithImpl<$R, $Out>
       if (query != null) #query: query,
       if (filter != null) #filter: filter,
       if (names != null) #names: names,
+      if (hiddenHashByHex != null) #hiddenHashByHex: hiddenHashByHex,
+      if (revealedHex != null) #revealedHex: revealedHex,
     }),
   );
   @override
@@ -251,6 +281,8 @@ class _CallsStateCopyWithImpl<$R, $Out>
     query: data.get(#query, or: $value.query),
     filter: data.get(#filter, or: $value.filter),
     names: data.get(#names, or: $value.names),
+    hiddenHashByHex: data.get(#hiddenHashByHex, or: $value.hiddenHashByHex),
+    revealedHex: data.get(#revealedHex, or: $value.revealedHex),
   );
 
   @override

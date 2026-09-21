@@ -24,12 +24,23 @@ class CallsState with CallsStateMappable {
   /// после звонка). Нет записи по userID — берём снимок, затем «Неизвестный».
   final Map<String, String> names;
 
+  /// Локально скрытые профили: hex(userID) → sha256 код-фразы (hex). Звонки с
+  /// такими собеседниками не показываются, пока не введена их код-фраза.
+  final Map<String, String> hiddenHashByHex;
+
+  /// Скрытые профили, раскрытые текущим запросом «/код-фраза» (hex(userID)).
+  /// Видны в результатах только пока запрос активен. Считается в
+  /// [CallsCubit.search], а не в build.
+  final Set<String> revealedHex;
+
   const CallsState({
     this.status = Status.initialization,
     this.calls = const [],
     this.query = "",
     this.filter = CallsFilter.all,
     this.names = const {},
+    this.hiddenHashByHex = const {},
+    this.revealedHex = const {},
   });
 
   /// Есть ли хоть один пропущенный звонок — для показа/скрытия фильтра.

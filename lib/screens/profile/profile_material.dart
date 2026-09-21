@@ -3,6 +3,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_boring_avatars/flutter_boring_avatars.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../extensions.dart';
@@ -14,6 +15,7 @@ import '../../di.dart';
 import '../../logger.dart';
 import '../../components.dart';
 import '../../themes.dart';
+import '../../utils.dart';
 import '../../i18n/translations.g.dart';
 
 /// Просмотр публичного профиля чужого пользователя (read-only): аватар, ФИО,
@@ -150,6 +152,20 @@ class _ProfileMaterial extends State<ProfileMaterial> {
                     margin: const EdgeInsets.fromLTRB(12, 16, 12, 12),
                     clipBehavior: Clip.antiAlias,
                     child: _fieldTile(context, context.t.screenProfile.aboutMe, state.aboutMe),
+                  ),
+                // «Скрыть профиль» — только для чужого профиля (свой прятать из
+                // своих же списков смысла нет).
+                if (state.userID.isNotEmpty && !_isSelf(state.userID))
+                  Card(
+                    margin: const EdgeInsets.fromLTRB(12, 16, 12, 12),
+                    clipBehavior: Clip.antiAlias,
+                    child: MaterialListTileIcon(
+                      title: Text(context.t.screenProfile.hideProfile),
+                      color: const Color(0xFF22D393),
+                      hugeIcon: HugeIcons.strokeRoundedLockPassword,
+                      isTrailing: true,
+                      onTab: () => context.push('/profile/${getIt.get<Utils>().bytesToHex(Uint8List.fromList(state.userID))}/hide'),
+                    ),
                   ),
               ],
             ),

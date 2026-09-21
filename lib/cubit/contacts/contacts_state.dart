@@ -60,6 +60,15 @@ class ContactsState with ContactsStateMappable {
   /// Текущий поисковый запрос (фильтрация в UI).
   final String query;
 
+  /// Локально скрытые профили: hex(userID) → sha256 код-фразы (hex). Такие
+  /// контакты не показываются в списке, пока не введена их код-фраза.
+  final Map<String, String> hiddenHashByHex;
+
+  /// Скрытые профили, раскрытые текущим запросом «/код-фраза» (hex(userID)).
+  /// Показываются в результатах, только пока запрос активен; при очистке поиска
+  /// снова скрываются. Считается в [ContactsCubit.search], а не в build.
+  final Set<String> revealedHex;
+
   const ContactsState({
     this.status = Status.initialization,
     this.error = "",
@@ -68,5 +77,7 @@ class ContactsState with ContactsStateMappable {
     this.invitable = const [],
     this.cloud = const [],
     this.query = "",
+    this.hiddenHashByHex = const {},
+    this.revealedHex = const {},
   });
 }

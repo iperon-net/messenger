@@ -253,6 +253,17 @@ class ContactsStateMapper extends ClassMapperBase<ContactsState> {
     opt: true,
     def: "",
   );
+  static Map<String, String> _$hiddenHashByHex(ContactsState v) =>
+      v.hiddenHashByHex;
+  static const Field<ContactsState, Map<String, String>> _f$hiddenHashByHex =
+      Field('hiddenHashByHex', _$hiddenHashByHex, opt: true, def: const {});
+  static Set<String> _$revealedHex(ContactsState v) => v.revealedHex;
+  static const Field<ContactsState, Set<String>> _f$revealedHex = Field(
+    'revealedHex',
+    _$revealedHex,
+    opt: true,
+    def: const {},
+  );
 
   @override
   final MappableFields<ContactsState> fields = const {
@@ -263,6 +274,8 @@ class ContactsStateMapper extends ClassMapperBase<ContactsState> {
     #invitable: _f$invitable,
     #cloud: _f$cloud,
     #query: _f$query,
+    #hiddenHashByHex: _f$hiddenHashByHex,
+    #revealedHex: _f$revealedHex,
   };
 
   static ContactsState _instantiate(DecodingData data) {
@@ -274,6 +287,8 @@ class ContactsStateMapper extends ClassMapperBase<ContactsState> {
       invitable: data.dec(_f$invitable),
       cloud: data.dec(_f$cloud),
       query: data.dec(_f$query),
+      hiddenHashByHex: data.dec(_f$hiddenHashByHex),
+      revealedHex: data.dec(_f$revealedHex),
     );
   }
 
@@ -357,6 +372,8 @@ abstract class ContactsStateCopyWith<$R, $In extends ContactsState, $Out>
     ContactItemCopyWith<$R, ContactItem, ContactItem>
   >
   get cloud;
+  MapCopyWith<$R, String, String, ObjectCopyWith<$R, String, String>>
+  get hiddenHashByHex;
   $R call({
     Status? status,
     String? error,
@@ -365,6 +382,8 @@ abstract class ContactsStateCopyWith<$R, $In extends ContactsState, $Out>
     List<ContactItem>? invitable,
     List<ContactItem>? cloud,
     String? query,
+    Map<String, String>? hiddenHashByHex,
+    Set<String>? revealedHex,
   });
   ContactsStateCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
@@ -411,6 +430,13 @@ class _ContactsStateCopyWithImpl<$R, $Out>
     (v) => call(cloud: v),
   );
   @override
+  MapCopyWith<$R, String, String, ObjectCopyWith<$R, String, String>>
+  get hiddenHashByHex => MapCopyWith(
+    $value.hiddenHashByHex,
+    (v, t) => ObjectCopyWith(v, $identity, t),
+    (v) => call(hiddenHashByHex: v),
+  );
+  @override
   $R call({
     Status? status,
     String? error,
@@ -419,6 +445,8 @@ class _ContactsStateCopyWithImpl<$R, $Out>
     List<ContactItem>? invitable,
     List<ContactItem>? cloud,
     String? query,
+    Map<String, String>? hiddenHashByHex,
+    Set<String>? revealedHex,
   }) => $apply(
     FieldCopyWithData({
       if (status != null) #status: status,
@@ -428,6 +456,8 @@ class _ContactsStateCopyWithImpl<$R, $Out>
       if (invitable != null) #invitable: invitable,
       if (cloud != null) #cloud: cloud,
       if (query != null) #query: query,
+      if (hiddenHashByHex != null) #hiddenHashByHex: hiddenHashByHex,
+      if (revealedHex != null) #revealedHex: revealedHex,
     }),
   );
   @override
@@ -439,6 +469,8 @@ class _ContactsStateCopyWithImpl<$R, $Out>
     invitable: data.get(#invitable, or: $value.invitable),
     cloud: data.get(#cloud, or: $value.cloud),
     query: data.get(#query, or: $value.query),
+    hiddenHashByHex: data.get(#hiddenHashByHex, or: $value.hiddenHashByHex),
+    revealedHex: data.get(#revealedHex, or: $value.revealedHex),
   );
 
   @override

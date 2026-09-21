@@ -46,6 +46,18 @@ class _ContactsMaterialState extends State<ContactsMaterial> {
     return item.displayName.toLowerCase().contains(lower) || item.phone.toLowerCase().contains(lower);
   }
 
+  /// Виден ли контакт с учётом скрытия. Скрытый профиль показывается, только
+  /// если раскрыт текущей «/код-фразой» (см. ContactsCubit.search); иначе он
+  /// исчезает из списка. Не скрытые фильтруются по строке поиска как обычно.
+  bool _visible(ContactsState state, ContactItem item) {
+    final userID = item.userID;
+    if (userID != null) {
+      final hex = getIt.get<Utils>().bytesToHex(userID);
+      if (state.hiddenHashByHex.containsKey(hex)) return state.revealedHex.contains(hex);
+    }
+    return _matchesQuery(item, state.query);
+  }
+
   Future<void> _invite(String phoneE164) async {
     final uri = Uri.parse('sms:${Uri.encodeComponent(phoneE164)}?body=${Uri.encodeComponent(t.screenContacts.inviteMessage)}');
     if (await canLaunchUrl(uri)) {
@@ -106,9 +118,9 @@ class _ContactsMaterialState extends State<ContactsMaterial> {
                   return const Center(child: CircularProgressIndicator());
                 }
 
-                final registered = state.registered.where((item) => _matchesQuery(item, state.query)).toList();
-                final invitable = state.invitable.where((item) => _matchesQuery(item, state.query)).toList();
-                final cloud = state.cloud.where((item) => _matchesQuery(item, state.query)).toList();
+                final registered = state.registered.where((item) => _visible(state, item)).toList();
+                final invitable = state.invitable.where((item) => _visible(state, item)).toList();
+                final cloud = state.cloud.where((item) => _visible(state, item)).toList();
 
                 return ListView(
                   children: [

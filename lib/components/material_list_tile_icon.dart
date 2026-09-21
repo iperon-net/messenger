@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:hugeicons/hugeicons.dart';
 
 /// Material-аналог [CupertinoListTileIcon]: плитка списка настроек с цветной
 /// квадратной иконкой слева. `additionalInfo` показывается перед шевроном
@@ -10,7 +11,10 @@ class MaterialListTileIcon extends StatelessWidget {
   final Widget? additionalInfo;
   final Widget? trailing;
   final Color color;
-  final FaIconData icon;
+  // Ровно одна из иконок: [icon] — FontAwesome (основной случай), [hugeIcon] —
+  // HugeIcons (тип HugeIcons.* в hugeicons 1.x — сырые данные пути, не IconData).
+  final FaIconData? icon;
+  final List<List<dynamic>>? hugeIcon;
   final bool isTrailing;
   final Future<void> Function()? onTab;
 
@@ -21,10 +25,11 @@ class MaterialListTileIcon extends StatelessWidget {
     this.trailing,
     this.isTrailing = false,
     required this.color,
-    required this.icon,
+    this.icon,
+    this.hugeIcon,
     required this.onTab,
     super.key,
-  });
+  }) : assert((icon == null) != (hugeIcon == null), 'Provide exactly one of icon or hugeIcon');
 
   @override
   Widget build(BuildContext context) {
@@ -42,7 +47,11 @@ class MaterialListTileIcon extends StatelessWidget {
         width: 28,
         height: 28,
         decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(8)),
-        child: Center(child: FaIcon(icon, size: 16, color: const Color(0xFFFFFFFF))),
+        child: Center(
+          child: hugeIcon != null
+              ? HugeIcon(icon: hugeIcon!, size: 18, strokeWidth: 2, color: const Color(0xFFFFFFFF))
+              : FaIcon(icon!, size: 16, color: const Color(0xFFFFFFFF)),
+        ),
       ),
       onTap: onTab == null ? null : () => onTab!(),
       title: title,

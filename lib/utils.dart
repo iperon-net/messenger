@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
@@ -101,6 +102,16 @@ class Utils {
 
   String bytesToHex(Uint8List bytes) {
     return bytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
+  }
+
+  /// sha256 нормализованной код-фразы в hex — ключ показа скрытых профилей
+  /// (см. `HiddenProfiles`). Нормализация: trim + нижний регистр, чтобы
+  /// «Фраза», «фраза» и «фраза » совпадали. utf8 (а не codeUnits) — чтобы
+  /// кириллица кодировалась одинаково при задании и при вводе в поиске.
+  Future<String> passphraseHash(String phrase) async {
+    final normalized = phrase.trim().toLowerCase();
+    final hash = await Sha256().hash(utf8.encode(normalized));
+    return bytesToHex(Uint8List.fromList(hash.bytes));
   }
 
   Uint8List hexToBytes(String hex) {

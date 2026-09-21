@@ -2,6 +2,7 @@ import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_boring_avatars/flutter_boring_avatars.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:intl/intl.dart';
 
@@ -13,6 +14,7 @@ import '../../cubit.dart';
 import '../../di.dart';
 import '../../logger.dart';
 import '../../themes.dart';
+import '../../utils.dart';
 import '../../components.dart';
 import '../../i18n/translations.g.dart';
 
@@ -188,6 +190,26 @@ class _ProfileCupertino extends State<ProfileCupertino> {
                       borderRadius: const BorderRadius.all(Radius.circular(18)),
                     ),
                     children: [_fieldTile(context, context.t.screenProfile.aboutMe, state.aboutMe)],
+                  ),
+                // «Скрыть профиль» — только для чужого профиля (свой прятать из
+                // своих же списков смысла нет).
+                if (state.userID.isNotEmpty && !_isSelf(state.userID))
+                  CupertinoListSection.insetGrouped(
+                    clipBehavior: Clip.antiAlias,
+                    backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
+                    decoration: BoxDecoration(
+                      color: ThemesCupertino.groupedCard.resolveFrom(context),
+                      borderRadius: const BorderRadius.all(Radius.circular(18)),
+                    ),
+                    children: [
+                      CupertinoListTileIcon(
+                        title: Text(context.t.screenProfile.hideProfile),
+                        color: const Color(0xFF22D393),
+                        hugeIcon: HugeIcons.strokeRoundedLockPassword,
+                        isTrailing: true,
+                        onTab: () => context.push('/profile/${getIt.get<Utils>().bytesToHex(Uint8List.fromList(state.userID))}/hide'),
+                      ),
+                    ],
                   ),
               ],
             ),

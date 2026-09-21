@@ -55,6 +55,7 @@ class TranslationsRu extends Translations with BaseTranslations<AppLocale, Trans
 	@override late final _Translations$sessionsPrivacyAndSecurity$ru sessionsPrivacyAndSecurity = _Translations$sessionsPrivacyAndSecurity$ru._(_root);
 	@override late final _Translations$screenMyProfile$ru screenMyProfile = _Translations$screenMyProfile$ru._(_root);
 	@override late final _Translations$screenProfile$ru screenProfile = _Translations$screenProfile$ru._(_root);
+	@override late final _Translations$screenHideProfile$ru screenHideProfile = _Translations$screenHideProfile$ru._(_root);
 	@override late final _Translations$screenContacts$ru screenContacts = _Translations$screenContacts$ru._(_root);
 	@override late final _Translations$screenCalls$ru screenCalls = _Translations$screenCalls$ru._(_root);
 	@override late final _Translations$screenAuth$ru screenAuth = _Translations$screenAuth$ru._(_root);
@@ -378,6 +379,22 @@ class _Translations$screenProfile$ru extends Translations$screenProfile$en {
 		other: '${n} года',
 	);
 	@override String get copy => _root.screenMyProfile.copy;
+	@override String get hideProfile => 'Скрыть профиль';
+}
+
+// Path: screenHideProfile
+class _Translations$screenHideProfile$ru extends Translations$screenHideProfile$en {
+	_Translations$screenHideProfile$ru._(TranslationsRu root) : this._root = root, super.internal(root);
+
+	final TranslationsRu _root; // ignore: unused_field
+
+	// Translations
+	@override String get title => 'Скрыть профиль';
+	@override String get description => 'Собеседник исчезнет из ваших Контактов, Звонков и Чатов на этом устройстве. Чтобы снова показать его, введите в поиске «/код-фразу». Код-фраза хранится только в виде хеша и не покидает устройство.';
+	@override String get phrasePlaceholder => 'Код-фраза';
+	@override String get hideAction => 'Скрыть';
+	@override String get resetAction => 'Сбросить код-фразу';
+	@override String get errorEmptyPhrase => 'Введите код-фразу, чтобы скрыть профиль.';
 }
 
 // Path: screenContacts
@@ -740,6 +757,13 @@ extension on TranslationsRu {
 			'screenProfile.birthDate' => _root.screenMyProfile.birthDate,
 			'screenProfile.age' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: '${n} год', few: '${n} года', many: '${n} лет', other: '${n} года', ), 
 			'screenProfile.copy' => _root.screenMyProfile.copy,
+			'screenProfile.hideProfile' => 'Скрыть профиль',
+			'screenHideProfile.title' => 'Скрыть профиль',
+			'screenHideProfile.description' => 'Собеседник исчезнет из ваших Контактов, Звонков и Чатов на этом устройстве. Чтобы снова показать его, введите в поиске «/код-фразу». Код-фраза хранится только в виде хеша и не покидает устройство.',
+			'screenHideProfile.phrasePlaceholder' => 'Код-фраза',
+			'screenHideProfile.hideAction' => 'Скрыть',
+			'screenHideProfile.resetAction' => 'Сбросить код-фразу',
+			'screenHideProfile.errorEmptyPhrase' => 'Введите код-фразу, чтобы скрыть профиль.',
 			'screenContacts.title' => 'Контакты',
 			'screenContacts.onIperon' => 'В Iperon',
 			'screenContacts.onContacts' => 'В контактах',

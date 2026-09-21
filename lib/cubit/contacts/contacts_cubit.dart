@@ -85,6 +85,11 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
     // Реконнект стрима присылает снимок заново — так освежается «залипший» онлайн
     // после жёсткого обрыва контакта (offline-push в этом случае не приходит).
     _presenceSub = api.on(MessageType.PRESENCE).listen(_onPresencePush);
+    // Набор локально скрытых профилей: читаем сразу и перечитываем по сигналу
+    // (пользователь скрыл/показал профиль на отдельном экране — эта вкладка
+    // живёт в IndexedStack и сама бы не обновилась).
+    _hiddenSub = repositories.hiddenProfiles.changes.listen((_) => _reloadHidden());
+    _reloadHidden();
   }
 
   final logger = getIt.get<Logger>();
@@ -139,6 +144,9 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
   // онлайн). Наполняется [refreshPresence], сливается в элементы в [_emitAll].
   final Map<String, ({bool online, DateTime? lastSeen})> _presence = {};
   StreamSubscription<Uint8List>? _presenceSub;
+
+  // Подписка на изменения набора скрытых профилей.
+  StreamSubscription<void>? _hiddenSub;
 
   /// Старт на уровне shell: мгновенный показ снимка из БД, затем облачная
   /// синхронизация с сервером, тихая фоновая книжная дозагрузка (если доступ уже
@@ -329,6 +337,7 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
     _bookChangeSub?.cancel();
     _updatedSub?.cancel();
     _presenceSub?.cancel();
+    _hiddenSub?.cancel();
     return super.close();
   }
 
@@ -482,7 +491,36 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
     return keys.join("|");
   }
 
-  void search(String query) => emit(state.copyWith(query: query));
+  /// Поиск + раскрытие скрытых по «/код-фразе». Асинхронный из-за sha256 фразы;
+  /// хеш считаем здесь (на ввод), а не в build, чтобы не хешировать на каждый
+  /// кадр перерисовки. Скрытый профиль показывается, только пока в поиске стоит
+  /// его код-фраза; очистили поиск — снова скрыт.
+  Future<void> search(String query) async {
+    final revealed = await _revealedFor(query, state.hiddenHashByHex);
+    if (isClosed) return;
+    emit(state.copyWith(query: query, revealedHex: revealed));
+  }
+
+  /// hex(userID) скрытых профилей, чью код-фразу содержит запрос вида «/фраза».
+  /// Пустой набор, если запрос не начинается с «/» или фраза не совпала.
+  Future<Set<String>> _revealedFor(String query, Map<String, String> hidden) async {
+    if (!query.startsWith('/') || hidden.isEmpty) return const {};
+    final phrase = query.substring(1);
+    if (phrase.trim().isEmpty) return const {};
+    final hash = await utils.passphraseHash(phrase);
+    return hidden.entries.where((e) => e.value == hash).map((e) => e.key).toSet();
+  }
+
+  /// Перечитывает набор скрытых профилей из БД и пересчитывает раскрытые под
+  /// текущий запрос. Дёргается при старте и по сигналу `hiddenProfiles.changes`.
+  Future<void> _reloadHidden() async {
+    final entries = await repositories.hiddenProfiles.getAll();
+    if (isClosed) return;
+    final map = {for (final e in entries) utils.bytesToHex(Uint8List.fromList(e.userID)): e.phraseHash};
+    final revealed = await _revealedFor(state.query, map);
+    if (isClosed) return;
+    emit(state.copyWith(hiddenHashByHex: map, revealedHex: revealed));
+  }
 
   /// Тянет полный список облачных контактов владельца (`CONTACTS_LIST`), заменяет
   /// локальную облачную книгу и снимок. Ошибка сети не критична — остаёмся на кэше.

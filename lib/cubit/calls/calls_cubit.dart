@@ -34,12 +34,17 @@ class CallsCubit extends Cubit<CallsState> {
 
   StreamSubscription<void>? _sub;
   StreamSubscription<Uint8List>? _profileSub;
+  StreamSubscription<void>? _hiddenSub;
 
   void initialization() {
     _sub = _calls.callLogged.listen((_) => load());
     // Обновление профиля собеседника (пришло по стриму или в ответ на запрос,
     // который шлёт, например, аватар в списке) — освежаем его имя в журнале.
     _profileSub = api.on(MessageType.PROFILE).listen(_onProfile);
+    // Локально скрытые профили: читаем сразу и перечитываем по сигналу (профиль
+    // скрыли/показали на отдельном экране — вкладка живёт в IndexedStack).
+    _hiddenSub = repositories.hiddenProfiles.changes.listen((_) => _reloadHidden());
+    _reloadHidden();
     load();
   }
 
@@ -118,9 +123,36 @@ class CallsCubit extends Cubit<CallsState> {
     emit(state.copyWith(names: {...state.names, hex: name}));
   }
 
-  void search(String query) => emit(state.copyWith(query: query));
+  /// Поиск + раскрытие скрытых по «/код-фразе». Асинхронный из-за sha256 фразы
+  /// (считаем на ввод, не в build). Скрытый собеседник виден в журнале, только
+  /// пока в поиске стоит его код-фраза.
+  Future<void> search(String query) async {
+    final revealed = await _revealedFor(query, state.hiddenHashByHex);
+    if (isClosed) return;
+    emit(state.copyWith(query: query, revealedHex: revealed));
+  }
 
   void setFilter(CallsFilter filter) => emit(state.copyWith(filter: filter));
+
+  /// hex(userID) скрытых профилей, чью код-фразу содержит запрос «/фраза».
+  Future<Set<String>> _revealedFor(String query, Map<String, String> hidden) async {
+    if (!query.startsWith('/') || hidden.isEmpty) return const {};
+    final phrase = query.substring(1);
+    if (phrase.trim().isEmpty) return const {};
+    final hash = await utils.passphraseHash(phrase);
+    return hidden.entries.where((e) => e.value == hash).map((e) => e.key).toSet();
+  }
+
+  /// Перечитывает набор скрытых профилей из БД и пересчитывает раскрытые под
+  /// текущий запрос.
+  Future<void> _reloadHidden() async {
+    final entries = await repositories.hiddenProfiles.getAll();
+    if (isClosed) return;
+    final map = {for (final e in entries) utils.bytesToHex(Uint8List.fromList(e.userID)): e.phraseHash};
+    final revealed = await _revealedFor(state.query, map);
+    if (isClosed) return;
+    emit(state.copyWith(hiddenHashByHex: map, revealedHex: revealed));
+  }
 
   /// Удаляет одну запись журнала.
   Future<void> delete(models.CallLog log) async {
@@ -146,6 +178,7 @@ class CallsCubit extends Cubit<CallsState> {
   Future<void> close() {
     _sub?.cancel();
     _profileSub?.cancel();
+    _hiddenSub?.cancel();
     return super.close();
   }
 }

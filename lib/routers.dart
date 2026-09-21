@@ -440,6 +440,20 @@ class Routers {
           child: const ProfileCupertino(),
         ),
       ),
+      routes: [
+        GoRoute(
+          path: "hide",
+          parentNavigatorKey: rootNavigatorKey,
+          pageBuilder: (context, state) => _page(
+            state,
+            BlocProvider<ProfileHideCubit>(
+              create: (_) =>
+                  ProfileHideCubit(userID: getIt.get<Utils>().hexToBytes(state.pathParameters['userID'] ?? ''))..initialization(),
+              child: const ProfileHideCupertino(),
+            ),
+          ),
+        ),
+      ],
     ),
     GoRoute(
       path: "/auth",
@@ -890,6 +904,20 @@ class Routers {
           child: const ProfileMaterial(),
         ),
       ),
+      routes: [
+        GoRoute(
+          path: "hide",
+          parentNavigatorKey: rootNavigatorKey,
+          pageBuilder: (context, state) => _pageMaterial(
+            state,
+            BlocProvider<ProfileHideCubit>(
+              create: (_) =>
+                  ProfileHideCubit(userID: getIt.get<Utils>().hexToBytes(state.pathParameters['userID'] ?? ''))..initialization(),
+              child: const ProfileHideMaterial(),
+            ),
+          ),
+        ),
+      ],
     ),
     GoRoute(
       path: "/auth",

@@ -57,6 +57,7 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	late final Translations$sessionsPrivacyAndSecurity$en sessionsPrivacyAndSecurity = Translations$sessionsPrivacyAndSecurity$en.internal(_root);
 	late final Translations$screenMyProfile$en screenMyProfile = Translations$screenMyProfile$en.internal(_root);
 	late final Translations$screenProfile$en screenProfile = Translations$screenProfile$en.internal(_root);
+	late final Translations$screenHideProfile$en screenHideProfile = Translations$screenHideProfile$en.internal(_root);
 	late final Translations$screenContacts$en screenContacts = Translations$screenContacts$en.internal(_root);
 	late final Translations$screenCalls$en screenCalls = Translations$screenCalls$en.internal(_root);
 	late final Translations$screenAuth$en screenAuth = Translations$screenAuth$en.internal(_root);
@@ -698,6 +699,36 @@ class Translations$screenProfile$en {
 
 	/// en: 'Copy'
 	String get copy => _root.screenMyProfile.copy;
+
+	/// en: 'Hide profile'
+	String get hideProfile => 'Hide profile';
+}
+
+// Path: screenHideProfile
+class Translations$screenHideProfile$en {
+	Translations$screenHideProfile$en.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// en: 'Hide profile'
+	String get title => 'Hide profile';
+
+	/// en: 'The person disappears from your Contacts, Calls, and Chats on this device. To show them again, type “/passphrase” in search. The passphrase is stored only as a hash and never leaves the device.'
+	String get description => 'The person disappears from your Contacts, Calls, and Chats on this device. To show them again, type “/passphrase” in search. The passphrase is stored only as a hash and never leaves the device.';
+
+	/// en: 'Passphrase'
+	String get phrasePlaceholder => 'Passphrase';
+
+	/// en: 'Hide'
+	String get hideAction => 'Hide';
+
+	/// en: 'Reset passphrase'
+	String get resetAction => 'Reset passphrase';
+
+	/// en: 'Enter a passphrase to hide the profile.'
+	String get errorEmptyPhrase => 'Enter a passphrase to hide the profile.';
 }
 
 // Path: screenContacts
@@ -1300,6 +1331,13 @@ extension on Translations {
 			'screenProfile.birthDate' => _root.screenMyProfile.birthDate,
 			'screenProfile.age' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: '${n} year', other: '${n} years', ), 
 			'screenProfile.copy' => _root.screenMyProfile.copy,
+			'screenProfile.hideProfile' => 'Hide profile',
+			'screenHideProfile.title' => 'Hide profile',
+			'screenHideProfile.description' => 'The person disappears from your Contacts, Calls, and Chats on this device. To show them again, type “/passphrase” in search. The passphrase is stored only as a hash and never leaves the device.',
+			'screenHideProfile.phrasePlaceholder' => 'Passphrase',
+			'screenHideProfile.hideAction' => 'Hide',
+			'screenHideProfile.resetAction' => 'Reset passphrase',
+			'screenHideProfile.errorEmptyPhrase' => 'Enter a passphrase to hide the profile.',
 			'screenContacts.title' => 'Contacts',
 			'screenContacts.onIperon' => 'On Iperon',
 			'screenContacts.onContacts' => 'On Contacts',

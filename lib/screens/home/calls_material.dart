@@ -209,10 +209,16 @@ class _CallsMaterialState extends State<CallsMaterial> {
     if (confirmed ?? false) await cubit.clearAll();
   }
 
+  /// Звонки со скрытыми собеседниками не показываются, пока их не раскроет
+  /// «/код-фраза» (см. CallsCubit.search); раскрытые проходят мимо текстового
+  /// фильтра — сам запрос в этот момент и есть код-фраза.
   List<models.CallLog> _visible(BuildContext context, CallsState state) {
+    final utils = getIt.get<Utils>();
     final query = state.query.toLowerCase();
     return state.calls.where((log) {
       if (state.filter == CallsFilter.missed && !log.missed) return false;
+      final hex = utils.bytesToHex(log.userID);
+      if (state.hiddenHashByHex.containsKey(hex)) return state.revealedHex.contains(hex);
       if (query.isEmpty) return true;
       return _displayName(context, state, log).toLowerCase().contains(query);
     }).toList();

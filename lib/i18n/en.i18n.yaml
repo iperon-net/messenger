@@ -195,6 +195,15 @@
     one: "{n} year"
     other: "{n} years"
   "copy": "@:screenMyProfile.copy"
+  "hideProfile": "Hide profile"
+
+"screenHideProfile":
+  "title": "Hide profile"
+  "description": "The person disappears from your Contacts, Calls, and Chats on this device. To show them again, type “/passphrase” in search. The passphrase is stored only as a hash and never leaves the device."
+  "phrasePlaceholder": "Passphrase"
+  "hideAction": "Hide"
+  "resetAction": "Reset passphrase"
+  "errorEmptyPhrase": "Enter a passphrase to hide the profile."
 
 "screenContacts":
   "title": "Contacts"

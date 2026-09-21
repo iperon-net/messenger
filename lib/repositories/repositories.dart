@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
@@ -25,6 +26,7 @@ part "contacts.dart";
 part "uploads.dart";
 part "downloads.dart";
 part "call_logs.dart";
+part "hidden_profiles.dart";
 
 base class _AppSqliteOpenFactory extends NativeSqliteOpenFactory {
   final String? password;
@@ -62,6 +64,7 @@ class Repositories {
   late Uploads uploads;
   late Downloads downloads;
   late CallLogs callLogs;
+  late HiddenProfiles hiddenProfiles;
 
   static Future<Repositories> initialization() async {
     final repositories = Repositories._();
@@ -323,6 +326,25 @@ class Repositories {
       }),
     );
 
+    migrations.add(
+      SqliteMigration(8, (tx) async {
+        // Локально скрытые профили: пользователь прячет собеседника из своих
+        // списков (Контакты/Звонки/в будущем Чаты) на этом устройстве. Хранение
+        // по userID (а не по contacts.phoneE164), потому что скрыть можно и того,
+        // кого нет в адресной книге — только в журнале звонков. Показать скрытого
+        // снова можно, введя в поиске «/код-фразу»: сверяем sha256 введённой фразы
+        // с phraseHash. Код-фраза своя на каждый профиль (см. HiddenProfiles).
+        // Необратимый хеш — самой фразы нигде не храним.
+        await tx.execute("""
+        CREATE TABLE hiddenProfiles (
+          userID BLOB PRIMARY KEY,
+          phraseHash TEXT NOT NULL,
+          createdAt INTEGER NOT NULL
+        );
+      """);
+      }),
+    );
+
     if (settings.isDeleteDatabase) {
       logger.warning("Deleting the database, flag set IS_DELETE_DATABASE: 1");
 
@@ -381,6 +403,7 @@ class Repositories {
     uploads = Uploads(logger: logger, db: db);
     downloads = Downloads(logger: logger, db: db);
     callLogs = CallLogs(logger: logger, db: db);
+    hiddenProfiles = HiddenProfiles(logger: logger, db: db);
   }
 
   // Generate password

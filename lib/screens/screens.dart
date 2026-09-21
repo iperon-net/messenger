@@ -51,3 +51,5 @@ export 'call/call_material.dart';
 export 'call/call_preview.dart';
 export 'profile/profile_cupertino.dart';
 export 'profile/profile_material.dart';
+export 'profile/profile_hide_cupertino.dart';
+export 'profile/profile_hide_material.dart';
