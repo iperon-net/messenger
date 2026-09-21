@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import '../../calls.dart';
@@ -178,9 +179,11 @@ class _CallsCupertinoState extends State<CallsCupertino> {
           CupertinoButton(
             padding: EdgeInsets.zero,
             onPressed: () => getIt.get<Calls>().startCall(toUserID: log.userID, video: log.video),
-            child: Icon(
-              log.video ? CupertinoIcons.videocam_fill : CupertinoIcons.phone_fill,
+            child: HugeIcon(
+              icon: log.video ? HugeIcons.strokeRoundedVideo01 : HugeIcons.strokeRoundedCall02,
               color: CupertinoTheme.of(context).primaryColor,
+              size: 18.0,
+              strokeWidth: 2,
             ),
           ),
         ],

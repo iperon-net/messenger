@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:hugeicons/hugeicons.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -163,7 +164,12 @@ class _CallsMaterialState extends State<CallsMaterial> {
           Text(log.createdAt.relativeFormat(context.t), style: TextStyle(fontSize: 12, color: secondary)),
           const SizedBox(width: 4),
           IconButton(
-            icon: Icon(log.video ? Icons.videocam : Icons.call, color: Theme.of(context).colorScheme.primary),
+            icon: HugeIcon(
+              icon: log.video ? HugeIcons.strokeRoundedVideo01 : HugeIcons.strokeRoundedCall02,
+              color: Theme.of(context).colorScheme.primary,
+              size: 18.0,
+              strokeWidth: 2,
+            ),
             onPressed: () => getIt.get<Calls>().startCall(toUserID: log.userID, video: log.video),
           ),
         ],
