@@ -62,64 +62,59 @@ class _SettingsPrivacyAndSecurityMaterial extends State<SettingsPrivacyAndSecuri
                 ),
                 Card(
                   margin: const EdgeInsets.symmetric(horizontal: 12),
-                  child: MaterialListTileIcon(
-                    title: Text(context.t.sessionsPrivacyAndSecurity.calls),
-                    color: const Color(0xFF007AFF),
-                    icon: FontAwesomeIcons.phone,
-                    isTrailing: true,
-                    additionalInfo: Text(state.callsLoadError ? "—" : _audienceLabel(context, state.callsAudience)),
-                    onTab: () async {
-                      final cubit = context.read<SettingsPrivacyAndSecurityCubit>();
-                      await context.push("/settings/privacy_and_security/calls");
-                      // Детейл-экран правит свой инстанс cubit — по возврату
-                      // перечитываем значение, чтобы label не остался старым.
-                      await cubit.reloadCalls();
-                    },
-                  ),
-                ),
-                Card(
-                  margin: const EdgeInsets.fromLTRB(12, 8, 12, 0),
-                  child: MaterialListTileIcon(
-                    title: Text(context.t.sessionsPrivacyAndSecurity.birthday),
-                    color: const Color(0xFFFF2D55),
-                    icon: FontAwesomeIcons.cakeCandles,
-                    isTrailing: true,
-                    additionalInfo: Text(state.callsLoadError ? "—" : _audienceLabel(context, state.birthdayAudience)),
-                    onTab: () async {
-                      final cubit = context.read<SettingsPrivacyAndSecurityCubit>();
-                      await context.push("/settings/privacy_and_security/birthday");
-                      await cubit.reloadBirthday();
-                    },
-                  ),
-                ),
-                Card(
-                  margin: const EdgeInsets.fromLTRB(12, 8, 12, 0),
-                  child: MaterialListTileIcon(
-                    title: Text(context.t.sessionsPrivacyAndSecurity.aboutMe),
-                    color: const Color(0xFFAF52DE),
-                    icon: FontAwesomeIcons.circleInfo,
-                    isTrailing: true,
-                    additionalInfo: Text(state.callsLoadError ? "—" : _audienceLabel(context, state.aboutMeAudience)),
-                    onTab: () async {
-                      final cubit = context.read<SettingsPrivacyAndSecurityCubit>();
-                      await context.push("/settings/privacy_and_security/about_me");
-                      await cubit.reloadAboutMe();
-                    },
-                  ),
-                ),
-                Card(
-                  margin: const EdgeInsets.fromLTRB(12, 8, 12, 0),
-                  child: MaterialListTileIcon(
-                    title: Text(context.t.sessionsPrivacyAndSecurity.lastSeen),
-                    color: const Color(0xFF34C759),
-                    icon: FontAwesomeIcons.solidClock,
-                    isTrailing: true,
-                    additionalInfo: Text(state.callsLoadError ? "—" : _audienceLabel(context, state.lastSeenAudience)),
-                    onTab: () async {
-                      final cubit = context.read<SettingsPrivacyAndSecurityCubit>();
-                      await context.push("/settings/privacy_and_security/last_seen");
-                      await cubit.reloadLastSeen();
-                    },
+                  child: Column(
+                    children: [
+                      MaterialListTileIcon(
+                        title: Text(context.t.sessionsPrivacyAndSecurity.calls),
+                        color: const Color(0xFF007AFF),
+                        icon: FontAwesomeIcons.phone,
+                        isTrailing: true,
+                        additionalInfo: Text(state.callsLoadError ? "—" : _audienceLabel(context, state.callsAudience)),
+                        onTab: () async {
+                          final cubit = context.read<SettingsPrivacyAndSecurityCubit>();
+                          await context.push("/settings/privacy_and_security/calls");
+                          // Детейл-экран правит свой инстанс cubit — по возврату
+                          // перечитываем значение, чтобы label не остался старым.
+                          await cubit.reloadCalls();
+                        },
+                      ),
+                      MaterialListTileIcon(
+                        title: Text(context.t.sessionsPrivacyAndSecurity.birthday),
+                        color: const Color(0xFFFF2D55),
+                        icon: FontAwesomeIcons.cakeCandles,
+                        isTrailing: true,
+                        additionalInfo: Text(state.callsLoadError ? "—" : _audienceLabel(context, state.birthdayAudience)),
+                        onTab: () async {
+                          final cubit = context.read<SettingsPrivacyAndSecurityCubit>();
+                          await context.push("/settings/privacy_and_security/birthday");
+                          await cubit.reloadBirthday();
+                        },
+                      ),
+                      MaterialListTileIcon(
+                        title: Text(context.t.sessionsPrivacyAndSecurity.aboutMe),
+                        color: const Color(0xFFAF52DE),
+                        icon: FontAwesomeIcons.circleInfo,
+                        isTrailing: true,
+                        additionalInfo: Text(state.callsLoadError ? "—" : _audienceLabel(context, state.aboutMeAudience)),
+                        onTab: () async {
+                          final cubit = context.read<SettingsPrivacyAndSecurityCubit>();
+                          await context.push("/settings/privacy_and_security/about_me");
+                          await cubit.reloadAboutMe();
+                        },
+                      ),
+                      MaterialListTileIcon(
+                        title: Text(context.t.sessionsPrivacyAndSecurity.lastSeen),
+                        color: const Color(0xFF34C759),
+                        icon: FontAwesomeIcons.solidClock,
+                        isTrailing: true,
+                        additionalInfo: Text(state.callsLoadError ? "—" : _audienceLabel(context, state.lastSeenAudience)),
+                        onTab: () async {
+                          final cubit = context.read<SettingsPrivacyAndSecurityCubit>();
+                          await context.push("/settings/privacy_and_security/last_seen");
+                          await cubit.reloadLastSeen();
+                        },
+                      ),
+                    ],
                   ),
                 ),
               ],

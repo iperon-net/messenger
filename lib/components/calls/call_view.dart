@@ -8,6 +8,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_boring_avatars/flutter_boring_avatars.dart';
 import 'package:livekit_client/livekit_client.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../../calls.dart';
 import '../../cubit.dart';
@@ -140,6 +141,13 @@ class _CallViewState extends State<CallView> {
   // падать не должен.
   AudioPlayer? _ringtone;
 
+  // Держим экран включённым только на видеозвонке: пользователь смотрит на
+  // картинку, а не держит телефон у уха, поэтому системный таймаут гашения/
+  // блокировки экрана здесь мешает. Для аудио wakelock НЕ включаем — там экран
+  // должен гаснуть штатно (в т.ч. по датчику приближения у уха). Флаг хранит
+  // текущее состояние, чтобы не дёргать нативный вызов на каждый build.
+  bool _wakelockEnabled = false;
+
   // Аудио-контекст рингтона. На iOS категория `ambient` — её ГЛУШИТ аппаратный
   // переключатель «без звука» (в отличие от `playback`), т.е. рингтон уважает
   // беззвучный режим. `mixWithOthers` — не выбиваем чужое аудио. Android: usage
@@ -177,8 +185,17 @@ class _CallViewState extends State<CallView> {
   @override
   void dispose() {
     unawaited(_stopRingtone());
+    _syncWakelock(false);
     SystemChrome.setPreferredOrientations(DeviceOrientation.values);
     super.dispose();
+  }
+
+  /// Включает/выключает удержание экрана. Идемпотентно — дёргает нативный вызов
+  /// только при реальной смене состояния. Ошибки глушим: wakelock не критичен.
+  void _syncWakelock(bool enable) {
+    if (_wakelockEnabled == enable) return;
+    _wakelockEnabled = enable;
+    unawaited(WakelockPlus.toggle(enable: enable).catchError((_) {}));
   }
 
   Future<void> _startRingtone() async {
@@ -223,6 +240,9 @@ class _CallViewState extends State<CallView> {
         final cubit = context.read<CallCubit>();
         final video = state.video;
         final isVideoCall = video && (state.callStatus == CallStatus.active || state.callStatus == CallStatus.connecting);
+        // Удерживаем экран включённым, пока идёт видеозвонок; на аудио и после
+        // завершения — отпускаем (dispose тоже страхует на уходе с экрана).
+        _syncWakelock(isVideoCall);
         // Дорожки берём из сервиса; mediaEpoch в state гарантирует, что при их
         // появлении/смене BlocBuilder перестроит рендереры (сами VideoTrack не
         // участвуют в equality состояния).
