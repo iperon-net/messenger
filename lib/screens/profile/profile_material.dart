@@ -1,3 +1,4 @@
+import 'package:hugeicons/hugeicons.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -76,11 +77,11 @@ class _ProfileMaterial extends State<ProfileMaterial> {
             actions: [
               if (state.userID.isNotEmpty && !_isSelf(state.userID)) ...[
                 IconButton(
-                  icon: const Icon(Icons.call),
+                  icon: HugeIcon(icon: HugeIcons.strokeRoundedCall02, size: 22.0, strokeWidth: 2),
                   onPressed: () => getIt.get<Calls>().startCall(toUserID: state.userID, video: false),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.videocam),
+                  icon: HugeIcon(icon: HugeIcons.strokeRoundedVideo01, size: 22.0, strokeWidth: 2),
                   onPressed: () => getIt.get<Calls>().startCall(toUserID: state.userID, video: true),
                 ),
               ],

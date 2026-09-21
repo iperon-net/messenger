@@ -170,12 +170,12 @@ class _SettingsMyProfileCupertino extends State<SettingsMyProfileCupertino> {
             child: CupertinoNavigationBar(
               automaticBackgroundVisibility: false,
               backgroundColor: ThemesCupertino.groupedBackground,
+              // start:0 — прижимаем стрелку «назад» к левому краю (по умолчанию
+              // навбар добавляет 16pt); end:16 оставляем стандартным, чтобы кнопка
+              // справа не сместилась.
+              padding: const EdgeInsetsDirectional.only(start: 0, end: 16),
               middle: Text(context.t.screenMyProfile.myprofile),
-              leading: CupertinoButton(
-                padding: EdgeInsets.zero,
-                onPressed: () => context.pop(),
-                child: Text(context.t.screenMyProfile.cancel, style: TextStyle(color: ThemesCupertino.navActionColor(context))),
-              ),
+              leading: CupertinoNavigationBarBackButton(onPressed: () => context.pop()),
               trailing: CupertinoButton(
                 padding: EdgeInsets.zero,
                 // push (а не go): дожидаемся закрытия экрана правки и перечитываем

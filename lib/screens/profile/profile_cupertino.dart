@@ -2,6 +2,7 @@ import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_boring_avatars/flutter_boring_avatars.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:intl/intl.dart';
 
 import '../../extensions.dart';
@@ -83,11 +84,25 @@ class _ProfileCupertino extends State<ProfileCupertino> {
             child: CupertinoNavigationBar(
               automaticBackgroundVisibility: false,
               backgroundColor: ThemesCupertino.groupedBackground,
+              // end:0 — прижимаем правую группу кнопок к краю (по умолчанию навбар
+              // добавляет 16pt); start:16 оставляем стандартным.
+              padding: const EdgeInsetsDirectional.only(start: 16, end: 0),
               middle: Text(context.t.screenProfile.profile),
               trailing: (state.userID.isNotEmpty && !_isSelf(state.userID))
                   ? Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
+                        CupertinoButton(
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                          minimumSize: const Size(44, 44),
+                          onPressed: () => getIt.get<Calls>().startCall(toUserID: state.userID, video: true),
+                          child: HugeIcon(
+                            icon: HugeIcons.strokeRoundedCall02,
+                            color: ThemesCupertino.navActionColor(context),
+                            size: 22.0,
+                            strokeWidth: 2,
+                          ),
+                        ),
                         CupertinoButton(
                           // 44×44 — минимальная зона нажатия по HIG; прежние
                           // padding:zero + minimumSize:zero давали хит-area размером с
@@ -95,13 +110,12 @@ class _ProfileCupertino extends State<ProfileCupertino> {
                           padding: const EdgeInsets.symmetric(horizontal: 8),
                           minimumSize: const Size(44, 44),
                           onPressed: () => getIt.get<Calls>().startCall(toUserID: state.userID, video: false),
-                          child: Icon(CupertinoIcons.phone, color: ThemesCupertino.navActionColor(context)),
-                        ),
-                        CupertinoButton(
-                          padding: const EdgeInsets.symmetric(horizontal: 8),
-                          minimumSize: const Size(44, 44),
-                          onPressed: () => getIt.get<Calls>().startCall(toUserID: state.userID, video: true),
-                          child: Icon(CupertinoIcons.video_camera, color: ThemesCupertino.navActionColor(context)),
+                          child: HugeIcon(
+                            icon: HugeIcons.strokeRoundedVideo01,
+                            color: ThemesCupertino.navActionColor(context),
+                            size: 22.0,
+                            strokeWidth: 2,
+                          ),
                         ),
                       ],
                     )

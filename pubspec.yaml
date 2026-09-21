@@ -118,6 +118,7 @@ dependencies:
     git:
       url: https://github.com/livekit/client-sdk-flutter.git
       ref: ed1dd712e
+  hugeicons: ^1.2.0
 
 dev_dependencies:
   flutter_test:
