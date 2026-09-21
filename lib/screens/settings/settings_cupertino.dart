@@ -99,28 +99,6 @@ class _SettingsCupertino extends State<SettingsCupertino> {
                     ),
                   ],
                 ),
-                CupertinoListSection.insetGrouped(
-                  backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
-                  decoration: BoxDecoration(
-                    color: ThemesCupertino.groupedCard.resolveFrom(context),
-                    borderRadius: const BorderRadius.all(Radius.circular(10)),
-                  ),
-                  children: [
-                    CupertinoListTileIcon(
-                      title: Text(context.t.screenSettings.logout),
-                      color: Color(0xFF5A48E6),
-                      isTrailing: false,
-                      icon: FontAwesomeIcons.rightFromBracket,
-                      onTab: () async {
-                        // Навигацию не делаем вручную: auth.logout() внутри
-                        // terminate() дёрнет notifyListeners(), и go_router сам
-                        // уведёт на /auth. Ручной context.go("/auth") здесь
-                        // отбивался бы редиректом, пока сессия ещё в памяти.
-                        context.read<SettingsCubit>().terminate();
-                      },
-                    ),
-                  ],
-                ),
               ],
             ),
           ),

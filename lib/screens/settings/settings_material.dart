@@ -75,14 +75,6 @@ class _SettingsMaterial extends State<SettingsMaterial> {
                     onTab: () async => context.go("/settings/language"),
                     isTrailing: true,
                   ),
-                  MaterialListTileIcon(
-                    title: Text(context.t.screenSettings.logout),
-                    color: const Color(0xFF5A48E6),
-                    icon: FontAwesomeIcons.rightFromBracket,
-                    // Навигацию не делаем вручную: auth.logout() внутри terminate()
-                    // дёрнет notifyListeners(), и go_router сам уведёт на /auth.
-                    onTab: () async => context.read<SettingsCubit>().terminate(),
-                  ),
                 ]),
 
                 const SizedBox(height: 6),
