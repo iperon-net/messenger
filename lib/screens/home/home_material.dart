@@ -1,6 +1,6 @@
+import 'package:hugeicons/hugeicons.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../i18n/translations.g.dart';
@@ -59,21 +59,25 @@ class _HomeMaterialState extends State<HomeMaterial> {
             onDestinationSelected: _onTap,
             destinations: <NavigationDestination>[
               NavigationDestination(
-                icon: const FaIcon(FontAwesomeIcons.solidCircleUser),
-                selectedIcon: const FaIcon(FontAwesomeIcons.solidCircleUser),
+                icon: const HugeIcon(icon: HugeIcons.strokeRoundedUserCircle, size: 24.0, strokeWidth: 2),
+                selectedIcon: const HugeIcon(icon: HugeIcons.strokeRoundedUserCircle, size: 24.0, strokeWidth: 2),
                 label: context.t.screenHome.contacts,
               ),
               NavigationDestination(
-                icon: const FaIcon(FontAwesomeIcons.phoneFlip),
-                selectedIcon: const FaIcon(FontAwesomeIcons.phoneFlip),
+                icon: const HugeIcon(icon: HugeIcons.strokeRoundedCall02, size: 24.0, strokeWidth: 2),
+                selectedIcon: const HugeIcon(icon: HugeIcons.strokeRoundedCall02, size: 24.0, strokeWidth: 2),
                 label: context.t.screenHome.calls,
               ),
               NavigationDestination(
-                icon: const FaIcon(FontAwesomeIcons.solidComments),
-                selectedIcon: const FaIcon(FontAwesomeIcons.solidComments),
+                icon: const HugeIcon(icon: HugeIcons.strokeRoundedChatFeedback01, size: 24.0, strokeWidth: 2),
+                selectedIcon: const HugeIcon(icon: HugeIcons.strokeRoundedChatFeedback01, size: 24.0, strokeWidth: 2),
                 label: context.t.screenHome.chats,
               ),
-              NavigationDestination(icon: const FaIcon(FontAwesomeIcons.gear), label: context.t.screenHome.settings),
+              NavigationDestination(
+                icon: const HugeIcon(icon: HugeIcons.strokeRoundedSettings01, size: 24.0, strokeWidth: 2),
+                selectedIcon: const HugeIcon(icon: HugeIcons.strokeRoundedSettings01, size: 24.0, strokeWidth: 2),
+                label: context.t.screenHome.settings,
+              ),
             ],
           ),
         );

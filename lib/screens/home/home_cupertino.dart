@@ -1,8 +1,6 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
-import 'package:material_ui/material_ui.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:badges/badges.dart' as badges;
 import 'package:go_router/go_router.dart';
 
 import '../../i18n/translations.g.dart';
@@ -70,25 +68,39 @@ class _HomeCupertinoState extends State<HomeCupertino> {
             BottomNavigationBarItem(
               icon: const Padding(
                 padding: EdgeInsets.only(top: 8),
-                child: badges.Badge(
-                  badgeContent: Text(''),
-                  badgeAnimation: badges.BadgeAnimation.size(toAnimate: false),
-                  badgeStyle: badges.BadgeStyle(badgeColor: Colors.red, elevation: 1),
-                  child: FaIcon(FontAwesomeIcons.solidCircleUser),
-                ),
+                child: HugeIcon(icon: HugeIcons.strokeRoundedUserCircle, size: 24.0, strokeWidth: 2),
+                // child: badges.Badge(
+                //   badgeContent: Text(''),
+                //   badgeAnimation: badges.BadgeAnimation.size(toAnimate: false),
+                //   // badgeStyle: badges.BadgeStyle(badgeColor: Colors.red, elevation: 1),
+                //   child: HugeIcon(
+                //     icon: HugeIcons.strokeRoundedUserCircle,
+                //     size: 24.0,
+                //     strokeWidth: 2,
+                //   ),
+                // ),
               ),
               label: context.t.screenHome.contacts,
             ),
             BottomNavigationBarItem(
-              icon: const Padding(padding: EdgeInsets.only(top: 8), child: FaIcon(FontAwesomeIcons.phoneFlip)),
+              icon: const Padding(
+                padding: EdgeInsets.only(top: 8),
+                child: HugeIcon(icon: HugeIcons.strokeRoundedCall02, size: 24.0, strokeWidth: 2),
+              ),
               label: context.t.screenHome.calls,
             ),
             BottomNavigationBarItem(
-              icon: const Padding(padding: EdgeInsets.only(top: 8), child: FaIcon(FontAwesomeIcons.solidComments)),
+              icon: const Padding(
+                padding: EdgeInsets.only(top: 8),
+                child: HugeIcon(icon: HugeIcons.strokeRoundedChatFeedback01, size: 24.0, strokeWidth: 2),
+              ),
               label: context.t.screenHome.chats,
             ),
             BottomNavigationBarItem(
-              icon: const Padding(padding: EdgeInsets.only(top: 8), child: FaIcon(FontAwesomeIcons.gear)),
+              icon: const Padding(
+                padding: EdgeInsets.only(top: 8),
+                child: HugeIcon(icon: HugeIcons.strokeRoundedSettings01, size: 24.0, strokeWidth: 2),
+              ),
               label: context.t.screenHome.settings,
             ),
           ],
