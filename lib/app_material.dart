@@ -1,3 +1,4 @@
+import 'package:hugeicons/hugeicons.dart';
 import 'package:material_ui/material_ui.dart';
 // CupertinoActivityIndicator из cupertino_ui (внутри ConnectionTitle) требует
 // локализацию именно cupertino_ui-типа, поэтому берём делегат оттуда — точечным
@@ -168,7 +169,7 @@ class _IperonMessengerMaterial extends State<IperonMessengerMaterial> with Widge
                   config: ThemesMaterial.screenLockConfig(context),
                   title: Text(context.t.common.biometricPleaseEnterPasscode),
                   customizedButtonChild: state.settingsDevice.passcodeBiometric && state.isBiometricAvailable
-                      ? const Icon(Icons.fingerprint, size: 48)
+                      ? const HugeIcon(icon: HugeIcons.strokeRoundedFingerAccess, size: 48.0)
                       : null,
                   customizedButtonTap: () async =>
                       state.settingsDevice.passcodeBiometric && state.isBiometricAvailable ? await localAuth(context) : null,

@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:flutter/foundation.dart';
 // GlobalCupertinoLocalizations уже приходит из cupertino_ui — прячем дубликат.
@@ -12,8 +10,8 @@ import 'package:flutter_localizations/flutter_localizations.dart' hide GlobalCup
 import 'package:flutter_localizations/flutter_localizations.dart' as flutter_l10n show GlobalCupertinoLocalizations;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screen_lock/flutter_screen_lock.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:local_auth/local_auth.dart';
 
 import 'api.dart';
@@ -204,23 +202,10 @@ class _IperonMessengerCupertino extends State<IperonMessengerCupertino> with Wid
                   config: ThemesCupertino.screenLockConfig(context),
                   title: Text(context.t.common.biometricPleaseEnterPasscode),
                   customizedButtonChild: state.settingsDevice.passcodeBiometric && state.isBiometricAvailable
-                      ? SvgPicture.string(
-                          utf8.decode(
-                            base64.decode(
-                              "PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm"
-                              "9uZSIgc3Ryb2tlPSJjdXJyZW50Q29sb3IiIHN0cm9rZS13aWR0aD0iMS41IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0"
-                              "icm91bmQiPgogIDxwYXRoIGQ9Ik00IDdWNWExIDEgMCAwIDEgMS0xaDIiLz4KICA8cGF0aCBkPSJNMTcgNGgyYTEgMSAwIDAgMSAxIDF2MiIvPgog"
-                              "IDxwYXRoIGQ9Ik0yMCAxN3YyYTEgMSAwIDAgMS0xIDFoLTIiLz4KICA8cGF0aCBkPSJNNyAyMEg1YTEgMSAwIDAgMS0xLTF2LTIiLz4KICA8cGF0a"
-                              "CBkPSJNOSA5djEiLz4KICA8cGF0aCBkPSJNMTUgOXYxIi8+CiAgPHBhdGggZD0iTTkuNSAxNWMuNi42IDEuNSAxIDIuNSAxczEuOS0uNCAyLjUtMS"
-                              "IvPgogIDxwYXRoIGQ9Ik0xMiA4djRoLTEiLz4KPC9zdmc+Cg==",
-                            ),
-                          ),
-                          width: 48,
-                          height: 48,
-                          // Тот же цвет, что и у цифр клавиатуры: ScreenLock
-                          // рендерит их белыми (ScreenLockConfig.defaultConfig →
-                          // buttonStyle.foregroundColor = 0xFFFFFFFF).
-                          colorFilter: ColorFilter.mode(ThemesCupertino.screenLockBiometricIcon(context), BlendMode.srcIn),
+                      ? HugeIcon(
+                          icon: HugeIcons.strokeRoundedFingerAccess,
+                          size: 48,
+                          color: ThemesCupertino.screenLockBiometricIcon(context),
                         )
                       : null,
                   customizedButtonTap: () async =>
