@@ -42,6 +42,14 @@ class MessageType extends $pb.ProtobufEnum {
   static const MessageType CALL_TOKEN = MessageType._(27, _omitEnumNames ? '' : 'CALL_TOKEN');
   static const MessageType CALL_RING = MessageType._(28, _omitEnumNames ? '' : 'CALL_RING');
 
+  /// CALL_ACCEPT — «я принял звонок на этом устройстве». Клиент шлёт его на
+  /// СВОЙ userID (toUserID = self) при ответе на входящий; сервер рассылает
+  /// сигнал остальным устройствам владельца (NATS + cancel-пуш, исключая
+  /// принявшее устройство), чтобы на них снялся баннер входящего
+  /// («ответили на другом устройстве»). На звонящего не идёт — он видит вход
+  /// абонента как ParticipantConnected в комнате LiveKit. См. call_v1.proto.
+  static const MessageType CALL_ACCEPT = MessageType._(48, _omitEnumNames ? '' : 'CALL_ACCEPT');
+
   /// Облачная адресная книга / серверный граф контактов (этап 1: гейт звонков).
   /// UPSERT/REMOVE пишут рёбра владельца, PRIVACY_SETTINGS(_UPDATE) — настройку
   /// «кто может звонить». См. contacts_v1.proto / privacy_v1.proto.
@@ -114,6 +122,7 @@ class MessageType extends $pb.ProtobufEnum {
     REGISTER_PUSH_TOKEN,
     CALL_TOKEN,
     CALL_RING,
+    CALL_ACCEPT,
     CONTACTS_UPSERT,
     CONTACTS_REMOVE,
     PRIVACY_SETTINGS,
@@ -135,7 +144,7 @@ class MessageType extends $pb.ProtobufEnum {
     PRIVACY_LAST_SEEN_DENY_UPDATE,
   ];
 
-  static final $core.List<MessageType?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 47);
+  static final $core.List<MessageType?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 48);
   static MessageType? valueOf($core.int value) => value < 0 || value >= _byValue.length ? null : _byValue[value];
 
   const MessageType._(super.value, super.name);

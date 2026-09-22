@@ -396,6 +396,7 @@ class Calls {
       api.on(MessageType.CALL_RING).listen((p) => _handleSignal(MessageType.CALL_RING, p)),
       api.on(MessageType.CALL_HANGUP).listen((p) => _handleSignal(MessageType.CALL_HANGUP, p)),
       api.on(MessageType.CALL_REJECT).listen((p) => _handleSignal(MessageType.CALL_REJECT, p)),
+      api.on(MessageType.CALL_ACCEPT).listen((p) => _handleSignal(MessageType.CALL_ACCEPT, p)),
     ]);
   }
 
@@ -534,6 +535,16 @@ class Calls {
 
     _emit(_snapshot.copyWith(status: CallStatus.connecting));
     _dbg('accepted');
+    // Мультидевайс: сообщаем остальным устройствам владельца «принято здесь»,
+    // чтобы у них снялся баннер входящего («ответили на другом устройстве»).
+    // Шлём на СВОЙ userID; сервер разошлёт CALL_ACCEPT/cancel остальным
+    // устройствам, исключив это (по deviceID сессии). Своя NATS-копия придёт и
+    // сюда, но отсечётся в [_handleSignal] (статус уже не `incoming`).
+    // Fire-and-forget: задержка ответа не должна тормозить вход в комнату.
+    final selfUserID = auth.session.userID;
+    if (selfUserID.isNotEmpty) {
+      unawaited(_sendRing(MessageType.CALL_ACCEPT, toUserID: selfUserID, callId: _snapshot.callId, video: _snapshot.video));
+    }
     // Страховка от залипания в `connecting`: если собеседник не войдёт в комнату
     // и отмена не придёт — свернём сами (см. [_connectTimer]).
     _startConnectTimeout(_snapshot.callId);
@@ -703,7 +714,24 @@ class Calls {
       case MessageType.CALL_HANGUP:
         if (_isCurrentPeer(ring.callId, from)) await _teardown(CallEndReason.hangup);
       case MessageType.CALL_REJECT:
-        if (_isCurrentPeer(ring.callId, from)) await _teardown(CallEndReason.rejected);
+        // Reject осмыслен только до ответа. После `active` любой CALL_REJECT с
+        // этим callId — это отбой ДРУГОГО устройства того же аккаунта (сиблинга,
+        // где звонок ещё звонил), а не собеседника: игнорируем, чтобы не оборвать
+        // уже идущий разговор. Мультидевайс: сигналинг адресуется по userID, и
+        // `_isCurrentPeer` не отличает сиблинг от собеседника.
+        if (_isCurrentPeer(ring.callId, from) && _snapshot.status != CallStatus.active) {
+          await _teardown(CallEndReason.rejected);
+        }
+      case MessageType.CALL_ACCEPT:
+        // «Принято на другом устройстве владельца» (сервер разослал на все наши
+        // устройства, кроме принявшего). Гасим свой баннер входящего, только
+        // если он ещё звонит (`incoming`) и это тот же callId. Принявшее
+        // устройство сюда тоже попадает своей же копией, но его статус уже
+        // `connecting`/`active` → условие не сработает. Свой userID (`from`) с
+        // собеседником не сверяем — сравниваем лишь callId.
+        if (_snapshot.callId == ring.callId && _snapshot.status == CallStatus.incoming) {
+          await _teardown(CallEndReason.none);
+        }
       default:
         break;
     }
