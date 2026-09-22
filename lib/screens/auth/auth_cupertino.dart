@@ -8,7 +8,6 @@ import 'package:flutter_svg/svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:messenger/utils.dart';
 
-import '../../components.dart';
 import '../../constants.dart';
 import '../../cubit.dart';
 import '../../di.dart';
@@ -163,39 +162,39 @@ class _AuthCupertinoScreen extends State<AuthCupertinoScreen> {
                             : CupertinoActivityIndicator(color: Color(0xffffffff)),
                       ),
                     ),
-                    DividerTextWidget(text: context.t.screenAuth.signInWith),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      spacing: 30,
-                      children: [
-                        GestureDetector(
-                          behavior: HitTestBehavior.opaque,
-                          onTap: () async {
-                            final result = await context.read<AuthCubit>().yandexSignIn();
-                            if (context.mounted) {
-                              showCupertinoDialog(
-                                context: context,
-                                builder: (context) => CupertinoAlertDialog(
-                                  actions: [CupertinoDialogAction(onPressed: () => Navigator.of(context).pop(), child: Text(result))],
-                                ),
-                              );
-                            }
-                          },
-                          child: SvgPicture.asset('assets/images/yandex_id.svg'),
-                        ),
-                        //   Container(
-                        //     width: 42,
-                        //     height: 42,
-                        //     decoration: BoxDecoration(
-                        //       color: Colors.blue,
-                        //       borderRadius: BorderRadius.circular(8),
-                        //     ),
-                        //     child: Center(
-                        //       child: SvgPicture.asset('assets/icons/user-key.svg', width: 32, theme: SvgTheme(currentColor: Colors.white),),
-                        //     ),
-                        //   ),
-                      ],
-                    ),
+                    // DividerTextWidget(text: context.t.screenAuth.signInWith),
+                    // Row(
+                    //   mainAxisAlignment: MainAxisAlignment.center,
+                    //   spacing: 30,
+                    //   children: [
+                    //     GestureDetector(
+                    //       behavior: HitTestBehavior.opaque,
+                    //       onTap: () async {
+                    //         final result = await context.read<AuthCubit>().yandexSignIn();
+                    //         if (context.mounted) {
+                    //           showCupertinoDialog(
+                    //             context: context,
+                    //             builder: (context) => CupertinoAlertDialog(
+                    //               actions: [CupertinoDialogAction(onPressed: () => Navigator.of(context).pop(), child: Text(result))],
+                    //             ),
+                    //           );
+                    //         }
+                    //       },
+                    //       child: SvgPicture.asset('assets/images/yandex_id.svg'),
+                    //     ),
+                    //       Container(
+                    //         width: 42,
+                    //         height: 42,
+                    //         decoration: BoxDecoration(
+                    //           color: Colors.blue,
+                    //           borderRadius: BorderRadius.circular(8),
+                    //         ),
+                    //         child: Center(
+                    //           child: SvgPicture.asset('assets/icons/user-key.svg', width: 32, theme: SvgTheme(currentColor: Colors.white),),
+                    //         ),
+                    //       ),
+                    //   ],
+                    // ),
                   ],
                 ),
               ),

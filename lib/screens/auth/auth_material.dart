@@ -7,7 +7,6 @@ import 'package:flutter_svg/svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:messenger/utils.dart';
 
-import '../../components.dart';
 import '../../constants.dart';
 import '../../cubit.dart';
 import '../../di.dart';
@@ -161,28 +160,28 @@ class _AuthMaterialScreen extends State<AuthMaterialScreen> {
                               ),
                       ),
                     ),
-                    DividerTextWidget(text: context.t.screenAuth.signInWith),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      spacing: 30,
-                      children: [
-                        GestureDetector(
-                          behavior: HitTestBehavior.opaque,
-                          onTap: () async {
-                            final result = await context.read<AuthCubit>().yandexSignIn();
-                            if (context.mounted) {
-                              showDialog(
-                                context: context,
-                                builder: (context) => AlertDialog(
-                                  actions: [TextButton(onPressed: () => Navigator.of(context).pop(), child: Text(result))],
-                                ),
-                              );
-                            }
-                          },
-                          child: SvgPicture.asset('assets/images/yandex_id.svg'),
-                        ),
-                      ],
-                    ),
+                    // DividerTextWidget(text: context.t.screenAuth.signInWith),
+                    // Row(
+                    //   mainAxisAlignment: MainAxisAlignment.center,
+                    //   spacing: 30,
+                    //   children: [
+                    //     GestureDetector(
+                    //       behavior: HitTestBehavior.opaque,
+                    //       onTap: () async {
+                    //         final result = await context.read<AuthCubit>().yandexSignIn();
+                    //         if (context.mounted) {
+                    //           showDialog(
+                    //             context: context,
+                    //             builder: (context) => AlertDialog(
+                    //               actions: [TextButton(onPressed: () => Navigator.of(context).pop(), child: Text(result))],
+                    //             ),
+                    //           );
+                    //         }
+                    //       },
+                    //       child: SvgPicture.asset('assets/images/yandex_id.svg'),
+                    //     ),
+                    //   ],
+                    // ),
                   ],
                 ),
               ),
