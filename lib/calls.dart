@@ -951,6 +951,35 @@ class Calls {
     await _callAudioChannel.invokeMethod<void>(active ? 'activateSession' : 'deactivateSession');
   }
 
+  /// iOS: заполняет Now Playing (имя + аватар собеседника) через нативный
+  /// MPNowPlayingInfoCenter, чтобы шапка системного пикера аудио-маршрутов
+  /// (AVRoutePickerView) показывала имя вместо дефолтного «Нет аудио». Зовётся из
+  /// [CallCubit] по мере разрешения имени/аватара. Очищается в [_teardown]
+  /// ([_clearIosNowPlaying]). No-op вне iOS. См. ios/Runner/AppDelegate.swift.
+  Future<void> setIosNowPlaying({required String title, String? subtitle, Uint8List? artwork}) async {
+    if (!Platform.isIOS || title.isEmpty) return;
+    try {
+      await _callAudioChannel.invokeMethod<void>('setNowPlaying', {
+        'title': title,
+        if (subtitle != null && subtitle.isNotEmpty) 'subtitle': subtitle,
+        'artwork': ?artwork,
+      });
+    } catch (error, stackTrace) {
+      logger.handle(error, stackTrace);
+    }
+  }
+
+  /// iOS: очищает Now Playing при завершении звонка — иначе метаданные (и имя в
+  /// шапке пикера) висели бы между звонками. No-op вне iOS.
+  Future<void> _clearIosNowPlaying() async {
+    if (!Platform.isIOS) return;
+    try {
+      await _callAudioChannel.invokeMethod<void>('clearNowPlaying');
+    } catch (error, stackTrace) {
+      logger.handle(error, stackTrace);
+    }
+  }
+
   /// Включает/выключает WebRTC-аудиодвижок LiveKit по событию CallKit
   /// ToggleAudioSession (`provider(didActivate:)`/`didDeactivate:`), которое
   /// прилетает из [CallPush]. Значимо только на CallKit-пути
@@ -1321,6 +1350,10 @@ class Calls {
           logger.handle(error, stackTrace);
         }
       }
+
+      // iOS: снимаем Now Playing (имя/аватар в шапке пикера маршрутов) —
+      // независимо от CallKit-пути, т.к. метаданные ставятся на экране звонка.
+      await _clearIosNowPlaying();
     } finally {
       _diag = _diag.isEmpty ? 'ended:${reason.name}' : '$_diag · ended:${reason.name}';
       _emit(CallSnapshot(status: CallStatus.ended, callId: callId, remoteUserID: remote, video: video, endReason: reason, debug: _diag));

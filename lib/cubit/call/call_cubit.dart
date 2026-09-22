@@ -9,6 +9,7 @@ import '../../calls.dart';
 import '../../cdn.dart';
 import '../../constants.dart';
 import '../../di.dart';
+import '../../i18n/translations.g.dart';
 import '../../logger.dart';
 import '../../models.dart' as models;
 import '../../protobuf.dart';
@@ -92,12 +93,14 @@ class CallCubit extends Cubit<CallState> {
           ),
         ),
       );
+      _pushNowPlaying();
 
       if (response.hasAvatar()) {
         try {
           final file = await cdnManager.download(cdn: models.CDN.fromProto(response.avatar));
           if (isClosed) return;
           emit(state.copyWith(avatarBytes: await file.readAsBytes()));
+          _pushNowPlaying();
         } catch (error, stackTrace) {
           logger.handle(error, stackTrace);
         }
@@ -136,8 +139,18 @@ class CallCubit extends Cubit<CallState> {
     // подставляем аватар только когда он реально есть в кэше.
     if (avatarBytes != null) next = next.copyWith(avatarBytes: avatarBytes);
     emit(next);
+    _pushNowPlaying();
 
     await sendFuture;
+  }
+
+  /// iOS: отдаёт имя/аватар собеседника в Now Playing, чтобы шапка системного
+  /// пикера аудио-маршрутов показывала имя вместо «Нет аудио» (см.
+  /// [Calls.setIosNowPlaying]). Зовётся после каждого разрешения имени/аватара;
+  /// no-op при пустом имени и вне iOS (внутри [Calls.setIosNowPlaying]).
+  void _pushNowPlaying() {
+    if (state.displayName.isEmpty) return;
+    unawaited(_calls.setIosNowPlaying(title: state.displayName, subtitle: t.screenCall.title, artwork: state.avatarBytes));
   }
 
   Future<void> accept() => _calls.accept();

@@ -4,6 +4,7 @@ import PushKit
 import CallKit
 import AVFoundation
 import AVKit
+import MediaPlayer
 import flutter_callkit_incoming
 
 @main
@@ -69,6 +70,33 @@ import flutter_callkit_incoming
           } catch {
             result(FlutterError(code: "audio_session", message: error.localizedDescription, details: nil))
           }
+        // Now Playing: заполняем метаданные текущего «воспроизведения» (имя
+        // собеседника + аватар) через MPNowPlayingInfoCenter. iOS показывает их
+        // в шапке системного пикера аудио-маршрутов (AVRoutePickerView) — вместо
+        // дефолтного «Нет аудио» будет имя контакта. Очищается в clearNowPlaying
+        // при завершении звонка. Аргументы: title:String, subtitle:String?,
+        // artwork:Uint8List? (байты аватара). См. lib/calls.dart setIosNowPlaying.
+        case "setNowPlaying":
+          let args = call.arguments as? [String: Any]
+          let title = (args?["title"] as? String) ?? ""
+          var info: [String: Any] = [
+            MPMediaItemPropertyTitle: title,
+            // Помечаем как «живой поток» — у звонка нет длительности/позиции, иначе
+            // iOS рисует шкалу прогресса на 0:00.
+            MPNowPlayingInfoPropertyIsLiveStream: true,
+          ]
+          if let subtitle = args?["subtitle"] as? String, !subtitle.isEmpty {
+            info[MPMediaItemPropertyArtist] = subtitle
+          }
+          if let data = (args?["artwork"] as? FlutterStandardTypedData)?.data,
+             let image = UIImage(data: data) {
+            info[MPMediaItemPropertyArtwork] = MPMediaItemArtwork(boundsSize: image.size) { _ in image }
+          }
+          MPNowPlayingInfoCenter.default().nowPlayingInfo = info
+          result(nil)
+        case "clearNowPlaying":
+          MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
+          result(nil)
         default:
           result(FlutterMethodNotImplemented)
         }
