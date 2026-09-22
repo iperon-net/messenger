@@ -106,18 +106,20 @@ dependencies:
   # нативный под WebRTC-SDK, поэтому версия flutter_webrtc обязана совпадать с той,
   # что пинит livekit_client, иначе конфликт CocoaPods/ABI.
   #
-  # ВРЕМЕННО на git main livekit (после релиза 2.12.0), ради обновления нативного
-  # libwebrtc m144 → m150 (коммит #1187) — проверяем, чинит ли новый WebRTC
-  # cold-start ICE-краш (EXC_BAD_ACCESS 0x28 на ICE-потоке; на m144 воспроизводился
-  # стабильно). Пин на конкретный коммит ed1dd712e (#1187 m150 + #1193 hotfix), не
-  # на плавающий main. Соответственно flutter_webrtc = 1.6.2+hotfix.1 (→ WebRTC-SDK
-  # 150.7871.01), как пинит этот коммит livekit. Вернуть на pub-релиз, когда
-  # livekit опубликует версию с m150.
-  flutter_webrtc: 1.6.2+hotfix.1
-  livekit_client:
-    git:
-      url: https://github.com/livekit/client-sdk-flutter.git
-      ref: ed1dd712e
+  # livekit_client 2.13.0 (pub-релиз, 2026-09-15) содержит нативный libwebrtc m150
+  # (через flutter_webrtc 1.6.2+hotfix.3) — тот самый m150, ради которого раньше
+  # сидели на git-коммите ed1dd712e (cold-start ICE-краш EXC_BAD_ACCESS 0x28 на
+  # ICE-потоке; на m144 воспроизводился стабильно). Плюс фиксы переподключения:
+  # session migration (server Leave{action: RESUME}) теперь не роняет удалённых
+  # участников. Держим flutter_webrtc ровно на той версии, что пинит livekit 2.13.0,
+  # иначе конфликт CocoaPods/ABI.
+  #
+  # flutter_webrtc 1.6.2+hotfix.2 (#2172) убрал MissingPluginException на cancel для
+  # FlutterWebRTC/peerConnectionEvent при dispose (наш teardown-краш из Crashlytics:
+  # на iOS был non-fatal, на Android — FATAL «No active stream to cancel»), hotfix.3
+  # (#2174/#2175) — то же для data-channel event channel.
+  flutter_webrtc: 1.6.2+hotfix.3
+  livekit_client: ^2.13.0
   hugeicons: ^1.2.0
 
 dev_dependencies:
