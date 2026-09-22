@@ -105,6 +105,16 @@ class _CallGateState extends State<CallGate> {
         if (_isActive(_snapshot.status)) return;
         final router = GoRouter.of(context);
         if (router.canPop()) router.pop();
+        // Детерминированный сброс флага. `push('/call').whenComplete` (см.
+        // [_openCall]) при pageBuilder-странице срабатывает НЕ всегда: наблюдалось,
+        // что после первого звонка колбэк не выстреливал, `_routeOpen` залипал в
+        // `true`, и следующий звонок не открывал экран (`openCall skipped (already
+        // open)`) — виден только в Dynamic Island/CallKit, а полоска возврата тоже
+        // скрыта (`_shouldShowBanner = !_routeOpen && ...`), т.е. на экран звонка
+        // не попасть до перезапуска приложения. Звонок завершён — «текущего» экрана
+        // больше нет, снимаем флаг здесь независимо от whenComplete (маршрут выше
+        // уже запопан; повторный сброс из whenComplete идемпотентен).
+        _setRouteOpen(false);
       });
     }
 
