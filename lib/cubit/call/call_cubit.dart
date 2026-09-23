@@ -159,7 +159,8 @@ class CallCubit extends Cubit<CallState> {
   Future<void> toggleMic() => _calls.toggleMic();
   Future<void> toggleCamera() => _calls.toggleCamera();
   Future<void> enableVideo() => _calls.enableVideo();
-  Future<void> restartLocalVideo() => _calls.restartLocalVideo();
+  Future<void> pauseVideoForBackground() => _calls.pauseVideoForBackground();
+  Future<void> resumeVideoAfterBackground() => _calls.resumeVideoAfterBackground();
   Future<void> toggleSpeaker() => _calls.toggleSpeaker();
   Future<void> switchCamera() => _calls.switchCamera();
 

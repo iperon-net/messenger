@@ -711,23 +711,52 @@ class Calls {
     _emit(_snapshot.copyWith(speakerOn: on));
   }
 
-  /// Возврат приложения из фона: перезапускает локальный видеозахват в активном
-  /// видеозвонке. iOS прерывает `AVCaptureSession` в фоне, Android останавливает
-  /// захват — без «толчка» камеры собеседник продолжал бы видеть застывший
-  /// последний кадр, а наше локальное превью не оживало бы. Бампаем и `mediaEpoch`,
-  /// чтобы UI пересоздал видеорендереры (нативная поверхность после фона потеряна).
-  /// No-op вне активного видеозвонка или при намеренно выключенной камере.
-  Future<void> restartLocalVideo() async {
+  // iOS: локальная камера приглушена из-за ухода приложения в фон (НЕ пользователем).
+  // В фоне iOS прерывает `AVCaptureSession` (камера физически не снимает), но
+  // приложение живёт ради аудиосессии CallKit, поэтому mute-сигнал успевает уйти.
+  // Без него собеседник держал бы на экране застывший последний кадр. Флаг помнит,
+  // что камеру надо вернуть на [resumeVideoAfterBackground]. На Android захват в
+  // фоне продолжается — там не трогаем.
+  bool _videoPausedByBackground = false;
+
+  /// Уход приложения в фон во время видеозвонка (iOS): глушит локальную камеру,
+  /// чтобы у собеседника показался аватар («камера выключена»), а не застывший
+  /// последний кадр. No-op на Android (там фон не рвёт захват) и вне активного
+  /// видеозвонка с включённой пользователем камерой.
+  Future<void> pauseVideoForBackground() async {
+    if (!Platform.isIOS) return;
     if (!_hasActiveCall || !_snapshot.video || _snapshot.cameraOff) return;
     final participant = _room?.localParticipant;
     if (participant == null) return;
+    _videoPausedByBackground = true;
     try {
-      final publication = await participant.setCameraEnabled(true);
-      _localVideoTrack = publication?.track as VideoTrack?;
+      await participant.setCameraEnabled(false);
+      _localVideoTrack = null;
       _emit(_snapshot.copyWith(mediaEpoch: _snapshot.mediaEpoch + 1));
     } catch (error, stackTrace) {
       logger.handle(error, stackTrace);
     }
+  }
+
+  /// Возврат приложения из фона во время видеозвонка: восстанавливает камеру,
+  /// приглушённую в [pauseVideoForBackground] (если пользователь сам её не
+  /// выключил). Бампает `mediaEpoch`, чтобы синхронизировать состояние; сам UI
+  /// поверх этого ещё и пересоздаёт видеорендереры (нативная поверхность после
+  /// фона теряется). No-op вне активного видеозвонка.
+  Future<void> resumeVideoAfterBackground() async {
+    if (!_hasActiveCall || !_snapshot.video) return;
+    final restore = _videoPausedByBackground && !_snapshot.cameraOff;
+    _videoPausedByBackground = false;
+    final participant = _room?.localParticipant;
+    if (restore && participant != null) {
+      try {
+        final publication = await participant.setCameraEnabled(true);
+        _localVideoTrack = publication?.track as VideoTrack?;
+      } catch (error, stackTrace) {
+        logger.handle(error, stackTrace);
+      }
+    }
+    _emit(_snapshot.copyWith(mediaEpoch: _snapshot.mediaEpoch + 1));
   }
 
   /// Переключает фронтальную/тыловую камеру.

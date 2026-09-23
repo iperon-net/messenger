@@ -200,14 +200,29 @@ class _CallViewState extends State<CallView> with WidgetsBindingObserver {
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState lifecycle) {
-    if (lifecycle != AppLifecycleState.resumed || !mounted) return;
+    if (!mounted) return;
     final cubit = context.read<CallCubit>();
-    // Возврат из фона в идущем видеозвонке: перезапускаем локальный захват (в фоне
-    // iOS/Android его останавливают — собеседник иначе видит застывший кадр) и
-    // пересоздаём рендереры (нативная поверхность после фона потеряна → freeze).
-    if (cubit.state.video && (cubit.state.callStatus == CallStatus.active || cubit.state.callStatus == CallStatus.connecting)) {
-      unawaited(cubit.restartLocalVideo());
-      setState(() => _renderGen++);
+    final isVideoCall =
+        cubit.state.video && (cubit.state.callStatus == CallStatus.active || cubit.state.callStatus == CallStatus.connecting);
+    if (!isVideoCall) return;
+
+    switch (lifecycle) {
+      case AppLifecycleState.paused:
+      case AppLifecycleState.hidden:
+        // Уход в фон: на iOS камера в фоне всё равно не снимает — глушим её, чтобы
+        // собеседник увидел аватар, а не застывший последний кадр (на Android
+        // захват в фоне продолжается, метод там no-op).
+        unawaited(cubit.pauseVideoForBackground());
+      case AppLifecycleState.resumed:
+        // Возврат из фона: восстанавливаем приглушённую камеру и пересоздаём
+        // рендереры (нативная видеоповерхность после фона теряется → freeze).
+        unawaited(cubit.resumeVideoAfterBackground());
+        setState(() => _renderGen++);
+      case AppLifecycleState.inactive:
+      case AppLifecycleState.detached:
+        // `inactive` на iOS прилетает и на транзиентные помехи (шторка/переключатель)
+        // — камеру на нём НЕ трогаем, иначе моргала бы зря.
+        break;
     }
   }
 
