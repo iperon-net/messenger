@@ -1,8 +1,12 @@
 package net.iperon.messenger
 
+import android.app.PictureInPictureParams
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.content.res.Configuration
 import android.os.Build
 import android.os.Bundle
+import android.util.Rational
 import android.view.WindowManager
 import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine
@@ -41,6 +45,18 @@ import io.flutter.plugin.common.MethodChannel
 class MainActivity : FlutterFragmentActivity() {
     private val channelName = "net.iperon.messenger/call_window"
     private var callWindowChannel: MethodChannel? = null
+
+    // Канал Picture-in-Picture (мини-окно видеозвонка поверх рабочего стола).
+    // Отдельный от call_window, чтобы не перебивать его обработчик (focusCall) в
+    // CallPush своим setMethodCallHandler.
+    private val pipChannelName = "net.iperon.messenger/call_pip"
+    private var pipChannel: MethodChannel? = null
+
+    // Разрешён ли автовход в PiP по нажатию Home. Flutter взводит флаг, пока открыт
+    // активный видеозвонок (см. lib/components/calls/call_view.dart), и снимает при
+    // уходе с экрана/переходе в аудио. Без флага любое сворачивание приложения
+    // (например, из списка чатов) уводило бы в мини-окно.
+    private var pipAllowed = false
 
     // Свой выбор аудио-выхода звонка (setCommunicationDevice, API 31+). См.
     // AudioDevicesHandler и lib/audio_routes.dart.
@@ -96,6 +112,64 @@ class MainActivity : FlutterFragmentActivity() {
                     else -> result.notImplemented()
                 }
             } }
+
+        pipChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, pipChannelName)
+            .also { it.setMethodCallHandler { call, result ->
+                when (call.method) {
+                    // Разрешить/запретить автовход в PiP по Home (взводится на время
+                    // активного видеозвонка).
+                    "setPipAllowed" -> {
+                        pipAllowed = (call.arguments as? Boolean ?: false) && isPipSupported()
+                        result.success(pipAllowed)
+                    }
+                    // Явный вход в PiP (например, по кнопке на экране звонка).
+                    "enterPip" -> result.success(enterPipIfPossible())
+                    else -> result.notImplemented()
+                }
+            } }
+    }
+
+    /// Поддерживает ли устройство/ОС PiP. Android 8.0+ и системная фича
+    /// (на некоторых прошивках/Go-устройствах её нет).
+    private fun isPipSupported(): Boolean =
+        Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
+            packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)
+
+    /// Уходит в мини-окно, если это разрешено Flutter'ом и поддерживается. Возвращает
+    /// true, если запрос на вход отправлен. Соотношение сторон окна — портретное
+    /// 9:16 (видеозвонок в портрете; система ограничивает крайние пропорции).
+    private fun enterPipIfPossible(): Boolean {
+        if (!pipAllowed || !isPipSupported()) return false
+        return try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                val params = PictureInPictureParams.Builder()
+                    .setAspectRatio(Rational(9, 16))
+                    .build()
+                enterPictureInPictureMode(params)
+            } else {
+                false
+            }
+        } catch (e: IllegalStateException) {
+            // Activity в состоянии, из которого вход в PiP запрещён (например, уже
+            // финишируется) — молча игнорируем.
+            false
+        }
+    }
+
+    /// Пользователь уходит из приложения (Home / переключатель задач). Во время
+    /// активного видеозвонка вместо сворачивания уводим экран в мини-окно, чтобы
+    /// видео продолжало показываться поверх рабочего стола.
+    override fun onUserLeaveHint() {
+        if (pipAllowed) enterPipIfPossible()
+        super.onUserLeaveHint()
+    }
+
+    /// Смена режима PiP ⇄ полноэкранный. Сообщаем Flutter, чтобы экран звонка
+    /// переключил компактный лейаут (в мини-окне прячем панель управления, оставляя
+    /// только видео).
+    override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean, newConfig: Configuration) {
+        super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
+        pipChannel?.invokeMethod("pipModeChanged", isInPictureInPictureMode)
     }
 
     private fun applyCallLaunchFlags(intent: Intent?) {

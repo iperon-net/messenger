@@ -139,6 +139,15 @@ class _CallViewState extends State<CallView> with WidgetsBindingObserver {
   // рендер остаётся застывшим на последнем кадре. Меняется только на resume,
   // поэтому в обычном ходе звонка рендереры стабильны (без мерцания).
   int _renderGen = 0;
+
+  // Picture-in-Picture (Android): мини-окно видеозвонка поверх рабочего стола.
+  // Канал совпадает с обработчиком в MainActivity.kt. `_pipAllowed` — что мы уже
+  // сообщили нативу (дедуп, как у [_wakelockEnabled]); `_inPip` — активен ли режим
+  // мини-окна сейчас (натив шлёт `pipModeChanged`), в нём прячем панель управления.
+  static const _pipChannel = MethodChannel('net.iperon.messenger/call_pip');
+  bool _pipAllowed = false;
+  bool _inPip = false;
+
   // Рингтон входящего. Играет ТОЛЬКО пока звонок в статусе `incoming` и только
   // там, где входящий ведёт наш экран (iOS-foreground — см. CallGate); на Android
   // и на фоне/локскрине/cold-start iOS входящий ведёт системная звонилка и звонит
@@ -174,6 +183,8 @@ class _CallViewState extends State<CallView> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    // Android: слушаем смену режима PiP от натива (вход/выход мини-окна).
+    if (Platform.isAndroid) _pipChannel.setMethodCallHandler(_onPipCall);
     // Экран звонка — только портрет: в ландшафте вертикальная колонка контролов
     // не влезала и кнопка отбоя уезжала за пределы экрана. Возвращаем свободную
     // ориентацию при уходе с экрана.
@@ -192,10 +203,31 @@ class _CallViewState extends State<CallView> with WidgetsBindingObserver {
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    // Уходим с экрана звонка — запрещаем PiP и снимаем обработчик канала.
+    _syncPipAllowed(false);
+    if (Platform.isAndroid) _pipChannel.setMethodCallHandler(null);
     unawaited(_stopRingtone());
     _syncWakelock(false);
     SystemChrome.setPreferredOrientations(DeviceOrientation.values);
     super.dispose();
+  }
+
+  /// Обработчик вызовов от натива по PiP-каналу. Единственный метод —
+  /// `pipModeChanged`: вход/выход мини-окна, по нему переключаем компактный лейаут.
+  Future<dynamic> _onPipCall(MethodCall call) async {
+    if (call.method == 'pipModeChanged' && mounted) {
+      setState(() => _inPip = call.arguments == true);
+    }
+    return null;
+  }
+
+  /// Разрешает/запрещает нативу автовход в PiP по Home. Идемпотентно (дедуп по
+  /// [_pipAllowed]); только Android. Взводим на активном видеозвонке, снимаем на
+  /// аудио/уходе с экрана — иначе любое сворачивание уводило бы в мини-окно.
+  void _syncPipAllowed(bool allow) {
+    if (!Platform.isAndroid || _pipAllowed == allow) return;
+    _pipAllowed = allow;
+    unawaited(_pipChannel.invokeMethod<void>('setPipAllowed', allow).catchError((_) {}));
   }
 
   @override
@@ -279,6 +311,8 @@ class _CallViewState extends State<CallView> with WidgetsBindingObserver {
         // Удерживаем экран включённым, пока идёт видеозвонок; на аудио и после
         // завершения — отпускаем (dispose тоже страхует на уходе с экрана).
         _syncWakelock(isVideoCall);
+        // Android: разрешаем автовход в PiP по Home ровно на время видеозвонка.
+        _syncPipAllowed(isVideoCall);
         // Дорожки берём из сервиса; mediaEpoch в state гарантирует, что при их
         // появлении/смене BlocBuilder перестроит рендереры (сами VideoTrack не
         // участвуют в equality состояния).
@@ -291,6 +325,20 @@ class _CallViewState extends State<CallView> with WidgetsBindingObserver {
         final remoteVideoVisible = isVideoCall && remoteTrack != null && !state.remoteVideoOff;
         // Поверх видео — светлая палитра (контраст над картинкой); иначе — под тему.
         final palette = remoteVideoVisible ? _CallPalette.overMedia : _CallPalette.of(context, darkMode);
+
+        // Режим мини-окна (Android PiP): окно крошечное, панель управления/имя и
+        // локальное превью не помещаются и не нужны — показываем только видео
+        // собеседника (или его аватар, если камера у него выключена).
+        if (_inPip) {
+          return ColoredBox(
+            color: palette.bg,
+            child: remoteVideoVisible
+                ? VideoTrackRenderer(remoteTrack, key: ValueKey('remote-$_renderGen'), fit: VideoViewFit.cover)
+                : Center(
+                    child: _Avatar(state: state, palette: palette),
+                  ),
+          );
+        }
 
         return ColoredBox(
           color: palette.bg,
