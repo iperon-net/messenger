@@ -44,7 +44,7 @@ import flutter_callkit_incoming
     // сворачивании приложения. Канал net.iperon.messenger/call_pip_ios,
     // драйвится из lib/call_pip_ios.dart. См. CallPipController + docs/ios_pip_plan.md.
     if let messenger = engineBridge.pluginRegistry.registrar(forPlugin: "IperonCallPip")?.messenger() {
-      CallPipController.shared().register(withMessenger: messenger)
+      CallPipController.shared().register(with: messenger)
     }
 
     // Канал явной активации AVAudioSession на пути без CallKit
