@@ -81,14 +81,14 @@ class _ProfileMaterial extends State<ProfileMaterial> {
                 IconButton(
                   icon: HugeIcon(icon: HugeIcons.strokeRoundedCall02, size: 22.0, strokeWidth: 2),
                   onPressed: () async {
-                    await ensureCallPermissions(context, forCall: true);
+                    await ensureCallMicPermission();
                     await getIt.get<Calls>().startCall(toUserID: state.userID, video: false);
                   },
                 ),
                 IconButton(
                   icon: HugeIcon(icon: HugeIcons.strokeRoundedVideo01, size: 22.0, strokeWidth: 2),
                   onPressed: () async {
-                    await ensureCallPermissions(context, forCall: true);
+                    await ensureCallMicPermission();
                     await getIt.get<Calls>().startCall(toUserID: state.userID, video: true);
                   },
                 ),

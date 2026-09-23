@@ -1,10 +1,13 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:bloc/bloc.dart';
 import 'package:flutter/foundation.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 import '../../api.dart';
 import '../../calls.dart';
+import '../../components/call_permissions.dart';
 import '../../constants.dart';
 import '../../di.dart';
 import '../../logger.dart';
@@ -172,6 +175,88 @@ class CallsCubit extends Cubit<CallsState> {
       logger.handle(error, stackTrace);
     }
     await load();
+  }
+
+  /// Пересчитывает недостающие разрешения для звонков БЕЗ системного диалога —
+  /// только статусы (микрофон + уведомления на Android). Управляет показом
+  /// баннера-объяснения на вкладке; вызывается при первом показе и после запроса.
+  Future<void> checkCallPermissions() async {
+    final mic = await Permission.microphone.status;
+    if (isClosed) return;
+    var notifMissing = false;
+    if (Platform.isAndroid) {
+      final notif = await Permission.notification.status;
+      if (isClosed) return;
+      notifMissing = !notif.isGranted;
+    }
+    emit(state.copyWith(callMicMissing: !mic.isGranted, callNotifMissing: notifMissing));
+  }
+
+  /// Кнопка «Разрешить» в баннере: запрашиваем недостающие разрешения строго
+  /// последовательно (на Android два системных диалога сразу не показываются).
+  /// Если система диалог уже не покажет (отклонено навсегда) — ведём в настройки.
+  /// По завершении пересчитываем статусы, чтобы баннер скрылся при успехе.
+  Future<void> requestCallPermissions() async {
+    final mic = await Permission.microphone.status;
+    if (isClosed) return;
+    var openedSettings = false;
+    if (!mic.isGranted) {
+      if (mic.isPermanentlyDenied) {
+        await openAppSettings();
+        openedSettings = true;
+      } else {
+        await Permission.microphone.request();
+      }
+      if (isClosed) return;
+    }
+    // Уведомления — только Android. Настройки уже открыли под микрофон — второй
+    // раз не дёргаем (перепроверим при возврате на вкладку). Запрашиваем через
+    // permission_handler (а не callkit): его Future дожидается ответа пользователя
+    // и возвращает свежий статус — иначе последующий checkCallPermissions читал бы
+    // старый статус и баннер не исчезал бы сразу после выдачи.
+    if (Platform.isAndroid && !openedSettings) {
+      final notif = await Permission.notification.status;
+      if (isClosed) return;
+      if (!notif.isGranted) {
+        if (notif.isPermanentlyDenied) {
+          await openAppSettings();
+        } else {
+          await Permission.notification.request();
+        }
+        if (isClosed) return;
+      }
+    }
+    await checkCallPermissions();
+  }
+
+  /// Пользователь закрыл баннер-объяснение о разрешениях звонков. Скрываем до
+  /// конца сессии (в памяти кубита); историю звонков баннер и так не блокирует.
+  void dismissCallBanner() {
+    if (state.bannerDismissed) return;
+    emit(state.copyWith(bannerDismissed: true));
+  }
+
+  /// Android-only: пересчитывает статус PiP-разрешения (без диалога) для показа
+  /// PiP-баннера. Вызывается при первом показе вкладки и при возврате на передний
+  /// план (после похода в системные настройки PiP).
+  Future<void> checkPipPermission() async {
+    if (!Platform.isAndroid) return;
+    final granted = await isPipPermissionGranted();
+    if (isClosed) return;
+    emit(state.copyWith(pipMissing: !granted));
+  }
+
+  /// Кнопка «Открыть настройки» в PiP-баннере: PiP системным диалогом не
+  /// запросить, ведём в системные настройки. Пересчёт статуса произойдёт при
+  /// возврате на передний план (см. [checkPipPermission]).
+  Future<void> openPipPermissionSettings() async {
+    await openPipSettings();
+  }
+
+  /// Пользователь закрыл PiP-баннер. Скрываем до конца сессии (в памяти кубита).
+  void dismissPipBanner() {
+    if (state.pipBannerDismissed) return;
+    emit(state.copyWith(pipBannerDismissed: true));
   }
 
   @override

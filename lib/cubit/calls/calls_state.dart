@@ -33,6 +33,23 @@ class CallsState with CallsStateMappable {
   /// [CallsCubit.search], а не в build.
   final Set<String> revealedHex;
 
+  /// Недостающие разрешения для звонков (пересчитываются без системного диалога,
+  /// см. [CallsCubit.checkCallPermissions]). Микрофон нужен на обеих платформах;
+  /// уведомления — только на Android (на iOS входящие ведёт CallKit).
+  final bool callMicMissing;
+  final bool callNotifMissing;
+
+  /// Пользователь закрыл баннер-объяснение о разрешениях звонков в этой сессии
+  /// (живёт только в памяти кубита; на следующем запуске напомнит снова).
+  final bool bannerDismissed;
+
+  /// Android-only: выключено ли разрешение Picture-in-Picture (мини-окно
+  /// видеозвонка). Пересчитывается без диалога (см. [CallsCubit.checkPipPermission]).
+  final bool pipMissing;
+
+  /// Пользователь закрыл баннер PiP в этой сессии (в памяти кубита).
+  final bool pipBannerDismissed;
+
   const CallsState({
     this.status = Status.initialization,
     this.calls = const [],
@@ -41,7 +58,20 @@ class CallsState with CallsStateMappable {
     this.names = const {},
     this.hiddenHashByHex = const {},
     this.revealedHex = const {},
+    this.callMicMissing = false,
+    this.callNotifMissing = false,
+    this.bannerDismissed = false,
+    this.pipMissing = false,
+    this.pipBannerDismissed = false,
   });
+
+  /// Показывать ли баннер-объяснение: чего-то не хватает и его ещё не закрыли.
+  bool get showCallPermissionsBanner => (callMicMissing || callNotifMissing) && !bannerDismissed;
+
+  /// Показывать ли баннер PiP: разрешение выключено, его не закрыли и обязательные
+  /// разрешения (микрофон/уведомления) уже выданы — PiP-баннер идёт вторым, чтобы
+  /// не показывать два баннера сразу.
+  bool get showPipBanner => pipMissing && !pipBannerDismissed && !callMicMissing && !callNotifMissing;
 
   /// Есть ли хоть один пропущенный звонок — для показа/скрытия фильтра.
   bool get hasMissed => calls.any((c) => c.missed);

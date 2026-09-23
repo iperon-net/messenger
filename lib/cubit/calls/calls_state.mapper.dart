@@ -116,6 +116,41 @@ class CallsStateMapper extends ClassMapperBase<CallsState> {
     opt: true,
     def: const {},
   );
+  static bool _$callMicMissing(CallsState v) => v.callMicMissing;
+  static const Field<CallsState, bool> _f$callMicMissing = Field(
+    'callMicMissing',
+    _$callMicMissing,
+    opt: true,
+    def: false,
+  );
+  static bool _$callNotifMissing(CallsState v) => v.callNotifMissing;
+  static const Field<CallsState, bool> _f$callNotifMissing = Field(
+    'callNotifMissing',
+    _$callNotifMissing,
+    opt: true,
+    def: false,
+  );
+  static bool _$bannerDismissed(CallsState v) => v.bannerDismissed;
+  static const Field<CallsState, bool> _f$bannerDismissed = Field(
+    'bannerDismissed',
+    _$bannerDismissed,
+    opt: true,
+    def: false,
+  );
+  static bool _$pipMissing(CallsState v) => v.pipMissing;
+  static const Field<CallsState, bool> _f$pipMissing = Field(
+    'pipMissing',
+    _$pipMissing,
+    opt: true,
+    def: false,
+  );
+  static bool _$pipBannerDismissed(CallsState v) => v.pipBannerDismissed;
+  static const Field<CallsState, bool> _f$pipBannerDismissed = Field(
+    'pipBannerDismissed',
+    _$pipBannerDismissed,
+    opt: true,
+    def: false,
+  );
 
   @override
   final MappableFields<CallsState> fields = const {
@@ -126,6 +161,11 @@ class CallsStateMapper extends ClassMapperBase<CallsState> {
     #names: _f$names,
     #hiddenHashByHex: _f$hiddenHashByHex,
     #revealedHex: _f$revealedHex,
+    #callMicMissing: _f$callMicMissing,
+    #callNotifMissing: _f$callNotifMissing,
+    #bannerDismissed: _f$bannerDismissed,
+    #pipMissing: _f$pipMissing,
+    #pipBannerDismissed: _f$pipBannerDismissed,
   };
 
   static CallsState _instantiate(DecodingData data) {
@@ -137,6 +177,11 @@ class CallsStateMapper extends ClassMapperBase<CallsState> {
       names: data.dec(_f$names),
       hiddenHashByHex: data.dec(_f$hiddenHashByHex),
       revealedHex: data.dec(_f$revealedHex),
+      callMicMissing: data.dec(_f$callMicMissing),
+      callNotifMissing: data.dec(_f$callNotifMissing),
+      bannerDismissed: data.dec(_f$bannerDismissed),
+      pipMissing: data.dec(_f$pipMissing),
+      pipBannerDismissed: data.dec(_f$pipBannerDismissed),
     );
   }
 
@@ -217,6 +262,11 @@ abstract class CallsStateCopyWith<$R, $In extends CallsState, $Out>
     Map<String, String>? names,
     Map<String, String>? hiddenHashByHex,
     Set<String>? revealedHex,
+    bool? callMicMissing,
+    bool? callNotifMissing,
+    bool? bannerDismissed,
+    bool? pipMissing,
+    bool? pipBannerDismissed,
   });
   CallsStateCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
@@ -263,6 +313,11 @@ class _CallsStateCopyWithImpl<$R, $Out>
     Map<String, String>? names,
     Map<String, String>? hiddenHashByHex,
     Set<String>? revealedHex,
+    bool? callMicMissing,
+    bool? callNotifMissing,
+    bool? bannerDismissed,
+    bool? pipMissing,
+    bool? pipBannerDismissed,
   }) => $apply(
     FieldCopyWithData({
       if (status != null) #status: status,
@@ -272,6 +327,11 @@ class _CallsStateCopyWithImpl<$R, $Out>
       if (names != null) #names: names,
       if (hiddenHashByHex != null) #hiddenHashByHex: hiddenHashByHex,
       if (revealedHex != null) #revealedHex: revealedHex,
+      if (callMicMissing != null) #callMicMissing: callMicMissing,
+      if (callNotifMissing != null) #callNotifMissing: callNotifMissing,
+      if (bannerDismissed != null) #bannerDismissed: bannerDismissed,
+      if (pipMissing != null) #pipMissing: pipMissing,
+      if (pipBannerDismissed != null) #pipBannerDismissed: pipBannerDismissed,
     }),
   );
   @override
@@ -283,6 +343,14 @@ class _CallsStateCopyWithImpl<$R, $Out>
     names: data.get(#names, or: $value.names),
     hiddenHashByHex: data.get(#hiddenHashByHex, or: $value.hiddenHashByHex),
     revealedHex: data.get(#revealedHex, or: $value.revealedHex),
+    callMicMissing: data.get(#callMicMissing, or: $value.callMicMissing),
+    callNotifMissing: data.get(#callNotifMissing, or: $value.callNotifMissing),
+    bannerDismissed: data.get(#bannerDismissed, or: $value.bannerDismissed),
+    pipMissing: data.get(#pipMissing, or: $value.pipMissing),
+    pipBannerDismissed: data.get(
+      #pipBannerDismissed,
+      or: $value.pipBannerDismissed,
+    ),
   );
 
   @override

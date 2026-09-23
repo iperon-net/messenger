@@ -98,7 +98,7 @@ class _ProfileCupertino extends State<ProfileCupertino> {
                           padding: const EdgeInsets.symmetric(horizontal: 8),
                           minimumSize: const Size(44, 44),
                           onPressed: () async {
-                            await ensureCallPermissions(context, forCall: true);
+                            await ensureCallMicPermission();
                             await getIt.get<Calls>().startCall(toUserID: state.userID, video: false);
                           },
                           child: HugeIcon(
@@ -115,7 +115,7 @@ class _ProfileCupertino extends State<ProfileCupertino> {
                           padding: const EdgeInsets.symmetric(horizontal: 8),
                           minimumSize: const Size(44, 44),
                           onPressed: () async {
-                            await ensureCallPermissions(context, forCall: true);
+                            await ensureCallMicPermission();
                             await getIt.get<Calls>().startCall(toUserID: state.userID, video: true);
                           },
                           child: HugeIcon(

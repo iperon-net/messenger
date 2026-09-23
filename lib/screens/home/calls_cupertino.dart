@@ -33,10 +33,12 @@ class _CallsCupertinoState extends State<CallsCupertino> {
   @override
   void initState() {
     super.initState();
-    // Первый показ вкладки — осознанный момент запросить разрешения для звонков
-    // (микрофон + уведомления). Историю не блокируем; один адаптивный soft-ask
-    // сам решит, что показать под недостающие разрешения (см. ensureCallPermissions).
-    WidgetsBinding.instance.addPostFrameCallback((_) => ensureCallPermissions(context));
+    // Первый показ вкладки — пересчитываем недостающие разрешения БЕЗ системного
+    // диалога. Если чего-то не хватает — покажем мягкий баннер-объяснение (микрофон
+    // + уведомления); историю звонков он не блокирует.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) context.read<CallsCubit>().checkCallPermissions();
+    });
   }
 
   @override
@@ -80,6 +82,23 @@ class _CallsCupertinoState extends State<CallsCupertino> {
                 onChanged: (value) => context.read<CallsCubit>().search(value),
               ),
             ),
+            // Мягкий баннер-объяснение о разрешениях звонков. Виден, только пока
+            // чего-то не хватает и пользователь его не закрыл; историю не блокирует.
+            BlocSelector<CallsCubit, CallsState, ({bool show, bool mic, bool notif})>(
+              selector: (state) => (show: state.showCallPermissionsBanner, mic: state.callMicMissing, notif: state.callNotifMissing),
+              builder: (context, p) {
+                if (!p.show) return const SizedBox.shrink();
+                final (title, message) = _permissionText(context, p.mic, p.notif);
+                return PermissionBannerCupertino(
+                  icon: HugeIcons.strokeRoundedCall02,
+                  title: title,
+                  message: message,
+                  actionLabel: context.t.screenCalls.allowAccess,
+                  onAction: () => context.read<CallsCubit>().requestCallPermissions(),
+                  onDismiss: () => context.read<CallsCubit>().dismissCallBanner(),
+                );
+              },
+            ),
             Expanded(
               child: BlocBuilder<CallsCubit, CallsState>(
                 builder: (context, state) {
@@ -110,6 +129,17 @@ class _CallsCupertinoState extends State<CallsCupertino> {
         ),
       ),
     );
+  }
+
+  /// Текст баннера под набор недостающих разрешений: оба / только уведомления /
+  /// только микрофон (последний — и для iOS, где уведомления не нужны).
+  (String, String) _permissionText(BuildContext context, bool mic, bool notif) {
+    final t = context.t.screenCalls;
+    return switch ((mic, notif)) {
+      (true, true) => (t.permissionsTitle, t.permissionsMessage),
+      (false, true) => (t.notificationPermissionTitle, t.notificationPermissionMessage),
+      _ => (t.permissionTitle, t.permissionMessage),
+    };
   }
 
   Widget _list(BuildContext context, CallsState state, List<models.CallLog> items) {
@@ -179,7 +209,7 @@ class _CallsCupertinoState extends State<CallsCupertino> {
           CupertinoButton(
             padding: EdgeInsets.zero,
             onPressed: () async {
-              await ensureCallPermissions(context, forCall: true);
+              await ensureCallMicPermission();
               await getIt.get<Calls>().startCall(toUserID: log.userID, video: log.video);
             },
             child: HugeIcon(

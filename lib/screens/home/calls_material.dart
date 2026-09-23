@@ -27,26 +27,41 @@ class CallsMaterial extends StatefulWidget {
   State<CallsMaterial> createState() => _CallsMaterialState();
 }
 
-class _CallsMaterialState extends State<CallsMaterial> {
+class _CallsMaterialState extends State<CallsMaterial> with WidgetsBindingObserver {
   final _searchController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    // Первый показ вкладки — осознанный момент запросить разрешения для звонков
-    // (микрофон + уведомления). Один адаптивный soft-ask сам решит, что показать
-    // под недостающие разрешения (см. ensureCallPermissions). После них — подсказка
-    // про Picture-in-Picture (мини-окно видеозвонка), если разрешение выключено.
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      await ensureCallPermissions(context);
-      if (mounted) await ensurePipPermission(context);
-    });
+    WidgetsBinding.instance.addObserver(this);
+    // Первый показ вкладки — пересчитываем недостающие разрешения БЕЗ системного
+    // диалога: не хватает — покажем мягкий баннер-объяснение (микрофон +
+    // уведомления), историю он не блокирует. Плюс PiP-баннер (мини-окно
+    // видеозвонка), если разрешение выключено — он показывается вторым, после
+    // выдачи микрофона/уведомлений.
+    WidgetsBinding.instance.addPostFrameCallback((_) => _refreshPermissions());
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _searchController.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Возврат на передний план — пересчитываем разрешения: пользователь мог
+    // изменить их в системных настройках (в т.ч. тумблер PiP), тогда баннеры
+    // должны обновиться без переключения вкладок.
+    if (state == AppLifecycleState.resumed) _refreshPermissions();
+  }
+
+  void _refreshPermissions() {
+    if (!mounted) return;
+    final cubit = context.read<CallsCubit>();
+    cubit.checkCallPermissions();
+    cubit.checkPipPermission();
   }
 
   @override
@@ -89,6 +104,50 @@ class _CallsMaterialState extends State<CallsMaterial> {
               onChanged: (value) => context.read<CallsCubit>().search(value),
             ),
           ),
+          // Мягкий баннер-объяснение о разрешениях звонков. Виден, только пока
+          // чего-то не хватает и пользователь его не закрыл; историю не блокирует.
+          BlocSelector<CallsCubit, CallsState, ({bool show, bool mic, bool notif})>(
+            selector: (state) => (show: state.showCallPermissionsBanner, mic: state.callMicMissing, notif: state.callNotifMissing),
+            builder: (context, p) {
+              if (!p.show) return const SizedBox.shrink();
+              final (title, message) = _permissionText(context, p.mic, p.notif);
+              // Отступ снизу — чтобы баннер не прилипал к переключателю
+              // «Все/Пропущенные»; появляется только вместе с баннером.
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: PermissionBannerMaterial(
+                  icon: HugeIcons.strokeRoundedCall02,
+                  title: title,
+                  message: message,
+                  actionLabel: context.t.screenCalls.allowAccess,
+                  onAction: () => context.read<CallsCubit>().requestCallPermissions(),
+                  onDismiss: () => context.read<CallsCubit>().dismissCallBanner(),
+                  dismissTooltip: context.t.common.notNow,
+                ),
+              );
+            },
+          ),
+          // PiP-баннер (Android-only): мини-окно видеозвонка при сворачивании.
+          // Показывается вторым — только когда микрофон/уведомления уже выданы.
+          // Кнопка ведёт в системные настройки (AppOps диалогом не запросить).
+          BlocSelector<CallsCubit, CallsState, bool>(
+            selector: (state) => state.showPipBanner,
+            builder: (context, show) {
+              if (!show) return const SizedBox.shrink();
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: PermissionBannerMaterial(
+                  icon: HugeIcons.strokeRoundedPictureInPicture,
+                  title: context.t.screenCalls.pipPermissionTitle,
+                  message: context.t.screenCalls.pipPermissionMessage,
+                  actionLabel: context.t.screenCalls.openSettings,
+                  onAction: () => context.read<CallsCubit>().openPipPermissionSettings(),
+                  onDismiss: () => context.read<CallsCubit>().dismissPipBanner(),
+                  dismissTooltip: context.t.common.notNow,
+                ),
+              );
+            },
+          ),
           Expanded(
             child: BlocBuilder<CallsCubit, CallsState>(
               builder: (context, state) {
@@ -117,6 +176,17 @@ class _CallsMaterialState extends State<CallsMaterial> {
         ],
       ),
     );
+  }
+
+  /// Текст баннера под набор недостающих разрешений: оба / только уведомления /
+  /// только микрофон.
+  (String, String) _permissionText(BuildContext context, bool mic, bool notif) {
+    final t = context.t.screenCalls;
+    return switch ((mic, notif)) {
+      (true, true) => (t.permissionsTitle, t.permissionsMessage),
+      (false, true) => (t.notificationPermissionTitle, t.notificationPermissionMessage),
+      _ => (t.permissionTitle, t.permissionMessage),
+    };
   }
 
   Widget _list(BuildContext context, CallsState state, List<models.CallLog> items) {
@@ -177,7 +247,7 @@ class _CallsMaterialState extends State<CallsMaterial> {
               strokeWidth: 2,
             ),
             onPressed: () async {
-              await ensureCallPermissions(context, forCall: true);
+              await ensureCallMicPermission();
               await getIt.get<Calls>().startCall(toUserID: log.userID, video: log.video);
             },
           ),
