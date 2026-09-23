@@ -133,13 +133,6 @@ class CallView extends StatefulWidget {
 }
 
 class _CallViewState extends State<CallView> with WidgetsBindingObserver {
-  // Поколение видеорендереров. Инкрементируется при возврате приложения из фона и
-  // входит в ключ каждого VideoTrackRenderer, заставляя Flutter пересоздать их:
-  // нативная видеоповерхность (Metal/GL) после фона теряется, и без пересоздания
-  // рендер остаётся застывшим на последнем кадре. Меняется только на resume,
-  // поэтому в обычном ходе звонка рендереры стабильны (без мерцания).
-  int _renderGen = 0;
-
   // Picture-in-Picture (Android): мини-окно видеозвонка поверх рабочего стола.
   // Канал совпадает с обработчиком в MainActivity.kt. `_pipAllowed` — что мы уже
   // сообщили нативу (дедуп, как у [_wakelockEnabled]); `_inPip` — активен ли режим
@@ -256,10 +249,10 @@ class _CallViewState extends State<CallView> with WidgetsBindingObserver {
         // захват в фоне продолжается, метод там no-op).
         unawaited(cubit.pauseVideoForBackground());
       case AppLifecycleState.resumed:
-        // Возврат из фона: восстанавливаем приглушённую камеру и пересоздаём
-        // рендереры (нативная видеоповерхность после фона теряется → freeze).
+        // Возврат из фона: восстанавливаем приглушённую камеру. Кадры сами пойдут в
+        // уже существующий рендерер — пересоздавать его НЕЛЬЗЯ (гонка с renderFrame:
+        // на главном потоке роняет flutter_webrtc, EXC_BAD_ACCESS).
         unawaited(cubit.resumeVideoAfterBackground());
-        setState(() => _renderGen++);
       case AppLifecycleState.inactive:
       case AppLifecycleState.detached:
         // `inactive` на iOS прилетает и на транзиентные помехи (шторка/переключатель)
@@ -343,29 +336,28 @@ class _CallViewState extends State<CallView> with WidgetsBindingObserver {
         // Поверх видео — светлая палитра (контраст над картинкой); иначе — под тему.
         final palette = remoteVideoVisible ? _CallPalette.overMedia : _CallPalette.of(context, darkMode);
 
-        // Режим мини-окна (Android PiP): окно крошечное, панель управления/имя и
-        // локальное превью не помещаются и не нужны — показываем только видео
-        // собеседника (или его аватар, если камера у него выключена).
-        if (_inPip) {
-          return ColoredBox(
-            color: palette.bg,
-            child: remoteVideoVisible
-                ? VideoTrackRenderer(remoteTrack, key: ValueKey('remote-$_renderGen'), fit: VideoViewFit.cover)
-                : Center(
-                    child: _Avatar(state: state, palette: palette),
-                  ),
-          );
-        }
-
+        // Единый Stack для обоих режимов (полный экран и мини-окно PiP). Удалённый
+        // рендерер держим ПЕРВЫМ и БЕЗ ключа — его позиция в дереве не меняется при
+        // входе/выходе PiP, поэтому его State (и нативный FlutterRTCVideoRenderer) не
+        // пересоздаётся. Это критично: пересоздание рендерера во время звонка гонялось
+        // с блоком `renderFrame:` на главном потоке и роняло приложение
+        // (EXC_BAD_ACCESS в FlutterRTCVideoRenderer). В PiP лишь прячем панель
+        // управления/имя и локальное превью — места нет и они не нужны.
         return ColoredBox(
           color: palette.bg,
           child: Stack(
             fit: StackFit.expand,
             children: [
-              if (remoteVideoVisible) VideoTrackRenderer(remoteTrack, key: ValueKey('remote-$_renderGen'), fit: VideoViewFit.cover),
+              if (remoteVideoVisible) VideoTrackRenderer(remoteTrack, fit: VideoViewFit.cover),
+              // В мини-окне без видео собеседника (камера у него выключена) —
+              // его аватар по центру вместо пустого фона.
+              if (_inPip && !remoteVideoVisible)
+                Center(
+                  child: _Avatar(state: state, palette: palette),
+                ),
               // Локальное видео (наша камера) — картинкой-в-картинке, пока наша
-              // камера включена, независимо от камеры собеседника.
-              if (isVideoCall && localTrack != null)
+              // камера включена. В PiP прячем (окно крошечное).
+              if (!_inPip && isVideoCall && localTrack != null)
                 Positioned(
                   right: 16,
                   top: 48,
@@ -373,15 +365,10 @@ class _CallViewState extends State<CallView> with WidgetsBindingObserver {
                   height: 160,
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(12),
-                    child: VideoTrackRenderer(
-                      localTrack,
-                      key: ValueKey('local-$_renderGen'),
-                      fit: VideoViewFit.cover,
-                      mirrorMode: VideoViewMirrorMode.auto,
-                    ),
+                    child: VideoTrackRenderer(localTrack, fit: VideoViewFit.cover, mirrorMode: VideoViewMirrorMode.auto),
                   ),
                 ),
-              _Overlay(state: state, showVideo: remoteVideoVisible, palette: palette),
+              if (!_inPip) _Overlay(state: state, showVideo: remoteVideoVisible, palette: palette),
             ],
           ),
         );
