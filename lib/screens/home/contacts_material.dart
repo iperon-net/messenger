@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../components.dart';
@@ -89,13 +90,6 @@ class _ContactsMaterialState extends State<ContactsMaterial> {
       // от search() (иначе теряется фокус/область композиции при вводе).
       body: Column(
         children: [
-          // Мягкий баннер-объяснение о доступе к книге. Виден, только пока доступ
-          // не выдан и пользователь его не закрыл. Поиск и облачные контакты при
-          // этом доступны — экран не блокируется.
-          BlocSelector<ContactsCubit, ContactsState, bool>(
-            selector: (state) => !state.permissionGranted && !state.bannerDismissed,
-            builder: (context, showBanner) => showBanner ? _banner(context) : const SizedBox.shrink(),
-          ),
           Padding(
             padding: const EdgeInsets.all(12),
             child: TextField(
@@ -108,6 +102,16 @@ class _ContactsMaterialState extends State<ContactsMaterial> {
               ),
               onChanged: (value) => context.read<ContactsCubit>().search(value),
             ),
+          ),
+          // Мягкий баннер-объяснение о доступе к книге. Виден, только пока доступ
+          // не выдан и пользователь его не закрыл. Поиск и облачные контакты при
+          // этом доступны — экран не блокируется. Под баннером — тонкий
+          // разделитель до списка.
+          BlocSelector<ContactsCubit, ContactsState, bool>(
+            selector: (state) => !state.permissionGranted && !state.bannerDismissed,
+            builder: (context, showBanner) => showBanner
+                ? Column(children: [_banner(context), const SizedBox(height: 12), const Divider(height: 0.5, thickness: 0.5)])
+                : const SizedBox.shrink(),
           ),
           Expanded(
             child: BlocBuilder<ContactsCubit, ContactsState>(
@@ -305,7 +309,7 @@ class _ContactsMaterialState extends State<ContactsMaterial> {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(Icons.contacts_outlined, color: scheme.onSecondaryContainer),
+                HugeIcon(icon: HugeIcons.strokeRoundedUsersRound, size: 24, strokeWidth: 2, color: scheme.onSecondaryContainer),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
