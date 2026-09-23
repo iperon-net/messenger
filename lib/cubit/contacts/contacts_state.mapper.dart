@@ -218,10 +218,17 @@ class ContactsStateMapper extends ClassMapperBase<ContactsState> {
     opt: true,
     def: "",
   );
-  static bool _$permissionDenied(ContactsState v) => v.permissionDenied;
-  static const Field<ContactsState, bool> _f$permissionDenied = Field(
-    'permissionDenied',
-    _$permissionDenied,
+  static bool _$permissionGranted(ContactsState v) => v.permissionGranted;
+  static const Field<ContactsState, bool> _f$permissionGranted = Field(
+    'permissionGranted',
+    _$permissionGranted,
+    opt: true,
+    def: false,
+  );
+  static bool _$bannerDismissed(ContactsState v) => v.bannerDismissed;
+  static const Field<ContactsState, bool> _f$bannerDismissed = Field(
+    'bannerDismissed',
+    _$bannerDismissed,
     opt: true,
     def: false,
   );
@@ -269,7 +276,8 @@ class ContactsStateMapper extends ClassMapperBase<ContactsState> {
   final MappableFields<ContactsState> fields = const {
     #status: _f$status,
     #error: _f$error,
-    #permissionDenied: _f$permissionDenied,
+    #permissionGranted: _f$permissionGranted,
+    #bannerDismissed: _f$bannerDismissed,
     #registered: _f$registered,
     #invitable: _f$invitable,
     #cloud: _f$cloud,
@@ -282,7 +290,8 @@ class ContactsStateMapper extends ClassMapperBase<ContactsState> {
     return ContactsState(
       status: data.dec(_f$status),
       error: data.dec(_f$error),
-      permissionDenied: data.dec(_f$permissionDenied),
+      permissionGranted: data.dec(_f$permissionGranted),
+      bannerDismissed: data.dec(_f$bannerDismissed),
       registered: data.dec(_f$registered),
       invitable: data.dec(_f$invitable),
       cloud: data.dec(_f$cloud),
@@ -377,7 +386,8 @@ abstract class ContactsStateCopyWith<$R, $In extends ContactsState, $Out>
   $R call({
     Status? status,
     String? error,
-    bool? permissionDenied,
+    bool? permissionGranted,
+    bool? bannerDismissed,
     List<ContactItem>? registered,
     List<ContactItem>? invitable,
     List<ContactItem>? cloud,
@@ -440,7 +450,8 @@ class _ContactsStateCopyWithImpl<$R, $Out>
   $R call({
     Status? status,
     String? error,
-    bool? permissionDenied,
+    bool? permissionGranted,
+    bool? bannerDismissed,
     List<ContactItem>? registered,
     List<ContactItem>? invitable,
     List<ContactItem>? cloud,
@@ -451,7 +462,8 @@ class _ContactsStateCopyWithImpl<$R, $Out>
     FieldCopyWithData({
       if (status != null) #status: status,
       if (error != null) #error: error,
-      if (permissionDenied != null) #permissionDenied: permissionDenied,
+      if (permissionGranted != null) #permissionGranted: permissionGranted,
+      if (bannerDismissed != null) #bannerDismissed: bannerDismissed,
       if (registered != null) #registered: registered,
       if (invitable != null) #invitable: invitable,
       if (cloud != null) #cloud: cloud,
@@ -464,7 +476,11 @@ class _ContactsStateCopyWithImpl<$R, $Out>
   ContactsState $make(CopyWithData data) => ContactsState(
     status: data.get(#status, or: $value.status),
     error: data.get(#error, or: $value.error),
-    permissionDenied: data.get(#permissionDenied, or: $value.permissionDenied),
+    permissionGranted: data.get(
+      #permissionGranted,
+      or: $value.permissionGranted,
+    ),
+    bannerDismissed: data.get(#bannerDismissed, or: $value.bannerDismissed),
     registered: data.get(#registered, or: $value.registered),
     invitable: data.get(#invitable, or: $value.invitable),
     cloud: data.get(#cloud, or: $value.cloud),

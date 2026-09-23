@@ -86,29 +86,27 @@ class _ContactsCupertinoState extends State<ContactsCupertino> {
         // от search(). На iOS перестроение CupertinoTextField во время ввода
         // сбрасывает область композиции клавиатуры, из-за чего onChanged
         // «залипал» и результат появлялся только после нажатия Enter.
-        // BlocSelector перестраивает поле только при смене permissionDenied.
         child: Column(
           children: [
+            // Мягкий баннер-объяснение о доступе к книге. Показывается, только пока
+            // доступ не выдан и пользователь не закрыл его. Поиск и облачные
+            // контакты остаются доступны — экран не блокируется.
             BlocSelector<ContactsCubit, ContactsState, bool>(
-              selector: (state) => state.permissionDenied,
-              builder: (context, permissionDenied) {
-                if (permissionDenied) return const SizedBox.shrink();
-                return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  child: CupertinoSearchTextField(
-                    controller: _searchController,
-                    placeholder: context.t.screenContacts.search,
-                    onChanged: (value) => context.read<ContactsCubit>().search(value),
-                  ),
-                );
-              },
+              selector: (state) => !state.permissionGranted && !state.bannerDismissed,
+              builder: (context, showBanner) => showBanner ? _banner(context) : const SizedBox.shrink(),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              child: CupertinoSearchTextField(
+                controller: _searchController,
+                placeholder: context.t.screenContacts.search,
+                onChanged: (value) => context.read<ContactsCubit>().search(value),
+              ),
             ),
             Expanded(
               child: BlocBuilder<ContactsCubit, ContactsState>(
                 builder: (context, state) {
-                  if (state.permissionDenied) return _permission(context);
-
-                  if (state.status != Status.success && state.registered.isEmpty && state.invitable.isEmpty) {
+                  if (state.status != Status.success && state.registered.isEmpty && state.invitable.isEmpty && state.cloud.isEmpty) {
                     return const Center(child: CupertinoActivityIndicator());
                   }
 
@@ -317,29 +315,45 @@ class _ContactsCupertinoState extends State<ContactsCupertino> {
     return removable ? _dismissible(context, item, tile) : tile;
   }
 
-  Widget _permission(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(CupertinoIcons.person_2, size: 56),
-            const SizedBox(height: 16),
-            Text(
-              context.t.screenContacts.permissionTitle,
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-              textAlign: TextAlign.center,
+  /// Мягкий, закрываемый баннер-объяснение о доступе к телефонной книге. Не
+  /// блокирует экран: под ним остаются поиск и облачные контакты. «Разрешить» →
+  /// системный запрос (или переход в настройки, если доступ отклонён навсегда);
+  /// крестик → скрыть до конца сессии.
+  Widget _banner(BuildContext context) {
+    final t = context.t.screenContacts;
+    return Container(
+      margin: const EdgeInsets.fromLTRB(12, 8, 12, 0),
+      padding: const EdgeInsets.fromLTRB(16, 14, 8, 14),
+      decoration: BoxDecoration(color: ThemesCupertino.groupedCard.resolveFrom(context), borderRadius: BorderRadius.circular(12)),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(CupertinoIcons.person_2_fill, size: 28, color: CupertinoTheme.of(context).primaryColor),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(t.permissionTitle, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+                const SizedBox(height: 4),
+                Text(t.permissionMessage, style: TextStyle(fontSize: 13, color: CupertinoColors.secondaryLabel.resolveFrom(context))),
+                const SizedBox(height: 10),
+                CupertinoButton(
+                  padding: EdgeInsets.zero,
+                  minimumSize: Size.zero,
+                  onPressed: () => context.read<ContactsCubit>().requestAccess(),
+                  child: Text(t.allowAccess, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+                ),
+              ],
             ),
-            const SizedBox(height: 8),
-            Text(context.t.screenContacts.permissionMessage, textAlign: TextAlign.center),
-            const SizedBox(height: 20),
-            CupertinoButton.filled(
-              onPressed: () => context.read<ContactsCubit>().requestAccess(),
-              child: Text(context.t.screenContacts.allowAccess),
-            ),
-          ],
-        ),
+          ),
+          CupertinoButton(
+            padding: const EdgeInsets.all(4),
+            minimumSize: Size.zero,
+            onPressed: () => context.read<ContactsCubit>().dismissBanner(),
+            child: Icon(CupertinoIcons.xmark, size: 18, color: CupertinoColors.secondaryLabel.resolveFrom(context)),
+          ),
+        ],
       ),
     );
   }

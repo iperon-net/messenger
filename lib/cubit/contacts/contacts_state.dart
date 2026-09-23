@@ -46,8 +46,15 @@ class ContactsState with ContactsStateMappable {
   final Status status;
   final String error;
 
-  /// Разрешение на чтение книги отклонено — показываем экран-объяснение.
-  final bool permissionDenied;
+  /// Выдан ли доступ к телефонной книге (granted/limited). Пока `false`, поиск по
+  /// книге не идёт; показываем мягкий баннер-объяснение (см. [bannerDismissed]).
+  /// Облачные контакты и поиск при этом доступны — экран не блокируется.
+  final bool permissionGranted;
+
+  /// Пользователь закрыл баннер-объяснение о доступе к контактам в этой сессии.
+  /// Живёт только в памяти кубита (не персистится) — на следующем запуске баннер
+  /// снова напомнит о доступе, пока он не выдан.
+  final bool bannerDismissed;
 
   /// Из телефонной книги: найденные в Iperon ([registered]) и остальные — для
   /// приглашения ([invitable]). [cloud] — добавленные вручную «облачные» контакты
@@ -72,7 +79,8 @@ class ContactsState with ContactsStateMappable {
   const ContactsState({
     this.status = Status.initialization,
     this.error = "",
-    this.permissionDenied = false,
+    this.permissionGranted = false,
+    this.bannerDismissed = false,
     this.registered = const [],
     this.invitable = const [],
     this.cloud = const [],

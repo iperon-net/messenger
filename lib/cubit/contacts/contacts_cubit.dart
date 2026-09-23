@@ -353,15 +353,18 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
     _discovering = true;
     _discoverStarted = true;
     try {
-      emit(state.copyWith(status: Status.loading, permissionDenied: false, error: ""));
+      emit(state.copyWith(status: Status.loading, error: ""));
 
       final permission = await FlutterContacts.permissions.request(PermissionType.read);
       if (isClosed) return;
       // granted / limited (iOS 18+ частичный доступ) — этого достаточно для поиска.
       if (permission != PermissionStatus.granted && permission != PermissionStatus.limited) {
-        emit(state.copyWith(status: Status.success, permissionDenied: true));
+        // Доступа нет: экран не блокируем — показываем облачные контакты и мягкий
+        // баннер-объяснение (пока пользователь его не закрыл, см. bannerDismissed).
+        emit(state.copyWith(status: Status.success, permissionGranted: false));
         return;
       }
+      emit(state.copyWith(permissionGranted: true));
 
       final deviceContacts = await FlutterContacts.getAll(properties: {ContactProperty.name, ContactProperty.phone});
       if (isClosed) return;
@@ -452,14 +455,34 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
     }
   }
 
-  /// Запускает discover только если он ещё ни разу не стартовал в этой сессии —
-  /// вызывается при первом построении экрана, чтобы не дублировать фоновую дозагрузку.
-  Future<void> discoverOnFirstView() {
+  /// Первое построение экрана. НЕ дёргаем системный диалог доступа к книге:
+  /// сначала проверяем статус тихо. Есть доступ — запускаем поиск (диалог не
+  /// покажется). Нет — оставляем экран с облачными контактами и мягким баннером
+  /// (см. [ContactsState.permissionGranted]/[dismissBanner]); системный запрос
+  /// отложен до явного тапа «Разрешить» в баннере ([requestAccess]).
+  Future<void> discoverOnFirstView() async {
     // Открытие вкладки — надёжный момент догнать присутствие явным pull'ом:
     // одноразовый снимок при подписке мог разойтись по таймингу с подпиской
     // кубита (broadcast без буфера), тогда без pull статус ждал бы следующего push.
     unawaited(refreshPresence());
-    return _discoverStarted ? Future.value() : discover();
+    if (_discoverStarted) return;
+
+    final status = await ph.Permission.contacts.status;
+    if (isClosed) return;
+    if (status.isGranted || status.isLimited) {
+      await discover();
+      return;
+    }
+    // Доступа ещё нет: не запрашиваем — просто фиксируем, что можно показать баннер.
+    _discoverStarted = true;
+    emit(state.copyWith(status: Status.success, permissionGranted: false));
+  }
+
+  /// Пользователь закрыл баннер-объяснение о доступе к контактам. Скрываем его до
+  /// конца сессии (в памяти кубита); облачные контакты и поиск остаются доступны.
+  void dismissBanner() {
+    if (state.bannerDismissed) return;
+    emit(state.copyWith(bannerDismissed: true));
   }
 
   /// Повторный запуск поиска (pull-to-refresh / после выдачи разрешения) —
@@ -982,6 +1005,6 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
       return byPresence(a, b);
     });
 
-    emit(state.copyWith(status: Status.success, permissionDenied: false, registered: registered, invitable: invitable, cloud: cloud));
+    emit(state.copyWith(status: Status.success, registered: registered, invitable: invitable, cloud: cloud));
   }
 }

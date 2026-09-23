@@ -87,34 +87,32 @@ class _ContactsMaterialState extends State<ContactsMaterial> {
       ),
       // Поле поиска — вне BlocBuilder, чтобы не пересоздаваться на каждый emit
       // от search() (иначе теряется фокус/область композиции при вводе).
-      // BlocSelector перестраивает поле только при смене permissionDenied.
       body: Column(
         children: [
+          // Мягкий баннер-объяснение о доступе к книге. Виден, только пока доступ
+          // не выдан и пользователь его не закрыл. Поиск и облачные контакты при
+          // этом доступны — экран не блокируется.
           BlocSelector<ContactsCubit, ContactsState, bool>(
-            selector: (state) => state.permissionDenied,
-            builder: (context, permissionDenied) {
-              if (permissionDenied) return const SizedBox.shrink();
-              return Padding(
-                padding: const EdgeInsets.all(12),
-                child: TextField(
-                  controller: _searchController,
-                  decoration: InputDecoration(
-                    prefixIcon: const Icon(Icons.search),
-                    hintText: context.t.screenContacts.search,
-                    border: const OutlineInputBorder(),
-                    isDense: true,
-                  ),
-                  onChanged: (value) => context.read<ContactsCubit>().search(value),
-                ),
-              );
-            },
+            selector: (state) => !state.permissionGranted && !state.bannerDismissed,
+            builder: (context, showBanner) => showBanner ? _banner(context) : const SizedBox.shrink(),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                prefixIcon: const Icon(Icons.search),
+                hintText: context.t.screenContacts.search,
+                border: const OutlineInputBorder(),
+                isDense: true,
+              ),
+              onChanged: (value) => context.read<ContactsCubit>().search(value),
+            ),
           ),
           Expanded(
             child: BlocBuilder<ContactsCubit, ContactsState>(
               builder: (context, state) {
-                if (state.permissionDenied) return _permission(context);
-
-                if (state.status != Status.success && state.registered.isEmpty && state.invitable.isEmpty) {
+                if (state.status != Status.success && state.registered.isEmpty && state.invitable.isEmpty && state.cloud.isEmpty) {
                   return const Center(child: CircularProgressIndicator());
                 }
 
@@ -288,24 +286,52 @@ class _ContactsMaterialState extends State<ContactsMaterial> {
     return removable ? _dismissible(context, item, tile) : tile;
   }
 
-  Widget _permission(BuildContext context) {
-    return Center(
+  /// Мягкий, закрываемый баннер-объяснение о доступе к телефонной книге. Не
+  /// блокирует экран: под ним остаются поиск и облачные контакты. «Разрешить» →
+  /// системный запрос (или переход в настройки, если доступ отклонён навсегда);
+  /// крестик → скрыть до конца сессии.
+  Widget _banner(BuildContext context) {
+    final t = context.t.screenContacts;
+    final scheme = Theme.of(context).colorScheme;
+    return Card(
+      margin: const EdgeInsets.fromLTRB(12, 12, 12, 0),
+      color: scheme.secondaryContainer,
+      elevation: 0,
       child: Padding(
-        padding: const EdgeInsets.all(32),
+        padding: const EdgeInsets.fromLTRB(16, 12, 8, 8),
         child: Column(
-          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Icon(Icons.contacts_outlined, size: 56),
-            const SizedBox(height: 16),
-            Text(
-              context.t.screenContacts.permissionTitle,
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-              textAlign: TextAlign.center,
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(Icons.contacts_outlined, color: scheme.onSecondaryContainer),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        t.permissionTitle,
+                        style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: scheme.onSecondaryContainer),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(t.permissionMessage, style: TextStyle(fontSize: 13, color: scheme.onSecondaryContainer)),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close, size: 20),
+                  color: scheme.onSecondaryContainer,
+                  tooltip: context.t.common.notNow,
+                  onPressed: () => context.read<ContactsCubit>().dismissBanner(),
+                ),
+              ],
             ),
-            const SizedBox(height: 8),
-            Text(context.t.screenContacts.permissionMessage, textAlign: TextAlign.center),
-            const SizedBox(height: 20),
-            FilledButton(onPressed: () => context.read<ContactsCubit>().requestAccess(), child: Text(context.t.screenContacts.allowAccess)),
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton(onPressed: () => context.read<ContactsCubit>().requestAccess(), child: Text(t.allowAccess)),
+            ),
           ],
         ),
       ),
