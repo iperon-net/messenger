@@ -247,6 +247,8 @@
   "notificationPermissionMessage": "Allow notifications so you can see incoming calls even when Iperon is in the background."
   "permissionsTitle": "Set up calls"
   "permissionsMessage": "Allow microphone and notifications so you can make calls and see incoming ones on Iperon."
+  "pipPermissionTitle": "Mini window during calls"
+  "pipPermissionMessage": "Allow Picture-in-Picture so a video call keeps playing in a small window over your screen when you minimize Iperon."
   "allowAccess": "Allow access"
   "openSettings": "Open settings"
   "search": "Search"

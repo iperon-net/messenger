@@ -452,6 +452,8 @@ class _Translations$screenCalls$ru extends Translations$screenCalls$en {
 	@override String get notificationPermissionMessage => 'Разрешите уведомления, чтобы видеть входящие звонки, даже когда Iperon свёрнут.';
 	@override String get permissionsTitle => 'Настройка звонков';
 	@override String get permissionsMessage => 'Разрешите доступ к микрофону и уведомлениям, чтобы совершать звонки и видеть входящие в Iperon.';
+	@override String get pipPermissionTitle => 'Мини-окно во время звонка';
+	@override String get pipPermissionMessage => 'Разрешите «Картинку в картинке», чтобы видеозвонок продолжался в маленьком окне поверх экрана, когда вы сворачиваете Iperon.';
 	@override String get allowAccess => 'Разрешить доступ';
 	@override String get openSettings => 'Открыть настройки';
 	@override String get search => 'Поиск';
@@ -809,6 +811,8 @@ extension on TranslationsRu {
 			'screenCalls.notificationPermissionMessage' => 'Разрешите уведомления, чтобы видеть входящие звонки, даже когда Iperon свёрнут.',
 			'screenCalls.permissionsTitle' => 'Настройка звонков',
 			'screenCalls.permissionsMessage' => 'Разрешите доступ к микрофону и уведомлениям, чтобы совершать звонки и видеть входящие в Iperon.',
+			'screenCalls.pipPermissionTitle' => 'Мини-окно во время звонка',
+			'screenCalls.pipPermissionMessage' => 'Разрешите «Картинку в картинке», чтобы видеозвонок продолжался в маленьком окне поверх экрана, когда вы сворачиваете Iperon.',
 			'screenCalls.allowAccess' => 'Разрешить доступ',
 			'screenCalls.openSettings' => 'Открыть настройки',
 			'screenCalls.search' => 'Поиск',

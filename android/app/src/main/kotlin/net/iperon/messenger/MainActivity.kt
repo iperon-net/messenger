@@ -1,8 +1,10 @@
 package net.iperon.messenger
 
+import android.app.AppOpsManager
 import android.app.PendingIntent
 import android.app.PictureInPictureParams
 import android.app.RemoteAction
+import android.content.ActivityNotFoundException
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -10,8 +12,11 @@ import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.graphics.drawable.Icon
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Process
+import android.provider.Settings
 import android.util.Rational
 import android.view.WindowManager
 import androidx.lifecycle.Lifecycle
@@ -159,6 +164,16 @@ class MainActivity : FlutterFragmentActivity() {
                         pipAllowed = (call.arguments as? Boolean ?: false) && isPipSupported()
                         result.success(pipAllowed)
                     }
+                    // Есть ли у приложения разрешение на PiP (AppOps). Отдельно от
+                    // системной фичи устройства: фича может быть, а разрешение
+                    // пользователь отключил в настройках приложения.
+                    "isPipPermissionGranted" -> result.success(isPipPermissionGranted())
+                    // Открыть системный экран настройки PiP приложения (запросить
+                    // разрешение диалогом нельзя — это AppOps, не runtime-permission).
+                    "openPipSettings" -> {
+                        openPipSettings()
+                        result.success(null)
+                    }
                     // Явный вход в PiP (например, по кнопке на экране звонка).
                     "enterPip" -> result.success(enterPipIfPossible())
                     // Закрыть мини-окно (звонок завершился, в т.ч. собеседником).
@@ -178,6 +193,39 @@ class MainActivity : FlutterFragmentActivity() {
         Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
             packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)
 
+    /// Разрешён ли PiP для приложения на уровне AppOps (пользователь может выключить
+    /// его в настройках приложения). Отдельно от [isPipSupported] (фича устройства).
+    /// Если фичи нет — считаем «не разрешено».
+    private fun isPipPermissionGranted(): Boolean {
+        if (!isPipSupported()) return false
+        val appOps = getSystemService(Context.APP_OPS_SERVICE) as? AppOpsManager ?: return false
+        val uid = Process.myUid()
+        val mode = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            appOps.unsafeCheckOpNoThrow(AppOpsManager.OPSTR_PICTURE_IN_PICTURE, uid, packageName)
+        } else {
+            @Suppress("DEPRECATION")
+            appOps.checkOpNoThrow(AppOpsManager.OPSTR_PICTURE_IN_PICTURE, uid, packageName)
+        }
+        return mode == AppOpsManager.MODE_ALLOWED
+    }
+
+    /// Открывает системный экран настройки PiP приложения (там пользователь включает
+    /// разрешение тумблером). При отсутствии экрана — фолбэк на общие настройки
+    /// приложения.
+    private fun openPipSettings() {
+        val uri = Uri.parse("package:$packageName")
+        try {
+            // Строковый action (публичной константы Settings.ACTION_... нет).
+            startActivity(Intent("android.settings.PICTURE_IN_PICTURE_SETTINGS", uri))
+        } catch (e: ActivityNotFoundException) {
+            try {
+                startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, uri))
+            } catch (e2: ActivityNotFoundException) {
+                // Ни один экран настроек не открылся — молча игнорируем.
+            }
+        }
+    }
+
     /// Уходит в мини-окно, если это разрешено Flutter'ом и поддерживается. Возвращает
     /// true, если запрос на вход отправлен. Соотношение сторон окна — портретное
     /// 9:16 (видеозвонок в портрете; система ограничивает крайние пропорции).
@@ -192,13 +240,11 @@ class MainActivity : FlutterFragmentActivity() {
         }
     }
 
-    /// Параметры PiP-окна: портретное соотношение 9:16 + кнопки-действия
-    /// (RemoteAction), которые система рисует поверх мини-окна по тапу:
-    ///  • «Сменить камеру» — broadcast [ACTION_PIP_SWITCH_CAMERA] → [pipActionReceiver]
-    ///    → Dart (switchCamera);
-    ///  • «Открыть» — крупная явная кнопка возврата: launch-intent самой Activity
-    ///    (singleTask) выводит её на передний план, и система выходит из PiP в
-    ///    полный экран (в дополнение к системной иконке разворота).
+    /// Параметры PiP-окна: портретное соотношение 9:16 + кнопка-действие «Сменить
+    /// камеру» (RemoteAction), которую система рисует поверх мини-окна по тапу:
+    /// broadcast [ACTION_PIP_SWITCH_CAMERA] → [pipActionReceiver] → Dart (switchCamera).
+    /// Отдельной кнопки возврата не добавляем — для разворота на полный экран есть
+    /// системная иконка PiP.
     private fun buildPipParams(): PictureInPictureParams {
         val flags = PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
 
@@ -211,21 +257,9 @@ class MainActivity : FlutterFragmentActivity() {
             switchPending,
         )
 
-        val returnIntent = Intent(this, MainActivity::class.java)
-            .setAction(Intent.ACTION_MAIN)
-            .addCategory(Intent.CATEGORY_LAUNCHER)
-            .addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
-        val returnPending = PendingIntent.getActivity(this, REQ_PIP_RETURN, returnIntent, flags)
-        val returnAction = RemoteAction(
-            Icon.createWithResource(this, R.drawable.ic_pip_fullscreen),
-            "Открыть",
-            "Вернуться на экран звонка",
-            returnPending,
-        )
-
         return PictureInPictureParams.Builder()
             .setAspectRatio(Rational(9, 16))
-            .setActions(listOf(switchAction, returnAction))
+            .setActions(listOf(switchAction))
             .build()
     }
 
@@ -315,8 +349,7 @@ class MainActivity : FlutterFragmentActivity() {
         // Action внутреннего broadcast'а от кнопки «Сменить камеру» в PiP-окне.
         private const val ACTION_PIP_SWITCH_CAMERA = "net.iperon.messenger.PIP_SWITCH_CAMERA"
 
-        // requestCode'ы для PendingIntent'ов действий PiP (должны различаться).
+        // requestCode для PendingIntent'а действия «Сменить камеру» в PiP.
         private const val REQ_PIP_SWITCH = 1001
-        private const val REQ_PIP_RETURN = 1002
     }
 }

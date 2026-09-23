@@ -865,6 +865,12 @@ class Translations$screenCalls$en {
 	/// en: 'Allow microphone and notifications so you can make calls and see incoming ones on Iperon.'
 	String get permissionsMessage => 'Allow microphone and notifications so you can make calls and see incoming ones on Iperon.';
 
+	/// en: 'Mini window during calls'
+	String get pipPermissionTitle => 'Mini window during calls';
+
+	/// en: 'Allow Picture-in-Picture so a video call keeps playing in a small window over your screen when you minimize Iperon.'
+	String get pipPermissionMessage => 'Allow Picture-in-Picture so a video call keeps playing in a small window over your screen when you minimize Iperon.';
+
 	/// en: 'Allow access'
 	String get allowAccess => 'Allow access';
 
@@ -1395,6 +1401,8 @@ extension on Translations {
 			'screenCalls.notificationPermissionMessage' => 'Allow notifications so you can see incoming calls even when Iperon is in the background.',
 			'screenCalls.permissionsTitle' => 'Set up calls',
 			'screenCalls.permissionsMessage' => 'Allow microphone and notifications so you can make calls and see incoming ones on Iperon.',
+			'screenCalls.pipPermissionTitle' => 'Mini window during calls',
+			'screenCalls.pipPermissionMessage' => 'Allow Picture-in-Picture so a video call keeps playing in a small window over your screen when you minimize Iperon.',
 			'screenCalls.allowAccess' => 'Allow access',
 			'screenCalls.openSettings' => 'Open settings',
 			'screenCalls.search' => 'Search',

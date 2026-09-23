@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/services.dart' show MethodChannel;
 import 'package:material_ui/material_ui.dart';
 import 'package:permission_handler/permission_handler.dart';
 
@@ -89,4 +90,44 @@ Future<void> ensureCallPermissions(BuildContext context, {bool forCall = false})
 Future<void> _requestMicIfNeeded() async {
   final mic = await Permission.microphone.status;
   if (!mic.isGranted && !mic.isPermanentlyDenied) await Permission.microphone.request();
+}
+
+/// Показывали ли уже подсказку про PiP в этой сессии (один показ за запуск).
+bool _pipAskedThisSession = false;
+
+const _pipChannel = MethodChannel('net.iperon.messenger/call_pip');
+
+/// Android-only soft-ask разрешения Picture-in-Picture (мини-окно видеозвонка при
+/// сворачивании). PiP-разрешение — это AppOps, системным диалогом его не
+/// запросить: проверяем статус у натива и, если выключено, показываем подсказку с
+/// переходом в системные настройки PiP приложения (там тумблер). Один показ за
+/// сессию; при уже выданном разрешении — тихо выходим. Отдельно от
+/// [ensureCallPermissions], чтобы не смешивать с системными диалогами
+/// микрофона/уведомлений; вызывается на вкладке «Звонки» после них.
+Future<void> ensurePipPermission(BuildContext context) async {
+  if (!Platform.isAndroid || _pipAskedThisSession) return;
+
+  final granted = await _pipChannel.invokeMethod<bool>('isPipPermissionGranted') ?? true;
+  if (granted) {
+    _pipAskedThisSession = true; // разрешено — больше не проверяем в этой сессии
+    return;
+  }
+  if (!context.mounted) return;
+
+  _pipAskedThisSession = true;
+  final t = context.t.screenCalls;
+  final proceed = await showDialog<bool>(
+    context: context,
+    builder: (dialogContext) => AlertDialog(
+      title: Text(t.pipPermissionTitle),
+      content: Text(t.pipPermissionMessage),
+      actions: [
+        TextButton(onPressed: () => Navigator.of(dialogContext).pop(false), child: Text(context.t.common.notNow)),
+        TextButton(onPressed: () => Navigator.of(dialogContext).pop(true), child: Text(t.openSettings)),
+      ],
+    ),
+  );
+  if (proceed != true) return;
+
+  await _pipChannel.invokeMethod<void>('openPipSettings');
 }

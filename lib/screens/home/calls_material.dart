@@ -35,8 +35,12 @@ class _CallsMaterialState extends State<CallsMaterial> {
     super.initState();
     // Первый показ вкладки — осознанный момент запросить разрешения для звонков
     // (микрофон + уведомления). Один адаптивный soft-ask сам решит, что показать
-    // под недостающие разрешения (см. ensureCallPermissions).
-    WidgetsBinding.instance.addPostFrameCallback((_) => ensureCallPermissions(context));
+    // под недостающие разрешения (см. ensureCallPermissions). После них — подсказка
+    // про Picture-in-Picture (мини-окно видеозвонка), если разрешение выключено.
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await ensureCallPermissions(context);
+      if (mounted) await ensurePipPermission(context);
+    });
   }
 
   @override
