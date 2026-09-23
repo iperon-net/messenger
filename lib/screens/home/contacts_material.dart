@@ -105,12 +105,19 @@ class _ContactsMaterialState extends State<ContactsMaterial> {
           ),
           // Мягкий баннер-объяснение о доступе к книге. Виден, только пока доступ
           // не выдан и пользователь его не закрыл. Поиск и облачные контакты при
-          // этом доступны — экран не блокируется. Под баннером — тонкий
-          // разделитель до списка.
+          // этом доступны — экран не блокируется.
           BlocSelector<ContactsCubit, ContactsState, bool>(
             selector: (state) => !state.permissionGranted && !state.bannerDismissed,
             builder: (context, showBanner) => showBanner
-                ? Column(children: [_banner(context), const SizedBox(height: 12), const Divider(height: 0.5, thickness: 0.5)])
+                ? PermissionBannerMaterial(
+                    icon: HugeIcons.strokeRoundedUsersRound,
+                    title: context.t.screenContacts.permissionTitle,
+                    message: context.t.screenContacts.permissionMessage,
+                    actionLabel: context.t.screenContacts.allowAccess,
+                    onAction: () => context.read<ContactsCubit>().requestAccess(),
+                    onDismiss: () => context.read<ContactsCubit>().dismissBanner(),
+                    dismissTooltip: context.t.common.notNow,
+                  )
                 : const SizedBox.shrink(),
           ),
           Expanded(
@@ -288,57 +295,5 @@ class _ContactsMaterialState extends State<ContactsMaterial> {
       trailing: TextButton(onPressed: () => _invite(item.phoneE164), child: Text(context.t.screenContacts.inviteAction)),
     );
     return removable ? _dismissible(context, item, tile) : tile;
-  }
-
-  /// Мягкий, закрываемый баннер-объяснение о доступе к телефонной книге. Не
-  /// блокирует экран: под ним остаются поиск и облачные контакты. «Разрешить» →
-  /// системный запрос (или переход в настройки, если доступ отклонён навсегда);
-  /// крестик → скрыть до конца сессии.
-  Widget _banner(BuildContext context) {
-    final t = context.t.screenContacts;
-    final scheme = Theme.of(context).colorScheme;
-    return Card(
-      margin: const EdgeInsets.fromLTRB(12, 12, 12, 0),
-      color: scheme.secondaryContainer,
-      elevation: 0,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 12, 8, 8),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                HugeIcon(icon: HugeIcons.strokeRoundedUsersRound, size: 24, strokeWidth: 2, color: scheme.onSecondaryContainer),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        t.permissionTitle,
-                        style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: scheme.onSecondaryContainer),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(t.permissionMessage, style: TextStyle(fontSize: 13, color: scheme.onSecondaryContainer)),
-                    ],
-                  ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.close, size: 20),
-                  color: scheme.onSecondaryContainer,
-                  tooltip: context.t.common.notNow,
-                  onPressed: () => context.read<ContactsCubit>().dismissBanner(),
-                ),
-              ],
-            ),
-            Align(
-              alignment: Alignment.centerRight,
-              child: TextButton(onPressed: () => context.read<ContactsCubit>().requestAccess(), child: Text(t.allowAccess)),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 }

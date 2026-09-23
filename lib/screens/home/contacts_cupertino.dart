@@ -99,17 +99,17 @@ class _ContactsCupertinoState extends State<ContactsCupertino> {
             ),
             // Мягкий баннер-объяснение о доступе к книге. Показывается, только пока
             // доступ не выдан и пользователь не закрыл его. Поиск и облачные
-            // контакты остаются доступны — экран не блокируется. Под баннером —
-            // тонкий разделитель до списка.
+            // контакты остаются доступны — экран не блокируется.
             BlocSelector<ContactsCubit, ContactsState, bool>(
               selector: (state) => !state.permissionGranted && !state.bannerDismissed,
               builder: (context, showBanner) => showBanner
-                  ? Column(
-                      children: [
-                        _banner(context),
-                        const SizedBox(height: 12),
-                        Container(height: 0.5, color: CupertinoColors.separator.resolveFrom(context)),
-                      ],
+                  ? PermissionBannerCupertino(
+                      icon: HugeIcons.strokeRoundedUsersRound,
+                      title: context.t.screenContacts.permissionTitle,
+                      message: context.t.screenContacts.permissionMessage,
+                      actionLabel: context.t.screenContacts.allowAccess,
+                      onAction: () => context.read<ContactsCubit>().requestAccess(),
+                      onDismiss: () => context.read<ContactsCubit>().dismissBanner(),
                     )
                   : const SizedBox.shrink(),
             ),
@@ -323,48 +323,5 @@ class _ContactsCupertinoState extends State<ContactsCupertino> {
       ),
     );
     return removable ? _dismissible(context, item, tile) : tile;
-  }
-
-  /// Мягкий, закрываемый баннер-объяснение о доступе к телефонной книге. Не
-  /// блокирует экран: под ним остаются поиск и облачные контакты. «Разрешить» →
-  /// системный запрос (или переход в настройки, если доступ отклонён навсегда);
-  /// крестик → скрыть до конца сессии.
-  Widget _banner(BuildContext context) {
-    final t = context.t.screenContacts;
-    return Container(
-      margin: const EdgeInsets.fromLTRB(12, 8, 12, 0),
-      padding: const EdgeInsets.fromLTRB(16, 14, 8, 14),
-      decoration: BoxDecoration(color: ThemesCupertino.groupedCard.resolveFrom(context), borderRadius: BorderRadius.circular(12)),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          HugeIcon(icon: HugeIcons.strokeRoundedUsersRound, size: 28, strokeWidth: 2, color: CupertinoTheme.of(context).primaryColor),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(t.permissionTitle, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
-                const SizedBox(height: 4),
-                Text(t.permissionMessage, style: TextStyle(fontSize: 13, color: CupertinoColors.secondaryLabel.resolveFrom(context))),
-                const SizedBox(height: 10),
-                CupertinoButton(
-                  padding: EdgeInsets.zero,
-                  minimumSize: Size.zero,
-                  onPressed: () => context.read<ContactsCubit>().requestAccess(),
-                  child: Text(t.allowAccess, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
-                ),
-              ],
-            ),
-          ),
-          CupertinoButton(
-            padding: const EdgeInsets.all(4),
-            minimumSize: Size.zero,
-            onPressed: () => context.read<ContactsCubit>().dismissBanner(),
-            child: Icon(CupertinoIcons.xmark, size: 18, color: CupertinoColors.secondaryLabel.resolveFrom(context)),
-          ),
-        ],
-      ),
-    );
   }
 }

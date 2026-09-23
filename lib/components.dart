@@ -8,6 +8,7 @@ export './components/call_permissions.dart';
 export './components/copy_tooltip.dart';
 export './components/divider_text.dart';
 export './components/toolbar_attachments/toolbar_attachments.dart';
+export './components/permission_banner/permission_banner.dart';
 export './components/app_cupertino_navigation_bar.dart';
 export './components/shimmer.dart';
 export './components/user_avatar.dart';
