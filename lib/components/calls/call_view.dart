@@ -10,7 +10,6 @@ import 'package:flutter_boring_avatars/flutter_boring_avatars.dart';
 import 'package:livekit_client/livekit_client.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
-import '../../call_pip_ios.dart';
 import '../../calls.dart';
 import '../../cubit.dart';
 import '../../i18n/translations.g.dart';
@@ -142,12 +141,6 @@ class _CallViewState extends State<CallView> with WidgetsBindingObserver {
   bool _pipAllowed = false;
   bool _inPip = false;
 
-  // iOS PiP: id удалённого трека, под который уже подготовлен нативный PiP
-  // (дедуп, чтобы не дёргать канал на каждый build). См. call_pip_ios.dart.
-  String? _iosPipTrackId;
-  // iOS PiP: показан ли сейчас плейсхолдер (камера собеседника выключена).
-  bool _iosPipPlaceholder = false;
-
   // Рингтон входящего. Играет ТОЛЬКО пока звонок в статусе `incoming` и только
   // там, где входящий ведёт наш экран (iOS-foreground — см. CallGate); на Android
   // и на фоне/локскрине/cold-start iOS входящий ведёт системная звонилка и звонит
@@ -185,12 +178,6 @@ class _CallViewState extends State<CallView> with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
     // Android: слушаем смену режима PiP от натива (вход/выход мини-окна).
     if (Platform.isAndroid) _pipChannel.setMethodCallHandler(_onPipCall);
-    // iOS: закрытие мини-окна крестиком завершает звонок (система лишь убирает окно).
-    if (Platform.isIOS) {
-      CallPipIos.onClosed = () {
-        if (mounted) context.read<CallCubit>().hangup();
-      };
-    }
     // Экран звонка — только портрет: в ландшафте вертикальная колонка контролов
     // не влезала и кнопка отбоя уезжала за пределы экрана. Возвращаем свободную
     // ориентацию при уходе с экрана.
@@ -212,14 +199,6 @@ class _CallViewState extends State<CallView> with WidgetsBindingObserver {
     // Уходим с экрана звонка — запрещаем PiP и снимаем обработчик канала.
     _syncPipAllowed(false);
     if (Platform.isAndroid) _pipChannel.setMethodCallHandler(null);
-    if (Platform.isIOS) {
-      CallPipIos.onClosed = null;
-      if (_iosPipTrackId != null) {
-        _iosPipTrackId = null;
-        _iosPipPlaceholder = false;
-        unawaited(CallPipIos.teardown());
-      }
-    }
     unawaited(_stopRingtone());
     _syncWakelock(false);
     SystemChrome.setPreferredOrientations(DeviceOrientation.values);
@@ -252,35 +231,6 @@ class _CallViewState extends State<CallView> with WidgetsBindingObserver {
     if (!Platform.isAndroid || _pipAllowed == allow) return;
     _pipAllowed = allow;
     unawaited(_pipChannel.invokeMethod<void>('setPipAllowed', allow).catchError((_) {}));
-  }
-
-  /// iOS: готовит/снимает нативный PiP под текущий удалённый трек. Идемпотентно
-  /// (дедуп по [_iosPipTrackId]). Готовим, когда идёт видеозвонок и есть трек
-  /// собеседника; система сама откроет мини-окно при сворачивании. См.
-  /// call_pip_ios.dart / ios/Runner/CallPipController.m.
-  void _syncIosPip(CallCubit cubit, CallState state, bool isVideoCall) {
-    if (!Platform.isIOS) return;
-    final remoteTrackId = cubit.remoteVideoTrack?.mediaStreamTrack.id;
-    if (isVideoCall && remoteTrackId != null && remoteTrackId.isNotEmpty) {
-      if (_iosPipTrackId != remoteTrackId) {
-        _iosPipTrackId = remoteTrackId;
-        _iosPipPlaceholder = false;
-        unawaited(CallPipIos.prepare(remoteTrackId));
-      }
-      // Камера собеседника выключена → плейсхолдер (аватар) вместо застывшего
-      // кадра в мини-окне; включилась обратно → живое видео.
-      if (state.remoteVideoOff && !_iosPipPlaceholder) {
-        _iosPipPlaceholder = true;
-        unawaited(CallPipIos.showPlaceholder(state.avatarBytes));
-      } else if (!state.remoteVideoOff && _iosPipPlaceholder) {
-        _iosPipPlaceholder = false;
-        unawaited(CallPipIos.hidePlaceholder());
-      }
-    } else if (_iosPipTrackId != null) {
-      _iosPipTrackId = null;
-      _iosPipPlaceholder = false;
-      unawaited(CallPipIos.teardown());
-    }
   }
 
   @override
@@ -373,9 +323,6 @@ class _CallViewState extends State<CallView> with WidgetsBindingObserver {
         _syncWakelock(isVideoCall);
         // Android: разрешаем автовход в PiP по Home ровно на время видеозвонка.
         _syncPipAllowed(isVideoCall);
-        // iOS: готовим нативный PiP под трек собеседника (система сама откроет
-        // мини-окно при сворачивании) + плейсхолдер, если камера у него выключена.
-        _syncIosPip(cubit, state, isVideoCall);
         // Дорожки берём из сервиса; mediaEpoch в state гарантирует, что при их
         // появлении/смене BlocBuilder перестроит рендереры (сами VideoTrack не
         // участвуют в equality состояния).
