@@ -132,7 +132,13 @@ class CallView extends StatefulWidget {
   State<CallView> createState() => _CallViewState();
 }
 
-class _CallViewState extends State<CallView> {
+class _CallViewState extends State<CallView> with WidgetsBindingObserver {
+  // Поколение видеорендереров. Инкрементируется при возврате приложения из фона и
+  // входит в ключ каждого VideoTrackRenderer, заставляя Flutter пересоздать их:
+  // нативная видеоповерхность (Metal/GL) после фона теряется, и без пересоздания
+  // рендер остаётся застывшим на последнем кадре. Меняется только на resume,
+  // поэтому в обычном ходе звонка рендереры стабильны (без мерцания).
+  int _renderGen = 0;
   // Рингтон входящего. Играет ТОЛЬКО пока звонок в статусе `incoming` и только
   // там, где входящий ведёт наш экран (iOS-foreground — см. CallGate); на Android
   // и на фоне/локскрине/cold-start iOS входящий ведёт системная звонилка и звонит
@@ -167,6 +173,7 @@ class _CallViewState extends State<CallView> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     // Экран звонка — только портрет: в ландшафте вертикальная колонка контролов
     // не влезала и кнопка отбоя уезжала за пределы экрана. Возвращаем свободную
     // ориентацию при уходе с экрана.
@@ -184,10 +191,24 @@ class _CallViewState extends State<CallView> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     unawaited(_stopRingtone());
     _syncWakelock(false);
     SystemChrome.setPreferredOrientations(DeviceOrientation.values);
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState lifecycle) {
+    if (lifecycle != AppLifecycleState.resumed || !mounted) return;
+    final cubit = context.read<CallCubit>();
+    // Возврат из фона в идущем видеозвонке: перезапускаем локальный захват (в фоне
+    // iOS/Android его останавливают — собеседник иначе видит застывший кадр) и
+    // пересоздаём рендереры (нативная поверхность после фона потеряна → freeze).
+    if (cubit.state.video && (cubit.state.callStatus == CallStatus.active || cubit.state.callStatus == CallStatus.connecting)) {
+      unawaited(cubit.restartLocalVideo());
+      setState(() => _renderGen++);
+    }
   }
 
   /// Включает/выключает удержание экрана. Идемпотентно — дёргает нативный вызов
@@ -261,7 +282,7 @@ class _CallViewState extends State<CallView> {
           child: Stack(
             fit: StackFit.expand,
             children: [
-              if (remoteVideoVisible) VideoTrackRenderer(remoteTrack, fit: VideoViewFit.cover),
+              if (remoteVideoVisible) VideoTrackRenderer(remoteTrack, key: ValueKey('remote-$_renderGen'), fit: VideoViewFit.cover),
               // Локальное видео (наша камера) — картинкой-в-картинке, пока наша
               // камера включена, независимо от камеры собеседника.
               if (isVideoCall && localTrack != null)
@@ -272,7 +293,12 @@ class _CallViewState extends State<CallView> {
                   height: 160,
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(12),
-                    child: VideoTrackRenderer(localTrack, fit: VideoViewFit.cover, mirrorMode: VideoViewMirrorMode.mirror),
+                    child: VideoTrackRenderer(
+                      localTrack,
+                      key: ValueKey('local-$_renderGen'),
+                      fit: VideoViewFit.cover,
+                      mirrorMode: VideoViewMirrorMode.auto,
+                    ),
                   ),
                 ),
               _Overlay(state: state, showVideo: remoteVideoVisible, palette: palette),

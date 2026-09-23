@@ -176,5 +176,8 @@ class _PreviewCallCubit extends CallCubit {
   Future<void> enableVideo() async => emit(state.copyWith(video: true, cameraOff: false));
 
   @override
+  Future<void> restartLocalVideo() async {}
+
+  @override
   Future<void> switchCamera() async {}
 }
