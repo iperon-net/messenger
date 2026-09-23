@@ -97,7 +97,10 @@ class _ProfileCupertino extends State<ProfileCupertino> {
                         CupertinoButton(
                           padding: const EdgeInsets.symmetric(horizontal: 8),
                           minimumSize: const Size(44, 44),
-                          onPressed: () => getIt.get<Calls>().startCall(toUserID: state.userID, video: false),
+                          onPressed: () async {
+                            await ensureCallPermissions(context, forCall: true);
+                            await getIt.get<Calls>().startCall(toUserID: state.userID, video: false);
+                          },
                           child: HugeIcon(
                             icon: HugeIcons.strokeRoundedCall02,
                             color: ThemesCupertino.navActionColor(context),
@@ -111,7 +114,10 @@ class _ProfileCupertino extends State<ProfileCupertino> {
                           // саму иконку (~20pt), поэтому тап часто не срабатывал.
                           padding: const EdgeInsets.symmetric(horizontal: 8),
                           minimumSize: const Size(44, 44),
-                          onPressed: () => getIt.get<Calls>().startCall(toUserID: state.userID, video: true),
+                          onPressed: () async {
+                            await ensureCallPermissions(context, forCall: true);
+                            await getIt.get<Calls>().startCall(toUserID: state.userID, video: true);
+                          },
                           child: HugeIcon(
                             icon: HugeIcons.strokeRoundedVideo01,
                             color: ThemesCupertino.navActionColor(context),

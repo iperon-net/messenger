@@ -4,7 +4,6 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:permission_handler/permission_handler.dart';
 
 import '../../calls.dart';
 import '../../components.dart';
@@ -34,7 +33,10 @@ class _CallsMaterialState extends State<CallsMaterial> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => Permission.microphone.request());
+    // Первый показ вкладки — осознанный момент запросить разрешения для звонков
+    // (микрофон + уведомления). Один адаптивный soft-ask сам решит, что показать
+    // под недостающие разрешения (см. ensureCallPermissions).
+    WidgetsBinding.instance.addPostFrameCallback((_) => ensureCallPermissions(context));
   }
 
   @override
@@ -170,7 +172,10 @@ class _CallsMaterialState extends State<CallsMaterial> {
               size: 18.0,
               strokeWidth: 2,
             ),
-            onPressed: () => getIt.get<Calls>().startCall(toUserID: log.userID, video: log.video),
+            onPressed: () async {
+              await ensureCallPermissions(context, forCall: true);
+              await getIt.get<Calls>().startCall(toUserID: log.userID, video: log.video);
+            },
           ),
         ],
       ),

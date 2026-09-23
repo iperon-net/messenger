@@ -85,6 +85,9 @@ class Translations$common$en {
 	/// en: 'Cancel'
 	String get cancel => 'Cancel';
 
+	/// en: 'Not now'
+	String get notNow => 'Not now';
+
 	/// en: 'Back'
 	String get back => 'Back';
 
@@ -850,6 +853,18 @@ class Translations$screenCalls$en {
 	/// en: 'Allow microphone access to make and receive calls on Iperon.'
 	String get permissionMessage => 'Allow microphone access to make and receive calls on Iperon.';
 
+	/// en: 'Enable call notifications'
+	String get notificationPermissionTitle => 'Enable call notifications';
+
+	/// en: 'Allow notifications so you can see incoming calls even when Iperon is in the background.'
+	String get notificationPermissionMessage => 'Allow notifications so you can see incoming calls even when Iperon is in the background.';
+
+	/// en: 'Set up calls'
+	String get permissionsTitle => 'Set up calls';
+
+	/// en: 'Allow microphone and notifications so you can make calls and see incoming ones on Iperon.'
+	String get permissionsMessage => 'Allow microphone and notifications so you can make calls and see incoming ones on Iperon.';
+
 	/// en: 'Allow access'
 	String get allowAccess => 'Allow access';
 
@@ -1174,6 +1189,7 @@ extension on Translations {
 			'common.mobilePhone' => 'Mobile phone number',
 			'common.kContinue' => 'Continue',
 			'common.cancel' => 'Cancel',
+			'common.notNow' => 'Not now',
 			'common.back' => 'Back',
 			'common.save' => 'Save',
 			'common.online' => 'Online',
@@ -1372,6 +1388,10 @@ extension on Translations {
 			'screenCalls.emptyMissed' => 'No missed calls',
 			'screenCalls.permissionTitle' => 'Microphone access needed',
 			'screenCalls.permissionMessage' => 'Allow microphone access to make and receive calls on Iperon.',
+			'screenCalls.notificationPermissionTitle' => 'Enable call notifications',
+			'screenCalls.notificationPermissionMessage' => 'Allow notifications so you can see incoming calls even when Iperon is in the background.',
+			'screenCalls.permissionsTitle' => 'Set up calls',
+			'screenCalls.permissionsMessage' => 'Allow microphone and notifications so you can make calls and see incoming ones on Iperon.',
 			'screenCalls.allowAccess' => 'Allow access',
 			'screenCalls.openSettings' => 'Open settings',
 			'screenCalls.search' => 'Search',

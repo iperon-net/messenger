@@ -80,11 +80,17 @@ class _ProfileMaterial extends State<ProfileMaterial> {
               if (state.userID.isNotEmpty && !_isSelf(state.userID)) ...[
                 IconButton(
                   icon: HugeIcon(icon: HugeIcons.strokeRoundedCall02, size: 22.0, strokeWidth: 2),
-                  onPressed: () => getIt.get<Calls>().startCall(toUserID: state.userID, video: false),
+                  onPressed: () async {
+                    await ensureCallPermissions(context, forCall: true);
+                    await getIt.get<Calls>().startCall(toUserID: state.userID, video: false);
+                  },
                 ),
                 IconButton(
                   icon: HugeIcon(icon: HugeIcons.strokeRoundedVideo01, size: 22.0, strokeWidth: 2),
-                  onPressed: () => getIt.get<Calls>().startCall(toUserID: state.userID, video: true),
+                  onPressed: () async {
+                    await ensureCallPermissions(context, forCall: true);
+                    await getIt.get<Calls>().startCall(toUserID: state.userID, video: true);
+                  },
                 ),
               ],
             ],

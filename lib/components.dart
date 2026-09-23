@@ -4,6 +4,7 @@ export './components/material_list_tile_icon.dart';
 export './components/material_inline_dropdown.dart';
 export './components/connection_title.dart';
 export './components/no_connection_alert.dart';
+export './components/call_permissions.dart';
 export './components/copy_tooltip.dart';
 export './components/divider_text.dart';
 export './components/toolbar_attachments/toolbar_attachments.dart';

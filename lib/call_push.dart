@@ -182,10 +182,10 @@ class CallPush {
     }
 
     // Android 13+: без разрешения на уведомления входящий звонок не показать.
-    // Запрашиваем НЕ на старте (иначе диалог всплывает ещё на экране авторизации,
-    // до логина), а только когда пользователь уже авторизован: сразу здесь, если
-    // сессия уже есть при запуске, и в _onAuthChanged — после успешного логина.
-    if (auth.isAuthorized) _requestNotificationPermission();
+    // Разрешение НЕ просим ни на старте, ни после логина (иначе диалог всплывал
+    // бы на экране авторизации / сразу после входа, без контекста и с низким
+    // opt-in). Запрашиваем в осознанный момент — на вкладке «Звонки» и при
+    // инициации звонка (см. ensureCallPermissions).
 
     // iOS: VoIP-токен уже мог быть выдан PushKit до подписки на события —
     // забираем его из плагина и регистрируем сразу. Дальнейшие смены токена
@@ -273,26 +273,22 @@ class CallPush {
   void _onAuthChanged() {
     if (!auth.isAuthorized) return;
     unawaited(_syncTokens());
-    // Разрешение на уведомления просим здесь (после логина), а не на старте — см.
-    // start(). Идемпотентно: система покажет диалог лишь при первом запросе.
-    _requestNotificationPermission();
   }
 
   /// Android 13+: разрешение POST_NOTIFICATIONS нужно, чтобы показать входящий
   /// звонок (нотификацию). На iOS no-op (CallKit не требует разрешения на
-  /// уведомления). Идемпотентно.
-  void _requestNotificationPermission() {
+  /// уведомления). Идемпотентно: система покажет диалог лишь при первом запросе.
+  /// Вызывается из [ensureCallPermissions] после нашего soft-ask.
+  Future<void> requestNotificationPermission() async {
     if (!Platform.isAndroid) return;
-    unawaited(
-      FlutterCallkitIncoming.requestNotificationPermission({
-        'rationaleMessagePermission': _isRu
-            ? 'Разрешение нужно, чтобы показывать входящие звонки.'
-            : 'Permission is required to show incoming calls.',
-        'postNotificationMessageRequired': _isRu
-            ? 'Разрешите уведомления в настройках, чтобы видеть входящие звонки.'
-            : 'Please enable notifications in settings to receive incoming calls.',
-      }),
-    );
+    await FlutterCallkitIncoming.requestNotificationPermission({
+      'rationaleMessagePermission': _isRu
+          ? 'Разрешение нужно, чтобы показывать входящие звонки.'
+          : 'Permission is required to show incoming calls.',
+      'postNotificationMessageRequired': _isRu
+          ? 'Разрешите уведомления в настройках, чтобы видеть входящие звонки.'
+          : 'Please enable notifications in settings to receive incoming calls.',
+    });
   }
 
   Future<void> _syncTokens() async {

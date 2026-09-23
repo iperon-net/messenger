@@ -4,7 +4,6 @@ import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:permission_handler/permission_handler.dart';
 
 import '../../calls.dart';
 import '../../components.dart';
@@ -34,9 +33,10 @@ class _CallsCupertinoState extends State<CallsCupertino> {
   @override
   void initState() {
     super.initState();
-    // Первый показ вкладки — осознанный момент запросить доступ к микрофону,
-    // чтобы к моменту звонка он уже был выдан. Историю не блокируем.
-    WidgetsBinding.instance.addPostFrameCallback((_) => Permission.microphone.request());
+    // Первый показ вкладки — осознанный момент запросить разрешения для звонков
+    // (микрофон + уведомления). Историю не блокируем; один адаптивный soft-ask
+    // сам решит, что показать под недостающие разрешения (см. ensureCallPermissions).
+    WidgetsBinding.instance.addPostFrameCallback((_) => ensureCallPermissions(context));
   }
 
   @override
@@ -178,7 +178,10 @@ class _CallsCupertinoState extends State<CallsCupertino> {
           const SizedBox(width: 4),
           CupertinoButton(
             padding: EdgeInsets.zero,
-            onPressed: () => getIt.get<Calls>().startCall(toUserID: log.userID, video: log.video),
+            onPressed: () async {
+              await ensureCallPermissions(context, forCall: true);
+              await getIt.get<Calls>().startCall(toUserID: log.userID, video: log.video);
+            },
             child: HugeIcon(
               icon: log.video ? HugeIcons.strokeRoundedVideo01 : HugeIcons.strokeRoundedCall02,
               color: CupertinoTheme.of(context).primaryColor,

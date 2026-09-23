@@ -76,6 +76,7 @@ class _Translations$common$ru extends Translations$common$en {
 	@override String get mobilePhone => 'Номер мобильного телефона';
 	@override String get kContinue => 'Продолжить';
 	@override String get cancel => 'Отмена';
+	@override String get notNow => 'Не сейчас';
 	@override String get back => 'Назад';
 	@override String get save => 'Сохранить';
 	@override String get online => 'В сети';
@@ -447,6 +448,10 @@ class _Translations$screenCalls$ru extends Translations$screenCalls$en {
 	@override String get emptyMissed => 'Нет пропущенных звонков';
 	@override String get permissionTitle => 'Нужен доступ к микрофону';
 	@override String get permissionMessage => 'Разрешите доступ к микрофону, чтобы совершать и принимать звонки в Iperon.';
+	@override String get notificationPermissionTitle => 'Включите уведомления о звонках';
+	@override String get notificationPermissionMessage => 'Разрешите уведомления, чтобы видеть входящие звонки, даже когда Iperon свёрнут.';
+	@override String get permissionsTitle => 'Настройка звонков';
+	@override String get permissionsMessage => 'Разрешите доступ к микрофону и уведомлениям, чтобы совершать звонки и видеть входящие в Iperon.';
 	@override String get allowAccess => 'Разрешить доступ';
 	@override String get openSettings => 'Открыть настройки';
 	@override String get search => 'Поиск';
@@ -600,6 +605,7 @@ extension on TranslationsRu {
 			'common.mobilePhone' => 'Номер мобильного телефона',
 			'common.kContinue' => 'Продолжить',
 			'common.cancel' => 'Отмена',
+			'common.notNow' => 'Не сейчас',
 			'common.back' => 'Назад',
 			'common.save' => 'Сохранить',
 			'common.online' => 'В сети',
@@ -798,6 +804,10 @@ extension on TranslationsRu {
 			'screenCalls.emptyMissed' => 'Нет пропущенных звонков',
 			'screenCalls.permissionTitle' => 'Нужен доступ к микрофону',
 			'screenCalls.permissionMessage' => 'Разрешите доступ к микрофону, чтобы совершать и принимать звонки в Iperon.',
+			'screenCalls.notificationPermissionTitle' => 'Включите уведомления о звонках',
+			'screenCalls.notificationPermissionMessage' => 'Разрешите уведомления, чтобы видеть входящие звонки, даже когда Iperon свёрнут.',
+			'screenCalls.permissionsTitle' => 'Настройка звонков',
+			'screenCalls.permissionsMessage' => 'Разрешите доступ к микрофону и уведомлениям, чтобы совершать звонки и видеть входящие в Iperon.',
 			'screenCalls.allowAccess' => 'Разрешить доступ',
 			'screenCalls.openSettings' => 'Открыть настройки',
 			'screenCalls.search' => 'Поиск',
