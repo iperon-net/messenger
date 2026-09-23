@@ -1,13 +1,20 @@
 package net.iperon.messenger
 
+import android.app.PendingIntent
 import android.app.PictureInPictureParams
+import android.app.RemoteAction
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.content.res.Configuration
+import android.graphics.drawable.Icon
 import android.os.Build
 import android.os.Bundle
 import android.util.Rational
 import android.view.WindowManager
+import androidx.lifecycle.Lifecycle
 import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.embedding.engine.FlutterEngineCache
@@ -58,6 +65,19 @@ class MainActivity : FlutterFragmentActivity() {
     // (например, из списка чатов) уводило бы в мини-окно.
     private var pipAllowed = false
 
+    // Приёмник действий из PiP-окна. Кнопки в PiP (RemoteAction) не могут напрямую
+    // дёргать Flutter — они шлют PendingIntent-broadcast, который ловим здесь и
+    // ретранслируем в Dart по pipChannel. Регистрируется в [onCreate], снимается в
+    // [onDestroy]. Кнопка «Открыть» (возврат) действует своим launch-intent'ом и
+    // сюда не приходит.
+    private val pipActionReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            if (intent?.action == ACTION_PIP_SWITCH_CAMERA) {
+                pipChannel?.invokeMethod("pipSwitchCamera", null)
+            }
+        }
+    }
+
     // Свой выбор аудио-выхода звонка (setCommunicationDevice, API 31+). См.
     // AudioDevicesHandler и lib/audio_routes.dart.
     private var audioDevicesHandler: AudioDevicesHandler? = null
@@ -81,6 +101,23 @@ class MainActivity : FlutterFragmentActivity() {
         // окна, иначе keyguard успеет потребовать разблокировку.
         applyCallLaunchFlags(intent)
         super.onCreate(savedInstanceState)
+        // Приёмник действий PiP-окна (смена камеры). NOT_EXPORTED — внутренний,
+        // снаружи слать нельзя (Android 13+ требует явный флаг экспорта).
+        val filter = IntentFilter(ACTION_PIP_SWITCH_CAMERA)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(pipActionReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
+        } else {
+            registerReceiver(pipActionReceiver, filter)
+        }
+    }
+
+    override fun onDestroy() {
+        try {
+            unregisterReceiver(pipActionReceiver)
+        } catch (_: IllegalArgumentException) {
+            // Уже снят / не был зарегистрирован — игнорируем.
+        }
+        super.onDestroy()
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -124,6 +161,12 @@ class MainActivity : FlutterFragmentActivity() {
                     }
                     // Явный вход в PiP (например, по кнопке на экране звонка).
                     "enterPip" -> result.success(enterPipIfPossible())
+                    // Закрыть мини-окно (звонок завершился, в т.ч. собеседником).
+                    // Иначе PiP-окно висело бы поверх рабочего стола после конца звонка.
+                    "exitPip" -> {
+                        if (isInPictureInPictureMode) finish()
+                        result.success(null)
+                    }
                     else -> result.notImplemented()
                 }
             } }
@@ -141,19 +184,49 @@ class MainActivity : FlutterFragmentActivity() {
     private fun enterPipIfPossible(): Boolean {
         if (!pipAllowed || !isPipSupported()) return false
         return try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                val params = PictureInPictureParams.Builder()
-                    .setAspectRatio(Rational(9, 16))
-                    .build()
-                enterPictureInPictureMode(params)
-            } else {
-                false
-            }
+            enterPictureInPictureMode(buildPipParams())
         } catch (e: IllegalStateException) {
             // Activity в состоянии, из которого вход в PiP запрещён (например, уже
             // финишируется) — молча игнорируем.
             false
         }
+    }
+
+    /// Параметры PiP-окна: портретное соотношение 9:16 + кнопки-действия
+    /// (RemoteAction), которые система рисует поверх мини-окна по тапу:
+    ///  • «Сменить камеру» — broadcast [ACTION_PIP_SWITCH_CAMERA] → [pipActionReceiver]
+    ///    → Dart (switchCamera);
+    ///  • «Открыть» — крупная явная кнопка возврата: launch-intent самой Activity
+    ///    (singleTask) выводит её на передний план, и система выходит из PiP в
+    ///    полный экран (в дополнение к системной иконке разворота).
+    private fun buildPipParams(): PictureInPictureParams {
+        val flags = PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+
+        val switchIntent = Intent(ACTION_PIP_SWITCH_CAMERA).setPackage(packageName)
+        val switchPending = PendingIntent.getBroadcast(this, REQ_PIP_SWITCH, switchIntent, flags)
+        val switchAction = RemoteAction(
+            Icon.createWithResource(this, R.drawable.ic_pip_flip),
+            "Сменить камеру",
+            "Переключить фронтальную/тыловую камеру",
+            switchPending,
+        )
+
+        val returnIntent = Intent(this, MainActivity::class.java)
+            .setAction(Intent.ACTION_MAIN)
+            .addCategory(Intent.CATEGORY_LAUNCHER)
+            .addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
+        val returnPending = PendingIntent.getActivity(this, REQ_PIP_RETURN, returnIntent, flags)
+        val returnAction = RemoteAction(
+            Icon.createWithResource(this, R.drawable.ic_pip_fullscreen),
+            "Открыть",
+            "Вернуться на экран звонка",
+            returnPending,
+        )
+
+        return PictureInPictureParams.Builder()
+            .setAspectRatio(Rational(9, 16))
+            .setActions(listOf(switchAction, returnAction))
+            .build()
     }
 
     /// Пользователь уходит из приложения (Home / переключатель задач). Во время
@@ -170,6 +243,15 @@ class MainActivity : FlutterFragmentActivity() {
     override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean, newConfig: Configuration) {
         super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
         pipChannel?.invokeMethod("pipModeChanged", isInPictureInPictureMode)
+        // Выход из PiP бывает двух видов, и различаем их по состоянию жизненного
+        // цикла в этот момент:
+        //  • разворот на полный экран — Activity идёт в STARTED/RESUMED;
+        //  • закрытие крестиком — Activity останавливается (ниже STARTED).
+        // При закрытии сообщаем Flutter завершить звонок: система лишь убирает окно,
+        // а комната LiveKit без этого осталась бы жить без UI («звонок висит»).
+        if (!isInPictureInPictureMode && !lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) {
+            pipChannel?.invokeMethod("pipClosed", null)
+        }
     }
 
     private fun applyCallLaunchFlags(intent: Intent?) {
@@ -229,5 +311,12 @@ class MainActivity : FlutterFragmentActivity() {
 
         // Сериализует ленивое создание движка (см. [ensureEngine]).
         private val engineLock = Any()
+
+        // Action внутреннего broadcast'а от кнопки «Сменить камеру» в PiP-окне.
+        private const val ACTION_PIP_SWITCH_CAMERA = "net.iperon.messenger.PIP_SWITCH_CAMERA"
+
+        // requestCode'ы для PendingIntent'ов действий PiP (должны различаться).
+        private const val REQ_PIP_SWITCH = 1001
+        private const val REQ_PIP_RETURN = 1002
     }
 }

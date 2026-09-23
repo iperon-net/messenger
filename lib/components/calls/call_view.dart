@@ -212,11 +212,21 @@ class _CallViewState extends State<CallView> with WidgetsBindingObserver {
     super.dispose();
   }
 
-  /// Обработчик вызовов от натива по PiP-каналу. Единственный метод —
-  /// `pipModeChanged`: вход/выход мини-окна, по нему переключаем компактный лейаут.
+  /// Обработчик вызовов от натива по PiP-каналу:
+  ///  • `pipModeChanged` — вход/выход мини-окна, переключаем компактный лейаут;
+  ///  • `pipSwitchCamera` — тап по кнопке «Сменить камеру» в PiP-окне (кнопки в
+  ///    PiP не могут дёргать Flutter напрямую, натив ретранслирует их сюда).
   Future<dynamic> _onPipCall(MethodCall call) async {
-    if (call.method == 'pipModeChanged' && mounted) {
-      setState(() => _inPip = call.arguments == true);
+    if (!mounted) return null;
+    switch (call.method) {
+      case 'pipModeChanged':
+        setState(() => _inPip = call.arguments == true);
+      case 'pipSwitchCamera':
+        unawaited(context.read<CallCubit>().switchCamera());
+      case 'pipClosed':
+        // Пользователь закрыл мини-окно крестиком (убрать эту кнопку нельзя — она
+        // системная). Система лишь убирает окно, поэтому завершаем звонок сами.
+        unawaited(context.read<CallCubit>().hangup());
     }
     return null;
   }
@@ -302,6 +312,13 @@ class _CallViewState extends State<CallView> with WidgetsBindingObserver {
           unawaited(_startRingtone());
         } else {
           unawaited(_stopRingtone());
+        }
+        // Звонок завершился, пока мы в мини-окне (в т.ч. собеседник положил трубку):
+        // просим натив закрыть PiP-окно, иначе оно осталось бы висеть после конца
+        // звонка. В обычном (не PiP) режиме окно закрывать не нужно — экран звонка
+        // свернёт CallGate штатной навигацией.
+        if (_inPip && (state.callStatus == CallStatus.ended || state.callStatus == CallStatus.idle)) {
+          unawaited(_pipChannel.invokeMethod<void>('exitPip').catchError((_) {}));
         }
       },
       builder: (context, state) {
