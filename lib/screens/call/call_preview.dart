@@ -173,5 +173,8 @@ class _PreviewCallCubit extends CallCubit {
   Future<void> toggleCamera() async => emit(state.copyWith(cameraOff: !state.cameraOff));
 
   @override
+  Future<void> enableVideo() async => emit(state.copyWith(video: true, cameraOff: false));
+
+  @override
   Future<void> switchCamera() async {}
 }

@@ -587,6 +587,7 @@ class _Translations$screenCall$ru extends Translations$screenCall$en {
 	@override String get routeUnavailable => 'Нет доступных аудиовыходов';
 	@override String get cameraOn => 'Вкл. камеру';
 	@override String get cameraOff => 'Выкл. камеру';
+	@override String get startVideo => 'Видео';
 	@override String get switchCamera => 'Камера';
 	@override String get qualityPoor => 'Слабый сигнал';
 	@override String get qualityGood => 'Хорошее соединение';
@@ -889,6 +890,7 @@ extension on TranslationsRu {
 			'screenCall.routeUnavailable' => 'Нет доступных аудиовыходов',
 			'screenCall.cameraOn' => 'Вкл. камеру',
 			'screenCall.cameraOff' => 'Выкл. камеру',
+			'screenCall.startVideo' => 'Видео',
 			'screenCall.switchCamera' => 'Камера',
 			'screenCall.qualityPoor' => 'Слабый сигнал',
 			'screenCall.qualityGood' => 'Хорошее соединение',

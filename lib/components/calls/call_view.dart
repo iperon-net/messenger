@@ -427,7 +427,19 @@ class _Overlay extends StatelessWidget {
               )
             else
               AudioOutputButton(backgroundColor: palette.controlBg, iconColor: palette.fg, labelColor: palette.buttonLabel),
-            if (state.video)
+            // Камера. В аудиозвонке — кнопка «Видео»: апгрейд аудио→видео
+            // (публикует нашу камеру, собеседник увидит картинку). В видео —
+            // вкл/выкл своей камеры плюс переключение фронт/тыл.
+            if (!state.video)
+              _CircleButton(
+                label: t.startVideo,
+                icon: CupertinoIcons.video_camera,
+                color: palette.controlBg,
+                iconColor: palette.fg,
+                palette: palette,
+                onTap: cubit.enableVideo,
+              )
+            else ...[
               _CircleButton(
                 label: state.cameraOff ? t.cameraOn : t.cameraOff,
                 icon: state.cameraOff ? CupertinoIcons.video_camera : CupertinoIcons.video_camera_solid,
@@ -436,7 +448,6 @@ class _Overlay extends StatelessWidget {
                 palette: palette,
                 onTap: cubit.toggleCamera,
               ),
-            if (state.video)
               _CircleButton(
                 label: t.switchCamera,
                 icon: CupertinoIcons.switch_camera_solid,
@@ -445,6 +456,7 @@ class _Overlay extends StatelessWidget {
                 palette: palette,
                 onTap: cubit.switchCamera,
               ),
+            ],
           ],
         ),
         const SizedBox(height: 24),

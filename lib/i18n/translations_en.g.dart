@@ -1162,6 +1162,9 @@ class Translations$screenCall$en {
 	/// en: 'Camera off'
 	String get cameraOff => 'Camera off';
 
+	/// en: 'Video'
+	String get startVideo => 'Video';
+
 	/// en: 'Flip'
 	String get switchCamera => 'Flip';
 
@@ -1473,6 +1476,7 @@ extension on Translations {
 			'screenCall.routeUnavailable' => 'No audio outputs available',
 			'screenCall.cameraOn' => 'Camera on',
 			'screenCall.cameraOff' => 'Camera off',
+			'screenCall.startVideo' => 'Video',
 			'screenCall.switchCamera' => 'Flip',
 			'screenCall.qualityPoor' => 'Poor connection',
 			'screenCall.qualityGood' => 'Good connection',

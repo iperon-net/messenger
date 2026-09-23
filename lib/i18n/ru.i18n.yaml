@@ -342,6 +342,7 @@ dateTime:
   "routeUnavailable": "Нет доступных аудиовыходов"
   "cameraOn": "Вкл. камеру"
   "cameraOff": "Выкл. камеру"
+  "startVideo": "Видео"
   "switchCamera": "Камера"
   "qualityPoor": "Слабый сигнал"
   "qualityGood": "Хорошее соединение"

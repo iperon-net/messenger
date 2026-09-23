@@ -340,6 +340,7 @@ dateTime:
   "routeUnavailable": "No audio outputs available"
   "cameraOn": "Camera on"
   "cameraOff": "Camera off"
+  "startVideo": "Video"
   "switchCamera": "Flip"
   "qualityPoor": "Poor connection"
   "qualityGood": "Good connection"

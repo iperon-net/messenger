@@ -661,6 +661,33 @@ class Calls {
     _emit(_snapshot.copyWith(cameraOff: off, mediaEpoch: _snapshot.mediaEpoch + 1));
   }
 
+  /// Апгрейд аудио→видео: включает локальную камеру в уже идущем аудиозвонке и
+  /// промоутит звонок в видео. Отдельная точка от [toggleCamera], потому что в
+  /// аудиозвонке камера ещё ни разу не публиковалась (флаг `cameraOff` при этом
+  /// `false` по умолчанию — прямой toggle выключил бы камеру вместо включения).
+  ///
+  /// Собеседнику отдельный сигнал не нужен: LiveKit доставит новую видеодорожку
+  /// как `TrackSubscribed`, и его сторона сама поднимет видео-UI (см. промоут в
+  /// [_wireRoomEvents]/[_adoptRemoteTracks]). Идемпотентно: если звонок уже видео,
+  /// это обычное включение камеры через [toggleCamera].
+  Future<void> enableVideo() async {
+    if (_snapshot.video) {
+      if (_snapshot.cameraOff) await toggleCamera();
+      return;
+    }
+    final participant = _room?.localParticipant;
+    if (participant == null) return;
+    _cameraPosition = CameraPosition.front;
+    final publication = await participant.setCameraEnabled(true);
+    _localVideoTrack = publication?.track as VideoTrack?;
+    // Промоутим снимок в видео: video=true поднимает видео-рендер/контролы/
+    // wakelock. Маршрут аудио и состояние динамика НЕ трогаем — в идущем звонке
+    // у пользователя уже выбран рабочий выход, резкая смена на громкую связь
+    // была бы неожиданной (в отличие от старта видеозвонка «с нуля»).
+    _emit(_snapshot.copyWith(video: true, cameraOff: false, mediaEpoch: _snapshot.mediaEpoch + 1));
+    _dbg('video enabled');
+  }
+
   /// Переключает динамик/разговорный (громкая связь).
   ///
   /// Маршрутом аудио звонка на ОБЕИХ платформах владеет LiveKit
@@ -1059,7 +1086,10 @@ class Calls {
         if (track is VideoTrack) {
           _remoteVideoTrack = track;
           _dbg('remote video');
-          _emit(_snapshot.copyWith(mediaEpoch: _snapshot.mediaEpoch + 1));
+          // Апгрейд аудио→видео со стороны собеседника: он включил камеру в
+          // звонке, начатом как аудио. Промоутим снимок в видео, чтобы наш экран
+          // показал его картинку на весь экран и поднял видео-контролы.
+          _emit(_snapshot.copyWith(video: true, mediaEpoch: _snapshot.mediaEpoch + 1));
         }
         // Подписались на аудиодорожку собеседника — считываем её начальное
         // mute-состояние. TrackMuted/Unmuted летят только ПОСЛЕ подписки (SDK
@@ -1170,7 +1200,9 @@ class Calls {
         final track = publication.track;
         if (track is VideoTrack) {
           _remoteVideoTrack = track;
-          _emit(_snapshot.copyWith(mediaEpoch: _snapshot.mediaEpoch + 1));
+          // Собеседник вошёл в комнату с уже включённой камерой (или мы приняли
+          // после апгрейда) — промоутим звонок в видео, см. TrackSubscribed.
+          _emit(_snapshot.copyWith(video: true, mediaEpoch: _snapshot.mediaEpoch + 1));
           return;
         }
       }
