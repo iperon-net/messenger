@@ -1136,8 +1136,12 @@ class Calls {
           _dbg('remote video');
           // Апгрейд аудио→видео со стороны собеседника: он включил камеру в
           // звонке, начатом как аудио. Промоутим снимок в видео, чтобы наш экран
-          // показал его картинку на весь экран и поднял видео-контролы.
-          _emit(_snapshot.copyWith(video: true, mediaEpoch: _snapshot.mediaEpoch + 1));
+          // показал его картинку на весь экран и поднял видео-контролы. `cameraOff`
+          // выставляем по факту НАШЕЙ публикации: камера собеседника не должна
+          // включать нашу — если мы свою не публиковали, она остаётся выключенной
+          // (иначе фон/возврат из фона поднял бы её через resumeVideoAfterBackground,
+          // а тумблер показывал бы «камера включена» при выключенной камере).
+          _emit(_snapshot.copyWith(video: true, cameraOff: _localVideoTrack == null, mediaEpoch: _snapshot.mediaEpoch + 1));
         }
         // Подписались на аудиодорожку собеседника — считываем её начальное
         // mute-состояние. TrackMuted/Unmuted летят только ПОСЛЕ подписки (SDK
@@ -1250,7 +1254,9 @@ class Calls {
           _remoteVideoTrack = track;
           // Собеседник вошёл в комнату с уже включённой камерой (или мы приняли
           // после апгрейда) — промоутим звонок в видео, см. TrackSubscribed.
-          _emit(_snapshot.copyWith(video: true, mediaEpoch: _snapshot.mediaEpoch + 1));
+          // `cameraOff` по факту нашей публикации — камера собеседника не включает
+          // нашу.
+          _emit(_snapshot.copyWith(video: true, cameraOff: _localVideoTrack == null, mediaEpoch: _snapshot.mediaEpoch + 1));
           return;
         }
       }
