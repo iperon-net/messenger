@@ -42,4 +42,36 @@ class CallPipIos {
       await _channel.invokeMethod<void>('teardown');
     } catch (_) {}
   }
+
+  /// Собеседник выключил камеру: живых кадров нет, в мини-окне застыл бы последний
+  /// кадр. Показываем плейсхолдер (тёмный фон + аватар [image], если есть) вместо
+  /// заморозки. [hidePlaceholder] возвращает живое видео.
+  static Future<void> showPlaceholder(Uint8List? image) async {
+    if (!Platform.isIOS) return;
+    try {
+      await _channel.invokeMethod<void>('showPlaceholder', {'image': image});
+    } catch (_) {}
+  }
+
+  static Future<void> hidePlaceholder() async {
+    if (!Platform.isIOS) return;
+    try {
+      await _channel.invokeMethod<void>('hidePlaceholder');
+    } catch (_) {}
+  }
+
+  static void Function()? _onClosed;
+  static bool _handlerSet = false;
+
+  /// Колбэк «пользователь закрыл мини-окно крестиком» (натив шлёт `pipClosed`) —
+  /// экран звонка по нему завершает звонок. Обработчик канала ставится один раз.
+  static set onClosed(void Function()? callback) {
+    _onClosed = callback;
+    if (_handlerSet || !Platform.isIOS) return;
+    _handlerSet = true;
+    _channel.setMethodCallHandler((call) async {
+      if (call.method == 'pipClosed') _onClosed?.call();
+      return null;
+    });
+  }
 }

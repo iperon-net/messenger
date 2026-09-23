@@ -1,5 +1,6 @@
 #import "CallPipController.h"
 
+#import <UIKit/UIKit.h>
 #import <AVKit/AVKit.h>
 #import <AVFoundation/AVFoundation.h>
 #import <WebRTC/WebRTC.h>
@@ -18,14 +19,22 @@
 
 /// `id<RTCVideoRenderer>`, который конвертирует кадры удалённого трека в
 /// `CMSampleBuffer` и складывает в свой `AVSampleBufferDisplayLayer`. Логика
-/// конвертации перенесена 1:1 из flutter_webrtc `FlutterRTCVideoPlatformView.m`
+/// конвертации перенесена из flutter_webrtc `FlutterRTCVideoPlatformView.m`
 /// (RTCCVPixelBuffer — быстрый путь; I420 — фолбэк через RTCYUVHelper → 32BGRA).
+///
+/// [frozenForPlaceholder] — когда собеседник выключил камеру, живых кадров нет и в
+/// слое застыл бы последний кадр. Тогда включаем этот флаг (живые кадры
+/// игнорируем) и один раз рисуем плейсхолдер ([showPlaceholderImage:]).
 @interface CallPipRenderer : NSObject <RTCVideoRenderer>
 @property(nonatomic, strong, readonly) AVSampleBufferDisplayLayer *displayLayer;
+@property(nonatomic, assign) BOOL frozenForPlaceholder;
+- (void)showPlaceholderImage:(nullable UIImage *)image;
 @end
 
 @implementation CallPipRenderer {
   dispatch_queue_t _queue;
+  int _lastWidth;
+  int _lastHeight;
 }
 
 - (instancetype)init {
@@ -42,21 +51,25 @@
 
 - (void)renderFrame:(nullable RTCVideoFrame *)frame {
   if (!frame) return;
+  if (self.frozenForPlaceholder) return;  // камера собеседника выключена — показываем плейсхолдер
+  _lastWidth = (int)frame.width;
+  _lastHeight = (int)frame.height;
 
   CVPixelBufferRef pixelBuffer = NULL;
   if ([frame.buffer isKindOfClass:[RTCCVPixelBuffer class]]) {
-    // Быстрый путь: аппаратно декодированный кадр уже CVPixelBuffer.
     pixelBuffer = ((RTCCVPixelBuffer *)frame.buffer).pixelBuffer;
     if (pixelBuffer) CVPixelBufferRetain(pixelBuffer);
   } else {
     pixelBuffer = [self bgraPixelBufferFromI420:frame];
   }
   if (!pixelBuffer) return;
-
-  CMSampleBufferRef sampleBuffer = [self sampleBufferFromPixelBuffer:pixelBuffer];
+  [self enqueuePixelBuffer:pixelBuffer];
   CVPixelBufferRelease(pixelBuffer);
-  if (!sampleBuffer) return;
+}
 
+- (void)enqueuePixelBuffer:(CVPixelBufferRef)pixelBuffer {
+  CMSampleBufferRef sampleBuffer = [self sampleBufferFromPixelBuffer:pixelBuffer];
+  if (!sampleBuffer) return;
   dispatch_async(_queue, ^{
     if (@available(iOS 14.0, *)) {
       if ([self->_displayLayer requiresFlushToResumeDecoding]) {
@@ -66,6 +79,56 @@
     [self->_displayLayer enqueueSampleBuffer:sampleBuffer];
     CFRelease(sampleBuffer);
   });
+}
+
+- (void)showPlaceholderImage:(nullable UIImage *)image {
+  self.frozenForPlaceholder = YES;
+  CVPixelBufferRef pixelBuffer = [self placeholderPixelBufferWithImage:image];
+  if (!pixelBuffer) return;
+  [self enqueuePixelBuffer:pixelBuffer];
+  CVPixelBufferRelease(pixelBuffer);
+}
+
+- (CVPixelBufferRef)placeholderPixelBufferWithImage:(nullable UIImage *)image {
+  int w = _lastWidth > 0 ? _lastWidth : 720;
+  int h = _lastHeight > 0 ? _lastHeight : 1280;
+  CVPixelBufferRef pb = NULL;
+  NSDictionary *attrs = @{
+    (id)kCVPixelBufferCGImageCompatibilityKey : @YES,
+    (id)kCVPixelBufferCGBitmapContextCompatibilityKey : @YES,
+    (id)kCVPixelBufferIOSurfacePropertiesKey : @{},
+  };
+  if (CVPixelBufferCreate(kCFAllocatorDefault, w, h, kCVPixelFormatType_32BGRA,
+                          (__bridge CFDictionaryRef)attrs, &pb) != kCVReturnSuccess || !pb) {
+    return NULL;
+  }
+  CVPixelBufferLockBaseAddress(pb, 0);
+  void *base = CVPixelBufferGetBaseAddress(pb);
+  size_t bpr = CVPixelBufferGetBytesPerRow(pb);
+  CGColorSpaceRef cs = CGColorSpaceCreateDeviceRGB();
+  CGContextRef ctx = CGBitmapContextCreate(base, w, h, 8, bpr, cs,
+                                           kCGImageAlphaPremultipliedFirst | kCGBitmapByteOrder32Little);
+  // Тёмный фон (как экран звонка).
+  CGContextSetRGBFillColor(ctx, 0.11, 0.11, 0.12, 1.0);
+  CGContextFillRect(ctx, CGRectMake(0, 0, w, h));
+  // Аватар по центру в круге (если передан). Флипаем по вертикали — CG-контекст
+  // над пиксельбуфером имеет origin снизу, иначе картинка рисуется вверх ногами.
+  // Круг центрирован по высоте, поэтому после флипа остаётся на месте.
+  if (image && image.CGImage) {
+    CGFloat side = MIN(w, h) * 0.4;
+    CGRect r = CGRectMake((w - side) / 2.0, (h - side) / 2.0, side, side);
+    CGContextSaveGState(ctx);
+    CGContextTranslateCTM(ctx, 0, h);
+    CGContextScaleCTM(ctx, 1, -1);
+    CGContextAddEllipseInRect(ctx, r);
+    CGContextClip(ctx);
+    CGContextDrawImage(ctx, r, image.CGImage);
+    CGContextRestoreGState(ctx);
+  }
+  CGContextRelease(ctx);
+  CGColorSpaceRelease(cs);
+  CVPixelBufferUnlockBaseAddress(pb, 0);
+  return pb;
 }
 
 - (CVPixelBufferRef)bgraPixelBufferFromI420:(RTCVideoFrame *)frame {
@@ -135,6 +198,9 @@ API_AVAILABLE(ios(15.0))
   // Невидимая host-view в окне: слой должен присутствовать «на экране», иначе
   // авто-старт PiP при сворачивании система может не выполнить.
   UIView *_hostView;
+  // Идёт разворот PiP обратно в приложение (тап по кнопке разворота). Отличает
+  // «развернули» от «закрыли крестиком» в didStopPictureInPicture.
+  BOOL _restoring;
 }
 
 + (instancetype)shared {
@@ -162,9 +228,22 @@ API_AVAILABLE(ios(15.0))
   }
   if ([call.method isEqualToString:@"prepare"]) {
     NSString *trackId = call.arguments[@"trackId"];
-    if (@available(iOS 15.0, *)) {
-      [self prepareWithTrackId:trackId];
+    if (@available(iOS 15.0, *)) [self prepareWithTrackId:trackId];
+    result(nil);
+    return;
+  }
+  if ([call.method isEqualToString:@"showPlaceholder"]) {
+    UIImage *image = nil;
+    id data = call.arguments[@"image"];
+    if ([data isKindOfClass:[FlutterStandardTypedData class]]) {
+      image = [UIImage imageWithData:((FlutterStandardTypedData *)data).data];
     }
+    [_renderer showPlaceholderImage:image];
+    result(nil);
+    return;
+  }
+  if ([call.method isEqualToString:@"hidePlaceholder"]) {
+    _renderer.frozenForPlaceholder = NO;  // живые кадры снова пойдут в слой
     result(nil);
     return;
   }
@@ -180,11 +259,9 @@ API_AVAILABLE(ios(15.0))
   if (![AVPictureInPictureController isPictureInPictureSupported]) return;
   if (trackId.length == 0) return;
 
-  // Пересоздаём аккуратно: снимаем старый рендерер/трек, но по возможности
-  // переиспользуем слой и контроллер, если trackId тот же.
   RTCVideoTrack *track = [self remoteVideoTrackForId:trackId];
   if (!track) return;
-  if (_track == track && _pip != nil) return; // уже готово к этому треку
+  if (_track == track && _pip != nil) return;  // уже готово к этому треку
 
   [self teardown];
 
@@ -214,14 +291,21 @@ API_AVAILABLE(ios(15.0))
 - (void)teardown {
   if (_track && _renderer) [_track removeRenderer:_renderer];
   _track = nil;
-  if (@available(iOS 15.0, *)) {
+  if (_pip) {
+    // Снимаем делегата ДО остановки: didStop не должен принять это за «закрыли
+    // крестиком» и повторно завершить звонок (см. pipClosed). Останавливаем PiP
+    // явно, чтобы окно закрылось при завершении звонка (в т.ч. собеседником).
     _pip.delegate = nil;
+    if (@available(iOS 15.0, *)) {
+      if (_pip.isPictureInPictureActive) [_pip stopPictureInPicture];
+    }
     _pip = nil;
   }
   [_renderer.displayLayer removeFromSuperlayer];
   _renderer = nil;
   [_hostView removeFromSuperview];
   _hostView = nil;
+  _restoring = NO;
 }
 
 - (RTCVideoTrack *)remoteVideoTrackForId:(NSString *)trackId {
@@ -240,7 +324,8 @@ API_AVAILABLE(ios(15.0))
 
 - (UIWindow *)keyWindow {
   for (UIScene *scene in UIApplication.sharedApplication.connectedScenes) {
-    if ([scene isKindOfClass:[UIWindowScene class]] && scene.activationState == UISceneActivationStateForegroundActive) {
+    if ([scene isKindOfClass:[UIWindowScene class]] &&
+        scene.activationState == UISceneActivationStateForegroundActive) {
       for (UIWindow *w in ((UIWindowScene *)scene).windows) {
         if (w.isKeyWindow) return w;
       }
@@ -249,10 +334,36 @@ API_AVAILABLE(ios(15.0))
   return UIApplication.sharedApplication.delegate.window;
 }
 
+#pragma mark - AVPictureInPictureControllerDelegate
+
+- (void)pictureInPictureController:(AVPictureInPictureController *)pictureInPictureController
+    restoreUserInterfaceForPictureInPictureStopWithCompletionHandler:(void (^)(BOOL))completionHandler
+    API_AVAILABLE(ios(15.0)) {
+  // Пользователь развернул PiP обратно в приложение (не закрыл крестиком).
+  _restoring = YES;
+  completionHandler(YES);
+}
+
+- (void)pictureInPictureControllerDidStopPictureInPicture:(AVPictureInPictureController *)pictureInPictureController
+    API_AVAILABLE(ios(15.0)) {
+  BOOL wasRestoring = _restoring;
+  _restoring = NO;
+  // PiP остановился без разворота в приложение — значит закрыт крестиком.
+  // Система лишь убирает окно; звонок завершаем сами (как на Android).
+  if (!wasRestoring) {
+    [_channel invokeMethod:@"pipClosed" arguments:nil];
+  }
+}
+
+- (void)pictureInPictureController:(AVPictureInPictureController *)pictureInPictureController
+    failedToStartPictureInPictureWithError:(NSError *)error API_AVAILABLE(ios(15.0)) {
+  NSLog(@"[CallPip] failed to start PiP: %@", error);
+}
+
 #pragma mark - AVPictureInPictureSampleBufferPlaybackDelegate
 
 - (void)pictureInPictureController:(AVPictureInPictureController *)pictureInPictureController
-                     setPlaying:(BOOL)playing API_AVAILABLE(ios(15.0)) {
+                        setPlaying:(BOOL)playing API_AVAILABLE(ios(15.0)) {
 }
 
 - (CMTimeRange)pictureInPictureControllerTimeRangeForPlayback:(AVPictureInPictureController *)pictureInPictureController
@@ -267,12 +378,12 @@ API_AVAILABLE(ios(15.0))
 }
 
 - (void)pictureInPictureController:(AVPictureInPictureController *)pictureInPictureController
-              didTransitionToRenderSize:(CMVideoDimensions)newRenderSize API_AVAILABLE(ios(15.0)) {
+         didTransitionToRenderSize:(CMVideoDimensions)newRenderSize API_AVAILABLE(ios(15.0)) {
 }
 
 - (void)pictureInPictureController:(AVPictureInPictureController *)pictureInPictureController
-                     skipByInterval:(CMTime)skipInterval
-                  completionHandler:(void (^)(void))completionHandler API_AVAILABLE(ios(15.0)) {
+                    skipByInterval:(CMTime)skipInterval
+                 completionHandler:(void (^)(void))completionHandler API_AVAILABLE(ios(15.0)) {
   completionHandler();
 }
 
