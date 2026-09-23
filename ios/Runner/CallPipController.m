@@ -3,7 +3,15 @@
 #import <UIKit/UIKit.h>
 #import <AVKit/AVKit.h>
 #import <AVFoundation/AVFoundation.h>
+#import <CoreImage/CoreImage.h>
+#import <ImageIO/ImageIO.h>
 #import <WebRTC/WebRTC.h>
+
+// Аспект мини-окна PiP (width:height). Кадр вписываем в холст этого аспекта с
+// чёрными полями (letterbox) — так окно становится ниже/меньше вытянутого
+// портрета камеры. 3:4 = умеренно короче 9:16, с небольшими боковыми полями.
+static const CGFloat kPipAspectW = 3.0;
+static const CGFloat kPipAspectH = 4.0;
 
 // Forward-declaration публичного API flutter_webrtc — чтобы не тянуть header пода
 // (его видимость из таргета Runner не гарантирована). Класс линкуется в
@@ -35,6 +43,7 @@
   dispatch_queue_t _queue;
   int _lastWidth;
   int _lastHeight;
+  CIContext *_ciContext;
 }
 
 - (instancetype)init {
@@ -42,6 +51,7 @@
     _displayLayer = [[AVSampleBufferDisplayLayer alloc] init];
     _displayLayer.videoGravity = AVLayerVideoGravityResizeAspectFill;
     _queue = dispatch_queue_create("net.iperon.messenger.pip.samplebuffer", DISPATCH_QUEUE_SERIAL);
+    _ciContext = [CIContext contextWithOptions:nil];
   }
   return self;
 }
@@ -52,19 +62,88 @@
 - (void)renderFrame:(nullable RTCVideoFrame *)frame {
   if (!frame) return;
   if (self.frozenForPlaceholder) return;  // камера собеседника выключена — показываем плейсхолдер
-  _lastWidth = (int)frame.width;
-  _lastHeight = (int)frame.height;
 
-  CVPixelBufferRef pixelBuffer = NULL;
+  CVPixelBufferRef source = NULL;
   if ([frame.buffer isKindOfClass:[RTCCVPixelBuffer class]]) {
-    pixelBuffer = ((RTCCVPixelBuffer *)frame.buffer).pixelBuffer;
-    if (pixelBuffer) CVPixelBufferRetain(pixelBuffer);
+    source = ((RTCCVPixelBuffer *)frame.buffer).pixelBuffer;
+    if (source) CVPixelBufferRetain(source);
   } else {
-    pixelBuffer = [self bgraPixelBufferFromI420:frame];
+    source = [self bgraPixelBufferFromI420:frame];
   }
-  if (!pixelBuffer) return;
-  [self enqueuePixelBuffer:pixelBuffer];
-  CVPixelBufferRelease(pixelBuffer);
+  if (!source) return;
+
+  // Вписываем кадр в холст фиксированного аспекта (letterbox) — так мини-окно PiP
+  // становится ниже/меньше; заодно применяем поворот кадра.
+  CVPixelBufferRef canvas = [self letterboxedFromSource:source rotation:frame.rotation];
+  CVPixelBufferRelease(source);
+  if (!canvas) return;
+  _lastWidth = (int)CVPixelBufferGetWidth(canvas);
+  _lastHeight = (int)CVPixelBufferGetHeight(canvas);
+  [self enqueuePixelBuffer:canvas];
+  CVPixelBufferRelease(canvas);
+}
+
+/// Композитит кадр [source] в холст аспекта kPipAspectW:kPipAspectH с чёрными
+/// полями (aspect-fit), применяя поворот кадра. Возвращает новый BGRA-пиксельбуфер
+/// (владение у вызывающего). Core Image единообразно работает с NV12 и BGRA.
+- (CVPixelBufferRef)letterboxedFromSource:(CVPixelBufferRef)source rotation:(RTCVideoRotation)rotation {
+  CIImage *image = [CIImage imageWithCVPixelBuffer:source];
+  CGImagePropertyOrientation orientation = kCGImagePropertyOrientationUp;
+  switch (rotation) {
+    case RTCVideoRotation_90:
+      orientation = kCGImagePropertyOrientationRight;
+      break;
+    case RTCVideoRotation_180:
+      orientation = kCGImagePropertyOrientationDown;
+      break;
+    case RTCVideoRotation_270:
+      orientation = kCGImagePropertyOrientationLeft;
+      break;
+    default:
+      break;
+  }
+  image = [image imageByApplyingCGOrientation:orientation];
+  CGRect extent = image.extent;
+  CGFloat srcW = extent.size.width;
+  CGFloat srcH = extent.size.height;
+  if (srcW < 1 || srcH < 1) return NULL;
+
+  // Холст: высоту берём по большей стороне, ширину — по целевому аспекту, но не
+  // меньше исходной ширины (чтобы не терять качество).
+  CGFloat targetAspect = kPipAspectW / kPipAspectH;  // width/height
+  int canvasH = (int)lround(srcH);
+  int canvasW = (int)lround(canvasH * targetAspect);
+  if (canvasW < srcW) {
+    canvasW = (int)lround(srcW);
+    canvasH = (int)lround(canvasW / targetAspect);
+  }
+
+  CGFloat scale = MIN(canvasW / srcW, canvasH / srcH);
+  CGFloat drawW = srcW * scale;
+  CGFloat drawH = srcH * scale;
+  CGFloat dx = (canvasW - drawW) / 2.0;
+  CGFloat dy = (canvasH - drawH) / 2.0;
+
+  CIImage *scaled = [image imageByApplyingTransform:CGAffineTransformMakeScale(scale, scale)];
+  // После scale extent.origin тоже масштабируется — сдвигаем в (dx,dy) от нуля.
+  scaled = [scaled imageByApplyingTransform:CGAffineTransformMakeTranslation(dx - extent.origin.x * scale,
+                                                                             dy - extent.origin.y * scale)];
+  CIImage *black = [[CIImage imageWithColor:[CIColor colorWithRed:0 green:0 blue:0]]
+      imageByCroppingToRect:CGRectMake(0, 0, canvasW, canvasH)];
+  CIImage *composited = [scaled imageByCompositingOverImage:black];
+
+  CVPixelBufferRef canvas = NULL;
+  NSDictionary *attrs = @{
+    (id)kCVPixelBufferIOSurfacePropertiesKey : @{},
+    (id)kCVPixelBufferCGImageCompatibilityKey : @YES,
+    (id)kCVPixelBufferCGBitmapContextCompatibilityKey : @YES,
+  };
+  if (CVPixelBufferCreate(kCFAllocatorDefault, canvasW, canvasH, kCVPixelFormatType_32BGRA,
+                          (__bridge CFDictionaryRef)attrs, &canvas) != kCVReturnSuccess || !canvas) {
+    return NULL;
+  }
+  [_ciContext render:composited toCVPixelBuffer:canvas];
+  return canvas;
 }
 
 - (void)enqueuePixelBuffer:(CVPixelBufferRef)pixelBuffer {
@@ -90,8 +169,11 @@
 }
 
 - (CVPixelBufferRef)placeholderPixelBufferWithImage:(nullable UIImage *)image {
+  // По умолчанию (кадров ещё не было) — тот же аспект, что у letterbox-холста,
+  // чтобы форма окна не прыгала. После первого кадра _lastWidth/_lastHeight уже
+  // равны размерам холста.
   int w = _lastWidth > 0 ? _lastWidth : 720;
-  int h = _lastHeight > 0 ? _lastHeight : 1280;
+  int h = _lastHeight > 0 ? _lastHeight : (int)lround(720.0 * kPipAspectH / kPipAspectW);
   CVPixelBufferRef pb = NULL;
   NSDictionary *attrs = @{
     (id)kCVPixelBufferCGImageCompatibilityKey : @YES,
