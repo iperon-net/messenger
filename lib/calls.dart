@@ -18,6 +18,7 @@ import 'package:livekit_client/livekit_client.dart';
 
 import 'api.dart';
 import 'auth.dart';
+import 'components/call_permissions.dart';
 import 'di.dart';
 import 'logger.dart';
 import 'models.dart' as models;
@@ -656,6 +657,10 @@ class Calls {
     final participant = _room?.localParticipant;
     if (participant == null) return;
     final off = !_snapshot.cameraOff;
+    // Включаем камеру только после того, как разрешение CAMERA выдано (иначе на
+    // Android первый вызов setCameraEnabled упирается в системный диалог и
+    // возвращает null — камера включалась бы лишь со второго тапа).
+    if (!off && !await ensureCallCameraPermission()) return;
     final publication = await participant.setCameraEnabled(!off);
     _localVideoTrack = off ? null : (publication?.track as VideoTrack?);
     _emit(_snapshot.copyWith(cameraOff: off, mediaEpoch: _snapshot.mediaEpoch + 1));
@@ -677,6 +682,10 @@ class Calls {
     }
     final participant = _room?.localParticipant;
     if (participant == null) return;
+    // Дожидаемся разрешения CAMERA до первой публикации видеодорожки (см.
+    // ensureCallCameraPermission) — иначе на Android апгрейд в видео срабатывал бы
+    // только со второго тапа.
+    if (!await ensureCallCameraPermission()) return;
     _cameraPosition = CameraPosition.front;
     final publication = await participant.setCameraEnabled(true);
     _localVideoTrack = publication?.track as VideoTrack?;
@@ -1115,7 +1124,10 @@ class Calls {
 
     _cameraPosition = CameraPosition.front;
     await participant.setMicrophoneEnabled(true);
-    if (video) {
+    // Разрешение CAMERA — до первой публикации видеодорожки, чтобы на Android
+    // видеозвонок «с нуля» поднимал камеру с первого раза (см.
+    // ensureCallCameraPermission). Отказ не валит звонок — остаёмся в аудио.
+    if (video && await ensureCallCameraPermission()) {
       final publication = await participant.setCameraEnabled(true);
       _localVideoTrack = publication?.track as VideoTrack?;
       _emit(_snapshot.copyWith(mediaEpoch: _snapshot.mediaEpoch + 1));

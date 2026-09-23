@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:io' show Platform;
 
 import 'package:audioplayers/audioplayers.dart';
-import 'package:flutter/cupertino.dart' show CupertinoIcons;
+import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -457,7 +457,7 @@ class _Overlay extends StatelessWidget {
             children: [
               _CircleButton(
                 label: t.decline,
-                icon: CupertinoIcons.phone_down_fill,
+                icon: HugeIcons.strokeRoundedCallEnd02,
                 color: CallView._red,
                 iconColor: CallView._onAccent,
                 palette: palette,
@@ -465,7 +465,7 @@ class _Overlay extends StatelessWidget {
               ),
               _CircleButton(
                 label: t.accept,
-                icon: CupertinoIcons.phone_fill,
+                icon: HugeIcons.strokeRoundedCall02,
                 color: CallView._green,
                 iconColor: CallView._onAccent,
                 palette: palette,
@@ -500,7 +500,7 @@ class _Overlay extends StatelessWidget {
           children: [
             _CircleButton(
               label: state.micMuted ? t.micOn : t.micOff,
-              icon: state.micMuted ? CupertinoIcons.mic_slash_fill : CupertinoIcons.mic_fill,
+              icon: state.micMuted ? HugeIcons.strokeRoundedMicOff01 : HugeIcons.strokeRoundedMic01,
               color: state.micMuted ? palette.controlActiveBg : palette.controlBg,
               iconColor: palette.fg,
               palette: palette,
@@ -526,7 +526,7 @@ class _Overlay extends StatelessWidget {
             if (!state.video)
               _CircleButton(
                 label: t.startVideo,
-                icon: CupertinoIcons.video_camera,
+                icon: HugeIcons.strokeRoundedVideo01,
                 color: palette.controlBg,
                 iconColor: palette.fg,
                 palette: palette,
@@ -535,7 +535,7 @@ class _Overlay extends StatelessWidget {
             else ...[
               _CircleButton(
                 label: state.cameraOff ? t.cameraOn : t.cameraOff,
-                icon: state.cameraOff ? CupertinoIcons.video_camera : CupertinoIcons.video_camera_solid,
+                icon: state.cameraOff ? HugeIcons.strokeRoundedVideoOff : HugeIcons.strokeRoundedVideo01,
                 color: state.cameraOff ? palette.controlActiveBg : palette.controlBg,
                 iconColor: palette.fg,
                 palette: palette,
@@ -543,7 +543,7 @@ class _Overlay extends StatelessWidget {
               ),
               _CircleButton(
                 label: t.switchCamera,
-                icon: CupertinoIcons.switch_camera_solid,
+                icon: HugeIcons.strokeRoundedCameraRotated01,
                 color: palette.controlBg,
                 iconColor: palette.fg,
                 palette: palette,
@@ -555,7 +555,7 @@ class _Overlay extends StatelessWidget {
         const SizedBox(height: 24),
         _CircleButton(
           label: t.hangup,
-          icon: CupertinoIcons.phone_down_fill,
+          icon: HugeIcons.strokeRoundedCallEnd02,
           color: CallView._red,
           iconColor: CallView._onAccent,
           palette: palette,
@@ -783,14 +783,14 @@ class _MicBadge extends StatelessWidget {
         border: Border.all(color: palette.bg, width: 3),
       ),
       alignment: Alignment.center,
-      child: const Icon(CupertinoIcons.mic_slash_fill, color: CallView._onAccent, size: 18),
+      child: const HugeIcon(icon: HugeIcons.strokeRoundedMicOff01, color: CallView._onAccent, size: 18),
     );
   }
 }
 
 class _CircleButton extends StatelessWidget {
   final String label;
-  final IconData icon;
+  final List<List<dynamic>> icon;
   final Color color;
   final Color iconColor;
   final _CallPalette palette;
@@ -818,7 +818,7 @@ class _CircleButton extends StatelessWidget {
             height: 68,
             decoration: BoxDecoration(color: color, shape: BoxShape.circle),
             alignment: Alignment.center,
-            child: Icon(icon, color: iconColor, size: 28),
+            child: HugeIcon(icon: icon, color: iconColor, size: 28),
           ),
           const SizedBox(height: 8),
           Text(label, style: TextStyle(color: palette.buttonLabel, fontSize: 13)),

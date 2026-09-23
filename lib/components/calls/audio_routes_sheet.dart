@@ -1,20 +1,20 @@
 import 'dart:async';
 
-import 'package:flutter/cupertino.dart' show CupertinoIcons;
+import 'package:hugeicons/hugeicons.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../audio_routes.dart';
 import '../../i18n/translations.g.dart';
 
 /// Иконка аудио-маршрута по его типу (общая для кнопки и листа).
-IconData audioRouteIcon(AudioRouteType type) => switch (type) {
-  AudioRouteType.earpiece => CupertinoIcons.phone_fill,
-  AudioRouteType.speaker => CupertinoIcons.speaker_3_fill,
-  AudioRouteType.wiredHeadset => CupertinoIcons.headphones,
-  AudioRouteType.bluetooth => CupertinoIcons.bluetooth,
-  AudioRouteType.hearingAid => CupertinoIcons.ear,
-  AudioRouteType.car => CupertinoIcons.car_fill,
-  AudioRouteType.unknown => CupertinoIcons.speaker_2_fill,
+List<List<dynamic>> audioRouteIcon(AudioRouteType type) => switch (type) {
+  AudioRouteType.earpiece => HugeIcons.strokeRoundedSmartPhone01,
+  AudioRouteType.speaker => HugeIcons.strokeRoundedVolumeHigh,
+  AudioRouteType.wiredHeadset => HugeIcons.strokeRoundedHeadphones,
+  AudioRouteType.bluetooth => HugeIcons.strokeRoundedBluetooth,
+  AudioRouteType.hearingAid => HugeIcons.strokeRoundedEar,
+  AudioRouteType.car => HugeIcons.strokeRoundedCar01,
+  AudioRouteType.unknown => HugeIcons.strokeRoundedVolumeHigh,
 };
 
 /// Локализованная подпись маршрута. Для BT/проводной, когда система дала имя
@@ -104,12 +104,12 @@ class _AudioRoutesSheetState extends State<_AudioRoutesSheet> {
           else
             for (final route in _routes)
               ListTile(
-                leading: Icon(audioRouteIcon(route.type), color: route.active ? colorScheme.primary : colorScheme.onSurface),
+                leading: HugeIcon(icon: audioRouteIcon(route.type), color: route.active ? colorScheme.primary : colorScheme.onSurface),
                 title: Text(
                   audioRouteLabel(context, route),
                   style: TextStyle(color: route.active ? colorScheme.primary : colorScheme.onSurface),
                 ),
-                trailing: route.active ? Icon(CupertinoIcons.check_mark, color: colorScheme.primary) : null,
+                trailing: route.active ? HugeIcon(icon: HugeIcons.strokeRoundedTick02, color: colorScheme.primary) : null,
                 onTap: () => _select(route),
               ),
           const SizedBox(height: 8),
@@ -172,7 +172,7 @@ class _AudioOutputButtonState extends State<AudioOutputButton> {
             height: 68,
             decoration: BoxDecoration(color: widget.backgroundColor, shape: BoxShape.circle),
             alignment: Alignment.center,
-            child: Icon(audioRouteIcon(_activeType), color: widget.iconColor, size: 28),
+            child: HugeIcon(icon: audioRouteIcon(_activeType), color: widget.iconColor, size: 28),
           ),
           const SizedBox(height: 8),
           Text(context.t.screenCall.audioOutput, style: TextStyle(color: widget.labelColor, fontSize: 13)),

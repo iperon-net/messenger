@@ -1,4 +1,4 @@
-import 'package:flutter/cupertino.dart' show CupertinoIcons;
+import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:livekit_client/livekit_client.dart' show VideoTrack;
@@ -124,7 +124,7 @@ class _StageSwitcherState extends State<_StageSwitcher> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(CupertinoIcons.arrow_2_circlepath, color: Color(0xFFFFFFFF), size: 16),
+            const HugeIcon(icon: HugeIcons.strokeRoundedRefresh, color: Color(0xFFFFFFFF), size: 16),
             const SizedBox(width: 8),
             Text(
               _stages[_index].label,
