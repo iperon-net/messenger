@@ -40,6 +40,13 @@ import flutter_callkit_incoming
       )
     }
 
+    // iOS Picture-in-Picture видеозвонка: мини-окно с видео собеседника при
+    // сворачивании приложения. Канал net.iperon.messenger/call_pip_ios,
+    // драйвится из lib/call_pip_ios.dart. См. CallPipController + docs/ios_pip_plan.md.
+    if let messenger = engineBridge.pluginRegistry.registrar(forPlugin: "IperonCallPip")?.messenger() {
+      CallPipController.shared().register(withMessenger: messenger)
+    }
+
     // Канал явной активации AVAudioSession на пути без CallKit
     // (externalCallSystem: исходящий/foreground) — LiveKit сессию сам не
     // активирует. Смену маршрута на динамик/разговорный делает Dart через
