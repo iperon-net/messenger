@@ -118,7 +118,13 @@ class _IperonMessengerMaterial extends State<IperonMessengerMaterial> with Widge
         api.setForeground(false);
         context.read<CommonCubit>().onAppBackgrounded();
       case AppLifecycleState.detached:
-        api.shutdown();
+        // На Android движок кэшируется на весь процесс, а Activity пересоздаётся
+        // (например, после звонка через flutter_callkit_incoming) — тогда прилетает
+        // detached, хотя процесс жив. Раньше здесь звали api.shutdown(), который
+        // навсегда сбрасывал _authorized и закрывал broadcast incoming: после звонка
+        // стрим больше не поднимался («Подключение», send() dropped authorized=false).
+        // Трактуем detached как уход в фон — пауза; на resumed стрим переоткроется.
+        api.setForeground(false);
       case AppLifecycleState.inactive:
         setState(() => isBlur = true);
         context.read<CommonCubit>().onAppBackgrounded();

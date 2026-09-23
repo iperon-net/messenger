@@ -121,8 +121,12 @@ class _IperonMessengerCupertino extends State<IperonMessengerCupertino> with Wid
         // Засекаем время ухода в фон для авто-блокировки.
         context.read<CommonCubit>().onAppBackgrounded();
       case AppLifecycleState.detached:
-        // Приложение завершается — полностью закрываем стрим.
-        api.shutdown();
+        // detached трактуем как уход в фон (пауза), а не завершение процесса:
+        // api.shutdown() навсегда сбрасывал _authorized и закрывал broadcast
+        // incoming, из-за чего после звонка/пересоздания хоста стрим больше не
+        // поднимался («Подключение», send() dropped authorized=false). На resumed
+        // стрим переоткроется. См. app_material.dart.
+        api.setForeground(false);
       case AppLifecycleState.inactive:
         // На iOS `inactive` доставляется надёжно, а `hidden`/`paused` могут прийти
         // уже после заморозки изолята. Поэтому фон фиксируем и здесь — и для авто-
