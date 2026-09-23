@@ -16,7 +16,7 @@ jobs:
   Linter:
     uses: iperon-net/messenger/.github/workflows/_linter.yaml@main
     with:
-      flutter_version: "3.47.1"
+      flutter_version: "3.47.2"
     secrets:
       firebase_options_dart_base64: ${{ secrets.FIREBASE_OPTIONS_DART_BASE64 }}
 
@@ -24,7 +24,7 @@ jobs:
     uses: iperon-net/messenger/.github/workflows/_deploy_testflight.yaml@main
     needs: Linter
     with:
-      flutter_version: "3.47.1"
+      flutter_version: "3.47.2"
     secrets:
       firebase_options_dart_base64: ${{ secrets.FIREBASE_OPTIONS_DART_BASE64 }}
       ios_google_service_info_plist_base64: ${{ secrets.IOS_GOOGLE_SERVICE_INFO_PLIST_BASE64 }}
