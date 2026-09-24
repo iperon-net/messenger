@@ -591,6 +591,9 @@ class _Translations$screenCall$ru extends Translations$screenCall$en {
 	@override String get cameraOff => 'Выкл. камеру';
 	@override String get startVideo => 'Видео';
 	@override String get switchCamera => 'Камера';
+	@override String get shareScreen => 'Экран';
+	@override String get stopScreenShare => 'Стоп';
+	@override String get remoteScreenSharing => 'Демонстрирует экран';
 	@override String get qualityPoor => 'Слабый сигнал';
 	@override String get qualityGood => 'Хорошее соединение';
 	@override String get qualityExcellent => 'Отличное соединение';
@@ -896,6 +899,9 @@ extension on TranslationsRu {
 			'screenCall.cameraOff' => 'Выкл. камеру',
 			'screenCall.startVideo' => 'Видео',
 			'screenCall.switchCamera' => 'Камера',
+			'screenCall.shareScreen' => 'Экран',
+			'screenCall.stopScreenShare' => 'Стоп',
+			'screenCall.remoteScreenSharing' => 'Демонстрирует экран',
 			'screenCall.qualityPoor' => 'Слабый сигнал',
 			'screenCall.qualityGood' => 'Хорошее соединение',
 			'screenCall.qualityExcellent' => 'Отличное соединение',

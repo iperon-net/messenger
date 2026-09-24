@@ -122,6 +122,14 @@ dependencies:
   livekit_client: ^2.13.0
   hugeicons: ^1.2.0
 
+  # Android media-projection foreground service для демонстрации экрана: LiveKit
+  # НЕ поднимает FGS сам (см. LocalVideoTrack.createScreenShareTrack doc), а с
+  # Android 14 (API 34) он обязателен. Как в примере LiveKit — поднимаем сервис
+  # `IsolateHolderService` (объявлен в AndroidManifest с типом mediaProjection)
+  # перед setScreenShareEnabled(true). На iOS не используется (там ReplayKit
+  # Broadcast Extension). См. Calls.toggleScreenShare.
+  flutter_background: ^1.3.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

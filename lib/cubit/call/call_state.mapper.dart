@@ -93,6 +93,20 @@ class CallStateMapper extends ClassMapperBase<CallState> {
     opt: true,
     def: true,
   );
+  static bool _$screenSharing(CallState v) => v.screenSharing;
+  static const Field<CallState, bool> _f$screenSharing = Field(
+    'screenSharing',
+    _$screenSharing,
+    opt: true,
+    def: false,
+  );
+  static bool _$remoteScreenSharing(CallState v) => v.remoteScreenSharing;
+  static const Field<CallState, bool> _f$remoteScreenSharing = Field(
+    'remoteScreenSharing',
+    _$remoteScreenSharing,
+    opt: true,
+    def: false,
+  );
   static CallEndReason _$endReason(CallState v) => v.endReason;
   static const Field<CallState, CallEndReason> _f$endReason = Field(
     'endReason',
@@ -160,6 +174,8 @@ class CallStateMapper extends ClassMapperBase<CallState> {
     #speakerOn: _f$speakerOn,
     #remoteMicMuted: _f$remoteMicMuted,
     #remoteVideoOff: _f$remoteVideoOff,
+    #screenSharing: _f$screenSharing,
+    #remoteScreenSharing: _f$remoteScreenSharing,
     #endReason: _f$endReason,
     #debug: _f$debug,
     #connectedAt: _f$connectedAt,
@@ -182,6 +198,8 @@ class CallStateMapper extends ClassMapperBase<CallState> {
       speakerOn: data.dec(_f$speakerOn),
       remoteMicMuted: data.dec(_f$remoteMicMuted),
       remoteVideoOff: data.dec(_f$remoteVideoOff),
+      screenSharing: data.dec(_f$screenSharing),
+      remoteScreenSharing: data.dec(_f$remoteScreenSharing),
       endReason: data.dec(_f$endReason),
       debug: data.dec(_f$debug),
       connectedAt: data.dec(_f$connectedAt),
@@ -264,6 +282,8 @@ abstract class CallStateCopyWith<$R, $In extends CallState, $Out>
     bool? speakerOn,
     bool? remoteMicMuted,
     bool? remoteVideoOff,
+    bool? screenSharing,
+    bool? remoteScreenSharing,
     CallEndReason? endReason,
     String? debug,
     DateTime? connectedAt,
@@ -303,6 +323,8 @@ class _CallStateCopyWithImpl<$R, $Out>
     bool? speakerOn,
     bool? remoteMicMuted,
     bool? remoteVideoOff,
+    bool? screenSharing,
+    bool? remoteScreenSharing,
     CallEndReason? endReason,
     String? debug,
     Object? connectedAt = $none,
@@ -323,6 +345,9 @@ class _CallStateCopyWithImpl<$R, $Out>
       if (speakerOn != null) #speakerOn: speakerOn,
       if (remoteMicMuted != null) #remoteMicMuted: remoteMicMuted,
       if (remoteVideoOff != null) #remoteVideoOff: remoteVideoOff,
+      if (screenSharing != null) #screenSharing: screenSharing,
+      if (remoteScreenSharing != null)
+        #remoteScreenSharing: remoteScreenSharing,
       if (endReason != null) #endReason: endReason,
       if (debug != null) #debug: debug,
       if (connectedAt != $none) #connectedAt: connectedAt,
@@ -345,6 +370,11 @@ class _CallStateCopyWithImpl<$R, $Out>
     speakerOn: data.get(#speakerOn, or: $value.speakerOn),
     remoteMicMuted: data.get(#remoteMicMuted, or: $value.remoteMicMuted),
     remoteVideoOff: data.get(#remoteVideoOff, or: $value.remoteVideoOff),
+    screenSharing: data.get(#screenSharing, or: $value.screenSharing),
+    remoteScreenSharing: data.get(
+      #remoteScreenSharing,
+      or: $value.remoteScreenSharing,
+    ),
     endReason: data.get(#endReason, or: $value.endReason),
     debug: data.get(#debug, or: $value.debug),
     connectedAt: data.get(#connectedAt, or: $value.connectedAt),

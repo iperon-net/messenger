@@ -30,6 +30,12 @@ class CallState with CallStateMappable {
   /// (см. [CallSnapshot.remoteVideoOff]).
   final bool remoteVideoOff;
 
+  /// Мы демонстрируем экран (см. [CallSnapshot.screenSharing]).
+  final bool screenSharing;
+
+  /// Собеседник демонстрирует экран (см. [CallSnapshot.remoteScreenSharing]).
+  final bool remoteScreenSharing;
+
   final CallEndReason endReason;
   final String debug;
 
@@ -69,6 +75,8 @@ class CallState with CallStateMappable {
     this.speakerOn = false,
     this.remoteMicMuted = false,
     this.remoteVideoOff = true,
+    this.screenSharing = false,
+    this.remoteScreenSharing = false,
     this.endReason = CallEndReason.none,
     this.debug = '',
     this.connectedAt,
