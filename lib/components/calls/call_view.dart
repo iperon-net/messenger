@@ -862,20 +862,30 @@ class _QualityIndicator extends StatelessWidget {
   }
 }
 
-/// Индикатор сквозного шифрования звонка: замок + статус, а при согласованном
-/// ключе — SAS (4 эмодзи) для сверки от активного MITM (собеседники сравнивают
-/// эмодзи голосом). В фазе согласования ([CallEncryption.negotiating]) ничего не
-/// рисует, чтобы не мигать предупреждением на доли секунды до установки ключа.
-class _E2eeIndicator extends StatelessWidget {
+/// Индикатор сквозного шифрования звонка: замок + статус. При согласованном ключе
+/// замок кликабелен — тап раскрывает/сворачивает SAS (4 эмодзи) для сверки от
+/// активного MITM (собеседники сравнивают эмодзи голосом). По умолчанию SAS
+/// свёрнут, чтобы не загромождать экран. В фазе согласования
+/// ([CallEncryption.negotiating]) ничего не рисует, чтобы не мигать предупреждением
+/// на доли секунды до установки ключа.
+class _E2eeIndicator extends StatefulWidget {
   final CallState state;
   final _CallPalette palette;
 
   const _E2eeIndicator({required this.state, required this.palette});
 
   @override
+  State<_E2eeIndicator> createState() => _E2eeIndicatorState();
+}
+
+class _E2eeIndicatorState extends State<_E2eeIndicator> {
+  bool _expanded = false;
+
+  @override
   Widget build(BuildContext context) {
     final t = context.t.screenCall;
-    switch (state.encryption) {
+    final palette = widget.palette;
+    switch (widget.state.encryption) {
       case CallEncryption.negotiating:
         return const SizedBox.shrink();
       case CallEncryption.unencrypted:
@@ -888,36 +898,60 @@ class _E2eeIndicator extends StatelessWidget {
           ],
         );
       case CallEncryption.encrypted:
+        final sas = widget.state.sas;
+        final canExpand = sas.isNotEmpty;
         return Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(CupertinoIcons.lock_fill, color: CallView._green, size: 14),
-                const SizedBox(width: 6),
-                Text(t.encrypted, style: const TextStyle(color: CallView._green, fontSize: 12)),
-              ],
-            ),
-            if (state.sas.isNotEmpty) ...[
-              const SizedBox(height: 10),
-              Row(
+            // Кликабельная строка-замок: тап раскрывает SAS. Chevron подсказывает,
+            // что строку можно развернуть.
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: canExpand ? () => setState(() => _expanded = !_expanded) : null,
+              child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  for (final emoji in state.sas)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 4),
-                      child: Text(emoji, style: const TextStyle(fontSize: 30)),
-                    ),
+                  const Icon(CupertinoIcons.lock_fill, color: CallView._green, size: 14),
+                  const SizedBox(width: 6),
+                  Text(t.encrypted, style: const TextStyle(color: CallView._green, fontSize: 12)),
+                  if (canExpand) ...[
+                    const SizedBox(width: 4),
+                    Icon(_expanded ? CupertinoIcons.chevron_up : CupertinoIcons.chevron_down, color: CallView._green, size: 11),
+                  ],
                 ],
               ),
-              const SizedBox(height: 6),
-              Text(
-                t.verifyEmoji,
-                textAlign: TextAlign.center,
-                style: TextStyle(color: palette.dim, fontSize: 11),
-              ),
-            ],
+            ),
+            // Раскрывающийся блок SAS с плавной анимацией высоты.
+            AnimatedSize(
+              duration: const Duration(milliseconds: 180),
+              curve: Curves.easeInOut,
+              child: (canExpand && _expanded)
+                  ? Padding(
+                      padding: const EdgeInsets.only(top: 10),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              for (final emoji in sas)
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                                  child: Text(emoji, style: const TextStyle(fontSize: 30)),
+                                ),
+                            ],
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            t.verifyEmoji,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(color: palette.dim, fontSize: 11),
+                          ),
+                        ],
+                      ),
+                    )
+                  : const SizedBox.shrink(),
+            ),
           ],
         );
     }
