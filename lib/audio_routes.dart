@@ -122,6 +122,18 @@ class AudioRoutes {
     if (!isSupported) return;
     _logger.info('audioRoutes.select ${route.type.name} id=${route.id}');
     try {
+      // Если звонок ведётся как self-managed Telecom-соединение (CallKit/
+      // flutter_callkit_incoming), маршрутом владеет система — наш
+      // setCommunicationDevice она перебивает (подтверждено `dumpsys audio`:
+      // updateCommunicationRoute игнорировал запрос приложения на speaker,
+      // privileged Telecom держал earpiece). Тогда переключаем через
+      // Telecom Connection.setAudioRoute. Натив вернёт true, если звонок в
+      // Telecom и маршрут применён его средствами.
+      final handledByTelecom = await _method.invokeMethod<bool>('setTelecomRoute', {'type': route.type.name}) ?? false;
+      if (handledByTelecom) return;
+
+      // Fallback: звонок без CallKit (нет Telecom-соединения) — маршрутом владеет
+      // audioswitch LiveKit (см. развёрнутый комментарий выше).
       switch (route.type) {
         case AudioRouteType.speaker:
           await AudioManager.instance.setSpeakerOutputPreferred(true, force: true);

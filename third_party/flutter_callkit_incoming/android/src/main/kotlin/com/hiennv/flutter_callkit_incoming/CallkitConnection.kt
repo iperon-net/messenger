@@ -68,6 +68,65 @@ class CallkitConnection(
         }
 
         fun activeCount(): Int = activeConnections.size
+
+        /**
+         * Текущий аудио-маршрут активного Telecom-звонка (битовая константа
+         * [android.telecom.CallAudioState].ROUTE_*), 0 — нет активного звонка/
+         * маршрут неизвестен. Заполняется из [onCallAudioStateChanged] — это
+         * авторитетный источник для CallKit-пути (сам AudioManager.communicationDevice
+         * при self-managed звонке маршрут не отражает). Читается для иконки/подписи
+         * кнопки «Вывод звука».
+         */
+        @Volatile
+        var currentAudioRoute: Int = 0
+            private set
+
+        /** Колбэк смены маршрута Telecom — навешивается нашим AudioDevicesHandler для обновления UI. */
+        @Volatile
+        var audioRouteListener: ((Int) -> Unit)? = null
+
+        internal fun setCurrentAudioRoute(route: Int) {
+            currentAudioRoute = route
+        }
+
+        /**
+         * Смена аудио-маршрута активного(-ых) self-managed звонка через Telecom.
+         *
+         * Зачем: пока активно self-managed Telecom-соединение, коммуникационным
+         * маршрутом владеет система (Telecom — privileged mode owner). Обычный
+         * `AudioManager.setCommunicationDevice(...)` от приложения непривилегирован
+         * и Telecom его перебивает (проверено через `dumpsys audio`:
+         * `updateCommunicationRoute` возвращает earpiece, игнорируя запрос
+         * приложения на speaker). `Connection.setAudioRoute(route)` — штатный путь:
+         * систему просят сменить её же маршрут, поэтому он реально применяется.
+         *
+         * [route] — константа [android.telecom.CallAudioState].ROUTE_*.
+         * Возвращает true, если было хотя бы одно активное соединение (звонок в
+         * Telecom) — тогда вызывающая сторона НЕ должна дублировать смену через
+         * AudioManager.
+         */
+        @RequiresApi(Build.VERSION_CODES.M)
+        fun setAudioRouteForActive(route: Int): Boolean {
+            var handled = false
+            for (conn in activeConnections.values) {
+                try {
+                    conn.setAudioRoute(route)
+                    handled = true
+                } catch (e: Exception) {
+                    Log.w(TAG, "setAudioRoute($route) failed: ${e.message}")
+                }
+            }
+            return handled
+        }
+    }
+
+    // Telecom сообщает текущий аудио-маршрут звонка (и при нашем setAudioRoute, и
+    // при системных сменах — гарнитура/BT/шторка). Единственный достоверный
+    // источник активного выхода для self-managed звонка → прокидываем в UI.
+    override fun onCallAudioStateChanged(state: android.telecom.CallAudioState) {
+        super.onCallAudioStateChanged(state)
+        setCurrentAudioRoute(state.route)
+        audioRouteListener?.invoke(state.route)
     }
 
     init {

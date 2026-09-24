@@ -7,7 +7,9 @@ import android.media.AudioManager
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import android.telecom.CallAudioState
 import android.util.Log
+import com.hiennv.flutter_callkit_incoming.CallkitConnection
 import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodChannel
@@ -66,6 +68,7 @@ class AudioDevicesHandler(
         eventChannel.setStreamHandler(null)
         audioManager.unregisterAudioDeviceCallback(deviceCallback)
         unregisterCommDeviceListener()
+        CallkitConnection.audioRouteListener = null
         eventSink = null
     }
 
@@ -83,6 +86,16 @@ class AudioDevicesHandler(
                 selectDevice(id)
                 result.success(null)
             }
+            // Смена маршрута через Telecom, если звонок ведётся как self-managed
+            // Telecom-соединение (flutter_callkit_incoming): тогда маршрутом владеет
+            // система, и наш setCommunicationDevice она перебивает — переключать
+            // надо через Connection.setAudioRoute. Возвращаем true, если звонок в
+            // Telecom (обработано); false — вызывающая Dart-сторона сделает fallback
+            // на LiveKit/setCommunicationDevice (звонок без CallKit).
+            "setTelecomRoute" -> {
+                val type = call.argument<String>("type")
+                result.success(setTelecomRoute(type))
+            }
             else -> result.notImplemented()
         }
     }
@@ -95,6 +108,10 @@ class AudioDevicesHandler(
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && commDeviceListener != null) {
             audioManager.addOnCommunicationDeviceChangedListener({ it.run() }, commDeviceListener)
         }
+        // Смена маршрута во время CallKit-звонка идёт через Telecom (не через
+        // communicationDevice), поэтому активный выход и его смену берём из
+        // Telecom onCallAudioStateChanged — иначе иконка кнопки не обновлялась бы.
+        CallkitConnection.audioRouteListener = { emitDevices() }
         // Начальный снимок сразу после подписки.
         emitDevices()
     }
@@ -102,6 +119,7 @@ class AudioDevicesHandler(
     override fun onCancel(arguments: Any?) {
         audioManager.unregisterAudioDeviceCallback(deviceCallback)
         unregisterCommDeviceListener()
+        CallkitConnection.audioRouteListener = null
         eventSink = null
     }
 
@@ -112,6 +130,31 @@ class AudioDevicesHandler(
     }
 
     // --- Реализация ---
+
+    /**
+     * Пробует сменить аудио-маршрут через активное self-managed Telecom-соединение
+     * (см. [CallkitConnection.setAudioRouteForActive]). Возвращает true, если
+     * звонок ведётся в Telecom и маршрут применён его средствами; false — активного
+     * Telecom-звонка нет, и Dart должен сделать fallback (LiveKit/setCommunicationDevice).
+     *
+     * [type] — имя Dart-enum AudioRouteType. Маппится в [CallAudioState] ROUTE_*.
+     */
+    private fun setTelecomRoute(type: String?): Boolean {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) return false
+        if (CallkitConnection.activeCount() == 0) return false
+        val route = when (type) {
+            "speaker" -> CallAudioState.ROUTE_SPEAKER
+            "earpiece" -> CallAudioState.ROUTE_EARPIECE
+            "bluetooth", "hearingAid" -> CallAudioState.ROUTE_BLUETOOTH
+            "wiredHeadset" -> CallAudioState.ROUTE_WIRED_HEADSET
+            else -> return false
+        }
+        val handled = CallkitConnection.setAudioRouteForActive(route)
+        Log.i(TAG, "setTelecomRoute type=$type route=$route handled=$handled")
+        // Активный маршрут сменится — переспросим снимок для UI.
+        if (handled) emitDevices()
+        return handled
+    }
 
     private fun selectDevice(id: String) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return
@@ -138,8 +181,29 @@ class AudioDevicesHandler(
         return audioManager.communicationDevice?.id
     }
 
+    /**
+     * Тип активного выхода во время CallKit-звонка — из маршрута Telecom
+     * ([CallkitConnection.currentAudioRoute]), т.к. при self-managed звонке
+     * `communicationDevice` маршрут не отражает. null — нет Telecom-звонка/маршрут
+     * неизвестен, тогда активность считаем по communicationDevice (как раньше).
+     */
+    private fun telecomActiveType(): String? {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) return null
+        if (CallkitConnection.activeCount() == 0) return null
+        return when (CallkitConnection.currentAudioRoute) {
+            CallAudioState.ROUTE_SPEAKER -> "speaker"
+            CallAudioState.ROUTE_EARPIECE -> "earpiece"
+            CallAudioState.ROUTE_BLUETOOTH -> "bluetooth"
+            CallAudioState.ROUTE_WIRED_HEADSET -> "wiredHeadset"
+            else -> null
+        }
+    }
+
     private fun devicesPayload(): List<Map<String, Any?>> {
         val activeId = activeDeviceId()
+        // Во время CallKit-звонка активный выход берём из маршрута Telecom, иначе —
+        // по communicationDevice.
+        val telecomActive = telecomActiveType()
         // Одна запись на тип: система может отдавать несколько AudioDeviceInfo для
         // одного физического выхода (напр. IN/OUT), нам важен выход. Дедупим по
         // (type + productName), сохраняя первый.
@@ -150,12 +214,13 @@ class AudioDevicesHandler(
             val name = device.productName?.toString().orEmpty()
             val key = "$type|$name"
             if (!seen.add(key)) continue
+            val active = if (telecomActive != null) type == telecomActive else (activeId != null && device.id == activeId)
             result.add(
                 mapOf(
                     "id" to device.id.toString(),
                     "type" to type,
                     "productName" to name,
-                    "active" to (activeId != null && device.id == activeId),
+                    "active" to active,
                 ),
             )
         }
