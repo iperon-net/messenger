@@ -457,7 +457,7 @@ class _Overlay extends StatelessWidget {
             children: [
               _CircleButton(
                 label: t.decline,
-                icon: HugeIcons.strokeRoundedCallEnd02,
+                icon: HugeIcons.strokeRoundedCallEnd03,
                 color: CallView._red,
                 iconColor: CallView._onAccent,
                 palette: palette,
@@ -549,7 +549,7 @@ class _Overlay extends StatelessWidget {
         const SizedBox(height: 24),
         _CircleButton(
           label: t.hangup,
-          icon: HugeIcons.strokeRoundedCallEnd02,
+          icon: HugeIcons.strokeRoundedCallEnd03,
           color: CallView._red,
           iconColor: CallView._onAccent,
           palette: palette,

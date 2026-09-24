@@ -116,6 +116,12 @@ class CallkitConnection(
                     Log.w(TAG, "setAudioRoute($route) failed: ${e.message}")
                 }
             }
+            // Оптимистично помечаем применённый маршрут текущим: на Android 14+
+            // (API 34+) Telecom для self-managed звонка может не звать deprecated
+            // onCallAudioStateChanged, и тогда UI (иконка кнопки) не узнал бы о
+            // смене. Системные смены (гарнитура/BT) всё равно уточнит
+            // onCallAudioStateChanged, если он приходит.
+            if (handled) currentAudioRoute = route
             return handled
         }
     }

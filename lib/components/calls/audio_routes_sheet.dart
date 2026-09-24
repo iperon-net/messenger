@@ -100,45 +100,16 @@ class _AudioRoutesSheetState extends State<_AudioRoutesSheet> {
   }
 }
 
-/// Android: круглая кнопка «Вывод звука» на панели управления звонком. Иконка
-/// отражает активный маршрут; по тапу открывает [showAudioRoutesSheet].
-class AudioOutputButton extends StatefulWidget {
+/// Android: круглая кнопка «Вывод звука» на панели управления звонком. По тапу
+/// открывает [showAudioRoutesSheet]. Иконка/подпись фиксированы (динамик) — при
+/// self-managed Telecom-звонке активный выход достоверно не отслеживается, а сам
+/// список маршрутов с галочкой на активном показывает лист.
+class AudioOutputButton extends StatelessWidget {
   final Color backgroundColor;
   final Color iconColor;
   final Color labelColor;
 
   const AudioOutputButton({super.key, required this.backgroundColor, required this.iconColor, required this.labelColor});
-
-  @override
-  State<AudioOutputButton> createState() => _AudioOutputButtonState();
-}
-
-class _AudioOutputButtonState extends State<AudioOutputButton> {
-  AudioRouteType _activeType = AudioRouteType.earpiece;
-  StreamSubscription<List<AudioRoute>>? _sub;
-
-  @override
-  void initState() {
-    super.initState();
-    unawaited(AudioRoutes.instance.list().then(_apply));
-    _sub = AudioRoutes.instance.changes.listen(_apply);
-  }
-
-  void _apply(List<AudioRoute> routes) {
-    if (!mounted) return;
-    for (final route in routes) {
-      if (route.active) {
-        setState(() => _activeType = route.type);
-        return;
-      }
-    }
-  }
-
-  @override
-  void dispose() {
-    _sub?.cancel();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -151,12 +122,12 @@ class _AudioOutputButtonState extends State<AudioOutputButton> {
           Container(
             width: 68,
             height: 68,
-            decoration: BoxDecoration(color: widget.backgroundColor, shape: BoxShape.circle),
+            decoration: BoxDecoration(color: backgroundColor, shape: BoxShape.circle),
             alignment: Alignment.center,
-            child: HugeIcon(icon: audioRouteIcon(_activeType), color: widget.iconColor, size: 28),
+            child: HugeIcon(icon: HugeIcons.strokeRoundedSpeaker, color: iconColor, size: 28),
           ),
           const SizedBox(height: 8),
-          Text(audioRouteTypeLabel(context, _activeType), style: TextStyle(color: widget.labelColor, fontSize: 13)),
+          Text(context.t.screenCall.audioOutput, style: TextStyle(color: labelColor, fontSize: 13)),
         ],
       ),
     );
