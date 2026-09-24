@@ -136,15 +136,27 @@ dev_dependencies:
   dart_mappable_builder: ^4.9.0
   dart_pre_commit: ^6.1.4
 
-# Локальный форк flutter_callkit_incoming (см. third_party/flutter_callkit_incoming).
-# Патч: в CallkitIncomingActivity.onAcceptClick убран requestDismissKeyguard(),
-# чтобы ответ на звонок с заблокированного экрана не требовал отпечатка/PIN —
-# экран звонка рисуется поверх локскрина через showWhenLocked нашего MainActivity.
-# Версия в third_party/.../pubspec.yaml должна совпадать с constraint в
-# dependencies выше; при апдейте плагина патч переносится вручную.
+# Локальные форки в third_party/ — при апдейте любого плагина патчи переносятся
+# вручную, а version в его pubspec.yaml должна совпадать с constraint выше.
+#
+# flutter_callkit_incoming (third_party/flutter_callkit_incoming) — два патча:
+#   1. в CallkitIncomingActivity.onAcceptClick убран requestDismissKeyguard(), чтобы
+#      ответ на звонок с локскрина не требовал отпечатка/PIN — экран звонка рисуется
+#      поверх локскрина через showWhenLocked нашего MainActivity;
+#   2. android/build.gradle: apply KGP обёрнут guard'ом builtInKotlinActive (см. ниже).
+#
+# cryptography_flutter (third_party/cryptography_flutter) — единственный патч:
+#   android/build.gradle применяет "kotlin-android" безусловно (2.3.4 — последняя на
+#   pub.dev, апгрейдом не лечится), что блокирует переход Android-сборки на AGP 9
+#   built-in Kotlin. Обёрнут тем же guard'ом, что уже есть у livekit_client/flutter_webrtc:
+#   KGP применяется только при android.builtInKotlin=false. Пакет сам по себе — лишь
+#   нативный ускоритель pure-Dart package:cryptography (AES-GCM/HMAC для медиа), поэтому
+#   форк выбран вместо удаления, чтобы не терять скорость. См. CLAUDE.md, раздел Kotlin.
 dependency_overrides:
   flutter_callkit_incoming:
     path: third_party/flutter_callkit_incoming
+  cryptography_flutter:
+    path: third_party/cryptography_flutter
 
 # Configuration for the `dart_pre_commit` git hook (see .githooks/pre-commit).
 # Mirrors the CI checks in .github/workflows/build_and_deploy.yaml so problems are

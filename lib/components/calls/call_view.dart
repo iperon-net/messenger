@@ -3,6 +3,8 @@ import 'dart:io' show Platform;
 
 import 'package:audioplayers/audioplayers.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:flutter/cupertino.dart' show CupertinoIcons;
+import 'package:flutter/material.dart' show Icons;
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -141,6 +143,12 @@ class _CallViewState extends State<CallView> with WidgetsBindingObserver {
   bool _pipAllowed = false;
   bool _inPip = false;
 
+  // Позиция перетаскиваемого мини-окна нашей камеры. Живёт в родителе (а не в
+  // [_SelfView]), чтобы пережить выключение/включение камеры: при выключении
+  // дорожка становится null и [_SelfView] удаляется из дерева — если бы позиция
+  // хранилась в его State, она бы сбрасывалась в дефолт.
+  final ValueNotifier<Offset?> _selfViewPos = ValueNotifier(null);
+
   // Рингтон входящего. Играет ТОЛЬКО пока звонок в статусе `incoming` и только
   // там, где входящий ведёт наш экран (iOS-foreground — см. CallGate); на Android
   // и на фоне/локскрине/cold-start iOS входящий ведёт системная звонилка и звонит
@@ -201,6 +209,7 @@ class _CallViewState extends State<CallView> with WidgetsBindingObserver {
     if (Platform.isAndroid) _pipChannel.setMethodCallHandler(null);
     unawaited(_stopRingtone());
     _syncWakelock(false);
+    _selfViewPos.dispose();
     SystemChrome.setPreferredOrientations(DeviceOrientation.values);
     super.dispose();
   }
@@ -345,33 +354,203 @@ class _CallViewState extends State<CallView> with WidgetsBindingObserver {
         // управления/имя и локальное превью — места нет и они не нужны.
         return ColoredBox(
           color: palette.bg,
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              if (remoteVideoVisible) VideoTrackRenderer(remoteTrack, fit: VideoViewFit.cover),
-              // В мини-окне без видео собеседника (камера у него выключена) —
-              // его аватар по центру вместо пустого фона.
-              if (_inPip && !remoteVideoVisible)
-                Center(
-                  child: _Avatar(state: state, palette: palette),
-                ),
-              // Локальное видео (наша камера) — картинкой-в-картинке, пока наша
-              // камера включена. В PiP прячем (окно крошечное).
-              if (!_inPip && isVideoCall && localTrack != null)
-                Positioned(
-                  right: 16,
-                  top: 48,
-                  width: 110,
-                  height: 160,
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: VideoTrackRenderer(localTrack, fit: VideoViewFit.cover, mirrorMode: VideoViewMirrorMode.auto),
-                  ),
-                ),
-              if (!_inPip) _Overlay(state: state, showVideo: remoteVideoVisible, palette: palette),
-            ],
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return Stack(
+                fit: StackFit.expand,
+                children: [
+                  if (remoteVideoVisible) VideoTrackRenderer(remoteTrack, fit: VideoViewFit.cover),
+                  // В мини-окне без видео собеседника (камера у него выключена) —
+                  // его аватар по центру вместо пустого фона.
+                  if (_inPip && !remoteVideoVisible)
+                    Center(
+                      child: _Avatar(state: state, palette: palette),
+                    ),
+                  if (!_inPip) _Overlay(state: state, showVideo: remoteVideoVisible, palette: palette),
+                  // Локальное видео (наша камера) — перетаскиваемое окно
+                  // картинкой-в-картинке, пока наша камера включена. Держим
+                  // ПОСЛЕДНИМ в Stack (поверх панели управления), иначе кнопки
+                  // перехватывают жесты и окно нельзя утащить из-под них. В PiP
+                  // прячем (окно крошечное).
+                  if (!_inPip && isVideoCall && localTrack != null)
+                    _SelfView(track: localTrack, pos: _selfViewPos, maxWidth: constraints.maxWidth, maxHeight: constraints.maxHeight),
+                ],
+              );
+            },
           ),
         );
+      },
+    );
+  }
+}
+
+/// Перетаскиваемое мини-окно с нашей камерой (picture-in-picture, Telegram-стиль:
+/// остаётся там, где отпустили). Вынесено в отдельный [StatefulWidget], чтобы
+/// перетаскивание (частый `setState`) перестраивало ТОЛЬКО это окно, а не весь
+/// [CallView] с рендерером собеседника — иначе движение дёргается. Рендерер
+/// [VideoTrackRenderer] при перетаскивании лишь меняет позицию в [Stack] и НЕ
+/// пересоздаётся — это важно (пересоздание рендерера во время звонка роняло
+/// приложение, см. комментарий в [_CallViewState.build]).
+class _SelfView extends StatefulWidget {
+  final VideoTrack track;
+  // Позиция окна — во владении родителя [_CallViewState], чтобы пережить
+  // выключение/включение камеры (см. комментарий у поля).
+  final ValueNotifier<Offset?> pos;
+  final double maxWidth;
+  final double maxHeight;
+
+  const _SelfView({required this.track, required this.pos, required this.maxWidth, required this.maxHeight});
+
+  // Размер окна. Было 110×160, увеличено на 20%.
+  static const double _width = 132;
+  static const double _height = 192;
+  // Отступ от краёв экрана при клампе и в дефолтной позиции.
+  static const double _margin = 16;
+
+  @override
+  State<_SelfView> createState() => _SelfViewState();
+}
+
+class _SelfViewState extends State<_SelfView> {
+  // Позиция окна ([widget.pos], левый-верхний угол в системе координат [Stack];
+  // `null` — «ещё не двигали» → дефолтный верхний правый угол) обновляется при
+  // перетаскивании через [ValueListenableBuilder], поэтому перестраивается ТОЛЬКО
+  // [Positioned], а сам [VideoTrackRenderer] остаётся тем же инстансом.
+  // Пересоздание тяжёлого рендерера на каждый кадр драга и тормозило движение, и
+  // ломало хит-тест по текстуре (после отпускания окно переставало ловить жесты).
+
+  // id активного пальца. Тащим окно ровно одним указателем; остальные игнорируем.
+  int? _activePointer;
+
+  // Видимость кнопки смены камеры: показываем при касании окошка («фокус») и
+  // прячем через [_hideAfter] бездействия — как в Telegram. Отдельный notifier,
+  // чтобы переключение видимости перестраивало ТОЛЬКО кнопку, а не тяжёлый
+  // [VideoTrackRenderer].
+  final ValueNotifier<bool> _controlsVisible = ValueNotifier(false);
+  Timer? _hideTimer;
+  static const Duration _hideAfter = Duration(seconds: 3);
+
+  void _showControls() {
+    _controlsVisible.value = true;
+    _hideTimer?.cancel();
+  }
+
+  void _scheduleHideControls() {
+    _hideTimer?.cancel();
+    _hideTimer = Timer(_hideAfter, () => _controlsVisible.value = false);
+  }
+
+  // Стабильный виджет камеры: создаётся один раз (пересоздаётся только при смене
+  // дорожки) и передаётся в [ValueListenableBuilder] как `child`, поэтому при
+  // перетаскивании НЕ перестраивается.
+  //
+  // Тащим через [Listener] (сырые события указателя), а НЕ через [GestureDetector]:
+  // одиночный pan проигрывал арену жестов родительскому распознавателю драга (у
+  // одномерных распознавателей меньше touch slop — они забирали один палец себе;
+  // на двух пальцах те отваливались, и pan срабатывал — отсюда «двумя пальцами
+  // двигается, одним нет»). [Listener] получает события по хит-тесту, вне арены,
+  // поэтому один палец работает всегда.
+  late Widget _videoChild = _buildVideoChild();
+
+  Widget _buildVideoChild() => Listener(
+    behavior: HitTestBehavior.opaque,
+    onPointerDown: (event) {
+      _activePointer ??= event.pointer;
+      // Касание окошка = фокус: показываем кнопку и держим, пока палец на экране.
+      _showControls();
+    },
+    onPointerMove: (event) {
+      if (event.pointer != _activePointer) return;
+      final base = widget.pos.value ?? _defaultPos;
+      widget.pos.value = Offset(
+        (base.dx + event.delta.dx).clamp(_SelfView._margin, _maxX),
+        (base.dy + event.delta.dy).clamp(_SelfView._margin, _maxY),
+      );
+    },
+    onPointerUp: (event) {
+      if (event.pointer != _activePointer) return;
+      _activePointer = null;
+      _scheduleHideControls();
+    },
+    onPointerCancel: (event) {
+      if (event.pointer != _activePointer) return;
+      _activePointer = null;
+      _scheduleHideControls();
+    },
+    child: ClipRRect(
+      borderRadius: BorderRadius.circular(12),
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          VideoTrackRenderer(widget.track, fit: VideoViewFit.cover, mirrorMode: VideoViewMirrorMode.auto),
+          // Кнопка смены камеры (фронт/тыл) прямо в окошке — как в Telegram.
+          // Появляется при касании окошка (фокус) и гаснет по таймеру. Тап почти
+          // без смещения, поэтому окно от него не «уезжает» (перетаскивание ведёт
+          // [Listener]-родитель по delta указателя). Пока скрыта — [IgnorePointer]
+          // не даёт ей ловить тап (первое касание лишь показывает кнопку). Цвета
+          // жёстко тёмные — читаются над любой картинкой.
+          Positioned(
+            right: 6,
+            bottom: 6,
+            child: ValueListenableBuilder<bool>(
+              valueListenable: _controlsVisible,
+              child: GestureDetector(
+                onTap: () {
+                  _showControls();
+                  _scheduleHideControls();
+                  context.read<CallCubit>().switchCamera();
+                },
+                child: Container(
+                  width: 34,
+                  height: 34,
+                  decoration: const BoxDecoration(color: Color(0x66000000), shape: BoxShape.circle),
+                  // Стандартная иконка смены камеры платформы (без HugeIcon —
+                  // тот давал визуальный артефакт «с тенью» над видео).
+                  child: Icon(Platform.isIOS ? CupertinoIcons.switch_camera : Icons.cameraswitch, size: 18, color: const Color(0xFFFFFFFF)),
+                ),
+              ),
+              builder: (context, visible, child) => IgnorePointer(
+                ignoring: !visible,
+                child: AnimatedOpacity(opacity: visible ? 1 : 0, duration: const Duration(milliseconds: 180), child: child),
+              ),
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+
+  double get _maxX => (widget.maxWidth - _SelfView._width - _SelfView._margin).clamp(_SelfView._margin, double.infinity);
+  double get _maxY => (widget.maxHeight - _SelfView._height - _SelfView._margin).clamp(_SelfView._margin, double.infinity);
+  // Дефолт — справа, ПОД шапкой оверлея (имя собеседника + статус соединения +
+  // индикатор качества): отступ от безопасной зоны сверху + ~высота этого блока.
+  Offset get _defaultPos => Offset(_maxX, MediaQuery.paddingOf(context).top + 128);
+
+  @override
+  void didUpdateWidget(_SelfView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Дорожку сменили — пересобираем видео-виджет (редко: обычно инстанс тот же).
+    if (oldWidget.track != widget.track) _videoChild = _buildVideoChild();
+  }
+
+  @override
+  void dispose() {
+    _hideTimer?.cancel();
+    _controlsVisible.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<Offset?>(
+      valueListenable: widget.pos,
+      // child (видео) прокидывается насквозь — не перестраивается при драге.
+      child: _videoChild,
+      builder: (context, raw, child) {
+        final base = raw ?? _defaultPos;
+        // Клампим на случай смены размеров экрана (поворот и т.п.).
+        final pos = Offset(base.dx.clamp(_SelfView._margin, _maxX), base.dy.clamp(_SelfView._margin, _maxY));
+        return Positioned(left: pos.dx, top: pos.dy, width: _SelfView._width, height: _SelfView._height, child: child!);
       },
     );
   }
@@ -516,7 +695,8 @@ class _Overlay extends StatelessWidget {
               AudioOutputButton(backgroundColor: palette.controlBg, iconColor: palette.fg, labelColor: palette.buttonLabel),
             // Камера. В аудиозвонке — кнопка «Видео»: апгрейд аудио→видео
             // (публикует нашу камеру, собеседник увидит картинку). В видео —
-            // вкл/выкл своей камеры плюс переключение фронт/тыл.
+            // вкл/выкл своей камеры (переключение фронт/тыл вынесено в само окошко
+            // локального превью, см. [_SelfView]).
             if (!state.video)
               _CircleButton(
                 label: t.startVideo,
@@ -526,7 +706,7 @@ class _Overlay extends StatelessWidget {
                 palette: palette,
                 onTap: cubit.enableVideo,
               )
-            else ...[
+            else
               _CircleButton(
                 label: state.cameraOff ? t.cameraOn : t.cameraOff,
                 icon: state.cameraOff ? HugeIcons.strokeRoundedVideoOff : HugeIcons.strokeRoundedVideo01,
@@ -535,15 +715,6 @@ class _Overlay extends StatelessWidget {
                 palette: palette,
                 onTap: cubit.toggleCamera,
               ),
-              _CircleButton(
-                label: t.switchCamera,
-                icon: HugeIcons.strokeRoundedCameraRotated01,
-                color: palette.controlBg,
-                iconColor: palette.fg,
-                palette: palette,
-                onTap: cubit.switchCamera,
-              ),
-            ],
           ],
         ),
         const SizedBox(height: 24),
