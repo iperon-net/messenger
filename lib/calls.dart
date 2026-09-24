@@ -659,10 +659,12 @@ class Calls {
 
   /// Включает/выключает микрофон.
   Future<void> toggleMic() async {
-    final participant = _room?.localParticipant;
-    if (participant == null) return;
     final muted = !_snapshot.micMuted;
-    await participant.setMicrophoneEnabled(!muted);
+    // Состояние переключаем всегда — даже если участника/дорожки ещё нет (мьют на
+    // стадии «соединение»). Реальное включение/выключение — только при наличии
+    // участника; иначе выбранное состояние применит публикация ([_publishLocalMedia]
+    // читает _snapshot.micMuted).
+    await _room?.localParticipant?.setMicrophoneEnabled(!muted);
     _emit(_snapshot.copyWith(micMuted: muted));
   }
 
@@ -1153,7 +1155,12 @@ class Calls {
     if (participant == null) return;
 
     _cameraPosition = CameraPosition.front;
-    await participant.setMicrophoneEnabled(true);
+    // Публикуем микрофон с учётом текущего mute: пользователь мог выключить его
+    // ещё на стадии «соединение» (до публикации дорожки — тогда toggleMic лишь
+    // выставил снимок micMuted, реального трека не было). Раньше здесь стояло
+    // безусловное `true`, и публикация затирала это выключение — кнопка
+    // показывала «выкл», а собеседник слышал звук.
+    await participant.setMicrophoneEnabled(!_snapshot.micMuted);
     // Разрешение CAMERA — до первой публикации видеодорожки, чтобы на Android
     // видеозвонок «с нуля» поднимал камеру с первого раза (см.
     // ensureCallCameraPermission). Отказ не валит звонок — остаёмся в аудио.

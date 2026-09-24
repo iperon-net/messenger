@@ -71,6 +71,13 @@ class AudioRoutes {
   static const _method = MethodChannel('net.iperon.messenger/audio_devices');
   static const _events = EventChannel('net.iperon.messenger/audio_devices_events');
 
+  // iOS: только ЧТЕНИЕ активного выхода (тип) — выбор маршрута делает системный
+  // AVRoutePickerView, а по этим каналам нативная сторона отдаёт текущий выход из
+  // AVAudioSession.currentRoute и его смену (routeChangeNotification), чтобы
+  // кнопка рисовала нужную иконку/подпись. См. AppDelegate.AudioRouteMonitor.
+  static const _iosMethod = MethodChannel('net.iperon.messenger/audio_route_ios');
+  static const _iosEvents = EventChannel('net.iperon.messenger/audio_route_ios_events');
+
   Logger get _logger => getIt.get<Logger>();
 
   /// true только там, где работает наш нативный список (Android). На iOS —
@@ -124,5 +131,26 @@ class AudioRoutes {
       final list = (event as List<dynamic>?) ?? const [];
       return list.cast<Map<dynamic, dynamic>>().map(AudioRoute.fromMap).toList(growable: false);
     });
+  }
+
+  /// iOS: тип текущего активного аудио-выхода звонка (из
+  /// `AVAudioSession.currentRoute`) для выбора иконки кнопки. На других
+  /// платформах — [AudioRouteType.unknown] (там активный тип берётся из [changes]).
+  Future<AudioRouteType> activeRouteTypeIos() async {
+    if (!Platform.isIOS) return AudioRouteType.unknown;
+    try {
+      final name = await _iosMethod.invokeMethod<String>('current');
+      return AudioRouteType.fromName(name);
+    } catch (error, stackTrace) {
+      _logger.handle(error, stackTrace);
+      return AudioRouteType.unknown;
+    }
+  }
+
+  /// iOS: поток смены активного выхода (`routeChangeNotification`). Пустой на
+  /// других платформах.
+  Stream<AudioRouteType> get activeRouteTypeChangesIos {
+    if (!Platform.isIOS) return const Stream.empty();
+    return _iosEvents.receiveBroadcastStream().map((event) => AudioRouteType.fromName(event as String?));
   }
 }

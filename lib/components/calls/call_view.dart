@@ -511,13 +511,7 @@ class _Overlay extends StatelessWidget {
             // (setCommunicationDevice). См. route_picker_button.dart /
             // audio_routes_sheet.dart.
             if (Platform.isIOS)
-              RoutePickerButton(
-                label: t.audioOutput,
-                backgroundColor: palette.controlBg,
-                iconColor: palette.fg,
-                activeIconColor: palette.fg,
-                labelColor: palette.buttonLabel,
-              )
+              RoutePickerButton(backgroundColor: palette.controlBg, iconColor: palette.fg, labelColor: palette.buttonLabel)
             else
               AudioOutputButton(backgroundColor: palette.controlBg, iconColor: palette.fg, labelColor: palette.buttonLabel),
             // Камера. В аудиозвонке — кнопка «Видео»: апгрейд аудио→видео

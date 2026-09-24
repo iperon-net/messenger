@@ -5,33 +5,14 @@ import 'package:material_ui/material_ui.dart';
 
 import '../../audio_routes.dart';
 import '../../i18n/translations.g.dart';
-
-/// Иконка аудио-маршрута по его типу (общая для кнопки и листа).
-List<List<dynamic>> audioRouteIcon(AudioRouteType type) => switch (type) {
-  AudioRouteType.earpiece => HugeIcons.strokeRoundedSmartPhone01,
-  AudioRouteType.speaker => HugeIcons.strokeRoundedVolumeHigh,
-  AudioRouteType.wiredHeadset => HugeIcons.strokeRoundedHeadphones,
-  AudioRouteType.bluetooth => HugeIcons.strokeRoundedBluetooth,
-  AudioRouteType.hearingAid => HugeIcons.strokeRoundedEar,
-  AudioRouteType.car => HugeIcons.strokeRoundedCar01,
-  AudioRouteType.unknown => HugeIcons.strokeRoundedVolumeHigh,
-};
+import 'audio_route_ui.dart';
 
 /// Локализованная подпись маршрута. Для BT/проводной, когда система дала имя
-/// устройства (модель), показываем его; иначе — обобщённое имя по типу.
+/// устройства (модель), показываем его; иначе — обобщённое имя по типу
+/// ([audioRouteTypeLabel]).
 String audioRouteLabel(BuildContext context, AudioRoute route) {
-  final t = context.t.screenCall;
-  final generic = switch (route.type) {
-    AudioRouteType.earpiece => t.routeEarpiece,
-    AudioRouteType.speaker => t.routeSpeaker,
-    AudioRouteType.wiredHeadset => t.routeWiredHeadset,
-    AudioRouteType.bluetooth => t.routeBluetooth,
-    AudioRouteType.hearingAid => t.routeHearingAid,
-    AudioRouteType.car => t.routeCar,
-    AudioRouteType.unknown => t.routeUnknown,
-  };
   final showName = route.productName.isNotEmpty && (route.type == AudioRouteType.bluetooth || route.type == AudioRouteType.wiredHeadset);
-  return showName ? route.productName : generic;
+  return showName ? route.productName : audioRouteTypeLabel(context, route.type);
 }
 
 /// Открывает лист выбора аудио-выхода (Android). Возвращает, когда лист закрыт.
@@ -175,7 +156,7 @@ class _AudioOutputButtonState extends State<AudioOutputButton> {
             child: HugeIcon(icon: audioRouteIcon(_activeType), color: widget.iconColor, size: 28),
           ),
           const SizedBox(height: 8),
-          Text(context.t.screenCall.audioOutput, style: TextStyle(color: widget.labelColor, fontSize: 13)),
+          Text(audioRouteTypeLabel(context, _activeType), style: TextStyle(color: widget.labelColor, fontSize: 13)),
         ],
       ),
     );

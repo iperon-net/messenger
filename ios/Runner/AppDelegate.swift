@@ -102,6 +102,25 @@ import flutter_callkit_incoming
         }
       }
     }
+
+    // iOS: отслеживание активного аудио-выхода звонка для иконки/подписи кнопки
+    // «Вывод звука» на экране звонка. Маршрут ВЫБИРАЕТ системный AVRoutePickerView;
+    // здесь мы только ЧИТАЕМ текущий выход из AVAudioSession.currentRoute и шлём
+    // его смену (routeChangeNotification). См. lib/audio_routes.dart и
+    // lib/components/calls/route_picker_button.dart.
+    if let messenger = engineBridge.pluginRegistry.registrar(forPlugin: "IperonAudioRouteIos")?.messenger() {
+      let method = FlutterMethodChannel(name: "net.iperon.messenger/audio_route_ios", binaryMessenger: messenger)
+      method.setMethodCallHandler { call, result in
+        switch call.method {
+        case "current":
+          result(AudioRouteMonitor.currentRouteType())
+        default:
+          result(FlutterMethodNotImplemented)
+        }
+      }
+      let events = FlutterEventChannel(name: "net.iperon.messenger/audio_route_ios_events", binaryMessenger: messenger)
+      events.setStreamHandler(AudioRouteMonitor.shared)
+    }
   }
 
   // MARK: - PushKit (VoIP)
@@ -249,6 +268,57 @@ import flutter_callkit_incoming
 /// он уже в target Runner — новый .swift пришлось бы вручную прописывать в
 /// project.pbxproj. Цвета иконки приходят из Flutter через creationParams
 /// (`tint`/`activeTint` — ARGB int), см. route_picker_button.dart.
+/// Отдаёт Flutter активный аудио-выход звонка (тип) и его смену. На iOS маршрут
+/// выбирает системный `AVRoutePickerView`; мы лишь ЧИТАЕМ текущий выход из
+/// `AVAudioSession.currentRoute` (метод `current`) и шлём обновления по
+/// `routeChangeNotification` (EventChannel), чтобы кнопка «Вывод звука» рисовала
+/// нужную иконку/подпись. См. lib/audio_routes.dart (activeRouteTypeIos /
+/// activeRouteTypeChangesIos) и route_picker_button.dart.
+class AudioRouteMonitor: NSObject, FlutterStreamHandler {
+  static let shared = AudioRouteMonitor()
+  private var sink: FlutterEventSink?
+
+  func onListen(withArguments arguments: Any?, eventSink events: @escaping FlutterEventSink) -> FlutterError? {
+    sink = events
+    NotificationCenter.default.addObserver(
+      self,
+      selector: #selector(routeChanged),
+      name: AVAudioSession.routeChangeNotification,
+      object: nil
+    )
+    // Отдаём текущий выход сразу, чтобы кнопка не ждала первого события.
+    events(AudioRouteMonitor.currentRouteType())
+    return nil
+  }
+
+  func onCancel(withArguments arguments: Any?) -> FlutterError? {
+    NotificationCenter.default.removeObserver(self, name: AVAudioSession.routeChangeNotification, object: nil)
+    sink = nil
+    return nil
+  }
+
+  @objc private func routeChanged(_ notification: Notification) {
+    // Нотификация может прийти на произвольном потоке — FlutterEventSink дёргаем
+    // на main.
+    DispatchQueue.main.async { [weak self] in
+      self?.sink?(AudioRouteMonitor.currentRouteType())
+    }
+  }
+
+  /// Тип текущего выхода (имена совпадают с Dart-enum AudioRouteType).
+  static func currentRouteType() -> String {
+    guard let port = AVAudioSession.sharedInstance().currentRoute.outputs.first else { return "unknown" }
+    switch port.portType {
+    case .builtInReceiver: return "earpiece"
+    case .builtInSpeaker: return "speaker"
+    case .headphones: return "wiredHeadset"
+    case .bluetoothA2DP, .bluetoothLE, .bluetoothHFP: return "bluetooth"
+    case .carAudio: return "car"
+    default: return "unknown"
+    }
+  }
+}
+
 class RoutePickerViewFactory: NSObject, FlutterPlatformViewFactory {
   private let messenger: FlutterBinaryMessenger
 
