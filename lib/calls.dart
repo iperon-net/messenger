@@ -284,6 +284,15 @@ class Calls {
   // владеет зависимостью на flutter_callkit_incoming. См. lib/call_push.dart.
   final _incomingRingController = StreamController<CallSnapshot>.broadcast();
 
+  // Запросы «снять нативный баннер входящего по callId» — независимо от снимка
+  // этого isolate'а. Нужны для мультидевайса: когда звонок приняли/отменили на
+  // другом устройстве владельца, у сиблинга баннер входящего мог быть поднят
+  // ФОНОВЫМ isolate'ом из FCM (Android) — тогда в основном isolate снимок ещё
+  // `idle`, и штатный teardown-по-снимку его не тронет. Здесь эмитим callId, а
+  // [CallPush] зовёт `FlutterCallkitIncoming.endCall(callId)` напрямую. См.
+  // [_dismissIncoming] и обработку CALL_ACCEPT/HANGUP/REJECT в [_handleSignal].
+  final _incomingDismissController = StreamController<String>.broadcast();
+
   // Направление текущего звонка для журнала недавних. Ставится на старте
   // исходящего ([startCall]) и на подъёме входящего ([_onRing]/[acceptFromPush]),
   // читается в [_teardown] при записи строки журнала и сбрасывается там же в null
@@ -373,6 +382,11 @@ class Calls {
   /// Запросы показать входящий через системную звонилку (foreground-приём по
   /// стриму). [CallPush] на каждый вызывает `showCallkitIncoming`. См. [_onRing].
   Stream<CallSnapshot> get incomingRings => _incomingRingController.stream;
+
+  /// Запросы снять нативный баннер входящего по callId (звонок приняли/отменили
+  /// на другом устройстве владельца, а баннер тут поднят фоновым isolate'ом —
+  /// снимок этого isolate'а его не отражает). [CallPush] зовёт `endCall(callId)`.
+  Stream<String> get incomingDismiss => _incomingDismissController.stream;
 
   /// Уведомления о добавлении записи в журнал звонков (после завершения звонка).
   /// Вкладка «Звонки» ([CallsCubit]) по нему перечитывает список.
@@ -796,7 +810,13 @@ class Calls {
       case MessageType.CALL_RING:
         await _onRing(ring, from);
       case MessageType.CALL_HANGUP:
-        if (_isCurrentPeer(ring.callId, from)) await _teardown(CallEndReason.hangup);
+        if (_isCurrentPeer(ring.callId, from)) {
+          await _teardown(CallEndReason.hangup);
+        } else if (!_isHandling(ring.callId)) {
+          // Собеседник отменил недозвон, а баннер тут поднят фоновым isolate'ом
+          // (снимок ещё `idle`) — teardown-по-снимку не сработает, гасим нативно.
+          _dismissIncoming(ring.callId);
+        }
       case MessageType.CALL_REJECT:
         // Reject осмыслен только до ответа. После `active` любой CALL_REJECT с
         // этим callId — это отбой ДРУГОГО устройства того же аккаунта (сиблинга,
@@ -808,13 +828,23 @@ class Calls {
         }
       case MessageType.CALL_ACCEPT:
         // «Принято на другом устройстве владельца» (сервер разослал на все наши
-        // устройства, кроме принявшего). Гасим свой баннер входящего, только
-        // если он ещё звонит (`incoming`) и это тот же callId. Принявшее
-        // устройство сюда тоже попадает своей же копией, но его статус уже
-        // `connecting`/`active` → условие не сработает. Свой userID (`from`) с
-        // собеседником не сверяем — сравниваем лишь callId.
-        if (_snapshot.callId == ring.callId && _snapshot.status == CallStatus.incoming) {
-          await _teardown(CallEndReason.none);
+        // устройства, кроме принявшего). Принявшее устройство сюда тоже попадает
+        // своей же NATS-копией — его отсекает [_isHandling] (у него статус уже
+        // `connecting`/`active`), иначе оно погасило бы собственный активный
+        // звонок. Свой userID (`from`) с собеседником не сверяем — только callId.
+        if (!_isHandling(ring.callId)) {
+          if (_snapshot.callId == ring.callId && _snapshot.status == CallStatus.incoming) {
+            // Баннер поднят в ЭТОМ isolate'е (foreground-приём по стриму) —
+            // штатный разбор: снимет баннер через снимок и запишет пропущенный.
+            await _teardown(CallEndReason.none);
+          } else {
+            // Баннер мог быть поднят ФОНОВЫМ isolate'ом из FCM-пуша (Android): в
+            // основном isolate снимок ещё `idle`, и `status==incoming` не
+            // выполнится. Раньше это и оставляло у сиблинга висящий баннер, когда
+            // ответили на другом устройстве. Гасим нативный баннер напрямую по
+            // callId (идемпотентно: если баннера нет — no-op).
+            _dismissIncoming(ring.callId);
+          }
         }
       default:
         break;
@@ -1607,6 +1637,25 @@ class Calls {
     return _snapshot.callId == callId && listEquals(_snapshot.remoteUserID, from);
   }
 
+  /// Ведёт ли ЭТО устройство сам звонок [callId] (мы его инициировали или
+  /// приняли) — тогда управляющие сигналы мультидевайса (CALL_ACCEPT «принято на
+  /// другом устройстве» и т.п.) не должны гасить наш собственный активный звонок.
+  /// `_handlingCallId` ставится синхронно в [accept]/[startCall] ещё до смены
+  /// статуса, поэтому проверяем и его, и текущий не-терминальный статус.
+  bool _isHandling(String callId) {
+    if (_handlingCallId == callId) return true;
+    if (_snapshot.callId != callId) return false;
+    return _snapshot.status == CallStatus.connecting || _snapshot.status == CallStatus.active;
+  }
+
+  /// Просит [CallPush] снять нативный баннер входящего по [callId], даже если
+  /// снимок этого isolate'а звонок не отражает (баннер поднят фоновым isolate'ом
+  /// из FCM). No-op, если баннера нет.
+  void _dismissIncoming(String callId) {
+    if (callId.isEmpty) return;
+    if (!_incomingDismissController.isClosed) _incomingDismissController.add(callId);
+  }
+
   // callId обязан быть валидным UUID: на iOS flutter_callkit_incoming кладёт его
   // прямо в CallKit как `CXProvider` UUID, и при невалидной строке молча НЕ
   // репортит входящий (`reportNewIncomingCall` не вызывается) — баннер входящего
@@ -1635,6 +1684,7 @@ class Calls {
     await _snapshotController.close();
     await _focusController.close();
     await _incomingRingController.close();
+    await _incomingDismissController.close();
     await _callLoggedController.close();
   }
 }

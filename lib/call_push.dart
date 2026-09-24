@@ -155,6 +155,7 @@ class CallPush {
   StreamSubscription<CallEvent?>? _eventSub;
   StreamSubscription<CallSnapshot>? _callSub;
   StreamSubscription<CallSnapshot>? _incomingRingSub;
+  StreamSubscription<String>? _incomingDismissSub;
 
   // Последнее переданное в MainActivity значение флага «поверх локскрина»
   // (Android) — чтобы не дёргать канал на каждый снимок.
@@ -214,6 +215,15 @@ class CallPush {
     // ConnectionService — единообразно с приёмом из фона. Ответ/отбой прилетят в
     // [_onEvent] тем же путём, что и из push.
     _incomingRingSub ??= calls.incomingRings.listen(_onIncomingRing);
+
+    // Мультидевайс: звонок приняли/отменили на другом устройстве владельца, а у
+    // нас баннер входящего мог быть поднят ФОНОВЫМ isolate'ом из FCM — тогда
+    // снимок `Calls` в основном isolate ещё `idle` и мост по снимкам (_callSub)
+    // его не снимет. `Calls` шлёт сюда callId — гасим нативный баннер напрямую.
+    // Идемпотентно: endCall по неизвестному callId — no-op.
+    _incomingDismissSub ??= calls.incomingDismiss.listen((callId) {
+      if (callId.isNotEmpty) unawaited(FlutterCallkitIncoming.endCall(callId));
+    });
 
     // Холодный старт из killed-state (обе платформы): пользователь принял звонок
     // из нативного экрана, а приложение поднялось с нуля (Android — MainActivity
@@ -497,5 +507,7 @@ class CallPush {
     _callSub = null;
     await _incomingRingSub?.cancel();
     _incomingRingSub = null;
+    await _incomingDismissSub?.cancel();
+    _incomingDismissSub = null;
   }
 }
