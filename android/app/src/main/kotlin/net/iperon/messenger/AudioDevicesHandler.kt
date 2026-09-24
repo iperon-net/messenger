@@ -49,10 +49,23 @@ class AudioDevicesHandler(
         override fun onAudioDevicesRemoved(removedDevices: Array<out AudioDeviceInfo>?) = emitDevices()
     }
 
+    // Слушатель СМЕНЫ активного коммуникационного устройства (API 31+). Нужен,
+    // потому что маршрут «разговорный↔динамик» меняет audioswitch LiveKit через
+    // setCommunicationDevice, а не наш select — [deviceCallback] на это не
+    // реагирует (он только про подключение/отключение). Без него иконка/подпись
+    // кнопки «Вывод звука» не обновлялись бы при переключении.
+    private val commDeviceListener =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            AudioManager.OnCommunicationDeviceChangedListener { emitDevices() }
+        } else {
+            null
+        }
+
     fun dispose() {
         methodChannel.setMethodCallHandler(null)
         eventChannel.setStreamHandler(null)
         audioManager.unregisterAudioDeviceCallback(deviceCallback)
+        unregisterCommDeviceListener()
         eventSink = null
     }
 
@@ -79,13 +92,23 @@ class AudioDevicesHandler(
     override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
         eventSink = events
         audioManager.registerAudioDeviceCallback(deviceCallback, mainHandler)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && commDeviceListener != null) {
+            audioManager.addOnCommunicationDeviceChangedListener({ it.run() }, commDeviceListener)
+        }
         // Начальный снимок сразу после подписки.
         emitDevices()
     }
 
     override fun onCancel(arguments: Any?) {
         audioManager.unregisterAudioDeviceCallback(deviceCallback)
+        unregisterCommDeviceListener()
         eventSink = null
+    }
+
+    private fun unregisterCommDeviceListener() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && commDeviceListener != null) {
+            audioManager.removeOnCommunicationDeviceChangedListener(commDeviceListener)
+        }
     }
 
     // --- Реализация ---

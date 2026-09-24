@@ -99,23 +99,37 @@ class AudioRoutes {
 
   /// Выбирает выход [route].
   ///
-  /// Встроенный динамик — ТОЛЬКО через LiveKit `setSpeakerOutputPreferred(true,
-  /// force:true)`: это штатный путь его audioswitch, он владеет маршрутом на
-  /// Android. Наш нативный `setCommunicationDevice(speaker)` здесь только вредил —
-  /// либо гонялся с пересчётом audioswitch, либо тот возвращал маршрут обратно
-  /// (динамик «не включался»). Остальные выходы (разговорный/BT/проводная) LiveKit
-  /// в один вызов не выражает, поэтому: снимаем предпочтение динамика
-  /// (`setSpeakerOutputPreferred(false)`), затем ставим устройство нативно.
+  /// Ось «разговорный↔динамик» — ТОЛЬКО через LiveKit
+  /// `setSpeakerOutputPreferred`: маршрутом на Android владеет его audioswitch
+  /// (`LKAudioSwitchManager`), который переизбирает выход по preferred-device-list.
+  /// Наш нативный `setCommunicationDevice` ходит МИМО audioswitch и
+  /// рассинхронизирует его внутреннее состояние: audioswitch кэширует
+  /// `selectedAudioDevice` и, если считает, что нужный выход уже выбран, делает
+  /// ранний выход без переактивации (см. `AbstractAudioSwitch.selectAudioDevice`) —
+  /// тогда `setCommunicationDevice(speaker)` от LiveKit не переиздаётся и «динамик
+  /// не включался». Поэтому:
+  ///  • динамик  → `setSpeakerOutputPreferred(true, force:true)`;
+  ///  • разговорный → `setSpeakerOutputPreferred(false)` (audioswitch сам вернёт
+  ///    earpiece, когда не подключена гарнитура);
+  ///  • BT/проводная/слуховой аппарат — конкретное устройство одним предпочтением
+  ///    не выразить, поэтому снимаем предпочтение динамика и ставим устройство
+  ///    нативно (это единственный случай, где нативный путь оправдан).
+  ///
+  /// Компромисс: «принудительно earpiece при подключённой гарнитуре» больше не
+  /// продавливаем нативно (audioswitch отдаст приоритет гарнитуре) — ради
+  /// надёжного earpiece↔динамик в обычном случае.
   Future<void> select(AudioRoute route) async {
     if (!isSupported) return;
-    final isSpeaker = route.type == AudioRouteType.speaker;
-    _logger.info('audioRoutes.select ${route.type.name} id=${route.id} isSpeaker=$isSpeaker');
+    _logger.info('audioRoutes.select ${route.type.name} id=${route.id}');
     try {
-      if (isSpeaker) {
-        await AudioManager.instance.setSpeakerOutputPreferred(true, force: true);
-      } else {
-        await AudioManager.instance.setSpeakerOutputPreferred(false);
-        await _method.invokeMethod<void>('select', {'id': route.id});
+      switch (route.type) {
+        case AudioRouteType.speaker:
+          await AudioManager.instance.setSpeakerOutputPreferred(true, force: true);
+        case AudioRouteType.earpiece:
+          await AudioManager.instance.setSpeakerOutputPreferred(false);
+        default:
+          await AudioManager.instance.setSpeakerOutputPreferred(false);
+          await _method.invokeMethod<void>('select', {'id': route.id});
       }
     } catch (error, stackTrace) {
       _logger.handle(error, stackTrace);
