@@ -1189,8 +1189,8 @@ class Translations$screenCall$en {
 	/// en: 'End-to-end encrypted'
 	String get encrypted => 'End-to-end encrypted';
 
-	/// en: 'Not encrypted'
-	String get notEncrypted => 'Not encrypted';
+	/// en: 'Not end-to-end encrypted'
+	String get notEncrypted => 'Not end-to-end encrypted';
 
 	/// en: 'Compare these emoji with the other person'
 	String get verifyEmoji => 'Compare these emoji with the other person';
@@ -1500,7 +1500,7 @@ extension on Translations {
 			'screenCall.qualityExcellent' => 'Excellent connection',
 			'screenCall.remoteMicMuted' => 'Their microphone is off',
 			'screenCall.encrypted' => 'End-to-end encrypted',
-			'screenCall.notEncrypted' => 'Not encrypted',
+			'screenCall.notEncrypted' => 'Not end-to-end encrypted',
 			'screenCall.verifyEmoji' => 'Compare these emoji with the other person',
 			_ => null,
 		};

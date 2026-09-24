@@ -596,7 +596,7 @@ class _Translations$screenCall$ru extends Translations$screenCall$en {
 	@override String get qualityExcellent => 'Отличное соединение';
 	@override String get remoteMicMuted => 'Микрофон собеседника выключен';
 	@override String get encrypted => 'Сквозное шифрование';
-	@override String get notEncrypted => 'Без шифрования';
+	@override String get notEncrypted => 'Без сквозного шифрования';
 	@override String get verifyEmoji => 'Сверьте эмодзи с собеседником';
 }
 
@@ -904,7 +904,7 @@ extension on TranslationsRu {
 			'screenCall.qualityExcellent' => 'Отличное соединение',
 			'screenCall.remoteMicMuted' => 'Микрофон собеседника выключен',
 			'screenCall.encrypted' => 'Сквозное шифрование',
-			'screenCall.notEncrypted' => 'Без шифрования',
+			'screenCall.notEncrypted' => 'Без сквозного шифрования',
 			'screenCall.verifyEmoji' => 'Сверьте эмодзи с собеседником',
 			_ => null,
 		};
