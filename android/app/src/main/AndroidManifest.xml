@@ -21,10 +21,6 @@
     <!-- flutter_contacts: приватный поиск контактов (чтение телефонной книги;
          номера не покидают устройство в открытом виде — сверка через OPRF). -->
     <uses-permission android:name="android.permission.READ_CONTACTS" />
-    <!-- flutter_background: media-projection foreground service для демонстрации
-         экрана в звонке (обязателен с Android 14). См. Calls.toggleScreenShare. -->
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" />
     <application
         android:label="Iperon"
         android:name="${applicationName}"
@@ -59,15 +55,6 @@
             android:name="com.yalantis.ucrop.UCropActivity"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
-        <!-- flutter_background: media-projection foreground service для
-             демонстрации экрана (LiveKit FGS не поднимает сам; с Android 14
-             тип mediaProjection обязателен). Сам плагин сервис не объявляет —
-             декларируем здесь, как в README LiveKit. См. Calls.toggleScreenShare. -->
-        <service
-            android:name="de.julianassmann.flutter_background.IsolateHolderService"
-            android:enabled="true"
-            android:exported="false"
-            android:foregroundServiceType="mediaProjection" />
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <meta-data

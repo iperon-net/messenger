@@ -16,13 +16,6 @@
 	<string>6.0</string>
 	<key>CFBundleName</key>
 	<string>Iperon</string>
-	<!-- Демонстрация экрана (flutter_webrtc/LiveKit Broadcast Extension):
-	     App Group для сокета кадров и bundle id самого расширения. Читаются
-	     FlutterBroadcastScreenCapturer при useiOSBroadcastExtension. -->
-	<key>RTCAppGroupIdentifier</key>
-	<string>group.net.iperon.messenger</string>
-	<key>RTCScreenSharingExtension</key>
-	<string>net.iperon.messenger.broadcast</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>

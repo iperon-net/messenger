@@ -1174,15 +1174,6 @@ class Translations$screenCall$en {
 	/// en: 'Flip'
 	String get switchCamera => 'Flip';
 
-	/// en: 'Share'
-	String get shareScreen => 'Share';
-
-	/// en: 'Stop'
-	String get stopScreenShare => 'Stop';
-
-	/// en: 'Sharing their screen'
-	String get remoteScreenSharing => 'Sharing their screen';
-
 	/// en: 'Poor connection'
 	String get qualityPoor => 'Poor connection';
 
@@ -1495,9 +1486,6 @@ extension on Translations {
 			'screenCall.cameraOff' => 'Camera off',
 			'screenCall.startVideo' => 'Video',
 			'screenCall.switchCamera' => 'Flip',
-			'screenCall.shareScreen' => 'Share',
-			'screenCall.stopScreenShare' => 'Stop',
-			'screenCall.remoteScreenSharing' => 'Sharing their screen',
 			'screenCall.qualityPoor' => 'Poor connection',
 			'screenCall.qualityGood' => 'Good connection',
 			'screenCall.qualityExcellent' => 'Excellent connection',

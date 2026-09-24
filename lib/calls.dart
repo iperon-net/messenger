@@ -14,7 +14,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' show WebRTC;
 import 'package:grpc/grpc.dart' show StatusCode;
-import 'package:flutter_background/flutter_background.dart';
 import 'package:livekit_client/livekit_client.dart';
 
 import 'api.dart';
@@ -76,15 +75,6 @@ class CallSnapshot {
   /// вместо рендера. Актуально только для видеозвонка.
   final bool remoteVideoOff;
 
-  /// Мы демонстрируем экран (локальный screen-share опубликован). Отдельный
-  /// источник от камеры (`TrackSource.screenShareVideo`), поэтому шаринг и камера
-  /// сосуществуют. См. [Calls.toggleScreenShare].
-  final bool screenSharing;
-
-  /// Собеседник демонстрирует экран (подписан его screen-share-трек). UI
-  /// показывает его поверх/вместо картинки камеры. См. [Calls.remoteScreenTrack].
-  final bool remoteScreenSharing;
-
   final CallEndReason endReason;
 
   /// Монотонный счётчик смены медиадорожек (local/remote video track). Дорожки
@@ -116,8 +106,6 @@ class CallSnapshot {
     this.speakerOn = false,
     this.remoteMicMuted = false,
     this.remoteVideoOff = true,
-    this.screenSharing = false,
-    this.remoteScreenSharing = false,
     this.endReason = CallEndReason.none,
     this.mediaEpoch = 0,
     this.debug = '',
@@ -135,8 +123,6 @@ class CallSnapshot {
     bool? speakerOn,
     bool? remoteMicMuted,
     bool? remoteVideoOff,
-    bool? screenSharing,
-    bool? remoteScreenSharing,
     CallEndReason? endReason,
     int? mediaEpoch,
     String? debug,
@@ -153,8 +139,6 @@ class CallSnapshot {
       speakerOn: speakerOn ?? this.speakerOn,
       remoteMicMuted: remoteMicMuted ?? this.remoteMicMuted,
       remoteVideoOff: remoteVideoOff ?? this.remoteVideoOff,
-      screenSharing: screenSharing ?? this.screenSharing,
-      remoteScreenSharing: remoteScreenSharing ?? this.remoteScreenSharing,
       endReason: endReason ?? this.endReason,
       mediaEpoch: mediaEpoch ?? this.mediaEpoch,
       debug: debug ?? this.debug,
@@ -279,12 +263,6 @@ class Calls {
   // перечитывает по бампу CallSnapshot.mediaEpoch.
   VideoTrack? _localVideoTrack;
   VideoTrack? _remoteVideoTrack;
-
-  // Дорожки демонстрации экрана (источник TrackSource.screenShareVideo). Держим
-  // ОТДЕЛЬНО от камерных: собеседник может одновременно слать камеру и экран, а
-  // локальный шаринг не должен затирать картинку нашей камеры.
-  VideoTrack? _localScreenTrack;
-  VideoTrack? _remoteScreenTrack;
 
   // Позиция фронтальной/тыловой камеры для switchCamera.
   CameraPosition _cameraPosition = CameraPosition.front;
@@ -413,12 +391,6 @@ class Calls {
   /// Видеодорожка собеседника (на весь экран). null для аудиозвонка/пока трек
   /// не подписан.
   VideoTrack? get remoteVideoTrack => _remoteVideoTrack;
-
-  /// Наша дорожка демонстрации экрана. null, пока шаринг не запущен.
-  VideoTrack? get localScreenTrack => _localScreenTrack;
-
-  /// Дорожка демонстрации экрана собеседника. null, пока он не шарит.
-  VideoTrack? get remoteScreenTrack => _remoteScreenTrack;
 
   Calls() {
     _signalSubs.addAll([
@@ -804,89 +776,6 @@ class Calls {
     await track.setCameraPosition(_cameraPosition);
   }
 
-  /// Включает/выключает демонстрацию экрана.
-  ///
-  /// На iOS захват идёт через Broadcast Upload Extension (ReplayKit) —
-  /// [ScreenShareCaptureOptions.useiOSBroadcastExtension] + App Group,
-  /// настроенные в нативном проекте; системный picker показывает сама ОС. На
-  /// Android LiveKit сам поднимает foreground-сервис MediaProjection и системный
-  /// диалог разрешения. Демонстрация экрана — отдельный источник
-  /// (`TrackSource.screenShareVideo`), поэтому НЕ трогает камеру: пользователь
-  /// может шарить экран и держать камеру включённой одновременно.
-  Future<void> toggleScreenShare() async {
-    final participant = _room?.localParticipant;
-    if (participant == null) return;
-    final on = !_snapshot.screenSharing;
-    // Флаг `screenSharing` и `_localScreenTrack` ведём НЕ по возвращаемому
-    // значению, а по событиям публикации локального трека
-    // ([LocalTrackPublishedEvent]/[LocalTrackUnpublishedEvent], см.
-    // _wireRoomEvents). Причина: на iOS `setScreenShareEnabled(true)` возвращает
-    // null и лишь ЗАПРАШИВАЕТ активацию Broadcast Extension —
-    // реальная публикация трека происходит асинхронно, после того как
-    // пользователь стартует вещание в системном picker ReplayKit (LiveKit
-    // BroadcastManager публикует трек по Darwin-уведомлению). На Android
-    // публикация синхронна, но событие всё равно приходит — путь единый.
-    if (on) {
-      // Android: LiveKit НЕ поднимает media-projection foreground service сам
-      // (см. LocalVideoTrack.createScreenShareTrack doc), а с Android 14 он
-      // обязателен. Спрашиваем системное разрешение и поднимаем FGS ДО
-      // публикации; отказ на любом шаге — тихо выходим.
-      if (Platform.isAndroid && !await _startAndroidScreenCapture()) return;
-      try {
-        await participant.setScreenShareEnabled(
-          true,
-          screenShareCaptureOptions: ScreenShareCaptureOptions(useiOSBroadcastExtension: Platform.isIOS),
-        );
-        _dbg('screen share requested');
-      } catch (error, stackTrace) {
-        // Пользователь отменил системный диалог захвата или ошибка публикации —
-        // гасим FGS, флаг не трогаем (событие публикации не придёт).
-        logger.handle(error, stackTrace);
-        if (Platform.isAndroid) await _stopAndroidScreenCapture();
-      }
-    } else {
-      try {
-        await participant.setScreenShareEnabled(false);
-        _dbg('screen share stop requested');
-      } catch (error, stackTrace) {
-        logger.handle(error, stackTrace);
-      }
-      // Снятие флага/трека и остановку Android-FGS ведёт
-      // LocalTrackUnpublishedEvent.
-    }
-  }
-
-  // Android: запрашивает разрешение на захват экрана и поднимает
-  // media-projection foreground service (flutter_background). Возвращает true,
-  // только если оба шага прошли — иначе setScreenShareEnabled упал бы на
-  // Android 14. Идемпотентно по факту флагов самого плагина.
-  Future<bool> _startAndroidScreenCapture() async {
-    final granted = await Hardware.instance.requestCapturePermission();
-    if (!granted) return false;
-    const config = FlutterBackgroundAndroidConfig(
-      notificationTitle: 'Iperon',
-      notificationText: 'Демонстрация экрана',
-      notificationImportance: AndroidNotificationImportance.normal,
-      notificationIcon: AndroidResource(name: 'ic_launcher', defType: 'mipmap'),
-    );
-    final hasPermissions = await FlutterBackground.initialize(androidConfig: config);
-    if (!hasPermissions) return false;
-    if (!FlutterBackground.isBackgroundExecutionEnabled) {
-      return FlutterBackground.enableBackgroundExecution();
-    }
-    return true;
-  }
-
-  // Android: гасит media-projection foreground service после остановки шаринга.
-  Future<void> _stopAndroidScreenCapture() async {
-    if (!FlutterBackground.isBackgroundExecutionEnabled) return;
-    try {
-      await FlutterBackground.disableBackgroundExecution();
-    } catch (error, stackTrace) {
-      logger.handle(error, stackTrace);
-    }
-  }
-
   // ---------------------------------------------------------------------------
   // Приём сигналов управления звонком от сервера-реле
   // ---------------------------------------------------------------------------
@@ -1255,25 +1144,16 @@ class Calls {
       ..on<TrackSubscribedEvent>((event) {
         final track = event.track;
         if (track is VideoTrack) {
-          if (event.publication.source == TrackSource.screenShareVideo) {
-            // Собеседник начал демонстрацию экрана — отдельная поверхность, не
-            // трогаем его камеру. Промоутим звонок в видео, чтобы поднялся
-            // видео-UI (даже если оба были в аудио).
-            _remoteScreenTrack = track;
-            _dbg('remote screen');
-            _emit(_snapshot.copyWith(video: true, remoteScreenSharing: true, mediaEpoch: _snapshot.mediaEpoch + 1));
-          } else {
-            _remoteVideoTrack = track;
-            _dbg('remote video');
-            // Апгрейд аудио→видео со стороны собеседника: он включил камеру в
-            // звонке, начатом как аудио. Промоутим снимок в видео, чтобы наш экран
-            // показал его картинку на весь экран и поднял видео-контролы. `cameraOff`
-            // выставляем по факту НАШЕЙ публикации: камера собеседника не должна
-            // включать нашу — если мы свою не публиковали, она остаётся выключенной
-            // (иначе фон/возврат из фона поднял бы её через resumeVideoAfterBackground,
-            // а тумблер показывал бы «камера включена» при выключенной камере).
-            _emit(_snapshot.copyWith(video: true, cameraOff: _localVideoTrack == null, mediaEpoch: _snapshot.mediaEpoch + 1));
-          }
+          _remoteVideoTrack = track;
+          _dbg('remote video');
+          // Апгрейд аудио→видео со стороны собеседника: он включил камеру в
+          // звонке, начатом как аудио. Промоутим снимок в видео, чтобы наш экран
+          // показал его картинку на весь экран и поднял видео-контролы. `cameraOff`
+          // выставляем по факту НАШЕЙ публикации: камера собеседника не должна
+          // включать нашу — если мы свою не публиковали, она остаётся выключенной
+          // (иначе фон/возврат из фона поднял бы её через resumeVideoAfterBackground,
+          // а тумблер показывал бы «камера включена» при выключенной камере).
+          _emit(_snapshot.copyWith(video: true, cameraOff: _localVideoTrack == null, mediaEpoch: _snapshot.mediaEpoch + 1));
         }
         // Подписались на аудиодорожку собеседника — считываем её начальное
         // mute-состояние. TrackMuted/Unmuted летят только ПОСЛЕ подписки (SDK
@@ -1287,10 +1167,6 @@ class Calls {
         if (identical(event.track, _remoteVideoTrack)) {
           _remoteVideoTrack = null;
           _emit(_snapshot.copyWith(mediaEpoch: _snapshot.mediaEpoch + 1));
-        }
-        if (identical(event.track, _remoteScreenTrack)) {
-          _remoteScreenTrack = null;
-          _emit(_snapshot.copyWith(remoteScreenSharing: false, mediaEpoch: _snapshot.mediaEpoch + 1));
         }
         _syncRemoteVideo();
       })
@@ -1311,26 +1187,6 @@ class Calls {
         _syncRemoteVideo();
       })
       ..on<TrackUnpublishedEvent>((event) => _syncRemoteVideo())
-      // Опубликовалась НАША дорожка демонстрации экрана. На iOS это происходит
-      // асинхронно — после старта вещания в системном picker (см.
-      // [toggleScreenShare]); на Android — сразу после setScreenShareEnabled.
-      // Единая точка, где поднимаем флаг и берём трек для локального рендера.
-      ..on<LocalTrackPublishedEvent>((event) {
-        if (event.publication.source != TrackSource.screenShareVideo) return;
-        _localScreenTrack = event.publication.track as VideoTrack?;
-        _dbg('local screen published');
-        _emit(_snapshot.copyWith(screenSharing: _localScreenTrack != null, mediaEpoch: _snapshot.mediaEpoch + 1));
-      })
-      // Наша демонстрация экрана прекращена — нами (кнопка) или системой (iOS:
-      // «Остановить» в статус-баре; Android: системная плашка). Снимаем флаг,
-      // отпускаем трек и гасим Android-FGS.
-      ..on<LocalTrackUnpublishedEvent>((event) {
-        if (event.publication.source != TrackSource.screenShareVideo) return;
-        _localScreenTrack = null;
-        _dbg('local screen unpublished');
-        if (Platform.isAndroid) unawaited(_stopAndroidScreenCapture());
-        _emit(_snapshot.copyWith(screenSharing: false, mediaEpoch: _snapshot.mediaEpoch + 1));
-      })
       ..on<ParticipantConnectionQualityUpdatedEvent>((event) {
         // Индикатор показывает качество собеседника — локального участника
         // игнорируем. Обновляем только для живого звонка.
@@ -1403,30 +1259,19 @@ class Calls {
   void _adoptRemoteTracks() {
     final room = _room;
     if (room == null) return;
-    var adopted = false;
     for (final participant in room.remoteParticipants.values) {
       for (final publication in participant.videoTrackPublications) {
         final track = publication.track;
-        if (track is! VideoTrack) continue;
-        if (publication.source == TrackSource.screenShareVideo) {
-          // Собеседник уже демонстрировал экран к моменту нашего входа —
-          // отдельная поверхность, камеру не трогаем.
-          _remoteScreenTrack = track;
-          _emit(_snapshot.copyWith(video: true, remoteScreenSharing: true, mediaEpoch: _snapshot.mediaEpoch + 1));
-          adopted = true;
-        } else {
+        if (track is VideoTrack) {
           _remoteVideoTrack = track;
           // Собеседник вошёл в комнату с уже включённой камерой (или мы приняли
           // после апгрейда) — промоутим звонок в видео, см. TrackSubscribed.
           // `cameraOff` по факту нашей публикации — камера собеседника не включает
           // нашу.
           _emit(_snapshot.copyWith(video: true, cameraOff: _localVideoTrack == null, mediaEpoch: _snapshot.mediaEpoch + 1));
-          adopted = true;
+          return;
         }
       }
-      // Один участник (звонок 1-на-1) может отдавать и камеру, и экран — берём обе
-      // его дорожки, но после первого участника с медиа выходим.
-      if (adopted) return;
     }
   }
 
@@ -1583,12 +1428,6 @@ class Calls {
 
       _localVideoTrack = null;
       _remoteVideoTrack = null;
-      _localScreenTrack = null;
-      _remoteScreenTrack = null;
-
-      // Android: если звонок завершился во время демонстрации экрана — гасим
-      // media-projection foreground service, иначе он остался бы висеть.
-      if (Platform.isAndroid) await _stopAndroidScreenCapture();
 
       // Забираем комнату синхронно (до await), чтобы повторный вход видел null.
       final room = _room;

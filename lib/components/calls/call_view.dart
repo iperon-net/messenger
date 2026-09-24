@@ -128,9 +128,6 @@ class CallView extends StatefulWidget {
   // Цвет иконки на цветной (красной/зелёной) кнопке — всегда белый в обеих темах.
   static const _onAccent = Color(0xFFFFFFFF);
 
-  // Фон-подложка под демонстрацией экрана (letterbox при fit: contain).
-  static const _black = Color(0xFF000000);
-
   @override
   State<CallView> createState() => _CallViewState();
 }
@@ -331,18 +328,13 @@ class _CallViewState extends State<CallView> with WidgetsBindingObserver {
         // участвуют в equality состояния).
         final remoteTrack = cubit.remoteVideoTrack;
         final localTrack = cubit.localVideoTrack;
-        final remoteScreenTrack = cubit.remoteScreenTrack;
         // Удалённое видео реально видно, только когда дорожка есть И камера
         // собеседника не выключена: при выключении LiveKit мьютит дорожку, но не
         // отписывает — рендер застыл бы на последнем кадре, поэтому вместо него
         // показываем аватар (см. [CallSnapshot.remoteVideoOff]).
         final remoteVideoVisible = isVideoCall && remoteTrack != null && !state.remoteVideoOff;
-        // Экран собеседника — основная поверхность, когда он его демонстрирует
-        // (перекрывает картинку камеры). Отдельный источник, см. remoteScreenTrack.
-        final remoteScreenVisible = isVideoCall && state.remoteScreenSharing && remoteScreenTrack != null;
-        final overMedia = remoteVideoVisible || remoteScreenVisible;
         // Поверх видео — светлая палитра (контраст над картинкой); иначе — под тему.
-        final palette = overMedia ? _CallPalette.overMedia : _CallPalette.of(context, darkMode);
+        final palette = remoteVideoVisible ? _CallPalette.overMedia : _CallPalette.of(context, darkMode);
 
         // Единый Stack для обоих режимов (полный экран и мини-окно PiP). Удалённый
         // рендерер держим ПЕРВЫМ и БЕЗ ключа — его позиция в дереве не меняется при
@@ -357,19 +349,9 @@ class _CallViewState extends State<CallView> with WidgetsBindingObserver {
             fit: StackFit.expand,
             children: [
               if (remoteVideoVisible) VideoTrackRenderer(remoteTrack, fit: VideoViewFit.cover),
-              // Экран собеседника поверх камеры (contain — не обрезаем контент).
-              // Держим ПОСЛЕ камерного рендерера, чтобы его позиция в дереве не
-              // менялась (см. комментарий про пересоздание рендерера выше).
-              if (remoteScreenVisible)
-                Positioned.fill(
-                  child: ColoredBox(
-                    color: CallView._black,
-                    child: VideoTrackRenderer(remoteScreenTrack, fit: VideoViewFit.contain),
-                  ),
-                ),
               // В мини-окне без видео собеседника (камера у него выключена) —
               // его аватар по центру вместо пустого фона.
-              if (_inPip && !overMedia)
+              if (_inPip && !remoteVideoVisible)
                 Center(
                   child: _Avatar(state: state, palette: palette),
                 ),
@@ -386,7 +368,7 @@ class _CallViewState extends State<CallView> with WidgetsBindingObserver {
                     child: VideoTrackRenderer(localTrack, fit: VideoViewFit.cover, mirrorMode: VideoViewMirrorMode.auto),
                   ),
                 ),
-              if (!_inPip) _Overlay(state: state, showVideo: overMedia, palette: palette),
+              if (!_inPip) _Overlay(state: state, showVideo: remoteVideoVisible, palette: palette),
             ],
           ),
         );
@@ -439,15 +421,6 @@ class _Overlay extends StatelessWidget {
                 if (active && state.quality != CallQuality.unknown) ...[
                   const SizedBox(height: 8),
                   _QualityIndicator(quality: state.quality, dim: palette.dim),
-                ],
-                // Собеседник демонстрирует экран — подпись под статусом.
-                if (active && state.remoteScreenSharing) ...[
-                  const SizedBox(height: 8),
-                  Text(
-                    context.t.screenCall.remoteScreenSharing,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: palette.dim, fontSize: 13),
-                  ),
                 ],
                 // Микрофон собеседника выключен — значок ниже статуса связи.
                 // if (active && state.remoteMicMuted) ...[const SizedBox(height: 8), _RemoteMicIndicator(dim: palette.dim)],
@@ -522,13 +495,8 @@ class _Overlay extends StatelessWidget {
     final t = context.t.screenCall;
     return Column(
       children: [
-        // Wrap (а не Row): в видеозвонке с демонстрацией экрана кнопок до пяти —
-        // на узких экранах они переносятся на вторую строку вместо overflow.
-        // WrapAlignment.spaceEvenly сохраняет прежнюю раскладку, когда всё влезает
-        // в одну строку.
-        Wrap(
-          alignment: WrapAlignment.spaceEvenly,
-          runSpacing: 16,
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
             _CircleButton(
               label: state.micMuted ? t.micOn : t.micOff,
@@ -582,18 +550,6 @@ class _Overlay extends StatelessWidget {
                 onTap: cubit.switchCamera,
               ),
             ],
-            // Демонстрация экрана. Доступна только в установленном разговоре
-            // (нужен localParticipant в комнате LiveKit). Отдельный источник от
-            // камеры — можно шарить экран, не выключая её.
-            if (state.callStatus == CallStatus.active)
-              _CircleButton(
-                label: state.screenSharing ? t.stopScreenShare : t.shareScreen,
-                icon: HugeIcons.strokeRoundedComputerScreenShare,
-                color: state.screenSharing ? palette.controlActiveBg : palette.controlBg,
-                iconColor: palette.fg,
-                palette: palette,
-                onTap: cubit.toggleScreenShare,
-              ),
           ],
         ),
         const SizedBox(height: 24),

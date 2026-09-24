@@ -41,8 +41,6 @@ class CallCubit extends Cubit<CallState> {
 
   VideoTrack? get localVideoTrack => _calls.localVideoTrack;
   VideoTrack? get remoteVideoTrack => _calls.remoteVideoTrack;
-  VideoTrack? get localScreenTrack => _calls.localScreenTrack;
-  VideoTrack? get remoteScreenTrack => _calls.remoteScreenTrack;
 
   void initialization() {
     emit(_fromSnapshot(_calls.snapshot, Status.success));
@@ -61,8 +59,6 @@ class CallCubit extends Cubit<CallState> {
     speakerOn: s.speakerOn,
     remoteMicMuted: s.remoteMicMuted,
     remoteVideoOff: s.remoteVideoOff,
-    screenSharing: s.screenSharing,
-    remoteScreenSharing: s.remoteScreenSharing,
     endReason: s.endReason,
     debug: s.debug,
     connectedAt: s.connectedAt,
@@ -167,7 +163,6 @@ class CallCubit extends Cubit<CallState> {
   Future<void> resumeVideoAfterBackground() => _calls.resumeVideoAfterBackground();
   Future<void> toggleSpeaker() => _calls.toggleSpeaker();
   Future<void> switchCamera() => _calls.switchCamera();
-  Future<void> toggleScreenShare() => _calls.toggleScreenShare();
 
   @override
   Future<void> close() {
