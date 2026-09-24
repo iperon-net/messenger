@@ -63,3 +63,13 @@ kotlin {
 flutter {
     source = "../.."
 }
+
+dependencies {
+    // Нужны app-модулю для CallFcmService (наследует FlutterFirebaseMessagingService
+    // и работает с RemoteMessage). Плагин firebase_messaging тянет firebase-messaging
+    // как `implementation`, поэтому его классы не видны нашему коду без явной
+    // зависимости. Версия BoM = FirebaseSDKVersion из firebase_core 4.15.0 (34.19.0),
+    // чтобы не конфликтовать с версией, которую резолвит сам firebase_core.
+    implementation(platform("com.google.firebase:firebase-bom:34.19.0"))
+    implementation("com.google.firebase:firebase-messaging")
+}

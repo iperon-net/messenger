@@ -57,10 +57,15 @@ class CallkitIncomingActivity : Activity() {
             val intent = Intent("${context.packageName}.${ACTION_ENDED_CALL_INCOMING}")
             intent.putExtra("ACCEPTED", isAccepted)
             intent.setPackage(context.packageName)
-            intent.setClassName(
-                context.packageName,
-                "com.hiennv.flutter_callkit_incoming.CallkitIncomingActivity"
-            )
+            // ВЕНДОР-ПАТЧ (Iperon): НЕ ставим setClassName. Приёмник, закрывающий
+            // этот экран (EndedCallkitIncomingBroadcastReceiver), регистрируется
+            // ДИНАМИЧЕСКИ (registerReceiver по action), а не в манифесте. Явный
+            // компонент на бродкасте (тем более указывающий на Activity, а не на
+            // BroadcastReceiver) в динамический приёмник не доставляется — тогда
+            // Activity не получает сигнал и полноэкранный экран входящего висит
+            // после программного endCall (мультидевайс: приняли на другом
+            // устройстве — на этом экран не закрывался). setPackage достаточно,
+            // чтобы бродкаст остался внутри приложения.
             return intent
         }
     }
