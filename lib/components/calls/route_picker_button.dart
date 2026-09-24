@@ -47,20 +47,19 @@ class RoutePickerButton extends StatelessWidget {
           child: Stack(
             alignment: Alignment.center,
             children: [
-              // Нативный пикер во всю область круга — ловит тап и открывает
-              // системный список маршрутов. Собственную иконку прячем
-              // прозрачным tint'ом.
+              // Иконка динамика (как на Android) — рисуется ПОД нативным видом.
+              // На iOS UiKitView композитится поверх Flutter-виджетов, поэтому
+              // порядок важен: иконка снизу видна сквозь прозрачный пикер.
+              HugeIcon(icon: HugeIcons.strokeRoundedVolumeHigh, color: iconColor, size: 28),
+              // Нативный AVRoutePickerView во всю область круга — сверху, ловит
+              // тап и открывает системный список маршрутов. Полностью прозрачный:
+              // фон .clear (в Swift), собственную иконку гасим прозрачным tint'ом.
               const Positioned.fill(
                 child: UiKitView(
                   viewType: 'net.iperon.messenger/route_picker',
                   creationParams: {'tint': 0x00000000, 'activeTint': 0x00000000},
                   creationParamsCodec: StandardMessageCodec(),
                 ),
-              ),
-              // Наложенная иконка динамика (как на Android). IgnorePointer —
-              // чтобы тап проходил на нативный вид под ней.
-              IgnorePointer(
-                child: HugeIcon(icon: HugeIcons.strokeRoundedVolumeHigh, color: iconColor, size: 28),
               ),
             ],
           ),
