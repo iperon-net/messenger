@@ -58,6 +58,13 @@ class CallState with CallStateMappable {
   /// кэше/не скачан.
   final Uint8List? avatarBytes;
 
+  /// Состояние сквозного шифрования медиа. См. [CallEncryption].
+  final CallEncryption encryption;
+
+  /// SAS — 4 эмодзи для сверки от MITM. Пусто, пока ключ не согласован. См.
+  /// [CallSnapshot.sas].
+  final List<String> sas;
+
   const CallState({
     this.status = Status.initialization,
     this.callStatus = CallStatus.idle,
@@ -77,5 +84,7 @@ class CallState with CallStateMappable {
     this.displayName = '',
     this.boringAvatarHash = '',
     this.avatarBytes,
+    this.encryption = CallEncryption.negotiating,
+    this.sas = const [],
   });
 }

@@ -348,3 +348,6 @@ dateTime:
   "qualityGood": "Good connection"
   "qualityExcellent": "Excellent connection"
   "remoteMicMuted": "Their microphone is off"
+  "encrypted": "End-to-end encrypted"
+  "notEncrypted": "Not encrypted"
+  "verifyEmoji": "Compare these emoji with the other person"

@@ -12,6 +12,7 @@ import 'dart:math';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:cryptography/cryptography.dart' show SimpleKeyPair;
 import 'package:flutter_webrtc/flutter_webrtc.dart' show WebRTC;
 import 'package:grpc/grpc.dart' show StatusCode;
 import 'package:livekit_client/livekit_client.dart';
@@ -19,6 +20,7 @@ import 'package:livekit_client/livekit_client.dart';
 import 'api.dart';
 import 'auth.dart';
 import 'components/call_permissions.dart';
+import 'crypto.dart';
 import 'di.dart';
 import 'logger.dart';
 import 'models.dart' as models;
@@ -45,6 +47,15 @@ enum CallEndReason { none, hangup, rejected, failed, busy, notAllowed, noConnect
 /// [ConnectionQuality] собеседника (см. [Calls._mapQuality]); `unknown` — пока
 /// LiveKit не прислал оценку (индикатор не показываем).
 enum CallQuality { unknown, poor, good, excellent }
+
+/// Состояние сквозного шифрования (E2EE) медиа звонка для UI:
+/// - [negotiating] — E2EE включён, ключ комнаты ещё согласуется (медиа до этого
+///   момента не уходит открытым — `discardFrameWhenCryptorNotReady`);
+/// - [encrypted] — ключ согласован, медиа шифруется сквозно (SFU расшифровать не
+///   может); в снимке заполнен `sas` для сверки;
+/// - [unencrypted] — E2EE недоступен: собеседник его не поддержал (fallback) или
+///   платформа без FrameCryptor. UI показывает предупреждение.
+enum CallEncryption { negotiating, encrypted, unencrypted }
 
 /// Неизменяемый снимок текущего звонка. [Calls] публикует его в [Calls.snapshots]
 /// на каждое изменение; [CallCubit] переводит снимок в состояние экрана.
@@ -96,6 +107,14 @@ class CallSnapshot {
   /// ещё нет. См. [Calls._mapQuality].
   final CallQuality quality;
 
+  /// Состояние сквозного шифрования медиа. См. [CallEncryption]. UI по нему
+  /// показывает «замок»/SAS (encrypted) или предупреждение (unencrypted).
+  final CallEncryption encryption;
+
+  /// SAS (short authentication string) — 4 эмодзи для сверки от MITM. Непусто
+  /// только когда шифрование [CallEncryption.encrypted]. См. [CallKeys.deriveSas].
+  final List<String> sas;
+
   const CallSnapshot({
     this.status = CallStatus.idle,
     this.callId = '',
@@ -111,6 +130,8 @@ class CallSnapshot {
     this.debug = '',
     this.connectedAt,
     this.quality = CallQuality.unknown,
+    this.encryption = CallEncryption.negotiating,
+    this.sas = const [],
   });
 
   CallSnapshot copyWith({
@@ -128,6 +149,8 @@ class CallSnapshot {
     String? debug,
     DateTime? connectedAt,
     CallQuality? quality,
+    CallEncryption? encryption,
+    List<String>? sas,
   }) {
     return CallSnapshot(
       status: status ?? this.status,
@@ -144,6 +167,8 @@ class CallSnapshot {
       debug: debug ?? this.debug,
       connectedAt: connectedAt ?? this.connectedAt,
       quality: quality ?? this.quality,
+      encryption: encryption ?? this.encryption,
+      sas: sas ?? this.sas,
     );
   }
 }
@@ -172,6 +197,7 @@ class Calls {
   final auth = getIt.get<Auth>();
   final settings = getIt.get<Settings>();
   final utils = getIt.get<Utils>();
+  final crypto = getIt.get<Crypto>();
 
   // iOS-канал к AppDelegate для явной активации/деактивации AVAudioSession на
   // пути без CallKit (см. [_setIosAudioSessionActive]). Маршрут на динамик/
@@ -257,6 +283,24 @@ class Calls {
 
   Room? _room;
   EventsListener<RoomEvent>? _roomListener;
+
+  // E2EE звонка (Фаза 1). Медиа-фреймы шифрует FrameCryptor LiveKit симметричным
+  // ключом комнаты; сам SFU ключа не знает. Ключ выводим из ECDH: эфемерную пару
+  // X25519 генерим на звонок ([_callKeyPair]), публичные ключи стороны обменивают
+  // ВНУТРИ комнаты по data-каналу (топик [_e2eeTopic], публичный ключ не секрет),
+  // затем HKDF даёт общий ключ и ставится в [_e2eeKeyProvider]. Обе стороны входят
+  // с включённым E2EE и `discardFrameWhenCryptorNotReady:true` — до согласования
+  // ключа медиа НЕ уходит открытым. Старый клиент без обмена → [_e2eeFallbackTimer]
+  // отключает E2EE (fallback на plaintext с пометкой в UI). Всё живёт только на
+  // время звонка, чистится в [_teardown]. См. память проекта calls-e2ee-plan.
+  static const _e2eeTopic = 'e2ee-pub';
+  // Сколько ждём публичный ключ собеседника после его входа в комнату, прежде чем
+  // счесть его E2EE-несовместимым (старый клиент) и откатиться на нешифрованное
+  // медиа. Reliable data-канал доставляет ключ за доли секунды; запас — на радио.
+  static const _e2eeHandshakeTimeout = Duration(seconds: 4);
+  SimpleKeyPair? _callKeyPair;
+  BaseKeyProvider? _e2eeKeyProvider;
+  Timer? _e2eeFallbackTimer;
 
   // Активные видеодорожки для рендера (аудио LiveKit проигрывает сам). Живут
   // здесь, а не в снимке (VideoTrack не immutable); UI читает их геттерами и
@@ -946,12 +990,23 @@ class Calls {
     // с чистой комнатой обычно ловит уже прогретую сеть. `_connectingRoom` держим
     // взведённым на весь цикл (гард от повторного входа) и снимаем после успеха;
     // при полном провале его сбросит [_teardown].
+    // Готовим E2EE ДО подключения: генерим эфемерную пару и провайдер ключей
+    // комнаты. Опции переживают повторы connect (новый Room на попытку) —
+    // провайдер/пара от Room не зависят. При неудаче настройки (напр. платформа
+    // без поддержки FrameCryptor) звонок идёт без E2EE (options=null).
+    final e2eeOptions = await _setupCallE2ee(callId);
+    // E2EE не настроить (платформа без FrameCryptor) — сразу помечаем звонок
+    // незашифрованным (иначе снимок остался бы в negotiating навсегда).
+    if (e2eeOptions == null && _hasActiveCall) {
+      _emit(_snapshot.copyWith(encryption: CallEncryption.unencrypted));
+    }
+
     final maxAttempts = _maxConnectAttempts;
     final timeouts = _callTimeouts;
     var attempt = 0;
     while (true) {
       attempt++;
-      final room = Room();
+      final room = Room(roomOptions: RoomOptions(e2eeOptions: e2eeOptions));
       _room = room;
       _diag2('Room CREATED seq=$seq attempt=$attempt room#=${identityHashCode(room)} url=${response.url}');
       _roomListener = room.createListener();
@@ -995,6 +1050,11 @@ class Calls {
     _roomConnected = true;
     _dbg('room connected');
 
+    // Публикуем свой публичный ключ E2EE в комнату (если E2EE включён). Если
+    // собеседник уже здесь — получит его сразу; если войдёт позже — переопубликуем
+    // на ParticipantConnected. См. [_publishE2eePubKey].
+    if (e2eeOptions != null) unawaited(_publishE2eePubKey());
+
     final room = _room!;
     await _publishLocalMedia(video: video);
 
@@ -1017,6 +1077,10 @@ class Calls {
       _adoptRemoteTracks();
       _syncRemoteMic();
       _markActive();
+      // Собеседник уже в комнате (мы вошли вторыми) — ParticipantConnected по нему
+      // не придёт, поэтому запускаем E2EE-рукопожатие здесь: ждём его публичный
+      // ключ до дедлайна, иначе fallback (см. [_startE2eeFallbackTimer]).
+      if (e2eeOptions != null) _startE2eeFallbackTimer();
     }
   }
 
@@ -1177,6 +1241,18 @@ class Calls {
       ..on<ParticipantConnectedEvent>((event) {
         _dbg('peer joined');
         _markActive();
+        // Собеседник вошёл — (пере)публикуем свой публичный ключ E2EE (data не
+        // ретейнится для поздних участников) и запускаем дедлайн рукопожатия.
+        if (_e2eeKeyProvider != null) {
+          unawaited(_publishE2eePubKey());
+          _startE2eeFallbackTimer();
+        }
+      })
+      ..on<DataReceivedEvent>((event) {
+        // Публичный ключ E2EE собеседника (наш протокол data-канала). Игнорируем
+        // пакеты от сервера (participant == null) и чужие топики.
+        if (event.topic != _e2eeTopic || event.participant == null) return;
+        unawaited(_onE2eePubKey(Uint8List.fromList(event.data)));
       })
       ..on<TrackSubscribedEvent>((event) {
         final track = event.track;
@@ -1249,6 +1325,113 @@ class Calls {
           _teardown(CallEndReason.failed);
         }
       });
+  }
+
+  // ---------------------------------------------------------------------------
+  // E2EE звонка (обмен ключом комнаты)
+  // ---------------------------------------------------------------------------
+
+  /// Готовит E2EE для звонка [callId]: генерит эфемерную пару X25519 и провайдер
+  /// ключей комнаты LiveKit. Возвращает [E2EEOptions] для [RoomOptions] или `null`,
+  /// если настроить не удалось (тогда звонок идёт без шифрования).
+  ///
+  /// `sharedKey:true` (дефолт) — единый ключ на всех участников (для 1-на-1
+  /// достаточно). `discardFrameWhenCryptorNotReady:true` — пока ключ не согласован,
+  /// медиа НЕ уходит открытым (никакой утечки в окне рукопожатия).
+  Future<E2EEOptions?> _setupCallE2ee(String callId) async {
+    // Платформа без FrameCryptor (напр. web без поддержки) — не включаем E2EE,
+    // иначе room.connect бросил бы LiveKitE2EEException и звонок не состоялся бы.
+    // На iOS/Android поддержка есть.
+    if (!lkPlatformSupportsE2EE()) {
+      logger.warning('call: e2ee not supported on this platform, connecting without it');
+      return null;
+    }
+    try {
+      final keyPair = await crypto.callKeys.generateKeyPair();
+      final keyProvider = await BaseKeyProvider.create(ratchetSalt: 'iperon-call-e2ee-v1', discardFrameWhenCryptorNotReady: true);
+      _callKeyPair = keyPair;
+      _e2eeKeyProvider = keyProvider;
+      _dbg('e2ee ready');
+      return E2EEOptions(keyProvider: keyProvider);
+    } catch (error, stackTrace) {
+      logger.handle(error, stackTrace);
+      _callKeyPair = null;
+      _e2eeKeyProvider = null;
+      return null;
+    }
+  }
+
+  /// Публикует наш публичный ключ E2EE в комнату (reliable data-канал, топик
+  /// [_e2eeTopic]). Публичный ключ не секрет; собеседник по нему выведет общий ключ
+  /// комнаты. No-op, если E2EE не настроен или комнаты уже нет.
+  Future<void> _publishE2eePubKey() async {
+    final keyPair = _callKeyPair;
+    final room = _room;
+    if (keyPair == null || room == null) return;
+    try {
+      final pub = await crypto.callKeys.publicKeyBytes(keyPair);
+      await room.localParticipant?.publishData(pub, reliable: true, topic: _e2eeTopic);
+    } catch (error, stackTrace) {
+      logger.handle(error, stackTrace);
+    }
+  }
+
+  /// Обрабатывает публичный ключ E2EE собеседника: выводит общий ключ комнаты и
+  /// ставит его в провайдер — с этого момента медиа шифруется сквозно. Переводит
+  /// снимок в [CallEncryption.encrypted] с заполненным `sas` и снимает дедлайн
+  /// fallback. Идемпотентно (повторный тот же ключ игнорируем). Битый ключ —
+  /// оставляем как есть, дедлайн решит про fallback.
+  Future<void> _onE2eePubKey(Uint8List remotePub) async {
+    final keyPair = _callKeyPair;
+    final keyProvider = _e2eeKeyProvider;
+    if (keyPair == null || keyProvider == null) return;
+    if (_snapshot.encryption == CallEncryption.encrypted) return;
+    try {
+      final roomKey = await crypto.callKeys.deriveRoomKey(keyPair: keyPair, remotePublicKey: remotePub, callId: _snapshot.callId);
+      await keyProvider.setRawKey(roomKey);
+      // SAS для сверки от MITM — оба конца выводят из одного ключа одинаковые 4
+      // эмодзи (см. [CallKeys.deriveSas]).
+      final sas = await crypto.callKeys.deriveSas(roomKey);
+      _cancelE2eeFallbackTimer();
+      _dbg('e2ee on');
+      logger.info('call: e2ee key established');
+      if (_hasActiveCall) _emit(_snapshot.copyWith(encryption: CallEncryption.encrypted, sas: sas));
+    } catch (error, stackTrace) {
+      logger.handle(error, stackTrace);
+    }
+  }
+
+  /// Заводит дедлайн E2EE-рукопожатия: если за [_e2eeHandshakeTimeout] собеседник
+  /// не пришлёт публичный ключ (старый клиент без E2EE), откатываемся на
+  /// нешифрованное медиа ([_disableCallE2ee]). Идемпотентно (дедлайн не сдвигаем).
+  void _startE2eeFallbackTimer() {
+    if (_snapshot.encryption == CallEncryption.encrypted || _e2eeKeyProvider == null) return;
+    if (_e2eeFallbackTimer?.isActive ?? false) return;
+    _e2eeFallbackTimer = Timer(_e2eeHandshakeTimeout, _disableCallE2ee);
+  }
+
+  void _cancelE2eeFallbackTimer() {
+    _e2eeFallbackTimer?.cancel();
+    _e2eeFallbackTimer = null;
+  }
+
+  /// Fallback: собеседник E2EE не поддержал. Отключаем FrameCryptor, чтобы медиа
+  /// пошло открытым (иначе наши фреймы держались бы `discard`'ом, а его открытые
+  /// фреймы мы не смогли бы расшифровать — звонок без звука) и переводим снимок в
+  /// [CallEncryption.unencrypted] — UI покажет «шифрование недоступно».
+  Future<void> _disableCallE2ee() async {
+    _cancelE2eeFallbackTimer();
+    if (_snapshot.encryption == CallEncryption.encrypted) return;
+    final room = _room;
+    if (room == null) return;
+    logger.warning('call: e2ee handshake timed out, falling back to unencrypted media');
+    _dbg('e2ee off (peer)');
+    try {
+      await room.setE2EEEnabled(false);
+    } catch (error, stackTrace) {
+      logger.handle(error, stackTrace);
+    }
+    if (_hasActiveCall) _emit(_snapshot.copyWith(encryption: CallEncryption.unencrypted));
   }
 
   // Пересчитывает mute-состояние микрофона собеседника по текущим аудиодорожкам
@@ -1460,6 +1643,13 @@ class Calls {
       _connectingRoom = false;
       _roomConnected = false;
       _viaCallKit = false;
+
+      // E2EE звонка — эфемерные ключи живут только на время звонка (forward
+      // secrecy). Провайдер ключей уходит вместе с Room ниже; здесь снимаем дедлайн
+      // рукопожатия и выбрасываем пару/ссылку на провайдер.
+      _cancelE2eeFallbackTimer();
+      _callKeyPair = null;
+      _e2eeKeyProvider = null;
       // Звонок завершён — отпускаем удержание стрима (вернётся к foreground-гейту).
       api.setCallActive(false);
 

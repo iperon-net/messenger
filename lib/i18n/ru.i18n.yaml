@@ -350,3 +350,6 @@ dateTime:
   "qualityGood": "Хорошее соединение"
   "qualityExcellent": "Отличное соединение"
   "remoteMicMuted": "Микрофон собеседника выключен"
+  "encrypted": "Сквозное шифрование"
+  "notEncrypted": "Без шифрования"
+  "verifyEmoji": "Сверьте эмодзи с собеседником"

@@ -1185,6 +1185,15 @@ class Translations$screenCall$en {
 
 	/// en: 'Their microphone is off'
 	String get remoteMicMuted => 'Their microphone is off';
+
+	/// en: 'End-to-end encrypted'
+	String get encrypted => 'End-to-end encrypted';
+
+	/// en: 'Not encrypted'
+	String get notEncrypted => 'Not encrypted';
+
+	/// en: 'Compare these emoji with the other person'
+	String get verifyEmoji => 'Compare these emoji with the other person';
 }
 
 /// The flat map containing all translations for locale <en>.
@@ -1490,6 +1499,9 @@ extension on Translations {
 			'screenCall.qualityGood' => 'Good connection',
 			'screenCall.qualityExcellent' => 'Excellent connection',
 			'screenCall.remoteMicMuted' => 'Their microphone is off',
+			'screenCall.encrypted' => 'End-to-end encrypted',
+			'screenCall.notEncrypted' => 'Not encrypted',
+			'screenCall.verifyEmoji' => 'Compare these emoji with the other person',
 			_ => null,
 		};
 	}

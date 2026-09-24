@@ -64,6 +64,8 @@ class CallCubit extends Cubit<CallState> {
     connectedAt: s.connectedAt,
     quality: s.quality,
     mediaEpoch: s.mediaEpoch,
+    encryption: s.encryption,
+    sas: s.sas,
   );
 
   /// Разрешает имя/аватар собеседника по [userID]: сперва мгновенно из кэша БД
