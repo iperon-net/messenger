@@ -134,16 +134,17 @@ class _IperonMessengerCupertino extends State<IperonMessengerCupertino> with Wid
         unawaited(logger.fileLogger.flush());
         api.setForeground(false);
       case AppLifecycleState.inactive:
-        // На iOS `inactive` доставляется надёжно, а `hidden`/`paused` могут прийти
-        // уже после заморозки изолята. Поэтому фон фиксируем и здесь — и для авто-
-        // блокировки, и для стрима: иначе при блокировке экрана `_appActive`
-        // залипает в true, обрыв сети триггерит фоновый reconnect → сервер снова
-        // помечает нас online и рассылает контактам ложный «в сети». setForeground
-        // ставит паузу с грейсом 3с, поэтому быстрый «шторка/переключатель» не
-        // дёргает соединение (возврат в resumed отменяет паузу), а активный звонок
-        // держит стрим через _callActive.
+        // `inactive` на iOS прилетает на ТРАНЗИЕНТНЫЕ помехи (шторка, переключатель
+        // приложений, баннер CallKit/обычный сотовый звонок), а не только на уход в
+        // фон. Стрим на нём НЕ паузим: после «чистого» `inactive` iOS не гарантирует
+        // доставку `resumed` (особенно вокруг CallKit), поэтому setForeground(false)
+        // здесь оставлял `_appActive` залипшим в false — после сотового звонка стрим
+        // больше не поднимался, и приложение не могло ни принять, ни начать звонок
+        // («дозвониться невозможно»). Реальный уход в фон ловим на `paused`/`hidden`/
+        // `detached` (там `resumed` при возврате приходит надёжно). Симметрично
+        // Android (см. app_material.dart). Блюр и авто-блокировку по `inactive`
+        // оставляем — они безвредны и нужны для превью в переключателе.
         setState(() => isBlur = true);
-        api.setForeground(false);
         context.read<CommonCubit>().onAppBackgrounded();
     }
   }
