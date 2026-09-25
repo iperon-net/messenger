@@ -595,18 +595,10 @@ class _Overlay extends StatelessWidget {
                     textAlign: TextAlign.center,
                     style: TextStyle(color: palette.status, fontSize: 15),
                   ),
-                // Индикатор качества связи (только на активном звонке, когда
-                // LiveKit уже прислал оценку).
-                if (active && state.quality != CallQuality.unknown) ...[
-                  const SizedBox(height: 8),
-                  _QualityIndicator(quality: state.quality, dim: palette.dim),
-                ],
-                // Статус E2EE + SAS. Показываем на соединении/разговоре (когда
-                // шифрование уже определилось); в фазе согласования виджет пуст.
-                if ((active || state.callStatus == CallStatus.connecting) && state.encryption != CallEncryption.negotiating) ...[
-                  const SizedBox(height: 12),
-                  _E2eeIndicator(state: state, palette: palette),
-                ],
+                // Статусные бейджи звонка: качество связи и E2EE — иконки друг
+                // под другом (выровнены), справа подпись; под замком раскрывается
+                // SAS. Виджет сам решает, какие строки показать.
+                _CallStatusBadges(state: state, palette: palette),
                 // Микрофон собеседника выключен — значок ниже статуса связи.
                 // if (active && state.remoteMicMuted) ...[const SizedBox(height: 8), _RemoteMicIndicator(dim: palette.dim)],
                 // Диагностика соединения прямо на экране (этапы сигналинга/ICE/
@@ -824,27 +816,149 @@ class _CallTimerState extends State<_CallTimer> {
   }
 }
 
-/// Индикатор качества связи: три «столбика» (закрашено 1/2/3 по качеству) плюс
-/// краткая подпись. Цвет — красный/жёлтый/зелёный.
-class _QualityIndicator extends StatelessWidget {
-  final CallQuality quality;
-  final Color dim;
+/// Статусные бейджи звонка: строка качества связи и строка сквозного шифрования —
+/// иконки выровнены друг под другом (одинаковая ведущая колонка), справа подпись.
+/// При согласованном E2EE строка-замок кликабельна — тап раскрывает/сворачивает
+/// ниже SAS (4 эмодзи) для сверки от активного MITM. Показывает только те строки,
+/// что применимы к текущей стадии; в фазе согласования ключа замок не рисуем, чтобы
+/// не мигать (см. [CallEncryption]).
+class _CallStatusBadges extends StatefulWidget {
+  final CallState state;
+  final _CallPalette palette;
 
-  const _QualityIndicator({required this.quality, required this.dim});
+  const _CallStatusBadges({required this.state, required this.palette});
+
+  @override
+  State<_CallStatusBadges> createState() => _CallStatusBadgesState();
+}
+
+class _CallStatusBadgesState extends State<_CallStatusBadges> {
+  // Ширина ведущей колонки иконок — чтобы столбики качества и замок стояли ровно
+  // друг под другом и подписи начинались с одной вертикали.
+  static const _iconLeadWidth = 18.0;
+
+  bool _sasExpanded = false;
 
   @override
   Widget build(BuildContext context) {
     final t = context.t.screenCall;
-    final (bars, color, label) = switch (quality) {
-      CallQuality.excellent => (3, CallView._green, t.qualityExcellent),
-      CallQuality.good => (2, CallView._amber, t.qualityGood),
-      CallQuality.poor => (1, CallView._red, t.qualityPoor),
-      CallQuality.unknown => (0, dim, ''),
-    };
-    final inactive = dim.withValues(alpha: 0.3);
+    final state = widget.state;
+    final palette = widget.palette;
+    final active = state.callStatus == CallStatus.active;
 
+    final rows = <Widget>[];
+
+    // Качество связи — только на активном звонке, когда LiveKit прислал оценку.
+    if (active && state.quality != CallQuality.unknown) {
+      final (color, label) = switch (state.quality) {
+        CallQuality.excellent => (CallView._green, t.qualityExcellent),
+        CallQuality.good => (CallView._amber, t.qualityGood),
+        CallQuality.poor => (CallView._red, t.qualityPoor),
+        CallQuality.unknown => (palette.dim, ''),
+      };
+      rows.add(_badgeRow(icon: _qualityBars(state.quality, color, palette.dim), color: color, label: label));
+    }
+
+    // Сквозное шифрование — на соединении/разговоре, когда статус определился.
+    if ((active || state.callStatus == CallStatus.connecting) && state.encryption != CallEncryption.negotiating) {
+      if (rows.isNotEmpty) rows.add(const SizedBox(height: 8));
+      if (state.encryption == CallEncryption.encrypted) {
+        final canExpand = state.sas.isNotEmpty;
+        rows.add(
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: canExpand ? () => setState(() => _sasExpanded = !_sasExpanded) : null,
+            child: _badgeRow(
+              icon: const Icon(CupertinoIcons.lock_fill, color: CallView._green, size: 14),
+              color: CallView._green,
+              label: t.encrypted,
+              trailing: canExpand
+                  ? Icon(_sasExpanded ? CupertinoIcons.chevron_up : CupertinoIcons.chevron_down, color: CallView._green, size: 11)
+                  : null,
+            ),
+          ),
+        );
+        // Раскрывающийся SAS под строкой-замком.
+        rows.add(
+          AnimatedSize(
+            duration: const Duration(milliseconds: 180),
+            curve: Curves.easeInOut,
+            child: (canExpand && _sasExpanded)
+                ? Padding(
+                    padding: const EdgeInsets.only(top: 10),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            for (final emoji in state.sas)
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 4),
+                                child: Text(emoji, style: const TextStyle(fontSize: 30)),
+                              ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          t.verifyEmoji,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(color: palette.dim, fontSize: 11),
+                        ),
+                      ],
+                    ),
+                  )
+                : const SizedBox.shrink(),
+          ),
+        );
+      } else {
+        rows.add(
+          _badgeRow(
+            icon: const Icon(CupertinoIcons.lock_slash_fill, color: CallView._amber, size: 14),
+            color: CallView._amber,
+            label: t.notEncrypted,
+          ),
+        );
+      }
+    }
+
+    if (rows.isEmpty) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 10),
+      child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: rows),
+    );
+  }
+
+  /// Одна строка-бейдж: ведущая иконка фиксированной ширины (для вертикального
+  /// выравнивания) + подпись + опциональный trailing (chevron).
+  Widget _badgeRow({required Widget icon, required Color color, required String label, Widget? trailing}) {
     return Row(
       mainAxisSize: MainAxisSize.min,
+      children: [
+        SizedBox(
+          width: _iconLeadWidth,
+          child: Align(alignment: Alignment.centerLeft, child: icon),
+        ),
+        const SizedBox(width: 6),
+        Text(label, style: TextStyle(color: color, fontSize: 12)),
+        if (trailing != null) ...[const SizedBox(width: 4), trailing],
+      ],
+    );
+  }
+
+  /// Три «столбика» индикатора качества (закрашено 1/2/3 по качеству).
+  Widget _qualityBars(CallQuality quality, Color color, Color dim) {
+    final bars = switch (quality) {
+      CallQuality.excellent => 3,
+      CallQuality.good => 2,
+      CallQuality.poor => 1,
+      CallQuality.unknown => 0,
+    };
+    final inactive = dim.withValues(alpha: 0.3);
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.end,
       children: [
         for (var i = 0; i < 3; i++)
           Padding(
@@ -855,106 +969,8 @@ class _QualityIndicator extends StatelessWidget {
               decoration: BoxDecoration(color: i < bars ? color : inactive, borderRadius: BorderRadius.circular(1)),
             ),
           ),
-        const SizedBox(width: 6),
-        Text(label, style: TextStyle(color: color, fontSize: 12)),
       ],
     );
-  }
-}
-
-/// Индикатор сквозного шифрования звонка: замок + статус. При согласованном ключе
-/// замок кликабелен — тап раскрывает/сворачивает SAS (4 эмодзи) для сверки от
-/// активного MITM (собеседники сравнивают эмодзи голосом). По умолчанию SAS
-/// свёрнут, чтобы не загромождать экран. В фазе согласования
-/// ([CallEncryption.negotiating]) ничего не рисует, чтобы не мигать предупреждением
-/// на доли секунды до установки ключа.
-class _E2eeIndicator extends StatefulWidget {
-  final CallState state;
-  final _CallPalette palette;
-
-  const _E2eeIndicator({required this.state, required this.palette});
-
-  @override
-  State<_E2eeIndicator> createState() => _E2eeIndicatorState();
-}
-
-class _E2eeIndicatorState extends State<_E2eeIndicator> {
-  bool _expanded = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = context.t.screenCall;
-    final palette = widget.palette;
-    switch (widget.state.encryption) {
-      case CallEncryption.negotiating:
-        return const SizedBox.shrink();
-      case CallEncryption.unencrypted:
-        return Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(CupertinoIcons.lock_slash_fill, color: CallView._amber, size: 14),
-            const SizedBox(width: 6),
-            Text(t.notEncrypted, style: const TextStyle(color: CallView._amber, fontSize: 12)),
-          ],
-        );
-      case CallEncryption.encrypted:
-        final sas = widget.state.sas;
-        final canExpand = sas.isNotEmpty;
-        return Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Кликабельная строка-замок: тап раскрывает SAS. Chevron подсказывает,
-            // что строку можно развернуть.
-            GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: canExpand ? () => setState(() => _expanded = !_expanded) : null,
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(CupertinoIcons.lock_fill, color: CallView._green, size: 14),
-                  const SizedBox(width: 6),
-                  Text(t.encrypted, style: const TextStyle(color: CallView._green, fontSize: 12)),
-                  if (canExpand) ...[
-                    const SizedBox(width: 4),
-                    Icon(_expanded ? CupertinoIcons.chevron_up : CupertinoIcons.chevron_down, color: CallView._green, size: 11),
-                  ],
-                ],
-              ),
-            ),
-            // Раскрывающийся блок SAS с плавной анимацией высоты.
-            AnimatedSize(
-              duration: const Duration(milliseconds: 180),
-              curve: Curves.easeInOut,
-              child: (canExpand && _expanded)
-                  ? Padding(
-                      padding: const EdgeInsets.only(top: 10),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              for (final emoji in sas)
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 4),
-                                  child: Text(emoji, style: const TextStyle(fontSize: 30)),
-                                ),
-                            ],
-                          ),
-                          const SizedBox(height: 6),
-                          Text(
-                            t.verifyEmoji,
-                            textAlign: TextAlign.center,
-                            style: TextStyle(color: palette.dim, fontSize: 11),
-                          ),
-                        ],
-                      ),
-                    )
-                  : const SizedBox.shrink(),
-            ),
-          ],
-        );
-    }
   }
 }
 

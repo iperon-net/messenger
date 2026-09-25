@@ -162,6 +162,27 @@ class SettingsPrivacyCallsMaterial extends StatelessWidget {
                     count: state.callsDeny.length,
                     onTap: state.callsReadOnly ? null : () => _openList(context, state, CallsListKind.deny),
                   ),
+                // Локальный тумблер сквозного шифрования звонков (per-device,
+                // хранится в settingsDevice через CommonCubit — не серверная
+                // настройка, поэтому отдельный BlocSelector).
+                Card(
+                  margin: const EdgeInsets.fromLTRB(12, 16, 12, 4),
+                  child: BlocSelector<CommonCubit, CommonState, bool>(
+                    selector: (commonState) => commonState.settingsDevice.callsE2ee,
+                    builder: (context, callsE2ee) => SwitchListTile(
+                      title: Text(context.t.sessionsPrivacyAndSecurity.callsEncryption),
+                      value: callsE2ee,
+                      onChanged: (value) => context.read<CommonCubit>().setCallsE2ee(callsE2ee: value),
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 4, 24, 8),
+                  child: Text(
+                    context.t.sessionsPrivacyAndSecurity.callsEncryptionNote,
+                    style: TextStyle(fontSize: AppFontSizes.caption, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                  ),
+                ),
               ],
             ),
           ),

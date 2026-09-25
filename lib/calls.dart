@@ -1346,6 +1346,15 @@ class Calls {
       logger.warning('call: e2ee not supported on this platform, connecting without it');
       return null;
     }
+    // Локальный тумблер (per-device): пользователь мог отключить E2EE для звонков
+    // (напр. на нестабильном канале — рукопожатие ключа добавляет задержку до
+    // старта медиа). Тогда звонок идёт без шифрования; собеседник с включённым
+    // E2EE откатится по своему дедлайну (см. [_disableCallE2ee]).
+    final settingsDevice = await getIt.get<Repositories>().settingsDevice.getAll();
+    if (!settingsDevice.callsE2ee) {
+      logger.info('call: e2ee disabled in settings, connecting without it');
+      return null;
+    }
     try {
       final keyPair = await crypto.callKeys.generateKeyPair();
       final keyProvider = await BaseKeyProvider.create(ratchetSalt: 'iperon-call-e2ee-v1', discardFrameWhenCryptorNotReady: true);

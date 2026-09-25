@@ -27,6 +27,10 @@ class SettingsDevice {
     await db.execute("UPDATE settingsDevice SET isBlurOnInactive = ?", [value ? 1 : 0]);
   }
 
+  Future<void> setCallsE2ee(bool value) async {
+    await db.execute("UPDATE settingsDevice SET callsE2ee = ?", [value ? 1 : 0]);
+  }
+
   Future<void> setPasscode(List<int> value) async {
     await db.execute("UPDATE settingsDevice SET passcode = ?", [value]);
   }

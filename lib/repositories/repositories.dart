@@ -345,6 +345,15 @@ class Repositories {
       }),
     );
 
+    migrations.add(
+      SqliteMigration(9, (tx) async {
+        // Локальный тумблер сквозного шифрования звонков (per-device). По
+        // умолчанию включено (1). Отключение — аварийный выход для нестабильного
+        // канала (см. Calls._setupCallE2ee).
+        await tx.execute("ALTER TABLE settingsDevice ADD COLUMN callsE2ee INTEGER NOT NULL DEFAULT 1;");
+      }),
+    );
+
     if (settings.isDeleteDatabase) {
       logger.warning("Deleting the database, flag set IS_DELETE_DATABASE: 1");
 

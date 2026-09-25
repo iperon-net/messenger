@@ -133,6 +133,8 @@
   "callsAlwaysAllow": "Always allow"
   "callsAlwaysDeny": "Always deny"
   "callsAllowEmpty": "No contacts registered on Iperon"
+  "callsEncryption": "End-to-end encryption"
+  "callsEncryptionNote": "Encrypts call media with end-to-end encryption — the server has no access to it. Turn off if calls have trouble connecting on an unstable network."
   "birthday": "Birthday"
   "whoCanSeeBirthday": "Who can see my birthday"
   "hideBirthYear": "Hide birth year"

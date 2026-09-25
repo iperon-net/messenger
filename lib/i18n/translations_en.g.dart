@@ -511,6 +511,12 @@ class Translations$sessionsPrivacyAndSecurity$en {
 	/// en: 'No contacts registered on Iperon'
 	String get callsAllowEmpty => 'No contacts registered on Iperon';
 
+	/// en: 'End-to-end encryption'
+	String get callsEncryption => 'End-to-end encryption';
+
+	/// en: 'Encrypts call media with end-to-end encryption — the server has no access to it. Turn off if calls have trouble connecting on an unstable network.'
+	String get callsEncryptionNote => 'Encrypts call media with end-to-end encryption — the server has no access to it. Turn off if calls have trouble connecting on an unstable network.';
+
 	/// en: 'Birthday'
 	String get birthday => 'Birthday';
 
@@ -1308,6 +1314,8 @@ extension on Translations {
 			'sessionsPrivacyAndSecurity.callsAlwaysAllow' => 'Always allow',
 			'sessionsPrivacyAndSecurity.callsAlwaysDeny' => 'Always deny',
 			'sessionsPrivacyAndSecurity.callsAllowEmpty' => 'No contacts registered on Iperon',
+			'sessionsPrivacyAndSecurity.callsEncryption' => 'End-to-end encryption',
+			'sessionsPrivacyAndSecurity.callsEncryptionNote' => 'Encrypts call media with end-to-end encryption — the server has no access to it. Turn off if calls have trouble connecting on an unstable network.',
 			'sessionsPrivacyAndSecurity.birthday' => 'Birthday',
 			'sessionsPrivacyAndSecurity.whoCanSeeBirthday' => 'Who can see my birthday',
 			'sessionsPrivacyAndSecurity.hideBirthYear' => 'Hide birth year',
