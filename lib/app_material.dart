@@ -107,7 +107,9 @@ class _IperonMessengerMaterial extends State<IperonMessengerMaterial> with Widge
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    logger.debug(state.toString());
+    // info (не debug): переходы жизненного цикла нужны в файловом логе для отладки
+    // залипания стрима после звонков (файловый логгер пишет от info и выше).
+    logger.info('lifecycle: $state');
 
     switch (state) {
       case AppLifecycleState.resumed:
@@ -131,6 +133,12 @@ class _IperonMessengerMaterial extends State<IperonMessengerMaterial> with Widge
         unawaited(logger.fileLogger.flush());
         api.setForeground(false);
       case AppLifecycleState.inactive:
+        // `inactive` — foreground-состояние (приложение видимо/сверху), не уход в
+        // фон. Поднимаем foreground: это надёжный сигнал «мы на переднем плане» на
+        // возврате, когда `resumed` может не прийти (например, вокруг звонилки).
+        // Реальный уход в фон снимет foreground следом через `paused`/`hidden`/
+        // `detached`. Симметрично iOS (см. app_cupertino.dart).
+        api.setForeground(true);
         setState(() => isBlur = true);
         context.read<CommonCubit>().onAppBackgrounded();
     }

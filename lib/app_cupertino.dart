@@ -104,7 +104,9 @@ class _IperonMessengerCupertino extends State<IperonMessengerCupertino> with Wid
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    logger.debug(state.toString());
+    // info (не debug): переходы жизненного цикла нужны в файловом логе для отладки
+    // залипания стрима после звонков (файловый логгер пишет от info и выше).
+    logger.info('lifecycle: $state');
 
     switch (state) {
       case AppLifecycleState.resumed:
@@ -136,14 +138,18 @@ class _IperonMessengerCupertino extends State<IperonMessengerCupertino> with Wid
       case AppLifecycleState.inactive:
         // `inactive` на iOS прилетает на ТРАНЗИЕНТНЫЕ помехи (шторка, переключатель
         // приложений, баннер CallKit/обычный сотовый звонок), а не только на уход в
-        // фон. Стрим на нём НЕ паузим: после «чистого» `inactive` iOS не гарантирует
-        // доставку `resumed` (особенно вокруг CallKit), поэтому setForeground(false)
-        // здесь оставлял `_appActive` залипшим в false — после сотового звонка стрим
-        // больше не поднимался, и приложение не могло ни принять, ни начать звонок
-        // («дозвониться невозможно»). Реальный уход в фон ловим на `paused`/`hidden`/
-        // `detached` (там `resumed` при возврате приходит надёжно). Симметрично
+        // фон — это foreground-состояние (приложение видимо/сверху). Поэтому здесь
+        // ПОДНИМАЕМ foreground: после CallKit iOS часто НЕ доставляет `resumed` при
+        // возврате из системной звонилки, а `inactive` — единственный сигнал «мы
+        // снова на переднем плане», который приходит надёжно. Без этого `_appActive`
+        // залипал в false (реальный фон погасил его на `paused`, а `resumed` не
+        // пришёл) — стрим не поднимался и приложение не могло ни принять, ни начать
+        // звонок («дозвониться невозможно»), хотя им уже пользуются. Реальный уход в
+        // фон всё равно придёт следом через `paused`/`hidden`/`detached` — там
+        // foreground снова снимается, так что двойного эффекта нет. Симметрично
         // Android (см. app_material.dart). Блюр и авто-блокировку по `inactive`
         // оставляем — они безвредны и нужны для превью в переключателе.
+        api.setForeground(true);
         setState(() => isBlur = true);
         context.read<CommonCubit>().onAppBackgrounded();
     }
