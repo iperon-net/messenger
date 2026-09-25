@@ -195,14 +195,6 @@ class CommonCubit extends Cubit<CommonState> {
     emit(state.copyWith(status: Status.success, settingsDevice: settingsDevice));
   }
 
-  /// Локальный тумблер сквозного шифрования звонков (per-device). Персистим в БД —
-  /// [Calls] читает настройку оттуда при подключении к комнате.
-  Future<void> setCallsE2ee({required bool callsE2ee}) async {
-    await repositories.settingsDevice.setCallsE2ee(callsE2ee);
-    final settingsDevice = state.settingsDevice.copyWith(callsE2ee: callsE2ee);
-    emit(state.copyWith(status: Status.success, settingsDevice: settingsDevice));
-  }
-
   Future<void> setPasscode({required List<int> passcode}) async {
     final settingsDevice = state.settingsDevice.copyWith(passcode: passcode);
     // Изменение passcode всегда происходит внутри разблокированного приложения,

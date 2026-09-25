@@ -347,9 +347,10 @@ class Repositories {
 
     migrations.add(
       SqliteMigration(9, (tx) async {
-        // Локальный тумблер сквозного шифрования звонков (per-device). По
-        // умолчанию включено (1). Отключение — аварийный выход для нестабильного
-        // канала (см. Calls._setupCallE2ee).
+        // Остаток от свёрнутой фичи E2EE-звонков (тумблер callsE2ee): фича убрана
+        // из-за краша нативного FrameCryptor (WebRTC-SDK m150). Миграцию НЕ удаляем
+        // и НЕ переиспользуем номер — на устройствах 0.0.230 она уже применена;
+        // столбец остаётся неиспользуемым «висяком», код его не читает.
         await tx.execute("ALTER TABLE settingsDevice ADD COLUMN callsE2ee INTEGER NOT NULL DEFAULT 1;");
       }),
     );

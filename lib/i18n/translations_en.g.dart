@@ -511,12 +511,6 @@ class Translations$sessionsPrivacyAndSecurity$en {
 	/// en: 'No contacts registered on Iperon'
 	String get callsAllowEmpty => 'No contacts registered on Iperon';
 
-	/// en: 'End-to-end encryption'
-	String get callsEncryption => 'End-to-end encryption';
-
-	/// en: 'Encrypts call media with end-to-end encryption — the server has no access to it. Turn off if calls have trouble connecting on an unstable network.'
-	String get callsEncryptionNote => 'Encrypts call media with end-to-end encryption — the server has no access to it. Turn off if calls have trouble connecting on an unstable network.';
-
 	/// en: 'Birthday'
 	String get birthday => 'Birthday';
 
@@ -1191,15 +1185,6 @@ class Translations$screenCall$en {
 
 	/// en: 'Their microphone is off'
 	String get remoteMicMuted => 'Their microphone is off';
-
-	/// en: 'End-to-end encrypted'
-	String get encrypted => 'End-to-end encrypted';
-
-	/// en: 'Not end-to-end encrypted'
-	String get notEncrypted => 'Not end-to-end encrypted';
-
-	/// en: 'Compare these emoji with the other person'
-	String get verifyEmoji => 'Compare these emoji with the other person';
 }
 
 /// The flat map containing all translations for locale <en>.
@@ -1314,8 +1299,6 @@ extension on Translations {
 			'sessionsPrivacyAndSecurity.callsAlwaysAllow' => 'Always allow',
 			'sessionsPrivacyAndSecurity.callsAlwaysDeny' => 'Always deny',
 			'sessionsPrivacyAndSecurity.callsAllowEmpty' => 'No contacts registered on Iperon',
-			'sessionsPrivacyAndSecurity.callsEncryption' => 'End-to-end encryption',
-			'sessionsPrivacyAndSecurity.callsEncryptionNote' => 'Encrypts call media with end-to-end encryption — the server has no access to it. Turn off if calls have trouble connecting on an unstable network.',
 			'sessionsPrivacyAndSecurity.birthday' => 'Birthday',
 			'sessionsPrivacyAndSecurity.whoCanSeeBirthday' => 'Who can see my birthday',
 			'sessionsPrivacyAndSecurity.hideBirthYear' => 'Hide birth year',
@@ -1507,9 +1490,6 @@ extension on Translations {
 			'screenCall.qualityGood' => 'Good connection',
 			'screenCall.qualityExcellent' => 'Excellent connection',
 			'screenCall.remoteMicMuted' => 'Their microphone is off',
-			'screenCall.encrypted' => 'End-to-end encrypted',
-			'screenCall.notEncrypted' => 'Not end-to-end encrypted',
-			'screenCall.verifyEmoji' => 'Compare these emoji with the other person',
 			_ => null,
 		};
 	}

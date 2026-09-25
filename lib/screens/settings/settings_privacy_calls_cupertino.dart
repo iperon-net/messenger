@@ -184,35 +184,6 @@ class SettingsPrivacyCallsCupertino extends StatelessWidget {
                     count: state.callsDeny.length,
                     onTap: state.callsReadOnly ? null : () => _openList(context, state, CallsListKind.deny),
                   ),
-                // Локальный тумблер сквозного шифрования звонков (per-device,
-                // хранится в settingsDevice через CommonCubit — не серверная
-                // настройка, поэтому отдельный BlocSelector).
-                CupertinoListSection.insetGrouped(
-                  footer: Padding(
-                    padding: const EdgeInsets.only(left: 13),
-                    child: Text(
-                      context.t.sessionsPrivacyAndSecurity.callsEncryptionNote,
-                      style: TextStyle(fontSize: AppFontSizes.caption, fontWeight: FontWeight.normal),
-                    ),
-                  ),
-                  backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
-                  decoration: BoxDecoration(
-                    color: ThemesCupertino.groupedCard.resolveFrom(context),
-                    borderRadius: const BorderRadius.all(Radius.circular(10)),
-                  ),
-                  children: [
-                    CupertinoListTile(
-                      title: Text(context.t.sessionsPrivacyAndSecurity.callsEncryption),
-                      trailing: BlocSelector<CommonCubit, CommonState, bool>(
-                        selector: (commonState) => commonState.settingsDevice.callsE2ee,
-                        builder: (context, callsE2ee) => CupertinoSwitch(
-                          value: callsE2ee,
-                          onChanged: (value) => context.read<CommonCubit>().setCallsE2ee(callsE2ee: value),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
               ],
             ),
           ),

@@ -16,7 +16,6 @@ import '../utils.dart';
 part 'syncer.dart';
 part 'file_encryptor.dart';
 part 'oprf.dart';
-part 'call_keys.dart';
 
 class Crypto {
   final logger = getIt.get<Logger>();
@@ -25,12 +24,10 @@ class Crypto {
   late final Syncer syncer;
   late final FileEncryptor fileEncryptor;
   late final Oprf oprf;
-  late final CallKeys callKeys;
 
   Crypto() {
     syncer = Syncer(logger: logger, utils: utils);
     fileEncryptor = FileEncryptor(logger: logger);
     oprf = Oprf(logger: logger);
-    callKeys = CallKeys(logger: logger);
   }
 }

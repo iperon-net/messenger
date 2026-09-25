@@ -16,12 +16,6 @@ class SettingsDeviceModel with SettingsDeviceModelMappable {
   final bool passcodeForceLocked;
   final int passcodeBackgroundedAt;
 
-  /// Включать ли сквозное шифрование (E2EE) исходящих/входящих звонков на этом
-  /// устройстве. По умолчанию включено; пользователь может отключить (экран
-  /// приватности звонков) — например, на нестабильном канале, где рукопожатие
-  /// ключа добавляет задержку до старта медиа (см. [Calls]).
-  final bool callsE2ee;
-
   const SettingsDeviceModel({
     this.locale,
     this.darkMode = DarkModeModel.system,
@@ -32,7 +26,6 @@ class SettingsDeviceModel with SettingsDeviceModelMappable {
     this.passcodeAutoLock = 0,
     this.passcodeForceLocked = false,
     this.passcodeBackgroundedAt = 0,
-    this.callsE2ee = true,
   });
 
   factory SettingsDeviceModel.fromSqlite(Map<String, dynamic> data) {
@@ -45,8 +38,6 @@ class SettingsDeviceModel with SettingsDeviceModelMappable {
     final passcodeAutoLock = data['passcodeAutoLock'] ?? 0;
     final passcodeForceLocked = data['passcodeForceLocked'] ?? 0;
     final passcodeBackgroundedAt = data['passcodeBackgroundedAt'] ?? 0;
-    // Отсутствующая/NULL колонка (старая БД до миграции) трактуется как включено.
-    final callsE2ee = data['callsE2ee'] ?? 1;
 
     SettingsDeviceModel settingsDeviceModel = SettingsDeviceModel();
 
@@ -96,10 +87,6 @@ class SettingsDeviceModel with SettingsDeviceModelMappable {
 
     if (passcodeBackgroundedAt > 0) {
       settingsDeviceModel = settingsDeviceModel.copyWith(passcodeBackgroundedAt: passcodeBackgroundedAt);
-    }
-
-    if (callsE2ee == 0) {
-      settingsDeviceModel = settingsDeviceModel.copyWith(callsE2ee: false);
     }
 
     return settingsDeviceModel;

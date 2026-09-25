@@ -300,8 +300,6 @@ class _Translations$sessionsPrivacyAndSecurity$ru extends Translations$sessionsP
 	@override String get callsAlwaysAllow => 'Всегда разрешать';
 	@override String get callsAlwaysDeny => 'Всегда запрещать';
 	@override String get callsAllowEmpty => 'Нет контактов, зарегистрированных в Iperon';
-	@override String get callsEncryption => 'Сквозное шифрование';
-	@override String get callsEncryptionNote => 'Шифрует медиа звонки сквозным шифрованием — сервер не имеет к нему доступа. Отключите, если на нестабильной сети звонки плохо соединяются.';
 	@override String get birthday => 'День рождения';
 	@override String get whoCanSeeBirthday => 'Кто может видеть мой день рождения';
 	@override String get hideBirthYear => 'Скрывать год рождения';
@@ -597,9 +595,6 @@ class _Translations$screenCall$ru extends Translations$screenCall$en {
 	@override String get qualityGood => 'Хорошее соединение';
 	@override String get qualityExcellent => 'Отличное соединение';
 	@override String get remoteMicMuted => 'Микрофон собеседника выключен';
-	@override String get encrypted => 'Сквозное шифрование';
-	@override String get notEncrypted => 'Без сквозного шифрования';
-	@override String get verifyEmoji => 'Сверьте эмодзи с собеседником';
 }
 
 /// The flat map containing all translations for locale <ru>.
@@ -714,8 +709,6 @@ extension on TranslationsRu {
 			'sessionsPrivacyAndSecurity.callsAlwaysAllow' => 'Всегда разрешать',
 			'sessionsPrivacyAndSecurity.callsAlwaysDeny' => 'Всегда запрещать',
 			'sessionsPrivacyAndSecurity.callsAllowEmpty' => 'Нет контактов, зарегистрированных в Iperon',
-			'sessionsPrivacyAndSecurity.callsEncryption' => 'Сквозное шифрование',
-			'sessionsPrivacyAndSecurity.callsEncryptionNote' => 'Шифрует медиа звонки сквозным шифрованием — сервер не имеет к нему доступа. Отключите, если на нестабильной сети звонки плохо соединяются.',
 			'sessionsPrivacyAndSecurity.birthday' => 'День рождения',
 			'sessionsPrivacyAndSecurity.whoCanSeeBirthday' => 'Кто может видеть мой день рождения',
 			'sessionsPrivacyAndSecurity.hideBirthYear' => 'Скрывать год рождения',
@@ -907,9 +900,6 @@ extension on TranslationsRu {
 			'screenCall.qualityGood' => 'Хорошее соединение',
 			'screenCall.qualityExcellent' => 'Отличное соединение',
 			'screenCall.remoteMicMuted' => 'Микрофон собеседника выключен',
-			'screenCall.encrypted' => 'Сквозное шифрование',
-			'screenCall.notEncrypted' => 'Без сквозного шифрования',
-			'screenCall.verifyEmoji' => 'Сверьте эмодзи с собеседником',
 			_ => null,
 		};
 	}

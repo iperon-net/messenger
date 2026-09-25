@@ -147,20 +147,6 @@ class CallStateMapper extends ClassMapperBase<CallState> {
     _$avatarBytes,
     opt: true,
   );
-  static CallEncryption _$encryption(CallState v) => v.encryption;
-  static const Field<CallState, CallEncryption> _f$encryption = Field(
-    'encryption',
-    _$encryption,
-    opt: true,
-    def: CallEncryption.negotiating,
-  );
-  static List<String> _$sas(CallState v) => v.sas;
-  static const Field<CallState, List<String>> _f$sas = Field(
-    'sas',
-    _$sas,
-    opt: true,
-    def: const [],
-  );
 
   @override
   final MappableFields<CallState> fields = const {
@@ -182,8 +168,6 @@ class CallStateMapper extends ClassMapperBase<CallState> {
     #displayName: _f$displayName,
     #boringAvatarHash: _f$boringAvatarHash,
     #avatarBytes: _f$avatarBytes,
-    #encryption: _f$encryption,
-    #sas: _f$sas,
   };
 
   static CallState _instantiate(DecodingData data) {
@@ -206,8 +190,6 @@ class CallStateMapper extends ClassMapperBase<CallState> {
       displayName: data.dec(_f$displayName),
       boringAvatarHash: data.dec(_f$boringAvatarHash),
       avatarBytes: data.dec(_f$avatarBytes),
-      encryption: data.dec(_f$encryption),
-      sas: data.dec(_f$sas),
     );
   }
 
@@ -271,7 +253,6 @@ extension CallStateValueCopy<$R, $Out> on ObjectCopyWith<$R, CallState, $Out> {
 abstract class CallStateCopyWith<$R, $In extends CallState, $Out>
     implements ClassCopyWith<$R, $In, $Out> {
   ListCopyWith<$R, int, ObjectCopyWith<$R, int, int>> get remoteUserID;
-  ListCopyWith<$R, String, ObjectCopyWith<$R, String, String>> get sas;
   $R call({
     Status? status,
     CallStatus? callStatus,
@@ -291,8 +272,6 @@ abstract class CallStateCopyWith<$R, $In extends CallState, $Out>
     String? displayName,
     String? boringAvatarHash,
     Uint8List? avatarBytes,
-    CallEncryption? encryption,
-    List<String>? sas,
   });
   CallStateCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
@@ -311,13 +290,6 @@ class _CallStateCopyWithImpl<$R, $Out>
         $value.remoteUserID,
         (v, t) => ObjectCopyWith(v, $identity, t),
         (v) => call(remoteUserID: v),
-      );
-  @override
-  ListCopyWith<$R, String, ObjectCopyWith<$R, String, String>> get sas =>
-      ListCopyWith(
-        $value.sas,
-        (v, t) => ObjectCopyWith(v, $identity, t),
-        (v) => call(sas: v),
       );
   @override
   $R call({
@@ -339,8 +311,6 @@ class _CallStateCopyWithImpl<$R, $Out>
     String? displayName,
     String? boringAvatarHash,
     Object? avatarBytes = $none,
-    CallEncryption? encryption,
-    List<String>? sas,
   }) => $apply(
     FieldCopyWithData({
       if (status != null) #status: status,
@@ -361,8 +331,6 @@ class _CallStateCopyWithImpl<$R, $Out>
       if (displayName != null) #displayName: displayName,
       if (boringAvatarHash != null) #boringAvatarHash: boringAvatarHash,
       if (avatarBytes != $none) #avatarBytes: avatarBytes,
-      if (encryption != null) #encryption: encryption,
-      if (sas != null) #sas: sas,
     }),
   );
   @override
@@ -385,8 +353,6 @@ class _CallStateCopyWithImpl<$R, $Out>
     displayName: data.get(#displayName, or: $value.displayName),
     boringAvatarHash: data.get(#boringAvatarHash, or: $value.boringAvatarHash),
     avatarBytes: data.get(#avatarBytes, or: $value.avatarBytes),
-    encryption: data.get(#encryption, or: $value.encryption),
-    sas: data.get(#sas, or: $value.sas),
   );
 
   @override
