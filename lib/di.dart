@@ -16,7 +16,7 @@ GetIt getIt = GetIt.instance;
 
 Future<void> registerCommonDependencies() async {
   if (!getIt.isRegistered<Logger>()) {
-    getIt.registerSingletonAsync<Logger>(() async => Logger());
+    getIt.registerSingletonAsync<Logger>(() async => Logger.initialization());
   }
   if (!getIt.isRegistered<Settings>()) {
     getIt.registerSingletonAsync<Settings>(() async => Settings.initialization(), dependsOn: [Logger]);
@@ -56,7 +56,10 @@ Future<void> registerCommonDependencies() async {
 }
 
 Future<void> unregisterCommonDependencies() async {
-  if (getIt.isRegistered<Logger>()) await getIt.unregister<Logger>();
+  if (getIt.isRegistered<Logger>()) {
+    await getIt.get<Logger>().fileLogger.dispose();
+    await getIt.unregister<Logger>();
+  }
   if (getIt.isRegistered<Settings>()) await getIt.unregister<Settings>();
   if (getIt.isRegistered<Repositories>()) {
     await getIt.unregister<Repositories>();

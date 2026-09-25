@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:flutter/foundation.dart';
 // GlobalCupertinoLocalizations уже приходит из cupertino_ui — прячем дубликат.
@@ -116,6 +118,9 @@ class _IperonMessengerCupertino extends State<IperonMessengerCupertino> with Wid
       case AppLifecycleState.hidden:
         setState(() => isBlur = true);
 
+        // Досбрасываем файловый лог: при убийстве процесса из фона хвост буфера
+        // иначе теряется — а это как раз момент диагностики звонков.
+        unawaited(logger.fileLogger.flush());
         // Ушли в фон — стрим встанет на паузу (с грейс-периодом).
         api.setForeground(false);
         // Засекаем время ухода в фон для авто-блокировки.
@@ -126,6 +131,7 @@ class _IperonMessengerCupertino extends State<IperonMessengerCupertino> with Wid
         // incoming, из-за чего после звонка/пересоздания хоста стрим больше не
         // поднимался («Подключение», send() dropped authorized=false). На resumed
         // стрим переоткроется. См. app_material.dart.
+        unawaited(logger.fileLogger.flush());
         api.setForeground(false);
       case AppLifecycleState.inactive:
         // На iOS `inactive` доставляется надёжно, а `hidden`/`paused` могут прийти

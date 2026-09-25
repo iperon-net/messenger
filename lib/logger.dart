@@ -5,6 +5,8 @@ import 'package:flutter/foundation.dart';
 import 'package:talker/talker.dart';
 import 'package:talker_bloc_logger/talker_bloc_logger.dart';
 
+import 'logger_file.dart';
+
 class RepositoriesLog extends TalkerLog {
   RepositoriesLog(String super.message);
 
@@ -52,6 +54,10 @@ class GrpcErrorLog extends TalkerLog {
 class Logger {
   final _talker = Talker();
 
+  /// Персистентный файловый лог с ротацией (см. [FileLogger]). Экспорт логов из
+  /// меню «Разработчик» читает его, чтобы доставать журнал прошлой сессии.
+  final FileLogger fileLogger = FileLogger();
+
   Logger() {
     _talker.configure(
       settings: TalkerSettings(
@@ -65,6 +71,10 @@ class Logger {
         timeFormat: TimeFormat.timeAndSeconds,
       ),
       logger: TalkerLogger(settings: TalkerLoggerSettings(enableColors: Platform.isIOS ? false : true, maxLineWidth: 120)),
+      // Дублируем каждую запись в файловый лог. Наблюдатель ставится сразу, а
+      // сам файл открывается асинхронно в [initialization]; строки, попавшие в
+      // лог до открытия, буферизуются и сбросятся первым flush.
+      observer: FileLogObserver(fileLogger, timeFormat: TimeFormat.timeAndSeconds),
     );
 
     Bloc.observer = TalkerBlocObserver(
@@ -82,6 +92,15 @@ class Logger {
     );
 
     _talker.info("logger initialization");
+  }
+
+  /// Асинхронная инициализация: открывает файловый лог. Используется в DI
+  /// (`registerSingletonAsync`), чтобы к моменту готовности `Logger` файл уже
+  /// был открыт.
+  static Future<Logger> initialization() async {
+    final logger = Logger();
+    await logger.fileLogger.open();
+    return logger;
   }
 
   void logCustom(TalkerLog log) {

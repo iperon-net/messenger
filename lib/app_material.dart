@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:hugeicons/hugeicons.dart';
 import 'package:material_ui/material_ui.dart';
 // CupertinoActivityIndicator из cupertino_ui (внутри ConnectionTitle) требует
@@ -115,6 +117,8 @@ class _IperonMessengerMaterial extends State<IperonMessengerMaterial> with Widge
       case AppLifecycleState.paused:
       case AppLifecycleState.hidden:
         setState(() => isBlur = true);
+        // Досбрасываем файловый лог перед возможным убийством процесса из фона.
+        unawaited(logger.fileLogger.flush());
         api.setForeground(false);
         context.read<CommonCubit>().onAppBackgrounded();
       case AppLifecycleState.detached:
@@ -124,6 +128,7 @@ class _IperonMessengerMaterial extends State<IperonMessengerMaterial> with Widge
         // навсегда сбрасывал _authorized и закрывал broadcast incoming: после звонка
         // стрим больше не поднимался («Подключение», send() dropped authorized=false).
         // Трактуем detached как уход в фон — пауза; на resumed стрим переоткроется.
+        unawaited(logger.fileLogger.flush());
         api.setForeground(false);
       case AppLifecycleState.inactive:
         setState(() => isBlur = true);

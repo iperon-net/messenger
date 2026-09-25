@@ -6,16 +6,24 @@ import 'package:share_plus/share_plus.dart';
 import '../../di.dart';
 import '../../logger.dart';
 
-/// Собирает весь журнал talker (наши call/CallKit-хлебные-крошки + подробные
-/// логи LiveKit, заведённые через [attachLiveKitLogging]) в текстовый файл и
-/// открывает системное share-меню — чтобы вытащить логи с устройства (AirDrop,
-/// почта, «Файлы» и т.п.). Используется обоими экранами «Разработчик».
+/// Собирает журнал (наши call/CallKit-хлебные-крошки + подробные логи LiveKit,
+/// заведённые через [attachLiveKitLogging]) в текстовый файл и открывает
+/// системное share-меню — чтобы вытащить логи с устройства (AirDrop, почта,
+/// «Файлы» и т.п.). Используется обоими экранами «Разработчик».
+///
+/// Источник — персистентный файловый лог ([Logger.fileLogger]): он переживает
+/// перезапуск, поэтому в выгрузку попадают и логи прошлой сессии (например, до
+/// краша). На случай пустого файла (сразу после установки) добавляем хвост
+/// in-memory истории talker.
 Future<void> exportDeviceLogs() async {
   final logger = getIt.get<Logger>();
 
   final buffer = StringBuffer();
-  for (final data in logger.talker.history) {
-    buffer.writeln(data.generateTextMessage());
+  buffer.write(await logger.fileLogger.readAll());
+  if (buffer.isEmpty) {
+    for (final data in logger.talker.history) {
+      buffer.writeln(data.generateTextMessage());
+    }
   }
 
   final dir = await getTemporaryDirectory();
