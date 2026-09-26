@@ -85,7 +85,7 @@ dependencies:
   connectivity_plus: ^7.3.1
   audioplayers: ^6.1.0
   font_awesome_flutter: ^11.0.0
-  badges: ^3.2.0
+  badges: ^4.0.1
   flutter_slidable: ^4.0.3
   flutter_screen_lock: ^9.2.2+2
   wakelock_plus: ^1.8.0
@@ -101,7 +101,7 @@ dependencies:
   photo_manager_image_provider: ^2.2.0
   camera: ^0.12.0+2
   image_cropper: ^12.2.1
-  settings_ui: ^3.0.1
+  settings_ui: ^4.0.1
   # LiveKit SFU-клиент (звонки). Оба (livekit_client и flutter_webrtc) тянут общий
   # нативный под WebRTC-SDK, поэтому версия flutter_webrtc обязана совпадать с той,
   # что пинит livekit_client, иначе конфликт CocoaPods/ABI.
