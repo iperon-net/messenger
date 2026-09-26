@@ -153,6 +153,16 @@ class _CallViewState extends State<CallView> with WidgetsBindingObserver {
   // раскладки, не связанный с состоянием звонка. Сбрасывается по завершении.
   bool _swapped = false;
 
+  // Ключи для двух видеорендереров (наш/собеседника). Каждый рендерер НАВСЕГДА
+  // привязан к своей дорожке; при свапе (Task2) мы перемещаем сам виджет между
+  // полноэкранным слотом и мини-окном через [GlobalKey] — Element/State (и нативный
+  // FlutterRTCVideoRenderer/текстура) переносятся, а НЕ пересоздаются. Так мы НЕ
+  // трогаем `srcObject` рендерера — это критично: смена дорожки у живого рендерера
+  // (setSrcObject) гонялась с блоком `renderFrame:` на главном потоке и роняла
+  // приложение (EXC_BAD_ACCESS в FlutterRTCVideoRenderer).
+  final GlobalKey _remoteViewKey = GlobalKey();
+  final GlobalKey _localViewKey = GlobalKey();
+
   // Task1 (видеозвонок): панель управления/имя скрываются по тапу по экрану и
   // возвращаются следующим тапом; на активном видео сами гаснут через
   // [_overlayHideAfter] бездействия (Telegram-стиль). Отдельный notifier, чтобы
@@ -412,11 +422,27 @@ class _CallViewState extends State<CallView> with WidgetsBindingObserver {
         // показываем собеседника). Тап по мини-окну переключает [_swapped].
         final swapped = _swapped && localOn && !_inPip;
 
+        // Два рендерера, КАЖДЫЙ жёстко привязан к своей дорожке (см. поля-ключи).
+        // Рендерим только пока камера реально включена (иначе аватар). Свап меняет
+        // не дорожку рендерера, а его слот в дереве — Flutter по [GlobalKey]
+        // переносит тот же рендерер, `srcObject` не трогается (нет краша renderFrame).
+        final Widget? remoteVideo = remoteOn
+            ? KeyedSubtree(
+                key: _remoteViewKey,
+                child: VideoTrackRenderer(remoteTrack, fit: VideoViewFit.cover, mirrorMode: VideoViewMirrorMode.auto),
+              )
+            : null;
+        final Widget? localVideo = localOn
+            ? KeyedSubtree(
+                key: _localViewKey,
+                child: VideoTrackRenderer(localTrack, fit: VideoViewFit.cover, mirrorMode: VideoViewMirrorMode.auto),
+              )
+            : null;
+
         // Что на главном экране и что в мини-окне (с учётом свапа).
-        final mainTrack = swapped ? localTrack : remoteTrack;
+        final mainVideo = swapped ? localVideo : remoteVideo;
         final mainOn = swapped ? localOn : remoteOn;
-        final pipTrack = swapped ? remoteTrack : localTrack;
-        final pipVideoOn = swapped ? remoteOn : localOn;
+        final pipVideo = swapped ? remoteVideo : localVideo;
         // Мини-окно видно: при свапе — всегда (видео собеседника или его аватар),
         // без свапа — только пока наша камера включена (как было).
         final pipVisible = isVideoCall && !_inPip && (swapped || localOn);
@@ -429,14 +455,9 @@ class _CallViewState extends State<CallView> with WidgetsBindingObserver {
         _syncOverlayHideable(mainOn && state.callStatus == CallStatus.active && !_inPip);
 
         // Единый Stack для обоих режимов (полный экран и мини-окно PiP). Главный
-        // видеорендерер держим ПЕРВЫМ и БЕЗ ключа — его позиция в дереве не меняется
-        // (ни при свапе, ни при входе/выходе PiP), поэтому его State (и нативный
-        // FlutterRTCVideoRenderer) не пересоздаётся. Это критично: пересоздание
-        // рендерера во время звонка гонялось с блоком `renderFrame:` на главном
-        // потоке и роняло приложение (EXC_BAD_ACCESS). При свапе меняется лишь его
-        // `track` — VideoTrackRenderer.didUpdateWidget переустанавливает srcObject,
-        // рендерер при этом НЕ пересоздаётся. В PiP лишь прячем панель/имя и
-        // локальное превью — места нет и они не нужны.
+        // видеорендерер — ПЕРВЫМ; при свапе/входе-выходе PiP его виджет переносится
+        // по [GlobalKey] (Element/State/текстура сохраняются, дорожка та же). В PiP
+        // прячем панель/имя и мини-окно — места нет и они не нужны.
         return ColoredBox(
           color: palette.bg,
           child: LayoutBuilder(
@@ -444,7 +465,7 @@ class _CallViewState extends State<CallView> with WidgetsBindingObserver {
               return Stack(
                 fit: StackFit.expand,
                 children: [
-                  if (mainOn && mainTrack != null) VideoTrackRenderer(mainTrack, fit: VideoViewFit.cover),
+                  if (mainOn && mainVideo != null) mainVideo,
                   // Слой перехвата тапа по экрану (Task1) — под панелью и мини-окном
                   // (они выше в Stack и получают тап первыми), поверх видео. Тап по
                   // «пустому» видео прячет/показывает панель (см. [_toggleOverlay]).
@@ -472,17 +493,16 @@ class _CallViewState extends State<CallView> with WidgetsBindingObserver {
                     ),
                   // Мини-окно (наша камера, либо собеседник при свапе) — перетаскиваемое
                   // окно картинкой-в-картинке. Держим ПОСЛЕДНИМ в Stack (поверх панели
-                  // и слоя тапа), иначе кнопки/слой перехватывали бы его жесты. В PiP
-                  // прячем (окно крошечное).
+                  // и слоя тапа), иначе кнопки/слой перехватывали бы его жесты. Внутри —
+                  // видеовиджет (тот же, что мог быть на весь экран, переносится по
+                  // ключу) либо аватар, когда видео нет.
                   if (pipVisible)
                     _SelfView(
-                      track: pipTrack,
-                      videoOn: pipVideoOn,
                       onTapTile: () => setState(() => _swapped = !_swapped),
-                      fallback: _Avatar(state: state, palette: palette),
                       pos: _selfViewPos,
                       maxWidth: constraints.maxWidth,
                       maxHeight: constraints.maxHeight,
+                      child: pipVideo ?? _Avatar(state: state, palette: palette),
                     ),
                 ],
               );
@@ -495,39 +515,25 @@ class _CallViewState extends State<CallView> with WidgetsBindingObserver {
 }
 
 /// Перетаскиваемое мини-окно картинкой-в-картинке (Telegram-стиль: остаётся там,
-/// где отпустили). Обычно показывает нашу камеру ([showSwitchButton] — кнопка
-/// смены фронт/тыл), а при свапе (Task2) — собеседника. Тап по окну зовёт
+/// где отпустили). Показывает переданный [child] — видеовиджет (нашу камеру, либо
+/// собеседника при свапе) или аватар, когда видео нет. Тап по окну зовёт
 /// [onTapTile] (родитель меняет камеры местами). Вынесено в отдельный
 /// [StatefulWidget], чтобы перетаскивание (частый апдейт позиции) перестраивало
 /// ТОЛЬКО это окно, а не весь [CallView] с главным рендерером — иначе движение
-/// дёргается. Рендерер [VideoTrackRenderer] при перетаскивании лишь меняет
-/// позицию в [Stack] и НЕ пересоздаётся — это важно (пересоздание рендерера во
-/// время звонка роняло приложение, см. комментарий в [_CallViewState.build]).
+/// дёргается. Видеовиджет внутри переносится по [GlobalKey] родителем и НЕ
+/// пересоздаётся при свапе (см. комментарий у ключей в [_CallViewState]).
 class _SelfView extends StatefulWidget {
-  // Дорожка для показа (наша или собеседника при свапе). `null`/`videoOn=false`
-  // — рисуем [fallback] (аватар).
-  final VideoTrack? track;
-  final bool videoOn;
+  // Содержимое окна: видеовиджет (в KeyedSubtree с GlobalKey) либо аватар.
+  final Widget child;
   // Тап по окну — родитель меняет главный экран и мини-окно местами.
   final VoidCallback onTapTile;
-  // Заглушка, когда видео нет (аватар собеседника при свапе с выключенной у него
-  // камерой).
-  final Widget fallback;
   // Позиция окна — во владении родителя [_CallViewState], чтобы пережить
   // выключение/включение камеры (см. комментарий у поля).
   final ValueNotifier<Offset?> pos;
   final double maxWidth;
   final double maxHeight;
 
-  const _SelfView({
-    required this.track,
-    required this.videoOn,
-    required this.onTapTile,
-    required this.fallback,
-    required this.pos,
-    required this.maxWidth,
-    required this.maxHeight,
-  });
+  const _SelfView({required this.child, required this.onTapTile, required this.pos, required this.maxWidth, required this.maxHeight});
 
   // Размер окна. Было 110×160, увеличено на 20%.
   static const double _width = 132;
@@ -555,20 +561,17 @@ class _SelfViewState extends State<_SelfView> {
   bool _moved = false;
   static const double _tapSlop = 12;
 
-  // Содержимое окна собирается в [build] и прокидывается в [ValueListenableBuilder]
-  // как `child`, поэтому при перетаскивании (обновляется только позиция) НЕ
-  // перестраивается. И перетаскивание, И тап (свап камер) ведёт [Listener] по сырым
-  // событиям указателя, а НЕ [GestureDetector]: во-первых, одиночный pan проигрывал
-  // арену жестов родительскому распознавателю драга (у одномерных распознавателей
-  // меньше touch slop); во-вторых — и это ломало свап — у [VideoTrackRenderer] для
-  // ЛОКАЛЬНОГО трека на мобильных ВНУТРИ свой [GestureDetector] (зум/фокус), а
-  // вложенный распознаватель выигрывает арену и съедал бы наш тап. [Listener]
-  // получает события по хит-тесту, вне арены, поэтому работает всегда. Тап =
-  // pointer-up без сдвига > [_tapSlop] → свап камер (см. [widget.onTapTile]).
+  // Обёртка над [widget.child] собирается в [build] и прокидывается в
+  // [ValueListenableBuilder] как `child`, поэтому при перетаскивании (обновляется
+  // только позиция) НЕ перестраивается. И перетаскивание, И тап (свап камер) ведёт
+  // [Listener] по сырым событиям указателя, а НЕ [GestureDetector]: во-первых,
+  // одиночный pan проигрывал арену жестов родительскому распознавателю драга (у
+  // одномерных распознавателей меньше touch slop); во-вторых — и это ломало свап —
+  // у [VideoTrackRenderer] для ЛОКАЛЬНОГО трека на мобильных ВНУТРИ свой
+  // [GestureDetector] (зум/фокус), а вложенный распознаватель выигрывает арену и
+  // съедал бы наш тап. [Listener] получает события по хит-тесту, вне арены, поэтому
+  // работает всегда. Тап = pointer-up без сдвига > [_tapSlop] → свап (onTapTile).
   Widget _buildContent(BuildContext context) {
-    final Widget media = (widget.videoOn && widget.track != null)
-        ? VideoTrackRenderer(widget.track!, fit: VideoViewFit.cover, mirrorMode: VideoViewMirrorMode.auto)
-        : widget.fallback;
     return Listener(
       behavior: HitTestBehavior.opaque,
       onPointerDown: (event) {
@@ -595,7 +598,7 @@ class _SelfViewState extends State<_SelfView> {
       onPointerCancel: (event) {
         if (event.pointer == _activePointer) _activePointer = null;
       },
-      child: ClipRRect(borderRadius: BorderRadius.circular(12), child: media),
+      child: ClipRRect(borderRadius: BorderRadius.circular(12), child: widget.child),
     );
   }
 
@@ -825,7 +828,7 @@ class _Overlay extends StatelessWidget {
             if (state.video && !state.cameraOff)
               _CircleButton(
                 label: t.switchCamera,
-                icon: HugeIcons.strokeRoundedExchange01,
+                icon: HugeIcons.strokeRoundedSwitchCamera,
                 color: palette.controlBg,
                 iconColor: palette.fg,
                 palette: palette,
