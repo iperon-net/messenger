@@ -16,6 +16,9 @@ analyzer:
     - windows/**
     - macos/**
     - linux/**
+    # Вендоренные форки плагинов (см. dependency_overrides в pubspec) — чужой код,
+    # не линтуем его нашими правилами: их лишние инфо-замечания валят CI-линтер.
+    - third_party/**
     # Сгенерированный protobuf-код (protoc-gen-dart) — правится только
     # регенерацией из protos/*.proto, не руками. Свежий пакет protobuf
     # депрекейтит Timestamp.create, на который ещё ссылается генерённый код;
