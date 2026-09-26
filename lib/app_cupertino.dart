@@ -217,11 +217,7 @@ class _IperonMessengerCupertino extends State<IperonMessengerCupertino> with Wid
                   config: ThemesCupertino.screenLockConfig(context),
                   title: Text(context.t.common.biometricPleaseEnterPasscode),
                   customizedButtonChild: state.settingsDevice.passcodeBiometric && state.isBiometricAvailable
-                      ? HugeIcon(
-                          icon: HugeIcons.strokeRoundedFingerAccess,
-                          size: 48,
-                          color: ThemesCupertino.screenLockBiometricIcon(context),
-                        )
+                      ? HugeIcon(icon: HugeIcons.strokeRoundedFaceId, size: 48, color: ThemesCupertino.screenLockBiometricIcon(context))
                       : null,
                   customizedButtonTap: () async =>
                       state.settingsDevice.passcodeBiometric && state.isBiometricAvailable ? await localAuth(context) : null,
