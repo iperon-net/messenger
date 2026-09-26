@@ -152,11 +152,23 @@ dev_dependencies:
 #   KGP применяется только при android.builtInKotlin=false. Пакет сам по себе — лишь
 #   нативный ускоритель pure-Dart package:cryptography (AES-GCM/HMAC для медиа), поэтому
 #   форк выбран вместо удаления, чтобы не терять скорость. См. CLAUDE.md, раздел Kotlin.
+#
+# flutter_webrtc (third_party/flutter_webrtc, версия 1.6.2+hotfix.3 — совпадает с той,
+#   что пинит livekit_client 2.13.0) — единственный патч в
+#   common/darwin/Classes/FlutterRTCVideoRenderer.m: в блоках renderFrame:, уходящих в
+#   main-очередь, добавлен `if (strongSelf == nil) return;`. Апстрим разыменовывал
+#   ivar `strongSelf->_isFirstFrameRendered` без проверки weak-ссылки на nil, из-за чего
+#   уничтожение рендерера при живом потоке кадров (свап/выключение камеры/завершение
+#   звонка) роняло приложение: EXC_BAD_ACCESS в `-[FlutterRTCVideoRenderer renderFrame:]`
+#   (см. [[webrtc-renderer-recreation-crash]]). Патч переносить вручную при апдейте.
+#   При копировании исключены example/.
 dependency_overrides:
   flutter_callkit_incoming:
     path: third_party/flutter_callkit_incoming
   cryptography_flutter:
     path: third_party/cryptography_flutter
+  flutter_webrtc:
+    path: third_party/flutter_webrtc
 
 # Configuration for the `dart_pre_commit` git hook (see .githooks/pre-commit).
 # Mirrors the CI checks in .github/workflows/build_and_deploy.yaml so problems are
