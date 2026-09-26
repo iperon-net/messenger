@@ -666,12 +666,12 @@ class Calls {
     // читает _snapshot.micMuted).
     await _room?.localParticipant?.setMicrophoneEnabled(!muted);
     _emit(_snapshot.copyWith(micMuted: muted));
-    // Включение микрофона переактивирует аудиодвижок WebRTC, а тот сбрасывает
-    // выбранный выход обратно на разговорный (earpiece), затирая ранее выбранный
-    // динамик (`setSpeakerOutputPreferred`). Поэтому после размьюта, если у
-    // пользователя включена громкая связь, переиздаём предпочтение динамика —
-    // иначе после speaker→mute→unmute звук уходил в телефон, а не в динамик.
-    if (!muted && _snapshot.speakerOn) {
+    // Любое переключение микрофона (и mute, и unmute) переактивирует аудиодвижок
+    // WebRTC, а тот сбрасывает выбранный выход обратно на разговорный (earpiece),
+    // затирая ранее выбранный динамик (`setSpeakerOutputPreferred`). Поэтому,
+    // если у пользователя включена громкая связь, переиздаём предпочтение
+    // динамика — иначе после speaker→mute (или →unmute) звук уходил в телефон.
+    if (_snapshot.speakerOn) {
       try {
         await AudioManager.instance.setSpeakerOutputPreferred(true);
       } catch (error, stackTrace) {
