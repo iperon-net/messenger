@@ -24,6 +24,7 @@ import 'package:go_router/go_router.dart';
 import 'package:local_auth/local_auth.dart';
 
 import 'api.dart';
+import 'calls.dart';
 import 'cubit.dart';
 import 'di.dart';
 import 'i18n/translations.g.dart';
@@ -31,6 +32,7 @@ import 'logger.dart';
 import 'models.dart';
 import 'repositories.dart';
 import 'routers.dart';
+import 'screens/call/call_material.dart';
 import 'themes.dart';
 import 'components.dart';
 
@@ -53,12 +55,29 @@ class _IperonMessengerMaterial extends State<IperonMessengerMaterial> with Widge
   final routers = getIt.get<Routers>();
   final repositories = getIt.get<Repositories>();
   final api = getIt.get<API>();
+  final calls = getIt.get<Calls>();
   final logger = getIt.get<Logger>();
 
   final themes = ThemesMaterial();
   late final GoRouter goRouter;
 
   bool isBlur = false;
+
+  // Снимок звонка для passcode-гейта: при блокировке экран `/call` из роутера не
+  // рисуется (builder возвращает ScreenLock ВМЕСТО child — весь навигатор уходит
+  // из дерева), поэтому активный звонок надо детектить здесь напрямую по
+  // синглтону Calls и рисовать поверх локера отдельным экраном. Разговор при
+  // этом жив всегда (LiveKit-комната живёт в синглтоне, не в дереве виджетов).
+  CallSnapshot _callSnapshot = const CallSnapshot();
+  StreamSubscription<CallSnapshot>? _callSub;
+
+  // Активен ли звонок в смысле «показываем свой экран»: исходящий/соединение/
+  // разговор. `incoming` ведёт системная звонилка (ConnectionService) — свой
+  // экран не наш; `idle`/`ended` — звонка нет. Зеркалит CallGate._isActive.
+  bool get _isCallActive => switch (_callSnapshot.status) {
+    CallStatus.idle || CallStatus.ended || CallStatus.incoming => false,
+    _ => true,
+  };
 
   @override
   void initState() {
@@ -68,6 +87,11 @@ class _IperonMessengerMaterial extends State<IperonMessengerMaterial> with Widge
     goRouter.routerDelegate.addListener(_onRouteChanged);
     context.read<CommonCubit>().initialization(settingsDevice: widget.settingsDevice, isBiometricAvailable: widget.isBiometricAvailable);
     _onRouteChanged();
+    // Следим за звонком, чтобы поднимать/убирать экран звонка поверх локера.
+    _callSnapshot = calls.snapshot;
+    _callSub = calls.snapshots.listen((s) {
+      if (mounted) setState(() => _callSnapshot = s);
+    });
   }
 
   void _onRouteChanged() {
@@ -78,6 +102,7 @@ class _IperonMessengerMaterial extends State<IperonMessengerMaterial> with Widge
 
   @override
   void dispose() {
+    _callSub?.cancel();
     goRouter.routerDelegate.removeListener(_onRouteChanged);
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
@@ -173,6 +198,15 @@ class _IperonMessengerMaterial extends State<IperonMessengerMaterial> with Widge
             themeMode: themeMode,
             builder: (context, child) {
               if (!state.isAuthRoute && state.settingsDevice.passcode.isNotEmpty && state.isLocked) {
+                // Обход passcode ТОЛЬКО для активного звонка: рисуем экран звонка
+                // поверх (вместо ScreenLock), остальное приложение остаётся под
+                // кодом. ScreenLock при этом НЕ монтируем, иначе его onOpened
+                // спровоцировал бы биометрию за спиной звонка. Когда звонок
+                // завершится, подписка на calls.snapshots перерисует билд и вернёт
+                // ScreenLock. Экран автономен (всё берёт из синглтона Calls).
+                if (_isCallActive) {
+                  return BlocProvider<CallCubit>(create: (_) => CallCubit()..initialization(), child: const CallMaterial());
+                }
                 return ScreenLock(
                   correctString: '0000',
                   onValidate: (input) => context.read<CommonCubit>().verifyPasscode(input),
