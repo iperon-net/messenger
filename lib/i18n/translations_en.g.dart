@@ -1171,8 +1171,8 @@ class Translations$screenCall$en {
 	/// en: 'Video'
 	String get startVideo => 'Video';
 
-	/// en: 'Flip'
-	String get switchCamera => 'Flip';
+	/// en: 'Flip camera'
+	String get switchCamera => 'Flip camera';
 
 	/// en: 'Poor connection'
 	String get qualityPoor => 'Poor connection';
@@ -1485,7 +1485,7 @@ extension on Translations {
 			'screenCall.cameraOn' => 'Camera on',
 			'screenCall.cameraOff' => 'Camera off',
 			'screenCall.startVideo' => 'Video',
-			'screenCall.switchCamera' => 'Flip',
+			'screenCall.switchCamera' => 'Flip camera',
 			'screenCall.qualityPoor' => 'Poor connection',
 			'screenCall.qualityGood' => 'Good connection',
 			'screenCall.qualityExcellent' => 'Excellent connection',

@@ -3,8 +3,6 @@ import 'dart:io' show Platform;
 
 import 'package:audioplayers/audioplayers.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:flutter/cupertino.dart' show CupertinoIcons;
-import 'package:flutter/material.dart' show Icons;
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -480,7 +478,6 @@ class _CallViewState extends State<CallView> with WidgetsBindingObserver {
                     _SelfView(
                       track: pipTrack,
                       videoOn: pipVideoOn,
-                      showSwitchButton: !swapped,
                       onTapTile: () => setState(() => _swapped = !_swapped),
                       fallback: _Avatar(state: state, palette: palette),
                       pos: _selfViewPos,
@@ -511,8 +508,6 @@ class _SelfView extends StatefulWidget {
   // — рисуем [fallback] (аватар).
   final VideoTrack? track;
   final bool videoOn;
-  // Показывать кнопку смены фронт/тыл (только когда окно = наша камера).
-  final bool showSwitchButton;
   // Тап по окну — родитель меняет главный экран и мини-окно местами.
   final VoidCallback onTapTile;
   // Заглушка, когда видео нет (аватар собеседника при свапе с выключенной у него
@@ -527,7 +522,6 @@ class _SelfView extends StatefulWidget {
   const _SelfView({
     required this.track,
     required this.videoOn,
-    required this.showSwitchButton,
     required this.onTapTile,
     required this.fallback,
     required this.pos,
@@ -555,26 +549,37 @@ class _SelfViewState extends State<_SelfView> {
 
   // id активного пальца. Тащим окно ровно одним указателем; остальные игнорируем.
   int? _activePointer;
+  // Позиция pointer-down (в координатах окна) и признак сдвига — отличить тап
+  // (свап камер) от перетаскивания прямо в [Listener].
+  Offset _downPos = Offset.zero;
+  bool _moved = false;
+  static const double _tapSlop = 12;
 
   // Содержимое окна собирается в [build] и прокидывается в [ValueListenableBuilder]
   // как `child`, поэтому при перетаскивании (обновляется только позиция) НЕ
-  // перестраивается. Перетаскивание ведёт [Listener] (сырые события указателя), а
-  // НЕ [GestureDetector]: одиночный pan проигрывал арену жестов родительскому
-  // распознавателю драга (у одномерных распознавателей меньше touch slop — они
-  // забирали один палец себе; на двух пальцах те отваливались, и pan срабатывал —
-  // отсюда «двумя пальцами двигается, одним нет»). [Listener] получает события по
-  // хит-тесту, вне арены, поэтому один палец работает всегда. Тап (свап) висит на
-  // вложенном [GestureDetector]: его распознаватель сам отменяет тап при сдвиге
-  // (драг), поэтому тап и перетаскивание не конфликтуют.
+  // перестраивается. И перетаскивание, И тап (свап камер) ведёт [Listener] по сырым
+  // событиям указателя, а НЕ [GestureDetector]: во-первых, одиночный pan проигрывал
+  // арену жестов родительскому распознавателю драга (у одномерных распознавателей
+  // меньше touch slop); во-вторых — и это ломало свап — у [VideoTrackRenderer] для
+  // ЛОКАЛЬНОГО трека на мобильных ВНУТРИ свой [GestureDetector] (зум/фокус), а
+  // вложенный распознаватель выигрывает арену и съедал бы наш тап. [Listener]
+  // получает события по хит-тесту, вне арены, поэтому работает всегда. Тап =
+  // pointer-up без сдвига > [_tapSlop] → свап камер (см. [widget.onTapTile]).
   Widget _buildContent(BuildContext context) {
     final Widget media = (widget.videoOn && widget.track != null)
         ? VideoTrackRenderer(widget.track!, fit: VideoViewFit.cover, mirrorMode: VideoViewMirrorMode.auto)
         : widget.fallback;
     return Listener(
       behavior: HitTestBehavior.opaque,
-      onPointerDown: (event) => _activePointer ??= event.pointer,
+      onPointerDown: (event) {
+        if (_activePointer != null) return;
+        _activePointer = event.pointer;
+        _downPos = event.localPosition;
+        _moved = false;
+      },
       onPointerMove: (event) {
         if (event.pointer != _activePointer) return;
+        if ((event.localPosition - _downPos).distance > _tapSlop) _moved = true;
         final base = widget.pos.value ?? _defaultPos;
         widget.pos.value = Offset(
           (base.dx + event.delta.dx).clamp(_SelfView._margin, _maxX),
@@ -582,49 +587,15 @@ class _SelfViewState extends State<_SelfView> {
         );
       },
       onPointerUp: (event) {
-        if (event.pointer == _activePointer) _activePointer = null;
+        if (event.pointer != _activePointer) return;
+        _activePointer = null;
+        // Тап без сдвига — свап камер (Task2). Смена фронт/тыл теперь в ряду кнопок.
+        if (!_moved) widget.onTapTile();
       },
       onPointerCancel: (event) {
         if (event.pointer == _activePointer) _activePointer = null;
       },
-      child: GestureDetector(
-        // Тап по окну (без сдвига) — свап камер (Task2). Кнопка смены фронт/тыл
-        // ниже — вложенный [GestureDetector], он выигрывает арену в своей области,
-        // поэтому тап по ней не триггерит свап.
-        behavior: HitTestBehavior.opaque,
-        onTap: widget.onTapTile,
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(12),
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              media,
-              // Кнопка смены камеры (фронт/тыл) — только когда окно показывает нашу
-              // камеру. Цвета жёстко тёмные — читаются над любой картинкой.
-              // Стандартная иконка платформы (без HugeIcon — тот давал артефакт
-              // «с тенью» над видео).
-              if (widget.showSwitchButton)
-                Positioned(
-                  right: 6,
-                  bottom: 6,
-                  child: GestureDetector(
-                    onTap: () => context.read<CallCubit>().switchCamera(),
-                    child: Container(
-                      width: 34,
-                      height: 34,
-                      decoration: const BoxDecoration(color: Color(0x66000000), shape: BoxShape.circle),
-                      child: Icon(
-                        Platform.isIOS ? CupertinoIcons.switch_camera : Icons.cameraswitch,
-                        size: 18,
-                        color: const Color(0xFFFFFFFF),
-                      ),
-                    ),
-                  ),
-                ),
-            ],
-          ),
-        ),
-      ),
+      child: ClipRRect(borderRadius: BorderRadius.circular(12), child: media),
     );
   }
 
@@ -656,6 +627,15 @@ class _Overlay extends StatelessWidget {
   final _CallPalette palette;
 
   const _Overlay({required this.state, required this.showVideo, required this.palette});
+
+  // Размер кнопок ряда управления и их иконок — уменьшены относительно дефолтных
+  // 68/28, чтобы 4 кнопки (смена камеры/микрофон/динамик/камера) помещались в ряд.
+  static const double _rowButtonSize = 58;
+  static const double _rowIconSize = 24;
+
+  // ВРЕМЕННО: подписи под кнопками управления скрыты — смотрим вид «только иконки».
+  // Вернуть подписи = сменить на `true`.
+  static const bool _showLabels = false;
 
   @override
   Widget build(BuildContext context) {
@@ -765,15 +745,19 @@ class _Overlay extends StatelessWidget {
     }
   }
 
-  /// Ряд кнопок управления медиа (микрофон/динамик, для видео — камера и её
-  /// переключение) плюс кнопка отбоя. Общий для исходящего, соединения и
-  /// активного разговора.
+  /// Ряд кнопок управления медиа (смена камеры/микрофон/динамик/камера) плюс
+  /// кнопка отбоя. Общий для исходящего, соединения и активного разговора. Кнопки
+  /// ряда уменьшены ([_rowButtonSize]), чтобы 4 штуки помещались без тесноты;
+  /// кнопка отбоя ниже — крупная (по умолчанию).
   Widget _mediaControls(BuildContext context, CallCubit cubit, CallState state) {
     final t = context.t.screenCall;
+    const size = _rowButtonSize;
+    const iconSize = _rowIconSize;
     return Column(
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _CircleButton(
               label: state.micMuted ? t.micOn : t.micOff,
@@ -781,6 +765,9 @@ class _Overlay extends StatelessWidget {
               color: state.micMuted ? palette.controlActiveBg : palette.controlBg,
               iconColor: palette.fg,
               palette: palette,
+              size: size,
+              iconSize: iconSize,
+              showLabel: _showLabels,
               onTap: cubit.toggleMic,
             ),
             // Выбор аудио-выхода. iOS — системный пикер (AVRoutePickerView:
@@ -788,13 +775,26 @@ class _Overlay extends StatelessWidget {
             // (setCommunicationDevice). См. route_picker_button.dart /
             // audio_routes_sheet.dart.
             if (Platform.isIOS)
-              RoutePickerButton(backgroundColor: palette.controlBg, iconColor: palette.fg, labelColor: palette.buttonLabel)
+              RoutePickerButton(
+                backgroundColor: palette.controlBg,
+                iconColor: palette.fg,
+                labelColor: palette.buttonLabel,
+                size: size,
+                iconSize: iconSize,
+                showLabel: _showLabels,
+              )
             else
-              AudioOutputButton(backgroundColor: palette.controlBg, iconColor: palette.fg, labelColor: palette.buttonLabel),
+              AudioOutputButton(
+                backgroundColor: palette.controlBg,
+                iconColor: palette.fg,
+                labelColor: palette.buttonLabel,
+                size: size,
+                iconSize: iconSize,
+                showLabel: _showLabels,
+              ),
             // Камера. В аудиозвонке — кнопка «Видео»: апгрейд аудио→видео
             // (публикует нашу камеру, собеседник увидит картинку). В видео —
-            // вкл/выкл своей камеры (переключение фронт/тыл вынесено в само окошко
-            // локального превью, см. [_SelfView]).
+            // вкл/выкл своей камеры.
             if (!state.video)
               _CircleButton(
                 label: t.startVideo,
@@ -802,6 +802,9 @@ class _Overlay extends StatelessWidget {
                 color: palette.controlBg,
                 iconColor: palette.fg,
                 palette: palette,
+                size: size,
+                iconSize: iconSize,
+                showLabel: _showLabels,
                 onTap: cubit.enableVideo,
               )
             else
@@ -811,7 +814,25 @@ class _Overlay extends StatelessWidget {
                 color: state.cameraOff ? palette.controlActiveBg : palette.controlBg,
                 iconColor: palette.fg,
                 palette: palette,
+                size: size,
+                iconSize: iconSize,
+                showLabel: _showLabels,
                 onTap: cubit.toggleCamera,
+              ),
+            // Смена камеры (фронт/тыл) — справа, после кнопки камеры. Только когда
+            // наша камера включена (видеозвонок и камера не выключена); при
+            // выключенной камере кнопка пропадает (менять нечего).
+            if (state.video && !state.cameraOff)
+              _CircleButton(
+                label: t.switchCamera,
+                icon: HugeIcons.strokeRoundedExchange01,
+                color: palette.controlBg,
+                iconColor: palette.fg,
+                palette: palette,
+                size: size,
+                iconSize: iconSize,
+                showLabel: _showLabels,
+                onTap: cubit.switchCamera,
               ),
           ],
         ),
@@ -822,6 +843,7 @@ class _Overlay extends StatelessWidget {
           color: CallView._red,
           iconColor: CallView._onAccent,
           palette: palette,
+          showLabel: _showLabels,
           onTap: cubit.hangup,
         ),
       ],
@@ -1043,6 +1065,14 @@ class _CircleButton extends StatelessWidget {
   final _CallPalette palette;
   final VoidCallback onTap;
 
+  /// Диаметр круга и размер иконки (по умолчанию 68/28; ряд управления передаёт
+  /// уменьшенные — см. [_Overlay._rowButtonSize]).
+  final double size;
+  final double iconSize;
+
+  /// Показывать подпись под кнопкой (временно отключается на экране звонка).
+  final bool showLabel;
+
   const _CircleButton({
     required this.label,
     required this.icon,
@@ -1050,6 +1080,9 @@ class _CircleButton extends StatelessWidget {
     required this.iconColor,
     required this.palette,
     required this.onTap,
+    this.size = 68,
+    this.iconSize = 28,
+    this.showLabel = true,
   });
 
   @override
@@ -1061,14 +1094,27 @@ class _CircleButton extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            width: 68,
-            height: 68,
+            width: size,
+            height: size,
             decoration: BoxDecoration(color: color, shape: BoxShape.circle),
             alignment: Alignment.center,
-            child: HugeIcon(icon: icon, color: iconColor, size: 28),
+            child: HugeIcon(icon: icon, color: iconColor, size: iconSize),
           ),
-          const SizedBox(height: 8),
-          Text(label, style: TextStyle(color: palette.buttonLabel, fontSize: 13)),
+          // Подпись ограничена по ширине (может переноситься на 2 строки, напр.
+          // «Сменить камеру») — чтобы длинный текст не расползался и не ломал ряд.
+          if (showLabel) ...[
+            const SizedBox(height: 8),
+            SizedBox(
+              width: size + 24,
+              child: Text(
+                label,
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(color: palette.buttonLabel, fontSize: 13),
+              ),
+            ),
+          ],
         ],
       ),
     );

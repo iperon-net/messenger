@@ -109,7 +109,22 @@ class AudioOutputButton extends StatelessWidget {
   final Color iconColor;
   final Color labelColor;
 
-  const AudioOutputButton({super.key, required this.backgroundColor, required this.iconColor, required this.labelColor});
+  /// Диаметр круга и размер иконки (по умолчанию 68/28 — как у [_CircleButton]).
+  final double size;
+  final double iconSize;
+
+  /// Показывать подпись под кнопкой (временно отключается на экране звонка).
+  final bool showLabel;
+
+  const AudioOutputButton({
+    super.key,
+    required this.backgroundColor,
+    required this.iconColor,
+    required this.labelColor,
+    this.size = 68,
+    this.iconSize = 28,
+    this.showLabel = true,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -120,14 +135,16 @@ class AudioOutputButton extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            width: 68,
-            height: 68,
+            width: size,
+            height: size,
             decoration: BoxDecoration(color: backgroundColor, shape: BoxShape.circle),
             alignment: Alignment.center,
-            child: HugeIcon(icon: HugeIcons.strokeRoundedSpeaker, color: iconColor, size: 28),
+            child: HugeIcon(icon: HugeIcons.strokeRoundedSpeaker, color: iconColor, size: iconSize),
           ),
-          const SizedBox(height: 8),
-          Text(context.t.screenCall.audioOutput, style: TextStyle(color: labelColor, fontSize: 13)),
+          if (showLabel) ...[
+            const SizedBox(height: 8),
+            Text(context.t.screenCall.audioOutput, style: TextStyle(color: labelColor, fontSize: 13)),
+          ],
         ],
       ),
     );
