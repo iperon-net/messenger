@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_boring_avatars/flutter_boring_avatars.dart';
+import 'package:go_router/go_router.dart';
 import 'package:livekit_client/livekit_client.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
@@ -644,62 +645,82 @@ class _Overlay extends StatelessWidget {
   Widget build(BuildContext context) {
     final cubit = context.read<CallCubit>();
     final active = state.callStatus == CallStatus.active;
+    // Кнопка профиля собеседника (правый верхний угол): открывает его публичный
+    // профиль поверх экрана звонка. Показываем на исходящем/соединении/активном
+    // разговоре и только когда известен userID собеседника ([boringAvatarHash] —
+    // это hex userID, см. [CallState]).
+    final showAccount =
+        state.boringAvatarHash.isNotEmpty &&
+        (state.callStatus == CallStatus.outgoing || state.callStatus == CallStatus.connecting || state.callStatus == CallStatus.active);
 
     return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Column(
+      child: Stack(
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const SizedBox(height: 8),
-                // Для видеозвонка лицо собеседника уже на весь экран — аватар не
-                // дублируем. Для аудио (или до старта видео) показываем аватар.
-                if (!showVideo) ...[_Avatar(state: state, palette: palette), const SizedBox(height: 20)],
-                Text(
-                  _title(context),
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: palette.name, fontSize: 22, fontWeight: FontWeight.w600),
+                Column(
+                  children: [
+                    const SizedBox(height: 8),
+                    // Для видеозвонка лицо собеседника уже на весь экран — аватар не
+                    // дублируем. Для аудио (или до старта видео) показываем аватар.
+                    if (!showVideo) ...[_Avatar(state: state, palette: palette), const SizedBox(height: 20)],
+                    Text(
+                      _title(context),
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: palette.name, fontSize: 22, fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(height: 8),
+                    // На активном звонке подпись — таймер разговора; иначе — статус.
+                    // Перед таймером — иконка качества связи (только когда LiveKit
+                    // уже прислал оценку); текста нет, лишь значок нужного цвета.
+                    if (active && state.connectedAt != null)
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // Пока оценки качества нет (`unknown`) — иконку не показываем
+                          // вовсе, чтобы не мигать до первой оценки от LiveKit.
+                          if (state.quality != CallQuality.unknown) ...[
+                            _QualityIndicator(quality: state.quality),
+                            const SizedBox(width: 6),
+                          ],
+                          _CallTimer(connectedAt: state.connectedAt!, color: palette.timer),
+                        ],
+                      )
+                    else
+                      Text(
+                        _subtitle(context),
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: palette.status, fontSize: 15),
+                      ),
+                    // Микрофон собеседника выключен — значок ниже статуса связи.
+                    // if (active && state.remoteMicMuted) ...[const SizedBox(height: 8), _RemoteMicIndicator(dim: palette.dim)],
+                    // Диагностика соединения прямо на экране (этапы сигналинга/ICE/
+                    // медиа) — без выгрузки логов с устройства.
+                    // if (state.debug.isNotEmpty)
+                    //   Padding(
+                    //     padding: const EdgeInsets.only(top: 12),
+                    //     child: Text(
+                    //       state.debug,
+                    //       textAlign: TextAlign.center,
+                    //       style: TextStyle(color: palette.dim, fontSize: 11),
+                    //     ),
+                    //   ),
+                  ],
                 ),
-                const SizedBox(height: 8),
-                // На активном звонке подпись — таймер разговора; иначе — статус.
-                // Перед таймером — иконка качества связи (только когда LiveKit
-                // уже прислал оценку); текста нет, лишь значок нужного цвета.
-                if (active && state.connectedAt != null)
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // Пока оценки качества нет (`unknown`) — иконку не показываем
-                      // вовсе, чтобы не мигать до первой оценки от LiveKit.
-                      if (state.quality != CallQuality.unknown) ...[_QualityIndicator(quality: state.quality), const SizedBox(width: 6)],
-                      _CallTimer(connectedAt: state.connectedAt!, color: palette.timer),
-                    ],
-                  )
-                else
-                  Text(
-                    _subtitle(context),
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: palette.status, fontSize: 15),
-                  ),
-                // Микрофон собеседника выключен — значок ниже статуса связи.
-                // if (active && state.remoteMicMuted) ...[const SizedBox(height: 8), _RemoteMicIndicator(dim: palette.dim)],
-                // Диагностика соединения прямо на экране (этапы сигналинга/ICE/
-                // медиа) — без выгрузки логов с устройства.
-                // if (state.debug.isNotEmpty)
-                //   Padding(
-                //     padding: const EdgeInsets.only(top: 12),
-                //     child: Text(
-                //       state.debug,
-                //       textAlign: TextAlign.center,
-                //       style: TextStyle(color: palette.dim, fontSize: 11),
-                //     ),
-                //   ),
+                _controls(context, cubit, state),
               ],
             ),
-            _controls(context, cubit, state),
-          ],
-        ),
+          ),
+          if (showAccount)
+            Positioned(
+              top: 8,
+              right: 24,
+              child: _AccountButton(palette: palette, hex: state.boringAvatarHash),
+            ),
+        ],
       ),
     );
   }
@@ -1056,6 +1077,33 @@ class _MicBadge extends StatelessWidget {
       ),
       alignment: Alignment.center,
       child: const HugeIcon(icon: HugeIcons.strokeRoundedMicOff01, color: CallView._onAccent, size: 18),
+    );
+  }
+}
+
+/// Кнопка в правом верхнем углу экрана звонка — открывает публичный профиль
+/// собеседника (`/profile/:userID`) поверх звонка. [hex] — hex userID (из
+/// [CallState.boringAvatarHash]).
+class _AccountButton extends StatelessWidget {
+  final _CallPalette palette;
+  final String hex;
+
+  const _AccountButton({required this.palette, required this.hex});
+
+  static const double _size = 44;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () => context.push('/profile/$hex'),
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        width: _size,
+        height: _size,
+        decoration: BoxDecoration(color: palette.controlBg, shape: BoxShape.circle),
+        alignment: Alignment.center,
+        child: HugeIcon(icon: HugeIcons.strokeRoundedUserAccount, color: palette.fg, size: 24),
+      ),
     );
   }
 }
