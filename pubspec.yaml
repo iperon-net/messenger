@@ -154,14 +154,30 @@ dev_dependencies:
 #   форк выбран вместо удаления, чтобы не терять скорость. См. CLAUDE.md, раздел Kotlin.
 #
 # flutter_webrtc (third_party/flutter_webrtc, версия 1.6.2+hotfix.3 — совпадает с той,
-#   что пинит livekit_client 2.13.0) — единственный патч в
-#   common/darwin/Classes/FlutterRTCVideoRenderer.m: в блоках renderFrame:, уходящих в
-#   main-очередь, добавлен `if (strongSelf == nil) return;`. Апстрим разыменовывал
-#   ivar `strongSelf->_isFirstFrameRendered` без проверки weak-ссылки на nil, из-за чего
+#   что пинит livekit_client 2.13.0) — единственный патч в renderFrame:: бэкпорт
+#   апстрим-PR #2190 (merged в main 2026-09-18, но НИ В ОДНОМ релизе ещё нет — последний
+#   тег v1.6.2+hotfix.3 предшествует ему; бампнуться нельзя, версия жёстко привязана к
+#   ABI нативного пода livekit 2.13.0). Апстрим разыменовывал ivar
+#   `strongSelf->_isFirstFrameRendered` через weak-ссылку без проверки на nil, из-за чего
 #   уничтожение рендерера при живом потоке кадров (свап/выключение камеры/завершение
-#   звонка) роняло приложение: EXC_BAD_ACCESS в `-[FlutterRTCVideoRenderer renderFrame:]`
-#   (см. [[webrtc-renderer-recreation-crash]]). Патч переносить вручную при апдейте.
-#   При копировании исключены example/.
+#   звонка, скрытие своего превью при включённой камере) роняло приложение: EXC_BAD_ACCESS
+#   в `-[FlutterRTCVideoRenderer renderFrame:]` (см. [[webrtc-renderer-recreation-crash]]).
+#   Фикс: блок firstFrame диспатчится в main-очередь только пока `!_isFirstFrameRendered`
+#   (нет per-frame прыжка после первого кадра) и внутри проверяет
+#   `strongSelf == nil || strongSelf->_isFirstFrameRendered`. Тело renderFrame: сделано
+#   БАЙТ-В-БАЙТ с #2190, поэтому патч исчезнет сам, когда пин доедет до релиза с #2190.
+#   ВАЖНО: в дереве три копии FlutterRTCVideoRenderer.m, патч держим в двух:
+#     • ios/flutter_webrtc/Sources/flutter_webrtc/FlutterRTCVideoRenderer.m — ЭТУ копию
+#       реально компилирует iOS-под (ios/flutter_webrtc.podspec, source_files =
+#       'flutter_webrtc/Sources/flutter_webrtc/**'); без патча здесь крэш вернётся —
+#       главная копия для нашего таргета;
+#     • common/darwin/Classes/FlutterRTCVideoRenderer.m — общий upstream-исходник
+#       (ни один под его не компилирует); держим идентичным ios как канонический,
+#       чтобы апстрим-диффы ложились чисто.
+#   Патч переносить вручную в ОБЕ при апдейте (сейчас идентичны). Третья копия,
+#   macos/flutter_webrtc/Sources/.../FlutterRTCVideoRenderer.m, НЕ пропатчена и отличается,
+#   но macOS у нас не таргет (только Android+iOS) — трогать не нужно. При копировании
+#   исключены example/.
 dependency_overrides:
   flutter_callkit_incoming:
     path: third_party/flutter_callkit_incoming

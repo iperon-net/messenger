@@ -213,11 +213,6 @@
   if (_renderSize.width != frame.width || _renderSize.height != frame.height) {
     dispatch_async(dispatch_get_main_queue(), ^{
       FlutterRTCVideoRenderer* strongSelf = weakSelf;
-      // Iperon patch: renderer may be deallocated between this async dispatch and
-      // its execution on the main queue (widget removed / call torn down while
-      // frames are in flight). Bail out on nil to avoid an ivar deref on nil
-      // (EXC_BAD_ACCESS in renderFrame:). See third_party notes in root pubspec.
-      if (strongSelf == nil) return;
       if (strongSelf.eventSink) {
         strongSelf.eventSink(@{
           @"event" : @"didTextureChangeVideoSize",
@@ -233,8 +228,6 @@
   if (frame.rotation != _rotation) {
     dispatch_async(dispatch_get_main_queue(), ^{
       FlutterRTCVideoRenderer* strongSelf = weakSelf;
-      // Iperon patch: see note above — nil-guard against renderer dealloc race.
-      if (strongSelf == nil) return;
       if (strongSelf.eventSink) {
         strongSelf.eventSink(@{
           @"event" : @"didTextureChangeRotation",
@@ -247,21 +240,22 @@
     _rotation = frame.rotation;
   }
 
-  // Notify the Flutter new pixelBufferRef to be ready.
-  dispatch_async(dispatch_get_main_queue(), ^{
-    FlutterRTCVideoRenderer* strongSelf = weakSelf;
-    // Iperon patch (root cause of the recurring renderFrame: crash): this block
-    // dereferences the ivar `strongSelf->_isFirstFrameRendered` directly, so a nil
-    // strongSelf (renderer deallocated before the block runs) crashed with
-    // EXC_BAD_ACCESS. Guard against nil.
-    if (strongSelf == nil) return;
-    if (!strongSelf->_isFirstFrameRendered) {
+  // Notify Flutter once the first frame has been rendered. Frames arrive on a
+  // decoder thread and this block runs later on the main queue, so the
+  // renderer may already have been disposed and freed by the time it runs.
+  // The weak reference is then nil and must not be dereferenced.
+  if (!_isFirstFrameRendered) {
+    dispatch_async(dispatch_get_main_queue(), ^{
+      FlutterRTCVideoRenderer* strongSelf = weakSelf;
+      if (strongSelf == nil || strongSelf->_isFirstFrameRendered) {
+        return;
+      }
       if (strongSelf.eventSink) {
         strongSelf.eventSink(@{@"event" : @"didFirstFrameRendered"});
         strongSelf->_isFirstFrameRendered = true;
       }
-    }
-  });
+    });
+  }
 }
 
 /**
