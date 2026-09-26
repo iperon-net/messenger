@@ -149,6 +149,23 @@ class _CallViewState extends State<CallView> with WidgetsBindingObserver {
   // хранилась в его State, она бы сбрасывалась в дефолт.
   final ValueNotifier<Offset?> _selfViewPos = ValueNotifier(null);
 
+  // Свап камер: `true` — наша камера на весь экран, собеседник в мини-окне
+  // (по умолчанию наоборот). Переключается тапом по мини-окну (см. [_SelfView]).
+  // Живёт в родителе (а не выводится из снимка), т.к. это чисто локальный выбор
+  // раскладки, не связанный с состоянием звонка. Сбрасывается по завершении.
+  bool _swapped = false;
+
+  // Task1 (видеозвонок): панель управления/имя скрываются по тапу по экрану и
+  // возвращаются следующим тапом; на активном видео сами гаснут через
+  // [_overlayHideAfter] бездействия (Telegram-стиль). Отдельный notifier, чтобы
+  // переключение видимости перестраивало ТОЛЬКО оверлей, а не тяжёлые рендереры.
+  // `_overlayHideable` помнит, включён ли сейчас режим автоскрытия (только на
+  // активном видеозвонке — в дозвоне/соединении/аудио панель всегда видна).
+  final ValueNotifier<bool> _overlayVisible = ValueNotifier(true);
+  Timer? _overlayHideTimer;
+  bool _overlayHideable = false;
+  static const Duration _overlayHideAfter = Duration(seconds: 4);
+
   // Рингтон входящего. Играет ТОЛЬКО пока звонок в статусе `incoming` и только
   // там, где входящий ведёт наш экран (iOS-foreground — см. CallGate); на Android
   // и на фоне/локскрине/cold-start iOS входящий ведёт системная звонилка и звонит
@@ -209,6 +226,8 @@ class _CallViewState extends State<CallView> with WidgetsBindingObserver {
     if (Platform.isAndroid) _pipChannel.setMethodCallHandler(null);
     unawaited(_stopRingtone());
     _syncWakelock(false);
+    _overlayHideTimer?.cancel();
+    _overlayVisible.dispose();
     _selfViewPos.dispose();
     SystemChrome.setPreferredOrientations(DeviceOrientation.values);
     super.dispose();
@@ -278,6 +297,46 @@ class _CallViewState extends State<CallView> with WidgetsBindingObserver {
     unawaited(WakelockPlus.toggle(enable: enable).catchError((_) {}));
   }
 
+  /// Включает/выключает режим автоскрытия панели управления (Task1). Вызывается
+  /// из [build]; сам notifier трогаем в post-frame, чтобы не мутировать его во
+  /// время сборки (иначе setState в [ValueListenableBuilder] на этапе build).
+  /// При входе в режим — показываем панель и заводим таймер; при выходе (уход с
+  /// активного видео) — гасим таймер и оставляем панель видимой.
+  void _syncOverlayHideable(bool hideable) {
+    if (_overlayHideable == hideable) return;
+    _overlayHideable = hideable;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      if (_overlayHideable) {
+        _overlayVisible.value = true;
+        _scheduleOverlayHide();
+      } else {
+        _overlayHideTimer?.cancel();
+        _overlayVisible.value = true;
+      }
+    });
+  }
+
+  void _scheduleOverlayHide() {
+    _overlayHideTimer?.cancel();
+    _overlayHideTimer = Timer(_overlayHideAfter, () {
+      if (mounted) _overlayVisible.value = false;
+    });
+  }
+
+  /// Тап по «пустому» видео (Task1): прячет/показывает панель управления. Работает
+  /// только в режиме автоскрытия (активный видеозвонок) — иначе панель постоянна.
+  void _toggleOverlay() {
+    if (!_overlayHideable) return;
+    if (_overlayVisible.value) {
+      _overlayHideTimer?.cancel();
+      _overlayVisible.value = false;
+    } else {
+      _overlayVisible.value = true;
+      _scheduleOverlayHide();
+    }
+  }
+
   Future<void> _startRingtone() async {
     if (!Platform.isIOS || _ringtone != null) return;
     try {
@@ -315,6 +374,11 @@ class _CallViewState extends State<CallView> with WidgetsBindingObserver {
         } else {
           unawaited(_stopRingtone());
         }
+        // Звонок завершился — сбрасываем свап камер, чтобы следующий звонок на этом
+        // же экране не унаследовал перевёрнутую раскладку.
+        if (state.callStatus == CallStatus.ended || state.callStatus == CallStatus.idle) {
+          _swapped = false;
+        }
         // Звонок завершился, пока мы в мини-окне (в т.ч. собеседник положил трубку):
         // просим натив закрыть PiP-окно, иначе оно осталось бы висеть после конца
         // звонка. В обычном (не PiP) режиме окно закрывать не нужно — экран звонка
@@ -337,21 +401,44 @@ class _CallViewState extends State<CallView> with WidgetsBindingObserver {
         // участвуют в equality состояния).
         final remoteTrack = cubit.remoteVideoTrack;
         final localTrack = cubit.localVideoTrack;
-        // Удалённое видео реально видно, только когда дорожка есть И камера
-        // собеседника не выключена: при выключении LiveKit мьютит дорожку, но не
-        // отписывает — рендер застыл бы на последнем кадре, поэтому вместо него
-        // показываем аватар (см. [CallSnapshot.remoteVideoOff]).
-        final remoteVideoVisible = isVideoCall && remoteTrack != null && !state.remoteVideoOff;
-        // Поверх видео — светлая палитра (контраст над картинкой); иначе — под тему.
-        final palette = remoteVideoVisible ? _CallPalette.overMedia : _CallPalette.of(context, darkMode);
+        // Реально видимое видео с каждой стороны: дорожка есть И камера не
+        // выключена (LiveKit при выключении мьютит дорожку, но не отписывает —
+        // рендер застыл бы на последнем кадре, поэтому показываем аватар, см.
+        // [CallSnapshot.remoteVideoOff]).
+        final remoteOn = isVideoCall && remoteTrack != null && !state.remoteVideoOff;
+        final localOn = isVideoCall && localTrack != null;
 
-        // Единый Stack для обоих режимов (полный экран и мини-окно PiP). Удалённый
-        // рендерер держим ПЕРВЫМ и БЕЗ ключа — его позиция в дереве не меняется при
-        // входе/выходе PiP, поэтому его State (и нативный FlutterRTCVideoRenderer) не
-        // пересоздаётся. Это критично: пересоздание рендерера во время звонка гонялось
-        // с блоком `renderFrame:` на главном потоке и роняло приложение
-        // (EXC_BAD_ACCESS в FlutterRTCVideoRenderer). В PiP лишь прячем панель
-        // управления/имя и локальное превью — места нет и они не нужны.
+        // Task2 — свап камер: при [_swapped] наша камера идёт на весь экран, а
+        // собеседник — в мини-окно. Активен только когда наша камера реально есть
+        // (иначе главный экран был бы пустым) и вне PiP (в мини-окне ОС всегда
+        // показываем собеседника). Тап по мини-окну переключает [_swapped].
+        final swapped = _swapped && localOn && !_inPip;
+
+        // Что на главном экране и что в мини-окне (с учётом свапа).
+        final mainTrack = swapped ? localTrack : remoteTrack;
+        final mainOn = swapped ? localOn : remoteOn;
+        final pipTrack = swapped ? remoteTrack : localTrack;
+        final pipVideoOn = swapped ? remoteOn : localOn;
+        // Мини-окно видно: при свапе — всегда (видео собеседника или его аватар),
+        // без свапа — только пока наша камера включена (как было).
+        final pipVisible = isVideoCall && !_inPip && (swapped || localOn);
+
+        // Поверх видео — светлая палитра (контраст над картинкой); иначе — под тему.
+        final palette = mainOn ? _CallPalette.overMedia : _CallPalette.of(context, darkMode);
+
+        // Task1: панель управления скрываем по тапу только на активном видеозвонке
+        // с картинкой на главном экране (в дозвоне/соединении/аудио — всегда видна).
+        _syncOverlayHideable(mainOn && state.callStatus == CallStatus.active && !_inPip);
+
+        // Единый Stack для обоих режимов (полный экран и мини-окно PiP). Главный
+        // видеорендерер держим ПЕРВЫМ и БЕЗ ключа — его позиция в дереве не меняется
+        // (ни при свапе, ни при входе/выходе PiP), поэтому его State (и нативный
+        // FlutterRTCVideoRenderer) не пересоздаётся. Это критично: пересоздание
+        // рендерера во время звонка гонялось с блоком `renderFrame:` на главном
+        // потоке и роняло приложение (EXC_BAD_ACCESS). При свапе меняется лишь его
+        // `track` — VideoTrackRenderer.didUpdateWidget переустанавливает srcObject,
+        // рендерер при этом НЕ пересоздаётся. В PiP лишь прячем панель/имя и
+        // локальное превью — места нет и они не нужны.
         return ColoredBox(
           color: palette.bg,
           child: LayoutBuilder(
@@ -359,21 +446,47 @@ class _CallViewState extends State<CallView> with WidgetsBindingObserver {
               return Stack(
                 fit: StackFit.expand,
                 children: [
-                  if (remoteVideoVisible) VideoTrackRenderer(remoteTrack, fit: VideoViewFit.cover),
-                  // В мини-окне без видео собеседника (камера у него выключена) —
+                  if (mainOn && mainTrack != null) VideoTrackRenderer(mainTrack, fit: VideoViewFit.cover),
+                  // Слой перехвата тапа по экрану (Task1) — под панелью и мини-окном
+                  // (они выше в Stack и получают тап первыми), поверх видео. Тап по
+                  // «пустому» видео прячет/показывает панель (см. [_toggleOverlay]).
+                  if (!_inPip)
+                    Positioned.fill(
+                      child: GestureDetector(behavior: HitTestBehavior.opaque, onTap: _toggleOverlay),
+                    ),
+                  // В мини-окне ОС без видео собеседника (камера у него выключена) —
                   // его аватар по центру вместо пустого фона.
-                  if (_inPip && !remoteVideoVisible)
+                  if (_inPip && !mainOn)
                     Center(
                       child: _Avatar(state: state, palette: palette),
                     ),
-                  if (!_inPip) _Overlay(state: state, showVideo: remoteVideoVisible, palette: palette),
-                  // Локальное видео (наша камера) — перетаскиваемое окно
-                  // картинкой-в-картинке, пока наша камера включена. Держим
-                  // ПОСЛЕДНИМ в Stack (поверх панели управления), иначе кнопки
-                  // перехватывают жесты и окно нельзя утащить из-под них. В PiP
+                  if (!_inPip)
+                    ValueListenableBuilder<bool>(
+                      valueListenable: _overlayVisible,
+                      builder: (context, visible, _) => IgnorePointer(
+                        ignoring: !visible,
+                        child: AnimatedOpacity(
+                          opacity: visible ? 1 : 0,
+                          duration: const Duration(milliseconds: 200),
+                          child: _Overlay(state: state, showVideo: mainOn, palette: palette),
+                        ),
+                      ),
+                    ),
+                  // Мини-окно (наша камера, либо собеседник при свапе) — перетаскиваемое
+                  // окно картинкой-в-картинке. Держим ПОСЛЕДНИМ в Stack (поверх панели
+                  // и слоя тапа), иначе кнопки/слой перехватывали бы его жесты. В PiP
                   // прячем (окно крошечное).
-                  if (!_inPip && isVideoCall && localTrack != null)
-                    _SelfView(track: localTrack, pos: _selfViewPos, maxWidth: constraints.maxWidth, maxHeight: constraints.maxHeight),
+                  if (pipVisible)
+                    _SelfView(
+                      track: pipTrack,
+                      videoOn: pipVideoOn,
+                      showSwitchButton: !swapped,
+                      onTapTile: () => setState(() => _swapped = !_swapped),
+                      fallback: _Avatar(state: state, palette: palette),
+                      pos: _selfViewPos,
+                      maxWidth: constraints.maxWidth,
+                      maxHeight: constraints.maxHeight,
+                    ),
                 ],
               );
             },
@@ -384,22 +497,43 @@ class _CallViewState extends State<CallView> with WidgetsBindingObserver {
   }
 }
 
-/// Перетаскиваемое мини-окно с нашей камерой (picture-in-picture, Telegram-стиль:
-/// остаётся там, где отпустили). Вынесено в отдельный [StatefulWidget], чтобы
-/// перетаскивание (частый `setState`) перестраивало ТОЛЬКО это окно, а не весь
-/// [CallView] с рендерером собеседника — иначе движение дёргается. Рендерер
-/// [VideoTrackRenderer] при перетаскивании лишь меняет позицию в [Stack] и НЕ
-/// пересоздаётся — это важно (пересоздание рендерера во время звонка роняло
-/// приложение, см. комментарий в [_CallViewState.build]).
+/// Перетаскиваемое мини-окно картинкой-в-картинке (Telegram-стиль: остаётся там,
+/// где отпустили). Обычно показывает нашу камеру ([showSwitchButton] — кнопка
+/// смены фронт/тыл), а при свапе (Task2) — собеседника. Тап по окну зовёт
+/// [onTapTile] (родитель меняет камеры местами). Вынесено в отдельный
+/// [StatefulWidget], чтобы перетаскивание (частый апдейт позиции) перестраивало
+/// ТОЛЬКО это окно, а не весь [CallView] с главным рендерером — иначе движение
+/// дёргается. Рендерер [VideoTrackRenderer] при перетаскивании лишь меняет
+/// позицию в [Stack] и НЕ пересоздаётся — это важно (пересоздание рендерера во
+/// время звонка роняло приложение, см. комментарий в [_CallViewState.build]).
 class _SelfView extends StatefulWidget {
-  final VideoTrack track;
+  // Дорожка для показа (наша или собеседника при свапе). `null`/`videoOn=false`
+  // — рисуем [fallback] (аватар).
+  final VideoTrack? track;
+  final bool videoOn;
+  // Показывать кнопку смены фронт/тыл (только когда окно = наша камера).
+  final bool showSwitchButton;
+  // Тап по окну — родитель меняет главный экран и мини-окно местами.
+  final VoidCallback onTapTile;
+  // Заглушка, когда видео нет (аватар собеседника при свапе с выключенной у него
+  // камерой).
+  final Widget fallback;
   // Позиция окна — во владении родителя [_CallViewState], чтобы пережить
   // выключение/включение камеры (см. комментарий у поля).
   final ValueNotifier<Offset?> pos;
   final double maxWidth;
   final double maxHeight;
 
-  const _SelfView({required this.track, required this.pos, required this.maxWidth, required this.maxHeight});
+  const _SelfView({
+    required this.track,
+    required this.videoOn,
+    required this.showSwitchButton,
+    required this.onTapTile,
+    required this.fallback,
+    required this.pos,
+    required this.maxWidth,
+    required this.maxHeight,
+  });
 
   // Размер окна. Было 110×160, увеличено на 20%.
   static const double _width = 132;
@@ -422,103 +556,77 @@ class _SelfViewState extends State<_SelfView> {
   // id активного пальца. Тащим окно ровно одним указателем; остальные игнорируем.
   int? _activePointer;
 
-  // Видимость кнопки смены камеры: показываем при касании окошка («фокус») и
-  // прячем через [_hideAfter] бездействия — как в Telegram. Отдельный notifier,
-  // чтобы переключение видимости перестраивало ТОЛЬКО кнопку, а не тяжёлый
-  // [VideoTrackRenderer].
-  final ValueNotifier<bool> _controlsVisible = ValueNotifier(false);
-  Timer? _hideTimer;
-  static const Duration _hideAfter = Duration(seconds: 3);
-
-  void _showControls() {
-    _controlsVisible.value = true;
-    _hideTimer?.cancel();
-  }
-
-  void _scheduleHideControls() {
-    _hideTimer?.cancel();
-    _hideTimer = Timer(_hideAfter, () => _controlsVisible.value = false);
-  }
-
-  // Стабильный виджет камеры: создаётся один раз (пересоздаётся только при смене
-  // дорожки) и передаётся в [ValueListenableBuilder] как `child`, поэтому при
-  // перетаскивании НЕ перестраивается.
-  //
-  // Тащим через [Listener] (сырые события указателя), а НЕ через [GestureDetector]:
-  // одиночный pan проигрывал арену жестов родительскому распознавателю драга (у
-  // одномерных распознавателей меньше touch slop — они забирали один палец себе;
-  // на двух пальцах те отваливались, и pan срабатывал — отсюда «двумя пальцами
-  // двигается, одним нет»). [Listener] получает события по хит-тесту, вне арены,
-  // поэтому один палец работает всегда.
-  late Widget _videoChild = _buildVideoChild();
-
-  Widget _buildVideoChild() => Listener(
-    behavior: HitTestBehavior.opaque,
-    onPointerDown: (event) {
-      _activePointer ??= event.pointer;
-      // Касание окошка = фокус: показываем кнопку и держим, пока палец на экране.
-      _showControls();
-    },
-    onPointerMove: (event) {
-      if (event.pointer != _activePointer) return;
-      final base = widget.pos.value ?? _defaultPos;
-      widget.pos.value = Offset(
-        (base.dx + event.delta.dx).clamp(_SelfView._margin, _maxX),
-        (base.dy + event.delta.dy).clamp(_SelfView._margin, _maxY),
-      );
-    },
-    onPointerUp: (event) {
-      if (event.pointer != _activePointer) return;
-      _activePointer = null;
-      _scheduleHideControls();
-    },
-    onPointerCancel: (event) {
-      if (event.pointer != _activePointer) return;
-      _activePointer = null;
-      _scheduleHideControls();
-    },
-    child: ClipRRect(
-      borderRadius: BorderRadius.circular(12),
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          VideoTrackRenderer(widget.track, fit: VideoViewFit.cover, mirrorMode: VideoViewMirrorMode.auto),
-          // Кнопка смены камеры (фронт/тыл) прямо в окошке — как в Telegram.
-          // Появляется при касании окошка (фокус) и гаснет по таймеру. Тап почти
-          // без смещения, поэтому окно от него не «уезжает» (перетаскивание ведёт
-          // [Listener]-родитель по delta указателя). Пока скрыта — [IgnorePointer]
-          // не даёт ей ловить тап (первое касание лишь показывает кнопку). Цвета
-          // жёстко тёмные — читаются над любой картинкой.
-          Positioned(
-            right: 6,
-            bottom: 6,
-            child: ValueListenableBuilder<bool>(
-              valueListenable: _controlsVisible,
-              child: GestureDetector(
-                onTap: () {
-                  _showControls();
-                  _scheduleHideControls();
-                  context.read<CallCubit>().switchCamera();
-                },
-                child: Container(
-                  width: 34,
-                  height: 34,
-                  decoration: const BoxDecoration(color: Color(0x66000000), shape: BoxShape.circle),
-                  // Стандартная иконка смены камеры платформы (без HugeIcon —
-                  // тот давал визуальный артефакт «с тенью» над видео).
-                  child: Icon(Platform.isIOS ? CupertinoIcons.switch_camera : Icons.cameraswitch, size: 18, color: const Color(0xFFFFFFFF)),
+  // Содержимое окна собирается в [build] и прокидывается в [ValueListenableBuilder]
+  // как `child`, поэтому при перетаскивании (обновляется только позиция) НЕ
+  // перестраивается. Перетаскивание ведёт [Listener] (сырые события указателя), а
+  // НЕ [GestureDetector]: одиночный pan проигрывал арену жестов родительскому
+  // распознавателю драга (у одномерных распознавателей меньше touch slop — они
+  // забирали один палец себе; на двух пальцах те отваливались, и pan срабатывал —
+  // отсюда «двумя пальцами двигается, одним нет»). [Listener] получает события по
+  // хит-тесту, вне арены, поэтому один палец работает всегда. Тап (свап) висит на
+  // вложенном [GestureDetector]: его распознаватель сам отменяет тап при сдвиге
+  // (драг), поэтому тап и перетаскивание не конфликтуют.
+  Widget _buildContent(BuildContext context) {
+    final Widget media = (widget.videoOn && widget.track != null)
+        ? VideoTrackRenderer(widget.track!, fit: VideoViewFit.cover, mirrorMode: VideoViewMirrorMode.auto)
+        : widget.fallback;
+    return Listener(
+      behavior: HitTestBehavior.opaque,
+      onPointerDown: (event) => _activePointer ??= event.pointer,
+      onPointerMove: (event) {
+        if (event.pointer != _activePointer) return;
+        final base = widget.pos.value ?? _defaultPos;
+        widget.pos.value = Offset(
+          (base.dx + event.delta.dx).clamp(_SelfView._margin, _maxX),
+          (base.dy + event.delta.dy).clamp(_SelfView._margin, _maxY),
+        );
+      },
+      onPointerUp: (event) {
+        if (event.pointer == _activePointer) _activePointer = null;
+      },
+      onPointerCancel: (event) {
+        if (event.pointer == _activePointer) _activePointer = null;
+      },
+      child: GestureDetector(
+        // Тап по окну (без сдвига) — свап камер (Task2). Кнопка смены фронт/тыл
+        // ниже — вложенный [GestureDetector], он выигрывает арену в своей области,
+        // поэтому тап по ней не триггерит свап.
+        behavior: HitTestBehavior.opaque,
+        onTap: widget.onTapTile,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              media,
+              // Кнопка смены камеры (фронт/тыл) — только когда окно показывает нашу
+              // камеру. Цвета жёстко тёмные — читаются над любой картинкой.
+              // Стандартная иконка платформы (без HugeIcon — тот давал артефакт
+              // «с тенью» над видео).
+              if (widget.showSwitchButton)
+                Positioned(
+                  right: 6,
+                  bottom: 6,
+                  child: GestureDetector(
+                    onTap: () => context.read<CallCubit>().switchCamera(),
+                    child: Container(
+                      width: 34,
+                      height: 34,
+                      decoration: const BoxDecoration(color: Color(0x66000000), shape: BoxShape.circle),
+                      child: Icon(
+                        Platform.isIOS ? CupertinoIcons.switch_camera : Icons.cameraswitch,
+                        size: 18,
+                        color: const Color(0xFFFFFFFF),
+                      ),
+                    ),
+                  ),
                 ),
-              ),
-              builder: (context, visible, child) => IgnorePointer(
-                ignoring: !visible,
-                child: AnimatedOpacity(opacity: visible ? 1 : 0, duration: const Duration(milliseconds: 180), child: child),
-              ),
-            ),
+            ],
           ),
-        ],
+        ),
       ),
-    ),
-  );
+    );
+  }
 
   double get _maxX => (widget.maxWidth - _SelfView._width - _SelfView._margin).clamp(_SelfView._margin, double.infinity);
   double get _maxY => (widget.maxHeight - _SelfView._height - _SelfView._margin).clamp(_SelfView._margin, double.infinity);
@@ -527,25 +635,11 @@ class _SelfViewState extends State<_SelfView> {
   Offset get _defaultPos => Offset(_maxX, MediaQuery.paddingOf(context).top + 128);
 
   @override
-  void didUpdateWidget(_SelfView oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    // Дорожку сменили — пересобираем видео-виджет (редко: обычно инстанс тот же).
-    if (oldWidget.track != widget.track) _videoChild = _buildVideoChild();
-  }
-
-  @override
-  void dispose() {
-    _hideTimer?.cancel();
-    _controlsVisible.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder<Offset?>(
       valueListenable: widget.pos,
-      // child (видео) прокидывается насквозь — не перестраивается при драге.
-      child: _videoChild,
+      // child (содержимое) прокидывается насквозь — не перестраивается при драге.
+      child: _buildContent(context),
       builder: (context, raw, child) {
         final base = raw ?? _defaultPos;
         // Клампим на случай смены размеров экрана (поворот и т.п.).
@@ -593,8 +687,9 @@ class _Overlay extends StatelessWidget {
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      _QualityIndicator(quality: state.quality, unknownColor: palette.timer),
-                      const SizedBox(width: 6),
+                      // Пока оценки качества нет (`unknown`) — иконку не показываем
+                      // вовсе, чтобы не мигать до первой оценки от LiveKit.
+                      if (state.quality != CallQuality.unknown) ...[_QualityIndicator(quality: state.quality), const SizedBox(width: 6)],
                       _CallTimer(connectedAt: state.connectedAt!, color: palette.timer),
                     ],
                   )
@@ -823,13 +918,12 @@ class _CallTimerState extends State<_CallTimer> {
 
 /// Индикатор качества связи: одна иконка сигнала без подписи. Цвет —
 /// красный/жёлтый/зелёный по качеству; сила сигнала — полный/средний/слабый.
-/// Пока оценки нет ([CallQuality.unknown]) — «нет сигнала» цветом таймера
-/// ([unknownColor]), чтобы значок не бросался в глаза до первой оценки.
+/// Для [CallQuality.unknown] ничего не рисуем — вызывающий скрывает индикатор
+/// целиком, пока оценки нет.
 class _QualityIndicator extends StatelessWidget {
   final CallQuality quality;
-  final Color unknownColor;
 
-  const _QualityIndicator({required this.quality, required this.unknownColor});
+  const _QualityIndicator({required this.quality});
 
   @override
   Widget build(BuildContext context) {
@@ -837,8 +931,9 @@ class _QualityIndicator extends StatelessWidget {
       CallQuality.excellent => (HugeIcons.strokeRoundedFullSignal, CallView._green),
       CallQuality.good => (HugeIcons.strokeRoundedMediumSignal, CallView._amber),
       CallQuality.poor => (HugeIcons.strokeRoundedLowSignal, CallView._red),
-      CallQuality.unknown => (HugeIcons.strokeRoundedNoSignal, unknownColor),
+      CallQuality.unknown => (null, CallView._green),
     };
+    if (icon == null) return const SizedBox.shrink();
     return HugeIcon(icon: icon, color: color, size: 16);
   }
 }

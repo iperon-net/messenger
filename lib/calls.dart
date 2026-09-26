@@ -717,11 +717,19 @@ class Calls {
     _cameraPosition = CameraPosition.front;
     final publication = await participant.setCameraEnabled(true);
     _localVideoTrack = publication?.track as VideoTrack?;
-    // Промоутим снимок в видео: video=true поднимает видео-рендер/контролы/
-    // wakelock. Маршрут аудио и состояние динамика НЕ трогаем — в идущем звонке
-    // у пользователя уже выбран рабочий выход, резкая смена на громкую связь
-    // была бы неожиданной (в отличие от старта видеозвонка «с нуля»).
-    _emit(_snapshot.copyWith(video: true, cameraOff: false, mediaEpoch: _snapshot.mediaEpoch + 1));
+    // Апгрейд аудио→видео включает громкую связь ТОЛЬКО на этом телефоне (том, где
+    // нажали «Видео»): пользователь переходит от «телефон у уха» к «смотрю на
+    // экран», поэтому динамик здесь уместен. Собеседнику маршрут НЕ навязываем —
+    // его сторона лишь поднимет видео-UI по TrackSubscribed (см. [_wireRoomEvents]/
+    // [_adoptRemoteTracks]) и динамик не трогает; у него уже выбран рабочий выход,
+    // резкая смена на громкую связь была бы неожиданной. Маршрутом владеет LiveKit
+    // (`setSpeakerOutputPreferred`, см. [toggleSpeaker]).
+    try {
+      await AudioManager.instance.setSpeakerOutputPreferred(true);
+    } catch (error, stackTrace) {
+      logger.handle(error, stackTrace);
+    }
+    _emit(_snapshot.copyWith(video: true, cameraOff: false, speakerOn: true, mediaEpoch: _snapshot.mediaEpoch + 1));
     _dbg('video enabled');
   }
 
