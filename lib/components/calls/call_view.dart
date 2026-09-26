@@ -645,13 +645,10 @@ class _Overlay extends StatelessWidget {
   Widget build(BuildContext context) {
     final cubit = context.read<CallCubit>();
     final active = state.callStatus == CallStatus.active;
-    // Кнопка профиля собеседника (правый верхний угол): открывает его публичный
-    // профиль поверх экрана звонка. Показываем на исходящем/соединении/активном
-    // разговоре и только когда известен userID собеседника ([boringAvatarHash] —
-    // это hex userID, см. [CallState]).
+    // Кнопка перехода к чатам (правый верхний угол). Показываем на
+    // исходящем/соединении/активном разговоре.
     final showAccount =
-        state.boringAvatarHash.isNotEmpty &&
-        (state.callStatus == CallStatus.outgoing || state.callStatus == CallStatus.connecting || state.callStatus == CallStatus.active);
+        state.callStatus == CallStatus.outgoing || state.callStatus == CallStatus.connecting || state.callStatus == CallStatus.active;
 
     return SafeArea(
       child: Stack(
@@ -714,12 +711,7 @@ class _Overlay extends StatelessWidget {
               ],
             ),
           ),
-          if (showAccount)
-            Positioned(
-              top: 8,
-              right: 24,
-              child: _AccountButton(palette: palette, hex: state.boringAvatarHash),
-            ),
+          if (showAccount) Positioned(top: 8, right: 24, child: _AccountButton(palette: palette)),
         ],
       ),
     );
@@ -1081,28 +1073,26 @@ class _MicBadge extends StatelessWidget {
   }
 }
 
-/// Кнопка в правом верхнем углу экрана звонка — открывает публичный профиль
-/// собеседника (`/profile/:userID`) поверх звонка. [hex] — hex userID (из
-/// [CallState.boringAvatarHash]).
+/// Кнопка в правом верхнем углу экрана звонка — переходит к списку чатов
+/// (`/chats`).
 class _AccountButton extends StatelessWidget {
   final _CallPalette palette;
-  final String hex;
 
-  const _AccountButton({required this.palette, required this.hex});
+  const _AccountButton({required this.palette});
 
   static const double _size = 44;
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => context.push('/profile/$hex'),
+      onTap: () => context.go('/chats'),
       behavior: HitTestBehavior.opaque,
       child: Container(
         width: _size,
         height: _size,
         decoration: BoxDecoration(color: palette.controlBg, shape: BoxShape.circle),
         alignment: Alignment.center,
-        child: HugeIcon(icon: HugeIcons.strokeRoundedUserAccount, color: palette.fg, size: 24),
+        child: HugeIcon(icon: HugeIcons.strokeRoundedMessagesSquare, color: palette.fg, size: 24),
       ),
     );
   }
