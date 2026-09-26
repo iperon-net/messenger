@@ -756,6 +756,22 @@ class Calls {
     _emit(_snapshot.copyWith(speakerOn: on));
   }
 
+  /// Переиздаёт предпочтение динамика, если у пользователя выбрана громкая связь.
+  /// Любая (пере)активация аудиодвижка WebRTC (подписка на аудиодорожку
+  /// собеседника, mute/unmute) сбрасывает выбранный выход на разговорный
+  /// (earpiece), затирая ранее выставленный динамик — поэтому предпочтение
+  /// приходится переиздавать после таких событий. Не `force` — чтобы подключённая
+  /// гарнитура (BT/проводная) сохраняла приоритет над динамиком (см. порядок
+  /// preferredDeviceList в `LKAudioSwitchManager`). См. [toggleSpeaker].
+  Future<void> _reassertSpeakerRoute() async {
+    if (!_snapshot.speakerOn) return;
+    try {
+      await AudioManager.instance.setSpeakerOutputPreferred(true);
+    } catch (error, stackTrace) {
+      logger.handle(error, stackTrace);
+    }
+  }
+
   // iOS: локальная камера приглушена из-за ухода приложения в фон (НЕ пользователем).
   // В фоне iOS прерывает `AVCaptureSession` (камера физически не снимает), но
   // приложение живёт ради аудиосессии CallKit, поэтому mute-сигнал успевает уйти.
@@ -1241,6 +1257,14 @@ class Calls {
           // (иначе фон/возврат из фона поднял бы её через resumeVideoAfterBackground,
           // а тумблер показывал бы «камера включена» при выключенной камере).
           _emit(_snapshot.copyWith(video: true, cameraOff: _localVideoTrack == null, mediaEpoch: _snapshot.mediaEpoch + 1));
+        } else if (track is AudioTrack) {
+          // Подписка на аудиодорожку собеседника (пере)активирует аудиодвижок
+          // WebRTC, а он сбрасывает выход на разговорный (earpiece), затирая
+          // динамик, выставленный один раз при коннекте ([_connectRoom]). Для
+          // видеозвонка это выглядело как «громкая связь не включается сразу».
+          // Переиздаём предпочтение динамика (не forced — гарнитура сохраняет
+          // приоритет), как это уже делается на [toggleMic].
+          unawaited(_reassertSpeakerRoute());
         }
         // Подписались на аудиодорожку собеседника — считываем её начальное
         // mute-состояние. TrackMuted/Unmuted летят только ПОСЛЕ подписки (SDK
