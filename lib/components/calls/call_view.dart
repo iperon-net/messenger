@@ -587,20 +587,23 @@ class _Overlay extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 // На активном звонке подпись — таймер разговора; иначе — статус.
+                // Перед таймером — иконка качества связи (только когда LiveKit
+                // уже прислал оценку); текста нет, лишь значок нужного цвета.
                 if (active && state.connectedAt != null)
-                  _CallTimer(connectedAt: state.connectedAt!, color: palette.timer)
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _QualityIndicator(quality: state.quality, unknownColor: palette.timer),
+                      const SizedBox(width: 6),
+                      _CallTimer(connectedAt: state.connectedAt!, color: palette.timer),
+                    ],
+                  )
                 else
                   Text(
                     _subtitle(context),
                     textAlign: TextAlign.center,
                     style: TextStyle(color: palette.status, fontSize: 15),
                   ),
-                // Индикатор качества связи (только на активном звонке, когда
-                // LiveKit уже прислал оценку).
-                if (active && state.quality != CallQuality.unknown) ...[
-                  const SizedBox(height: 8),
-                  _QualityIndicator(quality: state.quality, dim: palette.dim),
-                ],
                 // Микрофон собеседника выключен — значок ниже статуса связи.
                 // if (active && state.remoteMicMuted) ...[const SizedBox(height: 8), _RemoteMicIndicator(dim: palette.dim)],
                 // Диагностика соединения прямо на экране (этапы сигналинга/ICE/
@@ -818,41 +821,25 @@ class _CallTimerState extends State<_CallTimer> {
   }
 }
 
-/// Индикатор качества связи: три «столбика» (закрашено 1/2/3 по качеству) плюс
-/// краткая подпись. Цвет — красный/жёлтый/зелёный.
+/// Индикатор качества связи: одна иконка сигнала без подписи. Цвет —
+/// красный/жёлтый/зелёный по качеству; сила сигнала — полный/средний/слабый.
+/// Пока оценки нет ([CallQuality.unknown]) — «нет сигнала» цветом таймера
+/// ([unknownColor]), чтобы значок не бросался в глаза до первой оценки.
 class _QualityIndicator extends StatelessWidget {
   final CallQuality quality;
-  final Color dim;
+  final Color unknownColor;
 
-  const _QualityIndicator({required this.quality, required this.dim});
+  const _QualityIndicator({required this.quality, required this.unknownColor});
 
   @override
   Widget build(BuildContext context) {
-    final t = context.t.screenCall;
-    final (bars, color, label) = switch (quality) {
-      CallQuality.excellent => (3, CallView._green, t.qualityExcellent),
-      CallQuality.good => (2, CallView._amber, t.qualityGood),
-      CallQuality.poor => (1, CallView._red, t.qualityPoor),
-      CallQuality.unknown => (0, dim, ''),
+    final (icon, color) = switch (quality) {
+      CallQuality.excellent => (HugeIcons.strokeRoundedFullSignal, CallView._green),
+      CallQuality.good => (HugeIcons.strokeRoundedMediumSignal, CallView._amber),
+      CallQuality.poor => (HugeIcons.strokeRoundedLowSignal, CallView._red),
+      CallQuality.unknown => (HugeIcons.strokeRoundedNoSignal, unknownColor),
     };
-    final inactive = dim.withValues(alpha: 0.3);
-
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        for (var i = 0; i < 3; i++)
-          Padding(
-            padding: const EdgeInsets.only(right: 2),
-            child: Container(
-              width: 3,
-              height: 6.0 + i * 3,
-              decoration: BoxDecoration(color: i < bars ? color : inactive, borderRadius: BorderRadius.circular(1)),
-            ),
-          ),
-        const SizedBox(width: 6),
-        Text(label, style: TextStyle(color: color, fontSize: 12)),
-      ],
-    );
+    return HugeIcon(icon: icon, color: color, size: 16);
   }
 }
 

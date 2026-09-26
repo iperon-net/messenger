@@ -963,7 +963,14 @@ class Calls {
     var attempt = 0;
     while (true) {
       attempt++;
-      final room = Room();
+      // `stopAudioCaptureOnMute: false` — критично для маршрута аудио. По
+      // умолчанию LiveKit на mute ОСТАНАВЛИВАЕТ захват, а на unmute
+      // перезапускает его, что пересоздаёт аудиодвижок WebRTC и переконфигурирует
+      // AVAudioSession → выбранный динамик сбрасывался на разговорный (earpiece).
+      // С `false` mute лишь снимает `enabled` дорожки, движок и аудиосессия
+      // продолжают жить, маршрут не трогается. Режим мьюта (`inputMixer`) на iOS
+      // довыставляем в [_configureIosAudioForCall] — он тоже держит движок/сессию.
+      final room = Room(roomOptions: const RoomOptions(defaultAudioCaptureOptions: AudioCaptureOptions(stopAudioCaptureOnMute: false)));
       _room = room;
       _diag2('Room CREATED seq=$seq attempt=$attempt room#=${identityHashCode(room)} url=${response.url}');
       _roomListener = room.createListener();
@@ -1094,7 +1101,27 @@ class Calls {
         await _setIosAudioSessionActive(true);
         _iosManualAudioSession = true;
         await AudioManager.instance.setEngineAvailability(AudioEngineAvailability.defaultAvailability);
+        // Сессия активна (запись разрешена) — можно выставить режим мьюта.
+        await _applyMicMuteMode();
       }
+    } catch (error, stackTrace) {
+      logger.handle(error, stackTrace);
+    }
+  }
+
+  /// iOS: переводит мьют микрофона в режим `inputMixer` — глушение узла микшера
+  /// без остановки/перезапуска аудиодвижка и без переактивации AVAudioSession
+  /// (в отличие от дефолтного `voiceProcessing`, который к тому же проигрывает
+  /// системный «бип» на mute). Вместе с `stopAudioCaptureOnMute: false` (см.
+  /// [Room] в [_connectRoom]) это не даёт mute/unmute сбрасывать выбранный
+  /// аудио-маршрут (динамик → earpiece). Режим — engine-wide, задаём под каждый
+  /// звонок после того, как аудиосессия разрешает запись (иначе натив бросит
+  /// AudioSessionException). Ошибку глушим — mute продолжит работать в дефолтном
+  /// режиме. No-op вне iOS.
+  Future<void> _applyMicMuteMode() async {
+    if (!Platform.isIOS) return;
+    try {
+      await AudioManager.instance.setMicrophoneMuteMode(MicrophoneMuteMode.inputMixer);
     } catch (error, stackTrace) {
       logger.handle(error, stackTrace);
     }
@@ -1157,6 +1184,9 @@ class Calls {
       await AudioManager.instance.setEngineAvailability(
         active ? AudioEngineAvailability.defaultAvailability : AudioEngineAvailability.none,
       );
+      // Движок поднят и сессия активирована CallKit (запись разрешена) — теперь
+      // безопасно выставить режим мьюта `inputMixer` (см. [_applyMicMuteMode]).
+      if (active) await _applyMicMuteMode();
     } catch (error, stackTrace) {
       logger.handle(error, stackTrace);
     }
