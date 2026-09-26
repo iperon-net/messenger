@@ -133,12 +133,6 @@ class _IperonMessengerMaterial extends State<IperonMessengerMaterial> with Widge
         unawaited(logger.fileLogger.flush());
         api.setForeground(false);
       case AppLifecycleState.inactive:
-        // `inactive` — foreground-состояние (приложение видимо/сверху), не уход в
-        // фон. Поднимаем foreground: это надёжный сигнал «мы на переднем плане» на
-        // возврате, когда `resumed` может не прийти (например, вокруг звонилки).
-        // Реальный уход в фон снимет foreground следом через `paused`/`hidden`/
-        // `detached`. Симметрично iOS (см. app_cupertino.dart).
-        api.setForeground(true);
         setState(() => isBlur = true);
         context.read<CommonCubit>().onAppBackgrounded();
     }
