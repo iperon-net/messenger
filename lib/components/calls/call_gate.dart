@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:flutter/widgets.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -75,12 +74,13 @@ class _CallGateState extends State<CallGate> {
       _snapshot = snapshot;
     }
 
-    // Входящий (`incoming`): на iOS открываем наш экран (`CallView` рисует
-    // «Принять/Отклонить») — CallKit в активном foreground баннер НЕ показывает,
-    // поэтому системной звонилке его не отдаём. На Android входящий в foreground
-    // ведёт системная звонилка (ConnectionService) с системным рингтоном, свой
-    // экран поднимаем только с принятия (`connecting`/`active`). Исходящий
-    // открываем всегда. См. Calls.incomingRings / CallPush._onIncomingRing.
+    // Входящий (`incoming`): системную звонилку (CallKit/ConnectionService) ведёт
+    // ОС на обеих платформах — свой экран на входящем НЕ открываем. На iOS
+    // входящий репортит CallKit из VoIP-push (AppDelegate; сервер шлёт его всегда,
+    // см. push.go `ignoreOnline`), на Android — ConnectionService. Свой `CallView`
+    // поднимаем только с принятия (`connecting`/`active`), чтобы в foreground не
+    // было ДВУХ входящих UI (свой экран + системный баннер). Исходящий открываем
+    // всегда. См. Calls.incomingRings / CallPush._onIncomingRing.
     final active = _isActive(snapshot.status);
 
     // Авто-открытие только на переходе не-активный → активный (старт звонка).
@@ -144,12 +144,11 @@ class _CallGateState extends State<CallGate> {
   }
 
   // Активен ли звонок в смысле «ведём свой экран» (исходящий/соединение/разговор).
-  // `idle`/`ended` — звонка нет. `incoming` активен только на iOS: там свой экран
-  // (foreground CallKit-баннер не показывает); на Android входящий ведёт системная
-  // звонилка, до принятия экран не открываем.
+  // `idle`/`ended` — звонка нет. `incoming` НЕ активен ни на одной платформе:
+  // входящий ведёт системная звонилка (iOS CallKit из VoIP-push, Android
+  // ConnectionService), свой экран поднимаем только с принятия.
   static bool _isActive(CallStatus status) => switch (status) {
-    CallStatus.idle || CallStatus.ended => false,
-    CallStatus.incoming => Platform.isIOS,
+    CallStatus.idle || CallStatus.ended || CallStatus.incoming => false,
     _ => true,
   };
 
@@ -164,10 +163,10 @@ class _CallGateState extends State<CallGate> {
       return;
     }
     final status = _calls.snapshot.status;
-    // idle/ended — звонка нет. `incoming` открываем только на iOS (foreground-
-    // входящий, см. [_isActive]); на Android его ведёт системная звонилка —
-    // свой экран поднимаем лишь с принятия (connecting/active).
-    if (status == CallStatus.idle || status == CallStatus.ended || (status == CallStatus.incoming && !Platform.isIOS)) {
+    // idle/ended — звонка нет. `incoming` ведёт системная звонилка (CallKit/
+    // ConnectionService) на обеих платформах — свой экран поднимаем лишь с
+    // принятия (connecting/active). См. [_isActive].
+    if (status == CallStatus.idle || status == CallStatus.ended || status == CallStatus.incoming) {
       _logger.info('call_gate: openCall skipped (status=$status)');
       return;
     }
