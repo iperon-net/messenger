@@ -204,18 +204,19 @@ class MainActivity : FlutterFragmentActivity() {
             } }
     }
 
-    /// Занят ли телефон ДРУГИМ звонком: сотовым (`MODE_IN_CALL`), чужим VoIP-
-    /// приложением (`MODE_IN_COMMUNICATION`) или идёт входящий гудок
-    /// (`MODE_RINGING`). Через `AudioManager.getMode()` — БЕЗ разрешений (не нужен
-    /// чувствительный `READ_PHONE_STATE`, которого требуют `TelephonyManager`/
-    /// `TelecomManager`). Свой собственный in-app-звонок сюда не попадает: Dart
-    /// зовёт проверку ДО подключения к комнате LiveKit (в `startCall` — до старта,
-    /// в `_onRing` — до подъёма входящего), пока наш звонок ещё не выставил
-    /// `MODE_IN_COMMUNICATION`; занятость своим звонком и так знает `_hasActiveCall`.
+    /// Занят ли телефон ДРУГИМ АКТИВНЫМ звонком: сотовым (`MODE_IN_CALL`) или чужим
+    /// VoIP-приложением (`MODE_IN_COMMUNICATION`). Через `AudioManager.getMode()` —
+    /// БЕЗ разрешений (не нужен чувствительный `READ_PHONE_STATE`, которого требуют
+    /// `TelephonyManager`/`TelecomManager`). Просто звонящий (не отвеченный) сотовый
+    /// (`MODE_RINGING`) занятостью не считаем — разговора ещё нет. Свой собственный
+    /// in-app-звонок сюда не попадает: Dart зовёт проверку ДО подключения к комнате
+    /// LiveKit (в `startCall` — до старта, в `_onRing` — до подъёма входящего), пока
+    /// наш звонок ещё не выставил `MODE_IN_COMMUNICATION`; занятость своим звонком и
+    /// так знает `_hasActiveCall`.
     private fun hasActiveExternalCall(): Boolean {
         val audioManager = getSystemService(Context.AUDIO_SERVICE) as? AudioManager ?: return false
         return when (audioManager.mode) {
-            AudioManager.MODE_IN_CALL, AudioManager.MODE_IN_COMMUNICATION, AudioManager.MODE_RINGING -> true
+            AudioManager.MODE_IN_CALL, AudioManager.MODE_IN_COMMUNICATION -> true
             else -> false
         }
     }
