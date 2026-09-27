@@ -492,6 +492,23 @@ class _CallViewState extends State<CallView> with WidgetsBindingObserver {
                         ),
                       ),
                     ),
+                  // Значок «микрофон собеседника выключен» — в левом верхнем углу.
+                  // Живёт в главном Stack (а НЕ в _Overlay), поэтому НЕ гаснет вместе
+                  // с панелью управления при автоскрытии на видеозвонке — статус
+                  // мьюта собеседника виден постоянно. Нужен именно когда видео
+                  // собеседника на главном экране ([mainOn]): при выключенной у него
+                  // камере его mute уже показан бейджем на аватаре (см. [_Avatar]).
+                  // Слой не перехватывает жесты (нет GestureDetector) — тап по экрану
+                  // проходит сквозь него к слою [_toggleOverlay] ниже.
+                  if (!_inPip && mainOn && state.remoteMicMuted)
+                    Positioned.fill(
+                      child: SafeArea(
+                        child: Align(
+                          alignment: Alignment.topLeft,
+                          child: Padding(padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40), child: _RemoteMicPill()),
+                        ),
+                      ),
+                    ),
                   // Мини-окно (наша камера, либо собеседник при свапе) — перетаскиваемое
                   // окно картинкой-в-картинке. Держим ПОСЛЕДНИМ в Stack (поверх панели
                   // и слоя тапа), иначе кнопки/слой перехватывали бы его жесты. Внутри —
@@ -1113,6 +1130,35 @@ class _MicBadge extends StatelessWidget {
       ),
       alignment: Alignment.center,
       child: const HugeIcon(icon: HugeIcons.strokeRoundedMicOff01, color: CallView._onAccent, size: 18),
+    );
+  }
+}
+
+/// Плашка «микрофон собеседника выключен» для видеозвонка — перечёркнутый
+/// микрофон + подпись на тёмном полупрозрачном фоне (читается над любой
+/// картинкой). Рисуется в левом верхнем углу и, в отличие от бейджа на аватаре
+/// ([_MicBadge]), живёт вне автоскрывающейся панели — виден всё время, пока у
+/// собеседника выключен микрофон. Цвета фиксированные (не из палитры): плашка
+/// всегда лежит поверх видео, где нужен светлый текст на тёмном.
+class _RemoteMicPill extends StatelessWidget {
+  const _RemoteMicPill();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(color: const Color(0x99000000), borderRadius: BorderRadius.circular(20)),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const HugeIcon(icon: HugeIcons.strokeRoundedMicOff01, color: CallView._red, size: 18),
+          const SizedBox(width: 6),
+          Text(
+            context.t.screenCall.remoteMicMuted,
+            style: const TextStyle(color: CallView._onAccent, fontSize: 13, fontWeight: FontWeight.w500),
+          ),
+        ],
+      ),
     );
   }
 }
