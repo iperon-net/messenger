@@ -503,7 +503,7 @@ class _CallViewState extends State<CallView> with WidgetsBindingObserver {
                       pos: _selfViewPos,
                       maxWidth: constraints.maxWidth,
                       maxHeight: constraints.maxHeight,
-                      child: pipVideo ?? _Avatar(state: state, palette: palette),
+                      child: pipVideo ?? _Avatar(state: state, palette: palette, fill: true),
                     ),
                 ],
               );
@@ -1002,13 +1002,51 @@ class _Avatar extends StatelessWidget {
   final CallState state;
   final _CallPalette palette;
 
-  const _Avatar({required this.state, required this.palette});
+  /// Заполнить всё доступное пространство прямоугольником (скругление даёт внешний
+  /// [ClipRRect] окна), а не рисовать круг фиксированного размера. Нужно для
+  /// мини-окна PiP: его пропорции неквадратные (132×192), и круглый аватар,
+  /// растянутый на всю область, превращался в овал.
+  final bool fill;
+
+  const _Avatar({required this.state, required this.palette, this.fill = false});
 
   static const _size = 128.0;
 
   @override
   Widget build(BuildContext context) {
     final bytes = state.avatarBytes;
+
+    if (fill) {
+      final Widget avatar = bytes != null
+          ? Image.memory(bytes, fit: BoxFit.cover, gaplessPlayback: true)
+          : (state.boringAvatarHash.isNotEmpty
+                // AnimatedBoringAvatar внутри жёстко квадратный (AspectRatio: 1) —
+                // под неквадратным окном узор растянется, поэтому центрируем его
+                // квадратом по меньшей стороне и заполняем фоном по краям.
+                ? Center(
+                    child: AspectRatio(
+                      aspectRatio: 1,
+                      child: AnimatedBoringAvatar(
+                        name: state.boringAvatarHash,
+                        type: BoringAvatarType.beam,
+                        shape: const RoundedRectangleBorder(),
+                        duration: const Duration(milliseconds: 600),
+                      ),
+                    ),
+                  )
+                : const SizedBox.shrink());
+
+      return Stack(
+        fit: StackFit.expand,
+        clipBehavior: Clip.none,
+        children: [
+          DecoratedBox(decoration: BoxDecoration(color: palette.controlBg)),
+          Positioned.fill(child: avatar),
+          if (state.remoteMicMuted) Positioned(right: 4, bottom: 4, child: _MicBadge(palette: palette)),
+        ],
+      );
+    }
+
     final avatar = bytes != null
         ? ClipOval(
             child: Image.memory(
