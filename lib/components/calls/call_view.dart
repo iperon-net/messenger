@@ -1076,12 +1076,19 @@ class _MicBadge extends StatelessWidget {
 /// Кнопка в правом верхнем углу экрана звонка — сворачивает экран звонка и
 /// переходит к списку чатов (`/chats`).
 ///
-/// Важно: экран `/call` открыт как push-маршрут на корневом навигаторе. Просто
-/// `context.go('/chats')` уводит на вкладку, но НЕ закрывает этот push
-/// корректно — future от `push('/call')` в [CallGate] не завершается, флаг
-/// `_routeOpen` залипает в `true`, и плашка возврата (условие `!_routeOpen`)
-/// не показывается. Поэтому сначала явно попим экран звонка (это завершит
-/// future и покажет плашку), а затем переключаемся на вкладку чатов.
+/// Два сценария:
+///  1. Обычный (без passcode-лока): экран `/call` открыт как push-маршрут на
+///     корневом навигаторе. Просто `context.go('/chats')` уводит на вкладку, но
+///     НЕ закрывает этот push корректно — future от `push('/call')` в [CallGate]
+///     не завершается, флаг `_routeOpen` залипает в `true`, и плашка возврата
+///     (условие `!_routeOpen`) не показывается. Поэтому сначала явно попим экран
+///     звонка (это завершит future и покажет плашку), а затем переключаемся на
+///     вкладку чатов.
+///  2. Под passcode-локом экран звонка нарисован ПОВЕРХ ScreenLock в обход
+///     роутера (см. `app_cupertino`/`app_material`) — навигатора в дереве нет,
+///     `GoRouter.of` тут недоступен, поэтому pop/go невозможны. Вместо этого
+///     просим [CommonCubit.dismissCallOverlay]: app-root спрячет экран звонка и
+///     покажет ScreenLock, а на `/chats` переведёт роутер сам (введя код).
 class _AccountButton extends StatelessWidget {
   final _CallPalette palette;
 
@@ -1090,6 +1097,13 @@ class _AccountButton extends StatelessWidget {
   static const double _size = 44;
 
   void _onTap(BuildContext context) {
+    // Под локом экран звонка рисуется в обход роутера — навигации нет, отдаём
+    // управление app-root'у через кубит (он покажет ScreenLock и уведёт в чаты
+    // после ввода кода).
+    if (context.read<CommonCubit>().state.isLocked) {
+      context.read<CommonCubit>().dismissCallOverlay();
+      return;
+    }
     final router = GoRouter.of(context);
     if (router.canPop()) router.pop();
     router.go('/chats');

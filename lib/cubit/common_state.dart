@@ -29,6 +29,13 @@ class CommonState with CommonStateMappable {
   /// Обновляется из слушателя роутера в `main.dart`.
   final bool isAuthRoute;
 
+  /// Свёрнут ли экран активного звонка, показанный поверх ScreenLock под
+  /// passcode-локом. Под локом активный звонок рисуется в обход ScreenLock (см.
+  /// `app_cupertino`/`app_material`); когда пользователь жмёт кнопку перехода к
+  /// чатам, ставим этот флаг — тогда app-root прячет экран звонка и показывает
+  /// ScreenLock, вынуждая ввести код. Сбрасывается в [unlock].
+  final bool callOverlayDismissed;
+
   const CommonState({
     this.status = Status.initialization,
     required this.settingsDevice,
@@ -36,5 +43,6 @@ class CommonState with CommonStateMappable {
     this.autoBiometrics = true,
     this.isBiometricAvailable = false,
     this.isAuthRoute = false,
+    this.callOverlayDismissed = false,
   });
 }

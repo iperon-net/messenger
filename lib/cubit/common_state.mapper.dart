@@ -62,6 +62,13 @@ class CommonStateMapper extends ClassMapperBase<CommonState> {
     opt: true,
     def: false,
   );
+  static bool _$callOverlayDismissed(CommonState v) => v.callOverlayDismissed;
+  static const Field<CommonState, bool> _f$callOverlayDismissed = Field(
+    'callOverlayDismissed',
+    _$callOverlayDismissed,
+    opt: true,
+    def: false,
+  );
 
   @override
   final MappableFields<CommonState> fields = const {
@@ -71,6 +78,7 @@ class CommonStateMapper extends ClassMapperBase<CommonState> {
     #autoBiometrics: _f$autoBiometrics,
     #isBiometricAvailable: _f$isBiometricAvailable,
     #isAuthRoute: _f$isAuthRoute,
+    #callOverlayDismissed: _f$callOverlayDismissed,
   };
 
   static CommonState _instantiate(DecodingData data) {
@@ -81,6 +89,7 @@ class CommonStateMapper extends ClassMapperBase<CommonState> {
       autoBiometrics: data.dec(_f$autoBiometrics),
       isBiometricAvailable: data.dec(_f$isBiometricAvailable),
       isAuthRoute: data.dec(_f$isAuthRoute),
+      callOverlayDismissed: data.dec(_f$callOverlayDismissed),
     );
   }
 
@@ -153,6 +162,7 @@ abstract class CommonStateCopyWith<$R, $In extends CommonState, $Out>
     bool? autoBiometrics,
     bool? isBiometricAvailable,
     bool? isAuthRoute,
+    bool? callOverlayDismissed,
   });
   CommonStateCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
@@ -177,6 +187,7 @@ class _CommonStateCopyWithImpl<$R, $Out>
     bool? autoBiometrics,
     bool? isBiometricAvailable,
     bool? isAuthRoute,
+    bool? callOverlayDismissed,
   }) => $apply(
     FieldCopyWithData({
       if (status != null) #status: status,
@@ -186,6 +197,8 @@ class _CommonStateCopyWithImpl<$R, $Out>
       if (isBiometricAvailable != null)
         #isBiometricAvailable: isBiometricAvailable,
       if (isAuthRoute != null) #isAuthRoute: isAuthRoute,
+      if (callOverlayDismissed != null)
+        #callOverlayDismissed: callOverlayDismissed,
     }),
   );
   @override
@@ -199,6 +212,10 @@ class _CommonStateCopyWithImpl<$R, $Out>
       or: $value.isBiometricAvailable,
     ),
     isAuthRoute: data.get(#isAuthRoute, or: $value.isAuthRoute),
+    callOverlayDismissed: data.get(
+      #callOverlayDismissed,
+      or: $value.callOverlayDismissed,
+    ),
   );
 
   @override

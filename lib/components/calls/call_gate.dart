@@ -61,6 +61,14 @@ class _CallGateState extends State<CallGate> {
     super.initState();
     // Начальная синхронизация без setState (билд ещё не прошёл).
     _snapshot = _calls.snapshot;
+    // Пользователь свернул экран звонка к чатам из-под passcode-лока: после ввода
+    // кода навигатор пересобирается заново с активным звонком. Обычно [_handle]
+    // на маунте авто-открыл бы `/call` (переход не-активный → активный), но здесь
+    // это вернуло бы экран звонка вместо чатов. Считаем звонок «уже активным на
+    // старте» — авто-открытия не будет, останется только плашка возврата.
+    if (_calls.consumeMinimizeRequest()) {
+      _wasActive = _isActive(_snapshot.status);
+    }
     _handle(_snapshot, initial: true);
     _sub = _calls.snapshots.listen((s) => _handle(s, initial: false));
     // Тап по ongoing-нотификации звонка (Android) — переоткрываем `/call`.

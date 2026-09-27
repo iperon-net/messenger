@@ -398,6 +398,27 @@ class Calls {
     if (!_focusController.isClosed) _focusController.add(null);
   }
 
+  // Пользователь свернул экран звонка к чатам, находясь под passcode-локом
+  // (кнопка на [CallView]). Под локом экран звонка рисуется поверх ScreenLock в
+  // обход роутера, поэтому обычный pop/навигация недоступны — app-root прячет
+  // экран (показывает ScreenLock) и переводит роутер на `/chats`. После ввода
+  // кода навигатор пересобирается заново, и [CallGate] на маунте не должен
+  // авто-открывать `/call` (иначе вместо чатов снова всплыл бы экран звонка) —
+  // показываем только плашку возврата. Флаг одноразовый: [consumeMinimizeRequest]
+  // читает и сбрасывает его.
+  bool _minimizeRequested = false;
+
+  /// Помечает, что пользователь свёл экран звонка к чатам из-под passcode-лока.
+  void markMinimizeRequest() => _minimizeRequested = true;
+
+  /// Читает и сбрасывает флаг [markMinimizeRequest]. Возвращает true один раз —
+  /// [CallGate] на маунте пропускает авто-открытие `/call`.
+  bool consumeMinimizeRequest() {
+    final value = _minimizeRequested;
+    _minimizeRequested = false;
+    return value;
+  }
+
   /// Локальная видеодорожка (картинка-в-картинке). null для аудиозвонка/до
   /// публикации/при выключенной камере.
   VideoTrack? get localVideoTrack => _localVideoTrack;

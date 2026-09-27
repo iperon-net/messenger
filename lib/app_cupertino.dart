@@ -178,9 +178,21 @@ class _IperonMessengerCupertino extends State<IperonMessengerCupertino> with Wid
     }
   }
 
+  // Пользователь свернул экран звонка к чатам из-под passcode-лока
+  // (CommonCubit.dismissCallOverlay). Навигатора в дереве ещё нет (рисуется
+  // ScreenLock), но goRouter — контроллер, его состояние можно менять и вне
+  // дерева: переводим на /chats (сбрасывая push `/call`), а calls-флаг не даёт
+  // CallGate заново авто-открыть `/call` после ввода кода — останется плашка.
+  void _onCallOverlayDismissed() {
+    calls.markMinimizeRequest();
+    goRouter.go('/chats');
+  }
+
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<CommonCubit, CommonState>(
+    return BlocConsumer<CommonCubit, CommonState>(
+      listenWhen: (previous, current) => !previous.callOverlayDismissed && current.callOverlayDismissed,
+      listener: (context, state) => _onCallOverlayDismissed(),
       builder: (context, state) {
         CupertinoDynamicColor colorSchemeSystem = themes.blueScheme;
 
@@ -237,7 +249,11 @@ class _IperonMessengerCupertino extends State<IperonMessengerCupertino> with Wid
                 // спровоцировал бы биометрию за спиной звонка. Когда звонок
                 // завершится, подписка на calls.snapshots перерисует билд и вернёт
                 // ScreenLock. Экран автономен (всё берёт из синглтона Calls).
-                if (_isCallActive) {
+                // callOverlayDismissed — пользователь свернул экран звонка к
+                // чатам (кнопка на CallView): перестаём рисовать его в обход
+                // локера, показываем ScreenLock (навигацию на /chats выполняет
+                // слушатель ниже). См. CommonCubit.dismissCallOverlay.
+                if (_isCallActive && !state.callOverlayDismissed) {
                   return BlocProvider<CallCubit>(create: (_) => CallCubit()..initialization(), child: const CallCupertino());
                 }
                 return ScreenLock(

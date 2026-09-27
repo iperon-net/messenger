@@ -164,7 +164,16 @@ class CommonCubit extends Cubit<CommonState> {
     // отсчёт авто-блокировки начинается заново.
     await repositories.settingsDevice.setPasscodeBackgroundedAt(0);
     final settingsDevice = state.settingsDevice.copyWith(passcodeForceLocked: false, passcodeBackgroundedAt: 0);
-    emit(state.copyWith(settingsDevice: settingsDevice, isLocked: false, autoBiometrics: true));
+    emit(state.copyWith(settingsDevice: settingsDevice, isLocked: false, autoBiometrics: true, callOverlayDismissed: false));
+  }
+
+  /// Свернуть экран активного звонка, показанный поверх ScreenLock под
+  /// passcode-локом: app-root перестанет рисовать экран звонка в обход локера и
+  /// покажет ScreenLock (см. `app_cupertino`/`app_material`). Так пользователь
+  /// сможет попасть в чаты только введя код. Сбрасывается в [unlock].
+  void dismissCallOverlay() {
+    if (state.callOverlayDismissed) return;
+    emit(state.copyWith(callOverlayDismissed: true));
   }
 
   /// Обновляет признак нахождения на экране авторизации. Вызывается из слушателя
