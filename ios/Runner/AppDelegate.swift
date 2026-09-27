@@ -121,6 +121,29 @@ import flutter_callkit_incoming
       let events = FlutterEventChannel(name: "net.iperon.messenger/audio_route_ios_events", binaryMessenger: messenger)
       events.setStreamHandler(AudioRouteMonitor.shared)
     }
+
+    // iOS: детект «телефон занят ДРУГИМ звонком» — сотовым (GSM/VoLTE) или чужим
+    // VoIP-приложением через CallKit. Занятость СВОИМ in-app-звонком Dart знает и
+    // без этого (Calls._hasActiveCall). Читаем CXCallObserver.calls по запросу;
+    // свои CallKit-звонки (UUID = callId) исключаем через аргумент exclude. См.
+    // lib/calls.dart (_systemBusyByOtherCall): используется в _onRing (ответить
+    // «занято») и в startCall (заблокировать исходящий).
+    if let messenger = engineBridge.pluginRegistry.registrar(forPlugin: "IperonSystemCall")?.messenger() {
+      // Трогаем синглтон заранее, чтобы CXCallObserver начал отслеживать звонки
+      // ещё до первого запроса (Apple: наблюдатель нужно удерживать в памяти).
+      _ = SystemCallMonitor.shared
+      let channel = FlutterMethodChannel(name: "net.iperon.messenger/system_call", binaryMessenger: messenger)
+      channel.setMethodCallHandler { call, result in
+        switch call.method {
+        case "hasActiveExternalCall":
+          let args = call.arguments as? [String: Any]
+          let exclude = (args?["exclude"] as? [String])?.map { $0.lowercased() } ?? []
+          result(SystemCallMonitor.shared.hasActiveExternalCall(excluding: Set(exclude)))
+        default:
+          result(FlutterMethodNotImplemented)
+        }
+      }
+    }
   }
 
   // MARK: - PushKit (VoIP)
@@ -316,6 +339,39 @@ class AudioRouteMonitor: NSObject, FlutterStreamHandler {
     case .carAudio: return "car"
     default: return "unknown"
     }
+  }
+}
+
+/// Наблюдатель системных звонков (CallKit `CXCallObserver`) — источник ответа на
+/// вопрос «занят ли телефон ДРУГИМ звонком»: сотовым (GSM/VoLTE) или чужим VoIP-
+/// приложением, интегрированным с CallKit. Свои in-app-звонки Dart отслеживает
+/// сам (Calls._hasActiveCall) и передаёт их CallKit-UUID в `excluding`, чтобы не
+/// принять собственный звонок за чужой. Наблюдатель удерживается синглтоном
+/// (требование Apple), делегат — no-op: массив `calls` читаем по запросу.
+/// Регистрируется каналом `net.iperon.messenger/system_call`, см.
+/// [AppDelegate.didInitializeImplicitFlutterEngine] и lib/calls.dart.
+class SystemCallMonitor: NSObject, CXCallObserverDelegate {
+  static let shared = SystemCallMonitor()
+  private let observer = CXCallObserver()
+
+  override init() {
+    super.init()
+    observer.setDelegate(self, queue: DispatchQueue.main)
+  }
+
+  // Делегат обязателен для старта наблюдения, но состояние нам не нужно —
+  // актуальный список берём из observer.calls в момент запроса.
+  func callObserver(_ callObserver: CXCallObserver, callChanged call: CXCall) {}
+
+  /// Есть ли активный (не завершённый) системный звонок, чей UUID не входит в
+  /// [excluding] (наши собственные CallKit-звонки). Ringing-входящий тоже считаем
+  /// занятостью — телефон уже обрабатывает звонок.
+  func hasActiveExternalCall(excluding: Set<String>) -> Bool {
+    for call in observer.calls where !call.hasEnded {
+      if excluding.contains(call.uuid.uuidString.lowercased()) { continue }
+      return true
+    }
+    return false
   }
 }
 

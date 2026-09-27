@@ -568,7 +568,10 @@ class _Translations$screenCall$ru extends Translations$screenCall$en {
 	@override String get endedNotAllowed => 'Нельзя позвонить этому пользователю';
 	@override String get notAllowedTitle => 'Звонок недоступен';
 	@override String get notAllowedMessage => 'Этот пользователь принимает звонки только от своих контактов. Чтобы вы могли позвонить, он должен добавить вас в контакты.';
+	@override String get deviceBusyTitle => 'Вы уже в звонке';
+	@override String get deviceBusyMessage => 'Телефон занят другим звонком. Завершите текущий звонок, чтобы позвонить.';
 	@override String get endedNoConnection => 'Нет соединения с интернетом';
+	@override String get endedUnavailable => 'Абонент недоступен';
 	@override String get ended => 'Звонок завершён';
 	@override String get decline => 'Отклонить';
 	@override String get accept => 'Принять';
@@ -873,7 +876,10 @@ extension on TranslationsRu {
 			'screenCall.endedNotAllowed' => 'Нельзя позвонить этому пользователю',
 			'screenCall.notAllowedTitle' => 'Звонок недоступен',
 			'screenCall.notAllowedMessage' => 'Этот пользователь принимает звонки только от своих контактов. Чтобы вы могли позвонить, он должен добавить вас в контакты.',
+			'screenCall.deviceBusyTitle' => 'Вы уже в звонке',
+			'screenCall.deviceBusyMessage' => 'Телефон занят другим звонком. Завершите текущий звонок, чтобы позвонить.',
 			'screenCall.endedNoConnection' => 'Нет соединения с интернетом',
+			'screenCall.endedUnavailable' => 'Абонент недоступен',
 			'screenCall.ended' => 'Звонок завершён',
 			'screenCall.decline' => 'Отклонить',
 			'screenCall.accept' => 'Принять',

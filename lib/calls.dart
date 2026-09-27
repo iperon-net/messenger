@@ -39,7 +39,11 @@ import 'utils.dart';
 enum CallStatus { idle, outgoing, incoming, connecting, active, ended }
 
 /// Причина завершения звонка — для текста на экране «завершено».
-enum CallEndReason { none, hangup, rejected, failed, busy, notAllowed, noConnection }
+// deviceBusy — локальное устройство занято ДРУГИМ звонком (сотовым/чужим VoIP):
+// исходящий блокируется до его завершения (в отличие от busy — «занят абонент»).
+// unavailable — исходящий не отвечен за таймаут дозвона (абонент недоступен/не
+// берёт трубку): в отличие от hangup («я сам сбросил») показываем это звонящему.
+enum CallEndReason { none, hangup, rejected, failed, busy, notAllowed, noConnection, deviceBusy, unavailable }
 
 /// Качество соединения звонка для индикатора на экране. Агрегируем из LiveKit
 /// [ConnectionQuality] собеседника (см. [Calls._mapQuality]); `unknown` — пока
@@ -178,6 +182,11 @@ class Calls {
   // разговорный переключает LiveKit `AudioManager.setSpeakerOutputPreferred`
   // (см. [toggleSpeaker]), а не этот канал.
   static const _callAudioChannel = MethodChannel('net.iperon.messenger/call_audio');
+
+  // iOS-канал детекта занятости телефона ДРУГИМ звонком (сотовым/чужим VoIP через
+  // CallKit). Реализация — SystemCallMonitor в ios/Runner/AppDelegate.swift. См.
+  // [_systemBusyByOtherCall].
+  static const _systemCallChannel = MethodChannel('net.iperon.messenger/system_call');
 
   // Проигрыватель гудков (ringback) исходящего звонка: зациклённый тон
   // assets/audio/ringback.wav (425 Гц, 1с/4с — RU-стандарт) звучит, пока ждём
@@ -530,6 +539,27 @@ class Calls {
       return;
     }
 
+    // iOS: телефон уже занят ДРУГИМ звонком (сотовым/чужим VoIP через CallKit) —
+    // не начинаем свой, иначе его аудиосессия конфликтует с идущим звонком.
+    // Отдаём терминальный снимок deviceBusy — CallGate покажет алерт «вы уже в
+    // звонке» и не откроет экран `/call`. Наши исходящие через CallKit не идут,
+    // поэтому исключать свой callId не нужно.
+    if (await _systemBusyByOtherCall()) {
+      logger.info('startCall aborted: device busy with another system call');
+      final busyCallId = _generateCallId();
+      _emit(
+        CallSnapshot(
+          status: CallStatus.ended,
+          callId: busyCallId,
+          remoteUserID: toUserID,
+          video: video,
+          endReason: CallEndReason.deviceBusy,
+        ),
+      );
+      _scheduleIdleReset(busyCallId);
+      return;
+    }
+
     final callId = _generateCallId();
     _handlingCallId = callId;
     _logDirection = models.CallDirection.outgoing;
@@ -691,10 +721,14 @@ class Calls {
   }
 
   /// Завершает текущий звонок (посылает `CALL_HANGUP` собеседнику).
-  Future<void> hangup() async {
+  /// Завершает текущий звонок и шлёт абоненту `CALL_HANGUP` (сервер снимет у него
+  /// баннер). [reason] по умолчанию `hangup` («я сам положил трубку»); таймаут
+  /// недозвона передаёт `unavailable`, чтобы звонящему показать «Абонент
+  /// недоступен» вместо «Звонок завершён».
+  Future<void> hangup({CallEndReason reason = CallEndReason.hangup}) async {
     if (!_hasActiveCall) return;
     await _sendRing(MessageType.CALL_HANGUP, toUserID: _snapshot.remoteUserID, callId: _snapshot.callId, video: _snapshot.video);
-    await _teardown(CallEndReason.hangup);
+    await _teardown(reason);
   }
 
   /// Включает/выключает микрофон.
@@ -940,6 +974,17 @@ class Calls {
     // отличает это авто-отклонение от ручного отказа: звонящий по нему проиграет
     // сигнал «занято» и покажет «Занято» вместо «Отклонено».
     if (_hasActiveCall) {
+      await _sendRing(MessageType.CALL_REJECT, toUserID: from, callId: ring.callId, video: false, busy: true);
+      return;
+    }
+
+    // iOS: телефон занят ДРУГИМ системным звонком (сотовым/чужим VoIP через
+    // CallKit) — тоже отвечаем «занято». Свой ещё не поднятый CallKit-баннер этого
+    // же входящего исключаем по callId, чтобы не принять его за чужой звонок.
+    // Работает, когда RING долетел по живому стриму (приложение на переднем плане);
+    // приём из фонового VoIP-push идёт мимо этой ветки (нативный CallKit-баннер).
+    if (await _systemBusyByOtherCall(excludeCallId: ring.callId)) {
+      logger.info('call: busy by another system call — rejecting incoming ${ring.callId}');
       await _sendRing(MessageType.CALL_REJECT, toUserID: from, callId: ring.callId, video: false, busy: true);
       return;
     }
@@ -1505,7 +1550,7 @@ class Calls {
     _ringTimer = Timer(Duration(seconds: settings.callRingTimeoutSeconds), () {
       if (_snapshot.status == CallStatus.outgoing && _snapshot.callId == callId) {
         _dbg('ring timeout — cancelling unanswered call');
-        unawaited(hangup());
+        unawaited(hangup(reason: CallEndReason.unavailable));
       }
     });
   }
@@ -1783,6 +1828,24 @@ class Calls {
   // ---------------------------------------------------------------------------
   // Утилиты
   // ---------------------------------------------------------------------------
+
+  /// iOS: занят ли телефон ДРУГИМ системным звонком — сотовым (GSM/VoLTE) или
+  /// чужим VoIP-приложением через CallKit. Занятость СВОИМ in-app-звонком сюда не
+  /// входит (её знает [_hasActiveCall]): собственный CallKit-звонок исключаем по
+  /// [excludeCallId] (его UUID == callId). На не-iOS всегда false — детект чужого
+  /// звонка на Android пока не реализован (план: TelephonyManager/TelecomManager).
+  /// Ошибки/отсутствие канала трактуем как «не занят», чтобы не ломать звонки.
+  Future<bool> _systemBusyByOtherCall({String? excludeCallId}) async {
+    if (!Platform.isIOS) return false;
+    try {
+      final exclude = excludeCallId != null ? <String>[excludeCallId] : const <String>[];
+      final busy = await _systemCallChannel.invokeMethod<bool>('hasActiveExternalCall', {'exclude': exclude});
+      return busy ?? false;
+    } catch (error, stackTrace) {
+      logger.handle(error, stackTrace);
+      return false;
+    }
+  }
 
   Future<void> _sendRing(
     MessageType type, {

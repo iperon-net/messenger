@@ -1105,8 +1105,17 @@ class Translations$screenCall$en {
 	/// en: 'This user only accepts calls from their contacts. They need to add you before you can call them.'
 	String get notAllowedMessage => 'This user only accepts calls from their contacts. They need to add you before you can call them.';
 
+	/// en: 'You’re already on a call'
+	String get deviceBusyTitle => 'You’re already on a call';
+
+	/// en: 'Your phone is busy with another call. End the current call before making a new one.'
+	String get deviceBusyMessage => 'Your phone is busy with another call. End the current call before making a new one.';
+
 	/// en: 'No internet connection'
 	String get endedNoConnection => 'No internet connection';
+
+	/// en: 'Subscriber unavailable'
+	String get endedUnavailable => 'Subscriber unavailable';
 
 	/// en: 'Call ended'
 	String get ended => 'Call ended';
@@ -1463,7 +1472,10 @@ extension on Translations {
 			'screenCall.endedNotAllowed' => 'Can’t call this user',
 			'screenCall.notAllowedTitle' => 'Call not available',
 			'screenCall.notAllowedMessage' => 'This user only accepts calls from their contacts. They need to add you before you can call them.',
+			'screenCall.deviceBusyTitle' => 'You’re already on a call',
+			'screenCall.deviceBusyMessage' => 'Your phone is busy with another call. End the current call before making a new one.',
 			'screenCall.endedNoConnection' => 'No internet connection',
+			'screenCall.endedUnavailable' => 'Subscriber unavailable',
 			'screenCall.ended' => 'Call ended',
 			'screenCall.decline' => 'Decline',
 			'screenCall.accept' => 'Accept',

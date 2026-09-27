@@ -17,6 +17,14 @@ Future<void> showCallNotAllowed(BuildContext context) {
   return _showCallAlert(context, title: t.notAllowedTitle, message: t.notAllowedMessage, androidIcon: Icons.lock_outline);
 }
 
+/// Уведомление, что исходящий звонок не начат, потому что телефон уже занят
+/// ДРУГИМ звонком (сотовым/чужим VoIP через CallKit; iOS `CXCallObserver`).
+/// Вызывается из [CallGate] по терминальному снимку с [CallEndReason.deviceBusy].
+Future<void> showCallDeviceBusy(BuildContext context) {
+  final t = context.t.screenCall;
+  return _showCallAlert(context, title: t.deviceBusyTitle, message: t.deviceBusyMessage, androidIcon: Icons.phone_in_talk_outlined);
+}
+
 Future<void> _showCallAlert(BuildContext context, {required String title, required String message, required IconData androidIcon}) {
   if (Platform.isIOS) {
     return showCupertinoDialog<void>(

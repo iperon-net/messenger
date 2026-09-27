@@ -139,6 +139,9 @@ class _CallGateState extends State<CallGate> {
       final showAlert = switch (snapshot.endReason) {
         CallEndReason.notAllowed => showCallNotAllowed,
         CallEndReason.noConnection => showNoConnectionAlert,
+        // deviceBusy — телефон занят другим звонком (iOS CXCallObserver): исходящий
+        // не начали, объясняем алертом.
+        CallEndReason.deviceBusy => showCallDeviceBusy,
         _ => null,
       };
       if (showAlert != null) {

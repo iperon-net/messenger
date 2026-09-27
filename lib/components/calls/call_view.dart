@@ -895,6 +895,12 @@ class _Overlay extends StatelessWidget {
             return t.endedNotAllowed;
           case CallEndReason.noConnection:
             return t.endedNoConnection;
+          case CallEndReason.unavailable:
+            return t.endedUnavailable;
+          // deviceBusy блокирует исходящий ещё до открытия экрана `/call`
+          // (CallGate показывает алерт), сюда практически не доходит — нейтральный
+          // текст на случай гонки.
+          case CallEndReason.deviceBusy:
           case CallEndReason.hangup:
           case CallEndReason.none:
             return t.ended;
