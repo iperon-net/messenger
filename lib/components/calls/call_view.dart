@@ -1073,8 +1073,15 @@ class _MicBadge extends StatelessWidget {
   }
 }
 
-/// Кнопка в правом верхнем углу экрана звонка — переходит к списку чатов
-/// (`/chats`).
+/// Кнопка в правом верхнем углу экрана звонка — сворачивает экран звонка и
+/// переходит к списку чатов (`/chats`).
+///
+/// Важно: экран `/call` открыт как push-маршрут на корневом навигаторе. Просто
+/// `context.go('/chats')` уводит на вкладку, но НЕ закрывает этот push
+/// корректно — future от `push('/call')` в [CallGate] не завершается, флаг
+/// `_routeOpen` залипает в `true`, и плашка возврата (условие `!_routeOpen`)
+/// не показывается. Поэтому сначала явно попим экран звонка (это завершит
+/// future и покажет плашку), а затем переключаемся на вкладку чатов.
 class _AccountButton extends StatelessWidget {
   final _CallPalette palette;
 
@@ -1082,10 +1089,16 @@ class _AccountButton extends StatelessWidget {
 
   static const double _size = 44;
 
+  void _onTap(BuildContext context) {
+    final router = GoRouter.of(context);
+    if (router.canPop()) router.pop();
+    router.go('/chats');
+  }
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => context.go('/chats'),
+      onTap: () => _onTap(context),
       behavior: HitTestBehavior.opaque,
       child: Container(
         width: _size,
