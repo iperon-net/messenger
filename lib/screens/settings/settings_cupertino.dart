@@ -16,6 +16,12 @@ class SettingsCupertino extends StatefulWidget {
 }
 
 class _SettingsCupertino extends State<SettingsCupertino> {
+  /// Родное название языка для текущей локали (как в экране выбора языка).
+  String _languageName(AppLocale locale) => switch (locale) {
+    AppLocale.ru => "Русский",
+    AppLocale.en => "English",
+  };
+
   @override
   void initState() {
     super.initState();
@@ -95,6 +101,7 @@ class _SettingsCupertino extends State<SettingsCupertino> {
                       color: Color(0xFFB818DC),
                       icon: FontAwesomeIcons.language,
                       onTab: () async => context.go("/settings/language"),
+                      additionalInfo: Text(_languageName(LocaleSettings.currentLocale)),
                       isTrailing: true,
                     ),
                   ],

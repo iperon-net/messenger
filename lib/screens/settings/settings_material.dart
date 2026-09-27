@@ -22,6 +22,12 @@ class _SettingsMaterial extends State<SettingsMaterial> {
     return Card(child: Column(children: children));
   }
 
+  /// Родное название языка для текущей локали (как в экране выбора языка).
+  String _languageName(AppLocale locale) => switch (locale) {
+    AppLocale.ru => "Русский",
+    AppLocale.en => "English",
+  };
+
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<SettingsCubit, SettingsState>(
@@ -73,6 +79,7 @@ class _SettingsMaterial extends State<SettingsMaterial> {
                     color: const Color(0xFFB818DC),
                     icon: FontAwesomeIcons.language,
                     onTab: () async => context.go("/settings/language"),
+                    additionalInfo: Text(_languageName(LocaleSettings.currentLocale)),
                     isTrailing: true,
                   ),
                 ]),
