@@ -32,12 +32,14 @@ class CallRing extends $pb.GeneratedMessage {
     $core.List<$core.int>? toUserID,
     $core.List<$core.int>? fromUserID,
     $core.bool? video,
+    $core.bool? busy,
   }) {
     final result = create();
     if (callId != null) result.callId = callId;
     if (toUserID != null) result.toUserID = toUserID;
     if (fromUserID != null) result.fromUserID = fromUserID;
     if (video != null) result.video = video;
+    if (busy != null) result.busy = busy;
     return result;
   }
 
@@ -54,6 +56,7 @@ class CallRing extends $pb.GeneratedMessage {
     ..a<$core.List<$core.int>>(2, _omitFieldNames ? '' : 'toUserID', $pb.PbFieldType.OY, protoName: 'toUserID')
     ..a<$core.List<$core.int>>(3, _omitFieldNames ? '' : 'fromUserID', $pb.PbFieldType.OY, protoName: 'fromUserID')
     ..aOB(4, _omitFieldNames ? '' : 'video')
+    ..aOB(5, _omitFieldNames ? '' : 'busy')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -114,6 +117,20 @@ class CallRing extends $pb.GeneratedMessage {
   $core.bool hasVideo() => $_has(3);
   @$pb.TagNumber(4)
   void clearVideo() => $_clearField(4);
+
+  /// busy — только для CALL_REJECT: адресат отклонил входящий не вручную, а
+  /// потому что уже занят другим звонком (см. Calls._onRing). Звонящий по этому
+  /// флагу проигрывает сигнал «занято» и показывает «Занято» вместо «Отклонено».
+  /// Сервер лишь релеит сигнал и это поле не читает; для остальных типов не
+  /// значимо.
+  @$pb.TagNumber(5)
+  $core.bool get busy => $_getBF(4);
+  @$pb.TagNumber(5)
+  set busy($core.bool value) => $_setBool(4, value);
+  @$pb.TagNumber(5)
+  $core.bool hasBusy() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearBusy() => $_clearField(5);
 }
 
 class CallToken_Request extends $pb.GeneratedMessage {

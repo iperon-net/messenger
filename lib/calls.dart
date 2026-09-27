@@ -202,6 +202,25 @@ class Calls {
     ),
   );
 
+  // Проигрыватель сигнала «занято»: короткие гудки assets/audio/busy.wav
+  // (425 Гц, 0.35с/0.35с — RU-стандарт) звучат один раз на стороне звонящего,
+  // когда абонент отклонил вызов как занятый ([CallEndReason.busy]). В отличие от
+  // ringback звонок к этому моменту уже завершается: call-аудиосессия LiveKit/
+  // CallKit разобрана, поэтому контекст — обычное воспроизведение (playback), а не
+  // playAndRecord. Создаётся лениво в [_startBusyTone].
+  AudioPlayer? _busyTone;
+
+  static final AudioContext _busyToneAudioContext = AudioContext(
+    iOS: AudioContextIOS(category: AVAudioSessionCategory.playback, options: const {AVAudioSessionOptions.mixWithOthers}),
+    android: const AudioContextAndroid(
+      isSpeakerphoneOn: false,
+      stayAwake: false,
+      contentType: AndroidContentType.sonification,
+      usageType: AndroidUsageType.notification,
+      audioFocus: AndroidAudioFocus.none,
+    ),
+  );
+
   // Таймер отмены исходящего недозвона. Заводится на старте исходящего; если
   // абонент не подключился за [Settings.callRingTimeoutSeconds], сам вызывает
   // [hangup] → уходит `CALL_HANGUP`, и сервер снимает у абонента баннер входящего
@@ -883,7 +902,10 @@ class Calls {
         // уже идущий разговор. Мультидевайс: сигналинг адресуется по userID, и
         // `_isCurrentPeer` не отличает сиблинг от собеседника.
         if (_isCurrentPeer(ring.callId, from) && _snapshot.status != CallStatus.active) {
-          await _teardown(CallEndReason.rejected);
+          // busy — абонент занят другим звонком (авто-отклонение в _onRing):
+          // завершаем как «занято» (звонящий проиграет сигнал «занято»), иначе
+          // это ручной отказ — «отклонено».
+          await _teardown(ring.busy ? CallEndReason.busy : CallEndReason.rejected);
         }
       case MessageType.CALL_ACCEPT:
         // «Принято на другом устройстве владельца» (сервер разослал на все наши
@@ -914,9 +936,11 @@ class Calls {
     // Повторный/дублирующий ring текущего звонка — уже обрабатываем, игнорируем.
     if (_hasActiveCall && _isCurrentPeer(ring.callId, from)) return;
 
-    // Заняты другим звонком — отвечаем «занято», текущий не трогаем.
+    // Заняты другим звонком — отвечаем «занято», текущий не трогаем. Флаг busy
+    // отличает это авто-отклонение от ручного отказа: звонящий по нему проиграет
+    // сигнал «занято» и покажет «Занято» вместо «Отклонено».
     if (_hasActiveCall) {
-      await _sendRing(MessageType.CALL_REJECT, toUserID: from, callId: ring.callId, video: false);
+      await _sendRing(MessageType.CALL_REJECT, toUserID: from, callId: ring.callId, video: false, busy: true);
       return;
     }
 
@@ -1442,6 +1466,34 @@ class Calls {
     }
   }
 
+  // Проигрывает сигнал «занято» один раз (файл содержит несколько гудков и сам
+  // затихает — цикл не включаем). Ошибки глушим: сигнал косметика. Вызывается из
+  // [_teardown] уже после разбора звонка, поэтому переиспользует не call-сессию, а
+  // собственную playback-сессию audioplayers.
+  Future<void> _startBusyTone() async {
+    try {
+      final player = _busyTone ??= AudioPlayer();
+      await player.setAudioContext(_busyToneAudioContext);
+      await player.setReleaseMode(ReleaseMode.stop);
+      await player.setVolume(0.6);
+      await player.play(AssetSource('audio/busy.wav'));
+    } catch (error, stackTrace) {
+      logger.handle(error, stackTrace);
+    }
+  }
+
+  // Глушит сигнал «занято». Проигрыватель не диспозим (переиспользуем); финальный
+  // dispose — в [dispose].
+  Future<void> _stopBusyTone() async {
+    final player = _busyTone;
+    if (player == null) return;
+    try {
+      await player.stop();
+    } catch (error, stackTrace) {
+      logger.handle(error, stackTrace);
+    }
+  }
+
   // Заводит таймер отмены исходящего недозвона (см. [_ringTimer]). По истечении —
   // если абонент так и не подключился (звонок ещё в статусе outgoing именно с
   // этим callId) — вешаем трубку сами. `hangup` шлёт `CALL_HANGUP` (сервер снимет
@@ -1552,8 +1604,10 @@ class Calls {
     // перезапуска приложения — «зомби-звонок».
     try {
       // Гасим гудки исходящего (если играли) и снимаем таймеры дозвона/входящего —
-      // звонок завершается/переходит дальше.
+      // звонок завершается/переходит дальше. Заодно глушим возможный ещё звучащий
+      // сигнал «занято» от предыдущего завершения.
       unawaited(_stopRingback());
+      unawaited(_stopBusyTone());
       _cancelRingTimeout();
       _cancelIncomingTimeout();
       _cancelConnectTimeout();
@@ -1623,6 +1677,13 @@ class Calls {
     } finally {
       _diag = _diag.isEmpty ? 'ended:${reason.name}' : '$_diag · ended:${reason.name}';
       _emit(CallSnapshot(status: CallStatus.ended, callId: callId, remoteUserID: remote, video: video, endReason: reason, debug: _diag));
+
+      // Абонент занят другим звонком — проигрываем сигнал «занято». Запускаем
+      // здесь, после разбора комнаты и деактивации call-аудиосессии выше, чтобы
+      // сигнал звучал на собственной playback-сессии audioplayers, а не поверх
+      // умирающей call-сессии. Файл затихает сам за ~3с; снимок к тому времени
+      // сбросится в idle ([_scheduleIdleReset]) — это плеер не останавливает.
+      if (reason == CallEndReason.busy) unawaited(_startBusyTone());
 
       // Пишем строку журнала звонков (сервер историю не хранит). Только для
       // реального звонка: направление известно (взведено в startCall/_onRing/
@@ -1723,8 +1784,14 @@ class Calls {
   // Утилиты
   // ---------------------------------------------------------------------------
 
-  Future<void> _sendRing(MessageType type, {required List<int> toUserID, required String callId, required bool video}) async {
-    final ring = CallRing(callId: callId, toUserID: Uint8List.fromList(toUserID), video: video);
+  Future<void> _sendRing(
+    MessageType type, {
+    required List<int> toUserID,
+    required String callId,
+    required bool video,
+    bool busy = false,
+  }) async {
+    final ring = CallRing(callId: callId, toUserID: Uint8List.fromList(toUserID), video: video, busy: busy);
     // fromUserID проставит сервер из сессии — здесь не заполняем.
     try {
       await api.sendEncoded(type, ring.writeToBuffer());
@@ -1791,6 +1858,8 @@ class Calls {
     await _teardown(CallEndReason.none);
     await _ringback?.dispose();
     _ringback = null;
+    await _busyTone?.dispose();
+    _busyTone = null;
     await _snapshotController.close();
     await _focusController.close();
     await _incomingRingController.close();
