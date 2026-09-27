@@ -183,9 +183,10 @@ class Calls {
   // (см. [toggleSpeaker]), а не этот канал.
   static const _callAudioChannel = MethodChannel('net.iperon.messenger/call_audio');
 
-  // iOS-канал детекта занятости телефона ДРУГИМ звонком (сотовым/чужим VoIP через
-  // CallKit). Реализация — SystemCallMonitor в ios/Runner/AppDelegate.swift. См.
-  // [_systemBusyByOtherCall].
+  // Канал детекта занятости телефона ДРУГИМ звонком (сотовым/чужим VoIP).
+  // Реализация: iOS — SystemCallMonitor (CXCallObserver) в
+  // ios/Runner/AppDelegate.swift; Android — AudioManager.getMode() в
+  // MainActivity.kt. См. [_systemBusyByOtherCall].
   static const _systemCallChannel = MethodChannel('net.iperon.messenger/system_call');
 
   // Проигрыватель гудков (ringback) исходящего звонка: зациклённый тон
@@ -978,11 +979,11 @@ class Calls {
       return;
     }
 
-    // iOS: телефон занят ДРУГИМ системным звонком (сотовым/чужим VoIP через
-    // CallKit) — тоже отвечаем «занято». Свой ещё не поднятый CallKit-баннер этого
-    // же входящего исключаем по callId, чтобы не принять его за чужой звонок.
-    // Работает, когда RING долетел по живому стриму (приложение на переднем плане);
-    // приём из фонового VoIP-push идёт мимо этой ветки (нативный CallKit-баннер).
+    // Телефон занят ДРУГИМ системным звонком (сотовым/чужим VoIP) — тоже отвечаем
+    // «занято». Свой ещё не поднятый CallKit-баннер этого же входящего исключаем по
+    // callId (важно для iOS), чтобы не принять его за чужой звонок. Работает, когда
+    // RING долетел по живому стриму (приложение на переднем плане); приём из
+    // фонового пуша идёт мимо этой ветки (нативный баннер входящего).
     if (await _systemBusyByOtherCall(excludeCallId: ring.callId)) {
       logger.info('call: busy by another system call — rejecting incoming ${ring.callId}');
       await _sendRing(MessageType.CALL_REJECT, toUserID: from, callId: ring.callId, video: false, busy: true);
@@ -1829,14 +1830,16 @@ class Calls {
   // Утилиты
   // ---------------------------------------------------------------------------
 
-  /// iOS: занят ли телефон ДРУГИМ системным звонком — сотовым (GSM/VoLTE) или
-  /// чужим VoIP-приложением через CallKit. Занятость СВОИМ in-app-звонком сюда не
-  /// входит (её знает [_hasActiveCall]): собственный CallKit-звонок исключаем по
-  /// [excludeCallId] (его UUID == callId). На не-iOS всегда false — детект чужого
-  /// звонка на Android пока не реализован (план: TelephonyManager/TelecomManager).
-  /// Ошибки/отсутствие канала трактуем как «не занят», чтобы не ломать звонки.
+  /// Занят ли телефон ДРУГИМ системным звонком — сотовым (GSM/VoLTE) или чужим
+  /// VoIP-приложением. Занятость СВОИМ in-app-звонком сюда не входит (её знает
+  /// [_hasActiveCall]). Платформенно:
+  ///  - iOS: `CXCallObserver` (CallKit); собственный CallKit-звонок исключаем по
+  ///    [excludeCallId] (его UUID == callId).
+  ///  - Android: `AudioManager.getMode()` без разрешений (см. MainActivity);
+  ///    [excludeCallId] там не нужен — свой звонок в окно проверки не попадает.
+  /// На прочих платформах и при отсутствии канала — false, чтобы не ломать звонки.
   Future<bool> _systemBusyByOtherCall({String? excludeCallId}) async {
-    if (!Platform.isIOS) return false;
+    if (!Platform.isIOS && !Platform.isAndroid) return false;
     try {
       final exclude = excludeCallId != null ? <String>[excludeCallId] : const <String>[];
       final busy = await _systemCallChannel.invokeMethod<bool>('hasActiveExternalCall', {'exclude': exclude});

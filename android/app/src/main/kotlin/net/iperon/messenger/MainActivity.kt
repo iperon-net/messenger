@@ -12,6 +12,7 @@ import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.graphics.drawable.Icon
+import android.media.AudioManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -63,6 +64,9 @@ class MainActivity : FlutterFragmentActivity() {
     // CallPush своим setMethodCallHandler.
     private val pipChannelName = "net.iperon.messenger/call_pip"
     private var pipChannel: MethodChannel? = null
+
+    private val systemCallChannelName = "net.iperon.messenger/system_call"
+    private var systemCallChannel: MethodChannel? = null
 
     // Разрешён ли автовход в PiP по нажатию Home. Flutter взводит флаг, пока открыт
     // активный видеозвонок (см. lib/components/calls/call_view.dart), и снимает при
@@ -185,6 +189,35 @@ class MainActivity : FlutterFragmentActivity() {
                     else -> result.notImplemented()
                 }
             } }
+
+        // Детект «телефон занят ДРУГИМ звонком» — сотовым или чужим VoIP. См.
+        // lib/calls.dart (_systemBusyByOtherCall): вход. → ответить «занято»,
+        // исход. → заблокировать. Аргумент exclude (UUID своих CallKit-звонков)
+        // на Android не нужен — режим аудио глобальный, а свой in-app-звонок в
+        // окно проверки не попадает (см. hasActiveExternalCall).
+        systemCallChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, systemCallChannelName)
+            .also { it.setMethodCallHandler { call, result ->
+                when (call.method) {
+                    "hasActiveExternalCall" -> result.success(hasActiveExternalCall())
+                    else -> result.notImplemented()
+                }
+            } }
+    }
+
+    /// Занят ли телефон ДРУГИМ звонком: сотовым (`MODE_IN_CALL`), чужим VoIP-
+    /// приложением (`MODE_IN_COMMUNICATION`) или идёт входящий гудок
+    /// (`MODE_RINGING`). Через `AudioManager.getMode()` — БЕЗ разрешений (не нужен
+    /// чувствительный `READ_PHONE_STATE`, которого требуют `TelephonyManager`/
+    /// `TelecomManager`). Свой собственный in-app-звонок сюда не попадает: Dart
+    /// зовёт проверку ДО подключения к комнате LiveKit (в `startCall` — до старта,
+    /// в `_onRing` — до подъёма входящего), пока наш звонок ещё не выставил
+    /// `MODE_IN_COMMUNICATION`; занятость своим звонком и так знает `_hasActiveCall`.
+    private fun hasActiveExternalCall(): Boolean {
+        val audioManager = getSystemService(Context.AUDIO_SERVICE) as? AudioManager ?: return false
+        return when (audioManager.mode) {
+            AudioManager.MODE_IN_CALL, AudioManager.MODE_IN_COMMUNICATION, AudioManager.MODE_RINGING -> true
+            else -> false
+        }
     }
 
     /// Поддерживает ли устройство/ОС PiP. Android 8.0+ и системная фича
