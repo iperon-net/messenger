@@ -47,8 +47,14 @@ class CallState with CallStateMappable {
   final int mediaEpoch;
 
   /// Отображаемое имя собеседника (готовая строка с учётом локали) — пусто,
-  /// пока не разрешено. Фолбэк на экране — «Звонок».
+  /// пока не разрешено. Фолбэк на экране — «Звонок». Используется для однострочных
+  /// потребителей (CallKit/Now Playing).
   final String displayName;
+
+  /// То же имя, разнесённое по строкам для шапки экрана звонка: RU — фамилия
+  /// сверху, имя снизу; остальные локали — наоборот (см. [Utils.composeNameLines]).
+  /// 1–2 элемента; пусто, пока имя не разрешено (шапка тогда рисует фолбэк).
+  final List<String> nameLines;
 
   /// Hex userID собеседника — сид для BoringAvatar-плейсхолдера, когда аватара
   /// нет.
@@ -75,6 +81,7 @@ class CallState with CallStateMappable {
     this.quality = CallQuality.unknown,
     this.mediaEpoch = 0,
     this.displayName = '',
+    this.nameLines = const [],
     this.boringAvatarHash = '',
     this.avatarBytes,
   });

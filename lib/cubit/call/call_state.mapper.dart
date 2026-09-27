@@ -134,6 +134,13 @@ class CallStateMapper extends ClassMapperBase<CallState> {
     opt: true,
     def: '',
   );
+  static List<String> _$nameLines(CallState v) => v.nameLines;
+  static const Field<CallState, List<String>> _f$nameLines = Field(
+    'nameLines',
+    _$nameLines,
+    opt: true,
+    def: const [],
+  );
   static String _$boringAvatarHash(CallState v) => v.boringAvatarHash;
   static const Field<CallState, String> _f$boringAvatarHash = Field(
     'boringAvatarHash',
@@ -166,6 +173,7 @@ class CallStateMapper extends ClassMapperBase<CallState> {
     #quality: _f$quality,
     #mediaEpoch: _f$mediaEpoch,
     #displayName: _f$displayName,
+    #nameLines: _f$nameLines,
     #boringAvatarHash: _f$boringAvatarHash,
     #avatarBytes: _f$avatarBytes,
   };
@@ -188,6 +196,7 @@ class CallStateMapper extends ClassMapperBase<CallState> {
       quality: data.dec(_f$quality),
       mediaEpoch: data.dec(_f$mediaEpoch),
       displayName: data.dec(_f$displayName),
+      nameLines: data.dec(_f$nameLines),
       boringAvatarHash: data.dec(_f$boringAvatarHash),
       avatarBytes: data.dec(_f$avatarBytes),
     );
@@ -253,6 +262,7 @@ extension CallStateValueCopy<$R, $Out> on ObjectCopyWith<$R, CallState, $Out> {
 abstract class CallStateCopyWith<$R, $In extends CallState, $Out>
     implements ClassCopyWith<$R, $In, $Out> {
   ListCopyWith<$R, int, ObjectCopyWith<$R, int, int>> get remoteUserID;
+  ListCopyWith<$R, String, ObjectCopyWith<$R, String, String>> get nameLines;
   $R call({
     Status? status,
     CallStatus? callStatus,
@@ -270,6 +280,7 @@ abstract class CallStateCopyWith<$R, $In extends CallState, $Out>
     CallQuality? quality,
     int? mediaEpoch,
     String? displayName,
+    List<String>? nameLines,
     String? boringAvatarHash,
     Uint8List? avatarBytes,
   });
@@ -292,6 +303,13 @@ class _CallStateCopyWithImpl<$R, $Out>
         (v) => call(remoteUserID: v),
       );
   @override
+  ListCopyWith<$R, String, ObjectCopyWith<$R, String, String>> get nameLines =>
+      ListCopyWith(
+        $value.nameLines,
+        (v, t) => ObjectCopyWith(v, $identity, t),
+        (v) => call(nameLines: v),
+      );
+  @override
   $R call({
     Status? status,
     CallStatus? callStatus,
@@ -309,6 +327,7 @@ class _CallStateCopyWithImpl<$R, $Out>
     CallQuality? quality,
     int? mediaEpoch,
     String? displayName,
+    List<String>? nameLines,
     String? boringAvatarHash,
     Object? avatarBytes = $none,
   }) => $apply(
@@ -329,6 +348,7 @@ class _CallStateCopyWithImpl<$R, $Out>
       if (quality != null) #quality: quality,
       if (mediaEpoch != null) #mediaEpoch: mediaEpoch,
       if (displayName != null) #displayName: displayName,
+      if (nameLines != null) #nameLines: nameLines,
       if (boringAvatarHash != null) #boringAvatarHash: boringAvatarHash,
       if (avatarBytes != $none) #avatarBytes: avatarBytes,
     }),
@@ -351,6 +371,7 @@ class _CallStateCopyWithImpl<$R, $Out>
     quality: data.get(#quality, or: $value.quality),
     mediaEpoch: data.get(#mediaEpoch, or: $value.mediaEpoch),
     displayName: data.get(#displayName, or: $value.displayName),
+    nameLines: data.get(#nameLines, or: $value.nameLines),
     boringAvatarHash: data.get(#boringAvatarHash, or: $value.boringAvatarHash),
     avatarBytes: data.get(#avatarBytes, or: $value.avatarBytes),
   );

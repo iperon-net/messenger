@@ -492,10 +492,13 @@ class _CallViewState extends State<CallView> with WidgetsBindingObserver {
                         ),
                       ),
                     ),
-                  // Значок «микрофон собеседника выключен» — в левом верхнем углу.
-                  // Живёт в главном Stack (а НЕ в _Overlay), поэтому НЕ гаснет вместе
-                  // с панелью управления при автоскрытии на видеозвонке — статус
-                  // мьюта собеседника виден постоянно. Нужен именно когда видео
+                  // Значок «микрофон собеседника выключен» — по центру над рядом
+                  // кнопок управления. Живёт в главном Stack (а НЕ в _Overlay),
+                  // поэтому НЕ гаснет вместе с панелью при автоскрытии на видеозвонке
+                  // — висит ровно над тем местом, где появляются/скрываются кнопки, и
+                  // виден постоянно. Нижний отступ повторяет геометрию панели
+                  // ([_Overlay]): её нижний padding (32) + высота блока управления
+                  // ([_Overlay.mediaControlsHeight]) + зазор. Нужен именно когда видео
                   // собеседника на главном экране ([mainOn]): при выключенной у него
                   // камере его mute уже показан бейджем на аватаре (см. [_Avatar]).
                   // Слой не перехватывает жесты (нет GestureDetector) — тап по экрану
@@ -504,8 +507,11 @@ class _CallViewState extends State<CallView> with WidgetsBindingObserver {
                     Positioned.fill(
                       child: SafeArea(
                         child: Align(
-                          alignment: Alignment.topLeft,
-                          child: Padding(padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40), child: _RemoteMicPill()),
+                          alignment: Alignment.bottomCenter,
+                          child: Padding(
+                            padding: const EdgeInsets.only(bottom: 32 + _Overlay.mediaControlsHeight + 12),
+                            child: _RemoteMicPill(),
+                          ),
                         ),
                       ),
                     ),
@@ -520,6 +526,10 @@ class _CallViewState extends State<CallView> with WidgetsBindingObserver {
                       pos: _selfViewPos,
                       maxWidth: constraints.maxWidth,
                       maxHeight: constraints.maxHeight,
+                      // Двухстрочная шапка (имя+фамилия) выше — опускаем дефолтную
+                      // позицию мини-окна на строку, чтобы оно не налезало на имя
+                      // (критично на маленьких экранах).
+                      extraTopOffset: state.nameLines.length > 1 ? 30 : 0,
                       child: pipVideo ?? _Avatar(state: state, palette: palette, fill: true),
                     ),
                 ],
@@ -551,7 +561,18 @@ class _SelfView extends StatefulWidget {
   final double maxWidth;
   final double maxHeight;
 
-  const _SelfView({required this.child, required this.onTapTile, required this.pos, required this.maxWidth, required this.maxHeight});
+  // Доп. отступ сверху для дефолтной позиции окна — сдвигает его ниже под более
+  // высокую (двухстрочную) шапку с именем. См. [_SelfViewState._defaultPos].
+  final double extraTopOffset;
+
+  const _SelfView({
+    required this.child,
+    required this.onTapTile,
+    required this.pos,
+    required this.maxWidth,
+    required this.maxHeight,
+    this.extraTopOffset = 0,
+  });
 
   // Размер окна. Было 110×160, увеличено на 20%.
   static const double _width = 132;
@@ -624,7 +645,7 @@ class _SelfViewState extends State<_SelfView> {
   double get _maxY => (widget.maxHeight - _SelfView._height - _SelfView._margin).clamp(_SelfView._margin, double.infinity);
   // Дефолт — справа, ПОД шапкой оверлея (имя собеседника + статус соединения +
   // индикатор качества): отступ от безопасной зоны сверху + ~высота этого блока.
-  Offset get _defaultPos => Offset(_maxX, MediaQuery.paddingOf(context).top + 128);
+  Offset get _defaultPos => Offset(_maxX, MediaQuery.paddingOf(context).top + 128 + widget.extraTopOffset);
 
   @override
   Widget build(BuildContext context) {
@@ -654,6 +675,13 @@ class _Overlay extends StatelessWidget {
   static const double _rowButtonSize = 58;
   static const double _rowIconSize = 24;
 
+  // Высота блока управления медиа ([_mediaControls]) при скрытых подписях
+  // (_showLabels=false): ряд круглых кнопок ([_rowButtonSize]) + отступ (24) +
+  // крупная кнопка отбоя (дефолтные 68 у [_CircleButton]). Используется в
+  // [CallView] для позиционирования значка «микрофон собеседника выключен»
+  // ровно над этим блоком.
+  static const double mediaControlsHeight = _rowButtonSize + 24 + 68;
+
   // ВРЕМЕННО: подписи под кнопками управления скрыты — смотрим вид «только иконки».
   // Вернуть подписи = сменить на `true`.
   static const bool _showLabels = false;
@@ -681,47 +709,68 @@ class _Overlay extends StatelessWidget {
                     // Для видеозвонка лицо собеседника уже на весь экран — аватар не
                     // дублируем. Для аудио (или до старта видео) показываем аватар.
                     if (!showVideo) ...[_Avatar(state: state, palette: palette), const SizedBox(height: 20)],
-                    Text(
-                      _title(context),
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: palette.name, fontSize: 22, fontWeight: FontWeight.w600),
-                    ),
-                    const SizedBox(height: 8),
-                    // На активном звонке подпись — таймер разговора; иначе — статус.
-                    // Перед таймером — иконка качества связи (только когда LiveKit
-                    // уже прислал оценку); текста нет, лишь значок нужного цвета.
-                    if (active && state.connectedAt != null)
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          // Пока оценки качества нет (`unknown`) — иконку не показываем
-                          // вовсе, чтобы не мигать до первой оценки от LiveKit.
-                          if (state.quality != CallQuality.unknown) ...[
-                            _QualityIndicator(quality: state.quality),
-                            const SizedBox(width: 6),
-                          ],
-                          _CallTimer(connectedAt: state.connectedAt!, color: palette.timer),
-                        ],
-                      )
-                    else
-                      Text(
-                        _subtitle(context),
-                        textAlign: TextAlign.center,
-                        style: TextStyle(color: palette.status, fontSize: 15),
+                    // Имя + таймер/статус. Поверх видео собеседника ([showVideo])
+                    // заворачиваем в полупрозрачную тёмную подложку со скруглением:
+                    // светлый текст на светлом кадре (напр. белый фон у собеседника)
+                    // иначе не читается. На аудио/аватаре фон экрана сплошной —
+                    // подложка не нужна (decoration=null, нулевые отступы).
+                    // [IntrinsicWidth] заставляет подложку облегать текст, а не
+                    // растягиваться на всю ширину.
+                    IntrinsicWidth(
+                      child: DecoratedBox(
+                        decoration: showVideo
+                            ? BoxDecoration(color: const Color(0x52000000), borderRadius: BorderRadius.circular(16))
+                            : const BoxDecoration(),
+                        child: Padding(
+                          padding: showVideo ? const EdgeInsets.symmetric(horizontal: 16, vertical: 10) : EdgeInsets.zero,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              // Имя в 1–2 строки (RU: фамилия сверху, имя снизу; иначе
+                              // наоборот — см. [Utils.composeNameLines]). Каждая строка
+                              // с многоточием: длинная фамилия/имя иначе переносились бы
+                              // сами (у Text нет лимита), раздувая подложку и рискуя
+                              // вертикальным overflow во внешней Column. IntrinsicWidth
+                              // ужимает блок по короткой строке, длинную — расширяет до
+                              // ширины экрана и обрезает.
+                              for (final line in _nameLines(context))
+                                Text(
+                                  line,
+                                  textAlign: TextAlign.center,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(color: palette.name, fontSize: 22, fontWeight: FontWeight.w600, height: 1.15),
+                                ),
+                              const SizedBox(height: 8),
+                              // На активном звонке подпись — таймер разговора; иначе —
+                              // статус. Перед таймером — иконка качества связи (только
+                              // когда LiveKit уже прислал оценку); текста нет, лишь
+                              // значок нужного цвета.
+                              if (active && state.connectedAt != null)
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    // Пока оценки качества нет (`unknown`) — иконку не
+                                    // показываем вовсе, чтобы не мигать до первой оценки.
+                                    if (state.quality != CallQuality.unknown) ...[
+                                      _QualityIndicator(quality: state.quality),
+                                      const SizedBox(width: 6),
+                                    ],
+                                    _CallTimer(connectedAt: state.connectedAt!, color: palette.timer),
+                                  ],
+                                )
+                              else
+                                Text(
+                                  _subtitle(context),
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(color: palette.status, fontSize: 15),
+                                ),
+                            ],
+                          ),
+                        ),
                       ),
-                    // Микрофон собеседника выключен — значок ниже статуса связи.
-                    // if (active && state.remoteMicMuted) ...[const SizedBox(height: 8), _RemoteMicIndicator(dim: palette.dim)],
-                    // Диагностика соединения прямо на экране (этапы сигналинга/ICE/
-                    // медиа) — без выгрузки логов с устройства.
-                    // if (state.debug.isNotEmpty)
-                    //   Padding(
-                    //     padding: const EdgeInsets.only(top: 12),
-                    //     child: Text(
-                    //       state.debug,
-                    //       textAlign: TextAlign.center,
-                    //       style: TextStyle(color: palette.dim, fontSize: 11),
-                    //     ),
-                    //   ),
+                    ),
                   ],
                 ),
                 _controls(context, cubit, state),
@@ -883,10 +932,10 @@ class _Overlay extends StatelessWidget {
     );
   }
 
-  String _title(BuildContext context) {
-    // Имя собеседника из профиля (кэш/стрим, см. CallCubit); пока не разрешено —
-    // нейтральный фолбэк.
-    return state.displayName.isNotEmpty ? state.displayName : context.t.screenCall.title;
+  List<String> _nameLines(BuildContext context) {
+    // Имя собеседника построчно из профиля (кэш/стрим, см. CallCubit); пока не
+    // разрешено — нейтральный фолбэк одной строкой.
+    return state.nameLines.isNotEmpty ? state.nameLines : [context.t.screenCall.title];
   }
 
   String _subtitle(BuildContext context) {
@@ -1147,7 +1196,7 @@ class _RemoteMicPill extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(color: const Color(0x99000000), borderRadius: BorderRadius.circular(20)),
+      decoration: BoxDecoration(color: const Color(0x62000000), borderRadius: BorderRadius.circular(20)),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [

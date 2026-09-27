@@ -33,11 +33,26 @@ class Utils {
   /// ([CallCubit]) и регистрации звонка в системной звонилке ([CallPush]) —
   /// чтобы «Iperon» в CallKit/недавних заменялось единообразно.
   String composeDisplayName({required String firstName, required String lastName, required String phoneNumber, required String username}) {
+    return composeNameLines(firstName: firstName, lastName: lastName, phoneNumber: phoneNumber, username: username).join(' ');
+  }
+
+  /// То же имя, что и [composeDisplayName], но разнесённое по строкам для показа
+  /// на экране звонка: RU — [Фамилия, Имя] (фамилия сверху), остальные локали —
+  /// [Имя, Фамилия]. Возвращает 1–2 непустые части; при отсутствии имени —
+  /// одну строку-фолбэк (телефон, затем username), либо пусто. `join(' ')` даёт
+  /// обратно однострочный [composeDisplayName] (для CallKit/логов).
+  List<String> composeNameLines({
+    required String firstName,
+    required String lastName,
+    required String phoneNumber,
+    required String username,
+  }) {
     final ru = LocaleSettings.currentLocale == AppLocale.ru;
     final parts = (ru ? [lastName, firstName] : [firstName, lastName]).where((p) => p.isNotEmpty).toList();
-    if (parts.isNotEmpty) return parts.join(' ');
-    if (phoneNumber.isNotEmpty) return phoneNumber;
-    return username;
+    if (parts.isNotEmpty) return parts;
+    if (phoneNumber.isNotEmpty) return [phoneNumber];
+    if (username.isNotEmpty) return [username];
+    return const [];
   }
 
   PhoneNumberModel phoneNormalization({required String phoneNumber}) {

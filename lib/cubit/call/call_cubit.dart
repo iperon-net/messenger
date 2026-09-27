@@ -83,16 +83,13 @@ class CallCubit extends Cubit<CallState> {
       // фолбэк на номер должен быть в международном виде, а не «сырыми» цифрами.
       // Если распарсить не удалось — оставляем исходный номер.
       final phone = utils.phoneNormalization(phoneNumber: response.phoneNumber).international;
-      emit(
-        state.copyWith(
-          displayName: utils.composeDisplayName(
-            firstName: response.firstName,
-            lastName: response.lastName,
-            phoneNumber: phone.isNotEmpty ? phone : response.phoneNumber,
-            username: response.username,
-          ),
-        ),
+      final lines = utils.composeNameLines(
+        firstName: response.firstName,
+        lastName: response.lastName,
+        phoneNumber: phone.isNotEmpty ? phone : response.phoneNumber,
+        username: response.username,
       );
+      emit(state.copyWith(displayName: lines.join(' '), nameLines: lines));
       _pushNowPlaying();
 
       if (response.hasAvatar()) {
@@ -128,13 +125,14 @@ class CallCubit extends Cubit<CallState> {
     }
     if (isClosed) return;
 
-    final name = utils.composeDisplayName(
+    final lines = utils.composeNameLines(
       firstName: profile.fistName,
       lastName: profile.lastName,
       phoneNumber: phoneNormalization.international,
       username: profile.username,
     );
-    var next = name.isNotEmpty ? state.copyWith(displayName: name) : state;
+    final name = lines.join(' ');
+    var next = name.isNotEmpty ? state.copyWith(displayName: name, nameLines: lines) : state;
     // copyWith(avatarBytes: null) не отличает «не менять» от «обнулить», поэтому
     // подставляем аватар только когда он реально есть в кэше.
     if (avatarBytes != null) next = next.copyWith(avatarBytes: avatarBytes);
