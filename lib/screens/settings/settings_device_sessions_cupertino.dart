@@ -41,6 +41,7 @@ class _SettingsDeviceSessionsCupertino extends State<SettingsDeviceSessionsCuper
           backgroundColor: ThemesCupertino.groupedBackground,
           navigationBar: AppCupertinoNavigationBar(
             child: CupertinoNavigationBar(
+              previousPageTitle: '',
               automaticBackgroundVisibility: false,
               backgroundColor: ThemesCupertino.groupedBackground,
               middle: Text(context.t.screenSettingsDevices.devices),

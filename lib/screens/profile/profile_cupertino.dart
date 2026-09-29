@@ -84,6 +84,7 @@ class _ProfileCupertino extends State<ProfileCupertino> {
           backgroundColor: ThemesCupertino.groupedBackground,
           navigationBar: AppCupertinoNavigationBar(
             child: CupertinoNavigationBar(
+              previousPageTitle: '',
               automaticBackgroundVisibility: false,
               backgroundColor: ThemesCupertino.groupedBackground,
               // end:0 — прижимаем правую группу кнопок к краю (по умолчанию навбар

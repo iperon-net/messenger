@@ -43,14 +43,25 @@ class _SettingsPrivacyAndSecurityMaterial extends State<SettingsPrivacyAndSecuri
               children: [
                 Card(
                   margin: const EdgeInsets.all(12),
-                  child: MaterialListTileIcon(
-                    title: state.isBiometricAvailable
-                        ? Text(context.t.sessionsPrivacyAndSecurity.passcodeAndBiometric)
-                        : Text(context.t.sessionsPrivacyAndSecurity.passcode),
-                    color: const Color(0xFF41CA22),
-                    icon: FontAwesomeIcons.unlockKeyhole,
-                    onTab: () async => context.go("/settings/privacy_and_security/passcode"),
-                    isTrailing: true,
+                  child: Column(
+                    children: [
+                      MaterialListTileIcon(
+                        title: state.isBiometricAvailable
+                            ? Text(context.t.sessionsPrivacyAndSecurity.passcodeAndBiometric)
+                            : Text(context.t.sessionsPrivacyAndSecurity.passcode),
+                        color: const Color(0xFF41CA22),
+                        icon: FontAwesomeIcons.unlockKeyhole,
+                        onTab: () async => context.go("/settings/privacy_and_security/passcode"),
+                        isTrailing: true,
+                      ),
+                      MaterialListTileIcon(
+                        title: Text(context.t.sessionsPrivacyAndSecurity.cloudPassword),
+                        color: const Color(0xFF5856D6),
+                        icon: FontAwesomeIcons.cloud,
+                        onTab: () async => context.go("/settings/privacy_and_security/cloud_password"),
+                        isTrailing: true,
+                      ),
+                    ],
                   ),
                 ),
                 Padding(

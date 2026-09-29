@@ -352,6 +352,17 @@ class Routers {
                         ),
                       ],
                     ),
+                    GoRoute(
+                      path: "cloud_password",
+                      parentNavigatorKey: rootNavigatorKey,
+                      pageBuilder: (context, state) => _page(
+                        state,
+                        BlocProvider<SettingsCloudPasswordCubit>(
+                          create: (_) => SettingsCloudPasswordCubit()..initialization(),
+                          child: SettingsCloudPasswordCupertino(),
+                        ),
+                      ),
+                    ),
                   ],
                 ),
                 GoRoute(
@@ -507,6 +518,27 @@ class Routers {
                     AuthModerationApplicationStoreCubit()
                       ..initialization(phoneNumber: phoneNumber, moderationApplicationStoreSession: moderationApplicationStoreSession),
                 child: AuthModerationApplicationStoreCupertino(),
+              ),
+            );
+          },
+        ),
+        GoRoute(
+          path: "/cloud_password",
+          pageBuilder: (context, state) {
+            final confirmationSession = state.uri.queryParameters["confirmationSession"] ?? "";
+
+            if (confirmationSession.isEmpty) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (context.mounted) context.go("/auth");
+              });
+              return _page(state, Container());
+            }
+
+            return _page(
+              state,
+              BlocProvider<AuthCloudPasswordCubit>(
+                create: (_) => AuthCloudPasswordCubit()..initialization(confirmationSession: confirmationSession),
+                child: AuthCloudPasswordCupertino(),
               ),
             );
           },
@@ -816,6 +848,17 @@ class Routers {
                         ),
                       ],
                     ),
+                    GoRoute(
+                      path: "cloud_password",
+                      parentNavigatorKey: rootNavigatorKey,
+                      pageBuilder: (context, state) => _pageMaterial(
+                        state,
+                        BlocProvider<SettingsCloudPasswordCubit>(
+                          create: (_) => SettingsCloudPasswordCubit()..initialization(),
+                          child: const SettingsCloudPasswordMaterial(),
+                        ),
+                      ),
+                    ),
                   ],
                 ),
                 GoRoute(
@@ -971,6 +1014,27 @@ class Routers {
                     AuthModerationApplicationStoreCubit()
                       ..initialization(phoneNumber: phoneNumber, moderationApplicationStoreSession: moderationApplicationStoreSession),
                 child: const AuthModerationApplicationStoreMaterial(),
+              ),
+            );
+          },
+        ),
+        GoRoute(
+          path: "/cloud_password",
+          pageBuilder: (context, state) {
+            final confirmationSession = state.uri.queryParameters["confirmationSession"] ?? "";
+
+            if (confirmationSession.isEmpty) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (context.mounted) context.go("/auth");
+              });
+              return _pageMaterial(state, const SizedBox.shrink());
+            }
+
+            return _pageMaterial(
+              state,
+              BlocProvider<AuthCloudPasswordCubit>(
+                create: (_) => AuthCloudPasswordCubit()..initialization(confirmationSession: confirmationSession),
+                child: const AuthCloudPasswordMaterial(),
               ),
             );
           },

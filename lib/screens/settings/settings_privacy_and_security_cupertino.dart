@@ -52,6 +52,7 @@ class _SettingsPrivacyAndSecurityCupertino extends State<SettingsPrivacyAndSecur
           backgroundColor: ThemesCupertino.groupedBackground,
           navigationBar: AppCupertinoNavigationBar(
             child: CupertinoNavigationBar(
+              previousPageTitle: '',
               automaticBackgroundVisibility: false,
               backgroundColor: ThemesCupertino.groupedBackground,
               middle: Text(context.t.sessionsPrivacyAndSecurity.privacyAndSecurity),
@@ -74,6 +75,13 @@ class _SettingsPrivacyAndSecurityCupertino extends State<SettingsPrivacyAndSecur
                       color: Color(0xFF41CA22),
                       icon: FontAwesomeIcons.unlockKeyhole,
                       onTab: () async => context.go("/settings/privacy_and_security/passcode"),
+                      isTrailing: true,
+                    ),
+                    CupertinoListTileIcon(
+                      title: Text(context.t.sessionsPrivacyAndSecurity.cloudPassword),
+                      color: Color(0xFF5856D6),
+                      icon: FontAwesomeIcons.cloud,
+                      onTab: () async => context.go("/settings/privacy_and_security/cloud_password"),
                       isTrailing: true,
                     ),
                   ],

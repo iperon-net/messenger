@@ -112,6 +112,7 @@ class SettingsPrivacyBirthdayCupertino extends StatelessWidget {
           backgroundColor: ThemesCupertino.groupedBackground,
           navigationBar: AppCupertinoNavigationBar(
             child: CupertinoNavigationBar(
+              previousPageTitle: '',
               automaticBackgroundVisibility: false,
               backgroundColor: ThemesCupertino.groupedBackground,
               middle: Text(context.t.sessionsPrivacyAndSecurity.birthday),

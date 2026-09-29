@@ -45,6 +45,7 @@ class _ContactsAddCupertinoState extends State<ContactsAddCupertino> {
       backgroundColor: ThemesCupertino.groupedBackground,
       navigationBar: AppCupertinoNavigationBar(
         child: CupertinoNavigationBar(
+          previousPageTitle: '',
           automaticBackgroundVisibility: false,
           backgroundColor: ThemesCupertino.groupedBackground,
           middle: Text(t.addContact),

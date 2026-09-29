@@ -55,6 +55,7 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	late final Translations$screenSettingsPasscode$en screenSettingsPasscode = Translations$screenSettingsPasscode$en.internal(_root);
 	late final Translations$settingsPasscodeCreate$en settingsPasscodeCreate = Translations$settingsPasscodeCreate$en.internal(_root);
 	late final Translations$sessionsPrivacyAndSecurity$en sessionsPrivacyAndSecurity = Translations$sessionsPrivacyAndSecurity$en.internal(_root);
+	late final Translations$cloudPassword$en cloudPassword = Translations$cloudPassword$en.internal(_root);
 	late final Translations$screenMyProfile$en screenMyProfile = Translations$screenMyProfile$en.internal(_root);
 	late final Translations$screenProfile$en screenProfile = Translations$screenProfile$en.internal(_root);
 	late final Translations$screenHideProfile$en screenHideProfile = Translations$screenHideProfile$en.internal(_root);
@@ -475,6 +476,9 @@ class Translations$sessionsPrivacyAndSecurity$en {
 	/// en: 'Passcode'
 	String get passcode => 'Passcode';
 
+	/// en: 'Cloud password'
+	String get cloudPassword => 'Cloud password';
+
 	/// en: 'Who can call me'
 	String get whoCanCall => 'Who can call me';
 
@@ -537,6 +541,144 @@ class Translations$sessionsPrivacyAndSecurity$en {
 
 	/// en: 'If you choose Nobody, you won't see others' last seen or online status either.'
 	String get lastSeenReciprocityNote => 'If you choose Nobody, you won\'t see others\' last seen or online status either.';
+}
+
+// Path: cloudPassword
+class Translations$cloudPassword$en {
+	Translations$cloudPassword$en.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// en: 'Cloud password'
+	String get title => 'Cloud password';
+
+	/// en: 'An additional password asked when signing in on a new device. Add an email so you can recover access if you forget it.'
+	String get description => 'An additional password asked when signing in on a new device. Add an email so you can recover access if you forget it.';
+
+	/// en: 'Enter your cloud password'
+	String get enterPasswordHint => 'Enter your cloud password';
+
+	/// en: 'Two-step verification is enabled. Your account is protected by an additional password.'
+	String get unlockInfo => 'Two-step verification is enabled. Your account is protected by an additional password.';
+
+	/// en: 'Add an email to recover access if you forget your cloud password.'
+	String get setupEmailHint => 'Add an email to recover access if you forget your cloud password.';
+
+	/// en: 'Now set a cloud password. You'll be asked for it when signing in on a new device.'
+	String get setupPasswordHint => 'Now set a cloud password. You\'ll be asked for it when signing in on a new device.';
+
+	/// en: 'Enter a new cloud password.'
+	String get changePasswordHint => 'Enter a new cloud password.';
+
+	/// en: 'Enable'
+	String get enableButton => 'Enable';
+
+	/// en: 'Cloud password'
+	String get passwordPlaceholder => 'Cloud password';
+
+	/// en: 'Continue'
+	String get continueButton => 'Continue';
+
+	/// en: 'Next'
+	String get next => 'Next';
+
+	/// en: 'Forgot password?'
+	String get forgotPassword => 'Forgot password?';
+
+	/// en: 'We sent a recovery code to {email}'
+	String recoveryHint({required Object email}) => 'We sent a recovery code to ${email}';
+
+	/// en: 'Code from email'
+	String get codePlaceholder => 'Code from email';
+
+	/// en: 'New password'
+	String get newPasswordPlaceholder => 'New password';
+
+	/// en: 'Repeat password'
+	String get repeatPasswordPlaceholder => 'Repeat password';
+
+	/// en: 'Current password'
+	String get currentPasswordPlaceholder => 'Current password';
+
+	/// en: 'Reset password'
+	String get resetPassword => 'Reset password';
+
+	/// en: 'Reset'
+	String get reset => 'Reset';
+
+	/// en: 'Attempts left: {count}'
+	String attemptsLeft({required Object count}) => 'Attempts left: ${count}';
+
+	/// en: 'Set password'
+	String get setPassword => 'Set password';
+
+	/// en: 'New password'
+	String get newPasswordTitle => 'New password';
+
+	/// en: 'Set a cloud password. You'll be asked for it when signing in on a new device.'
+	String get newPasswordDescription => 'Set a cloud password. You\'ll be asked for it when signing in on a new device.';
+
+	/// en: 'Change password'
+	String get changePassword => 'Change password';
+
+	/// en: 'Email'
+	String get email => 'Email';
+
+	/// en: 'Email'
+	String get emailPlaceholder => 'Email';
+
+	/// en: 'Not set'
+	String get emailNotSet => 'Not set';
+
+	/// en: 'We sent a verification code to your email.'
+	String get emailCodeSent => 'We sent a verification code to your email.';
+
+	/// en: 'Verify email'
+	String get verifyEmail => 'Verify email';
+
+	/// en: 'Disable password'
+	String get disable => 'Disable password';
+
+	/// en: 'Couldn't load cloud password settings'
+	String get loadError => 'Couldn\'t load cloud password settings';
+
+	/// en: 'Retry'
+	String get retry => 'Retry';
+
+	/// en: 'Enter an email'
+	String get emailRequired => 'Enter an email';
+
+	/// en: 'Enter a password'
+	String get passwordRequired => 'Enter a password';
+
+	/// en: 'Password must be at least 5 characters'
+	String get passwordTooShort => 'Password must be at least 5 characters';
+
+	/// en: 'Enter the code'
+	String get codeRequired => 'Enter the code';
+
+	/// en: 'Passwords don't match'
+	String get passwordsDoNotMatch => 'Passwords don\'t match';
+
+	/// en: 'Wrong password'
+	String get wrongPassword => 'Wrong password';
+
+	/// en: 'Too many attempts. Please start again.'
+	String get tooManyAttempts => 'Too many attempts. Please start again.';
+
+	/// en: 'Wrong code'
+	String get codeMismatch => 'Wrong code';
+
+	/// en: 'Cloud password is not set'
+	String get notSet => 'Cloud password is not set';
+
+	/// en: 'Invalid email'
+	String get invalidEmail => 'Invalid email';
+
+	/// en: 'Session expired. Please start again.'
+	String get sessionExpired => 'Session expired. Please start again.';
 }
 
 // Path: screenMyProfile
@@ -1296,6 +1438,7 @@ extension on Translations {
 			'sessionsPrivacyAndSecurity.passcodeAndFaceID' => 'Passcode & Face ID',
 			'sessionsPrivacyAndSecurity.passcodeAndBiometric' => 'Passcode & Biometric',
 			'sessionsPrivacyAndSecurity.passcode' => 'Passcode',
+			'sessionsPrivacyAndSecurity.cloudPassword' => 'Cloud password',
 			'sessionsPrivacyAndSecurity.whoCanCall' => 'Who can call me',
 			'sessionsPrivacyAndSecurity.calls' => 'Calls',
 			'sessionsPrivacyAndSecurity.callsEverybody' => 'Everybody',
@@ -1317,6 +1460,49 @@ extension on Translations {
 			'sessionsPrivacyAndSecurity.lastSeen' => 'Last seen',
 			'sessionsPrivacyAndSecurity.whoCanSeeLastSeen' => 'Who can see my last seen',
 			'sessionsPrivacyAndSecurity.lastSeenReciprocityNote' => 'If you choose Nobody, you won\'t see others\' last seen or online status either.',
+			'cloudPassword.title' => 'Cloud password',
+			'cloudPassword.description' => 'An additional password asked when signing in on a new device. Add an email so you can recover access if you forget it.',
+			'cloudPassword.enterPasswordHint' => 'Enter your cloud password',
+			'cloudPassword.unlockInfo' => 'Two-step verification is enabled. Your account is protected by an additional password.',
+			'cloudPassword.setupEmailHint' => 'Add an email to recover access if you forget your cloud password.',
+			'cloudPassword.setupPasswordHint' => 'Now set a cloud password. You\'ll be asked for it when signing in on a new device.',
+			'cloudPassword.changePasswordHint' => 'Enter a new cloud password.',
+			'cloudPassword.enableButton' => 'Enable',
+			'cloudPassword.passwordPlaceholder' => 'Cloud password',
+			'cloudPassword.continueButton' => 'Continue',
+			'cloudPassword.next' => 'Next',
+			'cloudPassword.forgotPassword' => 'Forgot password?',
+			'cloudPassword.recoveryHint' => ({required Object email}) => 'We sent a recovery code to ${email}',
+			'cloudPassword.codePlaceholder' => 'Code from email',
+			'cloudPassword.newPasswordPlaceholder' => 'New password',
+			'cloudPassword.repeatPasswordPlaceholder' => 'Repeat password',
+			'cloudPassword.currentPasswordPlaceholder' => 'Current password',
+			'cloudPassword.resetPassword' => 'Reset password',
+			'cloudPassword.reset' => 'Reset',
+			'cloudPassword.attemptsLeft' => ({required Object count}) => 'Attempts left: ${count}',
+			'cloudPassword.setPassword' => 'Set password',
+			'cloudPassword.newPasswordTitle' => 'New password',
+			'cloudPassword.newPasswordDescription' => 'Set a cloud password. You\'ll be asked for it when signing in on a new device.',
+			'cloudPassword.changePassword' => 'Change password',
+			'cloudPassword.email' => 'Email',
+			'cloudPassword.emailPlaceholder' => 'Email',
+			'cloudPassword.emailNotSet' => 'Not set',
+			'cloudPassword.emailCodeSent' => 'We sent a verification code to your email.',
+			'cloudPassword.verifyEmail' => 'Verify email',
+			'cloudPassword.disable' => 'Disable password',
+			'cloudPassword.loadError' => 'Couldn\'t load cloud password settings',
+			'cloudPassword.retry' => 'Retry',
+			'cloudPassword.emailRequired' => 'Enter an email',
+			'cloudPassword.passwordRequired' => 'Enter a password',
+			'cloudPassword.passwordTooShort' => 'Password must be at least 5 characters',
+			'cloudPassword.codeRequired' => 'Enter the code',
+			'cloudPassword.passwordsDoNotMatch' => 'Passwords don\'t match',
+			'cloudPassword.wrongPassword' => 'Wrong password',
+			'cloudPassword.tooManyAttempts' => 'Too many attempts. Please start again.',
+			'cloudPassword.codeMismatch' => 'Wrong code',
+			'cloudPassword.notSet' => 'Cloud password is not set',
+			'cloudPassword.invalidEmail' => 'Invalid email',
+			'cloudPassword.sessionExpired' => 'Session expired. Please start again.',
 			'screenMyProfile.myprofile' => 'My profile',
 			'screenMyProfile.firstName' => 'First name',
 			'screenMyProfile.lastName' => 'Last name',

@@ -175,7 +175,7 @@ class _SettingsMyProfileCupertino extends State<SettingsMyProfileCupertino> {
               // справа не сместилась.
               padding: const EdgeInsetsDirectional.only(start: 0, end: 16),
               middle: Text(context.t.screenMyProfile.myprofile),
-              leading: CupertinoNavigationBarBackButton(onPressed: () => context.pop()),
+              leading: CupertinoNavigationBarBackButton(previousPageTitle: '', onPressed: () => context.pop()),
               trailing: CupertinoButton(
                 padding: EdgeInsets.zero,
                 // push (а не go): дожидаемся закрытия экрана правки и перечитываем

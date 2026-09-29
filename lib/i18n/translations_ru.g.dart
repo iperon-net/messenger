@@ -53,6 +53,7 @@ class TranslationsRu extends Translations with BaseTranslations<AppLocale, Trans
 	@override late final _Translations$screenSettingsPasscode$ru screenSettingsPasscode = _Translations$screenSettingsPasscode$ru._(_root);
 	@override late final _Translations$settingsPasscodeCreate$ru settingsPasscodeCreate = _Translations$settingsPasscodeCreate$ru._(_root);
 	@override late final _Translations$sessionsPrivacyAndSecurity$ru sessionsPrivacyAndSecurity = _Translations$sessionsPrivacyAndSecurity$ru._(_root);
+	@override late final _Translations$cloudPassword$ru cloudPassword = _Translations$cloudPassword$ru._(_root);
 	@override late final _Translations$screenMyProfile$ru screenMyProfile = _Translations$screenMyProfile$ru._(_root);
 	@override late final _Translations$screenProfile$ru screenProfile = _Translations$screenProfile$ru._(_root);
 	@override late final _Translations$screenHideProfile$ru screenHideProfile = _Translations$screenHideProfile$ru._(_root);
@@ -288,6 +289,7 @@ class _Translations$sessionsPrivacyAndSecurity$ru extends Translations$sessionsP
 	@override String get passcodeAndFaceID => 'Код-пароль и Face ID';
 	@override String get passcodeAndBiometric => 'Код-пароль и биометрия';
 	@override String get passcode => 'Код-пароль';
+	@override String get cloudPassword => 'Облачный пароль';
 	@override String get whoCanCall => 'Кто может звонить';
 	@override String get calls => 'Звонки';
 	@override String get callsEverybody => 'Все';
@@ -309,6 +311,58 @@ class _Translations$sessionsPrivacyAndSecurity$ru extends Translations$sessionsP
 	@override String get lastSeen => 'Время захода';
 	@override String get whoCanSeeLastSeen => 'Кто может видеть время моего захода';
 	@override String get lastSeenReciprocityNote => 'Если выбрано «Никто», вы тоже не будете видеть время захода и статус других.';
+}
+
+// Path: cloudPassword
+class _Translations$cloudPassword$ru extends Translations$cloudPassword$en {
+	_Translations$cloudPassword$ru._(TranslationsRu root) : this._root = root, super.internal(root);
+
+	final TranslationsRu _root; // ignore: unused_field
+
+	// Translations
+	@override String get title => 'Облачный пароль';
+	@override String get description => 'Дополнительный пароль, будет запрашивается при входе с нового устройства. Укажите email чтобы восстановить доступ, если забудете пароль.';
+	@override String get enterPasswordHint => 'Введите облачный пароль';
+	@override String get unlockInfo => 'Включена двухэтапная авторизация. Ваш аккаунт защищён дополнительным паролем.';
+	@override String get setupEmailHint => 'Укажите email, чтобы восстановить доступ, если забудете облачный пароль.';
+	@override String get setupPasswordHint => 'Теперь задайте облачный пароль. Его спросят при входе на новом устройстве.';
+	@override String get changePasswordHint => 'Введите новый облачный пароль.';
+	@override String get enableButton => 'Включить';
+	@override String get passwordPlaceholder => 'Облачный пароль';
+	@override String get continueButton => 'Продолжить';
+	@override String get next => 'Далее';
+	@override String get forgotPassword => 'Забыли пароль?';
+	@override String recoveryHint({required Object email}) => 'Мы отправили код восстановления на ${email}';
+	@override String get codePlaceholder => 'Код из письма';
+	@override String get newPasswordPlaceholder => 'Новый пароль';
+	@override String get repeatPasswordPlaceholder => 'Повторите пароль';
+	@override String get currentPasswordPlaceholder => 'Текущий пароль';
+	@override String get resetPassword => 'Сбросить пароль';
+	@override String get reset => 'Сбросить';
+	@override String attemptsLeft({required Object count}) => 'Осталось попыток: ${count}';
+	@override String get setPassword => 'Установить пароль';
+	@override String get newPasswordTitle => 'Новый пароль';
+	@override String get newPasswordDescription => 'Задайте облачный пароль. Его запросят при входе с нового устройства.';
+	@override String get changePassword => 'Изменить пароль';
+	@override String get email => 'Email';
+	@override String get emailPlaceholder => 'Email';
+	@override String get emailNotSet => 'Не задан';
+	@override String get emailCodeSent => 'Мы отправили код подтверждения на ваш email.';
+	@override String get verifyEmail => 'Подтвердить email';
+	@override String get disable => 'Отключить пароль';
+	@override String get loadError => 'Не удалось загрузить настройки облачного пароля';
+	@override String get retry => 'Повторить';
+	@override String get emailRequired => 'Введите email';
+	@override String get passwordRequired => 'Введите пароль';
+	@override String get passwordTooShort => 'Пароль должен быть не короче 5 символов';
+	@override String get codeRequired => 'Введите код';
+	@override String get passwordsDoNotMatch => 'Пароли не совпадают';
+	@override String get wrongPassword => 'Неверный пароль';
+	@override String get tooManyAttempts => 'Слишком много попыток. Начните заново.';
+	@override String get codeMismatch => 'Неверный код';
+	@override String get notSet => 'Облачный пароль не установлен';
+	@override String get invalidEmail => 'Некорректный email';
+	@override String get sessionExpired => 'Сессия истекла. Начните заново.';
 }
 
 // Path: screenMyProfile
@@ -700,6 +754,7 @@ extension on TranslationsRu {
 			'sessionsPrivacyAndSecurity.passcodeAndFaceID' => 'Код-пароль и Face ID',
 			'sessionsPrivacyAndSecurity.passcodeAndBiometric' => 'Код-пароль и биометрия',
 			'sessionsPrivacyAndSecurity.passcode' => 'Код-пароль',
+			'sessionsPrivacyAndSecurity.cloudPassword' => 'Облачный пароль',
 			'sessionsPrivacyAndSecurity.whoCanCall' => 'Кто может звонить',
 			'sessionsPrivacyAndSecurity.calls' => 'Звонки',
 			'sessionsPrivacyAndSecurity.callsEverybody' => 'Все',
@@ -721,6 +776,49 @@ extension on TranslationsRu {
 			'sessionsPrivacyAndSecurity.lastSeen' => 'Время захода',
 			'sessionsPrivacyAndSecurity.whoCanSeeLastSeen' => 'Кто может видеть время моего захода',
 			'sessionsPrivacyAndSecurity.lastSeenReciprocityNote' => 'Если выбрано «Никто», вы тоже не будете видеть время захода и статус других.',
+			'cloudPassword.title' => 'Облачный пароль',
+			'cloudPassword.description' => 'Дополнительный пароль, будет запрашивается при входе с нового устройства. Укажите email чтобы восстановить доступ, если забудете пароль.',
+			'cloudPassword.enterPasswordHint' => 'Введите облачный пароль',
+			'cloudPassword.unlockInfo' => 'Включена двухэтапная авторизация. Ваш аккаунт защищён дополнительным паролем.',
+			'cloudPassword.setupEmailHint' => 'Укажите email, чтобы восстановить доступ, если забудете облачный пароль.',
+			'cloudPassword.setupPasswordHint' => 'Теперь задайте облачный пароль. Его спросят при входе на новом устройстве.',
+			'cloudPassword.changePasswordHint' => 'Введите новый облачный пароль.',
+			'cloudPassword.enableButton' => 'Включить',
+			'cloudPassword.passwordPlaceholder' => 'Облачный пароль',
+			'cloudPassword.continueButton' => 'Продолжить',
+			'cloudPassword.next' => 'Далее',
+			'cloudPassword.forgotPassword' => 'Забыли пароль?',
+			'cloudPassword.recoveryHint' => ({required Object email}) => 'Мы отправили код восстановления на ${email}',
+			'cloudPassword.codePlaceholder' => 'Код из письма',
+			'cloudPassword.newPasswordPlaceholder' => 'Новый пароль',
+			'cloudPassword.repeatPasswordPlaceholder' => 'Повторите пароль',
+			'cloudPassword.currentPasswordPlaceholder' => 'Текущий пароль',
+			'cloudPassword.resetPassword' => 'Сбросить пароль',
+			'cloudPassword.reset' => 'Сбросить',
+			'cloudPassword.attemptsLeft' => ({required Object count}) => 'Осталось попыток: ${count}',
+			'cloudPassword.setPassword' => 'Установить пароль',
+			'cloudPassword.newPasswordTitle' => 'Новый пароль',
+			'cloudPassword.newPasswordDescription' => 'Задайте облачный пароль. Его запросят при входе с нового устройства.',
+			'cloudPassword.changePassword' => 'Изменить пароль',
+			'cloudPassword.email' => 'Email',
+			'cloudPassword.emailPlaceholder' => 'Email',
+			'cloudPassword.emailNotSet' => 'Не задан',
+			'cloudPassword.emailCodeSent' => 'Мы отправили код подтверждения на ваш email.',
+			'cloudPassword.verifyEmail' => 'Подтвердить email',
+			'cloudPassword.disable' => 'Отключить пароль',
+			'cloudPassword.loadError' => 'Не удалось загрузить настройки облачного пароля',
+			'cloudPassword.retry' => 'Повторить',
+			'cloudPassword.emailRequired' => 'Введите email',
+			'cloudPassword.passwordRequired' => 'Введите пароль',
+			'cloudPassword.passwordTooShort' => 'Пароль должен быть не короче 5 символов',
+			'cloudPassword.codeRequired' => 'Введите код',
+			'cloudPassword.passwordsDoNotMatch' => 'Пароли не совпадают',
+			'cloudPassword.wrongPassword' => 'Неверный пароль',
+			'cloudPassword.tooManyAttempts' => 'Слишком много попыток. Начните заново.',
+			'cloudPassword.codeMismatch' => 'Неверный код',
+			'cloudPassword.notSet' => 'Облачный пароль не установлен',
+			'cloudPassword.invalidEmail' => 'Некорректный email',
+			'cloudPassword.sessionExpired' => 'Сессия истекла. Начните заново.',
 			'screenMyProfile.myprofile' => 'Мой профиль',
 			'screenMyProfile.firstName' => 'Имя',
 			'screenMyProfile.lastName' => 'Фамилия',

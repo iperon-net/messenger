@@ -3,17 +3,14 @@ import 'dart:typed_data';
 
 import 'package:bloc/bloc.dart';
 import 'package:grpc/grpc.dart';
-import 'package:pqcrypto/pqcrypto.dart';
 
 import '../../api.dart';
-import '../../auth.dart';
 import '../../constants.dart';
 import '../../di.dart';
 import '../../logger.dart';
-
-import '../../repositories/repositories.dart';
 import '../../utils.dart';
 import '../../protobuf.dart';
+import 'auth_login_completer.dart';
 import 'auth_callpassword_confirmation_state.dart';
 
 class AuthCallpasswordConfirmationCubit extends Cubit<AuthCallpasswordConfirmationState> {
@@ -22,10 +19,6 @@ class AuthCallpasswordConfirmationCubit extends Cubit<AuthCallpasswordConfirmati
   final logger = getIt.get<Logger>();
   final utils = getIt.get<Utils>();
   final api = getIt.get<API>();
-  final repositories = getIt.get<Repositories>();
-
-  final kem = PqcKem.kyber768;
-  final mlDsa65 = DilithiumParams.mlDsa65;
 
   // Обратный отсчёт ожидания звонка.
   Timer? _ticker;
@@ -170,118 +163,24 @@ class AuthCallpasswordConfirmationCubit extends Cubit<AuthCallpasswordConfirmati
     switch (response.authCallPasswordStatus) {
       case AuthCallPasswordStatus.success:
         _stop();
-        // TODO: второй шаг входа (обмен ключами / two-step verification) ещё не
-        // реализован — здесь появится переход на экран подтверждения с
-        // confirmationSession. См. TODO «Second login workflow is unfinished».
 
-        // Meta data info
-        final messageMetaDataInfoRequest = Message(messageType: MessageType.META_DATA_INFO);
-
-        late Message metaDataResponse;
-        final metaDataGrpcError = await api.call(() async {
-          metaDataResponse = await api.client.unary(messageMetaDataInfoRequest);
-        });
-
-        if (metaDataGrpcError.status == APIStatus.error) {
-          emit(state.copyWith(status: Status.success, error: metaDataGrpcError.error));
+        // Двухшаговая проверка: если у аккаунта включён облачный пароль, вход здесь
+        // не завершаем — уводим на экран ввода пароля, передав confirmationSession
+        // (hex) в query. Завершение входа произойдёт там после проверки пароля.
+        if (response.hasTwoStepVerification) {
+          final confirmationSessionHex = utils.bytesToHex(Uint8List.fromList(response.confirmationSession));
+          emit(state.copyWith(redirectURI: Uri.parse("/auth/cloud_password?confirmationSession=$confirmationSessionHex").toString()));
           return;
         }
 
-        final metaData = MetadataInfo_Response.fromBuffer(metaDataResponse.message);
-
-        final (publicKeySharedKey, privateKeySharedKey) = kem.generateKeyPair();
-        final (publicKeySalt, privateKeySalt) = kem.generateKeyPair();
-
-        final packageInfo = await utils.packageInfo();
-        final deviceInfo = await utils.deviceInfo();
-
-        final messageAuthConfirmationRequest = Message(
-          messageType: MessageType.AUTH_CONFIRMATION,
-          message: AuthConfirmation_Request(
-            confirmationSession: response.confirmationSession,
-            publicKeySharedKey: publicKeySharedKey,
-            publicKeySalt: publicKeySalt,
-            deviceModel: deviceInfo.deviceModel,
-            os: deviceInfo.osCode,
-            osVersion: deviceInfo.osVersion,
-            appVersion: packageInfo.appVersion,
-            appBuildNumber: packageInfo.appBuildNumber,
-          ).writeToBuffer(),
-        );
-
-        late Message messageAuthConfirmationResponse;
-        final authConfirmationGrpcError = await api.call(() async {
-          messageAuthConfirmationResponse = await api.client.unary(messageAuthConfirmationRequest);
-        });
-
-        if (authConfirmationGrpcError.status == APIStatus.error && authConfirmationGrpcError.statusCode == StatusCode.invalidArgument) {
-          emit(state.copyWith(status: Status.success, error: authConfirmationGrpcError.error, redirectURI: Uri.parse("/auth").toString()));
-          return;
-        } else if (authConfirmationGrpcError.status == APIStatus.error) {
-          emit(state.copyWith(status: Status.success, error: authConfirmationGrpcError.error));
-          return;
+        // Иначе завершаем вход общей последовательностью (META_DATA →
+        // AUTH_CONFIRMATION → persist → Auth.refresh), вынесенной в AuthLoginCompleter.
+        final completion = await AuthLoginCompleter().complete(response.confirmationSession);
+        if (completion.redirectURI.isNotEmpty) {
+          emit(state.copyWith(status: Status.success, error: completion.error, redirectURI: completion.redirectURI));
+        } else {
+          emit(state.copyWith(status: Status.success, error: completion.error));
         }
-
-        final authConfirmationResponse = AuthConfirmation_Response.fromBuffer(messageAuthConfirmationResponse.message);
-
-        // Exchange
-        // ML-DSA-65 (FIPS 204) signatures over the ML-KEM ciphertexts, verified with
-        // the server's ML-DSA public key from the metadata response. MlDsa.verify
-        // never throws — it returns false for any malformed/short input.
-        final serverPublicKey = Uint8List.fromList(metaData.mldsa.publicKey);
-
-        final checkSharedKey = MlDsa.verify(
-          serverPublicKey,
-          Uint8List.fromList(authConfirmationResponse.ciphertextSharedKey),
-          Uint8List.fromList(authConfirmationResponse.signatureSharedKey),
-          mlDsa65,
-        );
-
-        final checkSalt = MlDsa.verify(
-          serverPublicKey,
-          Uint8List.fromList(authConfirmationResponse.ciphertextSalt),
-          Uint8List.fromList(authConfirmationResponse.signatureSalt),
-          mlDsa65,
-        );
-
-        if (!checkSharedKey || !checkSalt) {
-          logger.error('mlkem ciphertext signature verification failed');
-          emit(state.copyWith(status: Status.success, error: 'screenAuthCallpasswordConfirmation.signatureVerificationFailed'));
-          return;
-        }
-
-        final sharedKey = kem.decapsulate(privateKeySharedKey, Uint8List.fromList(authConfirmationResponse.ciphertextSharedKey));
-        final sharedSalt = kem.decapsulate(privateKeySalt, Uint8List.fromList(authConfirmationResponse.ciphertextSalt));
-
-        // Персистентность сессии обёрнута в try/catch: этот код выполняется в
-        // onData-колбэке стрима, поэтому любое исключение (например, сбой записи
-        // в SQLite) улетело бы необработанным в PlatformDispatcher.onError и
-        // уронило бы приложение как fatal. Вместо этого показываем ошибку и
-        // возвращаем на /auth.
-        try {
-          // Create or update user
-          await repositories.users.createOrUpdate(
-            userID: authConfirmationResponse.userID,
-            phoneNumber: authConfirmationResponse.phoneNumber,
-          );
-
-          await repositories.sessions.deleteAndCreate(
-            session: authConfirmationResponse.session,
-            sessionID: authConfirmationResponse.sessionID,
-            userID: authConfirmationResponse.userID,
-            sharedKey: sharedKey,
-            sharedSalt: sharedSalt,
-            createAt: DateTime.now(),
-          );
-
-          await getIt.get<Auth>().refresh();
-        } catch (error, stackTrace) {
-          logger.handle(error, stackTrace, "callpassword confirmation: persist session failed");
-          emit(state.copyWith(status: Status.success, error: "grpcError.internalServerError", redirectURI: Uri.parse("/auth").toString()));
-          return;
-        }
-
-        emit(state.copyWith(redirectURI: Uri.parse("/chats").toString()));
 
       case AuthCallPasswordStatus.error:
         _stop();

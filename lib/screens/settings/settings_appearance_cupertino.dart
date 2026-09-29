@@ -57,6 +57,7 @@ class _SettingsAppearanceCupertino extends State<SettingsAppearanceCupertino> {
           backgroundColor: ThemesCupertino.groupedBackground,
           navigationBar: AppCupertinoNavigationBar(
             child: CupertinoNavigationBar(
+              previousPageTitle: '',
               automaticBackgroundVisibility: false,
               backgroundColor: ThemesCupertino.groupedBackground,
               middle: Text(context.t.screenSettingsAppearance.appearance),

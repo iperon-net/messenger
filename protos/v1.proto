@@ -80,6 +80,23 @@ enum MessageType {
   PRIVACY_LAST_SEEN_UPDATE = 45;
   PRIVACY_LAST_SEEN_ALLOW_UPDATE = 46;
   PRIVACY_LAST_SEEN_DENY_UPDATE = 47;
+  // Облачный пароль (двухшаговая проверка) + email восстановления. Pre-auth
+  // (вход/восстановление) — unary до сессии; остальные — authenticated через
+  // exchangeEncrypted. Клиент шлёт pre-hash пароля, не plaintext. См.
+  // cloud_password_v1.proto.
+  AUTH_CLOUD_PASSWORD = 49;
+  AUTH_CLOUD_PASSWORD_RECOVERY = 50;
+  AUTH_CLOUD_PASSWORD_RECOVERY_CONFIRM = 51;
+  CLOUD_PASSWORD_INFO = 52;
+  CLOUD_PASSWORD_SET = 53;
+  CLOUD_PASSWORD_DISABLE = 54;
+  CLOUD_PASSWORD_EMAIL_SET = 55;
+  CLOUD_PASSWORD_EMAIL_VERIFY = 56;
+  // Настройки: разблокировка меню (проверка пароля), восстановление по email и
+  // сброс пароля по коду. См. cloud_password_v1.proto.
+  CLOUD_PASSWORD_VERIFY = 57;
+  CLOUD_PASSWORD_RECOVERY_SEND = 58;
+  CLOUD_PASSWORD_RESET = 59;
 }
 
 service Iperon {

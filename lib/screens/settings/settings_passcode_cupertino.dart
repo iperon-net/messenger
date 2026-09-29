@@ -82,6 +82,7 @@ class _SettingsPasscodeCupertino extends State<SettingsPasscodeCupertino> {
           backgroundColor: ThemesCupertino.groupedBackground,
           navigationBar: AppCupertinoNavigationBar(
             child: CupertinoNavigationBar(
+              previousPageTitle: '',
               automaticBackgroundVisibility: false,
               backgroundColor: ThemesCupertino.groupedBackground,
               middle: state.isBiometricAvailable

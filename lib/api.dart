@@ -16,8 +16,45 @@ import 'logger.dart';
 import 'repositories.dart';
 import 'settings.dart';
 import 'protobuf.dart';
+import 'i18n/translations.g.dart';
 
 enum APIStatus { success, error }
+
+/// Подмешивает заголовок `accept-language` (текущая локаль приложения) во все
+/// вызовы клиента. Сервер использует его для локализации писем облачного пароля
+/// (код восстановления/верификации email); пустой/незнакомый язык откатывается на
+/// язык по умолчанию. Провайдер вычисляется на каждый вызов, поэтому смена локали
+/// подхватывается без пересоздания клиента.
+class _LocaleInterceptor implements ClientInterceptor {
+  const _LocaleInterceptor();
+
+  CallOptions _withLocale(CallOptions options) {
+    return options.mergedWith(
+      CallOptions(
+        providers: [
+          (metadata, uri) async {
+            metadata['accept-language'] = LocaleSettings.currentLocale.languageCode;
+          },
+        ],
+      ),
+    );
+  }
+
+  @override
+  ResponseFuture<R> interceptUnary<Q, R>(ClientMethod<Q, R> method, Q request, CallOptions options, ClientUnaryInvoker<Q, R> invoker) {
+    return invoker(method, request, _withLocale(options));
+  }
+
+  @override
+  ResponseStream<R> interceptStreaming<Q, R>(
+    ClientMethod<Q, R> method,
+    Stream<Q> requests,
+    CallOptions options,
+    ClientStreamingInvoker<Q, R> invoker,
+  ) {
+    return invoker(method, requests, _withLocale(options));
+  }
+}
 
 /// Состояние двунаправленного gRPC-стрима, наблюдаемое извне (UI/кубитами).
 ///
@@ -195,7 +232,13 @@ class API {
   API() {
     logger.debug('API channel target: secure=${settings.apiSecure} ${settings.apiHost}:${settings.apiPort}');
 
-    client = IperonClient(_buildChannel('main'), interceptors: [TalkerGrpcLogger(talker: logger.talker)]);
+    client = IperonClient(
+      _buildChannel('main'),
+      interceptors: [
+        const _LocaleInterceptor(),
+        TalkerGrpcLogger(talker: logger.talker),
+      ],
+    );
 
     // `Upload` живёт на СВОЁМ канале, а не на общем с персистентным `Stream`/
     // unary-вызовами. Стрим `Upload` открывается/рвётся/отменяется на каждую
