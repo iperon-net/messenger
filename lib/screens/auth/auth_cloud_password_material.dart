@@ -41,14 +41,11 @@ class _AuthCloudPasswordMaterial extends State<AuthCloudPasswordMaterial> {
         return Scaffold(
           appBar: AppBar(title: Text(context.t.cloudPassword.title), actions: _actions(context, state, loading)),
           body: SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(25, 30, 25, 30),
-              child: switch (state.phase) {
-                AuthCloudPasswordPhase.enterEmail => _enterEmail(context, state, loading),
-                AuthCloudPasswordPhase.recovery => _recovery(context, state, loading),
-                AuthCloudPasswordPhase.enterPassword => _enterPassword(context, state, loading),
-              },
-            ),
+            child: switch (state.phase) {
+              AuthCloudPasswordPhase.enterEmail => _enterEmail(context, state, loading),
+              AuthCloudPasswordPhase.recovery => _recovery(context, state, loading),
+              AuthCloudPasswordPhase.enterPassword => _enterPassword(context, state, loading),
+            },
           ),
         );
       },
@@ -77,97 +74,144 @@ class _AuthCloudPasswordMaterial extends State<AuthCloudPasswordMaterial> {
 
   /// Ввод email восстановления (код придёт, только если адрес совпадает).
   Widget _enterEmail(BuildContext context, AuthCloudPasswordState state, bool loading) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        TextField(
-          controller: emailController,
+    return _formList([
+      _card([
+        _row(
+          context,
+          emailController,
+          context.t.cloudPassword.emailPlaceholder,
           keyboardType: TextInputType.emailAddress,
           autofocus: true,
           enabled: !loading,
-          decoration: InputDecoration(
-            labelText: context.t.cloudPassword.emailPlaceholder,
-            border: const OutlineInputBorder(),
-            errorText: state.error.isEmpty ? null : context.t[state.error],
-          ),
-          onSubmitted: (_) => context.read<AuthCloudPasswordCubit>().submitRecoveryEmail(emailController.text),
+          errorText: state.error.isEmpty ? null : context.t[state.error],
+          onSubmitted: () => context.read<AuthCloudPasswordCubit>().submitRecoveryEmail(emailController.text),
         ),
-        const SizedBox(height: 10),
-        Text(context.t.cloudPassword.recoveryEmailHint, style: Theme.of(context).textTheme.bodySmall),
-      ],
-    );
+      ]),
+      _desc(context, context.t.cloudPassword.recoveryEmailHint),
+    ]);
   }
 
   Widget _enterPassword(BuildContext context, AuthCloudPasswordState state, bool loading) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        TextField(
-          controller: passwordController,
-          obscureText: true,
+    return _formList([
+      _card([
+        _row(
+          context,
+          passwordController,
+          context.t.cloudPassword.passwordPlaceholder,
+          obscure: true,
           autofocus: true,
           enabled: !loading,
-          decoration: InputDecoration(labelText: context.t.cloudPassword.passwordPlaceholder, border: const OutlineInputBorder()),
-          onSubmitted: (_) => context.read<AuthCloudPasswordCubit>().submit(passwordController.text),
+          errorText: _composeError(context, state),
+          onSubmitted: () => context.read<AuthCloudPasswordCubit>().submit(passwordController.text),
         ),
-        _error(context, state),
-        const SizedBox(height: 12),
-        InkWell(
+      ]),
+      Padding(
+        padding: const EdgeInsets.fromLTRB(24, 12, 24, 0),
+        child: InkWell(
           onTap: loading ? null : () => context.read<AuthCloudPasswordCubit>().startRecovery(),
           child: Text(
             context.t.cloudPassword.forgotPassword,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.primary),
           ),
         ),
-      ],
-    );
+      ),
+    ]);
   }
 
   Widget _recovery(BuildContext context, AuthCloudPasswordState state, bool loading) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Text(context.t.cloudPassword.recoveryHint(email: state.pendingEmail), textAlign: TextAlign.center),
-        const SizedBox(height: 24),
-        TextField(
-          controller: codeController,
+    return _formList([
+      _hint(context, context.t.cloudPassword.recoveryHint(email: state.pendingEmail)),
+      _card([
+        // Ошибки про код — под полем кода; остальные — под паролем.
+        _row(
+          context,
+          codeController,
+          context.t.cloudPassword.codePlaceholder,
           keyboardType: TextInputType.number,
           autofocus: true,
           enabled: !loading,
-          decoration: InputDecoration(
-            labelText: context.t.cloudPassword.codePlaceholder,
-            border: const OutlineInputBorder(),
-            // Ошибки про код — под полем кода; остальные — под паролем.
-            errorText: _isCodeError(state.error) ? context.t[state.error] : null,
-          ),
+          errorText: _isCodeError(state.error) ? context.t[state.error] : null,
         ),
-        const SizedBox(height: 12),
-        TextField(
-          controller: newPasswordController,
-          obscureText: true,
+        const Divider(height: 0.3, color: Colors.black12),
+        _row(
+          context,
+          newPasswordController,
+          context.t.cloudPassword.newPasswordPlaceholder,
+          obscure: true,
           enabled: !loading,
-          decoration: InputDecoration(
-            labelText: context.t.cloudPassword.newPasswordPlaceholder,
-            border: const OutlineInputBorder(),
-            errorText: (state.error.isNotEmpty && !_isCodeError(state.error)) ? context.t[state.error] : null,
-          ),
+          errorText: (state.error.isNotEmpty && !_isCodeError(state.error)) ? context.t[state.error] : null,
         ),
-      ],
-    );
+      ]),
+    ]);
   }
 
   /// Ошибка про код письма относится к полю кода, всё остальное — к полю пароля.
   bool _isCodeError(String key) => key.toLowerCase().contains("code");
 
-  Widget _error(BuildContext context, AuthCloudPasswordState state) {
+  /// Ошибка + остаток попыток (для шага ввода пароля), уже переведённые.
+  String? _composeError(BuildContext context, AuthCloudPasswordState state) {
     final parts = <String>[];
     if (state.error.isNotEmpty) parts.add(context.t[state.error]);
     if (state.attemptsLeft > 0) parts.add(context.t.cloudPassword.attemptsLeftInline(n: state.attemptsLeft));
-    if (parts.isEmpty) return const SizedBox.shrink();
+    return parts.isEmpty ? null : parts.join(", ");
+  }
 
+  /// Обёртка формы: `ListView` с общим отступом — как в форме профиля.
+  Widget _formList(List<Widget> children) => ListView(padding: const EdgeInsets.all(10), children: children);
+
+  /// Карточка формы (по образцу Card из формы профиля).
+  Widget _card(List<Widget> children) => Card(
+    clipBehavior: Clip.antiAlias,
+    child: Column(children: children),
+  );
+
+  /// Описание под карточкой (вторичный текст).
+  Widget _desc(BuildContext context, String text) => Padding(
+    padding: const EdgeInsets.fromLTRB(24, 8, 24, 0),
+    child: Text(text, style: Theme.of(context).textTheme.bodySmall),
+  );
+
+  /// Подпись над карточкой (напр. «код отправлен на …»).
+  Widget _hint(BuildContext context, String text) => Padding(
+    padding: const EdgeInsets.fromLTRB(24, 8, 24, 12),
+    child: Text(text, style: Theme.of(context).textTheme.bodySmall),
+  );
+
+  /// Строка-поле формы: безрамочный `TextFormField`, чтобы жить внутри карточки
+  /// (по образцу формы профиля). Ошибка — через `errorText`.
+  Widget _row(
+    BuildContext context,
+    TextEditingController controller,
+    String label, {
+    bool obscure = false,
+    TextInputType? keyboardType,
+    bool autofocus = false,
+    bool enabled = true,
+    String? errorText,
+    void Function()? onSubmitted,
+  }) {
     return Padding(
-      padding: const EdgeInsets.only(top: 6, left: 4),
-      child: Text(parts.join(", "), style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.error)),
+      padding: const EdgeInsets.only(bottom: 8),
+      child: TextFormField(
+        controller: controller,
+        obscureText: obscure,
+        keyboardType: keyboardType,
+        autofocus: autofocus,
+        enabled: enabled,
+        onFieldSubmitted: onSubmitted == null ? null : (_) => onSubmitted(),
+        decoration: InputDecoration(
+          labelText: label,
+          border: InputBorder.none,
+          enabledBorder: InputBorder.none,
+          focusedBorder: InputBorder.none,
+          errorBorder: InputBorder.none,
+          focusedErrorBorder: InputBorder.none,
+          disabledBorder: InputBorder.none,
+          contentPadding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+          errorStyle: const TextStyle(height: 0.8),
+          errorText: (errorText == null || errorText.isEmpty) ? null : errorText,
+        ),
+      ),
     );
   }
 }

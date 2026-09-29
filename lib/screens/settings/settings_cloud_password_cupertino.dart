@@ -164,101 +164,74 @@ class _SettingsCloudPasswordCupertino extends State<SettingsCloudPasswordCuperti
 
     switch (state.step) {
       case SettingsCloudPasswordStep.setupEmail:
-        return _descForm(
-          context,
-          field: _field(
-            context,
-            emailController,
-            context.t.cloudPassword.emailPlaceholder,
-            keyboardType: TextInputType.emailAddress,
-            error: state.error,
-          ),
-          description: context.t.cloudPassword.setupEmailHint,
-        );
-      case SettingsCloudPasswordStep.setupVerify:
-        return _promptForm(
-          context,
-          hint: context.t.cloudPassword.recoveryHint(email: state.pendingEmail),
-          field: _field(
-            context,
-            codeController,
-            context.t.cloudPassword.codePlaceholder,
-            keyboardType: TextInputType.number,
-            error: state.error,
-          ),
-        );
-      case SettingsCloudPasswordStep.setupPassword:
-        return _descForm(
-          context,
-          field: _field(context, passwordController, context.t.cloudPassword.passwordPlaceholder, obscure: true, error: state.error),
-          description: context.t.cloudPassword.newPasswordDescription,
-        );
-      case SettingsCloudPasswordStep.unlock:
-        return SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(25, 30, 25, 30),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              _field(context, passwordController, context.t.cloudPassword.passwordPlaceholder, obscure: true, error: state.error),
-              const SizedBox(height: 10),
-              Text(
-                context.t.cloudPassword.unlockInfo,
-                style: TextStyle(color: CupertinoColors.secondaryLabel.resolveFrom(context), fontSize: 13),
-              ),
-              const SizedBox(height: 12),
-              GestureDetector(
-                onTap: state.networkStatus == Status.loading ? null : () => _cubit.forgotPassword(),
-                child: Text(
-                  context.t.cloudPassword.forgotPassword,
-                  style: TextStyle(color: ThemesCupertino.navActionColor(context), fontSize: 13),
-                ),
-              ),
-            ],
-          ),
-        );
-      case SettingsCloudPasswordStep.changePassword:
-        return _descForm(
-          context,
-          field: _field(context, passwordController, context.t.cloudPassword.newPasswordPlaceholder, obscure: true, error: state.error),
-          description: context.t.cloudPassword.changePasswordHint,
-        );
       case SettingsCloudPasswordStep.changeEmail:
-        return _descForm(
-          context,
-          field: _field(
+        return _formList([
+          _section(
             context,
-            emailController,
-            context.t.cloudPassword.emailPlaceholder,
-            keyboardType: TextInputType.emailAddress,
+            description: context.t.cloudPassword.setupEmailHint,
             error: state.error,
+            children: [_row(emailController, context.t.cloudPassword.emailPlaceholder, keyboardType: TextInputType.emailAddress)],
           ),
-          description: context.t.cloudPassword.setupEmailHint,
-        );
+        ]);
+      case SettingsCloudPasswordStep.setupVerify:
       case SettingsCloudPasswordStep.changeEmailVerify:
-        return _promptForm(
-          context,
-          hint: context.t.cloudPassword.recoveryHint(email: state.pendingEmail),
-          field: _field(
+        return _formList([
+          _section(
             context,
-            codeController,
-            context.t.cloudPassword.codePlaceholder,
-            keyboardType: TextInputType.number,
+            header: context.t.cloudPassword.recoveryHint(email: state.pendingEmail),
             error: state.error,
+            children: [_row(codeController, context.t.cloudPassword.codePlaceholder, keyboardType: TextInputType.number)],
           ),
-        );
+        ]);
+      case SettingsCloudPasswordStep.setupPassword:
+        return _formList([
+          _section(
+            context,
+            description: context.t.cloudPassword.newPasswordDescription,
+            error: state.error,
+            children: [_row(passwordController, context.t.cloudPassword.passwordPlaceholder, obscure: true)],
+          ),
+        ]);
+      case SettingsCloudPasswordStep.changePassword:
+        return _formList([
+          _section(
+            context,
+            description: context.t.cloudPassword.changePasswordHint,
+            error: state.error,
+            children: [_row(passwordController, context.t.cloudPassword.newPasswordPlaceholder, obscure: true)],
+          ),
+        ]);
+      case SettingsCloudPasswordStep.unlock:
+        return _formList([
+          _section(
+            context,
+            description: context.t.cloudPassword.unlockInfo,
+            error: state.error,
+            children: [_row(passwordController, context.t.cloudPassword.passwordPlaceholder, obscure: true)],
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(35, 4, 35, 0),
+            child: GestureDetector(
+              onTap: state.networkStatus == Status.loading ? null : () => _cubit.forgotPassword(),
+              child: Text(
+                context.t.cloudPassword.forgotPassword,
+                style: TextStyle(color: ThemesCupertino.navActionColor(context), fontSize: 13),
+              ),
+            ),
+          ),
+        ]);
       case SettingsCloudPasswordStep.recoveryConfirm:
-        return _promptForm(
-          context,
-          hint: context.t.cloudPassword.recoveryHint(email: state.maskedEmail),
-          field: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+        return _formList([
+          _section(
+            context,
+            header: context.t.cloudPassword.recoveryHint(email: state.maskedEmail),
+            error: state.error,
             children: [
-              _field(context, codeController, context.t.cloudPassword.codePlaceholder, keyboardType: TextInputType.number),
-              const SizedBox(height: 12),
-              _field(context, passwordController, context.t.cloudPassword.newPasswordPlaceholder, obscure: true, error: state.error),
+              _row(codeController, context.t.cloudPassword.codePlaceholder, keyboardType: TextInputType.number),
+              _row(passwordController, context.t.cloudPassword.newPasswordPlaceholder, obscure: true),
             ],
           ),
-        );
+        ]);
       case SettingsCloudPasswordStep.menu:
         return _menu(context, state);
       case SettingsCloudPasswordStep.loading:
@@ -330,65 +303,35 @@ class _SettingsCloudPasswordCupertino extends State<SettingsCloudPasswordCuperti
     );
   }
 
-  /// Поле сверху, описание — снизу; действие живёт в навбаре («Далее» / «Сохранить»).
-  /// Используется для ввода email и установки нового пароля.
-  Widget _descForm(BuildContext context, {required Widget field, required String description}) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(25, 30, 25, 30),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          field,
-          const SizedBox(height: 10),
-          Text(description, style: TextStyle(color: CupertinoColors.secondaryLabel.resolveFrom(context), fontSize: 13)),
-        ],
+  /// Обёртка формы: `ListView` с верхним отступом — как в форме редактирования
+  /// профиля (settings_my_profile_edit).
+  Widget _formList(List<Widget> children) => ListView(children: [const SizedBox(height: 20), ...children]);
+
+  /// Grouped inset-карточка формы (по образцу CupertinoFormSection.insetGrouped
+  /// из формы профиля). [header] — подпись сверху (напр. «код отправлен на …»);
+  /// в footer показывается ошибка ([error], красным) либо описание ([description]).
+  Widget _section(BuildContext context, {String? header, String? description, String? error, required List<Widget> children}) {
+    Widget? footer;
+    if (error != null && error.isNotEmpty) {
+      footer = Text(context.t[error], style: const TextStyle(color: CupertinoColors.systemRed, fontSize: 13));
+    } else if (description != null) {
+      footer = Text(description, style: TextStyle(color: CupertinoColors.secondaryLabel.resolveFrom(context), fontSize: 13));
+    }
+
+    return CupertinoFormSection.insetGrouped(
+      header: header != null ? Text(header) : null,
+      footer: footer,
+      clipBehavior: Clip.antiAlias,
+      backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
+      decoration: BoxDecoration(
+        color: ThemesCupertino.groupedCard.resolveFrom(context),
+        borderRadius: const BorderRadius.all(Radius.circular(18)),
       ),
+      children: children,
     );
   }
 
-  /// Подпись сверху + одно поле; действие («Далее») живёт в навбаре.
-  /// Используется на подтверждении email и установке пароля.
-  Widget _promptForm(BuildContext context, {required String hint, required Widget field}) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(25, 30, 25, 30),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(hint, textAlign: TextAlign.center),
-          const SizedBox(height: 20),
-          field,
-        ],
-      ),
-    );
-  }
-
-  /// Поле ввода. Текст ошибки (если есть) показывается красной подписью вплотную
-  /// под полем — как на экране авторизации.
-  Widget _field(
-    BuildContext context,
-    TextEditingController controller,
-    String placeholder, {
-    bool obscure = false,
-    TextInputType? keyboardType,
-    String? error,
-  }) {
-    final field = CupertinoTextField(
-      controller: controller,
-      placeholder: placeholder,
-      obscureText: obscure,
-      keyboardType: keyboardType,
-      padding: const EdgeInsets.all(12),
-    );
-    if (error == null || error.isEmpty) return field;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        field,
-        Padding(
-          padding: const EdgeInsets.only(top: 6, left: 4),
-          child: Text(context.t[error], style: const TextStyle(color: CupertinoColors.systemRed, fontSize: 13)),
-        ),
-      ],
-    );
-  }
+  /// Строка-поле формы (по образцу CupertinoTextFormFieldRow из формы профиля).
+  Widget _row(TextEditingController controller, String placeholder, {bool obscure = false, TextInputType? keyboardType}) =>
+      CupertinoTextFormFieldRow(controller: controller, placeholder: placeholder, obscureText: obscure, keyboardType: keyboardType);
 }

@@ -51,14 +51,11 @@ class _AuthCloudPasswordCupertino extends State<AuthCloudPasswordCupertino> {
             ),
           ),
           child: SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(25, 30, 25, 30),
-              child: switch (state.phase) {
-                AuthCloudPasswordPhase.enterEmail => _enterEmail(context, state, loading),
-                AuthCloudPasswordPhase.recovery => _recovery(context, state, loading),
-                AuthCloudPasswordPhase.enterPassword => _enterPassword(context, state, loading),
-              },
-            ),
+            child: switch (state.phase) {
+              AuthCloudPasswordPhase.enterEmail => _enterEmail(context, state, loading),
+              AuthCloudPasswordPhase.recovery => _recovery(context, state, loading),
+              AuthCloudPasswordPhase.enterPassword => _enterPassword(context, state, loading),
+            },
           ),
         );
       },
@@ -86,104 +83,125 @@ class _AuthCloudPasswordCupertino extends State<AuthCloudPasswordCupertino> {
 
   /// Ввод email восстановления (код придёт, только если адрес совпадает).
   Widget _enterEmail(BuildContext context, AuthCloudPasswordState state, bool loading) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        CupertinoTextField(
-          controller: emailController,
-          placeholder: context.t.cloudPassword.emailPlaceholder,
-          keyboardType: TextInputType.emailAddress,
-          autofocus: true,
-          enabled: !loading,
-          padding: const EdgeInsets.all(12),
-          onSubmitted: (_) => context.read<AuthCloudPasswordCubit>().submitRecoveryEmail(emailController.text),
-        ),
-        _errorText(context, state.error),
-        const SizedBox(height: 10),
-        Text(
-          context.t.cloudPassword.recoveryEmailHint,
-          style: TextStyle(color: CupertinoColors.secondaryLabel.resolveFrom(context), fontSize: 13),
-        ),
-      ],
-    );
+    return _formList([
+      _section(
+        context,
+        description: context.t.cloudPassword.recoveryEmailHint,
+        errorText: state.error.isEmpty ? null : context.t[state.error],
+        children: [
+          _row(
+            emailController,
+            context.t.cloudPassword.emailPlaceholder,
+            keyboardType: TextInputType.emailAddress,
+            autofocus: true,
+            enabled: !loading,
+            onSubmitted: () => context.read<AuthCloudPasswordCubit>().submitRecoveryEmail(emailController.text),
+          ),
+        ],
+      ),
+    ]);
   }
 
   Widget _enterPassword(BuildContext context, AuthCloudPasswordState state, bool loading) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        CupertinoTextField(
-          controller: passwordController,
-          placeholder: context.t.cloudPassword.passwordPlaceholder,
-          obscureText: true,
-          autofocus: true,
-          enabled: !loading,
-          padding: const EdgeInsets.all(12),
-          onSubmitted: (_) => context.read<AuthCloudPasswordCubit>().submit(passwordController.text),
-        ),
-        _error(context, state),
-        const SizedBox(height: 12),
-        GestureDetector(
+    return _formList([
+      _section(
+        context,
+        errorText: _composeError(context, state),
+        children: [
+          _row(
+            passwordController,
+            context.t.cloudPassword.passwordPlaceholder,
+            obscure: true,
+            autofocus: true,
+            enabled: !loading,
+            onSubmitted: () => context.read<AuthCloudPasswordCubit>().submit(passwordController.text),
+          ),
+        ],
+      ),
+      Padding(
+        padding: const EdgeInsets.fromLTRB(35, 4, 35, 0),
+        child: GestureDetector(
           onTap: loading ? null : () => context.read<AuthCloudPasswordCubit>().startRecovery(),
           child: Text(
             context.t.cloudPassword.forgotPassword,
             style: TextStyle(color: ThemesCupertino.navActionColor(context), fontSize: 13),
           ),
         ),
-      ],
-    );
+      ),
+    ]);
   }
 
   Widget _recovery(BuildContext context, AuthCloudPasswordState state, bool loading) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Text(context.t.cloudPassword.recoveryHint(email: state.pendingEmail), textAlign: TextAlign.center),
-        const SizedBox(height: 24),
-        CupertinoTextField(
-          controller: codeController,
-          placeholder: context.t.cloudPassword.codePlaceholder,
-          keyboardType: TextInputType.number,
-          autofocus: true,
-          enabled: !loading,
-          padding: const EdgeInsets.all(12),
-        ),
-        // Ошибки про код — под полем кода; остальные (про пароль/общие) — под паролем.
-        _errorText(context, _isCodeError(state.error) ? state.error : ""),
-        const SizedBox(height: 12),
-        CupertinoTextField(
-          controller: newPasswordController,
-          placeholder: context.t.cloudPassword.newPasswordPlaceholder,
-          obscureText: true,
-          enabled: !loading,
-          padding: const EdgeInsets.all(12),
-        ),
-        _errorText(context, _isCodeError(state.error) ? "" : state.error),
-      ],
-    );
+    return _formList([
+      _section(
+        context,
+        header: context.t.cloudPassword.recoveryHint(email: state.pendingEmail),
+        errorText: state.error.isEmpty ? null : context.t[state.error],
+        children: [
+          _row(
+            codeController,
+            context.t.cloudPassword.codePlaceholder,
+            keyboardType: TextInputType.number,
+            autofocus: true,
+            enabled: !loading,
+          ),
+          _row(newPasswordController, context.t.cloudPassword.newPasswordPlaceholder, obscure: true, enabled: !loading),
+        ],
+      ),
+    ]);
   }
 
-  /// Ошибка про код письма относится к полю кода, всё остальное — к полю пароля.
-  bool _isCodeError(String key) => key.toLowerCase().contains("code");
-
-  /// Красная подпись под конкретным полем (пусто — ничего не рисуем).
-  Widget _errorText(BuildContext context, String key) {
-    if (key.isEmpty) return const SizedBox.shrink();
-    return Padding(
-      padding: const EdgeInsets.only(top: 6, left: 4),
-      child: Text(context.t[key], style: const TextStyle(color: CupertinoColors.systemRed, fontSize: 13)),
-    );
-  }
-
-  Widget _error(BuildContext context, AuthCloudPasswordState state) {
+  /// Ошибка + остаток попыток (для шага ввода пароля), уже переведённые.
+  String? _composeError(BuildContext context, AuthCloudPasswordState state) {
     final parts = <String>[];
     if (state.error.isNotEmpty) parts.add(context.t[state.error]);
     if (state.attemptsLeft > 0) parts.add(context.t.cloudPassword.attemptsLeftInline(n: state.attemptsLeft));
-    if (parts.isEmpty) return const SizedBox.shrink();
+    return parts.isEmpty ? null : parts.join(", ");
+  }
 
-    return Padding(
-      padding: const EdgeInsets.only(top: 6, left: 4),
-      child: Text(parts.join(", "), style: const TextStyle(color: CupertinoColors.systemRed, fontSize: 13)),
+  /// Обёртка формы: `ListView` с верхним отступом — как в форме профиля.
+  Widget _formList(List<Widget> children) => ListView(children: [const SizedBox(height: 20), ...children]);
+
+  /// Grouped inset-карточка формы (по образцу CupertinoFormSection.insetGrouped
+  /// из формы профиля). [errorText] — уже переведённая строка ошибки (красным),
+  /// иначе показывается [description]; [header] — подпись сверху.
+  Widget _section(BuildContext context, {String? header, String? description, String? errorText, required List<Widget> children}) {
+    Widget? footer;
+    if (errorText != null && errorText.isNotEmpty) {
+      footer = Text(errorText, style: const TextStyle(color: CupertinoColors.systemRed, fontSize: 13));
+    } else if (description != null) {
+      footer = Text(description, style: TextStyle(color: CupertinoColors.secondaryLabel.resolveFrom(context), fontSize: 13));
+    }
+
+    return CupertinoFormSection.insetGrouped(
+      header: header != null ? Text(header) : null,
+      footer: footer,
+      clipBehavior: Clip.antiAlias,
+      backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
+      decoration: BoxDecoration(
+        color: ThemesCupertino.groupedCard.resolveFrom(context),
+        borderRadius: const BorderRadius.all(Radius.circular(18)),
+      ),
+      children: children,
     );
   }
+
+  /// Строка-поле формы (по образцу CupertinoTextFormFieldRow из формы профиля).
+  Widget _row(
+    TextEditingController controller,
+    String placeholder, {
+    bool obscure = false,
+    TextInputType? keyboardType,
+    bool autofocus = false,
+    bool enabled = true,
+    void Function()? onSubmitted,
+  }) => CupertinoTextFormFieldRow(
+    controller: controller,
+    placeholder: placeholder,
+    obscureText: obscure,
+    keyboardType: keyboardType,
+    autofocus: autofocus,
+    enabled: enabled,
+    onFieldSubmitted: onSubmitted == null ? null : (_) => onSubmitted(),
+  );
 }

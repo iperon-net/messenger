@@ -149,98 +149,61 @@ class _SettingsCloudPasswordMaterial extends State<SettingsCloudPasswordMaterial
 
     switch (state.step) {
       case SettingsCloudPasswordStep.setupEmail:
-        return _descForm(
-          context,
-          field: _field(
-            context,
-            emailController,
-            context.t.cloudPassword.emailPlaceholder,
-            keyboardType: TextInputType.emailAddress,
-            error: state.error,
-          ),
-          description: context.t.cloudPassword.setupEmailHint,
-        );
-      case SettingsCloudPasswordStep.setupVerify:
-        return _promptForm(
-          context,
-          hint: context.t.cloudPassword.recoveryHint(email: state.pendingEmail),
-          field: _field(
-            context,
-            codeController,
-            context.t.cloudPassword.codePlaceholder,
-            keyboardType: TextInputType.number,
-            error: state.error,
-          ),
-        );
-      case SettingsCloudPasswordStep.setupPassword:
-        return _descForm(
-          context,
-          field: _field(context, passwordController, context.t.cloudPassword.passwordPlaceholder, obscure: true, error: state.error),
-          description: context.t.cloudPassword.newPasswordDescription,
-        );
-      case SettingsCloudPasswordStep.unlock:
-        return SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(25, 30, 25, 30),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              _field(context, passwordController, context.t.cloudPassword.passwordPlaceholder, obscure: true, error: state.error),
-              const SizedBox(height: 10),
-              Text(context.t.cloudPassword.unlockInfo, style: Theme.of(context).textTheme.bodySmall),
-              const SizedBox(height: 12),
-              InkWell(
-                onTap: loading ? null : () => _cubit.forgotPassword(),
-                child: Text(
-                  context.t.cloudPassword.forgotPassword,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.primary),
-                ),
-              ),
-            ],
-          ),
-        );
-      case SettingsCloudPasswordStep.changePassword:
-        return _descForm(
-          context,
-          field: _field(context, passwordController, context.t.cloudPassword.newPasswordPlaceholder, obscure: true, error: state.error),
-          description: context.t.cloudPassword.changePasswordHint,
-        );
       case SettingsCloudPasswordStep.changeEmail:
-        return _descForm(
-          context,
-          field: _field(
-            context,
-            emailController,
-            context.t.cloudPassword.emailPlaceholder,
-            keyboardType: TextInputType.emailAddress,
-            error: state.error,
-          ),
-          description: context.t.cloudPassword.setupEmailHint,
-        );
+        return _formList([
+          _card([
+            _row(
+              context,
+              emailController,
+              context.t.cloudPassword.emailPlaceholder,
+              keyboardType: TextInputType.emailAddress,
+              error: state.error,
+            ),
+          ]),
+          _desc(context, context.t.cloudPassword.setupEmailHint),
+        ]);
+      case SettingsCloudPasswordStep.setupVerify:
       case SettingsCloudPasswordStep.changeEmailVerify:
-        return _promptForm(
-          context,
-          hint: context.t.cloudPassword.recoveryHint(email: state.pendingEmail),
-          field: _field(
-            context,
-            codeController,
-            context.t.cloudPassword.codePlaceholder,
-            keyboardType: TextInputType.number,
-            error: state.error,
+        return _formList([
+          _hint(context, context.t.cloudPassword.recoveryHint(email: state.pendingEmail)),
+          _card([
+            _row(context, codeController, context.t.cloudPassword.codePlaceholder, keyboardType: TextInputType.number, error: state.error),
+          ]),
+        ]);
+      case SettingsCloudPasswordStep.setupPassword:
+        return _formList([
+          _card([_row(context, passwordController, context.t.cloudPassword.passwordPlaceholder, obscure: true, error: state.error)]),
+          _desc(context, context.t.cloudPassword.newPasswordDescription),
+        ]);
+      case SettingsCloudPasswordStep.changePassword:
+        return _formList([
+          _card([_row(context, passwordController, context.t.cloudPassword.newPasswordPlaceholder, obscure: true, error: state.error)]),
+          _desc(context, context.t.cloudPassword.changePasswordHint),
+        ]);
+      case SettingsCloudPasswordStep.unlock:
+        return _formList([
+          _card([_row(context, passwordController, context.t.cloudPassword.passwordPlaceholder, obscure: true, error: state.error)]),
+          _desc(context, context.t.cloudPassword.unlockInfo),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(24, 12, 24, 0),
+            child: InkWell(
+              onTap: loading ? null : () => _cubit.forgotPassword(),
+              child: Text(
+                context.t.cloudPassword.forgotPassword,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.primary),
+              ),
+            ),
           ),
-        );
+        ]);
       case SettingsCloudPasswordStep.recoveryConfirm:
-        return _promptForm(
-          context,
-          hint: context.t.cloudPassword.recoveryHint(email: state.maskedEmail),
-          field: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              _field(context, codeController, context.t.cloudPassword.codePlaceholder, keyboardType: TextInputType.number),
-              const SizedBox(height: 12),
-              _field(context, passwordController, context.t.cloudPassword.newPasswordPlaceholder, obscure: true, error: state.error),
-            ],
-          ),
-        );
+        return _formList([
+          _hint(context, context.t.cloudPassword.recoveryHint(email: state.maskedEmail)),
+          _card([
+            _row(context, codeController, context.t.cloudPassword.codePlaceholder, keyboardType: TextInputType.number),
+            const Divider(height: 0.3, color: Colors.black12),
+            _row(context, passwordController, context.t.cloudPassword.newPasswordPlaceholder, obscure: true, error: state.error),
+          ]),
+        ]);
       case SettingsCloudPasswordStep.menu:
         return _menu(context, state);
       case SettingsCloudPasswordStep.loading:
@@ -303,41 +266,32 @@ class _SettingsCloudPasswordMaterial extends State<SettingsCloudPasswordMaterial
     );
   }
 
-  /// Поле сверху, описание — снизу; действие живёт в AppBar («Далее» / «Сохранить»).
-  /// Используется для ввода email и установки нового пароля.
-  Widget _descForm(BuildContext context, {required Widget field, required String description}) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(25, 30, 25, 30),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          field,
-          const SizedBox(height: 10),
-          Text(description, style: Theme.of(context).textTheme.bodySmall),
-        ],
-      ),
-    );
-  }
+  /// Обёртка формы: `ListView` с общим отступом — как в форме редактирования
+  /// профиля (settings_my_profile_edit).
+  Widget _formList(List<Widget> children) => ListView(padding: const EdgeInsets.all(10), children: children);
 
-  /// Подпись сверху + одно поле; действие («Далее») живёт в AppBar.
-  /// Используется на подтверждении email и установке пароля.
-  Widget _promptForm(BuildContext context, {required String hint, required Widget field}) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(25, 30, 25, 30),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(hint, textAlign: TextAlign.center),
-          const SizedBox(height: 20),
-          field,
-        ],
-      ),
-    );
-  }
+  /// Карточка формы (по образцу Card из формы профиля): поля живут внутри белого
+  /// блока без собственных рамок.
+  Widget _card(List<Widget> children) => Card(
+    clipBehavior: Clip.antiAlias,
+    child: Column(children: children),
+  );
 
-  /// Поле ввода. Текст ошибки (если есть) показывается штатно внутри декорации
-  /// input (`errorText`) — красной подписью под полем, как на экране авторизации.
-  Widget _field(
+  /// Описание под карточкой (вторичный текст).
+  Widget _desc(BuildContext context, String text) => Padding(
+    padding: const EdgeInsets.fromLTRB(24, 8, 24, 0),
+    child: Text(text, style: Theme.of(context).textTheme.bodySmall),
+  );
+
+  /// Подпись над карточкой (напр. «код отправлен на …»).
+  Widget _hint(BuildContext context, String text) => Padding(
+    padding: const EdgeInsets.fromLTRB(24, 8, 24, 12),
+    child: Text(text, style: Theme.of(context).textTheme.bodySmall),
+  );
+
+  /// Строка-поле формы: безрамочный `TextFormField`, чтобы жить внутри карточки
+  /// (по образцу формы профиля). Ошибка — через `errorText` (красным под полем).
+  Widget _row(
     BuildContext context,
     TextEditingController controller,
     String label, {
@@ -345,14 +299,24 @@ class _SettingsCloudPasswordMaterial extends State<SettingsCloudPasswordMaterial
     TextInputType? keyboardType,
     String? error,
   }) {
-    return TextField(
-      controller: controller,
-      obscureText: obscure,
-      keyboardType: keyboardType,
-      decoration: InputDecoration(
-        labelText: label,
-        border: const OutlineInputBorder(),
-        errorText: (error == null || error.isEmpty) ? null : context.t[error],
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: TextFormField(
+        controller: controller,
+        obscureText: obscure,
+        keyboardType: keyboardType,
+        decoration: InputDecoration(
+          labelText: label,
+          border: InputBorder.none,
+          enabledBorder: InputBorder.none,
+          focusedBorder: InputBorder.none,
+          errorBorder: InputBorder.none,
+          focusedErrorBorder: InputBorder.none,
+          disabledBorder: InputBorder.none,
+          contentPadding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+          errorStyle: const TextStyle(height: 0.8),
+          errorText: (error == null || error.isEmpty) ? null : context.t[error],
+        ),
       ),
     );
   }
