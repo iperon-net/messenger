@@ -100,6 +100,23 @@ class AuthModerationApplicationStoreCubit extends Cubit<AuthModerationApplicatio
       messageAuthModerationApplicationStoreConfirmationResponse.message,
     );
 
+    // Двухшаговая проверка: если у аккаунта включён облачный пароль, вход здесь не
+    // завершаем — уводим на экран ввода пароля, передав confirmationSession (hex).
+    // Завершение произойдёт там общим AuthLoginCompleter (как в call-password flow).
+    if (authModerationApplicationStoreConfirmationResponse.hasTwoStepVerification) {
+      final confirmationSessionHex = utils.bytesToHex(
+        Uint8List.fromList(authModerationApplicationStoreConfirmationResponse.confirmationSession),
+      );
+      emit(
+        state.copyWith(
+          status: Status.success,
+          error: "",
+          redirectURI: Uri.parse("/auth/cloud_password?confirmationSession=$confirmationSessionHex").toString(),
+        ),
+      );
+      return;
+    }
+
     final messageAuthConfirmationRequest = Message(
       messageType: MessageType.AUTH_CONFIRMATION,
       message: AuthConfirmation_Request(

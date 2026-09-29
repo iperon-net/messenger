@@ -158,6 +158,7 @@
   "next": "Next"
   "forgotPassword": "Forgot password?"
   "recoveryHint": "We sent a recovery code to {email}"
+  "recoveryEmailHint": "Enter the email linked to your account. If it matches, we'll send a recovery code to it."
   "codePlaceholder": "Code from email"
   "newPasswordPlaceholder": "New password"
   "repeatPasswordPlaceholder": "Repeat password"
@@ -165,6 +166,9 @@
   "resetPassword": "Reset password"
   "reset": "Reset"
   "attemptsLeft": "Attempts left: {count}"
+  "attemptsLeftInline(plural)":
+    one: "{n} attempt left"
+    other: "{n} attempts left"
   "setPassword": "Set password"
   "newPasswordTitle": "New password"
   "newPasswordDescription": "Set a cloud password. You'll be asked for it when signing in on a new device."

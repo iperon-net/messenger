@@ -82,6 +82,13 @@ class AuthCloudPasswordStateMapper
     opt: true,
     def: "",
   );
+  static String _$pendingEmail(AuthCloudPasswordState v) => v.pendingEmail;
+  static const Field<AuthCloudPasswordState, String> _f$pendingEmail = Field(
+    'pendingEmail',
+    _$pendingEmail,
+    opt: true,
+    def: "",
+  );
 
   @override
   final MappableFields<AuthCloudPasswordState> fields = const {
@@ -93,6 +100,7 @@ class AuthCloudPasswordStateMapper
     #phase: _f$phase,
     #attemptsLeft: _f$attemptsLeft,
     #maskedEmail: _f$maskedEmail,
+    #pendingEmail: _f$pendingEmail,
   };
 
   static AuthCloudPasswordState _instantiate(DecodingData data) {
@@ -105,6 +113,7 @@ class AuthCloudPasswordStateMapper
       phase: data.dec(_f$phase),
       attemptsLeft: data.dec(_f$attemptsLeft),
       maskedEmail: data.dec(_f$maskedEmail),
+      pendingEmail: data.dec(_f$pendingEmail),
     );
   }
 
@@ -188,6 +197,7 @@ abstract class AuthCloudPasswordStateCopyWith<
     AuthCloudPasswordPhase? phase,
     int? attemptsLeft,
     String? maskedEmail,
+    String? pendingEmail,
   });
   AuthCloudPasswordStateCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
     Then<$Out2, $R2> t,
@@ -220,6 +230,7 @@ class _AuthCloudPasswordStateCopyWithImpl<$R, $Out>
     AuthCloudPasswordPhase? phase,
     int? attemptsLeft,
     String? maskedEmail,
+    String? pendingEmail,
   }) => $apply(
     FieldCopyWithData({
       if (status != null) #status: status,
@@ -231,6 +242,7 @@ class _AuthCloudPasswordStateCopyWithImpl<$R, $Out>
       if (phase != null) #phase: phase,
       if (attemptsLeft != null) #attemptsLeft: attemptsLeft,
       if (maskedEmail != null) #maskedEmail: maskedEmail,
+      if (pendingEmail != null) #pendingEmail: pendingEmail,
     }),
   );
   @override
@@ -246,6 +258,7 @@ class _AuthCloudPasswordStateCopyWithImpl<$R, $Out>
     phase: data.get(#phase, or: $value.phase),
     attemptsLeft: data.get(#attemptsLeft, or: $value.attemptsLeft),
     maskedEmail: data.get(#maskedEmail, or: $value.maskedEmail),
+    pendingEmail: data.get(#pendingEmail, or: $value.pendingEmail),
   );
 
   @override

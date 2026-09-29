@@ -63,6 +63,7 @@ const AuthCloudPasswordRecovery_Request$json = {
   '1': 'Request',
   '2': [
     {'1': 'confirmationSession', '3': 1, '4': 1, '5': 12, '10': 'confirmationSession'},
+    {'1': 'email', '3': 2, '4': 1, '5': 9, '10': 'email'},
   ],
 };
 
@@ -80,10 +81,10 @@ const AuthCloudPasswordRecovery_Response$json = {
 
 /// Descriptor for `AuthCloudPasswordRecovery`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List authCloudPasswordRecoveryDescriptor =
-    $convert.base64Decode('ChlBdXRoQ2xvdWRQYXNzd29yZFJlY292ZXJ5GjsKB1JlcXVlc3QSMAoTY29uZmlybWF0aW9uU2'
-        'Vzc2lvbhgBIAEoDFITY29uZmlybWF0aW9uU2Vzc2lvbhpRCghSZXNwb25zZRIgCgttYXNrZWRF'
-        'bWFpbBgBIAEoCVILbWFza2VkRW1haWwSGQoFZXJyb3IYAiABKAlIAFIFZXJyb3KIAQFCCAoGX2'
-        'Vycm9y');
+    $convert.base64Decode('ChlBdXRoQ2xvdWRQYXNzd29yZFJlY292ZXJ5GlEKB1JlcXVlc3QSMAoTY29uZmlybWF0aW9uU2'
+        'Vzc2lvbhgBIAEoDFITY29uZmlybWF0aW9uU2Vzc2lvbhIUCgVlbWFpbBgCIAEoCVIFZW1haWwa'
+        'UQoIUmVzcG9uc2USIAoLbWFza2VkRW1haWwYASABKAlSC21hc2tlZEVtYWlsEhkKBWVycm9yGA'
+        'IgASgJSABSBWVycm9yiAEBQggKBl9lcnJvcg==');
 
 @$core.Deprecated('Use authCloudPasswordRecoveryConfirmDescriptor instead')
 const AuthCloudPasswordRecoveryConfirm$json = {

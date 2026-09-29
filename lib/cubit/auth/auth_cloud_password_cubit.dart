@@ -85,9 +85,18 @@ class AuthCloudPasswordCubit extends Cubit<AuthCloudPasswordState> {
     );
   }
 
-  /// «Забыли пароль?»: запрашивает код восстановления на привязанный email и
-  /// переходит в фазу восстановления, показывая маскированный адрес.
-  Future<void> startRecovery() async {
+  /// «Забыли пароль?»: переход к вводу email восстановления (без запроса к
+  /// серверу — код запросим после ввода адреса).
+  void startRecovery() => emit(state.copyWith(phase: AuthCloudPasswordPhase.enterEmail, error: ""));
+
+  /// Ввод email восстановления. Сервер шлёт код только если адрес совпадает с
+  /// привязанным, но ответ всегда одинаков — поэтому вне зависимости от совпадения
+  /// переходим к вводу кода и нового пароля (анти-энумерация email в базе).
+  Future<void> submitRecoveryEmail(String email) async {
+    if (email.isEmpty) {
+      emit(state.copyWith(error: "cloudPassword.emailRequired"));
+      return;
+    }
     if (!await utils.hasNetwork()) {
       emit(state.copyWith(error: "grpcError.unableConnectServer"));
       return;
@@ -97,12 +106,11 @@ class AuthCloudPasswordCubit extends Cubit<AuthCloudPasswordState> {
 
     final request = Message(
       messageType: MessageType.AUTH_CLOUD_PASSWORD_RECOVERY,
-      message: AuthCloudPasswordRecovery_Request(confirmationSession: state.confirmationSession).writeToBuffer(),
+      message: AuthCloudPasswordRecovery_Request(confirmationSession: state.confirmationSession, email: email).writeToBuffer(),
     );
 
-    late Message response;
     final grpcError = await api.call(() async {
-      response = await api.client.unary(request);
+      await api.client.unary(request);
     });
 
     if (grpcError.status == APIStatus.error) {
@@ -111,8 +119,7 @@ class AuthCloudPasswordCubit extends Cubit<AuthCloudPasswordState> {
       return;
     }
 
-    final result = AuthCloudPasswordRecovery_Response.fromBuffer(response.message);
-    emit(state.copyWith(networkStatus: Status.success, phase: AuthCloudPasswordPhase.recovery, maskedEmail: result.maskedEmail));
+    emit(state.copyWith(networkStatus: Status.success, phase: AuthCloudPasswordPhase.recovery, pendingEmail: email, error: ""));
   }
 
   /// Подтверждение восстановления: код из письма + новый пароль. При успехе сервер

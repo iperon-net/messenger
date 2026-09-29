@@ -189,9 +189,11 @@ class AuthCloudPassword extends $pb.GeneratedMessage {
 class AuthCloudPasswordRecovery_Request extends $pb.GeneratedMessage {
   factory AuthCloudPasswordRecovery_Request({
     $core.List<$core.int>? confirmationSession,
+    $core.String? email,
   }) {
     final result = create();
     if (confirmationSession != null) result.confirmationSession = confirmationSession;
+    if (email != null) result.email = email;
     return result;
   }
 
@@ -206,6 +208,7 @@ class AuthCloudPasswordRecovery_Request extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'AuthCloudPasswordRecovery.Request',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
     ..a<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'confirmationSession', $pb.PbFieldType.OY, protoName: 'confirmationSession')
+    ..aOS(2, _omitFieldNames ? '' : 'email')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -234,6 +237,18 @@ class AuthCloudPasswordRecovery_Request extends $pb.GeneratedMessage {
   $core.bool hasConfirmationSession() => $_has(0);
   @$pb.TagNumber(1)
   void clearConfirmationSession() => $_clearField(1);
+
+  /// Email, введённый пользователем. Код шлётся только если совпадает с
+  /// привязанным подтверждённым адресом аккаунта; иначе сервер молчит, но ответ
+  /// тот же — чтобы нельзя было перебором узнать чужие email в базе.
+  @$pb.TagNumber(2)
+  $core.String get email => $_getSZ(1);
+  @$pb.TagNumber(2)
+  set email($core.String value) => $_setString(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasEmail() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearEmail() => $_clearField(2);
 }
 
 class AuthCloudPasswordRecovery_Response extends $pb.GeneratedMessage {

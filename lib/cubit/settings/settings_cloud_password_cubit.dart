@@ -204,7 +204,8 @@ class SettingsCloudPasswordCubit extends Cubit<SettingsCloudPasswordState> {
     );
     if (!_ok(status)) return;
 
-    // Пароль сброшен, email очищен сервером — держим новый пароль, идём в меню.
+    // Пароль сброшен — держим новый пароль, идём в меню. Привязанный email
+    // сохраняется (сервер его больше не очищает), _loadInfo подтянет актуальный.
     emit(state.copyWith(heldPwHash: newPwHash));
     await _loadInfo();
     emit(state.copyWith(step: SettingsCloudPasswordStep.menu, networkStatus: Status.success, error: ""));

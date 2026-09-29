@@ -589,9 +589,11 @@ class AuthModerationApplicationStoreConfirmation_Request extends $pb.GeneratedMe
 class AuthModerationApplicationStoreConfirmation_Response extends $pb.GeneratedMessage {
   factory AuthModerationApplicationStoreConfirmation_Response({
     $core.List<$core.int>? confirmationSession,
+    $core.bool? hasTwoStepVerification,
   }) {
     final result = create();
     if (confirmationSession != null) result.confirmationSession = confirmationSession;
+    if (hasTwoStepVerification != null) result.hasTwoStepVerification = hasTwoStepVerification;
     return result;
   }
 
@@ -607,6 +609,7 @@ class AuthModerationApplicationStoreConfirmation_Response extends $pb.GeneratedM
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'AuthModerationApplicationStoreConfirmation.Response',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
     ..a<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'confirmationSession', $pb.PbFieldType.OY, protoName: 'confirmationSession')
+    ..aOB(2, _omitFieldNames ? '' : 'hasTwoStepVerification', protoName: 'hasTwoStepVerification')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -637,6 +640,18 @@ class AuthModerationApplicationStoreConfirmation_Response extends $pb.GeneratedM
   $core.bool hasConfirmationSession() => $_has(0);
   @$pb.TagNumber(1)
   void clearConfirmationSession() => $_clearField(1);
+
+  /// Включена ли у аккаунта двухшаговая проверка (облачный пароль). Если true —
+  /// клиент не завершает вход здесь, а уводит на шаг ввода пароля, передав
+  /// confirmationSession (как в call-password flow).
+  @$pb.TagNumber(2)
+  $core.bool get hasTwoStepVerification => $_getBF(1);
+  @$pb.TagNumber(2)
+  set hasTwoStepVerification($core.bool value) => $_setBool(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasHasTwoStepVerification() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearHasTwoStepVerification() => $_clearField(2);
 }
 
 class AuthModerationApplicationStoreConfirmation extends $pb.GeneratedMessage {

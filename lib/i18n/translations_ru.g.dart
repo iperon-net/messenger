@@ -333,6 +333,7 @@ class _Translations$cloudPassword$ru extends Translations$cloudPassword$en {
 	@override String get next => 'Далее';
 	@override String get forgotPassword => 'Забыли пароль?';
 	@override String recoveryHint({required Object email}) => 'Мы отправили код восстановления на ${email}';
+	@override String get recoveryEmailHint => 'Укажите email, привязанный к аккаунту. Если он совпадёт, мы отправим на него код восстановления.';
 	@override String get codePlaceholder => 'Код из письма';
 	@override String get newPasswordPlaceholder => 'Новый пароль';
 	@override String get repeatPasswordPlaceholder => 'Повторите пароль';
@@ -340,6 +341,11 @@ class _Translations$cloudPassword$ru extends Translations$cloudPassword$en {
 	@override String get resetPassword => 'Сбросить пароль';
 	@override String get reset => 'Сбросить';
 	@override String attemptsLeft({required Object count}) => 'Осталось попыток: ${count}';
+	@override String attemptsLeftInline({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n,
+		one: 'осталось ${n} попытка',
+		few: 'осталось ${n} попытки',
+		many: 'осталось ${n} попыток',
+	);
 	@override String get setPassword => 'Установить пароль';
 	@override String get newPasswordTitle => 'Новый пароль';
 	@override String get newPasswordDescription => 'Задайте облачный пароль. Его запросят при входе с нового устройства.';
@@ -789,6 +795,7 @@ extension on TranslationsRu {
 			'cloudPassword.next' => 'Далее',
 			'cloudPassword.forgotPassword' => 'Забыли пароль?',
 			'cloudPassword.recoveryHint' => ({required Object email}) => 'Мы отправили код восстановления на ${email}',
+			'cloudPassword.recoveryEmailHint' => 'Укажите email, привязанный к аккаунту. Если он совпадёт, мы отправим на него код восстановления.',
 			'cloudPassword.codePlaceholder' => 'Код из письма',
 			'cloudPassword.newPasswordPlaceholder' => 'Новый пароль',
 			'cloudPassword.repeatPasswordPlaceholder' => 'Повторите пароль',
@@ -796,6 +803,7 @@ extension on TranslationsRu {
 			'cloudPassword.resetPassword' => 'Сбросить пароль',
 			'cloudPassword.reset' => 'Сбросить',
 			'cloudPassword.attemptsLeft' => ({required Object count}) => 'Осталось попыток: ${count}',
+			'cloudPassword.attemptsLeftInline' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: 'осталось ${n} попытка', few: 'осталось ${n} попытки', many: 'осталось ${n} попыток', ), 
 			'cloudPassword.setPassword' => 'Установить пароль',
 			'cloudPassword.newPasswordTitle' => 'Новый пароль',
 			'cloudPassword.newPasswordDescription' => 'Задайте облачный пароль. Его запросят при входе с нового устройства.',

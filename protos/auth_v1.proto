@@ -59,6 +59,10 @@ message AuthModerationApplicationStoreConfirmation {
 
   message Response {
     bytes confirmationSession = 1;
+    // Включена ли у аккаунта двухшаговая проверка (облачный пароль). Если true —
+    // клиент не завершает вход здесь, а уводит на шаг ввода пароля, передав
+    // confirmationSession (как в call-password flow).
+    optional bool hasTwoStepVerification = 2;
   }
 }
 

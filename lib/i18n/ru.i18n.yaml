@@ -158,6 +158,7 @@
   "next": "Далее"
   "forgotPassword": "Забыли пароль?"
   "recoveryHint": "Мы отправили код восстановления на {email}"
+  "recoveryEmailHint": "Укажите email, привязанный к аккаунту. Если он совпадёт, мы отправим на него код восстановления."
   "codePlaceholder": "Код из письма"
   "newPasswordPlaceholder": "Новый пароль"
   "repeatPasswordPlaceholder": "Повторите пароль"
@@ -165,6 +166,10 @@
   "resetPassword": "Сбросить пароль"
   "reset": "Сбросить"
   "attemptsLeft": "Осталось попыток: {count}"
+  "attemptsLeftInline(plural)":
+    one: "осталось {n} попытка"
+    few: "осталось {n} попытки"
+    many: "осталось {n} попыток"
   "setPassword": "Установить пароль"
   "newPasswordTitle": "Новый пароль"
   "newPasswordDescription": "Задайте облачный пароль. Его запросят при входе с нового устройства."

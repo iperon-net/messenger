@@ -143,6 +143,10 @@ const AuthModerationApplicationStoreConfirmation_Response$json = {
   '1': 'Response',
   '2': [
     {'1': 'confirmationSession', '3': 1, '4': 1, '5': 12, '10': 'confirmationSession'},
+    {'1': 'hasTwoStepVerification', '3': 2, '4': 1, '5': 8, '9': 0, '10': 'hasTwoStepVerification', '17': true},
+  ],
+  '8': [
+    {'1': '_hasTwoStepVerification'},
   ],
 };
 
@@ -151,8 +155,9 @@ final $typed_data.Uint8List authModerationApplicationStoreConfirmationDescriptor
     $convert.base64Decode('CipBdXRoTW9kZXJhdGlvbkFwcGxpY2F0aW9uU3RvcmVDb25maXJtYXRpb24agwEKB1JlcXVlc3'
         'QSTAohbW9kZXJhdGlvbkFwcGxpY2F0aW9uU3RvcmVTZXNzaW9uGAEgASgMUiFtb2RlcmF0aW9u'
         'QXBwbGljYXRpb25TdG9yZVNlc3Npb24SKgoQdmVyaWZpY2F0aW9uQ29kZRgCIAEoCVIQdmVyaW'
-        'ZpY2F0aW9uQ29kZRo8CghSZXNwb25zZRIwChNjb25maXJtYXRpb25TZXNzaW9uGAEgASgMUhNj'
-        'b25maXJtYXRpb25TZXNzaW9u');
+        'ZpY2F0aW9uQ29kZRqUAQoIUmVzcG9uc2USMAoTY29uZmlybWF0aW9uU2Vzc2lvbhgBIAEoDFIT'
+        'Y29uZmlybWF0aW9uU2Vzc2lvbhI7ChZoYXNUd29TdGVwVmVyaWZpY2F0aW9uGAIgASgISABSFm'
+        'hhc1R3b1N0ZXBWZXJpZmljYXRpb26IAQFCGQoXX2hhc1R3b1N0ZXBWZXJpZmljYXRpb24=');
 
 @$core.Deprecated('Use authConfirmationDescriptor instead')
 const AuthConfirmation$json = {

@@ -590,6 +590,9 @@ class Translations$cloudPassword$en {
 	/// en: 'We sent a recovery code to {email}'
 	String recoveryHint({required Object email}) => 'We sent a recovery code to ${email}';
 
+	/// en: 'Enter the email linked to your account. If it matches, we'll send a recovery code to it.'
+	String get recoveryEmailHint => 'Enter the email linked to your account. If it matches, we\'ll send a recovery code to it.';
+
 	/// en: 'Code from email'
 	String get codePlaceholder => 'Code from email';
 
@@ -610,6 +613,12 @@ class Translations$cloudPassword$en {
 
 	/// en: 'Attempts left: {count}'
 	String attemptsLeft({required Object count}) => 'Attempts left: ${count}';
+
+	/// en: '(one) {{n} attempt left} (other) {{n} attempts left}'
+	String attemptsLeftInline({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n,
+		one: '${n} attempt left',
+		other: '${n} attempts left',
+	);
 
 	/// en: 'Set password'
 	String get setPassword => 'Set password';
@@ -1473,6 +1482,7 @@ extension on Translations {
 			'cloudPassword.next' => 'Next',
 			'cloudPassword.forgotPassword' => 'Forgot password?',
 			'cloudPassword.recoveryHint' => ({required Object email}) => 'We sent a recovery code to ${email}',
+			'cloudPassword.recoveryEmailHint' => 'Enter the email linked to your account. If it matches, we\'ll send a recovery code to it.',
 			'cloudPassword.codePlaceholder' => 'Code from email',
 			'cloudPassword.newPasswordPlaceholder' => 'New password',
 			'cloudPassword.repeatPasswordPlaceholder' => 'Repeat password',
@@ -1480,6 +1490,7 @@ extension on Translations {
 			'cloudPassword.resetPassword' => 'Reset password',
 			'cloudPassword.reset' => 'Reset',
 			'cloudPassword.attemptsLeft' => ({required Object count}) => 'Attempts left: ${count}',
+			'cloudPassword.attemptsLeftInline' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: '${n} attempt left', other: '${n} attempts left', ), 
 			'cloudPassword.setPassword' => 'Set password',
 			'cloudPassword.newPasswordTitle' => 'New password',
 			'cloudPassword.newPasswordDescription' => 'Set a cloud password. You\'ll be asked for it when signing in on a new device.',

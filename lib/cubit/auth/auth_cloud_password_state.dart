@@ -6,8 +6,9 @@ part 'auth_cloud_password_state.mapper.dart';
 
 /// Фаза экрана облачного пароля на входе:
 /// - [enterPassword] — ввод пароля (второй шаг после звонка-пароля);
+/// - [enterEmail] — ввод email восстановления (код шлётся только при совпадении);
 /// - [recovery] — восстановление: код с email + новый пароль.
-enum AuthCloudPasswordPhase { enterPassword, recovery }
+enum AuthCloudPasswordPhase { enterPassword, enterEmail, recovery }
 
 @MappableClass()
 class AuthCloudPasswordState with AuthCloudPasswordStateMappable {
@@ -23,6 +24,9 @@ class AuthCloudPasswordState with AuthCloudPasswordStateMappable {
   final int attemptsLeft;
   // Маскированный email, показывается в фазе восстановления.
   final String maskedEmail;
+  // Email, введённый пользователем на шаге восстановления (для показа в подсказке
+  // «код отправлен на …»). Не раскрывает чужие адреса — это то, что ввёл сам юзер.
+  final String pendingEmail;
 
   const AuthCloudPasswordState({
     this.status = Status.initialization,
@@ -33,5 +37,6 @@ class AuthCloudPasswordState with AuthCloudPasswordStateMappable {
     this.phase = AuthCloudPasswordPhase.enterPassword,
     this.attemptsLeft = -1,
     this.maskedEmail = "",
+    this.pendingEmail = "",
   });
 }
