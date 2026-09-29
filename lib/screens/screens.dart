@@ -42,6 +42,8 @@ export 'settings/settings_passcode_create_cupertino.dart';
 export 'settings/settings_passcode_create_material.dart';
 export 'settings/settings_cloud_password_cupertino.dart';
 export 'settings/settings_cloud_password_material.dart';
+export 'settings/settings_passkeys_cupertino.dart';
+export 'settings/settings_passkeys_material.dart';
 export 'settings/settings_my_profile_cupertino.dart';
 export 'settings/settings_my_profile_material.dart';
 export 'settings/settings_my_profile_edit_cupertino.dart';

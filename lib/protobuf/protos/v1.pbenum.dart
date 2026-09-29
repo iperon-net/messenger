@@ -116,6 +116,17 @@ class MessageType extends $pb.ProtobufEnum {
   static const MessageType CLOUD_PASSWORD_RECOVERY_SEND = MessageType._(58, _omitEnumNames ? '' : 'CLOUD_PASSWORD_RECOVERY_SEND');
   static const MessageType CLOUD_PASSWORD_RESET = MessageType._(59, _omitEnumNames ? '' : 'CLOUD_PASSWORD_RESET');
 
+  /// Passkeys (WebAuthn / FIDO2) — беспарольный вход по ключу доступа. REGISTER/
+  /// LIST/DELETE — authenticated (через exchangeEncrypted); LOGIN_* — pre-auth
+  /// unary (discoverable), выдаёт confirmationSession для AUTH_CONFIRMATION. См.
+  /// passkey_v1.proto.
+  static const MessageType PASSKEY_REGISTER_BEGIN = MessageType._(60, _omitEnumNames ? '' : 'PASSKEY_REGISTER_BEGIN');
+  static const MessageType PASSKEY_REGISTER_FINISH = MessageType._(61, _omitEnumNames ? '' : 'PASSKEY_REGISTER_FINISH');
+  static const MessageType PASSKEY_LIST = MessageType._(62, _omitEnumNames ? '' : 'PASSKEY_LIST');
+  static const MessageType PASSKEY_DELETE = MessageType._(63, _omitEnumNames ? '' : 'PASSKEY_DELETE');
+  static const MessageType PASSKEY_LOGIN_BEGIN = MessageType._(64, _omitEnumNames ? '' : 'PASSKEY_LOGIN_BEGIN');
+  static const MessageType PASSKEY_LOGIN_FINISH = MessageType._(65, _omitEnumNames ? '' : 'PASSKEY_LOGIN_FINISH');
+
   static const $core.List<MessageType> values = <MessageType>[
     HEALTHCHECK,
     META_DATA_INFO,
@@ -173,9 +184,15 @@ class MessageType extends $pb.ProtobufEnum {
     CLOUD_PASSWORD_VERIFY,
     CLOUD_PASSWORD_RECOVERY_SEND,
     CLOUD_PASSWORD_RESET,
+    PASSKEY_REGISTER_BEGIN,
+    PASSKEY_REGISTER_FINISH,
+    PASSKEY_LIST,
+    PASSKEY_DELETE,
+    PASSKEY_LOGIN_BEGIN,
+    PASSKEY_LOGIN_FINISH,
   ];
 
-  static final $core.List<MessageType?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 59);
+  static final $core.List<MessageType?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 65);
   static MessageType? valueOf($core.int value) => value < 0 || value >= _byValue.length ? null : _byValue[value];
 
   const MessageType._(super.value, super.name);

@@ -15,3 +15,4 @@ export './protos/upload_confirm_v1.pb.dart';
 export './protos/call_v1.pb.dart';
 export './protos/push_token_v1.pb.dart';
 export './protos/cloud_password_v1.pb.dart';
+export './protos/passkey_v1.pb.dart';

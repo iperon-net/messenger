@@ -84,6 +84,13 @@ class _SettingsPrivacyAndSecurityCupertino extends State<SettingsPrivacyAndSecur
                       onTab: () async => context.go("/settings/privacy_and_security/cloud_password"),
                       isTrailing: true,
                     ),
+                    CupertinoListTileIcon(
+                      title: Text(context.t.sessionsPrivacyAndSecurity.passkeys),
+                      color: Color(0xFFFF9500),
+                      icon: FontAwesomeIcons.key,
+                      onTab: () async => context.go("/settings/privacy_and_security/passkeys"),
+                      isTrailing: true,
+                    ),
                   ],
                 ),
                 CupertinoListSection.insetGrouped(

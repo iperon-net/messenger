@@ -65,6 +65,7 @@ class TranslationsRu extends Translations with BaseTranslations<AppLocale, Trans
 	@override late final _Translations$grpcError$ru grpcError = _Translations$grpcError$ru._(_root);
 	@override late final _Translations$dateTime$ru dateTime = _Translations$dateTime$ru._(_root);
 	@override late final _Translations$screenCall$ru screenCall = _Translations$screenCall$ru._(_root);
+	@override late final _Translations$passkey$ru passkey = _Translations$passkey$ru._(_root);
 }
 
 // Path: common
@@ -76,6 +77,7 @@ class _Translations$common$ru extends Translations$common$en {
 	// Translations
 	@override String get mobilePhone => 'Номер мобильного телефона';
 	@override String get kContinue => 'Продолжить';
+	@override String get ok => 'ОК';
 	@override String get cancel => 'Отмена';
 	@override String get notNow => 'Не сейчас';
 	@override String get back => 'Назад';
@@ -290,6 +292,7 @@ class _Translations$sessionsPrivacyAndSecurity$ru extends Translations$sessionsP
 	@override String get passcodeAndBiometric => 'Код-пароль и биометрия';
 	@override String get passcode => 'Код-пароль';
 	@override String get cloudPassword => 'Облачный пароль';
+	@override String get passkeys => 'Ключи доступа';
 	@override String get whoCanCall => 'Кто может звонить';
 	@override String get calls => 'Звонки';
 	@override String get callsEverybody => 'Все';
@@ -660,6 +663,29 @@ class _Translations$screenCall$ru extends Translations$screenCall$en {
 	@override String get remoteMicMuted => 'Микрофон собеседника выключен';
 }
 
+// Path: passkey
+class _Translations$passkey$ru extends Translations$passkey$en {
+	_Translations$passkey$ru._(TranslationsRu root) : this._root = root, super.internal(root);
+
+	final TranslationsRu _root; // ignore: unused_field
+
+	// Translations
+	@override String get title => 'Ключи доступа';
+	@override String get description => 'Ключи доступа позволяют входить без кода из звонка — по Face ID, Touch ID или отпечатку. Добавьте ключ на этом устройстве и используйте его для входа.';
+	@override String get add => 'Добавить ключ';
+	@override String get genericName => 'Ключ доступа';
+	@override String get delete => 'Удалить';
+	@override String get deleteConfirmTitle => 'Удалить ключ доступа?';
+	@override String get deleteConfirmMessage => 'Войти с помощью этого ключа больше не получится.';
+	@override String get loadError => 'Не удалось загрузить ключи';
+	@override String get retry => 'Повторить';
+	@override String get verificationFailed => 'Не удалось проверить ключ. Попробуйте ещё раз.';
+	@override String get ceremonyExpired => 'Срок запроса истёк. Попробуйте ещё раз.';
+	@override String get unknownCredential => 'Этот ключ не распознан.';
+	@override String get alreadyRegistered => 'Этот ключ уже зарегистрирован.';
+	@override String get notFound => 'Ключ не найден.';
+}
+
 /// The flat map containing all translations for locale <ru>.
 /// Only for edge cases! For simple maps, use the map function of this library.
 ///
@@ -670,6 +696,7 @@ extension on TranslationsRu {
 		return switch (path) {
 			'common.mobilePhone' => 'Номер мобильного телефона',
 			'common.kContinue' => 'Продолжить',
+			'common.ok' => 'ОК',
 			'common.cancel' => 'Отмена',
 			'common.notNow' => 'Не сейчас',
 			'common.back' => 'Назад',
@@ -761,6 +788,7 @@ extension on TranslationsRu {
 			'sessionsPrivacyAndSecurity.passcodeAndBiometric' => 'Код-пароль и биометрия',
 			'sessionsPrivacyAndSecurity.passcode' => 'Код-пароль',
 			'sessionsPrivacyAndSecurity.cloudPassword' => 'Облачный пароль',
+			'sessionsPrivacyAndSecurity.passkeys' => 'Ключи доступа',
 			'sessionsPrivacyAndSecurity.whoCanCall' => 'Кто может звонить',
 			'sessionsPrivacyAndSecurity.calls' => 'Звонки',
 			'sessionsPrivacyAndSecurity.callsEverybody' => 'Все',
@@ -1012,6 +1040,20 @@ extension on TranslationsRu {
 			'screenCall.qualityGood' => 'Хорошее соединение',
 			'screenCall.qualityExcellent' => 'Отличное соединение',
 			'screenCall.remoteMicMuted' => 'Микрофон собеседника выключен',
+			'passkey.title' => 'Ключи доступа',
+			'passkey.description' => 'Ключи доступа позволяют входить без кода из звонка — по Face ID, Touch ID или отпечатку. Добавьте ключ на этом устройстве и используйте его для входа.',
+			'passkey.add' => 'Добавить ключ',
+			'passkey.genericName' => 'Ключ доступа',
+			'passkey.delete' => 'Удалить',
+			'passkey.deleteConfirmTitle' => 'Удалить ключ доступа?',
+			'passkey.deleteConfirmMessage' => 'Войти с помощью этого ключа больше не получится.',
+			'passkey.loadError' => 'Не удалось загрузить ключи',
+			'passkey.retry' => 'Повторить',
+			'passkey.verificationFailed' => 'Не удалось проверить ключ. Попробуйте ещё раз.',
+			'passkey.ceremonyExpired' => 'Срок запроса истёк. Попробуйте ещё раз.',
+			'passkey.unknownCredential' => 'Этот ключ не распознан.',
+			'passkey.alreadyRegistered' => 'Этот ключ уже зарегистрирован.',
+			'passkey.notFound' => 'Ключ не найден.',
 			_ => null,
 		};
 	}

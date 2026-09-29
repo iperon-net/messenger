@@ -1,7 +1,10 @@
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:bloc/bloc.dart';
 import 'package:dlibphonenumber/dlibphonenumber.dart';
+import 'package:passkeys/authenticator.dart';
+import 'package:passkeys/types.dart';
 import 'package:yandex_login_sdk/yandex_login_sdk.dart';
 
 import '../../api.dart';
@@ -12,6 +15,7 @@ import '../../settings.dart';
 import '../../utils.dart';
 import '../../protobuf.dart';
 
+import 'auth_login_completer.dart';
 import 'auth_state.dart';
 
 enum PhoneValidationError { empty, notAllowRegion }
@@ -25,6 +29,8 @@ class AuthCubit extends Cubit<AuthState> {
   final settings = getIt.get<Settings>();
 
   final phoneUtil = PhoneNumberUtil.instance;
+
+  final _passkeyAuthenticator = PasskeyAuthenticator();
 
   Future<void> initialization() async {
     emit(state.copyWith(status: Status.loading));
@@ -121,6 +127,79 @@ class AuthCubit extends Cubit<AuthState> {
 
     emit(state.copyWith(status: Status.success, error: "", redirectURI: uri.toString()));
     return;
+  }
+
+  /// Вход по ключу доступа (passkey), discoverable — без ввода телефона.
+  /// LOGIN_BEGIN (сервер отдаёт WebAuthn RequestOptions) → нативный промпт →
+  /// LOGIN_FINISH (сервер проверяет assertion и выдаёт confirmationSession).
+  /// Если у аккаунта включён облачный пароль — уводим на его ввод (как в
+  /// call-password flow); иначе завершаем вход общим [AuthLoginCompleter].
+  ///
+  /// Возвращает результат для экрана (пустой [error]+[redirectURI] = пользователь
+  /// отменил промпт, ничего не показываем). Не бросает.
+  Future<({String error, String redirectURI})> passkeySignIn() async {
+    if (!await utils.hasNetwork()) {
+      return (error: "grpcError.unableConnectServer", redirectURI: "");
+    }
+
+    // Begin — сервер генерирует challenge и отдаёт RequestOptions (JSON).
+    final beginRequest = Message(messageType: MessageType.PASSKEY_LOGIN_BEGIN);
+    late Message beginMessage;
+    final beginError = await api.call(() async {
+      beginMessage = await api.client.unary(beginRequest);
+    });
+    if (beginError.status == APIStatus.error) {
+      return (error: beginError.error, redirectURI: "");
+    }
+    final begin = PasskeyLoginBegin_Response.fromBuffer(beginMessage.message);
+
+    // Нативный промпт (Face ID / Touch ID / отпечаток).
+    final AuthenticateResponseType assertion;
+    try {
+      final decoded = jsonDecode(utf8.decode(begin.publicKey)) as Map<String, dynamic>;
+      // Сервер (go-webauthn) присылает опции в обёртке {"publicKey": {...}}.
+      final options = decoded['publicKey'] as Map<String, dynamic>? ?? decoded;
+      final request = AuthenticateRequestType.fromJson(
+        options,
+        mediation: MediationType.Optional,
+        preferImmediatelyAvailableCredentials: false,
+      );
+      assertion = await _passkeyAuthenticator.authenticate(request);
+    } on PasskeyAuthCancelledException {
+      // Пользователь закрыл промпт — не ошибка.
+      return (error: "", redirectURI: "");
+    } catch (error, stackTrace) {
+      logger.handle(error, stackTrace, "passkey authenticate failed");
+      return (error: "passkey.verificationFailed", redirectURI: "");
+    }
+
+    // Finish — сервер проверяет assertion и выдаёт confirmationSession.
+    final finishRequest = Message(
+      messageType: MessageType.PASSKEY_LOGIN_FINISH,
+      message: PasskeyLoginFinish_Request(
+        loginSession: begin.loginSession,
+        credential: utf8.encode(assertion.toJsonString()),
+      ).writeToBuffer(),
+    );
+    late Message finishMessage;
+    final finishError = await api.call(() async {
+      finishMessage = await api.client.unary(finishRequest);
+    });
+    if (finishError.status == APIStatus.error) {
+      return (error: finishError.error, redirectURI: "");
+    }
+    final finish = PasskeyLoginFinish_Response.fromBuffer(finishMessage.message);
+
+    // Двухшаговая проверка: passkey её НЕ обходит — уводим на ввод облачного
+    // пароля, передав confirmationSession (как в call-password flow).
+    if (finish.hasTwoStepVerification) {
+      final confirmationSessionHex = utils.bytesToHex(Uint8List.fromList(finish.confirmationSession));
+      return (error: "", redirectURI: Uri.parse("/auth/cloud_password?confirmationSession=$confirmationSessionHex").toString());
+    }
+
+    // Иначе завершаем вход общей последовательностью.
+    final completion = await AuthLoginCompleter().complete(finish.confirmationSession);
+    return (error: completion.error, redirectURI: completion.redirectURI);
   }
 
   Future<String> yandexSignIn() async {

@@ -121,6 +121,7 @@ dependencies:
   flutter_webrtc: 1.6.2+hotfix.3
   livekit_client: ^2.13.0
   hugeicons: ^1.2.0
+  passkeys: ^2.23.1
 
 dev_dependencies:
   flutter_test:

@@ -7,6 +7,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:messenger/utils.dart';
 
+import '../../components.dart';
 import '../../constants.dart';
 import '../../cubit.dart';
 import '../../di.dart';
@@ -30,6 +31,32 @@ class _AuthMaterialScreen extends State<AuthMaterialScreen> {
   final phoneNumberController = TextEditingController();
   final phoneNumberFocus = FocusNode();
   String? serverError;
+
+  bool passkeyBusy = false;
+
+  /// Вход по ключу доступа: нативный промпт → навигация при успехе, SnackBar при
+  /// ошибке. Отмена промпта (пустой результат) ничего не показывает.
+  Future<void> _onPasskey() async {
+    if (passkeyBusy) return;
+    setState(() => passkeyBusy = true);
+    final result = await context.read<AuthCubit>().passkeySignIn();
+    if (!mounted) return;
+    setState(() => passkeyBusy = false);
+
+    if (result.redirectURI.isNotEmpty) {
+      context.go(result.redirectURI);
+      return;
+    }
+    if (result.error.isNotEmpty) {
+      String message;
+      try {
+        message = context.t[result.error];
+      } catch (_) {
+        message = context.t.grpcError.unknownError;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    }
+  }
 
   @override
   void initState() {
@@ -160,28 +187,35 @@ class _AuthMaterialScreen extends State<AuthMaterialScreen> {
                               ),
                       ),
                     ),
-                    // DividerTextWidget(text: context.t.screenAuth.signInWith),
-                    // Row(
-                    //   mainAxisAlignment: MainAxisAlignment.center,
-                    //   spacing: 30,
-                    //   children: [
-                    //     GestureDetector(
-                    //       behavior: HitTestBehavior.opaque,
-                    //       onTap: () async {
-                    //         final result = await context.read<AuthCubit>().yandexSignIn();
-                    //         if (context.mounted) {
-                    //           showDialog(
-                    //             context: context,
-                    //             builder: (context) => AlertDialog(
-                    //               actions: [TextButton(onPressed: () => Navigator.of(context).pop(), child: Text(result))],
-                    //             ),
-                    //           );
-                    //         }
-                    //       },
-                    //       child: SvgPicture.asset('assets/images/yandex_id.svg'),
-                    //     ),
-                    //   ],
-                    // ),
+                    DividerTextWidget(text: context.t.screenAuth.signInWith),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      spacing: 30,
+                      children: [
+                        GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: passkeyBusy ? null : _onPasskey,
+                          child: Container(
+                            width: 42,
+                            height: 42,
+                            decoration: BoxDecoration(color: Colors.blue, borderRadius: BorderRadius.circular(8)),
+                            child: Center(
+                              child: passkeyBusy
+                                  ? const SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xffffffff)),
+                                    )
+                                  : SvgPicture.asset(
+                                      'assets/icons/passkey.svg',
+                                      width: 28,
+                                      theme: const SvgTheme(currentColor: Colors.white),
+                                    ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
               ),

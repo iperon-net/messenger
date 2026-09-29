@@ -1,0 +1,112 @@
+syntax = "proto3";
+
+package iperon.v1;
+option go_package = "internal/api/v1";
+
+// Passkeys (WebAuthn / FIDO2) — беспарольный вход по ключу доступа устройства
+// (Face ID / Touch ID / отпечаток; синхронизируются через iCloud Keychain /
+// Google Password Manager). Relying Party — свой сервер (go-webauthn), RP ID =
+// домен (iperon.net). Клиент (пакет `passkeys`) — только нативный мост; сервер
+// обменивается стандартными WebAuthn-структурами в JSON (поле publicKey /
+// credential), чтобы не завязываться на формат конкретного клиента.
+//
+// Регистрация/список/удаление — authenticated (по userID из сессии, через
+// exchangeEncrypted, как CLOUD_PASSWORD_*). Вход — pre-auth (unary до сессии),
+// discoverable (usernameless): телефон вводить не нужно, ключ выбирается на
+// устройстве. Успешный вход НЕ минтит сессию сам — он выдаёт confirmationSession
+// (как call-password/moderation), а сессию, как и раньше, чеканит AUTH_CONFIRMATION
+// (гибридный ML-KEM обмен ключами). Облачный пароль (двухшаговая проверка) при
+// этом сохраняется: hasTwoStepVerification уводит клиента на шаг ввода пароля.
+
+// ── Authenticated (настройки → Конфиденциальность → Ключи доступа) ──────────
+
+// Начало регистрации нового ключа: сервер отдаёт WebAuthn CreationOptions.
+message PasskeyRegisterBegin {
+  message Request {}
+
+  message Response {
+    // JSON PublicKeyCredentialCreationOptions (challenge, rp, user,
+    // authenticatorSelection с residentKey=required и т.д.). Клиент передаёт его
+    // нативному API создания ключа.
+    bytes publicKey = 1;
+  }
+}
+
+// Завершение регистрации: attestation от аутентификатора + метка для UI.
+message PasskeyRegisterFinish {
+  message Request {
+    // JSON credential (attestationObject + clientDataJSON), как вернул
+    // authenticator. Сервер верифицирует и сохраняет.
+    bytes credential = 1;
+    // Пользовательская метка ключа (необязательна). Если пусто — клиент покажет
+    // имя провайдера, выведенное из aaguid.
+    string label = 2;
+  }
+
+  message Response {
+    PasskeyCredential credential = 1;
+  }
+}
+
+// Список ключей пользователя (экран настроек).
+message PasskeyList {
+  message Request {}
+
+  message Response {
+    repeated PasskeyCredential credentials = 1;
+  }
+}
+
+// Удаление ключа (по credentialId; сервер проверяет принадлежность userID).
+message PasskeyDelete {
+  message Request {
+    bytes credentialId = 1;
+  }
+
+  message Response {
+    bool success = 1;
+  }
+}
+
+// Сводка одного ключа для UI. aaguid → имя/иконка провайдера («iCloud Keychain»,
+// «Google Password Manager», …) резолвится на клиенте по публичной FIDO-таблице.
+message PasskeyCredential {
+  bytes credentialId = 1;
+  string label = 2;
+  bytes aaguid = 3;
+  int64 createdAt = 4;   // unix-секунды
+  int64 lastUsedAt = 5;  // unix-секунды; 0 — ни разу не использовался
+}
+
+// ── Pre-auth (вход по ключу, до сессии — unary, как AUTH_CLOUD_PASSWORD) ─────
+
+// Начало входа: discoverable-assertion (без allowCredentials — конкретный ключ
+// выбирается на устройстве). Сервер отдаёт RequestOptions + loginSession —
+// непрозрачный хэндл, связывающий begin/finish (challenge живёт в Redis).
+message PasskeyLoginBegin {
+  message Request {}
+
+  message Response {
+    bytes loginSession = 1;
+    // JSON PublicKeyCredentialRequestOptions.
+    bytes publicKey = 2;
+  }
+}
+
+// Завершение входа: assertion от аутентификатора. Сервер проверяет подпись и
+// signCount, резолвит пользователя по userHandle и выдаёт confirmationSession.
+message PasskeyLoginFinish {
+  message Request {
+    bytes loginSession = 1;
+    // JSON assertion (authenticatorData + clientDataJSON + signature + userHandle).
+    bytes credential = 2;
+  }
+
+  message Response {
+    // Скармливается AUTH_CONFIRMATION (тот же путь, что call-password/moderation).
+    bytes confirmationSession = 1;
+    // Включена ли двухшаговая проверка: если true — клиент уходит на шаг ввода
+    // облачного пароля (/auth/cloud_password), передав confirmationSession.
+    bool hasTwoStepVerification = 2;
+  }
+}

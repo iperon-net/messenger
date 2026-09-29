@@ -61,6 +61,13 @@ class _SettingsPrivacyAndSecurityMaterial extends State<SettingsPrivacyAndSecuri
                         onTab: () async => context.go("/settings/privacy_and_security/cloud_password"),
                         isTrailing: true,
                       ),
+                      MaterialListTileIcon(
+                        title: Text(context.t.sessionsPrivacyAndSecurity.passkeys),
+                        color: const Color(0xFFFF9500),
+                        icon: FontAwesomeIcons.key,
+                        onTab: () async => context.go("/settings/privacy_and_security/passkeys"),
+                        isTrailing: true,
+                      ),
                     ],
                   ),
                 ),

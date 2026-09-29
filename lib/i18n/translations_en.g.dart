@@ -67,6 +67,7 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	late final Translations$grpcError$en grpcError = Translations$grpcError$en.internal(_root);
 	late final Translations$dateTime$en dateTime = Translations$dateTime$en.internal(_root);
 	late final Translations$screenCall$en screenCall = Translations$screenCall$en.internal(_root);
+	late final Translations$passkey$en passkey = Translations$passkey$en.internal(_root);
 }
 
 // Path: common
@@ -82,6 +83,9 @@ class Translations$common$en {
 
 	/// en: 'Continue'
 	String get kContinue => 'Continue';
+
+	/// en: 'OK'
+	String get ok => 'OK';
 
 	/// en: 'Cancel'
 	String get cancel => 'Cancel';
@@ -478,6 +482,9 @@ class Translations$sessionsPrivacyAndSecurity$en {
 
 	/// en: 'Cloud password'
 	String get cloudPassword => 'Cloud password';
+
+	/// en: 'Passkeys'
+	String get passkeys => 'Passkeys';
 
 	/// en: 'Who can call me'
 	String get whoCanCall => 'Who can call me';
@@ -1347,6 +1354,57 @@ class Translations$screenCall$en {
 	String get remoteMicMuted => 'Their microphone is off';
 }
 
+// Path: passkey
+class Translations$passkey$en {
+	Translations$passkey$en.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// en: 'Passkeys'
+	String get title => 'Passkeys';
+
+	/// en: 'Passkeys let you sign in without a phone code using Face ID, Touch ID or your fingerprint. Add a passkey on this device, then use it to sign in.'
+	String get description => 'Passkeys let you sign in without a phone code using Face ID, Touch ID or your fingerprint. Add a passkey on this device, then use it to sign in.';
+
+	/// en: 'Add a passkey'
+	String get add => 'Add a passkey';
+
+	/// en: 'Passkey'
+	String get genericName => 'Passkey';
+
+	/// en: 'Delete'
+	String get delete => 'Delete';
+
+	/// en: 'Delete passkey?'
+	String get deleteConfirmTitle => 'Delete passkey?';
+
+	/// en: 'You won't be able to sign in with this passkey anymore.'
+	String get deleteConfirmMessage => 'You won\'t be able to sign in with this passkey anymore.';
+
+	/// en: 'Couldn't load passkeys'
+	String get loadError => 'Couldn\'t load passkeys';
+
+	/// en: 'Retry'
+	String get retry => 'Retry';
+
+	/// en: 'Couldn't verify the passkey. Please try again.'
+	String get verificationFailed => 'Couldn\'t verify the passkey. Please try again.';
+
+	/// en: 'The request expired. Please try again.'
+	String get ceremonyExpired => 'The request expired. Please try again.';
+
+	/// en: 'This passkey isn't recognized.'
+	String get unknownCredential => 'This passkey isn\'t recognized.';
+
+	/// en: 'This passkey is already registered.'
+	String get alreadyRegistered => 'This passkey is already registered.';
+
+	/// en: 'Passkey not found.'
+	String get notFound => 'Passkey not found.';
+}
+
 /// The flat map containing all translations for locale <en>.
 /// Only for edge cases! For simple maps, use the map function of this library.
 ///
@@ -1357,6 +1415,7 @@ extension on Translations {
 		return switch (path) {
 			'common.mobilePhone' => 'Mobile phone number',
 			'common.kContinue' => 'Continue',
+			'common.ok' => 'OK',
 			'common.cancel' => 'Cancel',
 			'common.notNow' => 'Not now',
 			'common.back' => 'Back',
@@ -1448,6 +1507,7 @@ extension on Translations {
 			'sessionsPrivacyAndSecurity.passcodeAndBiometric' => 'Passcode & Biometric',
 			'sessionsPrivacyAndSecurity.passcode' => 'Passcode',
 			'sessionsPrivacyAndSecurity.cloudPassword' => 'Cloud password',
+			'sessionsPrivacyAndSecurity.passkeys' => 'Passkeys',
 			'sessionsPrivacyAndSecurity.whoCanCall' => 'Who can call me',
 			'sessionsPrivacyAndSecurity.calls' => 'Calls',
 			'sessionsPrivacyAndSecurity.callsEverybody' => 'Everybody',
@@ -1699,6 +1759,20 @@ extension on Translations {
 			'screenCall.qualityGood' => 'Good connection',
 			'screenCall.qualityExcellent' => 'Excellent connection',
 			'screenCall.remoteMicMuted' => 'Their microphone is off',
+			'passkey.title' => 'Passkeys',
+			'passkey.description' => 'Passkeys let you sign in without a phone code using Face ID, Touch ID or your fingerprint. Add a passkey on this device, then use it to sign in.',
+			'passkey.add' => 'Add a passkey',
+			'passkey.genericName' => 'Passkey',
+			'passkey.delete' => 'Delete',
+			'passkey.deleteConfirmTitle' => 'Delete passkey?',
+			'passkey.deleteConfirmMessage' => 'You won\'t be able to sign in with this passkey anymore.',
+			'passkey.loadError' => 'Couldn\'t load passkeys',
+			'passkey.retry' => 'Retry',
+			'passkey.verificationFailed' => 'Couldn\'t verify the passkey. Please try again.',
+			'passkey.ceremonyExpired' => 'The request expired. Please try again.',
+			'passkey.unknownCredential' => 'This passkey isn\'t recognized.',
+			'passkey.alreadyRegistered' => 'This passkey is already registered.',
+			'passkey.notFound' => 'Passkey not found.',
 			_ => null,
 		};
 	}

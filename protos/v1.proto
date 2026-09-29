@@ -97,6 +97,16 @@ enum MessageType {
   CLOUD_PASSWORD_VERIFY = 57;
   CLOUD_PASSWORD_RECOVERY_SEND = 58;
   CLOUD_PASSWORD_RESET = 59;
+  // Passkeys (WebAuthn / FIDO2) — беспарольный вход по ключу доступа. REGISTER/
+  // LIST/DELETE — authenticated (через exchangeEncrypted); LOGIN_* — pre-auth
+  // unary (discoverable), выдаёт confirmationSession для AUTH_CONFIRMATION. См.
+  // passkey_v1.proto.
+  PASSKEY_REGISTER_BEGIN = 60;
+  PASSKEY_REGISTER_FINISH = 61;
+  PASSKEY_LIST = 62;
+  PASSKEY_DELETE = 63;
+  PASSKEY_LOGIN_BEGIN = 64;
+  PASSKEY_LOGIN_FINISH = 65;
 }
 
 service Iperon {

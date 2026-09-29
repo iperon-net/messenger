@@ -8,6 +8,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:messenger/utils.dart';
 
+import '../../components.dart';
 import '../../constants.dart';
 import '../../cubit.dart';
 import '../../di.dart';
@@ -31,6 +32,43 @@ class _AuthCupertinoScreen extends State<AuthCupertinoScreen> {
   final phoneNumberController = TextEditingController();
   final phoneNumberFocus = FocusNode();
   String? serverError;
+
+  bool passkeyBusy = false;
+
+  /// Вход по ключу доступа: нативный промпт → навигация при успехе, диалог при
+  /// ошибке. Отмена промпта (пустой результат) ничего не показывает.
+  Future<void> _onPasskey() async {
+    if (passkeyBusy) return;
+    setState(() => passkeyBusy = true);
+    final result = await context.read<AuthCubit>().passkeySignIn();
+    if (!mounted) return;
+    setState(() => passkeyBusy = false);
+
+    if (result.redirectURI.isNotEmpty) {
+      context.go(result.redirectURI);
+      return;
+    }
+    if (result.error.isNotEmpty) {
+      final String message;
+      try {
+        message = context.t[result.error];
+      } catch (_) {
+        showCupertinoDialogMessage(context.t.grpcError.unknownError);
+        return;
+      }
+      showCupertinoDialogMessage(message);
+    }
+  }
+
+  void showCupertinoDialogMessage(String message) {
+    showCupertinoDialog(
+      context: context,
+      builder: (dialogContext) => CupertinoAlertDialog(
+        content: Text(message),
+        actions: [CupertinoDialogAction(onPressed: () => Navigator.of(dialogContext).pop(), child: Text(context.t.common.ok))],
+      ),
+    );
+  }
 
   @override
   void initState() {
@@ -162,39 +200,31 @@ class _AuthCupertinoScreen extends State<AuthCupertinoScreen> {
                             : CupertinoActivityIndicator(color: Color(0xffffffff)),
                       ),
                     ),
-                    // DividerTextWidget(text: context.t.screenAuth.signInWith),
-                    // Row(
-                    //   mainAxisAlignment: MainAxisAlignment.center,
-                    //   spacing: 30,
-                    //   children: [
-                    //     GestureDetector(
-                    //       behavior: HitTestBehavior.opaque,
-                    //       onTap: () async {
-                    //         final result = await context.read<AuthCubit>().yandexSignIn();
-                    //         if (context.mounted) {
-                    //           showCupertinoDialog(
-                    //             context: context,
-                    //             builder: (context) => CupertinoAlertDialog(
-                    //               actions: [CupertinoDialogAction(onPressed: () => Navigator.of(context).pop(), child: Text(result))],
-                    //             ),
-                    //           );
-                    //         }
-                    //       },
-                    //       child: SvgPicture.asset('assets/images/yandex_id.svg'),
-                    //     ),
-                    //       Container(
-                    //         width: 42,
-                    //         height: 42,
-                    //         decoration: BoxDecoration(
-                    //           color: Colors.blue,
-                    //           borderRadius: BorderRadius.circular(8),
-                    //         ),
-                    //         child: Center(
-                    //           child: SvgPicture.asset('assets/icons/user-key.svg', width: 32, theme: SvgTheme(currentColor: Colors.white),),
-                    //         ),
-                    //       ),
-                    //   ],
-                    // ),
+                    DividerTextWidget(text: context.t.screenAuth.signInWith),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      spacing: 30,
+                      children: [
+                        GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: passkeyBusy ? null : _onPasskey,
+                          child: Container(
+                            width: 42,
+                            height: 42,
+                            decoration: BoxDecoration(color: Colors.blue, borderRadius: BorderRadius.circular(8)),
+                            child: Center(
+                              child: passkeyBusy
+                                  ? const CupertinoActivityIndicator(color: Color(0xffffffff))
+                                  : SvgPicture.asset(
+                                      'assets/icons/passkey.svg',
+                                      width: 28,
+                                      theme: const SvgTheme(currentColor: Colors.white),
+                                    ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
               ),

@@ -363,6 +363,17 @@ class Routers {
                         ),
                       ),
                     ),
+                    GoRoute(
+                      path: "passkeys",
+                      parentNavigatorKey: rootNavigatorKey,
+                      pageBuilder: (context, state) => _page(
+                        state,
+                        BlocProvider<SettingsPasskeysCubit>(
+                          create: (_) => SettingsPasskeysCubit()..initialization(),
+                          child: SettingsPasskeysCupertino(),
+                        ),
+                      ),
+                    ),
                   ],
                 ),
                 GoRoute(
@@ -856,6 +867,17 @@ class Routers {
                         BlocProvider<SettingsCloudPasswordCubit>(
                           create: (_) => SettingsCloudPasswordCubit()..initialization(),
                           child: const SettingsCloudPasswordMaterial(),
+                        ),
+                      ),
+                    ),
+                    GoRoute(
+                      path: "passkeys",
+                      parentNavigatorKey: rootNavigatorKey,
+                      pageBuilder: (context, state) => _pageMaterial(
+                        state,
+                        BlocProvider<SettingsPasskeysCubit>(
+                          create: (_) => SettingsPasskeysCubit()..initialization(),
+                          child: const SettingsPasskeysMaterial(),
                         ),
                       ),
                     ),
