@@ -2,6 +2,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
+import '../../components.dart';
 import '../../constants.dart';
 import '../../cubit.dart';
 import '../../i18n/translations.g.dart';
@@ -60,39 +61,55 @@ class _SettingsPasskeysMaterial extends State<SettingsPasskeysMaterial> {
           body: state.status == Status.loading
               ? const Center(child: CircularProgressIndicator())
               : ListView(
+                  padding: const EdgeInsets.all(10),
                   children: [
                     Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                      padding: const EdgeInsets.fromLTRB(14, 6, 14, 10),
                       child: Text(
                         context.t.passkey.description,
                         style: TextStyle(fontSize: AppFontSizes.base, color: Theme.of(context).hintColor),
                       ),
                     ),
                     if (state.loadError)
-                      ListTile(
-                        title: Text(context.t.passkey.loadError),
-                        trailing: TextButton(
-                          onPressed: () => context.read<SettingsPasskeysCubit>().initialization(),
-                          child: Text(context.t.passkey.retry),
-                        ),
-                      )
-                    else
-                      for (final item in state.items)
-                        ListTile(
-                          leading: FaIcon(passkeyProviderIcon(item.aaguid)),
-                          title: Text(_title(context, item)),
-                          trailing: IconButton(
-                            icon: const Icon(Icons.delete_outline),
-                            onPressed: busy ? null : () => _confirmDelete(context, item),
+                      Card(
+                        clipBehavior: Clip.antiAlias,
+                        child: ListTile(
+                          title: Text(context.t.passkey.loadError),
+                          trailing: TextButton(
+                            onPressed: () => context.read<SettingsPasskeysCubit>().initialization(),
+                            child: Text(context.t.passkey.retry),
                           ),
                         ),
-                    const Divider(),
-                    ListTile(
-                      leading: busy
-                          ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2))
-                          : const FaIcon(FontAwesomeIcons.plus),
-                      title: Text(context.t.passkey.add),
-                      onTap: busy ? null : () => context.read<SettingsPasskeysCubit>().addPasskey(),
+                      )
+                    else if (state.items.isNotEmpty)
+                      Card(
+                        clipBehavior: Clip.antiAlias,
+                        child: Column(
+                          children: [
+                            for (final item in state.items)
+                              ListTile(
+                                leading: FaIcon(passkeyProviderIcon(item.aaguid)),
+                                title: Text(_title(context, item)),
+                                trailing: IconButton(
+                                  icon: const Icon(Icons.delete_outline),
+                                  onPressed: busy ? null : () => _confirmDelete(context, item),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                    const SizedBox(height: 16),
+                    Card(
+                      clipBehavior: Clip.antiAlias,
+                      child: MaterialListTileIcon(
+                        title: Text(context.t.passkey.add),
+                        color: const Color(0xFFFF9500),
+                        icon: FontAwesomeIcons.plus,
+                        additionalInfo: busy
+                            ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                            : null,
+                        onTab: busy ? null : () async => context.read<SettingsPasskeysCubit>().addPasskey(),
+                      ),
                     ),
                   ],
                 ),

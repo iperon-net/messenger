@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter/foundation.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screen_lock/flutter_screen_lock.dart';
 import 'package:go_router/go_router.dart';
@@ -72,13 +73,18 @@ class _SettingsPasscodeMaterial extends State<SettingsPasscodeMaterial> {
                     margin: const EdgeInsets.fromLTRB(12, 12, 12, 4),
                     child: Column(
                       children: [
-                        ListTile(
+                        MaterialListTileIcon(
                           title: Text(context.t.screenSettingsPasscode.turnOff),
-                          onTap: () => context.read<SettingsPasscodeCubit>().turnOff(),
+                          color: const Color(0xFFFF3B30),
+                          icon: FontAwesomeIcons.lockOpen,
+                          onTab: () async => context.read<SettingsPasscodeCubit>().turnOff(),
                         ),
-                        ListTile(
+                        MaterialListTileIcon(
                           title: Text(context.t.screenSettingsPasscode.change),
-                          onTap: () async {
+                          color: const Color(0xFF007AFF),
+                          icon: FontAwesomeIcons.key,
+                          isTrailing: true,
+                          onTab: () async {
                             final cubit = context.read<SettingsPasscodeCubit>();
                             final created = await context.push<bool>("/settings/privacy_and_security/passcode/create");
                             await cubit.initialization();
@@ -99,8 +105,11 @@ class _SettingsPasscodeMaterial extends State<SettingsPasscodeMaterial> {
                     margin: const EdgeInsets.symmetric(horizontal: 12),
                     child: Column(
                       children: [
-                        ListTile(
+                        MaterialListTileIcon(
                           title: Text(context.t.screenSettingsPasscode.autoLock),
+                          color: const Color(0xFFFF9500),
+                          icon: FontAwesomeIcons.clock,
+                          onTab: null,
                           trailing: MaterialInlineDropdown<int>(
                             value: state.autoLockSeconds,
                             items: const [0, 60, 300, 3600, 18000],
@@ -109,10 +118,15 @@ class _SettingsPasscodeMaterial extends State<SettingsPasscodeMaterial> {
                           ),
                         ),
                         if (state.isBiometricAvailable)
-                          SwitchListTile(
+                          MaterialListTileIcon(
                             title: Text(context.t.screenSettingsPasscode.biometricUnlock),
-                            value: state.isBiometric,
-                            onChanged: (bool value) async => await context.read<SettingsPasscodeCubit>().setBiometric(biometric: value),
+                            color: const Color(0xFF5856D6),
+                            icon: FontAwesomeIcons.fingerprint,
+                            onTab: null,
+                            trailing: Switch(
+                              value: state.isBiometric,
+                              onChanged: (bool value) async => await context.read<SettingsPasscodeCubit>().setBiometric(biometric: value),
+                            ),
                           ),
                       ],
                     ),
@@ -120,9 +134,12 @@ class _SettingsPasscodeMaterial extends State<SettingsPasscodeMaterial> {
                 ] else ...[
                   Card(
                     margin: const EdgeInsets.all(12),
-                    child: ListTile(
+                    child: MaterialListTileIcon(
                       title: Text(context.t.screenSettingsPasscode.turnOn),
-                      onTap: () async {
+                      color: const Color(0xFF41CA22),
+                      icon: FontAwesomeIcons.lock,
+                      isTrailing: true,
+                      onTab: () async {
                         final cubit = context.read<SettingsPasscodeCubit>();
                         final created = await context.push<bool>("/settings/privacy_and_security/passcode/create");
                         await cubit.initialization();

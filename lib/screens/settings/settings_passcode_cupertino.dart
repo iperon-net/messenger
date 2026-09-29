@@ -1,4 +1,5 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../../themes.dart';
 
 import '../../components.dart';
@@ -105,13 +106,18 @@ class _SettingsPasscodeCupertino extends State<SettingsPasscodeCupertino> {
                       child: Text(context.t.screenSettingsPasscode.note, style: TextStyle(fontSize: AppFontSizes.caption)),
                     ),
                     children: [
-                      CupertinoListTile(
+                      CupertinoListTileIcon(
                         title: Text(context.t.screenSettingsPasscode.turnOff),
-                        onTap: () => context.read<SettingsPasscodeCubit>().turnOff(),
+                        color: const Color(0xFFFF3B30),
+                        icon: FontAwesomeIcons.lockOpen,
+                        onTab: () async => context.read<SettingsPasscodeCubit>().turnOff(),
                       ),
-                      CupertinoListTile(
+                      CupertinoListTileIcon(
                         title: Text(context.t.screenSettingsPasscode.change),
-                        onTap: () async {
+                        color: const Color(0xFF007AFF),
+                        icon: FontAwesomeIcons.key,
+                        isTrailing: true,
+                        onTab: () async {
                           final cubit = context.read<SettingsPasscodeCubit>();
                           final created = await context.push<bool>("/settings/privacy_and_security/passcode/create");
                           await cubit.initialization();
@@ -127,8 +133,11 @@ class _SettingsPasscodeCupertino extends State<SettingsPasscodeCupertino> {
                       borderRadius: const BorderRadius.all(Radius.circular(10)),
                     ),
                     children: [
-                      CupertinoListTile(
+                      CupertinoListTileIcon(
                         title: Text(context.t.screenSettingsPasscode.autoLock),
+                        color: const Color(0xFFFF9500),
+                        icon: FontAwesomeIcons.solidClock,
+                        onTab: null,
                         trailing: CupertinoMenuAnchor(
                           builder: (context, controller, child) {
                             return CupertinoButton(
@@ -159,8 +168,11 @@ class _SettingsPasscodeCupertino extends State<SettingsPasscodeCupertino> {
                         ),
                       ),
                       if (state.isBiometricAvailable) ...[
-                        CupertinoListTile(
+                        CupertinoListTileIcon(
                           title: Text(context.t.screenSettingsPasscode.faceIDUnlock),
+                          color: const Color(0xFF5856D6),
+                          icon: FontAwesomeIcons.fingerprint,
+                          onTab: null,
                           trailing: CupertinoSwitch(
                             value: state.isBiometric,
                             onChanged: (bool value) async => await context.read<SettingsPasscodeCubit>().setBiometric(biometric: value),
@@ -177,9 +189,12 @@ class _SettingsPasscodeCupertino extends State<SettingsPasscodeCupertino> {
                       borderRadius: const BorderRadius.all(Radius.circular(10)),
                     ),
                     children: [
-                      CupertinoListTile(
+                      CupertinoListTileIcon(
                         title: Text(context.t.screenSettingsPasscode.turnOn),
-                        onTap: () async {
+                        color: const Color(0xFF41CA22),
+                        icon: FontAwesomeIcons.lock,
+                        isTrailing: true,
+                        onTab: () async {
                           final cubit = context.read<SettingsPasscodeCubit>();
                           final created = await context.push<bool>("/settings/privacy_and_security/passcode/create");
                           await cubit.initialization();
