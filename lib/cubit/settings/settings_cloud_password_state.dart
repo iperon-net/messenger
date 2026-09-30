@@ -28,6 +28,9 @@ class SettingsCloudPasswordState with SettingsCloudPasswordStateMappable {
   // networkStatus == loading — запрос в полёте (спиннер на кнопке).
   final Status networkStatus;
   final bool loadError;
+  // Стартовая загрузка не прошла из-за отсутствия сети (а не ошибки сервера) —
+  // показываем отдельную offline-страницу вместо общей [loadError]-заглушки.
+  final bool offline;
 
   final bool isEnabled;
   final String maskedEmail;
@@ -46,6 +49,7 @@ class SettingsCloudPasswordState with SettingsCloudPasswordStateMappable {
     this.step = SettingsCloudPasswordStep.loading,
     this.networkStatus = Status.initialization,
     this.loadError = false,
+    this.offline = false,
     this.isEnabled = false,
     this.maskedEmail = "",
     this.isEmailVerified = false,

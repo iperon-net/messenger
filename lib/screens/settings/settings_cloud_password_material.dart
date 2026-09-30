@@ -141,6 +141,7 @@ class _SettingsCloudPasswordMaterial extends State<SettingsCloudPasswordMaterial
 
   Widget _body(BuildContext context, SettingsCloudPasswordState state) {
     if (state.step == SettingsCloudPasswordStep.loading) {
+      if (state.offline) return _offline(context);
       if (state.loadError) return _centeredError(context);
       return const Center(child: CircularProgressIndicator());
     }
@@ -209,6 +210,33 @@ class _SettingsCloudPasswordMaterial extends State<SettingsCloudPasswordMaterial
       case SettingsCloudPasswordStep.loading:
         return const Center(child: CircularProgressIndicator());
     }
+  }
+
+  /// Отдельная страница «нет сети» (стартовая загрузка не прошла из-за отсутствия
+  /// связи) — иконка, заголовок/пояснение из общих строк, кнопка «Повторить».
+  Widget _offline(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 40),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.wifi_off_rounded, size: 48, color: scheme.onSurfaceVariant),
+            const SizedBox(height: 16),
+            Text(context.t.common.noConnectionTitle, textAlign: TextAlign.center, style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: 6),
+            Text(
+              context.t.common.noConnectionMessage,
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
+            ),
+            const SizedBox(height: 20),
+            FilledButton(onPressed: () => _cubit.initialization(), child: Text(context.t.cloudPassword.retry)),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _centeredError(BuildContext context) {

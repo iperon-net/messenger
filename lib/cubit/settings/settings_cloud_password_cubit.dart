@@ -29,16 +29,31 @@ class SettingsCloudPasswordCubit extends Cubit<SettingsCloudPasswordState> {
 
   /// Загрузка состояния и выбор стартового шага.
   Future<void> initialization() async {
-    emit(state.copyWith(step: SettingsCloudPasswordStep.loading, loadError: false));
+    emit(state.copyWith(step: SettingsCloudPasswordStep.loading, loadError: false, offline: false));
 
-    final info = await _loadInfo();
-    if (info == null) {
-      emit(state.copyWith(loadError: true, step: SettingsCloudPasswordStep.loading));
+    final (status, payload) = await api.unaryEncodedWithResponse(
+      MessageType.CLOUD_PASSWORD_INFO,
+      CloudPasswordInfo_Request().writeToBuffer(),
+    );
+    if (status.status != APIStatus.success || payload == null) {
+      // Отсутствие сети (нет коннективити либо gRPC вернул connect/DNS-ошибку) —
+      // отдельная offline-страница; прочие сбои загрузки — общая loadError-заглушка.
+      final offline = !await utils.hasNetwork() || _isNetworkError(status);
+      logger.warning('cloud password: load info failed (${status.error})');
+      emit(state.copyWith(step: SettingsCloudPasswordStep.loading, offline: offline, loadError: !offline));
       return;
     }
 
-    emit(state.copyWith(step: _stepForInfo(info), loadError: false));
+    final info = CloudPasswordInfo_Response.fromBuffer(payload);
+    emit(state.copyWith(isEnabled: info.isEnabled, maskedEmail: info.maskedEmail, isEmailVerified: info.isEmailVerified));
+    emit(state.copyWith(step: _stepForInfo(info), loadError: false, offline: false));
   }
+
+  /// gRPC-ошибки, которые API-слой мапит на «нет связи с сервером»
+  /// (`StatusCode.unknown/unavailable` → errorConnectingServer,
+  /// `deadlineExceeded` → unableConnectServer) — трактуем как offline.
+  bool _isNetworkError(APICallStatus status) =>
+      status.error == "grpcError.errorConnectingServer" || status.error == "grpcError.unableConnectServer";
 
   /// Пересчитывает стартовый/возвратный шаг по состоянию с сервера.
   SettingsCloudPasswordStep _stepForInfo(CloudPasswordInfo_Response info) {

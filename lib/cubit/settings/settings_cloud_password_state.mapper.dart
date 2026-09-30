@@ -50,6 +50,13 @@ class SettingsCloudPasswordStateMapper
     opt: true,
     def: false,
   );
+  static bool _$offline(SettingsCloudPasswordState v) => v.offline;
+  static const Field<SettingsCloudPasswordState, bool> _f$offline = Field(
+    'offline',
+    _$offline,
+    opt: true,
+    def: false,
+  );
   static bool _$isEnabled(SettingsCloudPasswordState v) => v.isEnabled;
   static const Field<SettingsCloudPasswordState, bool> _f$isEnabled = Field(
     'isEnabled',
@@ -87,6 +94,7 @@ class SettingsCloudPasswordStateMapper
     #step: _f$step,
     #networkStatus: _f$networkStatus,
     #loadError: _f$loadError,
+    #offline: _f$offline,
     #isEnabled: _f$isEnabled,
     #maskedEmail: _f$maskedEmail,
     #isEmailVerified: _f$isEmailVerified,
@@ -100,6 +108,7 @@ class SettingsCloudPasswordStateMapper
       step: data.dec(_f$step),
       networkStatus: data.dec(_f$networkStatus),
       loadError: data.dec(_f$loadError),
+      offline: data.dec(_f$offline),
       isEnabled: data.dec(_f$isEnabled),
       maskedEmail: data.dec(_f$maskedEmail),
       isEmailVerified: data.dec(_f$isEmailVerified),
@@ -188,6 +197,7 @@ abstract class SettingsCloudPasswordStateCopyWith<
     SettingsCloudPasswordStep? step,
     Status? networkStatus,
     bool? loadError,
+    bool? offline,
     bool? isEnabled,
     String? maskedEmail,
     bool? isEmailVerified,
@@ -225,6 +235,7 @@ class _SettingsCloudPasswordStateCopyWithImpl<$R, $Out>
     SettingsCloudPasswordStep? step,
     Status? networkStatus,
     bool? loadError,
+    bool? offline,
     bool? isEnabled,
     String? maskedEmail,
     bool? isEmailVerified,
@@ -236,6 +247,7 @@ class _SettingsCloudPasswordStateCopyWithImpl<$R, $Out>
       if (step != null) #step: step,
       if (networkStatus != null) #networkStatus: networkStatus,
       if (loadError != null) #loadError: loadError,
+      if (offline != null) #offline: offline,
       if (isEnabled != null) #isEnabled: isEnabled,
       if (maskedEmail != null) #maskedEmail: maskedEmail,
       if (isEmailVerified != null) #isEmailVerified: isEmailVerified,
@@ -250,6 +262,7 @@ class _SettingsCloudPasswordStateCopyWithImpl<$R, $Out>
         step: data.get(#step, or: $value.step),
         networkStatus: data.get(#networkStatus, or: $value.networkStatus),
         loadError: data.get(#loadError, or: $value.loadError),
+        offline: data.get(#offline, or: $value.offline),
         isEnabled: data.get(#isEnabled, or: $value.isEnabled),
         maskedEmail: data.get(#maskedEmail, or: $value.maskedEmail),
         isEmailVerified: data.get(#isEmailVerified, or: $value.isEmailVerified),

@@ -156,6 +156,9 @@ class _SettingsCloudPasswordCupertino extends State<SettingsCloudPasswordCuperti
 
   Widget _body(BuildContext context, SettingsCloudPasswordState state) {
     if (state.step == SettingsCloudPasswordStep.loading) {
+      if (state.offline) {
+        return _offline(context);
+      }
       if (state.loadError) {
         return _centeredError(context);
       }
@@ -237,6 +240,36 @@ class _SettingsCloudPasswordCupertino extends State<SettingsCloudPasswordCuperti
       case SettingsCloudPasswordStep.loading:
         return const Center(child: CupertinoActivityIndicator());
     }
+  }
+
+  /// Отдельная страница «нет сети» (стартовая загрузка не прошла из-за отсутствия
+  /// связи) — иконка, заголовок/пояснение из общих строк, кнопка «Повторить».
+  Widget _offline(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 40),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(CupertinoIcons.wifi_slash, size: 48, color: CupertinoColors.secondaryLabel.resolveFrom(context)),
+            const SizedBox(height: 16),
+            Text(
+              context.t.common.noConnectionTitle,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              context.t.common.noConnectionMessage,
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 13, color: CupertinoColors.secondaryLabel.resolveFrom(context)),
+            ),
+            const SizedBox(height: 20),
+            CupertinoButton.filled(onPressed: () => _cubit.initialization(), child: Text(context.t.cloudPassword.retry)),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _centeredError(BuildContext context) {
