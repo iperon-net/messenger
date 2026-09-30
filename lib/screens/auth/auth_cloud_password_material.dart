@@ -192,6 +192,11 @@ class _AuthCloudPasswordMaterial extends State<AuthCloudPasswordMaterial> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: TextFormField(
+        // Ключ по контроллеру: при смене фазы (пароль → email) поле стоит на той же
+        // позиции в дереве, и без ключа Flutter переиспользует State поля — старое
+        // соединение с клавиатурой остаётся, и она не получает новый keyboardType
+        // (email-раскладку) и autofocus. С ключом поле создаётся заново.
+        key: ObjectKey(controller),
         controller: controller,
         obscureText: obscure,
 

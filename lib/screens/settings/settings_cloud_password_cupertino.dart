@@ -165,6 +165,8 @@ class _SettingsCloudPasswordCupertino extends State<SettingsCloudPasswordCuperti
       return const Center(child: CupertinoActivityIndicator());
     }
 
+    final loading = state.networkStatus == Status.loading;
+
     switch (state.step) {
       case SettingsCloudPasswordStep.setupEmail:
       case SettingsCloudPasswordStep.changeEmail:
@@ -173,7 +175,16 @@ class _SettingsCloudPasswordCupertino extends State<SettingsCloudPasswordCuperti
             context,
             description: context.t.cloudPassword.setupEmailHint,
             error: state.error,
-            children: [_row(emailController, context.t.cloudPassword.emailPlaceholder, keyboardType: TextInputType.emailAddress)],
+            children: [
+              _row(
+                emailController,
+                context.t.cloudPassword.emailPlaceholder,
+                keyboardType: TextInputType.emailAddress,
+                autofillHints: const [AutofillHints.email],
+                autofocus: true,
+                enabled: !loading,
+              ),
+            ],
           ),
         ]);
       case SettingsCloudPasswordStep.setupVerify:
@@ -181,9 +192,18 @@ class _SettingsCloudPasswordCupertino extends State<SettingsCloudPasswordCuperti
         return _formList([
           _section(
             context,
-            header: context.t.cloudPassword.recoveryHint(email: state.pendingEmail),
+            description: context.t.cloudPassword.recoveryHint(email: state.pendingEmail),
             error: state.error,
-            children: [_row(codeController, context.t.cloudPassword.codePlaceholder, keyboardType: TextInputType.number)],
+            children: [
+              _row(
+                codeController,
+                context.t.cloudPassword.codePlaceholder,
+                keyboardType: TextInputType.number,
+                autofillHints: const [AutofillHints.oneTimeCode],
+                autofocus: true,
+                enabled: !loading,
+              ),
+            ],
           ),
         ]);
       case SettingsCloudPasswordStep.setupPassword:
@@ -192,7 +212,16 @@ class _SettingsCloudPasswordCupertino extends State<SettingsCloudPasswordCuperti
             context,
             description: context.t.cloudPassword.newPasswordDescription,
             error: state.error,
-            children: [_row(passwordController, context.t.cloudPassword.passwordPlaceholder, obscure: true)],
+            children: [
+              _row(
+                passwordController,
+                context.t.cloudPassword.passwordPlaceholder,
+                obscure: true,
+                autofillHints: const [AutofillHints.newPassword],
+                autofocus: true,
+                enabled: !loading,
+              ),
+            ],
           ),
         ]);
       case SettingsCloudPasswordStep.changePassword:
@@ -201,7 +230,16 @@ class _SettingsCloudPasswordCupertino extends State<SettingsCloudPasswordCuperti
             context,
             description: context.t.cloudPassword.changePasswordHint,
             error: state.error,
-            children: [_row(passwordController, context.t.cloudPassword.newPasswordPlaceholder, obscure: true)],
+            children: [
+              _row(
+                passwordController,
+                context.t.cloudPassword.newPasswordPlaceholder,
+                obscure: true,
+                autofillHints: const [AutofillHints.newPassword],
+                autofocus: true,
+                enabled: !loading,
+              ),
+            ],
           ),
         ]);
       case SettingsCloudPasswordStep.unlock:
@@ -210,7 +248,16 @@ class _SettingsCloudPasswordCupertino extends State<SettingsCloudPasswordCuperti
             context,
             description: context.t.cloudPassword.unlockInfo,
             error: state.error,
-            children: [_row(passwordController, context.t.cloudPassword.passwordPlaceholder, obscure: true)],
+            children: [
+              _row(
+                passwordController,
+                context.t.cloudPassword.passwordPlaceholder,
+                obscure: true,
+                autofillHints: const [AutofillHints.password],
+                autofocus: true,
+                enabled: !loading,
+              ),
+            ],
           ),
           Padding(
             padding: const EdgeInsets.fromLTRB(35, 4, 35, 0),
@@ -227,11 +274,24 @@ class _SettingsCloudPasswordCupertino extends State<SettingsCloudPasswordCuperti
         return _formList([
           _section(
             context,
-            header: context.t.cloudPassword.recoveryHint(email: state.maskedEmail),
+            description: context.t.cloudPassword.recoveryHint(email: state.maskedEmail),
             error: state.error,
             children: [
-              _row(codeController, context.t.cloudPassword.codePlaceholder, keyboardType: TextInputType.number),
-              _row(passwordController, context.t.cloudPassword.newPasswordPlaceholder, obscure: true),
+              _row(
+                codeController,
+                context.t.cloudPassword.codePlaceholder,
+                keyboardType: TextInputType.number,
+                autofillHints: const [AutofillHints.oneTimeCode],
+                autofocus: true,
+                enabled: !loading,
+              ),
+              _row(
+                passwordController,
+                context.t.cloudPassword.newPasswordPlaceholder,
+                obscure: true,
+                autofillHints: const [AutofillHints.newPassword],
+                enabled: !loading,
+              ),
             ],
           ),
         ]);
@@ -341,25 +401,23 @@ class _SettingsCloudPasswordCupertino extends State<SettingsCloudPasswordCuperti
   Widget _formList(List<Widget> children) => ListView(children: [const SizedBox(height: 20), ...children]);
 
   /// Grouped inset-карточка формы (по образцу CupertinoFormSection.insetGrouped
-  /// из формы профиля). [header] — подпись сверху (напр. «код отправлен на …»);
-  /// в footer показывается ошибка ([error], красным) либо описание ([description]).
-  Widget _section(BuildContext context, {String? header, String? description, String? error, required List<Widget> children}) {
-    Widget? footer;
-    if (error != null && error.isNotEmpty) {
-      footer = Padding(
-        padding: const EdgeInsets.only(left: 13),
-        child: Text(context.t[error], style: const TextStyle(color: CupertinoColors.systemRed, fontSize: 13)),
-      );
-    } else if (description != null) {
-      footer = Padding(
-        padding: const EdgeInsets.only(left: 13),
-        child: Text(description, style: TextStyle(color: CupertinoColors.secondaryLabel.resolveFrom(context), fontSize: 13)),
-      );
-    }
+  /// из формы профиля). Под карточкой: ошибка ([error], i18n-ключ, красным), под
+  /// ней [description] (напр. «код отправлен на …») — оба видны одновременно,
+  /// чтобы подсказка не пропадала при ошибке.
+  Widget _section(BuildContext context, {String? description, String? error, required List<Widget> children}) {
+    final lines = <Widget>[
+      if (error != null && error.isNotEmpty) Text(context.t[error], style: const TextStyle(color: CupertinoColors.systemRed, fontSize: 13)),
+      if (description != null)
+        Text(description, style: TextStyle(color: CupertinoColors.secondaryLabel.resolveFrom(context), fontSize: 13)),
+    ];
 
     return CupertinoFormSection.insetGrouped(
-      header: header != null ? Text(header) : null,
-      footer: footer,
+      footer: lines.isEmpty
+          ? null
+          : Padding(
+              padding: const EdgeInsets.fromLTRB(13, 2, 13, 0),
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, spacing: 6, children: lines),
+            ),
       clipBehavior: Clip.antiAlias,
       backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
       decoration: BoxDecoration(
@@ -371,6 +429,28 @@ class _SettingsCloudPasswordCupertino extends State<SettingsCloudPasswordCuperti
   }
 
   /// Строка-поле формы (по образцу CupertinoTextFormFieldRow из формы профиля).
-  Widget _row(TextEditingController controller, String placeholder, {bool obscure = false, TextInputType? keyboardType}) =>
-      CupertinoTextFormFieldRow(controller: controller, placeholder: placeholder, obscureText: obscure, keyboardType: keyboardType);
+  /// Ключ по контроллеру — чтобы при смене шага поле пересоздавалось и
+  /// клавиатура получала новый keyboardType/autofillHints (см. CLAUDE.md,
+  /// «Multi-step forms»).
+  Widget _row(
+    TextEditingController controller,
+    String placeholder, {
+    bool obscure = false,
+    TextInputType? keyboardType,
+    Iterable<String>? autofillHints,
+    bool autofocus = false,
+    bool enabled = true,
+  }) => CupertinoTextFormFieldRow(
+    key: ObjectKey(controller),
+    controller: controller,
+    placeholder: placeholder,
+    // Прозрачная decoration: иначе отключённое (loading) поле в тёмной теме
+    // заливается почти чёрным `_kDisabledBackground` (см. CLAUDE.md).
+    decoration: const BoxDecoration(),
+    autofocus: autofocus,
+    enabled: enabled,
+    obscureText: obscure,
+    keyboardType: keyboardType,
+    autofillHints: autofillHints,
+  );
 }

@@ -216,6 +216,11 @@ class _AuthCloudPasswordCupertino extends State<AuthCloudPasswordCupertino> {
     bool enabled = true,
     void Function()? onSubmitted,
   }) => CupertinoTextFormFieldRow(
+    // Ключ по контроллеру: при смене фазы (пароль → email) поле стоит на той же
+    // позиции в дереве, и без ключа Flutter переиспользует State поля — старое
+    // соединение с клавиатурой остаётся, и iOS не применяет новый keyboardType
+    // (email-раскладку) и autofocus. С ключом поле создаётся заново.
+    key: ObjectKey(controller),
     controller: controller,
     placeholder: placeholder,
     decoration: const BoxDecoration(),

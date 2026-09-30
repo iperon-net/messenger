@@ -158,6 +158,9 @@ class _SettingsCloudPasswordMaterial extends State<SettingsCloudPasswordMaterial
               emailController,
               context.t.cloudPassword.emailPlaceholder,
               keyboardType: TextInputType.emailAddress,
+              autofillHints: const [AutofillHints.email],
+              autofocus: true,
+              enabled: !loading,
               error: state.error,
             ),
           ]),
@@ -166,24 +169,66 @@ class _SettingsCloudPasswordMaterial extends State<SettingsCloudPasswordMaterial
       case SettingsCloudPasswordStep.setupVerify:
       case SettingsCloudPasswordStep.changeEmailVerify:
         return _formList([
-          _hint(context, context.t.cloudPassword.recoveryHint(email: state.pendingEmail)),
           _card([
-            _row(context, codeController, context.t.cloudPassword.codePlaceholder, keyboardType: TextInputType.number, error: state.error),
+            _row(
+              context,
+              codeController,
+              context.t.cloudPassword.codePlaceholder,
+              keyboardType: TextInputType.number,
+              autofillHints: const [AutofillHints.oneTimeCode],
+              autofocus: true,
+              enabled: !loading,
+              error: state.error,
+            ),
           ]),
+          _desc(context, context.t.cloudPassword.recoveryHint(email: state.pendingEmail)),
         ]);
       case SettingsCloudPasswordStep.setupPassword:
         return _formList([
-          _card([_row(context, passwordController, context.t.cloudPassword.passwordPlaceholder, obscure: true, error: state.error)]),
+          _card([
+            _row(
+              context,
+              passwordController,
+              context.t.cloudPassword.passwordPlaceholder,
+              obscure: true,
+              autofillHints: const [AutofillHints.newPassword],
+              autofocus: true,
+              enabled: !loading,
+              error: state.error,
+            ),
+          ]),
           _desc(context, context.t.cloudPassword.newPasswordDescription),
         ]);
       case SettingsCloudPasswordStep.changePassword:
         return _formList([
-          _card([_row(context, passwordController, context.t.cloudPassword.newPasswordPlaceholder, obscure: true, error: state.error)]),
+          _card([
+            _row(
+              context,
+              passwordController,
+              context.t.cloudPassword.newPasswordPlaceholder,
+              obscure: true,
+              autofillHints: const [AutofillHints.newPassword],
+              autofocus: true,
+              enabled: !loading,
+              error: state.error,
+            ),
+          ]),
           _desc(context, context.t.cloudPassword.changePasswordHint),
         ]);
       case SettingsCloudPasswordStep.unlock:
         return _formList([
-          _card([_row(context, passwordController, context.t.cloudPassword.passwordPlaceholder, obscure: true, error: state.error)]),
+          _card([
+            _row(
+              context,
+              passwordController,
+              context.t.cloudPassword.passwordPlaceholder,
+              obscure: true,
+              autofillHints: const [AutofillHints.password],
+              autofocus: true,
+              enabled: !loading,
+              error: state.error,
+            ),
+          ]),
           _desc(context, context.t.cloudPassword.unlockInfo),
           Padding(
             padding: const EdgeInsets.fromLTRB(24, 12, 24, 0),
@@ -198,12 +243,28 @@ class _SettingsCloudPasswordMaterial extends State<SettingsCloudPasswordMaterial
         ]);
       case SettingsCloudPasswordStep.recoveryConfirm:
         return _formList([
-          _hint(context, context.t.cloudPassword.recoveryHint(email: state.maskedEmail)),
           _card([
-            _row(context, codeController, context.t.cloudPassword.codePlaceholder, keyboardType: TextInputType.number),
+            _row(
+              context,
+              codeController,
+              context.t.cloudPassword.codePlaceholder,
+              keyboardType: TextInputType.number,
+              autofillHints: const [AutofillHints.oneTimeCode],
+              autofocus: true,
+              enabled: !loading,
+            ),
             const Divider(height: 0.3, color: Colors.black12),
-            _row(context, passwordController, context.t.cloudPassword.newPasswordPlaceholder, obscure: true, error: state.error),
+            _row(
+              context,
+              passwordController,
+              context.t.cloudPassword.newPasswordPlaceholder,
+              obscure: true,
+              autofillHints: const [AutofillHints.newPassword],
+              enabled: !loading,
+              error: state.error,
+            ),
           ]),
+          _desc(context, context.t.cloudPassword.recoveryHint(email: state.maskedEmail)),
         ]);
       case SettingsCloudPasswordStep.menu:
         return _menu(context, state);
@@ -311,12 +372,6 @@ class _SettingsCloudPasswordMaterial extends State<SettingsCloudPasswordMaterial
     child: Text(text, style: Theme.of(context).textTheme.bodySmall),
   );
 
-  /// Подпись над карточкой (напр. «код отправлен на …»).
-  Widget _hint(BuildContext context, String text) => Padding(
-    padding: const EdgeInsets.fromLTRB(24, 8, 24, 12),
-    child: Text(text, style: Theme.of(context).textTheme.bodySmall),
-  );
-
   /// Строка-поле формы: безрамочный `TextFormField`, чтобы жить внутри карточки
   /// (по образцу формы профиля). Ошибка — через `errorText` (красным под полем).
   Widget _row(
@@ -325,14 +380,24 @@ class _SettingsCloudPasswordMaterial extends State<SettingsCloudPasswordMaterial
     String label, {
     bool obscure = false,
     TextInputType? keyboardType,
+    Iterable<String>? autofillHints,
+    bool autofocus = false,
+    bool enabled = true,
     String? error,
   }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: TextFormField(
+        // Ключ по контроллеру — чтобы при смене шага поле пересоздавалось и
+        // клавиатура получала новый keyboardType/autofillHints (см. CLAUDE.md,
+        // «Multi-step forms»).
+        key: ObjectKey(controller),
         controller: controller,
         obscureText: obscure,
         keyboardType: keyboardType,
+        autofillHints: autofillHints,
+        autofocus: autofocus,
+        enabled: enabled,
         decoration: InputDecoration(
           labelText: label,
           // Лейбл всегда сверху (как в форме профиля), а не по центру пустого поля.
