@@ -595,6 +595,13 @@ class API {
         logger.debug(deviceSessionsModel);
         await repositories.deviceSessions.deleteAndCreate(deviceSessionsModel: deviceSessionsModel, userID: session.userID);
 
+      case MessageType.PRIVACY_SETTINGS:
+        // Настройки приватности приходят и по запросу (SettingsPrivacyAndSecurityCubit
+        // шлёт PrivacySettings_Request через стрим), и серверным push при смене на
+        // другом устройстве. Кладём сырой буфер как есть — cubit парсит его при
+        // чтении (offline) и обновляет UI из подписки api.on(PRIVACY_SETTINGS).
+        await repositories.privacySettings.upsert(userID: session.userID, payload: message.payload);
+
       case MessageType.MY_PROFILE:
         final payload = MyProfile_Response.fromBuffer(message.payload);
 

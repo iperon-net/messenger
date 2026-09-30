@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:bloc/bloc.dart';
@@ -21,111 +22,124 @@ class SettingsPrivacyAndSecurityCubit extends Cubit<SettingsPrivacyAndSecuritySt
   final auth = getIt.get<Auth>();
   final repositories = getIt.get<Repositories>();
 
-  /// Ключ локального кэша настройки «кто может звонить» (per-user, бессрочно).
-  static const _callsCacheKey = "privacy.calls.audience";
-
-  /// Ключи локального кэша настроек дня рождения (per-user, бессрочно).
-  static const _birthdayCacheKey = "privacy.birthday.audience";
-  static const _hideBirthYearCacheKey = "privacy.birthday.hideYear";
-
-  /// Ключ локального кэша настройки «кто может видеть „О себе“».
-  static const _aboutMeCacheKey = "privacy.aboutMe.audience";
-
-  /// Ключ локального кэша настройки «кто может видеть последнее посещение».
-  static const _lastSeenCacheKey = "privacy.lastSeen.audience";
+  StreamSubscription<Uint8List>? _subscription;
 
   Future<void> initialization() async {
     emit(state.copyWith(status: Status.loading));
     final isBiometricAvailable = await utils.isBiometricAvailable();
+    if (isClosed) return;
     emit(state.copyWith(status: Status.success, isBiometricAvailable: isBiometricAvailable));
-    await _loadCalls();
+
+    // 1. Мгновенно поднимаем последнее известное значение из локальной БД —
+    // видно и offline (см. offline-раздел CLAUDE.md / CLAUDE.local.md).
+    await _loadFromCache();
+    if (isClosed) return;
+
+    // 2. Подписываемся ДО отправки запроса, чтобы не пропустить быстрый ответ.
+    // Через эту же подписку приходит серверный push при смене на другом
+    // устройстве. Запись в БД — централизованно в API._handleMessage.
+    _subscription = api.on(MessageType.PRIVACY_SETTINGS).listen((payload) {
+      if (isClosed) return;
+      _applyResponse(PrivacySettings_Response.fromBuffer(payload));
+    });
+
+    // 3. Запрашиваем свежие настройки через стрим.
+    await _refresh();
   }
 
-  /// Перечитывает серверные настройки приватности. Вызывается родительским
-  /// экраном «Конфиденциальность» после возврата с детейл-экранов (у них свой
-  /// инстанс cubit), чтобы label'ы в списке не остались устаревшими. Один ответ
-  /// PRIVACY_SETTINGS несёт и звонки, и день рождения.
-  Future<void> reloadCalls() => _loadCalls();
+  /// Перезапрашивает серверные настройки приватности через стрим. Вызывается
+  /// родительским экраном «Конфиденциальность» после возврата с детейл-экранов
+  /// (у них свой инстанс cubit), чтобы label'ы не остались устаревшими; ответ
+  /// (один PRIVACY_SETTINGS несёт все каналы) прилетит в подписку [_subscription].
+  /// Offline: оставляем значение из кэша, но помечаем read-only (менять нельзя —
+  /// гейт серверный), а если кэша нет — [callsLoadError] с повтором.
+  Future<void> _refresh() async {
+    if (!await utils.hasNetwork()) {
+      if (isClosed) return;
+      // Нет сети: показываем кэш read-only; если кэша не было — нечего показать.
+      emit(state.copyWith(callsReadOnly: !state.callsLoadError));
+      return;
+    }
+    // Ответ придёт в подписку и будет записан в БД в API._handleMessage.
+    await api.sendEncoded(MessageType.PRIVACY_SETTINGS, PrivacySettings_Request().writeToBuffer());
+  }
+
+  Future<void> reloadCalls() => _refresh();
 
   /// Алиас [reloadCalls] для читаемости на экране дня рождения (тот же ответ).
-  Future<void> reloadBirthday() => _loadCalls();
+  Future<void> reloadBirthday() => _refresh();
 
   /// Алиас [reloadCalls] для читаемости на экране «О себе» (тот же ответ).
-  Future<void> reloadAboutMe() => _loadCalls();
+  Future<void> reloadAboutMe() => _refresh();
 
   /// Алиас [reloadCalls] для читаемости на экране «Последнее посещение».
-  Future<void> reloadLastSeen() => _loadCalls();
+  Future<void> reloadLastSeen() => _refresh();
 
-  /// Загружает настройку «кто может звонить». Сначала мгновенно поднимаем
-  /// последнее значение из локального кэша (видно и offline), затем пробуем
-  /// сервер. Успех — обновляем значение + кэш, снимаем блокировки. Сбой:
-  /// показываем кэш read-only (offline, менять нельзя — гейт серверный), а если
-  /// кэша нет — [callsLoadError] с повтором (см. offline-раздел CLAUDE.md).
-  Future<void> _loadCalls() async {
-    final cached = await _readCache();
-    final cachedBirthday = await _readBirthdayCache();
-    final cachedHideBirthYear = await _readHideBirthYearCache();
-    final cachedAboutMe = await _readAboutMeCache();
-    final cachedLastSeen = await _readLastSeenCache();
-    if (isClosed) return;
-    if (cached != null) emit(state.copyWith(callsAudience: cached, callsLoadError: false));
-    if (cachedBirthday != null) emit(state.copyWith(birthdayAudience: cachedBirthday));
-    if (cachedHideBirthYear != null) emit(state.copyWith(hideBirthYear: cachedHideBirthYear));
-    if (cachedAboutMe != null) emit(state.copyWith(aboutMeAudience: cachedAboutMe));
-    if (cachedLastSeen != null) emit(state.copyWith(lastSeenAudience: cachedLastSeen));
-
+  /// Поднимает последнее известное значение из локальной БД. Кэша нет
+  /// ([callsLoadError] останется, пока не придёт ответ сервера) — первый запуск.
+  Future<void> _loadFromCache() async {
     try {
-      final (status, payload) = await api.unaryEncodedWithResponse(MessageType.PRIVACY_SETTINGS, PrivacySettings_Request().writeToBuffer());
+      final buffer = await repositories.privacySettings.get(userID: auth.session.userID);
       if (isClosed) return;
-
-      if (status.status != APIStatus.success || payload == null) {
-        logger.warning('privacy: load settings failed (${status.error})');
-        emit(state.copyWith(callsLoadError: cached == null, callsReadOnly: cached != null));
+      if (buffer == null) {
+        // Кэша ещё нет — нечего показывать, ждём ответ сервера / повтор offline.
+        emit(state.copyWith(callsLoadError: true));
         return;
       }
-
-      final response = PrivacySettings_Response.fromBuffer(payload);
-      final audience = _fromProto(response.calls);
-      final allow = response.callsAllow.map(Uint8List.fromList).toList(growable: false);
-      final deny = response.callsDeny.map(Uint8List.fromList).toList(growable: false);
-      final birthday = _fromProto(response.birthday);
-      final birthdayAllow = response.birthdayAllow.map(Uint8List.fromList).toList(growable: false);
-      final birthdayDeny = response.birthdayDeny.map(Uint8List.fromList).toList(growable: false);
-      final aboutMe = _fromProto(response.aboutMe);
-      final aboutMeAllow = response.aboutMeAllow.map(Uint8List.fromList).toList(growable: false);
-      final aboutMeDeny = response.aboutMeDeny.map(Uint8List.fromList).toList(growable: false);
-      final lastSeen = _fromProto(response.lastSeen);
-      final lastSeenAllow = response.lastSeenAllow.map(Uint8List.fromList).toList(growable: false);
-      final lastSeenDeny = response.lastSeenDeny.map(Uint8List.fromList).toList(growable: false);
-      await _writeCache(audience);
-      await _writeBirthdayCache(birthday);
-      await _writeHideBirthYearCache(response.hideBirthYear);
-      await _writeAboutMeCache(aboutMe);
-      await _writeLastSeenCache(lastSeen);
-      if (!isClosed) {
-        emit(
-          state.copyWith(
-            callsAudience: audience,
-            callsAllow: allow,
-            callsDeny: deny,
-            birthdayAudience: birthday,
-            birthdayAllow: birthdayAllow,
-            birthdayDeny: birthdayDeny,
-            hideBirthYear: response.hideBirthYear,
-            aboutMeAudience: aboutMe,
-            aboutMeAllow: aboutMeAllow,
-            aboutMeDeny: aboutMeDeny,
-            lastSeenAudience: lastSeen,
-            lastSeenAllow: lastSeenAllow,
-            lastSeenDeny: lastSeenDeny,
-            callsLoadError: false,
-            callsReadOnly: false,
-          ),
-        );
-      }
+      _applyResponse(PrivacySettings_Response.fromBuffer(buffer));
     } catch (error, stackTrace) {
       logger.handle(error, stackTrace);
-      if (!isClosed) emit(state.copyWith(callsLoadError: cached == null, callsReadOnly: cached != null));
+    }
+  }
+
+  /// Раскладывает ответ сервера в состояние и снимает блокировки. Общий путь для
+  /// чтения из кэша и для входящих сообщений подписки.
+  void _applyResponse(PrivacySettings_Response response) {
+    if (isClosed) return;
+    emit(
+      state.copyWith(
+        callsAudience: _fromProto(response.calls),
+        callsAllow: response.callsAllow.map(Uint8List.fromList).toList(growable: false),
+        callsDeny: response.callsDeny.map(Uint8List.fromList).toList(growable: false),
+        birthdayAudience: _fromProto(response.birthday),
+        birthdayAllow: response.birthdayAllow.map(Uint8List.fromList).toList(growable: false),
+        birthdayDeny: response.birthdayDeny.map(Uint8List.fromList).toList(growable: false),
+        hideBirthYear: response.hideBirthYear,
+        aboutMeAudience: _fromProto(response.aboutMe),
+        aboutMeAllow: response.aboutMeAllow.map(Uint8List.fromList).toList(growable: false),
+        aboutMeDeny: response.aboutMeDeny.map(Uint8List.fromList).toList(growable: false),
+        lastSeenAudience: _fromProto(response.lastSeen),
+        lastSeenAllow: response.lastSeenAllow.map(Uint8List.fromList).toList(growable: false),
+        lastSeenDeny: response.lastSeenDeny.map(Uint8List.fromList).toList(growable: false),
+        callsLoadError: false,
+        callsReadOnly: false,
+      ),
+    );
+  }
+
+  /// Пересобирает `PrivacySettings_Response` из текущего состояния и сохраняет его
+  /// в БД. Вызывается после успешной серверной записи (set*), чтобы локальный кэш
+  /// сразу совпадал с UI, не дожидаясь серверного push/следующего [_refresh].
+  Future<void> _persistFromState() async {
+    try {
+      final response = PrivacySettings_Response(
+        calls: _toProto(state.callsAudience),
+        callsAllow: state.callsAllow,
+        callsDeny: state.callsDeny,
+        birthday: _toProto(state.birthdayAudience),
+        birthdayAllow: state.birthdayAllow,
+        birthdayDeny: state.birthdayDeny,
+        hideBirthYear: state.hideBirthYear,
+        aboutMe: _toProto(state.aboutMeAudience),
+        aboutMeAllow: state.aboutMeAllow,
+        aboutMeDeny: state.aboutMeDeny,
+        lastSeen: _toProto(state.lastSeenAudience),
+        lastSeenAllow: state.lastSeenAllow,
+        lastSeenDeny: state.lastSeenDeny,
+      );
+      await repositories.privacySettings.upsert(userID: auth.session.userID, payload: response.writeToBuffer());
+    } catch (error, stackTrace) {
+      logger.handle(error, stackTrace);
     }
   }
 
@@ -151,9 +165,9 @@ class SettingsPrivacyAndSecurityCubit extends Cubit<SettingsPrivacyAndSecuritySt
       return false;
     }
 
-    // Успех подтверждает и связь, и новое значение — фиксируем, кэшируем, снимаем блокировки.
-    await _writeCache(audience);
+    // Успех подтверждает и связь, и новое значение — фиксируем, снимаем блокировки, кэшируем.
     if (!isClosed) emit(state.copyWith(callsAudience: audience, callsLoadError: false, callsReadOnly: false));
+    await _persistFromState();
     return true;
   }
 
@@ -177,6 +191,7 @@ class SettingsPrivacyAndSecurityCubit extends Cubit<SettingsPrivacyAndSecuritySt
     }
 
     if (!isClosed) emit(state.copyWith(callsAllow: List<Uint8List>.unmodifiable(userIDs)));
+    await _persistFromState();
     return true;
   }
 
@@ -200,6 +215,7 @@ class SettingsPrivacyAndSecurityCubit extends Cubit<SettingsPrivacyAndSecuritySt
     }
 
     if (!isClosed) emit(state.copyWith(callsDeny: List<Uint8List>.unmodifiable(userIDs)));
+    await _persistFromState();
     return true;
   }
 
@@ -224,8 +240,8 @@ class SettingsPrivacyAndSecurityCubit extends Cubit<SettingsPrivacyAndSecuritySt
       return false;
     }
 
-    await _writeBirthdayCache(audience);
     if (!isClosed) emit(state.copyWith(birthdayAudience: audience, callsLoadError: false, callsReadOnly: false));
+    await _persistFromState();
     return true;
   }
 
@@ -247,6 +263,7 @@ class SettingsPrivacyAndSecurityCubit extends Cubit<SettingsPrivacyAndSecuritySt
     }
 
     if (!isClosed) emit(state.copyWith(birthdayAllow: List<Uint8List>.unmodifiable(userIDs)));
+    await _persistFromState();
     return true;
   }
 
@@ -268,6 +285,7 @@ class SettingsPrivacyAndSecurityCubit extends Cubit<SettingsPrivacyAndSecuritySt
     }
 
     if (!isClosed) emit(state.copyWith(birthdayDeny: List<Uint8List>.unmodifiable(userIDs)));
+    await _persistFromState();
     return true;
   }
 
@@ -291,8 +309,8 @@ class SettingsPrivacyAndSecurityCubit extends Cubit<SettingsPrivacyAndSecuritySt
       return false;
     }
 
-    await _writeHideBirthYearCache(hide);
     if (!isClosed) emit(state.copyWith(hideBirthYear: hide, callsLoadError: false, callsReadOnly: false));
+    await _persistFromState();
     return true;
   }
 
@@ -316,8 +334,8 @@ class SettingsPrivacyAndSecurityCubit extends Cubit<SettingsPrivacyAndSecuritySt
       return false;
     }
 
-    await _writeAboutMeCache(audience);
     if (!isClosed) emit(state.copyWith(aboutMeAudience: audience, callsLoadError: false, callsReadOnly: false));
+    await _persistFromState();
     return true;
   }
 
@@ -339,6 +357,7 @@ class SettingsPrivacyAndSecurityCubit extends Cubit<SettingsPrivacyAndSecuritySt
     }
 
     if (!isClosed) emit(state.copyWith(aboutMeAllow: List<Uint8List>.unmodifiable(userIDs)));
+    await _persistFromState();
     return true;
   }
 
@@ -360,6 +379,7 @@ class SettingsPrivacyAndSecurityCubit extends Cubit<SettingsPrivacyAndSecuritySt
     }
 
     if (!isClosed) emit(state.copyWith(aboutMeDeny: List<Uint8List>.unmodifiable(userIDs)));
+    await _persistFromState();
     return true;
   }
 
@@ -383,8 +403,8 @@ class SettingsPrivacyAndSecurityCubit extends Cubit<SettingsPrivacyAndSecuritySt
       return false;
     }
 
-    await _writeLastSeenCache(audience);
     if (!isClosed) emit(state.copyWith(lastSeenAudience: audience, callsLoadError: false, callsReadOnly: false));
+    await _persistFromState();
     return true;
   }
 
@@ -406,6 +426,7 @@ class SettingsPrivacyAndSecurityCubit extends Cubit<SettingsPrivacyAndSecuritySt
     }
 
     if (!isClosed) emit(state.copyWith(lastSeenAllow: List<Uint8List>.unmodifiable(userIDs)));
+    await _persistFromState();
     return true;
   }
 
@@ -427,111 +448,8 @@ class SettingsPrivacyAndSecurityCubit extends Cubit<SettingsPrivacyAndSecuritySt
     }
 
     if (!isClosed) emit(state.copyWith(lastSeenDeny: List<Uint8List>.unmodifiable(userIDs)));
+    await _persistFromState();
     return true;
-  }
-
-  /// Читает закэшированное значение звонков; null — кэша нет или он битый.
-  Future<CallsPrivacyAudience?> _readCache() async {
-    try {
-      final raw = await repositories.cache.getString(userID: Uint8List.fromList(auth.session.userID), key: _callsCacheKey);
-      if (raw == null) return null;
-      return CallsPrivacyAudience.values.asNameMap()[raw];
-    } catch (error, stackTrace) {
-      logger.handle(error, stackTrace);
-      return null;
-    }
-  }
-
-  Future<void> _writeCache(CallsPrivacyAudience audience) async {
-    try {
-      await repositories.cache.setString(userID: Uint8List.fromList(auth.session.userID), key: _callsCacheKey, value: audience.name);
-    } catch (error, stackTrace) {
-      logger.handle(error, stackTrace);
-    }
-  }
-
-  /// Читает закэшированную аудиторию дня рождения; null — кэша нет или он битый.
-  Future<CallsPrivacyAudience?> _readBirthdayCache() async {
-    try {
-      final raw = await repositories.cache.getString(userID: Uint8List.fromList(auth.session.userID), key: _birthdayCacheKey);
-      if (raw == null) return null;
-      return CallsPrivacyAudience.values.asNameMap()[raw];
-    } catch (error, stackTrace) {
-      logger.handle(error, stackTrace);
-      return null;
-    }
-  }
-
-  Future<void> _writeBirthdayCache(CallsPrivacyAudience audience) async {
-    try {
-      await repositories.cache.setString(userID: Uint8List.fromList(auth.session.userID), key: _birthdayCacheKey, value: audience.name);
-    } catch (error, stackTrace) {
-      logger.handle(error, stackTrace);
-    }
-  }
-
-  /// Читает закэшированный флаг «скрыть год»; null — кэша нет или он битый.
-  Future<bool?> _readHideBirthYearCache() async {
-    try {
-      final raw = await repositories.cache.getString(userID: Uint8List.fromList(auth.session.userID), key: _hideBirthYearCacheKey);
-      if (raw == null) return null;
-      return raw == "1";
-    } catch (error, stackTrace) {
-      logger.handle(error, stackTrace);
-      return null;
-    }
-  }
-
-  Future<void> _writeHideBirthYearCache(bool hide) async {
-    try {
-      await repositories.cache.setString(
-        userID: Uint8List.fromList(auth.session.userID),
-        key: _hideBirthYearCacheKey,
-        value: hide ? "1" : "0",
-      );
-    } catch (error, stackTrace) {
-      logger.handle(error, stackTrace);
-    }
-  }
-
-  /// Читает закэшированную аудиторию «О себе»; null — кэша нет или он битый.
-  Future<CallsPrivacyAudience?> _readAboutMeCache() async {
-    try {
-      final raw = await repositories.cache.getString(userID: Uint8List.fromList(auth.session.userID), key: _aboutMeCacheKey);
-      if (raw == null) return null;
-      return CallsPrivacyAudience.values.asNameMap()[raw];
-    } catch (error, stackTrace) {
-      logger.handle(error, stackTrace);
-      return null;
-    }
-  }
-
-  Future<void> _writeAboutMeCache(CallsPrivacyAudience audience) async {
-    try {
-      await repositories.cache.setString(userID: Uint8List.fromList(auth.session.userID), key: _aboutMeCacheKey, value: audience.name);
-    } catch (error, stackTrace) {
-      logger.handle(error, stackTrace);
-    }
-  }
-
-  /// Читает закэшированную аудиторию последнего посещения; null — кэша нет/битый.
-  Future<CallsPrivacyAudience?> _readLastSeenCache() async {
-    try {
-      final raw = await repositories.cache.getString(userID: Uint8List.fromList(auth.session.userID), key: _lastSeenCacheKey);
-      if (raw == null) return null;
-      return CallsPrivacyAudience.values.asNameMap()[raw];
-    } catch (error, stackTrace) {
-      logger.handle(error, stackTrace);
-      return null;
-    }
-  }
-
-  Future<void> _writeLastSeenCache(CallsPrivacyAudience audience) async {
-    try {
-      await repositories.cache.setString(userID: Uint8List.fromList(auth.session.userID), key: _lastSeenCacheKey, value: audience.name);
-    } catch (error, stackTrace) {
-      logger.handle(error, stackTrace);
-    }
   }
 
   CallsPrivacyAudience _fromProto(PrivacySettings_Audience audience) {
@@ -554,5 +472,11 @@ class SettingsPrivacyAndSecurityCubit extends Cubit<SettingsPrivacyAndSecuritySt
       case CallsPrivacyAudience.contacts:
         return PrivacySettings_Audience.CONTACTS;
     }
+  }
+
+  @override
+  Future<void> close() {
+    _subscription?.cancel();
+    return super.close();
   }
 }

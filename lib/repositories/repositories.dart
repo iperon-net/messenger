@@ -27,6 +27,7 @@ part "uploads.dart";
 part "downloads.dart";
 part "call_logs.dart";
 part "hidden_profiles.dart";
+part "privacy_settings.dart";
 
 base class _AppSqliteOpenFactory extends NativeSqliteOpenFactory {
   final String? password;
@@ -65,6 +66,7 @@ class Repositories {
   late Downloads downloads;
   late CallLogs callLogs;
   late HiddenProfiles hiddenProfiles;
+  late PrivacySettings privacySettings;
 
   static Future<Repositories> initialization() async {
     final repositories = Repositories._();
@@ -355,6 +357,25 @@ class Repositories {
       }),
     );
 
+    migrations.add(
+      SqliteMigration(10, (tx) async {
+        // Настройки приватности («кто может звонить / видеть день рождения / „О
+        // себе“ / последнее посещение» + скрытие года). Кэш read-only отражения
+        // серверной настройки: приходит через стрим (push при смене на другом
+        // устройстве или ответ на запрос), пишется централизованно в
+        // API._handleMessage, читается offline. Весь ответ PrivacySettings_Response
+        // храним одним BLOB на пользователя — у настройки repeated-bytes списки
+        // исключений (allow/deny × 4 канала), колоночная раскладка неудобна.
+        await tx.execute("""
+        CREATE TABLE privacySettings (
+          userID BLOB PRIMARY KEY,
+          payload BLOB NOT NULL,
+          FOREIGN KEY (userID) REFERENCES users(userID) ON DELETE CASCADE ON UPDATE CASCADE
+        );
+      """);
+      }),
+    );
+
     if (settings.isDeleteDatabase) {
       logger.warning("Deleting the database, flag set IS_DELETE_DATABASE: 1");
 
@@ -414,6 +435,7 @@ class Repositories {
     downloads = Downloads(logger: logger, db: db);
     callLogs = CallLogs(logger: logger, db: db);
     hiddenProfiles = HiddenProfiles(logger: logger, db: db);
+    privacySettings = PrivacySettings(logger: logger, db: db);
   }
 
   // Generate password
