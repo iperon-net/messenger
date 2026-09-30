@@ -208,6 +208,8 @@ class _AuthCloudPasswordMaterial extends State<AuthCloudPasswordMaterial> {
         onFieldSubmitted: onSubmitted == null ? null : (_) => onSubmitted(),
         decoration: InputDecoration(
           labelText: label,
+          // Лейбл всегда сверху (как в форме профиля), а не по центру пустого поля.
+          floatingLabelBehavior: FloatingLabelBehavior.always,
           border: InputBorder.none,
           enabledBorder: InputBorder.none,
           focusedBorder: InputBorder.none,

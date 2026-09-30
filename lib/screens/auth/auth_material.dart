@@ -132,6 +132,7 @@ class _AuthMaterialScreen extends State<AuthMaterialScreen> {
                                 errorMaxLines: 2,
                                 prefixIcon: const Icon(Icons.phone),
                                 labelText: context.t.common.mobilePhone,
+                                floatingLabelBehavior: FloatingLabelBehavior.always,
                                 border: const OutlineInputBorder(),
                               ),
                               validator: (value) {

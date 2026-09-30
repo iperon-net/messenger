@@ -114,6 +114,8 @@ class _SettingsMyProfileEditMaterial extends State<SettingsMyProfileEditMaterial
         // как и плитка даты рождения.
         InputDecoration decoration({required String label, String? hint}) => InputDecoration(
           labelText: label,
+          // Лейбл всегда сверху (как в форме профиля), а не по центру пустого поля.
+          floatingLabelBehavior: FloatingLabelBehavior.always,
           hintText: hint,
           // Убираем рамку во всех состояниях: глобальная тема (inputDecorationTheme)
           // задаёт OutlineInputBorder для enabled/focused, поэтому одного border мало.

@@ -72,6 +72,7 @@ class _ProfileHideMaterial extends State<ProfileHideMaterial> {
                       enableSuggestions: false,
                       decoration: InputDecoration(
                         labelText: context.t.screenHideProfile.phrasePlaceholder,
+                        floatingLabelBehavior: FloatingLabelBehavior.always,
                         border: InputBorder.none,
                         enabledBorder: InputBorder.none,
                         focusedBorder: InputBorder.none,

@@ -103,6 +103,7 @@ class _SettingsMyProfileUsernameMaterial extends State<SettingsMyProfileUsername
                         decoration: InputDecoration(
                           prefixText: "@",
                           labelText: context.t.screenMyProfile.username,
+                          floatingLabelBehavior: FloatingLabelBehavior.always,
                           hintText: context.t.screenMyProfile.usernameHint,
                           border: InputBorder.none,
                           enabledBorder: InputBorder.none,

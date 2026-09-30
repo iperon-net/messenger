@@ -202,6 +202,11 @@ class _AuthCloudPasswordCupertino extends State<AuthCloudPasswordCupertino> {
   }
 
   /// Строка-поле формы (по образцу CupertinoTextFormFieldRow из формы профиля).
+  ///
+  /// `decoration` — пустой (прозрачный) `BoxDecoration`, а не null: у
+  /// borderless-поля без decoration при `enabled: false` CupertinoTextField
+  /// заливает фон `_kDisabledBackground` (в тёмной теме почти чёрный 0xFF050505),
+  /// и на время запроса («Далее» → loading) строка мигала чёрным.
   Widget _row(
     TextEditingController controller,
     String placeholder, {
@@ -214,6 +219,7 @@ class _AuthCloudPasswordCupertino extends State<AuthCloudPasswordCupertino> {
   }) => CupertinoTextFormFieldRow(
     controller: controller,
     placeholder: placeholder,
+    decoration: const BoxDecoration(),
     obscureText: obscure,
     keyboardType: keyboardType,
     autofillHints: autofillHints,
