@@ -122,7 +122,6 @@ class _AuthCloudPasswordMaterial extends State<AuthCloudPasswordMaterial> {
 
   Widget _recovery(BuildContext context, AuthCloudPasswordState state, bool loading) {
     return _formList([
-      _hint(context, context.t.cloudPassword.recoveryHint(email: state.pendingEmail)),
       _card([
         // Ошибки про код — под полем кода; остальные — под паролем.
         _row(
@@ -146,6 +145,7 @@ class _AuthCloudPasswordMaterial extends State<AuthCloudPasswordMaterial> {
           errorText: (state.error.isNotEmpty && !_isCodeError(state.error)) ? context.t[state.error] : null,
         ),
       ]),
+      _desc(context, context.t.cloudPassword.recoveryHint(email: state.pendingEmail)),
     ]);
   }
 
@@ -172,12 +172,6 @@ class _AuthCloudPasswordMaterial extends State<AuthCloudPasswordMaterial> {
   /// Описание под карточкой (вторичный текст).
   Widget _desc(BuildContext context, String text) => Padding(
     padding: const EdgeInsets.fromLTRB(24, 8, 24, 0),
-    child: Text(text, style: Theme.of(context).textTheme.bodySmall),
-  );
-
-  /// Подпись над карточкой (напр. «код отправлен на …»).
-  Widget _hint(BuildContext context, String text) => Padding(
-    padding: const EdgeInsets.fromLTRB(24, 8, 24, 12),
     child: Text(text, style: Theme.of(context).textTheme.bodySmall),
   );
 

@@ -137,7 +137,7 @@ class _AuthCloudPasswordCupertino extends State<AuthCloudPasswordCupertino> {
     return _formList([
       _section(
         context,
-        header: context.t.cloudPassword.recoveryHint(email: state.pendingEmail),
+        description: context.t.cloudPassword.recoveryHint(email: state.pendingEmail),
         errorText: state.error.isEmpty ? null : context.t[state.error],
         children: [
           _row(
@@ -172,25 +172,24 @@ class _AuthCloudPasswordCupertino extends State<AuthCloudPasswordCupertino> {
   Widget _formList(List<Widget> children) => ListView(children: [const SizedBox(height: 20), ...children]);
 
   /// Grouped inset-карточка формы (по образцу CupertinoFormSection.insetGrouped
-  /// из формы профиля). [errorText] — уже переведённая строка ошибки (красным),
-  /// иначе показывается [description]; [header] — подпись сверху.
-  Widget _section(BuildContext context, {String? header, String? description, String? errorText, required List<Widget> children}) {
-    Widget? footer;
-    if (errorText != null && errorText.isNotEmpty) {
-      footer = Padding(
-        padding: const EdgeInsets.only(left: 13),
-        child: Text(errorText, style: const TextStyle(color: CupertinoColors.systemRed, fontSize: 13)),
-      );
-    } else if (description != null) {
-      footer = Padding(
-        padding: const EdgeInsets.only(left: 13),
-        child: Text(description, style: TextStyle(color: CupertinoColors.secondaryLabel.resolveFrom(context), fontSize: 13)),
-      );
-    }
+  /// из формы профиля). Под карточкой: [errorText] — уже переведённая строка
+  /// ошибки (красным), под ней [description] (напр. «код отправлен на …») — оба
+  /// видны одновременно, чтобы подсказка не пропадала при ошибке.
+  Widget _section(BuildContext context, {String? description, String? errorText, required List<Widget> children}) {
+    final lines = <Widget>[
+      if (errorText != null && errorText.isNotEmpty)
+        Text(errorText, style: const TextStyle(color: CupertinoColors.systemRed, fontSize: 13)),
+      if (description != null)
+        Text(description, style: TextStyle(color: CupertinoColors.secondaryLabel.resolveFrom(context), fontSize: 13)),
+    ];
 
     return CupertinoFormSection.insetGrouped(
-      header: header != null ? Text(header) : null,
-      footer: footer,
+      footer: lines.isEmpty
+          ? null
+          : Padding(
+              padding: const EdgeInsets.fromLTRB(13, 2, 13, 0),
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, spacing: 6, children: lines),
+            ),
       clipBehavior: Clip.antiAlias,
       backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
       decoration: BoxDecoration(
