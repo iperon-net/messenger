@@ -281,34 +281,53 @@ class API {
     );
   }
 
-  Future<APICallStatus> call(Function() func) async {
+  /// [retryTransient] — повторить вызов при транзиентном обрыве соединения
+  /// (`unavailable`/`unknown`). Только для идемпотентных запросов! Нужно сразу
+  /// после выхода: закрытие стрима в [_teardownStream] (RST_STREAM) может уронить
+  /// всё HTTP/2-соединение канала, и первый unary после этого (например,
+  /// `PASSKEY_LOGIN_BEGIN`) падает на умирающем соединении, а следующая попытка
+  /// уже идёт по переподключённому каналу.
+  Future<APICallStatus> call(Function() func, {bool retryTransient = false}) async {
     Logger logger = getIt.get<Logger>();
 
-    try {
-      await func();
-    } on GrpcError catch (err) {
-      logger.logCustom(GrpcErrorLog(err.toString()));
-
-      if ([StatusCode.unauthenticated].contains(err.code)) {
-        // Сервер отозвал сессию: удаляем активную сессию из БД и через
-        // notifyListeners() уводим пользователя на /auth (см. Auth.logout).
-        // Fire-and-forget: не гейтим ответ вызывающему коду на разлогине.
-        unawaited(getIt.get<Auth>().logout());
-        return APICallStatus(status: APIStatus.error, error: "grpcError.unauthenticated", isGrpc: true, statusCode: err.code);
-      } else if ([StatusCode.unknown, StatusCode.unavailable].contains(err.code)) {
-        return APICallStatus(status: APIStatus.error, error: "grpcError.errorConnectingServer", isGrpc: true, statusCode: err.code);
-      } else if ([StatusCode.deadlineExceeded].contains(err.code)) {
-        return APICallStatus(status: APIStatus.error, error: "grpcError.unableConnectServer", isGrpc: true, statusCode: err.code);
-      } else if ([StatusCode.cancelled, StatusCode.invalidArgument].contains(err.code)) {
-        return APICallStatus(status: APIStatus.error, error: err.message.toString(), statusCode: err.code);
-      } else if ([StatusCode.internal].contains(err.code)) {
-        return APICallStatus(status: APIStatus.error, error: "grpcError.internalServerError", isGrpc: true, statusCode: err.code);
-      } else {
-        return APICallStatus(status: APIStatus.error, error: err.message.toString(), statusCode: err.code);
+    // Повторы — только для транзиентных обрывов; последняя попытка (или любая
+    // другая ошибка) идёт в общий маппинг ниже.
+    final maxAttempts = retryTransient ? 3 : 1;
+    for (var attempt = 1; ; attempt++) {
+      try {
+        await func();
+        return const APICallStatus(status: APIStatus.success, statusCode: 0);
+      } on GrpcError catch (err) {
+        final isTransient = [StatusCode.unknown, StatusCode.unavailable].contains(err.code);
+        if (!isTransient || attempt >= maxAttempts) return _mapGrpcError(err);
+        logger.logCustom(GrpcErrorLog('transient, retry #$attempt: $err'));
+        await Future.delayed(Duration(milliseconds: 300 * attempt));
       }
     }
+  }
 
-    return const APICallStatus(status: APIStatus.success, statusCode: 0);
+  APICallStatus _mapGrpcError(GrpcError err) {
+    Logger logger = getIt.get<Logger>();
+
+    logger.logCustom(GrpcErrorLog(err.toString()));
+
+    if ([StatusCode.unauthenticated].contains(err.code)) {
+      // Сервер отозвал сессию: удаляем активную сессию из БД и через
+      // notifyListeners() уводим пользователя на /auth (см. Auth.logout).
+      // Fire-and-forget: не гейтим ответ вызывающему коду на разлогине.
+      unawaited(getIt.get<Auth>().logout());
+      return APICallStatus(status: APIStatus.error, error: "grpcError.unauthenticated", isGrpc: true, statusCode: err.code);
+    } else if ([StatusCode.unknown, StatusCode.unavailable].contains(err.code)) {
+      return APICallStatus(status: APIStatus.error, error: "grpcError.errorConnectingServer", isGrpc: true, statusCode: err.code);
+    } else if ([StatusCode.deadlineExceeded].contains(err.code)) {
+      return APICallStatus(status: APIStatus.error, error: "grpcError.unableConnectServer", isGrpc: true, statusCode: err.code);
+    } else if ([StatusCode.cancelled, StatusCode.invalidArgument].contains(err.code)) {
+      return APICallStatus(status: APIStatus.error, error: err.message.toString(), statusCode: err.code);
+    } else if ([StatusCode.internal].contains(err.code)) {
+      return APICallStatus(status: APIStatus.error, error: "grpcError.internalServerError", isGrpc: true, statusCode: err.code);
+    } else {
+      return APICallStatus(status: APIStatus.error, error: err.message.toString(), statusCode: err.code);
+    }
   }
 
   /// Сообщает, авторизован ли пользователь. Вызывается из `Auth` при старте,

@@ -143,11 +143,13 @@ class AuthCubit extends Cubit<AuthState> {
     }
 
     // Begin — сервер генерирует challenge и отдаёт RequestOptions (JSON).
+    // Идемпотентен, поэтому с retryTransient: сразу после выхода первый unary
+    // может попасть на рвущееся соединение (см. API.call).
     final beginRequest = Message(messageType: MessageType.PASSKEY_LOGIN_BEGIN);
     late Message beginMessage;
     final beginError = await api.call(() async {
       beginMessage = await api.client.unary(beginRequest);
-    });
+    }, retryTransient: true);
     if (beginError.status == APIStatus.error) {
       return (error: beginError.error, redirectURI: "");
     }

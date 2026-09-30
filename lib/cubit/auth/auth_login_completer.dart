@@ -41,7 +41,7 @@ class AuthLoginCompleter {
     late Message metaDataResponse;
     final metaDataGrpcError = await api.call(() async {
       metaDataResponse = await api.client.unary(messageMetaDataInfoRequest);
-    });
+    }, retryTransient: true);
 
     if (metaDataGrpcError.status == APIStatus.error) {
       return (error: metaDataGrpcError.error, redirectURI: "");
