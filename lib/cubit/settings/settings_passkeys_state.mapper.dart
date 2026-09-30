@@ -239,6 +239,13 @@ class SettingsPasskeysStateMapper
     opt: true,
     def: false,
   );
+  static bool _$offline(SettingsPasskeysState v) => v.offline;
+  static const Field<SettingsPasskeysState, bool> _f$offline = Field(
+    'offline',
+    _$offline,
+    opt: true,
+    def: false,
+  );
   static List<PasskeyItem> _$items(SettingsPasskeysState v) => v.items;
   static const Field<SettingsPasskeysState, List<PasskeyItem>> _f$items = Field(
     'items',
@@ -259,6 +266,7 @@ class SettingsPasskeysStateMapper
     #status: _f$status,
     #networkStatus: _f$networkStatus,
     #loadError: _f$loadError,
+    #offline: _f$offline,
     #items: _f$items,
     #error: _f$error,
   };
@@ -268,6 +276,7 @@ class SettingsPasskeysStateMapper
       status: data.dec(_f$status),
       networkStatus: data.dec(_f$networkStatus),
       loadError: data.dec(_f$loadError),
+      offline: data.dec(_f$offline),
       items: data.dec(_f$items),
       error: data.dec(_f$error),
     );
@@ -353,6 +362,7 @@ abstract class SettingsPasskeysStateCopyWith<
     Status? status,
     Status? networkStatus,
     bool? loadError,
+    bool? offline,
     List<PasskeyItem>? items,
     String? error,
   });
@@ -385,6 +395,7 @@ class _SettingsPasskeysStateCopyWithImpl<$R, $Out>
     Status? status,
     Status? networkStatus,
     bool? loadError,
+    bool? offline,
     List<PasskeyItem>? items,
     String? error,
   }) => $apply(
@@ -392,6 +403,7 @@ class _SettingsPasskeysStateCopyWithImpl<$R, $Out>
       if (status != null) #status: status,
       if (networkStatus != null) #networkStatus: networkStatus,
       if (loadError != null) #loadError: loadError,
+      if (offline != null) #offline: offline,
       if (items != null) #items: items,
       if (error != null) #error: error,
     }),
@@ -401,6 +413,7 @@ class _SettingsPasskeysStateCopyWithImpl<$R, $Out>
     status: data.get(#status, or: $value.status),
     networkStatus: data.get(#networkStatus, or: $value.networkStatus),
     loadError: data.get(#loadError, or: $value.loadError),
+    offline: data.get(#offline, or: $value.offline),
     items: data.get(#items, or: $value.items),
     error: data.get(#error, or: $value.error),
   );

@@ -67,6 +67,39 @@ class _SettingsPasskeysCupertino extends State<SettingsPasskeysCupertino> {
     return result ?? false;
   }
 
+  /// Отдельная страница «нет сети» (загрузка списка не прошла из-за отсутствия
+  /// связи) — иконка, заголовок/пояснение из общих строк, кнопка «Повторить».
+  Widget _offline(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 40),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(CupertinoIcons.wifi_slash, size: 48, color: CupertinoColors.secondaryLabel.resolveFrom(context)),
+            const SizedBox(height: 16),
+            Text(
+              context.t.common.noConnectionTitle,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              context.t.common.noConnectionMessage,
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 13, color: CupertinoColors.secondaryLabel.resolveFrom(context)),
+            ),
+            const SizedBox(height: 20),
+            CupertinoButton.filled(
+              onPressed: () => context.read<SettingsPasskeysCubit>().initialization(),
+              child: Text(context.t.passkey.retry),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<SettingsPasskeysCubit, SettingsPasskeysState>(
@@ -85,7 +118,9 @@ class _SettingsPasskeysCupertino extends State<SettingsPasskeysCupertino> {
             ),
           ),
           child: SafeArea(
-            child: state.status == Status.loading
+            child: state.offline
+                ? _offline(context)
+                : state.status == Status.loading
                 ? const Center(child: CupertinoActivityIndicator())
                 : ListView(
                     children: [

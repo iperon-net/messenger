@@ -30,18 +30,34 @@ class SettingsPasskeysCubit extends Cubit<SettingsPasskeysState> {
   }
 
   Future<void> _load() async {
-    emit(state.copyWith(status: Status.loading, loadError: false));
+    emit(state.copyWith(status: Status.loading, loadError: false, offline: false));
+
+    // Нет связи — сразу offline-страница, не ждём таймаута unary-запроса
+    // (иначе висит спиннер до connectTimeout канала, ~30 c).
+    if (!await utils.hasNetwork()) {
+      emit(state.copyWith(status: Status.success, offline: true, loadError: false));
+      return;
+    }
 
     final (status, payload) = await api.unaryEncodedWithResponse(MessageType.PASSKEY_LIST, PasskeyList_Request().writeToBuffer());
 
     if (status.status == APIStatus.error || payload == null) {
-      emit(state.copyWith(status: Status.success, loadError: true));
+      // Связь есть, но сервер недоступен (DNS/connect-ошибка → сетевые gRPC-коды) —
+      // тоже offline-страница; прочие сбои загрузки — inline loadError.
+      final offline = _isNetworkError(status);
+      emit(state.copyWith(status: Status.success, offline: offline, loadError: !offline));
       return;
     }
 
     final response = PasskeyList_Response.fromBuffer(payload);
-    emit(state.copyWith(status: Status.success, loadError: false, items: response.credentials.map(_toItem).toList()));
+    emit(state.copyWith(status: Status.success, loadError: false, offline: false, items: response.credentials.map(_toItem).toList()));
   }
+
+  /// gRPC-ошибки, которые API-слой мапит на «нет связи с сервером»
+  /// (`StatusCode.unknown/unavailable` → errorConnectingServer,
+  /// `deadlineExceeded` → unableConnectServer) — трактуем как offline.
+  bool _isNetworkError(APICallStatus status) =>
+      status.error == "grpcError.errorConnectingServer" || status.error == "grpcError.unableConnectServer";
 
   /// Добавление ключа: BEGIN → нативный промпт создания → FINISH → перезагрузка
   /// списка. Отмена промпта — не ошибка.

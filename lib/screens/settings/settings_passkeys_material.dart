@@ -47,6 +47,33 @@ class _SettingsPasskeysMaterial extends State<SettingsPasskeysMaterial> {
     return confirmed ?? false;
   }
 
+  /// Отдельная страница «нет сети» (загрузка списка не прошла из-за отсутствия
+  /// связи) — иконка, заголовок/пояснение из общих строк, кнопка «Повторить».
+  Widget _offline(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 40),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.wifi_off_rounded, size: 48, color: scheme.onSurfaceVariant),
+            const SizedBox(height: 16),
+            Text(context.t.common.noConnectionTitle, textAlign: TextAlign.center, style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: 6),
+            Text(
+              context.t.common.noConnectionMessage,
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
+            ),
+            const SizedBox(height: 20),
+            FilledButton(onPressed: () => context.read<SettingsPasskeysCubit>().initialization(), child: Text(context.t.passkey.retry)),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<SettingsPasskeysCubit, SettingsPasskeysState>(
@@ -64,7 +91,9 @@ class _SettingsPasskeysMaterial extends State<SettingsPasskeysMaterial> {
         final busy = state.networkStatus == Status.loading;
         return Scaffold(
           appBar: AppBar(title: Text(context.t.passkey.title)),
-          body: state.status == Status.loading
+          body: state.offline
+              ? _offline(context)
+              : state.status == Status.loading
               ? const Center(child: CircularProgressIndicator())
               : ListView(
                   padding: const EdgeInsets.all(10),

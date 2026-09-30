@@ -22,6 +22,9 @@ class SettingsPasskeysState with SettingsPasskeysStateMappable {
   final Status status;
   final Status networkStatus;
   final bool loadError;
+  // Загрузка списка не прошла из-за отсутствия сети (а не ошибки сервера) —
+  // показываем отдельную offline-страницу вместо списка/inline loadError.
+  final bool offline;
   final List<PasskeyItem> items;
   final String error;
 
@@ -29,6 +32,7 @@ class SettingsPasskeysState with SettingsPasskeysStateMappable {
     this.status = Status.initialization,
     this.networkStatus = Status.success,
     this.loadError = false,
+    this.offline = false,
     this.items = const [],
     this.error = "",
   });
