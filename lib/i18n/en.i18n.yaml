@@ -406,9 +406,12 @@ dateTime:
 
 "passkey":
   "title": "Passkeys"
-  "description": "Passkeys let you sign in without a phone code using Face ID, Touch ID or your fingerprint. Add a passkey on this device, then use it to sign in."
+  "description": "Passkeys are stored securely in your password manager."
   "add": "Add a passkey"
   "genericName": "Passkey"
+  "created": "Added {date}"
+  "lastUsed": "Signed in {date}"
+  "alreadyOnThisDevice": "This account already has a passkey on this device. Add one on another device or in a different password manager."
   "delete": "Delete"
   "deleteConfirmTitle": "Delete passkey?"
   "deleteConfirmMessage": "You won't be able to sign in with this passkey anymore."

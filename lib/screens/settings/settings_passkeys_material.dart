@@ -1,10 +1,11 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:hugeicons/hugeicons.dart';
 
 import '../../components.dart';
 import '../../constants.dart';
 import '../../cubit.dart';
+import '../../extensions.dart';
 import '../../i18n/translations.g.dart';
 import '../../passkey_providers.dart';
 import '../../themes.dart';
@@ -23,8 +24,15 @@ class _SettingsPasskeysMaterial extends State<SettingsPasskeysMaterial> {
     return provider.isNotEmpty ? provider : context.t.passkey.genericName;
   }
 
-  Future<void> _confirmDelete(BuildContext context, PasskeyItem item) async {
-    final cubit = context.read<SettingsPasskeysCubit>();
+  /// Подзаголовок: когда добавлен и когда был последний вход.
+  String _subtitle(BuildContext context, PasskeyItem item) {
+    final created = context.t.passkey.created(date: DateTime.fromMillisecondsSinceEpoch(item.createdAt * 1000).relativeFormat(context.t));
+    if (item.lastUsedAt <= 0) return created;
+    final used = context.t.passkey.lastUsed(date: DateTime.fromMillisecondsSinceEpoch(item.lastUsedAt * 1000).relativeFormat(context.t));
+    return "$created · $used";
+  }
+
+  Future<bool> _confirmDelete(BuildContext context) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -36,9 +44,7 @@ class _SettingsPasskeysMaterial extends State<SettingsPasskeysMaterial> {
         ],
       ),
     );
-    if (confirmed == true) {
-      await cubit.deletePasskey(item.credentialId);
-    }
+    return confirmed ?? false;
   }
 
   @override
@@ -63,52 +69,62 @@ class _SettingsPasskeysMaterial extends State<SettingsPasskeysMaterial> {
               : ListView(
                   padding: const EdgeInsets.all(10),
                   children: [
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(14, 6, 14, 10),
-                      child: Text(
-                        context.t.passkey.description,
-                        style: TextStyle(fontSize: AppFontSizes.base, color: Theme.of(context).hintColor),
-                      ),
-                    ),
-                    if (state.loadError)
-                      Card(
-                        clipBehavior: Clip.antiAlias,
-                        child: ListTile(
-                          title: Text(context.t.passkey.loadError),
-                          trailing: TextButton(
-                            onPressed: () => context.read<SettingsPasskeysCubit>().initialization(),
-                            child: Text(context.t.passkey.retry),
-                          ),
-                        ),
-                      )
-                    else if (state.items.isNotEmpty)
-                      Card(
-                        clipBehavior: Clip.antiAlias,
-                        child: Column(
-                          children: [
-                            for (final item in state.items)
-                              ListTile(
-                                leading: FaIcon(passkeyProviderIcon(item.aaguid)),
-                                title: Text(_title(context, item)),
-                                trailing: IconButton(
-                                  icon: const Icon(Icons.delete_outline),
-                                  onPressed: busy ? null : () => _confirmDelete(context, item),
-                                ),
-                              ),
-                          ],
-                        ),
-                      ),
-                    const SizedBox(height: 16),
                     Card(
                       clipBehavior: Clip.antiAlias,
-                      child: MaterialListTileIcon(
-                        title: Text(context.t.passkey.add),
-                        color: const Color(0xFFFF9500),
-                        icon: FontAwesomeIcons.plus,
-                        additionalInfo: busy
-                            ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                            : null,
-                        onTab: busy ? null : () async => context.read<SettingsPasskeysCubit>().addPasskey(),
+                      child: Column(
+                        children: [
+                          if (state.loadError)
+                            ListTile(
+                              title: Text(context.t.passkey.loadError),
+                              trailing: TextButton(
+                                onPressed: () => context.read<SettingsPasskeysCubit>().initialization(),
+                                child: Text(context.t.passkey.retry),
+                              ),
+                            )
+                          else
+                            for (final item in state.items)
+                              Dismissible(
+                                key: ValueKey('pk_${item.credentialId.join("-")}'),
+                                direction: DismissDirection.endToStart,
+                                confirmDismiss: (_) async {
+                                  final ok = await _confirmDelete(context);
+                                  // Удаляем сами (со сбросом списка), Dismissible не «схлопываем»,
+                                  // чтобы не оставить в дереве уже удалённый виджет.
+                                  if (ok && context.mounted) context.read<SettingsPasskeysCubit>().deletePasskey(item.credentialId);
+                                  return false;
+                                },
+                                background: Container(
+                                  color: Theme.of(context).colorScheme.error,
+                                  alignment: Alignment.centerRight,
+                                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                                  child: Icon(Icons.delete_outline, color: Theme.of(context).colorScheme.onError),
+                                ),
+                                child: MaterialListTileIcon(
+                                  title: Text(_title(context, item)),
+                                  subtitle: Text(_subtitle(context, item)),
+                                  color: passkeyProviderColor(item.aaguid),
+                                  iconAsset: passkeyProviderIconAsset(item.aaguid),
+                                  icon: passkeyProviderIconAsset(item.aaguid) == null ? passkeyProviderIcon(item.aaguid) : null,
+                                  onTab: null,
+                                ),
+                              ),
+                          MaterialListTileIcon(
+                            title: Text(context.t.passkey.add),
+                            color: const Color(0xFFFF9500),
+                            hugeIcon: HugeIcons.strokeRoundedPlus,
+                            additionalInfo: busy
+                                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                                : null,
+                            onTab: busy ? null : () async => context.read<SettingsPasskeysCubit>().addPasskey(),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(24, 8, 24, 12),
+                      child: Text(
+                        context.t.passkey.description,
+                        style: TextStyle(fontSize: AppFontSizes.caption, color: Theme.of(context).colorScheme.onSurfaceVariant),
                       ),
                     ),
                   ],

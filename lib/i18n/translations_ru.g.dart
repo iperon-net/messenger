@@ -671,9 +671,12 @@ class _Translations$passkey$ru extends Translations$passkey$en {
 
 	// Translations
 	@override String get title => 'Ключи доступа';
-	@override String get description => 'Ключи доступа позволяют входить без кода из звонка — по Face ID, Touch ID или отпечатку. Добавьте ключ на этом устройстве и используйте его для входа.';
+	@override String get description => 'Ключи доступа надёжно хранятся в вашем менеджере паролей.';
 	@override String get add => 'Добавить ключ';
 	@override String get genericName => 'Ключ доступа';
+	@override String created({required Object date}) => 'Добавлен ${date}';
+	@override String lastUsed({required Object date}) => 'Вход ${date}';
+	@override String get alreadyOnThisDevice => 'На этом устройстве уже есть ключ доступа для этого аккаунта. Добавьте ключ на другом устройстве или в другом менеджере паролей.';
 	@override String get delete => 'Удалить';
 	@override String get deleteConfirmTitle => 'Удалить ключ доступа?';
 	@override String get deleteConfirmMessage => 'Войти с помощью этого ключа больше не получится.';
@@ -1041,9 +1044,12 @@ extension on TranslationsRu {
 			'screenCall.qualityExcellent' => 'Отличное соединение',
 			'screenCall.remoteMicMuted' => 'Микрофон собеседника выключен',
 			'passkey.title' => 'Ключи доступа',
-			'passkey.description' => 'Ключи доступа позволяют входить без кода из звонка — по Face ID, Touch ID или отпечатку. Добавьте ключ на этом устройстве и используйте его для входа.',
+			'passkey.description' => 'Ключи доступа надёжно хранятся в вашем менеджере паролей.',
 			'passkey.add' => 'Добавить ключ',
 			'passkey.genericName' => 'Ключ доступа',
+			'passkey.created' => ({required Object date}) => 'Добавлен ${date}',
+			'passkey.lastUsed' => ({required Object date}) => 'Вход ${date}',
+			'passkey.alreadyOnThisDevice' => 'На этом устройстве уже есть ключ доступа для этого аккаунта. Добавьте ключ на другом устройстве или в другом менеджере паролей.',
 			'passkey.delete' => 'Удалить',
 			'passkey.deleteConfirmTitle' => 'Удалить ключ доступа?',
 			'passkey.deleteConfirmMessage' => 'Войти с помощью этого ключа больше не получится.',

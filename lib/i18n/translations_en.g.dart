@@ -1365,14 +1365,23 @@ class Translations$passkey$en {
 	/// en: 'Passkeys'
 	String get title => 'Passkeys';
 
-	/// en: 'Passkeys let you sign in without a phone code using Face ID, Touch ID or your fingerprint. Add a passkey on this device, then use it to sign in.'
-	String get description => 'Passkeys let you sign in without a phone code using Face ID, Touch ID or your fingerprint. Add a passkey on this device, then use it to sign in.';
+	/// en: 'Passkeys are stored securely in your password manager.'
+	String get description => 'Passkeys are stored securely in your password manager.';
 
 	/// en: 'Add a passkey'
 	String get add => 'Add a passkey';
 
 	/// en: 'Passkey'
 	String get genericName => 'Passkey';
+
+	/// en: 'Added {date}'
+	String created({required Object date}) => 'Added ${date}';
+
+	/// en: 'Signed in {date}'
+	String lastUsed({required Object date}) => 'Signed in ${date}';
+
+	/// en: 'This account already has a passkey on this device. Add one on another device or in a different password manager.'
+	String get alreadyOnThisDevice => 'This account already has a passkey on this device. Add one on another device or in a different password manager.';
 
 	/// en: 'Delete'
 	String get delete => 'Delete';
@@ -1760,9 +1769,12 @@ extension on Translations {
 			'screenCall.qualityExcellent' => 'Excellent connection',
 			'screenCall.remoteMicMuted' => 'Their microphone is off',
 			'passkey.title' => 'Passkeys',
-			'passkey.description' => 'Passkeys let you sign in without a phone code using Face ID, Touch ID or your fingerprint. Add a passkey on this device, then use it to sign in.',
+			'passkey.description' => 'Passkeys are stored securely in your password manager.',
 			'passkey.add' => 'Add a passkey',
 			'passkey.genericName' => 'Passkey',
+			'passkey.created' => ({required Object date}) => 'Added ${date}',
+			'passkey.lastUsed' => ({required Object date}) => 'Signed in ${date}',
+			'passkey.alreadyOnThisDevice' => 'This account already has a passkey on this device. Add one on another device or in a different password manager.',
 			'passkey.delete' => 'Delete',
 			'passkey.deleteConfirmTitle' => 'Delete passkey?',
 			'passkey.deleteConfirmMessage' => 'You won\'t be able to sign in with this passkey anymore.',

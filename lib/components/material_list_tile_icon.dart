@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:hugeicons/hugeicons.dart';
 
@@ -12,9 +13,12 @@ class MaterialListTileIcon extends StatelessWidget {
   final Widget? trailing;
   final Color color;
   // Ровно одна из иконок: [icon] — FontAwesome (основной случай), [hugeIcon] —
-  // HugeIcons (тип HugeIcons.* в hugeicons 1.x — сырые данные пути, не IconData).
+  // HugeIcons (тип HugeIcons.* в hugeicons 1.x — сырые данные пути, не IconData),
+  // [iconAsset] — путь к SVG-ассету (бренд-иконки в своих цветах, без цветного
+  // квадрата и тонирования; [color] тогда игнорируется).
   final FaIconData? icon;
   final List<List<dynamic>>? hugeIcon;
+  final String? iconAsset;
   final bool isTrailing;
   final Future<void> Function()? onTab;
 
@@ -27,9 +31,13 @@ class MaterialListTileIcon extends StatelessWidget {
     required this.color,
     this.icon,
     this.hugeIcon,
+    this.iconAsset,
     required this.onTab,
     super.key,
-  }) : assert((icon == null) != (hugeIcon == null), 'Provide exactly one of icon or hugeIcon');
+  }) : assert(
+         (icon != null ? 1 : 0) + (hugeIcon != null ? 1 : 0) + (iconAsset != null ? 1 : 0) == 1,
+         'Provide exactly one of icon, hugeIcon or iconAsset',
+       );
 
   @override
   Widget build(BuildContext context) {
@@ -43,16 +51,24 @@ class MaterialListTileIcon extends StatelessWidget {
     ];
 
     return ListTile(
-      leading: Container(
-        width: 28,
-        height: 28,
-        decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(8)),
-        child: Center(
-          child: hugeIcon != null
-              ? HugeIcon(icon: hugeIcon!, size: 18, strokeWidth: 2, color: const Color(0xFFFFFFFF))
-              : FaIcon(icon!, size: 16, color: const Color(0xFFFFFFFF)),
-        ),
-      ),
+      leading: iconAsset != null
+          ? Container(
+              width: 28,
+              height: 28,
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(color: const Color(0xFFFFFFFF), borderRadius: BorderRadius.circular(8)),
+              child: SvgPicture.asset(iconAsset!, fit: BoxFit.contain),
+            )
+          : Container(
+              width: 28,
+              height: 28,
+              decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(8)),
+              child: Center(
+                child: hugeIcon != null
+                    ? HugeIcon(icon: hugeIcon!, size: 18, strokeWidth: 2, color: const Color(0xFFFFFFFF))
+                    : FaIcon(icon!, size: 16, color: const Color(0xFFFFFFFF)),
+              ),
+            ),
       onTap: onTab == null ? null : () => onTab!(),
       title: title,
       subtitle: subtitle,

@@ -1,10 +1,11 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:hugeicons/hugeicons.dart';
 
 import '../../components.dart';
 import '../../constants.dart';
 import '../../cubit.dart';
+import '../../extensions.dart';
 import '../../i18n/translations.g.dart';
 import '../../passkey_providers.dart';
 import '../../themes.dart';
@@ -23,6 +24,14 @@ class _SettingsPasskeysCupertino extends State<SettingsPasskeysCupertino> {
     return provider.isNotEmpty ? provider : context.t.passkey.genericName;
   }
 
+  /// Подзаголовок: когда добавлен и когда был последний вход.
+  String _subtitle(BuildContext context, PasskeyItem item) {
+    final created = context.t.passkey.created(date: DateTime.fromMillisecondsSinceEpoch(item.createdAt * 1000).relativeFormat(context.t));
+    if (item.lastUsedAt <= 0) return created;
+    final used = context.t.passkey.lastUsed(date: DateTime.fromMillisecondsSinceEpoch(item.lastUsedAt * 1000).relativeFormat(context.t));
+    return "$created · $used";
+  }
+
   void _showError(BuildContext context, String errorKey) {
     String message;
     try {
@@ -39,26 +48,23 @@ class _SettingsPasskeysCupertino extends State<SettingsPasskeysCupertino> {
     );
   }
 
-  Future<void> _confirmDelete(BuildContext context, PasskeyItem item) async {
-    final cubit = context.read<SettingsPasskeysCubit>();
-    showCupertinoDialog(
+  Future<bool> _confirmDelete(BuildContext context) async {
+    final result = await showCupertinoDialog<bool>(
       context: context,
       builder: (dialogContext) => CupertinoAlertDialog(
         title: Text(context.t.passkey.deleteConfirmTitle),
         content: Text(context.t.passkey.deleteConfirmMessage),
         actions: [
-          CupertinoDialogAction(onPressed: () => Navigator.of(dialogContext).pop(), child: Text(context.t.common.cancel)),
+          CupertinoDialogAction(onPressed: () => Navigator.of(dialogContext).pop(false), child: Text(context.t.common.cancel)),
           CupertinoDialogAction(
             isDestructiveAction: true,
-            onPressed: () {
-              Navigator.of(dialogContext).pop();
-              cubit.deletePasskey(item.credentialId);
-            },
+            onPressed: () => Navigator.of(dialogContext).pop(true),
             child: Text(context.t.passkey.delete),
           ),
         ],
       ),
     );
+    return result ?? false;
   }
 
   @override
@@ -83,17 +89,19 @@ class _SettingsPasskeysCupertino extends State<SettingsPasskeysCupertino> {
                 ? const Center(child: CupertinoActivityIndicator())
                 : ListView(
                     children: [
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(20, 16, 20, 4),
-                        child: Text(
-                          context.t.passkey.description,
-                          style: TextStyle(fontSize: AppFontSizes.base, color: CupertinoColors.secondaryLabel.resolveFrom(context)),
+                      const SizedBox(height: 20),
+                      CupertinoListSection.insetGrouped(
+                        backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
+                        decoration: BoxDecoration(
+                          color: ThemesCupertino.groupedCard.resolveFrom(context),
+                          borderRadius: const BorderRadius.all(Radius.circular(10)),
                         ),
-                      ),
-                      if (state.loadError)
-                        CupertinoListSection.insetGrouped(
-                          backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
-                          children: [
+                        footer: Padding(
+                          padding: const EdgeInsets.only(left: 13),
+                          child: Text(context.t.passkey.description, style: TextStyle(fontSize: AppFontSizes.caption)),
+                        ),
+                        children: [
+                          if (state.loadError)
                             CupertinoListTile(
                               title: Text(context.t.passkey.loadError),
                               trailing: CupertinoButton(
@@ -101,41 +109,40 @@ class _SettingsPasskeysCupertino extends State<SettingsPasskeysCupertino> {
                                 onPressed: () => context.read<SettingsPasskeysCubit>().initialization(),
                                 child: Text(context.t.passkey.retry),
                               ),
-                            ),
-                          ],
-                        )
-                      else if (state.items.isNotEmpty)
-                        CupertinoListSection.insetGrouped(
-                          backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
-                          decoration: BoxDecoration(
-                            color: ThemesCupertino.groupedCard.resolveFrom(context),
-                            borderRadius: const BorderRadius.all(Radius.circular(10)),
-                          ),
-                          children: [
+                            )
+                          else
                             for (final item in state.items)
-                              CupertinoListTile(
-                                leading: FaIcon(passkeyProviderIcon(item.aaguid), color: CupertinoColors.systemBlue.resolveFrom(context)),
-                                title: Text(_title(context, item)),
-                                trailing: CupertinoButton(
-                                  padding: EdgeInsets.zero,
-                                  onPressed: busy ? null : () => _confirmDelete(context, item),
-                                  child: Icon(CupertinoIcons.delete, color: CupertinoColors.systemRed.resolveFrom(context)),
+                              Dismissible(
+                                key: ValueKey('pk_${item.credentialId.join("-")}'),
+                                direction: DismissDirection.endToStart,
+                                confirmDismiss: (_) async {
+                                  final ok = await _confirmDelete(context);
+                                  // Удаляем сами (со сбросом списка), Dismissible не «схлопываем»,
+                                  // чтобы не оставить в дереве уже удалённый виджет.
+                                  if (ok && context.mounted) context.read<SettingsPasskeysCubit>().deletePasskey(item.credentialId);
+                                  return false;
+                                },
+                                background: Container(
+                                  color: CupertinoColors.systemRed.resolveFrom(context),
+                                  alignment: Alignment.centerRight,
+                                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                                  child: const Icon(CupertinoIcons.delete, color: CupertinoColors.white),
+                                ),
+                                child: CupertinoListTileIcon(
+                                  title: Text(_title(context, item)),
+                                  subtitle: Text(_subtitle(context, item)),
+                                  color: passkeyProviderColor(item.aaguid),
+                                  iconAsset: passkeyProviderIconAsset(item.aaguid),
+                                  icon: passkeyProviderIconAsset(item.aaguid) == null ? passkeyProviderIcon(item.aaguid) : null,
+                                  onTab: null,
                                 ),
                               ),
-                          ],
-                        ),
-                      CupertinoListSection.insetGrouped(
-                        backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
-                        decoration: BoxDecoration(
-                          color: ThemesCupertino.groupedCard.resolveFrom(context),
-                          borderRadius: const BorderRadius.all(Radius.circular(10)),
-                        ),
-                        children: [
-                          CupertinoListTile(
-                            leading: const FaIcon(FontAwesomeIcons.plus, color: CupertinoColors.activeBlue),
-                            title: Text(context.t.passkey.add, style: const TextStyle(color: CupertinoColors.activeBlue)),
+                          CupertinoListTileIcon(
+                            title: Text(context.t.passkey.add),
+                            color: const Color(0xFFFF9500),
+                            hugeIcon: HugeIcons.strokeRoundedPlus,
                             trailing: busy ? const CupertinoActivityIndicator() : null,
-                            onTap: busy ? null : () => context.read<SettingsPasskeysCubit>().addPasskey(),
+                            onTab: busy ? null : () => context.read<SettingsPasskeysCubit>().addPasskey(),
                           ),
                         ],
                       ),

@@ -313,9 +313,15 @@ class _SettingsCloudPasswordCupertino extends State<SettingsCloudPasswordCuperti
   Widget _section(BuildContext context, {String? header, String? description, String? error, required List<Widget> children}) {
     Widget? footer;
     if (error != null && error.isNotEmpty) {
-      footer = Text(context.t[error], style: const TextStyle(color: CupertinoColors.systemRed, fontSize: 13));
+      footer = Padding(
+        padding: const EdgeInsets.only(left: 13),
+        child: Text(context.t[error], style: const TextStyle(color: CupertinoColors.systemRed, fontSize: 13)),
+      );
     } else if (description != null) {
-      footer = Text(description, style: TextStyle(color: CupertinoColors.secondaryLabel.resolveFrom(context), fontSize: 13));
+      footer = Padding(
+        padding: const EdgeInsets.only(left: 13),
+        child: Text(description, style: TextStyle(color: CupertinoColors.secondaryLabel.resolveFrom(context), fontSize: 13)),
+      );
     }
 
     return CupertinoFormSection.insetGrouped(
