@@ -31,14 +31,21 @@ class SettingsCloudPasswordCubit extends Cubit<SettingsCloudPasswordState> {
   Future<void> initialization() async {
     emit(state.copyWith(step: SettingsCloudPasswordStep.loading, loadError: false, offline: false));
 
+    // Нет связи — сразу offline-страница, не ждём таймаута unary-запроса
+    // (иначе висит спиннер до connectTimeout канала, ~30 c).
+    if (!await utils.hasNetwork()) {
+      emit(state.copyWith(step: SettingsCloudPasswordStep.loading, offline: true, loadError: false));
+      return;
+    }
+
     final (status, payload) = await api.unaryEncodedWithResponse(
       MessageType.CLOUD_PASSWORD_INFO,
       CloudPasswordInfo_Request().writeToBuffer(),
     );
     if (status.status != APIStatus.success || payload == null) {
-      // Отсутствие сети (нет коннективити либо gRPC вернул connect/DNS-ошибку) —
-      // отдельная offline-страница; прочие сбои загрузки — общая loadError-заглушка.
-      final offline = !await utils.hasNetwork() || _isNetworkError(status);
+      // Связь есть, но сервер недоступен (DNS/connect-ошибка → сетевые gRPC-коды) —
+      // тоже offline-страница; прочие сбои загрузки — общая loadError-заглушка.
+      final offline = _isNetworkError(status);
       logger.warning('cloud password: load info failed (${status.error})');
       emit(state.copyWith(step: SettingsCloudPasswordStep.loading, offline: offline, loadError: !offline));
       return;
