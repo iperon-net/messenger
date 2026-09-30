@@ -66,7 +66,9 @@ Future<void> unregisterCommonDependencies() async {
   }
   if (getIt.isRegistered<Auth>()) await getIt.unregister<Auth>();
   if (getIt.isRegistered<Routers>()) await getIt.unregister<Routers>();
-  if (getIt.isRegistered<Utils>()) await getIt.unregister<Utils>();
+  if (getIt.isRegistered<Utils>()) {
+    await getIt.unregister<Utils>(disposingFunction: (utils) => utils.dispose());
+  }
   if (getIt.isRegistered<API>()) await getIt.unregister<API>();
   if (getIt.isRegistered<Crypto>()) await getIt.unregister<Crypto>();
   if (getIt.isRegistered<CDNManager>()) await getIt.unregister<CDNManager>();

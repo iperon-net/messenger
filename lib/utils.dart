@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -26,7 +27,22 @@ import 'extensions.dart';
 class Utils {
   final phoneUtil = PhoneNumberUtil.instance;
 
-  Utils();
+  /// Держит подписку на connectivity всё время жизни приложения. На iOS плагин
+  /// останавливает NWPathMonitor, когда отписывается последний слушатель
+  /// (например, [ConnectionCubit] закрывается вместе с шеллом при logout), а
+  /// следующий `checkConnectivity()` создаёт новый монитор и сразу читает его
+  /// `currentPath` — до первого апдейта он `unsatisfied`, т.е. [hasNetwork]
+  /// ложно возвращал «нет сети» (первый вход по passkey после выхода).
+  StreamSubscription<List<ConnectivityResult>>? _connectivityKeepAlive;
+
+  Utils() {
+    _connectivityKeepAlive = Connectivity().onConnectivityChanged.listen((_) {});
+  }
+
+  Future<void> dispose() async {
+    await _connectivityKeepAlive?.cancel();
+    _connectivityKeepAlive = null;
+  }
 
   /// Отображаемое имя человека из полей профиля с учётом локали (RU: «Фамилия
   /// Имя»), с фолбэком на телефон, затем username. Общая точка для экрана звонка
