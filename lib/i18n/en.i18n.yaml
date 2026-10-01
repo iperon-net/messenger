@@ -58,6 +58,8 @@
   "testPushSent": "Sent: APNs — {apns}, FCM — {fcm}, failed — {failed}. Minimize the app or lock the screen to check background delivery."
   "testPushNoTokens": "None of your devices has a push token. Make sure notifications are allowed and restart the app."
   "testPushError": "Failed to send: {error}"
+  "testPushEncrypted": "Test notification (encrypted)"
+  "testPushQueued": "Queued on the server. On iPhone it arrives as \"New notification\" (decryption comes later); Android does not show these yet."
 
 "screenSettingsAppearance":
   "appearance": "Appearance"

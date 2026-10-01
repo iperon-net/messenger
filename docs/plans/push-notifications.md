@@ -1,6 +1,6 @@
 # Push-уведомления (по модели Telegram)
 
-Статус: этап 1 реализован (не проверен на устройствах), остальное — план. Дата: 2026-10-01.
+Статус: этапы 1–2 реализованы (не проверены на устройствах), остальное — план. Дата: 2026-10-01.
 
 ## Контекст
 
@@ -198,29 +198,65 @@ Id уведомления: `<kind>:<chatHex>:<messageID>` — по нему по
 
 ## Этап 2. Серверный конвейер
 
-- [ ] `internal/services/notifications.go` — `ServiceNotifications.Notify(ctx,
-  userID, Notification)`: кладёт задачу в JetStream, не шлёт синхронно.
-- [ ] JetStream поток `push` (`nats.go`): subjects `push.>`, `WorkQueuePolicy`,
-  `FileStorage`, `MaxAge` 1ч, дедуп по `Nats-Msg-Id` (= id уведомления). Durable
-  consumer по образцу `callPassword` (`services/auth.go:847`).
-- [ ] Воркер: сессии пользователя → фильтр presence → фильтр `NotifySettings`
-  (этап 6, пока заглушка «всё включено») → сборка `PushPayload` → шифрование ключом
-  сессии → APNs/FCM → `clearToken` на невалидных. Временные ошибки (5xx, 429,
-  timeout) → `Nak(delay)` с backoff, максимум N попыток.
-- [ ] Шифрование `p`: HKDF + AES-GCM (как в формате выше), unit-тест с
-  фиксированными векторами — те же векторы потом в Swift/Kotlin тестах.
-- [ ] **Presence для пушей.** Сейчас backgrounded iOS-стрим ~25 с считается онлайн
-  (комментарий `push.go:191-201`) — сообщения в это окно останутся без пуша. Решение:
-  - клиент на `paused` перед закрытием стрима шлёт `APP_STATE {foreground:false}` —
-    сервер сразу делает `Offline` для сессии (best-effort, может не успеть);
-  - для видимых пушей presence-гейт применяем, но клиент **в foreground подавляет
-    системное уведомление сам** (iOS `willPresent` → `[]`, Android — не показывать),
-    поэтому можно гейтить мягко и не бояться дублей.
-- [ ] Имя отправителя: вынести `callerName` из `push.go` в общий хелпер
-  (профиль → номер), учитывать, есть ли отправитель в контактах получателя (как
-  Telegram показывает имя из адресной книги — у нас контакты на сервере есть).
-- [ ] Метрики/логи: отправлено / отфильтровано presence / настройки / ошибки по
-  каналам (Grafana).
+Статус (2026-10-02): **код написан** (сервер + немного клиента, в рабочем дереве),
+`go test ./internal/...`, golangci-lint, `flutter analyze`, debug APK — зелёные. На
+устройствах НЕ проверено.
+
+**Proto:** `push_payload_v1.proto` (`PushPayload` + описание формата `p`),
+`app_state_v1.proto` + `APP_STATE = 68`, `PushTest.Request.encrypted` /
+`Response.queued`. Dart и Go перегенерированы.
+
+**Шифрование `p`** — `internal/crypto/push.go` (`PushKey`, `SealPush`, `OpenPush`):
+- [x] формат как в разделе «Формат пуша»; keyID = первые 8 байт 32-байтного
+  `session.Session` (то, что клиент знает как `session.session`);
+- [x] тест-векторы `internal/crypto/testdata/push_vectors.json` (копия в клиенте
+  `test/fixtures/`), Go-тест + независимая проверка на Dart `package:cryptography`
+  (`test/push_crypto_test.dart`) — HKDF-ключ сверен ещё и вручную. Swift/Kotlin на
+  этапах 3/4 должны проходить те же векторы.
+
+**Очередь** — `internal/services/notifications.go` (`ServiceNotifications`):
+- [x] `Notify(ctx, Notification)` → JetStream-стрим `push` (subject
+  `push.user.<hex>`, WorkQueue, file storage, MaxAge 1ч, дедуп по
+  `Nats-Msg-Id = Notification.ID` в окне 2 мин). Стрим/consumer создаются в
+  `Start` (fx lifecycle). Push выключен в конфиге → Notify/воркер — no-op.
+- [x] Durable consumer `push-worker` (AckWait 2 мин, MaxDeliver 3 — только на случай
+  падения инстанса), до 32 задач параллельно на инстанс; несколько инстансов делят
+  очередь.
+- [x] Воркер: сессии → `ExceptDeviceID` → гейт настроек (заглушка «всё можно» до
+  этапа 6) → presence (кроме `IgnorePresence`) → имя отправителя → `PushPayload` →
+  шифрование ключом каждой сессии → APNs/FCM, один пуш на уникальный токен.
+- [x] Временные ошибки (сеть, 429, 5xx; у FCM — всё, кроме мёртвого токена)
+  повторяются внутри обработки: 3 попытки, 1 с → 2 с. `ServicePush` теперь возвращает
+  `pushOutcome` (sent / failed / retryable).
+- [x] APNs: `aps.alert.loc-key = PUSH_FALLBACK_BODY`, `mutable-content: 1`,
+  `thread-id` (чат или тип), звук (кроме `Silent`), бейдж, `apns-collapse-id = ID`,
+  expiration 24 ч. FCM: data `{p}`, priority high, TTL 24 ч. Текст режется до 512
+  символов (лимит 4 КБ).
+- [x] Имя отправителя: облачный контакт получателя (`ServiceContacts.CloudContactName`,
+  новый `RepositoryContacts.GetCloudEdge`) → профиль → номер.
+- [x] Тесты: очередь на встроенном nats-server (доставка + дедуп), payload, фильтры,
+  повторы.
+
+**Presence:**
+- [x] Клиент на уходе в фон сразу шлёт по ещё живому стриму `APP_STATE{foreground:false}`
+  (`API._sendAppState`, прямо в `_outgoing`, до паузы через 3 с), на возврате в
+  пределах грейса — `true`. Сервер (`V1.setSessionForeground`) сразу снимает/ставит
+  presence сессии и рассылает переход контактам; heartbeat subscribe не продлевает
+  presence свёрнутой сессии (`backgroundSessions`), новый стрим флаг сбрасывает. Старый
+  сервер неизвестный тип игнорирует (в `message` нет default-ветки с ошибкой).
+- [ ] Подавление системного уведомления в foreground на клиенте — этапы 3/4 (сейчас
+  iOS показывает всё, что пришло).
+
+**Проверка конвейера:** экран «Разработчик» → «Тестовое уведомление (шифрованное)»
+(`PUSH_TEST{encrypted:true}` → `Notify(kind=TEST, IgnorePresence)`). Пока нет NSE,
+iPhone покажет фолбэк «Новое уведомление» — это и есть проверка формата APNs-payload;
+Android такие пуши пока глотает (`CallFcmService`, этап 4). В логах сервера —
+`notifications: delivered` со счётчиками и `latency`.
+
+**Не сделано / отложено:**
+- [ ] Метрики Prometheus (пока только структурные логи `notifications: delivered` —
+  по ним можно строить панели в Grafana/Loki).
+- [ ] Тихие типы (`READ_HISTORY`, `MESSAGE_DELETED`) — особый APNs-payload, этап 7.
 
 ## Этап 3. iOS: Notification Service Extension
 

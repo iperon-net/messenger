@@ -41,6 +41,12 @@ class CallFcmService : FlutterFirebaseMessagingService() {
             showTestNotification()
             return
         }
+        // Зашифрованное уведомление (поле p, конвейер уведомлений сервера).
+        // Расшифровка и показ — этап 4 (docs/plans/push-notifications.md); пока
+        // глотаем, чтобы не поднимать Flutter-isolate впустую.
+        if (data.containsKey(KEY_ENCRYPTED_PAYLOAD)) {
+            return
+        }
         if (data[KEY_ACTION] == ACTION_CANCEL) {
             val callId = data[KEY_CALL_ID].orEmpty()
             if (callId.isNotEmpty()) {
@@ -100,6 +106,7 @@ class CallFcmService : FlutterFirebaseMessagingService() {
 
         // Не звонковые пуши: kind — тип уведомления (push.go PushKind*).
         const val KEY_KIND = "kind"
+        const val KEY_ENCRYPTED_PAYLOAD = "p"
         const val KIND_TEST = "test"
         const val TEST_NOTIFICATION_TAG = "push_test"
     }

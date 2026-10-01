@@ -177,6 +177,8 @@ class _Translations$screenDeveloper$ru extends Translations$screenDeveloper$en {
 	@override String testPushSent({required Object apns, required Object fcm, required Object failed}) => 'Отправлено: APNs — ${apns}, FCM — ${fcm}, ошибок — ${failed}. Сверните приложение или заблокируйте экран, чтобы проверить доставку в фоне.';
 	@override String get testPushNoTokens => 'Ни у одного вашего устройства нет push-токена. Проверьте, что уведомления разрешены, и перезапустите приложение.';
 	@override String testPushError({required Object error}) => 'Не удалось отправить: ${error}';
+	@override String get testPushEncrypted => 'Тестовое уведомление (шифрованное)';
+	@override String get testPushQueued => 'Поставлено в очередь сервера. На iPhone придёт с текстом «Новое уведомление» (расшифровка появится позже), Android такие уведомления пока не показывает.';
 }
 
 // Path: screenSettingsAppearance
@@ -766,6 +768,8 @@ extension on TranslationsRu {
 			'screenDeveloper.testPushSent' => ({required Object apns, required Object fcm, required Object failed}) => 'Отправлено: APNs — ${apns}, FCM — ${fcm}, ошибок — ${failed}. Сверните приложение или заблокируйте экран, чтобы проверить доставку в фоне.',
 			'screenDeveloper.testPushNoTokens' => 'Ни у одного вашего устройства нет push-токена. Проверьте, что уведомления разрешены, и перезапустите приложение.',
 			'screenDeveloper.testPushError' => ({required Object error}) => 'Не удалось отправить: ${error}',
+			'screenDeveloper.testPushEncrypted' => 'Тестовое уведомление (шифрованное)',
+			'screenDeveloper.testPushQueued' => 'Поставлено в очередь сервера. На iPhone придёт с текстом «Новое уведомление» (расшифровка появится позже), Android такие уведомления пока не показывает.',
 			'screenSettingsAppearance.appearance' => 'Оформление',
 			'screenSettingsAppearance.colorTheme' => 'Цветовая тема',
 			'screenSettingsAppearance.colorThemeDefault' => 'По умолчанию',

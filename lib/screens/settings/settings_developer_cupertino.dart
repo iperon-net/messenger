@@ -79,6 +79,25 @@ class SettingsDeveloperCupertino extends StatelessWidget {
                   },
                   isTrailing: false,
                 ),
+                CupertinoListTileIcon(
+                  title: Text(context.t.screenDeveloper.testPushEncrypted),
+                  color: const Color(0xFFFF9500),
+                  icon: FontAwesomeIcons.lock,
+                  onTab: () async {
+                    final message = await sendTestPush(context.t, encrypted: true);
+                    if (!context.mounted) return;
+                    await showCupertinoDialog<void>(
+                      context: context,
+                      builder: (dialogContext) => CupertinoAlertDialog(
+                        content: Text(message),
+                        actions: [
+                          CupertinoDialogAction(onPressed: () => Navigator.of(dialogContext).pop(), child: Text(context.t.common.ok)),
+                        ],
+                      ),
+                    );
+                  },
+                  isTrailing: false,
+                ),
                 if (kDebugMode)
                   CupertinoListTileIcon(
                     title: Text(context.t.screenDeveloper.callPreview),

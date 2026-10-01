@@ -62,6 +62,19 @@ class SettingsDeveloperMaterial extends StatelessWidget {
                     },
                     isTrailing: false,
                   ),
+                  MaterialListTileIcon(
+                    title: Text(context.t.screenDeveloper.testPushEncrypted),
+                    color: const Color(0xFFFF9500),
+                    icon: FontAwesomeIcons.lock,
+                    onTab: () async {
+                      final message = await sendTestPush(context.t, encrypted: true);
+                      if (!context.mounted) return;
+                      ScaffoldMessenger.of(context)
+                        ..hideCurrentSnackBar()
+                        ..showSnackBar(SnackBar(content: Text(message)));
+                    },
+                    isTrailing: false,
+                  ),
                   if (kDebugMode)
                     MaterialListTileIcon(
                       title: Text(context.t.screenDeveloper.callPreview),

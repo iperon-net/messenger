@@ -136,6 +136,11 @@ class MessageType extends $pb.ProtobufEnum {
   /// push_test_v1.proto.
   static const MessageType PUSH_TEST = MessageType._(67, _omitEnumNames ? '' : 'PUSH_TEST');
 
+  /// Клиент → сервер по стриму: приложение ушло в фон / вернулось. Сервер сразу
+  /// снимает/ставит presence сессии, не дожидаясь обрыва стрима (иначе свёрнутая
+  /// iOS-сессия ~25 с числится онлайн и не получает пушей). См. app_state_v1.proto.
+  static const MessageType APP_STATE = MessageType._(68, _omitEnumNames ? '' : 'APP_STATE');
+
   static const $core.List<MessageType> values = <MessageType>[
     HEALTHCHECK,
     META_DATA_INFO,
@@ -201,9 +206,10 @@ class MessageType extends $pb.ProtobufEnum {
     PASSKEY_LOGIN_FINISH,
     AUTH_YANDEX,
     PUSH_TEST,
+    APP_STATE,
   ];
 
-  static final $core.List<MessageType?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 67);
+  static final $core.List<MessageType?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 68);
   static MessageType? valueOf($core.int value) => value < 0 || value >= _byValue.length ? null : _byValue[value];
 
   const MessageType._(super.value, super.name);

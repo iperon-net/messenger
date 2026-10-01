@@ -172,8 +172,13 @@ class PushManager {
 
   /// Тестовый push на все устройства пользователя (экран «Разработчик»).
   /// Возвращает статус вызова и, при успехе, итог рассылки.
-  Future<(APICallStatus, PushTest_Response?)> sendTestPush() async {
-    final (status, payload) = await api.unaryEncodedWithResponse(MessageType.PUSH_TEST, PushTest_Request().writeToBuffer());
+  /// [encrypted] — через серверный конвейер уведомлений (зашифрованный
+  /// PushPayload, доставка асинхронная — ответ только `queued`).
+  Future<(APICallStatus, PushTest_Response?)> sendTestPush({bool encrypted = false}) async {
+    final (status, payload) = await api.unaryEncodedWithResponse(
+      MessageType.PUSH_TEST,
+      PushTest_Request(encrypted: encrypted).writeToBuffer(),
+    );
     if (status.status != APIStatus.success || payload == null) return (status, null);
     return (status, PushTest_Response.fromBuffer(payload));
   }

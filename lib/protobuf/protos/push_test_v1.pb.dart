@@ -17,7 +17,13 @@ import 'package:protobuf/protobuf.dart' as $pb;
 export 'package:protobuf/protobuf.dart' show GeneratedMessageGenericExtensions;
 
 class PushTest_Request extends $pb.GeneratedMessage {
-  factory PushTest_Request() => create();
+  factory PushTest_Request({
+    $core.bool? encrypted,
+  }) {
+    final result = create();
+    if (encrypted != null) result.encrypted = encrypted;
+    return result;
+  }
 
   PushTest_Request._();
 
@@ -28,6 +34,7 @@ class PushTest_Request extends $pb.GeneratedMessage {
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'PushTest.Request',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..aOB(1, _omitFieldNames ? '' : 'encrypted')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -46,6 +53,18 @@ class PushTest_Request extends $pb.GeneratedMessage {
   @$core.pragma('dart2js:noInline')
   static PushTest_Request getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<PushTest_Request>(create);
   static PushTest_Request? _defaultInstance;
+
+  /// true — через конвейер уведомлений (JetStream → зашифрованный PushPayload в
+  /// поле `p`, как у настоящих уведомлений); false — прямой незашифрованный
+  /// тест доставки (iOS loc-key, Android data kind=test).
+  @$pb.TagNumber(1)
+  $core.bool get encrypted => $_getBF(0);
+  @$pb.TagNumber(1)
+  set encrypted($core.bool value) => $_setBool(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasEncrypted() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearEncrypted() => $_clearField(1);
 }
 
 class PushTest_Response extends $pb.GeneratedMessage {
@@ -53,11 +72,13 @@ class PushTest_Response extends $pb.GeneratedMessage {
     $core.int? apnsSent,
     $core.int? fcmSent,
     $core.int? failed,
+    $core.bool? queued,
   }) {
     final result = create();
     if (apnsSent != null) result.apnsSent = apnsSent;
     if (fcmSent != null) result.fcmSent = fcmSent;
     if (failed != null) result.failed = failed;
+    if (queued != null) result.queued = queued;
     return result;
   }
 
@@ -73,6 +94,7 @@ class PushTest_Response extends $pb.GeneratedMessage {
     ..aI(1, _omitFieldNames ? '' : 'apnsSent', protoName: 'apnsSent')
     ..aI(2, _omitFieldNames ? '' : 'fcmSent', protoName: 'fcmSent')
     ..aI(3, _omitFieldNames ? '' : 'failed')
+    ..aOB(4, _omitFieldNames ? '' : 'queued')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -118,6 +140,17 @@ class PushTest_Response extends $pb.GeneratedMessage {
   $core.bool hasFailed() => $_has(2);
   @$pb.TagNumber(3)
   void clearFailed() => $_clearField(3);
+
+  /// encrypted=true: задача поставлена в очередь (доставка асинхронная,
+  /// счётчики выше не заполняются — итог в логах сервера).
+  @$pb.TagNumber(4)
+  $core.bool get queued => $_getBF(3);
+  @$pb.TagNumber(4)
+  set queued($core.bool value) => $_setBool(3, value);
+  @$pb.TagNumber(4)
+  $core.bool hasQueued() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearQueued() => $_clearField(4);
 }
 
 /// PushTest — отладочный push на все устройства вызывающего пользователя (включая

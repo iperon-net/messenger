@@ -8,16 +8,21 @@ import '../../push.dart';
 /// возвращает текст итога для показа (Cupertino — диалог, Material — SnackBar).
 /// Используется обоими экранами «Разработчик». Перед отправкой досинхронизирует
 /// токены, чтобы свежий APNs/FCM-токен этого устройства успел попасть на сервер.
-Future<String> sendTestPush(Translations t) async {
+///
+/// [encrypted] — через серверный конвейер (очередь + зашифрованный `p`): на iOS
+/// до Notification Service Extension показывается фолбэк-текст, Android такие
+/// пуши пока не рисует (этап 4).
+Future<String> sendTestPush(Translations t, {bool encrypted = false}) async {
   try {
     final push = getIt.get<PushManager>();
     await push.syncTokens();
 
-    final (status, response) = await push.sendTestPush();
+    final (status, response) = await push.sendTestPush(encrypted: encrypted);
     if (status.status != APIStatus.success || response == null) {
       final error = (t[status.error] as String?) ?? status.error;
       return t.screenDeveloper.testPushError(error: error);
     }
+    if (response.queued) return t.screenDeveloper.testPushQueued;
     if (response.apnsSent + response.fcmSent + response.failed == 0) {
       return t.screenDeveloper.testPushNoTokens;
     }

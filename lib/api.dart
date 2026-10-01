@@ -343,7 +343,39 @@ class API {
   void setForeground(bool value) {
     if (_appActive == value) return;
     _appActive = value;
+    _sendAppState(value);
     _reconcile();
+  }
+
+  /// Сообщает серверу по ещё живому стриму, что приложение ушло в фон/вернулось
+  /// (APP_STATE). На фоне сервер сразу снимает presence сессии — иначе до обрыва
+  /// стрима по keepalive (~25 с, если iOS усыпит процесс раньше паузы через
+  /// [_backgroundGrace]) сессия числится онлайн и push-уведомления за это окно
+  /// не уходят. Возврат в пределах грейса (стрим не закрывался) ставит presence
+  /// обратно; если стрим уже закрыли — presence поставит новый Subscribe.
+  ///
+  /// Пишем прямо в текущий [_outgoing], минуя [send]: к моменту отправки (после
+  /// асинхронного шифрования) `_appActive` уже false и [send] дропнул бы
+  /// сообщение. Старый сервер неизвестный тип молча игнорирует.
+  void _sendAppState(bool foreground) {
+    if (!_authorized || !_isRunning) return;
+    final outgoing = _outgoing;
+
+    unawaited(() async {
+      try {
+        final crypto = getIt.get<Crypto>();
+        final auth = getIt.get<Auth>();
+        final encoded = await crypto.syncer.encode(
+          session: auth.session,
+          message: AppState_Request(foreground: foreground).writeToBuffer(),
+        );
+        if (outgoing != null && identical(outgoing, _outgoing) && !outgoing.isClosed) {
+          outgoing.add(Message(messageType: MessageType.APP_STATE, message: encoded));
+        }
+      } catch (error, stackTrace) {
+        logger.handle(error, stackTrace);
+      }
+    }());
   }
 
   /// Сообщает, идёт ли активный звонок. Во время звонка стрим держится открытым

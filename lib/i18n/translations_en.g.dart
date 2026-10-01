@@ -273,6 +273,12 @@ class Translations$screenDeveloper$en {
 
 	/// en: 'Failed to send: {error}'
 	String testPushError({required Object error}) => 'Failed to send: ${error}';
+
+	/// en: 'Test notification (encrypted)'
+	String get testPushEncrypted => 'Test notification (encrypted)';
+
+	/// en: 'Queued on the server. On iPhone it arrives as "New notification" (decryption comes later); Android does not show these yet.'
+	String get testPushQueued => 'Queued on the server. On iPhone it arrives as "New notification" (decryption comes later); Android does not show these yet.';
 }
 
 // Path: screenSettingsAppearance
@@ -1515,6 +1521,8 @@ extension on Translations {
 			'screenDeveloper.testPushSent' => ({required Object apns, required Object fcm, required Object failed}) => 'Sent: APNs — ${apns}, FCM — ${fcm}, failed — ${failed}. Minimize the app or lock the screen to check background delivery.',
 			'screenDeveloper.testPushNoTokens' => 'None of your devices has a push token. Make sure notifications are allowed and restart the app.',
 			'screenDeveloper.testPushError' => ({required Object error}) => 'Failed to send: ${error}',
+			'screenDeveloper.testPushEncrypted' => 'Test notification (encrypted)',
+			'screenDeveloper.testPushQueued' => 'Queued on the server. On iPhone it arrives as "New notification" (decryption comes later); Android does not show these yet.',
 			'screenSettingsAppearance.appearance' => 'Appearance',
 			'screenSettingsAppearance.colorTheme' => 'Color theme',
 			'screenSettingsAppearance.colorThemeDefault' => 'Default',

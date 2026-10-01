@@ -8,11 +8,19 @@ option go_package = "internal/api/v1";
 // реальных устройствах (экран «Разработчик»). Ответ — сколько уникальных
 // токенов было адресовано и сколько отправок прошло/упало.
 message PushTest {
-  message Request {}
+  message Request {
+    // true — через конвейер уведомлений (JetStream → зашифрованный PushPayload в
+    // поле `p`, как у настоящих уведомлений); false — прямой незашифрованный
+    // тест доставки (iOS loc-key, Android data kind=test).
+    bool encrypted = 1;
+  }
 
   message Response {
     int32 apnsSent = 1;
     int32 fcmSent = 2;
     int32 failed = 3;
+    // encrypted=true: задача поставлена в очередь (доставка асинхронная,
+    // счётчики выше не заполняются — итог в логах сервера).
+    bool queued = 4;
   }
 }
