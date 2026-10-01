@@ -1,8 +1,10 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:bloc/bloc.dart';
 import 'package:dlibphonenumber/dlibphonenumber.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:passkeys/authenticator.dart';
 import 'package:passkeys/types.dart';
 import 'package:yandex_login_sdk/yandex_login_sdk.dart';
@@ -217,10 +219,18 @@ class AuthCubit extends Cubit<AuthState> {
       return (error: "grpcError.unableConnectServer", redirectURI: "");
     }
 
+    // Диагностика SDK (в т.ч. нативные логи iOS/Android) — в наш логгер.
+    YandexLoginSdk.onLog ??= (level, message, {error, stackTrace}) =>
+        logger.debug('YandexLoginSdk [${level.name}] $message${error == null ? '' : ' $error'}');
+
     final String token;
     try {
       final result = await YandexLoginSdk.signIn(clientId: settings.yandexOauthClientID, strategy: YandexLoginStrategy.auto);
       token = result.token;
+      // Нативный SDK (iOS) кэширует результат и на следующем signIn отдаёт его без
+      // UI — тогда не сменить аккаунт, а протухший токен сервер отклонит. Токен
+      // нам нужен разово, поэтому сразу чистим локальный кэш SDK (best-effort).
+      unawaited(YandexLoginSdk.signOut().catchError((Object _) {}));
     } on YandexAuthCancelledException {
       // Пользователь закрыл окно Яндекса — не ошибка.
       return (error: "", redirectURI: "");
@@ -229,6 +239,11 @@ class AuthCubit extends Cubit<AuthState> {
       return (error: "", redirectURI: "");
     } on YandexAuthException catch (error, stackTrace) {
       logger.handle(error, stackTrace, "yandex sign in failed");
+      // Non-fatal в Crashlytics: причина сбоя SDK (код + текст) иначе не видна —
+      // запрос до нашего сервера в этом случае не доходит.
+      unawaited(
+        FirebaseCrashlytics.instance.recordError(error, stackTrace, reason: "yandex sign in failed: ${error.code} ${error.message}"),
+      );
       return (error: "yandex.failed", redirectURI: "");
     }
     if (token.isEmpty) {
