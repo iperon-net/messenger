@@ -32,16 +32,21 @@ class _AuthMaterialScreen extends State<AuthMaterialScreen> {
   final phoneNumberFocus = FocusNode();
   String? serverError;
 
-  bool passkeyBusy = false;
+  _SignInProvider? signInBusy;
 
-  /// Вход по ключу доступа: нативный промпт → навигация при успехе, SnackBar при
-  /// ошибке. Отмена промпта (пустой результат) ничего не показывает.
-  Future<void> _onPasskey() async {
-    if (passkeyBusy) return;
-    setState(() => passkeyBusy = true);
-    final result = await context.read<AuthCubit>().passkeySignIn();
+  /// Вход по ключу доступа или через Яндекс ID: нативный промпт/окно →
+  /// навигация при успехе, SnackBar при ошибке. Отмена (пустой результат) ничего
+  /// не показывает. Пока идёт один вход, кнопки обоих заблокированы.
+  Future<void> _onSignIn(_SignInProvider provider) async {
+    if (signInBusy != null) return;
+    setState(() => signInBusy = provider);
+    final cubit = context.read<AuthCubit>();
+    final result = switch (provider) {
+      _SignInProvider.passkey => await cubit.passkeySignIn(),
+      _SignInProvider.yandex => await cubit.yandexSignIn(),
+    };
     if (!mounted) return;
-    setState(() => passkeyBusy = false);
+    setState(() => signInBusy = null);
 
     if (result.redirectURI.isNotEmpty) {
       context.go(result.redirectURI);
@@ -195,13 +200,13 @@ class _AuthMaterialScreen extends State<AuthMaterialScreen> {
                       children: [
                         GestureDetector(
                           behavior: HitTestBehavior.opaque,
-                          onTap: passkeyBusy ? null : _onPasskey,
+                          onTap: signInBusy != null ? null : () => _onSignIn(_SignInProvider.passkey),
                           child: Container(
                             width: 42,
                             height: 42,
                             decoration: BoxDecoration(color: Colors.blue, borderRadius: BorderRadius.circular(8)),
                             child: Center(
-                              child: passkeyBusy
+                              child: signInBusy == _SignInProvider.passkey
                                   ? const SizedBox(
                                       width: 20,
                                       height: 20,
@@ -213,6 +218,26 @@ class _AuthMaterialScreen extends State<AuthMaterialScreen> {
                                       theme: const SvgTheme(currentColor: Colors.white),
                                     ),
                             ),
+                          ),
+                        ),
+                        GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: signInBusy != null ? null : () => _onSignIn(_SignInProvider.yandex),
+                          child: SizedBox(
+                            width: 42,
+                            height: 42,
+                            child: signInBusy == _SignInProvider.yandex
+                                ? Container(
+                                    decoration: BoxDecoration(color: const Color(0xFFFC3F1D), borderRadius: BorderRadius.circular(11.5)),
+                                    child: const Center(
+                                      child: SizedBox(
+                                        width: 20,
+                                        height: 20,
+                                        child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xffffffff)),
+                                      ),
+                                    ),
+                                  )
+                                : SvgPicture.asset('assets/images/yandex_id.svg', width: 42, height: 42),
                           ),
                         ),
                       ],
@@ -227,3 +252,5 @@ class _AuthMaterialScreen extends State<AuthMaterialScreen> {
     );
   }
 }
+
+enum _SignInProvider { passkey, yandex }

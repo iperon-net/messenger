@@ -107,6 +107,9 @@ enum MessageType {
   PASSKEY_DELETE = 63;
   PASSKEY_LOGIN_BEGIN = 64;
   PASSKEY_LOGIN_FINISH = 65;
+  // Вход через Яндекс ID — pre-auth unary: OAuth-токен → подтверждённый телефон
+  // → confirmationSession для AUTH_CONFIRMATION. См. yandex_v1.proto.
+  AUTH_YANDEX = 66;
 }
 
 service Iperon {

@@ -204,22 +204,57 @@ class AuthCubit extends Cubit<AuthState> {
     return (error: completion.error, redirectURI: completion.redirectURI);
   }
 
-  Future<String> yandexSignIn() async {
+  /// Вход через Яндекс ID: нативный SDK (приложение Яндекса или браузер) →
+  /// OAuth access_token → AUTH_YANDEX. Сервер сам проверяет токен (в т.ч. что он
+  /// выдан нашему client_id), берёт подтверждённый телефон аккаунта и выдаёт
+  /// confirmationSession — дальше как у passkey: облачный пароль или
+  /// [AuthLoginCompleter]. Регион номера не ограничен (в отличие от звонка).
+  ///
+  /// Возвращает результат для экрана (пустой [error]+[redirectURI] = пользователь
+  /// отменил вход, ничего не показываем). Не бросает.
+  Future<({String error, String redirectURI})> yandexSignIn() async {
+    if (!await utils.hasNetwork()) {
+      return (error: "grpcError.unableConnectServer", redirectURI: "");
+    }
+
+    final String token;
     try {
       final result = await YandexLoginSdk.signIn(clientId: settings.yandexOauthClientID, strategy: YandexLoginStrategy.auto);
-      logger.debug('Access token: ${result.token}');
-      logger.debug('JWT (iOS only): ${result.jwt}');
-      logger.debug('Expires at (Android only): ${result.expiresAt}');
-      return result.token;
+      token = result.token;
     } on YandexAuthCancelledException {
-      // User dismissed the sheet — no need to show an error.
+      // Пользователь закрыл окно Яндекса — не ошибка.
+      return (error: "", redirectURI: "");
     } on YandexAuthInProgressException {
-      // A sign-in is already running — ignore the extra tap.
-    } on YandexAuthUnsupportedException {
-      // Web/desktop or unsupported — fall back to your own WebView.
-    } on YandexAuthException catch (e) {
-      logger.error('Yandex SDK error: $e');
+      // Вход уже идёт — лишнее нажатие игнорируем.
+      return (error: "", redirectURI: "");
+    } on YandexAuthException catch (error, stackTrace) {
+      logger.handle(error, stackTrace, "yandex sign in failed");
+      return (error: "yandex.failed", redirectURI: "");
     }
-    return "";
+    if (token.isEmpty) {
+      return (error: "yandex.failed", redirectURI: "");
+    }
+
+    final request = Message(
+      messageType: MessageType.AUTH_YANDEX,
+      message: AuthYandex_Request(token: token).writeToBuffer(),
+    );
+    late Message responseMessage;
+    final callError = await api.call(() async {
+      responseMessage = await api.client.unary(request);
+    });
+    if (callError.status == APIStatus.error) {
+      return (error: callError.error, redirectURI: "");
+    }
+    final response = AuthYandex_Response.fromBuffer(responseMessage.message);
+
+    // Двухшаговая проверка: вход через Яндекс её НЕ обходит.
+    if (response.hasTwoStepVerification) {
+      final confirmationSessionHex = utils.bytesToHex(Uint8List.fromList(response.confirmationSession));
+      return (error: "", redirectURI: Uri.parse("/auth/cloud_password?confirmationSession=$confirmationSessionHex").toString());
+    }
+
+    final completion = await AuthLoginCompleter().complete(response.confirmationSession);
+    return (error: completion.error, redirectURI: completion.redirectURI);
   }
 }

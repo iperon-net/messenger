@@ -422,3 +422,9 @@ dateTime:
   "unknownCredential": "This passkey isn't recognized."
   "alreadyRegistered": "This passkey is already registered."
   "notFound": "Passkey not found."
+"yandex":
+  "failed": "Couldn't sign in with Yandex. Please try again."
+  "invalidToken": "Couldn't verify the Yandex sign-in. Please try again."
+  "phoneMissing": "Your Yandex ID has no phone number. Add one in Yandex ID or sign in with your phone number."
+  "invalidPhone": "The phone number in your Yandex ID can't be used to sign in. Sign in with your phone number."
+  "unavailable": "Yandex ID is unavailable right now. Please try again later."

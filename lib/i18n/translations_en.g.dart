@@ -68,6 +68,7 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	late final Translations$dateTime$en dateTime = Translations$dateTime$en.internal(_root);
 	late final Translations$screenCall$en screenCall = Translations$screenCall$en.internal(_root);
 	late final Translations$passkey$en passkey = Translations$passkey$en.internal(_root);
+	late final Translations$yandex$en yandex = Translations$yandex$en.internal(_root);
 }
 
 // Path: common
@@ -1414,6 +1415,30 @@ class Translations$passkey$en {
 	String get notFound => 'Passkey not found.';
 }
 
+// Path: yandex
+class Translations$yandex$en {
+	Translations$yandex$en.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// en: 'Couldn't sign in with Yandex. Please try again.'
+	String get failed => 'Couldn\'t sign in with Yandex. Please try again.';
+
+	/// en: 'Couldn't verify the Yandex sign-in. Please try again.'
+	String get invalidToken => 'Couldn\'t verify the Yandex sign-in. Please try again.';
+
+	/// en: 'Your Yandex ID has no phone number. Add one in Yandex ID or sign in with your phone number.'
+	String get phoneMissing => 'Your Yandex ID has no phone number. Add one in Yandex ID or sign in with your phone number.';
+
+	/// en: 'The phone number in your Yandex ID can't be used to sign in. Sign in with your phone number.'
+	String get invalidPhone => 'The phone number in your Yandex ID can\'t be used to sign in. Sign in with your phone number.';
+
+	/// en: 'Yandex ID is unavailable right now. Please try again later.'
+	String get unavailable => 'Yandex ID is unavailable right now. Please try again later.';
+}
+
 /// The flat map containing all translations for locale <en>.
 /// Only for edge cases! For simple maps, use the map function of this library.
 ///
@@ -1785,6 +1810,11 @@ extension on Translations {
 			'passkey.unknownCredential' => 'This passkey isn\'t recognized.',
 			'passkey.alreadyRegistered' => 'This passkey is already registered.',
 			'passkey.notFound' => 'Passkey not found.',
+			'yandex.failed' => 'Couldn\'t sign in with Yandex. Please try again.',
+			'yandex.invalidToken' => 'Couldn\'t verify the Yandex sign-in. Please try again.',
+			'yandex.phoneMissing' => 'Your Yandex ID has no phone number. Add one in Yandex ID or sign in with your phone number.',
+			'yandex.invalidPhone' => 'The phone number in your Yandex ID can\'t be used to sign in. Sign in with your phone number.',
+			'yandex.unavailable' => 'Yandex ID is unavailable right now. Please try again later.',
 			_ => null,
 		};
 	}

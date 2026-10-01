@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package iperon.v1;
+option go_package = "internal/api/v1";
+
+// Вход через Яндекс ID. Клиент (пакет `yandex_login_sdk`) получает OAuth
+// access_token нативным SDK и отдаёт его серверу. Сервер сам проверяет токен
+// через login.yandex.ru/info (включая client_id — токен другого приложения не
+// подойдёт) и берёт оттуда подтверждённый телефон аккаунта (scope
+// login:default_phone). Идентификаторы Яндекса НЕ сохраняются: Яндекс здесь —
+// лишь способ подтвердить номер (как звонок-пароль), пользователь по-прежнему
+// ищется/создаётся по телефону, а в users.phoneVerificationSource пишется
+// «yandex». В отличие от звонка-пароля, регион номера не ограничен РФ.
+//
+// Pre-auth unary (как PASSKEY_LOGIN_FINISH): выдаёт confirmationSession, сессию
+// чеканит AUTH_CONFIRMATION; облачный пароль (двухшаговая проверка) сохраняется.
+message AuthYandex {
+  message Request {
+    // OAuth access_token, который вернул Yandex LoginSDK.
+    string token = 1;
+  }
+
+  message Response {
+    // Скармливается AUTH_CONFIRMATION (тот же путь, что call-password/passkey).
+    bytes confirmationSession = 1;
+    // Включена ли двухшаговая проверка: если true — клиент уходит на шаг ввода
+    // облачного пароля (/auth/cloud_password), передав confirmationSession.
+    bool hasTwoStepVerification = 2;
+  }
+}

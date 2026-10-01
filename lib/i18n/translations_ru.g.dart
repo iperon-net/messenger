@@ -66,6 +66,7 @@ class TranslationsRu extends Translations with BaseTranslations<AppLocale, Trans
 	@override late final _Translations$dateTime$ru dateTime = _Translations$dateTime$ru._(_root);
 	@override late final _Translations$screenCall$ru screenCall = _Translations$screenCall$ru._(_root);
 	@override late final _Translations$passkey$ru passkey = _Translations$passkey$ru._(_root);
+	@override late final _Translations$yandex$ru yandex = _Translations$yandex$ru._(_root);
 }
 
 // Path: common
@@ -689,6 +690,20 @@ class _Translations$passkey$ru extends Translations$passkey$en {
 	@override String get notFound => 'Ключ не найден.';
 }
 
+// Path: yandex
+class _Translations$yandex$ru extends Translations$yandex$en {
+	_Translations$yandex$ru._(TranslationsRu root) : this._root = root, super.internal(root);
+
+	final TranslationsRu _root; // ignore: unused_field
+
+	// Translations
+	@override String get failed => 'Не удалось войти через Яндекс. Попробуйте ещё раз.';
+	@override String get invalidToken => 'Не удалось подтвердить вход через Яндекс. Попробуйте ещё раз.';
+	@override String get phoneMissing => 'К аккаунту Яндекс ID не привязан номер телефона. Добавьте его в Яндекс ID или войдите по номеру.';
+	@override String get invalidPhone => 'Номер телефона в Яндекс ID не подходит для входа. Войдите по номеру.';
+	@override String get unavailable => 'Яндекс ID сейчас недоступен. Попробуйте позже.';
+}
+
 /// The flat map containing all translations for locale <ru>.
 /// Only for edge cases! For simple maps, use the map function of this library.
 ///
@@ -1060,6 +1075,11 @@ extension on TranslationsRu {
 			'passkey.unknownCredential' => 'Этот ключ не распознан.',
 			'passkey.alreadyRegistered' => 'Этот ключ уже зарегистрирован.',
 			'passkey.notFound' => 'Ключ не найден.',
+			'yandex.failed' => 'Не удалось войти через Яндекс. Попробуйте ещё раз.',
+			'yandex.invalidToken' => 'Не удалось подтвердить вход через Яндекс. Попробуйте ещё раз.',
+			'yandex.phoneMissing' => 'К аккаунту Яндекс ID не привязан номер телефона. Добавьте его в Яндекс ID или войдите по номеру.',
+			'yandex.invalidPhone' => 'Номер телефона в Яндекс ID не подходит для входа. Войдите по номеру.',
+			'yandex.unavailable' => 'Яндекс ID сейчас недоступен. Попробуйте позже.',
 			_ => null,
 		};
 	}

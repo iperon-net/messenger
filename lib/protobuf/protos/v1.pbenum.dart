@@ -127,6 +127,10 @@ class MessageType extends $pb.ProtobufEnum {
   static const MessageType PASSKEY_LOGIN_BEGIN = MessageType._(64, _omitEnumNames ? '' : 'PASSKEY_LOGIN_BEGIN');
   static const MessageType PASSKEY_LOGIN_FINISH = MessageType._(65, _omitEnumNames ? '' : 'PASSKEY_LOGIN_FINISH');
 
+  /// Вход через Яндекс ID — pre-auth unary: OAuth-токен → подтверждённый телефон
+  /// → confirmationSession для AUTH_CONFIRMATION. См. yandex_v1.proto.
+  static const MessageType AUTH_YANDEX = MessageType._(66, _omitEnumNames ? '' : 'AUTH_YANDEX');
+
   static const $core.List<MessageType> values = <MessageType>[
     HEALTHCHECK,
     META_DATA_INFO,
@@ -190,9 +194,10 @@ class MessageType extends $pb.ProtobufEnum {
     PASSKEY_DELETE,
     PASSKEY_LOGIN_BEGIN,
     PASSKEY_LOGIN_FINISH,
+    AUTH_YANDEX,
   ];
 
-  static final $core.List<MessageType?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 65);
+  static final $core.List<MessageType?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 66);
   static MessageType? valueOf($core.int value) => value < 0 || value >= _byValue.length ? null : _byValue[value];
 
   const MessageType._(super.value, super.name);
