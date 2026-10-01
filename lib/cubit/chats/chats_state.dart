@@ -8,5 +8,14 @@ part 'chats_state.mapper.dart';
 class ChatsState with ChatsStateMappable {
   final Status status;
 
-  const ChatsState({this.status = Status.initialization});
+  /// Разрешение на уведомления не выдано (iOS — authorization, Android 13+ —
+  /// POST_NOTIFICATIONS). Управляет баннером-объяснением на вкладке.
+  final bool notificationsMissing;
+
+  /// Пользователь закрыл баннер — не показываем до конца сессии.
+  final bool notificationsBannerDismissed;
+
+  const ChatsState({this.status = Status.initialization, this.notificationsMissing = false, this.notificationsBannerDismissed = false});
+
+  bool get showNotificationsBanner => notificationsMissing && !notificationsBannerDismissed;
 }

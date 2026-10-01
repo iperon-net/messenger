@@ -82,6 +82,7 @@ const MessageType$json = {
     {'1': 'PASSKEY_LOGIN_BEGIN', '2': 64},
     {'1': 'PASSKEY_LOGIN_FINISH', '2': 65},
     {'1': 'AUTH_YANDEX', '2': 66},
+    {'1': 'PUSH_TEST', '2': 67},
   ],
   '4': [
     {'1': 16, '2': 16},
@@ -123,7 +124,7 @@ final $typed_data.Uint8List messageTypeDescriptor =
         'VTRVQQOxIaChZQQVNTS0VZX1JFR0lTVEVSX0JFR0lOEDwSGwoXUEFTU0tFWV9SRUdJU1RFUl9G'
         'SU5JU0gQPRIQCgxQQVNTS0VZX0xJU1QQPhISCg5QQVNTS0VZX0RFTEVURRA/EhcKE1BBU1NLRV'
         'lfTE9HSU5fQkVHSU4QQBIYChRQQVNTS0VZX0xPR0lOX0ZJTklTSBBBEg8KC0FVVEhfWUFOREVY'
-        'EEIiBAgQEBAiBAgREBEiBAgSEBIiBAgVEBU=');
+        'EEISDQoJUFVTSF9URVNUEEMiBAgQEBAiBAgREBEiBAgSEBIiBAgVEBU=');
 
 @$core.Deprecated('Use messageDescriptor instead')
 const Message$json = {

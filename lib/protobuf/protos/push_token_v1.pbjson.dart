@@ -29,6 +29,10 @@ const RegisterPushToken_Request$json = {
     {'1': 'token', '3': 1, '4': 1, '5': 9, '10': 'token'},
     {'1': 'type', '3': 2, '4': 1, '5': 14, '6': '.iperon.v1.RegisterPushToken.TokenType', '10': 'type'},
     {'1': 'platform', '3': 3, '4': 1, '5': 14, '6': '.iperon.v1.RegisterPushToken.Platform', '10': 'platform'},
+    {'1': 'sandbox', '3': 4, '4': 1, '5': 8, '9': 0, '10': 'sandbox', '17': true},
+  ],
+  '8': [
+    {'1': '_sandbox'},
   ],
 };
 
@@ -43,6 +47,7 @@ const RegisterPushToken_TokenType$json = {
   '2': [
     {'1': 'FCM', '2': 0},
     {'1': 'APNS_VOIP', '2': 1},
+    {'1': 'APNS', '2': 2},
   ],
 };
 
@@ -58,8 +63,9 @@ const RegisterPushToken_Platform$json = {
 
 /// Descriptor for `RegisterPushToken`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List registerPushTokenDescriptor =
-    $convert.base64Decode('ChFSZWdpc3RlclB1c2hUb2tlbhqeAQoHUmVxdWVzdBIUCgV0b2tlbhgBIAEoCVIFdG9rZW4SOg'
+    $convert.base64Decode('ChFSZWdpc3RlclB1c2hUb2tlbhrJAQoHUmVxdWVzdBIUCgV0b2tlbhgBIAEoCVIFdG9rZW4SOg'
         'oEdHlwZRgCIAEoDjImLmlwZXJvbi52MS5SZWdpc3RlclB1c2hUb2tlbi5Ub2tlblR5cGVSBHR5'
         'cGUSQQoIcGxhdGZvcm0YAyABKA4yJS5pcGVyb24udjEuUmVnaXN0ZXJQdXNoVG9rZW4uUGxhdG'
-        'Zvcm1SCHBsYXRmb3JtGgoKCFJlc3BvbnNlIiMKCVRva2VuVHlwZRIHCgNGQ00QABINCglBUE5T'
-        'X1ZPSVAQASItCghQbGF0Zm9ybRILCgdVTktOT1dOEAASCwoHQU5EUk9JRBABEgcKA0lPUxAC');
+        'Zvcm1SCHBsYXRmb3JtEh0KB3NhbmRib3gYBCABKAhIAFIHc2FuZGJveIgBAUIKCghfc2FuZGJv'
+        'eBoKCghSZXNwb25zZSItCglUb2tlblR5cGUSBwoDRkNNEAASDQoJQVBOU19WT0lQEAESCAoEQV'
+        'BOUxACIi0KCFBsYXRmb3JtEgsKB1VOS05PV04QABILCgdBTkRST0lEEAESBwoDSU9TEAI=');

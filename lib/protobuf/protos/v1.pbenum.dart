@@ -131,6 +131,11 @@ class MessageType extends $pb.ProtobufEnum {
   /// → confirmationSession для AUTH_CONFIRMATION. См. yandex_v1.proto.
   static const MessageType AUTH_YANDEX = MessageType._(66, _omitEnumNames ? '' : 'AUTH_YANDEX');
 
+  /// Тестовый push на все устройства вызывающего (authenticated, через
+  /// exchangeEncrypted) — проверка доставки APNs/FCM с экрана «Разработчик». См.
+  /// push_test_v1.proto.
+  static const MessageType PUSH_TEST = MessageType._(67, _omitEnumNames ? '' : 'PUSH_TEST');
+
   static const $core.List<MessageType> values = <MessageType>[
     HEALTHCHECK,
     META_DATA_INFO,
@@ -195,9 +200,10 @@ class MessageType extends $pb.ProtobufEnum {
     PASSKEY_LOGIN_BEGIN,
     PASSKEY_LOGIN_FINISH,
     AUTH_YANDEX,
+    PUSH_TEST,
   ];
 
-  static final $core.List<MessageType?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 66);
+  static final $core.List<MessageType?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 67);
   static MessageType? valueOf($core.int value) => value < 0 || value >= _byValue.length ? null : _byValue[value];
 
   const MessageType._(super.value, super.name);

@@ -110,6 +110,7 @@ class MainActivity : FlutterFragmentActivity() {
         // окна, иначе keyguard успеет потребовать разблокировку.
         applyCallLaunchFlags(intent)
         super.onCreate(savedInstanceState)
+        NotificationChannels.ensure(this)
         // Приёмник действий PiP-окна (смена камеры). NOT_EXPORTED — внутренний,
         // снаружи слать нельзя (Android 13+ требует явный флаг экспорта).
         val filter = IntentFilter(ACTION_PIP_SWITCH_CAMERA)

@@ -110,6 +110,10 @@ enum MessageType {
   // Вход через Яндекс ID — pre-auth unary: OAuth-токен → подтверждённый телефон
   // → confirmationSession для AUTH_CONFIRMATION. См. yandex_v1.proto.
   AUTH_YANDEX = 66;
+  // Тестовый push на все устройства вызывающего (authenticated, через
+  // exchangeEncrypted) — проверка доставки APNs/FCM с экрана «Разработчик». См.
+  // push_test_v1.proto.
+  PUSH_TEST = 67;
 }
 
 service Iperon {

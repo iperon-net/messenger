@@ -2,6 +2,7 @@ import 'package:cupertino_ui/cupertino_ui.dart';
 import '../../themes.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:hugeicons/hugeicons.dart';
 
 import '../../cubit.dart';
 import '../../i18n/translations.g.dart';
@@ -60,7 +61,29 @@ class _ChatsCupertino extends State<ChatsCupertino> {
               ),
             ),
           ),
-          child: Center(child: Text("ccc")),
+          child: SafeArea(
+            child: Column(
+              children: [
+                // Мягкий баннер-объяснение о разрешении на уведомления. Виден, только
+                // пока разрешения нет и пользователь его не закрыл.
+                BlocSelector<ChatsCubit, ChatsState, bool>(
+                  selector: (state) => state.showNotificationsBanner,
+                  builder: (context, show) {
+                    if (!show) return const SizedBox.shrink();
+                    return PermissionBannerCupertino(
+                      icon: HugeIcons.strokeRoundedNotification03,
+                      title: context.t.screenChats.notificationPermissionTitle,
+                      message: context.t.screenChats.notificationPermissionMessage,
+                      actionLabel: context.t.screenChats.allowAccess,
+                      onAction: () => context.read<ChatsCubit>().requestNotificationPermission(),
+                      onDismiss: () => context.read<ChatsCubit>().dismissNotificationsBanner(),
+                    );
+                  },
+                ),
+                const Expanded(child: Center(child: Text("ccc"))),
+              ],
+            ),
+          ),
         );
       },
     );

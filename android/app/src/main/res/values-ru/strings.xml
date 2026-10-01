@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="notification_channel_messages">Личные чаты</string>
+    <string name="notification_channel_groups">Группы</string>
+    <string name="notification_channel_other">Прочее</string>
+    <string name="notification_channel_other_description">Новые контакты, тестовые уведомления</string>
+
+    <string name="push_test_title">Iperon</string>
+    <string name="push_test_body">Тестовое уведомление: доставка пушей работает.</string>
+</resources>

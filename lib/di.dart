@@ -73,6 +73,6 @@ Future<void> unregisterCommonDependencies() async {
   if (getIt.isRegistered<Crypto>()) await getIt.unregister<Crypto>();
   if (getIt.isRegistered<CDNManager>()) await getIt.unregister<CDNManager>();
   if (getIt.isRegistered<Calls>()) await getIt.unregister<Calls>();
-  if (getIt.isRegistered<PushManager>()) await getIt.unregister<PushManager>();
+  if (getIt.isRegistered<PushManager>()) await getIt.unregister<PushManager>(disposingFunction: (push) => push.dispose());
   if (getIt.isRegistered<CallPush>()) await getIt.unregister<CallPush>();
 }

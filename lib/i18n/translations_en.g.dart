@@ -195,6 +195,15 @@ class Translations$screenChats$en {
 
 	/// en: 'Chats'
 	String get chats => 'Chats';
+
+	/// en: 'Turn on notifications'
+	String get notificationPermissionTitle => 'Turn on notifications';
+
+	/// en: 'Allow notifications to hear about new messages and contacts even when Iperon is in the background.'
+	String get notificationPermissionMessage => 'Allow notifications to hear about new messages and contacts even when Iperon is in the background.';
+
+	/// en: 'Allow'
+	String get allowAccess => 'Allow';
 }
 
 // Path: screenSettings
@@ -252,6 +261,18 @@ class Translations$screenDeveloper$en {
 
 	/// en: 'Call screen preview'
 	String get callPreview => 'Call screen preview';
+
+	/// en: 'Test notification'
+	String get testPush => 'Test notification';
+
+	/// en: 'Sent: APNs — {apns}, FCM — {fcm}, failed — {failed}. Minimize the app or lock the screen to check background delivery.'
+	String testPushSent({required Object apns, required Object fcm, required Object failed}) => 'Sent: APNs — ${apns}, FCM — ${fcm}, failed — ${failed}. Minimize the app or lock the screen to check background delivery.';
+
+	/// en: 'None of your devices has a push token. Make sure notifications are allowed and restart the app.'
+	String get testPushNoTokens => 'None of your devices has a push token. Make sure notifications are allowed and restart the app.';
+
+	/// en: 'Failed to send: {error}'
+	String testPushError({required Object error}) => 'Failed to send: ${error}';
 }
 
 // Path: screenSettingsAppearance
@@ -1474,6 +1495,9 @@ extension on Translations {
 			'screenHome.chats' => _root.screenChats.chats,
 			'screenHome.settings' => _root.screenSettings.settings,
 			'screenChats.chats' => 'Chats',
+			'screenChats.notificationPermissionTitle' => 'Turn on notifications',
+			'screenChats.notificationPermissionMessage' => 'Allow notifications to hear about new messages and contacts even when Iperon is in the background.',
+			'screenChats.allowAccess' => 'Allow',
 			'screenSettings.settings' => 'Settings',
 			'screenSettings.myProfile' => 'My profile',
 			'screenSettings.devices' => _root.screenSettingsDevices.devices,
@@ -1487,6 +1511,10 @@ extension on Translations {
 			'screenDeveloper.logs' => _root.screenSettings.logs,
 			'screenDeveloper.exportLogs' => 'Export logs',
 			'screenDeveloper.callPreview' => 'Call screen preview',
+			'screenDeveloper.testPush' => 'Test notification',
+			'screenDeveloper.testPushSent' => ({required Object apns, required Object fcm, required Object failed}) => 'Sent: APNs — ${apns}, FCM — ${fcm}, failed — ${failed}. Minimize the app or lock the screen to check background delivery.',
+			'screenDeveloper.testPushNoTokens' => 'None of your devices has a push token. Make sure notifications are allowed and restart the app.',
+			'screenDeveloper.testPushError' => ({required Object error}) => 'Failed to send: ${error}',
 			'screenSettingsAppearance.appearance' => 'Appearance',
 			'screenSettingsAppearance.colorTheme' => 'Color theme',
 			'screenSettingsAppearance.colorThemeDefault' => 'Default',

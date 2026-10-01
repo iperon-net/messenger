@@ -27,6 +27,7 @@ import 'api.dart';
 import 'calls.dart';
 import 'cubit.dart';
 import 'di.dart';
+import 'push.dart';
 import 'i18n/translations.g.dart';
 import 'logger.dart';
 import 'models.dart';
@@ -140,6 +141,8 @@ class _IperonMessengerMaterial extends State<IperonMessengerMaterial> with Widge
       case AppLifecycleState.resumed:
         setState(() => isBlur = false);
         api.setForeground(true);
+        // Push-токен мог смениться, пока приложение было в фоне/выгружено.
+        unawaited(getIt.get<PushManager>().syncTokens());
         context.read<CommonCubit>().onAppResumed();
       case AppLifecycleState.paused:
       case AppLifecycleState.hidden:

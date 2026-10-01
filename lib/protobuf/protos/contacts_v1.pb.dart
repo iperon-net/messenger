@@ -480,9 +480,11 @@ class ContactsUpsert_Request extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   $pb.PbList<ContactsUpsert_Item> get items => $_getList(0);
 
-  /// true → полный доступ к книге: заменить весь OPRF-набор владельца (удалить
-  /// рёбра source=OPRF, чьих oprf нет в items). false → только добавить/обновить
-  /// (iOS limited-доступ, ручное добавление) — ничего не удаляем.
+  /// true → полный доступ к книге: заменить OPRF-набор книги ЭТОГО устройства
+  /// (отвязать устройство от рёбер source=OPRF, чьих oprf нет в items; удаляются
+  /// лишь рёбра, не оставшиеся ни в одной книге владельца; облачные — никогда).
+  /// false → только добавить/обновить (iOS limited-доступ, ручное добавление) —
+  /// ничего не удаляем.
   @$pb.TagNumber(2)
   $core.bool get full => $_getBF(1);
   @$pb.TagNumber(2)

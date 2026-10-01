@@ -108,11 +108,11 @@ Future<void> main() async {
     settingsDevice = settingsDevice.copyWith(locale: appLocale);
   }
 
-  // Регистрируем push-токен устройства (Android FCM) для побудки входящих
-  // звонков при закрытом стриме. Fire-and-forget и само-гейтится на авторизацию;
-  // на iOS — no-op (там VoIP-токен приходит из нативного PushKit). См.
-  // docs/plans/melodic-beaming-elephant.md.
-  unawaited(getIt.get<PushManager>().syncFcmToken());
+  // Регистрируем push-токены устройства (Android FCM, iOS APNs) для побудки
+  // входящих звонков и уведомлений при закрытом стриме. Fire-and-forget и
+  // само-гейтится на авторизацию; VoIP-токен iOS синхронизирует CallPush. См.
+  // docs/plans/push-notifications.md.
+  unawaited(getIt.get<PushManager>().start());
 
   // Мост call-пуш → нативный входящий (CallKit/ConnectionService) → Calls.
   getIt.get<CallPush>().start();

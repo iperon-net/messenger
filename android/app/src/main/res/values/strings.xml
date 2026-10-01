@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Каналы уведомлений (NotificationChannels.kt). Имена видны в системных
+         настройках уведомлений приложения. -->
+    <string name="notification_channel_messages">Private chats</string>
+    <string name="notification_channel_groups">Groups</string>
+    <string name="notification_channel_other">Other</string>
+    <string name="notification_channel_other_description">New contacts, test notifications</string>
+
+    <!-- Тестовый push (экран «Разработчик», PUSH_TEST). -->
+    <string name="push_test_title">Iperon</string>
+    <string name="push_test_body">Test notification: push delivery works.</string>
+</resources>

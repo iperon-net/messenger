@@ -139,6 +139,9 @@ class _Translations$screenChats$ru extends Translations$screenChats$en {
 
 	// Translations
 	@override String get chats => 'Чаты';
+	@override String get notificationPermissionTitle => 'Включите уведомления';
+	@override String get notificationPermissionMessage => 'Разрешите уведомления, чтобы узнавать о новых сообщениях и контактах, даже когда Iperon свёрнут.';
+	@override String get allowAccess => 'Разрешить';
 }
 
 // Path: screenSettings
@@ -170,6 +173,10 @@ class _Translations$screenDeveloper$ru extends Translations$screenDeveloper$en {
 	@override String get logs => _root.screenSettings.logs;
 	@override String get exportLogs => 'Экспорт логов';
 	@override String get callPreview => 'Превью экрана звонка';
+	@override String get testPush => 'Тестовое уведомление';
+	@override String testPushSent({required Object apns, required Object fcm, required Object failed}) => 'Отправлено: APNs — ${apns}, FCM — ${fcm}, ошибок — ${failed}. Сверните приложение или заблокируйте экран, чтобы проверить доставку в фоне.';
+	@override String get testPushNoTokens => 'Ни у одного вашего устройства нет push-токена. Проверьте, что уведомления разрешены, и перезапустите приложение.';
+	@override String testPushError({required Object error}) => 'Не удалось отправить: ${error}';
 }
 
 // Path: screenSettingsAppearance
@@ -739,6 +746,9 @@ extension on TranslationsRu {
 			'screenHome.chats' => _root.screenChats.chats,
 			'screenHome.settings' => _root.screenSettings.settings,
 			'screenChats.chats' => 'Чаты',
+			'screenChats.notificationPermissionTitle' => 'Включите уведомления',
+			'screenChats.notificationPermissionMessage' => 'Разрешите уведомления, чтобы узнавать о новых сообщениях и контактах, даже когда Iperon свёрнут.',
+			'screenChats.allowAccess' => 'Разрешить',
 			'screenSettings.settings' => 'Настройки',
 			'screenSettings.myProfile' => 'Мой профиль',
 			'screenSettings.devices' => _root.screenSettingsDevices.devices,
@@ -752,6 +762,10 @@ extension on TranslationsRu {
 			'screenDeveloper.logs' => _root.screenSettings.logs,
 			'screenDeveloper.exportLogs' => 'Экспорт логов',
 			'screenDeveloper.callPreview' => 'Превью экрана звонка',
+			'screenDeveloper.testPush' => 'Тестовое уведомление',
+			'screenDeveloper.testPushSent' => ({required Object apns, required Object fcm, required Object failed}) => 'Отправлено: APNs — ${apns}, FCM — ${fcm}, ошибок — ${failed}. Сверните приложение или заблокируйте экран, чтобы проверить доставку в фоне.',
+			'screenDeveloper.testPushNoTokens' => 'Ни у одного вашего устройства нет push-токена. Проверьте, что уведомления разрешены, и перезапустите приложение.',
+			'screenDeveloper.testPushError' => ({required Object error}) => 'Не удалось отправить: ${error}',
 			'screenSettingsAppearance.appearance' => 'Оформление',
 			'screenSettingsAppearance.colorTheme' => 'Цветовая тема',
 			'screenSettingsAppearance.colorThemeDefault' => 'По умолчанию',

@@ -11,11 +11,19 @@ option go_package = "internal/api/v1";
 // задаётся TokenType: одно устройство может зарегистрировать и FCM (для data-
 // побудки на Android), и APNS_VOIP (для CallKit на iOS). Пустой token стирает
 // ранее сохранённый токен этого типа (разлогин/отзыв).
+//
+// iOS регистрирует два APNs-токена: APNS_VOIP (PushKit, звонки) и APNS (обычные
+// alert-уведомления). Оба привязаны к окружению APNs: debug-сборка получает
+// sandbox-токен (development gateway), TestFlight/App Store — production. Сервер
+// выбирает gateway по полю sandbox; не задано (старые клиенты) — дефолт из
+// конфига сервера (push.apns.production).
 message RegisterPushToken {
   message Request {
     string token = 1;
     TokenType type = 2;
     Platform platform = 3;
+    // Только для APNS/APNS_VOIP: true — токен development-окружения APNs.
+    optional bool sandbox = 4;
   }
 
   message Response {}
@@ -23,6 +31,7 @@ message RegisterPushToken {
   enum TokenType {
     FCM = 0;       // Android FCM high-priority data-message.
     APNS_VOIP = 1; // iOS PushKit VoIP через APNs (обязателен для CallKit).
+    APNS = 2;      // iOS обычные alert-уведомления через APNs (topic = bundleID).
   }
 
   enum Platform {

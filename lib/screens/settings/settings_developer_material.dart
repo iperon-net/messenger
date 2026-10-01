@@ -8,11 +8,12 @@ import '../../components.dart';
 import '../../di.dart';
 import '../../logger.dart';
 import 'developer_export_logs.dart';
+import 'developer_test_push.dart';
 
 /// Скрытый экран «Разработчик». Открывается 5 быстрыми тапами по кнопке
 /// «Настройки» в нижнем таб-баре (см. `HomeMaterial`), в обычном меню настроек
-/// не показан. Пока один раздел — «Логи»; в будущем добавятся другие
-/// диагностические разделы.
+/// не показан. Разделы: «Логи», экспорт логов, тестовое уведомление (проверка
+/// доставки APNs/FCM — нужна и в TestFlight-сборке, поэтому без kDebugMode).
 class SettingsDeveloperMaterial extends StatelessWidget {
   const SettingsDeveloperMaterial({super.key});
 
@@ -47,6 +48,19 @@ class SettingsDeveloperMaterial extends StatelessWidget {
                       }
                     },
                     isTrailing: true,
+                  ),
+                  MaterialListTileIcon(
+                    title: Text(context.t.screenDeveloper.testPush),
+                    color: const Color(0xFFFF3B30),
+                    icon: FontAwesomeIcons.bell,
+                    onTab: () async {
+                      final message = await sendTestPush(context.t);
+                      if (!context.mounted) return;
+                      ScaffoldMessenger.of(context)
+                        ..hideCurrentSnackBar()
+                        ..showSnackBar(SnackBar(content: Text(message)));
+                    },
+                    isTrailing: false,
                   ),
                   if (kDebugMode)
                     MaterialListTileIcon(

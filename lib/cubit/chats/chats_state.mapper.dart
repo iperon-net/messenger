@@ -29,12 +29,35 @@ class ChatsStateMapper extends ClassMapperBase<ChatsState> {
     opt: true,
     def: Status.initialization,
   );
+  static bool _$notificationsMissing(ChatsState v) => v.notificationsMissing;
+  static const Field<ChatsState, bool> _f$notificationsMissing = Field(
+    'notificationsMissing',
+    _$notificationsMissing,
+    opt: true,
+    def: false,
+  );
+  static bool _$notificationsBannerDismissed(ChatsState v) =>
+      v.notificationsBannerDismissed;
+  static const Field<ChatsState, bool> _f$notificationsBannerDismissed = Field(
+    'notificationsBannerDismissed',
+    _$notificationsBannerDismissed,
+    opt: true,
+    def: false,
+  );
 
   @override
-  final MappableFields<ChatsState> fields = const {#status: _f$status};
+  final MappableFields<ChatsState> fields = const {
+    #status: _f$status,
+    #notificationsMissing: _f$notificationsMissing,
+    #notificationsBannerDismissed: _f$notificationsBannerDismissed,
+  };
 
   static ChatsState _instantiate(DecodingData data) {
-    return ChatsState(status: data.dec(_f$status));
+    return ChatsState(
+      status: data.dec(_f$status),
+      notificationsMissing: data.dec(_f$notificationsMissing),
+      notificationsBannerDismissed: data.dec(_f$notificationsBannerDismissed),
+    );
   }
 
   @override
@@ -97,7 +120,11 @@ extension ChatsStateValueCopy<$R, $Out>
 
 abstract class ChatsStateCopyWith<$R, $In extends ChatsState, $Out>
     implements ClassCopyWith<$R, $In, $Out> {
-  $R call({Status? status});
+  $R call({
+    Status? status,
+    bool? notificationsMissing,
+    bool? notificationsBannerDismissed,
+  });
   ChatsStateCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
 
@@ -110,11 +137,31 @@ class _ChatsStateCopyWithImpl<$R, $Out>
   late final ClassMapperBase<ChatsState> $mapper =
       ChatsStateMapper.ensureInitialized();
   @override
-  $R call({Status? status}) =>
-      $apply(FieldCopyWithData({if (status != null) #status: status}));
+  $R call({
+    Status? status,
+    bool? notificationsMissing,
+    bool? notificationsBannerDismissed,
+  }) => $apply(
+    FieldCopyWithData({
+      if (status != null) #status: status,
+      if (notificationsMissing != null)
+        #notificationsMissing: notificationsMissing,
+      if (notificationsBannerDismissed != null)
+        #notificationsBannerDismissed: notificationsBannerDismissed,
+    }),
+  );
   @override
-  ChatsState $make(CopyWithData data) =>
-      ChatsState(status: data.get(#status, or: $value.status));
+  ChatsState $make(CopyWithData data) => ChatsState(
+    status: data.get(#status, or: $value.status),
+    notificationsMissing: data.get(
+      #notificationsMissing,
+      or: $value.notificationsMissing,
+    ),
+    notificationsBannerDismissed: data.get(
+      #notificationsBannerDismissed,
+      or: $value.notificationsBannerDismissed,
+    ),
+  );
 
   @override
   ChatsStateCopyWith<$R2, ChatsState, $Out2> $chain<$R2, $Out2>(

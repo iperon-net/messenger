@@ -20,6 +20,7 @@ import 'api.dart';
 import 'calls.dart';
 import 'cubit.dart';
 import 'di.dart';
+import 'push.dart';
 import 'i18n/translations.g.dart';
 import 'logger.dart';
 import 'models.dart';
@@ -139,6 +140,8 @@ class _IperonMessengerCupertino extends State<IperonMessengerCupertino> with Wid
 
         // Приложение снова на переднем плане — стрим поднимется через координатор.
         api.setForeground(true);
+        // Push-токен мог смениться, пока приложение было в фоне/выгружено.
+        unawaited(getIt.get<PushManager>().syncTokens());
         // Проверяем, не пора ли заблокировать экран по таймауту авто-блокировки.
         context.read<CommonCubit>().onAppResumed();
       case AppLifecycleState.paused:

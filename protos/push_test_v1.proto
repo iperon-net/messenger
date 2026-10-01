@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package iperon.v1;
+option go_package = "internal/api/v1";
+
+// PushTest — отладочный push на все устройства вызывающего пользователя (включая
+// текущее), минуя presence-гейт. Нужен, чтобы проверить доставку APNs/FCM на
+// реальных устройствах (экран «Разработчик»). Ответ — сколько уникальных
+// токенов было адресовано и сколько отправок прошло/упало.
+message PushTest {
+  message Request {}
+
+  message Response {
+    int32 apnsSent = 1;
+    int32 fcmSent = 2;
+    int32 failed = 3;
+  }
+}

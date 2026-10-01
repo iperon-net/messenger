@@ -34,6 +34,9 @@
 
 "screenChats":
   "chats": "Чаты"
+  "notificationPermissionTitle": "Включите уведомления"
+  "notificationPermissionMessage": "Разрешите уведомления, чтобы узнавать о новых сообщениях и контактах, даже когда Iperon свёрнут."
+  "allowAccess": "Разрешить"
 
 "screenSettings":
   "settings": "Настройки"
@@ -51,6 +54,10 @@
   "logs": "@:screenSettings.logs"
   "exportLogs": "Экспорт логов"
   "callPreview": "Превью экрана звонка"
+  "testPush": "Тестовое уведомление"
+  "testPushSent": "Отправлено: APNs — {apns}, FCM — {fcm}, ошибок — {failed}. Сверните приложение или заблокируйте экран, чтобы проверить доставку в фоне."
+  "testPushNoTokens": "Ни у одного вашего устройства нет push-токена. Проверьте, что уведомления разрешены, и перезапустите приложение."
+  "testPushError": "Не удалось отправить: {error}"
 
 "screenSettingsAppearance":
   "appearance": "Оформление"

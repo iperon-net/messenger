@@ -1,0 +1,5 @@
+/* Alert-пуши: текст подставляет система по aps.alert.loc-key / title-loc-key
+   (сервер не знает язык устройства). См. internal/services/push.go. */
+"PUSH_TEST_TITLE" = "Iperon";
+"PUSH_TEST_BODY" = "Test notification: push delivery works.";
+"PUSH_FALLBACK_BODY" = "New notification";

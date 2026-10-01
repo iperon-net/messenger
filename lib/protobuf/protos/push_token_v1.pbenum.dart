@@ -17,13 +17,15 @@ import 'package:protobuf/protobuf.dart' as $pb;
 class RegisterPushToken_TokenType extends $pb.ProtobufEnum {
   static const RegisterPushToken_TokenType FCM = RegisterPushToken_TokenType._(0, _omitEnumNames ? '' : 'FCM');
   static const RegisterPushToken_TokenType APNS_VOIP = RegisterPushToken_TokenType._(1, _omitEnumNames ? '' : 'APNS_VOIP');
+  static const RegisterPushToken_TokenType APNS = RegisterPushToken_TokenType._(2, _omitEnumNames ? '' : 'APNS');
 
   static const $core.List<RegisterPushToken_TokenType> values = <RegisterPushToken_TokenType>[
     FCM,
     APNS_VOIP,
+    APNS,
   ];
 
-  static final $core.List<RegisterPushToken_TokenType?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 1);
+  static final $core.List<RegisterPushToken_TokenType?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 2);
   static RegisterPushToken_TokenType? valueOf($core.int value) => value < 0 || value >= _byValue.length ? null : _byValue[value];
 
   const RegisterPushToken_TokenType._(super.value, super.name);

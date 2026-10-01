@@ -25,11 +25,13 @@ class RegisterPushToken_Request extends $pb.GeneratedMessage {
     $core.String? token,
     RegisterPushToken_TokenType? type,
     RegisterPushToken_Platform? platform,
+    $core.bool? sandbox,
   }) {
     final result = create();
     if (token != null) result.token = token;
     if (type != null) result.type = type;
     if (platform != null) result.platform = platform;
+    if (sandbox != null) result.sandbox = sandbox;
     return result;
   }
 
@@ -46,6 +48,7 @@ class RegisterPushToken_Request extends $pb.GeneratedMessage {
     ..aOS(1, _omitFieldNames ? '' : 'token')
     ..aE<RegisterPushToken_TokenType>(2, _omitFieldNames ? '' : 'type', enumValues: RegisterPushToken_TokenType.values)
     ..aE<RegisterPushToken_Platform>(3, _omitFieldNames ? '' : 'platform', enumValues: RegisterPushToken_Platform.values)
+    ..aOB(4, _omitFieldNames ? '' : 'sandbox')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -92,6 +95,16 @@ class RegisterPushToken_Request extends $pb.GeneratedMessage {
   $core.bool hasPlatform() => $_has(2);
   @$pb.TagNumber(3)
   void clearPlatform() => $_clearField(3);
+
+  /// Только для APNS/APNS_VOIP: true — токен development-окружения APNs.
+  @$pb.TagNumber(4)
+  $core.bool get sandbox => $_getBF(3);
+  @$pb.TagNumber(4)
+  set sandbox($core.bool value) => $_setBool(3, value);
+  @$pb.TagNumber(4)
+  $core.bool hasSandbox() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearSandbox() => $_clearField(4);
 }
 
 class RegisterPushToken_Response extends $pb.GeneratedMessage {
@@ -136,6 +149,12 @@ class RegisterPushToken_Response extends $pb.GeneratedMessage {
 /// задаётся TokenType: одно устройство может зарегистрировать и FCM (для data-
 /// побудки на Android), и APNS_VOIP (для CallKit на iOS). Пустой token стирает
 /// ранее сохранённый токен этого типа (разлогин/отзыв).
+///
+/// iOS регистрирует два APNs-токена: APNS_VOIP (PushKit, звонки) и APNS (обычные
+/// alert-уведомления). Оба привязаны к окружению APNs: debug-сборка получает
+/// sandbox-токен (development gateway), TestFlight/App Store — production. Сервер
+/// выбирает gateway по полю sandbox; не задано (старые клиенты) — дефолт из
+/// конфига сервера (push.apns.production).
 class RegisterPushToken extends $pb.GeneratedMessage {
   factory RegisterPushToken() => create();
 

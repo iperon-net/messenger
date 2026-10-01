@@ -13,6 +13,8 @@
         android:maxSdkVersion="32" />
     <!-- local_auth: биометрическая разблокировка (отпечаток/лицо) -->
     <uses-permission android:name="android.permission.USE_BIOMETRIC" />
+    <!-- Android 13+: показ уведомлений (сообщения, тестовый push, входящие). -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <!-- flutter_webrtc: голосовые/видеозвонки (микрофон, камера, аудио-роутинг,
          состояние сети для ICE). -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
