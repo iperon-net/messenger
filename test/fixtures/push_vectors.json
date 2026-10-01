@@ -1,0 +1,14 @@
+{
+  "comment": "Тест-векторы шифрования push-уведомлений (поле p, см. protos/push_payload_v1.proto и internal/crypto/push.go). Эталон — сервер internal/crypto/testdata/push_vectors.json, копия — клиент test/fixtures/push_vectors.json; Swift (NSE) и Kotlin (FCM-сервис) должны расшифровывать эти p.",
+  "vectors": [
+    {
+      "sharedKey": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
+      "sharedSalt": "a0a1a2a3a4a5a6a7a8a9aaabacadaeaf",
+      "session": "f0e1d2c3b4a5968778695a4b3c2d1e0ff0e1d2c3b4a5968778695a4b3c2d1e0f",
+      "nonce": "101112131415161718191a1b",
+      "pushKey": "fac4d3c4b495bb39f22547a8a4523b101afb4b14b0be6697edeb49b474d1ee9e",
+      "plaintext": "697065726f6e2070757368207465737420766563746f72",
+      "p": "AfDh0sO0pZaHEBESExQVFhcYGRob3C1EyNxtSLOzA7SedjwVL9v5lPhv8jz1YdImpGRAZRygq/RMBaLI"
+    }
+  ]
+}

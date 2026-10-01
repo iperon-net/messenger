@@ -1,0 +1,46 @@
+syntax = "proto3";
+
+package iperon.v1;
+option go_package = "internal/api/v1";
+
+// PushPayload — содержимое push-уведомления. По gRPC не ходит: сервер шифрует
+// его ключом сессии получателя и кладёт в поле `p` пуша (APNs — рядом с `aps`,
+// FCM — в data). Расшифровывает устройство (iOS — Notification Service
+// Extension, Android — FCM-сервис), Apple/Google содержимого не видят.
+//
+// Формат `p` (base64 standard):
+//   header = version(1 байт, =1) || session[0:8] || nonce(12)
+//   key    = HKDF-SHA256(ikm = sharedKey, salt = sharedSalt, info = "iperon-push-v1"), 32 байта
+//   p      = base64(header || AES-256-GCM(key, nonce, plaintext = PushPayload, aad = header))
+// session[0:8] — первые 8 байт 32-байтного идентификатора сессии (session.session
+// на клиенте): по нему устройство выбирает ключ (задел под несколько аккаунтов).
+// См. docs/plans/push-notifications.md.
+message PushPayload {
+  enum Kind {
+    UNKNOWN = 0;
+    TEST = 1;            // тестовое (экран «Разработчик»), текст — на клиенте
+    CONTACT_JOINED = 2;  // контакт из книги зарегистрировался
+    CALL_MISSED = 3;     // пропущенный звонок (только iOS)
+    MESSAGE = 10;        // новое сообщение (этап 7)
+    READ_HISTORY = 11;   // прочитано на другом устройстве — снять (тихий)
+    MESSAGE_DELETED = 12; // сообщения удалены — снять (тихий)
+  }
+
+  Kind kind = 1;
+  // Идентификатор уведомления: им же помечается системное уведомление
+  // (iOS request identifier, Android tag) — повтор доставки заменяет, а не
+  // дублирует; по нему же уведомление потом снимают.
+  string id = 2;
+  bytes fromUserID = 3;
+  bytes chatID = 4;
+  int64 messageID = 5;
+  // Готовый заголовок (имя отправителя: из облачного контакта, профиля или
+  // номер). Пусто — клиент подставит свой (например, для TEST).
+  string title = 6;
+  // Текст. Пусто — без превью (настройки/код-пароль) или текст строит клиент.
+  string body = 7;
+  repeated string args = 8;
+  int32 badge = 9;       // 0 — не трогать
+  int64 date = 10;       // unix millis события
+  repeated int64 messageIDs = 11; // READ_HISTORY / MESSAGE_DELETED
+}

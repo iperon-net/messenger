@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package iperon.v1;
+option go_package = "internal/api/v1";
+
+// AppState — клиент сообщает по стриму, что приложение ушло в фон (foreground =
+// false, сразу на paused, пока стрим ещё жив) или вернулось (true). Сервер по
+// нему сразу снимает/ставит presence сессии: push-уведомления гейтятся по
+// presence, а без явного сигнала свёрнутая сессия числится онлайн до обрыва
+// стрима по keepalive (~25 с) — уведомления за это окно терялись бы.
+message AppState {
+  message Request {
+    bool foreground = 1;
+  }
+
+  message Response {}
+}
