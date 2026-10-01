@@ -212,6 +212,20 @@ class _AuthCupertinoScreen extends State<AuthCupertinoScreen> {
                       children: [
                         GestureDetector(
                           behavior: HitTestBehavior.opaque,
+                          onTap: signInBusy != null ? null : () => _onSignIn(_SignInProvider.yandex),
+                          child: SizedBox(
+                            width: 42,
+                            height: 42,
+                            child: signInBusy == _SignInProvider.yandex
+                                ? Container(
+                                    decoration: BoxDecoration(color: const Color(0xFFFC3F1D), borderRadius: BorderRadius.circular(8)),
+                                    child: const Center(child: CupertinoActivityIndicator(color: Color(0xffffffff))),
+                                  )
+                                : SvgPicture.asset('assets/images/yandex_id.svg', width: 42, height: 42),
+                          ),
+                        ),
+                        GestureDetector(
+                          behavior: HitTestBehavior.opaque,
                           onTap: signInBusy != null ? null : () => _onSignIn(_SignInProvider.passkey),
                           child: Container(
                             width: 42,
@@ -226,20 +240,6 @@ class _AuthCupertinoScreen extends State<AuthCupertinoScreen> {
                                       theme: const SvgTheme(currentColor: Colors.white),
                                     ),
                             ),
-                          ),
-                        ),
-                        GestureDetector(
-                          behavior: HitTestBehavior.opaque,
-                          onTap: signInBusy != null ? null : () => _onSignIn(_SignInProvider.yandex),
-                          child: SizedBox(
-                            width: 42,
-                            height: 42,
-                            child: signInBusy == _SignInProvider.yandex
-                                ? Container(
-                                    decoration: BoxDecoration(color: const Color(0xFFFC3F1D), borderRadius: BorderRadius.circular(11.5)),
-                                    child: const Center(child: CupertinoActivityIndicator(color: Color(0xffffffff))),
-                                  )
-                                : SvgPicture.asset('assets/images/yandex_id.svg', width: 42, height: 42),
                           ),
                         ),
                       ],

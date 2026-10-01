@@ -200,6 +200,26 @@ class _AuthMaterialScreen extends State<AuthMaterialScreen> {
                       children: [
                         GestureDetector(
                           behavior: HitTestBehavior.opaque,
+                          onTap: signInBusy != null ? null : () => _onSignIn(_SignInProvider.yandex),
+                          child: SizedBox(
+                            width: 42,
+                            height: 42,
+                            child: signInBusy == _SignInProvider.yandex
+                                ? Container(
+                                    decoration: BoxDecoration(color: const Color(0xFFFC3F1D), borderRadius: BorderRadius.circular(8)),
+                                    child: const Center(
+                                      child: SizedBox(
+                                        width: 20,
+                                        height: 20,
+                                        child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xffffffff)),
+                                      ),
+                                    ),
+                                  )
+                                : SvgPicture.asset('assets/images/yandex_id.svg', width: 42, height: 42),
+                          ),
+                        ),
+                        GestureDetector(
+                          behavior: HitTestBehavior.opaque,
                           onTap: signInBusy != null ? null : () => _onSignIn(_SignInProvider.passkey),
                           child: Container(
                             width: 42,
@@ -218,26 +238,6 @@ class _AuthMaterialScreen extends State<AuthMaterialScreen> {
                                       theme: const SvgTheme(currentColor: Colors.white),
                                     ),
                             ),
-                          ),
-                        ),
-                        GestureDetector(
-                          behavior: HitTestBehavior.opaque,
-                          onTap: signInBusy != null ? null : () => _onSignIn(_SignInProvider.yandex),
-                          child: SizedBox(
-                            width: 42,
-                            height: 42,
-                            child: signInBusy == _SignInProvider.yandex
-                                ? Container(
-                                    decoration: BoxDecoration(color: const Color(0xFFFC3F1D), borderRadius: BorderRadius.circular(11.5)),
-                                    child: const Center(
-                                      child: SizedBox(
-                                        width: 20,
-                                        height: 20,
-                                        child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xffffffff)),
-                                      ),
-                                    ),
-                                  )
-                                : SvgPicture.asset('assets/images/yandex_id.svg', width: 42, height: 42),
                           ),
                         ),
                       ],
