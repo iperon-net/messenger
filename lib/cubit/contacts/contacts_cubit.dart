@@ -85,6 +85,13 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
     // Реконнект стрима присылает снимок заново — так освежается «залипший» онлайн
     // после жёсткого обрыва контакта (offline-push в этом случае не приходит).
     _presenceSub = api.on(MessageType.PRESENCE).listen(_onPresencePush);
+    // Догоняем облачный список при (пере)подключении стрима, но не чаще раза в
+    // [_cloudSyncInterval]: разовый CONTACTS_LIST в bootstrap() мог упасть (сразу
+    // после входа канал ещё поднимается) — тогда синка нет и тянем сразу; а
+    // push'и CONTACTS_UPDATED, потерянные пока стрим лежал (фон), подхватываем
+    // по истечении интервала, не дёргая сервер на каждом возврате из фона.
+    _streamDown = api.connectionStatus == ApiConnectionStatus.connecting;
+    _connectionSub = api.connectionStatusStream.listen(_onConnectionStatus);
     // Набор локально скрытых профилей: читаем сразу и перечитываем по сигналу
     // (пользователь скрыл/показал профиль на отдельном экране — эта вкладка
     // живёт в IndexedStack и сама бы не обновилась).
@@ -144,6 +151,18 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
   // онлайн). Наполняется [refreshPresence], сливается в элементы в [_emitAll].
   final Map<String, ({bool online, DateTime? lastSeen})> _presence = {};
   StreamSubscription<Uint8List>? _presenceSub;
+
+  // Переход стрима connecting → updating/connected запускает [_fetchCloud], если
+  // успешного синка ещё не было или он старше [_cloudSyncInterval].
+  static const _cloudSyncInterval = Duration(hours: 1);
+  StreamSubscription<ApiConnectionStatus>? _connectionSub;
+  bool _streamDown = true;
+  DateTime? _cloudSyncedAt;
+
+  // Один CONTACTS_LIST за раз; запрос, пришедший во время текущего, повторяет
+  // его после завершения (вдруг текущий упал из-за ещё не поднятого канала).
+  bool _fetchingCloud = false;
+  bool _fetchCloudAgain = false;
 
   // Подписка на изменения набора скрытых профилей.
   StreamSubscription<void>? _hiddenSub;
@@ -337,6 +356,7 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
     _bookChangeSub?.cancel();
     _updatedSub?.cancel();
     _presenceSub?.cancel();
+    _connectionSub?.cancel();
     _hiddenSub?.cancel();
     return super.close();
   }
@@ -548,9 +568,42 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
   /// Тянет полный список облачных контактов владельца (`CONTACTS_LIST`), заменяет
   /// локальную облачную книгу и снимок. Ошибка сети не критична — остаёмся на кэше.
   Future<void> _fetchCloud() async {
-    final (status, payload) = await api.unaryEncodedWithResponse(MessageType.CONTACTS_LIST, ContactsList_Request().writeToBuffer());
-    if (isClosed || status.status != APIStatus.success || payload == null) return;
+    if (_fetchingCloud) {
+      _fetchCloudAgain = true;
+      return;
+    }
+    _fetchingCloud = true;
+    try {
+      do {
+        _fetchCloudAgain = false;
+        await _fetchCloudOnce();
+      } while (_fetchCloudAgain && !isClosed);
+    } finally {
+      _fetchingCloud = false;
+    }
+  }
 
+  void _onConnectionStatus(ApiConnectionStatus status) {
+    if (status == ApiConnectionStatus.connecting) {
+      _streamDown = true;
+      return;
+    }
+    if (!_streamDown) return;
+    _streamDown = false;
+    final syncedAt = _cloudSyncedAt;
+    if (syncedAt != null && DateTime.now().difference(syncedAt) < _cloudSyncInterval) return;
+    unawaited(_fetchCloud());
+  }
+
+  Future<void> _fetchCloudOnce() async {
+    final (status, payload) = await api.unaryEncodedWithResponse(MessageType.CONTACTS_LIST, ContactsList_Request().writeToBuffer());
+    if (isClosed) return;
+    if (status.status != APIStatus.success || payload == null) {
+      logger.warning('contacts: CONTACTS_LIST failed (${status.statusCode}: ${status.error}), staying on cache');
+      return;
+    }
+
+    _cloudSyncedAt = DateTime.now();
     final response = ContactsList_Response.fromBuffer(payload);
     _cloud
       ..clear()
