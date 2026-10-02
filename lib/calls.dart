@@ -624,7 +624,7 @@ class Calls {
     // Мультидевайс: сообщаем остальным устройствам владельца «принято здесь»,
     // чтобы у них снялся баннер входящего («ответили на другом устройстве»).
     // Шлём на СВОЙ userID; сервер разошлёт CALL_ACCEPT/cancel остальным
-    // устройствам, исключив это (по deviceID сессии). Своя NATS-копия придёт и
+    // устройствам, исключив это (по сессии, deviceID и push-токенам). Своя NATS-копия придёт и
     // сюда, но отсечётся в [_handleSignal] (статус уже не `incoming`).
     // Fire-and-forget: задержка ответа не должна тормозить вход в комнату.
     final selfUserID = auth.session.userID;
@@ -1125,11 +1125,21 @@ class Calls {
         await Future<void>.delayed(Duration(milliseconds: 400 * attempt));
       }
     }
+    // Пока ждали `room.connect`, звонок могли свернуть (отбой собеседника,
+    // cancel-пуш → [_teardown]): тот уже забрал и отключил комнату, обнулил
+    // `_room` и сбросил состояние. Продолжать нечего — иначе `_room!` падал с
+    // «Null check operator used on a null value», а ошибка уходила в catch
+    // вызывающего и запускала второй teardown.
+    final room = _room;
+    if (room == null) {
+      _diag2('room.connect finished after teardown — skip');
+      return;
+    }
+
     _connectingRoom = false;
     _roomConnected = true;
     _dbg('room connected');
 
-    final room = _room!;
     await _publishLocalMedia(video: video);
 
     // Начальный маршрут аудио. Для аудиозвонка ожидается разговорный динамик
