@@ -1,9 +1,13 @@
 package net.iperon.messenger
 
+import android.Manifest
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
+import android.provider.ContactsContract
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -120,12 +124,31 @@ object MessagePushHandler {
     private fun textFor(context: Context, payload: PushPayload, appName: String): Pair<String, String> = when (payload.kind) {
         PushPayload.KIND_TEST -> context.getString(R.string.push_test_title) to
             context.getString(R.string.push_test_encrypted_body)
-        PushPayload.KIND_CONTACT_JOINED -> payload.title.ifEmpty { appName } to
-            context.getString(R.string.push_contact_joined_body)
+        // Как у Telegram — имя из адресной книги устройства (на сервере имён
+        // приватных контактов нет): args[0] — номер в E.164. Нет доступа к
+        // контактам или номера там нет — имя, которое прислал сервер.
+        PushPayload.KIND_CONTACT_JOINED -> (
+            payload.args.firstOrNull()?.let { addressBookName(context, it) } ?: payload.title.ifEmpty { appName }
+            ) to context.getString(R.string.push_contact_joined_body)
         PushPayload.KIND_CALL_MISSED -> payload.title.ifEmpty { appName } to
             context.getString(R.string.push_call_missed_body)
         else -> payload.title.ifEmpty { appName } to
             payload.body.ifEmpty { context.getString(R.string.push_fallback_body) }
+    }
+
+    /// Имя контакта из адресной книги по номеру (PhoneLookup сам нормализует
+    /// форматы). null — нет разрешения READ_CONTACTS, номера нет или ошибка.
+    private fun addressBookName(context: Context, phone: String): String? {
+        if (context.checkSelfPermission(Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED) return null
+        return try {
+            val uri = Uri.withAppendedPath(ContactsContract.PhoneLookup.CONTENT_FILTER_URI, Uri.encode(phone))
+            context.contentResolver.query(uri, arrayOf(ContactsContract.PhoneLookup.DISPLAY_NAME), null, null, null)?.use { cursor ->
+                if (cursor.moveToFirst()) cursor.getString(0)?.takeIf { it.isNotBlank() } else null
+            }
+        } catch (error: Exception) {
+            Log.w(LOG_TAG, "push: address book lookup failed", error)
+            null
+        }
     }
 
     /// MessagingStyle уже показанного уведомления чата — чтобы дописать новое
