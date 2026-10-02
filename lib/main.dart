@@ -112,7 +112,7 @@ Future<void> main() async {
   // входящих звонков и уведомлений при закрытом стриме. Fire-and-forget и
   // само-гейтится на авторизацию; VoIP-токен iOS синхронизирует CallPush. См.
   // docs/plans/push-notifications.md.
-  unawaited(getIt.get<PushManager>().start());
+  unawaited(getIt.get<PushManager>().start(passcodeEnabled: settingsDevice.passcode.isNotEmpty));
 
   // Мост call-пуш → нативный входящий (CallKit/ConnectionService) → Calls.
   getIt.get<CallPush>().start();

@@ -9,9 +9,9 @@ import '../../push.dart';
 /// Используется обоими экранами «Разработчик». Перед отправкой досинхронизирует
 /// токены, чтобы свежий APNs/FCM-токен этого устройства успел попасть на сервер.
 ///
-/// [encrypted] — через серверный конвейер (очередь + зашифрованный `p`): на iOS
-/// до Notification Service Extension показывается фолбэк-текст, Android такие
-/// пуши пока не рисует (этап 4).
+/// [encrypted] — через серверный конвейер (очередь + зашифрованный `p`): Android
+/// расшифровывает и показывает нативно, на iOS до Notification Service Extension
+/// (этап 3) показывается фолбэк-текст.
 Future<String> sendTestPush(Translations t, {bool encrypted = false}) async {
   try {
     final push = getIt.get<PushManager>();

@@ -1,8 +1,11 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
+import 'package:cryptography/cryptography.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 
 import 'api.dart';
 import 'auth.dart';
@@ -30,6 +33,13 @@ import 'repositories.dart';
 /// sandbox-токен, Profile/Release — production. Окружение уходит на сервер
 /// флагом `sandbox`, сервер по нему выбирает gateway.
 ///
+/// Уведомления приходят зашифрованными (поле `p`, см.
+/// `protos/push_payload_v1.proto`). На Android их расшифровывает и показывает
+/// нативный FCM-сервис без Flutter-движка, поэтому ключ расшифровки (HKDF от
+/// sharedKey сессии) и флаг код-пароля отдаём в натив ([_syncPushKey],
+/// [setPasscodeEnabled]) по каналу `net.iperon.messenger/push`; тот же канал
+/// приносит тапы по уведомлениям ([onRoute]). iOS — этап 3 (NSE).
+///
 /// Регистрируется в `get_it` (см. `di.dart`, `dependsOn: [API, Auth]`) как
 /// синглтон. Отправка идемпотентна: последний отправленный токен каждого канала
 /// кэшируется, повтор того же токена на сервер не уходит.
@@ -54,15 +64,43 @@ class PushManager {
   static const _apnsRetryDelay = Duration(seconds: 3);
   static const _apnsRetryAttempts = 5;
 
+  static const _channel = MethodChannel('net.iperon.messenger/push');
+
+  // HKDF info ключа пушей — как на сервере (internal/crypto/push.go).
+  static const _pushKeyInfo = 'iperon-push-v1';
+  static const _pushKeyIdLength = 8;
+
   StreamSubscription<String>? _fcmRefreshSub;
   Timer? _apnsRetryTimer;
   bool _started = false;
 
+  void Function(String route)? _routeHandler;
+  String? _pendingRoute;
+
+  /// Обработчик перехода по тапу на уведомление (ставит корень приложения —
+  /// `goRouter.go`). Тап холодного старта, пришедший раньше обработчика,
+  /// отдаётся сразу при установке.
+  set onRoute(void Function(String route)? handler) {
+    _routeHandler = handler;
+    final pending = _pendingRoute;
+    if (handler != null && pending != null) {
+      _pendingRoute = null;
+      handler(pending);
+    }
+  }
+
   /// Запуск на старте приложения (main.dart): подписки и первичная синхронизация
-  /// токенов. Идемпотентно.
-  Future<void> start() async {
+  /// токенов и ключа расшифровки. [passcodeEnabled] — включён ли код-пароль
+  /// (уведомления тогда без имени и текста). Идемпотентно.
+  Future<void> start({bool passcodeEnabled = false}) async {
     if (!_started) {
       _started = true;
+
+      if (Platform.isAndroid) {
+        _channel.setMethodCallHandler(_onNativeCall);
+        unawaited(setPasscodeEnabled(passcodeEnabled));
+        unawaited(_takeInitialTap());
+      }
 
       // На свежей установке к старту сессии ещё нет — токены не уходят. После
       // логина в том же запуске досылаем их по смене состояния Auth.
@@ -80,7 +118,7 @@ class PushManager {
       }
     }
 
-    await syncTokens();
+    await Future.wait([syncTokens(), _syncPushKey()]);
   }
 
   /// Синхронизирует push-токены уведомлений текущей платформы: FCM на Android,
@@ -96,9 +134,87 @@ class PushManager {
   }
 
   void _onAuthChanged() {
+    unawaited(_syncPushKey());
     if (!auth.isAuthorized) return;
     unawaited(syncTokens());
   }
+
+  /// Отдаёт нативу ключ расшифровки пушей текущей сессии, а на разлогине —
+  /// стирает (пуши старой сессии больше не расшифруются и не покажутся).
+  /// Ключ = HKDF-SHA256(sharedKey, salt, "iperon-push-v1"), keyID — первые 8 байт
+  /// сессии; формат — internal/crypto/push.go на сервере.
+  Future<void> _syncPushKey() async {
+    if (!Platform.isAndroid) return;
+
+    try {
+      final session = auth.session;
+      if (!auth.isAuthorized || session.session.length < _pushKeyIdLength || session.sharedKey.isEmpty) {
+        await _channel.invokeMethod<void>('clearPushKeys');
+        return;
+      }
+
+      final key = await Hkdf(
+        hmac: Hmac.sha256(),
+        outputLength: 32,
+      ).deriveKey(secretKey: SecretKey(session.sharedKey), nonce: session.salt, info: utf8.encode(_pushKeyInfo));
+      await _channel.invokeMethod<void>('setPushKey', {
+        'keyId': Uint8List.fromList(session.session.sublist(0, _pushKeyIdLength)),
+        'key': Uint8List.fromList(await key.extractBytes()),
+      });
+    } catch (error, stackTrace) {
+      logger.handle(error, stackTrace);
+    }
+  }
+
+  /// Включён ли код-пароль: натив тогда показывает уведомления без имени и
+  /// текста. Зовётся на старте и при смене кода (CommonCubit.setPasscode).
+  Future<void> setPasscodeEnabled(bool enabled) async {
+    if (!Platform.isAndroid) return;
+    try {
+      await _channel.invokeMethod<void>('setPasscodeEnabled', enabled);
+    } catch (error, stackTrace) {
+      logger.handle(error, stackTrace);
+    }
+  }
+
+  Future<dynamic> _onNativeCall(MethodCall call) async {
+    if (call.method == 'onNotificationTap') _handleTap(call.arguments);
+    return null;
+  }
+
+  /// Тап холодного старта, отложенный нативом до готовности Dart.
+  Future<void> _takeInitialTap() async {
+    try {
+      final tap = await _channel.invokeMethod<Object?>('takeInitialTap');
+      if (tap != null) _handleTap(tap);
+    } catch (error, stackTrace) {
+      logger.handle(error, stackTrace);
+    }
+  }
+
+  void _handleTap(Object? arguments) {
+    final kind = PushPayload_Kind.valueOf(((arguments as Map?)?['kind'] as int?) ?? 0);
+    final route = routeForKind(kind);
+    logger.info('push: notification tap kind=$kind route=$route');
+    if (route == null) return;
+
+    final handler = _routeHandler;
+    if (handler != null) {
+      handler(route);
+    } else {
+      _pendingRoute = route;
+    }
+  }
+
+  /// Куда вести по тапу. null — просто открыть приложение. Экрана чата пока нет —
+  /// сообщения ведут в список чатов.
+  @visibleForTesting
+  static String? routeForKind(PushPayload_Kind? kind) => switch (kind) {
+    PushPayload_Kind.CONTACT_JOINED => '/contacts',
+    PushPayload_Kind.CALL_MISSED => '/calls',
+    PushPayload_Kind.MESSAGE => '/chats',
+    _ => null,
+  };
 
   /// Android: FCM-токен + подписка на его обновление.
   Future<void> _syncFcmToken() async {

@@ -10,4 +10,12 @@
     <!-- Тестовый push (экран «Разработчик», PUSH_TEST). -->
     <string name="push_test_title">Iperon</string>
     <string name="push_test_body">Test notification: push delivery works.</string>
+    <string name="push_test_encrypted_body">Encrypted test notification: decryption works.</string>
+
+    <!-- Зашифрованные уведомления (MessagePushHandler.kt). -->
+    <string name="push_app_name">Iperon</string>
+    <string name="push_fallback_body">New notification</string>
+    <string name="push_message_no_preview">New message</string>
+    <string name="push_contact_joined_body">joined Iperon</string>
+    <string name="push_call_missed_body">Missed call</string>
 </resources>

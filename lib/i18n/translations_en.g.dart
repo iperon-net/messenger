@@ -277,8 +277,8 @@ class Translations$screenDeveloper$en {
 	/// en: 'Test notification (encrypted)'
 	String get testPushEncrypted => 'Test notification (encrypted)';
 
-	/// en: 'Queued on the server. On iPhone it arrives as "New notification" (decryption comes later); Android does not show these yet.'
-	String get testPushQueued => 'Queued on the server. On iPhone it arrives as "New notification" (decryption comes later); Android does not show these yet.';
+	/// en: 'Queued on the server. Android shows "Encrypted test notification: decryption works"; iPhone shows "New notification" for now (iOS decryption comes later).'
+	String get testPushQueued => 'Queued on the server. Android shows "Encrypted test notification: decryption works"; iPhone shows "New notification" for now (iOS decryption comes later).';
 }
 
 // Path: screenSettingsAppearance
@@ -1522,7 +1522,7 @@ extension on Translations {
 			'screenDeveloper.testPushNoTokens' => 'None of your devices has a push token. Make sure notifications are allowed and restart the app.',
 			'screenDeveloper.testPushError' => ({required Object error}) => 'Failed to send: ${error}',
 			'screenDeveloper.testPushEncrypted' => 'Test notification (encrypted)',
-			'screenDeveloper.testPushQueued' => 'Queued on the server. On iPhone it arrives as "New notification" (decryption comes later); Android does not show these yet.',
+			'screenDeveloper.testPushQueued' => 'Queued on the server. Android shows "Encrypted test notification: decryption works"; iPhone shows "New notification" for now (iOS decryption comes later).',
 			'screenSettingsAppearance.appearance' => 'Appearance',
 			'screenSettingsAppearance.colorTheme' => 'Color theme',
 			'screenSettingsAppearance.colorThemeDefault' => 'Default',

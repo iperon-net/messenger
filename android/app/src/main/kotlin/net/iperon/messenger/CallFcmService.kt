@@ -41,10 +41,10 @@ class CallFcmService : FlutterFirebaseMessagingService() {
             showTestNotification()
             return
         }
-        // Зашифрованное уведомление (поле p, конвейер уведомлений сервера).
-        // Расшифровка и показ — этап 4 (docs/plans/push-notifications.md); пока
-        // глотаем, чтобы не поднимать Flutter-isolate впустую.
-        if (data.containsKey(KEY_ENCRYPTED_PAYLOAD)) {
+        // Зашифрованное уведомление (поле p, конвейер уведомлений сервера) —
+        // расшифровываем и показываем нативно, Flutter-isolate не поднимаем.
+        data[KEY_ENCRYPTED_PAYLOAD]?.let {
+            MessagePushHandler.handle(this, it)
             return
         }
         if (data[KEY_ACTION] == ACTION_CANCEL) {

@@ -78,6 +78,8 @@ class _IperonMessengerCupertino extends State<IperonMessengerCupertino> with Wid
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     goRouter = routers.cupertino(navigatorGoRouterKey);
+    // Тап по push-уведомлению ведёт на нужный экран (см. PushManager.onRoute).
+    getIt.get<PushManager>().onRoute = goRouter.go;
     // Смена маршрута не меняет CommonState сама по себе (переход на /auth роутер
     // делает через Auth.refresh → redirect). Поэтому слушаем роутер и прокидываем
     // признак «мы на /auth» в кубит, чтобы тема и код-пароль реагировали.
@@ -101,6 +103,7 @@ class _IperonMessengerCupertino extends State<IperonMessengerCupertino> with Wid
   void dispose() {
     _callSub?.cancel();
     goRouter.routerDelegate.removeListener(_onRouteChanged);
+    getIt.get<PushManager>().onRoute = null;
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }

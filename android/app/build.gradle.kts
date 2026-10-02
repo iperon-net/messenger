@@ -72,4 +72,14 @@ dependencies {
     // чтобы не конфликтовать с версией, которую резолвит сам firebase_core.
     implementation(platform("com.google.firebase:firebase-bom:34.19.0"))
     implementation("com.google.firebase:firebase-messaging")
+
+    // NotificationCompat/MessagingStyle/Person для MessagePushHandler. Версия —
+    // та, что уже резолвится через Flutter-плагины (иначе конфликт).
+    implementation("androidx.core:core-ktx:1.18.0")
+
+    // Unit-тесты расшифровки/разбора пушей на общих векторах
+    // (test/fixtures/push_vectors.json). org.json — потому что android.jar в
+    // JVM-тестах содержит лишь заглушки.
+    testImplementation("junit:junit:4.13.2")
+    testImplementation("org.json:json:20240303")
 }

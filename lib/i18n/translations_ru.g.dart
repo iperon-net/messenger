@@ -178,7 +178,7 @@ class _Translations$screenDeveloper$ru extends Translations$screenDeveloper$en {
 	@override String get testPushNoTokens => 'Ни у одного вашего устройства нет push-токена. Проверьте, что уведомления разрешены, и перезапустите приложение.';
 	@override String testPushError({required Object error}) => 'Не удалось отправить: ${error}';
 	@override String get testPushEncrypted => 'Тестовое уведомление (шифрованное)';
-	@override String get testPushQueued => 'Поставлено в очередь сервера. На iPhone придёт с текстом «Новое уведомление» (расшифровка появится позже), Android такие уведомления пока не показывает.';
+	@override String get testPushQueued => 'Поставлено в очередь сервера. На Android придёт «Шифрованное тестовое уведомление: расшифровка работает», на iPhone пока — «Новое уведомление» (расшифровка на iOS появится позже).';
 }
 
 // Path: screenSettingsAppearance
@@ -769,7 +769,7 @@ extension on TranslationsRu {
 			'screenDeveloper.testPushNoTokens' => 'Ни у одного вашего устройства нет push-токена. Проверьте, что уведомления разрешены, и перезапустите приложение.',
 			'screenDeveloper.testPushError' => ({required Object error}) => 'Не удалось отправить: ${error}',
 			'screenDeveloper.testPushEncrypted' => 'Тестовое уведомление (шифрованное)',
-			'screenDeveloper.testPushQueued' => 'Поставлено в очередь сервера. На iPhone придёт с текстом «Новое уведомление» (расшифровка появится позже), Android такие уведомления пока не показывает.',
+			'screenDeveloper.testPushQueued' => 'Поставлено в очередь сервера. На Android придёт «Шифрованное тестовое уведомление: расшифровка работает», на iPhone пока — «Новое уведомление» (расшифровка на iOS появится позже).',
 			'screenSettingsAppearance.appearance' => 'Оформление',
 			'screenSettingsAppearance.colorTheme' => 'Цветовая тема',
 			'screenSettingsAppearance.colorThemeDefault' => 'По умолчанию',

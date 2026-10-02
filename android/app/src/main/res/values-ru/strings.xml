@@ -7,4 +7,11 @@
 
     <string name="push_test_title">Iperon</string>
     <string name="push_test_body">Тестовое уведомление: доставка пушей работает.</string>
+    <string name="push_test_encrypted_body">Шифрованное тестовое уведомление: расшифровка работает.</string>
+
+    <string name="push_app_name">Iperon</string>
+    <string name="push_fallback_body">Новое уведомление</string>
+    <string name="push_message_no_preview">Новое сообщение</string>
+    <string name="push_contact_joined_body">теперь в Iperon</string>
+    <string name="push_call_missed_body">Пропущенный звонок</string>
 </resources>

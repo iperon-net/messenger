@@ -85,6 +85,8 @@ class _IperonMessengerMaterial extends State<IperonMessengerMaterial> with Widge
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     goRouter = routers.material(navigatorGoRouterKey);
+    // Тап по push-уведомлению ведёт на нужный экран (см. PushManager.onRoute).
+    getIt.get<PushManager>().onRoute = goRouter.go;
     goRouter.routerDelegate.addListener(_onRouteChanged);
     context.read<CommonCubit>().initialization(settingsDevice: widget.settingsDevice, isBiometricAvailable: widget.isBiometricAvailable);
     _onRouteChanged();
@@ -105,6 +107,7 @@ class _IperonMessengerMaterial extends State<IperonMessengerMaterial> with Widge
   void dispose() {
     _callSub?.cancel();
     goRouter.routerDelegate.removeListener(_onRouteChanged);
+    getIt.get<PushManager>().onRoute = null;
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }

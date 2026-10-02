@@ -68,6 +68,11 @@ class MainActivity : FlutterFragmentActivity() {
     private val systemCallChannelName = "net.iperon.messenger/system_call"
     private var systemCallChannel: MethodChannel? = null
 
+    // Канал push-уведомлений: ключи расшифровки и флаг код-пароля для нативного
+    // FCM-сервиса (PushKeyStore), тапы по уведомлениям → Dart (PushManager).
+    private val pushChannelName = "net.iperon.messenger/push"
+    private var pushChannel: MethodChannel? = null
+
     // Разрешён ли автовход в PiP по нажатию Home. Flutter взводит флаг, пока открыт
     // активный видеозвонок (см. lib/components/calls/call_view.dart), и снимает при
     // уходе с экрана/переходе в аудио. Без флага любое сворачивание приложения
@@ -111,6 +116,8 @@ class MainActivity : FlutterFragmentActivity() {
         applyCallLaunchFlags(intent)
         super.onCreate(savedInstanceState)
         NotificationChannels.ensure(this)
+        // Холодный старт тапом по уведомлению.
+        MessagePushHandler.tapFromIntent(intent)?.let { deliverPushTap(it) }
         // Приёмник действий PiP-окна (смена камеры). NOT_EXPORTED — внутренний,
         // снаружи слать нельзя (Android 13+ требует явный флаг экспорта).
         val filter = IntentFilter(ACTION_PIP_SWITCH_CAMERA)
@@ -136,6 +143,30 @@ class MainActivity : FlutterFragmentActivity() {
         // onNewIntent).
         applyCallLaunchFlags(intent)
         super.onNewIntent(intent)
+        // Тёплый старт тапом по уведомлению.
+        MessagePushHandler.tapFromIntent(intent)?.let { deliverPushTap(it) }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        isForeground = true
+    }
+
+    override fun onStop() {
+        isForeground = false
+        super.onStop()
+    }
+
+    /// Отдаёт тап по уведомлению в Dart. Если Dart ещё не готов (холодный старт:
+    /// main() не дошёл до PushManager.start) — откладываем, Dart заберёт его
+    /// вызовом `takeInitialTap`.
+    private fun deliverPushTap(tap: Map<String, Any>) {
+        val channel = pushChannel
+        if (pushDartReady && channel != null) {
+            channel.invokeMethod("onNotificationTap", tap)
+        } else {
+            pendingPushTap = tap
+        }
     }
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
@@ -196,6 +227,39 @@ class MainActivity : FlutterFragmentActivity() {
         // исход. → заблокировать. Аргумент exclude (UUID своих CallKit-звонков)
         // на Android не нужен — режим аудио глобальный, а свой in-app-звонок в
         // окно проверки не попадает (см. hasActiveExternalCall).
+        pushChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, pushChannelName)
+            .also { it.setMethodCallHandler { call, result ->
+                when (call.method) {
+                    // Ключ расшифровки пушей текущей сессии (Dart выводит HKDF).
+                    "setPushKey" -> {
+                        val keyId = call.argument<ByteArray>("keyId")
+                        val key = call.argument<ByteArray>("key")
+                        if (keyId == null || key == null) {
+                            result.error("args", "keyId and key are required", null)
+                        } else {
+                            PushKeyStore.put(applicationContext, keyId, key)
+                            result.success(null)
+                        }
+                    }
+                    "clearPushKeys" -> {
+                        PushKeyStore.clear(applicationContext)
+                        result.success(null)
+                    }
+                    "setPasscodeEnabled" -> {
+                        PushKeyStore.setPasscodeEnabled(applicationContext, call.arguments as? Boolean ?: false)
+                        result.success(null)
+                    }
+                    // Dart готов принимать тапы; заодно забирает отложенный тап
+                    // холодного старта.
+                    "takeInitialTap" -> {
+                        pushDartReady = true
+                        result.success(pendingPushTap)
+                        pendingPushTap = null
+                    }
+                    else -> result.notImplemented()
+                }
+            } }
+
         systemCallChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, systemCallChannelName)
             .also { it.setMethodCallHandler { call, result ->
                 when (call.method) {
@@ -375,6 +439,21 @@ class MainActivity : FlutterFragmentActivity() {
     }
 
     companion object {
+        /// Activity видна пользователю (onStart..onStop). Читает FCM-сервис того же
+        /// процесса: в foreground системные уведомления не показываем.
+        @Volatile
+        var isForeground = false
+            private set
+
+        // Dart-сторона push-канала готова (вызвала takeInitialTap). Живёт на
+        // процесс, как и кэшированный движок, — пересоздание Activity её не
+        // сбрасывает.
+        @Volatile
+        private var pushDartReady = false
+
+        // Тап холодного старта, ещё не забранный Dart.
+        private var pendingPushTap: Map<String, Any>? = null
+
         // Ключ единственного на процесс движка в FlutterEngineCache.
         private const val ENGINE_ID = "net.iperon.messenger/main_engine"
 

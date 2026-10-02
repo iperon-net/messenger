@@ -1,6 +1,6 @@
 # Push-уведомления (по модели Telegram)
 
-Статус: этапы 1–2 реализованы (не проверены на устройствах), остальное — план. Дата: 2026-10-01.
+Статус: этапы 1, 2, 4 реализованы (не проверены на устройствах), остальное — план. Дата: 2026-10-01.
 
 ## Контекст
 
@@ -289,20 +289,43 @@ Android такие пуши пока глотает (`CallFcmService`, этап 
 
 ## Этап 4. Android: нативная обработка
 
-- [ ] `CallFcmService.onMessageReceived`: есть `p` → `MessagePushHandler.handle()`
-  и **не** вызывать `super` (не поднимать Flutter-isolate ради уведомления); call-пуши
-  — как сейчас.
-- [ ] `push_keys` channel (Kotlin): ключи в `EncryptedSharedPreferences`
-  (androidx.security) — Dart пишет после логина/миграции, удаляет на логаут.
-- [ ] `MessagePushHandler`: расшифровка (`javax.crypto` AES/GCM), выбор канала по
-  `kind`, `NotificationCompat` с `setGroup(chatHex)` + summary; для `MESSAGE` —
-  `MessagingStyle` с дозаписью к уже показанному
-  (`extractMessagingStyleFromNotification`). Флаг код-пароля — из того же хранилища.
-- [ ] Foreground (`ProcessLifecycleOwner` STARTED): не показывать, отдать в Dart
-  (`onMessage`-аналог через channel), если нужно.
-- [ ] Тап: `PendingIntent` в `MainActivity` с extra `route` → channel `push` → Dart
-  (тот же API, что на iOS). Учитывать `onNewIntent`.
-- [ ] Unit-тест расшифровки на тех же векторах, что сервер.
+Статус (2026-10-02): **код написан** (клиент, в рабочем дереве). Kotlin unit-тесты
+(`./gradlew :app:testDebugUnitTest`, 5 шт.), Dart-тесты, `flutter analyze`, debug APK —
+зелёные. На устройстве НЕ проверено. Сервер не менялся (кроме второго тест-вектора).
+
+- [x] `CallFcmService.onMessageReceived`: data с `p` → `MessagePushHandler.handle()`,
+  `super` не зовём (Flutter-isolate не поднимается); call-пуши и `kind=test` — как раньше.
+- [x] Ключи — `PushKeyStore.kt`: ключ пушей в SharedPreferences, обёрнутый AES-GCM
+  ключом из Android Keystore (без `androidx.security`, она deprecated). Аккаунт один —
+  `put` заменяет прежние ключи. Dart (`PushManager._syncPushKey`) выводит HKDF и
+  отдаёт ключ по каналу `net.iperon.messenger/push` на старте/логине, на разлогине —
+  `clearPushKeys`. Флаг код-пароля — `setPasscodeEnabled` (старт + `CommonCubit.setPasscode`).
+- [x] `PushCrypto.kt` (AES-GCM, чистый JVM) + `PushPayload.kt` (свой маленький
+  protobuf-декодер вместо protobuf-javalite + codegen; неизвестные поля пропускает,
+  repeated int64 — packed и unpacked). Тесты на общих векторах; добавлен вектор #1 с
+  настоящим `PushPayload` (кириллица, эмодзи, все поля).
+- [x] `MessagePushHandler.kt`: нет ключа → молча (разлогин/старая сессия); битый `p` →
+  лог. `READ_HISTORY`/`MESSAGE_DELETED` → снять уведомление чата (TODO этап 7: при
+  удалении — только удалённые сообщения). Приложение на экране (`MainActivity.isForeground`,
+  onStart..onStop) → не показываем, кроме TEST. Код-пароль → «Iperon / Новое уведомление».
+  Тексты: TEST, CONTACT_JOINED («теперь в Iperon»), CALL_MISSED, MESSAGE —
+  `MessagingStyle` с дозаписью к показанному (`extractMessagingStyleFromNotification`,
+  до 7 сообщений), тег `chat:<hex>`; прочие — тег = id уведомления. Каналы: MESSAGE →
+  `messages_v1`, остальное → `other_v1`. `androidx.core:core-ktx:1.18.0` подключён
+  явно (та же версия, что уже резолвится).
+- [x] Тап: `PendingIntent` → `MainActivity` (action `PUSH_TAP`, extras kind/id/chat/from)
+  → `onCreate`/`onNewIntent` → канал `onNotificationTap` или отложенный тап холодного
+  старта, который Dart забирает `takeInitialTap`. Маршрут решает Dart
+  (`PushManager.routeForKind`: контакт → `/contacts`, пропущенный → `/calls`, сообщение
+  → `/chats`), переход — `goRouter.go` через `PushManager.onRoute` (ставят оба корня
+  приложения).
+- [ ] Группы (`groups_v1`) и summary-уведомление — когда появятся типы чатов (этап 7).
+- [ ] Действия «Ответить»/«Прочитано» — этап 7.
+
+**Проверить на устройстве:** «Разработчик» → «Тестовое уведомление (шифрованное)» →
+уведомление «Шифрованное тестовое уведомление: расшифровка работает» (и в фоне, и с
+выгруженным процессом); с включённым код-паролем — «Новое уведомление»; после выхода из
+аккаунта старые пуши не показываются.
 
 ## Этап 5. Первые настоящие пуши (до чатов)
 

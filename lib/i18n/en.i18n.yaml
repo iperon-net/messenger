@@ -59,7 +59,7 @@
   "testPushNoTokens": "None of your devices has a push token. Make sure notifications are allowed and restart the app."
   "testPushError": "Failed to send: {error}"
   "testPushEncrypted": "Test notification (encrypted)"
-  "testPushQueued": "Queued on the server. On iPhone it arrives as \"New notification\" (decryption comes later); Android does not show these yet."
+  "testPushQueued": "Queued on the server. Android shows \"Encrypted test notification: decryption works\"; iPhone shows \"New notification\" for now (iOS decryption comes later)."
 
 "screenSettingsAppearance":
   "appearance": "Appearance"
