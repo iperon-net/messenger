@@ -1,0 +1,5 @@
+// Базовый конфиг target'а NotificationService (Release). Не Flutter/Release.xcconfig:
+// тот тянет поды Runner'а. Generated.xcconfig — ради FLUTTER_BUILD_NAME/NUMBER
+// (версия расширения обязана совпадать с версией приложения).
+#include? "../Pods/Target Support Files/Pods-NotificationService/Pods-NotificationService.release.xcconfig"
+#include "../Flutter/Generated.xcconfig"

@@ -1,0 +1,5 @@
+// Базовый конфиг target'а NotificationService (Profile). Не Flutter/Profile.xcconfig:
+// тот тянет поды Runner'а. Generated.xcconfig — ради FLUTTER_BUILD_NAME/NUMBER
+// (версия расширения обязана совпадать с версией приложения).
+#include? "../Pods/Target Support Files/Pods-NotificationService/Pods-NotificationService.profile.xcconfig"
+#include "../Flutter/Generated.xcconfig"

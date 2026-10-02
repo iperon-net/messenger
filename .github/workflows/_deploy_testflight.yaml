@@ -17,6 +17,9 @@ on:
         required: true
       ios_provisioning_profile_base64:
         required: true
+      # Профиль Notification Service Extension (net.iperon.messenger.NotificationService).
+      ios_nse_provisioning_profile_base64:
+        required: true
       asc_key_id:
         required: true
       asc_issuer_id:
@@ -27,6 +30,7 @@ on:
 
 env:
   BUNDLE_ID: "net.iperon.messenger"
+  NSE_BUNDLE_ID: "net.iperon.messenger.NotificationService"
   APPLE_TEAM_ID: "BPXUY5LQZC"
   BUNDLE_GEMFILE: ${{ github.workspace }}/ios/Gemfile
 
@@ -151,24 +155,33 @@ jobs:
           p12-file-base64: ${{ secrets.ios_dist_cert_p12_base64 }}
           p12-password: ${{ secrets.ios_dist_cert_password }}
 
-      - name: Install provisioning profile
+      - name: Install provisioning profiles
         env:
           PROFILE_BASE64: ${{ secrets.ios_provisioning_profile_base64 }}
+          NSE_PROFILE_BASE64: ${{ secrets.ios_nse_provisioning_profile_base64 }}
         run: |
           set -euo pipefail
-          echo "$PROFILE_BASE64" | base64 --decode > profile.mobileprovision
-          security cms -D -i profile.mobileprovision > profile.plist
-          PROFILE_NAME=$(/usr/libexec/PlistBuddy -c "Print :Name" profile.plist)
-          PROFILE_UUID=$(/usr/libexec/PlistBuddy -c "Print :UUID" profile.plist)
           PROFILES_DIR="$HOME/Library/MobileDevice/Provisioning Profiles"
           mkdir -p "$PROFILES_DIR"
-          cp profile.mobileprovision "$PROFILES_DIR/$PROFILE_UUID.mobileprovision"
-          echo "PROFILE_NAME=$PROFILE_NAME" >> "$GITHUB_ENV"
-          echo "Installed profile: $PROFILE_NAME ($PROFILE_UUID)"
+          # Два профиля: приложение (Runner) и Notification Service Extension.
+          # install <base64> <имя переменной окружения для Name профиля>
+          install() {
+            echo "$1" | base64 --decode > "$2.mobileprovision"
+            security cms -D -i "$2.mobileprovision" > "$2.plist"
+            local name uuid
+            name=$(/usr/libexec/PlistBuddy -c "Print :Name" "$2.plist")
+            uuid=$(/usr/libexec/PlistBuddy -c "Print :UUID" "$2.plist")
+            cp "$2.mobileprovision" "$PROFILES_DIR/$uuid.mobileprovision"
+            echo "$2=$name" >> "$GITHUB_ENV"
+            echo "Installed profile: $name ($uuid)"
+          }
+          install "$PROFILE_BASE64" PROFILE_NAME
+          install "$NSE_PROFILE_BASE64" NSE_PROFILE_NAME
 
       - name: Force manual signing for archive
         env:
           PROFILE_NAME: ${{ env.PROFILE_NAME }}
+          NSE_PROFILE_NAME: ${{ env.NSE_PROFILE_NAME }}
         run: |
           set -euo pipefail
           # The Runner target (Release) has no CODE_SIGN_STYLE in pbxproj, so
@@ -183,6 +196,17 @@ jobs:
           DEVELOPMENT_TEAM = ${APPLE_TEAM_ID}
           CODE_SIGN_IDENTITY = Apple Distribution
           PROVISIONING_PROFILE_SPECIFIER = ${PROFILE_NAME}
+          EOF
+
+          # Notification Service Extension has its own base xcconfig (it must not
+          # include Flutter/Release.xcconfig — that pulls in the Runner pods), so
+          # its signing keys go there, with its own profile.
+          cat >> ios/NotificationService/Release.xcconfig <<EOF
+
+          CODE_SIGN_STYLE = Manual
+          DEVELOPMENT_TEAM = ${APPLE_TEAM_ID}
+          CODE_SIGN_IDENTITY = Apple Distribution
+          PROVISIONING_PROFILE_SPECIFIER = ${NSE_PROFILE_NAME}
           EOF
 
       - name: Generate ExportOptions.plist
@@ -205,6 +229,8 @@ jobs:
             <dict>
               <key>${BUNDLE_ID}</key>
               <string>${PROFILE_NAME}</string>
+              <key>${NSE_BUNDLE_ID}</key>
+              <string>${NSE_PROFILE_NAME}</string>
             </dict>
           </dict>
           </plist>

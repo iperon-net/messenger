@@ -1,6 +1,6 @@
 # Push-уведомления (по модели Telegram)
 
-Статус: этапы 1, 2, 4, 5, 6 реализованы (6 — без проверки на устройствах). 2026-10-02 на устройствах подтверждено: iPhone — обычный и шифрованный тестовый пуш (фолбэк-текст), Android — обычный и шифрованный (нативная расшифровка). Доставка в фоне с выгруженным приложением тоже подтверждена (два телефона под одним аккаунтом, тест с одного на другой). Код-пароль на Android тоже подтверждён (шифрованный пуш приходит как «Новое уведомление»). Не проверены: тапы, этап 5. Остальное — план. Дата: 2026-10-01.
+Статус: этапы 1, 2, 3, 4, 5, 6 реализованы; этапы 5 и 6 проверены на устройствах 2026-10-02, этап 3 (2026-10-03) — нет. 2026-10-02 на устройствах подтверждено: iPhone — обычный и шифрованный тестовый пуш (фолбэк-текст), Android — обычный и шифрованный (нативная расшифровка). Доставка в фоне с выгруженным приложением тоже подтверждена (два телефона под одним аккаунтом, тест с одного на другой). Код-пароль на Android тоже подтверждён (шифрованный пуш приходит как «Новое уведомление»). Не проверены: тапы. Остальное — план. Дата: 2026-10-01.
 
 ## Контекст
 
@@ -103,17 +103,16 @@ Id уведомления: `<kind>:<chatHex>:<messageID>` — по нему по
 
 ## Этап 0. Подготовка (вне кода)
 
-> **Отложен (2026-10-01):** Apple-аккаунт будут переводить на юрлицо — App ID,
-> App Group, профили и заявку на filtering entitlement делаем уже на новом аккаунте.
-> Если это конвертация существующего аккаунта, Team ID сохраняется; если новый
-> аккаунт — меняется Team ID: перенос приложения (App Transfer), новый .p8 для
-> APNs, новые keychain access groups и `appID` в AASA (passkeys, applinks).
-> Этот этап блокирует этапы 3 и 7 (iOS); этапы 1, 2, 4, 5, 6 от него не зависят —
-> существующего .p8 и `aps-environment` для alert-пушей хватает.
+> **2026-10-03:** для этапа 3 портал настроен на текущем аккаунте физлица. Позже
+> приложение переедет на новый аккаунт юрлица (App Transfer, аккаунт физлица остаётся)
+> — сменится Team ID: App ID и профиль расширения, новый .p8 для APNs, `appID` в AASA
+> (passkeys, applinks) повторить там; Keychain на устройствах после переезда, скорее
+> всего, не прочитается (разлогин) — лучше до публичного релиза. Заявку на filtering
+> entitlement подавать уже с аккаунта юрлица.
 
-- [ ] Apple Developer: App ID `net.iperon.messenger.NotificationService`, App Group
-  `group.net.iperon.messenger`, Keychain Sharing; provisioning profiles (dev +
-  App Store) для расширения.
+- [x] Apple Developer: App ID `net.iperon.messenger.NotificationService` (без
+  capabilities) и его App Store-профиль. App Group не нужен (решение этапа 3 — общий
+  Keychain); профиль основного приложения не менялся.
 - [ ] Включить capability **Communication Notifications** у основного App ID (этап 7,
   но профиль лучше пересоздать один раз).
 - [ ] Подать заявку на `com.apple.developer.usernotifications.filtering`
@@ -263,32 +262,68 @@ Android такие пуши пока глотает (`CallFcmService`, этап 
 
 ## Этап 3. iOS: Notification Service Extension
 
-- [ ] Новый target `NotificationService` (Swift), bundle
-  `net.iperon.messenger.NotificationService`, App Group + Keychain Sharing в обоих
-  entitlements (`Runner.entitlements`, `RunnerDebug.entitlements`, новый для NSE).
-- [ ] **Хранилище ключей пушей** — method channel `push_keys` (Swift): пишет
-  `{sessionIDprefix: pushKey}` в Keychain с access group
-  `$(AppIdentifierPrefix)net.iperon.messenger.shared`. Dart после логина (и при
-  старте — миграция существующих сессий) выводит ключ и сохраняет; на логаут — удаляет.
-  NSE не может читать SQLCipher-базу, поэтому только Keychain.
-- [ ] Флаг «включён код-пароль» → `UserDefaults(suiteName: group)` → NSE показывает
-  «Новое сообщение» без текста (аналог `updateDeviceLocked`).
-- [ ] NSE: base64 → header → ключ → `AES.GCM.open` (CryptoKit) → `PushPayload`
-  через SwiftProtobuf (решено; Swift-код из `push_payload_v1.proto` генерируется
-  `protoc --swift_out`, SPM/CocoaPods-зависимость только у target NSE) →
-  `title`/`body`/`threadIdentifier`/`userInfo` (`route`, id). Ошибка → оставить фолбэк.
-- [ ] Тап: `didReceive response` в `AppDelegate` → channel `push` → Dart →
-  `router.go(route)`. Cold start — маршрут копится нативно, Dart забирает после
-  `getIt.allReady()`.
-- [ ] Foreground: `willPresent` — спрашиваем Dart (или нативный флаг текущего
-  экрана): если открыт тот же чат — `[]`, иначе `[.banner, .sound]` (позже свой
-  in-app баннер).
-- [ ] CI: `_deploy_testflight.yaml` — второй provisioning profile; сейчас ключи
-  подписи дописываются в `Release.xcconfig` и действуют на **все** target'ы —
-  `PROVISIONING_PROFILE_SPECIFIER` нужно задавать per-target (через `xcconfig` с
-  условием по `PRODUCT_BUNDLE_IDENTIFIER` или в `pbxproj`). `ExportOptions.plist` —
-  добавить расширение в `provisioningProfiles`. Fastlane `beta` — импорт второго
-  профиля.
+Статус (2026-10-03): **код написан** (клиент, в рабочем дереве). Release-сборка без
+подписи (`flutter build ios --release --no-codesign`), `flutter analyze`, `flutter test`
+— зелёные; Swift-расшифровка и разбор `PushPayload` проверены на общих векторах
+(`PushCrypto.swift` + сгенерированный `push_payload_v1.pb.swift`, собраны `swiftc` вместе
+с SwiftProtobuf из Pods — оба вектора, включая все поля вектора #1). На устройстве НЕ
+проверено. Сервер не менялся.
+
+Решения (2026-10-03): делаем на текущем аккаунте физлица (позже перенос на юрлицо через
+App Transfer — портал повторить). **Без App Group**: ключи пушей и флаг код-пароля — в
+общем Keychain, Keychain Sharing не требует настройки на портале и пересоздания профиля
+основного приложения. На портале создан только App ID
+`net.iperon.messenger.NotificationService` (без capabilities) и его App Store-профиль.
+
+- [x] Target `NotificationService` (`ios/NotificationService/`, bundle
+  `net.iperon.messenger.NotificationService`, iOS 15) добавлен в `project.pbxproj`
+  (скриптом через гем `xcodeproj`), встроен в Runner фазой «Embed Foundation
+  Extensions» **до** «Thin Binary» (иначе цикл в сборке Flutter). Свои базовые xcconfig
+  (`ios/NotificationService/{Debug,Release,Profile}.xcconfig`): поды расширения +
+  `Flutter/Generated.xcconfig` (версия = версии приложения), без `Flutter/Release.xcconfig`
+  (он тянет поды Runner).
+- [x] SwiftProtobuf — под у target'а `NotificationService` в `Podfile`
+  (`use_frameworks! :linkage => :static` — CocoaPods требует use_frameworks! и у хоста, и
+  у расширения; статически, чтобы не встраивать фреймворк). Swift-код генерируется
+  `protoc --swift_out=ios/NotificationService --swift_opt=Visibility=Internal -Iprotos
+  protos/push_payload_v1.proto` (protoc-gen-swift 1.38.1 из `brew install swift-protobuf`;
+  под — `~> 1.38`, не ниже генератора).
+- [x] **Keychain** — `ios/Shared/PushKeychain.swift` (в обоих target'ах): access group
+  `<TeamID>.net.iperon.messenger.shared` (префикс из Info.plist `AppIdentifierPrefix`),
+  `AfterFirstUnlockThisDeviceOnly` (пуши приходят на заблокированный телефон). Ключ по
+  keyID, `putKey` заменяет прежние; флаг код-пароля — отдельная запись. В
+  `keychain-access-groups` Runner'а первой стоит собственная группа приложения — чтобы
+  группа по умолчанию (flutter_secure_storage, пароль БД) не сменилась.
+- [x] NSE (`NotificationService.swift`): `p` → `PushCrypto` (CryptoKit AES-GCM) →
+  `PushPayload` → заголовок/текст как на Android (TEST, CONTACT_JOINED с именем из
+  адресной книги по `args[0]`, CALL_MISSED, MESSAGE с `threadIdentifier = chat:<hex>`);
+  код-пароль → «Iperon / Новое уведомление»; нет ключа/ошибка → остаётся фолбэк
+  `PUSH_FALLBACK_BODY`. В `userInfo` дописывает kind/id/chatID/fromUserID. Тексты — свой
+  `Localizable.strings` (en/ru).
+- [x] Канал `net.iperon.messenger/push` на iOS — `ios/Runner/PushBridge.swift` (тот же
+  контракт, что на Android: `setPushKey`, `clearPushKeys`, `setPasscodeEnabled`,
+  `takeInitialTap`, `onNotificationTap`). `PushManager` в Dart теперь работает с каналом
+  на обеих платформах.
+- [x] Делегат `UNUserNotificationCenter` — сам `AppDelegate` (ставится до `super` в
+  didFinishLaunching). Пуши с `p`: foreground — не показываем, кроме TEST (как на
+  Android); тап → `PushBridge` → Dart (`routeForKind`), холодный старт — отложенный тап.
+  Остальные пуши уходят в `super` → плагины (firebase_messaging не подменяет делегат,
+  раз это FlutterAppLifeCycleProvider).
+- [x] CI: `_deploy_testflight.yaml` ставит второй профиль (секрет
+  `IOS_NSE_PROVISIONING_PROFILE_BASE64`, проброшен в `build_and_deploy.yaml`), дописывает
+  ручную подпись в `ios/NotificationService/Release.xcconfig` и добавляет расширение в
+  `ExportOptions.plist`.
+- [ ] READ_HISTORY / MESSAGE_DELETED — снимать уведомления (этап 7, нужен filtering
+  entitlement).
+
+**Проверить на устройстве (TestFlight):** «Разработчик» → «Тестовое уведомление
+(шифрованное)» → «Шифрованное тестовое уведомление: расшифровка работает» (в foreground,
+в фоне, с выгруженным приложением, на заблокированном экране); с включённым код-паролем —
+«Новое уведомление»; «Контакт присоединился» — имя из адресной книги; тап по
+«Пропущенному звонку» открывает «Звонки», по «Контакт присоединился» — «Контакты» (в т.ч.
+с холодного старта); после выхода из аккаунта — фолбэк «Новое уведомление». Вход в
+приложение после обновления не должен слететь (группа Keychain по умолчанию не
+изменилась).
 
 ## Этап 4. Android: нативная обработка
 
@@ -338,7 +373,8 @@ Android такие пуши пока глотает (`CallFcmService`, этап 
 
 Статус (2026-10-02): **код написан** (сервер + Android, в рабочем дереве), тесты сервера
 (включая очередь на встроенном nats-server и Redis через miniredis), golangci-lint,
-debug APK — зелёные. На устройствах НЕ проверено.
+debug APK — зелёные. 2026-10-02 пользователь проверил на устройствах «Контакт
+присоединился» и «Пропущенный вызов».
 
 - [x] `CONTACT_JOINED` — `ServiceNotifications.NotifyContactJoined`, зовёт `ServiceAuth`
   сразу после создания нового пользователя (оба пути регистрации — Confirmation и
@@ -359,9 +395,10 @@ debug APK — зелёные. На устройствах НЕ проверен�
 
 ## Этап 6. Настройки уведомлений
 
-Статус (2026-10-02): **код написан** (сервер + клиент, в рабочем дереве). `go test
-./internal/...`, проверка fx-графа, `flutter analyze`, `flutter test` — зелёные. На
-устройствах НЕ проверено.
+Статус (2026-10-02): **готово**. `go test ./internal/...`, проверка fx-графа,
+`flutter analyze`, `flutter test` — зелёные; 2026-10-02 пользователь проверил на
+устройствах (iOS + Android): переключатели, синхронизация между устройствами, offline,
+отключение «Контакт присоединился» / «Пропущенные звонки».
 
 **Proto** `protos/notify_settings_v1.proto`, `NOTIFY_SETTINGS = 69` (снимок — и ответ на
 запрос, и push по стриму после изменения), `NOTIFY_SETTINGS_UPDATE = 70` (одна настройка

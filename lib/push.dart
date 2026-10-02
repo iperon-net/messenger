@@ -34,11 +34,12 @@ import 'repositories.dart';
 /// флагом `sandbox`, сервер по нему выбирает gateway.
 ///
 /// Уведомления приходят зашифрованными (поле `p`, см.
-/// `protos/push_payload_v1.proto`). На Android их расшифровывает и показывает
-/// нативный FCM-сервис без Flutter-движка, поэтому ключ расшифровки (HKDF от
-/// sharedKey сессии) и флаг код-пароля отдаём в натив ([_syncPushKey],
-/// [setPasscodeEnabled]) по каналу `net.iperon.messenger/push`; тот же канал
-/// приносит тапы по уведомлениям ([onRoute]). iOS — этап 3 (NSE).
+/// `protos/push_payload_v1.proto`). Расшифровывает и показывает их натив без
+/// Flutter-движка: на Android — FCM-сервис, на iOS — Notification Service
+/// Extension. Поэтому ключ расшифровки (HKDF от sharedKey сессии) и флаг
+/// код-пароля отдаём в натив ([_syncPushKey], [setPasscodeEnabled]) по каналу
+/// `net.iperon.messenger/push` (Android — хранилище на Keystore, iOS — общий с
+/// NSE Keychain); тот же канал приносит тапы по уведомлениям ([onRoute]).
 ///
 /// Регистрируется в `get_it` (см. `di.dart`, `dependsOn: [API, Auth]`) как
 /// синглтон. Отправка идемпотентна: последний отправленный токен каждого канала
@@ -70,6 +71,9 @@ class PushManager {
   static const _pushKeyInfo = 'iperon-push-v1';
   static const _pushKeyIdLength = 8;
 
+  /// Канал `net.iperon.messenger/push` есть на обеих мобильных платформах.
+  static bool get _hasNativePush => Platform.isAndroid || Platform.isIOS;
+
   StreamSubscription<String>? _fcmRefreshSub;
   Timer? _apnsRetryTimer;
   bool _started = false;
@@ -96,7 +100,7 @@ class PushManager {
     if (!_started) {
       _started = true;
 
-      if (Platform.isAndroid) {
+      if (_hasNativePush) {
         _channel.setMethodCallHandler(_onNativeCall);
         unawaited(setPasscodeEnabled(passcodeEnabled));
         unawaited(_takeInitialTap());
@@ -107,9 +111,10 @@ class PushManager {
       auth.addListener(_onAuthChanged);
 
       if (Platform.isIOS) {
-        // Показ уведомлений в foreground. Делегат UNUserNotificationCenter держит
-        // firebase_messaging; без этих опций alert-пуш при открытом приложении
-        // не показывается вовсе (в т.ч. тестовый пуш с экрана «Разработчик»).
+        // Показ в foreground незашифрованных пушей (тестовый с экрана
+        // «Разработчик»): их AppDelegate отдаёт firebase_messaging, а тот без
+        // этих опций при открытом приложении не показывает ничего. Зашифрованные
+        // решает сам AppDelegate (PushBridge.swift).
         try {
           await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(alert: true, badge: true, sound: true);
         } catch (error, stackTrace) {
@@ -144,7 +149,7 @@ class PushManager {
   /// Ключ = HKDF-SHA256(sharedKey, salt, "iperon-push-v1"), keyID — первые 8 байт
   /// сессии; формат — internal/crypto/push.go на сервере.
   Future<void> _syncPushKey() async {
-    if (!Platform.isAndroid) return;
+    if (!_hasNativePush) return;
 
     try {
       final session = auth.session;
@@ -169,7 +174,7 @@ class PushManager {
   /// Включён ли код-пароль: натив тогда показывает уведомления без имени и
   /// текста. Зовётся на старте и при смене кода (CommonCubit.setPasscode).
   Future<void> setPasscodeEnabled(bool enabled) async {
-    if (!Platform.isAndroid) return;
+    if (!_hasNativePush) return;
     try {
       await _channel.invokeMethod<void>('setPasscodeEnabled', enabled);
     } catch (error, stackTrace) {

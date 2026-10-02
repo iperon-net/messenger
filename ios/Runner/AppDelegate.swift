@@ -5,6 +5,7 @@ import CallKit
 import AVFoundation
 import AVKit
 import MediaPlayer
+import UserNotifications
 import flutter_callkit_incoming
 
 @main
@@ -24,11 +25,24 @@ import flutter_callkit_incoming
     voipRegistry.delegate = self
     voipRegistry.desiredPushTypes = [.voIP]
 
+    // Делегат уведомлений — сам AppDelegate (до super: тап, открывший
+    // приложение, приходит сразу после запуска). Свои зашифрованные пуши решаем
+    // здесь (PushBridge), остальные FlutterAppDelegate передаёт плагинам —
+    // firebase_messaging видит, что делегат FlutterAppLifeCycleProvider, и не
+    // подменяет его.
+    UNUserNotificationCenter.current().delegate = self
+
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
 
   func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
     GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
+
+    // Канал уведомлений: ключ расшифровки для NSE, флаг код-пароля, тапы. См.
+    // PushBridge и lib/push.dart.
+    if let messenger = engineBridge.pluginRegistry.registrar(forPlugin: "IperonPush")?.messenger() {
+      PushBridge.shared.attach(messenger: messenger)
+    }
 
     // PlatformView системного пикера аудио-маршрутов (AVRoutePickerView) для
     // экрана звонка — «полный» выбор выхода на iOS (iPhone/Speaker/BT/CarPlay/
@@ -144,6 +158,37 @@ import flutter_callkit_incoming
         }
       }
     }
+  }
+
+  // MARK: - Уведомления (UNUserNotificationCenterDelegate)
+
+  override func userNotificationCenter(
+    _ center: UNUserNotificationCenter,
+    willPresent notification: UNNotification,
+    withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
+  ) {
+    let userInfo = notification.request.content.userInfo
+    guard PushBridge.isEncrypted(userInfo) else {
+      super.userNotificationCenter(center, willPresent: notification, withCompletionHandler: completionHandler)
+      return
+    }
+    completionHandler(PushBridge.foregroundOptions(userInfo))
+  }
+
+  override func userNotificationCenter(
+    _ center: UNUserNotificationCenter,
+    didReceive response: UNNotificationResponse,
+    withCompletionHandler completionHandler: @escaping () -> Void
+  ) {
+    let userInfo = response.notification.request.content.userInfo
+    guard PushBridge.isEncrypted(userInfo) else {
+      super.userNotificationCenter(center, didReceive: response, withCompletionHandler: completionHandler)
+      return
+    }
+    if response.actionIdentifier == UNNotificationDefaultActionIdentifier {
+      PushBridge.shared.handleTap(userInfo)
+    }
+    completionHandler()
   }
 
   // MARK: - PushKit (VoIP)

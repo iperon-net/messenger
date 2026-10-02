@@ -9,5 +9,10 @@
 		<string>webcredentials:iperon.net</string>
 		<string>applinks:yxc3ae9f778e734f70ad8b5bc96b419169.oauth.yandex.ru</string>
 	</array>
+	<key>keychain-access-groups</key>
+	<array>
+		<string>$(AppIdentifierPrefix)net.iperon.messenger</string>
+		<string>$(AppIdentifierPrefix)net.iperon.messenger.shared</string>
+	</array>
 </dict>
 </plist>
