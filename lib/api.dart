@@ -653,6 +653,12 @@ class API {
         // чтении (offline) и обновляет UI из подписки api.on(PRIVACY_SETTINGS).
         await repositories.privacySettings.upsert(userID: session.userID, payload: message.payload);
 
+      case MessageType.NOTIFY_SETTINGS:
+        // Настройки уведомлений: ответ на запрос SettingsNotificationsCubit или
+        // push при смене на другом устройстве. Как и приватность — сырой буфер,
+        // парсит читатель (cubit, call_push).
+        await repositories.notifySettings.upsert(userID: session.userID, payload: message.payload);
+
       case MessageType.MY_PROFILE:
         final payload = MyProfile_Response.fromBuffer(message.payload);
 

@@ -10,7 +10,9 @@ class PermissionBannerMaterial extends StatelessWidget {
   final String message;
   final String actionLabel;
   final VoidCallback onAction;
-  final VoidCallback onDismiss;
+
+  /// null — без крестика (баннер нельзя закрыть, например на экране настроек).
+  final VoidCallback? onDismiss;
 
   /// Подпись крестика для accessibility/тултипа. Необязательна.
   final String? dismissTooltip;
@@ -21,7 +23,7 @@ class PermissionBannerMaterial extends StatelessWidget {
     required this.message,
     required this.actionLabel,
     required this.onAction,
-    required this.onDismiss,
+    this.onDismiss,
     this.dismissTooltip,
     super.key,
   });
@@ -56,12 +58,13 @@ class PermissionBannerMaterial extends StatelessWidget {
                     ],
                   ),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.close, size: 20),
-                  color: scheme.onSecondaryContainer,
-                  tooltip: dismissTooltip,
-                  onPressed: onDismiss,
-                ),
+                if (onDismiss != null)
+                  IconButton(
+                    icon: const Icon(Icons.close, size: 20),
+                    color: scheme.onSecondaryContainer,
+                    tooltip: dismissTooltip,
+                    onPressed: onDismiss,
+                  ),
               ],
             ),
             Align(

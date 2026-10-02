@@ -141,6 +141,12 @@ class MessageType extends $pb.ProtobufEnum {
   /// iOS-сессия ~25 с числится онлайн и не получает пушей). См. app_state_v1.proto.
   static const MessageType APP_STATE = MessageType._(68, _omitEnumNames ? '' : 'APP_STATE');
 
+  /// Настройки уведомлений (общие для всех устройств пользователя): чтение
+  /// снимка (он же push по стриму после изменения) и изменение одной настройки.
+  /// См. notify_settings_v1.proto.
+  static const MessageType NOTIFY_SETTINGS = MessageType._(69, _omitEnumNames ? '' : 'NOTIFY_SETTINGS');
+  static const MessageType NOTIFY_SETTINGS_UPDATE = MessageType._(70, _omitEnumNames ? '' : 'NOTIFY_SETTINGS_UPDATE');
+
   static const $core.List<MessageType> values = <MessageType>[
     HEALTHCHECK,
     META_DATA_INFO,
@@ -207,9 +213,11 @@ class MessageType extends $pb.ProtobufEnum {
     AUTH_YANDEX,
     PUSH_TEST,
     APP_STATE,
+    NOTIFY_SETTINGS,
+    NOTIFY_SETTINGS_UPDATE,
   ];
 
-  static final $core.List<MessageType?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 68);
+  static final $core.List<MessageType?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 70);
   static MessageType? valueOf($core.int value) => value < 0 || value >= _byValue.length ? null : _byValue[value];
 
   const MessageType._(super.value, super.name);

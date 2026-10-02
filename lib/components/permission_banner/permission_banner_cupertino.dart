@@ -11,7 +11,9 @@ class PermissionBannerCupertino extends StatelessWidget {
   final String message;
   final String actionLabel;
   final VoidCallback onAction;
-  final VoidCallback onDismiss;
+
+  /// null — без крестика (баннер нельзя закрыть, например на экране настроек).
+  final VoidCallback? onDismiss;
 
   const PermissionBannerCupertino({
     required this.icon,
@@ -19,7 +21,7 @@ class PermissionBannerCupertino extends StatelessWidget {
     required this.message,
     required this.actionLabel,
     required this.onAction,
-    required this.onDismiss,
+    this.onDismiss,
     super.key,
   });
 
@@ -52,12 +54,13 @@ class PermissionBannerCupertino extends StatelessWidget {
               ],
             ),
           ),
-          CupertinoButton(
-            padding: const EdgeInsets.all(4),
-            minimumSize: Size.zero,
-            onPressed: onDismiss,
-            child: Icon(CupertinoIcons.xmark, size: 18, color: CupertinoColors.secondaryLabel.resolveFrom(context)),
-          ),
+          if (onDismiss != null)
+            CupertinoButton(
+              padding: const EdgeInsets.all(4),
+              minimumSize: Size.zero,
+              onPressed: onDismiss,
+              child: Icon(CupertinoIcons.xmark, size: 18, color: CupertinoColors.secondaryLabel.resolveFrom(context)),
+            ),
         ],
       ),
     );

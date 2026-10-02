@@ -75,6 +75,13 @@ class _SettingsCupertino extends State<SettingsCupertino> {
                   ),
                   children: [
                     CupertinoListTileIcon(
+                      title: Text(context.t.screenSettings.notifications),
+                      color: Color(0xFFE5214D),
+                      icon: FontAwesomeIcons.solidBell,
+                      onTab: () async => context.go("/settings/notifications"),
+                      isTrailing: true,
+                    ),
+                    CupertinoListTileIcon(
                       title: Text(context.t.screenSettings.privacyAndSecurity),
                       color: Color(0xFF049A40),
                       icon: FontAwesomeIcons.key,

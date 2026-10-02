@@ -45,6 +45,7 @@ class TranslationsRu extends Translations with BaseTranslations<AppLocale, Trans
 	@override late final _Translations$screenHome$ru screenHome = _Translations$screenHome$ru._(_root);
 	@override late final _Translations$screenChats$ru screenChats = _Translations$screenChats$ru._(_root);
 	@override late final _Translations$screenSettings$ru screenSettings = _Translations$screenSettings$ru._(_root);
+	@override late final _Translations$screenSettingsNotifications$ru screenSettingsNotifications = _Translations$screenSettingsNotifications$ru._(_root);
 	@override late final _Translations$screenDeveloper$ru screenDeveloper = _Translations$screenDeveloper$ru._(_root);
 	@override late final _Translations$screenSettingsAppearance$ru screenSettingsAppearance = _Translations$screenSettingsAppearance$ru._(_root);
 	@override late final _Translations$screenSettingsDevices$ru screenSettingsDevices = _Translations$screenSettingsDevices$ru._(_root);
@@ -156,10 +157,41 @@ class _Translations$screenSettings$ru extends Translations$screenSettings$en {
 	@override String get devices => _root.screenSettingsDevices.devices;
 	@override String get language => 'Язык';
 	@override String get appearance => _root.screenSettingsAppearance.appearance;
+	@override String get notifications => _root.screenSettingsNotifications.notifications;
 	@override String get privacyAndSecurity => 'Конфиденциальность';
 	@override String get aboutApplication => 'О приложении';
 	@override String get logs => 'Логи';
 	@override String get logout => 'Выйти';
+}
+
+// Path: screenSettingsNotifications
+class _Translations$screenSettingsNotifications$ru extends Translations$screenSettingsNotifications$en {
+	_Translations$screenSettingsNotifications$ru._(TranslationsRu root) : this._root = root, super.internal(root);
+
+	final TranslationsRu _root; // ignore: unused_field
+
+	// Translations
+	@override String get notifications => 'Уведомления и звуки';
+	@override String get messageNotifications => 'Уведомления о сообщениях';
+	@override String get privateChats => 'Личные чаты';
+	@override String get groups => 'Группы';
+	@override String get channels => 'Каналы';
+	@override String get on => 'Вкл.';
+	@override String get off => 'Выкл.';
+	@override String get events => 'События';
+	@override String get contactJoined => 'Контакт присоединился к Iperon';
+	@override String get missedCalls => 'Пропущенные звонки';
+	@override String get showNotifications => 'Показывать уведомления';
+	@override String get messagePreview => 'Предпросмотр сообщений';
+	@override String get sound => 'Звук';
+	@override String get messagePreviewNote => 'Без предпросмотра в уведомлении видно только, от кого сообщение.';
+	@override String get settingsSyncNote => 'Настройки действуют на всех ваших устройствах.';
+	@override String get permissionMissingTitle => 'Уведомления выключены';
+	@override String get permissionMissingMessage => 'Iperon не может показывать уведомления на этом устройстве — настройки ниже не сработают.';
+	@override String get enable => 'Включить';
+	@override String get loadError => 'Не удалось загрузить настройки';
+	@override String get offlineNote => 'Нет соединения. Изменение станет доступно, когда появится сеть.';
+	@override String get retry => 'Повторить';
 }
 
 // Path: screenDeveloper
@@ -756,10 +788,32 @@ extension on TranslationsRu {
 			'screenSettings.devices' => _root.screenSettingsDevices.devices,
 			'screenSettings.language' => 'Язык',
 			'screenSettings.appearance' => _root.screenSettingsAppearance.appearance,
+			'screenSettings.notifications' => _root.screenSettingsNotifications.notifications,
 			'screenSettings.privacyAndSecurity' => 'Конфиденциальность',
 			'screenSettings.aboutApplication' => 'О приложении',
 			'screenSettings.logs' => 'Логи',
 			'screenSettings.logout' => 'Выйти',
+			'screenSettingsNotifications.notifications' => 'Уведомления и звуки',
+			'screenSettingsNotifications.messageNotifications' => 'Уведомления о сообщениях',
+			'screenSettingsNotifications.privateChats' => 'Личные чаты',
+			'screenSettingsNotifications.groups' => 'Группы',
+			'screenSettingsNotifications.channels' => 'Каналы',
+			'screenSettingsNotifications.on' => 'Вкл.',
+			'screenSettingsNotifications.off' => 'Выкл.',
+			'screenSettingsNotifications.events' => 'События',
+			'screenSettingsNotifications.contactJoined' => 'Контакт присоединился к Iperon',
+			'screenSettingsNotifications.missedCalls' => 'Пропущенные звонки',
+			'screenSettingsNotifications.showNotifications' => 'Показывать уведомления',
+			'screenSettingsNotifications.messagePreview' => 'Предпросмотр сообщений',
+			'screenSettingsNotifications.sound' => 'Звук',
+			'screenSettingsNotifications.messagePreviewNote' => 'Без предпросмотра в уведомлении видно только, от кого сообщение.',
+			'screenSettingsNotifications.settingsSyncNote' => 'Настройки действуют на всех ваших устройствах.',
+			'screenSettingsNotifications.permissionMissingTitle' => 'Уведомления выключены',
+			'screenSettingsNotifications.permissionMissingMessage' => 'Iperon не может показывать уведомления на этом устройстве — настройки ниже не сработают.',
+			'screenSettingsNotifications.enable' => 'Включить',
+			'screenSettingsNotifications.loadError' => 'Не удалось загрузить настройки',
+			'screenSettingsNotifications.offlineNote' => 'Нет соединения. Изменение станет доступно, когда появится сеть.',
+			'screenSettingsNotifications.retry' => 'Повторить',
 			'screenDeveloper.developer' => 'Разработчик',
 			'screenDeveloper.logs' => _root.screenSettings.logs,
 			'screenDeveloper.exportLogs' => 'Экспорт логов',

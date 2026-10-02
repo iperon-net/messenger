@@ -53,6 +53,13 @@ class _SettingsMaterial extends State<SettingsMaterial> {
                 const SizedBox(height: 6),
                 _group(context, [
                   MaterialListTileIcon(
+                    title: Text(context.t.screenSettings.notifications),
+                    color: const Color(0xFFE5214D),
+                    icon: FontAwesomeIcons.solidBell,
+                    onTab: () async => context.go("/settings/notifications"),
+                    isTrailing: true,
+                  ),
+                  MaterialListTileIcon(
                     title: Text(context.t.screenSettings.privacyAndSecurity),
                     color: const Color(0xFF049A40),
                     icon: FontAwesomeIcons.key,

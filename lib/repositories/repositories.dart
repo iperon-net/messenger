@@ -28,6 +28,7 @@ part "downloads.dart";
 part "call_logs.dart";
 part "hidden_profiles.dart";
 part "privacy_settings.dart";
+part "notify_settings.dart";
 
 base class _AppSqliteOpenFactory extends NativeSqliteOpenFactory {
   final String? password;
@@ -67,6 +68,7 @@ class Repositories {
   late CallLogs callLogs;
   late HiddenProfiles hiddenProfiles;
   late PrivacySettings privacySettings;
+  late NotifySettings notifySettings;
 
   static Future<Repositories> initialization() async {
     final repositories = Repositories._();
@@ -376,6 +378,23 @@ class Repositories {
       }),
     );
 
+    migrations.add(
+      SqliteMigration(11, (tx) async {
+        // Настройки уведомлений (личные / группы / каналы, «Новые контакты»,
+        // «Пропущенные звонки») — общие для всех устройств, применяет сервер.
+        // Кэш read-only отражения, как privacySettings: весь
+        // NotifySettings_Response одним BLOB на пользователя, пишется в
+        // API._handleMessage, читается offline.
+        await tx.execute("""
+        CREATE TABLE notifySettings (
+          userID BLOB PRIMARY KEY,
+          payload BLOB NOT NULL,
+          FOREIGN KEY (userID) REFERENCES users(userID) ON DELETE CASCADE ON UPDATE CASCADE
+        );
+      """);
+      }),
+    );
+
     if (settings.isDeleteDatabase) {
       logger.warning("Deleting the database, flag set IS_DELETE_DATABASE: 1");
 
@@ -436,6 +455,7 @@ class Repositories {
     callLogs = CallLogs(logger: logger, db: db);
     hiddenProfiles = HiddenProfiles(logger: logger, db: db);
     privacySettings = PrivacySettings(logger: logger, db: db);
+    notifySettings = NotifySettings(logger: logger, db: db);
   }
 
   // Generate password

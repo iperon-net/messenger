@@ -38,6 +38,11 @@ class Routers {
   Page<void> _pageMaterial(GoRouterState state, Widget child) =>
       MaterialPage<void>(key: state.pageKey, name: state.name ?? state.path, child: child);
 
+  /// Тип чатов из пути `/settings/notifications/:scope` (имя [NotifyScope]);
+  /// неизвестное — личные чаты.
+  NotifyScope _notifyScope(String? name) =>
+      NotifyScope.values.firstWhere((scope) => scope.name == name, orElse: () => NotifyScope.privateChats);
+
   String? _redirect(BuildContext context, GoRouterState state) {
     final isAuthRoute = state.matchedLocation.startsWith("/auth");
 
@@ -142,6 +147,30 @@ class Routers {
                               SettingsMyProfileUsernameCubit()
                                 ..initialization(locale: context.read<CommonCubit>().state.settingsDevice.locale ?? AppLocale.en),
                           child: SettingsMyProfileUsernameCupertino(),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                GoRoute(
+                  path: "notifications",
+                  parentNavigatorKey: rootNavigatorKey,
+                  pageBuilder: (context, state) => _page(
+                    state,
+                    BlocProvider<SettingsNotificationsCubit>(
+                      create: (_) => SettingsNotificationsCubit()..initialization(),
+                      child: const SettingsNotificationsCupertino(),
+                    ),
+                  ),
+                  routes: [
+                    GoRoute(
+                      path: ":scope",
+                      parentNavigatorKey: rootNavigatorKey,
+                      pageBuilder: (context, state) => _page(
+                        state,
+                        BlocProvider<SettingsNotificationsCubit>(
+                          create: (_) => SettingsNotificationsCubit()..initialization(),
+                          child: SettingsNotificationsScopeCupertino(scope: _notifyScope(state.pathParameters["scope"])),
                         ),
                       ),
                     ),
@@ -649,6 +678,30 @@ class Routers {
                               SettingsMyProfileUsernameCubit()
                                 ..initialization(locale: context.read<CommonCubit>().state.settingsDevice.locale ?? AppLocale.en),
                           child: const SettingsMyProfileUsernameMaterial(),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                GoRoute(
+                  path: "notifications",
+                  parentNavigatorKey: rootNavigatorKey,
+                  pageBuilder: (context, state) => _pageMaterial(
+                    state,
+                    BlocProvider<SettingsNotificationsCubit>(
+                      create: (_) => SettingsNotificationsCubit()..initialization(),
+                      child: const SettingsNotificationsMaterial(),
+                    ),
+                  ),
+                  routes: [
+                    GoRoute(
+                      path: ":scope",
+                      parentNavigatorKey: rootNavigatorKey,
+                      pageBuilder: (context, state) => _pageMaterial(
+                        state,
+                        BlocProvider<SettingsNotificationsCubit>(
+                          create: (_) => SettingsNotificationsCubit()..initialization(),
+                          child: SettingsNotificationsScopeMaterial(scope: _notifyScope(state.pathParameters["scope"])),
                         ),
                       ),
                     ),

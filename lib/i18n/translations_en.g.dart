@@ -47,6 +47,7 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	late final Translations$screenHome$en screenHome = Translations$screenHome$en.internal(_root);
 	late final Translations$screenChats$en screenChats = Translations$screenChats$en.internal(_root);
 	late final Translations$screenSettings$en screenSettings = Translations$screenSettings$en.internal(_root);
+	late final Translations$screenSettingsNotifications$en screenSettingsNotifications = Translations$screenSettingsNotifications$en.internal(_root);
 	late final Translations$screenDeveloper$en screenDeveloper = Translations$screenDeveloper$en.internal(_root);
 	late final Translations$screenSettingsAppearance$en screenSettingsAppearance = Translations$screenSettingsAppearance$en.internal(_root);
 	late final Translations$screenSettingsDevices$en screenSettingsDevices = Translations$screenSettingsDevices$en.internal(_root);
@@ -229,6 +230,9 @@ class Translations$screenSettings$en {
 	/// en: 'Appearance'
 	String get appearance => _root.screenSettingsAppearance.appearance;
 
+	/// en: 'Notifications and sounds'
+	String get notifications => _root.screenSettingsNotifications.notifications;
+
 	/// en: 'Privacy and security'
 	String get privacyAndSecurity => 'Privacy and security';
 
@@ -240,6 +244,78 @@ class Translations$screenSettings$en {
 
 	/// en: 'Logout'
 	String get logout => 'Logout';
+}
+
+// Path: screenSettingsNotifications
+class Translations$screenSettingsNotifications$en {
+	Translations$screenSettingsNotifications$en.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// en: 'Notifications and sounds'
+	String get notifications => 'Notifications and sounds';
+
+	/// en: 'Message notifications'
+	String get messageNotifications => 'Message notifications';
+
+	/// en: 'Private chats'
+	String get privateChats => 'Private chats';
+
+	/// en: 'Groups'
+	String get groups => 'Groups';
+
+	/// en: 'Channels'
+	String get channels => 'Channels';
+
+	/// en: 'On'
+	String get on => 'On';
+
+	/// en: 'Off'
+	String get off => 'Off';
+
+	/// en: 'Events'
+	String get events => 'Events';
+
+	/// en: 'Contact joined Iperon'
+	String get contactJoined => 'Contact joined Iperon';
+
+	/// en: 'Missed calls'
+	String get missedCalls => 'Missed calls';
+
+	/// en: 'Show notifications'
+	String get showNotifications => 'Show notifications';
+
+	/// en: 'Message preview'
+	String get messagePreview => 'Message preview';
+
+	/// en: 'Sound'
+	String get sound => 'Sound';
+
+	/// en: 'Without a preview, notifications show only who sent the message.'
+	String get messagePreviewNote => 'Without a preview, notifications show only who sent the message.';
+
+	/// en: 'Settings apply to all your devices.'
+	String get settingsSyncNote => 'Settings apply to all your devices.';
+
+	/// en: 'Notifications are turned off'
+	String get permissionMissingTitle => 'Notifications are turned off';
+
+	/// en: 'Iperon isn't allowed to show notifications on this device, so these settings won't take effect.'
+	String get permissionMissingMessage => 'Iperon isn\'t allowed to show notifications on this device, so these settings won\'t take effect.';
+
+	/// en: 'Turn on'
+	String get enable => 'Turn on';
+
+	/// en: 'Couldn't load the settings'
+	String get loadError => 'Couldn\'t load the settings';
+
+	/// en: 'No connection. You can change this once you're back online.'
+	String get offlineNote => 'No connection. You can change this once you\'re back online.';
+
+	/// en: 'Retry'
+	String get retry => 'Retry';
 }
 
 // Path: screenDeveloper
@@ -1509,10 +1585,32 @@ extension on Translations {
 			'screenSettings.devices' => _root.screenSettingsDevices.devices,
 			'screenSettings.language' => 'Language',
 			'screenSettings.appearance' => _root.screenSettingsAppearance.appearance,
+			'screenSettings.notifications' => _root.screenSettingsNotifications.notifications,
 			'screenSettings.privacyAndSecurity' => 'Privacy and security',
 			'screenSettings.aboutApplication' => 'About the application',
 			'screenSettings.logs' => 'Logs',
 			'screenSettings.logout' => 'Logout',
+			'screenSettingsNotifications.notifications' => 'Notifications and sounds',
+			'screenSettingsNotifications.messageNotifications' => 'Message notifications',
+			'screenSettingsNotifications.privateChats' => 'Private chats',
+			'screenSettingsNotifications.groups' => 'Groups',
+			'screenSettingsNotifications.channels' => 'Channels',
+			'screenSettingsNotifications.on' => 'On',
+			'screenSettingsNotifications.off' => 'Off',
+			'screenSettingsNotifications.events' => 'Events',
+			'screenSettingsNotifications.contactJoined' => 'Contact joined Iperon',
+			'screenSettingsNotifications.missedCalls' => 'Missed calls',
+			'screenSettingsNotifications.showNotifications' => 'Show notifications',
+			'screenSettingsNotifications.messagePreview' => 'Message preview',
+			'screenSettingsNotifications.sound' => 'Sound',
+			'screenSettingsNotifications.messagePreviewNote' => 'Without a preview, notifications show only who sent the message.',
+			'screenSettingsNotifications.settingsSyncNote' => 'Settings apply to all your devices.',
+			'screenSettingsNotifications.permissionMissingTitle' => 'Notifications are turned off',
+			'screenSettingsNotifications.permissionMissingMessage' => 'Iperon isn\'t allowed to show notifications on this device, so these settings won\'t take effect.',
+			'screenSettingsNotifications.enable' => 'Turn on',
+			'screenSettingsNotifications.loadError' => 'Couldn\'t load the settings',
+			'screenSettingsNotifications.offlineNote' => 'No connection. You can change this once you\'re back online.',
+			'screenSettingsNotifications.retry' => 'Retry',
 			'screenDeveloper.developer' => 'Developer',
 			'screenDeveloper.logs' => _root.screenSettings.logs,
 			'screenDeveloper.exportLogs' => 'Export logs',

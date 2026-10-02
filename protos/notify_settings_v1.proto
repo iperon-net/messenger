@@ -1,0 +1,62 @@
+syntax = "proto3";
+
+package iperon.v1;
+option go_package = "internal/api/v1";
+
+// Настройки уведомлений пользователя — общие для всех его устройств (как
+// account.getNotifySettings у Telegram). Применяет сервер: воркер push-очереди
+// не шлёт выключенные типы, а без превью и звука шлёт уведомление без текста и
+// тихо. Документ не материализуется до первого изменения: отсутствие значения —
+// дефолт «всё включено». Исключения по чату (заглушить чат на время) — вместе с
+// чатами.
+message NotifySettings {
+  // Тип чатов, к которому относится настройка.
+  enum Scope {
+    PRIVATE = 0;
+    GROUPS = 1;
+    CHANNELS = 2;
+  }
+
+  // Настройка одного типа чатов.
+  message ScopeSettings {
+    // Показывать уведомления о сообщениях.
+    bool enabled = 1;
+    // Текст сообщения в уведомлении; false — только «Новое сообщение» от кого.
+    bool show_previews = 2;
+    // Со звуком; false — тихое уведомление.
+    bool sound = 3;
+  }
+
+  // Чтение текущих настроек (ответ — снимок; тот же снимок сервер рассылает
+  // по стриму на устройства пользователя после каждого изменения).
+  message Request {}
+
+  message Response {
+    ScopeSettings private_chats = 1;
+    ScopeSettings groups = 2;
+    ScopeSettings channels = 3;
+    // «Контакт присоединился к Iperon».
+    bool contact_joined = 4;
+    // «Пропущенный звонок».
+    bool missed_calls = 5;
+  }
+}
+
+// Изменение одной настройки. Одна настройка за запрос — правки с двух устройств
+// не затирают друг друга целиком.
+message NotifySettingsUpdate {
+  message ScopeChange {
+    NotifySettings.Scope scope = 1;
+    NotifySettings.ScopeSettings settings = 2;
+  }
+
+  message Request {
+    oneof change {
+      ScopeChange scope = 1;
+      bool contact_joined = 2;
+      bool missed_calls = 3;
+    }
+  }
+
+  message Response {}
+}
