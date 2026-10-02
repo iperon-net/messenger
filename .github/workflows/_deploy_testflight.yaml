@@ -166,6 +166,10 @@ jobs:
           # Два профиля: приложение (Runner) и Notification Service Extension.
           # install <base64> <имя переменной окружения для Name профиля>
           install() {
+            if [ -z "$1" ]; then
+              echo "::error::Secret for $2 is empty — add the base64 of the .mobileprovision to repository secrets"
+              exit 1
+            fi
             echo "$1" | base64 --decode > "$2.mobileprovision"
             security cms -D -i "$2.mobileprovision" > "$2.plist"
             local name uuid
