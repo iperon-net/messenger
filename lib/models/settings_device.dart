@@ -16,6 +16,9 @@ class SettingsDeviceModel with SettingsDeviceModelMappable {
   final bool passcodeForceLocked;
   final int passcodeBackgroundedAt;
 
+  /// UX-демо чатов (экран «Разработчик»): вкладка «Чаты» на фейковых данных.
+  final bool chatsDemo;
+
   const SettingsDeviceModel({
     this.locale,
     this.darkMode = DarkModeModel.system,
@@ -26,6 +29,7 @@ class SettingsDeviceModel with SettingsDeviceModelMappable {
     this.passcodeAutoLock = 0,
     this.passcodeForceLocked = false,
     this.passcodeBackgroundedAt = 0,
+    this.chatsDemo = false,
   });
 
   factory SettingsDeviceModel.fromSqlite(Map<String, dynamic> data) {
@@ -38,6 +42,7 @@ class SettingsDeviceModel with SettingsDeviceModelMappable {
     final passcodeAutoLock = data['passcodeAutoLock'] ?? 0;
     final passcodeForceLocked = data['passcodeForceLocked'] ?? 0;
     final passcodeBackgroundedAt = data['passcodeBackgroundedAt'] ?? 0;
+    final chatsDemo = data['chatsDemo'] ?? 0;
 
     SettingsDeviceModel settingsDeviceModel = SettingsDeviceModel();
 
@@ -87,6 +92,10 @@ class SettingsDeviceModel with SettingsDeviceModelMappable {
 
     if (passcodeBackgroundedAt > 0) {
       settingsDeviceModel = settingsDeviceModel.copyWith(passcodeBackgroundedAt: passcodeBackgroundedAt);
+    }
+
+    if (chatsDemo > 0) {
+      settingsDeviceModel = settingsDeviceModel.copyWith(chatsDemo: true);
     }
 
     return settingsDeviceModel;

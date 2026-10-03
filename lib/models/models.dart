@@ -12,3 +12,5 @@ export 'call_log.dart';
 export 'upload_state.dart';
 export 'download_state.dart';
 export 'cdn.dart';
+export 'chat.dart';
+export 'chat_folder.dart';

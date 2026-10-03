@@ -1,11 +1,13 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:flutter/foundation.dart' show kDebugMode;
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../themes.dart';
 import '../../i18n/translations.g.dart';
 import '../../components.dart';
+import '../../cubit.dart';
 import '../../di.dart';
 import '../../logger.dart';
 import 'developer_export_logs.dart';
@@ -97,6 +99,21 @@ class SettingsDeveloperCupertino extends StatelessWidget {
                     );
                   },
                   isTrailing: false,
+                ),
+                // UX-демо чатов: вкладка «Чаты» на фейковых данных (см.
+                // docs/plans/chats-groups-channels.md, этап 0).
+                BlocSelector<CommonCubit, CommonState, bool>(
+                  selector: (state) => state.settingsDevice.chatsDemo,
+                  builder: (context, chatsDemo) => CupertinoListTileIcon(
+                    title: Text(context.t.screenDeveloper.chatsDemo),
+                    color: const Color(0xFF5856D6),
+                    icon: FontAwesomeIcons.comments,
+                    trailing: CupertinoSwitch(
+                      value: chatsDemo,
+                      onChanged: (value) => context.read<CommonCubit>().setChatsDemo(value: value),
+                    ),
+                    onTab: () => context.read<CommonCubit>().setChatsDemo(value: !chatsDemo),
+                  ),
                 ),
                 if (kDebugMode)
                   CupertinoListTileIcon(

@@ -32,6 +32,21 @@ extension RelativeDateTimeExtension on DateTime {
     return t.dateTime.relativeDateTimeOther(date: dateStr, time: time);
   }
 
+  /// Короткая дата для списка чатов (как в Telegram): сегодня — время, за
+  /// последнюю неделю — день недели, в этом году — «12 мар», иначе — дата
+  /// целиком. Форматы — из активной локали intl.
+  String chatListFormat() {
+    final local = toLocal();
+    final now = DateTime.now();
+    final date = DateTime(local.year, local.month, local.day);
+    final today = DateTime(now.year, now.month, now.day);
+
+    if (date == today) return DateFormat.jm().format(local);
+    if (today.difference(date).inDays < 7) return DateFormat.E().format(local);
+    if (local.year == now.year) return DateFormat.MMMd().format(local);
+    return DateFormat.yMd().format(local);
+  }
+
   /// Полных лет от этой даты (даты рождения) до `now` (по умолчанию — текущий
   /// момент). День рождения ещё не наступил в этом году → возраст на 1 меньше.
   int ageInYears([DateTime? now]) {

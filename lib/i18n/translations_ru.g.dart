@@ -143,6 +143,35 @@ class _Translations$screenChats$ru extends Translations$screenChats$en {
 	@override String get notificationPermissionTitle => 'Включите уведомления';
 	@override String get notificationPermissionMessage => 'Разрешите уведомления, чтобы узнавать о новых сообщениях и контактах, даже когда Iperon свёрнут.';
 	@override String get allowAccess => 'Разрешить';
+	@override String get allFolder => 'Все чаты';
+	@override String get search => 'Поиск';
+	@override String get empty => 'Чатов пока нет';
+	@override String get emptyFolder => 'В этой папке пока нет чатов';
+	@override String get emptyArchive => 'Архив пуст';
+	@override String get archive => 'Архив';
+	@override String get savedMessages => 'Избранное';
+	@override String get draft => 'Черновик:';
+	@override String get typing => 'печатает…';
+	@override String typingName({required Object name}) => '${name} печатает…';
+	@override String get photo => 'Фото';
+	@override String get video => 'Видео';
+	@override String get file => 'Файл';
+	@override String get voice => 'Голосовое сообщение';
+	@override String get pin => 'Закрепить';
+	@override String get unpin => 'Открепить';
+	@override String get markRead => 'Прочитано';
+	@override String get markUnread => 'Непрочитано';
+	@override String get mute => 'Выключить уведомления';
+	@override String get unmute => 'Включить уведомления';
+	@override String get toArchive => 'В архив';
+	@override String get fromArchive => 'Из архива';
+	@override String get delete => 'Удалить';
+	@override String get deleteChatTitle => 'Удалить чат?';
+	@override String deleteChatMessage({required Object title}) => 'Чат «${title}» будет удалён из списка.';
+	@override String get readAll => 'Прочитать все';
+	@override String get deleteFolder => 'Удалить папку';
+	@override String deleteFolderTitle({required Object title}) => 'Удалить папку «${title}»?';
+	@override String get deleteFolderMessage => 'Чаты из папки не удаляются.';
 }
 
 // Path: screenSettings
@@ -205,6 +234,7 @@ class _Translations$screenDeveloper$ru extends Translations$screenDeveloper$en {
 	@override String get logs => _root.screenSettings.logs;
 	@override String get exportLogs => 'Экспорт логов';
 	@override String get callPreview => 'Превью экрана звонка';
+	@override String get chatsDemo => 'Демо чатов';
 	@override String get testPush => 'Тестовое уведомление';
 	@override String testPushSent({required Object apns, required Object fcm, required Object failed}) => 'Отправлено: APNs — ${apns}, FCM — ${fcm}, ошибок — ${failed}. Сверните приложение или заблокируйте экран, чтобы проверить доставку в фоне.';
 	@override String get testPushNoTokens => 'Ни у одного вашего устройства нет push-токена. Проверьте, что уведомления разрешены, и перезапустите приложение.';
@@ -783,6 +813,35 @@ extension on TranslationsRu {
 			'screenChats.notificationPermissionTitle' => 'Включите уведомления',
 			'screenChats.notificationPermissionMessage' => 'Разрешите уведомления, чтобы узнавать о новых сообщениях и контактах, даже когда Iperon свёрнут.',
 			'screenChats.allowAccess' => 'Разрешить',
+			'screenChats.allFolder' => 'Все чаты',
+			'screenChats.search' => 'Поиск',
+			'screenChats.empty' => 'Чатов пока нет',
+			'screenChats.emptyFolder' => 'В этой папке пока нет чатов',
+			'screenChats.emptyArchive' => 'Архив пуст',
+			'screenChats.archive' => 'Архив',
+			'screenChats.savedMessages' => 'Избранное',
+			'screenChats.draft' => 'Черновик:',
+			'screenChats.typing' => 'печатает…',
+			'screenChats.typingName' => ({required Object name}) => '${name} печатает…',
+			'screenChats.photo' => 'Фото',
+			'screenChats.video' => 'Видео',
+			'screenChats.file' => 'Файл',
+			'screenChats.voice' => 'Голосовое сообщение',
+			'screenChats.pin' => 'Закрепить',
+			'screenChats.unpin' => 'Открепить',
+			'screenChats.markRead' => 'Прочитано',
+			'screenChats.markUnread' => 'Непрочитано',
+			'screenChats.mute' => 'Выключить уведомления',
+			'screenChats.unmute' => 'Включить уведомления',
+			'screenChats.toArchive' => 'В архив',
+			'screenChats.fromArchive' => 'Из архива',
+			'screenChats.delete' => 'Удалить',
+			'screenChats.deleteChatTitle' => 'Удалить чат?',
+			'screenChats.deleteChatMessage' => ({required Object title}) => 'Чат «${title}» будет удалён из списка.',
+			'screenChats.readAll' => 'Прочитать все',
+			'screenChats.deleteFolder' => 'Удалить папку',
+			'screenChats.deleteFolderTitle' => ({required Object title}) => 'Удалить папку «${title}»?',
+			'screenChats.deleteFolderMessage' => 'Чаты из папки не удаляются.',
 			'screenSettings.settings' => 'Настройки',
 			'screenSettings.myProfile' => 'Мой профиль',
 			'screenSettings.devices' => _root.screenSettingsDevices.devices,
@@ -818,6 +877,7 @@ extension on TranslationsRu {
 			'screenDeveloper.logs' => _root.screenSettings.logs,
 			'screenDeveloper.exportLogs' => 'Экспорт логов',
 			'screenDeveloper.callPreview' => 'Превью экрана звонка',
+			'screenDeveloper.chatsDemo' => 'Демо чатов',
 			'screenDeveloper.testPush' => 'Тестовое уведомление',
 			'screenDeveloper.testPushSent' => ({required Object apns, required Object fcm, required Object failed}) => 'Отправлено: APNs — ${apns}, FCM — ${fcm}, ошибок — ${failed}. Сверните приложение или заблокируйте экран, чтобы проверить доставку в фоне.',
 			'screenDeveloper.testPushNoTokens' => 'Ни у одного вашего устройства нет push-токена. Проверьте, что уведомления разрешены, и перезапустите приложение.',

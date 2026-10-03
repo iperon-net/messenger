@@ -48,4 +48,8 @@ class SettingsDevice {
   Future<void> setPasscodeBackgroundedAt(int millisecondsSinceEpoch) async {
     await db.execute("UPDATE settingsDevice SET passcodeBackgroundedAt = ?", [millisecondsSinceEpoch]);
   }
+
+  Future<void> setChatsDemo(bool value) async {
+    await db.execute("UPDATE settingsDevice SET chatsDemo = ?", [value ? 1 : 0]);
+  }
 }

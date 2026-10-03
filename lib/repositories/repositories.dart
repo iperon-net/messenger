@@ -395,6 +395,15 @@ class Repositories {
       }),
     );
 
+    migrations.add(
+      SqliteMigration(12, (tx) async {
+        // Флаг UX-демо чатов (экран «Разработчик»): вкладка «Чаты» показывает
+        // фейковые чаты и папки из ChatsDemoDataSource. Локальная настройка
+        // устройства, на сервер не уходит.
+        await tx.execute("ALTER TABLE settingsDevice ADD COLUMN chatsDemo INTEGER NOT NULL DEFAULT 0;");
+      }),
+    );
+
     if (settings.isDeleteDatabase) {
       logger.warning("Deleting the database, flag set IS_DELETE_DATABASE: 1");
 

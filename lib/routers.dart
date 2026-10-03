@@ -95,8 +95,26 @@ class Routers {
           routes: [
             GoRoute(
               path: "/chats",
-              builder: (_, _) => BlocProvider<ChatsCubit>(create: (_) => ChatsCubit()..initialization(), child: const ChatsCupertino()),
-              // builder: (_, _) => const ChatsCupertino()
+              builder: (_, _) => BlocProvider<ChatsCubit>(
+                create: (context) => ChatsCubit()..initialization(demo: context.read<CommonCubit>().state.settingsDevice.chatsDemo),
+                child: const ChatsCupertino(),
+              ),
+              routes: [
+                // «Архив» — полноэкранно поверх таб-бара. Свой ChatsCubit: данные
+                // общие через источник (ChatsDemoDataSource — один на приложение).
+                GoRoute(
+                  path: "archive",
+                  parentNavigatorKey: rootNavigatorKey,
+                  pageBuilder: (context, state) => _page(
+                    state,
+                    BlocProvider<ChatsCubit>(
+                      create: (context) =>
+                          ChatsCubit()..initialization(demo: context.read<CommonCubit>().state.settingsDevice.chatsDemo, archive: true),
+                      child: const ChatsArchiveCupertino(),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
@@ -631,7 +649,26 @@ class Routers {
           routes: [
             GoRoute(
               path: "/chats",
-              builder: (_, _) => BlocProvider<ChatsCubit>(create: (_) => ChatsCubit()..initialization(), child: const ChatsMaterial()),
+              builder: (_, _) => BlocProvider<ChatsCubit>(
+                create: (context) => ChatsCubit()..initialization(demo: context.read<CommonCubit>().state.settingsDevice.chatsDemo),
+                child: const ChatsMaterial(),
+              ),
+              routes: [
+                // «Архив» — полноэкранно поверх таб-бара. Свой ChatsCubit: данные
+                // общие через источник (ChatsDemoDataSource — один на приложение).
+                GoRoute(
+                  path: "archive",
+                  parentNavigatorKey: rootNavigatorKey,
+                  pageBuilder: (context, state) => _pageMaterial(
+                    state,
+                    BlocProvider<ChatsCubit>(
+                      create: (context) =>
+                          ChatsCubit()..initialization(demo: context.read<CommonCubit>().state.settingsDevice.chatsDemo, archive: true),
+                      child: const ChatsArchiveMaterial(),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
         ),

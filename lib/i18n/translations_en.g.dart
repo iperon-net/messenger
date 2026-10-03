@@ -205,6 +205,93 @@ class Translations$screenChats$en {
 
 	/// en: 'Allow'
 	String get allowAccess => 'Allow';
+
+	/// en: 'All chats'
+	String get allFolder => 'All chats';
+
+	/// en: 'Search'
+	String get search => 'Search';
+
+	/// en: 'No chats yet'
+	String get empty => 'No chats yet';
+
+	/// en: 'No chats in this folder yet'
+	String get emptyFolder => 'No chats in this folder yet';
+
+	/// en: 'Archive is empty'
+	String get emptyArchive => 'Archive is empty';
+
+	/// en: 'Archive'
+	String get archive => 'Archive';
+
+	/// en: 'Saved Messages'
+	String get savedMessages => 'Saved Messages';
+
+	/// en: 'Draft:'
+	String get draft => 'Draft:';
+
+	/// en: 'typing…'
+	String get typing => 'typing…';
+
+	/// en: '{name} is typing…'
+	String typingName({required Object name}) => '${name} is typing…';
+
+	/// en: 'Photo'
+	String get photo => 'Photo';
+
+	/// en: 'Video'
+	String get video => 'Video';
+
+	/// en: 'File'
+	String get file => 'File';
+
+	/// en: 'Voice message'
+	String get voice => 'Voice message';
+
+	/// en: 'Pin'
+	String get pin => 'Pin';
+
+	/// en: 'Unpin'
+	String get unpin => 'Unpin';
+
+	/// en: 'Mark as read'
+	String get markRead => 'Mark as read';
+
+	/// en: 'Mark as unread'
+	String get markUnread => 'Mark as unread';
+
+	/// en: 'Mute'
+	String get mute => 'Mute';
+
+	/// en: 'Unmute'
+	String get unmute => 'Unmute';
+
+	/// en: 'Archive'
+	String get toArchive => 'Archive';
+
+	/// en: 'Unarchive'
+	String get fromArchive => 'Unarchive';
+
+	/// en: 'Delete'
+	String get delete => 'Delete';
+
+	/// en: 'Delete chat?'
+	String get deleteChatTitle => 'Delete chat?';
+
+	/// en: 'Chat "{title}" will be removed from the list.'
+	String deleteChatMessage({required Object title}) => 'Chat "${title}" will be removed from the list.';
+
+	/// en: 'Read all'
+	String get readAll => 'Read all';
+
+	/// en: 'Delete folder'
+	String get deleteFolder => 'Delete folder';
+
+	/// en: 'Delete folder "{title}"?'
+	String deleteFolderTitle({required Object title}) => 'Delete folder "${title}"?';
+
+	/// en: 'Chats in the folder are not deleted.'
+	String get deleteFolderMessage => 'Chats in the folder are not deleted.';
 }
 
 // Path: screenSettings
@@ -337,6 +424,9 @@ class Translations$screenDeveloper$en {
 
 	/// en: 'Call screen preview'
 	String get callPreview => 'Call screen preview';
+
+	/// en: 'Chats demo'
+	String get chatsDemo => 'Chats demo';
 
 	/// en: 'Test notification'
 	String get testPush => 'Test notification';
@@ -1580,6 +1670,35 @@ extension on Translations {
 			'screenChats.notificationPermissionTitle' => 'Turn on notifications',
 			'screenChats.notificationPermissionMessage' => 'Allow notifications to hear about new messages and contacts even when Iperon is in the background.',
 			'screenChats.allowAccess' => 'Allow',
+			'screenChats.allFolder' => 'All chats',
+			'screenChats.search' => 'Search',
+			'screenChats.empty' => 'No chats yet',
+			'screenChats.emptyFolder' => 'No chats in this folder yet',
+			'screenChats.emptyArchive' => 'Archive is empty',
+			'screenChats.archive' => 'Archive',
+			'screenChats.savedMessages' => 'Saved Messages',
+			'screenChats.draft' => 'Draft:',
+			'screenChats.typing' => 'typing…',
+			'screenChats.typingName' => ({required Object name}) => '${name} is typing…',
+			'screenChats.photo' => 'Photo',
+			'screenChats.video' => 'Video',
+			'screenChats.file' => 'File',
+			'screenChats.voice' => 'Voice message',
+			'screenChats.pin' => 'Pin',
+			'screenChats.unpin' => 'Unpin',
+			'screenChats.markRead' => 'Mark as read',
+			'screenChats.markUnread' => 'Mark as unread',
+			'screenChats.mute' => 'Mute',
+			'screenChats.unmute' => 'Unmute',
+			'screenChats.toArchive' => 'Archive',
+			'screenChats.fromArchive' => 'Unarchive',
+			'screenChats.delete' => 'Delete',
+			'screenChats.deleteChatTitle' => 'Delete chat?',
+			'screenChats.deleteChatMessage' => ({required Object title}) => 'Chat "${title}" will be removed from the list.',
+			'screenChats.readAll' => 'Read all',
+			'screenChats.deleteFolder' => 'Delete folder',
+			'screenChats.deleteFolderTitle' => ({required Object title}) => 'Delete folder "${title}"?',
+			'screenChats.deleteFolderMessage' => 'Chats in the folder are not deleted.',
 			'screenSettings.settings' => 'Settings',
 			'screenSettings.myProfile' => 'My profile',
 			'screenSettings.devices' => _root.screenSettingsDevices.devices,
@@ -1615,6 +1734,7 @@ extension on Translations {
 			'screenDeveloper.logs' => _root.screenSettings.logs,
 			'screenDeveloper.exportLogs' => 'Export logs',
 			'screenDeveloper.callPreview' => 'Call screen preview',
+			'screenDeveloper.chatsDemo' => 'Chats demo',
 			'screenDeveloper.testPush' => 'Test notification',
 			'screenDeveloper.testPushSent' => ({required Object apns, required Object fcm, required Object failed}) => 'Sent: APNs — ${apns}, FCM — ${fcm}, failed — ${failed}. Minimize the app or lock the screen to check background delivery.',
 			'screenDeveloper.testPushNoTokens' => 'None of your devices has a push token. Make sure notifications are allowed and restart the app.',

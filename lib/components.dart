@@ -13,3 +13,6 @@ export './components/app_cupertino_navigation_bar.dart';
 export './components/shimmer.dart';
 export './components/user_avatar.dart';
 export './components/calls/call_gate.dart';
+export './components/chats/chat_avatar.dart';
+export './components/chats/chat_folder_tabs.dart';
+export './components/chats/chat_tile.dart';

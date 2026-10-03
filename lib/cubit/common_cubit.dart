@@ -223,4 +223,10 @@ class CommonCubit extends Cubit<CommonState> {
     final settingsDevice = state.settingsDevice.copyWith(passcodeBiometric: biometric);
     emit(state.copyWith(status: Status.success, settingsDevice: settingsDevice));
   }
+
+  /// Тумблер «Демо чатов» на экране «Разработчик».
+  Future<void> setChatsDemo({required bool value}) async {
+    await repositories.settingsDevice.setChatsDemo(value);
+    emit(state.copyWith(settingsDevice: state.settingsDevice.copyWith(chatsDemo: value)));
+  }
 }
