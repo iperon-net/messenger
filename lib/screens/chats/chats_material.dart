@@ -23,8 +23,7 @@ class ChatsMaterial extends StatefulWidget {
   State<ChatsMaterial> createState() => _ChatsMaterial();
 }
 
-class _ChatsMaterial extends State<ChatsMaterial> {
-  final _searchController = TextEditingController();
+class _ChatsMaterial extends State<ChatsMaterial> with SearchHideOnScroll {
   late final PageController _pageController;
 
   @override
@@ -35,7 +34,6 @@ class _ChatsMaterial extends State<ChatsMaterial> {
 
   @override
   void dispose() {
-    _searchController.dispose();
     _pageController.dispose();
     super.dispose();
   }
@@ -72,17 +70,41 @@ class _ChatsMaterial extends State<ChatsMaterial> {
             ),
           ),
         ),
-        body: Column(
-          children: [
-            // Поле поиска — вне BlocBuilder, чтобы не терять фокус на каждый emit.
-            Padding(
-              padding: const EdgeInsets.fromLTRB(12, 4, 12, 8),
-              child: SearchFieldMaterial(
-                controller: _searchController,
-                hintText: context.t.screenChats.search,
-                onChanged: (value) => context.read<ChatsCubit>().search(value),
-              ),
+        // Шапка (поиск, баннер, табы) поверх списков: поиск уезжает вместе со
+        // списком, как в Telegram (см. SearchHideOnScroll).
+        body: searchHideOnScrollBody(
+          body: BlocConsumer<ChatsCubit, ChatsState>(
+            // Папку удалили/список сменился — держим PageView на активной папке.
+            listenWhen: (previous, current) => previous.folderIndex != current.folderIndex || previous.folders != current.folders,
+            listener: (context, state) {
+              if (!_pageController.hasClients) return;
+              if (_pageController.page?.round() != state.folderIndex) _pageController.jumpToPage(state.folderIndex);
+            },
+            builder: (context, state) {
+              if (state.folders.isEmpty) return _empty(context, context.t.screenChats.empty);
+              return PageView.builder(
+                controller: _pageController,
+                itemCount: state.folders.length,
+                onPageChanged: (index) {
+                  onSearchListChanged(state.folders[index].id);
+                  context.read<ChatsCubit>().setFolderIndex(index);
+                },
+                itemBuilder: (context, index) => _folderPage(context, state, state.folders[index]),
+              );
+            },
+          ),
+          background: background,
+          // Поле поиска — вне BlocBuilder, чтобы не терять фокус на каждый emit.
+          search: Padding(
+            padding: const EdgeInsets.fromLTRB(12, 4, 12, 8),
+            child: SearchFieldMaterial(
+              controller: searchController,
+              focusNode: searchFocus,
+              hintText: context.t.screenChats.search,
+              onChanged: (value) => context.read<ChatsCubit>().search(value),
             ),
+          ),
+          header: [
             // Мягкий баннер-объяснение о разрешении на уведомления. Виден, только
             // пока разрешения нет и пользователь его не закрыл.
             BlocSelector<ChatsCubit, ChatsState, bool>(
@@ -103,53 +125,29 @@ class _ChatsMaterial extends State<ChatsMaterial> {
                 );
               },
             ),
-            Expanded(
-              child: BlocConsumer<ChatsCubit, ChatsState>(
-                // Папку удалили/список сменился — держим PageView на активной папке.
-                listenWhen: (previous, current) => previous.folderIndex != current.folderIndex || previous.folders != current.folders,
-                listener: (context, state) {
-                  if (!_pageController.hasClients) return;
-                  if (_pageController.page?.round() != state.folderIndex) _pageController.jumpToPage(state.folderIndex);
-                },
-                builder: (context, state) {
-                  if (state.folders.isEmpty) return _empty(context, context.t.screenChats.empty);
-                  return Column(
-                    children: [
-                      if (state.folders.length > 1)
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
-                          child: ChatFolderTabsMaterial(
-                            controller: _pageController,
-                            selectedIndex: state.folderIndex,
-                            tabs: [
-                              for (final folder in state.folders)
-                                ChatFolderTab(
-                                  title: _folderTitle(context, folder),
-                                  badge: state.unreadOf(folder).count,
-                                  badgeMuted: state.unreadOf(folder).muted,
-                                ),
-                            ],
-                            onTap: (index) => _pageController.animateToPage(
-                              index,
-                              duration: const Duration(milliseconds: 300),
-                              curve: Curves.easeOutCubic,
-                            ),
-                            onLongPress: (index) =>
-                                showFolderActionsMaterial(context, state.folders[index], _folderTitle(context, state.folders[index])),
-                          ),
+            BlocBuilder<ChatsCubit, ChatsState>(
+              builder: (context, state) {
+                if (state.folders.length < 2) return const SizedBox.shrink();
+                return Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
+                  child: ChatFolderTabsMaterial(
+                    controller: _pageController,
+                    selectedIndex: state.folderIndex,
+                    tabs: [
+                      for (final folder in state.folders)
+                        ChatFolderTab(
+                          title: _folderTitle(context, folder),
+                          badge: state.unreadOf(folder).count,
+                          badgeMuted: state.unreadOf(folder).muted,
                         ),
-                      Expanded(
-                        child: PageView.builder(
-                          controller: _pageController,
-                          itemCount: state.folders.length,
-                          onPageChanged: (index) => context.read<ChatsCubit>().setFolderIndex(index),
-                          itemBuilder: (context, index) => _folderPage(context, state, state.folders[index]),
-                        ),
-                      ),
                     ],
-                  );
-                },
-              ),
+                    onTap: (index) =>
+                        _pageController.animateToPage(index, duration: const Duration(milliseconds: 300), curve: Curves.easeOutCubic),
+                    onLongPress: (index) =>
+                        showFolderActionsMaterial(context, state.folders[index], _folderTitle(context, state.folders[index])),
+                  ),
+                );
+              },
             ),
           ],
         ),
@@ -167,29 +165,39 @@ class _ChatsMaterial extends State<ChatsMaterial> {
     }
     final offset = archived.isEmpty ? 0 : 1;
 
-    return ListView.builder(
-      // Своя позиция прокрутки у каждой папки.
-      key: PageStorageKey('chats_folder_${folder.id}'),
-      itemCount: chats.length + offset,
-      itemBuilder: (context, index) {
-        if (index < offset) return _ArchiveTileMaterial(archived: archived, onTap: () => context.push('/chats/archive'));
-        final chat = chats[index - offset];
-        return ChatTileMaterial(
-          key: ValueKey(chat.id),
-          chat: chat,
-          // Окно чата — следующий шаг демо.
-          onTap: () {},
-          onLongPress: () => showChatActionsMaterial(context, chat),
-        );
-      },
+    // Свой контроллер (и позиция прокрутки) у каждой папки; сверху отступ под
+    // шапку — строки проезжают под ней.
+    return belowSearchHeader(
+      (top) => ListView.builder(
+        key: ValueKey('chats_folder_${folder.id}'),
+        controller: searchListController(folder.id),
+        padding: EdgeInsets.only(top: top),
+        itemCount: chats.length + offset,
+        itemBuilder: (context, index) {
+          if (index < offset) return _ArchiveTileMaterial(archived: archived, onTap: () => context.push('/chats/archive'));
+          final chat = chats[index - offset];
+          return ChatTileMaterial(
+            key: ValueKey(chat.id),
+            chat: chat,
+            // Окно чата — следующий шаг демо.
+            onTap: () {},
+            onLongPress: () => showChatActionsMaterial(context, chat),
+          );
+        },
+      ),
     );
   }
 
   Widget _empty(BuildContext context, String text) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Text(text, textAlign: TextAlign.center),
+    return belowSearchHeader(
+      (top) => Padding(
+        padding: EdgeInsets.only(top: top),
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(32),
+            child: Text(text, textAlign: TextAlign.center),
+          ),
+        ),
       ),
     );
   }

@@ -7,8 +7,9 @@ class SearchFieldMaterial extends StatelessWidget {
   final TextEditingController controller;
   final String hintText;
   final ValueChanged<String>? onChanged;
+  final FocusNode? focusNode;
 
-  const SearchFieldMaterial({super.key, required this.controller, required this.hintText, this.onChanged});
+  const SearchFieldMaterial({super.key, required this.controller, required this.hintText, this.onChanged, this.focusNode});
 
   @override
   Widget build(BuildContext context) {
@@ -16,6 +17,7 @@ class SearchFieldMaterial extends StatelessWidget {
       height: 40,
       child: TextField(
         controller: controller,
+        focusNode: focusNode,
         textAlignVertical: TextAlignVertical.center,
         decoration: InputDecoration(
           prefixIcon: const Icon(Icons.search, size: 20),

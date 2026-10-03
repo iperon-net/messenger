@@ -7,13 +7,15 @@ class SearchFieldCupertino extends StatelessWidget {
   final TextEditingController controller;
   final String placeholder;
   final ValueChanged<String>? onChanged;
+  final FocusNode? focusNode;
 
-  const SearchFieldCupertino({super.key, required this.controller, required this.placeholder, this.onChanged});
+  const SearchFieldCupertino({super.key, required this.controller, required this.placeholder, this.onChanged, this.focusNode});
 
   @override
   Widget build(BuildContext context) {
     return CupertinoSearchTextField(
       controller: controller,
+      focusNode: focusNode,
       placeholder: placeholder,
       padding: const EdgeInsetsDirectional.fromSTEB(5.5, 7, 5.5, 7),
       itemSize: 16,

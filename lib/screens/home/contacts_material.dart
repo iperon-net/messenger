@@ -22,9 +22,7 @@ class ContactsMaterial extends StatefulWidget {
   State<ContactsMaterial> createState() => _ContactsMaterialState();
 }
 
-class _ContactsMaterialState extends State<ContactsMaterial> {
-  final _searchController = TextEditingController();
-
+class _ContactsMaterialState extends State<ContactsMaterial> with SearchHideOnScroll {
   @override
   void initState() {
     super.initState();
@@ -33,12 +31,6 @@ class _ContactsMaterialState extends State<ContactsMaterial> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) context.read<ContactsCubit>().discoverOnFirstView();
     });
-  }
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
   }
 
   bool _matchesQuery(ContactItem item, String query) {
@@ -88,16 +80,20 @@ class _ContactsMaterialState extends State<ContactsMaterial> {
       ),
       // Поле поиска — вне BlocBuilder, чтобы не пересоздаваться на каждый emit
       // от search() (иначе теряется фокус/область композиции при вводе).
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(12, 4, 12, 8),
-            child: SearchFieldMaterial(
-              controller: _searchController,
-              hintText: context.t.screenContacts.search,
-              onChanged: (value) => context.read<ContactsCubit>().search(value),
-            ),
+      body: searchHideOnScrollBody(
+        // Шапка (поиск, баннер) поверх списка: поиск уезжает вместе со
+        // списком, как в Telegram (см. SearchHideOnScroll).
+        background: background,
+        search: Padding(
+          padding: const EdgeInsets.fromLTRB(12, 4, 12, 8),
+          child: SearchFieldMaterial(
+            controller: searchController,
+            focusNode: searchFocus,
+            hintText: context.t.screenContacts.search,
+            onChanged: (value) => context.read<ContactsCubit>().search(value),
           ),
+        ),
+        header: [
           // Мягкий баннер-объяснение о доступе к книге. Виден, только пока доступ
           // не выдан и пользователь его не закрыл. Поиск и облачные контакты при
           // этом доступны — экран не блокируется.
@@ -115,50 +111,50 @@ class _ContactsMaterialState extends State<ContactsMaterial> {
                   )
                 : const SizedBox.shrink(),
           ),
-          Expanded(
-            child: BlocBuilder<ContactsCubit, ContactsState>(
-              builder: (context, state) {
-                if (state.status != Status.success && state.registered.isEmpty && state.invitable.isEmpty && state.cloud.isEmpty) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-
-                final registered = state.registered.where((item) => _visible(state, item)).toList();
-                final invitable = state.invitable.where((item) => _visible(state, item)).toList();
-                final cloud = state.cloud.where((item) => _visible(state, item)).toList();
-
-                return ListView(
-                  children: [
-                    if (registered.isNotEmpty)
-                      _sheet(
-                        context,
-                        context.t.screenContacts.onContacts,
-                        registered.map((item) => _registeredTile(context, item)).toList(),
-                      ),
-                    if (cloud.isNotEmpty)
-                      _sheet(
-                        context,
-                        context.t.screenContacts.cloudContacts,
-                        cloud
-                            .map(
-                              (item) => item.isRegistered
-                                  ? _registeredTile(context, item, removable: true)
-                                  : _invitableTile(context, item, removable: true),
-                            )
-                            .toList(),
-                      ),
-                    if (invitable.isNotEmpty)
-                      _sheet(context, context.t.screenContacts.invite, invitable.map((item) => _invitableTile(context, item)).toList()),
-                    if (registered.isEmpty && invitable.isEmpty && cloud.isEmpty)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 60),
-                        child: Center(child: Text(context.t.screenContacts.empty)),
-                      ),
-                  ],
-                );
-              },
-            ),
-          ),
         ],
+        body: BlocBuilder<ContactsCubit, ContactsState>(
+          builder: (context, state) {
+            if (state.status != Status.success && state.registered.isEmpty && state.invitable.isEmpty && state.cloud.isEmpty) {
+              return belowSearchHeaderCentered(const CircularProgressIndicator());
+            }
+
+            final registered = state.registered.where((item) => _visible(state, item)).toList();
+            final invitable = state.invitable.where((item) => _visible(state, item)).toList();
+            final cloud = state.cloud.where((item) => _visible(state, item)).toList();
+
+            // Отступ сверху под шапку — строки проезжают под ней.
+            return belowSearchHeader(
+              (top) => ListView(
+                controller: searchListController(),
+                padding: EdgeInsets.only(top: top),
+
+                children: [
+                  if (registered.isNotEmpty)
+                    _sheet(context, context.t.screenContacts.onContacts, registered.map((item) => _registeredTile(context, item)).toList()),
+                  if (cloud.isNotEmpty)
+                    _sheet(
+                      context,
+                      context.t.screenContacts.cloudContacts,
+                      cloud
+                          .map(
+                            (item) => item.isRegistered
+                                ? _registeredTile(context, item, removable: true)
+                                : _invitableTile(context, item, removable: true),
+                          )
+                          .toList(),
+                    ),
+                  if (invitable.isNotEmpty)
+                    _sheet(context, context.t.screenContacts.invite, invitable.map((item) => _invitableTile(context, item)).toList()),
+                  if (registered.isEmpty && invitable.isEmpty && cloud.isEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 60),
+                      child: Center(child: Text(context.t.screenContacts.empty)),
+                    ),
+                ],
+              ),
+            );
+          },
+        ),
       ),
     );
   }
