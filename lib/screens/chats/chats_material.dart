@@ -169,7 +169,7 @@ class _ChatsMaterial extends State<ChatsMaterial> with SearchHideOnScroll {
     // шапку — строки проезжают под ней.
     return belowSearchHeader(
       (top) => ListView.builder(
-        key: ValueKey('chats_folder_${folder.id}'),
+        key: PageStorageKey('chats_folder_${folder.id}'),
         controller: searchListController(folder.id),
         padding: EdgeInsets.only(top: top),
         itemCount: chats.length + offset,

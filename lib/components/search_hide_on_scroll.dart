@@ -1,21 +1,26 @@
 import 'package:flutter/rendering.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
 
 /// Поиск на вкладках «Чаты», «Звонки», «Контакты» уезжает вместе со списком,
 /// как в Telegram. Шапка (поиск + то, что под ним: баннер, табы/фильтр) лежит
-/// поверх списка и сдвигается вверх ровно на его прокрутку, но не дальше
-/// высоты поиска — остальное прилипает к верху. Отпустили палец на полпути —
-/// список доезжает до «поиск виден целиком» или «спрятан целиком».
+/// поверх списка; поиск уезжает вверх на прокрутку вниз и гаснет, остальное
+/// прилипает к верху. Спрятанный поиск возвращается, только когда список
+/// докручен до начала. Отпустили палец на полпути — шапка доезжает до «поиск
+/// виден целиком» или «спрятан целиком».
 ///
-/// Списков может быть несколько (папки чатов в `PageView`): у каждого свой
-/// `ScrollController` по ключу ([searchListController]); при смене списка
-/// новый выравнивается под текущее положение шапки ([onSearchListChanged]),
-/// чтобы она не прыгала. Общая логика для Cupertino и Material.
+/// Списков может быть несколько (папки чатов в `PageView`), у каждого свой
+/// `ScrollController` по ключу ([searchListController]). Положение шапки общее
+/// для всех и при свайпе между папками не меняется: соседний список заранее
+/// подгоняется под шапку, а сменившийся активный — в [onSearchListChanged].
+/// Общая логика для Cupertino и Material.
 mixin SearchHideOnScroll<T extends StatefulWidget> on State<T> {
   final searchController = TextEditingController();
   final searchFocus = FocusNode();
 
   /// Насколько шапка уехала вверх: 0 — поиск виден, [_searchHeight] — спрятан.
+  /// Инвариант: не больше прокрутки активного списка (иначе между табами и
+  /// первой строкой была бы пустая полоса).
   final _collapse = ValueNotifier<double>(0);
 
   /// Полная высота шапки — отступ сверху у списков.
@@ -23,8 +28,15 @@ mixin SearchHideOnScroll<T extends StatefulWidget> on State<T> {
   double _searchHeight = 0;
   final _scrollControllers = <String, ScrollController>{};
 
+  /// Ключ активного списка; первым становится первый запрошенный.
+  String? _activeKey;
+
+  /// Доводка шапки, когда список стоит дальше поиска и двигать его не нужно.
+  Ticker? _snapTicker;
+
   @override
   void dispose() {
+    _snapTicker?.dispose();
     searchController.dispose();
     searchFocus.dispose();
     _collapse.dispose();
@@ -36,18 +48,46 @@ mixin SearchHideOnScroll<T extends StatefulWidget> on State<T> {
   }
 
   /// Контроллер списка [key]; новый стартует под текущее положение шапки.
-  ScrollController searchListController([String key = '']) =>
-      _scrollControllers.putIfAbsent(key, () => ScrollController(initialScrollOffset: _collapse.value));
+  ScrollController searchListController([String key = '']) {
+    _activeKey ??= key;
+    return _scrollControllers.putIfAbsent(key, () => ScrollController(initialScrollOffset: _collapse.value));
+  }
 
-  /// Сменился активный список (папка в `PageView`): подгоняем его под шапку.
+  /// Сменился активный список (папка в `PageView`). Шапку не трогаем — список
+  /// подгоняем под неё (если он короткий и не докручивается — открываем шапку).
   void onSearchListChanged(String key) {
+    _activeKey = key;
     final controller = _scrollControllers[key];
     if (controller == null || !controller.hasClients) return;
-    if (controller.offset < _searchHeight) {
-      controller.jumpTo(_collapse.value);
-    } else {
-      _collapse.value = _searchHeight;
+    final position = controller.position;
+    if (position.pixels < _collapse.value) {
+      final target = _collapse.value.clamp(position.minScrollExtent, position.maxScrollExtent);
+      position.jumpTo(target);
+      if (target < _collapse.value) _setCollapse(target.clamp(0, _searchHeight));
     }
+  }
+
+  /// Уведомление от активного списка? Соседние папки, построенные при свайпе,
+  /// шапкой не управляют.
+  ScrollPosition? _positionOf(Notification notification) {
+    final context = switch (notification) {
+      ScrollNotification(:final context) => context,
+      ScrollMetricsNotification(:final context) => context,
+      _ => null,
+    };
+    if (context == null || !context.mounted) return null;
+    return Scrollable.maybeOf(context)?.position;
+  }
+
+  bool _isActive(ScrollPosition? position) {
+    final controller = _scrollControllers[_activeKey];
+    if (position == null || controller == null || !controller.hasClients) return true;
+    return controller.positions.contains(position);
+  }
+
+  void _setCollapse(double value) {
+    _snapTicker?.stop();
+    _collapse.value = value;
   }
 
   /// Для `NotificationListener<ScrollNotification>` над списком (или над
@@ -55,18 +95,68 @@ mixin SearchHideOnScroll<T extends StatefulWidget> on State<T> {
   bool onSearchScroll(ScrollNotification notification) {
     final metrics = notification.metrics;
     if (metrics.axis != Axis.vertical) return false;
-    if (notification is ScrollUpdateNotification) {
-      _collapse.value = metrics.pixels.clamp(0, _searchHeight);
+    final position = _positionOf(notification);
+    if (!_isActive(position)) return false;
+
+    if (notification is ScrollStartNotification && notification.dragDetails != null) {
+      _snapTicker?.stop();
+    } else if (notification is ScrollUpdateNotification) {
+      // Идёт доводка шапки — она сама приведёт к нужному положению.
+      if (_snapTicker?.isActive ?? false) return false;
+      final delta = notification.scrollDelta ?? 0;
+      final collapse = _collapse.value;
+      // Вниз — поиск уезжает на прокрутку; вверх — возвращается, только когда
+      // начало списка доходит до шапки (до этого остаётся как был).
+      final next = delta > 0 ? collapse + delta : collapse;
+      _collapse.value = next.clamp(0, metrics.pixels.clamp(0, _searchHeight));
     } else if (notification is ScrollEndNotification) {
+      final collapse = _collapse.value;
+      if (collapse <= 0 || collapse >= _searchHeight) return false;
       final pixels = metrics.pixels;
-      if (pixels > 0 && pixels < _searchHeight) {
-        final position = Scrollable.maybeOf(notification.context!)?.position;
-        final target = pixels < _searchHeight / 2 ? 0.0 : _searchHeight;
-        // Не из обработчика уведомления: позиция ещё завершает активность.
-        Future.microtask(() => position?.animateTo(target, duration: const Duration(milliseconds: 200), curve: Curves.easeOutCubic));
+      final target = collapse < _searchHeight / 2 ? 0.0 : _searchHeight;
+      // Не из обработчика уведомления: позиция ещё завершает активность.
+      Future.microtask(() {
+        if ((pixels - collapse).abs() < 0.5) {
+          // Шапка «сцеплена» со списком — доводим список, шапка едет за ним.
+          position?.animateTo(target, duration: const Duration(milliseconds: 200), curve: Curves.easeOutCubic);
+          return;
+        }
+        if (target > pixels) position?.animateTo(target, duration: const Duration(milliseconds: 200), curve: Curves.easeOutCubic);
+        _animateCollapse(target);
+      });
+    }
+    return false;
+  }
+
+  /// Список изменил размеры (поиск, фильтр, новые строки) — позиция могла
+  /// поджаться без ScrollUpdate. Активный: держим инвариант (шапка не дальше
+  /// прокрутки). Соседний (построен при свайпе): подгоняем под шапку.
+  bool _onScrollMetrics(ScrollMetricsNotification notification) {
+    final metrics = notification.metrics;
+    if (metrics.axis != Axis.vertical) return false;
+    final position = _positionOf(notification);
+    if (_isActive(position)) {
+      if (metrics.pixels < _collapse.value) _setCollapse(metrics.pixels.clamp(0, _searchHeight));
+    } else if (position != null && metrics.pixels < _collapse.value) {
+      final target = _collapse.value.clamp(metrics.minScrollExtent, metrics.maxScrollExtent);
+      if ((metrics.pixels - target).abs() > 0.5) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (position.hasPixels) position.jumpTo(target);
+        });
       }
     }
     return false;
+  }
+
+  void _animateCollapse(double target) {
+    _snapTicker?.dispose();
+    final from = _collapse.value;
+    const duration = Duration(milliseconds: 200);
+    _snapTicker = Ticker((elapsed) {
+      final t = (elapsed.inMicroseconds / duration.inMicroseconds).clamp(0.0, 1.0);
+      _collapse.value = from + (target - from) * Curves.easeOutCubic.transform(t);
+      if (t >= 1) _snapTicker?.stop();
+    })..start();
   }
 
   /// Тело вкладки: [body] (список/списки) на всю высоту, поверх — шапка из
@@ -79,16 +169,7 @@ mixin SearchHideOnScroll<T extends StatefulWidget> on State<T> {
       children: [
         Positioned.fill(
           child: NotificationListener<ScrollMetricsNotification>(
-            // Список укоротился (поиск, фильтр) — позиция поджалась без
-            // ScrollUpdate; без этого шапка могла остаться полуспрятанной. Только
-            // открываем: соседняя папка, построенная при свайпе, не должна прятать.
-            onNotification: (notification) {
-              final metrics = notification.metrics;
-              if (metrics.axis == Axis.vertical && metrics.pixels < _collapse.value) {
-                _collapse.value = metrics.pixels.clamp(0, _searchHeight);
-              }
-              return false;
-            },
+            onNotification: _onScrollMetrics,
             child: NotificationListener<ScrollNotification>(onNotification: onSearchScroll, child: body),
           ),
         ),
