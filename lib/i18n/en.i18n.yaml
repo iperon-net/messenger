@@ -67,6 +67,38 @@
   "deleteFolderTitle": "Delete folder \"{title}\"?"
   "deleteFolderMessage": "Chats in the folder are not deleted."
 
+
+"screenChat":
+  "today": "Today"
+  "yesterday": "Yesterday"
+  "online": "online"
+  "lastSeenRecently": "last seen recently"
+  "members(plural)":
+    one: "{n} member"
+    other: "{n} members"
+  "subscribers(plural)":
+    one: "{n} subscriber"
+    other: "{n} subscribers"
+  "message": "Message"
+  "empty": "No messages yet"
+  "notFound": "Chat not found"
+  "reply": "Reply"
+  "copy": "Copy"
+  "copied": "Copied"
+  "edit": "Edit"
+  "editing": "Editing"
+  "edited": "edited"
+  "delete": "Delete"
+  "deleteTitle": "Delete message?"
+  "deleteMessage": "The message will be deleted for everyone in the chat."
+  "you": "You"
+  "mute": "Mute"
+  "unmute": "Unmute"
+  "photo": "@:screenChats.photo"
+  "video": "@:screenChats.video"
+  "file": "@:screenChats.file"
+  "voice": "@:screenChats.voice"
+
 "screenSettings":
   "settings": "Settings"
   "myProfile": "My profile"

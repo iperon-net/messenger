@@ -46,6 +46,7 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	late final Translations$componentsCamera$en componentsCamera = Translations$componentsCamera$en.internal(_root);
 	late final Translations$screenHome$en screenHome = Translations$screenHome$en.internal(_root);
 	late final Translations$screenChats$en screenChats = Translations$screenChats$en.internal(_root);
+	late final Translations$screenChat$en screenChat = Translations$screenChat$en.internal(_root);
 	late final Translations$screenSettings$en screenSettings = Translations$screenSettings$en.internal(_root);
 	late final Translations$screenSettingsNotifications$en screenSettingsNotifications = Translations$screenSettingsNotifications$en.internal(_root);
 	late final Translations$screenDeveloper$en screenDeveloper = Translations$screenDeveloper$en.internal(_root);
@@ -292,6 +293,96 @@ class Translations$screenChats$en {
 
 	/// en: 'Chats in the folder are not deleted.'
 	String get deleteFolderMessage => 'Chats in the folder are not deleted.';
+}
+
+// Path: screenChat
+class Translations$screenChat$en {
+	Translations$screenChat$en.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// en: 'Today'
+	String get today => 'Today';
+
+	/// en: 'Yesterday'
+	String get yesterday => 'Yesterday';
+
+	/// en: 'online'
+	String get online => 'online';
+
+	/// en: 'last seen recently'
+	String get lastSeenRecently => 'last seen recently';
+
+	/// en: '(one) {{n} member} (other) {{n} members}'
+	String members({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n,
+		one: '${n} member',
+		other: '${n} members',
+	);
+
+	/// en: '(one) {{n} subscriber} (other) {{n} subscribers}'
+	String subscribers({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n,
+		one: '${n} subscriber',
+		other: '${n} subscribers',
+	);
+
+	/// en: 'Message'
+	String get message => 'Message';
+
+	/// en: 'No messages yet'
+	String get empty => 'No messages yet';
+
+	/// en: 'Chat not found'
+	String get notFound => 'Chat not found';
+
+	/// en: 'Reply'
+	String get reply => 'Reply';
+
+	/// en: 'Copy'
+	String get copy => 'Copy';
+
+	/// en: 'Copied'
+	String get copied => 'Copied';
+
+	/// en: 'Edit'
+	String get edit => 'Edit';
+
+	/// en: 'Editing'
+	String get editing => 'Editing';
+
+	/// en: 'edited'
+	String get edited => 'edited';
+
+	/// en: 'Delete'
+	String get delete => 'Delete';
+
+	/// en: 'Delete message?'
+	String get deleteTitle => 'Delete message?';
+
+	/// en: 'The message will be deleted for everyone in the chat.'
+	String get deleteMessage => 'The message will be deleted for everyone in the chat.';
+
+	/// en: 'You'
+	String get you => 'You';
+
+	/// en: 'Mute'
+	String get mute => 'Mute';
+
+	/// en: 'Unmute'
+	String get unmute => 'Unmute';
+
+	/// en: 'Photo'
+	String get photo => _root.screenChats.photo;
+
+	/// en: 'Video'
+	String get video => _root.screenChats.video;
+
+	/// en: 'File'
+	String get file => _root.screenChats.file;
+
+	/// en: 'Voice message'
+	String get voice => _root.screenChats.voice;
 }
 
 // Path: screenSettings
@@ -1699,6 +1790,31 @@ extension on Translations {
 			'screenChats.deleteFolder' => 'Delete folder',
 			'screenChats.deleteFolderTitle' => ({required Object title}) => 'Delete folder "${title}"?',
 			'screenChats.deleteFolderMessage' => 'Chats in the folder are not deleted.',
+			'screenChat.today' => 'Today',
+			'screenChat.yesterday' => 'Yesterday',
+			'screenChat.online' => 'online',
+			'screenChat.lastSeenRecently' => 'last seen recently',
+			'screenChat.members' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: '${n} member', other: '${n} members', ), 
+			'screenChat.subscribers' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: '${n} subscriber', other: '${n} subscribers', ), 
+			'screenChat.message' => 'Message',
+			'screenChat.empty' => 'No messages yet',
+			'screenChat.notFound' => 'Chat not found',
+			'screenChat.reply' => 'Reply',
+			'screenChat.copy' => 'Copy',
+			'screenChat.copied' => 'Copied',
+			'screenChat.edit' => 'Edit',
+			'screenChat.editing' => 'Editing',
+			'screenChat.edited' => 'edited',
+			'screenChat.delete' => 'Delete',
+			'screenChat.deleteTitle' => 'Delete message?',
+			'screenChat.deleteMessage' => 'The message will be deleted for everyone in the chat.',
+			'screenChat.you' => 'You',
+			'screenChat.mute' => 'Mute',
+			'screenChat.unmute' => 'Unmute',
+			'screenChat.photo' => _root.screenChats.photo,
+			'screenChat.video' => _root.screenChats.video,
+			'screenChat.file' => _root.screenChats.file,
+			'screenChat.voice' => _root.screenChats.voice,
 			'screenSettings.settings' => 'Settings',
 			'screenSettings.myProfile' => 'My profile',
 			'screenSettings.devices' => _root.screenSettingsDevices.devices,

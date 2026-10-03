@@ -67,6 +67,42 @@
   "deleteFolderTitle": "Удалить папку «{title}»?"
   "deleteFolderMessage": "Чаты из папки не удаляются."
 
+
+"screenChat":
+  "today": "Сегодня"
+  "yesterday": "Вчера"
+  "online": "в сети"
+  "lastSeenRecently": "был(а) недавно"
+  "members(plural)":
+    one: "{n} участник"
+    few: "{n} участника"
+    many: "{n} участников"
+    other: "{n} участника"
+  "subscribers(plural)":
+    one: "{n} подписчик"
+    few: "{n} подписчика"
+    many: "{n} подписчиков"
+    other: "{n} подписчика"
+  "message": "Сообщение"
+  "empty": "Сообщений пока нет"
+  "notFound": "Чат не найден"
+  "reply": "Ответить"
+  "copy": "Копировать"
+  "copied": "Скопировано"
+  "edit": "Изменить"
+  "editing": "Редактирование"
+  "edited": "изм."
+  "delete": "Удалить"
+  "deleteTitle": "Удалить сообщение?"
+  "deleteMessage": "Сообщение будет удалено у всех участников чата."
+  "you": "Вы"
+  "mute": "Выключить звук"
+  "unmute": "Включить звук"
+  "photo": "@:screenChats.photo"
+  "video": "@:screenChats.video"
+  "file": "@:screenChats.file"
+  "voice": "@:screenChats.voice"
+
 "screenSettings":
   "settings": "Настройки"
   "myProfile": "Мой профиль"

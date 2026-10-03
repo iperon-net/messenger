@@ -25,4 +25,27 @@ abstract class ChatsDataSource {
   Future<void> delete(String chatID);
 
   Future<void> deleteFolder(String folderID);
+
+  /// Сообщения чата (от старых к новым) — сразу при подписке, затем при каждом
+  /// изменении.
+  Stream<List<models.Message>> watchMessages(String chatID);
+
+  /// Отправить сообщение: текст уже разобран в entities (см.
+  /// `parseMarkdownShortcuts`), для медиа — [kind] + [localPath]/[fileName].
+  Future<void> sendMessage(
+    String chatID, {
+    String text = '',
+    List<models.MessageEntity> entities = const [],
+    models.MessageReply? reply,
+    models.MessageKind kind = models.MessageKind.text,
+    String localPath = '',
+    String fileName = '',
+  });
+
+  Future<void> editMessage(String chatID, String messageID, String text, List<models.MessageEntity> entities);
+
+  Future<void> deleteMessage(String chatID, String messageID);
+
+  /// Сохранить черновик поля ввода (показывается в списке чатов).
+  Future<void> setDraft(String chatID, String draft);
 }

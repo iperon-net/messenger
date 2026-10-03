@@ -19,3 +19,5 @@ export './components/chats/chat_tile.dart';
 export './components/search_field_material.dart';
 export './components/search_field_cupertino.dart';
 export './components/search_hide_on_scroll.dart';
+export './components/chats/message_text.dart';
+export './components/chats/message_bubble.dart';

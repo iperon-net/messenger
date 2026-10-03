@@ -1,3 +1,4 @@
+import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -29,7 +30,7 @@ class ChatsArchiveMaterial extends StatelessWidget {
             itemBuilder: (context, index) => ChatTileMaterial(
               key: ValueKey(chats[index].id),
               chat: chats[index],
-              onTap: () {},
+              onTap: () => context.push('/chats/chat/${chats[index].id}'),
               onLongPress: () => showChatActionsMaterial(context, chats[index]),
             ),
           );

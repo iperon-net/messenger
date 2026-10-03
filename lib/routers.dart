@@ -114,6 +114,22 @@ class Routers {
                     ),
                   ),
                 ),
+                // Окно чата — полноэкранно поверх таб-бара (и из списка, и из «Архива»).
+                GoRoute(
+                  path: "chat/:id",
+                  parentNavigatorKey: rootNavigatorKey,
+                  pageBuilder: (context, state) => _page(
+                    state,
+                    BlocProvider<ChatCubit>(
+                      create: (context) => ChatCubit()
+                        ..initialization(
+                          chatID: state.pathParameters['id']!,
+                          demo: context.read<CommonCubit>().state.settingsDevice.chatsDemo,
+                        ),
+                      child: const ChatCupertino(),
+                    ),
+                  ),
+                ),
               ],
             ),
           ],
@@ -665,6 +681,22 @@ class Routers {
                       create: (context) =>
                           ChatsCubit()..initialization(demo: context.read<CommonCubit>().state.settingsDevice.chatsDemo, archive: true),
                       child: const ChatsArchiveMaterial(),
+                    ),
+                  ),
+                ),
+                // Окно чата — полноэкранно поверх таб-бара (и из списка, и из «Архива»).
+                GoRoute(
+                  path: "chat/:id",
+                  parentNavigatorKey: rootNavigatorKey,
+                  pageBuilder: (context, state) => _pageMaterial(
+                    state,
+                    BlocProvider<ChatCubit>(
+                      create: (context) => ChatCubit()
+                        ..initialization(
+                          chatID: state.pathParameters['id']!,
+                          demo: context.read<CommonCubit>().state.settingsDevice.chatsDemo,
+                        ),
+                      child: const ChatMaterial(),
                     ),
                   ),
                 ),

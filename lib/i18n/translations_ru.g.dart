@@ -44,6 +44,7 @@ class TranslationsRu extends Translations with BaseTranslations<AppLocale, Trans
 	@override late final _Translations$componentsCamera$ru componentsCamera = _Translations$componentsCamera$ru._(_root);
 	@override late final _Translations$screenHome$ru screenHome = _Translations$screenHome$ru._(_root);
 	@override late final _Translations$screenChats$ru screenChats = _Translations$screenChats$ru._(_root);
+	@override late final _Translations$screenChat$ru screenChat = _Translations$screenChat$ru._(_root);
 	@override late final _Translations$screenSettings$ru screenSettings = _Translations$screenSettings$ru._(_root);
 	@override late final _Translations$screenSettingsNotifications$ru screenSettingsNotifications = _Translations$screenSettingsNotifications$ru._(_root);
 	@override late final _Translations$screenDeveloper$ru screenDeveloper = _Translations$screenDeveloper$ru._(_root);
@@ -172,6 +173,50 @@ class _Translations$screenChats$ru extends Translations$screenChats$en {
 	@override String get deleteFolder => 'Удалить папку';
 	@override String deleteFolderTitle({required Object title}) => 'Удалить папку «${title}»?';
 	@override String get deleteFolderMessage => 'Чаты из папки не удаляются.';
+}
+
+// Path: screenChat
+class _Translations$screenChat$ru extends Translations$screenChat$en {
+	_Translations$screenChat$ru._(TranslationsRu root) : this._root = root, super.internal(root);
+
+	final TranslationsRu _root; // ignore: unused_field
+
+	// Translations
+	@override String get today => 'Сегодня';
+	@override String get yesterday => 'Вчера';
+	@override String get online => 'в сети';
+	@override String get lastSeenRecently => 'был(а) недавно';
+	@override String members({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n,
+		one: '${n} участник',
+		few: '${n} участника',
+		many: '${n} участников',
+		other: '${n} участника',
+	);
+	@override String subscribers({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n,
+		one: '${n} подписчик',
+		few: '${n} подписчика',
+		many: '${n} подписчиков',
+		other: '${n} подписчика',
+	);
+	@override String get message => 'Сообщение';
+	@override String get empty => 'Сообщений пока нет';
+	@override String get notFound => 'Чат не найден';
+	@override String get reply => 'Ответить';
+	@override String get copy => 'Копировать';
+	@override String get copied => 'Скопировано';
+	@override String get edit => 'Изменить';
+	@override String get editing => 'Редактирование';
+	@override String get edited => 'изм.';
+	@override String get delete => 'Удалить';
+	@override String get deleteTitle => 'Удалить сообщение?';
+	@override String get deleteMessage => 'Сообщение будет удалено у всех участников чата.';
+	@override String get you => 'Вы';
+	@override String get mute => 'Выключить звук';
+	@override String get unmute => 'Включить звук';
+	@override String get photo => _root.screenChats.photo;
+	@override String get video => _root.screenChats.video;
+	@override String get file => _root.screenChats.file;
+	@override String get voice => _root.screenChats.voice;
 }
 
 // Path: screenSettings
@@ -842,6 +887,31 @@ extension on TranslationsRu {
 			'screenChats.deleteFolder' => 'Удалить папку',
 			'screenChats.deleteFolderTitle' => ({required Object title}) => 'Удалить папку «${title}»?',
 			'screenChats.deleteFolderMessage' => 'Чаты из папки не удаляются.',
+			'screenChat.today' => 'Сегодня',
+			'screenChat.yesterday' => 'Вчера',
+			'screenChat.online' => 'в сети',
+			'screenChat.lastSeenRecently' => 'был(а) недавно',
+			'screenChat.members' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: '${n} участник', few: '${n} участника', many: '${n} участников', other: '${n} участника', ), 
+			'screenChat.subscribers' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: '${n} подписчик', few: '${n} подписчика', many: '${n} подписчиков', other: '${n} подписчика', ), 
+			'screenChat.message' => 'Сообщение',
+			'screenChat.empty' => 'Сообщений пока нет',
+			'screenChat.notFound' => 'Чат не найден',
+			'screenChat.reply' => 'Ответить',
+			'screenChat.copy' => 'Копировать',
+			'screenChat.copied' => 'Скопировано',
+			'screenChat.edit' => 'Изменить',
+			'screenChat.editing' => 'Редактирование',
+			'screenChat.edited' => 'изм.',
+			'screenChat.delete' => 'Удалить',
+			'screenChat.deleteTitle' => 'Удалить сообщение?',
+			'screenChat.deleteMessage' => 'Сообщение будет удалено у всех участников чата.',
+			'screenChat.you' => 'Вы',
+			'screenChat.mute' => 'Выключить звук',
+			'screenChat.unmute' => 'Включить звук',
+			'screenChat.photo' => _root.screenChats.photo,
+			'screenChat.video' => _root.screenChats.video,
+			'screenChat.file' => _root.screenChats.file,
+			'screenChat.voice' => _root.screenChats.voice,
 			'screenSettings.settings' => 'Настройки',
 			'screenSettings.myProfile' => 'Мой профиль',
 			'screenSettings.devices' => _root.screenSettingsDevices.devices,

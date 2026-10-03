@@ -1,3 +1,4 @@
+import 'package:go_router/go_router.dart';
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -44,7 +45,11 @@ class ChatsArchiveCupertino extends StatelessWidget {
             return ListView.separated(
               itemCount: chats.length,
               separatorBuilder: (_, _) => divider,
-              itemBuilder: (context, index) => ChatContextMenuCupertino(key: ValueKey(chats[index].id), chat: chats[index], onTap: () {}),
+              itemBuilder: (context, index) => ChatContextMenuCupertino(
+                key: ValueKey(chats[index].id),
+                chat: chats[index],
+                onTap: () => context.push('/chats/chat/${chats[index].id}'),
+              ),
             );
           },
         ),

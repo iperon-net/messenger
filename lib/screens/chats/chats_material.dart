@@ -177,8 +177,7 @@ class _ChatsMaterial extends State<ChatsMaterial> with SearchHideOnScroll {
         return ChatTileMaterial(
           key: ValueKey(chat.id),
           chat: chat,
-          // Окно чата — следующий шаг демо.
-          onTap: () {},
+          onTap: () => context.push('/chats/chat/${chat.id}'),
           onLongPress: () => showChatActionsMaterial(context, chat),
         );
       },

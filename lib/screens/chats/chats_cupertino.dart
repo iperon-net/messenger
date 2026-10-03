@@ -184,12 +184,7 @@ class _ChatsCupertino extends State<ChatsCupertino> with SearchHideOnScroll {
       itemBuilder: (context, index) {
         if (index < offset) return _ArchiveTileCupertino(archived: archived, onTap: () => context.push('/chats/archive'));
         final chat = chats[index - offset];
-        return ChatContextMenuCupertino(
-          key: ValueKey(chat.id),
-          chat: chat,
-          // Окно чата — следующий шаг демо.
-          onTap: () {},
-        );
+        return ChatContextMenuCupertino(key: ValueKey(chat.id), chat: chat, onTap: () => context.push('/chats/chat/${chat.id}'));
       },
     );
   }

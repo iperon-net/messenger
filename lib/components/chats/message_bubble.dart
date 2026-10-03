@@ -1,0 +1,515 @@
+import 'dart:io';
+import 'dart:math' as math;
+
+import 'package:flutter/widgets.dart';
+import 'package:flutter_boring_avatars/flutter_boring_avatars.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:intl/intl.dart';
+
+import '../../extensions.dart';
+import '../../i18n/translations.g.dart';
+import '../../models.dart' as models;
+import 'message_text.dart';
+
+/// Платформенное оформление окна чата (см. `chat_cupertino.dart` /
+/// `chat_material.dart`).
+class MessageBubbleStyle {
+  final Color incoming;
+  final Color outgoing;
+  final MessageTextColors incomingText;
+  final MessageTextColors outgoingText;
+  final Color incomingMeta;
+  final Color outgoingMeta;
+
+  /// Плашки дат и сервисных сообщений.
+  final Color pill;
+  final Color pillText;
+  final TextStyle textStyle;
+
+  const MessageBubbleStyle({
+    required this.incoming,
+    required this.outgoing,
+    required this.incomingText,
+    required this.outgoingText,
+    required this.incomingMeta,
+    required this.outgoingMeta,
+    required this.pill,
+    required this.pillText,
+    required this.textStyle,
+  });
+}
+
+/// Цвет имени автора в группе — стабильный по имени (как в Telegram).
+Color senderColor(String name) {
+  const palette = [
+    Color(0xFFE17076),
+    Color(0xFFF5A623),
+    Color(0xFF7BC862),
+    Color(0xFF6EC9CB),
+    Color(0xFF65AADD),
+    Color(0xFFA695E7),
+    Color(0xFFEE7AAE),
+  ];
+  return palette[name.hashCode.abs() % palette.length];
+}
+
+/// Лента сообщений: снизу новые, разделители дней, подряд идущие сообщения
+/// одного автора группируются (хвост — у последнего, имя — у первого, аватар
+/// в группе — у последнего).
+class ChatMessagesView extends StatelessWidget {
+  final List<models.Message> messages;
+  final models.ChatType chatType;
+  final MessageBubbleStyle style;
+  final ValueChanged<models.Message> onLongPress;
+  final EdgeInsets padding;
+  final ScrollController? controller;
+
+  const ChatMessagesView({
+    super.key,
+    required this.messages,
+    required this.chatType,
+    required this.style,
+    required this.onLongPress,
+    this.padding = EdgeInsets.zero,
+    this.controller,
+  });
+
+  static bool _sameDay(DateTime a, DateTime b) {
+    final x = a.toLocal();
+    final y = b.toLocal();
+    return x.year == y.year && x.month == y.month && x.day == y.day;
+  }
+
+  static bool _grouped(models.Message a, models.Message b) =>
+      !a.service &&
+      !b.service &&
+      a.outgoing == b.outgoing &&
+      a.senderName == b.senderName &&
+      _sameDay(a.date, b.date) &&
+      b.date.difference(a.date).abs() < const Duration(minutes: 5);
+
+  @override
+  Widget build(BuildContext context) {
+    final group = chatType == models.ChatType.group || chatType == models.ChatType.community;
+    // Список перевёрнут (reverse): индекс 0 — самое новое внизу.
+    final items = <Widget>[];
+    for (var i = messages.length - 1; i >= 0; i--) {
+      final m = messages[i];
+      final older = i > 0 ? messages[i - 1] : null;
+      final newer = i + 1 < messages.length ? messages[i + 1] : null;
+      final groupedWithOlder = older != null && _grouped(older, m);
+      final groupedWithNewer = newer != null && _grouped(m, newer);
+
+      if (m.service) {
+        items.add(_Pill(text: m.text, style: style));
+      } else {
+        items.add(
+          Padding(
+            padding: EdgeInsets.only(top: groupedWithOlder ? 2 : 8),
+            child: MessageBubble(
+              key: ValueKey(m.id),
+              message: m,
+              style: style,
+              tail: !groupedWithNewer,
+              showSender: group && !m.outgoing && !groupedWithOlder,
+              avatar: group && !m.outgoing ? (groupedWithNewer ? const SizedBox(width: 34) : _SenderAvatar(name: m.senderName)) : null,
+              onLongPress: () => onLongPress(m),
+            ),
+          ),
+        );
+      }
+      if (older == null || !_sameDay(older.date, m.date)) {
+        items.add(_Pill(text: m.date.chatDayFormat(context.t), style: style));
+      }
+    }
+
+    return ListView.builder(
+      controller: controller,
+      reverse: true,
+      padding: padding,
+      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+      itemCount: items.length,
+      itemBuilder: (context, index) => items[index],
+    );
+  }
+}
+
+class _SenderAvatar extends StatelessWidget {
+  final String name;
+
+  const _SenderAvatar({required this.name});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(right: 4),
+      child: SizedBox(
+        width: 30,
+        height: 30,
+        child: BoringAvatar(name: name, type: BoringAvatarType.beam, shape: const CircleBorder()),
+      ),
+    );
+  }
+}
+
+/// Плашка по центру: дата или сервисное сообщение.
+class _Pill extends StatelessWidget {
+  final String text;
+  final MessageBubbleStyle style;
+
+  const _Pill({required this.text, required this.style});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Center(
+        child: DecoratedBox(
+          decoration: BoxDecoration(color: style.pill, borderRadius: BorderRadius.circular(12)),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+            child: Text(
+              text,
+              textAlign: TextAlign.center,
+              style: style.textStyle.copyWith(fontSize: 13, fontWeight: FontWeight.w500, color: style.pillText),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Пузырь сообщения: имя автора (группа), цитата ответа, медиа/файл/голосовое,
+/// текст с разметкой и время с галочками в правом нижнем углу.
+class MessageBubble extends StatelessWidget {
+  final models.Message message;
+  final MessageBubbleStyle style;
+
+  /// Последнее в группе подряд идущих — острый угол у края.
+  final bool tail;
+  final bool showSender;
+
+  /// Колонка аватара слева (входящие в группе); `null` — без неё.
+  final Widget? avatar;
+  final VoidCallback onLongPress;
+
+  const MessageBubble({
+    super.key,
+    required this.message,
+    required this.style,
+    required this.tail,
+    required this.showSender,
+    required this.onLongPress,
+    this.avatar,
+  });
+
+  static const _radius = Radius.circular(18);
+  static const _tailRadius = Radius.circular(5);
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.t;
+    final m = message;
+    final out = m.outgoing;
+    final colors = out ? style.outgoingText : style.incomingText;
+    final metaColor = out ? style.outgoingMeta : style.incomingMeta;
+    final metaStyle = style.textStyle.copyWith(fontSize: 12, color: metaColor);
+    final time = DateFormat.Hm().format(m.date.toLocal());
+    final metaText = '${m.edited ? '${t.screenChat.edited} ' : ''}$time';
+
+    final meta = Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(metaText, style: metaStyle),
+        if (out) ...[
+          const SizedBox(width: 3),
+          FaIcon(
+            switch (m.status) {
+              models.MessageStatus.pending => FontAwesomeIcons.clock,
+              models.MessageStatus.sent => FontAwesomeIcons.check,
+              models.MessageStatus.read => FontAwesomeIcons.checkDouble,
+            },
+            size: 11,
+            color: metaColor,
+          ),
+        ],
+      ],
+    );
+    // Невидимый хвост под время: nbsp, чтобы не переносился отдельно.
+    final trailing = '  $metaText${out ? '     ' : ''}';
+
+    final media = switch (m.kind) {
+      models.MessageKind.photo || models.MessageKind.video => _MediaPreview(message: m),
+      models.MessageKind.file => _FileRow(message: m, colors: colors, metaStyle: metaStyle),
+      models.MessageKind.voice => _VoiceRow(message: m, colors: colors, metaStyle: metaStyle),
+      models.MessageKind.text => null,
+    };
+    // Подпись и имя у фото — с отступами пузыря (само фото почти до краёв).
+    final captionInset = media is _MediaPreview ? 7.0 : 0.0;
+    final content = <Widget>[];
+    if (showSender && m.senderName.isNotEmpty) {
+      content.add(
+        Padding(
+          padding: EdgeInsets.fromLTRB(captionInset, captionInset / 2, captionInset, 2),
+          child: Text(
+            m.senderName,
+            style: style.textStyle.copyWith(fontSize: 14, fontWeight: FontWeight.w600, color: senderColor(m.senderName)),
+          ),
+        ),
+      );
+    }
+    if (m.reply case final reply?) {
+      content.add(_ReplyQuote(reply: reply, colors: colors, style: style));
+    }
+    if (media != null) content.add(media);
+
+    if (m.text.isNotEmpty) {
+      content.add(
+        Padding(
+          padding: EdgeInsets.fromLTRB(captionInset, media != null ? 6 : 0, captionInset, 0),
+          child: Stack(
+            children: [
+              MessageText(
+                text: m.text,
+                entities: m.entities,
+                style: style.textStyle,
+                colors: colors,
+                trailing: trailing,
+                trailingStyle: metaStyle,
+              ),
+              Positioned(right: 0, bottom: 0, child: meta),
+            ],
+          ),
+        ),
+      );
+    } else {
+      content.add(
+        Align(
+          alignment: Alignment.centerRight,
+          child: Padding(padding: EdgeInsets.fromLTRB(0, 4, captionInset, 0), child: meta),
+        ),
+      );
+    }
+
+    final bubble = LayoutBuilder(
+      builder: (context, constraints) => ConstrainedBox(
+        constraints: BoxConstraints(maxWidth: math.min(constraints.maxWidth * 0.8, 520)),
+        child: GestureDetector(
+          onLongPress: onLongPress,
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: out ? style.outgoing : style.incoming,
+              borderRadius: BorderRadius.only(
+                topLeft: _radius,
+                topRight: _radius,
+                bottomLeft: !out && tail ? _tailRadius : _radius,
+                bottomRight: out && tail ? _tailRadius : _radius,
+              ),
+            ),
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(
+                media is _MediaPreview ? 4 : 11,
+                media is _MediaPreview ? 4 : 7,
+                media is _MediaPreview ? 4 : 11,
+                7,
+              ),
+              child: IntrinsicWidth(
+                child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, mainAxisSize: MainAxisSize.min, children: content),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    return Padding(
+      padding: EdgeInsets.only(left: avatar == null ? 10 : 6, right: 10),
+      child: Row(
+        mainAxisAlignment: out ? MainAxisAlignment.end : MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          ?avatar,
+          Flexible(child: bubble),
+        ],
+      ),
+    );
+  }
+}
+
+class _ReplyQuote extends StatelessWidget {
+  final models.MessageReply reply;
+  final MessageTextColors colors;
+  final MessageBubbleStyle style;
+
+  const _ReplyQuote({required this.reply, required this.colors, required this.style});
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.t;
+    final text = reply.text.isNotEmpty ? reply.text : messageKindLabel(t, reply.kind);
+    return Container(
+      margin: const EdgeInsets.only(bottom: 4),
+      padding: const EdgeInsets.fromLTRB(8, 4, 8, 4),
+      decoration: BoxDecoration(
+        color: colors.link.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(6),
+        border: Border(left: BorderSide(color: colors.link, width: 3)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            reply.senderName.isEmpty ? t.screenChat.you : reply.senderName,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: style.textStyle.copyWith(fontSize: 13, fontWeight: FontWeight.w600, color: colors.link),
+          ),
+          Text(
+            text.replaceAll('\n', ' '),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: style.textStyle.copyWith(fontSize: 13, color: colors.text),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// «Фото» / «Файл» … — для цитат и превью без текста.
+String messageKindLabel(Translations t, models.MessageKind kind) => switch (kind) {
+  models.MessageKind.photo => t.screenChat.photo,
+  models.MessageKind.video => t.screenChat.video,
+  models.MessageKind.file => t.screenChat.file,
+  models.MessageKind.voice => t.screenChat.voice,
+  models.MessageKind.text => '',
+};
+
+/// Фото/видео: выбранный файл или (в демо-истории) цветная заглушка.
+class _MediaPreview extends StatelessWidget {
+  final models.Message message;
+
+  const _MediaPreview({required this.message});
+
+  @override
+  Widget build(BuildContext context) {
+    final video = message.kind == models.MessageKind.video;
+    final Widget image;
+    if (message.localPath.isNotEmpty && !video) {
+      image = Image.file(File(message.localPath), fit: BoxFit.cover, width: 260, height: 260, cacheWidth: 780);
+    } else {
+      final hue = (message.id.hashCode.abs() % 360).toDouble();
+      image = Container(
+        width: 260,
+        height: 190,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [HSVColor.fromAHSV(1, hue, 0.45, 0.85).toColor(), HSVColor.fromAHSV(1, (hue + 50) % 360, 0.55, 0.65).toColor()],
+          ),
+        ),
+        alignment: Alignment.center,
+        child: FaIcon(video ? FontAwesomeIcons.circlePlay : FontAwesomeIcons.image, size: 40, color: const Color(0xCCFFFFFF)),
+      );
+    }
+    return ClipRRect(borderRadius: BorderRadius.circular(14), child: image);
+  }
+}
+
+class _FileRow extends StatelessWidget {
+  final models.Message message;
+  final MessageTextColors colors;
+  final TextStyle metaStyle;
+
+  const _FileRow({required this.message, required this.colors, required this.metaStyle});
+
+  @override
+  Widget build(BuildContext context) {
+    final name = message.fileName.isNotEmpty ? message.fileName : context.t.screenChat.file;
+    final dot = name.lastIndexOf('.');
+    final ext = dot > 0 ? name.substring(dot + 1).toUpperCase() : '';
+    // Размер в демо — псевдослучайный, стабильный для сообщения.
+    final size = 0.2 + (message.id.hashCode.abs() % 480) / 100;
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 44,
+          height: 44,
+          decoration: BoxDecoration(color: colors.link, shape: BoxShape.circle),
+          alignment: Alignment.center,
+          child: const FaIcon(FontAwesomeIcons.solidFile, size: 18, color: Color(0xFFFFFFFF)),
+        ),
+        const SizedBox(width: 10),
+        Flexible(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                name,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: metaStyle.copyWith(fontSize: 15, fontWeight: FontWeight.w600, color: colors.text),
+              ),
+              Text('${size.toStringAsFixed(1)} MB${ext.isEmpty ? '' : ' · $ext'}', style: metaStyle.copyWith(fontSize: 13)),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _VoiceRow extends StatelessWidget {
+  final models.Message message;
+  final MessageTextColors colors;
+  final TextStyle metaStyle;
+
+  const _VoiceRow({required this.message, required this.colors, required this.metaStyle});
+
+  @override
+  Widget build(BuildContext context) {
+    final seconds = message.duration;
+    final random = math.Random(message.id.hashCode);
+    final bars = List.generate(28, (_) => 0.2 + random.nextDouble() * 0.8);
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(color: colors.link, shape: BoxShape.circle),
+          alignment: Alignment.center,
+          child: const FaIcon(FontAwesomeIcons.play, size: 15, color: Color(0xFFFFFFFF)),
+        ),
+        const SizedBox(width: 10),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(
+              height: 22,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  for (final h in bars)
+                    Container(
+                      width: 2.5,
+                      height: 22 * h,
+                      margin: const EdgeInsets.symmetric(horizontal: 1),
+                      decoration: BoxDecoration(color: colors.link, borderRadius: BorderRadius.circular(2)),
+                    ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text('${seconds ~/ 60}:${(seconds % 60).toString().padLeft(2, '0')}', style: metaStyle),
+          ],
+        ),
+      ],
+    );
+  }
+}
