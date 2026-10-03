@@ -115,7 +115,7 @@ class _ContactsMaterialState extends State<ContactsMaterial> with SearchHideOnSc
         body: BlocBuilder<ContactsCubit, ContactsState>(
           builder: (context, state) {
             if (state.status != Status.success && state.registered.isEmpty && state.invitable.isEmpty && state.cloud.isEmpty) {
-              return belowSearchHeaderCentered(const CircularProgressIndicator());
+              return searchListView(empty: const CircularProgressIndicator());
             }
 
             final registered = state.registered.where((item) => _visible(state, item)).toList();
@@ -123,35 +123,30 @@ class _ContactsMaterialState extends State<ContactsMaterial> with SearchHideOnSc
             final cloud = state.cloud.where((item) => _visible(state, item)).toList();
 
             // Отступ сверху под шапку — строки проезжают под ней.
-            return belowSearchHeader(
-              (top) => ListView(
-                controller: searchListController(),
-                padding: EdgeInsets.only(top: top),
-
-                children: [
-                  if (registered.isNotEmpty)
-                    _sheet(context, context.t.screenContacts.onContacts, registered.map((item) => _registeredTile(context, item)).toList()),
-                  if (cloud.isNotEmpty)
-                    _sheet(
-                      context,
-                      context.t.screenContacts.cloudContacts,
-                      cloud
-                          .map(
-                            (item) => item.isRegistered
-                                ? _registeredTile(context, item, removable: true)
-                                : _invitableTile(context, item, removable: true),
-                          )
-                          .toList(),
-                    ),
-                  if (invitable.isNotEmpty)
-                    _sheet(context, context.t.screenContacts.invite, invitable.map((item) => _invitableTile(context, item)).toList()),
-                  if (registered.isEmpty && invitable.isEmpty && cloud.isEmpty)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 60),
-                      child: Center(child: Text(context.t.screenContacts.empty)),
-                    ),
-                ],
-              ),
+            return searchListView(
+              children: [
+                if (registered.isNotEmpty)
+                  _sheet(context, context.t.screenContacts.onContacts, registered.map((item) => _registeredTile(context, item)).toList()),
+                if (cloud.isNotEmpty)
+                  _sheet(
+                    context,
+                    context.t.screenContacts.cloudContacts,
+                    cloud
+                        .map(
+                          (item) => item.isRegistered
+                              ? _registeredTile(context, item, removable: true)
+                              : _invitableTile(context, item, removable: true),
+                        )
+                        .toList(),
+                  ),
+                if (invitable.isNotEmpty)
+                  _sheet(context, context.t.screenContacts.invite, invitable.map((item) => _invitableTile(context, item)).toList()),
+                if (registered.isEmpty && invitable.isEmpty && cloud.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 60),
+                    child: Center(child: Text(context.t.screenContacts.empty)),
+                  ),
+              ],
             );
           },
         ),

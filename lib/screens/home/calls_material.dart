@@ -150,14 +150,15 @@ class _CallsMaterialState extends State<CallsMaterial> with WidgetsBindingObserv
               if (state.calls.isEmpty) return const SizedBox.shrink();
               return Padding(
                 padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
-                child: SegmentedButton<CallsFilter>(
-                  showSelectedIcon: false,
-                  segments: [
-                    ButtonSegment(value: CallsFilter.all, label: Text(context.t.screenCalls.filterAll)),
-                    ButtonSegment(value: CallsFilter.missed, label: Text(context.t.screenCalls.filterMissed)),
+                // Те же табы, что папки на «Чатах» (без свайпа: строки журнала
+                // свайпом удаляются).
+                child: ChatFolderTabsMaterial(
+                  selectedIndex: CallsFilter.values.indexOf(state.filter),
+                  tabs: [
+                    ChatFolderTab(title: context.t.screenCalls.filterAll),
+                    ChatFolderTab(title: context.t.screenCalls.filterMissed),
                   ],
-                  selected: {state.filter},
-                  onSelectionChanged: (selection) => context.read<CallsCubit>().setFilter(selection.first),
+                  onTap: (index) => context.read<CallsCubit>().setFilter(CallsFilter.values[index]),
                 ),
               );
             },
@@ -184,8 +185,8 @@ class _CallsMaterialState extends State<CallsMaterial> with WidgetsBindingObserv
       final text = state.filter == CallsFilter.missed && state.query.isEmpty
           ? context.t.screenCalls.emptyMissed
           : context.t.screenCalls.empty;
-      return belowSearchHeaderCentered(
-        Padding(
+      return searchListView(
+        empty: Padding(
           padding: const EdgeInsets.all(32),
           child: Text(text, textAlign: TextAlign.center),
         ),
@@ -193,14 +194,7 @@ class _CallsMaterialState extends State<CallsMaterial> with WidgetsBindingObserv
     }
 
     // Отступ сверху под шапку — строки проезжают под ней.
-    return belowSearchHeader(
-      (top) => ListView.builder(
-        controller: searchListController(),
-        padding: EdgeInsets.only(top: top),
-        itemCount: items.length,
-        itemBuilder: (context, index) => _tile(context, state, items[index]),
-      ),
-    );
+    return searchListView(itemCount: items.length, itemBuilder: (context, index) => _tile(context, state, items[index]));
   }
 
   Widget _tile(BuildContext context, CallsState state, models.CallLog log) {

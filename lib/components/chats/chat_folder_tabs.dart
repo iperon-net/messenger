@@ -59,14 +59,17 @@ class ChatFolderTabsStyle {
 ///  • при переполнении прокручивается по горизонтали, активный таб держится в
 ///    зоне видимости;
 ///  • бегунок привязан к [controller] (`PageView` со страницами папок) и плавно
-///    едет за пальцем во время свайпа, а не прыгает по его окончании.
+///    едет за пальцем во время свайпа, а не прыгает по его окончании. Без
+///    [controller] (простой фильтр без свайпа, как «Все / Пропущенные» на
+///    «Звонках») бегунок анимированно переезжает к [selectedIndex].
 ///
 /// Если табы помещаются — растягиваются на всю ширину (как штатный сегмент).
 class ChatFolderTabsCore extends StatefulWidget {
   final List<ChatFolderTab> tabs;
-  final PageController controller;
+  final PageController? controller;
 
-  /// Активный таб, пока у [controller] нет позиции (первый кадр).
+  /// Активный таб, пока у [controller] нет позиции (первый кадр); без
+  /// [controller] — всегда.
   final int selectedIndex;
 
   final ValueChanged<int> onTap;
@@ -76,7 +79,7 @@ class ChatFolderTabsCore extends StatefulWidget {
   const ChatFolderTabsCore({
     super.key,
     required this.tabs,
-    required this.controller,
+    this.controller,
     required this.selectedIndex,
     required this.onTap,
     this.onLongPress,
@@ -100,28 +103,28 @@ class _ChatFolderTabsCoreState extends State<ChatFolderTabsCore> {
   @override
   void initState() {
     super.initState();
-    widget.controller.addListener(_followPage);
+    widget.controller?.addListener(_followPage);
   }
 
   @override
   void didUpdateWidget(ChatFolderTabsCore oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.controller != widget.controller) {
-      oldWidget.controller.removeListener(_followPage);
-      widget.controller.addListener(_followPage);
+      oldWidget.controller?.removeListener(_followPage);
+      widget.controller?.addListener(_followPage);
     }
   }
 
   @override
   void dispose() {
-    widget.controller.removeListener(_followPage);
+    widget.controller?.removeListener(_followPage);
     _scroll.dispose();
     super.dispose();
   }
 
   double get _page {
     final c = widget.controller;
-    if (c.hasClients && c.position.haveDimensions && c.page != null) return c.page!;
+    if (c != null && c.hasClients && c.position.haveDimensions && c.page != null) return c.page!;
     return widget.selectedIndex.toDouble();
   }
 
@@ -196,54 +199,60 @@ class _ChatFolderTabsCoreState extends State<ChatFolderTabsCore> {
         _offsets = offsets;
         _widths = widths;
 
-        final track = AnimatedBuilder(
-          animation: widget.controller,
-          builder: (context, _) {
-            final page = _page;
-            final (thumbLeft, thumbWidth) = _thumb(page);
-            final selected = page.round();
-            return Container(
-              height: style.height,
-              width: x + style.inset * 2,
-              padding: EdgeInsets.all(style.inset),
-              decoration: BoxDecoration(color: style.trackColor, borderRadius: BorderRadius.circular(style.trackRadius)),
-              // Контур — поверх (foreground), чтобы не съедать ширину сегментов.
-              foregroundDecoration: style.trackBorder == null
-                  ? null
-                  : BoxDecoration(border: style.trackBorder, borderRadius: BorderRadius.circular(style.trackRadius)),
-              child: Stack(
-                children: [
-                  Positioned(
-                    left: thumbLeft,
-                    width: thumbWidth,
-                    top: 0,
-                    bottom: 0,
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        color: style.thumbColor,
-                        borderRadius: BorderRadius.circular(style.thumbRadius),
-                        boxShadow: style.thumbShadow,
-                      ),
+        Widget trackAt(double page) {
+          final (thumbLeft, thumbWidth) = _thumb(page);
+          final selected = page.round();
+          return Container(
+            height: style.height,
+            width: x + style.inset * 2,
+            padding: EdgeInsets.all(style.inset),
+            decoration: BoxDecoration(color: style.trackColor, borderRadius: BorderRadius.circular(style.trackRadius)),
+            // Контур — поверх (foreground), чтобы не съедать ширину сегментов.
+            foregroundDecoration: style.trackBorder == null
+                ? null
+                : BoxDecoration(border: style.trackBorder, borderRadius: BorderRadius.circular(style.trackRadius)),
+            child: Stack(
+              children: [
+                Positioned(
+                  left: thumbLeft,
+                  width: thumbWidth,
+                  top: 0,
+                  bottom: 0,
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: style.thumbColor,
+                      borderRadius: BorderRadius.circular(style.thumbRadius),
+                      boxShadow: style.thumbShadow,
                     ),
                   ),
-                  for (var i = 0; i < widget.tabs.length; i++)
-                    Positioned(
-                      left: offsets[i],
-                      width: widths[i],
-                      top: 0,
-                      bottom: 0,
-                      child: GestureDetector(
-                        behavior: HitTestBehavior.opaque,
-                        onTap: () => widget.onTap(i),
-                        onLongPress: widget.onLongPress == null ? null : () => widget.onLongPress!(i),
-                        child: _segment(widget.tabs[i], i == selected, badgeStyle, badgeHeight),
-                      ),
+                ),
+                for (var i = 0; i < widget.tabs.length; i++)
+                  Positioned(
+                    left: offsets[i],
+                    width: widths[i],
+                    top: 0,
+                    bottom: 0,
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () => widget.onTap(i),
+                      onLongPress: widget.onLongPress == null ? null : () => widget.onLongPress!(i),
+                      child: _segment(widget.tabs[i], i == selected, badgeStyle, badgeHeight),
                     ),
-                ],
-              ),
-            );
-          },
-        );
+                  ),
+              ],
+            ),
+          );
+        }
+
+        final controller = widget.controller;
+        final track = controller != null
+            ? AnimatedBuilder(animation: controller, builder: (context, _) => trackAt(_page))
+            : TweenAnimationBuilder<double>(
+                tween: Tween(end: widget.selectedIndex.toDouble()),
+                duration: const Duration(milliseconds: 250),
+                curve: Curves.easeOutCubic,
+                builder: (context, page, _) => trackAt(page),
+              );
 
         if (fits) return track;
         return SingleChildScrollView(scrollDirection: Axis.horizontal, controller: _scroll, child: track);

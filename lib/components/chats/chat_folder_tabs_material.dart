@@ -6,7 +6,7 @@ import 'chat_folder_tabs.dart';
 /// выбранный сегмент залит `secondaryContainer`.
 class ChatFolderTabsMaterial extends StatelessWidget {
   final List<ChatFolderTab> tabs;
-  final PageController controller;
+  final PageController? controller;
   final int selectedIndex;
   final ValueChanged<int> onTap;
   final ValueChanged<int>? onLongPress;
@@ -14,7 +14,7 @@ class ChatFolderTabsMaterial extends StatelessWidget {
   const ChatFolderTabsMaterial({
     super.key,
     required this.tabs,
-    required this.controller,
+    this.controller,
     required this.selectedIndex,
     required this.onTap,
     this.onLongPress,

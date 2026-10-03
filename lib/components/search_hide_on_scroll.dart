@@ -207,21 +207,53 @@ mixin SearchHideOnScroll<T extends StatefulWidget> on State<T> {
     );
   }
 
-  /// Отступ сверху под шапку — для списков и пустых/загрузочных состояний.
-  Widget belowSearchHeader(Widget Function(double top) builder) {
-    return ValueListenableBuilder<double>(valueListenable: _headerHeight, builder: (context, top, _) => builder(top));
-  }
-
-  /// [child] (заглушка, индикатор загрузки) по центру области под шапкой.
-  /// Прокручивать тут нечего, поэтому шапка возвращается целиком.
-  Widget belowSearchHeaderCentered(Widget child) {
-    if (_collapse.value != 0) WidgetsBinding.instance.addPostFrameCallback((_) => _collapse.value = 0);
+  /// Список под шапкой: [children] или [itemBuilder] (+ [separatorBuilder]),
+  /// пусто — [empty] по центру. Снизу добивается так, чтобы список всегда
+  /// прокручивался хотя бы на высоту поиска: в короткой папке (мало чатов)
+  /// поиск тоже можно спрятать, и при переходе из длинной папки со
+  /// спрятанным поиском он не всплывает — открыть можно, только потянув вниз.
+  Widget searchListView({
+    Key? key,
+    String listKey = '',
+    List<Widget>? children,
+    int itemCount = 0,
+    IndexedWidgetBuilder? itemBuilder,
+    IndexedWidgetBuilder? separatorBuilder,
+    Widget? empty,
+  }) {
+    final Widget sliver;
+    if (empty != null) {
+      sliver = SliverFillRemaining(hasScrollBody: false, child: Center(child: empty));
+    } else if (children != null) {
+      sliver = SliverList.list(children: children);
+    } else if (separatorBuilder != null) {
+      sliver = SliverList.separated(itemCount: itemCount, itemBuilder: itemBuilder!, separatorBuilder: separatorBuilder);
+    } else {
+      sliver = SliverList.builder(itemCount: itemCount, itemBuilder: itemBuilder!);
+    }
     return belowSearchHeader(
-      (top) => Padding(
-        padding: EdgeInsets.only(top: top),
-        child: Center(child: child),
+      (top) => CustomScrollView(
+        key: key,
+        controller: searchListController(listKey),
+        slivers: [
+          SliverPadding(
+            padding: EdgeInsets.only(top: top),
+            sliver: sliver,
+          ),
+          SliverLayoutBuilder(
+            builder: (context, constraints) {
+              final extra = constraints.viewportMainAxisExtent + _searchHeight - constraints.precedingScrollExtent;
+              return SliverToBoxAdapter(child: SizedBox(height: extra > 0 ? extra : 0));
+            },
+          ),
+        ],
       ),
     );
+  }
+
+  /// Отступ сверху под шапку.
+  Widget belowSearchHeader(Widget Function(double top) builder) {
+    return ValueListenableBuilder<double>(valueListenable: _headerHeight, builder: (context, top, _) => builder(top));
   }
 }
 

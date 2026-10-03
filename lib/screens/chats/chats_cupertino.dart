@@ -164,7 +164,7 @@ class _ChatsCupertino extends State<ChatsCupertino> with SearchHideOnScroll {
     final chats = state.chatsOf(folder);
     final archived = folder.isAll && state.query.isEmpty ? state.archived : const <models.Chat>[];
     if (chats.isEmpty && archived.isEmpty) {
-      return _empty(context, state.query.isEmpty ? context.t.screenChats.emptyFolder : context.t.screenChats.empty);
+      return _empty(context, state.query.isEmpty ? context.t.screenChats.emptyFolder : context.t.screenChats.empty, folder: folder);
     }
 
     final divider = Container(
@@ -176,40 +176,36 @@ class _ChatsCupertino extends State<ChatsCupertino> with SearchHideOnScroll {
 
     // Свой контроллер (и позиция прокрутки) у каждой папки; сверху отступ под
     // шапку — строки проезжают под ней.
-    return belowSearchHeader(
-      (top) => ListView.separated(
-        key: PageStorageKey('chats_folder_${folder.id}'),
-        controller: searchListController(folder.id),
-        padding: EdgeInsets.only(top: top),
-        itemCount: chats.length + offset,
-        separatorBuilder: (_, _) => divider,
-        itemBuilder: (context, index) {
-          if (index < offset) return _ArchiveTileCupertino(archived: archived, onTap: () => context.push('/chats/archive'));
-          final chat = chats[index - offset];
-          return ChatContextMenuCupertino(
-            key: ValueKey(chat.id),
-            chat: chat,
-            // Окно чата — следующий шаг демо.
-            onTap: () {},
-          );
-        },
-      ),
+    return searchListView(
+      key: PageStorageKey('chats_folder_${folder.id}'),
+      listKey: folder.id,
+      itemCount: chats.length + offset,
+      separatorBuilder: (_, _) => divider,
+      itemBuilder: (context, index) {
+        if (index < offset) return _ArchiveTileCupertino(archived: archived, onTap: () => context.push('/chats/archive'));
+        final chat = chats[index - offset];
+        return ChatContextMenuCupertino(
+          key: ValueKey(chat.id),
+          chat: chat,
+          // Окно чата — следующий шаг демо.
+          onTap: () {},
+        );
+      },
     );
   }
 
-  Widget _empty(BuildContext context, String text) {
-    return belowSearchHeader(
-      (top) => Padding(
-        padding: EdgeInsets.only(top: top),
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(32),
-            child: Text(
-              text,
-              textAlign: TextAlign.center,
-              style: TextStyle(color: CupertinoColors.secondaryLabel.resolveFrom(context)),
-            ),
-          ),
+  /// Пусто — тоже прокручиваемый список папки (см. searchListView): иначе
+  /// спрятанный поиск всплывал бы при переходе в пустую папку.
+  Widget _empty(BuildContext context, String text, {models.ChatFolder? folder}) {
+    return searchListView(
+      key: folder == null ? null : PageStorageKey('chats_folder_${folder.id}'),
+      listKey: folder?.id ?? '',
+      empty: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Text(
+          text,
+          textAlign: TextAlign.center,
+          style: TextStyle(color: CupertinoColors.secondaryLabel.resolveFrom(context)),
         ),
       ),
     );

@@ -137,8 +137,8 @@ class _CallsCupertinoState extends State<CallsCupertino> with SearchHideOnScroll
       final text = state.filter == CallsFilter.missed && state.query.isEmpty
           ? context.t.screenCalls.emptyMissed
           : context.t.screenCalls.empty;
-      return belowSearchHeaderCentered(
-        Padding(
+      return searchListView(
+        empty: Padding(
           padding: const EdgeInsets.all(32),
           child: Text(
             text,
@@ -156,14 +156,10 @@ class _CallsCupertinoState extends State<CallsCupertino> with SearchHideOnScroll
     );
 
     // Отступ сверху под шапку — строки проезжают под ней.
-    return belowSearchHeader(
-      (top) => ListView.separated(
-        controller: searchListController(),
-        padding: EdgeInsets.only(top: top),
-        itemCount: items.length,
-        separatorBuilder: (_, _) => divider,
-        itemBuilder: (context, index) => _tile(context, state, items[index]),
-      ),
+    return searchListView(
+      itemCount: items.length,
+      separatorBuilder: (_, _) => divider,
+      itemBuilder: (context, index) => _tile(context, state, items[index]),
     );
   }
 
