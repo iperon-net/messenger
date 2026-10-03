@@ -49,10 +49,14 @@ class _ChatTileCupertinoState extends State<ChatTileCupertino> {
       onTapUp: (_) => _setPressed(false),
       onTapCancel: () => _setPressed(false),
       onTap: widget.onTap,
-      onLongPress: () {
-        _setPressed(false);
-        widget.onLongPress?.call();
-      },
+      // Без колбэка — без LongPress-распознавателя: иначе он выигрывает арену
+      // у CupertinoContextMenu (ChatContextMenuCupertino) и меню не открывается.
+      onLongPress: widget.onLongPress == null
+          ? null
+          : () {
+              _setPressed(false);
+              widget.onLongPress!.call();
+            },
       child: ColoredBox(
         color: _pressed ? CupertinoColors.systemGrey5.resolveFrom(context) : const Color(0x00000000),
         child: Padding(
@@ -64,21 +68,33 @@ class _ChatTileCupertinoState extends State<ChatTileCupertino> {
               const SizedBox(width: 10),
               Expanded(
                 child: Column(
+                  // min: в превью контекстного меню высота ограничена — без этого строка
+                  // растягивается на весь экран.
+                  mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
                       children: [
-                        if (typeIcon != null) ...[FaIcon(typeIcon, size: 12, color: label), const SizedBox(width: 5)],
-                        Flexible(
-                          child: Text(
-                            ChatTileContent.title(t, chat),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: label),
+                        // Название + иконки — во всю свободную ширину, дата прижата к правому
+                        // краю (Flexible + Spacer делят место поровну, и недобранная заголовком
+                        // доля оставалась пустой справа от даты).
+                        Expanded(
+                          child: Row(
+                            children: [
+                              if (typeIcon != null) ...[FaIcon(typeIcon, size: 12, color: label), const SizedBox(width: 5)],
+                              Flexible(
+                                child: Text(
+                                  ChatTileContent.title(t, chat),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: label),
+                                ),
+                              ),
+                              if (chat.muted) ...[const SizedBox(width: 4), FaIcon(FontAwesomeIcons.bellSlash, size: 11, color: secondary)],
+                            ],
                           ),
                         ),
-                        if (chat.muted) ...[const SizedBox(width: 4), FaIcon(FontAwesomeIcons.bellSlash, size: 11, color: secondary)],
-                        const Spacer(),
+                        const SizedBox(width: 6),
                         if (statusIcon != null) ...[FaIcon(statusIcon, size: 12, color: primary), const SizedBox(width: 4)],
                         if (date != null) Text(date.chatListFormat(), style: TextStyle(fontSize: 14, color: secondary)),
                       ],

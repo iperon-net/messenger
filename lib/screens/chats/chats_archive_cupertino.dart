@@ -44,12 +44,7 @@ class ChatsArchiveCupertino extends StatelessWidget {
             return ListView.separated(
               itemCount: chats.length,
               separatorBuilder: (_, _) => divider,
-              itemBuilder: (context, index) => ChatTileCupertino(
-                key: ValueKey(chats[index].id),
-                chat: chats[index],
-                onTap: () {},
-                onLongPress: () => showChatActionsCupertino(context, chats[index]),
-              ),
+              itemBuilder: (context, index) => ChatContextMenuCupertino(key: ValueKey(chats[index].id), chat: chats[index], onTap: () {}),
             );
           },
         ),

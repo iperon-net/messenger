@@ -40,21 +40,33 @@ class ChatTileMaterial extends StatelessWidget {
             const SizedBox(width: 14),
             Expanded(
               child: Column(
+                // min: в превью контекстного меню высота ограничена — без этого строка
+                // растягивается на весь экран.
+                mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     children: [
-                      if (typeIcon != null) ...[FaIcon(typeIcon, size: 12, color: scheme.onSurface), const SizedBox(width: 6)],
-                      Flexible(
-                        child: Text(
-                          ChatTileContent.title(t, chat),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+                      // Название + иконки — во всю свободную ширину, дата прижата к правому
+                      // краю (Flexible + Spacer делят место поровну, и недобранная заголовком
+                      // доля оставалась пустой справа от даты).
+                      Expanded(
+                        child: Row(
+                          children: [
+                            if (typeIcon != null) ...[FaIcon(typeIcon, size: 12, color: scheme.onSurface), const SizedBox(width: 6)],
+                            Flexible(
+                              child: Text(
+                                ChatTileContent.title(t, chat),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+                              ),
+                            ),
+                            if (chat.muted) ...[const SizedBox(width: 4), FaIcon(FontAwesomeIcons.bellSlash, size: 11, color: secondary)],
+                          ],
                         ),
                       ),
-                      if (chat.muted) ...[const SizedBox(width: 4), FaIcon(FontAwesomeIcons.bellSlash, size: 11, color: secondary)],
-                      const Spacer(),
+                      const SizedBox(width: 6),
                       if (statusIcon != null) ...[FaIcon(statusIcon, size: 12, color: scheme.primary), const SizedBox(width: 4)],
                       if (date != null) Text(date.chatListFormat(), style: theme.textTheme.bodySmall?.copyWith(color: secondary)),
                     ],

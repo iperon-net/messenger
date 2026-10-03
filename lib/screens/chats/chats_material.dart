@@ -225,11 +225,17 @@ class _ArchiveTileMaterial extends StatelessWidget {
           ? Container(
               constraints: const BoxConstraints(minWidth: 22, minHeight: 22),
               padding: const EdgeInsets.symmetric(horizontal: 6),
-              alignment: Alignment.center,
               decoration: BoxDecoration(color: scheme.outline, borderRadius: BorderRadius.circular(11)),
-              child: Text(
-                '$unread',
-                style: TextStyle(fontSize: 13, color: scheme.surface, fontWeight: FontWeight.w600),
+              // Не `alignment` у Container: в trailing ListTile он растянулся бы на
+              // всю ширину плитки (assert «Trailing widget consumes the entire tile
+              // width»). Center с factor = 1 центрирует, не растягиваясь.
+              child: Center(
+                widthFactor: 1,
+                heightFactor: 1,
+                child: Text(
+                  '$unread',
+                  style: TextStyle(fontSize: 13, color: scheme.surface, fontWeight: FontWeight.w600),
+                ),
               ),
             )
           : null,

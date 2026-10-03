@@ -184,12 +184,11 @@ class _ChatsCupertino extends State<ChatsCupertino> {
       itemBuilder: (context, index) {
         if (index < offset) return _ArchiveTileCupertino(archived: archived, onTap: () => context.push('/chats/archive'));
         final chat = chats[index - offset];
-        return ChatTileCupertino(
+        return ChatContextMenuCupertino(
           key: ValueKey(chat.id),
           chat: chat,
           // Окно чата — следующий шаг демо.
           onTap: () {},
-          onLongPress: () => showChatActionsCupertino(context, chat),
         );
       },
     );

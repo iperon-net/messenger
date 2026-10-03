@@ -2,8 +2,8 @@ import 'package:material_ui/material_ui.dart';
 
 import 'chat_folder_tabs.dart';
 
-/// Табы-папки в стиле M3 `SegmentedButton` (как фильтр на «Звонках»): контур-
-/// «пилюля», выбранный сегмент залит `secondaryContainer`.
+/// Табы-папки (Android): тональная дорожка без контура с небольшим скруглением,
+/// выбранный сегмент залит `secondaryContainer`.
 class ChatFolderTabsMaterial extends StatelessWidget {
   final List<ChatFolderTab> tabs;
   final PageController controller;
@@ -32,12 +32,12 @@ class ChatFolderTabsMaterial extends StatelessWidget {
       onLongPress: onLongPress,
       style: ChatFolderTabsStyle(
         height: 40,
-        trackColor: Colors.transparent,
-        trackBorder: Border.all(color: scheme.outline),
-        trackRadius: 20,
-        inset: 0,
+        // Без контура: дорожка — тональная заливка, скругление умеренное.
+        trackColor: scheme.surfaceContainerHighest,
+        trackRadius: 12,
+        inset: 3,
         thumbColor: scheme.secondaryContainer,
-        thumbRadius: 20,
+        thumbRadius: 9,
         textStyle: label.copyWith(color: scheme.onSurface),
         selectedTextStyle: label.copyWith(color: scheme.onSecondaryContainer, fontWeight: FontWeight.w600),
         badgeColor: scheme.primary,
