@@ -75,8 +75,8 @@ class _CallsCupertinoState extends State<CallsCupertino> {
             // Поле поиска — вне BlocBuilder, чтобы не пересоздаваться на каждый
             // emit (иначе на iOS сбрасывается область композиции клавиатуры).
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              child: CupertinoSearchTextField(
+              padding: const EdgeInsets.fromLTRB(12, 4, 12, 8),
+              child: SearchFieldCupertino(
                 controller: _searchController,
                 placeholder: context.t.screenCalls.search,
                 onChanged: (value) => context.read<CallsCubit>().search(value),

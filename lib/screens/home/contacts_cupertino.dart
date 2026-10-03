@@ -90,8 +90,8 @@ class _ContactsCupertinoState extends State<ContactsCupertino> {
         child: Column(
           children: [
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              child: CupertinoSearchTextField(
+              padding: const EdgeInsets.fromLTRB(12, 4, 12, 8),
+              child: SearchFieldCupertino(
                 controller: _searchController,
                 placeholder: context.t.screenContacts.search,
                 onChanged: (value) => context.read<ContactsCubit>().search(value),

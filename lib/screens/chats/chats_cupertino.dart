@@ -82,8 +82,8 @@ class _ChatsCupertino extends State<ChatsCupertino> {
               // Поле поиска — вне BlocBuilder, чтобы не пересоздаваться на каждый
               // emit (иначе на iOS сбрасывается область композиции клавиатуры).
               Padding(
-                padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
-                child: CupertinoSearchTextField(
+                padding: const EdgeInsets.fromLTRB(12, 4, 12, 8),
+                child: SearchFieldCupertino(
                   controller: _searchController,
                   placeholder: context.t.screenChats.search,
                   onChanged: (value) => context.read<ChatsCubit>().search(value),

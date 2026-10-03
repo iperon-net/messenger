@@ -92,15 +92,10 @@ class _CallsMaterialState extends State<CallsMaterial> with WidgetsBindingObserv
         children: [
           // Поле поиска — вне BlocBuilder, чтобы не терять фокус на каждый emit.
           Padding(
-            padding: const EdgeInsets.all(12),
-            child: TextField(
+            padding: const EdgeInsets.fromLTRB(12, 4, 12, 8),
+            child: SearchFieldMaterial(
               controller: _searchController,
-              decoration: InputDecoration(
-                prefixIcon: const Icon(Icons.search),
-                hintText: context.t.screenCalls.search,
-                border: const OutlineInputBorder(),
-                isDense: true,
-              ),
+              hintText: context.t.screenCalls.search,
               onChanged: (value) => context.read<CallsCubit>().search(value),
             ),
           ),

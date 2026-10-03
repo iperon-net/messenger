@@ -76,15 +76,10 @@ class _ChatsMaterial extends State<ChatsMaterial> {
           children: [
             // Поле поиска — вне BlocBuilder, чтобы не терять фокус на каждый emit.
             Padding(
-              padding: const EdgeInsets.all(12),
-              child: TextField(
+              padding: const EdgeInsets.fromLTRB(12, 4, 12, 8),
+              child: SearchFieldMaterial(
                 controller: _searchController,
-                decoration: InputDecoration(
-                  prefixIcon: const Icon(Icons.search),
-                  hintText: context.t.screenChats.search,
-                  border: const OutlineInputBorder(),
-                  isDense: true,
-                ),
+                hintText: context.t.screenChats.search,
                 onChanged: (value) => context.read<ChatsCubit>().search(value),
               ),
             ),

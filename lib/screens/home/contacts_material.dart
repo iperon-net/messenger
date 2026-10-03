@@ -91,15 +91,10 @@ class _ContactsMaterialState extends State<ContactsMaterial> {
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.all(12),
-            child: TextField(
+            padding: const EdgeInsets.fromLTRB(12, 4, 12, 8),
+            child: SearchFieldMaterial(
               controller: _searchController,
-              decoration: InputDecoration(
-                prefixIcon: const Icon(Icons.search),
-                hintText: context.t.screenContacts.search,
-                border: const OutlineInputBorder(),
-                isDense: true,
-              ),
+              hintText: context.t.screenContacts.search,
               onChanged: (value) => context.read<ContactsCubit>().search(value),
             ),
           ),
