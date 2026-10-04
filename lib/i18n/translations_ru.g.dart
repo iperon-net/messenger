@@ -323,12 +323,12 @@ class _Translations$screenChatThemes$ru extends Translations$screenChatThemes$en
 	// Translations
 	@override String get title => _root.screenSettingsAppearance.chatThemes;
 	@override String get pattern => 'Узор';
+	@override String get intensity => 'Интенсивность узора';
 	@override String get color => 'Цвет';
 	@override String get footer => 'Обои показываются во всех чатах на этом устройстве и сами подстраиваются под светлую и тёмную тему.';
 	@override String get previewName => 'Анна';
 	@override String get previewIncoming => 'Привет! Как тебе новые обои? 🎨';
 	@override String get previewOutgoing => 'Отлично смотрятся, оставлю эти 😍';
-	@override String get patternNone => 'Без узора';
 	@override String get patternChat => 'Общение';
 	@override String get patternSpace => 'Космос';
 	@override String get patternNature => 'Природа';
@@ -997,12 +997,12 @@ extension on TranslationsRu {
 			'screenSettingsAppearance.chatThemes' => 'Темы для чатов',
 			'screenChatThemes.title' => _root.screenSettingsAppearance.chatThemes,
 			'screenChatThemes.pattern' => 'Узор',
+			'screenChatThemes.intensity' => 'Интенсивность узора',
 			'screenChatThemes.color' => 'Цвет',
 			'screenChatThemes.footer' => 'Обои показываются во всех чатах на этом устройстве и сами подстраиваются под светлую и тёмную тему.',
 			'screenChatThemes.previewName' => 'Анна',
 			'screenChatThemes.previewIncoming' => 'Привет! Как тебе новые обои? 🎨',
 			'screenChatThemes.previewOutgoing' => 'Отлично смотрятся, оставлю эти 😍',
-			'screenChatThemes.patternNone' => 'Без узора',
 			'screenChatThemes.patternChat' => 'Общение',
 			'screenChatThemes.patternSpace' => 'Космос',
 			'screenChatThemes.patternNature' => 'Природа',

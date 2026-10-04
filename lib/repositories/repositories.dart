@@ -413,6 +413,13 @@ class Repositories {
       }),
     );
 
+    migrations.add(
+      SqliteMigration(14, (tx) async {
+        // «Темы для чатов»: интенсивность (видимость) узора обоев, 0–100 %. Локально.
+        await tx.execute("ALTER TABLE settingsDevice ADD COLUMN chatWallpaperIntensity INTEGER NOT NULL DEFAULT 40;");
+      }),
+    );
+
     if (settings.isDeleteDatabase) {
       logger.warning("Deleting the database, flag set IS_DELETE_DATABASE: 1");
 

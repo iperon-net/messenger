@@ -610,6 +610,9 @@ class Translations$screenChatThemes$en {
 	/// en: 'Pattern'
 	String get pattern => 'Pattern';
 
+	/// en: 'Pattern intensity'
+	String get intensity => 'Pattern intensity';
+
 	/// en: 'Color'
 	String get color => 'Color';
 
@@ -624,9 +627,6 @@ class Translations$screenChatThemes$en {
 
 	/// en: 'Looks great, I'll keep this one 😍'
 	String get previewOutgoing => 'Looks great, I\'ll keep this one 😍';
-
-	/// en: 'No pattern'
-	String get patternNone => 'No pattern';
 
 	/// en: 'Chat'
 	String get patternChat => 'Chat';
@@ -1930,12 +1930,12 @@ extension on Translations {
 			'screenSettingsAppearance.chatThemes' => 'Chat themes',
 			'screenChatThemes.title' => _root.screenSettingsAppearance.chatThemes,
 			'screenChatThemes.pattern' => 'Pattern',
+			'screenChatThemes.intensity' => 'Pattern intensity',
 			'screenChatThemes.color' => 'Color',
 			'screenChatThemes.footer' => 'The wallpaper is shown in all chats on this device and adapts to light and dark mode.',
 			'screenChatThemes.previewName' => 'Anna',
 			'screenChatThemes.previewIncoming' => 'Hi! How do you like the new wallpaper? 🎨',
 			'screenChatThemes.previewOutgoing' => 'Looks great, I\'ll keep this one 😍',
-			'screenChatThemes.patternNone' => 'No pattern',
 			'screenChatThemes.patternChat' => 'Chat',
 			'screenChatThemes.patternSpace' => 'Space',
 			'screenChatThemes.patternNature' => 'Nature',

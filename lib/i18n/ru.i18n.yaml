@@ -172,12 +172,12 @@
 "screenChatThemes":
   "title": "@:screenSettingsAppearance.chatThemes"
   "pattern": "Узор"
+  "intensity": "Интенсивность узора"
   "color": "Цвет"
   "footer": "Обои показываются во всех чатах на этом устройстве и сами подстраиваются под светлую и тёмную тему."
   "previewName": "Анна"
   "previewIncoming": "Привет! Как тебе новые обои? 🎨"
   "previewOutgoing": "Отлично смотрятся, оставлю эти 😍"
-  "patternNone": "Без узора"
   "patternChat": "Общение"
   "patternSpace": "Космос"
   "patternNature": "Природа"

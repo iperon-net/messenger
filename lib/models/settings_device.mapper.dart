@@ -107,6 +107,15 @@ class SettingsDeviceModelMapper extends ClassMapperBase<SettingsDeviceModel> {
     opt: true,
     def: 0,
   );
+  static int _$chatWallpaperIntensity(SettingsDeviceModel v) =>
+      v.chatWallpaperIntensity;
+  static const Field<SettingsDeviceModel, int> _f$chatWallpaperIntensity =
+      Field(
+        'chatWallpaperIntensity',
+        _$chatWallpaperIntensity,
+        opt: true,
+        def: 40,
+      );
 
   @override
   final MappableFields<SettingsDeviceModel> fields = const {
@@ -122,6 +131,7 @@ class SettingsDeviceModelMapper extends ClassMapperBase<SettingsDeviceModel> {
     #chatsDemo: _f$chatsDemo,
     #chatWallpaper: _f$chatWallpaper,
     #chatWallpaperColor: _f$chatWallpaperColor,
+    #chatWallpaperIntensity: _f$chatWallpaperIntensity,
   };
 
   static SettingsDeviceModel _instantiate(DecodingData data) {
@@ -138,6 +148,7 @@ class SettingsDeviceModelMapper extends ClassMapperBase<SettingsDeviceModel> {
       chatsDemo: data.dec(_f$chatsDemo),
       chatWallpaper: data.dec(_f$chatWallpaper),
       chatWallpaperColor: data.dec(_f$chatWallpaperColor),
+      chatWallpaperIntensity: data.dec(_f$chatWallpaperIntensity),
     );
   }
 
@@ -225,6 +236,7 @@ abstract class SettingsDeviceModelCopyWith<
     bool? chatsDemo,
     String? chatWallpaper,
     int? chatWallpaperColor,
+    int? chatWallpaperIntensity,
   });
   SettingsDeviceModelCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
     Then<$Out2, $R2> t,
@@ -260,6 +272,7 @@ class _SettingsDeviceModelCopyWithImpl<$R, $Out>
     bool? chatsDemo,
     String? chatWallpaper,
     int? chatWallpaperColor,
+    int? chatWallpaperIntensity,
   }) => $apply(
     FieldCopyWithData({
       if (locale != $none) #locale: locale,
@@ -276,6 +289,8 @@ class _SettingsDeviceModelCopyWithImpl<$R, $Out>
       if (chatsDemo != null) #chatsDemo: chatsDemo,
       if (chatWallpaper != null) #chatWallpaper: chatWallpaper,
       if (chatWallpaperColor != null) #chatWallpaperColor: chatWallpaperColor,
+      if (chatWallpaperIntensity != null)
+        #chatWallpaperIntensity: chatWallpaperIntensity,
     }),
   );
   @override
@@ -303,6 +318,10 @@ class _SettingsDeviceModelCopyWithImpl<$R, $Out>
     chatWallpaperColor: data.get(
       #chatWallpaperColor,
       or: $value.chatWallpaperColor,
+    ),
+    chatWallpaperIntensity: data.get(
+      #chatWallpaperIntensity,
+      or: $value.chatWallpaperIntensity,
     ),
   );
 

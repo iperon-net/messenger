@@ -56,4 +56,8 @@ class SettingsDevice {
   Future<void> setChatWallpaper({required String pattern, required int color}) async {
     await db.execute("UPDATE settingsDevice SET chatWallpaper = ?, chatWallpaperColor = ?", [pattern, color]);
   }
+
+  Future<void> setChatWallpaperIntensity(int value) async {
+    await db.execute("UPDATE settingsDevice SET chatWallpaperIntensity = ?", [value]);
+  }
 }

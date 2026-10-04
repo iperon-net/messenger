@@ -239,4 +239,11 @@ class CommonCubit extends Cubit<CommonState> {
       ),
     );
   }
+
+  /// «Темы для чатов»: интенсивность узора. Пока тянут ползунок — только
+  /// превью ([persist] = false), в БД — когда отпустили.
+  Future<void> setChatWallpaperIntensity(int value, {bool persist = true}) async {
+    emit(state.copyWith(settingsDevice: state.settingsDevice.copyWith(chatWallpaperIntensity: value)));
+    if (persist) await repositories.settingsDevice.setChatWallpaperIntensity(value);
+  }
 }

@@ -129,10 +129,12 @@ class _ChatCupertinoState extends State<ChatCupertino> {
                               child: BlocBuilder<CommonCubit, CommonState>(
                                 buildWhen: (previous, current) =>
                                     previous.settingsDevice.chatWallpaper != current.settingsDevice.chatWallpaper ||
-                                    previous.settingsDevice.chatWallpaperColor != current.settingsDevice.chatWallpaperColor,
+                                    previous.settingsDevice.chatWallpaperColor != current.settingsDevice.chatWallpaperColor ||
+                                    previous.settingsDevice.chatWallpaperIntensity != current.settingsDevice.chatWallpaperIntensity,
                                 builder: (context, common) => ChatWallpaper(
                                   pattern: common.settingsDevice.chatWallpaper,
                                   colorIndex: common.settingsDevice.chatWallpaperColor,
+                                  intensity: common.settingsDevice.chatWallpaperIntensity,
                                   dark: CupertinoTheme.brightnessOf(context) == Brightness.dark,
                                 ),
                               ),

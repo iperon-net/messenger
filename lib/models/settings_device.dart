@@ -20,9 +20,12 @@ class SettingsDeviceModel with SettingsDeviceModelMappable {
   final bool chatsDemo;
 
   /// Обои чатов («Темы для чатов»): id узора (`assets/wallpapers/<id>.svg`,
-  /// 'none' — без узора) и индекс цвета в палитре `ChatWallpaperColors`.
+  /// неизвестный — узор по умолчанию) и индекс цвета в палитре `ChatWallpaperColors`.
   final String chatWallpaper;
   final int chatWallpaperColor;
+
+  /// Интенсивность (видимость) узора обоев, 0–100 %.
+  final int chatWallpaperIntensity;
 
   const SettingsDeviceModel({
     this.locale,
@@ -37,6 +40,7 @@ class SettingsDeviceModel with SettingsDeviceModelMappable {
     this.chatsDemo = false,
     this.chatWallpaper = 'chat',
     this.chatWallpaperColor = 0,
+    this.chatWallpaperIntensity = 40,
   });
 
   factory SettingsDeviceModel.fromSqlite(Map<String, dynamic> data) {
@@ -52,6 +56,7 @@ class SettingsDeviceModel with SettingsDeviceModelMappable {
     final chatsDemo = data['chatsDemo'] ?? 0;
     final chatWallpaper = data['chatWallpaper'] as String?;
     final chatWallpaperColor = data['chatWallpaperColor'] as int?;
+    final chatWallpaperIntensity = data['chatWallpaperIntensity'] as int?;
 
     SettingsDeviceModel settingsDeviceModel = SettingsDeviceModel();
 
@@ -113,6 +118,10 @@ class SettingsDeviceModel with SettingsDeviceModelMappable {
 
     if (chatWallpaperColor != null) {
       settingsDeviceModel = settingsDeviceModel.copyWith(chatWallpaperColor: chatWallpaperColor);
+    }
+
+    if (chatWallpaperIntensity != null) {
+      settingsDeviceModel = settingsDeviceModel.copyWith(chatWallpaperIntensity: chatWallpaperIntensity);
     }
 
     return settingsDeviceModel;

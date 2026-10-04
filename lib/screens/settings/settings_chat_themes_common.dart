@@ -8,23 +8,30 @@ import '../../models.dart' as models;
 /// превью с пузырями, лента узоров и палитра цветов.
 
 String chatWallpaperPatternTitle(Translations t, String pattern) => switch (pattern) {
-  'chat' => t.screenChatThemes.patternChat,
   'space' => t.screenChatThemes.patternSpace,
   'nature' => t.screenChatThemes.patternNature,
   'music' => t.screenChatThemes.patternMusic,
   'geometry' => t.screenChatThemes.patternGeometry,
   'food' => t.screenChatThemes.patternFood,
-  _ => t.screenChatThemes.patternNone,
+  _ => t.screenChatThemes.patternChat,
 };
 
 /// Превью: обои и пара пузырей в том же оформлении, что в окне чата.
 class ChatThemePreview extends StatelessWidget {
   final String pattern;
   final int colorIndex;
+  final int intensity;
   final bool dark;
   final MessageBubbleStyle style;
 
-  const ChatThemePreview({super.key, required this.pattern, required this.colorIndex, required this.dark, required this.style});
+  const ChatThemePreview({
+    super.key,
+    required this.pattern,
+    required this.colorIndex,
+    required this.intensity,
+    required this.dark,
+    required this.style,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -37,7 +44,7 @@ class ChatThemePreview extends StatelessWidget {
         child: Stack(
           children: [
             Positioned.fill(
-              child: ChatWallpaper(pattern: pattern, colorIndex: colorIndex, dark: dark),
+              child: ChatWallpaper(pattern: pattern, colorIndex: colorIndex, intensity: intensity, dark: dark),
             ),
             Positioned(
               left: 0,
@@ -90,6 +97,7 @@ class ChatThemePreview extends StatelessWidget {
 class ChatPatternStrip extends StatelessWidget {
   final String selected;
   final int colorIndex;
+  final int intensity;
   final bool dark;
   final Color accent;
   final TextStyle labelStyle;
@@ -99,6 +107,7 @@ class ChatPatternStrip extends StatelessWidget {
     super.key,
     required this.selected,
     required this.colorIndex,
+    required this.intensity,
     required this.dark,
     required this.accent,
     required this.labelStyle,
@@ -134,7 +143,7 @@ class ChatPatternStrip extends StatelessWidget {
                     ),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(9),
-                      child: ChatWallpaper(pattern: pattern, colorIndex: colorIndex, dark: dark, tileScale: 0.5),
+                      child: ChatWallpaper(pattern: pattern, colorIndex: colorIndex, intensity: intensity, dark: dark, tileScale: 0.5),
                     ),
                   ),
                   const SizedBox(height: 6),
