@@ -52,6 +52,10 @@ abstract class ChatsDataSource {
   /// так и не дойдя до собеседника.
   Future<void> cancelUpload(String chatID, String messageID);
 
+  /// Наши реакции на сообщение — весь набор целиком (пустой — снять все), как
+  /// `sendReaction` в Telegram.
+  Future<void> setReactions(String chatID, String messageID, List<String> emojis);
+
   /// Сохранить черновик поля ввода (показывается в списке чатов).
   Future<void> setDraft(String chatID, String draft);
 }

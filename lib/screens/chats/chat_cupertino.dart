@@ -1,9 +1,11 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import '../../chats/message_formatting.dart';
+import '../../chats/reactions.dart';
 import '../../constants.dart';
 import '../../components.dart';
 import '../../cubit.dart';
@@ -220,10 +222,14 @@ class _ChatCupertinoState extends State<ChatCupertino> {
                                           chatType: chat.type,
                                           style: ChatCupertino.bubbleStyle(context),
                                           padding: const EdgeInsets.symmetric(vertical: 8),
-                                          onLongPress: (message) => _actions(context, chat, message),
+                                          // Удержание — CupertinoContextMenu (menuWrapper), не action sheet.
+                                          onLongPress: (_) {},
+                                          menuWrapper: (message, bubble, preview) => _menu(context, chat, message, bubble, preview),
                                           controller: _scroll,
                                           keyFor: _keyFor,
                                           onCancelUpload: _cubit.cancelUpload,
+                                          onReaction: _cubit.toggleReaction,
+                                          onDoubleTap: _cubit.quickReact,
                                           highlight: state.searching ? state.searchQuery : '',
                                           focusedID: state.searchCurrentID,
                                           onMediaTap: (message, index) => showChatMediaViewer(
@@ -254,56 +260,129 @@ class _ChatCupertinoState extends State<ChatCupertino> {
     );
   }
 
-  Future<void> _actions(BuildContext context, models.Chat chat, models.Message message) async {
-    HapticFeedback.mediumImpact();
+  /// Пузырь в нативном контекстном меню iOS (удержание): пузырь
+  /// «приподнимается», фон размывается, под ним — полоса реакций и действия.
+  Widget _menu(BuildContext context, models.Chat chat, models.Message message, Widget bubble, Widget Function(double) preview) {
+    return _MessageContextMenu(actions: _menuActions(context, chat, message), bubble: bubble, preview: preview);
+  }
+
+  List<Widget> _menuActions(BuildContext context, models.Chat chat, models.Message message) {
     final t = context.t.screenChat;
     final canWrite = chat.type != models.ChatType.channel;
-    final action = await showCupertinoModalPopup<String>(
+    final reactions = availableReactions(chat);
+
+    // Меню — маршрут корневого навигатора: сначала закрываем его, потом
+    // действие (иначе превью «мигнёт» уже изменённым пузырём).
+    void close() => Navigator.of(context, rootNavigator: true).pop();
+    CupertinoContextMenuAction action(String label, IconData icon, VoidCallback run, {bool destructive = false}) {
+      return CupertinoContextMenuAction(
+        trailingIcon: icon,
+        isDestructiveAction: destructive,
+        onPressed: () {
+          close();
+          run();
+        },
+        child: Text(label),
+      );
+    }
+
+    return [
+      if (reactions.isNotEmpty)
+        ReactionPicker(
+          emojis: reactions,
+          selected: message.myReactions,
+          selectedBackground: CupertinoColors.systemGrey4.resolveFrom(context),
+          onSelected: (emoji) {
+            close();
+            _cubit.toggleReaction(message, emoji);
+          },
+        ),
+      if (canWrite)
+        action(t.reply, CupertinoIcons.reply, () {
+          _cubit.startReply(message);
+          _focus.requestFocus();
+        }),
+      if (message.text.isNotEmpty) action(t.copy, CupertinoIcons.doc_on_doc, () => Clipboard.setData(ClipboardData(text: message.text))),
+      if (message.outgoing && message.kind == models.MessageKind.text)
+        action(t.edit, CupertinoIcons.pencil, () => _cubit.startEdit(message)),
+      if (message.outgoing || chat.type == models.ChatType.private)
+        action(t.delete, CupertinoIcons.delete, () => _confirmDelete(context, message), destructive: true),
+    ];
+  }
+
+  Future<void> _confirmDelete(BuildContext context, models.Message message) async {
+    final t = context.t.screenChat;
+    final confirmed = await showCupertinoDialog<bool>(
       context: context,
-      builder: (sheetContext) => CupertinoActionSheet(
+      builder: (dialogContext) => CupertinoAlertDialog(
+        title: Text(t.deleteTitle),
+        content: Text(t.deleteMessage),
         actions: [
-          if (canWrite) CupertinoActionSheetAction(onPressed: () => Navigator.of(sheetContext).pop('reply'), child: Text(t.reply)),
-          if (message.text.isNotEmpty)
-            CupertinoActionSheetAction(onPressed: () => Navigator.of(sheetContext).pop('copy'), child: Text(t.copy)),
-          if (message.outgoing && message.kind == models.MessageKind.text)
-            CupertinoActionSheetAction(onPressed: () => Navigator.of(sheetContext).pop('edit'), child: Text(t.edit)),
-          if (message.outgoing || chat.type == models.ChatType.private)
-            CupertinoActionSheetAction(
-              isDestructiveAction: true,
-              onPressed: () => Navigator.of(sheetContext).pop('delete'),
-              child: Text(t.delete),
-            ),
+          CupertinoDialogAction(onPressed: () => Navigator.of(dialogContext).pop(false), child: Text(context.t.common.cancel)),
+          CupertinoDialogAction(isDestructiveAction: true, onPressed: () => Navigator.of(dialogContext).pop(true), child: Text(t.delete)),
         ],
-        cancelButton: CupertinoActionSheetAction(onPressed: () => Navigator.of(sheetContext).pop(), child: Text(context.t.common.cancel)),
       ),
     );
-    if (!context.mounted) return;
-    switch (action) {
-      case 'reply':
-        _cubit.startReply(message);
-        _focus.requestFocus();
-      case 'copy':
-        await Clipboard.setData(ClipboardData(text: message.text));
-      case 'edit':
-        _cubit.startEdit(message);
-      case 'delete':
-        final confirmed = await showCupertinoDialog<bool>(
-          context: context,
-          builder: (dialogContext) => CupertinoAlertDialog(
-            title: Text(t.deleteTitle),
-            content: Text(t.deleteMessage),
-            actions: [
-              CupertinoDialogAction(onPressed: () => Navigator.of(dialogContext).pop(false), child: Text(context.t.common.cancel)),
-              CupertinoDialogAction(
-                isDestructiveAction: true,
-                onPressed: () => Navigator.of(dialogContext).pop(true),
-                child: Text(t.delete),
-              ),
-            ],
-          ),
-        );
-        if (confirmed ?? false) await _cubit.delete(message);
-    }
+    if (confirmed ?? false) await _cubit.delete(message);
+  }
+}
+
+/// Пузырь сообщения с `CupertinoContextMenu`. Превью открытого меню —
+/// тот же пузырь той же ширины, что в ленте (ширину запоминаем при раскладке),
+/// ужатый под выданный меню прямоугольник.
+class _MessageContextMenu extends StatefulWidget {
+  final List<Widget> actions;
+  final Widget bubble;
+  final Widget Function(double maxWidth) preview;
+
+  const _MessageContextMenu({required this.actions, required this.bubble, required this.preview});
+
+  @override
+  State<_MessageContextMenu> createState() => _MessageContextMenuState();
+}
+
+class _MessageContextMenuState extends State<_MessageContextMenu> {
+  double? _width;
+
+  @override
+  Widget build(BuildContext context) {
+    return CupertinoContextMenu.builder(
+      enableHapticFeedback: true,
+      actions: widget.actions,
+      builder: (context, animation) {
+        final width = _width;
+        if (animation.value < CupertinoContextMenu.animationOpensAt || width == null) {
+          return _SizeReporter(onSize: (size) => _width = size.width, child: widget.bubble);
+        }
+        return FittedBox(fit: BoxFit.scaleDown, child: widget.preview(width));
+      },
+    );
+  }
+}
+
+/// Сообщает размер ребёнка после каждой раскладки (без GlobalKey: превью
+/// меню строится одновременно в ленте и в оверлее).
+class _SizeReporter extends SingleChildRenderObjectWidget {
+  final ValueChanged<Size> onSize;
+
+  const _SizeReporter({required this.onSize, required super.child});
+
+  @override
+  RenderObject createRenderObject(BuildContext context) => _RenderSizeReporter(onSize);
+
+  @override
+  void updateRenderObject(BuildContext context, _RenderSizeReporter renderObject) => renderObject.onSize = onSize;
+}
+
+class _RenderSizeReporter extends RenderProxyBox {
+  ValueChanged<Size> onSize;
+
+  _RenderSizeReporter(this.onSize);
+
+  @override
+  void performLayout() {
+    super.performLayout();
+    onSize(size);
   }
 }
 

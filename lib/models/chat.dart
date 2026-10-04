@@ -15,6 +15,12 @@ enum MessageStatus { pending, sent, read }
 @MappableEnum()
 enum MessageKind { text, photo, video, file, voice }
 
+/// Какие реакции разрешены в группе/канале (настраивает админ, см.
+/// docs/plans/chats-groups-channels.md, «Реакции»). В личных чатах — всегда
+/// фиксированный набор.
+@MappableEnum()
+enum ChatReactionsMode { all, some, none }
+
 /// Последнее сообщение чата в том виде, в каком оно нужно списку чатов.
 @MappableClass()
 class ChatLastMessage with ChatLastMessageMappable {
@@ -79,6 +85,10 @@ class Chat with ChatMappable {
   /// в группе — имя («Анна печатает…»).
   final String typing;
 
+  /// Реакции группы/канала: все, выбранные ([reactions]) или никаких.
+  final ChatReactionsMode reactionsMode;
+  final List<String> reactions;
+
   const Chat({
     required this.id,
     required this.type,
@@ -94,6 +104,8 @@ class Chat with ChatMappable {
     this.archived = false,
     this.draft = '',
     this.typing = '',
+    this.reactionsMode = ChatReactionsMode.all,
+    this.reactions = const [],
   });
 
   bool get hasUnread => unreadCount > 0 || markedUnread;

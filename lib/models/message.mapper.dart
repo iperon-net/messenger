@@ -413,6 +413,152 @@ class _MessageReplyCopyWithImpl<$R, $Out>
   ) => _MessageReplyCopyWithImpl<$R2, $Out2>($value, $cast, t);
 }
 
+class MessageReactionMapper extends ClassMapperBase<MessageReaction> {
+  MessageReactionMapper._();
+
+  static MessageReactionMapper? _instance;
+  static MessageReactionMapper ensureInitialized() {
+    if (_instance == null) {
+      MapperContainer.globals.use(_instance = MessageReactionMapper._());
+    }
+    return _instance!;
+  }
+
+  @override
+  final String id = 'MessageReaction';
+
+  static String _$emoji(MessageReaction v) => v.emoji;
+  static const Field<MessageReaction, String> _f$emoji = Field(
+    'emoji',
+    _$emoji,
+  );
+  static int _$count(MessageReaction v) => v.count;
+  static const Field<MessageReaction, int> _f$count = Field(
+    'count',
+    _$count,
+    opt: true,
+    def: 1,
+  );
+  static bool _$chosen(MessageReaction v) => v.chosen;
+  static const Field<MessageReaction, bool> _f$chosen = Field(
+    'chosen',
+    _$chosen,
+    opt: true,
+    def: false,
+  );
+
+  @override
+  final MappableFields<MessageReaction> fields = const {
+    #emoji: _f$emoji,
+    #count: _f$count,
+    #chosen: _f$chosen,
+  };
+
+  static MessageReaction _instantiate(DecodingData data) {
+    return MessageReaction(
+      emoji: data.dec(_f$emoji),
+      count: data.dec(_f$count),
+      chosen: data.dec(_f$chosen),
+    );
+  }
+
+  @override
+  final Function instantiate = _instantiate;
+
+  static MessageReaction fromMap(Map<String, dynamic> map) {
+    return ensureInitialized().decodeMap<MessageReaction>(map);
+  }
+
+  static MessageReaction fromJson(String json) {
+    return ensureInitialized().decodeJson<MessageReaction>(json);
+  }
+}
+
+mixin MessageReactionMappable {
+  String toJson() {
+    return MessageReactionMapper.ensureInitialized()
+        .encodeJson<MessageReaction>(this as MessageReaction);
+  }
+
+  Map<String, dynamic> toMap() {
+    return MessageReactionMapper.ensureInitialized().encodeMap<MessageReaction>(
+      this as MessageReaction,
+    );
+  }
+
+  MessageReactionCopyWith<MessageReaction, MessageReaction, MessageReaction>
+  get copyWith =>
+      _MessageReactionCopyWithImpl<MessageReaction, MessageReaction>(
+        this as MessageReaction,
+        $identity,
+        $identity,
+      );
+  @override
+  String toString() {
+    return MessageReactionMapper.ensureInitialized().stringifyValue(
+      this as MessageReaction,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return MessageReactionMapper.ensureInitialized().equalsValue(
+      this as MessageReaction,
+      other,
+    );
+  }
+
+  @override
+  int get hashCode {
+    return MessageReactionMapper.ensureInitialized().hashValue(
+      this as MessageReaction,
+    );
+  }
+}
+
+extension MessageReactionValueCopy<$R, $Out>
+    on ObjectCopyWith<$R, MessageReaction, $Out> {
+  MessageReactionCopyWith<$R, MessageReaction, $Out> get $asMessageReaction =>
+      $base.as((v, t, t2) => _MessageReactionCopyWithImpl<$R, $Out>(v, t, t2));
+}
+
+abstract class MessageReactionCopyWith<$R, $In extends MessageReaction, $Out>
+    implements ClassCopyWith<$R, $In, $Out> {
+  $R call({String? emoji, int? count, bool? chosen});
+  MessageReactionCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
+    Then<$Out2, $R2> t,
+  );
+}
+
+class _MessageReactionCopyWithImpl<$R, $Out>
+    extends ClassCopyWithBase<$R, MessageReaction, $Out>
+    implements MessageReactionCopyWith<$R, MessageReaction, $Out> {
+  _MessageReactionCopyWithImpl(super.value, super.then, super.then2);
+
+  @override
+  late final ClassMapperBase<MessageReaction> $mapper =
+      MessageReactionMapper.ensureInitialized();
+  @override
+  $R call({String? emoji, int? count, bool? chosen}) => $apply(
+    FieldCopyWithData({
+      if (emoji != null) #emoji: emoji,
+      if (count != null) #count: count,
+      if (chosen != null) #chosen: chosen,
+    }),
+  );
+  @override
+  MessageReaction $make(CopyWithData data) => MessageReaction(
+    emoji: data.get(#emoji, or: $value.emoji),
+    count: data.get(#count, or: $value.count),
+    chosen: data.get(#chosen, or: $value.chosen),
+  );
+
+  @override
+  MessageReactionCopyWith<$R2, MessageReaction, $Out2> $chain<$R2, $Out2>(
+    Then<$Out2, $R2> t,
+  ) => _MessageReactionCopyWithImpl<$R2, $Out2>($value, $cast, t);
+}
+
 class MessageMediaMapper extends ClassMapperBase<MessageMedia> {
   MessageMediaMapper._();
 
@@ -627,6 +773,7 @@ class MessageMapper extends ClassMapperBase<Message> {
       MessageStatusMapper.ensureInitialized();
       MessageReplyMapper.ensureInitialized();
       MessageMediaMapper.ensureInitialized();
+      MessageReactionMapper.ensureInitialized();
     }
     return _instance!;
   }
@@ -751,6 +898,13 @@ class MessageMapper extends ClassMapperBase<Message> {
     opt: true,
     def: 0,
   );
+  static List<MessageReaction> _$reactions(Message v) => v.reactions;
+  static const Field<Message, List<MessageReaction>> _f$reactions = Field(
+    'reactions',
+    _$reactions,
+    opt: true,
+    def: const [],
+  );
 
   @override
   final MappableFields<Message> fields = const {
@@ -773,6 +927,7 @@ class MessageMapper extends ClassMapperBase<Message> {
     #fileSize: _f$fileSize,
     #uploadedBytes: _f$uploadedBytes,
     #uploadTotal: _f$uploadTotal,
+    #reactions: _f$reactions,
   };
 
   static Message _instantiate(DecodingData data) {
@@ -796,6 +951,7 @@ class MessageMapper extends ClassMapperBase<Message> {
       fileSize: data.dec(_f$fileSize),
       uploadedBytes: data.dec(_f$uploadedBytes),
       uploadTotal: data.dec(_f$uploadTotal),
+      reactions: data.dec(_f$reactions),
     );
   }
 
@@ -869,6 +1025,12 @@ abstract class MessageCopyWith<$R, $In extends Message, $Out>
     MessageMediaCopyWith<$R, MessageMedia, MessageMedia>
   >
   get media;
+  ListCopyWith<
+    $R,
+    MessageReaction,
+    MessageReactionCopyWith<$R, MessageReaction, MessageReaction>
+  >
+  get reactions;
   $R call({
     String? id,
     String? chatID,
@@ -889,6 +1051,7 @@ abstract class MessageCopyWith<$R, $In extends Message, $Out>
     int? fileSize,
     int? uploadedBytes,
     int? uploadTotal,
+    List<MessageReaction>? reactions,
   });
   MessageCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
@@ -927,6 +1090,17 @@ class _MessageCopyWithImpl<$R, $Out>
     (v) => call(media: v),
   );
   @override
+  ListCopyWith<
+    $R,
+    MessageReaction,
+    MessageReactionCopyWith<$R, MessageReaction, MessageReaction>
+  >
+  get reactions => ListCopyWith(
+    $value.reactions,
+    (v, t) => v.copyWith.$chain(t),
+    (v) => call(reactions: v),
+  );
+  @override
   $R call({
     String? id,
     String? chatID,
@@ -947,6 +1121,7 @@ class _MessageCopyWithImpl<$R, $Out>
     int? fileSize,
     int? uploadedBytes,
     int? uploadTotal,
+    List<MessageReaction>? reactions,
   }) => $apply(
     FieldCopyWithData({
       if (id != null) #id: id,
@@ -968,6 +1143,7 @@ class _MessageCopyWithImpl<$R, $Out>
       if (fileSize != null) #fileSize: fileSize,
       if (uploadedBytes != null) #uploadedBytes: uploadedBytes,
       if (uploadTotal != null) #uploadTotal: uploadTotal,
+      if (reactions != null) #reactions: reactions,
     }),
   );
   @override
@@ -991,6 +1167,7 @@ class _MessageCopyWithImpl<$R, $Out>
     fileSize: data.get(#fileSize, or: $value.fileSize),
     uploadedBytes: data.get(#uploadedBytes, or: $value.uploadedBytes),
     uploadTotal: data.get(#uploadTotal, or: $value.uploadTotal),
+    reactions: data.get(#reactions, or: $value.reactions),
   );
 
   @override

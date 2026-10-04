@@ -38,6 +38,17 @@ class MessageReply with MessageReplyMappable {
   const MessageReply({required this.messageID, required this.senderName, this.text = '', this.kind = MessageKind.text});
 }
 
+/// Реакция на сообщение: эмодзи, сколько человек поставили и есть ли среди
+/// них мы ([chosen]).
+@MappableClass()
+class MessageReaction with MessageReactionMappable {
+  final String emoji;
+  final int count;
+  final bool chosen;
+
+  const MessageReaction({required this.emoji, this.count = 1, this.chosen = false});
+}
+
 /// Элемент альбома (см. [Message.media]).
 @MappableClass()
 class MessageMedia with MessageMediaMappable {
@@ -124,6 +135,9 @@ class Message with MessageMappable {
   final int uploadedBytes;
   final int uploadTotal;
 
+  /// Реакции — в порядке появления (у первого — самый ранний).
+  final List<MessageReaction> reactions;
+
   const Message({
     required this.id,
     required this.chatID,
@@ -144,7 +158,14 @@ class Message with MessageMappable {
     this.fileSize = 0,
     this.uploadedBytes = 0,
     this.uploadTotal = 0,
+    this.reactions = const [],
   });
+
+  /// Наши реакции (до `maxReactionsPerUser` на сообщение), в порядке чипов.
+  List<String> get myReactions => [
+    for (final r in reactions)
+      if (r.chosen) r.emoji,
+  ];
 
   bool get isAlbum => media.length > 1;
 

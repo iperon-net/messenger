@@ -4,6 +4,7 @@ import 'dart:math';
 
 import '../chats/chats_data_source.dart';
 import '../chats/message_formatting.dart';
+import '../chats/reactions.dart';
 import '../models.dart' as models;
 
 /// Фейковые чаты и папки для UX-демо (флаг «Демо чатов» на экране
@@ -197,6 +198,11 @@ class ChatsDemoDataSource implements ChatsDataSource {
   }
 
   @override
+  Future<void> setReactions(String chatID, String messageID, List<String> emojis) async {
+    _updateMessage(chatID, messageID, (m) => m.copyWith(reactions: applyMyReactions(m.reactions, emojis)));
+  }
+
+  @override
   Future<void> cancelUpload(String chatID, String messageID) async {
     _uploads.remove(messageID)?.cancel();
     await deleteMessage(chatID, messageID);
@@ -216,6 +222,11 @@ class ChatsDemoDataSource implements ChatsDataSource {
     if (chat.type == models.ChatType.channel) return;
     Timer(const Duration(milliseconds: 1800), () {
       _setStatus(chatID, message.id, models.MessageStatus.read);
+      // Иногда собеседник отвечает реакцией на наше сообщение.
+      if (_random.nextInt(3) == 0 && _history(chatID).any((m) => m.id == message.id)) {
+        final emoji = ['❤️', '👍', '🔥', '😂'][_random.nextInt(4)];
+        _updateMessage(chatID, message.id, (m) => m.copyWith(reactions: addOtherReaction(m.reactions, emoji)));
+      }
       final sender = chat.type == models.ChatType.private ? chat.title : _names[_random.nextInt(_names.length)];
       _update(chatID, (c) => c.copyWith(typing: sender));
     });
@@ -467,12 +478,17 @@ class ChatsDemoDataSource implements ChatsDataSource {
         id: 'tech',
         type: models.ChatType.channel,
         title: 'Техно-обзор',
+        // Админ разрешил только некоторые реакции.
+        reactionsMode: models.ChatReactionsMode.some,
+        reactions: const ['🔥', '👍', '🤯', '❤️'],
         lastMessage: msg('Обзор нового iPhone', kind: models.MessageKind.video, date: ago(days: 6)),
       ),
       models.Chat(
         id: 'school',
         type: models.ChatType.group,
         title: 'Родители 5 «Б»',
+        // Реакции в группе выключены.
+        reactionsMode: models.ChatReactionsMode.none,
         archived: true,
         unreadCount: 41,
         muted: true,
@@ -547,6 +563,7 @@ class ChatsDemoDataSource implements ChatsDataSource {
       bool service = false,
       models.MessageReply? reply,
       int album = 0,
+      List<models.MessageReaction> reactions = const [],
       Duration step = const Duration(minutes: 7),
     }) {
       date = date.add(step);
@@ -567,9 +584,13 @@ class ChatsDemoDataSource implements ChatsDataSource {
           service: service,
           reply: reply,
           media: [for (var i = 0; i < album; i++) models.MessageMedia(kind: i == 2 ? models.MessageKind.video : models.MessageKind.photo)],
+          reactions: reactions,
         ),
       );
     }
+
+    models.MessageReaction r(String emoji, [int count = 1, bool chosen = false]) =>
+        models.MessageReaction(emoji: emoji, count: count, chosen: chosen);
 
     switch (chat.type) {
       case models.ChatType.private when chat.isSelf:
@@ -584,8 +605,15 @@ class ChatsDemoDataSource implements ChatsDataSource {
             step: Duration(minutes: i == 5 ? 60 * 18 : 3 + i),
           );
         }
-        add('Вид из окна 🌇', kind: models.MessageKind.photo, step: const Duration(hours: 9));
-        add('Поездка на выходных 🏔', out: true, kind: models.MessageKind.photo, album: 4, step: const Duration(minutes: 40));
+        add('Вид из окна 🌇', kind: models.MessageKind.photo, reactions: [r('❤️', 1, true)], step: const Duration(hours: 9));
+        add(
+          'Поездка на выходных 🏔',
+          out: true,
+          kind: models.MessageKind.photo,
+          album: 4,
+          reactions: [r('🔥')],
+          step: const Duration(minutes: 40),
+        );
         add('', out: true, kind: models.MessageKind.voice, duration: 12);
         final quoted = result[2];
         add(
@@ -603,11 +631,26 @@ class ChatsDemoDataSource implements ChatsDataSource {
             step: Duration(minutes: 4 + i * 9),
           );
         }
-        add('Фото с митапа', sender: 'Мария', kind: models.MessageKind.photo, album: 6, step: const Duration(hours: 20));
+        add(
+          'Фото с митапа',
+          sender: 'Мария',
+          kind: models.MessageKind.photo,
+          album: 6,
+          reactions: [r('👍', 5), r('❤️', 3, true), r('🔥', 2)],
+          step: const Duration(hours: 20),
+        );
         add('', sender: 'Иван', kind: models.MessageKind.file, fileName: 'отчёт_сентябрь.xlsx');
       case models.ChatType.channel:
-        for (final post in _channelPosts) {
-          add(post, step: const Duration(hours: 14));
+        // Реакции канала — только из разрешённых админом.
+        final allowed = chat.reactionsMode == models.ChatReactionsMode.some ? chat.reactions : const ['👍', '🔥', '❤️'];
+        for (final (i, post) in _channelPosts.indexed) {
+          add(
+            post,
+            reactions: chat.reactionsMode == models.ChatReactionsMode.none
+                ? const []
+                : [for (final (j, emoji) in allowed.take(3).indexed) r(emoji, 140 - j * 45 + i * 13)],
+            step: const Duration(hours: 14),
+          );
         }
     }
 

@@ -5,6 +5,7 @@ import 'package:bloc/bloc.dart';
 import '../../constants.dart';
 import '../../chats/chats_data_source.dart';
 import '../../chats/message_formatting.dart';
+import '../../chats/reactions.dart';
 import '../../demo/chats_demo_data_source.dart';
 import '../../models.dart' as models;
 
@@ -93,6 +94,23 @@ class ChatCubit extends Cubit<ChatState> {
     text: m.kind == models.MessageKind.file && m.text.isEmpty ? m.fileName : m.text,
     kind: m.kind,
   );
+
+  /// Реакция: тап по своей — снять, по другой — добавить (до
+  /// [maxReactionsPerUser], сверх — вытесняется самая ранняя наша).
+  Future<void> toggleReaction(models.Message message, String emoji) async {
+    final chat = state.chat;
+    if (chat == null) return;
+    final mine = message.myReactions;
+    if (!mine.contains(emoji) && !availableReactions(chat).contains(emoji)) return;
+    await _source?.setReactions(_chatID, message.id, toggleMyReaction(mine, emoji));
+  }
+
+  /// Двойной тап по сообщению — быстрая реакция.
+  Future<void> quickReact(models.Message message) async {
+    final chat = state.chat;
+    final emoji = chat == null ? null : quickReaction(chat);
+    if (emoji != null) await toggleReaction(message, emoji);
+  }
 
   /// Крестик на прогрессе загрузки — отменить отправку вложений.
   Future<void> cancelUpload(models.Message message) async => _source?.cancelUpload(_chatID, message.id);

@@ -78,6 +78,13 @@ class ChatMessagesView extends StatelessWidget {
   /// Крестик на прогрессе загрузки вложений.
   final ValueChanged<models.Message>? onCancelUpload;
 
+  /// Тап по реакции под сообщением; двойной тап по пузырю — быстрая реакция.
+  final void Function(models.Message message, String emoji)? onReaction;
+  final ValueChanged<models.Message>? onDoubleTap;
+
+  /// Обёртка пузыря контекстным меню (см. [MessageBubble.menuWrapper]).
+  final Widget Function(models.Message message, Widget bubble, Widget Function(double maxWidth) preview)? menuWrapper;
+
   const ChatMessagesView({
     super.key,
     required this.messages,
@@ -91,6 +98,9 @@ class ChatMessagesView extends StatelessWidget {
     this.focusedID,
     this.keyFor,
     this.onCancelUpload,
+    this.onReaction,
+    this.onDoubleTap,
+    this.menuWrapper,
   });
 
   static bool _sameDay(DateTime a, DateTime b) {
@@ -138,6 +148,9 @@ class ChatMessagesView extends StatelessWidget {
               highlight: highlight,
               focused: m.id == focusedID,
               onCancelUpload: onCancelUpload == null ? null : () => onCancelUpload!(m),
+              onReaction: onReaction == null ? null : (emoji) => onReaction!(m, emoji),
+              onDoubleTap: onDoubleTap == null ? null : () => onDoubleTap!(m),
+              menuWrapper: menuWrapper == null ? null : (bubble, preview) => menuWrapper!(m, bubble, preview),
             ),
           ),
         );
@@ -228,6 +241,17 @@ class MessageBubble extends StatelessWidget {
   /// Крестик на прогрессе загрузки вложений.
   final VoidCallback? onCancelUpload;
 
+  /// Тап по реакции под сообщением (поставить/снять свою).
+  final ValueChanged<String>? onReaction;
+
+  /// Двойной тап по пузырю — быстрая реакция.
+  final VoidCallback? onDoubleTap;
+
+  /// Обёртка пузыря контекстным меню (iOS — `CupertinoContextMenu`): [bubble] —
+  /// пузырь в ленте, [preview] — он же для превью меню, без жестов, с заданной
+  /// предельной шириной. С обёрткой [onLongPress] не используется.
+  final Widget Function(Widget bubble, Widget Function(double maxWidth) preview)? menuWrapper;
+
   const MessageBubble({
     super.key,
     required this.message,
@@ -240,6 +264,9 @@ class MessageBubble extends StatelessWidget {
     this.highlight = '',
     this.focused = false,
     this.onCancelUpload,
+    this.onReaction,
+    this.onDoubleTap,
+    this.menuWrapper,
   });
 
   static const _radius = Radius.circular(18);
@@ -348,6 +375,8 @@ class MessageBubble extends StatelessWidget {
     }
     if (media != null) content.add(media);
 
+    // С реакциями время уезжает в их строку (справа), как в Telegram.
+    final hasReactions = m.reactions.isNotEmpty;
     if (m.text.isNotEmpty) {
       content.add(
         Padding(
@@ -359,17 +388,48 @@ class MessageBubble extends StatelessWidget {
                 entities: m.entities,
                 style: style.textStyle,
                 colors: colors,
-                trailing: trailing,
+                trailing: hasReactions ? '' : trailing,
                 trailingStyle: metaStyle,
                 highlight: highlight,
                 highlightColor: focused ? const Color(0xCCFF9500) : const Color(0x66FFCC00),
               ),
-              Positioned(right: 0, bottom: 0, child: meta),
+              if (!hasReactions) Positioned(right: 0, bottom: 0, child: meta),
             ],
           ),
         ),
       );
-    } else {
+    }
+    if (hasReactions) {
+      content.add(
+        Padding(
+          padding: EdgeInsets.fromLTRB(captionInset, 6, captionInset, 0),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              // Expanded: реакции слева, время прижато к правому краю пузыря.
+              Expanded(
+                child: Wrap(
+                  spacing: 4,
+                  runSpacing: 4,
+                  children: [
+                    for (final r in m.reactions)
+                      _ReactionChip(
+                        reaction: r,
+                        colors: colors,
+                        chosenText: iconColor,
+                        textStyle: metaStyle,
+                        onTap: onReaction == null ? null : () => onReaction!(r.emoji),
+                      ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              meta,
+            ],
+          ),
+        ),
+      );
+    } else if (m.text.isEmpty) {
       content.add(
         Align(
           alignment: Alignment.centerRight,
@@ -378,31 +438,35 @@ class MessageBubble extends StatelessWidget {
       );
     }
 
-    final bubble = LayoutBuilder(
-      builder: (context, constraints) => ConstrainedBox(
-        constraints: BoxConstraints(maxWidth: math.min(constraints.maxWidth * 0.8, 520)),
-        child: GestureDetector(
-          onLongPress: onLongPress,
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              color: out ? style.outgoing : style.incoming,
-              borderRadius: BorderRadius.only(
-                topLeft: _radius,
-                topRight: _radius,
-                bottomLeft: !out && tail ? _tailRadius : _radius,
-                bottomRight: out && tail ? _tailRadius : _radius,
-              ),
+    // [maxWidth] — предел ширины: в ленте 80% строки, в превью меню — ширина
+    // пузыря в ленте (чтобы текст перенёсся так же).
+    Widget body(double maxWidth) => ConstrainedBox(
+      constraints: BoxConstraints(maxWidth: maxWidth),
+      child: GestureDetector(
+        // С обёрткой (iOS-меню) long-press ловит `CupertinoContextMenu`.
+        onLongPress: menuWrapper == null ? onLongPress : null,
+        onDoubleTap: onDoubleTap,
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: out ? style.outgoing : style.incoming,
+            borderRadius: BorderRadius.only(
+              topLeft: _radius,
+              topRight: _radius,
+              bottomLeft: !out && tail ? _tailRadius : _radius,
+              bottomRight: out && tail ? _tailRadius : _radius,
             ),
-            child: Padding(
-              padding: EdgeInsets.fromLTRB(visual ? 4 : 11, visual ? 4 : 7, visual ? 4 : 11, 7),
-              child: IntrinsicWidth(
-                child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, mainAxisSize: MainAxisSize.min, children: content),
-              ),
+          ),
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(visual ? 4 : 11, visual ? 4 : 7, visual ? 4 : 11, 7),
+            child: IntrinsicWidth(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, mainAxisSize: MainAxisSize.min, children: content),
             ),
           ),
         ),
       ),
     );
+    final inList = LayoutBuilder(builder: (context, constraints) => body(math.min(constraints.maxWidth * 0.8, 520)));
+    final bubble = menuWrapper == null ? inList : menuWrapper!(inList, (maxWidth) => IgnorePointer(child: body(maxWidth)));
 
     return Padding(
       padding: EdgeInsets.only(left: avatar == null ? 10 : 6, right: 10),
@@ -793,4 +857,89 @@ class _RingPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_RingPainter oldDelegate) => oldDelegate.progress != progress || oldDelegate.color != color;
+}
+
+/// Реакция под сообщением: эмодзи + число. Наша — залита цветом ссылки.
+class _ReactionChip extends StatelessWidget {
+  final models.MessageReaction reaction;
+  final MessageTextColors colors;
+
+  /// Цвет числа на нашей (залитой) реакции — контрастный к цвету ссылки.
+  final Color chosenText;
+  final TextStyle textStyle;
+  final VoidCallback? onTap;
+
+  const _ReactionChip({required this.reaction, required this.colors, required this.chosenText, required this.textStyle, this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final chosen = reaction.chosen;
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+        decoration: BoxDecoration(
+          color: chosen ? colors.link : colors.link.withValues(alpha: 0.15),
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Непрозрачный цвет: у полупрозрачного эмодзи «выцветает».
+            Text(reaction.emoji, style: textStyle.copyWith(fontSize: 15, color: const Color(0xFF000000))),
+            const SizedBox(width: 4),
+            Text(
+              '${reaction.count}',
+              style: textStyle.copyWith(fontSize: 13, fontWeight: FontWeight.w600, color: chosen ? chosenText : colors.link),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Полоса реакций в меню сообщения (long-press): тап — поставить/снять.
+class ReactionPicker extends StatelessWidget {
+  final List<String> emojis;
+
+  /// Уже поставленные нами — подсвечены.
+  final List<String> selected;
+  final Color selectedBackground;
+  final ValueChanged<String> onSelected;
+
+  const ReactionPicker({
+    super.key,
+    required this.emojis,
+    this.selected = const [],
+    required this.selectedBackground,
+    required this.onSelected,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    // SingleChildScrollView, а не ListView: в меню iOS полоса стоит внутри
+    // IntrinsicHeight, а вьюпорт ListView интринсики не поддерживает.
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      child: Row(
+        children: [
+          for (final emoji in emojis)
+            GestureDetector(
+              onTap: () => onSelected(emoji),
+              child: Container(
+                width: 44,
+                height: 44,
+                margin: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
+                alignment: Alignment.center,
+                decoration: BoxDecoration(color: selected.contains(emoji) ? selectedBackground : null, shape: BoxShape.circle),
+                child: Text(emoji, style: const TextStyle(fontSize: 28)),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
 }

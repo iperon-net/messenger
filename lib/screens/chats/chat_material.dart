@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../chats/message_formatting.dart';
+import '../../chats/reactions.dart';
 import '../../components.dart';
 import '../../constants.dart';
 import '../../cubit.dart';
@@ -191,6 +192,8 @@ class _ChatMaterialState extends State<ChatMaterial> {
                                     controller: _scroll,
                                     keyFor: _keyFor,
                                     onCancelUpload: _cubit.cancelUpload,
+                                    onReaction: _cubit.toggleReaction,
+                                    onDoubleTap: _cubit.quickReact,
                                     highlight: state.searching ? state.searchQuery : '',
                                     focusedID: state.searchCurrentID,
                                     onMediaTap: (message, index) => showChatMediaViewer(
@@ -223,6 +226,7 @@ class _ChatMaterialState extends State<ChatMaterial> {
     final t = context.t.screenChat;
     final canWrite = chat.type != models.ChatType.channel;
     final error = Theme.of(context).colorScheme.error;
+    final reactions = availableReactions(chat);
     final action = await showModalBottomSheet<String>(
       context: context,
       showDragHandle: true,
@@ -230,6 +234,16 @@ class _ChatMaterialState extends State<ChatMaterial> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            // Сверху — полоса реакций (если в чате они разрешены).
+            if (reactions.isNotEmpty) ...[
+              ReactionPicker(
+                emojis: reactions,
+                selected: message.myReactions,
+                selectedBackground: Theme.of(sheetContext).colorScheme.secondaryContainer,
+                onSelected: (emoji) => Navigator.of(sheetContext).pop('react:$emoji'),
+              ),
+              const Divider(),
+            ],
             if (canWrite)
               ListTile(leading: const Icon(Icons.reply), title: Text(t.reply), onTap: () => Navigator.of(sheetContext).pop('reply')),
             if (message.text.isNotEmpty)
@@ -247,6 +261,10 @@ class _ChatMaterialState extends State<ChatMaterial> {
       ),
     );
     if (!context.mounted) return;
+    if (action != null && action.startsWith('react:')) {
+      await _cubit.toggleReaction(message, action.substring('react:'.length));
+      return;
+    }
     switch (action) {
       case 'reply':
         _cubit.startReply(message);
