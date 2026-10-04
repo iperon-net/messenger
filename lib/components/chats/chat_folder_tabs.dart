@@ -76,6 +76,11 @@ class ChatFolderTabsCore extends StatefulWidget {
   final ValueChanged<int>? onLongPress;
   final ChatFolderTabsStyle style;
 
+  /// Обёртка сегмента [index] (iOS — `CupertinoContextMenu`): [tappable] —
+  /// сегмент с обработкой тапа, [content] — он же без жестов, ровно по
+  /// размеру сегмента (для превью меню).
+  final Widget Function(int index, Widget tappable, Widget content)? segmentWrapper;
+
   const ChatFolderTabsCore({
     super.key,
     required this.tabs,
@@ -84,6 +89,7 @@ class ChatFolderTabsCore extends StatefulWidget {
     required this.onTap,
     this.onLongPress,
     required this.style,
+    this.segmentWrapper,
   });
 
   @override
@@ -232,12 +238,7 @@ class _ChatFolderTabsCoreState extends State<ChatFolderTabsCore> {
                     width: widths[i],
                     top: 0,
                     bottom: 0,
-                    child: GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      onTap: () => widget.onTap(i),
-                      onLongPress: widget.onLongPress == null ? null : () => widget.onLongPress!(i),
-                      child: _segment(widget.tabs[i], i == selected, badgeStyle, badgeHeight),
-                    ),
+                    child: _wrap(i, widths[i], i == selected, badgeStyle, badgeHeight),
                   ),
               ],
             ),
@@ -258,6 +259,20 @@ class _ChatFolderTabsCoreState extends State<ChatFolderTabsCore> {
         return SingleChildScrollView(scrollDirection: Axis.horizontal, controller: _scroll, child: track);
       },
     );
+  }
+
+  Widget _wrap(int i, double width, bool selected, TextStyle badgeStyle, double badgeHeight) {
+    final segment = _segment(widget.tabs[i], selected, badgeStyle, badgeHeight);
+    final tappable = GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () => widget.onTap(i),
+      onLongPress: widget.onLongPress == null ? null : () => widget.onLongPress!(i),
+      child: segment,
+    );
+    final wrapper = widget.segmentWrapper;
+    if (wrapper == null) return tappable;
+    final style = widget.style;
+    return wrapper(i, tappable, SizedBox(width: width, height: style.height - style.inset * 2, child: segment));
   }
 
   Widget _segment(ChatFolderTab tab, bool selected, TextStyle badgeStyle, double badgeHeight) {

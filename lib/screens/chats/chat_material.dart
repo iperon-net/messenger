@@ -308,7 +308,7 @@ class _ComposeBar extends StatelessWidget {
                   IconButton(
                     icon: const Icon(Icons.attach_file),
                     color: scheme.onSurfaceVariant,
-                    onPressed: editing ? null : () => pickAndSendAttachments(context),
+                    onPressed: editing ? null : () => pickAndSendAttachments(context, input: input),
                   ),
                   Expanded(
                     child: TextField(

@@ -31,7 +31,8 @@ abstract class ChatsDataSource {
   Stream<List<models.Message>> watchMessages(String chatID);
 
   /// Отправить сообщение: текст уже разобран в entities (см.
-  /// `parseMarkdownShortcuts`), для медиа — [kind] + [localPath]/[fileName].
+  /// `parseMarkdownShortcuts`), для медиа — [kind] + [localPath]/[fileName],
+  /// для альбома — [media] (подпись — [text]).
   Future<void> sendMessage(
     String chatID, {
     String text = '',
@@ -40,6 +41,7 @@ abstract class ChatsDataSource {
     models.MessageKind kind = models.MessageKind.text,
     String localPath = '',
     String fileName = '',
+    List<models.MessageMedia> media = const [],
   });
 
   Future<void> editMessage(String chatID, String messageID, String text, List<models.MessageEntity> entities);

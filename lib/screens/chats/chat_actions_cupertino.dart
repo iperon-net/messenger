@@ -113,37 +113,38 @@ class ChatContextMenuCupertino extends StatelessWidget {
   }
 }
 
-/// Действия над папкой по long-press на табе: «Прочитать все», «Удалить папку»
-/// («Все чаты» не удаляется). Редактирование папок — экран «Настройки → Папки»
-/// (следующие шаги демо).
-Future<void> showFolderActionsCupertino(BuildContext context, models.ChatFolder folder, String title) async {
+/// Действия меню папки по удержанию таба (`CupertinoContextMenu` в
+/// `ChatFolderTabsCupertino`): «Прочитать все», «Удалить папку» («Все чаты» не
+/// удаляется). Редактирование папок — экран «Настройки → Папки» (следующие шаги
+/// демо).
+List<Widget> folderContextActionsCupertino(BuildContext context, models.ChatFolder folder, String title) {
   final cubit = context.read<ChatsCubit>();
   final t = context.t.screenChats;
 
-  final delete = await showCupertinoModalPopup<bool>(
-    context: context,
-    builder: (sheetContext) => CupertinoActionSheet(
-      title: Text(title),
-      actions: [
-        CupertinoActionSheetAction(
-          onPressed: () {
-            Navigator.of(sheetContext).pop();
-            cubit.readAll(folder);
-          },
-          child: Text(t.readAll),
-        ),
-        if (!folder.isAll)
-          CupertinoActionSheetAction(
-            isDestructiveAction: true,
-            onPressed: () => Navigator.of(sheetContext).pop(true),
-            child: Text(t.deleteFolder),
-          ),
-      ],
-      cancelButton: CupertinoActionSheetAction(onPressed: () => Navigator.of(sheetContext).pop(), child: Text(context.t.common.cancel)),
-    ),
-  );
+  // Как у ChatContextMenuCupertino: сначала закрываем меню (маршрут корневого
+  // навигатора), потом действие.
+  CupertinoContextMenuAction action(String label, IconData icon, VoidCallback run, {bool destructive = false}) {
+    return CupertinoContextMenuAction(
+      trailingIcon: icon,
+      isDestructiveAction: destructive,
+      onPressed: () {
+        Navigator.of(context, rootNavigator: true).pop();
+        run();
+      },
+      child: Text(label),
+    );
+  }
 
-  if (delete != true || !context.mounted) return;
+  final unread = cubit.state.unreadOf(folder).count > 0;
+  return [
+    if (unread) action(t.readAll, CupertinoIcons.chat_bubble_2, () => cubit.readAll(folder)),
+    if (!folder.isAll)
+      action(t.deleteFolder, CupertinoIcons.delete, () => _confirmDeleteFolder(context, cubit, folder, title), destructive: true),
+  ];
+}
+
+Future<void> _confirmDeleteFolder(BuildContext context, ChatsCubit cubit, models.ChatFolder folder, String title) async {
+  final t = context.t.screenChats;
   final confirmed = await showCupertinoDialog<bool>(
     context: context,
     builder: (dialogContext) => CupertinoAlertDialog(

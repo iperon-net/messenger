@@ -102,6 +102,8 @@
   "video": "@:screenChats.video"
   "file": "@:screenChats.file"
   "voice": "@:screenChats.voice"
+  "selected": "Выбрано: {n}"
+  "addCaption": "Добавить подпись…"
 
 "screenSettings":
   "settings": "Настройки"

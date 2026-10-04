@@ -124,6 +124,7 @@ class ChatsDemoDataSource implements ChatsDataSource {
     models.MessageKind kind = models.MessageKind.text,
     String localPath = '',
     String fileName = '',
+    List<models.MessageMedia> media = const [],
   }) async {
     final message = models.Message(
       id: _id(),
@@ -137,6 +138,7 @@ class ChatsDemoDataSource implements ChatsDataSource {
       reply: reply,
       localPath: localPath,
       fileName: fileName,
+      media: media,
     );
     _setMessages(chatID, [..._history(chatID), message]);
     _update(chatID, (c) => c.copyWith(lastMessage: _lastOf(message), draft: '', archived: false));
@@ -481,6 +483,7 @@ class ChatsDemoDataSource implements ChatsDataSource {
       int duration = 0,
       bool service = false,
       models.MessageReply? reply,
+      int album = 0,
       Duration step = const Duration(minutes: 7),
     }) {
       date = date.add(step);
@@ -500,6 +503,7 @@ class ChatsDemoDataSource implements ChatsDataSource {
           duration: duration,
           service: service,
           reply: reply,
+          media: [for (var i = 0; i < album; i++) models.MessageMedia(kind: i == 2 ? models.MessageKind.video : models.MessageKind.photo)],
         ),
       );
     }
@@ -518,6 +522,7 @@ class ChatsDemoDataSource implements ChatsDataSource {
           );
         }
         add('Вид из окна 🌇', kind: models.MessageKind.photo, step: const Duration(hours: 9));
+        add('Поездка на выходных 🏔', out: true, kind: models.MessageKind.photo, album: 4, step: const Duration(minutes: 40));
         add('', out: true, kind: models.MessageKind.voice, duration: 12);
         final quoted = result[2];
         add(
@@ -535,7 +540,7 @@ class ChatsDemoDataSource implements ChatsDataSource {
             step: Duration(minutes: 4 + i * 9),
           );
         }
-        add('Фото с митапа', sender: 'Мария', kind: models.MessageKind.photo, step: const Duration(hours: 20));
+        add('Фото с митапа', sender: 'Мария', kind: models.MessageKind.photo, album: 6, step: const Duration(hours: 20));
         add('', sender: 'Иван', kind: models.MessageKind.file, fileName: 'отчёт_сентябрь.xlsx');
       case models.ChatType.channel:
         for (final post in _channelPosts) {

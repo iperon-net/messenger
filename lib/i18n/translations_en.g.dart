@@ -384,6 +384,12 @@ class Translations$screenChat$en {
 
 	/// en: 'Voice message'
 	String get voice => _root.screenChats.voice;
+
+	/// en: 'Selected: {n}'
+	String selected({required Object n}) => 'Selected: ${n}';
+
+	/// en: 'Add a caption…'
+	String get addCaption => 'Add a caption…';
 }
 
 // Path: screenSettings
@@ -1870,6 +1876,8 @@ extension on Translations {
 			'screenChat.video' => _root.screenChats.video,
 			'screenChat.file' => _root.screenChats.file,
 			'screenChat.voice' => _root.screenChats.voice,
+			'screenChat.selected' => ({required Object n}) => 'Selected: ${n}',
+			'screenChat.addCaption' => 'Add a caption…',
 			'screenSettings.settings' => 'Settings',
 			'screenSettings.myProfile' => 'My profile',
 			'screenSettings.devices' => _root.screenSettingsDevices.devices,

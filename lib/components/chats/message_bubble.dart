@@ -214,6 +214,9 @@ class MessageBubble extends StatelessWidget {
     final out = m.outgoing;
     final colors = out ? style.outgoingText : style.incomingText;
     final metaColor = out ? style.outgoingMeta : style.incomingMeta;
+    // Значок в кружке цвета ссылки (файл, голосовое). У исходящих на iOS ссылка
+    // белая — белый значок пропал бы, поэтому он цвета пузыря.
+    final iconColor = out ? style.outgoing : const Color(0xFFFFFFFF);
     final metaStyle = style.textStyle.copyWith(fontSize: 12, color: metaColor);
     final time = DateFormat.Hm().format(m.date.toLocal());
     final metaText = '${m.edited ? '${t.screenChat.edited} ' : ''}$time';
@@ -240,13 +243,15 @@ class MessageBubble extends StatelessWidget {
     final trailing = '  $metaText${out ? '     ' : ''}';
 
     final media = switch (m.kind) {
+      _ when m.isAlbum => _AlbumGrid(message: m),
       models.MessageKind.photo || models.MessageKind.video => _MediaPreview(message: m),
-      models.MessageKind.file => _FileRow(message: m, colors: colors, metaStyle: metaStyle),
-      models.MessageKind.voice => _VoiceRow(message: m, colors: colors, metaStyle: metaStyle),
+      models.MessageKind.file => _FileRow(message: m, colors: colors, iconColor: iconColor, metaStyle: metaStyle),
+      models.MessageKind.voice => _VoiceRow(message: m, colors: colors, iconColor: iconColor, metaStyle: metaStyle),
       models.MessageKind.text => null,
     };
     // Подпись и имя у фото — с отступами пузыря (само фото почти до краёв).
-    final captionInset = media is _MediaPreview ? 7.0 : 0.0;
+    final visual = media is _MediaPreview || media is _AlbumGrid;
+    final captionInset = visual ? 7.0 : 0.0;
     final content = <Widget>[];
     if (showSender && m.senderName.isNotEmpty) {
       content.add(
@@ -308,12 +313,7 @@ class MessageBubble extends StatelessWidget {
               ),
             ),
             child: Padding(
-              padding: EdgeInsets.fromLTRB(
-                media is _MediaPreview ? 4 : 11,
-                media is _MediaPreview ? 4 : 7,
-                media is _MediaPreview ? 4 : 11,
-                7,
-              ),
+              padding: EdgeInsets.fromLTRB(visual ? 4 : 11, visual ? 4 : 7, visual ? 4 : 11, 7),
               child: IntrinsicWidth(
                 child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, mainAxisSize: MainAxisSize.min, children: content),
               ),
@@ -399,31 +399,108 @@ class _MediaPreview extends StatelessWidget {
     if (message.localPath.isNotEmpty && !video) {
       image = Image.file(File(message.localPath), fit: BoxFit.cover, width: 260, height: 260, cacheWidth: 780);
     } else {
-      final hue = (message.id.hashCode.abs() % 360).toDouble();
-      image = Container(
-        width: 260,
-        height: 190,
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [HSVColor.fromAHSV(1, hue, 0.45, 0.85).toColor(), HSVColor.fromAHSV(1, (hue + 50) % 360, 0.55, 0.65).toColor()],
-          ),
-        ),
-        alignment: Alignment.center,
-        child: FaIcon(video ? FontAwesomeIcons.circlePlay : FontAwesomeIcons.image, size: 40, color: const Color(0xCCFFFFFF)),
-      );
+      image = SizedBox(width: 260, height: 190, child: _mediaPlaceholder(message.id, video: video));
     }
     return ClipRRect(borderRadius: BorderRadius.circular(14), child: image);
+  }
+}
+
+/// Заглушка медиа без локального файла (демо): градиент по id + значок.
+Widget _mediaPlaceholder(String seed, {required bool video, double iconSize = 40}) {
+  final hue = (seed.hashCode.abs() % 360).toDouble();
+  return Container(
+    decoration: BoxDecoration(
+      gradient: LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [HSVColor.fromAHSV(1, hue, 0.45, 0.85).toColor(), HSVColor.fromAHSV(1, (hue + 50) % 360, 0.55, 0.65).toColor()],
+      ),
+    ),
+    alignment: Alignment.center,
+    child: FaIcon(video ? FontAwesomeIcons.circlePlay : FontAwesomeIcons.image, size: iconSize, color: const Color(0xCCFFFFFF)),
+  );
+}
+
+/// Альбом: фото/видео сеткой как в Telegram — ряды по 1–3 плитки, у первого
+/// ряда крупнее; углы скруглены только снаружи.
+class _AlbumGrid extends StatelessWidget {
+  final models.Message message;
+
+  const _AlbumGrid({required this.message});
+
+  static const _width = 260.0;
+  static const _gap = 2.0;
+
+  /// Сколько плиток в каждом ряду.
+  static List<int> _rows(int n) => switch (n) {
+    2 => [2],
+    3 => [1, 2],
+    4 => [1, 3],
+    5 => [2, 3],
+    6 => [3, 3],
+    7 => [1, 3, 3],
+    8 => [2, 3, 3],
+    9 => [3, 3, 3],
+    _ => [2, 2, 3, 3],
+  };
+
+  static double _rowHeight(int count) => switch (count) {
+    1 => 170,
+    2 => 130,
+    _ => 90,
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    final items = message.media.take(models.Message.maxAlbum).toList();
+    final rows = <Widget>[];
+    var index = 0;
+    for (final count in _rows(items.length)) {
+      final height = _rowHeight(count);
+      final tileWidth = (_width - _gap * (count - 1)) / count;
+      rows.add(
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            for (var i = 0; i < count; i++) ...[
+              if (i > 0) const SizedBox(width: _gap),
+              SizedBox(width: tileWidth, height: height, child: _tile(items[index + i], index + i)),
+            ],
+          ],
+        ),
+      );
+      index += count;
+    }
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(14),
+      child: SizedBox(
+        width: _width,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            for (var i = 0; i < rows.length; i++) ...[if (i > 0) const SizedBox(height: _gap), rows[i]],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _tile(models.MessageMedia item, int index) {
+    final video = item.kind == models.MessageKind.video;
+    if (item.localPath.isEmpty || video) {
+      return _mediaPlaceholder('${message.id}-$index', video: video, iconSize: 26);
+    }
+    return Image.file(File(item.localPath), fit: BoxFit.cover, cacheWidth: 520);
   }
 }
 
 class _FileRow extends StatelessWidget {
   final models.Message message;
   final MessageTextColors colors;
+  final Color iconColor;
   final TextStyle metaStyle;
 
-  const _FileRow({required this.message, required this.colors, required this.metaStyle});
+  const _FileRow({required this.message, required this.colors, required this.iconColor, required this.metaStyle});
 
   @override
   Widget build(BuildContext context) {
@@ -440,7 +517,7 @@ class _FileRow extends StatelessWidget {
           height: 44,
           decoration: BoxDecoration(color: colors.link, shape: BoxShape.circle),
           alignment: Alignment.center,
-          child: const FaIcon(FontAwesomeIcons.solidFile, size: 18, color: Color(0xFFFFFFFF)),
+          child: FaIcon(FontAwesomeIcons.solidFile, size: 18, color: iconColor),
         ),
         const SizedBox(width: 10),
         Flexible(
@@ -465,9 +542,10 @@ class _FileRow extends StatelessWidget {
 class _VoiceRow extends StatelessWidget {
   final models.Message message;
   final MessageTextColors colors;
+  final Color iconColor;
   final TextStyle metaStyle;
 
-  const _VoiceRow({required this.message, required this.colors, required this.metaStyle});
+  const _VoiceRow({required this.message, required this.colors, required this.iconColor, required this.metaStyle});
 
   @override
   Widget build(BuildContext context) {
@@ -482,7 +560,7 @@ class _VoiceRow extends StatelessWidget {
           height: 40,
           decoration: BoxDecoration(color: colors.link, shape: BoxShape.circle),
           alignment: Alignment.center,
-          child: const FaIcon(FontAwesomeIcons.play, size: 15, color: Color(0xFFFFFFFF)),
+          child: FaIcon(FontAwesomeIcons.play, size: 15, color: iconColor),
         ),
         const SizedBox(width: 10),
         Column(

@@ -38,6 +38,19 @@ class MessageReply with MessageReplyMappable {
   const MessageReply({required this.messageID, required this.senderName, this.text = '', this.kind = MessageKind.text});
 }
 
+/// Элемент альбома (см. [Message.media]).
+@MappableClass()
+class MessageMedia with MessageMediaMappable {
+  /// [MessageKind.photo] или [MessageKind.video].
+  final MessageKind kind;
+
+  /// Локальный путь выбранного медиа (демо: из галереи до загрузки; пусто —
+  /// заглушка).
+  final String localPath;
+
+  const MessageMedia({required this.kind, this.localPath = ''});
+}
+
 /// Сообщение чата. Пока клиентская модель для UX-демо; по форме близка к
 /// будущему proto (плоский текст + entities).
 @MappableClass()
@@ -73,6 +86,12 @@ class Message with MessageMappable {
   /// Длительность голосового, секунды.
   final int duration;
 
+  /// Альбом: до [maxAlbum] фото/видео одним сообщением (сеткой в пузыре), подпись
+  /// — [text]. Пусто — обычное сообщение ([kind] + [localPath]).
+  final List<MessageMedia> media;
+
+  static const maxAlbum = 10;
+
   const Message({
     required this.id,
     required this.chatID,
@@ -89,5 +108,8 @@ class Message with MessageMappable {
     this.fileName = '',
     this.localPath = '',
     this.duration = 0,
+    this.media = const [],
   });
+
+  bool get isAlbum => media.length > 1;
 }

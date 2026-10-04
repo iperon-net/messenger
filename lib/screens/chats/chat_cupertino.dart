@@ -324,7 +324,7 @@ class _ComposeBar extends StatelessWidget {
                   CupertinoButton(
                     padding: const EdgeInsets.fromLTRB(8, 6, 8, 6),
                     minimumSize: Size.zero,
-                    onPressed: editing ? null : () => pickAndSendAttachments(context),
+                    onPressed: editing ? null : () => pickAndSendAttachments(context, input: input),
                     child: FaIcon(FontAwesomeIcons.paperclip, size: 22, color: secondary),
                   ),
                   Expanded(

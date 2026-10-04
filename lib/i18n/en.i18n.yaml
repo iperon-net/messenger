@@ -98,6 +98,8 @@
   "video": "@:screenChats.video"
   "file": "@:screenChats.file"
   "voice": "@:screenChats.voice"
+  "selected": "Selected: {n}"
+  "addCaption": "Add a caption…"
 
 "screenSettings":
   "settings": "Settings"

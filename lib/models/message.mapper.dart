@@ -413,6 +413,137 @@ class _MessageReplyCopyWithImpl<$R, $Out>
   ) => _MessageReplyCopyWithImpl<$R2, $Out2>($value, $cast, t);
 }
 
+class MessageMediaMapper extends ClassMapperBase<MessageMedia> {
+  MessageMediaMapper._();
+
+  static MessageMediaMapper? _instance;
+  static MessageMediaMapper ensureInitialized() {
+    if (_instance == null) {
+      MapperContainer.globals.use(_instance = MessageMediaMapper._());
+      MessageKindMapper.ensureInitialized();
+    }
+    return _instance!;
+  }
+
+  @override
+  final String id = 'MessageMedia';
+
+  static MessageKind _$kind(MessageMedia v) => v.kind;
+  static const Field<MessageMedia, MessageKind> _f$kind = Field('kind', _$kind);
+  static String _$localPath(MessageMedia v) => v.localPath;
+  static const Field<MessageMedia, String> _f$localPath = Field(
+    'localPath',
+    _$localPath,
+    opt: true,
+    def: '',
+  );
+
+  @override
+  final MappableFields<MessageMedia> fields = const {
+    #kind: _f$kind,
+    #localPath: _f$localPath,
+  };
+
+  static MessageMedia _instantiate(DecodingData data) {
+    return MessageMedia(
+      kind: data.dec(_f$kind),
+      localPath: data.dec(_f$localPath),
+    );
+  }
+
+  @override
+  final Function instantiate = _instantiate;
+
+  static MessageMedia fromMap(Map<String, dynamic> map) {
+    return ensureInitialized().decodeMap<MessageMedia>(map);
+  }
+
+  static MessageMedia fromJson(String json) {
+    return ensureInitialized().decodeJson<MessageMedia>(json);
+  }
+}
+
+mixin MessageMediaMappable {
+  String toJson() {
+    return MessageMediaMapper.ensureInitialized().encodeJson<MessageMedia>(
+      this as MessageMedia,
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return MessageMediaMapper.ensureInitialized().encodeMap<MessageMedia>(
+      this as MessageMedia,
+    );
+  }
+
+  MessageMediaCopyWith<MessageMedia, MessageMedia, MessageMedia> get copyWith =>
+      _MessageMediaCopyWithImpl<MessageMedia, MessageMedia>(
+        this as MessageMedia,
+        $identity,
+        $identity,
+      );
+  @override
+  String toString() {
+    return MessageMediaMapper.ensureInitialized().stringifyValue(
+      this as MessageMedia,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return MessageMediaMapper.ensureInitialized().equalsValue(
+      this as MessageMedia,
+      other,
+    );
+  }
+
+  @override
+  int get hashCode {
+    return MessageMediaMapper.ensureInitialized().hashValue(
+      this as MessageMedia,
+    );
+  }
+}
+
+extension MessageMediaValueCopy<$R, $Out>
+    on ObjectCopyWith<$R, MessageMedia, $Out> {
+  MessageMediaCopyWith<$R, MessageMedia, $Out> get $asMessageMedia =>
+      $base.as((v, t, t2) => _MessageMediaCopyWithImpl<$R, $Out>(v, t, t2));
+}
+
+abstract class MessageMediaCopyWith<$R, $In extends MessageMedia, $Out>
+    implements ClassCopyWith<$R, $In, $Out> {
+  $R call({MessageKind? kind, String? localPath});
+  MessageMediaCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
+}
+
+class _MessageMediaCopyWithImpl<$R, $Out>
+    extends ClassCopyWithBase<$R, MessageMedia, $Out>
+    implements MessageMediaCopyWith<$R, MessageMedia, $Out> {
+  _MessageMediaCopyWithImpl(super.value, super.then, super.then2);
+
+  @override
+  late final ClassMapperBase<MessageMedia> $mapper =
+      MessageMediaMapper.ensureInitialized();
+  @override
+  $R call({MessageKind? kind, String? localPath}) => $apply(
+    FieldCopyWithData({
+      if (kind != null) #kind: kind,
+      if (localPath != null) #localPath: localPath,
+    }),
+  );
+  @override
+  MessageMedia $make(CopyWithData data) => MessageMedia(
+    kind: data.get(#kind, or: $value.kind),
+    localPath: data.get(#localPath, or: $value.localPath),
+  );
+
+  @override
+  MessageMediaCopyWith<$R2, MessageMedia, $Out2> $chain<$R2, $Out2>(
+    Then<$Out2, $R2> t,
+  ) => _MessageMediaCopyWithImpl<$R2, $Out2>($value, $cast, t);
+}
+
 class MessageMapper extends ClassMapperBase<Message> {
   MessageMapper._();
 
@@ -424,6 +555,7 @@ class MessageMapper extends ClassMapperBase<Message> {
       MessageEntityMapper.ensureInitialized();
       MessageStatusMapper.ensureInitialized();
       MessageReplyMapper.ensureInitialized();
+      MessageMediaMapper.ensureInitialized();
     }
     return _instance!;
   }
@@ -520,6 +652,13 @@ class MessageMapper extends ClassMapperBase<Message> {
     opt: true,
     def: 0,
   );
+  static List<MessageMedia> _$media(Message v) => v.media;
+  static const Field<Message, List<MessageMedia>> _f$media = Field(
+    'media',
+    _$media,
+    opt: true,
+    def: const [],
+  );
 
   @override
   final MappableFields<Message> fields = const {
@@ -538,6 +677,7 @@ class MessageMapper extends ClassMapperBase<Message> {
     #fileName: _f$fileName,
     #localPath: _f$localPath,
     #duration: _f$duration,
+    #media: _f$media,
   };
 
   static Message _instantiate(DecodingData data) {
@@ -557,6 +697,7 @@ class MessageMapper extends ClassMapperBase<Message> {
       fileName: data.dec(_f$fileName),
       localPath: data.dec(_f$localPath),
       duration: data.dec(_f$duration),
+      media: data.dec(_f$media),
     );
   }
 
@@ -624,6 +765,12 @@ abstract class MessageCopyWith<$R, $In extends Message, $Out>
   >
   get entities;
   MessageReplyCopyWith<$R, MessageReply, MessageReply>? get reply;
+  ListCopyWith<
+    $R,
+    MessageMedia,
+    MessageMediaCopyWith<$R, MessageMedia, MessageMedia>
+  >
+  get media;
   $R call({
     String? id,
     String? chatID,
@@ -640,6 +787,7 @@ abstract class MessageCopyWith<$R, $In extends Message, $Out>
     String? fileName,
     String? localPath,
     int? duration,
+    List<MessageMedia>? media,
   });
   MessageCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
@@ -667,6 +815,17 @@ class _MessageCopyWithImpl<$R, $Out>
   MessageReplyCopyWith<$R, MessageReply, MessageReply>? get reply =>
       $value.reply?.copyWith.$chain((v) => call(reply: v));
   @override
+  ListCopyWith<
+    $R,
+    MessageMedia,
+    MessageMediaCopyWith<$R, MessageMedia, MessageMedia>
+  >
+  get media => ListCopyWith(
+    $value.media,
+    (v, t) => v.copyWith.$chain(t),
+    (v) => call(media: v),
+  );
+  @override
   $R call({
     String? id,
     String? chatID,
@@ -683,6 +842,7 @@ class _MessageCopyWithImpl<$R, $Out>
     String? fileName,
     String? localPath,
     int? duration,
+    List<MessageMedia>? media,
   }) => $apply(
     FieldCopyWithData({
       if (id != null) #id: id,
@@ -700,6 +860,7 @@ class _MessageCopyWithImpl<$R, $Out>
       if (fileName != null) #fileName: fileName,
       if (localPath != null) #localPath: localPath,
       if (duration != null) #duration: duration,
+      if (media != null) #media: media,
     }),
   );
   @override
@@ -719,6 +880,7 @@ class _MessageCopyWithImpl<$R, $Out>
     fileName: data.get(#fileName, or: $value.fileName),
     localPath: data.get(#localPath, or: $value.localPath),
     duration: data.get(#duration, or: $value.duration),
+    media: data.get(#media, or: $value.media),
   );
 
   @override

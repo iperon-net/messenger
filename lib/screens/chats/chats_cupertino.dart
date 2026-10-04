@@ -145,8 +145,8 @@ class _ChatsCupertino extends State<ChatsCupertino> with SearchHideOnScroll {
                       ],
                       onTap: (index) =>
                           _pageController.animateToPage(index, duration: const Duration(milliseconds: 300), curve: Curves.easeOutCubic),
-                      onLongPress: (index) =>
-                          showFolderActionsCupertino(context, state.folders[index], _folderTitle(context, state.folders[index])),
+                      contextActions: (index) =>
+                          folderContextActionsCupertino(context, state.folders[index], _folderTitle(context, state.folders[index])),
                     ),
                   );
                 },

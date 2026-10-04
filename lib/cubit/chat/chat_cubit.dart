@@ -57,18 +57,28 @@ class ChatCubit extends Cubit<ChatState> {
     await source.sendMessage(_chatID, text: text, entities: entities, reply: reply == null ? null : _replyOf(reply));
   }
 
-  /// Фото/видео из галереи или файл.
-  Future<void> sendMedia({required models.MessageKind kind, String localPath = '', String fileName = '', String caption = ''}) async {
+  /// Фото/видео из галереи или файл; [media] (2+) — альбом одним сообщением.
+  /// [caption] — подпись под медиа (markdown-ярлыки → entities).
+  Future<void> sendMedia({
+    required models.MessageKind kind,
+    String localPath = '',
+    String fileName = '',
+    String caption = '',
+    List<models.MessageMedia> media = const [],
+  }) async {
     final source = _source;
     if (source == null) return;
     final reply = state.reply;
     emit(state.copyWith(reply: null));
+    final (text, entities) = parseMarkdownShortcuts(caption.trim());
     await source.sendMessage(
       _chatID,
       kind: kind,
       localPath: localPath,
       fileName: fileName,
-      text: caption,
+      media: media,
+      text: text,
+      entities: entities,
       reply: reply == null ? null : _replyOf(reply),
     );
   }
