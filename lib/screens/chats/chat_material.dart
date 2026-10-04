@@ -18,6 +18,35 @@ import 'chat_common.dart';
 class ChatMaterial extends StatefulWidget {
   const ChatMaterial({super.key});
 
+  /// Оформление пузырей — и для окна чата, и для превью «Тем для чатов».
+  static MessageBubbleStyle bubbleStyle(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    return MessageBubbleStyle(
+      incoming: dark ? scheme.surfaceContainerHigh : const Color(0xFFFFFFFF),
+      outgoing: scheme.primaryContainer,
+      incomingText: MessageTextColors(
+        text: scheme.onSurface,
+        link: scheme.primary,
+        codeBackground: scheme.surfaceContainerHighest,
+        spoiler: scheme.outlineVariant,
+        quote: scheme.onSurfaceVariant,
+      ),
+      outgoingText: MessageTextColors(
+        text: scheme.onPrimaryContainer,
+        link: scheme.primary,
+        codeBackground: scheme.onPrimaryContainer.withValues(alpha: 0.1),
+        spoiler: scheme.onPrimaryContainer.withValues(alpha: 0.3),
+        quote: scheme.onPrimaryContainer.withValues(alpha: 0.8),
+      ),
+      incomingMeta: scheme.onSurfaceVariant,
+      outgoingMeta: scheme.onPrimaryContainer.withValues(alpha: 0.7),
+      pill: dark ? const Color(0x66000000) : const Color(0x22000000),
+      pillText: dark ? const Color(0xFFFFFFFF) : const Color(0xFF3C3C43),
+      textStyle: (Theme.of(context).textTheme.bodyLarge ?? const TextStyle()).copyWith(fontSize: 16, height: 1.25),
+    );
+  }
+
   @override
   State<ChatMaterial> createState() => _ChatMaterialState();
 }
@@ -47,34 +76,6 @@ class _ChatMaterialState extends State<ChatMaterial> {
     if (text.trim().isEmpty) return;
     _input.clear();
     _cubit.send(text);
-  }
-
-  static MessageBubbleStyle _style(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final dark = Theme.of(context).brightness == Brightness.dark;
-    return MessageBubbleStyle(
-      incoming: dark ? scheme.surfaceContainerHigh : const Color(0xFFFFFFFF),
-      outgoing: scheme.primaryContainer,
-      incomingText: MessageTextColors(
-        text: scheme.onSurface,
-        link: scheme.primary,
-        codeBackground: scheme.surfaceContainerHighest,
-        spoiler: scheme.outlineVariant,
-        quote: scheme.onSurfaceVariant,
-      ),
-      outgoingText: MessageTextColors(
-        text: scheme.onPrimaryContainer,
-        link: scheme.primary,
-        codeBackground: scheme.onPrimaryContainer.withValues(alpha: 0.1),
-        spoiler: scheme.onPrimaryContainer.withValues(alpha: 0.3),
-        quote: scheme.onPrimaryContainer.withValues(alpha: 0.8),
-      ),
-      incomingMeta: scheme.onSurfaceVariant,
-      outgoingMeta: scheme.onPrimaryContainer.withValues(alpha: 0.7),
-      pill: dark ? const Color(0x66000000) : const Color(0x22000000),
-      pillText: dark ? const Color(0xFFFFFFFF) : const Color(0xFF3C3C43),
-      textStyle: (Theme.of(context).textTheme.bodyLarge ?? const TextStyle()).copyWith(fontSize: 16, height: 1.25),
-    );
   }
 
   @override
@@ -110,15 +111,32 @@ class _ChatMaterialState extends State<ChatMaterial> {
               : Column(
                   children: [
                     Expanded(
-                      child: state.messages.isEmpty
-                          ? Center(child: Text(t.screenChat.empty))
-                          : ChatMessagesView(
-                              messages: state.messages,
-                              chatType: chat.type,
-                              style: _style(context),
-                              padding: const EdgeInsets.symmetric(vertical: 8),
-                              onLongPress: (message) => _actions(context, chat, message),
+                      // Обои из «Тем для чатов» (Настройки → Оформление) — под лентой.
+                      child: Stack(
+                        children: [
+                          Positioned.fill(
+                            child: BlocBuilder<CommonCubit, CommonState>(
+                              buildWhen: (previous, current) =>
+                                  previous.settingsDevice.chatWallpaper != current.settingsDevice.chatWallpaper ||
+                                  previous.settingsDevice.chatWallpaperColor != current.settingsDevice.chatWallpaperColor,
+                              builder: (context, common) => ChatWallpaper(
+                                pattern: common.settingsDevice.chatWallpaper,
+                                colorIndex: common.settingsDevice.chatWallpaperColor,
+                                dark: Theme.of(context).brightness == Brightness.dark,
+                              ),
                             ),
+                          ),
+                          state.messages.isEmpty
+                              ? Center(child: Text(t.screenChat.empty))
+                              : ChatMessagesView(
+                                  messages: state.messages,
+                                  chatType: chat.type,
+                                  style: ChatMaterial.bubbleStyle(context),
+                                  padding: const EdgeInsets.symmetric(vertical: 8),
+                                  onLongPress: (message) => _actions(context, chat, message),
+                                ),
+                        ],
+                      ),
                     ),
                     if (chat.type == models.ChatType.channel)
                       _ChannelBar(chat: chat, color: barColor)

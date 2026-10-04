@@ -67,3 +67,5 @@ export 'profile/profile_cupertino.dart';
 export 'profile/profile_material.dart';
 export 'profile/profile_hide_cupertino.dart';
 export 'profile/profile_hide_material.dart';
+export 'settings/settings_chat_themes_cupertino.dart';
+export 'settings/settings_chat_themes_material.dart';

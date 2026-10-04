@@ -49,6 +49,7 @@ class TranslationsRu extends Translations with BaseTranslations<AppLocale, Trans
 	@override late final _Translations$screenSettingsNotifications$ru screenSettingsNotifications = _Translations$screenSettingsNotifications$ru._(_root);
 	@override late final _Translations$screenDeveloper$ru screenDeveloper = _Translations$screenDeveloper$ru._(_root);
 	@override late final _Translations$screenSettingsAppearance$ru screenSettingsAppearance = _Translations$screenSettingsAppearance$ru._(_root);
+	@override late final _Translations$screenChatThemes$ru screenChatThemes = _Translations$screenChatThemes$ru._(_root);
 	@override late final _Translations$screenSettingsDevices$ru screenSettingsDevices = _Translations$screenSettingsDevices$ru._(_root);
 	@override late final _Translations$screenSettingsAboutApplication$ru screenSettingsAboutApplication = _Translations$screenSettingsAboutApplication$ru._(_root);
 	@override late final _Translations$screenSettingsLanguage$ru screenSettingsLanguage = _Translations$screenSettingsLanguage$ru._(_root);
@@ -310,6 +311,30 @@ class _Translations$screenSettingsAppearance$ru extends Translations$screenSetti
 	@override String get darkModeDisabledDescription => 'Тёмная тема отключена';
 	@override String get blurOnInactive => 'Размытие в неактивном состоянии';
 	@override String get blurOnInactiveDescription => 'Приложение отображается размытым в списке открытых приложений';
+	@override String get chatThemes => 'Темы для чатов';
+}
+
+// Path: screenChatThemes
+class _Translations$screenChatThemes$ru extends Translations$screenChatThemes$en {
+	_Translations$screenChatThemes$ru._(TranslationsRu root) : this._root = root, super.internal(root);
+
+	final TranslationsRu _root; // ignore: unused_field
+
+	// Translations
+	@override String get title => _root.screenSettingsAppearance.chatThemes;
+	@override String get pattern => 'Узор';
+	@override String get color => 'Цвет';
+	@override String get footer => 'Обои показываются во всех чатах на этом устройстве и сами подстраиваются под светлую и тёмную тему.';
+	@override String get previewName => 'Анна';
+	@override String get previewIncoming => 'Привет! Как тебе новые обои? 🎨';
+	@override String get previewOutgoing => 'Отлично смотрятся, оставлю эти 😍';
+	@override String get patternNone => 'Без узора';
+	@override String get patternChat => 'Общение';
+	@override String get patternSpace => 'Космос';
+	@override String get patternNature => 'Природа';
+	@override String get patternMusic => 'Музыка';
+	@override String get patternGeometry => 'Геометрия';
+	@override String get patternFood => 'Еда';
 }
 
 // Path: screenSettingsDevices
@@ -969,6 +994,21 @@ extension on TranslationsRu {
 			'screenSettingsAppearance.darkModeDisabledDescription' => 'Тёмная тема отключена',
 			'screenSettingsAppearance.blurOnInactive' => 'Размытие в неактивном состоянии',
 			'screenSettingsAppearance.blurOnInactiveDescription' => 'Приложение отображается размытым в списке открытых приложений',
+			'screenSettingsAppearance.chatThemes' => 'Темы для чатов',
+			'screenChatThemes.title' => _root.screenSettingsAppearance.chatThemes,
+			'screenChatThemes.pattern' => 'Узор',
+			'screenChatThemes.color' => 'Цвет',
+			'screenChatThemes.footer' => 'Обои показываются во всех чатах на этом устройстве и сами подстраиваются под светлую и тёмную тему.',
+			'screenChatThemes.previewName' => 'Анна',
+			'screenChatThemes.previewIncoming' => 'Привет! Как тебе новые обои? 🎨',
+			'screenChatThemes.previewOutgoing' => 'Отлично смотрятся, оставлю эти 😍',
+			'screenChatThemes.patternNone' => 'Без узора',
+			'screenChatThemes.patternChat' => 'Общение',
+			'screenChatThemes.patternSpace' => 'Космос',
+			'screenChatThemes.patternNature' => 'Природа',
+			'screenChatThemes.patternMusic' => 'Музыка',
+			'screenChatThemes.patternGeometry' => 'Геометрия',
+			'screenChatThemes.patternFood' => 'Еда',
 			'screenSettingsDevices.devices' => 'Устройства',
 			'screenSettingsDevices.thisDevice' => 'Это устройство',
 			'screenSettingsDevices.deviceSessionListTileSubtitle' => ({required Object location, required Object updateAt}) => '${location} · ${updateAt}',

@@ -163,6 +163,23 @@
   "darkModeDisabledDescription": "Dark mode is disabled"
   "blurOnInactive": "Blur on inactive"
   "blurOnInactiveDescription": "The app appears blurry in the list of open apps"
+  "chatThemes": "Chat themes"
+
+"screenChatThemes":
+  "title": "@:screenSettingsAppearance.chatThemes"
+  "pattern": "Pattern"
+  "color": "Color"
+  "footer": "The wallpaper is shown in all chats on this device and adapts to light and dark mode."
+  "previewName": "Anna"
+  "previewIncoming": "Hi! How do you like the new wallpaper? 🎨"
+  "previewOutgoing": "Looks great, I'll keep this one 😍"
+  "patternNone": "No pattern"
+  "patternChat": "Chat"
+  "patternSpace": "Space"
+  "patternNature": "Nature"
+  "patternMusic": "Music"
+  "patternGeometry": "Geometry"
+  "patternFood": "Food"
 
 "screenSettingsDevices":
   "devices": "Devices"

@@ -19,6 +19,11 @@ class SettingsDeviceModel with SettingsDeviceModelMappable {
   /// UX-демо чатов (экран «Разработчик»): вкладка «Чаты» на фейковых данных.
   final bool chatsDemo;
 
+  /// Обои чатов («Темы для чатов»): id узора (`assets/wallpapers/<id>.svg`,
+  /// 'none' — без узора) и индекс цвета в палитре `ChatWallpaperColors`.
+  final String chatWallpaper;
+  final int chatWallpaperColor;
+
   const SettingsDeviceModel({
     this.locale,
     this.darkMode = DarkModeModel.system,
@@ -30,6 +35,8 @@ class SettingsDeviceModel with SettingsDeviceModelMappable {
     this.passcodeForceLocked = false,
     this.passcodeBackgroundedAt = 0,
     this.chatsDemo = false,
+    this.chatWallpaper = 'chat',
+    this.chatWallpaperColor = 0,
   });
 
   factory SettingsDeviceModel.fromSqlite(Map<String, dynamic> data) {
@@ -43,6 +50,8 @@ class SettingsDeviceModel with SettingsDeviceModelMappable {
     final passcodeForceLocked = data['passcodeForceLocked'] ?? 0;
     final passcodeBackgroundedAt = data['passcodeBackgroundedAt'] ?? 0;
     final chatsDemo = data['chatsDemo'] ?? 0;
+    final chatWallpaper = data['chatWallpaper'] as String?;
+    final chatWallpaperColor = data['chatWallpaperColor'] as int?;
 
     SettingsDeviceModel settingsDeviceModel = SettingsDeviceModel();
 
@@ -96,6 +105,14 @@ class SettingsDeviceModel with SettingsDeviceModelMappable {
 
     if (chatsDemo > 0) {
       settingsDeviceModel = settingsDeviceModel.copyWith(chatsDemo: true);
+    }
+
+    if (chatWallpaper != null && chatWallpaper.isNotEmpty) {
+      settingsDeviceModel = settingsDeviceModel.copyWith(chatWallpaper: chatWallpaper);
+    }
+
+    if (chatWallpaperColor != null) {
+      settingsDeviceModel = settingsDeviceModel.copyWith(chatWallpaperColor: chatWallpaperColor);
     }
 
     return settingsDeviceModel;

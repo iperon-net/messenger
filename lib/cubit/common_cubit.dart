@@ -229,4 +229,14 @@ class CommonCubit extends Cubit<CommonState> {
     await repositories.settingsDevice.setChatsDemo(value);
     emit(state.copyWith(settingsDevice: state.settingsDevice.copyWith(chatsDemo: value)));
   }
+
+  /// «Темы для чатов»: узор и цвет обоев.
+  Future<void> setChatWallpaper({required String pattern, required int color}) async {
+    await repositories.settingsDevice.setChatWallpaper(pattern: pattern, color: color);
+    emit(
+      state.copyWith(
+        settingsDevice: state.settingsDevice.copyWith(chatWallpaper: pattern, chatWallpaperColor: color),
+      ),
+    );
+  }
 }

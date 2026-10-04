@@ -404,6 +404,15 @@ class Repositories {
       }),
     );
 
+    migrations.add(
+      SqliteMigration(13, (tx) async {
+        // «Темы для чатов» (Настройки → Оформление): узор обоев (id SVG из
+        // assets/wallpapers, 'none' — без узора) и индекс цвета. Локально.
+        await tx.execute("ALTER TABLE settingsDevice ADD COLUMN chatWallpaper TEXT NOT NULL DEFAULT 'chat';");
+        await tx.execute("ALTER TABLE settingsDevice ADD COLUMN chatWallpaperColor INTEGER NOT NULL DEFAULT 0;");
+      }),
+    );
+
     if (settings.isDeleteDatabase) {
       logger.warning("Deleting the database, flag set IS_DELETE_DATABASE: 1");
 

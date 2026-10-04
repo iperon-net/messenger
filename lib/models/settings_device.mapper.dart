@@ -92,6 +92,21 @@ class SettingsDeviceModelMapper extends ClassMapperBase<SettingsDeviceModel> {
     opt: true,
     def: false,
   );
+  static String _$chatWallpaper(SettingsDeviceModel v) => v.chatWallpaper;
+  static const Field<SettingsDeviceModel, String> _f$chatWallpaper = Field(
+    'chatWallpaper',
+    _$chatWallpaper,
+    opt: true,
+    def: 'chat',
+  );
+  static int _$chatWallpaperColor(SettingsDeviceModel v) =>
+      v.chatWallpaperColor;
+  static const Field<SettingsDeviceModel, int> _f$chatWallpaperColor = Field(
+    'chatWallpaperColor',
+    _$chatWallpaperColor,
+    opt: true,
+    def: 0,
+  );
 
   @override
   final MappableFields<SettingsDeviceModel> fields = const {
@@ -105,6 +120,8 @@ class SettingsDeviceModelMapper extends ClassMapperBase<SettingsDeviceModel> {
     #passcodeForceLocked: _f$passcodeForceLocked,
     #passcodeBackgroundedAt: _f$passcodeBackgroundedAt,
     #chatsDemo: _f$chatsDemo,
+    #chatWallpaper: _f$chatWallpaper,
+    #chatWallpaperColor: _f$chatWallpaperColor,
   };
 
   static SettingsDeviceModel _instantiate(DecodingData data) {
@@ -119,6 +136,8 @@ class SettingsDeviceModelMapper extends ClassMapperBase<SettingsDeviceModel> {
       passcodeForceLocked: data.dec(_f$passcodeForceLocked),
       passcodeBackgroundedAt: data.dec(_f$passcodeBackgroundedAt),
       chatsDemo: data.dec(_f$chatsDemo),
+      chatWallpaper: data.dec(_f$chatWallpaper),
+      chatWallpaperColor: data.dec(_f$chatWallpaperColor),
     );
   }
 
@@ -204,6 +223,8 @@ abstract class SettingsDeviceModelCopyWith<
     bool? passcodeForceLocked,
     int? passcodeBackgroundedAt,
     bool? chatsDemo,
+    String? chatWallpaper,
+    int? chatWallpaperColor,
   });
   SettingsDeviceModelCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
     Then<$Out2, $R2> t,
@@ -237,6 +258,8 @@ class _SettingsDeviceModelCopyWithImpl<$R, $Out>
     bool? passcodeForceLocked,
     int? passcodeBackgroundedAt,
     bool? chatsDemo,
+    String? chatWallpaper,
+    int? chatWallpaperColor,
   }) => $apply(
     FieldCopyWithData({
       if (locale != $none) #locale: locale,
@@ -251,6 +274,8 @@ class _SettingsDeviceModelCopyWithImpl<$R, $Out>
       if (passcodeBackgroundedAt != null)
         #passcodeBackgroundedAt: passcodeBackgroundedAt,
       if (chatsDemo != null) #chatsDemo: chatsDemo,
+      if (chatWallpaper != null) #chatWallpaper: chatWallpaper,
+      if (chatWallpaperColor != null) #chatWallpaperColor: chatWallpaperColor,
     }),
   );
   @override
@@ -274,6 +299,11 @@ class _SettingsDeviceModelCopyWithImpl<$R, $Out>
       or: $value.passcodeBackgroundedAt,
     ),
     chatsDemo: data.get(#chatsDemo, or: $value.chatsDemo),
+    chatWallpaper: data.get(#chatWallpaper, or: $value.chatWallpaper),
+    chatWallpaperColor: data.get(
+      #chatWallpaperColor,
+      or: $value.chatWallpaperColor,
+    ),
   );
 
   @override

@@ -19,6 +19,36 @@ import 'chat_common.dart';
 class ChatCupertino extends StatefulWidget {
   const ChatCupertino({super.key});
 
+  /// Оформление пузырей — и для окна чата, и для превью «Тем для чатов».
+  static MessageBubbleStyle bubbleStyle(BuildContext context) {
+    final primary = CupertinoDynamicColor.resolve(CupertinoTheme.of(context).primaryColor, context);
+    final dark = CupertinoTheme.brightnessOf(context) == Brightness.dark;
+    final label = CupertinoColors.label.resolveFrom(context);
+    return MessageBubbleStyle(
+      incoming: dark ? const Color(0xFF262628) : const Color(0xFFFFFFFF),
+      outgoing: primary,
+      incomingText: MessageTextColors(
+        text: label,
+        link: primary,
+        codeBackground: CupertinoColors.systemGrey5.resolveFrom(context),
+        spoiler: CupertinoColors.systemGrey3.resolveFrom(context),
+        quote: CupertinoColors.secondaryLabel.resolveFrom(context),
+      ),
+      outgoingText: const MessageTextColors(
+        text: Color(0xFFFFFFFF),
+        link: Color(0xFFFFFFFF),
+        codeBackground: Color(0x33FFFFFF),
+        spoiler: Color(0x66FFFFFF),
+        quote: Color(0xE6FFFFFF),
+      ),
+      incomingMeta: CupertinoColors.secondaryLabel.resolveFrom(context),
+      outgoingMeta: const Color(0xCCFFFFFF),
+      pill: dark ? const Color(0x66000000) : const Color(0x22000000),
+      pillText: dark ? const Color(0xFFFFFFFF) : const Color(0xFF3C3C43),
+      textStyle: TextStyle(fontSize: 16, height: 1.25, color: label, fontFamily: CupertinoTheme.of(context).textTheme.textStyle.fontFamily),
+    );
+  }
+
   @override
   State<ChatCupertino> createState() => _ChatCupertinoState();
 }
@@ -48,35 +78,6 @@ class _ChatCupertinoState extends State<ChatCupertino> {
     if (text.trim().isEmpty) return;
     _input.clear();
     _cubit.send(text);
-  }
-
-  static MessageBubbleStyle _style(BuildContext context) {
-    final primary = CupertinoDynamicColor.resolve(CupertinoTheme.of(context).primaryColor, context);
-    final dark = CupertinoTheme.brightnessOf(context) == Brightness.dark;
-    final label = CupertinoColors.label.resolveFrom(context);
-    return MessageBubbleStyle(
-      incoming: dark ? const Color(0xFF262628) : const Color(0xFFFFFFFF),
-      outgoing: primary,
-      incomingText: MessageTextColors(
-        text: label,
-        link: primary,
-        codeBackground: CupertinoColors.systemGrey5.resolveFrom(context),
-        spoiler: CupertinoColors.systemGrey3.resolveFrom(context),
-        quote: CupertinoColors.secondaryLabel.resolveFrom(context),
-      ),
-      outgoingText: const MessageTextColors(
-        text: Color(0xFFFFFFFF),
-        link: Color(0xFFFFFFFF),
-        codeBackground: Color(0x33FFFFFF),
-        spoiler: Color(0x66FFFFFF),
-        quote: Color(0xE6FFFFFF),
-      ),
-      incomingMeta: CupertinoColors.secondaryLabel.resolveFrom(context),
-      outgoingMeta: const Color(0xCCFFFFFF),
-      pill: dark ? const Color(0x66000000) : const Color(0x22000000),
-      pillText: dark ? const Color(0xFFFFFFFF) : const Color(0xFF3C3C43),
-      textStyle: TextStyle(fontSize: 16, height: 1.25, color: label, fontFamily: CupertinoTheme.of(context).textTheme.textStyle.fontFamily),
-    );
   }
 
   @override
@@ -121,20 +122,37 @@ class _ChatCupertinoState extends State<ChatCupertino> {
                 : Column(
                     children: [
                       Expanded(
-                        child: state.messages.isEmpty
-                            ? Center(
-                                child: Text(
-                                  t.screenChat.empty,
-                                  style: TextStyle(color: CupertinoColors.secondaryLabel.resolveFrom(context)),
+                        // Обои из «Тем для чатов» (Настройки → Оформление) — под лентой.
+                        child: Stack(
+                          children: [
+                            Positioned.fill(
+                              child: BlocBuilder<CommonCubit, CommonState>(
+                                buildWhen: (previous, current) =>
+                                    previous.settingsDevice.chatWallpaper != current.settingsDevice.chatWallpaper ||
+                                    previous.settingsDevice.chatWallpaperColor != current.settingsDevice.chatWallpaperColor,
+                                builder: (context, common) => ChatWallpaper(
+                                  pattern: common.settingsDevice.chatWallpaper,
+                                  colorIndex: common.settingsDevice.chatWallpaperColor,
+                                  dark: CupertinoTheme.brightnessOf(context) == Brightness.dark,
                                 ),
-                              )
-                            : ChatMessagesView(
-                                messages: state.messages,
-                                chatType: chat.type,
-                                style: _style(context),
-                                padding: const EdgeInsets.symmetric(vertical: 8),
-                                onLongPress: (message) => _actions(context, chat, message),
                               ),
+                            ),
+                            state.messages.isEmpty
+                                ? Center(
+                                    child: Text(
+                                      t.screenChat.empty,
+                                      style: TextStyle(color: CupertinoColors.secondaryLabel.resolveFrom(context)),
+                                    ),
+                                  )
+                                : ChatMessagesView(
+                                    messages: state.messages,
+                                    chatType: chat.type,
+                                    style: ChatCupertino.bubbleStyle(context),
+                                    padding: const EdgeInsets.symmetric(vertical: 8),
+                                    onLongPress: (message) => _actions(context, chat, message),
+                                  ),
+                          ],
+                        ),
                       ),
                       if (chat.type == models.ChatType.channel)
                         _ChannelBar(chat: chat)

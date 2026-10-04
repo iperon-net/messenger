@@ -1,3 +1,4 @@
+import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -89,6 +90,15 @@ class _SettingsAppearanceMaterial extends State<SettingsAppearanceMaterial> {
                         DarkModeModel.disabled,
                       ),
                     ],
+                  ),
+                ),
+                // Обои окна чата — отдельный экран с превью.
+                Card(
+                  margin: const EdgeInsets.fromLTRB(12, 16, 12, 0),
+                  child: ListTile(
+                    title: Text(context.t.screenSettingsAppearance.chatThemes),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () => context.push('/settings/appearance/chat_themes'),
                   ),
                 ),
                 Card(

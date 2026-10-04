@@ -1,3 +1,4 @@
+import 'package:go_router/go_router.dart';
 import 'package:cupertino_ui/cupertino_ui.dart';
 import '../../themes.dart';
 
@@ -128,6 +129,21 @@ class _SettingsAppearanceCupertino extends State<SettingsAppearanceCupertino> {
                       subtitle: Text(context.t.screenSettingsAppearance.darkModeDisabledDescription),
                       onTap: () async => await context.read<SettingsAppearanceCubit>().setDarkMode(darkMode: DarkModeModel.disabled),
                       additionalInfo: state.darkMode == DarkModeModel.disabled ? additionalInfo : null,
+                    ),
+                  ],
+                ),
+                // Обои окна чата — отдельный экран с превью.
+                CupertinoListSection.insetGrouped(
+                  backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
+                  decoration: BoxDecoration(
+                    color: ThemesCupertino.groupedCard.resolveFrom(context),
+                    borderRadius: const BorderRadius.all(Radius.circular(10)),
+                  ),
+                  children: [
+                    CupertinoListTile(
+                      title: Text(context.t.screenSettingsAppearance.chatThemes),
+                      trailing: const CupertinoListTileChevron(),
+                      onTap: () => context.push('/settings/appearance/chat_themes'),
                     ),
                   ],
                 ),

@@ -487,6 +487,14 @@ class Routers {
                       child: SettingsAppearanceCupertino(),
                     ),
                   ),
+                  routes: [
+                    // Темы для чатов — обои окна чата.
+                    GoRoute(
+                      path: "chat_themes",
+                      parentNavigatorKey: rootNavigatorKey,
+                      pageBuilder: (context, state) => _page(state, const SettingsChatThemesCupertino()),
+                    ),
+                  ],
                 ),
                 GoRoute(
                   path: "device_sessions",
@@ -1053,6 +1061,14 @@ class Routers {
                       child: const SettingsAppearanceMaterial(),
                     ),
                   ),
+                  routes: [
+                    // Темы для чатов — обои окна чата.
+                    GoRoute(
+                      path: "chat_themes",
+                      parentNavigatorKey: rootNavigatorKey,
+                      pageBuilder: (context, state) => _pageMaterial(state, const SettingsChatThemesMaterial()),
+                    ),
+                  ],
                 ),
                 GoRoute(
                   path: "device_sessions",

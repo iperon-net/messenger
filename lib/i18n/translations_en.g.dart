@@ -51,6 +51,7 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	late final Translations$screenSettingsNotifications$en screenSettingsNotifications = Translations$screenSettingsNotifications$en.internal(_root);
 	late final Translations$screenDeveloper$en screenDeveloper = Translations$screenDeveloper$en.internal(_root);
 	late final Translations$screenSettingsAppearance$en screenSettingsAppearance = Translations$screenSettingsAppearance$en.internal(_root);
+	late final Translations$screenChatThemes$en screenChatThemes = Translations$screenChatThemes$en.internal(_root);
 	late final Translations$screenSettingsDevices$en screenSettingsDevices = Translations$screenSettingsDevices$en.internal(_root);
 	late final Translations$screenSettingsAboutApplication$en screenSettingsAboutApplication = Translations$screenSettingsAboutApplication$en.internal(_root);
 	late final Translations$screenSettingsLanguage$en screenSettingsLanguage = Translations$screenSettingsLanguage$en.internal(_root);
@@ -590,6 +591,60 @@ class Translations$screenSettingsAppearance$en {
 
 	/// en: 'The app appears blurry in the list of open apps'
 	String get blurOnInactiveDescription => 'The app appears blurry in the list of open apps';
+
+	/// en: 'Chat themes'
+	String get chatThemes => 'Chat themes';
+}
+
+// Path: screenChatThemes
+class Translations$screenChatThemes$en {
+	Translations$screenChatThemes$en.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// en: 'Chat themes'
+	String get title => _root.screenSettingsAppearance.chatThemes;
+
+	/// en: 'Pattern'
+	String get pattern => 'Pattern';
+
+	/// en: 'Color'
+	String get color => 'Color';
+
+	/// en: 'The wallpaper is shown in all chats on this device and adapts to light and dark mode.'
+	String get footer => 'The wallpaper is shown in all chats on this device and adapts to light and dark mode.';
+
+	/// en: 'Anna'
+	String get previewName => 'Anna';
+
+	/// en: 'Hi! How do you like the new wallpaper? 🎨'
+	String get previewIncoming => 'Hi! How do you like the new wallpaper? 🎨';
+
+	/// en: 'Looks great, I'll keep this one 😍'
+	String get previewOutgoing => 'Looks great, I\'ll keep this one 😍';
+
+	/// en: 'No pattern'
+	String get patternNone => 'No pattern';
+
+	/// en: 'Chat'
+	String get patternChat => 'Chat';
+
+	/// en: 'Space'
+	String get patternSpace => 'Space';
+
+	/// en: 'Nature'
+	String get patternNature => 'Nature';
+
+	/// en: 'Music'
+	String get patternMusic => 'Music';
+
+	/// en: 'Geometry'
+	String get patternGeometry => 'Geometry';
+
+	/// en: 'Food'
+	String get patternFood => 'Food';
 }
 
 // Path: screenSettingsDevices
@@ -1872,6 +1927,21 @@ extension on Translations {
 			'screenSettingsAppearance.darkModeDisabledDescription' => 'Dark mode is disabled',
 			'screenSettingsAppearance.blurOnInactive' => 'Blur on inactive',
 			'screenSettingsAppearance.blurOnInactiveDescription' => 'The app appears blurry in the list of open apps',
+			'screenSettingsAppearance.chatThemes' => 'Chat themes',
+			'screenChatThemes.title' => _root.screenSettingsAppearance.chatThemes,
+			'screenChatThemes.pattern' => 'Pattern',
+			'screenChatThemes.color' => 'Color',
+			'screenChatThemes.footer' => 'The wallpaper is shown in all chats on this device and adapts to light and dark mode.',
+			'screenChatThemes.previewName' => 'Anna',
+			'screenChatThemes.previewIncoming' => 'Hi! How do you like the new wallpaper? 🎨',
+			'screenChatThemes.previewOutgoing' => 'Looks great, I\'ll keep this one 😍',
+			'screenChatThemes.patternNone' => 'No pattern',
+			'screenChatThemes.patternChat' => 'Chat',
+			'screenChatThemes.patternSpace' => 'Space',
+			'screenChatThemes.patternNature' => 'Nature',
+			'screenChatThemes.patternMusic' => 'Music',
+			'screenChatThemes.patternGeometry' => 'Geometry',
+			'screenChatThemes.patternFood' => 'Food',
 			'screenSettingsDevices.devices' => 'Devices',
 			'screenSettingsDevices.thisDevice' => 'This device',
 			'screenSettingsDevices.deviceSessionListTileSubtitle' => ({required Object location, required Object updateAt}) => '${location} · ${updateAt}',
