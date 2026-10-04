@@ -48,7 +48,30 @@ class MessageMedia with MessageMediaMappable {
   /// заглушка).
   final String localPath;
 
-  const MessageMedia({required this.kind, this.localPath = ''});
+  /// Размеры кадра (0 — неизвестны) — пузырь держит пропорции до загрузки.
+  final int width;
+  final int height;
+
+  /// Размер файла в байтах (0 — неизвестен).
+  final int size;
+
+  /// Миниатюра (локально; позже — свой `cdnID`).
+  final String thumbPath;
+
+  /// ThumbHash (base64) — размытое превью до загрузки, см. `prepareChatPhoto`.
+  final String thumbhash;
+
+  const MessageMedia({
+    required this.kind,
+    this.localPath = '',
+    this.width = 0,
+    this.height = 0,
+    this.size = 0,
+    this.thumbPath = '',
+    this.thumbhash = '',
+  });
+
+  double? get aspectRatio => width > 0 && height > 0 ? width / height : null;
 }
 
 /// Сообщение чата. Пока клиентская модель для UX-демо; по форме близка к
@@ -87,10 +110,19 @@ class Message with MessageMappable {
   final int duration;
 
   /// Альбом: до [maxAlbum] фото/видео одним сообщением (сеткой в пузыре), подпись
-  /// — [text]. Пусто — обычное сообщение ([kind] + [localPath]).
+  /// — [text]. Один элемент — метаданные одиночного фото/видео (размеры,
+  /// thumbhash); пусто — обычное сообщение ([kind] + [localPath]).
   final List<MessageMedia> media;
 
   static const maxAlbum = 10;
+
+  /// Размер файла ([MessageKind.file]) в байтах; 0 — неизвестен.
+  final int fileSize;
+
+  /// Загрузка вложений на CDN: отправлено [uploadedBytes] из [uploadTotal]
+  /// (0 — не грузится). Пока грузится — статус `pending`, в пузыре прогресс.
+  final int uploadedBytes;
+  final int uploadTotal;
 
   const Message({
     required this.id,
@@ -109,7 +141,14 @@ class Message with MessageMappable {
     this.localPath = '',
     this.duration = 0,
     this.media = const [],
+    this.fileSize = 0,
+    this.uploadedBytes = 0,
+    this.uploadTotal = 0,
   });
 
   bool get isAlbum => media.length > 1;
+
+  bool get isUploading => uploadTotal > 0;
+
+  double get uploadProgress => uploadTotal > 0 ? (uploadedBytes / uploadTotal).clamp(0.0, 1.0) : 0;
 }

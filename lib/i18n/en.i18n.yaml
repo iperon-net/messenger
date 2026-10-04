@@ -99,6 +99,12 @@
   "file": "@:screenChats.file"
   "voice": "@:screenChats.voice"
   "selected": "Selected: {n}"
+  "search": "Search"
+  "searchNoResults": "No results"
+  "uploadProgress": "{done} of {total}"
+  "kb": "KB"
+  "mb": "MB"
+  "gb": "GB"
   "mediaCounter": "{current} of {total}"
   "addCaption": "Add a caption…"
 

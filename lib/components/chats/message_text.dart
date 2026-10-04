@@ -36,6 +36,11 @@ class MessageText extends StatefulWidget {
   final String trailing;
   final TextStyle? trailingStyle;
 
+  /// Поиск по чату: вхождения подсвечиваются (без учёта регистра) фоном
+  /// [highlightColor].
+  final String highlight;
+  final Color highlightColor;
+
   const MessageText({
     super.key,
     required this.text,
@@ -44,6 +49,8 @@ class MessageText extends StatefulWidget {
     required this.colors,
     this.trailing = '',
     this.trailingStyle,
+    this.highlight = '',
+    this.highlightColor = const Color(0x66FFCC00),
   });
 
   @override
@@ -108,6 +115,17 @@ class _MessageTextState extends State<MessageText> {
         ..add(e.offset)
         ..add(e.end);
     }
+    final found = <(int, int)>[];
+    final needle = widget.highlight.trim().toLowerCase();
+    if (needle.isNotEmpty) {
+      final haystack = text.toLowerCase();
+      for (var at = haystack.indexOf(needle); at >= 0; at = haystack.indexOf(needle, at + needle.length)) {
+        found.add((at, at + needle.length));
+        bounds
+          ..add(at)
+          ..add(at + needle.length);
+      }
+    }
     final points = bounds.toList()..sort();
 
     final spans = <InlineSpan>[];
@@ -147,6 +165,7 @@ class _MessageTextState extends State<MessageText> {
         }
       }
       if (decorations.isNotEmpty) style = style.copyWith(decoration: TextDecoration.combine(decorations), decorationColor: style.color);
+      if (found.any((r) => r.$1 <= a && r.$2 >= b)) style = style.copyWith(backgroundColor: widget.highlightColor);
       if (hidden) {
         style = style.copyWith(color: const Color(0x00000000), backgroundColor: colors.spoiler, decoration: TextDecoration.none);
         recognizer = _tap(() => setState(() => _spoilerRevealed = true));

@@ -37,7 +37,11 @@ class ChatCubit extends Cubit<ChatState> {
       emit(state.copyWith(chat: chat, status: Status.success));
     });
     _messagesSubscription = source.watchMessages(chatID).listen((messages) {
-      if (!isClosed) emit(state.copyWith(messages: messages));
+      if (isClosed) return;
+      emit(state.copyWith(messages: messages));
+      // Пришло/удалилось сообщение во время поиска — пересчитываем, оставаясь
+      // на текущем найденном.
+      if (state.searching) _search(state.searchQuery, keepID: state.searchCurrentID);
     });
   }
 
@@ -89,6 +93,38 @@ class ChatCubit extends Cubit<ChatState> {
     text: m.kind == models.MessageKind.file && m.text.isEmpty ? m.fileName : m.text,
     kind: m.kind,
   );
+
+  /// Крестик на прогрессе загрузки — отменить отправку вложений.
+  Future<void> cancelUpload(models.Message message) async => _source?.cancelUpload(_chatID, message.id);
+
+  /// Поиск по чату: открыть (удержание шапки) / закрыть.
+  void startSearch() => emit(state.copyWith(searching: true, searchQuery: '', searchResults: const [], searchIndex: 0));
+
+  void closeSearch() => emit(state.copyWith(searching: false, searchQuery: '', searchResults: const [], searchIndex: 0));
+
+  void setSearchQuery(String query) => _search(query);
+
+  /// Стрелка «вверх» — к более старому найденному, «вниз» — к более новому.
+  void searchOlder() {
+    if (state.searchIndex + 1 < state.searchResults.length) emit(state.copyWith(searchIndex: state.searchIndex + 1));
+  }
+
+  void searchNewer() {
+    if (state.searchIndex > 0) emit(state.copyWith(searchIndex: state.searchIndex - 1));
+  }
+
+  /// Без учёта регистра по тексту/подписи и имени файла; от новых к старым.
+  void _search(String query, {String? keepID}) {
+    final needle = query.trim().toLowerCase();
+    final results = needle.isEmpty
+        ? const <String>[]
+        : [
+            for (final m in state.messages.reversed)
+              if (!m.service && (m.text.toLowerCase().contains(needle) || m.fileName.toLowerCase().contains(needle))) m.id,
+          ];
+    final kept = keepID == null ? -1 : results.indexOf(keepID);
+    emit(state.copyWith(searchQuery: query, searchResults: results, searchIndex: kept < 0 ? 0 : kept));
+  }
 
   void startReply(models.Message message) => emit(state.copyWith(reply: message, editing: null));
 

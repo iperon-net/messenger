@@ -122,6 +122,8 @@ dependencies:
   livekit_client: ^2.13.0
   hugeicons: ^1.2.0
   passkeys: ^2.23.1
+  flutter_image_compress: ^2.5.1
+  thumbhash: ^0.1.0+1
 
 dev_dependencies:
   flutter_test:

@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:flutter/widgets.dart';
@@ -68,6 +67,17 @@ class ChatMessagesView extends StatelessWidget {
   final EdgeInsets padding;
   final ScrollController? controller;
 
+  /// Поиск по чату: подсветка вхождений [highlight], у [focusedID] (текущее
+  /// найденное) — ярче.
+  final String highlight;
+  final String? focusedID;
+
+  /// Ключ строки сообщения — чтобы прокрутить к нему (поиск).
+  final GlobalKey Function(String messageID)? keyFor;
+
+  /// Крестик на прогрессе загрузки вложений.
+  final ValueChanged<models.Message>? onCancelUpload;
+
   const ChatMessagesView({
     super.key,
     required this.messages,
@@ -77,6 +87,10 @@ class ChatMessagesView extends StatelessWidget {
     this.onMediaTap,
     this.padding = EdgeInsets.zero,
     this.controller,
+    this.highlight = '',
+    this.focusedID,
+    this.keyFor,
+    this.onCancelUpload,
   });
 
   static bool _sameDay(DateTime a, DateTime b) {
@@ -110,6 +124,7 @@ class ChatMessagesView extends StatelessWidget {
       } else {
         items.add(
           Padding(
+            key: keyFor?.call(m.id),
             padding: EdgeInsets.only(top: groupedWithOlder ? 2 : 8),
             child: MessageBubble(
               key: ValueKey(m.id),
@@ -120,6 +135,9 @@ class ChatMessagesView extends StatelessWidget {
               avatar: group && !m.outgoing ? (groupedWithNewer ? const SizedBox(width: 34) : _SenderAvatar(name: m.senderName)) : null,
               onLongPress: () => onLongPress(m),
               onMediaTap: onMediaTap == null ? null : (index) => onMediaTap!(m, index),
+              highlight: highlight,
+              focused: m.id == focusedID,
+              onCancelUpload: onCancelUpload == null ? null : () => onCancelUpload!(m),
             ),
           ),
         );
@@ -203,6 +221,13 @@ class MessageBubble extends StatelessWidget {
   /// Тап по фото/видео ([index] — элемент альбома).
   final ValueChanged<int>? onMediaTap;
 
+  /// Поиск по чату: подсвечиваемая строка; [focused] — текущее найденное.
+  final String highlight;
+  final bool focused;
+
+  /// Крестик на прогрессе загрузки вложений.
+  final VoidCallback? onCancelUpload;
+
   const MessageBubble({
     super.key,
     required this.message,
@@ -212,10 +237,46 @@ class MessageBubble extends StatelessWidget {
     required this.onLongPress,
     this.onMediaTap,
     this.avatar,
+    this.highlight = '',
+    this.focused = false,
+    this.onCancelUpload,
   });
 
   static const _radius = Radius.circular(18);
   static const _tailRadius = Radius.circular(5);
+
+  /// Поверх фото/альбома, пока грузится: кольцо прогресса с крестиком по
+  /// центру и «1,2 из 3,4 МБ» в углу (как в Telegram).
+  Widget _uploadOverlay(BuildContext context, models.Message m, Widget media) {
+    if (!m.isUploading) return media;
+    return Stack(
+      children: [
+        media,
+        Positioned.fill(
+          child: Center(
+            child: UploadProgressRing(
+              progress: m.uploadProgress,
+              size: 48,
+              color: const Color(0xFFFFFFFF),
+              background: const Color(0x80000000),
+              onCancel: onCancelUpload,
+            ),
+          ),
+        ),
+        Positioned(
+          left: 8,
+          top: 8,
+          child: DecoratedBox(
+            decoration: BoxDecoration(color: const Color(0x80000000), borderRadius: BorderRadius.circular(10)),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+              child: Text(uploadProgressText(context, m), style: style.textStyle.copyWith(fontSize: 12, color: const Color(0xFFFFFFFF))),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -252,15 +313,23 @@ class MessageBubble extends StatelessWidget {
     // Невидимый хвост под время: nbsp, чтобы не переносился отдельно.
     final trailing = '  $metaText${out ? '     ' : ''}';
 
-    final media = switch (m.kind) {
-      _ when m.isAlbum => _AlbumGrid(message: m, onTap: onMediaTap),
-      models.MessageKind.photo || models.MessageKind.video => _MediaPreview(message: m, onTap: onMediaTap),
-      models.MessageKind.file => _FileRow(message: m, colors: colors, iconColor: iconColor, metaStyle: metaStyle),
+    // Пока вложения грузятся — тап по медиа не открывает просмотр.
+    final mediaTap = m.isUploading ? null : onMediaTap;
+    final Widget? media = switch (m.kind) {
+      _ when m.isAlbum => _uploadOverlay(context, m, _AlbumGrid(message: m, onTap: mediaTap)),
+      models.MessageKind.photo || models.MessageKind.video => _uploadOverlay(context, m, _MediaPreview(message: m, onTap: mediaTap)),
+      models.MessageKind.file => _FileRow(
+        message: m,
+        colors: colors,
+        iconColor: iconColor,
+        metaStyle: metaStyle,
+        onCancelUpload: onCancelUpload,
+      ),
       models.MessageKind.voice => _VoiceRow(message: m, colors: colors, iconColor: iconColor, metaStyle: metaStyle),
       models.MessageKind.text => null,
     };
     // Подпись и имя у фото — с отступами пузыря (само фото почти до краёв).
-    final visual = media is _MediaPreview || media is _AlbumGrid;
+    final visual = m.kind == models.MessageKind.photo || m.kind == models.MessageKind.video || m.isAlbum;
     final captionInset = visual ? 7.0 : 0.0;
     final content = <Widget>[];
     if (showSender && m.senderName.isNotEmpty) {
@@ -292,6 +361,8 @@ class MessageBubble extends StatelessWidget {
                 colors: colors,
                 trailing: trailing,
                 trailingStyle: metaStyle,
+                highlight: highlight,
+                highlightColor: focused ? const Color(0xCCFF9500) : const Color(0x66FFCC00),
               ),
               Positioned(right: 0, bottom: 0, child: meta),
             ],
@@ -410,14 +481,28 @@ class _MediaPreview extends StatelessWidget {
 
   const _MediaPreview({required this.message, this.onTap});
 
+  static const _width = 260.0;
+
   @override
   Widget build(BuildContext context) {
     final video = message.kind == models.MessageKind.video;
+    final meta = message.media.firstOrNull;
+    // Пропорции из метаданных — пузырь не «прыгает», пока грузится картинка.
+    final aspect = meta?.aspectRatio;
+    final height = aspect == null ? (video ? 190.0 : _width) : (_width / aspect).clamp(140.0, 340.0);
     final Widget image;
     if (message.localPath.isNotEmpty && !video) {
-      image = Image.file(File(message.localPath), fit: BoxFit.cover, width: 260, height: 260, cacheWidth: 780);
+      image = SizedBox(
+        width: _width,
+        height: height,
+        child: ChatMediaImage(path: message.localPath, thumbhash: meta?.thumbhash ?? '', cacheWidth: 780),
+      );
     } else {
-      image = SizedBox(width: 260, height: 190, child: chatMediaPlaceholder('${message.id}-0', video: video));
+      image = SizedBox(
+        width: _width,
+        height: height,
+        child: chatMediaPlaceholder('${message.id}-0', video: video),
+      );
     }
     return ClipRRect(borderRadius: BorderRadius.circular(14), child: _tappableMedia(message, 0, onTap, image));
   }
@@ -492,7 +577,7 @@ class _AlbumGrid extends StatelessWidget {
     final video = item.kind == models.MessageKind.video;
     final Widget child = item.localPath.isEmpty || video
         ? chatMediaPlaceholder('${message.id}-$index', video: video, iconSize: 26)
-        : Image.file(File(item.localPath), fit: BoxFit.cover, cacheWidth: 520);
+        : ChatMediaImage(path: item.localPath, thumbhash: item.thumbhash, cacheWidth: 520);
     return _tappableMedia(message, index, onTap, child);
   }
 }
@@ -502,26 +587,37 @@ class _FileRow extends StatelessWidget {
   final MessageTextColors colors;
   final Color iconColor;
   final TextStyle metaStyle;
+  final VoidCallback? onCancelUpload;
 
-  const _FileRow({required this.message, required this.colors, required this.iconColor, required this.metaStyle});
+  const _FileRow({required this.message, required this.colors, required this.iconColor, required this.metaStyle, this.onCancelUpload});
 
   @override
   Widget build(BuildContext context) {
     final name = message.fileName.isNotEmpty ? message.fileName : context.t.screenChat.file;
     final dot = name.lastIndexOf('.');
     final ext = dot > 0 ? name.substring(dot + 1).toUpperCase() : '';
-    // Размер в демо — псевдослучайный, стабильный для сообщения.
-    final size = 0.2 + (message.id.hashCode.abs() % 480) / 100;
+    // Размер: настоящий у отправленного файла, у демо-истории — псевдослучайный,
+    // стабильный для сообщения.
+    final size = message.fileSize > 0 ? message.fileSize : 200000 + (message.id.hashCode.abs() % 480) * 10000;
+    final uploading = message.isUploading;
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Container(
-          width: 44,
-          height: 44,
-          decoration: BoxDecoration(color: colors.link, shape: BoxShape.circle),
-          alignment: Alignment.center,
-          child: FaIcon(FontAwesomeIcons.solidFile, size: 18, color: iconColor),
-        ),
+        uploading
+            ? UploadProgressRing(
+                progress: message.uploadProgress,
+                size: 44,
+                color: iconColor,
+                background: colors.link,
+                onCancel: onCancelUpload,
+              )
+            : Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(color: colors.link, shape: BoxShape.circle),
+                alignment: Alignment.center,
+                child: FaIcon(FontAwesomeIcons.solidFile, size: 18, color: iconColor),
+              ),
         const SizedBox(width: 10),
         Flexible(
           child: Column(
@@ -533,7 +629,10 @@ class _FileRow extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
                 style: metaStyle.copyWith(fontSize: 15, fontWeight: FontWeight.w600, color: colors.text),
               ),
-              Text('${size.toStringAsFixed(1)} MB${ext.isEmpty ? '' : ' · $ext'}', style: metaStyle.copyWith(fontSize: 13)),
+              Text(
+                uploading ? uploadProgressText(context, message) : '${formatBytes(context, size)}${ext.isEmpty ? '' : ' · $ext'}',
+                style: metaStyle.copyWith(fontSize: 13),
+              ),
             ],
           ),
         ),
@@ -593,4 +692,105 @@ class _VoiceRow extends StatelessWidget {
       ],
     );
   }
+}
+
+/// Размер файла по-человечески: «340 КБ», «3,4 МБ», «1,2 ГБ» (дробная часть —
+/// с разделителем текущего языка).
+String formatBytes(BuildContext context, int bytes) {
+  final t = context.t.screenChat;
+  final locale = Localizations.maybeLocaleOf(context)?.toLanguageTag();
+  const kb = 1024;
+  const mb = kb * 1024;
+  const gb = mb * 1024;
+  if (bytes < mb) return '${(bytes / kb).ceil()} ${t.kb}';
+  final oneDecimal = NumberFormat('0.0', locale);
+  if (bytes < gb) return '${oneDecimal.format(bytes / mb)} ${t.mb}';
+  return '${oneDecimal.format(bytes / gb)} ${t.gb}';
+}
+
+/// «1,2 из 3,4 МБ» — сколько вложений уже загружено.
+String uploadProgressText(BuildContext context, models.Message m) {
+  final total = formatBytes(context, m.uploadTotal);
+  // Единица — один раз, у общего размера (если она совпадает).
+  final unit = total.split(' ').last;
+  var done = formatBytes(context, m.uploadedBytes);
+  if (done.endsWith(' $unit')) done = done.substring(0, done.length - unit.length - 1);
+  return context.t.screenChat.uploadProgress(done: done, total: total);
+}
+
+/// Кольцо прогресса загрузки с крестиком отмены по центру.
+class UploadProgressRing extends StatelessWidget {
+  final double progress;
+  final double size;
+  final Color color;
+  final Color background;
+  final VoidCallback? onCancel;
+
+  const UploadProgressRing({
+    super.key,
+    required this.progress,
+    required this.size,
+    required this.color,
+    required this.background,
+    this.onCancel,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onCancel,
+      child: Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(color: background, shape: BoxShape.circle),
+        alignment: Alignment.center,
+        // Плавно между шагами прогресса (они приходят пачками по чанкам).
+        child: TweenAnimationBuilder<double>(
+          tween: Tween(end: progress),
+          duration: const Duration(milliseconds: 200),
+          builder: (context, value, child) => CustomPaint(
+            size: Size.square(size),
+            painter: _RingPainter(progress: value, color: color),
+            child: child,
+          ),
+          child: SizedBox.square(
+            dimension: size,
+            child: Center(
+              child: FaIcon(FontAwesomeIcons.xmark, size: size * 0.36, color: color),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _RingPainter extends CustomPainter {
+  final double progress;
+  final Color color;
+
+  _RingPainter({required this.progress, required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    const stroke = 2.5;
+    final rect = (Offset.zero & size).deflate(stroke / 2 + 3);
+    // Минимальная дуга — чтобы в самом начале было видно, что загрузка идёт.
+    final sweep = math.max(0.04, progress) * 2 * math.pi;
+    canvas.drawArc(
+      rect,
+      -math.pi / 2,
+      sweep,
+      false,
+      Paint()
+        ..color = color
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = stroke
+        ..strokeCap = StrokeCap.round,
+    );
+  }
+
+  @override
+  bool shouldRepaint(_RingPainter oldDelegate) => oldDelegate.progress != progress || oldDelegate.color != color;
 }

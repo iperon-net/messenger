@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:math';
 
 import '../chats/chats_data_source.dart';
@@ -126,6 +127,16 @@ class ChatsDemoDataSource implements ChatsDataSource {
     String fileName = '',
     List<models.MessageMedia> media = const [],
   }) async {
+    final fileSize = kind == models.MessageKind.file ? await _fileSize(localPath) : 0;
+    // Байты к загрузке: фото/видео альбома или одиночное медиа/файл.
+    var uploadTotal = 0;
+    if (kind != models.MessageKind.text) {
+      final paths = media.isNotEmpty ? [for (final m in media) m.localPath] : [localPath];
+      for (final (i, path) in paths.indexed) {
+        final known = media.length > i ? media[i].size : 0;
+        uploadTotal += known > 0 ? known : await _fileSize(path);
+      }
+    }
     final message = models.Message(
       id: _id(),
       chatID: chatID,
@@ -139,11 +150,63 @@ class ChatsDemoDataSource implements ChatsDataSource {
       localPath: localPath,
       fileName: fileName,
       media: media,
+      fileSize: fileSize,
+      uploadTotal: uploadTotal,
     );
     _setMessages(chatID, [..._history(chatID), message]);
     _update(chatID, (c) => c.copyWith(lastMessage: _lastOf(message), draft: '', archived: false));
 
-    // ⏱ → ✓ (сервер принял) → в личном чате собеседник читает, печатает, отвечает.
+    if (uploadTotal > 0) {
+      _simulateUpload(chatID, message.id, uploadTotal, onDone: () => _delivered(chatID, message.id));
+    } else {
+      _delivered(chatID, message.id);
+    }
+  }
+
+  /// Идущие загрузки вложений (id сообщения → таймер), см. [cancelUpload].
+  final _uploads = <String, Timer>{};
+
+  /// Имитация загрузки на CDN: ~250–450 КБ/с с колебаниями, шаг 100 мс —
+  /// чтобы прогресс было видно даже на сжатом фото.
+  void _simulateUpload(String chatID, String messageID, int total, {required void Function() onDone}) {
+    var sent = 0;
+    _uploads[messageID] = Timer.periodic(const Duration(milliseconds: 100), (timer) {
+      if (!_chats.any((c) => c.id == chatID) || !_history(chatID).any((m) => m.id == messageID)) {
+        timer.cancel();
+        _uploads.remove(messageID);
+        return;
+      }
+      sent = min(total, sent + 25000 + _random.nextInt(20000));
+      final done = sent >= total;
+      _updateMessage(chatID, messageID, (m) => m.copyWith(uploadedBytes: done ? 0 : sent, uploadTotal: done ? 0 : total));
+      if (done) {
+        timer.cancel();
+        _uploads.remove(messageID);
+        onDone();
+      }
+    });
+  }
+
+  Future<int> _fileSize(String path) async {
+    if (path.isEmpty) return 0;
+    try {
+      return await File(path).length();
+    } catch (_) {
+      return 0;
+    }
+  }
+
+  @override
+  Future<void> cancelUpload(String chatID, String messageID) async {
+    _uploads.remove(messageID)?.cancel();
+    await deleteMessage(chatID, messageID);
+  }
+
+  /// Сервер принял сообщение (после загрузки вложений, если были): ⏱ → ✓ →
+  /// в личном чате собеседник читает, печатает, отвечает.
+  void _delivered(String chatID, String messageID) {
+    final message = _history(chatID).where((m) => m.id == messageID).firstOrNull;
+    if (message == null) return;
     Timer(const Duration(milliseconds: 700), () => _setStatus(chatID, message.id, models.MessageStatus.sent));
     final chat = _chats.where((c) => c.id == chatID).firstOrNull;
     if (chat == null || chat.isSelf) {

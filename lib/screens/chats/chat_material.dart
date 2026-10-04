@@ -54,8 +54,14 @@ class ChatMaterial extends StatefulWidget {
 class _ChatMaterialState extends State<ChatMaterial> {
   final _input = TextEditingController();
   final _focus = FocusNode();
+  final _scroll = ScrollController();
+  final _searchInput = TextEditingController();
+
+  /// Ключи строк ленты — для прокрутки к найденному (поиск по чату).
+  final _messageKeys = <String, GlobalKey>{};
   late final ChatCubit _cubit;
   bool _draftLoaded = false;
+  String? _editingID;
 
   @override
   void initState() {
@@ -68,8 +74,20 @@ class _ChatMaterialState extends State<ChatMaterial> {
     _cubit.saveDraft(_input.text);
     _input.dispose();
     _focus.dispose();
+    _scroll.dispose();
+    _searchInput.dispose();
     super.dispose();
   }
+
+  /// Удержание шапки — поиск по чату (как в Telegram).
+  void _startSearch() {
+    HapticFeedback.mediumImpact();
+    _focus.unfocus();
+    _searchInput.clear();
+    _cubit.startSearch();
+  }
+
+  GlobalKey _keyFor(String messageID) => _messageKeys.putIfAbsent(messageID, GlobalKey.new);
 
   void _send() {
     final text = _input.text;
@@ -84,75 +102,117 @@ class _ChatMaterialState extends State<ChatMaterial> {
     final dark = Theme.of(context).brightness == Brightness.dark;
     final barColor = dark ? ThemesCupertino.groupedCard.darkColor : ThemesCupertino.groupedCard.color;
     return BlocConsumer<ChatCubit, ChatState>(
-      listenWhen: (previous, current) => previous.editing != current.editing || previous.chat == null && current.chat != null,
+      listenWhen: (previous, current) =>
+          previous.editing != current.editing ||
+          previous.chat == null && current.chat != null ||
+          previous.searchCurrentID != current.searchCurrentID,
       listener: (context, state) {
+        if (state.editing == null) _editingID = null;
+        // Поиск: к текущему найденному.
+        final found = state.searchCurrentID;
+        if (found != null) scrollToMessage(_scroll, _keyFor(found));
         // Черновик из списка — один раз при открытии.
         if (!_draftLoaded && state.chat != null) {
           _draftLoaded = true;
           if (_input.text.isEmpty && state.chat!.draft.isNotEmpty) _input.text = state.chat!.draft;
         }
         final editing = state.editing;
-        if (editing != null) {
+        // Только при смене редактируемого (слушатель срабатывает и на поиск).
+        if (editing != null && editing.id != _editingID) {
+          _editingID = editing.id;
           _input.text = toMarkdownShortcuts(editing.text, editing.entities);
           _focus.requestFocus();
         }
       },
       builder: (context, state) {
         final chat = state.chat;
-        return Scaffold(
-          backgroundColor: dark ? const Color(0xFF000000) : Theme.of(context).colorScheme.surfaceContainerLow,
-          appBar: AppBar(
-            backgroundColor: barColor,
-            titleSpacing: 0,
-            title: chat == null ? null : _Header(chat: chat),
-          ),
-          body: chat == null
-              ? Center(child: Text(state.status == Status.success ? t.screenChat.notFound : ''))
-              : Column(
-                  children: [
-                    Expanded(
-                      // Обои из «Тем для чатов» (Настройки → Оформление) — под лентой.
-                      child: Stack(
-                        children: [
-                          Positioned.fill(
-                            child: BlocBuilder<CommonCubit, CommonState>(
-                              buildWhen: (previous, current) =>
-                                  previous.settingsDevice.chatWallpaper != current.settingsDevice.chatWallpaper ||
-                                  previous.settingsDevice.chatWallpaperColor != current.settingsDevice.chatWallpaperColor ||
-                                  previous.settingsDevice.chatWallpaperIntensity != current.settingsDevice.chatWallpaperIntensity,
-                              builder: (context, common) => ChatWallpaper(
-                                pattern: common.settingsDevice.chatWallpaper,
-                                colorIndex: common.settingsDevice.chatWallpaperColor,
-                                intensity: common.settingsDevice.chatWallpaperIntensity,
-                                dark: Theme.of(context).brightness == Brightness.dark,
+        return PopScope(
+          // «Назад» в режиме поиска закрывает поиск, а не чат.
+          canPop: !state.searching,
+          onPopInvokedWithResult: (didPop, _) {
+            if (!didPop) _cubit.closeSearch();
+          },
+          child: Scaffold(
+            backgroundColor: dark ? const Color(0xFF000000) : Theme.of(context).colorScheme.surfaceContainerLow,
+            appBar: state.searching
+                ? AppBar(
+                    backgroundColor: barColor,
+                    titleSpacing: 0,
+                    leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: _cubit.closeSearch),
+                    title: TextField(
+                      controller: _searchInput,
+                      autofocus: true,
+                      textInputAction: TextInputAction.search,
+                      onChanged: _cubit.setSearchQuery,
+                      decoration: InputDecoration(hintText: t.screenChat.search, border: InputBorder.none),
+                    ),
+                  )
+                : AppBar(
+                    backgroundColor: barColor,
+                    titleSpacing: 0,
+                    // Удержание шапки — поиск по чату (как в Telegram).
+                    title: chat == null
+                        ? null
+                        : GestureDetector(
+                            onLongPress: _startSearch,
+                            child: _Header(chat: chat),
+                          ),
+                  ),
+            body: chat == null
+                ? Center(child: Text(state.status == Status.success ? t.screenChat.notFound : ''))
+                : Column(
+                    children: [
+                      Expanded(
+                        // Обои из «Тем для чатов» (Настройки → Оформление) — под лентой.
+                        child: Stack(
+                          children: [
+                            Positioned.fill(
+                              child: BlocBuilder<CommonCubit, CommonState>(
+                                buildWhen: (previous, current) =>
+                                    previous.settingsDevice.chatWallpaper != current.settingsDevice.chatWallpaper ||
+                                    previous.settingsDevice.chatWallpaperColor != current.settingsDevice.chatWallpaperColor ||
+                                    previous.settingsDevice.chatWallpaperIntensity != current.settingsDevice.chatWallpaperIntensity,
+                                builder: (context, common) => ChatWallpaper(
+                                  pattern: common.settingsDevice.chatWallpaper,
+                                  colorIndex: common.settingsDevice.chatWallpaperColor,
+                                  intensity: common.settingsDevice.chatWallpaperIntensity,
+                                  dark: Theme.of(context).brightness == Brightness.dark,
+                                ),
                               ),
                             ),
-                          ),
-                          state.messages.isEmpty
-                              ? Center(child: Text(t.screenChat.empty))
-                              : ChatMessagesView(
-                                  messages: state.messages,
-                                  chatType: chat.type,
-                                  style: ChatMaterial.bubbleStyle(context),
-                                  padding: const EdgeInsets.symmetric(vertical: 8),
-                                  onLongPress: (message) => _actions(context, chat, message),
-                                  onMediaTap: (message, index) => showChatMediaViewer(
-                                    context,
+                            state.messages.isEmpty
+                                ? Center(child: Text(t.screenChat.empty))
+                                : ChatMessagesView(
                                     messages: state.messages,
-                                    message: message,
-                                    index: index,
-                                    chatTitle: chat.title,
+                                    chatType: chat.type,
+                                    style: ChatMaterial.bubbleStyle(context),
+                                    padding: const EdgeInsets.symmetric(vertical: 8),
+                                    onLongPress: (message) => _actions(context, chat, message),
+                                    controller: _scroll,
+                                    keyFor: _keyFor,
+                                    onCancelUpload: _cubit.cancelUpload,
+                                    highlight: state.searching ? state.searchQuery : '',
+                                    focusedID: state.searchCurrentID,
+                                    onMediaTap: (message, index) => showChatMediaViewer(
+                                      context,
+                                      messages: state.messages,
+                                      message: message,
+                                      index: index,
+                                      chatTitle: chat.title,
+                                    ),
                                   ),
-                                ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-                    if (chat.type == models.ChatType.channel)
-                      _ChannelBar(chat: chat, color: barColor)
-                    else
-                      _ComposeBar(input: _input, focus: _focus, state: state, onSend: _send, color: barColor),
-                  ],
-                ),
+                      if (state.searching)
+                        _SearchBar(state: state, color: barColor)
+                      else if (chat.type == models.ChatType.channel)
+                        _ChannelBar(chat: chat, color: barColor)
+                      else
+                        _ComposeBar(input: _input, focus: _focus, state: state, onSend: _send, color: barColor),
+                    ],
+                  ),
+          ),
         );
       },
     );
@@ -371,6 +431,43 @@ class _ChannelBar extends StatelessWidget {
           width: double.infinity,
           height: 52,
           child: TextButton(onPressed: () => context.read<ChatCubit>().setMuted(!chat.muted), child: Text(chat.muted ? t.unmute : t.mute)),
+        ),
+      ),
+    );
+  }
+}
+
+/// Низ экрана в режиме поиска: «3 из 12» / «Нет результатов» и стрелки
+/// «к старым» / «к новым».
+class _SearchBar extends StatelessWidget {
+  final ChatState state;
+  final Color color;
+
+  const _SearchBar({required this.state, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.t.screenChat;
+    final cubit = context.read<ChatCubit>();
+    final total = state.searchResults.length;
+    final label = total > 0
+        ? t.mediaCounter(current: state.searchIndex + 1, total: total)
+        : (state.searchQuery.trim().isEmpty ? '' : t.searchNoResults);
+    return Material(
+      color: color,
+      child: SafeArea(
+        top: false,
+        child: SizedBox(
+          height: 52,
+          child: Row(
+            children: [
+              const SizedBox(width: 20),
+              Expanded(child: Text(label, style: Theme.of(context).textTheme.bodyMedium)),
+              IconButton(icon: const Icon(Icons.keyboard_arrow_up), onPressed: state.searchIndex + 1 < total ? cubit.searchOlder : null),
+              IconButton(icon: const Icon(Icons.keyboard_arrow_down), onPressed: state.searchIndex > 0 ? cubit.searchNewer : null),
+              const SizedBox(width: 8),
+            ],
+          ),
         ),
       ),
     );

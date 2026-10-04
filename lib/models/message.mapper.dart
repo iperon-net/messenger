@@ -437,17 +437,62 @@ class MessageMediaMapper extends ClassMapperBase<MessageMedia> {
     opt: true,
     def: '',
   );
+  static int _$width(MessageMedia v) => v.width;
+  static const Field<MessageMedia, int> _f$width = Field(
+    'width',
+    _$width,
+    opt: true,
+    def: 0,
+  );
+  static int _$height(MessageMedia v) => v.height;
+  static const Field<MessageMedia, int> _f$height = Field(
+    'height',
+    _$height,
+    opt: true,
+    def: 0,
+  );
+  static int _$size(MessageMedia v) => v.size;
+  static const Field<MessageMedia, int> _f$size = Field(
+    'size',
+    _$size,
+    opt: true,
+    def: 0,
+  );
+  static String _$thumbPath(MessageMedia v) => v.thumbPath;
+  static const Field<MessageMedia, String> _f$thumbPath = Field(
+    'thumbPath',
+    _$thumbPath,
+    opt: true,
+    def: '',
+  );
+  static String _$thumbhash(MessageMedia v) => v.thumbhash;
+  static const Field<MessageMedia, String> _f$thumbhash = Field(
+    'thumbhash',
+    _$thumbhash,
+    opt: true,
+    def: '',
+  );
 
   @override
   final MappableFields<MessageMedia> fields = const {
     #kind: _f$kind,
     #localPath: _f$localPath,
+    #width: _f$width,
+    #height: _f$height,
+    #size: _f$size,
+    #thumbPath: _f$thumbPath,
+    #thumbhash: _f$thumbhash,
   };
 
   static MessageMedia _instantiate(DecodingData data) {
     return MessageMedia(
       kind: data.dec(_f$kind),
       localPath: data.dec(_f$localPath),
+      width: data.dec(_f$width),
+      height: data.dec(_f$height),
+      size: data.dec(_f$size),
+      thumbPath: data.dec(_f$thumbPath),
+      thumbhash: data.dec(_f$thumbhash),
     );
   }
 
@@ -513,7 +558,15 @@ extension MessageMediaValueCopy<$R, $Out>
 
 abstract class MessageMediaCopyWith<$R, $In extends MessageMedia, $Out>
     implements ClassCopyWith<$R, $In, $Out> {
-  $R call({MessageKind? kind, String? localPath});
+  $R call({
+    MessageKind? kind,
+    String? localPath,
+    int? width,
+    int? height,
+    int? size,
+    String? thumbPath,
+    String? thumbhash,
+  });
   MessageMediaCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
 
@@ -526,16 +579,34 @@ class _MessageMediaCopyWithImpl<$R, $Out>
   late final ClassMapperBase<MessageMedia> $mapper =
       MessageMediaMapper.ensureInitialized();
   @override
-  $R call({MessageKind? kind, String? localPath}) => $apply(
+  $R call({
+    MessageKind? kind,
+    String? localPath,
+    int? width,
+    int? height,
+    int? size,
+    String? thumbPath,
+    String? thumbhash,
+  }) => $apply(
     FieldCopyWithData({
       if (kind != null) #kind: kind,
       if (localPath != null) #localPath: localPath,
+      if (width != null) #width: width,
+      if (height != null) #height: height,
+      if (size != null) #size: size,
+      if (thumbPath != null) #thumbPath: thumbPath,
+      if (thumbhash != null) #thumbhash: thumbhash,
     }),
   );
   @override
   MessageMedia $make(CopyWithData data) => MessageMedia(
     kind: data.get(#kind, or: $value.kind),
     localPath: data.get(#localPath, or: $value.localPath),
+    width: data.get(#width, or: $value.width),
+    height: data.get(#height, or: $value.height),
+    size: data.get(#size, or: $value.size),
+    thumbPath: data.get(#thumbPath, or: $value.thumbPath),
+    thumbhash: data.get(#thumbhash, or: $value.thumbhash),
   );
 
   @override
@@ -659,6 +730,27 @@ class MessageMapper extends ClassMapperBase<Message> {
     opt: true,
     def: const [],
   );
+  static int _$fileSize(Message v) => v.fileSize;
+  static const Field<Message, int> _f$fileSize = Field(
+    'fileSize',
+    _$fileSize,
+    opt: true,
+    def: 0,
+  );
+  static int _$uploadedBytes(Message v) => v.uploadedBytes;
+  static const Field<Message, int> _f$uploadedBytes = Field(
+    'uploadedBytes',
+    _$uploadedBytes,
+    opt: true,
+    def: 0,
+  );
+  static int _$uploadTotal(Message v) => v.uploadTotal;
+  static const Field<Message, int> _f$uploadTotal = Field(
+    'uploadTotal',
+    _$uploadTotal,
+    opt: true,
+    def: 0,
+  );
 
   @override
   final MappableFields<Message> fields = const {
@@ -678,6 +770,9 @@ class MessageMapper extends ClassMapperBase<Message> {
     #localPath: _f$localPath,
     #duration: _f$duration,
     #media: _f$media,
+    #fileSize: _f$fileSize,
+    #uploadedBytes: _f$uploadedBytes,
+    #uploadTotal: _f$uploadTotal,
   };
 
   static Message _instantiate(DecodingData data) {
@@ -698,6 +793,9 @@ class MessageMapper extends ClassMapperBase<Message> {
       localPath: data.dec(_f$localPath),
       duration: data.dec(_f$duration),
       media: data.dec(_f$media),
+      fileSize: data.dec(_f$fileSize),
+      uploadedBytes: data.dec(_f$uploadedBytes),
+      uploadTotal: data.dec(_f$uploadTotal),
     );
   }
 
@@ -788,6 +886,9 @@ abstract class MessageCopyWith<$R, $In extends Message, $Out>
     String? localPath,
     int? duration,
     List<MessageMedia>? media,
+    int? fileSize,
+    int? uploadedBytes,
+    int? uploadTotal,
   });
   MessageCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
@@ -843,6 +944,9 @@ class _MessageCopyWithImpl<$R, $Out>
     String? localPath,
     int? duration,
     List<MessageMedia>? media,
+    int? fileSize,
+    int? uploadedBytes,
+    int? uploadTotal,
   }) => $apply(
     FieldCopyWithData({
       if (id != null) #id: id,
@@ -861,6 +965,9 @@ class _MessageCopyWithImpl<$R, $Out>
       if (localPath != null) #localPath: localPath,
       if (duration != null) #duration: duration,
       if (media != null) #media: media,
+      if (fileSize != null) #fileSize: fileSize,
+      if (uploadedBytes != null) #uploadedBytes: uploadedBytes,
+      if (uploadTotal != null) #uploadTotal: uploadTotal,
     }),
   );
   @override
@@ -881,6 +988,9 @@ class _MessageCopyWithImpl<$R, $Out>
     localPath: data.get(#localPath, or: $value.localPath),
     duration: data.get(#duration, or: $value.duration),
     media: data.get(#media, or: $value.media),
+    fileSize: data.get(#fileSize, or: $value.fileSize),
+    uploadedBytes: data.get(#uploadedBytes, or: $value.uploadedBytes),
+    uploadTotal: data.get(#uploadTotal, or: $value.uploadTotal),
   );
 
   @override

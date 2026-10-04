@@ -6,6 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:path/path.dart' as p;
 
+import '../../chats/media_prepare.dart';
 import '../../components.dart';
 import '../../cubit.dart';
 import '../../i18n/translations.g.dart';
@@ -75,27 +76,35 @@ Future<void> pickAndSendAttachments(BuildContext context, {TextEditingController
     return value;
   }
 
-  final media = items.where((i) => i.isMedia).toList();
+  // Фото сжимаем перед отправкой (параллельно); видео пока как есть.
+  final media = await Future.wait([for (final i in items.where((i) => i.isMedia)) _prepare(i)]);
   for (var start = 0; start < media.length; start += models.Message.maxAlbum) {
     final chunk = media.sublist(start, math.min(start + models.Message.maxAlbum, media.length));
-    if (chunk.length == 1) {
-      await cubit.sendMedia(
-        kind: chunk.single.kind,
-        localPath: chunk.single.path,
-        fileName: p.basename(chunk.single.path),
-        caption: takeCaption(),
-      );
-    } else {
-      await cubit.sendMedia(
-        kind: chunk.every((i) => i.kind == models.MessageKind.video) ? models.MessageKind.video : models.MessageKind.photo,
-        media: [for (final i in chunk) models.MessageMedia(kind: i.kind, localPath: i.path)],
-        caption: takeCaption(),
-      );
-    }
+    await cubit.sendMedia(
+      kind: chunk.every((m) => m.kind == models.MessageKind.video) ? models.MessageKind.video : models.MessageKind.photo,
+      localPath: chunk.length == 1 ? chunk.single.localPath : '',
+      fileName: chunk.length == 1 ? p.basename(chunk.single.localPath) : '',
+      media: chunk,
+      caption: takeCaption(),
+    );
   }
   for (final file in items.where((i) => !i.isMedia)) {
     await cubit.sendMedia(kind: file.kind, localPath: file.path, fileName: p.basename(file.path), caption: takeCaption());
   }
+}
+
+Future<models.MessageMedia> _prepare(AttachmentDraft item) async {
+  final photo = item.kind == models.MessageKind.photo ? await prepareChatPhoto(item.path) : null;
+  if (photo == null) return models.MessageMedia(kind: item.kind, localPath: item.path);
+  return models.MessageMedia(
+    kind: item.kind,
+    localPath: photo.path,
+    width: photo.width,
+    height: photo.height,
+    size: photo.size,
+    thumbPath: photo.thumbPath,
+    thumbhash: photo.thumbhash,
+  );
 }
 
 const _videoExtensions = {'.mp4', '.mov', '.m4v', '.3gp', '.webm', '.mkv'};
@@ -164,4 +173,25 @@ class AttachmentThumb extends StatelessWidget {
   if (state.editing != null) return (title: t.screenChat.editing, text: text.replaceAll('\n', ' '));
   final name = message.outgoing ? t.screenChat.you : (message.senderName.isNotEmpty ? message.senderName : state.chat?.title ?? '');
   return (title: name, text: text.replaceAll('\n', ' '));
+}
+
+/// Прокрутка ленты сообщений к строке с ключом [key] (поиск по чату). Лента
+/// строится лениво: если строки ещё нет, листаем к старым (offset растёт —
+/// список перевёрнут), потом к новым, пока она не построится; затем ставим её
+/// в середину экрана.
+Future<void> scrollToMessage(ScrollController scroll, GlobalKey key) async {
+  if (!scroll.hasClients) return;
+  for (final older in [true, false]) {
+    for (var i = 0; i < 60 && key.currentContext == null; i++) {
+      final position = scroll.position;
+      final step = position.viewportDimension * 0.8;
+      final target = (older ? position.pixels + step : position.pixels - step).clamp(0.0, position.maxScrollExtent);
+      if (target == position.pixels) break;
+      scroll.jumpTo(target);
+      await WidgetsBinding.instance.endOfFrame;
+    }
+  }
+  final context = key.currentContext;
+  if (context == null || !context.mounted) return;
+  await Scrollable.ensureVisible(context, alignment: 0.5, duration: const Duration(milliseconds: 250), curve: Curves.easeOutCubic);
 }

@@ -103,6 +103,12 @@
   "file": "@:screenChats.file"
   "voice": "@:screenChats.voice"
   "selected": "Выбрано: {n}"
+  "search": "Поиск"
+  "searchNoResults": "Нет результатов"
+  "uploadProgress": "{done} из {total}"
+  "kb": "КБ"
+  "mb": "МБ"
+  "gb": "ГБ"
   "mediaCounter": "{current} из {total}"
   "addCaption": "Добавить подпись…"
 

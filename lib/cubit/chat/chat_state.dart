@@ -23,5 +23,28 @@ class ChatState with ChatStateMappable {
   /// Редактируем это сообщение — поле ввода заполнено его текстом.
   final models.Message? editing;
 
-  const ChatState({this.status = Status.initialization, this.chat, this.messages = const [], this.reply, this.editing});
+  /// Поиск по чату (удержание шапки): строка поиска вместо шапки, внизу —
+  /// «N из M» и стрелки.
+  final bool searching;
+  final String searchQuery;
+
+  /// Найденные сообщения — id, от новых к старым.
+  final List<String> searchResults;
+
+  /// Текущее найденное — индекс в [searchResults].
+  final int searchIndex;
+
+  const ChatState({
+    this.status = Status.initialization,
+    this.chat,
+    this.messages = const [],
+    this.reply,
+    this.editing,
+    this.searching = false,
+    this.searchQuery = '',
+    this.searchResults = const [],
+    this.searchIndex = 0,
+  });
+
+  String? get searchCurrentID => searchResults.isEmpty ? null : searchResults[searchIndex.clamp(0, searchResults.length - 1)];
 }

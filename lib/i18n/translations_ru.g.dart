@@ -219,6 +219,12 @@ class _Translations$screenChat$ru extends Translations$screenChat$en {
 	@override String get file => _root.screenChats.file;
 	@override String get voice => _root.screenChats.voice;
 	@override String selected({required Object n}) => 'Выбрано: ${n}';
+	@override String get search => 'Поиск';
+	@override String get searchNoResults => 'Нет результатов';
+	@override String uploadProgress({required Object done, required Object total}) => '${done} из ${total}';
+	@override String get kb => 'КБ';
+	@override String get mb => 'МБ';
+	@override String get gb => 'ГБ';
 	@override String mediaCounter({required Object current, required Object total}) => '${current} из ${total}';
 	@override String get addCaption => 'Добавить подпись…';
 }
@@ -941,6 +947,12 @@ extension on TranslationsRu {
 			'screenChat.file' => _root.screenChats.file,
 			'screenChat.voice' => _root.screenChats.voice,
 			'screenChat.selected' => ({required Object n}) => 'Выбрано: ${n}',
+			'screenChat.search' => 'Поиск',
+			'screenChat.searchNoResults' => 'Нет результатов',
+			'screenChat.uploadProgress' => ({required Object done, required Object total}) => '${done} из ${total}',
+			'screenChat.kb' => 'КБ',
+			'screenChat.mb' => 'МБ',
+			'screenChat.gb' => 'ГБ',
 			'screenChat.mediaCounter' => ({required Object current, required Object total}) => '${current} из ${total}',
 			'screenChat.addCaption' => 'Добавить подпись…',
 			'screenSettings.settings' => 'Настройки',

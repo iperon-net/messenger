@@ -388,6 +388,24 @@ class Translations$screenChat$en {
 	/// en: 'Selected: {n}'
 	String selected({required Object n}) => 'Selected: ${n}';
 
+	/// en: 'Search'
+	String get search => 'Search';
+
+	/// en: 'No results'
+	String get searchNoResults => 'No results';
+
+	/// en: '{done} of {total}'
+	String uploadProgress({required Object done, required Object total}) => '${done} of ${total}';
+
+	/// en: 'KB'
+	String get kb => 'KB';
+
+	/// en: 'MB'
+	String get mb => 'MB';
+
+	/// en: 'GB'
+	String get gb => 'GB';
+
 	/// en: '{current} of {total}'
 	String mediaCounter({required Object current, required Object total}) => '${current} of ${total}';
 
@@ -1880,6 +1898,12 @@ extension on Translations {
 			'screenChat.file' => _root.screenChats.file,
 			'screenChat.voice' => _root.screenChats.voice,
 			'screenChat.selected' => ({required Object n}) => 'Selected: ${n}',
+			'screenChat.search' => 'Search',
+			'screenChat.searchNoResults' => 'No results',
+			'screenChat.uploadProgress' => ({required Object done, required Object total}) => '${done} of ${total}',
+			'screenChat.kb' => 'KB',
+			'screenChat.mb' => 'MB',
+			'screenChat.gb' => 'GB',
 			'screenChat.mediaCounter' => ({required Object current, required Object total}) => '${current} of ${total}',
 			'screenChat.addCaption' => 'Add a caption…',
 			'screenSettings.settings' => 'Settings',

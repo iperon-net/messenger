@@ -56,6 +56,34 @@ class ChatStateMapper extends ClassMapperBase<ChatState> {
     _$editing,
     opt: true,
   );
+  static bool _$searching(ChatState v) => v.searching;
+  static const Field<ChatState, bool> _f$searching = Field(
+    'searching',
+    _$searching,
+    opt: true,
+    def: false,
+  );
+  static String _$searchQuery(ChatState v) => v.searchQuery;
+  static const Field<ChatState, String> _f$searchQuery = Field(
+    'searchQuery',
+    _$searchQuery,
+    opt: true,
+    def: '',
+  );
+  static List<String> _$searchResults(ChatState v) => v.searchResults;
+  static const Field<ChatState, List<String>> _f$searchResults = Field(
+    'searchResults',
+    _$searchResults,
+    opt: true,
+    def: const [],
+  );
+  static int _$searchIndex(ChatState v) => v.searchIndex;
+  static const Field<ChatState, int> _f$searchIndex = Field(
+    'searchIndex',
+    _$searchIndex,
+    opt: true,
+    def: 0,
+  );
 
   @override
   final MappableFields<ChatState> fields = const {
@@ -64,6 +92,10 @@ class ChatStateMapper extends ClassMapperBase<ChatState> {
     #messages: _f$messages,
     #reply: _f$reply,
     #editing: _f$editing,
+    #searching: _f$searching,
+    #searchQuery: _f$searchQuery,
+    #searchResults: _f$searchResults,
+    #searchIndex: _f$searchIndex,
   };
 
   static ChatState _instantiate(DecodingData data) {
@@ -73,6 +105,10 @@ class ChatStateMapper extends ClassMapperBase<ChatState> {
       messages: data.dec(_f$messages),
       reply: data.dec(_f$reply),
       editing: data.dec(_f$editing),
+      searching: data.dec(_f$searching),
+      searchQuery: data.dec(_f$searchQuery),
+      searchResults: data.dec(_f$searchResults),
+      searchIndex: data.dec(_f$searchIndex),
     );
   }
 
@@ -144,12 +180,18 @@ abstract class ChatStateCopyWith<$R, $In extends ChatState, $Out>
   get messages;
   models.MessageCopyWith<$R, models.Message, models.Message>? get reply;
   models.MessageCopyWith<$R, models.Message, models.Message>? get editing;
+  ListCopyWith<$R, String, ObjectCopyWith<$R, String, String>>
+  get searchResults;
   $R call({
     Status? status,
     models.Chat? chat,
     List<models.Message>? messages,
     models.Message? reply,
     models.Message? editing,
+    bool? searching,
+    String? searchQuery,
+    List<String>? searchResults,
+    int? searchIndex,
   });
   ChatStateCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
@@ -183,12 +225,23 @@ class _ChatStateCopyWithImpl<$R, $Out>
   models.MessageCopyWith<$R, models.Message, models.Message>? get editing =>
       $value.editing?.copyWith.$chain((v) => call(editing: v));
   @override
+  ListCopyWith<$R, String, ObjectCopyWith<$R, String, String>>
+  get searchResults => ListCopyWith(
+    $value.searchResults,
+    (v, t) => ObjectCopyWith(v, $identity, t),
+    (v) => call(searchResults: v),
+  );
+  @override
   $R call({
     Status? status,
     Object? chat = $none,
     List<models.Message>? messages,
     Object? reply = $none,
     Object? editing = $none,
+    bool? searching,
+    String? searchQuery,
+    List<String>? searchResults,
+    int? searchIndex,
   }) => $apply(
     FieldCopyWithData({
       if (status != null) #status: status,
@@ -196,6 +249,10 @@ class _ChatStateCopyWithImpl<$R, $Out>
       if (messages != null) #messages: messages,
       if (reply != $none) #reply: reply,
       if (editing != $none) #editing: editing,
+      if (searching != null) #searching: searching,
+      if (searchQuery != null) #searchQuery: searchQuery,
+      if (searchResults != null) #searchResults: searchResults,
+      if (searchIndex != null) #searchIndex: searchIndex,
     }),
   );
   @override
@@ -205,6 +262,10 @@ class _ChatStateCopyWithImpl<$R, $Out>
     messages: data.get(#messages, or: $value.messages),
     reply: data.get(#reply, or: $value.reply),
     editing: data.get(#editing, or: $value.editing),
+    searching: data.get(#searching, or: $value.searching),
+    searchQuery: data.get(#searchQuery, or: $value.searchQuery),
+    searchResults: data.get(#searchResults, or: $value.searchResults),
+    searchIndex: data.get(#searchIndex, or: $value.searchIndex),
   );
 
   @override

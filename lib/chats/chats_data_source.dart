@@ -48,6 +48,10 @@ abstract class ChatsDataSource {
 
   Future<void> deleteMessage(String chatID, String messageID);
 
+  /// Отменить загрузку вложений (крестик на прогрессе) — сообщение удаляется,
+  /// так и не дойдя до собеседника.
+  Future<void> cancelUpload(String chatID, String messageID);
+
   /// Сохранить черновик поля ввода (показывается в списке чатов).
   Future<void> setDraft(String chatID, String draft);
 }

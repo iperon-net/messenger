@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
+import '../../chats/media_prepare.dart';
 import '../../extensions.dart';
 import '../../i18n/translations.g.dart';
 import '../../models.dart' as models;
@@ -15,8 +16,9 @@ class ChatMediaItem {
   final int index;
   final models.MessageKind kind;
   final String localPath;
+  final String thumbhash;
 
-  const ChatMediaItem({required this.message, required this.index, required this.kind, required this.localPath});
+  const ChatMediaItem({required this.message, required this.index, required this.kind, required this.localPath, this.thumbhash = ''});
 
   /// Общий тег Hero миниатюры в пузыре и страницы просмотрщика.
   Object get heroTag => chatMediaHeroTag(message, index);
@@ -25,9 +27,10 @@ class ChatMediaItem {
     for (final m in messages)
       if (!m.service)
         if (m.isAlbum)
-          for (final (i, media) in m.media.indexed) ChatMediaItem(message: m, index: i, kind: media.kind, localPath: media.localPath)
+          for (final (i, media) in m.media.indexed)
+            ChatMediaItem(message: m, index: i, kind: media.kind, localPath: media.localPath, thumbhash: media.thumbhash)
         else if (m.kind == models.MessageKind.photo || m.kind == models.MessageKind.video)
-          ChatMediaItem(message: m, index: 0, kind: m.kind, localPath: m.localPath),
+          ChatMediaItem(message: m, index: 0, kind: m.kind, localPath: m.localPath, thumbhash: m.media.firstOrNull?.thumbhash ?? ''),
   ];
 }
 
@@ -47,6 +50,31 @@ Widget chatMediaPlaceholder(String seed, {required bool video, double iconSize =
     alignment: Alignment.center,
     child: FaIcon(video ? FontAwesomeIcons.circlePlay : FontAwesomeIcons.image, size: iconSize, color: const Color(0xCCFFFFFF)),
   );
+}
+
+/// Фото из файла на всю площадь (cover); пока декодируется — размытое превью
+/// из ThumbHash (если есть).
+class ChatMediaImage extends StatelessWidget {
+  final String path;
+  final String thumbhash;
+  final int? cacheWidth;
+  final BoxFit fit;
+
+  const ChatMediaImage({super.key, required this.path, this.thumbhash = '', this.cacheWidth, this.fit = BoxFit.cover});
+
+  @override
+  Widget build(BuildContext context) {
+    final preview = thumbhashToBmp(thumbhash);
+    return Image.file(
+      File(path),
+      fit: fit,
+      cacheWidth: cacheWidth,
+      frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
+        if (frame != null || wasSynchronouslyLoaded || preview == null) return child;
+        return Image.memory(preview, fit: fit, gaplessPlayback: true);
+      },
+    );
+  }
 }
 
 /// Полноэкранный просмотр всех фото/видео чата ([messages]), начиная с
@@ -314,7 +342,7 @@ class _ZoomablePageState extends State<_ZoomablePage> with SingleTickerProviderS
     final item = widget.item;
     final video = item.kind == models.MessageKind.video;
     final Widget media = item.localPath.isNotEmpty && !video
-        ? Image.file(File(item.localPath), fit: BoxFit.contain)
+        ? ChatMediaImage(path: item.localPath, thumbhash: item.thumbhash, fit: BoxFit.contain)
         : AspectRatio(
             aspectRatio: 4 / 3,
             child: chatMediaPlaceholder('${item.message.id}-${item.index}', video: video, iconSize: 64),
