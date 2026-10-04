@@ -388,6 +388,9 @@ class Translations$screenChat$en {
 	/// en: 'Selected: {n}'
 	String selected({required Object n}) => 'Selected: ${n}';
 
+	/// en: '{current} of {total}'
+	String mediaCounter({required Object current, required Object total}) => '${current} of ${total}';
+
 	/// en: 'Add a caption…'
 	String get addCaption => 'Add a caption…';
 }
@@ -1877,6 +1880,7 @@ extension on Translations {
 			'screenChat.file' => _root.screenChats.file,
 			'screenChat.voice' => _root.screenChats.voice,
 			'screenChat.selected' => ({required Object n}) => 'Selected: ${n}',
+			'screenChat.mediaCounter' => ({required Object current, required Object total}) => '${current} of ${total}',
 			'screenChat.addCaption' => 'Add a caption…',
 			'screenSettings.settings' => 'Settings',
 			'screenSettings.myProfile' => 'My profile',

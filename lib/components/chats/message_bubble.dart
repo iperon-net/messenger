@@ -9,6 +9,7 @@ import 'package:intl/intl.dart';
 import '../../extensions.dart';
 import '../../i18n/translations.g.dart';
 import '../../models.dart' as models;
+import 'media_viewer.dart';
 import 'message_text.dart';
 
 /// Платформенное оформление окна чата (см. `chat_cupertino.dart` /
@@ -61,6 +62,9 @@ class ChatMessagesView extends StatelessWidget {
   final models.ChatType chatType;
   final MessageBubbleStyle style;
   final ValueChanged<models.Message> onLongPress;
+
+  /// Тап по фото/видео ([index] — элемент альбома).
+  final void Function(models.Message message, int index)? onMediaTap;
   final EdgeInsets padding;
   final ScrollController? controller;
 
@@ -70,6 +74,7 @@ class ChatMessagesView extends StatelessWidget {
     required this.chatType,
     required this.style,
     required this.onLongPress,
+    this.onMediaTap,
     this.padding = EdgeInsets.zero,
     this.controller,
   });
@@ -114,6 +119,7 @@ class ChatMessagesView extends StatelessWidget {
               showSender: group && !m.outgoing && !groupedWithOlder,
               avatar: group && !m.outgoing ? (groupedWithNewer ? const SizedBox(width: 34) : _SenderAvatar(name: m.senderName)) : null,
               onLongPress: () => onLongPress(m),
+              onMediaTap: onMediaTap == null ? null : (index) => onMediaTap!(m, index),
             ),
           ),
         );
@@ -194,6 +200,9 @@ class MessageBubble extends StatelessWidget {
   final Widget? avatar;
   final VoidCallback onLongPress;
 
+  /// Тап по фото/видео ([index] — элемент альбома).
+  final ValueChanged<int>? onMediaTap;
+
   const MessageBubble({
     super.key,
     required this.message,
@@ -201,6 +210,7 @@ class MessageBubble extends StatelessWidget {
     required this.tail,
     required this.showSender,
     required this.onLongPress,
+    this.onMediaTap,
     this.avatar,
   });
 
@@ -243,8 +253,8 @@ class MessageBubble extends StatelessWidget {
     final trailing = '  $metaText${out ? '     ' : ''}';
 
     final media = switch (m.kind) {
-      _ when m.isAlbum => _AlbumGrid(message: m),
-      models.MessageKind.photo || models.MessageKind.video => _MediaPreview(message: m),
+      _ when m.isAlbum => _AlbumGrid(message: m, onTap: onMediaTap),
+      models.MessageKind.photo || models.MessageKind.video => _MediaPreview(message: m, onTap: onMediaTap),
       models.MessageKind.file => _FileRow(message: m, colors: colors, iconColor: iconColor, metaStyle: metaStyle),
       models.MessageKind.voice => _VoiceRow(message: m, colors: colors, iconColor: iconColor, metaStyle: metaStyle),
       models.MessageKind.text => null,
@@ -387,10 +397,18 @@ String messageKindLabel(Translations t, models.MessageKind kind) => switch (kind
 };
 
 /// Фото/видео: выбранный файл или (в демо-истории) цветная заглушка.
+/// Миниатюра в пузыре: Hero для перехода в полноэкранный просмотр + тап.
+Widget _tappableMedia(models.Message message, int index, ValueChanged<int>? onTap, Widget child) {
+  final hero = Hero(tag: chatMediaHeroTag(message, index), child: child);
+  if (onTap == null) return hero;
+  return GestureDetector(onTap: () => onTap(index), child: hero);
+}
+
 class _MediaPreview extends StatelessWidget {
   final models.Message message;
+  final ValueChanged<int>? onTap;
 
-  const _MediaPreview({required this.message});
+  const _MediaPreview({required this.message, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -399,34 +417,19 @@ class _MediaPreview extends StatelessWidget {
     if (message.localPath.isNotEmpty && !video) {
       image = Image.file(File(message.localPath), fit: BoxFit.cover, width: 260, height: 260, cacheWidth: 780);
     } else {
-      image = SizedBox(width: 260, height: 190, child: _mediaPlaceholder(message.id, video: video));
+      image = SizedBox(width: 260, height: 190, child: chatMediaPlaceholder('${message.id}-0', video: video));
     }
-    return ClipRRect(borderRadius: BorderRadius.circular(14), child: image);
+    return ClipRRect(borderRadius: BorderRadius.circular(14), child: _tappableMedia(message, 0, onTap, image));
   }
-}
-
-/// Заглушка медиа без локального файла (демо): градиент по id + значок.
-Widget _mediaPlaceholder(String seed, {required bool video, double iconSize = 40}) {
-  final hue = (seed.hashCode.abs() % 360).toDouble();
-  return Container(
-    decoration: BoxDecoration(
-      gradient: LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-        colors: [HSVColor.fromAHSV(1, hue, 0.45, 0.85).toColor(), HSVColor.fromAHSV(1, (hue + 50) % 360, 0.55, 0.65).toColor()],
-      ),
-    ),
-    alignment: Alignment.center,
-    child: FaIcon(video ? FontAwesomeIcons.circlePlay : FontAwesomeIcons.image, size: iconSize, color: const Color(0xCCFFFFFF)),
-  );
 }
 
 /// Альбом: фото/видео сеткой как в Telegram — ряды по 1–3 плитки, у первого
 /// ряда крупнее; углы скруглены только снаружи.
 class _AlbumGrid extends StatelessWidget {
   final models.Message message;
+  final ValueChanged<int>? onTap;
 
-  const _AlbumGrid({required this.message});
+  const _AlbumGrid({required this.message, this.onTap});
 
   static const _width = 260.0;
   static const _gap = 2.0;
@@ -487,10 +490,10 @@ class _AlbumGrid extends StatelessWidget {
 
   Widget _tile(models.MessageMedia item, int index) {
     final video = item.kind == models.MessageKind.video;
-    if (item.localPath.isEmpty || video) {
-      return _mediaPlaceholder('${message.id}-$index', video: video, iconSize: 26);
-    }
-    return Image.file(File(item.localPath), fit: BoxFit.cover, cacheWidth: 520);
+    final Widget child = item.localPath.isEmpty || video
+        ? chatMediaPlaceholder('${message.id}-$index', video: video, iconSize: 26)
+        : Image.file(File(item.localPath), fit: BoxFit.cover, cacheWidth: 520);
+    return _tappableMedia(message, index, onTap, child);
   }
 }
 

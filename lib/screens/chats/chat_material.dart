@@ -136,6 +136,13 @@ class _ChatMaterialState extends State<ChatMaterial> {
                                   style: ChatMaterial.bubbleStyle(context),
                                   padding: const EdgeInsets.symmetric(vertical: 8),
                                   onLongPress: (message) => _actions(context, chat, message),
+                                  onMediaTap: (message, index) => showChatMediaViewer(
+                                    context,
+                                    messages: state.messages,
+                                    message: message,
+                                    index: index,
+                                    chatTitle: chat.title,
+                                  ),
                                 ),
                         ],
                       ),

@@ -99,6 +99,7 @@
   "file": "@:screenChats.file"
   "voice": "@:screenChats.voice"
   "selected": "Selected: {n}"
+  "mediaCounter": "{current} of {total}"
   "addCaption": "Add a caption…"
 
 "screenSettings":

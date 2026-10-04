@@ -103,6 +103,7 @@
   "file": "@:screenChats.file"
   "voice": "@:screenChats.voice"
   "selected": "Выбрано: {n}"
+  "mediaCounter": "{current} из {total}"
   "addCaption": "Добавить подпись…"
 
 "screenSettings":
