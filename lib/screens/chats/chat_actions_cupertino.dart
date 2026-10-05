@@ -60,7 +60,9 @@ class ChatContextMenuCupertino extends StatelessWidget {
             chat.archived ? CupertinoIcons.tray_arrow_up : CupertinoIcons.archivebox,
             () => cubit.setArchived(chat, !chat.archived),
           ),
-        action(t.delete, CupertinoIcons.delete, () => _confirmDelete(context, cubit), destructive: true),
+        action(t.delete, CupertinoIcons.delete, () async {
+          if (await confirmDeleteChatCupertino(context, chat)) await cubit.delete(chat);
+        }, destructive: true),
       ],
       builder: (context, animation) {
         // До animationOpensAt — «нажатие» (строка как в списке), после —
@@ -95,22 +97,23 @@ class ChatContextMenuCupertino extends StatelessWidget {
       },
     );
   }
+}
 
-  Future<void> _confirmDelete(BuildContext context, ChatsCubit cubit) async {
-    final t = context.t.screenChats;
-    final confirmed = await showCupertinoDialog<bool>(
-      context: context,
-      builder: (dialogContext) => CupertinoAlertDialog(
-        title: Text(t.deleteChatTitle),
-        content: Text(t.deleteChatMessage(title: ChatTileContent.title(context.t, chat))),
-        actions: [
-          CupertinoDialogAction(onPressed: () => Navigator.of(dialogContext).pop(false), child: Text(context.t.common.cancel)),
-          CupertinoDialogAction(isDestructiveAction: true, onPressed: () => Navigator.of(dialogContext).pop(true), child: Text(t.delete)),
-        ],
-      ),
-    );
-    if (confirmed ?? false) await cubit.delete(chat);
-  }
+/// «Удалить чат?» — `true`, если подтвердили.
+Future<bool> confirmDeleteChatCupertino(BuildContext context, models.Chat chat) async {
+  final t = context.t.screenChats;
+  final confirmed = await showCupertinoDialog<bool>(
+    context: context,
+    builder: (dialogContext) => CupertinoAlertDialog(
+      title: Text(t.deleteChatTitle),
+      content: Text(t.deleteChatMessage(title: ChatTileContent.title(context.t, chat))),
+      actions: [
+        CupertinoDialogAction(onPressed: () => Navigator.of(dialogContext).pop(false), child: Text(context.t.common.cancel)),
+        CupertinoDialogAction(isDestructiveAction: true, onPressed: () => Navigator.of(dialogContext).pop(true), child: Text(t.delete)),
+      ],
+    ),
+  );
+  return confirmed ?? false;
 }
 
 /// Действия меню папки по удержанию таба (`CupertinoContextMenu` в

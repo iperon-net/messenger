@@ -23,6 +23,10 @@ class ChatState with ChatStateMappable {
   /// Редактируем это сообщение — поле ввода заполнено его текстом.
   final models.Message? editing;
 
+  /// Первое непрочитанное на момент открытия чата — над ним разделитель
+  /// «Непрочитанные сообщения», к нему лента прокручивается при открытии.
+  final String? unreadFromID;
+
   /// Поиск по чату (удержание шапки): строка поиска вместо шапки, внизу —
   /// «N из M» и стрелки.
   final bool searching;
@@ -40,6 +44,7 @@ class ChatState with ChatStateMappable {
     this.messages = const [],
     this.reply,
     this.editing,
+    this.unreadFromID,
     this.searching = false,
     this.searchQuery = '',
     this.searchResults = const [],

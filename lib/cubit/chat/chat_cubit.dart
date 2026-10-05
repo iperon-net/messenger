@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:bloc/bloc.dart';
 
@@ -21,6 +22,10 @@ class ChatCubit extends Cubit<ChatState> {
   StreamSubscription<List<models.Chat>>? _chatsSubscription;
   StreamSubscription<List<models.Message>>? _messagesSubscription;
 
+  /// Непрочитанных при открытии (до `setRead`) и поставлен ли уже разделитель.
+  int? _openUnread;
+  bool _unreadPlaced = false;
+
   /// [demo] — флаг «Демо чатов» из `settingsDevice`.
   void initialization({required String chatID, required bool demo}) {
     _chatID = chatID;
@@ -33,17 +38,35 @@ class ChatCubit extends Cubit<ChatState> {
     _chatsSubscription = source.watchChats().listen((chats) {
       if (isClosed) return;
       final chat = chats.where((c) => c.id == chatID).firstOrNull;
+      _openUnread ??= chat?.unreadCount;
       // Чат открыт — всё входящее сразу прочитано.
       if (chat != null && chat.hasUnread) source.setRead(chatID, true);
       emit(state.copyWith(chat: chat, status: Status.success));
+      _placeUnread();
     });
     _messagesSubscription = source.watchMessages(chatID).listen((messages) {
       if (isClosed) return;
       emit(state.copyWith(messages: messages));
+      _placeUnread();
       // Пришло/удалилось сообщение во время поиска — пересчитываем, оставаясь
       // на текущем найденном.
       if (state.searching) _search(state.searchQuery, keepID: state.searchCurrentID);
     });
+  }
+
+  /// Разделитель «Непрочитанные сообщения» — один раз, когда известны и
+  /// счётчик непрочитанных, и история: над N-м с конца входящим.
+  void _placeUnread() {
+    final unread = _openUnread;
+    if (_unreadPlaced || unread == null || state.messages.isEmpty) return;
+    _unreadPlaced = true;
+    if (unread <= 0) return;
+    final incoming = [
+      for (final m in state.messages)
+        if (!m.outgoing && !m.service) m,
+    ];
+    if (incoming.isEmpty) return;
+    emit(state.copyWith(unreadFromID: incoming[math.max(0, incoming.length - unread)].id));
   }
 
   /// Отправить текст из поля ввода (markdown-ярлыки → entities). В режиме

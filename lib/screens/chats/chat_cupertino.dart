@@ -64,6 +64,8 @@ class _ChatCupertinoState extends State<ChatCupertino> {
   /// Ключи строк ленты — для прокрутки к найденному (поиск по чату).
   final _messageKeys = <String, GlobalKey>{};
   late final ChatCubit _cubit;
+  late final _tracker = ChatScrollTracker(_scroll, _keyFor);
+  String? _flashID;
   bool _draftLoaded = false;
   String? _editingID;
 
@@ -71,6 +73,12 @@ class _ChatCupertinoState extends State<ChatCupertino> {
   void initState() {
     super.initState();
     _cubit = context.read<ChatCubit>();
+    // Подсветка после перехода по цитате — перестроить ленту.
+    _tracker.addListener(() {
+      if (_flashID != _tracker.flashID && mounted) setState(() => _flashID = _tracker.flashID);
+    });
+    // Сообщения могли прийти до подписки слушателя.
+    _tracker.update(_cubit.state.messages, _cubit.state.unreadFromID);
   }
 
   @override
@@ -78,6 +86,7 @@ class _ChatCupertinoState extends State<ChatCupertino> {
     _cubit.saveDraft(_input.text);
     _input.dispose();
     _focus.dispose();
+    _tracker.dispose();
     _scroll.dispose();
     _searchInput.dispose();
     super.dispose();
@@ -89,6 +98,12 @@ class _ChatCupertinoState extends State<ChatCupertino> {
     _focus.unfocus();
     _searchInput.clear();
     _cubit.startSearch();
+  }
+
+  /// Свайп сообщения влево — ответить.
+  void _swipeReply(models.Message message) {
+    _cubit.startReply(message);
+    _focus.requestFocus();
   }
 
   GlobalKey _keyFor(String messageID) => _messageKeys.putIfAbsent(messageID, GlobalKey.new);
@@ -103,160 +118,179 @@ class _ChatCupertinoState extends State<ChatCupertino> {
   @override
   Widget build(BuildContext context) {
     final t = context.t;
-    return BlocConsumer<ChatCubit, ChatState>(
-      listenWhen: (previous, current) =>
-          previous.editing != current.editing ||
-          previous.chat == null && current.chat != null ||
-          previous.searchCurrentID != current.searchCurrentID,
-      listener: (context, state) {
-        if (state.editing == null) _editingID = null;
-        // Поиск: к текущему найденному.
-        final found = state.searchCurrentID;
-        if (found != null) scrollToMessage(_scroll, _keyFor(found));
-        // Черновик из списка — один раз при открытии.
-        if (!_draftLoaded && state.chat != null) {
-          _draftLoaded = true;
-          if (_input.text.isEmpty && state.chat!.draft.isNotEmpty) _input.text = state.chat!.draft;
-        }
-        final editing = state.editing;
-        // Только при смене редактируемого (слушатель срабатывает и на поиск).
-        if (editing != null && editing.id != _editingID) {
-          _editingID = editing.id;
-          _input.text = toMarkdownShortcuts(editing.text, editing.entities);
-          _focus.requestFocus();
-        }
-      },
-      builder: (context, state) {
-        final chat = state.chat;
-        final background = CupertinoTheme.brightnessOf(context) == Brightness.dark
-            ? const Color(0xFF000000)
-            : CupertinoColors.systemGroupedBackground.resolveFrom(context);
-        final barColor = ThemesCupertino.appBackground.resolveFrom(context).withValues(alpha: 0.92);
-        return PopScope(
-          // «Назад» в режиме поиска закрывает поиск, а не чат.
-          canPop: !state.searching,
-          onPopInvokedWithResult: (didPop, _) {
-            if (!didPop) _cubit.closeSearch();
-          },
-          child: CupertinoPageScaffold(
-            backgroundColor: background,
-            navigationBar: state.searching
-                ? CupertinoNavigationBar(
-                    automaticallyImplyLeading: false,
-                    automaticBackgroundVisibility: false,
-                    backgroundColor: barColor,
-                    middle: CupertinoSearchTextField(
-                      controller: _searchInput,
-                      autofocus: true,
-                      placeholder: t.screenChat.search,
-                      onChanged: _cubit.setSearchQuery,
+    return BlocListener<ChatCubit, ChatState>(
+      // Новые сообщения / разделитель непрочитанных — в навигацию по ленте.
+      listenWhen: (previous, current) => previous.messages != current.messages || previous.unreadFromID != current.unreadFromID,
+      listener: (context, state) => _tracker.update(state.messages, state.unreadFromID),
+      child: BlocConsumer<ChatCubit, ChatState>(
+        listenWhen: (previous, current) =>
+            previous.editing != current.editing ||
+            previous.chat == null && current.chat != null ||
+            previous.searchCurrentID != current.searchCurrentID,
+        listener: (context, state) {
+          if (state.editing == null) _editingID = null;
+          // Поиск: к текущему найденному.
+          final found = state.searchCurrentID;
+          if (found != null) scrollToMessage(_scroll, _keyFor(found));
+          // Черновик из списка — один раз при открытии.
+          if (!_draftLoaded && state.chat != null) {
+            _draftLoaded = true;
+            if (_input.text.isEmpty && state.chat!.draft.isNotEmpty) _input.text = state.chat!.draft;
+          }
+          final editing = state.editing;
+          // Только при смене редактируемого (слушатель срабатывает и на поиск).
+          if (editing != null && editing.id != _editingID) {
+            _editingID = editing.id;
+            _input.text = toMarkdownShortcuts(editing.text, editing.entities);
+            _focus.requestFocus();
+          }
+        },
+        builder: (context, state) {
+          final chat = state.chat;
+          final background = CupertinoTheme.brightnessOf(context) == Brightness.dark
+              ? const Color(0xFF000000)
+              : CupertinoColors.systemGroupedBackground.resolveFrom(context);
+          final barColor = ThemesCupertino.appBackground.resolveFrom(context).withValues(alpha: 0.92);
+          return PopScope(
+            // «Назад» в режиме поиска закрывает поиск, а не чат.
+            canPop: !state.searching,
+            onPopInvokedWithResult: (didPop, _) {
+              if (!didPop) _cubit.closeSearch();
+            },
+            child: CupertinoPageScaffold(
+              backgroundColor: background,
+              navigationBar: state.searching
+                  ? CupertinoNavigationBar(
+                      automaticallyImplyLeading: false,
+                      automaticBackgroundVisibility: false,
+                      backgroundColor: barColor,
+                      middle: CupertinoSearchTextField(
+                        controller: _searchInput,
+                        autofocus: true,
+                        placeholder: t.screenChat.search,
+                        onChanged: _cubit.setSearchQuery,
+                      ),
+                      trailing: CupertinoButton(
+                        padding: const EdgeInsets.only(left: 8),
+                        minimumSize: Size.zero,
+                        onPressed: _cubit.closeSearch,
+                        child: Text(t.common.cancel),
+                      ),
+                    )
+                  : CupertinoNavigationBar(
+                      previousPageTitle: '',
+                      // Фон панели всегда (без автоскрытия у края ленты): иначе у верха
+                      // истории панель становилась прозрачной и под ней была чёрная полоса.
+                      automaticBackgroundVisibility: false,
+                      backgroundColor: barColor,
+                      middle: chat == null
+                          ? null
+                          : GestureDetector(
+                              onLongPress: _startSearch,
+                              child: _Header(chat: chat),
+                            ),
+                      trailing: chat == null
+                          ? null
+                          : GestureDetector(
+                              onLongPress: _startSearch,
+                              child: ChatAvatar(chat: chat, size: 36, accentColor: CupertinoTheme.of(context).primaryColor),
+                            ),
                     ),
-                    trailing: CupertinoButton(
-                      padding: const EdgeInsets.only(left: 8),
-                      minimumSize: Size.zero,
-                      onPressed: _cubit.closeSearch,
-                      child: Text(t.common.cancel),
-                    ),
-                  )
-                : CupertinoNavigationBar(
-                    previousPageTitle: '',
-                    // Фон панели всегда (без автоскрытия у края ленты): иначе у верха
-                    // истории панель становилась прозрачной и под ней была чёрная полоса.
-                    automaticBackgroundVisibility: false,
-                    backgroundColor: barColor,
-                    middle: chat == null
-                        ? null
-                        : GestureDetector(
-                            onLongPress: _startSearch,
-                            child: _Header(chat: chat),
-                          ),
-                    trailing: chat == null
-                        ? null
-                        : GestureDetector(
-                            onLongPress: _startSearch,
-                            child: ChatAvatar(chat: chat, size: 36, accentColor: CupertinoTheme.of(context).primaryColor),
-                          ),
-                  ),
-            // Обои из «Тем для чатов» (Настройки → Оформление) — на весь экран,
-            // в том числе под полупрозрачной панелью навигации (как в Telegram).
-            child: Stack(
-              children: [
-                if (chat != null)
-                  Positioned.fill(
-                    child: BlocBuilder<CommonCubit, CommonState>(
-                      buildWhen: (previous, current) =>
-                          previous.settingsDevice.chatWallpaper != current.settingsDevice.chatWallpaper ||
-                          previous.settingsDevice.chatWallpaperColor != current.settingsDevice.chatWallpaperColor ||
-                          previous.settingsDevice.chatWallpaperIntensity != current.settingsDevice.chatWallpaperIntensity,
-                      builder: (context, common) => ChatWallpaper(
-                        pattern: common.settingsDevice.chatWallpaper,
-                        colorIndex: common.settingsDevice.chatWallpaperColor,
-                        intensity: common.settingsDevice.chatWallpaperIntensity,
-                        dark: CupertinoTheme.brightnessOf(context) == Brightness.dark,
+              // Обои из «Тем для чатов» (Настройки → Оформление) — на весь экран,
+              // в том числе под полупрозрачной панелью навигации (как в Telegram).
+              child: Stack(
+                children: [
+                  if (chat != null)
+                    Positioned.fill(
+                      child: BlocBuilder<CommonCubit, CommonState>(
+                        buildWhen: (previous, current) =>
+                            previous.settingsDevice.chatWallpaper != current.settingsDevice.chatWallpaper ||
+                            previous.settingsDevice.chatWallpaperColor != current.settingsDevice.chatWallpaperColor ||
+                            previous.settingsDevice.chatWallpaperIntensity != current.settingsDevice.chatWallpaperIntensity,
+                        builder: (context, common) => ChatWallpaper(
+                          pattern: common.settingsDevice.chatWallpaper,
+                          colorIndex: common.settingsDevice.chatWallpaperColor,
+                          intensity: common.settingsDevice.chatWallpaperIntensity,
+                          dark: CupertinoTheme.brightnessOf(context) == Brightness.dark,
+                        ),
                       ),
                     ),
-                  ),
-                SafeArea(
-                  bottom: false,
-                  child: chat == null
-                      ? Center(
-                          child: Text(
-                            state.status == Status.success ? t.screenChat.notFound : '',
-                            style: TextStyle(color: CupertinoColors.secondaryLabel.resolveFrom(context)),
-                          ),
-                        )
-                      : Column(
-                          children: [
-                            Expanded(
-                              child: Stack(
-                                children: [
-                                  state.messages.isEmpty
-                                      ? Center(
-                                          child: Text(
-                                            t.screenChat.empty,
-                                            style: TextStyle(color: CupertinoColors.secondaryLabel.resolveFrom(context)),
-                                          ),
-                                        )
-                                      : ChatMessagesView(
-                                          messages: state.messages,
-                                          chatType: chat.type,
-                                          style: ChatCupertino.bubbleStyle(context),
-                                          padding: const EdgeInsets.symmetric(vertical: 8),
-                                          // Удержание — CupertinoContextMenu (menuWrapper), не action sheet.
-                                          onLongPress: (_) {},
-                                          menuWrapper: (message, bubble, preview) => _menu(context, chat, message, bubble, preview),
-                                          controller: _scroll,
-                                          keyFor: _keyFor,
-                                          onCancelUpload: _cubit.cancelUpload,
-                                          onReaction: _cubit.toggleReaction,
-                                          onDoubleTap: _cubit.quickReact,
-                                          highlight: state.searching ? state.searchQuery : '',
-                                          focusedID: state.searchCurrentID,
-                                          onMediaTap: (message, index) => showChatMediaViewer(
-                                            context,
-                                            messages: state.messages,
-                                            message: message,
-                                            index: index,
-                                            chatTitle: chat.title,
-                                          ),
-                                        ),
-                                ],
-                              ),
+                  SafeArea(
+                    bottom: false,
+                    child: chat == null
+                        ? Center(
+                            child: Text(
+                              state.status == Status.success ? t.screenChat.notFound : '',
+                              style: TextStyle(color: CupertinoColors.secondaryLabel.resolveFrom(context)),
                             ),
-                            if (state.searching)
-                              _SearchBar(state: state)
-                            else if (chat.type == models.ChatType.channel)
-                              _ChannelBar(chat: chat)
-                            else
-                              _ComposeBar(input: _input, focus: _focus, state: state, onSend: _send),
-                          ],
-                        ),
-                ),
-              ],
+                          )
+                        : Column(
+                            children: [
+                              Expanded(
+                                child: Stack(
+                                  children: [
+                                    state.messages.isEmpty
+                                        ? Center(
+                                            child: Text(
+                                              t.screenChat.empty,
+                                              style: TextStyle(color: CupertinoColors.secondaryLabel.resolveFrom(context)),
+                                            ),
+                                          )
+                                        : ChatMessagesView(
+                                            messages: state.messages,
+                                            chatType: chat.type,
+                                            style: ChatCupertino.bubbleStyle(context),
+                                            padding: const EdgeInsets.symmetric(vertical: 8),
+                                            // Удержание — CupertinoContextMenu (menuWrapper), не action sheet.
+                                            onLongPress: (_) {},
+                                            menuWrapper: (message, bubble, preview) => _menu(context, chat, message, bubble, preview),
+                                            controller: _scroll,
+                                            keyFor: _keyFor,
+                                            onCancelUpload: _cubit.cancelUpload,
+                                            onReaction: _cubit.toggleReaction,
+                                            onDoubleTap: _cubit.quickReact,
+                                            onReplyTap: _tracker.jumpToReply,
+                                            unreadFromID: state.unreadFromID,
+                                            flashID: _flashID,
+                                            onReply: chat.type == models.ChatType.channel || state.searching ? null : _swipeReply,
+                                            highlight: state.searching ? state.searchQuery : '',
+                                            focusedID: state.searchCurrentID,
+                                            onMediaTap: (message, index) => showChatMediaViewer(
+                                              context,
+                                              messages: state.messages,
+                                              message: message,
+                                              index: index,
+                                              chatTitle: chat.title,
+                                            ),
+                                          ),
+                                    Positioned(
+                                      right: 10,
+                                      bottom: 10,
+                                      child: ChatScrollDownButton(
+                                        tracker: _tracker,
+                                        background: ThemesCupertino.appBackground.resolveFrom(context).withValues(alpha: 0.92),
+                                        iconColor: CupertinoColors.secondaryLabel.resolveFrom(context),
+                                        badgeColor: CupertinoTheme.of(context).primaryColor,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              if (state.searching)
+                                _SearchBar(state: state)
+                              else if (chat.type == models.ChatType.channel)
+                                _ChannelBar(chat: chat)
+                              else
+                                _ComposeBar(input: _input, focus: _focus, state: state, onSend: _send),
+                            ],
+                          ),
+                  ),
+                ],
+              ),
             ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 
@@ -352,7 +386,22 @@ class _MessageContextMenuState extends State<_MessageContextMenu> {
       builder: (context, animation) {
         final width = _width;
         if (animation.value < CupertinoContextMenu.animationOpensAt || width == null) {
-          return _SizeReporter(onSize: (size) => _width = size.width, child: widget.bubble);
+          // Пока меню закрывается, пузырь зажат в свой прежний размер; если за
+          // это время он вырос (поставили реакцию из меню — добавилась строка
+          // реакций), без OverflowBox — «RenderFlex overflowed». В ленте
+          // (высота не ограничена) размер — по пузырю.
+          return _SizeReporter(
+            onSize: (size) => _width = size.width,
+            child: ClipRect(
+              child: OverflowBox(
+                minHeight: 0,
+                maxHeight: double.infinity,
+                alignment: Alignment.topCenter,
+                fit: OverflowBoxFit.deferToChild,
+                child: widget.bubble,
+              ),
+            ),
+          );
         }
         return FittedBox(fit: BoxFit.scaleDown, child: widget.preview(width));
       },

@@ -67,6 +67,12 @@ Future<void> showChatActionsMaterial(BuildContext context, models.Chat chat) asy
   );
 
   if (delete != true || !context.mounted) return;
+  if (await confirmDeleteChatMaterial(context, chat)) await cubit.delete(chat);
+}
+
+/// «Удалить чат?» — `true`, если подтвердили.
+Future<bool> confirmDeleteChatMaterial(BuildContext context, models.Chat chat) async {
+  final t = context.t.screenChats;
   final confirmed = await showDialog<bool>(
     context: context,
     builder: (dialogContext) => AlertDialog(
@@ -78,7 +84,7 @@ Future<void> showChatActionsMaterial(BuildContext context, models.Chat chat) asy
       ],
     ),
   );
-  if (confirmed ?? false) await cubit.delete(chat);
+  return confirmed ?? false;
 }
 
 /// Действия над папкой по long-press на табе: «Прочитать все», «Удалить папку»

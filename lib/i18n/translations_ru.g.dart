@@ -168,6 +168,12 @@ class _Translations$screenChats$ru extends Translations$screenChats$en {
 	@override String get toArchive => 'В архив';
 	@override String get fromArchive => 'Из архива';
 	@override String get delete => 'Удалить';
+	@override String get swipeRead => 'Прочитано';
+	@override String get swipeUnread => 'Непрочитано';
+	@override String get swipeMute => 'Выкл. звук';
+	@override String get swipeUnmute => 'Вкл. звук';
+	@override String get swipeArchive => 'Архив';
+	@override String get swipeUnarchive => 'Вернуть';
 	@override String get deleteChatTitle => 'Удалить чат?';
 	@override String deleteChatMessage({required Object title}) => 'Чат «${title}» будет удалён из списка.';
 	@override String get readAll => 'Прочитать все';
@@ -221,6 +227,7 @@ class _Translations$screenChat$ru extends Translations$screenChat$en {
 	@override String selected({required Object n}) => 'Выбрано: ${n}';
 	@override String get search => 'Поиск';
 	@override String get searchNoResults => 'Нет результатов';
+	@override String get unreadMessages => 'Непрочитанные сообщения';
 	@override String uploadProgress({required Object done, required Object total}) => '${done} из ${total}';
 	@override String get kb => 'КБ';
 	@override String get mb => 'МБ';
@@ -915,6 +922,12 @@ extension on TranslationsRu {
 			'screenChats.toArchive' => 'В архив',
 			'screenChats.fromArchive' => 'Из архива',
 			'screenChats.delete' => 'Удалить',
+			'screenChats.swipeRead' => 'Прочитано',
+			'screenChats.swipeUnread' => 'Непрочитано',
+			'screenChats.swipeMute' => 'Выкл. звук',
+			'screenChats.swipeUnmute' => 'Вкл. звук',
+			'screenChats.swipeArchive' => 'Архив',
+			'screenChats.swipeUnarchive' => 'Вернуть',
 			'screenChats.deleteChatTitle' => 'Удалить чат?',
 			'screenChats.deleteChatMessage' => ({required Object title}) => 'Чат «${title}» будет удалён из списка.',
 			'screenChats.readAll' => 'Прочитать все',
@@ -949,6 +962,7 @@ extension on TranslationsRu {
 			'screenChat.selected' => ({required Object n}) => 'Выбрано: ${n}',
 			'screenChat.search' => 'Поиск',
 			'screenChat.searchNoResults' => 'Нет результатов',
+			'screenChat.unreadMessages' => 'Непрочитанные сообщения',
 			'screenChat.uploadProgress' => ({required Object done, required Object total}) => '${done} из ${total}',
 			'screenChat.kb' => 'КБ',
 			'screenChat.mb' => 'МБ',

@@ -277,6 +277,24 @@ class Translations$screenChats$en {
 	/// en: 'Delete'
 	String get delete => 'Delete';
 
+	/// en: 'Read'
+	String get swipeRead => 'Read';
+
+	/// en: 'Unread'
+	String get swipeUnread => 'Unread';
+
+	/// en: 'Mute'
+	String get swipeMute => 'Mute';
+
+	/// en: 'Unmute'
+	String get swipeUnmute => 'Unmute';
+
+	/// en: 'Archive'
+	String get swipeArchive => 'Archive';
+
+	/// en: 'Unarchive'
+	String get swipeUnarchive => 'Unarchive';
+
 	/// en: 'Delete chat?'
 	String get deleteChatTitle => 'Delete chat?';
 
@@ -393,6 +411,9 @@ class Translations$screenChat$en {
 
 	/// en: 'No results'
 	String get searchNoResults => 'No results';
+
+	/// en: 'Unread messages'
+	String get unreadMessages => 'Unread messages';
 
 	/// en: '{done} of {total}'
 	String uploadProgress({required Object done, required Object total}) => '${done} of ${total}';
@@ -1866,6 +1887,12 @@ extension on Translations {
 			'screenChats.toArchive' => 'Archive',
 			'screenChats.fromArchive' => 'Unarchive',
 			'screenChats.delete' => 'Delete',
+			'screenChats.swipeRead' => 'Read',
+			'screenChats.swipeUnread' => 'Unread',
+			'screenChats.swipeMute' => 'Mute',
+			'screenChats.swipeUnmute' => 'Unmute',
+			'screenChats.swipeArchive' => 'Archive',
+			'screenChats.swipeUnarchive' => 'Unarchive',
 			'screenChats.deleteChatTitle' => 'Delete chat?',
 			'screenChats.deleteChatMessage' => ({required Object title}) => 'Chat "${title}" will be removed from the list.',
 			'screenChats.readAll' => 'Read all',
@@ -1900,6 +1927,7 @@ extension on Translations {
 			'screenChat.selected' => ({required Object n}) => 'Selected: ${n}',
 			'screenChat.search' => 'Search',
 			'screenChat.searchNoResults' => 'No results',
+			'screenChat.unreadMessages' => 'Unread messages',
 			'screenChat.uploadProgress' => ({required Object done, required Object total}) => '${done} of ${total}',
 			'screenChat.kb' => 'KB',
 			'screenChat.mb' => 'MB',

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:math' as math;
 
@@ -179,7 +180,15 @@ class AttachmentThumb extends StatelessWidget {
 /// строится лениво: если строки ещё нет, листаем к старым (offset растёт —
 /// список перевёрнут), потом к новым, пока она не построится; затем ставим её
 /// в середину экрана.
-Future<void> scrollToMessage(ScrollController scroll, GlobalKey key) async {
+///
+/// [alignment] — куда поставить строку: 0 — к низу экрана, 1 — к верху
+/// (лента перевёрнута); [duration] `zero` — без анимации.
+Future<void> scrollToMessage(
+  ScrollController scroll,
+  GlobalKey key, {
+  double alignment = 0.5,
+  Duration duration = const Duration(milliseconds: 250),
+}) async {
   if (!scroll.hasClients) return;
   for (final older in [true, false]) {
     for (var i = 0; i < 60 && key.currentContext == null; i++) {
@@ -193,5 +202,212 @@ Future<void> scrollToMessage(ScrollController scroll, GlobalKey key) async {
   }
   final context = key.currentContext;
   if (context == null || !context.mounted) return;
-  await Scrollable.ensureVisible(context, alignment: 0.5, duration: const Duration(milliseconds: 250), curve: Curves.easeOutCubic);
+  await Scrollable.ensureVisible(context, alignment: alignment, duration: duration, curve: Curves.easeOutCubic);
+}
+
+/// Навигация по ленте чата (как в Telegram):
+/// - при открытии — к разделителю «Непрочитанные сообщения»;
+/// - кнопка «вниз» ([showDown]) со счётчиком новых входящих ниже экрана
+///   ([unread]); после перехода по цитате она сначала возвращает к сообщению,
+///   с которого перешли;
+/// - тап по цитате — к исходному сообщению с подсветкой ([flashID]);
+/// - своё новое сообщение — лента прокручивается вниз.
+class ChatScrollTracker extends ChangeNotifier {
+  final ScrollController scroll;
+  final GlobalKey Function(String id) keyFor;
+
+  ChatScrollTracker(this.scroll, this.keyFor) {
+    scroll.addListener(_onScroll);
+  }
+
+  bool showDown = false;
+  int unread = 0;
+  String? flashID;
+
+  List<models.Message> _messages = const [];
+
+  /// Входящие новее этой даты пользователь ещё не видел (счётчик на «вниз»).
+  DateTime? _seenUntil;
+  bool _unreadApplied = false;
+
+  /// Откуда переходили по цитатам — «вниз» возвращает туда по очереди.
+  final _returnTo = <String>[];
+  Timer? _flashTimer;
+
+  bool get _atBottom => !scroll.hasClients || scroll.offset < 40;
+
+  @override
+  void dispose() {
+    scroll.removeListener(_onScroll);
+    _flashTimer?.cancel();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    final show = scroll.hasClients && scroll.offset > 300;
+    var changed = show != showDown;
+    showDown = show;
+    if (_atBottom) {
+      _returnTo.clear();
+      changed |= _markSeen();
+    }
+    if (changed) notifyListeners();
+  }
+
+  /// Внизу — всё прочитано.
+  bool _markSeen() {
+    if (_messages.isNotEmpty) _seenUntil = _messages.last.date;
+    final changed = unread != 0;
+    unread = 0;
+    return changed;
+  }
+
+  /// Новые сообщения / разделитель из [ChatState].
+  void update(List<models.Message> messages, String? unreadFromID) {
+    final previous = _messages;
+    _messages = messages;
+    if (messages.isEmpty) return;
+    _seenUntil ??= messages.last.date;
+
+    if (!_unreadApplied && unreadFromID != null) {
+      _unreadApplied = true;
+      final i = messages.indexWhere((m) => m.id == unreadFromID);
+      if (i >= 0) {
+        _seenUntil = i > 0 ? messages[i - 1].date : messages.first.date.subtract(const Duration(microseconds: 1));
+        _recount();
+        notifyListeners();
+        // Разделитель — у верха экрана, после первой отрисовки ленты.
+        WidgetsBinding.instance.addPostFrameCallback((_) async {
+          await scrollToMessage(scroll, keyFor(ChatMessagesView.unreadDividerID), alignment: 0.95, duration: Duration.zero);
+          _onScroll();
+        });
+        return;
+      }
+    }
+
+    // Своё новое сообщение — вниз, к нему.
+    final last = messages.last;
+    if (previous.isNotEmpty && last.outgoing && !previous.any((m) => m.id == last.id)) {
+      jumpToBottom();
+    }
+    if (_atBottom) {
+      _markSeen();
+    } else {
+      _recount();
+    }
+    notifyListeners();
+  }
+
+  void _recount() {
+    final seen = _seenUntil;
+    unread = seen == null ? 0 : _messages.where((m) => !m.outgoing && !m.service && m.date.isAfter(seen)).length;
+  }
+
+  /// Тап по цитате ответа в [from] — к исходному сообщению.
+  Future<void> jumpToReply(models.Message from) async {
+    final id = from.reply?.messageID;
+    if (id == null || !_messages.any((m) => m.id == id)) return;
+    _returnTo.add(from.id);
+    await _jumpTo(id);
+  }
+
+  /// Кнопка «вниз»: назад к сообщению, с которого перешли по цитате, иначе —
+  /// в самый низ.
+  Future<void> down() async {
+    while (_returnTo.isNotEmpty) {
+      final id = _returnTo.removeLast();
+      if (_messages.any((m) => m.id == id)) return _jumpTo(id);
+    }
+    await jumpToBottom();
+  }
+
+  Future<void> jumpToBottom() async {
+    if (!scroll.hasClients) return;
+    // Издалека — сначала прыжок поближе, чтобы не листать всю историю.
+    final near = scroll.position.viewportDimension;
+    if (scroll.offset > near * 3) scroll.jumpTo(near);
+    await scroll.animateTo(0, duration: const Duration(milliseconds: 300), curve: Curves.easeOutCubic);
+  }
+
+  Future<void> _jumpTo(String id) async {
+    await scrollToMessage(scroll, keyFor(id));
+    flashID = id;
+    notifyListeners();
+    _flashTimer?.cancel();
+    _flashTimer = Timer(const Duration(milliseconds: 900), () {
+      flashID = null;
+      notifyListeners();
+    });
+  }
+}
+
+/// Круглая кнопка «вниз» в правом нижнем углу ленты, со счётчиком новых.
+class ChatScrollDownButton extends StatelessWidget {
+  final ChatScrollTracker tracker;
+  final Color background;
+  final Color iconColor;
+  final Color badgeColor;
+
+  const ChatScrollDownButton({
+    super.key,
+    required this.tracker,
+    required this.background,
+    required this.iconColor,
+    required this.badgeColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ListenableBuilder(
+      listenable: tracker,
+      builder: (context, _) {
+        final visible = tracker.showDown;
+        return IgnorePointer(
+          ignoring: !visible,
+          child: AnimatedOpacity(
+            opacity: visible ? 1 : 0,
+            duration: const Duration(milliseconds: 180),
+            child: AnimatedScale(
+              scale: visible ? 1 : 0.6,
+              duration: const Duration(milliseconds: 180),
+              child: GestureDetector(
+                onTap: tracker.down,
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  alignment: Alignment.topCenter,
+                  children: [
+                    Container(
+                      width: 42,
+                      height: 42,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: background,
+                        shape: BoxShape.circle,
+                        boxShadow: const [BoxShadow(color: Color(0x33000000), blurRadius: 6, offset: Offset(0, 1))],
+                      ),
+                      child: FaIcon(FontAwesomeIcons.chevronDown, size: 18, color: iconColor),
+                    ),
+                    if (tracker.unread > 0)
+                      Positioned(
+                        top: -9,
+                        child: Container(
+                          constraints: const BoxConstraints(minWidth: 20),
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(color: badgeColor, borderRadius: BorderRadius.circular(10)),
+                          child: Text(
+                            '${tracker.unread}',
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFFFFFFFF)),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
 }

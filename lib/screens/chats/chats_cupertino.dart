@@ -1,5 +1,6 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -10,6 +11,7 @@ import '../../i18n/translations.g.dart';
 import '../../components.dart';
 import '../../models.dart' as models;
 import 'chat_actions_cupertino.dart';
+import 'chat_swipe_actions.dart';
 
 /// Вкладка «Чаты» (iOS). Сверху поиск и табы-папки в стиле сегмент-контрола
 /// «Звонков»; папки листаются свайпом влево/вправо (`PageView`), бегунок таба
@@ -87,14 +89,17 @@ class _ChatsCupertino extends State<ChatsCupertino> with SearchHideOnScroll {
               },
               builder: (context, state) {
                 if (state.folders.isEmpty) return _empty(context, context.t.screenChats.empty);
-                return PageView.builder(
-                  controller: _pageController,
-                  itemCount: state.folders.length,
-                  onPageChanged: (index) {
-                    onSearchListChanged(state.folders[index].id);
-                    context.read<ChatsCubit>().setFolderIndex(index);
-                  },
-                  itemBuilder: (context, index) => _folderPage(context, state, state.folders[index]),
+                // Открытая свайпом строка закрывается при прокрутке и тапе мимо.
+                return SlidableAutoCloseBehavior(
+                  child: PageView.builder(
+                    controller: _pageController,
+                    itemCount: state.folders.length,
+                    onPageChanged: (index) {
+                      onSearchListChanged(state.folders[index].id);
+                      context.read<ChatsCubit>().setFolderIndex(index);
+                    },
+                    itemBuilder: (context, index) => _folderPage(context, state, state.folders[index]),
+                  ),
                 );
               },
             ),
@@ -184,7 +189,14 @@ class _ChatsCupertino extends State<ChatsCupertino> with SearchHideOnScroll {
       itemBuilder: (context, index) {
         if (index < offset) return _ArchiveTileCupertino(archived: archived, onTap: () => context.push('/chats/archive'));
         final chat = chats[index - offset];
-        return ChatContextMenuCupertino(key: ValueKey(chat.id), chat: chat, onTap: () => context.push('/chats/chat/${chat.id}'));
+        return ChatSwipeActions(
+          key: ValueKey(chat.id),
+          chat: chat,
+          // Несколько папок — свайп листает их (действия — по удержанию).
+          enabled: state.folders.length < 2,
+          confirmDelete: () => confirmDeleteChatCupertino(context, chat),
+          child: ChatContextMenuCupertino(chat: chat, onTap: () => context.push('/chats/chat/${chat.id}')),
+        );
       },
     );
   }

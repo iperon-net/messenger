@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_boring_avatars/flutter_boring_avatars.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -10,6 +11,7 @@ import '../../i18n/translations.g.dart';
 import '../../models.dart' as models;
 import 'media_viewer.dart';
 import 'message_text.dart';
+import 'swipe_to_reply.dart';
 
 /// Платформенное оформление окна чата (см. `chat_cupertino.dart` /
 /// `chat_material.dart`).
@@ -82,6 +84,22 @@ class ChatMessagesView extends StatelessWidget {
   final void Function(models.Message message, String emoji)? onReaction;
   final ValueChanged<models.Message>? onDoubleTap;
 
+  /// Свайп сообщения влево — ответить; `null` — нельзя (канал, поиск).
+  final ValueChanged<models.Message>? onReply;
+
+  /// Тап по цитате ответа — перейти к исходному сообщению.
+  final ValueChanged<models.Message>? onReplyTap;
+
+  /// Над этим сообщением — разделитель «Непрочитанные сообщения» (ключ строки —
+  /// `keyFor(unreadDividerID)`).
+  final String? unreadFromID;
+
+  /// Подсветка строки (переход по цитате) — гаснет плавно, когда `null`.
+  final String? flashID;
+
+  /// Id строки-разделителя для [keyFor].
+  static const unreadDividerID = '__unread__';
+
   /// Обёртка пузыря контекстным меню (см. [MessageBubble.menuWrapper]).
   final Widget Function(models.Message message, Widget bubble, Widget Function(double maxWidth) preview)? menuWrapper;
 
@@ -100,6 +118,10 @@ class ChatMessagesView extends StatelessWidget {
     this.onCancelUpload,
     this.onReaction,
     this.onDoubleTap,
+    this.onReply,
+    this.onReplyTap,
+    this.unreadFromID,
+    this.flashID,
     this.menuWrapper,
   });
 
@@ -136,24 +158,37 @@ class ChatMessagesView extends StatelessWidget {
           Padding(
             key: keyFor?.call(m.id),
             padding: EdgeInsets.only(top: groupedWithOlder ? 2 : 8),
-            child: MessageBubble(
-              key: ValueKey(m.id),
-              message: m,
-              style: style,
-              tail: !groupedWithNewer,
-              showSender: group && !m.outgoing && !groupedWithOlder,
-              avatar: group && !m.outgoing ? (groupedWithNewer ? const SizedBox(width: 34) : _SenderAvatar(name: m.senderName)) : null,
-              onLongPress: () => onLongPress(m),
-              onMediaTap: onMediaTap == null ? null : (index) => onMediaTap!(m, index),
-              highlight: highlight,
-              focused: m.id == focusedID,
-              onCancelUpload: onCancelUpload == null ? null : () => onCancelUpload!(m),
-              onReaction: onReaction == null ? null : (emoji) => onReaction!(m, emoji),
-              onDoubleTap: onDoubleTap == null ? null : () => onDoubleTap!(m),
-              menuWrapper: menuWrapper == null ? null : (bubble, preview) => menuWrapper!(m, bubble, preview),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 400),
+              color: style.outgoing.withValues(alpha: m.id == flashID ? 0.25 : 0),
+              child: SwipeToReply(
+                onReply: onReply == null ? null : () => onReply!(m),
+                background: style.pill,
+                iconColor: style.pillText,
+                child: MessageBubble(
+                  key: ValueKey(m.id),
+                  message: m,
+                  style: style,
+                  tail: !groupedWithNewer,
+                  showSender: group && !m.outgoing && !groupedWithOlder,
+                  avatar: group && !m.outgoing ? (groupedWithNewer ? const SizedBox(width: 34) : _SenderAvatar(name: m.senderName)) : null,
+                  onLongPress: () => onLongPress(m),
+                  onMediaTap: onMediaTap == null ? null : (index) => onMediaTap!(m, index),
+                  highlight: highlight,
+                  focused: m.id == focusedID,
+                  onCancelUpload: onCancelUpload == null ? null : () => onCancelUpload!(m),
+                  onReaction: onReaction == null ? null : (emoji) => onReaction!(m, emoji),
+                  onDoubleTap: onDoubleTap == null ? null : () => onDoubleTap!(m),
+                  onReplyTap: onReplyTap == null ? null : () => onReplyTap!(m),
+                  menuWrapper: menuWrapper == null ? null : (bubble, preview) => menuWrapper!(m, bubble, preview),
+                ),
+              ),
             ),
           ),
         );
+      }
+      if (m.id == unreadFromID) {
+        items.add(_UnreadDivider(key: keyFor?.call(unreadDividerID), style: style));
       }
       if (older == null || !_sameDay(older.date, m.date)) {
         items.add(_Pill(text: m.date.chatDayFormat(context.t), style: style));
@@ -190,6 +225,27 @@ class _SenderAvatar extends StatelessWidget {
 }
 
 /// Плашка по центру: дата или сервисное сообщение.
+/// «Непрочитанные сообщения» — полоса во всю ширину над первым непрочитанным.
+class _UnreadDivider extends StatelessWidget {
+  final MessageBubbleStyle style;
+
+  const _UnreadDivider({super.key, required this.style});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(top: 10),
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      color: style.pill,
+      alignment: Alignment.center,
+      child: Text(
+        context.t.screenChat.unreadMessages,
+        style: style.textStyle.copyWith(fontSize: 13, fontWeight: FontWeight.w600, color: style.pillText),
+      ),
+    );
+  }
+}
+
 class _Pill extends StatelessWidget {
   final String text;
   final MessageBubbleStyle style;
@@ -247,6 +303,9 @@ class MessageBubble extends StatelessWidget {
   /// Двойной тап по пузырю — быстрая реакция.
   final VoidCallback? onDoubleTap;
 
+  /// Тап по цитате ответа.
+  final VoidCallback? onReplyTap;
+
   /// Обёртка пузыря контекстным меню (iOS — `CupertinoContextMenu`): [bubble] —
   /// пузырь в ленте, [preview] — он же для превью меню, без жестов, с заданной
   /// предельной шириной. С обёрткой [onLongPress] не используется.
@@ -266,6 +325,7 @@ class MessageBubble extends StatelessWidget {
     this.onCancelUpload,
     this.onReaction,
     this.onDoubleTap,
+    this.onReplyTap,
     this.menuWrapper,
   });
 
@@ -371,7 +431,7 @@ class MessageBubble extends StatelessWidget {
       );
     }
     if (m.reply case final reply?) {
-      content.add(_ReplyQuote(reply: reply, colors: colors, style: style));
+      content.add(_ReplyQuote(reply: reply, colors: colors, style: style, onTap: onReplyTap));
     }
     if (media != null) content.add(media);
 
@@ -418,7 +478,12 @@ class MessageBubble extends StatelessWidget {
                         colors: colors,
                         chosenText: iconColor,
                         textStyle: metaStyle,
-                        onTap: onReaction == null ? null : () => onReaction!(r.emoji),
+                        onTap: onReaction == null
+                            ? null
+                            : () {
+                                HapticFeedback.selectionClick();
+                                onReaction!(r.emoji);
+                              },
                       ),
                   ],
                 ),
@@ -445,7 +510,12 @@ class MessageBubble extends StatelessWidget {
       child: GestureDetector(
         // С обёрткой (iOS-меню) long-press ловит `CupertinoContextMenu`.
         onLongPress: menuWrapper == null ? onLongPress : null,
-        onDoubleTap: onDoubleTap,
+        onDoubleTap: onDoubleTap == null
+            ? null
+            : () {
+                HapticFeedback.lightImpact();
+                onDoubleTap!();
+              },
         child: DecoratedBox(
           decoration: BoxDecoration(
             color: out ? style.outgoing : style.incoming,
@@ -487,13 +557,15 @@ class _ReplyQuote extends StatelessWidget {
   final MessageTextColors colors;
   final MessageBubbleStyle style;
 
-  const _ReplyQuote({required this.reply, required this.colors, required this.style});
+  final VoidCallback? onTap;
+
+  const _ReplyQuote({required this.reply, required this.colors, required this.style, this.onTap});
 
   @override
   Widget build(BuildContext context) {
     final t = context.t;
     final text = reply.text.isNotEmpty ? reply.text : messageKindLabel(t, reply.kind);
-    return Container(
+    final quote = Container(
       margin: const EdgeInsets.only(bottom: 4),
       padding: const EdgeInsets.fromLTRB(8, 4, 8, 4),
       decoration: BoxDecoration(
@@ -519,6 +591,8 @@ class _ReplyQuote extends StatelessWidget {
         ],
       ),
     );
+    if (onTap == null) return quote;
+    return GestureDetector(behavior: HitTestBehavior.opaque, onTap: onTap, child: quote);
   }
 }
 
@@ -928,7 +1002,10 @@ class ReactionPicker extends StatelessWidget {
         children: [
           for (final emoji in emojis)
             GestureDetector(
-              onTap: () => onSelected(emoji),
+              onTap: () {
+                HapticFeedback.selectionClick();
+                onSelected(emoji);
+              },
               child: Container(
                 width: 44,
                 height: 44,

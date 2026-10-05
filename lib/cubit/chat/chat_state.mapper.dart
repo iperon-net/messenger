@@ -56,6 +56,12 @@ class ChatStateMapper extends ClassMapperBase<ChatState> {
     _$editing,
     opt: true,
   );
+  static String? _$unreadFromID(ChatState v) => v.unreadFromID;
+  static const Field<ChatState, String> _f$unreadFromID = Field(
+    'unreadFromID',
+    _$unreadFromID,
+    opt: true,
+  );
   static bool _$searching(ChatState v) => v.searching;
   static const Field<ChatState, bool> _f$searching = Field(
     'searching',
@@ -92,6 +98,7 @@ class ChatStateMapper extends ClassMapperBase<ChatState> {
     #messages: _f$messages,
     #reply: _f$reply,
     #editing: _f$editing,
+    #unreadFromID: _f$unreadFromID,
     #searching: _f$searching,
     #searchQuery: _f$searchQuery,
     #searchResults: _f$searchResults,
@@ -105,6 +112,7 @@ class ChatStateMapper extends ClassMapperBase<ChatState> {
       messages: data.dec(_f$messages),
       reply: data.dec(_f$reply),
       editing: data.dec(_f$editing),
+      unreadFromID: data.dec(_f$unreadFromID),
       searching: data.dec(_f$searching),
       searchQuery: data.dec(_f$searchQuery),
       searchResults: data.dec(_f$searchResults),
@@ -188,6 +196,7 @@ abstract class ChatStateCopyWith<$R, $In extends ChatState, $Out>
     List<models.Message>? messages,
     models.Message? reply,
     models.Message? editing,
+    String? unreadFromID,
     bool? searching,
     String? searchQuery,
     List<String>? searchResults,
@@ -238,6 +247,7 @@ class _ChatStateCopyWithImpl<$R, $Out>
     List<models.Message>? messages,
     Object? reply = $none,
     Object? editing = $none,
+    Object? unreadFromID = $none,
     bool? searching,
     String? searchQuery,
     List<String>? searchResults,
@@ -249,6 +259,7 @@ class _ChatStateCopyWithImpl<$R, $Out>
       if (messages != null) #messages: messages,
       if (reply != $none) #reply: reply,
       if (editing != $none) #editing: editing,
+      if (unreadFromID != $none) #unreadFromID: unreadFromID,
       if (searching != null) #searching: searching,
       if (searchQuery != null) #searchQuery: searchQuery,
       if (searchResults != null) #searchResults: searchResults,
@@ -262,6 +273,7 @@ class _ChatStateCopyWithImpl<$R, $Out>
     messages: data.get(#messages, or: $value.messages),
     reply: data.get(#reply, or: $value.reply),
     editing: data.get(#editing, or: $value.editing),
+    unreadFromID: data.get(#unreadFromID, or: $value.unreadFromID),
     searching: data.get(#searching, or: $value.searching),
     searchQuery: data.get(#searchQuery, or: $value.searchQuery),
     searchResults: data.get(#searchResults, or: $value.searchResults),
