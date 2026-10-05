@@ -235,6 +235,25 @@ class _Translations$screenChat$ru extends Translations$screenChat$en {
 	@override String get pinnedTitle => 'Закреплённое сообщение';
 	@override String pinnedNumber({required Object n}) => 'Закреплённое сообщение #${n}';
 	@override String get unpinTitle => 'Открепить сообщение?';
+	@override String pinnedServiceYou({required Object text}) => 'Вы закрепили «${text}»';
+	@override String get pinnedServiceYouMessage => 'Вы закрепили сообщение';
+	@override String pinnedService({required Object name, required Object text}) => '${name} закрепил(а) «${text}»';
+	@override String pinnedServiceMessage({required Object name}) => '${name} закрепил(а) сообщение';
+	@override String pinnedList({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n,
+		one: '${n} закреплённое сообщение',
+		few: '${n} закреплённых сообщения',
+		many: '${n} закреплённых сообщений',
+		other: '${n} закреплённых сообщения',
+	);
+	@override String get pinnedAll => 'Все закреплённые';
+	@override String get unpinAll => 'Открепить все сообщения';
+	@override String unpinAllTitle({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n,
+		one: 'Открепить ${n} сообщение?',
+		few: 'Открепить все ${n} сообщения?',
+		many: 'Открепить все ${n} сообщений?',
+		other: 'Открепить все ${n} сообщения?',
+	);
+	@override String get goToMessage => 'Перейти к сообщению';
 	@override String get forward => 'Переслать';
 	@override String get forwardTo => 'Переслать в…';
 	@override String forwardedFrom({required Object name}) => 'Переслано от ${name}';
@@ -1029,6 +1048,15 @@ extension on TranslationsRu {
 			'screenChat.pinnedTitle' => 'Закреплённое сообщение',
 			'screenChat.pinnedNumber' => ({required Object n}) => 'Закреплённое сообщение #${n}',
 			'screenChat.unpinTitle' => 'Открепить сообщение?',
+			'screenChat.pinnedServiceYou' => ({required Object text}) => 'Вы закрепили «${text}»',
+			'screenChat.pinnedServiceYouMessage' => 'Вы закрепили сообщение',
+			'screenChat.pinnedService' => ({required Object name, required Object text}) => '${name} закрепил(а) «${text}»',
+			'screenChat.pinnedServiceMessage' => ({required Object name}) => '${name} закрепил(а) сообщение',
+			'screenChat.pinnedList' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: '${n} закреплённое сообщение', few: '${n} закреплённых сообщения', many: '${n} закреплённых сообщений', other: '${n} закреплённых сообщения', ), 
+			'screenChat.pinnedAll' => 'Все закреплённые',
+			'screenChat.unpinAll' => 'Открепить все сообщения',
+			'screenChat.unpinAllTitle' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: 'Открепить ${n} сообщение?', few: 'Открепить все ${n} сообщения?', many: 'Открепить все ${n} сообщений?', other: 'Открепить все ${n} сообщения?', ), 
+			'screenChat.goToMessage' => 'Перейти к сообщению',
 			'screenChat.forward' => 'Переслать',
 			'screenChat.forwardTo' => 'Переслать в…',
 			'screenChat.forwardedFrom' => ({required Object name}) => 'Переслано от ${name}',
@@ -1431,6 +1459,8 @@ extension on TranslationsRu {
 			'screenCall.routeHearingAid' => 'Слуховой аппарат',
 			'screenCall.routeCar' => 'Автомобиль',
 			'screenCall.routeUnknown' => 'Другое',
+			_ => null,
+		} ?? switch (path) {
 			'screenCall.routeUnavailable' => 'Нет доступных аудиовыходов',
 			'screenCall.cameraOn' => 'Вкл. камеру',
 			'screenCall.cameraOff' => 'Выкл. камеру',
@@ -1440,8 +1470,6 @@ extension on TranslationsRu {
 			'screenCall.qualityGood' => 'Хорошее соединение',
 			'screenCall.qualityExcellent' => 'Отличное соединение',
 			'screenCall.remoteMicMuted' => 'Микрофон собеседника выключен',
-			_ => null,
-		} ?? switch (path) {
 			'passkey.title' => 'Ключи доступа',
 			'passkey.description' => 'Ключи доступа надёжно хранятся в вашем менеджере паролей.',
 			'passkey.add' => 'Добавить ключ',

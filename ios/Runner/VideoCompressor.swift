@@ -287,14 +287,21 @@ final class VideoCompressor {
       let audioTrack = mute ? nil : asset.tracks(withMediaType: .audio).first
       // Обрезка: читаем только [start, end); запись начинается со start —
       // в файле видео идёт с нуля.
-      let start = CMTime(value: CMTimeValue(startMs), timescale: 1000)
+      let reframe = crop != nil || rotation != 0
+      var start = CMTime(value: CMTimeValue(startMs), timescale: 1000)
+      // Изображение в дорожке может начинаться не с нуля (пустой участок в
+      // начале — у видео из галереи бывает). AVVideoComposition рисует там
+      // чёрные кадры — первый кадр и обложка выходили чёрными; начинаем с
+      // первого настоящего кадра.
+      if reframe, let first = videoTrack.segments.first(where: { !$0.isEmpty })?.timeMapping.target.start {
+        start = CMTimeMaximum(start, first)
+      }
       let end = endMs > 0 ? min(CMTime(value: CMTimeValue(endMs), timescale: 1000), asset.duration) : asset.duration
       let range = CMTimeRange(start: start, end: end)
       let duration = max(CMTimeGetSeconds(range.duration), 0.001)
       let startSeconds = CMTimeGetSeconds(start)
 
       let pixelFormat: [String: Any] = [kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange]
-      let reframe = crop != nil || rotation != 0
       let width: Int
       let height: Int
       let videoOut: AVAssetReaderOutput
@@ -320,7 +327,7 @@ final class VideoCompressor {
 
       try? FileManager.default.removeItem(at: output)
       let reader = try AVAssetReader(asset: asset)
-      if startMs > 0 || endMs > 0 { reader.timeRange = range }
+      if start > .zero || endMs > 0 { reader.timeRange = range }
       let writer = try AVAssetWriter(outputURL: output, fileType: .mp4)
       writer.shouldOptimizeForNetworkUse = true
       self.reader = reader

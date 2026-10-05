@@ -287,8 +287,26 @@ class ChatsDemoDataSource implements ChatsDataSource {
   }
 
   @override
-  Future<void> setMessagePinned(String chatID, String messageID, bool pinned) async {
+  Future<void> setMessagePinned(String chatID, String messageID, bool pinned, {bool forEveryone = true}) async {
     _updateMessage(chatID, messageID, (m) => m.copyWith(pinned: pinned));
+    if (!pinned || !forEveryone) return;
+    _setMessages(chatID, [
+      ..._history(chatID),
+      models.Message(
+        id: _id(),
+        chatID: chatID,
+        outgoing: true,
+        service: true,
+        status: models.MessageStatus.read,
+        date: DateTime.now(),
+        pinnedMessageID: messageID,
+      ),
+    ]);
+  }
+
+  @override
+  Future<void> unpinAllMessages(String chatID) async {
+    _setMessages(chatID, [for (final m in _history(chatID)) m.pinned ? m.copyWith(pinned: false) : m]);
   }
 
   @override
@@ -614,6 +632,7 @@ class ChatsDemoDataSource implements ChatsDataSource {
       int album = 0,
       bool spoiler = false,
       bool pinned = false,
+      String pinnedMessageID = '',
       List<models.MessageReaction> reactions = const [],
       Duration step = const Duration(minutes: 7),
     }) {
@@ -641,6 +660,7 @@ class ChatsDemoDataSource implements ChatsDataSource {
           ],
           reactions: reactions,
           pinned: pinned,
+          pinnedMessageID: pinnedMessageID,
         ),
       );
     }
@@ -697,7 +717,9 @@ class ChatsDemoDataSource implements ChatsDataSource {
           reactions: [r('👍', 5), r('❤️', 3, true), r('🔥', 2)],
           step: const Duration(hours: 20),
         );
+        add('', sender: 'Мария', service: true, pinnedMessageID: result.last.id, step: const Duration(minutes: 1));
         add('', sender: 'Иван', kind: models.MessageKind.file, fileName: 'отчёт_сентябрь.xlsx', pinned: true);
+        add('', sender: 'Иван', service: true, pinnedMessageID: result.last.id, step: const Duration(minutes: 1));
       case models.ChatType.channel:
         // Реакции канала — только из разрешённых админом.
         final allowed = chat.reactionsMode == models.ChatReactionsMode.some ? chat.reactions : const ['👍', '🔥', '❤️'];

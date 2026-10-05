@@ -18,6 +18,7 @@ import '../../themes.dart';
 import 'chat_common.dart';
 import 'compose_format_menu.dart';
 import 'forward_picker.dart';
+import 'pinned_messages_cupertino.dart';
 import 'voice_recorder.dart';
 
 /// Окно чата (iOS): шапка с аватаром и «печатает…», лента пузырей, поле ввода
@@ -188,8 +189,19 @@ class _ChatCupertinoState extends State<ChatCupertino> {
         setState(() => _pinIndex = (index + 1) % pinned.length);
       },
       onUnpin: chat.type == models.ChatType.channel ? null : () => _confirmUnpin(context, pinned[index]),
+      onList: () => _openPinned(context),
     );
   }
+
+  /// «Закреплённые сообщения» — оттуда тап по сообщению ведёт к нему в ленте.
+  Future<void> _openPinned(BuildContext context) async {
+    final id = await showPinnedMessagesCupertino(context, _cubit);
+    if (id != null && mounted) await _tracker.jumpTo(id);
+  }
+
+  /// «Закрепить» — сразу, без диалога: в «Избранном» только у себя, иначе
+  /// у всех (с сервисным «Вы закрепили «…»»). «Открепить» — тоже сразу.
+  Future<void> _pin(models.Chat chat, models.Message message) => _cubit.setPinned(message, !message.pinned, forEveryone: !chat.isSelf);
 
   Future<void> _confirmUnpin(BuildContext context, models.Message message) async {
     final t = context.t.screenChat;
@@ -393,6 +405,7 @@ class _ChatCupertinoState extends State<ChatCupertino> {
                                             onReaction: _cubit.toggleReaction,
                                             onDoubleTap: _cubit.quickReact,
                                             onReplyTap: _tracker.jumpToReply,
+                                            onPinnedServiceTap: _tracker.jumpTo,
                                             unreadFromID: state.unreadFromID,
                                             flashID: _flashID,
                                             onReply: chat.type == models.ChatType.channel || state.searching || state.selecting
@@ -502,11 +515,7 @@ class _ChatCupertinoState extends State<ChatCupertino> {
         }),
       if (message.text.isNotEmpty) action(t.copy, CupertinoIcons.doc_on_doc, () => Clipboard.setData(ClipboardData(text: message.text))),
       if (canWrite)
-        action(
-          message.pinned ? t.unpin : t.pin,
-          message.pinned ? CupertinoIcons.pin_slash : CupertinoIcons.pin,
-          () => _cubit.setPinned(message, !message.pinned),
-        ),
+        action(message.pinned ? t.unpin : t.pin, message.pinned ? CupertinoIcons.pin_slash : CupertinoIcons.pin, () => _pin(chat, message)),
       action(t.forward, CupertinoIcons.arrowshape_turn_up_right, () {
         _cubit.startSelection(message);
         _forward(context, single: true);

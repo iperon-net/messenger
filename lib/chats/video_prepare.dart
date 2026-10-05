@@ -1,7 +1,10 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:math' as math;
+import 'dart:ui' as ui;
 
 import 'package:flutter/services.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
@@ -148,11 +151,11 @@ void _ensureHandler() {
 
 typedef _VideoInfo = ({int width, int height, int durationMs, int bitrate, double fps, String thumb});
 
-Future<_VideoInfo?> _info(String path, {String? thumb, int thumbAtMs = 0}) async {
+Future<_VideoInfo?> _info(String path, {String? thumb, int thumbAtMs = 0, int thumbSide = ChatVideoCompression.thumbSide}) async {
   final raw = await _channel.invokeMapMethod<String, Object?>('info', {
     'path': path,
     'thumb': ?thumb,
-    'thumbSide': ChatVideoCompression.thumbSide,
+    'thumbSide': thumbSide,
     'thumbAtMs': thumbAtMs,
   });
   if (raw == null) return null;
@@ -202,6 +205,59 @@ Future<List<String>> chatVideoFrames(String path, {int count = 10, int side = 16
   }
 }
 
+/// Кадрирует и поворачивает кадр-превью [path] (кадр исходника, как он
+/// показывается) по [edit] и перезаписывает его JPEG не больше
+/// [ChatVideoCompression.thumbSide] по стороне. `false` — не вышло.
+Future<bool> _reframeThumb(String path, ChatVideoEdit edit) async {
+  ui.Codec? codec;
+  ui.Image? image;
+  ui.Image? out;
+  try {
+    codec = await ui.instantiateImageCodec(await File(path).readAsBytes());
+    image = (await codec.getNextFrame()).image;
+    final crop = edit.crop ?? const Rect.fromLTWH(0, 0, 1, 1);
+    final src = Rect.fromLTWH(crop.left * image.width, crop.top * image.height, crop.width * image.width, crop.height * image.height);
+    final scale = math.min(1.0, ChatVideoCompression.thumbSide / math.max(src.width, src.height));
+    final width = math.max(1, (src.width * scale).round());
+    final height = math.max(1, (src.height * scale).round());
+    final quarter = edit.rotation % 180 != 0;
+    final outWidth = quarter ? height : width;
+    final outHeight = quarter ? width : height;
+
+    final recorder = ui.PictureRecorder();
+    // Поворот вокруг центра; в координатах Flutter (y вниз) положительный
+    // угол — по часовой.
+    ui.Canvas(recorder)
+      ..translate(outWidth / 2, outHeight / 2)
+      ..rotate(edit.rotation * math.pi / 180)
+      ..drawImageRect(
+        image,
+        src,
+        Rect.fromCenter(center: Offset.zero, width: width.toDouble(), height: height.toDouble()),
+        ui.Paint()..filterQuality = ui.FilterQuality.medium,
+      );
+    out = await recorder.endRecording().toImage(outWidth, outHeight);
+    final png = await out.toByteData(format: ui.ImageByteFormat.png);
+    if (png == null) return false;
+    final jpeg = await FlutterImageCompress.compressWithList(
+      png.buffer.asUint8List(),
+      minWidth: outWidth,
+      minHeight: outHeight,
+      quality: 75,
+      autoCorrectionAngle: false,
+    );
+    await File(path).writeAsBytes(jpeg, flush: true);
+    return true;
+  } catch (e, s) {
+    getIt.get<Logger>().handle(e, s, '_reframeThumb: $path');
+    return false;
+  } finally {
+    out?.dispose();
+    image?.dispose();
+    codec?.dispose();
+  }
+}
+
 /// Кадрирование для нативной части: [left, top, width, height] долями.
 List<double> _cropOf(ChatVideoEdit edit) {
   final crop = edit.crop ?? const Rect.fromLTWH(0, 0, 1, 1);
@@ -236,12 +292,25 @@ Future<PreparedVideo?> prepareChatVideo(
   try {
     final dir = await chatMediaOutputDir();
     final thumbPath = p.join(dir.path, '${job.id}_thumb.jpg');
-    final original = await _info(source, thumb: thumbPath, thumbAtMs: edit?.thumbAtMs ?? 0);
+    // Кадрирование / поворот: обложку берём из исходника (крупнее — после
+    // кадрирования останется часть) и кадрируем здесь же, а не из результата
+    // сжатия — не зависим от того, каким вышел первый кадр.
+    final reframed = edit != null && edit.changesFrame;
+    final crop = edit?.crop ?? const Rect.fromLTWH(0, 0, 1, 1);
+    final original = await _info(
+      source,
+      thumb: thumbPath,
+      thumbAtMs: edit?.thumbAtMs ?? 0,
+      thumbSide: reframed
+          ? (ChatVideoCompression.thumbSide / math.min(crop.width, crop.height)).ceil().clamp(ChatVideoCompression.thumbSide, 1280)
+          : ChatVideoCompression.thumbSide,
+    );
     if (original == null) return null;
 
     // Обрезка и «без звука» — только перекодированием, даже небольшого видео.
     final edited = edit?.changesVideo ?? false;
     var thumb = original.thumb;
+    if (reframed && thumb.isNotEmpty && !await _reframeThumb(thumb, edit)) thumb = '';
     var path = source;
     var info = original;
     if (edited || _needsCompression(original, quality)) {
@@ -284,11 +353,7 @@ Future<PreparedVideo?> prepareChatVideo(
       // Сжатое вышло больше исходника — отправляем исходник (если правок нет).
       if (edited || await File(out).length() < await File(source).length()) {
         path = out;
-        // Кадрированное / повёрнутое — обложку берём уже из результата (время
-        // в нём — от начала отрезка).
-        final reframed = edit != null && edit.changesFrame;
-        info = await _info(out, thumb: reframed ? thumbPath : null, thumbAtMs: reframed ? edit.thumbAtMs - edit.startMs : 0) ?? original;
-        if (reframed && info.thumb.isNotEmpty) thumb = info.thumb;
+        info = await _info(out) ?? original;
       } else {
         File(out).delete().ignore();
       }

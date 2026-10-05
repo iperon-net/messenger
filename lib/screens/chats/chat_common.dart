@@ -779,7 +779,8 @@ class PinnedBarStyle {
 
 /// Плашка закреплённого под шапкой (как в Telegram): слева полоска-индикатор
 /// (несколько закреплённых — по сегменту на каждое, до 4), «Закреплённое
-/// сообщение #N» и текст. Тап — к сообщению; крестик — открепить.
+/// сообщение #N», превью фото/видео и текст. Тап — к сообщению; справа —
+/// список всех закреплённых (если их несколько) или крестик «открепить».
 class PinnedMessageBar extends StatelessWidget {
   static const height = 52.0;
 
@@ -792,7 +793,19 @@ class PinnedMessageBar extends StatelessWidget {
   /// `null` — открепить нельзя (канал для подписчика).
   final VoidCallback? onUnpin;
 
-  const PinnedMessageBar({super.key, required this.pinned, required this.index, required this.style, required this.onTap, this.onUnpin});
+  /// Экран «Закреплённые сообщения» — значок списка вместо крестика, когда
+  /// закреплённых несколько.
+  final VoidCallback? onList;
+
+  const PinnedMessageBar({
+    super.key,
+    required this.pinned,
+    required this.index,
+    required this.style,
+    required this.onTap,
+    this.onUnpin,
+    this.onList,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -804,6 +817,8 @@ class PinnedMessageBar extends StatelessWidget {
     final text = message.text.isNotEmpty ? message.text : messageKindLabel(t, message.kind);
     final segments = math.min(pinned.length, 4);
     final current = (number - 1) % segments;
+    final thumb = messageMediaThumb(message);
+    final showList = pinned.length > 1 && onList != null;
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
@@ -840,29 +855,47 @@ class PinnedMessageBar extends StatelessWidget {
             Expanded(
               child: AnimatedSwitcher(
                 duration: const Duration(milliseconds: 200),
-                child: Column(
+                // По умолчанию AnimatedSwitcher центрирует — текст прижат влево.
+                layoutBuilder: (current, previous) => Stack(alignment: Alignment.centerLeft, children: [...previous, ?current]),
+                child: Row(
                   key: ValueKey(message.id),
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      pinned.length > 1 ? t.screenChat.pinnedNumber(n: number) : t.screenChat.pinnedTitle,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: style.accent),
-                    ),
-                    const SizedBox(height: 1),
-                    Text(
-                      text.replaceAll('\n', ' '),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(fontSize: 14, color: style.text),
+                    if (thumb != null) ...[thumb, const SizedBox(width: 8)],
+                    Expanded(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            pinned.length > 1 ? t.screenChat.pinnedNumber(n: number) : t.screenChat.pinnedTitle,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: style.accent),
+                          ),
+                          const SizedBox(height: 1),
+                          Text(
+                            text.replaceAll('\n', ' '),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(fontSize: 14, color: style.text),
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
               ),
             ),
-            if (onUnpin != null)
+            if (showList)
+              GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: onList,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  child: FaIcon(FontAwesomeIcons.listUl, size: 17, color: style.secondary),
+                ),
+              )
+            else if (onUnpin != null)
               GestureDetector(
                 behavior: HitTestBehavior.opaque,
                 onTap: onUnpin,
@@ -875,6 +908,30 @@ class PinnedMessageBar extends StatelessWidget {
               const SizedBox(width: 14),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// Обои из «Тем для чатов» (Настройки → Оформление) на всю площадь —
+/// фон ленты чата и экрана «Закреплённые сообщения».
+class ChatWallpaperLayer extends StatelessWidget {
+  final bool dark;
+
+  const ChatWallpaperLayer({super.key, required this.dark});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<CommonCubit, CommonState>(
+      buildWhen: (previous, current) =>
+          previous.settingsDevice.chatWallpaper != current.settingsDevice.chatWallpaper ||
+          previous.settingsDevice.chatWallpaperColor != current.settingsDevice.chatWallpaperColor ||
+          previous.settingsDevice.chatWallpaperIntensity != current.settingsDevice.chatWallpaperIntensity,
+      builder: (context, common) => ChatWallpaper(
+        pattern: common.settingsDevice.chatWallpaper,
+        colorIndex: common.settingsDevice.chatWallpaperColor,
+        intensity: common.settingsDevice.chatWallpaperIntensity,
+        dark: dark,
       ),
     );
   }

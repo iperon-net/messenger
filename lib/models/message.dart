@@ -168,6 +168,10 @@ class Message with MessageMappable {
   /// Закреплено в чате — в плашке под шапкой (закреплённых может быть несколько).
   final bool pinned;
 
+  /// Сервисное «Анна закрепила «…»» ([service]): id закреплённого сообщения
+  /// (тап — к нему); автор — [senderName], у своего — [outgoing].
+  final String pinnedMessageID;
+
   const Message({
     required this.id,
     required this.chatID,
@@ -192,6 +196,7 @@ class Message with MessageMappable {
     this.reactions = const [],
     this.forward,
     this.pinned = false,
+    this.pinnedMessageID = '',
   });
 
   /// Наши реакции (до `maxReactionsPerUser` на сообщение), в порядке чипов.

@@ -1086,6 +1086,13 @@ class MessageMapper extends ClassMapperBase<Message> {
     opt: true,
     def: false,
   );
+  static String _$pinnedMessageID(Message v) => v.pinnedMessageID;
+  static const Field<Message, String> _f$pinnedMessageID = Field(
+    'pinnedMessageID',
+    _$pinnedMessageID,
+    opt: true,
+    def: '',
+  );
 
   @override
   final MappableFields<Message> fields = const {
@@ -1112,6 +1119,7 @@ class MessageMapper extends ClassMapperBase<Message> {
     #reactions: _f$reactions,
     #forward: _f$forward,
     #pinned: _f$pinned,
+    #pinnedMessageID: _f$pinnedMessageID,
   };
 
   static Message _instantiate(DecodingData data) {
@@ -1139,6 +1147,7 @@ class MessageMapper extends ClassMapperBase<Message> {
       reactions: data.dec(_f$reactions),
       forward: data.dec(_f$forward),
       pinned: data.dec(_f$pinned),
+      pinnedMessageID: data.dec(_f$pinnedMessageID),
     );
   }
 
@@ -1244,6 +1253,7 @@ abstract class MessageCopyWith<$R, $In extends Message, $Out>
     List<MessageReaction>? reactions,
     MessageForward? forward,
     bool? pinned,
+    String? pinnedMessageID,
   });
   MessageCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
@@ -1327,6 +1337,7 @@ class _MessageCopyWithImpl<$R, $Out>
     List<MessageReaction>? reactions,
     Object? forward = $none,
     bool? pinned,
+    String? pinnedMessageID,
   }) => $apply(
     FieldCopyWithData({
       if (id != null) #id: id,
@@ -1352,6 +1363,7 @@ class _MessageCopyWithImpl<$R, $Out>
       if (reactions != null) #reactions: reactions,
       if (forward != $none) #forward: forward,
       if (pinned != null) #pinned: pinned,
+      if (pinnedMessageID != null) #pinnedMessageID: pinnedMessageID,
     }),
   );
   @override
@@ -1379,6 +1391,7 @@ class _MessageCopyWithImpl<$R, $Out>
     reactions: data.get(#reactions, or: $value.reactions),
     forward: data.get(#forward, or: $value.forward),
     pinned: data.get(#pinned, or: $value.pinned),
+    pinnedMessageID: data.get(#pinnedMessageID, or: $value.pinnedMessageID),
   );
 
   @override

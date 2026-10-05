@@ -202,8 +202,13 @@ class ChatCubit extends Cubit<ChatState> {
 
   void cancelCompose() => emit(state.copyWith(reply: null, editing: null, forwarding: const []));
 
-  /// Закрепить / открепить (меню сообщения, крестик в плашке).
-  Future<void> setPinned(models.Message message, bool pinned) async => _source?.setMessagePinned(_chatID, message.id, pinned);
+  /// Закрепить / открепить (меню сообщения, крестик в плашке); [forEveryone]
+  /// — см. [ChatsDataSource.setMessagePinned].
+  Future<void> setPinned(models.Message message, bool pinned, {bool forEveryone = true}) async =>
+      _source?.setMessagePinned(_chatID, message.id, pinned, forEveryone: forEveryone);
+
+  /// Открепить все (экран «Закреплённые сообщения»).
+  Future<void> unpinAll() async => _source?.unpinAllMessages(_chatID);
 
   /// Режим выделения: «Выбрать» в меню сообщения.
   void startSelection(models.Message message) =>

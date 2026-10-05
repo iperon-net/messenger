@@ -436,6 +436,39 @@ class Translations$screenChat$en {
 	/// en: 'Unpin message?'
 	String get unpinTitle => 'Unpin message?';
 
+	/// en: 'You pinned «{text}»'
+	String pinnedServiceYou({required Object text}) => 'You pinned «${text}»';
+
+	/// en: 'You pinned a message'
+	String get pinnedServiceYouMessage => 'You pinned a message';
+
+	/// en: '{name} pinned «{text}»'
+	String pinnedService({required Object name, required Object text}) => '${name} pinned «${text}»';
+
+	/// en: '{name} pinned a message'
+	String pinnedServiceMessage({required Object name}) => '${name} pinned a message';
+
+	/// en: '(one) {{n} pinned message} (other) {{n} pinned messages}'
+	String pinnedList({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n,
+		one: '${n} pinned message',
+		other: '${n} pinned messages',
+	);
+
+	/// en: 'All pinned messages'
+	String get pinnedAll => 'All pinned messages';
+
+	/// en: 'Unpin all messages'
+	String get unpinAll => 'Unpin all messages';
+
+	/// en: '(one) {Unpin {n} message?} (other) {Unpin all {n} messages?}'
+	String unpinAllTitle({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n,
+		one: 'Unpin ${n} message?',
+		other: 'Unpin all ${n} messages?',
+	);
+
+	/// en: 'Go to message'
+	String get goToMessage => 'Go to message';
+
 	/// en: 'Forward'
 	String get forward => 'Forward';
 
@@ -2088,6 +2121,15 @@ extension on Translations {
 			'screenChat.pinnedTitle' => 'Pinned message',
 			'screenChat.pinnedNumber' => ({required Object n}) => 'Pinned message #${n}',
 			'screenChat.unpinTitle' => 'Unpin message?',
+			'screenChat.pinnedServiceYou' => ({required Object text}) => 'You pinned «${text}»',
+			'screenChat.pinnedServiceYouMessage' => 'You pinned a message',
+			'screenChat.pinnedService' => ({required Object name, required Object text}) => '${name} pinned «${text}»',
+			'screenChat.pinnedServiceMessage' => ({required Object name}) => '${name} pinned a message',
+			'screenChat.pinnedList' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: '${n} pinned message', other: '${n} pinned messages', ), 
+			'screenChat.pinnedAll' => 'All pinned messages',
+			'screenChat.unpinAll' => 'Unpin all messages',
+			'screenChat.unpinAllTitle' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: 'Unpin ${n} message?', other: 'Unpin all ${n} messages?', ), 
+			'screenChat.goToMessage' => 'Go to message',
 			'screenChat.forward' => 'Forward',
 			'screenChat.forwardTo' => 'Forward to…',
 			'screenChat.forwardedFrom' => ({required Object name}) => 'Forwarded from ${name}',
@@ -2490,6 +2532,8 @@ extension on Translations {
 			'screenCall.routeHearingAid' => 'Hearing aid',
 			'screenCall.routeCar' => 'Car',
 			'screenCall.routeUnknown' => 'Other',
+			_ => null,
+		} ?? switch (path) {
 			'screenCall.routeUnavailable' => 'No audio outputs available',
 			'screenCall.cameraOn' => 'Camera on',
 			'screenCall.cameraOff' => 'Camera off',
@@ -2499,8 +2543,6 @@ extension on Translations {
 			'screenCall.qualityGood' => 'Good connection',
 			'screenCall.qualityExcellent' => 'Excellent connection',
 			'screenCall.remoteMicMuted' => 'Their microphone is off',
-			_ => null,
-		} ?? switch (path) {
 			'passkey.title' => 'Passkeys',
 			'passkey.description' => 'Passkeys are stored securely in your password manager.',
 			'passkey.add' => 'Add a passkey',

@@ -16,6 +16,7 @@ import '../../themes.dart';
 import 'chat_common.dart';
 import 'compose_format_menu.dart';
 import 'forward_picker.dart';
+import 'pinned_messages_material.dart';
 import 'voice_recorder.dart';
 
 /// Окно чата (Android): шапка с аватаром и «печатает…», лента пузырей, поле
@@ -207,8 +208,19 @@ class _ChatMaterialState extends State<ChatMaterial> {
         setState(() => _pinIndex = (index + 1) % pinned.length);
       },
       onUnpin: chat.type == models.ChatType.channel ? null : () => _confirmUnpin(context, pinned[index]),
+      onList: () => _openPinned(context),
     );
   }
+
+  /// «Закреплённые сообщения» — оттуда тап по сообщению ведёт к нему в ленте.
+  Future<void> _openPinned(BuildContext context) async {
+    final id = await showPinnedMessagesMaterial(context, _cubit);
+    if (id != null && mounted) await _tracker.jumpTo(id);
+  }
+
+  /// «Закрепить» — сразу, без диалога: в «Избранном» только у себя, иначе
+  /// у всех (с сервисным «Вы закрепили «…»»). «Открепить» — тоже сразу.
+  Future<void> _pin(models.Chat chat, models.Message message) => _cubit.setPinned(message, !message.pinned, forEveryone: !chat.isSelf);
 
   Future<void> _confirmUnpin(BuildContext context, models.Message message) async {
     final t = context.t.screenChat;
@@ -364,6 +376,7 @@ class _ChatMaterialState extends State<ChatMaterial> {
                                       onReaction: _cubit.toggleReaction,
                                       onDoubleTap: _cubit.quickReact,
                                       onReplyTap: _tracker.jumpToReply,
+                                      onPinnedServiceTap: _tracker.jumpTo,
                                       unreadFromID: state.unreadFromID,
                                       flashID: _flashID,
                                       onReply: chat.type == models.ChatType.channel || state.searching || state.selecting
@@ -489,7 +502,7 @@ class _ChatMaterialState extends State<ChatMaterial> {
       case 'edit':
         _cubit.startEdit(message);
       case 'pin':
-        await _cubit.setPinned(message, !message.pinned);
+        await _pin(chat, message);
       case 'forward':
         _cubit.startSelection(message);
         await _forward(context, single: true);

@@ -50,8 +50,13 @@ abstract class ChatsDataSource {
 
   Future<void> deleteMessage(String chatID, String messageID);
 
-  /// Закрепить / открепить сообщение в чате.
-  Future<void> setMessagePinned(String chatID, String messageID, bool pinned);
+  /// Закрепить / открепить сообщение в чате. [forEveryone] — закрепить и у
+  /// собеседника (личный чат) / у всех: тогда в ленте появляется сервисное
+  /// «Вы закрепили «…»»; `false` — только у себя, без сервисного.
+  Future<void> setMessagePinned(String chatID, String messageID, bool pinned, {bool forEveryone = true});
+
+  /// Открепить все сообщения чата (экран «Закреплённые сообщения»).
+  Future<void> unpinAllMessages(String chatID);
 
   /// Переслать [messages] (из любых чатов, по порядку) в чат [toChatID]: новые
   /// исходящие сообщения с тем же содержимым и пометкой «Переслано от».

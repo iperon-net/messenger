@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'dart:ui' show ImageFilter;
 
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
@@ -92,6 +93,12 @@ class ChatMessagesView extends StatelessWidget {
   /// Тап по цитате ответа — перейти к исходному сообщению.
   final ValueChanged<models.Message>? onReplyTap;
 
+  /// Тап по строке сообщения вне режима выделения (экран «Закреплённые»).
+  final ValueChanged<models.Message>? onTap;
+
+  /// Тап по сервисному «закрепил «…»» — id закреплённого сообщения.
+  final ValueChanged<String>? onPinnedServiceTap;
+
   /// Над этим сообщением — разделитель «Непрочитанные сообщения» (ключ строки —
   /// `keyFor(unreadDividerID)`).
   final String? unreadFromID;
@@ -128,6 +135,8 @@ class ChatMessagesView extends StatelessWidget {
     this.onDoubleTap,
     this.onReply,
     this.onReplyTap,
+    this.onTap,
+    this.onPinnedServiceTap,
     this.unreadFromID,
     this.flashID,
     this.selecting = false,
@@ -163,7 +172,17 @@ class ChatMessagesView extends StatelessWidget {
       final groupedWithOlder = older != null && _grouped(older, m);
       final groupedWithNewer = newer != null && _grouped(m, newer);
 
-      if (m.service) {
+      if (m.service && m.pinnedMessageID.isNotEmpty) {
+        final pinnedID = m.pinnedMessageID;
+        items.add(
+          _Pill(
+            key: keyFor?.call(m.id),
+            text: pinnedServiceText(context.t, m, messages.where((x) => x.id == pinnedID).firstOrNull),
+            style: style,
+            onTap: onPinnedServiceTap == null ? null : () => onPinnedServiceTap!(pinnedID),
+          ),
+        );
+      } else if (m.service) {
         items.add(_Pill(text: m.text, style: style));
       } else {
         items.add(
@@ -175,7 +194,7 @@ class ChatMessagesView extends StatelessWidget {
             // обоих режимах — пузыри не пересоздаются.
             child: GestureDetector(
               behavior: HitTestBehavior.opaque,
-              onTap: selecting && onSelect != null ? () => onSelect!(m) : null,
+              onTap: selecting ? (onSelect == null ? null : () => onSelect!(m)) : (onTap == null ? null : () => onTap!(m)),
               child: AnimatedContainer(
                 duration: Duration(milliseconds: selecting ? 150 : 400),
                 color: selecting && selectedIDs.contains(m.id)
@@ -324,12 +343,13 @@ class _UnreadDivider extends StatelessWidget {
 class _Pill extends StatelessWidget {
   final String text;
   final MessageBubbleStyle style;
+  final VoidCallback? onTap;
 
-  const _Pill({required this.text, required this.style});
+  const _Pill({super.key, required this.text, required this.style, this.onTap});
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
+    final pill = Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Center(
         child: DecoratedBox(
@@ -345,7 +365,51 @@ class _Pill extends StatelessWidget {
         ),
       ),
     );
+    if (onTap == null) return pill;
+    return GestureDetector(behavior: HitTestBehavior.opaque, onTap: onTap, child: pill);
   }
+}
+
+/// Сервисное «Вы закрепили «…»» / «Анна закрепил(а) «…»» для [service];
+/// [pinned] — закреплённое (текст — как сейчас, после правок); нет его —
+/// «закрепил(а) сообщение».
+String pinnedServiceText(Translations t, models.Message service, models.Message? pinned) {
+  final tc = t.screenChat;
+  var snippet = '';
+  if (pinned != null) {
+    snippet = pinned.text.isNotEmpty
+        ? pinned.text
+        : pinned.kind == models.MessageKind.file
+        ? pinned.fileName
+        : messageKindLabel(t, pinned.kind);
+    snippet = snippet.replaceAll('\n', ' ');
+    if (snippet.length > 30) snippet = '${snippet.substring(0, 30).trimRight()}…';
+  }
+  if (service.outgoing) return snippet.isEmpty ? tc.pinnedServiceYouMessage : tc.pinnedServiceYou(text: snippet);
+  return snippet.isEmpty ? tc.pinnedServiceMessage(name: service.senderName) : tc.pinnedService(name: service.senderName, text: snippet);
+}
+
+/// Маленькое превью фото/видео сообщения [message] (плашка закреплённого);
+/// `null` — не медиа. Под спойлером — размыто.
+Widget? messageMediaThumb(models.Message message, {double size = 36}) {
+  final item = message.media.firstOrNull;
+  final kind = item?.kind ?? message.kind;
+  if (kind != models.MessageKind.photo && kind != models.MessageKind.video) return null;
+  final video = kind == models.MessageKind.video;
+  final cache = (size * 3).round();
+  final photoPath = (item?.localPath ?? '').isNotEmpty ? item!.localPath : message.localPath;
+  Widget child = video && (item?.thumbPath ?? '').isNotEmpty
+      ? ChatMediaImage(path: item!.thumbPath, thumbhash: item.thumbhash, cacheWidth: cache)
+      : !video && photoPath.isNotEmpty
+      ? ChatMediaImage(path: photoPath, thumbhash: item?.thumbhash ?? '', cacheWidth: cache)
+      : chatMediaPlaceholder('${message.id}-0', video: video, iconSize: size * 0.4);
+  if (item?.spoiler ?? false) {
+    child = ImageFiltered(imageFilter: ImageFilter.blur(sigmaX: 6, sigmaY: 6), child: child);
+  }
+  return ClipRRect(
+    borderRadius: BorderRadius.circular(4),
+    child: SizedBox(width: size, height: size, child: child),
+  );
 }
 
 /// Пузырь сообщения: имя автора (группа), цитата ответа, медиа/файл/голосовое,
@@ -457,6 +521,7 @@ class MessageBubble extends StatelessWidget {
     final meta = Row(
       mainAxisSize: MainAxisSize.min,
       children: [
+        if (m.pinned) ...[FaIcon(FontAwesomeIcons.thumbtack, size: 10, color: metaColor), const SizedBox(width: 3)],
         Text(metaText, style: metaStyle),
         if (out) ...[
           const SizedBox(width: 3),
@@ -473,7 +538,7 @@ class MessageBubble extends StatelessWidget {
       ],
     );
     // Невидимый хвост под время: nbsp, чтобы не переносился отдельно.
-    final trailing = '  $metaText${out ? '     ' : ''}';
+    final trailing = '  ${m.pinned ? '\u00a0\u00a0\u00a0' : ''}$metaText${out ? '     ' : ''}';
 
     // Пока вложения грузятся — тап по медиа не открывает просмотр.
     final mediaTap = m.isUploading ? null : onMediaTap;
