@@ -77,6 +77,9 @@ class _ChatCupertinoState extends State<ChatCupertino> {
   late final ChatCubit _cubit;
   late final _tracker = ChatScrollTracker(_scroll, _keyFor);
   String? _flashID;
+
+  /// Какое закреплённое показано в плашке (по кругу от новых к старым).
+  int _pinIndex = 0;
   bool _draftLoaded = false;
   String? _editingID;
 
@@ -162,6 +165,45 @@ class _ChatCupertinoState extends State<ChatCupertino> {
       ),
     );
     if (confirmed ?? false) await _cubit.deleteSelected();
+  }
+
+  /// Плашка закреплённого над лентой (если есть закреплённые).
+  Widget _pinnedBar(BuildContext context, models.Chat chat, ChatState state) {
+    final pinned = state.pinnedMessages;
+    if (pinned.isEmpty) return const SizedBox.shrink();
+    final index = _pinIndex % pinned.length;
+    return PinnedMessageBar(
+      pinned: pinned,
+      index: index,
+      style: PinnedBarStyle(
+        background: ThemesCupertino.appBackground.resolveFrom(context).withValues(alpha: 0.92),
+        accent: CupertinoTheme.of(context).primaryColor,
+        text: CupertinoColors.label.resolveFrom(context),
+        secondary: CupertinoColors.secondaryLabel.resolveFrom(context),
+        separator: CupertinoColors.separator.resolveFrom(context),
+      ),
+      // Тап — к показанному, затем плашка показывает следующее (старее).
+      onTap: () {
+        _tracker.jumpTo(pinned[index].id);
+        setState(() => _pinIndex = (index + 1) % pinned.length);
+      },
+      onUnpin: chat.type == models.ChatType.channel ? null : () => _confirmUnpin(context, pinned[index]),
+    );
+  }
+
+  Future<void> _confirmUnpin(BuildContext context, models.Message message) async {
+    final t = context.t.screenChat;
+    final confirmed = await showCupertinoDialog<bool>(
+      context: context,
+      builder: (dialogContext) => CupertinoAlertDialog(
+        title: Text(t.unpinTitle),
+        actions: [
+          CupertinoDialogAction(onPressed: () => Navigator.of(dialogContext).pop(false), child: Text(context.t.common.cancel)),
+          CupertinoDialogAction(isDestructiveAction: true, onPressed: () => Navigator.of(dialogContext).pop(true), child: Text(t.unpin)),
+        ],
+      ),
+    );
+    if (confirmed ?? false) await _cubit.setPinned(message, false);
   }
 
   /// Нет доступа к микрофону (запись голосового).
@@ -338,7 +380,10 @@ class _ChatCupertinoState extends State<ChatCupertino> {
                                             messages: state.messages,
                                             chatType: chat.type,
                                             style: ChatCupertino.bubbleStyle(context),
-                                            padding: const EdgeInsets.symmetric(vertical: 8),
+                                            padding: EdgeInsets.only(
+                                              top: 8 + (state.pinnedMessages.isEmpty ? 0 : PinnedMessageBar.height),
+                                              bottom: 8,
+                                            ),
                                             // Удержание — CupertinoContextMenu (menuWrapper), не action sheet.
                                             onLongPress: (_) {},
                                             menuWrapper: (message, bubble, preview) => _menu(context, chat, message, bubble, preview),
@@ -367,6 +412,7 @@ class _ChatCupertinoState extends State<ChatCupertino> {
                                               chatTitle: chat.title,
                                             ),
                                           ),
+                                    Positioned(top: 0, left: 0, right: 0, child: _pinnedBar(context, chat, state)),
                                     Positioned(
                                       right: 10,
                                       bottom: 10,
@@ -455,6 +501,12 @@ class _ChatCupertinoState extends State<ChatCupertino> {
           _focus.requestFocus();
         }),
       if (message.text.isNotEmpty) action(t.copy, CupertinoIcons.doc_on_doc, () => Clipboard.setData(ClipboardData(text: message.text))),
+      if (canWrite)
+        action(
+          message.pinned ? t.unpin : t.pin,
+          message.pinned ? CupertinoIcons.pin_slash : CupertinoIcons.pin,
+          () => _cubit.setPinned(message, !message.pinned),
+        ),
       action(t.forward, CupertinoIcons.arrowshape_turn_up_right, () {
         _cubit.startSelection(message);
         _forward(context, single: true);

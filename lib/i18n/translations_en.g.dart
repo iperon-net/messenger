@@ -418,6 +418,24 @@ class Translations$screenChat$en {
 	/// en: 'Select'
 	String get select => 'Select';
 
+	/// en: 'Compressing video'
+	String get videoCompressing => 'Compressing video';
+
+	/// en: 'Pin'
+	String get pin => 'Pin';
+
+	/// en: 'Unpin'
+	String get unpin => 'Unpin';
+
+	/// en: 'Pinned message'
+	String get pinnedTitle => 'Pinned message';
+
+	/// en: 'Pinned message #{n}'
+	String pinnedNumber({required Object n}) => 'Pinned message #${n}';
+
+	/// en: 'Unpin message?'
+	String get unpinTitle => 'Unpin message?';
+
 	/// en: 'Forward'
 	String get forward => 'Forward';
 
@@ -2025,6 +2043,12 @@ extension on Translations {
 			'screenChat.searchNoResults' => 'No results',
 			'screenChat.unreadMessages' => 'Unread messages',
 			'screenChat.select' => 'Select',
+			'screenChat.videoCompressing' => 'Compressing video',
+			'screenChat.pin' => 'Pin',
+			'screenChat.unpin' => 'Unpin',
+			'screenChat.pinnedTitle' => 'Pinned message',
+			'screenChat.pinnedNumber' => ({required Object n}) => 'Pinned message #${n}',
+			'screenChat.unpinTitle' => 'Unpin message?',
 			'screenChat.forward' => 'Forward',
 			'screenChat.forwardTo' => 'Forward to…',
 			'screenChat.forwardedFrom' => ({required Object name}) => 'Forwarded from ${name}',
@@ -2436,14 +2460,14 @@ extension on Translations {
 			'passkey.loadError' => 'Couldn\'t load passkeys',
 			'passkey.retry' => 'Retry',
 			'passkey.verificationFailed' => 'Couldn\'t verify the passkey. Please try again.',
+			_ => null,
+		} ?? switch (path) {
 			'passkey.ceremonyExpired' => 'The request expired. Please try again.',
 			'passkey.unknownCredential' => 'This passkey isn\'t recognized.',
 			'passkey.alreadyRegistered' => 'This passkey is already registered.',
 			'passkey.notFound' => 'Passkey not found.',
 			'yandex.failed' => 'Couldn\'t sign in with Yandex. Please try again.',
 			'yandex.invalidToken' => 'Couldn\'t verify the Yandex sign-in. Please try again.',
-			_ => null,
-		} ?? switch (path) {
 			'yandex.phoneMissing' => 'Your Yandex ID has no phone number. Add one in Yandex ID or sign in with your phone number.',
 			'yandex.invalidPhone' => 'The phone number in your Yandex ID can\'t be used to sign in. Sign in with your phone number.',
 			'yandex.unavailable' => 'Yandex ID is unavailable right now. Please try again later.',

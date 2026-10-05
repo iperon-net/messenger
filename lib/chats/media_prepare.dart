@@ -135,6 +135,12 @@ Future<({int width, int height})?> _dimensions(Uint8List bytes) async {
   }
 }
 
+/// ThumbHash картинки (base64) — и для кадра-превью видео.
+Future<String> chatThumbhash(Uint8List image) => _thumbhash(image);
+
+/// Сжатые фото и видео ждут загрузки здесь (см. [_outputDir]).
+Future<Directory> chatMediaOutputDir() => _outputDir();
+
 /// ThumbHash по картинке, уменьшенной до 100×100 (ограничение формата).
 Future<String> _thumbhash(Uint8List jpeg) async {
   final size = await _dimensions(jpeg);

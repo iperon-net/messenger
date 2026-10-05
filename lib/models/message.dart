@@ -85,6 +85,9 @@ class MessageMedia with MessageMediaMappable {
   /// Скрыто под спойлером: размыто с пылью, пока не тапнут.
   final bool spoiler;
 
+  /// Длительность видео, секунды (0 — неизвестна / фото).
+  final int duration;
+
   const MessageMedia({
     required this.kind,
     this.localPath = '',
@@ -94,6 +97,7 @@ class MessageMedia with MessageMediaMappable {
     this.thumbPath = '',
     this.thumbhash = '',
     this.spoiler = false,
+    this.duration = 0,
   });
 
   double? get aspectRatio => width > 0 && height > 0 ? width / height : null;
@@ -161,6 +165,9 @@ class Message with MessageMappable {
   /// Переслано из другого чата; `null` — своё сообщение.
   final MessageForward? forward;
 
+  /// Закреплено в чате — в плашке под шапкой (закреплённых может быть несколько).
+  final bool pinned;
+
   const Message({
     required this.id,
     required this.chatID,
@@ -184,6 +191,7 @@ class Message with MessageMappable {
     this.uploadTotal = 0,
     this.reactions = const [],
     this.forward,
+    this.pinned = false,
   });
 
   /// Наши реакции (до `maxReactionsPerUser` на сообщение), в порядке чипов.

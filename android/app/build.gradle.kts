@@ -77,6 +77,12 @@ dependencies {
     // та, что уже резолвится через Flutter-плагины (иначе конфликт).
     implementation("androidx.core:core-ktx:1.18.0")
 
+    // Сжатие видео перед отправкой в чат (VideoCompressor): Transformer —
+    // перекодирование аппаратным кодеком, effect — масштаб (Presentation).
+    implementation("androidx.media3:media3-transformer:1.11.1")
+    implementation("androidx.media3:media3-effect:1.11.1")
+    implementation("androidx.media3:media3-common:1.11.1")
+
     // Unit-тесты расшифровки/разбора пушей на общих векторах
     // (test/fixtures/push_vectors.json). org.json — потому что android.jar в
     // JVM-тестах содержит лишь заглушки.

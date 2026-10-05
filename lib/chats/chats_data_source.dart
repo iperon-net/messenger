@@ -50,6 +50,9 @@ abstract class ChatsDataSource {
 
   Future<void> deleteMessage(String chatID, String messageID);
 
+  /// Закрепить / открепить сообщение в чате.
+  Future<void> setMessagePinned(String chatID, String messageID, bool pinned);
+
   /// Переслать [messages] (из любых чатов, по порядку) в чат [toChatID]: новые
   /// исходящие сообщения с тем же содержимым и пометкой «Переслано от».
   Future<void> forwardMessages(String toChatID, List<models.Message> messages);

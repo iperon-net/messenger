@@ -63,6 +63,12 @@ class ChatState with ChatStateMappable {
     this.searchIndex = 0,
   });
 
+  /// Закреплённые — от новых к старым (плашка показывает сначала последнее).
+  List<models.Message> get pinnedMessages => [
+    for (final m in messages.reversed)
+      if (m.pinned && !m.service) m,
+  ];
+
   /// Отмеченные сообщения — в порядке ленты (от старых к новым).
   List<models.Message> get selectedMessages => [
     for (final m in messages)

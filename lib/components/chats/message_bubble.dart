@@ -731,7 +731,9 @@ class _MediaPreview extends StatelessWidget {
     final aspect = meta?.aspectRatio;
     final height = aspect == null ? (video ? 190.0 : _width) : (_width / aspect).clamp(140.0, 340.0);
     final Widget image;
-    if (message.localPath.isNotEmpty && !video) {
+    if (video && (meta?.thumbPath ?? '').isNotEmpty) {
+      image = SizedBox(width: _width, height: height, child: chatVideoThumb(meta!, cacheWidth: 780));
+    } else if (message.localPath.isNotEmpty && !video) {
       image = SizedBox(
         width: _width,
         height: height,
@@ -818,7 +820,9 @@ class _AlbumGrid extends StatelessWidget {
 
   Widget _tile(models.MessageMedia item, int index) {
     final video = item.kind == models.MessageKind.video;
-    final Widget child = item.localPath.isEmpty || video
+    final Widget child = video && item.thumbPath.isNotEmpty
+        ? chatVideoThumb(item, playSize: 34, cacheWidth: 520)
+        : item.localPath.isEmpty || video
         ? chatMediaPlaceholder('${message.id}-$index', video: video, iconSize: 26)
         : ChatMediaImage(path: item.localPath, thumbhash: item.thumbhash, cacheWidth: 520);
     return _tappableMedia(message, index, onTap, MediaSpoiler(enabled: item.spoiler, child: child));

@@ -287,6 +287,11 @@ class ChatsDemoDataSource implements ChatsDataSource {
   }
 
   @override
+  Future<void> setMessagePinned(String chatID, String messageID, bool pinned) async {
+    _updateMessage(chatID, messageID, (m) => m.copyWith(pinned: pinned));
+  }
+
+  @override
   Future<void> forwardMessages(String toChatID, List<models.Message> messages) async {
     final source = {for (final c in _chats) c.id: c};
     final now = DateTime.now();
@@ -608,6 +613,7 @@ class ChatsDemoDataSource implements ChatsDataSource {
       models.MessageReply? reply,
       int album = 0,
       bool spoiler = false,
+      bool pinned = false,
       List<models.MessageReaction> reactions = const [],
       Duration step = const Duration(minutes: 7),
     }) {
@@ -634,6 +640,7 @@ class ChatsDemoDataSource implements ChatsDataSource {
             if (album == 0 && spoiler) models.MessageMedia(kind: kind, spoiler: true),
           ],
           reactions: reactions,
+          pinned: pinned,
         ),
       );
     }
@@ -686,10 +693,11 @@ class ChatsDemoDataSource implements ChatsDataSource {
           sender: 'Мария',
           kind: models.MessageKind.photo,
           album: 6,
+          pinned: true,
           reactions: [r('👍', 5), r('❤️', 3, true), r('🔥', 2)],
           step: const Duration(hours: 20),
         );
-        add('', sender: 'Иван', kind: models.MessageKind.file, fileName: 'отчёт_сентябрь.xlsx');
+        add('', sender: 'Иван', kind: models.MessageKind.file, fileName: 'отчёт_сентябрь.xlsx', pinned: true);
       case models.ChatType.channel:
         // Реакции канала — только из разрешённых админом.
         final allowed = chat.reactionsMode == models.ChatReactionsMode.some ? chat.reactions : const ['👍', '🔥', '❤️'];

@@ -229,6 +229,12 @@ class _Translations$screenChat$ru extends Translations$screenChat$en {
 	@override String get searchNoResults => 'Нет результатов';
 	@override String get unreadMessages => 'Непрочитанные сообщения';
 	@override String get select => 'Выбрать';
+	@override String get videoCompressing => 'Сжатие видео';
+	@override String get pin => 'Закрепить';
+	@override String get unpin => 'Открепить';
+	@override String get pinnedTitle => 'Закреплённое сообщение';
+	@override String pinnedNumber({required Object n}) => 'Закреплённое сообщение #${n}';
+	@override String get unpinTitle => 'Открепить сообщение?';
 	@override String get forward => 'Переслать';
 	@override String get forwardTo => 'Переслать в…';
 	@override String forwardedFrom({required Object name}) => 'Переслано от ${name}';
@@ -1004,6 +1010,12 @@ extension on TranslationsRu {
 			'screenChat.searchNoResults' => 'Нет результатов',
 			'screenChat.unreadMessages' => 'Непрочитанные сообщения',
 			'screenChat.select' => 'Выбрать',
+			'screenChat.videoCompressing' => 'Сжатие видео',
+			'screenChat.pin' => 'Закрепить',
+			'screenChat.unpin' => 'Открепить',
+			'screenChat.pinnedTitle' => 'Закреплённое сообщение',
+			'screenChat.pinnedNumber' => ({required Object n}) => 'Закреплённое сообщение #${n}',
+			'screenChat.unpinTitle' => 'Открепить сообщение?',
 			'screenChat.forward' => 'Переслать',
 			'screenChat.forwardTo' => 'Переслать в…',
 			'screenChat.forwardedFrom' => ({required Object name}) => 'Переслано от ${name}',
@@ -1415,14 +1427,14 @@ extension on TranslationsRu {
 			'passkey.loadError' => 'Не удалось загрузить ключи',
 			'passkey.retry' => 'Повторить',
 			'passkey.verificationFailed' => 'Не удалось проверить ключ. Попробуйте ещё раз.',
+			_ => null,
+		} ?? switch (path) {
 			'passkey.ceremonyExpired' => 'Срок запроса истёк. Попробуйте ещё раз.',
 			'passkey.unknownCredential' => 'Этот ключ не распознан.',
 			'passkey.alreadyRegistered' => 'Этот ключ уже зарегистрирован.',
 			'passkey.notFound' => 'Ключ не найден.',
 			'yandex.failed' => 'Не удалось войти через Яндекс. Попробуйте ещё раз.',
 			'yandex.invalidToken' => 'Не удалось подтвердить вход через Яндекс. Попробуйте ещё раз.',
-			_ => null,
-		} ?? switch (path) {
 			'yandex.phoneMissing' => 'К аккаунту Яндекс ID не привязан номер телефона. Добавьте его в Яндекс ID или войдите по номеру.',
 			'yandex.invalidPhone' => 'Номер телефона в Яндекс ID не подходит для входа. Войдите по номеру.',
 			'yandex.unavailable' => 'Яндекс ID сейчас недоступен. Попробуйте позже.',

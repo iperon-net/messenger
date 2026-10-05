@@ -202,6 +202,9 @@ class ChatCubit extends Cubit<ChatState> {
 
   void cancelCompose() => emit(state.copyWith(reply: null, editing: null, forwarding: const []));
 
+  /// Закрепить / открепить (меню сообщения, крестик в плашке).
+  Future<void> setPinned(models.Message message, bool pinned) async => _source?.setMessagePinned(_chatID, message.id, pinned);
+
   /// Режим выделения: «Выбрать» в меню сообщения.
   void startSelection(models.Message message) =>
       emit(state.copyWith(selecting: true, selectedIDs: [message.id], searching: false, searchQuery: '', searchResults: const []));

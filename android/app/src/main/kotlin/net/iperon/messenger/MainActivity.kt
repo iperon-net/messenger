@@ -96,6 +96,9 @@ class MainActivity : FlutterFragmentActivity() {
     // AudioDevicesHandler и lib/audio_routes.dart.
     private var audioDevicesHandler: AudioDevicesHandler? = null
 
+    // Сжатие видео перед отправкой в чат (VideoCompressor, lib/chats/video_prepare.dart).
+    private var videoCompressor: VideoCompressor? = null
+
     /// Имя кэшированного движка, к которому цепляется `FlutterFragment`. Сам движок
     /// кладётся в кэш в [onCreate] ДО `super.onCreate` (см. [ensureEngine]) — иначе
     /// восстановленный из saved-state фрагмент на cold-start не найдёт его и упадёт
@@ -176,6 +179,8 @@ class MainActivity : FlutterFragmentActivity() {
         // старый освобождаем, чтобы не текли AudioDeviceCallback/каналы.
         audioDevicesHandler?.dispose()
         audioDevicesHandler = AudioDevicesHandler(applicationContext, flutterEngine.dartExecutor.binaryMessenger)
+        videoCompressor?.dispose()
+        videoCompressor = VideoCompressor(applicationContext, flutterEngine.dartExecutor.binaryMessenger)
         callWindowChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, channelName)
             .also { it.setMethodCallHandler { call, result ->
                 when (call.method) {

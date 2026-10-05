@@ -74,6 +74,9 @@ class _ChatMaterialState extends State<ChatMaterial> {
   late final ChatCubit _cubit;
   late final _tracker = ChatScrollTracker(_scroll, _keyFor);
   String? _flashID;
+
+  /// Какое закреплённое показано в плашке (по кругу от новых к старым).
+  int _pinIndex = 0;
   bool _draftLoaded = false;
   String? _editingID;
 
@@ -179,6 +182,47 @@ class _ChatMaterialState extends State<ChatMaterial> {
       ),
     );
     if (confirmed ?? false) await _cubit.deleteSelected();
+  }
+
+  /// Плашка закреплённого над лентой (если есть закреплённые).
+  Widget _pinnedBar(BuildContext context, models.Chat chat, ChatState state) {
+    final pinned = state.pinnedMessages;
+    if (pinned.isEmpty) return const SizedBox.shrink();
+    final index = _pinIndex % pinned.length;
+    return PinnedMessageBar(
+      pinned: pinned,
+      index: index,
+      style: PinnedBarStyle(
+        background: Theme.of(context).brightness == Brightness.dark
+            ? ThemesCupertino.groupedCard.darkColor
+            : ThemesCupertino.groupedCard.color,
+        accent: Theme.of(context).colorScheme.primary,
+        text: Theme.of(context).colorScheme.onSurface,
+        secondary: Theme.of(context).colorScheme.onSurfaceVariant,
+        separator: Theme.of(context).colorScheme.outlineVariant,
+      ),
+      // Тап — к показанному, затем плашка показывает следующее (старее).
+      onTap: () {
+        _tracker.jumpTo(pinned[index].id);
+        setState(() => _pinIndex = (index + 1) % pinned.length);
+      },
+      onUnpin: chat.type == models.ChatType.channel ? null : () => _confirmUnpin(context, pinned[index]),
+    );
+  }
+
+  Future<void> _confirmUnpin(BuildContext context, models.Message message) async {
+    final t = context.t.screenChat;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(t.unpinTitle),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(dialogContext).pop(false), child: Text(context.t.common.cancel)),
+          TextButton(onPressed: () => Navigator.of(dialogContext).pop(true), child: Text(t.unpin)),
+        ],
+      ),
+    );
+    if (confirmed ?? false) await _cubit.setPinned(message, false);
   }
 
   /// Нет доступа к микрофону (запись голосового).
@@ -309,7 +353,10 @@ class _ChatMaterialState extends State<ChatMaterial> {
                                       messages: state.messages,
                                       chatType: chat.type,
                                       style: ChatMaterial.bubbleStyle(context),
-                                      padding: const EdgeInsets.symmetric(vertical: 8),
+                                      padding: EdgeInsets.only(
+                                        top: 8 + (state.pinnedMessages.isEmpty ? 0 : PinnedMessageBar.height),
+                                        bottom: 8,
+                                      ),
                                       onLongPress: (message) => _actions(context, chat, message),
                                       controller: _scroll,
                                       keyFor: _keyFor,
@@ -336,6 +383,7 @@ class _ChatMaterialState extends State<ChatMaterial> {
                                         chatTitle: chat.title,
                                       ),
                                     ),
+                              Positioned(top: 0, left: 0, right: 0, child: _pinnedBar(context, chat, state)),
                               Positioned(
                                 right: 10,
                                 bottom: 10,
@@ -402,6 +450,12 @@ class _ChatMaterialState extends State<ChatMaterial> {
               ListTile(leading: const Icon(Icons.reply), title: Text(t.reply), onTap: () => Navigator.of(sheetContext).pop('reply')),
             if (message.text.isNotEmpty)
               ListTile(leading: const Icon(Icons.copy), title: Text(t.copy), onTap: () => Navigator.of(sheetContext).pop('copy')),
+            if (canWrite)
+              ListTile(
+                leading: Icon(message.pinned ? Icons.push_pin : Icons.push_pin_outlined),
+                title: Text(message.pinned ? t.unpin : t.pin),
+                onTap: () => Navigator.of(sheetContext).pop('pin'),
+              ),
             ListTile(leading: const Icon(Icons.forward), title: Text(t.forward), onTap: () => Navigator.of(sheetContext).pop('forward')),
             if (message.outgoing && message.kind == models.MessageKind.text)
               ListTile(leading: const Icon(Icons.edit_outlined), title: Text(t.edit), onTap: () => Navigator.of(sheetContext).pop('edit')),
@@ -434,6 +488,8 @@ class _ChatMaterialState extends State<ChatMaterial> {
         if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(t.copied)));
       case 'edit':
         _cubit.startEdit(message);
+      case 'pin':
+        await _cubit.setPinned(message, !message.pinned);
       case 'forward':
         _cubit.startSelection(message);
         await _forward(context, single: true);

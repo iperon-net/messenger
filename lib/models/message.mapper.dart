@@ -759,6 +759,13 @@ class MessageMediaMapper extends ClassMapperBase<MessageMedia> {
     opt: true,
     def: false,
   );
+  static int _$duration(MessageMedia v) => v.duration;
+  static const Field<MessageMedia, int> _f$duration = Field(
+    'duration',
+    _$duration,
+    opt: true,
+    def: 0,
+  );
 
   @override
   final MappableFields<MessageMedia> fields = const {
@@ -770,6 +777,7 @@ class MessageMediaMapper extends ClassMapperBase<MessageMedia> {
     #thumbPath: _f$thumbPath,
     #thumbhash: _f$thumbhash,
     #spoiler: _f$spoiler,
+    #duration: _f$duration,
   };
 
   static MessageMedia _instantiate(DecodingData data) {
@@ -782,6 +790,7 @@ class MessageMediaMapper extends ClassMapperBase<MessageMedia> {
       thumbPath: data.dec(_f$thumbPath),
       thumbhash: data.dec(_f$thumbhash),
       spoiler: data.dec(_f$spoiler),
+      duration: data.dec(_f$duration),
     );
   }
 
@@ -856,6 +865,7 @@ abstract class MessageMediaCopyWith<$R, $In extends MessageMedia, $Out>
     String? thumbPath,
     String? thumbhash,
     bool? spoiler,
+    int? duration,
   });
   MessageMediaCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
@@ -878,6 +888,7 @@ class _MessageMediaCopyWithImpl<$R, $Out>
     String? thumbPath,
     String? thumbhash,
     bool? spoiler,
+    int? duration,
   }) => $apply(
     FieldCopyWithData({
       if (kind != null) #kind: kind,
@@ -888,6 +899,7 @@ class _MessageMediaCopyWithImpl<$R, $Out>
       if (thumbPath != null) #thumbPath: thumbPath,
       if (thumbhash != null) #thumbhash: thumbhash,
       if (spoiler != null) #spoiler: spoiler,
+      if (duration != null) #duration: duration,
     }),
   );
   @override
@@ -900,6 +912,7 @@ class _MessageMediaCopyWithImpl<$R, $Out>
     thumbPath: data.get(#thumbPath, or: $value.thumbPath),
     thumbhash: data.get(#thumbhash, or: $value.thumbhash),
     spoiler: data.get(#spoiler, or: $value.spoiler),
+    duration: data.get(#duration, or: $value.duration),
   );
 
   @override
@@ -1066,6 +1079,13 @@ class MessageMapper extends ClassMapperBase<Message> {
     _$forward,
     opt: true,
   );
+  static bool _$pinned(Message v) => v.pinned;
+  static const Field<Message, bool> _f$pinned = Field(
+    'pinned',
+    _$pinned,
+    opt: true,
+    def: false,
+  );
 
   @override
   final MappableFields<Message> fields = const {
@@ -1091,6 +1111,7 @@ class MessageMapper extends ClassMapperBase<Message> {
     #uploadTotal: _f$uploadTotal,
     #reactions: _f$reactions,
     #forward: _f$forward,
+    #pinned: _f$pinned,
   };
 
   static Message _instantiate(DecodingData data) {
@@ -1117,6 +1138,7 @@ class MessageMapper extends ClassMapperBase<Message> {
       uploadTotal: data.dec(_f$uploadTotal),
       reactions: data.dec(_f$reactions),
       forward: data.dec(_f$forward),
+      pinned: data.dec(_f$pinned),
     );
   }
 
@@ -1221,6 +1243,7 @@ abstract class MessageCopyWith<$R, $In extends Message, $Out>
     int? uploadTotal,
     List<MessageReaction>? reactions,
     MessageForward? forward,
+    bool? pinned,
   });
   MessageCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
@@ -1303,6 +1326,7 @@ class _MessageCopyWithImpl<$R, $Out>
     int? uploadTotal,
     List<MessageReaction>? reactions,
     Object? forward = $none,
+    bool? pinned,
   }) => $apply(
     FieldCopyWithData({
       if (id != null) #id: id,
@@ -1327,6 +1351,7 @@ class _MessageCopyWithImpl<$R, $Out>
       if (uploadTotal != null) #uploadTotal: uploadTotal,
       if (reactions != null) #reactions: reactions,
       if (forward != $none) #forward: forward,
+      if (pinned != null) #pinned: pinned,
     }),
   );
   @override
@@ -1353,6 +1378,7 @@ class _MessageCopyWithImpl<$R, $Out>
     uploadTotal: data.get(#uploadTotal, or: $value.uploadTotal),
     reactions: data.get(#reactions, or: $value.reactions),
     forward: data.get(#forward, or: $value.forward),
+    pinned: data.get(#pinned, or: $value.pinned),
   );
 
   @override

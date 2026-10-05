@@ -2,12 +2,16 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:math' as math;
 
+import 'package:cupertino_ui/cupertino_ui.dart' as c;
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:material_ui/material_ui.dart' as m;
 import 'package:path/path.dart' as p;
 
 import '../../chats/media_prepare.dart';
+import '../../chats/video_prepare.dart';
 import '../../components.dart';
 import '../../cubit.dart';
 import '../../i18n/translations.g.dart';
@@ -71,9 +75,20 @@ Future<void> pickAndSendAttachments(BuildContext context, {TextEditingController
   final sheet = Platform.isIOS
       ? await showMediaCaptionCupertino(context, items, initialCaption: initial)
       : await showMediaCaptionMaterial(context, items, initialCaption: initial);
-  if (sheet == null) return;
+  if (sheet == null || !context.mounted) return;
   final caption = sheet.caption;
-  // Текст из поля ввода ушёл в подпись.
+
+  // Фото — параллельно; видео — по очереди, с окном прогресса и «Отмена».
+  final List<models.MessageMedia> media;
+  try {
+    media = await _prepareMedia(context, [
+      for (final i in items)
+        if (i.isMedia) i,
+    ], spoiler: sheet.spoiler);
+  } on ChatVideoCancelled {
+    return;
+  }
+  // Текст из поля ввода ушёл в подпись (после отмены сжатия — остаётся).
   if (initial.isNotEmpty) input?.clear();
 
   var pending = caption;
@@ -83,8 +98,6 @@ Future<void> pickAndSendAttachments(BuildContext context, {TextEditingController
     return value;
   }
 
-  // Фото сжимаем перед отправкой (параллельно); видео пока как есть.
-  final media = await Future.wait([for (final i in items.where((i) => i.isMedia)) _prepare(i, spoiler: sheet.spoiler)]);
   for (var start = 0; start < media.length; start += models.Message.maxAlbum) {
     final chunk = media.sublist(start, math.min(start + models.Message.maxAlbum, media.length));
     await cubit.sendMedia(
@@ -97,6 +110,177 @@ Future<void> pickAndSendAttachments(BuildContext context, {TextEditingController
   }
   for (final file in items.where((i) => !i.isMedia)) {
     await cubit.sendMedia(kind: file.kind, localPath: file.path, fileName: p.basename(file.path), caption: takeCaption());
+  }
+}
+
+/// Сжатие фото и видео перед отправкой, в исходном порядке. Видео дольше —
+/// если его подготовка заметна (> 0,4 с), показывается окно «Сжатие видео» с
+/// прогрессом по всем видео и «Отменой» ([ChatVideoCancelled]).
+Future<List<models.MessageMedia>> _prepareMedia(BuildContext context, List<AttachmentDraft> items, {required bool spoiler}) async {
+  final photos = [for (final item in items) item.kind == models.MessageKind.photo ? _prepare(item, spoiler: spoiler) : null];
+  final result = List<models.MessageMedia?>.filled(items.length, null);
+  final videos = [
+    for (final (i, item) in items.indexed)
+      if (item.kind == models.MessageKind.video) (i, item),
+  ];
+  if (videos.isNotEmpty) {
+    final progress = ValueNotifier<double>(0);
+    ChatVideoJob? current;
+    var cancelled = false;
+    final close = _showVideoProgress(
+      context,
+      progress,
+      onCancel: () {
+        cancelled = true;
+        current?.cancel();
+      },
+    );
+    try {
+      for (final (n, (i, item)) in videos.indexed) {
+        if (cancelled) throw const ChatVideoCancelled();
+        current = ChatVideoJob();
+        final video = await prepareChatVideo(item.path, job: current, onProgress: (value) => progress.value = (n + value) / videos.length);
+        if (cancelled) throw const ChatVideoCancelled();
+        result[i] = video == null
+            ? models.MessageMedia(kind: item.kind, localPath: item.path, spoiler: spoiler)
+            : models.MessageMedia(
+                kind: item.kind,
+                localPath: video.path,
+                width: video.width,
+                height: video.height,
+                size: video.size,
+                thumbPath: video.thumbPath,
+                thumbhash: video.thumbhash,
+                duration: video.duration,
+                spoiler: spoiler,
+              );
+      }
+    } finally {
+      close();
+      progress.dispose();
+    }
+  }
+  for (final (i, photo) in photos.indexed) {
+    if (photo != null) result[i] = await photo;
+  }
+  return [for (final m in result) m!];
+}
+
+/// Окно «Сжатие видео» (с задержкой — короткая подготовка без мигания).
+/// Возвращает функцию закрытия.
+VoidCallback _showVideoProgress(BuildContext context, ValueListenable<double> progress, {required VoidCallback onCancel}) {
+  BuildContext? dialogContext;
+  var closed = false;
+  var popped = false;
+  final timer = Timer(const Duration(milliseconds: 400), () {
+    if (closed || !context.mounted) return;
+    final t = context.t;
+    Widget percent(BuildContext context) =>
+        ValueListenableBuilder<double>(valueListenable: progress, builder: (context, value, _) => Text('${(value * 100).round()}%'));
+    if (Platform.isIOS) {
+      c.showCupertinoDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) {
+          dialogContext = context;
+          // Закрыли раньше, чем окно построилось, — закрываем сразу после.
+          if (closed && !popped) {
+            popped = true;
+            WidgetsBinding.instance.addPostFrameCallback((_) => Navigator.of(context).pop());
+          }
+          return PopScope(
+            canPop: false,
+            child: c.CupertinoAlertDialog(
+              title: Text(t.screenChat.videoCompressing),
+              content: Padding(
+                padding: const EdgeInsets.only(top: 12),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    ValueListenableBuilder<double>(
+                      valueListenable: progress,
+                      builder: (context, value, _) => _ProgressLine(value: value, color: c.CupertinoTheme.of(context).primaryColor),
+                    ),
+                    const SizedBox(height: 8),
+                    percent(context),
+                  ],
+                ),
+              ),
+              actions: [c.CupertinoDialogAction(onPressed: onCancel, child: Text(t.common.cancel))],
+            ),
+          );
+        },
+      );
+    } else {
+      m.showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) {
+          dialogContext = context;
+          // Закрыли раньше, чем окно построилось, — закрываем сразу после.
+          if (closed && !popped) {
+            popped = true;
+            WidgetsBinding.instance.addPostFrameCallback((_) => Navigator.of(context).pop());
+          }
+          return PopScope(
+            canPop: false,
+            child: m.AlertDialog(
+              title: Text(t.screenChat.videoCompressing),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ValueListenableBuilder<double>(
+                    valueListenable: progress,
+                    builder: (context, value, _) => m.LinearProgressIndicator(value: value),
+                  ),
+                  const SizedBox(height: 12),
+                  percent(context),
+                ],
+              ),
+              actions: [m.TextButton(onPressed: onCancel, child: Text(t.common.cancel))],
+            ),
+          );
+        },
+      );
+    }
+  });
+  return () {
+    closed = true;
+    timer.cancel();
+    final dialog = dialogContext;
+    if (dialog != null && dialog.mounted && !popped) {
+      popped = true;
+      Navigator.of(dialog).pop();
+    }
+  };
+}
+
+/// Полоска прогресса (у Cupertino своей нет).
+class _ProgressLine extends StatelessWidget {
+  final double value;
+  final Color color;
+
+  const _ProgressLine({required this.value, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(2),
+      child: SizedBox(
+        height: 4,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            ColoredBox(color: color.withValues(alpha: 0.2)),
+            FractionallySizedBox(
+              alignment: Alignment.centerLeft,
+              widthFactor: value.clamp(0.0, 1.0),
+              child: ColoredBox(color: color),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 
@@ -356,6 +540,9 @@ class ChatScrollTracker extends ChangeNotifier {
     await scroll.animateTo(0, duration: const Duration(milliseconds: 300), curve: Curves.easeOutCubic);
   }
 
+  /// Перейти к сообщению [id] с подсветкой (плашка закреплённых).
+  Future<void> jumpTo(String id) => _jumpTo(id);
+
   Future<void> _jumpTo(String id) async {
     await scrollToMessage(scroll, keyFor(id));
     flashID = id;
@@ -435,6 +622,126 @@ class ChatScrollDownButton extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+/// Цвета плашки закреплённого — свои у Cupertino и Material.
+class PinnedBarStyle {
+  final Color background;
+  final Color accent;
+  final Color text;
+  final Color secondary;
+  final Color separator;
+
+  const PinnedBarStyle({
+    required this.background,
+    required this.accent,
+    required this.text,
+    required this.secondary,
+    required this.separator,
+  });
+}
+
+/// Плашка закреплённого под шапкой (как в Telegram): слева полоска-индикатор
+/// (несколько закреплённых — по сегменту на каждое, до 4), «Закреплённое
+/// сообщение #N» и текст. Тап — к сообщению; крестик — открепить.
+class PinnedMessageBar extends StatelessWidget {
+  static const height = 52.0;
+
+  /// От новых к старым ([ChatState.pinnedMessages]); показывается [index]-е.
+  final List<models.Message> pinned;
+  final int index;
+  final PinnedBarStyle style;
+  final VoidCallback onTap;
+
+  /// `null` — открепить нельзя (канал для подписчика).
+  final VoidCallback? onUnpin;
+
+  const PinnedMessageBar({super.key, required this.pinned, required this.index, required this.style, required this.onTap, this.onUnpin});
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.t;
+    final i = index % pinned.length;
+    final message = pinned[i];
+    // Номер — от старого (#1) к новому, как в Telegram.
+    final number = pinned.length - i;
+    final text = message.text.isNotEmpty ? message.text : messageKindLabel(t, message.kind);
+    final segments = math.min(pinned.length, 4);
+    final current = (number - 1) % segments;
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: Container(
+        height: height,
+        decoration: BoxDecoration(
+          color: style.background,
+          border: Border(bottom: BorderSide(color: style.separator, width: 0.5)),
+        ),
+        padding: const EdgeInsets.only(left: 14),
+        child: Row(
+          children: [
+            SizedBox(
+              width: 2.5,
+              height: 34,
+              child: Column(
+                children: [
+                  for (var s = 0; s < segments; s++) ...[
+                    if (s > 0) const SizedBox(height: 2),
+                    Expanded(
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          // Сверху — новые: текущий сегмент считается снизу.
+                          color: style.accent.withValues(alpha: segments - 1 - s == current ? 1 : 0.3),
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 200),
+                child: Column(
+                  key: ValueKey(message.id),
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      pinned.length > 1 ? t.screenChat.pinnedNumber(n: number) : t.screenChat.pinnedTitle,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: style.accent),
+                    ),
+                    const SizedBox(height: 1),
+                    Text(
+                      text.replaceAll('\n', ' '),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(fontSize: 14, color: style.text),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            if (onUnpin != null)
+              GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: onUnpin,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  child: FaIcon(FontAwesomeIcons.xmark, size: 16, color: style.secondary),
+                ),
+              )
+            else
+              const SizedBox(width: 14),
+          ],
+        ),
+      ),
     );
   }
 }

@@ -18,7 +18,17 @@ class ChatMediaItem {
   final String localPath;
   final String thumbhash;
 
-  const ChatMediaItem({required this.message, required this.index, required this.kind, required this.localPath, this.thumbhash = ''});
+  /// Кадр-превью видео (пока видео не проигрывается — показываем его).
+  final String thumbPath;
+
+  const ChatMediaItem({
+    required this.message,
+    required this.index,
+    required this.kind,
+    required this.localPath,
+    this.thumbhash = '',
+    this.thumbPath = '',
+  });
 
   /// Общий тег Hero миниатюры в пузыре и страницы просмотрщика.
   Object get heroTag => chatMediaHeroTag(message, index);
@@ -28,9 +38,23 @@ class ChatMediaItem {
       if (!m.service)
         if (m.isAlbum)
           for (final (i, media) in m.media.indexed)
-            ChatMediaItem(message: m, index: i, kind: media.kind, localPath: media.localPath, thumbhash: media.thumbhash)
+            ChatMediaItem(
+              message: m,
+              index: i,
+              kind: media.kind,
+              localPath: media.localPath,
+              thumbhash: media.thumbhash,
+              thumbPath: media.thumbPath,
+            )
         else if (m.kind == models.MessageKind.photo || m.kind == models.MessageKind.video)
-          ChatMediaItem(message: m, index: 0, kind: m.kind, localPath: m.localPath, thumbhash: m.media.firstOrNull?.thumbhash ?? ''),
+          ChatMediaItem(
+            message: m,
+            index: 0,
+            kind: m.kind,
+            localPath: m.localPath,
+            thumbhash: m.media.firstOrNull?.thumbhash ?? '',
+            thumbPath: m.media.firstOrNull?.thumbPath ?? '',
+          ),
   ];
 }
 
@@ -343,6 +367,14 @@ class _ZoomablePageState extends State<_ZoomablePage> with SingleTickerProviderS
     final video = item.kind == models.MessageKind.video;
     final Widget media = item.localPath.isNotEmpty && !video
         ? ChatMediaImage(path: item.localPath, thumbhash: item.thumbhash, fit: BoxFit.contain)
+        : video && item.thumbPath.isNotEmpty
+        ? Stack(
+            alignment: Alignment.center,
+            children: [
+              ChatMediaImage(path: item.thumbPath, thumbhash: item.thumbhash, fit: BoxFit.contain),
+              const ChatVideoPlayBadge(size: 64),
+            ],
+          )
         : AspectRatio(
             aspectRatio: 4 / 3,
             child: chatMediaPlaceholder('${item.message.id}-${item.index}', video: video, iconSize: 64),
@@ -363,4 +395,52 @@ class _ZoomablePageState extends State<_ZoomablePage> with SingleTickerProviderS
       ),
     );
   }
+}
+
+/// Круглая кнопка ▶ поверх кадра-превью видео.
+class ChatVideoPlayBadge extends StatelessWidget {
+  final double size;
+
+  const ChatVideoPlayBadge({super.key, this.size = 48});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size,
+      height: size,
+      alignment: Alignment.center,
+      decoration: const BoxDecoration(color: Color(0x73000000), shape: BoxShape.circle),
+      child: Padding(
+        padding: EdgeInsets.only(left: size * 0.06),
+        child: FaIcon(FontAwesomeIcons.play, size: size * 0.38, color: const Color(0xFFFFFFFF)),
+      ),
+    );
+  }
+}
+
+/// Кадр-превью видео в пузыре: картинка, ▶ по центру и длительность в углу.
+Widget chatVideoThumb(models.MessageMedia media, {double playSize = 48, int? cacheWidth}) {
+  final seconds = media.duration;
+  return Stack(
+    fit: StackFit.expand,
+    children: [
+      ChatMediaImage(path: media.thumbPath, thumbhash: media.thumbhash, cacheWidth: cacheWidth),
+      Center(child: ChatVideoPlayBadge(size: playSize)),
+      if (seconds > 0)
+        Positioned(
+          left: 6,
+          bottom: 6,
+          child: DecoratedBox(
+            decoration: BoxDecoration(color: const Color(0x80000000), borderRadius: BorderRadius.circular(8)),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              child: Text(
+                '${seconds ~/ 60}:${(seconds % 60).toString().padLeft(2, '0')}',
+                style: const TextStyle(fontSize: 12, color: Color(0xFFFFFFFF)),
+              ),
+            ),
+          ),
+        ),
+    ],
+  );
 }
