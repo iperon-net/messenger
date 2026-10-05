@@ -2,11 +2,12 @@ import 'package:cupertino_ui/cupertino_ui.dart';
 
 import '../../i18n/translations.g.dart';
 import 'chat_common.dart';
+import 'compose_format_menu.dart';
 
 /// Превью выбранных вложений с полем подписи (iOS): лента миниатюр, подпись,
-/// «Отправить». Возвращает подпись или `null` — отмена.
-Future<String?> showMediaCaptionCupertino(BuildContext context, List<AttachmentDraft> items, {String initialCaption = ''}) {
-  return showCupertinoModalPopup<String>(
+/// «Отправить», в «⋯» — «Скрыть под спойлер». `null` — отмена.
+Future<MediaCaptionResult?> showMediaCaptionCupertino(BuildContext context, List<AttachmentDraft> items, {String initialCaption = ''}) {
+  return showCupertinoModalPopup<MediaCaptionResult>(
     context: context,
     builder: (_) => _MediaCaptionSheet(items: items, initialCaption: initialCaption),
   );
@@ -24,9 +25,16 @@ class _MediaCaptionSheet extends StatefulWidget {
 
 class _MediaCaptionSheetState extends State<_MediaCaptionSheet> {
   late final _caption = TextEditingController(text: widget.initialCaption);
+  late final _formatMenu = ComposeFormatMenu(_caption);
+  bool _spoiler = false;
+
+  bool get _hasMedia => widget.items.any((i) => i.isMedia);
+
+  void _send() => Navigator.of(context).pop((caption: _caption.text, spoiler: _spoiler && _hasMedia));
 
   @override
   void dispose() {
+    _formatMenu.dispose();
     _caption.dispose();
     super.dispose();
   }
@@ -51,20 +59,35 @@ class _MediaCaptionSheetState extends State<_MediaCaptionSheet> {
             children: [
               Padding(
                 padding: const EdgeInsets.fromLTRB(4, 4, 4, 0),
-                child: Row(
+                // Заголовок по центру независимо от ширины кнопок по краям.
+                child: Stack(
+                  alignment: Alignment.center,
                   children: [
-                    CupertinoButton(onPressed: () => Navigator.of(context).pop(), child: Text(context.t.common.cancel)),
-                    Expanded(
-                      child: Text(
-                        t.selected(n: widget.items.length),
-                        textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600, color: label),
-                      ),
+                    Text(
+                      t.selected(n: widget.items.length),
+                      style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600, color: label),
                     ),
-                    // Симметрия с «Отмена», чтобы заголовок был по центру.
-                    Opacity(
-                      opacity: 0,
-                      child: IgnorePointer(child: CupertinoButton(onPressed: null, child: Text(context.t.common.cancel))),
+                    Row(
+                      children: [
+                        CupertinoButton(onPressed: () => Navigator.of(context).pop(), child: Text(context.t.common.cancel)),
+                        const Spacer(),
+                        if (_hasMedia)
+                          // Выпадающее меню iOS (pull-down), как у «⋯» в системных приложениях.
+                          CupertinoMenuAnchor(
+                            useRootOverlay: true,
+                            menuChildren: [
+                              CupertinoMenuItem(
+                                trailing: Icon(_spoiler ? CupertinoIcons.eye : CupertinoIcons.eye_slash),
+                                onPressed: () => setState(() => _spoiler = !_spoiler),
+                                child: Text(_spoiler ? t.removeSpoiler : t.hideWithSpoiler),
+                              ),
+                            ],
+                            builder: (context, controller, _) => CupertinoButton(
+                              onPressed: () => controller.isOpen ? controller.close() : controller.open(),
+                              child: const Icon(CupertinoIcons.ellipsis_circle, size: 26),
+                            ),
+                          ),
+                      ],
                     ),
                   ],
                 ),
@@ -76,7 +99,7 @@ class _MediaCaptionSheetState extends State<_MediaCaptionSheet> {
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   itemCount: widget.items.length,
                   separatorBuilder: (_, _) => const SizedBox(width: 8),
-                  itemBuilder: (context, index) => AttachmentThumb(item: widget.items[index], size: 96),
+                  itemBuilder: (context, index) => AttachmentThumb(item: widget.items[index], size: 96, spoiler: _spoiler),
                 ),
               ),
               Padding(
@@ -87,6 +110,7 @@ class _MediaCaptionSheetState extends State<_MediaCaptionSheet> {
                     Expanded(
                       child: CupertinoTextField(
                         controller: _caption,
+                        contextMenuBuilder: _formatMenu.builder,
                         autofocus: true,
                         placeholder: t.addCaption,
                         minLines: 1,
@@ -104,7 +128,7 @@ class _MediaCaptionSheetState extends State<_MediaCaptionSheet> {
                     CupertinoButton(
                       padding: const EdgeInsets.only(left: 8, bottom: 2),
                       minimumSize: Size.zero,
-                      onPressed: () => Navigator.of(context).pop(_caption.text),
+                      onPressed: _send,
                       child: Icon(CupertinoIcons.arrow_up_circle_fill, size: 32, color: primary),
                     ),
                   ],

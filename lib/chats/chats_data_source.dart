@@ -42,6 +42,8 @@ abstract class ChatsDataSource {
     String localPath = '',
     String fileName = '',
     List<models.MessageMedia> media = const [],
+    int duration = 0,
+    List<int> waveform = const [],
   });
 
   Future<void> editMessage(String chatID, String messageID, String text, List<models.MessageEntity> entities);

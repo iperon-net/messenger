@@ -180,3 +180,94 @@ String toMarkdownShortcuts(String text, List<models.MessageEntity> entities) {
   }
   return out.toString();
 }
+
+/// Пункты меню форматирования выделенного текста в поле ввода.
+enum ComposeFormat { bold, italic, strike, spoiler, code, link, quote, plain }
+
+/// Поле ввода с выделением [start]..[end].
+typedef ComposeEdit = ({String text, int start, int end});
+
+const _formatMarkers = {
+  ComposeFormat.bold: '**',
+  ComposeFormat.italic: '__',
+  ComposeFormat.strike: '~~',
+  ComposeFormat.spoiler: '||',
+  ComposeFormat.code: '`',
+};
+
+/// Применить [format] к выделению: обернуть markdown-ярлыками (повторно —
+/// снять), для [ComposeFormat.link] — `[текст](url)`, для цитаты — `> ` в
+/// начале строк, [ComposeFormat.plain] — убрать всю разметку. Поле хранит
+/// ярлыки, в entities они превращаются при отправке ([parseMarkdownShortcuts]).
+ComposeEdit applyComposeFormat(ComposeEdit value, ComposeFormat format, {String url = ''}) {
+  final (:text, :start, :end) = value;
+  if (start < 0 || end <= start || end > text.length) return value;
+  final selected = text.substring(start, end);
+  switch (format) {
+    case ComposeFormat.link:
+      if (url.isEmpty) return value;
+      final link = '[$selected]($url)';
+      return (text: text.replaceRange(start, end, link), start: start, end: start + link.length);
+    case ComposeFormat.quote:
+      return _toggleQuote(value);
+    case ComposeFormat.plain:
+      var edit = value;
+      // Сначала снаружи (выделили текст без ярлыков), потом внутри.
+      for (final marker in [..._formatMarkers.values, '```\n']) {
+        edit = _unwrapAround(edit, marker) ?? edit;
+      }
+      final plain = parseMarkdownShortcuts(edit.text.substring(edit.start, edit.end)).$1;
+      return (text: edit.text.replaceRange(edit.start, edit.end, plain), start: edit.start, end: edit.start + plain.length);
+    case ComposeFormat.code when selected.contains('\n'):
+      // Многострочный — блок кода; перевод строки после ``` — пустой язык.
+      final unwrapped = _unwrapAround(value, '```\n', close: '```');
+      if (unwrapped != null) return unwrapped;
+      return _wrap(value, '```\n', '```');
+    default:
+      final marker = _formatMarkers[format]!;
+      return _unwrapAround(value, marker) ?? _unwrapInside(value, marker) ?? _wrap(value, marker, marker);
+  }
+}
+
+ComposeEdit _wrap(ComposeEdit value, String open, String close) {
+  final (:text, :start, :end) = value;
+  return (
+    text: '${text.substring(0, start)}$open${text.substring(start, end)}$close${text.substring(end)}',
+    start: start + open.length,
+    end: end + open.length,
+  );
+}
+
+/// `**[выделение]**` → `[выделение]`.
+ComposeEdit? _unwrapAround(ComposeEdit value, String open, {String? close}) {
+  close ??= open;
+  final (:text, :start, :end) = value;
+  if (start < open.length || end + close.length > text.length) return null;
+  if (text.substring(start - open.length, start) != open || text.substring(end, end + close.length) != close) return null;
+  return (
+    text: text.replaceRange(end, end + close.length, '').replaceRange(start - open.length, start, ''),
+    start: start - open.length,
+    end: end - open.length,
+  );
+}
+
+/// `[**выделение**]` → `[выделение]`.
+ComposeEdit? _unwrapInside(ComposeEdit value, String marker) {
+  final (:text, :start, :end) = value;
+  final selected = text.substring(start, end);
+  if (selected.length <= marker.length * 2 || !selected.startsWith(marker) || !selected.endsWith(marker)) return null;
+  final inner = selected.substring(marker.length, selected.length - marker.length);
+  return (text: text.replaceRange(start, end, inner), start: start, end: start + inner.length);
+}
+
+/// Цитата — на целые строки: все уже с `>` — снять, иначе добавить `> `.
+ComposeEdit _toggleQuote(ComposeEdit value) {
+  final (:text, :start, :end) = value;
+  final from = text.lastIndexOf('\n', start - 1) + 1;
+  final newline = text.indexOf('\n', end);
+  final to = newline < 0 ? text.length : newline;
+  final lines = text.substring(from, to).split('\n');
+  final quoted = lines.every((l) => l.startsWith('>'));
+  final block = [for (final l in lines) quoted ? l.substring(l.startsWith('> ') ? 2 : 1) : '> $l'].join('\n');
+  return (text: text.replaceRange(from, to, block), start: from, end: from + block.length);
+}

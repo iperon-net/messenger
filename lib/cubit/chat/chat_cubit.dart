@@ -111,6 +111,22 @@ class ChatCubit extends Cubit<ChatState> {
     );
   }
 
+  /// Голосовое: файл записи [localPath], длительность и волна.
+  Future<void> sendVoice({required String localPath, required int duration, required List<int> waveform}) async {
+    final source = _source;
+    if (source == null) return;
+    final reply = state.reply;
+    emit(state.copyWith(reply: null));
+    await source.sendMessage(
+      _chatID,
+      kind: models.MessageKind.voice,
+      localPath: localPath,
+      duration: duration,
+      waveform: waveform,
+      reply: reply == null ? null : _replyOf(reply),
+    );
+  }
+
   models.MessageReply _replyOf(models.Message m) => models.MessageReply(
     messageID: m.id,
     senderName: m.outgoing ? '' : (m.senderName.isNotEmpty ? m.senderName : state.chat?.title ?? ''),

@@ -43,6 +43,9 @@ class AttachmentDraft {
   bool get isMedia => kind == models.MessageKind.photo || kind == models.MessageKind.video;
 }
 
+/// Итог превью перед отправкой: подпись и «Скрыть под спойлер» (меню «⋯»).
+typedef MediaCaptionResult = ({String caption, bool spoiler});
+
 /// Скрепка: фото/видео из галереи, камера или файл → превью с подписью →
 /// отправка. Несколько фото/видео уходят альбомом (по [models.Message.maxAlbum]
 /// в сообщении), файлы — отдельными сообщениями. Подпись — у первого
@@ -63,10 +66,11 @@ Future<void> pickAndSendAttachments(BuildContext context, {TextEditingController
   if (items.isEmpty || !context.mounted) return;
 
   final initial = input?.text ?? '';
-  final caption = Platform.isIOS
+  final sheet = Platform.isIOS
       ? await showMediaCaptionCupertino(context, items, initialCaption: initial)
       : await showMediaCaptionMaterial(context, items, initialCaption: initial);
-  if (caption == null) return;
+  if (sheet == null) return;
+  final caption = sheet.caption;
   // Текст из поля ввода ушёл в подпись.
   if (initial.isNotEmpty) input?.clear();
 
@@ -78,7 +82,7 @@ Future<void> pickAndSendAttachments(BuildContext context, {TextEditingController
   }
 
   // Фото сжимаем перед отправкой (параллельно); видео пока как есть.
-  final media = await Future.wait([for (final i in items.where((i) => i.isMedia)) _prepare(i)]);
+  final media = await Future.wait([for (final i in items.where((i) => i.isMedia)) _prepare(i, spoiler: sheet.spoiler)]);
   for (var start = 0; start < media.length; start += models.Message.maxAlbum) {
     final chunk = media.sublist(start, math.min(start + models.Message.maxAlbum, media.length));
     await cubit.sendMedia(
@@ -94,9 +98,9 @@ Future<void> pickAndSendAttachments(BuildContext context, {TextEditingController
   }
 }
 
-Future<models.MessageMedia> _prepare(AttachmentDraft item) async {
+Future<models.MessageMedia> _prepare(AttachmentDraft item, {bool spoiler = false}) async {
   final photo = item.kind == models.MessageKind.photo ? await prepareChatPhoto(item.path) : null;
-  if (photo == null) return models.MessageMedia(kind: item.kind, localPath: item.path);
+  if (photo == null) return models.MessageMedia(kind: item.kind, localPath: item.path, spoiler: spoiler);
   return models.MessageMedia(
     kind: item.kind,
     localPath: photo.path,
@@ -105,6 +109,7 @@ Future<models.MessageMedia> _prepare(AttachmentDraft item) async {
     size: photo.size,
     thumbPath: photo.thumbPath,
     thumbhash: photo.thumbhash,
+    spoiler: spoiler,
   );
 }
 
@@ -128,7 +133,10 @@ class AttachmentThumb extends StatelessWidget {
   final AttachmentDraft item;
   final double size;
 
-  const AttachmentThumb({super.key, required this.item, required this.size});
+  /// «Скрыть под спойлер» — фото/видео размыты с пылью, как уйдут в чат.
+  final bool spoiler;
+
+  const AttachmentThumb({super.key, required this.item, required this.size, this.spoiler = false});
 
   @override
   Widget build(BuildContext context) {
@@ -161,7 +169,13 @@ class AttachmentThumb extends StatelessWidget {
     };
     return ClipRRect(
       borderRadius: BorderRadius.circular(10),
-      child: SizedBox(width: size, height: size, child: child),
+      child: SizedBox(
+        width: size,
+        height: size,
+        child: IgnorePointer(
+          child: MediaSpoiler(enabled: spoiler && item.isMedia, child: child),
+        ),
+      ),
     );
   }
 }

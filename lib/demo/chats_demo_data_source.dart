@@ -127,6 +127,8 @@ class ChatsDemoDataSource implements ChatsDataSource {
     String localPath = '',
     String fileName = '',
     List<models.MessageMedia> media = const [],
+    int duration = 0,
+    List<int> waveform = const [],
   }) async {
     final fileSize = kind == models.MessageKind.file ? await _fileSize(localPath) : 0;
     // Байты к загрузке: фото/видео альбома или одиночное медиа/файл.
@@ -151,6 +153,8 @@ class ChatsDemoDataSource implements ChatsDataSource {
       localPath: localPath,
       fileName: fileName,
       media: media,
+      duration: duration,
+      waveform: waveform,
       fileSize: fileSize,
       uploadTotal: uploadTotal,
     );
@@ -563,6 +567,7 @@ class ChatsDemoDataSource implements ChatsDataSource {
       bool service = false,
       models.MessageReply? reply,
       int album = 0,
+      bool spoiler = false,
       List<models.MessageReaction> reactions = const [],
       Duration step = const Duration(minutes: 7),
     }) {
@@ -583,7 +588,11 @@ class ChatsDemoDataSource implements ChatsDataSource {
           duration: duration,
           service: service,
           reply: reply,
-          media: [for (var i = 0; i < album; i++) models.MessageMedia(kind: i == 2 ? models.MessageKind.video : models.MessageKind.photo)],
+          media: [
+            for (var i = 0; i < album; i++)
+              models.MessageMedia(kind: i == 2 ? models.MessageKind.video : models.MessageKind.photo, spoiler: spoiler),
+            if (album == 0 && spoiler) models.MessageMedia(kind: kind, spoiler: true),
+          ],
           reactions: reactions,
         ),
       );
@@ -606,6 +615,7 @@ class ChatsDemoDataSource implements ChatsDataSource {
           );
         }
         add('Вид из окна 🌇', kind: models.MessageKind.photo, reactions: [r('❤️', 1, true)], step: const Duration(hours: 9));
+        add('Угадай, где я 😏', kind: models.MessageKind.photo, spoiler: true);
         add(
           'Поездка на выходных 🏔',
           out: true,

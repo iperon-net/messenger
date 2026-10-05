@@ -2,10 +2,12 @@ import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import '../../chats/message_formatting.dart';
 import '../../chats/reactions.dart';
+import '../../chats/voice_player.dart';
 import '../../constants.dart';
 import '../../components.dart';
 import '../../cubit.dart';
@@ -13,6 +15,8 @@ import '../../i18n/translations.g.dart';
 import '../../models.dart' as models;
 import '../../themes.dart';
 import 'chat_common.dart';
+import 'compose_format_menu.dart';
+import 'voice_recorder.dart';
 
 /// Окно чата (iOS): шапка с аватаром и «печатает…», лента пузырей, поле ввода
 /// с markdown-ярлыками и скрепкой; в канале вместо поля — «Выключить звук».
@@ -57,6 +61,11 @@ class ChatCupertino extends StatefulWidget {
 
 class _ChatCupertinoState extends State<ChatCupertino> {
   final _input = TextEditingController();
+  late final _formatMenu = ComposeFormatMenu(_input);
+  late final _recorder = VoiceRecorder(
+    onSend: (path, seconds, waveform) => _cubit.sendVoice(localPath: path, duration: seconds, waveform: waveform),
+    onDenied: _micDenied,
+  );
   final _focus = FocusNode();
   final _scroll = ScrollController();
   final _searchInput = TextEditingController();
@@ -84,6 +93,9 @@ class _ChatCupertinoState extends State<ChatCupertino> {
   @override
   void dispose() {
     _cubit.saveDraft(_input.text);
+    _formatMenu.dispose();
+    _recorder.dispose();
+    VoicePlayer.instance.stop();
     _input.dispose();
     _focus.dispose();
     _tracker.dispose();
@@ -104,6 +116,27 @@ class _ChatCupertinoState extends State<ChatCupertino> {
   void _swipeReply(models.Message message) {
     _cubit.startReply(message);
     _focus.requestFocus();
+  }
+
+  /// Нет доступа к микрофону (запись голосового).
+  Future<void> _micDenied(bool permanently) async {
+    final t = context.t;
+    final open = await showCupertinoDialog<bool>(
+      context: context,
+      builder: (dialogContext) => CupertinoAlertDialog(
+        title: Text(t.screenChat.micDeniedTitle),
+        content: Text(t.screenChat.micDeniedMessage),
+        actions: [
+          CupertinoDialogAction(onPressed: () => Navigator.of(dialogContext).pop(false), child: Text(t.common.cancel)),
+          CupertinoDialogAction(
+            isDefaultAction: true,
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(t.screenChat.openSettings),
+          ),
+        ],
+      ),
+    );
+    if (open ?? false) await openAppSettings();
   }
 
   GlobalKey _keyFor(String messageID) => _messageKeys.putIfAbsent(messageID, GlobalKey.new);
@@ -281,7 +314,14 @@ class _ChatCupertinoState extends State<ChatCupertino> {
                               else if (chat.type == models.ChatType.channel)
                                 _ChannelBar(chat: chat)
                               else
-                                _ComposeBar(input: _input, focus: _focus, state: state, onSend: _send),
+                                _ComposeBar(
+                                  input: _input,
+                                  formatMenu: _formatMenu,
+                                  recorder: _recorder,
+                                  focus: _focus,
+                                  state: state,
+                                  onSend: _send,
+                                ),
                             ],
                           ),
                   ),
@@ -466,11 +506,20 @@ class _Header extends StatelessWidget {
 
 class _ComposeBar extends StatelessWidget {
   final TextEditingController input;
+  final ComposeFormatMenu formatMenu;
+  final VoiceRecorder recorder;
   final FocusNode focus;
   final ChatState state;
   final VoidCallback onSend;
 
-  const _ComposeBar({required this.input, required this.focus, required this.state, required this.onSend});
+  const _ComposeBar({
+    required this.input,
+    required this.formatMenu,
+    required this.recorder,
+    required this.focus,
+    required this.state,
+    required this.onSend,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -479,6 +528,14 @@ class _ComposeBar extends StatelessWidget {
     final secondary = CupertinoColors.secondaryLabel.resolveFrom(context);
     final banner = composeBanner(t, state);
     final editing = state.editing != null;
+    final voiceStyle = VoiceRecorderStyle(
+      primary: primary,
+      onPrimary: const Color(0xFFFFFFFF),
+      text: CupertinoColors.label.resolveFrom(context),
+      secondary: secondary,
+      danger: CupertinoColors.systemRed.resolveFrom(context),
+      surface: CupertinoColors.secondarySystemGroupedBackground.resolveFrom(context),
+    );
 
     return DecoratedBox(
       decoration: BoxDecoration(
@@ -532,49 +589,64 @@ class _ComposeBar extends StatelessWidget {
               ),
             Padding(
               padding: const EdgeInsets.fromLTRB(4, 6, 8, 6),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  CupertinoButton(
-                    padding: const EdgeInsets.fromLTRB(8, 6, 8, 6),
-                    minimumSize: Size.zero,
-                    onPressed: editing ? null : () => pickAndSendAttachments(context, input: input),
-                    child: FaIcon(FontAwesomeIcons.paperclip, size: 22, color: secondary),
-                  ),
-                  Expanded(
-                    child: CupertinoTextField(
-                      controller: input,
-                      focusNode: focus,
-                      placeholder: t.screenChat.message,
-                      minLines: 1,
-                      maxLines: 6,
-                      keyboardType: TextInputType.multiline,
-                      textCapitalization: TextCapitalization.sentences,
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-                      style: TextStyle(fontSize: 16, color: CupertinoColors.label.resolveFrom(context)),
-                      decoration: BoxDecoration(
-                        color: CupertinoColors.tertiarySystemFill.resolveFrom(context),
-                        borderRadius: BorderRadius.circular(18),
+              // Пока пишется голосовое — вместо скрепки и поля панель записи.
+              child: ListenableBuilder(
+                listenable: recorder,
+                builder: (context, _) => Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    if (!recorder.active)
+                      CupertinoButton(
+                        padding: const EdgeInsets.fromLTRB(8, 6, 8, 6),
+                        minimumSize: Size.zero,
+                        onPressed: editing ? null : () => pickAndSendAttachments(context, input: input),
+                        child: FaIcon(FontAwesomeIcons.paperclip, size: 22, color: secondary),
+                      ),
+                    Expanded(
+                      child: recorder.active
+                          ? VoiceRecordingPanel(recorder: recorder, style: voiceStyle)
+                          : CupertinoTextField(
+                              controller: input,
+                              focusNode: focus,
+                              contextMenuBuilder: formatMenu.builder,
+                              placeholder: t.screenChat.message,
+                              minLines: 1,
+                              maxLines: 6,
+                              keyboardType: TextInputType.multiline,
+                              textCapitalization: TextCapitalization.sentences,
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                              style: TextStyle(fontSize: 16, color: CupertinoColors.label.resolveFrom(context)),
+                              decoration: BoxDecoration(
+                                color: CupertinoColors.tertiarySystemFill.resolveFrom(context),
+                                borderRadius: BorderRadius.circular(18),
+                              ),
+                            ),
+                    ),
+                    // Ключ: кнопка не пересоздаётся, когда скрепка исчезает
+                    // (иначе палец, держащий микрофон, «потеряется»).
+                    KeyedSubtree(
+                      key: const ValueKey('compose-action'),
+                      child: ValueListenableBuilder<TextEditingValue>(
+                        valueListenable: input,
+                        builder: (context, value, _) {
+                          final canSend = value.text.trim().isNotEmpty;
+                          // Пусто — микрофон (голосовое), как в Telegram.
+                          if (!canSend && !editing) return VoiceRecordButton(recorder: recorder, style: voiceStyle);
+                          return CupertinoButton(
+                            padding: const EdgeInsets.only(left: 8, bottom: 2),
+                            minimumSize: Size.zero,
+                            onPressed: canSend ? onSend : null,
+                            child: Icon(
+                              editing ? CupertinoIcons.checkmark_circle_fill : CupertinoIcons.arrow_up_circle_fill,
+                              size: 32,
+                              color: canSend ? primary : CupertinoColors.systemGrey3.resolveFrom(context),
+                            ),
+                          );
+                        },
                       ),
                     ),
-                  ),
-                  ValueListenableBuilder<TextEditingValue>(
-                    valueListenable: input,
-                    builder: (context, value, _) {
-                      final canSend = value.text.trim().isNotEmpty;
-                      return CupertinoButton(
-                        padding: const EdgeInsets.only(left: 8, bottom: 2),
-                        minimumSize: Size.zero,
-                        onPressed: canSend ? onSend : null,
-                        child: Icon(
-                          editing ? CupertinoIcons.checkmark_circle_fill : CupertinoIcons.arrow_up_circle_fill,
-                          size: 32,
-                          color: canSend ? primary : CupertinoColors.systemGrey3.resolveFrom(context),
-                        ),
-                      );
-                    },
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ],

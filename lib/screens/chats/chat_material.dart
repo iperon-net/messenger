@@ -1,9 +1,11 @@
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../chats/message_formatting.dart';
 import '../../chats/reactions.dart';
+import '../../chats/voice_player.dart';
 import '../../components.dart';
 import '../../constants.dart';
 import '../../cubit.dart';
@@ -11,6 +13,8 @@ import '../../i18n/translations.g.dart';
 import '../../models.dart' as models;
 import '../../themes.dart';
 import 'chat_common.dart';
+import 'compose_format_menu.dart';
+import 'voice_recorder.dart';
 
 /// Окно чата (Android): шапка с аватаром и «печатает…», лента пузырей, поле
 /// ввода с markdown-ярлыками и скрепкой; в канале вместо поля — «Выключить
@@ -54,6 +58,11 @@ class ChatMaterial extends StatefulWidget {
 
 class _ChatMaterialState extends State<ChatMaterial> {
   final _input = TextEditingController();
+  late final _formatMenu = ComposeFormatMenu(_input);
+  late final _recorder = VoiceRecorder(
+    onSend: (path, seconds, waveform) => _cubit.sendVoice(localPath: path, duration: seconds, waveform: waveform),
+    onDenied: _micDenied,
+  );
   final _focus = FocusNode();
   final _scroll = ScrollController();
   final _searchInput = TextEditingController();
@@ -81,6 +90,9 @@ class _ChatMaterialState extends State<ChatMaterial> {
   @override
   void dispose() {
     _cubit.saveDraft(_input.text);
+    _formatMenu.dispose();
+    _recorder.dispose();
+    VoicePlayer.instance.stop();
     _input.dispose();
     _focus.dispose();
     _tracker.dispose();
@@ -101,6 +113,23 @@ class _ChatMaterialState extends State<ChatMaterial> {
   void _swipeReply(models.Message message) {
     _cubit.startReply(message);
     _focus.requestFocus();
+  }
+
+  /// Нет доступа к микрофону (запись голосового).
+  Future<void> _micDenied(bool permanently) async {
+    final t = context.t;
+    final open = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(t.screenChat.micDeniedTitle),
+        content: Text(t.screenChat.micDeniedMessage),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(dialogContext).pop(false), child: Text(t.common.cancel)),
+          TextButton(onPressed: () => Navigator.of(dialogContext).pop(true), child: Text(t.screenChat.openSettings)),
+        ],
+      ),
+    );
+    if (open ?? false) await openAppSettings();
   }
 
   GlobalKey _keyFor(String messageID) => _messageKeys.putIfAbsent(messageID, GlobalKey.new);
@@ -245,7 +274,15 @@ class _ChatMaterialState extends State<ChatMaterial> {
                         else if (chat.type == models.ChatType.channel)
                           _ChannelBar(chat: chat, color: barColor)
                         else
-                          _ComposeBar(input: _input, focus: _focus, state: state, onSend: _send, color: barColor),
+                          _ComposeBar(
+                            input: _input,
+                            formatMenu: _formatMenu,
+                            recorder: _recorder,
+                            focus: _focus,
+                            state: state,
+                            onSend: _send,
+                            color: barColor,
+                          ),
                       ],
                     ),
             ),
@@ -362,12 +399,22 @@ class _Header extends StatelessWidget {
 
 class _ComposeBar extends StatelessWidget {
   final TextEditingController input;
+  final ComposeFormatMenu formatMenu;
+  final VoiceRecorder recorder;
   final FocusNode focus;
   final ChatState state;
   final VoidCallback onSend;
   final Color color;
 
-  const _ComposeBar({required this.input, required this.focus, required this.state, required this.onSend, required this.color});
+  const _ComposeBar({
+    required this.input,
+    required this.formatMenu,
+    required this.recorder,
+    required this.focus,
+    required this.state,
+    required this.onSend,
+    required this.color,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -375,6 +422,14 @@ class _ComposeBar extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final banner = composeBanner(t, state);
     final editing = state.editing != null;
+    final voiceStyle = VoiceRecorderStyle(
+      primary: scheme.primary,
+      onPrimary: scheme.onPrimary,
+      text: scheme.onSurface,
+      secondary: scheme.onSurfaceVariant,
+      danger: scheme.error,
+      surface: scheme.surfaceContainerHigh,
+    );
 
     return Material(
       color: color,
@@ -421,41 +476,67 @@ class _ComposeBar extends StatelessWidget {
               ),
             Padding(
               padding: const EdgeInsets.fromLTRB(4, 4, 4, 4),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.attach_file),
-                    color: scheme.onSurfaceVariant,
-                    onPressed: editing ? null : () => pickAndSendAttachments(context, input: input),
-                  ),
-                  Expanded(
-                    child: TextField(
-                      controller: input,
-                      focusNode: focus,
-                      minLines: 1,
-                      maxLines: 6,
-                      keyboardType: TextInputType.multiline,
-                      textCapitalization: TextCapitalization.sentences,
-                      decoration: InputDecoration(
-                        hintText: t.screenChat.message,
-                        filled: true,
-                        fillColor: scheme.surfaceContainerHighest,
-                        isDense: true,
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(22), borderSide: BorderSide.none),
+              // Пока пишется голосовое — вместо скрепки и поля панель записи.
+              child: ListenableBuilder(
+                listenable: recorder,
+                builder: (context, _) => Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    if (!recorder.active)
+                      IconButton(
+                        icon: const Icon(Icons.attach_file),
+                        color: scheme.onSurfaceVariant,
+                        onPressed: editing ? null : () => pickAndSendAttachments(context, input: input),
+                      ),
+                    Expanded(
+                      child: recorder.active
+                          ? Padding(
+                              padding: const EdgeInsets.only(bottom: 6),
+                              child: VoiceRecordingPanel(recorder: recorder, style: voiceStyle),
+                            )
+                          : TextField(
+                              controller: input,
+                              focusNode: focus,
+                              contextMenuBuilder: formatMenu.builder,
+                              minLines: 1,
+                              maxLines: 6,
+                              keyboardType: TextInputType.multiline,
+                              textCapitalization: TextCapitalization.sentences,
+                              decoration: InputDecoration(
+                                hintText: t.screenChat.message,
+                                filled: true,
+                                fillColor: scheme.surfaceContainerHighest,
+                                isDense: true,
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(22), borderSide: BorderSide.none),
+                              ),
+                            ),
+                    ),
+                    // Ключ: кнопка не пересоздаётся, когда скрепка исчезает
+                    // (иначе палец, держащий микрофон, «потеряется»).
+                    KeyedSubtree(
+                      key: const ValueKey('compose-action'),
+                      child: ValueListenableBuilder<TextEditingValue>(
+                        valueListenable: input,
+                        builder: (context, value, _) {
+                          final canSend = value.text.trim().isNotEmpty;
+                          // Пусто — микрофон (голосовое), как в Telegram.
+                          if (!canSend && !editing) {
+                            return Padding(
+                              padding: const EdgeInsets.fromLTRB(4, 8, 10, 10),
+                              child: VoiceRecordButton(recorder: recorder, style: voiceStyle),
+                            );
+                          }
+                          return IconButton(
+                            icon: Icon(editing ? Icons.check : Icons.send),
+                            color: scheme.primary,
+                            onPressed: canSend ? onSend : null,
+                          );
+                        },
                       ),
                     ),
-                  ),
-                  ValueListenableBuilder<TextEditingValue>(
-                    valueListenable: input,
-                    builder: (context, value, _) => IconButton(
-                      icon: Icon(editing ? Icons.check : Icons.send),
-                      color: scheme.primary,
-                      onPressed: value.text.trim().isNotEmpty ? onSend : null,
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ],

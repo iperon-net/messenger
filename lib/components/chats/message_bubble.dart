@@ -6,11 +6,13 @@ import 'package:flutter_boring_avatars/flutter_boring_avatars.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
 
+import '../../chats/voice_player.dart';
 import '../../extensions.dart';
 import '../../i18n/translations.g.dart';
 import '../../models.dart' as models;
 import 'media_viewer.dart';
 import 'message_text.dart';
+import 'spoiler_dust.dart';
 import 'swipe_to_reply.dart';
 
 /// Платформенное оформление окна чата (см. `chat_cupertino.dart` /
@@ -642,7 +644,10 @@ class _MediaPreview extends StatelessWidget {
         child: chatMediaPlaceholder('${message.id}-0', video: video),
       );
     }
-    return ClipRRect(borderRadius: BorderRadius.circular(14), child: _tappableMedia(message, 0, onTap, image));
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(14),
+      child: _tappableMedia(message, 0, onTap, MediaSpoiler(enabled: meta?.spoiler ?? false, child: image)),
+    );
   }
 }
 
@@ -716,7 +721,7 @@ class _AlbumGrid extends StatelessWidget {
     final Widget child = item.localPath.isEmpty || video
         ? chatMediaPlaceholder('${message.id}-$index', video: video, iconSize: 26)
         : ChatMediaImage(path: item.localPath, thumbhash: item.thumbhash, cacheWidth: 520);
-    return _tappableMedia(message, index, onTap, child);
+    return _tappableMedia(message, index, onTap, MediaSpoiler(enabled: item.spoiler, child: child));
   }
 }
 
@@ -787,47 +792,85 @@ class _VoiceRow extends StatelessWidget {
 
   const _VoiceRow({required this.message, required this.colors, required this.iconColor, required this.metaStyle});
 
+  static const _barWidth = 2.5;
+  static const _barGap = 1.5;
+  static const _height = 22.0;
+
+  /// Уровни 0..1: записанная волна или (демо-история без неё) псевдослучайная.
+  List<double> _bars() {
+    if (message.waveform.isNotEmpty) return [for (final v in message.waveform) 0.12 + 0.88 * (v.clamp(0, 31) / 31)];
+    final random = math.Random(message.id.hashCode);
+    return List.generate(28, (_) => 0.2 + random.nextDouble() * 0.8);
+  }
+
+  static String _time(int seconds) => '${seconds ~/ 60}:${(seconds % 60).toString().padLeft(2, '0')}';
+
   @override
   Widget build(BuildContext context) {
-    final seconds = message.duration;
-    final random = math.Random(message.id.hashCode);
-    final bars = List.generate(28, (_) => 0.2 + random.nextDouble() * 0.8);
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          width: 40,
-          height: 40,
-          decoration: BoxDecoration(color: colors.link, shape: BoxShape.circle),
-          alignment: Alignment.center,
-          child: FaIcon(FontAwesomeIcons.play, size: 15, color: iconColor),
-        ),
-        const SizedBox(width: 10),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+    final bars = _bars();
+    final width = bars.length * (_barWidth + _barGap);
+    final player = VoicePlayer.instance;
+    return ListenableBuilder(
+      listenable: player,
+      builder: (context, _) {
+        final current = player.currentID == message.id;
+        final playing = player.isPlaying(message.id);
+        final progress = player.progressOf(message.id);
+        // Играет — сколько прошло, иначе — длина.
+        final seconds = current ? player.position.inSeconds : message.duration;
+        return Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            SizedBox(
-              height: 22,
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  for (final h in bars)
-                    Container(
-                      width: 2.5,
-                      height: 22 * h,
-                      margin: const EdgeInsets.symmetric(horizontal: 1),
-                      decoration: BoxDecoration(color: colors.link, borderRadius: BorderRadius.circular(2)),
-                    ),
-                ],
+            GestureDetector(
+              onTap: () => player.toggle(message),
+              child: Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(color: colors.link, shape: BoxShape.circle),
+                alignment: Alignment.center,
+                child: Padding(
+                  // Треугольник «play» визуально по центру — чуть правее.
+                  padding: EdgeInsets.only(left: playing ? 0 : 2),
+                  child: FaIcon(playing ? FontAwesomeIcons.pause : FontAwesomeIcons.play, size: 15, color: iconColor),
+                ),
               ),
             ),
-            const SizedBox(height: 2),
-            Text('${seconds ~/ 60}:${(seconds % 60).toString().padLeft(2, '0')}', style: metaStyle),
+            const SizedBox(width: 10),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Тап по волне текущего голосового — перемотка.
+                GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTapUp: current ? (details) => player.seek(message.id, details.localPosition.dx / width) : null,
+                  child: SizedBox(
+                    width: width,
+                    height: _height,
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        for (final (i, h) in bars.indexed)
+                          Container(
+                            width: _barWidth,
+                            height: _height * h,
+                            margin: const EdgeInsets.symmetric(horizontal: _barGap / 2),
+                            decoration: BoxDecoration(
+                              color: (i + 0.5) / bars.length <= progress ? colors.link : colors.link.withValues(alpha: 0.4),
+                              borderRadius: BorderRadius.circular(2),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(_time(seconds), style: metaStyle),
+              ],
+            ),
           ],
-        ),
-      ],
+        );
+      },
     );
   }
 }

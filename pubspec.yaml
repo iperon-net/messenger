@@ -124,6 +124,7 @@ dependencies:
   passkeys: ^2.23.1
   flutter_image_compress: ^2.5.1
   thumbhash: ^0.1.0+1
+  record: ^7.1.1
 
 dev_dependencies:
   flutter_test:

@@ -618,6 +618,13 @@ class MessageMediaMapper extends ClassMapperBase<MessageMedia> {
     opt: true,
     def: '',
   );
+  static bool _$spoiler(MessageMedia v) => v.spoiler;
+  static const Field<MessageMedia, bool> _f$spoiler = Field(
+    'spoiler',
+    _$spoiler,
+    opt: true,
+    def: false,
+  );
 
   @override
   final MappableFields<MessageMedia> fields = const {
@@ -628,6 +635,7 @@ class MessageMediaMapper extends ClassMapperBase<MessageMedia> {
     #size: _f$size,
     #thumbPath: _f$thumbPath,
     #thumbhash: _f$thumbhash,
+    #spoiler: _f$spoiler,
   };
 
   static MessageMedia _instantiate(DecodingData data) {
@@ -639,6 +647,7 @@ class MessageMediaMapper extends ClassMapperBase<MessageMedia> {
       size: data.dec(_f$size),
       thumbPath: data.dec(_f$thumbPath),
       thumbhash: data.dec(_f$thumbhash),
+      spoiler: data.dec(_f$spoiler),
     );
   }
 
@@ -712,6 +721,7 @@ abstract class MessageMediaCopyWith<$R, $In extends MessageMedia, $Out>
     int? size,
     String? thumbPath,
     String? thumbhash,
+    bool? spoiler,
   });
   MessageMediaCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
@@ -733,6 +743,7 @@ class _MessageMediaCopyWithImpl<$R, $Out>
     int? size,
     String? thumbPath,
     String? thumbhash,
+    bool? spoiler,
   }) => $apply(
     FieldCopyWithData({
       if (kind != null) #kind: kind,
@@ -742,6 +753,7 @@ class _MessageMediaCopyWithImpl<$R, $Out>
       if (size != null) #size: size,
       if (thumbPath != null) #thumbPath: thumbPath,
       if (thumbhash != null) #thumbhash: thumbhash,
+      if (spoiler != null) #spoiler: spoiler,
     }),
   );
   @override
@@ -753,6 +765,7 @@ class _MessageMediaCopyWithImpl<$R, $Out>
     size: data.get(#size, or: $value.size),
     thumbPath: data.get(#thumbPath, or: $value.thumbPath),
     thumbhash: data.get(#thumbhash, or: $value.thumbhash),
+    spoiler: data.get(#spoiler, or: $value.spoiler),
   );
 
   @override
@@ -870,6 +883,13 @@ class MessageMapper extends ClassMapperBase<Message> {
     opt: true,
     def: 0,
   );
+  static List<int> _$waveform(Message v) => v.waveform;
+  static const Field<Message, List<int>> _f$waveform = Field(
+    'waveform',
+    _$waveform,
+    opt: true,
+    def: const [],
+  );
   static List<MessageMedia> _$media(Message v) => v.media;
   static const Field<Message, List<MessageMedia>> _f$media = Field(
     'media',
@@ -923,6 +943,7 @@ class MessageMapper extends ClassMapperBase<Message> {
     #fileName: _f$fileName,
     #localPath: _f$localPath,
     #duration: _f$duration,
+    #waveform: _f$waveform,
     #media: _f$media,
     #fileSize: _f$fileSize,
     #uploadedBytes: _f$uploadedBytes,
@@ -947,6 +968,7 @@ class MessageMapper extends ClassMapperBase<Message> {
       fileName: data.dec(_f$fileName),
       localPath: data.dec(_f$localPath),
       duration: data.dec(_f$duration),
+      waveform: data.dec(_f$waveform),
       media: data.dec(_f$media),
       fileSize: data.dec(_f$fileSize),
       uploadedBytes: data.dec(_f$uploadedBytes),
@@ -1019,6 +1041,7 @@ abstract class MessageCopyWith<$R, $In extends Message, $Out>
   >
   get entities;
   MessageReplyCopyWith<$R, MessageReply, MessageReply>? get reply;
+  ListCopyWith<$R, int, ObjectCopyWith<$R, int, int>> get waveform;
   ListCopyWith<
     $R,
     MessageMedia,
@@ -1047,6 +1070,7 @@ abstract class MessageCopyWith<$R, $In extends Message, $Out>
     String? fileName,
     String? localPath,
     int? duration,
+    List<int>? waveform,
     List<MessageMedia>? media,
     int? fileSize,
     int? uploadedBytes,
@@ -1078,6 +1102,13 @@ class _MessageCopyWithImpl<$R, $Out>
   @override
   MessageReplyCopyWith<$R, MessageReply, MessageReply>? get reply =>
       $value.reply?.copyWith.$chain((v) => call(reply: v));
+  @override
+  ListCopyWith<$R, int, ObjectCopyWith<$R, int, int>> get waveform =>
+      ListCopyWith(
+        $value.waveform,
+        (v, t) => ObjectCopyWith(v, $identity, t),
+        (v) => call(waveform: v),
+      );
   @override
   ListCopyWith<
     $R,
@@ -1117,6 +1148,7 @@ class _MessageCopyWithImpl<$R, $Out>
     String? fileName,
     String? localPath,
     int? duration,
+    List<int>? waveform,
     List<MessageMedia>? media,
     int? fileSize,
     int? uploadedBytes,
@@ -1139,6 +1171,7 @@ class _MessageCopyWithImpl<$R, $Out>
       if (fileName != null) #fileName: fileName,
       if (localPath != null) #localPath: localPath,
       if (duration != null) #duration: duration,
+      if (waveform != null) #waveform: waveform,
       if (media != null) #media: media,
       if (fileSize != null) #fileSize: fileSize,
       if (uploadedBytes != null) #uploadedBytes: uploadedBytes,
@@ -1163,6 +1196,7 @@ class _MessageCopyWithImpl<$R, $Out>
     fileName: data.get(#fileName, or: $value.fileName),
     localPath: data.get(#localPath, or: $value.localPath),
     duration: data.get(#duration, or: $value.duration),
+    waveform: data.get(#waveform, or: $value.waveform),
     media: data.get(#media, or: $value.media),
     fileSize: data.get(#fileSize, or: $value.fileSize),
     uploadedBytes: data.get(#uploadedBytes, or: $value.uploadedBytes),

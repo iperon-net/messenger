@@ -415,6 +415,60 @@ class Translations$screenChat$en {
 	/// en: 'Unread messages'
 	String get unreadMessages => 'Unread messages';
 
+	/// en: 'Slide to cancel'
+	String get voiceSlideToCancel => 'Slide to cancel';
+
+	/// en: 'Hold to record'
+	String get voiceHoldHint => 'Hold to record';
+
+	/// en: 'No microphone access'
+	String get micDeniedTitle => 'No microphone access';
+
+	/// en: 'Allow microphone access in Settings to record voice messages.'
+	String get micDeniedMessage => 'Allow microphone access in Settings to record voice messages.';
+
+	/// en: 'Settings'
+	String get openSettings => 'Settings';
+
+	/// en: 'Hide with spoiler'
+	String get hideWithSpoiler => 'Hide with spoiler';
+
+	/// en: 'Remove spoiler'
+	String get removeSpoiler => 'Remove spoiler';
+
+	/// en: 'Format'
+	String get format => 'Format';
+
+	/// en: 'Bold'
+	String get formatBold => 'Bold';
+
+	/// en: 'Italic'
+	String get formatItalic => 'Italic';
+
+	/// en: 'Strikethrough'
+	String get formatStrike => 'Strikethrough';
+
+	/// en: 'Spoiler'
+	String get formatSpoiler => 'Spoiler';
+
+	/// en: 'Monospace'
+	String get formatCode => 'Monospace';
+
+	/// en: 'Link'
+	String get formatLink => 'Link';
+
+	/// en: 'Quote'
+	String get formatQuote => 'Quote';
+
+	/// en: 'Regular'
+	String get formatPlain => 'Regular';
+
+	/// en: 'Add link'
+	String get linkTitle => 'Add link';
+
+	/// en: 'Add'
+	String get linkAdd => 'Add';
+
 	/// en: '{done} of {total}'
 	String uploadProgress({required Object done, required Object total}) => '${done} of ${total}';
 
@@ -1928,6 +1982,24 @@ extension on Translations {
 			'screenChat.search' => 'Search',
 			'screenChat.searchNoResults' => 'No results',
 			'screenChat.unreadMessages' => 'Unread messages',
+			'screenChat.voiceSlideToCancel' => 'Slide to cancel',
+			'screenChat.voiceHoldHint' => 'Hold to record',
+			'screenChat.micDeniedTitle' => 'No microphone access',
+			'screenChat.micDeniedMessage' => 'Allow microphone access in Settings to record voice messages.',
+			'screenChat.openSettings' => 'Settings',
+			'screenChat.hideWithSpoiler' => 'Hide with spoiler',
+			'screenChat.removeSpoiler' => 'Remove spoiler',
+			'screenChat.format' => 'Format',
+			'screenChat.formatBold' => 'Bold',
+			'screenChat.formatItalic' => 'Italic',
+			'screenChat.formatStrike' => 'Strikethrough',
+			'screenChat.formatSpoiler' => 'Spoiler',
+			'screenChat.formatCode' => 'Monospace',
+			'screenChat.formatLink' => 'Link',
+			'screenChat.formatQuote' => 'Quote',
+			'screenChat.formatPlain' => 'Regular',
+			'screenChat.linkTitle' => 'Add link',
+			'screenChat.linkAdd' => 'Add',
 			'screenChat.uploadProgress' => ({required Object done, required Object total}) => '${done} of ${total}',
 			'screenChat.kb' => 'KB',
 			'screenChat.mb' => 'MB',

@@ -1,11 +1,14 @@
 import 'dart:io';
 
 import 'package:flutter/gestures.dart';
+import 'package:flutter/rendering.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../chats/message_formatting.dart';
 import '../../models.dart' as models;
+import 'spoiler_dust.dart';
 
 /// Цвета разметки текста сообщения — свои у входящего и исходящего пузыря.
 class MessageTextColors {
@@ -26,7 +29,8 @@ class MessageTextColors {
 
 /// Текст сообщения: плоский текст + entities → `TextSpan` (жирный, курсив,
 /// код, спойлер, ссылки, цитата), плюс авто-ссылки/упоминания/хэштеги.
-/// Спойлер скрыт плашкой до тапа. [trailing] — невидимый хвост под время и
+/// Спойлер скрыт мерцающей «пылью» до тапа (как в Telegram), по тапу
+/// раскрывается волной от пальца. [trailing] — невидимый хвост под время и
 /// галочки, которые пузырь рисует поверх последней строки (как в Telegram).
 class MessageText extends StatefulWidget {
   final String text;
@@ -57,16 +61,40 @@ class MessageText extends StatefulWidget {
   State<MessageText> createState() => _MessageTextState();
 }
 
-class _MessageTextState extends State<MessageText> {
+class _MessageTextState extends State<MessageText> with TickerProviderStateMixin {
   bool _spoilerRevealed = false;
   final _recognizers = <GestureRecognizer>[];
+
+  /// Пыль спойлера: время (секунды) двигает частицы, [_reveal] — волна
+  /// раскрытия от точки тапа [_revealOrigin].
+  final _paragraph = GlobalKey();
+  final _time = ValueNotifier<double>(0);
+  late final Ticker _ticker = createTicker((elapsed) => _time.value = elapsed.inMicroseconds / 1e6);
+  late final _reveal = AnimationController(vsync: this, duration: const Duration(milliseconds: 500))
+    ..addListener(() => setState(() {}))
+    ..addStatusListener((status) {
+      if (status == AnimationStatus.completed) _ticker.stop();
+    });
+  Offset? _revealOrigin;
+  final _dust = SpoilerDust();
 
   static final _monospace = Platform.isIOS ? 'Menlo' : 'monospace';
 
   @override
   void dispose() {
     _disposeRecognizers();
+    _ticker.dispose();
+    _reveal.dispose();
+    _time.dispose();
     super.dispose();
+  }
+
+  void _revealSpoilers(TapUpDetails details) {
+    if (_spoilerRevealed) return;
+    final paragraph = _paragraph.currentContext?.findRenderObject();
+    _revealOrigin = paragraph is RenderBox ? paragraph.globalToLocal(details.globalPosition) : null;
+    setState(() => _spoilerRevealed = true);
+    _reveal.forward();
   }
 
   void _disposeRecognizers() {
@@ -127,6 +155,15 @@ class _MessageTextState extends State<MessageText> {
       }
     }
     final points = bounds.toList()..sort();
+    final spoilers = [
+      for (final e in all)
+        if (e.type == models.MessageEntityType.spoiler) TextSelection(baseOffset: e.offset, extentOffset: e.end),
+    ];
+    // Пока спойлер скрыт (или раскрывается) — частицы шевелятся.
+    final dusty = spoilers.isNotEmpty && !_reveal.isCompleted;
+    if (dusty && !_ticker.isActive) _ticker.start();
+    // Скрытый текст прозрачный (место под ним остаётся), при раскрытии проявляется.
+    final hiddenAlpha = _spoilerRevealed ? _reveal.value : 0.0;
 
     final spans = <InlineSpan>[];
     for (var i = 0; i + 1 < points.length; i++) {
@@ -137,6 +174,7 @@ class _MessageTextState extends State<MessageText> {
       final decorations = <TextDecoration>[];
       GestureRecognizer? recognizer;
       var hidden = false;
+      bool spoilerHere(Iterable<models.MessageEntity> entities) => entities.any((e) => e.type == models.MessageEntityType.spoiler);
       for (final e in active) {
         switch (e.type) {
           case models.MessageEntityType.bold:
@@ -166,9 +204,13 @@ class _MessageTextState extends State<MessageText> {
       }
       if (decorations.isNotEmpty) style = style.copyWith(decoration: TextDecoration.combine(decorations), decorationColor: style.color);
       if (found.any((r) => r.$1 <= a && r.$2 >= b)) style = style.copyWith(backgroundColor: widget.highlightColor);
-      if (hidden) {
-        style = style.copyWith(color: const Color(0x00000000), backgroundColor: colors.spoiler, decoration: TextDecoration.none);
-        recognizer = _tap(() => setState(() => _spoilerRevealed = true));
+      if (hidden || (spoilerHere(active) && hiddenAlpha < 1)) {
+        final color = style.color ?? colors.text;
+        style = style.copyWith(
+          color: color.withValues(alpha: color.a * hiddenAlpha),
+          decorationColor: (style.decorationColor ?? color).withValues(alpha: hiddenAlpha),
+        );
+        if (hidden) recognizer = _tapUp(_revealSpoilers);
       }
       spans.add(TextSpan(text: text.substring(a, b), style: style, recognizer: recognizer));
     }
@@ -180,6 +222,43 @@ class _MessageTextState extends State<MessageText> {
         ),
       );
     }
-    return Text.rich(TextSpan(children: spans));
+    final paragraph = Text.rich(TextSpan(children: spans), key: _paragraph);
+    if (!dusty) return paragraph;
+    return Stack(
+      children: [
+        paragraph,
+        Positioned.fill(
+          child: IgnorePointer(
+            child: CustomPaint(
+              painter: SpoilerDustPainter(
+                rectsOf: (_) => _spoilerRects(spoilers),
+                dust: _dust,
+                time: _time,
+                color: colors.text,
+                reveal: _reveal.value,
+                origin: _revealOrigin,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Прямоугольники скрытого текста (по строкам) в координатах абзаца.
+  List<Rect> _spoilerRects(List<TextSelection> ranges) {
+    final render = _paragraph.currentContext?.findRenderObject();
+    if (render is! RenderParagraph || !render.hasSize) return const [];
+    return [
+      for (final range in ranges)
+        for (final box in render.getBoxesForSelection(range))
+          if (box.right > box.left) box.toRect(),
+    ];
+  }
+
+  TapGestureRecognizer _tapUp(GestureTapUpCallback onTapUp) {
+    final recognizer = TapGestureRecognizer()..onTapUp = onTapUp;
+    _recognizers.add(recognizer);
+    return recognizer;
   }
 }

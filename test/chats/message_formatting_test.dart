@@ -46,6 +46,50 @@ void main() {
     const text = 'Пиши на a@b.ru, смотри https://iperon.net. @kostya #релиз';
     expect(dump(text, detectAutoEntities(text, const [])), 'url:https://iperon.net,email:a@b.ru,mention:@kostya,hashtag:#релиз');
   });
+  group('меню форматирования', () {
+    ComposeEdit sel(String text, String selected) {
+      final start = text.indexOf(selected);
+      return (text: text, start: start, end: start + selected.length);
+    }
+
+    test('обернуть и снять', () {
+      final bold = applyComposeFormat(sel('привет мир', 'мир'), ComposeFormat.bold);
+      expect(bold, (text: 'привет **мир**', start: 9, end: 12));
+      expect(applyComposeFormat(bold, ComposeFormat.bold), (text: 'привет мир', start: 7, end: 10));
+      // Выделили вместе с ярлыками.
+      expect(applyComposeFormat(sel('a ~~b~~', '~~b~~'), ComposeFormat.strike).text, 'a b');
+      expect(
+        parseMarkdownShortcuts(applyComposeFormat(sel('x тайна', 'тайна'), ComposeFormat.spoiler).text).$2.single.type,
+        MessageEntityType.spoiler,
+      );
+    });
+
+    test('код: строка и блок', () {
+      expect(applyComposeFormat(sel('run ls', 'ls'), ComposeFormat.code).text, 'run `ls`');
+      final block = applyComposeFormat(sel('a\nb', 'a\nb'), ComposeFormat.code);
+      expect(block.text, '```\na\nb```');
+      final (text, entities) = parseMarkdownShortcuts(block.text);
+      expect(dump(text, entities), 'pre:a\nb');
+      expect(applyComposeFormat(block, ComposeFormat.code).text, 'a\nb');
+    });
+
+    test('ссылка', () {
+      final link = applyComposeFormat(sel('см. сайт', 'сайт'), ComposeFormat.link, url: 'https://iperon.net');
+      final (text, entities) = parseMarkdownShortcuts(link.text);
+      expect(dump(text, entities), 'textUrl:сайт>https://iperon.net');
+    });
+
+    test('цитата на целые строки', () {
+      final quote = applyComposeFormat(sel('раз\nдва\nтри', 'ва\nтр'), ComposeFormat.quote);
+      expect(quote.text, 'раз\n> два\n> три');
+      expect(applyComposeFormat(quote, ComposeFormat.quote).text, 'раз\nдва\nтри');
+    });
+
+    test('обычный — убрать разметку', () {
+      expect(applyComposeFormat(sel('a **b __c__** d', '**b __c__**'), ComposeFormat.plain).text, 'a b c d');
+      expect(applyComposeFormat(sel('a **b** d', 'b'), ComposeFormat.plain).text, 'a b d');
+    });
+  });
 }
 
 void roundTrip(String raw) {

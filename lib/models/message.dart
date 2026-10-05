@@ -72,6 +72,9 @@ class MessageMedia with MessageMediaMappable {
   /// ThumbHash (base64) — размытое превью до загрузки, см. `prepareChatPhoto`.
   final String thumbhash;
 
+  /// Скрыто под спойлером: размыто с пылью, пока не тапнут.
+  final bool spoiler;
+
   const MessageMedia({
     required this.kind,
     this.localPath = '',
@@ -80,6 +83,7 @@ class MessageMedia with MessageMediaMappable {
     this.size = 0,
     this.thumbPath = '',
     this.thumbhash = '',
+    this.spoiler = false,
   });
 
   double? get aspectRatio => width > 0 && height > 0 ? width / height : null;
@@ -120,6 +124,12 @@ class Message with MessageMappable {
   /// Длительность голосового, секунды.
   final int duration;
 
+  /// Волна голосового: уровни громкости 0..31 (как 5-битная волна Telegram),
+  /// обычно [voiceWaveformBars] штук; пусто — рисуется псевдослучайная.
+  final List<int> waveform;
+
+  static const voiceWaveformBars = 48;
+
   /// Альбом: до [maxAlbum] фото/видео одним сообщением (сеткой в пузыре), подпись
   /// — [text]. Один элемент — метаданные одиночного фото/видео (размеры,
   /// thumbhash); пусто — обычное сообщение ([kind] + [localPath]).
@@ -154,6 +164,7 @@ class Message with MessageMappable {
     this.fileName = '',
     this.localPath = '',
     this.duration = 0,
+    this.waveform = const [],
     this.media = const [],
     this.fileSize = 0,
     this.uploadedBytes = 0,
