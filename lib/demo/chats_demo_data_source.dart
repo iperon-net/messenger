@@ -287,6 +287,46 @@ class ChatsDemoDataSource implements ChatsDataSource {
   }
 
   @override
+  Future<void> forwardMessages(String toChatID, List<models.Message> messages) async {
+    final source = {for (final c in _chats) c.id: c};
+    final now = DateTime.now();
+    final copies = [
+      for (final (i, m) in messages.indexed)
+        models.Message(
+          id: _id(),
+          chatID: toChatID,
+          kind: m.kind,
+          text: m.text,
+          entities: m.entities,
+          outgoing: true,
+          status: models.MessageStatus.pending,
+          date: now.add(Duration(microseconds: i)),
+          localPath: m.localPath,
+          fileName: m.fileName,
+          duration: m.duration,
+          waveform: m.waveform,
+          media: m.media,
+          fileSize: m.fileSize,
+          // Пересылка пересланного — автор оригинала остаётся прежним.
+          forward:
+              m.forward ??
+              models.MessageForward(
+                self: m.outgoing,
+                name: m.outgoing ? '' : (m.senderName.isNotEmpty ? m.senderName : source[m.chatID]?.title ?? ''),
+              ),
+        ),
+    ];
+    if (copies.isEmpty) return;
+    _setMessages(toChatID, [..._history(toChatID), ...copies]);
+    _update(toChatID, (c) => c.copyWith(lastMessage: _lastOf(copies.last), archived: false));
+    // Файлы уже на CDN — пересылка без загрузки: сразу «доставлено».
+    for (final m in copies.take(copies.length - 1)) {
+      Timer(const Duration(milliseconds: 700), () => _setStatus(toChatID, m.id, models.MessageStatus.sent));
+    }
+    _delivered(toChatID, copies.last.id);
+  }
+
+  @override
   Future<void> setDraft(String chatID, String draft) async {
     final chat = _chats.where((c) => c.id == chatID).firstOrNull;
     if (chat == null || chat.draft == draft) return;

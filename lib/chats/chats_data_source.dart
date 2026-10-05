@@ -50,6 +50,10 @@ abstract class ChatsDataSource {
 
   Future<void> deleteMessage(String chatID, String messageID);
 
+  /// Переслать [messages] (из любых чатов, по порядку) в чат [toChatID]: новые
+  /// исходящие сообщения с тем же содержимым и пометкой «Переслано от».
+  Future<void> forwardMessages(String toChatID, List<models.Message> messages);
+
   /// Отменить загрузку вложений (крестик на прогрессе) — сообщение удаляется,
   /// так и не дойдя до собеседника.
   Future<void> cancelUpload(String chatID, String messageID);

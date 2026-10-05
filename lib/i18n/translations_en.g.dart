@@ -415,6 +415,36 @@ class Translations$screenChat$en {
 	/// en: 'Unread messages'
 	String get unreadMessages => 'Unread messages';
 
+	/// en: 'Select'
+	String get select => 'Select';
+
+	/// en: 'Forward'
+	String get forward => 'Forward';
+
+	/// en: 'Forward to…'
+	String get forwardTo => 'Forward to…';
+
+	/// en: 'Forwarded from {name}'
+	String forwardedFrom({required Object name}) => 'Forwarded from ${name}';
+
+	/// en: 'From: {names}'
+	String forwardFrom({required Object names}) => 'From: ${names}';
+
+	/// en: '(one) {Forward {n} message} (other) {Forward {n} messages}'
+	String forwardMessages({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n,
+		one: 'Forward ${n} message',
+		other: 'Forward ${n} messages',
+	);
+
+	/// en: '(one) {Delete {n} message?} (other) {Delete {n} messages?}'
+	String deleteSelectedTitle({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n,
+		one: 'Delete ${n} message?',
+		other: 'Delete ${n} messages?',
+	);
+
+	/// en: 'Messages will be deleted for everyone in the chat.'
+	String get deleteSelectedMessage => 'Messages will be deleted for everyone in the chat.';
+
 	/// en: 'Slide to cancel'
 	String get voiceSlideToCancel => 'Slide to cancel';
 
@@ -1219,6 +1249,18 @@ class Translations$screenMyProfile$en {
 	/// en: 'File'
 	String get chooseFile => 'File';
 
+	/// en: 'Choose file'
+	String get pickDocument => 'Choose file';
+
+	/// en: 'Documents, archives and any other files'
+	String get pickDocumentHint => 'Documents, archives and any other files';
+
+	/// en: 'Photo or video without compression'
+	String get pickMediaAsFile => 'Photo or video without compression';
+
+	/// en: 'Sent as a file, in original quality'
+	String get pickMediaAsFileHint => 'Sent as a file, in original quality';
+
 	/// en: 'Emoji'
 	String get chooseEmoji => 'Emoji';
 
@@ -1982,6 +2024,14 @@ extension on Translations {
 			'screenChat.search' => 'Search',
 			'screenChat.searchNoResults' => 'No results',
 			'screenChat.unreadMessages' => 'Unread messages',
+			'screenChat.select' => 'Select',
+			'screenChat.forward' => 'Forward',
+			'screenChat.forwardTo' => 'Forward to…',
+			'screenChat.forwardedFrom' => ({required Object name}) => 'Forwarded from ${name}',
+			'screenChat.forwardFrom' => ({required Object names}) => 'From: ${names}',
+			'screenChat.forwardMessages' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: 'Forward ${n} message', other: 'Forward ${n} messages', ), 
+			'screenChat.deleteSelectedTitle' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: 'Delete ${n} message?', other: 'Delete ${n} messages?', ), 
+			'screenChat.deleteSelectedMessage' => 'Messages will be deleted for everyone in the chat.',
 			'screenChat.voiceSlideToCancel' => 'Slide to cancel',
 			'screenChat.voiceHoldHint' => 'Hold to record',
 			'screenChat.micDeniedTitle' => 'No microphone access',
@@ -2208,6 +2258,10 @@ extension on Translations {
 			'screenMyProfile.takePhoto' => 'Take photo',
 			'screenMyProfile.chooseFromGallery' => 'Choose from gallery',
 			'screenMyProfile.chooseFile' => 'File',
+			'screenMyProfile.pickDocument' => 'Choose file',
+			'screenMyProfile.pickDocumentHint' => 'Documents, archives and any other files',
+			'screenMyProfile.pickMediaAsFile' => 'Photo or video without compression',
+			'screenMyProfile.pickMediaAsFileHint' => 'Sent as a file, in original quality',
 			'screenMyProfile.chooseEmoji' => 'Emoji',
 			'screenMyProfile.chooseLink' => 'Link',
 			'screenMyProfile.galleryEmpty' => 'No photos',
@@ -2388,6 +2442,8 @@ extension on Translations {
 			'passkey.notFound' => 'Passkey not found.',
 			'yandex.failed' => 'Couldn\'t sign in with Yandex. Please try again.',
 			'yandex.invalidToken' => 'Couldn\'t verify the Yandex sign-in. Please try again.',
+			_ => null,
+		} ?? switch (path) {
 			'yandex.phoneMissing' => 'Your Yandex ID has no phone number. Add one in Yandex ID or sign in with your phone number.',
 			'yandex.invalidPhone' => 'The phone number in your Yandex ID can\'t be used to sign in. Sign in with your phone number.',
 			'yandex.unavailable' => 'Yandex ID is unavailable right now. Please try again later.',

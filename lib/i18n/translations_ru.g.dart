@@ -228,6 +228,24 @@ class _Translations$screenChat$ru extends Translations$screenChat$en {
 	@override String get search => 'Поиск';
 	@override String get searchNoResults => 'Нет результатов';
 	@override String get unreadMessages => 'Непрочитанные сообщения';
+	@override String get select => 'Выбрать';
+	@override String get forward => 'Переслать';
+	@override String get forwardTo => 'Переслать в…';
+	@override String forwardedFrom({required Object name}) => 'Переслано от ${name}';
+	@override String forwardFrom({required Object names}) => 'От: ${names}';
+	@override String forwardMessages({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n,
+		one: 'Переслать ${n} сообщение',
+		few: 'Переслать ${n} сообщения',
+		many: 'Переслать ${n} сообщений',
+		other: 'Переслать ${n} сообщения',
+	);
+	@override String deleteSelectedTitle({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n,
+		one: 'Удалить ${n} сообщение?',
+		few: 'Удалить ${n} сообщения?',
+		many: 'Удалить ${n} сообщений?',
+		other: 'Удалить ${n} сообщения?',
+	);
+	@override String get deleteSelectedMessage => 'Сообщения будут удалены у всех участников чата.';
 	@override String get voiceSlideToCancel => 'Влево — отмена';
 	@override String get voiceHoldHint => 'Удерживайте, чтобы записать';
 	@override String get micDeniedTitle => 'Нет доступа к микрофону';
@@ -581,6 +599,10 @@ class _Translations$screenMyProfile$ru extends Translations$screenMyProfile$en {
 	@override String get takePhoto => 'Сделать фото';
 	@override String get chooseFromGallery => 'Выбрать из галереи';
 	@override String get chooseFile => 'Файл';
+	@override String get pickDocument => 'Выбрать файл';
+	@override String get pickDocumentHint => 'Документы, архивы и любые другие файлы';
+	@override String get pickMediaAsFile => 'Фото или видео без сжатия';
+	@override String get pickMediaAsFileHint => 'Отправятся файлом, в исходном качестве';
 	@override String get chooseEmoji => 'Эмодзи';
 	@override String get chooseLink => 'Ссылка';
 	@override String get galleryEmpty => 'Нет фотографий';
@@ -981,6 +1003,14 @@ extension on TranslationsRu {
 			'screenChat.search' => 'Поиск',
 			'screenChat.searchNoResults' => 'Нет результатов',
 			'screenChat.unreadMessages' => 'Непрочитанные сообщения',
+			'screenChat.select' => 'Выбрать',
+			'screenChat.forward' => 'Переслать',
+			'screenChat.forwardTo' => 'Переслать в…',
+			'screenChat.forwardedFrom' => ({required Object name}) => 'Переслано от ${name}',
+			'screenChat.forwardFrom' => ({required Object names}) => 'От: ${names}',
+			'screenChat.forwardMessages' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: 'Переслать ${n} сообщение', few: 'Переслать ${n} сообщения', many: 'Переслать ${n} сообщений', other: 'Переслать ${n} сообщения', ), 
+			'screenChat.deleteSelectedTitle' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: 'Удалить ${n} сообщение?', few: 'Удалить ${n} сообщения?', many: 'Удалить ${n} сообщений?', other: 'Удалить ${n} сообщения?', ), 
+			'screenChat.deleteSelectedMessage' => 'Сообщения будут удалены у всех участников чата.',
 			'screenChat.voiceSlideToCancel' => 'Влево — отмена',
 			'screenChat.voiceHoldHint' => 'Удерживайте, чтобы записать',
 			'screenChat.micDeniedTitle' => 'Нет доступа к микрофону',
@@ -1207,6 +1237,10 @@ extension on TranslationsRu {
 			'screenMyProfile.takePhoto' => 'Сделать фото',
 			'screenMyProfile.chooseFromGallery' => 'Выбрать из галереи',
 			'screenMyProfile.chooseFile' => 'Файл',
+			'screenMyProfile.pickDocument' => 'Выбрать файл',
+			'screenMyProfile.pickDocumentHint' => 'Документы, архивы и любые другие файлы',
+			'screenMyProfile.pickMediaAsFile' => 'Фото или видео без сжатия',
+			'screenMyProfile.pickMediaAsFileHint' => 'Отправятся файлом, в исходном качестве',
 			'screenMyProfile.chooseEmoji' => 'Эмодзи',
 			'screenMyProfile.chooseLink' => 'Ссылка',
 			'screenMyProfile.galleryEmpty' => 'Нет фотографий',
@@ -1387,6 +1421,8 @@ extension on TranslationsRu {
 			'passkey.notFound' => 'Ключ не найден.',
 			'yandex.failed' => 'Не удалось войти через Яндекс. Попробуйте ещё раз.',
 			'yandex.invalidToken' => 'Не удалось подтвердить вход через Яндекс. Попробуйте ещё раз.',
+			_ => null,
+		} ?? switch (path) {
 			'yandex.phoneMissing' => 'К аккаунту Яндекс ID не привязан номер телефона. Добавьте его в Яндекс ID или войдите по номеру.',
 			'yandex.invalidPhone' => 'Номер телефона в Яндекс ID не подходит для входа. Войдите по номеру.',
 			'yandex.unavailable' => 'Яндекс ID сейчас недоступен. Попробуйте позже.',

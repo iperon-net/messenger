@@ -2,6 +2,7 @@ import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
@@ -16,6 +17,7 @@ import '../../models.dart' as models;
 import '../../themes.dart';
 import 'chat_common.dart';
 import 'compose_format_menu.dart';
+import 'forward_picker.dart';
 import 'voice_recorder.dart';
 
 /// Окно чата (iOS): шапка с аватаром и «печатает…», лента пузырей, поле ввода
@@ -118,6 +120,50 @@ class _ChatCupertinoState extends State<ChatCupertino> {
     _focus.requestFocus();
   }
 
+  /// «Переслать»: выбор чата → в этот же чат — плашка над полем ввода, в
+  /// другой — переход в него (как в Telegram), там плашка и «Отправить».
+  /// [single] — из меню одного сообщения: отмена выбора чата снимает и
+  /// выделение.
+  Future<void> _forward(BuildContext context, {bool single = false}) async {
+    final targets = await _cubit.forwardTargets();
+    if (!context.mounted) return;
+    final target = await showForwardPicker(context, targets);
+    if (!context.mounted) return;
+    if (target == null) {
+      if (single) _cubit.clearSelection();
+      return;
+    }
+    _cubit.forwardSelected(target.id);
+    if (target.id == _cubit.state.chat?.id) {
+      _focus.requestFocus();
+    } else {
+      context.pushReplacement('/chats/chat/${target.id}');
+    }
+  }
+
+  /// Текст отмеченных — по порядку, через пустую строку.
+  void _copySelected() {
+    final text = _cubit.state.selectedMessages.map((m) => m.text).where((t) => t.isNotEmpty).join('\n\n');
+    if (text.isNotEmpty) Clipboard.setData(ClipboardData(text: text));
+    _cubit.clearSelection();
+  }
+
+  Future<void> _deleteSelected(BuildContext context) async {
+    final t = context.t.screenChat;
+    final confirmed = await showCupertinoDialog<bool>(
+      context: context,
+      builder: (dialogContext) => CupertinoAlertDialog(
+        title: Text(t.deleteSelectedTitle(n: _cubit.state.selectedIDs.length)),
+        content: Text(t.deleteSelectedMessage),
+        actions: [
+          CupertinoDialogAction(onPressed: () => Navigator.of(dialogContext).pop(false), child: Text(context.t.common.cancel)),
+          CupertinoDialogAction(isDestructiveAction: true, onPressed: () => Navigator.of(dialogContext).pop(true), child: Text(t.delete)),
+        ],
+      ),
+    );
+    if (confirmed ?? false) await _cubit.deleteSelected();
+  }
+
   /// Нет доступа к микрофону (запись голосового).
   Future<void> _micDenied(bool permanently) async {
     final t = context.t;
@@ -143,7 +189,8 @@ class _ChatCupertinoState extends State<ChatCupertino> {
 
   void _send() {
     final text = _input.text;
-    if (text.trim().isEmpty) return;
+    // Пересылка уходит и без текста.
+    if (text.trim().isEmpty && _cubit.state.forwarding.isEmpty) return;
     _input.clear();
     _cubit.send(text);
   }
@@ -186,13 +233,31 @@ class _ChatCupertinoState extends State<ChatCupertino> {
           final barColor = ThemesCupertino.appBackground.resolveFrom(context).withValues(alpha: 0.92);
           return PopScope(
             // «Назад» в режиме поиска закрывает поиск, а не чат.
-            canPop: !state.searching,
+            canPop: !state.searching && !state.selecting,
             onPopInvokedWithResult: (didPop, _) {
-              if (!didPop) _cubit.closeSearch();
+              if (didPop) return;
+              if (state.selecting) {
+                _cubit.clearSelection();
+              } else {
+                _cubit.closeSearch();
+              }
             },
             child: CupertinoPageScaffold(
               backgroundColor: background,
-              navigationBar: state.searching
+              navigationBar: state.selecting
+                  ? CupertinoNavigationBar(
+                      automaticallyImplyLeading: false,
+                      automaticBackgroundVisibility: false,
+                      backgroundColor: barColor,
+                      middle: Text(t.screenChat.selected(n: state.selectedIDs.length)),
+                      trailing: CupertinoButton(
+                        padding: const EdgeInsets.only(left: 8),
+                        minimumSize: Size.zero,
+                        onPressed: _cubit.clearSelection,
+                        child: Text(t.common.cancel),
+                      ),
+                    )
+                  : state.searching
                   ? CupertinoNavigationBar(
                       automaticallyImplyLeading: false,
                       automaticBackgroundVisibility: false,
@@ -285,7 +350,13 @@ class _ChatCupertinoState extends State<ChatCupertino> {
                                             onReplyTap: _tracker.jumpToReply,
                                             unreadFromID: state.unreadFromID,
                                             flashID: _flashID,
-                                            onReply: chat.type == models.ChatType.channel || state.searching ? null : _swipeReply,
+                                            onReply: chat.type == models.ChatType.channel || state.searching || state.selecting
+                                                ? null
+                                                : _swipeReply,
+                                            selecting: state.selecting,
+                                            selectedIDs: state.selectedIDs,
+                                            onSelect: _cubit.toggleSelected,
+                                            selectionColor: CupertinoTheme.of(context).primaryColor,
                                             highlight: state.searching ? state.searchQuery : '',
                                             focusedID: state.searchCurrentID,
                                             onMediaTap: (message, index) => showChatMediaViewer(
@@ -309,7 +380,14 @@ class _ChatCupertinoState extends State<ChatCupertino> {
                                   ],
                                 ),
                               ),
-                              if (state.searching)
+                              if (state.selecting)
+                                _SelectionBar(
+                                  state: state,
+                                  onDelete: () => _deleteSelected(context),
+                                  onCopy: _copySelected,
+                                  onForward: () => _forward(context),
+                                )
+                              else if (state.searching)
                                 _SearchBar(state: state)
                               else if (chat.type == models.ChatType.channel)
                                 _ChannelBar(chat: chat)
@@ -377,10 +455,15 @@ class _ChatCupertinoState extends State<ChatCupertino> {
           _focus.requestFocus();
         }),
       if (message.text.isNotEmpty) action(t.copy, CupertinoIcons.doc_on_doc, () => Clipboard.setData(ClipboardData(text: message.text))),
+      action(t.forward, CupertinoIcons.arrowshape_turn_up_right, () {
+        _cubit.startSelection(message);
+        _forward(context, single: true);
+      }),
       if (message.outgoing && message.kind == models.MessageKind.text)
         action(t.edit, CupertinoIcons.pencil, () => _cubit.startEdit(message)),
       if (message.outgoing || chat.type == models.ChatType.private)
         action(t.delete, CupertinoIcons.delete, () => _confirmDelete(context, message), destructive: true),
+      action(t.select, CupertinoIcons.checkmark_circle, () => _cubit.startSelection(message)),
     ];
   }
 
@@ -552,7 +635,15 @@ class _ComposeBar extends StatelessWidget {
                 padding: const EdgeInsets.fromLTRB(12, 8, 4, 0),
                 child: Row(
                   children: [
-                    FaIcon(editing ? FontAwesomeIcons.pen : FontAwesomeIcons.reply, size: 16, color: primary),
+                    FaIcon(
+                      editing
+                          ? FontAwesomeIcons.pen
+                          : state.forwarding.isNotEmpty
+                          ? FontAwesomeIcons.share
+                          : FontAwesomeIcons.reply,
+                      size: 16,
+                      color: primary,
+                    ),
                     const SizedBox(width: 10),
                     Container(width: 2, height: 32, color: primary),
                     const SizedBox(width: 8),
@@ -629,18 +720,24 @@ class _ComposeBar extends StatelessWidget {
                       child: ValueListenableBuilder<TextEditingValue>(
                         valueListenable: input,
                         builder: (context, value, _) {
-                          final canSend = value.text.trim().isNotEmpty;
+                          final canSend = value.text.trim().isNotEmpty || state.forwarding.isNotEmpty;
                           // Пусто — микрофон (голосовое), как в Telegram.
-                          if (!canSend && !editing) return VoiceRecordButton(recorder: recorder, style: voiceStyle);
-                          return CupertinoButton(
-                            padding: const EdgeInsets.only(left: 8, bottom: 2),
-                            minimumSize: Size.zero,
-                            onPressed: canSend ? onSend : null,
-                            child: Icon(
-                              editing ? CupertinoIcons.checkmark_circle_fill : CupertinoIcons.arrow_up_circle_fill,
-                              size: 32,
-                              color: canSend ? primary : CupertinoColors.systemGrey3.resolveFrom(context),
-                            ),
+                          // Слот фиксированный: поле ввода не дёргается при смене кнопки.
+                          return ComposeActionSlot(
+                            size: const Size(44, 34),
+                            child: !canSend && !editing
+                                ? VoiceRecordButton(key: const ValueKey('mic'), recorder: recorder, style: voiceStyle)
+                                : CupertinoButton(
+                                    key: ValueKey(editing ? 'edit' : 'send'),
+                                    padding: EdgeInsets.zero,
+                                    minimumSize: Size.zero,
+                                    onPressed: canSend ? onSend : null,
+                                    child: Icon(
+                                      editing ? CupertinoIcons.checkmark_circle_fill : CupertinoIcons.arrow_up_circle_fill,
+                                      size: 32,
+                                      color: canSend ? primary : CupertinoColors.systemGrey3.resolveFrom(context),
+                                    ),
+                                  ),
                           );
                         },
                       ),
@@ -649,6 +746,55 @@ class _ComposeBar extends StatelessWidget {
                 ),
               ),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Режим выделения — вместо поля ввода: «Удалить» (если все отмеченные можно
+/// удалить), «Копировать» (если есть текст), «Переслать».
+class _SelectionBar extends StatelessWidget {
+  final ChatState state;
+  final VoidCallback onDelete;
+  final VoidCallback onCopy;
+  final VoidCallback onForward;
+
+  const _SelectionBar({required this.state, required this.onDelete, required this.onCopy, required this.onForward});
+
+  @override
+  Widget build(BuildContext context) {
+    final cubit = context.read<ChatCubit>();
+    final selected = state.selectedMessages;
+    final canDelete = selected.isNotEmpty && selected.every(cubit.canDelete);
+    final canCopy = selected.any((m) => m.text.isNotEmpty);
+    Widget button(IconData icon, VoidCallback? onPressed, {bool destructive = false}) => CupertinoButton(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      onPressed: onPressed,
+      child: Icon(
+        icon,
+        size: 26,
+        color: onPressed == null
+            ? CupertinoColors.systemGrey3.resolveFrom(context)
+            : destructive
+            ? CupertinoColors.systemRed.resolveFrom(context)
+            : CupertinoTheme.of(context).primaryColor,
+      ),
+    );
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: ThemesCupertino.appBackground.resolveFrom(context),
+        border: Border(top: BorderSide(color: CupertinoColors.separator.resolveFrom(context), width: 0.5)),
+      ),
+      child: SafeArea(
+        top: false,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            button(CupertinoIcons.delete, canDelete ? onDelete : null, destructive: true),
+            button(CupertinoIcons.doc_on_doc, canCopy ? onCopy : null),
+            button(CupertinoIcons.arrowshape_turn_up_right, selected.isEmpty ? null : onForward),
           ],
         ),
       ),

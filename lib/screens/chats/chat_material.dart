@@ -1,5 +1,6 @@
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -14,6 +15,7 @@ import '../../models.dart' as models;
 import '../../themes.dart';
 import 'chat_common.dart';
 import 'compose_format_menu.dart';
+import 'forward_picker.dart';
 import 'voice_recorder.dart';
 
 /// Окно чата (Android): шапка с аватаром и «печатает…», лента пузырей, поле
@@ -115,6 +117,70 @@ class _ChatMaterialState extends State<ChatMaterial> {
     _focus.requestFocus();
   }
 
+  /// Шапка режима выделения: «×», «Выбрано: N», копировать / удалить /
+  /// переслать.
+  PreferredSizeWidget _selectionAppBar(BuildContext context, ChatState state, Color color) {
+    final selected = state.selectedMessages;
+    final canDelete = selected.isNotEmpty && selected.every(_cubit.canDelete);
+    final canCopy = selected.any((m) => m.text.isNotEmpty);
+    return AppBar(
+      backgroundColor: color,
+      leading: IconButton(icon: const Icon(Icons.close), onPressed: _cubit.clearSelection),
+      title: Text(context.t.screenChat.selected(n: state.selectedIDs.length)),
+      actions: [
+        IconButton(icon: const Icon(Icons.copy), onPressed: canCopy ? () => _copySelected(context) : null),
+        IconButton(icon: const Icon(Icons.delete_outline), onPressed: canDelete ? () => _deleteSelected(context) : null),
+        IconButton(icon: const Icon(Icons.forward), onPressed: selected.isEmpty ? null : () => _forward(context)),
+      ],
+    );
+  }
+
+  /// «Переслать»: выбор чата → в этот же чат — плашка над полем ввода, в
+  /// другой — переход в него (как в Telegram), там плашка и «Отправить».
+  /// [single] — из меню одного сообщения: отмена выбора чата снимает и
+  /// выделение.
+  Future<void> _forward(BuildContext context, {bool single = false}) async {
+    final targets = await _cubit.forwardTargets();
+    if (!context.mounted) return;
+    final target = await showForwardPicker(context, targets);
+    if (!context.mounted) return;
+    if (target == null) {
+      if (single) _cubit.clearSelection();
+      return;
+    }
+    _cubit.forwardSelected(target.id);
+    if (target.id == _cubit.state.chat?.id) {
+      _focus.requestFocus();
+    } else {
+      context.pushReplacement('/chats/chat/${target.id}');
+    }
+  }
+
+  /// Текст отмеченных — по порядку, через пустую строку.
+  void _copySelected(BuildContext context) {
+    final text = _cubit.state.selectedMessages.map((m) => m.text).where((t) => t.isNotEmpty).join('\n\n');
+    if (text.isEmpty) return;
+    Clipboard.setData(ClipboardData(text: text));
+    _cubit.clearSelection();
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.t.screenChat.copied)));
+  }
+
+  Future<void> _deleteSelected(BuildContext context) async {
+    final t = context.t.screenChat;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(t.deleteSelectedTitle(n: _cubit.state.selectedIDs.length)),
+        content: Text(t.deleteSelectedMessage),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(dialogContext).pop(false), child: Text(context.t.common.cancel)),
+          TextButton(onPressed: () => Navigator.of(dialogContext).pop(true), child: Text(t.delete)),
+        ],
+      ),
+    );
+    if (confirmed ?? false) await _cubit.deleteSelected();
+  }
+
   /// Нет доступа к микрофону (запись голосового).
   Future<void> _micDenied(bool permanently) async {
     final t = context.t;
@@ -136,7 +202,8 @@ class _ChatMaterialState extends State<ChatMaterial> {
 
   void _send() {
     final text = _input.text;
-    if (text.trim().isEmpty) return;
+    // Пересылка уходит и без текста.
+    if (text.trim().isEmpty && _cubit.state.forwarding.isEmpty) return;
     _input.clear();
     _cubit.send(text);
   }
@@ -177,13 +244,20 @@ class _ChatMaterialState extends State<ChatMaterial> {
           final chat = state.chat;
           return PopScope(
             // «Назад» в режиме поиска закрывает поиск, а не чат.
-            canPop: !state.searching,
+            canPop: !state.searching && !state.selecting,
             onPopInvokedWithResult: (didPop, _) {
-              if (!didPop) _cubit.closeSearch();
+              if (didPop) return;
+              if (state.selecting) {
+                _cubit.clearSelection();
+              } else {
+                _cubit.closeSearch();
+              }
             },
             child: Scaffold(
               backgroundColor: dark ? const Color(0xFF000000) : Theme.of(context).colorScheme.surfaceContainerLow,
-              appBar: state.searching
+              appBar: state.selecting
+                  ? _selectionAppBar(context, state, barColor)
+                  : state.searching
                   ? AppBar(
                       backgroundColor: barColor,
                       titleSpacing: 0,
@@ -245,7 +319,13 @@ class _ChatMaterialState extends State<ChatMaterial> {
                                       onReplyTap: _tracker.jumpToReply,
                                       unreadFromID: state.unreadFromID,
                                       flashID: _flashID,
-                                      onReply: chat.type == models.ChatType.channel || state.searching ? null : _swipeReply,
+                                      onReply: chat.type == models.ChatType.channel || state.searching || state.selecting
+                                          ? null
+                                          : _swipeReply,
+                                      selecting: state.selecting,
+                                      selectedIDs: state.selectedIDs,
+                                      onSelect: _cubit.toggleSelected,
+                                      selectionColor: Theme.of(context).colorScheme.primary,
                                       highlight: state.searching ? state.searchQuery : '',
                                       focusedID: state.searchCurrentID,
                                       onMediaTap: (message, index) => showChatMediaViewer(
@@ -269,7 +349,10 @@ class _ChatMaterialState extends State<ChatMaterial> {
                             ],
                           ),
                         ),
-                        if (state.searching)
+                        // Режим выделения — действия в шапке, поля ввода нет.
+                        if (state.selecting)
+                          const SizedBox.shrink()
+                        else if (state.searching)
                           _SearchBar(state: state, color: barColor)
                         else if (chat.type == models.ChatType.channel)
                           _ChannelBar(chat: chat, color: barColor)
@@ -319,6 +402,7 @@ class _ChatMaterialState extends State<ChatMaterial> {
               ListTile(leading: const Icon(Icons.reply), title: Text(t.reply), onTap: () => Navigator.of(sheetContext).pop('reply')),
             if (message.text.isNotEmpty)
               ListTile(leading: const Icon(Icons.copy), title: Text(t.copy), onTap: () => Navigator.of(sheetContext).pop('copy')),
+            ListTile(leading: const Icon(Icons.forward), title: Text(t.forward), onTap: () => Navigator.of(sheetContext).pop('forward')),
             if (message.outgoing && message.kind == models.MessageKind.text)
               ListTile(leading: const Icon(Icons.edit_outlined), title: Text(t.edit), onTap: () => Navigator.of(sheetContext).pop('edit')),
             if (message.outgoing || chat.type == models.ChatType.private)
@@ -327,6 +411,11 @@ class _ChatMaterialState extends State<ChatMaterial> {
                 title: Text(t.delete, style: TextStyle(color: error)),
                 onTap: () => Navigator.of(sheetContext).pop('delete'),
               ),
+            ListTile(
+              leading: const Icon(Icons.check_circle_outline),
+              title: Text(t.select),
+              onTap: () => Navigator.of(sheetContext).pop('select'),
+            ),
           ],
         ),
       ),
@@ -345,6 +434,11 @@ class _ChatMaterialState extends State<ChatMaterial> {
         if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(t.copied)));
       case 'edit':
         _cubit.startEdit(message);
+      case 'forward':
+        _cubit.startSelection(message);
+        await _forward(context, single: true);
+      case 'select':
+        _cubit.startSelection(message);
       case 'delete':
         final confirmed = await showDialog<bool>(
           context: context,
@@ -443,7 +537,15 @@ class _ComposeBar extends StatelessWidget {
                 padding: const EdgeInsets.fromLTRB(16, 6, 4, 0),
                 child: Row(
                   children: [
-                    Icon(editing ? Icons.edit_outlined : Icons.reply, color: scheme.primary, size: 22),
+                    Icon(
+                      editing
+                          ? Icons.edit_outlined
+                          : state.forwarding.isNotEmpty
+                          ? Icons.forward
+                          : Icons.reply,
+                      color: scheme.primary,
+                      size: 22,
+                    ),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Column(
@@ -519,18 +621,20 @@ class _ComposeBar extends StatelessWidget {
                       child: ValueListenableBuilder<TextEditingValue>(
                         valueListenable: input,
                         builder: (context, value, _) {
-                          final canSend = value.text.trim().isNotEmpty;
+                          final canSend = value.text.trim().isNotEmpty || state.forwarding.isNotEmpty;
                           // Пусто — микрофон (голосовое), как в Telegram.
-                          if (!canSend && !editing) {
-                            return Padding(
-                              padding: const EdgeInsets.fromLTRB(4, 8, 10, 10),
-                              child: VoiceRecordButton(recorder: recorder, style: voiceStyle),
-                            );
-                          }
-                          return IconButton(
-                            icon: Icon(editing ? Icons.check : Icons.send),
-                            color: scheme.primary,
-                            onPressed: canSend ? onSend : null,
+                          // Слот фиксированный (как у скрепки слева): поле ввода не
+                          // дёргается при смене кнопки.
+                          return ComposeActionSlot(
+                            size: const Size(48, 48),
+                            child: !canSend && !editing
+                                ? VoiceRecordButton(key: const ValueKey('mic'), recorder: recorder, style: voiceStyle)
+                                : IconButton(
+                                    key: ValueKey(editing ? 'edit' : 'send'),
+                                    icon: Icon(editing ? Icons.check : Icons.send),
+                                    color: scheme.primary,
+                                    onPressed: canSend ? onSend : null,
+                                  ),
                           );
                         },
                       ),

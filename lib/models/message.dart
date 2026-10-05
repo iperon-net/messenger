@@ -38,6 +38,16 @@ class MessageReply with MessageReplyMappable {
   const MessageReply({required this.messageID, required this.senderName, this.text = '', this.kind = MessageKind.text});
 }
 
+/// Пересланное сообщение: от кого (имя автора оригинала, для своих —
+/// [self], в пузыре «Вы»). В пузыре — «Переслано от …» над содержимым.
+@MappableClass()
+class MessageForward with MessageForwardMappable {
+  final String name;
+  final bool self;
+
+  const MessageForward({this.name = '', this.self = false});
+}
+
 /// Реакция на сообщение: эмодзи, сколько человек поставили и есть ли среди
 /// них мы ([chosen]).
 @MappableClass()
@@ -148,6 +158,9 @@ class Message with MessageMappable {
   /// Реакции — в порядке появления (у первого — самый ранний).
   final List<MessageReaction> reactions;
 
+  /// Переслано из другого чата; `null` — своё сообщение.
+  final MessageForward? forward;
+
   const Message({
     required this.id,
     required this.chatID,
@@ -170,6 +183,7 @@ class Message with MessageMappable {
     this.uploadedBytes = 0,
     this.uploadTotal = 0,
     this.reactions = const [],
+    this.forward,
   });
 
   /// Наши реакции (до `maxReactionsPerUser` на сообщение), в порядке чипов.

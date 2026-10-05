@@ -413,6 +413,140 @@ class _MessageReplyCopyWithImpl<$R, $Out>
   ) => _MessageReplyCopyWithImpl<$R2, $Out2>($value, $cast, t);
 }
 
+class MessageForwardMapper extends ClassMapperBase<MessageForward> {
+  MessageForwardMapper._();
+
+  static MessageForwardMapper? _instance;
+  static MessageForwardMapper ensureInitialized() {
+    if (_instance == null) {
+      MapperContainer.globals.use(_instance = MessageForwardMapper._());
+    }
+    return _instance!;
+  }
+
+  @override
+  final String id = 'MessageForward';
+
+  static String _$name(MessageForward v) => v.name;
+  static const Field<MessageForward, String> _f$name = Field(
+    'name',
+    _$name,
+    opt: true,
+    def: '',
+  );
+  static bool _$self(MessageForward v) => v.self;
+  static const Field<MessageForward, bool> _f$self = Field(
+    'self',
+    _$self,
+    opt: true,
+    def: false,
+  );
+
+  @override
+  final MappableFields<MessageForward> fields = const {
+    #name: _f$name,
+    #self: _f$self,
+  };
+
+  static MessageForward _instantiate(DecodingData data) {
+    return MessageForward(name: data.dec(_f$name), self: data.dec(_f$self));
+  }
+
+  @override
+  final Function instantiate = _instantiate;
+
+  static MessageForward fromMap(Map<String, dynamic> map) {
+    return ensureInitialized().decodeMap<MessageForward>(map);
+  }
+
+  static MessageForward fromJson(String json) {
+    return ensureInitialized().decodeJson<MessageForward>(json);
+  }
+}
+
+mixin MessageForwardMappable {
+  String toJson() {
+    return MessageForwardMapper.ensureInitialized().encodeJson<MessageForward>(
+      this as MessageForward,
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return MessageForwardMapper.ensureInitialized().encodeMap<MessageForward>(
+      this as MessageForward,
+    );
+  }
+
+  MessageForwardCopyWith<MessageForward, MessageForward, MessageForward>
+  get copyWith => _MessageForwardCopyWithImpl<MessageForward, MessageForward>(
+    this as MessageForward,
+    $identity,
+    $identity,
+  );
+  @override
+  String toString() {
+    return MessageForwardMapper.ensureInitialized().stringifyValue(
+      this as MessageForward,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return MessageForwardMapper.ensureInitialized().equalsValue(
+      this as MessageForward,
+      other,
+    );
+  }
+
+  @override
+  int get hashCode {
+    return MessageForwardMapper.ensureInitialized().hashValue(
+      this as MessageForward,
+    );
+  }
+}
+
+extension MessageForwardValueCopy<$R, $Out>
+    on ObjectCopyWith<$R, MessageForward, $Out> {
+  MessageForwardCopyWith<$R, MessageForward, $Out> get $asMessageForward =>
+      $base.as((v, t, t2) => _MessageForwardCopyWithImpl<$R, $Out>(v, t, t2));
+}
+
+abstract class MessageForwardCopyWith<$R, $In extends MessageForward, $Out>
+    implements ClassCopyWith<$R, $In, $Out> {
+  $R call({String? name, bool? self});
+  MessageForwardCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
+    Then<$Out2, $R2> t,
+  );
+}
+
+class _MessageForwardCopyWithImpl<$R, $Out>
+    extends ClassCopyWithBase<$R, MessageForward, $Out>
+    implements MessageForwardCopyWith<$R, MessageForward, $Out> {
+  _MessageForwardCopyWithImpl(super.value, super.then, super.then2);
+
+  @override
+  late final ClassMapperBase<MessageForward> $mapper =
+      MessageForwardMapper.ensureInitialized();
+  @override
+  $R call({String? name, bool? self}) => $apply(
+    FieldCopyWithData({
+      if (name != null) #name: name,
+      if (self != null) #self: self,
+    }),
+  );
+  @override
+  MessageForward $make(CopyWithData data) => MessageForward(
+    name: data.get(#name, or: $value.name),
+    self: data.get(#self, or: $value.self),
+  );
+
+  @override
+  MessageForwardCopyWith<$R2, MessageForward, $Out2> $chain<$R2, $Out2>(
+    Then<$Out2, $R2> t,
+  ) => _MessageForwardCopyWithImpl<$R2, $Out2>($value, $cast, t);
+}
+
 class MessageReactionMapper extends ClassMapperBase<MessageReaction> {
   MessageReactionMapper._();
 
@@ -787,6 +921,7 @@ class MessageMapper extends ClassMapperBase<Message> {
       MessageReplyMapper.ensureInitialized();
       MessageMediaMapper.ensureInitialized();
       MessageReactionMapper.ensureInitialized();
+      MessageForwardMapper.ensureInitialized();
     }
     return _instance!;
   }
@@ -925,6 +1060,12 @@ class MessageMapper extends ClassMapperBase<Message> {
     opt: true,
     def: const [],
   );
+  static MessageForward? _$forward(Message v) => v.forward;
+  static const Field<Message, MessageForward> _f$forward = Field(
+    'forward',
+    _$forward,
+    opt: true,
+  );
 
   @override
   final MappableFields<Message> fields = const {
@@ -949,6 +1090,7 @@ class MessageMapper extends ClassMapperBase<Message> {
     #uploadedBytes: _f$uploadedBytes,
     #uploadTotal: _f$uploadTotal,
     #reactions: _f$reactions,
+    #forward: _f$forward,
   };
 
   static Message _instantiate(DecodingData data) {
@@ -974,6 +1116,7 @@ class MessageMapper extends ClassMapperBase<Message> {
       uploadedBytes: data.dec(_f$uploadedBytes),
       uploadTotal: data.dec(_f$uploadTotal),
       reactions: data.dec(_f$reactions),
+      forward: data.dec(_f$forward),
     );
   }
 
@@ -1054,6 +1197,7 @@ abstract class MessageCopyWith<$R, $In extends Message, $Out>
     MessageReactionCopyWith<$R, MessageReaction, MessageReaction>
   >
   get reactions;
+  MessageForwardCopyWith<$R, MessageForward, MessageForward>? get forward;
   $R call({
     String? id,
     String? chatID,
@@ -1076,6 +1220,7 @@ abstract class MessageCopyWith<$R, $In extends Message, $Out>
     int? uploadedBytes,
     int? uploadTotal,
     List<MessageReaction>? reactions,
+    MessageForward? forward,
   });
   MessageCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
@@ -1132,6 +1277,9 @@ class _MessageCopyWithImpl<$R, $Out>
     (v) => call(reactions: v),
   );
   @override
+  MessageForwardCopyWith<$R, MessageForward, MessageForward>? get forward =>
+      $value.forward?.copyWith.$chain((v) => call(forward: v));
+  @override
   $R call({
     String? id,
     String? chatID,
@@ -1154,6 +1302,7 @@ class _MessageCopyWithImpl<$R, $Out>
     int? uploadedBytes,
     int? uploadTotal,
     List<MessageReaction>? reactions,
+    Object? forward = $none,
   }) => $apply(
     FieldCopyWithData({
       if (id != null) #id: id,
@@ -1177,6 +1326,7 @@ class _MessageCopyWithImpl<$R, $Out>
       if (uploadedBytes != null) #uploadedBytes: uploadedBytes,
       if (uploadTotal != null) #uploadTotal: uploadTotal,
       if (reactions != null) #reactions: reactions,
+      if (forward != $none) #forward: forward,
     }),
   );
   @override
@@ -1202,6 +1352,7 @@ class _MessageCopyWithImpl<$R, $Out>
     uploadedBytes: data.get(#uploadedBytes, or: $value.uploadedBytes),
     uploadTotal: data.get(#uploadTotal, or: $value.uploadTotal),
     reactions: data.get(#reactions, or: $value.reactions),
+    forward: data.get(#forward, or: $value.forward),
   );
 
   @override

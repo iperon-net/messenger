@@ -99,6 +99,12 @@ class ChatMessagesView extends StatelessWidget {
   /// Подсветка строки (переход по цитате) — гаснет плавно, когда `null`.
   final String? flashID;
 
+  /// Режим выделения: отмеченные [selectedIDs], тап по строке — [onSelect].
+  final bool selecting;
+  final List<String> selectedIDs;
+  final ValueChanged<models.Message>? onSelect;
+  final Color selectionColor;
+
   /// Id строки-разделителя для [keyFor].
   static const unreadDividerID = '__unread__';
 
@@ -124,6 +130,10 @@ class ChatMessagesView extends StatelessWidget {
     this.onReplyTap,
     this.unreadFromID,
     this.flashID,
+    this.selecting = false,
+    this.selectedIDs = const [],
+    this.onSelect,
+    this.selectionColor = const Color(0xFF007AFF),
     this.menuWrapper,
   });
 
@@ -160,29 +170,66 @@ class ChatMessagesView extends StatelessWidget {
           Padding(
             key: keyFor?.call(m.id),
             padding: EdgeInsets.only(top: groupedWithOlder ? 2 : 8),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 400),
-              color: style.outgoing.withValues(alpha: m.id == flashID ? 0.25 : 0),
-              child: SwipeToReply(
-                onReply: onReply == null ? null : () => onReply!(m),
-                background: style.pill,
-                iconColor: style.pillText,
-                child: MessageBubble(
-                  key: ValueKey(m.id),
-                  message: m,
-                  style: style,
-                  tail: !groupedWithNewer,
-                  showSender: group && !m.outgoing && !groupedWithOlder,
-                  avatar: group && !m.outgoing ? (groupedWithNewer ? const SizedBox(width: 34) : _SenderAvatar(name: m.senderName)) : null,
-                  onLongPress: () => onLongPress(m),
-                  onMediaTap: onMediaTap == null ? null : (index) => onMediaTap!(m, index),
-                  highlight: highlight,
-                  focused: m.id == focusedID,
-                  onCancelUpload: onCancelUpload == null ? null : () => onCancelUpload!(m),
-                  onReaction: onReaction == null ? null : (emoji) => onReaction!(m, emoji),
-                  onDoubleTap: onDoubleTap == null ? null : () => onDoubleTap!(m),
-                  onReplyTap: onReplyTap == null ? null : () => onReplyTap!(m),
-                  menuWrapper: menuWrapper == null ? null : (bubble, preview) => menuWrapper!(m, bubble, preview),
+            // Режим выделения: тап по строке отмечает, слева — кружок, жесты
+            // пузыря (меню, медиа, реакции) выключены. Дерево одно и то же в
+            // обоих режимах — пузыри не пересоздаются.
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: selecting && onSelect != null ? () => onSelect!(m) : null,
+              child: AnimatedContainer(
+                duration: Duration(milliseconds: selecting ? 150 : 400),
+                color: selecting && selectedIDs.contains(m.id)
+                    ? selectionColor.withValues(alpha: 0.18)
+                    : style.outgoing.withValues(alpha: m.id == flashID ? 0.25 : 0),
+                child: Stack(
+                  children: [
+                    AnimatedPadding(
+                      duration: const Duration(milliseconds: 200),
+                      curve: Curves.easeOutCubic,
+                      padding: EdgeInsets.only(left: selecting ? 38 : 0),
+                      child: IgnorePointer(
+                        ignoring: selecting,
+                        child: SwipeToReply(
+                          onReply: onReply == null ? null : () => onReply!(m),
+                          background: style.pill,
+                          iconColor: style.pillText,
+                          child: MessageBubble(
+                            key: ValueKey(m.id),
+                            message: m,
+                            style: style,
+                            tail: !groupedWithNewer,
+                            showSender: group && !m.outgoing && !groupedWithOlder,
+                            avatar: group && !m.outgoing
+                                ? (groupedWithNewer ? const SizedBox(width: 34) : _SenderAvatar(name: m.senderName))
+                                : null,
+                            onLongPress: () => onLongPress(m),
+                            onMediaTap: onMediaTap == null ? null : (index) => onMediaTap!(m, index),
+                            highlight: highlight,
+                            focused: m.id == focusedID,
+                            onCancelUpload: onCancelUpload == null ? null : () => onCancelUpload!(m),
+                            onReaction: onReaction == null ? null : (emoji) => onReaction!(m, emoji),
+                            onDoubleTap: onDoubleTap == null ? null : () => onDoubleTap!(m),
+                            onReplyTap: onReplyTap == null ? null : () => onReplyTap!(m),
+                            menuWrapper: menuWrapper == null ? null : (bubble, preview) => menuWrapper!(m, bubble, preview),
+                          ),
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      left: 10,
+                      top: 0,
+                      bottom: 0,
+                      child: IgnorePointer(
+                        child: AnimatedOpacity(
+                          duration: const Duration(milliseconds: 200),
+                          opacity: selecting ? 1 : 0,
+                          child: Center(
+                            child: _SelectCheck(selected: selectedIDs.contains(m.id), color: selectionColor),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -227,6 +274,32 @@ class _SenderAvatar extends StatelessWidget {
 }
 
 /// Плашка по центру: дата или сервисное сообщение.
+/// Кружок выделения слева от сообщения: пустой с белой обводкой (виден на
+/// обоях) или залитый с галочкой.
+class _SelectCheck extends StatelessWidget {
+  final bool selected;
+  final Color color;
+
+  const _SelectCheck({required this.selected, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 150),
+      width: 22,
+      height: 22,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: selected ? color : const Color(0x33000000),
+        border: Border.all(color: const Color(0xFFFFFFFF), width: 1.5),
+        boxShadow: const [BoxShadow(color: Color(0x33000000), blurRadius: 3)],
+      ),
+      child: selected ? const FaIcon(FontAwesomeIcons.check, size: 11, color: Color(0xFFFFFFFF)) : null,
+    );
+  }
+}
+
 /// «Непрочитанные сообщения» — полоса во всю ширину над первым непрочитанным.
 class _UnreadDivider extends StatelessWidget {
   final MessageBubbleStyle style;
@@ -428,6 +501,33 @@ class MessageBubble extends StatelessWidget {
           child: Text(
             m.senderName,
             style: style.textStyle.copyWith(fontSize: 14, fontWeight: FontWeight.w600, color: senderColor(m.senderName)),
+          ),
+        ),
+      );
+    }
+    if (m.forward case final forward?) {
+      // «Переслано от Анна» — имя жирным, как в Telegram.
+      final name = forward.self ? t.screenChat.you : forward.name;
+      final label = t.screenChat.forwardedFrom(name: '\u0000');
+      final split = label.indexOf('\u0000');
+      final linkStyle = style.textStyle.copyWith(fontSize: 13.5, height: 1.2, color: colors.link);
+      content.add(
+        Padding(
+          padding: EdgeInsets.fromLTRB(captionInset, captionInset / 2, captionInset, 4),
+          child: Text.rich(
+            TextSpan(
+              style: linkStyle,
+              children: [
+                TextSpan(text: label.substring(0, split)),
+                TextSpan(
+                  text: name,
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                ),
+                TextSpan(text: label.substring(split + 1)),
+              ],
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
           ),
         ),
       );

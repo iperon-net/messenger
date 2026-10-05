@@ -54,13 +54,15 @@ Future<void> pickAndSendAttachments(BuildContext context, {TextEditingController
   final cubit = context.read<ChatCubit>();
   final result = await showToolbarAttachments(
     context,
-    tabs: const [ToolbarAttachmentTabKind.gallery, ToolbarAttachmentTabKind.camera, ToolbarAttachmentTabKind.file],
+    tabs: const [ToolbarAttachmentTabKind.gallery, ToolbarAttachmentTabKind.file],
     media: ToolbarAttachmentMediaType.all,
     multiSelect: true,
   );
   final items = switch (result) {
     ToolbarAttachmentImageResult(:final file, :final source) => [_draft(file.path, asFile: source == ToolbarAttachmentTabKind.file)],
-    ToolbarAttachmentMultiImageResult(:final files) => [for (final file in files) _draft(file.path)],
+    ToolbarAttachmentMultiImageResult(:final files, :final source) => [
+      for (final file in files) _draft(file.path, asFile: source == ToolbarAttachmentTabKind.file),
+    ],
     ToolbarAttachmentEmojiResult() || ToolbarAttachmentLinkResult() || null => const <AttachmentDraft>[],
   };
   if (items.isEmpty || !context.mounted) return;
@@ -118,7 +120,8 @@ const _imageExtensions = {'.jpg', '.jpeg', '.png', '.heic', '.heif', '.webp', '.
 
 AttachmentDraft _draft(String path, {bool asFile = false}) {
   final ext = p.extension(path).toLowerCase();
-  final kind = asFile && !_imageExtensions.contains(ext)
+  // Из таба «Файл» — всегда файлом (фото/видео без сжатия, как в Telegram).
+  final kind = asFile
       ? models.MessageKind.file
       : _videoExtensions.contains(ext)
       ? models.MessageKind.video
@@ -182,6 +185,16 @@ class AttachmentThumb extends StatelessWidget {
 
 /// Плашка над полем ввода: «Ответ Анне: …» / «Редактирование: …».
 ({String title, String text})? composeBanner(Translations t, ChatState state) {
+  final forwarding = state.forwarding;
+  if (forwarding.isNotEmpty && state.editing == null) {
+    String nameOf(models.Message m) => (m.forward?.self ?? m.outgoing) ? t.screenChat.you : (m.forward?.name ?? m.senderName);
+    final first = forwarding.first;
+    // Одно — его текст, несколько — от кого.
+    final text = forwarding.length == 1
+        ? (first.text.isNotEmpty ? first.text : messageKindLabel(t, first.kind))
+        : t.screenChat.forwardFrom(names: {for (final m in forwarding) nameOf(m)}.where((n) => n.isNotEmpty).join(', '));
+    return (title: t.screenChat.forwardMessages(n: forwarding.length), text: text.replaceAll('\n', ' '));
+  }
   final message = state.editing ?? state.reply;
   if (message == null) return null;
   final text = message.text.isNotEmpty ? message.text : messageKindLabel(t, message.kind);

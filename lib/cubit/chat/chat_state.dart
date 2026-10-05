@@ -27,6 +27,15 @@ class ChatState with ChatStateMappable {
   /// «Непрочитанные сообщения», к нему лента прокручивается при открытии.
   final String? unreadFromID;
 
+  /// Режим выделения: отмеченные сообщения (по id); вместо поля ввода —
+  /// «Удалить / Копировать / Переслать».
+  final bool selecting;
+  final List<String> selectedIDs;
+
+  /// Пересылаемые в этот чат сообщения — плашка над полем ввода, уходят по
+  /// «Отправить» (после текста, если он есть).
+  final List<models.Message> forwarding;
+
   /// Поиск по чату (удержание шапки): строка поиска вместо шапки, внизу —
   /// «N из M» и стрелки.
   final bool searching;
@@ -45,11 +54,20 @@ class ChatState with ChatStateMappable {
     this.reply,
     this.editing,
     this.unreadFromID,
+    this.selecting = false,
+    this.selectedIDs = const [],
+    this.forwarding = const [],
     this.searching = false,
     this.searchQuery = '',
     this.searchResults = const [],
     this.searchIndex = 0,
   });
+
+  /// Отмеченные сообщения — в порядке ленты (от старых к новым).
+  List<models.Message> get selectedMessages => [
+    for (final m in messages)
+      if (selectedIDs.contains(m.id)) m,
+  ];
 
   String? get searchCurrentID => searchResults.isEmpty ? null : searchResults[searchIndex.clamp(0, searchResults.length - 1)];
 }

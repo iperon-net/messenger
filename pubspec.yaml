@@ -125,6 +125,7 @@ dependencies:
   flutter_image_compress: ^2.5.1
   thumbhash: ^0.1.0+1
   record: ^7.1.1
+  file_picker: ^13.1.0
 
 dev_dependencies:
   flutter_test:

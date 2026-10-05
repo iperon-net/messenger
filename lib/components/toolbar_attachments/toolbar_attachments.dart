@@ -1,8 +1,11 @@
 import 'dart:io';
 
 import 'package:cupertino_ui/cupertino_ui.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:material_ui/material_ui.dart' show showModalBottomSheet, Colors, BoxConstraints;
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 
 import 'toolbar_attachments_cupertino.dart';
 import 'toolbar_attachments_material.dart';
@@ -30,12 +33,44 @@ class ToolbarAttachmentImageResult extends ToolbarAttachmentResult {
   const ToolbarAttachmentImageResult(this.file, this.source);
 }
 
-/// Выбрано несколько медиа (мультивыбор в галерее). [files] упорядочены в том
-/// порядке, в котором пользователь их отмечал.
+/// Выбрано несколько медиа (мультивыбор в галерее) или файлов (таб «Файл»,
+/// [source] = [ToolbarAttachmentTabKind.file] — отправлять файлами, без
+/// сжатия). [files] упорядочены в том порядке, в котором их выбирали.
 class ToolbarAttachmentMultiImageResult extends ToolbarAttachmentResult {
   final List<XFile> files;
-  const ToolbarAttachmentMultiImageResult(this.files);
+  final ToolbarAttachmentTabKind source;
+  const ToolbarAttachmentMultiImageResult(this.files, {this.source = ToolbarAttachmentTabKind.gallery});
 }
+
+/// Таб «Файл»: системный выбор документов (iOS — «Файлы»/iCloud Drive, Android
+/// — системный проводник), несколько сразу. Возвращает локальные пути: если
+/// система отдала только `content://` (Android), файл копируется во временную
+/// папку под своим именем.
+Future<List<XFile>> pickAttachmentDocuments() async {
+  final picked = await FilePicker.pickFiles();
+  if (picked.isEmpty) return const [];
+  final result = <XFile>[];
+  Directory? copies;
+  for (final file in picked) {
+    final path = file.path;
+    if (path != null) {
+      result.add(XFile(path, name: file.name));
+      continue;
+    }
+    copies ??= await Directory(
+      p.join((await getTemporaryDirectory()).path, 'picked_files', '${DateTime.now().microsecondsSinceEpoch}'),
+    ).create(recursive: true);
+    final copy = File(p.join(copies.path, file.name));
+    final sink = copy.openWrite();
+    await sink.addStream(file.readAsByteStream());
+    await sink.close();
+    result.add(XFile(copy.path, name: file.name));
+  }
+  return result;
+}
+
+/// Таб «Файл» → «Фото или видео без сжатия»: системная галерея, файлы как есть.
+Future<List<XFile>> pickAttachmentMediaAsFiles() => ImagePicker().pickMultipleMedia(requestFullMetadata: false);
 
 /// Выбран эмодзи.
 class ToolbarAttachmentEmojiResult extends ToolbarAttachmentResult {

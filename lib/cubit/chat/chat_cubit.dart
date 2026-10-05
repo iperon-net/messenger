@@ -26,6 +26,12 @@ class ChatCubit extends Cubit<ChatState> {
   int? _openUnread;
   bool _unreadPlaced = false;
 
+  /// Пересылка в другой чат: сообщения ждут здесь, пока не откроется окно
+  /// чата-получателя (его cubit забирает их в [ChatState.forwarding]).
+  static final _pendingForwards = <String, List<models.Message>>{};
+
+  static void forwardTo(String chatID, List<models.Message> messages) => _pendingForwards[chatID] = messages;
+
   /// [demo] — флаг «Демо чатов» из `settingsDevice`.
   void initialization({required String chatID, required bool demo}) {
     _chatID = chatID;
@@ -35,6 +41,8 @@ class ChatCubit extends Cubit<ChatState> {
       emit(state.copyWith(status: Status.success));
       return;
     }
+    final pending = _pendingForwards.remove(chatID);
+    if (pending != null) emit(state.copyWith(forwarding: pending));
     _chatsSubscription = source.watchChats().listen((chats) {
       if (isClosed) return;
       final chat = chats.where((c) => c.id == chatID).firstOrNull;
@@ -73,16 +81,21 @@ class ChatCubit extends Cubit<ChatState> {
   /// редактирования — правит сообщение.
   Future<void> send(String raw) async {
     final source = _source;
-    if (source == null || raw.trim().isEmpty) return;
+    final forwarding = state.forwarding;
+    if (source == null || (raw.trim().isEmpty && forwarding.isEmpty)) return;
     final (text, entities) = parseMarkdownShortcuts(raw.trim());
     final editing = state.editing;
     final reply = state.reply;
-    emit(state.copyWith(reply: null, editing: null));
+    emit(state.copyWith(reply: null, editing: null, forwarding: const []));
     if (editing != null) {
       await source.editMessage(_chatID, editing.id, text, entities);
       return;
     }
-    await source.sendMessage(_chatID, text: text, entities: entities, reply: reply == null ? null : _replyOf(reply));
+    // Как в Telegram: сначала комментарий, за ним пересылаемые.
+    if (text.isNotEmpty) {
+      await source.sendMessage(_chatID, text: text, entities: entities, reply: reply == null ? null : _replyOf(reply));
+    }
+    if (forwarding.isNotEmpty) await source.forwardMessages(_chatID, forwarding);
   }
 
   /// Фото/видео из галереи или файл; [media] (2+) — альбом одним сообщением.
@@ -183,11 +196,75 @@ class ChatCubit extends Cubit<ChatState> {
     emit(state.copyWith(searchQuery: query, searchResults: results, searchIndex: kept < 0 ? 0 : kept));
   }
 
-  void startReply(models.Message message) => emit(state.copyWith(reply: message, editing: null));
+  void startReply(models.Message message) => emit(state.copyWith(reply: message, editing: null, forwarding: const []));
 
-  void startEdit(models.Message message) => emit(state.copyWith(editing: message, reply: null));
+  void startEdit(models.Message message) => emit(state.copyWith(editing: message, reply: null, forwarding: const []));
 
-  void cancelCompose() => emit(state.copyWith(reply: null, editing: null));
+  void cancelCompose() => emit(state.copyWith(reply: null, editing: null, forwarding: const []));
+
+  /// Режим выделения: «Выбрать» в меню сообщения.
+  void startSelection(models.Message message) =>
+      emit(state.copyWith(selecting: true, selectedIDs: [message.id], searching: false, searchQuery: '', searchResults: const []));
+
+  /// Тап по сообщению в режиме выделения; сняли последнее — выходим из режима.
+  void toggleSelected(models.Message message) {
+    if (message.service) return;
+    final ids = state.selectedIDs.contains(message.id)
+        ? state.selectedIDs.where((id) => id != message.id).toList()
+        : [...state.selectedIDs, message.id];
+    emit(state.copyWith(selectedIDs: ids, selecting: ids.isNotEmpty));
+  }
+
+  void clearSelection() => emit(state.copyWith(selecting: false, selectedIDs: const []));
+
+  /// Удалить можно свои, а в личном чате — любые (как одиночное удаление).
+  bool canDelete(models.Message message) => message.outgoing || state.chat?.type == models.ChatType.private;
+
+  Future<void> deleteSelected() async {
+    final messages = state.selectedMessages;
+    clearSelection();
+    for (final m in messages) {
+      if (canDelete(m)) await delete(m);
+    }
+  }
+
+  /// Переслать отмеченные: в этот же чат — сразу в плашку над полем ввода,
+  /// в другой — отложить до открытия его окна ([forwardTo]).
+  void forwardSelected(String toChatID) {
+    // Автор оригинала — сейчас, пока известен этот чат (в личном у входящих
+    // имени отправителя нет — это название чата).
+    final messages = [
+      for (final m in state.selectedMessages)
+        m.forward != null
+            ? m
+            : m.copyWith(
+                forward: models.MessageForward(
+                  self: m.outgoing,
+                  name: m.outgoing ? '' : (m.senderName.isNotEmpty ? m.senderName : state.chat?.title ?? ''),
+                ),
+              ),
+    ];
+    if (messages.isEmpty) return;
+    if (toChatID == _chatID) {
+      emit(state.copyWith(selecting: false, selectedIDs: const [], forwarding: messages, reply: null, editing: null));
+    } else {
+      forwardTo(toChatID, messages);
+      clearSelection();
+    }
+  }
+
+  /// Куда можно переслать: все чаты, кроме каналов (писать в них нельзя) —
+  /// «Избранное» первым, архив в конце.
+  Future<List<models.Chat>> forwardTargets() async {
+    final source = _source;
+    if (source == null) return const [];
+    final chats = (await source.watchChats().first).where((c) => c.type != models.ChatType.channel).toList();
+    int rank(models.Chat c) => c.isSelf ? 0 : (c.archived ? 2 : 1);
+    // Внутри группы — порядок списка чатов (sort в Dart неустойчивый).
+    final indexed = chats.indexed.toList()
+      ..sort((a, b) => rank(a.$2) != rank(b.$2) ? rank(a.$2).compareTo(rank(b.$2)) : a.$1.compareTo(b.$1));
+    return [for (final (_, c) in indexed) c];
+  }
 
   Future<void> delete(models.Message message) async {
     if (state.editing?.id == message.id || state.reply?.id == message.id) cancelCompose();

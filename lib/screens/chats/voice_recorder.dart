@@ -254,7 +254,8 @@ class VoiceRecorderStyle {
   });
 }
 
-/// Кнопка-микрофон справа в поле ввода (когда текста нет). Пока пишется —
+/// Кнопка-микрофон справа в поле ввода (когда текста нет); размер — от
+/// родителя (слот [ComposeActionSlot]). Пока пишется —
 /// над ней большой круг за пальцем (пульсирует от громкости) и плашка
 /// «замка» сверху; в режиме «замка» тап по кругу — отправить.
 class VoiceRecordButton extends StatefulWidget {
@@ -269,6 +270,7 @@ class VoiceRecordButton extends StatefulWidget {
 
 class _VoiceRecordButtonState extends State<VoiceRecordButton> {
   final _link = LayerLink();
+  final _buttonKey = GlobalKey();
   final _portal = OverlayPortalController();
 
   static const _circle = 78.0;
@@ -291,15 +293,15 @@ class _VoiceRecordButtonState extends State<VoiceRecordButton> {
       child: CompositedTransformTarget(
         link: _link,
         child: Listener(
+          key: _buttonKey,
           behavior: HitTestBehavior.opaque,
           onPointerDown: (_) => recorder.press(),
           onPointerMove: (event) => recorder.move(event.delta),
           onPointerUp: (_) => recorder.release(),
           onPointerCancel: (_) => recorder.cancel(),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(8, 4, 2, 4),
-            child: FaIcon(FontAwesomeIcons.microphone, size: 22, color: style.secondary),
-          ),
+          // Заполняет слот кнопки в поле ввода (размер задаёт он) — вся
+          // площадь слота нажимается.
+          child: Center(child: FaIcon(FontAwesomeIcons.microphone, size: 22, color: style.secondary)),
         ),
       ),
     );
@@ -310,12 +312,27 @@ class _VoiceRecordButtonState extends State<VoiceRecordButton> {
     final style = widget.style;
     if (!recorder.active) {
       if (!recorder.holdHint) return const SizedBox.shrink();
-      return _follow(
-        offset: const Offset(-60, -44),
-        child: _Bubble(
-          color: style.surface,
-          child: Text(context.t.screenChat.voiceHoldHint, style: TextStyle(fontSize: 14, color: style.text)),
-        ),
+      // Подсказка над кнопкой, правым краем к её правому краю (кнопка у
+      // правого края экрана) — позиция по реальному месту кнопки на экране и
+      // не дальше 8 px от краёв экрана.
+      final button = _buttonKey.currentContext?.findRenderObject();
+      if (button is! RenderBox || !button.hasSize) return const SizedBox.shrink();
+      final rect = button.localToGlobal(Offset.zero) & button.size;
+      final screen = MediaQuery.sizeOf(context);
+      return Stack(
+        children: [
+          Positioned(
+            right: (screen.width - rect.right).clamp(8.0, screen.width),
+            bottom: screen.height - rect.top + 8,
+            child: ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: screen.width - 16),
+              child: _Bubble(
+                color: style.surface,
+                child: Text(context.t.screenChat.voiceHoldHint, style: TextStyle(fontSize: 14, color: style.text)),
+              ),
+            ),
+          ),
+        ],
       );
     }
     final locked = recorder.state == VoiceRecordState.locked;
@@ -503,6 +520,34 @@ class _BlinkingDotState extends State<_BlinkingDot> with SingleTickerProviderSta
         width: 10,
         height: 10,
         decoration: BoxDecoration(color: widget.color, shape: BoxShape.circle),
+      ),
+    );
+  }
+}
+
+/// Слот кнопки справа от поля ввода фиксированного размера: микрофон и
+/// «Отправить» меняются в нём с анимацией, не сдвигая поле ввода.
+class ComposeActionSlot extends StatelessWidget {
+  final Size size;
+
+  /// Ключ ребёнка — чтобы смена микрофон ↔ отправка анимировалась.
+  final Widget child;
+
+  const ComposeActionSlot({super.key, required this.size, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox.fromSize(
+      size: size,
+      child: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 160),
+        transitionBuilder: (child, animation) => FadeTransition(
+          opacity: animation,
+          child: ScaleTransition(scale: Tween<double>(begin: 0.6, end: 1).animate(animation), child: child),
+        ),
+        // Оба ребёнка — во весь слот, по центру.
+        layoutBuilder: (current, previous) => Stack(fit: StackFit.expand, children: [...previous, ?current]),
+        child: child,
       ),
     );
   }
