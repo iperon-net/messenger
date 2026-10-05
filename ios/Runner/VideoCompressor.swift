@@ -1,4 +1,5 @@
 import AVFoundation
+import VideoToolbox
 import Flutter
 import UIKit
 
@@ -8,10 +9,11 @@ import UIKit
 /// - `info` {path, thumb?, thumbSide} → {width, height, durationMs, bitrate}
 ///   (размеры — как видео показывается, с учётом поворота) и кадр-превью JPEG
 ///   в `thumb`;
-/// - `compress` {id, path, out, shortSide, bitrate} → путь к MP4 (H.264 +
-///   AAC). AVAssetReader/AVAssetWriter, а не AVAssetExportSession: у пресетов
-///   экспорта нельзя задать битрейт. Прогресс — вызовом `progress` {id,
-///   progress} обратно в Dart;
+/// - `compress` {id, path, out, shortSide, bitrate, codec} → путь к MP4
+///   (`codec`: `hevc` | `h264`, + AAC). AVAssetReader/AVAssetWriter, а не
+///   AVAssetExportSession: у пресетов экспорта нельзя задать битрейт.
+///   Прогресс — вызовом `progress` {id, progress} обратно в Dart. Кодек не
+///   поддерживается — ошибка `unsupported` (Dart откатится на H.264);
 /// - `cancel` {id}.
 final class VideoCompressor {
   static let shared = VideoCompressor()
@@ -49,7 +51,8 @@ final class VideoCompressor {
         source: URL(fileURLWithPath: path),
         output: URL(fileURLWithPath: out),
         shortSide: args["shortSide"] as? Int ?? 0,
-        bitrate: args["bitrate"] as? Int ?? 2_500_000
+        bitrate: args["bitrate"] as? Int ?? 2_500_000,
+        hevc: (args["codec"] as? String) == "hevc"
       )
       jobs[id] = job
       job.onProgress = { [weak self] progress in
@@ -62,6 +65,8 @@ final class VideoCompressor {
           self?.jobs[id] = nil
           if let error = error as? Job.Failure, error == .cancelled {
             result(FlutterError(code: "cancelled", message: nil, details: nil))
+          } else if let error = error as? Job.Failure, error == .unsupported {
+            result(FlutterError(code: "unsupported", message: nil, details: nil))
           } else if let error {
             result(FlutterError(code: "compress", message: error.localizedDescription, details: nil))
           } else {
@@ -108,12 +113,13 @@ final class VideoCompressor {
 
   /// Одно сжатие: чтение исходника и запись H.264 нужного размера/битрейта.
   final class Job {
-    enum Failure: Error, Equatable { case noVideo, cancelled, reader, writer }
+    enum Failure: Error, Equatable { case noVideo, cancelled, reader, writer, unsupported }
 
     let source: URL
     let output: URL
     let shortSide: Int
     let bitrate: Int
+    let hevc: Bool
     var onProgress: ((Double) -> Void)?
 
     private let lock = NSLock()
@@ -121,11 +127,12 @@ final class VideoCompressor {
     private var reader: AVAssetReader?
     private var writer: AVAssetWriter?
 
-    init(source: URL, output: URL, shortSide: Int, bitrate: Int) {
+    init(source: URL, output: URL, shortSide: Int, bitrate: Int, hevc: Bool) {
       self.source = source
       self.output = output
       self.shortSide = shortSide
       self.bitrate = bitrate
+      self.hevc = hevc
     }
 
     var isCancelled: Bool {
@@ -176,16 +183,20 @@ final class VideoCompressor {
       )
       videoOut.alwaysCopiesSampleData = false
       reader.add(videoOut)
-      let videoIn = AVAssetWriterInput(mediaType: .video, outputSettings: [
-        AVVideoCodecKey: AVVideoCodecType.h264,
+      // HEVC Main (8 бит) — в MP4 пишется как `hvc1`, его играют iOS и
+      // Android; H.264 High — запасной вариант.
+      let videoSettings: [String: Any] = [
+        AVVideoCodecKey: hevc ? AVVideoCodecType.hevc : AVVideoCodecType.h264,
         AVVideoWidthKey: width,
         AVVideoHeightKey: height,
         AVVideoCompressionPropertiesKey: [
           AVVideoAverageBitRateKey: bitrate,
-          AVVideoProfileLevelKey: AVVideoProfileLevelH264HighAutoLevel,
+          AVVideoProfileLevelKey: hevc ? kVTProfileLevel_HEVC_Main_AutoLevel as String : AVVideoProfileLevelH264HighAutoLevel,
           AVVideoMaxKeyFrameIntervalDurationKey: 2,
         ],
-      ])
+      ]
+      guard writer.canApply(outputSettings: videoSettings, forMediaType: .video) else { throw Failure.unsupported }
+      let videoIn = AVAssetWriterInput(mediaType: .video, outputSettings: videoSettings)
       // Поворот не «запекаем» — пишем как в исходнике, плееры его учитывают.
       videoIn.transform = videoTrack.preferredTransform
       videoIn.expectsMediaDataInRealTime = false

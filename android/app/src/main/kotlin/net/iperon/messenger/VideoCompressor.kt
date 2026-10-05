@@ -2,8 +2,10 @@ package net.iperon.messenger
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.media.MediaCodecList
 import android.media.MediaMetadataRetriever
 import android.net.Uri
+import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
@@ -35,9 +37,10 @@ import kotlin.math.roundToInt
  * `net.iperon.messenger/video`, тот же протокол, что у iOS (VideoCompressor.swift):
  *  - `info` {path, thumb?, thumbSide} → {width, height, durationMs, bitrate}
  *    (размеры с учётом поворота) и кадр-превью JPEG в `thumb`;
- *  - `compress` {id, path, out, shortSide, bitrate} → путь к MP4 (H.264 + AAC)
- *    через Media3 Transformer (аппаратный кодек); прогресс — вызовом
- *    `progress` {id, progress} обратно в Dart;
+ *  - `compress` {id, path, out, shortSide, bitrate, codec} → путь к MP4
+ *    (`codec`: `hevc` | `h264`, + AAC) через Media3 Transformer (аппаратный
+ *    кодек); прогресс — вызовом `progress` {id, progress} обратно в Dart. Нет
+ *    аппаратного кодировщика — ошибка `unsupported` (Dart откатится на H.264);
  *  - `cancel` {id}.
  */
 class VideoCompressor(
@@ -129,10 +132,19 @@ class VideoCompressor(
         val out = call.argument<String>("out") ?: return result.error("args", "out", null)
         val shortSide = call.argument<Int>("shortSide") ?: 0
         val bitrate = call.argument<Int>("bitrate") ?: 2_500_000
+        val videoMime = if (call.argument<String>("codec") == "hevc") MimeTypes.VIDEO_H265 else MimeTypes.VIDEO_H264
+        // Программный HEVC-кодировщик есть почти везде, но он медленный и
+        // слабый — HEVC только при аппаратном, иначе Dart возьмёт H.264.
+        if (videoMime == MimeTypes.VIDEO_H265 && !hasHardwareEncoder(videoMime)) {
+            return result.error("unsupported", videoMime, null)
+        }
         File(out).delete()
 
         val encoders = DefaultEncoderFactory.Builder(context)
             .setRequestedVideoEncoderSettings(VideoEncoderSettings.Builder().setBitrate(bitrate).build())
+            // Без тихой подмены кодека: при HEVC на низком битрейте H.264 вышел
+            // бы заметно хуже — пусть лучше ошибка, и Dart повторит с H.264.
+            .setEnableFallback(videoMime == MimeTypes.VIDEO_H264)
             .build()
         var finished = false
         val progress = ProgressHolder()
@@ -148,7 +160,7 @@ class VideoCompressor(
             }
         }
         transformer = Transformer.Builder(context)
-            .setVideoMimeType(MimeTypes.VIDEO_H264)
+            .setVideoMimeType(videoMime)
             .setAudioMimeType(MimeTypes.AUDIO_AAC)
             .setEncoderFactory(encoders)
             .addListener(object : Transformer.Listener {
@@ -193,6 +205,17 @@ class VideoCompressor(
     }
 
     private val cancelCallbacks = mutableMapOf<String, () -> Unit>()
+
+    private fun hasHardwareEncoder(mime: String): Boolean =
+        MediaCodecList(MediaCodecList.REGULAR_CODECS).codecInfos.any { info ->
+            info.isEncoder &&
+                info.supportedTypes.any { it.equals(mime, ignoreCase = true) } &&
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    info.isHardwareAccelerated
+                } else {
+                    !info.name.startsWith("OMX.google.") && !info.name.startsWith("c2.android.")
+                }
+        }
 
     companion object {
         private const val TAG = "VideoCompressor"

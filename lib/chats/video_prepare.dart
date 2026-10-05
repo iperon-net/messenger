@@ -37,14 +37,18 @@ class PreparedVideo {
   });
 }
 
-/// Параметры — как «стандартное» качество Telegram: 720p (по короткой
-/// стороне), H.264 ~2,5 Мбит/с, AAC 128 кбит/с.
+/// 720p (по короткой стороне), HEVC ~1,6 Мбит/с — по качеству как H.264
+/// 2,5 Мбит/с («стандартное» качество Telegram), но файл на ~35% меньше;
+/// звук AAC 128 кбит/с. HEVC кодируют и играют аппаратно все поддерживаемые
+/// устройства (iPhone с A10, Android последних лет). Нет аппаратного
+/// HEVC-кодировщика или он упал — откат на H.264 2,5 Мбит/с.
 abstract final class ChatVideoCompression {
   static const shortSide = 720;
-  static const bitrate = 2500000;
+  static const bitrate = 1600000;
+  static const h264Bitrate = 2500000;
 
   /// Не больше этого по короткой стороне и битрейту — отправляем как есть.
-  static const keepBitrate = 3500000;
+  static const keepBitrate = 2200000;
   static const thumbSide = 320;
 }
 
@@ -127,15 +131,24 @@ Future<PreparedVideo?> prepareChatVideo(String source, {ChatVideoJob? job, void 
       final out = p.join(dir.path, '${job.id}.mp4');
       final short = original.width < original.height ? original.width : original.height;
       if (onProgress != null) _progress[job.id] = onProgress;
+      Future<void> compress({required bool hevc}) => _channel.invokeMethod<String>('compress', {
+        'id': job!.id,
+        'path': source,
+        'out': out,
+        // Меньше 720p не растягиваем — только снижаем битрейт.
+        'shortSide': short > ChatVideoCompression.shortSide ? ChatVideoCompression.shortSide : 0,
+        'bitrate': hevc ? ChatVideoCompression.bitrate : ChatVideoCompression.h264Bitrate,
+        'codec': hevc ? 'hevc' : 'h264',
+      });
       try {
-        await _channel.invokeMethod<String>('compress', {
-          'id': job.id,
-          'path': source,
-          'out': out,
-          // Меньше 720p не растягиваем — только снижаем битрейт.
-          'shortSide': short > ChatVideoCompression.shortSide ? ChatVideoCompression.shortSide : 0,
-          'bitrate': ChatVideoCompression.bitrate,
-        });
+        try {
+          await compress(hevc: true);
+        } on PlatformException catch (e) {
+          if (e.code == 'cancelled' || job.cancelled) rethrow;
+          getIt.get<Logger>().warning('prepareChatVideo: HEVC недоступен (${e.code}: ${e.message}), сжимаем в H.264');
+          onProgress?.call(0);
+          await compress(hevc: false);
+        }
       } on PlatformException catch (e) {
         if (e.code == 'cancelled' || job.cancelled) throw const ChatVideoCancelled();
         rethrow;
