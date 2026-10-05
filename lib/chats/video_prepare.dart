@@ -69,7 +69,8 @@ abstract final class ChatVideoCompression {
   static const thumbSide = 320;
 }
 
-/// Правки видео из редактора перед отправкой: обрезка, без звука, обложка.
+/// Правки видео из редактора перед отправкой: обрезка, без звука, обложка,
+/// кадрирование и поворот.
 class ChatVideoEdit {
   /// Обрезка, мс от начала исходника; [endMs] 0 — до конца.
   final int startMs;
@@ -79,14 +80,33 @@ class ChatVideoEdit {
   /// Кадр-обложка (мс от начала исходника); `null` — первый кадр отрезка.
   final int? coverMs;
 
-  const ChatVideoEdit({this.startMs = 0, this.endMs = 0, this.mute = false, this.coverMs});
+  /// Кадрирование — доли 0..1 кадра исходника в том виде, как он
+  /// показывается (с учётом поворота из метаданных), до [rotation];
+  /// `null` — весь кадр.
+  final Rect? crop;
+
+  /// Поворот по часовой стрелке после кадрирования: 0 / 90 / 180 / 270.
+  final int rotation;
+
+  const ChatVideoEdit({this.startMs = 0, this.endMs = 0, this.mute = false, this.coverMs, this.crop, this.rotation = 0});
 
   bool get trimmed => startMs > 0 || endMs > 0;
 
+  /// Меняется кадр: кадрирование или поворот.
+  bool get changesFrame => crop != null || rotation != 0;
+
   /// Есть, что перекодировать (обложка — только кадр-превью, видео не трогает).
-  bool get changesVideo => trimmed || mute;
+  bool get changesVideo => trimmed || mute || changesFrame;
 
   int get thumbAtMs => coverMs ?? startMs;
+
+  /// Размеры кадра после кадрирования и поворота для исходника [width]×[height].
+  ({double width, double height}) frameSize(num width, num height) {
+    final crop = this.crop ?? const Rect.fromLTWH(0, 0, 1, 1);
+    final w = width * crop.width;
+    final h = height * crop.height;
+    return rotation % 180 == 0 ? (width: w, height: h) : (width: h, height: w);
+  }
 }
 
 /// Отмена сжатия (кнопка «Отмена» в окне прогресса).
@@ -182,6 +202,12 @@ Future<List<String>> chatVideoFrames(String path, {int count = 10, int side = 16
   }
 }
 
+/// Кадрирование для нативной части: [left, top, width, height] долями.
+List<double> _cropOf(ChatVideoEdit edit) {
+  final crop = edit.crop ?? const Rect.fromLTWH(0, 0, 1, 1);
+  return [crop.left, crop.top, crop.width, crop.height];
+}
+
 int _capBitrate(int target, int source) => source > 0 && source < target ? source : target;
 
 /// Нужно ли сжимать: кадр больше [ChatVideoQuality.shortSide], битрейт выше
@@ -215,11 +241,15 @@ Future<PreparedVideo?> prepareChatVideo(
 
     // Обрезка и «без звука» — только перекодированием, даже небольшого видео.
     final edited = edit?.changesVideo ?? false;
+    var thumb = original.thumb;
     var path = source;
     var info = original;
     if (edited || _needsCompression(original, quality)) {
       final out = p.join(dir.path, '${job.id}.mp4');
-      final short = original.width < original.height ? original.width : original.height;
+      // Короткая сторона — уже кадрированного кадра.
+      final frame =
+          edit?.frameSize(original.width, original.height) ?? (width: original.width.toDouble(), height: original.height.toDouble());
+      final short = (frame.width < frame.height ? frame.width : frame.height).round();
       if (onProgress != null) _progress[job.id] = onProgress;
       Future<void> compress({required bool hevc}) => _channel.invokeMethod<String>('compress', {
         'id': job!.id,
@@ -233,6 +263,7 @@ Future<PreparedVideo?> prepareChatVideo(
         'codec': hevc ? 'hevc' : 'h264',
         'maxFps': ChatVideoCompression.maxFps,
         if (edit != null && edited) ...{'startMs': edit.startMs, 'endMs': edit.endMs, 'mute': edit.mute},
+        if (edit != null && edit.changesFrame) ...{'crop': _cropOf(edit), 'rotation': edit.rotation},
       });
       try {
         try {
@@ -253,22 +284,26 @@ Future<PreparedVideo?> prepareChatVideo(
       // Сжатое вышло больше исходника — отправляем исходник (если правок нет).
       if (edited || await File(out).length() < await File(source).length()) {
         path = out;
-        info = await _info(out) ?? original;
+        // Кадрированное / повёрнутое — обложку берём уже из результата (время
+        // в нём — от начала отрезка).
+        final reframed = edit != null && edit.changesFrame;
+        info = await _info(out, thumb: reframed ? thumbPath : null, thumbAtMs: reframed ? edit.thumbAtMs - edit.startMs : 0) ?? original;
+        if (reframed && info.thumb.isNotEmpty) thumb = info.thumb;
       } else {
         File(out).delete().ignore();
       }
     }
     onProgress?.call(1);
 
-    final thumbExists = original.thumb.isNotEmpty && await File(original.thumb).exists();
+    final thumbExists = thumb.isNotEmpty && await File(thumb).exists();
     return PreparedVideo(
       path: path,
       width: info.width,
       height: info.height,
       duration: (info.durationMs / 1000).ceil(),
       size: await File(path).length(),
-      thumbPath: thumbExists ? original.thumb : '',
-      thumbhash: thumbExists ? await chatThumbhash(await File(original.thumb).readAsBytes()) : '',
+      thumbPath: thumbExists ? thumb : '',
+      thumbhash: thumbExists ? await chatThumbhash(await File(thumb).readAsBytes()) : '',
     );
   } on ChatVideoCancelled {
     rethrow;

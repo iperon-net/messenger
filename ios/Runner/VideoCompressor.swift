@@ -12,10 +12,13 @@ import UIKit
 /// - `frames` {path, count, side, prefix} → пути JPEG `<prefix>_<i>.jpg` —
 ///   кадры, равномерно по длине видео (лента редактора; не вышло — пустая строка);
 /// - `compress` {id, path, out, shortSide, bitrate, codec, maxFps, startMs?,
-///   endMs?, mute?} → путь к MP4 (`codec`: `hevc` | `h264`, + AAC).
+///   endMs?, mute?, crop?, rotation?} → путь к MP4 (`codec`: `hevc` | `h264`, + AAC).
 ///   AVAssetReader/AVAssetWriter, а не AVAssetExportSession: у пресетов
 ///   экспорта нельзя задать битрейт. Кадры чаще `maxFps` прореживаются;
-///   `startMs`..`endMs` — обрезка (`endMs` 0 — до конца), `mute` — без звука.
+///   `startMs`..`endMs` — обрезка (`endMs` 0 — до конца), `mute` — без звука,
+///   `crop` [left, top, width, height] долями показываемого кадра и `rotation`
+///   (по часовой, 0/90/180/270) — кадрирование и поворот, «запекаются» в кадр
+///   через AVVideoComposition.
 ///   Прогресс — вызовом `progress` {id, progress} обратно в Dart. Кодек не
 ///   поддерживается — ошибка `unsupported` (Dart откатится на H.264);
 /// - `cancel` {id}.
@@ -71,7 +74,9 @@ final class VideoCompressor {
         maxFps: args["maxFps"] as? Int ?? 0,
         startMs: args["startMs"] as? Int ?? 0,
         endMs: args["endMs"] as? Int ?? 0,
-        mute: args["mute"] as? Bool ?? false
+        mute: args["mute"] as? Bool ?? false,
+        crop: (args["crop"] as? [NSNumber])?.map { CGFloat(truncating: $0) },
+        rotation: args["rotation"] as? Int ?? 0
       )
       jobs[id] = job
       job.onProgress = { [weak self] progress in
@@ -173,6 +178,10 @@ final class VideoCompressor {
     let startMs: Int
     let endMs: Int
     let mute: Bool
+    /// [left, top, width, height] долями показываемого кадра; `nil` — весь.
+    let crop: [CGFloat]?
+    /// По часовой после кадрирования.
+    let rotation: Int
     var onProgress: ((Double) -> Void)?
 
     private let lock = NSLock()
@@ -180,7 +189,7 @@ final class VideoCompressor {
     private var reader: AVAssetReader?
     private var writer: AVAssetWriter?
 
-    init(source: URL, output: URL, shortSide: Int, bitrate: Int, hevc: Bool, maxFps: Int, startMs: Int, endMs: Int, mute: Bool) {
+    init(source: URL, output: URL, shortSide: Int, bitrate: Int, hevc: Bool, maxFps: Int, startMs: Int, endMs: Int, mute: Bool, crop: [CGFloat]?, rotation: Int) {
       self.source = source
       self.output = output
       self.shortSide = shortSide
@@ -190,6 +199,8 @@ final class VideoCompressor {
       self.startMs = startMs
       self.endMs = endMs
       self.mute = mute
+      self.crop = crop?.count == 4 ? crop : nil
+      self.rotation = ((rotation % 360) + 360) % 360
     }
 
     var isCancelled: Bool {
@@ -202,6 +213,64 @@ final class VideoCompressor {
       lock.lock()
       cancelled = true
       lock.unlock()
+    }
+
+    /// Чётная сторона для кодека, не меньше 2.
+    static func even(_ v: CGFloat) -> Int { max(2, Int(v.rounded()) & ~1) }
+
+    /// Композиция для кадрирования [crop] показываемого кадра и поворота на
+    /// [rotation] по часовой; короткая сторона результата — не больше
+    /// [shortSide] (0 — без уменьшения). Возвращает и размер кадра.
+    static func reframe(
+      track: AVAssetTrack,
+      duration: CMTime,
+      crop: [CGFloat]?,
+      rotation: Int,
+      shortSide: Int,
+      maxFps: Int
+    ) -> (AVVideoComposition, (width: Int, height: Int)) {
+      // Показываемый кадр: исходный с поворотом из метаданных, от (0, 0).
+      let preferred = track.preferredTransform
+      let shown = CGRect(origin: .zero, size: track.naturalSize).applying(preferred)
+      let c = crop ?? [0, 0, 1, 1]
+      let cropRect = CGRect(
+        x: c[0] * abs(shown.width),
+        y: c[1] * abs(shown.height),
+        width: max(1, c[2] * abs(shown.width)),
+        height: max(1, c[3] * abs(shown.height))
+      )
+      let shortest = min(cropRect.width, cropRect.height)
+      let scale = shortSide > 0 ? min(1, CGFloat(shortSide) / shortest) : 1
+      // Размер кадрированного до поворота (чётный, чтобы и после поворота).
+      let cropW = even(cropRect.width * scale)
+      let cropH = even(cropRect.height * scale)
+      let quarter = rotation % 180 != 0
+
+      // Координаты композиции — от левого верхнего угла, y вниз: положительный
+      // угол поворачивает по часовой.
+      let rotate = CGAffineTransform(rotationAngle: CGFloat(rotation) * .pi / 180)
+      let rotated = CGRect(x: 0, y: 0, width: cropW, height: cropH).applying(rotate)
+      let transform = preferred
+        .concatenating(CGAffineTransform(translationX: -shown.minX - cropRect.minX, y: -shown.minY - cropRect.minY))
+        .concatenating(CGAffineTransform(scaleX: CGFloat(cropW) / cropRect.width, y: CGFloat(cropH) / cropRect.height))
+        .concatenating(rotate)
+        .concatenating(CGAffineTransform(translationX: -rotated.minX, y: -rotated.minY))
+
+      let layer = AVMutableVideoCompositionLayerInstruction(assetTrack: track)
+      layer.setTransform(transform, at: .zero)
+      let instruction = AVMutableVideoCompositionInstruction()
+      instruction.timeRange = CMTimeRange(start: .zero, duration: duration)
+      instruction.layerInstructions = [layer]
+
+      let composition = AVMutableVideoComposition()
+      composition.instructions = [instruction]
+      let size = (width: quarter ? cropH : cropW, height: quarter ? cropW : cropH)
+      composition.renderSize = CGSize(width: size.width, height: size.height)
+      // Композиция выдаёт кадры с этой частотой — сразу не выше maxFps.
+      let nominal = track.nominalFrameRate > 0 ? Double(track.nominalFrameRate) : 30
+      let fps = maxFps > 0 ? min(nominal, Double(maxFps)) : nominal
+      composition.frameDuration = CMTime(value: 1, timescale: CMTimeScale(max(1, fps.rounded())))
+      return (composition, size)
     }
 
     func run(completion: @escaping (Error?) -> Void) {
@@ -224,14 +293,30 @@ final class VideoCompressor {
       let duration = max(CMTimeGetSeconds(range.duration), 0.001)
       let startSeconds = CMTimeGetSeconds(start)
 
-      // Размер в исходной (до поворота) ориентации: короткая сторона →
-      // shortSide, не увеличиваем; кодеку нужны чётные стороны.
-      let natural = videoTrack.naturalSize
-      let shortest = min(natural.width, natural.height)
-      let scale = shortSide > 0 && shortest > 0 ? min(1, CGFloat(shortSide) / shortest) : 1
-      func even(_ v: CGFloat) -> Int { max(2, Int((v * scale).rounded()) & ~1) }
-      let width = even(natural.width)
-      let height = even(natural.height)
+      let pixelFormat: [String: Any] = [kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange]
+      let reframe = crop != nil || rotation != 0
+      let width: Int
+      let height: Int
+      let videoOut: AVAssetReaderOutput
+      if reframe {
+        // Кадрирование и поворот — через AVVideoComposition: кадр
+        // «запекается» уже повёрнутым, transform у дорожки не нужен.
+        let (composition, size) = Self.reframe(track: videoTrack, duration: asset.duration, crop: crop, rotation: rotation, shortSide: shortSide, maxFps: maxFps)
+        width = size.width
+        height = size.height
+        let output = AVAssetReaderVideoCompositionOutput(videoTracks: [videoTrack], videoSettings: pixelFormat)
+        output.videoComposition = composition
+        videoOut = output
+      } else {
+        // Размер в исходной (до поворота) ориентации: короткая сторона →
+        // shortSide, не увеличиваем; кодеку нужны чётные стороны.
+        let natural = videoTrack.naturalSize
+        let shortest = min(natural.width, natural.height)
+        let scale = shortSide > 0 && shortest > 0 ? min(1, CGFloat(shortSide) / shortest) : 1
+        width = Self.even(natural.width * scale)
+        height = Self.even(natural.height * scale)
+        videoOut = AVAssetReaderTrackOutput(track: videoTrack, outputSettings: pixelFormat)
+      }
 
       try? FileManager.default.removeItem(at: output)
       let reader = try AVAssetReader(asset: asset)
@@ -241,10 +326,6 @@ final class VideoCompressor {
       self.reader = reader
       self.writer = writer
 
-      let videoOut = AVAssetReaderTrackOutput(
-        track: videoTrack,
-        outputSettings: [kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange]
-      )
       videoOut.alwaysCopiesSampleData = false
       reader.add(videoOut)
       // HEVC Main (8 бит) — в MP4 пишется как `hvc1`, его играют iOS и
@@ -261,8 +342,9 @@ final class VideoCompressor {
       ]
       guard writer.canApply(outputSettings: videoSettings, forMediaType: .video) else { throw Failure.unsupported }
       let videoIn = AVAssetWriterInput(mediaType: .video, outputSettings: videoSettings)
-      // Поворот не «запекаем» — пишем как в исходнике, плееры его учитывают.
-      videoIn.transform = videoTrack.preferredTransform
+      // Без правок кадра поворот не «запекаем» — пишем как в исходнике,
+      // плееры его учитывают.
+      if !reframe { videoIn.transform = videoTrack.preferredTransform }
       videoIn.expectsMediaDataInRealTime = false
       writer.add(videoIn)
 
@@ -312,7 +394,7 @@ final class VideoCompressor {
       let minFrameInterval = maxFps > 0 ? 1.0 / Double(maxFps) - 0.002 : 0
       var lastFrameTime = -Double.infinity
 
-      func pump(_ input: AVAssetWriterInput, _ output: AVAssetReaderTrackOutput, queue: DispatchQueue, video: Bool) {
+      func pump(_ input: AVAssetWriterInput, _ output: AVAssetReaderOutput, queue: DispatchQueue, video: Bool) {
         group.enter()
         var finished = false
         input.requestMediaDataWhenReady(on: queue) { [weak self] in

@@ -43,7 +43,7 @@ class AttachmentDraft {
   final String path;
   final models.MessageKind kind;
 
-  /// Обрезка / без звука / обложка (редактор видео); `null` — как есть.
+  /// Обрезка / без звука / обложка / кадрирование (редактор видео); `null` — как есть.
   ChatVideoEdit? edit;
 
   AttachmentDraft(this.path, this.kind);
@@ -437,7 +437,24 @@ class _VideoDraftThumb extends StatelessWidget {
           children: [
             const ColoredBox(color: Color(0xFF3A3A3C)),
             if (preview != null && preview.thumb.isNotEmpty)
-              Image.file(File(preview.thumb), fit: BoxFit.cover, cacheWidth: (size * 3).round(), gaplessPlayback: true),
+              if (edit != null && edit.changesFrame && preview.width > 0 && preview.height > 0)
+                // Кадрирование и поворот — как уйдёт в чат.
+                FittedBox(
+                  fit: BoxFit.cover,
+                  clipBehavior: Clip.hardEdge,
+                  child: SizedBox(
+                    width: edit.frameSize(preview.width, preview.height).width,
+                    height: edit.frameSize(preview.width, preview.height).height,
+                    child: ChatVideoReframe(
+                      crop: edit.crop,
+                      rotation: edit.rotation,
+                      sourceAspect: preview.width / preview.height,
+                      child: Image.file(File(preview.thumb), fit: BoxFit.fill, gaplessPlayback: true),
+                    ),
+                  ),
+                )
+              else
+                Image.file(File(preview.thumb), fit: BoxFit.cover, cacheWidth: (size * 3).round(), gaplessPlayback: true),
             const Positioned(
               top: 5,
               right: 5,

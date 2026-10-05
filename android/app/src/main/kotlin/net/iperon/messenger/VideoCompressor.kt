@@ -14,8 +14,10 @@ import android.util.Log
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MimeTypes
 import androidx.media3.common.Effect
+import androidx.media3.effect.Crop
 import androidx.media3.effect.FrameDropEffect
 import androidx.media3.effect.Presentation
+import androidx.media3.effect.ScaleAndRotateTransformation
 import androidx.media3.transformer.Composition
 import androidx.media3.transformer.DefaultEncoderFactory
 import androidx.media3.transformer.EditedMediaItem
@@ -45,9 +47,11 @@ import kotlin.math.roundToInt
  *  - `frames` {path, count, side, prefix} → пути JPEG `<prefix>_<i>.jpg` —
  *    кадры равномерно по длине видео (лента редактора; не вышло — пустая строка);
  *  - `compress` {id, path, out, shortSide, bitrate, codec, maxFps, startMs?,
- *    endMs?, mute?} → путь к MP4 (`codec`: `hevc` | `h264`, + AAC) через Media3
- *    Transformer (аппаратный кодек, кадры чаще `maxFps` прореживаются;
- *    `startMs`..`endMs` — обрезка, `endMs` 0 — до конца; `mute` — без звука);
+ *    endMs?, mute?, crop?, rotation?} → путь к MP4 (`codec`: `hevc` | `h264`,
+ *    + AAC) через Media3 Transformer (аппаратный кодек, кадры чаще `maxFps`
+ *    прореживаются; `startMs`..`endMs` — обрезка, `endMs` 0 — до конца; `mute` —
+ *    без звука; `crop` [left, top, width, height] долями показываемого кадра и
+ *    `rotation` по часовой — кадрирование и поворот);
  *    прогресс — вызовом `progress` {id, progress} обратно в Dart. Нет
  *    аппаратного кодировщика — ошибка `unsupported` (Dart откатится на H.264);
  *  - `cancel` {id}.
@@ -188,6 +192,8 @@ class VideoCompressor(
         val startMs = call.argument<Number>("startMs")?.toLong() ?: 0L
         val endMs = call.argument<Number>("endMs")?.toLong() ?: 0L
         val mute = call.argument<Boolean>("mute") ?: false
+        val crop = call.argument<List<Number>>("crop")?.map { it.toFloat() }?.takeIf { it.size == 4 }
+        val rotation = ((call.argument<Int>("rotation") ?: 0) % 360 + 360) % 360
         val videoMime = if (call.argument<String>("codec") == "hevc") MimeTypes.VIDEO_H265 else MimeTypes.VIDEO_H264
         // Программный HEVC-кодировщик есть почти везде, но он медленный и
         // слабый — HEVC только при аппаратном, иначе Dart возьмёт H.264.
@@ -240,9 +246,14 @@ class VideoCompressor(
 
         // Короткая сторона → shortSide (0 — без масштабирования, только
         // битрейт); чаще maxFps — прореживаем (реже — кадры не трогает).
+        val reframe = if (crop != null || rotation != 0) reframeEffects(path, crop, rotation, shortSide) else null
         val videoEffects = buildList<Effect> {
             if (maxFps > 0) add(FrameDropEffect.createDefaultFrameDropEffect(maxFps.toFloat()))
-            if (shortSide > 0) add(Presentation.createForShortSide(shortSide))
+            if (reframe != null) {
+                addAll(reframe)
+            } else if (shortSide > 0) {
+                add(Presentation.createForShortSide(shortSide))
+            }
         }
         val effects = Effects(listOf(), videoEffects)
         val clipping = MediaItem.ClippingConfiguration.Builder()
@@ -271,6 +282,42 @@ class VideoCompressor(
     }
 
     private val cancelCallbacks = mutableMapOf<String, () -> Unit>()
+
+    /**
+     * Кадрирование [crop] (доли показываемого кадра) и поворот на [rotation] по
+     * часовой; короткая сторона результата — не больше [shortSide] (0 — без
+     * уменьшения). Эффекты Media3 работают с кадром уже в показываемой
+     * ориентации; Crop — в NDC (-1..1, y вверх), поворот — против часовой.
+     */
+    private fun reframeEffects(path: String, crop: List<Float>?, rotation: Int, shortSide: Int): List<Effect> {
+        val retriever = MediaMetadataRetriever()
+        var width: Int
+        var height: Int
+        try {
+            retriever.setDataSource(path)
+            fun meta(key: Int) = retriever.extractMetadata(key)?.toIntOrNull() ?: 0
+            width = meta(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH)
+            height = meta(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)
+            val sourceRotation = meta(MediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION)
+            if (sourceRotation == 90 || sourceRotation == 270) width = height.also { height = width }
+        } finally {
+            retriever.release()
+        }
+        val (left, top, w, h) = crop ?: listOf(0f, 0f, 1f, 1f)
+        val cropW = max(1f, width * w)
+        val cropH = max(1f, height * h)
+        val scale = if (shortSide > 0) min(1f, shortSide / min(cropW, cropH)) else 1f
+        // Кодеку нужны чётные стороны.
+        fun even(v: Float) = max(2, (v * scale).roundToInt() and 1.inv())
+        val quarter = rotation % 180 != 0
+        val outW = if (quarter) even(cropH) else even(cropW)
+        val outH = if (quarter) even(cropW) else even(cropH)
+        return buildList {
+            if (crop != null) add(Crop(-1 + 2 * left, -1 + 2 * (left + w), 1 - 2 * (top + h), 1 - 2 * top))
+            if (rotation != 0) add(ScaleAndRotateTransformation.Builder().setRotationDegrees((360 - rotation).toFloat()).build())
+            add(Presentation.createForWidthAndHeight(outW, outH, Presentation.LAYOUT_STRETCH_TO_FIT))
+        }
+    }
 
     /** Частота кадров видеодорожки из контейнера; 0 — неизвестно. */
     private fun frameRate(path: String): Double {

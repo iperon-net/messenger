@@ -505,6 +505,21 @@ class Translations$screenChat$en {
 	/// en: 'Reset'
 	String get videoReset => 'Reset';
 
+	/// en: 'Crop'
+	String get videoCrop => 'Crop';
+
+	/// en: 'Rotate'
+	String get videoRotate => 'Rotate';
+
+	/// en: 'Free'
+	String get videoAspectFree => 'Free';
+
+	/// en: 'Original'
+	String get videoAspectOriginal => 'Original';
+
+	/// en: 'Square'
+	String get videoAspectSquare => 'Square';
+
 	/// en: 'Couldn't open the video'
 	String get videoEditFailed => 'Couldn\'t open the video';
 
@@ -2094,6 +2109,11 @@ extension on Translations {
 			'screenChat.videoCover' => 'Cover',
 			'screenChat.videoCoverSet' => 'Cover set',
 			'screenChat.videoReset' => 'Reset',
+			'screenChat.videoCrop' => 'Crop',
+			'screenChat.videoRotate' => 'Rotate',
+			'screenChat.videoAspectFree' => 'Free',
+			'screenChat.videoAspectOriginal' => 'Original',
+			'screenChat.videoAspectSquare' => 'Square',
 			'screenChat.videoEditFailed' => 'Couldn\'t open the video',
 			'screenChat.format' => 'Formatting',
 			'screenChat.formatBold' => 'Bold',
@@ -2479,13 +2499,13 @@ extension on Translations {
 			'screenCall.qualityGood' => 'Good connection',
 			'screenCall.qualityExcellent' => 'Excellent connection',
 			'screenCall.remoteMicMuted' => 'Their microphone is off',
+			_ => null,
+		} ?? switch (path) {
 			'passkey.title' => 'Passkeys',
 			'passkey.description' => 'Passkeys are stored securely in your password manager.',
 			'passkey.add' => 'Add a passkey',
 			'passkey.genericName' => 'Passkey',
 			'passkey.created' => ({required Object date}) => 'Added ${date}',
-			_ => null,
-		} ?? switch (path) {
 			'passkey.lastUsed' => ({required Object date}) => 'Signed in ${date}',
 			'passkey.alreadyOnThisDevice' => 'This account already has a passkey on this device. Add one on another device or in a different password manager.',
 			'passkey.delete' => 'Delete',

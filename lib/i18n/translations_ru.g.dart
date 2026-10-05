@@ -266,6 +266,11 @@ class _Translations$screenChat$ru extends Translations$screenChat$en {
 	@override String get videoCover => 'Обложка';
 	@override String get videoCoverSet => 'Обложка выбрана';
 	@override String get videoReset => 'Сбросить';
+	@override String get videoCrop => 'Кадрировать';
+	@override String get videoRotate => 'Повернуть';
+	@override String get videoAspectFree => 'Свободно';
+	@override String get videoAspectOriginal => 'Исходное';
+	@override String get videoAspectSquare => 'Квадрат';
 	@override String get videoEditFailed => 'Не удалось открыть видео';
 	@override String get format => 'Форматирование';
 	@override String get formatBold => 'Жирный';
@@ -1045,6 +1050,11 @@ extension on TranslationsRu {
 			'screenChat.videoCover' => 'Обложка',
 			'screenChat.videoCoverSet' => 'Обложка выбрана',
 			'screenChat.videoReset' => 'Сбросить',
+			'screenChat.videoCrop' => 'Кадрировать',
+			'screenChat.videoRotate' => 'Повернуть',
+			'screenChat.videoAspectFree' => 'Свободно',
+			'screenChat.videoAspectOriginal' => 'Исходное',
+			'screenChat.videoAspectSquare' => 'Квадрат',
 			'screenChat.videoEditFailed' => 'Не удалось открыть видео',
 			'screenChat.format' => 'Форматирование',
 			'screenChat.formatBold' => 'Жирный',
@@ -1430,13 +1440,13 @@ extension on TranslationsRu {
 			'screenCall.qualityGood' => 'Хорошее соединение',
 			'screenCall.qualityExcellent' => 'Отличное соединение',
 			'screenCall.remoteMicMuted' => 'Микрофон собеседника выключен',
+			_ => null,
+		} ?? switch (path) {
 			'passkey.title' => 'Ключи доступа',
 			'passkey.description' => 'Ключи доступа надёжно хранятся в вашем менеджере паролей.',
 			'passkey.add' => 'Добавить ключ',
 			'passkey.genericName' => 'Ключ доступа',
 			'passkey.created' => ({required Object date}) => 'Добавлен ${date}',
-			_ => null,
-		} ?? switch (path) {
 			'passkey.lastUsed' => ({required Object date}) => 'Вход ${date}',
 			'passkey.alreadyOnThisDevice' => 'На этом устройстве уже есть ключ доступа для этого аккаунта. Добавьте ключ на другом устройстве или в другом менеджере паролей.',
 			'passkey.delete' => 'Удалить',
