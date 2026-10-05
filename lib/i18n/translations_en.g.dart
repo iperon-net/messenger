@@ -490,6 +490,24 @@ class Translations$screenChat$en {
 	/// en: 'Standard quality: 720p'
 	String get videoHdOff => 'Standard quality: 720p';
 
+	/// en: 'Sound'
+	String get videoSound => 'Sound';
+
+	/// en: 'Muted'
+	String get videoMuted => 'Muted';
+
+	/// en: 'Cover'
+	String get videoCover => 'Cover';
+
+	/// en: 'Cover set'
+	String get videoCoverSet => 'Cover set';
+
+	/// en: 'Reset'
+	String get videoReset => 'Reset';
+
+	/// en: 'Couldn't open the video'
+	String get videoEditFailed => 'Couldn\'t open the video';
+
 	/// en: 'Format'
 	String get format => 'Format';
 
@@ -2071,6 +2089,12 @@ extension on Translations {
 			'screenChat.removeSpoiler' => 'Remove spoiler',
 			'screenChat.videoHdOn' => 'HD video: 1080p',
 			'screenChat.videoHdOff' => 'Standard quality: 720p',
+			'screenChat.videoSound' => 'Sound',
+			'screenChat.videoMuted' => 'Muted',
+			'screenChat.videoCover' => 'Cover',
+			'screenChat.videoCoverSet' => 'Cover set',
+			'screenChat.videoReset' => 'Reset',
+			'screenChat.videoEditFailed' => 'Couldn\'t open the video',
 			'screenChat.format' => 'Format',
 			'screenChat.formatBold' => 'Bold',
 			'screenChat.formatItalic' => 'Italic',
@@ -2460,14 +2484,14 @@ extension on Translations {
 			'passkey.add' => 'Add a passkey',
 			'passkey.genericName' => 'Passkey',
 			'passkey.created' => ({required Object date}) => 'Added ${date}',
+			_ => null,
+		} ?? switch (path) {
 			'passkey.lastUsed' => ({required Object date}) => 'Signed in ${date}',
 			'passkey.alreadyOnThisDevice' => 'This account already has a passkey on this device. Add one on another device or in a different password manager.',
 			'passkey.delete' => 'Delete',
 			'passkey.deleteConfirmTitle' => 'Delete passkey?',
 			'passkey.deleteConfirmMessage' => 'You won\'t be able to sign in with this passkey anymore.',
 			'passkey.loadError' => 'Couldn\'t load passkeys',
-			_ => null,
-		} ?? switch (path) {
 			'passkey.retry' => 'Retry',
 			'passkey.verificationFailed' => 'Couldn\'t verify the passkey. Please try again.',
 			'passkey.ceremonyExpired' => 'The request expired. Please try again.',

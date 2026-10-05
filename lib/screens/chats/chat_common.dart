@@ -37,14 +37,34 @@ import 'media_caption_material.dart';
   };
 }
 
-/// Выбранное вложение до отправки: путь и тип (фото / видео / файл).
+/// Выбранное вложение до отправки: путь, тип (фото / видео / файл) и, для
+/// видео, правки из редактора.
 class AttachmentDraft {
   final String path;
   final models.MessageKind kind;
 
-  const AttachmentDraft(this.path, this.kind);
+  /// Обрезка / без звука / обложка (редактор видео); `null` — как есть.
+  ChatVideoEdit? edit;
+
+  AttachmentDraft(this.path, this.kind);
 
   bool get isMedia => kind == models.MessageKind.photo || kind == models.MessageKind.video;
+
+  bool get isVideo => kind == models.MessageKind.video;
+
+  Future<({String thumb, int durationMs, int width, int height})?>? _preview;
+  int _previewAt = -1;
+
+  /// Кадр-превью видео (обложка или начало отрезка) и длительность исходника;
+  /// пересчитывается, только когда меняется кадр.
+  Future<({String thumb, int durationMs, int width, int height})?> get videoPreview {
+    final at = edit?.thumbAtMs ?? 0;
+    if (_preview == null || _previewAt != at) {
+      _previewAt = at;
+      _preview = chatVideoPreview(path, atMs: at);
+    }
+    return _preview!;
+  }
 }
 
 /// Итог превью перед отправкой: подпись, «Скрыть под спойлер» (меню «⋯») и
@@ -153,6 +173,7 @@ Future<List<models.MessageMedia>> _prepareMedia(
         final video = await prepareChatVideo(
           item.path,
           quality: quality,
+          edit: item.edit,
           job: current,
           onProgress: (value) => progress.value = (n + value) / videos.length,
         );
@@ -345,6 +366,7 @@ class AttachmentThumb extends StatelessWidget {
   Widget build(BuildContext context) {
     final Widget child = switch (item.kind) {
       models.MessageKind.photo => Image.file(File(item.path), fit: BoxFit.cover, cacheWidth: (size * 3).round()),
+      models.MessageKind.video => _VideoDraftThumb(item: item, size: size),
       _ => ColoredBox(
         color: const Color(0xFF3A3A3C),
         child: Column(
@@ -379,6 +401,85 @@ class AttachmentThumb extends StatelessWidget {
           child: MediaSpoiler(enabled: spoiler && item.isMedia, child: child),
         ),
       ),
+    );
+  }
+}
+
+/// Открывает редактор видео [item] (нажатие на миниатюру в листе подписи);
+/// `true` — правки изменились, миниатюру нужно перерисовать.
+Future<bool> editVideoDraft(BuildContext context, AttachmentDraft item, {required Color accent}) async {
+  final result = await showChatVideoEditor(context, path: item.path, initial: item.edit, accent: accent);
+  if (result == null) return false;
+  item.edit = result.edit;
+  return true;
+}
+
+/// Миниатюра видео до отправки: кадр (обложка), длительность отрезка, значок
+/// «без звука» и карандаш — по нажатию открывается редактор.
+class _VideoDraftThumb extends StatelessWidget {
+  final AttachmentDraft item;
+  final double size;
+
+  const _VideoDraftThumb({required this.item, required this.size});
+
+  @override
+  Widget build(BuildContext context) {
+    const white = Color(0xFFFFFFFF);
+    final edit = item.edit;
+    return FutureBuilder(
+      future: item.videoPreview,
+      builder: (context, snapshot) {
+        final preview = snapshot.data;
+        final total = preview?.durationMs ?? 0;
+        final ms = edit == null ? total : (edit.endMs > 0 ? edit.endMs : total) - edit.startMs;
+        return Stack(
+          fit: StackFit.expand,
+          children: [
+            const ColoredBox(color: Color(0xFF3A3A3C)),
+            if (preview != null && preview.thumb.isNotEmpty)
+              Image.file(File(preview.thumb), fit: BoxFit.cover, cacheWidth: (size * 3).round(), gaplessPlayback: true),
+            const Positioned(
+              top: 5,
+              right: 5,
+              child: _ThumbBadge(child: FaIcon(FontAwesomeIcons.pen, size: 10, color: white)),
+            ),
+            if (preview != null)
+              Positioned(
+                left: 5,
+                bottom: 5,
+                child: _ThumbBadge(
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (edit?.mute ?? false) ...[
+                        const FaIcon(FontAwesomeIcons.volumeXmark, size: 10, color: white),
+                        const SizedBox(width: 4),
+                      ],
+                      Text(
+                        chatVideoTime(Duration(milliseconds: ms)),
+                        style: const TextStyle(fontSize: 11, color: white),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _ThumbBadge extends StatelessWidget {
+  final Widget child;
+
+  const _ThumbBadge({required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(color: const Color(0x80000000), borderRadius: BorderRadius.circular(6)),
+      child: Padding(padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 3), child: child),
     );
   }
 }

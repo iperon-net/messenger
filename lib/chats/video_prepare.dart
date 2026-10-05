@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/services.dart';
 import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 
 import '../di.dart';
 import '../logger.dart';
@@ -68,6 +69,26 @@ abstract final class ChatVideoCompression {
   static const thumbSide = 320;
 }
 
+/// Правки видео из редактора перед отправкой: обрезка, без звука, обложка.
+class ChatVideoEdit {
+  /// Обрезка, мс от начала исходника; [endMs] 0 — до конца.
+  final int startMs;
+  final int endMs;
+  final bool mute;
+
+  /// Кадр-обложка (мс от начала исходника); `null` — первый кадр отрезка.
+  final int? coverMs;
+
+  const ChatVideoEdit({this.startMs = 0, this.endMs = 0, this.mute = false, this.coverMs});
+
+  bool get trimmed => startMs > 0 || endMs > 0;
+
+  /// Есть, что перекодировать (обложка — только кадр-превью, видео не трогает).
+  bool get changesVideo => trimmed || mute;
+
+  int get thumbAtMs => coverMs ?? startMs;
+}
+
 /// Отмена сжатия (кнопка «Отмена» в окне прогресса).
 class ChatVideoCancelled implements Exception {
   const ChatVideoCancelled();
@@ -107,11 +128,12 @@ void _ensureHandler() {
 
 typedef _VideoInfo = ({int width, int height, int durationMs, int bitrate, double fps, String thumb});
 
-Future<_VideoInfo?> _info(String path, {String? thumb}) async {
+Future<_VideoInfo?> _info(String path, {String? thumb, int thumbAtMs = 0}) async {
   final raw = await _channel.invokeMapMethod<String, Object?>('info', {
     'path': path,
     'thumb': ?thumb,
     'thumbSide': ChatVideoCompression.thumbSide,
+    'thumbAtMs': thumbAtMs,
   });
   if (raw == null) return null;
   return (
@@ -125,6 +147,43 @@ Future<_VideoInfo?> _info(String path, {String? thumb}) async {
   );
 }
 
+Future<Directory> _editorDir() async {
+  final dir = Directory(p.join((await getTemporaryDirectory()).path, 'video_edit'));
+  await dir.create(recursive: true);
+  return dir;
+}
+
+int _editorSeq = 0;
+
+/// Превью видео до отправки (миниатюра в листе подписи и редактор): кадр в
+/// момент [atMs], длительность и размеры. `null` — не прочиталось.
+Future<({String thumb, int durationMs, int width, int height})?> chatVideoPreview(String path, {int atMs = 0}) async {
+  try {
+    final thumb = p.join((await _editorDir()).path, 'preview_${DateTime.now().microsecondsSinceEpoch}_${_editorSeq++}.jpg');
+    final info = await _info(path, thumb: thumb, thumbAtMs: atMs);
+    if (info == null) return null;
+    return (thumb: info.thumb, durationMs: info.durationMs, width: info.width, height: info.height);
+  } catch (e, s) {
+    getIt.get<Logger>().handle(e, s, 'chatVideoPreview: $path');
+    return null;
+  }
+}
+
+/// Кадры для ленты редактора: [count] штук равномерно по длине, не больше
+/// [side] пикселей по стороне; не получившийся кадр — пустая строка.
+Future<List<String>> chatVideoFrames(String path, {int count = 10, int side = 160}) async {
+  try {
+    final prefix = p.join((await _editorDir()).path, 'frame_${DateTime.now().microsecondsSinceEpoch}_${_editorSeq++}');
+    final frames = await _channel.invokeListMethod<String>('frames', {'path': path, 'count': count, 'side': side, 'prefix': prefix});
+    return frames ?? const [];
+  } catch (e, s) {
+    getIt.get<Logger>().handle(e, s, 'chatVideoFrames: $path');
+    return const [];
+  }
+}
+
+int _capBitrate(int target, int source) => source > 0 && source < target ? source : target;
+
 /// Нужно ли сжимать: кадр больше [ChatVideoQuality.shortSide], битрейт выше
 /// [ChatVideoQuality.keepBitrate] или больше 30 к/с.
 bool _needsCompression(_VideoInfo info, ChatVideoQuality quality) {
@@ -135,13 +194,14 @@ bool _needsCompression(_VideoInfo info, ChatVideoQuality quality) {
       info.fps > ChatVideoCompression.maxFps + 0.5;
 }
 
-/// Готовит видео [source] к отправке в качестве [quality]; [onProgress] —
-/// доля 0..1 сжатия.
+/// Готовит видео [source] к отправке в качестве [quality] с правками [edit]
+/// из редактора; [onProgress] — доля 0..1 сжатия.
 /// `null` — не удалось прочитать видео (тогда отправляем исходник как есть);
 /// [ChatVideoCancelled] — пользователь отменил.
 Future<PreparedVideo?> prepareChatVideo(
   String source, {
   ChatVideoQuality quality = ChatVideoQuality.standard,
+  ChatVideoEdit? edit,
   ChatVideoJob? job,
   void Function(double)? onProgress,
 }) async {
@@ -150,12 +210,14 @@ Future<PreparedVideo?> prepareChatVideo(
   try {
     final dir = await chatMediaOutputDir();
     final thumbPath = p.join(dir.path, '${job.id}_thumb.jpg');
-    final original = await _info(source, thumb: thumbPath);
+    final original = await _info(source, thumb: thumbPath, thumbAtMs: edit?.thumbAtMs ?? 0);
     if (original == null) return null;
 
+    // Обрезка и «без звука» — только перекодированием, даже небольшого видео.
+    final edited = edit?.changesVideo ?? false;
     var path = source;
     var info = original;
-    if (_needsCompression(original, quality)) {
+    if (edited || _needsCompression(original, quality)) {
       final out = p.join(dir.path, '${job.id}.mp4');
       final short = original.width < original.height ? original.width : original.height;
       if (onProgress != null) _progress[job.id] = onProgress;
@@ -165,9 +227,12 @@ Future<PreparedVideo?> prepareChatVideo(
         'out': out,
         // Меньше нужного не растягиваем — только снижаем битрейт.
         'shortSide': short > quality.shortSide ? quality.shortSide : 0,
-        'bitrate': hevc ? quality.bitrate : quality.h264Bitrate,
+        // Небольшое видео пережимаем из-за правок или частоты кадров —
+        // битрейт не выше исходного, файл не должен вырасти.
+        'bitrate': _capBitrate(hevc ? quality.bitrate : quality.h264Bitrate, original.bitrate),
         'codec': hevc ? 'hevc' : 'h264',
         'maxFps': ChatVideoCompression.maxFps,
+        if (edit != null && edited) ...{'startMs': edit.startMs, 'endMs': edit.endMs, 'mute': edit.mute},
       });
       try {
         try {
@@ -185,8 +250,8 @@ Future<PreparedVideo?> prepareChatVideo(
         _progress.remove(job.id);
       }
       if (job.cancelled) throw const ChatVideoCancelled();
-      // Сжатое вышло больше исходника — отправляем исходник.
-      if (await File(out).length() < await File(source).length()) {
+      // Сжатое вышло больше исходника — отправляем исходник (если правок нет).
+      if (edited || await File(out).length() < await File(source).length()) {
         path = out;
         info = await _info(out) ?? original;
       } else {

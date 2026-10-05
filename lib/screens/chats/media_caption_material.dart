@@ -6,8 +6,8 @@ import 'chat_common.dart';
 import 'compose_format_menu.dart';
 
 /// Превью выбранных вложений с полем подписи (Android): лента миниатюр,
-/// подпись, «Отправить», «HD» (есть видео — 1080p вместо 720p), в «⋮» —
-/// «Скрыть под спойлер». `null` — отмена.
+/// подпись, «Отправить», «HD» (есть видео — 1080p вместо 720p) и
+/// переключатель «Скрыть под спойлер». `null` — отмена.
 Future<MediaCaptionResult?> showMediaCaptionMaterial(BuildContext context, List<AttachmentDraft> items, {String initialCaption = ''}) {
   return showModalBottomSheet<MediaCaptionResult>(
     context: context,
@@ -46,6 +46,19 @@ class _MediaCaptionSheetState extends State<_MediaCaptionSheet> {
     super.dispose();
   }
 
+  /// Миниатюра; видео — по нажатию в редактор (обрезка, звук, обложка).
+  Widget _thumb(AttachmentDraft item, Color accent) {
+    final thumb = AttachmentThumb(item: item, size: 96, spoiler: _spoiler);
+    if (!item.isVideo) return thumb;
+    return GestureDetector(
+      onTap: () async {
+        FocusScope.of(context).unfocus();
+        if (await editVideoDraft(context, item, accent: accent) && mounted) setState(() {});
+      },
+      child: thumb,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final t = context.t.screenChat;
@@ -75,16 +88,16 @@ class _MediaCaptionSheetState extends State<_MediaCaptionSheet> {
                       tooltip: _hd ? t.videoHdOn : t.videoHdOff,
                       onPressed: () => setState(() => _hd = !_hd),
                     ),
+                  // Переключатель, а не пункт меню «⋮»: тот в Material 3 —
+                  // крупная строка с чекбоксом ради одного действия.
                   if (_hasMedia)
-                    PopupMenuButton<void>(
-                      icon: const Icon(Icons.more_vert),
-                      itemBuilder: (_) => [
-                        CheckedPopupMenuItem(
-                          checked: _spoiler,
-                          onTap: () => setState(() => _spoiler = !_spoiler),
-                          child: Text(t.hideWithSpoiler),
-                        ),
-                      ],
+                    IconButton(
+                      isSelected: _spoiler,
+                      icon: const Icon(Icons.visibility_off_outlined),
+                      selectedIcon: const Icon(Icons.visibility_off),
+                      color: _spoiler ? scheme.primary : null,
+                      tooltip: t.hideWithSpoiler,
+                      onPressed: () => setState(() => _spoiler = !_spoiler),
                     ),
                 ],
               ),
@@ -96,7 +109,7 @@ class _MediaCaptionSheetState extends State<_MediaCaptionSheet> {
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 itemCount: widget.items.length,
                 separatorBuilder: (_, _) => const SizedBox(width: 8),
-                itemBuilder: (context, index) => AttachmentThumb(item: widget.items[index], size: 96, spoiler: _spoiler),
+                itemBuilder: (context, index) => _thumb(widget.items[index], scheme.primary),
               ),
             ),
             if (_hasVideo)

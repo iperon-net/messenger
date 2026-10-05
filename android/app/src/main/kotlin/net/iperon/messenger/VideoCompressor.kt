@@ -39,11 +39,16 @@ import kotlin.math.roundToInt
  * Сжатие видео для чата перед отправкой (сервер видит только шифротекст и
  * пережать сам не может — см. lib/chats/video_prepare.dart). Канал
  * `net.iperon.messenger/video`, тот же протокол, что у iOS (VideoCompressor.swift):
- *  - `info` {path, thumb?, thumbSide} → {width, height, durationMs, bitrate, fps}
- *    (размеры с учётом поворота) и кадр-превью JPEG в `thumb`;
- *  - `compress` {id, path, out, shortSide, bitrate, codec, maxFps} → путь к MP4
- *    (`codec`: `hevc` | `h264`, + AAC) через Media3 Transformer (аппаратный
- *    кодек, кадры чаще `maxFps` прореживаются); прогресс — вызовом `progress` {id, progress} обратно в Dart. Нет
+ *  - `info` {path, thumb?, thumbSide, thumbAtMs?} → {width, height, durationMs,
+ *    bitrate, fps} (размеры с учётом поворота) и кадр-превью JPEG (момент
+ *    `thumbAtMs`, по умолчанию начало) в `thumb`;
+ *  - `frames` {path, count, side, prefix} → пути JPEG `<prefix>_<i>.jpg` —
+ *    кадры равномерно по длине видео (лента редактора; не вышло — пустая строка);
+ *  - `compress` {id, path, out, shortSide, bitrate, codec, maxFps, startMs?,
+ *    endMs?, mute?} → путь к MP4 (`codec`: `hevc` | `h264`, + AAC) через Media3
+ *    Transformer (аппаратный кодек, кадры чаще `maxFps` прореживаются;
+ *    `startMs`..`endMs` — обрезка, `endMs` 0 — до конца; `mute` — без звука);
+ *    прогресс — вызовом `progress` {id, progress} обратно в Dart. Нет
  *    аппаратного кодировщика — ошибка `unsupported` (Dart откатится на H.264);
  *  - `cancel` {id}.
  */
@@ -72,14 +77,30 @@ class VideoCompressor(
                 val path = call.argument<String>("path") ?: return result.error("args", "path", null)
                 val thumb = call.argument<String>("thumb")
                 val thumbSide = call.argument<Int>("thumbSide") ?: 320
+                val thumbAtMs = call.argument<Number>("thumbAtMs")?.toLong() ?: 0L
                 io.execute {
                     val info = try {
-                        info(path, thumb, thumbSide)
+                        info(path, thumb, thumbSide, thumbAtMs)
                     } catch (e: Exception) {
                         Log.w(TAG, "info failed", e)
                         null
                     }
                     main.post { result.success(info) }
+                }
+            }
+            "frames" -> {
+                val path = call.argument<String>("path") ?: return result.error("args", "path", null)
+                val prefix = call.argument<String>("prefix") ?: return result.error("args", "prefix", null)
+                val count = call.argument<Int>("count") ?: 10
+                val side = call.argument<Int>("side") ?: 160
+                io.execute {
+                    val frames = try {
+                        frames(path, count, side, prefix)
+                    } catch (e: Exception) {
+                        Log.w(TAG, "frames failed", e)
+                        emptyList()
+                    }
+                    main.post { result.success(frames) }
                 }
             }
             "compress" -> compress(call, result)
@@ -95,7 +116,7 @@ class VideoCompressor(
     }
 
     /** Размеры (с поворотом), длительность, битрейт и кадр-превью. */
-    private fun info(path: String, thumb: String?, thumbSide: Int): Map<String, Any>? {
+    private fun info(path: String, thumb: String?, thumbSide: Int, thumbAtMs: Long): Map<String, Any>? {
         val retriever = MediaMetadataRetriever()
         try {
             retriever.setDataSource(path)
@@ -113,19 +134,45 @@ class VideoCompressor(
                 "fps" to frameRate(path),
             )
             if (thumb != null) {
-                // Кадр уже повёрнут по метаданным.
-                retriever.getFrameAtTime(0, MediaMetadataRetriever.OPTION_CLOSEST_SYNC)?.let { frame ->
-                    val scale = min(1f, thumbSide.toFloat() / max(frame.width, frame.height))
-                    val scaled = if (scale < 1f) {
-                        Bitmap.createScaledBitmap(frame, (frame.width * scale).roundToInt(), (frame.height * scale).roundToInt(), true)
-                    } else {
-                        frame
-                    }
-                    FileOutputStream(thumb).use { scaled.compress(Bitmap.CompressFormat.JPEG, 75, it) }
+                // Кадр уже повёрнут по метаданным. Обложка из редактора —
+                // ровно выбранный кадр, иначе — ближайший ключевой (быстрее).
+                val option = if (thumbAtMs > 0) MediaMetadataRetriever.OPTION_CLOSEST else MediaMetadataRetriever.OPTION_CLOSEST_SYNC
+                retriever.getFrameAtTime(thumbAtMs * 1000, option)?.let { frame ->
+                    FileOutputStream(thumb).use { scaled(frame, thumbSide).compress(Bitmap.CompressFormat.JPEG, 75, it) }
                     info["thumb"] = thumb
                 }
             }
             return info
+        } finally {
+            retriever.release()
+        }
+    }
+
+    private fun scaled(frame: Bitmap, side: Int): Bitmap {
+        val scale = min(1f, side.toFloat() / max(frame.width, frame.height))
+        if (scale >= 1f) return frame
+        return Bitmap.createScaledBitmap(frame, (frame.width * scale).roundToInt(), (frame.height * scale).roundToInt(), true)
+    }
+
+    /** Кадры для ленты редактора: [count] штук по центрам равных отрезков. */
+    private fun frames(path: String, count: Int, side: Int, prefix: String): List<String> {
+        val retriever = MediaMetadataRetriever()
+        try {
+            retriever.setDataSource(path)
+            val durationMs = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLongOrNull() ?: 0L
+            if (count <= 0 || durationMs <= 0) return emptyList()
+            return (0 until count).map { i ->
+                val us = durationMs * 1000 * (2 * i + 1) / (2 * count)
+                // Для ленты точность не нужна: ближайший ключевой кадр в разы быстрее.
+                val frame = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
+                    retriever.getScaledFrameAtTime(us, MediaMetadataRetriever.OPTION_CLOSEST_SYNC, side, side)
+                } else {
+                    retriever.getFrameAtTime(us, MediaMetadataRetriever.OPTION_CLOSEST_SYNC)
+                } ?: return@map ""
+                val file = "${prefix}_$i.jpg"
+                FileOutputStream(file).use { scaled(frame, side).compress(Bitmap.CompressFormat.JPEG, 70, it) }
+                file
+            }
         } finally {
             retriever.release()
         }
@@ -138,6 +185,9 @@ class VideoCompressor(
         val shortSide = call.argument<Int>("shortSide") ?: 0
         val bitrate = call.argument<Int>("bitrate") ?: 2_500_000
         val maxFps = call.argument<Int>("maxFps") ?: 0
+        val startMs = call.argument<Number>("startMs")?.toLong() ?: 0L
+        val endMs = call.argument<Number>("endMs")?.toLong() ?: 0L
+        val mute = call.argument<Boolean>("mute") ?: false
         val videoMime = if (call.argument<String>("codec") == "hevc") MimeTypes.VIDEO_H265 else MimeTypes.VIDEO_H264
         // Программный HEVC-кодировщик есть почти везде, но он медленный и
         // слабый — HEVC только при аппаратном, иначе Dart возьмёт H.264.
@@ -195,7 +245,12 @@ class VideoCompressor(
             if (shortSide > 0) add(Presentation.createForShortSide(shortSide))
         }
         val effects = Effects(listOf(), videoEffects)
-        val item = EditedMediaItem.Builder(MediaItem.fromUri(Uri.fromFile(File(path)))).setEffects(effects).build()
+        val clipping = MediaItem.ClippingConfiguration.Builder()
+            .setStartPositionMs(startMs)
+            .apply { if (endMs > 0) setEndPositionMs(endMs) }
+            .build()
+        val media = MediaItem.Builder().setUri(Uri.fromFile(File(path))).setClippingConfiguration(clipping).build()
+        val item = EditedMediaItem.Builder(media).setEffects(effects).setRemoveAudio(mute).build()
         jobs[id] = transformer
         try {
             transformer.start(item, out)

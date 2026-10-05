@@ -261,6 +261,12 @@ class _Translations$screenChat$ru extends Translations$screenChat$en {
 	@override String get removeSpoiler => 'Убрать спойлер';
 	@override String get videoHdOn => 'Видео в HD: 1080p';
 	@override String get videoHdOff => 'Стандартное качество: 720p';
+	@override String get videoSound => 'Звук';
+	@override String get videoMuted => 'Без звука';
+	@override String get videoCover => 'Обложка';
+	@override String get videoCoverSet => 'Обложка выбрана';
+	@override String get videoReset => 'Сбросить';
+	@override String get videoEditFailed => 'Не удалось открыть видео';
 	@override String get format => 'Формат';
 	@override String get formatBold => 'Жирный';
 	@override String get formatItalic => 'Курсив';
@@ -1034,6 +1040,12 @@ extension on TranslationsRu {
 			'screenChat.removeSpoiler' => 'Убрать спойлер',
 			'screenChat.videoHdOn' => 'Видео в HD: 1080p',
 			'screenChat.videoHdOff' => 'Стандартное качество: 720p',
+			'screenChat.videoSound' => 'Звук',
+			'screenChat.videoMuted' => 'Без звука',
+			'screenChat.videoCover' => 'Обложка',
+			'screenChat.videoCoverSet' => 'Обложка выбрана',
+			'screenChat.videoReset' => 'Сбросить',
+			'screenChat.videoEditFailed' => 'Не удалось открыть видео',
 			'screenChat.format' => 'Формат',
 			'screenChat.formatBold' => 'Жирный',
 			'screenChat.formatItalic' => 'Курсив',
@@ -1423,14 +1435,14 @@ extension on TranslationsRu {
 			'passkey.add' => 'Добавить ключ',
 			'passkey.genericName' => 'Ключ доступа',
 			'passkey.created' => ({required Object date}) => 'Добавлен ${date}',
+			_ => null,
+		} ?? switch (path) {
 			'passkey.lastUsed' => ({required Object date}) => 'Вход ${date}',
 			'passkey.alreadyOnThisDevice' => 'На этом устройстве уже есть ключ доступа для этого аккаунта. Добавьте ключ на другом устройстве или в другом менеджере паролей.',
 			'passkey.delete' => 'Удалить',
 			'passkey.deleteConfirmTitle' => 'Удалить ключ доступа?',
 			'passkey.deleteConfirmMessage' => 'Войти с помощью этого ключа больше не получится.',
 			'passkey.loadError' => 'Не удалось загрузить ключи',
-			_ => null,
-		} ?? switch (path) {
 			'passkey.retry' => 'Повторить',
 			'passkey.verificationFailed' => 'Не удалось проверить ключ. Попробуйте ещё раз.',
 			'passkey.ceremonyExpired' => 'Срок запроса истёк. Попробуйте ещё раз.',

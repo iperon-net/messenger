@@ -3,6 +3,11 @@ import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:video_player/video_player.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
+
+import '../../di.dart';
+import '../../logger.dart';
 
 import '../../chats/media_prepare.dart';
 import '../../extensions.dart';
@@ -18,8 +23,12 @@ class ChatMediaItem {
   final String localPath;
   final String thumbhash;
 
-  /// Кадр-превью видео (пока видео не проигрывается — показываем его).
+  /// Кадр-превью видео (пока видео не загрузилось в плеер — показываем его).
   final String thumbPath;
+
+  /// Размеры медиа (с поворотом); 0 — неизвестно.
+  final int width;
+  final int height;
 
   const ChatMediaItem({
     required this.message,
@@ -28,7 +37,14 @@ class ChatMediaItem {
     required this.localPath,
     this.thumbhash = '',
     this.thumbPath = '',
+    this.width = 0,
+    this.height = 0,
   });
+
+  bool get isVideo => kind == models.MessageKind.video;
+
+  /// Пропорции кадра; неизвестны — 16:9.
+  double get aspectRatio => width > 0 && height > 0 ? width / height : 16 / 9;
 
   /// Общий тег Hero миниатюры в пузыре и страницы просмотрщика.
   Object get heroTag => chatMediaHeroTag(message, index);
@@ -45,6 +61,8 @@ class ChatMediaItem {
               localPath: media.localPath,
               thumbhash: media.thumbhash,
               thumbPath: media.thumbPath,
+              width: media.width,
+              height: media.height,
             )
         else if (m.kind == models.MessageKind.photo || m.kind == models.MessageKind.video)
           ChatMediaItem(
@@ -54,6 +72,8 @@ class ChatMediaItem {
             localPath: m.localPath,
             thumbhash: m.media.firstOrNull?.thumbhash ?? '',
             thumbPath: m.media.firstOrNull?.thumbPath ?? '',
+            width: m.media.firstOrNull?.width ?? 0,
+            height: m.media.firstOrNull?.height ?? 0,
           ),
   ];
 }
@@ -103,7 +123,8 @@ class ChatMediaImage extends StatelessWidget {
 
 /// Полноэкранный просмотр всех фото/видео чата ([messages]), начиная с
 /// [index]-го медиа сообщения [message]: листание вбок, щипок и двойной тап —
-/// зум, свайп вниз/вверх — закрыть, тап — спрятать/показать панели.
+/// зум, свайп вниз/вверх — закрыть, тап — спрятать/показать панели. Видео
+/// играет сразу, как только его страница открыта; внизу — пауза и перемотка.
 /// Одинаков на iOS и Android (как в Telegram), поэтому без пары
 /// `*_cupertino`/`*_material`.
 Future<void> showChatMediaViewer(
@@ -153,11 +174,70 @@ class _MediaViewerState extends State<_MediaViewer> with SingleTickerProviderSta
 
   static const _dismissDistance = 120.0;
 
+  /// Плеер видео текущей страницы (один на просмотрщик: уходим со страницы —
+  /// освобождаем).
+  VideoPlayerController? _video;
+  bool _wakelock = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _openVideo();
+  }
+
   @override
   void dispose() {
+    _closeVideo();
     _pages.dispose();
     _dragBack.dispose();
     super.dispose();
+  }
+
+  void _openVideo() {
+    final item = widget.items[_current];
+    if (!item.isVideo || item.localPath.isEmpty || !File(item.localPath).existsSync()) return;
+    final video = VideoPlayerController.file(File(item.localPath))..addListener(_onVideoTick);
+    _video = video;
+    video
+        .initialize()
+        .then((_) {
+          if (!mounted || _video != video) return;
+          setState(() {});
+          video.play();
+        })
+        .catchError((Object e, StackTrace s) {
+          getIt.get<Logger>().handle(e, s, 'video player');
+        });
+  }
+
+  void _closeVideo() {
+    final video = _video;
+    _video = null;
+    if (video == null) return;
+    video.removeListener(_onVideoTick);
+    video.dispose();
+    _setWakelock(false);
+  }
+
+  /// Пока видео играет, экран не гаснет.
+  void _onVideoTick() => _setWakelock(_video?.value.isPlaying ?? false);
+
+  void _setWakelock(bool on) {
+    if (on == _wakelock) return;
+    _wakelock = on;
+    WakelockPlus.toggle(enable: on).catchError((_) {});
+  }
+
+  void _togglePlay() {
+    final video = _video;
+    if (video == null || !video.value.isInitialized) return;
+    if (video.value.isPlaying) {
+      video.pause();
+    } else {
+      // Досмотрели — заново с начала.
+      if (video.value.isCompleted) video.seekTo(Duration.zero);
+      video.play();
+    }
   }
 
   void _onDragEnd(DragEndDetails details) {
@@ -203,9 +283,13 @@ class _MediaViewerState extends State<_MediaViewer> with SingleTickerProviderSta
                     onPageChanged: (i) => setState(() {
                       _current = i;
                       _zoomed = false;
+                      _closeVideo();
+                      _openVideo();
                     }),
                     itemBuilder: (context, i) => _ZoomablePage(
                       item: widget.items[i],
+                      video: i == _current ? _video : null,
+                      onTogglePlay: _togglePlay,
                       onZoomChanged: (zoomed) {
                         if (zoomed != _zoomed) setState(() => _zoomed = zoomed);
                       },
@@ -273,7 +357,7 @@ class _MediaViewerState extends State<_MediaViewer> with SingleTickerProviderSta
                       ),
                     ),
                     const Spacer(),
-                    if (m.text.isNotEmpty)
+                    if (m.text.isNotEmpty || _video != null)
                       DecoratedBox(
                         decoration: const BoxDecoration(
                           gradient: LinearGradient(
@@ -286,9 +370,14 @@ class _MediaViewerState extends State<_MediaViewer> with SingleTickerProviderSta
                           top: false,
                           child: Padding(
                             padding: const EdgeInsets.fromLTRB(16, 24, 16, 12),
-                            child: SizedBox(
-                              width: double.infinity,
-                              child: Text(m.text, maxLines: 6, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 16)),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                if (m.text.isNotEmpty)
+                                  Text(m.text, maxLines: 6, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 16)),
+                                if (m.text.isNotEmpty && _video != null) const SizedBox(height: 8),
+                                if (_video case final video?) _VideoControls(video: video, onTogglePlay: _togglePlay),
+                              ],
                             ),
                           ),
                         ),
@@ -307,9 +396,13 @@ class _MediaViewerState extends State<_MediaViewer> with SingleTickerProviderSta
 /// Страница просмотрщика: щипок и двойной тап — зум, в зуме — панорама.
 class _ZoomablePage extends StatefulWidget {
   final ChatMediaItem item;
+
+  /// Плеер, если это видео и его страница текущая.
+  final VideoPlayerController? video;
+  final VoidCallback onTogglePlay;
   final ValueChanged<bool> onZoomChanged;
 
-  const _ZoomablePage({required this.item, required this.onZoomChanged});
+  const _ZoomablePage({required this.item, required this.onZoomChanged, required this.onTogglePlay, this.video});
 
   @override
   State<_ZoomablePage> createState() => _ZoomablePageState();
@@ -364,17 +457,11 @@ class _ZoomablePageState extends State<_ZoomablePage> with SingleTickerProviderS
   @override
   Widget build(BuildContext context) {
     final item = widget.item;
-    final video = item.kind == models.MessageKind.video;
+    final video = item.isVideo;
     final Widget media = item.localPath.isNotEmpty && !video
         ? ChatMediaImage(path: item.localPath, thumbhash: item.thumbhash, fit: BoxFit.contain)
         : video && item.thumbPath.isNotEmpty
-        ? Stack(
-            alignment: Alignment.center,
-            children: [
-              ChatMediaImage(path: item.thumbPath, thumbhash: item.thumbhash, fit: BoxFit.contain),
-              const ChatVideoPlayBadge(size: 64),
-            ],
-          )
+        ? _VideoView(item: item, video: widget.video, onTogglePlay: widget.onTogglePlay)
         : AspectRatio(
             aspectRatio: 4 / 3,
             child: chatMediaPlaceholder('${item.message.id}-${item.index}', video: video, iconSize: 64),
@@ -395,6 +482,176 @@ class _ZoomablePageState extends State<_ZoomablePage> with SingleTickerProviderS
       ),
     );
   }
+}
+
+/// Видео на странице просмотрщика: кадр-превью, поверх — плеер, как только
+/// загрузился; на паузе — ▶ по центру.
+class _VideoView extends StatelessWidget {
+  final ChatMediaItem item;
+  final VideoPlayerController? video;
+  final VoidCallback onTogglePlay;
+
+  const _VideoView({required this.item, required this.video, required this.onTogglePlay});
+
+  @override
+  Widget build(BuildContext context) {
+    final video = this.video;
+    return AspectRatio(
+      aspectRatio: item.aspectRatio,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          ChatMediaImage(path: item.thumbPath, thumbhash: item.thumbhash),
+          if (video == null)
+            const Center(child: ChatVideoPlayBadge(size: 64))
+          else
+            ValueListenableBuilder(
+              valueListenable: video,
+              builder: (context, value, _) => Stack(
+                fit: StackFit.expand,
+                children: [
+                  if (value.isInitialized) VideoPlayer(video),
+                  if (!value.isPlaying)
+                    Center(
+                      child: GestureDetector(onTap: onTogglePlay, child: const ChatVideoPlayBadge(size: 64)),
+                    ),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Панель видео внизу просмотрщика: пауза/играть, позиция, перемотка и
+/// длительность.
+class _VideoControls extends StatelessWidget {
+  final VideoPlayerController video;
+  final VoidCallback onTogglePlay;
+
+  const _VideoControls({required this.video, required this.onTogglePlay});
+
+  @override
+  Widget build(BuildContext context) {
+    const white = Color(0xFFFFFFFF);
+    const timeStyle = TextStyle(fontSize: 13, color: white, fontFeatures: [FontFeature.tabularFigures()]);
+    return ValueListenableBuilder(
+      valueListenable: video,
+      builder: (context, value, _) => Row(
+        children: [
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: onTogglePlay,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(0, 8, 12, 8),
+              child: FaIcon(value.isPlaying ? FontAwesomeIcons.pause : FontAwesomeIcons.play, size: 20, color: white),
+            ),
+          ),
+          Text(chatVideoTime(value.position), style: timeStyle),
+          Expanded(child: _VideoScrubber(video: video)),
+          Text(chatVideoTime(value.duration), style: timeStyle),
+        ],
+      ),
+    );
+  }
+}
+
+/// Полоса позиции видео: тап или протяжка — перемотка.
+class _VideoScrubber extends StatefulWidget {
+  final VideoPlayerController video;
+
+  const _VideoScrubber({required this.video});
+
+  @override
+  State<_VideoScrubber> createState() => _VideoScrubberState();
+}
+
+class _VideoScrubberState extends State<_VideoScrubber> {
+  /// Позиция под пальцем (0…1) во время протяжки — полоса идёт за пальцем, не
+  /// дожидаясь, пока плеер перемотает.
+  double? _drag;
+  bool _wasPlaying = false;
+
+  static const _padding = 12.0;
+
+  double _fraction(Offset local, double width) => ((local.dx - _padding) / (width - _padding * 2)).clamp(0.0, 1.0);
+
+  void _seek(double fraction) {
+    final duration = widget.video.value.duration;
+    widget.video.seekTo(duration * fraction);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final value = widget.video.value;
+    final total = value.duration.inMilliseconds;
+    final played = _drag ?? (total > 0 ? (value.position.inMilliseconds / total).clamp(0.0, 1.0) : 0.0);
+    final buffered = total > 0 && value.buffered.isNotEmpty ? (value.buffered.last.end.inMilliseconds / total).clamp(0.0, 1.0) : 0.0;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth;
+        return GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTapUp: (d) => _seek(_fraction(d.localPosition, width)),
+          onHorizontalDragStart: (d) {
+            _wasPlaying = widget.video.value.isPlaying;
+            widget.video.pause();
+            setState(() => _drag = _fraction(d.localPosition, width));
+          },
+          onHorizontalDragUpdate: (d) {
+            setState(() => _drag = _fraction(d.localPosition, width));
+            _seek(_drag!);
+          },
+          onHorizontalDragEnd: (_) {
+            _seek(_drag ?? played);
+            setState(() => _drag = null);
+            if (_wasPlaying) widget.video.play();
+          },
+          child: SizedBox(
+            height: 36,
+            child: CustomPaint(
+              painter: _ScrubberPainter(played: played, buffered: buffered, dragging: _drag != null, padding: _padding),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _ScrubberPainter extends CustomPainter {
+  final double played;
+  final double buffered;
+  final bool dragging;
+  final double padding;
+
+  const _ScrubberPainter({required this.played, required this.buffered, required this.dragging, required this.padding});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final y = size.height / 2;
+    final left = padding;
+    final width = size.width - padding * 2;
+    final track = Paint()
+      ..strokeWidth = 3
+      ..strokeCap = StrokeCap.round;
+    canvas.drawLine(Offset(left, y), Offset(left + width, y), track..color = const Color(0x40FFFFFF));
+    canvas.drawLine(Offset(left, y), Offset(left + width * buffered, y), track..color = const Color(0x66FFFFFF));
+    canvas.drawLine(Offset(left, y), Offset(left + width * played, y), track..color = const Color(0xFFFFFFFF));
+    canvas.drawCircle(Offset(left + width * played, y), dragging ? 8 : 6, Paint()..color = const Color(0xFFFFFFFF));
+  }
+
+  @override
+  bool shouldRepaint(_ScrubberPainter old) =>
+      old.played != played || old.buffered != buffered || old.dragging != dragging || old.padding != padding;
+}
+
+/// Время видео: «1:05», от часа — «1:02:05».
+String chatVideoTime(Duration d) {
+  final s = d.inSeconds;
+  final ss = (s % 60).toString().padLeft(2, '0');
+  return s >= 3600 ? '${s ~/ 3600}:${(s ~/ 60 % 60).toString().padLeft(2, '0')}:$ss' : '${s ~/ 60}:$ss';
 }
 
 /// Круглая кнопка ▶ поверх кадра-превью видео.

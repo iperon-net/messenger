@@ -6,13 +6,16 @@ import UIKit
 /// Сжатие видео для чата перед отправкой (сервер видит только шифротекст и
 /// пережать сам не может — см. lib/chats/video_prepare.dart). Канал
 /// `net.iperon.messenger/video`:
-/// - `info` {path, thumb?, thumbSide} → {width, height, durationMs, bitrate, fps}
-///   (размеры — как видео показывается, с учётом поворота) и кадр-превью JPEG
-///   в `thumb`;
-/// - `compress` {id, path, out, shortSide, bitrate, codec, maxFps} → путь к MP4
-///   (`codec`: `hevc` | `h264`, + AAC). AVAssetReader/AVAssetWriter, а не
-///   AVAssetExportSession: у пресетов экспорта нельзя задать битрейт. Кадры
-///   чаще `maxFps` прореживаются.
+/// - `info` {path, thumb?, thumbSide, thumbAtMs?} → {width, height, durationMs,
+///   bitrate, fps} (размеры — как видео показывается, с учётом поворота) и
+///   кадр-превью JPEG (момент `thumbAtMs`, по умолчанию первый кадр) в `thumb`;
+/// - `frames` {path, count, side, prefix} → пути JPEG `<prefix>_<i>.jpg` —
+///   кадры, равномерно по длине видео (лента редактора; не вышло — пустая строка);
+/// - `compress` {id, path, out, shortSide, bitrate, codec, maxFps, startMs?,
+///   endMs?, mute?} → путь к MP4 (`codec`: `hevc` | `h264`, + AAC).
+///   AVAssetReader/AVAssetWriter, а не AVAssetExportSession: у пресетов
+///   экспорта нельзя задать битрейт. Кадры чаще `maxFps` прореживаются;
+///   `startMs`..`endMs` — обрезка (`endMs` 0 — до конца), `mute` — без звука.
 ///   Прогресс — вызовом `progress` {id, progress} обратно в Dart. Кодек не
 ///   поддерживается — ошибка `unsupported` (Dart откатится на H.264);
 /// - `cancel` {id}.
@@ -40,9 +43,20 @@ final class VideoCompressor {
       }
       let thumb = args["thumb"] as? String
       let thumbSide = args["thumbSide"] as? Int ?? 320
+      let thumbAtMs = args["thumbAtMs"] as? Int ?? 0
       queue.async {
-        let info = Self.info(path: path, thumb: thumb, thumbSide: thumbSide)
+        let info = Self.info(path: path, thumb: thumb, thumbSide: thumbSide, thumbAtMs: thumbAtMs)
         DispatchQueue.main.async { result(info) }
+      }
+    case "frames":
+      guard let path = args["path"] as? String, let prefix = args["prefix"] as? String else {
+        return result(FlutterError(code: "args", message: "path/prefix", details: nil))
+      }
+      let count = args["count"] as? Int ?? 10
+      let side = args["side"] as? Int ?? 160
+      queue.async {
+        let frames = Self.frames(path: path, count: count, side: side, prefix: prefix)
+        DispatchQueue.main.async { result(frames) }
       }
     case "compress":
       guard let id = args["id"] as? String, let path = args["path"] as? String, let out = args["out"] as? String else {
@@ -54,7 +68,10 @@ final class VideoCompressor {
         shortSide: args["shortSide"] as? Int ?? 0,
         bitrate: args["bitrate"] as? Int ?? 2_500_000,
         hevc: (args["codec"] as? String) == "hevc",
-        maxFps: args["maxFps"] as? Int ?? 0
+        maxFps: args["maxFps"] as? Int ?? 0,
+        startMs: args["startMs"] as? Int ?? 0,
+        endMs: args["endMs"] as? Int ?? 0,
+        mute: args["mute"] as? Bool ?? false
       )
       jobs[id] = job
       job.onProgress = { [weak self] progress in
@@ -85,7 +102,7 @@ final class VideoCompressor {
   }
 
   /// Размеры (с поворотом), длительность, битрейт и кадр-превью.
-  private static func info(path: String, thumb: String?, thumbSide: Int) -> [String: Any]? {
+  private static func info(path: String, thumb: String?, thumbSide: Int, thumbAtMs: Int) -> [String: Any]? {
     let asset = AVURLAsset(url: URL(fileURLWithPath: path))
     guard let track = asset.tracks(withMediaType: .video).first else { return nil }
     let size = displaySize(track.naturalSize, track.preferredTransform)
@@ -100,13 +117,42 @@ final class VideoCompressor {
       let generator = AVAssetImageGenerator(asset: asset)
       generator.appliesPreferredTrackTransform = true
       generator.maximumSize = CGSize(width: thumbSide, height: thumbSide)
-      if let image = try? generator.copyCGImage(at: .zero, actualTime: nil),
+      if thumbAtMs > 0 {
+        // Обложка из редактора — ровно выбранный кадр, а не ближайший ключевой.
+        generator.requestedTimeToleranceBefore = .zero
+        generator.requestedTimeToleranceAfter = .zero
+      }
+      let at = CMTime(value: CMTimeValue(thumbAtMs), timescale: 1000)
+      if let image = try? generator.copyCGImage(at: at, actualTime: nil),
          let data = UIImage(cgImage: image).jpegData(compressionQuality: 0.75),
          (try? data.write(to: URL(fileURLWithPath: thumb))) != nil {
         info["thumb"] = thumb
       }
     }
     return info
+  }
+
+  /// Кадры для ленты редактора: `count` штук по центрам равных отрезков.
+  private static func frames(path: String, count: Int, side: Int, prefix: String) -> [String] {
+    let asset = AVURLAsset(url: URL(fileURLWithPath: path))
+    let duration = CMTimeGetSeconds(asset.duration)
+    guard count > 0, duration > 0 else { return [] }
+    let generator = AVAssetImageGenerator(asset: asset)
+    generator.appliesPreferredTrackTransform = true
+    generator.maximumSize = CGSize(width: side, height: side)
+    // Для ленты точность не нужна — допуск ускоряет (берётся ближний кадр).
+    let tolerance = CMTime(seconds: duration / Double(count) / 2, preferredTimescale: 600)
+    generator.requestedTimeToleranceBefore = tolerance
+    generator.requestedTimeToleranceAfter = tolerance
+    return (0..<count).map { i in
+      let time = CMTime(seconds: duration * (Double(i) + 0.5) / Double(count), preferredTimescale: 600)
+      let file = "\(prefix)_\(i).jpg"
+      guard let image = try? generator.copyCGImage(at: time, actualTime: nil),
+            let data = UIImage(cgImage: image).jpegData(compressionQuality: 0.7),
+            (try? data.write(to: URL(fileURLWithPath: file))) != nil
+      else { return "" }
+      return file
+    }
   }
 
   static func displaySize(_ natural: CGSize, _ transform: CGAffineTransform) -> CGSize {
@@ -124,6 +170,9 @@ final class VideoCompressor {
     let bitrate: Int
     let hevc: Bool
     let maxFps: Int
+    let startMs: Int
+    let endMs: Int
+    let mute: Bool
     var onProgress: ((Double) -> Void)?
 
     private let lock = NSLock()
@@ -131,13 +180,16 @@ final class VideoCompressor {
     private var reader: AVAssetReader?
     private var writer: AVAssetWriter?
 
-    init(source: URL, output: URL, shortSide: Int, bitrate: Int, hevc: Bool, maxFps: Int) {
+    init(source: URL, output: URL, shortSide: Int, bitrate: Int, hevc: Bool, maxFps: Int, startMs: Int, endMs: Int, mute: Bool) {
       self.source = source
       self.output = output
       self.shortSide = shortSide
       self.bitrate = bitrate
       self.hevc = hevc
       self.maxFps = maxFps
+      self.startMs = startMs
+      self.endMs = endMs
+      self.mute = mute
     }
 
     var isCancelled: Bool {
@@ -163,8 +215,14 @@ final class VideoCompressor {
     private func start(completion: @escaping (Error?) -> Void) throws {
       let asset = AVURLAsset(url: source)
       guard let videoTrack = asset.tracks(withMediaType: .video).first else { throw Failure.noVideo }
-      let audioTrack = asset.tracks(withMediaType: .audio).first
-      let duration = max(CMTimeGetSeconds(asset.duration), 0.001)
+      let audioTrack = mute ? nil : asset.tracks(withMediaType: .audio).first
+      // Обрезка: читаем только [start, end); запись начинается со start —
+      // в файле видео идёт с нуля.
+      let start = CMTime(value: CMTimeValue(startMs), timescale: 1000)
+      let end = endMs > 0 ? min(CMTime(value: CMTimeValue(endMs), timescale: 1000), asset.duration) : asset.duration
+      let range = CMTimeRange(start: start, end: end)
+      let duration = max(CMTimeGetSeconds(range.duration), 0.001)
+      let startSeconds = CMTimeGetSeconds(start)
 
       // Размер в исходной (до поворота) ориентации: короткая сторона →
       // shortSide, не увеличиваем; кодеку нужны чётные стороны.
@@ -177,6 +235,7 @@ final class VideoCompressor {
 
       try? FileManager.default.removeItem(at: output)
       let reader = try AVAssetReader(asset: asset)
+      if startMs > 0 || endMs > 0 { reader.timeRange = range }
       let writer = try AVAssetWriter(outputURL: output, fileType: .mp4)
       writer.shouldOptimizeForNetworkUse = true
       self.reader = reader
@@ -243,7 +302,7 @@ final class VideoCompressor {
 
       guard reader.startReading() else { throw reader.error ?? Failure.reader }
       guard writer.startWriting() else { throw writer.error ?? Failure.writer }
-      writer.startSession(atSourceTime: .zero)
+      writer.startSession(atSourceTime: start)
 
       let group = DispatchGroup()
       var lastReported = -1.0
@@ -275,7 +334,7 @@ final class VideoCompressor {
               let time = CMTimeGetSeconds(CMSampleBufferGetPresentationTimeStamp(sample))
               if time - lastFrameTime < minFrameInterval { continue }
               lastFrameTime = time
-              let progress = min(1, max(0, time / duration))
+              let progress = min(1, max(0, (time - startSeconds) / duration))
               if progress - lastReported >= 0.01 {
                 lastReported = progress
                 self.onProgress?(progress)

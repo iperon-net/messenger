@@ -43,6 +43,19 @@ class _MediaCaptionSheetState extends State<_MediaCaptionSheet> {
     super.dispose();
   }
 
+  /// Миниатюра; видео — по нажатию в редактор (обрезка, звук, обложка).
+  Widget _thumb(AttachmentDraft item, Color accent) {
+    final thumb = AttachmentThumb(item: item, size: 96, spoiler: _spoiler);
+    if (!item.isVideo) return thumb;
+    return GestureDetector(
+      onTap: () async {
+        FocusScope.of(context).unfocus();
+        if (await editVideoDraft(context, item, accent: accent) && mounted) setState(() {});
+      },
+      child: thumb,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final t = context.t.screenChat;
@@ -104,7 +117,7 @@ class _MediaCaptionSheetState extends State<_MediaCaptionSheet> {
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   itemCount: widget.items.length,
                   separatorBuilder: (_, _) => const SizedBox(width: 8),
-                  itemBuilder: (context, index) => AttachmentThumb(item: widget.items[index], size: 96, spoiler: _spoiler),
+                  itemBuilder: (context, index) => _thumb(widget.items[index], primary),
                 ),
               ),
               if (_hasVideo)
