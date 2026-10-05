@@ -10,6 +10,7 @@ import '../../chats/video_prepare.dart';
 import '../../di.dart';
 import '../../i18n/translations.g.dart';
 import '../../logger.dart';
+import 'gesture_exclusion.dart';
 import 'media_viewer.dart';
 
 /// Редактор видео перед отправкой (как в Telegram): обрезка по ленте кадров,
@@ -239,19 +240,22 @@ class _VideoEditorState extends State<_VideoEditor> {
                 ),
                 if (_ready && _duration > 0) ...[
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                    child: _Timeline(
-                      video: _video,
-                      frames: _frames,
-                      duration: _duration,
-                      start: _start,
-                      end: _end,
-                      cover: _cover,
-                      minLength: _minLength,
-                      onRange: (start, end) => setState(() {
-                        _start = start;
-                        _end = end;
-                      }),
+                    // Отступ побольше — ползунки не у самого края, где жест «назад».
+                    padding: const EdgeInsets.fromLTRB(28, 16, 28, 8),
+                    child: SystemGestureExclusion(
+                      child: _Timeline(
+                        video: _video,
+                        frames: _frames,
+                        duration: _duration,
+                        start: _start,
+                        end: _end,
+                        cover: _cover,
+                        minLength: _minLength,
+                        onRange: (start, end) => setState(() {
+                          _start = start;
+                          _end = end;
+                        }),
+                      ),
                     ),
                   ),
                   Padding(
