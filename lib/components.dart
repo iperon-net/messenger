@@ -7,6 +7,7 @@ export './components/no_connection_alert.dart';
 export './components/call_permissions.dart';
 export './components/copy_tooltip.dart';
 export './components/divider_text.dart';
+export './components/full_swipe_back.dart';
 export './components/toolbar_attachments/toolbar_attachments.dart';
 export './components/permission_banner/permission_banner.dart';
 export './components/app_cupertino_navigation_bar.dart';

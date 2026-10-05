@@ -330,6 +330,9 @@ long-press-меню (Cupertino action sheet / Material bottom sheet), двойн
   AVAssetReader/Writer, Android Media3 Transformer): 720p по короткой стороне, H.264 2,5 Мбит/с,
   AAC 128 кбит/с; небольшие видео — как есть; окно «Сжатие видео» с прогрессом и «Отменой»; кадр-
   превью + ThumbHash + длительность в пузыре.
+- [x] Свайп «назад» с любого места экрана на всех экранах, кроме звонка, iOS и Android (`_page`/`_pageMaterial` → `FullSwipeBackPage` в
+  `lib/components/full_swipe_back.dart`): вправо — назад, влево по пузырю — ответ
+  (`DirectionalDragGestureRecognizer`); кнопка микрофона забирает жест (Eager).
 - [ ] Не проверено на устройстве. Дальше в окне чата: проигрывание видео;
   настройки реакций (см. «Реакции»); затем кнопка «Новое», экран «Папки», шапка → профиль чата.
 

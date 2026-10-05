@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:math' as math;
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -292,16 +293,23 @@ class _VoiceRecordButtonState extends State<VoiceRecordButton> {
       overlayChildBuilder: (context) => ListenableBuilder(listenable: recorder, builder: (context, _) => _overlay(context)),
       child: CompositedTransformTarget(
         link: _link,
-        child: Listener(
-          key: _buttonKey,
-          behavior: HitTestBehavior.opaque,
-          onPointerDown: (_) => recorder.press(),
-          onPointerMove: (event) => recorder.move(event.delta),
-          onPointerUp: (_) => recorder.release(),
-          onPointerCancel: (_) => recorder.cancel(),
-          // Заполняет слот кнопки в поле ввода (размер задаёт он) — вся
-          // площадь слота нажимается.
-          child: Center(child: FaIcon(FontAwesomeIcons.microphone, size: 22, color: style.secondary)),
+        // Eager-распознаватель сразу выигрывает арену: пока палец на кнопке,
+        // движение не уходит в свайп «назад» страницы или скролл ленты.
+        child: RawGestureDetector(
+          gestures: {
+            EagerGestureRecognizer: GestureRecognizerFactoryWithHandlers<EagerGestureRecognizer>(EagerGestureRecognizer.new, (_) {}),
+          },
+          child: Listener(
+            key: _buttonKey,
+            behavior: HitTestBehavior.opaque,
+            onPointerDown: (_) => recorder.press(),
+            onPointerMove: (event) => recorder.move(event.delta),
+            onPointerUp: (_) => recorder.release(),
+            onPointerCancel: (_) => recorder.cancel(),
+            // Заполняет слот кнопки в поле ввода (размер задаёт он) — вся
+            // площадь слота нажимается.
+            child: Center(child: FaIcon(FontAwesomeIcons.microphone, size: 22, color: style.secondary)),
+          ),
         ),
       ),
     );

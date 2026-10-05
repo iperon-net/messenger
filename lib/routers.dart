@@ -26,17 +26,26 @@ class Routers {
   // findAncestorWidgetOfExactType<CupertinoApp>() (из package:flutter).
   // Приложение обёрнуто в CupertinoApp из cupertino_ui — это другой тип,
   // поэтому автоопределение проваливается в NoTransitionPage (без свайпа
-  // назад). Явно отдаём CupertinoPage из cupertino_ui, чтобы вернуть
-  // iOS-переход и жест «назад».
-  Page<void> _page(GoRouterState state, Widget child) =>
-      CupertinoPage<void>(key: state.pageKey, name: state.name ?? state.path, child: child);
+  // назад). Поэтому Page отдаём явно: FullSwipeBackPage — iOS-переход, и
+  // экран закрывается свайпом вправо с любого места (как в Telegram), а не
+  // только от края. [fullSwipe] = false — штатная CupertinoPage (жест только
+  // от края): для экранов, где случайный свайп вредит (звонок).
+  Page<void> _page(GoRouterState state, Widget child, {bool fullSwipe = true}) => fullSwipe
+      ? FullSwipeBackPage<void>(key: state.pageKey, name: state.name ?? state.path, child: child)
+      : CupertinoPage<void>(key: state.pageKey, name: state.name ?? state.path, child: child);
 
   // Тот же нюанс, что и с _page, но для Material: приложение обёрнуто в
-  // MaterialApp из material_ui (не из package:flutter/material), поэтому
-  // go_router-автоопределение Page проваливается в NoTransitionPage. Явно
-  // отдаём MaterialPage из material_ui, чтобы вернуть штатный Android-переход.
-  Page<void> _pageMaterial(GoRouterState state, Widget child) =>
-      MaterialPage<void>(key: state.pageKey, name: state.name ?? state.path, child: child);
+  // MaterialApp из material_ui (не из package:flutter/material). Переход и
+  // свайп — как на iOS (так выглядит и Telegram на Android), только короче.
+  // [fullSwipe] = false — штатная MaterialPage (системный Android-переход).
+  Page<void> _pageMaterial(GoRouterState state, Widget child, {bool fullSwipe = true}) => fullSwipe
+      ? FullSwipeBackPage<void>(
+          key: state.pageKey,
+          name: state.name ?? state.path,
+          transitionDuration: const Duration(milliseconds: 300),
+          child: child,
+        )
+      : MaterialPage<void>(key: state.pageKey, name: state.name ?? state.path, child: child);
 
   /// Тип чатов из пути `/settings/notifications/:scope` (имя [NotifyScope]);
   /// неизвестное — личные чаты.
@@ -516,8 +525,11 @@ class Routers {
     GoRoute(
       path: "/call",
       parentNavigatorKey: rootNavigatorKey,
-      pageBuilder: (context, state) =>
-          _page(state, BlocProvider<CallCubit>(create: (_) => CallCubit()..initialization(), child: const CallCupertino())),
+      pageBuilder: (context, state) => _page(
+        state,
+        BlocProvider<CallCubit>(create: (_) => CallCubit()..initialization(), child: const CallCupertino()),
+        fullSwipe: false,
+      ),
     ),
     GoRoute(
       path: "/profile/:userID",
@@ -1090,8 +1102,11 @@ class Routers {
     GoRoute(
       path: "/call",
       parentNavigatorKey: rootNavigatorKey,
-      pageBuilder: (context, state) =>
-          _pageMaterial(state, BlocProvider<CallCubit>(create: (_) => CallCubit()..initialization(), child: const CallMaterial())),
+      pageBuilder: (context, state) => _pageMaterial(
+        state,
+        BlocProvider<CallCubit>(create: (_) => CallCubit()..initialization(), child: const CallMaterial()),
+        fullSwipe: false,
+      ),
     ),
     GoRoute(
       path: "/profile/:userID",

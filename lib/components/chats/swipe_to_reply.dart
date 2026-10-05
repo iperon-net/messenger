@@ -4,10 +4,12 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
+import '../full_swipe_back.dart';
+
 /// Свайп сообщения влево — ответить (как в Telegram): пузырь уезжает за
 /// пальцем, справа проявляется значок ↩; за порогом — лёгкая вибрация, и
-/// при отпускании вызывается [onReply]. Вправо не тянется — край экрана
-/// остаётся за жестом «назад».
+/// при отпускании вызывается [onReply]. Вправо не тянется и жест не
+/// забирает — свайп вправо закрывает чат (см. [FullSwipeBackPage]).
 class SwipeToReply extends StatefulWidget {
   final Widget child;
 
@@ -71,11 +73,19 @@ class _SwipeToReplyState extends State<SwipeToReply> with SingleTickerProviderSt
     // Без [onReply] — те же виджеты, только без жеста (смена режима не
     // пересоздаёт пузырь).
     final enabled = widget.onReply != null;
-    return GestureDetector(
-      onHorizontalDragStart: enabled ? _start : null,
-      onHorizontalDragUpdate: enabled ? _update : null,
-      onHorizontalDragEnd: enabled ? _end : null,
-      onHorizontalDragCancel: enabled ? _end : null,
+    // Принимает только движение влево: вправо — жест «назад» страницы.
+    return RawGestureDetector(
+      gestures: {
+        if (enabled)
+          DirectionalDragGestureRecognizer: GestureRecognizerFactoryWithHandlers<DirectionalDragGestureRecognizer>(
+            () => DirectionalDragGestureRecognizer(direction: -1, debugOwner: this),
+            (recognizer) => recognizer
+              ..onStart = _start
+              ..onUpdate = _update
+              ..onEnd = _end
+              ..onCancel = _end,
+          ),
+      },
       child: AnimatedBuilder(
         animation: _offset,
         child: widget.child,
