@@ -39,13 +39,11 @@ jobs:
     name: Build and upload
     runs-on: macos-26
     timeout-minutes: 45
+    outputs:
+      build_number: ${{ steps.build.outputs.build_number }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7
-        with:
-          # Полная история нужна, чтобы собрать changelog из всех коммитов
-          # для поля «Сведения о тестировании» в TestFlight (см. шаг ниже).
-          fetch-depth: 0
 
       - name: Resolve version from tag
         run: |
@@ -60,61 +58,16 @@ jobs:
           echo "CURRENT_TAG=$CURRENT_TAG" >> "$GITHUB_ENV"
           echo "BUILD_NAME=$BUILD_NAME" >> "$GITHUB_ENV"
 
-      - name: Build changelog (What to Test)
-        run: |
-          set -euo pipefail
-          # Собираем список коммитов (от новых к старым) для поля whatToTest
-          # («Сведения о тестировании») в TestFlight. Берём диапазон между
-          # предыдущим тегом v* и текущим (тем, что запустил сборку), то есть
-          # «что вошло в этот релиз относительно прошлого». Предыдущий тег ищем
-          # через git describe от родителя текущего тега. Если предыдущего тега
-          # нет (это первый релиз), берём всю историю до текущего тега.
-          PREV_TAG=$(git describe --tags --abbrev=0 --match 'v*' "${CURRENT_TAG}^" 2>/dev/null || true)
-          RANGE=${PREV_TAG:+"${PREV_TAG}.."}${CURRENT_TAG}
-          echo "Changelog range: ${PREV_TAG:-<start>}..${CURRENT_TAG}"
-          # Группируем коммиты по типу Conventional Commits (feat/fix/прочее),
-          # у каждого коммита срезаем префикс «type(scope):» и раскладываем по
-          # секциям. Лимит Apple — 4000 символов, поэтому считаем длину по мере
-          # вывода и обрезаем по нему, не разрывая строки: коммиты (и целые
-          # секции), которые не помещаются, просто отбрасываем.
-          CHANGELOG=$(git log ${RANGE} --pretty='%s' --no-merges | awk '
-            function strip(s,   r) { r = s; sub(/^[a-z]+(\([^)]*\))?!?:[ \t]*/, "", r); return r }
-            function dump(title, arr, n,   i, line, header, first) {
-              if (n == 0) return
-              header = title ":\n"
-              first = "- " arr[1] "\n"
-              # печатаем заголовок, только если влезает он и хотя бы один пункт
-              if (total + length(header) + length(first) > 4000) return
-              printf "%s", header; total += length(header)
-              for (i = 1; i <= n; i++) {
-                line = "- " arr[i] "\n"
-                if (total + length(line) > 4000) break
-                printf "%s", line; total += length(line)
-              }
-              printf "\n"; total += 1
-            }
-            /^feat(\([^)]*\))?!?:/ { feat[++nf] = strip($0); next }
-            /^fix(\([^)]*\))?!?:/  { fix[++nx]  = strip($0); next }
-                                   { other[++no] = strip($0) }
-            END {
-              total = 0
-              dump("🚀 New features", feat, nf)
-              dump("🐛 Bug fixes", fix, nx)
-              dump("🔧 Other changes", other, no)
-            }
-          ')
-          {
-            echo "CHANGELOG<<CHANGELOG_EOF"
-            echo "$CHANGELOG"
-            echo "CHANGELOG_EOF"
-          } >> "$GITHUB_ENV"
-
+      # Кэши (Flutter SDK, pub, гемы, Swift-пакеты) греет warm_cache.yaml на
+      # main: кэш, сохранённый на теге v*, следующему тегу не виден, а с main —
+      # виден. Ключи здесь и там должны совпадать.
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: ${{ inputs.flutter_version }}
           channel: stable
           cache: true
+          pub-cache-key: "flutter-pub-:os:-:channel:-:version:-:arch:-:hash:-${{ hashFiles('pubspec.yaml') }}"
 
       - name: Setup Ruby (fastlane)
         uses: ruby/setup-ruby@v1
@@ -144,10 +97,9 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Regenerate code (dart_mappable + slang)
-        run: |
-          dart run build_runner build --delete-conflicting-outputs
-          dart run slang
+      # Сгенерированный код (dart_mappable, slang) лежит в репозитории, здесь
+      # его не пересобираем; что он не устарел, проверяет линтер на main/PR
+      # (_linter.yaml, check_generated).
 
       - name: Import distribution certificate
         uses: apple-actions/import-codesign-certs@v7
@@ -200,6 +152,7 @@ jobs:
           DEVELOPMENT_TEAM = ${APPLE_TEAM_ID}
           CODE_SIGN_IDENTITY = Apple Distribution
           PROVISIONING_PROFILE_SPECIFIER = ${PROFILE_NAME}
+          COMPILER_INDEX_STORE_ENABLE = NO
           EOF
 
           # Notification Service Extension has its own base xcconfig (it must not
@@ -211,6 +164,7 @@ jobs:
           DEVELOPMENT_TEAM = ${APPLE_TEAM_ID}
           CODE_SIGN_IDENTITY = Apple Distribution
           PROVISIONING_PROFILE_SPECIFIER = ${NSE_PROFILE_NAME}
+          COMPILER_INDEX_STORE_ENABLE = NO
           EOF
 
       - name: Generate ExportOptions.plist
@@ -266,7 +220,24 @@ jobs:
           fi
           touch .env.development
 
+      - name: Restore Swift packages
+        # Без кэша Xcode ~2 мин заново клонирует Swift-пакеты (firebase-ios-sdk
+        # и др.) в build/ios/SourcePackages. Только чтение: сохраняет warm_cache.
+        uses: actions/cache/restore@v5
+        with:
+          path: build/ios/SourcePackages
+          key: spm-${{ runner.os }}-${{ inputs.flutter_version }}-${{ hashFiles('pubspec.yaml') }}
+          restore-keys: |
+            spm-${{ runner.os }}-${{ inputs.flutter_version }}-
+            spm-${{ runner.os }}-
+
       - name: Build IPA
+        id: build
+        env:
+          # Индекс для навигации по коду нужен только Xcode-редактору, при
+          # архиве — лишняя работа. Для Runner/NSE то же задано в xcconfig
+          # выше; переменная окружения доходит и до остальных целей (пакетов).
+          COMPILER_INDEX_STORE_ENABLE: "NO"
         run: |
           set -euo pipefail
           # Version name (BUILD_NAME) comes from the triggering v* tag, resolved
@@ -274,6 +245,7 @@ jobs:
           # timestamp (YYMMDDHHMM), so every TestFlight build is unique and
           # monotonically increasing, independent of the CI run counter.
           BUILD_NUMBER="$(date -u +%y%m%d%H%M)"
+          echo "build_number=$BUILD_NUMBER" >> "$GITHUB_OUTPUT"
           flutter build ipa \
             --release \
             --build-name="$BUILD_NAME" \
@@ -293,7 +265,6 @@ jobs:
           ASC_KEY_ID: ${{ secrets.asc_key_id }}
           ASC_ISSUER_ID: ${{ secrets.asc_issuer_id }}
           ASC_KEY_P8_BASE64: ${{ secrets.asc_key_p8_base64 }}
-          CHANGELOG: ${{ env.CHANGELOG }}
         run: bundle exec fastlane beta
 
       - name: Upload dSYMs to Crashlytics
@@ -341,3 +312,87 @@ jobs:
 
           chmod +x "$UPLOAD_SYMBOLS" 2>/dev/null || true
           "$UPLOAD_SYMBOLS" -gsp "$GSP" -p ios -- "$DSYM_DIR"
+
+  # «Сведения о тестировании» (whatToTest) — отдельно, на дешёвом Ubuntu: ASC
+  # даёт их проставить, только когда билд появится в списке (минуты после
+  # заливки), а ждать этого на macOS дорого. На скорость появления билда у
+  # тестировщиков не влияет — Apple всё равно обрабатывает его дольше.
+  changelog:
+    name: Set TestFlight changelog
+    needs: testflight
+    runs-on: ubuntu-26.04
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          # Полная история — changelog из коммитов между тегами.
+          fetch-depth: 0
+
+      - name: Build changelog (What to Test)
+        env:
+          CURRENT_TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          # Собираем список коммитов (от новых к старым) для поля whatToTest
+          # («Сведения о тестировании») в TestFlight. Берём диапазон между
+          # предыдущим тегом v* и текущим (тем, что запустил сборку), то есть
+          # «что вошло в этот релиз относительно прошлого». Предыдущий тег ищем
+          # через git describe от родителя текущего тега. Если предыдущего тега
+          # нет (это первый релиз), берём всю историю до текущего тега.
+          PREV_TAG=$(git describe --tags --abbrev=0 --match 'v*' "${CURRENT_TAG}^" 2>/dev/null || true)
+          RANGE=${PREV_TAG:+"${PREV_TAG}.."}${CURRENT_TAG}
+          echo "Changelog range: ${PREV_TAG:-<start>}..${CURRENT_TAG}"
+          # Группируем коммиты по типу Conventional Commits (feat/fix/прочее),
+          # у каждого коммита срезаем префикс «type(scope):» и раскладываем по
+          # секциям. Лимит Apple — 4000 символов, поэтому считаем длину по мере
+          # вывода и обрезаем по нему, не разрывая строки: коммиты (и целые
+          # секции), которые не помещаются, просто отбрасываем.
+          CHANGELOG=$(git log ${RANGE} --pretty='%s' --no-merges | awk '
+            function strip(s,   r) { r = s; sub(/^[a-z]+(\([^)]*\))?!?:[ \t]*/, "", r); return r }
+            function dump(title, arr, n,   i, line, header, first) {
+              if (n == 0) return
+              header = title ":\n"
+              first = "- " arr[1] "\n"
+              # печатаем заголовок, только если влезает он и хотя бы один пункт
+              if (total + length(header) + length(first) > 4000) return
+              printf "%s", header; total += length(header)
+              for (i = 1; i <= n; i++) {
+                line = "- " arr[i] "\n"
+                if (total + length(line) > 4000) break
+                printf "%s", line; total += length(line)
+              }
+              printf "\n"; total += 1
+            }
+            /^feat(\([^)]*\))?!?:/ { feat[++nf] = strip($0); next }
+            /^fix(\([^)]*\))?!?:/  { fix[++nx]  = strip($0); next }
+                                   { other[++no] = strip($0) }
+            END {
+              total = 0
+              dump("🚀 New features", feat, nf)
+              dump("🐛 Bug fixes", fix, nx)
+              dump("🔧 Other changes", other, no)
+            }
+          ')
+          {
+            echo "CHANGELOG<<CHANGELOG_EOF"
+            echo "$CHANGELOG"
+            echo "CHANGELOG_EOF"
+          } >> "$GITHUB_ENV"
+
+      - name: Setup Ruby (fastlane)
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+          bundler-cache: true
+
+      - name: Set changelog
+        if: env.CHANGELOG != ''
+        working-directory: ios
+        env:
+          ASC_KEY_ID: ${{ secrets.asc_key_id }}
+          ASC_ISSUER_ID: ${{ secrets.asc_issuer_id }}
+          ASC_KEY_P8_BASE64: ${{ secrets.asc_key_p8_base64 }}
+          BUILD_NAME: ${{ github.ref_name }}
+          BUILD_NUMBER: ${{ needs.testflight.outputs.build_number }}
+        run: bundle exec fastlane changelog

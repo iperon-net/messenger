@@ -1,0 +1,81 @@
+name: Warm CI cache
+
+# Кэш GitHub Actions привязан к ref: сохранённый в сборке по тегу v* следующему
+# тегу не виден, а сохранённый на main — виден всем. Поэтому кэши для сборки
+# TestFlight (_deploy_testflight.yaml) — Flutter SDK, pub, гемы fastlane,
+# Swift-пакеты — греем здесь, на main. Ключи и версия Flutter должны совпадать
+# с _deploy_testflight.yaml / build_and_deploy.yaml.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - pubspec.yaml
+      - ios/Gemfile
+      - ios/Podfile
+      - .github/workflows/warm_cache.yaml
+      - .github/workflows/_deploy_testflight.yaml
+      - .github/workflows/build_and_deploy.yaml
+  schedule:
+    # Неиспользуемый 7 дней кэш GitHub удаляет — раз в неделю освежаем.
+    - cron: "0 3 * * 1"
+  workflow_dispatch:
+
+concurrency:
+  group: warm-cache
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  FLUTTER_VERSION: "3.47.2"
+  BUNDLE_GEMFILE: ${{ github.workspace }}/ios/Gemfile
+
+jobs:
+  warm:
+    name: Warm caches
+    runs-on: macos-26
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+          pub-cache-key: "flutter-pub-:os:-:channel:-:version:-:arch:-:hash:-${{ hashFiles('pubspec.yaml') }}"
+
+      - name: Setup Ruby (fastlane)
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+          bundler-cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Cache Swift packages
+        uses: actions/cache@v5
+        with:
+          path: build/ios/SourcePackages
+          key: spm-${{ runner.os }}-${{ env.FLUTTER_VERSION }}-${{ hashFiles('pubspec.yaml') }}
+          restore-keys: |
+            spm-${{ runner.os }}-${{ env.FLUTTER_VERSION }}-
+            spm-${{ runner.os }}-
+
+      - name: Resolve Swift packages
+        run: |
+          set -euo pipefail
+          # .env-файлы объявлены ассетами — без них flutter не соберёт конфиг.
+          touch .env .env.development
+          # Генерирует Xcode-конфиг и пакет плагинов (SPM) без компиляции, затем
+          # Xcode клонирует пакеты туда же, куда их кладёт flutter build ipa.
+          flutter build ios --config-only --release --no-codesign
+          xcodebuild -resolvePackageDependencies \
+            -workspace ios/Runner.xcworkspace \
+            -scheme Runner \
+            -clonedSourcePackagesDirPath build/ios/SourcePackages
