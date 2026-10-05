@@ -26,7 +26,8 @@ const allChatReactions = [
   '⚡',
 ];
 
-/// Быстрая реакция (двойной тап по сообщению). Позже — настройка пользователя.
+/// Быстрая реакция (двойной тап по сообщению) по умолчанию; своя — в
+/// «Настройки → Оформление → Быстрая реакция» (`settingsDevice.quickReaction`).
 const defaultQuickReaction = '❤️';
 
 /// Какие реакции можно поставить в [chat].
@@ -39,11 +40,12 @@ List<String> availableReactions(models.Chat chat) {
   };
 }
 
-/// Двойной тап: быстрая реакция, если она разрешена, иначе первая доступная.
-String? quickReaction(models.Chat chat) {
+/// Двойной тап: быстрая реакция [preferred], если она разрешена в чате, иначе
+/// первая доступная.
+String? quickReaction(models.Chat chat, {String preferred = defaultQuickReaction}) {
   final available = availableReactions(chat);
   if (available.isEmpty) return null;
-  return available.contains(defaultQuickReaction) ? defaultQuickReaction : available.first;
+  return available.contains(preferred) ? preferred : available.first;
 }
 
 /// Сколько разных реакций один человек может поставить на одно сообщение.

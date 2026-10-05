@@ -420,6 +420,14 @@ class Repositories {
       }),
     );
 
+    migrations.add(
+      SqliteMigration(15, (tx) async {
+        // «Быстрая реакция» (Настройки → Оформление): эмодзи двойного тапа по
+        // сообщению. Пока локально; позже — в профиль (синхронно между устройствами).
+        await tx.execute("ALTER TABLE settingsDevice ADD COLUMN quickReaction TEXT NOT NULL DEFAULT '❤️';");
+      }),
+    );
+
     if (settings.isDeleteDatabase) {
       logger.warning("Deleting the database, flag set IS_DELETE_DATABASE: 1");
 

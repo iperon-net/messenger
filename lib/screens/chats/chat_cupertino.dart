@@ -19,6 +19,7 @@ import 'chat_common.dart';
 import 'compose_format_menu.dart';
 import 'forward_picker.dart';
 import 'pinned_messages_cupertino.dart';
+import 'scheduled_messages_cupertino.dart';
 import 'voice_recorder.dart';
 
 /// Окно чата (iOS): шапка с аватаром и «печатает…», лента пузырей, поле ввода
@@ -153,19 +154,55 @@ class _ChatCupertinoState extends State<ChatCupertino> {
   }
 
   Future<void> _deleteSelected(BuildContext context) async {
+    final chat = _cubit.state.chat;
+    if (chat == null) return;
+    final forEveryone = await _askDelete(context, chat, _cubit.state.selectedIDs.length);
+    if (forEveryone != null) await _cubit.deleteSelected(forEveryone: forEveryone);
+  }
+
+  /// Подтверждение удаления [count] сообщений. Личный чат — как в Telegram,
+  /// лист «Удалить у меня и у …» / «Удалить только у меня»; группа — у всех;
+  /// «Избранное» — только у себя. Результат — «у всех?», `null` — отмена.
+  Future<bool?> _askDelete(BuildContext context, models.Chat chat, int count) {
     final t = context.t.screenChat;
-    final confirmed = await showCupertinoDialog<bool>(
+    final title = count == 1 ? t.deleteTitle : t.deleteSelectedTitle(n: count);
+    if (chat.type == models.ChatType.private && !chat.isSelf) {
+      return showCupertinoModalPopup<bool>(
+        context: context,
+        builder: (sheetContext) => CupertinoActionSheet(
+          title: Text(title),
+          actions: [
+            CupertinoActionSheetAction(
+              isDestructiveAction: true,
+              onPressed: () => Navigator.of(sheetContext).pop(true),
+              child: Text(t.deleteForBoth(name: chat.title)),
+            ),
+            CupertinoActionSheetAction(
+              isDestructiveAction: true,
+              onPressed: () => Navigator.of(sheetContext).pop(false),
+              child: Text(t.deleteForMe),
+            ),
+          ],
+          cancelButton: CupertinoActionSheetAction(onPressed: () => Navigator.of(sheetContext).pop(), child: Text(context.t.common.cancel)),
+        ),
+      );
+    }
+    final self = chat.isSelf;
+    return showCupertinoDialog<bool>(
       context: context,
       builder: (dialogContext) => CupertinoAlertDialog(
-        title: Text(t.deleteSelectedTitle(n: _cubit.state.selectedIDs.length)),
-        content: Text(t.deleteSelectedMessage),
+        title: Text(title),
+        content: Text(
+          self
+              ? (count == 1 ? t.deleteMessageSelf : t.deleteSelectedMessageSelf)
+              : (count == 1 ? t.deleteMessage : t.deleteSelectedMessage),
+        ),
         actions: [
-          CupertinoDialogAction(onPressed: () => Navigator.of(dialogContext).pop(false), child: Text(context.t.common.cancel)),
-          CupertinoDialogAction(isDestructiveAction: true, onPressed: () => Navigator.of(dialogContext).pop(true), child: Text(t.delete)),
+          CupertinoDialogAction(onPressed: () => Navigator.of(dialogContext).pop(), child: Text(context.t.common.cancel)),
+          CupertinoDialogAction(isDestructiveAction: true, onPressed: () => Navigator.of(dialogContext).pop(!self), child: Text(t.delete)),
         ],
       ),
     );
-    if (confirmed ?? false) await _cubit.deleteSelected();
   }
 
   /// Плашка закреплённого над лентой (если есть закреплённые).
@@ -241,12 +278,43 @@ class _ChatCupertinoState extends State<ChatCupertino> {
 
   GlobalKey _keyFor(String messageID) => _messageKeys.putIfAbsent(messageID, GlobalKey.new);
 
-  void _send() {
+  void _send({bool silent = false, DateTime? scheduleDate}) {
     final text = _input.text;
     // Пересылка уходит и без текста.
     if (text.trim().isEmpty && _cubit.state.forwarding.isEmpty) return;
     _input.clear();
-    _cubit.send(text);
+    _cubit.send(text, silent: silent, scheduleDate: scheduleDate);
+  }
+
+  /// «Отправить позже»: время → текст уходит в отложенные.
+  Future<void> _sendLater(BuildContext context) async {
+    final date = await showScheduleDateCupertino(context);
+    if (date != null && mounted) _send(scheduleDate: date);
+  }
+
+  /// Удержание «Отправить» (как в Telegram): без звука / позже. Позже — только
+  /// текст, без пересылаемых.
+  Future<void> _sendOptions(BuildContext context) async {
+    final t = context.t.screenChat;
+    final canSchedule = _input.text.trim().isNotEmpty && _cubit.state.forwarding.isEmpty;
+    HapticFeedback.mediumImpact();
+    final action = await showCupertinoModalPopup<String>(
+      context: context,
+      builder: (sheetContext) => CupertinoActionSheet(
+        actions: [
+          CupertinoActionSheetAction(onPressed: () => Navigator.of(sheetContext).pop('silent'), child: Text(t.sendSilent)),
+          if (canSchedule) CupertinoActionSheetAction(onPressed: () => Navigator.of(sheetContext).pop('later'), child: Text(t.sendLater)),
+        ],
+        cancelButton: CupertinoActionSheetAction(onPressed: () => Navigator.of(sheetContext).pop(), child: Text(context.t.common.cancel)),
+      ),
+    );
+    if (!context.mounted) return;
+    switch (action) {
+      case 'silent':
+        _send(silent: true);
+      case 'later':
+        await _sendLater(context);
+    }
   }
 
   @override
@@ -403,7 +471,10 @@ class _ChatCupertinoState extends State<ChatCupertino> {
                                             keyFor: _keyFor,
                                             onCancelUpload: _cubit.cancelUpload,
                                             onReaction: _cubit.toggleReaction,
-                                            onDoubleTap: _cubit.quickReact,
+                                            onDoubleTap: (message) => _cubit.quickReact(
+                                              message,
+                                              preferred: context.read<CommonCubit>().state.settingsDevice.quickReaction,
+                                            ),
                                             onReplyTap: _tracker.jumpToReply,
                                             onPinnedServiceTap: _tracker.jumpTo,
                                             unreadFromID: state.unreadFromID,
@@ -458,6 +529,8 @@ class _ChatCupertinoState extends State<ChatCupertino> {
                                   focus: _focus,
                                   state: state,
                                   onSend: _send,
+                                  onSendOptions: () => _sendOptions(context),
+                                  onScheduled: () => showScheduledMessagesCupertino(context, _cubit),
                                 ),
                             ],
                           ),
@@ -523,25 +596,14 @@ class _ChatCupertinoState extends State<ChatCupertino> {
       if (message.outgoing && message.kind == models.MessageKind.text)
         action(t.edit, CupertinoIcons.pencil, () => _cubit.startEdit(message)),
       if (message.outgoing || chat.type == models.ChatType.private)
-        action(t.delete, CupertinoIcons.delete, () => _confirmDelete(context, message), destructive: true),
+        action(t.delete, CupertinoIcons.delete, () => _confirmDelete(context, chat, message), destructive: true),
       action(t.select, CupertinoIcons.checkmark_circle, () => _cubit.startSelection(message)),
     ];
   }
 
-  Future<void> _confirmDelete(BuildContext context, models.Message message) async {
-    final t = context.t.screenChat;
-    final confirmed = await showCupertinoDialog<bool>(
-      context: context,
-      builder: (dialogContext) => CupertinoAlertDialog(
-        title: Text(t.deleteTitle),
-        content: Text(t.deleteMessage),
-        actions: [
-          CupertinoDialogAction(onPressed: () => Navigator.of(dialogContext).pop(false), child: Text(context.t.common.cancel)),
-          CupertinoDialogAction(isDestructiveAction: true, onPressed: () => Navigator.of(dialogContext).pop(true), child: Text(t.delete)),
-        ],
-      ),
-    );
-    if (confirmed ?? false) await _cubit.delete(message);
+  Future<void> _confirmDelete(BuildContext context, models.Chat chat, models.Message message) async {
+    final forEveryone = await _askDelete(context, chat, 1);
+    if (forEveryone != null) await _cubit.delete(message, forEveryone: forEveryone);
   }
 }
 
@@ -656,6 +718,12 @@ class _ComposeBar extends StatelessWidget {
   final ChatState state;
   final VoidCallback onSend;
 
+  /// Удержание «Отправить» — без звука / позже.
+  final VoidCallback onSendOptions;
+
+  /// Значок календаря (есть отложенные) — экран «Отложенные сообщения».
+  final VoidCallback onScheduled;
+
   const _ComposeBar({
     required this.input,
     required this.formatMenu,
@@ -663,6 +731,8 @@ class _ComposeBar extends StatelessWidget {
     required this.focus,
     required this.state,
     required this.onSend,
+    required this.onSendOptions,
+    required this.onScheduled,
   });
 
   @override
@@ -691,6 +761,50 @@ class _ComposeBar extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            // Ссылка в тексте — превью уйдёт с сообщением; × — без превью.
+            if (!editing && !state.linkPreviewDisabled)
+              ValueListenableBuilder<TextEditingValue>(
+                valueListenable: input,
+                builder: (context, value, _) {
+                  final url = composeLinkUrl(value.text);
+                  if (url == null) return const SizedBox.shrink();
+                  return Padding(
+                    padding: const EdgeInsets.fromLTRB(12, 8, 4, 0),
+                    child: Row(
+                      children: [
+                        FaIcon(FontAwesomeIcons.link, size: 16, color: primary),
+                        const SizedBox(width: 10),
+                        Container(width: 2, height: 32, color: primary),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                t.screenChat.linkPreview,
+                                maxLines: 1,
+                                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: primary),
+                              ),
+                              Text(
+                                url,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(fontSize: 14, color: secondary),
+                              ),
+                            ],
+                          ),
+                        ),
+                        CupertinoButton(
+                          padding: const EdgeInsets.all(8),
+                          minimumSize: Size.zero,
+                          onPressed: context.read<ChatCubit>().disableLinkPreview,
+                          child: Icon(CupertinoIcons.xmark_circle_fill, color: secondary, size: 22),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
             if (banner != null)
               Padding(
                 padding: const EdgeInsets.fromLTRB(12, 8, 4, 0),
@@ -774,6 +888,13 @@ class _ComposeBar extends StatelessWidget {
                               ),
                             ),
                     ),
+                    if (!recorder.active && !editing && state.scheduled.isNotEmpty)
+                      CupertinoButton(
+                        padding: const EdgeInsets.fromLTRB(8, 6, 4, 6),
+                        minimumSize: Size.zero,
+                        onPressed: onScheduled,
+                        child: FaIcon(FontAwesomeIcons.calendarDays, size: 21, color: primary),
+                      ),
                     // Ключ: кнопка не пересоздаётся, когда скрепка исчезает
                     // (иначе палец, держащий микрофон, «потеряется»).
                     KeyedSubtree(
@@ -788,15 +909,18 @@ class _ComposeBar extends StatelessWidget {
                             size: const Size(44, 34),
                             child: !canSend && !editing
                                 ? VoiceRecordButton(key: const ValueKey('mic'), recorder: recorder, style: voiceStyle)
-                                : CupertinoButton(
+                                : GestureDetector(
                                     key: ValueKey(editing ? 'edit' : 'send'),
-                                    padding: EdgeInsets.zero,
-                                    minimumSize: Size.zero,
-                                    onPressed: canSend ? onSend : null,
-                                    child: Icon(
-                                      editing ? CupertinoIcons.checkmark_circle_fill : CupertinoIcons.arrow_up_circle_fill,
-                                      size: 32,
-                                      color: canSend ? primary : CupertinoColors.systemGrey3.resolveFrom(context),
+                                    onLongPress: canSend && !editing ? onSendOptions : null,
+                                    child: CupertinoButton(
+                                      padding: EdgeInsets.zero,
+                                      minimumSize: Size.zero,
+                                      onPressed: canSend ? onSend : null,
+                                      child: Icon(
+                                        editing ? CupertinoIcons.checkmark_circle_fill : CupertinoIcons.arrow_up_circle_fill,
+                                        size: 32,
+                                        color: canSend ? primary : CupertinoColors.systemGrey3.resolveFrom(context),
+                                      ),
                                     ),
                                   ),
                           );

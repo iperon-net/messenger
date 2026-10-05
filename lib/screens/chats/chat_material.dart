@@ -17,6 +17,7 @@ import 'chat_common.dart';
 import 'compose_format_menu.dart';
 import 'forward_picker.dart';
 import 'pinned_messages_material.dart';
+import 'scheduled_messages_material.dart';
 import 'voice_recorder.dart';
 
 /// Окно чата (Android): шапка с аватаром и «печатает…», лента пузырей, поле
@@ -170,19 +171,48 @@ class _ChatMaterialState extends State<ChatMaterial> {
   }
 
   Future<void> _deleteSelected(BuildContext context) async {
+    final chat = _cubit.state.chat;
+    if (chat == null) return;
+    final forEveryone = await _askDelete(context, chat, _cubit.state.selectedIDs.length);
+    if (forEveryone != null) await _cubit.deleteSelected(forEveryone: forEveryone);
+  }
+
+  /// Подтверждение удаления [count] сообщений. Личный чат — как в Telegram,
+  /// галочка «Также удалить для …» (по умолчанию снята); группа — у всех;
+  /// «Избранное» — только у себя. Результат — «у всех?», `null` — отмена.
+  Future<bool?> _askDelete(BuildContext context, models.Chat chat, int count) {
     final t = context.t.screenChat;
-    final confirmed = await showDialog<bool>(
+    final private = chat.type == models.ChatType.private && !chat.isSelf;
+    var forBoth = false;
+    return showDialog<bool>(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(t.deleteSelectedTitle(n: _cubit.state.selectedIDs.length)),
-        content: Text(t.deleteSelectedMessage),
-        actions: [
-          TextButton(onPressed: () => Navigator.of(dialogContext).pop(false), child: Text(context.t.common.cancel)),
-          TextButton(onPressed: () => Navigator.of(dialogContext).pop(true), child: Text(t.delete)),
-        ],
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (dialogContext, setDialogState) => AlertDialog(
+          title: Text(count == 1 ? t.deleteTitle : t.deleteSelectedTitle(n: count)),
+          content: private
+              ? CheckboxListTile(
+                  contentPadding: EdgeInsets.zero,
+                  controlAffinity: ListTileControlAffinity.leading,
+                  value: forBoth,
+                  onChanged: (value) => setDialogState(() => forBoth = value ?? false),
+                  title: Text(t.deleteAlsoFor(name: chat.title)),
+                )
+              : Text(
+                  chat.isSelf
+                      ? (count == 1 ? t.deleteMessageSelf : t.deleteSelectedMessageSelf)
+                      : (count == 1 ? t.deleteMessage : t.deleteSelectedMessage),
+                ),
+          actions: [
+            TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: Text(context.t.common.cancel)),
+            TextButton(
+              style: TextButton.styleFrom(foregroundColor: Theme.of(dialogContext).colorScheme.error),
+              onPressed: () => Navigator.of(dialogContext).pop(private ? forBoth : !chat.isSelf),
+              child: Text(t.delete),
+            ),
+          ],
+        ),
       ),
     );
-    if (confirmed ?? false) await _cubit.deleteSelected();
   }
 
   /// Плашка закреплённого над лентой (если есть закреплённые).
@@ -256,12 +286,55 @@ class _ChatMaterialState extends State<ChatMaterial> {
 
   GlobalKey _keyFor(String messageID) => _messageKeys.putIfAbsent(messageID, GlobalKey.new);
 
-  void _send() {
+  void _send({bool silent = false, DateTime? scheduleDate}) {
     final text = _input.text;
     // Пересылка уходит и без текста.
     if (text.trim().isEmpty && _cubit.state.forwarding.isEmpty) return;
     _input.clear();
-    _cubit.send(text);
+    _cubit.send(text, silent: silent, scheduleDate: scheduleDate);
+  }
+
+  /// «Отправить позже»: время → текст уходит в отложенные.
+  Future<void> _sendLater(BuildContext context) async {
+    final date = await showScheduleDateMaterial(context);
+    if (date != null && mounted) _send(scheduleDate: date);
+  }
+
+  /// Удержание «Отправить» (как в Telegram): без звука / позже. Позже — только
+  /// текст, без пересылаемых.
+  Future<void> _sendOptions(BuildContext context) async {
+    final t = context.t.screenChat;
+    final canSchedule = _input.text.trim().isNotEmpty && _cubit.state.forwarding.isEmpty;
+    HapticFeedback.mediumImpact();
+    final action = await showModalBottomSheet<String>(
+      context: context,
+      showDragHandle: true,
+      builder: (sheetContext) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.notifications_off_outlined),
+              title: Text(t.sendSilent),
+              onTap: () => Navigator.of(sheetContext).pop('silent'),
+            ),
+            if (canSchedule)
+              ListTile(
+                leading: const Icon(Icons.schedule_send_outlined),
+                title: Text(t.sendLater),
+                onTap: () => Navigator.of(sheetContext).pop('later'),
+              ),
+          ],
+        ),
+      ),
+    );
+    if (!context.mounted) return;
+    switch (action) {
+      case 'silent':
+        _send(silent: true);
+      case 'later':
+        await _sendLater(context);
+    }
   }
 
   @override
@@ -374,7 +447,10 @@ class _ChatMaterialState extends State<ChatMaterial> {
                                       keyFor: _keyFor,
                                       onCancelUpload: _cubit.cancelUpload,
                                       onReaction: _cubit.toggleReaction,
-                                      onDoubleTap: _cubit.quickReact,
+                                      onDoubleTap: (message) => _cubit.quickReact(
+                                        message,
+                                        preferred: context.read<CommonCubit>().state.settingsDevice.quickReaction,
+                                      ),
                                       onReplyTap: _tracker.jumpToReply,
                                       onPinnedServiceTap: _tracker.jumpTo,
                                       unreadFromID: state.unreadFromID,
@@ -425,6 +501,8 @@ class _ChatMaterialState extends State<ChatMaterial> {
                             focus: _focus,
                             state: state,
                             onSend: _send,
+                            onSendOptions: () => _sendOptions(context),
+                            onScheduled: () => showScheduledMessagesMaterial(context, _cubit),
                             color: barColor,
                           ),
                       ],
@@ -509,18 +587,8 @@ class _ChatMaterialState extends State<ChatMaterial> {
       case 'select':
         _cubit.startSelection(message);
       case 'delete':
-        final confirmed = await showDialog<bool>(
-          context: context,
-          builder: (dialogContext) => AlertDialog(
-            title: Text(t.deleteTitle),
-            content: Text(t.deleteMessage),
-            actions: [
-              TextButton(onPressed: () => Navigator.of(dialogContext).pop(false), child: Text(context.t.common.cancel)),
-              TextButton(onPressed: () => Navigator.of(dialogContext).pop(true), child: Text(t.delete)),
-            ],
-          ),
-        );
-        if (confirmed ?? false) await _cubit.delete(message);
+        final forEveryone = await _askDelete(context, chat, 1);
+        if (forEveryone != null) await _cubit.delete(message, forEveryone: forEveryone);
     }
   }
 }
@@ -567,6 +635,12 @@ class _ComposeBar extends StatelessWidget {
   final FocusNode focus;
   final ChatState state;
   final VoidCallback onSend;
+
+  /// Удержание «Отправить» — без звука / позже.
+  final VoidCallback onSendOptions;
+
+  /// Значок календаря (есть отложенные) — экран «Отложенные сообщения».
+  final VoidCallback onScheduled;
   final Color color;
 
   const _ComposeBar({
@@ -576,6 +650,8 @@ class _ComposeBar extends StatelessWidget {
     required this.focus,
     required this.state,
     required this.onSend,
+    required this.onSendOptions,
+    required this.onScheduled,
     required this.color,
   });
 
@@ -601,6 +677,43 @@ class _ComposeBar extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            // Ссылка в тексте — превью уйдёт с сообщением; × — без превью.
+            if (!editing && !state.linkPreviewDisabled)
+              ValueListenableBuilder<TextEditingValue>(
+                valueListenable: input,
+                builder: (context, value, _) {
+                  final url = composeLinkUrl(value.text);
+                  if (url == null) return const SizedBox.shrink();
+                  return Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 6, 4, 0),
+                    child: Row(
+                      children: [
+                        Icon(Icons.link, color: scheme.primary, size: 22),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                t.screenChat.linkPreview,
+                                maxLines: 1,
+                                style: TextStyle(fontWeight: FontWeight.w600, color: scheme.primary),
+                              ),
+                              Text(
+                                url,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(color: scheme.onSurfaceVariant),
+                              ),
+                            ],
+                          ),
+                        ),
+                        IconButton(icon: const Icon(Icons.close), onPressed: context.read<ChatCubit>().disableLinkPreview),
+                      ],
+                    ),
+                  );
+                },
+              ),
             if (banner != null)
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 6, 4, 0),
@@ -683,6 +796,13 @@ class _ComposeBar extends StatelessWidget {
                               ),
                             ),
                     ),
+                    if (!recorder.active && !editing && state.scheduled.isNotEmpty)
+                      IconButton(
+                        icon: const Icon(Icons.event_note_outlined),
+                        color: scheme.primary,
+                        tooltip: t.screenChat.scheduledHint,
+                        onPressed: onScheduled,
+                      ),
                     // Ключ: кнопка не пересоздаётся, когда скрепка исчезает
                     // (иначе палец, держащий микрофон, «потеряется»).
                     KeyedSubtree(
@@ -698,11 +818,14 @@ class _ComposeBar extends StatelessWidget {
                             size: const Size(48, 48),
                             child: !canSend && !editing
                                 ? VoiceRecordButton(key: const ValueKey('mic'), recorder: recorder, style: voiceStyle)
-                                : IconButton(
+                                : GestureDetector(
                                     key: ValueKey(editing ? 'edit' : 'send'),
-                                    icon: Icon(editing ? Icons.check : Icons.send),
-                                    color: scheme.primary,
-                                    onPressed: canSend ? onSend : null,
+                                    onLongPress: canSend && !editing ? onSendOptions : null,
+                                    child: IconButton(
+                                      icon: Icon(editing ? Icons.check : Icons.send),
+                                      color: scheme.primary,
+                                      onPressed: canSend ? onSend : null,
+                                    ),
                                   ),
                           );
                         },

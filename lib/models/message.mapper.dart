@@ -693,6 +693,174 @@ class _MessageReactionCopyWithImpl<$R, $Out>
   ) => _MessageReactionCopyWithImpl<$R2, $Out2>($value, $cast, t);
 }
 
+class MessageLinkPreviewMapper extends ClassMapperBase<MessageLinkPreview> {
+  MessageLinkPreviewMapper._();
+
+  static MessageLinkPreviewMapper? _instance;
+  static MessageLinkPreviewMapper ensureInitialized() {
+    if (_instance == null) {
+      MapperContainer.globals.use(_instance = MessageLinkPreviewMapper._());
+    }
+    return _instance!;
+  }
+
+  @override
+  final String id = 'MessageLinkPreview';
+
+  static String _$url(MessageLinkPreview v) => v.url;
+  static const Field<MessageLinkPreview, String> _f$url = Field('url', _$url);
+  static String _$siteName(MessageLinkPreview v) => v.siteName;
+  static const Field<MessageLinkPreview, String> _f$siteName = Field(
+    'siteName',
+    _$siteName,
+    opt: true,
+    def: '',
+  );
+  static String _$title(MessageLinkPreview v) => v.title;
+  static const Field<MessageLinkPreview, String> _f$title = Field(
+    'title',
+    _$title,
+    opt: true,
+    def: '',
+  );
+  static String _$description(MessageLinkPreview v) => v.description;
+  static const Field<MessageLinkPreview, String> _f$description = Field(
+    'description',
+    _$description,
+    opt: true,
+    def: '',
+  );
+
+  @override
+  final MappableFields<MessageLinkPreview> fields = const {
+    #url: _f$url,
+    #siteName: _f$siteName,
+    #title: _f$title,
+    #description: _f$description,
+  };
+
+  static MessageLinkPreview _instantiate(DecodingData data) {
+    return MessageLinkPreview(
+      url: data.dec(_f$url),
+      siteName: data.dec(_f$siteName),
+      title: data.dec(_f$title),
+      description: data.dec(_f$description),
+    );
+  }
+
+  @override
+  final Function instantiate = _instantiate;
+
+  static MessageLinkPreview fromMap(Map<String, dynamic> map) {
+    return ensureInitialized().decodeMap<MessageLinkPreview>(map);
+  }
+
+  static MessageLinkPreview fromJson(String json) {
+    return ensureInitialized().decodeJson<MessageLinkPreview>(json);
+  }
+}
+
+mixin MessageLinkPreviewMappable {
+  String toJson() {
+    return MessageLinkPreviewMapper.ensureInitialized()
+        .encodeJson<MessageLinkPreview>(this as MessageLinkPreview);
+  }
+
+  Map<String, dynamic> toMap() {
+    return MessageLinkPreviewMapper.ensureInitialized()
+        .encodeMap<MessageLinkPreview>(this as MessageLinkPreview);
+  }
+
+  MessageLinkPreviewCopyWith<
+    MessageLinkPreview,
+    MessageLinkPreview,
+    MessageLinkPreview
+  >
+  get copyWith =>
+      _MessageLinkPreviewCopyWithImpl<MessageLinkPreview, MessageLinkPreview>(
+        this as MessageLinkPreview,
+        $identity,
+        $identity,
+      );
+  @override
+  String toString() {
+    return MessageLinkPreviewMapper.ensureInitialized().stringifyValue(
+      this as MessageLinkPreview,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return MessageLinkPreviewMapper.ensureInitialized().equalsValue(
+      this as MessageLinkPreview,
+      other,
+    );
+  }
+
+  @override
+  int get hashCode {
+    return MessageLinkPreviewMapper.ensureInitialized().hashValue(
+      this as MessageLinkPreview,
+    );
+  }
+}
+
+extension MessageLinkPreviewValueCopy<$R, $Out>
+    on ObjectCopyWith<$R, MessageLinkPreview, $Out> {
+  MessageLinkPreviewCopyWith<$R, MessageLinkPreview, $Out>
+  get $asMessageLinkPreview => $base.as(
+    (v, t, t2) => _MessageLinkPreviewCopyWithImpl<$R, $Out>(v, t, t2),
+  );
+}
+
+abstract class MessageLinkPreviewCopyWith<
+  $R,
+  $In extends MessageLinkPreview,
+  $Out
+>
+    implements ClassCopyWith<$R, $In, $Out> {
+  $R call({String? url, String? siteName, String? title, String? description});
+  MessageLinkPreviewCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
+    Then<$Out2, $R2> t,
+  );
+}
+
+class _MessageLinkPreviewCopyWithImpl<$R, $Out>
+    extends ClassCopyWithBase<$R, MessageLinkPreview, $Out>
+    implements MessageLinkPreviewCopyWith<$R, MessageLinkPreview, $Out> {
+  _MessageLinkPreviewCopyWithImpl(super.value, super.then, super.then2);
+
+  @override
+  late final ClassMapperBase<MessageLinkPreview> $mapper =
+      MessageLinkPreviewMapper.ensureInitialized();
+  @override
+  $R call({
+    String? url,
+    String? siteName,
+    String? title,
+    String? description,
+  }) => $apply(
+    FieldCopyWithData({
+      if (url != null) #url: url,
+      if (siteName != null) #siteName: siteName,
+      if (title != null) #title: title,
+      if (description != null) #description: description,
+    }),
+  );
+  @override
+  MessageLinkPreview $make(CopyWithData data) => MessageLinkPreview(
+    url: data.get(#url, or: $value.url),
+    siteName: data.get(#siteName, or: $value.siteName),
+    title: data.get(#title, or: $value.title),
+    description: data.get(#description, or: $value.description),
+  );
+
+  @override
+  MessageLinkPreviewCopyWith<$R2, MessageLinkPreview, $Out2> $chain<$R2, $Out2>(
+    Then<$Out2, $R2> t,
+  ) => _MessageLinkPreviewCopyWithImpl<$R2, $Out2>($value, $cast, t);
+}
+
 class MessageMediaMapper extends ClassMapperBase<MessageMedia> {
   MessageMediaMapper._();
 
@@ -935,6 +1103,7 @@ class MessageMapper extends ClassMapperBase<Message> {
       MessageMediaMapper.ensureInitialized();
       MessageReactionMapper.ensureInitialized();
       MessageForwardMapper.ensureInitialized();
+      MessageLinkPreviewMapper.ensureInitialized();
     }
     return _instance!;
   }
@@ -1093,6 +1262,25 @@ class MessageMapper extends ClassMapperBase<Message> {
     opt: true,
     def: '',
   );
+  static bool _$silent(Message v) => v.silent;
+  static const Field<Message, bool> _f$silent = Field(
+    'silent',
+    _$silent,
+    opt: true,
+    def: false,
+  );
+  static DateTime? _$scheduledDate(Message v) => v.scheduledDate;
+  static const Field<Message, DateTime> _f$scheduledDate = Field(
+    'scheduledDate',
+    _$scheduledDate,
+    opt: true,
+  );
+  static MessageLinkPreview? _$linkPreview(Message v) => v.linkPreview;
+  static const Field<Message, MessageLinkPreview> _f$linkPreview = Field(
+    'linkPreview',
+    _$linkPreview,
+    opt: true,
+  );
 
   @override
   final MappableFields<Message> fields = const {
@@ -1120,6 +1308,9 @@ class MessageMapper extends ClassMapperBase<Message> {
     #forward: _f$forward,
     #pinned: _f$pinned,
     #pinnedMessageID: _f$pinnedMessageID,
+    #silent: _f$silent,
+    #scheduledDate: _f$scheduledDate,
+    #linkPreview: _f$linkPreview,
   };
 
   static Message _instantiate(DecodingData data) {
@@ -1148,6 +1339,9 @@ class MessageMapper extends ClassMapperBase<Message> {
       forward: data.dec(_f$forward),
       pinned: data.dec(_f$pinned),
       pinnedMessageID: data.dec(_f$pinnedMessageID),
+      silent: data.dec(_f$silent),
+      scheduledDate: data.dec(_f$scheduledDate),
+      linkPreview: data.dec(_f$linkPreview),
     );
   }
 
@@ -1229,6 +1423,8 @@ abstract class MessageCopyWith<$R, $In extends Message, $Out>
   >
   get reactions;
   MessageForwardCopyWith<$R, MessageForward, MessageForward>? get forward;
+  MessageLinkPreviewCopyWith<$R, MessageLinkPreview, MessageLinkPreview>?
+  get linkPreview;
   $R call({
     String? id,
     String? chatID,
@@ -1254,6 +1450,9 @@ abstract class MessageCopyWith<$R, $In extends Message, $Out>
     MessageForward? forward,
     bool? pinned,
     String? pinnedMessageID,
+    bool? silent,
+    DateTime? scheduledDate,
+    MessageLinkPreview? linkPreview,
   });
   MessageCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
@@ -1313,6 +1512,10 @@ class _MessageCopyWithImpl<$R, $Out>
   MessageForwardCopyWith<$R, MessageForward, MessageForward>? get forward =>
       $value.forward?.copyWith.$chain((v) => call(forward: v));
   @override
+  MessageLinkPreviewCopyWith<$R, MessageLinkPreview, MessageLinkPreview>?
+  get linkPreview =>
+      $value.linkPreview?.copyWith.$chain((v) => call(linkPreview: v));
+  @override
   $R call({
     String? id,
     String? chatID,
@@ -1338,6 +1541,9 @@ class _MessageCopyWithImpl<$R, $Out>
     Object? forward = $none,
     bool? pinned,
     String? pinnedMessageID,
+    bool? silent,
+    Object? scheduledDate = $none,
+    Object? linkPreview = $none,
   }) => $apply(
     FieldCopyWithData({
       if (id != null) #id: id,
@@ -1364,6 +1570,9 @@ class _MessageCopyWithImpl<$R, $Out>
       if (forward != $none) #forward: forward,
       if (pinned != null) #pinned: pinned,
       if (pinnedMessageID != null) #pinnedMessageID: pinnedMessageID,
+      if (silent != null) #silent: silent,
+      if (scheduledDate != $none) #scheduledDate: scheduledDate,
+      if (linkPreview != $none) #linkPreview: linkPreview,
     }),
   );
   @override
@@ -1392,6 +1601,9 @@ class _MessageCopyWithImpl<$R, $Out>
     forward: data.get(#forward, or: $value.forward),
     pinned: data.get(#pinned, or: $value.pinned),
     pinnedMessageID: data.get(#pinnedMessageID, or: $value.pinnedMessageID),
+    silent: data.get(#silent, or: $value.silent),
+    scheduledDate: data.get(#scheduledDate, or: $value.scheduledDate),
+    linkPreview: data.get(#linkPreview, or: $value.linkPreview),
   );
 
   @override

@@ -116,6 +116,13 @@ class SettingsDeviceModelMapper extends ClassMapperBase<SettingsDeviceModel> {
         opt: true,
         def: 40,
       );
+  static String _$quickReaction(SettingsDeviceModel v) => v.quickReaction;
+  static const Field<SettingsDeviceModel, String> _f$quickReaction = Field(
+    'quickReaction',
+    _$quickReaction,
+    opt: true,
+    def: '❤️',
+  );
 
   @override
   final MappableFields<SettingsDeviceModel> fields = const {
@@ -132,6 +139,7 @@ class SettingsDeviceModelMapper extends ClassMapperBase<SettingsDeviceModel> {
     #chatWallpaper: _f$chatWallpaper,
     #chatWallpaperColor: _f$chatWallpaperColor,
     #chatWallpaperIntensity: _f$chatWallpaperIntensity,
+    #quickReaction: _f$quickReaction,
   };
 
   static SettingsDeviceModel _instantiate(DecodingData data) {
@@ -149,6 +157,7 @@ class SettingsDeviceModelMapper extends ClassMapperBase<SettingsDeviceModel> {
       chatWallpaper: data.dec(_f$chatWallpaper),
       chatWallpaperColor: data.dec(_f$chatWallpaperColor),
       chatWallpaperIntensity: data.dec(_f$chatWallpaperIntensity),
+      quickReaction: data.dec(_f$quickReaction),
     );
   }
 
@@ -237,6 +246,7 @@ abstract class SettingsDeviceModelCopyWith<
     String? chatWallpaper,
     int? chatWallpaperColor,
     int? chatWallpaperIntensity,
+    String? quickReaction,
   });
   SettingsDeviceModelCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
     Then<$Out2, $R2> t,
@@ -273,6 +283,7 @@ class _SettingsDeviceModelCopyWithImpl<$R, $Out>
     String? chatWallpaper,
     int? chatWallpaperColor,
     int? chatWallpaperIntensity,
+    String? quickReaction,
   }) => $apply(
     FieldCopyWithData({
       if (locale != $none) #locale: locale,
@@ -291,6 +302,7 @@ class _SettingsDeviceModelCopyWithImpl<$R, $Out>
       if (chatWallpaperColor != null) #chatWallpaperColor: chatWallpaperColor,
       if (chatWallpaperIntensity != null)
         #chatWallpaperIntensity: chatWallpaperIntensity,
+      if (quickReaction != null) #quickReaction: quickReaction,
     }),
   );
   @override
@@ -323,6 +335,7 @@ class _SettingsDeviceModelCopyWithImpl<$R, $Out>
       #chatWallpaperIntensity,
       or: $value.chatWallpaperIntensity,
     ),
+    quickReaction: data.get(#quickReaction, or: $value.quickReaction),
   );
 
   @override

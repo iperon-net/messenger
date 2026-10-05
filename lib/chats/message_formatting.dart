@@ -142,6 +142,20 @@ List<models.MessageEntity> detectAutoEntities(String text, List<models.MessageEn
   return found;
 }
 
+/// Первая ссылка сообщения — для превью ссылки: явная `[текст](url)` или
+/// найденная в тексте (`www.…` → `https://www.…`); `null` — ссылок нет.
+String? firstLinkUrl(String text, List<models.MessageEntity> entities) {
+  final links = [
+    for (final e in entities)
+      if (e.type == models.MessageEntityType.textUrl && e.url.isNotEmpty) (e.offset, e.url),
+    for (final e in detectAutoEntities(text, entities))
+      if (e.type == models.MessageEntityType.url) (e.offset, text.substring(e.offset, e.end)),
+  ]..sort((a, b) => a.$1.compareTo(b.$1));
+  if (links.isEmpty) return null;
+  final url = links.first.$2;
+  return url.startsWith('www.') ? 'https://$url' : url;
+}
+
 /// Обратно в markdown-ярлыки — чтобы отредактировать отправленное сообщение в
 /// том же поле ввода (см. [parseMarkdownShortcuts]). Авто-сущности (ссылки,
 /// упоминания) в тексте и так видны — их не размечаем.

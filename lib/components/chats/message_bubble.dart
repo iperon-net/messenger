@@ -6,6 +6,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_boring_avatars/flutter_boring_avatars.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../chats/voice_player.dart';
 import '../../extensions.dart';
@@ -602,8 +603,11 @@ class MessageBubble extends StatelessWidget {
     }
     if (media != null) content.add(media);
 
-    // С реакциями время уезжает в их строку (справа), как в Telegram.
+    // С реакциями время уезжает в их строку (справа), как в Telegram; с
+    // превью ссылки — под карточку.
     final hasReactions = m.reactions.isNotEmpty;
+    final preview = m.linkPreview;
+    final metaInText = !hasReactions && preview == null;
     if (m.text.isNotEmpty) {
       content.add(
         Padding(
@@ -615,14 +619,22 @@ class MessageBubble extends StatelessWidget {
                 entities: m.entities,
                 style: style.textStyle,
                 colors: colors,
-                trailing: hasReactions ? '' : trailing,
+                trailing: metaInText ? trailing : '',
                 trailingStyle: metaStyle,
                 highlight: highlight,
                 highlightColor: focused ? const Color(0xCCFF9500) : const Color(0x66FFCC00),
               ),
-              if (!hasReactions) Positioned(right: 0, bottom: 0, child: meta),
+              if (metaInText) Positioned(right: 0, bottom: 0, child: meta),
             ],
           ),
+        ),
+      );
+    }
+    if (preview != null) {
+      content.add(
+        Padding(
+          padding: EdgeInsets.fromLTRB(captionInset, 6, captionInset, 0),
+          child: _LinkPreviewCard(preview: preview, colors: colors, textStyle: style.textStyle),
         ),
       );
     }
@@ -661,7 +673,7 @@ class MessageBubble extends StatelessWidget {
           ),
         ),
       );
-    } else if (m.text.isEmpty) {
+    } else if (m.text.isEmpty || preview != null) {
       content.add(
         Align(
           alignment: Alignment.centerRight,
@@ -714,6 +726,65 @@ class MessageBubble extends StatelessWidget {
           ?avatar,
           Flexible(child: bubble),
         ],
+      ),
+    );
+  }
+}
+
+/// Превью ссылки под текстом: полоска слева, сайт, заголовок, описание; тап —
+/// открыть ссылку.
+class _LinkPreviewCard extends StatelessWidget {
+  final models.MessageLinkPreview preview;
+  final MessageTextColors colors;
+  final TextStyle textStyle;
+
+  const _LinkPreviewCard({required this.preview, required this.colors, required this.textStyle});
+
+  @override
+  Widget build(BuildContext context) {
+    final accent = colors.link;
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () {
+        final uri = Uri.tryParse(preview.url);
+        if (uri != null) launchUrl(uri, mode: LaunchMode.externalApplication);
+      },
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: accent.withValues(alpha: 0.12),
+          borderRadius: BorderRadius.circular(6),
+          border: Border(left: BorderSide(color: accent, width: 3)),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(8, 5, 8, 6),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (preview.siteName.isNotEmpty)
+                Text(
+                  preview.siteName,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: textStyle.copyWith(fontSize: 14, fontWeight: FontWeight.w600, color: accent),
+                ),
+              if (preview.title.isNotEmpty && preview.title != preview.siteName)
+                Text(
+                  preview.title,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: textStyle.copyWith(fontSize: 14, fontWeight: FontWeight.w600, color: colors.text),
+                ),
+              if (preview.description.isNotEmpty)
+                Text(
+                  preview.description,
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                  style: textStyle.copyWith(fontSize: 14, height: 1.25, color: colors.text),
+                ),
+            ],
+          ),
+        ),
       ),
     );
   }

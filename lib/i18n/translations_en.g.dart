@@ -469,6 +469,33 @@ class Translations$screenChat$en {
 	/// en: 'Go to message'
 	String get goToMessage => 'Go to message';
 
+	/// en: 'Send without sound'
+	String get sendSilent => 'Send without sound';
+
+	/// en: 'Schedule message'
+	String get sendLater => 'Schedule message';
+
+	/// en: 'Scheduled messages'
+	String get scheduledTitle => 'Scheduled messages';
+
+	/// en: 'Schedule'
+	String get schedule => 'Schedule';
+
+	/// en: 'Send now'
+	String get sendNow => 'Send now';
+
+	/// en: 'Reschedule'
+	String get reschedule => 'Reschedule';
+
+	/// en: 'Delete scheduled message?'
+	String get deleteScheduledTitle => 'Delete scheduled message?';
+
+	/// en: 'Scheduled messages'
+	String get scheduledHint => 'Scheduled messages';
+
+	/// en: 'Link preview'
+	String get linkPreview => 'Link preview';
+
 	/// en: 'Forward'
 	String get forward => 'Forward';
 
@@ -495,6 +522,21 @@ class Translations$screenChat$en {
 
 	/// en: 'Messages will be deleted for everyone in the chat.'
 	String get deleteSelectedMessage => 'Messages will be deleted for everyone in the chat.';
+
+	/// en: 'Delete for me and {name}'
+	String deleteForBoth({required Object name}) => 'Delete for me and ${name}';
+
+	/// en: 'Delete for me'
+	String get deleteForMe => 'Delete for me';
+
+	/// en: 'Also delete for {name}'
+	String deleteAlsoFor({required Object name}) => 'Also delete for ${name}';
+
+	/// en: 'The message will be deleted from Saved Messages.'
+	String get deleteMessageSelf => 'The message will be deleted from Saved Messages.';
+
+	/// en: 'The messages will be deleted from Saved Messages.'
+	String get deleteSelectedMessageSelf => 'The messages will be deleted from Saved Messages.';
 
 	/// en: 'Slide to cancel'
 	String get voiceSlideToCancel => 'Slide to cancel';
@@ -816,6 +858,12 @@ class Translations$screenSettingsAppearance$en {
 
 	/// en: 'Chat themes'
 	String get chatThemes => 'Chat themes';
+
+	/// en: 'Quick reaction'
+	String get quickReaction => 'Quick reaction';
+
+	/// en: 'Set by double-tapping a message'
+	String get quickReactionDescription => 'Set by double-tapping a message';
 }
 
 // Path: screenChatThemes
@@ -2130,6 +2178,15 @@ extension on Translations {
 			'screenChat.unpinAll' => 'Unpin all messages',
 			'screenChat.unpinAllTitle' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: 'Unpin ${n} message?', other: 'Unpin all ${n} messages?', ), 
 			'screenChat.goToMessage' => 'Go to message',
+			'screenChat.sendSilent' => 'Send without sound',
+			'screenChat.sendLater' => 'Schedule message',
+			'screenChat.scheduledTitle' => 'Scheduled messages',
+			'screenChat.schedule' => 'Schedule',
+			'screenChat.sendNow' => 'Send now',
+			'screenChat.reschedule' => 'Reschedule',
+			'screenChat.deleteScheduledTitle' => 'Delete scheduled message?',
+			'screenChat.scheduledHint' => 'Scheduled messages',
+			'screenChat.linkPreview' => 'Link preview',
 			'screenChat.forward' => 'Forward',
 			'screenChat.forwardTo' => 'Forward to…',
 			'screenChat.forwardedFrom' => ({required Object name}) => 'Forwarded from ${name}',
@@ -2137,6 +2194,11 @@ extension on Translations {
 			'screenChat.forwardMessages' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: 'Forward ${n} message', other: 'Forward ${n} messages', ), 
 			'screenChat.deleteSelectedTitle' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: 'Delete ${n} message?', other: 'Delete ${n} messages?', ), 
 			'screenChat.deleteSelectedMessage' => 'Messages will be deleted for everyone in the chat.',
+			'screenChat.deleteForBoth' => ({required Object name}) => 'Delete for me and ${name}',
+			'screenChat.deleteForMe' => 'Delete for me',
+			'screenChat.deleteAlsoFor' => ({required Object name}) => 'Also delete for ${name}',
+			'screenChat.deleteMessageSelf' => 'The message will be deleted from Saved Messages.',
+			'screenChat.deleteSelectedMessageSelf' => 'The messages will be deleted from Saved Messages.',
 			'screenChat.voiceSlideToCancel' => 'Slide to cancel',
 			'screenChat.voiceHoldHint' => 'Hold to record',
 			'screenChat.micDeniedTitle' => 'No microphone access',
@@ -2232,6 +2294,8 @@ extension on Translations {
 			'screenSettingsAppearance.blurOnInactive' => 'Blur on inactive',
 			'screenSettingsAppearance.blurOnInactiveDescription' => 'The app appears blurry in the list of open apps',
 			'screenSettingsAppearance.chatThemes' => 'Chat themes',
+			'screenSettingsAppearance.quickReaction' => 'Quick reaction',
+			'screenSettingsAppearance.quickReactionDescription' => 'Set by double-tapping a message',
 			'screenChatThemes.title' => _root.screenSettingsAppearance.chatThemes,
 			'screenChatThemes.pattern' => 'Pattern',
 			'screenChatThemes.intensity' => 'Pattern intensity',
@@ -2516,6 +2580,8 @@ extension on Translations {
 			'screenCall.endedNoConnection' => 'No internet connection',
 			'screenCall.endedUnavailable' => 'Subscriber unavailable',
 			'screenCall.ended' => 'Call ended',
+			_ => null,
+		} ?? switch (path) {
 			'screenCall.decline' => 'Decline',
 			'screenCall.accept' => 'Accept',
 			'screenCall.hangup' => 'End',
@@ -2532,8 +2598,6 @@ extension on Translations {
 			'screenCall.routeHearingAid' => 'Hearing aid',
 			'screenCall.routeCar' => 'Car',
 			'screenCall.routeUnknown' => 'Other',
-			_ => null,
-		} ?? switch (path) {
 			'screenCall.routeUnavailable' => 'No audio outputs available',
 			'screenCall.cameraOn' => 'Camera on',
 			'screenCall.cameraOff' => 'Camera off',

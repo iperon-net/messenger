@@ -27,6 +27,9 @@ class SettingsDeviceModel with SettingsDeviceModelMappable {
   /// Интенсивность (видимость) узора обоев, 0–100 %.
   final int chatWallpaperIntensity;
 
+  /// Быстрая реакция — эмодзи двойного тапа по сообщению.
+  final String quickReaction;
+
   const SettingsDeviceModel({
     this.locale,
     this.darkMode = DarkModeModel.system,
@@ -41,6 +44,7 @@ class SettingsDeviceModel with SettingsDeviceModelMappable {
     this.chatWallpaper = 'chat',
     this.chatWallpaperColor = 0,
     this.chatWallpaperIntensity = 40,
+    this.quickReaction = '❤️',
   });
 
   factory SettingsDeviceModel.fromSqlite(Map<String, dynamic> data) {
@@ -57,6 +61,7 @@ class SettingsDeviceModel with SettingsDeviceModelMappable {
     final chatWallpaper = data['chatWallpaper'] as String?;
     final chatWallpaperColor = data['chatWallpaperColor'] as int?;
     final chatWallpaperIntensity = data['chatWallpaperIntensity'] as int?;
+    final quickReaction = data['quickReaction'] as String?;
 
     SettingsDeviceModel settingsDeviceModel = SettingsDeviceModel();
 
@@ -122,6 +127,10 @@ class SettingsDeviceModel with SettingsDeviceModelMappable {
 
     if (chatWallpaperIntensity != null) {
       settingsDeviceModel = settingsDeviceModel.copyWith(chatWallpaperIntensity: chatWallpaperIntensity);
+    }
+
+    if (quickReaction != null && quickReaction.isNotEmpty) {
+      settingsDeviceModel = settingsDeviceModel.copyWith(quickReaction: quickReaction);
     }
 
     return settingsDeviceModel;

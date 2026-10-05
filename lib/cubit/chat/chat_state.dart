@@ -47,6 +47,13 @@ class ChatState with ChatStateMappable {
   /// Текущее найденное — индекс в [searchResults].
   final int searchIndex;
 
+  /// Отложенные сообщения («Отправить позже») — от ранних к поздним; есть —
+  /// в поле ввода значок календаря.
+  final List<models.Message> scheduled;
+
+  /// × на превью ссылки над полем ввода — отправить без превью (до отправки).
+  final bool linkPreviewDisabled;
+
   const ChatState({
     this.status = Status.initialization,
     this.chat,
@@ -61,6 +68,8 @@ class ChatState with ChatStateMappable {
     this.searchQuery = '',
     this.searchResults = const [],
     this.searchIndex = 0,
+    this.scheduled = const [],
+    this.linkPreviewDisabled = false,
   });
 
   /// Закреплённые — от новых к старым (плашка показывает сначала последнее).

@@ -2,6 +2,7 @@ import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../chats/reactions.dart';
 import '../../cubit.dart';
 import '../../i18n/translations.g.dart';
 import '../../models/constants.dart';
@@ -15,6 +16,49 @@ class SettingsAppearanceMaterial extends StatefulWidget {
 }
 
 class _SettingsAppearanceMaterial extends State<SettingsAppearanceMaterial> {
+  /// «Быстрая реакция»: сетка всех реакций, выбранная — в кружке.
+  Future<void> _pickQuickReaction(BuildContext context, String current) async {
+    final cubit = context.read<CommonCubit>();
+    final scheme = Theme.of(context).colorScheme;
+    final emoji = await showModalBottomSheet<String>(
+      context: context,
+      showDragHandle: true,
+      builder: (sheetContext) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(context.t.screenSettingsAppearance.quickReaction, style: Theme.of(context).textTheme.titleMedium),
+              const SizedBox(height: 4),
+              Text(context.t.screenSettingsAppearance.quickReactionDescription, style: TextStyle(color: scheme.onSurfaceVariant)),
+              const SizedBox(height: 12),
+              Wrap(
+                alignment: WrapAlignment.center,
+                spacing: 6,
+                runSpacing: 6,
+                children: [
+                  for (final emoji in allChatReactions)
+                    InkWell(
+                      customBorder: const CircleBorder(),
+                      onTap: () => Navigator.of(sheetContext).pop(emoji),
+                      child: Ink(
+                        width: 48,
+                        height: 48,
+                        decoration: BoxDecoration(shape: BoxShape.circle, color: emoji == current ? scheme.secondaryContainer : null),
+                        child: Center(child: Text(emoji, style: const TextStyle(fontSize: 26))),
+                      ),
+                    ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    if (emoji != null && emoji != current) await cubit.setQuickReaction(emoji);
+  }
+
   Widget _sectionHeader(BuildContext context, String text) => Padding(
     padding: const EdgeInsets.fromLTRB(24, 16, 24, 4),
     child: Text(
@@ -95,10 +139,23 @@ class _SettingsAppearanceMaterial extends State<SettingsAppearanceMaterial> {
                 // Обои окна чата — отдельный экран с превью.
                 Card(
                   margin: const EdgeInsets.fromLTRB(12, 16, 12, 0),
-                  child: ListTile(
-                    title: Text(context.t.screenSettingsAppearance.chatThemes),
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () => context.push('/settings/appearance/chat_themes'),
+                  child: Column(
+                    children: [
+                      ListTile(
+                        title: Text(context.t.screenSettingsAppearance.chatThemes),
+                        trailing: const Icon(Icons.chevron_right),
+                        onTap: () => context.push('/settings/appearance/chat_themes'),
+                      ),
+                      BlocBuilder<CommonCubit, CommonState>(
+                        buildWhen: (previous, current) => previous.settingsDevice.quickReaction != current.settingsDevice.quickReaction,
+                        builder: (context, common) => ListTile(
+                          title: Text(context.t.screenSettingsAppearance.quickReaction),
+                          subtitle: Text(context.t.screenSettingsAppearance.quickReactionDescription),
+                          trailing: Text(common.settingsDevice.quickReaction, style: const TextStyle(fontSize: 22)),
+                          onTap: () => _pickQuickReaction(context, common.settingsDevice.quickReaction),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 Card(

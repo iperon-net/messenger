@@ -90,6 +90,17 @@ void main() {
       expect(applyComposeFormat(sel('a **b** d', 'b'), ComposeFormat.plain).text, 'a b d');
     });
   });
+  test('первая ссылка для превью', () {
+    expect(firstLinkUrl('без ссылок', const []), isNull);
+    expect(firstLinkUrl('см. www.iperon.net и https://flutter.dev', const []), 'https://www.iperon.net');
+    final (text, entities) = parseMarkdownShortcuts('https://a.dev и [сайт](https://b.dev)');
+    expect(firstLinkUrl(text, entities), 'https://a.dev');
+    final (text2, entities2) = parseMarkdownShortcuts('[сайт](https://b.dev), потом https://a.dev');
+    expect(firstLinkUrl(text2, entities2), 'https://b.dev');
+    // В коде ссылки не ищем.
+    final (text3, entities3) = parseMarkdownShortcuts('`https://a.dev`');
+    expect(firstLinkUrl(text3, entities3), isNull);
+  });
 }
 
 void roundTrip(String raw) {

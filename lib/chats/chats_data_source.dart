@@ -32,7 +32,9 @@ abstract class ChatsDataSource {
 
   /// Отправить сообщение: текст уже разобран в entities (см.
   /// `parseMarkdownShortcuts`), для медиа — [kind] + [localPath]/[fileName],
-  /// для альбома — [media] (подпись — [text]).
+  /// для альбома — [media] (подпись — [text]). [silent] — без звука у
+  /// получателя; [scheduleDate] — не сейчас, а в это время (см. [watchScheduled]);
+  /// [linkPreview] `false` — без превью ссылки (× над полем ввода).
   Future<void> sendMessage(
     String chatID, {
     String text = '',
@@ -44,11 +46,25 @@ abstract class ChatsDataSource {
     List<models.MessageMedia> media = const [],
     int duration = 0,
     List<int> waveform = const [],
+    bool silent = false,
+    DateTime? scheduleDate,
+    bool linkPreview = true,
   });
+
+  /// Отложенные сообщения чата (отправка с [sendMessage] `scheduleDate`) — от
+  /// ранних к поздним; в момент `scheduledDate` уходят в чат сами.
+  Stream<List<models.Message>> watchScheduled(String chatID);
+
+  /// Отложенное — отправить сейчас / перенести / удалить.
+  Future<void> sendScheduledNow(String chatID, String messageID);
+  Future<void> rescheduleMessage(String chatID, String messageID, DateTime date);
+  Future<void> deleteScheduled(String chatID, String messageID);
 
   Future<void> editMessage(String chatID, String messageID, String text, List<models.MessageEntity> entities);
 
-  Future<void> deleteMessage(String chatID, String messageID);
+  /// Удалить сообщение: [forEveryone] — у всех (в личном чате — и у
+  /// собеседника), `false` — только у себя.
+  Future<void> deleteMessage(String chatID, String messageID, {bool forEveryone = true});
 
   /// Закрепить / открепить сообщение в чате. [forEveryone] — закрепить и у
   /// собеседника (личный чат) / у всех: тогда в ленте появляется сервисное

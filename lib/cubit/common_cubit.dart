@@ -246,4 +246,10 @@ class CommonCubit extends Cubit<CommonState> {
     emit(state.copyWith(settingsDevice: state.settingsDevice.copyWith(chatWallpaperIntensity: value)));
     if (persist) await repositories.settingsDevice.setChatWallpaperIntensity(value);
   }
+
+  /// «Быстрая реакция» — эмодзи двойного тапа по сообщению.
+  Future<void> setQuickReaction(String emoji) async {
+    await repositories.settingsDevice.setQuickReaction(emoji);
+    emit(state.copyWith(settingsDevice: state.settingsDevice.copyWith(quickReaction: emoji)));
+  }
 }

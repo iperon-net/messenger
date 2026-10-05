@@ -6,6 +6,7 @@ import '../../components.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
+import '../../chats/reactions.dart';
 import '../../cubit.dart';
 import '../../i18n/translations.g.dart';
 import '../../models/constants.dart';
@@ -18,6 +19,48 @@ class SettingsAppearanceCupertino extends StatefulWidget {
 }
 
 class _SettingsAppearanceCupertino extends State<SettingsAppearanceCupertino> {
+  /// «Быстрая реакция»: сетка всех реакций, выбранная — в кружке.
+  Future<void> _pickQuickReaction(BuildContext context, String current) async {
+    final cubit = context.read<CommonCubit>();
+    final primary = CupertinoTheme.of(context).primaryColor;
+    final emoji = await showCupertinoModalPopup<String>(
+      context: context,
+      builder: (popupContext) => CupertinoActionSheet(
+        title: Text(context.t.screenSettingsAppearance.quickReaction),
+        message: Text(context.t.screenSettingsAppearance.quickReactionDescription),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Wrap(
+              alignment: WrapAlignment.center,
+              spacing: 6,
+              runSpacing: 6,
+              children: [
+                for (final emoji in allChatReactions)
+                  GestureDetector(
+                    onTap: () => Navigator.of(popupContext).pop(emoji),
+                    child: Container(
+                      width: 46,
+                      height: 46,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: emoji == current ? primary.withValues(alpha: 0.2) : null,
+                        border: emoji == current ? Border.all(color: primary, width: 1.5) : null,
+                      ),
+                      child: Text(emoji, style: const TextStyle(fontSize: 26)),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ],
+        cancelButton: CupertinoActionSheetAction(onPressed: () => Navigator.of(popupContext).pop(), child: Text(context.t.common.cancel)),
+      ),
+    );
+    if (emoji != null && emoji != current) await cubit.setQuickReaction(emoji);
+  }
+
   @override
   void initState() {
     super.initState();
@@ -144,6 +187,15 @@ class _SettingsAppearanceCupertino extends State<SettingsAppearanceCupertino> {
                       title: Text(context.t.screenSettingsAppearance.chatThemes),
                       trailing: const CupertinoListTileChevron(),
                       onTap: () => context.push('/settings/appearance/chat_themes'),
+                    ),
+                    BlocBuilder<CommonCubit, CommonState>(
+                      buildWhen: (previous, current) => previous.settingsDevice.quickReaction != current.settingsDevice.quickReaction,
+                      builder: (context, common) => CupertinoListTile(
+                        title: Text(context.t.screenSettingsAppearance.quickReaction),
+                        additionalInfo: Text(common.settingsDevice.quickReaction, style: const TextStyle(fontSize: 20)),
+                        trailing: const CupertinoListTileChevron(),
+                        onTap: () => _pickQuickReaction(context, common.settingsDevice.quickReaction),
+                      ),
                     ),
                   ],
                 ),

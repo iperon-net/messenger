@@ -59,6 +59,18 @@ class MessageReaction with MessageReactionMappable {
   const MessageReaction({required this.emoji, this.count = 1, this.chosen = false});
 }
 
+/// Превью ссылки под текстом (как в Telegram): сайт, заголовок, описание.
+/// Позже собирает сервер (клиент не ходит по чужим ссылкам — не светит IP).
+@MappableClass()
+class MessageLinkPreview with MessageLinkPreviewMappable {
+  final String url;
+  final String siteName;
+  final String title;
+  final String description;
+
+  const MessageLinkPreview({required this.url, this.siteName = '', this.title = '', this.description = ''});
+}
+
 /// Элемент альбома (см. [Message.media]).
 @MappableClass()
 class MessageMedia with MessageMediaMappable {
@@ -172,6 +184,18 @@ class Message with MessageMappable {
   /// (тап — к нему); автор — [senderName], у своего — [outgoing].
   final String pinnedMessageID;
 
+  /// Отправлено «без звука» (удержание «Отправить»): получатель не слышит
+  /// уведомления.
+  final bool silent;
+
+  /// Отложенное («Отправить позже»): когда уйдёт; `null` — обычное. Такие
+  /// живут в отдельном списке (экран «Отложенные сообщения»), не в ленте.
+  final DateTime? scheduledDate;
+
+  /// Превью первой ссылки текста; `null` — нет ссылки или превью выключили
+  /// перед отправкой (× над полем ввода).
+  final MessageLinkPreview? linkPreview;
+
   const Message({
     required this.id,
     required this.chatID,
@@ -197,6 +221,9 @@ class Message with MessageMappable {
     this.forward,
     this.pinned = false,
     this.pinnedMessageID = '',
+    this.silent = false,
+    this.scheduledDate,
+    this.linkPreview,
   });
 
   /// Наши реакции (до `maxReactionsPerUser` на сообщение), в порядке чипов.

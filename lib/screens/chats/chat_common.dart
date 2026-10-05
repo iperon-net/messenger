@@ -11,6 +11,7 @@ import 'package:material_ui/material_ui.dart' as m;
 import 'package:path/path.dart' as p;
 
 import '../../chats/media_prepare.dart';
+import '../../chats/message_formatting.dart';
 import '../../chats/video_prepare.dart';
 import '../../components.dart';
 import '../../cubit.dart';
@@ -935,4 +936,12 @@ class ChatWallpaperLayer extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Ссылка в набираемом тексте [raw] (markdown-ярлыки учитываются) — над
+/// полем ввода плашка «Предпросмотр ссылки» с ×; `null` — ссылки нет.
+String? composeLinkUrl(String raw) {
+  if (!raw.contains('.')) return null;
+  final (text, entities) = parseMarkdownShortcuts(raw);
+  return firstLinkUrl(text, entities);
 }

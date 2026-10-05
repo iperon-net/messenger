@@ -129,7 +129,28 @@ class ChatsDemoDataSource implements ChatsDataSource {
     List<models.MessageMedia> media = const [],
     int duration = 0,
     List<int> waveform = const [],
+    bool silent = false,
+    DateTime? scheduleDate,
+    bool linkPreview = true,
   }) async {
+    if (scheduleDate != null && scheduleDate.isAfter(DateTime.now())) {
+      _schedule(
+        models.Message(
+          id: _id(),
+          chatID: chatID,
+          text: text,
+          entities: entities,
+          outgoing: true,
+          status: models.MessageStatus.pending,
+          date: DateTime.now(),
+          reply: reply,
+          silent: silent,
+          scheduledDate: scheduleDate,
+          linkPreview: linkPreview ? _linkPreviewOf(text, entities) : null,
+        ),
+      );
+      return;
+    }
     final fileSize = kind == models.MessageKind.file ? await _fileSize(localPath) : 0;
     // Байты к загрузке: фото/видео альбома или одиночное медиа/файл.
     var uploadTotal = 0;
@@ -157,6 +178,8 @@ class ChatsDemoDataSource implements ChatsDataSource {
       waveform: waveform,
       fileSize: fileSize,
       uploadTotal: uploadTotal,
+      silent: silent,
+      linkPreview: linkPreview && kind == models.MessageKind.text ? _linkPreviewOf(text, entities) : null,
     );
     _setMessages(chatID, [..._history(chatID), message]);
     _update(chatID, (c) => c.copyWith(lastMessage: _lastOf(message), draft: '', archived: false));
@@ -166,6 +189,91 @@ class ChatsDemoDataSource implements ChatsDataSource {
     } else {
       _delivered(chatID, message.id);
     }
+  }
+
+  /// Превью первой ссылки (демо: заготовки для известных сайтов, иначе — имя
+  /// хоста). Настоящие соберёт сервер.
+  models.MessageLinkPreview? _linkPreviewOf(String text, List<models.MessageEntity> entities) {
+    final url = firstLinkUrl(text, entities);
+    final host = url == null ? null : Uri.tryParse(url)?.host.replaceFirst(RegExp(r'^www\.'), '');
+    if (url == null || host == null || host.isEmpty) return null;
+    final (site, title, description) = switch (host) {
+      'flutter.dev' || 'docs.flutter.dev' => (
+        'Flutter',
+        'Flutter documentation',
+        'Get started with Flutter. Widgets, examples, updates, and API docs to help you write your first Flutter app.',
+      ),
+      'github.com' => (
+        'GitHub',
+        'GitHub · Build and ship software on a single, collaborative platform',
+        'Join the world’s most widely adopted developer platform.',
+      ),
+      'youtube.com' || 'youtu.be' => ('YouTube', 'YouTube', 'Смотрите любимые видео, слушайте музыку и делитесь ими с друзьями.'),
+      'iperon.net' => ('Iperon', 'Iperon — мессенджер', 'Звонки, чаты и каналы с шифрованием.'),
+      _ => (host, host, ''),
+    };
+    return models.MessageLinkPreview(url: url, siteName: site, title: title, description: description);
+  }
+
+  /// Отложенные по чатам (от ранних к поздним) и их таймеры (id → таймер).
+  final _scheduled = <String, List<models.Message>>{};
+  final _scheduleTimers = <String, Timer>{};
+  final _scheduledController = StreamController<String>.broadcast();
+
+  List<models.Message> _scheduledOf(String chatID) => _scheduled[chatID] ?? const [];
+
+  void _setScheduled(String chatID, List<models.Message> messages) {
+    _scheduled[chatID] = [...messages]..sort((a, b) => a.scheduledDate!.compareTo(b.scheduledDate!));
+    _scheduledController.add(chatID);
+  }
+
+  /// В список отложенных + таймер на отправку.
+  void _schedule(models.Message message) {
+    final chatID = message.chatID;
+    _scheduleTimers.remove(message.id)?.cancel();
+    _setScheduled(chatID, [
+      for (final m in _scheduledOf(chatID))
+        if (m.id != message.id) m,
+      message,
+    ]);
+    final delay = message.scheduledDate!.difference(DateTime.now());
+    _scheduleTimers[message.id] = Timer(delay.isNegative ? Duration.zero : delay, () => sendScheduledNow(chatID, message.id));
+  }
+
+  @override
+  Stream<List<models.Message>> watchScheduled(String chatID) async* {
+    yield _scheduledOf(chatID);
+    yield* _scheduledController.stream.where((id) => id == chatID).map((_) => _scheduledOf(chatID));
+  }
+
+  @override
+  Future<void> sendScheduledNow(String chatID, String messageID) async {
+    final message = _scheduledOf(chatID).where((m) => m.id == messageID).firstOrNull;
+    await deleteScheduled(chatID, messageID);
+    if (message == null) return;
+    await sendMessage(
+      chatID,
+      text: message.text,
+      entities: message.entities,
+      reply: message.reply,
+      silent: message.silent,
+      linkPreview: message.linkPreview != null,
+    );
+  }
+
+  @override
+  Future<void> rescheduleMessage(String chatID, String messageID, DateTime date) async {
+    final message = _scheduledOf(chatID).where((m) => m.id == messageID).firstOrNull;
+    if (message != null) _schedule(message.copyWith(scheduledDate: date));
+  }
+
+  @override
+  Future<void> deleteScheduled(String chatID, String messageID) async {
+    _scheduleTimers.remove(messageID)?.cancel();
+    _setScheduled(chatID, [
+      for (final m in _scheduledOf(chatID))
+        if (m.id != messageID) m,
+    ]);
   }
 
   /// Идущие загрузки вложений (id сообщения → таймер), см. [cancelUpload].
@@ -276,12 +384,17 @@ class ChatsDemoDataSource implements ChatsDataSource {
 
   @override
   Future<void> editMessage(String chatID, String messageID, String text, List<models.MessageEntity> entities) async {
-    _updateMessage(chatID, messageID, (m) => m.copyWith(text: text, entities: entities, edited: true));
+    _updateMessage(
+      chatID,
+      messageID,
+      (m) => m.copyWith(text: text, entities: entities, edited: true, linkPreview: _linkPreviewOf(text, entities)),
+    );
     _syncLast(chatID);
   }
 
   @override
-  Future<void> deleteMessage(String chatID, String messageID) async {
+  Future<void> deleteMessage(String chatID, String messageID, {bool forEveryone = true}) async {
+    // Демо: собеседника нет — у себя и у всех удаляется одинаково.
     _setMessages(chatID, _history(chatID).where((m) => m.id != messageID).toList());
     _syncLast(chatID);
   }
@@ -661,6 +774,7 @@ class ChatsDemoDataSource implements ChatsDataSource {
           reactions: reactions,
           pinned: pinned,
           pinnedMessageID: pinnedMessageID,
+          linkPreview: kind == models.MessageKind.text && !service ? _linkPreviewOf(text, entities) : null,
         ),
       );
     }

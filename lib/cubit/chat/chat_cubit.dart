@@ -21,6 +21,7 @@ class ChatCubit extends Cubit<ChatState> {
   late String _chatID;
   StreamSubscription<List<models.Chat>>? _chatsSubscription;
   StreamSubscription<List<models.Message>>? _messagesSubscription;
+  StreamSubscription<List<models.Message>>? _scheduledSubscription;
 
   /// Непрочитанных при открытии (до `setRead`) и поставлен ли уже разделитель.
   int? _openUnread;
@@ -52,6 +53,9 @@ class ChatCubit extends Cubit<ChatState> {
       emit(state.copyWith(chat: chat, status: Status.success));
       _placeUnread();
     });
+    _scheduledSubscription = source.watchScheduled(chatID).listen((scheduled) {
+      if (!isClosed) emit(state.copyWith(scheduled: scheduled));
+    });
     _messagesSubscription = source.watchMessages(chatID).listen((messages) {
       if (isClosed) return;
       emit(state.copyWith(messages: messages));
@@ -78,22 +82,32 @@ class ChatCubit extends Cubit<ChatState> {
   }
 
   /// Отправить текст из поля ввода (markdown-ярлыки → entities). В режиме
-  /// редактирования — правит сообщение.
-  Future<void> send(String raw) async {
+  /// редактирования — правит сообщение. [silent] — без звука у получателя;
+  /// [scheduleDate] — отложить текст (пересылаемые уходят сразу).
+  Future<void> send(String raw, {bool silent = false, DateTime? scheduleDate}) async {
     final source = _source;
     final forwarding = state.forwarding;
     if (source == null || (raw.trim().isEmpty && forwarding.isEmpty)) return;
     final (text, entities) = parseMarkdownShortcuts(raw.trim());
     final editing = state.editing;
     final reply = state.reply;
-    emit(state.copyWith(reply: null, editing: null, forwarding: const []));
+    final linkPreview = !state.linkPreviewDisabled;
+    emit(state.copyWith(reply: null, editing: null, forwarding: const [], linkPreviewDisabled: false));
     if (editing != null) {
       await source.editMessage(_chatID, editing.id, text, entities);
       return;
     }
     // Как в Telegram: сначала комментарий, за ним пересылаемые.
     if (text.isNotEmpty) {
-      await source.sendMessage(_chatID, text: text, entities: entities, reply: reply == null ? null : _replyOf(reply));
+      await source.sendMessage(
+        _chatID,
+        text: text,
+        entities: entities,
+        reply: reply == null ? null : _replyOf(reply),
+        silent: silent,
+        scheduleDate: scheduleDate,
+        linkPreview: linkPreview,
+      );
     }
     if (forwarding.isNotEmpty) await source.forwardMessages(_chatID, forwarding);
   }
@@ -157,10 +171,10 @@ class ChatCubit extends Cubit<ChatState> {
     await _source?.setReactions(_chatID, message.id, toggleMyReaction(mine, emoji));
   }
 
-  /// Двойной тап по сообщению — быстрая реакция.
-  Future<void> quickReact(models.Message message) async {
+  /// Двойной тап по сообщению — быстрая реакция [preferred] (из настроек).
+  Future<void> quickReact(models.Message message, {String preferred = defaultQuickReaction}) async {
     final chat = state.chat;
-    final emoji = chat == null ? null : quickReaction(chat);
+    final emoji = chat == null ? null : quickReaction(chat, preferred: preferred);
     if (emoji != null) await toggleReaction(message, emoji);
   }
 
@@ -200,6 +214,9 @@ class ChatCubit extends Cubit<ChatState> {
 
   void startEdit(models.Message message) => emit(state.copyWith(editing: message, reply: null, forwarding: const []));
 
+  /// × на превью ссылки над полем ввода.
+  void disableLinkPreview() => emit(state.copyWith(linkPreviewDisabled: true));
+
   void cancelCompose() => emit(state.copyWith(reply: null, editing: null, forwarding: const []));
 
   /// Закрепить / открепить (меню сообщения, крестик в плашке); [forEveryone]
@@ -228,11 +245,11 @@ class ChatCubit extends Cubit<ChatState> {
   /// Удалить можно свои, а в личном чате — любые (как одиночное удаление).
   bool canDelete(models.Message message) => message.outgoing || state.chat?.type == models.ChatType.private;
 
-  Future<void> deleteSelected() async {
+  Future<void> deleteSelected({bool forEveryone = true}) async {
     final messages = state.selectedMessages;
     clearSelection();
     for (final m in messages) {
-      if (canDelete(m)) await delete(m);
+      if (canDelete(m)) await delete(m, forEveryone: forEveryone);
     }
   }
 
@@ -274,12 +291,20 @@ class ChatCubit extends Cubit<ChatState> {
     return [for (final (_, c) in indexed) c];
   }
 
-  Future<void> delete(models.Message message) async {
+  /// [forEveryone] — см. [ChatsDataSource.deleteMessage].
+  Future<void> delete(models.Message message, {bool forEveryone = true}) async {
     if (state.editing?.id == message.id || state.reply?.id == message.id) cancelCompose();
-    await _source?.deleteMessage(_chatID, message.id);
+    await _source?.deleteMessage(_chatID, message.id, forEveryone: forEveryone);
   }
 
   Future<void> setMuted(bool muted) async => _source?.setMuted(_chatID, muted);
+
+  /// Отложенные (экран «Отложенные сообщения»).
+  Future<void> sendScheduledNow(models.Message message) async => _source?.sendScheduledNow(_chatID, message.id);
+
+  Future<void> reschedule(models.Message message, DateTime date) async => _source?.rescheduleMessage(_chatID, message.id, date);
+
+  Future<void> deleteScheduled(models.Message message) async => _source?.deleteScheduled(_chatID, message.id);
 
   /// Черновик — при уходе с экрана (видно в списке чатов).
   Future<void> saveDraft(String text) async {
@@ -291,6 +316,7 @@ class ChatCubit extends Cubit<ChatState> {
   Future<void> close() async {
     await _chatsSubscription?.cancel();
     await _messagesSubscription?.cancel();
+    await _scheduledSubscription?.cancel();
     return super.close();
   }
 }

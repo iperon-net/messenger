@@ -60,4 +60,8 @@ class SettingsDevice {
   Future<void> setChatWallpaperIntensity(int value) async {
     await db.execute("UPDATE settingsDevice SET chatWallpaperIntensity = ?", [value]);
   }
+
+  Future<void> setQuickReaction(String emoji) async {
+    await db.execute("UPDATE settingsDevice SET quickReaction = ?", [emoji]);
+  }
 }

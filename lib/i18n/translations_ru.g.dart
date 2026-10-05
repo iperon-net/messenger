@@ -254,6 +254,15 @@ class _Translations$screenChat$ru extends Translations$screenChat$en {
 		other: 'Открепить все ${n} сообщения?',
 	);
 	@override String get goToMessage => 'Перейти к сообщению';
+	@override String get sendSilent => 'Отправить без звука';
+	@override String get sendLater => 'Отправить позже';
+	@override String get scheduledTitle => 'Отложенные сообщения';
+	@override String get schedule => 'Запланировать';
+	@override String get sendNow => 'Отправить сейчас';
+	@override String get reschedule => 'Изменить время';
+	@override String get deleteScheduledTitle => 'Удалить отложенное сообщение?';
+	@override String get scheduledHint => 'Отложенные сообщения';
+	@override String get linkPreview => 'Предпросмотр ссылки';
 	@override String get forward => 'Переслать';
 	@override String get forwardTo => 'Переслать в…';
 	@override String forwardedFrom({required Object name}) => 'Переслано от ${name}';
@@ -271,6 +280,11 @@ class _Translations$screenChat$ru extends Translations$screenChat$en {
 		other: 'Удалить ${n} сообщения?',
 	);
 	@override String get deleteSelectedMessage => 'Сообщения будут удалены у всех участников чата.';
+	@override String deleteForBoth({required Object name}) => 'Удалить у меня и у ${name}';
+	@override String get deleteForMe => 'Удалить только у меня';
+	@override String deleteAlsoFor({required Object name}) => 'Также удалить для ${name}';
+	@override String get deleteMessageSelf => 'Сообщение будет удалено из «Избранного».';
+	@override String get deleteSelectedMessageSelf => 'Сообщения будут удалены из «Избранного».';
 	@override String get voiceSlideToCancel => 'Влево — отмена';
 	@override String get voiceHoldHint => 'Удерживайте, чтобы записать';
 	@override String get micDeniedTitle => 'Нет доступа к микрофону';
@@ -402,6 +416,8 @@ class _Translations$screenSettingsAppearance$ru extends Translations$screenSetti
 	@override String get blurOnInactive => 'Размытие в неактивном состоянии';
 	@override String get blurOnInactiveDescription => 'Приложение отображается размытым в списке открытых приложений';
 	@override String get chatThemes => 'Темы для чатов';
+	@override String get quickReaction => 'Быстрая реакция';
+	@override String get quickReactionDescription => 'Ставится двойным тапом по сообщению';
 }
 
 // Path: screenChatThemes
@@ -1057,6 +1073,15 @@ extension on TranslationsRu {
 			'screenChat.unpinAll' => 'Открепить все сообщения',
 			'screenChat.unpinAllTitle' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: 'Открепить ${n} сообщение?', few: 'Открепить все ${n} сообщения?', many: 'Открепить все ${n} сообщений?', other: 'Открепить все ${n} сообщения?', ), 
 			'screenChat.goToMessage' => 'Перейти к сообщению',
+			'screenChat.sendSilent' => 'Отправить без звука',
+			'screenChat.sendLater' => 'Отправить позже',
+			'screenChat.scheduledTitle' => 'Отложенные сообщения',
+			'screenChat.schedule' => 'Запланировать',
+			'screenChat.sendNow' => 'Отправить сейчас',
+			'screenChat.reschedule' => 'Изменить время',
+			'screenChat.deleteScheduledTitle' => 'Удалить отложенное сообщение?',
+			'screenChat.scheduledHint' => 'Отложенные сообщения',
+			'screenChat.linkPreview' => 'Предпросмотр ссылки',
 			'screenChat.forward' => 'Переслать',
 			'screenChat.forwardTo' => 'Переслать в…',
 			'screenChat.forwardedFrom' => ({required Object name}) => 'Переслано от ${name}',
@@ -1064,6 +1089,11 @@ extension on TranslationsRu {
 			'screenChat.forwardMessages' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: 'Переслать ${n} сообщение', few: 'Переслать ${n} сообщения', many: 'Переслать ${n} сообщений', other: 'Переслать ${n} сообщения', ), 
 			'screenChat.deleteSelectedTitle' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: 'Удалить ${n} сообщение?', few: 'Удалить ${n} сообщения?', many: 'Удалить ${n} сообщений?', other: 'Удалить ${n} сообщения?', ), 
 			'screenChat.deleteSelectedMessage' => 'Сообщения будут удалены у всех участников чата.',
+			'screenChat.deleteForBoth' => ({required Object name}) => 'Удалить у меня и у ${name}',
+			'screenChat.deleteForMe' => 'Удалить только у меня',
+			'screenChat.deleteAlsoFor' => ({required Object name}) => 'Также удалить для ${name}',
+			'screenChat.deleteMessageSelf' => 'Сообщение будет удалено из «Избранного».',
+			'screenChat.deleteSelectedMessageSelf' => 'Сообщения будут удалены из «Избранного».',
 			'screenChat.voiceSlideToCancel' => 'Влево — отмена',
 			'screenChat.voiceHoldHint' => 'Удерживайте, чтобы записать',
 			'screenChat.micDeniedTitle' => 'Нет доступа к микрофону',
@@ -1159,6 +1189,8 @@ extension on TranslationsRu {
 			'screenSettingsAppearance.blurOnInactive' => 'Размытие в неактивном состоянии',
 			'screenSettingsAppearance.blurOnInactiveDescription' => 'Приложение отображается размытым в списке открытых приложений',
 			'screenSettingsAppearance.chatThemes' => 'Темы для чатов',
+			'screenSettingsAppearance.quickReaction' => 'Быстрая реакция',
+			'screenSettingsAppearance.quickReactionDescription' => 'Ставится двойным тапом по сообщению',
 			'screenChatThemes.title' => _root.screenSettingsAppearance.chatThemes,
 			'screenChatThemes.pattern' => 'Узор',
 			'screenChatThemes.intensity' => 'Интенсивность узора',
@@ -1443,6 +1475,8 @@ extension on TranslationsRu {
 			'screenCall.endedNoConnection' => 'Нет соединения с интернетом',
 			'screenCall.endedUnavailable' => 'Абонент недоступен',
 			'screenCall.ended' => 'Звонок завершён',
+			_ => null,
+		} ?? switch (path) {
 			'screenCall.decline' => 'Отклонить',
 			'screenCall.accept' => 'Принять',
 			'screenCall.hangup' => 'Завершить',
@@ -1459,8 +1493,6 @@ extension on TranslationsRu {
 			'screenCall.routeHearingAid' => 'Слуховой аппарат',
 			'screenCall.routeCar' => 'Автомобиль',
 			'screenCall.routeUnknown' => 'Другое',
-			_ => null,
-		} ?? switch (path) {
 			'screenCall.routeUnavailable' => 'Нет доступных аудиовыходов',
 			'screenCall.cameraOn' => 'Вкл. камеру',
 			'screenCall.cameraOff' => 'Выкл. камеру',
