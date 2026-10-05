@@ -51,6 +51,8 @@ class _MediaCaptionSheetState extends State<_MediaCaptionSheet> {
     final thumb = AttachmentThumb(item: item, size: 96, spoiler: _spoiler);
     if (!item.isVideo) return thumb;
     return GestureDetector(
+      // Сама миниатюра под IgnorePointer — без opaque нажатие до детектора не доходит.
+      behavior: HitTestBehavior.opaque,
       onTap: () async {
         FocusScope.of(context).unfocus();
         if (await editVideoDraft(context, item, accent: accent) && mounted) setState(() {});

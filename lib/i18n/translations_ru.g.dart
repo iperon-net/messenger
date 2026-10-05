@@ -267,7 +267,7 @@ class _Translations$screenChat$ru extends Translations$screenChat$en {
 	@override String get videoCoverSet => 'Обложка выбрана';
 	@override String get videoReset => 'Сбросить';
 	@override String get videoEditFailed => 'Не удалось открыть видео';
-	@override String get format => 'Формат';
+	@override String get format => 'Форматирование';
 	@override String get formatBold => 'Жирный';
 	@override String get formatItalic => 'Курсив';
 	@override String get formatStrike => 'Зачёркнутый';
@@ -1046,7 +1046,7 @@ extension on TranslationsRu {
 			'screenChat.videoCoverSet' => 'Обложка выбрана',
 			'screenChat.videoReset' => 'Сбросить',
 			'screenChat.videoEditFailed' => 'Не удалось открыть видео',
-			'screenChat.format' => 'Формат',
+			'screenChat.format' => 'Форматирование',
 			'screenChat.formatBold' => 'Жирный',
 			'screenChat.formatItalic' => 'Курсив',
 			'screenChat.formatStrike' => 'Зачёркнутый',

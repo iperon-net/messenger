@@ -508,8 +508,8 @@ class Translations$screenChat$en {
 	/// en: 'Couldn't open the video'
 	String get videoEditFailed => 'Couldn\'t open the video';
 
-	/// en: 'Format'
-	String get format => 'Format';
+	/// en: 'Formatting'
+	String get format => 'Formatting';
 
 	/// en: 'Bold'
 	String get formatBold => 'Bold';
@@ -2095,7 +2095,7 @@ extension on Translations {
 			'screenChat.videoCoverSet' => 'Cover set',
 			'screenChat.videoReset' => 'Reset',
 			'screenChat.videoEditFailed' => 'Couldn\'t open the video',
-			'screenChat.format' => 'Format',
+			'screenChat.format' => 'Formatting',
 			'screenChat.formatBold' => 'Bold',
 			'screenChat.formatItalic' => 'Italic',
 			'screenChat.formatStrike' => 'Strikethrough',
