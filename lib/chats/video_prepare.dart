@@ -37,18 +37,34 @@ class PreparedVideo {
   });
 }
 
-/// 720p (по короткой стороне), HEVC ~1,6 Мбит/с — по качеству как H.264
-/// 2,5 Мбит/с («стандартное» качество Telegram), но файл на ~35% меньше;
-/// звук AAC 128 кбит/с. HEVC кодируют и играют аппаратно все поддерживаемые
-/// устройства (iPhone с A10, Android последних лет). Нет аппаратного
-/// HEVC-кодировщика или он упал — откат на H.264 2,5 Мбит/с.
-abstract final class ChatVideoCompression {
-  static const shortSide = 720;
-  static const bitrate = 1600000;
-  static const h264Bitrate = 2500000;
+/// Качество отправляемого видео (переключатель «HD» в превью перед
+/// отправкой). Кодек — HEVC: по качеству как H.264 с битрейтом в ~1,5 раза
+/// выше, т. е. файл на ~35% меньше. HEVC кодируют и играют аппаратно все
+/// поддерживаемые устройства (iPhone с A10, Android последних лет). Нет
+/// аппаратного HEVC-кодировщика или он упал — откат на H.264 [h264Bitrate].
+/// Звук — AAC 128 кбит/с, частота кадров — не выше [ChatVideoCompression.maxFps].
+enum ChatVideoQuality {
+  /// 720p, ~13 МБ/мин — как «стандартное» качество Telegram.
+  standard(shortSide: 720, bitrate: 1600000, h264Bitrate: 2500000, keepBitrate: 2200000),
 
-  /// Не больше этого по короткой стороне и битрейту — отправляем как есть.
-  static const keepBitrate = 2200000;
+  /// 1080p, ~24 МБ/мин.
+  hd(shortSide: 1080, bitrate: 3000000, h264Bitrate: 4500000, keepBitrate: 4000000);
+
+  /// Короткая сторона кадра (больше — уменьшаем).
+  final int shortSide;
+  final int bitrate;
+  final int h264Bitrate;
+
+  /// Не больше [shortSide], битрейт не выше этого и ≤ 30 к/с — отправляем как есть.
+  final int keepBitrate;
+
+  const ChatVideoQuality({required this.shortSide, required this.bitrate, required this.h264Bitrate, required this.keepBitrate});
+}
+
+abstract final class ChatVideoCompression {
+  /// Выше — прореживаем кадры (как Telegram и WhatsApp): 60 к/с на том же
+  /// битрейте выглядят заметно хуже.
+  static const maxFps = 30;
   static const thumbSide = 320;
 }
 
@@ -89,7 +105,7 @@ void _ensureHandler() {
   });
 }
 
-typedef _VideoInfo = ({int width, int height, int durationMs, int bitrate, String thumb});
+typedef _VideoInfo = ({int width, int height, int durationMs, int bitrate, double fps, String thumb});
 
 Future<_VideoInfo?> _info(String path, {String? thumb}) async {
   final raw = await _channel.invokeMapMethod<String, Object?>('info', {
@@ -103,20 +119,32 @@ Future<_VideoInfo?> _info(String path, {String? thumb}) async {
     height: (raw['height'] as num?)?.toInt() ?? 0,
     durationMs: (raw['durationMs'] as num?)?.toInt() ?? 0,
     bitrate: (raw['bitrate'] as num?)?.toInt() ?? 0,
+    // 0 — неизвестно.
+    fps: (raw['fps'] as num?)?.toDouble() ?? 0,
     thumb: raw['thumb'] as String? ?? '',
   );
 }
 
-/// Нужно ли сжимать: больше 720p или битрейт выше [ChatVideoCompression.keepBitrate].
-bool _needsCompression(_VideoInfo info) {
+/// Нужно ли сжимать: кадр больше [ChatVideoQuality.shortSide], битрейт выше
+/// [ChatVideoQuality.keepBitrate] или больше 30 к/с.
+bool _needsCompression(_VideoInfo info, ChatVideoQuality quality) {
   final short = info.width < info.height ? info.width : info.height;
-  return short > ChatVideoCompression.shortSide || info.bitrate > ChatVideoCompression.keepBitrate || info.bitrate == 0;
+  return short > quality.shortSide ||
+      info.bitrate > quality.keepBitrate ||
+      info.bitrate == 0 ||
+      info.fps > ChatVideoCompression.maxFps + 0.5;
 }
 
-/// Готовит видео [source] к отправке; [onProgress] — доля 0..1 сжатия.
+/// Готовит видео [source] к отправке в качестве [quality]; [onProgress] —
+/// доля 0..1 сжатия.
 /// `null` — не удалось прочитать видео (тогда отправляем исходник как есть);
 /// [ChatVideoCancelled] — пользователь отменил.
-Future<PreparedVideo?> prepareChatVideo(String source, {ChatVideoJob? job, void Function(double)? onProgress}) async {
+Future<PreparedVideo?> prepareChatVideo(
+  String source, {
+  ChatVideoQuality quality = ChatVideoQuality.standard,
+  ChatVideoJob? job,
+  void Function(double)? onProgress,
+}) async {
   _ensureHandler();
   job ??= ChatVideoJob();
   try {
@@ -127,7 +155,7 @@ Future<PreparedVideo?> prepareChatVideo(String source, {ChatVideoJob? job, void 
 
     var path = source;
     var info = original;
-    if (_needsCompression(original)) {
+    if (_needsCompression(original, quality)) {
       final out = p.join(dir.path, '${job.id}.mp4');
       final short = original.width < original.height ? original.width : original.height;
       if (onProgress != null) _progress[job.id] = onProgress;
@@ -135,10 +163,11 @@ Future<PreparedVideo?> prepareChatVideo(String source, {ChatVideoJob? job, void 
         'id': job!.id,
         'path': source,
         'out': out,
-        // Меньше 720p не растягиваем — только снижаем битрейт.
-        'shortSide': short > ChatVideoCompression.shortSide ? ChatVideoCompression.shortSide : 0,
-        'bitrate': hevc ? ChatVideoCompression.bitrate : ChatVideoCompression.h264Bitrate,
+        // Меньше нужного не растягиваем — только снижаем битрейт.
+        'shortSide': short > quality.shortSide ? quality.shortSide : 0,
+        'bitrate': hevc ? quality.bitrate : quality.h264Bitrate,
         'codec': hevc ? 'hevc' : 'h264',
+        'maxFps': ChatVideoCompression.maxFps,
       });
       try {
         try {

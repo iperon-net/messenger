@@ -327,7 +327,8 @@ long-press-меню (Cupertino action sheet / Material bottom sheet), двойн
   плашка под шапкой (`PinnedMessageBar`: сегменты при нескольких, «#N», тап — к сообщению и к
   следующему, × — открепить с подтверждением).
 - [x] Сжатие видео (`lib/chats/video_prepare.dart` + нативные `VideoCompressor` — iOS
-  AVAssetReader/Writer, Android Media3 Transformer): 720p по короткой стороне, HEVC 1,6 Мбит/с (нет аппаратного HEVC — H.264 2,5 Мбит/с),
+  AVAssetReader/Writer, Android Media3 Transformer): 720p по короткой стороне, HEVC 1,6 Мбит/с (нет аппаратного HEVC — H.264 2,5 Мбит/с);
+  «HD» в превью — 1080p, HEVC 3 Мбит/с (H.264 4,5); не больше 30 к/с (прореживание);
   AAC 128 кбит/с; небольшие видео — как есть; окно «Сжатие видео» с прогрессом и «Отменой»; кадр-
   превью + ThumbHash + длительность в пузыре.
 - [x] Свайп «назад» с любого места экрана на всех экранах, кроме звонка, iOS и Android (`_page`/`_pageMaterial` → `FullSwipeBackPage` в

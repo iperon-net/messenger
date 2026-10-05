@@ -1,11 +1,13 @@
 import 'package:material_ui/material_ui.dart';
 
 import '../../i18n/translations.g.dart';
+import '../../models.dart' as models;
 import 'chat_common.dart';
 import 'compose_format_menu.dart';
 
 /// Превью выбранных вложений с полем подписи (Android): лента миниатюр,
-/// подпись, «Отправить», в «⋮» — «Скрыть под спойлер». `null` — отмена.
+/// подпись, «Отправить», «HD» (есть видео — 1080p вместо 720p), в «⋮» —
+/// «Скрыть под спойлер». `null` — отмена.
 Future<MediaCaptionResult?> showMediaCaptionMaterial(BuildContext context, List<AttachmentDraft> items, {String initialCaption = ''}) {
   return showModalBottomSheet<MediaCaptionResult>(
     context: context,
@@ -30,10 +32,12 @@ class _MediaCaptionSheetState extends State<_MediaCaptionSheet> {
   late final _caption = TextEditingController(text: widget.initialCaption);
   late final _formatMenu = ComposeFormatMenu(_caption);
   bool _spoiler = false;
+  bool _hd = false;
 
   bool get _hasMedia => widget.items.any((i) => i.isMedia);
+  bool get _hasVideo => widget.items.any((i) => i.kind == models.MessageKind.video);
 
-  void _send() => Navigator.of(context).pop((caption: _caption.text, spoiler: _spoiler && _hasMedia));
+  void _send() => Navigator.of(context).pop((caption: _caption.text, spoiler: _spoiler && _hasMedia, hd: _hd && _hasVideo));
 
   @override
   void dispose() {
@@ -62,6 +66,15 @@ class _MediaCaptionSheetState extends State<_MediaCaptionSheet> {
                   Expanded(
                     child: Text(t.selected(n: widget.items.length), style: Theme.of(context).textTheme.titleMedium),
                   ),
+                  if (_hasVideo)
+                    IconButton(
+                      isSelected: _hd,
+                      icon: const Icon(Icons.hd_outlined),
+                      selectedIcon: const Icon(Icons.hd),
+                      color: _hd ? scheme.primary : null,
+                      tooltip: _hd ? t.videoHdOn : t.videoHdOff,
+                      onPressed: () => setState(() => _hd = !_hd),
+                    ),
                   if (_hasMedia)
                     PopupMenuButton<void>(
                       icon: const Icon(Icons.more_vert),
@@ -86,6 +99,11 @@ class _MediaCaptionSheetState extends State<_MediaCaptionSheet> {
                 itemBuilder: (context, index) => AttachmentThumb(item: widget.items[index], size: 96, spoiler: _spoiler),
               ),
             ),
+            if (_hasVideo)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Text(_hd ? t.videoHdOn : t.videoHdOff, style: Theme.of(context).textTheme.bodySmall),
+              ),
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 4, 8, 8),
               child: Row(

@@ -47,8 +47,9 @@ class AttachmentDraft {
   bool get isMedia => kind == models.MessageKind.photo || kind == models.MessageKind.video;
 }
 
-/// Итог превью перед отправкой: подпись и «Скрыть под спойлер» (меню «⋯»).
-typedef MediaCaptionResult = ({String caption, bool spoiler});
+/// Итог превью перед отправкой: подпись, «Скрыть под спойлер» (меню «⋯») и
+/// «HD» — видео в 1080p вместо 720p.
+typedef MediaCaptionResult = ({String caption, bool spoiler, bool hd});
 
 /// Скрепка: фото/видео из галереи, камера или файл → превью с подписью →
 /// отправка. Несколько фото/видео уходят альбомом (по [models.Message.maxAlbum]
@@ -81,10 +82,15 @@ Future<void> pickAndSendAttachments(BuildContext context, {TextEditingController
   // Фото — параллельно; видео — по очереди, с окном прогресса и «Отмена».
   final List<models.MessageMedia> media;
   try {
-    media = await _prepareMedia(context, [
-      for (final i in items)
-        if (i.isMedia) i,
-    ], spoiler: sheet.spoiler);
+    media = await _prepareMedia(
+      context,
+      [
+        for (final i in items)
+          if (i.isMedia) i,
+      ],
+      spoiler: sheet.spoiler,
+      quality: sheet.hd ? ChatVideoQuality.hd : ChatVideoQuality.standard,
+    );
   } on ChatVideoCancelled {
     return;
   }
@@ -116,7 +122,12 @@ Future<void> pickAndSendAttachments(BuildContext context, {TextEditingController
 /// Сжатие фото и видео перед отправкой, в исходном порядке. Видео дольше —
 /// если его подготовка заметна (> 0,4 с), показывается окно «Сжатие видео» с
 /// прогрессом по всем видео и «Отменой» ([ChatVideoCancelled]).
-Future<List<models.MessageMedia>> _prepareMedia(BuildContext context, List<AttachmentDraft> items, {required bool spoiler}) async {
+Future<List<models.MessageMedia>> _prepareMedia(
+  BuildContext context,
+  List<AttachmentDraft> items, {
+  required bool spoiler,
+  required ChatVideoQuality quality,
+}) async {
   final photos = [for (final item in items) item.kind == models.MessageKind.photo ? _prepare(item, spoiler: spoiler) : null];
   final result = List<models.MessageMedia?>.filled(items.length, null);
   final videos = [
@@ -139,7 +150,12 @@ Future<List<models.MessageMedia>> _prepareMedia(BuildContext context, List<Attac
       for (final (n, (i, item)) in videos.indexed) {
         if (cancelled) throw const ChatVideoCancelled();
         current = ChatVideoJob();
-        final video = await prepareChatVideo(item.path, job: current, onProgress: (value) => progress.value = (n + value) / videos.length);
+        final video = await prepareChatVideo(
+          item.path,
+          quality: quality,
+          job: current,
+          onProgress: (value) => progress.value = (n + value) / videos.length,
+        );
         if (cancelled) throw const ChatVideoCancelled();
         result[i] = video == null
             ? models.MessageMedia(kind: item.kind, localPath: item.path, spoiler: spoiler)

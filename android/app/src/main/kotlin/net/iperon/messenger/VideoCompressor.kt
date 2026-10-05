@@ -3,6 +3,8 @@ package net.iperon.messenger
 import android.content.Context
 import android.graphics.Bitmap
 import android.media.MediaCodecList
+import android.media.MediaExtractor
+import android.media.MediaFormat
 import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.os.Build
@@ -11,6 +13,8 @@ import android.os.Looper
 import android.util.Log
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MimeTypes
+import androidx.media3.common.Effect
+import androidx.media3.effect.FrameDropEffect
 import androidx.media3.effect.Presentation
 import androidx.media3.transformer.Composition
 import androidx.media3.transformer.DefaultEncoderFactory
@@ -35,11 +39,11 @@ import kotlin.math.roundToInt
  * Сжатие видео для чата перед отправкой (сервер видит только шифротекст и
  * пережать сам не может — см. lib/chats/video_prepare.dart). Канал
  * `net.iperon.messenger/video`, тот же протокол, что у iOS (VideoCompressor.swift):
- *  - `info` {path, thumb?, thumbSide} → {width, height, durationMs, bitrate}
+ *  - `info` {path, thumb?, thumbSide} → {width, height, durationMs, bitrate, fps}
  *    (размеры с учётом поворота) и кадр-превью JPEG в `thumb`;
- *  - `compress` {id, path, out, shortSide, bitrate, codec} → путь к MP4
+ *  - `compress` {id, path, out, shortSide, bitrate, codec, maxFps} → путь к MP4
  *    (`codec`: `hevc` | `h264`, + AAC) через Media3 Transformer (аппаратный
- *    кодек); прогресс — вызовом `progress` {id, progress} обратно в Dart. Нет
+ *    кодек, кадры чаще `maxFps` прореживаются); прогресс — вызовом `progress` {id, progress} обратно в Dart. Нет
  *    аппаратного кодировщика — ошибка `unsupported` (Dart откатится на H.264);
  *  - `cancel` {id}.
  */
@@ -106,6 +110,7 @@ class VideoCompressor(
                 "height" to height,
                 "durationMs" to meta(MediaMetadataRetriever.METADATA_KEY_DURATION),
                 "bitrate" to meta(MediaMetadataRetriever.METADATA_KEY_BITRATE),
+                "fps" to frameRate(path),
             )
             if (thumb != null) {
                 // Кадр уже повёрнут по метаданным.
@@ -132,6 +137,7 @@ class VideoCompressor(
         val out = call.argument<String>("out") ?: return result.error("args", "out", null)
         val shortSide = call.argument<Int>("shortSide") ?: 0
         val bitrate = call.argument<Int>("bitrate") ?: 2_500_000
+        val maxFps = call.argument<Int>("maxFps") ?: 0
         val videoMime = if (call.argument<String>("codec") == "hevc") MimeTypes.VIDEO_H265 else MimeTypes.VIDEO_H264
         // Программный HEVC-кодировщик есть почти везде, но он медленный и
         // слабый — HEVC только при аппаратном, иначе Dart возьмёт H.264.
@@ -182,8 +188,13 @@ class VideoCompressor(
             })
             .build()
 
-        // Короткая сторона → shortSide (0 — без масштабирования, только битрейт).
-        val effects = if (shortSide > 0) Effects(listOf(), listOf(Presentation.createForShortSide(shortSide))) else Effects.EMPTY
+        // Короткая сторона → shortSide (0 — без масштабирования, только
+        // битрейт); чаще maxFps — прореживаем (реже — кадры не трогает).
+        val videoEffects = buildList<Effect> {
+            if (maxFps > 0) add(FrameDropEffect.createDefaultFrameDropEffect(maxFps.toFloat()))
+            if (shortSide > 0) add(Presentation.createForShortSide(shortSide))
+        }
+        val effects = Effects(listOf(), videoEffects)
         val item = EditedMediaItem.Builder(MediaItem.fromUri(Uri.fromFile(File(path)))).setEffects(effects).build()
         jobs[id] = transformer
         try {
@@ -205,6 +216,29 @@ class VideoCompressor(
     }
 
     private val cancelCallbacks = mutableMapOf<String, () -> Unit>()
+
+    /** Частота кадров видеодорожки из контейнера; 0 — неизвестно. */
+    private fun frameRate(path: String): Double {
+        val extractor = MediaExtractor()
+        return try {
+            extractor.setDataSource(path)
+            (0 until extractor.trackCount).asSequence()
+                .map { extractor.getTrackFormat(it) }
+                .firstOrNull { it.getString(MediaFormat.KEY_MIME)?.startsWith("video/") == true }
+                ?.takeIf { it.containsKey(MediaFormat.KEY_FRAME_RATE) }
+                ?.let {
+                    try {
+                        it.getInteger(MediaFormat.KEY_FRAME_RATE).toDouble()
+                    } catch (_: ClassCastException) {
+                        it.getFloat(MediaFormat.KEY_FRAME_RATE).toDouble()
+                    }
+                } ?: 0.0
+        } catch (e: Exception) {
+            0.0
+        } finally {
+            extractor.release()
+        }
+    }
 
     private fun hasHardwareEncoder(mime: String): Boolean =
         MediaCodecList(MediaCodecList.REGULAR_CODECS).codecInfos.any { info ->

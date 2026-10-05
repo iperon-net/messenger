@@ -133,6 +133,8 @@
   "openSettings": "Settings"
   "hideWithSpoiler": "Hide with spoiler"
   "removeSpoiler": "Remove spoiler"
+  "videoHdOn": "HD video: 1080p"
+  "videoHdOff": "Standard quality: 720p"
   "format": "Format"
   "formatBold": "Bold"
   "formatItalic": "Italic"

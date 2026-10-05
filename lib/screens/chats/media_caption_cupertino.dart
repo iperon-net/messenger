@@ -1,11 +1,13 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
 
 import '../../i18n/translations.g.dart';
+import '../../models.dart' as models;
 import 'chat_common.dart';
 import 'compose_format_menu.dart';
 
 /// Превью выбранных вложений с полем подписи (iOS): лента миниатюр, подпись,
-/// «Отправить», в «⋯» — «Скрыть под спойлер». `null` — отмена.
+/// «Отправить», «HD» (есть видео — 1080p вместо 720p), в «⋯» — «Скрыть под
+/// спойлер». `null` — отмена.
 Future<MediaCaptionResult?> showMediaCaptionCupertino(BuildContext context, List<AttachmentDraft> items, {String initialCaption = ''}) {
   return showCupertinoModalPopup<MediaCaptionResult>(
     context: context,
@@ -27,10 +29,12 @@ class _MediaCaptionSheetState extends State<_MediaCaptionSheet> {
   late final _caption = TextEditingController(text: widget.initialCaption);
   late final _formatMenu = ComposeFormatMenu(_caption);
   bool _spoiler = false;
+  bool _hd = false;
 
   bool get _hasMedia => widget.items.any((i) => i.isMedia);
+  bool get _hasVideo => widget.items.any((i) => i.kind == models.MessageKind.video);
 
-  void _send() => Navigator.of(context).pop((caption: _caption.text, spoiler: _spoiler && _hasMedia));
+  void _send() => Navigator.of(context).pop((caption: _caption.text, spoiler: _spoiler && _hasMedia, hd: _hd && _hasVideo));
 
   @override
   void dispose() {
@@ -71,6 +75,7 @@ class _MediaCaptionSheetState extends State<_MediaCaptionSheet> {
                       children: [
                         CupertinoButton(onPressed: () => Navigator.of(context).pop(), child: Text(context.t.common.cancel)),
                         const Spacer(),
+                        if (_hasVideo) _hdButton(context, primary),
                         if (_hasMedia)
                           // Выпадающее меню iOS (pull-down), как у «⋯» в системных приложениях.
                           CupertinoMenuAnchor(
@@ -102,6 +107,11 @@ class _MediaCaptionSheetState extends State<_MediaCaptionSheet> {
                   itemBuilder: (context, index) => AttachmentThumb(item: widget.items[index], size: 96, spoiler: _spoiler),
                 ),
               ),
+              if (_hasVideo)
+                Text(
+                  _hd ? t.videoHdOn : t.videoHdOff,
+                  style: TextStyle(fontSize: 13, color: CupertinoColors.secondaryLabel.resolveFrom(context)),
+                ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(12, 4, 8, 8),
                 child: Row(
@@ -136,6 +146,27 @@ class _MediaCaptionSheetState extends State<_MediaCaptionSheet> {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  /// Значок «HD» как в WhatsApp: контур — 720p, залитый — 1080p.
+  Widget _hdButton(BuildContext context, Color primary) {
+    return CupertinoButton(
+      padding: const EdgeInsets.symmetric(horizontal: 6),
+      onPressed: () => setState(() => _hd = !_hd),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+        decoration: BoxDecoration(
+          color: _hd ? primary : null,
+          border: Border.all(color: primary, width: 1.6),
+          borderRadius: BorderRadius.circular(5),
+        ),
+        child: Text(
+          'HD',
+          style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: _hd ? CupertinoColors.white : primary),
         ),
       ),
     );

@@ -6,12 +6,13 @@ import UIKit
 /// Сжатие видео для чата перед отправкой (сервер видит только шифротекст и
 /// пережать сам не может — см. lib/chats/video_prepare.dart). Канал
 /// `net.iperon.messenger/video`:
-/// - `info` {path, thumb?, thumbSide} → {width, height, durationMs, bitrate}
+/// - `info` {path, thumb?, thumbSide} → {width, height, durationMs, bitrate, fps}
 ///   (размеры — как видео показывается, с учётом поворота) и кадр-превью JPEG
 ///   в `thumb`;
-/// - `compress` {id, path, out, shortSide, bitrate, codec} → путь к MP4
+/// - `compress` {id, path, out, shortSide, bitrate, codec, maxFps} → путь к MP4
 ///   (`codec`: `hevc` | `h264`, + AAC). AVAssetReader/AVAssetWriter, а не
-///   AVAssetExportSession: у пресетов экспорта нельзя задать битрейт.
+///   AVAssetExportSession: у пресетов экспорта нельзя задать битрейт. Кадры
+///   чаще `maxFps` прореживаются.
 ///   Прогресс — вызовом `progress` {id, progress} обратно в Dart. Кодек не
 ///   поддерживается — ошибка `unsupported` (Dart откатится на H.264);
 /// - `cancel` {id}.
@@ -52,7 +53,8 @@ final class VideoCompressor {
         output: URL(fileURLWithPath: out),
         shortSide: args["shortSide"] as? Int ?? 0,
         bitrate: args["bitrate"] as? Int ?? 2_500_000,
-        hevc: (args["codec"] as? String) == "hevc"
+        hevc: (args["codec"] as? String) == "hevc",
+        maxFps: args["maxFps"] as? Int ?? 0
       )
       jobs[id] = job
       job.onProgress = { [weak self] progress in
@@ -92,6 +94,7 @@ final class VideoCompressor {
       "height": Int(size.height.rounded()),
       "durationMs": Int((CMTimeGetSeconds(asset.duration) * 1000).rounded()),
       "bitrate": Int(track.estimatedDataRate),
+      "fps": Double(track.nominalFrameRate),
     ]
     if let thumb {
       let generator = AVAssetImageGenerator(asset: asset)
@@ -120,6 +123,7 @@ final class VideoCompressor {
     let shortSide: Int
     let bitrate: Int
     let hevc: Bool
+    let maxFps: Int
     var onProgress: ((Double) -> Void)?
 
     private let lock = NSLock()
@@ -127,12 +131,13 @@ final class VideoCompressor {
     private var reader: AVAssetReader?
     private var writer: AVAssetWriter?
 
-    init(source: URL, output: URL, shortSide: Int, bitrate: Int, hevc: Bool) {
+    init(source: URL, output: URL, shortSide: Int, bitrate: Int, hevc: Bool, maxFps: Int) {
       self.source = source
       self.output = output
       self.shortSide = shortSide
       self.bitrate = bitrate
       self.hevc = hevc
+      self.maxFps = maxFps
     }
 
     var isCancelled: Bool {
@@ -242,6 +247,11 @@ final class VideoCompressor {
 
       let group = DispatchGroup()
       var lastReported = -1.0
+      // Прореживание до maxFps: кадр пишем, только если от предыдущего
+      // записанного прошло не меньше 1/maxFps (с допуском на неровные
+      // метки времени — 60 к/с → каждый второй, 30 к/с — все).
+      let minFrameInterval = maxFps > 0 ? 1.0 / Double(maxFps) - 0.002 : 0
+      var lastFrameTime = -Double.infinity
 
       func pump(_ input: AVAssetWriterInput, _ output: AVAssetReaderTrackOutput, queue: DispatchQueue, video: Bool) {
         group.enter()
@@ -263,6 +273,8 @@ final class VideoCompressor {
             }
             if video {
               let time = CMTimeGetSeconds(CMSampleBufferGetPresentationTimeStamp(sample))
+              if time - lastFrameTime < minFrameInterval { continue }
+              lastFrameTime = time
               let progress = min(1, max(0, time / duration))
               if progress - lastReported >= 0.01 {
                 lastReported = progress

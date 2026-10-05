@@ -141,6 +141,8 @@
   "openSettings": "Настройки"
   "hideWithSpoiler": "Скрыть под спойлер"
   "removeSpoiler": "Убрать спойлер"
+  "videoHdOn": "Видео в HD: 1080p"
+  "videoHdOff": "Стандартное качество: 720p"
   "format": "Формат"
   "formatBold": "Жирный"
   "formatItalic": "Курсив"

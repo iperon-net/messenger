@@ -259,6 +259,8 @@ class _Translations$screenChat$ru extends Translations$screenChat$en {
 	@override String get openSettings => 'Настройки';
 	@override String get hideWithSpoiler => 'Скрыть под спойлер';
 	@override String get removeSpoiler => 'Убрать спойлер';
+	@override String get videoHdOn => 'Видео в HD: 1080p';
+	@override String get videoHdOff => 'Стандартное качество: 720p';
 	@override String get format => 'Формат';
 	@override String get formatBold => 'Жирный';
 	@override String get formatItalic => 'Курсив';
@@ -1030,6 +1032,8 @@ extension on TranslationsRu {
 			'screenChat.openSettings' => 'Настройки',
 			'screenChat.hideWithSpoiler' => 'Скрыть под спойлер',
 			'screenChat.removeSpoiler' => 'Убрать спойлер',
+			'screenChat.videoHdOn' => 'Видео в HD: 1080p',
+			'screenChat.videoHdOff' => 'Стандартное качество: 720p',
 			'screenChat.format' => 'Формат',
 			'screenChat.formatBold' => 'Жирный',
 			'screenChat.formatItalic' => 'Курсив',
@@ -1425,10 +1429,10 @@ extension on TranslationsRu {
 			'passkey.deleteConfirmTitle' => 'Удалить ключ доступа?',
 			'passkey.deleteConfirmMessage' => 'Войти с помощью этого ключа больше не получится.',
 			'passkey.loadError' => 'Не удалось загрузить ключи',
-			'passkey.retry' => 'Повторить',
-			'passkey.verificationFailed' => 'Не удалось проверить ключ. Попробуйте ещё раз.',
 			_ => null,
 		} ?? switch (path) {
+			'passkey.retry' => 'Повторить',
+			'passkey.verificationFailed' => 'Не удалось проверить ключ. Попробуйте ещё раз.',
 			'passkey.ceremonyExpired' => 'Срок запроса истёк. Попробуйте ещё раз.',
 			'passkey.unknownCredential' => 'Этот ключ не распознан.',
 			'passkey.alreadyRegistered' => 'Этот ключ уже зарегистрирован.',

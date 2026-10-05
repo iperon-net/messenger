@@ -484,6 +484,12 @@ class Translations$screenChat$en {
 	/// en: 'Remove spoiler'
 	String get removeSpoiler => 'Remove spoiler';
 
+	/// en: 'HD video: 1080p'
+	String get videoHdOn => 'HD video: 1080p';
+
+	/// en: 'Standard quality: 720p'
+	String get videoHdOff => 'Standard quality: 720p';
+
 	/// en: 'Format'
 	String get format => 'Format';
 
@@ -2063,6 +2069,8 @@ extension on Translations {
 			'screenChat.openSettings' => 'Settings',
 			'screenChat.hideWithSpoiler' => 'Hide with spoiler',
 			'screenChat.removeSpoiler' => 'Remove spoiler',
+			'screenChat.videoHdOn' => 'HD video: 1080p',
+			'screenChat.videoHdOff' => 'Standard quality: 720p',
 			'screenChat.format' => 'Format',
 			'screenChat.formatBold' => 'Bold',
 			'screenChat.formatItalic' => 'Italic',
@@ -2458,10 +2466,10 @@ extension on Translations {
 			'passkey.deleteConfirmTitle' => 'Delete passkey?',
 			'passkey.deleteConfirmMessage' => 'You won\'t be able to sign in with this passkey anymore.',
 			'passkey.loadError' => 'Couldn\'t load passkeys',
-			'passkey.retry' => 'Retry',
-			'passkey.verificationFailed' => 'Couldn\'t verify the passkey. Please try again.',
 			_ => null,
 		} ?? switch (path) {
+			'passkey.retry' => 'Retry',
+			'passkey.verificationFailed' => 'Couldn\'t verify the passkey. Please try again.',
 			'passkey.ceremonyExpired' => 'The request expired. Please try again.',
 			'passkey.unknownCredential' => 'This passkey isn\'t recognized.',
 			'passkey.alreadyRegistered' => 'This passkey is already registered.',
