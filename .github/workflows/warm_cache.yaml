@@ -11,6 +11,7 @@ on:
     branches: [main]
     paths:
       - pubspec.yaml
+      - pubspec.lock
       - ios/Gemfile
       - ios/Podfile
       - .github/workflows/warm_cache.yaml
@@ -47,7 +48,6 @@ jobs:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: stable
           cache: true
-          pub-cache-key: "flutter-pub-:os:-:channel:-:version:-:arch:-:hash:-${{ hashFiles('pubspec.yaml') }}"
 
       - name: Setup Ruby (fastlane)
         uses: ruby/setup-ruby@v1
@@ -62,7 +62,7 @@ jobs:
         uses: actions/cache@v5
         with:
           path: build/ios/SourcePackages
-          key: spm-${{ runner.os }}-${{ env.FLUTTER_VERSION }}-${{ hashFiles('pubspec.yaml') }}
+          key: spm-${{ runner.os }}-${{ env.FLUTTER_VERSION }}-${{ hashFiles('pubspec.lock') }}
           restore-keys: |
             spm-${{ runner.os }}-${{ env.FLUTTER_VERSION }}-
             spm-${{ runner.os }}-

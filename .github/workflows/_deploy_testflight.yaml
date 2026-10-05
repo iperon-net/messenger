@@ -67,7 +67,6 @@ jobs:
           flutter-version: ${{ inputs.flutter_version }}
           channel: stable
           cache: true
-          pub-cache-key: "flutter-pub-:os:-:channel:-:version:-:arch:-:hash:-${{ hashFiles('pubspec.yaml') }}"
 
       - name: Setup Ruby (fastlane)
         uses: ruby/setup-ruby@v1
@@ -226,7 +225,7 @@ jobs:
         uses: actions/cache/restore@v5
         with:
           path: build/ios/SourcePackages
-          key: spm-${{ runner.os }}-${{ inputs.flutter_version }}-${{ hashFiles('pubspec.yaml') }}
+          key: spm-${{ runner.os }}-${{ inputs.flutter_version }}-${{ hashFiles('pubspec.lock') }}
           restore-keys: |
             spm-${{ runner.os }}-${{ inputs.flutter_version }}-
             spm-${{ runner.os }}-
