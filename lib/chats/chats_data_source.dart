@@ -117,6 +117,16 @@ abstract class ChatsDataSource {
   /// при этом разблокируются).
   Future<void> addMembers(String chatID, List<String> userIDs);
 
+  /// Назначить админом / изменить права и «звание» админа.
+  Future<void> setAdmin(String chatID, String userID, {required models.ChatAdminRights rights, String rank = ''});
+
+  /// Снять админа (останется участником с правом писать).
+  Future<void> removeAdmin(String chatID, String userID);
+
+  /// Владелец: передать владение — [userID] станет владельцем, мы — админом со
+  /// всеми правами. На сервере — с подтверждением облачным паролем.
+  Future<void> transferOwnership(String chatID, String userID);
+
   /// Реакции группы/канала (профиль чата → «Реакции», админ): все /
   /// выбранные [reactions] / никаких.
   Future<void> setChatReactions(String chatID, models.ChatReactionsMode mode, List<String> reactions);

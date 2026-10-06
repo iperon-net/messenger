@@ -11,6 +11,7 @@ import '../../i18n/translations.g.dart';
 import '../../models.dart' as models;
 import '../../themes.dart';
 import 'chat_common.dart';
+import 'chat_admins_material.dart';
 import 'chat_banned_material.dart';
 import 'chat_create_form_material.dart';
 import 'chat_create_members_material.dart';
@@ -69,14 +70,17 @@ class _ChatInfoMaterialState extends State<ChatInfoMaterial> {
     if (context.mounted) context.go('/chats');
   }
 
-  /// Тап по участнику: «Написать сообщение»; админу (для «Чтения» / «Записи»)
-  /// — ещё роль, «Исключить», «Заблокировать».
+  /// Тап по участнику: «Написать сообщение»; с правом блокировать (для
+  /// «Чтения» / «Записи») — роль, «Исключить», «Заблокировать»; с правом
+  /// назначать админов — «Назначить админом» / «Права админа».
   Future<void> _memberActions(BuildContext context, models.Chat chat, models.ChatMember member) async {
     if (member.isSelf) return;
     final t = context.t.screenChatInfo;
     final cubit = context.read<ChatCubit>();
     final error = Theme.of(context).colorScheme.error;
-    final manage = chat.canManage && (member.role == models.ChatRole.reader || member.role == models.ChatRole.writer);
+    final members = cubit.state.members;
+    final manage = canRestrictMember(chat, members, member);
+    final promote = canPromoteMember(chat, members, member);
     final action = await showModalBottomSheet<String>(
       context: context,
       showDragHandle: true,
@@ -95,6 +99,12 @@ class _ChatInfoMaterialState extends State<ChatInfoMaterial> {
                 child: Text(member.name, style: Theme.of(sheetContext).textTheme.titleMedium),
               ),
               item(HugeIcons.strokeRoundedMessage01, t.sendMessage, 'message'),
+              if (promote)
+                item(
+                  HugeIcons.strokeRoundedUserStar01,
+                  member.role == models.ChatRole.admin ? context.t.screenChatAdmins.adminRights : context.t.screenChatAdmins.promote,
+                  'admin',
+                ),
               if (manage) ...[
                 item(
                   member.role == models.ChatRole.reader ? HugeIcons.strokeRoundedPencilEdit02 : HugeIcons.strokeRoundedView,
@@ -131,6 +141,8 @@ class _ChatInfoMaterialState extends State<ChatInfoMaterial> {
       case 'message':
         final chatID = await cubit.privateChatWith(member);
         if (chatID != null && chatID.isNotEmpty && context.mounted) context.go('/chats/chat/$chatID');
+      case 'admin':
+        await showChatAdminRightsMaterial(context, cubit, member);
       case 'role':
         await cubit.setMemberRole(member, member.role == models.ChatRole.reader ? models.ChatRole.writer : models.ChatRole.reader);
       case 'remove':
@@ -313,6 +325,15 @@ class _ChatInfoMaterialState extends State<ChatInfoMaterial> {
                                       BlocProvider.value(value: context.read<ChatCubit>(), child: const ChatReactionsSettingsMaterial()),
                                 ),
                               ),
+                            ),
+                            ListTile(
+                              leading: HugeIcon(icon: HugeIcons.strokeRoundedUserStar01, color: scheme.onSurfaceVariant),
+                              title: Text(t.screenChatAdmins.admins),
+                              trailing: Text(
+                                '${state.members.where((m) => m.role == models.ChatRole.admin || m.role == models.ChatRole.owner).length}',
+                                style: TextStyle(color: scheme.onSurfaceVariant),
+                              ),
+                              onTap: () => showChatAdminsMaterial(context, context.read<ChatCubit>()),
                             ),
                             if (chat.type == models.ChatType.group || chat.type == models.ChatType.community)
                               ListTile(

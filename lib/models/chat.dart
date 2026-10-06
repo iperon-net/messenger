@@ -34,6 +34,97 @@ enum ChatRole { reader, writer, admin, owner }
 @MappableEnum()
 enum ChatJoinMode { open, link, request, admins }
 
+/// Права админа — раздельные, как в Telegram (см.
+/// docs/plans/chats-groups-channels.md, «Приватность групп»). Набор в UI
+/// зависит от типа: у группы/сообщества — без [postMessages] / [editMessages],
+/// у канала — без [banUsers] / [pinMessages] / [anonymous]. Владелец имеет все
+/// права всегда ([all]).
+@MappableClass()
+class ChatAdminRights with ChatAdminRightsMappable {
+  /// Название, описание, фото и настройки (вступление, реакции, ссылки).
+  final bool changeInfo;
+  final bool postMessages;
+  final bool editMessages;
+  final bool deleteMessages;
+
+  /// Блокировать и ограничивать участников (в т.ч. «Чтение» / «Запись»).
+  final bool banUsers;
+
+  /// Приглашать участников, ссылки-приглашения, заявки.
+  final bool inviteUsers;
+  final bool pinMessages;
+
+  /// Голосовые/видеочаты и трансляции (LiveKit).
+  final bool manageCalls;
+
+  /// Сообщения от имени группы.
+  final bool anonymous;
+
+  /// Назначать админов — с правами не шире своих.
+  final bool addAdmins;
+
+  const ChatAdminRights({
+    this.changeInfo = false,
+    this.postMessages = false,
+    this.editMessages = false,
+    this.deleteMessages = false,
+    this.banUsers = false,
+    this.inviteUsers = false,
+    this.pinMessages = false,
+    this.manageCalls = false,
+    this.anonymous = false,
+    this.addAdmins = false,
+  });
+
+  static const all = ChatAdminRights(
+    changeInfo: true,
+    postMessages: true,
+    editMessages: true,
+    deleteMessages: true,
+    banUsers: true,
+    inviteUsers: true,
+    pinMessages: true,
+    manageCalls: true,
+    anonymous: true,
+    addAdmins: true,
+  );
+
+  /// Новому админу по умолчанию — всё, кроме анонимности и назначения админов.
+  static const standard = ChatAdminRights(
+    changeInfo: true,
+    postMessages: true,
+    editMessages: true,
+    deleteMessages: true,
+    banUsers: true,
+    inviteUsers: true,
+    pinMessages: true,
+    manageCalls: true,
+  );
+
+  List<bool> get _flags => [
+    changeInfo,
+    postMessages,
+    editMessages,
+    deleteMessages,
+    banUsers,
+    inviteUsers,
+    pinMessages,
+    manageCalls,
+    anonymous,
+    addAdmins,
+  ];
+
+  /// Все права [other] есть и у этих (выдать можно только не шире своих).
+  bool covers(ChatAdminRights other) {
+    final mine = _flags;
+    final theirs = other._flags;
+    for (var i = 0; i < mine.length; i++) {
+      if (theirs[i] && !mine[i]) return false;
+    }
+    return true;
+  }
+}
+
 /// Участник группы (профиль чата → «Участники»).
 @MappableClass()
 class ChatMember with ChatMemberMappable {
@@ -48,6 +139,12 @@ class ChatMember with ChatMemberMappable {
   /// Это мы.
   final bool isSelf;
 
+  /// Права — у [ChatRole.admin] (у владельца — все, см. [effectiveRights]).
+  final ChatAdminRights rights;
+
+  /// «Звание» админа — подпись вместо «админ» (пусто — «админ»).
+  final String rank;
+
   const ChatMember({
     required this.id,
     required this.name,
@@ -55,7 +152,16 @@ class ChatMember with ChatMemberMappable {
     this.online = false,
     this.lastSeen,
     this.isSelf = false,
+    this.rights = const ChatAdminRights(),
+    this.rank = '',
   });
+
+  /// Права с учётом роли: владелец — все, не админ — никаких.
+  ChatAdminRights get effectiveRights => switch (role) {
+    ChatRole.owner => ChatAdminRights.all,
+    ChatRole.admin => rights,
+    _ => const ChatAdminRights(),
+  };
 }
 
 /// Последнее сообщение чата в том виде, в каком оно нужно списку чатов.

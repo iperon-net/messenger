@@ -330,6 +330,23 @@ class ChatCubit extends Cubit<ChatState> {
     await loadMembers();
   }
 
+  /// Назначить админом / изменить права и «звание».
+  Future<void> setAdmin(models.ChatMember member, models.ChatAdminRights rights, String rank) async {
+    await _source?.setAdmin(_chatID, member.id, rights: rights, rank: rank.trim());
+    await loadMembers();
+  }
+
+  Future<void> removeAdmin(models.ChatMember member) async {
+    await _source?.removeAdmin(_chatID, member.id);
+    await loadMembers();
+  }
+
+  /// Владелец: передать владение [member].
+  Future<void> transferOwnership(models.ChatMember member) async {
+    await _source?.transferOwnership(_chatID, member.id);
+    await loadMembers();
+  }
+
   /// «Написать сообщение» участнику — id личного чата с ним.
   Future<String?> privateChatWith(models.ChatMember member) async => _source?.openPrivateChat(member.id);
 

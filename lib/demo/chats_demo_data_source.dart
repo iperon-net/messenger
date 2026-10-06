@@ -80,7 +80,17 @@ class ChatsDemoDataSource implements ChatsDataSource {
       // Демо: участники из имён истории + «Вы»; список — первые до 30.
       const surnames = ['Смирнова', 'Козлов', 'Иванова', 'Петров', 'Соколова', 'Морозов', 'Волкова', 'Новиков'];
       final count = min(chat.membersCount, 30);
-      final result = <models.ChatMember>[models.ChatMember(id: 'me', name: 'Вы', role: chat.myRole, online: true, isSelf: true)];
+      // Мы-админ — со всеми правами (в демо можно показать назначение админов).
+      final result = <models.ChatMember>[
+        models.ChatMember(
+          id: 'me',
+          name: 'Вы',
+          role: chat.myRole,
+          online: true,
+          isSelf: true,
+          rights: chat.myRole == models.ChatRole.admin ? models.ChatAdminRights.all : const models.ChatAdminRights(),
+        ),
+      ];
       for (var i = 0; result.length < count; i++) {
         final name = '${_names[i % _names.length]} ${surnames[(i * 3) % surnames.length]}';
         final role = i == 0 && chat.myRole != models.ChatRole.owner
@@ -93,6 +103,8 @@ class ChatsDemoDataSource implements ChatsDataSource {
             id: 'u$i',
             name: name,
             role: role,
+            rights: role == models.ChatRole.admin ? models.ChatAdminRights.standard : const models.ChatAdminRights(),
+            rank: role == models.ChatRole.admin && i == 1 ? 'модератор' : '',
             online: i % 3 == 0,
             lastSeen: i % 3 == 0 ? null : now.subtract(Duration(minutes: 7 + i * 53)),
           ),
@@ -577,6 +589,46 @@ class ChatsDemoDataSource implements ChatsDataSource {
     }
     _update(chatID, (c) => c.copyWith(membersCount: c.membersCount + added.length));
     _service(chatID, 'Вы добавили ${added.map((m) => m.name).join(', ')}');
+  }
+
+  // ─── Админы ───────────────────────────────────────────────────────────────
+
+  @override
+  Future<void> setAdmin(String chatID, String userID, {required models.ChatAdminRights rights, String rank = ''}) async {
+    final members = await this.members(chatID);
+    _members[chatID] = [
+      for (final m in members)
+        m.id == userID && m.role != models.ChatRole.owner ? m.copyWith(role: models.ChatRole.admin, rights: rights, rank: rank) : m,
+    ];
+  }
+
+  @override
+  Future<void> removeAdmin(String chatID, String userID) async {
+    final members = await this.members(chatID);
+    _members[chatID] = [
+      for (final m in members)
+        m.id == userID && m.role == models.ChatRole.admin
+            ? m.copyWith(role: models.ChatRole.writer, rights: const models.ChatAdminRights(), rank: '')
+            : m,
+    ];
+  }
+
+  @override
+  Future<void> transferOwnership(String chatID, String userID) async {
+    final members = await this.members(chatID);
+    final target = members.where((m) => m.id == userID).firstOrNull;
+    if (target == null) return;
+    _members[chatID] = [
+      for (final m in members)
+        if (m.id == userID)
+          m.copyWith(role: models.ChatRole.owner, rights: const models.ChatAdminRights(), rank: '')
+        else if (m.role == models.ChatRole.owner)
+          m.copyWith(role: models.ChatRole.admin, rights: models.ChatAdminRights.all)
+        else
+          m,
+    ];
+    _update(chatID, (c) => c.copyWith(myRole: models.ChatRole.admin));
+    _service(chatID, '${target.name} теперь владелец');
   }
 
   /// Профиль демо-чата: «О себе» / описание, @username, число участников и

@@ -48,6 +48,7 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	late final Translations$screenChats$en screenChats = Translations$screenChats$en.internal(_root);
 	late final Translations$screenNewChat$en screenNewChat = Translations$screenNewChat$en.internal(_root);
 	late final Translations$screenChatInvites$en screenChatInvites = Translations$screenChatInvites$en.internal(_root);
+	late final Translations$screenChatAdmins$en screenChatAdmins = Translations$screenChatAdmins$en.internal(_root);
 	late final Translations$screenChat$en screenChat = Translations$screenChat$en.internal(_root);
 	late final Translations$screenSettings$en screenSettings = Translations$screenSettings$en.internal(_root);
 	late final Translations$screenSettingsNotifications$en screenSettingsNotifications = Translations$screenSettingsNotifications$en.internal(_root);
@@ -684,6 +685,105 @@ class Translations$screenChatInvites$en {
 
 	/// en: 'Requests come when joining is set to “By Request” or via links with admin approval.'
 	String get requestsOffHint => 'Requests come when joining is set to “By Request” or via links with admin approval.';
+}
+
+// Path: screenChatAdmins
+class Translations$screenChatAdmins$en {
+	Translations$screenChatAdmins$en.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// en: 'Administrators'
+	String get admins => 'Administrators';
+
+	/// en: 'Add Admin'
+	String get addAdmin => 'Add Admin';
+
+	/// en: 'Admins help manage the chat. Each admin's rights are set separately.'
+	String get adminsFooter => 'Admins help manage the chat. Each admin\'s rights are set separately.';
+
+	/// en: 'Make Admin'
+	String get promote => 'Make Admin';
+
+	/// en: 'Admin Rights'
+	String get adminRights => 'Admin Rights';
+
+	/// en: 'New Admin'
+	String get newAdmin => 'New Admin';
+
+	/// en: 'What can this admin do?'
+	String get rightsHeader => 'What can this admin do?';
+
+	/// en: 'You can only grant the rights you have yourself.'
+	String get rightsFooterLimited => 'You can only grant the rights you have yourself.';
+
+	/// en: 'Change Info and Settings'
+	String get changeInfo => 'Change Info and Settings';
+
+	/// en: 'Post Messages'
+	String get postMessages => 'Post Messages';
+
+	/// en: 'Edit Others' Posts'
+	String get editMessages => 'Edit Others\' Posts';
+
+	/// en: 'Delete Others' Messages'
+	String get deleteMessages => 'Delete Others\' Messages';
+
+	/// en: 'Ban Users'
+	String get banUsers => 'Ban Users';
+
+	/// en: 'Invite Users via Link'
+	String get inviteUsers => 'Invite Users via Link';
+
+	/// en: 'Pin Messages'
+	String get pinMessages => 'Pin Messages';
+
+	/// en: 'Manage Voice Chats'
+	String get manageCalls => 'Manage Voice Chats';
+
+	/// en: 'Remain Anonymous'
+	String get anonymous => 'Remain Anonymous';
+
+	/// en: 'Add New Admins'
+	String get addAdmins => 'Add New Admins';
+
+	/// en: 'An anonymous admin's messages are signed with the group name.'
+	String get anonymousFooter => 'An anonymous admin\'s messages are signed with the group name.';
+
+	/// en: 'Custom Title'
+	String get rankHeader => 'Custom Title';
+
+	/// en: 'admin'
+	String get rankHint => 'admin';
+
+	/// en: 'Shown instead of “admin” in the member list.'
+	String get rankFooter => 'Shown instead of “admin” in the member list.';
+
+	/// en: 'Dismiss Admin'
+	String get dismiss => 'Dismiss Admin';
+
+	/// en: 'Dismiss {name}?'
+	String dismissTitle({required Object name}) => 'Dismiss ${name}?';
+
+	/// en: 'They will stay in the chat without admin rights.'
+	String get dismissMessage => 'They will stay in the chat without admin rights.';
+
+	/// en: 'Transfer Ownership'
+	String get transfer => 'Transfer Ownership';
+
+	/// en: 'Transfer ownership to {name}?'
+	String transferTitle({required Object name}) => 'Transfer ownership to ${name}?';
+
+	/// en: '{name} will become the owner and you will remain an admin with all rights. Only the new owner can undo this.'
+	String transferMessage({required Object name}) => '${name} will become the owner and you will remain an admin with all rights. Only the new owner can undo this.';
+
+	/// en: 'Choose a Member'
+	String get pickMember => 'Choose a Member';
+
+	/// en: 'Nobody to promote — everyone is already an admin.'
+	String get noCandidates => 'Nobody to promote — everyone is already an admin.';
 }
 
 // Path: screenChat
@@ -2796,6 +2896,36 @@ extension on Translations {
 			'screenChatInvites.all' => 'All',
 			'screenChatInvites.viaLink' => ({required Object title}) => 'via “${title}”',
 			'screenChatInvites.requestsOffHint' => 'Requests come when joining is set to “By Request” or via links with admin approval.',
+			'screenChatAdmins.admins' => 'Administrators',
+			'screenChatAdmins.addAdmin' => 'Add Admin',
+			'screenChatAdmins.adminsFooter' => 'Admins help manage the chat. Each admin\'s rights are set separately.',
+			'screenChatAdmins.promote' => 'Make Admin',
+			'screenChatAdmins.adminRights' => 'Admin Rights',
+			'screenChatAdmins.newAdmin' => 'New Admin',
+			'screenChatAdmins.rightsHeader' => 'What can this admin do?',
+			'screenChatAdmins.rightsFooterLimited' => 'You can only grant the rights you have yourself.',
+			'screenChatAdmins.changeInfo' => 'Change Info and Settings',
+			'screenChatAdmins.postMessages' => 'Post Messages',
+			'screenChatAdmins.editMessages' => 'Edit Others\' Posts',
+			'screenChatAdmins.deleteMessages' => 'Delete Others\' Messages',
+			'screenChatAdmins.banUsers' => 'Ban Users',
+			'screenChatAdmins.inviteUsers' => 'Invite Users via Link',
+			'screenChatAdmins.pinMessages' => 'Pin Messages',
+			'screenChatAdmins.manageCalls' => 'Manage Voice Chats',
+			'screenChatAdmins.anonymous' => 'Remain Anonymous',
+			'screenChatAdmins.addAdmins' => 'Add New Admins',
+			'screenChatAdmins.anonymousFooter' => 'An anonymous admin\'s messages are signed with the group name.',
+			'screenChatAdmins.rankHeader' => 'Custom Title',
+			'screenChatAdmins.rankHint' => 'admin',
+			'screenChatAdmins.rankFooter' => 'Shown instead of “admin” in the member list.',
+			'screenChatAdmins.dismiss' => 'Dismiss Admin',
+			'screenChatAdmins.dismissTitle' => ({required Object name}) => 'Dismiss ${name}?',
+			'screenChatAdmins.dismissMessage' => 'They will stay in the chat without admin rights.',
+			'screenChatAdmins.transfer' => 'Transfer Ownership',
+			'screenChatAdmins.transferTitle' => ({required Object name}) => 'Transfer ownership to ${name}?',
+			'screenChatAdmins.transferMessage' => ({required Object name}) => '${name} will become the owner and you will remain an admin with all rights. Only the new owner can undo this.',
+			'screenChatAdmins.pickMember' => 'Choose a Member',
+			'screenChatAdmins.noCandidates' => 'Nobody to promote — everyone is already an admin.',
 			'screenChat.today' => 'Today',
 			'screenChat.yesterday' => 'Yesterday',
 			'screenChat.online' => 'online',
@@ -3096,6 +3226,8 @@ extension on Translations {
 			'cloudPassword.setupEmailHint' => 'Add an email to recover access if you forget your cloud password.',
 			'cloudPassword.setupPasswordHint' => 'Now set a cloud password. You\'ll be asked for it when signing in on a new device.',
 			'cloudPassword.changePasswordHint' => 'Enter a new cloud password.',
+			_ => null,
+		} ?? switch (path) {
 			'cloudPassword.enableButton' => 'Enable',
 			'cloudPassword.passwordPlaceholder' => 'Cloud password',
 			'cloudPassword.continueButton' => 'Continue',
@@ -3126,8 +3258,6 @@ extension on Translations {
 			'cloudPassword.emailRequired' => 'Enter an email',
 			'cloudPassword.passwordRequired' => 'Enter a password',
 			'cloudPassword.passwordTooShort' => 'Password must be at least 5 characters',
-			_ => null,
-		} ?? switch (path) {
 			'cloudPassword.codeRequired' => 'Enter the code',
 			'cloudPassword.passwordsDoNotMatch' => 'Passwords don\'t match',
 			'cloudPassword.wrongPassword' => 'Wrong password',

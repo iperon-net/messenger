@@ -11,6 +11,7 @@ import '../../i18n/translations.g.dart';
 import '../../models.dart' as models;
 import '../../themes.dart';
 import 'chat_common.dart';
+import 'chat_admins_cupertino.dart';
 import 'chat_banned_cupertino.dart';
 import 'chat_create_form_cupertino.dart';
 import 'chat_create_members_cupertino.dart';
@@ -69,19 +70,29 @@ class _ChatInfoCupertinoState extends State<ChatInfoCupertino> {
     if (context.mounted) context.go('/chats');
   }
 
-  /// Тап по участнику: «Написать сообщение»; админу (для «Чтения» / «Записи»)
-  /// — ещё роль, «Исключить», «Заблокировать».
+  /// Тап по участнику: «Написать сообщение»; с правом блокировать (для
+  /// «Чтения» / «Записи») — роль, «Исключить», «Заблокировать»; с правом
+  /// назначать админов — «Назначить админом» / «Права админа».
   Future<void> _memberActions(BuildContext context, models.Chat chat, models.ChatMember member) async {
     if (member.isSelf) return;
     final t = context.t.screenChatInfo;
     final cubit = context.read<ChatCubit>();
-    final manage = chat.canManage && (member.role == models.ChatRole.reader || member.role == models.ChatRole.writer);
+    final members = cubit.state.members;
+    final manage = canRestrictMember(chat, members, member);
+    final promote = canPromoteMember(chat, members, member);
     final action = await showCupertinoModalPopup<String>(
       context: context,
       builder: (sheetContext) => CupertinoActionSheet(
         title: Text(member.name),
         actions: [
           CupertinoActionSheetAction(onPressed: () => Navigator.of(sheetContext).pop('message'), child: Text(t.sendMessage)),
+          if (promote)
+            CupertinoActionSheetAction(
+              onPressed: () => Navigator.of(sheetContext).pop('admin'),
+              child: Text(
+                member.role == models.ChatRole.admin ? context.t.screenChatAdmins.adminRights : context.t.screenChatAdmins.promote,
+              ),
+            ),
           if (manage) ...[
             CupertinoActionSheetAction(
               onPressed: () => Navigator.of(sheetContext).pop('role'),
@@ -120,6 +131,8 @@ class _ChatInfoCupertinoState extends State<ChatInfoCupertino> {
       case 'message':
         final chatID = await cubit.privateChatWith(member);
         if (chatID != null && chatID.isNotEmpty && context.mounted) context.go('/chats/chat/$chatID');
+      case 'admin':
+        await showChatAdminRightsCupertino(context, cubit, member);
       case 'role':
         await cubit.setMemberRole(member, member.role == models.ChatRole.reader ? models.ChatRole.writer : models.ChatRole.reader);
       case 'remove':
@@ -319,6 +332,16 @@ class _ChatInfoCupertinoState extends State<ChatInfoCupertino> {
                                     BlocProvider.value(value: context.read<ChatCubit>(), child: const ChatReactionsSettingsCupertino()),
                               ),
                             ),
+                          ),
+                          CupertinoListTileIcon(
+                            color: const Color(0xFF5856D6),
+                            hugeIcon: HugeIcons.strokeRoundedUserStar01,
+                            title: Text(t.screenChatAdmins.admins),
+                            additionalInfo: Text(
+                              '${state.members.where((m) => m.role == models.ChatRole.admin || m.role == models.ChatRole.owner).length}',
+                            ),
+                            isTrailing: true,
+                            onTab: () => showChatAdminsCupertino(context, context.read<ChatCubit>()),
                           ),
                           if (chat.type == models.ChatType.group || chat.type == models.ChatType.community)
                             CupertinoListTileIcon(

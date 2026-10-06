@@ -73,6 +73,109 @@ String? chatRoleLabel(Translations t, models.ChatRole role) => switch (role) {
   models.ChatRole.writer => null,
 };
 
+/// Наши права в чате: владелец — все, админ — по участнику «Вы».
+models.ChatAdminRights myChatRights(models.Chat chat, List<models.ChatMember> members) {
+  if (chat.myRole == models.ChatRole.owner) return models.ChatAdminRights.all;
+  if (chat.myRole != models.ChatRole.admin) return const models.ChatAdminRights();
+  return members.where((m) => m.isSelf).firstOrNull?.effectiveRights ?? const models.ChatAdminRights();
+}
+
+/// Можно менять роль / исключить / заблокировать [target] (только «Чтение» и
+/// «Запись»; нужно право блокировать).
+bool canRestrictMember(models.Chat chat, List<models.ChatMember> members, models.ChatMember target) =>
+    !target.isSelf &&
+    (target.role == models.ChatRole.reader || target.role == models.ChatRole.writer) &&
+    myChatRights(chat, members).banUsers;
+
+/// Можно назначить [target] админом или изменить его права: нужно право
+/// назначать админов; чужого админа — только если наши права не уже его
+/// (владелец — любого).
+bool canPromoteMember(models.Chat chat, List<models.ChatMember> members, models.ChatMember target) {
+  if (target.isSelf || target.role == models.ChatRole.owner) return false;
+  final mine = myChatRights(chat, members);
+  if (!mine.addAdmins) return false;
+  return target.role != models.ChatRole.admin || chat.myRole == models.ChatRole.owner || mine.covers(target.rights);
+}
+
+/// Права админа, которые показываются для типа чата.
+enum ChatAdminRight {
+  changeInfo,
+  postMessages,
+  editMessages,
+  deleteMessages,
+  banUsers,
+  inviteUsers,
+  pinMessages,
+  manageCalls,
+  anonymous,
+  addAdmins,
+}
+
+List<ChatAdminRight> adminRightsFor(models.ChatType type) => type == models.ChatType.channel
+    ? const [
+        ChatAdminRight.changeInfo,
+        ChatAdminRight.postMessages,
+        ChatAdminRight.editMessages,
+        ChatAdminRight.deleteMessages,
+        ChatAdminRight.inviteUsers,
+        ChatAdminRight.manageCalls,
+        ChatAdminRight.addAdmins,
+      ]
+    : const [
+        ChatAdminRight.changeInfo,
+        ChatAdminRight.deleteMessages,
+        ChatAdminRight.banUsers,
+        ChatAdminRight.inviteUsers,
+        ChatAdminRight.pinMessages,
+        ChatAdminRight.manageCalls,
+        ChatAdminRight.anonymous,
+        ChatAdminRight.addAdmins,
+      ];
+
+String adminRightLabel(Translations t, ChatAdminRight right) => switch (right) {
+  ChatAdminRight.changeInfo => t.screenChatAdmins.changeInfo,
+  ChatAdminRight.postMessages => t.screenChatAdmins.postMessages,
+  ChatAdminRight.editMessages => t.screenChatAdmins.editMessages,
+  ChatAdminRight.deleteMessages => t.screenChatAdmins.deleteMessages,
+  ChatAdminRight.banUsers => t.screenChatAdmins.banUsers,
+  ChatAdminRight.inviteUsers => t.screenChatAdmins.inviteUsers,
+  ChatAdminRight.pinMessages => t.screenChatAdmins.pinMessages,
+  ChatAdminRight.manageCalls => t.screenChatAdmins.manageCalls,
+  ChatAdminRight.anonymous => t.screenChatAdmins.anonymous,
+  ChatAdminRight.addAdmins => t.screenChatAdmins.addAdmins,
+};
+
+bool adminRightOf(models.ChatAdminRights rights, ChatAdminRight right) => switch (right) {
+  ChatAdminRight.changeInfo => rights.changeInfo,
+  ChatAdminRight.postMessages => rights.postMessages,
+  ChatAdminRight.editMessages => rights.editMessages,
+  ChatAdminRight.deleteMessages => rights.deleteMessages,
+  ChatAdminRight.banUsers => rights.banUsers,
+  ChatAdminRight.inviteUsers => rights.inviteUsers,
+  ChatAdminRight.pinMessages => rights.pinMessages,
+  ChatAdminRight.manageCalls => rights.manageCalls,
+  ChatAdminRight.anonymous => rights.anonymous,
+  ChatAdminRight.addAdmins => rights.addAdmins,
+};
+
+models.ChatAdminRights withAdminRight(models.ChatAdminRights rights, ChatAdminRight right, bool value) => switch (right) {
+  ChatAdminRight.changeInfo => rights.copyWith(changeInfo: value),
+  ChatAdminRight.postMessages => rights.copyWith(postMessages: value),
+  ChatAdminRight.editMessages => rights.copyWith(editMessages: value),
+  ChatAdminRight.deleteMessages => rights.copyWith(deleteMessages: value),
+  ChatAdminRight.banUsers => rights.copyWith(banUsers: value),
+  ChatAdminRight.inviteUsers => rights.copyWith(inviteUsers: value),
+  ChatAdminRight.pinMessages => rights.copyWith(pinMessages: value),
+  ChatAdminRight.manageCalls => rights.copyWith(manageCalls: value),
+  ChatAdminRight.anonymous => rights.copyWith(anonymous: value),
+  ChatAdminRight.addAdmins => rights.copyWith(addAdmins: value),
+};
+
+/// Подпись роли в списке: «звание» админа, иначе «владелец» / «админ» /
+/// «только чтение».
+String? memberRoleLabel(Translations t, models.ChatMember member) =>
+    member.role == models.ChatRole.admin && member.rank.isNotEmpty ? member.rank : chatRoleLabel(t, member.role);
+
 /// Ссылки чата — из превью или первой ссылки текста, от новых к старым.
 List<({models.Message message, String url, models.MessageLinkPreview? preview})> chatLinks(List<models.Message> messages) => [
   for (final m in messages.reversed)
@@ -232,7 +335,7 @@ class _MemberRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.t;
-    final role = chatRoleLabel(t, member.role);
+    final role = memberRoleLabel(t, member);
     final seen = member.lastSeen;
     final status = member.online || member.isSelf
         ? t.screenChat.online

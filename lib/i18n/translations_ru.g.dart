@@ -46,6 +46,7 @@ class TranslationsRu extends Translations with BaseTranslations<AppLocale, Trans
 	@override late final _Translations$screenChats$ru screenChats = _Translations$screenChats$ru._(_root);
 	@override late final _Translations$screenNewChat$ru screenNewChat = _Translations$screenNewChat$ru._(_root);
 	@override late final _Translations$screenChatInvites$ru screenChatInvites = _Translations$screenChatInvites$ru._(_root);
+	@override late final _Translations$screenChatAdmins$ru screenChatAdmins = _Translations$screenChatAdmins$ru._(_root);
 	@override late final _Translations$screenChat$ru screenChat = _Translations$screenChat$ru._(_root);
 	@override late final _Translations$screenSettings$ru screenSettings = _Translations$screenSettings$ru._(_root);
 	@override late final _Translations$screenSettingsNotifications$ru screenSettingsNotifications = _Translations$screenSettingsNotifications$ru._(_root);
@@ -318,6 +319,45 @@ class _Translations$screenChatInvites$ru extends Translations$screenChatInvites$
 	@override String get all => 'Все';
 	@override String viaLink({required Object title}) => 'по ссылке «${title}»';
 	@override String get requestsOffHint => 'Заявки приходят, когда вступление «По заявке» или по ссылкам с одобрением админом.';
+}
+
+// Path: screenChatAdmins
+class _Translations$screenChatAdmins$ru extends Translations$screenChatAdmins$en {
+	_Translations$screenChatAdmins$ru._(TranslationsRu root) : this._root = root, super.internal(root);
+
+	final TranslationsRu _root; // ignore: unused_field
+
+	// Translations
+	@override String get admins => 'Администраторы';
+	@override String get addAdmin => 'Добавить админа';
+	@override String get adminsFooter => 'Админы помогают управлять чатом. Права каждого настраиваются отдельно.';
+	@override String get promote => 'Назначить админом';
+	@override String get adminRights => 'Права админа';
+	@override String get newAdmin => 'Новый админ';
+	@override String get rightsHeader => 'Что может этот админ';
+	@override String get rightsFooterLimited => 'Можно выдать только те права, которые есть у вас.';
+	@override String get changeInfo => 'Изменять профиль и настройки';
+	@override String get postMessages => 'Публиковать посты';
+	@override String get editMessages => 'Изменять чужие посты';
+	@override String get deleteMessages => 'Удалять чужие сообщения';
+	@override String get banUsers => 'Блокировать участников';
+	@override String get inviteUsers => 'Приглашать по ссылкам';
+	@override String get pinMessages => 'Закреплять сообщения';
+	@override String get manageCalls => 'Управлять звонками';
+	@override String get anonymous => 'Анонимность';
+	@override String get addAdmins => 'Назначать админов';
+	@override String get anonymousFooter => 'Сообщения анонимного админа подписываются названием группы.';
+	@override String get rankHeader => 'Звание';
+	@override String get rankHint => 'админ';
+	@override String get rankFooter => 'Показывается в списке участников вместо «админ».';
+	@override String get dismiss => 'Снять админа';
+	@override String dismissTitle({required Object name}) => 'Снять ${name} с админов?';
+	@override String get dismissMessage => 'Участник останется в чате без прав админа.';
+	@override String get transfer => 'Передать владение';
+	@override String transferTitle({required Object name}) => 'Передать владение ${name}?';
+	@override String transferMessage({required Object name}) => '${name} станет владельцем, а вы — админом со всеми правами. Отменить это сможет только новый владелец.';
+	@override String get pickMember => 'Выберите участника';
+	@override String get noCandidates => 'Некого назначить — все участники уже админы.';
 }
 
 // Path: screenChat
@@ -1347,6 +1387,36 @@ extension on TranslationsRu {
 			'screenChatInvites.all' => 'Все',
 			'screenChatInvites.viaLink' => ({required Object title}) => 'по ссылке «${title}»',
 			'screenChatInvites.requestsOffHint' => 'Заявки приходят, когда вступление «По заявке» или по ссылкам с одобрением админом.',
+			'screenChatAdmins.admins' => 'Администраторы',
+			'screenChatAdmins.addAdmin' => 'Добавить админа',
+			'screenChatAdmins.adminsFooter' => 'Админы помогают управлять чатом. Права каждого настраиваются отдельно.',
+			'screenChatAdmins.promote' => 'Назначить админом',
+			'screenChatAdmins.adminRights' => 'Права админа',
+			'screenChatAdmins.newAdmin' => 'Новый админ',
+			'screenChatAdmins.rightsHeader' => 'Что может этот админ',
+			'screenChatAdmins.rightsFooterLimited' => 'Можно выдать только те права, которые есть у вас.',
+			'screenChatAdmins.changeInfo' => 'Изменять профиль и настройки',
+			'screenChatAdmins.postMessages' => 'Публиковать посты',
+			'screenChatAdmins.editMessages' => 'Изменять чужие посты',
+			'screenChatAdmins.deleteMessages' => 'Удалять чужие сообщения',
+			'screenChatAdmins.banUsers' => 'Блокировать участников',
+			'screenChatAdmins.inviteUsers' => 'Приглашать по ссылкам',
+			'screenChatAdmins.pinMessages' => 'Закреплять сообщения',
+			'screenChatAdmins.manageCalls' => 'Управлять звонками',
+			'screenChatAdmins.anonymous' => 'Анонимность',
+			'screenChatAdmins.addAdmins' => 'Назначать админов',
+			'screenChatAdmins.anonymousFooter' => 'Сообщения анонимного админа подписываются названием группы.',
+			'screenChatAdmins.rankHeader' => 'Звание',
+			'screenChatAdmins.rankHint' => 'админ',
+			'screenChatAdmins.rankFooter' => 'Показывается в списке участников вместо «админ».',
+			'screenChatAdmins.dismiss' => 'Снять админа',
+			'screenChatAdmins.dismissTitle' => ({required Object name}) => 'Снять ${name} с админов?',
+			'screenChatAdmins.dismissMessage' => 'Участник останется в чате без прав админа.',
+			'screenChatAdmins.transfer' => 'Передать владение',
+			'screenChatAdmins.transferTitle' => ({required Object name}) => 'Передать владение ${name}?',
+			'screenChatAdmins.transferMessage' => ({required Object name}) => '${name} станет владельцем, а вы — админом со всеми правами. Отменить это сможет только новый владелец.',
+			'screenChatAdmins.pickMember' => 'Выберите участника',
+			'screenChatAdmins.noCandidates' => 'Некого назначить — все участники уже админы.',
 			'screenChat.today' => 'Сегодня',
 			'screenChat.yesterday' => 'Вчера',
 			'screenChat.online' => 'в сети',
@@ -1647,6 +1717,8 @@ extension on TranslationsRu {
 			'cloudPassword.setupEmailHint' => 'Укажите email, чтобы восстановить доступ, если забудете облачный пароль.',
 			'cloudPassword.setupPasswordHint' => 'Теперь задайте облачный пароль. Его спросят при входе на новом устройстве.',
 			'cloudPassword.changePasswordHint' => 'Введите новый облачный пароль.',
+			_ => null,
+		} ?? switch (path) {
 			'cloudPassword.enableButton' => 'Включить',
 			'cloudPassword.passwordPlaceholder' => 'Облачный пароль',
 			'cloudPassword.continueButton' => 'Продолжить',
@@ -1677,8 +1749,6 @@ extension on TranslationsRu {
 			'cloudPassword.emailRequired' => 'Введите email',
 			'cloudPassword.passwordRequired' => 'Введите пароль',
 			'cloudPassword.passwordTooShort' => 'Пароль должен быть не короче 5 символов',
-			_ => null,
-		} ?? switch (path) {
 			'cloudPassword.codeRequired' => 'Введите код',
 			'cloudPassword.passwordsDoNotMatch' => 'Пароли не совпадают',
 			'cloudPassword.wrongPassword' => 'Неверный пароль',

@@ -328,6 +328,253 @@ extension ChatJoinModeMapperExtension on ChatJoinMode {
   }
 }
 
+class ChatAdminRightsMapper extends ClassMapperBase<ChatAdminRights> {
+  ChatAdminRightsMapper._();
+
+  static ChatAdminRightsMapper? _instance;
+  static ChatAdminRightsMapper ensureInitialized() {
+    if (_instance == null) {
+      MapperContainer.globals.use(_instance = ChatAdminRightsMapper._());
+    }
+    return _instance!;
+  }
+
+  @override
+  final String id = 'ChatAdminRights';
+
+  static bool _$changeInfo(ChatAdminRights v) => v.changeInfo;
+  static const Field<ChatAdminRights, bool> _f$changeInfo = Field(
+    'changeInfo',
+    _$changeInfo,
+    opt: true,
+    def: false,
+  );
+  static bool _$postMessages(ChatAdminRights v) => v.postMessages;
+  static const Field<ChatAdminRights, bool> _f$postMessages = Field(
+    'postMessages',
+    _$postMessages,
+    opt: true,
+    def: false,
+  );
+  static bool _$editMessages(ChatAdminRights v) => v.editMessages;
+  static const Field<ChatAdminRights, bool> _f$editMessages = Field(
+    'editMessages',
+    _$editMessages,
+    opt: true,
+    def: false,
+  );
+  static bool _$deleteMessages(ChatAdminRights v) => v.deleteMessages;
+  static const Field<ChatAdminRights, bool> _f$deleteMessages = Field(
+    'deleteMessages',
+    _$deleteMessages,
+    opt: true,
+    def: false,
+  );
+  static bool _$banUsers(ChatAdminRights v) => v.banUsers;
+  static const Field<ChatAdminRights, bool> _f$banUsers = Field(
+    'banUsers',
+    _$banUsers,
+    opt: true,
+    def: false,
+  );
+  static bool _$inviteUsers(ChatAdminRights v) => v.inviteUsers;
+  static const Field<ChatAdminRights, bool> _f$inviteUsers = Field(
+    'inviteUsers',
+    _$inviteUsers,
+    opt: true,
+    def: false,
+  );
+  static bool _$pinMessages(ChatAdminRights v) => v.pinMessages;
+  static const Field<ChatAdminRights, bool> _f$pinMessages = Field(
+    'pinMessages',
+    _$pinMessages,
+    opt: true,
+    def: false,
+  );
+  static bool _$manageCalls(ChatAdminRights v) => v.manageCalls;
+  static const Field<ChatAdminRights, bool> _f$manageCalls = Field(
+    'manageCalls',
+    _$manageCalls,
+    opt: true,
+    def: false,
+  );
+  static bool _$anonymous(ChatAdminRights v) => v.anonymous;
+  static const Field<ChatAdminRights, bool> _f$anonymous = Field(
+    'anonymous',
+    _$anonymous,
+    opt: true,
+    def: false,
+  );
+  static bool _$addAdmins(ChatAdminRights v) => v.addAdmins;
+  static const Field<ChatAdminRights, bool> _f$addAdmins = Field(
+    'addAdmins',
+    _$addAdmins,
+    opt: true,
+    def: false,
+  );
+
+  @override
+  final MappableFields<ChatAdminRights> fields = const {
+    #changeInfo: _f$changeInfo,
+    #postMessages: _f$postMessages,
+    #editMessages: _f$editMessages,
+    #deleteMessages: _f$deleteMessages,
+    #banUsers: _f$banUsers,
+    #inviteUsers: _f$inviteUsers,
+    #pinMessages: _f$pinMessages,
+    #manageCalls: _f$manageCalls,
+    #anonymous: _f$anonymous,
+    #addAdmins: _f$addAdmins,
+  };
+
+  static ChatAdminRights _instantiate(DecodingData data) {
+    return ChatAdminRights(
+      changeInfo: data.dec(_f$changeInfo),
+      postMessages: data.dec(_f$postMessages),
+      editMessages: data.dec(_f$editMessages),
+      deleteMessages: data.dec(_f$deleteMessages),
+      banUsers: data.dec(_f$banUsers),
+      inviteUsers: data.dec(_f$inviteUsers),
+      pinMessages: data.dec(_f$pinMessages),
+      manageCalls: data.dec(_f$manageCalls),
+      anonymous: data.dec(_f$anonymous),
+      addAdmins: data.dec(_f$addAdmins),
+    );
+  }
+
+  @override
+  final Function instantiate = _instantiate;
+
+  static ChatAdminRights fromMap(Map<String, dynamic> map) {
+    return ensureInitialized().decodeMap<ChatAdminRights>(map);
+  }
+
+  static ChatAdminRights fromJson(String json) {
+    return ensureInitialized().decodeJson<ChatAdminRights>(json);
+  }
+}
+
+mixin ChatAdminRightsMappable {
+  String toJson() {
+    return ChatAdminRightsMapper.ensureInitialized()
+        .encodeJson<ChatAdminRights>(this as ChatAdminRights);
+  }
+
+  Map<String, dynamic> toMap() {
+    return ChatAdminRightsMapper.ensureInitialized().encodeMap<ChatAdminRights>(
+      this as ChatAdminRights,
+    );
+  }
+
+  ChatAdminRightsCopyWith<ChatAdminRights, ChatAdminRights, ChatAdminRights>
+  get copyWith =>
+      _ChatAdminRightsCopyWithImpl<ChatAdminRights, ChatAdminRights>(
+        this as ChatAdminRights,
+        $identity,
+        $identity,
+      );
+  @override
+  String toString() {
+    return ChatAdminRightsMapper.ensureInitialized().stringifyValue(
+      this as ChatAdminRights,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return ChatAdminRightsMapper.ensureInitialized().equalsValue(
+      this as ChatAdminRights,
+      other,
+    );
+  }
+
+  @override
+  int get hashCode {
+    return ChatAdminRightsMapper.ensureInitialized().hashValue(
+      this as ChatAdminRights,
+    );
+  }
+}
+
+extension ChatAdminRightsValueCopy<$R, $Out>
+    on ObjectCopyWith<$R, ChatAdminRights, $Out> {
+  ChatAdminRightsCopyWith<$R, ChatAdminRights, $Out> get $asChatAdminRights =>
+      $base.as((v, t, t2) => _ChatAdminRightsCopyWithImpl<$R, $Out>(v, t, t2));
+}
+
+abstract class ChatAdminRightsCopyWith<$R, $In extends ChatAdminRights, $Out>
+    implements ClassCopyWith<$R, $In, $Out> {
+  $R call({
+    bool? changeInfo,
+    bool? postMessages,
+    bool? editMessages,
+    bool? deleteMessages,
+    bool? banUsers,
+    bool? inviteUsers,
+    bool? pinMessages,
+    bool? manageCalls,
+    bool? anonymous,
+    bool? addAdmins,
+  });
+  ChatAdminRightsCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
+    Then<$Out2, $R2> t,
+  );
+}
+
+class _ChatAdminRightsCopyWithImpl<$R, $Out>
+    extends ClassCopyWithBase<$R, ChatAdminRights, $Out>
+    implements ChatAdminRightsCopyWith<$R, ChatAdminRights, $Out> {
+  _ChatAdminRightsCopyWithImpl(super.value, super.then, super.then2);
+
+  @override
+  late final ClassMapperBase<ChatAdminRights> $mapper =
+      ChatAdminRightsMapper.ensureInitialized();
+  @override
+  $R call({
+    bool? changeInfo,
+    bool? postMessages,
+    bool? editMessages,
+    bool? deleteMessages,
+    bool? banUsers,
+    bool? inviteUsers,
+    bool? pinMessages,
+    bool? manageCalls,
+    bool? anonymous,
+    bool? addAdmins,
+  }) => $apply(
+    FieldCopyWithData({
+      if (changeInfo != null) #changeInfo: changeInfo,
+      if (postMessages != null) #postMessages: postMessages,
+      if (editMessages != null) #editMessages: editMessages,
+      if (deleteMessages != null) #deleteMessages: deleteMessages,
+      if (banUsers != null) #banUsers: banUsers,
+      if (inviteUsers != null) #inviteUsers: inviteUsers,
+      if (pinMessages != null) #pinMessages: pinMessages,
+      if (manageCalls != null) #manageCalls: manageCalls,
+      if (anonymous != null) #anonymous: anonymous,
+      if (addAdmins != null) #addAdmins: addAdmins,
+    }),
+  );
+  @override
+  ChatAdminRights $make(CopyWithData data) => ChatAdminRights(
+    changeInfo: data.get(#changeInfo, or: $value.changeInfo),
+    postMessages: data.get(#postMessages, or: $value.postMessages),
+    editMessages: data.get(#editMessages, or: $value.editMessages),
+    deleteMessages: data.get(#deleteMessages, or: $value.deleteMessages),
+    banUsers: data.get(#banUsers, or: $value.banUsers),
+    inviteUsers: data.get(#inviteUsers, or: $value.inviteUsers),
+    pinMessages: data.get(#pinMessages, or: $value.pinMessages),
+    manageCalls: data.get(#manageCalls, or: $value.manageCalls),
+    anonymous: data.get(#anonymous, or: $value.anonymous),
+    addAdmins: data.get(#addAdmins, or: $value.addAdmins),
+  );
+
+  @override
+  ChatAdminRightsCopyWith<$R2, ChatAdminRights, $Out2> $chain<$R2, $Out2>(
+    Then<$Out2, $R2> t,
+  ) => _ChatAdminRightsCopyWithImpl<$R2, $Out2>($value, $cast, t);
+}
+
 class ChatMemberMapper extends ClassMapperBase<ChatMember> {
   ChatMemberMapper._();
 
@@ -336,6 +583,7 @@ class ChatMemberMapper extends ClassMapperBase<ChatMember> {
     if (_instance == null) {
       MapperContainer.globals.use(_instance = ChatMemberMapper._());
       ChatRoleMapper.ensureInitialized();
+      ChatAdminRightsMapper.ensureInitialized();
     }
     return _instance!;
   }
@@ -374,6 +622,20 @@ class ChatMemberMapper extends ClassMapperBase<ChatMember> {
     opt: true,
     def: false,
   );
+  static ChatAdminRights _$rights(ChatMember v) => v.rights;
+  static const Field<ChatMember, ChatAdminRights> _f$rights = Field(
+    'rights',
+    _$rights,
+    opt: true,
+    def: const ChatAdminRights(),
+  );
+  static String _$rank(ChatMember v) => v.rank;
+  static const Field<ChatMember, String> _f$rank = Field(
+    'rank',
+    _$rank,
+    opt: true,
+    def: '',
+  );
 
   @override
   final MappableFields<ChatMember> fields = const {
@@ -383,6 +645,8 @@ class ChatMemberMapper extends ClassMapperBase<ChatMember> {
     #online: _f$online,
     #lastSeen: _f$lastSeen,
     #isSelf: _f$isSelf,
+    #rights: _f$rights,
+    #rank: _f$rank,
   };
 
   static ChatMember _instantiate(DecodingData data) {
@@ -393,6 +657,8 @@ class ChatMemberMapper extends ClassMapperBase<ChatMember> {
       online: data.dec(_f$online),
       lastSeen: data.dec(_f$lastSeen),
       isSelf: data.dec(_f$isSelf),
+      rights: data.dec(_f$rights),
+      rank: data.dec(_f$rank),
     );
   }
 
@@ -456,6 +722,7 @@ extension ChatMemberValueCopy<$R, $Out>
 
 abstract class ChatMemberCopyWith<$R, $In extends ChatMember, $Out>
     implements ClassCopyWith<$R, $In, $Out> {
+  ChatAdminRightsCopyWith<$R, ChatAdminRights, ChatAdminRights> get rights;
   $R call({
     String? id,
     String? name,
@@ -463,6 +730,8 @@ abstract class ChatMemberCopyWith<$R, $In extends ChatMember, $Out>
     bool? online,
     DateTime? lastSeen,
     bool? isSelf,
+    ChatAdminRights? rights,
+    String? rank,
   });
   ChatMemberCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
@@ -476,6 +745,9 @@ class _ChatMemberCopyWithImpl<$R, $Out>
   late final ClassMapperBase<ChatMember> $mapper =
       ChatMemberMapper.ensureInitialized();
   @override
+  ChatAdminRightsCopyWith<$R, ChatAdminRights, ChatAdminRights> get rights =>
+      $value.rights.copyWith.$chain((v) => call(rights: v));
+  @override
   $R call({
     String? id,
     String? name,
@@ -483,6 +755,8 @@ class _ChatMemberCopyWithImpl<$R, $Out>
     bool? online,
     Object? lastSeen = $none,
     bool? isSelf,
+    ChatAdminRights? rights,
+    String? rank,
   }) => $apply(
     FieldCopyWithData({
       if (id != null) #id: id,
@@ -491,6 +765,8 @@ class _ChatMemberCopyWithImpl<$R, $Out>
       if (online != null) #online: online,
       if (lastSeen != $none) #lastSeen: lastSeen,
       if (isSelf != null) #isSelf: isSelf,
+      if (rights != null) #rights: rights,
+      if (rank != null) #rank: rank,
     }),
   );
   @override
@@ -501,6 +777,8 @@ class _ChatMemberCopyWithImpl<$R, $Out>
     online: data.get(#online, or: $value.online),
     lastSeen: data.get(#lastSeen, or: $value.lastSeen),
     isSelf: data.get(#isSelf, or: $value.isSelf),
+    rights: data.get(#rights, or: $value.rights),
+    rank: data.get(#rank, or: $value.rank),
   );
 
   @override
