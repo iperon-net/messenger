@@ -1,11 +1,14 @@
+import 'dart:io';
+
 import 'package:flutter/widgets.dart';
 import 'package:flutter_boring_avatars/flutter_boring_avatars.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import '../../models.dart' as models;
 
-/// Аватар строки списка чатов. Пока только генеративный плейсхолдер по id чата
-/// (реальные аватарки чатов появятся вместе с серверной частью); «Избранное» —
+/// Аватар строки списка чатов: фото чата ([models.Chat.avatarPath]) или
+/// генеративный плейсхолдер по id чата (реальные аватарки чатов появятся вместе
+/// с серверной частью); «Избранное» —
 /// закладка на цвете темы, сообщество — скруглённый квадрат (отличает его от
 /// групп и каналов, как форумы в Telegram).
 class ChatAvatar extends StatelessWidget {
@@ -32,6 +35,14 @@ class ChatAvatar extends StatelessWidget {
     final shape = chat.type == models.ChatType.community
         ? RoundedRectangleBorder(borderRadius: BorderRadius.circular(size * 0.28))
         : const CircleBorder();
+
+    // Своё фото (созданный в демо чат) — в той же форме, что и плейсхолдер.
+    if (chat.avatarPath.isNotEmpty) {
+      return ClipPath(
+        clipper: ShapeBorderClipper(shape: shape),
+        child: Image.file(File(chat.avatarPath), width: size, height: size, fit: BoxFit.cover, cacheWidth: (size * 3).round()),
+      );
+    }
 
     return SizedBox(
       width: size,

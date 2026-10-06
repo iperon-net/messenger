@@ -11,6 +11,7 @@ import '../../i18n/translations.g.dart';
 import '../../models.dart' as models;
 import '../../themes.dart';
 import 'chat_common.dart';
+import 'chat_create_form_cupertino.dart';
 import 'chat_info_common.dart';
 
 /// Профиль чата (iOS) — тап по шапке окна чата. Результат — что сделать в
@@ -90,6 +91,14 @@ class _ChatInfoCupertinoState extends State<ChatInfoCupertino> {
             automaticBackgroundVisibility: false,
             backgroundColor: background,
             border: null,
+            // «Изменить» — админу группы / канала / сообщества.
+            trailing: chat != null && chat.canManage && chat.type != models.ChatType.private
+                ? CupertinoButton(
+                    padding: EdgeInsets.zero,
+                    onPressed: () => showChatEditCupertino(context, chat),
+                    child: Text(t.common.edit),
+                  )
+                : null,
           ),
           child: chat == null
               ? const SizedBox.shrink()
@@ -149,7 +158,7 @@ class _ChatInfoCupertinoState extends State<ChatInfoCupertino> {
                           ],
                         ),
                       ),
-                      if (chat.about.isNotEmpty || chat.username.isNotEmpty)
+                      if (chat.about.isNotEmpty || chat.linkPath.isNotEmpty)
                         _section(context, [
                           if (chat.about.isNotEmpty)
                             CupertinoListTileIcon(
@@ -159,7 +168,7 @@ class _ChatInfoCupertinoState extends State<ChatInfoCupertino> {
                               subtitle: Text(chat.type == models.ChatType.private ? t.screenChatInfo.about : t.screenChatInfo.description),
                               onTab: () async => _copy(chat.about),
                             ),
-                          if (chat.username.isNotEmpty)
+                          if (chat.linkPath.isNotEmpty)
                             chat.type == models.ChatType.private
                                 ? CupertinoListTileIcon(
                                     color: const Color(0xFF049A40),
@@ -171,9 +180,9 @@ class _ChatInfoCupertinoState extends State<ChatInfoCupertino> {
                                 : CupertinoListTileIcon(
                                     color: const Color(0xFF049A40),
                                     hugeIcon: HugeIcons.strokeRoundedLink01,
-                                    title: Text('iperon.net/${chat.username}', style: TextStyle(color: primary)),
+                                    title: Text('iperon.net/${chat.linkPath}', style: TextStyle(color: primary)),
                                     subtitle: Text(t.screenChatInfo.link),
-                                    onTab: () async => _copy('https://iperon.net/${chat.username}'),
+                                    onTab: () async => _copy('https://iperon.net/${chat.linkPath}'),
                                   ),
                         ]),
                       if (chat.canManage && chat.type != models.ChatType.private)

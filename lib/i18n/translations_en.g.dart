@@ -46,6 +46,7 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	late final Translations$componentsCamera$en componentsCamera = Translations$componentsCamera$en.internal(_root);
 	late final Translations$screenHome$en screenHome = Translations$screenHome$en.internal(_root);
 	late final Translations$screenChats$en screenChats = Translations$screenChats$en.internal(_root);
+	late final Translations$screenNewChat$en screenNewChat = Translations$screenNewChat$en.internal(_root);
 	late final Translations$screenChat$en screenChat = Translations$screenChat$en.internal(_root);
 	late final Translations$screenSettings$en screenSettings = Translations$screenSettings$en.internal(_root);
 	late final Translations$screenSettingsNotifications$en screenSettingsNotifications = Translations$screenSettingsNotifications$en.internal(_root);
@@ -313,6 +314,189 @@ class Translations$screenChats$en {
 
 	/// en: 'Chats in the folder are not deleted.'
 	String get deleteFolderMessage => 'Chats in the folder are not deleted.';
+}
+
+// Path: screenNewChat
+class Translations$screenNewChat$en {
+	Translations$screenNewChat$en.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// en: 'New Message'
+	String get title => 'New Message';
+
+	/// en: 'Search'
+	String get search => 'Search';
+
+	/// en: 'New Group'
+	String get newGroup => 'New Group';
+
+	/// en: 'New Channel'
+	String get newChannel => 'New Channel';
+
+	/// en: 'New Community'
+	String get newCommunity => 'New Community';
+
+	/// en: 'Contacts'
+	String get contacts => 'Contacts';
+
+	/// en: 'No contacts found'
+	String get noContacts => 'No contacts found';
+
+	/// en: 'Add Members'
+	String get addMembers => 'Add Members';
+
+	/// en: 'Next'
+	String get next => 'Next';
+
+	/// en: 'Selected: {n}'
+	String selected({required Object n}) => 'Selected: ${n}';
+
+	/// en: 'You can create a group without members and invite them later.'
+	String get noMembersHint => 'You can create a group without members and invite them later.';
+
+	/// en: 'New Group'
+	String get groupTitle => 'New Group';
+
+	/// en: 'New Channel'
+	String get channelTitle => 'New Channel';
+
+	/// en: 'New Community'
+	String get communityTitle => 'New Community';
+
+	/// en: 'Create'
+	String get create => 'Create';
+
+	/// en: 'Group Name'
+	String get groupName => 'Group Name';
+
+	/// en: 'Channel Name'
+	String get channelName => 'Channel Name';
+
+	/// en: 'Community Name'
+	String get communityName => 'Community Name';
+
+	/// en: 'Description'
+	String get description => 'Description';
+
+	/// en: 'Optional'
+	String get descriptionHint => 'Optional';
+
+	/// en: 'Tell subscribers what the channel is about.'
+	String get channelDescriptionFooter => 'Tell subscribers what the channel is about.';
+
+	/// en: 'A community brings together your groups and channels.'
+	String get communityDescriptionFooter => 'A community brings together your groups and channels.';
+
+	/// en: 'Members'
+	String get members => 'Members';
+
+	/// en: 'Set Photo'
+	String get setPhoto => 'Set Photo';
+
+	/// en: 'Change Photo'
+	String get changePhoto => 'Change Photo';
+
+	/// en: 'Remove Photo'
+	String get removePhoto => 'Remove Photo';
+
+	/// en: 'Edit Photo'
+	String get editPhoto => 'Edit Photo';
+
+	/// en: 'Type'
+	String get type => 'Type';
+
+	/// en: 'Public'
+	String get typePublic => 'Public';
+
+	/// en: 'Private'
+	String get typePrivate => 'Private';
+
+	/// en: 'Anyone can find a public channel in search and subscribe.'
+	String get channelPublicFooter => 'Anyone can find a public channel in search and subscribe.';
+
+	/// en: 'Private channels can only be joined via an invite link.'
+	String get channelPrivateFooter => 'Private channels can only be joined via an invite link.';
+
+	/// en: 'Anyone can find a public community in search and join it.'
+	String get communityPublicFooter => 'Anyone can find a public community in search and join it.';
+
+	/// en: 'Private communities can only be joined via an invite link.'
+	String get communityPrivateFooter => 'Private communities can only be joined via an invite link.';
+
+	/// en: 'Link'
+	String get link => 'Link';
+
+	/// en: 'name'
+	String get usernameHint => 'name';
+
+	/// en: 'Checking…'
+	String get usernameChecking => 'Checking…';
+
+	/// en: 'This link is available.'
+	String get usernameAvailable => 'This link is available.';
+
+	/// en: 'This link is already taken.'
+	String get usernameTaken => 'This link is already taken.';
+
+	/// en: '5–24 characters: Latin letters a–z, digits and _.'
+	String get usernameInvalid => '5–24 characters: Latin letters a–z, digits and _.';
+
+	/// en: 'Pick a link people will use to find it.'
+	String get usernameEmpty => 'Pick a link people will use to find it.';
+
+	/// en: 'Invite Link'
+	String get inviteLink => 'Invite Link';
+
+	/// en: 'Anyone with this link can join. Tap to copy.'
+	String get inviteLinkFooter => 'Anyone with this link can join. Tap to copy.';
+
+	/// en: 'Link copied'
+	String get copied => 'Link copied';
+
+	/// en: 'Joining'
+	String get joinHeader => 'Joining';
+
+	/// en: 'Open'
+	String get joinOpen => 'Open';
+
+	/// en: 'By Invite Link'
+	String get joinLink => 'By Invite Link';
+
+	/// en: 'By Request'
+	String get joinRequest => 'By Request';
+
+	/// en: 'Added by Admins'
+	String get joinAdmins => 'Added by Admins';
+
+	/// en: 'Anyone can find it in search and join.'
+	String get joinOpenFooter => 'Anyone can find it in search and join.';
+
+	/// en: 'Only people with the invite link can join.'
+	String get joinLinkFooter => 'Only people with the invite link can join.';
+
+	/// en: 'People with the invite link send a request; they join after an admin approves it.'
+	String get joinRequestFooter => 'People with the invite link send a request; they join after an admin approves it.';
+
+	/// en: 'Nobody can join on their own — admins add members.'
+	String get joinAdminsFooter => 'Nobody can join on their own — admins add members.';
+
+	/// en: 'New Members'
+	String get defaultRoleHeader => 'New Members';
+
+	/// en: 'Read Only'
+	String get roleReader => 'Read Only';
+
+	/// en: 'Can Send Messages'
+	String get roleWriter => 'Can Send Messages';
+
+	/// en: 'New members can read but not send messages.'
+	String get roleReaderFooter => 'New members can read but not send messages.';
+
+	/// en: 'New members can read and send messages.'
+	String get roleWriterFooter => 'New members can read and send messages.';
 }
 
 // Path: screenChat
@@ -2263,6 +2447,64 @@ extension on Translations {
 			'screenChats.deleteFolder' => 'Delete folder',
 			'screenChats.deleteFolderTitle' => ({required Object title}) => 'Delete folder "${title}"?',
 			'screenChats.deleteFolderMessage' => 'Chats in the folder are not deleted.',
+			'screenNewChat.title' => 'New Message',
+			'screenNewChat.search' => 'Search',
+			'screenNewChat.newGroup' => 'New Group',
+			'screenNewChat.newChannel' => 'New Channel',
+			'screenNewChat.newCommunity' => 'New Community',
+			'screenNewChat.contacts' => 'Contacts',
+			'screenNewChat.noContacts' => 'No contacts found',
+			'screenNewChat.addMembers' => 'Add Members',
+			'screenNewChat.next' => 'Next',
+			'screenNewChat.selected' => ({required Object n}) => 'Selected: ${n}',
+			'screenNewChat.noMembersHint' => 'You can create a group without members and invite them later.',
+			'screenNewChat.groupTitle' => 'New Group',
+			'screenNewChat.channelTitle' => 'New Channel',
+			'screenNewChat.communityTitle' => 'New Community',
+			'screenNewChat.create' => 'Create',
+			'screenNewChat.groupName' => 'Group Name',
+			'screenNewChat.channelName' => 'Channel Name',
+			'screenNewChat.communityName' => 'Community Name',
+			'screenNewChat.description' => 'Description',
+			'screenNewChat.descriptionHint' => 'Optional',
+			'screenNewChat.channelDescriptionFooter' => 'Tell subscribers what the channel is about.',
+			'screenNewChat.communityDescriptionFooter' => 'A community brings together your groups and channels.',
+			'screenNewChat.members' => 'Members',
+			'screenNewChat.setPhoto' => 'Set Photo',
+			'screenNewChat.changePhoto' => 'Change Photo',
+			'screenNewChat.removePhoto' => 'Remove Photo',
+			'screenNewChat.editPhoto' => 'Edit Photo',
+			'screenNewChat.type' => 'Type',
+			'screenNewChat.typePublic' => 'Public',
+			'screenNewChat.typePrivate' => 'Private',
+			'screenNewChat.channelPublicFooter' => 'Anyone can find a public channel in search and subscribe.',
+			'screenNewChat.channelPrivateFooter' => 'Private channels can only be joined via an invite link.',
+			'screenNewChat.communityPublicFooter' => 'Anyone can find a public community in search and join it.',
+			'screenNewChat.communityPrivateFooter' => 'Private communities can only be joined via an invite link.',
+			'screenNewChat.link' => 'Link',
+			'screenNewChat.usernameHint' => 'name',
+			'screenNewChat.usernameChecking' => 'Checking…',
+			'screenNewChat.usernameAvailable' => 'This link is available.',
+			'screenNewChat.usernameTaken' => 'This link is already taken.',
+			'screenNewChat.usernameInvalid' => '5–24 characters: Latin letters a–z, digits and _.',
+			'screenNewChat.usernameEmpty' => 'Pick a link people will use to find it.',
+			'screenNewChat.inviteLink' => 'Invite Link',
+			'screenNewChat.inviteLinkFooter' => 'Anyone with this link can join. Tap to copy.',
+			'screenNewChat.copied' => 'Link copied',
+			'screenNewChat.joinHeader' => 'Joining',
+			'screenNewChat.joinOpen' => 'Open',
+			'screenNewChat.joinLink' => 'By Invite Link',
+			'screenNewChat.joinRequest' => 'By Request',
+			'screenNewChat.joinAdmins' => 'Added by Admins',
+			'screenNewChat.joinOpenFooter' => 'Anyone can find it in search and join.',
+			'screenNewChat.joinLinkFooter' => 'Only people with the invite link can join.',
+			'screenNewChat.joinRequestFooter' => 'People with the invite link send a request; they join after an admin approves it.',
+			'screenNewChat.joinAdminsFooter' => 'Nobody can join on their own — admins add members.',
+			'screenNewChat.defaultRoleHeader' => 'New Members',
+			'screenNewChat.roleReader' => 'Read Only',
+			'screenNewChat.roleWriter' => 'Can Send Messages',
+			'screenNewChat.roleReaderFooter' => 'New members can read but not send messages.',
+			'screenNewChat.roleWriterFooter' => 'New members can read and send messages.',
 			'screenChat.today' => 'Today',
 			'screenChat.yesterday' => 'Yesterday',
 			'screenChat.online' => 'online',
@@ -2652,6 +2894,8 @@ extension on Translations {
 			'screenContacts.invite' => 'Invite',
 			'screenContacts.inviteAction' => 'Invite',
 			'screenContacts.search' => 'Search',
+			_ => null,
+		} ?? switch (path) {
 			'screenContacts.permissionTitle' => 'Contacts access needed',
 			'screenContacts.permissionMessage' => 'Allow access to your contacts to find friends already on Iperon. Your phone numbers are matched privately and never revealed to the server.',
 			'screenContacts.allowAccess' => 'Allow access',
@@ -2710,8 +2954,6 @@ extension on Translations {
 			'screenAuth.weAreExpectingYourCallWithin' => ({required Object duration}) => 'We are expecting your call within ${duration}',
 			'screenAuth.signInWith' => 'Sign in with',
 			'screenAuth.kContinue' => _root.common.kContinue,
-			_ => null,
-		} ?? switch (path) {
 			'screenAuth.invalidPhoneNumber' => 'Invalid phone number',
 			'screenAuthModerationApplicationStore.verificationCodeMismatch' => 'Verification code mismatch',
 			'screenAuthModerationApplicationStore.moderationApplicationStoreSessionNotFound' => 'Moderation application store session not found',

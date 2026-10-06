@@ -44,6 +44,7 @@ class TranslationsRu extends Translations with BaseTranslations<AppLocale, Trans
 	@override late final _Translations$componentsCamera$ru componentsCamera = _Translations$componentsCamera$ru._(_root);
 	@override late final _Translations$screenHome$ru screenHome = _Translations$screenHome$ru._(_root);
 	@override late final _Translations$screenChats$ru screenChats = _Translations$screenChats$ru._(_root);
+	@override late final _Translations$screenNewChat$ru screenNewChat = _Translations$screenNewChat$ru._(_root);
 	@override late final _Translations$screenChat$ru screenChat = _Translations$screenChat$ru._(_root);
 	@override late final _Translations$screenSettings$ru screenSettings = _Translations$screenSettings$ru._(_root);
 	@override late final _Translations$screenSettingsNotifications$ru screenSettingsNotifications = _Translations$screenSettingsNotifications$ru._(_root);
@@ -181,6 +182,73 @@ class _Translations$screenChats$ru extends Translations$screenChats$en {
 	@override String get deleteFolder => 'Удалить папку';
 	@override String deleteFolderTitle({required Object title}) => 'Удалить папку «${title}»?';
 	@override String get deleteFolderMessage => 'Чаты из папки не удаляются.';
+}
+
+// Path: screenNewChat
+class _Translations$screenNewChat$ru extends Translations$screenNewChat$en {
+	_Translations$screenNewChat$ru._(TranslationsRu root) : this._root = root, super.internal(root);
+
+	final TranslationsRu _root; // ignore: unused_field
+
+	// Translations
+	@override String get title => 'Новое сообщение';
+	@override String get search => 'Поиск';
+	@override String get newGroup => 'Новая группа';
+	@override String get newChannel => 'Новый канал';
+	@override String get newCommunity => 'Новое сообщество';
+	@override String get contacts => 'Контакты';
+	@override String get noContacts => 'Контакты не найдены';
+	@override String get addMembers => 'Добавить участников';
+	@override String get next => 'Далее';
+	@override String selected({required Object n}) => 'Выбрано: ${n}';
+	@override String get noMembersHint => 'Группу можно создать без участников и пригласить их позже.';
+	@override String get groupTitle => 'Новая группа';
+	@override String get channelTitle => 'Новый канал';
+	@override String get communityTitle => 'Новое сообщество';
+	@override String get create => 'Создать';
+	@override String get groupName => 'Название группы';
+	@override String get channelName => 'Название канала';
+	@override String get communityName => 'Название сообщества';
+	@override String get description => 'Описание';
+	@override String get descriptionHint => 'Необязательно';
+	@override String get channelDescriptionFooter => 'Расскажите подписчикам, о чём канал.';
+	@override String get communityDescriptionFooter => 'Сообщество объединяет ваши группы и каналы.';
+	@override String get members => 'Участники';
+	@override String get setPhoto => 'Выбрать фото';
+	@override String get changePhoto => 'Изменить фото';
+	@override String get removePhoto => 'Удалить фото';
+	@override String get editPhoto => 'Фото';
+	@override String get type => 'Тип';
+	@override String get typePublic => 'Публичный';
+	@override String get typePrivate => 'Частный';
+	@override String get channelPublicFooter => 'Публичный канал можно найти в поиске, подписаться на него может любой.';
+	@override String get channelPrivateFooter => 'На частный канал можно подписаться только по ссылке-приглашению.';
+	@override String get communityPublicFooter => 'Публичное сообщество можно найти в поиске, вступить в него может любой.';
+	@override String get communityPrivateFooter => 'В частное сообщество можно вступить только по ссылке-приглашению.';
+	@override String get link => 'Ссылка';
+	@override String get usernameHint => 'имя';
+	@override String get usernameChecking => 'Проверка…';
+	@override String get usernameAvailable => 'Ссылка свободна.';
+	@override String get usernameTaken => 'Эта ссылка уже занята.';
+	@override String get usernameInvalid => 'От 5 до 24 символов: латинские буквы a–z, цифры и _.';
+	@override String get usernameEmpty => 'Придумайте ссылку, по которой его будут находить.';
+	@override String get inviteLink => 'Ссылка-приглашение';
+	@override String get inviteLinkFooter => 'По этой ссылке можно присоединиться. Нажмите, чтобы скопировать.';
+	@override String get copied => 'Ссылка скопирована';
+	@override String get joinHeader => 'Вступление';
+	@override String get joinOpen => 'Открытое';
+	@override String get joinLink => 'По ссылке';
+	@override String get joinRequest => 'По заявке';
+	@override String get joinAdmins => 'Добавляют админы';
+	@override String get joinOpenFooter => 'Найти можно в поиске, вступить может любой.';
+	@override String get joinLinkFooter => 'Вступить можно только по ссылке-приглашению.';
+	@override String get joinRequestFooter => 'По ссылке-приглашению подаётся заявка — вступление после одобрения админом.';
+	@override String get joinAdminsFooter => 'Вступить самостоятельно нельзя — участников добавляют админы.';
+	@override String get defaultRoleHeader => 'Новые участники';
+	@override String get roleReader => 'Только чтение';
+	@override String get roleWriter => 'Чтение и сообщения';
+	@override String get roleReaderFooter => 'Вступившие читают, но не могут писать.';
+	@override String get roleWriterFooter => 'Вступившие могут читать и писать сообщения.';
 }
 
 // Path: screenChat
@@ -1078,6 +1146,64 @@ extension on TranslationsRu {
 			'screenChats.deleteFolder' => 'Удалить папку',
 			'screenChats.deleteFolderTitle' => ({required Object title}) => 'Удалить папку «${title}»?',
 			'screenChats.deleteFolderMessage' => 'Чаты из папки не удаляются.',
+			'screenNewChat.title' => 'Новое сообщение',
+			'screenNewChat.search' => 'Поиск',
+			'screenNewChat.newGroup' => 'Новая группа',
+			'screenNewChat.newChannel' => 'Новый канал',
+			'screenNewChat.newCommunity' => 'Новое сообщество',
+			'screenNewChat.contacts' => 'Контакты',
+			'screenNewChat.noContacts' => 'Контакты не найдены',
+			'screenNewChat.addMembers' => 'Добавить участников',
+			'screenNewChat.next' => 'Далее',
+			'screenNewChat.selected' => ({required Object n}) => 'Выбрано: ${n}',
+			'screenNewChat.noMembersHint' => 'Группу можно создать без участников и пригласить их позже.',
+			'screenNewChat.groupTitle' => 'Новая группа',
+			'screenNewChat.channelTitle' => 'Новый канал',
+			'screenNewChat.communityTitle' => 'Новое сообщество',
+			'screenNewChat.create' => 'Создать',
+			'screenNewChat.groupName' => 'Название группы',
+			'screenNewChat.channelName' => 'Название канала',
+			'screenNewChat.communityName' => 'Название сообщества',
+			'screenNewChat.description' => 'Описание',
+			'screenNewChat.descriptionHint' => 'Необязательно',
+			'screenNewChat.channelDescriptionFooter' => 'Расскажите подписчикам, о чём канал.',
+			'screenNewChat.communityDescriptionFooter' => 'Сообщество объединяет ваши группы и каналы.',
+			'screenNewChat.members' => 'Участники',
+			'screenNewChat.setPhoto' => 'Выбрать фото',
+			'screenNewChat.changePhoto' => 'Изменить фото',
+			'screenNewChat.removePhoto' => 'Удалить фото',
+			'screenNewChat.editPhoto' => 'Фото',
+			'screenNewChat.type' => 'Тип',
+			'screenNewChat.typePublic' => 'Публичный',
+			'screenNewChat.typePrivate' => 'Частный',
+			'screenNewChat.channelPublicFooter' => 'Публичный канал можно найти в поиске, подписаться на него может любой.',
+			'screenNewChat.channelPrivateFooter' => 'На частный канал можно подписаться только по ссылке-приглашению.',
+			'screenNewChat.communityPublicFooter' => 'Публичное сообщество можно найти в поиске, вступить в него может любой.',
+			'screenNewChat.communityPrivateFooter' => 'В частное сообщество можно вступить только по ссылке-приглашению.',
+			'screenNewChat.link' => 'Ссылка',
+			'screenNewChat.usernameHint' => 'имя',
+			'screenNewChat.usernameChecking' => 'Проверка…',
+			'screenNewChat.usernameAvailable' => 'Ссылка свободна.',
+			'screenNewChat.usernameTaken' => 'Эта ссылка уже занята.',
+			'screenNewChat.usernameInvalid' => 'От 5 до 24 символов: латинские буквы a–z, цифры и _.',
+			'screenNewChat.usernameEmpty' => 'Придумайте ссылку, по которой его будут находить.',
+			'screenNewChat.inviteLink' => 'Ссылка-приглашение',
+			'screenNewChat.inviteLinkFooter' => 'По этой ссылке можно присоединиться. Нажмите, чтобы скопировать.',
+			'screenNewChat.copied' => 'Ссылка скопирована',
+			'screenNewChat.joinHeader' => 'Вступление',
+			'screenNewChat.joinOpen' => 'Открытое',
+			'screenNewChat.joinLink' => 'По ссылке',
+			'screenNewChat.joinRequest' => 'По заявке',
+			'screenNewChat.joinAdmins' => 'Добавляют админы',
+			'screenNewChat.joinOpenFooter' => 'Найти можно в поиске, вступить может любой.',
+			'screenNewChat.joinLinkFooter' => 'Вступить можно только по ссылке-приглашению.',
+			'screenNewChat.joinRequestFooter' => 'По ссылке-приглашению подаётся заявка — вступление после одобрения админом.',
+			'screenNewChat.joinAdminsFooter' => 'Вступить самостоятельно нельзя — участников добавляют админы.',
+			'screenNewChat.defaultRoleHeader' => 'Новые участники',
+			'screenNewChat.roleReader' => 'Только чтение',
+			'screenNewChat.roleWriter' => 'Чтение и сообщения',
+			'screenNewChat.roleReaderFooter' => 'Вступившие читают, но не могут писать.',
+			'screenNewChat.roleWriterFooter' => 'Вступившие могут читать и писать сообщения.',
 			'screenChat.today' => 'Сегодня',
 			'screenChat.yesterday' => 'Вчера',
 			'screenChat.online' => 'в сети',
@@ -1467,6 +1593,8 @@ extension on TranslationsRu {
 			'screenContacts.invite' => 'Пригласить',
 			'screenContacts.inviteAction' => 'Пригласить',
 			'screenContacts.search' => 'Поиск',
+			_ => null,
+		} ?? switch (path) {
 			'screenContacts.permissionTitle' => 'Нужен доступ к контактам',
 			'screenContacts.permissionMessage' => 'Разрешите доступ к контактам, чтобы найти друзей, которые уже в Iperon. Ваши номера сверяются приватно и не раскрываются серверу.',
 			'screenContacts.allowAccess' => 'Разрешить доступ',
@@ -1525,8 +1653,6 @@ extension on TranslationsRu {
 			'screenAuth.weAreExpectingYourCallWithin' => ({required Object duration}) => 'Мы ждём вашего звонка в течение ${duration}',
 			'screenAuth.signInWith' => 'Войти через',
 			'screenAuth.kContinue' => _root.common.kContinue,
-			_ => null,
-		} ?? switch (path) {
 			'screenAuth.invalidPhoneNumber' => 'Неверный номер телефона',
 			'screenAuthModerationApplicationStore.verificationCodeMismatch' => 'Неверный код подтверждения',
 			'screenAuthModerationApplicationStore.moderationApplicationStoreSessionNotFound' => 'Сессия не найдена',

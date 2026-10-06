@@ -26,6 +26,14 @@ enum ChatReactionsMode { all, some, none }
 @MappableEnum()
 enum ChatRole { reader, writer, admin, owner }
 
+/// Как вступить в группу/сообщество (см. docs/plans/chats-groups-channels.md,
+/// «Приватность групп»): [open] — публичная, находится поиском по username,
+/// вступает любой; [link] — по ссылке-приглашению; [request] — по ссылке, но
+/// после одобрения админом; [admins] — только админ добавляет. У канала —
+/// только [open] (публичный) / [link] (частный).
+@MappableEnum()
+enum ChatJoinMode { open, link, request, admins }
+
 /// Участник группы (профиль чата → «Участники»).
 @MappableClass()
 class ChatMember with ChatMemberMappable {
@@ -124,6 +132,21 @@ class Chat with ChatMappable {
   /// Публичное имя (@username) — у пользователя или публичной группы/канала.
   final String username;
 
+  /// Ссылка-приглашение частной группы/канала/сообщества (`+код`, ссылка —
+  /// `iperon.net/+код`); у публичных — пусто, ссылка по [username].
+  final String inviteLink;
+
+  /// Аватар чата — локальный файл (пока только у созданных в демо; настоящие
+  /// аватарки придут с сервера по `cdnID`). Пусто — генеративный плейсхолдер.
+  final String avatarPath;
+
+  /// Как вступить (группа/сообщество) / публичный ли канал.
+  final ChatJoinMode joinMode;
+
+  /// Роль, которую получает вступивший в группу/сообщество: [ChatRole.reader]
+  /// или [ChatRole.writer] (в канале подписчик всегда читатель).
+  final ChatRole defaultRole;
+
   /// Участников группы / подписчиков канала (0 — личный чат).
   final int membersCount;
 
@@ -133,6 +156,10 @@ class Chat with ChatMappable {
   /// Собеседник в сети (личный чат); иначе — [lastSeen].
   final bool online;
   final DateTime? lastSeen;
+
+  /// Когда чат появился у нас (создан / открыт впервые) — для сортировки, пока
+  /// в нём нет сообщений.
+  final DateTime? createdAt;
 
   const Chat({
     required this.id,
@@ -153,17 +180,30 @@ class Chat with ChatMappable {
     this.reactions = const [],
     this.about = '',
     this.username = '',
+    this.inviteLink = '',
+    this.avatarPath = '',
+    this.joinMode = ChatJoinMode.link,
+    this.defaultRole = ChatRole.reader,
     this.membersCount = 0,
     this.myRole = ChatRole.writer,
     this.online = false,
     this.lastSeen,
+    this.createdAt,
   });
 
   /// Админ или владелец — может менять настройки группы/канала.
   bool get canManage => myRole == ChatRole.admin || myRole == ChatRole.owner;
 
+  /// Путь ссылки на чат после `iperon.net/`: публичный [username] или
+  /// [inviteLink]; пусто — ссылки нет.
+  String get linkPath => username.isNotEmpty ? username : inviteLink;
+
   bool get hasUnread => unreadCount > 0 || markedUnread;
 
   /// Дата для сортировки (последнее сообщение).
-  DateTime get sortDate => lastMessage?.date ?? DateTime.fromMillisecondsSinceEpoch(0);
+  DateTime get sortDate => lastMessage?.date ?? createdAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+
+  /// Личный чат, в котором ещё ничего нет (открыли из «Нового сообщения» и
+  /// ничего не отправили) — в списке не показывается, как в Telegram.
+  bool get isBlank => type == ChatType.private && !isSelf && lastMessage == null && draft.isEmpty;
 }

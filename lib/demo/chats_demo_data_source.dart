@@ -104,9 +104,196 @@ class ChatsDemoDataSource implements ChatsDataSource {
     });
   }
 
+  // ─── Новые чаты ───────────────────────────────────────────────────────────
+
+  /// Демо-контакты: собеседники личных чатов (id контакта = id чата) и ещё
+  /// несколько человек, с кем переписки пока нет.
+  List<models.ChatMember> _contacts() {
+    final now = DateTime.now();
+    final fromChats = [
+      for (final c in _chats)
+        if (c.type == models.ChatType.private && !c.isSelf && c.isContact)
+          models.ChatMember(id: c.id, name: c.title, online: c.online, lastSeen: c.lastSeen),
+    ];
+    final known = {for (final m in fromChats) m.id};
+    final extra = [
+      models.ChatMember(id: 'ekaterina', name: 'Екатерина Волкова', lastSeen: now.subtract(const Duration(minutes: 40))),
+      models.ChatMember(id: 'ivan', name: 'Иван Новиков', online: true),
+      models.ChatMember(id: 'pavel', name: 'Павел Морозов', lastSeen: now.subtract(const Duration(hours: 3))),
+      models.ChatMember(id: 'natalia', name: 'Наталья Соколова', lastSeen: now.subtract(const Duration(days: 2))),
+      models.ChatMember(id: 'mikhail', name: 'Михаил Орлов'),
+      models.ChatMember(id: 'tatiana', name: 'Татьяна Лебедева', online: true),
+      models.ChatMember(id: 'andrey', name: 'Андрей Захаров', lastSeen: now.subtract(const Duration(minutes: 5))),
+      models.ChatMember(id: 'yulia', name: 'Юлия Кузнецова', lastSeen: now.subtract(const Duration(hours: 20))),
+    ].where((m) => !known.contains(m.id));
+    return [...fromChats, ...extra]..sort((a, b) => a.name.compareTo(b.name));
+  }
+
+  @override
+  Future<List<models.ChatMember>> contacts() async => _contacts();
+
+  @override
+  Future<String> openPrivateChat(String userID) async {
+    if (_chats.any((c) => c.id == userID)) {
+      // Чат мог быть в архиве — достаём, как при новом сообщении.
+      _update(userID, (c) => c.copyWith(archived: false));
+      return userID;
+    }
+    final contact = _contacts().firstWhere((m) => m.id == userID);
+    // Пустая история — иначе при открытии сгенерировалась бы демо-переписка.
+    _messages[userID] = [];
+    _chats = [
+      ..._chats,
+      models.Chat(
+        id: userID,
+        type: models.ChatType.private,
+        title: contact.name,
+        isContact: true,
+        online: contact.online,
+        lastSeen: contact.lastSeen,
+        createdAt: DateTime.now(),
+      ),
+    ];
+    _chatsController.add(_chats);
+    return userID;
+  }
+
+  /// Занятые публичные имена: у демо-чатов и несколько зарезервированных.
+  @override
+  Future<bool> isUsernameAvailable(String username, {String exceptChatID = ''}) async {
+    await Future<void>.delayed(const Duration(milliseconds: 350)); // как запрос к серверу
+    const reserved = {'iperon', 'admin', 'support', 'settings', 'channel', 'group', 'community'};
+    final name = username.toLowerCase();
+    return !reserved.contains(name) && !_chats.any((c) => c.id != exceptChatID && c.username.toLowerCase() == name);
+  }
+
+  var _nextChatID = 0;
+
+  @override
+  Future<String> createChat({
+    required models.ChatType type,
+    required String title,
+    String about = '',
+    List<String> memberIDs = const [],
+    String username = '',
+    String inviteLink = '',
+    String avatarPath = '',
+  }) async {
+    final now = DateTime.now();
+    final id = 'new${_nextChatID++}';
+    final contacts = {for (final m in _contacts()) m.id: m};
+    final members = [
+      for (final memberID in memberIDs)
+        if (contacts[memberID] case final m?) m.copyWith(role: models.ChatRole.writer),
+    ];
+    _members[id] = [const models.ChatMember(id: 'me', name: 'Вы', role: models.ChatRole.owner, online: true, isSelf: true), ...members];
+
+    // Сервисное «создан» первым сообщением (в демо — по-русски, как прочие
+    // сервисные; настоящие придут с сервера структурой и локализуются).
+    final service = switch (type) {
+      models.ChatType.group => 'Вы создали группу «$title»',
+      models.ChatType.channel => 'Канал создан',
+      models.ChatType.community => 'Сообщество создано',
+      models.ChatType.private => '',
+    };
+    _messages[id] = [
+      models.Message(id: _id(), chatID: id, text: service, outgoing: true, service: true, status: models.MessageStatus.read, date: now),
+      if (type == models.ChatType.group && members.isNotEmpty)
+        models.Message(
+          id: _id(),
+          chatID: id,
+          text: 'Вы добавили ${members.map((m) => m.name).join(', ')}',
+          outgoing: true,
+          service: true,
+          status: models.MessageStatus.read,
+          date: now,
+        ),
+    ];
+
+    _chats = [
+      ..._chats,
+      models.Chat(
+        id: id,
+        type: type,
+        title: title,
+        about: about,
+        username: username,
+        inviteLink: username.isEmpty ? inviteLink : '',
+        joinMode: username.isEmpty ? models.ChatJoinMode.link : models.ChatJoinMode.open,
+        avatarPath: avatarPath,
+        membersCount: 1 + members.length,
+        myRole: models.ChatRole.owner,
+        createdAt: now,
+        lastMessage: models.ChatLastMessage(text: service, date: now),
+      ),
+    ];
+    _chatsController.add(_chats);
+    return id;
+  }
+
+  @override
+  Future<void> updateChat(
+    String chatID, {
+    required String title,
+    required String about,
+    required String avatarPath,
+    required models.ChatJoinMode joinMode,
+    required String username,
+    required String inviteLink,
+    required models.ChatRole defaultRole,
+  }) async {
+    final chat = _chats.where((c) => c.id == chatID).firstOrNull;
+    if (chat == null) return;
+    final open = joinMode == models.ChatJoinMode.open;
+    _update(
+      chatID,
+      (c) => c.copyWith(
+        title: title,
+        about: about,
+        avatarPath: avatarPath,
+        joinMode: joinMode,
+        username: open ? username : '',
+        // Ссылка-приглашение сохраняется и у публичного — вернётся при
+        // переключении обратно; у «только админы» её нет.
+        inviteLink: joinMode == models.ChatJoinMode.admins ? '' : inviteLink,
+        defaultRole: defaultRole,
+      ),
+    );
+    // Сервисные «изменил название / фото» (в демо — по-русски, как прочие).
+    final channel = chat.type == models.ChatType.channel;
+    final now = DateTime.now();
+    models.Message service(String text) =>
+        models.Message(id: _id(), chatID: chatID, text: text, outgoing: true, service: true, status: models.MessageStatus.read, date: now);
+    _setMessages(chatID, [
+      ..._history(chatID),
+      if (chat.title != title) service(channel ? 'Название канала изменено на «$title»' : 'Вы изменили название на «$title»'),
+      if (chat.avatarPath != avatarPath)
+        service(
+          avatarPath.isEmpty
+              ? (channel ? 'Фото канала удалено' : 'Вы удалили фото')
+              : (channel ? 'Фото канала изменено' : 'Вы изменили фото'),
+        ),
+    ]);
+  }
+
   /// Профиль демо-чата: «О себе» / описание, @username, число участников и
   /// наша роль.
   models.Chat _withProfile(models.Chat chat) {
+    final withProfile = _profileOf(chat);
+    // Публичные (с username) — открытые; в рабочих и дружеских группах
+    // вступившие сразу могут писать.
+    return withProfile.copyWith(
+      joinMode: withProfile.username.isNotEmpty ? models.ChatJoinMode.open : models.ChatJoinMode.link,
+      inviteLink: withProfile.username.isEmpty && withProfile.type != models.ChatType.private
+          ? '+K${(chat.id.hashCode & 0xFFFFFFF).toRadixString(36)}hQ'
+          : '',
+      defaultRole: const {'team', 'family', 'football', 'district', 'devs'}.contains(chat.id)
+          ? models.ChatRole.writer
+          : models.ChatRole.reader,
+    );
+  }
+
+  models.Chat _profileOf(models.Chat chat) {
     final now = DateTime.now();
     return switch (chat.id) {
       'anna' => chat.copyWith(about: 'Дизайнер интерфейсов. Люблю горы 🏔', username: 'anna_smirnova', online: true),
@@ -573,7 +760,17 @@ class ChatsDemoDataSource implements ChatsDataSource {
   /// начинает печатать, через 3 с приходит сообщение. Заодно наши отправленные
   /// сообщения становятся прочитанными.
   void _tick() {
-    final candidates = _chats.where((c) => !c.archived && !c.isSelf && c.type != models.ChatType.channel && c.draft.isEmpty).toList();
+    final candidates = _chats
+        .where(
+          (c) =>
+              !c.archived &&
+              !c.isSelf &&
+              c.type != models.ChatType.channel &&
+              c.draft.isEmpty &&
+              // Новая группа, где пока только мы, — писать некому.
+              (c.type == models.ChatType.private || c.membersCount > 1),
+        )
+        .toList();
     if (candidates.isEmpty) return;
     final chat = candidates[_random.nextInt(candidates.length)];
     final sender = chat.type == models.ChatType.private ? chat.title : _names[_random.nextInt(_names.length)];

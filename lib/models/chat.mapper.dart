@@ -274,6 +274,60 @@ extension ChatRoleMapperExtension on ChatRole {
   }
 }
 
+class ChatJoinModeMapper extends EnumMapper<ChatJoinMode> {
+  ChatJoinModeMapper._();
+
+  static ChatJoinModeMapper? _instance;
+  static ChatJoinModeMapper ensureInitialized() {
+    if (_instance == null) {
+      MapperContainer.globals.use(_instance = ChatJoinModeMapper._());
+    }
+    return _instance!;
+  }
+
+  static ChatJoinMode fromValue(dynamic value) {
+    ensureInitialized();
+    return MapperContainer.globals.fromValue(value);
+  }
+
+  @override
+  ChatJoinMode decode(dynamic value) {
+    switch (value) {
+      case r'open':
+        return ChatJoinMode.open;
+      case r'link':
+        return ChatJoinMode.link;
+      case r'request':
+        return ChatJoinMode.request;
+      case r'admins':
+        return ChatJoinMode.admins;
+      default:
+        throw MapperException.unknownEnumValue(value);
+    }
+  }
+
+  @override
+  dynamic encode(ChatJoinMode self) {
+    switch (self) {
+      case ChatJoinMode.open:
+        return r'open';
+      case ChatJoinMode.link:
+        return r'link';
+      case ChatJoinMode.request:
+        return r'request';
+      case ChatJoinMode.admins:
+        return r'admins';
+    }
+  }
+}
+
+extension ChatJoinModeMapperExtension on ChatJoinMode {
+  String toValue() {
+    ChatJoinModeMapper.ensureInitialized();
+    return MapperContainer.globals.toValue<ChatJoinMode>(this) as String;
+  }
+}
+
 class ChatMemberMapper extends ClassMapperBase<ChatMember> {
   ChatMemberMapper._();
 
@@ -657,6 +711,7 @@ class ChatMapper extends ClassMapperBase<Chat> {
       ChatTypeMapper.ensureInitialized();
       ChatLastMessageMapper.ensureInitialized();
       ChatReactionsModeMapper.ensureInitialized();
+      ChatJoinModeMapper.ensureInitialized();
       ChatRoleMapper.ensureInitialized();
     }
     return _instance!;
@@ -775,6 +830,34 @@ class ChatMapper extends ClassMapperBase<Chat> {
     opt: true,
     def: '',
   );
+  static String _$inviteLink(Chat v) => v.inviteLink;
+  static const Field<Chat, String> _f$inviteLink = Field(
+    'inviteLink',
+    _$inviteLink,
+    opt: true,
+    def: '',
+  );
+  static String _$avatarPath(Chat v) => v.avatarPath;
+  static const Field<Chat, String> _f$avatarPath = Field(
+    'avatarPath',
+    _$avatarPath,
+    opt: true,
+    def: '',
+  );
+  static ChatJoinMode _$joinMode(Chat v) => v.joinMode;
+  static const Field<Chat, ChatJoinMode> _f$joinMode = Field(
+    'joinMode',
+    _$joinMode,
+    opt: true,
+    def: ChatJoinMode.link,
+  );
+  static ChatRole _$defaultRole(Chat v) => v.defaultRole;
+  static const Field<Chat, ChatRole> _f$defaultRole = Field(
+    'defaultRole',
+    _$defaultRole,
+    opt: true,
+    def: ChatRole.reader,
+  );
   static int _$membersCount(Chat v) => v.membersCount;
   static const Field<Chat, int> _f$membersCount = Field(
     'membersCount',
@@ -802,6 +885,12 @@ class ChatMapper extends ClassMapperBase<Chat> {
     _$lastSeen,
     opt: true,
   );
+  static DateTime? _$createdAt(Chat v) => v.createdAt;
+  static const Field<Chat, DateTime> _f$createdAt = Field(
+    'createdAt',
+    _$createdAt,
+    opt: true,
+  );
 
   @override
   final MappableFields<Chat> fields = const {
@@ -823,10 +912,15 @@ class ChatMapper extends ClassMapperBase<Chat> {
     #reactions: _f$reactions,
     #about: _f$about,
     #username: _f$username,
+    #inviteLink: _f$inviteLink,
+    #avatarPath: _f$avatarPath,
+    #joinMode: _f$joinMode,
+    #defaultRole: _f$defaultRole,
     #membersCount: _f$membersCount,
     #myRole: _f$myRole,
     #online: _f$online,
     #lastSeen: _f$lastSeen,
+    #createdAt: _f$createdAt,
   };
 
   static Chat _instantiate(DecodingData data) {
@@ -849,10 +943,15 @@ class ChatMapper extends ClassMapperBase<Chat> {
       reactions: data.dec(_f$reactions),
       about: data.dec(_f$about),
       username: data.dec(_f$username),
+      inviteLink: data.dec(_f$inviteLink),
+      avatarPath: data.dec(_f$avatarPath),
+      joinMode: data.dec(_f$joinMode),
+      defaultRole: data.dec(_f$defaultRole),
       membersCount: data.dec(_f$membersCount),
       myRole: data.dec(_f$myRole),
       online: data.dec(_f$online),
       lastSeen: data.dec(_f$lastSeen),
+      createdAt: data.dec(_f$createdAt),
     );
   }
 
@@ -924,10 +1023,15 @@ abstract class ChatCopyWith<$R, $In extends Chat, $Out>
     List<String>? reactions,
     String? about,
     String? username,
+    String? inviteLink,
+    String? avatarPath,
+    ChatJoinMode? joinMode,
+    ChatRole? defaultRole,
     int? membersCount,
     ChatRole? myRole,
     bool? online,
     DateTime? lastSeen,
+    DateTime? createdAt,
   });
   ChatCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
@@ -969,10 +1073,15 @@ class _ChatCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Chat, $Out>
     List<String>? reactions,
     String? about,
     String? username,
+    String? inviteLink,
+    String? avatarPath,
+    ChatJoinMode? joinMode,
+    ChatRole? defaultRole,
     int? membersCount,
     ChatRole? myRole,
     bool? online,
     Object? lastSeen = $none,
+    Object? createdAt = $none,
   }) => $apply(
     FieldCopyWithData({
       if (id != null) #id: id,
@@ -993,10 +1102,15 @@ class _ChatCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Chat, $Out>
       if (reactions != null) #reactions: reactions,
       if (about != null) #about: about,
       if (username != null) #username: username,
+      if (inviteLink != null) #inviteLink: inviteLink,
+      if (avatarPath != null) #avatarPath: avatarPath,
+      if (joinMode != null) #joinMode: joinMode,
+      if (defaultRole != null) #defaultRole: defaultRole,
       if (membersCount != null) #membersCount: membersCount,
       if (myRole != null) #myRole: myRole,
       if (online != null) #online: online,
       if (lastSeen != $none) #lastSeen: lastSeen,
+      if (createdAt != $none) #createdAt: createdAt,
     }),
   );
   @override
@@ -1019,10 +1133,15 @@ class _ChatCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Chat, $Out>
     reactions: data.get(#reactions, or: $value.reactions),
     about: data.get(#about, or: $value.about),
     username: data.get(#username, or: $value.username),
+    inviteLink: data.get(#inviteLink, or: $value.inviteLink),
+    avatarPath: data.get(#avatarPath, or: $value.avatarPath),
+    joinMode: data.get(#joinMode, or: $value.joinMode),
+    defaultRole: data.get(#defaultRole, or: $value.defaultRole),
     membersCount: data.get(#membersCount, or: $value.membersCount),
     myRole: data.get(#myRole, or: $value.myRole),
     online: data.get(#online, or: $value.online),
     lastSeen: data.get(#lastSeen, or: $value.lastSeen),
+    createdAt: data.get(#createdAt, or: $value.createdAt),
   );
 
   @override

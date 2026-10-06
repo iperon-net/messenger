@@ -71,6 +71,21 @@ class _ChatsMaterial extends State<ChatsMaterial> with SearchHideOnScroll {
               },
             ),
           ),
+          // «Новое» — карандаш справа от заголовка; пока только в демо
+          // (настоящих чатов ещё нет).
+          actions: [
+            BlocSelector<ChatsCubit, ChatsState, bool>(
+              selector: (state) => state.demo,
+              builder: (context, demo) {
+                if (!demo) return const SizedBox.shrink();
+                return IconButton(
+                  tooltip: context.t.screenNewChat.title,
+                  onPressed: () => context.push('/chats/new'),
+                  icon: const HugeIcon(icon: HugeIcons.strokeRoundedPencilEdit02),
+                );
+              },
+            ),
+          ],
         ),
         // Шапка (поиск, баннер, табы) поверх списков: поиск уезжает вместе со
         // списком, как в Telegram (см. SearchHideOnScroll).

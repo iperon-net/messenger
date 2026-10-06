@@ -11,6 +11,7 @@ import '../../i18n/translations.g.dart';
 import '../../models.dart' as models;
 import '../../themes.dart';
 import 'chat_common.dart';
+import 'chat_create_form_material.dart';
 import 'chat_info_common.dart';
 
 /// Профиль чата (Android) — тап по шапке окна чата. Результат — что сделать в
@@ -83,7 +84,18 @@ class _ChatInfoMaterialState extends State<ChatInfoMaterial> {
         final subtitle = chat == null ? null : chatSubtitle(t, chat);
         return Scaffold(
           backgroundColor: dark ? const Color(0xFF000000) : scheme.surfaceContainerLow,
-          appBar: AppBar(backgroundColor: dark ? const Color(0xFF000000) : scheme.surfaceContainerLow),
+          appBar: AppBar(
+            backgroundColor: dark ? const Color(0xFF000000) : scheme.surfaceContainerLow,
+            // «Изменить» — админу группы / канала / сообщества.
+            actions: [
+              if (chat != null && chat.canManage && chat.type != models.ChatType.private)
+                IconButton(
+                  tooltip: t.common.edit,
+                  onPressed: () => showChatEditMaterial(context, chat),
+                  icon: const HugeIcon(icon: HugeIcons.strokeRoundedPencilEdit02),
+                ),
+            ],
+          ),
           body: chat == null
               ? const SizedBox.shrink()
               : ListView(
@@ -142,7 +154,7 @@ class _ChatInfoMaterialState extends State<ChatInfoMaterial> {
                         ],
                       ),
                     ),
-                    if (chat.about.isNotEmpty || chat.username.isNotEmpty)
+                    if (chat.about.isNotEmpty || chat.linkPath.isNotEmpty)
                       Card(
                         margin: const EdgeInsets.fromLTRB(12, 16, 12, 0),
                         color: card,
@@ -157,7 +169,7 @@ class _ChatInfoMaterialState extends State<ChatInfoMaterial> {
                                 ),
                                 onTap: () => _copy(context, chat.about),
                               ),
-                            if (chat.username.isNotEmpty)
+                            if (chat.linkPath.isNotEmpty)
                               chat.type == models.ChatType.private
                                   ? ListTile(
                                       leading: HugeIcon(icon: HugeIcons.strokeRoundedAt, color: scheme.onSurfaceVariant),
@@ -167,9 +179,9 @@ class _ChatInfoMaterialState extends State<ChatInfoMaterial> {
                                     )
                                   : ListTile(
                                       leading: HugeIcon(icon: HugeIcons.strokeRoundedLink01, color: scheme.onSurfaceVariant),
-                                      title: Text('iperon.net/${chat.username}'),
+                                      title: Text('iperon.net/${chat.linkPath}'),
                                       subtitle: Text(t.screenChatInfo.link),
-                                      onTap: () => _copy(context, 'https://iperon.net/${chat.username}'),
+                                      onTap: () => _copy(context, 'https://iperon.net/${chat.linkPath}'),
                                     ),
                           ],
                         ),

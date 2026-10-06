@@ -10,6 +10,7 @@ import 'components.dart';
 import 'cubit.dart';
 import 'di.dart';
 import 'logger.dart';
+import 'models.dart' as models;
 import 'repositories.dart';
 import 'screens.dart';
 import 'auth.dart';
@@ -138,6 +139,68 @@ class Routers {
                       child: const ChatCupertino(),
                     ),
                   ),
+                ),
+                // «Новое»: «Новое сообщение» (контакты) → личный чат, или
+                // группа (участники → название), канал, сообщество. Свой
+                // ChatCreateCubit на каждом экране: участники группы
+                // передаются на шаг названия через `extra`.
+                GoRoute(
+                  path: "new",
+                  parentNavigatorKey: rootNavigatorKey,
+                  pageBuilder: (context, state) => _page(
+                    state,
+                    BlocProvider<ChatCreateCubit>(
+                      create: (context) =>
+                          ChatCreateCubit()..initialization(demo: context.read<CommonCubit>().state.settingsDevice.chatsDemo),
+                      child: const ChatsNewCupertino(),
+                    ),
+                  ),
+                  routes: [
+                    GoRoute(
+                      path: "group",
+                      parentNavigatorKey: rootNavigatorKey,
+                      pageBuilder: (context, state) => _page(
+                        state,
+                        BlocProvider<ChatCreateCubit>(
+                          create: (context) => ChatCreateCubit()
+                            ..initialization(demo: context.read<CommonCubit>().state.settingsDevice.chatsDemo, type: models.ChatType.group),
+                          child: const ChatCreateMembersCupertino(),
+                        ),
+                      ),
+                      routes: [
+                        GoRoute(
+                          path: "info",
+                          parentNavigatorKey: rootNavigatorKey,
+                          pageBuilder: (context, state) => _page(
+                            state,
+                            BlocProvider<ChatCreateCubit>(
+                              create: (context) => ChatCreateCubit()
+                                ..initialization(
+                                  demo: context.read<CommonCubit>().state.settingsDevice.chatsDemo,
+                                  type: models.ChatType.group,
+                                  selected: state.extra is List<models.ChatMember> ? state.extra! as List<models.ChatMember> : const [],
+                                ),
+                              child: const ChatCreateFormCupertino(),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    for (final type in [models.ChatType.channel, models.ChatType.community])
+                      GoRoute(
+                        path: type.name,
+                        parentNavigatorKey: rootNavigatorKey,
+                        pageBuilder: (context, state) => _page(
+                          state,
+                          BlocProvider<ChatCreateCubit>(
+                            create: (context) =>
+                                ChatCreateCubit()
+                                  ..initialization(demo: context.read<CommonCubit>().state.settingsDevice.chatsDemo, type: type),
+                            child: const ChatCreateFormCupertino(),
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
               ],
             ),
@@ -719,6 +782,68 @@ class Routers {
                       child: const ChatMaterial(),
                     ),
                   ),
+                ),
+                // «Новое»: «Новое сообщение» (контакты) → личный чат, или
+                // группа (участники → название), канал, сообщество. Свой
+                // ChatCreateCubit на каждом экране: участники группы
+                // передаются на шаг названия через `extra`.
+                GoRoute(
+                  path: "new",
+                  parentNavigatorKey: rootNavigatorKey,
+                  pageBuilder: (context, state) => _pageMaterial(
+                    state,
+                    BlocProvider<ChatCreateCubit>(
+                      create: (context) =>
+                          ChatCreateCubit()..initialization(demo: context.read<CommonCubit>().state.settingsDevice.chatsDemo),
+                      child: const ChatsNewMaterial(),
+                    ),
+                  ),
+                  routes: [
+                    GoRoute(
+                      path: "group",
+                      parentNavigatorKey: rootNavigatorKey,
+                      pageBuilder: (context, state) => _pageMaterial(
+                        state,
+                        BlocProvider<ChatCreateCubit>(
+                          create: (context) => ChatCreateCubit()
+                            ..initialization(demo: context.read<CommonCubit>().state.settingsDevice.chatsDemo, type: models.ChatType.group),
+                          child: const ChatCreateMembersMaterial(),
+                        ),
+                      ),
+                      routes: [
+                        GoRoute(
+                          path: "info",
+                          parentNavigatorKey: rootNavigatorKey,
+                          pageBuilder: (context, state) => _pageMaterial(
+                            state,
+                            BlocProvider<ChatCreateCubit>(
+                              create: (context) => ChatCreateCubit()
+                                ..initialization(
+                                  demo: context.read<CommonCubit>().state.settingsDevice.chatsDemo,
+                                  type: models.ChatType.group,
+                                  selected: state.extra is List<models.ChatMember> ? state.extra! as List<models.ChatMember> : const [],
+                                ),
+                              child: const ChatCreateFormMaterial(),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    for (final type in [models.ChatType.channel, models.ChatType.community])
+                      GoRoute(
+                        path: type.name,
+                        parentNavigatorKey: rootNavigatorKey,
+                        pageBuilder: (context, state) => _pageMaterial(
+                          state,
+                          BlocProvider<ChatCreateCubit>(
+                            create: (context) =>
+                                ChatCreateCubit()
+                                  ..initialization(demo: context.read<CommonCubit>().state.settingsDevice.chatsDemo, type: type),
+                            child: const ChatCreateFormMaterial(),
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
               ],
             ),

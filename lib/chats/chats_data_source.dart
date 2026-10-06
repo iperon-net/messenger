@@ -26,6 +26,47 @@ abstract class ChatsDataSource {
 
   Future<void> deleteFolder(String folderID);
 
+  /// Контакты, с которыми можно начать личный чат или добавить в группу
+  /// («Новое сообщение», выбор участников) — по алфавиту.
+  Future<List<models.ChatMember>> contacts();
+
+  /// Личный чат с контактом [userID]: существующий или новый пустой. Возвращает
+  /// id чата.
+  Future<String> openPrivateChat(String userID);
+
+  /// Свободно ли публичное имя группы/канала/сообщества (форма создания и
+  /// «Изменить»; своё текущее имя чата [exceptChatID] — свободно).
+  Future<bool> isUsernameAvailable(String username, {String exceptChatID = ''});
+
+  /// Создать группу / канал / сообщество, мы — владелец. [memberIDs] — кого
+  /// добавить сразу (группа); [username] — публичное имя (пусто — частный чат со
+  /// ссылкой-приглашением [inviteLink]); [avatarPath] — локальный файл фото.
+  /// Возвращает id нового чата.
+  Future<String> createChat({
+    required models.ChatType type,
+    required String title,
+    String about = '',
+    List<String> memberIDs = const [],
+    String username = '',
+    String inviteLink = '',
+    String avatarPath = '',
+  });
+
+  /// Изменить группу/канал/сообщество (профиль чата → «Изменить», админ):
+  /// название, описание, фото, способ вступления ([username] — для
+  /// [models.ChatJoinMode.open], иначе действует [inviteLink]) и роль
+  /// вступивших.
+  Future<void> updateChat(
+    String chatID, {
+    required String title,
+    required String about,
+    required String avatarPath,
+    required models.ChatJoinMode joinMode,
+    required String username,
+    required String inviteLink,
+    required models.ChatRole defaultRole,
+  });
+
   /// Участники группы (профиль чата): владелец и админы первыми.
   Future<List<models.ChatMember>> members(String chatID);
 
