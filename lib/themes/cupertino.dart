@@ -141,6 +141,26 @@ class ThemesCupertino {
   /// акцентными.
   static Color actionColor(BuildContext context) => navActionColor(context);
 
+  /// Тёмная seed-схема акцента (как у Material-темы Android) — по светлому
+  /// значению `primaryColor` (оно и есть seed темы). Кэш — по seed.
+  static final _darkSchemes = <int, ColorScheme>{};
+
+  static ColorScheme? _chatScheme(BuildContext context) {
+    if (CupertinoTheme.brightnessOf(context) != Brightness.dark) return null;
+    final primary = CupertinoTheme.of(context).primaryColor;
+    final seed = primary is CupertinoDynamicColor ? primary.color : primary;
+    return _darkSchemes.putIfAbsent(seed.toARGB32(), () => ColorScheme.fromSeed(seedColor: seed, brightness: Brightness.dark));
+  }
+
+  /// Ссылки во входящих пузырях: в тёмной теме — мягкий светлый тон (как
+  /// `primary` на Android), в светлой — `primaryColor`.
+  static Color chatAccent(BuildContext context) =>
+      _chatScheme(context)?.primary ?? CupertinoDynamicColor.resolve(CupertinoTheme.of(context).primaryColor, context);
+
+  /// Мета в пузырях (время, просмотры) — в тёмной теме как на Android.
+  static Color chatMeta(BuildContext context) =>
+      _chatScheme(context)?.onSurfaceVariant ?? CupertinoColors.secondaryLabel.resolveFrom(context);
+
   /// Полная конфигурация `ScreenLockConfig` с общим фоном.
   static ScreenLockConfig screenLockConfig(BuildContext context) =>
       ScreenLockConfig.defaultConfig.copyWith(backgroundColor: screenLockBackground(context));

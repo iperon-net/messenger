@@ -35,12 +35,14 @@ class ChatCupertino extends StatefulWidget {
     final primary = CupertinoDynamicColor.resolve(CupertinoTheme.of(context).primaryColor, context);
     final dark = CupertinoTheme.brightnessOf(context) == Brightness.dark;
     final label = CupertinoColors.label.resolveFrom(context);
+    // В тёмной теме ссылки (в т.ч. «N комментариев», «Переслано от») и мета
+    // (время, просмотры) — мягкие тона как на Android (см. chatAccent).
     return MessageBubbleStyle(
       incoming: dark ? const Color(0xFF262628) : const Color(0xFFFFFFFF),
       outgoing: primary,
       incomingText: MessageTextColors(
         text: label,
-        link: primary,
+        link: ThemesCupertino.chatAccent(context),
         codeBackground: CupertinoColors.systemGrey5.resolveFrom(context),
         spoiler: CupertinoColors.systemGrey3.resolveFrom(context),
         quote: CupertinoColors.secondaryLabel.resolveFrom(context),
@@ -52,7 +54,7 @@ class ChatCupertino extends StatefulWidget {
         spoiler: Color(0x66FFFFFF),
         quote: Color(0xE6FFFFFF),
       ),
-      incomingMeta: CupertinoColors.secondaryLabel.resolveFrom(context),
+      incomingMeta: ThemesCupertino.chatMeta(context),
       outgoingMeta: const Color(0xCCFFFFFF),
       pill: dark ? const Color(0x66000000) : const Color(0x22000000),
       pillText: dark ? const Color(0xFFFFFFFF) : const Color(0xFF3C3C43),
