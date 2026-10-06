@@ -114,9 +114,9 @@ class ChatInviteLinksMaterial extends StatelessWidget {
     );
 
     Widget linkIcon(bool active) => CircleAvatar(
-      radius: 20,
+      radius: 15,
       backgroundColor: active ? const Color(0xFF2E7D32) : scheme.outline,
-      child: const HugeIcon(icon: HugeIcons.strokeRoundedLink01, color: Colors.white, size: 18),
+      child: const HugeIcon(icon: HugeIcons.strokeRoundedLink01, color: Colors.white, size: 15),
     );
 
     Widget linkTile(models.ChatInviteLink link, DateTime now) {
@@ -150,40 +150,40 @@ class ChatInviteLinksMaterial extends StatelessWidget {
                       if (path != null) ...[
                         createHeaderMaterial(context, public ? t.screenChatInvites.publicLink : t.screenChatInvites.primaryLink),
                         card([
+                          // Ссылка в поле, справа — «Копировать» и «Поделиться» значками.
                           Padding(
-                            padding: const EdgeInsets.all(14),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                InkWell(
-                                  borderRadius: BorderRadius.circular(12),
-                                  onTap: () => _copy(context, path),
-                                  child: Container(
-                                    padding: const EdgeInsets.all(12),
-                                    decoration: BoxDecoration(
-                                      color: scheme.surfaceContainerHighest,
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: Text(
-                                      inviteShort(path),
-                                      textAlign: TextAlign.center,
-                                      style: Theme.of(context).textTheme.bodyLarge,
+                            padding: const EdgeInsets.all(12),
+                            child: Container(
+                              padding: const EdgeInsets.only(left: 12),
+                              decoration: BoxDecoration(color: scheme.surfaceContainerHighest, borderRadius: BorderRadius.circular(12)),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: InkWell(
+                                      onTap: () => _copy(context, path),
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(vertical: 12),
+                                        child: Text(
+                                          inviteShort(path),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: Theme.of(context).textTheme.bodyLarge,
+                                        ),
+                                      ),
                                     ),
                                   ),
-                                ),
-                                const SizedBox(height: 12),
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: FilledButton(onPressed: () => _copy(context, path), child: Text(t.screenChatInvites.copy)),
-                                    ),
-                                    const SizedBox(width: 10),
-                                    Expanded(
-                                      child: FilledButton(onPressed: () => shareInvite(path), child: Text(t.screenChatInvites.share)),
-                                    ),
-                                  ],
-                                ),
-                              ],
+                                  IconButton(
+                                    tooltip: t.screenChatInvites.copy,
+                                    onPressed: () => _copy(context, path),
+                                    icon: HugeIcon(icon: HugeIcons.strokeRoundedCopy01, color: scheme.primary, size: 21),
+                                  ),
+                                  IconButton(
+                                    tooltip: t.screenChatInvites.share,
+                                    onPressed: () => shareInvite(path),
+                                    icon: HugeIcon(icon: HugeIcons.strokeRoundedShare08, color: scheme.primary, size: 21),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                           if (!public && primaryLink != null)
@@ -198,9 +198,9 @@ class ChatInviteLinksMaterial extends StatelessWidget {
                       card([
                         ListTile(
                           leading: CircleAvatar(
-                            radius: 20,
+                            radius: 15,
                             backgroundColor: scheme.primaryContainer,
-                            child: Icon(Icons.add, color: scheme.onPrimaryContainer),
+                            child: Icon(Icons.add, size: 18, color: scheme.onPrimaryContainer),
                           ),
                           title: Text(t.screenChatInvites.createLink, style: TextStyle(color: scheme.primary)),
                           onTap: () => showChatInviteLinkEditMaterial(context, context.read<ChatInvitesCubit>()),

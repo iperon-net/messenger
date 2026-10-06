@@ -118,20 +118,20 @@ class ChatInviteLinksCupertino extends StatelessWidget {
     );
 
     Widget linkIcon(bool active) => Container(
-      width: 36,
-      height: 36,
+      width: 28,
+      height: 28,
       decoration: BoxDecoration(
         color: active ? const Color(0xFF34C759) : CupertinoColors.systemGrey.resolveFrom(context),
         shape: BoxShape.circle,
       ),
       alignment: Alignment.center,
-      child: const HugeIcon(icon: HugeIcons.strokeRoundedLink01, color: Color(0xFFFFFFFF), size: 18),
+      child: const HugeIcon(icon: HugeIcons.strokeRoundedLink01, color: Color(0xFFFFFFFF), size: 15),
     );
 
     Widget linkTile(models.ChatInviteLink link, DateTime now) {
       final subtitle = inviteSubtitle(t, link, now);
       return CupertinoListTile(
-        leadingSize: 36,
+        leadingSize: 28,
         leading: linkIcon(link.isActive(now)),
         title: Text(inviteTitle(link)),
         subtitle: Text(subtitle.text, style: TextStyle(color: subtitle.warning ? destructive : secondary)),
@@ -173,47 +173,49 @@ class ChatInviteLinksCupertino extends StatelessWidget {
                           header: public ? t.screenChatInvites.publicLink : t.screenChatInvites.primaryLink,
                           footer: public ? t.screenChatInvites.publicLinkFooter : invitePrimaryFooter(t, chat),
                           children: [
+                            // Ссылка в поле, справа — «Копировать» и «Поделиться» значками.
                             Padding(
-                              padding: const EdgeInsets.all(14),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  GestureDetector(
-                                    onTap: () => _copy(path),
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                                      decoration: BoxDecoration(
-                                        color: CupertinoColors.tertiarySystemFill.resolveFrom(context),
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                      child: Text(
-                                        inviteShort(path),
-                                        textAlign: TextAlign.center,
-                                        style: TextStyle(fontSize: AppFontSizes.body, color: CupertinoColors.label.resolveFrom(context)),
+                              padding: const EdgeInsets.all(12),
+                              child: Container(
+                                padding: const EdgeInsets.only(left: 12),
+                                decoration: BoxDecoration(
+                                  color: CupertinoColors.tertiarySystemFill.resolveFrom(context),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: GestureDetector(
+                                        behavior: HitTestBehavior.opaque,
+                                        onTap: () => _copy(path),
+                                        child: Padding(
+                                          padding: const EdgeInsets.symmetric(vertical: 12),
+                                          child: Text(
+                                            inviteShort(path),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: TextStyle(
+                                              fontSize: AppFontSizes.body,
+                                              color: CupertinoColors.label.resolveFrom(context),
+                                            ),
+                                          ),
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                  const SizedBox(height: 12),
-                                  Row(
-                                    children: [
-                                      Expanded(
-                                        child: CupertinoButton.filled(
-                                          sizeStyle: CupertinoButtonSize.medium,
-                                          onPressed: () => _copy(path),
-                                          child: Text(t.screenChatInvites.copy),
-                                        ),
-                                      ),
-                                      const SizedBox(width: 10),
-                                      Expanded(
-                                        child: CupertinoButton.filled(
-                                          sizeStyle: CupertinoButtonSize.medium,
-                                          onPressed: () => shareInvite(path),
-                                          child: Text(t.screenChatInvites.share),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
+                                    CupertinoButton(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                                      minimumSize: const Size(40, 44),
+                                      onPressed: () => _copy(path),
+                                      child: HugeIcon(icon: HugeIcons.strokeRoundedCopy01, color: action, size: 21),
+                                    ),
+                                    CupertinoButton(
+                                      padding: const EdgeInsets.only(left: 4, right: 10),
+                                      minimumSize: const Size(40, 44),
+                                      onPressed: () => shareInvite(path),
+                                      child: HugeIcon(icon: HugeIcons.strokeRoundedShare08, color: action, size: 21),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                             if (!public && primaryLink != null)
@@ -228,13 +230,13 @@ class ChatInviteLinksCupertino extends StatelessWidget {
                         footer: t.screenChatInvites.additionalFooter,
                         children: [
                           CupertinoListTile(
-                            leadingSize: 36,
+                            leadingSize: 28,
                             leading: Container(
-                              width: 36,
-                              height: 36,
+                              width: 28,
+                              height: 28,
                               decoration: BoxDecoration(color: action.withValues(alpha: 0.12), shape: BoxShape.circle),
                               alignment: Alignment.center,
-                              child: Icon(CupertinoIcons.add, color: action, size: 20),
+                              child: Icon(CupertinoIcons.add, color: action, size: 17),
                             ),
                             title: Text(t.screenChatInvites.createLink, style: TextStyle(color: action)),
                             onTap: () => showChatInviteLinkEditCupertino(context, context.read<ChatInvitesCubit>()),
