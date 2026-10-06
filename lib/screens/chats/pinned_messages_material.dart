@@ -13,7 +13,7 @@ import 'chat_material.dart';
 /// закреплённого. Результат — id сообщения, к которому перейти в чате.
 Future<String?> showPinnedMessagesMaterial(BuildContext context, ChatCubit cubit) {
   return Navigator.of(context).push<String>(
-    MaterialPageRoute(
+    FullSwipeBackRoute(
       builder: (_) => BlocProvider.value(value: cubit, child: const PinnedMessagesMaterial()),
     ),
   );

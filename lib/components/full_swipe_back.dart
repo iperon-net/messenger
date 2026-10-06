@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:cupertino_ui/cupertino_ui.dart';
@@ -56,11 +57,26 @@ class FullSwipeBackPage<T> extends Page<T> {
   const FullSwipeBackPage({required this.child, this.transitionDuration, super.key, super.name, super.arguments, super.restorationId});
 
   @override
-  Route<T> createRoute(BuildContext context) => _FullSwipeRoute<T>(page: this);
+  Route<T> createRoute(BuildContext context) => FullSwipeBackRoute<T>._page(this);
 }
 
-class _FullSwipeRoute<T> extends PageRoute<T> with CupertinoRouteTransitionMixin<T> {
-  _FullSwipeRoute({required FullSwipeBackPage<T> page}) : super(settings: page);
+/// Маршрут [FullSwipeBackPage] — и без go_router, для `Navigator.push`
+/// (экраны поверх окна чата: профиль, закреплённые, отложенные, «Изменить»):
+/// так же закрывается свайпом вправо с любого места. Длительность по
+/// умолчанию — как у `_page` / `_pageMaterial` в routers.dart (на Android
+/// короче).
+class FullSwipeBackRoute<T> extends PageRoute<T> with CupertinoRouteTransitionMixin<T> {
+  FullSwipeBackRoute({required WidgetBuilder this.builder, Duration? transitionDuration, super.settings})
+    : _transitionDuration = transitionDuration ?? (Platform.isIOS ? null : const Duration(milliseconds: 300));
+
+  FullSwipeBackRoute._page(FullSwipeBackPage<T> page)
+    : builder = null,
+      _transitionDuration = page.transitionDuration,
+      super(settings: page);
+
+  /// Содержимое для `Navigator.push`; `null` — из [FullSwipeBackPage].
+  final WidgetBuilder? builder;
+  final Duration? _transitionDuration;
 
   // Не CupertinoPageTransition.delegatedTransition: тот ведёт экран под
   // чатом (оболочку со списком чатов) по кривым и во время свайпа, а сам чат
@@ -89,13 +105,13 @@ class _FullSwipeRoute<T> extends PageRoute<T> with CupertinoRouteTransitionMixin
 
   static final _parallax = Tween<Offset>(begin: Offset.zero, end: const Offset(-1 / 3, 0));
 
-  FullSwipeBackPage<T> get _page => settings as FullSwipeBackPage<T>;
+  // Страница go_router могла обновиться (тот же ключ, новый child) — берём
+  // актуальную из settings.
+  @override
+  Widget buildContent(BuildContext context) => builder?.call(context) ?? (settings as FullSwipeBackPage<T>).child;
 
   @override
-  Widget buildContent(BuildContext context) => _page.child;
-
-  @override
-  Duration get transitionDuration => _page.transitionDuration ?? super.transitionDuration;
+  Duration get transitionDuration => _transitionDuration ?? super.transitionDuration;
 
   @override
   String? get title => null;

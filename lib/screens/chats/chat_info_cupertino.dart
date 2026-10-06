@@ -18,7 +18,7 @@ import 'chat_info_common.dart';
 /// чате: поиск или переход к сообщению.
 Future<ChatInfoResult?> showChatInfoCupertino(BuildContext context, ChatCubit cubit) {
   return Navigator.of(context).push<ChatInfoResult>(
-    CupertinoPageRoute(
+    FullSwipeBackRoute(
       builder: (_) => BlocProvider.value(value: cubit, child: const ChatInfoCupertino()),
     ),
   );
@@ -194,7 +194,7 @@ class _ChatInfoCupertinoState extends State<ChatInfoCupertino> {
                             additionalInfo: Text(reactionsSummary(t, chat)),
                             isTrailing: true,
                             onTab: () => Navigator.of(context).push(
-                              CupertinoPageRoute<void>(
+                              FullSwipeBackRoute<void>(
                                 builder: (_) =>
                                     BlocProvider.value(value: context.read<ChatCubit>(), child: const ChatReactionsSettingsCupertino()),
                               ),

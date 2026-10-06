@@ -54,7 +54,7 @@ Future<DateTime?> showScheduleDateCupertino(BuildContext context, {DateTime? ini
 /// Экран «Отложенные сообщения» (iOS) — значок календаря в поле ввода.
 Future<void> showScheduledMessagesCupertino(BuildContext context, ChatCubit cubit) {
   return Navigator.of(context).push<void>(
-    CupertinoPageRoute(
+    FullSwipeBackRoute(
       builder: (_) => BlocProvider.value(value: cubit, child: const ScheduledMessagesCupertino()),
     ),
   );

@@ -18,7 +18,7 @@ import 'chat_info_common.dart';
 /// чате: поиск или переход к сообщению.
 Future<ChatInfoResult?> showChatInfoMaterial(BuildContext context, ChatCubit cubit) {
   return Navigator.of(context).push<ChatInfoResult>(
-    MaterialPageRoute(
+    FullSwipeBackRoute(
       builder: (_) => BlocProvider.value(value: cubit, child: const ChatInfoMaterial()),
     ),
   );
@@ -195,7 +195,7 @@ class _ChatInfoMaterialState extends State<ChatInfoMaterial> {
                           title: Text(t.screenChatInfo.reactions),
                           trailing: Text(reactionsSummary(t, chat), style: TextStyle(color: scheme.onSurfaceVariant)),
                           onTap: () => Navigator.of(context).push(
-                            MaterialPageRoute<void>(
+                            FullSwipeBackRoute<void>(
                               builder: (_) =>
                                   BlocProvider.value(value: context.read<ChatCubit>(), child: const ChatReactionsSettingsMaterial()),
                             ),

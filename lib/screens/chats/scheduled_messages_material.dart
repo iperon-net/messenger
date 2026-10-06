@@ -31,7 +31,7 @@ Future<DateTime?> showScheduleDateMaterial(BuildContext context, {DateTime? init
 /// Экран «Отложенные сообщения» (Android) — значок календаря в поле ввода.
 Future<void> showScheduledMessagesMaterial(BuildContext context, ChatCubit cubit) {
   return Navigator.of(context).push<void>(
-    MaterialPageRoute(
+    FullSwipeBackRoute(
       builder: (_) => BlocProvider.value(value: cubit, child: const ScheduledMessagesMaterial()),
     ),
   );

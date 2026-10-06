@@ -17,7 +17,7 @@ import 'chats_new_cupertino.dart';
 Future<void> showChatEditCupertino(BuildContext context, models.Chat chat) {
   final demo = context.read<CommonCubit>().state.settingsDevice.chatsDemo;
   return Navigator.of(context).push<void>(
-    CupertinoPageRoute(
+    FullSwipeBackRoute(
       builder: (_) => BlocProvider<ChatCreateCubit>(
         create: (_) => ChatCreateCubit()..edit(demo: demo, chat: chat),
         child: const ChatCreateFormCupertino(),

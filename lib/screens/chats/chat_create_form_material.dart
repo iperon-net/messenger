@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 
+import '../../components.dart';
 import '../../cubit.dart';
 import '../../i18n/translations.g.dart';
 import '../../models.dart' as models;
@@ -15,7 +16,7 @@ import 'chats_new_material.dart';
 Future<void> showChatEditMaterial(BuildContext context, models.Chat chat) {
   final demo = context.read<CommonCubit>().state.settingsDevice.chatsDemo;
   return Navigator.of(context).push<void>(
-    MaterialPageRoute(
+    FullSwipeBackRoute(
       builder: (_) => BlocProvider<ChatCreateCubit>(
         create: (_) => ChatCreateCubit()..edit(demo: demo, chat: chat),
         child: const ChatCreateFormMaterial(),

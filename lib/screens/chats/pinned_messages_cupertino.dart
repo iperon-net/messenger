@@ -13,7 +13,7 @@ import 'chat_cupertino.dart';
 /// закреплённого. Результат — id сообщения, к которому перейти в чате.
 Future<String?> showPinnedMessagesCupertino(BuildContext context, ChatCubit cubit) {
   return Navigator.of(context).push<String>(
-    CupertinoPageRoute(
+    FullSwipeBackRoute(
       builder: (_) => BlocProvider.value(value: cubit, child: const PinnedMessagesCupertino()),
     ),
   );
