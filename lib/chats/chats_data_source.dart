@@ -67,6 +67,37 @@ abstract class ChatsDataSource {
     required models.ChatRole defaultRole,
   });
 
+  /// Ссылки-приглашения чата (админ): основная первой, затем дополнительные
+  /// (новые выше), отозванные — с `revoked`. Сразу при подписке, затем при
+  /// каждом изменении (счётчики вступлений).
+  Stream<List<models.ChatInviteLink>> watchInviteLinks(String chatID);
+
+  /// Новая дополнительная ссылка.
+  Future<void> createInviteLink(String chatID, {String title = '', DateTime? expireDate, int usageLimit = 0, bool requestApproval = false});
+
+  /// Изменить дополнительную ссылку (код остаётся прежним).
+  Future<void> editInviteLink(
+    String chatID,
+    String linkID, {
+    required String title,
+    DateTime? expireDate,
+    required int usageLimit,
+    required bool requestApproval,
+  });
+
+  /// Отозвать ссылку. Основная не отзывается, а заменяется новой (старая
+  /// уходит в отозванные) — меняется и `Chat.inviteLink`.
+  Future<void> revokeInviteLink(String chatID, String linkID);
+
+  /// Удалить отозванную ссылку ([linkID] пусто — все отозванные).
+  Future<void> deleteRevokedLinks(String chatID, {String linkID = ''});
+
+  /// Заявки на вступление — от новых к старым.
+  Stream<List<models.ChatJoinRequest>> watchJoinRequests(String chatID);
+
+  /// Принять / отклонить заявку ([userID] пусто — все).
+  Future<void> answerJoinRequest(String chatID, {String userID = '', required bool approve});
+
   /// Участники группы (профиль чата): владелец и админы первыми.
   Future<List<models.ChatMember>> members(String chatID);
 

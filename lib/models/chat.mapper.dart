@@ -858,6 +858,13 @@ class ChatMapper extends ClassMapperBase<Chat> {
     opt: true,
     def: ChatRole.reader,
   );
+  static int _$pendingRequests(Chat v) => v.pendingRequests;
+  static const Field<Chat, int> _f$pendingRequests = Field(
+    'pendingRequests',
+    _$pendingRequests,
+    opt: true,
+    def: 0,
+  );
   static int _$membersCount(Chat v) => v.membersCount;
   static const Field<Chat, int> _f$membersCount = Field(
     'membersCount',
@@ -916,6 +923,7 @@ class ChatMapper extends ClassMapperBase<Chat> {
     #avatarPath: _f$avatarPath,
     #joinMode: _f$joinMode,
     #defaultRole: _f$defaultRole,
+    #pendingRequests: _f$pendingRequests,
     #membersCount: _f$membersCount,
     #myRole: _f$myRole,
     #online: _f$online,
@@ -947,6 +955,7 @@ class ChatMapper extends ClassMapperBase<Chat> {
       avatarPath: data.dec(_f$avatarPath),
       joinMode: data.dec(_f$joinMode),
       defaultRole: data.dec(_f$defaultRole),
+      pendingRequests: data.dec(_f$pendingRequests),
       membersCount: data.dec(_f$membersCount),
       myRole: data.dec(_f$myRole),
       online: data.dec(_f$online),
@@ -1027,6 +1036,7 @@ abstract class ChatCopyWith<$R, $In extends Chat, $Out>
     String? avatarPath,
     ChatJoinMode? joinMode,
     ChatRole? defaultRole,
+    int? pendingRequests,
     int? membersCount,
     ChatRole? myRole,
     bool? online,
@@ -1077,6 +1087,7 @@ class _ChatCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Chat, $Out>
     String? avatarPath,
     ChatJoinMode? joinMode,
     ChatRole? defaultRole,
+    int? pendingRequests,
     int? membersCount,
     ChatRole? myRole,
     bool? online,
@@ -1106,6 +1117,7 @@ class _ChatCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Chat, $Out>
       if (avatarPath != null) #avatarPath: avatarPath,
       if (joinMode != null) #joinMode: joinMode,
       if (defaultRole != null) #defaultRole: defaultRole,
+      if (pendingRequests != null) #pendingRequests: pendingRequests,
       if (membersCount != null) #membersCount: membersCount,
       if (myRole != null) #myRole: myRole,
       if (online != null) #online: online,
@@ -1137,6 +1149,7 @@ class _ChatCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Chat, $Out>
     avatarPath: data.get(#avatarPath, or: $value.avatarPath),
     joinMode: data.get(#joinMode, or: $value.joinMode),
     defaultRole: data.get(#defaultRole, or: $value.defaultRole),
+    pendingRequests: data.get(#pendingRequests, or: $value.pendingRequests),
     membersCount: data.get(#membersCount, or: $value.membersCount),
     myRole: data.get(#myRole, or: $value.myRole),
     online: data.get(#online, or: $value.online),

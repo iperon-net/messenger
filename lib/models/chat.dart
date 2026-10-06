@@ -147,6 +147,9 @@ class Chat with ChatMappable {
   /// или [ChatRole.writer] (в канале подписчик всегда читатель).
   final ChatRole defaultRole;
 
+  /// Заявок на вступление ждёт одобрения (бейдж в профиле для админа).
+  final int pendingRequests;
+
   /// Участников группы / подписчиков канала (0 — личный чат).
   final int membersCount;
 
@@ -184,6 +187,7 @@ class Chat with ChatMappable {
     this.avatarPath = '',
     this.joinMode = ChatJoinMode.link,
     this.defaultRole = ChatRole.reader,
+    this.pendingRequests = 0,
     this.membersCount = 0,
     this.myRole = ChatRole.writer,
     this.online = false,
@@ -195,8 +199,8 @@ class Chat with ChatMappable {
   bool get canManage => myRole == ChatRole.admin || myRole == ChatRole.owner;
 
   /// Путь ссылки на чат после `iperon.net/`: публичный [username] или
-  /// [inviteLink]; пусто — ссылки нет.
-  String get linkPath => username.isNotEmpty ? username : inviteLink;
+  /// [inviteLink] (если по ссылкам можно вступить); пусто — ссылки нет.
+  String get linkPath => username.isNotEmpty ? username : (joinMode == ChatJoinMode.admins ? '' : inviteLink);
 
   bool get hasUnread => unreadCount > 0 || markedUnread;
 

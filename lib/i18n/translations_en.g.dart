@@ -47,6 +47,7 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	late final Translations$screenHome$en screenHome = Translations$screenHome$en.internal(_root);
 	late final Translations$screenChats$en screenChats = Translations$screenChats$en.internal(_root);
 	late final Translations$screenNewChat$en screenNewChat = Translations$screenNewChat$en.internal(_root);
+	late final Translations$screenChatInvites$en screenChatInvites = Translations$screenChatInvites$en.internal(_root);
 	late final Translations$screenChat$en screenChat = Translations$screenChat$en.internal(_root);
 	late final Translations$screenSettings$en screenSettings = Translations$screenSettings$en.internal(_root);
 	late final Translations$screenSettingsNotifications$en screenSettingsNotifications = Translations$screenSettingsNotifications$en.internal(_root);
@@ -503,6 +504,186 @@ class Translations$screenNewChat$en {
 
 	/// en: 'New members can read and send messages.'
 	String get roleWriterFooter => 'New members can read and send messages.';
+}
+
+// Path: screenChatInvites
+class Translations$screenChatInvites$en {
+	Translations$screenChatInvites$en.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// en: 'Invite Links'
+	String get inviteLinks => 'Invite Links';
+
+	/// en: 'Join Requests'
+	String get joinRequests => 'Join Requests';
+
+	/// en: 'Primary Link'
+	String get primaryLink => 'Primary Link';
+
+	/// en: 'Public Link'
+	String get publicLink => 'Public Link';
+
+	/// en: 'The public link is changed in Edit. Additional links below work as invitations.'
+	String get publicLinkFooter => 'The public link is changed in Edit. Additional links below work as invitations.';
+
+	/// en: 'Anyone with the link can join.'
+	String get primaryFooter => 'Anyone with the link can join.';
+
+	/// en: 'Anyone with the link can subscribe.'
+	String get primaryFooterChannel => 'Anyone with the link can subscribe.';
+
+	/// en: 'People with the link send a join request that an admin approves.'
+	String get primaryFooterRequest => 'People with the link send a join request that an admin approves.';
+
+	/// en: 'Members are currently added by admins only — nobody can join via links. Change the joining method in Edit.'
+	String get adminsOnlyNote => 'Members are currently added by admins only — nobody can join via links. Change the joining method in Edit.';
+
+	/// en: 'Copy'
+	String get copy => 'Copy';
+
+	/// en: 'Share'
+	String get share => 'Share';
+
+	/// en: 'Replace Link'
+	String get replace => 'Replace Link';
+
+	/// en: 'Replace the link?'
+	String get replaceTitle => 'Replace the link?';
+
+	/// en: 'The current link will stop working, and a new one will be created.'
+	String get replaceMessage => 'The current link will stop working, and a new one will be created.';
+
+	/// en: 'Link copied'
+	String get copied => 'Link copied';
+
+	/// en: 'Create a New Link'
+	String get createLink => 'Create a New Link';
+
+	/// en: 'Additional Links'
+	String get additionalHeader => 'Additional Links';
+
+	/// en: 'Create links with an expiry date, a member limit or admin approval.'
+	String get additionalFooter => 'Create links with an expiry date, a member limit or admin approval.';
+
+	/// en: 'Revoked Links'
+	String get revokedHeader => 'Revoked Links';
+
+	/// en: 'Delete All Revoked Links'
+	String get deleteAllRevoked => 'Delete All Revoked Links';
+
+	/// en: 'Joined: {n}'
+	String joined({required Object n}) => 'Joined: ${n}';
+
+	/// en: '{n} left'
+	String left({required Object n}) => '${n} left';
+
+	/// en: 'until {date}'
+	String until({required Object date}) => 'until ${date}';
+
+	/// en: 'expired'
+	String get expired => 'expired';
+
+	/// en: 'limit reached'
+	String get exhausted => 'limit reached';
+
+	/// en: 'by request'
+	String get approval => 'by request';
+
+	/// en: 'Edit'
+	String get edit => 'Edit';
+
+	/// en: 'Revoke'
+	String get revoke => 'Revoke';
+
+	/// en: 'Revoke the link?'
+	String get revokeTitle => 'Revoke the link?';
+
+	/// en: 'Nobody will be able to join via this link.'
+	String get revokeMessage => 'Nobody will be able to join via this link.';
+
+	/// en: 'Delete'
+	String get delete => 'Delete';
+
+	/// en: 'New Link'
+	String get newLink => 'New Link';
+
+	/// en: 'Edit Link'
+	String get editLink => 'Edit Link';
+
+	/// en: 'Create'
+	String get create => 'Create';
+
+	/// en: 'Link Name'
+	String get name => 'Link Name';
+
+	/// en: 'Optional'
+	String get nameHint => 'Optional';
+
+	/// en: 'Only admins see the link name.'
+	String get nameFooter => 'Only admins see the link name.';
+
+	/// en: 'Request Admin Approval'
+	String get approvalTitle => 'Request Admin Approval';
+
+	/// en: 'People who follow the link send a request; an admin approves or declines it.'
+	String get approvalFooter => 'People who follow the link send a request; an admin approves or declines it.';
+
+	/// en: 'Expires'
+	String get expireHeader => 'Expires';
+
+	/// en: 'Never'
+	String get expireNever => 'Never';
+
+	/// en: 'In 1 hour'
+	String get expireHour => 'In 1 hour';
+
+	/// en: 'In 1 day'
+	String get expireDay => 'In 1 day';
+
+	/// en: 'In 1 week'
+	String get expireWeek => 'In 1 week';
+
+	/// en: 'Until {date}'
+	String expireCurrent({required Object date}) => 'Until ${date}';
+
+	/// en: 'Member Limit'
+	String get limitHeader => 'Member Limit';
+
+	/// en: 'No limit'
+	String get limitNone => 'No limit';
+
+	/// en: 'How many people can join via this link.'
+	String get limitFooter => 'How many people can join via this link.';
+
+	/// en: 'No join requests'
+	String get requestsEmpty => 'No join requests';
+
+	/// en: 'When someone asks to join, the request will appear here.'
+	String get requestsEmptyHint => 'When someone asks to join, the request will appear here.';
+
+	/// en: 'Accept'
+	String get approve => 'Accept';
+
+	/// en: 'Decline'
+	String get decline => 'Decline';
+
+	/// en: 'Accept All'
+	String get approveAll => 'Accept All';
+
+	/// en: 'Decline All'
+	String get declineAll => 'Decline All';
+
+	/// en: 'All'
+	String get all => 'All';
+
+	/// en: 'via “{title}”'
+	String viaLink({required Object title}) => 'via “${title}”';
+
+	/// en: 'Requests come when joining is set to “By Request” or via links with admin approval.'
+	String get requestsOffHint => 'Requests come when joining is set to “By Request” or via links with admin approval.';
 }
 
 // Path: screenChat
@@ -2513,6 +2694,63 @@ extension on Translations {
 			'screenNewChat.roleWriter' => 'Can Send Messages',
 			'screenNewChat.roleReaderFooter' => 'New members can read but not send messages.',
 			'screenNewChat.roleWriterFooter' => 'New members can read and send messages.',
+			'screenChatInvites.inviteLinks' => 'Invite Links',
+			'screenChatInvites.joinRequests' => 'Join Requests',
+			'screenChatInvites.primaryLink' => 'Primary Link',
+			'screenChatInvites.publicLink' => 'Public Link',
+			'screenChatInvites.publicLinkFooter' => 'The public link is changed in Edit. Additional links below work as invitations.',
+			'screenChatInvites.primaryFooter' => 'Anyone with the link can join.',
+			'screenChatInvites.primaryFooterChannel' => 'Anyone with the link can subscribe.',
+			'screenChatInvites.primaryFooterRequest' => 'People with the link send a join request that an admin approves.',
+			'screenChatInvites.adminsOnlyNote' => 'Members are currently added by admins only — nobody can join via links. Change the joining method in Edit.',
+			'screenChatInvites.copy' => 'Copy',
+			'screenChatInvites.share' => 'Share',
+			'screenChatInvites.replace' => 'Replace Link',
+			'screenChatInvites.replaceTitle' => 'Replace the link?',
+			'screenChatInvites.replaceMessage' => 'The current link will stop working, and a new one will be created.',
+			'screenChatInvites.copied' => 'Link copied',
+			'screenChatInvites.createLink' => 'Create a New Link',
+			'screenChatInvites.additionalHeader' => 'Additional Links',
+			'screenChatInvites.additionalFooter' => 'Create links with an expiry date, a member limit or admin approval.',
+			'screenChatInvites.revokedHeader' => 'Revoked Links',
+			'screenChatInvites.deleteAllRevoked' => 'Delete All Revoked Links',
+			'screenChatInvites.joined' => ({required Object n}) => 'Joined: ${n}',
+			'screenChatInvites.left' => ({required Object n}) => '${n} left',
+			'screenChatInvites.until' => ({required Object date}) => 'until ${date}',
+			'screenChatInvites.expired' => 'expired',
+			'screenChatInvites.exhausted' => 'limit reached',
+			'screenChatInvites.approval' => 'by request',
+			'screenChatInvites.edit' => 'Edit',
+			'screenChatInvites.revoke' => 'Revoke',
+			'screenChatInvites.revokeTitle' => 'Revoke the link?',
+			'screenChatInvites.revokeMessage' => 'Nobody will be able to join via this link.',
+			'screenChatInvites.delete' => 'Delete',
+			'screenChatInvites.newLink' => 'New Link',
+			'screenChatInvites.editLink' => 'Edit Link',
+			'screenChatInvites.create' => 'Create',
+			'screenChatInvites.name' => 'Link Name',
+			'screenChatInvites.nameHint' => 'Optional',
+			'screenChatInvites.nameFooter' => 'Only admins see the link name.',
+			'screenChatInvites.approvalTitle' => 'Request Admin Approval',
+			'screenChatInvites.approvalFooter' => 'People who follow the link send a request; an admin approves or declines it.',
+			'screenChatInvites.expireHeader' => 'Expires',
+			'screenChatInvites.expireNever' => 'Never',
+			'screenChatInvites.expireHour' => 'In 1 hour',
+			'screenChatInvites.expireDay' => 'In 1 day',
+			'screenChatInvites.expireWeek' => 'In 1 week',
+			'screenChatInvites.expireCurrent' => ({required Object date}) => 'Until ${date}',
+			'screenChatInvites.limitHeader' => 'Member Limit',
+			'screenChatInvites.limitNone' => 'No limit',
+			'screenChatInvites.limitFooter' => 'How many people can join via this link.',
+			'screenChatInvites.requestsEmpty' => 'No join requests',
+			'screenChatInvites.requestsEmptyHint' => 'When someone asks to join, the request will appear here.',
+			'screenChatInvites.approve' => 'Accept',
+			'screenChatInvites.decline' => 'Decline',
+			'screenChatInvites.approveAll' => 'Accept All',
+			'screenChatInvites.declineAll' => 'Decline All',
+			'screenChatInvites.all' => 'All',
+			'screenChatInvites.viaLink' => ({required Object title}) => 'via “${title}”',
+			'screenChatInvites.requestsOffHint' => 'Requests come when joining is set to “By Request” or via links with admin approval.',
 			'screenChat.today' => 'Today',
 			'screenChat.yesterday' => 'Yesterday',
 			'screenChat.online' => 'online',
@@ -2843,6 +3081,8 @@ extension on Translations {
 			'screenMyProfile.tellUsAboutYourself' => 'Tell us about yourself',
 			'screenMyProfile.add' => 'Add',
 			'screenMyProfile.birthDate' => 'Birth date',
+			_ => null,
+		} ?? switch (path) {
 			'screenMyProfile.username' => 'Username',
 			'screenMyProfile.validationFirstNameMaxLength' => 'Must contain no more than 25 characters',
 			'screenMyProfile.validationLastNameMaxLength' => 'Must contain no more than 25 characters',
@@ -2900,8 +3140,6 @@ extension on Translations {
 			'screenContacts.onContacts' => 'On Contacts',
 			'screenContacts.cloudContacts' => 'Cloud contacts',
 			'screenContacts.invite' => 'Invite',
-			_ => null,
-		} ?? switch (path) {
 			'screenContacts.inviteAction' => 'Invite',
 			'screenContacts.search' => 'Search',
 			'screenContacts.permissionTitle' => 'Contacts access needed',

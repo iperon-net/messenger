@@ -1,10 +1,10 @@
 import 'dart:async';
-import 'dart:math';
 
 import 'package:bloc/bloc.dart';
 
 import '../../constants.dart';
 import '../../chats/chats_data_source.dart';
+import '../../chats/invite_link.dart';
 import '../../demo/chats_demo_data_source.dart';
 import '../../models.dart' as models;
 
@@ -35,7 +35,7 @@ class ChatCreateCubit extends Cubit<ChatCreateState> {
     List<models.ChatMember> selected = const [],
   }) async {
     _source = demo ? ChatsDemoDataSource.instance : null;
-    emit(state.copyWith(status: Status.loading, type: type, selected: selected, inviteLink: _newInviteLink()));
+    emit(state.copyWith(status: Status.loading, type: type, selected: selected, inviteLink: newInviteCode()));
     final contacts = await _source?.contacts() ?? const <models.ChatMember>[];
     if (isClosed) return;
     emit(state.copyWith(status: Status.success, contacts: contacts));
@@ -56,7 +56,7 @@ class ChatCreateCubit extends Cubit<ChatCreateState> {
         username: chat.username,
         originalUsername: chat.username,
         usernameStatus: chat.username.isEmpty ? ChatUsernameStatus.empty : ChatUsernameStatus.available,
-        inviteLink: chat.inviteLink.isNotEmpty ? chat.inviteLink : _newInviteLink(),
+        inviteLink: chat.inviteLink.isNotEmpty ? chat.inviteLink : newInviteCode(),
         defaultRole: chat.defaultRole,
       ),
     );
@@ -146,14 +146,6 @@ class ChatCreateCubit extends Cubit<ChatCreateState> {
       defaultRole: state.defaultRole,
     );
     if (!isClosed) emit(state.copyWith(creating: false, saved: true));
-  }
-
-  /// Код ссылки-приглашения (`+` и 12 символов base62). Настоящий выдаст
-  /// сервер при создании.
-  static String _newInviteLink() {
-    const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    final random = Random.secure();
-    return '+${List.generate(12, (_) => alphabet[random.nextInt(alphabet.length)]).join()}';
   }
 
   @override

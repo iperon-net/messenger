@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:math';
 
 import '../chats/chats_data_source.dart';
+import '../chats/invite_link.dart';
 import '../chats/message_formatting.dart';
 import '../chats/reactions.dart';
 import '../models.dart' as models;
@@ -259,6 +260,16 @@ class ChatsDemoDataSource implements ChatsDataSource {
         defaultRole: defaultRole,
       ),
     );
+    // Основная ссылка — та же, что в чате (форма могла выдать новую).
+    final links = _links[chatID];
+    if (links != null && inviteLink.isNotEmpty) {
+      _setLinks(chatID, [for (final l in links) l.primary ? l.copyWith(link: inviteLink) : l]);
+    }
+    // Включили «По заявке» — в демо сразу пара заявок, чтобы было что смотреть.
+    if (joinMode == models.ChatJoinMode.request && chat.joinMode != models.ChatJoinMode.request && _requestsOf(chatID).isEmpty) {
+      _addRequest(chatID, ago: const Duration(minutes: 42));
+      _addRequest(chatID, ago: const Duration(minutes: 3));
+    }
     // Сервисные «изменил название / фото» (в демо — по-русски, как прочие).
     final channel = chat.type == models.ChatType.channel;
     final now = DateTime.now();
@@ -272,6 +283,225 @@ class ChatsDemoDataSource implements ChatsDataSource {
           avatarPath.isEmpty
               ? (channel ? 'Фото канала удалено' : 'Вы удалили фото')
               : (channel ? 'Фото канала изменено' : 'Вы изменили фото'),
+        ),
+    ]);
+  }
+
+  // ─── Ссылки-приглашения и заявки ──────────────────────────────────────────
+
+  final _links = <String, List<models.ChatInviteLink>>{};
+  final _linksController = StreamController<String>.broadcast();
+  final _requests = <String, List<models.ChatJoinRequest>>{};
+  final _requestsController = StreamController<String>.broadcast();
+  var _nextLinkID = 0;
+
+  /// Ссылки чата; при первом обращении — основная (из `Chat.inviteLink`) и у
+  /// «Команды Iperon» несколько дополнительных для наглядности.
+  List<models.ChatInviteLink> _linksOf(String chatID) => _links.putIfAbsent(chatID, () {
+    final chat = _chats.where((c) => c.id == chatID).firstOrNull;
+    final now = DateTime.now();
+    var code = chat?.inviteLink ?? '';
+    if (code.isEmpty) {
+      code = newInviteCode();
+      _update(chatID, (c) => c.copyWith(inviteLink: code));
+    }
+    return [
+      models.ChatInviteLink(id: 'l${_nextLinkID++}', link: code, primary: true, usage: chat?.membersCount ?? 0, createdAt: now),
+      if (chatID == 'team') ...[
+        models.ChatInviteLink(
+          id: 'l${_nextLinkID++}',
+          link: newInviteCode(),
+          title: 'Для подрядчиков',
+          usageLimit: 10,
+          usage: 3,
+          createdAt: now.subtract(const Duration(days: 4)),
+        ),
+        models.ChatInviteLink(
+          id: 'l${_nextLinkID++}',
+          link: newInviteCode(),
+          title: 'Митап',
+          usage: 17,
+          expireDate: now.subtract(const Duration(days: 1)),
+          createdAt: now.subtract(const Duration(days: 9)),
+        ),
+        models.ChatInviteLink(
+          id: 'l${_nextLinkID++}',
+          link: newInviteCode(),
+          title: 'Старая ссылка',
+          revoked: true,
+          usage: 5,
+          createdAt: now.subtract(const Duration(days: 40)),
+        ),
+      ],
+    ];
+  });
+
+  void _setLinks(String chatID, List<models.ChatInviteLink> links) {
+    _links[chatID] = links;
+    _linksController.add(chatID);
+  }
+
+  @override
+  Stream<List<models.ChatInviteLink>> watchInviteLinks(String chatID) async* {
+    yield _linksOf(chatID);
+    yield* _linksController.stream.where((id) => id == chatID).map((_) => _linksOf(chatID));
+  }
+
+  @override
+  Future<void> createInviteLink(
+    String chatID, {
+    String title = '',
+    DateTime? expireDate,
+    int usageLimit = 0,
+    bool requestApproval = false,
+  }) async {
+    final links = _linksOf(chatID);
+    final link = models.ChatInviteLink(
+      id: 'l${_nextLinkID++}',
+      link: newInviteCode(),
+      title: title,
+      expireDate: expireDate,
+      usageLimit: requestApproval ? 0 : usageLimit,
+      requestApproval: requestApproval,
+      createdAt: DateTime.now(),
+    );
+    // Новая — сразу после основной.
+    _setLinks(chatID, [...links.where((l) => l.primary), link, ...links.where((l) => !l.primary)]);
+  }
+
+  @override
+  Future<void> editInviteLink(
+    String chatID,
+    String linkID, {
+    required String title,
+    DateTime? expireDate,
+    required int usageLimit,
+    required bool requestApproval,
+  }) async {
+    _setLinks(chatID, [
+      for (final l in _linksOf(chatID))
+        l.id == linkID
+            ? models.ChatInviteLink(
+                id: l.id,
+                link: l.link,
+                title: title,
+                primary: l.primary,
+                revoked: l.revoked,
+                expireDate: expireDate,
+                usageLimit: requestApproval ? 0 : usageLimit,
+                usage: l.usage,
+                requestApproval: requestApproval,
+                createdAt: l.createdAt,
+              )
+            : l,
+    ]);
+  }
+
+  @override
+  Future<void> revokeInviteLink(String chatID, String linkID) async {
+    final links = _linksOf(chatID);
+    final link = links.where((l) => l.id == linkID).firstOrNull;
+    if (link == null) return;
+    final revoked = link.copyWith(revoked: true, primary: false);
+    if (!link.primary) {
+      _setLinks(chatID, [for (final l in links) l.id == linkID ? revoked : l]);
+      return;
+    }
+    // Основная — заменяется новой.
+    final fresh = models.ChatInviteLink(id: 'l${_nextLinkID++}', link: newInviteCode(), primary: true, createdAt: DateTime.now());
+    _setLinks(chatID, [fresh, ...links.where((l) => l.id != linkID), revoked]);
+    _update(chatID, (c) => c.copyWith(inviteLink: fresh.link));
+  }
+
+  @override
+  Future<void> deleteRevokedLinks(String chatID, {String linkID = ''}) async {
+    _setLinks(chatID, [
+      for (final l in _linksOf(chatID))
+        if (!l.revoked || (linkID.isNotEmpty && l.id != linkID)) l,
+    ]);
+  }
+
+  static const _applicants = [
+    ('Виктория Белова', 'Фронтенд-разработчик'),
+    ('Григорий Седов', ''),
+    ('Ксения Павлова', 'Продакт в финтехе'),
+    ('Роман Тихонов', 'Учусь на iOS-разработчика'),
+    ('Елена Фомина', ''),
+    ('Олег Жуков', 'Дизайнер'),
+  ];
+  var _nextApplicant = 0;
+
+  List<models.ChatJoinRequest> _requestsOf(String chatID) => _requests[chatID] ?? const [];
+
+  void _setRequests(String chatID, List<models.ChatJoinRequest> requests) {
+    _requests[chatID] = requests;
+    _requestsController.add(chatID);
+    _update(chatID, (c) => c.copyWith(pendingRequests: requests.length));
+  }
+
+  /// Новая заявка в чат по ссылке [link] (`null` — по основной).
+  void _addRequest(String chatID, {models.ChatInviteLink? link, Duration ago = Duration.zero}) {
+    final via = link ?? _linksOf(chatID).firstWhere((l) => l.primary);
+    final (name, about) = _applicants[_nextApplicant % _applicants.length];
+    final request = models.ChatJoinRequest(
+      userID: 'applicant${_nextApplicant++}',
+      name: name,
+      about: about,
+      date: DateTime.now().subtract(ago),
+      linkID: via.id,
+      linkTitle: via.title,
+    );
+    _setRequests(chatID, [request, ..._requestsOf(chatID)]);
+  }
+
+  /// Заявки возможны: вступление «по заявке» или есть живая ссылка с
+  /// одобрением.
+  bool _acceptsRequests(models.Chat chat) {
+    if (!chat.canManage || chat.type == models.ChatType.private) return false;
+    if (chat.joinMode == models.ChatJoinMode.request) return true;
+    final now = DateTime.now();
+    return (_links[chat.id] ?? const <models.ChatInviteLink>[]).any((l) => l.requestApproval && l.isActive(now));
+  }
+
+  @override
+  Stream<List<models.ChatJoinRequest>> watchJoinRequests(String chatID) async* {
+    yield _requestsOf(chatID);
+    yield* _requestsController.stream.where((id) => id == chatID).map((_) => _requestsOf(chatID));
+  }
+
+  @override
+  Future<void> answerJoinRequest(String chatID, {String userID = '', required bool approve}) async {
+    final all = _requestsOf(chatID);
+    final answered = all.where((r) => userID.isEmpty || r.userID == userID).toList();
+    if (answered.isEmpty) return;
+    _setRequests(chatID, all.where((r) => !answered.contains(r)).toList());
+    if (!approve) return;
+
+    final chat = _chats.where((c) => c.id == chatID).firstOrNull;
+    if (chat == null) return;
+    _update(chatID, (c) => c.copyWith(membersCount: c.membersCount + answered.length));
+    final members = _members[chatID];
+    if (members != null) {
+      _members[chatID] = [
+        ...members,
+        for (final r in answered) models.ChatMember(id: r.userID, name: r.name, role: chat.defaultRole, online: true),
+      ];
+    }
+    // Вступление по ссылке засчитывается ей.
+    if (_links.containsKey(chatID)) {
+      _setLinks(chatID, [for (final l in _linksOf(chatID)) l.copyWith(usage: l.usage + answered.where((r) => r.linkID == l.id).length)]);
+    }
+    final now = DateTime.now();
+    _setMessages(chatID, [
+      ..._history(chatID),
+      for (final r in answered)
+        models.Message(
+          id: _id(),
+          chatID: chatID,
+          text: chat.type == models.ChatType.channel ? '${r.name} подписался(-ась) на канал' : '${r.name} вступил(а) в группу',
+          service: true,
+          status: models.MessageStatus.read,
+          date: now,
         ),
     ]);
   }
@@ -760,6 +990,18 @@ class ChatsDemoDataSource implements ChatsDataSource {
   /// начинает печатать, через 3 с приходит сообщение. Заодно наши отправленные
   /// сообщения становятся прочитанными.
   void _tick() {
+    // Изредка — новая заявка туда, где их ждут.
+    final accepting = _chats.where(_acceptsRequests).toList();
+    if (accepting.isNotEmpty && _random.nextInt(3) == 0) {
+      final chat = accepting[_random.nextInt(accepting.length)];
+      final now = DateTime.now();
+      final approvalLinks = (_links[chat.id] ?? const <models.ChatInviteLink>[])
+          .where((l) => l.requestApproval && l.isActive(now))
+          .toList();
+      final viaLink = chat.joinMode != models.ChatJoinMode.request || (approvalLinks.isNotEmpty && _random.nextBool());
+      _addRequest(chat.id, link: viaLink && approvalLinks.isNotEmpty ? approvalLinks[_random.nextInt(approvalLinks.length)] : null);
+    }
+
     final candidates = _chats
         .where(
           (c) =>

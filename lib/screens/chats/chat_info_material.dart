@@ -12,6 +12,8 @@ import '../../models.dart' as models;
 import '../../themes.dart';
 import 'chat_common.dart';
 import 'chat_create_form_material.dart';
+import 'chat_invite_links_material.dart';
+import 'chat_join_requests_material.dart';
 import 'chat_info_common.dart';
 
 /// Профиль чата (Android) — тап по шапке окна чата. Результат — что сделать в
@@ -190,16 +192,32 @@ class _ChatInfoMaterialState extends State<ChatInfoMaterial> {
                       Card(
                         margin: const EdgeInsets.fromLTRB(12, 16, 12, 0),
                         color: card,
-                        child: ListTile(
-                          leading: HugeIcon(icon: HugeIcons.strokeRoundedSmile, color: scheme.onSurfaceVariant),
-                          title: Text(t.screenChatInfo.reactions),
-                          trailing: Text(reactionsSummary(t, chat), style: TextStyle(color: scheme.onSurfaceVariant)),
-                          onTap: () => Navigator.of(context).push(
-                            FullSwipeBackRoute<void>(
-                              builder: (_) =>
-                                  BlocProvider.value(value: context.read<ChatCubit>(), child: const ChatReactionsSettingsMaterial()),
+                        clipBehavior: Clip.antiAlias,
+                        child: Column(
+                          children: [
+                            ListTile(
+                              leading: HugeIcon(icon: HugeIcons.strokeRoundedLink01, color: scheme.onSurfaceVariant),
+                              title: Text(t.screenChatInvites.inviteLinks),
+                              onTap: () => showChatInviteLinksMaterial(context, chat.id),
                             ),
-                          ),
+                            ListTile(
+                              leading: HugeIcon(icon: HugeIcons.strokeRoundedUserAdd01, color: scheme.onSurfaceVariant),
+                              title: Text(t.screenChatInvites.joinRequests),
+                              trailing: chat.pendingRequests > 0 ? Badge(label: Text('${chat.pendingRequests}')) : null,
+                              onTap: () => showChatJoinRequestsMaterial(context, chat.id),
+                            ),
+                            ListTile(
+                              leading: HugeIcon(icon: HugeIcons.strokeRoundedSmile, color: scheme.onSurfaceVariant),
+                              title: Text(t.screenChatInfo.reactions),
+                              trailing: Text(reactionsSummary(t, chat), style: TextStyle(color: scheme.onSurfaceVariant)),
+                              onTap: () => Navigator.of(context).push(
+                                FullSwipeBackRoute<void>(
+                                  builder: (_) =>
+                                      BlocProvider.value(value: context.read<ChatCubit>(), child: const ChatReactionsSettingsMaterial()),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     Card(

@@ -12,6 +12,8 @@ import '../../models.dart' as models;
 import '../../themes.dart';
 import 'chat_common.dart';
 import 'chat_create_form_cupertino.dart';
+import 'chat_invite_links_cupertino.dart';
+import 'chat_join_requests_cupertino.dart';
 import 'chat_info_common.dart';
 
 /// Профиль чата (iOS) — тап по шапке окна чата. Результат — что сделать в
@@ -187,6 +189,35 @@ class _ChatInfoCupertinoState extends State<ChatInfoCupertino> {
                         ]),
                       if (chat.canManage && chat.type != models.ChatType.private)
                         _section(context, [
+                          CupertinoListTileIcon(
+                            color: const Color(0xFF049A40),
+                            hugeIcon: HugeIcons.strokeRoundedLink01,
+                            title: Text(t.screenChatInvites.inviteLinks),
+                            isTrailing: true,
+                            onTab: () => showChatInviteLinksCupertino(context, chat.id),
+                          ),
+                          CupertinoListTileIcon(
+                            color: const Color(0xFF1368E6),
+                            hugeIcon: HugeIcons.strokeRoundedUserAdd01,
+                            title: Text(t.screenChatInvites.joinRequests),
+                            additionalInfo: chat.pendingRequests > 0
+                                ? Container(
+                                    constraints: const BoxConstraints(minWidth: 22),
+                                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: CupertinoColors.systemRed.resolveFrom(context),
+                                      borderRadius: BorderRadius.circular(11),
+                                    ),
+                                    child: Text(
+                                      '${chat.pendingRequests}',
+                                      textAlign: TextAlign.center,
+                                      style: const TextStyle(fontSize: 14, color: CupertinoColors.white),
+                                    ),
+                                  )
+                                : null,
+                            isTrailing: true,
+                            onTab: () => showChatJoinRequestsCupertino(context, chat.id),
+                          ),
                           CupertinoListTileIcon(
                             color: const Color(0xFFFF9500),
                             hugeIcon: HugeIcons.strokeRoundedSmile,

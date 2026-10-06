@@ -45,6 +45,7 @@ class TranslationsRu extends Translations with BaseTranslations<AppLocale, Trans
 	@override late final _Translations$screenHome$ru screenHome = _Translations$screenHome$ru._(_root);
 	@override late final _Translations$screenChats$ru screenChats = _Translations$screenChats$ru._(_root);
 	@override late final _Translations$screenNewChat$ru screenNewChat = _Translations$screenNewChat$ru._(_root);
+	@override late final _Translations$screenChatInvites$ru screenChatInvites = _Translations$screenChatInvites$ru._(_root);
 	@override late final _Translations$screenChat$ru screenChat = _Translations$screenChat$ru._(_root);
 	@override late final _Translations$screenSettings$ru screenSettings = _Translations$screenSettings$ru._(_root);
 	@override late final _Translations$screenSettingsNotifications$ru screenSettingsNotifications = _Translations$screenSettingsNotifications$ru._(_root);
@@ -251,6 +252,72 @@ class _Translations$screenNewChat$ru extends Translations$screenNewChat$en {
 	@override String get roleWriter => 'Чтение и сообщения';
 	@override String get roleReaderFooter => 'Вступившие читают, но не могут писать.';
 	@override String get roleWriterFooter => 'Вступившие могут читать и писать сообщения.';
+}
+
+// Path: screenChatInvites
+class _Translations$screenChatInvites$ru extends Translations$screenChatInvites$en {
+	_Translations$screenChatInvites$ru._(TranslationsRu root) : this._root = root, super.internal(root);
+
+	final TranslationsRu _root; // ignore: unused_field
+
+	// Translations
+	@override String get inviteLinks => 'Ссылки-приглашения';
+	@override String get joinRequests => 'Заявки на вступление';
+	@override String get primaryLink => 'Основная ссылка';
+	@override String get publicLink => 'Публичная ссылка';
+	@override String get publicLinkFooter => 'Публичная ссылка меняется в «Изменить». Дополнительные ссылки ниже работают как приглашения.';
+	@override String get primaryFooter => 'Любой, у кого есть ссылка, может вступить.';
+	@override String get primaryFooterChannel => 'Любой, у кого есть ссылка, может подписаться.';
+	@override String get primaryFooterRequest => 'По ссылке подаётся заявка на вступление — её одобряет админ.';
+	@override String get adminsOnlyNote => 'Сейчас участников добавляют только админы — по ссылкам вступить нельзя. Способ вступления меняется в «Изменить».';
+	@override String get copy => 'Копировать';
+	@override String get share => 'Поделиться';
+	@override String get replace => 'Заменить ссылку';
+	@override String get replaceTitle => 'Заменить ссылку?';
+	@override String get replaceMessage => 'Текущая ссылка перестанет работать, вместо неё появится новая.';
+	@override String get copied => 'Ссылка скопирована';
+	@override String get createLink => 'Создать ссылку';
+	@override String get additionalHeader => 'Дополнительные ссылки';
+	@override String get additionalFooter => 'Можно создать ссылки со сроком действия, лимитом вступлений или одобрением заявок.';
+	@override String get revokedHeader => 'Отозванные ссылки';
+	@override String get deleteAllRevoked => 'Удалить все отозванные';
+	@override String joined({required Object n}) => 'Вступили: ${n}';
+	@override String left({required Object n}) => 'осталось ${n}';
+	@override String until({required Object date}) => 'до ${date}';
+	@override String get expired => 'истекла';
+	@override String get exhausted => 'лимит исчерпан';
+	@override String get approval => 'по заявке';
+	@override String get edit => 'Изменить';
+	@override String get revoke => 'Отозвать';
+	@override String get revokeTitle => 'Отозвать ссылку?';
+	@override String get revokeMessage => 'По ней больше нельзя будет вступить.';
+	@override String get delete => 'Удалить';
+	@override String get newLink => 'Новая ссылка';
+	@override String get editLink => 'Изменить ссылку';
+	@override String get create => 'Создать';
+	@override String get name => 'Название ссылки';
+	@override String get nameHint => 'Необязательно';
+	@override String get nameFooter => 'Название видно только админам.';
+	@override String get approvalTitle => 'Одобрение админом';
+	@override String get approvalFooter => 'Перешедшие по ссылке подают заявку, админ её принимает или отклоняет.';
+	@override String get expireHeader => 'Срок действия';
+	@override String get expireNever => 'Без ограничений';
+	@override String get expireHour => '1 час';
+	@override String get expireDay => '1 день';
+	@override String get expireWeek => '1 неделя';
+	@override String expireCurrent({required Object date}) => 'До ${date}';
+	@override String get limitHeader => 'Лимит вступлений';
+	@override String get limitNone => 'Без ограничений';
+	@override String get limitFooter => 'Сколько человек может вступить по этой ссылке.';
+	@override String get requestsEmpty => 'Заявок нет';
+	@override String get requestsEmptyHint => 'Когда кто-то попросится вступить, заявка появится здесь.';
+	@override String get approve => 'Принять';
+	@override String get decline => 'Отклонить';
+	@override String get approveAll => 'Принять все';
+	@override String get declineAll => 'Отклонить все';
+	@override String get all => 'Все';
+	@override String viaLink({required Object title}) => 'по ссылке «${title}»';
+	@override String get requestsOffHint => 'Заявки приходят, когда вступление «По заявке» или по ссылкам с одобрением админом.';
 }
 
 // Path: screenChat
@@ -1208,6 +1275,63 @@ extension on TranslationsRu {
 			'screenNewChat.roleWriter' => 'Чтение и сообщения',
 			'screenNewChat.roleReaderFooter' => 'Вступившие читают, но не могут писать.',
 			'screenNewChat.roleWriterFooter' => 'Вступившие могут читать и писать сообщения.',
+			'screenChatInvites.inviteLinks' => 'Ссылки-приглашения',
+			'screenChatInvites.joinRequests' => 'Заявки на вступление',
+			'screenChatInvites.primaryLink' => 'Основная ссылка',
+			'screenChatInvites.publicLink' => 'Публичная ссылка',
+			'screenChatInvites.publicLinkFooter' => 'Публичная ссылка меняется в «Изменить». Дополнительные ссылки ниже работают как приглашения.',
+			'screenChatInvites.primaryFooter' => 'Любой, у кого есть ссылка, может вступить.',
+			'screenChatInvites.primaryFooterChannel' => 'Любой, у кого есть ссылка, может подписаться.',
+			'screenChatInvites.primaryFooterRequest' => 'По ссылке подаётся заявка на вступление — её одобряет админ.',
+			'screenChatInvites.adminsOnlyNote' => 'Сейчас участников добавляют только админы — по ссылкам вступить нельзя. Способ вступления меняется в «Изменить».',
+			'screenChatInvites.copy' => 'Копировать',
+			'screenChatInvites.share' => 'Поделиться',
+			'screenChatInvites.replace' => 'Заменить ссылку',
+			'screenChatInvites.replaceTitle' => 'Заменить ссылку?',
+			'screenChatInvites.replaceMessage' => 'Текущая ссылка перестанет работать, вместо неё появится новая.',
+			'screenChatInvites.copied' => 'Ссылка скопирована',
+			'screenChatInvites.createLink' => 'Создать ссылку',
+			'screenChatInvites.additionalHeader' => 'Дополнительные ссылки',
+			'screenChatInvites.additionalFooter' => 'Можно создать ссылки со сроком действия, лимитом вступлений или одобрением заявок.',
+			'screenChatInvites.revokedHeader' => 'Отозванные ссылки',
+			'screenChatInvites.deleteAllRevoked' => 'Удалить все отозванные',
+			'screenChatInvites.joined' => ({required Object n}) => 'Вступили: ${n}',
+			'screenChatInvites.left' => ({required Object n}) => 'осталось ${n}',
+			'screenChatInvites.until' => ({required Object date}) => 'до ${date}',
+			'screenChatInvites.expired' => 'истекла',
+			'screenChatInvites.exhausted' => 'лимит исчерпан',
+			'screenChatInvites.approval' => 'по заявке',
+			'screenChatInvites.edit' => 'Изменить',
+			'screenChatInvites.revoke' => 'Отозвать',
+			'screenChatInvites.revokeTitle' => 'Отозвать ссылку?',
+			'screenChatInvites.revokeMessage' => 'По ней больше нельзя будет вступить.',
+			'screenChatInvites.delete' => 'Удалить',
+			'screenChatInvites.newLink' => 'Новая ссылка',
+			'screenChatInvites.editLink' => 'Изменить ссылку',
+			'screenChatInvites.create' => 'Создать',
+			'screenChatInvites.name' => 'Название ссылки',
+			'screenChatInvites.nameHint' => 'Необязательно',
+			'screenChatInvites.nameFooter' => 'Название видно только админам.',
+			'screenChatInvites.approvalTitle' => 'Одобрение админом',
+			'screenChatInvites.approvalFooter' => 'Перешедшие по ссылке подают заявку, админ её принимает или отклоняет.',
+			'screenChatInvites.expireHeader' => 'Срок действия',
+			'screenChatInvites.expireNever' => 'Без ограничений',
+			'screenChatInvites.expireHour' => '1 час',
+			'screenChatInvites.expireDay' => '1 день',
+			'screenChatInvites.expireWeek' => '1 неделя',
+			'screenChatInvites.expireCurrent' => ({required Object date}) => 'До ${date}',
+			'screenChatInvites.limitHeader' => 'Лимит вступлений',
+			'screenChatInvites.limitNone' => 'Без ограничений',
+			'screenChatInvites.limitFooter' => 'Сколько человек может вступить по этой ссылке.',
+			'screenChatInvites.requestsEmpty' => 'Заявок нет',
+			'screenChatInvites.requestsEmptyHint' => 'Когда кто-то попросится вступить, заявка появится здесь.',
+			'screenChatInvites.approve' => 'Принять',
+			'screenChatInvites.decline' => 'Отклонить',
+			'screenChatInvites.approveAll' => 'Принять все',
+			'screenChatInvites.declineAll' => 'Отклонить все',
+			'screenChatInvites.all' => 'Все',
+			'screenChatInvites.viaLink' => ({required Object title}) => 'по ссылке «${title}»',
+			'screenChatInvites.requestsOffHint' => 'Заявки приходят, когда вступление «По заявке» или по ссылкам с одобрением админом.',
 			'screenChat.today' => 'Сегодня',
 			'screenChat.yesterday' => 'Вчера',
 			'screenChat.online' => 'в сети',
@@ -1538,6 +1662,8 @@ extension on TranslationsRu {
 			'screenMyProfile.tellUsAboutYourself' => 'Расскажите о себе',
 			'screenMyProfile.add' => 'Указать',
 			'screenMyProfile.birthDate' => 'Дата рождения',
+			_ => null,
+		} ?? switch (path) {
 			'screenMyProfile.username' => 'Имя пользователя',
 			'screenMyProfile.validationFirstNameMaxLength' => 'Должно содержать не более 25 символов',
 			'screenMyProfile.validationLastNameMaxLength' => 'Должно содержать не более 25 символов',
@@ -1595,8 +1721,6 @@ extension on TranslationsRu {
 			'screenContacts.onContacts' => 'В контактах',
 			'screenContacts.cloudContacts' => 'Облачные контакты',
 			'screenContacts.invite' => 'Пригласить',
-			_ => null,
-		} ?? switch (path) {
 			'screenContacts.inviteAction' => 'Пригласить',
 			'screenContacts.search' => 'Поиск',
 			'screenContacts.permissionTitle' => 'Нужен доступ к контактам',
