@@ -18,6 +18,7 @@ import '../../themes.dart';
 import 'chat_common.dart';
 import 'compose_format_menu.dart';
 import 'forward_picker.dart';
+import 'chat_info_cupertino.dart';
 import 'pinned_messages_cupertino.dart';
 import 'scheduled_messages_cupertino.dart';
 import 'voice_recorder.dart';
@@ -109,6 +110,18 @@ class _ChatCupertinoState extends State<ChatCupertino> {
     _scroll.dispose();
     _searchInput.dispose();
     super.dispose();
+  }
+
+  /// Тап по шапке — профиль чата; оттуда «Поиск» или переход к сообщению.
+  Future<void> _openInfo(BuildContext context) async {
+    _focus.unfocus();
+    final result = await showChatInfoCupertino(context, _cubit);
+    if (result == null || !mounted) return;
+    if (result.search) {
+      _startSearch();
+    } else if (result.messageID case final id?) {
+      await _tracker.jumpTo(id);
+    }
   }
 
   /// Удержание шапки — поиск по чату (как в Telegram).
@@ -406,12 +419,14 @@ class _ChatCupertinoState extends State<ChatCupertino> {
                       middle: chat == null
                           ? null
                           : GestureDetector(
+                              onTap: () => _openInfo(context),
                               onLongPress: _startSearch,
                               child: _Header(chat: chat),
                             ),
                       trailing: chat == null
                           ? null
                           : GestureDetector(
+                              onTap: () => _openInfo(context),
                               onLongPress: _startSearch,
                               child: ChatAvatar(chat: chat, size: 36, accentColor: CupertinoTheme.of(context).primaryColor),
                             ),

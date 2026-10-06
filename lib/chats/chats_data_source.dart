@@ -26,6 +26,13 @@ abstract class ChatsDataSource {
 
   Future<void> deleteFolder(String folderID);
 
+  /// Участники группы (профиль чата): владелец и админы первыми.
+  Future<List<models.ChatMember>> members(String chatID);
+
+  /// Реакции группы/канала (профиль чата → «Реакции», админ): все /
+  /// выбранные [reactions] / никаких.
+  Future<void> setChatReactions(String chatID, models.ChatReactionsMode mode, List<String> reactions);
+
   /// Сообщения чата (от старых к новым) — сразу при подписке, затем при каждом
   /// изменении.
   Stream<List<models.Message>> watchMessages(String chatID);

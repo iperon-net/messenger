@@ -51,6 +51,7 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	late final Translations$screenSettingsNotifications$en screenSettingsNotifications = Translations$screenSettingsNotifications$en.internal(_root);
 	late final Translations$screenDeveloper$en screenDeveloper = Translations$screenDeveloper$en.internal(_root);
 	late final Translations$screenSettingsAppearance$en screenSettingsAppearance = Translations$screenSettingsAppearance$en.internal(_root);
+	late final Translations$screenChatInfo$en screenChatInfo = Translations$screenChatInfo$en.internal(_root);
 	late final Translations$screenChatThemes$en screenChatThemes = Translations$screenChatThemes$en.internal(_root);
 	late final Translations$screenSettingsDevices$en screenSettingsDevices = Translations$screenSettingsDevices$en.internal(_root);
 	late final Translations$screenSettingsAboutApplication$en screenSettingsAboutApplication = Translations$screenSettingsAboutApplication$en.internal(_root);
@@ -864,6 +865,135 @@ class Translations$screenSettingsAppearance$en {
 
 	/// en: 'Set by double-tapping a message'
 	String get quickReactionDescription => 'Set by double-tapping a message';
+}
+
+// Path: screenChatInfo
+class Translations$screenChatInfo$en {
+	Translations$screenChatInfo$en.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// en: 'Mute'
+	String get mute => 'Mute';
+
+	/// en: 'Unmute'
+	String get unmute => 'Unmute';
+
+	/// en: 'Sound'
+	String get sound => 'Sound';
+
+	/// en: 'Search'
+	String get search => 'Search';
+
+	/// en: 'Bio'
+	String get about => 'Bio';
+
+	/// en: 'Description'
+	String get description => 'Description';
+
+	/// en: 'Username'
+	String get username => 'Username';
+
+	/// en: 'Link'
+	String get link => 'Link';
+
+	/// en: 'Members'
+	String get tabMembers => 'Members';
+
+	/// en: 'Media'
+	String get tabMedia => 'Media';
+
+	/// en: 'Files'
+	String get tabFiles => 'Files';
+
+	/// en: 'Links'
+	String get tabLinks => 'Links';
+
+	/// en: 'Voice'
+	String get tabVoice => 'Voice';
+
+	/// en: 'Photos and videos from this chat will appear here'
+	String get emptyMedia => 'Photos and videos from this chat will appear here';
+
+	/// en: 'Files from this chat will appear here'
+	String get emptyFiles => 'Files from this chat will appear here';
+
+	/// en: 'Links from this chat will appear here'
+	String get emptyLinks => 'Links from this chat will appear here';
+
+	/// en: 'Voice messages will appear here'
+	String get emptyVoice => 'Voice messages will appear here';
+
+	/// en: 'owner'
+	String get roleOwner => 'owner';
+
+	/// en: 'admin'
+	String get roleAdmin => 'admin';
+
+	/// en: 'read only'
+	String get roleReader => 'read only';
+
+	/// en: 'You'
+	String get you => 'You';
+
+	/// en: 'Reactions'
+	String get reactions => 'Reactions';
+
+	/// en: 'All reactions'
+	String get reactionsAll => 'All reactions';
+
+	/// en: 'Some reactions'
+	String get reactionsSome => 'Some reactions';
+
+	/// en: 'No reactions'
+	String get reactionsNone => 'No reactions';
+
+	/// en: 'All'
+	String get reactionsAllShort => 'All';
+
+	/// en: 'Off'
+	String get reactionsNoneShort => 'Off';
+
+	/// en: 'Which reactions members can add to messages. Existing reactions stay.'
+	String get reactionsFooter => 'Which reactions members can add to messages. Existing reactions stay.';
+
+	/// en: 'Available reactions'
+	String get reactionsPick => 'Available reactions';
+
+	/// en: 'Delete chat'
+	String get deleteChat => 'Delete chat';
+
+	/// en: 'Leave group'
+	String get leaveGroup => 'Leave group';
+
+	/// en: 'Leave channel'
+	String get leaveChannel => 'Leave channel';
+
+	/// en: 'Leave community'
+	String get leaveCommunity => 'Leave community';
+
+	/// en: 'Leave'
+	String get leaveShort => 'Leave';
+
+	/// en: 'Delete chat with {name}?'
+	String deleteChatTitle({required Object name}) => 'Delete chat with ${name}?';
+
+	/// en: 'Leave «{name}»?'
+	String leaveGroupTitle({required Object name}) => 'Leave «${name}»?';
+
+	/// en: 'last seen {n} min ago'
+	String lastSeenMinutes({required Object n}) => 'last seen ${n} min ago';
+
+	/// en: 'last seen at {time}'
+	String lastSeenAt({required Object time}) => 'last seen at ${time}';
+
+	/// en: 'last seen yesterday at {time}'
+	String lastSeenYesterday({required Object time}) => 'last seen yesterday at ${time}';
+
+	/// en: 'last seen {date}'
+	String lastSeenDate({required Object date}) => 'last seen ${date}';
 }
 
 // Path: screenChatThemes
@@ -2296,6 +2426,46 @@ extension on Translations {
 			'screenSettingsAppearance.chatThemes' => 'Chat themes',
 			'screenSettingsAppearance.quickReaction' => 'Quick reaction',
 			'screenSettingsAppearance.quickReactionDescription' => 'Set by double-tapping a message',
+			'screenChatInfo.mute' => 'Mute',
+			'screenChatInfo.unmute' => 'Unmute',
+			'screenChatInfo.sound' => 'Sound',
+			'screenChatInfo.search' => 'Search',
+			'screenChatInfo.about' => 'Bio',
+			'screenChatInfo.description' => 'Description',
+			'screenChatInfo.username' => 'Username',
+			'screenChatInfo.link' => 'Link',
+			'screenChatInfo.tabMembers' => 'Members',
+			'screenChatInfo.tabMedia' => 'Media',
+			'screenChatInfo.tabFiles' => 'Files',
+			'screenChatInfo.tabLinks' => 'Links',
+			'screenChatInfo.tabVoice' => 'Voice',
+			'screenChatInfo.emptyMedia' => 'Photos and videos from this chat will appear here',
+			'screenChatInfo.emptyFiles' => 'Files from this chat will appear here',
+			'screenChatInfo.emptyLinks' => 'Links from this chat will appear here',
+			'screenChatInfo.emptyVoice' => 'Voice messages will appear here',
+			'screenChatInfo.roleOwner' => 'owner',
+			'screenChatInfo.roleAdmin' => 'admin',
+			'screenChatInfo.roleReader' => 'read only',
+			'screenChatInfo.you' => 'You',
+			'screenChatInfo.reactions' => 'Reactions',
+			'screenChatInfo.reactionsAll' => 'All reactions',
+			'screenChatInfo.reactionsSome' => 'Some reactions',
+			'screenChatInfo.reactionsNone' => 'No reactions',
+			'screenChatInfo.reactionsAllShort' => 'All',
+			'screenChatInfo.reactionsNoneShort' => 'Off',
+			'screenChatInfo.reactionsFooter' => 'Which reactions members can add to messages. Existing reactions stay.',
+			'screenChatInfo.reactionsPick' => 'Available reactions',
+			'screenChatInfo.deleteChat' => 'Delete chat',
+			'screenChatInfo.leaveGroup' => 'Leave group',
+			'screenChatInfo.leaveChannel' => 'Leave channel',
+			'screenChatInfo.leaveCommunity' => 'Leave community',
+			'screenChatInfo.leaveShort' => 'Leave',
+			'screenChatInfo.deleteChatTitle' => ({required Object name}) => 'Delete chat with ${name}?',
+			'screenChatInfo.leaveGroupTitle' => ({required Object name}) => 'Leave «${name}»?',
+			'screenChatInfo.lastSeenMinutes' => ({required Object n}) => 'last seen ${n} min ago',
+			'screenChatInfo.lastSeenAt' => ({required Object time}) => 'last seen at ${time}',
+			'screenChatInfo.lastSeenYesterday' => ({required Object time}) => 'last seen yesterday at ${time}',
+			'screenChatInfo.lastSeenDate' => ({required Object date}) => 'last seen ${date}',
 			'screenChatThemes.title' => _root.screenSettingsAppearance.chatThemes,
 			'screenChatThemes.pattern' => 'Pattern',
 			'screenChatThemes.intensity' => 'Pattern intensity',
@@ -2540,6 +2710,8 @@ extension on Translations {
 			'screenAuth.weAreExpectingYourCallWithin' => ({required Object duration}) => 'We are expecting your call within ${duration}',
 			'screenAuth.signInWith' => 'Sign in with',
 			'screenAuth.kContinue' => _root.common.kContinue,
+			_ => null,
+		} ?? switch (path) {
 			'screenAuth.invalidPhoneNumber' => 'Invalid phone number',
 			'screenAuthModerationApplicationStore.verificationCodeMismatch' => 'Verification code mismatch',
 			'screenAuthModerationApplicationStore.moderationApplicationStoreSessionNotFound' => 'Moderation application store session not found',
@@ -2580,8 +2752,6 @@ extension on Translations {
 			'screenCall.endedNoConnection' => 'No internet connection',
 			'screenCall.endedUnavailable' => 'Subscriber unavailable',
 			'screenCall.ended' => 'Call ended',
-			_ => null,
-		} ?? switch (path) {
 			'screenCall.decline' => 'Decline',
 			'screenCall.accept' => 'Accept',
 			'screenCall.hangup' => 'End',

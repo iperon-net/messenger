@@ -17,6 +17,7 @@ import '../../components.dart';
 import '../../cubit.dart';
 import '../../i18n/translations.g.dart';
 import '../../models.dart' as models;
+import 'chat_info_common.dart';
 import 'media_caption_cupertino.dart';
 import 'media_caption_material.dart';
 
@@ -32,9 +33,13 @@ import 'media_caption_material.dart';
   final seed = chat.id.hashCode.abs();
   return switch (chat.type) {
     models.ChatType.private when chat.isSelf => (text: '', active: false),
-    models.ChatType.private => (text: t.screenChat.lastSeenRecently, active: false),
-    models.ChatType.group || models.ChatType.community => (text: t.screenChat.members(n: 3 + seed % 60), active: false),
-    models.ChatType.channel => (text: t.screenChat.subscribers(n: 1200 + seed % 90000), active: false),
+    models.ChatType.private => chatPresence(t, chat),
+    models.ChatType.group ||
+    models.ChatType.community => (text: t.screenChat.members(n: chat.membersCount > 0 ? chat.membersCount : 3 + seed % 60), active: false),
+    models.ChatType.channel => (
+      text: t.screenChat.subscribers(n: chat.membersCount > 0 ? chat.membersCount : 1200 + seed % 90000),
+      active: false,
+    ),
   };
 }
 

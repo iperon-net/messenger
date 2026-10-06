@@ -299,6 +299,19 @@ class ChatCubit extends Cubit<ChatState> {
 
   Future<void> setMuted(bool muted) async => _source?.setMuted(_chatID, muted);
 
+  /// Профиль чата: участники группы.
+  Future<void> loadMembers() async {
+    final members = await _source?.members(_chatID);
+    if (!isClosed && members != null) emit(state.copyWith(members: members));
+  }
+
+  /// Профиль чата → «Реакции» (админ).
+  Future<void> setChatReactions(models.ChatReactionsMode mode, List<String> reactions) async =>
+      _source?.setChatReactions(_chatID, mode, reactions);
+
+  /// Профиль чата: «Удалить чат» / «Покинуть группу».
+  Future<void> deleteChat() async => _source?.delete(_chatID);
+
   /// Отложенные (экран «Отложенные сообщения»).
   Future<void> sendScheduledNow(models.Message message) async => _source?.sendScheduledNow(_chatID, message.id);
 

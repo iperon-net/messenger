@@ -17,6 +17,7 @@ class ChatStateMapper extends ClassMapperBase<ChatState> {
       MapperContainer.globals.use(_instance = ChatStateMapper._());
       models.ChatMapper.ensureInitialized();
       models.MessageMapper.ensureInitialized();
+      models.ChatMemberMapper.ensureInitialized();
     }
     return _instance!;
   }
@@ -125,6 +126,13 @@ class ChatStateMapper extends ClassMapperBase<ChatState> {
     opt: true,
     def: false,
   );
+  static List<models.ChatMember> _$members(ChatState v) => v.members;
+  static const Field<ChatState, List<models.ChatMember>> _f$members = Field(
+    'members',
+    _$members,
+    opt: true,
+    def: const [],
+  );
 
   @override
   final MappableFields<ChatState> fields = const {
@@ -143,6 +151,7 @@ class ChatStateMapper extends ClassMapperBase<ChatState> {
     #searchIndex: _f$searchIndex,
     #scheduled: _f$scheduled,
     #linkPreviewDisabled: _f$linkPreviewDisabled,
+    #members: _f$members,
   };
 
   static ChatState _instantiate(DecodingData data) {
@@ -162,6 +171,7 @@ class ChatStateMapper extends ClassMapperBase<ChatState> {
       searchIndex: data.dec(_f$searchIndex),
       scheduled: data.dec(_f$scheduled),
       linkPreviewDisabled: data.dec(_f$linkPreviewDisabled),
+      members: data.dec(_f$members),
     );
   }
 
@@ -248,6 +258,12 @@ abstract class ChatStateCopyWith<$R, $In extends ChatState, $Out>
     models.MessageCopyWith<$R, models.Message, models.Message>
   >
   get scheduled;
+  ListCopyWith<
+    $R,
+    models.ChatMember,
+    models.ChatMemberCopyWith<$R, models.ChatMember, models.ChatMember>
+  >
+  get members;
   $R call({
     Status? status,
     models.Chat? chat,
@@ -264,6 +280,7 @@ abstract class ChatStateCopyWith<$R, $In extends ChatState, $Out>
     int? searchIndex,
     List<models.Message>? scheduled,
     bool? linkPreviewDisabled,
+    List<models.ChatMember>? members,
   });
   ChatStateCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
@@ -333,6 +350,17 @@ class _ChatStateCopyWithImpl<$R, $Out>
     (v) => call(scheduled: v),
   );
   @override
+  ListCopyWith<
+    $R,
+    models.ChatMember,
+    models.ChatMemberCopyWith<$R, models.ChatMember, models.ChatMember>
+  >
+  get members => ListCopyWith(
+    $value.members,
+    (v, t) => v.copyWith.$chain(t),
+    (v) => call(members: v),
+  );
+  @override
   $R call({
     Status? status,
     Object? chat = $none,
@@ -349,6 +377,7 @@ class _ChatStateCopyWithImpl<$R, $Out>
     int? searchIndex,
     List<models.Message>? scheduled,
     bool? linkPreviewDisabled,
+    List<models.ChatMember>? members,
   }) => $apply(
     FieldCopyWithData({
       if (status != null) #status: status,
@@ -367,6 +396,7 @@ class _ChatStateCopyWithImpl<$R, $Out>
       if (scheduled != null) #scheduled: scheduled,
       if (linkPreviewDisabled != null)
         #linkPreviewDisabled: linkPreviewDisabled,
+      if (members != null) #members: members,
     }),
   );
   @override
@@ -389,6 +419,7 @@ class _ChatStateCopyWithImpl<$R, $Out>
       #linkPreviewDisabled,
       or: $value.linkPreviewDisabled,
     ),
+    members: data.get(#members, or: $value.members),
   );
 
   @override

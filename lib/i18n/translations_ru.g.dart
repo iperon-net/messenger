@@ -49,6 +49,7 @@ class TranslationsRu extends Translations with BaseTranslations<AppLocale, Trans
 	@override late final _Translations$screenSettingsNotifications$ru screenSettingsNotifications = _Translations$screenSettingsNotifications$ru._(_root);
 	@override late final _Translations$screenDeveloper$ru screenDeveloper = _Translations$screenDeveloper$ru._(_root);
 	@override late final _Translations$screenSettingsAppearance$ru screenSettingsAppearance = _Translations$screenSettingsAppearance$ru._(_root);
+	@override late final _Translations$screenChatInfo$ru screenChatInfo = _Translations$screenChatInfo$ru._(_root);
 	@override late final _Translations$screenChatThemes$ru screenChatThemes = _Translations$screenChatThemes$ru._(_root);
 	@override late final _Translations$screenSettingsDevices$ru screenSettingsDevices = _Translations$screenSettingsDevices$ru._(_root);
 	@override late final _Translations$screenSettingsAboutApplication$ru screenSettingsAboutApplication = _Translations$screenSettingsAboutApplication$ru._(_root);
@@ -418,6 +419,55 @@ class _Translations$screenSettingsAppearance$ru extends Translations$screenSetti
 	@override String get chatThemes => 'Темы для чатов';
 	@override String get quickReaction => 'Быстрая реакция';
 	@override String get quickReactionDescription => 'Ставится двойным тапом по сообщению';
+}
+
+// Path: screenChatInfo
+class _Translations$screenChatInfo$ru extends Translations$screenChatInfo$en {
+	_Translations$screenChatInfo$ru._(TranslationsRu root) : this._root = root, super.internal(root);
+
+	final TranslationsRu _root; // ignore: unused_field
+
+	// Translations
+	@override String get mute => 'Выкл. звук';
+	@override String get unmute => 'Вкл. звук';
+	@override String get sound => 'Звук';
+	@override String get search => 'Поиск';
+	@override String get about => 'О себе';
+	@override String get description => 'Описание';
+	@override String get username => 'Имя пользователя';
+	@override String get link => 'Ссылка';
+	@override String get tabMembers => 'Участники';
+	@override String get tabMedia => 'Медиа';
+	@override String get tabFiles => 'Файлы';
+	@override String get tabLinks => 'Ссылки';
+	@override String get tabVoice => 'Голосовые';
+	@override String get emptyMedia => 'Здесь будут фото и видео из чата';
+	@override String get emptyFiles => 'Здесь будут файлы из чата';
+	@override String get emptyLinks => 'Здесь будут ссылки из чата';
+	@override String get emptyVoice => 'Здесь будут голосовые сообщения';
+	@override String get roleOwner => 'владелец';
+	@override String get roleAdmin => 'админ';
+	@override String get roleReader => 'только чтение';
+	@override String get you => 'Вы';
+	@override String get reactions => 'Реакции';
+	@override String get reactionsAll => 'Все реакции';
+	@override String get reactionsSome => 'Некоторые';
+	@override String get reactionsNone => 'Нет реакций';
+	@override String get reactionsAllShort => 'Все';
+	@override String get reactionsNoneShort => 'Выкл.';
+	@override String get reactionsFooter => 'Какие реакции участники могут ставить на сообщения. Уже поставленные реакции останутся.';
+	@override String get reactionsPick => 'Разрешённые реакции';
+	@override String get deleteChat => 'Удалить чат';
+	@override String get leaveGroup => 'Покинуть группу';
+	@override String get leaveChannel => 'Покинуть канал';
+	@override String get leaveCommunity => 'Покинуть сообщество';
+	@override String get leaveShort => 'Покинуть';
+	@override String deleteChatTitle({required Object name}) => 'Удалить чат с ${name}?';
+	@override String leaveGroupTitle({required Object name}) => 'Покинуть «${name}»?';
+	@override String lastSeenMinutes({required Object n}) => 'был(а) ${n} мин. назад';
+	@override String lastSeenAt({required Object time}) => 'был(а) в ${time}';
+	@override String lastSeenYesterday({required Object time}) => 'был(а) вчера в ${time}';
+	@override String lastSeenDate({required Object date}) => 'был(а) ${date}';
 }
 
 // Path: screenChatThemes
@@ -1191,6 +1241,46 @@ extension on TranslationsRu {
 			'screenSettingsAppearance.chatThemes' => 'Темы для чатов',
 			'screenSettingsAppearance.quickReaction' => 'Быстрая реакция',
 			'screenSettingsAppearance.quickReactionDescription' => 'Ставится двойным тапом по сообщению',
+			'screenChatInfo.mute' => 'Выкл. звук',
+			'screenChatInfo.unmute' => 'Вкл. звук',
+			'screenChatInfo.sound' => 'Звук',
+			'screenChatInfo.search' => 'Поиск',
+			'screenChatInfo.about' => 'О себе',
+			'screenChatInfo.description' => 'Описание',
+			'screenChatInfo.username' => 'Имя пользователя',
+			'screenChatInfo.link' => 'Ссылка',
+			'screenChatInfo.tabMembers' => 'Участники',
+			'screenChatInfo.tabMedia' => 'Медиа',
+			'screenChatInfo.tabFiles' => 'Файлы',
+			'screenChatInfo.tabLinks' => 'Ссылки',
+			'screenChatInfo.tabVoice' => 'Голосовые',
+			'screenChatInfo.emptyMedia' => 'Здесь будут фото и видео из чата',
+			'screenChatInfo.emptyFiles' => 'Здесь будут файлы из чата',
+			'screenChatInfo.emptyLinks' => 'Здесь будут ссылки из чата',
+			'screenChatInfo.emptyVoice' => 'Здесь будут голосовые сообщения',
+			'screenChatInfo.roleOwner' => 'владелец',
+			'screenChatInfo.roleAdmin' => 'админ',
+			'screenChatInfo.roleReader' => 'только чтение',
+			'screenChatInfo.you' => 'Вы',
+			'screenChatInfo.reactions' => 'Реакции',
+			'screenChatInfo.reactionsAll' => 'Все реакции',
+			'screenChatInfo.reactionsSome' => 'Некоторые',
+			'screenChatInfo.reactionsNone' => 'Нет реакций',
+			'screenChatInfo.reactionsAllShort' => 'Все',
+			'screenChatInfo.reactionsNoneShort' => 'Выкл.',
+			'screenChatInfo.reactionsFooter' => 'Какие реакции участники могут ставить на сообщения. Уже поставленные реакции останутся.',
+			'screenChatInfo.reactionsPick' => 'Разрешённые реакции',
+			'screenChatInfo.deleteChat' => 'Удалить чат',
+			'screenChatInfo.leaveGroup' => 'Покинуть группу',
+			'screenChatInfo.leaveChannel' => 'Покинуть канал',
+			'screenChatInfo.leaveCommunity' => 'Покинуть сообщество',
+			'screenChatInfo.leaveShort' => 'Покинуть',
+			'screenChatInfo.deleteChatTitle' => ({required Object name}) => 'Удалить чат с ${name}?',
+			'screenChatInfo.leaveGroupTitle' => ({required Object name}) => 'Покинуть «${name}»?',
+			'screenChatInfo.lastSeenMinutes' => ({required Object n}) => 'был(а) ${n} мин. назад',
+			'screenChatInfo.lastSeenAt' => ({required Object time}) => 'был(а) в ${time}',
+			'screenChatInfo.lastSeenYesterday' => ({required Object time}) => 'был(а) вчера в ${time}',
+			'screenChatInfo.lastSeenDate' => ({required Object date}) => 'был(а) ${date}',
 			'screenChatThemes.title' => _root.screenSettingsAppearance.chatThemes,
 			'screenChatThemes.pattern' => 'Узор',
 			'screenChatThemes.intensity' => 'Интенсивность узора',
@@ -1435,6 +1525,8 @@ extension on TranslationsRu {
 			'screenAuth.weAreExpectingYourCallWithin' => ({required Object duration}) => 'Мы ждём вашего звонка в течение ${duration}',
 			'screenAuth.signInWith' => 'Войти через',
 			'screenAuth.kContinue' => _root.common.kContinue,
+			_ => null,
+		} ?? switch (path) {
 			'screenAuth.invalidPhoneNumber' => 'Неверный номер телефона',
 			'screenAuthModerationApplicationStore.verificationCodeMismatch' => 'Неверный код подтверждения',
 			'screenAuthModerationApplicationStore.moderationApplicationStoreSessionNotFound' => 'Сессия не найдена',
@@ -1475,8 +1567,6 @@ extension on TranslationsRu {
 			'screenCall.endedNoConnection' => 'Нет соединения с интернетом',
 			'screenCall.endedUnavailable' => 'Абонент недоступен',
 			'screenCall.ended' => 'Звонок завершён',
-			_ => null,
-		} ?? switch (path) {
 			'screenCall.decline' => 'Отклонить',
 			'screenCall.accept' => 'Принять',
 			'screenCall.hangup' => 'Завершить',

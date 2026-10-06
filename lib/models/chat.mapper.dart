@@ -220,6 +220,241 @@ extension ChatReactionsModeMapperExtension on ChatReactionsMode {
   }
 }
 
+class ChatRoleMapper extends EnumMapper<ChatRole> {
+  ChatRoleMapper._();
+
+  static ChatRoleMapper? _instance;
+  static ChatRoleMapper ensureInitialized() {
+    if (_instance == null) {
+      MapperContainer.globals.use(_instance = ChatRoleMapper._());
+    }
+    return _instance!;
+  }
+
+  static ChatRole fromValue(dynamic value) {
+    ensureInitialized();
+    return MapperContainer.globals.fromValue(value);
+  }
+
+  @override
+  ChatRole decode(dynamic value) {
+    switch (value) {
+      case r'reader':
+        return ChatRole.reader;
+      case r'writer':
+        return ChatRole.writer;
+      case r'admin':
+        return ChatRole.admin;
+      case r'owner':
+        return ChatRole.owner;
+      default:
+        throw MapperException.unknownEnumValue(value);
+    }
+  }
+
+  @override
+  dynamic encode(ChatRole self) {
+    switch (self) {
+      case ChatRole.reader:
+        return r'reader';
+      case ChatRole.writer:
+        return r'writer';
+      case ChatRole.admin:
+        return r'admin';
+      case ChatRole.owner:
+        return r'owner';
+    }
+  }
+}
+
+extension ChatRoleMapperExtension on ChatRole {
+  String toValue() {
+    ChatRoleMapper.ensureInitialized();
+    return MapperContainer.globals.toValue<ChatRole>(this) as String;
+  }
+}
+
+class ChatMemberMapper extends ClassMapperBase<ChatMember> {
+  ChatMemberMapper._();
+
+  static ChatMemberMapper? _instance;
+  static ChatMemberMapper ensureInitialized() {
+    if (_instance == null) {
+      MapperContainer.globals.use(_instance = ChatMemberMapper._());
+      ChatRoleMapper.ensureInitialized();
+    }
+    return _instance!;
+  }
+
+  @override
+  final String id = 'ChatMember';
+
+  static String _$id(ChatMember v) => v.id;
+  static const Field<ChatMember, String> _f$id = Field('id', _$id);
+  static String _$name(ChatMember v) => v.name;
+  static const Field<ChatMember, String> _f$name = Field('name', _$name);
+  static ChatRole _$role(ChatMember v) => v.role;
+  static const Field<ChatMember, ChatRole> _f$role = Field(
+    'role',
+    _$role,
+    opt: true,
+    def: ChatRole.writer,
+  );
+  static bool _$online(ChatMember v) => v.online;
+  static const Field<ChatMember, bool> _f$online = Field(
+    'online',
+    _$online,
+    opt: true,
+    def: false,
+  );
+  static DateTime? _$lastSeen(ChatMember v) => v.lastSeen;
+  static const Field<ChatMember, DateTime> _f$lastSeen = Field(
+    'lastSeen',
+    _$lastSeen,
+    opt: true,
+  );
+  static bool _$isSelf(ChatMember v) => v.isSelf;
+  static const Field<ChatMember, bool> _f$isSelf = Field(
+    'isSelf',
+    _$isSelf,
+    opt: true,
+    def: false,
+  );
+
+  @override
+  final MappableFields<ChatMember> fields = const {
+    #id: _f$id,
+    #name: _f$name,
+    #role: _f$role,
+    #online: _f$online,
+    #lastSeen: _f$lastSeen,
+    #isSelf: _f$isSelf,
+  };
+
+  static ChatMember _instantiate(DecodingData data) {
+    return ChatMember(
+      id: data.dec(_f$id),
+      name: data.dec(_f$name),
+      role: data.dec(_f$role),
+      online: data.dec(_f$online),
+      lastSeen: data.dec(_f$lastSeen),
+      isSelf: data.dec(_f$isSelf),
+    );
+  }
+
+  @override
+  final Function instantiate = _instantiate;
+
+  static ChatMember fromMap(Map<String, dynamic> map) {
+    return ensureInitialized().decodeMap<ChatMember>(map);
+  }
+
+  static ChatMember fromJson(String json) {
+    return ensureInitialized().decodeJson<ChatMember>(json);
+  }
+}
+
+mixin ChatMemberMappable {
+  String toJson() {
+    return ChatMemberMapper.ensureInitialized().encodeJson<ChatMember>(
+      this as ChatMember,
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return ChatMemberMapper.ensureInitialized().encodeMap<ChatMember>(
+      this as ChatMember,
+    );
+  }
+
+  ChatMemberCopyWith<ChatMember, ChatMember, ChatMember> get copyWith =>
+      _ChatMemberCopyWithImpl<ChatMember, ChatMember>(
+        this as ChatMember,
+        $identity,
+        $identity,
+      );
+  @override
+  String toString() {
+    return ChatMemberMapper.ensureInitialized().stringifyValue(
+      this as ChatMember,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return ChatMemberMapper.ensureInitialized().equalsValue(
+      this as ChatMember,
+      other,
+    );
+  }
+
+  @override
+  int get hashCode {
+    return ChatMemberMapper.ensureInitialized().hashValue(this as ChatMember);
+  }
+}
+
+extension ChatMemberValueCopy<$R, $Out>
+    on ObjectCopyWith<$R, ChatMember, $Out> {
+  ChatMemberCopyWith<$R, ChatMember, $Out> get $asChatMember =>
+      $base.as((v, t, t2) => _ChatMemberCopyWithImpl<$R, $Out>(v, t, t2));
+}
+
+abstract class ChatMemberCopyWith<$R, $In extends ChatMember, $Out>
+    implements ClassCopyWith<$R, $In, $Out> {
+  $R call({
+    String? id,
+    String? name,
+    ChatRole? role,
+    bool? online,
+    DateTime? lastSeen,
+    bool? isSelf,
+  });
+  ChatMemberCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
+}
+
+class _ChatMemberCopyWithImpl<$R, $Out>
+    extends ClassCopyWithBase<$R, ChatMember, $Out>
+    implements ChatMemberCopyWith<$R, ChatMember, $Out> {
+  _ChatMemberCopyWithImpl(super.value, super.then, super.then2);
+
+  @override
+  late final ClassMapperBase<ChatMember> $mapper =
+      ChatMemberMapper.ensureInitialized();
+  @override
+  $R call({
+    String? id,
+    String? name,
+    ChatRole? role,
+    bool? online,
+    Object? lastSeen = $none,
+    bool? isSelf,
+  }) => $apply(
+    FieldCopyWithData({
+      if (id != null) #id: id,
+      if (name != null) #name: name,
+      if (role != null) #role: role,
+      if (online != null) #online: online,
+      if (lastSeen != $none) #lastSeen: lastSeen,
+      if (isSelf != null) #isSelf: isSelf,
+    }),
+  );
+  @override
+  ChatMember $make(CopyWithData data) => ChatMember(
+    id: data.get(#id, or: $value.id),
+    name: data.get(#name, or: $value.name),
+    role: data.get(#role, or: $value.role),
+    online: data.get(#online, or: $value.online),
+    lastSeen: data.get(#lastSeen, or: $value.lastSeen),
+    isSelf: data.get(#isSelf, or: $value.isSelf),
+  );
+
+  @override
+  ChatMemberCopyWith<$R2, ChatMember, $Out2> $chain<$R2, $Out2>(
+    Then<$Out2, $R2> t,
+  ) => _ChatMemberCopyWithImpl<$R2, $Out2>($value, $cast, t);
+}
+
 class ChatLastMessageMapper extends ClassMapperBase<ChatLastMessage> {
   ChatLastMessageMapper._();
 
@@ -422,6 +657,7 @@ class ChatMapper extends ClassMapperBase<Chat> {
       ChatTypeMapper.ensureInitialized();
       ChatLastMessageMapper.ensureInitialized();
       ChatReactionsModeMapper.ensureInitialized();
+      ChatRoleMapper.ensureInitialized();
     }
     return _instance!;
   }
@@ -525,6 +761,47 @@ class ChatMapper extends ClassMapperBase<Chat> {
     opt: true,
     def: const [],
   );
+  static String _$about(Chat v) => v.about;
+  static const Field<Chat, String> _f$about = Field(
+    'about',
+    _$about,
+    opt: true,
+    def: '',
+  );
+  static String _$username(Chat v) => v.username;
+  static const Field<Chat, String> _f$username = Field(
+    'username',
+    _$username,
+    opt: true,
+    def: '',
+  );
+  static int _$membersCount(Chat v) => v.membersCount;
+  static const Field<Chat, int> _f$membersCount = Field(
+    'membersCount',
+    _$membersCount,
+    opt: true,
+    def: 0,
+  );
+  static ChatRole _$myRole(Chat v) => v.myRole;
+  static const Field<Chat, ChatRole> _f$myRole = Field(
+    'myRole',
+    _$myRole,
+    opt: true,
+    def: ChatRole.writer,
+  );
+  static bool _$online(Chat v) => v.online;
+  static const Field<Chat, bool> _f$online = Field(
+    'online',
+    _$online,
+    opt: true,
+    def: false,
+  );
+  static DateTime? _$lastSeen(Chat v) => v.lastSeen;
+  static const Field<Chat, DateTime> _f$lastSeen = Field(
+    'lastSeen',
+    _$lastSeen,
+    opt: true,
+  );
 
   @override
   final MappableFields<Chat> fields = const {
@@ -544,6 +821,12 @@ class ChatMapper extends ClassMapperBase<Chat> {
     #typing: _f$typing,
     #reactionsMode: _f$reactionsMode,
     #reactions: _f$reactions,
+    #about: _f$about,
+    #username: _f$username,
+    #membersCount: _f$membersCount,
+    #myRole: _f$myRole,
+    #online: _f$online,
+    #lastSeen: _f$lastSeen,
   };
 
   static Chat _instantiate(DecodingData data) {
@@ -564,6 +847,12 @@ class ChatMapper extends ClassMapperBase<Chat> {
       typing: data.dec(_f$typing),
       reactionsMode: data.dec(_f$reactionsMode),
       reactions: data.dec(_f$reactions),
+      about: data.dec(_f$about),
+      username: data.dec(_f$username),
+      membersCount: data.dec(_f$membersCount),
+      myRole: data.dec(_f$myRole),
+      online: data.dec(_f$online),
+      lastSeen: data.dec(_f$lastSeen),
     );
   }
 
@@ -633,6 +922,12 @@ abstract class ChatCopyWith<$R, $In extends Chat, $Out>
     String? typing,
     ChatReactionsMode? reactionsMode,
     List<String>? reactions,
+    String? about,
+    String? username,
+    int? membersCount,
+    ChatRole? myRole,
+    bool? online,
+    DateTime? lastSeen,
   });
   ChatCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
@@ -672,6 +967,12 @@ class _ChatCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Chat, $Out>
     String? typing,
     ChatReactionsMode? reactionsMode,
     List<String>? reactions,
+    String? about,
+    String? username,
+    int? membersCount,
+    ChatRole? myRole,
+    bool? online,
+    Object? lastSeen = $none,
   }) => $apply(
     FieldCopyWithData({
       if (id != null) #id: id,
@@ -690,6 +991,12 @@ class _ChatCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Chat, $Out>
       if (typing != null) #typing: typing,
       if (reactionsMode != null) #reactionsMode: reactionsMode,
       if (reactions != null) #reactions: reactions,
+      if (about != null) #about: about,
+      if (username != null) #username: username,
+      if (membersCount != null) #membersCount: membersCount,
+      if (myRole != null) #myRole: myRole,
+      if (online != null) #online: online,
+      if (lastSeen != $none) #lastSeen: lastSeen,
     }),
   );
   @override
@@ -710,6 +1017,12 @@ class _ChatCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Chat, $Out>
     typing: data.get(#typing, or: $value.typing),
     reactionsMode: data.get(#reactionsMode, or: $value.reactionsMode),
     reactions: data.get(#reactions, or: $value.reactions),
+    about: data.get(#about, or: $value.about),
+    username: data.get(#username, or: $value.username),
+    membersCount: data.get(#membersCount, or: $value.membersCount),
+    myRole: data.get(#myRole, or: $value.myRole),
+    online: data.get(#online, or: $value.online),
+    lastSeen: data.get(#lastSeen, or: $value.lastSeen),
   );
 
   @override

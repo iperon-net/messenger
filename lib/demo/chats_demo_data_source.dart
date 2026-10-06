@@ -14,7 +14,7 @@ import '../models.dart' as models;
 /// становятся прочитанными.
 class ChatsDemoDataSource implements ChatsDataSource {
   ChatsDemoDataSource._() {
-    _chats = _seedChats();
+    _chats = [for (final c in _seedChats()) _withProfile(c)];
     _folders = _seedFolders();
   }
 
@@ -62,6 +62,90 @@ class ChatsDemoDataSource implements ChatsDataSource {
   Future<void> readAll(List<String> chatIDs) async {
     _chats = [for (final c in _chats) chatIDs.contains(c.id) ? c.copyWith(unreadCount: 0, unreadMentions: 0, markedUnread: false) : c];
     _chatsController.add(_chats);
+  }
+
+  @override
+  Future<void> setChatReactions(String chatID, models.ChatReactionsMode mode, List<String> reactions) async =>
+      _update(chatID, (c) => c.copyWith(reactionsMode: mode, reactions: reactions));
+
+  final _members = <String, List<models.ChatMember>>{};
+
+  @override
+  Future<List<models.ChatMember>> members(String chatID) async {
+    final chat = _chats.where((c) => c.id == chatID).firstOrNull;
+    if (chat == null || chat.type == models.ChatType.private) return const [];
+    return _members.putIfAbsent(chatID, () {
+      final now = DateTime.now();
+      // Демо: участники из имён истории + «Вы»; список — первые до 30.
+      const surnames = ['Смирнова', 'Козлов', 'Иванова', 'Петров', 'Соколова', 'Морозов', 'Волкова', 'Новиков'];
+      final count = min(chat.membersCount, 30);
+      final result = <models.ChatMember>[models.ChatMember(id: 'me', name: 'Вы', role: chat.myRole, online: true, isSelf: true)];
+      for (var i = 0; result.length < count; i++) {
+        final name = '${_names[i % _names.length]} ${surnames[(i * 3) % surnames.length]}';
+        final role = i == 0 && chat.myRole != models.ChatRole.owner
+            ? models.ChatRole.owner
+            : i < 2
+            ? models.ChatRole.admin
+            : (i % 4 == 3 ? models.ChatRole.reader : models.ChatRole.writer);
+        result.add(
+          models.ChatMember(
+            id: 'u$i',
+            name: name,
+            role: role,
+            online: i % 3 == 0,
+            lastSeen: i % 3 == 0 ? null : now.subtract(Duration(minutes: 7 + i * 53)),
+          ),
+        );
+      }
+      int rank(models.ChatMember m) => m.role == models.ChatRole.owner ? 0 : (m.role == models.ChatRole.admin ? 1 : 2);
+      final indexed = result.indexed.toList()
+        ..sort((a, b) => rank(a.$2) != rank(b.$2) ? rank(a.$2).compareTo(rank(b.$2)) : a.$1.compareTo(b.$1));
+      return [for (final (_, m) in indexed) m];
+    });
+  }
+
+  /// Профиль демо-чата: «О себе» / описание, @username, число участников и
+  /// наша роль.
+  models.Chat _withProfile(models.Chat chat) {
+    final now = DateTime.now();
+    return switch (chat.id) {
+      'anna' => chat.copyWith(about: 'Дизайнер интерфейсов. Люблю горы 🏔', username: 'anna_smirnova', online: true),
+      'dmitry' => chat.copyWith(about: 'Backend, Go, Kubernetes', username: 'dkozlov', lastSeen: now.subtract(const Duration(minutes: 25))),
+      'olga' => chat.copyWith(lastSeen: now.subtract(const Duration(hours: 2))),
+      'maria' => chat.copyWith(about: 'Юрист', lastSeen: now.subtract(const Duration(days: 1))),
+      'sergey' => chat.copyWith(username: 'spetrov', lastSeen: now.subtract(const Duration(hours: 5))),
+      'alexey' => chat.copyWith(online: true),
+      'team' => chat.copyWith(about: 'Рабочий чат команды Iperon: релизы, баги, планы.', membersCount: 12, myRole: models.ChatRole.admin),
+      'family' => chat.copyWith(membersCount: 6, myRole: models.ChatRole.owner),
+      'football' => chat.copyWith(about: 'Каждую среду в 20:00, манеж на Ленинградке.', membersCount: 18),
+      'school' => chat.copyWith(about: 'Чат родителей 5 «Б» класса школы № 1234.', membersCount: 27, myRole: models.ChatRole.reader),
+      'district' => chat.copyWith(
+        about: 'Сообщество жителей ЖК «Северный»: новости УК, соседи, объявления.',
+        username: 'severny_zhk',
+        membersCount: 1340,
+      ),
+      'devs' => chat.copyWith(about: 'Русскоязычное сообщество Flutter-разработчиков.', username: 'flutter_ru', membersCount: 8420),
+      'news' => chat.copyWith(
+        about: 'Новости мессенджера Iperon.',
+        username: 'iperon_news',
+        membersCount: 15400,
+        myRole: models.ChatRole.reader,
+      ),
+      'flutter' => chat.copyWith(
+        about: 'Всё о Flutter и Dart.',
+        username: 'flutter_dev',
+        membersCount: 52300,
+        myRole: models.ChatRole.reader,
+      ),
+      'tech' => chat.copyWith(
+        about: 'Обзоры гаджетов и технологий.',
+        username: 'tech_review',
+        membersCount: 3100,
+        myRole: models.ChatRole.owner,
+      ),
+      'shop' => chat.copyWith(membersCount: 920, myRole: models.ChatRole.reader),
+      _ => chat,
+    };
   }
 
   @override

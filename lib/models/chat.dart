@@ -21,6 +21,35 @@ enum MessageKind { text, photo, video, file, voice }
 @MappableEnum()
 enum ChatReactionsMode { all, some, none }
 
+/// Роль в группе/канале (см. docs/plans/chats-groups-channels.md, «Приватность
+/// групп»): по возрастанию прав. В канале подписчик — [reader].
+@MappableEnum()
+enum ChatRole { reader, writer, admin, owner }
+
+/// Участник группы (профиль чата → «Участники»).
+@MappableClass()
+class ChatMember with ChatMemberMappable {
+  final String id;
+  final String name;
+  final ChatRole role;
+
+  /// Сейчас в сети; иначе — [lastSeen] (`null` — давно / скрыто).
+  final bool online;
+  final DateTime? lastSeen;
+
+  /// Это мы.
+  final bool isSelf;
+
+  const ChatMember({
+    required this.id,
+    required this.name,
+    this.role = ChatRole.writer,
+    this.online = false,
+    this.lastSeen,
+    this.isSelf = false,
+  });
+}
+
 /// Последнее сообщение чата в том виде, в каком оно нужно списку чатов.
 @MappableClass()
 class ChatLastMessage with ChatLastMessageMappable {
@@ -89,6 +118,22 @@ class Chat with ChatMappable {
   final ChatReactionsMode reactionsMode;
   final List<String> reactions;
 
+  /// Профиль чата: «О себе» собеседника / описание группы или канала.
+  final String about;
+
+  /// Публичное имя (@username) — у пользователя или публичной группы/канала.
+  final String username;
+
+  /// Участников группы / подписчиков канала (0 — личный чат).
+  final int membersCount;
+
+  /// Наша роль в группе/канале (в личном чате не важна).
+  final ChatRole myRole;
+
+  /// Собеседник в сети (личный чат); иначе — [lastSeen].
+  final bool online;
+  final DateTime? lastSeen;
+
   const Chat({
     required this.id,
     required this.type,
@@ -106,7 +151,16 @@ class Chat with ChatMappable {
     this.typing = '',
     this.reactionsMode = ChatReactionsMode.all,
     this.reactions = const [],
+    this.about = '',
+    this.username = '',
+    this.membersCount = 0,
+    this.myRole = ChatRole.writer,
+    this.online = false,
+    this.lastSeen,
   });
+
+  /// Админ или владелец — может менять настройки группы/канала.
+  bool get canManage => myRole == ChatRole.admin || myRole == ChatRole.owner;
 
   bool get hasUnread => unreadCount > 0 || markedUnread;
 

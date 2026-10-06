@@ -54,6 +54,10 @@ class ChatState with ChatStateMappable {
   /// × на превью ссылки над полем ввода — отправить без превью (до отправки).
   final bool linkPreviewDisabled;
 
+  /// Участники группы — профиль чата (загружаются при открытии, см.
+  /// `ChatCubit.loadMembers`).
+  final List<models.ChatMember> members;
+
   const ChatState({
     this.status = Status.initialization,
     this.chat,
@@ -70,6 +74,7 @@ class ChatState with ChatStateMappable {
     this.searchIndex = 0,
     this.scheduled = const [],
     this.linkPreviewDisabled = false,
+    this.members = const [],
   });
 
   /// Закреплённые — от новых к старым (плашка показывает сначала последнее).
