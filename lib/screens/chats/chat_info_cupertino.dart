@@ -11,7 +11,9 @@ import '../../i18n/translations.g.dart';
 import '../../models.dart' as models;
 import '../../themes.dart';
 import 'chat_common.dart';
+import 'chat_banned_cupertino.dart';
 import 'chat_create_form_cupertino.dart';
+import 'chat_create_members_cupertino.dart';
 import 'chat_invite_links_cupertino.dart';
 import 'chat_join_requests_cupertino.dart';
 import 'chat_info_common.dart';
@@ -65,6 +67,90 @@ class _ChatInfoCupertinoState extends State<ChatInfoCupertino> {
     if (!(confirmed ?? false) || !context.mounted) return;
     await context.read<ChatCubit>().deleteChat();
     if (context.mounted) context.go('/chats');
+  }
+
+  /// Тап по участнику: «Написать сообщение»; админу (для «Чтения» / «Записи»)
+  /// — ещё роль, «Исключить», «Заблокировать».
+  Future<void> _memberActions(BuildContext context, models.Chat chat, models.ChatMember member) async {
+    if (member.isSelf) return;
+    final t = context.t.screenChatInfo;
+    final cubit = context.read<ChatCubit>();
+    final manage = chat.canManage && (member.role == models.ChatRole.reader || member.role == models.ChatRole.writer);
+    final action = await showCupertinoModalPopup<String>(
+      context: context,
+      builder: (sheetContext) => CupertinoActionSheet(
+        title: Text(member.name),
+        actions: [
+          CupertinoActionSheetAction(onPressed: () => Navigator.of(sheetContext).pop('message'), child: Text(t.sendMessage)),
+          if (manage) ...[
+            CupertinoActionSheetAction(
+              onPressed: () => Navigator.of(sheetContext).pop('role'),
+              child: Text(member.role == models.ChatRole.reader ? t.allowWriting : t.makeReadOnly),
+            ),
+            CupertinoActionSheetAction(
+              isDestructiveAction: true,
+              onPressed: () => Navigator.of(sheetContext).pop('remove'),
+              child: Text(t.removeMember),
+            ),
+            CupertinoActionSheetAction(
+              isDestructiveAction: true,
+              onPressed: () => Navigator.of(sheetContext).pop('ban'),
+              child: Text(t.banMember),
+            ),
+          ],
+        ],
+        cancelButton: CupertinoActionSheetAction(onPressed: () => Navigator.of(sheetContext).pop(), child: Text(context.t.common.cancel)),
+      ),
+    );
+    if (!context.mounted) return;
+    Future<bool> confirm(String title, String message, String label) async =>
+        await showCupertinoDialog<bool>(
+          context: context,
+          builder: (dialogContext) => CupertinoAlertDialog(
+            title: Text(title),
+            content: Text(message),
+            actions: [
+              CupertinoDialogAction(onPressed: () => Navigator.of(dialogContext).pop(false), child: Text(context.t.common.cancel)),
+              CupertinoDialogAction(isDestructiveAction: true, onPressed: () => Navigator.of(dialogContext).pop(true), child: Text(label)),
+            ],
+          ),
+        ) ??
+        false;
+    switch (action) {
+      case 'message':
+        final chatID = await cubit.privateChatWith(member);
+        if (chatID != null && chatID.isNotEmpty && context.mounted) context.go('/chats/chat/$chatID');
+      case 'role':
+        await cubit.setMemberRole(member, member.role == models.ChatRole.reader ? models.ChatRole.writer : models.ChatRole.reader);
+      case 'remove':
+        if (await confirm(t.removeMemberTitle(name: member.name), t.removeMemberMessage, t.removeMember)) {
+          await cubit.removeMember(member);
+        }
+      case 'ban':
+        if (await confirm(t.banMemberTitle(name: member.name), t.banMemberMessage, t.banMember)) {
+          await cubit.removeMember(member, ban: true);
+        }
+    }
+  }
+
+  /// «Добавить участников» (админ): выбор из контактов, кроме участников.
+  Future<void> _addMembers(BuildContext context) async {
+    final cubit = context.read<ChatCubit>();
+    final demo = context.read<CommonCubit>().state.settingsDevice.chatsDemo;
+    final exclude = {for (final m in cubit.state.members) m.id};
+    await Navigator.of(context).push<void>(
+      FullSwipeBackRoute(
+        builder: (routeContext) => BlocProvider(
+          create: (_) => ChatCreateCubit()..initialization(demo: demo, type: models.ChatType.group, exclude: exclude),
+          child: ChatCreateMembersCupertino(
+            onDone: (selected) {
+              Navigator.of(routeContext).pop();
+              cubit.addMembers(selected);
+            },
+          ),
+        ),
+      ),
+    );
   }
 
   void _copy(String text) {
@@ -234,6 +320,15 @@ class _ChatInfoCupertinoState extends State<ChatInfoCupertino> {
                               ),
                             ),
                           ),
+                          if (chat.type == models.ChatType.group || chat.type == models.ChatType.community)
+                            CupertinoListTileIcon(
+                              color: const Color(0xFFFF3B30),
+                              hugeIcon: HugeIcons.strokeRoundedUserBlock01,
+                              title: Text(t.screenChatInfo.banned),
+                              additionalInfo: state.banned.isEmpty ? null : Text('${state.banned.length}'),
+                              isTrailing: true,
+                              onTab: () => showChatBannedCupertino(context, context.read<ChatCubit>()),
+                            ),
                         ]),
                       // Вкладки и их содержимое — одной карточкой, как секции выше.
                       Container(
@@ -276,8 +371,11 @@ class _ChatInfoCupertinoState extends State<ChatInfoCupertino> {
                                   secondary: secondary,
                                   accent: primary,
                                   separator: CupertinoColors.separator.resolveFrom(context),
+                                  action: action,
                                 ),
                                 onOpenMessage: (id) => Navigator.of(context).pop(ChatInfoResult.goTo(id)),
+                                onMemberTap: (member) => _memberActions(context, chat, member),
+                                onAddMembers: chat.canManage ? () => _addMembers(context) : null,
                               ),
                             ),
                           ],

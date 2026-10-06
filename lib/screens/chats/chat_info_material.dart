@@ -11,7 +11,9 @@ import '../../i18n/translations.g.dart';
 import '../../models.dart' as models;
 import '../../themes.dart';
 import 'chat_common.dart';
+import 'chat_banned_material.dart';
 import 'chat_create_form_material.dart';
+import 'chat_create_members_material.dart';
 import 'chat_invite_links_material.dart';
 import 'chat_join_requests_material.dart';
 import 'chat_info_common.dart';
@@ -65,6 +67,101 @@ class _ChatInfoMaterialState extends State<ChatInfoMaterial> {
     if (!(confirmed ?? false) || !context.mounted) return;
     await context.read<ChatCubit>().deleteChat();
     if (context.mounted) context.go('/chats');
+  }
+
+  /// Тап по участнику: «Написать сообщение»; админу (для «Чтения» / «Записи»)
+  /// — ещё роль, «Исключить», «Заблокировать».
+  Future<void> _memberActions(BuildContext context, models.Chat chat, models.ChatMember member) async {
+    if (member.isSelf) return;
+    final t = context.t.screenChatInfo;
+    final cubit = context.read<ChatCubit>();
+    final error = Theme.of(context).colorScheme.error;
+    final manage = chat.canManage && (member.role == models.ChatRole.reader || member.role == models.ChatRole.writer);
+    final action = await showModalBottomSheet<String>(
+      context: context,
+      showDragHandle: true,
+      builder: (sheetContext) {
+        Widget item(List<List<dynamic>> icon, String title, String value, {bool destructive = false}) => ListTile(
+          leading: HugeIcon(icon: icon, color: destructive ? error : null),
+          title: Text(title, style: destructive ? TextStyle(color: error) : null),
+          onTap: () => Navigator.of(sheetContext).pop(value),
+        );
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(24, 0, 24, 8),
+                child: Text(member.name, style: Theme.of(sheetContext).textTheme.titleMedium),
+              ),
+              item(HugeIcons.strokeRoundedMessage01, t.sendMessage, 'message'),
+              if (manage) ...[
+                item(
+                  member.role == models.ChatRole.reader ? HugeIcons.strokeRoundedPencilEdit02 : HugeIcons.strokeRoundedView,
+                  member.role == models.ChatRole.reader ? t.allowWriting : t.makeReadOnly,
+                  'role',
+                ),
+                item(HugeIcons.strokeRoundedUserRemove01, t.removeMember, 'remove', destructive: true),
+                item(HugeIcons.strokeRoundedUserBlock01, t.banMember, 'ban', destructive: true),
+              ],
+            ],
+          ),
+        );
+      },
+    );
+    if (!context.mounted) return;
+    Future<bool> confirm(String title, String message, String label) async =>
+        await showDialog<bool>(
+          context: context,
+          builder: (dialogContext) => AlertDialog(
+            title: Text(title),
+            content: Text(message),
+            actions: [
+              TextButton(onPressed: () => Navigator.of(dialogContext).pop(false), child: Text(context.t.common.cancel)),
+              TextButton(
+                style: TextButton.styleFrom(foregroundColor: Theme.of(dialogContext).colorScheme.error),
+                onPressed: () => Navigator.of(dialogContext).pop(true),
+                child: Text(label),
+              ),
+            ],
+          ),
+        ) ??
+        false;
+    switch (action) {
+      case 'message':
+        final chatID = await cubit.privateChatWith(member);
+        if (chatID != null && chatID.isNotEmpty && context.mounted) context.go('/chats/chat/$chatID');
+      case 'role':
+        await cubit.setMemberRole(member, member.role == models.ChatRole.reader ? models.ChatRole.writer : models.ChatRole.reader);
+      case 'remove':
+        if (await confirm(t.removeMemberTitle(name: member.name), t.removeMemberMessage, t.removeMember)) {
+          await cubit.removeMember(member);
+        }
+      case 'ban':
+        if (await confirm(t.banMemberTitle(name: member.name), t.banMemberMessage, t.banMember)) {
+          await cubit.removeMember(member, ban: true);
+        }
+    }
+  }
+
+  /// «Добавить участников» (админ): выбор из контактов, кроме участников.
+  Future<void> _addMembers(BuildContext context) async {
+    final cubit = context.read<ChatCubit>();
+    final demo = context.read<CommonCubit>().state.settingsDevice.chatsDemo;
+    final exclude = {for (final m in cubit.state.members) m.id};
+    await Navigator.of(context).push<void>(
+      FullSwipeBackRoute(
+        builder: (routeContext) => BlocProvider(
+          create: (_) => ChatCreateCubit()..initialization(demo: demo, type: models.ChatType.group, exclude: exclude),
+          child: ChatCreateMembersMaterial(
+            onDone: (selected) {
+              Navigator.of(routeContext).pop();
+              cubit.addMembers(selected);
+            },
+          ),
+        ),
+      ),
+    );
   }
 
   void _copy(BuildContext context, String text) {
@@ -217,6 +314,15 @@ class _ChatInfoMaterialState extends State<ChatInfoMaterial> {
                                 ),
                               ),
                             ),
+                            if (chat.type == models.ChatType.group || chat.type == models.ChatType.community)
+                              ListTile(
+                                leading: HugeIcon(icon: HugeIcons.strokeRoundedUserBlock01, color: scheme.onSurfaceVariant),
+                                title: Text(t.screenChatInfo.banned),
+                                trailing: state.banned.isEmpty
+                                    ? null
+                                    : Text('${state.banned.length}', style: TextStyle(color: scheme.onSurfaceVariant)),
+                                onTap: () => showChatBannedMaterial(context, context.read<ChatCubit>()),
+                              ),
                           ],
                         ),
                       ),
@@ -250,6 +356,8 @@ class _ChatInfoMaterialState extends State<ChatInfoMaterial> {
                               separator: scheme.outlineVariant,
                             ),
                             onOpenMessage: (id) => Navigator.of(context).pop(ChatInfoResult.goTo(id)),
+                            onMemberTap: (member) => _memberActions(context, chat, member),
+                            onAddMembers: chat.canManage ? () => _addMembers(context) : null,
                           ),
                         ],
                       ),

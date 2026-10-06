@@ -5,14 +5,18 @@ import 'package:go_router/go_router.dart';
 import '../../components.dart';
 import '../../cubit.dart';
 import '../../i18n/translations.g.dart';
+import '../../models.dart' as models;
 import 'chat_create_common.dart';
 import 'chats_new_material.dart';
 
 /// «Новая группа», шаг 1 (Android): выбор участников из контактов. Выбранные —
 /// чипами сверху (× — убрать), кнопка «→» — к названию и фото
-/// (`/chats/new/group/info`). Можно никого не выбирать.
+/// (`/chats/new/group/info`). Можно никого не выбирать. С [onDone] — «Добавить
+/// участников» в профиле группы: кнопка ✓ отдаёт выбранных.
 class ChatCreateMembersMaterial extends StatefulWidget {
-  const ChatCreateMembersMaterial({super.key});
+  final ValueChanged<List<models.ChatMember>>? onDone;
+
+  const ChatCreateMembersMaterial({super.key, this.onDone});
 
   @override
   State<ChatCreateMembersMaterial> createState() => _ChatCreateMembersMaterial();
@@ -51,11 +55,19 @@ class _ChatCreateMembersMaterial extends State<ChatCreateMembersMaterial> {
               ],
             ),
           ),
-          floatingActionButton: FloatingActionButton(
-            tooltip: t.screenNewChat.next,
-            onPressed: () => context.push('/chats/new/group/info', extra: state.selected),
-            child: const Icon(Icons.arrow_forward),
-          ),
+          floatingActionButton: widget.onDone != null
+              ? (state.selected.isEmpty
+                    ? null
+                    : FloatingActionButton(
+                        tooltip: t.screenChatInfo.add,
+                        onPressed: () => widget.onDone!(state.selected),
+                        child: const Icon(Icons.check),
+                      ))
+              : FloatingActionButton(
+                  tooltip: t.screenNewChat.next,
+                  onPressed: () => context.push('/chats/new/group/info', extra: state.selected),
+                  child: const Icon(Icons.arrow_forward),
+                ),
           body: SafeArea(
             child: ListView(
               keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
@@ -110,7 +122,7 @@ class _ChatCreateMembersMaterial extends State<ChatCreateMembersMaterial> {
                       ],
                     ),
                   ),
-                  if (state.selected.isEmpty) createNoteMaterial(context, t.screenNewChat.noMembersHint),
+                  if (state.selected.isEmpty && widget.onDone == null) createNoteMaterial(context, t.screenNewChat.noMembersHint),
                 ],
               ],
             ),

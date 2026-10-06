@@ -133,6 +133,13 @@ class ChatStateMapper extends ClassMapperBase<ChatState> {
     opt: true,
     def: const [],
   );
+  static List<models.ChatMember> _$banned(ChatState v) => v.banned;
+  static const Field<ChatState, List<models.ChatMember>> _f$banned = Field(
+    'banned',
+    _$banned,
+    opt: true,
+    def: const [],
+  );
 
   @override
   final MappableFields<ChatState> fields = const {
@@ -152,6 +159,7 @@ class ChatStateMapper extends ClassMapperBase<ChatState> {
     #scheduled: _f$scheduled,
     #linkPreviewDisabled: _f$linkPreviewDisabled,
     #members: _f$members,
+    #banned: _f$banned,
   };
 
   static ChatState _instantiate(DecodingData data) {
@@ -172,6 +180,7 @@ class ChatStateMapper extends ClassMapperBase<ChatState> {
       scheduled: data.dec(_f$scheduled),
       linkPreviewDisabled: data.dec(_f$linkPreviewDisabled),
       members: data.dec(_f$members),
+      banned: data.dec(_f$banned),
     );
   }
 
@@ -264,6 +273,12 @@ abstract class ChatStateCopyWith<$R, $In extends ChatState, $Out>
     models.ChatMemberCopyWith<$R, models.ChatMember, models.ChatMember>
   >
   get members;
+  ListCopyWith<
+    $R,
+    models.ChatMember,
+    models.ChatMemberCopyWith<$R, models.ChatMember, models.ChatMember>
+  >
+  get banned;
   $R call({
     Status? status,
     models.Chat? chat,
@@ -281,6 +296,7 @@ abstract class ChatStateCopyWith<$R, $In extends ChatState, $Out>
     List<models.Message>? scheduled,
     bool? linkPreviewDisabled,
     List<models.ChatMember>? members,
+    List<models.ChatMember>? banned,
   });
   ChatStateCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
@@ -361,6 +377,17 @@ class _ChatStateCopyWithImpl<$R, $Out>
     (v) => call(members: v),
   );
   @override
+  ListCopyWith<
+    $R,
+    models.ChatMember,
+    models.ChatMemberCopyWith<$R, models.ChatMember, models.ChatMember>
+  >
+  get banned => ListCopyWith(
+    $value.banned,
+    (v, t) => v.copyWith.$chain(t),
+    (v) => call(banned: v),
+  );
+  @override
   $R call({
     Status? status,
     Object? chat = $none,
@@ -378,6 +405,7 @@ class _ChatStateCopyWithImpl<$R, $Out>
     List<models.Message>? scheduled,
     bool? linkPreviewDisabled,
     List<models.ChatMember>? members,
+    List<models.ChatMember>? banned,
   }) => $apply(
     FieldCopyWithData({
       if (status != null) #status: status,
@@ -397,6 +425,7 @@ class _ChatStateCopyWithImpl<$R, $Out>
       if (linkPreviewDisabled != null)
         #linkPreviewDisabled: linkPreviewDisabled,
       if (members != null) #members: members,
+      if (banned != null) #banned: banned,
     }),
   );
   @override
@@ -420,6 +449,7 @@ class _ChatStateCopyWithImpl<$R, $Out>
       or: $value.linkPreviewDisabled,
     ),
     members: data.get(#members, or: $value.members),
+    banned: data.get(#banned, or: $value.banned),
   );
 
   @override

@@ -586,6 +586,21 @@ class _Translations$screenChatInfo$ru extends Translations$screenChatInfo$en {
 	@override String get roleAdmin => 'админ';
 	@override String get roleReader => 'только чтение';
 	@override String get you => 'Вы';
+	@override String get addMembers => 'Добавить участников';
+	@override String get add => 'Добавить';
+	@override String get sendMessage => 'Написать сообщение';
+	@override String get allowWriting => 'Разрешить писать';
+	@override String get makeReadOnly => 'Только чтение';
+	@override String get removeMember => 'Исключить';
+	@override String removeMemberTitle({required Object name}) => 'Исключить ${name}?';
+	@override String get removeMemberMessage => 'Вернуться можно будет по ссылке-приглашению.';
+	@override String get banMember => 'Заблокировать';
+	@override String banMemberTitle({required Object name}) => 'Заблокировать ${name}?';
+	@override String get banMemberMessage => 'Участник будет исключён и не сможет вернуться по ссылкам-приглашениям, пока его не разблокируют.';
+	@override String get banned => 'Заблокированные';
+	@override String get bannedEmpty => 'Заблокированных нет';
+	@override String get bannedFooter => 'Заблокированные не могут вступить по ссылкам-приглашениям. Если добавить вручную — блокировка снимется.';
+	@override String get unban => 'Разблокировать';
 	@override String get reactions => 'Реакции';
 	@override String get reactionsAll => 'Все реакции';
 	@override String get reactionsSome => 'Некоторые';
@@ -1516,6 +1531,21 @@ extension on TranslationsRu {
 			'screenChatInfo.roleAdmin' => 'админ',
 			'screenChatInfo.roleReader' => 'только чтение',
 			'screenChatInfo.you' => 'Вы',
+			'screenChatInfo.addMembers' => 'Добавить участников',
+			'screenChatInfo.add' => 'Добавить',
+			'screenChatInfo.sendMessage' => 'Написать сообщение',
+			'screenChatInfo.allowWriting' => 'Разрешить писать',
+			'screenChatInfo.makeReadOnly' => 'Только чтение',
+			'screenChatInfo.removeMember' => 'Исключить',
+			'screenChatInfo.removeMemberTitle' => ({required Object name}) => 'Исключить ${name}?',
+			'screenChatInfo.removeMemberMessage' => 'Вернуться можно будет по ссылке-приглашению.',
+			'screenChatInfo.banMember' => 'Заблокировать',
+			'screenChatInfo.banMemberTitle' => ({required Object name}) => 'Заблокировать ${name}?',
+			'screenChatInfo.banMemberMessage' => 'Участник будет исключён и не сможет вернуться по ссылкам-приглашениям, пока его не разблокируют.',
+			'screenChatInfo.banned' => 'Заблокированные',
+			'screenChatInfo.bannedEmpty' => 'Заблокированных нет',
+			'screenChatInfo.bannedFooter' => 'Заблокированные не могут вступить по ссылкам-приглашениям. Если добавить вручную — блокировка снимется.',
+			'screenChatInfo.unban' => 'Разблокировать',
 			'screenChatInfo.reactions' => 'Реакции',
 			'screenChatInfo.reactionsAll' => 'Все реакции',
 			'screenChatInfo.reactionsSome' => 'Некоторые',
@@ -1647,6 +1677,8 @@ extension on TranslationsRu {
 			'cloudPassword.emailRequired' => 'Введите email',
 			'cloudPassword.passwordRequired' => 'Введите пароль',
 			'cloudPassword.passwordTooShort' => 'Пароль должен быть не короче 5 символов',
+			_ => null,
+		} ?? switch (path) {
 			'cloudPassword.codeRequired' => 'Введите код',
 			'cloudPassword.passwordsDoNotMatch' => 'Пароли не совпадают',
 			'cloudPassword.wrongPassword' => 'Неверный пароль',
@@ -1662,8 +1694,6 @@ extension on TranslationsRu {
 			'screenMyProfile.tellUsAboutYourself' => 'Расскажите о себе',
 			'screenMyProfile.add' => 'Указать',
 			'screenMyProfile.birthDate' => 'Дата рождения',
-			_ => null,
-		} ?? switch (path) {
 			'screenMyProfile.username' => 'Имя пользователя',
 			'screenMyProfile.validationFirstNameMaxLength' => 'Должно содержать не более 25 символов',
 			'screenMyProfile.validationLastNameMaxLength' => 'Должно содержать не более 25 символов',

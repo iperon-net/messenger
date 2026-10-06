@@ -140,7 +140,12 @@ class ChatsDemoDataSource implements ChatsDataSource {
       _update(userID, (c) => c.copyWith(archived: false));
       return userID;
     }
-    final contact = _contacts().firstWhere((m) => m.id == userID);
+    // Не только контакт — и участник группы («Написать сообщение» в профиле).
+    final contacts = _contacts();
+    final contact =
+        contacts.where((m) => m.id == userID).firstOrNull ??
+        _members.values.expand((list) => list).where((m) => m.id == userID).firstOrNull;
+    if (contact == null) return '';
     // Пустая история — иначе при открытии сгенерировалась бы демо-переписка.
     _messages[userID] = [];
     _chats = [
@@ -149,7 +154,7 @@ class ChatsDemoDataSource implements ChatsDataSource {
         id: userID,
         type: models.ChatType.private,
         title: contact.name,
-        isContact: true,
+        isContact: contacts.any((m) => m.id == userID),
         online: contact.online,
         lastSeen: contact.lastSeen,
         createdAt: DateTime.now(),
@@ -504,6 +509,74 @@ class ChatsDemoDataSource implements ChatsDataSource {
           date: now,
         ),
     ]);
+  }
+
+  // ─── Участники: роль, исключение, блокировка, добавление ──────────────────
+
+  final _banned = <String, List<models.ChatMember>>{};
+
+  /// Сервисное сообщение от нас (в демо — по-русски, как прочие).
+  void _service(String chatID, String text) {
+    _setMessages(chatID, [
+      ..._history(chatID),
+      models.Message(
+        id: _id(),
+        chatID: chatID,
+        text: text,
+        outgoing: true,
+        service: true,
+        status: models.MessageStatus.read,
+        date: DateTime.now(),
+      ),
+    ]);
+  }
+
+  @override
+  Future<void> setMemberRole(String chatID, String userID, models.ChatRole role) async {
+    final members = await this.members(chatID);
+    _members[chatID] = [for (final m in members) m.id == userID ? m.copyWith(role: role) : m];
+  }
+
+  @override
+  Future<void> removeMember(String chatID, String userID, {bool ban = false}) async {
+    final members = await this.members(chatID);
+    final member = members.where((m) => m.id == userID).firstOrNull;
+    if (member == null) return;
+    _members[chatID] = members.where((m) => m.id != userID).toList();
+    if (ban) _banned[chatID] = [member, ...?_banned[chatID]];
+    _update(chatID, (c) => c.copyWith(membersCount: max(1, c.membersCount - 1)));
+    _service(chatID, 'Вы исключили ${member.name}');
+  }
+
+  @override
+  Future<List<models.ChatMember>> banned(String chatID) async => _banned[chatID] ?? const [];
+
+  @override
+  Future<void> unbanMember(String chatID, String userID) async {
+    _banned[chatID] = [
+      for (final m in _banned[chatID] ?? const <models.ChatMember>[])
+        if (m.id != userID) m,
+    ];
+  }
+
+  @override
+  Future<void> addMembers(String chatID, List<String> userIDs) async {
+    final chat = _chats.where((c) => c.id == chatID).firstOrNull;
+    if (chat == null) return;
+    final members = await this.members(chatID);
+    final present = {for (final m in members) m.id};
+    final contacts = {for (final c in _contacts()) c.id: c};
+    final added = [
+      for (final id in userIDs)
+        if (!present.contains(id) && contacts[id] != null) contacts[id]!.copyWith(role: chat.defaultRole),
+    ];
+    if (added.isEmpty) return;
+    _members[chatID] = [...members, ...added];
+    for (final m in added) {
+      await unbanMember(chatID, m.id);
+    }
+    _update(chatID, (c) => c.copyWith(membersCount: c.membersCount + added.length));
+    _service(chatID, 'Вы добавили ${added.map((m) => m.name).join(', ')}');
   }
 
   /// Профиль демо-чата: «О себе» / описание, @username, число участников и

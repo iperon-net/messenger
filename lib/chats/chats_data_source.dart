@@ -30,8 +30,8 @@ abstract class ChatsDataSource {
   /// («Новое сообщение», выбор участников) — по алфавиту.
   Future<List<models.ChatMember>> contacts();
 
-  /// Личный чат с контактом [userID]: существующий или новый пустой. Возвращает
-  /// id чата.
+  /// Личный чат с пользователем [userID] (контакт или участник группы):
+  /// существующий или новый пустой. Возвращает id чата (пусто — не найден).
   Future<String> openPrivateChat(String userID);
 
   /// Свободно ли публичное имя группы/канала/сообщества (форма создания и
@@ -100,6 +100,22 @@ abstract class ChatsDataSource {
 
   /// Участники группы (профиль чата): владелец и админы первыми.
   Future<List<models.ChatMember>> members(String chatID);
+
+  /// Админ: роль участника — «Чтение» / «Запись» (админы — отдельно).
+  Future<void> setMemberRole(String chatID, String userID, models.ChatRole role);
+
+  /// Админ: исключить участника; [ban] — ещё и заблокировать (по ссылкам не
+  /// вернётся, пока не разблокируют).
+  Future<void> removeMember(String chatID, String userID, {bool ban = false});
+
+  /// Заблокированные в группе (профиль → «Заблокированные», админ).
+  Future<List<models.ChatMember>> banned(String chatID);
+
+  Future<void> unbanMember(String chatID, String userID);
+
+  /// Админ: добавить контакты [userIDs] (с ролью по умолчанию; заблокированные
+  /// при этом разблокируются).
+  Future<void> addMembers(String chatID, List<String> userIDs);
 
   /// Реакции группы/канала (профиль чата → «Реакции», админ): все /
   /// выбранные [reactions] / никаких.

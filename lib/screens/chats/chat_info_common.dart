@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_boring_avatars/flutter_boring_avatars.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -86,7 +87,10 @@ class ChatInfoStyle {
   final Color accent;
   final Color separator;
 
-  const ChatInfoStyle({required this.text, required this.secondary, required this.accent, required this.separator});
+  /// Строки-действия («Добавить участников»); по умолчанию — [accent].
+  final Color? action;
+
+  const ChatInfoStyle({required this.text, required this.secondary, required this.accent, required this.separator, this.action});
 }
 
 /// Содержимое вкладки профиля. [onOpenMessage] — вернуться в чат к
@@ -99,6 +103,12 @@ class ChatInfoTabContent extends StatelessWidget {
   final ChatInfoStyle style;
   final ValueChanged<String> onOpenMessage;
 
+  /// Тап по участнику (меню действий); `null` — строки не нажимаются.
+  final ValueChanged<models.ChatMember>? onMemberTap;
+
+  /// «Добавить участников» первой строкой вкладки (админ); `null` — нет.
+  final VoidCallback? onAddMembers;
+
   const ChatInfoTabContent({
     super.key,
     required this.tab,
@@ -107,6 +117,8 @@ class ChatInfoTabContent extends StatelessWidget {
     required this.members,
     required this.style,
     required this.onOpenMessage,
+    this.onMemberTap,
+    this.onAddMembers,
   });
 
   @override
@@ -114,7 +126,10 @@ class ChatInfoTabContent extends StatelessWidget {
     final t = context.t;
     return switch (tab) {
       ChatInfoTab.members => Column(
-        children: [for (final m in members) _MemberRow(member: m, style: style)],
+        children: [
+          if (onAddMembers != null) _AddMembersRow(style: style, onTap: onAddMembers!),
+          for (final m in members) _MemberRow(member: m, style: style, onTap: onMemberTap == null ? null : () => onMemberTap!(m)),
+        ],
       ),
       ChatInfoTab.media => _media(context),
       ChatInfoTab.files => _list(t.screenChatInfo.emptyFiles, [
@@ -174,11 +189,45 @@ class ChatInfoTabContent extends StatelessWidget {
   }
 }
 
+/// «Добавить участников» — кружок с «+» и подпись цветом действия.
+class _AddMembersRow extends StatelessWidget {
+  final ChatInfoStyle style;
+  final VoidCallback onTap;
+
+  const _AddMembersRow({required this.style, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final color = style.action ?? style.accent;
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(color: color.withValues(alpha: 0.12), shape: BoxShape.circle),
+              alignment: Alignment.center,
+              child: HugeIcon(icon: HugeIcons.strokeRoundedUserAdd01, color: color, size: 20),
+            ),
+            const SizedBox(width: 12),
+            Text(context.t.screenChatInfo.addMembers, style: TextStyle(fontSize: 16, color: color)),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _MemberRow extends StatelessWidget {
   final models.ChatMember member;
   final ChatInfoStyle style;
+  final VoidCallback? onTap;
 
-  const _MemberRow({required this.member, required this.style});
+  const _MemberRow({required this.member, required this.style, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -188,36 +237,40 @@ class _MemberRow extends StatelessWidget {
     final status = member.online || member.isSelf
         ? t.screenChat.online
         : (seen == null ? t.screenChat.lastSeenRecently : lastSeenText(t, seen));
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
-      child: Row(
-        children: [
-          SizedBox(
-            width: 40,
-            height: 40,
-            child: BoringAvatar(name: member.name, type: BoringAvatarType.beam, shape: const CircleBorder()),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  member.isSelf ? t.screenChatInfo.you : member.name,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontSize: 16, color: style.text),
-                ),
-                Text(
-                  status,
-                  maxLines: 1,
-                  style: TextStyle(fontSize: 13, color: member.online || member.isSelf ? style.accent : style.secondary),
-                ),
-              ],
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
+        child: Row(
+          children: [
+            SizedBox(
+              width: 40,
+              height: 40,
+              child: BoringAvatar(name: member.name, type: BoringAvatarType.beam, shape: const CircleBorder()),
             ),
-          ),
-          if (role != null) Text(role, style: TextStyle(fontSize: 13, color: style.secondary)),
-        ],
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    member.isSelf ? t.screenChatInfo.you : member.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontSize: 16, color: style.text),
+                  ),
+                  Text(
+                    status,
+                    maxLines: 1,
+                    style: TextStyle(fontSize: 13, color: member.online || member.isSelf ? style.accent : style.secondary),
+                  ),
+                ],
+              ),
+            ),
+            if (role != null) Text(role, style: TextStyle(fontSize: 13, color: style.secondary)),
+          ],
+        ),
       ),
     );
   }

@@ -299,11 +299,39 @@ class ChatCubit extends Cubit<ChatState> {
 
   Future<void> setMuted(bool muted) async => _source?.setMuted(_chatID, muted);
 
-  /// Профиль чата: участники группы.
+  /// Профиль чата: участники группы (и заблокированные — для админа).
   Future<void> loadMembers() async {
-    final members = await _source?.members(_chatID);
-    if (!isClosed && members != null) emit(state.copyWith(members: members));
+    final source = _source;
+    if (source == null) return;
+    final members = await source.members(_chatID);
+    final banned = state.chat?.canManage ?? false ? await source.banned(_chatID) : const <models.ChatMember>[];
+    if (!isClosed) emit(state.copyWith(members: members, banned: banned));
   }
+
+  /// Админ: «Чтение» ⇄ «Запись» у участника.
+  Future<void> setMemberRole(models.ChatMember member, models.ChatRole role) async {
+    await _source?.setMemberRole(_chatID, member.id, role);
+    await loadMembers();
+  }
+
+  /// Админ: исключить ([ban] — и заблокировать).
+  Future<void> removeMember(models.ChatMember member, {bool ban = false}) async {
+    await _source?.removeMember(_chatID, member.id, ban: ban);
+    await loadMembers();
+  }
+
+  Future<void> unbanMember(models.ChatMember member) async {
+    await _source?.unbanMember(_chatID, member.id);
+    await loadMembers();
+  }
+
+  Future<void> addMembers(List<models.ChatMember> members) async {
+    await _source?.addMembers(_chatID, [for (final m in members) m.id]);
+    await loadMembers();
+  }
+
+  /// «Написать сообщение» участнику — id личного чата с ним.
+  Future<String?> privateChatWith(models.ChatMember member) async => _source?.openPrivateChat(member.id);
 
   /// Профиль чата → «Реакции» (админ).
   Future<void> setChatReactions(models.ChatReactionsMode mode, List<String> reactions) async =>

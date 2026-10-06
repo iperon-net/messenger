@@ -1309,6 +1309,51 @@ class Translations$screenChatInfo$en {
 	/// en: 'You'
 	String get you => 'You';
 
+	/// en: 'Add Members'
+	String get addMembers => 'Add Members';
+
+	/// en: 'Add'
+	String get add => 'Add';
+
+	/// en: 'Send Message'
+	String get sendMessage => 'Send Message';
+
+	/// en: 'Allow Sending Messages'
+	String get allowWriting => 'Allow Sending Messages';
+
+	/// en: 'Make Read Only'
+	String get makeReadOnly => 'Make Read Only';
+
+	/// en: 'Remove'
+	String get removeMember => 'Remove';
+
+	/// en: 'Remove {name}?'
+	String removeMemberTitle({required Object name}) => 'Remove ${name}?';
+
+	/// en: 'They can come back via an invite link.'
+	String get removeMemberMessage => 'They can come back via an invite link.';
+
+	/// en: 'Ban'
+	String get banMember => 'Ban';
+
+	/// en: 'Ban {name}?'
+	String banMemberTitle({required Object name}) => 'Ban ${name}?';
+
+	/// en: 'They will be removed and won't be able to come back via invite links until unbanned.'
+	String get banMemberMessage => 'They will be removed and won\'t be able to come back via invite links until unbanned.';
+
+	/// en: 'Banned'
+	String get banned => 'Banned';
+
+	/// en: 'No banned users'
+	String get bannedEmpty => 'No banned users';
+
+	/// en: 'Banned users can't join via invite links. Adding them manually unbans them.'
+	String get bannedFooter => 'Banned users can\'t join via invite links. Adding them manually unbans them.';
+
+	/// en: 'Unban'
+	String get unban => 'Unban';
+
 	/// en: 'Reactions'
 	String get reactions => 'Reactions';
 
@@ -2935,6 +2980,21 @@ extension on Translations {
 			'screenChatInfo.roleAdmin' => 'admin',
 			'screenChatInfo.roleReader' => 'read only',
 			'screenChatInfo.you' => 'You',
+			'screenChatInfo.addMembers' => 'Add Members',
+			'screenChatInfo.add' => 'Add',
+			'screenChatInfo.sendMessage' => 'Send Message',
+			'screenChatInfo.allowWriting' => 'Allow Sending Messages',
+			'screenChatInfo.makeReadOnly' => 'Make Read Only',
+			'screenChatInfo.removeMember' => 'Remove',
+			'screenChatInfo.removeMemberTitle' => ({required Object name}) => 'Remove ${name}?',
+			'screenChatInfo.removeMemberMessage' => 'They can come back via an invite link.',
+			'screenChatInfo.banMember' => 'Ban',
+			'screenChatInfo.banMemberTitle' => ({required Object name}) => 'Ban ${name}?',
+			'screenChatInfo.banMemberMessage' => 'They will be removed and won\'t be able to come back via invite links until unbanned.',
+			'screenChatInfo.banned' => 'Banned',
+			'screenChatInfo.bannedEmpty' => 'No banned users',
+			'screenChatInfo.bannedFooter' => 'Banned users can\'t join via invite links. Adding them manually unbans them.',
+			'screenChatInfo.unban' => 'Unban',
 			'screenChatInfo.reactions' => 'Reactions',
 			'screenChatInfo.reactionsAll' => 'All reactions',
 			'screenChatInfo.reactionsSome' => 'Some reactions',
@@ -3066,6 +3126,8 @@ extension on Translations {
 			'cloudPassword.emailRequired' => 'Enter an email',
 			'cloudPassword.passwordRequired' => 'Enter a password',
 			'cloudPassword.passwordTooShort' => 'Password must be at least 5 characters',
+			_ => null,
+		} ?? switch (path) {
 			'cloudPassword.codeRequired' => 'Enter the code',
 			'cloudPassword.passwordsDoNotMatch' => 'Passwords don\'t match',
 			'cloudPassword.wrongPassword' => 'Wrong password',
@@ -3081,8 +3143,6 @@ extension on Translations {
 			'screenMyProfile.tellUsAboutYourself' => 'Tell us about yourself',
 			'screenMyProfile.add' => 'Add',
 			'screenMyProfile.birthDate' => 'Birth date',
-			_ => null,
-		} ?? switch (path) {
 			'screenMyProfile.username' => 'Username',
 			'screenMyProfile.validationFirstNameMaxLength' => 'Must contain no more than 25 characters',
 			'screenMyProfile.validationLastNameMaxLength' => 'Must contain no more than 25 characters',

@@ -28,15 +28,20 @@ class ChatCreateCubit extends Cubit<ChatCreateState> {
   static const aboutMaxLength = 255;
 
   /// [type] — что создаём; [selected] — участники, выбранные на прошлом шаге
-  /// (форма группы).
+  /// (форма группы); [exclude] — кого не показывать в контактах.
   Future<void> initialization({
     required bool demo,
     models.ChatType type = models.ChatType.private,
     List<models.ChatMember> selected = const [],
+    Set<String> exclude = const {},
   }) async {
     _source = demo ? ChatsDemoDataSource.instance : null;
     emit(state.copyWith(status: Status.loading, type: type, selected: selected, inviteLink: newInviteCode()));
-    final contacts = await _source?.contacts() ?? const <models.ChatMember>[];
+    // [exclude] — уже участники («Добавить участников» в профиле группы).
+    final contacts = [
+      for (final c in await _source?.contacts() ?? const <models.ChatMember>[])
+        if (!exclude.contains(c.id)) c,
+    ];
     if (isClosed) return;
     emit(state.copyWith(status: Status.success, contacts: contacts));
   }
@@ -111,7 +116,7 @@ class ChatCreateCubit extends Cubit<ChatCreateState> {
     final source = _source;
     if (source == null) return;
     final chatID = await source.openPrivateChat(contact.id);
-    if (!isClosed) emit(state.copyWith(openChatID: chatID));
+    if (!isClosed && chatID.isNotEmpty) emit(state.copyWith(openChatID: chatID));
   }
 
   Future<void> create({required String title, String about = ''}) async {

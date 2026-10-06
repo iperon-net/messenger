@@ -58,6 +58,9 @@ class ChatState with ChatStateMappable {
   /// `ChatCubit.loadMembers`).
   final List<models.ChatMember> members;
 
+  /// Заблокированные в группе — для админа (профиль → «Заблокированные»).
+  final List<models.ChatMember> banned;
+
   const ChatState({
     this.status = Status.initialization,
     this.chat,
@@ -75,6 +78,7 @@ class ChatState with ChatStateMappable {
     this.scheduled = const [],
     this.linkPreviewDisabled = false,
     this.members = const [],
+    this.banned = const [],
   });
 
   /// Закреплённые — от новых к старым (плашка показывает сначала последнее).

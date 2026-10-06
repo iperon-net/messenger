@@ -5,15 +5,19 @@ import 'package:go_router/go_router.dart';
 import '../../components.dart';
 import '../../cubit.dart';
 import '../../i18n/translations.g.dart';
+import '../../models.dart' as models;
 import '../../themes.dart';
 import 'chat_create_common.dart';
 import 'chats_new_cupertino.dart';
 
 /// «Новая группа», шаг 1 (iOS): выбор участников из контактов. Выбранные —
 /// чипами сверху (тап — убрать), «Далее» — к названию и фото
-/// (`/chats/new/group/info`). Можно никого не выбирать.
+/// (`/chats/new/group/info`). Можно никого не выбирать. С [onDone] — «Добавить
+/// участников» в профиле группы: кнопка «Добавить» отдаёт выбранных.
 class ChatCreateMembersCupertino extends StatefulWidget {
-  const ChatCreateMembersCupertino({super.key});
+  final ValueChanged<List<models.ChatMember>>? onDone;
+
+  const ChatCreateMembersCupertino({super.key, this.onDone});
 
   @override
   State<ChatCreateMembersCupertino> createState() => _ChatCreateMembersCupertino();
@@ -57,11 +61,25 @@ class _ChatCreateMembersCupertino extends State<ChatCreateMembersCupertino> {
                     ),
                 ],
               ),
-              trailing: CupertinoButton(
-                padding: EdgeInsets.zero,
-                onPressed: () => context.push('/chats/new/group/info', extra: state.selected),
-                child: Text(t.screenNewChat.next, style: TextStyle(color: ThemesCupertino.navActionColor(context))),
-              ),
+              trailing: widget.onDone != null
+                  ? CupertinoButton(
+                      padding: EdgeInsets.zero,
+                      onPressed: state.selected.isEmpty ? null : () => widget.onDone!(state.selected),
+                      child: Text(
+                        t.screenChatInfo.add,
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          color: state.selected.isEmpty
+                              ? CupertinoColors.inactiveGray.resolveFrom(context)
+                              : ThemesCupertino.navActionColor(context),
+                        ),
+                      ),
+                    )
+                  : CupertinoButton(
+                      padding: EdgeInsets.zero,
+                      onPressed: () => context.push('/chats/new/group/info', extra: state.selected),
+                      child: Text(t.screenNewChat.next, style: TextStyle(color: ThemesCupertino.navActionColor(context))),
+                    ),
             ),
           ),
           child: SafeArea(
@@ -117,7 +135,7 @@ class _ChatCreateMembersCupertino extends State<ChatCreateMembersCupertino> {
                   CupertinoListSection.insetGrouped(
                     backgroundColor: background,
                     decoration: BoxDecoration(color: card, borderRadius: const BorderRadius.all(Radius.circular(10))),
-                    footer: state.selected.isEmpty ? createNoteCupertino(t.screenNewChat.noMembersHint) : null,
+                    footer: state.selected.isEmpty && widget.onDone == null ? createNoteCupertino(t.screenNewChat.noMembersHint) : null,
                     children: [
                       for (final contact in contacts)
                         ContactTileCupertino(
