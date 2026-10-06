@@ -830,22 +830,22 @@ class Translations$screenChat$en {
 	/// en: 'last seen recently'
 	String get lastSeenRecently => 'last seen recently';
 
-	/// en: '(one) {{n} member} (other) {{n} members}'
-	String members({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n,
-		one: '${n} member',
-		other: '${n} members',
+	/// en: '(one) {{count} member} (other) {{count} members}'
+	String members({required num n, required Object count}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n,
+		one: '${count} member',
+		other: '${count} members',
 	);
 
-	/// en: '(one) {{n} subscriber} (other) {{n} subscribers}'
-	String subscribers({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n,
-		one: '${n} subscriber',
-		other: '${n} subscribers',
+	/// en: '(one) {{count} subscriber} (other) {{count} subscribers}'
+	String subscribers({required num n, required Object count}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n,
+		one: '${count} subscriber',
+		other: '${count} subscribers',
 	);
 
-	/// en: '(one) {{n} comment} (other) {{n} comments}'
-	String comments({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n,
-		one: '${n} comment',
-		other: '${n} comments',
+	/// en: '(one) {{count} comment} (other) {{count} comments}'
+	String comments({required num n, required Object count}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n,
+		one: '${count} comment',
+		other: '${count} comments',
 	);
 
 	/// en: 'Leave a Comment'
@@ -2974,9 +2974,9 @@ extension on Translations {
 			'screenChat.yesterday' => 'Yesterday',
 			'screenChat.online' => 'online',
 			'screenChat.lastSeenRecently' => 'last seen recently',
-			'screenChat.members' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: '${n} member', other: '${n} members', ), 
-			'screenChat.subscribers' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: '${n} subscriber', other: '${n} subscribers', ), 
-			'screenChat.comments' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: '${n} comment', other: '${n} comments', ), 
+			'screenChat.members' => ({required num n, required Object count}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: '${count} member', other: '${count} members', ), 
+			'screenChat.subscribers' => ({required num n, required Object count}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: '${count} subscriber', other: '${count} subscribers', ), 
+			'screenChat.comments' => ({required num n, required Object count}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: '${count} comment', other: '${count} comments', ), 
 			'screenChat.leaveComment' => 'Leave a Comment',
 			'screenChat.commentsTitle' => 'Comments',
 			'screenChat.message' => 'Message',

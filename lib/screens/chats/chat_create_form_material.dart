@@ -6,6 +6,7 @@ import 'package:hugeicons/hugeicons.dart';
 
 import '../../components.dart';
 import '../../cubit.dart';
+import '../../extensions.dart';
 import '../../i18n/translations.g.dart';
 import '../../models.dart' as models;
 import 'chat_create_common.dart';
@@ -341,7 +342,7 @@ class _ChatCreateFormMaterial extends State<ChatCreateFormMaterial> {
                   if (state.selected.isEmpty)
                     createNoteMaterial(context, t.screenNewChat.noMembersHint)
                   else ...[
-                    createHeaderMaterial(context, t.screenChat.members(n: state.selected.length)),
+                    createHeaderMaterial(context, t.screenChat.members(n: state.selected.length, count: state.selected.length.grouped)),
                     card([for (final member in state.selected) ContactTileMaterial(contact: member)]),
                   ],
               ],

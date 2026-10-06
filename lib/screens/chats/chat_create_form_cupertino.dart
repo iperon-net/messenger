@@ -6,6 +6,7 @@ import 'package:hugeicons/hugeicons.dart';
 
 import '../../components.dart';
 import '../../cubit.dart';
+import '../../extensions.dart';
 import '../../i18n/translations.g.dart';
 import '../../models.dart' as models;
 import '../../themes.dart';
@@ -318,7 +319,9 @@ class _ChatCreateFormCupertino extends State<ChatCreateFormCupertino> {
                           ),
                         )
                       : section(
-                          header: createHeaderCupertino(t.screenChat.members(n: state.selected.length)),
+                          header: createHeaderCupertino(
+                            t.screenChat.members(n: state.selected.length, count: state.selected.length.grouped),
+                          ),
                           children: [for (final member in state.selected) ContactTileCupertino(contact: member)],
                         ),
               ],

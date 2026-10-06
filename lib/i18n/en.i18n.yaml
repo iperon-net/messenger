@@ -241,14 +241,14 @@
   "online": "online"
   "lastSeenRecently": "last seen recently"
   "members(plural)":
-    one: "{n} member"
-    other: "{n} members"
+    one: "{count} member"
+    other: "{count} members"
   "subscribers(plural)":
-    one: "{n} subscriber"
-    other: "{n} subscribers"
+    one: "{count} subscriber"
+    other: "{count} subscribers"
   "comments(plural)":
-    one: "{n} comment"
-    other: "{n} comments"
+    one: "{count} comment"
+    other: "{count} comments"
   "leaveComment": "Leave a Comment"
   "commentsTitle": "Comments"
   "message": "Message"

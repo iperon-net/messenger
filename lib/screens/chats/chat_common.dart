@@ -15,6 +15,7 @@ import '../../chats/message_formatting.dart';
 import '../../chats/video_prepare.dart';
 import '../../components.dart';
 import '../../cubit.dart';
+import '../../extensions.dart';
 import '../../i18n/translations.g.dart';
 import '../../models.dart' as models;
 import 'chat_info_common.dart';
@@ -33,15 +34,12 @@ import 'media_caption_material.dart';
   // Комментарии к посту — название канала под «Комментарии».
   if (chat.isThread) return (text: chat.title, active: false);
   final seed = chat.id.hashCode.abs();
+  final count = chat.membersCount > 0 ? chat.membersCount : (chat.type == models.ChatType.channel ? 1200 + seed % 90000 : 3 + seed % 60);
   return switch (chat.type) {
     models.ChatType.private when chat.isSelf => (text: '', active: false),
     models.ChatType.private => chatPresence(t, chat),
-    models.ChatType.group ||
-    models.ChatType.community => (text: t.screenChat.members(n: chat.membersCount > 0 ? chat.membersCount : 3 + seed % 60), active: false),
-    models.ChatType.channel => (
-      text: t.screenChat.subscribers(n: chat.membersCount > 0 ? chat.membersCount : 1200 + seed % 90000),
-      active: false,
-    ),
+    models.ChatType.group || models.ChatType.community => (text: t.screenChat.members(n: count, count: count.grouped), active: false),
+    models.ChatType.channel => (text: t.screenChat.subscribers(n: count, count: count.grouped), active: false),
   };
 }
 

@@ -1417,7 +1417,7 @@ class _CommentsBar extends StatelessWidget {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      count > 0 ? t.screenChat.comments(n: count) : t.screenChat.leaveComment,
+                      count > 0 ? t.screenChat.comments(n: count, count: count.grouped) : t.screenChat.leaveComment,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: textStyle.copyWith(fontSize: 14.5, fontWeight: FontWeight.w500, color: colors.link),

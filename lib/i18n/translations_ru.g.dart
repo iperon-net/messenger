@@ -379,23 +379,23 @@ class _Translations$screenChat$ru extends Translations$screenChat$en {
 	@override String get yesterday => 'Вчера';
 	@override String get online => 'в сети';
 	@override String get lastSeenRecently => 'был(а) недавно';
-	@override String members({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n,
-		one: '${n} участник',
-		few: '${n} участника',
-		many: '${n} участников',
-		other: '${n} участника',
+	@override String members({required num n, required Object count}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n,
+		one: '${count} участник',
+		few: '${count} участника',
+		many: '${count} участников',
+		other: '${count} участника',
 	);
-	@override String subscribers({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n,
-		one: '${n} подписчик',
-		few: '${n} подписчика',
-		many: '${n} подписчиков',
-		other: '${n} подписчика',
+	@override String subscribers({required num n, required Object count}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n,
+		one: '${count} подписчик',
+		few: '${count} подписчика',
+		many: '${count} подписчиков',
+		other: '${count} подписчика',
 	);
-	@override String comments({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n,
-		one: '${n} комментарий',
-		few: '${n} комментария',
-		many: '${n} комментариев',
-		other: '${n} комментария',
+	@override String comments({required num n, required Object count}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n,
+		one: '${count} комментарий',
+		few: '${count} комментария',
+		many: '${count} комментариев',
+		other: '${count} комментария',
 	);
 	@override String get leaveComment => 'Прокомментировать';
 	@override String get commentsTitle => 'Комментарии';
@@ -1445,9 +1445,9 @@ extension on TranslationsRu {
 			'screenChat.yesterday' => 'Вчера',
 			'screenChat.online' => 'в сети',
 			'screenChat.lastSeenRecently' => 'был(а) недавно',
-			'screenChat.members' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: '${n} участник', few: '${n} участника', many: '${n} участников', other: '${n} участника', ), 
-			'screenChat.subscribers' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: '${n} подписчик', few: '${n} подписчика', many: '${n} подписчиков', other: '${n} подписчика', ), 
-			'screenChat.comments' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: '${n} комментарий', few: '${n} комментария', many: '${n} комментариев', other: '${n} комментария', ), 
+			'screenChat.members' => ({required num n, required Object count}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: '${count} участник', few: '${count} участника', many: '${count} участников', other: '${count} участника', ), 
+			'screenChat.subscribers' => ({required num n, required Object count}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: '${count} подписчик', few: '${count} подписчика', many: '${count} подписчиков', other: '${count} подписчика', ), 
+			'screenChat.comments' => ({required num n, required Object count}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: '${count} комментарий', few: '${count} комментария', many: '${count} комментариев', other: '${count} комментария', ), 
 			'screenChat.leaveComment' => 'Прокомментировать',
 			'screenChat.commentsTitle' => 'Комментарии',
 			'screenChat.message' => 'Сообщение',
