@@ -368,7 +368,7 @@ class _ToolbarAttachmentsCupertinoState extends State<ToolbarAttachmentsCupertin
       await previous.dispose();
       if (!mounted) return;
     }
-    final image = await openCamera(context);
+    final image = await openCamera(context, allowVideo: widget.media != ToolbarAttachmentMediaType.image);
     if (!mounted) return;
     if (image != null) {
       await _processAndFinish(image, ToolbarAttachmentTabKind.camera);

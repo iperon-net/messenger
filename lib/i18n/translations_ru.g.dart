@@ -121,6 +121,8 @@ class _Translations$componentsCamera$ru extends Translations$componentsCamera$en
 	@override String get unavailable => 'Камера недоступна';
 	@override String get accessDenied => 'Нет доступа к камере';
 	@override String get openSettings => 'Открыть настройки';
+	@override String get photo => 'Фото';
+	@override String get video => 'Видео';
 }
 
 // Path: screenHome
@@ -1103,6 +1105,8 @@ extension on TranslationsRu {
 			'componentsCamera.unavailable' => 'Камера недоступна',
 			'componentsCamera.accessDenied' => 'Нет доступа к камере',
 			'componentsCamera.openSettings' => 'Открыть настройки',
+			'componentsCamera.photo' => 'Фото',
+			'componentsCamera.video' => 'Видео',
 			'screenHome.contacts' => 'Контакты',
 			'screenHome.calls' => 'Звонки',
 			'screenHome.chats' => _root.screenChats.chats,
@@ -1591,10 +1595,10 @@ extension on TranslationsRu {
 			'screenContacts.onContacts' => 'В контактах',
 			'screenContacts.cloudContacts' => 'Облачные контакты',
 			'screenContacts.invite' => 'Пригласить',
-			'screenContacts.inviteAction' => 'Пригласить',
-			'screenContacts.search' => 'Поиск',
 			_ => null,
 		} ?? switch (path) {
+			'screenContacts.inviteAction' => 'Пригласить',
+			'screenContacts.search' => 'Поиск',
 			'screenContacts.permissionTitle' => 'Нужен доступ к контактам',
 			'screenContacts.permissionMessage' => 'Разрешите доступ к контактам, чтобы найти друзей, которые уже в Iperon. Ваши номера сверяются приватно и не раскрываются серверу.',
 			'screenContacts.allowAccess' => 'Разрешить доступ',

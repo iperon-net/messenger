@@ -25,6 +25,8 @@
   "unavailable": "Camera unavailable"
   "accessDenied": "No access to camera"
   "openSettings": "Open settings"
+  "photo": "Photo"
+  "video": "Video"
 
 "screenHome":
   "contacts": "Contacts"

@@ -25,6 +25,8 @@
   "unavailable": "Камера недоступна"
   "accessDenied": "Нет доступа к камере"
   "openSettings": "Открыть настройки"
+  "photo": "Фото"
+  "video": "Видео"
 
 "screenHome":
   "contacts": "Контакты"

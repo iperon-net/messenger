@@ -26,7 +26,8 @@ double cameraPreviewAspectRatio(CameraController controller) {
 }
 
 /// Открывает кастомный полноэкранный экран камеры и возвращает снятый кадр как
-/// [XFile] (или `null`, если экран закрыли без съёмки).
+/// [XFile] (или `null`, если экран закрыли без съёмки). [allowVideo] — можно
+/// переключиться на «Видео» и вернуть записанный ролик (`.mp4`).
 ///
 /// Выбор дизайна — по платформе, как и весь app-scaffolding (см. main.dart):
 /// iOS → [CameraScreenCupertino], Android → [CameraScreenMaterial]. Экран
@@ -37,10 +38,10 @@ double cameraPreviewAspectRatio(CameraController controller) {
 /// final file = await openCamera(context);
 /// if (file != null) attach(file);
 /// ```
-Future<XFile?> openCamera(BuildContext context) {
+Future<XFile?> openCamera(BuildContext context, {bool allowVideo = false}) {
   final navigator = Navigator.of(context, rootNavigator: true);
   if (Platform.isIOS) {
-    return navigator.push<XFile>(CupertinoPageRoute(fullscreenDialog: true, builder: (_) => const CameraScreenCupertino()));
+    return navigator.push<XFile>(CupertinoPageRoute(fullscreenDialog: true, builder: (_) => CameraScreenCupertino(allowVideo: allowVideo)));
   }
-  return navigator.push<XFile>(MaterialPageRoute(fullscreenDialog: true, builder: (_) => const CameraScreenMaterial()));
+  return navigator.push<XFile>(MaterialPageRoute(fullscreenDialog: true, builder: (_) => CameraScreenMaterial(allowVideo: allowVideo)));
 }

@@ -167,6 +167,12 @@ class Translations$componentsCamera$en {
 
 	/// en: 'Open settings'
 	String get openSettings => 'Open settings';
+
+	/// en: 'Photo'
+	String get photo => 'Photo';
+
+	/// en: 'Video'
+	String get video => 'Video';
 }
 
 // Path: screenHome
@@ -2404,6 +2410,8 @@ extension on Translations {
 			'componentsCamera.unavailable' => 'Camera unavailable',
 			'componentsCamera.accessDenied' => 'No access to camera',
 			'componentsCamera.openSettings' => 'Open settings',
+			'componentsCamera.photo' => 'Photo',
+			'componentsCamera.video' => 'Video',
 			'screenHome.contacts' => 'Contacts',
 			'screenHome.calls' => 'Calls',
 			'screenHome.chats' => _root.screenChats.chats,
@@ -2892,10 +2900,10 @@ extension on Translations {
 			'screenContacts.onContacts' => 'On Contacts',
 			'screenContacts.cloudContacts' => 'Cloud contacts',
 			'screenContacts.invite' => 'Invite',
-			'screenContacts.inviteAction' => 'Invite',
-			'screenContacts.search' => 'Search',
 			_ => null,
 		} ?? switch (path) {
+			'screenContacts.inviteAction' => 'Invite',
+			'screenContacts.search' => 'Search',
 			'screenContacts.permissionTitle' => 'Contacts access needed',
 			'screenContacts.permissionMessage' => 'Allow access to your contacts to find friends already on Iperon. Your phone numbers are matched privately and never revealed to the server.',
 			'screenContacts.allowAccess' => 'Allow access',
