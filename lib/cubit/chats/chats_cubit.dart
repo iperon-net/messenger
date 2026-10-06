@@ -60,7 +60,7 @@ class ChatsCubit extends Cubit<ChatsState> {
   void search(String query) => emit(state.copyWith(query: query.trim()));
 
   Future<void> setPinned(models.Chat chat, bool pinned) async => _source?.setPinned(chat.id, pinned);
-  Future<void> setMuted(models.Chat chat, bool muted) async => _source?.setMuted(chat.id, muted);
+  Future<void> setMuted(models.Chat chat, bool muted, {DateTime? until}) async => _source?.setMuted(chat.id, muted, until: until);
   Future<void> setArchived(models.Chat chat, bool archived) async => _source?.setArchived(chat.id, archived);
   Future<void> setRead(models.Chat chat, bool read) async => _source?.setRead(chat.id, read);
   Future<void> delete(models.Chat chat) async => _source?.delete(chat.id);

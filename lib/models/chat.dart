@@ -218,6 +218,10 @@ class Chat with ChatMappable {
   final bool markedUnread;
 
   final bool muted;
+
+  /// Уведомления выключены до этого времени (`null` при [muted] — навсегда);
+  /// по истечении чат включается сам.
+  final DateTime? mutedUntil;
   final bool pinned;
   final bool archived;
 
@@ -281,6 +285,7 @@ class Chat with ChatMappable {
     this.unreadMentions = 0,
     this.markedUnread = false,
     this.muted = false,
+    this.mutedUntil,
     this.pinned = false,
     this.archived = false,
     this.draft = '',

@@ -5,6 +5,7 @@ import '../../components.dart';
 import '../../cubit.dart';
 import '../../i18n/translations.g.dart';
 import '../../models.dart' as models;
+import 'chat_mute.dart';
 
 /// Строка чата с нативным контекстным меню iOS по долгому нажатию (строка
 /// «приподнимается», фон размывается, под превью — действия). Свайп по списку
@@ -52,7 +53,12 @@ class ChatContextMenuCupertino extends StatelessWidget {
         action(
           chat.muted ? t.unmute : t.mute,
           chat.muted ? CupertinoIcons.bell : CupertinoIcons.bell_slash,
-          () => cubit.setMuted(chat, !chat.muted),
+          // Выключить — «Заглушить на…» (после закрытия меню).
+          () async {
+            if (chat.muted) return cubit.setMuted(chat, false);
+            final choice = await pickChatMute(context);
+            if (choice != null) await cubit.setMuted(chat, true, until: chatMuteUntil(choice));
+          },
         ),
         if (!chat.isSelf)
           action(

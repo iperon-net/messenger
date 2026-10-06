@@ -278,6 +278,24 @@ class Translations$screenChats$en {
 	/// en: 'Unmute'
 	String get unmute => 'Unmute';
 
+	/// en: 'Mute Notifications'
+	String get muteTitle => 'Mute Notifications';
+
+	/// en: 'For 1 Hour'
+	String get muteHour => 'For 1 Hour';
+
+	/// en: 'For 8 Hours'
+	String get mute8Hours => 'For 8 Hours';
+
+	/// en: 'For 2 Days'
+	String get mute2Days => 'For 2 Days';
+
+	/// en: 'Forever'
+	String get muteForever => 'Forever';
+
+	/// en: 'until {time}'
+	String mutedUntil({required Object time}) => 'until ${time}';
+
 	/// en: 'Archive'
 	String get toArchive => 'Archive';
 
@@ -2766,6 +2784,12 @@ extension on Translations {
 			'screenChats.markUnread' => 'Mark as unread',
 			'screenChats.mute' => 'Mute',
 			'screenChats.unmute' => 'Unmute',
+			'screenChats.muteTitle' => 'Mute Notifications',
+			'screenChats.muteHour' => 'For 1 Hour',
+			'screenChats.mute8Hours' => 'For 8 Hours',
+			'screenChats.mute2Days' => 'For 2 Days',
+			'screenChats.muteForever' => 'Forever',
+			'screenChats.mutedUntil' => ({required Object time}) => 'until ${time}',
 			'screenChats.toArchive' => 'Archive',
 			'screenChats.fromArchive' => 'Unarchive',
 			'screenChats.delete' => 'Delete',
@@ -3220,14 +3244,14 @@ extension on Translations {
 			'sessionsPrivacyAndSecurity.whoCanSeeLastSeen' => 'Who can see my last seen',
 			'sessionsPrivacyAndSecurity.lastSeenReciprocityNote' => 'If you choose Nobody, you won\'t see others\' last seen or online status either.',
 			'cloudPassword.title' => 'Cloud password',
+			_ => null,
+		} ?? switch (path) {
 			'cloudPassword.description' => 'An additional password asked when signing in on a new device. Add an email so you can recover access if you forget it.',
 			'cloudPassword.enterPasswordHint' => 'Enter your cloud password',
 			'cloudPassword.unlockInfo' => 'Two-step verification is enabled. Your account is protected by an additional password.',
 			'cloudPassword.setupEmailHint' => 'Add an email to recover access if you forget your cloud password.',
 			'cloudPassword.setupPasswordHint' => 'Now set a cloud password. You\'ll be asked for it when signing in on a new device.',
 			'cloudPassword.changePasswordHint' => 'Enter a new cloud password.',
-			_ => null,
-		} ?? switch (path) {
 			'cloudPassword.enableButton' => 'Enable',
 			'cloudPassword.passwordPlaceholder' => 'Cloud password',
 			'cloudPassword.continueButton' => 'Continue',

@@ -18,6 +18,7 @@ import 'chat_create_members_cupertino.dart';
 import 'chat_invite_links_cupertino.dart';
 import 'chat_join_requests_cupertino.dart';
 import 'chat_info_common.dart';
+import 'chat_mute.dart';
 
 /// Профиль чата (iOS) — тап по шапке окна чата. Результат — что сделать в
 /// чате: поиск или переход к сообщению.
@@ -68,6 +69,14 @@ class _ChatInfoCupertinoState extends State<ChatInfoCupertino> {
     if (!(confirmed ?? false) || !context.mounted) return;
     await context.read<ChatCubit>().deleteChat();
     if (context.mounted) context.go('/chats');
+  }
+
+  /// «Звук»: заглушённый — включить сразу, иначе — «Заглушить на…».
+  Future<void> _toggleMute(BuildContext context, models.Chat chat) async {
+    final cubit = context.read<ChatCubit>();
+    if (chat.muted) return cubit.setMuted(false);
+    final choice = await pickChatMute(context);
+    if (choice != null) await cubit.setMuted(true, until: chatMuteUntil(choice));
   }
 
   /// Тап по участнику: «Написать сообщение»; с правом блокировать (для
@@ -242,9 +251,12 @@ class _ChatInfoCupertinoState extends State<ChatInfoCupertino> {
                               _ActionButton(
                                 // Значок — текущее состояние: звук включён / выключен.
                                 icon: chat.muted ? HugeIcons.strokeRoundedNotificationOff01 : HugeIcons.strokeRoundedNotification01,
-                                label: t.screenChatInfo.sound,
+                                // Заглушён на время — «до 18:30» вместо «Звук».
+                                label: chat.muted && chat.mutedUntil != null
+                                    ? chatMutedUntilLabel(t, chat.mutedUntil!)
+                                    : t.screenChatInfo.sound,
                                 color: action,
-                                onTap: () => context.read<ChatCubit>().setMuted(!chat.muted),
+                                onTap: () => _toggleMute(context, chat),
                               ),
                             _ActionButton(
                               icon: HugeIcons.strokeRoundedSearch01,

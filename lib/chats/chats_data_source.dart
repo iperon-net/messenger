@@ -13,7 +13,10 @@ abstract class ChatsDataSource {
   Stream<List<models.ChatFolder>> watchFolders();
 
   Future<void> setPinned(String chatID, bool pinned);
-  Future<void> setMuted(String chatID, bool muted);
+
+  /// Выключить / включить уведомления; [until] — до этого времени (`null` —
+  /// навсегда).
+  Future<void> setMuted(String chatID, bool muted, {DateTime? until});
   Future<void> setArchived(String chatID, bool archived);
 
   /// Прочитать (сбросить счётчики и ручную пометку) или пометить непрочитанным.

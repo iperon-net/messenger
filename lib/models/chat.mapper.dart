@@ -1052,6 +1052,12 @@ class ChatMapper extends ClassMapperBase<Chat> {
     opt: true,
     def: false,
   );
+  static DateTime? _$mutedUntil(Chat v) => v.mutedUntil;
+  static const Field<Chat, DateTime> _f$mutedUntil = Field(
+    'mutedUntil',
+    _$mutedUntil,
+    opt: true,
+  );
   static bool _$pinned(Chat v) => v.pinned;
   static const Field<Chat, bool> _f$pinned = Field(
     'pinned',
@@ -1189,6 +1195,7 @@ class ChatMapper extends ClassMapperBase<Chat> {
     #unreadMentions: _f$unreadMentions,
     #markedUnread: _f$markedUnread,
     #muted: _f$muted,
+    #mutedUntil: _f$mutedUntil,
     #pinned: _f$pinned,
     #archived: _f$archived,
     #draft: _f$draft,
@@ -1221,6 +1228,7 @@ class ChatMapper extends ClassMapperBase<Chat> {
       unreadMentions: data.dec(_f$unreadMentions),
       markedUnread: data.dec(_f$markedUnread),
       muted: data.dec(_f$muted),
+      mutedUntil: data.dec(_f$mutedUntil),
       pinned: data.dec(_f$pinned),
       archived: data.dec(_f$archived),
       draft: data.dec(_f$draft),
@@ -1302,6 +1310,7 @@ abstract class ChatCopyWith<$R, $In extends Chat, $Out>
     int? unreadMentions,
     bool? markedUnread,
     bool? muted,
+    DateTime? mutedUntil,
     bool? pinned,
     bool? archived,
     String? draft,
@@ -1353,6 +1362,7 @@ class _ChatCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Chat, $Out>
     int? unreadMentions,
     bool? markedUnread,
     bool? muted,
+    Object? mutedUntil = $none,
     bool? pinned,
     bool? archived,
     String? draft,
@@ -1383,6 +1393,7 @@ class _ChatCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Chat, $Out>
       if (unreadMentions != null) #unreadMentions: unreadMentions,
       if (markedUnread != null) #markedUnread: markedUnread,
       if (muted != null) #muted: muted,
+      if (mutedUntil != $none) #mutedUntil: mutedUntil,
       if (pinned != null) #pinned: pinned,
       if (archived != null) #archived: archived,
       if (draft != null) #draft: draft,
@@ -1415,6 +1426,7 @@ class _ChatCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Chat, $Out>
     unreadMentions: data.get(#unreadMentions, or: $value.unreadMentions),
     markedUnread: data.get(#markedUnread, or: $value.markedUnread),
     muted: data.get(#muted, or: $value.muted),
+    mutedUntil: data.get(#mutedUntil, or: $value.mutedUntil),
     pinned: data.get(#pinned, or: $value.pinned),
     archived: data.get(#archived, or: $value.archived),
     draft: data.get(#draft, or: $value.draft),

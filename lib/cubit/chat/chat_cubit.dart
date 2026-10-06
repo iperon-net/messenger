@@ -297,7 +297,8 @@ class ChatCubit extends Cubit<ChatState> {
     await _source?.deleteMessage(_chatID, message.id, forEveryone: forEveryone);
   }
 
-  Future<void> setMuted(bool muted) async => _source?.setMuted(_chatID, muted);
+  /// [until] — выключить до этого времени (`null` — навсегда).
+  Future<void> setMuted(bool muted, {DateTime? until}) async => _source?.setMuted(_chatID, muted, until: until);
 
   /// Профиль чата: участники группы (и заблокированные — для админа).
   Future<void> loadMembers() async {

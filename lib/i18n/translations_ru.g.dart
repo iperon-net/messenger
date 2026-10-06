@@ -171,6 +171,12 @@ class _Translations$screenChats$ru extends Translations$screenChats$en {
 	@override String get markUnread => 'Непрочитано';
 	@override String get mute => 'Выключить уведомления';
 	@override String get unmute => 'Включить уведомления';
+	@override String get muteTitle => 'Выключить уведомления';
+	@override String get muteHour => 'На 1 час';
+	@override String get mute8Hours => 'На 8 часов';
+	@override String get mute2Days => 'На 2 дня';
+	@override String get muteForever => 'Навсегда';
+	@override String mutedUntil({required Object time}) => 'до ${time}';
 	@override String get toArchive => 'В архив';
 	@override String get fromArchive => 'Из архива';
 	@override String get delete => 'Удалить';
@@ -1257,6 +1263,12 @@ extension on TranslationsRu {
 			'screenChats.markUnread' => 'Непрочитано',
 			'screenChats.mute' => 'Выключить уведомления',
 			'screenChats.unmute' => 'Включить уведомления',
+			'screenChats.muteTitle' => 'Выключить уведомления',
+			'screenChats.muteHour' => 'На 1 час',
+			'screenChats.mute8Hours' => 'На 8 часов',
+			'screenChats.mute2Days' => 'На 2 дня',
+			'screenChats.muteForever' => 'Навсегда',
+			'screenChats.mutedUntil' => ({required Object time}) => 'до ${time}',
 			'screenChats.toArchive' => 'В архив',
 			'screenChats.fromArchive' => 'Из архива',
 			'screenChats.delete' => 'Удалить',
@@ -1711,14 +1723,14 @@ extension on TranslationsRu {
 			'sessionsPrivacyAndSecurity.whoCanSeeLastSeen' => 'Кто может видеть время моего захода',
 			'sessionsPrivacyAndSecurity.lastSeenReciprocityNote' => 'Если выбрано «Никто», вы тоже не будете видеть время захода и статус других.',
 			'cloudPassword.title' => 'Облачный пароль',
+			_ => null,
+		} ?? switch (path) {
 			'cloudPassword.description' => 'Дополнительный пароль, будет запрашивается при входе с нового устройства. Укажите email чтобы восстановить доступ, если забудете пароль.',
 			'cloudPassword.enterPasswordHint' => 'Введите облачный пароль',
 			'cloudPassword.unlockInfo' => 'Включена двухэтапная авторизация. Ваш аккаунт защищён дополнительным паролем.',
 			'cloudPassword.setupEmailHint' => 'Укажите email, чтобы восстановить доступ, если забудете облачный пароль.',
 			'cloudPassword.setupPasswordHint' => 'Теперь задайте облачный пароль. Его спросят при входе на новом устройстве.',
 			'cloudPassword.changePasswordHint' => 'Введите новый облачный пароль.',
-			_ => null,
-		} ?? switch (path) {
 			'cloudPassword.enableButton' => 'Включить',
 			'cloudPassword.passwordPlaceholder' => 'Облачный пароль',
 			'cloudPassword.continueButton' => 'Продолжить',

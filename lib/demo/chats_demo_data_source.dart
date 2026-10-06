@@ -48,8 +48,19 @@ class ChatsDemoDataSource implements ChatsDataSource {
   @override
   Future<void> setPinned(String chatID, bool pinned) async => _update(chatID, (c) => c.copyWith(pinned: pinned));
 
+  /// Таймеры «включить уведомления» для заглушённых на время.
+  final _unmuteTimers = <String, Timer>{};
+
   @override
-  Future<void> setMuted(String chatID, bool muted) async => _update(chatID, (c) => c.copyWith(muted: muted));
+  Future<void> setMuted(String chatID, bool muted, {DateTime? until}) async {
+    _unmuteTimers.remove(chatID)?.cancel();
+    final timed = muted ? until : null;
+    _update(chatID, (c) => c.copyWith(muted: muted, mutedUntil: timed));
+    if (timed != null) {
+      final delay = timed.difference(DateTime.now());
+      _unmuteTimers[chatID] = Timer(delay.isNegative ? Duration.zero : delay, () => setMuted(chatID, false));
+    }
+  }
 
   @override
   Future<void> setArchived(String chatID, bool archived) async =>

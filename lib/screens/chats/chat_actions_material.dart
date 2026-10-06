@@ -5,6 +5,7 @@ import '../../components.dart';
 import '../../cubit.dart';
 import '../../i18n/translations.g.dart';
 import '../../models.dart' as models;
+import 'chat_mute.dart';
 
 /// Действия над чатом по long-press (свайп по списку занят папками — см.
 /// docs/plans/chats-groups-channels.md, «Папки»).
@@ -47,7 +48,12 @@ Future<void> showChatActionsMaterial(BuildContext context, models.Chat chat) asy
             sheetContext,
             chat.muted ? Icons.notifications_outlined : Icons.notifications_off_outlined,
             chat.muted ? t.unmute : t.mute,
-            () => cubit.setMuted(chat, !chat.muted),
+            // Выключить — «Заглушить на…» (после закрытия листа).
+            () async {
+              if (chat.muted) return cubit.setMuted(chat, false);
+              final choice = await pickChatMute(context);
+              if (choice != null) await cubit.setMuted(chat, true, until: chatMuteUntil(choice));
+            },
           ),
           if (!chat.isSelf)
             action(
