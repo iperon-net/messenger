@@ -380,56 +380,62 @@ class _ChatCupertinoState extends State<ChatCupertino> {
             child: CupertinoPageScaffold(
               backgroundColor: background,
               navigationBar: state.selecting
-                  ? CupertinoNavigationBar(
-                      automaticallyImplyLeading: false,
-                      automaticBackgroundVisibility: false,
-                      backgroundColor: barColor,
-                      middle: Text(t.screenChat.selected(n: state.selectedIDs.length)),
-                      trailing: CupertinoButton(
-                        padding: const EdgeInsets.only(left: 8),
-                        minimumSize: Size.zero,
-                        onPressed: _cubit.clearSelection,
-                        child: Text(t.common.cancel),
+                  ? AppCupertinoNavigationBar(
+                      child: CupertinoNavigationBar(
+                        automaticallyImplyLeading: false,
+                        automaticBackgroundVisibility: false,
+                        backgroundColor: barColor,
+                        middle: Text(t.screenChat.selected(n: state.selectedIDs.length)),
+                        trailing: CupertinoButton(
+                          padding: const EdgeInsets.only(left: 8),
+                          minimumSize: Size.zero,
+                          onPressed: _cubit.clearSelection,
+                          child: Text(t.common.cancel, style: TextStyle(color: ThemesCupertino.navActionColor(context))),
+                        ),
                       ),
                     )
                   : state.searching
-                  ? CupertinoNavigationBar(
-                      automaticallyImplyLeading: false,
-                      automaticBackgroundVisibility: false,
-                      backgroundColor: barColor,
-                      middle: CupertinoSearchTextField(
-                        controller: _searchInput,
-                        autofocus: true,
-                        placeholder: t.screenChat.search,
-                        onChanged: _cubit.setSearchQuery,
-                      ),
-                      trailing: CupertinoButton(
-                        padding: const EdgeInsets.only(left: 8),
-                        minimumSize: Size.zero,
-                        onPressed: _cubit.closeSearch,
-                        child: Text(t.common.cancel),
+                  ? AppCupertinoNavigationBar(
+                      child: CupertinoNavigationBar(
+                        automaticallyImplyLeading: false,
+                        automaticBackgroundVisibility: false,
+                        backgroundColor: barColor,
+                        middle: CupertinoSearchTextField(
+                          controller: _searchInput,
+                          autofocus: true,
+                          placeholder: t.screenChat.search,
+                          onChanged: _cubit.setSearchQuery,
+                        ),
+                        trailing: CupertinoButton(
+                          padding: const EdgeInsets.only(left: 8),
+                          minimumSize: Size.zero,
+                          onPressed: _cubit.closeSearch,
+                          child: Text(t.common.cancel, style: TextStyle(color: ThemesCupertino.navActionColor(context))),
+                        ),
                       ),
                     )
-                  : CupertinoNavigationBar(
-                      previousPageTitle: '',
-                      // Фон панели всегда (без автоскрытия у края ленты): иначе у верха
-                      // истории панель становилась прозрачной и под ней была чёрная полоса.
-                      automaticBackgroundVisibility: false,
-                      backgroundColor: barColor,
-                      middle: chat == null
-                          ? null
-                          : GestureDetector(
-                              onTap: () => _openInfo(context),
-                              onLongPress: _startSearch,
-                              child: _Header(chat: chat),
-                            ),
-                      trailing: chat == null
-                          ? null
-                          : GestureDetector(
-                              onTap: () => _openInfo(context),
-                              onLongPress: _startSearch,
-                              child: ChatAvatar(chat: chat, size: 36, accentColor: CupertinoTheme.of(context).primaryColor),
-                            ),
+                  : AppCupertinoNavigationBar(
+                      child: CupertinoNavigationBar(
+                        previousPageTitle: '',
+                        // Фон панели всегда (без автоскрытия у края ленты): иначе у верха
+                        // истории панель становилась прозрачной и под ней была чёрная полоса.
+                        automaticBackgroundVisibility: false,
+                        backgroundColor: barColor,
+                        middle: chat == null
+                            ? null
+                            : GestureDetector(
+                                onTap: () => _openInfo(context),
+                                onLongPress: _startSearch,
+                                child: _Header(chat: chat),
+                              ),
+                        trailing: chat == null
+                            ? null
+                            : GestureDetector(
+                                onTap: () => _openInfo(context),
+                                onLongPress: _startSearch,
+                                child: ChatAvatar(chat: chat, size: 36, accentColor: CupertinoTheme.of(context).primaryColor),
+                              ),
+                      ),
                     ),
               // Обои из «Тем для чатов» (Настройки → Оформление) — на весь экран,
               // в том числе под полупрозрачной панелью навигации (как в Telegram).

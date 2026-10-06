@@ -31,7 +31,7 @@ class _ChatCreateMembersCupertino extends State<ChatCreateMembersCupertino> {
   @override
   Widget build(BuildContext context) {
     final t = context.t;
-    final primary = CupertinoTheme.of(context).primaryColor;
+    final action = ThemesCupertino.actionColor(context);
     final secondary = CupertinoColors.secondaryLabel.resolveFrom(context);
     final background = ThemesCupertino.groupedBackground.resolveFrom(context);
     final card = ThemesCupertino.groupedCard.resolveFrom(context);
@@ -80,15 +80,15 @@ class _ChatCreateMembersCupertino extends State<ChatCreateMembersCupertino> {
                             onTap: () => context.read<ChatCreateCubit>().toggle(member),
                             child: Container(
                               padding: const EdgeInsets.fromLTRB(3, 3, 10, 3),
-                              decoration: BoxDecoration(color: primary.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(16)),
+                              decoration: BoxDecoration(color: action.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(16)),
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   ContactAvatar(contact: member, size: 26),
                                   const SizedBox(width: 6),
-                                  Text(member.name.split(' ').first, style: TextStyle(fontSize: 15, color: primary)),
+                                  Text(member.name.split(' ').first, style: TextStyle(fontSize: 15, color: action)),
                                   const SizedBox(width: 4),
-                                  Icon(CupertinoIcons.xmark, size: 13, color: primary),
+                                  Icon(CupertinoIcons.xmark, size: 13, color: action),
                                 ],
                               ),
                             ),

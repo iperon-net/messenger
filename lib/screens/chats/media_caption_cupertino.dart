@@ -2,6 +2,7 @@ import 'package:cupertino_ui/cupertino_ui.dart';
 
 import '../../i18n/translations.g.dart';
 import '../../models.dart' as models;
+import '../../themes.dart';
 import 'chat_common.dart';
 import 'compose_format_menu.dart';
 
@@ -88,7 +89,10 @@ class _MediaCaptionSheetState extends State<_MediaCaptionSheet> {
                     ),
                     Row(
                       children: [
-                        CupertinoButton(onPressed: () => Navigator.of(context).pop(), child: Text(context.t.common.cancel)),
+                        CupertinoButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          child: Text(context.t.common.cancel, style: TextStyle(color: ThemesCupertino.actionColor(context))),
+                        ),
                         const Spacer(),
                         if (_hasVideo) _hdButton(context, primary),
                         if (_hasMedia)
@@ -104,7 +108,7 @@ class _MediaCaptionSheetState extends State<_MediaCaptionSheet> {
                             ],
                             builder: (context, controller, _) => CupertinoButton(
                               onPressed: () => controller.isOpen ? controller.close() : controller.open(),
-                              child: const Icon(CupertinoIcons.ellipsis_circle, size: 26),
+                              child: Icon(CupertinoIcons.ellipsis_circle, size: 26, color: ThemesCupertino.actionColor(context)),
                             ),
                           ),
                       ],

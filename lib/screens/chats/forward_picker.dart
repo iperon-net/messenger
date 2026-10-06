@@ -7,6 +7,7 @@ import 'package:material_ui/material_ui.dart' as m;
 import '../../components.dart';
 import '../../i18n/translations.g.dart';
 import '../../models.dart' as models;
+import '../../themes.dart';
 
 /// «Переслать в…»: лист со списком чатов и поиском по названию. Возвращает
 /// выбранный чат или `null` (закрыли).
@@ -76,7 +77,12 @@ class _ForwardPickerState extends State<_ForwardPicker> {
                     style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600, color: label),
                   ),
                   Row(
-                    children: [c.CupertinoButton(onPressed: () => Navigator.of(context).pop(), child: Text(t.common.cancel))],
+                    children: [
+                      c.CupertinoButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        child: Text(t.common.cancel, style: TextStyle(color: ThemesCupertino.actionColor(context))),
+                      ),
+                    ],
                   ),
                 ],
               ),

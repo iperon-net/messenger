@@ -98,6 +98,7 @@ class _ChatCreateFormCupertino extends State<ChatCreateFormCupertino> {
   Widget build(BuildContext context) {
     final t = context.t;
     final primary = CupertinoTheme.of(context).primaryColor;
+    final action = ThemesCupertino.actionColor(context);
     final secondary = CupertinoColors.secondaryLabel.resolveFrom(context);
     final background = ThemesCupertino.groupedBackground.resolveFrom(context);
     final card = ThemesCupertino.groupedCard.resolveFrom(context);
@@ -174,12 +175,12 @@ class _ChatCreateFormCupertino extends State<ChatCreateFormCupertino> {
                                     width: 64,
                                     height: 64,
                                     decoration: BoxDecoration(
-                                      color: primary.withValues(alpha: 0.12),
+                                      color: action.withValues(alpha: 0.12),
                                       shape: type == models.ChatType.community ? BoxShape.rectangle : BoxShape.circle,
                                       borderRadius: type == models.ChatType.community ? BorderRadius.circular(18) : null,
                                     ),
                                     alignment: Alignment.center,
-                                    child: HugeIcon(icon: HugeIcons.strokeRoundedCameraAdd01, color: primary, size: 28),
+                                    child: HugeIcon(icon: HugeIcons.strokeRoundedCameraAdd01, color: action, size: 28),
                                   ),
                           ),
                           const SizedBox(width: 14),
@@ -272,9 +273,9 @@ class _ChatCreateFormCupertino extends State<ChatCreateFormCupertino> {
                         CupertinoListTile(
                           title: Text(
                             'iperon.net/${state.inviteLink}',
-                            style: TextStyle(fontSize: AppFontSizes.body, color: primary),
+                            style: TextStyle(fontSize: AppFontSizes.body, color: action),
                           ),
-                          trailing: HugeIcon(icon: HugeIcons.strokeRoundedCopy01, color: primary, size: 20),
+                          trailing: HugeIcon(icon: HugeIcons.strokeRoundedCopy01, color: action, size: 20),
                           onTap: () => _copyLink(context, state.inviteLink),
                         ),
                       ],

@@ -89,11 +89,13 @@ class PinnedMessagesCupertino extends StatelessWidget {
         final canUnpin = chat != null && chat.type != models.ChatType.channel;
         return CupertinoPageScaffold(
           backgroundColor: dark ? const Color(0xFF000000) : CupertinoColors.systemGroupedBackground.resolveFrom(context),
-          navigationBar: CupertinoNavigationBar(
-            previousPageTitle: '',
-            automaticBackgroundVisibility: false,
-            backgroundColor: barColor,
-            middle: Text(pinned.isEmpty ? t.pinnedAll : t.pinnedList(n: pinned.length)),
+          navigationBar: AppCupertinoNavigationBar(
+            child: CupertinoNavigationBar(
+              previousPageTitle: '',
+              automaticBackgroundVisibility: false,
+              backgroundColor: barColor,
+              middle: Text(pinned.isEmpty ? t.pinnedAll : t.pinnedList(n: pinned.length)),
+            ),
           ),
           child: Stack(
             children: [

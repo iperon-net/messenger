@@ -135,6 +135,12 @@ class ThemesCupertino {
     darkColor: CupertinoColors.white,
   ).resolveFrom(context);
 
+  /// Цвет действий в теле экрана (текстовые кнопки, строки-действия, ссылки):
+  /// как у навбара — акцент в светлой теме, белый в тёмной (синий на чёрном
+  /// в приложении не используется). Галочки выбора и заливки кнопок остаются
+  /// акцентными.
+  static Color actionColor(BuildContext context) => navActionColor(context);
+
   /// Полная конфигурация `ScreenLockConfig` с общим фоном.
   static ScreenLockConfig screenLockConfig(BuildContext context) =>
       ScreenLockConfig.defaultConfig.copyWith(backgroundColor: screenLockBackground(context));

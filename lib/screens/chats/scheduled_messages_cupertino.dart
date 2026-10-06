@@ -26,11 +26,17 @@ Future<DateTime?> showScheduleDateCupertino(BuildContext context, {DateTime? ini
           children: [
             Row(
               children: [
-                CupertinoButton(onPressed: () => Navigator.of(popupContext).pop(), child: Text(context.t.common.cancel)),
+                CupertinoButton(
+                  onPressed: () => Navigator.of(popupContext).pop(),
+                  child: Text(context.t.common.cancel, style: TextStyle(color: ThemesCupertino.actionColor(context))),
+                ),
                 const Spacer(),
                 CupertinoButton(
                   onPressed: () => Navigator.of(popupContext).pop(selected),
-                  child: Text(context.t.screenChat.schedule, style: const TextStyle(fontWeight: FontWeight.w600)),
+                  child: Text(
+                    context.t.screenChat.schedule,
+                    style: TextStyle(fontWeight: FontWeight.w600, color: ThemesCupertino.actionColor(context)),
+                  ),
                 ),
               ],
             ),
@@ -126,11 +132,13 @@ class ScheduledMessagesCupertino extends StatelessWidget {
         final scheduled = [for (final m in state.scheduled) m.copyWith(date: m.scheduledDate ?? m.date)];
         return CupertinoPageScaffold(
           backgroundColor: dark ? const Color(0xFF000000) : CupertinoColors.systemGroupedBackground.resolveFrom(context),
-          navigationBar: CupertinoNavigationBar(
-            previousPageTitle: '',
-            automaticBackgroundVisibility: false,
-            backgroundColor: barColor,
-            middle: Text(t.scheduledTitle),
+          navigationBar: AppCupertinoNavigationBar(
+            child: CupertinoNavigationBar(
+              previousPageTitle: '',
+              automaticBackgroundVisibility: false,
+              backgroundColor: barColor,
+              middle: Text(t.scheduledTitle),
+            ),
           ),
           child: Stack(
             children: [

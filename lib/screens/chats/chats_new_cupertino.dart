@@ -33,7 +33,7 @@ class _ChatsNewCupertino extends State<ChatsNewCupertino> {
   @override
   Widget build(BuildContext context) {
     final t = context.t;
-    final primary = CupertinoTheme.of(context).primaryColor;
+    final actionColor = ThemesCupertino.actionColor(context);
     final secondary = CupertinoColors.secondaryLabel.resolveFrom(context);
     final background = ThemesCupertino.groupedBackground.resolveFrom(context);
     final card = ThemesCupertino.groupedCard.resolveFrom(context);
@@ -46,8 +46,8 @@ class _ChatsNewCupertino extends State<ChatsNewCupertino> {
     );
 
     Widget action(List<List<dynamic>> icon, String title, String path) => CupertinoListTile(
-      leading: HugeIcon(icon: icon, color: primary, size: 24),
-      title: Text(title, style: TextStyle(color: primary)),
+      leading: HugeIcon(icon: icon, color: actionColor, size: 24),
+      title: Text(title, style: TextStyle(color: actionColor)),
       onTap: () => context.push(path),
     );
 

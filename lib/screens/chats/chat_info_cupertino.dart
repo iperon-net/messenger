@@ -76,6 +76,7 @@ class _ChatInfoCupertinoState extends State<ChatInfoCupertino> {
   Widget build(BuildContext context) {
     final t = context.t;
     final primary = CupertinoTheme.of(context).primaryColor;
+    final action = ThemesCupertino.actionColor(context);
     final label = CupertinoColors.label.resolveFrom(context);
     final secondary = CupertinoColors.secondaryLabel.resolveFrom(context);
     final card = ThemesCupertino.groupedCard.resolveFrom(context);
@@ -88,19 +89,21 @@ class _ChatInfoCupertinoState extends State<ChatInfoCupertino> {
         final subtitle = chat == null ? null : chatSubtitle(t, chat);
         return CupertinoPageScaffold(
           backgroundColor: background,
-          navigationBar: CupertinoNavigationBar(
-            previousPageTitle: '',
-            automaticBackgroundVisibility: false,
-            backgroundColor: background,
-            border: null,
-            // «Изменить» — админу группы / канала / сообщества.
-            trailing: chat != null && chat.canManage && chat.type != models.ChatType.private
-                ? CupertinoButton(
-                    padding: EdgeInsets.zero,
-                    onPressed: () => showChatEditCupertino(context, chat),
-                    child: Text(t.common.edit),
-                  )
-                : null,
+          navigationBar: AppCupertinoNavigationBar(
+            child: CupertinoNavigationBar(
+              previousPageTitle: '',
+              automaticBackgroundVisibility: false,
+              backgroundColor: background,
+              border: null,
+              // «Изменить» — админу группы / канала / сообщества.
+              trailing: chat != null && chat.canManage && chat.type != models.ChatType.private
+                  ? CupertinoButton(
+                      padding: EdgeInsets.zero,
+                      onPressed: () => showChatEditCupertino(context, chat),
+                      child: Text(t.common.edit, style: TextStyle(color: ThemesCupertino.navActionColor(context))),
+                    )
+                  : null,
+            ),
           ),
           child: chat == null
               ? const SizedBox.shrink()
@@ -141,13 +144,13 @@ class _ChatInfoCupertinoState extends State<ChatInfoCupertino> {
                                 // Значок — текущее состояние: звук включён / выключен.
                                 icon: chat.muted ? HugeIcons.strokeRoundedNotificationOff01 : HugeIcons.strokeRoundedNotification01,
                                 label: t.screenChatInfo.sound,
-                                color: primary,
+                                color: action,
                                 onTap: () => context.read<ChatCubit>().setMuted(!chat.muted),
                               ),
                             _ActionButton(
                               icon: HugeIcons.strokeRoundedSearch01,
                               label: t.screenChatInfo.search,
-                              color: primary,
+                              color: action,
                               onTap: () => Navigator.of(context).pop(const ChatInfoResult.search()),
                             ),
                             if (!chat.isSelf)
@@ -175,14 +178,14 @@ class _ChatInfoCupertinoState extends State<ChatInfoCupertino> {
                                 ? CupertinoListTileIcon(
                                     color: const Color(0xFF049A40),
                                     hugeIcon: HugeIcons.strokeRoundedAt,
-                                    title: Text('@${chat.username}', style: TextStyle(color: primary)),
+                                    title: Text('@${chat.username}', style: TextStyle(color: action)),
                                     subtitle: Text(t.screenChatInfo.username),
                                     onTab: () async => _copy('@${chat.username}'),
                                   )
                                 : CupertinoListTileIcon(
                                     color: const Color(0xFF049A40),
                                     hugeIcon: HugeIcons.strokeRoundedLink01,
-                                    title: Text('iperon.net/${chat.linkPath}', style: TextStyle(color: primary)),
+                                    title: Text('iperon.net/${chat.linkPath}', style: TextStyle(color: action)),
                                     subtitle: Text(t.screenChatInfo.link),
                                     onTab: () async => _copy('https://iperon.net/${chat.linkPath}'),
                                   ),
@@ -388,11 +391,13 @@ class ChatReactionsSettingsCupertino extends StatelessWidget {
 
         return CupertinoPageScaffold(
           backgroundColor: background,
-          navigationBar: CupertinoNavigationBar(
-            previousPageTitle: '',
-            automaticBackgroundVisibility: false,
-            backgroundColor: background,
-            middle: Text(t.reactions),
+          navigationBar: AppCupertinoNavigationBar(
+            child: CupertinoNavigationBar(
+              previousPageTitle: '',
+              automaticBackgroundVisibility: false,
+              backgroundColor: background,
+              middle: Text(t.reactions),
+            ),
           ),
           child: SafeArea(
             child: ListView(

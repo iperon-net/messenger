@@ -103,7 +103,7 @@ class ChatInviteLinksCupertino extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.t;
-    final primary = CupertinoTheme.of(context).primaryColor;
+    final action = ThemesCupertino.actionColor(context);
     final secondary = CupertinoColors.secondaryLabel.resolveFrom(context);
     final destructive = CupertinoColors.destructiveRed.resolveFrom(context);
     final background = ThemesCupertino.groupedBackground.resolveFrom(context);
@@ -232,11 +232,11 @@ class ChatInviteLinksCupertino extends StatelessWidget {
                             leading: Container(
                               width: 36,
                               height: 36,
-                              decoration: BoxDecoration(color: primary.withValues(alpha: 0.12), shape: BoxShape.circle),
+                              decoration: BoxDecoration(color: action.withValues(alpha: 0.12), shape: BoxShape.circle),
                               alignment: Alignment.center,
-                              child: Icon(CupertinoIcons.add, color: primary, size: 20),
+                              child: Icon(CupertinoIcons.add, color: action, size: 20),
                             ),
-                            title: Text(t.screenChatInvites.createLink, style: TextStyle(color: primary)),
+                            title: Text(t.screenChatInvites.createLink, style: TextStyle(color: action)),
                             onTap: () => showChatInviteLinkEditCupertino(context, context.read<ChatInvitesCubit>()),
                           ),
                           for (final link in state.additional) linkTile(link, now),
