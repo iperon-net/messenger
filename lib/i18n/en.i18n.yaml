@@ -127,6 +127,8 @@
   "inviteLink": "Invite Link"
   "inviteLinkFooter": "Anyone with this link can join. Tap to copy."
   "copied": "Link copied"
+  "commentsSwitch": "Comments"
+  "commentsFooter": "Subscribers can discuss each post in its comments."
   "joinHeader": "Joining"
   "joinOpen": "Open"
   "joinLink": "By Invite Link"
@@ -244,6 +246,11 @@
   "subscribers(plural)":
     one: "{n} subscriber"
     other: "{n} subscribers"
+  "comments(plural)":
+    one: "{n} comment"
+    other: "{n} comments"
+  "leaveComment": "Leave a Comment"
+  "commentsTitle": "Comments"
   "message": "Message"
   "empty": "No messages yet"
   "notFound": "Chat not found"

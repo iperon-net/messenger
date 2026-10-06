@@ -47,6 +47,9 @@ class ChatCreateState with ChatCreateStateMappable {
 
   /// Роль вступивших (группа/сообщество, «Изменить»).
   final models.ChatRole defaultRole;
+
+  /// Канал: комментарии под постами («Изменить»).
+  final bool commentsEnabled;
   final ChatUsernameStatus usernameStatus;
 
   /// Ссылка-приглашение частного чата (`+код`) — выдаётся сразу, при создании.
@@ -75,6 +78,7 @@ class ChatCreateState with ChatCreateStateMappable {
     this.username = '',
     this.originalUsername = '',
     this.defaultRole = models.ChatRole.reader,
+    this.commentsEnabled = false,
     this.usernameStatus = ChatUsernameStatus.empty,
     this.inviteLink = '',
     this.creating = false,

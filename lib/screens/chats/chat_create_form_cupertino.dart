@@ -280,6 +280,19 @@ class _ChatCreateFormCupertino extends State<ChatCreateFormCupertino> {
                         ),
                       ],
                     ),
+                  if (state.isEdit && type == models.ChatType.channel)
+                    section(
+                      footer: createNoteCupertino(t.screenNewChat.commentsFooter),
+                      children: [
+                        CupertinoListTile(
+                          title: Text(t.screenNewChat.commentsSwitch, style: const TextStyle(fontSize: AppFontSizes.body)),
+                          trailing: CupertinoSwitch(
+                            value: state.commentsEnabled,
+                            onChanged: context.read<ChatCreateCubit>().setCommentsEnabled,
+                          ),
+                        ),
+                      ],
+                    ),
                   if (state.isEdit && type != models.ChatType.channel)
                     section(
                       header: createHeaderCupertino(t.screenNewChat.defaultRoleHeader),

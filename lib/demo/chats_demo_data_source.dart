@@ -250,6 +250,7 @@ class ChatsDemoDataSource implements ChatsDataSource {
         inviteLink: username.isEmpty ? inviteLink : '',
         joinMode: username.isEmpty ? models.ChatJoinMode.link : models.ChatJoinMode.open,
         avatarPath: avatarPath,
+        commentsEnabled: type == models.ChatType.channel,
         membersCount: 1 + members.length,
         myRole: models.ChatRole.owner,
         createdAt: now,
@@ -270,6 +271,7 @@ class ChatsDemoDataSource implements ChatsDataSource {
     required String username,
     required String inviteLink,
     required models.ChatRole defaultRole,
+    bool commentsEnabled = false,
   }) async {
     final chat = _chats.where((c) => c.id == chatID).firstOrNull;
     if (chat == null) return;
@@ -286,6 +288,7 @@ class ChatsDemoDataSource implements ChatsDataSource {
         // переключении обратно; у «только админы» её нет.
         inviteLink: joinMode == models.ChatJoinMode.admins ? '' : inviteLink,
         defaultRole: defaultRole,
+        commentsEnabled: chat.type == models.ChatType.channel && commentsEnabled,
       ),
     );
     // Основная ссылка — та же, что в чате (форма могла выдать новую).
@@ -656,6 +659,7 @@ class ChatsDemoDataSource implements ChatsDataSource {
       defaultRole: const {'team', 'family', 'football', 'district', 'devs'}.contains(chat.id)
           ? models.ChatRole.writer
           : models.ChatRole.reader,
+      commentsEnabled: const {'news', 'flutter', 'tech'}.contains(chat.id),
     );
   }
 
@@ -733,6 +737,8 @@ class ChatsDemoDataSource implements ChatsDataSource {
   void _setMessages(String chatID, List<models.Message> messages) {
     _messages[chatID] = messages;
     _messagesController.add(chatID);
+    final chat = _chats.where((c) => c.id == chatID).firstOrNull;
+    if (chat != null && chat.isThread) _syncComments(chat);
   }
 
   void _updateMessage(String chatID, String messageID, models.Message Function(models.Message) change) {
@@ -817,6 +823,8 @@ class ChatsDemoDataSource implements ChatsDataSource {
       uploadTotal: uploadTotal,
       silent: silent,
       linkPreview: linkPreview && kind == models.MessageKind.text ? _linkPreviewOf(text, entities) : null,
+      // Пост канала: сразу 1 просмотр (наш), дальше растут.
+      views: _isChannel(chatID) ? 1 : 0,
     );
     _setMessages(chatID, [..._history(chatID), message]);
     _update(chatID, (c) => c.copyWith(lastMessage: _lastOf(message), draft: '', archived: false));
@@ -1125,7 +1133,17 @@ class ChatsDemoDataSource implements ChatsDataSource {
   /// Один «такт»: случайный неархивный чат (кроме каналов — там не печатают)
   /// начинает печатать, через 3 с приходит сообщение. Заодно наши отправленные
   /// сообщения становятся прочитанными.
+  bool _isChannel(String chatID) => _chats.any((c) => c.id == chatID && c.type == models.ChatType.channel);
+
   void _tick() {
+    // Просмотры свежих постов открытых каналов растут.
+    for (final channel in _chats.where((c) => c.type == models.ChatType.channel && _messages.containsKey(c.id))) {
+      final history = _history(channel.id);
+      final recent = history.where((m) => !m.service).toList().reversed.take(3).map((m) => m.id).toSet();
+      if (recent.isEmpty) continue;
+      _setMessages(channel.id, [for (final m in history) recent.contains(m.id) ? m.copyWith(views: m.views + 1 + _random.nextInt(12)) : m]);
+    }
+
     // Изредка — новая заявка туда, где их ждут.
     final accepting = _chats.where(_acceptsRequests).toList();
     if (accepting.isNotEmpty && _random.nextInt(3) == 0) {
@@ -1533,7 +1551,132 @@ class ChatsDemoDataSource implements ChatsDataSource {
         ),
       );
     }
+    if (chat.type == models.ChatType.channel) return _withChannelStats(chat, result);
     return result;
+  }
+
+  /// Посты канала: просмотры (старые — больше, до ~60% подписчиков) и, если
+  /// комментарии включены, их число и последние комментаторы.
+  List<models.Message> _withChannelStats(models.Chat chat, List<models.Message> posts) {
+    final audience = max(chat.membersCount, 40);
+    return [
+      for (final (i, m) in posts.indexed)
+        if (m.service)
+          m
+        else
+          m.copyWith(
+            views: (audience * (0.25 + 0.35 * (posts.length - i) / posts.length)).round() + i * 7,
+            commentsCount: chat.commentsEnabled ? (i * 7 + 3) % 19 : 0,
+            commenters: chat.commentsEnabled ? _seedCommenters(m.id, (i * 7 + 3) % 19) : const [],
+          ),
+    ];
+  }
+
+  // ─── Комментарии к постам канала ──────────────────────────────────────────
+
+  static const _commentPhrases = [
+    'Наконец-то! Давно ждал 🔥',
+    'А когда будет на Android?',
+    'Отличная новость 👍',
+    'Подскажите, как включить?',
+    'У меня уже работает, спасибо!',
+    'Интересно, а что с темами?',
+    '+1, очень удобно',
+    'Можно подробнее про приватность?',
+  ];
+
+  /// Автор [i]-го демо-комментария к посту [postID] (детерминированно — те же
+  /// имена и в счётчике под постом, и в самой ветке).
+  String _commentAuthor(String postID, int i) => _names[(postID.hashCode.abs() + i * 3) % _names.length];
+
+  /// Последние (до 3) разные комментаторы для [count] комментариев.
+  List<String> _seedCommenters(String postID, int count) {
+    final result = <String>[];
+    for (var i = count - 1; i >= 0 && result.length < 3; i--) {
+      final name = _commentAuthor(postID, i);
+      if (!result.contains(name)) result.add(name);
+    }
+    return result;
+  }
+
+  static String _threadID(String channelID, String postID) => 'thread-$channelID-$postID';
+
+  @override
+  Future<String> openComments(String channelID, String postID) async {
+    final threadID = _threadID(channelID, postID);
+    if (_chats.any((c) => c.id == threadID)) return threadID;
+    final channel = _chats.where((c) => c.id == channelID).firstOrNull;
+    final post = _history(channelID).where((m) => m.id == postID).firstOrNull;
+    if (channel == null || post == null) return '';
+
+    // Первым — сам пост («Переслано из канала»), затем «Начало обсуждения» и
+    // комментарии.
+    final count = min(post.commentsCount, 30);
+    final now = DateTime.now();
+    final span = now.difference(post.date);
+    final messages = <models.Message>[
+      models.Message(
+        id: 'post-$postID',
+        chatID: threadID,
+        kind: post.kind,
+        text: post.text,
+        entities: post.entities,
+        media: post.media,
+        fileName: post.fileName,
+        duration: post.duration,
+        status: models.MessageStatus.read,
+        date: post.date,
+        forward: models.MessageForward(name: channel.title),
+        linkPreview: post.linkPreview,
+      ),
+      models.Message(
+        id: _id(),
+        chatID: threadID,
+        text: 'Начало обсуждения',
+        service: true,
+        status: models.MessageStatus.read,
+        date: post.date.add(const Duration(seconds: 1)),
+      ),
+      for (var i = 0; i < count; i++)
+        models.Message(
+          id: _id(),
+          chatID: threadID,
+          text: _commentPhrases[(postID.hashCode.abs() + i) % _commentPhrases.length],
+          senderName: _commentAuthor(postID, i),
+          status: models.MessageStatus.read,
+          date: post.date.add(span * ((i + 1) / (count + 1))),
+        ),
+    ];
+    _chats = [
+      ..._chats,
+      models.Chat(
+        id: threadID,
+        type: models.ChatType.group,
+        title: channel.title,
+        threadOf: channelID,
+        threadPostID: postID,
+        membersCount: max(channel.membersCount, 2),
+        reactionsMode: channel.reactionsMode,
+        reactions: channel.reactions,
+        createdAt: now,
+      ),
+    ];
+    _chatsController.add(_chats);
+    _setMessages(threadID, messages);
+    return threadID;
+  }
+
+  /// Ветка изменилась — у поста в канале обновляются счётчик и комментаторы.
+  void _syncComments(models.Chat thread) {
+    final comments = _history(thread.id).where((m) => !m.service && m.id != 'post-${thread.threadPostID}').toList();
+    final commenters = <String>[];
+    for (final m in comments.reversed) {
+      final name = m.outgoing ? 'Вы' : m.senderName;
+      if (!commenters.contains(name)) commenters.add(name);
+      if (commenters.length == 3) break;
+    }
+    if (!_messages.containsKey(thread.threadOf)) return;
+    _updateMessage(thread.threadOf, thread.threadPostID, (m) => m.copyWith(commentsCount: comments.length, commenters: commenters));
   }
 
   List<models.ChatFolder> _seedFolders() => const [

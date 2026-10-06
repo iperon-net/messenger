@@ -283,7 +283,7 @@ class ChatCubit extends Cubit<ChatState> {
   Future<List<models.Chat>> forwardTargets() async {
     final source = _source;
     if (source == null) return const [];
-    final chats = (await source.watchChats().first).where((c) => c.type != models.ChatType.channel).toList();
+    final chats = (await source.watchChats().first).where((c) => c.type != models.ChatType.channel && !c.isThread).toList();
     int rank(models.Chat c) => c.isSelf ? 0 : (c.archived ? 2 : 1);
     // Внутри группы — порядок списка чатов (sort в Dart неустойчивый).
     final indexed = chats.indexed.toList()
@@ -347,6 +347,9 @@ class ChatCubit extends Cubit<ChatState> {
     await _source?.transferOwnership(_chatID, member.id);
     await loadMembers();
   }
+
+  /// Комментарии к посту канала — id чата-ветки (пусто — не открыть).
+  Future<String> openComments(models.Message post) async => await _source?.openComments(_chatID, post.id) ?? '';
 
   /// «Написать сообщение» участнику — id личного чата с ним.
   Future<String?> privateChatWith(models.ChatMember member) async => _source?.openPrivateChat(member.id);

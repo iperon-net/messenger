@@ -113,7 +113,16 @@ class _ChatCupertinoState extends State<ChatCupertino> {
   }
 
   /// Тап по шапке — профиль чата; оттуда «Поиск» или переход к сообщению.
+  /// «N комментариев» под постом — ветка обсуждения (тот же экран чата).
+  Future<void> _openComments(models.Message post) async {
+    _focus.unfocus();
+    final threadID = await _cubit.openComments(post);
+    if (threadID.isNotEmpty && mounted) await context.push('/chats/chat/$threadID');
+  }
+
   Future<void> _openInfo(BuildContext context) async {
+    // У комментариев к посту своего профиля нет.
+    if (_cubit.state.chat?.isThread ?? false) return;
     _focus.unfocus();
     final result = await showChatInfoCupertino(context, _cubit);
     if (result == null || !mounted) return;
@@ -480,6 +489,10 @@ class _ChatCupertinoState extends State<ChatCupertino> {
                                         : ChatMessagesView(
                                             messages: state.messages,
                                             chatType: chat.type,
+                                            // Комментарии к постам — только в канале, где они включены.
+                                            onCommentsTap: chat.type == models.ChatType.channel && chat.commentsEnabled
+                                                ? _openComments
+                                                : null,
                                             style: ChatCupertino.bubbleStyle(context),
                                             padding: EdgeInsets.only(
                                               top: 8 + (state.pinnedMessages.isEmpty ? 0 : PinnedMessageBar.height),

@@ -1281,6 +1281,27 @@ class MessageMapper extends ClassMapperBase<Message> {
     _$linkPreview,
     opt: true,
   );
+  static int _$views(Message v) => v.views;
+  static const Field<Message, int> _f$views = Field(
+    'views',
+    _$views,
+    opt: true,
+    def: 0,
+  );
+  static int _$commentsCount(Message v) => v.commentsCount;
+  static const Field<Message, int> _f$commentsCount = Field(
+    'commentsCount',
+    _$commentsCount,
+    opt: true,
+    def: 0,
+  );
+  static List<String> _$commenters(Message v) => v.commenters;
+  static const Field<Message, List<String>> _f$commenters = Field(
+    'commenters',
+    _$commenters,
+    opt: true,
+    def: const [],
+  );
 
   @override
   final MappableFields<Message> fields = const {
@@ -1311,6 +1332,9 @@ class MessageMapper extends ClassMapperBase<Message> {
     #silent: _f$silent,
     #scheduledDate: _f$scheduledDate,
     #linkPreview: _f$linkPreview,
+    #views: _f$views,
+    #commentsCount: _f$commentsCount,
+    #commenters: _f$commenters,
   };
 
   static Message _instantiate(DecodingData data) {
@@ -1342,6 +1366,9 @@ class MessageMapper extends ClassMapperBase<Message> {
       silent: data.dec(_f$silent),
       scheduledDate: data.dec(_f$scheduledDate),
       linkPreview: data.dec(_f$linkPreview),
+      views: data.dec(_f$views),
+      commentsCount: data.dec(_f$commentsCount),
+      commenters: data.dec(_f$commenters),
     );
   }
 
@@ -1425,6 +1452,7 @@ abstract class MessageCopyWith<$R, $In extends Message, $Out>
   MessageForwardCopyWith<$R, MessageForward, MessageForward>? get forward;
   MessageLinkPreviewCopyWith<$R, MessageLinkPreview, MessageLinkPreview>?
   get linkPreview;
+  ListCopyWith<$R, String, ObjectCopyWith<$R, String, String>> get commenters;
   $R call({
     String? id,
     String? chatID,
@@ -1453,6 +1481,9 @@ abstract class MessageCopyWith<$R, $In extends Message, $Out>
     bool? silent,
     DateTime? scheduledDate,
     MessageLinkPreview? linkPreview,
+    int? views,
+    int? commentsCount,
+    List<String>? commenters,
   });
   MessageCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
@@ -1516,6 +1547,13 @@ class _MessageCopyWithImpl<$R, $Out>
   get linkPreview =>
       $value.linkPreview?.copyWith.$chain((v) => call(linkPreview: v));
   @override
+  ListCopyWith<$R, String, ObjectCopyWith<$R, String, String>> get commenters =>
+      ListCopyWith(
+        $value.commenters,
+        (v, t) => ObjectCopyWith(v, $identity, t),
+        (v) => call(commenters: v),
+      );
+  @override
   $R call({
     String? id,
     String? chatID,
@@ -1544,6 +1582,9 @@ class _MessageCopyWithImpl<$R, $Out>
     bool? silent,
     Object? scheduledDate = $none,
     Object? linkPreview = $none,
+    int? views,
+    int? commentsCount,
+    List<String>? commenters,
   }) => $apply(
     FieldCopyWithData({
       if (id != null) #id: id,
@@ -1573,6 +1614,9 @@ class _MessageCopyWithImpl<$R, $Out>
       if (silent != null) #silent: silent,
       if (scheduledDate != $none) #scheduledDate: scheduledDate,
       if (linkPreview != $none) #linkPreview: linkPreview,
+      if (views != null) #views: views,
+      if (commentsCount != null) #commentsCount: commentsCount,
+      if (commenters != null) #commenters: commenters,
     }),
   );
   @override
@@ -1604,6 +1648,9 @@ class _MessageCopyWithImpl<$R, $Out>
     silent: data.get(#silent, or: $value.silent),
     scheduledDate: data.get(#scheduledDate, or: $value.scheduledDate),
     linkPreview: data.get(#linkPreview, or: $value.linkPreview),
+    views: data.get(#views, or: $value.views),
+    commentsCount: data.get(#commentsCount, or: $value.commentsCount),
+    commenters: data.get(#commenters, or: $value.commenters),
   );
 
   @override

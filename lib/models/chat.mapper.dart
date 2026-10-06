@@ -1149,6 +1149,27 @@ class ChatMapper extends ClassMapperBase<Chat> {
     opt: true,
     def: 0,
   );
+  static bool _$commentsEnabled(Chat v) => v.commentsEnabled;
+  static const Field<Chat, bool> _f$commentsEnabled = Field(
+    'commentsEnabled',
+    _$commentsEnabled,
+    opt: true,
+    def: false,
+  );
+  static String _$threadOf(Chat v) => v.threadOf;
+  static const Field<Chat, String> _f$threadOf = Field(
+    'threadOf',
+    _$threadOf,
+    opt: true,
+    def: '',
+  );
+  static String _$threadPostID(Chat v) => v.threadPostID;
+  static const Field<Chat, String> _f$threadPostID = Field(
+    'threadPostID',
+    _$threadPostID,
+    opt: true,
+    def: '',
+  );
   static int _$membersCount(Chat v) => v.membersCount;
   static const Field<Chat, int> _f$membersCount = Field(
     'membersCount',
@@ -1209,6 +1230,9 @@ class ChatMapper extends ClassMapperBase<Chat> {
     #joinMode: _f$joinMode,
     #defaultRole: _f$defaultRole,
     #pendingRequests: _f$pendingRequests,
+    #commentsEnabled: _f$commentsEnabled,
+    #threadOf: _f$threadOf,
+    #threadPostID: _f$threadPostID,
     #membersCount: _f$membersCount,
     #myRole: _f$myRole,
     #online: _f$online,
@@ -1242,6 +1266,9 @@ class ChatMapper extends ClassMapperBase<Chat> {
       joinMode: data.dec(_f$joinMode),
       defaultRole: data.dec(_f$defaultRole),
       pendingRequests: data.dec(_f$pendingRequests),
+      commentsEnabled: data.dec(_f$commentsEnabled),
+      threadOf: data.dec(_f$threadOf),
+      threadPostID: data.dec(_f$threadPostID),
       membersCount: data.dec(_f$membersCount),
       myRole: data.dec(_f$myRole),
       online: data.dec(_f$online),
@@ -1324,6 +1351,9 @@ abstract class ChatCopyWith<$R, $In extends Chat, $Out>
     ChatJoinMode? joinMode,
     ChatRole? defaultRole,
     int? pendingRequests,
+    bool? commentsEnabled,
+    String? threadOf,
+    String? threadPostID,
     int? membersCount,
     ChatRole? myRole,
     bool? online,
@@ -1376,6 +1406,9 @@ class _ChatCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Chat, $Out>
     ChatJoinMode? joinMode,
     ChatRole? defaultRole,
     int? pendingRequests,
+    bool? commentsEnabled,
+    String? threadOf,
+    String? threadPostID,
     int? membersCount,
     ChatRole? myRole,
     bool? online,
@@ -1407,6 +1440,9 @@ class _ChatCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Chat, $Out>
       if (joinMode != null) #joinMode: joinMode,
       if (defaultRole != null) #defaultRole: defaultRole,
       if (pendingRequests != null) #pendingRequests: pendingRequests,
+      if (commentsEnabled != null) #commentsEnabled: commentsEnabled,
+      if (threadOf != null) #threadOf: threadOf,
+      if (threadPostID != null) #threadPostID: threadPostID,
       if (membersCount != null) #membersCount: membersCount,
       if (myRole != null) #myRole: myRole,
       if (online != null) #online: online,
@@ -1440,6 +1476,9 @@ class _ChatCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Chat, $Out>
     joinMode: data.get(#joinMode, or: $value.joinMode),
     defaultRole: data.get(#defaultRole, or: $value.defaultRole),
     pendingRequests: data.get(#pendingRequests, or: $value.pendingRequests),
+    commentsEnabled: data.get(#commentsEnabled, or: $value.commentsEnabled),
+    threadOf: data.get(#threadOf, or: $value.threadOf),
+    threadPostID: data.get(#threadPostID, or: $value.threadPostID),
     membersCount: data.get(#membersCount, or: $value.membersCount),
     myRole: data.get(#myRole, or: $value.myRole),
     online: data.get(#online, or: $value.online),

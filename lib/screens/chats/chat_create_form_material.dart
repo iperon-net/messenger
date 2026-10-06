@@ -303,6 +303,17 @@ class _ChatCreateFormMaterial extends State<ChatCreateFormMaterial> {
                     ]),
                     createNoteMaterial(context, t.screenNewChat.inviteLinkFooter),
                   ],
+                  if (state.isEdit && type == models.ChatType.channel) ...[
+                    const SizedBox(height: 8),
+                    card([
+                      SwitchListTile(
+                        title: Text(t.screenNewChat.commentsSwitch),
+                        value: state.commentsEnabled,
+                        onChanged: context.read<ChatCreateCubit>().setCommentsEnabled,
+                      ),
+                    ]),
+                    createNoteMaterial(context, t.screenNewChat.commentsFooter),
+                  ],
                   if (state.isEdit && type != models.ChatType.channel) ...[
                     createHeaderMaterial(context, t.screenNewChat.defaultRoleHeader),
                     card([

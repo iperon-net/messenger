@@ -119,6 +119,9 @@ class ChatMessagesView extends StatelessWidget {
   /// Обёртка пузыря контекстным меню (см. [MessageBubble.menuWrapper]).
   final Widget Function(models.Message message, Widget bubble, Widget Function(double maxWidth) preview)? menuWrapper;
 
+  /// Канал с комментариями: строка «N комментариев» под постом, тап — ветка.
+  final ValueChanged<models.Message>? onCommentsTap;
+
   const ChatMessagesView({
     super.key,
     required this.messages,
@@ -145,6 +148,7 @@ class ChatMessagesView extends StatelessWidget {
     this.onSelect,
     this.selectionColor = const Color(0xFF007AFF),
     this.menuWrapper,
+    this.onCommentsTap,
   });
 
   static bool _sameDay(DateTime a, DateTime b) {
@@ -231,6 +235,7 @@ class ChatMessagesView extends StatelessWidget {
                             onDoubleTap: onDoubleTap == null ? null : () => onDoubleTap!(m),
                             onReplyTap: onReplyTap == null ? null : () => onReplyTap!(m),
                             menuWrapper: menuWrapper == null ? null : (bubble, preview) => menuWrapper!(m, bubble, preview),
+                            onCommentsTap: onCommentsTap == null ? null : () => onCommentsTap!(m),
                           ),
                         ),
                       ),
@@ -451,6 +456,9 @@ class MessageBubble extends StatelessWidget {
   /// предельной шириной. С обёрткой [onLongPress] не используется.
   final Widget Function(Widget bubble, Widget Function(double maxWidth) preview)? menuWrapper;
 
+  /// Пост канала с комментариями: строка «N комментариев» внизу пузыря.
+  final VoidCallback? onCommentsTap;
+
   const MessageBubble({
     super.key,
     required this.message,
@@ -467,6 +475,7 @@ class MessageBubble extends StatelessWidget {
     this.onDoubleTap,
     this.onReplyTap,
     this.menuWrapper,
+    this.onCommentsTap,
   });
 
   static const _radius = Radius.circular(18);
@@ -519,9 +528,17 @@ class MessageBubble extends StatelessWidget {
     final time = DateFormat.Hm().format(m.date.toLocal());
     final metaText = '${m.edited ? '${t.screenChat.edited} ' : ''}$time';
 
+    final views = m.views > 0 ? compactCount(m.views) : '';
     final meta = Row(
       mainAxisSize: MainAxisSize.min,
       children: [
+        // Просмотры поста канала — глазок и счётчик.
+        if (views.isNotEmpty) ...[
+          FaIcon(FontAwesomeIcons.eye, size: 10, color: metaColor),
+          const SizedBox(width: 3),
+          Text(views, style: metaStyle),
+          const SizedBox(width: 6),
+        ],
         if (m.pinned) ...[FaIcon(FontAwesomeIcons.thumbtack, size: 10, color: metaColor), const SizedBox(width: 3)],
         Text(metaText, style: metaStyle),
         if (out) ...[
@@ -539,7 +556,8 @@ class MessageBubble extends StatelessWidget {
       ],
     );
     // Невидимый хвост под время: nbsp, чтобы не переносился отдельно.
-    final trailing = '  ${m.pinned ? '\u00a0\u00a0\u00a0' : ''}$metaText${out ? '     ' : ''}';
+    final trailing =
+        '  ${views.isNotEmpty ? '\u00a0\u00a0\u00a0\u00a0$views\u00a0\u00a0' : ''}${m.pinned ? '\u00a0\u00a0\u00a0' : ''}$metaText${out ? '     ' : ''}';
 
     // Пока вложения грузятся — тап по медиа не открывает просмотр.
     final mediaTap = m.isUploading ? null : onMediaTap;
@@ -678,6 +696,20 @@ class MessageBubble extends StatelessWidget {
         Align(
           alignment: Alignment.centerRight,
           child: Padding(padding: EdgeInsets.fromLTRB(0, 4, captionInset, 0), child: meta),
+        ),
+      );
+    }
+
+    if (onCommentsTap case final onTap?) {
+      content.add(
+        _CommentsBar(
+          message: m,
+          colors: colors,
+          metaColor: metaColor,
+          background: out ? style.outgoing : style.incoming,
+          textStyle: style.textStyle,
+          inset: captionInset,
+          onTap: onTap,
         ),
       );
     }
@@ -1299,6 +1331,105 @@ class ReactionPicker extends StatelessWidget {
               ),
             ),
         ],
+      ),
+    );
+  }
+}
+
+/// Компактный счётчик как в Telegram: 950, 1,2K, 15K, 1,3M (разделитель —
+/// по локали).
+String compactCount(int n) {
+  final separator = NumberFormat.decimalPattern().symbols.DECIMAL_SEP;
+  String short(double value) {
+    final text = value < 10 ? value.toStringAsFixed(1) : value.toStringAsFixed(0);
+    return text.endsWith('.0') ? text.substring(0, text.length - 2) : text.replaceAll('.', separator);
+  }
+
+  if (n < 1000) return '$n';
+  if (n < 1000000) return '${short(n / 1000)}K';
+  return '${short(n / 1000000)}M';
+}
+
+/// Низ поста канала: аватары последних комментаторов (или значок), «N
+/// комментариев» / «Прокомментировать» и стрелка; тап — ветка комментариев.
+class _CommentsBar extends StatelessWidget {
+  final models.Message message;
+  final MessageTextColors colors;
+  final Color metaColor;
+  final Color background;
+  final TextStyle textStyle;
+  final double inset;
+  final VoidCallback onTap;
+
+  const _CommentsBar({
+    required this.message,
+    required this.colors,
+    required this.metaColor,
+    required this.background,
+    required this.textStyle,
+    required this.inset,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.t;
+    final count = message.commentsCount;
+    final names = message.commenters.take(3).toList();
+    const size = 22.0;
+    const step = 14.0;
+    final Widget leading = names.isEmpty
+        ? FaIcon(FontAwesomeIcons.comment, size: 16, color: colors.link)
+        : SizedBox(
+            width: size + step * (names.length - 1),
+            height: size,
+            child: Stack(
+              children: [
+                // Первый (самый свежий) — сверху, слева.
+                for (var i = names.length - 1; i >= 0; i--)
+                  Positioned(
+                    left: step * i,
+                    child: Container(
+                      width: size,
+                      height: size,
+                      padding: const EdgeInsets.all(1.5),
+                      decoration: BoxDecoration(color: background, shape: BoxShape.circle),
+                      child: BoringAvatar(name: names[i], type: BoringAvatarType.beam, shape: const CircleBorder()),
+                    ),
+                  ),
+              ],
+            ),
+          );
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(inset, 6, inset, 0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Container(height: 0.5, color: metaColor.withValues(alpha: 0.4)),
+            Padding(
+              padding: const EdgeInsets.only(top: 7),
+              child: Row(
+                children: [
+                  leading,
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      count > 0 ? t.screenChat.comments(n: count) : t.screenChat.leaveComment,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: textStyle.copyWith(fontSize: 14.5, fontWeight: FontWeight.w500, color: colors.link),
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  FaIcon(FontAwesomeIcons.chevronRight, size: 12, color: colors.link),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

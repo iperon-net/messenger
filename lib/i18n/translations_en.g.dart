@@ -482,6 +482,12 @@ class Translations$screenNewChat$en {
 	/// en: 'Link copied'
 	String get copied => 'Link copied';
 
+	/// en: 'Comments'
+	String get commentsSwitch => 'Comments';
+
+	/// en: 'Subscribers can discuss each post in its comments.'
+	String get commentsFooter => 'Subscribers can discuss each post in its comments.';
+
 	/// en: 'Joining'
 	String get joinHeader => 'Joining';
 
@@ -835,6 +841,18 @@ class Translations$screenChat$en {
 		one: '${n} subscriber',
 		other: '${n} subscribers',
 	);
+
+	/// en: '(one) {{n} comment} (other) {{n} comments}'
+	String comments({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n,
+		one: '${n} comment',
+		other: '${n} comments',
+	);
+
+	/// en: 'Leave a Comment'
+	String get leaveComment => 'Leave a Comment';
+
+	/// en: 'Comments'
+	String get commentsTitle => 'Comments';
 
 	/// en: 'Message'
 	String get message => 'Message';
@@ -2849,6 +2867,8 @@ extension on Translations {
 			'screenNewChat.inviteLink' => 'Invite Link',
 			'screenNewChat.inviteLinkFooter' => 'Anyone with this link can join. Tap to copy.',
 			'screenNewChat.copied' => 'Link copied',
+			'screenNewChat.commentsSwitch' => 'Comments',
+			'screenNewChat.commentsFooter' => 'Subscribers can discuss each post in its comments.',
 			'screenNewChat.joinHeader' => 'Joining',
 			'screenNewChat.joinOpen' => 'Open',
 			'screenNewChat.joinLink' => 'By Invite Link',
@@ -2956,6 +2976,9 @@ extension on Translations {
 			'screenChat.lastSeenRecently' => 'last seen recently',
 			'screenChat.members' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: '${n} member', other: '${n} members', ), 
 			'screenChat.subscribers' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: '${n} subscriber', other: '${n} subscribers', ), 
+			'screenChat.comments' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: '${n} comment', other: '${n} comments', ), 
+			'screenChat.leaveComment' => 'Leave a Comment',
+			'screenChat.commentsTitle' => 'Comments',
 			'screenChat.message' => 'Message',
 			'screenChat.empty' => 'No messages yet',
 			'screenChat.notFound' => 'Chat not found',
@@ -3239,13 +3262,13 @@ extension on Translations {
 			'sessionsPrivacyAndSecurity.hideBirthYear' => 'Hide birth year',
 			'sessionsPrivacyAndSecurity.hideBirthYearNote' => 'Contacts will see only the day and month — no birth year or age.',
 			'sessionsPrivacyAndSecurity.aboutMe' => 'About me',
+			_ => null,
+		} ?? switch (path) {
 			'sessionsPrivacyAndSecurity.whoCanSeeAboutMe' => 'Who can see my About me',
 			'sessionsPrivacyAndSecurity.lastSeen' => 'Last seen',
 			'sessionsPrivacyAndSecurity.whoCanSeeLastSeen' => 'Who can see my last seen',
 			'sessionsPrivacyAndSecurity.lastSeenReciprocityNote' => 'If you choose Nobody, you won\'t see others\' last seen or online status either.',
 			'cloudPassword.title' => 'Cloud password',
-			_ => null,
-		} ?? switch (path) {
 			'cloudPassword.description' => 'An additional password asked when signing in on a new device. Add an email so you can recover access if you forget it.',
 			'cloudPassword.enterPasswordHint' => 'Enter your cloud password',
 			'cloudPassword.unlockInfo' => 'Two-step verification is enabled. Your account is protected by an additional password.',

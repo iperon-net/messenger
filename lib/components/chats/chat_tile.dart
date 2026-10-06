@@ -23,7 +23,8 @@ class ChatPreview {
 /// Общая для Cupertino и Material логика строки списка чатов — оформление в
 /// `ChatTileCupertino` / `ChatTileMaterial`.
 abstract final class ChatTileContent {
-  static String title(Translations t, models.Chat chat) => chat.isSelf ? t.screenChats.savedMessages : chat.title;
+  static String title(Translations t, models.Chat chat) =>
+      chat.isSelf ? t.screenChats.savedMessages : (chat.isThread ? t.screenChat.commentsTitle : chat.title);
 
   /// Приоритет как в Telegram: «печатает…» → черновик → последнее сообщение.
   static ChatPreview preview(Translations t, models.Chat chat) {

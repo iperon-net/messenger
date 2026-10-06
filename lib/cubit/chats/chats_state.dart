@@ -43,15 +43,16 @@ class ChatsState with ChatsStateMappable {
 
   bool get showNotificationsBanner => notificationsMissing && !notificationsBannerDismissed;
 
-  List<models.Chat> get archived => _sorted(chats.where((c) => c.archived && !c.isBlank && _matchesQuery(c)));
+  List<models.Chat> get archived => _sorted(chats.where((c) => c.archived && !c.hiddenInList && _matchesQuery(c)));
 
   /// Чаты папки: закреплённые сверху, дальше по дате последнего сообщения.
-  List<models.Chat> chatsOf(models.ChatFolder folder) => _sorted(chats.where((c) => folder.matches(c) && !c.isBlank && _matchesQuery(c)));
+  List<models.Chat> chatsOf(models.ChatFolder folder) =>
+      _sorted(chats.where((c) => folder.matches(c) && !c.hiddenInList && _matchesQuery(c)));
 
   /// Бейдж на табе папки — число чатов с непрочитанным (как в Telegram); [muted]
   /// — все такие чаты заглушены (бейдж серый).
   ({int count, bool muted}) unreadOf(models.ChatFolder folder) {
-    final unread = chats.where((c) => folder.matches(c) && c.hasUnread);
+    final unread = chats.where((c) => folder.matches(c) && !c.hiddenInList && c.hasUnread);
     return (count: unread.length, muted: unread.every((c) => c.muted));
   }
 

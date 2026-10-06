@@ -63,6 +63,7 @@ class ChatCreateCubit extends Cubit<ChatCreateState> {
         usernameStatus: chat.username.isEmpty ? ChatUsernameStatus.empty : ChatUsernameStatus.available,
         inviteLink: chat.inviteLink.isNotEmpty ? chat.inviteLink : newInviteCode(),
         defaultRole: chat.defaultRole,
+        commentsEnabled: chat.commentsEnabled,
       ),
     );
   }
@@ -84,6 +85,8 @@ class ChatCreateCubit extends Cubit<ChatCreateState> {
   }
 
   void setDefaultRole(models.ChatRole role) => emit(state.copyWith(defaultRole: role));
+
+  void setCommentsEnabled(bool enabled) => emit(state.copyWith(commentsEnabled: enabled));
 
   /// Ввод публичного имени: формат сразу, занятость — с паузой (как запрос к
   /// серверу на каждую букву не шлём).
@@ -149,6 +152,7 @@ class ChatCreateCubit extends Cubit<ChatCreateState> {
       username: state.isPublic ? state.username : '',
       inviteLink: state.inviteLink,
       defaultRole: state.defaultRole,
+      commentsEnabled: state.commentsEnabled,
     );
     if (!isClosed) emit(state.copyWith(creating: false, saved: true));
   }

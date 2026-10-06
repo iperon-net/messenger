@@ -68,7 +68,12 @@ abstract class ChatsDataSource {
     required String username,
     required String inviteLink,
     required models.ChatRole defaultRole,
+    bool commentsEnabled = false,
   });
+
+  /// Комментарии к посту [postID] канала [channelID]: id чата-ветки (создаётся
+  /// при первом открытии; первым в ней — сам пост). Пусто — комментариев нет.
+  Future<String> openComments(String channelID, String postID);
 
   /// Ссылки-приглашения чата (админ): основная первой, затем дополнительные
   /// (новые выше), отозванные — с `revoked`. Сразу при подписке, затем при

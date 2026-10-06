@@ -245,6 +245,8 @@ class _Translations$screenNewChat$ru extends Translations$screenNewChat$en {
 	@override String get inviteLink => 'Ссылка-приглашение';
 	@override String get inviteLinkFooter => 'По этой ссылке можно присоединиться. Нажмите, чтобы скопировать.';
 	@override String get copied => 'Ссылка скопирована';
+	@override String get commentsSwitch => 'Комментарии';
+	@override String get commentsFooter => 'Подписчики смогут обсуждать каждый пост в комментариях.';
 	@override String get joinHeader => 'Вступление';
 	@override String get joinOpen => 'Открытое';
 	@override String get joinLink => 'По ссылке';
@@ -389,6 +391,14 @@ class _Translations$screenChat$ru extends Translations$screenChat$en {
 		many: '${n} подписчиков',
 		other: '${n} подписчика',
 	);
+	@override String comments({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n,
+		one: '${n} комментарий',
+		few: '${n} комментария',
+		many: '${n} комментариев',
+		other: '${n} комментария',
+	);
+	@override String get leaveComment => 'Прокомментировать';
+	@override String get commentsTitle => 'Комментарии';
 	@override String get message => 'Сообщение';
 	@override String get empty => 'Сообщений пока нет';
 	@override String get notFound => 'Чат не найден';
@@ -1328,6 +1338,8 @@ extension on TranslationsRu {
 			'screenNewChat.inviteLink' => 'Ссылка-приглашение',
 			'screenNewChat.inviteLinkFooter' => 'По этой ссылке можно присоединиться. Нажмите, чтобы скопировать.',
 			'screenNewChat.copied' => 'Ссылка скопирована',
+			'screenNewChat.commentsSwitch' => 'Комментарии',
+			'screenNewChat.commentsFooter' => 'Подписчики смогут обсуждать каждый пост в комментариях.',
 			'screenNewChat.joinHeader' => 'Вступление',
 			'screenNewChat.joinOpen' => 'Открытое',
 			'screenNewChat.joinLink' => 'По ссылке',
@@ -1435,6 +1447,9 @@ extension on TranslationsRu {
 			'screenChat.lastSeenRecently' => 'был(а) недавно',
 			'screenChat.members' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: '${n} участник', few: '${n} участника', many: '${n} участников', other: '${n} участника', ), 
 			'screenChat.subscribers' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: '${n} подписчик', few: '${n} подписчика', many: '${n} подписчиков', other: '${n} подписчика', ), 
+			'screenChat.comments' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: '${n} комментарий', few: '${n} комментария', many: '${n} комментариев', other: '${n} комментария', ), 
+			'screenChat.leaveComment' => 'Прокомментировать',
+			'screenChat.commentsTitle' => 'Комментарии',
 			'screenChat.message' => 'Сообщение',
 			'screenChat.empty' => 'Сообщений пока нет',
 			'screenChat.notFound' => 'Чат не найден',
@@ -1718,13 +1733,13 @@ extension on TranslationsRu {
 			'sessionsPrivacyAndSecurity.hideBirthYear' => 'Скрывать год рождения',
 			'sessionsPrivacyAndSecurity.hideBirthYearNote' => 'Контакты увидят только день и месяц — без года рождения и возраста.',
 			'sessionsPrivacyAndSecurity.aboutMe' => 'О себе',
+			_ => null,
+		} ?? switch (path) {
 			'sessionsPrivacyAndSecurity.whoCanSeeAboutMe' => 'Кто может видеть моё «О себе»',
 			'sessionsPrivacyAndSecurity.lastSeen' => 'Время захода',
 			'sessionsPrivacyAndSecurity.whoCanSeeLastSeen' => 'Кто может видеть время моего захода',
 			'sessionsPrivacyAndSecurity.lastSeenReciprocityNote' => 'Если выбрано «Никто», вы тоже не будете видеть время захода и статус других.',
 			'cloudPassword.title' => 'Облачный пароль',
-			_ => null,
-		} ?? switch (path) {
 			'cloudPassword.description' => 'Дополнительный пароль, будет запрашивается при входе с нового устройства. Укажите email чтобы восстановить доступ, если забудете пароль.',
 			'cloudPassword.enterPasswordHint' => 'Введите облачный пароль',
 			'cloudPassword.unlockInfo' => 'Включена двухэтапная авторизация. Ваш аккаунт защищён дополнительным паролем.',

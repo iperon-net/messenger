@@ -257,6 +257,14 @@ class Chat with ChatMappable {
   /// или [ChatRole.writer] (в канале подписчик всегда читатель).
   final ChatRole defaultRole;
 
+  /// Канал: под постами — комментарии (обсуждение каждого поста).
+  final bool commentsEnabled;
+
+  /// Обсуждение поста канала — скрытый чат-ветка (в списке не виден): id
+  /// канала и поста. Пусто — обычный чат.
+  final String threadOf;
+  final String threadPostID;
+
   /// Заявок на вступление ждёт одобрения (бейдж в профиле для админа).
   final int pendingRequests;
 
@@ -299,6 +307,9 @@ class Chat with ChatMappable {
     this.joinMode = ChatJoinMode.link,
     this.defaultRole = ChatRole.reader,
     this.pendingRequests = 0,
+    this.commentsEnabled = false,
+    this.threadOf = '',
+    this.threadPostID = '',
     this.membersCount = 0,
     this.myRole = ChatRole.writer,
     this.online = false,
@@ -321,4 +332,10 @@ class Chat with ChatMappable {
   /// Личный чат, в котором ещё ничего нет (открыли из «Нового сообщения» и
   /// ничего не отправили) — в списке не показывается, как в Telegram.
   bool get isBlank => type == ChatType.private && !isSelf && lastMessage == null && draft.isEmpty;
+
+  /// Комментарии к посту канала.
+  bool get isThread => threadOf.isNotEmpty;
+
+  /// В списке чатов не показывается: пустой личный или ветка комментариев.
+  bool get hiddenInList => isBlank || isThread;
 }

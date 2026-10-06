@@ -48,7 +48,8 @@ class ChatAvatar extends StatelessWidget {
       width: size,
       height: size,
       child: BoringAvatar(
-        name: chat.id,
+        // Комментарии к посту — аватар канала.
+        name: chat.isThread ? chat.threadOf : chat.id,
         type: chat.type == models.ChatType.private ? BoringAvatarType.beam : BoringAvatarType.marble,
         shape: shape,
       ),

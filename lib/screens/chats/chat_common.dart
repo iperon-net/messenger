@@ -30,6 +30,8 @@ import 'media_caption_material.dart';
   if (chat.typing.isNotEmpty) {
     return (text: chat.type == models.ChatType.private ? t.screenChats.typing : t.screenChats.typingName(name: chat.typing), active: true);
   }
+  // Комментарии к посту — название канала под «Комментарии».
+  if (chat.isThread) return (text: chat.title, active: false);
   final seed = chat.id.hashCode.abs();
   return switch (chat.type) {
     models.ChatType.private when chat.isSelf => (text: '', active: false),

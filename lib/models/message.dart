@@ -196,6 +196,14 @@ class Message with MessageMappable {
   /// перед отправкой (× над полем ввода).
   final MessageLinkPreview? linkPreview;
 
+  /// Просмотры поста канала (глазок у времени); 0 — не показываем.
+  final int views;
+
+  /// Комментарии к посту канала и имена последних комментаторов (до 3 — их
+  /// аватары в строке «N комментариев»).
+  final int commentsCount;
+  final List<String> commenters;
+
   const Message({
     required this.id,
     required this.chatID,
@@ -224,6 +232,9 @@ class Message with MessageMappable {
     this.silent = false,
     this.scheduledDate,
     this.linkPreview,
+    this.views = 0,
+    this.commentsCount = 0,
+    this.commenters = const [],
   });
 
   /// Наши реакции (до `maxReactionsPerUser` на сообщение), в порядке чипов.
