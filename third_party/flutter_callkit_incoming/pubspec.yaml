@@ -1,16 +1,24 @@
-# ВЕНДОРЕННЫЙ ФОРК (Iperon) плагина flutter_callkit_incoming 3.1.5.
+# ВЕНДОРЕННЫЙ ФОРК (Iperon) плагина flutter_callkit_incoming 3.1.6.
 # Подключён через dependency_overrides в корневом pubspec.yaml.
-# Единственный патч: в android/.../CallkitIncomingActivity.kt из onAcceptClick
-# удалён requestDismissKeyguard() — ответ на звонок с локскрина не требует
-# отпечатка (экран звонка рисует MainActivity с showWhenLocked). При апдейте
-# плагина патч переносить вручную. example/ и images/ при копировании исключены.
+# Патчи (переносить вручную при апдейте плагина):
+#   - android/build.gradle: KGP применяется только без AGP 9 built-in Kotlin;
+#   - CallkitIncomingActivity.kt: убран dismissKeyguard() из onAcceptClick (ответ
+#     с локскрина без отпечатка) и setClassName в getIntentEnded (иначе бродкаст не
+#     доходит до динамического приёмника и экран входящего не закрывается);
+#   - CallkitConnection.kt: currentAudioRoute/audioRouteListener/setAudioRoute для
+#     выбора аудиовыхода через Telecom;
+#   - CallkitNotificationManager.kt: small icon аудиозвонка — ic_accept (3.1.6 ставит
+#     цветную иконку приложения, в статус-баре это силуэт);
+#   - res/values-ru: русские строки;
+#   - lib: FlutterCallkitIncoming.activeCallsRaw();
+#   - iOS SwiftFlutterCallkitIncomingPlugin.swift: диагностические NSLog IPERON_CALL.
+# example/, images/ и test/ при копировании исключены.
 name: flutter_callkit_incoming
 description: Flutter Callkit Incoming to show callkit screen in your Flutter app.
-version: 3.1.5
+version: 3.1.6
 homepage: https://github.com/hiennguyen92/flutter_callkit_incoming
 repository: https://github.com/hiennguyen92/flutter_callkit_incoming
 issue_tracker: https://github.com/hiennguyen92/flutter_callkit_incoming/issues
-
 false_secrets:
   - /example/**
 

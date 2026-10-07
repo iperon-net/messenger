@@ -493,6 +493,16 @@ long-press-меню (Cupertino action sheet / Material bottom sheet), двойн
     `withMentionNames`). Тап по упоминанию в сообщении — личный чат с человеком (`@username` — через
     `resolveLink`, по имени — `MessageText.mentionNameHandler`). Демо: у половины участников есть
     username.
+- [ ] **Вернуться: опросы и упоминания (2026-10-07).**
+  - На iOS в скрепке не появился таб «Опрос» (в группе). По коду он есть (`pickAndSendAttachments`,
+    `ToolbarAttachmentTabKind.poll`); проверить после полного перезапуска, при повторе — скриншот
+    листа и разбор (`toolbar_attachments_cupertino.dart`, `_segmentTab`). В комментариях таб был
+    выключен — исправлено.
+  - Падение при голосовании (`LayoutBuilder` внутри `IntrinsicWidth` пузыря → следом
+    `!semantics.parentDataDirty`) исправлено, есть тест `test/components/poll_bubble_test.dart`; на
+    устройстве не проверено. Полоски итогов сейчас без анимации — вернуть анимацию без `LayoutBuilder`
+    (например, `TweenAnimationBuilder` + `FractionallySizedBox`).
+  - Опросы и @-упоминания целиком не проверены на Android, на iOS — частично.
 - [ ] Отложено (решено 2026-10-06, не в этап 0): рисование и текст поверх видео (и фото) в
   редакторе перед отправкой — вернуться позже.
 - [ ] Не проверено на устройстве. Дальше в окне чата:

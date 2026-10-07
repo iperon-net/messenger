@@ -212,13 +212,13 @@ class CallkitNotificationManager(
         notificationBuilder?.setContentIntent(getActivityPendingIntent(notificationId, data))
         notificationBuilder?.setDeleteIntent(getTimeOutPendingIntent(notificationId, data))
         val typeCall = data.getInt(CallkitConstants.EXTRA_CALLKIT_TYPE, -1)
-        var smallIcon = context.applicationInfo.icon
+        // ВЕНДОР-ПАТЧ (Iperon): для аудиозвонка — глиф трубки ic_accept, как было до
+        // 3.1.6. Апстрим 3.1.6 ставит иконку приложения (applicationInfo.icon), а наш
+        // @mipmap/ic_launcher — цветная adaptive-иконка, в статус-баре она
+        // превращается в бесформенный силуэт.
+        var smallIcon = R.drawable.ic_accept
         if (typeCall > 0) {
             smallIcon = R.drawable.ic_video
-        } else {
-            if (smallIcon >= 0) {
-                smallIcon = R.drawable.ic_accept
-            }
         }
         notificationBuilder?.setSmallIcon(smallIcon)
         val actionColor = data.getString(CallkitConstants.EXTRA_CALLKIT_ACTION_COLOR, "#4CAF50")
@@ -352,7 +352,7 @@ class CallkitNotificationManager(
                 val textAccept = data.getString(CallkitConstants.EXTRA_CALLKIT_TEXT_ACCEPT, "")
                 val acceptAction: NotificationCompat.Action = NotificationCompat.Action.Builder(
                     R.drawable.ic_accept,
-                    if (TextUtils.isEmpty(textDecline)) context.getString(R.string.text_accept) else textAccept,
+                    if (TextUtils.isEmpty(textAccept)) context.getString(R.string.text_accept) else textAccept,
                     getAcceptPendingIntent(notificationId, data)
                 ).build()
                 notificationBuilder?.addAction(acceptAction)
@@ -431,14 +431,10 @@ class CallkitNotificationManager(
         createNotificationChanel(data);
         val missedCallSound: Uri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
         val typeCall = data.getInt(CallkitConstants.EXTRA_CALLKIT_TYPE, -1)
-        var smallIcon = context.applicationInfo.icon
-        if (typeCall > 0) {
-            smallIcon = R.drawable.ic_video_missed
-        } else {
-            if (smallIcon >= 0) {
-                smallIcon = R.drawable.ic_call_missed
-            }
-        }
+        // A missed call always uses a missed-call glyph; the old `smallIcon >= 0`
+        // guard was dead (resource ids are never negative) and only obscured that.
+        val smallIcon =
+            if (typeCall > 0) R.drawable.ic_video_missed else R.drawable.ic_call_missed
         notificationMissingBuilder =
             NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ID_MISSED)
         notificationMissingBuilder?.setChannelId(NOTIFICATION_CHANNEL_ID_MISSED)
@@ -630,13 +626,13 @@ class CallkitNotificationManager(
         notificationOngoingBuilder?.setSound(null)
 
         val typeCall = data.getInt(CallkitConstants.EXTRA_CALLKIT_TYPE, -1)
-        var smallIcon = context.applicationInfo.icon
+        // ВЕНДОР-ПАТЧ (Iperon): для аудиозвонка — глиф трубки ic_accept, как было до
+        // 3.1.6. Апстрим 3.1.6 ставит иконку приложения (applicationInfo.icon), а наш
+        // @mipmap/ic_launcher — цветная adaptive-иконка, в статус-баре она
+        // превращается в бесформенный силуэт.
+        var smallIcon = R.drawable.ic_accept
         if (typeCall > 0) {
             smallIcon = R.drawable.ic_video
-        } else {
-            if (smallIcon >= 0) {
-                smallIcon = R.drawable.ic_accept
-            }
         }
         notificationOngoingBuilder?.setSmallIcon(smallIcon)
 
@@ -897,7 +893,11 @@ class CallkitNotificationManager(
     private fun incomingChannelEnabled(): Boolean = getNotificationManager().run {
         val channel = getNotificationChannel(NOTIFICATION_CHANNEL_ID_INCOMING)
 
-        return areNotificationsEnabled() && (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && channel != null && channel.importance > NotificationManagerCompat.IMPORTANCE_NONE) || Build.VERSION.SDK_INT < Build.VERSION_CODES.O
+        return areNotificationsEnabled() &&
+            ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
+                channel != null &&
+                channel.importance > NotificationManagerCompat.IMPORTANCE_NONE) ||
+                Build.VERSION.SDK_INT < Build.VERSION_CODES.O)
     }
 
     fun createNotificationChanel(data: Bundle) {
