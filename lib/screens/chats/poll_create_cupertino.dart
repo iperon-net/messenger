@@ -113,7 +113,10 @@ class _PollCreateCupertino extends State<PollCreateCupertino> {
               children: [
                 for (final (i, controller) in _draft.options.indexed)
                   Padding(
-                    padding: const EdgeInsets.only(left: 12, right: 4),
+                    // Викторина: кружок стоит в той же колонке, что «+» у
+                    // «Добавить вариант» (отступ и ширина leading у
+                    // CupertinoListTile — 20 и 28, до текста — 16).
+                    padding: EdgeInsets.only(left: _draft.quiz ? 20 : 12, right: 4),
                     child: Row(
                       children: [
                         // Викторина: кружок — отметить верный ответ.
@@ -122,11 +125,15 @@ class _PollCreateCupertino extends State<PollCreateCupertino> {
                             behavior: HitTestBehavior.opaque,
                             onTap: () => setState(() => _draft.correct = i),
                             child: Padding(
-                              padding: const EdgeInsets.only(right: 8),
-                              child: Icon(
-                                _draft.correct == i ? CupertinoIcons.checkmark_circle_fill : CupertinoIcons.circle,
-                                color: _draft.correct == i ? const Color(0xFF34C759) : secondary,
-                                size: 24,
+                              padding: const EdgeInsets.only(right: 12),
+                              child: SizedBox(
+                                width: 28,
+                                height: 44,
+                                child: Icon(
+                                  _draft.correct == i ? CupertinoIcons.checkmark_circle_fill : CupertinoIcons.circle,
+                                  color: _draft.correct == i ? const Color(0xFF34C759) : secondary,
+                                  size: 24,
+                                ),
                               ),
                             ),
                           ),

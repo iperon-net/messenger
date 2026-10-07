@@ -98,15 +98,24 @@ class _PollCreateMaterial extends State<PollCreateMaterial> {
             createHeaderMaterial(context, t.options),
             card([
               for (final (i, controller) in _draft.options.indexed)
+                // Викторина: радиокнопка в той же колонке, что «+» у «Добавить
+                // вариант» (центр иконки ListTile — 16 + 12), текст — с 56, как
+                // у заголовка ListTile. Подпись поля не нужна (секция и так
+                // «Варианты ответа») — только подсказка, иначе кнопка встаёт
+                // между подписью и вводом.
                 Row(
                   children: [
                     if (_draft.quiz)
-                      Radio<int>(
-                        value: i,
-                        // ignore: deprecated_member_use
-                        groupValue: _draft.correct,
-                        // ignore: deprecated_member_use
-                        onChanged: (value) => setState(() => _draft.correct = value),
+                      Padding(
+                        padding: const EdgeInsets.only(left: 8),
+                        child: Radio<int>(
+                          value: i,
+                          // ignore: deprecated_member_use
+                          groupValue: _draft.correct,
+                          // ignore: deprecated_member_use
+                          onChanged: (value) => setState(() => _draft.correct = value),
+                          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        ),
                       ),
                     Expanded(
                       child: TextField(
@@ -114,7 +123,14 @@ class _PollCreateMaterial extends State<PollCreateMaterial> {
                         controller: controller,
                         maxLength: PollDraft.optionMaxLength,
                         textCapitalization: TextCapitalization.sentences,
-                        decoration: _decoration('${t.optionHint} ${i + 1}', ''),
+                        decoration: InputDecoration(
+                          hintText: '${t.optionHint} ${i + 1}',
+                          border: InputBorder.none,
+                          enabledBorder: InputBorder.none,
+                          focusedBorder: InputBorder.none,
+                          counterText: '',
+                          contentPadding: EdgeInsets.fromLTRB(_draft.quiz ? 8 : 16, 16, 16, 16),
+                        ),
                       ),
                     ),
                     if (_draft.options.length > 2)

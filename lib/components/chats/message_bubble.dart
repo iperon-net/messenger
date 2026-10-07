@@ -1505,6 +1505,17 @@ class _PollViewState extends State<_PollView> {
   static const _green = Color(0xFF34C759);
   static const _red = Color(0xFFFF3B30);
 
+  /// Итоги появились у нас на глазах (проголосовали) — полоски и проценты
+  /// растут с нуля. Пузырь, у которого итоги уже были (прокрутка к нему,
+  /// открытие чата), рисуется сразу без анимации.
+  bool _growFromZero = false;
+
+  @override
+  void didUpdateWidget(covariant _PollView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!oldWidget.poll.showResults && widget.poll.showResults) _growFromZero = true;
+  }
+
   void _tap(int index) {
     final vote = widget.onVote;
     if (vote == null) return;
@@ -1555,47 +1566,53 @@ class _PollViewState extends State<_PollView> {
     Widget resultRow(models.PollOption option) {
       final share = total == 0 ? 0.0 : option.votes / total;
       final barColor = poll.quiz && option.correct ? _green : (poll.quiz && option.chosen ? _red : colors.link);
-      return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 5),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SizedBox(
-                  width: 42,
-                  child: Text('${(share * 100).round()}%', style: widget.textStyle.copyWith(fontSize: 14, fontWeight: FontWeight.w600)),
-                ),
-                Expanded(child: Text(option.text, style: widget.textStyle.copyWith(fontSize: 15))),
-                if (option.chosen || (poll.quiz && option.correct))
-                  Padding(
-                    padding: const EdgeInsets.only(left: 6, top: 2),
-                    child: FaIcon(
-                      poll.quiz && option.chosen && !option.correct ? FontAwesomeIcons.xmark : FontAwesomeIcons.check,
-                      size: 13,
-                      color: barColor,
-                    ),
+      // Новые голоса потом плавно сдвигают полоску с текущего значения.
+      return TweenAnimationBuilder<double>(
+        tween: Tween(begin: _growFromZero ? 0 : share, end: share),
+        duration: const Duration(milliseconds: 450),
+        curve: Curves.easeOutCubic,
+        builder: (context, value, _) => Padding(
+          padding: const EdgeInsets.symmetric(vertical: 5),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(
+                    width: 42,
+                    child: Text('${(value * 100).round()}%', style: widget.textStyle.copyWith(fontSize: 14, fontWeight: FontWeight.w600)),
                   ),
-              ],
-            ),
-            const SizedBox(height: 4),
-            Padding(
-              padding: const EdgeInsets.only(left: 42),
-              // Не LayoutBuilder: пузырь меряется IntrinsicWidth, а LayoutBuilder
-              // интринсики не поддерживает.
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: FractionallySizedBox(
-                  widthFactor: share.clamp(0.02, 1.0),
-                  child: Container(
-                    height: 4,
-                    decoration: BoxDecoration(color: barColor, borderRadius: BorderRadius.circular(2)),
+                  Expanded(child: Text(option.text, style: widget.textStyle.copyWith(fontSize: 15))),
+                  if (option.chosen || (poll.quiz && option.correct))
+                    Padding(
+                      padding: const EdgeInsets.only(left: 6, top: 2),
+                      child: FaIcon(
+                        poll.quiz && option.chosen && !option.correct ? FontAwesomeIcons.xmark : FontAwesomeIcons.check,
+                        size: 13,
+                        color: barColor,
+                      ),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 4),
+              Padding(
+                padding: const EdgeInsets.only(left: 42),
+                // Не LayoutBuilder: пузырь меряется IntrinsicWidth, а LayoutBuilder
+                // интринсики не поддерживает.
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: FractionallySizedBox(
+                    widthFactor: value.clamp(0.02, 1.0),
+                    child: Container(
+                      height: 4,
+                      decoration: BoxDecoration(color: barColor, borderRadius: BorderRadius.circular(2)),
+                    ),
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       );
     }
