@@ -1,5 +1,6 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:hugeicons/hugeicons.dart';
+import '../../themes.dart';
 
 /// Cupertino-реализация мягкого баннера-объяснения ([PermissionBanner]).
 /// Выделенный блок с закруглением и цветной подложкой — лёгкий тон акцентного
@@ -49,7 +50,10 @@ class PermissionBannerCupertino extends StatelessWidget {
                   padding: EdgeInsets.zero,
                   minimumSize: Size.zero,
                   onPressed: onAction,
-                  child: Text(actionLabel, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+                  child: Text(
+                    actionLabel,
+                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: ThemesCupertino.actionColor(context)),
+                  ),
                 ),
               ],
             ),

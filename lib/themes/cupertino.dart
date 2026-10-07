@@ -141,21 +141,62 @@ class ThemesCupertino {
   /// акцентными.
   static Color actionColor(BuildContext context) => navActionColor(context);
 
-  /// Тёмная seed-схема акцента (как у Material-темы Android) — по светлому
-  /// значению `primaryColor` (оно и есть seed темы). Кэш — по seed.
+  // --- Акцент: светлая тема — цвет iOS как был, тёмная — из Material ---
+  //
+  // В тёмной теме прежний акцент (тёмно-синий `#38608F` и т. п.) почти не
+  // виден на фоне `#1B263B`. Android берёт тона из `ColorScheme.fromSeed`, где
+  // тёмный `primary` — светлый пастельный тон того же цвета; iOS теперь
+  // использует его же. Светлая тема не меняется. Действия (навбар, строки-
+  // действия) в тёмной теме по-прежнему белые — см. [navActionColor].
+  //
+  // Всё, что заливается акцентом, рисует содержимое цветом [onAccent]: белым в
+  // светлой теме и тёмным `onPrimary` в тёмной (белое на пастели не читается).
+
+  /// Тёмная seed-схема (как у Material-темы Android). Кэш — по seed.
   static final _darkSchemes = <int, ColorScheme>{};
+
+  static ColorScheme darkScheme(Color seed) =>
+      _darkSchemes.putIfAbsent(seed.toARGB32(), () => ColorScheme.fromSeed(seedColor: seed, brightness: Brightness.dark));
+
+  /// `primaryColor` темы из цвета оформления [base] (его светлый вариант — seed,
+  /// как у [ThemesMaterial.seed]).
+  static CupertinoDynamicColor accent(CupertinoDynamicColor base) {
+    final dark = darkScheme(base.color).primary;
+    return CupertinoDynamicColor.withBrightnessAndContrast(
+      color: base.color,
+      darkColor: dark,
+      highContrastColor: base.highContrastColor,
+      darkHighContrastColor: dark,
+    );
+  }
+
+  /// `primaryContrastingColor` темы — содержимое поверх заливки акцентом
+  /// (`CupertinoButton.filled` и наши бейджи/кружки).
+  static CupertinoDynamicColor accentContrasting(CupertinoDynamicColor base) =>
+      CupertinoDynamicColor.withBrightness(color: CupertinoColors.white, darkColor: darkScheme(base.color).onPrimary);
+
+  /// Цвет текста/значков поверх заливки акцентом (бейджи, кружки выбора,
+  /// значки на акцентном фоне).
+  static Color onAccent(BuildContext context) => CupertinoTheme.of(context).primaryContrastingColor;
 
   static ColorScheme? _chatScheme(BuildContext context) {
     if (CupertinoTheme.brightnessOf(context) != Brightness.dark) return null;
     final primary = CupertinoTheme.of(context).primaryColor;
-    final seed = primary is CupertinoDynamicColor ? primary.color : primary;
-    return _darkSchemes.putIfAbsent(seed.toARGB32(), () => ColorScheme.fromSeed(seedColor: seed, brightness: Brightness.dark));
+    return darkScheme(primary is CupertinoDynamicColor ? primary.color : primary);
   }
 
-  /// Ссылки во входящих пузырях: в тёмной теме — мягкий светлый тон (как
-  /// `primary` на Android), в светлой — `primaryColor`.
-  static Color chatAccent(BuildContext context) =>
-      _chatScheme(context)?.primary ?? CupertinoDynamicColor.resolve(CupertinoTheme.of(context).primaryColor, context);
+  /// Ссылки во входящих пузырях: акцент темы (в тёмной — светлый тон).
+  static Color chatAccent(BuildContext context) => CupertinoTheme.of(context).primaryColor;
+
+  /// Заливка исходящих пузырей: светлая тема — акцент, тёмная —
+  /// `primaryContainer` (как на Android).
+  static Color chatOutgoing(BuildContext context) => _chatScheme(context)?.primaryContainer ?? CupertinoTheme.of(context).primaryColor;
+
+  /// Текст в исходящих пузырях: белый на акценте / `onPrimaryContainer`.
+  static Color chatOnOutgoing(BuildContext context) => _chatScheme(context)?.onPrimaryContainer ?? CupertinoColors.white;
+
+  /// Ссылки в исходящих пузырях: белые на акценте / светлый акцент в тёмной.
+  static Color chatOutgoingLink(BuildContext context) => _chatScheme(context)?.primary ?? CupertinoColors.white;
 
   /// Мета в пузырях (время, просмотры) — в тёмной теме как на Android.
   static Color chatMeta(BuildContext context) =>

@@ -160,7 +160,7 @@ class _ChatFolderEditMaterial extends State<ChatFolderEditMaterial> {
         for (final id in ids)
           if (state.chat(id) case final chat?)
             ListTile(
-              leading: ChatAvatar(chat: chat, accentColor: scheme.primary, size: 40),
+              leading: ChatAvatar(chat: chat, accentColor: scheme.primary, accentForeground: scheme.onPrimary, size: 40),
               title: Text(ChatTileContent.title(t, chat)),
               trailing: remove(
                 () => setState(

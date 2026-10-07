@@ -132,7 +132,7 @@ class _ChatFolderChatsMaterial extends State<ChatFolderChatsMaterial> {
               card([
                 for (final chat in chats)
                   ListTile(
-                    leading: ChatAvatar(chat: chat, accentColor: scheme.primary, size: 40),
+                    leading: ChatAvatar(chat: chat, accentColor: scheme.primary, accentForeground: scheme.onPrimary, size: 40),
                     title: Text(ChatTileContent.title(t, chat)),
                     trailing: Checkbox(value: _chatIDs.contains(chat.id), onChanged: (_) => _toggleChat(chat.id)),
                     onTap: () => _toggleChat(chat.id),

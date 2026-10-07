@@ -55,7 +55,8 @@ class _MediaCaptionSheetState extends State<_MediaCaptionSheet> {
       behavior: HitTestBehavior.opaque,
       onTap: () async {
         FocusScope.of(context).unfocus();
-        if (await editVideoDraft(context, item, accent: accent) && mounted) setState(() {});
+        final onAccent = Theme.of(context).colorScheme.onPrimary;
+        if (await editVideoDraft(context, item, accent: accent, onAccent: onAccent) && mounted) setState(() {});
       },
       child: thumb,
     );

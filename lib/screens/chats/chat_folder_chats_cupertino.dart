@@ -159,7 +159,7 @@ class _ChatFolderChatsCupertino extends State<ChatFolderChatsCupertino> {
                     CupertinoListTile(
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                       leadingSize: 40,
-                      leading: ChatAvatar(chat: chat, accentColor: primary, size: 40),
+                      leading: ChatAvatar(chat: chat, accentColor: primary, accentForeground: ThemesCupertino.onAccent(context), size: 40),
                       title: Text(ChatTileContent.title(t, chat)),
                       trailing: check(_chatIDs.contains(chat.id)),
                       onTap: () => _toggleChat(chat.id),

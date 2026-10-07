@@ -194,7 +194,17 @@ class ChatInfoStyle {
   /// Строки-действия («Добавить участников»); по умолчанию — [accent].
   final Color? action;
 
-  const ChatInfoStyle({required this.text, required this.secondary, required this.accent, required this.separator, this.action});
+  /// Значки на плитках цвета [accent] (файлы, ссылки, голосовые).
+  final Color onAccent;
+
+  const ChatInfoStyle({
+    required this.text,
+    required this.secondary,
+    required this.accent,
+    required this.separator,
+    this.action,
+    this.onAccent = const Color(0xFFFFFFFF),
+  });
 }
 
 /// Содержимое вкладки профиля. [onOpenMessage] — вернуться в чат к
@@ -454,7 +464,7 @@ class _FileRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final size = message.fileSize > 0 ? '${formatBytes(context, message.fileSize)} · ' : '';
     return _IconRow(
-      icon: const FaIcon(FontAwesomeIcons.solidFile, size: 20, color: Color(0xFFFFFFFF)),
+      icon: FaIcon(FontAwesomeIcons.solidFile, size: 20, color: style.onAccent),
       title: message.fileName.isNotEmpty ? message.fileName : message.text,
       subtitle: '$size${_date(message.date)}',
       style: style,
@@ -478,7 +488,7 @@ class _LinkRow extends StatelessWidget {
     return _IconRow(
       icon: Text(
         host.replaceFirst('www.', '').characters.firstOrNull?.toUpperCase() ?? '#',
-        style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600, color: Color(0xFFFFFFFF)),
+        style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600, color: style.onAccent),
       ),
       title: title,
       subtitle: url,
@@ -505,7 +515,7 @@ class _VoiceRow extends StatelessWidget {
     final seconds = message.duration;
     final author = message.outgoing ? t.screenChatInfo.you : (message.senderName.isNotEmpty ? message.senderName : chat.title);
     return _IconRow(
-      icon: const FaIcon(FontAwesomeIcons.microphone, size: 18, color: Color(0xFFFFFFFF)),
+      icon: FaIcon(FontAwesomeIcons.microphone, size: 18, color: style.onAccent),
       title: author,
       subtitle: '${seconds ~/ 60}:${(seconds % 60).toString().padLeft(2, '0')} · ${_date(message.date)}',
       style: style,

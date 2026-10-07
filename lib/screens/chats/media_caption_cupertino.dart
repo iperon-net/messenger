@@ -53,7 +53,8 @@ class _MediaCaptionSheetState extends State<_MediaCaptionSheet> {
       behavior: HitTestBehavior.opaque,
       onTap: () async {
         FocusScope.of(context).unfocus();
-        if (await editVideoDraft(context, item, accent: accent) && mounted) setState(() {});
+        final onAccent = ThemesCupertino.onAccent(context);
+        if (await editVideoDraft(context, item, accent: accent, onAccent: onAccent) && mounted) setState(() {});
       },
       child: thumb,
     );
@@ -185,7 +186,7 @@ class _MediaCaptionSheetState extends State<_MediaCaptionSheet> {
         ),
         child: Text(
           'HD',
-          style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: _hd ? CupertinoColors.white : primary),
+          style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: _hd ? ThemesCupertino.onAccent(context) : primary),
         ),
       ),
     );

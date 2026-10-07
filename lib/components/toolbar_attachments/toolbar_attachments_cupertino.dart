@@ -661,7 +661,7 @@ class _ToolbarAttachmentsCupertinoState extends State<ToolbarAttachmentsCupertin
             height: 36,
             alignment: Alignment.center,
             decoration: BoxDecoration(color: primary, shape: BoxShape.circle),
-            child: FaIcon(icon, size: 16, color: CupertinoColors.white),
+            child: FaIcon(icon, size: 16, color: ThemesCupertino.onAccent(context)),
           ),
           leadingSize: 36,
           title: Text(title),
@@ -821,7 +821,7 @@ class _ToolbarAttachmentsCupertinoState extends State<ToolbarAttachmentsCupertin
                 child: order != null
                     ? Text(
                         '$order',
-                        style: const TextStyle(fontSize: 12, color: CupertinoColors.white, fontWeight: FontWeight.w700),
+                        style: TextStyle(fontSize: 12, color: ThemesCupertino.onAccent(context), fontWeight: FontWeight.w700),
                       )
                     : null,
               ),
@@ -949,7 +949,11 @@ class _ToolbarAttachmentsCupertinoState extends State<ToolbarAttachmentsCupertin
             color: isSelected ? CupertinoTheme.of(context).primaryColor : CupertinoColors.tertiarySystemFill.resolveFrom(context),
             shape: BoxShape.circle,
           ),
-          child: FaIcon(_icon(kind), size: 17, color: isSelected ? CupertinoColors.white : CupertinoColors.label.resolveFrom(context)),
+          child: FaIcon(
+            _icon(kind),
+            size: 17,
+            color: isSelected ? ThemesCupertino.onAccent(context) : CupertinoColors.label.resolveFrom(context),
+          ),
         ),
       ),
     );

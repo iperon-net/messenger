@@ -178,7 +178,7 @@ class _ChatFolderEditCupertino extends State<ChatFolderEditCupertino> {
         for (final id in ids)
           if (state.chat(id) case final chat?)
             tile(
-              leading: ChatAvatar(chat: chat, accentColor: primary, size: 40),
+              leading: ChatAvatar(chat: chat, accentColor: primary, accentForeground: ThemesCupertino.onAccent(context), size: 40),
               title: Text(ChatTileContent.title(t, chat)),
               trailing: remove(
                 () => setState(

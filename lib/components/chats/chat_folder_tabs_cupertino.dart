@@ -1,6 +1,7 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
 
 import 'chat_folder_tabs.dart';
+import '../../themes.dart';
 
 /// Табы-папки в стиле `CupertinoSlidingSegmentedControl` (как фильтр на
 /// «Звонках»): серая дорожка, белый бегунок с тенью. С [contextActions] по
@@ -54,7 +55,7 @@ class ChatFolderTabsCupertino extends StatelessWidget {
         selectedTextStyle: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: label),
         badgeColor: CupertinoTheme.of(context).primaryColor,
         badgeMutedColor: CupertinoColors.systemGrey.resolveFrom(context),
-        badgeTextColor: CupertinoColors.white,
+        badgeTextColor: ThemesCupertino.onAccent(context),
       ),
     );
   }

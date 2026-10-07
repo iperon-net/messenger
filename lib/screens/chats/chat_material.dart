@@ -51,6 +51,7 @@ class ChatMaterial extends StatefulWidget {
       ),
       incomingMeta: scheme.onSurfaceVariant,
       outgoingMeta: scheme.onPrimaryContainer.withValues(alpha: 0.7),
+      incomingOnLink: scheme.onPrimary,
       pill: dark ? const Color(0x66000000) : const Color(0x22000000),
       pillText: dark ? const Color(0xFFFFFFFF) : const Color(0xFF3C3C43),
       textStyle: (Theme.of(context).textTheme.bodyLarge ?? const TextStyle()).copyWith(fontSize: 16, height: 1.25),
@@ -502,6 +503,7 @@ class _ChatMaterialState extends State<ChatMaterial> {
                                       selectedIDs: state.selectedIDs,
                                       onSelect: _cubit.toggleSelected,
                                       selectionColor: Theme.of(context).colorScheme.primary,
+                                      selectionCheckColor: Theme.of(context).colorScheme.onPrimary,
                                       highlight: state.searching ? state.searchQuery : '',
                                       focusedID: state.searchCurrentID,
                                       onMediaTap: (message, index) => showChatMediaViewer(
@@ -521,6 +523,7 @@ class _ChatMaterialState extends State<ChatMaterial> {
                                   background: barColor,
                                   iconColor: Theme.of(context).colorScheme.onSurfaceVariant,
                                   badgeColor: Theme.of(context).colorScheme.primary,
+                                  badgeTextColor: Theme.of(context).colorScheme.onPrimary,
                                 ),
                               ),
                             ],
@@ -668,7 +671,7 @@ class _Header extends StatelessWidget {
     final subtitle = chatSubtitle(t, chat);
     return Row(
       children: [
-        ChatAvatar(chat: chat, size: 40, accentColor: scheme.primary),
+        ChatAvatar(chat: chat, size: 40, accentColor: scheme.primary, accentForeground: scheme.onPrimary),
         const SizedBox(width: 12),
         Expanded(
           child: Column(

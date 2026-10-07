@@ -222,7 +222,7 @@ class _ChatInfoMaterialState extends State<ChatInfoMaterial> {
                   padding: EdgeInsets.only(bottom: 24 + MediaQuery.paddingOf(context).bottom),
                   children: [
                     Center(
-                      child: ChatAvatar(chat: chat, size: 96, accentColor: scheme.primary),
+                      child: ChatAvatar(chat: chat, size: 96, accentColor: scheme.primary, accentForeground: scheme.onPrimary),
                     ),
                     const SizedBox(height: 12),
                     Padding(
@@ -386,6 +386,7 @@ class _ChatInfoMaterialState extends State<ChatInfoMaterial> {
                               text: scheme.onSurface,
                               secondary: scheme.onSurfaceVariant,
                               accent: scheme.primary,
+                              onAccent: scheme.onPrimary,
                               separator: scheme.outlineVariant,
                             ),
                             onOpenMessage: (id) => Navigator.of(context).pop(ChatInfoResult.goTo(id)),
