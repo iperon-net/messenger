@@ -282,10 +282,10 @@ class _CallViewState extends State<CallView> with WidgetsBindingObserver {
     switch (lifecycle) {
       case AppLifecycleState.paused:
       case AppLifecycleState.hidden:
-        // Уход в фон: на iOS камера в фоне всё равно не снимает — глушим её, чтобы
-        // собеседник увидел аватар, а не застывший последний кадр (на Android
-        // захват в фоне продолжается, метод там no-op).
-        unawaited(cubit.pauseVideoForBackground());
+        // Уход в фон: на iOS до 18 (и без мини-окна PiP) камера в фоне не снимает
+        // — глушим её, чтобы собеседник увидел аватар, а не застывший последний
+        // кадр (на Android захват в фоне продолжается, метод там no-op).
+        unawaited(_pauseVideoForBackground(cubit));
       case AppLifecycleState.resumed:
         // Возврат из фона: восстанавливаем приглушённую камеру. Кадры сами пойдут в
         // уже существующий рендерер — пересоздавать его НЕЛЬЗЯ (гонка с renderFrame:
@@ -297,6 +297,15 @@ class _CallViewState extends State<CallView> with WidgetsBindingObserver {
         // — камеру на нём НЕ трогаем, иначе моргала бы зря.
         break;
     }
+  }
+
+  /// Уход в фон на видеозвонке. iOS 18+ с мини-окном PiP — камеру НЕ глушим:
+  /// захват в многозадачности разрешён, собеседник продолжает нас видеть (если
+  /// система всё же прервёт захват позже, сервис звонков заглушит камеру сам — см.
+  /// CallPipIos.onCameraInterrupted). Иначе — глушим, как раньше.
+  Future<void> _pauseVideoForBackground(CallCubit cubit) async {
+    if (await CallPipIos.keepCameraInBackground()) return;
+    await cubit.pauseVideoForBackground();
   }
 
   /// Включает/выключает удержание экрана. Идемпотентно — дёргает нативный вызов

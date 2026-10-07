@@ -12,6 +12,8 @@
 @protocol CallPipWebRTCPlugin <NSObject>
 + (id)sharedSingleton;
 - (RTCMediaStreamTrack *)remoteTrackForId:(NSString *)trackId;
+// Текущий захват камеры (пересоздаётся на каждое включение камеры).
+- (RTCCameraVideoCapturer *)videoCapturer;
 @end
 
 #pragma mark - Рендерер: RTCVideoFrame → AVSampleBufferDisplayLayer
@@ -343,6 +345,7 @@ API_AVAILABLE(ios(15.0))
   BOOL _videoOff;
   NSString *_peerName;
   UIImage *_peerImage;
+  BOOL _observing;
 }
 
 + (instancetype)shared {
@@ -375,6 +378,8 @@ API_AVAILABLE(ios(15.0))
   } else if ([call.method isEqualToString:@"setTrack"]) {
     id trackId = args[@"trackId"];
     result(@([self setTrackId:[trackId isKindOfClass:[NSString class]] ? trackId : nil]));
+  } else if ([call.method isEqualToString:@"keepCameraInBackground"]) {
+    result(@([self keepCameraInBackground]));
   } else if ([call.method isEqualToString:@"setVideoOff"]) {
     _videoOff = [args[@"off"] boolValue];
     [self updatePlaceholder];
@@ -420,11 +425,14 @@ API_AVAILABLE(ios(15.0))
   _pipViewController = vc;
   _content = content;
   [self updatePlaceholder];
+  [self startObserving];
+  [self enableMultitaskingOnSession:[self cameraSession]];
   return YES;
 }
 
 /// Полный разбор: сначала отцепляем рендерер от трека, затем закрываем окно.
 - (void)disable {
+  [self stopObserving];
   [self detachTrack];
   if (_pip) {
     if (@available(iOS 15.0, *)) {
@@ -521,6 +529,89 @@ API_AVAILABLE(ios(15.0))
     }
   }
   return fallback.rootViewController.view;
+}
+
+#pragma mark - Своя камера в фоне (iOS 18+)
+
+// С iOS 18 приложениям с фоновым режимом `voip` разрешён захват камеры в
+// многозадачности (PiP) без отдельного entitlement — нужно лишь включить
+// `multitaskingCameraAccessEnabled` на сессии захвата. Сессию flutter_webrtc
+// пересоздаёт на каждое включение камеры, поэтому флаг ставим при каждом её старте
+// (DidStartRunning), плюс страховочно на уходе из активного состояния. Если система
+// всё же прервала захват (блокировка экрана, PiP не открылся/закрылся, iOS < 18),
+// шлём в Dart `cameraInterrupted` — там камеру глушат, чтобы собеседник видел
+// аватар, а не застывший кадр.
+
+- (void)startObserving {
+  if (_observing) return;
+  _observing = YES;
+  NSNotificationCenter *nc = NSNotificationCenter.defaultCenter;
+  [nc addObserver:self
+         selector:@selector(captureSessionDidStartRunning:)
+             name:AVCaptureSessionDidStartRunningNotification
+           object:nil];
+  [nc addObserver:self
+         selector:@selector(captureSessionWasInterrupted:)
+             name:AVCaptureSessionWasInterruptedNotification
+           object:nil];
+  [nc addObserver:self selector:@selector(willDeactivate:) name:UIApplicationWillResignActiveNotification object:nil];
+  [nc addObserver:self selector:@selector(willDeactivate:) name:UISceneWillDeactivateNotification object:nil];
+}
+
+- (void)stopObserving {
+  if (!_observing) return;
+  _observing = NO;
+  NSNotificationCenter *nc = NSNotificationCenter.defaultCenter;
+  [nc removeObserver:self name:AVCaptureSessionDidStartRunningNotification object:nil];
+  [nc removeObserver:self name:AVCaptureSessionWasInterruptedNotification object:nil];
+  [nc removeObserver:self name:UIApplicationWillResignActiveNotification object:nil];
+  [nc removeObserver:self name:UISceneWillDeactivateNotification object:nil];
+}
+
+- (void)captureSessionDidStartRunning:(NSNotification *)note {
+  AVCaptureSession *session = [note.object isKindOfClass:[AVCaptureSession class]] ? note.object : nil;
+  dispatch_async(dispatch_get_main_queue(), ^{
+    if (self->_pip) [self enableMultitaskingOnSession:session];
+  });
+}
+
+- (void)willDeactivate:(NSNotification *)note {
+  if (_pip) [self enableMultitaskingOnSession:[self cameraSession]];
+}
+
+- (void)captureSessionWasInterrupted:(NSNotification *)note {
+  dispatch_async(dispatch_get_main_queue(), ^{
+    if (!self->_pip) return;
+    if (UIApplication.sharedApplication.applicationState == UIApplicationStateActive) return;
+    [self->_channel invokeMethod:@"cameraInterrupted" arguments:nil];
+  });
+}
+
+/// YES — захват камеры разрешено продолжать в фоне (iOS 18+ / voip) и он сейчас
+/// идёт. Зовётся из Dart при уходе в фон: NO — камеру надо заглушить.
+- (BOOL)keepCameraInBackground {
+  AVCaptureSession *session = [self cameraSession];
+  if (!_pip || !session) return NO;
+  if (![self enableMultitaskingOnSession:session]) return NO;
+  return session.isRunning && !session.isInterrupted;
+}
+
+- (BOOL)enableMultitaskingOnSession:(nullable AVCaptureSession *)session {
+  if (!session) return NO;
+  if (@available(iOS 16.0, *)) {
+    if (!session.isMultitaskingCameraAccessSupported) return NO;
+    if (!session.isMultitaskingCameraAccessEnabled) session.multitaskingCameraAccessEnabled = YES;
+    return YES;
+  }
+  return NO;
+}
+
+- (nullable AVCaptureSession *)cameraSession {
+  Class cls = NSClassFromString(@"FlutterWebRTCPlugin");
+  if (!cls || ![cls respondsToSelector:@selector(sharedSingleton)]) return nil;
+  id<CallPipWebRTCPlugin> plugin = [(id)cls sharedSingleton];
+  if (![plugin respondsToSelector:@selector(videoCapturer)]) return nil;
+  return plugin.videoCapturer.captureSession;
 }
 
 #pragma mark - AVPictureInPictureControllerDelegate

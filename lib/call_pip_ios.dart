@@ -82,6 +82,33 @@ class CallPipIos {
     unawaited(_invoke('setPeer', {'name': name, 'image': image}));
   }
 
+  /// Уход приложения в фон: можно ли НЕ глушить свою камеру. true — iOS 18+
+  /// разрешил захват в многозадачности (PiP) и он сейчас идёт; false — камеру надо
+  /// заглушить, иначе у собеседника застынет последний кадр.
+  static Future<bool> keepCameraInBackground() async {
+    if (!Platform.isIOS || !_enabled) return false;
+    try {
+      return await _channel.invokeMethod<bool>('keepCameraInBackground') ?? false;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  static void Function()? _onCameraInterrupted;
+  static bool _handlerSet = false;
+
+  /// Колбэк «система прервала захват камеры, пока приложение в фоне» (блокировка
+  /// экрана, мини-окно не открылось/закрылось) — владелец глушит камеру.
+  static set onCameraInterrupted(void Function()? callback) {
+    _onCameraInterrupted = callback;
+    if (_handlerSet || !Platform.isIOS) return;
+    _handlerSet = true;
+    _channel.setMethodCallHandler((call) async {
+      if (call.method == 'cameraInterrupted') _onCameraInterrupted?.call();
+      return null;
+    });
+  }
+
   static Future<void> _invoke(String method, [Object? arguments]) async {
     try {
       await _channel.invokeMethod<Object?>(method, arguments);

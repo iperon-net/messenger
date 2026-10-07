@@ -14,6 +14,7 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:cryptography/cryptography.dart' show SimpleKeyPair;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart' show AppLifecycleState, WidgetsBinding;
 import 'package:flutter_webrtc/flutter_webrtc.dart' show WebRTC;
 import 'package:grpc/grpc.dart' show StatusCode;
 import 'package:livekit_client/livekit_client.dart';
@@ -517,6 +518,13 @@ class Calls {
       api.on(MessageType.CALL_REJECT).listen((p) => _handleSignal(MessageType.CALL_REJECT, p)),
       api.on(MessageType.CALL_ACCEPT).listen((p) => _handleSignal(MessageType.CALL_ACCEPT, p)),
     ]);
+    // iOS 18+: камера в фоне продолжает снимать, пока открыто мини-окно PiP. Если
+    // система всё же прервала захват (блокировка экрана, окно не открылось), глушим
+    // камеру — иначе у собеседника застыл бы последний кадр.
+    CallPipIos.onCameraInterrupted = () {
+      if (WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed) return;
+      unawaited(pauseVideoForBackground());
+    };
   }
 
   void _emit(CallSnapshot snapshot) {

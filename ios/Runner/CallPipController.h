@@ -18,11 +18,17 @@ NS_ASSUME_NONNULL_BEGIN
 ///    `+[FlutterWebRTCPlugin sharedSingleton]` / `-remoteTrackForId:` (без форка
 ///    плагина) — вешаем на трек свой `id<RTCVideoRenderer>`.
 ///
+/// Своя камера в фоне (iOS 18+, право даёт фоновый режим `voip`): на сессии
+/// захвата flutter_webrtc включаем `multitaskingCameraAccessEnabled` — собеседник
+/// продолжает видеть нас, пока открыто мини-окно. Если система всё же прервала
+/// захват — шлём в Dart `cameraInterrupted` (там камеру глушат).
+///
 /// Только CPU-путь (без Metal/Core Image): в фоне GPU-работа приложению запрещена.
 ///
 /// Драйвится из Dart по каналу `net.iperon.messenger/call_pip_ios`
 /// (lib/call_pip_ios.dart): `enable`/`disable`, `setTrack`, `setVideoOff`,
-/// `setPeer`. Регистрируется из AppDelegate.
+/// `setPeer`, `keepCameraInBackground`; обратно — `cameraInterrupted`.
+/// Регистрируется из AppDelegate.
 @interface CallPipController : NSObject
 
 + (instancetype)shared;
