@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/services.dart';
@@ -164,6 +165,15 @@ class CallPush {
   StreamSubscription<CallSnapshot>? _callSub;
   StreamSubscription<CallSnapshot>? _incomingRingSub;
   StreamSubscription<String>? _incomingDismissSub;
+
+  // iOS-симулятор? CallKit в симуляторе сам завершает каждый входящий примерно
+  // через секунду (CXEndCallAction от системы), и плагин отдаёт это как DECLINE.
+  // Без гарда симулятор, залогиненный в аккаунт, отклонял бы звонящему каждый
+  // входящий — даже принятый на соседнем реальном устройстве. Считаем один раз
+  // (не через Utils.deviceInfo: тот в debug всегда сообщает физическое устройство).
+  late final Future<bool> _isIosSimulator = Platform.isIOS
+      ? DeviceInfoPlugin().iosInfo.then((info) => !info.isPhysicalDevice, onError: (_) => false)
+      : Future.value(false);
 
   // Последнее переданное в MainActivity значение флага «поверх локскрина»
   // (Android) — чтобы не дёргать канал на каждый снимок.
@@ -426,6 +436,13 @@ class CallPush {
         }
       case CallEventActionCallDecline(:final callKitParams):
         final callId = callKitParams.id;
+        if (callId.isNotEmpty && await _isIosSimulator) {
+          // См. [_isIosSimulator]: «отказ» здесь — авто-сброс CallKit симулятора,
+          // а не пользователь. Звонящему ничего не шлём, только гасим своё.
+          logger.info('call: decline from iOS simulator CallKit ignored ($callId)');
+          if (_acceptedCallId == callId) _acceptedCallId = null;
+          break;
+        }
         if (callId.isNotEmpty) {
           if (_acceptedCallId == callId) _acceptedCallId = null;
           final fromUserIDHex = (callKitParams.extra?[_kFromUserID] ?? '').toString();
