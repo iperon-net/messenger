@@ -27,6 +27,10 @@ class SettingsDevice {
     await db.execute("UPDATE settingsDevice SET isBlurOnInactive = ?", [value ? 1 : 0]);
   }
 
+  Future<void> setCallsE2ee(bool value) async {
+    await db.execute("UPDATE settingsDevice SET callsE2ee = ?", [value ? 1 : 0]);
+  }
+
   Future<void> setPasscode(List<int> value) async {
     await db.execute("UPDATE settingsDevice SET passcode = ?", [value]);
   }
@@ -47,5 +51,21 @@ class SettingsDevice {
   /// авто-блокировка по таймауту переживала выгрузку приложения из памяти iOS.
   Future<void> setPasscodeBackgroundedAt(int millisecondsSinceEpoch) async {
     await db.execute("UPDATE settingsDevice SET passcodeBackgroundedAt = ?", [millisecondsSinceEpoch]);
+  }
+
+  Future<void> setChatsDemo(bool value) async {
+    await db.execute("UPDATE settingsDevice SET chatsDemo = ?", [value ? 1 : 0]);
+  }
+
+  Future<void> setChatWallpaper({required String pattern, required int color}) async {
+    await db.execute("UPDATE settingsDevice SET chatWallpaper = ?, chatWallpaperColor = ?", [pattern, color]);
+  }
+
+  Future<void> setChatWallpaperIntensity(int value) async {
+    await db.execute("UPDATE settingsDevice SET chatWallpaperIntensity = ?", [value]);
+  }
+
+  Future<void> setQuickReaction(String emoji) async {
+    await db.execute("UPDATE settingsDevice SET quickReaction = ?", [emoji]);
   }
 }

@@ -85,6 +85,51 @@ class SettingsDeviceModelMapper extends ClassMapperBase<SettingsDeviceModel> {
         opt: true,
         def: 0,
       );
+  static bool _$chatsDemo(SettingsDeviceModel v) => v.chatsDemo;
+  static const Field<SettingsDeviceModel, bool> _f$chatsDemo = Field(
+    'chatsDemo',
+    _$chatsDemo,
+    opt: true,
+    def: false,
+  );
+  static String _$chatWallpaper(SettingsDeviceModel v) => v.chatWallpaper;
+  static const Field<SettingsDeviceModel, String> _f$chatWallpaper = Field(
+    'chatWallpaper',
+    _$chatWallpaper,
+    opt: true,
+    def: 'chat',
+  );
+  static int _$chatWallpaperColor(SettingsDeviceModel v) =>
+      v.chatWallpaperColor;
+  static const Field<SettingsDeviceModel, int> _f$chatWallpaperColor = Field(
+    'chatWallpaperColor',
+    _$chatWallpaperColor,
+    opt: true,
+    def: 0,
+  );
+  static int _$chatWallpaperIntensity(SettingsDeviceModel v) =>
+      v.chatWallpaperIntensity;
+  static const Field<SettingsDeviceModel, int> _f$chatWallpaperIntensity =
+      Field(
+        'chatWallpaperIntensity',
+        _$chatWallpaperIntensity,
+        opt: true,
+        def: 40,
+      );
+  static String _$quickReaction(SettingsDeviceModel v) => v.quickReaction;
+  static const Field<SettingsDeviceModel, String> _f$quickReaction = Field(
+    'quickReaction',
+    _$quickReaction,
+    opt: true,
+    def: '❤️',
+  );
+  static bool _$callsE2ee(SettingsDeviceModel v) => v.callsE2ee;
+  static const Field<SettingsDeviceModel, bool> _f$callsE2ee = Field(
+    'callsE2ee',
+    _$callsE2ee,
+    opt: true,
+    def: true,
+  );
 
   @override
   final MappableFields<SettingsDeviceModel> fields = const {
@@ -97,6 +142,12 @@ class SettingsDeviceModelMapper extends ClassMapperBase<SettingsDeviceModel> {
     #passcodeAutoLock: _f$passcodeAutoLock,
     #passcodeForceLocked: _f$passcodeForceLocked,
     #passcodeBackgroundedAt: _f$passcodeBackgroundedAt,
+    #chatsDemo: _f$chatsDemo,
+    #chatWallpaper: _f$chatWallpaper,
+    #chatWallpaperColor: _f$chatWallpaperColor,
+    #chatWallpaperIntensity: _f$chatWallpaperIntensity,
+    #quickReaction: _f$quickReaction,
+    #callsE2ee: _f$callsE2ee,
   };
 
   static SettingsDeviceModel _instantiate(DecodingData data) {
@@ -110,6 +161,12 @@ class SettingsDeviceModelMapper extends ClassMapperBase<SettingsDeviceModel> {
       passcodeAutoLock: data.dec(_f$passcodeAutoLock),
       passcodeForceLocked: data.dec(_f$passcodeForceLocked),
       passcodeBackgroundedAt: data.dec(_f$passcodeBackgroundedAt),
+      chatsDemo: data.dec(_f$chatsDemo),
+      chatWallpaper: data.dec(_f$chatWallpaper),
+      chatWallpaperColor: data.dec(_f$chatWallpaperColor),
+      chatWallpaperIntensity: data.dec(_f$chatWallpaperIntensity),
+      quickReaction: data.dec(_f$quickReaction),
+      callsE2ee: data.dec(_f$callsE2ee),
     );
   }
 
@@ -194,6 +251,12 @@ abstract class SettingsDeviceModelCopyWith<
     int? passcodeAutoLock,
     bool? passcodeForceLocked,
     int? passcodeBackgroundedAt,
+    bool? chatsDemo,
+    String? chatWallpaper,
+    int? chatWallpaperColor,
+    int? chatWallpaperIntensity,
+    String? quickReaction,
+    bool? callsE2ee,
   });
   SettingsDeviceModelCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
     Then<$Out2, $R2> t,
@@ -226,6 +289,12 @@ class _SettingsDeviceModelCopyWithImpl<$R, $Out>
     int? passcodeAutoLock,
     bool? passcodeForceLocked,
     int? passcodeBackgroundedAt,
+    bool? chatsDemo,
+    String? chatWallpaper,
+    int? chatWallpaperColor,
+    int? chatWallpaperIntensity,
+    String? quickReaction,
+    bool? callsE2ee,
   }) => $apply(
     FieldCopyWithData({
       if (locale != $none) #locale: locale,
@@ -239,6 +308,13 @@ class _SettingsDeviceModelCopyWithImpl<$R, $Out>
         #passcodeForceLocked: passcodeForceLocked,
       if (passcodeBackgroundedAt != null)
         #passcodeBackgroundedAt: passcodeBackgroundedAt,
+      if (chatsDemo != null) #chatsDemo: chatsDemo,
+      if (chatWallpaper != null) #chatWallpaper: chatWallpaper,
+      if (chatWallpaperColor != null) #chatWallpaperColor: chatWallpaperColor,
+      if (chatWallpaperIntensity != null)
+        #chatWallpaperIntensity: chatWallpaperIntensity,
+      if (quickReaction != null) #quickReaction: quickReaction,
+      if (callsE2ee != null) #callsE2ee: callsE2ee,
     }),
   );
   @override
@@ -261,6 +337,18 @@ class _SettingsDeviceModelCopyWithImpl<$R, $Out>
       #passcodeBackgroundedAt,
       or: $value.passcodeBackgroundedAt,
     ),
+    chatsDemo: data.get(#chatsDemo, or: $value.chatsDemo),
+    chatWallpaper: data.get(#chatWallpaper, or: $value.chatWallpaper),
+    chatWallpaperColor: data.get(
+      #chatWallpaperColor,
+      or: $value.chatWallpaperColor,
+    ),
+    chatWallpaperIntensity: data.get(
+      #chatWallpaperIntensity,
+      or: $value.chatWallpaperIntensity,
+    ),
+    quickReaction: data.get(#quickReaction, or: $value.quickReaction),
+    callsE2ee: data.get(#callsE2ee, or: $value.callsE2ee),
   );
 
   @override

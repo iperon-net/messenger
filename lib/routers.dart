@@ -10,6 +10,7 @@ import 'components.dart';
 import 'cubit.dart';
 import 'di.dart';
 import 'logger.dart';
+import 'models.dart' as models;
 import 'repositories.dart';
 import 'screens.dart';
 import 'auth.dart';
@@ -26,17 +27,26 @@ class Routers {
   // findAncestorWidgetOfExactType<CupertinoApp>() (из package:flutter).
   // Приложение обёрнуто в CupertinoApp из cupertino_ui — это другой тип,
   // поэтому автоопределение проваливается в NoTransitionPage (без свайпа
-  // назад). Явно отдаём CupertinoPage из cupertino_ui, чтобы вернуть
-  // iOS-переход и жест «назад».
-  Page<void> _page(GoRouterState state, Widget child) =>
-      CupertinoPage<void>(key: state.pageKey, name: state.name ?? state.path, child: child);
+  // назад). Поэтому Page отдаём явно: FullSwipeBackPage — iOS-переход, и
+  // экран закрывается свайпом вправо с любого места (как в Telegram), а не
+  // только от края. [fullSwipe] = false — штатная CupertinoPage (жест только
+  // от края): для экранов, где случайный свайп вредит (звонок).
+  Page<void> _page(GoRouterState state, Widget child, {bool fullSwipe = true}) => fullSwipe
+      ? FullSwipeBackPage<void>(key: state.pageKey, name: state.name ?? state.path, child: child)
+      : CupertinoPage<void>(key: state.pageKey, name: state.name ?? state.path, child: child);
 
   // Тот же нюанс, что и с _page, но для Material: приложение обёрнуто в
-  // MaterialApp из material_ui (не из package:flutter/material), поэтому
-  // go_router-автоопределение Page проваливается в NoTransitionPage. Явно
-  // отдаём MaterialPage из material_ui, чтобы вернуть штатный Android-переход.
-  Page<void> _pageMaterial(GoRouterState state, Widget child) =>
-      MaterialPage<void>(key: state.pageKey, name: state.name ?? state.path, child: child);
+  // MaterialApp из material_ui (не из package:flutter/material). Переход и
+  // свайп — как на iOS (так выглядит и Telegram на Android), только короче.
+  // [fullSwipe] = false — штатная MaterialPage (системный Android-переход).
+  Page<void> _pageMaterial(GoRouterState state, Widget child, {bool fullSwipe = true}) => fullSwipe
+      ? FullSwipeBackPage<void>(
+          key: state.pageKey,
+          name: state.name ?? state.path,
+          transitionDuration: const Duration(milliseconds: 300),
+          child: child,
+        )
+      : MaterialPage<void>(key: state.pageKey, name: state.name ?? state.path, child: child);
 
   /// Тип чатов из пути `/settings/notifications/:scope` (имя [NotifyScope]);
   /// неизвестное — личные чаты.
@@ -95,8 +105,104 @@ class Routers {
           routes: [
             GoRoute(
               path: "/chats",
-              builder: (_, _) => BlocProvider<ChatsCubit>(create: (_) => ChatsCubit()..initialization(), child: const ChatsCupertino()),
-              // builder: (_, _) => const ChatsCupertino()
+              builder: (_, _) => BlocProvider<ChatsCubit>(
+                create: (context) => ChatsCubit()..initialization(demo: context.read<CommonCubit>().state.settingsDevice.chatsDemo),
+                child: const ChatsCupertino(),
+              ),
+              routes: [
+                // «Архив» — полноэкранно поверх таб-бара. Свой ChatsCubit: данные
+                // общие через источник (ChatsDemoDataSource — один на приложение).
+                GoRoute(
+                  path: "archive",
+                  parentNavigatorKey: rootNavigatorKey,
+                  pageBuilder: (context, state) => _page(
+                    state,
+                    BlocProvider<ChatsCubit>(
+                      create: (context) =>
+                          ChatsCubit()..initialization(demo: context.read<CommonCubit>().state.settingsDevice.chatsDemo, archive: true),
+                      child: const ChatsArchiveCupertino(),
+                    ),
+                  ),
+                ),
+                // Окно чата — полноэкранно поверх таб-бара (и из списка, и из «Архива»).
+                GoRoute(
+                  path: "chat/:id",
+                  parentNavigatorKey: rootNavigatorKey,
+                  pageBuilder: (context, state) => _page(
+                    state,
+                    BlocProvider<ChatCubit>(
+                      create: (context) => ChatCubit()
+                        ..initialization(
+                          chatID: state.pathParameters['id']!,
+                          demo: context.read<CommonCubit>().state.settingsDevice.chatsDemo,
+                        ),
+                      child: const ChatCupertino(),
+                    ),
+                  ),
+                ),
+                // «Новое»: «Новое сообщение» (контакты) → личный чат, или
+                // группа (участники → название), канал, сообщество. Свой
+                // ChatCreateCubit на каждом экране: участники группы
+                // передаются на шаг названия через `extra`.
+                GoRoute(
+                  path: "new",
+                  parentNavigatorKey: rootNavigatorKey,
+                  pageBuilder: (context, state) => _page(
+                    state,
+                    BlocProvider<ChatCreateCubit>(
+                      create: (context) =>
+                          ChatCreateCubit()..initialization(demo: context.read<CommonCubit>().state.settingsDevice.chatsDemo),
+                      child: const ChatsNewCupertino(),
+                    ),
+                  ),
+                  routes: [
+                    GoRoute(
+                      path: "group",
+                      parentNavigatorKey: rootNavigatorKey,
+                      pageBuilder: (context, state) => _page(
+                        state,
+                        BlocProvider<ChatCreateCubit>(
+                          create: (context) => ChatCreateCubit()
+                            ..initialization(demo: context.read<CommonCubit>().state.settingsDevice.chatsDemo, type: models.ChatType.group),
+                          child: const ChatCreateMembersCupertino(),
+                        ),
+                      ),
+                      routes: [
+                        GoRoute(
+                          path: "info",
+                          parentNavigatorKey: rootNavigatorKey,
+                          pageBuilder: (context, state) => _page(
+                            state,
+                            BlocProvider<ChatCreateCubit>(
+                              create: (context) => ChatCreateCubit()
+                                ..initialization(
+                                  demo: context.read<CommonCubit>().state.settingsDevice.chatsDemo,
+                                  type: models.ChatType.group,
+                                  selected: state.extra is List<models.ChatMember> ? state.extra! as List<models.ChatMember> : const [],
+                                ),
+                              child: const ChatCreateFormCupertino(),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    for (final type in [models.ChatType.channel, models.ChatType.community])
+                      GoRoute(
+                        path: type.name,
+                        parentNavigatorKey: rootNavigatorKey,
+                        pageBuilder: (context, state) => _page(
+                          state,
+                          BlocProvider<ChatCreateCubit>(
+                            create: (context) =>
+                                ChatCreateCubit()
+                                  ..initialization(demo: context.read<CommonCubit>().state.settingsDevice.chatsDemo, type: type),
+                            child: const ChatCreateFormCupertino(),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ],
             ),
           ],
         ),
@@ -453,6 +559,14 @@ class Routers {
                       child: SettingsAppearanceCupertino(),
                     ),
                   ),
+                  routes: [
+                    // Темы для чатов — обои окна чата.
+                    GoRoute(
+                      path: "chat_themes",
+                      parentNavigatorKey: rootNavigatorKey,
+                      pageBuilder: (context, state) => _page(state, const SettingsChatThemesCupertino()),
+                    ),
+                  ],
                 ),
                 GoRoute(
                   path: "device_sessions",
@@ -474,8 +588,11 @@ class Routers {
     GoRoute(
       path: "/call",
       parentNavigatorKey: rootNavigatorKey,
-      pageBuilder: (context, state) =>
-          _page(state, BlocProvider<CallCubit>(create: (_) => CallCubit()..initialization(), child: const CallCupertino())),
+      pageBuilder: (context, state) => _page(
+        state,
+        BlocProvider<CallCubit>(create: (_) => CallCubit()..initialization(), child: const CallCupertino()),
+        fullSwipe: false,
+      ),
     ),
     GoRoute(
       path: "/profile/:userID",
@@ -631,7 +748,104 @@ class Routers {
           routes: [
             GoRoute(
               path: "/chats",
-              builder: (_, _) => BlocProvider<ChatsCubit>(create: (_) => ChatsCubit()..initialization(), child: const ChatsMaterial()),
+              builder: (_, _) => BlocProvider<ChatsCubit>(
+                create: (context) => ChatsCubit()..initialization(demo: context.read<CommonCubit>().state.settingsDevice.chatsDemo),
+                child: const ChatsMaterial(),
+              ),
+              routes: [
+                // «Архив» — полноэкранно поверх таб-бара. Свой ChatsCubit: данные
+                // общие через источник (ChatsDemoDataSource — один на приложение).
+                GoRoute(
+                  path: "archive",
+                  parentNavigatorKey: rootNavigatorKey,
+                  pageBuilder: (context, state) => _pageMaterial(
+                    state,
+                    BlocProvider<ChatsCubit>(
+                      create: (context) =>
+                          ChatsCubit()..initialization(demo: context.read<CommonCubit>().state.settingsDevice.chatsDemo, archive: true),
+                      child: const ChatsArchiveMaterial(),
+                    ),
+                  ),
+                ),
+                // Окно чата — полноэкранно поверх таб-бара (и из списка, и из «Архива»).
+                GoRoute(
+                  path: "chat/:id",
+                  parentNavigatorKey: rootNavigatorKey,
+                  pageBuilder: (context, state) => _pageMaterial(
+                    state,
+                    BlocProvider<ChatCubit>(
+                      create: (context) => ChatCubit()
+                        ..initialization(
+                          chatID: state.pathParameters['id']!,
+                          demo: context.read<CommonCubit>().state.settingsDevice.chatsDemo,
+                        ),
+                      child: const ChatMaterial(),
+                    ),
+                  ),
+                ),
+                // «Новое»: «Новое сообщение» (контакты) → личный чат, или
+                // группа (участники → название), канал, сообщество. Свой
+                // ChatCreateCubit на каждом экране: участники группы
+                // передаются на шаг названия через `extra`.
+                GoRoute(
+                  path: "new",
+                  parentNavigatorKey: rootNavigatorKey,
+                  pageBuilder: (context, state) => _pageMaterial(
+                    state,
+                    BlocProvider<ChatCreateCubit>(
+                      create: (context) =>
+                          ChatCreateCubit()..initialization(demo: context.read<CommonCubit>().state.settingsDevice.chatsDemo),
+                      child: const ChatsNewMaterial(),
+                    ),
+                  ),
+                  routes: [
+                    GoRoute(
+                      path: "group",
+                      parentNavigatorKey: rootNavigatorKey,
+                      pageBuilder: (context, state) => _pageMaterial(
+                        state,
+                        BlocProvider<ChatCreateCubit>(
+                          create: (context) => ChatCreateCubit()
+                            ..initialization(demo: context.read<CommonCubit>().state.settingsDevice.chatsDemo, type: models.ChatType.group),
+                          child: const ChatCreateMembersMaterial(),
+                        ),
+                      ),
+                      routes: [
+                        GoRoute(
+                          path: "info",
+                          parentNavigatorKey: rootNavigatorKey,
+                          pageBuilder: (context, state) => _pageMaterial(
+                            state,
+                            BlocProvider<ChatCreateCubit>(
+                              create: (context) => ChatCreateCubit()
+                                ..initialization(
+                                  demo: context.read<CommonCubit>().state.settingsDevice.chatsDemo,
+                                  type: models.ChatType.group,
+                                  selected: state.extra is List<models.ChatMember> ? state.extra! as List<models.ChatMember> : const [],
+                                ),
+                              child: const ChatCreateFormMaterial(),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    for (final type in [models.ChatType.channel, models.ChatType.community])
+                      GoRoute(
+                        path: type.name,
+                        parentNavigatorKey: rootNavigatorKey,
+                        pageBuilder: (context, state) => _pageMaterial(
+                          state,
+                          BlocProvider<ChatCreateCubit>(
+                            create: (context) =>
+                                ChatCreateCubit()
+                                  ..initialization(demo: context.read<CommonCubit>().state.settingsDevice.chatsDemo, type: type),
+                            child: const ChatCreateFormMaterial(),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ],
             ),
           ],
         ),
@@ -984,6 +1198,14 @@ class Routers {
                       child: const SettingsAppearanceMaterial(),
                     ),
                   ),
+                  routes: [
+                    // Темы для чатов — обои окна чата.
+                    GoRoute(
+                      path: "chat_themes",
+                      parentNavigatorKey: rootNavigatorKey,
+                      pageBuilder: (context, state) => _pageMaterial(state, const SettingsChatThemesMaterial()),
+                    ),
+                  ],
                 ),
                 GoRoute(
                   path: "device_sessions",
@@ -1005,8 +1227,11 @@ class Routers {
     GoRoute(
       path: "/call",
       parentNavigatorKey: rootNavigatorKey,
-      pageBuilder: (context, state) =>
-          _pageMaterial(state, BlocProvider<CallCubit>(create: (_) => CallCubit()..initialization(), child: const CallMaterial())),
+      pageBuilder: (context, state) => _pageMaterial(
+        state,
+        BlocProvider<CallCubit>(create: (_) => CallCubit()..initialization(), child: const CallMaterial()),
+        fullSwipe: false,
+      ),
     ),
     GoRoute(
       path: "/profile/:userID",

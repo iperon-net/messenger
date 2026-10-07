@@ -13,20 +13,49 @@ platform :ios do
       is_key_content_base64: true,
     )
 
-    # Текст для поля «Сведения о тестировании» (whatToTest) собирается из
-    # git-коммитов в workflow и передаётся через ENV. Если пусто — не задаём,
-    # чтобы TestFlight оставил прошлое значение.
-    changelog = ENV["CHANGELOG"]
-    changelog = nil if changelog.nil? || changelog.strip.empty?
-
     upload_to_testflight(
       api_key: api_key,
       ipa: ENV.fetch("IPA_PATH"),
-      # Не ждём окончания обработки билда на стороне Apple — ускоряет CI.
+      # Не ждём ни обработки, ни появления билда: без changelog fastlane
+      # выходит сразу после заливки. «Сведения о тестировании» проставляет
+      # лейн changelog отдельным job'ом на Ubuntu.
       skip_waiting_for_build_processing: true,
       # Билд уходит только тестировщикам, ревью App Store не требуется.
       distribute_external: false,
-      changelog: changelog,
     )
+  end
+
+  # Поле «Сведения о тестировании» (whatToTest) уже залитого билда. Текст
+  # собирается из git-коммитов в workflow. Билд появляется в App Store Connect
+  # через несколько минут после заливки — до этого distribute_only падает с
+  # «No build to distribute!», поэтому повторяем раз в 30 с (до ~20 мин).
+  desc "Проставить changelog залитому билду"
+  lane :changelog do
+    api_key = app_store_connect_api_key(
+      key_id: ENV.fetch("ASC_KEY_ID"),
+      issuer_id: ENV.fetch("ASC_ISSUER_ID"),
+      key_content: ENV.fetch("ASC_KEY_P8_BASE64"),
+      is_key_content_base64: true,
+    )
+    attempts = 0
+    begin
+      upload_to_testflight(
+        api_key: api_key,
+        distribute_only: true,
+        app_identifier: ENV.fetch("BUNDLE_ID"),
+        app_platform: "ios",
+        app_version: ENV.fetch("BUILD_NAME").delete_prefix("v"),
+        build_number: ENV.fetch("BUILD_NUMBER"),
+        changelog: ENV.fetch("CHANGELOG"),
+        skip_waiting_for_build_processing: true,
+        distribute_external: false,
+      )
+    rescue => e
+      attempts += 1
+      raise if attempts >= 40
+      UI.important("Билд ещё не готов (#{e.message}) — повтор через 30 с")
+      sleep(30)
+      retry
+    end
   end
 end

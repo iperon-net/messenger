@@ -27,9 +27,7 @@ class CallsCupertino extends StatefulWidget {
   State<CallsCupertino> createState() => _CallsCupertinoState();
 }
 
-class _CallsCupertinoState extends State<CallsCupertino> {
-  final _searchController = TextEditingController();
-
+class _CallsCupertinoState extends State<CallsCupertino> with SearchHideOnScroll {
   @override
   void initState() {
     super.initState();
@@ -39,12 +37,6 @@ class _CallsCupertinoState extends State<CallsCupertino> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) context.read<CallsCubit>().checkCallPermissions();
     });
-  }
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
   }
 
   @override
@@ -70,18 +62,22 @@ class _CallsCupertinoState extends State<CallsCupertino> {
         ),
       ),
       child: SafeArea(
-        child: Column(
-          children: [
-            // Поле поиска — вне BlocBuilder, чтобы не пересоздаваться на каждый
-            // emit (иначе на iOS сбрасывается область композиции клавиатуры).
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              child: CupertinoSearchTextField(
-                controller: _searchController,
-                placeholder: context.t.screenCalls.search,
-                onChanged: (value) => context.read<CallsCubit>().search(value),
-              ),
+        // Шапка (поиск, баннер, фильтр) поверх списка: поиск уезжает вместе со
+        // списком, как в Telegram (см. SearchHideOnScroll).
+        child: searchHideOnScrollBody(
+          background: ThemesCupertino.appBackground.resolveFrom(context),
+          // Поле поиска — вне BlocBuilder, чтобы не пересоздаваться на каждый
+          // emit (иначе на iOS сбрасывается область композиции клавиатуры).
+          search: Padding(
+            padding: const EdgeInsets.fromLTRB(12, 4, 12, 8),
+            child: SearchFieldCupertino(
+              controller: searchController,
+              focusNode: searchFocus,
+              placeholder: context.t.screenCalls.search,
+              onChanged: (value) => context.read<CallsCubit>().search(value),
             ),
+          ),
+          header: [
             // Мягкий баннер-объяснение о разрешениях звонков. Виден, только пока
             // чего-то не хватает и пользователь его не закрыл; историю не блокирует.
             BlocSelector<CallsCubit, CallsState, ({bool show, bool mic, bool notif})>(
@@ -99,33 +95,27 @@ class _CallsCupertinoState extends State<CallsCupertino> {
                 );
               },
             ),
-            Expanded(
-              child: BlocBuilder<CallsCubit, CallsState>(
-                builder: (context, state) {
-                  final items = _visible(context, state);
-                  return Column(
-                    children: [
-                      if (state.calls.isNotEmpty)
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
-                          child: CupertinoSlidingSegmentedControl<CallsFilter>(
-                            groupValue: state.filter,
-                            onValueChanged: (value) {
-                              if (value != null) context.read<CallsCubit>().setFilter(value);
-                            },
-                            children: {
-                              CallsFilter.all: Text(context.t.screenCalls.filterAll),
-                              CallsFilter.missed: Text(context.t.screenCalls.filterMissed),
-                            },
-                          ),
-                        ),
-                      Expanded(child: _list(context, state, items)),
-                    ],
-                  );
-                },
-              ),
+            BlocBuilder<CallsCubit, CallsState>(
+              buildWhen: (previous, current) => previous.filter != current.filter || previous.calls.isEmpty != current.calls.isEmpty,
+              builder: (context, state) {
+                if (state.calls.isEmpty) return const SizedBox.shrink();
+                return Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
+                  child: CupertinoSlidingSegmentedControl<CallsFilter>(
+                    groupValue: state.filter,
+                    onValueChanged: (value) {
+                      if (value != null) context.read<CallsCubit>().setFilter(value);
+                    },
+                    children: {
+                      CallsFilter.all: Text(context.t.screenCalls.filterAll),
+                      CallsFilter.missed: Text(context.t.screenCalls.filterMissed),
+                    },
+                  ),
+                );
+              },
             ),
           ],
+          body: BlocBuilder<CallsCubit, CallsState>(builder: (context, state) => _list(context, state, _visible(context, state))),
         ),
       ),
     );
@@ -147,8 +137,8 @@ class _CallsCupertinoState extends State<CallsCupertino> {
       final text = state.filter == CallsFilter.missed && state.query.isEmpty
           ? context.t.screenCalls.emptyMissed
           : context.t.screenCalls.empty;
-      return Center(
-        child: Padding(
+      return searchListView(
+        empty: Padding(
           padding: const EdgeInsets.all(32),
           child: Text(
             text,
@@ -165,7 +155,8 @@ class _CallsCupertinoState extends State<CallsCupertino> {
       color: CupertinoColors.separator.resolveFrom(context),
     );
 
-    return ListView.separated(
+    // Отступ сверху под шапку — строки проезжают под ней.
+    return searchListView(
       itemCount: items.length,
       separatorBuilder: (_, _) => divider,
       itemBuilder: (context, index) => _tile(context, state, items[index]),

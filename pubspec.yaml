@@ -74,7 +74,7 @@ dependencies:
   cryptography_flutter: ^2.3.4
   ristretto255: ^1.0.2
   native_workmanager: ^1.4.3
-  flutter_callkit_incoming: ^3.1.5
+  flutter_callkit_incoming: ^3.1.6
   talker_grpc_logger: ^5.1.19
   pqcrypto: ^0.4.0
   package_info_plus: ^10.2.1
@@ -118,10 +118,19 @@ dependencies:
   # FlutterWebRTC/peerConnectionEvent при dispose (наш teardown-краш из Crashlytics:
   # на iOS был non-fatal, на Android — FATAL «No active stream to cancel»), hotfix.3
   # (#2174/#2175) — то же для data-channel event channel.
+  #
+  # Фактически резолвится 1.6.2+hotfix.4 через dependency_overrides (см. ниже): livekit
+  # 2.13.0 пинит ровно hotfix.3, а hotfix.4 несёт фикс крэша renderFrame: (#2190) при
+  # том же нативном WebRTC-SDK 150.7871.01 — ABI с подом livekit совпадает.
   flutter_webrtc: 1.6.2+hotfix.3
   livekit_client: ^2.13.0
   hugeicons: ^1.2.0
   passkeys: ^2.23.1
+  flutter_image_compress: ^2.5.1
+  thumbhash: ^0.1.0+1
+  record: ^7.1.1
+  file_picker: ^13.1.0
+  video_player: ^2.14.1
 
 dev_dependencies:
   flutter_test:
@@ -145,6 +154,12 @@ dev_dependencies:
 #      ответ на звонок с локскрина не требовал отпечатка/PIN — экран звонка рисуется
 #      поверх локскрина через showWhenLocked нашего MainActivity;
 #   2. android/build.gradle: apply KGP обёрнут guard'ом builtInKotlinActive (см. ниже).
+#   3. (с 3.1.6) small icon уведомления аудиозвонка — снова ic_accept: апстрим 3.1.6
+#      ставит иконку приложения, а цветной ic_launcher в статус-баре — силуэт.
+#   4. программный endCall неотвеченного звонка → ENDED вместо DECLINE (Android+iOS):
+#      иначе сиблинг-устройство слало звонящему CALL_REJECT и рвало звонок, принятый
+#      на другом устройстве.
+#   Полный список патчей (там их больше) — в шапке third_party/flutter_callkit_incoming/pubspec.yaml.
 #
 # cryptography_flutter (third_party/cryptography_flutter) — единственный патч:
 #   android/build.gradle применяет "kotlin-android" безусловно (2.3.4 — последняя на
@@ -154,38 +169,20 @@ dev_dependencies:
 #   нативный ускоритель pure-Dart package:cryptography (AES-GCM/HMAC для медиа), поэтому
 #   форк выбран вместо удаления, чтобы не терять скорость. См. CLAUDE.md, раздел Kotlin.
 #
-# flutter_webrtc (third_party/flutter_webrtc, версия 1.6.2+hotfix.3 — совпадает с той,
-#   что пинит livekit_client 2.13.0) — единственный патч в renderFrame:: бэкпорт
-#   апстрим-PR #2190 (merged в main 2026-09-18, но НИ В ОДНОМ релизе ещё нет — последний
-#   тег v1.6.2+hotfix.3 предшествует ему; бампнуться нельзя, версия жёстко привязана к
-#   ABI нативного пода livekit 2.13.0). Апстрим разыменовывал ivar
-#   `strongSelf->_isFirstFrameRendered` через weak-ссылку без проверки на nil, из-за чего
-#   уничтожение рендерера при живом потоке кадров (свап/выключение камеры/завершение
-#   звонка, скрытие своего превью при включённой камере) роняло приложение: EXC_BAD_ACCESS
-#   в `-[FlutterRTCVideoRenderer renderFrame:]` (см. [[webrtc-renderer-recreation-crash]]).
-#   Фикс: блок firstFrame диспатчится в main-очередь только пока `!_isFirstFrameRendered`
-#   (нет per-frame прыжка после первого кадра) и внутри проверяет
-#   `strongSelf == nil || strongSelf->_isFirstFrameRendered`. Тело renderFrame: сделано
-#   БАЙТ-В-БАЙТ с #2190, поэтому патч исчезнет сам, когда пин доедет до релиза с #2190.
-#   ВАЖНО: в дереве три копии FlutterRTCVideoRenderer.m, патч держим в двух:
-#     • ios/flutter_webrtc/Sources/flutter_webrtc/FlutterRTCVideoRenderer.m — ЭТУ копию
-#       реально компилирует iOS-под (ios/flutter_webrtc.podspec, source_files =
-#       'flutter_webrtc/Sources/flutter_webrtc/**'); без патча здесь крэш вернётся —
-#       главная копия для нашего таргета;
-#     • common/darwin/Classes/FlutterRTCVideoRenderer.m — общий upstream-исходник
-#       (ни один под его не компилирует); держим идентичным ios как канонический,
-#       чтобы апстрим-диффы ложились чисто.
-#   Патч переносить вручную в ОБЕ при апдейте (сейчас идентичны). Третья копия,
-#   macos/flutter_webrtc/Sources/.../FlutterRTCVideoRenderer.m, НЕ пропатчена и отличается,
-#   но macOS у нас не таргет (только Android+iOS) — трогать не нужно. При копировании
-#   исключены example/.
+# flutter_webrtc 1.6.2+hotfix.4 (pub.dev, НЕ форк) — override поверх hotfix.3, который
+#   пинит livekit_client 2.13.0. В hotfix.4 вошёл апстрим-фикс #2190: EXC_BAD_ACCESS в
+#   `-[FlutterRTCVideoRenderer renderFrame:]` при уничтожении рендерера с живым потоком
+#   кадров (см. [[webrtc-renderer-recreation-crash]]) — раньше держали его бэкпорт в
+#   third_party/flutter_webrtc. Нативные зависимости те же, что у hotfix.3
+#   (WebRTC-SDK / io.github.webrtc-sdk:android 150.7871.01), поэтому конфликта
+#   CocoaPods/ABI с livekit нет. Override убрать, когда livekit_client сам запинит
+#   >= hotfix.4.
 dependency_overrides:
   flutter_callkit_incoming:
     path: third_party/flutter_callkit_incoming
   cryptography_flutter:
     path: third_party/cryptography_flutter
-  flutter_webrtc:
-    path: third_party/flutter_webrtc
+  flutter_webrtc: 1.6.2+hotfix.4
 
 # Configuration for the `dart_pre_commit` git hook (see .githooks/pre-commit).
 # Mirrors the CI checks in .github/workflows/build_and_deploy.yaml so problems are
@@ -220,6 +217,7 @@ flutter:
     - assets/images/
     - assets/icons/
     - assets/audio/
+    - assets/wallpapers/
 
   # To add assets to your application, add an assets section, like this:
   # assets:

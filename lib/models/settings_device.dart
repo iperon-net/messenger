@@ -16,6 +16,25 @@ class SettingsDeviceModel with SettingsDeviceModelMappable {
   final bool passcodeForceLocked;
   final int passcodeBackgroundedAt;
 
+  /// UX-демо чатов (экран «Разработчик»): вкладка «Чаты» на фейковых данных.
+  final bool chatsDemo;
+
+  /// Обои чатов («Темы для чатов»): id узора (`assets/wallpapers/<id>.svg`,
+  /// неизвестный — узор по умолчанию) и индекс цвета в палитре `ChatWallpaperColors`.
+  final String chatWallpaper;
+  final int chatWallpaperColor;
+
+  /// Интенсивность (видимость) узора обоев, 0–100 %.
+  final int chatWallpaperIntensity;
+
+  /// Быстрая реакция — эмодзи двойного тапа по сообщению.
+  final String quickReaction;
+
+  /// Предлагать ли сквозное шифрование (E2EE) в звонках на этом устройстве. По
+  /// умолчанию включено; выключается на экране приватности звонков. Звонок
+  /// шифруется, только когда E2EE включён у обоих собеседников (см. [Calls]).
+  final bool callsE2ee;
+
   const SettingsDeviceModel({
     this.locale,
     this.darkMode = DarkModeModel.system,
@@ -26,6 +45,12 @@ class SettingsDeviceModel with SettingsDeviceModelMappable {
     this.passcodeAutoLock = 0,
     this.passcodeForceLocked = false,
     this.passcodeBackgroundedAt = 0,
+    this.chatsDemo = false,
+    this.chatWallpaper = 'chat',
+    this.chatWallpaperColor = 0,
+    this.chatWallpaperIntensity = 40,
+    this.quickReaction = '❤️',
+    this.callsE2ee = true,
   });
 
   factory SettingsDeviceModel.fromSqlite(Map<String, dynamic> data) {
@@ -38,6 +63,13 @@ class SettingsDeviceModel with SettingsDeviceModelMappable {
     final passcodeAutoLock = data['passcodeAutoLock'] ?? 0;
     final passcodeForceLocked = data['passcodeForceLocked'] ?? 0;
     final passcodeBackgroundedAt = data['passcodeBackgroundedAt'] ?? 0;
+    final chatsDemo = data['chatsDemo'] ?? 0;
+    final chatWallpaper = data['chatWallpaper'] as String?;
+    final chatWallpaperColor = data['chatWallpaperColor'] as int?;
+    final chatWallpaperIntensity = data['chatWallpaperIntensity'] as int?;
+    final quickReaction = data['quickReaction'] as String?;
+    // Отсутствующая/NULL колонка (старая БД до миграции) трактуется как включено.
+    final callsE2ee = data['callsE2ee'] ?? 1;
 
     SettingsDeviceModel settingsDeviceModel = SettingsDeviceModel();
 
@@ -87,6 +119,30 @@ class SettingsDeviceModel with SettingsDeviceModelMappable {
 
     if (passcodeBackgroundedAt > 0) {
       settingsDeviceModel = settingsDeviceModel.copyWith(passcodeBackgroundedAt: passcodeBackgroundedAt);
+    }
+
+    if (chatsDemo > 0) {
+      settingsDeviceModel = settingsDeviceModel.copyWith(chatsDemo: true);
+    }
+
+    if (chatWallpaper != null && chatWallpaper.isNotEmpty) {
+      settingsDeviceModel = settingsDeviceModel.copyWith(chatWallpaper: chatWallpaper);
+    }
+
+    if (chatWallpaperColor != null) {
+      settingsDeviceModel = settingsDeviceModel.copyWith(chatWallpaperColor: chatWallpaperColor);
+    }
+
+    if (chatWallpaperIntensity != null) {
+      settingsDeviceModel = settingsDeviceModel.copyWith(chatWallpaperIntensity: chatWallpaperIntensity);
+    }
+
+    if (quickReaction != null && quickReaction.isNotEmpty) {
+      settingsDeviceModel = settingsDeviceModel.copyWith(quickReaction: quickReaction);
+    }
+
+    if (callsE2ee == 0) {
+      settingsDeviceModel = settingsDeviceModel.copyWith(callsE2ee: false);
     }
 
     return settingsDeviceModel;

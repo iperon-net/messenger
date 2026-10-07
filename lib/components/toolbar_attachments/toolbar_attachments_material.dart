@@ -366,7 +366,7 @@ class _ToolbarAttachmentsMaterialState extends State<ToolbarAttachmentsMaterial>
       await previous.dispose();
       if (!mounted) return;
     }
-    final image = await openCamera(context);
+    final image = await openCamera(context, allowVideo: widget.media != ToolbarAttachmentMediaType.image);
     if (!mounted) return;
     if (image != null) {
       await _processAndFinish(image, ToolbarAttachmentTabKind.camera);
@@ -470,6 +470,13 @@ class _ToolbarAttachmentsMaterialState extends State<ToolbarAttachmentsMaterial>
   }
 
   /// Единая точка возврата результата: дёргает callback и закрывает лист.
+  /// Таб «Файл»: системный выбор → файлы уходят как есть (без сжатия).
+  Future<void> _pickFiles(Future<List<XFile>> Function() pick) async {
+    final files = await pick();
+    if (!mounted || files.isEmpty) return;
+    _finish(ToolbarAttachmentMultiImageResult(files, source: ToolbarAttachmentTabKind.file));
+  }
+
   void _finish(ToolbarAttachmentResult result) {
     widget.onResult?.call(result);
     Navigator.pop(context, result);
@@ -483,6 +490,7 @@ class _ToolbarAttachmentsMaterialState extends State<ToolbarAttachmentsMaterial>
     ToolbarAttachmentTabKind.file => FontAwesomeIcons.folder,
     ToolbarAttachmentTabKind.emoji => FontAwesomeIcons.faceSmile,
     ToolbarAttachmentTabKind.link => FontAwesomeIcons.link,
+    ToolbarAttachmentTabKind.poll => FontAwesomeIcons.squarePollHorizontal,
   };
 
   String _label(BuildContext context, ToolbarAttachmentTabKind kind) => switch (kind) {
@@ -491,6 +499,7 @@ class _ToolbarAttachmentsMaterialState extends State<ToolbarAttachmentsMaterial>
     ToolbarAttachmentTabKind.file => context.t.screenMyProfile.chooseFile,
     ToolbarAttachmentTabKind.emoji => context.t.screenMyProfile.chooseEmoji,
     ToolbarAttachmentTabKind.link => context.t.screenMyProfile.chooseLink,
+    ToolbarAttachmentTabKind.poll => context.t.screenChat.poll,
   };
 
   // ─── Хедер таба (по центру, под линией свайпа) ────────────────────────────
@@ -599,9 +608,35 @@ class _ToolbarAttachmentsMaterialState extends State<ToolbarAttachmentsMaterial>
         return const SizedBox.shrink();
 
       case ToolbarAttachmentTabKind.file:
+        final t = context.t.screenMyProfile;
+        final scheme = Theme.of(context).colorScheme;
+        Widget row(FaIconData icon, String title, String subtitle, Future<List<XFile>> Function() pick) => ListTile(
+          leading: CircleAvatar(
+            backgroundColor: scheme.primary,
+            child: FaIcon(icon, size: 16, color: scheme.onPrimary),
+          ),
+          title: Text(title),
+          subtitle: Text(subtitle),
+          onTap: () => _pickFiles(pick),
+        );
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              row(FontAwesomeIcons.solidFolderOpen, t.pickDocument, t.pickDocumentHint, pickAttachmentDocuments),
+              row(FontAwesomeIcons.solidImage, t.pickMediaAsFile, t.pickMediaAsFileHint, pickAttachmentMediaAsFiles),
+            ],
+          ),
+        );
+
       case ToolbarAttachmentTabKind.link:
         // TODO: реализуй процесс таба и вызови _finish(...) с результатом.
         return _placeholder(context, onTap: () {});
+
+      case ToolbarAttachmentTabKind.poll:
+        // Не открывается: тап по табу сразу закрывает лист (_segmentTab).
+        return const SizedBox.shrink();
     }
   }
 
@@ -846,6 +881,8 @@ class _ToolbarAttachmentsMaterialState extends State<ToolbarAttachmentsMaterial>
       padding: const EdgeInsets.symmetric(horizontal: 6),
       child: GestureDetector(
         onTap: () {
+          // «Опрос» — без своего тела: сразу закрываем лист, дальше экран опроса.
+          if (kind == ToolbarAttachmentTabKind.poll) return _finish(const ToolbarAttachmentPollResult());
           setState(() => _selected = kind);
           if (kind == ToolbarAttachmentTabKind.gallery) _ensureGalleryLoaded();
         },

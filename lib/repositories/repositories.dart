@@ -351,10 +351,10 @@ class Repositories {
 
     migrations.add(
       SqliteMigration(9, (tx) async {
-        // Остаток от свёрнутой фичи E2EE-звонков (тумблер callsE2ee): фича убрана
-        // из-за краша нативного FrameCryptor (WebRTC-SDK m150). Миграцию НЕ удаляем
-        // и НЕ переиспользуем номер — на устройствах 0.0.230 она уже применена;
-        // столбец остаётся неиспользуемым «висяком», код его не читает.
+        // Локальный тумблер сквозного шифрования звонков (per-device). По
+        // умолчанию включено (1). Колонку завели ещё в первой версии E2EE
+        // (0.0.230), фичу тогда сворачивали, теперь она снова читается
+        // (см. Calls._setupCallE2ee).
         await tx.execute("ALTER TABLE settingsDevice ADD COLUMN callsE2ee INTEGER NOT NULL DEFAULT 1;");
       }),
     );
@@ -392,6 +392,39 @@ class Repositories {
           FOREIGN KEY (userID) REFERENCES users(userID) ON DELETE CASCADE ON UPDATE CASCADE
         );
       """);
+      }),
+    );
+
+    migrations.add(
+      SqliteMigration(12, (tx) async {
+        // Флаг UX-демо чатов (экран «Разработчик»): вкладка «Чаты» показывает
+        // фейковые чаты и папки из ChatsDemoDataSource. Локальная настройка
+        // устройства, на сервер не уходит.
+        await tx.execute("ALTER TABLE settingsDevice ADD COLUMN chatsDemo INTEGER NOT NULL DEFAULT 0;");
+      }),
+    );
+
+    migrations.add(
+      SqliteMigration(13, (tx) async {
+        // «Темы для чатов» (Настройки → Оформление): узор обоев (id SVG из
+        // assets/wallpapers, 'none' — без узора) и индекс цвета. Локально.
+        await tx.execute("ALTER TABLE settingsDevice ADD COLUMN chatWallpaper TEXT NOT NULL DEFAULT 'chat';");
+        await tx.execute("ALTER TABLE settingsDevice ADD COLUMN chatWallpaperColor INTEGER NOT NULL DEFAULT 0;");
+      }),
+    );
+
+    migrations.add(
+      SqliteMigration(14, (tx) async {
+        // «Темы для чатов»: интенсивность (видимость) узора обоев, 0–100 %. Локально.
+        await tx.execute("ALTER TABLE settingsDevice ADD COLUMN chatWallpaperIntensity INTEGER NOT NULL DEFAULT 40;");
+      }),
+    );
+
+    migrations.add(
+      SqliteMigration(15, (tx) async {
+        // «Быстрая реакция» (Настройки → Оформление): эмодзи двойного тапа по
+        // сообщению. Пока локально; позже — в профиль (синхронно между устройствами).
+        await tx.execute("ALTER TABLE settingsDevice ADD COLUMN quickReaction TEXT NOT NULL DEFAULT '❤️';");
       }),
     );
 

@@ -6,6 +6,13 @@ on:
       flutter_version:
         required: true
         type: string
+      # Проверить, что сгенерированный код (dart_mappable, slang) в репозитории
+      # не устарел. Включён на PR/main (testing.yaml); в сборке по тегу не
+      # нужен — сборка TestFlight его больше не пересобирает и ждёт линтер.
+      check_generated:
+        required: false
+        type: boolean
+        default: false
     secrets:
       firebase_options_dart_base64:
         required: true
@@ -81,3 +88,44 @@ jobs:
 
       - name: Analyze
         run: flutter analyze
+
+  generated:
+    name: Generated code
+    if: ${{ inputs.check_generated }}
+    runs-on: ubuntu-26.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ inputs.flutter_version }}
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Regenerate code (dart_mappable + slang)
+        run: |
+          set -euo pipefail
+          dart run build_runner build --delete-conflicting-outputs
+          dart run slang
+          # В репозитории сгенерированное лежит отформатированным (pre-commit).
+          dart format lib >/dev/null
+
+      - name: Check generated code is up to date
+        run: |
+          set -euo pipefail
+          if ! git diff --exit-code --stat -- lib; then
+            echo "::error::Сгенерированный код устарел — запустите build_runner и slang (см. CLAUDE.md) и закоммитьте результат"
+            exit 1
+          fi
+          UNTRACKED=$(git ls-files --others --exclude-standard -- lib)
+          if [ -n "$UNTRACKED" ]; then
+            echo "::error::Не закоммичены сгенерированные файлы:"
+            echo "$UNTRACKED"
+            exit 1
+          fi

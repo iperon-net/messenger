@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:camera/camera.dart';
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -13,7 +15,11 @@ import 'camera.dart';
 /// оформлением (Cupertino-виджеты). Возвращает снятый кадр как [XFile] через
 /// `Navigator.pop`, либо `null`, если экран закрыли без съёмки.
 class CameraScreenCupertino extends StatefulWidget {
-  const CameraScreenCupertino({super.key});
+  const CameraScreenCupertino({super.key, this.allowVideo = false});
+
+  /// Можно снимать и видео: над затвором переключатель «Фото / Видео»; в
+  /// режиме видео затвор красный — тап начинает и останавливает запись.
+  final bool allowVideo;
 
   @override
   State<CameraScreenCupertino> createState() => _CameraScreenCupertinoState();
@@ -42,6 +48,26 @@ class _CameraScreenCupertinoState extends State<CameraScreenCupertino> with Widg
   /// Идёт съёмка кадра — блокируем повторные нажатия затвора.
   bool _capturing = false;
 
+  /// Режим «Видео» (только при [widget.allowVideo]).
+  bool _videoMode = false;
+
+  /// Контроллер создан со звуком: микрофон запрашиваем при первом переходе в
+  /// «Видео», а не при открытии камеры (для фото он не нужен).
+  bool _audio = false;
+
+  /// Идёт запись видео; [_elapsed] — её длительность (таймер сверху).
+  bool _recording = false;
+  Duration _elapsed = Duration.zero;
+  Timer? _timer;
+
+  /// Идёт запуск контроллера после возврата из фона (в т.ч. после системного
+  /// запроса микрофона) — пересоздание со звуком ждёт его, чтобы не поднять
+  /// два контроллера на одной камере.
+  Future<void>? _resuming;
+
+  /// Контроллер пересоздаётся со звуком — возврат из фона его не запускает.
+  bool _reconfiguring = false;
+
   /// Разрешить `Navigator.pop` (через [PopScope]). Ставится в `true` только
   /// после того, как контроллер камеры освобождён в [_leave].
   bool _canPop = false;
@@ -59,6 +85,7 @@ class _CameraScreenCupertinoState extends State<CameraScreenCupertino> with Widg
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _timer?.cancel();
     _cameraController?.dispose();
     super.dispose();
   }
@@ -74,11 +101,18 @@ class _CameraScreenCupertinoState extends State<CameraScreenCupertino> with Widg
       case AppLifecycleState.hidden:
         final previous = _cameraController;
         if (previous != null) {
-          setState(() => _cameraController = null);
+          // Запись обрывается вместе с сессией — видео не сохраняется.
+          _stopTimer();
+          setState(() {
+            _cameraController = null;
+            _recording = false;
+          });
           previous.dispose();
         }
       case AppLifecycleState.resumed:
-        if (_cameraController == null) _startCamera(_cameraIndex);
+        if (_cameraController == null && _resuming == null && !_reconfiguring) {
+          _resuming = _startCamera(_cameraIndex).whenComplete(() => _resuming = null);
+        }
       case AppLifecycleState.detached:
         break;
     }
@@ -109,9 +143,11 @@ class _CameraScreenCupertinoState extends State<CameraScreenCupertino> with Widg
   /// Предыдущий контроллер должен быть уже освобождён вызывающей стороной.
   Future<void> _startCamera(int index) async {
     try {
-      final controller = CameraController(_cameras[index], ResolutionPreset.high, enableAudio: false);
+      final controller = CameraController(_cameras[index], ResolutionPreset.high, enableAudio: _audio);
       await controller.initialize();
       await controller.setFlashMode(_flashMode);
+      // Без этого первая запись на iOS стартует с задержкой.
+      if (_audio) await controller.prepareForVideoRecording();
       if (!mounted) {
         await controller.dispose();
         return;
@@ -137,15 +173,88 @@ class _CameraScreenCupertinoState extends State<CameraScreenCupertino> with Widg
     await _startCamera(next);
   }
 
-  /// Циклически переключает режим вспышки и применяет его к контроллеру.
+  /// Циклически переключает режим вспышки и применяет его к контроллеру. В
+  /// режиме «Видео» — фонарик: вкл / выкл.
   Future<void> _cycleFlash() async {
-    final next = switch (_flashMode) {
-      FlashMode.off => FlashMode.auto,
-      FlashMode.auto => FlashMode.always,
-      _ => FlashMode.off,
-    };
+    final next = _videoMode
+        ? (_flashMode == FlashMode.torch ? FlashMode.off : FlashMode.torch)
+        : switch (_flashMode) {
+            FlashMode.off => FlashMode.auto,
+            FlashMode.auto => FlashMode.always,
+            _ => FlashMode.off,
+          };
     setState(() => _flashMode = next);
     await _cameraController?.setFlashMode(next);
+  }
+
+  /// «Фото» ⇄ «Видео». Первый переход в «Видео» запрашивает микрофон и
+  /// пересоздаёт контроллер со звуком (без доступа — видео без звука).
+  Future<void> _setVideoMode(bool video) async {
+    if (_recording || video == _videoMode) return;
+    setState(() => _videoMode = video);
+    // Вспышка фото и фонарик видео — разные режимы: начинаем с выключенной.
+    if (_flashMode != FlashMode.off) {
+      setState(() => _flashMode = FlashMode.off);
+      await _cameraController?.setFlashMode(FlashMode.off);
+    }
+    if (!video || _audio) return;
+    final mic = await Permission.microphone.request();
+    if (!mic.isGranted || !mounted || !_videoMode) return;
+    _audio = true;
+    _reconfiguring = true;
+    try {
+      await _resuming;
+      if (!mounted) return;
+      final previous = _cameraController;
+      setState(() => _cameraController = null);
+      await previous?.dispose();
+      await _startCamera(_cameraIndex);
+    } finally {
+      _reconfiguring = false;
+    }
+  }
+
+  /// Затвор в режиме «Видео»: начать запись / остановить и вернуть файл.
+  Future<void> _toggleRecording() async {
+    final c = _cameraController;
+    if (_capturing || c == null || !c.value.isInitialized) return;
+    if (!_recording) {
+      try {
+        await c.startVideoRecording();
+      } catch (_) {
+        return;
+      }
+      if (!mounted) return;
+      setState(() {
+        _recording = true;
+        _elapsed = Duration.zero;
+      });
+      final started = DateTime.now();
+      _timer = Timer.periodic(const Duration(milliseconds: 250), (_) {
+        if (mounted) setState(() => _elapsed = DateTime.now().difference(started));
+      });
+      return;
+    }
+    setState(() => _capturing = true);
+    _stopTimer();
+    try {
+      final video = await c.stopVideoRecording();
+      if (!mounted) return;
+      _recording = false;
+      await _leave(XFile(video.path));
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _capturing = false;
+          _recording = false;
+        });
+      }
+    }
+  }
+
+  void _stopTimer() {
+    _timer?.cancel();
+    _timer = null;
   }
 
   /// Снимает кадр и возвращает его вызывающей стороне.
@@ -171,6 +280,14 @@ class _CameraScreenCupertinoState extends State<CameraScreenCupertino> with Widg
     if (_leaving) return;
     _leaving = true;
     final c = _cameraController;
+    // Закрыли во время записи — останавливаем и выбрасываем.
+    if (_recording && c != null) {
+      _stopTimer();
+      _recording = false;
+      try {
+        await c.stopVideoRecording();
+      } catch (_) {}
+    }
     if (c != null) {
       setState(() => _cameraController = null);
       await c.dispose();
@@ -183,6 +300,7 @@ class _CameraScreenCupertinoState extends State<CameraScreenCupertino> with Widg
   FaIconData get _flashIcon => switch (_flashMode) {
     FlashMode.off => FontAwesomeIcons.boltLightning,
     FlashMode.auto => FontAwesomeIcons.bolt,
+    FlashMode.torch => FontAwesomeIcons.lightbulb,
     _ => FontAwesomeIcons.bolt,
   };
 
@@ -247,11 +365,16 @@ class _CameraScreenCupertinoState extends State<CameraScreenCupertino> with Widg
           _fullPreview(controller)
         else
           const Center(child: CupertinoActivityIndicator(color: CupertinoColors.white, radius: 14)),
-        // Верхняя панель: только закрыть (слева).
+        // Верхняя панель: закрыть (слева), во время записи — таймер по центру.
         SafeArea(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            child: Align(alignment: Alignment.topLeft, child: _closeButton(context)),
+            child: Stack(
+              children: [
+                Align(alignment: Alignment.topLeft, child: _closeButton(context)),
+                if (_recording) Align(alignment: Alignment.topCenter, child: _recordingTimer()),
+              ],
+            ),
           ),
         ),
         // Нижняя панель: смена камеры слева + затвор по центру + вспышка справа.
@@ -260,12 +383,21 @@ class _CameraScreenCupertinoState extends State<CameraScreenCupertino> with Widg
             alignment: Alignment.bottomCenter,
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 32).copyWith(bottom: 32),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  _cameras.length > 1 ? _roundButton(icon: FontAwesomeIcons.cameraRotate, onTap: _switchCamera) : const SizedBox(width: 44),
-                  _shutterButton(),
-                  _roundButton(icon: _flashIcon, onTap: _cycleFlash, active: _flashMode != FlashMode.off),
+                  if (widget.allowVideo) _modeSwitch(context),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      // Во время записи камеру не переключаем.
+                      _cameras.length > 1 && !_recording
+                          ? _roundButton(icon: FontAwesomeIcons.cameraRotate, onTap: _switchCamera)
+                          : const SizedBox(width: 44),
+                      _shutterButton(),
+                      _roundButton(icon: _flashIcon, onTap: _cycleFlash, active: _flashMode != FlashMode.off),
+                    ],
+                  ),
                 ],
               ),
             ),
@@ -304,7 +436,7 @@ class _CameraScreenCupertinoState extends State<CameraScreenCupertino> with Widg
   /// индикатор.
   Widget _shutterButton() {
     return GestureDetector(
-      onTap: _capture,
+      onTap: _videoMode ? _toggleRecording : _capture,
       behavior: HitTestBehavior.opaque,
       child: Container(
         width: 72,
@@ -316,10 +448,16 @@ class _CameraScreenCupertinoState extends State<CameraScreenCupertino> with Widg
         ),
         child: _capturing
             ? const CupertinoActivityIndicator(color: CupertinoColors.white, radius: 12)
-            : Container(
-                width: 56,
-                height: 56,
-                decoration: const BoxDecoration(color: CupertinoColors.white, shape: BoxShape.circle),
+            // Фото — белый круг; видео — красный круг, во время записи —
+            // красный скруглённый квадрат («стоп»).
+            : AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                width: _recording ? 28 : 56,
+                height: _recording ? 28 : 56,
+                decoration: BoxDecoration(
+                  color: _videoMode ? CupertinoColors.systemRed : CupertinoColors.white,
+                  borderRadius: BorderRadius.circular(_recording ? 6 : 28),
+                ),
               ),
       ),
     );
@@ -335,6 +473,65 @@ class _CameraScreenCupertinoState extends State<CameraScreenCupertino> with Widg
         alignment: Alignment.center,
         decoration: BoxDecoration(color: CupertinoColors.black.withValues(alpha: 0.45), shape: BoxShape.circle),
         child: FaIcon(icon, size: 18, color: active ? CupertinoColors.systemYellow : CupertinoColors.white),
+      ),
+    );
+  }
+
+  /// «Фото / Видео» над затвором (как в системной камере); во время записи
+  /// скрыт. Тап по подписи — смена режима.
+  Widget _modeSwitch(BuildContext context) {
+    final t = context.t.componentsCamera;
+    Widget label(String text, bool video) => GestureDetector(
+      onTap: () => _setVideoMode(video),
+      behavior: HitTestBehavior.opaque,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        child: Text(
+          text.toUpperCase(),
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0.8,
+            color: _videoMode == video ? CupertinoColors.systemYellow : CupertinoColors.white,
+          ),
+        ),
+      ),
+    );
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 14),
+      child: AnimatedOpacity(
+        opacity: _recording ? 0 : 1,
+        duration: const Duration(milliseconds: 150),
+        child: IgnorePointer(
+          ignoring: _recording,
+          child: Row(mainAxisSize: MainAxisSize.min, children: [label(t.photo, false), label(t.video, true)]),
+        ),
+      ),
+    );
+  }
+
+  /// Длительность записи: красная точка и «0:12».
+  Widget _recordingTimer() {
+    final seconds = _elapsed.inSeconds;
+    final text = '${seconds ~/ 60}:${(seconds % 60).toString().padLeft(2, '0')}';
+    return Container(
+      margin: const EdgeInsets.only(top: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(color: CupertinoColors.black.withValues(alpha: 0.45), borderRadius: BorderRadius.circular(14)),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 8,
+            height: 8,
+            decoration: BoxDecoration(color: CupertinoColors.systemRed, shape: BoxShape.circle),
+          ),
+          const SizedBox(width: 6),
+          Text(
+            text,
+            style: TextStyle(color: CupertinoColors.white, fontSize: 15, fontFeatures: const [FontFeature.tabularFigures()]),
+          ),
+        ],
       ),
     );
   }

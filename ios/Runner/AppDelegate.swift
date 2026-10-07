@@ -44,6 +44,12 @@ import flutter_callkit_incoming
       PushBridge.shared.attach(messenger: messenger)
     }
 
+    // Сжатие видео перед отправкой в чат. См. VideoCompressor и
+    // lib/chats/video_prepare.dart.
+    if let messenger = engineBridge.pluginRegistry.registrar(forPlugin: "IperonVideo")?.messenger() {
+      VideoCompressor.shared.attach(messenger: messenger)
+    }
+
     // PlatformView системного пикера аудио-маршрутов (AVRoutePickerView) для
     // экрана звонка — «полный» выбор выхода на iOS (iPhone/Speaker/BT/CarPlay/
     // AirPlay). См. RoutePickerViewFactory и lib/components/calls/route_picker_button.dart.
@@ -52,6 +58,13 @@ import flutter_callkit_incoming
         RoutePickerViewFactory(messenger: registrar.messenger()),
         withId: "net.iperon.messenger/route_picker"
       )
+    }
+
+    // iOS Picture-in-Picture видеозвонка: мини-окно с видео собеседника при
+    // сворачивании приложения. Канал net.iperon.messenger/call_pip_ios, драйвится
+    // из lib/call_pip_ios.dart. См. CallPipController.
+    if let messenger = engineBridge.pluginRegistry.registrar(forPlugin: "IperonCallPip")?.messenger() {
+      CallPipController.shared().register(with: messenger)
     }
 
     // Канал явной активации AVAudioSession на пути без CallKit

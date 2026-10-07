@@ -55,6 +55,8 @@ class _SettingsMyProfileMaterial extends State<SettingsMyProfileMaterial> {
         logger.debug('Выбрано медиа: ${files.map((f) => f.path).join(', ')}');
       case ToolbarAttachmentEmojiResult(:final emoji):
         logger.debug('Выбран эмодзи-аватар: $emoji');
+      case ToolbarAttachmentPollResult():
+        break; // у аватара таба «Опрос» нет
       case ToolbarAttachmentLinkResult(:final url):
         logger.debug('Выбран аватар по ссылке: $url');
     }

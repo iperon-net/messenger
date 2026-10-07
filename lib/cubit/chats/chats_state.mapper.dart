@@ -15,6 +15,8 @@ class ChatsStateMapper extends ClassMapperBase<ChatsState> {
   static ChatsStateMapper ensureInitialized() {
     if (_instance == null) {
       MapperContainer.globals.use(_instance = ChatsStateMapper._());
+      models.ChatMapper.ensureInitialized();
+      models.ChatFolderMapper.ensureInitialized();
     }
     return _instance!;
   }
@@ -44,12 +46,52 @@ class ChatsStateMapper extends ClassMapperBase<ChatsState> {
     opt: true,
     def: false,
   );
+  static bool _$demo(ChatsState v) => v.demo;
+  static const Field<ChatsState, bool> _f$demo = Field(
+    'demo',
+    _$demo,
+    opt: true,
+    def: false,
+  );
+  static List<models.Chat> _$chats(ChatsState v) => v.chats;
+  static const Field<ChatsState, List<models.Chat>> _f$chats = Field(
+    'chats',
+    _$chats,
+    opt: true,
+    def: const [],
+  );
+  static List<models.ChatFolder> _$folders(ChatsState v) => v.folders;
+  static const Field<ChatsState, List<models.ChatFolder>> _f$folders = Field(
+    'folders',
+    _$folders,
+    opt: true,
+    def: const [],
+  );
+  static int _$folderIndex(ChatsState v) => v.folderIndex;
+  static const Field<ChatsState, int> _f$folderIndex = Field(
+    'folderIndex',
+    _$folderIndex,
+    opt: true,
+    def: 0,
+  );
+  static String _$query(ChatsState v) => v.query;
+  static const Field<ChatsState, String> _f$query = Field(
+    'query',
+    _$query,
+    opt: true,
+    def: '',
+  );
 
   @override
   final MappableFields<ChatsState> fields = const {
     #status: _f$status,
     #notificationsMissing: _f$notificationsMissing,
     #notificationsBannerDismissed: _f$notificationsBannerDismissed,
+    #demo: _f$demo,
+    #chats: _f$chats,
+    #folders: _f$folders,
+    #folderIndex: _f$folderIndex,
+    #query: _f$query,
   };
 
   static ChatsState _instantiate(DecodingData data) {
@@ -57,6 +99,11 @@ class ChatsStateMapper extends ClassMapperBase<ChatsState> {
       status: data.dec(_f$status),
       notificationsMissing: data.dec(_f$notificationsMissing),
       notificationsBannerDismissed: data.dec(_f$notificationsBannerDismissed),
+      demo: data.dec(_f$demo),
+      chats: data.dec(_f$chats),
+      folders: data.dec(_f$folders),
+      folderIndex: data.dec(_f$folderIndex),
+      query: data.dec(_f$query),
     );
   }
 
@@ -120,10 +167,27 @@ extension ChatsStateValueCopy<$R, $Out>
 
 abstract class ChatsStateCopyWith<$R, $In extends ChatsState, $Out>
     implements ClassCopyWith<$R, $In, $Out> {
+  ListCopyWith<
+    $R,
+    models.Chat,
+    models.ChatCopyWith<$R, models.Chat, models.Chat>
+  >
+  get chats;
+  ListCopyWith<
+    $R,
+    models.ChatFolder,
+    models.ChatFolderCopyWith<$R, models.ChatFolder, models.ChatFolder>
+  >
+  get folders;
   $R call({
     Status? status,
     bool? notificationsMissing,
     bool? notificationsBannerDismissed,
+    bool? demo,
+    List<models.Chat>? chats,
+    List<models.ChatFolder>? folders,
+    int? folderIndex,
+    String? query,
   });
   ChatsStateCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
@@ -137,10 +201,37 @@ class _ChatsStateCopyWithImpl<$R, $Out>
   late final ClassMapperBase<ChatsState> $mapper =
       ChatsStateMapper.ensureInitialized();
   @override
+  ListCopyWith<
+    $R,
+    models.Chat,
+    models.ChatCopyWith<$R, models.Chat, models.Chat>
+  >
+  get chats => ListCopyWith(
+    $value.chats,
+    (v, t) => v.copyWith.$chain(t),
+    (v) => call(chats: v),
+  );
+  @override
+  ListCopyWith<
+    $R,
+    models.ChatFolder,
+    models.ChatFolderCopyWith<$R, models.ChatFolder, models.ChatFolder>
+  >
+  get folders => ListCopyWith(
+    $value.folders,
+    (v, t) => v.copyWith.$chain(t),
+    (v) => call(folders: v),
+  );
+  @override
   $R call({
     Status? status,
     bool? notificationsMissing,
     bool? notificationsBannerDismissed,
+    bool? demo,
+    List<models.Chat>? chats,
+    List<models.ChatFolder>? folders,
+    int? folderIndex,
+    String? query,
   }) => $apply(
     FieldCopyWithData({
       if (status != null) #status: status,
@@ -148,6 +239,11 @@ class _ChatsStateCopyWithImpl<$R, $Out>
         #notificationsMissing: notificationsMissing,
       if (notificationsBannerDismissed != null)
         #notificationsBannerDismissed: notificationsBannerDismissed,
+      if (demo != null) #demo: demo,
+      if (chats != null) #chats: chats,
+      if (folders != null) #folders: folders,
+      if (folderIndex != null) #folderIndex: folderIndex,
+      if (query != null) #query: query,
     }),
   );
   @override
@@ -161,6 +257,11 @@ class _ChatsStateCopyWithImpl<$R, $Out>
       #notificationsBannerDismissed,
       or: $value.notificationsBannerDismissed,
     ),
+    demo: data.get(#demo, or: $value.demo),
+    chats: data.get(#chats, or: $value.chats),
+    folders: data.get(#folders, or: $value.folders),
+    folderIndex: data.get(#folderIndex, or: $value.folderIndex),
+    query: data.get(#query, or: $value.query),
   );
 
   @override

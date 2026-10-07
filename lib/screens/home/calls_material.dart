@@ -27,9 +27,7 @@ class CallsMaterial extends StatefulWidget {
   State<CallsMaterial> createState() => _CallsMaterialState();
 }
 
-class _CallsMaterialState extends State<CallsMaterial> with WidgetsBindingObserver {
-  final _searchController = TextEditingController();
-
+class _CallsMaterialState extends State<CallsMaterial> with WidgetsBindingObserver, SearchHideOnScroll {
   @override
   void initState() {
     super.initState();
@@ -45,7 +43,6 @@ class _CallsMaterialState extends State<CallsMaterial> with WidgetsBindingObserv
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    _searchController.dispose();
     super.dispose();
   }
 
@@ -88,22 +85,21 @@ class _CallsMaterialState extends State<CallsMaterial> with WidgetsBindingObserv
           ),
         ],
       ),
-      body: Column(
-        children: [
-          // Поле поиска — вне BlocBuilder, чтобы не терять фокус на каждый emit.
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                prefixIcon: const Icon(Icons.search),
-                hintText: context.t.screenCalls.search,
-                border: const OutlineInputBorder(),
-                isDense: true,
-              ),
-              onChanged: (value) => context.read<CallsCubit>().search(value),
-            ),
+      body: searchHideOnScrollBody(
+        // Шапка (поиск, баннеры, фильтр) поверх списка: поиск уезжает вместе со
+        // списком, как в Telegram (см. SearchHideOnScroll).
+        background: background,
+        // Поле поиска — вне BlocBuilder, чтобы не терять фокус на каждый emit.
+        search: Padding(
+          padding: const EdgeInsets.fromLTRB(12, 4, 12, 8),
+          child: SearchFieldMaterial(
+            controller: searchController,
+            focusNode: searchFocus,
+            hintText: context.t.screenCalls.search,
+            onChanged: (value) => context.read<CallsCubit>().search(value),
           ),
+        ),
+        header: [
           // Мягкий баннер-объяснение о разрешениях звонков. Виден, только пока
           // чего-то не хватает и пользователь его не закрыл; историю не блокирует.
           BlocSelector<CallsCubit, CallsState, ({bool show, bool mic, bool notif})>(
@@ -148,32 +144,27 @@ class _CallsMaterialState extends State<CallsMaterial> with WidgetsBindingObserv
               );
             },
           ),
-          Expanded(
-            child: BlocBuilder<CallsCubit, CallsState>(
-              builder: (context, state) {
-                final items = _visible(context, state);
-                return Column(
-                  children: [
-                    if (state.calls.isNotEmpty)
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
-                        child: SegmentedButton<CallsFilter>(
-                          showSelectedIcon: false,
-                          segments: [
-                            ButtonSegment(value: CallsFilter.all, label: Text(context.t.screenCalls.filterAll)),
-                            ButtonSegment(value: CallsFilter.missed, label: Text(context.t.screenCalls.filterMissed)),
-                          ],
-                          selected: {state.filter},
-                          onSelectionChanged: (selection) => context.read<CallsCubit>().setFilter(selection.first),
-                        ),
-                      ),
-                    Expanded(child: _list(context, state, items)),
+          BlocBuilder<CallsCubit, CallsState>(
+            buildWhen: (previous, current) => previous.filter != current.filter || previous.calls.isEmpty != current.calls.isEmpty,
+            builder: (context, state) {
+              if (state.calls.isEmpty) return const SizedBox.shrink();
+              return Padding(
+                padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
+                // Те же табы, что папки на «Чатах» (без свайпа: строки журнала
+                // свайпом удаляются).
+                child: ChatFolderTabsMaterial(
+                  selectedIndex: CallsFilter.values.indexOf(state.filter),
+                  tabs: [
+                    ChatFolderTab(title: context.t.screenCalls.filterAll),
+                    ChatFolderTab(title: context.t.screenCalls.filterMissed),
                   ],
-                );
-              },
-            ),
+                  onTap: (index) => context.read<CallsCubit>().setFilter(CallsFilter.values[index]),
+                ),
+              );
+            },
           ),
         ],
+        body: BlocBuilder<CallsCubit, CallsState>(builder: (context, state) => _list(context, state, _visible(context, state))),
       ),
     );
   }
@@ -194,15 +185,16 @@ class _CallsMaterialState extends State<CallsMaterial> with WidgetsBindingObserv
       final text = state.filter == CallsFilter.missed && state.query.isEmpty
           ? context.t.screenCalls.emptyMissed
           : context.t.screenCalls.empty;
-      return Center(
-        child: Padding(
+      return searchListView(
+        empty: Padding(
           padding: const EdgeInsets.all(32),
           child: Text(text, textAlign: TextAlign.center),
         ),
       );
     }
 
-    return ListView.builder(itemCount: items.length, itemBuilder: (context, index) => _tile(context, state, items[index]));
+    // Отступ сверху под шапку — строки проезжают под ней.
+    return searchListView(itemCount: items.length, itemBuilder: (context, index) => _tile(context, state, items[index]));
   }
 
   Widget _tile(BuildContext context, CallsState state, models.CallLog log) {

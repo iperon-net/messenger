@@ -46,10 +46,17 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	late final Translations$componentsCamera$en componentsCamera = Translations$componentsCamera$en.internal(_root);
 	late final Translations$screenHome$en screenHome = Translations$screenHome$en.internal(_root);
 	late final Translations$screenChats$en screenChats = Translations$screenChats$en.internal(_root);
+	late final Translations$screenNewChat$en screenNewChat = Translations$screenNewChat$en.internal(_root);
+	late final Translations$screenChatInvites$en screenChatInvites = Translations$screenChatInvites$en.internal(_root);
+	late final Translations$screenChatAdmins$en screenChatAdmins = Translations$screenChatAdmins$en.internal(_root);
+	late final Translations$screenPoll$en screenPoll = Translations$screenPoll$en.internal(_root);
+	late final Translations$screenChat$en screenChat = Translations$screenChat$en.internal(_root);
 	late final Translations$screenSettings$en screenSettings = Translations$screenSettings$en.internal(_root);
 	late final Translations$screenSettingsNotifications$en screenSettingsNotifications = Translations$screenSettingsNotifications$en.internal(_root);
 	late final Translations$screenDeveloper$en screenDeveloper = Translations$screenDeveloper$en.internal(_root);
 	late final Translations$screenSettingsAppearance$en screenSettingsAppearance = Translations$screenSettingsAppearance$en.internal(_root);
+	late final Translations$screenChatInfo$en screenChatInfo = Translations$screenChatInfo$en.internal(_root);
+	late final Translations$screenChatThemes$en screenChatThemes = Translations$screenChatThemes$en.internal(_root);
 	late final Translations$screenSettingsDevices$en screenSettingsDevices = Translations$screenSettingsDevices$en.internal(_root);
 	late final Translations$screenSettingsAboutApplication$en screenSettingsAboutApplication = Translations$screenSettingsAboutApplication$en.internal(_root);
 	late final Translations$screenSettingsLanguage$en screenSettingsLanguage = Translations$screenSettingsLanguage$en.internal(_root);
@@ -163,6 +170,12 @@ class Translations$componentsCamera$en {
 
 	/// en: 'Open settings'
 	String get openSettings => 'Open settings';
+
+	/// en: 'Photo'
+	String get photo => 'Photo';
+
+	/// en: 'Video'
+	String get video => 'Video';
 }
 
 // Path: screenHome
@@ -205,6 +218,1083 @@ class Translations$screenChats$en {
 
 	/// en: 'Allow'
 	String get allowAccess => 'Allow';
+
+	/// en: 'All chats'
+	String get allFolder => 'All chats';
+
+	/// en: 'Search'
+	String get search => 'Search';
+
+	/// en: 'No chats yet'
+	String get empty => 'No chats yet';
+
+	/// en: 'No chats in this folder yet'
+	String get emptyFolder => 'No chats in this folder yet';
+
+	/// en: 'Archive is empty'
+	String get emptyArchive => 'Archive is empty';
+
+	/// en: 'Archive'
+	String get archive => 'Archive';
+
+	/// en: 'Saved Messages'
+	String get savedMessages => 'Saved Messages';
+
+	/// en: 'Draft:'
+	String get draft => 'Draft:';
+
+	/// en: 'typing…'
+	String get typing => 'typing…';
+
+	/// en: '{name} is typing…'
+	String typingName({required Object name}) => '${name} is typing…';
+
+	/// en: 'Photo'
+	String get photo => 'Photo';
+
+	/// en: 'Video'
+	String get video => 'Video';
+
+	/// en: 'File'
+	String get file => 'File';
+
+	/// en: 'Voice message'
+	String get voice => 'Voice message';
+
+	/// en: 'Pin'
+	String get pin => 'Pin';
+
+	/// en: 'Unpin'
+	String get unpin => 'Unpin';
+
+	/// en: 'Mark as read'
+	String get markRead => 'Mark as read';
+
+	/// en: 'Mark as unread'
+	String get markUnread => 'Mark as unread';
+
+	/// en: 'Mute'
+	String get mute => 'Mute';
+
+	/// en: 'Unmute'
+	String get unmute => 'Unmute';
+
+	/// en: 'Mute Notifications'
+	String get muteTitle => 'Mute Notifications';
+
+	/// en: 'For 1 Hour'
+	String get muteHour => 'For 1 Hour';
+
+	/// en: 'For 8 Hours'
+	String get mute8Hours => 'For 8 Hours';
+
+	/// en: 'For 2 Days'
+	String get mute2Days => 'For 2 Days';
+
+	/// en: 'Forever'
+	String get muteForever => 'Forever';
+
+	/// en: 'until {time}'
+	String mutedUntil({required Object time}) => 'until ${time}';
+
+	/// en: 'Archive'
+	String get toArchive => 'Archive';
+
+	/// en: 'Unarchive'
+	String get fromArchive => 'Unarchive';
+
+	/// en: 'Delete'
+	String get delete => 'Delete';
+
+	/// en: 'Read'
+	String get swipeRead => 'Read';
+
+	/// en: 'Unread'
+	String get swipeUnread => 'Unread';
+
+	/// en: 'Mute'
+	String get swipeMute => 'Mute';
+
+	/// en: 'Unmute'
+	String get swipeUnmute => 'Unmute';
+
+	/// en: 'Archive'
+	String get swipeArchive => 'Archive';
+
+	/// en: 'Unarchive'
+	String get swipeUnarchive => 'Unarchive';
+
+	/// en: 'Delete chat?'
+	String get deleteChatTitle => 'Delete chat?';
+
+	/// en: 'Chat "{title}" will be removed from the list.'
+	String deleteChatMessage({required Object title}) => 'Chat "${title}" will be removed from the list.';
+
+	/// en: 'Read all'
+	String get readAll => 'Read all';
+
+	/// en: 'Delete folder'
+	String get deleteFolder => 'Delete folder';
+
+	/// en: 'Delete folder "{title}"?'
+	String deleteFolderTitle({required Object title}) => 'Delete folder "${title}"?';
+
+	/// en: 'Chats in the folder are not deleted.'
+	String get deleteFolderMessage => 'Chats in the folder are not deleted.';
+}
+
+// Path: screenNewChat
+class Translations$screenNewChat$en {
+	Translations$screenNewChat$en.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// en: 'New Message'
+	String get title => 'New Message';
+
+	/// en: 'Search'
+	String get search => 'Search';
+
+	/// en: 'New Group'
+	String get newGroup => 'New Group';
+
+	/// en: 'New Channel'
+	String get newChannel => 'New Channel';
+
+	/// en: 'New Community'
+	String get newCommunity => 'New Community';
+
+	/// en: 'Contacts'
+	String get contacts => 'Contacts';
+
+	/// en: 'No contacts found'
+	String get noContacts => 'No contacts found';
+
+	/// en: 'Add Members'
+	String get addMembers => 'Add Members';
+
+	/// en: 'Next'
+	String get next => 'Next';
+
+	/// en: 'Selected: {n}'
+	String selected({required Object n}) => 'Selected: ${n}';
+
+	/// en: 'You can create a group without members and invite them later.'
+	String get noMembersHint => 'You can create a group without members and invite them later.';
+
+	/// en: 'New Group'
+	String get groupTitle => 'New Group';
+
+	/// en: 'New Channel'
+	String get channelTitle => 'New Channel';
+
+	/// en: 'New Community'
+	String get communityTitle => 'New Community';
+
+	/// en: 'Create'
+	String get create => 'Create';
+
+	/// en: 'Group Name'
+	String get groupName => 'Group Name';
+
+	/// en: 'Channel Name'
+	String get channelName => 'Channel Name';
+
+	/// en: 'Community Name'
+	String get communityName => 'Community Name';
+
+	/// en: 'Description'
+	String get description => 'Description';
+
+	/// en: 'Optional'
+	String get descriptionHint => 'Optional';
+
+	/// en: 'Tell subscribers what the channel is about.'
+	String get channelDescriptionFooter => 'Tell subscribers what the channel is about.';
+
+	/// en: 'A community brings together your groups and channels.'
+	String get communityDescriptionFooter => 'A community brings together your groups and channels.';
+
+	/// en: 'Members'
+	String get members => 'Members';
+
+	/// en: 'Set Photo'
+	String get setPhoto => 'Set Photo';
+
+	/// en: 'Change Photo'
+	String get changePhoto => 'Change Photo';
+
+	/// en: 'Remove Photo'
+	String get removePhoto => 'Remove Photo';
+
+	/// en: 'Edit Photo'
+	String get editPhoto => 'Edit Photo';
+
+	/// en: 'Type'
+	String get type => 'Type';
+
+	/// en: 'Public'
+	String get typePublic => 'Public';
+
+	/// en: 'Private'
+	String get typePrivate => 'Private';
+
+	/// en: 'Anyone can find a public channel in search and subscribe.'
+	String get channelPublicFooter => 'Anyone can find a public channel in search and subscribe.';
+
+	/// en: 'Private channels can only be joined via an invite link.'
+	String get channelPrivateFooter => 'Private channels can only be joined via an invite link.';
+
+	/// en: 'Anyone can find a public community in search and join it.'
+	String get communityPublicFooter => 'Anyone can find a public community in search and join it.';
+
+	/// en: 'Private communities can only be joined via an invite link.'
+	String get communityPrivateFooter => 'Private communities can only be joined via an invite link.';
+
+	/// en: 'Link'
+	String get link => 'Link';
+
+	/// en: 'name'
+	String get usernameHint => 'name';
+
+	/// en: 'Checking…'
+	String get usernameChecking => 'Checking…';
+
+	/// en: 'This link is available.'
+	String get usernameAvailable => 'This link is available.';
+
+	/// en: 'This link is already taken.'
+	String get usernameTaken => 'This link is already taken.';
+
+	/// en: '5–24 characters: Latin letters a–z, digits and _.'
+	String get usernameInvalid => '5–24 characters: Latin letters a–z, digits and _.';
+
+	/// en: 'Pick a link people will use to find it.'
+	String get usernameEmpty => 'Pick a link people will use to find it.';
+
+	/// en: 'Invite Link'
+	String get inviteLink => 'Invite Link';
+
+	/// en: 'Anyone with this link can join. Tap to copy.'
+	String get inviteLinkFooter => 'Anyone with this link can join. Tap to copy.';
+
+	/// en: 'Link copied'
+	String get copied => 'Link copied';
+
+	/// en: 'Comments'
+	String get commentsSwitch => 'Comments';
+
+	/// en: 'Subscribers can discuss each post in its comments.'
+	String get commentsFooter => 'Subscribers can discuss each post in its comments.';
+
+	/// en: 'Sign Messages'
+	String get signSwitch => 'Sign Messages';
+
+	/// en: 'With signatures, posts show the name of the admin who published them.'
+	String get signFooter => 'With signatures, posts show the name of the admin who published them.';
+
+	/// en: 'Hide Members'
+	String get hideMembers => 'Hide Members';
+
+	/// en: 'Hide Subscribers'
+	String get hideSubscribers => 'Hide Subscribers';
+
+	/// en: 'Only admins will see the list.'
+	String get hideMembersFooter => 'Only admins will see the list.';
+
+	/// en: 'Joining'
+	String get joinHeader => 'Joining';
+
+	/// en: 'Open'
+	String get joinOpen => 'Open';
+
+	/// en: 'By Invite Link'
+	String get joinLink => 'By Invite Link';
+
+	/// en: 'By Request'
+	String get joinRequest => 'By Request';
+
+	/// en: 'Added by Admins'
+	String get joinAdmins => 'Added by Admins';
+
+	/// en: 'Anyone can find it in search and join.'
+	String get joinOpenFooter => 'Anyone can find it in search and join.';
+
+	/// en: 'Only people with the invite link can join.'
+	String get joinLinkFooter => 'Only people with the invite link can join.';
+
+	/// en: 'People with the invite link send a request; they join after an admin approves it.'
+	String get joinRequestFooter => 'People with the invite link send a request; they join after an admin approves it.';
+
+	/// en: 'Nobody can join on their own — admins add members.'
+	String get joinAdminsFooter => 'Nobody can join on their own — admins add members.';
+
+	/// en: 'New Members'
+	String get defaultRoleHeader => 'New Members';
+
+	/// en: 'Read Only'
+	String get roleReader => 'Read Only';
+
+	/// en: 'Can Send Messages'
+	String get roleWriter => 'Can Send Messages';
+
+	/// en: 'New members can read but not send messages.'
+	String get roleReaderFooter => 'New members can read but not send messages.';
+
+	/// en: 'New members can read and send messages.'
+	String get roleWriterFooter => 'New members can read and send messages.';
+}
+
+// Path: screenChatInvites
+class Translations$screenChatInvites$en {
+	Translations$screenChatInvites$en.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// en: 'Invite Links'
+	String get inviteLinks => 'Invite Links';
+
+	/// en: 'Join Requests'
+	String get joinRequests => 'Join Requests';
+
+	/// en: 'Primary Link'
+	String get primaryLink => 'Primary Link';
+
+	/// en: 'Public Link'
+	String get publicLink => 'Public Link';
+
+	/// en: 'The public link is changed in Edit. Additional links below work as invitations.'
+	String get publicLinkFooter => 'The public link is changed in Edit. Additional links below work as invitations.';
+
+	/// en: 'Anyone with the link can join.'
+	String get primaryFooter => 'Anyone with the link can join.';
+
+	/// en: 'Anyone with the link can subscribe.'
+	String get primaryFooterChannel => 'Anyone with the link can subscribe.';
+
+	/// en: 'People with the link send a join request that an admin approves.'
+	String get primaryFooterRequest => 'People with the link send a join request that an admin approves.';
+
+	/// en: 'Members are currently added by admins only — nobody can join via links. Change the joining method in Edit.'
+	String get adminsOnlyNote => 'Members are currently added by admins only — nobody can join via links. Change the joining method in Edit.';
+
+	/// en: 'Copy'
+	String get copy => 'Copy';
+
+	/// en: 'Share'
+	String get share => 'Share';
+
+	/// en: 'Replace Link'
+	String get replace => 'Replace Link';
+
+	/// en: 'Replace the link?'
+	String get replaceTitle => 'Replace the link?';
+
+	/// en: 'The current link will stop working, and a new one will be created.'
+	String get replaceMessage => 'The current link will stop working, and a new one will be created.';
+
+	/// en: 'Link copied'
+	String get copied => 'Link copied';
+
+	/// en: 'Create a New Link'
+	String get createLink => 'Create a New Link';
+
+	/// en: 'Additional Links'
+	String get additionalHeader => 'Additional Links';
+
+	/// en: 'Create links with an expiry date, a member limit or admin approval.'
+	String get additionalFooter => 'Create links with an expiry date, a member limit or admin approval.';
+
+	/// en: 'Revoked Links'
+	String get revokedHeader => 'Revoked Links';
+
+	/// en: 'Delete All Revoked Links'
+	String get deleteAllRevoked => 'Delete All Revoked Links';
+
+	/// en: 'Joined: {n}'
+	String joined({required Object n}) => 'Joined: ${n}';
+
+	/// en: '{n} left'
+	String left({required Object n}) => '${n} left';
+
+	/// en: 'until {date}'
+	String until({required Object date}) => 'until ${date}';
+
+	/// en: 'expired'
+	String get expired => 'expired';
+
+	/// en: 'limit reached'
+	String get exhausted => 'limit reached';
+
+	/// en: 'by request'
+	String get approval => 'by request';
+
+	/// en: 'Edit'
+	String get edit => 'Edit';
+
+	/// en: 'Revoke'
+	String get revoke => 'Revoke';
+
+	/// en: 'Revoke the link?'
+	String get revokeTitle => 'Revoke the link?';
+
+	/// en: 'Nobody will be able to join via this link.'
+	String get revokeMessage => 'Nobody will be able to join via this link.';
+
+	/// en: 'Delete'
+	String get delete => 'Delete';
+
+	/// en: 'New Link'
+	String get newLink => 'New Link';
+
+	/// en: 'Edit Link'
+	String get editLink => 'Edit Link';
+
+	/// en: 'Create'
+	String get create => 'Create';
+
+	/// en: 'Link Name'
+	String get name => 'Link Name';
+
+	/// en: 'Optional'
+	String get nameHint => 'Optional';
+
+	/// en: 'Only admins see the link name.'
+	String get nameFooter => 'Only admins see the link name.';
+
+	/// en: 'Request Admin Approval'
+	String get approvalTitle => 'Request Admin Approval';
+
+	/// en: 'People who follow the link send a request; an admin approves or declines it.'
+	String get approvalFooter => 'People who follow the link send a request; an admin approves or declines it.';
+
+	/// en: 'Expires'
+	String get expireHeader => 'Expires';
+
+	/// en: 'Never'
+	String get expireNever => 'Never';
+
+	/// en: 'In 1 hour'
+	String get expireHour => 'In 1 hour';
+
+	/// en: 'In 1 day'
+	String get expireDay => 'In 1 day';
+
+	/// en: 'In 1 week'
+	String get expireWeek => 'In 1 week';
+
+	/// en: 'Until {date}'
+	String expireCurrent({required Object date}) => 'Until ${date}';
+
+	/// en: 'Member Limit'
+	String get limitHeader => 'Member Limit';
+
+	/// en: 'No limit'
+	String get limitNone => 'No limit';
+
+	/// en: 'How many people can join via this link.'
+	String get limitFooter => 'How many people can join via this link.';
+
+	/// en: 'No join requests'
+	String get requestsEmpty => 'No join requests';
+
+	/// en: 'When someone asks to join, the request will appear here.'
+	String get requestsEmptyHint => 'When someone asks to join, the request will appear here.';
+
+	/// en: 'Accept'
+	String get approve => 'Accept';
+
+	/// en: 'Decline'
+	String get decline => 'Decline';
+
+	/// en: 'Accept All'
+	String get approveAll => 'Accept All';
+
+	/// en: 'Decline All'
+	String get declineAll => 'Decline All';
+
+	/// en: 'All'
+	String get all => 'All';
+
+	/// en: 'via “{title}”'
+	String viaLink({required Object title}) => 'via “${title}”';
+
+	/// en: 'Requests come when joining is set to “By Request” or via links with admin approval.'
+	String get requestsOffHint => 'Requests come when joining is set to “By Request” or via links with admin approval.';
+}
+
+// Path: screenChatAdmins
+class Translations$screenChatAdmins$en {
+	Translations$screenChatAdmins$en.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// en: 'Administrators'
+	String get admins => 'Administrators';
+
+	/// en: 'Add Admin'
+	String get addAdmin => 'Add Admin';
+
+	/// en: 'Admins help manage the chat. Each admin's rights are set separately.'
+	String get adminsFooter => 'Admins help manage the chat. Each admin\'s rights are set separately.';
+
+	/// en: 'Make Admin'
+	String get promote => 'Make Admin';
+
+	/// en: 'Admin Rights'
+	String get adminRights => 'Admin Rights';
+
+	/// en: 'New Admin'
+	String get newAdmin => 'New Admin';
+
+	/// en: 'What can this admin do?'
+	String get rightsHeader => 'What can this admin do?';
+
+	/// en: 'You can only grant the rights you have yourself.'
+	String get rightsFooterLimited => 'You can only grant the rights you have yourself.';
+
+	/// en: 'Change Info and Settings'
+	String get changeInfo => 'Change Info and Settings';
+
+	/// en: 'Post Messages'
+	String get postMessages => 'Post Messages';
+
+	/// en: 'Edit Others' Posts'
+	String get editMessages => 'Edit Others\' Posts';
+
+	/// en: 'Delete Others' Messages'
+	String get deleteMessages => 'Delete Others\' Messages';
+
+	/// en: 'Ban Users'
+	String get banUsers => 'Ban Users';
+
+	/// en: 'Invite Users via Link'
+	String get inviteUsers => 'Invite Users via Link';
+
+	/// en: 'Pin Messages'
+	String get pinMessages => 'Pin Messages';
+
+	/// en: 'Manage Voice Chats'
+	String get manageCalls => 'Manage Voice Chats';
+
+	/// en: 'Remain Anonymous'
+	String get anonymous => 'Remain Anonymous';
+
+	/// en: 'Add New Admins'
+	String get addAdmins => 'Add New Admins';
+
+	/// en: 'An anonymous admin's messages are signed with the group name.'
+	String get anonymousFooter => 'An anonymous admin\'s messages are signed with the group name.';
+
+	/// en: 'Custom Title'
+	String get rankHeader => 'Custom Title';
+
+	/// en: 'admin'
+	String get rankHint => 'admin';
+
+	/// en: 'Shown instead of “admin” in the member list.'
+	String get rankFooter => 'Shown instead of “admin” in the member list.';
+
+	/// en: 'Dismiss Admin'
+	String get dismiss => 'Dismiss Admin';
+
+	/// en: 'Dismiss {name}?'
+	String dismissTitle({required Object name}) => 'Dismiss ${name}?';
+
+	/// en: 'They will stay in the chat without admin rights.'
+	String get dismissMessage => 'They will stay in the chat without admin rights.';
+
+	/// en: 'Transfer Ownership'
+	String get transfer => 'Transfer Ownership';
+
+	/// en: 'Transfer ownership to {name}?'
+	String transferTitle({required Object name}) => 'Transfer ownership to ${name}?';
+
+	/// en: '{name} will become the owner and you will remain an admin with all rights. Only the new owner can undo this.'
+	String transferMessage({required Object name}) => '${name} will become the owner and you will remain an admin with all rights. Only the new owner can undo this.';
+
+	/// en: 'Choose a Member'
+	String get pickMember => 'Choose a Member';
+
+	/// en: 'Nobody to promote — everyone is already an admin.'
+	String get noCandidates => 'Nobody to promote — everyone is already an admin.';
+}
+
+// Path: screenPoll
+class Translations$screenPoll$en {
+	Translations$screenPoll$en.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// en: 'New Poll'
+	String get newPoll => 'New Poll';
+
+	/// en: 'Question'
+	String get question => 'Question';
+
+	/// en: 'Ask a question'
+	String get questionHint => 'Ask a question';
+
+	/// en: 'Answer Options'
+	String get options => 'Answer Options';
+
+	/// en: 'Option'
+	String get optionHint => 'Option';
+
+	/// en: 'Add an Option'
+	String get addOption => 'Add an Option';
+
+	/// en: 'You can add up to 10 options.'
+	String get optionsFooter => 'You can add up to 10 options.';
+
+	/// en: 'Tap the circle to mark the correct answer.'
+	String get quizOptionsFooter => 'Tap the circle to mark the correct answer.';
+
+	/// en: 'Settings'
+	String get settings => 'Settings';
+
+	/// en: 'Anonymous Voting'
+	String get anonymous => 'Anonymous Voting';
+
+	/// en: 'Multiple Answers'
+	String get multiple => 'Multiple Answers';
+
+	/// en: 'Quiz Mode'
+	String get quiz => 'Quiz Mode';
+
+	/// en: 'A quiz has one correct answer. After answering, people see the explanation.'
+	String get quizFooter => 'A quiz has one correct answer. After answering, people see the explanation.';
+
+	/// en: 'Voting in channels is always anonymous.'
+	String get channelFooter => 'Voting in channels is always anonymous.';
+
+	/// en: 'Explanation'
+	String get explanation => 'Explanation';
+
+	/// en: 'Shown after answering (optional)'
+	String get explanationHint => 'Shown after answering (optional)';
+
+	/// en: 'Create'
+	String get create => 'Create';
+}
+
+// Path: screenChat
+class Translations$screenChat$en {
+	Translations$screenChat$en.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// en: 'Today'
+	String get today => 'Today';
+
+	/// en: 'Yesterday'
+	String get yesterday => 'Yesterday';
+
+	/// en: 'online'
+	String get online => 'online';
+
+	/// en: 'last seen recently'
+	String get lastSeenRecently => 'last seen recently';
+
+	/// en: '(one) {{count} member} (other) {{count} members}'
+	String members({required num n, required Object count}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n,
+		one: '${count} member',
+		other: '${count} members',
+	);
+
+	/// en: '(one) {{count} subscriber} (other) {{count} subscribers}'
+	String subscribers({required num n, required Object count}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n,
+		one: '${count} subscriber',
+		other: '${count} subscribers',
+	);
+
+	/// en: '(one) {{count} comment} (other) {{count} comments}'
+	String comments({required num n, required Object count}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n,
+		one: '${count} comment',
+		other: '${count} comments',
+	);
+
+	/// en: 'Leave a Comment'
+	String get leaveComment => 'Leave a Comment';
+
+	/// en: 'Comments'
+	String get commentsTitle => 'Comments';
+
+	/// en: 'Subscribe'
+	String get subscribe => 'Subscribe';
+
+	/// en: 'Join Group'
+	String get joinGroup => 'Join Group';
+
+	/// en: 'Request to Join'
+	String get requestJoin => 'Request to Join';
+
+	/// en: 'Request Sent'
+	String get requestSent => 'Request Sent';
+
+	/// en: 'This link is invalid or has expired.'
+	String get linkInvalid => 'This link is invalid or has expired.';
+
+	/// en: 'Poll'
+	String get poll => 'Poll';
+
+	/// en: 'Quiz'
+	String get quiz => 'Quiz';
+
+	/// en: 'Anonymous Poll'
+	String get anonymousPoll => 'Anonymous Poll';
+
+	/// en: 'Public Poll'
+	String get publicPoll => 'Public Poll';
+
+	/// en: 'Anonymous Quiz'
+	String get anonymousQuiz => 'Anonymous Quiz';
+
+	/// en: 'Quiz'
+	String get publicQuiz => 'Quiz';
+
+	/// en: '(one) {{count} vote} (other) {{count} votes}'
+	String votes({required num n, required Object count}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n,
+		one: '${count} vote',
+		other: '${count} votes',
+	);
+
+	/// en: 'No votes yet'
+	String get noVotes => 'No votes yet';
+
+	/// en: 'Vote'
+	String get vote => 'Vote';
+
+	/// en: 'Final results'
+	String get pollClosed => 'Final results';
+
+	/// en: 'Retract Vote'
+	String get retractVote => 'Retract Vote';
+
+	/// en: 'Stop Poll'
+	String get closePoll => 'Stop Poll';
+
+	/// en: 'Stop the poll?'
+	String get closePollTitle => 'Stop the poll?';
+
+	/// en: 'Nobody will be able to vote anymore; everyone will see the results.'
+	String get closePollMessage => 'Nobody will be able to vote anymore; everyone will see the results.';
+
+	/// en: 'Votes'
+	String get pollVoters => 'Votes';
+
+	/// en: 'Message'
+	String get message => 'Message';
+
+	/// en: 'No messages yet'
+	String get empty => 'No messages yet';
+
+	/// en: 'Chat not found'
+	String get notFound => 'Chat not found';
+
+	/// en: 'Reply'
+	String get reply => 'Reply';
+
+	/// en: 'Copy'
+	String get copy => 'Copy';
+
+	/// en: 'Copied'
+	String get copied => 'Copied';
+
+	/// en: 'Edit'
+	String get edit => 'Edit';
+
+	/// en: 'Editing'
+	String get editing => 'Editing';
+
+	/// en: 'edited'
+	String get edited => 'edited';
+
+	/// en: 'Delete'
+	String get delete => 'Delete';
+
+	/// en: 'Delete message?'
+	String get deleteTitle => 'Delete message?';
+
+	/// en: 'The message will be deleted for everyone in the chat.'
+	String get deleteMessage => 'The message will be deleted for everyone in the chat.';
+
+	/// en: 'You'
+	String get you => 'You';
+
+	/// en: 'Mute'
+	String get mute => 'Mute';
+
+	/// en: 'Unmute'
+	String get unmute => 'Unmute';
+
+	/// en: 'Photo'
+	String get photo => _root.screenChats.photo;
+
+	/// en: 'Video'
+	String get video => _root.screenChats.video;
+
+	/// en: 'File'
+	String get file => _root.screenChats.file;
+
+	/// en: 'Voice message'
+	String get voice => _root.screenChats.voice;
+
+	/// en: 'Selected: {n}'
+	String selected({required Object n}) => 'Selected: ${n}';
+
+	/// en: 'Search'
+	String get search => 'Search';
+
+	/// en: 'No results'
+	String get searchNoResults => 'No results';
+
+	/// en: 'Unread messages'
+	String get unreadMessages => 'Unread messages';
+
+	/// en: 'Select'
+	String get select => 'Select';
+
+	/// en: 'Compressing video'
+	String get videoCompressing => 'Compressing video';
+
+	/// en: 'Pin'
+	String get pin => 'Pin';
+
+	/// en: 'Unpin'
+	String get unpin => 'Unpin';
+
+	/// en: 'Pinned message'
+	String get pinnedTitle => 'Pinned message';
+
+	/// en: 'Pinned message #{n}'
+	String pinnedNumber({required Object n}) => 'Pinned message #${n}';
+
+	/// en: 'Unpin message?'
+	String get unpinTitle => 'Unpin message?';
+
+	/// en: 'You pinned «{text}»'
+	String pinnedServiceYou({required Object text}) => 'You pinned «${text}»';
+
+	/// en: 'You pinned a message'
+	String get pinnedServiceYouMessage => 'You pinned a message';
+
+	/// en: '{name} pinned «{text}»'
+	String pinnedService({required Object name, required Object text}) => '${name} pinned «${text}»';
+
+	/// en: '{name} pinned a message'
+	String pinnedServiceMessage({required Object name}) => '${name} pinned a message';
+
+	/// en: '(one) {{n} pinned message} (other) {{n} pinned messages}'
+	String pinnedList({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n,
+		one: '${n} pinned message',
+		other: '${n} pinned messages',
+	);
+
+	/// en: 'All pinned messages'
+	String get pinnedAll => 'All pinned messages';
+
+	/// en: 'Unpin all messages'
+	String get unpinAll => 'Unpin all messages';
+
+	/// en: '(one) {Unpin {n} message?} (other) {Unpin all {n} messages?}'
+	String unpinAllTitle({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n,
+		one: 'Unpin ${n} message?',
+		other: 'Unpin all ${n} messages?',
+	);
+
+	/// en: 'Go to message'
+	String get goToMessage => 'Go to message';
+
+	/// en: 'Send without sound'
+	String get sendSilent => 'Send without sound';
+
+	/// en: 'Schedule message'
+	String get sendLater => 'Schedule message';
+
+	/// en: 'Scheduled messages'
+	String get scheduledTitle => 'Scheduled messages';
+
+	/// en: 'Schedule'
+	String get schedule => 'Schedule';
+
+	/// en: 'Send now'
+	String get sendNow => 'Send now';
+
+	/// en: 'Reschedule'
+	String get reschedule => 'Reschedule';
+
+	/// en: 'Delete scheduled message?'
+	String get deleteScheduledTitle => 'Delete scheduled message?';
+
+	/// en: 'Scheduled messages'
+	String get scheduledHint => 'Scheduled messages';
+
+	/// en: 'Link preview'
+	String get linkPreview => 'Link preview';
+
+	/// en: 'Forward'
+	String get forward => 'Forward';
+
+	/// en: 'Forward to…'
+	String get forwardTo => 'Forward to…';
+
+	/// en: 'Forwarded from {name}'
+	String forwardedFrom({required Object name}) => 'Forwarded from ${name}';
+
+	/// en: 'From: {names}'
+	String forwardFrom({required Object names}) => 'From: ${names}';
+
+	/// en: '(one) {Forward {n} message} (other) {Forward {n} messages}'
+	String forwardMessages({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n,
+		one: 'Forward ${n} message',
+		other: 'Forward ${n} messages',
+	);
+
+	/// en: '(one) {Delete {n} message?} (other) {Delete {n} messages?}'
+	String deleteSelectedTitle({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n,
+		one: 'Delete ${n} message?',
+		other: 'Delete ${n} messages?',
+	);
+
+	/// en: 'Messages will be deleted for everyone in the chat.'
+	String get deleteSelectedMessage => 'Messages will be deleted for everyone in the chat.';
+
+	/// en: 'Delete for me and {name}'
+	String deleteForBoth({required Object name}) => 'Delete for me and ${name}';
+
+	/// en: 'Delete for me'
+	String get deleteForMe => 'Delete for me';
+
+	/// en: 'Also delete for {name}'
+	String deleteAlsoFor({required Object name}) => 'Also delete for ${name}';
+
+	/// en: 'The message will be deleted from Saved Messages.'
+	String get deleteMessageSelf => 'The message will be deleted from Saved Messages.';
+
+	/// en: 'The messages will be deleted from Saved Messages.'
+	String get deleteSelectedMessageSelf => 'The messages will be deleted from Saved Messages.';
+
+	/// en: 'Slide to cancel'
+	String get voiceSlideToCancel => 'Slide to cancel';
+
+	/// en: 'Hold to record'
+	String get voiceHoldHint => 'Hold to record';
+
+	/// en: 'No microphone access'
+	String get micDeniedTitle => 'No microphone access';
+
+	/// en: 'Allow microphone access in Settings to record voice messages.'
+	String get micDeniedMessage => 'Allow microphone access in Settings to record voice messages.';
+
+	/// en: 'Settings'
+	String get openSettings => 'Settings';
+
+	/// en: 'Hide with spoiler'
+	String get hideWithSpoiler => 'Hide with spoiler';
+
+	/// en: 'Remove spoiler'
+	String get removeSpoiler => 'Remove spoiler';
+
+	/// en: 'HD video: 1080p'
+	String get videoHdOn => 'HD video: 1080p';
+
+	/// en: 'Standard quality: 720p'
+	String get videoHdOff => 'Standard quality: 720p';
+
+	/// en: 'Sound'
+	String get videoSound => 'Sound';
+
+	/// en: 'Muted'
+	String get videoMuted => 'Muted';
+
+	/// en: 'Cover'
+	String get videoCover => 'Cover';
+
+	/// en: 'Cover set'
+	String get videoCoverSet => 'Cover set';
+
+	/// en: 'Reset'
+	String get videoReset => 'Reset';
+
+	/// en: 'Crop'
+	String get videoCrop => 'Crop';
+
+	/// en: 'Rotate'
+	String get videoRotate => 'Rotate';
+
+	/// en: 'Free'
+	String get videoAspectFree => 'Free';
+
+	/// en: 'Original'
+	String get videoAspectOriginal => 'Original';
+
+	/// en: 'Square'
+	String get videoAspectSquare => 'Square';
+
+	/// en: 'Couldn't open the video'
+	String get videoEditFailed => 'Couldn\'t open the video';
+
+	/// en: 'Formatting'
+	String get format => 'Formatting';
+
+	/// en: 'Bold'
+	String get formatBold => 'Bold';
+
+	/// en: 'Italic'
+	String get formatItalic => 'Italic';
+
+	/// en: 'Strikethrough'
+	String get formatStrike => 'Strikethrough';
+
+	/// en: 'Spoiler'
+	String get formatSpoiler => 'Spoiler';
+
+	/// en: 'Monospace'
+	String get formatCode => 'Monospace';
+
+	/// en: 'Link'
+	String get formatLink => 'Link';
+
+	/// en: 'Quote'
+	String get formatQuote => 'Quote';
+
+	/// en: 'Regular'
+	String get formatPlain => 'Regular';
+
+	/// en: 'Add link'
+	String get linkTitle => 'Add link';
+
+	/// en: 'Add'
+	String get linkAdd => 'Add';
+
+	/// en: '{done} of {total}'
+	String uploadProgress({required Object done, required Object total}) => '${done} of ${total}';
+
+	/// en: 'KB'
+	String get kb => 'KB';
+
+	/// en: 'MB'
+	String get mb => 'MB';
+
+	/// en: 'GB'
+	String get gb => 'GB';
+
+	/// en: '{current} of {total}'
+	String mediaCounter({required Object current, required Object total}) => '${current} of ${total}';
+
+	/// en: 'Add a caption…'
+	String get addCaption => 'Add a caption…';
 }
 
 // Path: screenSettings
@@ -338,6 +1428,9 @@ class Translations$screenDeveloper$en {
 	/// en: 'Call screen preview'
 	String get callPreview => 'Call screen preview';
 
+	/// en: 'Chats demo'
+	String get chatsDemo => 'Chats demo';
+
 	/// en: 'Test notification'
 	String get testPush => 'Test notification';
 
@@ -409,6 +1502,243 @@ class Translations$screenSettingsAppearance$en {
 
 	/// en: 'The app appears blurry in the list of open apps'
 	String get blurOnInactiveDescription => 'The app appears blurry in the list of open apps';
+
+	/// en: 'Chat themes'
+	String get chatThemes => 'Chat themes';
+
+	/// en: 'Quick reaction'
+	String get quickReaction => 'Quick reaction';
+
+	/// en: 'Set by double-tapping a message'
+	String get quickReactionDescription => 'Set by double-tapping a message';
+}
+
+// Path: screenChatInfo
+class Translations$screenChatInfo$en {
+	Translations$screenChatInfo$en.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// en: 'Mute'
+	String get mute => 'Mute';
+
+	/// en: 'Unmute'
+	String get unmute => 'Unmute';
+
+	/// en: 'Sound'
+	String get sound => 'Sound';
+
+	/// en: 'Search'
+	String get search => 'Search';
+
+	/// en: 'Bio'
+	String get about => 'Bio';
+
+	/// en: 'Description'
+	String get description => 'Description';
+
+	/// en: 'Username'
+	String get username => 'Username';
+
+	/// en: 'Link'
+	String get link => 'Link';
+
+	/// en: 'Members'
+	String get tabMembers => 'Members';
+
+	/// en: 'Subscribers'
+	String get tabSubscribers => 'Subscribers';
+
+	/// en: 'Media'
+	String get tabMedia => 'Media';
+
+	/// en: 'Files'
+	String get tabFiles => 'Files';
+
+	/// en: 'Links'
+	String get tabLinks => 'Links';
+
+	/// en: 'Voice'
+	String get tabVoice => 'Voice';
+
+	/// en: 'Photos and videos from this chat will appear here'
+	String get emptyMedia => 'Photos and videos from this chat will appear here';
+
+	/// en: 'Files from this chat will appear here'
+	String get emptyFiles => 'Files from this chat will appear here';
+
+	/// en: 'Links from this chat will appear here'
+	String get emptyLinks => 'Links from this chat will appear here';
+
+	/// en: 'Voice messages will appear here'
+	String get emptyVoice => 'Voice messages will appear here';
+
+	/// en: 'owner'
+	String get roleOwner => 'owner';
+
+	/// en: 'admin'
+	String get roleAdmin => 'admin';
+
+	/// en: 'read only'
+	String get roleReader => 'read only';
+
+	/// en: 'You'
+	String get you => 'You';
+
+	/// en: 'Add Members'
+	String get addMembers => 'Add Members';
+
+	/// en: 'Add'
+	String get add => 'Add';
+
+	/// en: 'Send Message'
+	String get sendMessage => 'Send Message';
+
+	/// en: 'Allow Sending Messages'
+	String get allowWriting => 'Allow Sending Messages';
+
+	/// en: 'Make Read Only'
+	String get makeReadOnly => 'Make Read Only';
+
+	/// en: 'Remove'
+	String get removeMember => 'Remove';
+
+	/// en: 'Remove {name}?'
+	String removeMemberTitle({required Object name}) => 'Remove ${name}?';
+
+	/// en: 'They can come back via an invite link.'
+	String get removeMemberMessage => 'They can come back via an invite link.';
+
+	/// en: 'Ban'
+	String get banMember => 'Ban';
+
+	/// en: 'Ban {name}?'
+	String banMemberTitle({required Object name}) => 'Ban ${name}?';
+
+	/// en: 'They will be removed and won't be able to come back via invite links until unbanned.'
+	String get banMemberMessage => 'They will be removed and won\'t be able to come back via invite links until unbanned.';
+
+	/// en: 'Banned'
+	String get banned => 'Banned';
+
+	/// en: 'No banned users'
+	String get bannedEmpty => 'No banned users';
+
+	/// en: 'Banned users can't join via invite links. Adding them manually unbans them.'
+	String get bannedFooter => 'Banned users can\'t join via invite links. Adding them manually unbans them.';
+
+	/// en: 'Unban'
+	String get unban => 'Unban';
+
+	/// en: 'Reactions'
+	String get reactions => 'Reactions';
+
+	/// en: 'All reactions'
+	String get reactionsAll => 'All reactions';
+
+	/// en: 'Some reactions'
+	String get reactionsSome => 'Some reactions';
+
+	/// en: 'No reactions'
+	String get reactionsNone => 'No reactions';
+
+	/// en: 'All'
+	String get reactionsAllShort => 'All';
+
+	/// en: 'Off'
+	String get reactionsNoneShort => 'Off';
+
+	/// en: 'Which reactions members can add to messages. Existing reactions stay.'
+	String get reactionsFooter => 'Which reactions members can add to messages. Existing reactions stay.';
+
+	/// en: 'Available reactions'
+	String get reactionsPick => 'Available reactions';
+
+	/// en: 'Delete chat'
+	String get deleteChat => 'Delete chat';
+
+	/// en: 'Leave group'
+	String get leaveGroup => 'Leave group';
+
+	/// en: 'Leave channel'
+	String get leaveChannel => 'Leave channel';
+
+	/// en: 'Leave community'
+	String get leaveCommunity => 'Leave community';
+
+	/// en: 'Leave'
+	String get leaveShort => 'Leave';
+
+	/// en: 'Delete chat with {name}?'
+	String deleteChatTitle({required Object name}) => 'Delete chat with ${name}?';
+
+	/// en: 'Leave «{name}»?'
+	String leaveGroupTitle({required Object name}) => 'Leave «${name}»?';
+
+	/// en: 'last seen {n} min ago'
+	String lastSeenMinutes({required Object n}) => 'last seen ${n} min ago';
+
+	/// en: 'last seen at {time}'
+	String lastSeenAt({required Object time}) => 'last seen at ${time}';
+
+	/// en: 'last seen yesterday at {time}'
+	String lastSeenYesterday({required Object time}) => 'last seen yesterday at ${time}';
+
+	/// en: 'last seen {date}'
+	String lastSeenDate({required Object date}) => 'last seen ${date}';
+}
+
+// Path: screenChatThemes
+class Translations$screenChatThemes$en {
+	Translations$screenChatThemes$en.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// en: 'Chat themes'
+	String get title => _root.screenSettingsAppearance.chatThemes;
+
+	/// en: 'Pattern'
+	String get pattern => 'Pattern';
+
+	/// en: 'Pattern intensity'
+	String get intensity => 'Pattern intensity';
+
+	/// en: 'Color'
+	String get color => 'Color';
+
+	/// en: 'The wallpaper is shown in all chats on this device and adapts to light and dark mode.'
+	String get footer => 'The wallpaper is shown in all chats on this device and adapts to light and dark mode.';
+
+	/// en: 'Anna'
+	String get previewName => 'Anna';
+
+	/// en: 'Hi! How do you like the new wallpaper? 🎨'
+	String get previewIncoming => 'Hi! How do you like the new wallpaper? 🎨';
+
+	/// en: 'Looks great, I'll keep this one 😍'
+	String get previewOutgoing => 'Looks great, I\'ll keep this one 😍';
+
+	/// en: 'Chat'
+	String get patternChat => 'Chat';
+
+	/// en: 'Space'
+	String get patternSpace => 'Space';
+
+	/// en: 'Nature'
+	String get patternNature => 'Nature';
+
+	/// en: 'Music'
+	String get patternMusic => 'Music';
+
+	/// en: 'Geometry'
+	String get patternGeometry => 'Geometry';
+
+	/// en: 'Food'
+	String get patternFood => 'Food';
 }
 
 // Path: screenSettingsDevices
@@ -625,6 +1955,12 @@ class Translations$sessionsPrivacyAndSecurity$en {
 
 	/// en: 'No contacts registered on Iperon'
 	String get callsAllowEmpty => 'No contacts registered on Iperon';
+
+	/// en: 'End-to-end encryption'
+	String get callsEncryption => 'End-to-end encryption';
+
+	/// en: 'Voice and video are encrypted on the participants' devices — the server can't decrypt them. Works when both sides have end-to-end encryption on; otherwise the call goes without it.'
+	String get callsEncryptionNote => 'Voice and video are encrypted on the participants\' devices — the server can\'t decrypt them. Works when both sides have end-to-end encryption on; otherwise the call goes without it.';
 
 	/// en: 'Birthday'
 	String get birthday => 'Birthday';
@@ -880,6 +2216,18 @@ class Translations$screenMyProfile$en {
 
 	/// en: 'File'
 	String get chooseFile => 'File';
+
+	/// en: 'Choose file'
+	String get pickDocument => 'Choose file';
+
+	/// en: 'Documents, archives and any other files'
+	String get pickDocumentHint => 'Documents, archives and any other files';
+
+	/// en: 'Photo or video without compression'
+	String get pickMediaAsFile => 'Photo or video without compression';
+
+	/// en: 'Sent as a file, in original quality'
+	String get pickMediaAsFileHint => 'Sent as a file, in original quality';
 
 	/// en: 'Emoji'
 	String get chooseEmoji => 'Emoji';
@@ -1456,6 +2804,15 @@ class Translations$screenCall$en {
 
 	/// en: 'Their microphone is off'
 	String get remoteMicMuted => 'Their microphone is off';
+
+	/// en: 'End-to-end encrypted'
+	String get encrypted => 'End-to-end encrypted';
+
+	/// en: 'Not end-to-end encrypted'
+	String get notEncrypted => 'Not end-to-end encrypted';
+
+	/// en: 'Compare these emoji with the other person'
+	String get verifyEmoji => 'Compare these emoji with the other person';
 }
 
 // Path: passkey
@@ -1572,6 +2929,8 @@ extension on Translations {
 			'componentsCamera.unavailable' => 'Camera unavailable',
 			'componentsCamera.accessDenied' => 'No access to camera',
 			'componentsCamera.openSettings' => 'Open settings',
+			'componentsCamera.photo' => 'Photo',
+			'componentsCamera.video' => 'Video',
 			'screenHome.contacts' => 'Contacts',
 			'screenHome.calls' => 'Calls',
 			'screenHome.chats' => _root.screenChats.chats,
@@ -1580,6 +2939,342 @@ extension on Translations {
 			'screenChats.notificationPermissionTitle' => 'Turn on notifications',
 			'screenChats.notificationPermissionMessage' => 'Allow notifications to hear about new messages and contacts even when Iperon is in the background.',
 			'screenChats.allowAccess' => 'Allow',
+			'screenChats.allFolder' => 'All chats',
+			'screenChats.search' => 'Search',
+			'screenChats.empty' => 'No chats yet',
+			'screenChats.emptyFolder' => 'No chats in this folder yet',
+			'screenChats.emptyArchive' => 'Archive is empty',
+			'screenChats.archive' => 'Archive',
+			'screenChats.savedMessages' => 'Saved Messages',
+			'screenChats.draft' => 'Draft:',
+			'screenChats.typing' => 'typing…',
+			'screenChats.typingName' => ({required Object name}) => '${name} is typing…',
+			'screenChats.photo' => 'Photo',
+			'screenChats.video' => 'Video',
+			'screenChats.file' => 'File',
+			'screenChats.voice' => 'Voice message',
+			'screenChats.pin' => 'Pin',
+			'screenChats.unpin' => 'Unpin',
+			'screenChats.markRead' => 'Mark as read',
+			'screenChats.markUnread' => 'Mark as unread',
+			'screenChats.mute' => 'Mute',
+			'screenChats.unmute' => 'Unmute',
+			'screenChats.muteTitle' => 'Mute Notifications',
+			'screenChats.muteHour' => 'For 1 Hour',
+			'screenChats.mute8Hours' => 'For 8 Hours',
+			'screenChats.mute2Days' => 'For 2 Days',
+			'screenChats.muteForever' => 'Forever',
+			'screenChats.mutedUntil' => ({required Object time}) => 'until ${time}',
+			'screenChats.toArchive' => 'Archive',
+			'screenChats.fromArchive' => 'Unarchive',
+			'screenChats.delete' => 'Delete',
+			'screenChats.swipeRead' => 'Read',
+			'screenChats.swipeUnread' => 'Unread',
+			'screenChats.swipeMute' => 'Mute',
+			'screenChats.swipeUnmute' => 'Unmute',
+			'screenChats.swipeArchive' => 'Archive',
+			'screenChats.swipeUnarchive' => 'Unarchive',
+			'screenChats.deleteChatTitle' => 'Delete chat?',
+			'screenChats.deleteChatMessage' => ({required Object title}) => 'Chat "${title}" will be removed from the list.',
+			'screenChats.readAll' => 'Read all',
+			'screenChats.deleteFolder' => 'Delete folder',
+			'screenChats.deleteFolderTitle' => ({required Object title}) => 'Delete folder "${title}"?',
+			'screenChats.deleteFolderMessage' => 'Chats in the folder are not deleted.',
+			'screenNewChat.title' => 'New Message',
+			'screenNewChat.search' => 'Search',
+			'screenNewChat.newGroup' => 'New Group',
+			'screenNewChat.newChannel' => 'New Channel',
+			'screenNewChat.newCommunity' => 'New Community',
+			'screenNewChat.contacts' => 'Contacts',
+			'screenNewChat.noContacts' => 'No contacts found',
+			'screenNewChat.addMembers' => 'Add Members',
+			'screenNewChat.next' => 'Next',
+			'screenNewChat.selected' => ({required Object n}) => 'Selected: ${n}',
+			'screenNewChat.noMembersHint' => 'You can create a group without members and invite them later.',
+			'screenNewChat.groupTitle' => 'New Group',
+			'screenNewChat.channelTitle' => 'New Channel',
+			'screenNewChat.communityTitle' => 'New Community',
+			'screenNewChat.create' => 'Create',
+			'screenNewChat.groupName' => 'Group Name',
+			'screenNewChat.channelName' => 'Channel Name',
+			'screenNewChat.communityName' => 'Community Name',
+			'screenNewChat.description' => 'Description',
+			'screenNewChat.descriptionHint' => 'Optional',
+			'screenNewChat.channelDescriptionFooter' => 'Tell subscribers what the channel is about.',
+			'screenNewChat.communityDescriptionFooter' => 'A community brings together your groups and channels.',
+			'screenNewChat.members' => 'Members',
+			'screenNewChat.setPhoto' => 'Set Photo',
+			'screenNewChat.changePhoto' => 'Change Photo',
+			'screenNewChat.removePhoto' => 'Remove Photo',
+			'screenNewChat.editPhoto' => 'Edit Photo',
+			'screenNewChat.type' => 'Type',
+			'screenNewChat.typePublic' => 'Public',
+			'screenNewChat.typePrivate' => 'Private',
+			'screenNewChat.channelPublicFooter' => 'Anyone can find a public channel in search and subscribe.',
+			'screenNewChat.channelPrivateFooter' => 'Private channels can only be joined via an invite link.',
+			'screenNewChat.communityPublicFooter' => 'Anyone can find a public community in search and join it.',
+			'screenNewChat.communityPrivateFooter' => 'Private communities can only be joined via an invite link.',
+			'screenNewChat.link' => 'Link',
+			'screenNewChat.usernameHint' => 'name',
+			'screenNewChat.usernameChecking' => 'Checking…',
+			'screenNewChat.usernameAvailable' => 'This link is available.',
+			'screenNewChat.usernameTaken' => 'This link is already taken.',
+			'screenNewChat.usernameInvalid' => '5–24 characters: Latin letters a–z, digits and _.',
+			'screenNewChat.usernameEmpty' => 'Pick a link people will use to find it.',
+			'screenNewChat.inviteLink' => 'Invite Link',
+			'screenNewChat.inviteLinkFooter' => 'Anyone with this link can join. Tap to copy.',
+			'screenNewChat.copied' => 'Link copied',
+			'screenNewChat.commentsSwitch' => 'Comments',
+			'screenNewChat.commentsFooter' => 'Subscribers can discuss each post in its comments.',
+			'screenNewChat.signSwitch' => 'Sign Messages',
+			'screenNewChat.signFooter' => 'With signatures, posts show the name of the admin who published them.',
+			'screenNewChat.hideMembers' => 'Hide Members',
+			'screenNewChat.hideSubscribers' => 'Hide Subscribers',
+			'screenNewChat.hideMembersFooter' => 'Only admins will see the list.',
+			'screenNewChat.joinHeader' => 'Joining',
+			'screenNewChat.joinOpen' => 'Open',
+			'screenNewChat.joinLink' => 'By Invite Link',
+			'screenNewChat.joinRequest' => 'By Request',
+			'screenNewChat.joinAdmins' => 'Added by Admins',
+			'screenNewChat.joinOpenFooter' => 'Anyone can find it in search and join.',
+			'screenNewChat.joinLinkFooter' => 'Only people with the invite link can join.',
+			'screenNewChat.joinRequestFooter' => 'People with the invite link send a request; they join after an admin approves it.',
+			'screenNewChat.joinAdminsFooter' => 'Nobody can join on their own — admins add members.',
+			'screenNewChat.defaultRoleHeader' => 'New Members',
+			'screenNewChat.roleReader' => 'Read Only',
+			'screenNewChat.roleWriter' => 'Can Send Messages',
+			'screenNewChat.roleReaderFooter' => 'New members can read but not send messages.',
+			'screenNewChat.roleWriterFooter' => 'New members can read and send messages.',
+			'screenChatInvites.inviteLinks' => 'Invite Links',
+			'screenChatInvites.joinRequests' => 'Join Requests',
+			'screenChatInvites.primaryLink' => 'Primary Link',
+			'screenChatInvites.publicLink' => 'Public Link',
+			'screenChatInvites.publicLinkFooter' => 'The public link is changed in Edit. Additional links below work as invitations.',
+			'screenChatInvites.primaryFooter' => 'Anyone with the link can join.',
+			'screenChatInvites.primaryFooterChannel' => 'Anyone with the link can subscribe.',
+			'screenChatInvites.primaryFooterRequest' => 'People with the link send a join request that an admin approves.',
+			'screenChatInvites.adminsOnlyNote' => 'Members are currently added by admins only — nobody can join via links. Change the joining method in Edit.',
+			'screenChatInvites.copy' => 'Copy',
+			'screenChatInvites.share' => 'Share',
+			'screenChatInvites.replace' => 'Replace Link',
+			'screenChatInvites.replaceTitle' => 'Replace the link?',
+			'screenChatInvites.replaceMessage' => 'The current link will stop working, and a new one will be created.',
+			'screenChatInvites.copied' => 'Link copied',
+			'screenChatInvites.createLink' => 'Create a New Link',
+			'screenChatInvites.additionalHeader' => 'Additional Links',
+			'screenChatInvites.additionalFooter' => 'Create links with an expiry date, a member limit or admin approval.',
+			'screenChatInvites.revokedHeader' => 'Revoked Links',
+			'screenChatInvites.deleteAllRevoked' => 'Delete All Revoked Links',
+			'screenChatInvites.joined' => ({required Object n}) => 'Joined: ${n}',
+			'screenChatInvites.left' => ({required Object n}) => '${n} left',
+			'screenChatInvites.until' => ({required Object date}) => 'until ${date}',
+			'screenChatInvites.expired' => 'expired',
+			'screenChatInvites.exhausted' => 'limit reached',
+			'screenChatInvites.approval' => 'by request',
+			'screenChatInvites.edit' => 'Edit',
+			'screenChatInvites.revoke' => 'Revoke',
+			'screenChatInvites.revokeTitle' => 'Revoke the link?',
+			'screenChatInvites.revokeMessage' => 'Nobody will be able to join via this link.',
+			'screenChatInvites.delete' => 'Delete',
+			'screenChatInvites.newLink' => 'New Link',
+			'screenChatInvites.editLink' => 'Edit Link',
+			'screenChatInvites.create' => 'Create',
+			'screenChatInvites.name' => 'Link Name',
+			'screenChatInvites.nameHint' => 'Optional',
+			'screenChatInvites.nameFooter' => 'Only admins see the link name.',
+			'screenChatInvites.approvalTitle' => 'Request Admin Approval',
+			'screenChatInvites.approvalFooter' => 'People who follow the link send a request; an admin approves or declines it.',
+			'screenChatInvites.expireHeader' => 'Expires',
+			'screenChatInvites.expireNever' => 'Never',
+			'screenChatInvites.expireHour' => 'In 1 hour',
+			'screenChatInvites.expireDay' => 'In 1 day',
+			'screenChatInvites.expireWeek' => 'In 1 week',
+			'screenChatInvites.expireCurrent' => ({required Object date}) => 'Until ${date}',
+			'screenChatInvites.limitHeader' => 'Member Limit',
+			'screenChatInvites.limitNone' => 'No limit',
+			'screenChatInvites.limitFooter' => 'How many people can join via this link.',
+			'screenChatInvites.requestsEmpty' => 'No join requests',
+			'screenChatInvites.requestsEmptyHint' => 'When someone asks to join, the request will appear here.',
+			'screenChatInvites.approve' => 'Accept',
+			'screenChatInvites.decline' => 'Decline',
+			'screenChatInvites.approveAll' => 'Accept All',
+			'screenChatInvites.declineAll' => 'Decline All',
+			'screenChatInvites.all' => 'All',
+			'screenChatInvites.viaLink' => ({required Object title}) => 'via “${title}”',
+			'screenChatInvites.requestsOffHint' => 'Requests come when joining is set to “By Request” or via links with admin approval.',
+			'screenChatAdmins.admins' => 'Administrators',
+			'screenChatAdmins.addAdmin' => 'Add Admin',
+			'screenChatAdmins.adminsFooter' => 'Admins help manage the chat. Each admin\'s rights are set separately.',
+			'screenChatAdmins.promote' => 'Make Admin',
+			'screenChatAdmins.adminRights' => 'Admin Rights',
+			'screenChatAdmins.newAdmin' => 'New Admin',
+			'screenChatAdmins.rightsHeader' => 'What can this admin do?',
+			'screenChatAdmins.rightsFooterLimited' => 'You can only grant the rights you have yourself.',
+			'screenChatAdmins.changeInfo' => 'Change Info and Settings',
+			'screenChatAdmins.postMessages' => 'Post Messages',
+			'screenChatAdmins.editMessages' => 'Edit Others\' Posts',
+			'screenChatAdmins.deleteMessages' => 'Delete Others\' Messages',
+			'screenChatAdmins.banUsers' => 'Ban Users',
+			'screenChatAdmins.inviteUsers' => 'Invite Users via Link',
+			'screenChatAdmins.pinMessages' => 'Pin Messages',
+			'screenChatAdmins.manageCalls' => 'Manage Voice Chats',
+			'screenChatAdmins.anonymous' => 'Remain Anonymous',
+			'screenChatAdmins.addAdmins' => 'Add New Admins',
+			'screenChatAdmins.anonymousFooter' => 'An anonymous admin\'s messages are signed with the group name.',
+			'screenChatAdmins.rankHeader' => 'Custom Title',
+			'screenChatAdmins.rankHint' => 'admin',
+			'screenChatAdmins.rankFooter' => 'Shown instead of “admin” in the member list.',
+			'screenChatAdmins.dismiss' => 'Dismiss Admin',
+			'screenChatAdmins.dismissTitle' => ({required Object name}) => 'Dismiss ${name}?',
+			'screenChatAdmins.dismissMessage' => 'They will stay in the chat without admin rights.',
+			'screenChatAdmins.transfer' => 'Transfer Ownership',
+			'screenChatAdmins.transferTitle' => ({required Object name}) => 'Transfer ownership to ${name}?',
+			'screenChatAdmins.transferMessage' => ({required Object name}) => '${name} will become the owner and you will remain an admin with all rights. Only the new owner can undo this.',
+			'screenChatAdmins.pickMember' => 'Choose a Member',
+			'screenChatAdmins.noCandidates' => 'Nobody to promote — everyone is already an admin.',
+			'screenPoll.newPoll' => 'New Poll',
+			'screenPoll.question' => 'Question',
+			'screenPoll.questionHint' => 'Ask a question',
+			'screenPoll.options' => 'Answer Options',
+			'screenPoll.optionHint' => 'Option',
+			'screenPoll.addOption' => 'Add an Option',
+			'screenPoll.optionsFooter' => 'You can add up to 10 options.',
+			'screenPoll.quizOptionsFooter' => 'Tap the circle to mark the correct answer.',
+			'screenPoll.settings' => 'Settings',
+			'screenPoll.anonymous' => 'Anonymous Voting',
+			'screenPoll.multiple' => 'Multiple Answers',
+			'screenPoll.quiz' => 'Quiz Mode',
+			'screenPoll.quizFooter' => 'A quiz has one correct answer. After answering, people see the explanation.',
+			'screenPoll.channelFooter' => 'Voting in channels is always anonymous.',
+			'screenPoll.explanation' => 'Explanation',
+			'screenPoll.explanationHint' => 'Shown after answering (optional)',
+			'screenPoll.create' => 'Create',
+			'screenChat.today' => 'Today',
+			'screenChat.yesterday' => 'Yesterday',
+			'screenChat.online' => 'online',
+			'screenChat.lastSeenRecently' => 'last seen recently',
+			'screenChat.members' => ({required num n, required Object count}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: '${count} member', other: '${count} members', ), 
+			'screenChat.subscribers' => ({required num n, required Object count}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: '${count} subscriber', other: '${count} subscribers', ), 
+			'screenChat.comments' => ({required num n, required Object count}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: '${count} comment', other: '${count} comments', ), 
+			'screenChat.leaveComment' => 'Leave a Comment',
+			'screenChat.commentsTitle' => 'Comments',
+			'screenChat.subscribe' => 'Subscribe',
+			'screenChat.joinGroup' => 'Join Group',
+			'screenChat.requestJoin' => 'Request to Join',
+			'screenChat.requestSent' => 'Request Sent',
+			'screenChat.linkInvalid' => 'This link is invalid or has expired.',
+			'screenChat.poll' => 'Poll',
+			'screenChat.quiz' => 'Quiz',
+			'screenChat.anonymousPoll' => 'Anonymous Poll',
+			'screenChat.publicPoll' => 'Public Poll',
+			'screenChat.anonymousQuiz' => 'Anonymous Quiz',
+			'screenChat.publicQuiz' => 'Quiz',
+			'screenChat.votes' => ({required num n, required Object count}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: '${count} vote', other: '${count} votes', ), 
+			'screenChat.noVotes' => 'No votes yet',
+			'screenChat.vote' => 'Vote',
+			'screenChat.pollClosed' => 'Final results',
+			'screenChat.retractVote' => 'Retract Vote',
+			'screenChat.closePoll' => 'Stop Poll',
+			'screenChat.closePollTitle' => 'Stop the poll?',
+			'screenChat.closePollMessage' => 'Nobody will be able to vote anymore; everyone will see the results.',
+			'screenChat.pollVoters' => 'Votes',
+			'screenChat.message' => 'Message',
+			'screenChat.empty' => 'No messages yet',
+			'screenChat.notFound' => 'Chat not found',
+			'screenChat.reply' => 'Reply',
+			'screenChat.copy' => 'Copy',
+			'screenChat.copied' => 'Copied',
+			'screenChat.edit' => 'Edit',
+			'screenChat.editing' => 'Editing',
+			'screenChat.edited' => 'edited',
+			'screenChat.delete' => 'Delete',
+			'screenChat.deleteTitle' => 'Delete message?',
+			'screenChat.deleteMessage' => 'The message will be deleted for everyone in the chat.',
+			'screenChat.you' => 'You',
+			'screenChat.mute' => 'Mute',
+			'screenChat.unmute' => 'Unmute',
+			'screenChat.photo' => _root.screenChats.photo,
+			'screenChat.video' => _root.screenChats.video,
+			'screenChat.file' => _root.screenChats.file,
+			'screenChat.voice' => _root.screenChats.voice,
+			'screenChat.selected' => ({required Object n}) => 'Selected: ${n}',
+			'screenChat.search' => 'Search',
+			'screenChat.searchNoResults' => 'No results',
+			'screenChat.unreadMessages' => 'Unread messages',
+			'screenChat.select' => 'Select',
+			'screenChat.videoCompressing' => 'Compressing video',
+			'screenChat.pin' => 'Pin',
+			'screenChat.unpin' => 'Unpin',
+			'screenChat.pinnedTitle' => 'Pinned message',
+			'screenChat.pinnedNumber' => ({required Object n}) => 'Pinned message #${n}',
+			'screenChat.unpinTitle' => 'Unpin message?',
+			'screenChat.pinnedServiceYou' => ({required Object text}) => 'You pinned «${text}»',
+			'screenChat.pinnedServiceYouMessage' => 'You pinned a message',
+			'screenChat.pinnedService' => ({required Object name, required Object text}) => '${name} pinned «${text}»',
+			'screenChat.pinnedServiceMessage' => ({required Object name}) => '${name} pinned a message',
+			'screenChat.pinnedList' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: '${n} pinned message', other: '${n} pinned messages', ), 
+			'screenChat.pinnedAll' => 'All pinned messages',
+			'screenChat.unpinAll' => 'Unpin all messages',
+			'screenChat.unpinAllTitle' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: 'Unpin ${n} message?', other: 'Unpin all ${n} messages?', ), 
+			'screenChat.goToMessage' => 'Go to message',
+			'screenChat.sendSilent' => 'Send without sound',
+			'screenChat.sendLater' => 'Schedule message',
+			'screenChat.scheduledTitle' => 'Scheduled messages',
+			'screenChat.schedule' => 'Schedule',
+			'screenChat.sendNow' => 'Send now',
+			'screenChat.reschedule' => 'Reschedule',
+			'screenChat.deleteScheduledTitle' => 'Delete scheduled message?',
+			'screenChat.scheduledHint' => 'Scheduled messages',
+			'screenChat.linkPreview' => 'Link preview',
+			'screenChat.forward' => 'Forward',
+			'screenChat.forwardTo' => 'Forward to…',
+			'screenChat.forwardedFrom' => ({required Object name}) => 'Forwarded from ${name}',
+			'screenChat.forwardFrom' => ({required Object names}) => 'From: ${names}',
+			'screenChat.forwardMessages' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: 'Forward ${n} message', other: 'Forward ${n} messages', ), 
+			'screenChat.deleteSelectedTitle' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: 'Delete ${n} message?', other: 'Delete ${n} messages?', ), 
+			'screenChat.deleteSelectedMessage' => 'Messages will be deleted for everyone in the chat.',
+			'screenChat.deleteForBoth' => ({required Object name}) => 'Delete for me and ${name}',
+			'screenChat.deleteForMe' => 'Delete for me',
+			'screenChat.deleteAlsoFor' => ({required Object name}) => 'Also delete for ${name}',
+			'screenChat.deleteMessageSelf' => 'The message will be deleted from Saved Messages.',
+			'screenChat.deleteSelectedMessageSelf' => 'The messages will be deleted from Saved Messages.',
+			'screenChat.voiceSlideToCancel' => 'Slide to cancel',
+			'screenChat.voiceHoldHint' => 'Hold to record',
+			'screenChat.micDeniedTitle' => 'No microphone access',
+			'screenChat.micDeniedMessage' => 'Allow microphone access in Settings to record voice messages.',
+			'screenChat.openSettings' => 'Settings',
+			'screenChat.hideWithSpoiler' => 'Hide with spoiler',
+			'screenChat.removeSpoiler' => 'Remove spoiler',
+			'screenChat.videoHdOn' => 'HD video: 1080p',
+			'screenChat.videoHdOff' => 'Standard quality: 720p',
+			'screenChat.videoSound' => 'Sound',
+			'screenChat.videoMuted' => 'Muted',
+			'screenChat.videoCover' => 'Cover',
+			'screenChat.videoCoverSet' => 'Cover set',
+			'screenChat.videoReset' => 'Reset',
+			'screenChat.videoCrop' => 'Crop',
+			'screenChat.videoRotate' => 'Rotate',
+			'screenChat.videoAspectFree' => 'Free',
+			'screenChat.videoAspectOriginal' => 'Original',
+			'screenChat.videoAspectSquare' => 'Square',
+			'screenChat.videoEditFailed' => 'Couldn\'t open the video',
+			'screenChat.format' => 'Formatting',
+			'screenChat.formatBold' => 'Bold',
+			'screenChat.formatItalic' => 'Italic',
+			'screenChat.formatStrike' => 'Strikethrough',
+			'screenChat.formatSpoiler' => 'Spoiler',
+			'screenChat.formatCode' => 'Monospace',
+			'screenChat.formatLink' => 'Link',
+			'screenChat.formatQuote' => 'Quote',
+			'screenChat.formatPlain' => 'Regular',
+			'screenChat.linkTitle' => 'Add link',
+			'screenChat.linkAdd' => 'Add',
+			'screenChat.uploadProgress' => ({required Object done, required Object total}) => '${done} of ${total}',
+			'screenChat.kb' => 'KB',
+			'screenChat.mb' => 'MB',
+			'screenChat.gb' => 'GB',
+			'screenChat.mediaCounter' => ({required Object current, required Object total}) => '${current} of ${total}',
+			'screenChat.addCaption' => 'Add a caption…',
 			'screenSettings.settings' => 'Settings',
 			'screenSettings.myProfile' => 'My profile',
 			'screenSettings.devices' => _root.screenSettingsDevices.devices,
@@ -1615,6 +3310,7 @@ extension on Translations {
 			'screenDeveloper.logs' => _root.screenSettings.logs,
 			'screenDeveloper.exportLogs' => 'Export logs',
 			'screenDeveloper.callPreview' => 'Call screen preview',
+			'screenDeveloper.chatsDemo' => 'Chats demo',
 			'screenDeveloper.testPush' => 'Test notification',
 			'screenDeveloper.testPushSent' => ({required Object apns, required Object fcm, required Object failed}) => 'Sent: APNs — ${apns}, FCM — ${fcm}, failed — ${failed}. Minimize the app or lock the screen to check background delivery.',
 			'screenDeveloper.testPushNoTokens' => 'None of your devices has a push token. Make sure notifications are allowed and restart the app.',
@@ -1636,6 +3332,79 @@ extension on Translations {
 			'screenSettingsAppearance.darkModeDisabledDescription' => 'Dark mode is disabled',
 			'screenSettingsAppearance.blurOnInactive' => 'Blur on inactive',
 			'screenSettingsAppearance.blurOnInactiveDescription' => 'The app appears blurry in the list of open apps',
+			'screenSettingsAppearance.chatThemes' => 'Chat themes',
+			'screenSettingsAppearance.quickReaction' => 'Quick reaction',
+			'screenSettingsAppearance.quickReactionDescription' => 'Set by double-tapping a message',
+			'screenChatInfo.mute' => 'Mute',
+			'screenChatInfo.unmute' => 'Unmute',
+			'screenChatInfo.sound' => 'Sound',
+			'screenChatInfo.search' => 'Search',
+			'screenChatInfo.about' => 'Bio',
+			'screenChatInfo.description' => 'Description',
+			'screenChatInfo.username' => 'Username',
+			'screenChatInfo.link' => 'Link',
+			'screenChatInfo.tabMembers' => 'Members',
+			'screenChatInfo.tabSubscribers' => 'Subscribers',
+			'screenChatInfo.tabMedia' => 'Media',
+			'screenChatInfo.tabFiles' => 'Files',
+			'screenChatInfo.tabLinks' => 'Links',
+			'screenChatInfo.tabVoice' => 'Voice',
+			'screenChatInfo.emptyMedia' => 'Photos and videos from this chat will appear here',
+			'screenChatInfo.emptyFiles' => 'Files from this chat will appear here',
+			'screenChatInfo.emptyLinks' => 'Links from this chat will appear here',
+			'screenChatInfo.emptyVoice' => 'Voice messages will appear here',
+			'screenChatInfo.roleOwner' => 'owner',
+			'screenChatInfo.roleAdmin' => 'admin',
+			'screenChatInfo.roleReader' => 'read only',
+			'screenChatInfo.you' => 'You',
+			'screenChatInfo.addMembers' => 'Add Members',
+			'screenChatInfo.add' => 'Add',
+			'screenChatInfo.sendMessage' => 'Send Message',
+			'screenChatInfo.allowWriting' => 'Allow Sending Messages',
+			'screenChatInfo.makeReadOnly' => 'Make Read Only',
+			'screenChatInfo.removeMember' => 'Remove',
+			'screenChatInfo.removeMemberTitle' => ({required Object name}) => 'Remove ${name}?',
+			'screenChatInfo.removeMemberMessage' => 'They can come back via an invite link.',
+			'screenChatInfo.banMember' => 'Ban',
+			'screenChatInfo.banMemberTitle' => ({required Object name}) => 'Ban ${name}?',
+			'screenChatInfo.banMemberMessage' => 'They will be removed and won\'t be able to come back via invite links until unbanned.',
+			'screenChatInfo.banned' => 'Banned',
+			'screenChatInfo.bannedEmpty' => 'No banned users',
+			'screenChatInfo.bannedFooter' => 'Banned users can\'t join via invite links. Adding them manually unbans them.',
+			'screenChatInfo.unban' => 'Unban',
+			'screenChatInfo.reactions' => 'Reactions',
+			'screenChatInfo.reactionsAll' => 'All reactions',
+			'screenChatInfo.reactionsSome' => 'Some reactions',
+			'screenChatInfo.reactionsNone' => 'No reactions',
+			'screenChatInfo.reactionsAllShort' => 'All',
+			'screenChatInfo.reactionsNoneShort' => 'Off',
+			'screenChatInfo.reactionsFooter' => 'Which reactions members can add to messages. Existing reactions stay.',
+			'screenChatInfo.reactionsPick' => 'Available reactions',
+			'screenChatInfo.deleteChat' => 'Delete chat',
+			'screenChatInfo.leaveGroup' => 'Leave group',
+			'screenChatInfo.leaveChannel' => 'Leave channel',
+			'screenChatInfo.leaveCommunity' => 'Leave community',
+			'screenChatInfo.leaveShort' => 'Leave',
+			'screenChatInfo.deleteChatTitle' => ({required Object name}) => 'Delete chat with ${name}?',
+			'screenChatInfo.leaveGroupTitle' => ({required Object name}) => 'Leave «${name}»?',
+			'screenChatInfo.lastSeenMinutes' => ({required Object n}) => 'last seen ${n} min ago',
+			'screenChatInfo.lastSeenAt' => ({required Object time}) => 'last seen at ${time}',
+			'screenChatInfo.lastSeenYesterday' => ({required Object time}) => 'last seen yesterday at ${time}',
+			'screenChatInfo.lastSeenDate' => ({required Object date}) => 'last seen ${date}',
+			'screenChatThemes.title' => _root.screenSettingsAppearance.chatThemes,
+			'screenChatThemes.pattern' => 'Pattern',
+			'screenChatThemes.intensity' => 'Pattern intensity',
+			'screenChatThemes.color' => 'Color',
+			'screenChatThemes.footer' => 'The wallpaper is shown in all chats on this device and adapts to light and dark mode.',
+			'screenChatThemes.previewName' => 'Anna',
+			'screenChatThemes.previewIncoming' => 'Hi! How do you like the new wallpaper? 🎨',
+			'screenChatThemes.previewOutgoing' => 'Looks great, I\'ll keep this one 😍',
+			'screenChatThemes.patternChat' => 'Chat',
+			'screenChatThemes.patternSpace' => 'Space',
+			'screenChatThemes.patternNature' => 'Nature',
+			'screenChatThemes.patternMusic' => 'Music',
+			'screenChatThemes.patternGeometry' => 'Geometry',
+			'screenChatThemes.patternFood' => 'Food',
 			'screenSettingsDevices.devices' => 'Devices',
 			'screenSettingsDevices.thisDevice' => 'This device',
 			'screenSettingsDevices.deviceSessionListTileSubtitle' => ({required Object location, required Object updateAt}) => '${location} · ${updateAt}',
@@ -1650,6 +3419,8 @@ extension on Translations {
 			'screenSettingsAboutApplication.version' => ({required Object version, required Object build}) => 'Version ${version} (${build})',
 			'screenSettingsAboutApplication.licenses' => 'Licenses',
 			'screenSettingsAboutApplication.licensesCount' => ({required Object n}) => '${n} licenses',
+			_ => null,
+		} ?? switch (path) {
 			'screenSettingsAboutApplication.noLicenses' => 'No licenses found',
 			'screenSettingsLanguage.language' => 'Language',
 			'screenSettingsPasscode.passcode' => 'Passcode',
@@ -1688,6 +3459,8 @@ extension on Translations {
 			'sessionsPrivacyAndSecurity.callsAlwaysAllow' => 'Always allow',
 			'sessionsPrivacyAndSecurity.callsAlwaysDeny' => 'Always deny',
 			'sessionsPrivacyAndSecurity.callsAllowEmpty' => 'No contacts registered on Iperon',
+			'sessionsPrivacyAndSecurity.callsEncryption' => 'End-to-end encryption',
+			'sessionsPrivacyAndSecurity.callsEncryptionNote' => 'Voice and video are encrypted on the participants\' devices — the server can\'t decrypt them. Works when both sides have end-to-end encryption on; otherwise the call goes without it.',
 			'sessionsPrivacyAndSecurity.birthday' => 'Birthday',
 			'sessionsPrivacyAndSecurity.whoCanSeeBirthday' => 'Who can see my birthday',
 			'sessionsPrivacyAndSecurity.hideBirthYear' => 'Hide birth year',
@@ -1766,6 +3539,10 @@ extension on Translations {
 			'screenMyProfile.takePhoto' => 'Take photo',
 			'screenMyProfile.chooseFromGallery' => 'Choose from gallery',
 			'screenMyProfile.chooseFile' => 'File',
+			'screenMyProfile.pickDocument' => 'Choose file',
+			'screenMyProfile.pickDocumentHint' => 'Documents, archives and any other files',
+			'screenMyProfile.pickMediaAsFile' => 'Photo or video without compression',
+			'screenMyProfile.pickMediaAsFileHint' => 'Sent as a file, in original quality',
 			'screenMyProfile.chooseEmoji' => 'Emoji',
 			'screenMyProfile.chooseLink' => 'Link',
 			'screenMyProfile.galleryEmpty' => 'No photos',
@@ -1927,6 +3704,9 @@ extension on Translations {
 			'screenCall.qualityGood' => 'Good connection',
 			'screenCall.qualityExcellent' => 'Excellent connection',
 			'screenCall.remoteMicMuted' => 'Their microphone is off',
+			'screenCall.encrypted' => 'End-to-end encrypted',
+			'screenCall.notEncrypted' => 'Not end-to-end encrypted',
+			'screenCall.verifyEmoji' => 'Compare these emoji with the other person',
 			'passkey.title' => 'Passkeys',
 			'passkey.description' => 'Passkeys are stored securely in your password manager.',
 			'passkey.add' => 'Add a passkey',

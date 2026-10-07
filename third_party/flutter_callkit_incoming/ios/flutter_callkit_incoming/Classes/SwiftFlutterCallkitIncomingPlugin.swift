@@ -37,6 +37,10 @@ public class SwiftFlutterCallkitIncomingPlugin: NSObject, FlutterPlugin, CXProvi
     
     private var outgoingCall : Call?
     private var answerCall : Call?
+    // ВЕНДОР-ПАТЧ (Iperon): UUID звонков, завершаемых программно (метод endCall из
+    // Dart). Их CXEndCallAction сообщаем как ENDED, а не DECLINE — см.
+    // provider(_:perform: CXEndCallAction).
+    private var programmaticEndUUIDs = Set<UUID>()
     
     private var data: Data?
     private var isFromPushKit: Bool = false
@@ -414,7 +418,7 @@ public class SwiftFlutterCallkitIncomingPlugin: NSObject, FlutterPlugin, CXProvi
         }
         let call = Call(uuid: uuid, data: data)
 
-
+        self.programmaticEndUUIDs.insert(uuid)
         self.callManager.endCall(call: call)
     }
     
@@ -474,6 +478,7 @@ public class SwiftFlutterCallkitIncomingPlugin: NSObject, FlutterPlugin, CXProvi
         default:
             break
         }
+        self.clearCallStateSlots(for: callUuid)
     }
     
     
@@ -505,6 +510,7 @@ public class SwiftFlutterCallkitIncomingPlugin: NSObject, FlutterPlugin, CXProvi
         }
         self.showMissedCallNotification(data)
         sendEvent(SwiftFlutterCallkitIncomingPlugin.ACTION_CALL_TIMEOUT, data.toJSON())
+        self.clearCallStateSlots(for: uuid)
         if let appDelegate = UIApplication.shared.delegate as? CallkitIncomingAppDelegate {
             appDelegate.onTimeOut(call)
         }
@@ -555,7 +561,7 @@ public class SwiftFlutterCallkitIncomingPlugin: NSObject, FlutterPlugin, CXProvi
                 print("Unable to load icon \(data.iconName).");
             }
         }
-        if !data.ringtonePath.isEmpty || data.ringtonePath != "system_ringtone_default"  {
+        if !data.ringtonePath.isEmpty && data.ringtonePath != "system_ringtone_default" {
             configuration.ringtoneSound = data.ringtonePath
         }
         return configuration
@@ -626,11 +632,21 @@ public class SwiftFlutterCallkitIncomingPlugin: NSObject, FlutterPlugin, CXProvi
         return mode
     }
     
+    /// Clears the per-process "current call" slots once the call they point at is over.
+    /// Leaving them set makes every later incoming call skip its timeout and report
+    /// ENDED instead of DECLINE for the rest of the process lifetime.
+    private func clearCallStateSlots(for uuid: UUID) {
+        if self.answerCall?.uuid == uuid { self.answerCall = nil }
+        if self.outgoingCall?.uuid == uuid { self.outgoingCall = nil }
+    }
+
     public func providerDidReset(_ provider: CXProvider) {
         for call in self.callManager.calls {
             call.endCall()
         }
         self.callManager.removeAllCalls()
+        self.answerCall = nil
+        self.outgoingCall = nil
         sendEvent(SwiftFlutterCallkitIncomingPlugin.ACTION_CALL_PROVIDER_DID_RESET, [:])
         if let appDelegate = UIApplication.shared.delegate as? CallkitIncomingAppDelegate {
             appDelegate.providerDidReset()
@@ -695,6 +711,12 @@ public class SwiftFlutterCallkitIncomingPlugin: NSObject, FlutterPlugin, CXProvi
     
     
     public func provider(_ provider: CXProvider, perform action: CXEndCallAction) {
+        // ВЕНДОР-ПАТЧ (Iperon): программный endCall неотвеченного звонка — не отказ
+        // пользователя. Приложение снимает баннер само (приняли на другом устройстве
+        // / звонящий отменил), а DECLINE оно трактует как ручной отказ и шлёт
+        // звонящему CALL_REJECT, обрывая уже принятый на соседнем устройстве звонок.
+        // Поэтому такие завершения сообщаем как ENDED.
+        let programmatic = self.programmaticEndUUIDs.remove(action.callUUID) != nil
         guard let call = self.callManager.callWithUUID(uuid: action.callUUID) else {
             // The call is not in the manager. This happens when:
             //   1. iOS relaunched the (killed) app just to deliver this end action, or
@@ -704,25 +726,27 @@ public class SwiftFlutterCallkitIncomingPlugin: NSObject, FlutterPlugin, CXProvi
             // TIMEOUT) so the app can notify its backend and stop ringing elsewhere.
             // Fulfill (not fail) the action: failing a legitimate end action leaves
             // a stale call in the system UI.
-            if(self.answerCall == nil && self.outgoingCall == nil){
+            if(!programmatic && self.answerCall == nil && self.outgoingCall == nil){
                 sendEvent(SwiftFlutterCallkitIncomingPlugin.ACTION_CALL_DECLINE, self.data?.toJSON())
             } else {
                 sendEvent(SwiftFlutterCallkitIncomingPlugin.ACTION_CALL_ENDED, self.data?.toJSON())
             }
+            self.clearCallStateSlots(for: action.callUUID)
             action.fulfill()
             return
         }
         call.endCall()
         self.callManager.removeCall(call)
-        if (self.answerCall == nil && self.outgoingCall == nil) {
+        let wasUnanswered = !programmatic && (self.answerCall == nil && self.outgoingCall == nil)
+        self.clearCallStateSlots(for: action.callUUID)
+        if wasUnanswered {
             sendEvent(SwiftFlutterCallkitIncomingPlugin.ACTION_CALL_DECLINE, self.data?.toJSON())
             if let appDelegate = UIApplication.shared.delegate as? CallkitIncomingAppDelegate {
                 appDelegate.onDecline(call, action)
             } else {
                 action.fulfill()
             }
-        }else {
-            self.answerCall = nil
+        } else {
             sendEvent(SwiftFlutterCallkitIncomingPlugin.ACTION_CALL_ENDED, call.data.toJSON())
             if let appDelegate = UIApplication.shared.delegate as? CallkitIncomingAppDelegate {
                 appDelegate.onEnd(call, action)
@@ -778,15 +802,19 @@ public class SwiftFlutterCallkitIncomingPlugin: NSObject, FlutterPlugin, CXProvi
     
     
     public func provider(_ provider: CXProvider, timedOutPerforming action: CXAction) {
-        guard let call = self.callManager.callWithUUID(uuid: action.uuid) else {
-            action.fail()
+        // `action.uuid` identifies the ACTION, not the call. Only CXCallAction
+        // carries the call's UUID, so a plain CXAction cannot be resolved here.
+        guard let callAction = action as? CXCallAction,
+              let call = self.callManager.callWithUUID(uuid: callAction.callUUID) else {
             return
         }
-        sendEvent(SwiftFlutterCallkitIncomingPlugin.ACTION_CALL_TIMEOUT, self.data?.toJSON())
+        sendEvent(SwiftFlutterCallkitIncomingPlugin.ACTION_CALL_TIMEOUT, call.data.toJSON())
+        self.clearCallStateSlots(for: callAction.callUUID)
         if let appDelegate = UIApplication.shared.delegate as? CallkitIncomingAppDelegate {
             appDelegate.onTimeOut(call)
         }
-        action.fulfill()
+        // CXProvider.h: "An action that has already timed out should not be
+        // fulfilled or failed by the provider delegate."
     }
     
     public func provider(_ provider: CXProvider, didActivate audioSession: AVAudioSession) {
@@ -917,4 +945,3 @@ public class FlutterCallkitIncomingPlugin: NSObject, FlutterPlugin {
         SwiftFlutterCallkitIncomingPlugin.register(with: registrar)
     }
 }
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          

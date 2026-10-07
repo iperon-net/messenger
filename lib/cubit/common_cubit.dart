@@ -205,6 +205,14 @@ class CommonCubit extends Cubit<CommonState> {
     emit(state.copyWith(status: Status.success, settingsDevice: settingsDevice));
   }
 
+  /// Локальный тумблер сквозного шифрования звонков (per-device). Персистим в БД —
+  /// [Calls] читает настройку оттуда при подключении к комнате.
+  Future<void> setCallsE2ee({required bool callsE2ee}) async {
+    await repositories.settingsDevice.setCallsE2ee(callsE2ee);
+    final settingsDevice = state.settingsDevice.copyWith(callsE2ee: callsE2ee);
+    emit(state.copyWith(status: Status.success, settingsDevice: settingsDevice));
+  }
+
   Future<void> setPasscode({required List<int> passcode}) async {
     final settingsDevice = state.settingsDevice.copyWith(passcode: passcode);
     // С код-паролем уведомления показываются без имени и текста (натив).
@@ -222,5 +230,34 @@ class CommonCubit extends Cubit<CommonState> {
   Future<void> setPasscodeBiometric({required bool biometric}) async {
     final settingsDevice = state.settingsDevice.copyWith(passcodeBiometric: biometric);
     emit(state.copyWith(status: Status.success, settingsDevice: settingsDevice));
+  }
+
+  /// Тумблер «Демо чатов» на экране «Разработчик».
+  Future<void> setChatsDemo({required bool value}) async {
+    await repositories.settingsDevice.setChatsDemo(value);
+    emit(state.copyWith(settingsDevice: state.settingsDevice.copyWith(chatsDemo: value)));
+  }
+
+  /// «Темы для чатов»: узор и цвет обоев.
+  Future<void> setChatWallpaper({required String pattern, required int color}) async {
+    await repositories.settingsDevice.setChatWallpaper(pattern: pattern, color: color);
+    emit(
+      state.copyWith(
+        settingsDevice: state.settingsDevice.copyWith(chatWallpaper: pattern, chatWallpaperColor: color),
+      ),
+    );
+  }
+
+  /// «Темы для чатов»: интенсивность узора. Пока тянут ползунок — только
+  /// превью ([persist] = false), в БД — когда отпустили.
+  Future<void> setChatWallpaperIntensity(int value, {bool persist = true}) async {
+    emit(state.copyWith(settingsDevice: state.settingsDevice.copyWith(chatWallpaperIntensity: value)));
+    if (persist) await repositories.settingsDevice.setChatWallpaperIntensity(value);
+  }
+
+  /// «Быстрая реакция» — эмодзи двойного тапа по сообщению.
+  Future<void> setQuickReaction(String emoji) async {
+    await repositories.settingsDevice.setQuickReaction(emoji);
+    emit(state.copyWith(settingsDevice: state.settingsDevice.copyWith(quickReaction: emoji)));
   }
 }

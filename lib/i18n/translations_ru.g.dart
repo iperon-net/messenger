@@ -44,10 +44,17 @@ class TranslationsRu extends Translations with BaseTranslations<AppLocale, Trans
 	@override late final _Translations$componentsCamera$ru componentsCamera = _Translations$componentsCamera$ru._(_root);
 	@override late final _Translations$screenHome$ru screenHome = _Translations$screenHome$ru._(_root);
 	@override late final _Translations$screenChats$ru screenChats = _Translations$screenChats$ru._(_root);
+	@override late final _Translations$screenNewChat$ru screenNewChat = _Translations$screenNewChat$ru._(_root);
+	@override late final _Translations$screenChatInvites$ru screenChatInvites = _Translations$screenChatInvites$ru._(_root);
+	@override late final _Translations$screenChatAdmins$ru screenChatAdmins = _Translations$screenChatAdmins$ru._(_root);
+	@override late final _Translations$screenPoll$ru screenPoll = _Translations$screenPoll$ru._(_root);
+	@override late final _Translations$screenChat$ru screenChat = _Translations$screenChat$ru._(_root);
 	@override late final _Translations$screenSettings$ru screenSettings = _Translations$screenSettings$ru._(_root);
 	@override late final _Translations$screenSettingsNotifications$ru screenSettingsNotifications = _Translations$screenSettingsNotifications$ru._(_root);
 	@override late final _Translations$screenDeveloper$ru screenDeveloper = _Translations$screenDeveloper$ru._(_root);
 	@override late final _Translations$screenSettingsAppearance$ru screenSettingsAppearance = _Translations$screenSettingsAppearance$ru._(_root);
+	@override late final _Translations$screenChatInfo$ru screenChatInfo = _Translations$screenChatInfo$ru._(_root);
+	@override late final _Translations$screenChatThemes$ru screenChatThemes = _Translations$screenChatThemes$ru._(_root);
 	@override late final _Translations$screenSettingsDevices$ru screenSettingsDevices = _Translations$screenSettingsDevices$ru._(_root);
 	@override late final _Translations$screenSettingsAboutApplication$ru screenSettingsAboutApplication = _Translations$screenSettingsAboutApplication$ru._(_root);
 	@override late final _Translations$screenSettingsLanguage$ru screenSettingsLanguage = _Translations$screenSettingsLanguage$ru._(_root);
@@ -117,6 +124,8 @@ class _Translations$componentsCamera$ru extends Translations$componentsCamera$en
 	@override String get unavailable => 'Камера недоступна';
 	@override String get accessDenied => 'Нет доступа к камере';
 	@override String get openSettings => 'Открыть настройки';
+	@override String get photo => 'Фото';
+	@override String get video => 'Видео';
 }
 
 // Path: screenHome
@@ -143,6 +152,427 @@ class _Translations$screenChats$ru extends Translations$screenChats$en {
 	@override String get notificationPermissionTitle => 'Включите уведомления';
 	@override String get notificationPermissionMessage => 'Разрешите уведомления, чтобы узнавать о новых сообщениях и контактах, даже когда Iperon свёрнут.';
 	@override String get allowAccess => 'Разрешить';
+	@override String get allFolder => 'Все чаты';
+	@override String get search => 'Поиск';
+	@override String get empty => 'Чатов пока нет';
+	@override String get emptyFolder => 'В этой папке пока нет чатов';
+	@override String get emptyArchive => 'Архив пуст';
+	@override String get archive => 'Архив';
+	@override String get savedMessages => 'Избранное';
+	@override String get draft => 'Черновик:';
+	@override String get typing => 'печатает…';
+	@override String typingName({required Object name}) => '${name} печатает…';
+	@override String get photo => 'Фото';
+	@override String get video => 'Видео';
+	@override String get file => 'Файл';
+	@override String get voice => 'Голосовое сообщение';
+	@override String get pin => 'Закрепить';
+	@override String get unpin => 'Открепить';
+	@override String get markRead => 'Прочитано';
+	@override String get markUnread => 'Непрочитано';
+	@override String get mute => 'Выключить уведомления';
+	@override String get unmute => 'Включить уведомления';
+	@override String get muteTitle => 'Выключить уведомления';
+	@override String get muteHour => 'На 1 час';
+	@override String get mute8Hours => 'На 8 часов';
+	@override String get mute2Days => 'На 2 дня';
+	@override String get muteForever => 'Навсегда';
+	@override String mutedUntil({required Object time}) => 'до ${time}';
+	@override String get toArchive => 'В архив';
+	@override String get fromArchive => 'Из архива';
+	@override String get delete => 'Удалить';
+	@override String get swipeRead => 'Прочитано';
+	@override String get swipeUnread => 'Непрочитано';
+	@override String get swipeMute => 'Выкл. звук';
+	@override String get swipeUnmute => 'Вкл. звук';
+	@override String get swipeArchive => 'Архив';
+	@override String get swipeUnarchive => 'Вернуть';
+	@override String get deleteChatTitle => 'Удалить чат?';
+	@override String deleteChatMessage({required Object title}) => 'Чат «${title}» будет удалён из списка.';
+	@override String get readAll => 'Прочитать все';
+	@override String get deleteFolder => 'Удалить папку';
+	@override String deleteFolderTitle({required Object title}) => 'Удалить папку «${title}»?';
+	@override String get deleteFolderMessage => 'Чаты из папки не удаляются.';
+}
+
+// Path: screenNewChat
+class _Translations$screenNewChat$ru extends Translations$screenNewChat$en {
+	_Translations$screenNewChat$ru._(TranslationsRu root) : this._root = root, super.internal(root);
+
+	final TranslationsRu _root; // ignore: unused_field
+
+	// Translations
+	@override String get title => 'Новое сообщение';
+	@override String get search => 'Поиск';
+	@override String get newGroup => 'Новая группа';
+	@override String get newChannel => 'Новый канал';
+	@override String get newCommunity => 'Новое сообщество';
+	@override String get contacts => 'Контакты';
+	@override String get noContacts => 'Контакты не найдены';
+	@override String get addMembers => 'Добавить участников';
+	@override String get next => 'Далее';
+	@override String selected({required Object n}) => 'Выбрано: ${n}';
+	@override String get noMembersHint => 'Группу можно создать без участников и пригласить их позже.';
+	@override String get groupTitle => 'Новая группа';
+	@override String get channelTitle => 'Новый канал';
+	@override String get communityTitle => 'Новое сообщество';
+	@override String get create => 'Создать';
+	@override String get groupName => 'Название группы';
+	@override String get channelName => 'Название канала';
+	@override String get communityName => 'Название сообщества';
+	@override String get description => 'Описание';
+	@override String get descriptionHint => 'Необязательно';
+	@override String get channelDescriptionFooter => 'Расскажите подписчикам, о чём канал.';
+	@override String get communityDescriptionFooter => 'Сообщество объединяет ваши группы и каналы.';
+	@override String get members => 'Участники';
+	@override String get setPhoto => 'Выбрать фото';
+	@override String get changePhoto => 'Изменить фото';
+	@override String get removePhoto => 'Удалить фото';
+	@override String get editPhoto => 'Фото';
+	@override String get type => 'Тип';
+	@override String get typePublic => 'Публичный';
+	@override String get typePrivate => 'Частный';
+	@override String get channelPublicFooter => 'Публичный канал можно найти в поиске, подписаться на него может любой.';
+	@override String get channelPrivateFooter => 'На частный канал можно подписаться только по ссылке-приглашению.';
+	@override String get communityPublicFooter => 'Публичное сообщество можно найти в поиске, вступить в него может любой.';
+	@override String get communityPrivateFooter => 'В частное сообщество можно вступить только по ссылке-приглашению.';
+	@override String get link => 'Ссылка';
+	@override String get usernameHint => 'имя';
+	@override String get usernameChecking => 'Проверка…';
+	@override String get usernameAvailable => 'Ссылка свободна.';
+	@override String get usernameTaken => 'Эта ссылка уже занята.';
+	@override String get usernameInvalid => 'От 5 до 24 символов: латинские буквы a–z, цифры и _.';
+	@override String get usernameEmpty => 'Придумайте ссылку, по которой его будут находить.';
+	@override String get inviteLink => 'Ссылка-приглашение';
+	@override String get inviteLinkFooter => 'По этой ссылке можно присоединиться. Нажмите, чтобы скопировать.';
+	@override String get copied => 'Ссылка скопирована';
+	@override String get commentsSwitch => 'Комментарии';
+	@override String get commentsFooter => 'Подписчики смогут обсуждать каждый пост в комментариях.';
+	@override String get signSwitch => 'Подписывать сообщения';
+	@override String get signFooter => 'С подписями под постом видно имя админа, который его опубликовал.';
+	@override String get hideMembers => 'Скрыть участников';
+	@override String get hideSubscribers => 'Скрыть подписчиков';
+	@override String get hideMembersFooter => 'Список будут видеть только админы.';
+	@override String get joinHeader => 'Вступление';
+	@override String get joinOpen => 'Открытое';
+	@override String get joinLink => 'По ссылке';
+	@override String get joinRequest => 'По заявке';
+	@override String get joinAdmins => 'Добавляют админы';
+	@override String get joinOpenFooter => 'Найти можно в поиске, вступить может любой.';
+	@override String get joinLinkFooter => 'Вступить можно только по ссылке-приглашению.';
+	@override String get joinRequestFooter => 'По ссылке-приглашению подаётся заявка — вступление после одобрения админом.';
+	@override String get joinAdminsFooter => 'Вступить самостоятельно нельзя — участников добавляют админы.';
+	@override String get defaultRoleHeader => 'Новые участники';
+	@override String get roleReader => 'Только чтение';
+	@override String get roleWriter => 'Чтение и сообщения';
+	@override String get roleReaderFooter => 'Вступившие читают, но не могут писать.';
+	@override String get roleWriterFooter => 'Вступившие могут читать и писать сообщения.';
+}
+
+// Path: screenChatInvites
+class _Translations$screenChatInvites$ru extends Translations$screenChatInvites$en {
+	_Translations$screenChatInvites$ru._(TranslationsRu root) : this._root = root, super.internal(root);
+
+	final TranslationsRu _root; // ignore: unused_field
+
+	// Translations
+	@override String get inviteLinks => 'Ссылки-приглашения';
+	@override String get joinRequests => 'Заявки на вступление';
+	@override String get primaryLink => 'Основная ссылка';
+	@override String get publicLink => 'Публичная ссылка';
+	@override String get publicLinkFooter => 'Публичная ссылка меняется в «Изменить». Дополнительные ссылки ниже работают как приглашения.';
+	@override String get primaryFooter => 'Любой, у кого есть ссылка, может вступить.';
+	@override String get primaryFooterChannel => 'Любой, у кого есть ссылка, может подписаться.';
+	@override String get primaryFooterRequest => 'По ссылке подаётся заявка на вступление — её одобряет админ.';
+	@override String get adminsOnlyNote => 'Сейчас участников добавляют только админы — по ссылкам вступить нельзя. Способ вступления меняется в «Изменить».';
+	@override String get copy => 'Копировать';
+	@override String get share => 'Поделиться';
+	@override String get replace => 'Заменить ссылку';
+	@override String get replaceTitle => 'Заменить ссылку?';
+	@override String get replaceMessage => 'Текущая ссылка перестанет работать, вместо неё появится новая.';
+	@override String get copied => 'Ссылка скопирована';
+	@override String get createLink => 'Создать ссылку';
+	@override String get additionalHeader => 'Дополнительные ссылки';
+	@override String get additionalFooter => 'Можно создать ссылки со сроком действия, лимитом вступлений или одобрением заявок.';
+	@override String get revokedHeader => 'Отозванные ссылки';
+	@override String get deleteAllRevoked => 'Удалить все отозванные';
+	@override String joined({required Object n}) => 'Вступили: ${n}';
+	@override String left({required Object n}) => 'осталось ${n}';
+	@override String until({required Object date}) => 'до ${date}';
+	@override String get expired => 'истекла';
+	@override String get exhausted => 'лимит исчерпан';
+	@override String get approval => 'по заявке';
+	@override String get edit => 'Изменить';
+	@override String get revoke => 'Отозвать';
+	@override String get revokeTitle => 'Отозвать ссылку?';
+	@override String get revokeMessage => 'По ней больше нельзя будет вступить.';
+	@override String get delete => 'Удалить';
+	@override String get newLink => 'Новая ссылка';
+	@override String get editLink => 'Изменить ссылку';
+	@override String get create => 'Создать';
+	@override String get name => 'Название ссылки';
+	@override String get nameHint => 'Необязательно';
+	@override String get nameFooter => 'Название видно только админам.';
+	@override String get approvalTitle => 'Одобрение админом';
+	@override String get approvalFooter => 'Перешедшие по ссылке подают заявку, админ её принимает или отклоняет.';
+	@override String get expireHeader => 'Срок действия';
+	@override String get expireNever => 'Без ограничений';
+	@override String get expireHour => '1 час';
+	@override String get expireDay => '1 день';
+	@override String get expireWeek => '1 неделя';
+	@override String expireCurrent({required Object date}) => 'До ${date}';
+	@override String get limitHeader => 'Лимит вступлений';
+	@override String get limitNone => 'Без ограничений';
+	@override String get limitFooter => 'Сколько человек может вступить по этой ссылке.';
+	@override String get requestsEmpty => 'Заявок нет';
+	@override String get requestsEmptyHint => 'Когда кто-то попросится вступить, заявка появится здесь.';
+	@override String get approve => 'Принять';
+	@override String get decline => 'Отклонить';
+	@override String get approveAll => 'Принять все';
+	@override String get declineAll => 'Отклонить все';
+	@override String get all => 'Все';
+	@override String viaLink({required Object title}) => 'по ссылке «${title}»';
+	@override String get requestsOffHint => 'Заявки приходят, когда вступление «По заявке» или по ссылкам с одобрением админом.';
+}
+
+// Path: screenChatAdmins
+class _Translations$screenChatAdmins$ru extends Translations$screenChatAdmins$en {
+	_Translations$screenChatAdmins$ru._(TranslationsRu root) : this._root = root, super.internal(root);
+
+	final TranslationsRu _root; // ignore: unused_field
+
+	// Translations
+	@override String get admins => 'Администраторы';
+	@override String get addAdmin => 'Добавить админа';
+	@override String get adminsFooter => 'Админы помогают управлять чатом. Права каждого настраиваются отдельно.';
+	@override String get promote => 'Назначить админом';
+	@override String get adminRights => 'Права админа';
+	@override String get newAdmin => 'Новый админ';
+	@override String get rightsHeader => 'Что может этот админ';
+	@override String get rightsFooterLimited => 'Можно выдать только те права, которые есть у вас.';
+	@override String get changeInfo => 'Изменять профиль и настройки';
+	@override String get postMessages => 'Публиковать посты';
+	@override String get editMessages => 'Изменять чужие посты';
+	@override String get deleteMessages => 'Удалять чужие сообщения';
+	@override String get banUsers => 'Блокировать участников';
+	@override String get inviteUsers => 'Приглашать по ссылкам';
+	@override String get pinMessages => 'Закреплять сообщения';
+	@override String get manageCalls => 'Управлять звонками';
+	@override String get anonymous => 'Анонимность';
+	@override String get addAdmins => 'Назначать админов';
+	@override String get anonymousFooter => 'Сообщения анонимного админа подписываются названием группы.';
+	@override String get rankHeader => 'Звание';
+	@override String get rankHint => 'админ';
+	@override String get rankFooter => 'Показывается в списке участников вместо «админ».';
+	@override String get dismiss => 'Снять админа';
+	@override String dismissTitle({required Object name}) => 'Снять ${name} с админов?';
+	@override String get dismissMessage => 'Участник останется в чате без прав админа.';
+	@override String get transfer => 'Передать владение';
+	@override String transferTitle({required Object name}) => 'Передать владение ${name}?';
+	@override String transferMessage({required Object name}) => '${name} станет владельцем, а вы — админом со всеми правами. Отменить это сможет только новый владелец.';
+	@override String get pickMember => 'Выберите участника';
+	@override String get noCandidates => 'Некого назначить — все участники уже админы.';
+}
+
+// Path: screenPoll
+class _Translations$screenPoll$ru extends Translations$screenPoll$en {
+	_Translations$screenPoll$ru._(TranslationsRu root) : this._root = root, super.internal(root);
+
+	final TranslationsRu _root; // ignore: unused_field
+
+	// Translations
+	@override String get newPoll => 'Новый опрос';
+	@override String get question => 'Вопрос';
+	@override String get questionHint => 'Задайте вопрос';
+	@override String get options => 'Варианты ответа';
+	@override String get optionHint => 'Вариант';
+	@override String get addOption => 'Добавить вариант';
+	@override String get optionsFooter => 'Можно добавить до 10 вариантов.';
+	@override String get quizOptionsFooter => 'Нажмите на кружок, чтобы отметить верный ответ.';
+	@override String get settings => 'Настройки';
+	@override String get anonymous => 'Анонимное голосование';
+	@override String get multiple => 'Несколько ответов';
+	@override String get quiz => 'Режим викторины';
+	@override String get quizFooter => 'У викторины один верный ответ. После ответа участник увидит пояснение.';
+	@override String get channelFooter => 'В канале голосование всегда анонимное.';
+	@override String get explanation => 'Пояснение';
+	@override String get explanationHint => 'Покажется после ответа (необязательно)';
+	@override String get create => 'Создать';
+}
+
+// Path: screenChat
+class _Translations$screenChat$ru extends Translations$screenChat$en {
+	_Translations$screenChat$ru._(TranslationsRu root) : this._root = root, super.internal(root);
+
+	final TranslationsRu _root; // ignore: unused_field
+
+	// Translations
+	@override String get today => 'Сегодня';
+	@override String get yesterday => 'Вчера';
+	@override String get online => 'в сети';
+	@override String get lastSeenRecently => 'был(а) недавно';
+	@override String members({required num n, required Object count}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n,
+		one: '${count} участник',
+		few: '${count} участника',
+		many: '${count} участников',
+		other: '${count} участника',
+	);
+	@override String subscribers({required num n, required Object count}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n,
+		one: '${count} подписчик',
+		few: '${count} подписчика',
+		many: '${count} подписчиков',
+		other: '${count} подписчика',
+	);
+	@override String comments({required num n, required Object count}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n,
+		one: '${count} комментарий',
+		few: '${count} комментария',
+		many: '${count} комментариев',
+		other: '${count} комментария',
+	);
+	@override String get leaveComment => 'Прокомментировать';
+	@override String get commentsTitle => 'Комментарии';
+	@override String get subscribe => 'Подписаться';
+	@override String get joinGroup => 'Вступить в группу';
+	@override String get requestJoin => 'Подать заявку';
+	@override String get requestSent => 'Заявка отправлена';
+	@override String get linkInvalid => 'Ссылка недействительна или устарела.';
+	@override String get poll => 'Опрос';
+	@override String get quiz => 'Викторина';
+	@override String get anonymousPoll => 'Анонимный опрос';
+	@override String get publicPoll => 'Открытый опрос';
+	@override String get anonymousQuiz => 'Анонимная викторина';
+	@override String get publicQuiz => 'Викторина';
+	@override String votes({required num n, required Object count}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n,
+		one: '${count} голос',
+		few: '${count} голоса',
+		many: '${count} голосов',
+		other: '${count} голоса',
+	);
+	@override String get noVotes => 'Голосов пока нет';
+	@override String get vote => 'Голосовать';
+	@override String get pollClosed => 'Итоги';
+	@override String get retractVote => 'Отменить голос';
+	@override String get closePoll => 'Завершить опрос';
+	@override String get closePollTitle => 'Завершить опрос?';
+	@override String get closePollMessage => 'Голосовать больше будет нельзя, все увидят итоги.';
+	@override String get pollVoters => 'Голоса';
+	@override String get message => 'Сообщение';
+	@override String get empty => 'Сообщений пока нет';
+	@override String get notFound => 'Чат не найден';
+	@override String get reply => 'Ответить';
+	@override String get copy => 'Копировать';
+	@override String get copied => 'Скопировано';
+	@override String get edit => 'Изменить';
+	@override String get editing => 'Редактирование';
+	@override String get edited => 'изм.';
+	@override String get delete => 'Удалить';
+	@override String get deleteTitle => 'Удалить сообщение?';
+	@override String get deleteMessage => 'Сообщение будет удалено у всех участников чата.';
+	@override String get you => 'Вы';
+	@override String get mute => 'Выключить звук';
+	@override String get unmute => 'Включить звук';
+	@override String get photo => _root.screenChats.photo;
+	@override String get video => _root.screenChats.video;
+	@override String get file => _root.screenChats.file;
+	@override String get voice => _root.screenChats.voice;
+	@override String selected({required Object n}) => 'Выбрано: ${n}';
+	@override String get search => 'Поиск';
+	@override String get searchNoResults => 'Нет результатов';
+	@override String get unreadMessages => 'Непрочитанные сообщения';
+	@override String get select => 'Выбрать';
+	@override String get videoCompressing => 'Сжатие видео';
+	@override String get pin => 'Закрепить';
+	@override String get unpin => 'Открепить';
+	@override String get pinnedTitle => 'Закреплённое сообщение';
+	@override String pinnedNumber({required Object n}) => 'Закреплённое сообщение #${n}';
+	@override String get unpinTitle => 'Открепить сообщение?';
+	@override String pinnedServiceYou({required Object text}) => 'Вы закрепили «${text}»';
+	@override String get pinnedServiceYouMessage => 'Вы закрепили сообщение';
+	@override String pinnedService({required Object name, required Object text}) => '${name} закрепил(а) «${text}»';
+	@override String pinnedServiceMessage({required Object name}) => '${name} закрепил(а) сообщение';
+	@override String pinnedList({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n,
+		one: '${n} закреплённое сообщение',
+		few: '${n} закреплённых сообщения',
+		many: '${n} закреплённых сообщений',
+		other: '${n} закреплённых сообщения',
+	);
+	@override String get pinnedAll => 'Все закреплённые';
+	@override String get unpinAll => 'Открепить все сообщения';
+	@override String unpinAllTitle({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n,
+		one: 'Открепить ${n} сообщение?',
+		few: 'Открепить все ${n} сообщения?',
+		many: 'Открепить все ${n} сообщений?',
+		other: 'Открепить все ${n} сообщения?',
+	);
+	@override String get goToMessage => 'Перейти к сообщению';
+	@override String get sendSilent => 'Отправить без звука';
+	@override String get sendLater => 'Отправить позже';
+	@override String get scheduledTitle => 'Отложенные сообщения';
+	@override String get schedule => 'Запланировать';
+	@override String get sendNow => 'Отправить сейчас';
+	@override String get reschedule => 'Изменить время';
+	@override String get deleteScheduledTitle => 'Удалить отложенное сообщение?';
+	@override String get scheduledHint => 'Отложенные сообщения';
+	@override String get linkPreview => 'Предпросмотр ссылки';
+	@override String get forward => 'Переслать';
+	@override String get forwardTo => 'Переслать в…';
+	@override String forwardedFrom({required Object name}) => 'Переслано от ${name}';
+	@override String forwardFrom({required Object names}) => 'От: ${names}';
+	@override String forwardMessages({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n,
+		one: 'Переслать ${n} сообщение',
+		few: 'Переслать ${n} сообщения',
+		many: 'Переслать ${n} сообщений',
+		other: 'Переслать ${n} сообщения',
+	);
+	@override String deleteSelectedTitle({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n,
+		one: 'Удалить ${n} сообщение?',
+		few: 'Удалить ${n} сообщения?',
+		many: 'Удалить ${n} сообщений?',
+		other: 'Удалить ${n} сообщения?',
+	);
+	@override String get deleteSelectedMessage => 'Сообщения будут удалены у всех участников чата.';
+	@override String deleteForBoth({required Object name}) => 'Удалить у меня и у ${name}';
+	@override String get deleteForMe => 'Удалить только у меня';
+	@override String deleteAlsoFor({required Object name}) => 'Также удалить для ${name}';
+	@override String get deleteMessageSelf => 'Сообщение будет удалено из «Избранного».';
+	@override String get deleteSelectedMessageSelf => 'Сообщения будут удалены из «Избранного».';
+	@override String get voiceSlideToCancel => 'Влево — отмена';
+	@override String get voiceHoldHint => 'Удерживайте, чтобы записать';
+	@override String get micDeniedTitle => 'Нет доступа к микрофону';
+	@override String get micDeniedMessage => 'Разрешите доступ к микрофону в настройках, чтобы записывать голосовые сообщения.';
+	@override String get openSettings => 'Настройки';
+	@override String get hideWithSpoiler => 'Скрыть под спойлер';
+	@override String get removeSpoiler => 'Убрать спойлер';
+	@override String get videoHdOn => 'Видео в HD: 1080p';
+	@override String get videoHdOff => 'Стандартное качество: 720p';
+	@override String get videoSound => 'Звук';
+	@override String get videoMuted => 'Без звука';
+	@override String get videoCover => 'Обложка';
+	@override String get videoCoverSet => 'Обложка выбрана';
+	@override String get videoReset => 'Сбросить';
+	@override String get videoCrop => 'Кадрировать';
+	@override String get videoRotate => 'Повернуть';
+	@override String get videoAspectFree => 'Свободно';
+	@override String get videoAspectOriginal => 'Исходное';
+	@override String get videoAspectSquare => 'Квадрат';
+	@override String get videoEditFailed => 'Не удалось открыть видео';
+	@override String get format => 'Форматирование';
+	@override String get formatBold => 'Жирный';
+	@override String get formatItalic => 'Курсив';
+	@override String get formatStrike => 'Зачёркнутый';
+	@override String get formatSpoiler => 'Спойлер';
+	@override String get formatCode => 'Моноширинный';
+	@override String get formatLink => 'Ссылка';
+	@override String get formatQuote => 'Цитата';
+	@override String get formatPlain => 'Обычный';
+	@override String get linkTitle => 'Добавить ссылку';
+	@override String get linkAdd => 'Добавить';
+	@override String uploadProgress({required Object done, required Object total}) => '${done} из ${total}';
+	@override String get kb => 'КБ';
+	@override String get mb => 'МБ';
+	@override String get gb => 'ГБ';
+	@override String mediaCounter({required Object current, required Object total}) => '${current} из ${total}';
+	@override String get addCaption => 'Добавить подпись…';
 }
 
 // Path: screenSettings
@@ -205,6 +635,7 @@ class _Translations$screenDeveloper$ru extends Translations$screenDeveloper$en {
 	@override String get logs => _root.screenSettings.logs;
 	@override String get exportLogs => 'Экспорт логов';
 	@override String get callPreview => 'Превью экрана звонка';
+	@override String get chatsDemo => 'Демо чатов';
 	@override String get testPush => 'Тестовое уведомление';
 	@override String testPushSent({required Object apns, required Object fcm, required Object failed}) => 'Отправлено: APNs — ${apns}, FCM — ${fcm}, ошибок — ${failed}. Сверните приложение или заблокируйте экран, чтобы проверить доставку в фоне.';
 	@override String get testPushNoTokens => 'Ни у одного вашего устройства нет push-токена. Проверьте, что уведомления разрешены, и перезапустите приложение.';
@@ -235,6 +666,97 @@ class _Translations$screenSettingsAppearance$ru extends Translations$screenSetti
 	@override String get darkModeDisabledDescription => 'Тёмная тема отключена';
 	@override String get blurOnInactive => 'Размытие в неактивном состоянии';
 	@override String get blurOnInactiveDescription => 'Приложение отображается размытым в списке открытых приложений';
+	@override String get chatThemes => 'Темы для чатов';
+	@override String get quickReaction => 'Быстрая реакция';
+	@override String get quickReactionDescription => 'Ставится двойным тапом по сообщению';
+}
+
+// Path: screenChatInfo
+class _Translations$screenChatInfo$ru extends Translations$screenChatInfo$en {
+	_Translations$screenChatInfo$ru._(TranslationsRu root) : this._root = root, super.internal(root);
+
+	final TranslationsRu _root; // ignore: unused_field
+
+	// Translations
+	@override String get mute => 'Выкл. звук';
+	@override String get unmute => 'Вкл. звук';
+	@override String get sound => 'Звук';
+	@override String get search => 'Поиск';
+	@override String get about => 'О себе';
+	@override String get description => 'Описание';
+	@override String get username => 'Имя пользователя';
+	@override String get link => 'Ссылка';
+	@override String get tabMembers => 'Участники';
+	@override String get tabSubscribers => 'Подписчики';
+	@override String get tabMedia => 'Медиа';
+	@override String get tabFiles => 'Файлы';
+	@override String get tabLinks => 'Ссылки';
+	@override String get tabVoice => 'Голосовые';
+	@override String get emptyMedia => 'Здесь будут фото и видео из чата';
+	@override String get emptyFiles => 'Здесь будут файлы из чата';
+	@override String get emptyLinks => 'Здесь будут ссылки из чата';
+	@override String get emptyVoice => 'Здесь будут голосовые сообщения';
+	@override String get roleOwner => 'владелец';
+	@override String get roleAdmin => 'админ';
+	@override String get roleReader => 'только чтение';
+	@override String get you => 'Вы';
+	@override String get addMembers => 'Добавить участников';
+	@override String get add => 'Добавить';
+	@override String get sendMessage => 'Написать сообщение';
+	@override String get allowWriting => 'Разрешить писать';
+	@override String get makeReadOnly => 'Только чтение';
+	@override String get removeMember => 'Исключить';
+	@override String removeMemberTitle({required Object name}) => 'Исключить ${name}?';
+	@override String get removeMemberMessage => 'Вернуться можно будет по ссылке-приглашению.';
+	@override String get banMember => 'Заблокировать';
+	@override String banMemberTitle({required Object name}) => 'Заблокировать ${name}?';
+	@override String get banMemberMessage => 'Участник будет исключён и не сможет вернуться по ссылкам-приглашениям, пока его не разблокируют.';
+	@override String get banned => 'Заблокированные';
+	@override String get bannedEmpty => 'Заблокированных нет';
+	@override String get bannedFooter => 'Заблокированные не могут вступить по ссылкам-приглашениям. Если добавить вручную — блокировка снимется.';
+	@override String get unban => 'Разблокировать';
+	@override String get reactions => 'Реакции';
+	@override String get reactionsAll => 'Все реакции';
+	@override String get reactionsSome => 'Некоторые';
+	@override String get reactionsNone => 'Нет реакций';
+	@override String get reactionsAllShort => 'Все';
+	@override String get reactionsNoneShort => 'Выкл.';
+	@override String get reactionsFooter => 'Какие реакции участники могут ставить на сообщения. Уже поставленные реакции останутся.';
+	@override String get reactionsPick => 'Разрешённые реакции';
+	@override String get deleteChat => 'Удалить чат';
+	@override String get leaveGroup => 'Покинуть группу';
+	@override String get leaveChannel => 'Покинуть канал';
+	@override String get leaveCommunity => 'Покинуть сообщество';
+	@override String get leaveShort => 'Покинуть';
+	@override String deleteChatTitle({required Object name}) => 'Удалить чат с ${name}?';
+	@override String leaveGroupTitle({required Object name}) => 'Покинуть «${name}»?';
+	@override String lastSeenMinutes({required Object n}) => 'был(а) ${n} мин. назад';
+	@override String lastSeenAt({required Object time}) => 'был(а) в ${time}';
+	@override String lastSeenYesterday({required Object time}) => 'был(а) вчера в ${time}';
+	@override String lastSeenDate({required Object date}) => 'был(а) ${date}';
+}
+
+// Path: screenChatThemes
+class _Translations$screenChatThemes$ru extends Translations$screenChatThemes$en {
+	_Translations$screenChatThemes$ru._(TranslationsRu root) : this._root = root, super.internal(root);
+
+	final TranslationsRu _root; // ignore: unused_field
+
+	// Translations
+	@override String get title => _root.screenSettingsAppearance.chatThemes;
+	@override String get pattern => 'Узор';
+	@override String get intensity => 'Интенсивность узора';
+	@override String get color => 'Цвет';
+	@override String get footer => 'Обои показываются во всех чатах на этом устройстве и сами подстраиваются под светлую и тёмную тему.';
+	@override String get previewName => 'Анна';
+	@override String get previewIncoming => 'Привет! Как тебе новые обои? 🎨';
+	@override String get previewOutgoing => 'Отлично смотрятся, оставлю эти 😍';
+	@override String get patternChat => 'Общение';
+	@override String get patternSpace => 'Космос';
+	@override String get patternNature => 'Природа';
+	@override String get patternMusic => 'Музыка';
+	@override String get patternGeometry => 'Геометрия';
+	@override String get patternFood => 'Еда';
 }
 
 // Path: screenSettingsDevices
@@ -347,6 +869,8 @@ class _Translations$sessionsPrivacyAndSecurity$ru extends Translations$sessionsP
 	@override String get callsAlwaysAllow => 'Всегда разрешать';
 	@override String get callsAlwaysDeny => 'Всегда запрещать';
 	@override String get callsAllowEmpty => 'Нет контактов, зарегистрированных в Iperon';
+	@override String get callsEncryption => 'Сквозное шифрование';
+	@override String get callsEncryptionNote => 'Голос и видео шифруются на устройствах собеседников — сервер не может их расшифровать. Работает, если сквозное шифрование включено у обоих; иначе звонок идёт без него.';
 	@override String get birthday => 'День рождения';
 	@override String get whoCanSeeBirthday => 'Кто может видеть мой день рождения';
 	@override String get hideBirthYear => 'Скрывать год рождения';
@@ -447,6 +971,10 @@ class _Translations$screenMyProfile$ru extends Translations$screenMyProfile$en {
 	@override String get takePhoto => 'Сделать фото';
 	@override String get chooseFromGallery => 'Выбрать из галереи';
 	@override String get chooseFile => 'Файл';
+	@override String get pickDocument => 'Выбрать файл';
+	@override String get pickDocumentHint => 'Документы, архивы и любые другие файлы';
+	@override String get pickMediaAsFile => 'Фото или видео без сжатия';
+	@override String get pickMediaAsFileHint => 'Отправятся файлом, в исходном качестве';
 	@override String get chooseEmoji => 'Эмодзи';
 	@override String get chooseLink => 'Ссылка';
 	@override String get galleryEmpty => 'Нет фотографий';
@@ -703,6 +1231,9 @@ class _Translations$screenCall$ru extends Translations$screenCall$en {
 	@override String get qualityGood => 'Хорошее соединение';
 	@override String get qualityExcellent => 'Отличное соединение';
 	@override String get remoteMicMuted => 'Микрофон собеседника выключен';
+	@override String get encrypted => 'Сквозное шифрование';
+	@override String get notEncrypted => 'Без сквозного шифрования';
+	@override String get verifyEmoji => 'Сверьте эмодзи с собеседником';
 }
 
 // Path: passkey
@@ -775,6 +1306,8 @@ extension on TranslationsRu {
 			'componentsCamera.unavailable' => 'Камера недоступна',
 			'componentsCamera.accessDenied' => 'Нет доступа к камере',
 			'componentsCamera.openSettings' => 'Открыть настройки',
+			'componentsCamera.photo' => 'Фото',
+			'componentsCamera.video' => 'Видео',
 			'screenHome.contacts' => 'Контакты',
 			'screenHome.calls' => 'Звонки',
 			'screenHome.chats' => _root.screenChats.chats,
@@ -783,6 +1316,342 @@ extension on TranslationsRu {
 			'screenChats.notificationPermissionTitle' => 'Включите уведомления',
 			'screenChats.notificationPermissionMessage' => 'Разрешите уведомления, чтобы узнавать о новых сообщениях и контактах, даже когда Iperon свёрнут.',
 			'screenChats.allowAccess' => 'Разрешить',
+			'screenChats.allFolder' => 'Все чаты',
+			'screenChats.search' => 'Поиск',
+			'screenChats.empty' => 'Чатов пока нет',
+			'screenChats.emptyFolder' => 'В этой папке пока нет чатов',
+			'screenChats.emptyArchive' => 'Архив пуст',
+			'screenChats.archive' => 'Архив',
+			'screenChats.savedMessages' => 'Избранное',
+			'screenChats.draft' => 'Черновик:',
+			'screenChats.typing' => 'печатает…',
+			'screenChats.typingName' => ({required Object name}) => '${name} печатает…',
+			'screenChats.photo' => 'Фото',
+			'screenChats.video' => 'Видео',
+			'screenChats.file' => 'Файл',
+			'screenChats.voice' => 'Голосовое сообщение',
+			'screenChats.pin' => 'Закрепить',
+			'screenChats.unpin' => 'Открепить',
+			'screenChats.markRead' => 'Прочитано',
+			'screenChats.markUnread' => 'Непрочитано',
+			'screenChats.mute' => 'Выключить уведомления',
+			'screenChats.unmute' => 'Включить уведомления',
+			'screenChats.muteTitle' => 'Выключить уведомления',
+			'screenChats.muteHour' => 'На 1 час',
+			'screenChats.mute8Hours' => 'На 8 часов',
+			'screenChats.mute2Days' => 'На 2 дня',
+			'screenChats.muteForever' => 'Навсегда',
+			'screenChats.mutedUntil' => ({required Object time}) => 'до ${time}',
+			'screenChats.toArchive' => 'В архив',
+			'screenChats.fromArchive' => 'Из архива',
+			'screenChats.delete' => 'Удалить',
+			'screenChats.swipeRead' => 'Прочитано',
+			'screenChats.swipeUnread' => 'Непрочитано',
+			'screenChats.swipeMute' => 'Выкл. звук',
+			'screenChats.swipeUnmute' => 'Вкл. звук',
+			'screenChats.swipeArchive' => 'Архив',
+			'screenChats.swipeUnarchive' => 'Вернуть',
+			'screenChats.deleteChatTitle' => 'Удалить чат?',
+			'screenChats.deleteChatMessage' => ({required Object title}) => 'Чат «${title}» будет удалён из списка.',
+			'screenChats.readAll' => 'Прочитать все',
+			'screenChats.deleteFolder' => 'Удалить папку',
+			'screenChats.deleteFolderTitle' => ({required Object title}) => 'Удалить папку «${title}»?',
+			'screenChats.deleteFolderMessage' => 'Чаты из папки не удаляются.',
+			'screenNewChat.title' => 'Новое сообщение',
+			'screenNewChat.search' => 'Поиск',
+			'screenNewChat.newGroup' => 'Новая группа',
+			'screenNewChat.newChannel' => 'Новый канал',
+			'screenNewChat.newCommunity' => 'Новое сообщество',
+			'screenNewChat.contacts' => 'Контакты',
+			'screenNewChat.noContacts' => 'Контакты не найдены',
+			'screenNewChat.addMembers' => 'Добавить участников',
+			'screenNewChat.next' => 'Далее',
+			'screenNewChat.selected' => ({required Object n}) => 'Выбрано: ${n}',
+			'screenNewChat.noMembersHint' => 'Группу можно создать без участников и пригласить их позже.',
+			'screenNewChat.groupTitle' => 'Новая группа',
+			'screenNewChat.channelTitle' => 'Новый канал',
+			'screenNewChat.communityTitle' => 'Новое сообщество',
+			'screenNewChat.create' => 'Создать',
+			'screenNewChat.groupName' => 'Название группы',
+			'screenNewChat.channelName' => 'Название канала',
+			'screenNewChat.communityName' => 'Название сообщества',
+			'screenNewChat.description' => 'Описание',
+			'screenNewChat.descriptionHint' => 'Необязательно',
+			'screenNewChat.channelDescriptionFooter' => 'Расскажите подписчикам, о чём канал.',
+			'screenNewChat.communityDescriptionFooter' => 'Сообщество объединяет ваши группы и каналы.',
+			'screenNewChat.members' => 'Участники',
+			'screenNewChat.setPhoto' => 'Выбрать фото',
+			'screenNewChat.changePhoto' => 'Изменить фото',
+			'screenNewChat.removePhoto' => 'Удалить фото',
+			'screenNewChat.editPhoto' => 'Фото',
+			'screenNewChat.type' => 'Тип',
+			'screenNewChat.typePublic' => 'Публичный',
+			'screenNewChat.typePrivate' => 'Частный',
+			'screenNewChat.channelPublicFooter' => 'Публичный канал можно найти в поиске, подписаться на него может любой.',
+			'screenNewChat.channelPrivateFooter' => 'На частный канал можно подписаться только по ссылке-приглашению.',
+			'screenNewChat.communityPublicFooter' => 'Публичное сообщество можно найти в поиске, вступить в него может любой.',
+			'screenNewChat.communityPrivateFooter' => 'В частное сообщество можно вступить только по ссылке-приглашению.',
+			'screenNewChat.link' => 'Ссылка',
+			'screenNewChat.usernameHint' => 'имя',
+			'screenNewChat.usernameChecking' => 'Проверка…',
+			'screenNewChat.usernameAvailable' => 'Ссылка свободна.',
+			'screenNewChat.usernameTaken' => 'Эта ссылка уже занята.',
+			'screenNewChat.usernameInvalid' => 'От 5 до 24 символов: латинские буквы a–z, цифры и _.',
+			'screenNewChat.usernameEmpty' => 'Придумайте ссылку, по которой его будут находить.',
+			'screenNewChat.inviteLink' => 'Ссылка-приглашение',
+			'screenNewChat.inviteLinkFooter' => 'По этой ссылке можно присоединиться. Нажмите, чтобы скопировать.',
+			'screenNewChat.copied' => 'Ссылка скопирована',
+			'screenNewChat.commentsSwitch' => 'Комментарии',
+			'screenNewChat.commentsFooter' => 'Подписчики смогут обсуждать каждый пост в комментариях.',
+			'screenNewChat.signSwitch' => 'Подписывать сообщения',
+			'screenNewChat.signFooter' => 'С подписями под постом видно имя админа, который его опубликовал.',
+			'screenNewChat.hideMembers' => 'Скрыть участников',
+			'screenNewChat.hideSubscribers' => 'Скрыть подписчиков',
+			'screenNewChat.hideMembersFooter' => 'Список будут видеть только админы.',
+			'screenNewChat.joinHeader' => 'Вступление',
+			'screenNewChat.joinOpen' => 'Открытое',
+			'screenNewChat.joinLink' => 'По ссылке',
+			'screenNewChat.joinRequest' => 'По заявке',
+			'screenNewChat.joinAdmins' => 'Добавляют админы',
+			'screenNewChat.joinOpenFooter' => 'Найти можно в поиске, вступить может любой.',
+			'screenNewChat.joinLinkFooter' => 'Вступить можно только по ссылке-приглашению.',
+			'screenNewChat.joinRequestFooter' => 'По ссылке-приглашению подаётся заявка — вступление после одобрения админом.',
+			'screenNewChat.joinAdminsFooter' => 'Вступить самостоятельно нельзя — участников добавляют админы.',
+			'screenNewChat.defaultRoleHeader' => 'Новые участники',
+			'screenNewChat.roleReader' => 'Только чтение',
+			'screenNewChat.roleWriter' => 'Чтение и сообщения',
+			'screenNewChat.roleReaderFooter' => 'Вступившие читают, но не могут писать.',
+			'screenNewChat.roleWriterFooter' => 'Вступившие могут читать и писать сообщения.',
+			'screenChatInvites.inviteLinks' => 'Ссылки-приглашения',
+			'screenChatInvites.joinRequests' => 'Заявки на вступление',
+			'screenChatInvites.primaryLink' => 'Основная ссылка',
+			'screenChatInvites.publicLink' => 'Публичная ссылка',
+			'screenChatInvites.publicLinkFooter' => 'Публичная ссылка меняется в «Изменить». Дополнительные ссылки ниже работают как приглашения.',
+			'screenChatInvites.primaryFooter' => 'Любой, у кого есть ссылка, может вступить.',
+			'screenChatInvites.primaryFooterChannel' => 'Любой, у кого есть ссылка, может подписаться.',
+			'screenChatInvites.primaryFooterRequest' => 'По ссылке подаётся заявка на вступление — её одобряет админ.',
+			'screenChatInvites.adminsOnlyNote' => 'Сейчас участников добавляют только админы — по ссылкам вступить нельзя. Способ вступления меняется в «Изменить».',
+			'screenChatInvites.copy' => 'Копировать',
+			'screenChatInvites.share' => 'Поделиться',
+			'screenChatInvites.replace' => 'Заменить ссылку',
+			'screenChatInvites.replaceTitle' => 'Заменить ссылку?',
+			'screenChatInvites.replaceMessage' => 'Текущая ссылка перестанет работать, вместо неё появится новая.',
+			'screenChatInvites.copied' => 'Ссылка скопирована',
+			'screenChatInvites.createLink' => 'Создать ссылку',
+			'screenChatInvites.additionalHeader' => 'Дополнительные ссылки',
+			'screenChatInvites.additionalFooter' => 'Можно создать ссылки со сроком действия, лимитом вступлений или одобрением заявок.',
+			'screenChatInvites.revokedHeader' => 'Отозванные ссылки',
+			'screenChatInvites.deleteAllRevoked' => 'Удалить все отозванные',
+			'screenChatInvites.joined' => ({required Object n}) => 'Вступили: ${n}',
+			'screenChatInvites.left' => ({required Object n}) => 'осталось ${n}',
+			'screenChatInvites.until' => ({required Object date}) => 'до ${date}',
+			'screenChatInvites.expired' => 'истекла',
+			'screenChatInvites.exhausted' => 'лимит исчерпан',
+			'screenChatInvites.approval' => 'по заявке',
+			'screenChatInvites.edit' => 'Изменить',
+			'screenChatInvites.revoke' => 'Отозвать',
+			'screenChatInvites.revokeTitle' => 'Отозвать ссылку?',
+			'screenChatInvites.revokeMessage' => 'По ней больше нельзя будет вступить.',
+			'screenChatInvites.delete' => 'Удалить',
+			'screenChatInvites.newLink' => 'Новая ссылка',
+			'screenChatInvites.editLink' => 'Изменить ссылку',
+			'screenChatInvites.create' => 'Создать',
+			'screenChatInvites.name' => 'Название ссылки',
+			'screenChatInvites.nameHint' => 'Необязательно',
+			'screenChatInvites.nameFooter' => 'Название видно только админам.',
+			'screenChatInvites.approvalTitle' => 'Одобрение админом',
+			'screenChatInvites.approvalFooter' => 'Перешедшие по ссылке подают заявку, админ её принимает или отклоняет.',
+			'screenChatInvites.expireHeader' => 'Срок действия',
+			'screenChatInvites.expireNever' => 'Без ограничений',
+			'screenChatInvites.expireHour' => '1 час',
+			'screenChatInvites.expireDay' => '1 день',
+			'screenChatInvites.expireWeek' => '1 неделя',
+			'screenChatInvites.expireCurrent' => ({required Object date}) => 'До ${date}',
+			'screenChatInvites.limitHeader' => 'Лимит вступлений',
+			'screenChatInvites.limitNone' => 'Без ограничений',
+			'screenChatInvites.limitFooter' => 'Сколько человек может вступить по этой ссылке.',
+			'screenChatInvites.requestsEmpty' => 'Заявок нет',
+			'screenChatInvites.requestsEmptyHint' => 'Когда кто-то попросится вступить, заявка появится здесь.',
+			'screenChatInvites.approve' => 'Принять',
+			'screenChatInvites.decline' => 'Отклонить',
+			'screenChatInvites.approveAll' => 'Принять все',
+			'screenChatInvites.declineAll' => 'Отклонить все',
+			'screenChatInvites.all' => 'Все',
+			'screenChatInvites.viaLink' => ({required Object title}) => 'по ссылке «${title}»',
+			'screenChatInvites.requestsOffHint' => 'Заявки приходят, когда вступление «По заявке» или по ссылкам с одобрением админом.',
+			'screenChatAdmins.admins' => 'Администраторы',
+			'screenChatAdmins.addAdmin' => 'Добавить админа',
+			'screenChatAdmins.adminsFooter' => 'Админы помогают управлять чатом. Права каждого настраиваются отдельно.',
+			'screenChatAdmins.promote' => 'Назначить админом',
+			'screenChatAdmins.adminRights' => 'Права админа',
+			'screenChatAdmins.newAdmin' => 'Новый админ',
+			'screenChatAdmins.rightsHeader' => 'Что может этот админ',
+			'screenChatAdmins.rightsFooterLimited' => 'Можно выдать только те права, которые есть у вас.',
+			'screenChatAdmins.changeInfo' => 'Изменять профиль и настройки',
+			'screenChatAdmins.postMessages' => 'Публиковать посты',
+			'screenChatAdmins.editMessages' => 'Изменять чужие посты',
+			'screenChatAdmins.deleteMessages' => 'Удалять чужие сообщения',
+			'screenChatAdmins.banUsers' => 'Блокировать участников',
+			'screenChatAdmins.inviteUsers' => 'Приглашать по ссылкам',
+			'screenChatAdmins.pinMessages' => 'Закреплять сообщения',
+			'screenChatAdmins.manageCalls' => 'Управлять звонками',
+			'screenChatAdmins.anonymous' => 'Анонимность',
+			'screenChatAdmins.addAdmins' => 'Назначать админов',
+			'screenChatAdmins.anonymousFooter' => 'Сообщения анонимного админа подписываются названием группы.',
+			'screenChatAdmins.rankHeader' => 'Звание',
+			'screenChatAdmins.rankHint' => 'админ',
+			'screenChatAdmins.rankFooter' => 'Показывается в списке участников вместо «админ».',
+			'screenChatAdmins.dismiss' => 'Снять админа',
+			'screenChatAdmins.dismissTitle' => ({required Object name}) => 'Снять ${name} с админов?',
+			'screenChatAdmins.dismissMessage' => 'Участник останется в чате без прав админа.',
+			'screenChatAdmins.transfer' => 'Передать владение',
+			'screenChatAdmins.transferTitle' => ({required Object name}) => 'Передать владение ${name}?',
+			'screenChatAdmins.transferMessage' => ({required Object name}) => '${name} станет владельцем, а вы — админом со всеми правами. Отменить это сможет только новый владелец.',
+			'screenChatAdmins.pickMember' => 'Выберите участника',
+			'screenChatAdmins.noCandidates' => 'Некого назначить — все участники уже админы.',
+			'screenPoll.newPoll' => 'Новый опрос',
+			'screenPoll.question' => 'Вопрос',
+			'screenPoll.questionHint' => 'Задайте вопрос',
+			'screenPoll.options' => 'Варианты ответа',
+			'screenPoll.optionHint' => 'Вариант',
+			'screenPoll.addOption' => 'Добавить вариант',
+			'screenPoll.optionsFooter' => 'Можно добавить до 10 вариантов.',
+			'screenPoll.quizOptionsFooter' => 'Нажмите на кружок, чтобы отметить верный ответ.',
+			'screenPoll.settings' => 'Настройки',
+			'screenPoll.anonymous' => 'Анонимное голосование',
+			'screenPoll.multiple' => 'Несколько ответов',
+			'screenPoll.quiz' => 'Режим викторины',
+			'screenPoll.quizFooter' => 'У викторины один верный ответ. После ответа участник увидит пояснение.',
+			'screenPoll.channelFooter' => 'В канале голосование всегда анонимное.',
+			'screenPoll.explanation' => 'Пояснение',
+			'screenPoll.explanationHint' => 'Покажется после ответа (необязательно)',
+			'screenPoll.create' => 'Создать',
+			'screenChat.today' => 'Сегодня',
+			'screenChat.yesterday' => 'Вчера',
+			'screenChat.online' => 'в сети',
+			'screenChat.lastSeenRecently' => 'был(а) недавно',
+			'screenChat.members' => ({required num n, required Object count}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: '${count} участник', few: '${count} участника', many: '${count} участников', other: '${count} участника', ), 
+			'screenChat.subscribers' => ({required num n, required Object count}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: '${count} подписчик', few: '${count} подписчика', many: '${count} подписчиков', other: '${count} подписчика', ), 
+			'screenChat.comments' => ({required num n, required Object count}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: '${count} комментарий', few: '${count} комментария', many: '${count} комментариев', other: '${count} комментария', ), 
+			'screenChat.leaveComment' => 'Прокомментировать',
+			'screenChat.commentsTitle' => 'Комментарии',
+			'screenChat.subscribe' => 'Подписаться',
+			'screenChat.joinGroup' => 'Вступить в группу',
+			'screenChat.requestJoin' => 'Подать заявку',
+			'screenChat.requestSent' => 'Заявка отправлена',
+			'screenChat.linkInvalid' => 'Ссылка недействительна или устарела.',
+			'screenChat.poll' => 'Опрос',
+			'screenChat.quiz' => 'Викторина',
+			'screenChat.anonymousPoll' => 'Анонимный опрос',
+			'screenChat.publicPoll' => 'Открытый опрос',
+			'screenChat.anonymousQuiz' => 'Анонимная викторина',
+			'screenChat.publicQuiz' => 'Викторина',
+			'screenChat.votes' => ({required num n, required Object count}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: '${count} голос', few: '${count} голоса', many: '${count} голосов', other: '${count} голоса', ), 
+			'screenChat.noVotes' => 'Голосов пока нет',
+			'screenChat.vote' => 'Голосовать',
+			'screenChat.pollClosed' => 'Итоги',
+			'screenChat.retractVote' => 'Отменить голос',
+			'screenChat.closePoll' => 'Завершить опрос',
+			'screenChat.closePollTitle' => 'Завершить опрос?',
+			'screenChat.closePollMessage' => 'Голосовать больше будет нельзя, все увидят итоги.',
+			'screenChat.pollVoters' => 'Голоса',
+			'screenChat.message' => 'Сообщение',
+			'screenChat.empty' => 'Сообщений пока нет',
+			'screenChat.notFound' => 'Чат не найден',
+			'screenChat.reply' => 'Ответить',
+			'screenChat.copy' => 'Копировать',
+			'screenChat.copied' => 'Скопировано',
+			'screenChat.edit' => 'Изменить',
+			'screenChat.editing' => 'Редактирование',
+			'screenChat.edited' => 'изм.',
+			'screenChat.delete' => 'Удалить',
+			'screenChat.deleteTitle' => 'Удалить сообщение?',
+			'screenChat.deleteMessage' => 'Сообщение будет удалено у всех участников чата.',
+			'screenChat.you' => 'Вы',
+			'screenChat.mute' => 'Выключить звук',
+			'screenChat.unmute' => 'Включить звук',
+			'screenChat.photo' => _root.screenChats.photo,
+			'screenChat.video' => _root.screenChats.video,
+			'screenChat.file' => _root.screenChats.file,
+			'screenChat.voice' => _root.screenChats.voice,
+			'screenChat.selected' => ({required Object n}) => 'Выбрано: ${n}',
+			'screenChat.search' => 'Поиск',
+			'screenChat.searchNoResults' => 'Нет результатов',
+			'screenChat.unreadMessages' => 'Непрочитанные сообщения',
+			'screenChat.select' => 'Выбрать',
+			'screenChat.videoCompressing' => 'Сжатие видео',
+			'screenChat.pin' => 'Закрепить',
+			'screenChat.unpin' => 'Открепить',
+			'screenChat.pinnedTitle' => 'Закреплённое сообщение',
+			'screenChat.pinnedNumber' => ({required Object n}) => 'Закреплённое сообщение #${n}',
+			'screenChat.unpinTitle' => 'Открепить сообщение?',
+			'screenChat.pinnedServiceYou' => ({required Object text}) => 'Вы закрепили «${text}»',
+			'screenChat.pinnedServiceYouMessage' => 'Вы закрепили сообщение',
+			'screenChat.pinnedService' => ({required Object name, required Object text}) => '${name} закрепил(а) «${text}»',
+			'screenChat.pinnedServiceMessage' => ({required Object name}) => '${name} закрепил(а) сообщение',
+			'screenChat.pinnedList' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: '${n} закреплённое сообщение', few: '${n} закреплённых сообщения', many: '${n} закреплённых сообщений', other: '${n} закреплённых сообщения', ), 
+			'screenChat.pinnedAll' => 'Все закреплённые',
+			'screenChat.unpinAll' => 'Открепить все сообщения',
+			'screenChat.unpinAllTitle' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: 'Открепить ${n} сообщение?', few: 'Открепить все ${n} сообщения?', many: 'Открепить все ${n} сообщений?', other: 'Открепить все ${n} сообщения?', ), 
+			'screenChat.goToMessage' => 'Перейти к сообщению',
+			'screenChat.sendSilent' => 'Отправить без звука',
+			'screenChat.sendLater' => 'Отправить позже',
+			'screenChat.scheduledTitle' => 'Отложенные сообщения',
+			'screenChat.schedule' => 'Запланировать',
+			'screenChat.sendNow' => 'Отправить сейчас',
+			'screenChat.reschedule' => 'Изменить время',
+			'screenChat.deleteScheduledTitle' => 'Удалить отложенное сообщение?',
+			'screenChat.scheduledHint' => 'Отложенные сообщения',
+			'screenChat.linkPreview' => 'Предпросмотр ссылки',
+			'screenChat.forward' => 'Переслать',
+			'screenChat.forwardTo' => 'Переслать в…',
+			'screenChat.forwardedFrom' => ({required Object name}) => 'Переслано от ${name}',
+			'screenChat.forwardFrom' => ({required Object names}) => 'От: ${names}',
+			'screenChat.forwardMessages' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: 'Переслать ${n} сообщение', few: 'Переслать ${n} сообщения', many: 'Переслать ${n} сообщений', other: 'Переслать ${n} сообщения', ), 
+			'screenChat.deleteSelectedTitle' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: 'Удалить ${n} сообщение?', few: 'Удалить ${n} сообщения?', many: 'Удалить ${n} сообщений?', other: 'Удалить ${n} сообщения?', ), 
+			'screenChat.deleteSelectedMessage' => 'Сообщения будут удалены у всех участников чата.',
+			'screenChat.deleteForBoth' => ({required Object name}) => 'Удалить у меня и у ${name}',
+			'screenChat.deleteForMe' => 'Удалить только у меня',
+			'screenChat.deleteAlsoFor' => ({required Object name}) => 'Также удалить для ${name}',
+			'screenChat.deleteMessageSelf' => 'Сообщение будет удалено из «Избранного».',
+			'screenChat.deleteSelectedMessageSelf' => 'Сообщения будут удалены из «Избранного».',
+			'screenChat.voiceSlideToCancel' => 'Влево — отмена',
+			'screenChat.voiceHoldHint' => 'Удерживайте, чтобы записать',
+			'screenChat.micDeniedTitle' => 'Нет доступа к микрофону',
+			'screenChat.micDeniedMessage' => 'Разрешите доступ к микрофону в настройках, чтобы записывать голосовые сообщения.',
+			'screenChat.openSettings' => 'Настройки',
+			'screenChat.hideWithSpoiler' => 'Скрыть под спойлер',
+			'screenChat.removeSpoiler' => 'Убрать спойлер',
+			'screenChat.videoHdOn' => 'Видео в HD: 1080p',
+			'screenChat.videoHdOff' => 'Стандартное качество: 720p',
+			'screenChat.videoSound' => 'Звук',
+			'screenChat.videoMuted' => 'Без звука',
+			'screenChat.videoCover' => 'Обложка',
+			'screenChat.videoCoverSet' => 'Обложка выбрана',
+			'screenChat.videoReset' => 'Сбросить',
+			'screenChat.videoCrop' => 'Кадрировать',
+			'screenChat.videoRotate' => 'Повернуть',
+			'screenChat.videoAspectFree' => 'Свободно',
+			'screenChat.videoAspectOriginal' => 'Исходное',
+			'screenChat.videoAspectSquare' => 'Квадрат',
+			'screenChat.videoEditFailed' => 'Не удалось открыть видео',
+			'screenChat.format' => 'Форматирование',
+			'screenChat.formatBold' => 'Жирный',
+			'screenChat.formatItalic' => 'Курсив',
+			'screenChat.formatStrike' => 'Зачёркнутый',
+			'screenChat.formatSpoiler' => 'Спойлер',
+			'screenChat.formatCode' => 'Моноширинный',
+			'screenChat.formatLink' => 'Ссылка',
+			'screenChat.formatQuote' => 'Цитата',
+			'screenChat.formatPlain' => 'Обычный',
+			'screenChat.linkTitle' => 'Добавить ссылку',
+			'screenChat.linkAdd' => 'Добавить',
+			'screenChat.uploadProgress' => ({required Object done, required Object total}) => '${done} из ${total}',
+			'screenChat.kb' => 'КБ',
+			'screenChat.mb' => 'МБ',
+			'screenChat.gb' => 'ГБ',
+			'screenChat.mediaCounter' => ({required Object current, required Object total}) => '${current} из ${total}',
+			'screenChat.addCaption' => 'Добавить подпись…',
 			'screenSettings.settings' => 'Настройки',
 			'screenSettings.myProfile' => 'Мой профиль',
 			'screenSettings.devices' => _root.screenSettingsDevices.devices,
@@ -818,6 +1687,7 @@ extension on TranslationsRu {
 			'screenDeveloper.logs' => _root.screenSettings.logs,
 			'screenDeveloper.exportLogs' => 'Экспорт логов',
 			'screenDeveloper.callPreview' => 'Превью экрана звонка',
+			'screenDeveloper.chatsDemo' => 'Демо чатов',
 			'screenDeveloper.testPush' => 'Тестовое уведомление',
 			'screenDeveloper.testPushSent' => ({required Object apns, required Object fcm, required Object failed}) => 'Отправлено: APNs — ${apns}, FCM — ${fcm}, ошибок — ${failed}. Сверните приложение или заблокируйте экран, чтобы проверить доставку в фоне.',
 			'screenDeveloper.testPushNoTokens' => 'Ни у одного вашего устройства нет push-токена. Проверьте, что уведомления разрешены, и перезапустите приложение.',
@@ -839,6 +1709,79 @@ extension on TranslationsRu {
 			'screenSettingsAppearance.darkModeDisabledDescription' => 'Тёмная тема отключена',
 			'screenSettingsAppearance.blurOnInactive' => 'Размытие в неактивном состоянии',
 			'screenSettingsAppearance.blurOnInactiveDescription' => 'Приложение отображается размытым в списке открытых приложений',
+			'screenSettingsAppearance.chatThemes' => 'Темы для чатов',
+			'screenSettingsAppearance.quickReaction' => 'Быстрая реакция',
+			'screenSettingsAppearance.quickReactionDescription' => 'Ставится двойным тапом по сообщению',
+			'screenChatInfo.mute' => 'Выкл. звук',
+			'screenChatInfo.unmute' => 'Вкл. звук',
+			'screenChatInfo.sound' => 'Звук',
+			'screenChatInfo.search' => 'Поиск',
+			'screenChatInfo.about' => 'О себе',
+			'screenChatInfo.description' => 'Описание',
+			'screenChatInfo.username' => 'Имя пользователя',
+			'screenChatInfo.link' => 'Ссылка',
+			'screenChatInfo.tabMembers' => 'Участники',
+			'screenChatInfo.tabSubscribers' => 'Подписчики',
+			'screenChatInfo.tabMedia' => 'Медиа',
+			'screenChatInfo.tabFiles' => 'Файлы',
+			'screenChatInfo.tabLinks' => 'Ссылки',
+			'screenChatInfo.tabVoice' => 'Голосовые',
+			'screenChatInfo.emptyMedia' => 'Здесь будут фото и видео из чата',
+			'screenChatInfo.emptyFiles' => 'Здесь будут файлы из чата',
+			'screenChatInfo.emptyLinks' => 'Здесь будут ссылки из чата',
+			'screenChatInfo.emptyVoice' => 'Здесь будут голосовые сообщения',
+			'screenChatInfo.roleOwner' => 'владелец',
+			'screenChatInfo.roleAdmin' => 'админ',
+			'screenChatInfo.roleReader' => 'только чтение',
+			'screenChatInfo.you' => 'Вы',
+			'screenChatInfo.addMembers' => 'Добавить участников',
+			'screenChatInfo.add' => 'Добавить',
+			'screenChatInfo.sendMessage' => 'Написать сообщение',
+			'screenChatInfo.allowWriting' => 'Разрешить писать',
+			'screenChatInfo.makeReadOnly' => 'Только чтение',
+			'screenChatInfo.removeMember' => 'Исключить',
+			'screenChatInfo.removeMemberTitle' => ({required Object name}) => 'Исключить ${name}?',
+			'screenChatInfo.removeMemberMessage' => 'Вернуться можно будет по ссылке-приглашению.',
+			'screenChatInfo.banMember' => 'Заблокировать',
+			'screenChatInfo.banMemberTitle' => ({required Object name}) => 'Заблокировать ${name}?',
+			'screenChatInfo.banMemberMessage' => 'Участник будет исключён и не сможет вернуться по ссылкам-приглашениям, пока его не разблокируют.',
+			'screenChatInfo.banned' => 'Заблокированные',
+			'screenChatInfo.bannedEmpty' => 'Заблокированных нет',
+			'screenChatInfo.bannedFooter' => 'Заблокированные не могут вступить по ссылкам-приглашениям. Если добавить вручную — блокировка снимется.',
+			'screenChatInfo.unban' => 'Разблокировать',
+			'screenChatInfo.reactions' => 'Реакции',
+			'screenChatInfo.reactionsAll' => 'Все реакции',
+			'screenChatInfo.reactionsSome' => 'Некоторые',
+			'screenChatInfo.reactionsNone' => 'Нет реакций',
+			'screenChatInfo.reactionsAllShort' => 'Все',
+			'screenChatInfo.reactionsNoneShort' => 'Выкл.',
+			'screenChatInfo.reactionsFooter' => 'Какие реакции участники могут ставить на сообщения. Уже поставленные реакции останутся.',
+			'screenChatInfo.reactionsPick' => 'Разрешённые реакции',
+			'screenChatInfo.deleteChat' => 'Удалить чат',
+			'screenChatInfo.leaveGroup' => 'Покинуть группу',
+			'screenChatInfo.leaveChannel' => 'Покинуть канал',
+			'screenChatInfo.leaveCommunity' => 'Покинуть сообщество',
+			'screenChatInfo.leaveShort' => 'Покинуть',
+			'screenChatInfo.deleteChatTitle' => ({required Object name}) => 'Удалить чат с ${name}?',
+			'screenChatInfo.leaveGroupTitle' => ({required Object name}) => 'Покинуть «${name}»?',
+			'screenChatInfo.lastSeenMinutes' => ({required Object n}) => 'был(а) ${n} мин. назад',
+			'screenChatInfo.lastSeenAt' => ({required Object time}) => 'был(а) в ${time}',
+			'screenChatInfo.lastSeenYesterday' => ({required Object time}) => 'был(а) вчера в ${time}',
+			'screenChatInfo.lastSeenDate' => ({required Object date}) => 'был(а) ${date}',
+			'screenChatThemes.title' => _root.screenSettingsAppearance.chatThemes,
+			'screenChatThemes.pattern' => 'Узор',
+			'screenChatThemes.intensity' => 'Интенсивность узора',
+			'screenChatThemes.color' => 'Цвет',
+			'screenChatThemes.footer' => 'Обои показываются во всех чатах на этом устройстве и сами подстраиваются под светлую и тёмную тему.',
+			'screenChatThemes.previewName' => 'Анна',
+			'screenChatThemes.previewIncoming' => 'Привет! Как тебе новые обои? 🎨',
+			'screenChatThemes.previewOutgoing' => 'Отлично смотрятся, оставлю эти 😍',
+			'screenChatThemes.patternChat' => 'Общение',
+			'screenChatThemes.patternSpace' => 'Космос',
+			'screenChatThemes.patternNature' => 'Природа',
+			'screenChatThemes.patternMusic' => 'Музыка',
+			'screenChatThemes.patternGeometry' => 'Геометрия',
+			'screenChatThemes.patternFood' => 'Еда',
 			'screenSettingsDevices.devices' => 'Устройства',
 			'screenSettingsDevices.thisDevice' => 'Это устройство',
 			'screenSettingsDevices.deviceSessionListTileSubtitle' => ({required Object location, required Object updateAt}) => '${location} · ${updateAt}',
@@ -853,6 +1796,8 @@ extension on TranslationsRu {
 			'screenSettingsAboutApplication.version' => ({required Object version, required Object build}) => 'Версия ${version} (${build})',
 			'screenSettingsAboutApplication.licenses' => 'Лицензии',
 			'screenSettingsAboutApplication.licensesCount' => ({required Object n}) => 'Лицензий: ${n}',
+			_ => null,
+		} ?? switch (path) {
 			'screenSettingsAboutApplication.noLicenses' => 'Лицензии не найдены',
 			'screenSettingsLanguage.language' => 'Язык',
 			'screenSettingsPasscode.passcode' => 'Код-пароль',
@@ -891,6 +1836,8 @@ extension on TranslationsRu {
 			'sessionsPrivacyAndSecurity.callsAlwaysAllow' => 'Всегда разрешать',
 			'sessionsPrivacyAndSecurity.callsAlwaysDeny' => 'Всегда запрещать',
 			'sessionsPrivacyAndSecurity.callsAllowEmpty' => 'Нет контактов, зарегистрированных в Iperon',
+			'sessionsPrivacyAndSecurity.callsEncryption' => 'Сквозное шифрование',
+			'sessionsPrivacyAndSecurity.callsEncryptionNote' => 'Голос и видео шифруются на устройствах собеседников — сервер не может их расшифровать. Работает, если сквозное шифрование включено у обоих; иначе звонок идёт без него.',
 			'sessionsPrivacyAndSecurity.birthday' => 'День рождения',
 			'sessionsPrivacyAndSecurity.whoCanSeeBirthday' => 'Кто может видеть мой день рождения',
 			'sessionsPrivacyAndSecurity.hideBirthYear' => 'Скрывать год рождения',
@@ -969,6 +1916,10 @@ extension on TranslationsRu {
 			'screenMyProfile.takePhoto' => 'Сделать фото',
 			'screenMyProfile.chooseFromGallery' => 'Выбрать из галереи',
 			'screenMyProfile.chooseFile' => 'Файл',
+			'screenMyProfile.pickDocument' => 'Выбрать файл',
+			'screenMyProfile.pickDocumentHint' => 'Документы, архивы и любые другие файлы',
+			'screenMyProfile.pickMediaAsFile' => 'Фото или видео без сжатия',
+			'screenMyProfile.pickMediaAsFileHint' => 'Отправятся файлом, в исходном качестве',
 			'screenMyProfile.chooseEmoji' => 'Эмодзи',
 			'screenMyProfile.chooseLink' => 'Ссылка',
 			'screenMyProfile.galleryEmpty' => 'Нет фотографий',
@@ -1130,6 +2081,9 @@ extension on TranslationsRu {
 			'screenCall.qualityGood' => 'Хорошее соединение',
 			'screenCall.qualityExcellent' => 'Отличное соединение',
 			'screenCall.remoteMicMuted' => 'Микрофон собеседника выключен',
+			'screenCall.encrypted' => 'Сквозное шифрование',
+			'screenCall.notEncrypted' => 'Без сквозного шифрования',
+			'screenCall.verifyEmoji' => 'Сверьте эмодзи с собеседником',
 			'passkey.title' => 'Ключи доступа',
 			'passkey.description' => 'Ключи доступа надёжно хранятся в вашем менеджере паролей.',
 			'passkey.add' => 'Добавить ключ',

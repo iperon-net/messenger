@@ -11,6 +11,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.content.res.Configuration
+import android.graphics.Rect
 import android.graphics.drawable.Icon
 import android.media.AudioManager
 import android.net.Uri
@@ -58,6 +59,10 @@ import io.flutter.plugin.common.MethodChannel
 class MainActivity : FlutterFragmentActivity() {
     private val channelName = "net.iperon.messenger/call_window"
     private var callWindowChannel: MethodChannel? = null
+    // Зоны, где жест «назад» от края экрана не срабатывает (ползунки редактора
+    // видео у самых краёв) — см. lib/components/chats/gesture_exclusion.dart.
+    private val gesturesChannelName = "net.iperon.messenger/system_gestures"
+    private var gesturesChannel: MethodChannel? = null
 
     // Канал Picture-in-Picture (мини-окно видеозвонка поверх рабочего стола).
     // Отдельный от call_window, чтобы не перебивать его обработчик (focusCall) в
@@ -95,6 +100,9 @@ class MainActivity : FlutterFragmentActivity() {
     // Свой выбор аудио-выхода звонка (setCommunicationDevice, API 31+). См.
     // AudioDevicesHandler и lib/audio_routes.dart.
     private var audioDevicesHandler: AudioDevicesHandler? = null
+
+    // Сжатие видео перед отправкой в чат (VideoCompressor, lib/chats/video_prepare.dart).
+    private var videoCompressor: VideoCompressor? = null
 
     /// Имя кэшированного движка, к которому цепляется `FlutterFragment`. Сам движок
     /// кладётся в кэш в [onCreate] ДО `super.onCreate` (см. [ensureEngine]) — иначе
@@ -176,6 +184,8 @@ class MainActivity : FlutterFragmentActivity() {
         // старый освобождаем, чтобы не текли AudioDeviceCallback/каналы.
         audioDevicesHandler?.dispose()
         audioDevicesHandler = AudioDevicesHandler(applicationContext, flutterEngine.dartExecutor.binaryMessenger)
+        videoCompressor?.dispose()
+        videoCompressor = VideoCompressor(applicationContext, flutterEngine.dartExecutor.binaryMessenger)
         callWindowChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, channelName)
             .also { it.setMethodCallHandler { call, result ->
                 when (call.method) {
@@ -185,6 +195,25 @@ class MainActivity : FlutterFragmentActivity() {
                     // не оставался виден поверх блокировки.
                     "allowOverLockscreen" -> {
                         setShowOverLockscreen(call.arguments as? Boolean ?: false)
+                        result.success(null)
+                    }
+                    else -> result.notImplemented()
+                }
+            } }
+
+        gesturesChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, gesturesChannelName)
+            .also { it.setMethodCallHandler { call, result ->
+                when (call.method) {
+                    // Прямоугольники в логических пикселях Flutter: [left, top, right, bottom, …].
+                    "setExclusionRects" -> {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                            val values = (call.arguments as? List<*>)?.mapNotNull { (it as? Number)?.toDouble() } ?: emptyList()
+                            val density = resources.displayMetrics.density
+                            val rects = values.chunked(4).filter { it.size == 4 }.map { (l, t, r, b) ->
+                                Rect((l * density).toInt(), (t * density).toInt(), (r * density).toInt(), (b * density).toInt())
+                            }
+                            window.decorView.systemGestureExclusionRects = rects
+                        }
                         result.success(null)
                     }
                     else -> result.notImplemented()
