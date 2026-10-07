@@ -30,6 +30,11 @@ class SettingsDeviceModel with SettingsDeviceModelMappable {
   /// Быстрая реакция — эмодзи двойного тапа по сообщению.
   final String quickReaction;
 
+  /// Предлагать ли сквозное шифрование (E2EE) в звонках на этом устройстве. По
+  /// умолчанию включено; выключается на экране приватности звонков. Звонок
+  /// шифруется, только когда E2EE включён у обоих собеседников (см. [Calls]).
+  final bool callsE2ee;
+
   const SettingsDeviceModel({
     this.locale,
     this.darkMode = DarkModeModel.system,
@@ -45,6 +50,7 @@ class SettingsDeviceModel with SettingsDeviceModelMappable {
     this.chatWallpaperColor = 0,
     this.chatWallpaperIntensity = 40,
     this.quickReaction = '❤️',
+    this.callsE2ee = true,
   });
 
   factory SettingsDeviceModel.fromSqlite(Map<String, dynamic> data) {
@@ -62,6 +68,8 @@ class SettingsDeviceModel with SettingsDeviceModelMappable {
     final chatWallpaperColor = data['chatWallpaperColor'] as int?;
     final chatWallpaperIntensity = data['chatWallpaperIntensity'] as int?;
     final quickReaction = data['quickReaction'] as String?;
+    // Отсутствующая/NULL колонка (старая БД до миграции) трактуется как включено.
+    final callsE2ee = data['callsE2ee'] ?? 1;
 
     SettingsDeviceModel settingsDeviceModel = SettingsDeviceModel();
 
@@ -131,6 +139,10 @@ class SettingsDeviceModel with SettingsDeviceModelMappable {
 
     if (quickReaction != null && quickReaction.isNotEmpty) {
       settingsDeviceModel = settingsDeviceModel.copyWith(quickReaction: quickReaction);
+    }
+
+    if (callsE2ee == 0) {
+      settingsDeviceModel = settingsDeviceModel.copyWith(callsE2ee: false);
     }
 
     return settingsDeviceModel;

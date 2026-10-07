@@ -766,6 +766,9 @@ class _Overlay extends StatelessWidget {
                                   textAlign: TextAlign.center,
                                   style: TextStyle(color: palette.status, fontSize: 15),
                                 ),
+                              // Сквозное шифрование: замок + подпись, тап раскрывает
+                              // SAS. Виджет сам решает, показывать ли себя.
+                              _E2eeBadge(state: state, palette: palette),
                             ],
                           ),
                         ),
@@ -1045,6 +1048,121 @@ class _QualityIndicator extends StatelessWidget {
     };
     if (icon == null) return const SizedBox.shrink();
     return HugeIcon(icon: icon, color: color, size: 16);
+  }
+}
+
+/// Бейдж сквозного шифрования под таймером/статусом: замок + подпись. При
+/// согласованном E2EE строка кликабельна — тап раскрывает/сворачивает ниже SAS
+/// (4 эмодзи) для сверки от активного MITM. Без E2EE — янтарный перечёркнутый
+/// замок. Пока статус не определился (собеседник ещё не вошёл в комнату), ничего
+/// не рисуем, чтобы не мигать (см. [CallEncryption]).
+class _E2eeBadge extends StatefulWidget {
+  final CallState state;
+  final _CallPalette palette;
+
+  const _E2eeBadge({required this.state, required this.palette});
+
+  @override
+  State<_E2eeBadge> createState() => _E2eeBadgeState();
+}
+
+class _E2eeBadgeState extends State<_E2eeBadge> {
+  bool _sasExpanded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.t.screenCall;
+    final state = widget.state;
+    final palette = widget.palette;
+    final active = state.callStatus == CallStatus.active;
+
+    final rows = <Widget>[];
+
+    // Сквозное шифрование — на соединении/разговоре, когда статус определился.
+    if ((active || state.callStatus == CallStatus.connecting) && state.encryption != CallEncryption.negotiating) {
+      if (state.encryption == CallEncryption.encrypted) {
+        final canExpand = state.sas.isNotEmpty;
+        rows.add(
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: canExpand ? () => setState(() => _sasExpanded = !_sasExpanded) : null,
+            child: _badgeRow(
+              icon: const HugeIcon(icon: HugeIcons.strokeRoundedSquareLock02, color: CallView._green, size: 14),
+              color: CallView._green,
+              label: t.encrypted,
+              trailing: canExpand
+                  ? HugeIcon(
+                      icon: _sasExpanded ? HugeIcons.strokeRoundedArrowUp01 : HugeIcons.strokeRoundedArrowDown01,
+                      color: CallView._green,
+                      size: 12,
+                    )
+                  : null,
+            ),
+          ),
+        );
+        // Раскрывающийся SAS под строкой-замком.
+        rows.add(
+          AnimatedSize(
+            duration: const Duration(milliseconds: 180),
+            curve: Curves.easeInOut,
+            child: (canExpand && _sasExpanded)
+                ? Padding(
+                    padding: const EdgeInsets.only(top: 10),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            for (final emoji in state.sas)
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 4),
+                                child: Text(emoji, style: const TextStyle(fontSize: 30)),
+                              ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          t.verifyEmoji,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(color: palette.dim, fontSize: 11),
+                        ),
+                      ],
+                    ),
+                  )
+                : const SizedBox.shrink(),
+          ),
+        );
+      } else {
+        rows.add(
+          _badgeRow(
+            icon: const HugeIcon(icon: HugeIcons.strokeRoundedSquareUnlock02, color: CallView._amber, size: 14),
+            color: CallView._amber,
+            label: t.notEncrypted,
+          ),
+        );
+      }
+    }
+
+    if (rows.isEmpty) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 10),
+      child: Column(mainAxisSize: MainAxisSize.min, children: rows),
+    );
+  }
+
+  /// Одна строка-бейдж: иконка + подпись + опциональный trailing (chevron).
+  Widget _badgeRow({required Widget icon, required Color color, required String label, Widget? trailing}) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        icon,
+        const SizedBox(width: 6),
+        Text(label, style: TextStyle(color: color, fontSize: 12)),
+        if (trailing != null) ...[const SizedBox(width: 4), trailing],
+      ],
+    );
   }
 }
 

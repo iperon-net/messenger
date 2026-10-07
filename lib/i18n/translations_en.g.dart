@@ -1956,6 +1956,12 @@ class Translations$sessionsPrivacyAndSecurity$en {
 	/// en: 'No contacts registered on Iperon'
 	String get callsAllowEmpty => 'No contacts registered on Iperon';
 
+	/// en: 'End-to-end encryption'
+	String get callsEncryption => 'End-to-end encryption';
+
+	/// en: 'Voice and video are encrypted on the participants' devices — the server can't decrypt them. Works when both sides have end-to-end encryption on; otherwise the call goes without it.'
+	String get callsEncryptionNote => 'Voice and video are encrypted on the participants\' devices — the server can\'t decrypt them. Works when both sides have end-to-end encryption on; otherwise the call goes without it.';
+
 	/// en: 'Birthday'
 	String get birthday => 'Birthday';
 
@@ -2798,6 +2804,15 @@ class Translations$screenCall$en {
 
 	/// en: 'Their microphone is off'
 	String get remoteMicMuted => 'Their microphone is off';
+
+	/// en: 'End-to-end encrypted'
+	String get encrypted => 'End-to-end encrypted';
+
+	/// en: 'Not end-to-end encrypted'
+	String get notEncrypted => 'Not end-to-end encrypted';
+
+	/// en: 'Compare these emoji with the other person'
+	String get verifyEmoji => 'Compare these emoji with the other person';
 }
 
 // Path: passkey
@@ -3444,6 +3459,8 @@ extension on Translations {
 			'sessionsPrivacyAndSecurity.callsAlwaysAllow' => 'Always allow',
 			'sessionsPrivacyAndSecurity.callsAlwaysDeny' => 'Always deny',
 			'sessionsPrivacyAndSecurity.callsAllowEmpty' => 'No contacts registered on Iperon',
+			'sessionsPrivacyAndSecurity.callsEncryption' => 'End-to-end encryption',
+			'sessionsPrivacyAndSecurity.callsEncryptionNote' => 'Voice and video are encrypted on the participants\' devices — the server can\'t decrypt them. Works when both sides have end-to-end encryption on; otherwise the call goes without it.',
 			'sessionsPrivacyAndSecurity.birthday' => 'Birthday',
 			'sessionsPrivacyAndSecurity.whoCanSeeBirthday' => 'Who can see my birthday',
 			'sessionsPrivacyAndSecurity.hideBirthYear' => 'Hide birth year',
@@ -3687,6 +3704,9 @@ extension on Translations {
 			'screenCall.qualityGood' => 'Good connection',
 			'screenCall.qualityExcellent' => 'Excellent connection',
 			'screenCall.remoteMicMuted' => 'Their microphone is off',
+			'screenCall.encrypted' => 'End-to-end encrypted',
+			'screenCall.notEncrypted' => 'Not end-to-end encrypted',
+			'screenCall.verifyEmoji' => 'Compare these emoji with the other person',
 			'passkey.title' => 'Passkeys',
 			'passkey.description' => 'Passkeys are stored securely in your password manager.',
 			'passkey.add' => 'Add a passkey',

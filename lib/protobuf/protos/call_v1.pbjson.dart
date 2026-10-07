@@ -45,6 +45,7 @@ const CallToken_Request$json = {
   '2': [
     {'1': 'callId', '3': 1, '4': 1, '5': 9, '10': 'callId'},
     {'1': 'toUserID', '3': 2, '4': 1, '5': 12, '10': 'toUserID'},
+    {'1': 'e2eePublicKey', '3': 3, '4': 1, '5': 12, '10': 'e2eePublicKey'},
   ],
 };
 
@@ -59,6 +60,6 @@ const CallToken_Response$json = {
 
 /// Descriptor for `CallToken`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List callTokenDescriptor =
-    $convert.base64Decode('CglDYWxsVG9rZW4aPQoHUmVxdWVzdBIWCgZjYWxsSWQYASABKAlSBmNhbGxJZBIaCgh0b1VzZX'
-        'JJRBgCIAEoDFIIdG9Vc2VySUQaMgoIUmVzcG9uc2USEAoDdXJsGAEgASgJUgN1cmwSFAoFdG9r'
-        'ZW4YAiABKAlSBXRva2Vu');
+    $convert.base64Decode('CglDYWxsVG9rZW4aYwoHUmVxdWVzdBIWCgZjYWxsSWQYASABKAlSBmNhbGxJZBIaCgh0b1VzZX'
+        'JJRBgCIAEoDFIIdG9Vc2VySUQSJAoNZTJlZVB1YmxpY0tleRgDIAEoDFINZTJlZVB1YmxpY0tl'
+        'eRoyCghSZXNwb25zZRIQCgN1cmwYASABKAlSA3VybBIUCgV0b2tlbhgCIAEoCVIFdG9rZW4=');

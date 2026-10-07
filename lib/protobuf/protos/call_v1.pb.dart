@@ -138,10 +138,12 @@ class CallToken_Request extends $pb.GeneratedMessage {
   factory CallToken_Request({
     $core.String? callId,
     $core.List<$core.int>? toUserID,
+    $core.List<$core.int>? e2eePublicKey,
   }) {
     final result = create();
     if (callId != null) result.callId = callId;
     if (toUserID != null) result.toUserID = toUserID;
+    if (e2eePublicKey != null) result.e2eePublicKey = e2eePublicKey;
     return result;
   }
 
@@ -156,6 +158,7 @@ class CallToken_Request extends $pb.GeneratedMessage {
       package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'callId', protoName: 'callId')
     ..a<$core.List<$core.int>>(2, _omitFieldNames ? '' : 'toUserID', $pb.PbFieldType.OY, protoName: 'toUserID')
+    ..a<$core.List<$core.int>>(3, _omitFieldNames ? '' : 'e2eePublicKey', $pb.PbFieldType.OY, protoName: 'e2eePublicKey')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -195,6 +198,23 @@ class CallToken_Request extends $pb.GeneratedMessage {
   $core.bool hasToUserID() => $_has(1);
   @$pb.TagNumber(2)
   void clearToUserID() => $_clearField(2);
+
+  /// e2eePublicKey — эфемерный публичный ключ X25519 (32 байта) этого участника
+  /// на этот звонок для сквозного шифрования медиа. Пусто — участник входит
+  /// БЕЗ E2EE (старый клиент или E2EE выключен в настройках). Сервер кладёт его
+  /// в атрибут участника LiveKit `e2ee.pub` (base64) прямо в JWT, поэтому
+  /// собеседник видит ключ атомарно со входом участника в комнату — раньше
+  /// любых его медиа-дорожек — и до публикации собственного медиа знает, шифровать
+  /// ли звонок. Ключ комнаты стороны выводят сами (ECDH + HKDF), сервер и SFU
+  /// его не знают. Невалидная длина — InvalidArgument.
+  @$pb.TagNumber(3)
+  $core.List<$core.int> get e2eePublicKey => $_getN(2);
+  @$pb.TagNumber(3)
+  set e2eePublicKey($core.List<$core.int> value) => $_setBytes(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasE2eePublicKey() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearE2eePublicKey() => $_clearField(3);
 }
 
 class CallToken_Response extends $pb.GeneratedMessage {

@@ -123,6 +123,13 @@ class SettingsDeviceModelMapper extends ClassMapperBase<SettingsDeviceModel> {
     opt: true,
     def: '❤️',
   );
+  static bool _$callsE2ee(SettingsDeviceModel v) => v.callsE2ee;
+  static const Field<SettingsDeviceModel, bool> _f$callsE2ee = Field(
+    'callsE2ee',
+    _$callsE2ee,
+    opt: true,
+    def: true,
+  );
 
   @override
   final MappableFields<SettingsDeviceModel> fields = const {
@@ -140,6 +147,7 @@ class SettingsDeviceModelMapper extends ClassMapperBase<SettingsDeviceModel> {
     #chatWallpaperColor: _f$chatWallpaperColor,
     #chatWallpaperIntensity: _f$chatWallpaperIntensity,
     #quickReaction: _f$quickReaction,
+    #callsE2ee: _f$callsE2ee,
   };
 
   static SettingsDeviceModel _instantiate(DecodingData data) {
@@ -158,6 +166,7 @@ class SettingsDeviceModelMapper extends ClassMapperBase<SettingsDeviceModel> {
       chatWallpaperColor: data.dec(_f$chatWallpaperColor),
       chatWallpaperIntensity: data.dec(_f$chatWallpaperIntensity),
       quickReaction: data.dec(_f$quickReaction),
+      callsE2ee: data.dec(_f$callsE2ee),
     );
   }
 
@@ -247,6 +256,7 @@ abstract class SettingsDeviceModelCopyWith<
     int? chatWallpaperColor,
     int? chatWallpaperIntensity,
     String? quickReaction,
+    bool? callsE2ee,
   });
   SettingsDeviceModelCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
     Then<$Out2, $R2> t,
@@ -284,6 +294,7 @@ class _SettingsDeviceModelCopyWithImpl<$R, $Out>
     int? chatWallpaperColor,
     int? chatWallpaperIntensity,
     String? quickReaction,
+    bool? callsE2ee,
   }) => $apply(
     FieldCopyWithData({
       if (locale != $none) #locale: locale,
@@ -303,6 +314,7 @@ class _SettingsDeviceModelCopyWithImpl<$R, $Out>
       if (chatWallpaperIntensity != null)
         #chatWallpaperIntensity: chatWallpaperIntensity,
       if (quickReaction != null) #quickReaction: quickReaction,
+      if (callsE2ee != null) #callsE2ee: callsE2ee,
     }),
   );
   @override
@@ -336,6 +348,7 @@ class _SettingsDeviceModelCopyWithImpl<$R, $Out>
       or: $value.chatWallpaperIntensity,
     ),
     quickReaction: data.get(#quickReaction, or: $value.quickReaction),
+    callsE2ee: data.get(#callsE2ee, or: $value.callsE2ee),
   );
 
   @override

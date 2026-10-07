@@ -5,11 +5,13 @@
 // анализатора точечно для всего файла — иначе flutter analyze падает на warning.
 // ignore_for_file: experimental_member_use
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
 import 'dart:math';
 
 import 'package:audioplayers/audioplayers.dart';
+import 'package:cryptography/cryptography.dart' show SimpleKeyPair;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' show WebRTC;
@@ -19,6 +21,7 @@ import 'package:livekit_client/livekit_client.dart';
 import 'api.dart';
 import 'auth.dart';
 import 'components/call_permissions.dart';
+import 'crypto.dart';
 import 'di.dart';
 import 'logger.dart';
 import 'models.dart' as models;
@@ -49,6 +52,15 @@ enum CallEndReason { none, hangup, rejected, failed, busy, notAllowed, noConnect
 /// [ConnectionQuality] собеседника (см. [Calls._mapQuality]); `unknown` — пока
 /// LiveKit не прислал оценку (индикатор не показываем).
 enum CallQuality { unknown, poor, good, excellent }
+
+/// Состояние сквозного шифрования (E2EE) медиа звонка для UI:
+/// - [negotiating] — собеседник ещё не вошёл в комнату, исход не известен (наши
+///   кадры до ключа не уходят вовсе — `discardFrameWhenCryptorNotReady`);
+/// - [encrypted] — ключ комнаты выведен, медиа шифруется сквозно (SFU расшифровать
+///   не может); в снимке заполнен `sas` для сверки;
+/// - [unencrypted] — звонок без E2EE: у нас или у собеседника он выключен/не
+///   поддерживается (старый клиент). UI показывает предупреждение.
+enum CallEncryption { negotiating, encrypted, unencrypted }
 
 /// Неизменяемый снимок текущего звонка. [Calls] публикует его в [Calls.snapshots]
 /// на каждое изменение; [CallCubit] переводит снимок в состояние экрана.
@@ -100,6 +112,14 @@ class CallSnapshot {
   /// ещё нет. См. [Calls._mapQuality].
   final CallQuality quality;
 
+  /// Состояние сквозного шифрования медиа. См. [CallEncryption]. UI по нему
+  /// показывает «замок»/SAS (encrypted) или предупреждение (unencrypted).
+  final CallEncryption encryption;
+
+  /// SAS (short authentication string) — 4 эмодзи для сверки от MITM. Непусто
+  /// только когда шифрование [CallEncryption.encrypted]. См. [CallKeys.deriveSas].
+  final List<String> sas;
+
   const CallSnapshot({
     this.status = CallStatus.idle,
     this.callId = '',
@@ -115,6 +135,8 @@ class CallSnapshot {
     this.debug = '',
     this.connectedAt,
     this.quality = CallQuality.unknown,
+    this.encryption = CallEncryption.negotiating,
+    this.sas = const [],
   });
 
   CallSnapshot copyWith({
@@ -132,6 +154,8 @@ class CallSnapshot {
     String? debug,
     DateTime? connectedAt,
     CallQuality? quality,
+    CallEncryption? encryption,
+    List<String>? sas,
   }) {
     return CallSnapshot(
       status: status ?? this.status,
@@ -148,6 +172,8 @@ class CallSnapshot {
       debug: debug ?? this.debug,
       connectedAt: connectedAt ?? this.connectedAt,
       quality: quality ?? this.quality,
+      encryption: encryption ?? this.encryption,
+      sas: sas ?? this.sas,
     );
   }
 }
@@ -176,6 +202,7 @@ class Calls {
   final auth = getIt.get<Auth>();
   final settings = getIt.get<Settings>();
   final utils = getIt.get<Utils>();
+  final crypto = getIt.get<Crypto>();
 
   // iOS-канал к AppDelegate для явной активации/деактивации AVAudioSession на
   // пути без CallKit (см. [_setIosAudioSessionActive]). Маршрут на динамик/
@@ -286,6 +313,32 @@ class Calls {
 
   Room? _room;
   EventsListener<RoomEvent>? _roomListener;
+
+  // Сквозное шифрование (E2EE) звонка. Медиа-кадры шифрует FrameCryptor LiveKit
+  // симметричным ключом комнаты, которого SFU не знает. Ключ — ECDH эфемерных пар
+  // X25519 + HKDF ([CallKeys]). Обмен публичными ключами — через сервер, но без
+  // доступа к ключу комнаты: свой публичный ключ кладём в запрос `CALL_TOKEN`,
+  // сервер вшивает его в JWT атрибутом участника [_e2eeAttribute], и собеседник
+  // видит его атомарно со входом участника в комнату — раньше любой его дорожки.
+  //
+  // Инвариант против краша нативного FrameCryptor (underflow в decryptFrame на
+  // коротком незашифрованном кадре, WebRTC-SDK m150): открытый кадр НИКОГДА не
+  // должен попасть в включённый дешифратор. Поэтому:
+  //  - E2EE решается до первой медиа-дорожки и не переключается посреди звонка в
+  //    сторону «выкл» у того, кто шифрует для собеседника с дешифратором;
+  //  - отключаем ([_applyPeerE2ee]) только если у собеседника НЕТ атрибута ключа —
+  //    значит, у него нет и E2EE-менеджера, дешифровать ему нечем. Его дорожки
+  //    опубликованы без шифрования (encryptionType none), и LiveKit не вешает на
+  //    них наш дешифратор;
+  //  - до вывода ключа наши кадры не уходят вовсе (`discardFrameWhenCryptorNotReady`).
+  // Ключи живут только на время звонка (forward secrecy), чистятся в [_teardown].
+  static const _e2eeAttribute = 'e2ee.pub';
+  static const _e2eeRatchetSalt = 'iperon-call-e2ee-v1';
+  SimpleKeyPair? _callKeyPair;
+  BaseKeyProvider? _e2eeKeyProvider;
+  // Публичный ключ собеседника (base64 из атрибута), из которого выведен текущий
+  // ключ комнаты — чтобы не выводить его повторно на тот же ключ.
+  String? _e2eePeerKey;
 
   // Активные видеодорожки для рендера (аудио LiveKit проигрывает сам). Живут
   // здесь, а не в снимке (VideoTrack не immutable); UI читает их геттерами и
@@ -1052,7 +1105,17 @@ class Calls {
     // дропался бы с `foreground=false`. Снимается в [_teardown].
     api.setCallActive(true);
 
-    final request = CallToken_Request(callId: callId, toUserID: Uint8List.fromList(remoteUserID));
+    // Готовим E2EE до запроса токена: публичный ключ уходит в запросе и
+    // вшивается в JWT (см. [_e2eeAttribute]). null — звонок без E2EE (выключен в
+    // настройках или платформа без FrameCryptor): ключа в запросе нет, и
+    // собеседник по отсутствию атрибута тоже пойдёт без шифрования.
+    final e2eePublicKey = await _setupCallE2ee();
+    final e2eeOptions = _e2eeKeyProvider == null ? null : E2EEOptions(keyProvider: _e2eeKeyProvider!);
+    if (e2eeOptions == null && _hasActiveCall) {
+      _emit(_snapshot.copyWith(encryption: CallEncryption.unencrypted, sas: const []));
+    }
+
+    final request = CallToken_Request(callId: callId, toUserID: Uint8List.fromList(remoteUserID), e2eePublicKey: e2eePublicKey);
     final (status, payload) = await api.unaryEncodedWithResponse(MessageType.CALL_TOKEN, request.writeToBuffer());
 
     if (status.status != APIStatus.success || payload == null) {
@@ -1085,7 +1148,14 @@ class Calls {
       // С `false` mute лишь снимает `enabled` дорожки, движок и аудиосессия
       // продолжают жить, маршрут не трогается. Режим мьюта (`inputMixer`) на iOS
       // довыставляем в [_configureIosAudioForCall] — он тоже держит движок/сессию.
-      final room = Room(roomOptions: const RoomOptions(defaultAudioCaptureOptions: AudioCaptureOptions(stopAudioCaptureOnMute: false)));
+      // `e2eeOptions` — общий провайдер ключей на все попытки (от Room не
+      // зависит); E2EE-менеджер LiveKit поднимается сам в room.connect.
+      final room = Room(
+        roomOptions: RoomOptions(
+          defaultAudioCaptureOptions: const AudioCaptureOptions(stopAudioCaptureOnMute: false),
+          e2eeOptions: e2eeOptions,
+        ),
+      );
       _room = room;
       _diag2('Room CREATED seq=$seq attempt=$attempt room#=${identityHashCode(room)} url=${response.url}');
       _roomListener = room.createListener();
@@ -1139,6 +1209,15 @@ class Calls {
     _connectingRoom = false;
     _roomConnected = true;
     _dbg('room connected');
+
+    // Собеседник уже в комнате (мы принимаем звонок) — решаем E2EE по его атрибуту
+    // ДО публикации своего медиа. Если его ещё нет (мы звоним), решим на
+    // ParticipantConnected; до тех пор наши кадры отбрасываются (ключа нет).
+    if (e2eeOptions != null) {
+      for (final participant in room.remoteParticipants.values) {
+        await _applyPeerE2ee(participant);
+      }
+    }
 
     await _publishLocalMedia(video: video);
 
@@ -1339,11 +1418,98 @@ class Calls {
     _dbg('published ${video ? 'audio+video' : 'audio'}');
   }
 
+  // ---------------------------------------------------------------------------
+  // E2EE звонка
+  // ---------------------------------------------------------------------------
+
+  /// Готовит E2EE для звонка: эфемерная пара X25519 + провайдер ключей LiveKit.
+  /// Возвращает наш публичный ключ (32 байта) для `CALL_TOKEN` или `null`, если
+  /// звонок идёт без E2EE (выключен в настройках, нет FrameCryptor на платформе,
+  /// ошибка). Повторный вызов в рамках звонка переиспользует уже готовую пару.
+  Future<Uint8List?> _setupCallE2ee() async {
+    final existing = _callKeyPair;
+    if (existing != null && _e2eeKeyProvider != null) {
+      return crypto.callKeys.publicKeyBytes(existing);
+    }
+    if (!lkPlatformSupportsE2EE()) {
+      logger.warning('call: e2ee not supported on this platform, connecting without it');
+      return null;
+    }
+    final settingsDevice = await getIt.get<Repositories>().settingsDevice.getAll();
+    if (!settingsDevice.callsE2ee) {
+      logger.info('call: e2ee disabled in settings, connecting without it');
+      return null;
+    }
+    try {
+      final keyPair = await crypto.callKeys.generateKeyPair();
+      final publicKey = await crypto.callKeys.publicKeyBytes(keyPair);
+      final keyProvider = await BaseKeyProvider.create(ratchetSalt: _e2eeRatchetSalt, discardFrameWhenCryptorNotReady: true);
+      _callKeyPair = keyPair;
+      _e2eeKeyProvider = keyProvider;
+      _dbg('e2ee ready');
+      return publicKey;
+    } catch (error, stackTrace) {
+      logger.handle(error, stackTrace);
+      _callKeyPair = null;
+      _e2eeKeyProvider = null;
+      return null;
+    }
+  }
+
+  /// Решает E2EE по атрибуту собеседника [participant] (мы сами — с E2EE):
+  /// - атрибута нет → собеседник без E2EE (выключен у него или старый клиент):
+  ///   отключаем FrameCryptor, медиа идёт открытым, снимок — `unencrypted`.
+  ///   Безопасно для краша: без атрибута у собеседника нет E2EE-менеджера, а на
+  ///   его нешифрованные дорожки LiveKit наш дешифратор не вешает;
+  /// - атрибут есть → выводим общий ключ комнаты и ставим в провайдер, снимок —
+  ///   `encrypted` + SAS. Шифрование при этом не выключаем никогда: собеседник
+  ///   дешифрует, и открытый кадр уронил бы его FrameCryptor.
+  /// Битый ключ собеседника — только лог: звонок остаётся без звука (наши кадры
+  /// без ключа отбрасываются), но открытым медиа не пойдёт.
+  Future<void> _applyPeerE2ee(RemoteParticipant participant) async {
+    final keyPair = _callKeyPair;
+    final keyProvider = _e2eeKeyProvider;
+    final room = _room;
+    if (keyPair == null || keyProvider == null || room == null) return;
+
+    final encoded = participant.attributes[_e2eeAttribute] ?? '';
+    if (encoded.isEmpty) {
+      if (_e2eePeerKey != null || _snapshot.encryption == CallEncryption.unencrypted) return;
+      logger.info('call: peer has no e2ee key, media goes unencrypted');
+      _dbg('e2ee off (peer)');
+      try {
+        await room.setE2EEEnabled(false);
+      } catch (error, stackTrace) {
+        logger.handle(error, stackTrace);
+      }
+      if (_hasActiveCall) _emit(_snapshot.copyWith(encryption: CallEncryption.unencrypted, sas: const []));
+      return;
+    }
+    if (encoded == _e2eePeerKey) return;
+
+    try {
+      final remotePublicKey = base64.decode(encoded);
+      final roomKey = await crypto.callKeys.deriveRoomKey(keyPair: keyPair, remotePublicKey: remotePublicKey, callId: _snapshot.callId);
+      await keyProvider.setRawKey(roomKey);
+      // SAS для сверки от MITM — оба конца выводят из одного ключа одинаковые 4
+      // эмодзи (см. [CallKeys.deriveSas]).
+      final sas = await crypto.callKeys.deriveSas(roomKey);
+      _e2eePeerKey = encoded;
+      _dbg('e2ee on');
+      logger.info('call: e2ee key established');
+      if (_hasActiveCall) _emit(_snapshot.copyWith(encryption: CallEncryption.encrypted, sas: sas));
+    } catch (error, stackTrace) {
+      logger.handle(error, stackTrace);
+    }
+  }
+
   void _wireRoomEvents(EventsListener<RoomEvent> listener) {
     listener
       ..on<ParticipantConnectedEvent>((event) {
         _dbg('peer joined');
         _markActive();
+        // Атрибуты из JWT приходят вместе с ParticipantInfo — раньше его дорожек.
+        if (_e2eeKeyProvider != null) unawaited(_applyPeerE2ee(event.participant));
       })
       ..on<TrackSubscribedEvent>((event) {
         final track = event.track;
@@ -1673,6 +1839,13 @@ class Calls {
       _connectingRoom = false;
       _roomConnected = false;
       _viaCallKit = false;
+
+      // E2EE звонка — эфемерные ключи живут только на время звонка (forward
+      // secrecy). Провайдер ключей уходит вместе с Room; здесь выбрасываем пару и
+      // ссылки.
+      _callKeyPair = null;
+      _e2eeKeyProvider = null;
+      _e2eePeerKey = null;
       // Звонок завершён — отпускаем удержание стрима (вернётся к foreground-гейту).
       api.setCallActive(false);
 

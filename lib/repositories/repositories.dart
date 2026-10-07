@@ -351,10 +351,10 @@ class Repositories {
 
     migrations.add(
       SqliteMigration(9, (tx) async {
-        // Остаток от свёрнутой фичи E2EE-звонков (тумблер callsE2ee): фича убрана
-        // из-за краша нативного FrameCryptor (WebRTC-SDK m150). Миграцию НЕ удаляем
-        // и НЕ переиспользуем номер — на устройствах 0.0.230 она уже применена;
-        // столбец остаётся неиспользуемым «висяком», код его не читает.
+        // Локальный тумблер сквозного шифрования звонков (per-device). По
+        // умолчанию включено (1). Колонку завели ещё в первой версии E2EE
+        // (0.0.230), фичу тогда сворачивали, теперь она снова читается
+        // (см. Calls._setupCallE2ee).
         await tx.execute("ALTER TABLE settingsDevice ADD COLUMN callsE2ee INTEGER NOT NULL DEFAULT 1;");
       }),
     );

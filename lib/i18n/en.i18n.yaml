@@ -612,6 +612,8 @@
   "callsAlwaysAllow": "Always allow"
   "callsAlwaysDeny": "Always deny"
   "callsAllowEmpty": "No contacts registered on Iperon"
+  "callsEncryption": "End-to-end encryption"
+  "callsEncryptionNote": "Voice and video are encrypted on the participants' devices — the server can't decrypt them. Works when both sides have end-to-end encryption on; otherwise the call goes without it."
   "birthday": "Birthday"
   "whoCanSeeBirthday": "Who can see my birthday"
   "hideBirthYear": "Hide birth year"
@@ -883,6 +885,9 @@ dateTime:
   "qualityGood": "Good connection"
   "qualityExcellent": "Excellent connection"
   "remoteMicMuted": "Their microphone is off"
+  "encrypted": "End-to-end encrypted"
+  "notEncrypted": "Not end-to-end encrypted"
+  "verifyEmoji": "Compare these emoji with the other person"
 
 "passkey":
   "title": "Passkeys"
