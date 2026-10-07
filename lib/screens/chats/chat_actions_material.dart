@@ -5,6 +5,8 @@ import '../../components.dart';
 import '../../cubit.dart';
 import '../../i18n/translations.g.dart';
 import '../../models.dart' as models;
+import 'chat_folder_edit_material.dart';
+import 'chat_folders_material.dart';
 import 'chat_mute.dart';
 
 /// Действия над чатом по long-press (свайп по списку занят папками — см.
@@ -93,8 +95,9 @@ Future<bool> confirmDeleteChatMaterial(BuildContext context, models.Chat chat) a
   return confirmed ?? false;
 }
 
-/// Действия над папкой по long-press на табе: «Прочитать все», «Удалить папку»
-/// («Все чаты» не удаляется).
+/// Действия над папкой по long-press на табе: у «Все чаты» — «Прочитать все»,
+/// «Изменить папки»; у остальных — «Изменить папку», «Прочитать все»,
+/// «Изменить порядок» (экран «Папки»), «Удалить папку».
 Future<void> showFolderActionsMaterial(BuildContext context, models.ChatFolder folder, String title) async {
   final cubit = context.read<ChatsCubit>();
   final t = context.t.screenChats;
@@ -106,12 +109,29 @@ Future<void> showFolderActionsMaterial(BuildContext context, models.ChatFolder f
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
+          if (!folder.isAll)
+            ListTile(
+              leading: const Icon(Icons.edit_outlined),
+              title: Text(t.editFolder),
+              onTap: () {
+                Navigator.of(sheetContext).pop();
+                showChatFolderEditMaterial(context, folder: folder);
+              },
+            ),
           ListTile(
             leading: const Icon(Icons.mark_chat_read_outlined),
             title: Text(t.readAll),
             onTap: () {
               Navigator.of(sheetContext).pop();
               cubit.readAll(folder);
+            },
+          ),
+          ListTile(
+            leading: Icon(folder.isAll ? Icons.folder_outlined : Icons.swap_vert),
+            title: Text(folder.isAll ? t.editFolders : t.reorderFolders),
+            onTap: () {
+              Navigator.of(sheetContext).pop();
+              showChatFoldersMaterial(context);
             },
           ),
           if (!folder.isAll)

@@ -44,6 +44,7 @@ class TranslationsRu extends Translations with BaseTranslations<AppLocale, Trans
 	@override late final _Translations$componentsCamera$ru componentsCamera = _Translations$componentsCamera$ru._(_root);
 	@override late final _Translations$screenHome$ru screenHome = _Translations$screenHome$ru._(_root);
 	@override late final _Translations$screenChats$ru screenChats = _Translations$screenChats$ru._(_root);
+	@override late final _Translations$screenChatFolders$ru screenChatFolders = _Translations$screenChatFolders$ru._(_root);
 	@override late final _Translations$screenNewChat$ru screenNewChat = _Translations$screenNewChat$ru._(_root);
 	@override late final _Translations$screenChatInvites$ru screenChatInvites = _Translations$screenChatInvites$ru._(_root);
 	@override late final _Translations$screenChatAdmins$ru screenChatAdmins = _Translations$screenChatAdmins$ru._(_root);
@@ -193,6 +194,70 @@ class _Translations$screenChats$ru extends Translations$screenChats$en {
 	@override String get deleteFolder => 'Удалить папку';
 	@override String deleteFolderTitle({required Object title}) => 'Удалить папку «${title}»?';
 	@override String get deleteFolderMessage => 'Чаты из папки не удаляются.';
+	@override String get editFolder => 'Изменить папку';
+	@override String get editFolders => 'Изменить папки';
+	@override String get reorderFolders => 'Изменить порядок';
+}
+
+// Path: screenChatFolders
+class _Translations$screenChatFolders$ru extends Translations$screenChatFolders$en {
+	_Translations$screenChatFolders$ru._(TranslationsRu root) : this._root = root, super.internal(root);
+
+	final TranslationsRu _root; // ignore: unused_field
+
+	// Translations
+	@override String get folders => 'Папки';
+	@override String get intro => 'Создавайте папки для разных групп чатов и быстро переключайтесь между ними свайпом по списку.';
+	@override String get myFolders => 'Мои папки';
+	@override String get createFolder => 'Создать папку';
+	@override String get allChatsSubtitle => 'Все ваши чаты';
+	@override String reorderFooter({required Object n}) => 'Чтобы изменить порядок, перетащите папку за ≡. Можно создать до ${n} папок вместе с «Все чаты».';
+	@override String limitReached({required Object n}) => 'Создано максимальное число папок — ${n}, вместе с «Все чаты». Удалите ненужную, чтобы добавить новую.';
+	@override String get recommended => 'Рекомендованные папки';
+	@override String get add => 'Добавить';
+	@override String chatsCount({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n,
+		one: '${n} чат',
+		few: '${n} чата',
+		many: '${n} чатов',
+		other: '${n} чата',
+	);
+	@override String get noChats => 'Нет чатов';
+	@override String get presetUnread => 'Непрочитанные';
+	@override String get presetUnreadAbout => 'Новые сообщения из всех чатов';
+	@override String get presetPersonal => 'Личные';
+	@override String get presetPersonalAbout => 'Сообщения только из личных чатов';
+	@override String get presetGroups => 'Группы';
+	@override String get presetGroupsAbout => 'Сообщения только из групп';
+	@override String get presetChannels => 'Каналы';
+	@override String get presetChannelsAbout => 'Сообщения только из каналов';
+	@override String get newFolder => 'Новая папка';
+	@override String get editFolder => 'Изменить папку';
+	@override String get create => 'Создать';
+	@override String get name => 'Название папки';
+	@override String get included => 'Включённые чаты';
+	@override String get includedFooter => 'Выберите чаты и типы чатов, которые будут в этой папке.';
+	@override String get addChats => 'Добавить чаты';
+	@override String get excluded => 'Исключённые чаты';
+	@override String get excludedFooter => 'Выберите чаты и типы чатов, которые никогда не попадут в эту папку.';
+	@override String get excludeChats => 'Исключить чаты';
+	@override String get deleteFolder => 'Удалить папку';
+	@override String get chatTypes => 'Типы чатов';
+	@override String get chats => 'Чаты';
+	@override String get contacts => 'Контакты';
+	@override String get nonContacts => 'Не контакты';
+	@override String get groups => 'Группы';
+	@override String get channels => 'Каналы';
+	@override String get communities => 'Сообщества';
+	@override String get muted => 'Без уведомлений';
+	@override String get read => 'Прочитанные';
+	@override String get search => 'Поиск';
+	@override String get nothingFound => 'Чатов не найдено';
+	@override String selected({required Object n}) => 'Выбрано: ${n}';
+	@override String get nameRequired => 'Введите название папки.';
+	@override String get chatsRequired => 'Добавьте в папку хотя бы один чат или тип чатов.';
+	@override String get discardTitle => 'Не сохранять изменения?';
+	@override String get discardMessage => 'Изменения папки будут потеряны.';
+	@override String get discard => 'Не сохранять';
 }
 
 // Path: screenNewChat
@@ -587,6 +652,7 @@ class _Translations$screenSettings$ru extends Translations$screenSettings$en {
 	@override String get devices => _root.screenSettingsDevices.devices;
 	@override String get language => 'Язык';
 	@override String get appearance => _root.screenSettingsAppearance.appearance;
+	@override String get folders => _root.screenChatFolders.folders;
 	@override String get notifications => _root.screenSettingsNotifications.notifications;
 	@override String get privacyAndSecurity => 'Конфиденциальность';
 	@override String get aboutApplication => 'О приложении';
@@ -1357,6 +1423,56 @@ extension on TranslationsRu {
 			'screenChats.deleteFolder' => 'Удалить папку',
 			'screenChats.deleteFolderTitle' => ({required Object title}) => 'Удалить папку «${title}»?',
 			'screenChats.deleteFolderMessage' => 'Чаты из папки не удаляются.',
+			'screenChats.editFolder' => 'Изменить папку',
+			'screenChats.editFolders' => 'Изменить папки',
+			'screenChats.reorderFolders' => 'Изменить порядок',
+			'screenChatFolders.folders' => 'Папки',
+			'screenChatFolders.intro' => 'Создавайте папки для разных групп чатов и быстро переключайтесь между ними свайпом по списку.',
+			'screenChatFolders.myFolders' => 'Мои папки',
+			'screenChatFolders.createFolder' => 'Создать папку',
+			'screenChatFolders.allChatsSubtitle' => 'Все ваши чаты',
+			'screenChatFolders.reorderFooter' => ({required Object n}) => 'Чтобы изменить порядок, перетащите папку за ≡. Можно создать до ${n} папок вместе с «Все чаты».',
+			'screenChatFolders.limitReached' => ({required Object n}) => 'Создано максимальное число папок — ${n}, вместе с «Все чаты». Удалите ненужную, чтобы добавить новую.',
+			'screenChatFolders.recommended' => 'Рекомендованные папки',
+			'screenChatFolders.add' => 'Добавить',
+			'screenChatFolders.chatsCount' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: '${n} чат', few: '${n} чата', many: '${n} чатов', other: '${n} чата', ), 
+			'screenChatFolders.noChats' => 'Нет чатов',
+			'screenChatFolders.presetUnread' => 'Непрочитанные',
+			'screenChatFolders.presetUnreadAbout' => 'Новые сообщения из всех чатов',
+			'screenChatFolders.presetPersonal' => 'Личные',
+			'screenChatFolders.presetPersonalAbout' => 'Сообщения только из личных чатов',
+			'screenChatFolders.presetGroups' => 'Группы',
+			'screenChatFolders.presetGroupsAbout' => 'Сообщения только из групп',
+			'screenChatFolders.presetChannels' => 'Каналы',
+			'screenChatFolders.presetChannelsAbout' => 'Сообщения только из каналов',
+			'screenChatFolders.newFolder' => 'Новая папка',
+			'screenChatFolders.editFolder' => 'Изменить папку',
+			'screenChatFolders.create' => 'Создать',
+			'screenChatFolders.name' => 'Название папки',
+			'screenChatFolders.included' => 'Включённые чаты',
+			'screenChatFolders.includedFooter' => 'Выберите чаты и типы чатов, которые будут в этой папке.',
+			'screenChatFolders.addChats' => 'Добавить чаты',
+			'screenChatFolders.excluded' => 'Исключённые чаты',
+			'screenChatFolders.excludedFooter' => 'Выберите чаты и типы чатов, которые никогда не попадут в эту папку.',
+			'screenChatFolders.excludeChats' => 'Исключить чаты',
+			'screenChatFolders.deleteFolder' => 'Удалить папку',
+			'screenChatFolders.chatTypes' => 'Типы чатов',
+			'screenChatFolders.chats' => 'Чаты',
+			'screenChatFolders.contacts' => 'Контакты',
+			'screenChatFolders.nonContacts' => 'Не контакты',
+			'screenChatFolders.groups' => 'Группы',
+			'screenChatFolders.channels' => 'Каналы',
+			'screenChatFolders.communities' => 'Сообщества',
+			'screenChatFolders.muted' => 'Без уведомлений',
+			'screenChatFolders.read' => 'Прочитанные',
+			'screenChatFolders.search' => 'Поиск',
+			'screenChatFolders.nothingFound' => 'Чатов не найдено',
+			'screenChatFolders.selected' => ({required Object n}) => 'Выбрано: ${n}',
+			'screenChatFolders.nameRequired' => 'Введите название папки.',
+			'screenChatFolders.chatsRequired' => 'Добавьте в папку хотя бы один чат или тип чатов.',
+			'screenChatFolders.discardTitle' => 'Не сохранять изменения?',
+			'screenChatFolders.discardMessage' => 'Изменения папки будут потеряны.',
+			'screenChatFolders.discard' => 'Не сохранять',
 			'screenNewChat.title' => 'Новое сообщение',
 			'screenNewChat.search' => 'Поиск',
 			'screenNewChat.newGroup' => 'Новая группа',
@@ -1657,6 +1773,7 @@ extension on TranslationsRu {
 			'screenSettings.devices' => _root.screenSettingsDevices.devices,
 			'screenSettings.language' => 'Язык',
 			'screenSettings.appearance' => _root.screenSettingsAppearance.appearance,
+			'screenSettings.folders' => _root.screenChatFolders.folders,
 			'screenSettings.notifications' => _root.screenSettingsNotifications.notifications,
 			'screenSettings.privacyAndSecurity' => 'Конфиденциальность',
 			'screenSettings.aboutApplication' => 'О приложении',
@@ -1745,6 +1862,8 @@ extension on TranslationsRu {
 			'screenChatInfo.banMember' => 'Заблокировать',
 			'screenChatInfo.banMemberTitle' => ({required Object name}) => 'Заблокировать ${name}?',
 			'screenChatInfo.banMemberMessage' => 'Участник будет исключён и не сможет вернуться по ссылкам-приглашениям, пока его не разблокируют.',
+			_ => null,
+		} ?? switch (path) {
 			'screenChatInfo.banned' => 'Заблокированные',
 			'screenChatInfo.bannedEmpty' => 'Заблокированных нет',
 			'screenChatInfo.bannedFooter' => 'Заблокированные не могут вступить по ссылкам-приглашениям. Если добавить вручную — блокировка снимется.',
@@ -1796,8 +1915,6 @@ extension on TranslationsRu {
 			'screenSettingsAboutApplication.version' => ({required Object version, required Object build}) => 'Версия ${version} (${build})',
 			'screenSettingsAboutApplication.licenses' => 'Лицензии',
 			'screenSettingsAboutApplication.licensesCount' => ({required Object n}) => 'Лицензий: ${n}',
-			_ => null,
-		} ?? switch (path) {
 			'screenSettingsAboutApplication.noLicenses' => 'Лицензии не найдены',
 			'screenSettingsLanguage.language' => 'Язык',
 			'screenSettingsPasscode.passcode' => 'Код-пароль',

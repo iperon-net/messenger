@@ -46,6 +46,7 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	late final Translations$componentsCamera$en componentsCamera = Translations$componentsCamera$en.internal(_root);
 	late final Translations$screenHome$en screenHome = Translations$screenHome$en.internal(_root);
 	late final Translations$screenChats$en screenChats = Translations$screenChats$en.internal(_root);
+	late final Translations$screenChatFolders$en screenChatFolders = Translations$screenChatFolders$en.internal(_root);
 	late final Translations$screenNewChat$en screenNewChat = Translations$screenNewChat$en.internal(_root);
 	late final Translations$screenChatInvites$en screenChatInvites = Translations$screenChatInvites$en.internal(_root);
 	late final Translations$screenChatAdmins$en screenChatAdmins = Translations$screenChatAdmins$en.internal(_root);
@@ -341,6 +342,168 @@ class Translations$screenChats$en {
 
 	/// en: 'Chats in the folder are not deleted.'
 	String get deleteFolderMessage => 'Chats in the folder are not deleted.';
+
+	/// en: 'Edit folder'
+	String get editFolder => 'Edit folder';
+
+	/// en: 'Edit folders'
+	String get editFolders => 'Edit folders';
+
+	/// en: 'Reorder'
+	String get reorderFolders => 'Reorder';
+}
+
+// Path: screenChatFolders
+class Translations$screenChatFolders$en {
+	Translations$screenChatFolders$en.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// en: 'Folders'
+	String get folders => 'Folders';
+
+	/// en: 'Create folders for different groups of chats and quickly switch between them by swiping the list.'
+	String get intro => 'Create folders for different groups of chats and quickly switch between them by swiping the list.';
+
+	/// en: 'My folders'
+	String get myFolders => 'My folders';
+
+	/// en: 'Create folder'
+	String get createFolder => 'Create folder';
+
+	/// en: 'All your chats'
+	String get allChatsSubtitle => 'All your chats';
+
+	/// en: 'Drag a folder by ≡ to change the order. You can have up to {n} folders including "All chats".'
+	String reorderFooter({required Object n}) => 'Drag a folder by ≡ to change the order. You can have up to ${n} folders including "All chats".';
+
+	/// en: 'You have reached the limit of {n} folders, including "All chats". Delete one to add a new one.'
+	String limitReached({required Object n}) => 'You have reached the limit of ${n} folders, including "All chats". Delete one to add a new one.';
+
+	/// en: 'Recommended folders'
+	String get recommended => 'Recommended folders';
+
+	/// en: 'Add'
+	String get add => 'Add';
+
+	/// en: '(one) {{n} chat} (other) {{n} chats}'
+	String chatsCount({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n,
+		one: '${n} chat',
+		other: '${n} chats',
+	);
+
+	/// en: 'No chats'
+	String get noChats => 'No chats';
+
+	/// en: 'Unread'
+	String get presetUnread => 'Unread';
+
+	/// en: 'New messages from all chats'
+	String get presetUnreadAbout => 'New messages from all chats';
+
+	/// en: 'Personal'
+	String get presetPersonal => 'Personal';
+
+	/// en: 'Only messages from personal chats'
+	String get presetPersonalAbout => 'Only messages from personal chats';
+
+	/// en: 'Groups'
+	String get presetGroups => 'Groups';
+
+	/// en: 'Only messages from groups'
+	String get presetGroupsAbout => 'Only messages from groups';
+
+	/// en: 'Channels'
+	String get presetChannels => 'Channels';
+
+	/// en: 'Only messages from channels'
+	String get presetChannelsAbout => 'Only messages from channels';
+
+	/// en: 'New folder'
+	String get newFolder => 'New folder';
+
+	/// en: 'Edit folder'
+	String get editFolder => 'Edit folder';
+
+	/// en: 'Create'
+	String get create => 'Create';
+
+	/// en: 'Folder name'
+	String get name => 'Folder name';
+
+	/// en: 'Included chats'
+	String get included => 'Included chats';
+
+	/// en: 'Choose chats and types of chats that will appear in this folder.'
+	String get includedFooter => 'Choose chats and types of chats that will appear in this folder.';
+
+	/// en: 'Add chats'
+	String get addChats => 'Add chats';
+
+	/// en: 'Excluded chats'
+	String get excluded => 'Excluded chats';
+
+	/// en: 'Choose chats and types of chats that will never appear in this folder.'
+	String get excludedFooter => 'Choose chats and types of chats that will never appear in this folder.';
+
+	/// en: 'Exclude chats'
+	String get excludeChats => 'Exclude chats';
+
+	/// en: 'Delete folder'
+	String get deleteFolder => 'Delete folder';
+
+	/// en: 'Chat types'
+	String get chatTypes => 'Chat types';
+
+	/// en: 'Chats'
+	String get chats => 'Chats';
+
+	/// en: 'Contacts'
+	String get contacts => 'Contacts';
+
+	/// en: 'Non-contacts'
+	String get nonContacts => 'Non-contacts';
+
+	/// en: 'Groups'
+	String get groups => 'Groups';
+
+	/// en: 'Channels'
+	String get channels => 'Channels';
+
+	/// en: 'Communities'
+	String get communities => 'Communities';
+
+	/// en: 'Muted'
+	String get muted => 'Muted';
+
+	/// en: 'Read'
+	String get read => 'Read';
+
+	/// en: 'Search'
+	String get search => 'Search';
+
+	/// en: 'No chats found'
+	String get nothingFound => 'No chats found';
+
+	/// en: 'Selected: {n}'
+	String selected({required Object n}) => 'Selected: ${n}';
+
+	/// en: 'Enter a folder name.'
+	String get nameRequired => 'Enter a folder name.';
+
+	/// en: 'Add at least one chat or chat type to the folder.'
+	String get chatsRequired => 'Add at least one chat or chat type to the folder.';
+
+	/// en: 'Discard changes?'
+	String get discardTitle => 'Discard changes?';
+
+	/// en: 'Your changes to the folder will be lost.'
+	String get discardMessage => 'Your changes to the folder will be lost.';
+
+	/// en: 'Discard'
+	String get discard => 'Discard';
 }
 
 // Path: screenNewChat
@@ -1319,6 +1482,9 @@ class Translations$screenSettings$en {
 
 	/// en: 'Appearance'
 	String get appearance => _root.screenSettingsAppearance.appearance;
+
+	/// en: 'Folders'
+	String get folders => _root.screenChatFolders.folders;
 
 	/// en: 'Notifications and sounds'
 	String get notifications => _root.screenSettingsNotifications.notifications;
@@ -2980,6 +3146,56 @@ extension on Translations {
 			'screenChats.deleteFolder' => 'Delete folder',
 			'screenChats.deleteFolderTitle' => ({required Object title}) => 'Delete folder "${title}"?',
 			'screenChats.deleteFolderMessage' => 'Chats in the folder are not deleted.',
+			'screenChats.editFolder' => 'Edit folder',
+			'screenChats.editFolders' => 'Edit folders',
+			'screenChats.reorderFolders' => 'Reorder',
+			'screenChatFolders.folders' => 'Folders',
+			'screenChatFolders.intro' => 'Create folders for different groups of chats and quickly switch between them by swiping the list.',
+			'screenChatFolders.myFolders' => 'My folders',
+			'screenChatFolders.createFolder' => 'Create folder',
+			'screenChatFolders.allChatsSubtitle' => 'All your chats',
+			'screenChatFolders.reorderFooter' => ({required Object n}) => 'Drag a folder by ≡ to change the order. You can have up to ${n} folders including "All chats".',
+			'screenChatFolders.limitReached' => ({required Object n}) => 'You have reached the limit of ${n} folders, including "All chats". Delete one to add a new one.',
+			'screenChatFolders.recommended' => 'Recommended folders',
+			'screenChatFolders.add' => 'Add',
+			'screenChatFolders.chatsCount' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: '${n} chat', other: '${n} chats', ), 
+			'screenChatFolders.noChats' => 'No chats',
+			'screenChatFolders.presetUnread' => 'Unread',
+			'screenChatFolders.presetUnreadAbout' => 'New messages from all chats',
+			'screenChatFolders.presetPersonal' => 'Personal',
+			'screenChatFolders.presetPersonalAbout' => 'Only messages from personal chats',
+			'screenChatFolders.presetGroups' => 'Groups',
+			'screenChatFolders.presetGroupsAbout' => 'Only messages from groups',
+			'screenChatFolders.presetChannels' => 'Channels',
+			'screenChatFolders.presetChannelsAbout' => 'Only messages from channels',
+			'screenChatFolders.newFolder' => 'New folder',
+			'screenChatFolders.editFolder' => 'Edit folder',
+			'screenChatFolders.create' => 'Create',
+			'screenChatFolders.name' => 'Folder name',
+			'screenChatFolders.included' => 'Included chats',
+			'screenChatFolders.includedFooter' => 'Choose chats and types of chats that will appear in this folder.',
+			'screenChatFolders.addChats' => 'Add chats',
+			'screenChatFolders.excluded' => 'Excluded chats',
+			'screenChatFolders.excludedFooter' => 'Choose chats and types of chats that will never appear in this folder.',
+			'screenChatFolders.excludeChats' => 'Exclude chats',
+			'screenChatFolders.deleteFolder' => 'Delete folder',
+			'screenChatFolders.chatTypes' => 'Chat types',
+			'screenChatFolders.chats' => 'Chats',
+			'screenChatFolders.contacts' => 'Contacts',
+			'screenChatFolders.nonContacts' => 'Non-contacts',
+			'screenChatFolders.groups' => 'Groups',
+			'screenChatFolders.channels' => 'Channels',
+			'screenChatFolders.communities' => 'Communities',
+			'screenChatFolders.muted' => 'Muted',
+			'screenChatFolders.read' => 'Read',
+			'screenChatFolders.search' => 'Search',
+			'screenChatFolders.nothingFound' => 'No chats found',
+			'screenChatFolders.selected' => ({required Object n}) => 'Selected: ${n}',
+			'screenChatFolders.nameRequired' => 'Enter a folder name.',
+			'screenChatFolders.chatsRequired' => 'Add at least one chat or chat type to the folder.',
+			'screenChatFolders.discardTitle' => 'Discard changes?',
+			'screenChatFolders.discardMessage' => 'Your changes to the folder will be lost.',
+			'screenChatFolders.discard' => 'Discard',
 			'screenNewChat.title' => 'New Message',
 			'screenNewChat.search' => 'Search',
 			'screenNewChat.newGroup' => 'New Group',
@@ -3280,6 +3496,7 @@ extension on Translations {
 			'screenSettings.devices' => _root.screenSettingsDevices.devices,
 			'screenSettings.language' => 'Language',
 			'screenSettings.appearance' => _root.screenSettingsAppearance.appearance,
+			'screenSettings.folders' => _root.screenChatFolders.folders,
 			'screenSettings.notifications' => _root.screenSettingsNotifications.notifications,
 			'screenSettings.privacyAndSecurity' => 'Privacy and security',
 			'screenSettings.aboutApplication' => 'About the application',
@@ -3368,6 +3585,8 @@ extension on Translations {
 			'screenChatInfo.banMember' => 'Ban',
 			'screenChatInfo.banMemberTitle' => ({required Object name}) => 'Ban ${name}?',
 			'screenChatInfo.banMemberMessage' => 'They will be removed and won\'t be able to come back via invite links until unbanned.',
+			_ => null,
+		} ?? switch (path) {
 			'screenChatInfo.banned' => 'Banned',
 			'screenChatInfo.bannedEmpty' => 'No banned users',
 			'screenChatInfo.bannedFooter' => 'Banned users can\'t join via invite links. Adding them manually unbans them.',
@@ -3419,8 +3638,6 @@ extension on Translations {
 			'screenSettingsAboutApplication.version' => ({required Object version, required Object build}) => 'Version ${version} (${build})',
 			'screenSettingsAboutApplication.licenses' => 'Licenses',
 			'screenSettingsAboutApplication.licensesCount' => ({required Object n}) => '${n} licenses',
-			_ => null,
-		} ?? switch (path) {
 			'screenSettingsAboutApplication.noLicenses' => 'No licenses found',
 			'screenSettingsLanguage.language' => 'Language',
 			'screenSettingsPasscode.passcode' => 'Passcode',

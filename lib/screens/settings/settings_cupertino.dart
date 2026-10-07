@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import '../../i18n/translations.g.dart';
 import '../../cubit.dart';
 import '../../components.dart';
+import '../chats/chat_folders_cupertino.dart';
 
 class SettingsCupertino extends StatefulWidget {
   const SettingsCupertino({super.key});
@@ -95,6 +96,15 @@ class _SettingsCupertino extends State<SettingsCupertino> {
                       onTab: () async => context.go("/settings/appearance"),
                       isTrailing: true,
                     ),
+                    // Папки чатов — пока только в UX-демо (флаг на экране «Разработчик»).
+                    if (context.select((CommonCubit cubit) => cubit.state.settingsDevice.chatsDemo))
+                      CupertinoListTileIcon(
+                        title: Text(context.t.screenSettings.folders),
+                        color: Color(0xFF00A3D9),
+                        icon: FontAwesomeIcons.solidFolder,
+                        onTab: () async => showChatFoldersCupertino(context),
+                        isTrailing: true,
+                      ),
                     CupertinoListTileIcon(
                       title: Text(context.t.screenSettings.devices),
                       color: Color(0xFFFF6B00),

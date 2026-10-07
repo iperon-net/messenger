@@ -928,6 +928,31 @@ class ChatsDemoDataSource implements ChatsDataSource {
     _foldersController.add(_folders);
   }
 
+  @override
+  Future<void> saveFolder(models.ChatFolder folder) async {
+    final index = _folders.indexWhere((f) => f.id == folder.id);
+    if (index >= 0) {
+      _folders = [..._folders]..[index] = folder;
+    } else {
+      if (_folders.length >= models.chatFoldersLimit) return;
+      _folders = [..._folders, folder];
+    }
+    _foldersController.add(_folders);
+  }
+
+  @override
+  Future<void> reorderFolders(List<String> folderIDs) async {
+    final byID = {for (final f in _folders) f.id: f};
+    _folders = [
+      ..._folders.where((f) => f.isAll),
+      for (final id in folderIDs)
+        if (byID[id] case final folder? when !folder.isAll) folder,
+      // Не названные в folderIDs (не должно быть) — в конец, не теряем.
+      ..._folders.where((f) => !f.isAll && !folderIDs.contains(f.id)),
+    ];
+    _foldersController.add(_folders);
+  }
+
   // ─── Сообщения ────────────────────────────────────────────────────────────
 
   /// История по чатам (от старых к новым); генерируется при первом открытии.
