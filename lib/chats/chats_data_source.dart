@@ -70,6 +70,7 @@ abstract class ChatsDataSource {
     required models.ChatRole defaultRole,
     bool commentsEnabled = false,
     bool signMessages = false,
+    bool membersHidden = false,
   });
 
   /// Ссылка `iperon.net/<path>` (публичное имя или `+код` приглашения) → id

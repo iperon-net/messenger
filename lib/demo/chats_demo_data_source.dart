@@ -254,6 +254,7 @@ class ChatsDemoDataSource implements ChatsDataSource {
         joinMode: username.isEmpty ? models.ChatJoinMode.link : models.ChatJoinMode.open,
         avatarPath: avatarPath,
         commentsEnabled: type == models.ChatType.channel,
+        membersHidden: type == models.ChatType.channel,
         membersCount: 1 + members.length,
         myRole: models.ChatRole.owner,
         createdAt: now,
@@ -276,6 +277,7 @@ class ChatsDemoDataSource implements ChatsDataSource {
     required models.ChatRole defaultRole,
     bool commentsEnabled = false,
     bool signMessages = false,
+    bool membersHidden = false,
   }) async {
     final chat = _chats.where((c) => c.id == chatID).firstOrNull;
     if (chat == null) return;
@@ -294,6 +296,7 @@ class ChatsDemoDataSource implements ChatsDataSource {
         defaultRole: defaultRole,
         commentsEnabled: chat.type == models.ChatType.channel && commentsEnabled,
         signMessages: chat.type == models.ChatType.channel && signMessages,
+        membersHidden: membersHidden,
       ),
     );
     // Основная ссылка — та же, что в чате (форма могла выдать новую).
@@ -715,6 +718,8 @@ class ChatsDemoDataSource implements ChatsDataSource {
           : models.ChatRole.reader,
       commentsEnabled: const {'news', 'flutter', 'tech', 'iperon_dev'}.contains(chat.id),
       signMessages: const {'news', 'iperon_dev'}.contains(chat.id),
+      // Подписчиков канала по умолчанию видят только админы.
+      membersHidden: chat.type == models.ChatType.channel,
     );
   }
 

@@ -94,6 +94,8 @@ class ChatAdminsCupertino extends StatelessWidget {
                         children: [
                           if (myChatRights(chat, state.members).addAdmins)
                             CupertinoListTile(
+                              // Как у строк админов — значок ровно под аватарами.
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                               leadingSize: 40,
                               leading: Container(
                                 width: 40,

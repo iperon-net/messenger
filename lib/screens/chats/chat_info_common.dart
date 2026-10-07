@@ -28,17 +28,18 @@ class ChatInfoResult {
 
 enum ChatInfoTab { members, media, files, links, voice }
 
-/// Вкладки профиля: у группы и сообщества первыми — участники.
+/// Вкладки профиля: первыми — участники (у канала — подписчики), если список
+/// не скрыт ([models.Chat.membersHidden]; админам виден всегда).
 List<ChatInfoTab> chatInfoTabs(models.Chat chat) => [
-  if (chat.type == models.ChatType.group || chat.type == models.ChatType.community) ChatInfoTab.members,
+  if (chat.type != models.ChatType.private && !chat.isThread && (!chat.membersHidden || chat.canManage)) ChatInfoTab.members,
   ChatInfoTab.media,
   ChatInfoTab.files,
   ChatInfoTab.links,
   ChatInfoTab.voice,
 ];
 
-String chatInfoTabLabel(Translations t, ChatInfoTab tab) => switch (tab) {
-  ChatInfoTab.members => t.screenChatInfo.tabMembers,
+String chatInfoTabLabel(Translations t, ChatInfoTab tab, models.Chat chat) => switch (tab) {
+  ChatInfoTab.members => chat.type == models.ChatType.channel ? t.screenChatInfo.tabSubscribers : t.screenChatInfo.tabMembers,
   ChatInfoTab.media => t.screenChatInfo.tabMedia,
   ChatInfoTab.files => t.screenChatInfo.tabFiles,
   ChatInfoTab.links => t.screenChatInfo.tabLinks,
@@ -212,6 +213,9 @@ class ChatInfoTabContent extends StatelessWidget {
   /// «Добавить участников» первой строкой вкладки (админ); `null` — нет.
   final VoidCallback? onAddMembers;
 
+  /// Обёртка строки участника (iOS — контекстное меню по удержанию).
+  final Widget Function(models.ChatMember member, Widget row)? memberWrapper;
+
   const ChatInfoTabContent({
     super.key,
     required this.tab,
@@ -222,6 +226,7 @@ class ChatInfoTabContent extends StatelessWidget {
     required this.onOpenMessage,
     this.onMemberTap,
     this.onAddMembers,
+    this.memberWrapper,
   });
 
   @override
@@ -231,7 +236,8 @@ class ChatInfoTabContent extends StatelessWidget {
       ChatInfoTab.members => Column(
         children: [
           if (onAddMembers != null) _AddMembersRow(style: style, onTap: onAddMembers!),
-          for (final m in members) _MemberRow(member: m, style: style, onTap: onMemberTap == null ? null : () => onMemberTap!(m)),
+          for (final m in members)
+            _wrapMember(m, _MemberRow(member: m, style: style, onTap: onMemberTap == null ? null : () => onMemberTap!(m))),
         ],
       ),
       ChatInfoTab.media => _media(context),
@@ -257,6 +263,8 @@ class ChatInfoTabContent extends StatelessWidget {
       style: TextStyle(fontSize: 15, color: style.secondary),
     ),
   );
+
+  Widget _wrapMember(models.ChatMember member, Widget row) => memberWrapper?.call(member, row) ?? row;
 
   Widget _list(String empty, List<Widget> rows) => rows.isEmpty ? _empty(empty) : Column(children: rows);
 

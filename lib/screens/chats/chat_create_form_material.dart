@@ -343,6 +343,18 @@ class _ChatCreateFormMaterial extends State<ChatCreateFormMaterial> {
                   ],
                 ],
 
+                if (state.isEdit) ...[
+                  const SizedBox(height: 16),
+                  card([
+                    SwitchListTile(
+                      title: Text(type == models.ChatType.channel ? t.screenNewChat.hideSubscribers : t.screenNewChat.hideMembers),
+                      value: state.membersHidden,
+                      onChanged: context.read<ChatCreateCubit>().setMembersHidden,
+                    ),
+                  ]),
+                  createNoteMaterial(context, t.screenNewChat.hideMembersFooter),
+                ],
+
                 if (type == models.ChatType.group && !state.isEdit)
                   if (state.selected.isEmpty)
                     createNoteMaterial(context, t.screenNewChat.noMembersHint)

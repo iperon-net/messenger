@@ -263,6 +263,10 @@ class Chat with ChatMappable {
   /// Канал: под постами — имя опубликовавшего админа.
   final bool signMessages;
 
+  /// Список участников / подписчиков виден только админам (вкладку в профиле
+  /// остальные не видят).
+  final bool membersHidden;
+
   /// Мы участник / подписчик. `false` — открыли по ссылке и смотрим: в списке
   /// чата нет, внизу — «Подписаться» / «Вступить».
   final bool isMember;
@@ -319,6 +323,7 @@ class Chat with ChatMappable {
     this.pendingRequests = 0,
     this.commentsEnabled = false,
     this.signMessages = false,
+    this.membersHidden = false,
     this.isMember = true,
     this.joinRequested = false,
     this.threadOf = '',

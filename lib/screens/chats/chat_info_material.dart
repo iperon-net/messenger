@@ -359,24 +359,24 @@ class _ChatInfoMaterialState extends State<ChatInfoMaterial> {
                           ],
                         ),
                       ),
+                    // Вкладки — полосой над карточкой (как папки на «Чатах»: при
+                    // переполнении листается по горизонтали), содержимое — карточкой.
+                    if (tabs.length > 1)
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(12, 16, 12, 8),
+                        child: ChatFolderTabsMaterial(
+                          tabs: [for (final item in tabs) ChatFolderTab(title: chatInfoTabLabel(t, item, chat))],
+                          selectedIndex: tabs.indexOf(tab),
+                          onTap: (index) => setState(() => _tab = tabs[index]),
+                        ),
+                      ),
                     Card(
-                      margin: const EdgeInsets.fromLTRB(12, 16, 12, 0),
+                      margin: EdgeInsets.fromLTRB(12, tabs.length > 1 ? 0 : 16, 12, 0),
                       color: card,
                       clipBehavior: Clip.antiAlias,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          DefaultTabController(
-                            key: ValueKey(tabs.length),
-                            length: tabs.length,
-                            initialIndex: tabs.indexOf(tab),
-                            child: TabBar(
-                              isScrollable: true,
-                              tabAlignment: TabAlignment.start,
-                              onTap: (index) => setState(() => _tab = tabs[index]),
-                              tabs: [for (final item in tabs) Tab(text: chatInfoTabLabel(t, item))],
-                            ),
-                          ),
                           ChatInfoTabContent(
                             tab: tab,
                             chat: chat,

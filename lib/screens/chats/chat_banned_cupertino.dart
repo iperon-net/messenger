@@ -4,7 +4,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../components.dart';
 import '../../cubit.dart';
 import '../../i18n/translations.g.dart';
-import '../../models.dart' as models;
 import '../../themes.dart';
 import 'chats_new_cupertino.dart';
 
@@ -17,24 +16,9 @@ Future<void> showChatBannedCupertino(BuildContext context, ChatCubit cubit) {
   );
 }
 
-/// Заблокированные участники; тап — «Разблокировать».
+/// Заблокированные участники; удержание — контекстное меню «Разблокировать».
 class ChatBannedCupertino extends StatelessWidget {
   const ChatBannedCupertino({super.key});
-
-  Future<void> _actions(BuildContext context, models.ChatMember member) async {
-    final cubit = context.read<ChatCubit>();
-    final unban = await showCupertinoModalPopup<bool>(
-      context: context,
-      builder: (sheetContext) => CupertinoActionSheet(
-        title: Text(member.name),
-        actions: [
-          CupertinoActionSheetAction(onPressed: () => Navigator.of(sheetContext).pop(true), child: Text(context.t.screenChatInfo.unban)),
-        ],
-        cancelButton: CupertinoActionSheetAction(onPressed: () => Navigator.of(sheetContext).pop(), child: Text(context.t.common.cancel)),
-      ),
-    );
-    if (unban ?? false) await cubit.unbanMember(member);
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -71,7 +55,19 @@ class ChatBannedCupertino extends StatelessWidget {
                       borderRadius: const BorderRadius.all(Radius.circular(10)),
                     ),
                     children: [
-                      for (final member in state.banned) ContactTileCupertino(contact: member, onTap: () => _actions(context, member)),
+                      for (final member in state.banned)
+                        RowContextMenuCupertino(
+                          background: ThemesCupertino.groupedCard.resolveFrom(context),
+                          actions: [
+                            rowMenuAction(
+                              context,
+                              t.screenChatInfo.unban,
+                              CupertinoIcons.lock_open,
+                              () => context.read<ChatCubit>().unbanMember(member),
+                            ),
+                          ],
+                          child: ContactTileCupertino(contact: member),
+                        ),
                     ],
                   ),
                 Padding(

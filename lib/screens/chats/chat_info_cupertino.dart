@@ -19,6 +19,7 @@ import 'chat_invite_links_cupertino.dart';
 import 'chat_join_requests_cupertino.dart';
 import 'chat_info_common.dart';
 import 'chat_mute.dart';
+import 'chats_new_cupertino.dart';
 
 /// Профиль чата (iOS) — тап по шапке окна чата. Результат — что сделать в
 /// чате: поиск или переход к сообщению.
@@ -79,50 +80,23 @@ class _ChatInfoCupertinoState extends State<ChatInfoCupertino> {
     if (choice != null) await cubit.setMuted(true, until: chatMuteUntil(choice));
   }
 
-  /// Тап по участнику: «Написать сообщение»; с правом блокировать (для
-  /// «Чтения» / «Записи») — роль, «Исключить», «Заблокировать»; с правом
-  /// назначать админов — «Назначить админом» / «Права админа».
-  Future<void> _memberActions(BuildContext context, models.Chat chat, models.ChatMember member) async {
+  /// Тап по участнику — личный чат с ним («Написать сообщение»).
+  Future<void> _messageMember(BuildContext context, models.ChatMember member) async {
     if (member.isSelf) return;
+    final chatID = await context.read<ChatCubit>().privateChatWith(member);
+    if (chatID != null && chatID.isNotEmpty && context.mounted) context.go('/chats/chat/$chatID');
+  }
+
+  /// Удержание участника — контекстное меню: «Написать сообщение»; с правом
+  /// назначать админов — «Назначить админом» / «Права админа»; с правом
+  /// блокировать (для «Чтения» / «Записи») — роль, «Исключить», «Заблокировать».
+  List<Widget> _memberMenuActions(BuildContext context, models.Chat chat, models.ChatMember member) {
+    if (member.isSelf) return const [];
     final t = context.t.screenChatInfo;
     final cubit = context.read<ChatCubit>();
     final members = cubit.state.members;
     final manage = canRestrictMember(chat, members, member);
     final promote = canPromoteMember(chat, members, member);
-    final action = await showCupertinoModalPopup<String>(
-      context: context,
-      builder: (sheetContext) => CupertinoActionSheet(
-        title: Text(member.name),
-        actions: [
-          CupertinoActionSheetAction(onPressed: () => Navigator.of(sheetContext).pop('message'), child: Text(t.sendMessage)),
-          if (promote)
-            CupertinoActionSheetAction(
-              onPressed: () => Navigator.of(sheetContext).pop('admin'),
-              child: Text(
-                member.role == models.ChatRole.admin ? context.t.screenChatAdmins.adminRights : context.t.screenChatAdmins.promote,
-              ),
-            ),
-          if (manage) ...[
-            CupertinoActionSheetAction(
-              onPressed: () => Navigator.of(sheetContext).pop('role'),
-              child: Text(member.role == models.ChatRole.reader ? t.allowWriting : t.makeReadOnly),
-            ),
-            CupertinoActionSheetAction(
-              isDestructiveAction: true,
-              onPressed: () => Navigator.of(sheetContext).pop('remove'),
-              child: Text(t.removeMember),
-            ),
-            CupertinoActionSheetAction(
-              isDestructiveAction: true,
-              onPressed: () => Navigator.of(sheetContext).pop('ban'),
-              child: Text(t.banMember),
-            ),
-          ],
-        ],
-        cancelButton: CupertinoActionSheetAction(onPressed: () => Navigator.of(sheetContext).pop(), child: Text(context.t.common.cancel)),
-      ),
-    );
-    if (!context.mounted) return;
     Future<bool> confirm(String title, String message, String label) async =>
         await showCupertinoDialog<bool>(
           context: context,
@@ -136,23 +110,34 @@ class _ChatInfoCupertinoState extends State<ChatInfoCupertino> {
           ),
         ) ??
         false;
-    switch (action) {
-      case 'message':
-        final chatID = await cubit.privateChatWith(member);
-        if (chatID != null && chatID.isNotEmpty && context.mounted) context.go('/chats/chat/$chatID');
-      case 'admin':
-        await showChatAdminRightsCupertino(context, cubit, member);
-      case 'role':
-        await cubit.setMemberRole(member, member.role == models.ChatRole.reader ? models.ChatRole.writer : models.ChatRole.reader);
-      case 'remove':
-        if (await confirm(t.removeMemberTitle(name: member.name), t.removeMemberMessage, t.removeMember)) {
-          await cubit.removeMember(member);
-        }
-      case 'ban':
-        if (await confirm(t.banMemberTitle(name: member.name), t.banMemberMessage, t.banMember)) {
-          await cubit.removeMember(member, ban: true);
-        }
-    }
+    return [
+      rowMenuAction(context, t.sendMessage, CupertinoIcons.chat_bubble, () => _messageMember(context, member)),
+      if (promote)
+        rowMenuAction(
+          context,
+          member.role == models.ChatRole.admin ? context.t.screenChatAdmins.adminRights : context.t.screenChatAdmins.promote,
+          CupertinoIcons.star,
+          () => showChatAdminRightsCupertino(context, cubit, member),
+        ),
+      if (manage) ...[
+        rowMenuAction(
+          context,
+          member.role == models.ChatRole.reader ? t.allowWriting : t.makeReadOnly,
+          member.role == models.ChatRole.reader ? CupertinoIcons.pencil : CupertinoIcons.eye,
+          () => cubit.setMemberRole(member, member.role == models.ChatRole.reader ? models.ChatRole.writer : models.ChatRole.reader),
+        ),
+        rowMenuAction(context, t.removeMember, CupertinoIcons.person_badge_minus, () async {
+          if (await confirm(t.removeMemberTitle(name: member.name), t.removeMemberMessage, t.removeMember)) {
+            await cubit.removeMember(member);
+          }
+        }, destructive: true),
+        rowMenuAction(context, t.banMember, CupertinoIcons.nosign, () async {
+          if (await confirm(t.banMemberTitle(name: member.name), t.banMemberMessage, t.banMember)) {
+            await cubit.removeMember(member, ban: true);
+          }
+        }, destructive: true),
+      ],
+    ];
   }
 
   /// «Добавить участников» (админ): выбор из контактов, кроме участников.
@@ -365,37 +350,27 @@ class _ChatInfoCupertinoState extends State<ChatInfoCupertino> {
                               onTab: () => showChatBannedCupertino(context, context.read<ChatCubit>()),
                             ),
                         ]),
-                      // Вкладки и их содержимое — одной карточкой, как секции выше.
+                      // Вкладки — полосой над карточкой (как папки на «Чатах»: при
+                      // переполнении листается по горизонтали), содержимое — карточкой.
+                      if (tabs.length > 1)
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
+                          child: ChatFolderTabsCupertino(
+                            tabs: [for (final item in tabs) ChatFolderTab(title: chatInfoTabLabel(t, item, chat))],
+                            selectedIndex: tabs.indexOf(tab),
+                            onTap: (index) => setState(() => _tab = tabs[index]),
+                          ),
+                        ),
                       Container(
-                        margin: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+                        margin: EdgeInsets.fromLTRB(20, tabs.length > 1 ? 0 : 20, 20, 0),
                         clipBehavior: Clip.antiAlias,
                         decoration: BoxDecoration(color: card, borderRadius: BorderRadius.circular(10)),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             Padding(
-                              padding: const EdgeInsets.fromLTRB(8, 8, 8, 4),
-                              child: CupertinoSlidingSegmentedControl<ChatInfoTab>(
-                                groupValue: tab,
-                                onValueChanged: (value) => setState(() => _tab = value),
-                                children: {
-                                  for (final item in tabs)
-                                    item: Padding(
-                                      padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 6),
-                                      child: Text(
-                                        chatInfoTabLabel(t, item),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.fade,
-                                        softWrap: false,
-                                        style: const TextStyle(fontSize: 13),
-                                      ),
-                                    ),
-                                },
-                              ),
-                            ),
-                            Padding(
                               // Сетка медиа — до краёв карточки, списки — с отступом сверху.
-                              padding: EdgeInsets.only(top: tab == ChatInfoTab.media ? 4 : 0),
+                              padding: EdgeInsets.only(top: tab == ChatInfoTab.media ? 0 : 6, bottom: tab == ChatInfoTab.media ? 0 : 6),
                               child: ChatInfoTabContent(
                                 tab: tab,
                                 chat: chat,
@@ -409,7 +384,12 @@ class _ChatInfoCupertinoState extends State<ChatInfoCupertino> {
                                   action: action,
                                 ),
                                 onOpenMessage: (id) => Navigator.of(context).pop(ChatInfoResult.goTo(id)),
-                                onMemberTap: (member) => _memberActions(context, chat, member),
+                                onMemberTap: (member) => _messageMember(context, member),
+                                memberWrapper: (member, row) => RowContextMenuCupertino(
+                                  background: card,
+                                  actions: _memberMenuActions(context, chat, member),
+                                  child: row,
+                                ),
                                 onAddMembers: chat.canManage ? () => _addMembers(context) : null,
                               ),
                             ),
@@ -538,13 +518,7 @@ class ChatReactionsSettingsCupertino extends StatelessWidget {
                 CupertinoListSection.insetGrouped(
                   backgroundColor: background,
                   decoration: BoxDecoration(color: card, borderRadius: const BorderRadius.all(Radius.circular(10))),
-                  footer: Padding(
-                    padding: const EdgeInsets.only(left: 13),
-                    child: Text(
-                      t.reactionsFooter,
-                      style: TextStyle(fontSize: 13, color: CupertinoColors.secondaryLabel.resolveFrom(context)),
-                    ),
-                  ),
+                  footer: createNoteCupertino(t.reactionsFooter),
                   children: [
                     modeTile(models.ChatReactionsMode.all, t.reactionsAll),
                     modeTile(models.ChatReactionsMode.some, t.reactionsSome),
@@ -555,9 +529,13 @@ class ChatReactionsSettingsCupertino extends StatelessWidget {
                   CupertinoListSection.insetGrouped(
                     backgroundColor: background,
                     decoration: BoxDecoration(color: card, borderRadius: const BorderRadius.all(Radius.circular(10))),
-                    header: Text(t.reactionsPick.toUpperCase()),
+                    // Заголовок — как у секций настроек (по умолчанию 20 bold).
+                    header: createHeaderCupertino(t.reactionsPick),
                     children: [
-                      Padding(
+                      // Во всю ширину секции — как блок выше (иначе карточка
+                      // ужимается по сетке эмодзи).
+                      Container(
+                        width: double.infinity,
                         padding: const EdgeInsets.all(12),
                         child: ReactionsGrid(
                           selected: selected,

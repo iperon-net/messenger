@@ -249,6 +249,9 @@ class _Translations$screenNewChat$ru extends Translations$screenNewChat$en {
 	@override String get commentsFooter => 'Подписчики смогут обсуждать каждый пост в комментариях.';
 	@override String get signSwitch => 'Подписывать сообщения';
 	@override String get signFooter => 'С подписями под постом видно имя админа, который его опубликовал.';
+	@override String get hideMembers => 'Скрыть участников';
+	@override String get hideSubscribers => 'Скрыть подписчиков';
+	@override String get hideMembersFooter => 'Список будут видеть только админы.';
 	@override String get joinHeader => 'Вступление';
 	@override String get joinOpen => 'Открытое';
 	@override String get joinLink => 'По ссылке';
@@ -637,6 +640,7 @@ class _Translations$screenChatInfo$ru extends Translations$screenChatInfo$en {
 	@override String get username => 'Имя пользователя';
 	@override String get link => 'Ссылка';
 	@override String get tabMembers => 'Участники';
+	@override String get tabSubscribers => 'Подписчики';
 	@override String get tabMedia => 'Медиа';
 	@override String get tabFiles => 'Файлы';
 	@override String get tabLinks => 'Ссылки';
@@ -1349,6 +1353,9 @@ extension on TranslationsRu {
 			'screenNewChat.commentsFooter' => 'Подписчики смогут обсуждать каждый пост в комментариях.',
 			'screenNewChat.signSwitch' => 'Подписывать сообщения',
 			'screenNewChat.signFooter' => 'С подписями под постом видно имя админа, который его опубликовал.',
+			'screenNewChat.hideMembers' => 'Скрыть участников',
+			'screenNewChat.hideSubscribers' => 'Скрыть подписчиков',
+			'screenNewChat.hideMembersFooter' => 'Список будут видеть только админы.',
 			'screenNewChat.joinHeader' => 'Вступление',
 			'screenNewChat.joinOpen' => 'Открытое',
 			'screenNewChat.joinLink' => 'По ссылке',
@@ -1630,6 +1637,7 @@ extension on TranslationsRu {
 			'screenChatInfo.username' => 'Имя пользователя',
 			'screenChatInfo.link' => 'Ссылка',
 			'screenChatInfo.tabMembers' => 'Участники',
+			'screenChatInfo.tabSubscribers' => 'Подписчики',
 			'screenChatInfo.tabMedia' => 'Медиа',
 			'screenChatInfo.tabFiles' => 'Файлы',
 			'screenChatInfo.tabLinks' => 'Ссылки',
@@ -1736,12 +1744,12 @@ extension on TranslationsRu {
 			'sessionsPrivacyAndSecurity.callsContacts' => 'Мои контакты',
 			'sessionsPrivacyAndSecurity.callsNobody' => 'Никто',
 			'sessionsPrivacyAndSecurity.callsLoadError' => 'Не удалось загрузить настройку',
+			_ => null,
+		} ?? switch (path) {
 			'sessionsPrivacyAndSecurity.callsOfflineNote' => 'Нет соединения. Изменение станет доступно, когда появится сеть.',
 			'sessionsPrivacyAndSecurity.retry' => 'Повторить',
 			'sessionsPrivacyAndSecurity.exceptions' => 'Исключения',
 			'sessionsPrivacyAndSecurity.callsAlwaysAllow' => 'Всегда разрешать',
-			_ => null,
-		} ?? switch (path) {
 			'sessionsPrivacyAndSecurity.callsAlwaysDeny' => 'Всегда запрещать',
 			'sessionsPrivacyAndSecurity.callsAllowEmpty' => 'Нет контактов, зарегистрированных в Iperon',
 			'sessionsPrivacyAndSecurity.birthday' => 'День рождения',

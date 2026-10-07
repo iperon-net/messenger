@@ -494,6 +494,15 @@ class Translations$screenNewChat$en {
 	/// en: 'With signatures, posts show the name of the admin who published them.'
 	String get signFooter => 'With signatures, posts show the name of the admin who published them.';
 
+	/// en: 'Hide Members'
+	String get hideMembers => 'Hide Members';
+
+	/// en: 'Hide Subscribers'
+	String get hideSubscribers => 'Hide Subscribers';
+
+	/// en: 'Only admins will see the list.'
+	String get hideMembersFooter => 'Only admins will see the list.';
+
 	/// en: 'Joining'
 	String get joinHeader => 'Joining';
 
@@ -1429,6 +1438,9 @@ class Translations$screenChatInfo$en {
 
 	/// en: 'Members'
 	String get tabMembers => 'Members';
+
+	/// en: 'Subscribers'
+	String get tabSubscribers => 'Subscribers';
 
 	/// en: 'Media'
 	String get tabMedia => 'Media';
@@ -2892,6 +2904,9 @@ extension on Translations {
 			'screenNewChat.commentsFooter' => 'Subscribers can discuss each post in its comments.',
 			'screenNewChat.signSwitch' => 'Sign Messages',
 			'screenNewChat.signFooter' => 'With signatures, posts show the name of the admin who published them.',
+			'screenNewChat.hideMembers' => 'Hide Members',
+			'screenNewChat.hideSubscribers' => 'Hide Subscribers',
+			'screenNewChat.hideMembersFooter' => 'Only admins will see the list.',
 			'screenNewChat.joinHeader' => 'Joining',
 			'screenNewChat.joinOpen' => 'Open',
 			'screenNewChat.joinLink' => 'By Invite Link',
@@ -3173,6 +3188,7 @@ extension on Translations {
 			'screenChatInfo.username' => 'Username',
 			'screenChatInfo.link' => 'Link',
 			'screenChatInfo.tabMembers' => 'Members',
+			'screenChatInfo.tabSubscribers' => 'Subscribers',
 			'screenChatInfo.tabMedia' => 'Media',
 			'screenChatInfo.tabFiles' => 'Files',
 			'screenChatInfo.tabLinks' => 'Links',
@@ -3279,12 +3295,12 @@ extension on Translations {
 			'sessionsPrivacyAndSecurity.callsContacts' => 'My contacts',
 			'sessionsPrivacyAndSecurity.callsNobody' => 'Nobody',
 			'sessionsPrivacyAndSecurity.callsLoadError' => 'Couldn\'t load the setting',
+			_ => null,
+		} ?? switch (path) {
 			'sessionsPrivacyAndSecurity.callsOfflineNote' => 'No connection. You can change this once you\'re back online.',
 			'sessionsPrivacyAndSecurity.retry' => 'Retry',
 			'sessionsPrivacyAndSecurity.exceptions' => 'Exceptions',
 			'sessionsPrivacyAndSecurity.callsAlwaysAllow' => 'Always allow',
-			_ => null,
-		} ?? switch (path) {
 			'sessionsPrivacyAndSecurity.callsAlwaysDeny' => 'Always deny',
 			'sessionsPrivacyAndSecurity.callsAllowEmpty' => 'No contacts registered on Iperon',
 			'sessionsPrivacyAndSecurity.birthday' => 'Birthday',

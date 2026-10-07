@@ -65,6 +65,7 @@ class ChatCreateCubit extends Cubit<ChatCreateState> {
         defaultRole: chat.defaultRole,
         commentsEnabled: chat.commentsEnabled,
         signMessages: chat.signMessages,
+        membersHidden: chat.membersHidden,
       ),
     );
   }
@@ -90,6 +91,8 @@ class ChatCreateCubit extends Cubit<ChatCreateState> {
   void setCommentsEnabled(bool enabled) => emit(state.copyWith(commentsEnabled: enabled));
 
   void setSignMessages(bool enabled) => emit(state.copyWith(signMessages: enabled));
+
+  void setMembersHidden(bool hidden) => emit(state.copyWith(membersHidden: hidden));
 
   /// Ввод публичного имени: формат сразу, занятость — с паузой (как запрос к
   /// серверу на каждую букву не шлём).
@@ -157,6 +160,7 @@ class ChatCreateCubit extends Cubit<ChatCreateState> {
       defaultRole: state.defaultRole,
       commentsEnabled: state.commentsEnabled,
       signMessages: state.signMessages,
+      membersHidden: state.membersHidden,
     );
     if (!isClosed) emit(state.copyWith(creating: false, saved: true));
   }

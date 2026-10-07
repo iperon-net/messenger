@@ -8,7 +8,9 @@ import 'chat_folder_tabs.dart';
 /// таб «приподнимается» карточкой, фон размывается, под ним — действия.
 class ChatFolderTabsCupertino extends StatelessWidget {
   final List<ChatFolderTab> tabs;
-  final PageController controller;
+
+  /// `null` — без `PageView`: бегунок анимированно переезжает к [selectedIndex].
+  final PageController? controller;
   final int selectedIndex;
   final ValueChanged<int> onTap;
 
@@ -19,7 +21,7 @@ class ChatFolderTabsCupertino extends StatelessWidget {
   const ChatFolderTabsCupertino({
     super.key,
     required this.tabs,
-    required this.controller,
+    this.controller,
     required this.selectedIndex,
     required this.onTap,
     this.contextActions,

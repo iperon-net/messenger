@@ -313,6 +313,20 @@ class _ChatCreateFormCupertino extends State<ChatCreateFormCupertino> {
                     ),
                 ],
 
+                if (state.isEdit)
+                  section(
+                    footer: createNoteCupertino(t.screenNewChat.hideMembersFooter),
+                    children: [
+                      CupertinoListTile(
+                        title: Text(
+                          type == models.ChatType.channel ? t.screenNewChat.hideSubscribers : t.screenNewChat.hideMembers,
+                          style: const TextStyle(fontSize: AppFontSizes.body),
+                        ),
+                        trailing: CupertinoSwitch(value: state.membersHidden, onChanged: context.read<ChatCreateCubit>().setMembersHidden),
+                      ),
+                    ],
+                  ),
+
                 if (type == models.ChatType.group && !state.isEdit)
                   state.selected.isEmpty
                       ? Padding(

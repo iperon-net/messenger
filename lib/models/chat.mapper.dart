@@ -1163,6 +1163,13 @@ class ChatMapper extends ClassMapperBase<Chat> {
     opt: true,
     def: false,
   );
+  static bool _$membersHidden(Chat v) => v.membersHidden;
+  static const Field<Chat, bool> _f$membersHidden = Field(
+    'membersHidden',
+    _$membersHidden,
+    opt: true,
+    def: false,
+  );
   static bool _$isMember(Chat v) => v.isMember;
   static const Field<Chat, bool> _f$isMember = Field(
     'isMember',
@@ -1253,6 +1260,7 @@ class ChatMapper extends ClassMapperBase<Chat> {
     #pendingRequests: _f$pendingRequests,
     #commentsEnabled: _f$commentsEnabled,
     #signMessages: _f$signMessages,
+    #membersHidden: _f$membersHidden,
     #isMember: _f$isMember,
     #joinRequested: _f$joinRequested,
     #threadOf: _f$threadOf,
@@ -1292,6 +1300,7 @@ class ChatMapper extends ClassMapperBase<Chat> {
       pendingRequests: data.dec(_f$pendingRequests),
       commentsEnabled: data.dec(_f$commentsEnabled),
       signMessages: data.dec(_f$signMessages),
+      membersHidden: data.dec(_f$membersHidden),
       isMember: data.dec(_f$isMember),
       joinRequested: data.dec(_f$joinRequested),
       threadOf: data.dec(_f$threadOf),
@@ -1380,6 +1389,7 @@ abstract class ChatCopyWith<$R, $In extends Chat, $Out>
     int? pendingRequests,
     bool? commentsEnabled,
     bool? signMessages,
+    bool? membersHidden,
     bool? isMember,
     bool? joinRequested,
     String? threadOf,
@@ -1438,6 +1448,7 @@ class _ChatCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Chat, $Out>
     int? pendingRequests,
     bool? commentsEnabled,
     bool? signMessages,
+    bool? membersHidden,
     bool? isMember,
     bool? joinRequested,
     String? threadOf,
@@ -1475,6 +1486,7 @@ class _ChatCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Chat, $Out>
       if (pendingRequests != null) #pendingRequests: pendingRequests,
       if (commentsEnabled != null) #commentsEnabled: commentsEnabled,
       if (signMessages != null) #signMessages: signMessages,
+      if (membersHidden != null) #membersHidden: membersHidden,
       if (isMember != null) #isMember: isMember,
       if (joinRequested != null) #joinRequested: joinRequested,
       if (threadOf != null) #threadOf: threadOf,
@@ -1514,6 +1526,7 @@ class _ChatCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Chat, $Out>
     pendingRequests: data.get(#pendingRequests, or: $value.pendingRequests),
     commentsEnabled: data.get(#commentsEnabled, or: $value.commentsEnabled),
     signMessages: data.get(#signMessages, or: $value.signMessages),
+    membersHidden: data.get(#membersHidden, or: $value.membersHidden),
     isMember: data.get(#isMember, or: $value.isMember),
     joinRequested: data.get(#joinRequested, or: $value.joinRequested),
     threadOf: data.get(#threadOf, or: $value.threadOf),

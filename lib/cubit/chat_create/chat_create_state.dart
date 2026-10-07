@@ -51,6 +51,9 @@ class ChatCreateState with ChatCreateStateMappable {
   /// Канал: комментарии под постами и подписи авторов («Изменить»).
   final bool commentsEnabled;
   final bool signMessages;
+
+  /// Список участников / подписчиков — только админам («Изменить»).
+  final bool membersHidden;
   final ChatUsernameStatus usernameStatus;
 
   /// Ссылка-приглашение частного чата (`+код`) — выдаётся сразу, при создании.
@@ -81,6 +84,7 @@ class ChatCreateState with ChatCreateStateMappable {
     this.defaultRole = models.ChatRole.reader,
     this.commentsEnabled = false,
     this.signMessages = false,
+    this.membersHidden = false,
     this.usernameStatus = ChatUsernameStatus.empty,
     this.inviteLink = '',
     this.creating = false,
