@@ -438,9 +438,14 @@ class CallPush {
         // WebRTC-аудиодвижок LiveKit (см. Calls.setAudioEngineActive).
         logger.info('call: ToggleAudioSession event received (isActive=$isActive)');
         await calls.setAudioEngineActive(isActive);
-      case CallEventActionCallEnded():
-        _acceptedCallId = null;
-        await calls.hangup();
+      case CallEventActionCallEnded(:final callKitParams):
+        // ENDED приходит и на программный endCall (снимок звонка уже ended/idle, баннер
+        // сняли сами — форк плагина шлёт ENDED вместо DECLINE, см.
+        // third_party/flutter_callkit_incoming). Вешаем трубку, только если событие
+        // про текущий звонок: иначе запоздалый ENDED прошлого звонка оборвал бы новый.
+        final callId = callKitParams.id;
+        if (callId.isEmpty || callId == _acceptedCallId) _acceptedCallId = null;
+        if (callId.isEmpty || callId == calls.snapshot.callId) await calls.hangup();
       case CallEventActionDidUpdateDevicePushTokenVoip():
         // iOS выдал/сменил VoIP-токен PushKit — событие не несёт сам токен,
         // забираем актуальный из плагина и регистрируем на сервере.

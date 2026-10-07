@@ -346,8 +346,15 @@ class FlutterCallkitIncomingPlugin : FlutterPlugin, MethodCallHandler, ActivityA
                                 )
                             )
                         }else {
+                            // ВЕНДОР-ПАТЧ (Iperon): программный endCall неотвеченного
+                            // звонка шлёт ENDED, а не DECLINE. Приложение снимает баннер
+                            // само (приняли на другом устройстве / звонящий отменил), а
+                            // DECLINE приложение трактует как ручной отказ и шлёт
+                            // звонящему CALL_REJECT — тот обрывал уже принятый на
+                            // соседнем устройстве звонок. DECLINE остаётся только за
+                            // нажатием «Отклонить».
                             context?.sendBroadcast(
-                                CallkitIncomingBroadcastReceiver.getIntentDecline(
+                                CallkitIncomingBroadcastReceiver.getIntentEnded(
                                     requireNotNull(context),
                                     currentCall.toBundle()
                                 )

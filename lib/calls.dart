@@ -764,6 +764,8 @@ class Calls {
       await reject();
       return;
     }
+    // Без адресата отказ слать некуда (сервер ответит InvalidArgument).
+    if (fromUserID.isEmpty) return;
     await _sendRing(MessageType.CALL_REJECT, toUserID: fromUserID, callId: callId, video: false);
   }
 

@@ -156,6 +156,9 @@ dev_dependencies:
 #   2. android/build.gradle: apply KGP обёрнут guard'ом builtInKotlinActive (см. ниже).
 #   3. (с 3.1.6) small icon уведомления аудиозвонка — снова ic_accept: апстрим 3.1.6
 #      ставит иконку приложения, а цветной ic_launcher в статус-баре — силуэт.
+#   4. программный endCall неотвеченного звонка → ENDED вместо DECLINE (Android+iOS):
+#      иначе сиблинг-устройство слало звонящему CALL_REJECT и рвало звонок, принятый
+#      на другом устройстве.
 #   Полный список патчей (там их больше) — в шапке third_party/flutter_callkit_incoming/pubspec.yaml.
 #
 # cryptography_flutter (third_party/cryptography_flutter) — единственный патч:

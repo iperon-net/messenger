@@ -37,6 +37,10 @@ public class SwiftFlutterCallkitIncomingPlugin: NSObject, FlutterPlugin, CXProvi
     
     private var outgoingCall : Call?
     private var answerCall : Call?
+    // ВЕНДОР-ПАТЧ (Iperon): UUID звонков, завершаемых программно (метод endCall из
+    // Dart). Их CXEndCallAction сообщаем как ENDED, а не DECLINE — см.
+    // provider(_:perform: CXEndCallAction).
+    private var programmaticEndUUIDs = Set<UUID>()
     
     private var data: Data?
     private var isFromPushKit: Bool = false
@@ -414,7 +418,7 @@ public class SwiftFlutterCallkitIncomingPlugin: NSObject, FlutterPlugin, CXProvi
         }
         let call = Call(uuid: uuid, data: data)
 
-
+        self.programmaticEndUUIDs.insert(uuid)
         self.callManager.endCall(call: call)
     }
     
@@ -707,6 +711,12 @@ public class SwiftFlutterCallkitIncomingPlugin: NSObject, FlutterPlugin, CXProvi
     
     
     public func provider(_ provider: CXProvider, perform action: CXEndCallAction) {
+        // ВЕНДОР-ПАТЧ (Iperon): программный endCall неотвеченного звонка — не отказ
+        // пользователя. Приложение снимает баннер само (приняли на другом устройстве
+        // / звонящий отменил), а DECLINE оно трактует как ручной отказ и шлёт
+        // звонящему CALL_REJECT, обрывая уже принятый на соседнем устройстве звонок.
+        // Поэтому такие завершения сообщаем как ENDED.
+        let programmatic = self.programmaticEndUUIDs.remove(action.callUUID) != nil
         guard let call = self.callManager.callWithUUID(uuid: action.callUUID) else {
             // The call is not in the manager. This happens when:
             //   1. iOS relaunched the (killed) app just to deliver this end action, or
@@ -716,7 +726,7 @@ public class SwiftFlutterCallkitIncomingPlugin: NSObject, FlutterPlugin, CXProvi
             // TIMEOUT) so the app can notify its backend and stop ringing elsewhere.
             // Fulfill (not fail) the action: failing a legitimate end action leaves
             // a stale call in the system UI.
-            if(self.answerCall == nil && self.outgoingCall == nil){
+            if(!programmatic && self.answerCall == nil && self.outgoingCall == nil){
                 sendEvent(SwiftFlutterCallkitIncomingPlugin.ACTION_CALL_DECLINE, self.data?.toJSON())
             } else {
                 sendEvent(SwiftFlutterCallkitIncomingPlugin.ACTION_CALL_ENDED, self.data?.toJSON())
@@ -727,7 +737,7 @@ public class SwiftFlutterCallkitIncomingPlugin: NSObject, FlutterPlugin, CXProvi
         }
         call.endCall()
         self.callManager.removeCall(call)
-        let wasUnanswered = (self.answerCall == nil && self.outgoingCall == nil)
+        let wasUnanswered = !programmatic && (self.answerCall == nil && self.outgoingCall == nil)
         self.clearCallStateSlots(for: action.callUUID)
         if wasUnanswered {
             sendEvent(SwiftFlutterCallkitIncomingPlugin.ACTION_CALL_DECLINE, self.data?.toJSON())

@@ -9,6 +9,10 @@
 #     выбора аудиовыхода через Telecom;
 #   - CallkitNotificationManager.kt: small icon аудиозвонка — ic_accept (3.1.6 ставит
 #     цветную иконку приложения, в статус-баре это силуэт);
+#   - программный endCall неотвеченного звонка шлёт ENDED, а не DECLINE (Android —
+#     FlutterCallkitIncomingPlugin.endCall, iOS — programmaticEndUUIDs в
+#     SwiftFlutterCallkitIncomingPlugin): иначе приложение слало звонящему
+#     CALL_REJECT, когда снимало баннер, принятый на соседнем устройстве;
 #   - res/values-ru: русские строки;
 #   - lib: FlutterCallkitIncoming.activeCallsRaw();
 #   - iOS SwiftFlutterCallkitIncomingPlugin.swift: диагностические NSLog IPERON_CALL.
