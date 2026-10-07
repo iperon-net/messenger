@@ -141,6 +141,8 @@ class MessageKindMapper extends EnumMapper<MessageKind> {
         return MessageKind.file;
       case r'voice':
         return MessageKind.voice;
+      case r'poll':
+        return MessageKind.poll;
       default:
         throw MapperException.unknownEnumValue(value);
     }
@@ -159,6 +161,8 @@ class MessageKindMapper extends EnumMapper<MessageKind> {
         return r'file';
       case MessageKind.voice:
         return r'voice';
+      case MessageKind.poll:
+        return r'poll';
     }
   }
 }
@@ -595,6 +599,13 @@ class ChatMemberMapper extends ClassMapperBase<ChatMember> {
   static const Field<ChatMember, String> _f$id = Field('id', _$id);
   static String _$name(ChatMember v) => v.name;
   static const Field<ChatMember, String> _f$name = Field('name', _$name);
+  static String _$username(ChatMember v) => v.username;
+  static const Field<ChatMember, String> _f$username = Field(
+    'username',
+    _$username,
+    opt: true,
+    def: '',
+  );
   static ChatRole _$role(ChatMember v) => v.role;
   static const Field<ChatMember, ChatRole> _f$role = Field(
     'role',
@@ -641,6 +652,7 @@ class ChatMemberMapper extends ClassMapperBase<ChatMember> {
   final MappableFields<ChatMember> fields = const {
     #id: _f$id,
     #name: _f$name,
+    #username: _f$username,
     #role: _f$role,
     #online: _f$online,
     #lastSeen: _f$lastSeen,
@@ -653,6 +665,7 @@ class ChatMemberMapper extends ClassMapperBase<ChatMember> {
     return ChatMember(
       id: data.dec(_f$id),
       name: data.dec(_f$name),
+      username: data.dec(_f$username),
       role: data.dec(_f$role),
       online: data.dec(_f$online),
       lastSeen: data.dec(_f$lastSeen),
@@ -726,6 +739,7 @@ abstract class ChatMemberCopyWith<$R, $In extends ChatMember, $Out>
   $R call({
     String? id,
     String? name,
+    String? username,
     ChatRole? role,
     bool? online,
     DateTime? lastSeen,
@@ -751,6 +765,7 @@ class _ChatMemberCopyWithImpl<$R, $Out>
   $R call({
     String? id,
     String? name,
+    String? username,
     ChatRole? role,
     bool? online,
     Object? lastSeen = $none,
@@ -761,6 +776,7 @@ class _ChatMemberCopyWithImpl<$R, $Out>
     FieldCopyWithData({
       if (id != null) #id: id,
       if (name != null) #name: name,
+      if (username != null) #username: username,
       if (role != null) #role: role,
       if (online != null) #online: online,
       if (lastSeen != $none) #lastSeen: lastSeen,
@@ -773,6 +789,7 @@ class _ChatMemberCopyWithImpl<$R, $Out>
   ChatMember $make(CopyWithData data) => ChatMember(
     id: data.get(#id, or: $value.id),
     name: data.get(#name, or: $value.name),
+    username: data.get(#username, or: $value.username),
     role: data.get(#role, or: $value.role),
     online: data.get(#online, or: $value.online),
     lastSeen: data.get(#lastSeen, or: $value.lastSeen),

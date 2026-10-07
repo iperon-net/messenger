@@ -285,3 +285,31 @@ ComposeEdit _toggleQuote(ComposeEdit value) {
   final block = [for (final l in lines) quoted ? l.substring(l.startsWith('> ') ? 2 : 1) : '> $l'].join('\n');
   return (text: text.replaceRange(from, to, block), start: from, end: from + block.length);
 }
+
+/// Упоминания по имени (без @username), выбранные в подсказке «@»: каждое имя
+/// [mentions] в [text] (первое вхождение, не пересекающееся с другой
+/// разметкой) получает entity `mentionName` с id человека.
+List<models.MessageEntity> withMentionNames(String text, List<models.MessageEntity> entities, List<models.ChatMember> mentions) {
+  final result = [...entities];
+  for (final member in mentions) {
+    if (member.name.isEmpty) continue;
+    var from = 0;
+    while (true) {
+      final at = text.indexOf(member.name, from);
+      if (at < 0) break;
+      final end = at + member.name.length;
+      final overlaps = result.any(
+        (e) => e.offset < end && at < e.end && e.type != models.MessageEntityType.bold && e.type != models.MessageEntityType.italic,
+      );
+      if (!overlaps) {
+        result.add(
+          models.MessageEntity(type: models.MessageEntityType.mentionName, offset: at, length: member.name.length, userID: member.id),
+        );
+        break;
+      }
+      from = end;
+    }
+  }
+  result.sort((a, b) => a.offset.compareTo(b.offset));
+  return result;
+}

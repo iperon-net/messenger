@@ -101,6 +101,22 @@ void main() {
     final (text3, entities3) = parseMarkdownShortcuts('`https://a.dev`');
     expect(firstLinkUrl(text3, entities3), isNull);
   });
+
+  test('упоминание по имени — mentionName с id', () {
+    const anna = ChatMember(id: 'u1', name: 'Анна Смирнова');
+    final (text, entities) = parseMarkdownShortcuts('**Привет**, Анна Смирнова, глянь');
+    final result = withMentionNames(text, entities, [anna]);
+    expect(dump(text, result), 'bold:Привет,mentionName:Анна Смирнова');
+    expect(result.last.userID, 'u1');
+  });
+
+  test('упоминание внутри кода не ставится', () {
+    const ivan = ChatMember(id: 'u2', name: 'Иван');
+    final (text, entities) = parseMarkdownShortcuts('`Иван` и Иван');
+    final result = withMentionNames(text, entities, [ivan]);
+    expect(dump(text, result), 'code:Иван,mentionName:Иван');
+    expect(result.last.offset, text.lastIndexOf('Иван'));
+  });
 }
 
 void roundTrip(String raw) {

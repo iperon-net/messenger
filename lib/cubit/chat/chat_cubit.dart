@@ -84,11 +84,14 @@ class ChatCubit extends Cubit<ChatState> {
   /// Отправить текст из поля ввода (markdown-ярлыки → entities). В режиме
   /// редактирования — правит сообщение. [silent] — без звука у получателя;
   /// [scheduleDate] — отложить текст (пересылаемые уходят сразу).
-  Future<void> send(String raw, {bool silent = false, DateTime? scheduleDate}) async {
+  /// [mentions] — упомянутые по имени (без @username) из подсказки «@»:
+  /// их имена в тексте становятся упоминаниями (`mentionName`).
+  Future<void> send(String raw, {bool silent = false, DateTime? scheduleDate, List<models.ChatMember> mentions = const []}) async {
     final source = _source;
     final forwarding = state.forwarding;
     if (source == null || (raw.trim().isEmpty && forwarding.isEmpty)) return;
-    final (text, entities) = parseMarkdownShortcuts(raw.trim());
+    final (text, parsed) = parseMarkdownShortcuts(raw.trim());
+    final entities = withMentionNames(text, parsed, mentions);
     final editing = state.editing;
     final reply = state.reply;
     final linkPreview = !state.linkPreviewDisabled;
@@ -347,6 +350,24 @@ class ChatCubit extends Cubit<ChatState> {
     await _source?.transferOwnership(_chatID, member.id);
     await loadMembers();
   }
+
+  /// Отправить опрос (скрепка → «Опрос»).
+  Future<void> sendPoll(models.MessagePoll poll) async {
+    final reply = state.reply;
+    emit(state.copyWith(reply: null));
+    await _source?.sendMessage(
+      _chatID,
+      kind: models.MessageKind.poll,
+      text: poll.question,
+      poll: poll,
+      reply: reply == null ? null : _replyOf(reply),
+    );
+  }
+
+  /// Голос в опросе (пустой список — отменить голос).
+  Future<void> votePoll(models.Message message, List<int> options) async => _source?.votePoll(_chatID, message.id, options);
+
+  Future<void> closePoll(models.Message message) async => _source?.closePoll(_chatID, message.id);
 
   /// «Подписаться» / «Вступить» / «Подать заявку».
   Future<void> join() async => _source?.joinChat(_chatID);

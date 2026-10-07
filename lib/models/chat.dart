@@ -13,7 +13,7 @@ enum MessageStatus { pending, sent, read }
 
 /// Вид последнего сообщения — для превью в списке («Фото», «Файл» …).
 @MappableEnum()
-enum MessageKind { text, photo, video, file, voice }
+enum MessageKind { text, photo, video, file, voice, poll }
 
 /// Какие реакции разрешены в группе/канале (настраивает админ, см.
 /// docs/plans/chats-groups-channels.md, «Реакции»). В личных чатах — всегда
@@ -130,6 +130,9 @@ class ChatAdminRights with ChatAdminRightsMappable {
 class ChatMember with ChatMemberMappable {
   final String id;
   final String name;
+
+  /// Публичное имя (@username) — для упоминаний; пусто — упоминают по имени.
+  final String username;
   final ChatRole role;
 
   /// Сейчас в сети; иначе — [lastSeen] (`null` — давно / скрыто).
@@ -148,6 +151,7 @@ class ChatMember with ChatMemberMappable {
   const ChatMember({
     required this.id,
     required this.name,
+    this.username = '',
     this.role = ChatRole.writer,
     this.online = false,
     this.lastSeen,

@@ -503,6 +503,7 @@ class _ToolbarAttachmentsCupertinoState extends State<ToolbarAttachmentsCupertin
     ToolbarAttachmentTabKind.file => FontAwesomeIcons.folder,
     ToolbarAttachmentTabKind.emoji => FontAwesomeIcons.faceSmile,
     ToolbarAttachmentTabKind.link => FontAwesomeIcons.link,
+    ToolbarAttachmentTabKind.poll => FontAwesomeIcons.squarePollHorizontal,
   };
 
   String _label(BuildContext context, ToolbarAttachmentTabKind kind) => switch (kind) {
@@ -511,6 +512,7 @@ class _ToolbarAttachmentsCupertinoState extends State<ToolbarAttachmentsCupertin
     ToolbarAttachmentTabKind.file => context.t.screenMyProfile.chooseFile,
     ToolbarAttachmentTabKind.emoji => context.t.screenMyProfile.chooseEmoji,
     ToolbarAttachmentTabKind.link => context.t.screenMyProfile.chooseLink,
+    ToolbarAttachmentTabKind.poll => context.t.screenChat.poll,
   };
 
   // ─── Хедер таба (по центру, под линией свайпа) ────────────────────────────
@@ -681,6 +683,10 @@ class _ToolbarAttachmentsCupertinoState extends State<ToolbarAttachmentsCupertin
       case ToolbarAttachmentTabKind.link:
         // TODO: реализуй процесс таба и вызови _finish(...) с результатом.
         return _placeholder(context, onTap: () {});
+
+      case ToolbarAttachmentTabKind.poll:
+        // Не открывается: тап по табу сразу закрывает лист (_segmentTab).
+        return const SizedBox.shrink();
     }
   }
 
@@ -929,6 +935,8 @@ class _ToolbarAttachmentsCupertinoState extends State<ToolbarAttachmentsCupertin
       padding: const EdgeInsets.symmetric(horizontal: 6),
       child: GestureDetector(
         onTap: () {
+          // «Опрос» — без своего тела: сразу закрываем лист, дальше экран опроса.
+          if (kind == ToolbarAttachmentTabKind.poll) return _finish(const ToolbarAttachmentPollResult());
           setState(() => _selected = kind);
           if (kind == ToolbarAttachmentTabKind.gallery) _ensureGalleryLoaded();
         },

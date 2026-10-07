@@ -116,6 +116,8 @@ class ChatsDemoDataSource implements ChatsDataSource {
           models.ChatMember(
             id: 'u$i',
             name: name,
+            // У половины — @username (упоминание «@»), у остальных — по имени.
+            username: i.isEven ? _translit(name) : '',
             role: role,
             rights: role == models.ChatRole.admin ? models.ChatAdminRights.standard : const models.ChatAdminRights(),
             rank: role == models.ChatRole.admin && i == 1 ? 'модератор' : '',
@@ -140,7 +142,7 @@ class ChatsDemoDataSource implements ChatsDataSource {
     final fromChats = [
       for (final c in _chats)
         if (c.type == models.ChatType.private && !c.isSelf && c.isContact)
-          models.ChatMember(id: c.id, name: c.title, online: c.online, lastSeen: c.lastSeen),
+          models.ChatMember(id: c.id, name: c.title, username: c.username, online: c.online, lastSeen: c.lastSeen),
     ];
     final known = {for (final m in fromChats) m.id};
     final extra = [
@@ -670,7 +672,55 @@ class ChatsDemoDataSource implements ChatsDataSource {
       return '';
     }
     final lower = name.toLowerCase();
-    return _chats.where((c) => c.username.toLowerCase() == lower && !c.isThread).firstOrNull?.id ?? '';
+    final chat = _chats.where((c) => c.username.toLowerCase() == lower && !c.isThread).firstOrNull;
+    if (chat != null) return chat.id;
+    // @username участника группы / контакта — личный чат с ним.
+    final person = [
+      ..._contacts(),
+      ..._members.values.expand((list) => list),
+    ].where((m) => !m.isSelf && m.username.toLowerCase() == lower).firstOrNull;
+    return person == null ? '' : openPrivateChat(person.id);
+  }
+
+  /// «Анна Смирнова» → «anna_smirnova» (демо-username участников).
+  static String _translit(String name) {
+    const map = {
+      'а': 'a',
+      'б': 'b',
+      'в': 'v',
+      'г': 'g',
+      'д': 'd',
+      'е': 'e',
+      'ё': 'e',
+      'ж': 'zh',
+      'з': 'z',
+      'и': 'i',
+      'й': 'y',
+      'к': 'k',
+      'л': 'l',
+      'м': 'm',
+      'н': 'n',
+      'о': 'o',
+      'п': 'p',
+      'р': 'r',
+      'с': 's',
+      'т': 't',
+      'у': 'u',
+      'ф': 'f',
+      'х': 'h',
+      'ц': 'ts',
+      'ч': 'ch',
+      'ш': 'sh',
+      'щ': 'sch',
+      'ъ': '',
+      'ы': 'y',
+      'ь': '',
+      'э': 'e',
+      'ю': 'yu',
+      'я': 'ya',
+      ' ': '_',
+    };
+    return name.toLowerCase().split('').map((c) => map[c] ?? c).join();
   }
 
   @override
@@ -696,6 +746,96 @@ class ChatsDemoDataSource implements ChatsDataSource {
     );
     _members.remove(chatID);
     _service(chatID, chat.type == models.ChatType.channel ? 'Вы подписались на канал' : 'Вы вступили в группу');
+  }
+
+  // ─── Опросы ───────────────────────────────────────────────────────────────
+
+  @override
+  Future<void> votePoll(String chatID, String messageID, List<int> options) async {
+    _updateMessage(chatID, messageID, (m) {
+      final poll = m.poll;
+      if (poll == null || poll.closed) return m;
+      // Ответ викторины не отменяется и не меняется.
+      if (poll.quiz && poll.voted) return m;
+      final open = !poll.anonymous;
+      return m.copyWith(
+        poll: poll.copyWith(
+          options: [
+            for (final (i, o) in poll.options.indexed)
+              () {
+                final was = o.chosen;
+                final now = options.contains(i);
+                if (was == now) return o;
+                return o.copyWith(
+                  chosen: now,
+                  votes: max(0, o.votes + (now ? 1 : -1)),
+                  voters: open
+                      ? (now
+                            ? [...o.voters, 'Вы']
+                            : [
+                                for (final v in o.voters)
+                                  if (v != 'Вы') v,
+                              ])
+                      : o.voters,
+                );
+              }(),
+          ],
+        ),
+      );
+    });
+  }
+
+  @override
+  Future<void> closePoll(String chatID, String messageID) async =>
+      _updateMessage(chatID, messageID, (m) => m.poll == null ? m : m.copyWith(poll: m.poll!.copyWith(closed: true)));
+
+  /// Демо-опрос группы / канала.
+  models.MessagePoll _seedPoll({required bool channel}) {
+    if (channel) {
+      return const models.MessagePoll(
+        question: 'Чем вы пользуетесь чаще?',
+        options: [
+          models.PollOption(text: 'Личными чатами', votes: 412),
+          models.PollOption(text: 'Группами', votes: 268),
+          models.PollOption(text: 'Каналами', votes: 133),
+        ],
+      );
+    }
+    return const models.MessagePoll(
+      question: 'Когда созвон по релизу?',
+      anonymous: false,
+      options: [
+        models.PollOption(text: 'Понедельник, 11:00', votes: 2, voters: ['Анна', 'Ольга']),
+        models.PollOption(text: 'Вторник, 15:00', votes: 3, voters: ['Дмитрий', 'Сергей', 'Иван']),
+        models.PollOption(text: 'Среда, 10:00', votes: 1, voters: ['Мария']),
+      ],
+    );
+  }
+
+  /// Чужие голоса в открытых опросах (раз в такт, в случайный незавершённый).
+  void _tickPolls() {
+    final candidates = <(String, models.Message)>[
+      for (final entry in _messages.entries)
+        for (final m in entry.value)
+          if (m.poll case final poll? when !poll.closed && !poll.quiz) (entry.key, m),
+    ];
+    if (candidates.isEmpty || _random.nextInt(2) == 0) return;
+    final (chatID, message) = candidates[_random.nextInt(candidates.length)];
+    final poll = message.poll!;
+    final pick = _random.nextInt(poll.options.length);
+    final voter = _names[_random.nextInt(_names.length)];
+    _updateMessage(
+      chatID,
+      message.id,
+      (m) => m.copyWith(
+        poll: poll.copyWith(
+          options: [
+            for (final (i, o) in poll.options.indexed)
+              i == pick ? o.copyWith(votes: o.votes + 1, voters: poll.anonymous ? o.voters : [...o.voters, voter]) : o,
+          ],
+        ),
+      ),
+    );
   }
 
   /// Профиль демо-чата: «О себе» / описание, @username, число участников и
@@ -846,6 +986,7 @@ class ChatsDemoDataSource implements ChatsDataSource {
     bool silent = false,
     DateTime? scheduleDate,
     bool linkPreview = true,
+    models.MessagePoll? poll,
   }) async {
     if (scheduleDate != null && scheduleDate.isAfter(DateTime.now())) {
       _schedule(
@@ -894,6 +1035,7 @@ class ChatsDemoDataSource implements ChatsDataSource {
       uploadTotal: uploadTotal,
       silent: silent,
       linkPreview: linkPreview && kind == models.MessageKind.text ? _linkPreviewOf(text, entities) : null,
+      poll: poll,
       // Пост канала: сразу 1 просмотр (наш), дальше растут.
       views: _isChannel(chatID) ? 1 : 0,
       authorSignature: _chats.any((c) => c.id == chatID && c.type == models.ChatType.channel && c.signMessages) ? await _selfName() : '',
@@ -1160,6 +1302,7 @@ class ChatsDemoDataSource implements ChatsDataSource {
           waveform: m.waveform,
           media: m.media,
           fileSize: m.fileSize,
+          poll: m.poll,
           // Пересылка пересланного — автор оригинала остаётся прежним.
           forward:
               m.forward ??
@@ -1208,6 +1351,7 @@ class ChatsDemoDataSource implements ChatsDataSource {
   bool _isChannel(String chatID) => _chats.any((c) => c.id == chatID && c.type == models.ChatType.channel);
 
   void _tick() {
+    _tickPolls();
     // Просмотры свежих постов открытых каналов растут.
     for (final channel in _chats.where((c) => c.type == models.ChatType.channel && _messages.containsKey(c.id))) {
       final history = _history(channel.id);
@@ -1525,15 +1669,17 @@ class ChatsDemoDataSource implements ChatsDataSource {
       bool pinned = false,
       String pinnedMessageID = '',
       List<models.MessageReaction> reactions = const [],
+      models.MessagePoll? poll,
       Duration step = const Duration(minutes: 7),
     }) {
       date = date.add(step);
-      final (text, entities) = parseMarkdownShortcuts(raw);
+      final (text, entities) = poll != null ? (poll.question, const <models.MessageEntity>[]) : parseMarkdownShortcuts(raw);
       result.add(
         models.Message(
           id: _id(),
           chatID: chatID,
-          kind: kind,
+          kind: poll != null ? models.MessageKind.poll : kind,
+          poll: poll,
           text: text,
           entities: entities,
           outgoing: out,
@@ -1612,12 +1758,15 @@ class ChatsDemoDataSource implements ChatsDataSource {
         add('', sender: 'Мария', service: true, pinnedMessageID: result.last.id, step: const Duration(minutes: 1));
         add('', sender: 'Иван', kind: models.MessageKind.file, fileName: 'отчёт_сентябрь.xlsx', pinned: true);
         add('', sender: 'Иван', service: true, pinnedMessageID: result.last.id, step: const Duration(minutes: 1));
+        add('', sender: 'Дмитрий', poll: _seedPoll(channel: false), step: const Duration(minutes: 20));
       case models.ChatType.channel:
         // Реакции канала — только из разрешённых админом.
         final allowed = chat.reactionsMode == models.ChatReactionsMode.some ? chat.reactions : const ['👍', '🔥', '❤️'];
         for (final (i, post) in _channelPosts.indexed) {
           add(
             post,
+            // «Опрос недели» — настоящим опросом.
+            poll: i == 1 ? _seedPoll(channel: true) : null,
             reactions: chat.reactionsMode == models.ChatReactionsMode.none
                 ? const []
                 : [for (final (j, emoji) in allowed.take(3).indexed) r(emoji, 140 - j * 45 + i * 13)],
@@ -1735,6 +1884,7 @@ class ChatsDemoDataSource implements ChatsDataSource {
         id: 'post-$postID',
         chatID: threadID,
         kind: post.kind,
+        poll: post.poll,
         text: post.text,
         entities: post.entities,
         media: post.media,

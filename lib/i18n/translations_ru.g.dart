@@ -47,6 +47,7 @@ class TranslationsRu extends Translations with BaseTranslations<AppLocale, Trans
 	@override late final _Translations$screenNewChat$ru screenNewChat = _Translations$screenNewChat$ru._(_root);
 	@override late final _Translations$screenChatInvites$ru screenChatInvites = _Translations$screenChatInvites$ru._(_root);
 	@override late final _Translations$screenChatAdmins$ru screenChatAdmins = _Translations$screenChatAdmins$ru._(_root);
+	@override late final _Translations$screenPoll$ru screenPoll = _Translations$screenPoll$ru._(_root);
 	@override late final _Translations$screenChat$ru screenChat = _Translations$screenChat$ru._(_root);
 	@override late final _Translations$screenSettings$ru screenSettings = _Translations$screenSettings$ru._(_root);
 	@override late final _Translations$screenSettingsNotifications$ru screenSettingsNotifications = _Translations$screenSettingsNotifications$ru._(_root);
@@ -373,6 +374,32 @@ class _Translations$screenChatAdmins$ru extends Translations$screenChatAdmins$en
 	@override String get noCandidates => 'Некого назначить — все участники уже админы.';
 }
 
+// Path: screenPoll
+class _Translations$screenPoll$ru extends Translations$screenPoll$en {
+	_Translations$screenPoll$ru._(TranslationsRu root) : this._root = root, super.internal(root);
+
+	final TranslationsRu _root; // ignore: unused_field
+
+	// Translations
+	@override String get newPoll => 'Новый опрос';
+	@override String get question => 'Вопрос';
+	@override String get questionHint => 'Задайте вопрос';
+	@override String get options => 'Варианты ответа';
+	@override String get optionHint => 'Вариант';
+	@override String get addOption => 'Добавить вариант';
+	@override String get optionsFooter => 'Можно добавить до 10 вариантов.';
+	@override String get quizOptionsFooter => 'Нажмите на кружок, чтобы отметить верный ответ.';
+	@override String get settings => 'Настройки';
+	@override String get anonymous => 'Анонимное голосование';
+	@override String get multiple => 'Несколько ответов';
+	@override String get quiz => 'Режим викторины';
+	@override String get quizFooter => 'У викторины один верный ответ. После ответа участник увидит пояснение.';
+	@override String get channelFooter => 'В канале голосование всегда анонимное.';
+	@override String get explanation => 'Пояснение';
+	@override String get explanationHint => 'Покажется после ответа (необязательно)';
+	@override String get create => 'Создать';
+}
+
 // Path: screenChat
 class _Translations$screenChat$ru extends Translations$screenChat$en {
 	_Translations$screenChat$ru._(TranslationsRu root) : this._root = root, super.internal(root);
@@ -409,6 +436,26 @@ class _Translations$screenChat$ru extends Translations$screenChat$en {
 	@override String get requestJoin => 'Подать заявку';
 	@override String get requestSent => 'Заявка отправлена';
 	@override String get linkInvalid => 'Ссылка недействительна или устарела.';
+	@override String get poll => 'Опрос';
+	@override String get quiz => 'Викторина';
+	@override String get anonymousPoll => 'Анонимный опрос';
+	@override String get publicPoll => 'Открытый опрос';
+	@override String get anonymousQuiz => 'Анонимная викторина';
+	@override String get publicQuiz => 'Викторина';
+	@override String votes({required num n, required Object count}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n,
+		one: '${count} голос',
+		few: '${count} голоса',
+		many: '${count} голосов',
+		other: '${count} голоса',
+	);
+	@override String get noVotes => 'Голосов пока нет';
+	@override String get vote => 'Голосовать';
+	@override String get pollClosed => 'Итоги';
+	@override String get retractVote => 'Отменить голос';
+	@override String get closePoll => 'Завершить опрос';
+	@override String get closePollTitle => 'Завершить опрос?';
+	@override String get closePollMessage => 'Голосовать больше будет нельзя, все увидят итоги.';
+	@override String get pollVoters => 'Голоса';
 	@override String get message => 'Сообщение';
 	@override String get empty => 'Сообщений пока нет';
 	@override String get notFound => 'Чат не найден';
@@ -1457,6 +1504,23 @@ extension on TranslationsRu {
 			'screenChatAdmins.transferMessage' => ({required Object name}) => '${name} станет владельцем, а вы — админом со всеми правами. Отменить это сможет только новый владелец.',
 			'screenChatAdmins.pickMember' => 'Выберите участника',
 			'screenChatAdmins.noCandidates' => 'Некого назначить — все участники уже админы.',
+			'screenPoll.newPoll' => 'Новый опрос',
+			'screenPoll.question' => 'Вопрос',
+			'screenPoll.questionHint' => 'Задайте вопрос',
+			'screenPoll.options' => 'Варианты ответа',
+			'screenPoll.optionHint' => 'Вариант',
+			'screenPoll.addOption' => 'Добавить вариант',
+			'screenPoll.optionsFooter' => 'Можно добавить до 10 вариантов.',
+			'screenPoll.quizOptionsFooter' => 'Нажмите на кружок, чтобы отметить верный ответ.',
+			'screenPoll.settings' => 'Настройки',
+			'screenPoll.anonymous' => 'Анонимное голосование',
+			'screenPoll.multiple' => 'Несколько ответов',
+			'screenPoll.quiz' => 'Режим викторины',
+			'screenPoll.quizFooter' => 'У викторины один верный ответ. После ответа участник увидит пояснение.',
+			'screenPoll.channelFooter' => 'В канале голосование всегда анонимное.',
+			'screenPoll.explanation' => 'Пояснение',
+			'screenPoll.explanationHint' => 'Покажется после ответа (необязательно)',
+			'screenPoll.create' => 'Создать',
 			'screenChat.today' => 'Сегодня',
 			'screenChat.yesterday' => 'Вчера',
 			'screenChat.online' => 'в сети',
@@ -1471,6 +1535,21 @@ extension on TranslationsRu {
 			'screenChat.requestJoin' => 'Подать заявку',
 			'screenChat.requestSent' => 'Заявка отправлена',
 			'screenChat.linkInvalid' => 'Ссылка недействительна или устарела.',
+			'screenChat.poll' => 'Опрос',
+			'screenChat.quiz' => 'Викторина',
+			'screenChat.anonymousPoll' => 'Анонимный опрос',
+			'screenChat.publicPoll' => 'Открытый опрос',
+			'screenChat.anonymousQuiz' => 'Анонимная викторина',
+			'screenChat.publicQuiz' => 'Викторина',
+			'screenChat.votes' => ({required num n, required Object count}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: '${count} голос', few: '${count} голоса', many: '${count} голосов', other: '${count} голоса', ), 
+			'screenChat.noVotes' => 'Голосов пока нет',
+			'screenChat.vote' => 'Голосовать',
+			'screenChat.pollClosed' => 'Итоги',
+			'screenChat.retractVote' => 'Отменить голос',
+			'screenChat.closePoll' => 'Завершить опрос',
+			'screenChat.closePollTitle' => 'Завершить опрос?',
+			'screenChat.closePollMessage' => 'Голосовать больше будет нельзя, все увидят итоги.',
+			'screenChat.pollVoters' => 'Голоса',
 			'screenChat.message' => 'Сообщение',
 			'screenChat.empty' => 'Сообщений пока нет',
 			'screenChat.notFound' => 'Чат не найден',
@@ -1712,6 +1791,8 @@ extension on TranslationsRu {
 			'screenSettingsAboutApplication.version' => ({required Object version, required Object build}) => 'Версия ${version} (${build})',
 			'screenSettingsAboutApplication.licenses' => 'Лицензии',
 			'screenSettingsAboutApplication.licensesCount' => ({required Object n}) => 'Лицензий: ${n}',
+			_ => null,
+		} ?? switch (path) {
 			'screenSettingsAboutApplication.noLicenses' => 'Лицензии не найдены',
 			'screenSettingsLanguage.language' => 'Язык',
 			'screenSettingsPasscode.passcode' => 'Код-пароль',
@@ -1744,8 +1825,6 @@ extension on TranslationsRu {
 			'sessionsPrivacyAndSecurity.callsContacts' => 'Мои контакты',
 			'sessionsPrivacyAndSecurity.callsNobody' => 'Никто',
 			'sessionsPrivacyAndSecurity.callsLoadError' => 'Не удалось загрузить настройку',
-			_ => null,
-		} ?? switch (path) {
 			'sessionsPrivacyAndSecurity.callsOfflineNote' => 'Нет соединения. Изменение станет доступно, когда появится сеть.',
 			'sessionsPrivacyAndSecurity.retry' => 'Повторить',
 			'sessionsPrivacyAndSecurity.exceptions' => 'Исключения',

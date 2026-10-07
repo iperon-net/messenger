@@ -20,9 +20,12 @@ import '../../demo/chats_demo_data_source.dart';
 import '../../extensions.dart';
 import '../../i18n/translations.g.dart';
 import '../../models.dart' as models;
+import 'chat_create_common.dart';
 import 'chat_info_common.dart';
 import 'media_caption_cupertino.dart';
 import 'media_caption_material.dart';
+import 'poll_create_cupertino.dart';
+import 'poll_create_material.dart';
 
 /// Общее для окна чата на обеих платформах (`chat_cupertino.dart` /
 /// `chat_material.dart`).
@@ -43,6 +46,139 @@ import 'media_caption_material.dart';
     models.ChatType.group || models.ChatType.community => (text: t.screenChat.members(n: count, count: count.grouped), active: false),
     models.ChatType.channel => (text: t.screenChat.subscribers(n: count, count: count.grouped), active: false),
   };
+}
+
+/// Опрос: «Отменить голос» — проголосовали, не викторина, не завершён.
+bool canRetractVote(models.Message message) {
+  final poll = message.poll;
+  return poll != null && poll.voted && !poll.quiz && !poll.closed;
+}
+
+/// Опрос: «Завершить опрос» — автор или админ, пока не завершён.
+bool canClosePoll(models.Chat chat, models.Message message) {
+  final poll = message.poll;
+  return poll != null && !poll.closed && (message.outgoing || chat.canManage);
+}
+
+/// «Завершить опрос?» — `true`, если подтвердили.
+Future<bool> confirmClosePoll(BuildContext context) async {
+  final t = context.t.screenChat;
+  if (Platform.isIOS) {
+    return await c.showCupertinoDialog<bool>(
+          context: context,
+          builder: (dialogContext) => c.CupertinoAlertDialog(
+            title: Text(t.closePollTitle),
+            content: Text(t.closePollMessage),
+            actions: [
+              c.CupertinoDialogAction(onPressed: () => Navigator.of(dialogContext).pop(false), child: Text(context.t.common.cancel)),
+              c.CupertinoDialogAction(
+                isDestructiveAction: true,
+                onPressed: () => Navigator.of(dialogContext).pop(true),
+                child: Text(t.closePoll),
+              ),
+            ],
+          ),
+        ) ??
+        false;
+  }
+  return await m.showDialog<bool>(
+        context: context,
+        builder: (dialogContext) => m.AlertDialog(
+          title: Text(t.closePollTitle),
+          content: Text(t.closePollMessage),
+          actions: [
+            m.TextButton(onPressed: () => Navigator.of(dialogContext).pop(false), child: Text(context.t.common.cancel)),
+            m.TextButton(onPressed: () => Navigator.of(dialogContext).pop(true), child: Text(t.closePoll)),
+          ],
+        ),
+      ) ??
+      false;
+}
+
+/// Открытый опрос: «кто за что» — по вариантам, имена проголосовавших.
+Future<void> showPollVoters(BuildContext context, models.MessagePoll poll) {
+  final t = context.t.screenChat;
+  Widget body(BuildContext sheetContext, Color secondary) => ListView(
+    shrinkWrap: true,
+    padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+    children: [
+      for (final option in poll.options)
+        if (option.voters.isNotEmpty) ...[
+          Padding(
+            padding: const EdgeInsets.only(top: 12, bottom: 4),
+            child: Text(
+              '${option.text} — ${t.votes(n: option.votes, count: option.votes.grouped)}',
+              style: TextStyle(fontSize: 13, color: secondary),
+            ),
+          ),
+          for (final name in option.voters)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 6),
+              child: Row(
+                children: [
+                  ContactAvatar(
+                    contact: models.ChatMember(id: name, name: name),
+                    size: 32,
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(child: Text(name == 'Вы' ? context.t.screenChat.you : name)),
+                ],
+              ),
+            ),
+        ],
+    ],
+  );
+  if (Platform.isIOS) {
+    return c.showCupertinoModalPopup<void>(
+      context: context,
+      builder: (sheetContext) => Container(
+        constraints: BoxConstraints(maxHeight: MediaQuery.sizeOf(sheetContext).height * 0.7),
+        decoration: BoxDecoration(
+          color: c.CupertinoColors.systemBackground.resolveFrom(sheetContext),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
+        ),
+        child: SafeArea(
+          top: false,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(top: 14),
+                child: Text(
+                  t.pollVoters,
+                  style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600, color: c.CupertinoColors.label.resolveFrom(sheetContext)),
+                ),
+              ),
+              Flexible(
+                child: DefaultTextStyle(
+                  style: TextStyle(fontSize: 16, color: c.CupertinoColors.label.resolveFrom(sheetContext)),
+                  child: body(sheetContext, c.CupertinoColors.secondaryLabel.resolveFrom(sheetContext)),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+  return m.showModalBottomSheet<void>(
+    context: context,
+    showDragHandle: true,
+    isScrollControlled: true,
+    builder: (sheetContext) => SafeArea(
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxHeight: MediaQuery.sizeOf(sheetContext).height * 0.7),
+        child: body(sheetContext, m.Theme.of(sheetContext).colorScheme.onSurfaceVariant),
+      ),
+    ),
+  );
+}
+
+/// Тап по упоминанию по имени (без @username) — личный чат с человеком.
+void openMentionName(BuildContext context, String userID) async {
+  if (userID.isEmpty || !context.read<CommonCubit>().state.settingsDevice.chatsDemo) return;
+  final chatID = await ChatsDemoDataSource.instance.openPrivateChat(userID);
+  if (chatID.isNotEmpty && context.mounted) await context.push('/chats/chat/$chatID');
 }
 
 /// Кнопка внизу, когда писать нельзя: подпись (`null` — «Звук» канала) и
@@ -130,18 +266,30 @@ typedef MediaCaptionResult = ({String caption, bool spoiler, bool hd});
 /// сообщения; текст из поля ввода [input] переносится в подпись (как в Telegram).
 Future<void> pickAndSendAttachments(BuildContext context, {TextEditingController? input}) async {
   final cubit = context.read<ChatCubit>();
+  final chat = cubit.state.chat;
+  // «Опрос» — в группах, сообществах и каналах (кто может писать).
+  final polls = chat != null && chat.type != models.ChatType.private && !chat.isThread;
   final result = await showToolbarAttachments(
     context,
-    tabs: const [ToolbarAttachmentTabKind.gallery, ToolbarAttachmentTabKind.file],
+    tabs: [ToolbarAttachmentTabKind.gallery, ToolbarAttachmentTabKind.file, if (polls) ToolbarAttachmentTabKind.poll],
     media: ToolbarAttachmentMediaType.all,
     multiSelect: true,
   );
+  if (result is ToolbarAttachmentPollResult) {
+    if (!context.mounted || chat == null) return;
+    final channel = chat.type == models.ChatType.channel;
+    final poll = Platform.isIOS
+        ? await showPollCreateCupertino(context, channel: channel)
+        : await showPollCreateMaterial(context, channel: channel);
+    if (poll != null) await cubit.sendPoll(poll);
+    return;
+  }
   final items = switch (result) {
     ToolbarAttachmentImageResult(:final file, :final source) => [_draft(file.path, asFile: source == ToolbarAttachmentTabKind.file)],
     ToolbarAttachmentMultiImageResult(:final files, :final source) => [
       for (final file in files) _draft(file.path, asFile: source == ToolbarAttachmentTabKind.file),
     ],
-    ToolbarAttachmentEmojiResult() || ToolbarAttachmentLinkResult() || null => const <AttachmentDraft>[],
+    ToolbarAttachmentEmojiResult() || ToolbarAttachmentLinkResult() || ToolbarAttachmentPollResult() || null => const <AttachmentDraft>[],
   };
   if (items.isEmpty || !context.mounted) return;
 
@@ -996,4 +1144,153 @@ String? composeLinkUrl(String raw) {
   if (!raw.contains('.')) return null;
   final (text, entities) = parseMarkdownShortcuts(raw);
   return firstLinkUrl(text, entities);
+}
+
+/// Подсказка упоминаний в поле ввода группы: «@» + начало имени или
+/// @username перед курсором → участники ([suggestions]); выбор — вставляет
+/// `@username ` (или имя, если username нет — запоминается для `mentionName`).
+class ComposeMentions extends ChangeNotifier {
+  ComposeMentions(this.input) {
+    input.addListener(_update);
+  }
+
+  final TextEditingController input;
+
+  /// Подсказка работает (группа / сообщество / комментарии).
+  bool enabled = false;
+
+  /// Участники чата (без нас).
+  List<models.ChatMember> members = const [];
+
+  /// Упомянутые по имени — уходят в `ChatCubit.send(mentions:)`.
+  final _picked = <models.ChatMember>[];
+
+  String? _query;
+  int _start = 0;
+
+  static final _pattern = RegExp(r'(?:^|\s)@([\p{L}\p{N}_]*)$', unicode: true);
+
+  void _update() {
+    String? query;
+    final selection = input.selection;
+    if (enabled && selection.isValid && selection.isCollapsed) {
+      final before = input.text.substring(0, selection.baseOffset);
+      final match = _pattern.firstMatch(before);
+      if (match != null) {
+        query = match.group(1)!;
+        _start = selection.baseOffset - query.length - 1;
+      }
+    }
+    if (query == _query) return;
+    _query = query;
+    notifyListeners();
+  }
+
+  List<models.ChatMember> get suggestions {
+    final query = _query?.toLowerCase();
+    if (query == null) return const [];
+    bool fits(models.ChatMember m) =>
+        m.username.toLowerCase().startsWith(query) || m.name.toLowerCase().split(' ').any((word) => word.startsWith(query));
+    return [
+      for (final m in members)
+        if (!m.isSelf && fits(m)) m,
+    ].take(20).toList();
+  }
+
+  void pick(models.ChatMember member) {
+    final end = input.selection.baseOffset;
+    if (end < _start) return;
+    final insert = member.username.isNotEmpty ? '@${member.username} ' : '${member.name} ';
+    if (member.username.isEmpty && !_picked.any((m) => m.id == member.id)) _picked.add(member);
+    final text = input.text.replaceRange(_start, end, insert);
+    input.value = TextEditingValue(
+      text: text,
+      selection: TextSelection.collapsed(offset: _start + insert.length),
+    );
+  }
+
+  /// Упомянутые по имени для отправки (и сброс).
+  List<models.ChatMember> take() {
+    final result = [..._picked];
+    _picked.clear();
+    return result;
+  }
+
+  @override
+  void dispose() {
+    input.removeListener(_update);
+    super.dispose();
+  }
+}
+
+/// Список подсказок «@» над полем ввода: аватар, имя, @username. Пусто — ничего.
+class MentionSuggestions extends StatelessWidget {
+  final ComposeMentions mentions;
+  final Color background;
+  final Color text;
+  final Color secondary;
+  final Color separator;
+
+  const MentionSuggestions({
+    super.key,
+    required this.mentions,
+    required this.background,
+    required this.text,
+    required this.secondary,
+    required this.separator,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ListenableBuilder(
+      listenable: mentions,
+      builder: (context, _) {
+        final items = mentions.suggestions;
+        if (items.isEmpty) return const SizedBox.shrink();
+        return Container(
+          constraints: const BoxConstraints(maxHeight: 4.5 * 48),
+          decoration: BoxDecoration(
+            color: background,
+            border: Border(top: BorderSide(color: separator, width: 0.5)),
+          ),
+          child: ListView.builder(
+            padding: EdgeInsets.zero,
+            shrinkWrap: true,
+            itemCount: items.length,
+            itemBuilder: (context, index) {
+              final member = items[index];
+              return GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () => mentions.pick(member),
+                child: SizedBox(
+                  height: 48,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 14),
+                    child: Row(
+                      children: [
+                        ContactAvatar(contact: member, size: 32),
+                        const SizedBox(width: 10),
+                        Flexible(
+                          child: Text(
+                            member.name,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: text),
+                          ),
+                        ),
+                        if (member.username.isNotEmpty) ...[
+                          const SizedBox(width: 6),
+                          Text('@${member.username}', style: TextStyle(fontSize: 14, color: secondary)),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
 }

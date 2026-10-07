@@ -173,7 +173,14 @@ abstract class ChatsDataSource {
     bool silent = false,
     DateTime? scheduleDate,
     bool linkPreview = true,
+    models.MessagePoll? poll,
   });
+
+  /// Опрос: наш голос — варианты [options] (пустой список — отменить голос).
+  Future<void> votePoll(String chatID, String messageID, List<int> options);
+
+  /// Завершить опрос (автор или админ): голосовать больше нельзя.
+  Future<void> closePoll(String chatID, String messageID);
 
   /// Отложенные сообщения чата (отправка с [sendMessage] `scheduleDate`) — от
   /// ранних к поздним; в момент `scheduledDate` уходят в чат сами.

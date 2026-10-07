@@ -15,7 +15,7 @@ export 'toolbar_attachments_material.dart';
 
 /// Встроенные табы источника медиа. Функционал каждого таба фиксирован внутри
 /// компонента; снаружи выбирается только набор доступных табов.
-enum ToolbarAttachmentTabKind { camera, gallery, file, emoji, link }
+enum ToolbarAttachmentTabKind { camera, gallery, file, emoji, link, poll }
 
 /// Какие типы медиа показывать в галерее. Для аватара — только фото
 /// ([image]); для вложений в чат — фото и видео ([all]).
@@ -76,6 +76,11 @@ Future<List<XFile>> pickAttachmentMediaAsFiles() => ImagePicker().pickMultipleMe
 class ToolbarAttachmentEmojiResult extends ToolbarAttachmentResult {
   final String emoji;
   const ToolbarAttachmentEmojiResult(this.emoji);
+}
+
+/// Таб «Опрос» (чат): лист закрывается сразу — дальше экран создания опроса.
+class ToolbarAttachmentPollResult extends ToolbarAttachmentResult {
+  const ToolbarAttachmentPollResult();
 }
 
 /// Введена / выбрана ссылка.

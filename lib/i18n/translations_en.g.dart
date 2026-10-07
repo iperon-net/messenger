@@ -49,6 +49,7 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	late final Translations$screenNewChat$en screenNewChat = Translations$screenNewChat$en.internal(_root);
 	late final Translations$screenChatInvites$en screenChatInvites = Translations$screenChatInvites$en.internal(_root);
 	late final Translations$screenChatAdmins$en screenChatAdmins = Translations$screenChatAdmins$en.internal(_root);
+	late final Translations$screenPoll$en screenPoll = Translations$screenPoll$en.internal(_root);
 	late final Translations$screenChat$en screenChat = Translations$screenChat$en.internal(_root);
 	late final Translations$screenSettings$en screenSettings = Translations$screenSettings$en.internal(_root);
 	late final Translations$screenSettingsNotifications$en screenSettingsNotifications = Translations$screenSettingsNotifications$en.internal(_root);
@@ -825,6 +826,66 @@ class Translations$screenChatAdmins$en {
 	String get noCandidates => 'Nobody to promote — everyone is already an admin.';
 }
 
+// Path: screenPoll
+class Translations$screenPoll$en {
+	Translations$screenPoll$en.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// en: 'New Poll'
+	String get newPoll => 'New Poll';
+
+	/// en: 'Question'
+	String get question => 'Question';
+
+	/// en: 'Ask a question'
+	String get questionHint => 'Ask a question';
+
+	/// en: 'Answer Options'
+	String get options => 'Answer Options';
+
+	/// en: 'Option'
+	String get optionHint => 'Option';
+
+	/// en: 'Add an Option'
+	String get addOption => 'Add an Option';
+
+	/// en: 'You can add up to 10 options.'
+	String get optionsFooter => 'You can add up to 10 options.';
+
+	/// en: 'Tap the circle to mark the correct answer.'
+	String get quizOptionsFooter => 'Tap the circle to mark the correct answer.';
+
+	/// en: 'Settings'
+	String get settings => 'Settings';
+
+	/// en: 'Anonymous Voting'
+	String get anonymous => 'Anonymous Voting';
+
+	/// en: 'Multiple Answers'
+	String get multiple => 'Multiple Answers';
+
+	/// en: 'Quiz Mode'
+	String get quiz => 'Quiz Mode';
+
+	/// en: 'A quiz has one correct answer. After answering, people see the explanation.'
+	String get quizFooter => 'A quiz has one correct answer. After answering, people see the explanation.';
+
+	/// en: 'Voting in channels is always anonymous.'
+	String get channelFooter => 'Voting in channels is always anonymous.';
+
+	/// en: 'Explanation'
+	String get explanation => 'Explanation';
+
+	/// en: 'Shown after answering (optional)'
+	String get explanationHint => 'Shown after answering (optional)';
+
+	/// en: 'Create'
+	String get create => 'Create';
+}
+
 // Path: screenChat
 class Translations$screenChat$en {
 	Translations$screenChat$en.internal(this._root);
@@ -883,6 +944,54 @@ class Translations$screenChat$en {
 
 	/// en: 'This link is invalid or has expired.'
 	String get linkInvalid => 'This link is invalid or has expired.';
+
+	/// en: 'Poll'
+	String get poll => 'Poll';
+
+	/// en: 'Quiz'
+	String get quiz => 'Quiz';
+
+	/// en: 'Anonymous Poll'
+	String get anonymousPoll => 'Anonymous Poll';
+
+	/// en: 'Public Poll'
+	String get publicPoll => 'Public Poll';
+
+	/// en: 'Anonymous Quiz'
+	String get anonymousQuiz => 'Anonymous Quiz';
+
+	/// en: 'Quiz'
+	String get publicQuiz => 'Quiz';
+
+	/// en: '(one) {{count} vote} (other) {{count} votes}'
+	String votes({required num n, required Object count}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n,
+		one: '${count} vote',
+		other: '${count} votes',
+	);
+
+	/// en: 'No votes yet'
+	String get noVotes => 'No votes yet';
+
+	/// en: 'Vote'
+	String get vote => 'Vote';
+
+	/// en: 'Final results'
+	String get pollClosed => 'Final results';
+
+	/// en: 'Retract Vote'
+	String get retractVote => 'Retract Vote';
+
+	/// en: 'Stop Poll'
+	String get closePoll => 'Stop Poll';
+
+	/// en: 'Stop the poll?'
+	String get closePollTitle => 'Stop the poll?';
+
+	/// en: 'Nobody will be able to vote anymore; everyone will see the results.'
+	String get closePollMessage => 'Nobody will be able to vote anymore; everyone will see the results.';
+
+	/// en: 'Votes'
+	String get pollVoters => 'Votes';
 
 	/// en: 'Message'
 	String get message => 'Message';
@@ -3008,6 +3117,23 @@ extension on Translations {
 			'screenChatAdmins.transferMessage' => ({required Object name}) => '${name} will become the owner and you will remain an admin with all rights. Only the new owner can undo this.',
 			'screenChatAdmins.pickMember' => 'Choose a Member',
 			'screenChatAdmins.noCandidates' => 'Nobody to promote — everyone is already an admin.',
+			'screenPoll.newPoll' => 'New Poll',
+			'screenPoll.question' => 'Question',
+			'screenPoll.questionHint' => 'Ask a question',
+			'screenPoll.options' => 'Answer Options',
+			'screenPoll.optionHint' => 'Option',
+			'screenPoll.addOption' => 'Add an Option',
+			'screenPoll.optionsFooter' => 'You can add up to 10 options.',
+			'screenPoll.quizOptionsFooter' => 'Tap the circle to mark the correct answer.',
+			'screenPoll.settings' => 'Settings',
+			'screenPoll.anonymous' => 'Anonymous Voting',
+			'screenPoll.multiple' => 'Multiple Answers',
+			'screenPoll.quiz' => 'Quiz Mode',
+			'screenPoll.quizFooter' => 'A quiz has one correct answer. After answering, people see the explanation.',
+			'screenPoll.channelFooter' => 'Voting in channels is always anonymous.',
+			'screenPoll.explanation' => 'Explanation',
+			'screenPoll.explanationHint' => 'Shown after answering (optional)',
+			'screenPoll.create' => 'Create',
 			'screenChat.today' => 'Today',
 			'screenChat.yesterday' => 'Yesterday',
 			'screenChat.online' => 'online',
@@ -3022,6 +3148,21 @@ extension on Translations {
 			'screenChat.requestJoin' => 'Request to Join',
 			'screenChat.requestSent' => 'Request Sent',
 			'screenChat.linkInvalid' => 'This link is invalid or has expired.',
+			'screenChat.poll' => 'Poll',
+			'screenChat.quiz' => 'Quiz',
+			'screenChat.anonymousPoll' => 'Anonymous Poll',
+			'screenChat.publicPoll' => 'Public Poll',
+			'screenChat.anonymousQuiz' => 'Anonymous Quiz',
+			'screenChat.publicQuiz' => 'Quiz',
+			'screenChat.votes' => ({required num n, required Object count}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: '${count} vote', other: '${count} votes', ), 
+			'screenChat.noVotes' => 'No votes yet',
+			'screenChat.vote' => 'Vote',
+			'screenChat.pollClosed' => 'Final results',
+			'screenChat.retractVote' => 'Retract Vote',
+			'screenChat.closePoll' => 'Stop Poll',
+			'screenChat.closePollTitle' => 'Stop the poll?',
+			'screenChat.closePollMessage' => 'Nobody will be able to vote anymore; everyone will see the results.',
+			'screenChat.pollVoters' => 'Votes',
 			'screenChat.message' => 'Message',
 			'screenChat.empty' => 'No messages yet',
 			'screenChat.notFound' => 'Chat not found',
@@ -3263,6 +3404,8 @@ extension on Translations {
 			'screenSettingsAboutApplication.version' => ({required Object version, required Object build}) => 'Version ${version} (${build})',
 			'screenSettingsAboutApplication.licenses' => 'Licenses',
 			'screenSettingsAboutApplication.licensesCount' => ({required Object n}) => '${n} licenses',
+			_ => null,
+		} ?? switch (path) {
 			'screenSettingsAboutApplication.noLicenses' => 'No licenses found',
 			'screenSettingsLanguage.language' => 'Language',
 			'screenSettingsPasscode.passcode' => 'Passcode',
@@ -3295,8 +3438,6 @@ extension on Translations {
 			'sessionsPrivacyAndSecurity.callsContacts' => 'My contacts',
 			'sessionsPrivacyAndSecurity.callsNobody' => 'Nobody',
 			'sessionsPrivacyAndSecurity.callsLoadError' => 'Couldn\'t load the setting',
-			_ => null,
-		} ?? switch (path) {
 			'sessionsPrivacyAndSecurity.callsOfflineNote' => 'No connection. You can change this once you\'re back online.',
 			'sessionsPrivacyAndSecurity.retry' => 'Retry',
 			'sessionsPrivacyAndSecurity.exceptions' => 'Exceptions',

@@ -68,6 +68,7 @@ class ChatCupertino extends StatefulWidget {
 
 class _ChatCupertinoState extends State<ChatCupertino> {
   final _input = TextEditingController();
+  late final _mentions = ComposeMentions(_input);
   late final _formatMenu = ComposeFormatMenu(_input);
   late final _recorder = VoiceRecorder(
     onSend: (path, seconds, waveform) => _cubit.sendVoice(localPath: path, duration: seconds, waveform: waveform),
@@ -93,7 +94,10 @@ class _ChatCupertinoState extends State<ChatCupertino> {
     super.initState();
     // Ссылки iperon.net в сообщениях — открываются в приложении.
     MessageText.linkHandler = openIperonLink;
+    MessageText.mentionNameHandler = openMentionName;
     _cubit = context.read<ChatCubit>();
+    // Участники — для подсказки «@» (у личного чата список пустой).
+    _cubit.loadMembers();
     // Подсветка после перехода по цитате — перестроить ленту.
     _tracker.addListener(() {
       if (_flashID != _tracker.flashID && mounted) setState(() => _flashID = _tracker.flashID);
@@ -108,6 +112,7 @@ class _ChatCupertinoState extends State<ChatCupertino> {
     _formatMenu.dispose();
     _recorder.dispose();
     VoicePlayer.instance.stop();
+    _mentions.dispose();
     _input.dispose();
     _focus.dispose();
     _tracker.dispose();
@@ -309,7 +314,7 @@ class _ChatCupertinoState extends State<ChatCupertino> {
     // Пересылка уходит и без текста.
     if (text.trim().isEmpty && _cubit.state.forwarding.isEmpty) return;
     _input.clear();
-    _cubit.send(text, silent: silent, scheduleDate: scheduleDate);
+    _cubit.send(text, silent: silent, scheduleDate: scheduleDate, mentions: _mentions.take());
   }
 
   /// «Отправить позже»: время → текст уходит в отложенные.
@@ -375,6 +380,10 @@ class _ChatCupertinoState extends State<ChatCupertino> {
         },
         builder: (context, state) {
           final chat = state.chat;
+          // Подсказка «@» — в группах, сообществах и комментариях.
+          _mentions
+            ..enabled = chat != null && (chat.type == models.ChatType.group || chat.type == models.ChatType.community)
+            ..members = state.members;
           final background = CupertinoTheme.brightnessOf(context) == Brightness.dark
               ? const Color(0xFF000000)
               : CupertinoColors.systemGroupedBackground.resolveFrom(context);
@@ -497,6 +506,9 @@ class _ChatCupertinoState extends State<ChatCupertino> {
                                             onCommentsTap: chat.type == models.ChatType.channel && chat.commentsEnabled
                                                 ? _openComments
                                                 : null,
+                                            // Опрос: голосовать — участникам (не подписавшимся — нет).
+                                            onPollVote: chat.isMember ? (message, options) => _cubit.votePoll(message, options) : null,
+                                            onPollVoters: (message) => showPollVoters(context, message.poll!),
                                             style: ChatCupertino.bubbleStyle(context),
                                             padding: EdgeInsets.only(
                                               top: 8 + (state.pinnedMessages.isEmpty ? 0 : PinnedMessageBar.height),
@@ -561,7 +573,15 @@ class _ChatCupertinoState extends State<ChatCupertino> {
                               // админ канала публикует посты обычным полем ввода.
                               else if (!chat.canPost)
                                 _ChannelBar(chat: chat)
-                              else
+                              else ...[
+                                // Подсказка «@» — над полем ввода.
+                                MentionSuggestions(
+                                  mentions: _mentions,
+                                  background: ThemesCupertino.appBackground.resolveFrom(context),
+                                  text: CupertinoColors.label.resolveFrom(context),
+                                  secondary: CupertinoColors.secondaryLabel.resolveFrom(context),
+                                  separator: CupertinoColors.separator.resolveFrom(context),
+                                ),
                                 _ComposeBar(
                                   input: _input,
                                   formatMenu: _formatMenu,
@@ -572,6 +592,7 @@ class _ChatCupertinoState extends State<ChatCupertino> {
                                   onSendOptions: () => _sendOptions(context),
                                   onScheduled: () => showScheduledMessagesCupertino(context, _cubit),
                                 ),
+                              ],
                             ],
                           ),
                   ),
@@ -637,6 +658,11 @@ class _ChatCupertinoState extends State<ChatCupertino> {
         action(t.edit, CupertinoIcons.pencil, () => _cubit.startEdit(message)),
       if (message.outgoing || chat.type == models.ChatType.private)
         action(t.delete, CupertinoIcons.delete, () => _confirmDelete(context, chat, message), destructive: true),
+      if (canRetractVote(message)) action(t.retractVote, CupertinoIcons.arrow_uturn_left, () => _cubit.votePoll(message, const [])),
+      if (canClosePoll(chat, message))
+        action(t.closePoll, CupertinoIcons.stop_circle, () async {
+          if (await confirmClosePoll(context)) await _cubit.closePoll(message);
+        }, destructive: true),
       action(t.select, CupertinoIcons.checkmark_circle, () => _cubit.startSelection(message)),
     ];
   }

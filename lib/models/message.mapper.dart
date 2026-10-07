@@ -47,6 +47,8 @@ class MessageEntityTypeMapper extends EnumMapper<MessageEntityType> {
         return MessageEntityType.url;
       case r'mention':
         return MessageEntityType.mention;
+      case r'mentionName':
+        return MessageEntityType.mentionName;
       case r'hashtag':
         return MessageEntityType.hashtag;
       case r'email':
@@ -83,6 +85,8 @@ class MessageEntityTypeMapper extends EnumMapper<MessageEntityType> {
         return r'url';
       case MessageEntityType.mention:
         return r'mention';
+      case MessageEntityType.mentionName:
+        return r'mentionName';
       case MessageEntityType.hashtag:
         return r'hashtag';
       case MessageEntityType.email:
@@ -133,6 +137,13 @@ class MessageEntityMapper extends ClassMapperBase<MessageEntity> {
     opt: true,
     def: '',
   );
+  static String _$userID(MessageEntity v) => v.userID;
+  static const Field<MessageEntity, String> _f$userID = Field(
+    'userID',
+    _$userID,
+    opt: true,
+    def: '',
+  );
 
   @override
   final MappableFields<MessageEntity> fields = const {
@@ -140,6 +151,7 @@ class MessageEntityMapper extends ClassMapperBase<MessageEntity> {
     #offset: _f$offset,
     #length: _f$length,
     #url: _f$url,
+    #userID: _f$userID,
   };
 
   static MessageEntity _instantiate(DecodingData data) {
@@ -148,6 +160,7 @@ class MessageEntityMapper extends ClassMapperBase<MessageEntity> {
       offset: data.dec(_f$offset),
       length: data.dec(_f$length),
       url: data.dec(_f$url),
+      userID: data.dec(_f$userID),
     );
   }
 
@@ -213,7 +226,13 @@ extension MessageEntityValueCopy<$R, $Out>
 
 abstract class MessageEntityCopyWith<$R, $In extends MessageEntity, $Out>
     implements ClassCopyWith<$R, $In, $Out> {
-  $R call({MessageEntityType? type, int? offset, int? length, String? url});
+  $R call({
+    MessageEntityType? type,
+    int? offset,
+    int? length,
+    String? url,
+    String? userID,
+  });
   MessageEntityCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
 
@@ -226,27 +245,425 @@ class _MessageEntityCopyWithImpl<$R, $Out>
   late final ClassMapperBase<MessageEntity> $mapper =
       MessageEntityMapper.ensureInitialized();
   @override
-  $R call({MessageEntityType? type, int? offset, int? length, String? url}) =>
-      $apply(
-        FieldCopyWithData({
-          if (type != null) #type: type,
-          if (offset != null) #offset: offset,
-          if (length != null) #length: length,
-          if (url != null) #url: url,
-        }),
-      );
+  $R call({
+    MessageEntityType? type,
+    int? offset,
+    int? length,
+    String? url,
+    String? userID,
+  }) => $apply(
+    FieldCopyWithData({
+      if (type != null) #type: type,
+      if (offset != null) #offset: offset,
+      if (length != null) #length: length,
+      if (url != null) #url: url,
+      if (userID != null) #userID: userID,
+    }),
+  );
   @override
   MessageEntity $make(CopyWithData data) => MessageEntity(
     type: data.get(#type, or: $value.type),
     offset: data.get(#offset, or: $value.offset),
     length: data.get(#length, or: $value.length),
     url: data.get(#url, or: $value.url),
+    userID: data.get(#userID, or: $value.userID),
   );
 
   @override
   MessageEntityCopyWith<$R2, MessageEntity, $Out2> $chain<$R2, $Out2>(
     Then<$Out2, $R2> t,
   ) => _MessageEntityCopyWithImpl<$R2, $Out2>($value, $cast, t);
+}
+
+class PollOptionMapper extends ClassMapperBase<PollOption> {
+  PollOptionMapper._();
+
+  static PollOptionMapper? _instance;
+  static PollOptionMapper ensureInitialized() {
+    if (_instance == null) {
+      MapperContainer.globals.use(_instance = PollOptionMapper._());
+    }
+    return _instance!;
+  }
+
+  @override
+  final String id = 'PollOption';
+
+  static String _$text(PollOption v) => v.text;
+  static const Field<PollOption, String> _f$text = Field('text', _$text);
+  static int _$votes(PollOption v) => v.votes;
+  static const Field<PollOption, int> _f$votes = Field(
+    'votes',
+    _$votes,
+    opt: true,
+    def: 0,
+  );
+  static bool _$chosen(PollOption v) => v.chosen;
+  static const Field<PollOption, bool> _f$chosen = Field(
+    'chosen',
+    _$chosen,
+    opt: true,
+    def: false,
+  );
+  static bool _$correct(PollOption v) => v.correct;
+  static const Field<PollOption, bool> _f$correct = Field(
+    'correct',
+    _$correct,
+    opt: true,
+    def: false,
+  );
+  static List<String> _$voters(PollOption v) => v.voters;
+  static const Field<PollOption, List<String>> _f$voters = Field(
+    'voters',
+    _$voters,
+    opt: true,
+    def: const [],
+  );
+
+  @override
+  final MappableFields<PollOption> fields = const {
+    #text: _f$text,
+    #votes: _f$votes,
+    #chosen: _f$chosen,
+    #correct: _f$correct,
+    #voters: _f$voters,
+  };
+
+  static PollOption _instantiate(DecodingData data) {
+    return PollOption(
+      text: data.dec(_f$text),
+      votes: data.dec(_f$votes),
+      chosen: data.dec(_f$chosen),
+      correct: data.dec(_f$correct),
+      voters: data.dec(_f$voters),
+    );
+  }
+
+  @override
+  final Function instantiate = _instantiate;
+
+  static PollOption fromMap(Map<String, dynamic> map) {
+    return ensureInitialized().decodeMap<PollOption>(map);
+  }
+
+  static PollOption fromJson(String json) {
+    return ensureInitialized().decodeJson<PollOption>(json);
+  }
+}
+
+mixin PollOptionMappable {
+  String toJson() {
+    return PollOptionMapper.ensureInitialized().encodeJson<PollOption>(
+      this as PollOption,
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return PollOptionMapper.ensureInitialized().encodeMap<PollOption>(
+      this as PollOption,
+    );
+  }
+
+  PollOptionCopyWith<PollOption, PollOption, PollOption> get copyWith =>
+      _PollOptionCopyWithImpl<PollOption, PollOption>(
+        this as PollOption,
+        $identity,
+        $identity,
+      );
+  @override
+  String toString() {
+    return PollOptionMapper.ensureInitialized().stringifyValue(
+      this as PollOption,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return PollOptionMapper.ensureInitialized().equalsValue(
+      this as PollOption,
+      other,
+    );
+  }
+
+  @override
+  int get hashCode {
+    return PollOptionMapper.ensureInitialized().hashValue(this as PollOption);
+  }
+}
+
+extension PollOptionValueCopy<$R, $Out>
+    on ObjectCopyWith<$R, PollOption, $Out> {
+  PollOptionCopyWith<$R, PollOption, $Out> get $asPollOption =>
+      $base.as((v, t, t2) => _PollOptionCopyWithImpl<$R, $Out>(v, t, t2));
+}
+
+abstract class PollOptionCopyWith<$R, $In extends PollOption, $Out>
+    implements ClassCopyWith<$R, $In, $Out> {
+  ListCopyWith<$R, String, ObjectCopyWith<$R, String, String>> get voters;
+  $R call({
+    String? text,
+    int? votes,
+    bool? chosen,
+    bool? correct,
+    List<String>? voters,
+  });
+  PollOptionCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
+}
+
+class _PollOptionCopyWithImpl<$R, $Out>
+    extends ClassCopyWithBase<$R, PollOption, $Out>
+    implements PollOptionCopyWith<$R, PollOption, $Out> {
+  _PollOptionCopyWithImpl(super.value, super.then, super.then2);
+
+  @override
+  late final ClassMapperBase<PollOption> $mapper =
+      PollOptionMapper.ensureInitialized();
+  @override
+  ListCopyWith<$R, String, ObjectCopyWith<$R, String, String>> get voters =>
+      ListCopyWith(
+        $value.voters,
+        (v, t) => ObjectCopyWith(v, $identity, t),
+        (v) => call(voters: v),
+      );
+  @override
+  $R call({
+    String? text,
+    int? votes,
+    bool? chosen,
+    bool? correct,
+    List<String>? voters,
+  }) => $apply(
+    FieldCopyWithData({
+      if (text != null) #text: text,
+      if (votes != null) #votes: votes,
+      if (chosen != null) #chosen: chosen,
+      if (correct != null) #correct: correct,
+      if (voters != null) #voters: voters,
+    }),
+  );
+  @override
+  PollOption $make(CopyWithData data) => PollOption(
+    text: data.get(#text, or: $value.text),
+    votes: data.get(#votes, or: $value.votes),
+    chosen: data.get(#chosen, or: $value.chosen),
+    correct: data.get(#correct, or: $value.correct),
+    voters: data.get(#voters, or: $value.voters),
+  );
+
+  @override
+  PollOptionCopyWith<$R2, PollOption, $Out2> $chain<$R2, $Out2>(
+    Then<$Out2, $R2> t,
+  ) => _PollOptionCopyWithImpl<$R2, $Out2>($value, $cast, t);
+}
+
+class MessagePollMapper extends ClassMapperBase<MessagePoll> {
+  MessagePollMapper._();
+
+  static MessagePollMapper? _instance;
+  static MessagePollMapper ensureInitialized() {
+    if (_instance == null) {
+      MapperContainer.globals.use(_instance = MessagePollMapper._());
+      PollOptionMapper.ensureInitialized();
+    }
+    return _instance!;
+  }
+
+  @override
+  final String id = 'MessagePoll';
+
+  static String _$question(MessagePoll v) => v.question;
+  static const Field<MessagePoll, String> _f$question = Field(
+    'question',
+    _$question,
+  );
+  static List<PollOption> _$options(MessagePoll v) => v.options;
+  static const Field<MessagePoll, List<PollOption>> _f$options = Field(
+    'options',
+    _$options,
+  );
+  static bool _$anonymous(MessagePoll v) => v.anonymous;
+  static const Field<MessagePoll, bool> _f$anonymous = Field(
+    'anonymous',
+    _$anonymous,
+    opt: true,
+    def: true,
+  );
+  static bool _$multiple(MessagePoll v) => v.multiple;
+  static const Field<MessagePoll, bool> _f$multiple = Field(
+    'multiple',
+    _$multiple,
+    opt: true,
+    def: false,
+  );
+  static bool _$quiz(MessagePoll v) => v.quiz;
+  static const Field<MessagePoll, bool> _f$quiz = Field(
+    'quiz',
+    _$quiz,
+    opt: true,
+    def: false,
+  );
+  static String _$explanation(MessagePoll v) => v.explanation;
+  static const Field<MessagePoll, String> _f$explanation = Field(
+    'explanation',
+    _$explanation,
+    opt: true,
+    def: '',
+  );
+  static bool _$closed(MessagePoll v) => v.closed;
+  static const Field<MessagePoll, bool> _f$closed = Field(
+    'closed',
+    _$closed,
+    opt: true,
+    def: false,
+  );
+
+  @override
+  final MappableFields<MessagePoll> fields = const {
+    #question: _f$question,
+    #options: _f$options,
+    #anonymous: _f$anonymous,
+    #multiple: _f$multiple,
+    #quiz: _f$quiz,
+    #explanation: _f$explanation,
+    #closed: _f$closed,
+  };
+
+  static MessagePoll _instantiate(DecodingData data) {
+    return MessagePoll(
+      question: data.dec(_f$question),
+      options: data.dec(_f$options),
+      anonymous: data.dec(_f$anonymous),
+      multiple: data.dec(_f$multiple),
+      quiz: data.dec(_f$quiz),
+      explanation: data.dec(_f$explanation),
+      closed: data.dec(_f$closed),
+    );
+  }
+
+  @override
+  final Function instantiate = _instantiate;
+
+  static MessagePoll fromMap(Map<String, dynamic> map) {
+    return ensureInitialized().decodeMap<MessagePoll>(map);
+  }
+
+  static MessagePoll fromJson(String json) {
+    return ensureInitialized().decodeJson<MessagePoll>(json);
+  }
+}
+
+mixin MessagePollMappable {
+  String toJson() {
+    return MessagePollMapper.ensureInitialized().encodeJson<MessagePoll>(
+      this as MessagePoll,
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return MessagePollMapper.ensureInitialized().encodeMap<MessagePoll>(
+      this as MessagePoll,
+    );
+  }
+
+  MessagePollCopyWith<MessagePoll, MessagePoll, MessagePoll> get copyWith =>
+      _MessagePollCopyWithImpl<MessagePoll, MessagePoll>(
+        this as MessagePoll,
+        $identity,
+        $identity,
+      );
+  @override
+  String toString() {
+    return MessagePollMapper.ensureInitialized().stringifyValue(
+      this as MessagePoll,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return MessagePollMapper.ensureInitialized().equalsValue(
+      this as MessagePoll,
+      other,
+    );
+  }
+
+  @override
+  int get hashCode {
+    return MessagePollMapper.ensureInitialized().hashValue(this as MessagePoll);
+  }
+}
+
+extension MessagePollValueCopy<$R, $Out>
+    on ObjectCopyWith<$R, MessagePoll, $Out> {
+  MessagePollCopyWith<$R, MessagePoll, $Out> get $asMessagePoll =>
+      $base.as((v, t, t2) => _MessagePollCopyWithImpl<$R, $Out>(v, t, t2));
+}
+
+abstract class MessagePollCopyWith<$R, $In extends MessagePoll, $Out>
+    implements ClassCopyWith<$R, $In, $Out> {
+  ListCopyWith<$R, PollOption, PollOptionCopyWith<$R, PollOption, PollOption>>
+  get options;
+  $R call({
+    String? question,
+    List<PollOption>? options,
+    bool? anonymous,
+    bool? multiple,
+    bool? quiz,
+    String? explanation,
+    bool? closed,
+  });
+  MessagePollCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
+}
+
+class _MessagePollCopyWithImpl<$R, $Out>
+    extends ClassCopyWithBase<$R, MessagePoll, $Out>
+    implements MessagePollCopyWith<$R, MessagePoll, $Out> {
+  _MessagePollCopyWithImpl(super.value, super.then, super.then2);
+
+  @override
+  late final ClassMapperBase<MessagePoll> $mapper =
+      MessagePollMapper.ensureInitialized();
+  @override
+  ListCopyWith<$R, PollOption, PollOptionCopyWith<$R, PollOption, PollOption>>
+  get options => ListCopyWith(
+    $value.options,
+    (v, t) => v.copyWith.$chain(t),
+    (v) => call(options: v),
+  );
+  @override
+  $R call({
+    String? question,
+    List<PollOption>? options,
+    bool? anonymous,
+    bool? multiple,
+    bool? quiz,
+    String? explanation,
+    bool? closed,
+  }) => $apply(
+    FieldCopyWithData({
+      if (question != null) #question: question,
+      if (options != null) #options: options,
+      if (anonymous != null) #anonymous: anonymous,
+      if (multiple != null) #multiple: multiple,
+      if (quiz != null) #quiz: quiz,
+      if (explanation != null) #explanation: explanation,
+      if (closed != null) #closed: closed,
+    }),
+  );
+  @override
+  MessagePoll $make(CopyWithData data) => MessagePoll(
+    question: data.get(#question, or: $value.question),
+    options: data.get(#options, or: $value.options),
+    anonymous: data.get(#anonymous, or: $value.anonymous),
+    multiple: data.get(#multiple, or: $value.multiple),
+    quiz: data.get(#quiz, or: $value.quiz),
+    explanation: data.get(#explanation, or: $value.explanation),
+    closed: data.get(#closed, or: $value.closed),
+  );
+
+  @override
+  MessagePollCopyWith<$R2, MessagePoll, $Out2> $chain<$R2, $Out2>(
+    Then<$Out2, $R2> t,
+  ) => _MessagePollCopyWithImpl<$R2, $Out2>($value, $cast, t);
 }
 
 class MessageReplyMapper extends ClassMapperBase<MessageReply> {
@@ -1104,6 +1521,7 @@ class MessageMapper extends ClassMapperBase<Message> {
       MessageReactionMapper.ensureInitialized();
       MessageForwardMapper.ensureInitialized();
       MessageLinkPreviewMapper.ensureInitialized();
+      MessagePollMapper.ensureInitialized();
     }
     return _instance!;
   }
@@ -1281,6 +1699,12 @@ class MessageMapper extends ClassMapperBase<Message> {
     _$linkPreview,
     opt: true,
   );
+  static MessagePoll? _$poll(Message v) => v.poll;
+  static const Field<Message, MessagePoll> _f$poll = Field(
+    'poll',
+    _$poll,
+    opt: true,
+  );
   static String _$authorSignature(Message v) => v.authorSignature;
   static const Field<Message, String> _f$authorSignature = Field(
     'authorSignature',
@@ -1339,6 +1763,7 @@ class MessageMapper extends ClassMapperBase<Message> {
     #silent: _f$silent,
     #scheduledDate: _f$scheduledDate,
     #linkPreview: _f$linkPreview,
+    #poll: _f$poll,
     #authorSignature: _f$authorSignature,
     #views: _f$views,
     #commentsCount: _f$commentsCount,
@@ -1374,6 +1799,7 @@ class MessageMapper extends ClassMapperBase<Message> {
       silent: data.dec(_f$silent),
       scheduledDate: data.dec(_f$scheduledDate),
       linkPreview: data.dec(_f$linkPreview),
+      poll: data.dec(_f$poll),
       authorSignature: data.dec(_f$authorSignature),
       views: data.dec(_f$views),
       commentsCount: data.dec(_f$commentsCount),
@@ -1461,6 +1887,7 @@ abstract class MessageCopyWith<$R, $In extends Message, $Out>
   MessageForwardCopyWith<$R, MessageForward, MessageForward>? get forward;
   MessageLinkPreviewCopyWith<$R, MessageLinkPreview, MessageLinkPreview>?
   get linkPreview;
+  MessagePollCopyWith<$R, MessagePoll, MessagePoll>? get poll;
   ListCopyWith<$R, String, ObjectCopyWith<$R, String, String>> get commenters;
   $R call({
     String? id,
@@ -1490,6 +1917,7 @@ abstract class MessageCopyWith<$R, $In extends Message, $Out>
     bool? silent,
     DateTime? scheduledDate,
     MessageLinkPreview? linkPreview,
+    MessagePoll? poll,
     String? authorSignature,
     int? views,
     int? commentsCount,
@@ -1557,6 +1985,9 @@ class _MessageCopyWithImpl<$R, $Out>
   get linkPreview =>
       $value.linkPreview?.copyWith.$chain((v) => call(linkPreview: v));
   @override
+  MessagePollCopyWith<$R, MessagePoll, MessagePoll>? get poll =>
+      $value.poll?.copyWith.$chain((v) => call(poll: v));
+  @override
   ListCopyWith<$R, String, ObjectCopyWith<$R, String, String>> get commenters =>
       ListCopyWith(
         $value.commenters,
@@ -1592,6 +2023,7 @@ class _MessageCopyWithImpl<$R, $Out>
     bool? silent,
     Object? scheduledDate = $none,
     Object? linkPreview = $none,
+    Object? poll = $none,
     String? authorSignature,
     int? views,
     int? commentsCount,
@@ -1625,6 +2057,7 @@ class _MessageCopyWithImpl<$R, $Out>
       if (silent != null) #silent: silent,
       if (scheduledDate != $none) #scheduledDate: scheduledDate,
       if (linkPreview != $none) #linkPreview: linkPreview,
+      if (poll != $none) #poll: poll,
       if (authorSignature != null) #authorSignature: authorSignature,
       if (views != null) #views: views,
       if (commentsCount != null) #commentsCount: commentsCount,
@@ -1660,6 +2093,7 @@ class _MessageCopyWithImpl<$R, $Out>
     silent: data.get(#silent, or: $value.silent),
     scheduledDate: data.get(#scheduledDate, or: $value.scheduledDate),
     linkPreview: data.get(#linkPreview, or: $value.linkPreview),
+    poll: data.get(#poll, or: $value.poll),
     authorSignature: data.get(#authorSignature, or: $value.authorSignature),
     views: data.get(#views, or: $value.views),
     commentsCount: data.get(#commentsCount, or: $value.commentsCount),

@@ -38,6 +38,9 @@ class MessageText extends StatefulWidget {
   /// Задаётся экраном чата (`openIperonLink`).
   static Future<bool> Function(BuildContext context, Uri uri)? linkHandler;
 
+  /// Тап по упоминанию по имени (без @username) — открыть чат с [userID].
+  static void Function(BuildContext context, String userID)? mentionNameHandler;
+
   final String text;
   final List<models.MessageEntity> entities;
   final TextStyle style;
@@ -130,6 +133,8 @@ class _MessageTextState extends State<MessageText> with TickerProviderStateMixin
       models.MessageEntityType.url => raw.startsWith('http') ? raw : 'https://$raw',
       models.MessageEntityType.email => 'mailto:$raw',
       models.MessageEntityType.phone => 'tel:$raw',
+      // @username — как ссылка iperon.net/username (откроется в приложении).
+      models.MessageEntityType.mention => 'https://iperon.net/${raw.replaceFirst('@', '')}',
       _ => null,
     };
   }
@@ -207,6 +212,10 @@ class _MessageTextState extends State<MessageText> with TickerProviderStateMixin
             style = style.copyWith(color: colors.link);
             final link = _linkOf(e);
             if (link != null) recognizer = _tap(() => _open(link));
+          case models.MessageEntityType.mentionName:
+            style = style.copyWith(color: colors.link);
+            final handler = MessageText.mentionNameHandler;
+            if (handler != null) recognizer = _tap(() => handler(context, e.userID));
         }
       }
       if (decorations.isNotEmpty) style = style.copyWith(decoration: TextDecoration.combine(decorations), decorationColor: style.color);

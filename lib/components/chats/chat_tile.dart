@@ -42,8 +42,9 @@ abstract final class ChatTileContent {
       models.MessageKind.video => s.video,
       models.MessageKind.file => s.file,
       models.MessageKind.voice => s.voice,
+      models.MessageKind.poll => '📊 ${t.screenChat.poll}',
     };
-    final text = message.text.isNotEmpty ? message.text : media;
+    final text = message.text.isNotEmpty ? (message.kind == models.MessageKind.poll ? '📊 ${message.text}' : message.text) : media;
     final showSender = chat.type == models.ChatType.group || chat.type == models.ChatType.community;
     return ChatPreview(ChatPreviewKind.message, text, prefix: showSender ? message.senderName : '');
   }

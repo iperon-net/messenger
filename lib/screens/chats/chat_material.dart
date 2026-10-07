@@ -63,6 +63,7 @@ class ChatMaterial extends StatefulWidget {
 
 class _ChatMaterialState extends State<ChatMaterial> {
   final _input = TextEditingController();
+  late final _mentions = ComposeMentions(_input);
   late final _formatMenu = ComposeFormatMenu(_input);
   late final _recorder = VoiceRecorder(
     onSend: (path, seconds, waveform) => _cubit.sendVoice(localPath: path, duration: seconds, waveform: waveform),
@@ -88,7 +89,10 @@ class _ChatMaterialState extends State<ChatMaterial> {
     super.initState();
     // Ссылки iperon.net в сообщениях — открываются в приложении.
     MessageText.linkHandler = openIperonLink;
+    MessageText.mentionNameHandler = openMentionName;
     _cubit = context.read<ChatCubit>();
+    // Участники — для подсказки «@» (у личного чата список пустой).
+    _cubit.loadMembers();
     // Подсветка после перехода по цитате — перестроить ленту.
     _tracker.addListener(() {
       if (_flashID != _tracker.flashID && mounted) setState(() => _flashID = _tracker.flashID);
@@ -103,6 +107,7 @@ class _ChatMaterialState extends State<ChatMaterial> {
     _formatMenu.dispose();
     _recorder.dispose();
     VoicePlayer.instance.stop();
+    _mentions.dispose();
     _input.dispose();
     _focus.dispose();
     _tracker.dispose();
@@ -315,7 +320,7 @@ class _ChatMaterialState extends State<ChatMaterial> {
     // Пересылка уходит и без текста.
     if (text.trim().isEmpty && _cubit.state.forwarding.isEmpty) return;
     _input.clear();
-    _cubit.send(text, silent: silent, scheduleDate: scheduleDate);
+    _cubit.send(text, silent: silent, scheduleDate: scheduleDate, mentions: _mentions.take());
   }
 
   /// «Отправить позже»: время → текст уходит в отложенные.
@@ -395,6 +400,10 @@ class _ChatMaterialState extends State<ChatMaterial> {
         },
         builder: (context, state) {
           final chat = state.chat;
+          // Подсказка «@» — в группах, сообществах и комментариях.
+          _mentions
+            ..enabled = chat != null && (chat.type == models.ChatType.group || chat.type == models.ChatType.community)
+            ..members = state.members;
           return PopScope(
             // «Назад» в режиме поиска закрывает поиск, а не чат.
             canPop: !state.searching && !state.selecting,
@@ -465,6 +474,9 @@ class _ChatMaterialState extends State<ChatMaterial> {
                                       chatType: chat.type,
                                       // Комментарии к постам — только в канале, где они включены.
                                       onCommentsTap: chat.type == models.ChatType.channel && chat.commentsEnabled ? _openComments : null,
+                                      // Опрос: голосовать — участникам (не подписавшимся — нет).
+                                      onPollVote: chat.isMember ? (message, options) => _cubit.votePoll(message, options) : null,
+                                      onPollVoters: (message) => showPollVoters(context, message.poll!),
                                       style: ChatMaterial.bubbleStyle(context),
                                       padding: EdgeInsets.only(
                                         top: 8 + (state.pinnedMessages.isEmpty ? 0 : PinnedMessageBar.height),
@@ -523,7 +535,15 @@ class _ChatMaterialState extends State<ChatMaterial> {
                         // админ канала публикует посты обычным полем ввода.
                         else if (!chat.canPost)
                           _ChannelBar(chat: chat, color: barColor)
-                        else
+                        else ...[
+                          // Подсказка «@» — над полем ввода.
+                          MentionSuggestions(
+                            mentions: _mentions,
+                            background: barColor,
+                            text: Theme.of(context).colorScheme.onSurface,
+                            secondary: Theme.of(context).colorScheme.onSurfaceVariant,
+                            separator: Theme.of(context).colorScheme.outlineVariant,
+                          ),
                           _ComposeBar(
                             input: _input,
                             formatMenu: _formatMenu,
@@ -535,6 +555,7 @@ class _ChatMaterialState extends State<ChatMaterial> {
                             onScheduled: () => showScheduledMessagesMaterial(context, _cubit),
                             color: barColor,
                           ),
+                        ],
                       ],
                     ),
             ),
@@ -586,6 +607,14 @@ class _ChatMaterialState extends State<ChatMaterial> {
                 title: Text(t.delete, style: TextStyle(color: error)),
                 onTap: () => Navigator.of(sheetContext).pop('delete'),
               ),
+            if (canRetractVote(message))
+              ListTile(leading: const Icon(Icons.undo), title: Text(t.retractVote), onTap: () => Navigator.of(sheetContext).pop('retract')),
+            if (canClosePoll(chat, message))
+              ListTile(
+                leading: Icon(Icons.stop_circle_outlined, color: error),
+                title: Text(t.closePoll, style: TextStyle(color: error)),
+                onTap: () => Navigator.of(sheetContext).pop('closePoll'),
+              ),
             ListTile(
               leading: const Icon(Icons.check_circle_outline),
               title: Text(t.select),
@@ -614,6 +643,10 @@ class _ChatMaterialState extends State<ChatMaterial> {
       case 'forward':
         _cubit.startSelection(message);
         await _forward(context, single: true);
+      case 'retract':
+        await _cubit.votePoll(message, const []);
+      case 'closePoll':
+        if (await confirmClosePoll(context)) await _cubit.closePoll(message);
       case 'select':
         _cubit.startSelection(message);
       case 'delete':

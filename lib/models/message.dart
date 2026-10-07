@@ -7,7 +7,23 @@ part 'message.mapper.dart';
 /// Тип разметки участка текста — как `MessageEntity.Type` в будущем proto (см.
 /// docs/plans/chats-groups-channels.md, «Форматирование сообщений»).
 @MappableEnum()
-enum MessageEntityType { bold, italic, underline, strike, spoiler, code, pre, textUrl, url, mention, hashtag, email, phone, blockquote }
+enum MessageEntityType {
+  bold,
+  italic,
+  underline,
+  strike,
+  spoiler,
+  code,
+  pre,
+  textUrl,
+  url,
+  mention,
+  mentionName,
+  hashtag,
+  email,
+  phone,
+  blockquote,
+}
 
 /// Разметка участка [offset]..[offset]+[length] плоского текста (в UTF-16
 /// code units, как `String` в Dart).
@@ -20,9 +36,67 @@ class MessageEntity with MessageEntityMappable {
   /// Для [MessageEntityType.textUrl] — адрес ссылки.
   final String url;
 
-  const MessageEntity({required this.type, required this.offset, required this.length, this.url = ''});
+  /// Для [MessageEntityType.mentionName] — кого упомянули (упоминание по
+  /// имени, у человека нет @username).
+  final String userID;
+
+  const MessageEntity({required this.type, required this.offset, required this.length, this.url = '', this.userID = ''});
 
   int get end => offset + length;
+}
+
+/// Вариант ответа опроса: текст, голоса, наш выбор; у викторины — верный.
+@MappableClass()
+class PollOption with PollOptionMappable {
+  final String text;
+  final int votes;
+  final bool chosen;
+  final bool correct;
+
+  /// Кто выбрал (открытый опрос в группе) — для списка «кто за что».
+  final List<String> voters;
+
+  const PollOption({required this.text, this.votes = 0, this.chosen = false, this.correct = false, this.voters = const []});
+}
+
+/// Опрос / викторина в сообщении (группа, канал).
+@MappableClass()
+class MessagePoll with MessagePollMappable {
+  final String question;
+  final List<PollOption> options;
+
+  /// Анонимный — кто как голосовал, не видно (в канале — всегда).
+  final bool anonymous;
+
+  /// Можно выбрать несколько вариантов (не у викторины).
+  final bool multiple;
+
+  /// Викторина: один верный вариант, после ответа — [explanation].
+  final bool quiz;
+  final String explanation;
+
+  /// Завершён: голосовать нельзя, видны итоги.
+  final bool closed;
+
+  const MessagePoll({
+    required this.question,
+    required this.options,
+    this.anonymous = true,
+    this.multiple = false,
+    this.quiz = false,
+    this.explanation = '',
+    this.closed = false,
+  });
+
+  /// Мы уже проголосовали.
+  bool get voted => options.any((o) => o.chosen);
+
+  /// Проголосовавших (у мультивыбора человек считается один раз — в демо
+  /// приближённо: по сумме голосов).
+  int get totalVotes => options.fold(0, (sum, o) => sum + o.votes);
+
+  /// Итоги видны: проголосовали или опрос завершён.
+  bool get showResults => voted || closed;
 }
 
 /// Цитата сообщения, на которое отвечают, — в пузыре над текстом.
@@ -196,6 +270,9 @@ class Message with MessageMappable {
   /// перед отправкой (× над полем ввода).
   final MessageLinkPreview? linkPreview;
 
+  /// Опрос ([MessageKind.poll]).
+  final MessagePoll? poll;
+
   /// Подпись автора поста канала (канал с «Подписывать сообщения»); пусто —
   /// без подписи.
   final String authorSignature;
@@ -236,6 +313,7 @@ class Message with MessageMappable {
     this.silent = false,
     this.scheduledDate,
     this.linkPreview,
+    this.poll,
     this.authorSignature = '',
     this.views = 0,
     this.commentsCount = 0,

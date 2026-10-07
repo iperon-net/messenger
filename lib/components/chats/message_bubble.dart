@@ -122,6 +122,10 @@ class ChatMessagesView extends StatelessWidget {
   /// Канал с комментариями: строка «N комментариев» под постом, тап — ветка.
   final ValueChanged<models.Message>? onCommentsTap;
 
+  /// Голос в опросе ([options] — индексы вариантов) и список «кто за что».
+  final void Function(models.Message message, List<int> options)? onPollVote;
+  final ValueChanged<models.Message>? onPollVoters;
+
   const ChatMessagesView({
     super.key,
     required this.messages,
@@ -149,6 +153,8 @@ class ChatMessagesView extends StatelessWidget {
     this.selectionColor = const Color(0xFF007AFF),
     this.menuWrapper,
     this.onCommentsTap,
+    this.onPollVote,
+    this.onPollVoters,
   });
 
   static bool _sameDay(DateTime a, DateTime b) {
@@ -236,6 +242,8 @@ class ChatMessagesView extends StatelessWidget {
                             onReplyTap: onReplyTap == null ? null : () => onReplyTap!(m),
                             menuWrapper: menuWrapper == null ? null : (bubble, preview) => menuWrapper!(m, bubble, preview),
                             onCommentsTap: onCommentsTap == null ? null : () => onCommentsTap!(m),
+                            onPollVote: onPollVote == null ? null : (options) => onPollVote!(m, options),
+                            onPollVoters: onPollVoters == null ? null : () => onPollVoters!(m),
                           ),
                         ),
                       ),
@@ -459,6 +467,12 @@ class MessageBubble extends StatelessWidget {
   /// Пост канала с комментариями: строка «N комментариев» внизу пузыря.
   final VoidCallback? onCommentsTap;
 
+  /// Опрос: проголосовать за варианты (индексы); `null` — голосовать нельзя.
+  final ValueChanged<List<int>>? onPollVote;
+
+  /// Открытый опрос: «N голосов» — кто за что.
+  final VoidCallback? onPollVoters;
+
   const MessageBubble({
     super.key,
     required this.message,
@@ -476,6 +490,8 @@ class MessageBubble extends StatelessWidget {
     this.onReplyTap,
     this.menuWrapper,
     this.onCommentsTap,
+    this.onPollVote,
+    this.onPollVoters,
   });
 
   static const _radius = Radius.circular(18);
@@ -574,7 +590,16 @@ class MessageBubble extends StatelessWidget {
         onCancelUpload: onCancelUpload,
       ),
       models.MessageKind.voice => _VoiceRow(message: m, colors: colors, iconColor: iconColor, metaStyle: metaStyle),
-      models.MessageKind.text => null,
+      models.MessageKind.poll when m.poll != null => _PollView(
+        poll: m.poll!,
+        colors: colors,
+        onAccent: iconColor,
+        metaStyle: metaStyle,
+        textStyle: style.textStyle.copyWith(color: colors.text),
+        onVote: onPollVote,
+        onVoters: onPollVoters,
+      ),
+      models.MessageKind.text || models.MessageKind.poll => null,
     };
     // Подпись и имя у фото — с отступами пузыря (само фото почти до краёв).
     final visual = m.kind == models.MessageKind.photo || m.kind == models.MessageKind.video || m.isAlbum;
@@ -628,7 +653,9 @@ class MessageBubble extends StatelessWidget {
     final hasReactions = m.reactions.isNotEmpty;
     final preview = m.linkPreview;
     final metaInText = !hasReactions && preview == null;
-    if (m.text.isNotEmpty) {
+    // У опроса текст (= вопрос) рисует сам опрос.
+    final showText = m.text.isNotEmpty && m.kind != models.MessageKind.poll;
+    if (showText) {
       content.add(
         Padding(
           padding: EdgeInsets.fromLTRB(captionInset, media != null ? 6 : 0, captionInset, 0),
@@ -693,7 +720,7 @@ class MessageBubble extends StatelessWidget {
           ),
         ),
       );
-    } else if (m.text.isEmpty || preview != null) {
+    } else if (!showText || preview != null) {
       content.add(
         Align(
           alignment: Alignment.centerRight,
@@ -877,6 +904,7 @@ String messageKindLabel(Translations t, models.MessageKind kind) => switch (kind
   models.MessageKind.video => t.screenChat.video,
   models.MessageKind.file => t.screenChat.file,
   models.MessageKind.voice => t.screenChat.voice,
+  models.MessageKind.poll => t.screenChat.poll,
   models.MessageKind.text => '',
 };
 
@@ -1431,6 +1459,195 @@ class _CommentsBar extends StatelessWidget {
                   const SizedBox(width: 6),
                   FaIcon(FontAwesomeIcons.chevronRight, size: 12, color: colors.link),
                 ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Опрос в пузыре: вопрос, тип («Анонимный опрос» / «Викторина»), варианты.
+/// До голоса — кружки (мультивыбор — квадраты и «Голосовать»), после или у
+/// завершённого — проценты полосками, наш выбор с галочкой; у викторины верный
+/// — зелёным, наш неверный — красным, ниже пояснение. Внизу — «N голосов»
+/// (открытый опрос — тап: кто за что).
+class _PollView extends StatefulWidget {
+  final models.MessagePoll poll;
+  final MessageTextColors colors;
+
+  /// Галочка на заливке цвета ссылки (у исходящих на iOS ссылка белая).
+  final Color onAccent;
+  final TextStyle metaStyle;
+  final TextStyle textStyle;
+  final ValueChanged<List<int>>? onVote;
+  final VoidCallback? onVoters;
+
+  const _PollView({
+    required this.poll,
+    required this.colors,
+    required this.onAccent,
+    required this.metaStyle,
+    required this.textStyle,
+    required this.onVote,
+    required this.onVoters,
+  });
+
+  @override
+  State<_PollView> createState() => _PollViewState();
+}
+
+class _PollViewState extends State<_PollView> {
+  /// Отмеченные до «Голосовать» (мультивыбор).
+  final _picked = <int>{};
+
+  static const _green = Color(0xFF34C759);
+  static const _red = Color(0xFFFF3B30);
+
+  void _tap(int index) {
+    final vote = widget.onVote;
+    if (vote == null) return;
+    HapticFeedback.selectionClick();
+    if (!widget.poll.multiple) return vote([index]);
+    setState(() => _picked.contains(index) ? _picked.remove(index) : _picked.add(index));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.t.screenChat;
+    final poll = widget.poll;
+    final colors = widget.colors;
+    final results = poll.showResults;
+    final total = poll.totalVotes;
+    final type = poll.quiz
+        ? (poll.anonymous ? t.anonymousQuiz : t.publicQuiz)
+        : (poll.closed ? t.pollClosed : (poll.anonymous ? t.anonymousPoll : t.publicPoll));
+
+    Widget optionRow(int index, models.PollOption option) {
+      final selected = _picked.contains(index);
+      return GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () => _tap(index),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 7),
+          child: Row(
+            children: [
+              Container(
+                width: 20,
+                height: 20,
+                decoration: BoxDecoration(
+                  color: selected ? colors.link : null,
+                  border: Border.all(color: selected ? colors.link : widget.metaStyle.color!, width: 1.5),
+                  borderRadius: BorderRadius.circular(poll.multiple ? 5 : 10),
+                ),
+                alignment: Alignment.center,
+                child: selected ? FaIcon(FontAwesomeIcons.check, size: 11, color: widget.onAccent) : null,
+              ),
+              const SizedBox(width: 10),
+              Expanded(child: Text(option.text, style: widget.textStyle.copyWith(fontSize: 15))),
+            ],
+          ),
+        ),
+      );
+    }
+
+    Widget resultRow(models.PollOption option) {
+      final share = total == 0 ? 0.0 : option.votes / total;
+      final barColor = poll.quiz && option.correct ? _green : (poll.quiz && option.chosen ? _red : colors.link);
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 5),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(
+                  width: 42,
+                  child: Text('${(share * 100).round()}%', style: widget.textStyle.copyWith(fontSize: 14, fontWeight: FontWeight.w600)),
+                ),
+                Expanded(child: Text(option.text, style: widget.textStyle.copyWith(fontSize: 15))),
+                if (option.chosen || (poll.quiz && option.correct))
+                  Padding(
+                    padding: const EdgeInsets.only(left: 6, top: 2),
+                    child: FaIcon(
+                      poll.quiz && option.chosen && !option.correct ? FontAwesomeIcons.xmark : FontAwesomeIcons.check,
+                      size: 13,
+                      color: barColor,
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            Padding(
+              padding: const EdgeInsets.only(left: 42),
+              child: LayoutBuilder(
+                builder: (context, constraints) => Align(
+                  alignment: Alignment.centerLeft,
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeOutCubic,
+                    height: 4,
+                    width: math.max(4, constraints.maxWidth * share),
+                    decoration: BoxDecoration(color: barColor, borderRadius: BorderRadius.circular(2)),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final votes = total == 0 ? t.noVotes : t.votes(n: total, count: total.grouped);
+    final votersTap = !poll.anonymous && total > 0 ? widget.onVoters : null;
+    return ConstrainedBox(
+      constraints: const BoxConstraints(minWidth: 240),
+      child: Padding(
+        padding: const EdgeInsets.only(top: 2),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(poll.question, style: widget.textStyle.copyWith(fontWeight: FontWeight.w600)),
+            const SizedBox(height: 2),
+            Text(type, style: widget.metaStyle.copyWith(fontSize: 13)),
+            const SizedBox(height: 6),
+            for (final (i, option) in poll.options.indexed) results ? resultRow(option) : optionRow(i, option),
+            if (poll.quiz && results && poll.explanation.isNotEmpty)
+              Container(
+                margin: const EdgeInsets.only(top: 6),
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(color: colors.link.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(8)),
+                child: Text('💡 ${poll.explanation}', style: widget.textStyle.copyWith(fontSize: 14)),
+              ),
+            if (poll.multiple && !results && _picked.isNotEmpty)
+              GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () {
+                  widget.onVote?.call(_picked.toList()..sort());
+                  _picked.clear();
+                },
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 6),
+                  child: Text(
+                    t.vote,
+                    textAlign: TextAlign.center,
+                    style: widget.textStyle.copyWith(fontSize: 15, fontWeight: FontWeight.w600, color: colors.link),
+                  ),
+                ),
+              ),
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: votersTap,
+              child: Padding(
+                padding: const EdgeInsets.only(top: 6),
+                child: Text(
+                  votes,
+                  textAlign: TextAlign.center,
+                  style: widget.metaStyle.copyWith(fontSize: 13, color: votersTap != null ? colors.link : null),
+                ),
               ),
             ),
           ],
