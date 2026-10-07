@@ -11,6 +11,7 @@ import 'package:go_router/go_router.dart';
 import 'package:livekit_client/livekit_client.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
+import '../../call_pip_ios.dart';
 import '../../calls.dart';
 import '../../cubit.dart';
 import '../../i18n/translations.g.dart';
@@ -405,6 +406,9 @@ class _CallViewState extends State<CallView> with WidgetsBindingObserver {
         _syncWakelock(isVideoCall);
         // Android: разрешаем автовход в PiP по Home ровно на время видеозвонка.
         _syncPipAllowed(isVideoCall);
+        // iOS: имя/аватар собеседника для плейсхолдера в системном мини-окне (само
+        // окно и видео в нём ведёт сервис звонков, см. CallPipIos). Дедуп внутри.
+        CallPipIos.setPeer(state.displayName, state.avatarBytes);
         // Дорожки берём из сервиса; mediaEpoch в state гарантирует, что при их
         // появлении/смене BlocBuilder перестроит рендереры (сами VideoTrack не
         // участвуют в equality состояния).

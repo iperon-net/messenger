@@ -19,6 +19,7 @@ import 'package:grpc/grpc.dart' show StatusCode;
 import 'package:livekit_client/livekit_client.dart';
 
 import 'api.dart';
+import 'call_pip_ios.dart';
 import 'auth.dart';
 import 'components/call_permissions.dart';
 import 'crypto.dart';
@@ -520,7 +521,20 @@ class Calls {
 
   void _emit(CallSnapshot snapshot) {
     _snapshot = snapshot;
+    _syncIosPip();
     if (!_snapshotController.isClosed) _snapshotController.add(snapshot);
+  }
+
+  /// iOS: держит нативный PiP (мини-окно при сворачивании) в актуальном состоянии
+  /// — разрешён на идущем видеозвонке, видео из текущей удалённой дорожки. Зовётся
+  /// на каждый снимок (дешёвый дедуп внутри [CallPipIos]). На разборе звонка PiP
+  /// снимается явно и с await ДО `room.disconnect()` (см. [_teardown]); пока идёт
+  /// разбор, не даём событиям комнаты включить его обратно.
+  void _syncIosPip() {
+    if (!Platform.isIOS) return;
+    final status = _snapshot.status;
+    final enabled = !_tearingDown && _snapshot.video && (status == CallStatus.active || status == CallStatus.connecting);
+    CallPipIos.sync(enabled: enabled, track: enabled ? _remoteVideoTrack : null, videoOff: _snapshot.remoteVideoOff);
   }
 
   /// Добавляет этап в диагностику и тут же переиздаёт снимок, чтобы строка
@@ -1182,6 +1196,9 @@ class Calls {
         final failed = _room;
         _room = null;
         _remoteVideoTrack = null;
+        // iOS PiP: отцепляем нативный рендерер от дорожки умирающей комнаты до её
+        // разбора (см. [CallPipIos]).
+        await CallPipIos.detachTrack();
         try {
           await failed?.dispose();
         } catch (disposeError, disposeStack) {
@@ -1853,6 +1870,10 @@ class Calls {
 
       _localVideoTrack = null;
       _remoteVideoTrack = null;
+      // iOS PiP: отцепляем нативный рендерер от удалённой дорожки и закрываем
+      // мини-окно ДО `room.disconnect()` — рендерер не должен пережить peer
+      // connection, на треке которого висит (см. [CallPipIos]).
+      await CallPipIos.disable();
 
       // Забираем комнату синхронно (до await), чтобы повторный вход видел null.
       final room = _room;
