@@ -348,6 +348,9 @@ class ChatCubit extends Cubit<ChatState> {
     await loadMembers();
   }
 
+  /// «Подписаться» / «Вступить» / «Подать заявку».
+  Future<void> join() async => _source?.joinChat(_chatID);
+
   /// Комментарии к посту канала — id чата-ветки (пусто — не открыть).
   Future<String> openComments(models.Message post) async => await _source?.openComments(_chatID, post.id) ?? '';
 

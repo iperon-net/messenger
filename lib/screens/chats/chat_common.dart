@@ -7,6 +7,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart' as m;
 import 'package:path/path.dart' as p;
 
@@ -15,6 +16,7 @@ import '../../chats/message_formatting.dart';
 import '../../chats/video_prepare.dart';
 import '../../components.dart';
 import '../../cubit.dart';
+import '../../demo/chats_demo_data_source.dart';
 import '../../extensions.dart';
 import '../../i18n/translations.g.dart';
 import '../../models.dart' as models;
@@ -41,6 +43,51 @@ import 'media_caption_material.dart';
     models.ChatType.group || models.ChatType.community => (text: t.screenChat.members(n: count, count: count.grouped), active: false),
     models.ChatType.channel => (text: t.screenChat.subscribers(n: count, count: count.grouped), active: false),
   };
+}
+
+/// Кнопка внизу, когда писать нельзя: подпись (`null` — «Звук» канала) и
+/// действие (`null` — неактивна: заявка уже отправлена).
+(String?, VoidCallback?) channelBarAction(BuildContext context, models.Chat chat) {
+  final t = context.t.screenChat;
+  final cubit = context.read<ChatCubit>();
+  if (chat.isMember) return (null, () => cubit.setMuted(!chat.muted));
+  if (chat.joinRequested) return (t.requestSent, null);
+  final label = chat.type == models.ChatType.channel
+      ? t.subscribe
+      : (chat.joinMode == models.ChatJoinMode.request ? t.requestJoin : t.joinGroup);
+  return (label, cubit.join);
+}
+
+/// Ссылка `iperon.net/<имя>` или `iperon.net/+код` из сообщения — открыть
+/// канал / группу в приложении (не подписаны — с «Подписаться» внизу).
+/// `false` — не наша ссылка (`/blog`, другой сайт): открыть в браузере.
+/// Недействительное приглашение — сообщение об этом.
+Future<bool> openIperonLink(BuildContext context, Uri uri) async {
+  final host = uri.host.toLowerCase().replaceFirst(RegExp(r'^www\.'), '');
+  if (host != 'iperon.net') return false;
+  final path = uri.pathSegments.firstOrNull ?? '';
+  if (path.isEmpty) return false;
+  final demo = context.read<CommonCubit>().state.settingsDevice.chatsDemo;
+  final chatID = demo ? await ChatsDemoDataSource.instance.resolveLink(path) : '';
+  if (!context.mounted) return true;
+  if (chatID.isNotEmpty) {
+    await context.push('/chats/chat/$chatID');
+    return true;
+  }
+  if (!path.startsWith('+')) return false;
+  final text = context.t.screenChat.linkInvalid;
+  if (Platform.isIOS) {
+    await c.showCupertinoDialog<void>(
+      context: context,
+      builder: (dialogContext) => c.CupertinoAlertDialog(
+        content: Text(text),
+        actions: [c.CupertinoDialogAction(onPressed: () => Navigator.of(dialogContext).pop(), child: Text(context.t.common.ok))],
+      ),
+    );
+  } else {
+    m.ScaffoldMessenger.of(context).showSnackBar(m.SnackBar(content: Text(text)));
+  }
+  return true;
 }
 
 /// Выбранное вложение до отправки: путь, тип (фото / видео / файл) и, для

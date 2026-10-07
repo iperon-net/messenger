@@ -91,6 +91,8 @@ class _ChatCupertinoState extends State<ChatCupertino> {
   @override
   void initState() {
     super.initState();
+    // Ссылки iperon.net в сообщениях — открываются в приложении.
+    MessageText.linkHandler = openIperonLink;
     _cubit = context.read<ChatCubit>();
     // Подсветка после перехода по цитате — перестроить ленту.
     _tracker.addListener(() {
@@ -555,7 +557,9 @@ class _ChatCupertinoState extends State<ChatCupertino> {
                                 )
                               else if (state.searching)
                                 _SearchBar(state: state)
-                              else if (chat.type == models.ChatType.channel)
+                              // Не подписаны — «Подписаться»; подписчик канала — «Звук»;
+                              // админ канала публикует посты обычным полем ввода.
+                              else if (!chat.canPost)
                                 _ChannelBar(chat: chat)
                               else
                                 _ComposeBar(
@@ -588,7 +592,7 @@ class _ChatCupertinoState extends State<ChatCupertino> {
 
   List<Widget> _menuActions(BuildContext context, models.Chat chat, models.Message message) {
     final t = context.t.screenChat;
-    final canWrite = chat.type != models.ChatType.channel;
+    final canWrite = chat.canPost;
     final reactions = availableReactions(chat);
 
     // Меню — маршрут корневого навигатора: сначала закрываем его, потом
@@ -1023,7 +1027,8 @@ class _SelectionBar extends StatelessWidget {
   }
 }
 
-/// Канал для подписчика: писать нельзя — только звук.
+/// Писать нельзя: не подписаны — «Подписаться» / «Вступить» / «Подать заявку»
+/// («Заявка отправлена» — неактивна); подписчик канала — только звук.
 class _ChannelBar extends StatelessWidget {
   final models.Chat chat;
 
@@ -1032,6 +1037,7 @@ class _ChannelBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.t.screenChat;
+    final (label, action) = channelBarAction(context, chat);
     return DecoratedBox(
       decoration: BoxDecoration(
         color: ThemesCupertino.appBackground.resolveFrom(context),
@@ -1041,10 +1047,7 @@ class _ChannelBar extends StatelessWidget {
         top: false,
         child: SizedBox(
           width: double.infinity,
-          child: CupertinoButton(
-            onPressed: () => context.read<ChatCubit>().setMuted(!chat.muted),
-            child: Text(chat.muted ? t.unmute : t.mute),
-          ),
+          child: CupertinoButton(onPressed: action, child: Text(label ?? (chat.muted ? t.unmute : t.mute))),
         ),
       ),
     );

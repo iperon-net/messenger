@@ -247,6 +247,8 @@ class _Translations$screenNewChat$ru extends Translations$screenNewChat$en {
 	@override String get copied => 'Ссылка скопирована';
 	@override String get commentsSwitch => 'Комментарии';
 	@override String get commentsFooter => 'Подписчики смогут обсуждать каждый пост в комментариях.';
+	@override String get signSwitch => 'Подписывать сообщения';
+	@override String get signFooter => 'С подписями под постом видно имя админа, который его опубликовал.';
 	@override String get joinHeader => 'Вступление';
 	@override String get joinOpen => 'Открытое';
 	@override String get joinLink => 'По ссылке';
@@ -399,6 +401,11 @@ class _Translations$screenChat$ru extends Translations$screenChat$en {
 	);
 	@override String get leaveComment => 'Прокомментировать';
 	@override String get commentsTitle => 'Комментарии';
+	@override String get subscribe => 'Подписаться';
+	@override String get joinGroup => 'Вступить в группу';
+	@override String get requestJoin => 'Подать заявку';
+	@override String get requestSent => 'Заявка отправлена';
+	@override String get linkInvalid => 'Ссылка недействительна или устарела.';
 	@override String get message => 'Сообщение';
 	@override String get empty => 'Сообщений пока нет';
 	@override String get notFound => 'Чат не найден';
@@ -1340,6 +1347,8 @@ extension on TranslationsRu {
 			'screenNewChat.copied' => 'Ссылка скопирована',
 			'screenNewChat.commentsSwitch' => 'Комментарии',
 			'screenNewChat.commentsFooter' => 'Подписчики смогут обсуждать каждый пост в комментариях.',
+			'screenNewChat.signSwitch' => 'Подписывать сообщения',
+			'screenNewChat.signFooter' => 'С подписями под постом видно имя админа, который его опубликовал.',
 			'screenNewChat.joinHeader' => 'Вступление',
 			'screenNewChat.joinOpen' => 'Открытое',
 			'screenNewChat.joinLink' => 'По ссылке',
@@ -1450,6 +1459,11 @@ extension on TranslationsRu {
 			'screenChat.comments' => ({required num n, required Object count}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: '${count} комментарий', few: '${count} комментария', many: '${count} комментариев', other: '${count} комментария', ), 
 			'screenChat.leaveComment' => 'Прокомментировать',
 			'screenChat.commentsTitle' => 'Комментарии',
+			'screenChat.subscribe' => 'Подписаться',
+			'screenChat.joinGroup' => 'Вступить в группу',
+			'screenChat.requestJoin' => 'Подать заявку',
+			'screenChat.requestSent' => 'Заявка отправлена',
+			'screenChat.linkInvalid' => 'Ссылка недействительна или устарела.',
 			'screenChat.message' => 'Сообщение',
 			'screenChat.empty' => 'Сообщений пока нет',
 			'screenChat.notFound' => 'Чат не найден',
@@ -1726,6 +1740,8 @@ extension on TranslationsRu {
 			'sessionsPrivacyAndSecurity.retry' => 'Повторить',
 			'sessionsPrivacyAndSecurity.exceptions' => 'Исключения',
 			'sessionsPrivacyAndSecurity.callsAlwaysAllow' => 'Всегда разрешать',
+			_ => null,
+		} ?? switch (path) {
 			'sessionsPrivacyAndSecurity.callsAlwaysDeny' => 'Всегда запрещать',
 			'sessionsPrivacyAndSecurity.callsAllowEmpty' => 'Нет контактов, зарегистрированных в Iperon',
 			'sessionsPrivacyAndSecurity.birthday' => 'День рождения',
@@ -1733,8 +1749,6 @@ extension on TranslationsRu {
 			'sessionsPrivacyAndSecurity.hideBirthYear' => 'Скрывать год рождения',
 			'sessionsPrivacyAndSecurity.hideBirthYearNote' => 'Контакты увидят только день и месяц — без года рождения и возраста.',
 			'sessionsPrivacyAndSecurity.aboutMe' => 'О себе',
-			_ => null,
-		} ?? switch (path) {
 			'sessionsPrivacyAndSecurity.whoCanSeeAboutMe' => 'Кто может видеть моё «О себе»',
 			'sessionsPrivacyAndSecurity.lastSeen' => 'Время захода',
 			'sessionsPrivacyAndSecurity.whoCanSeeLastSeen' => 'Кто может видеть время моего захода',

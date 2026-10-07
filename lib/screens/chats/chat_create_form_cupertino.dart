@@ -283,7 +283,7 @@ class _ChatCreateFormCupertino extends State<ChatCreateFormCupertino> {
                     ),
                   if (state.isEdit && type == models.ChatType.channel)
                     section(
-                      footer: createNoteCupertino(t.screenNewChat.commentsFooter),
+                      footer: createNoteCupertino('${t.screenNewChat.commentsFooter} ${t.screenNewChat.signFooter}'),
                       children: [
                         CupertinoListTile(
                           title: Text(t.screenNewChat.commentsSwitch, style: const TextStyle(fontSize: AppFontSizes.body)),
@@ -291,6 +291,10 @@ class _ChatCreateFormCupertino extends State<ChatCreateFormCupertino> {
                             value: state.commentsEnabled,
                             onChanged: context.read<ChatCreateCubit>().setCommentsEnabled,
                           ),
+                        ),
+                        CupertinoListTile(
+                          title: Text(t.screenNewChat.signSwitch, style: const TextStyle(fontSize: AppFontSizes.body)),
+                          trailing: CupertinoSwitch(value: state.signMessages, onChanged: context.read<ChatCreateCubit>().setSignMessages),
                         ),
                       ],
                     ),

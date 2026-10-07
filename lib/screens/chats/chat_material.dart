@@ -86,6 +86,8 @@ class _ChatMaterialState extends State<ChatMaterial> {
   @override
   void initState() {
     super.initState();
+    // Ссылки iperon.net в сообщениях — открываются в приложении.
+    MessageText.linkHandler = openIperonLink;
     _cubit = context.read<ChatCubit>();
     // Подсветка после перехода по цитате — перестроить ленту.
     _tracker.addListener(() {
@@ -517,7 +519,9 @@ class _ChatMaterialState extends State<ChatMaterial> {
                           const SizedBox.shrink()
                         else if (state.searching)
                           _SearchBar(state: state, color: barColor)
-                        else if (chat.type == models.ChatType.channel)
+                        // Не подписаны — «Подписаться»; подписчик канала — «Звук»;
+                        // админ канала публикует посты обычным полем ввода.
+                        else if (!chat.canPost)
                           _ChannelBar(chat: chat, color: barColor)
                         else
                           _ComposeBar(
@@ -543,7 +547,7 @@ class _ChatMaterialState extends State<ChatMaterial> {
   Future<void> _actions(BuildContext context, models.Chat chat, models.Message message) async {
     HapticFeedback.mediumImpact();
     final t = context.t.screenChat;
-    final canWrite = chat.type != models.ChatType.channel;
+    final canWrite = chat.canPost;
     final error = Theme.of(context).colorScheme.error;
     final reactions = availableReactions(chat);
     final action = await showModalBottomSheet<String>(
@@ -868,7 +872,8 @@ class _ComposeBar extends StatelessWidget {
   }
 }
 
-/// Канал для подписчика: писать нельзя — только звук.
+/// Писать нельзя: не подписаны — «Подписаться» / «Вступить» / «Подать заявку»
+/// («Заявка отправлена» — неактивна); подписчик канала — только звук.
 class _ChannelBar extends StatelessWidget {
   final models.Chat chat;
   final Color color;
@@ -878,6 +883,7 @@ class _ChannelBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.t.screenChat;
+    final (label, action) = channelBarAction(context, chat);
     return Material(
       color: color,
       child: SafeArea(
@@ -885,7 +891,7 @@ class _ChannelBar extends StatelessWidget {
         child: SizedBox(
           width: double.infinity,
           height: 52,
-          child: TextButton(onPressed: () => context.read<ChatCubit>().setMuted(!chat.muted), child: Text(chat.muted ? t.unmute : t.mute)),
+          child: TextButton(onPressed: action, child: Text(label ?? (chat.muted ? t.unmute : t.mute))),
         ),
       ),
     );

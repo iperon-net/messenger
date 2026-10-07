@@ -3,7 +3,10 @@ import 'dart:io';
 import 'dart:math';
 
 import '../chats/chats_data_source.dart';
+import '../auth.dart';
 import '../chats/invite_link.dart';
+import '../di.dart';
+import '../repositories.dart';
 import '../chats/message_formatting.dart';
 import '../chats/reactions.dart';
 import '../models.dart' as models;
@@ -272,6 +275,7 @@ class ChatsDemoDataSource implements ChatsDataSource {
     required String inviteLink,
     required models.ChatRole defaultRole,
     bool commentsEnabled = false,
+    bool signMessages = false,
   }) async {
     final chat = _chats.where((c) => c.id == chatID).firstOrNull;
     if (chat == null) return;
@@ -289,6 +293,7 @@ class ChatsDemoDataSource implements ChatsDataSource {
         inviteLink: joinMode == models.ChatJoinMode.admins ? '' : inviteLink,
         defaultRole: defaultRole,
         commentsEnabled: chat.type == models.ChatType.channel && commentsEnabled,
+        signMessages: chat.type == models.ChatType.channel && signMessages,
       ),
     );
     // Основная ссылка — та же, что в чате (форма могла выдать новую).
@@ -645,6 +650,51 @@ class ChatsDemoDataSource implements ChatsDataSource {
     _service(chatID, '${target.name} теперь владелец');
   }
 
+  // ─── Ссылки iperon.net и вступление ───────────────────────────────────────
+
+  @override
+  Future<String> resolveLink(String path) async {
+    final name = path.trim().replaceFirst(RegExp(r'^/+'), '').split('/').first;
+    if (name.isEmpty) return '';
+    if (name.startsWith('+')) {
+      // Ссылка-приглашение: основная (`Chat.inviteLink`) или живая доп. ссылка.
+      final now = DateTime.now();
+      final byMain = _chats.where((c) => c.inviteLink == name && c.joinMode != models.ChatJoinMode.admins).firstOrNull;
+      if (byMain != null) return byMain.id;
+      for (final entry in _links.entries) {
+        if (entry.value.any((l) => l.link == name && l.isActive(now))) return entry.key;
+      }
+      return '';
+    }
+    final lower = name.toLowerCase();
+    return _chats.where((c) => c.username.toLowerCase() == lower && !c.isThread).firstOrNull?.id ?? '';
+  }
+
+  @override
+  Future<void> joinChat(String chatID) async {
+    final chat = _chats.where((c) => c.id == chatID).firstOrNull;
+    if (chat == null || chat.isMember) return;
+    if (chat.joinMode == models.ChatJoinMode.request) {
+      _update(chatID, (c) => c.copyWith(joinRequested: true));
+      // Демо: админ одобряет через несколько секунд.
+      Timer(const Duration(seconds: 5), () => _becomeMember(chatID));
+      return;
+    }
+    _becomeMember(chatID);
+  }
+
+  void _becomeMember(String chatID) {
+    final chat = _chats.where((c) => c.id == chatID).firstOrNull;
+    if (chat == null || chat.isMember) return;
+    final role = chat.type == models.ChatType.channel ? models.ChatRole.reader : chat.defaultRole;
+    _update(
+      chatID,
+      (c) => c.copyWith(isMember: true, joinRequested: false, myRole: role, membersCount: c.membersCount + 1, createdAt: DateTime.now()),
+    );
+    _members.remove(chatID);
+    _service(chatID, chat.type == models.ChatType.channel ? 'Вы подписались на канал' : 'Вы вступили в группу');
+  }
+
   /// Профиль демо-чата: «О себе» / описание, @username, число участников и
   /// наша роль.
   models.Chat _withProfile(models.Chat chat) {
@@ -652,14 +702,19 @@ class ChatsDemoDataSource implements ChatsDataSource {
     // Публичные (с username) — открытые; в рабочих и дружеских группах
     // вступившие сразу могут писать.
     return withProfile.copyWith(
-      joinMode: withProfile.username.isNotEmpty ? models.ChatJoinMode.open : models.ChatJoinMode.link,
-      inviteLink: withProfile.username.isEmpty && withProfile.type != models.ChatType.private
-          ? '+K${(chat.id.hashCode & 0xFFFFFFF).toRadixString(36)}hQ'
-          : '',
+      joinMode: chat.id == 'designers'
+          ? models.ChatJoinMode.request
+          : (withProfile.username.isNotEmpty ? models.ChatJoinMode.open : models.ChatJoinMode.link),
+      inviteLink: chat.id == 'designers'
+          ? '+DesignClubJoin'
+          : (withProfile.username.isEmpty && withProfile.type != models.ChatType.private
+                ? '+K${(chat.id.hashCode & 0xFFFFFFF).toRadixString(36)}hQ'
+                : ''),
       defaultRole: const {'team', 'family', 'football', 'district', 'devs'}.contains(chat.id)
           ? models.ChatRole.writer
           : models.ChatRole.reader,
-      commentsEnabled: const {'news', 'flutter', 'tech'}.contains(chat.id),
+      commentsEnabled: const {'news', 'flutter', 'tech', 'iperon_dev'}.contains(chat.id),
+      signMessages: const {'news', 'iperon_dev'}.contains(chat.id),
     );
   }
 
@@ -701,6 +756,17 @@ class ChatsDemoDataSource implements ChatsDataSource {
         myRole: models.ChatRole.owner,
       ),
       'shop' => chat.copyWith(membersCount: 920, myRole: models.ChatRole.reader),
+      'iperon_dev' => chat.copyWith(
+        about: 'Как мы делаем Iperon: архитектура, релизы, грабли.',
+        username: 'iperon_dev',
+        membersCount: 2480,
+      ),
+      'flutter_msk' => chat.copyWith(
+        about: 'Flutter-сообщество Москвы: митапы, вакансии, помощь.',
+        username: 'flutter_msk',
+        membersCount: 864,
+      ),
+      'designers' => chat.copyWith(about: 'Закрытый клуб продуктовых дизайнеров. Вступление — по заявке.', membersCount: 312),
       _ => chat,
     };
   }
@@ -825,6 +891,7 @@ class ChatsDemoDataSource implements ChatsDataSource {
       linkPreview: linkPreview && kind == models.MessageKind.text ? _linkPreviewOf(text, entities) : null,
       // Пост канала: сразу 1 просмотр (наш), дальше растут.
       views: _isChannel(chatID) ? 1 : 0,
+      authorSignature: _chats.any((c) => c.id == chatID && c.type == models.ChatType.channel && c.signMessages) ? await _selfName() : '',
     );
     _setMessages(chatID, [..._history(chatID), message]);
     _update(chatID, (c) => c.copyWith(lastMessage: _lastOf(message), draft: '', archived: false));
@@ -1159,6 +1226,7 @@ class ChatsDemoDataSource implements ChatsDataSource {
     final candidates = _chats
         .where(
           (c) =>
+              c.isMember &&
               !c.archived &&
               !c.isSelf &&
               c.type != models.ChatType.channel &&
@@ -1366,6 +1434,32 @@ class ChatsDemoDataSource implements ChatsDataSource {
         archived: true,
         lastMessage: msg('Заказ доставлен', date: ago(days: 40)),
       ),
+      // Не подписаны — открываются по ссылкам из постов «Iperon News» и чата
+      // команды (в списке их нет, внизу «Подписаться» / «Вступить»).
+      models.Chat(
+        id: 'iperon_dev',
+        type: models.ChatType.channel,
+        title: 'Iperon Dev',
+        isMember: false,
+        myRole: models.ChatRole.reader,
+        lastMessage: msg('Перевели звонки на LiveKit — групповые на подходе', date: ago(hours: 6)),
+      ),
+      models.Chat(
+        id: 'flutter_msk',
+        type: models.ChatType.group,
+        title: 'Flutter Moscow',
+        isMember: false,
+        myRole: models.ChatRole.reader,
+        lastMessage: msg('Кто идёт на митап в четверг?', sender: 'Ольга', date: ago(hours: 3)),
+      ),
+      models.Chat(
+        id: 'designers',
+        type: models.ChatType.group,
+        title: 'Дизайнеры интерфейсов',
+        isMember: false,
+        myRole: models.ChatRole.reader,
+        lastMessage: msg('Скинула гайдлайны по иконкам', sender: 'Мария', date: ago(hours: 9)),
+      ),
     ];
   }
 
@@ -1391,12 +1485,14 @@ class ChatsDemoDataSource implements ChatsDataSource {
     'Спасибо 🙏',
     'Кто возьмёт ревью ветки `chats`?',
     'Я посмотрю сегодня',
+    'Дизайнеры зовут в свой чат: https://iperon.net/+DesignClubJoin',
   ];
 
   static const _channelPosts = [
     '**Обновление 0.0.240** 🎉\n\n• папки в списке чатов\n• поиск прячется при прокрутке\n• новые табы на «Звонках»\n\nПодробнее: https://iperon.net/blog',
     'Опрос недели: чем вы пользуетесь чаще — __личными чатами__ или __группами__? Пишите в комментариях #опрос',
     '> Хороший мессенджер — тот, который не замечаешь\n\nДелимся планами на осень в нашем блоге.',
+    'Подписывайтесь на канал разработчиков: https://iperon.net/iperon_dev\nА обсудить Flutter можно в https://iperon.net/flutter_msk 🚀',
   ];
 
   /// История чата для демо: несколько дней переписки, кончается тем же
@@ -1566,10 +1662,25 @@ class ChatsDemoDataSource implements ChatsDataSource {
         else
           m.copyWith(
             views: (audience * (0.25 + 0.35 * (posts.length - i) / posts.length)).round() + i * 7,
+            authorSignature: chat.signMessages ? _signatures[i % _signatures.length] : '',
             commentsCount: chat.commentsEnabled ? (i * 7 + 3) % 19 : 0,
             commenters: chat.commentsEnabled ? _seedCommenters(m.id, (i * 7 + 3) % 19) : const [],
           ),
     ];
+  }
+
+  /// Подписи авторов постов в демо-каналах с «Подписывать сообщения».
+  static const _signatures = ['Анна Смирнова', 'Дмитрий Козлов', 'Мария Иванова'];
+
+  /// Наше имя для подписи постов — из своего профиля (пусто — «Вы»).
+  Future<String> _selfName() async {
+    try {
+      final profile = await getIt.get<Repositories>().myProfile.getByUserID(userID: getIt.get<Auth>().session.userID);
+      final name = '${profile.fistName} ${profile.lastName}'.trim();
+      return name.isEmpty ? 'Вы' : name;
+    } catch (_) {
+      return 'Вы';
+    }
   }
 
   // ─── Комментарии к постам канала ──────────────────────────────────────────

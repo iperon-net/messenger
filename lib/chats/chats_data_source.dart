@@ -69,7 +69,17 @@ abstract class ChatsDataSource {
     required String inviteLink,
     required models.ChatRole defaultRole,
     bool commentsEnabled = false,
+    bool signMessages = false,
   });
+
+  /// Ссылка `iperon.net/<path>` (публичное имя или `+код` приглашения) → id
+  /// чата: наш — сразу, чужой публичный / по живой ссылке — для просмотра
+  /// (`Chat.isMember == false`). Пусто — ссылка не найдена или недействительна.
+  Future<String> resolveLink(String path);
+
+  /// «Подписаться» / «Вступить»: стать участником; у чата «По заявке» —
+  /// подать заявку (`Chat.joinRequested`), вступление — после одобрения.
+  Future<void> joinChat(String chatID);
 
   /// Комментарии к посту [postID] канала [channelID]: id чата-ветки (создаётся
   /// при первом открытии; первым в ней — сам пост). Пусто — комментариев нет.

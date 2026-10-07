@@ -488,6 +488,12 @@ class Translations$screenNewChat$en {
 	/// en: 'Subscribers can discuss each post in its comments.'
 	String get commentsFooter => 'Subscribers can discuss each post in its comments.';
 
+	/// en: 'Sign Messages'
+	String get signSwitch => 'Sign Messages';
+
+	/// en: 'With signatures, posts show the name of the admin who published them.'
+	String get signFooter => 'With signatures, posts show the name of the admin who published them.';
+
 	/// en: 'Joining'
 	String get joinHeader => 'Joining';
 
@@ -853,6 +859,21 @@ class Translations$screenChat$en {
 
 	/// en: 'Comments'
 	String get commentsTitle => 'Comments';
+
+	/// en: 'Subscribe'
+	String get subscribe => 'Subscribe';
+
+	/// en: 'Join Group'
+	String get joinGroup => 'Join Group';
+
+	/// en: 'Request to Join'
+	String get requestJoin => 'Request to Join';
+
+	/// en: 'Request Sent'
+	String get requestSent => 'Request Sent';
+
+	/// en: 'This link is invalid or has expired.'
+	String get linkInvalid => 'This link is invalid or has expired.';
 
 	/// en: 'Message'
 	String get message => 'Message';
@@ -2869,6 +2890,8 @@ extension on Translations {
 			'screenNewChat.copied' => 'Link copied',
 			'screenNewChat.commentsSwitch' => 'Comments',
 			'screenNewChat.commentsFooter' => 'Subscribers can discuss each post in its comments.',
+			'screenNewChat.signSwitch' => 'Sign Messages',
+			'screenNewChat.signFooter' => 'With signatures, posts show the name of the admin who published them.',
 			'screenNewChat.joinHeader' => 'Joining',
 			'screenNewChat.joinOpen' => 'Open',
 			'screenNewChat.joinLink' => 'By Invite Link',
@@ -2979,6 +3002,11 @@ extension on Translations {
 			'screenChat.comments' => ({required num n, required Object count}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: '${count} comment', other: '${count} comments', ), 
 			'screenChat.leaveComment' => 'Leave a Comment',
 			'screenChat.commentsTitle' => 'Comments',
+			'screenChat.subscribe' => 'Subscribe',
+			'screenChat.joinGroup' => 'Join Group',
+			'screenChat.requestJoin' => 'Request to Join',
+			'screenChat.requestSent' => 'Request Sent',
+			'screenChat.linkInvalid' => 'This link is invalid or has expired.',
 			'screenChat.message' => 'Message',
 			'screenChat.empty' => 'No messages yet',
 			'screenChat.notFound' => 'Chat not found',
@@ -3255,6 +3283,8 @@ extension on Translations {
 			'sessionsPrivacyAndSecurity.retry' => 'Retry',
 			'sessionsPrivacyAndSecurity.exceptions' => 'Exceptions',
 			'sessionsPrivacyAndSecurity.callsAlwaysAllow' => 'Always allow',
+			_ => null,
+		} ?? switch (path) {
 			'sessionsPrivacyAndSecurity.callsAlwaysDeny' => 'Always deny',
 			'sessionsPrivacyAndSecurity.callsAllowEmpty' => 'No contacts registered on Iperon',
 			'sessionsPrivacyAndSecurity.birthday' => 'Birthday',
@@ -3262,8 +3292,6 @@ extension on Translations {
 			'sessionsPrivacyAndSecurity.hideBirthYear' => 'Hide birth year',
 			'sessionsPrivacyAndSecurity.hideBirthYearNote' => 'Contacts will see only the day and month — no birth year or age.',
 			'sessionsPrivacyAndSecurity.aboutMe' => 'About me',
-			_ => null,
-		} ?? switch (path) {
 			'sessionsPrivacyAndSecurity.whoCanSeeAboutMe' => 'Who can see my About me',
 			'sessionsPrivacyAndSecurity.lastSeen' => 'Last seen',
 			'sessionsPrivacyAndSecurity.whoCanSeeLastSeen' => 'Who can see my last seen',

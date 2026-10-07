@@ -1281,6 +1281,13 @@ class MessageMapper extends ClassMapperBase<Message> {
     _$linkPreview,
     opt: true,
   );
+  static String _$authorSignature(Message v) => v.authorSignature;
+  static const Field<Message, String> _f$authorSignature = Field(
+    'authorSignature',
+    _$authorSignature,
+    opt: true,
+    def: '',
+  );
   static int _$views(Message v) => v.views;
   static const Field<Message, int> _f$views = Field(
     'views',
@@ -1332,6 +1339,7 @@ class MessageMapper extends ClassMapperBase<Message> {
     #silent: _f$silent,
     #scheduledDate: _f$scheduledDate,
     #linkPreview: _f$linkPreview,
+    #authorSignature: _f$authorSignature,
     #views: _f$views,
     #commentsCount: _f$commentsCount,
     #commenters: _f$commenters,
@@ -1366,6 +1374,7 @@ class MessageMapper extends ClassMapperBase<Message> {
       silent: data.dec(_f$silent),
       scheduledDate: data.dec(_f$scheduledDate),
       linkPreview: data.dec(_f$linkPreview),
+      authorSignature: data.dec(_f$authorSignature),
       views: data.dec(_f$views),
       commentsCount: data.dec(_f$commentsCount),
       commenters: data.dec(_f$commenters),
@@ -1481,6 +1490,7 @@ abstract class MessageCopyWith<$R, $In extends Message, $Out>
     bool? silent,
     DateTime? scheduledDate,
     MessageLinkPreview? linkPreview,
+    String? authorSignature,
     int? views,
     int? commentsCount,
     List<String>? commenters,
@@ -1582,6 +1592,7 @@ class _MessageCopyWithImpl<$R, $Out>
     bool? silent,
     Object? scheduledDate = $none,
     Object? linkPreview = $none,
+    String? authorSignature,
     int? views,
     int? commentsCount,
     List<String>? commenters,
@@ -1614,6 +1625,7 @@ class _MessageCopyWithImpl<$R, $Out>
       if (silent != null) #silent: silent,
       if (scheduledDate != $none) #scheduledDate: scheduledDate,
       if (linkPreview != $none) #linkPreview: linkPreview,
+      if (authorSignature != null) #authorSignature: authorSignature,
       if (views != null) #views: views,
       if (commentsCount != null) #commentsCount: commentsCount,
       if (commenters != null) #commenters: commenters,
@@ -1648,6 +1660,7 @@ class _MessageCopyWithImpl<$R, $Out>
     silent: data.get(#silent, or: $value.silent),
     scheduledDate: data.get(#scheduledDate, or: $value.scheduledDate),
     linkPreview: data.get(#linkPreview, or: $value.linkPreview),
+    authorSignature: data.get(#authorSignature, or: $value.authorSignature),
     views: data.get(#views, or: $value.views),
     commentsCount: data.get(#commentsCount, or: $value.commentsCount),
     commenters: data.get(#commenters, or: $value.commenters),

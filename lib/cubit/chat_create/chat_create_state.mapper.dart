@@ -175,6 +175,13 @@ class ChatCreateStateMapper extends ClassMapperBase<ChatCreateState> {
     opt: true,
     def: false,
   );
+  static bool _$signMessages(ChatCreateState v) => v.signMessages;
+  static const Field<ChatCreateState, bool> _f$signMessages = Field(
+    'signMessages',
+    _$signMessages,
+    opt: true,
+    def: false,
+  );
   static ChatUsernameStatus _$usernameStatus(ChatCreateState v) =>
       v.usernameStatus;
   static const Field<ChatCreateState, ChatUsernameStatus> _f$usernameStatus =
@@ -229,6 +236,7 @@ class ChatCreateStateMapper extends ClassMapperBase<ChatCreateState> {
     #originalUsername: _f$originalUsername,
     #defaultRole: _f$defaultRole,
     #commentsEnabled: _f$commentsEnabled,
+    #signMessages: _f$signMessages,
     #usernameStatus: _f$usernameStatus,
     #inviteLink: _f$inviteLink,
     #creating: _f$creating,
@@ -252,6 +260,7 @@ class ChatCreateStateMapper extends ClassMapperBase<ChatCreateState> {
       originalUsername: data.dec(_f$originalUsername),
       defaultRole: data.dec(_f$defaultRole),
       commentsEnabled: data.dec(_f$commentsEnabled),
+      signMessages: data.dec(_f$signMessages),
       usernameStatus: data.dec(_f$usernameStatus),
       inviteLink: data.dec(_f$inviteLink),
       creating: data.dec(_f$creating),
@@ -349,6 +358,7 @@ abstract class ChatCreateStateCopyWith<$R, $In extends ChatCreateState, $Out>
     String? originalUsername,
     models.ChatRole? defaultRole,
     bool? commentsEnabled,
+    bool? signMessages,
     ChatUsernameStatus? usernameStatus,
     String? inviteLink,
     bool? creating,
@@ -406,6 +416,7 @@ class _ChatCreateStateCopyWithImpl<$R, $Out>
     String? originalUsername,
     models.ChatRole? defaultRole,
     bool? commentsEnabled,
+    bool? signMessages,
     ChatUsernameStatus? usernameStatus,
     String? inviteLink,
     bool? creating,
@@ -427,6 +438,7 @@ class _ChatCreateStateCopyWithImpl<$R, $Out>
       if (originalUsername != null) #originalUsername: originalUsername,
       if (defaultRole != null) #defaultRole: defaultRole,
       if (commentsEnabled != null) #commentsEnabled: commentsEnabled,
+      if (signMessages != null) #signMessages: signMessages,
       if (usernameStatus != null) #usernameStatus: usernameStatus,
       if (inviteLink != null) #inviteLink: inviteLink,
       if (creating != null) #creating: creating,
@@ -450,6 +462,7 @@ class _ChatCreateStateCopyWithImpl<$R, $Out>
     originalUsername: data.get(#originalUsername, or: $value.originalUsername),
     defaultRole: data.get(#defaultRole, or: $value.defaultRole),
     commentsEnabled: data.get(#commentsEnabled, or: $value.commentsEnabled),
+    signMessages: data.get(#signMessages, or: $value.signMessages),
     usernameStatus: data.get(#usernameStatus, or: $value.usernameStatus),
     inviteLink: data.get(#inviteLink, or: $value.inviteLink),
     creating: data.get(#creating, or: $value.creating),

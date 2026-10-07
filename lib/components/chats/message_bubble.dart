@@ -532,6 +532,8 @@ class MessageBubble extends StatelessWidget {
     final meta = Row(
       mainAxisSize: MainAxisSize.min,
       children: [
+        // Подпись автора поста канала.
+        if (m.authorSignature.isNotEmpty) ...[Text(m.authorSignature, style: metaStyle), const SizedBox(width: 6)],
         // Просмотры поста канала — глазок и счётчик.
         if (views.isNotEmpty) ...[
           FaIcon(FontAwesomeIcons.eye, size: 10, color: metaColor),
@@ -557,7 +559,7 @@ class MessageBubble extends StatelessWidget {
     );
     // Невидимый хвост под время: nbsp, чтобы не переносился отдельно.
     final trailing =
-        '  ${views.isNotEmpty ? '\u00a0\u00a0\u00a0\u00a0$views\u00a0\u00a0' : ''}${m.pinned ? '\u00a0\u00a0\u00a0' : ''}$metaText${out ? '     ' : ''}';
+        '  ${m.authorSignature.isNotEmpty ? '${m.authorSignature.replaceAll(' ', '\u00a0')}\u00a0\u00a0' : ''}${views.isNotEmpty ? '\u00a0\u00a0\u00a0\u00a0$views\u00a0\u00a0' : ''}${m.pinned ? '\u00a0\u00a0\u00a0' : ''}$metaText${out ? '     ' : ''}';
 
     // Пока вложения грузятся — тап по медиа не открывает просмотр.
     final mediaTap = m.isUploading ? null : onMediaTap;
@@ -777,9 +779,12 @@ class _LinkPreviewCard extends StatelessWidget {
     final accent = colors.link;
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onTap: () {
+      onTap: () async {
         final uri = Uri.tryParse(preview.url);
-        if (uri != null) launchUrl(uri, mode: LaunchMode.externalApplication);
+        if (uri == null) return;
+        final handler = MessageText.linkHandler;
+        if (handler != null && await handler(context, uri)) return;
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
       },
       child: DecoratedBox(
         decoration: BoxDecoration(

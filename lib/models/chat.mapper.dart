@@ -1156,6 +1156,27 @@ class ChatMapper extends ClassMapperBase<Chat> {
     opt: true,
     def: false,
   );
+  static bool _$signMessages(Chat v) => v.signMessages;
+  static const Field<Chat, bool> _f$signMessages = Field(
+    'signMessages',
+    _$signMessages,
+    opt: true,
+    def: false,
+  );
+  static bool _$isMember(Chat v) => v.isMember;
+  static const Field<Chat, bool> _f$isMember = Field(
+    'isMember',
+    _$isMember,
+    opt: true,
+    def: true,
+  );
+  static bool _$joinRequested(Chat v) => v.joinRequested;
+  static const Field<Chat, bool> _f$joinRequested = Field(
+    'joinRequested',
+    _$joinRequested,
+    opt: true,
+    def: false,
+  );
   static String _$threadOf(Chat v) => v.threadOf;
   static const Field<Chat, String> _f$threadOf = Field(
     'threadOf',
@@ -1231,6 +1252,9 @@ class ChatMapper extends ClassMapperBase<Chat> {
     #defaultRole: _f$defaultRole,
     #pendingRequests: _f$pendingRequests,
     #commentsEnabled: _f$commentsEnabled,
+    #signMessages: _f$signMessages,
+    #isMember: _f$isMember,
+    #joinRequested: _f$joinRequested,
     #threadOf: _f$threadOf,
     #threadPostID: _f$threadPostID,
     #membersCount: _f$membersCount,
@@ -1267,6 +1291,9 @@ class ChatMapper extends ClassMapperBase<Chat> {
       defaultRole: data.dec(_f$defaultRole),
       pendingRequests: data.dec(_f$pendingRequests),
       commentsEnabled: data.dec(_f$commentsEnabled),
+      signMessages: data.dec(_f$signMessages),
+      isMember: data.dec(_f$isMember),
+      joinRequested: data.dec(_f$joinRequested),
       threadOf: data.dec(_f$threadOf),
       threadPostID: data.dec(_f$threadPostID),
       membersCount: data.dec(_f$membersCount),
@@ -1352,6 +1379,9 @@ abstract class ChatCopyWith<$R, $In extends Chat, $Out>
     ChatRole? defaultRole,
     int? pendingRequests,
     bool? commentsEnabled,
+    bool? signMessages,
+    bool? isMember,
+    bool? joinRequested,
     String? threadOf,
     String? threadPostID,
     int? membersCount,
@@ -1407,6 +1437,9 @@ class _ChatCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Chat, $Out>
     ChatRole? defaultRole,
     int? pendingRequests,
     bool? commentsEnabled,
+    bool? signMessages,
+    bool? isMember,
+    bool? joinRequested,
     String? threadOf,
     String? threadPostID,
     int? membersCount,
@@ -1441,6 +1474,9 @@ class _ChatCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Chat, $Out>
       if (defaultRole != null) #defaultRole: defaultRole,
       if (pendingRequests != null) #pendingRequests: pendingRequests,
       if (commentsEnabled != null) #commentsEnabled: commentsEnabled,
+      if (signMessages != null) #signMessages: signMessages,
+      if (isMember != null) #isMember: isMember,
+      if (joinRequested != null) #joinRequested: joinRequested,
       if (threadOf != null) #threadOf: threadOf,
       if (threadPostID != null) #threadPostID: threadPostID,
       if (membersCount != null) #membersCount: membersCount,
@@ -1477,6 +1513,9 @@ class _ChatCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Chat, $Out>
     defaultRole: data.get(#defaultRole, or: $value.defaultRole),
     pendingRequests: data.get(#pendingRequests, or: $value.pendingRequests),
     commentsEnabled: data.get(#commentsEnabled, or: $value.commentsEnabled),
+    signMessages: data.get(#signMessages, or: $value.signMessages),
+    isMember: data.get(#isMember, or: $value.isMember),
+    joinRequested: data.get(#joinRequested, or: $value.joinRequested),
     threadOf: data.get(#threadOf, or: $value.threadOf),
     threadPostID: data.get(#threadPostID, or: $value.threadPostID),
     membersCount: data.get(#membersCount, or: $value.membersCount),

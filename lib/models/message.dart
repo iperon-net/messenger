@@ -196,6 +196,10 @@ class Message with MessageMappable {
   /// перед отправкой (× над полем ввода).
   final MessageLinkPreview? linkPreview;
 
+  /// Подпись автора поста канала (канал с «Подписывать сообщения»); пусто —
+  /// без подписи.
+  final String authorSignature;
+
   /// Просмотры поста канала (глазок у времени); 0 — не показываем.
   final int views;
 
@@ -232,6 +236,7 @@ class Message with MessageMappable {
     this.silent = false,
     this.scheduledDate,
     this.linkPreview,
+    this.authorSignature = '',
     this.views = 0,
     this.commentsCount = 0,
     this.commenters = const [],

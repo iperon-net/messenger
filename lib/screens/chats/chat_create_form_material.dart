@@ -312,8 +312,13 @@ class _ChatCreateFormMaterial extends State<ChatCreateFormMaterial> {
                         value: state.commentsEnabled,
                         onChanged: context.read<ChatCreateCubit>().setCommentsEnabled,
                       ),
+                      SwitchListTile(
+                        title: Text(t.screenNewChat.signSwitch),
+                        value: state.signMessages,
+                        onChanged: context.read<ChatCreateCubit>().setSignMessages,
+                      ),
                     ]),
-                    createNoteMaterial(context, t.screenNewChat.commentsFooter),
+                    createNoteMaterial(context, '${t.screenNewChat.commentsFooter} ${t.screenNewChat.signFooter}'),
                   ],
                   if (state.isEdit && type != models.ChatType.channel) ...[
                     createHeaderMaterial(context, t.screenNewChat.defaultRoleHeader),

@@ -260,6 +260,16 @@ class Chat with ChatMappable {
   /// Канал: под постами — комментарии (обсуждение каждого поста).
   final bool commentsEnabled;
 
+  /// Канал: под постами — имя опубликовавшего админа.
+  final bool signMessages;
+
+  /// Мы участник / подписчик. `false` — открыли по ссылке и смотрим: в списке
+  /// чата нет, внизу — «Подписаться» / «Вступить».
+  final bool isMember;
+
+  /// Подали заявку на вступление (чат «По заявке»), ждём одобрения.
+  final bool joinRequested;
+
   /// Обсуждение поста канала — скрытый чат-ветка (в списке не виден): id
   /// канала и поста. Пусто — обычный чат.
   final String threadOf;
@@ -308,6 +318,9 @@ class Chat with ChatMappable {
     this.defaultRole = ChatRole.reader,
     this.pendingRequests = 0,
     this.commentsEnabled = false,
+    this.signMessages = false,
+    this.isMember = true,
+    this.joinRequested = false,
     this.threadOf = '',
     this.threadPostID = '',
     this.membersCount = 0,
@@ -337,5 +350,8 @@ class Chat with ChatMappable {
   bool get isThread => threadOf.isNotEmpty;
 
   /// В списке чатов не показывается: пустой личный или ветка комментариев.
-  bool get hiddenInList => isBlank || isThread;
+  bool get hiddenInList => isBlank || isThread || !isMember;
+
+  /// Можно писать: не канал, либо админ/владелец канала (публикует посты).
+  bool get canPost => isMember && (type != ChatType.channel || canManage);
 }

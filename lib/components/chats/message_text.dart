@@ -33,6 +33,11 @@ class MessageTextColors {
 /// раскрывается волной от пальца. [trailing] — невидимый хвост под время и
 /// галочки, которые пузырь рисует поверх последней строки (как в Telegram).
 class MessageText extends StatefulWidget {
+  /// Ссылки внутри приложения (`iperon.net/…` — канал, группа, приглашение):
+  /// вернуть `true`, если ссылку открыли сами; иначе — во внешнем браузере.
+  /// Задаётся экраном чата (`openIperonLink`).
+  static Future<bool> Function(BuildContext context, Uri uri)? linkHandler;
+
   final String text;
   final List<models.MessageEntity> entities;
   final TextStyle style;
@@ -113,6 +118,8 @@ class _MessageTextState extends State<MessageText> with TickerProviderStateMixin
   Future<void> _open(String url) async {
     final uri = Uri.tryParse(url);
     if (uri == null) return;
+    final handler = MessageText.linkHandler;
+    if (handler != null && await handler(context, uri)) return;
     await launchUrl(uri, mode: LaunchMode.externalApplication);
   }
 
