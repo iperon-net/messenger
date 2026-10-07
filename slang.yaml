@@ -6,3 +6,4 @@ output_directory: lib/i18n
 output_file_name: translations.g.dart
 string_interpolation: braces
 flat_map: true
+timestamp: false
