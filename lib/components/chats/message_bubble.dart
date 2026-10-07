@@ -1582,14 +1582,14 @@ class _PollViewState extends State<_PollView> {
             const SizedBox(height: 4),
             Padding(
               padding: const EdgeInsets.only(left: 42),
-              child: LayoutBuilder(
-                builder: (context, constraints) => Align(
-                  alignment: Alignment.centerLeft,
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 300),
-                    curve: Curves.easeOutCubic,
+              // Не LayoutBuilder: пузырь меряется IntrinsicWidth, а LayoutBuilder
+              // интринсики не поддерживает.
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: FractionallySizedBox(
+                  widthFactor: share.clamp(0.02, 1.0),
+                  child: Container(
                     height: 4,
-                    width: math.max(4, constraints.maxWidth * share),
                     decoration: BoxDecoration(color: barColor, borderRadius: BorderRadius.circular(2)),
                   ),
                 ),

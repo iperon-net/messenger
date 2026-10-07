@@ -267,8 +267,8 @@ typedef MediaCaptionResult = ({String caption, bool spoiler, bool hd});
 Future<void> pickAndSendAttachments(BuildContext context, {TextEditingController? input}) async {
   final cubit = context.read<ChatCubit>();
   final chat = cubit.state.chat;
-  // «Опрос» — в группах, сообществах и каналах (кто может писать).
-  final polls = chat != null && chat.type != models.ChatType.private && !chat.isThread;
+  // «Опрос» — в группах, сообществах, каналах и комментариях (не в личных).
+  final polls = chat != null && chat.type != models.ChatType.private;
   final result = await showToolbarAttachments(
     context,
     tabs: [ToolbarAttachmentTabKind.gallery, ToolbarAttachmentTabKind.file, if (polls) ToolbarAttachmentTabKind.poll],
