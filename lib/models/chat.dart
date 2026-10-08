@@ -240,6 +240,14 @@ class Chat with ChatMappable {
   final ChatReactionsMode reactionsMode;
   final List<String> reactions;
 
+  /// Медленный режим группы/сообщества: участник (не админ) отправляет не
+  /// чаще одного сообщения за столько секунд; 0 — выключен.
+  final int slowMode;
+
+  /// Медленный режим: когда нам можно отправить следующее сообщение (сервер
+  /// ставит после нашей отправки); `null` / в прошлом — можно сейчас.
+  final DateTime? slowModeUntil;
+
   /// Профиль чата: «О себе» собеседника / описание группы или канала.
   final String about;
 
@@ -318,6 +326,8 @@ class Chat with ChatMappable {
     this.typing = '',
     this.reactionsMode = ChatReactionsMode.all,
     this.reactions = const [],
+    this.slowMode = 0,
+    this.slowModeUntil,
     this.about = '',
     this.username = '',
     this.inviteLink = '',
@@ -360,6 +370,10 @@ class Chat with ChatMappable {
 
   /// В списке чатов не показывается: пустой личный или ветка комментариев.
   bool get hiddenInList => isBlank || isThread || !isMember;
+
+  /// Медленный режим действует на нас: включён в группе/сообществе, а мы не
+  /// админ.
+  bool get slowModeApplies => slowMode > 0 && (type == ChatType.group || type == ChatType.community) && !canManage;
 
   /// Можно писать: не канал, либо админ/владелец канала (публикует посты).
   bool get canPost => isMember && (type != ChatType.channel || canManage);

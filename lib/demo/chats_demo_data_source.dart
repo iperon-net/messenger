@@ -83,6 +83,17 @@ class ChatsDemoDataSource implements ChatsDataSource {
   Future<void> setChatReactions(String chatID, models.ChatReactionsMode mode, List<String> reactions) async =>
       _update(chatID, (c) => c.copyWith(reactionsMode: mode, reactions: reactions));
 
+  @override
+  Future<void> setSlowMode(String chatID, int seconds) async => _update(chatID, (c) => c.copyWith(slowMode: seconds));
+
+  /// Медленный режим: после нашей отправки следующее — не раньше чем через
+  /// `slowMode` секунд (настоящий сервер ещё и отклонит слишком раннее).
+  void _slowModeSent(String chatID) {
+    final chat = _chats.where((c) => c.id == chatID).firstOrNull;
+    if (chat == null || !chat.slowModeApplies) return;
+    _update(chatID, (c) => c.copyWith(slowModeUntil: DateTime.now().add(Duration(seconds: c.slowMode))));
+  }
+
   final _members = <String, List<models.ChatMember>>{};
 
   @override
@@ -881,7 +892,13 @@ class ChatsDemoDataSource implements ChatsDataSource {
         username: 'severny_zhk',
         membersCount: 1340,
       ),
-      'devs' => chat.copyWith(about: 'Русскоязычное сообщество Flutter-разработчиков.', username: 'flutter_ru', membersCount: 8420),
+      // Большое сообщество — с медленным режимом (мы обычный участник).
+      'devs' => chat.copyWith(
+        about: 'Русскоязычное сообщество Flutter-разработчиков.',
+        username: 'flutter_ru',
+        membersCount: 8420,
+        slowMode: 30,
+      ),
       'news' => chat.copyWith(
         about: 'Новости мессенджера Iperon.',
         username: 'iperon_news',
@@ -1067,6 +1084,7 @@ class ChatsDemoDataSource implements ChatsDataSource {
     );
     _setMessages(chatID, [..._history(chatID), message]);
     _update(chatID, (c) => c.copyWith(lastMessage: _lastOf(message), draft: '', archived: false));
+    _slowModeSent(chatID);
 
     if (uploadTotal > 0) {
       _simulateUpload(chatID, message.id, uploadTotal, onDone: () => _delivered(chatID, message.id));
@@ -1340,6 +1358,7 @@ class ChatsDemoDataSource implements ChatsDataSource {
     if (copies.isEmpty) return;
     _setMessages(toChatID, [..._history(toChatID), ...copies]);
     _update(toChatID, (c) => c.copyWith(lastMessage: _lastOf(copies.last), archived: false));
+    _slowModeSent(toChatID);
     // Файлы уже на CDN — пересылка без загрузки: сразу «доставлено».
     for (final m in copies.take(copies.length - 1)) {
       Timer(const Duration(milliseconds: 700), () => _setStatus(toChatID, m.id, models.MessageStatus.sent));

@@ -5,6 +5,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../chats/reactions.dart';
+import '../../chats/slow_mode.dart';
 import '../../components.dart';
 import '../../cubit.dart';
 import '../../i18n/translations.g.dart';
@@ -338,6 +339,18 @@ class _ChatInfoMaterialState extends State<ChatInfoMaterial> {
                                 ),
                               ),
                             ),
+                            if (chat.type == models.ChatType.group || chat.type == models.ChatType.community)
+                              ListTile(
+                                leading: HugeIcon(icon: HugeIcons.strokeRoundedTimer02, color: scheme.onSurfaceVariant),
+                                title: Text(t.screenChatInfo.slowMode),
+                                trailing: Text(slowModeLabel(t, chat.slowMode), style: TextStyle(color: scheme.onSurfaceVariant)),
+                                onTap: () => Navigator.of(context).push(
+                                  FullSwipeBackRoute<void>(
+                                    builder: (_) =>
+                                        BlocProvider.value(value: context.read<ChatCubit>(), child: const ChatSlowModeSettingsMaterial()),
+                                  ),
+                                ),
+                              ),
                             ListTile(
                               leading: HugeIcon(icon: HugeIcons.strokeRoundedUserStar01, color: scheme.onSurfaceVariant),
                               title: Text(t.screenChatAdmins.admins),
@@ -539,6 +552,52 @@ class ChatReactionsSettingsMaterial extends StatelessWidget {
                   ),
                 ),
               ],
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+/// Профиль чата → «Медленный режим» (Android, админ группы/сообщества): выкл.
+/// или интервал. Сохраняется сразу.
+class ChatSlowModeSettingsMaterial extends StatelessWidget {
+  const ChatSlowModeSettingsMaterial({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.t;
+    final scheme = Theme.of(context).colorScheme;
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final card = dark ? ThemesCupertino.groupedCard.darkColor : ThemesCupertino.groupedCard.color;
+    return BlocBuilder<ChatCubit, ChatState>(
+      builder: (context, state) {
+        return Scaffold(
+          backgroundColor: dark ? const Color(0xFF000000) : scheme.surfaceContainerLow,
+          appBar: AppBar(title: Text(t.screenChatInfo.slowMode)),
+          body: ListView(
+            padding: EdgeInsets.only(bottom: 16 + MediaQuery.paddingOf(context).bottom),
+            children: [
+              Card(
+                margin: const EdgeInsets.fromLTRB(12, 8, 12, 0),
+                color: card,
+                child: RadioGroup<int>(
+                  groupValue: state.chat?.slowMode ?? 0,
+                  onChanged: (seconds) {
+                    if (seconds != null) context.read<ChatCubit>().setSlowMode(seconds);
+                  },
+                  child: Column(
+                    children: [
+                      for (final seconds in slowModeOptions) RadioListTile(value: seconds, title: Text(slowModeLabel(t, seconds))),
+                    ],
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(24, 8, 24, 0),
+                child: Text(t.screenChatInfo.slowModeFooter, style: TextStyle(fontSize: 13, color: scheme.onSurfaceVariant)),
+              ),
             ],
           ),
         );

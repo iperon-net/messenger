@@ -314,6 +314,11 @@ class _ChatCupertinoState extends State<ChatCupertino> {
     final text = _input.text;
     // Пересылка уходит и без текста.
     if (text.trim().isEmpty && _cubit.state.forwarding.isEmpty) return;
+    // Медленный режим: правка — можно; иначе текст и пересылаемые — отдельные
+    // сообщения, а разрешено одно.
+    if (_cubit.state.editing == null && !checkSlowMode(context, count: (text.trim().isEmpty ? 0 : 1) + _cubit.state.forwarding.length)) {
+      return;
+    }
     _input.clear();
     _cubit.send(text, silent: silent, scheduleDate: scheduleDate, mentions: _mentions.take());
   }
@@ -981,7 +986,9 @@ class _ComposeBar extends StatelessWidget {
                           // Слот фиксированный: поле ввода не дёргается при смене кнопки.
                           return ComposeActionSlot(
                             size: const Size(44, 34),
-                            child: !canSend && !editing
+                            child: state.slowModeLeft > 0 && !editing
+                                ? SlowModeCountdown(key: const ValueKey('slow'), seconds: state.slowModeLeft, color: secondary)
+                                : !canSend && !editing
                                 ? VoiceRecordButton(key: const ValueKey('mic'), recorder: recorder, style: voiceStyle)
                                 : GestureDetector(
                                     key: ValueKey(editing ? 'edit' : 'send'),

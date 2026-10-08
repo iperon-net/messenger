@@ -1285,6 +1285,15 @@ class Translations$screenChat$en {
 	/// en: 'Schedule message'
 	String get sendLater => 'Schedule message';
 
+	/// en: 'Slow mode'
+	String get slowMode => 'Slow mode';
+
+	/// en: 'Slow mode is enabled in this chat. You can send your next message in {time}.'
+	String slowModeWait({required Object time}) => 'Slow mode is enabled in this chat. You can send your next message in ${time}.';
+
+	/// en: 'In slow mode you can send only one message at a time.'
+	String get slowModeOneMessage => 'In slow mode you can send only one message at a time.';
+
 	/// en: 'Scheduled messages'
 	String get scheduledTitle => 'Scheduled messages';
 
@@ -1821,6 +1830,24 @@ class Translations$screenChatInfo$en {
 
 	/// en: 'Available reactions'
 	String get reactionsPick => 'Available reactions';
+
+	/// en: 'Slow mode'
+	String get slowMode => 'Slow mode';
+
+	/// en: 'Off'
+	String get slowModeOff => 'Off';
+
+	/// en: '{n}s'
+	String slowModeSeconds({required Object n}) => '${n}s';
+
+	/// en: '{n}m'
+	String slowModeMinutes({required Object n}) => '${n}m';
+
+	/// en: '{n}h'
+	String slowModeHours({required Object n}) => '${n}h';
+
+	/// en: 'Members will be able to send only one message per chosen interval. Admins are not limited.'
+	String get slowModeFooter => 'Members will be able to send only one message per chosen interval. Admins are not limited.';
 
 	/// en: 'Delete chat'
 	String get deleteChat => 'Delete chat';
@@ -3435,6 +3462,9 @@ extension on Translations {
 			'screenChat.goToMessage' => 'Go to message',
 			'screenChat.sendSilent' => 'Send without sound',
 			'screenChat.sendLater' => 'Schedule message',
+			'screenChat.slowMode' => 'Slow mode',
+			'screenChat.slowModeWait' => ({required Object time}) => 'Slow mode is enabled in this chat. You can send your next message in ${time}.',
+			'screenChat.slowModeOneMessage' => 'In slow mode you can send only one message at a time.',
 			'screenChat.scheduledTitle' => 'Scheduled messages',
 			'screenChat.schedule' => 'Schedule',
 			'screenChat.sendNow' => 'Send now',
@@ -3582,11 +3612,11 @@ extension on Translations {
 			'screenChatInfo.removeMember' => 'Remove',
 			'screenChatInfo.removeMemberTitle' => ({required Object name}) => 'Remove ${name}?',
 			'screenChatInfo.removeMemberMessage' => 'They can come back via an invite link.',
+			_ => null,
+		} ?? switch (path) {
 			'screenChatInfo.banMember' => 'Ban',
 			'screenChatInfo.banMemberTitle' => ({required Object name}) => 'Ban ${name}?',
 			'screenChatInfo.banMemberMessage' => 'They will be removed and won\'t be able to come back via invite links until unbanned.',
-			_ => null,
-		} ?? switch (path) {
 			'screenChatInfo.banned' => 'Banned',
 			'screenChatInfo.bannedEmpty' => 'No banned users',
 			'screenChatInfo.bannedFooter' => 'Banned users can\'t join via invite links. Adding them manually unbans them.',
@@ -3599,6 +3629,12 @@ extension on Translations {
 			'screenChatInfo.reactionsNoneShort' => 'Off',
 			'screenChatInfo.reactionsFooter' => 'Which reactions members can add to messages. Existing reactions stay.',
 			'screenChatInfo.reactionsPick' => 'Available reactions',
+			'screenChatInfo.slowMode' => 'Slow mode',
+			'screenChatInfo.slowModeOff' => 'Off',
+			'screenChatInfo.slowModeSeconds' => ({required Object n}) => '${n}s',
+			'screenChatInfo.slowModeMinutes' => ({required Object n}) => '${n}m',
+			'screenChatInfo.slowModeHours' => ({required Object n}) => '${n}h',
+			'screenChatInfo.slowModeFooter' => 'Members will be able to send only one message per chosen interval. Admins are not limited.',
 			'screenChatInfo.deleteChat' => 'Delete chat',
 			'screenChatInfo.leaveGroup' => 'Leave group',
 			'screenChatInfo.leaveChannel' => 'Leave channel',

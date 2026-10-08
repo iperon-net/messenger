@@ -570,3 +570,11 @@ class ReactionsGrid extends StatelessWidget {
     );
   }
 }
+
+/// Интервал медленного режима: «Выкл.» / «30 с» / «5 мин» / «1 ч».
+String slowModeLabel(Translations t, int seconds) => switch (seconds) {
+  0 => t.screenChatInfo.slowModeOff,
+  < 60 => t.screenChatInfo.slowModeSeconds(n: seconds),
+  < 3600 => t.screenChatInfo.slowModeMinutes(n: seconds ~/ 60),
+  _ => t.screenChatInfo.slowModeHours(n: seconds ~/ 3600),
+};

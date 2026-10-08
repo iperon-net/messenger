@@ -140,6 +140,13 @@ class ChatStateMapper extends ClassMapperBase<ChatState> {
     opt: true,
     def: const [],
   );
+  static int _$slowModeLeft(ChatState v) => v.slowModeLeft;
+  static const Field<ChatState, int> _f$slowModeLeft = Field(
+    'slowModeLeft',
+    _$slowModeLeft,
+    opt: true,
+    def: 0,
+  );
 
   @override
   final MappableFields<ChatState> fields = const {
@@ -160,6 +167,7 @@ class ChatStateMapper extends ClassMapperBase<ChatState> {
     #linkPreviewDisabled: _f$linkPreviewDisabled,
     #members: _f$members,
     #banned: _f$banned,
+    #slowModeLeft: _f$slowModeLeft,
   };
 
   static ChatState _instantiate(DecodingData data) {
@@ -181,6 +189,7 @@ class ChatStateMapper extends ClassMapperBase<ChatState> {
       linkPreviewDisabled: data.dec(_f$linkPreviewDisabled),
       members: data.dec(_f$members),
       banned: data.dec(_f$banned),
+      slowModeLeft: data.dec(_f$slowModeLeft),
     );
   }
 
@@ -297,6 +306,7 @@ abstract class ChatStateCopyWith<$R, $In extends ChatState, $Out>
     bool? linkPreviewDisabled,
     List<models.ChatMember>? members,
     List<models.ChatMember>? banned,
+    int? slowModeLeft,
   });
   ChatStateCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
@@ -406,6 +416,7 @@ class _ChatStateCopyWithImpl<$R, $Out>
     bool? linkPreviewDisabled,
     List<models.ChatMember>? members,
     List<models.ChatMember>? banned,
+    int? slowModeLeft,
   }) => $apply(
     FieldCopyWithData({
       if (status != null) #status: status,
@@ -426,6 +437,7 @@ class _ChatStateCopyWithImpl<$R, $Out>
         #linkPreviewDisabled: linkPreviewDisabled,
       if (members != null) #members: members,
       if (banned != null) #banned: banned,
+      if (slowModeLeft != null) #slowModeLeft: slowModeLeft,
     }),
   );
   @override
@@ -450,6 +462,7 @@ class _ChatStateCopyWithImpl<$R, $Out>
     ),
     members: data.get(#members, or: $value.members),
     banned: data.get(#banned, or: $value.banned),
+    slowModeLeft: data.get(#slowModeLeft, or: $value.slowModeLeft),
   );
 
   @override

@@ -13,6 +13,7 @@ import 'package:path/path.dart' as p;
 
 import '../../chats/media_prepare.dart';
 import '../../chats/message_formatting.dart';
+import '../../chats/slow_mode.dart';
 import '../../chats/video_prepare.dart';
 import '../../components.dart';
 import '../../cubit.dart';
@@ -211,11 +212,18 @@ Future<bool> openIperonLink(BuildContext context, Uri uri) async {
     return true;
   }
   if (!path.startsWith('+')) return false;
-  final text = context.t.screenChat.linkInvalid;
+  await _showNotice(context, context.t.screenChat.linkInvalid);
+  return true;
+}
+
+/// Короткое пояснение: iOS — диалог с «ОК» ([title] — заголовок), Android —
+/// SnackBar.
+Future<void> _showNotice(BuildContext context, String text, {String? title}) async {
   if (Platform.isIOS) {
     await c.showCupertinoDialog<void>(
       context: context,
       builder: (dialogContext) => c.CupertinoAlertDialog(
+        title: title == null ? null : Text(title),
         content: Text(text),
         actions: [c.CupertinoDialogAction(onPressed: () => Navigator.of(dialogContext).pop(), child: Text(context.t.common.ok))],
       ),
@@ -223,7 +231,47 @@ Future<bool> openIperonLink(BuildContext context, Uri uri) async {
   } else {
     m.ScaffoldMessenger.of(context).showSnackBar(m.SnackBar(content: Text(text)));
   }
-  return true;
+}
+
+/// Медленный режим: можно ли отправить сейчас [count] сообщений. Нельзя
+/// (ещё идёт отсчёт или сообщений больше одного) — объясняем и возвращаем
+/// `false`.
+bool checkSlowMode(BuildContext context, {int count = 1}) {
+  final state = context.read<ChatCubit>().state;
+  if (!(state.chat?.slowModeApplies ?? false)) return true;
+  final t = context.t.screenChat;
+  final text = state.slowModeLeft > 0
+      ? t.slowModeWait(time: formatSlowModeLeft(state.slowModeLeft))
+      : (count > 1 ? t.slowModeOneMessage : null);
+  if (text == null) return true;
+  unawaited(_showNotice(context, text, title: t.slowMode));
+  return false;
+}
+
+/// Медленный режим: обратный отсчёт вместо кнопки отправки / микрофона; тап —
+/// пояснение.
+class SlowModeCountdown extends StatelessWidget {
+  final int seconds;
+  final Color color;
+
+  const SlowModeCountdown({super.key, required this.seconds, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () => checkSlowMode(context),
+      child: Center(
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            formatSlowModeLeft(seconds),
+            style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: color, fontFeatures: const [FontFeature.tabularFigures()]),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 /// Выбранное вложение до отправки: путь, тип (фото / видео / файл) и, для
@@ -267,6 +315,7 @@ typedef MediaCaptionResult = ({String caption, bool spoiler, bool hd});
 Future<void> pickAndSendAttachments(BuildContext context, {TextEditingController? input}) async {
   final cubit = context.read<ChatCubit>();
   final chat = cubit.state.chat;
+  if (!checkSlowMode(context)) return;
   // «Опрос» — в группах, сообществах, каналах и комментариях (не в личных).
   final polls = chat != null && chat.type != models.ChatType.private;
   final result = await showToolbarAttachments(
@@ -292,6 +341,10 @@ Future<void> pickAndSendAttachments(BuildContext context, {TextEditingController
     ToolbarAttachmentEmojiResult() || ToolbarAttachmentLinkResult() || ToolbarAttachmentPollResult() || null => const <AttachmentDraft>[],
   };
   if (items.isEmpty || !context.mounted) return;
+  // Медленный режим — только одно сообщение: один альбом или один файл.
+  final mediaCount = items.where((i) => i.isMedia).length;
+  final messages = (mediaCount + models.Message.maxAlbum - 1) ~/ models.Message.maxAlbum + items.length - mediaCount;
+  if (!checkSlowMode(context, count: messages)) return;
 
   final initial = input?.text ?? '';
   final sheet = Platform.isIOS

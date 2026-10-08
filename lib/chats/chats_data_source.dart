@@ -157,6 +157,10 @@ abstract class ChatsDataSource {
   /// выбранные [reactions] / никаких.
   Future<void> setChatReactions(String chatID, models.ChatReactionsMode mode, List<String> reactions);
 
+  /// Медленный режим группы/сообщества (профиль чата → «Медленный режим»,
+  /// админ): интервал в секундах, 0 — выключить.
+  Future<void> setSlowMode(String chatID, int seconds);
+
   /// Сообщения чата (от старых к новым) — сразу при подписке, затем при каждом
   /// изменении.
   Stream<List<models.Message>> watchMessages(String chatID);

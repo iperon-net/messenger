@@ -5,6 +5,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../chats/reactions.dart';
+import '../../chats/slow_mode.dart';
 import '../../components.dart';
 import '../../cubit.dart';
 import '../../i18n/translations.g.dart';
@@ -330,6 +331,20 @@ class _ChatInfoCupertinoState extends State<ChatInfoCupertino> {
                               ),
                             ),
                           ),
+                          if (chat.type == models.ChatType.group || chat.type == models.ChatType.community)
+                            CupertinoListTileIcon(
+                              color: const Color(0xFF34AADC),
+                              hugeIcon: HugeIcons.strokeRoundedTimer02,
+                              title: Text(t.screenChatInfo.slowMode),
+                              additionalInfo: Text(slowModeLabel(t, chat.slowMode)),
+                              isTrailing: true,
+                              onTab: () => Navigator.of(context).push(
+                                FullSwipeBackRoute<void>(
+                                  builder: (_) =>
+                                      BlocProvider.value(value: context.read<ChatCubit>(), child: const ChatSlowModeSettingsCupertino()),
+                                ),
+                              ),
+                            ),
                           CupertinoListTileIcon(
                             color: const Color(0xFF5856D6),
                             hugeIcon: HugeIcons.strokeRoundedUserStar01,
@@ -560,6 +575,58 @@ class ChatReactionsSettingsCupertino extends StatelessWidget {
                       ),
                     ],
                   ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+/// Профиль чата → «Медленный режим» (iOS, админ группы/сообщества): выкл. или
+/// интервал. Сохраняется сразу.
+class ChatSlowModeSettingsCupertino extends StatelessWidget {
+  const ChatSlowModeSettingsCupertino({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.t;
+    final primary = CupertinoTheme.of(context).primaryColor;
+    final background = ThemesCupertino.groupedBackground.resolveFrom(context);
+    final card = ThemesCupertino.groupedCard.resolveFrom(context);
+    return BlocBuilder<ChatCubit, ChatState>(
+      builder: (context, state) {
+        final current = state.chat?.slowMode ?? 0;
+        return CupertinoPageScaffold(
+          backgroundColor: background,
+          navigationBar: AppCupertinoNavigationBar(
+            child: CupertinoNavigationBar(
+              previousPageTitle: '',
+              automaticBackgroundVisibility: false,
+              backgroundColor: background,
+              middle: Text(t.screenChatInfo.slowMode),
+            ),
+          ),
+          child: SafeArea(
+            child: ListView(
+              children: [
+                CupertinoListSection.insetGrouped(
+                  backgroundColor: background,
+                  decoration: BoxDecoration(color: card, borderRadius: const BorderRadius.all(Radius.circular(10))),
+                  footer: createNoteCupertino(t.screenChatInfo.slowModeFooter),
+                  children: [
+                    for (final seconds in slowModeOptions)
+                      CupertinoListTile(
+                        title: Text(slowModeLabel(t, seconds)),
+                        trailing: current == seconds ? Icon(CupertinoIcons.checkmark_alt, color: primary) : null,
+                        onTap: () {
+                          HapticFeedback.selectionClick();
+                          context.read<ChatCubit>().setSlowMode(seconds);
+                        },
+                      ),
+                  ],
+                ),
               ],
             ),
           ),

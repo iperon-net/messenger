@@ -23,6 +23,10 @@ class ChatCubit extends Cubit<ChatState> {
   StreamSubscription<List<models.Message>>? _messagesSubscription;
   StreamSubscription<List<models.Message>>? _scheduledSubscription;
 
+  /// Медленный режим: до какого времени ждём и таймер обратного отсчёта.
+  DateTime? _slowModeUntil;
+  Timer? _slowModeTimer;
+
   /// Непрочитанных при открытии (до `setRead`) и поставлен ли уже разделитель.
   int? _openUnread;
   bool _unreadPlaced = false;
@@ -52,6 +56,7 @@ class ChatCubit extends Cubit<ChatState> {
       if (chat != null && chat.hasUnread) source.setRead(chatID, true);
       emit(state.copyWith(chat: chat, status: Status.success));
       _placeUnread();
+      _syncSlowMode();
     });
     _scheduledSubscription = source.watchScheduled(chatID).listen((scheduled) {
       if (!isClosed) emit(state.copyWith(scheduled: scheduled));
@@ -81,6 +86,34 @@ class ChatCubit extends Cubit<ChatState> {
     emit(state.copyWith(unreadFromID: incoming[math.max(0, incoming.length - unread)].id));
   }
 
+  /// Медленный режим: срок от сервера изменился — перезапускаем отсчёт.
+  void _syncSlowMode() {
+    final chat = state.chat;
+    final until = chat != null && chat.slowModeApplies ? chat.slowModeUntil : null;
+    if (until == _slowModeUntil) return;
+    _slowModeUntil = until;
+    _slowModeTimer?.cancel();
+    _slowModeTimer = null;
+    _tickSlowMode();
+    if (state.slowModeLeft > 0) _slowModeTimer = Timer.periodic(const Duration(seconds: 1), (_) => _tickSlowMode());
+  }
+
+  void _tickSlowMode() {
+    if (isClosed) return;
+    final until = _slowModeUntil;
+    final ms = until == null ? 0 : until.difference(DateTime.now()).inMilliseconds;
+    final left = ms <= 0 ? 0 : (ms / 1000).ceil();
+    if (left != state.slowModeLeft) emit(state.copyWith(slowModeLeft: left));
+    if (left == 0) {
+      _slowModeTimer?.cancel();
+      _slowModeTimer = null;
+    }
+  }
+
+  /// Медленный режим не даёт отправить сейчас (UI заранее объясняет почему,
+  /// см. `checkSlowMode`; здесь — страховка).
+  bool get _slowModeWaiting => state.slowModeLeft > 0;
+
   /// Отправить текст из поля ввода (markdown-ярлыки → entities). В режиме
   /// редактирования — правит сообщение. [silent] — без звука у получателя;
   /// [scheduleDate] — отложить текст (пересылаемые уходят сразу).
@@ -90,6 +123,8 @@ class ChatCubit extends Cubit<ChatState> {
     final source = _source;
     final forwarding = state.forwarding;
     if (source == null || (raw.trim().isEmpty && forwarding.isEmpty)) return;
+    // Правка сообщения медленным режимом не ограничена.
+    if (state.editing == null && _slowModeWaiting) return;
     final (text, parsed) = parseMarkdownShortcuts(raw.trim());
     final entities = withMentionNames(text, parsed, mentions);
     final editing = state.editing;
@@ -125,7 +160,7 @@ class ChatCubit extends Cubit<ChatState> {
     List<models.MessageMedia> media = const [],
   }) async {
     final source = _source;
-    if (source == null) return;
+    if (source == null || _slowModeWaiting) return;
     final reply = state.reply;
     emit(state.copyWith(reply: null));
     final (text, entities) = parseMarkdownShortcuts(caption.trim());
@@ -144,7 +179,7 @@ class ChatCubit extends Cubit<ChatState> {
   /// Голосовое: файл записи [localPath], длительность и волна.
   Future<void> sendVoice({required String localPath, required int duration, required List<int> waveform}) async {
     final source = _source;
-    if (source == null) return;
+    if (source == null || _slowModeWaiting) return;
     final reply = state.reply;
     emit(state.copyWith(reply: null));
     await source.sendMessage(
@@ -353,6 +388,7 @@ class ChatCubit extends Cubit<ChatState> {
 
   /// Отправить опрос (скрепка → «Опрос»).
   Future<void> sendPoll(models.MessagePoll poll) async {
+    if (_slowModeWaiting) return;
     final reply = state.reply;
     emit(state.copyWith(reply: null));
     await _source?.sendMessage(
@@ -382,6 +418,9 @@ class ChatCubit extends Cubit<ChatState> {
   Future<void> setChatReactions(models.ChatReactionsMode mode, List<String> reactions) async =>
       _source?.setChatReactions(_chatID, mode, reactions);
 
+  /// Профиль чата → «Медленный режим» (админ): интервал в секундах, 0 — выкл.
+  Future<void> setSlowMode(int seconds) async => _source?.setSlowMode(_chatID, seconds);
+
   /// Профиль чата: «Удалить чат» / «Покинуть группу».
   Future<void> deleteChat() async => _source?.delete(_chatID);
 
@@ -403,6 +442,7 @@ class ChatCubit extends Cubit<ChatState> {
     await _chatsSubscription?.cancel();
     await _messagesSubscription?.cancel();
     await _scheduledSubscription?.cancel();
+    _slowModeTimer?.cancel();
     return super.close();
   }
 }

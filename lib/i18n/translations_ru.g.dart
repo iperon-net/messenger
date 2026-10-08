@@ -572,6 +572,9 @@ class _Translations$screenChat$ru extends Translations$screenChat$en {
 	@override String get goToMessage => 'Перейти к сообщению';
 	@override String get sendSilent => 'Отправить без звука';
 	@override String get sendLater => 'Отправить позже';
+	@override String get slowMode => 'Медленный режим';
+	@override String slowModeWait({required Object time}) => 'В этом чате включён медленный режим. Следующее сообщение можно отправить через ${time}.';
+	@override String get slowModeOneMessage => 'В медленном режиме можно отправить только одно сообщение за раз.';
 	@override String get scheduledTitle => 'Отложенные сообщения';
 	@override String get schedule => 'Запланировать';
 	@override String get sendNow => 'Отправить сейчас';
@@ -789,6 +792,12 @@ class _Translations$screenChatInfo$ru extends Translations$screenChatInfo$en {
 	@override String get reactionsNoneShort => 'Выкл.';
 	@override String get reactionsFooter => 'Какие реакции участники могут ставить на сообщения. Уже поставленные реакции останутся.';
 	@override String get reactionsPick => 'Разрешённые реакции';
+	@override String get slowMode => 'Медленный режим';
+	@override String get slowModeOff => 'Выкл.';
+	@override String slowModeSeconds({required Object n}) => '${n} с';
+	@override String slowModeMinutes({required Object n}) => '${n} мин';
+	@override String slowModeHours({required Object n}) => '${n} ч';
+	@override String get slowModeFooter => 'Участники смогут отправлять не больше одного сообщения за выбранный интервал. На админов ограничение не действует.';
 	@override String get deleteChat => 'Удалить чат';
 	@override String get leaveGroup => 'Покинуть группу';
 	@override String get leaveChannel => 'Покинуть канал';
@@ -1712,6 +1721,9 @@ extension on TranslationsRu {
 			'screenChat.goToMessage' => 'Перейти к сообщению',
 			'screenChat.sendSilent' => 'Отправить без звука',
 			'screenChat.sendLater' => 'Отправить позже',
+			'screenChat.slowMode' => 'Медленный режим',
+			'screenChat.slowModeWait' => ({required Object time}) => 'В этом чате включён медленный режим. Следующее сообщение можно отправить через ${time}.',
+			'screenChat.slowModeOneMessage' => 'В медленном режиме можно отправить только одно сообщение за раз.',
 			'screenChat.scheduledTitle' => 'Отложенные сообщения',
 			'screenChat.schedule' => 'Запланировать',
 			'screenChat.sendNow' => 'Отправить сейчас',
@@ -1859,11 +1871,11 @@ extension on TranslationsRu {
 			'screenChatInfo.removeMember' => 'Исключить',
 			'screenChatInfo.removeMemberTitle' => ({required Object name}) => 'Исключить ${name}?',
 			'screenChatInfo.removeMemberMessage' => 'Вернуться можно будет по ссылке-приглашению.',
+			_ => null,
+		} ?? switch (path) {
 			'screenChatInfo.banMember' => 'Заблокировать',
 			'screenChatInfo.banMemberTitle' => ({required Object name}) => 'Заблокировать ${name}?',
 			'screenChatInfo.banMemberMessage' => 'Участник будет исключён и не сможет вернуться по ссылкам-приглашениям, пока его не разблокируют.',
-			_ => null,
-		} ?? switch (path) {
 			'screenChatInfo.banned' => 'Заблокированные',
 			'screenChatInfo.bannedEmpty' => 'Заблокированных нет',
 			'screenChatInfo.bannedFooter' => 'Заблокированные не могут вступить по ссылкам-приглашениям. Если добавить вручную — блокировка снимется.',
@@ -1876,6 +1888,12 @@ extension on TranslationsRu {
 			'screenChatInfo.reactionsNoneShort' => 'Выкл.',
 			'screenChatInfo.reactionsFooter' => 'Какие реакции участники могут ставить на сообщения. Уже поставленные реакции останутся.',
 			'screenChatInfo.reactionsPick' => 'Разрешённые реакции',
+			'screenChatInfo.slowMode' => 'Медленный режим',
+			'screenChatInfo.slowModeOff' => 'Выкл.',
+			'screenChatInfo.slowModeSeconds' => ({required Object n}) => '${n} с',
+			'screenChatInfo.slowModeMinutes' => ({required Object n}) => '${n} мин',
+			'screenChatInfo.slowModeHours' => ({required Object n}) => '${n} ч',
+			'screenChatInfo.slowModeFooter' => 'Участники смогут отправлять не больше одного сообщения за выбранный интервал. На админов ограничение не действует.',
 			'screenChatInfo.deleteChat' => 'Удалить чат',
 			'screenChatInfo.leaveGroup' => 'Покинуть группу',
 			'screenChatInfo.leaveChannel' => 'Покинуть канал',

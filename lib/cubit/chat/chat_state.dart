@@ -61,6 +61,10 @@ class ChatState with ChatStateMappable {
   /// Заблокированные в группе — для админа (профиль → «Заблокированные»).
   final List<models.ChatMember> banned;
 
+  /// Медленный режим: секунд до следующего сообщения (0 — можно отправлять);
+  /// тикает раз в секунду, вместо кнопки отправки — обратный отсчёт.
+  final int slowModeLeft;
+
   const ChatState({
     this.status = Status.initialization,
     this.chat,
@@ -79,6 +83,7 @@ class ChatState with ChatStateMappable {
     this.linkPreviewDisabled = false,
     this.members = const [],
     this.banned = const [],
+    this.slowModeLeft = 0,
   });
 
   /// Закреплённые — от новых к старым (плашка показывает сначала последнее).
