@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:ui' show ImageFilter;
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter_boring_avatars/flutter_boring_avatars.dart';
@@ -67,14 +68,15 @@ class CommunityCover extends StatelessWidget {
                     ),
                   ),
                 ),
-          // Сверху — чтобы читались кнопки панели, снизу — под текст.
+          // Только снизу — под текст; кнопки сверху на своих «стёклах»
+          // ([CoverGlassButton]), верх обложки остаётся чистым.
           const DecoratedBox(
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
-                colors: [Color(0x59000000), Color(0x00000000), Color(0x00000000), Color(0x99000000)],
-                stops: [0, 0.3, 0.5, 1],
+                colors: [Color(0x00000000), Color(0x99000000)],
+                stops: [0.5, 1],
               ),
             ),
           ),
@@ -115,4 +117,48 @@ class CommunityCover extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Кнопка поверх обложки («назад», «Изменить»): «стекло» — размытие и
+/// полупрозрачный тёмный фон, содержимое белое; с иконкой — круг, с текстом —
+/// пилюля ([padding]).
+class CoverGlassButton extends StatelessWidget {
+  final Widget child;
+  final VoidCallback onTap;
+  final String? label;
+  final EdgeInsetsGeometry padding;
+
+  const CoverGlassButton({super.key, required this.child, required this.onTap, this.label, this.padding = EdgeInsets.zero});
+
+  static const size = 36.0;
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+    button: true,
+    label: label,
+    child: GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(size / 2),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+          child: Container(
+            height: size,
+            constraints: const BoxConstraints(minWidth: size),
+            padding: padding,
+            alignment: Alignment.center,
+            color: const Color(0x4D000000),
+            child: IconTheme(
+              data: const IconThemeData(color: Color(0xFFFFFFFF), size: 22),
+              child: DefaultTextStyle(
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: Color(0xFFFFFFFF)),
+                child: child,
+              ),
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
 }

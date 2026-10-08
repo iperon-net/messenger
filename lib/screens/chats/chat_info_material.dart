@@ -221,9 +221,10 @@ class _ChatInfoMaterialState extends State<ChatInfoMaterial> {
         final tab = tabs.contains(_tab) ? _tab! : (tabs.firstOrNull ?? ChatInfoTab.media);
         final subtitle = chat == null ? null : chatSubtitle(t, chat);
         final community = chat?.type == models.ChatType.community;
-        // У сообщества — обложка под AppBar: он прозрачный, значки белые, пока
-        // видна обложка.
+        // У сообщества — обложка под AppBar: он прозрачный, «назад» и
+        // «Изменить» — «стёкла» поверх обложки, пока она видна.
         final onCover = community && _overCover;
+        final canEdit = chat != null && chat.canManage && chat.type != models.ChatType.private;
         return Scaffold(
           backgroundColor: scheme.surfaceContainerLow,
           extendBodyBehindAppBar: community,
@@ -232,11 +233,29 @@ class _ChatInfoMaterialState extends State<ChatInfoMaterial> {
             foregroundColor: onCover ? Colors.white : null,
             scrolledUnderElevation: 0,
             systemOverlayStyle: onCover ? SystemUiOverlayStyle.light : null,
+            leading: onCover
+                ? Center(
+                    child: CoverGlassButton(
+                      label: MaterialLocalizations.of(context).backButtonTooltip,
+                      onTap: () => Navigator.of(context).maybePop(),
+                      child: const Icon(Icons.arrow_back),
+                    ),
+                  )
+                : null,
             // Обложка уехала — название сообщества в AppBar.
             title: community && !onCover ? Text(chat!.title) : null,
             // «Изменить» — админу группы / канала / сообщества.
             actions: [
-              if (chat != null && chat.canManage && chat.type != models.ChatType.private)
+              if (canEdit && onCover)
+                Padding(
+                  padding: const EdgeInsets.only(right: 12),
+                  child: CoverGlassButton(
+                    label: t.common.edit,
+                    onTap: () => showChatEditMaterial(context, chat),
+                    child: const HugeIcon(icon: HugeIcons.strokeRoundedPencilEdit02, color: Colors.white, size: 20),
+                  ),
+                )
+              else if (canEdit)
                 IconButton(
                   tooltip: t.common.edit,
                   onPressed: () => showChatEditMaterial(context, chat),
