@@ -1549,6 +1549,30 @@ class Translations$screenSettingsNotifications$en {
 	/// en: 'Missed calls'
 	String get missedCalls => 'Missed calls';
 
+	/// en: 'Reactions'
+	String get reactions => 'Reactions';
+
+	/// en: 'In private chats'
+	String get reactionsPrivate => 'In private chats';
+
+	/// en: 'In groups'
+	String get reactionsGroups => 'In groups';
+
+	/// en: 'Notify about reactions from'
+	String get reactionsFrom => 'Notify about reactions from';
+
+	/// en: 'From'
+	String get reactionsFromShort => 'From';
+
+	/// en: 'Everybody'
+	String get reactionsFromAll => 'Everybody';
+
+	/// en: 'My contacts'
+	String get reactionsFromContacts => 'My contacts';
+
+	/// en: 'Notifications about reactions to your messages. Reactions in channels are anonymous, so there are no notifications for them.'
+	String get reactionsNote => 'Notifications about reactions to your messages. Reactions in channels are anonymous, so there are no notifications for them.';
+
 	/// en: 'Show notifications'
 	String get showNotifications => 'Show notifications';
 
@@ -1830,6 +1854,12 @@ class Translations$screenChatInfo$en {
 
 	/// en: 'Available reactions'
 	String get reactionsPick => 'Available reactions';
+
+	/// en: 'Maximum reactions per post'
+	String get maxReactions => 'Maximum reactions per post';
+
+	/// en: 'How many different reactions a post can have, including already published posts. Once the limit is reached, only reactions already on the post can be added.'
+	String get maxReactionsFooter => 'How many different reactions a post can have, including already published posts. Once the limit is reached, only reactions already on the post can be added.';
 
 	/// en: 'Slow mode'
 	String get slowMode => 'Slow mode';
@@ -3542,6 +3572,14 @@ extension on Translations {
 			'screenSettingsNotifications.events' => 'Events',
 			'screenSettingsNotifications.contactJoined' => 'Contact joined Iperon',
 			'screenSettingsNotifications.missedCalls' => 'Missed calls',
+			'screenSettingsNotifications.reactions' => 'Reactions',
+			'screenSettingsNotifications.reactionsPrivate' => 'In private chats',
+			'screenSettingsNotifications.reactionsGroups' => 'In groups',
+			'screenSettingsNotifications.reactionsFrom' => 'Notify about reactions from',
+			'screenSettingsNotifications.reactionsFromShort' => 'From',
+			'screenSettingsNotifications.reactionsFromAll' => 'Everybody',
+			'screenSettingsNotifications.reactionsFromContacts' => 'My contacts',
+			'screenSettingsNotifications.reactionsNote' => 'Notifications about reactions to your messages. Reactions in channels are anonymous, so there are no notifications for them.',
 			'screenSettingsNotifications.showNotifications' => 'Show notifications',
 			'screenSettingsNotifications.messagePreview' => 'Message preview',
 			'screenSettingsNotifications.sound' => 'Sound',
@@ -3604,6 +3642,8 @@ extension on Translations {
 			'screenChatInfo.roleAdmin' => 'admin',
 			'screenChatInfo.roleReader' => 'read only',
 			'screenChatInfo.you' => 'You',
+			_ => null,
+		} ?? switch (path) {
 			'screenChatInfo.addMembers' => 'Add Members',
 			'screenChatInfo.add' => 'Add',
 			'screenChatInfo.sendMessage' => 'Send Message',
@@ -3612,8 +3652,6 @@ extension on Translations {
 			'screenChatInfo.removeMember' => 'Remove',
 			'screenChatInfo.removeMemberTitle' => ({required Object name}) => 'Remove ${name}?',
 			'screenChatInfo.removeMemberMessage' => 'They can come back via an invite link.',
-			_ => null,
-		} ?? switch (path) {
 			'screenChatInfo.banMember' => 'Ban',
 			'screenChatInfo.banMemberTitle' => ({required Object name}) => 'Ban ${name}?',
 			'screenChatInfo.banMemberMessage' => 'They will be removed and won\'t be able to come back via invite links until unbanned.',
@@ -3629,6 +3667,8 @@ extension on Translations {
 			'screenChatInfo.reactionsNoneShort' => 'Off',
 			'screenChatInfo.reactionsFooter' => 'Which reactions members can add to messages. Existing reactions stay.',
 			'screenChatInfo.reactionsPick' => 'Available reactions',
+			'screenChatInfo.maxReactions' => 'Maximum reactions per post',
+			'screenChatInfo.maxReactionsFooter' => 'How many different reactions a post can have, including already published posts. Once the limit is reached, only reactions already on the post can be added.',
 			'screenChatInfo.slowMode' => 'Slow mode',
 			'screenChatInfo.slowModeOff' => 'Off',
 			'screenChatInfo.slowModeSeconds' => ({required Object n}) => '${n}s',

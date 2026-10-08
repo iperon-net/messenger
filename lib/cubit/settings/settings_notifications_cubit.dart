@@ -84,6 +84,8 @@ class SettingsNotificationsCubit extends Cubit<SettingsNotificationsState> {
         channels: _scopeFromProto(response.channels),
         contactJoined: response.contactJoined,
         missedCalls: response.missedCalls,
+        // Старый кэш / сервер без поля — дефолт, а не «всё выключено».
+        reactions: response.hasReactions() ? _reactionsFromProto(response.reactions) : const NotifyReactionsSettings(),
         loadError: false,
         readOnly: false,
       ),
@@ -100,6 +102,7 @@ class SettingsNotificationsCubit extends Cubit<SettingsNotificationsState> {
         channels: _scopeToProto(state.channels),
         contactJoined: state.contactJoined,
         missedCalls: state.missedCalls,
+        reactions: _reactionsToProto(state.reactions),
       );
       await repositories.notifySettings.upsert(userID: auth.session.userID, payload: response.writeToBuffer());
     } catch (error, stackTrace) {
@@ -141,6 +144,15 @@ class SettingsNotificationsCubit extends Cubit<SettingsNotificationsState> {
     final ok = await _update(pb.NotifySettingsUpdate_Request(missedCalls: enabled), 'missed calls');
     if (!ok) return false;
     if (!isClosed) emit(state.copyWith(missedCalls: enabled));
+    await _persistFromState();
+    return true;
+  }
+
+  /// Уведомления о реакциях. `false` — не применилось (offline/ошибка).
+  Future<bool> setReactions(NotifyReactionsSettings settings) async {
+    final ok = await _update(pb.NotifySettingsUpdate_Request(reactions: _reactionsToProto(settings)), 'reactions');
+    if (!ok) return false;
+    if (!isClosed) emit(state.copyWith(reactions: settings));
     await _persistFromState();
     return true;
   }
@@ -193,6 +205,20 @@ class SettingsNotificationsCubit extends Cubit<SettingsNotificationsState> {
 
   static pb.NotifySettings_ScopeSettings _scopeToProto(NotifyScopeSettings settings) =>
       pb.NotifySettings_ScopeSettings(enabled: settings.enabled, showPreviews: settings.showPreviews, sound: settings.sound);
+
+  static NotifyReactionsSettings _reactionsFromProto(pb.NotifySettings_ReactionsSettings settings) => NotifyReactionsSettings(
+    privateChats: settings.privateChats,
+    groups: settings.groups,
+    fromContacts: settings.from == pb.NotifySettings_ReactionsFrom.REACTIONS_FROM_CONTACTS,
+  );
+
+  static pb.NotifySettings_ReactionsSettings _reactionsToProto(NotifyReactionsSettings settings) => pb.NotifySettings_ReactionsSettings(
+    privateChats: settings.privateChats,
+    groups: settings.groups,
+    from: settings.fromContacts
+        ? pb.NotifySettings_ReactionsFrom.REACTIONS_FROM_CONTACTS
+        : pb.NotifySettings_ReactionsFrom.REACTIONS_FROM_ALL,
+  );
 
   static pb.NotifySettings_Scope _scopeKindToProto(NotifyScope scope) => switch (scope) {
     NotifyScope.privateChats => pb.NotifySettings_Scope.PRIVATE,

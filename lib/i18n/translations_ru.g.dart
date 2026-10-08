@@ -680,6 +680,14 @@ class _Translations$screenSettingsNotifications$ru extends Translations$screenSe
 	@override String get events => 'События';
 	@override String get contactJoined => 'Контакт присоединился к Iperon';
 	@override String get missedCalls => 'Пропущенные звонки';
+	@override String get reactions => 'Реакции';
+	@override String get reactionsPrivate => 'В личных чатах';
+	@override String get reactionsGroups => 'В группах';
+	@override String get reactionsFrom => 'Уведомлять о реакциях от';
+	@override String get reactionsFromShort => 'От кого';
+	@override String get reactionsFromAll => 'Всех';
+	@override String get reactionsFromContacts => 'Моих контактов';
+	@override String get reactionsNote => 'Уведомления о реакциях на ваши сообщения. В каналах реакции анонимные — о них не уведомляем.';
 	@override String get showNotifications => 'Показывать уведомления';
 	@override String get messagePreview => 'Предпросмотр сообщений';
 	@override String get sound => 'Звук';
@@ -792,6 +800,8 @@ class _Translations$screenChatInfo$ru extends Translations$screenChatInfo$en {
 	@override String get reactionsNoneShort => 'Выкл.';
 	@override String get reactionsFooter => 'Какие реакции участники могут ставить на сообщения. Уже поставленные реакции останутся.';
 	@override String get reactionsPick => 'Разрешённые реакции';
+	@override String get maxReactions => 'Максимум реакций под постом';
+	@override String get maxReactionsFooter => 'Сколько разных реакций может быть под одним постом, в том числе под уже опубликованными. Когда лимит набран, можно ставить только те реакции, что уже есть под постом.';
 	@override String get slowMode => 'Медленный режим';
 	@override String get slowModeOff => 'Выкл.';
 	@override String slowModeSeconds({required Object n}) => '${n} с';
@@ -1801,6 +1811,14 @@ extension on TranslationsRu {
 			'screenSettingsNotifications.events' => 'События',
 			'screenSettingsNotifications.contactJoined' => 'Контакт присоединился к Iperon',
 			'screenSettingsNotifications.missedCalls' => 'Пропущенные звонки',
+			'screenSettingsNotifications.reactions' => 'Реакции',
+			'screenSettingsNotifications.reactionsPrivate' => 'В личных чатах',
+			'screenSettingsNotifications.reactionsGroups' => 'В группах',
+			'screenSettingsNotifications.reactionsFrom' => 'Уведомлять о реакциях от',
+			'screenSettingsNotifications.reactionsFromShort' => 'От кого',
+			'screenSettingsNotifications.reactionsFromAll' => 'Всех',
+			'screenSettingsNotifications.reactionsFromContacts' => 'Моих контактов',
+			'screenSettingsNotifications.reactionsNote' => 'Уведомления о реакциях на ваши сообщения. В каналах реакции анонимные — о них не уведомляем.',
 			'screenSettingsNotifications.showNotifications' => 'Показывать уведомления',
 			'screenSettingsNotifications.messagePreview' => 'Предпросмотр сообщений',
 			'screenSettingsNotifications.sound' => 'Звук',
@@ -1863,6 +1881,8 @@ extension on TranslationsRu {
 			'screenChatInfo.roleAdmin' => 'админ',
 			'screenChatInfo.roleReader' => 'только чтение',
 			'screenChatInfo.you' => 'Вы',
+			_ => null,
+		} ?? switch (path) {
 			'screenChatInfo.addMembers' => 'Добавить участников',
 			'screenChatInfo.add' => 'Добавить',
 			'screenChatInfo.sendMessage' => 'Написать сообщение',
@@ -1871,8 +1891,6 @@ extension on TranslationsRu {
 			'screenChatInfo.removeMember' => 'Исключить',
 			'screenChatInfo.removeMemberTitle' => ({required Object name}) => 'Исключить ${name}?',
 			'screenChatInfo.removeMemberMessage' => 'Вернуться можно будет по ссылке-приглашению.',
-			_ => null,
-		} ?? switch (path) {
 			'screenChatInfo.banMember' => 'Заблокировать',
 			'screenChatInfo.banMemberTitle' => ({required Object name}) => 'Заблокировать ${name}?',
 			'screenChatInfo.banMemberMessage' => 'Участник будет исключён и не сможет вернуться по ссылкам-приглашениям, пока его не разблокируют.',
@@ -1888,6 +1906,8 @@ extension on TranslationsRu {
 			'screenChatInfo.reactionsNoneShort' => 'Выкл.',
 			'screenChatInfo.reactionsFooter' => 'Какие реакции участники могут ставить на сообщения. Уже поставленные реакции останутся.',
 			'screenChatInfo.reactionsPick' => 'Разрешённые реакции',
+			'screenChatInfo.maxReactions' => 'Максимум реакций под постом',
+			'screenChatInfo.maxReactionsFooter' => 'Сколько разных реакций может быть под одним постом, в том числе под уже опубликованными. Когда лимит набран, можно ставить только те реакции, что уже есть под постом.',
 			'screenChatInfo.slowMode' => 'Медленный режим',
 			'screenChatInfo.slowModeOff' => 'Выкл.',
 			'screenChatInfo.slowModeSeconds' => ({required Object n}) => '${n} с',

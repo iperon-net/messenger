@@ -627,7 +627,7 @@ class _ChatCupertinoState extends State<ChatCupertino> {
   List<Widget> _menuActions(BuildContext context, models.Chat chat, models.Message message) {
     final t = context.t.screenChat;
     final canWrite = chat.canPost;
-    final reactions = availableReactions(chat);
+    final reactions = availableReactions(chat, message: message);
 
     // Меню — маршрут корневого навигатора: сначала закрываем его, потом
     // действие (иначе превью «мигнёт» уже изменённым пузырём).

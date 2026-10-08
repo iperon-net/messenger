@@ -164,6 +164,166 @@ class _NotifyScopeSettingsCopyWithImpl<$R, $Out>
       _NotifyScopeSettingsCopyWithImpl<$R2, $Out2>($value, $cast, t);
 }
 
+class NotifyReactionsSettingsMapper
+    extends ClassMapperBase<NotifyReactionsSettings> {
+  NotifyReactionsSettingsMapper._();
+
+  static NotifyReactionsSettingsMapper? _instance;
+  static NotifyReactionsSettingsMapper ensureInitialized() {
+    if (_instance == null) {
+      MapperContainer.globals.use(
+        _instance = NotifyReactionsSettingsMapper._(),
+      );
+    }
+    return _instance!;
+  }
+
+  @override
+  final String id = 'NotifyReactionsSettings';
+
+  static bool _$privateChats(NotifyReactionsSettings v) => v.privateChats;
+  static const Field<NotifyReactionsSettings, bool> _f$privateChats = Field(
+    'privateChats',
+    _$privateChats,
+    opt: true,
+    def: true,
+  );
+  static bool _$groups(NotifyReactionsSettings v) => v.groups;
+  static const Field<NotifyReactionsSettings, bool> _f$groups = Field(
+    'groups',
+    _$groups,
+    opt: true,
+    def: true,
+  );
+  static bool _$fromContacts(NotifyReactionsSettings v) => v.fromContacts;
+  static const Field<NotifyReactionsSettings, bool> _f$fromContacts = Field(
+    'fromContacts',
+    _$fromContacts,
+    opt: true,
+    def: false,
+  );
+
+  @override
+  final MappableFields<NotifyReactionsSettings> fields = const {
+    #privateChats: _f$privateChats,
+    #groups: _f$groups,
+    #fromContacts: _f$fromContacts,
+  };
+
+  static NotifyReactionsSettings _instantiate(DecodingData data) {
+    return NotifyReactionsSettings(
+      privateChats: data.dec(_f$privateChats),
+      groups: data.dec(_f$groups),
+      fromContacts: data.dec(_f$fromContacts),
+    );
+  }
+
+  @override
+  final Function instantiate = _instantiate;
+
+  static NotifyReactionsSettings fromMap(Map<String, dynamic> map) {
+    return ensureInitialized().decodeMap<NotifyReactionsSettings>(map);
+  }
+
+  static NotifyReactionsSettings fromJson(String json) {
+    return ensureInitialized().decodeJson<NotifyReactionsSettings>(json);
+  }
+}
+
+mixin NotifyReactionsSettingsMappable {
+  String toJson() {
+    return NotifyReactionsSettingsMapper.ensureInitialized()
+        .encodeJson<NotifyReactionsSettings>(this as NotifyReactionsSettings);
+  }
+
+  Map<String, dynamic> toMap() {
+    return NotifyReactionsSettingsMapper.ensureInitialized()
+        .encodeMap<NotifyReactionsSettings>(this as NotifyReactionsSettings);
+  }
+
+  NotifyReactionsSettingsCopyWith<
+    NotifyReactionsSettings,
+    NotifyReactionsSettings,
+    NotifyReactionsSettings
+  >
+  get copyWith =>
+      _NotifyReactionsSettingsCopyWithImpl<
+        NotifyReactionsSettings,
+        NotifyReactionsSettings
+      >(this as NotifyReactionsSettings, $identity, $identity);
+  @override
+  String toString() {
+    return NotifyReactionsSettingsMapper.ensureInitialized().stringifyValue(
+      this as NotifyReactionsSettings,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return NotifyReactionsSettingsMapper.ensureInitialized().equalsValue(
+      this as NotifyReactionsSettings,
+      other,
+    );
+  }
+
+  @override
+  int get hashCode {
+    return NotifyReactionsSettingsMapper.ensureInitialized().hashValue(
+      this as NotifyReactionsSettings,
+    );
+  }
+}
+
+extension NotifyReactionsSettingsValueCopy<$R, $Out>
+    on ObjectCopyWith<$R, NotifyReactionsSettings, $Out> {
+  NotifyReactionsSettingsCopyWith<$R, NotifyReactionsSettings, $Out>
+  get $asNotifyReactionsSettings => $base.as(
+    (v, t, t2) => _NotifyReactionsSettingsCopyWithImpl<$R, $Out>(v, t, t2),
+  );
+}
+
+abstract class NotifyReactionsSettingsCopyWith<
+  $R,
+  $In extends NotifyReactionsSettings,
+  $Out
+>
+    implements ClassCopyWith<$R, $In, $Out> {
+  $R call({bool? privateChats, bool? groups, bool? fromContacts});
+  NotifyReactionsSettingsCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
+    Then<$Out2, $R2> t,
+  );
+}
+
+class _NotifyReactionsSettingsCopyWithImpl<$R, $Out>
+    extends ClassCopyWithBase<$R, NotifyReactionsSettings, $Out>
+    implements
+        NotifyReactionsSettingsCopyWith<$R, NotifyReactionsSettings, $Out> {
+  _NotifyReactionsSettingsCopyWithImpl(super.value, super.then, super.then2);
+
+  @override
+  late final ClassMapperBase<NotifyReactionsSettings> $mapper =
+      NotifyReactionsSettingsMapper.ensureInitialized();
+  @override
+  $R call({bool? privateChats, bool? groups, bool? fromContacts}) => $apply(
+    FieldCopyWithData({
+      if (privateChats != null) #privateChats: privateChats,
+      if (groups != null) #groups: groups,
+      if (fromContacts != null) #fromContacts: fromContacts,
+    }),
+  );
+  @override
+  NotifyReactionsSettings $make(CopyWithData data) => NotifyReactionsSettings(
+    privateChats: data.get(#privateChats, or: $value.privateChats),
+    groups: data.get(#groups, or: $value.groups),
+    fromContacts: data.get(#fromContacts, or: $value.fromContacts),
+  );
+
+  @override
+  NotifyReactionsSettingsCopyWith<$R2, NotifyReactionsSettings, $Out2>
+  $chain<$R2, $Out2>(Then<$Out2, $R2> t) =>
+      _NotifyReactionsSettingsCopyWithImpl<$R2, $Out2>($value, $cast, t);
+}
+
 class SettingsNotificationsStateMapper
     extends ClassMapperBase<SettingsNotificationsState> {
   SettingsNotificationsStateMapper._();
@@ -175,6 +335,7 @@ class SettingsNotificationsStateMapper
         _instance = SettingsNotificationsStateMapper._(),
       );
       NotifyScopeSettingsMapper.ensureInitialized();
+      NotifyReactionsSettingsMapper.ensureInitialized();
     }
     return _instance!;
   }
@@ -243,6 +404,15 @@ class SettingsNotificationsStateMapper
     opt: true,
     def: true,
   );
+  static NotifyReactionsSettings _$reactions(SettingsNotificationsState v) =>
+      v.reactions;
+  static const Field<SettingsNotificationsState, NotifyReactionsSettings>
+  _f$reactions = Field(
+    'reactions',
+    _$reactions,
+    opt: true,
+    def: const NotifyReactionsSettings(),
+  );
   static bool _$permissionMissing(SettingsNotificationsState v) =>
       v.permissionMissing;
   static const Field<SettingsNotificationsState, bool> _f$permissionMissing =
@@ -258,6 +428,7 @@ class SettingsNotificationsStateMapper
     #channels: _f$channels,
     #contactJoined: _f$contactJoined,
     #missedCalls: _f$missedCalls,
+    #reactions: _f$reactions,
     #permissionMissing: _f$permissionMissing,
   };
 
@@ -271,6 +442,7 @@ class SettingsNotificationsStateMapper
       channels: data.dec(_f$channels),
       contactJoined: data.dec(_f$contactJoined),
       missedCalls: data.dec(_f$missedCalls),
+      reactions: data.dec(_f$reactions),
       permissionMissing: data.dec(_f$permissionMissing),
     );
   }
@@ -355,6 +527,12 @@ abstract class SettingsNotificationsStateCopyWith<
   get groups;
   NotifyScopeSettingsCopyWith<$R, NotifyScopeSettings, NotifyScopeSettings>
   get channels;
+  NotifyReactionsSettingsCopyWith<
+    $R,
+    NotifyReactionsSettings,
+    NotifyReactionsSettings
+  >
+  get reactions;
   $R call({
     Status? status,
     bool? loadError,
@@ -364,6 +542,7 @@ abstract class SettingsNotificationsStateCopyWith<
     NotifyScopeSettings? channels,
     bool? contactJoined,
     bool? missedCalls,
+    NotifyReactionsSettings? reactions,
     bool? permissionMissing,
   });
   SettingsNotificationsStateCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
@@ -395,6 +574,13 @@ class _SettingsNotificationsStateCopyWithImpl<$R, $Out>
   NotifyScopeSettingsCopyWith<$R, NotifyScopeSettings, NotifyScopeSettings>
   get channels => $value.channels.copyWith.$chain((v) => call(channels: v));
   @override
+  NotifyReactionsSettingsCopyWith<
+    $R,
+    NotifyReactionsSettings,
+    NotifyReactionsSettings
+  >
+  get reactions => $value.reactions.copyWith.$chain((v) => call(reactions: v));
+  @override
   $R call({
     Status? status,
     bool? loadError,
@@ -404,6 +590,7 @@ class _SettingsNotificationsStateCopyWithImpl<$R, $Out>
     NotifyScopeSettings? channels,
     bool? contactJoined,
     bool? missedCalls,
+    NotifyReactionsSettings? reactions,
     bool? permissionMissing,
   }) => $apply(
     FieldCopyWithData({
@@ -415,6 +602,7 @@ class _SettingsNotificationsStateCopyWithImpl<$R, $Out>
       if (channels != null) #channels: channels,
       if (contactJoined != null) #contactJoined: contactJoined,
       if (missedCalls != null) #missedCalls: missedCalls,
+      if (reactions != null) #reactions: reactions,
       if (permissionMissing != null) #permissionMissing: permissionMissing,
     }),
   );
@@ -429,6 +617,7 @@ class _SettingsNotificationsStateCopyWithImpl<$R, $Out>
         channels: data.get(#channels, or: $value.channels),
         contactJoined: data.get(#contactJoined, or: $value.contactJoined),
         missedCalls: data.get(#missedCalls, or: $value.missedCalls),
+        reactions: data.get(#reactions, or: $value.reactions),
         permissionMissing: data.get(
           #permissionMissing,
           or: $value.permissionMissing,

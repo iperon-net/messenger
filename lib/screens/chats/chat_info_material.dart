@@ -552,10 +552,79 @@ class ChatReactionsSettingsMaterial extends StatelessWidget {
                   ),
                 ),
               ],
+              if (chat?.type == models.ChatType.channel && mode != models.ChatReactionsMode.none) ...[
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 20, 24, 6),
+                  child: Text(
+                    t.maxReactions,
+                    style: TextStyle(color: scheme.primary, fontWeight: FontWeight.w600),
+                  ),
+                ),
+                Card(
+                  margin: const EdgeInsets.symmetric(horizontal: 12),
+                  color: card,
+                  child: _MaxReactionsSlider(
+                    value: chat!.maxReactions,
+                    onChanged: (value) => cubit.setChatReactions(mode, selected, maxReactions: value),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 8, 24, 0),
+                  child: Text(t.maxReactionsFooter, style: TextStyle(fontSize: 13, color: scheme.onSurfaceVariant)),
+                ),
+              ],
             ],
           ),
         );
       },
+    );
+  }
+}
+
+/// Ползунок «Максимум реакций под постом» (1–11, с делениями и значением над
+/// бегунком); сохраняется, когда палец отпущен.
+class _MaxReactionsSlider extends StatefulWidget {
+  final int value;
+  final ValueChanged<int> onChanged;
+
+  const _MaxReactionsSlider({required this.value, required this.onChanged});
+
+  @override
+  State<_MaxReactionsSlider> createState() => _MaxReactionsSliderState();
+}
+
+class _MaxReactionsSliderState extends State<_MaxReactionsSlider> {
+  late double _value = widget.value.toDouble();
+
+  @override
+  void didUpdateWidget(_MaxReactionsSlider oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.value != widget.value) _value = widget.value.toDouble();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(4, 8, 16, 8),
+      child: Row(
+        children: [
+          Expanded(
+            child: Slider(
+              value: _value,
+              min: 1,
+              max: maxReactionsPerPost.toDouble(),
+              divisions: maxReactionsPerPost - 1,
+              label: '${_value.round()}',
+              onChanged: (value) => setState(() => _value = value),
+              onChangeEnd: (value) => widget.onChanged(value.round()),
+            ),
+          ),
+          SizedBox(
+            width: 28,
+            child: Text('${_value.round()}', textAlign: TextAlign.end, style: Theme.of(context).textTheme.titleMedium),
+          ),
+        ],
+      ),
     );
   }
 }

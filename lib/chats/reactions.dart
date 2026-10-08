@@ -30,20 +30,31 @@ const allChatReactions = [
 /// «Настройки → Оформление → Быстрая реакция» (`settingsDevice.quickReaction`).
 const defaultQuickReaction = '❤️';
 
-/// Какие реакции можно поставить в [chat].
-List<String> availableReactions(models.Chat chat) {
+/// Канал: сколько разных реакций может быть под постом (настраивает админ,
+/// `Chat.maxReactions`, 1–[maxReactionsPerPost]).
+const maxReactionsPerPost = 11;
+
+/// Какие реакции можно поставить в [chat]; с [message] — ещё и с учётом
+/// лимита разных реакций под постом канала: набран — только уже стоящие.
+List<String> availableReactions(models.Chat chat, {models.Message? message}) {
   if (chat.type == models.ChatType.private) return privateChatReactions;
-  return switch (chat.reactionsMode) {
+  final allowed = switch (chat.reactionsMode) {
     models.ChatReactionsMode.all => allChatReactions,
     models.ChatReactionsMode.some => chat.reactions,
-    models.ChatReactionsMode.none => const [],
+    models.ChatReactionsMode.none => const <String>[],
   };
+  if (message == null || chat.type != models.ChatType.channel || message.reactions.length < chat.maxReactions) return allowed;
+  final present = {for (final r in message.reactions) r.emoji};
+  return [
+    for (final e in allowed)
+      if (present.contains(e)) e,
+  ];
 }
 
-/// Двойной тап: быстрая реакция [preferred], если она разрешена в чате, иначе
-/// первая доступная.
-String? quickReaction(models.Chat chat, {String preferred = defaultQuickReaction}) {
-  final available = availableReactions(chat);
+/// Двойной тап: быстрая реакция [preferred], если она разрешена в чате (и под
+/// [message]), иначе первая доступная.
+String? quickReaction(models.Chat chat, {models.Message? message, String preferred = defaultQuickReaction}) {
+  final available = availableReactions(chat, message: message);
   if (available.isEmpty) return null;
   return available.contains(preferred) ? preferred : available.first;
 }

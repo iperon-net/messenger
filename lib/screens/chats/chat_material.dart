@@ -578,7 +578,7 @@ class _ChatMaterialState extends State<ChatMaterial> {
     final t = context.t.screenChat;
     final canWrite = chat.canPost;
     final error = Theme.of(context).colorScheme.error;
-    final reactions = availableReactions(chat);
+    final reactions = availableReactions(chat, message: message);
     final action = await showModalBottomSheet<String>(
       context: context,
       showDragHandle: true,

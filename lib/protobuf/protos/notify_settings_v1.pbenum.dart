@@ -32,4 +32,22 @@ class NotifySettings_Scope extends $pb.ProtobufEnum {
   const NotifySettings_Scope._(super.value, super.name);
 }
 
+/// От кого уведомлять о реакциях на мои сообщения.
+class NotifySettings_ReactionsFrom extends $pb.ProtobufEnum {
+  static const NotifySettings_ReactionsFrom REACTIONS_FROM_ALL =
+      NotifySettings_ReactionsFrom._(0, _omitEnumNames ? '' : 'REACTIONS_FROM_ALL');
+  static const NotifySettings_ReactionsFrom REACTIONS_FROM_CONTACTS =
+      NotifySettings_ReactionsFrom._(1, _omitEnumNames ? '' : 'REACTIONS_FROM_CONTACTS');
+
+  static const $core.List<NotifySettings_ReactionsFrom> values = <NotifySettings_ReactionsFrom>[
+    REACTIONS_FROM_ALL,
+    REACTIONS_FROM_CONTACTS,
+  ];
+
+  static final $core.List<NotifySettings_ReactionsFrom?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 1);
+  static NotifySettings_ReactionsFrom? valueOf($core.int value) => value < 0 || value >= _byValue.length ? null : _byValue[value];
+
+  const NotifySettings_ReactionsFrom._(super.value, super.name);
+}
+
 const $core.bool _omitEnumNames = $core.bool.fromEnvironment('protobuf.omit_enum_names');

@@ -575,11 +575,78 @@ class ChatReactionsSettingsCupertino extends StatelessWidget {
                       ),
                     ],
                   ),
+                if (chat?.type == models.ChatType.channel && mode != models.ChatReactionsMode.none)
+                  CupertinoListSection.insetGrouped(
+                    backgroundColor: background,
+                    decoration: BoxDecoration(color: card, borderRadius: const BorderRadius.all(Radius.circular(10))),
+                    header: createHeaderCupertino(t.maxReactions),
+                    footer: createNoteCupertino(t.maxReactionsFooter),
+                    children: [
+                      _MaxReactionsSlider(
+                        value: chat!.maxReactions,
+                        onChanged: (value) => cubit.setChatReactions(mode, selected, maxReactions: value),
+                      ),
+                    ],
+                  ),
               ],
             ),
           ),
         );
       },
+    );
+  }
+}
+
+/// Ползунок «Максимум реакций под постом» (1–11): значение справа меняется
+/// на ходу, сохраняется, когда палец отпущен.
+class _MaxReactionsSlider extends StatefulWidget {
+  final int value;
+  final ValueChanged<int> onChanged;
+
+  const _MaxReactionsSlider({required this.value, required this.onChanged});
+
+  @override
+  State<_MaxReactionsSlider> createState() => _MaxReactionsSliderState();
+}
+
+class _MaxReactionsSliderState extends State<_MaxReactionsSlider> {
+  late double _value = widget.value.toDouble();
+
+  @override
+  void didUpdateWidget(_MaxReactionsSlider oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.value != widget.value) _value = widget.value.toDouble();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+      child: Row(
+        children: [
+          Expanded(
+            child: CupertinoSlider(
+              value: _value,
+              min: 1,
+              max: maxReactionsPerPost.toDouble(),
+              divisions: maxReactionsPerPost - 1,
+              onChanged: (value) {
+                if (value.round() != _value.round()) HapticFeedback.selectionClick();
+                setState(() => _value = value);
+              },
+              onChangeEnd: (value) => widget.onChanged(value.round()),
+            ),
+          ),
+          SizedBox(
+            width: 32,
+            child: Text(
+              '${_value.round()}',
+              textAlign: TextAlign.end,
+              style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600, color: CupertinoColors.label.resolveFrom(context)),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

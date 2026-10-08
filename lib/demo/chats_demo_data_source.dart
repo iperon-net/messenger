@@ -80,8 +80,8 @@ class ChatsDemoDataSource implements ChatsDataSource {
   }
 
   @override
-  Future<void> setChatReactions(String chatID, models.ChatReactionsMode mode, List<String> reactions) async =>
-      _update(chatID, (c) => c.copyWith(reactionsMode: mode, reactions: reactions));
+  Future<void> setChatReactions(String chatID, models.ChatReactionsMode mode, List<String> reactions, {int? maxReactions}) async =>
+      _update(chatID, (c) => c.copyWith(reactionsMode: mode, reactions: reactions, maxReactions: maxReactions ?? c.maxReactions));
 
   @override
   Future<void> setSlowMode(String chatID, int seconds) async => _update(chatID, (c) => c.copyWith(slowMode: seconds));
@@ -910,6 +910,8 @@ class ChatsDemoDataSource implements ChatsDataSource {
         username: 'flutter_dev',
         membersCount: 52300,
         myRole: models.ChatRole.reader,
+        // Под постом не больше 3 разных реакций — набрано, новые не поставить.
+        maxReactions: 3,
       ),
       'tech' => chat.copyWith(
         about: 'Обзоры гаджетов и технологий.',

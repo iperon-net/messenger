@@ -1117,6 +1117,13 @@ class ChatMapper extends ClassMapperBase<Chat> {
     opt: true,
     def: const [],
   );
+  static int _$maxReactions(Chat v) => v.maxReactions;
+  static const Field<Chat, int> _f$maxReactions = Field(
+    'maxReactions',
+    _$maxReactions,
+    opt: true,
+    def: 11,
+  );
   static int _$slowMode(Chat v) => v.slowMode;
   static const Field<Chat, int> _f$slowMode = Field(
     'slowMode',
@@ -1281,6 +1288,7 @@ class ChatMapper extends ClassMapperBase<Chat> {
     #typing: _f$typing,
     #reactionsMode: _f$reactionsMode,
     #reactions: _f$reactions,
+    #maxReactions: _f$maxReactions,
     #slowMode: _f$slowMode,
     #slowModeUntil: _f$slowModeUntil,
     #about: _f$about,
@@ -1323,6 +1331,7 @@ class ChatMapper extends ClassMapperBase<Chat> {
       typing: data.dec(_f$typing),
       reactionsMode: data.dec(_f$reactionsMode),
       reactions: data.dec(_f$reactions),
+      maxReactions: data.dec(_f$maxReactions),
       slowMode: data.dec(_f$slowMode),
       slowModeUntil: data.dec(_f$slowModeUntil),
       about: data.dec(_f$about),
@@ -1414,6 +1423,7 @@ abstract class ChatCopyWith<$R, $In extends Chat, $Out>
     String? typing,
     ChatReactionsMode? reactionsMode,
     List<String>? reactions,
+    int? maxReactions,
     int? slowMode,
     DateTime? slowModeUntil,
     String? about,
@@ -1475,6 +1485,7 @@ class _ChatCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Chat, $Out>
     String? typing,
     ChatReactionsMode? reactionsMode,
     List<String>? reactions,
+    int? maxReactions,
     int? slowMode,
     Object? slowModeUntil = $none,
     String? about,
@@ -1515,6 +1526,7 @@ class _ChatCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Chat, $Out>
       if (typing != null) #typing: typing,
       if (reactionsMode != null) #reactionsMode: reactionsMode,
       if (reactions != null) #reactions: reactions,
+      if (maxReactions != null) #maxReactions: maxReactions,
       if (slowMode != null) #slowMode: slowMode,
       if (slowModeUntil != $none) #slowModeUntil: slowModeUntil,
       if (about != null) #about: about,
@@ -1557,6 +1569,7 @@ class _ChatCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Chat, $Out>
     typing: data.get(#typing, or: $value.typing),
     reactionsMode: data.get(#reactionsMode, or: $value.reactionsMode),
     reactions: data.get(#reactions, or: $value.reactions),
+    maxReactions: data.get(#maxReactions, or: $value.maxReactions),
     slowMode: data.get(#slowMode, or: $value.slowMode),
     slowModeUntil: data.get(#slowModeUntil, or: $value.slowModeUntil),
     about: data.get(#about, or: $value.about),

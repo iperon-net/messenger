@@ -23,6 +23,19 @@ class NotifyScopeSettings with NotifyScopeSettingsMappable {
   const NotifyScopeSettings({this.enabled = true, this.showPreviews = true, this.sound = true});
 }
 
+/// Уведомления о реакциях на мои сообщения (в каналах реакции анонимные — о
+/// них не уведомляем).
+@MappableClass()
+class NotifyReactionsSettings with NotifyReactionsSettingsMappable {
+  final bool privateChats;
+  final bool groups;
+
+  /// Только от контактов; `false` — от всех.
+  final bool fromContacts;
+
+  const NotifyReactionsSettings({this.privateChats = true, this.groups = true, this.fromContacts = false});
+}
+
 @MappableClass()
 class SettingsNotificationsState with SettingsNotificationsStateMappable {
   final Status status;
@@ -46,6 +59,9 @@ class SettingsNotificationsState with SettingsNotificationsStateMappable {
   /// «Пропущенный звонок».
   final bool missedCalls;
 
+  /// Реакции на мои сообщения.
+  final NotifyReactionsSettings reactions;
+
   /// Системное разрешение на уведомления не выдано — серверные настройки ничего
   /// не покажут, пока его не включить.
   final bool permissionMissing;
@@ -59,6 +75,7 @@ class SettingsNotificationsState with SettingsNotificationsStateMappable {
     this.channels = const NotifyScopeSettings(),
     this.contactJoined = true,
     this.missedCalls = true,
+    this.reactions = const NotifyReactionsSettings(),
     this.permissionMissing = false,
   });
 

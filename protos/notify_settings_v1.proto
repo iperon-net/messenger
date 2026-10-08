@@ -27,6 +27,20 @@ message NotifySettings {
     bool sound = 3;
   }
 
+  // От кого уведомлять о реакциях на мои сообщения.
+  enum ReactionsFrom {
+    REACTIONS_FROM_ALL = 0;
+    REACTIONS_FROM_CONTACTS = 1;
+  }
+
+  // Уведомления о реакциях на мои сообщения (как в Telegram). В каналах
+  // реакции анонимные — о них не уведомляем.
+  message ReactionsSettings {
+    bool private_chats = 1;
+    bool groups = 2;
+    ReactionsFrom from = 3;
+  }
+
   // Чтение текущих настроек (ответ — снимок; тот же снимок сервер рассылает
   // по стриму на устройства пользователя после каждого изменения).
   message Request {}
@@ -39,6 +53,9 @@ message NotifySettings {
     bool contact_joined = 4;
     // «Пропущенный звонок».
     bool missed_calls = 5;
+    // Реакции на мои сообщения; не пришло (старый кэш клиента) — дефолт:
+    // личные и группы включены, от всех.
+    ReactionsSettings reactions = 6;
   }
 }
 
@@ -55,6 +72,8 @@ message NotifySettingsUpdate {
       ScopeChange scope = 1;
       bool contact_joined = 2;
       bool missed_calls = 3;
+      // Настройка реакций целиком (как ScopeChange).
+      NotifySettings.ReactionsSettings reactions = 4;
     }
   }
 

@@ -154,8 +154,9 @@ abstract class ChatsDataSource {
   Future<void> transferOwnership(String chatID, String userID);
 
   /// Реакции группы/канала (профиль чата → «Реакции», админ): все /
-  /// выбранные [reactions] / никаких.
-  Future<void> setChatReactions(String chatID, models.ChatReactionsMode mode, List<String> reactions);
+  /// выбранные [reactions] / никаких; у канала — ещё [maxReactions] (сколько
+  /// разных под постом).
+  Future<void> setChatReactions(String chatID, models.ChatReactionsMode mode, List<String> reactions, {int? maxReactions});
 
   /// Медленный режим группы/сообщества (профиль чата → «Медленный режим»,
   /// админ): интервал в секундах, 0 — выключить.

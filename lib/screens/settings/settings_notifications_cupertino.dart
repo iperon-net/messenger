@@ -94,6 +94,50 @@ class _SettingsNotificationsCupertino extends State<SettingsNotificationsCuperti
     child: Text(text, style: TextStyle(fontSize: AppFontSizes.caption)),
   );
 
+  /// «Реакции»: в личных / в группах, ниже (если хоть что-то включено) — от
+  /// кого: всех / моих контактов.
+  List<Widget> _reactionsSections(BuildContext context, SettingsNotificationsState state) {
+    final t = context.t.screenSettingsNotifications;
+    final reactions = state.reactions;
+    void set(NotifyReactionsSettings value) => _apply(context, (cubit) => cubit.setReactions(value));
+    Widget fromTile(bool contacts, String title) => CupertinoListTile(
+      title: Text(title),
+      trailing: reactions.fromContacts == contacts
+          ? Icon(CupertinoIcons.checkmark_alt, color: CupertinoTheme.of(context).primaryColor)
+          : null,
+      onTap: state.readOnly || reactions.fromContacts == contacts ? null : () => set(reactions.copyWith(fromContacts: contacts)),
+    );
+    return [
+      _section(
+        context,
+        header: t.reactions,
+        footer: _note(t.reactionsNote),
+        children: [
+          CupertinoListTile(
+            title: Text(t.reactionsPrivate),
+            trailing: CupertinoSwitch(
+              value: reactions.privateChats,
+              onChanged: state.readOnly ? null : (value) => set(reactions.copyWith(privateChats: value)),
+            ),
+          ),
+          CupertinoListTile(
+            title: Text(t.reactionsGroups),
+            trailing: CupertinoSwitch(
+              value: reactions.groups,
+              onChanged: state.readOnly ? null : (value) => set(reactions.copyWith(groups: value)),
+            ),
+          ),
+        ],
+      ),
+      if (reactions.privateChats || reactions.groups)
+        _section(
+          context,
+          header: t.reactionsFrom,
+          children: [fromTile(false, t.reactionsFromAll), fromTile(true, t.reactionsFromContacts)],
+        ),
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<SettingsNotificationsCubit, SettingsNotificationsState>(
@@ -154,6 +198,8 @@ class _SettingsNotificationsCupertino extends State<SettingsNotificationsCuperti
                         ),
                     ],
                   ),
+                  // Реакции — пока только с демо чатов (настоящих чатов ещё нет).
+                  if (context.read<CommonCubit>().state.settingsDevice.chatsDemo) ..._reactionsSections(context, state),
                   _section(
                     context,
                     header: context.t.screenSettingsNotifications.events,

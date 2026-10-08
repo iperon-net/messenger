@@ -240,6 +240,10 @@ class Chat with ChatMappable {
   final ChatReactionsMode reactionsMode;
   final List<String> reactions;
 
+  /// Канал: сколько разных реакций может быть под постом (1–11, как в
+  /// Telegram); набрано — ставить можно только уже стоящие.
+  final int maxReactions;
+
   /// Медленный режим группы/сообщества: участник (не админ) отправляет не
   /// чаще одного сообщения за столько секунд; 0 — выключен.
   final int slowMode;
@@ -326,6 +330,7 @@ class Chat with ChatMappable {
     this.typing = '',
     this.reactionsMode = ChatReactionsMode.all,
     this.reactions = const [],
+    this.maxReactions = 11,
     this.slowMode = 0,
     this.slowModeUntil,
     this.about = '',

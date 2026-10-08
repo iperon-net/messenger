@@ -98,6 +98,82 @@ class NotifySettings_ScopeSettings extends $pb.GeneratedMessage {
   void clearSound() => $_clearField(3);
 }
 
+/// Уведомления о реакциях на мои сообщения (как в Telegram). В каналах
+/// реакции анонимные — о них не уведомляем.
+class NotifySettings_ReactionsSettings extends $pb.GeneratedMessage {
+  factory NotifySettings_ReactionsSettings({
+    $core.bool? privateChats,
+    $core.bool? groups,
+    NotifySettings_ReactionsFrom? from,
+  }) {
+    final result = create();
+    if (privateChats != null) result.privateChats = privateChats;
+    if (groups != null) result.groups = groups;
+    if (from != null) result.from = from;
+    return result;
+  }
+
+  NotifySettings_ReactionsSettings._();
+
+  factory NotifySettings_ReactionsSettings.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory NotifySettings_ReactionsSettings.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'NotifySettings.ReactionsSettings',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..aOB(1, _omitFieldNames ? '' : 'privateChats')
+    ..aOB(2, _omitFieldNames ? '' : 'groups')
+    ..aE<NotifySettings_ReactionsFrom>(3, _omitFieldNames ? '' : 'from', enumValues: NotifySettings_ReactionsFrom.values)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  NotifySettings_ReactionsSettings clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  NotifySettings_ReactionsSettings copyWith(void Function(NotifySettings_ReactionsSettings) updates) =>
+      super.copyWith((message) => updates(message as NotifySettings_ReactionsSettings)) as NotifySettings_ReactionsSettings;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static NotifySettings_ReactionsSettings create() => NotifySettings_ReactionsSettings._();
+  @$core.override
+  NotifySettings_ReactionsSettings createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static NotifySettings_ReactionsSettings getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<NotifySettings_ReactionsSettings>(create);
+  static NotifySettings_ReactionsSettings? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.bool get privateChats => $_getBF(0);
+  @$pb.TagNumber(1)
+  set privateChats($core.bool value) => $_setBool(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasPrivateChats() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearPrivateChats() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.bool get groups => $_getBF(1);
+  @$pb.TagNumber(2)
+  set groups($core.bool value) => $_setBool(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasGroups() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearGroups() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  NotifySettings_ReactionsFrom get from => $_getN(2);
+  @$pb.TagNumber(3)
+  set from(NotifySettings_ReactionsFrom value) => $_setField(3, value);
+  @$pb.TagNumber(3)
+  $core.bool hasFrom() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearFrom() => $_clearField(3);
+}
+
 /// Чтение текущих настроек (ответ — снимок; тот же снимок сервер рассылает
 /// по стриму на устройства пользователя после каждого изменения).
 class NotifySettings_Request extends $pb.GeneratedMessage {
@@ -139,6 +215,7 @@ class NotifySettings_Response extends $pb.GeneratedMessage {
     NotifySettings_ScopeSettings? channels,
     $core.bool? contactJoined,
     $core.bool? missedCalls,
+    NotifySettings_ReactionsSettings? reactions,
   }) {
     final result = create();
     if (privateChats != null) result.privateChats = privateChats;
@@ -146,6 +223,7 @@ class NotifySettings_Response extends $pb.GeneratedMessage {
     if (channels != null) result.channels = channels;
     if (contactJoined != null) result.contactJoined = contactJoined;
     if (missedCalls != null) result.missedCalls = missedCalls;
+    if (reactions != null) result.reactions = reactions;
     return result;
   }
 
@@ -163,6 +241,7 @@ class NotifySettings_Response extends $pb.GeneratedMessage {
     ..aOM<NotifySettings_ScopeSettings>(3, _omitFieldNames ? '' : 'channels', subBuilder: NotifySettings_ScopeSettings.create)
     ..aOB(4, _omitFieldNames ? '' : 'contactJoined')
     ..aOB(5, _omitFieldNames ? '' : 'missedCalls')
+    ..aOM<NotifySettings_ReactionsSettings>(6, _omitFieldNames ? '' : 'reactions', subBuilder: NotifySettings_ReactionsSettings.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -234,6 +313,19 @@ class NotifySettings_Response extends $pb.GeneratedMessage {
   $core.bool hasMissedCalls() => $_has(4);
   @$pb.TagNumber(5)
   void clearMissedCalls() => $_clearField(5);
+
+  /// Реакции на мои сообщения; не пришло (старый кэш клиента) — дефолт:
+  /// личные и группы включены, от всех.
+  @$pb.TagNumber(6)
+  NotifySettings_ReactionsSettings get reactions => $_getN(5);
+  @$pb.TagNumber(6)
+  set reactions(NotifySettings_ReactionsSettings value) => $_setField(6, value);
+  @$pb.TagNumber(6)
+  $core.bool hasReactions() => $_has(5);
+  @$pb.TagNumber(6)
+  void clearReactions() => $_clearField(6);
+  @$pb.TagNumber(6)
+  NotifySettings_ReactionsSettings ensureReactions() => $_ensure(5);
 }
 
 /// Настройки уведомлений пользователя — общие для всех его устройств (как
@@ -338,18 +430,20 @@ class NotifySettingsUpdate_ScopeChange extends $pb.GeneratedMessage {
   NotifySettings_ScopeSettings ensureSettings() => $_ensure(1);
 }
 
-enum NotifySettingsUpdate_Request_Change { scope, contactJoined, missedCalls, notSet }
+enum NotifySettingsUpdate_Request_Change { scope, contactJoined, missedCalls, reactions, notSet }
 
 class NotifySettingsUpdate_Request extends $pb.GeneratedMessage {
   factory NotifySettingsUpdate_Request({
     NotifySettingsUpdate_ScopeChange? scope,
     $core.bool? contactJoined,
     $core.bool? missedCalls,
+    NotifySettings_ReactionsSettings? reactions,
   }) {
     final result = create();
     if (scope != null) result.scope = scope;
     if (contactJoined != null) result.contactJoined = contactJoined;
     if (missedCalls != null) result.missedCalls = missedCalls;
+    if (reactions != null) result.reactions = reactions;
     return result;
   }
 
@@ -365,14 +459,16 @@ class NotifySettingsUpdate_Request extends $pb.GeneratedMessage {
     1: NotifySettingsUpdate_Request_Change.scope,
     2: NotifySettingsUpdate_Request_Change.contactJoined,
     3: NotifySettingsUpdate_Request_Change.missedCalls,
+    4: NotifySettingsUpdate_Request_Change.reactions,
     0: NotifySettingsUpdate_Request_Change.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'NotifySettingsUpdate.Request',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
-    ..oo(0, [1, 2, 3])
+    ..oo(0, [1, 2, 3, 4])
     ..aOM<NotifySettingsUpdate_ScopeChange>(1, _omitFieldNames ? '' : 'scope', subBuilder: NotifySettingsUpdate_ScopeChange.create)
     ..aOB(2, _omitFieldNames ? '' : 'contactJoined')
     ..aOB(3, _omitFieldNames ? '' : 'missedCalls')
+    ..aOM<NotifySettings_ReactionsSettings>(4, _omitFieldNames ? '' : 'reactions', subBuilder: NotifySettings_ReactionsSettings.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -396,10 +492,12 @@ class NotifySettingsUpdate_Request extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   @$pb.TagNumber(2)
   @$pb.TagNumber(3)
+  @$pb.TagNumber(4)
   NotifySettingsUpdate_Request_Change whichChange() => _NotifySettingsUpdate_Request_ChangeByTag[$_whichOneof(0)]!;
   @$pb.TagNumber(1)
   @$pb.TagNumber(2)
   @$pb.TagNumber(3)
+  @$pb.TagNumber(4)
   void clearChange() => $_clearField($_whichOneof(0));
 
   @$pb.TagNumber(1)
@@ -430,6 +528,18 @@ class NotifySettingsUpdate_Request extends $pb.GeneratedMessage {
   $core.bool hasMissedCalls() => $_has(2);
   @$pb.TagNumber(3)
   void clearMissedCalls() => $_clearField(3);
+
+  /// Настройка реакций целиком (как ScopeChange).
+  @$pb.TagNumber(4)
+  NotifySettings_ReactionsSettings get reactions => $_getN(3);
+  @$pb.TagNumber(4)
+  set reactions(NotifySettings_ReactionsSettings value) => $_setField(4, value);
+  @$pb.TagNumber(4)
+  $core.bool hasReactions() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearReactions() => $_clearField(4);
+  @$pb.TagNumber(4)
+  NotifySettings_ReactionsSettings ensureReactions() => $_ensure(3);
 }
 
 class NotifySettingsUpdate_Response extends $pb.GeneratedMessage {

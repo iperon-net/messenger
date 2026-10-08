@@ -205,14 +205,14 @@ class ChatCubit extends Cubit<ChatState> {
     final chat = state.chat;
     if (chat == null) return;
     final mine = message.myReactions;
-    if (!mine.contains(emoji) && !availableReactions(chat).contains(emoji)) return;
+    if (!mine.contains(emoji) && !availableReactions(chat, message: message).contains(emoji)) return;
     await _source?.setReactions(_chatID, message.id, toggleMyReaction(mine, emoji));
   }
 
   /// Двойной тап по сообщению — быстрая реакция [preferred] (из настроек).
   Future<void> quickReact(models.Message message, {String preferred = defaultQuickReaction}) async {
     final chat = state.chat;
-    final emoji = chat == null ? null : quickReaction(chat, preferred: preferred);
+    final emoji = chat == null ? null : quickReaction(chat, message: message, preferred: preferred);
     if (emoji != null) await toggleReaction(message, emoji);
   }
 
@@ -415,8 +415,8 @@ class ChatCubit extends Cubit<ChatState> {
   Future<String?> privateChatWith(models.ChatMember member) async => _source?.openPrivateChat(member.id);
 
   /// Профиль чата → «Реакции» (админ).
-  Future<void> setChatReactions(models.ChatReactionsMode mode, List<String> reactions) async =>
-      _source?.setChatReactions(_chatID, mode, reactions);
+  Future<void> setChatReactions(models.ChatReactionsMode mode, List<String> reactions, {int? maxReactions}) async =>
+      _source?.setChatReactions(_chatID, mode, reactions, maxReactions: maxReactions);
 
   /// Профиль чата → «Медленный режим» (админ): интервал в секундах, 0 — выкл.
   Future<void> setSlowMode(int seconds) async => _source?.setSlowMode(_chatID, seconds);

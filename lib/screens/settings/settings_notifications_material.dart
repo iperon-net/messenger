@@ -79,6 +79,40 @@ class _SettingsNotificationsMaterial extends State<SettingsNotificationsMaterial
     child: Column(children: children),
   );
 
+  /// «Реакции»: в личных / в группах и (если хоть что-то включено) «От кого»:
+  /// всех / моих контактов.
+  Widget _reactionsCard(BuildContext context, SettingsNotificationsState state) {
+    final t = context.t.screenSettingsNotifications;
+    final reactions = state.reactions;
+    void set(NotifyReactionsSettings value) => _apply(context, (cubit) => cubit.setReactions(value));
+    return _card([
+      SwitchListTile(
+        title: Text(t.reactionsPrivate),
+        value: reactions.privateChats,
+        onChanged: state.readOnly ? null : (value) => set(reactions.copyWith(privateChats: value)),
+      ),
+      SwitchListTile(
+        title: Text(t.reactionsGroups),
+        value: reactions.groups,
+        onChanged: state.readOnly ? null : (value) => set(reactions.copyWith(groups: value)),
+      ),
+      if (reactions.privateChats || reactions.groups)
+        ListTile(
+          title: Text(t.reactionsFromShort),
+          enabled: !state.readOnly,
+          trailing: IgnorePointer(
+            ignoring: state.readOnly,
+            child: MaterialInlineDropdown<bool>(
+              value: reactions.fromContacts,
+              items: const [false, true],
+              labelBuilder: (contacts) => contacts ? t.reactionsFromContacts : t.reactionsFromAll,
+              onSelected: (contacts) => set(reactions.copyWith(fromContacts: contacts)),
+            ),
+          ),
+        ),
+    ]);
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<SettingsNotificationsCubit, SettingsNotificationsState>(
@@ -122,6 +156,12 @@ class _SettingsNotificationsMaterial extends State<SettingsNotificationsMaterial
                         onTap: () => _openScope(context, scope),
                       ),
                   ]),
+                  // Реакции — пока только с демо чатов (настоящих чатов ещё нет).
+                  if (context.read<CommonCubit>().state.settingsDevice.chatsDemo) ...[
+                    _header(context, context.t.screenSettingsNotifications.reactions),
+                    _reactionsCard(context, state),
+                    _note(context, context.t.screenSettingsNotifications.reactionsNote),
+                  ],
                   _header(context, context.t.screenSettingsNotifications.events),
                   _card([
                     SwitchListTile(
