@@ -11,6 +11,7 @@ import '../../i18n/translations.g.dart';
 import '../../models.dart' as models;
 import '../../themes.dart';
 import 'chat_create_common.dart';
+import 'comments_limit.dart';
 import 'chats_new_cupertino.dart';
 
 /// «Изменить» в профиле чата (админ): форма с полями [chat]; после
@@ -65,28 +66,9 @@ class _ChatCreateFormCupertino extends State<ChatCreateFormCupertino> {
     super.dispose();
   }
 
-  Future<void> _photo(BuildContext context, ChatCreateState state) async {
+  Future<void> _pickPhoto(BuildContext context, models.ChatType type) async {
     final cubit = context.read<ChatCreateCubit>();
-    if (state.avatarPath.isNotEmpty) {
-      final t = context.t.screenNewChat;
-      final action = await showCupertinoModalPopup<String>(
-        context: context,
-        builder: (sheetContext) => CupertinoActionSheet(
-          actions: [
-            CupertinoActionSheetAction(onPressed: () => Navigator.of(sheetContext).pop('change'), child: Text(t.changePhoto)),
-            CupertinoActionSheetAction(
-              isDestructiveAction: true,
-              onPressed: () => Navigator.of(sheetContext).pop('remove'),
-              child: Text(t.removePhoto),
-            ),
-          ],
-          cancelButton: CupertinoActionSheetAction(onPressed: () => Navigator.of(sheetContext).pop(), child: Text(context.t.common.cancel)),
-        ),
-      );
-      if (action == 'remove') cubit.setAvatar('');
-      if (action != 'change' || !context.mounted) return;
-    }
-    final path = await pickChatPhoto(context, state.type);
+    final path = await pickChatPhoto(context, type);
     if (path != null) cubit.setAvatar(path);
   }
 
@@ -168,11 +150,30 @@ class _ChatCreateFormCupertino extends State<ChatCreateFormCupertino> {
                       padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
                       child: Row(
                         children: [
-                          GestureDetector(
-                            onTap: () => _photo(context, state),
-                            child: state.avatarPath.isNotEmpty
-                                ? ChatPhotoPreview(path: state.avatarPath, type: type, size: 64)
-                                : Container(
+                          // Фото нет — сразу выбор; есть — меню «Изменить» / «Удалить».
+                          state.avatarPath.isNotEmpty
+                              ? CupertinoMenuAnchor(
+                                  menuChildren: [
+                                    CupertinoMenuItem(
+                                      trailing: const Icon(CupertinoIcons.photo),
+                                      onPressed: () => _pickPhoto(context, type),
+                                      child: Text(t.screenNewChat.changePhoto),
+                                    ),
+                                    CupertinoMenuItem(
+                                      isDestructiveAction: true,
+                                      trailing: const Icon(CupertinoIcons.delete),
+                                      onPressed: () => context.read<ChatCreateCubit>().setAvatar(''),
+                                      child: Text(t.screenNewChat.removePhoto),
+                                    ),
+                                  ],
+                                  builder: (context, controller, child) => GestureDetector(
+                                    onTap: () => controller.isOpen ? controller.close() : controller.open(),
+                                    child: ChatPhotoPreview(path: state.avatarPath, type: type, size: 64),
+                                  ),
+                                )
+                              : GestureDetector(
+                                  onTap: () => _pickPhoto(context, type),
+                                  child: Container(
                                     width: 64,
                                     height: 64,
                                     decoration: BoxDecoration(
@@ -183,7 +184,7 @@ class _ChatCreateFormCupertino extends State<ChatCreateFormCupertino> {
                                     alignment: Alignment.center,
                                     child: HugeIcon(icon: HugeIcons.strokeRoundedCameraAdd01, color: action, size: 28),
                                   ),
-                          ),
+                                ),
                           const SizedBox(width: 14),
                           Expanded(
                             child: CupertinoTextField.borderless(
@@ -283,7 +284,13 @@ class _ChatCreateFormCupertino extends State<ChatCreateFormCupertino> {
                     ),
                   if (state.isEdit && type == models.ChatType.channel)
                     section(
-                      footer: createNoteCupertino('${t.screenNewChat.commentsFooter} ${t.screenNewChat.signFooter}'),
+                      footer: createNoteCupertino(
+                        [
+                          t.screenNewChat.commentsFooter,
+                          if (state.commentsEnabled) t.screenNewChat.commentsLimitFooter,
+                          t.screenNewChat.signFooter,
+                        ].join(' '),
+                      ),
                       children: [
                         CupertinoListTile(
                           title: Text(t.screenNewChat.commentsSwitch, style: const TextStyle(fontSize: AppFontSizes.body)),
@@ -292,6 +299,24 @@ class _ChatCreateFormCupertino extends State<ChatCreateFormCupertino> {
                             onChanged: context.read<ChatCreateCubit>().setCommentsEnabled,
                           ),
                         ),
+                        // Выбор срока — выпадающее меню у строки (как в настройках iOS).
+                        if (state.commentsEnabled)
+                          CupertinoMenuAnchor(
+                            menuChildren: [
+                              for (final seconds in commentsLimitOptions)
+                                CupertinoMenuItem(
+                                  trailing: state.commentsTimeLimit == seconds ? const Icon(CupertinoIcons.check_mark) : null,
+                                  onPressed: () => context.read<ChatCreateCubit>().setCommentsTimeLimit(seconds),
+                                  child: Text(commentsLimitLabel(t, seconds)),
+                                ),
+                            ],
+                            builder: (context, controller, child) => CupertinoListTile(
+                              title: Text(t.screenNewChat.commentsLimit, style: const TextStyle(fontSize: AppFontSizes.body)),
+                              additionalInfo: Text(commentsLimitLabel(t, state.commentsTimeLimit)),
+                              trailing: Icon(CupertinoIcons.chevron_up_chevron_down, size: 16, color: secondary),
+                              onTap: () => controller.isOpen ? controller.close() : controller.open(),
+                            ),
+                          ),
                         CupertinoListTile(
                           title: Text(t.screenNewChat.signSwitch, style: const TextStyle(fontSize: AppFontSizes.body)),
                           trailing: CupertinoSwitch(value: state.signMessages, onChanged: context.read<ChatCreateCubit>().setSignMessages),

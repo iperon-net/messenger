@@ -1909,6 +1909,12 @@ class MessageMapper extends ClassMapperBase<Message> {
     opt: true,
     def: const [],
   );
+  static DateTime? _$commentsCloseDate(Message v) => v.commentsCloseDate;
+  static const Field<Message, DateTime> _f$commentsCloseDate = Field(
+    'commentsCloseDate',
+    _$commentsCloseDate,
+    opt: true,
+  );
 
   @override
   final MappableFields<Message> fields = const {
@@ -1944,6 +1950,7 @@ class MessageMapper extends ClassMapperBase<Message> {
     #views: _f$views,
     #commentsCount: _f$commentsCount,
     #commenters: _f$commenters,
+    #commentsCloseDate: _f$commentsCloseDate,
   };
 
   static Message _instantiate(DecodingData data) {
@@ -1980,6 +1987,7 @@ class MessageMapper extends ClassMapperBase<Message> {
       views: data.dec(_f$views),
       commentsCount: data.dec(_f$commentsCount),
       commenters: data.dec(_f$commenters),
+      commentsCloseDate: data.dec(_f$commentsCloseDate),
     );
   }
 
@@ -2098,6 +2106,7 @@ abstract class MessageCopyWith<$R, $In extends Message, $Out>
     int? views,
     int? commentsCount,
     List<String>? commenters,
+    DateTime? commentsCloseDate,
   });
   MessageCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
@@ -2204,6 +2213,7 @@ class _MessageCopyWithImpl<$R, $Out>
     int? views,
     int? commentsCount,
     List<String>? commenters,
+    Object? commentsCloseDate = $none,
   }) => $apply(
     FieldCopyWithData({
       if (id != null) #id: id,
@@ -2238,6 +2248,7 @@ class _MessageCopyWithImpl<$R, $Out>
       if (views != null) #views: views,
       if (commentsCount != null) #commentsCount: commentsCount,
       if (commenters != null) #commenters: commenters,
+      if (commentsCloseDate != $none) #commentsCloseDate: commentsCloseDate,
     }),
   );
   @override
@@ -2274,6 +2285,10 @@ class _MessageCopyWithImpl<$R, $Out>
     views: data.get(#views, or: $value.views),
     commentsCount: data.get(#commentsCount, or: $value.commentsCount),
     commenters: data.get(#commenters, or: $value.commenters),
+    commentsCloseDate: data.get(
+      #commentsCloseDate,
+      or: $value.commentsCloseDate,
+    ),
   );
 
   @override

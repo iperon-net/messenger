@@ -18,7 +18,7 @@ DateTime? chatMuteUntil(ChatMuteFor value) => switch (value) {
   ChatMuteFor.forever => null,
 };
 
-String _label(Translations t, ChatMuteFor value) => switch (value) {
+String chatMuteLabel(Translations t, ChatMuteFor value) => switch (value) {
   ChatMuteFor.hour => t.screenChats.muteHour,
   ChatMuteFor.eightHours => t.screenChats.mute8Hours,
   ChatMuteFor.twoDays => t.screenChats.mute2Days,
@@ -34,7 +34,9 @@ String chatMutedUntilLabel(Translations t, DateTime until) {
   return t.screenChats.mutedUntil(time: today ? time : '${DateFormat.Md().format(local)}, $time');
 }
 
-/// Выбор срока: iOS — action sheet, Android — нижний лист. `null` — закрыли.
+/// Выбор срока: iOS — action sheet (из long-press-меню списка чатов, где
+/// вложенного меню нет; в профиле — выпадающее меню у «Звук»), Android —
+/// нижний лист. `null` — закрыли.
 Future<ChatMuteFor?> pickChatMute(BuildContext context) {
   final t = context.t;
   if (Platform.isIOS) {
@@ -47,7 +49,7 @@ Future<ChatMuteFor?> pickChatMute(BuildContext context) {
             c.CupertinoActionSheetAction(
               isDestructiveAction: value == ChatMuteFor.forever,
               onPressed: () => Navigator.of(sheetContext).pop(value),
-              child: Text(_label(t, value)),
+              child: Text(chatMuteLabel(t, value)),
             ),
         ],
         cancelButton: c.CupertinoActionSheetAction(onPressed: () => Navigator.of(sheetContext).pop(), child: Text(t.common.cancel)),
@@ -69,7 +71,7 @@ Future<ChatMuteFor?> pickChatMute(BuildContext context) {
           for (final value in ChatMuteFor.values)
             m.ListTile(
               leading: m.Icon(value == ChatMuteFor.forever ? m.Icons.notifications_off_outlined : m.Icons.schedule),
-              title: Text(_label(t, value)),
+              title: Text(chatMuteLabel(t, value)),
               onTap: () => Navigator.of(sheetContext).pop(value),
             ),
         ],

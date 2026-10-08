@@ -305,6 +305,10 @@ class Message with MessageMappable {
   final int commentsCount;
   final List<String> commenters;
 
+  /// Пост канала: с этого момента комментировать нельзя (срок канала на момент
+  /// публикации или админ закрыл досрочно); `null` — без ограничения.
+  final DateTime? commentsCloseDate;
+
   const Message({
     required this.id,
     required this.chatID,
@@ -338,7 +342,11 @@ class Message with MessageMappable {
     this.views = 0,
     this.commentsCount = 0,
     this.commenters = const [],
+    this.commentsCloseDate,
   });
+
+  /// Комментарии к посту закрыты — ветку можно только читать.
+  bool commentsClosed([DateTime? now]) => commentsCloseDate != null && !commentsCloseDate!.isAfter(now ?? DateTime.now());
 
   /// Наши реакции (до `maxReactionsPerUser` на сообщение), в порядке чипов.
   List<String> get myReactions => [

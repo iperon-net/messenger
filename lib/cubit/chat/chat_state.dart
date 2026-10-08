@@ -68,6 +68,13 @@ class ChatState with ChatStateMappable {
   /// тикает раз в секунду, вместо кнопки отправки — обратный отсчёт.
   final int slowModeLeft;
 
+  /// Канал: посты (id), комментарии к которым уже закрыты (срок вышел или
+  /// админ закрыл) — под постом замок, ветка только для чтения.
+  final List<String> commentsClosedIDs;
+
+  /// Ветка комментариев закрыта — вместо поля ввода «Комментарии закрыты».
+  final bool commentsClosed;
+
   const ChatState({
     this.status = Status.initialization,
     this.chat,
@@ -88,6 +95,8 @@ class ChatState with ChatStateMappable {
     this.members = const [],
     this.banned = const [],
     this.slowModeLeft = 0,
+    this.commentsClosedIDs = const [],
+    this.commentsClosed = false,
   });
 
   /// Закреплённые — от новых к старым (плашка показывает сначала последнее).

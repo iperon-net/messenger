@@ -1193,6 +1193,19 @@ class ChatMapper extends ClassMapperBase<Chat> {
     opt: true,
     def: false,
   );
+  static int _$commentsTimeLimit(Chat v) => v.commentsTimeLimit;
+  static const Field<Chat, int> _f$commentsTimeLimit = Field(
+    'commentsTimeLimit',
+    _$commentsTimeLimit,
+    opt: true,
+    def: 0,
+  );
+  static DateTime? _$commentsCloseDate(Chat v) => v.commentsCloseDate;
+  static const Field<Chat, DateTime> _f$commentsCloseDate = Field(
+    'commentsCloseDate',
+    _$commentsCloseDate,
+    opt: true,
+  );
   static bool _$signMessages(Chat v) => v.signMessages;
   static const Field<Chat, bool> _f$signMessages = Field(
     'signMessages',
@@ -1299,6 +1312,8 @@ class ChatMapper extends ClassMapperBase<Chat> {
     #defaultRole: _f$defaultRole,
     #pendingRequests: _f$pendingRequests,
     #commentsEnabled: _f$commentsEnabled,
+    #commentsTimeLimit: _f$commentsTimeLimit,
+    #commentsCloseDate: _f$commentsCloseDate,
     #signMessages: _f$signMessages,
     #membersHidden: _f$membersHidden,
     #isMember: _f$isMember,
@@ -1342,6 +1357,8 @@ class ChatMapper extends ClassMapperBase<Chat> {
       defaultRole: data.dec(_f$defaultRole),
       pendingRequests: data.dec(_f$pendingRequests),
       commentsEnabled: data.dec(_f$commentsEnabled),
+      commentsTimeLimit: data.dec(_f$commentsTimeLimit),
+      commentsCloseDate: data.dec(_f$commentsCloseDate),
       signMessages: data.dec(_f$signMessages),
       membersHidden: data.dec(_f$membersHidden),
       isMember: data.dec(_f$isMember),
@@ -1434,6 +1451,8 @@ abstract class ChatCopyWith<$R, $In extends Chat, $Out>
     ChatRole? defaultRole,
     int? pendingRequests,
     bool? commentsEnabled,
+    int? commentsTimeLimit,
+    DateTime? commentsCloseDate,
     bool? signMessages,
     bool? membersHidden,
     bool? isMember,
@@ -1496,6 +1515,8 @@ class _ChatCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Chat, $Out>
     ChatRole? defaultRole,
     int? pendingRequests,
     bool? commentsEnabled,
+    int? commentsTimeLimit,
+    Object? commentsCloseDate = $none,
     bool? signMessages,
     bool? membersHidden,
     bool? isMember,
@@ -1537,6 +1558,8 @@ class _ChatCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Chat, $Out>
       if (defaultRole != null) #defaultRole: defaultRole,
       if (pendingRequests != null) #pendingRequests: pendingRequests,
       if (commentsEnabled != null) #commentsEnabled: commentsEnabled,
+      if (commentsTimeLimit != null) #commentsTimeLimit: commentsTimeLimit,
+      if (commentsCloseDate != $none) #commentsCloseDate: commentsCloseDate,
       if (signMessages != null) #signMessages: signMessages,
       if (membersHidden != null) #membersHidden: membersHidden,
       if (isMember != null) #isMember: isMember,
@@ -1580,6 +1603,14 @@ class _ChatCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Chat, $Out>
     defaultRole: data.get(#defaultRole, or: $value.defaultRole),
     pendingRequests: data.get(#pendingRequests, or: $value.pendingRequests),
     commentsEnabled: data.get(#commentsEnabled, or: $value.commentsEnabled),
+    commentsTimeLimit: data.get(
+      #commentsTimeLimit,
+      or: $value.commentsTimeLimit,
+    ),
+    commentsCloseDate: data.get(
+      #commentsCloseDate,
+      or: $value.commentsCloseDate,
+    ),
     signMessages: data.get(#signMessages, or: $value.signMessages),
     membersHidden: data.get(#membersHidden, or: $value.membersHidden),
     isMember: data.get(#isMember, or: $value.isMember),

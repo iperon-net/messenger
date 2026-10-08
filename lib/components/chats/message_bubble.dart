@@ -138,6 +138,9 @@ class ChatMessagesView extends StatelessWidget {
   /// Канал с комментариями: строка «N комментариев» под постом, тап — ветка.
   final ValueChanged<models.Message>? onCommentsTap;
 
+  /// Посты (id), комментарии к которым закрыты — в строке замок.
+  final List<String> commentsClosedIDs;
+
   /// Голос в опросе ([options] — индексы вариантов) и список «кто за что».
   final void Function(models.Message message, List<int> options)? onPollVote;
   final ValueChanged<models.Message>? onPollVoters;
@@ -171,6 +174,7 @@ class ChatMessagesView extends StatelessWidget {
     this.selectionCheckColor = const Color(0xFFFFFFFF),
     this.menuWrapper,
     this.onCommentsTap,
+    this.commentsClosedIDs = const [],
     this.onPollVote,
     this.onPollVoters,
   });
@@ -261,6 +265,7 @@ class ChatMessagesView extends StatelessWidget {
                             onReplyTap: onReplyTap == null ? null : () => onReplyTap!(m),
                             menuWrapper: menuWrapper == null ? null : (bubble, preview) => menuWrapper!(m, bubble, preview),
                             onCommentsTap: onCommentsTap == null ? null : () => onCommentsTap!(m),
+                            commentsClosed: commentsClosedIDs.contains(m.id),
                             onPollVote: onPollVote == null ? null : (options) => onPollVote!(m, options),
                             onPollVoters: onPollVoters == null ? null : () => onPollVoters!(m),
                           ),
@@ -494,6 +499,10 @@ class MessageBubble extends StatelessWidget {
   /// Пост канала с комментариями: строка «N комментариев» внизу пузыря.
   final VoidCallback? onCommentsTap;
 
+  /// Комментарии к посту закрыты: замок, без комментариев — «Комментарии
+  /// закрыты» (ветку всё равно можно открыть и почитать).
+  final bool commentsClosed;
+
   /// Опрос: проголосовать за варианты (индексы); `null` — голосовать нельзя.
   final ValueChanged<List<int>>? onPollVote;
 
@@ -518,6 +527,7 @@ class MessageBubble extends StatelessWidget {
     this.onReplyTap,
     this.menuWrapper,
     this.onCommentsTap,
+    this.commentsClosed = false,
     this.onPollVote,
     this.onPollVoters,
   });
@@ -772,6 +782,7 @@ class MessageBubble extends StatelessWidget {
             background: out ? style.outgoing : style.incoming,
             textStyle: style.textStyle,
             inset: captionInset,
+            closed: commentsClosed,
             onTap: onTap,
           ),
         );
@@ -1466,6 +1477,7 @@ class _CommentsBar extends StatelessWidget {
   final Color background;
   final TextStyle textStyle;
   final double inset;
+  final bool closed;
   final VoidCallback onTap;
 
   const _CommentsBar({
@@ -1475,6 +1487,7 @@ class _CommentsBar extends StatelessWidget {
     required this.background,
     required this.textStyle,
     required this.inset,
+    required this.closed,
     required this.onTap,
   });
 
@@ -1524,12 +1537,15 @@ class _CommentsBar extends StatelessWidget {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      count > 0 ? t.screenChat.comments(n: count, count: count.grouped) : t.screenChat.leaveComment,
+                      count > 0
+                          ? t.screenChat.comments(n: count, count: count.grouped)
+                          : (closed ? t.screenChat.commentsClosed : t.screenChat.leaveComment),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: textStyle.copyWith(fontSize: 14.5, fontWeight: FontWeight.w500, color: colors.link),
                     ),
                   ),
+                  if (closed) ...[const SizedBox(width: 6), FaIcon(FontAwesomeIcons.lock, size: 12, color: metaColor)],
                   const SizedBox(width: 6),
                   FaIcon(FontAwesomeIcons.chevronRight, size: 12, color: colors.link),
                 ],

@@ -63,20 +63,37 @@ bool canClosePoll(models.Chat chat, models.Message message) {
 }
 
 /// «Завершить опрос?» — `true`, если подтвердили.
-Future<bool> confirmClosePoll(BuildContext context) async {
+Future<bool> confirmClosePoll(BuildContext context) {
   final t = context.t.screenChat;
+  return _confirmDestructive(context, title: t.closePollTitle, message: t.closePollMessage, action: t.closePoll);
+}
+
+/// Пост канала: «Закрыть комментарии» / «Открыть комментарии» — админ канала
+/// с включёнными комментариями.
+bool canToggleComments(models.Chat chat, models.Message message) =>
+    chat.type == models.ChatType.channel && chat.commentsEnabled && chat.canManage && !message.service;
+
+/// «Закрыть комментарии?» — `true`, если подтвердили.
+Future<bool> confirmCloseComments(BuildContext context) {
+  final t = context.t.screenChat;
+  return _confirmDestructive(context, title: t.closeCommentsTitle, message: t.closeCommentsMessage, action: t.closeComments);
+}
+
+/// Подтверждение необратимого действия: iOS — alert с красной кнопкой,
+/// Android — диалог. `true`, если подтвердили.
+Future<bool> _confirmDestructive(BuildContext context, {required String title, required String message, required String action}) async {
   if (Platform.isIOS) {
     return await c.showCupertinoDialog<bool>(
           context: context,
           builder: (dialogContext) => c.CupertinoAlertDialog(
-            title: Text(t.closePollTitle),
-            content: Text(t.closePollMessage),
+            title: Text(title),
+            content: Text(message),
             actions: [
               c.CupertinoDialogAction(onPressed: () => Navigator.of(dialogContext).pop(false), child: Text(context.t.common.cancel)),
               c.CupertinoDialogAction(
                 isDestructiveAction: true,
                 onPressed: () => Navigator.of(dialogContext).pop(true),
-                child: Text(t.closePoll),
+                child: Text(action),
               ),
             ],
           ),
@@ -86,11 +103,11 @@ Future<bool> confirmClosePoll(BuildContext context) async {
   return await m.showDialog<bool>(
         context: context,
         builder: (dialogContext) => m.AlertDialog(
-          title: Text(t.closePollTitle),
-          content: Text(t.closePollMessage),
+          title: Text(title),
+          content: Text(message),
           actions: [
             m.TextButton(onPressed: () => Navigator.of(dialogContext).pop(false), child: Text(context.t.common.cancel)),
-            m.TextButton(onPressed: () => Navigator.of(dialogContext).pop(true), child: Text(t.closePoll)),
+            m.TextButton(onPressed: () => Navigator.of(dialogContext).pop(true), child: Text(action)),
           ],
         ),
       ) ??

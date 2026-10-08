@@ -289,6 +289,7 @@ class ChatsDemoDataSource implements ChatsDataSource {
     required String inviteLink,
     required models.ChatRole defaultRole,
     bool commentsEnabled = false,
+    int commentsTimeLimit = 0,
     bool signMessages = false,
     bool membersHidden = false,
   }) async {
@@ -308,6 +309,7 @@ class ChatsDemoDataSource implements ChatsDataSource {
         inviteLink: joinMode == models.ChatJoinMode.admins ? '' : inviteLink,
         defaultRole: defaultRole,
         commentsEnabled: chat.type == models.ChatType.channel && commentsEnabled,
+        commentsTimeLimit: chat.type == models.ChatType.channel ? commentsTimeLimit : 0,
         signMessages: chat.type == models.ChatType.channel && signMessages,
         membersHidden: membersHidden,
       ),
@@ -868,6 +870,12 @@ class ChatsDemoDataSource implements ChatsDataSource {
           ? models.ChatRole.writer
           : models.ChatRole.reader,
       commentsEnabled: const {'news', 'flutter', 'tech', 'iperon_dev'}.contains(chat.id),
+      // Срок комментирования: у старых постов этих каналов ветки уже закрыты.
+      commentsTimeLimit: switch (chat.id) {
+        'flutter' => 3 * 86400,
+        'tech' => 86400,
+        _ => 0,
+      },
       signMessages: const {'news', 'iperon_dev'}.contains(chat.id),
       // Подписчиков канала по умолчанию видят только админы.
       membersHidden: chat.type == models.ChatType.channel,
@@ -1060,6 +1068,7 @@ class ChatsDemoDataSource implements ChatsDataSource {
         uploadTotal += known > 0 ? known : await _fileSize(path);
       }
     }
+    final now = DateTime.now();
     final message = models.Message(
       id: _id(),
       chatID: chatID,
@@ -1068,7 +1077,7 @@ class ChatsDemoDataSource implements ChatsDataSource {
       entities: entities,
       outgoing: true,
       status: models.MessageStatus.pending,
-      date: DateTime.now(),
+      date: now,
       reply: reply,
       localPath: localPath,
       fileName: fileName,
@@ -1083,6 +1092,7 @@ class ChatsDemoDataSource implements ChatsDataSource {
       // Пост канала: сразу 1 просмотр (наш), дальше растут.
       views: _isChannel(chatID) ? 1 : 0,
       authorSignature: _chats.any((c) => c.id == chatID && c.type == models.ChatType.channel && c.signMessages) ? await _selfName() : '',
+      commentsCloseDate: _commentsCloseDate(chatID, now),
     );
     _setMessages(chatID, [..._history(chatID), message]);
     _update(chatID, (c) => c.copyWith(lastMessage: _lastOf(message), draft: '', archived: false));
@@ -1348,6 +1358,7 @@ class ChatsDemoDataSource implements ChatsDataSource {
           media: m.media,
           fileSize: m.fileSize,
           poll: m.poll,
+          commentsCloseDate: _commentsCloseDate(toChatID, now),
           // Пересылка пересланного — автор оригинала остаётся прежним.
           forward:
               m.forward ??
@@ -1426,6 +1437,7 @@ class ChatsDemoDataSource implements ChatsDataSource {
               !c.isSelf &&
               c.type != models.ChatType.channel &&
               c.draft.isEmpty &&
+              !c.commentsClosed() &&
               // Новая группа, где пока только мы, — писать некому.
               (c.type == models.ChatType.private || c.membersCount > 1),
         )
@@ -1865,6 +1877,7 @@ class ChatsDemoDataSource implements ChatsDataSource {
             authorSignature: chat.signMessages ? _signatures[i % _signatures.length] : '',
             commentsCount: chat.commentsEnabled ? (i * 7 + 3) % 19 : 0,
             commenters: chat.commentsEnabled ? _seedCommenters(m.id, (i * 7 + 3) % 19) : const [],
+            commentsCloseDate: chat.commentsTimeLimit > 0 ? m.date.add(Duration(seconds: chat.commentsTimeLimit)) : null,
           ),
     ];
   }
@@ -1967,6 +1980,7 @@ class ChatsDemoDataSource implements ChatsDataSource {
         title: channel.title,
         threadOf: channelID,
         threadPostID: postID,
+        commentsCloseDate: post.commentsCloseDate,
         membersCount: max(channel.membersCount, 2),
         reactionsMode: channel.reactionsMode,
         reactions: channel.reactions,
@@ -1976,6 +1990,22 @@ class ChatsDemoDataSource implements ChatsDataSource {
     _chatsController.add(_chats);
     _setMessages(threadID, messages);
     return threadID;
+  }
+
+  /// Срок комментариев нового поста в канале [chatID] (по «Сроку
+  /// комментирования» на момент публикации); `null` — бессрочно / не канал.
+  DateTime? _commentsCloseDate(String chatID, DateTime date) {
+    final chat = _chats.where((c) => c.id == chatID).firstOrNull;
+    if (chat == null || chat.type != models.ChatType.channel || chat.commentsTimeLimit <= 0) return null;
+    return date.add(Duration(seconds: chat.commentsTimeLimit));
+  }
+
+  @override
+  Future<void> setCommentsClosed(String channelID, String postID, bool closed) async {
+    final date = closed ? DateTime.now() : null;
+    _updateMessage(channelID, postID, (m) => m.copyWith(commentsCloseDate: date));
+    final threadID = _threadID(channelID, postID);
+    if (_chats.any((c) => c.id == threadID)) _update(threadID, (c) => c.copyWith(commentsCloseDate: date));
   }
 
   /// Ветка изменилась — у поста в канале обновляются счётчик и комментаторы.

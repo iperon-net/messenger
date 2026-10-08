@@ -73,12 +73,20 @@ class _ChatInfoCupertinoState extends State<ChatInfoCupertino> {
     if (context.mounted) context.go('/chats');
   }
 
-  /// «Звук»: заглушённый — включить сразу, иначе — «Заглушить на…».
-  Future<void> _toggleMute(BuildContext context, models.Chat chat) async {
-    final cubit = context.read<ChatCubit>();
-    if (chat.muted) return cubit.setMuted(false);
-    final choice = await pickChatMute(context);
-    if (choice != null) await cubit.setMuted(true, until: chatMuteUntil(choice));
+  /// «Звук»: заглушённый — включить сразу, иначе — выпадающее меню
+  /// «Заглушить на…».
+  List<Widget>? _muteMenu(BuildContext context, models.Chat chat) {
+    if (chat.muted) return null;
+    final t = context.t;
+    return [
+      for (final value in ChatMuteFor.values)
+        CupertinoMenuItem(
+          isDestructiveAction: value == ChatMuteFor.forever,
+          trailing: Icon(value == ChatMuteFor.forever ? CupertinoIcons.bell_slash : CupertinoIcons.clock),
+          onPressed: () => context.read<ChatCubit>().setMuted(true, until: chatMuteUntil(value)),
+          child: Text(chatMuteLabel(t, value)),
+        ),
+    ];
   }
 
   /// Тап по участнику — личный чат с ним («Написать сообщение»).
@@ -242,7 +250,8 @@ class _ChatInfoCupertinoState extends State<ChatInfoCupertino> {
                                     ? chatMutedUntilLabel(t, chat.mutedUntil!)
                                     : t.screenChatInfo.sound,
                                 color: action,
-                                onTap: () => _toggleMute(context, chat),
+                                onTap: () => context.read<ChatCubit>().setMuted(false),
+                                menuChildren: _muteMenu(context, chat),
                               ),
                             _ActionButton(
                               icon: HugeIcons.strokeRoundedSearch01,
@@ -447,46 +456,57 @@ class _ActionButton extends StatelessWidget {
   final Color color;
   final VoidCallback onTap;
 
-  const _ActionButton({required this.icon, required this.label, required this.color, required this.onTap});
+  /// Есть — по тапу выпадающее меню вместо [onTap].
+  final List<Widget>? menuChildren;
+
+  const _ActionButton({required this.icon, required this.label, required this.color, required this.onTap, this.menuChildren});
 
   @override
   Widget build(BuildContext context) {
+    final menu = menuChildren;
     return Expanded(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 4),
-        child: CupertinoButton(
-          padding: EdgeInsets.zero,
-          minimumSize: Size.zero,
-          onPressed: onTap,
-          child: Container(
-            // CupertinoButton центрирует содержимое — без этого плашка ужималась
-            // по подписи, и кнопки выходили разной ширины.
-            width: double.infinity,
-            // Отступы внутри — подпись не прилипает к краям плашки.
-            padding: const EdgeInsets.fromLTRB(8, 10, 8, 9),
-            // Белая плашка — цвет карточек (в тёмной теме — тёмная карточка).
-            decoration: BoxDecoration(color: ThemesCupertino.groupedCard.resolveFrom(context), borderRadius: BorderRadius.circular(12)),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                HugeIcon(icon: icon, size: 24, strokeWidth: 1.8, color: color),
-                const SizedBox(height: 4),
-                // Длинная подпись ужимается, а не обрезается.
-                FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Text(
-                    label,
-                    maxLines: 1,
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: color),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
+        child: menu == null
+            ? _button(context, onTap)
+            : CupertinoMenuAnchor(
+                menuChildren: menu,
+                builder: (context, controller, child) => _button(context, () => controller.isOpen ? controller.close() : controller.open()),
+              ),
       ),
     );
   }
+
+  Widget _button(BuildContext context, VoidCallback onPressed) => CupertinoButton(
+    padding: EdgeInsets.zero,
+    minimumSize: Size.zero,
+    onPressed: onPressed,
+    child: Container(
+      // CupertinoButton центрирует содержимое — без этого плашка ужималась
+      // по подписи, и кнопки выходили разной ширины.
+      width: double.infinity,
+      // Отступы внутри — подпись не прилипает к краям плашки.
+      padding: const EdgeInsets.fromLTRB(8, 10, 8, 9),
+      // Белая плашка — цвет карточек (в тёмной теме — тёмная карточка).
+      decoration: BoxDecoration(color: ThemesCupertino.groupedCard.resolveFrom(context), borderRadius: BorderRadius.circular(12)),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          HugeIcon(icon: icon, size: 24, strokeWidth: 1.8, color: color),
+          const SizedBox(height: 4),
+          // Длинная подпись ужимается, а не обрезается.
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              label,
+              maxLines: 1,
+              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: color),
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
 }
 
 /// Профиль чата → «Реакции» (iOS, админ): все / некоторые (сетка эмодзи) /

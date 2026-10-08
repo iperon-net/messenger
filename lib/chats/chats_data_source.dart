@@ -65,7 +65,8 @@ abstract class ChatsDataSource {
   /// Изменить группу/канал/сообщество (профиль чата → «Изменить», админ):
   /// название, описание, фото, способ вступления ([username] — для
   /// [models.ChatJoinMode.open], иначе действует [inviteLink]) и роль
-  /// вступивших.
+  /// вступивших. [commentsTimeLimit] — «Срок комментирования» канала (секунд,
+  /// 0 — без ограничения), действует только на новые посты.
   Future<void> updateChat(
     String chatID, {
     required String title,
@@ -76,6 +77,7 @@ abstract class ChatsDataSource {
     required String inviteLink,
     required models.ChatRole defaultRole,
     bool commentsEnabled = false,
+    int commentsTimeLimit = 0,
     bool signMessages = false,
     bool membersHidden = false,
   });
@@ -92,6 +94,10 @@ abstract class ChatsDataSource {
   /// Комментарии к посту [postID] канала [channelID]: id чата-ветки (создаётся
   /// при первом открытии; первым в ней — сам пост). Пусто — комментариев нет.
   Future<String> openComments(String channelID, String postID);
+
+  /// Админ канала: закрыть комментарии к посту досрочно ([closed]) или снова
+  /// открыть (бессрочно). Закрытую ветку можно только читать.
+  Future<void> setCommentsClosed(String channelID, String postID, bool closed);
 
   /// Ссылки-приглашения чата (админ): основная первой, затем дополнительные
   /// (новые выше), отозванные — с `revoked`. Сразу при подписке, затем при

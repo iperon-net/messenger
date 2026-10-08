@@ -52,6 +52,9 @@ class ChatCreateState with ChatCreateStateMappable {
   final bool commentsEnabled;
   final bool signMessages;
 
+  /// Канал: «Срок комментирования» новых постов, секунд (0 — без ограничения).
+  final int commentsTimeLimit;
+
   /// Список участников / подписчиков — только админам («Изменить»).
   final bool membersHidden;
   final ChatUsernameStatus usernameStatus;
@@ -84,6 +87,7 @@ class ChatCreateState with ChatCreateStateMappable {
     this.defaultRole = models.ChatRole.reader,
     this.commentsEnabled = false,
     this.signMessages = false,
+    this.commentsTimeLimit = 0,
     this.membersHidden = false,
     this.usernameStatus = ChatUsernameStatus.empty,
     this.inviteLink = '',

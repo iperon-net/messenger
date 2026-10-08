@@ -276,6 +276,15 @@ class Chat with ChatMappable {
   /// Канал: под постами — комментарии (обсуждение каждого поста).
   final bool commentsEnabled;
 
+  /// Канал: сколько секунд после публикации под постом можно комментировать
+  /// (0 — без ограничения); действует на новые посты — срок записывается в
+  /// пост (`Message.commentsCloseDate`).
+  final int commentsTimeLimit;
+
+  /// Ветка комментариев ([isThread]): когда закрывается (срок поста или админ
+  /// закрыл досрочно); `null` — открыта бессрочно. После — только чтение.
+  final DateTime? commentsCloseDate;
+
   /// Канал: под постами — имя опубликовавшего админа.
   final bool signMessages;
 
@@ -341,6 +350,8 @@ class Chat with ChatMappable {
     this.defaultRole = ChatRole.reader,
     this.pendingRequests = 0,
     this.commentsEnabled = false,
+    this.commentsTimeLimit = 0,
+    this.commentsCloseDate,
     this.signMessages = false,
     this.membersHidden = false,
     this.isMember = true,
@@ -372,6 +383,9 @@ class Chat with ChatMappable {
 
   /// Комментарии к посту канала.
   bool get isThread => threadOf.isNotEmpty;
+
+  /// Ветка комментариев закрыта: писать нельзя, только читать.
+  bool commentsClosed([DateTime? now]) => commentsCloseDate != null && !commentsCloseDate!.isAfter(now ?? DateTime.now());
 
   /// В списке чатов не показывается: пустой личный или ветка комментариев.
   bool get hiddenInList => isBlank || isThread || !isMember;

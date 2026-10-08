@@ -652,6 +652,36 @@ class Translations$screenNewChat$en {
 	/// en: 'Subscribers can discuss each post in its comments.'
 	String get commentsFooter => 'Subscribers can discuss each post in its comments.';
 
+	/// en: 'Comment Period'
+	String get commentsLimit => 'Comment Period';
+
+	/// en: 'How long after publishing a post can be commented on — after that, comments are read-only. Applies to new posts.'
+	String get commentsLimitFooter => 'How long after publishing a post can be commented on — after that, comments are read-only. Applies to new posts.';
+
+	/// en: 'No Limit'
+	String get commentsLimitOff => 'No Limit';
+
+	/// en: '(one) {{n} hour} (other) {{n} hours}'
+	String commentsLimitHours({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n,
+		one: '${n} hour',
+		other: '${n} hours',
+	);
+
+	/// en: '(one) {{n} day} (other) {{n} days}'
+	String commentsLimitDays({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n,
+		one: '${n} day',
+		other: '${n} days',
+	);
+
+	/// en: '1 week'
+	String get commentsLimitWeek => '1 week';
+
+	/// en: '1 month'
+	String get commentsLimitMonth => '1 month';
+
+	/// en: '1 year'
+	String get commentsLimitYear => '1 year';
+
 	/// en: 'Sign Messages'
 	String get signSwitch => 'Sign Messages';
 
@@ -1092,6 +1122,21 @@ class Translations$screenChat$en {
 
 	/// en: 'Comments'
 	String get commentsTitle => 'Comments';
+
+	/// en: 'Comments are closed'
+	String get commentsClosed => 'Comments are closed';
+
+	/// en: 'Close Comments'
+	String get closeComments => 'Close Comments';
+
+	/// en: 'Open Comments'
+	String get openComments => 'Open Comments';
+
+	/// en: 'Close comments?'
+	String get closeCommentsTitle => 'Close comments?';
+
+	/// en: 'No one will be able to comment on this post anymore; existing comments will stay.'
+	String get closeCommentsMessage => 'No one will be able to comment on this post anymore; existing comments will stay.';
 
 	/// en: 'Subscribe'
 	String get subscribe => 'Subscribe';
@@ -3305,6 +3350,14 @@ extension on Translations {
 			'screenNewChat.copied' => 'Link copied',
 			'screenNewChat.commentsSwitch' => 'Comments',
 			'screenNewChat.commentsFooter' => 'Subscribers can discuss each post in its comments.',
+			'screenNewChat.commentsLimit' => 'Comment Period',
+			'screenNewChat.commentsLimitFooter' => 'How long after publishing a post can be commented on — after that, comments are read-only. Applies to new posts.',
+			'screenNewChat.commentsLimitOff' => 'No Limit',
+			'screenNewChat.commentsLimitHours' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: '${n} hour', other: '${n} hours', ), 
+			'screenNewChat.commentsLimitDays' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: '${n} day', other: '${n} days', ), 
+			'screenNewChat.commentsLimitWeek' => '1 week',
+			'screenNewChat.commentsLimitMonth' => '1 month',
+			'screenNewChat.commentsLimitYear' => '1 year',
 			'screenNewChat.signSwitch' => 'Sign Messages',
 			'screenNewChat.signFooter' => 'With signatures, posts show the name of the admin who published them.',
 			'screenNewChat.hideMembers' => 'Hide Members',
@@ -3437,6 +3490,11 @@ extension on Translations {
 			'screenChat.comments' => ({required num n, required Object count}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: '${count} comment', other: '${count} comments', ), 
 			'screenChat.leaveComment' => 'Leave a Comment',
 			'screenChat.commentsTitle' => 'Comments',
+			'screenChat.commentsClosed' => 'Comments are closed',
+			'screenChat.closeComments' => 'Close Comments',
+			'screenChat.openComments' => 'Open Comments',
+			'screenChat.closeCommentsTitle' => 'Close comments?',
+			'screenChat.closeCommentsMessage' => 'No one will be able to comment on this post anymore; existing comments will stay.',
 			'screenChat.subscribe' => 'Subscribe',
 			'screenChat.joinGroup' => 'Join Group',
 			'screenChat.requestJoin' => 'Request to Join',
@@ -3635,6 +3693,8 @@ extension on Translations {
 			'screenChatInfo.about' => 'Bio',
 			'screenChatInfo.description' => 'Description',
 			'screenChatInfo.username' => 'Username',
+			_ => null,
+		} ?? switch (path) {
 			'screenChatInfo.link' => 'Link',
 			'screenChatInfo.tabMembers' => 'Members',
 			'screenChatInfo.tabSubscribers' => 'Subscribers',
@@ -3648,8 +3708,6 @@ extension on Translations {
 			'screenChatInfo.emptyVoice' => 'Voice messages will appear here',
 			'screenChatInfo.roleOwner' => 'owner',
 			'screenChatInfo.roleAdmin' => 'admin',
-			_ => null,
-		} ?? switch (path) {
 			'screenChatInfo.roleReader' => 'read only',
 			'screenChatInfo.you' => 'You',
 			'screenChatInfo.addMembers' => 'Add Members',

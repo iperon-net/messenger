@@ -1,5 +1,4 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -19,6 +18,7 @@ import 'chat_common.dart';
 import 'compose_format_menu.dart';
 import 'forward_picker.dart';
 import 'chat_info_cupertino.dart';
+import 'message_context_menu_cupertino.dart';
 import 'pinned_messages_cupertino.dart';
 import 'scheduled_messages_cupertino.dart';
 import 'voice_recorder.dart';
@@ -329,31 +329,6 @@ class _ChatCupertinoState extends State<ChatCupertino> {
     if (date != null && mounted) _send(scheduleDate: date);
   }
 
-  /// Удержание «Отправить» (как в Telegram): без звука / позже. Позже — только
-  /// текст, без пересылаемых.
-  Future<void> _sendOptions(BuildContext context) async {
-    final t = context.t.screenChat;
-    final canSchedule = _input.text.trim().isNotEmpty && _cubit.state.forwarding.isEmpty;
-    HapticFeedback.mediumImpact();
-    final action = await showCupertinoModalPopup<String>(
-      context: context,
-      builder: (sheetContext) => CupertinoActionSheet(
-        actions: [
-          CupertinoActionSheetAction(onPressed: () => Navigator.of(sheetContext).pop('silent'), child: Text(t.sendSilent)),
-          if (canSchedule) CupertinoActionSheetAction(onPressed: () => Navigator.of(sheetContext).pop('later'), child: Text(t.sendLater)),
-        ],
-        cancelButton: CupertinoActionSheetAction(onPressed: () => Navigator.of(sheetContext).pop(), child: Text(context.t.common.cancel)),
-      ),
-    );
-    if (!context.mounted) return;
-    switch (action) {
-      case 'silent':
-        _send(silent: true);
-      case 'later':
-        await _sendLater(context);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final t = context.t;
@@ -517,6 +492,7 @@ class _ChatCupertinoState extends State<ChatCupertino> {
                                             onCommentsTap: chat.type == models.ChatType.channel && chat.commentsEnabled
                                                 ? _openComments
                                                 : null,
+                                            commentsClosedIDs: state.commentsClosedIDs,
                                             // Опрос: голосовать — участникам (не подписавшимся — нет).
                                             onPollVote: chat.isMember ? (message, options) => _cubit.votePoll(message, options) : null,
                                             onPollVoters: (message) => showPollVoters(context, message.poll!),
@@ -541,7 +517,11 @@ class _ChatCupertinoState extends State<ChatCupertino> {
                                             unreadFromID: state.unreadFromID,
                                             flashID: _flashID,
                                             flashRange: _tracker.flashRange,
-                                            onReply: chat.type == models.ChatType.channel || state.searching || state.selecting
+                                            onReply:
+                                                chat.type == models.ChatType.channel ||
+                                                    state.commentsClosed ||
+                                                    state.searching ||
+                                                    state.selecting
                                                 ? null
                                                 : _swipeReply,
                                             selecting: state.selecting,
@@ -587,6 +567,9 @@ class _ChatCupertinoState extends State<ChatCupertino> {
                               // админ канала публикует посты обычным полем ввода.
                               else if (!chat.canPost)
                                 _ChannelBar(chat: chat)
+                              // Срок комментариев к посту вышел / админ закрыл — только чтение.
+                              else if (state.commentsClosed)
+                                const _CommentsClosedBar()
                               else ...[
                                 // Подсказка «@» — над полем ввода.
                                 MentionSuggestions(
@@ -603,7 +586,8 @@ class _ChatCupertinoState extends State<ChatCupertino> {
                                   focus: _focus,
                                   state: state,
                                   onSend: _send,
-                                  onSendOptions: () => _sendOptions(context),
+                                  onSendSilent: () => _send(silent: true),
+                                  onSendLater: () => _sendLater(context),
                                   onScheduled: () => showScheduledMessagesCupertino(context, _cubit),
                                 ),
                               ],
@@ -637,16 +621,17 @@ class _ChatCupertinoState extends State<ChatCupertino> {
       },
       child: text,
     );
-    return _MessageContextMenu(
+    return MessageContextMenuCupertino(
       actions: _menuActions(context, chat, message),
       bubble: bubble,
-      preview: (maxWidth) => preview(maxWidth, selectableText: chat.canPost ? quotable : null),
+      preview: (maxWidth) => preview(maxWidth, selectableText: chat.canPost && !_cubit.state.commentsClosed ? quotable : null),
     );
   }
 
   List<Widget> _menuActions(BuildContext context, models.Chat chat, models.Message message) {
     final t = context.t.screenChat;
-    final canWrite = chat.canPost;
+    final canWrite = chat.canPost && !_cubit.state.commentsClosed;
+    final commentsClosed = _cubit.state.commentsClosedIDs.contains(message.id);
     final reactions = availableReactions(chat, message: message);
 
     // Меню — маршрут корневого навигатора: сначала закрываем его, потом
@@ -696,6 +681,12 @@ class _ChatCupertinoState extends State<ChatCupertino> {
         action(t.closePoll, CupertinoIcons.stop_circle, () async {
           if (await confirmClosePoll(context)) await _cubit.closePoll(message);
         }, destructive: true),
+      if (canToggleComments(chat, message))
+        commentsClosed
+            ? action(t.openComments, CupertinoIcons.chat_bubble, () => _cubit.setCommentsClosed(message, false))
+            : action(t.closeComments, CupertinoIcons.lock, () async {
+                if (await confirmCloseComments(context)) await _cubit.setCommentsClosed(message, true);
+              }, destructive: true),
       action(t.select, CupertinoIcons.checkmark_circle, () => _cubit.startSelection(message)),
     ];
   }
@@ -703,80 +694,6 @@ class _ChatCupertinoState extends State<ChatCupertino> {
   Future<void> _confirmDelete(BuildContext context, models.Chat chat, models.Message message) async {
     final forEveryone = await _askDelete(context, chat, 1);
     if (forEveryone != null) await _cubit.delete(message, forEveryone: forEveryone);
-  }
-}
-
-/// Пузырь сообщения с `CupertinoContextMenu`. Превью открытого меню —
-/// тот же пузырь той же ширины, что в ленте (ширину запоминаем при раскладке),
-/// ужатый под выданный меню прямоугольник.
-class _MessageContextMenu extends StatefulWidget {
-  final List<Widget> actions;
-  final Widget bubble;
-  final Widget Function(double maxWidth) preview;
-
-  const _MessageContextMenu({required this.actions, required this.bubble, required this.preview});
-
-  @override
-  State<_MessageContextMenu> createState() => _MessageContextMenuState();
-}
-
-class _MessageContextMenuState extends State<_MessageContextMenu> {
-  double? _width;
-
-  @override
-  Widget build(BuildContext context) {
-    return CupertinoContextMenu.builder(
-      enableHapticFeedback: true,
-      actions: widget.actions,
-      builder: (context, animation) {
-        final width = _width;
-        if (animation.value < CupertinoContextMenu.animationOpensAt || width == null) {
-          // Пока меню закрывается, пузырь зажат в свой прежний размер; если за
-          // это время он вырос (поставили реакцию из меню — добавилась строка
-          // реакций), без OverflowBox — «RenderFlex overflowed». В ленте
-          // (высота не ограничена) размер — по пузырю.
-          return _SizeReporter(
-            onSize: (size) => _width = size.width,
-            child: ClipRect(
-              child: OverflowBox(
-                minHeight: 0,
-                maxHeight: double.infinity,
-                alignment: Alignment.topCenter,
-                fit: OverflowBoxFit.deferToChild,
-                child: widget.bubble,
-              ),
-            ),
-          );
-        }
-        return FittedBox(fit: BoxFit.scaleDown, child: widget.preview(width));
-      },
-    );
-  }
-}
-
-/// Сообщает размер ребёнка после каждой раскладки (без GlobalKey: превью
-/// меню строится одновременно в ленте и в оверлее).
-class _SizeReporter extends SingleChildRenderObjectWidget {
-  final ValueChanged<Size> onSize;
-
-  const _SizeReporter({required this.onSize, required super.child});
-
-  @override
-  RenderObject createRenderObject(BuildContext context) => _RenderSizeReporter(onSize);
-
-  @override
-  void updateRenderObject(BuildContext context, _RenderSizeReporter renderObject) => renderObject.onSize = onSize;
-}
-
-class _RenderSizeReporter extends RenderProxyBox {
-  ValueChanged<Size> onSize;
-
-  _RenderSizeReporter(this.onSize);
-
-  @override
-  void performLayout() {
-    super.performLayout();
-    onSize(size);
   }
 }
 
@@ -817,8 +734,10 @@ class _ComposeBar extends StatelessWidget {
   final ChatState state;
   final VoidCallback onSend;
 
-  /// Удержание «Отправить» — без звука / позже.
-  final VoidCallback onSendOptions;
+  /// Удержание «Отправить» (как в Telegram) — выпадающее меню: без звука /
+  /// позже (позже — только текст, без пересылаемых).
+  final VoidCallback onSendSilent;
+  final VoidCallback onSendLater;
 
   /// Значок календаря (есть отложенные) — экран «Отложенные сообщения».
   final VoidCallback onScheduled;
@@ -830,7 +749,8 @@ class _ComposeBar extends StatelessWidget {
     required this.focus,
     required this.state,
     required this.onSend,
-    required this.onSendOptions,
+    required this.onSendSilent,
+    required this.onSendLater,
     required this.onScheduled,
   });
 
@@ -1007,17 +927,37 @@ class _ComposeBar extends StatelessWidget {
                                 ? SlowModeCountdown(key: const ValueKey('slow'), seconds: state.slowModeLeft, color: secondary)
                                 : !canSend && !editing
                                 ? VoiceRecordButton(key: const ValueKey('mic'), recorder: recorder, style: voiceStyle)
-                                : GestureDetector(
+                                : CupertinoMenuAnchor(
                                     key: ValueKey(editing ? 'edit' : 'send'),
-                                    onLongPress: canSend && !editing ? onSendOptions : null,
-                                    child: CupertinoButton(
-                                      padding: EdgeInsets.zero,
-                                      minimumSize: Size.zero,
-                                      onPressed: canSend ? onSend : null,
-                                      child: Icon(
-                                        editing ? CupertinoIcons.checkmark_circle_fill : CupertinoIcons.arrow_up_circle_fill,
-                                        size: 32,
-                                        color: canSend ? primary : CupertinoColors.systemGrey3.resolveFrom(context),
+                                    menuChildren: [
+                                      CupertinoMenuItem(
+                                        trailing: const Icon(CupertinoIcons.bell_slash),
+                                        onPressed: onSendSilent,
+                                        child: Text(t.screenChat.sendSilent),
+                                      ),
+                                      if (value.text.trim().isNotEmpty && state.forwarding.isEmpty)
+                                        CupertinoMenuItem(
+                                          trailing: const Icon(CupertinoIcons.calendar),
+                                          onPressed: onSendLater,
+                                          child: Text(t.screenChat.sendLater),
+                                        ),
+                                    ],
+                                    builder: (context, controller, _) => GestureDetector(
+                                      onLongPress: canSend && !editing
+                                          ? () {
+                                              HapticFeedback.mediumImpact();
+                                              controller.open();
+                                            }
+                                          : null,
+                                      child: CupertinoButton(
+                                        padding: EdgeInsets.zero,
+                                        minimumSize: Size.zero,
+                                        onPressed: canSend ? onSend : null,
+                                        child: Icon(
+                                          editing ? CupertinoIcons.checkmark_circle_fill : CupertinoIcons.arrow_up_circle_fill,
+                                          size: 32,
+                                          color: canSend ? primary : CupertinoColors.systemGrey3.resolveFrom(context),
+                                        ),
                                       ),
                                     ),
                                   ),
@@ -1106,6 +1046,38 @@ class _ChannelBar extends StatelessWidget {
         child: SizedBox(
           width: double.infinity,
           child: CupertinoButton(onPressed: action, child: Text(label ?? (chat.muted ? t.unmute : t.mute))),
+        ),
+      ),
+    );
+  }
+}
+
+/// Ветка комментариев закрыта (срок вышел / админ закрыл): вместо поля ввода —
+/// «Комментарии закрыты», только чтение.
+class _CommentsClosedBar extends StatelessWidget {
+  const _CommentsClosedBar();
+
+  @override
+  Widget build(BuildContext context) {
+    final secondary = CupertinoColors.secondaryLabel.resolveFrom(context);
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: ThemesCupertino.appBackground.resolveFrom(context),
+        border: Border(top: BorderSide(color: CupertinoColors.separator.resolveFrom(context), width: 0.5)),
+      ),
+      child: SafeArea(
+        top: false,
+        child: SizedBox(
+          width: double.infinity,
+          height: 48,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(CupertinoIcons.lock, size: 17, color: secondary),
+              const SizedBox(width: 6),
+              Text(context.t.screenChat.commentsClosed, style: TextStyle(fontSize: 15, color: secondary)),
+            ],
+          ),
         ),
       ),
     );

@@ -480,6 +480,7 @@ class _ChatMaterialState extends State<ChatMaterial> {
                                       chatType: chat.type,
                                       // Комментарии к постам — только в канале, где они включены.
                                       onCommentsTap: chat.type == models.ChatType.channel && chat.commentsEnabled ? _openComments : null,
+                                      commentsClosedIDs: state.commentsClosedIDs,
                                       // Опрос: голосовать — участникам (не подписавшимся — нет).
                                       onPollVote: chat.isMember ? (message, options) => _cubit.votePoll(message, options) : null,
                                       onPollVoters: (message) => showPollVoters(context, message.poll!),
@@ -502,7 +503,8 @@ class _ChatMaterialState extends State<ChatMaterial> {
                                       unreadFromID: state.unreadFromID,
                                       flashID: _flashID,
                                       flashRange: _tracker.flashRange,
-                                      onReply: chat.type == models.ChatType.channel || state.searching || state.selecting
+                                      onReply:
+                                          chat.type == models.ChatType.channel || state.commentsClosed || state.searching || state.selecting
                                           ? null
                                           : _swipeReply,
                                       selecting: state.selecting,
@@ -544,6 +546,9 @@ class _ChatMaterialState extends State<ChatMaterial> {
                         // админ канала публикует посты обычным полем ввода.
                         else if (!chat.canPost)
                           _ChannelBar(chat: chat, color: barColor)
+                        // Срок комментариев к посту вышел / админ закрыл — только чтение.
+                        else if (state.commentsClosed)
+                          _CommentsClosedBar(color: barColor)
                         else ...[
                           // Подсказка «@» — над полем ввода.
                           MentionSuggestions(
@@ -577,7 +582,8 @@ class _ChatMaterialState extends State<ChatMaterial> {
   Future<void> _actions(BuildContext context, models.Chat chat, models.Message message) async {
     HapticFeedback.mediumImpact();
     final t = context.t.screenChat;
-    final canWrite = chat.canPost;
+    final canWrite = chat.canPost && !_cubit.state.commentsClosed;
+    final commentsClosed = _cubit.state.commentsClosedIDs.contains(message.id);
     final error = Theme.of(context).colorScheme.error;
     final reactions = availableReactions(chat, message: message);
     // Сверху — текст сообщения, его можно выделить: «Копировать | Цитировать»
@@ -652,6 +658,18 @@ class _ChatMaterialState extends State<ChatMaterial> {
                   title: Text(t.closePoll, style: TextStyle(color: error)),
                   onTap: () => Navigator.of(sheetContext).pop('closePoll'),
                 ),
+              if (canToggleComments(chat, message))
+                commentsClosed
+                    ? ListTile(
+                        leading: const Icon(Icons.mode_comment_outlined),
+                        title: Text(t.openComments),
+                        onTap: () => Navigator.of(sheetContext).pop('openComments'),
+                      )
+                    : ListTile(
+                        leading: Icon(Icons.comments_disabled_outlined, color: error),
+                        title: Text(t.closeComments, style: TextStyle(color: error)),
+                        onTap: () => Navigator.of(sheetContext).pop('closeComments'),
+                      ),
               ListTile(
                 leading: const Icon(Icons.check_circle_outline),
                 title: Text(t.select),
@@ -688,6 +706,10 @@ class _ChatMaterialState extends State<ChatMaterial> {
         await _cubit.votePoll(message, const []);
       case 'closePoll':
         if (await confirmClosePoll(context)) await _cubit.closePoll(message);
+      case 'closeComments':
+        if (await confirmCloseComments(context)) await _cubit.setCommentsClosed(message, true);
+      case 'openComments':
+        await _cubit.setCommentsClosed(message, false);
       case 'select':
         _cubit.startSelection(message);
       case 'delete':
@@ -1018,6 +1040,37 @@ class _ChannelBar extends StatelessWidget {
           width: double.infinity,
           height: 52,
           child: TextButton(onPressed: action, child: Text(label ?? (chat.muted ? t.unmute : t.mute))),
+        ),
+      ),
+    );
+  }
+}
+
+/// Ветка комментариев закрыта (срок вышел / админ закрыл): вместо поля ввода —
+/// «Комментарии закрыты», только чтение.
+class _CommentsClosedBar extends StatelessWidget {
+  final Color color;
+
+  const _CommentsClosedBar({required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    final secondary = Theme.of(context).colorScheme.onSurfaceVariant;
+    return Material(
+      color: color,
+      child: SafeArea(
+        top: false,
+        child: SizedBox(
+          width: double.infinity,
+          height: 52,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.lock_outline, size: 18, color: secondary),
+              const SizedBox(width: 6),
+              Text(context.t.screenChat.commentsClosed, style: TextStyle(color: secondary)),
+            ],
+          ),
         ),
       ),
     );

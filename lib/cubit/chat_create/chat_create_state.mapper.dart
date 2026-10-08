@@ -182,6 +182,13 @@ class ChatCreateStateMapper extends ClassMapperBase<ChatCreateState> {
     opt: true,
     def: false,
   );
+  static int _$commentsTimeLimit(ChatCreateState v) => v.commentsTimeLimit;
+  static const Field<ChatCreateState, int> _f$commentsTimeLimit = Field(
+    'commentsTimeLimit',
+    _$commentsTimeLimit,
+    opt: true,
+    def: 0,
+  );
   static bool _$membersHidden(ChatCreateState v) => v.membersHidden;
   static const Field<ChatCreateState, bool> _f$membersHidden = Field(
     'membersHidden',
@@ -244,6 +251,7 @@ class ChatCreateStateMapper extends ClassMapperBase<ChatCreateState> {
     #defaultRole: _f$defaultRole,
     #commentsEnabled: _f$commentsEnabled,
     #signMessages: _f$signMessages,
+    #commentsTimeLimit: _f$commentsTimeLimit,
     #membersHidden: _f$membersHidden,
     #usernameStatus: _f$usernameStatus,
     #inviteLink: _f$inviteLink,
@@ -269,6 +277,7 @@ class ChatCreateStateMapper extends ClassMapperBase<ChatCreateState> {
       defaultRole: data.dec(_f$defaultRole),
       commentsEnabled: data.dec(_f$commentsEnabled),
       signMessages: data.dec(_f$signMessages),
+      commentsTimeLimit: data.dec(_f$commentsTimeLimit),
       membersHidden: data.dec(_f$membersHidden),
       usernameStatus: data.dec(_f$usernameStatus),
       inviteLink: data.dec(_f$inviteLink),
@@ -368,6 +377,7 @@ abstract class ChatCreateStateCopyWith<$R, $In extends ChatCreateState, $Out>
     models.ChatRole? defaultRole,
     bool? commentsEnabled,
     bool? signMessages,
+    int? commentsTimeLimit,
     bool? membersHidden,
     ChatUsernameStatus? usernameStatus,
     String? inviteLink,
@@ -427,6 +437,7 @@ class _ChatCreateStateCopyWithImpl<$R, $Out>
     models.ChatRole? defaultRole,
     bool? commentsEnabled,
     bool? signMessages,
+    int? commentsTimeLimit,
     bool? membersHidden,
     ChatUsernameStatus? usernameStatus,
     String? inviteLink,
@@ -450,6 +461,7 @@ class _ChatCreateStateCopyWithImpl<$R, $Out>
       if (defaultRole != null) #defaultRole: defaultRole,
       if (commentsEnabled != null) #commentsEnabled: commentsEnabled,
       if (signMessages != null) #signMessages: signMessages,
+      if (commentsTimeLimit != null) #commentsTimeLimit: commentsTimeLimit,
       if (membersHidden != null) #membersHidden: membersHidden,
       if (usernameStatus != null) #usernameStatus: usernameStatus,
       if (inviteLink != null) #inviteLink: inviteLink,
@@ -475,6 +487,10 @@ class _ChatCreateStateCopyWithImpl<$R, $Out>
     defaultRole: data.get(#defaultRole, or: $value.defaultRole),
     commentsEnabled: data.get(#commentsEnabled, or: $value.commentsEnabled),
     signMessages: data.get(#signMessages, or: $value.signMessages),
+    commentsTimeLimit: data.get(
+      #commentsTimeLimit,
+      or: $value.commentsTimeLimit,
+    ),
     membersHidden: data.get(#membersHidden, or: $value.membersHidden),
     usernameStatus: data.get(#usernameStatus, or: $value.usernameStatus),
     inviteLink: data.get(#inviteLink, or: $value.inviteLink),

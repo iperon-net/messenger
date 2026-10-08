@@ -313,6 +313,24 @@ class _Translations$screenNewChat$ru extends Translations$screenNewChat$en {
 	@override String get copied => 'Ссылка скопирована';
 	@override String get commentsSwitch => 'Комментарии';
 	@override String get commentsFooter => 'Подписчики смогут обсуждать каждый пост в комментариях.';
+	@override String get commentsLimit => 'Срок комментирования';
+	@override String get commentsLimitFooter => 'Сколько времени после публикации можно комментировать пост — дальше комментарии только читают. Действует на новые посты.';
+	@override String get commentsLimitOff => 'Без ограничения';
+	@override String commentsLimitHours({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n,
+		one: '${n} час',
+		few: '${n} часа',
+		many: '${n} часов',
+		other: '${n} часа',
+	);
+	@override String commentsLimitDays({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n,
+		one: '${n} день',
+		few: '${n} дня',
+		many: '${n} дней',
+		other: '${n} дня',
+	);
+	@override String get commentsLimitWeek => '1 неделя';
+	@override String get commentsLimitMonth => '1 месяц';
+	@override String get commentsLimitYear => '1 год';
 	@override String get signSwitch => 'Подписывать сообщения';
 	@override String get signFooter => 'С подписями под постом видно имя админа, который его опубликовал.';
 	@override String get hideMembers => 'Скрыть участников';
@@ -496,6 +514,11 @@ class _Translations$screenChat$ru extends Translations$screenChat$en {
 	);
 	@override String get leaveComment => 'Прокомментировать';
 	@override String get commentsTitle => 'Комментарии';
+	@override String get commentsClosed => 'Комментарии закрыты';
+	@override String get closeComments => 'Закрыть комментарии';
+	@override String get openComments => 'Открыть комментарии';
+	@override String get closeCommentsTitle => 'Закрыть комментарии?';
+	@override String get closeCommentsMessage => 'Комментировать пост больше будет нельзя, оставленные комментарии останутся.';
 	@override String get subscribe => 'Подписаться';
 	@override String get joinGroup => 'Вступить в группу';
 	@override String get requestJoin => 'Подать заявку';
@@ -1540,6 +1563,14 @@ extension on TranslationsRu {
 			'screenNewChat.copied' => 'Ссылка скопирована',
 			'screenNewChat.commentsSwitch' => 'Комментарии',
 			'screenNewChat.commentsFooter' => 'Подписчики смогут обсуждать каждый пост в комментариях.',
+			'screenNewChat.commentsLimit' => 'Срок комментирования',
+			'screenNewChat.commentsLimitFooter' => 'Сколько времени после публикации можно комментировать пост — дальше комментарии только читают. Действует на новые посты.',
+			'screenNewChat.commentsLimitOff' => 'Без ограничения',
+			'screenNewChat.commentsLimitHours' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: '${n} час', few: '${n} часа', many: '${n} часов', other: '${n} часа', ), 
+			'screenNewChat.commentsLimitDays' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: '${n} день', few: '${n} дня', many: '${n} дней', other: '${n} дня', ), 
+			'screenNewChat.commentsLimitWeek' => '1 неделя',
+			'screenNewChat.commentsLimitMonth' => '1 месяц',
+			'screenNewChat.commentsLimitYear' => '1 год',
 			'screenNewChat.signSwitch' => 'Подписывать сообщения',
 			'screenNewChat.signFooter' => 'С подписями под постом видно имя админа, который его опубликовал.',
 			'screenNewChat.hideMembers' => 'Скрыть участников',
@@ -1672,6 +1703,11 @@ extension on TranslationsRu {
 			'screenChat.comments' => ({required num n, required Object count}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: '${count} комментарий', few: '${count} комментария', many: '${count} комментариев', other: '${count} комментария', ), 
 			'screenChat.leaveComment' => 'Прокомментировать',
 			'screenChat.commentsTitle' => 'Комментарии',
+			'screenChat.commentsClosed' => 'Комментарии закрыты',
+			'screenChat.closeComments' => 'Закрыть комментарии',
+			'screenChat.openComments' => 'Открыть комментарии',
+			'screenChat.closeCommentsTitle' => 'Закрыть комментарии?',
+			'screenChat.closeCommentsMessage' => 'Комментировать пост больше будет нельзя, оставленные комментарии останутся.',
 			'screenChat.subscribe' => 'Подписаться',
 			'screenChat.joinGroup' => 'Вступить в группу',
 			'screenChat.requestJoin' => 'Подать заявку',
@@ -1870,6 +1906,8 @@ extension on TranslationsRu {
 			'screenChatInfo.about' => 'О себе',
 			'screenChatInfo.description' => 'Описание',
 			'screenChatInfo.username' => 'Имя пользователя',
+			_ => null,
+		} ?? switch (path) {
 			'screenChatInfo.link' => 'Ссылка',
 			'screenChatInfo.tabMembers' => 'Участники',
 			'screenChatInfo.tabSubscribers' => 'Подписчики',
@@ -1883,8 +1921,6 @@ extension on TranslationsRu {
 			'screenChatInfo.emptyVoice' => 'Здесь будут голосовые сообщения',
 			'screenChatInfo.roleOwner' => 'владелец',
 			'screenChatInfo.roleAdmin' => 'админ',
-			_ => null,
-		} ?? switch (path) {
 			'screenChatInfo.roleReader' => 'только чтение',
 			'screenChatInfo.you' => 'Вы',
 			'screenChatInfo.addMembers' => 'Добавить участников',

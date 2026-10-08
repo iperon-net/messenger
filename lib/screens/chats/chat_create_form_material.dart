@@ -10,6 +10,7 @@ import '../../extensions.dart';
 import '../../i18n/translations.g.dart';
 import '../../models.dart' as models;
 import 'chat_create_common.dart';
+import 'comments_limit.dart';
 import 'chats_new_material.dart';
 
 /// «Изменить» в профиле чата (админ): форма с полями [chat]; после
@@ -312,13 +313,31 @@ class _ChatCreateFormMaterial extends State<ChatCreateFormMaterial> {
                         value: state.commentsEnabled,
                         onChanged: context.read<ChatCreateCubit>().setCommentsEnabled,
                       ),
+                      if (state.commentsEnabled)
+                        ListTile(
+                          title: Text(t.screenNewChat.commentsLimit),
+                          subtitle: Text(commentsLimitLabel(t, state.commentsTimeLimit)),
+                          trailing: const Icon(Icons.chevron_right),
+                          onTap: () async {
+                            final cubit = context.read<ChatCreateCubit>();
+                            final seconds = await pickCommentsLimit(context, state.commentsTimeLimit);
+                            if (seconds != null) cubit.setCommentsTimeLimit(seconds);
+                          },
+                        ),
                       SwitchListTile(
                         title: Text(t.screenNewChat.signSwitch),
                         value: state.signMessages,
                         onChanged: context.read<ChatCreateCubit>().setSignMessages,
                       ),
                     ]),
-                    createNoteMaterial(context, '${t.screenNewChat.commentsFooter} ${t.screenNewChat.signFooter}'),
+                    createNoteMaterial(
+                      context,
+                      [
+                        t.screenNewChat.commentsFooter,
+                        if (state.commentsEnabled) t.screenNewChat.commentsLimitFooter,
+                        t.screenNewChat.signFooter,
+                      ].join(' '),
+                    ),
                   ],
                   if (state.isEdit && type != models.ChatType.channel) ...[
                     createHeaderMaterial(context, t.screenNewChat.defaultRoleHeader),

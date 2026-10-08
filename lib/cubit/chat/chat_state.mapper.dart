@@ -154,6 +154,20 @@ class ChatStateMapper extends ClassMapperBase<ChatState> {
     opt: true,
     def: 0,
   );
+  static List<String> _$commentsClosedIDs(ChatState v) => v.commentsClosedIDs;
+  static const Field<ChatState, List<String>> _f$commentsClosedIDs = Field(
+    'commentsClosedIDs',
+    _$commentsClosedIDs,
+    opt: true,
+    def: const [],
+  );
+  static bool _$commentsClosed(ChatState v) => v.commentsClosed;
+  static const Field<ChatState, bool> _f$commentsClosed = Field(
+    'commentsClosed',
+    _$commentsClosed,
+    opt: true,
+    def: false,
+  );
 
   @override
   final MappableFields<ChatState> fields = const {
@@ -176,6 +190,8 @@ class ChatStateMapper extends ClassMapperBase<ChatState> {
     #members: _f$members,
     #banned: _f$banned,
     #slowModeLeft: _f$slowModeLeft,
+    #commentsClosedIDs: _f$commentsClosedIDs,
+    #commentsClosed: _f$commentsClosed,
   };
 
   static ChatState _instantiate(DecodingData data) {
@@ -199,6 +215,8 @@ class ChatStateMapper extends ClassMapperBase<ChatState> {
       members: data.dec(_f$members),
       banned: data.dec(_f$banned),
       slowModeLeft: data.dec(_f$slowModeLeft),
+      commentsClosedIDs: data.dec(_f$commentsClosedIDs),
+      commentsClosed: data.dec(_f$commentsClosed),
     );
   }
 
@@ -299,6 +317,8 @@ abstract class ChatStateCopyWith<$R, $In extends ChatState, $Out>
     models.ChatMemberCopyWith<$R, models.ChatMember, models.ChatMember>
   >
   get banned;
+  ListCopyWith<$R, String, ObjectCopyWith<$R, String, String>>
+  get commentsClosedIDs;
   $R call({
     Status? status,
     models.Chat? chat,
@@ -319,6 +339,8 @@ abstract class ChatStateCopyWith<$R, $In extends ChatState, $Out>
     List<models.ChatMember>? members,
     List<models.ChatMember>? banned,
     int? slowModeLeft,
+    List<String>? commentsClosedIDs,
+    bool? commentsClosed,
   });
   ChatStateCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
@@ -414,6 +436,13 @@ class _ChatStateCopyWithImpl<$R, $Out>
     (v) => call(banned: v),
   );
   @override
+  ListCopyWith<$R, String, ObjectCopyWith<$R, String, String>>
+  get commentsClosedIDs => ListCopyWith(
+    $value.commentsClosedIDs,
+    (v, t) => ObjectCopyWith(v, $identity, t),
+    (v) => call(commentsClosedIDs: v),
+  );
+  @override
   $R call({
     Status? status,
     Object? chat = $none,
@@ -434,6 +463,8 @@ class _ChatStateCopyWithImpl<$R, $Out>
     List<models.ChatMember>? members,
     List<models.ChatMember>? banned,
     int? slowModeLeft,
+    List<String>? commentsClosedIDs,
+    bool? commentsClosed,
   }) => $apply(
     FieldCopyWithData({
       if (status != null) #status: status,
@@ -456,6 +487,8 @@ class _ChatStateCopyWithImpl<$R, $Out>
       if (members != null) #members: members,
       if (banned != null) #banned: banned,
       if (slowModeLeft != null) #slowModeLeft: slowModeLeft,
+      if (commentsClosedIDs != null) #commentsClosedIDs: commentsClosedIDs,
+      if (commentsClosed != null) #commentsClosed: commentsClosed,
     }),
   );
   @override
@@ -482,6 +515,11 @@ class _ChatStateCopyWithImpl<$R, $Out>
     members: data.get(#members, or: $value.members),
     banned: data.get(#banned, or: $value.banned),
     slowModeLeft: data.get(#slowModeLeft, or: $value.slowModeLeft),
+    commentsClosedIDs: data.get(
+      #commentsClosedIDs,
+      or: $value.commentsClosedIDs,
+    ),
+    commentsClosed: data.get(#commentsClosed, or: $value.commentsClosed),
   );
 
   @override

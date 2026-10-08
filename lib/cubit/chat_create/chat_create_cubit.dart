@@ -64,6 +64,7 @@ class ChatCreateCubit extends Cubit<ChatCreateState> {
         inviteLink: chat.inviteLink.isNotEmpty ? chat.inviteLink : newInviteCode(),
         defaultRole: chat.defaultRole,
         commentsEnabled: chat.commentsEnabled,
+        commentsTimeLimit: chat.commentsTimeLimit,
         signMessages: chat.signMessages,
         membersHidden: chat.membersHidden,
       ),
@@ -89,6 +90,8 @@ class ChatCreateCubit extends Cubit<ChatCreateState> {
   void setDefaultRole(models.ChatRole role) => emit(state.copyWith(defaultRole: role));
 
   void setCommentsEnabled(bool enabled) => emit(state.copyWith(commentsEnabled: enabled));
+
+  void setCommentsTimeLimit(int seconds) => emit(state.copyWith(commentsTimeLimit: seconds));
 
   void setSignMessages(bool enabled) => emit(state.copyWith(signMessages: enabled));
 
@@ -159,6 +162,7 @@ class ChatCreateCubit extends Cubit<ChatCreateState> {
       inviteLink: state.inviteLink,
       defaultRole: state.defaultRole,
       commentsEnabled: state.commentsEnabled,
+      commentsTimeLimit: state.commentsTimeLimit,
       signMessages: state.signMessages,
       membersHidden: state.membersHidden,
     );
