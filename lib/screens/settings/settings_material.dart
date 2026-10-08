@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../i18n/translations.g.dart';
 import '../../cubit.dart';
 import '../../components.dart';
+import '../chats/chat_folders_material.dart';
 
 class SettingsMaterial extends StatefulWidget {
   const SettingsMaterial({super.key});
@@ -73,6 +74,15 @@ class _SettingsMaterial extends State<SettingsMaterial> {
                     onTab: () async => context.go("/settings/appearance"),
                     isTrailing: true,
                   ),
+                  // Папки чатов — пока только в UX-демо (флаг на экране «Разработчик»).
+                  if (context.select((CommonCubit cubit) => cubit.state.settingsDevice.chatsDemo))
+                    MaterialListTileIcon(
+                      title: Text(context.t.screenSettings.folders),
+                      color: const Color(0xFF00A3D9),
+                      icon: FontAwesomeIcons.solidFolder,
+                      onTab: () async => showChatFoldersMaterial(context),
+                      isTrailing: true,
+                    ),
                   MaterialListTileIcon(
                     title: Text(context.t.screenSettings.devices),
                     color: const Color(0xFFFF6B00),

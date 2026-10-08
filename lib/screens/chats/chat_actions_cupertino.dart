@@ -5,6 +5,8 @@ import '../../components.dart';
 import '../../cubit.dart';
 import '../../i18n/translations.g.dart';
 import '../../models.dart' as models;
+import 'chat_folder_edit_cupertino.dart';
+import 'chat_folders_cupertino.dart';
 import 'chat_mute.dart';
 
 /// Строка чата с нативным контекстным меню iOS по долгому нажатию (строка
@@ -123,9 +125,9 @@ Future<bool> confirmDeleteChatCupertino(BuildContext context, models.Chat chat) 
 }
 
 /// Действия меню папки по удержанию таба (`CupertinoContextMenu` в
-/// `ChatFolderTabsCupertino`): «Прочитать все», «Удалить папку» («Все чаты» не
-/// удаляется). Редактирование папок — экран «Настройки → Папки» (следующие шаги
-/// демо).
+/// `ChatFolderTabsCupertino`): у «Все чаты» — «Прочитать все», «Изменить
+/// папки»; у остальных — «Изменить папку», «Прочитать все», «Изменить порядок»
+/// (экран «Папки»), «Удалить папку».
 List<Widget> folderContextActionsCupertino(BuildContext context, models.ChatFolder folder, String title) {
   final cubit = context.read<ChatsCubit>();
   final t = context.t.screenChats;
@@ -146,9 +148,14 @@ List<Widget> folderContextActionsCupertino(BuildContext context, models.ChatFold
 
   final unread = cubit.state.unreadOf(folder).count > 0;
   return [
+    if (!folder.isAll) action(t.editFolder, CupertinoIcons.pencil, () => showChatFolderEditCupertino(context, folder: folder)),
     if (unread) action(t.readAll, CupertinoIcons.chat_bubble_2, () => cubit.readAll(folder)),
-    if (!folder.isAll)
+    if (folder.isAll)
+      action(t.editFolders, CupertinoIcons.folder, () => showChatFoldersCupertino(context))
+    else ...[
+      action(t.reorderFolders, CupertinoIcons.arrow_up_arrow_down, () => showChatFoldersCupertino(context)),
       action(t.deleteFolder, CupertinoIcons.delete, () => _confirmDeleteFolder(context, cubit, folder, title), destructive: true),
+    ],
   ];
 }
 

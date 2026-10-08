@@ -49,7 +49,12 @@ class ChatsCubit extends Cubit<ChatsState> {
     });
     _foldersSubscription = source.watchFolders().listen((folders) {
       if (isClosed) return;
-      emit(state.copyWith(folders: folders, folderIndex: state.folderIndex.clamp(0, folders.isEmpty ? 0 : folders.length - 1)));
+      // Папки переставили / изменили на экране «Папки» — остаёмся на той же
+      // папке; её удалили — на соседней.
+      final current = state.folderIndex < state.folders.length ? state.folders[state.folderIndex].id : null;
+      final kept = folders.indexWhere((f) => f.id == current);
+      final index = kept >= 0 ? kept : state.folderIndex.clamp(0, folders.isEmpty ? 0 : folders.length - 1);
+      emit(state.copyWith(folders: folders, folderIndex: index));
     });
   }
 

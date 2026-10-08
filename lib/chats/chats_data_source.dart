@@ -29,6 +29,13 @@ abstract class ChatsDataSource {
 
   Future<void> deleteFolder(String folderID);
 
+  /// Создать / изменить папку (по `id`); новая — в конец списка.
+  Future<void> saveFolder(models.ChatFolder folder);
+
+  /// Новый порядок папок: [folderIDs] — все, кроме «Все чаты» (она всегда
+  /// первая).
+  Future<void> reorderFolders(List<String> folderIDs);
+
   /// Контакты, с которыми можно начать личный чат или добавить в группу
   /// («Новое сообщение», выбор участников) — по алфавиту.
   Future<List<models.ChatMember>> contacts();

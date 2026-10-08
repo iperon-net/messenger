@@ -6,6 +6,7 @@ import '../../i18n/translations.g.dart';
 import '../../models.dart' as models;
 import 'chat_avatar.dart';
 import 'chat_tile.dart';
+import '../../themes.dart';
 
 /// Строка списка чатов (iOS, по мотивам Telegram): аватар, название с иконкой
 /// типа и «колокольчиком», дата с галочками; ниже — превью в две строки и
@@ -64,7 +65,7 @@ class _ChatTileCupertinoState extends State<ChatTileCupertino> {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              ChatAvatar(chat: chat, accentColor: primary, size: 58),
+              ChatAvatar(chat: chat, accentColor: primary, accentForeground: ThemesCupertino.onAccent(context), size: 58),
               const SizedBox(width: 10),
               Expanded(
                 child: Column(
@@ -165,15 +166,17 @@ class _ChatTileCupertinoState extends State<ChatTileCupertino> {
   Widget _badges(BuildContext context, models.Chat chat, Color primary, Color secondary) {
     final grey = CupertinoColors.systemGrey.resolveFrom(context);
     final unreadColor = chat.muted ? grey : primary;
+    // На акценте — onAccent (в тёмной теме акцент светлый), на сером — белый.
+    final onAccent = _badgeText.copyWith(color: ThemesCupertino.onAccent(context));
     final children = <Widget>[
       if (chat.unreadMentions > 0)
         _pill(
-          child: const Text('@', style: _badgeText),
+          child: Text('@', style: onAccent),
           color: primary,
         ),
       if (chat.unreadCount > 0)
         _pill(
-          child: Text(ChatTileContent.badge(chat.unreadCount), style: _badgeText),
+          child: Text(ChatTileContent.badge(chat.unreadCount), style: chat.muted ? _badgeText : onAccent),
           color: unreadColor,
         )
       else if (chat.markedUnread)

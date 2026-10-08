@@ -32,14 +32,14 @@ class ChatCupertino extends StatefulWidget {
 
   /// Оформление пузырей — и для окна чата, и для превью «Тем для чатов».
   static MessageBubbleStyle bubbleStyle(BuildContext context) {
-    final primary = CupertinoDynamicColor.resolve(CupertinoTheme.of(context).primaryColor, context);
     final dark = CupertinoTheme.brightnessOf(context) == Brightness.dark;
     final label = CupertinoColors.label.resolveFrom(context);
-    // В тёмной теме ссылки (в т.ч. «N комментариев», «Переслано от») и мета
-    // (время, просмотры) — мягкие тона как на Android (см. chatAccent).
+    final onOutgoing = ThemesCupertino.chatOnOutgoing(context);
+    // В тёмной теме — тона Android: ссылки и мета мягкие (см. chatAccent),
+    // исходящие — `primaryContainer` со светлым текстом (см. chatOutgoing).
     return MessageBubbleStyle(
       incoming: dark ? const Color(0xFF262628) : const Color(0xFFFFFFFF),
-      outgoing: primary,
+      outgoing: ThemesCupertino.chatOutgoing(context),
       incomingText: MessageTextColors(
         text: label,
         link: ThemesCupertino.chatAccent(context),
@@ -47,15 +47,16 @@ class ChatCupertino extends StatefulWidget {
         spoiler: CupertinoColors.systemGrey3.resolveFrom(context),
         quote: CupertinoColors.secondaryLabel.resolveFrom(context),
       ),
-      outgoingText: const MessageTextColors(
-        text: Color(0xFFFFFFFF),
-        link: Color(0xFFFFFFFF),
-        codeBackground: Color(0x33FFFFFF),
-        spoiler: Color(0x66FFFFFF),
-        quote: Color(0xE6FFFFFF),
+      outgoingText: MessageTextColors(
+        text: onOutgoing,
+        link: ThemesCupertino.chatOutgoingLink(context),
+        codeBackground: onOutgoing.withValues(alpha: 0.2),
+        spoiler: onOutgoing.withValues(alpha: 0.4),
+        quote: onOutgoing.withValues(alpha: 0.9),
       ),
       incomingMeta: ThemesCupertino.chatMeta(context),
-      outgoingMeta: const Color(0xCCFFFFFF),
+      outgoingMeta: onOutgoing.withValues(alpha: 0.8),
+      incomingOnLink: ThemesCupertino.onAccent(context),
       pill: dark ? const Color(0x66000000) : const Color(0x22000000),
       pillText: dark ? const Color(0xFFFFFFFF) : const Color(0xFF3C3C43),
       textStyle: TextStyle(fontSize: 16, height: 1.25, color: label, fontFamily: CupertinoTheme.of(context).textTheme.textStyle.fontFamily),
@@ -455,7 +456,12 @@ class _ChatCupertinoState extends State<ChatCupertino> {
                             : GestureDetector(
                                 onTap: () => _openInfo(context),
                                 onLongPress: _startSearch,
-                                child: ChatAvatar(chat: chat, size: 36, accentColor: CupertinoTheme.of(context).primaryColor),
+                                child: ChatAvatar(
+                                  chat: chat,
+                                  size: 36,
+                                  accentColor: CupertinoTheme.of(context).primaryColor,
+                                  accentForeground: ThemesCupertino.onAccent(context),
+                                ),
                               ),
                       ),
                     ),
@@ -536,6 +542,7 @@ class _ChatCupertinoState extends State<ChatCupertino> {
                                             selectedIDs: state.selectedIDs,
                                             onSelect: _cubit.toggleSelected,
                                             selectionColor: CupertinoTheme.of(context).primaryColor,
+                                            selectionCheckColor: ThemesCupertino.onAccent(context),
                                             highlight: state.searching ? state.searchQuery : '',
                                             focusedID: state.searchCurrentID,
                                             onMediaTap: (message, index) => showChatMediaViewer(
@@ -555,6 +562,7 @@ class _ChatCupertinoState extends State<ChatCupertino> {
                                         background: ThemesCupertino.appBackground.resolveFrom(context).withValues(alpha: 0.92),
                                         iconColor: CupertinoColors.secondaryLabel.resolveFrom(context),
                                         badgeColor: CupertinoTheme.of(context).primaryColor,
+                                        badgeTextColor: ThemesCupertino.onAccent(context),
                                       ),
                                     ),
                                   ],

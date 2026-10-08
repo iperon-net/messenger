@@ -107,7 +107,12 @@ class _ForwardPickerState extends State<_ForwardPicker> {
                         return c.CupertinoListTile(
                           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                           leadingSize: 42,
-                          leading: ChatAvatar(chat: chat, accentColor: primary, size: 42),
+                          leading: ChatAvatar(
+                            chat: chat,
+                            accentColor: primary,
+                            accentForeground: ThemesCupertino.onAccent(context),
+                            size: 42,
+                          ),
                           title: Text(ChatTileContent.title(t, chat)),
                           onTap: () => Navigator.of(context).pop(chat),
                         );
@@ -153,7 +158,7 @@ class _ForwardPickerState extends State<_ForwardPicker> {
                       itemBuilder: (context, index) {
                         final chat = chats[index];
                         return m.ListTile(
-                          leading: ChatAvatar(chat: chat, accentColor: scheme.primary, size: 42),
+                          leading: ChatAvatar(chat: chat, accentColor: scheme.primary, accentForeground: scheme.onPrimary, size: 42),
                           title: Text(ChatTileContent.title(t, chat)),
                           onTap: () => Navigator.of(context).pop(chat),
                         );

@@ -608,8 +608,8 @@ class AttachmentThumb extends StatelessWidget {
 
 /// Открывает редактор видео [item] (нажатие на миниатюру в листе подписи);
 /// `true` — правки изменились, миниатюру нужно перерисовать.
-Future<bool> editVideoDraft(BuildContext context, AttachmentDraft item, {required Color accent}) async {
-  final result = await showChatVideoEditor(context, path: item.path, initial: item.edit, accent: accent);
+Future<bool> editVideoDraft(BuildContext context, AttachmentDraft item, {required Color accent, required Color onAccent}) async {
+  final result = await showChatVideoEditor(context, path: item.path, initial: item.edit, accent: accent, onAccent: onAccent);
   if (result == null) return false;
   item.edit = result.edit;
   return true;
@@ -896,6 +896,7 @@ class ChatScrollDownButton extends StatelessWidget {
   final Color background;
   final Color iconColor;
   final Color badgeColor;
+  final Color badgeTextColor;
 
   const ChatScrollDownButton({
     super.key,
@@ -903,6 +904,7 @@ class ChatScrollDownButton extends StatelessWidget {
     required this.background,
     required this.iconColor,
     required this.badgeColor,
+    this.badgeTextColor = const Color(0xFFFFFFFF),
   });
 
   @override
@@ -946,7 +948,7 @@ class ChatScrollDownButton extends StatelessWidget {
                           child: Text(
                             '${tracker.unread}',
                             textAlign: TextAlign.center,
-                            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFFFFFFFF)),
+                            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: badgeTextColor),
                           ),
                         ),
                       ),

@@ -27,6 +27,10 @@ class MessageBubbleStyle {
   final Color incomingMeta;
   final Color outgoingMeta;
 
+  /// Значок в кружке цвета ссылки во входящих (файл, голосовое, опрос): белый
+  /// на тёмном акценте, тёмный — на светлом акценте тёмной темы.
+  final Color incomingOnLink;
+
   /// Плашки дат и сервисных сообщений.
   final Color pill;
   final Color pillText;
@@ -39,6 +43,7 @@ class MessageBubbleStyle {
     required this.outgoingText,
     required this.incomingMeta,
     required this.outgoingMeta,
+    this.incomingOnLink = const Color(0xFFFFFFFF),
     required this.pill,
     required this.pillText,
     required this.textStyle,
@@ -113,6 +118,9 @@ class ChatMessagesView extends StatelessWidget {
   final ValueChanged<models.Message>? onSelect;
   final Color selectionColor;
 
+  /// Галочка в отмеченном кружке (поверх [selectionColor]).
+  final Color selectionCheckColor;
+
   /// Id строки-разделителя для [keyFor].
   static const unreadDividerID = '__unread__';
 
@@ -151,6 +159,7 @@ class ChatMessagesView extends StatelessWidget {
     this.selectedIDs = const [],
     this.onSelect,
     this.selectionColor = const Color(0xFF007AFF),
+    this.selectionCheckColor = const Color(0xFFFFFFFF),
     this.menuWrapper,
     this.onCommentsTap,
     this.onPollVote,
@@ -257,7 +266,11 @@ class ChatMessagesView extends StatelessWidget {
                           duration: const Duration(milliseconds: 200),
                           opacity: selecting ? 1 : 0,
                           child: Center(
-                            child: _SelectCheck(selected: selectedIDs.contains(m.id), color: selectionColor),
+                            child: _SelectCheck(
+                              selected: selectedIDs.contains(m.id),
+                              color: selectionColor,
+                              checkColor: selectionCheckColor,
+                            ),
                           ),
                         ),
                       ),
@@ -312,8 +325,9 @@ class _SenderAvatar extends StatelessWidget {
 class _SelectCheck extends StatelessWidget {
   final bool selected;
   final Color color;
+  final Color checkColor;
 
-  const _SelectCheck({required this.selected, required this.color});
+  const _SelectCheck({required this.selected, required this.color, required this.checkColor});
 
   @override
   Widget build(BuildContext context) {
@@ -328,7 +342,7 @@ class _SelectCheck extends StatelessWidget {
         border: Border.all(color: const Color(0xFFFFFFFF), width: 1.5),
         boxShadow: const [BoxShadow(color: Color(0x33000000), blurRadius: 3)],
       ),
-      child: selected ? const FaIcon(FontAwesomeIcons.check, size: 11, color: Color(0xFFFFFFFF)) : null,
+      child: selected ? FaIcon(FontAwesomeIcons.check, size: 11, color: checkColor) : null,
     );
   }
 }
@@ -539,7 +553,7 @@ class MessageBubble extends StatelessWidget {
     final metaColor = out ? style.outgoingMeta : style.incomingMeta;
     // Значок в кружке цвета ссылки (файл, голосовое). У исходящих на iOS ссылка
     // белая — белый значок пропал бы, поэтому он цвета пузыря.
-    final iconColor = out ? style.outgoing : const Color(0xFFFFFFFF);
+    final iconColor = out ? style.outgoing : style.incomingOnLink;
     final metaStyle = style.textStyle.copyWith(fontSize: 12, color: metaColor);
     final time = DateFormat.Hm().format(m.date.toLocal());
     final metaText = '${m.edited ? '${t.screenChat.edited} ' : ''}$time';

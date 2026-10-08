@@ -18,7 +18,8 @@ import 'media_viewer.dart';
 /// соотношением сторон) и поворот на 90°. Правки применяются при сжатии
 /// ([prepareChatVideo]), исходник не меняется. Одинаков на iOS и Android
 /// (тёмный полноэкранный, как просмотрщик), [accent] — цвет «Готово» и
-/// включённых переключателей из темы платформы.
+/// включённых переключателей из темы платформы, [onAccent] — текст на
+/// заливке [accent] (выбранное соотношение сторон).
 ///
 /// Результат: правки ([ChatVideoEdit], `null` в поле — «сбросить всё»)
 /// или `null` — отмена без изменений.
@@ -27,12 +28,13 @@ Future<({ChatVideoEdit? edit})?> showChatVideoEditor(
   required String path,
   ChatVideoEdit? initial,
   required Color accent,
+  Color onAccent = const Color(0xFFFFFFFF),
 }) {
   return Navigator.of(context, rootNavigator: true).push(
     PageRouteBuilder<({ChatVideoEdit? edit})>(
       transitionDuration: const Duration(milliseconds: 220),
       reverseTransitionDuration: const Duration(milliseconds: 200),
-      pageBuilder: (context, animation, _) => _VideoEditor(path: path, initial: initial, accent: accent),
+      pageBuilder: (context, animation, _) => _VideoEditor(path: path, initial: initial, accent: accent, onAccent: onAccent),
       transitionsBuilder: (context, animation, _, child) => FadeTransition(opacity: animation, child: child),
     ),
   );
@@ -42,8 +44,9 @@ class _VideoEditor extends StatefulWidget {
   final String path;
   final ChatVideoEdit? initial;
   final Color accent;
+  final Color onAccent;
 
-  const _VideoEditor({required this.path, required this.initial, required this.accent});
+  const _VideoEditor({required this.path, required this.initial, required this.accent, required this.onAccent});
 
   @override
   State<_VideoEditor> createState() => _VideoEditorState();
@@ -310,7 +313,10 @@ class _VideoEditorState extends State<_VideoEditor> {
                       color: i == _aspect ? widget.accent : const Color(0xFF2C2C2E),
                       borderRadius: BorderRadius.circular(16),
                     ),
-                    child: Text(_aspectLabel(t, i), style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
+                    child: Text(
+                      _aspectLabel(t, i),
+                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: i == _aspect ? widget.onAccent : null),
+                    ),
                   ),
                 ),
             ],

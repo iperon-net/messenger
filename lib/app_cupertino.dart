@@ -242,7 +242,10 @@ class _IperonMessengerCupertino extends State<IperonMessengerCupertino> with Wid
             locale: TranslationProvider.of(context).flutterLocale,
             theme: CupertinoThemeData(
               brightness: brightness,
-              primaryColor: colorSchemeSystem,
+              // Светлая — цвет оформления как был, тёмная — светлый тон из
+              // seed-схемы Android (см. ThemesCupertino.accent).
+              primaryColor: ThemesCupertino.accent(colorSchemeSystem),
+              primaryContrastingColor: ThemesCupertino.accentContrasting(colorSchemeSystem),
               scaffoldBackgroundColor: const CupertinoDynamicColor.withBrightness(color: Color(0xffffffff), darkColor: Color(0xff1b263b)),
             ),
             builder: (context, child) {

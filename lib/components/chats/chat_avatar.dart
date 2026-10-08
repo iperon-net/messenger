@@ -18,7 +18,17 @@ class ChatAvatar extends StatelessWidget {
   /// Цвет фона «Избранного» (primary темы — свой у Cupertino и Material).
   final Color accentColor;
 
-  const ChatAvatar({super.key, required this.chat, required this.accentColor, this.size = 56});
+  /// Закладка «Избранного» поверх [accentColor] (тёмная на светлом акценте
+  /// тёмной темы).
+  final Color accentForeground;
+
+  const ChatAvatar({
+    super.key,
+    required this.chat,
+    required this.accentColor,
+    this.accentForeground = const Color(0xFFFFFFFF),
+    this.size = 56,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +38,7 @@ class ChatAvatar extends StatelessWidget {
         height: size,
         decoration: BoxDecoration(color: accentColor, shape: BoxShape.circle),
         alignment: Alignment.center,
-        child: FaIcon(FontAwesomeIcons.solidBookmark, size: size * 0.4, color: const Color(0xFFFFFFFF)),
+        child: FaIcon(FontAwesomeIcons.solidBookmark, size: size * 0.4, color: accentForeground),
       );
     }
 
