@@ -206,9 +206,9 @@ class _ChatInfoMaterialState extends State<ChatInfoMaterial> {
         final subtitle = chat == null ? null : chatSubtitle(t, chat);
         final community = chat?.type == models.ChatType.community;
         return Scaffold(
-          backgroundColor: dark ? const Color(0xFF000000) : scheme.surfaceContainerLow,
+          backgroundColor: scheme.surfaceContainerLow,
           appBar: AppBar(
-            backgroundColor: dark ? const Color(0xFF000000) : scheme.surfaceContainerLow,
+            backgroundColor: scheme.surfaceContainerLow,
             // «Изменить» — админу группы / канала / сообщества.
             actions: [
               if (chat != null && chat.canManage && chat.type != models.ChatType.private)
@@ -513,7 +513,7 @@ class ChatReactionsSettingsMaterial extends StatelessWidget {
         }
 
         return Scaffold(
-          backgroundColor: dark ? const Color(0xFF000000) : scheme.surfaceContainerLow,
+          backgroundColor: scheme.surfaceContainerLow,
           appBar: AppBar(title: Text(t.reactions)),
           body: ListView(
             padding: EdgeInsets.only(bottom: 16 + MediaQuery.paddingOf(context).bottom),
@@ -660,7 +660,7 @@ class ChatSlowModeSettingsMaterial extends StatelessWidget {
     return BlocBuilder<ChatCubit, ChatState>(
       builder: (context, state) {
         return Scaffold(
-          backgroundColor: dark ? const Color(0xFF000000) : scheme.surfaceContainerLow,
+          backgroundColor: scheme.surfaceContainerLow,
           appBar: AppBar(title: Text(t.screenChatInfo.slowMode)),
           body: ListView(
             padding: EdgeInsets.only(bottom: 16 + MediaQuery.paddingOf(context).bottom),
