@@ -229,6 +229,19 @@ class ChatStateMapper extends ClassMapperBase<ChatState> {
     _$commentsWaitUntil,
     opt: true,
   );
+  static bool _$newcomerRestricted(ChatState v) => v.newcomerRestricted;
+  static const Field<ChatState, bool> _f$newcomerRestricted = Field(
+    'newcomerRestricted',
+    _$newcomerRestricted,
+    opt: true,
+    def: false,
+  );
+  static DateTime? _$newcomerUntil(ChatState v) => v.newcomerUntil;
+  static const Field<ChatState, DateTime> _f$newcomerUntil = Field(
+    'newcomerUntil',
+    _$newcomerUntil,
+    opt: true,
+  );
 
   @override
   final MappableFields<ChatState> fields = const {
@@ -254,6 +267,8 @@ class ChatStateMapper extends ClassMapperBase<ChatState> {
     #commentsClosedIDs: _f$commentsClosedIDs,
     #commentsBlock: _f$commentsBlock,
     #commentsWaitUntil: _f$commentsWaitUntil,
+    #newcomerRestricted: _f$newcomerRestricted,
+    #newcomerUntil: _f$newcomerUntil,
   };
 
   static ChatState _instantiate(DecodingData data) {
@@ -280,6 +295,8 @@ class ChatStateMapper extends ClassMapperBase<ChatState> {
       commentsClosedIDs: data.dec(_f$commentsClosedIDs),
       commentsBlock: data.dec(_f$commentsBlock),
       commentsWaitUntil: data.dec(_f$commentsWaitUntil),
+      newcomerRestricted: data.dec(_f$newcomerRestricted),
+      newcomerUntil: data.dec(_f$newcomerUntil),
     );
   }
 
@@ -405,6 +422,8 @@ abstract class ChatStateCopyWith<$R, $In extends ChatState, $Out>
     List<String>? commentsClosedIDs,
     ChatCommentsBlock? commentsBlock,
     DateTime? commentsWaitUntil,
+    bool? newcomerRestricted,
+    DateTime? newcomerUntil,
   });
   ChatStateCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
@@ -530,6 +549,8 @@ class _ChatStateCopyWithImpl<$R, $Out>
     List<String>? commentsClosedIDs,
     ChatCommentsBlock? commentsBlock,
     Object? commentsWaitUntil = $none,
+    bool? newcomerRestricted,
+    Object? newcomerUntil = $none,
   }) => $apply(
     FieldCopyWithData({
       if (status != null) #status: status,
@@ -555,6 +576,8 @@ class _ChatStateCopyWithImpl<$R, $Out>
       if (commentsClosedIDs != null) #commentsClosedIDs: commentsClosedIDs,
       if (commentsBlock != null) #commentsBlock: commentsBlock,
       if (commentsWaitUntil != $none) #commentsWaitUntil: commentsWaitUntil,
+      if (newcomerRestricted != null) #newcomerRestricted: newcomerRestricted,
+      if (newcomerUntil != $none) #newcomerUntil: newcomerUntil,
     }),
   );
   @override
@@ -590,6 +613,11 @@ class _ChatStateCopyWithImpl<$R, $Out>
       #commentsWaitUntil,
       or: $value.commentsWaitUntil,
     ),
+    newcomerRestricted: data.get(
+      #newcomerRestricted,
+      or: $value.newcomerRestricted,
+    ),
+    newcomerUntil: data.get(#newcomerUntil, or: $value.newcomerUntil),
   );
 
   @override

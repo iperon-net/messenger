@@ -60,6 +60,9 @@ class ChatCreateState with ChatCreateStateMappable {
   final models.ChatCommentsWho commentsWho;
   final int commentsMinSubscription;
 
+  /// «Новичкам — без ссылок и медиа»: срок, секунд (0 — выключено).
+  final int newcomerMediaDelay;
+
   /// Список участников / подписчиков — только админам («Изменить»).
   final bool membersHidden;
   final ChatUsernameStatus usernameStatus;
@@ -95,6 +98,7 @@ class ChatCreateState with ChatCreateStateMappable {
     this.commentsTimeLimit = 0,
     this.commentsWho = models.ChatCommentsWho.all,
     this.commentsMinSubscription = 0,
+    this.newcomerMediaDelay = 0,
     this.membersHidden = false,
     this.usernameStatus = ChatUsernameStatus.empty,
     this.inviteLink = '',

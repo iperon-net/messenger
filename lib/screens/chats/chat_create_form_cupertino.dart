@@ -314,6 +314,7 @@ class _ChatCreateFormCupertino extends State<ChatCreateFormCupertino> {
                           if (state.commentsEnabled) t.screenNewChat.commentsLimitFooter,
                           if (state.commentsEnabled && state.commentsWho == models.ChatCommentsWho.subscribers)
                             t.screenNewChat.commentsWhoFooter,
+                          if (state.commentsEnabled) t.screenNewChat.newcomerMediaFooterChannel,
                           t.screenNewChat.signFooter,
                         ].join(' '),
                       ),
@@ -349,6 +350,13 @@ class _ChatCreateFormCupertino extends State<ChatCreateFormCupertino> {
                               label: (value) => commentsLimitLabel(t, value),
                               onSelected: context.read<ChatCreateCubit>().setCommentsMinSubscription,
                             ),
+                          menuRow<int>(
+                            title: t.screenNewChat.newcomerMedia,
+                            values: commentsLimitOptions,
+                            current: state.newcomerMediaDelay,
+                            label: (value) => newcomerMediaLabel(t, value),
+                            onSelected: context.read<ChatCreateCubit>().setNewcomerMediaDelay,
+                          ),
                         ],
                         CupertinoListTile(
                           title: Text(t.screenNewChat.signSwitch, style: const TextStyle(fontSize: AppFontSizes.body)),
@@ -367,6 +375,19 @@ class _ChatCreateFormCupertino extends State<ChatCreateFormCupertino> {
                             trailing: state.defaultRole == role ? Icon(CupertinoIcons.checkmark_alt, color: primary) : null,
                             onTap: () => context.read<ChatCreateCubit>().setDefaultRole(role),
                           ),
+                      ],
+                    ),
+                  if (state.isEdit && type != models.ChatType.channel)
+                    section(
+                      footer: createNoteCupertino(t.screenNewChat.newcomerMediaFooterGroup),
+                      children: [
+                        menuRow<int>(
+                          title: t.screenNewChat.newcomerMedia,
+                          values: commentsLimitOptions,
+                          current: state.newcomerMediaDelay,
+                          label: (value) => newcomerMediaLabel(t, value),
+                          onSelected: context.read<ChatCreateCubit>().setNewcomerMediaDelay,
+                        ),
                       ],
                     ),
                 ],

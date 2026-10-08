@@ -292,6 +292,7 @@ class ChatsDemoDataSource implements ChatsDataSource {
     int commentsTimeLimit = 0,
     models.ChatCommentsWho commentsWho = models.ChatCommentsWho.all,
     int commentsMinSubscription = 0,
+    int newcomerMediaDelay = 0,
     bool signMessages = false,
     bool membersHidden = false,
   }) async {
@@ -314,6 +315,7 @@ class ChatsDemoDataSource implements ChatsDataSource {
         commentsTimeLimit: chat.type == models.ChatType.channel ? commentsTimeLimit : 0,
         commentsWho: commentsWho,
         commentsMinSubscription: commentsWho == models.ChatCommentsWho.subscribers ? commentsMinSubscription : 0,
+        newcomerMediaDelay: newcomerMediaDelay,
         signMessages: chat.type == models.ChatType.channel && signMessages,
         membersHidden: membersHidden,
       ),
@@ -891,6 +893,9 @@ class ChatsDemoDataSource implements ChatsDataSource {
       // «Подписаться, чтобы комментировать»; подпишемся — ждать 1 час).
       commentsWho: chat.id == 'iperon_dev' ? models.ChatCommentsWho.subscribers : models.ChatCommentsWho.all,
       commentsMinSubscription: chat.id == 'iperon_dev' ? 3600 : 0,
+      // «Новичкам — без ссылок и медиа» на сутки: вступим в «Flutter Moscow» /
+      // подпишемся на «Iperon Dev» — первые сутки только текст.
+      newcomerMediaDelay: const {'iperon_dev', 'flutter_msk'}.contains(chat.id) ? 86400 : 0,
       signMessages: const {'news', 'iperon_dev'}.contains(chat.id),
       // Подписчиков канала по умолчанию видят только админы.
       membersHidden: chat.type == models.ChatType.channel,

@@ -207,6 +207,13 @@ class ChatCreateStateMapper extends ClassMapperBase<ChatCreateState> {
     opt: true,
     def: 0,
   );
+  static int _$newcomerMediaDelay(ChatCreateState v) => v.newcomerMediaDelay;
+  static const Field<ChatCreateState, int> _f$newcomerMediaDelay = Field(
+    'newcomerMediaDelay',
+    _$newcomerMediaDelay,
+    opt: true,
+    def: 0,
+  );
   static bool _$membersHidden(ChatCreateState v) => v.membersHidden;
   static const Field<ChatCreateState, bool> _f$membersHidden = Field(
     'membersHidden',
@@ -272,6 +279,7 @@ class ChatCreateStateMapper extends ClassMapperBase<ChatCreateState> {
     #commentsTimeLimit: _f$commentsTimeLimit,
     #commentsWho: _f$commentsWho,
     #commentsMinSubscription: _f$commentsMinSubscription,
+    #newcomerMediaDelay: _f$newcomerMediaDelay,
     #membersHidden: _f$membersHidden,
     #usernameStatus: _f$usernameStatus,
     #inviteLink: _f$inviteLink,
@@ -300,6 +308,7 @@ class ChatCreateStateMapper extends ClassMapperBase<ChatCreateState> {
       commentsTimeLimit: data.dec(_f$commentsTimeLimit),
       commentsWho: data.dec(_f$commentsWho),
       commentsMinSubscription: data.dec(_f$commentsMinSubscription),
+      newcomerMediaDelay: data.dec(_f$newcomerMediaDelay),
       membersHidden: data.dec(_f$membersHidden),
       usernameStatus: data.dec(_f$usernameStatus),
       inviteLink: data.dec(_f$inviteLink),
@@ -402,6 +411,7 @@ abstract class ChatCreateStateCopyWith<$R, $In extends ChatCreateState, $Out>
     int? commentsTimeLimit,
     models.ChatCommentsWho? commentsWho,
     int? commentsMinSubscription,
+    int? newcomerMediaDelay,
     bool? membersHidden,
     ChatUsernameStatus? usernameStatus,
     String? inviteLink,
@@ -464,6 +474,7 @@ class _ChatCreateStateCopyWithImpl<$R, $Out>
     int? commentsTimeLimit,
     models.ChatCommentsWho? commentsWho,
     int? commentsMinSubscription,
+    int? newcomerMediaDelay,
     bool? membersHidden,
     ChatUsernameStatus? usernameStatus,
     String? inviteLink,
@@ -491,6 +502,7 @@ class _ChatCreateStateCopyWithImpl<$R, $Out>
       if (commentsWho != null) #commentsWho: commentsWho,
       if (commentsMinSubscription != null)
         #commentsMinSubscription: commentsMinSubscription,
+      if (newcomerMediaDelay != null) #newcomerMediaDelay: newcomerMediaDelay,
       if (membersHidden != null) #membersHidden: membersHidden,
       if (usernameStatus != null) #usernameStatus: usernameStatus,
       if (inviteLink != null) #inviteLink: inviteLink,
@@ -524,6 +536,10 @@ class _ChatCreateStateCopyWithImpl<$R, $Out>
     commentsMinSubscription: data.get(
       #commentsMinSubscription,
       or: $value.commentsMinSubscription,
+    ),
+    newcomerMediaDelay: data.get(
+      #newcomerMediaDelay,
+      or: $value.newcomerMediaDelay,
     ),
     membersHidden: data.get(#membersHidden, or: $value.membersHidden),
     usernameStatus: data.get(#usernameStatus, or: $value.usernameStatus),

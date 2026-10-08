@@ -85,6 +85,12 @@ class ChatState with ChatStateMappable {
   /// [ChatCommentsBlock.wait]: с какого момента можно комментировать.
   final DateTime? commentsWaitUntil;
 
+  /// «Новичкам — без ссылок и медиа» действует на нас: только текст (без
+  /// ссылок, медиа, файлов, голосовых, опросов). [newcomerUntil] — до когда
+  /// (`null` при [newcomerRestricted] — пока не подпишемся на канал ветки).
+  final bool newcomerRestricted;
+  final DateTime? newcomerUntil;
+
   const ChatState({
     this.status = Status.initialization,
     this.chat,
@@ -108,6 +114,8 @@ class ChatState with ChatStateMappable {
     this.commentsClosedIDs = const [],
     this.commentsBlock = ChatCommentsBlock.none,
     this.commentsWaitUntil,
+    this.newcomerRestricted = false,
+    this.newcomerUntil,
   });
 
   /// Писать в ветку нельзя (закрыта / не подписаны / мало подписаны).

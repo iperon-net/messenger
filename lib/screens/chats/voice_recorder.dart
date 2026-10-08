@@ -30,7 +30,11 @@ class VoiceRecorder extends ChangeNotifier {
   /// нужно вести в настройки.
   final Future<void> Function(bool permanently) onDenied;
 
-  VoiceRecorder({required this.onSend, required this.onDenied});
+  /// Можно ли начать запись (например, новичку голосовые нельзя — объясняет
+  /// сам и возвращает `false`); `null` — всегда можно.
+  final bool Function()? canStart;
+
+  VoiceRecorder({required this.onSend, required this.onDenied, this.canStart});
 
   static const cancelDistance = 110.0;
   static const lockDistance = 70.0;
@@ -64,6 +68,7 @@ class VoiceRecorder extends ChangeNotifier {
   /// Палец лёг на микрофон.
   Future<void> press() async {
     if (active || _starting) return;
+    if (canStart?.call() == false) return;
     final status = await Permission.microphone.status;
     if (!status.isGranted) {
       // Палец всё равно отпустят ради системного диалога — запись не начинаем.

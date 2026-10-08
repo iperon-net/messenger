@@ -6,6 +6,7 @@ import 'package:bloc/bloc.dart';
 import '../../constants.dart';
 import '../../chats/chats_data_source.dart';
 import '../../chats/message_formatting.dart';
+import '../../chats/newcomer.dart';
 import '../../chats/reactions.dart';
 import '../../demo/chats_demo_data_source.dart';
 import '../../models.dart' as models;
@@ -66,7 +67,7 @@ class ChatCubit extends Cubit<ChatState> {
       emit(state.copyWith(chat: chat, status: Status.success));
       _placeUnread();
       _syncSlowMode();
-      _syncComments();
+      _syncLimits();
     });
     _scheduledSubscription = source.watchScheduled(chatID).listen((scheduled) {
       if (!isClosed) emit(state.copyWith(scheduled: scheduled));
@@ -75,7 +76,7 @@ class ChatCubit extends Cubit<ChatState> {
       if (isClosed) return;
       emit(state.copyWith(messages: messages));
       _placeUnread();
-      _syncComments();
+      _syncLimits();
       // Пришло/удалилось сообщение во время поиска — пересчитываем, оставаясь
       // на текущем найденном.
       if (state.searching) _search(state.searchQuery, keepID: state.searchCurrentID);
@@ -121,10 +122,11 @@ class ChatCubit extends Cubit<ChatState> {
     }
   }
 
-  /// Комментарии: какие посты канала уже закрыты, можно ли нам писать в эту
-  /// ветку (срок, «только подписчики», «подписка не менее»); таймер — на
+  /// Ограничения на запись: какие посты канала уже закрыты для комментариев,
+  /// можно ли нам писать в эту ветку (срок, «только подписчики», «подписка не
+  /// менее») и действует ли «Новичкам — без ссылок и медиа»; таймер — на
   /// ближайшее будущее изменение, тогда пересчёт.
-  void _syncComments() {
+  void _syncLimits() {
     if (isClosed) return;
     final chat = state.chat;
     final now = DateTime.now();
@@ -135,11 +137,22 @@ class ChatCubit extends Cubit<ChatState> {
           if (m.commentsClosed(now)) m.id,
     ];
     final (block, waitUntil) = _commentsBlock(chat, now);
+    final (newcomer, newcomerUntil) = _newcomer(chat, now);
     if (block != state.commentsBlock ||
         waitUntil != state.commentsWaitUntil ||
+        newcomer != state.newcomerRestricted ||
+        newcomerUntil != state.newcomerUntil ||
         closedIDs.length != state.commentsClosedIDs.length ||
         !closedIDs.every(state.commentsClosedIDs.contains)) {
-      emit(state.copyWith(commentsClosedIDs: closedIDs, commentsBlock: block, commentsWaitUntil: waitUntil));
+      emit(
+        state.copyWith(
+          commentsClosedIDs: closedIDs,
+          commentsBlock: block,
+          commentsWaitUntil: waitUntil,
+          newcomerRestricted: newcomer,
+          newcomerUntil: newcomerUntil,
+        ),
+      );
     }
     final upcoming = [
       if (channel)
@@ -148,13 +161,14 @@ class ChatCubit extends Cubit<ChatState> {
       if (chat != null && chat.isThread)
         if (chat.commentsCloseDate case final date? when date.isAfter(now)) date,
       ?waitUntil,
+      ?newcomerUntil,
     ];
     _commentsTimer?.cancel();
     _commentsTimer = null;
     if (upcoming.isEmpty) return;
     final next = upcoming.reduce((a, b) => a.isBefore(b) ? a : b);
     // +50 мс — чтобы в момент срабатывания срок уже точно истёк.
-    _commentsTimer = Timer(next.difference(now) + const Duration(milliseconds: 50), _syncComments);
+    _commentsTimer = Timer(next.difference(now) + const Duration(milliseconds: 50), _syncLimits);
   }
 
   /// Почему нам нельзя писать в ветку [chat] (и до когда ждать). Закрытая —
@@ -190,6 +204,9 @@ class ChatCubit extends Cubit<ChatState> {
     if (state.editing == null && (_slowModeWaiting || state.commentsBlocked)) return;
     final (text, parsed) = parseMarkdownShortcuts(raw.trim());
     final entities = withMentionNames(text, parsed, mentions);
+    // Новичку — только текст без ссылок (UI заранее объясняет, см.
+    // `checkNewcomer`; здесь — страховка).
+    if (state.newcomerRestricted && (!isLinkFree(text, entities) || !forwarding.every(newcomerAllows))) return;
     final editing = state.editing;
     final reply = _takeReply();
     final linkPreview = !state.linkPreviewDisabled;
@@ -223,7 +240,7 @@ class ChatCubit extends Cubit<ChatState> {
     List<models.MessageMedia> media = const [],
   }) async {
     final source = _source;
-    if (source == null || _slowModeWaiting || state.commentsBlocked) return;
+    if (source == null || _slowModeWaiting || state.commentsBlocked || state.newcomerRestricted) return;
     final reply = _takeReply();
     final (text, entities) = parseMarkdownShortcuts(caption.trim());
     await source.sendMessage(
@@ -241,7 +258,7 @@ class ChatCubit extends Cubit<ChatState> {
   /// Голосовое: файл записи [localPath], длительность и волна.
   Future<void> sendVoice({required String localPath, required int duration, required List<int> waveform}) async {
     final source = _source;
-    if (source == null || _slowModeWaiting || state.commentsBlocked) return;
+    if (source == null || _slowModeWaiting || state.commentsBlocked || state.newcomerRestricted) return;
     final reply = _takeReply();
     await source.sendMessage(
       _chatID,
@@ -460,7 +477,7 @@ class ChatCubit extends Cubit<ChatState> {
 
   /// Отправить опрос (скрепка → «Опрос»).
   Future<void> sendPoll(models.MessagePoll poll) async {
-    if (_slowModeWaiting || state.commentsBlocked) return;
+    if (_slowModeWaiting || state.commentsBlocked || state.newcomerRestricted) return;
     final reply = _takeReply();
     await _source?.sendMessage(_chatID, kind: models.MessageKind.poll, text: poll.question, poll: poll, reply: reply);
   }
@@ -475,6 +492,29 @@ class ChatCubit extends Cubit<ChatState> {
 
   /// Комментарии к посту канала — id чата-ветки (пусто — не открыть).
   Future<String> openComments(models.Message post) async => await _source?.openComments(_chatID, post.id) ?? '';
+
+  /// «Новичкам — без ссылок и медиа»: действует ли на нас и до когда. Группа /
+  /// сообщество — по дате вступления; ветка — по подписке на канал (не
+  /// подписаны — пока не подпишемся). Админов не касается.
+  (bool, DateTime?) _newcomer(models.Chat? chat, DateTime now) {
+    if (chat == null) return (false, null);
+    final models.Chat source;
+    if (chat.isThread) {
+      final channel = _channel;
+      if (channel == null) return (false, null);
+      source = channel;
+    } else if (chat.type == models.ChatType.group || chat.type == models.ChatType.community) {
+      source = chat;
+    } else {
+      return (false, null);
+    }
+    if (source.newcomerMediaDelay <= 0 || source.canManage) return (false, null);
+    if (!source.isMember) return chat.isThread ? (true, null) : (false, null);
+    final joinedAt = source.joinedAt;
+    if (joinedAt == null) return (false, null);
+    final until = joinedAt.add(Duration(seconds: source.newcomerMediaDelay));
+    return until.isAfter(now) ? (true, until) : (false, null);
+  }
 
   /// Ветка «только для подписчиков»: подписаться на канал поста.
   Future<void> subscribeToChannel() async {

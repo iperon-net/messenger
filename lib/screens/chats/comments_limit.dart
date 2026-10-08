@@ -28,25 +28,32 @@ String commentsWhoLabel(Translations t, models.ChatCommentsWho who) => switch (w
   models.ChatCommentsWho.subscribers => t.screenNewChat.commentsWhoSubscribers,
 };
 
-/// «Комментировать можно с 18:30» (сегодня) / «… с 9.10, 18:30».
-String commentsWaitLabel(Translations t, DateTime until) {
+/// Момент для «… с {time}»: «18:30» (сегодня) / «9.10, 18:30».
+String untilTimeLabel(DateTime until) {
   final local = until.toLocal();
   final now = DateTime.now();
   final today = local.year == now.year && local.month == now.month && local.day == now.day;
   final time = DateFormat.Hm().format(local);
-  return t.screenChat.commentsWaitUntil(time: today ? time : '${DateFormat.Md().format(local)}, $time');
+  return today ? time : '${DateFormat.Md().format(local)}, $time';
 }
+
+/// «Комментировать можно с 18:30» (сегодня) / «… с 9.10, 18:30».
+String commentsWaitLabel(Translations t, DateTime until) => t.screenChat.commentsWaitUntil(time: untilTimeLabel(until));
+
+/// «Новичкам — без ссылок и медиа»: 0 — «Выкл.», иначе срок.
+String newcomerMediaLabel(Translations t, int seconds) => seconds <= 0 ? t.screenNewChat.newcomerMediaOff : commentsLimitLabel(t, seconds);
 
 /// Android: выбор срока — нижний лист с отметкой текущего (на iOS —
 /// выпадающее меню прямо у строки, `CupertinoMenuAnchor`). `null` — закрыли.
-Future<int?> pickCommentsLimit(BuildContext context, int current, {required String title}) {
+/// [label] — подпись варианта (по умолчанию [commentsLimitLabel]).
+Future<int?> pickCommentsLimit(BuildContext context, int current, {required String title, String Function(int value)? label}) {
   final t = context.t;
   return _pick(
     context,
     title: title,
     values: commentsLimitOptions,
     current: current,
-    label: (value) => commentsLimitLabel(t, value),
+    label: label ?? (value) => commentsLimitLabel(t, value),
     icon: (value) => value == 0 ? m.Icons.all_inclusive : m.Icons.schedule,
   );
 }

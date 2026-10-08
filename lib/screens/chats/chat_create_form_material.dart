@@ -148,6 +148,23 @@ class _ChatCreateFormMaterial extends State<ChatCreateFormMaterial> {
         final canCreate = _nameController.text.trim().isNotEmpty && state.linkReady && !state.creating;
         final hint = usernameHint(t, state);
 
+        // «Новичкам — без ссылок и медиа» (группа / комментарии канала).
+        Widget newcomerTile() => ListTile(
+          title: Text(t.screenNewChat.newcomerMedia),
+          subtitle: Text(newcomerMediaLabel(t, state.newcomerMediaDelay)),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () async {
+            final cubit = context.read<ChatCreateCubit>();
+            final seconds = await pickCommentsLimit(
+              context,
+              state.newcomerMediaDelay,
+              title: t.screenNewChat.newcomerMedia,
+              label: (value) => newcomerMediaLabel(t, value),
+            );
+            if (seconds != null) cubit.setNewcomerMediaDelay(seconds);
+          },
+        );
+
         return Scaffold(
           backgroundColor: scheme.surfaceContainerLow,
           appBar: AppBar(
@@ -349,6 +366,7 @@ class _ChatCreateFormMaterial extends State<ChatCreateFormMaterial> {
                               if (seconds != null) cubit.setCommentsMinSubscription(seconds);
                             },
                           ),
+                        newcomerTile(),
                       ],
                       SwitchListTile(
                         title: Text(t.screenNewChat.signSwitch),
@@ -363,6 +381,7 @@ class _ChatCreateFormMaterial extends State<ChatCreateFormMaterial> {
                         if (state.commentsEnabled) t.screenNewChat.commentsLimitFooter,
                         if (state.commentsEnabled && state.commentsWho == models.ChatCommentsWho.subscribers)
                           t.screenNewChat.commentsWhoFooter,
+                        if (state.commentsEnabled) t.screenNewChat.newcomerMediaFooterChannel,
                         t.screenNewChat.signFooter,
                       ].join(' '),
                     ),
@@ -387,6 +406,9 @@ class _ChatCreateFormMaterial extends State<ChatCreateFormMaterial> {
                       ),
                     ]),
                     createNoteMaterial(context, defaultRoleFooter(t, state.defaultRole)),
+                    const SizedBox(height: 8),
+                    card([newcomerTile()]),
+                    createNoteMaterial(context, t.screenNewChat.newcomerMediaFooterGroup),
                   ],
                 ],
 

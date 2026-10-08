@@ -14,6 +14,7 @@ import 'package:path/path.dart' as p;
 import '../../chats/media_prepare.dart';
 import '../../chats/message_formatting.dart';
 import '../../chats/message_quote.dart';
+import '../../chats/newcomer.dart';
 import '../../chats/slow_mode.dart';
 import '../../chats/video_prepare.dart';
 import '../../components.dart';
@@ -24,6 +25,7 @@ import '../../i18n/translations.g.dart';
 import '../../models.dart' as models;
 import 'chat_create_common.dart';
 import 'chat_info_common.dart';
+import 'comments_limit.dart';
 import 'media_caption_cupertino.dart';
 import 'media_caption_material.dart';
 import 'poll_create_cupertino.dart';
@@ -251,6 +253,22 @@ Future<void> _showNotice(BuildContext context, String text, {String? title}) asy
   }
 }
 
+/// «Новичкам — без ссылок и медиа»: можно ли нам отправить это — [media]
+/// (вложение, голосовое, опрос) или текст [raw] (с markdown-ярлыками) и
+/// пересылаемые. Нельзя — объясняем (до когда / «только подписчикам») и
+/// возвращаем `false`.
+bool checkNewcomer(BuildContext context, {bool media = false, String raw = '', List<models.Message> forwarding = const []}) {
+  final state = context.read<ChatCubit>().state;
+  if (!state.newcomerRestricted) return true;
+  final (text, entities) = parseMarkdownShortcuts(raw.trim());
+  if (!media && isLinkFree(text, entities) && forwarding.every(newcomerAllows)) return true;
+  final t = context.t;
+  final until = state.newcomerUntil;
+  final message = until == null ? t.screenChat.newcomerSubscribe : t.screenChat.newcomerWaitUntil(time: untilTimeLabel(until));
+  unawaited(_showNotice(context, message, title: t.screenChat.newcomerTitle));
+  return false;
+}
+
 /// Медленный режим: можно ли отправить сейчас [count] сообщений. Нельзя
 /// (ещё идёт отсчёт или сообщений больше одного) — объясняем и возвращаем
 /// `false`.
@@ -333,7 +351,7 @@ typedef MediaCaptionResult = ({String caption, bool spoiler, bool hd});
 Future<void> pickAndSendAttachments(BuildContext context, {TextEditingController? input}) async {
   final cubit = context.read<ChatCubit>();
   final chat = cubit.state.chat;
-  if (!checkSlowMode(context)) return;
+  if (!checkSlowMode(context) || !checkNewcomer(context, media: true)) return;
   // «Опрос» — в группах, сообществах, каналах и комментариях (не в личных).
   final polls = chat != null && chat.type != models.ChatType.private;
   final result = await showToolbarAttachments(

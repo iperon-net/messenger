@@ -1273,6 +1273,13 @@ class ChatMapper extends ClassMapperBase<Chat> {
     _$joinedAt,
     opt: true,
   );
+  static int _$newcomerMediaDelay(Chat v) => v.newcomerMediaDelay;
+  static const Field<Chat, int> _f$newcomerMediaDelay = Field(
+    'newcomerMediaDelay',
+    _$newcomerMediaDelay,
+    opt: true,
+    def: 0,
+  );
   static bool _$signMessages(Chat v) => v.signMessages;
   static const Field<Chat, bool> _f$signMessages = Field(
     'signMessages',
@@ -1384,6 +1391,7 @@ class ChatMapper extends ClassMapperBase<Chat> {
     #commentsWho: _f$commentsWho,
     #commentsMinSubscription: _f$commentsMinSubscription,
     #joinedAt: _f$joinedAt,
+    #newcomerMediaDelay: _f$newcomerMediaDelay,
     #signMessages: _f$signMessages,
     #membersHidden: _f$membersHidden,
     #isMember: _f$isMember,
@@ -1432,6 +1440,7 @@ class ChatMapper extends ClassMapperBase<Chat> {
       commentsWho: data.dec(_f$commentsWho),
       commentsMinSubscription: data.dec(_f$commentsMinSubscription),
       joinedAt: data.dec(_f$joinedAt),
+      newcomerMediaDelay: data.dec(_f$newcomerMediaDelay),
       signMessages: data.dec(_f$signMessages),
       membersHidden: data.dec(_f$membersHidden),
       isMember: data.dec(_f$isMember),
@@ -1529,6 +1538,7 @@ abstract class ChatCopyWith<$R, $In extends Chat, $Out>
     ChatCommentsWho? commentsWho,
     int? commentsMinSubscription,
     DateTime? joinedAt,
+    int? newcomerMediaDelay,
     bool? signMessages,
     bool? membersHidden,
     bool? isMember,
@@ -1596,6 +1606,7 @@ class _ChatCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Chat, $Out>
     ChatCommentsWho? commentsWho,
     int? commentsMinSubscription,
     Object? joinedAt = $none,
+    int? newcomerMediaDelay,
     bool? signMessages,
     bool? membersHidden,
     bool? isMember,
@@ -1643,6 +1654,7 @@ class _ChatCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Chat, $Out>
       if (commentsMinSubscription != null)
         #commentsMinSubscription: commentsMinSubscription,
       if (joinedAt != $none) #joinedAt: joinedAt,
+      if (newcomerMediaDelay != null) #newcomerMediaDelay: newcomerMediaDelay,
       if (signMessages != null) #signMessages: signMessages,
       if (membersHidden != null) #membersHidden: membersHidden,
       if (isMember != null) #isMember: isMember,
@@ -1700,6 +1712,10 @@ class _ChatCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Chat, $Out>
       or: $value.commentsMinSubscription,
     ),
     joinedAt: data.get(#joinedAt, or: $value.joinedAt),
+    newcomerMediaDelay: data.get(
+      #newcomerMediaDelay,
+      or: $value.newcomerMediaDelay,
+    ),
     signMessages: data.get(#signMessages, or: $value.signMessages),
     membersHidden: data.get(#membersHidden, or: $value.membersHidden),
     isMember: data.get(#isMember, or: $value.isMember),

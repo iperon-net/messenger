@@ -336,6 +336,10 @@ class _Translations$screenNewChat$ru extends Translations$screenNewChat$en {
 	@override String get commentsWhoSubscribers => 'Только подписчики';
 	@override String get commentsMinSubscription => 'Подписка не менее';
 	@override String get commentsWhoFooter => 'Не подписанные читают комментарии, но не пишут. Срок подписки защищает от спама: только что подписавшийся сможет комментировать, когда пройдёт выбранное время.';
+	@override String get newcomerMedia => 'Новичкам — без ссылок и медиа';
+	@override String get newcomerMediaOff => 'Выкл.';
+	@override String get newcomerMediaFooterGroup => 'Вступившие меньше выбранного срока назад пишут только текст — без ссылок, фото, видео, файлов, голосовых и опросов: так спам-боты не сразу смогут рекламировать. На админов не действует.';
+	@override String get newcomerMediaFooterChannel => 'Новички — не подписанные или подписанные меньше выбранного срока назад — пишут в комментариях только текст, без ссылок, фото, видео, файлов, голосовых и опросов.';
 	@override String get signSwitch => 'Подписывать сообщения';
 	@override String get signFooter => 'С подписями под постом видно имя админа, который его опубликовал.';
 	@override String get hideMembers => 'Скрыть участников';
@@ -522,6 +526,9 @@ class _Translations$screenChat$ru extends Translations$screenChat$en {
 	@override String get commentsClosed => 'Комментарии закрыты';
 	@override String get commentsSubscribe => 'Подписаться, чтобы комментировать';
 	@override String commentsWaitUntil({required Object time}) => 'Комментировать можно с ${time}';
+	@override String get newcomerTitle => 'Только текст';
+	@override String newcomerWaitUntil({required Object time}) => 'Ссылки, медиа, файлы и голосовые новичкам можно отправлять с ${time}.';
+	@override String get newcomerSubscribe => 'Ссылки, медиа, файлы и голосовые в комментариях могут отправлять только подписчики.';
 	@override String get closeComments => 'Закрыть комментарии';
 	@override String get openComments => 'Открыть комментарии';
 	@override String get closeCommentsTitle => 'Закрыть комментарии?';
@@ -1583,6 +1590,10 @@ extension on TranslationsRu {
 			'screenNewChat.commentsWhoSubscribers' => 'Только подписчики',
 			'screenNewChat.commentsMinSubscription' => 'Подписка не менее',
 			'screenNewChat.commentsWhoFooter' => 'Не подписанные читают комментарии, но не пишут. Срок подписки защищает от спама: только что подписавшийся сможет комментировать, когда пройдёт выбранное время.',
+			'screenNewChat.newcomerMedia' => 'Новичкам — без ссылок и медиа',
+			'screenNewChat.newcomerMediaOff' => 'Выкл.',
+			'screenNewChat.newcomerMediaFooterGroup' => 'Вступившие меньше выбранного срока назад пишут только текст — без ссылок, фото, видео, файлов, голосовых и опросов: так спам-боты не сразу смогут рекламировать. На админов не действует.',
+			'screenNewChat.newcomerMediaFooterChannel' => 'Новички — не подписанные или подписанные меньше выбранного срока назад — пишут в комментариях только текст, без ссылок, фото, видео, файлов, голосовых и опросов.',
 			'screenNewChat.signSwitch' => 'Подписывать сообщения',
 			'screenNewChat.signFooter' => 'С подписями под постом видно имя админа, который его опубликовал.',
 			'screenNewChat.hideMembers' => 'Скрыть участников',
@@ -1718,6 +1729,9 @@ extension on TranslationsRu {
 			'screenChat.commentsClosed' => 'Комментарии закрыты',
 			'screenChat.commentsSubscribe' => 'Подписаться, чтобы комментировать',
 			'screenChat.commentsWaitUntil' => ({required Object time}) => 'Комментировать можно с ${time}',
+			'screenChat.newcomerTitle' => 'Только текст',
+			'screenChat.newcomerWaitUntil' => ({required Object time}) => 'Ссылки, медиа, файлы и голосовые новичкам можно отправлять с ${time}.',
+			'screenChat.newcomerSubscribe' => 'Ссылки, медиа, файлы и голосовые в комментариях могут отправлять только подписчики.',
 			'screenChat.closeComments' => 'Закрыть комментарии',
 			'screenChat.openComments' => 'Открыть комментарии',
 			'screenChat.closeCommentsTitle' => 'Закрыть комментарии?',
@@ -1906,6 +1920,8 @@ extension on TranslationsRu {
 			'screenSettingsAppearance.darkModeAlwaysOn' => 'Всегда включена',
 			'screenSettingsAppearance.darkModeDisabled' => 'Отключена',
 			'screenSettingsAppearance.darkModeSystemDescription' => 'Как в настройках устройства',
+			_ => null,
+		} ?? switch (path) {
 			'screenSettingsAppearance.darkModeAlwaysOnDescription' => 'Тёмная тема всегда включена',
 			'screenSettingsAppearance.darkModeDisabledDescription' => 'Тёмная тема отключена',
 			'screenSettingsAppearance.blurOnInactive' => 'Размытие в неактивном состоянии',
@@ -1913,8 +1929,6 @@ extension on TranslationsRu {
 			'screenSettingsAppearance.chatThemes' => 'Темы для чатов',
 			'screenSettingsAppearance.quickReaction' => 'Быстрая реакция',
 			'screenSettingsAppearance.quickReactionDescription' => 'Ставится двойным тапом по сообщению',
-			_ => null,
-		} ?? switch (path) {
 			'screenChatInfo.mute' => 'Выкл. звук',
 			'screenChatInfo.unmute' => 'Вкл. звук',
 			'screenChatInfo.sound' => 'Звук',

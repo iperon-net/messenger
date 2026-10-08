@@ -299,6 +299,12 @@ class Chat with ChatMappable {
   /// без ограничения.
   final int commentsMinSubscription;
 
+  /// Группа/сообщество и комментарии канала: «Новичкам — без ссылок и медиа»
+  /// — вступившие (в канале — подписавшиеся; не подписанные — всегда) меньше
+  /// стольких секунд назад пишут только текст; 0 — выключено. Админов не
+  /// касается.
+  final int newcomerMediaDelay;
+
   /// Когда мы вступили / подписались (`null` — давно, до учёта): для
   /// [commentsMinSubscription].
   final DateTime? joinedAt;
@@ -373,6 +379,7 @@ class Chat with ChatMappable {
     this.commentsWho = ChatCommentsWho.all,
     this.commentsMinSubscription = 0,
     this.joinedAt,
+    this.newcomerMediaDelay = 0,
     this.signMessages = false,
     this.membersHidden = false,
     this.isMember = true,

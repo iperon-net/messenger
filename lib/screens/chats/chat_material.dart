@@ -69,6 +69,7 @@ class _ChatMaterialState extends State<ChatMaterial> {
   late final _formatMenu = ComposeFormatMenu(_input);
   late final _recorder = VoiceRecorder(
     onSend: (path, seconds, waveform) => _cubit.sendVoice(localPath: path, duration: seconds, waveform: waveform),
+    canStart: () => checkNewcomer(context, media: true),
     onDenied: _micDenied,
   );
   final _focus = FocusNode();
@@ -326,6 +327,8 @@ class _ChatMaterialState extends State<ChatMaterial> {
     if (_cubit.state.editing == null && !checkSlowMode(context, count: (text.trim().isEmpty ? 0 : 1) + _cubit.state.forwarding.length)) {
       return;
     }
+    // Новичку — только текст без ссылок (и пересылать — тоже).
+    if (!checkNewcomer(context, raw: text, forwarding: _cubit.state.forwarding)) return;
     _input.clear();
     _cubit.send(text, silent: silent, scheduleDate: scheduleDate, mentions: _mentions.take());
   }

@@ -68,7 +68,8 @@ abstract class ChatsDataSource {
   /// вступивших. [commentsTimeLimit] — «Срок комментирования» канала (секунд,
   /// 0 — без ограничения), действует только на новые посты; [commentsWho] и
   /// [commentsMinSubscription] — кто может комментировать (только подписчики —
-  /// подписанные не меньше стольких секунд).
+  /// подписанные не меньше стольких секунд); [newcomerMediaDelay] —
+  /// «Новичкам — без ссылок и медиа» (секунд, 0 — выключено).
   Future<void> updateChat(
     String chatID, {
     required String title,
@@ -82,6 +83,7 @@ abstract class ChatsDataSource {
     int commentsTimeLimit = 0,
     models.ChatCommentsWho commentsWho = models.ChatCommentsWho.all,
     int commentsMinSubscription = 0,
+    int newcomerMediaDelay = 0,
     bool signMessages = false,
     bool membersHidden = false,
   });

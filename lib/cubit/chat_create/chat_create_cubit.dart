@@ -67,6 +67,7 @@ class ChatCreateCubit extends Cubit<ChatCreateState> {
         commentsTimeLimit: chat.commentsTimeLimit,
         commentsWho: chat.commentsWho,
         commentsMinSubscription: chat.commentsMinSubscription,
+        newcomerMediaDelay: chat.newcomerMediaDelay,
         signMessages: chat.signMessages,
         membersHidden: chat.membersHidden,
       ),
@@ -98,6 +99,8 @@ class ChatCreateCubit extends Cubit<ChatCreateState> {
   void setCommentsWho(models.ChatCommentsWho who) => emit(state.copyWith(commentsWho: who));
 
   void setCommentsMinSubscription(int seconds) => emit(state.copyWith(commentsMinSubscription: seconds));
+
+  void setNewcomerMediaDelay(int seconds) => emit(state.copyWith(newcomerMediaDelay: seconds));
 
   void setSignMessages(bool enabled) => emit(state.copyWith(signMessages: enabled));
 
@@ -171,6 +174,7 @@ class ChatCreateCubit extends Cubit<ChatCreateState> {
       commentsTimeLimit: state.commentsTimeLimit,
       commentsWho: state.commentsWho,
       commentsMinSubscription: state.commentsMinSubscription,
+      newcomerMediaDelay: state.newcomerMediaDelay,
       signMessages: state.signMessages,
       membersHidden: state.membersHidden,
     );

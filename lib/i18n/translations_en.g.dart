@@ -697,6 +697,18 @@ class Translations$screenNewChat$en {
 	/// en: 'Non-subscribers can read comments but not write them. The subscription period protects against spam: a new subscriber can comment once the chosen time has passed.'
 	String get commentsWhoFooter => 'Non-subscribers can read comments but not write them. The subscription period protects against spam: a new subscriber can comment once the chosen time has passed.';
 
+	/// en: 'No Links or Media from Newcomers'
+	String get newcomerMedia => 'No Links or Media from Newcomers';
+
+	/// en: 'Off'
+	String get newcomerMediaOff => 'Off';
+
+	/// en: 'Members who joined less than the chosen time ago can send only text — no links, photos, videos, files, voice messages or polls — so spam bots can't advertise right away. Admins are not affected.'
+	String get newcomerMediaFooterGroup => 'Members who joined less than the chosen time ago can send only text — no links, photos, videos, files, voice messages or polls — so spam bots can\'t advertise right away. Admins are not affected.';
+
+	/// en: 'Newcomers — non-subscribers or those who subscribed less than the chosen time ago — can comment with text only, no links, photos, videos, files, voice messages or polls.'
+	String get newcomerMediaFooterChannel => 'Newcomers — non-subscribers or those who subscribed less than the chosen time ago — can comment with text only, no links, photos, videos, files, voice messages or polls.';
+
 	/// en: 'Sign Messages'
 	String get signSwitch => 'Sign Messages';
 
@@ -1146,6 +1158,15 @@ class Translations$screenChat$en {
 
 	/// en: 'You can comment from {time}'
 	String commentsWaitUntil({required Object time}) => 'You can comment from ${time}';
+
+	/// en: 'Text Only'
+	String get newcomerTitle => 'Text Only';
+
+	/// en: 'As a newcomer, you can send links, media, files and voice messages from {time}.'
+	String newcomerWaitUntil({required Object time}) => 'As a newcomer, you can send links, media, files and voice messages from ${time}.';
+
+	/// en: 'Only subscribers can send links, media, files and voice messages in comments.'
+	String get newcomerSubscribe => 'Only subscribers can send links, media, files and voice messages in comments.';
 
 	/// en: 'Close Comments'
 	String get closeComments => 'Close Comments';
@@ -3384,6 +3405,10 @@ extension on Translations {
 			'screenNewChat.commentsWhoSubscribers' => 'Subscribers Only',
 			'screenNewChat.commentsMinSubscription' => 'Subscribed For At Least',
 			'screenNewChat.commentsWhoFooter' => 'Non-subscribers can read comments but not write them. The subscription period protects against spam: a new subscriber can comment once the chosen time has passed.',
+			'screenNewChat.newcomerMedia' => 'No Links or Media from Newcomers',
+			'screenNewChat.newcomerMediaOff' => 'Off',
+			'screenNewChat.newcomerMediaFooterGroup' => 'Members who joined less than the chosen time ago can send only text — no links, photos, videos, files, voice messages or polls — so spam bots can\'t advertise right away. Admins are not affected.',
+			'screenNewChat.newcomerMediaFooterChannel' => 'Newcomers — non-subscribers or those who subscribed less than the chosen time ago — can comment with text only, no links, photos, videos, files, voice messages or polls.',
 			'screenNewChat.signSwitch' => 'Sign Messages',
 			'screenNewChat.signFooter' => 'With signatures, posts show the name of the admin who published them.',
 			'screenNewChat.hideMembers' => 'Hide Members',
@@ -3519,6 +3544,9 @@ extension on Translations {
 			'screenChat.commentsClosed' => 'Comments are closed',
 			'screenChat.commentsSubscribe' => 'Subscribe to Comment',
 			'screenChat.commentsWaitUntil' => ({required Object time}) => 'You can comment from ${time}',
+			'screenChat.newcomerTitle' => 'Text Only',
+			'screenChat.newcomerWaitUntil' => ({required Object time}) => 'As a newcomer, you can send links, media, files and voice messages from ${time}.',
+			'screenChat.newcomerSubscribe' => 'Only subscribers can send links, media, files and voice messages in comments.',
 			'screenChat.closeComments' => 'Close Comments',
 			'screenChat.openComments' => 'Open Comments',
 			'screenChat.closeCommentsTitle' => 'Close comments?',
@@ -3707,6 +3735,8 @@ extension on Translations {
 			'screenSettingsAppearance.darkModeAlwaysOn' => 'Always on',
 			'screenSettingsAppearance.darkModeDisabled' => 'Disabled',
 			'screenSettingsAppearance.darkModeSystemDescription' => 'As in the device settings',
+			_ => null,
+		} ?? switch (path) {
 			'screenSettingsAppearance.darkModeAlwaysOnDescription' => 'Dark mode is always on',
 			'screenSettingsAppearance.darkModeDisabledDescription' => 'Dark mode is disabled',
 			'screenSettingsAppearance.blurOnInactive' => 'Blur on inactive',
@@ -3714,8 +3744,6 @@ extension on Translations {
 			'screenSettingsAppearance.chatThemes' => 'Chat themes',
 			'screenSettingsAppearance.quickReaction' => 'Quick reaction',
 			'screenSettingsAppearance.quickReactionDescription' => 'Set by double-tapping a message',
-			_ => null,
-		} ?? switch (path) {
 			'screenChatInfo.mute' => 'Mute',
 			'screenChatInfo.unmute' => 'Unmute',
 			'screenChatInfo.sound' => 'Sound',
