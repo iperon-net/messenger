@@ -540,6 +540,7 @@ class _ChatCupertinoState extends State<ChatCupertino> {
                                             onPinnedServiceTap: _tracker.jumpTo,
                                             unreadFromID: state.unreadFromID,
                                             flashID: _flashID,
+                                            flashRange: _tracker.flashRange,
                                             onReply: chat.type == models.ChatType.channel || state.searching || state.selecting
                                                 ? null
                                                 : _swipeReply,
@@ -620,8 +621,27 @@ class _ChatCupertinoState extends State<ChatCupertino> {
 
   /// Пузырь в нативном контекстном меню iOS (удержание): пузырь
   /// «приподнимается», фон размывается, под ним — полоса реакций и действия.
-  Widget _menu(BuildContext context, models.Chat chat, models.Message message, Widget bubble, Widget Function(double) preview) {
-    return _MessageContextMenu(actions: _menuActions(context, chat, message), bubble: bubble, preview: preview);
+  ///
+  /// Текст в приподнятом пузыре можно выделить: «Копировать | Цитировать»
+  /// (ответ на фрагмент, как в Telegram).
+  Widget _menu(BuildContext context, models.Chat chat, models.Message message, Widget bubble, MessageBubblePreview preview) {
+    Widget quotable(Widget text) => QuotableText(
+      text: message.text,
+      entities: message.entities,
+      selectionControls: cupertinoTextSelectionHandleControls,
+      toolbarBuilder: (context, anchors, items) => CupertinoAdaptiveTextSelectionToolbar.buttonItems(anchors: anchors, buttonItems: items),
+      onQuote: (quote) {
+        Navigator.of(context, rootNavigator: true).pop();
+        _cubit.startReply(message, quote: quote);
+        _focus.requestFocus();
+      },
+      child: text,
+    );
+    return _MessageContextMenu(
+      actions: _menuActions(context, chat, message),
+      bubble: bubble,
+      preview: (maxWidth) => preview(maxWidth, selectableText: chat.canPost ? quotable : null),
+    );
   }
 
   List<Widget> _menuActions(BuildContext context, models.Chat chat, models.Message message) {
@@ -894,6 +914,8 @@ class _ComposeBar extends StatelessWidget {
                           ? FontAwesomeIcons.pen
                           : state.forwarding.isNotEmpty
                           ? FontAwesomeIcons.share
+                          : banner.quote
+                          ? FontAwesomeIcons.quoteLeft
                           : FontAwesomeIcons.reply,
                       size: 16,
                       color: primary,

@@ -109,7 +109,27 @@ class MessageReply with MessageReplyMappable {
   final String text;
   final MessageKind kind;
 
-  const MessageReply({required this.messageID, required this.senderName, this.text = '', this.kind = MessageKind.text});
+  /// Ответ на фрагмент («Цитировать» в меню сообщения): в пузыре вместо
+  /// [text] — цитата, тап подсвечивает фрагмент в исходном.
+  final MessageQuote? quote;
+
+  const MessageReply({required this.messageID, required this.senderName, this.text = '', this.kind = MessageKind.text, this.quote});
+}
+
+/// Процитированный фрагмент исходного сообщения (как `quote_text` в Telegram):
+/// плоский [text] с разметкой [entities] (offset'ы — от начала фрагмента) и
+/// его начало [offset] в исходном тексте — по нему фрагмент находится, даже
+/// если такой же текст в сообщении встречается несколько раз.
+@MappableClass()
+class MessageQuote with MessageQuoteMappable {
+  /// Предел длины цитаты (как `quote_length_max` в Telegram).
+  static const maxLength = 1024;
+
+  final String text;
+  final List<MessageEntity> entities;
+  final int offset;
+
+  const MessageQuote({required this.text, this.entities = const [], this.offset = 0});
 }
 
 /// Пересланное сообщение: от кого (имя автора оригинала, для своих —

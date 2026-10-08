@@ -128,9 +128,9 @@ class ChatCubit extends Cubit<ChatState> {
     final (text, parsed) = parseMarkdownShortcuts(raw.trim());
     final entities = withMentionNames(text, parsed, mentions);
     final editing = state.editing;
-    final reply = state.reply;
+    final reply = _takeReply();
     final linkPreview = !state.linkPreviewDisabled;
-    emit(state.copyWith(reply: null, editing: null, forwarding: const [], linkPreviewDisabled: false));
+    emit(state.copyWith(editing: null, forwarding: const [], linkPreviewDisabled: false));
     if (editing != null) {
       await source.editMessage(_chatID, editing.id, text, entities);
       return;
@@ -141,7 +141,7 @@ class ChatCubit extends Cubit<ChatState> {
         _chatID,
         text: text,
         entities: entities,
-        reply: reply == null ? null : _replyOf(reply),
+        reply: reply,
         silent: silent,
         scheduleDate: scheduleDate,
         linkPreview: linkPreview,
@@ -161,8 +161,7 @@ class ChatCubit extends Cubit<ChatState> {
   }) async {
     final source = _source;
     if (source == null || _slowModeWaiting) return;
-    final reply = state.reply;
-    emit(state.copyWith(reply: null));
+    final reply = _takeReply();
     final (text, entities) = parseMarkdownShortcuts(caption.trim());
     await source.sendMessage(
       _chatID,
@@ -172,7 +171,7 @@ class ChatCubit extends Cubit<ChatState> {
       media: media,
       text: text,
       entities: entities,
-      reply: reply == null ? null : _replyOf(reply),
+      reply: reply,
     );
   }
 
@@ -180,24 +179,32 @@ class ChatCubit extends Cubit<ChatState> {
   Future<void> sendVoice({required String localPath, required int duration, required List<int> waveform}) async {
     final source = _source;
     if (source == null || _slowModeWaiting) return;
-    final reply = state.reply;
-    emit(state.copyWith(reply: null));
+    final reply = _takeReply();
     await source.sendMessage(
       _chatID,
       kind: models.MessageKind.voice,
       localPath: localPath,
       duration: duration,
       waveform: waveform,
-      reply: reply == null ? null : _replyOf(reply),
+      reply: reply,
     );
   }
 
-  models.MessageReply _replyOf(models.Message m) => models.MessageReply(
-    messageID: m.id,
-    senderName: m.outgoing ? '' : (m.senderName.isNotEmpty ? m.senderName : state.chat?.title ?? ''),
-    text: m.kind == models.MessageKind.file && m.text.isEmpty ? m.fileName : m.text,
-    kind: m.kind,
-  );
+  /// Ответ (с цитатой, если отвечаем на фрагмент) для отправляемого
+  /// сообщения; плашка над полем ввода убирается.
+  models.MessageReply? _takeReply() {
+    final m = state.reply;
+    final quote = state.replyQuote;
+    emit(state.copyWith(reply: null, replyQuote: null));
+    if (m == null) return null;
+    return models.MessageReply(
+      messageID: m.id,
+      senderName: m.outgoing ? '' : (m.senderName.isNotEmpty ? m.senderName : state.chat?.title ?? ''),
+      text: m.kind == models.MessageKind.file && m.text.isEmpty ? m.fileName : m.text,
+      kind: m.kind,
+      quote: quote,
+    );
+  }
 
   /// Реакция: тап по своей — снять, по другой — добавить (до
   /// [maxReactionsPerUser], сверх — вытесняется самая ранняя наша).
@@ -248,14 +255,16 @@ class ChatCubit extends Cubit<ChatState> {
     emit(state.copyWith(searchQuery: query, searchResults: results, searchIndex: kept < 0 ? 0 : kept));
   }
 
-  void startReply(models.Message message) => emit(state.copyWith(reply: message, editing: null, forwarding: const []));
+  /// Ответить на [message]; [quote] — на его фрагмент («Цитировать»).
+  void startReply(models.Message message, {models.MessageQuote? quote}) =>
+      emit(state.copyWith(reply: message, replyQuote: quote, editing: null, forwarding: const []));
 
-  void startEdit(models.Message message) => emit(state.copyWith(editing: message, reply: null, forwarding: const []));
+  void startEdit(models.Message message) => emit(state.copyWith(editing: message, reply: null, replyQuote: null, forwarding: const []));
 
   /// × на превью ссылки над полем ввода.
   void disableLinkPreview() => emit(state.copyWith(linkPreviewDisabled: true));
 
-  void cancelCompose() => emit(state.copyWith(reply: null, editing: null, forwarding: const []));
+  void cancelCompose() => emit(state.copyWith(reply: null, replyQuote: null, editing: null, forwarding: const []));
 
   /// Закрепить / открепить (меню сообщения, крестик в плашке); [forEveryone]
   /// — см. [ChatsDataSource.setMessagePinned].
@@ -309,7 +318,7 @@ class ChatCubit extends Cubit<ChatState> {
     ];
     if (messages.isEmpty) return;
     if (toChatID == _chatID) {
-      emit(state.copyWith(selecting: false, selectedIDs: const [], forwarding: messages, reply: null, editing: null));
+      emit(state.copyWith(selecting: false, selectedIDs: const [], forwarding: messages, reply: null, replyQuote: null, editing: null));
     } else {
       forwardTo(toChatID, messages);
       clearSelection();
@@ -389,15 +398,8 @@ class ChatCubit extends Cubit<ChatState> {
   /// Отправить опрос (скрепка → «Опрос»).
   Future<void> sendPoll(models.MessagePoll poll) async {
     if (_slowModeWaiting) return;
-    final reply = state.reply;
-    emit(state.copyWith(reply: null));
-    await _source?.sendMessage(
-      _chatID,
-      kind: models.MessageKind.poll,
-      text: poll.question,
-      poll: poll,
-      reply: reply == null ? null : _replyOf(reply),
-    );
+    final reply = _takeReply();
+    await _source?.sendMessage(_chatID, kind: models.MessageKind.poll, text: poll.question, poll: poll, reply: reply);
   }
 
   /// Голос в опросе (пустой список — отменить голос).

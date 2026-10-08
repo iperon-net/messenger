@@ -1168,6 +1168,12 @@ class Translations$screenChat$en {
 	/// en: 'Reply'
 	String get reply => 'Reply';
 
+	/// en: 'Quote'
+	String get quote => 'Quote';
+
+	/// en: 'Quote · {name}'
+	String replyQuoteTo({required Object name}) => 'Quote · ${name}';
+
 	/// en: 'Copy'
 	String get copy => 'Copy';
 
@@ -3455,6 +3461,8 @@ extension on Translations {
 			'screenChat.empty' => 'No messages yet',
 			'screenChat.notFound' => 'Chat not found',
 			'screenChat.reply' => 'Reply',
+			'screenChat.quote' => 'Quote',
+			'screenChat.replyQuoteTo' => ({required Object name}) => 'Quote · ${name}',
 			'screenChat.copy' => 'Copy',
 			'screenChat.copied' => 'Copied',
 			'screenChat.edit' => 'Edit',
@@ -3640,10 +3648,10 @@ extension on Translations {
 			'screenChatInfo.emptyVoice' => 'Voice messages will appear here',
 			'screenChatInfo.roleOwner' => 'owner',
 			'screenChatInfo.roleAdmin' => 'admin',
-			'screenChatInfo.roleReader' => 'read only',
-			'screenChatInfo.you' => 'You',
 			_ => null,
 		} ?? switch (path) {
+			'screenChatInfo.roleReader' => 'read only',
+			'screenChatInfo.you' => 'You',
 			'screenChatInfo.addMembers' => 'Add Members',
 			'screenChatInfo.add' => 'Add',
 			'screenChatInfo.sendMessage' => 'Send Message',

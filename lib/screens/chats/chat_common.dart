@@ -13,6 +13,7 @@ import 'package:path/path.dart' as p;
 
 import '../../chats/media_prepare.dart';
 import '../../chats/message_formatting.dart';
+import '../../chats/message_quote.dart';
 import '../../chats/slow_mode.dart';
 import '../../chats/video_prepare.dart';
 import '../../components.dart';
@@ -756,7 +757,9 @@ class _ThumbBadge extends StatelessWidget {
 }
 
 /// Плашка над полем ввода: «Ответ Анне: …» / «Редактирование: …».
-({String title, String text})? composeBanner(Translations t, ChatState state) {
+///
+/// [quote] — отвечаем на фрагмент («Цитировать»): в [text] — цитата.
+({String title, String text, bool quote})? composeBanner(Translations t, ChatState state) {
   final forwarding = state.forwarding;
   if (forwarding.isNotEmpty && state.editing == null) {
     String nameOf(models.Message m) => (m.forward?.self ?? m.outgoing) ? t.screenChat.you : (m.forward?.name ?? m.senderName);
@@ -765,14 +768,16 @@ class _ThumbBadge extends StatelessWidget {
     final text = forwarding.length == 1
         ? (first.text.isNotEmpty ? first.text : messageKindLabel(t, first.kind))
         : t.screenChat.forwardFrom(names: {for (final m in forwarding) nameOf(m)}.where((n) => n.isNotEmpty).join(', '));
-    return (title: t.screenChat.forwardMessages(n: forwarding.length), text: text.replaceAll('\n', ' '));
+    return (title: t.screenChat.forwardMessages(n: forwarding.length), text: text.replaceAll('\n', ' '), quote: false);
   }
   final message = state.editing ?? state.reply;
   if (message == null) return null;
   final text = message.text.isNotEmpty ? message.text : messageKindLabel(t, message.kind);
-  if (state.editing != null) return (title: t.screenChat.editing, text: text.replaceAll('\n', ' '));
+  if (state.editing != null) return (title: t.screenChat.editing, text: text.replaceAll('\n', ' '), quote: false);
   final name = message.outgoing ? t.screenChat.you : (message.senderName.isNotEmpty ? message.senderName : state.chat?.title ?? '');
-  return (title: name, text: text.replaceAll('\n', ' '));
+  final quote = state.replyQuote;
+  if (quote != null) return (title: t.screenChat.replyQuoteTo(name: name), text: quote.text.replaceAll('\n', ' '), quote: true);
+  return (title: name, text: text.replaceAll('\n', ' '), quote: false);
 }
 
 /// Прокрутка ленты сообщений к строке с ключом [key] (поиск по чату). Лента
@@ -822,6 +827,9 @@ class ChatScrollTracker extends ChangeNotifier {
   bool showDown = false;
   int unread = 0;
   String? flashID;
+
+  /// Ответ на фрагмент: он подсвечен в тексте [flashID].
+  (int, int)? flashRange;
 
   List<models.Message> _messages = const [];
 
@@ -904,10 +912,12 @@ class ChatScrollTracker extends ChangeNotifier {
 
   /// Тап по цитате ответа в [from] — к исходному сообщению.
   Future<void> jumpToReply(models.Message from) async {
-    final id = from.reply?.messageID;
-    if (id == null || !_messages.any((m) => m.id == id)) return;
+    final reply = from.reply;
+    final original = _messages.where((m) => m.id == reply?.messageID).firstOrNull;
+    if (reply == null || original == null) return;
     _returnTo.add(from.id);
-    await _jumpTo(id);
+    final quote = reply.quote;
+    await _jumpTo(original.id, range: quote == null ? null : locateQuote(original.text, quote));
   }
 
   /// Кнопка «вниз»: назад к сообщению, с которого перешли по цитате, иначе —
@@ -931,13 +941,17 @@ class ChatScrollTracker extends ChangeNotifier {
   /// Перейти к сообщению [id] с подсветкой (плашка закреплённых).
   Future<void> jumpTo(String id) => _jumpTo(id);
 
-  Future<void> _jumpTo(String id) async {
+  /// [range] — подсветить ещё и фрагмент текста (цитата); его держим
+  /// дольше, чтобы успеть прочитать.
+  Future<void> _jumpTo(String id, {(int, int)? range}) async {
     await scrollToMessage(scroll, keyFor(id));
     flashID = id;
+    flashRange = range;
     notifyListeners();
     _flashTimer?.cancel();
-    _flashTimer = Timer(const Duration(milliseconds: 900), () {
+    _flashTimer = Timer(Duration(milliseconds: range == null ? 900 : 1600), () {
       flashID = null;
+      flashRange = null;
       notifyListeners();
     });
   }

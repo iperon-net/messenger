@@ -53,6 +53,10 @@ class MessageText extends StatefulWidget {
   final String highlight;
   final Color highlightColor;
 
+  /// Подсвеченный фрагмент [start, end) — переход по цитате ответа.
+  final (int, int)? mark;
+  final Color markColor;
+
   const MessageText({
     super.key,
     required this.text,
@@ -63,6 +67,8 @@ class MessageText extends StatefulWidget {
     this.trailingStyle,
     this.highlight = '',
     this.highlightColor = const Color(0x66FFCC00),
+    this.mark,
+    this.markColor = const Color(0x66FFCC00),
   });
 
   @override
@@ -166,6 +172,13 @@ class _MessageTextState extends State<MessageText> with TickerProviderStateMixin
           ..add(at + needle.length);
       }
     }
+    final mark = widget.mark;
+    final marked = mark != null && mark.$1 < mark.$2 && mark.$2 <= text.length;
+    if (marked) {
+      bounds
+        ..add(mark.$1)
+        ..add(mark.$2);
+    }
     final points = bounds.toList()..sort();
     final spoilers = [
       for (final e in all)
@@ -220,6 +233,7 @@ class _MessageTextState extends State<MessageText> with TickerProviderStateMixin
       }
       if (decorations.isNotEmpty) style = style.copyWith(decoration: TextDecoration.combine(decorations), decorationColor: style.color);
       if (found.any((r) => r.$1 <= a && r.$2 >= b)) style = style.copyWith(backgroundColor: widget.highlightColor);
+      if (marked && mark.$1 <= a && mark.$2 >= b) style = style.copyWith(backgroundColor: widget.markColor);
       if (hidden || (spoilerHere(active) && hiddenAlpha < 1)) {
         final color = style.color ?? colors.text;
         style = style.copyWith(

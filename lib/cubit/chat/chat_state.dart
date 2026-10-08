@@ -20,6 +20,9 @@ class ChatState with ChatStateMappable {
   /// Отвечаем на это сообщение — над полем ввода плашка с цитатой.
   final models.Message? reply;
 
+  /// Отвечаем не на всё [reply], а на его фрагмент («Цитировать»).
+  final models.MessageQuote? replyQuote;
+
   /// Редактируем это сообщение — поле ввода заполнено его текстом.
   final models.Message? editing;
 
@@ -70,6 +73,7 @@ class ChatState with ChatStateMappable {
     this.chat,
     this.messages = const [],
     this.reply,
+    this.replyQuote,
     this.editing,
     this.unreadFromID,
     this.selecting = false,

@@ -355,6 +355,8 @@
   "empty": "No messages yet"
   "notFound": "Chat not found"
   "reply": "Reply"
+  "quote": "Quote"
+  "replyQuoteTo": "Quote · {name}"
   "copy": "Copy"
   "copied": "Copied"
   "edit": "Edit"

@@ -525,6 +525,8 @@ class _Translations$screenChat$ru extends Translations$screenChat$en {
 	@override String get empty => 'Сообщений пока нет';
 	@override String get notFound => 'Чат не найден';
 	@override String get reply => 'Ответить';
+	@override String get quote => 'Цитировать';
+	@override String replyQuoteTo({required Object name}) => 'Цитата · ${name}';
 	@override String get copy => 'Копировать';
 	@override String get copied => 'Скопировано';
 	@override String get edit => 'Изменить';
@@ -1694,6 +1696,8 @@ extension on TranslationsRu {
 			'screenChat.empty' => 'Сообщений пока нет',
 			'screenChat.notFound' => 'Чат не найден',
 			'screenChat.reply' => 'Ответить',
+			'screenChat.quote' => 'Цитировать',
+			'screenChat.replyQuoteTo' => ({required Object name}) => 'Цитата · ${name}',
 			'screenChat.copy' => 'Копировать',
 			'screenChat.copied' => 'Скопировано',
 			'screenChat.edit' => 'Изменить',
@@ -1879,10 +1883,10 @@ extension on TranslationsRu {
 			'screenChatInfo.emptyVoice' => 'Здесь будут голосовые сообщения',
 			'screenChatInfo.roleOwner' => 'владелец',
 			'screenChatInfo.roleAdmin' => 'админ',
-			'screenChatInfo.roleReader' => 'только чтение',
-			'screenChatInfo.you' => 'Вы',
 			_ => null,
 		} ?? switch (path) {
+			'screenChatInfo.roleReader' => 'только чтение',
+			'screenChatInfo.you' => 'Вы',
 			'screenChatInfo.addMembers' => 'Добавить участников',
 			'screenChatInfo.add' => 'Добавить',
 			'screenChatInfo.sendMessage' => 'Написать сообщение',

@@ -17,6 +17,11 @@ import 'message_text.dart';
 import 'spoiler_dust.dart';
 import 'swipe_to_reply.dart';
 
+/// Пузырь для превью меню сообщения с предельной шириной [maxWidth], без
+/// жестов. [selectableText] — обёртка текста, которую оставляют живой (iOS:
+/// выделить фрагмент и «Цитировать»), остальное пузыря жесты не получает.
+typedef MessageBubblePreview = Widget Function(double maxWidth, {Widget Function(Widget text)? selectableText});
+
 /// Платформенное оформление окна чата (см. `chat_cupertino.dart` /
 /// `chat_material.dart`).
 class MessageBubbleStyle {
@@ -112,6 +117,9 @@ class ChatMessagesView extends StatelessWidget {
   /// Подсветка строки (переход по цитате) — гаснет плавно, когда `null`.
   final String? flashID;
 
+  /// Фрагмент, подсвеченный в тексте [flashID] (переход по цитате ответа).
+  final (int, int)? flashRange;
+
   /// Режим выделения: отмеченные [selectedIDs], тап по строке — [onSelect].
   final bool selecting;
   final List<String> selectedIDs;
@@ -125,7 +133,7 @@ class ChatMessagesView extends StatelessWidget {
   static const unreadDividerID = '__unread__';
 
   /// Обёртка пузыря контекстным меню (см. [MessageBubble.menuWrapper]).
-  final Widget Function(models.Message message, Widget bubble, Widget Function(double maxWidth) preview)? menuWrapper;
+  final Widget Function(models.Message message, Widget bubble, MessageBubblePreview preview)? menuWrapper;
 
   /// Канал с комментариями: строка «N комментариев» под постом, тап — ветка.
   final ValueChanged<models.Message>? onCommentsTap;
@@ -155,6 +163,7 @@ class ChatMessagesView extends StatelessWidget {
     this.onPinnedServiceTap,
     this.unreadFromID,
     this.flashID,
+    this.flashRange,
     this.selecting = false,
     this.selectedIDs = const [],
     this.onSelect,
@@ -245,6 +254,7 @@ class ChatMessagesView extends StatelessWidget {
                             onMediaTap: onMediaTap == null ? null : (index) => onMediaTap!(m, index),
                             highlight: highlight,
                             focused: m.id == focusedID,
+                            mark: m.id == flashID ? flashRange : null,
                             onCancelUpload: onCancelUpload == null ? null : () => onCancelUpload!(m),
                             onReaction: onReaction == null ? null : (emoji) => onReaction!(m, emoji),
                             onDoubleTap: onDoubleTap == null ? null : () => onDoubleTap!(m),
@@ -461,6 +471,9 @@ class MessageBubble extends StatelessWidget {
   final String highlight;
   final bool focused;
 
+  /// Подсвеченный фрагмент текста (переход по цитате ответа).
+  final (int, int)? mark;
+
   /// Крестик на прогрессе загрузки вложений.
   final VoidCallback? onCancelUpload;
 
@@ -476,7 +489,7 @@ class MessageBubble extends StatelessWidget {
   /// Обёртка пузыря контекстным меню (iOS — `CupertinoContextMenu`): [bubble] —
   /// пузырь в ленте, [preview] — он же для превью меню, без жестов, с заданной
   /// предельной шириной. С обёрткой [onLongPress] не используется.
-  final Widget Function(Widget bubble, Widget Function(double maxWidth) preview)? menuWrapper;
+  final Widget Function(Widget bubble, MessageBubblePreview preview)? menuWrapper;
 
   /// Пост канала с комментариями: строка «N комментариев» внизу пузыря.
   final VoidCallback? onCommentsTap;
@@ -498,6 +511,7 @@ class MessageBubble extends StatelessWidget {
     this.avatar,
     this.highlight = '',
     this.focused = false,
+    this.mark,
     this.onCancelUpload,
     this.onReaction,
     this.onDoubleTap,
@@ -618,153 +632,163 @@ class MessageBubble extends StatelessWidget {
     // Подпись и имя у фото — с отступами пузыря (само фото почти до краёв).
     final visual = m.kind == models.MessageKind.photo || m.kind == models.MessageKind.video || m.isAlbum;
     final captionInset = visual ? 7.0 : 0.0;
-    final content = <Widget>[];
-    if (showSender && m.senderName.isNotEmpty) {
-      content.add(
-        Padding(
-          padding: EdgeInsets.fromLTRB(captionInset, captionInset / 2, captionInset, 2),
-          child: Text(
-            m.senderName,
-            style: style.textStyle.copyWith(fontSize: 14, fontWeight: FontWeight.w600, color: senderColor(m.senderName)),
+    // [selectableText] (превью меню) — текст живой, остальное без жестов.
+    List<Widget> buildContent(Widget Function(Widget text)? selectableText) {
+      final content = <Widget>[];
+      Widget? textBlock;
+      if (showSender && m.senderName.isNotEmpty) {
+        content.add(
+          Padding(
+            padding: EdgeInsets.fromLTRB(captionInset, captionInset / 2, captionInset, 2),
+            child: Text(
+              m.senderName,
+              style: style.textStyle.copyWith(fontSize: 14, fontWeight: FontWeight.w600, color: senderColor(m.senderName)),
+            ),
           ),
-        ),
-      );
-    }
-    if (m.forward case final forward?) {
-      // «Переслано от Анна» — имя жирным, как в Telegram.
-      final name = forward.self ? t.screenChat.you : forward.name;
-      final label = t.screenChat.forwardedFrom(name: '\u0000');
-      final split = label.indexOf('\u0000');
-      final linkStyle = style.textStyle.copyWith(fontSize: 13.5, height: 1.2, color: colors.link);
-      content.add(
-        Padding(
-          padding: EdgeInsets.fromLTRB(captionInset, captionInset / 2, captionInset, 4),
-          child: Text.rich(
-            TextSpan(
-              style: linkStyle,
+        );
+      }
+      if (m.forward case final forward?) {
+        // «Переслано от Анна» — имя жирным, как в Telegram.
+        final name = forward.self ? t.screenChat.you : forward.name;
+        final label = t.screenChat.forwardedFrom(name: '\u0000');
+        final split = label.indexOf('\u0000');
+        final linkStyle = style.textStyle.copyWith(fontSize: 13.5, height: 1.2, color: colors.link);
+        content.add(
+          Padding(
+            padding: EdgeInsets.fromLTRB(captionInset, captionInset / 2, captionInset, 4),
+            child: Text.rich(
+              TextSpan(
+                style: linkStyle,
+                children: [
+                  TextSpan(text: label.substring(0, split)),
+                  TextSpan(
+                    text: name,
+                    style: const TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                  TextSpan(text: label.substring(split + 1)),
+                ],
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        );
+      }
+      if (m.reply case final reply?) {
+        content.add(_ReplyQuote(reply: reply, colors: colors, style: style, onTap: onReplyTap));
+      }
+      if (media != null) content.add(media);
+
+      // С реакциями время уезжает в их строку (справа), как в Telegram; с
+      // превью ссылки — под карточку.
+      final hasReactions = m.reactions.isNotEmpty;
+      final preview = m.linkPreview;
+      final metaInText = !hasReactions && preview == null;
+      // У опроса текст (= вопрос) рисует сам опрос.
+      final showText = m.text.isNotEmpty && m.kind != models.MessageKind.poll;
+      if (showText) {
+        final text = MessageText(
+          text: m.text,
+          entities: m.entities,
+          style: style.textStyle,
+          colors: colors,
+          trailing: metaInText ? trailing : '',
+          trailingStyle: metaStyle,
+          highlight: highlight,
+          highlightColor: focused ? const Color(0xCCFF9500) : const Color(0x66FFCC00),
+          mark: mark,
+          markColor: colors.link.withValues(alpha: 0.3),
+        );
+        content.add(
+          textBlock = Padding(
+            padding: EdgeInsets.fromLTRB(captionInset, media != null ? 6 : 0, captionInset, 0),
+            child: Stack(
               children: [
-                TextSpan(text: label.substring(0, split)),
-                TextSpan(
-                  text: name,
-                  style: const TextStyle(fontWeight: FontWeight.w600),
-                ),
-                TextSpan(text: label.substring(split + 1)),
+                selectableText == null ? text : selectableText(text),
+                if (metaInText) Positioned(right: 0, bottom: 0, child: IgnorePointer(child: meta)),
               ],
             ),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
           ),
-        ),
-      );
-    }
-    if (m.reply case final reply?) {
-      content.add(_ReplyQuote(reply: reply, colors: colors, style: style, onTap: onReplyTap));
-    }
-    if (media != null) content.add(media);
-
-    // С реакциями время уезжает в их строку (справа), как в Telegram; с
-    // превью ссылки — под карточку.
-    final hasReactions = m.reactions.isNotEmpty;
-    final preview = m.linkPreview;
-    final metaInText = !hasReactions && preview == null;
-    // У опроса текст (= вопрос) рисует сам опрос.
-    final showText = m.text.isNotEmpty && m.kind != models.MessageKind.poll;
-    if (showText) {
-      content.add(
-        Padding(
-          padding: EdgeInsets.fromLTRB(captionInset, media != null ? 6 : 0, captionInset, 0),
-          child: Stack(
-            children: [
-              MessageText(
-                text: m.text,
-                entities: m.entities,
-                style: style.textStyle,
-                colors: colors,
-                trailing: metaInText ? trailing : '',
-                trailingStyle: metaStyle,
-                highlight: highlight,
-                highlightColor: focused ? const Color(0xCCFF9500) : const Color(0x66FFCC00),
-              ),
-              if (metaInText) Positioned(right: 0, bottom: 0, child: meta),
-            ],
+        );
+      }
+      if (preview != null) {
+        content.add(
+          Padding(
+            padding: EdgeInsets.fromLTRB(captionInset, 6, captionInset, 0),
+            child: _LinkPreviewCard(preview: preview, colors: colors, textStyle: style.textStyle),
           ),
-        ),
-      );
-    }
-    if (preview != null) {
-      content.add(
-        Padding(
-          padding: EdgeInsets.fromLTRB(captionInset, 6, captionInset, 0),
-          child: _LinkPreviewCard(preview: preview, colors: colors, textStyle: style.textStyle),
-        ),
-      );
-    }
-    if (hasReactions) {
-      content.add(
-        Padding(
-          padding: EdgeInsets.fromLTRB(captionInset, 6, captionInset, 0),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              // Expanded: реакции слева, время прижато к правому краю пузыря.
-              Expanded(
-                child: Wrap(
-                  spacing: 4,
-                  runSpacing: 4,
-                  children: [
-                    for (final r in m.reactions)
-                      _ReactionChip(
-                        reaction: r,
-                        colors: colors,
-                        chosenText: iconColor,
-                        textStyle: metaStyle,
-                        onTap: onReaction == null
-                            ? null
-                            : () {
-                                HapticFeedback.selectionClick();
-                                onReaction!(r.emoji);
-                              },
-                      ),
-                  ],
+        );
+      }
+      if (hasReactions) {
+        content.add(
+          Padding(
+            padding: EdgeInsets.fromLTRB(captionInset, 6, captionInset, 0),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                // Expanded: реакции слева, время прижато к правому краю пузыря.
+                Expanded(
+                  child: Wrap(
+                    spacing: 4,
+                    runSpacing: 4,
+                    children: [
+                      for (final r in m.reactions)
+                        _ReactionChip(
+                          reaction: r,
+                          colors: colors,
+                          chosenText: iconColor,
+                          textStyle: metaStyle,
+                          onTap: onReaction == null
+                              ? null
+                              : () {
+                                  HapticFeedback.selectionClick();
+                                  onReaction!(r.emoji);
+                                },
+                        ),
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(width: 8),
-              meta,
-            ],
+                const SizedBox(width: 8),
+                meta,
+              ],
+            ),
           ),
-        ),
-      );
-    } else if (!showText || preview != null) {
-      content.add(
-        Align(
-          alignment: Alignment.centerRight,
-          child: Padding(padding: EdgeInsets.fromLTRB(0, 4, captionInset, 0), child: meta),
-        ),
-      );
-    }
+        );
+      } else if (!showText || preview != null) {
+        content.add(
+          Align(
+            alignment: Alignment.centerRight,
+            child: Padding(padding: EdgeInsets.fromLTRB(0, 4, captionInset, 0), child: meta),
+          ),
+        );
+      }
 
-    if (onCommentsTap case final onTap?) {
-      content.add(
-        _CommentsBar(
-          message: m,
-          colors: colors,
-          metaColor: metaColor,
-          background: out ? style.outgoing : style.incoming,
-          textStyle: style.textStyle,
-          inset: captionInset,
-          onTap: onTap,
-        ),
-      );
+      if (onCommentsTap case final onTap?) {
+        content.add(
+          _CommentsBar(
+            message: m,
+            colors: colors,
+            metaColor: metaColor,
+            background: out ? style.outgoing : style.incoming,
+            textStyle: style.textStyle,
+            inset: captionInset,
+            onTap: onTap,
+          ),
+        );
+      }
+      if (selectableText == null) return content;
+      return [for (final w in content) identical(w, textBlock) ? w : IgnorePointer(child: w)];
     }
 
     // [maxWidth] — предел ширины: в ленте 80% строки, в превью меню — ширина
-    // пузыря в ленте (чтобы текст перенёсся так же).
-    Widget body(double maxWidth) => ConstrainedBox(
+    // пузыря в ленте (чтобы текст перенёсся так же). [selectableText] — см.
+    // [MessageBubblePreview]; в превью меню у пузыря своих жестов нет.
+    Widget body(double maxWidth, {bool preview = false, Widget Function(Widget text)? selectableText}) => ConstrainedBox(
       constraints: BoxConstraints(maxWidth: maxWidth),
       child: GestureDetector(
         // С обёрткой (iOS-меню) long-press ловит `CupertinoContextMenu`.
-        onLongPress: menuWrapper == null ? onLongPress : null,
-        onDoubleTap: onDoubleTap == null
+        onLongPress: menuWrapper == null && !preview ? onLongPress : null,
+        onDoubleTap: onDoubleTap == null || preview
             ? null
             : () {
                 HapticFeedback.lightImpact();
@@ -783,14 +807,25 @@ class MessageBubble extends StatelessWidget {
           child: Padding(
             padding: EdgeInsets.fromLTRB(visual ? 4 : 11, visual ? 4 : 7, visual ? 4 : 11, 7),
             child: IntrinsicWidth(
-              child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, mainAxisSize: MainAxisSize.min, children: content),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                mainAxisSize: MainAxisSize.min,
+                children: buildContent(selectableText),
+              ),
             ),
           ),
         ),
       ),
     );
     final inList = LayoutBuilder(builder: (context, constraints) => body(math.min(constraints.maxWidth * 0.8, 520)));
-    final bubble = menuWrapper == null ? inList : menuWrapper!(inList, (maxWidth) => IgnorePointer(child: body(maxWidth)));
+    final bubble = menuWrapper == null
+        ? inList
+        : menuWrapper!(
+            inList,
+            (maxWidth, {selectableText}) => selectableText == null
+                ? IgnorePointer(child: body(maxWidth, preview: true))
+                : body(maxWidth, preview: true, selectableText: selectableText),
+          );
 
     return Padding(
       padding: EdgeInsets.only(left: avatar == null ? 10 : 6, right: 10),
@@ -880,7 +915,14 @@ class _ReplyQuote extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.t;
-    final text = reply.text.isNotEmpty ? reply.text : messageKindLabel(t, reply.kind);
+    final quoted = reply.quote;
+    final text = quoted?.text ?? (reply.text.isNotEmpty ? reply.text : messageKindLabel(t, reply.kind));
+    final name = Text(
+      reply.senderName.isEmpty ? t.screenChat.you : reply.senderName,
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      style: style.textStyle.copyWith(fontSize: 13, fontWeight: FontWeight.w600, color: colors.link),
+    );
     final quote = Container(
       margin: const EdgeInsets.only(bottom: 4),
       padding: const EdgeInsets.fromLTRB(8, 4, 8, 4),
@@ -892,15 +934,20 @@ class _ReplyQuote extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Цитата фрагмента — значок «❝» справа и до 4 строк (как в Telegram).
+          if (quoted == null)
+            name
+          else
+            Row(
+              children: [
+                Expanded(child: name),
+                const SizedBox(width: 6),
+                FaIcon(FontAwesomeIcons.quoteRight, size: 10, color: colors.link),
+              ],
+            ),
           Text(
-            reply.senderName.isEmpty ? t.screenChat.you : reply.senderName,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: style.textStyle.copyWith(fontSize: 13, fontWeight: FontWeight.w600, color: colors.link),
-          ),
-          Text(
-            text.replaceAll('\n', ' '),
-            maxLines: 1,
+            quoted == null ? text.replaceAll('\n', ' ') : text,
+            maxLines: quoted == null ? 1 : 4,
             overflow: TextOverflow.ellipsis,
             style: style.textStyle.copyWith(fontSize: 13, color: colors.text),
           ),

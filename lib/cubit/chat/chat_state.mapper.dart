@@ -17,6 +17,7 @@ class ChatStateMapper extends ClassMapperBase<ChatState> {
       MapperContainer.globals.use(_instance = ChatStateMapper._());
       models.ChatMapper.ensureInitialized();
       models.MessageMapper.ensureInitialized();
+      models.MessageQuoteMapper.ensureInitialized();
       models.ChatMemberMapper.ensureInitialized();
     }
     return _instance!;
@@ -49,6 +50,12 @@ class ChatStateMapper extends ClassMapperBase<ChatState> {
   static const Field<ChatState, models.Message> _f$reply = Field(
     'reply',
     _$reply,
+    opt: true,
+  );
+  static models.MessageQuote? _$replyQuote(ChatState v) => v.replyQuote;
+  static const Field<ChatState, models.MessageQuote> _f$replyQuote = Field(
+    'replyQuote',
+    _$replyQuote,
     opt: true,
   );
   static models.Message? _$editing(ChatState v) => v.editing;
@@ -154,6 +161,7 @@ class ChatStateMapper extends ClassMapperBase<ChatState> {
     #chat: _f$chat,
     #messages: _f$messages,
     #reply: _f$reply,
+    #replyQuote: _f$replyQuote,
     #editing: _f$editing,
     #unreadFromID: _f$unreadFromID,
     #selecting: _f$selecting,
@@ -176,6 +184,7 @@ class ChatStateMapper extends ClassMapperBase<ChatState> {
       chat: data.dec(_f$chat),
       messages: data.dec(_f$messages),
       reply: data.dec(_f$reply),
+      replyQuote: data.dec(_f$replyQuote),
       editing: data.dec(_f$editing),
       unreadFromID: data.dec(_f$unreadFromID),
       selecting: data.dec(_f$selecting),
@@ -260,6 +269,8 @@ abstract class ChatStateCopyWith<$R, $In extends ChatState, $Out>
   >
   get messages;
   models.MessageCopyWith<$R, models.Message, models.Message>? get reply;
+  models.MessageQuoteCopyWith<$R, models.MessageQuote, models.MessageQuote>?
+  get replyQuote;
   models.MessageCopyWith<$R, models.Message, models.Message>? get editing;
   ListCopyWith<$R, String, ObjectCopyWith<$R, String, String>> get selectedIDs;
   ListCopyWith<
@@ -293,6 +304,7 @@ abstract class ChatStateCopyWith<$R, $In extends ChatState, $Out>
     models.Chat? chat,
     List<models.Message>? messages,
     models.Message? reply,
+    models.MessageQuote? replyQuote,
     models.Message? editing,
     String? unreadFromID,
     bool? selecting,
@@ -336,6 +348,10 @@ class _ChatStateCopyWithImpl<$R, $Out>
   @override
   models.MessageCopyWith<$R, models.Message, models.Message>? get reply =>
       $value.reply?.copyWith.$chain((v) => call(reply: v));
+  @override
+  models.MessageQuoteCopyWith<$R, models.MessageQuote, models.MessageQuote>?
+  get replyQuote =>
+      $value.replyQuote?.copyWith.$chain((v) => call(replyQuote: v));
   @override
   models.MessageCopyWith<$R, models.Message, models.Message>? get editing =>
       $value.editing?.copyWith.$chain((v) => call(editing: v));
@@ -403,6 +419,7 @@ class _ChatStateCopyWithImpl<$R, $Out>
     Object? chat = $none,
     List<models.Message>? messages,
     Object? reply = $none,
+    Object? replyQuote = $none,
     Object? editing = $none,
     Object? unreadFromID = $none,
     bool? selecting,
@@ -423,6 +440,7 @@ class _ChatStateCopyWithImpl<$R, $Out>
       if (chat != $none) #chat: chat,
       if (messages != null) #messages: messages,
       if (reply != $none) #reply: reply,
+      if (replyQuote != $none) #replyQuote: replyQuote,
       if (editing != $none) #editing: editing,
       if (unreadFromID != $none) #unreadFromID: unreadFromID,
       if (selecting != null) #selecting: selecting,
@@ -446,6 +464,7 @@ class _ChatStateCopyWithImpl<$R, $Out>
     chat: data.get(#chat, or: $value.chat),
     messages: data.get(#messages, or: $value.messages),
     reply: data.get(#reply, or: $value.reply),
+    replyQuote: data.get(#replyQuote, or: $value.replyQuote),
     editing: data.get(#editing, or: $value.editing),
     unreadFromID: data.get(#unreadFromID, or: $value.unreadFromID),
     selecting: data.get(#selecting, or: $value.selecting),
