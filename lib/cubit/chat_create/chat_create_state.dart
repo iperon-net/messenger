@@ -40,6 +40,9 @@ class ChatCreateState with ChatCreateStateMappable {
   /// Фото чата — локальный файл (пусто — без фото).
   final String avatarPath;
 
+  /// Обложка сообщества — локальный файл (пусто — генеративный фон).
+  final String coverPath;
+
   /// Как вступить: [models.ChatJoinMode.open] — публичный (по ссылке
   /// [username]), иначе — по [inviteLink] (у `admins` ссылки нет). При
   /// создании и у канала — только open / link («Публичный / Частный»).
@@ -94,6 +97,7 @@ class ChatCreateState with ChatCreateStateMappable {
     this.query = '',
     this.selected = const [],
     this.avatarPath = '',
+    this.coverPath = '',
     this.joinMode = models.ChatJoinMode.link,
     this.username = '',
     this.originalUsername = '',

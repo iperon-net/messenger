@@ -229,6 +229,34 @@ class _ChatCreateFormCupertino extends State<ChatCreateFormCupertino> {
                   ],
                 ),
 
+                // Обложка страницы сообщества (в «Изменить»).
+                if (type == models.ChatType.community && state.isEdit)
+                  section(
+                    footer: createNoteCupertino(t.screenNewChat.coverFooter),
+                    children: [
+                      CupertinoListTile(
+                        title: Text(
+                          state.coverPath.isEmpty ? t.screenNewChat.setCover : t.screenNewChat.changeCover,
+                          style: TextStyle(fontSize: AppFontSizes.body, color: action),
+                        ),
+                        trailing: state.coverPath.isEmpty ? null : CommunityCoverPreview(path: state.coverPath),
+                        onTap: () async {
+                          final cubit = context.read<ChatCreateCubit>();
+                          final path = await pickCommunityCover(context);
+                          if (path != null) cubit.setCover(path);
+                        },
+                      ),
+                      if (state.coverPath.isNotEmpty)
+                        CupertinoListTile(
+                          title: Text(
+                            t.screenNewChat.removeCover,
+                            style: TextStyle(fontSize: AppFontSizes.body, color: CupertinoColors.destructiveRed.resolveFrom(context)),
+                          ),
+                          onTap: () => context.read<ChatCreateCubit>().setCover(''),
+                        ),
+                    ],
+                  ),
+
                 if (withLink) ...[
                   section(
                     footer: state.isEdit ? null : createNoteCupertino(createDescriptionFooter(t, type)),

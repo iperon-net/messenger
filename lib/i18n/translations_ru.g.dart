@@ -293,6 +293,11 @@ class _Translations$screenNewChat$ru extends Translations$screenNewChat$en {
 	@override String get setPhoto => 'Выбрать фото';
 	@override String get changePhoto => 'Изменить фото';
 	@override String get removePhoto => 'Удалить фото';
+	@override String get cover => 'Обложка';
+	@override String get setCover => 'Выбрать обложку';
+	@override String get changeCover => 'Изменить обложку';
+	@override String get removeCover => 'Удалить обложку';
+	@override String get coverFooter => 'Фон шапки страницы сообщества — например, фото зала или витрины.';
 	@override String get editPhoto => 'Фото';
 	@override String get type => 'Тип';
 	@override String get typePublic => 'Публичный';
@@ -1580,6 +1585,11 @@ extension on TranslationsRu {
 			'screenNewChat.setPhoto' => 'Выбрать фото',
 			'screenNewChat.changePhoto' => 'Изменить фото',
 			'screenNewChat.removePhoto' => 'Удалить фото',
+			'screenNewChat.cover' => 'Обложка',
+			'screenNewChat.setCover' => 'Выбрать обложку',
+			'screenNewChat.changeCover' => 'Изменить обложку',
+			'screenNewChat.removeCover' => 'Удалить обложку',
+			'screenNewChat.coverFooter' => 'Фон шапки страницы сообщества — например, фото зала или витрины.',
 			'screenNewChat.editPhoto' => 'Фото',
 			'screenNewChat.type' => 'Тип',
 			'screenNewChat.typePublic' => 'Публичный',
@@ -1938,13 +1948,13 @@ extension on TranslationsRu {
 			'screenDeveloper.testPushError' => ({required Object error}) => 'Не удалось отправить: ${error}',
 			'screenDeveloper.testPushEncrypted' => 'Тестовое уведомление (шифрованное)',
 			'screenDeveloper.testPushQueued' => 'Поставлено в очередь сервера. На Android придёт «Шифрованное тестовое уведомление: расшифровка работает», на iPhone пока — «Новое уведомление» (расшифровка на iOS появится позже).',
+			_ => null,
+		} ?? switch (path) {
 			'screenSettingsAppearance.appearance' => 'Оформление',
 			'screenSettingsAppearance.colorTheme' => 'Цветовая тема',
 			'screenSettingsAppearance.colorThemeDefault' => 'По умолчанию',
 			'screenSettingsAppearance.colorThemeGreen' => 'Зелёная',
 			'screenSettingsAppearance.colorThemePurple' => 'Фиолетовая',
-			_ => null,
-		} ?? switch (path) {
 			'screenSettingsAppearance.colorThemeOrange' => 'Оранжевая',
 			'screenSettingsAppearance.darkMode' => 'Тёмная тема',
 			'screenSettingsAppearance.darkModeSystem' => 'Системная',

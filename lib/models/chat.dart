@@ -277,6 +277,10 @@ class Chat with ChatMappable {
   /// аватарки придут с сервера по `cdnID`). Пусто — генеративный плейсхолдер.
   final String avatarPath;
 
+  /// Обложка сообщества — фон шапки его страницы (локальный файл, как
+  /// [avatarPath]). Пусто — генеративный фон.
+  final String coverPath;
+
   /// Как вступить (группа/сообщество) / публичный ли канал.
   final ChatJoinMode joinMode;
 
@@ -386,6 +390,7 @@ class Chat with ChatMappable {
     this.username = '',
     this.inviteLink = '',
     this.avatarPath = '',
+    this.coverPath = '',
     this.joinMode = ChatJoinMode.link,
     this.defaultRole = ChatRole.reader,
     this.pendingRequests = 0,

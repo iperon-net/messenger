@@ -20,6 +20,7 @@ import 'chat_invite_links_material.dart';
 import 'chat_join_requests_material.dart';
 import 'chat_info_common.dart';
 import 'chat_mute.dart';
+import 'community_common.dart';
 import 'community_material.dart';
 
 /// Профиль чата (Android) — тап по шапке окна чата. Результат — что сделать в
@@ -44,11 +45,26 @@ class ChatInfoMaterial extends StatefulWidget {
 
 class _ChatInfoMaterialState extends State<ChatInfoMaterial> {
   ChatInfoTab? _tab;
+  final _scroll = ScrollController();
+
+  /// Страница сообщества: AppBar прозрачный поверх обложки, пока обложка не
+  /// уехала под него.
+  bool _overCover = true;
 
   @override
   void initState() {
     super.initState();
     context.read<ChatCubit>().loadMembers();
+    _scroll.addListener(() {
+      final over = _scroll.offset < CommunityCover.height - kToolbarHeight;
+      if (over != _overCover) setState(() => _overCover = over);
+    });
+  }
+
+  @override
+  void dispose() {
+    _scroll.dispose();
+    super.dispose();
   }
 
   Future<void> _leave(BuildContext context, models.Chat chat) async {
@@ -205,10 +221,19 @@ class _ChatInfoMaterialState extends State<ChatInfoMaterial> {
         final tab = tabs.contains(_tab) ? _tab! : (tabs.firstOrNull ?? ChatInfoTab.media);
         final subtitle = chat == null ? null : chatSubtitle(t, chat);
         final community = chat?.type == models.ChatType.community;
+        // У сообщества — обложка под AppBar: он прозрачный, значки белые, пока
+        // видна обложка.
+        final onCover = community && _overCover;
         return Scaffold(
           backgroundColor: scheme.surfaceContainerLow,
+          extendBodyBehindAppBar: community,
           appBar: AppBar(
-            backgroundColor: scheme.surfaceContainerLow,
+            backgroundColor: onCover ? Colors.transparent : scheme.surfaceContainerLow,
+            foregroundColor: onCover ? Colors.white : null,
+            scrolledUnderElevation: 0,
+            systemOverlayStyle: onCover ? SystemUiOverlayStyle.light : null,
+            // Обложка уехала — название сообщества в AppBar.
+            title: community && !onCover ? Text(chat!.title) : null,
             // «Изменить» — админу группы / канала / сообщества.
             actions: [
               if (chat != null && chat.canManage && chat.type != models.ChatType.private)
@@ -222,29 +247,39 @@ class _ChatInfoMaterialState extends State<ChatInfoMaterial> {
           body: chat == null
               ? const SizedBox.shrink()
               : ListView(
+                  controller: _scroll,
                   padding: EdgeInsets.only(bottom: 24 + MediaQuery.paddingOf(context).bottom),
                   children: [
-                    Center(
-                      child: ChatAvatar(chat: chat, size: 96, accentColor: scheme.primary, accentForeground: scheme.onPrimary),
-                    ),
-                    const SizedBox(height: 12),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24),
-                      child: Text(
-                        ChatTileContent.title(t, chat),
-                        textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.headlineSmall,
+                    if (community)
+                      CommunityCover(
+                        chat: chat,
+                        subtitle: subtitle?.text ?? '',
+                        accentColor: scheme.primary,
+                        accentForeground: scheme.onPrimary,
+                      )
+                    else ...[
+                      Center(
+                        child: ChatAvatar(chat: chat, size: 96, accentColor: scheme.primary, accentForeground: scheme.onPrimary),
                       ),
-                    ),
-                    if (subtitle != null && subtitle.text.isNotEmpty)
+                      const SizedBox(height: 12),
                       Padding(
-                        padding: const EdgeInsets.only(top: 2),
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
                         child: Text(
-                          subtitle.text,
+                          ChatTileContent.title(t, chat),
                           textAlign: TextAlign.center,
-                          style: TextStyle(color: subtitle.active ? scheme.primary : scheme.onSurfaceVariant),
+                          style: Theme.of(context).textTheme.headlineSmall,
                         ),
                       ),
+                      if (subtitle != null && subtitle.text.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 2),
+                          child: Text(
+                            subtitle.text,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(color: subtitle.active ? scheme.primary : scheme.onSurfaceVariant),
+                          ),
+                        ),
+                    ],
                     const SizedBox(height: 16),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 12),

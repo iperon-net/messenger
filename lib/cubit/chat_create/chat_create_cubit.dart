@@ -70,6 +70,7 @@ class ChatCreateCubit extends Cubit<ChatCreateState> {
         title: chat.title,
         about: chat.about,
         avatarPath: chat.avatarPath,
+        coverPath: chat.coverPath,
         joinMode: chat.joinMode,
         username: chat.username,
         originalUsername: chat.username,
@@ -95,6 +96,8 @@ class ChatCreateCubit extends Cubit<ChatCreateState> {
   }
 
   void setAvatar(String path) => emit(state.copyWith(avatarPath: path));
+
+  void setCover(String path) => emit(state.copyWith(coverPath: path));
 
   void setPublic(bool isPublic) => setJoinMode(isPublic ? models.ChatJoinMode.open : models.ChatJoinMode.link);
 
@@ -181,6 +184,7 @@ class ChatCreateCubit extends Cubit<ChatCreateState> {
       title: title.trim(),
       about: about.trim(),
       avatarPath: state.avatarPath,
+      coverPath: state.coverPath,
       joinMode: state.joinMode,
       username: state.isPublic ? state.username : '',
       inviteLink: state.inviteLink,

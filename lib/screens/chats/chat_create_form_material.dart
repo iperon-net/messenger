@@ -245,6 +245,30 @@ class _ChatCreateFormMaterial extends State<ChatCreateFormMaterial> {
                   ),
                 ]),
 
+                // Обложка страницы сообщества (в «Изменить»).
+                if (type == models.ChatType.community && state.isEdit) ...[
+                  const SizedBox(height: 16),
+                  card([
+                    ListTile(
+                      leading: HugeIcon(icon: HugeIcons.strokeRoundedImage02, color: scheme.onSurfaceVariant),
+                      title: Text(state.coverPath.isEmpty ? t.screenNewChat.setCover : t.screenNewChat.changeCover),
+                      trailing: state.coverPath.isEmpty ? null : CommunityCoverPreview(path: state.coverPath),
+                      onTap: () async {
+                        final cubit = context.read<ChatCreateCubit>();
+                        final path = await pickCommunityCover(context);
+                        if (path != null) cubit.setCover(path);
+                      },
+                    ),
+                    if (state.coverPath.isNotEmpty)
+                      ListTile(
+                        leading: HugeIcon(icon: HugeIcons.strokeRoundedDelete02, color: scheme.error),
+                        title: Text(t.screenNewChat.removeCover, style: TextStyle(color: scheme.error)),
+                        onTap: () => context.read<ChatCreateCubit>().setCover(''),
+                      ),
+                  ]),
+                  createNoteMaterial(context, t.screenNewChat.coverFooter),
+                ],
+
                 if (withLink) ...[
                   const SizedBox(height: 16),
                   card([

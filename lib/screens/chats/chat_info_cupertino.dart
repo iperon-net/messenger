@@ -21,6 +21,7 @@ import 'chat_join_requests_cupertino.dart';
 import 'chat_info_common.dart';
 import 'chat_mute.dart';
 import 'chats_new_cupertino.dart';
+import 'community_common.dart';
 import 'community_cupertino.dart';
 
 /// Профиль чата (iOS) — тап по шапке окна чата. Результат — что сделать в
@@ -45,11 +46,26 @@ class ChatInfoCupertino extends StatefulWidget {
 
 class _ChatInfoCupertinoState extends State<ChatInfoCupertino> {
   ChatInfoTab? _tab;
+  final _scroll = ScrollController();
+
+  /// Страница сообщества: панель навигации прозрачная поверх обложки, пока
+  /// обложка не уехала под неё.
+  bool _overCover = true;
 
   @override
   void initState() {
     super.initState();
     context.read<ChatCubit>().loadMembers();
+    _scroll.addListener(() {
+      final over = _scroll.offset < CommunityCover.height - 44;
+      if (over != _overCover) setState(() => _overCover = over);
+    });
+  }
+
+  @override
+  void dispose() {
+    _scroll.dispose();
+    super.dispose();
   }
 
   Future<void> _leave(BuildContext context, models.Chat chat) async {
@@ -191,53 +207,81 @@ class _ChatInfoCupertinoState extends State<ChatInfoCupertino> {
         final tab = tabs.contains(_tab) ? _tab! : (tabs.firstOrNull ?? ChatInfoTab.media);
         final subtitle = chat == null ? null : chatSubtitle(t, chat);
         final community = chat?.type == models.ChatType.community;
+        // У сообщества — обложка под панелью: панель прозрачная, кнопки белые,
+        // пока видна обложка. Фон панели всегда чуть прозрачный — контент
+        // всегда под ней, и раскладка не прыгает при смене цвета.
+        final onCover = community && _overCover;
+        final navBar = CupertinoNavigationBar(
+          previousPageTitle: '',
+          automaticBackgroundVisibility: false,
+          // Обложка уехала — название сообщества в панели.
+          middle: community && !onCover ? Text(chat!.title) : null,
+          backgroundColor: community ? (onCover ? const Color(0x00000000) : background.withValues(alpha: 0.97)) : background,
+          border: null,
+          // «Изменить» — админу группы / канала / сообщества.
+          trailing: chat != null && chat.canManage && chat.type != models.ChatType.private
+              ? CupertinoButton(
+                  padding: EdgeInsets.zero,
+                  onPressed: () => showChatEditCupertino(context, chat),
+                  child: Text(
+                    t.common.edit,
+                    style: TextStyle(color: onCover ? CupertinoColors.white : ThemesCupertino.navActionColor(context)),
+                  ),
+                )
+              : null,
+        );
+        final header = chat == null
+            ? const <Widget>[]
+            : community
+            ? [
+                CommunityCover(
+                  chat: chat,
+                  subtitle: subtitle?.text ?? '',
+                  accentColor: primary,
+                  accentForeground: ThemesCupertino.onAccent(context),
+                ),
+              ]
+            : [
+                const SizedBox(height: 4),
+                Center(
+                  child: ChatAvatar(chat: chat, size: 96, accentColor: primary, accentForeground: ThemesCupertino.onAccent(context)),
+                ),
+                const SizedBox(height: 12),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Text(
+                    ChatTileContent.title(t, chat),
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.w600, color: label),
+                  ),
+                ),
+                if (subtitle != null && subtitle.text.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 2),
+                    child: Text(
+                      subtitle.text,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 15, color: subtitle.active ? primary : secondary),
+                    ),
+                  ),
+              ];
         return CupertinoPageScaffold(
           backgroundColor: background,
-          navigationBar: AppCupertinoNavigationBar(
-            child: CupertinoNavigationBar(
-              previousPageTitle: '',
-              automaticBackgroundVisibility: false,
-              backgroundColor: background,
-              border: null,
-              // «Изменить» — админу группы / канала / сообщества.
-              trailing: chat != null && chat.canManage && chat.type != models.ChatType.private
-                  ? CupertinoButton(
-                      padding: EdgeInsets.zero,
-                      onPressed: () => showChatEditCupertino(context, chat),
-                      child: Text(t.common.edit, style: TextStyle(color: ThemesCupertino.navActionColor(context))),
-                    )
-                  : null,
-            ),
-          ),
+          navigationBar: onCover
+              // Белые «назад» и «Изменить» поверх обложки.
+              ? _CoverNavigationBar(child: navBar)
+              : AppCupertinoNavigationBar(child: navBar),
           child: chat == null
               ? const SizedBox.shrink()
               : SafeArea(
                   bottom: false,
+                  // Обложка — от самого верха экрана, под панелью.
+                  top: !community,
                   child: ListView(
+                    controller: _scroll,
                     padding: const EdgeInsets.only(bottom: 32),
                     children: [
-                      const SizedBox(height: 4),
-                      Center(
-                        child: ChatAvatar(chat: chat, size: 96, accentColor: primary, accentForeground: ThemesCupertino.onAccent(context)),
-                      ),
-                      const SizedBox(height: 12),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 24),
-                        child: Text(
-                          ChatTileContent.title(t, chat),
-                          textAlign: TextAlign.center,
-                          style: TextStyle(fontSize: 24, fontWeight: FontWeight.w600, color: label),
-                        ),
-                      ),
-                      if (subtitle != null && subtitle.text.isNotEmpty)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 2),
-                          child: Text(
-                            subtitle.text,
-                            textAlign: TextAlign.center,
-                            style: TextStyle(fontSize: 15, color: subtitle.active ? primary : secondary),
-                          ),
-                        ),
+                      ...header,
                       const SizedBox(height: 16),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -739,4 +783,24 @@ class ChatSlowModeSettingsCupertino extends StatelessWidget {
       },
     );
   }
+}
+
+/// Панель навигации поверх обложки сообщества: «назад» белым (как
+/// [AppCupertinoNavigationBar], но белый и в светлой теме).
+class _CoverNavigationBar extends StatelessWidget implements ObstructingPreferredSizeWidget {
+  final CupertinoNavigationBar child;
+
+  const _CoverNavigationBar({required this.child});
+
+  @override
+  Widget build(BuildContext context) => CupertinoTheme(
+    data: CupertinoTheme.of(context).copyWith(primaryColor: CupertinoColors.white),
+    child: child,
+  );
+
+  @override
+  Size get preferredSize => child.preferredSize;
+
+  @override
+  bool shouldFullyObstruct(BuildContext context) => false;
 }

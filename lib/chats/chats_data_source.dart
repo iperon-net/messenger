@@ -73,7 +73,7 @@ abstract class ChatsDataSource {
   /// Изменить группу/канал/сообщество (профиль чата → «Изменить», админ):
   /// название, описание, фото, способ вступления ([username] — для
   /// [models.ChatJoinMode.open], иначе действует [inviteLink]) и роль
-  /// вступивших. [commentsTimeLimit] — «Срок комментирования» канала (секунд,
+  /// вступивших; [coverPath] — обложка сообщества. [commentsTimeLimit] — «Срок комментирования» канала (секунд,
   /// 0 — без ограничения), действует только на новые посты; [commentsWho] и
   /// [commentsMinSubscription] — кто может комментировать (только подписчики —
   /// подписанные не меньше стольких секунд); [newcomerMediaDelay] —
@@ -83,6 +83,7 @@ abstract class ChatsDataSource {
     required String title,
     required String about,
     required String avatarPath,
+    String coverPath = '',
     required models.ChatJoinMode joinMode,
     required String username,
     required String inviteLink,

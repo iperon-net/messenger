@@ -592,6 +592,21 @@ class Translations$screenNewChat$en {
 	/// en: 'Remove Photo'
 	String get removePhoto => 'Remove Photo';
 
+	/// en: 'Cover'
+	String get cover => 'Cover';
+
+	/// en: 'Choose Cover'
+	String get setCover => 'Choose Cover';
+
+	/// en: 'Change Cover'
+	String get changeCover => 'Change Cover';
+
+	/// en: 'Remove Cover'
+	String get removeCover => 'Remove Cover';
+
+	/// en: 'The header background of the community page — e.g. a photo of your venue or storefront.'
+	String get coverFooter => 'The header background of the community page — e.g. a photo of your venue or storefront.';
+
 	/// en: 'Edit Photo'
 	String get editPhoto => 'Edit Photo';
 
@@ -3441,6 +3456,11 @@ extension on Translations {
 			'screenNewChat.setPhoto' => 'Set Photo',
 			'screenNewChat.changePhoto' => 'Change Photo',
 			'screenNewChat.removePhoto' => 'Remove Photo',
+			'screenNewChat.cover' => 'Cover',
+			'screenNewChat.setCover' => 'Choose Cover',
+			'screenNewChat.changeCover' => 'Change Cover',
+			'screenNewChat.removeCover' => 'Remove Cover',
+			'screenNewChat.coverFooter' => 'The header background of the community page — e.g. a photo of your venue or storefront.',
 			'screenNewChat.editPhoto' => 'Edit Photo',
 			'screenNewChat.type' => 'Type',
 			'screenNewChat.typePublic' => 'Public',
@@ -3799,13 +3819,13 @@ extension on Translations {
 			'screenDeveloper.testPushError' => ({required Object error}) => 'Failed to send: ${error}',
 			'screenDeveloper.testPushEncrypted' => 'Test notification (encrypted)',
 			'screenDeveloper.testPushQueued' => 'Queued on the server. Android shows "Encrypted test notification: decryption works"; iPhone shows "New notification" for now (iOS decryption comes later).',
+			_ => null,
+		} ?? switch (path) {
 			'screenSettingsAppearance.appearance' => 'Appearance',
 			'screenSettingsAppearance.colorTheme' => 'Color theme',
 			'screenSettingsAppearance.colorThemeDefault' => 'Default',
 			'screenSettingsAppearance.colorThemeGreen' => 'Green',
 			'screenSettingsAppearance.colorThemePurple' => 'Purple',
-			_ => null,
-		} ?? switch (path) {
 			'screenSettingsAppearance.colorThemeOrange' => 'Orange',
 			'screenSettingsAppearance.darkMode' => 'Dark mode',
 			'screenSettingsAppearance.darkModeSystem' => 'System',

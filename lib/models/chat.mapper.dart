@@ -1225,6 +1225,13 @@ class ChatMapper extends ClassMapperBase<Chat> {
     opt: true,
     def: '',
   );
+  static String _$coverPath(Chat v) => v.coverPath;
+  static const Field<Chat, String> _f$coverPath = Field(
+    'coverPath',
+    _$coverPath,
+    opt: true,
+    def: '',
+  );
   static ChatJoinMode _$joinMode(Chat v) => v.joinMode;
   static const Field<Chat, ChatJoinMode> _f$joinMode = Field(
     'joinMode',
@@ -1409,6 +1416,7 @@ class ChatMapper extends ClassMapperBase<Chat> {
     #username: _f$username,
     #inviteLink: _f$inviteLink,
     #avatarPath: _f$avatarPath,
+    #coverPath: _f$coverPath,
     #joinMode: _f$joinMode,
     #defaultRole: _f$defaultRole,
     #pendingRequests: _f$pendingRequests,
@@ -1460,6 +1468,7 @@ class ChatMapper extends ClassMapperBase<Chat> {
       username: data.dec(_f$username),
       inviteLink: data.dec(_f$inviteLink),
       avatarPath: data.dec(_f$avatarPath),
+      coverPath: data.dec(_f$coverPath),
       joinMode: data.dec(_f$joinMode),
       defaultRole: data.dec(_f$defaultRole),
       pendingRequests: data.dec(_f$pendingRequests),
@@ -1560,6 +1569,7 @@ abstract class ChatCopyWith<$R, $In extends Chat, $Out>
     String? username,
     String? inviteLink,
     String? avatarPath,
+    String? coverPath,
     ChatJoinMode? joinMode,
     ChatRole? defaultRole,
     int? pendingRequests,
@@ -1630,6 +1640,7 @@ class _ChatCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Chat, $Out>
     String? username,
     String? inviteLink,
     String? avatarPath,
+    String? coverPath,
     ChatJoinMode? joinMode,
     ChatRole? defaultRole,
     int? pendingRequests,
@@ -1679,6 +1690,7 @@ class _ChatCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Chat, $Out>
       if (username != null) #username: username,
       if (inviteLink != null) #inviteLink: inviteLink,
       if (avatarPath != null) #avatarPath: avatarPath,
+      if (coverPath != null) #coverPath: coverPath,
       if (joinMode != null) #joinMode: joinMode,
       if (defaultRole != null) #defaultRole: defaultRole,
       if (pendingRequests != null) #pendingRequests: pendingRequests,
@@ -1731,6 +1743,7 @@ class _ChatCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Chat, $Out>
     username: data.get(#username, or: $value.username),
     inviteLink: data.get(#inviteLink, or: $value.inviteLink),
     avatarPath: data.get(#avatarPath, or: $value.avatarPath),
+    coverPath: data.get(#coverPath, or: $value.coverPath),
     joinMode: data.get(#joinMode, or: $value.joinMode),
     defaultRole: data.get(#defaultRole, or: $value.defaultRole),
     pendingRequests: data.get(#pendingRequests, or: $value.pendingRequests),

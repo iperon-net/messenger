@@ -45,6 +45,48 @@ Future<String?> pickChatPhoto(BuildContext context, models.ChatType type) async 
   };
 }
 
+/// Обложка сообщества: галерея → кроп 16:9, до 1280 px по ширине. Возвращает
+/// путь к файлу или `null` (лист закрыли).
+Future<String?> pickCommunityCover(BuildContext context) async {
+  final title = context.t.screenNewChat.cover;
+  final result = await showToolbarAttachments(
+    context,
+    tabs: const [ToolbarAttachmentTabKind.gallery],
+    processImage: (file) async {
+      final cropped = await ImageCropper().cropImage(
+        sourcePath: file.path,
+        aspectRatio: const CropAspectRatio(ratioX: 16, ratioY: 9),
+        compressFormat: ImageCompressFormat.jpg,
+        compressQuality: 85,
+        maxWidth: 1280,
+        maxHeight: 720,
+        uiSettings: [
+          IOSUiSettings(title: title, aspectRatioLockEnabled: true, resetAspectRatioEnabled: false),
+          AndroidUiSettings(toolbarTitle: title, lockAspectRatio: true),
+        ],
+      );
+      return cropped == null ? null : XFile(cropped.path);
+    },
+  );
+  return switch (result) {
+    ToolbarAttachmentImageResult(:final file) => file.path,
+    _ => null,
+  };
+}
+
+/// Превью обложки в форме «Изменить» (16:9).
+class CommunityCoverPreview extends StatelessWidget {
+  final String path;
+
+  const CommunityCoverPreview({super.key, required this.path});
+
+  @override
+  Widget build(BuildContext context) => ClipRRect(
+    borderRadius: BorderRadius.circular(6),
+    child: Image.file(File(path), width: 64, height: 36, fit: BoxFit.cover, cacheWidth: 192),
+  );
+}
+
 /// Аватар контакта — тот же плейсхолдер, что у личного чата с ним (по id).
 class ContactAvatar extends StatelessWidget {
   final models.ChatMember contact;

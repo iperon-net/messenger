@@ -148,6 +148,13 @@ class ChatCreateStateMapper extends ClassMapperBase<ChatCreateState> {
     opt: true,
     def: '',
   );
+  static String _$coverPath(ChatCreateState v) => v.coverPath;
+  static const Field<ChatCreateState, String> _f$coverPath = Field(
+    'coverPath',
+    _$coverPath,
+    opt: true,
+    def: '',
+  );
   static models.ChatJoinMode _$joinMode(ChatCreateState v) => v.joinMode;
   static const Field<ChatCreateState, models.ChatJoinMode> _f$joinMode = Field(
     'joinMode',
@@ -278,6 +285,7 @@ class ChatCreateStateMapper extends ClassMapperBase<ChatCreateState> {
     #query: _f$query,
     #selected: _f$selected,
     #avatarPath: _f$avatarPath,
+    #coverPath: _f$coverPath,
     #joinMode: _f$joinMode,
     #username: _f$username,
     #originalUsername: _f$originalUsername,
@@ -308,6 +316,7 @@ class ChatCreateStateMapper extends ClassMapperBase<ChatCreateState> {
       query: data.dec(_f$query),
       selected: data.dec(_f$selected),
       avatarPath: data.dec(_f$avatarPath),
+      coverPath: data.dec(_f$coverPath),
       joinMode: data.dec(_f$joinMode),
       username: data.dec(_f$username),
       originalUsername: data.dec(_f$originalUsername),
@@ -412,6 +421,7 @@ abstract class ChatCreateStateCopyWith<$R, $In extends ChatCreateState, $Out>
     String? query,
     List<models.ChatMember>? selected,
     String? avatarPath,
+    String? coverPath,
     models.ChatJoinMode? joinMode,
     String? username,
     String? originalUsername,
@@ -476,6 +486,7 @@ class _ChatCreateStateCopyWithImpl<$R, $Out>
     String? query,
     List<models.ChatMember>? selected,
     String? avatarPath,
+    String? coverPath,
     models.ChatJoinMode? joinMode,
     String? username,
     String? originalUsername,
@@ -504,6 +515,7 @@ class _ChatCreateStateCopyWithImpl<$R, $Out>
       if (query != null) #query: query,
       if (selected != null) #selected: selected,
       if (avatarPath != null) #avatarPath: avatarPath,
+      if (coverPath != null) #coverPath: coverPath,
       if (joinMode != null) #joinMode: joinMode,
       if (username != null) #username: username,
       if (originalUsername != null) #originalUsername: originalUsername,
@@ -535,6 +547,7 @@ class _ChatCreateStateCopyWithImpl<$R, $Out>
     query: data.get(#query, or: $value.query),
     selected: data.get(#selected, or: $value.selected),
     avatarPath: data.get(#avatarPath, or: $value.avatarPath),
+    coverPath: data.get(#coverPath, or: $value.coverPath),
     joinMode: data.get(#joinMode, or: $value.joinMode),
     username: data.get(#username, or: $value.username),
     originalUsername: data.get(#originalUsername, or: $value.originalUsername),

@@ -386,6 +386,7 @@ class ChatsDemoDataSource implements ChatsDataSource {
     required String title,
     required String about,
     required String avatarPath,
+    String coverPath = '',
     required models.ChatJoinMode joinMode,
     required String username,
     required String inviteLink,
@@ -407,6 +408,7 @@ class ChatsDemoDataSource implements ChatsDataSource {
         title: title,
         about: about,
         avatarPath: avatarPath,
+        coverPath: chat.type == models.ChatType.community ? coverPath : '',
         joinMode: joinMode,
         username: open ? username : '',
         // Ссылка-приглашение сохраняется и у публичного — вернётся при
