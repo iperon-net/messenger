@@ -18,5 +18,12 @@ import 'chat_common.dart';
     }
   }
   final count = chatSubtitle(t, chat).text;
-  return (title: title, subtitle: chat.joinMode == models.ChatJoinMode.request ? '$count · ${t.screenChatInfo.closedTopic}' : count);
+  return (
+    title: title,
+    subtitle: switch (chat.joinMode) {
+      models.ChatJoinMode.request => '$count · ${t.screenChatInfo.closedTopic}',
+      models.ChatJoinMode.admins => '$count · ${t.screenChatInfo.hiddenTopic}',
+      _ => count,
+    },
+  );
 }

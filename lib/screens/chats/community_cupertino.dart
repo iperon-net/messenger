@@ -11,6 +11,7 @@ import '../../models.dart' as models;
 import '../../themes.dart';
 import 'chat_cupertino.dart';
 import 'chat_info_cupertino.dart';
+import 'chats_new_cupertino.dart';
 import 'community_common.dart';
 
 /// `/chats/chat/:id` (iOS): у сообщества своей ленты нет — вместо окна чата
@@ -57,13 +58,10 @@ class CommunityChatsCupertino extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.t;
     final action = ThemesCupertino.actionColor(context);
-    final secondary = CupertinoColors.secondaryLabel.resolveFrom(context);
     return CupertinoListSection.insetGrouped(
-      header: Text(t.screenChatInfo.communityChats.toUpperCase()),
-      footer: Text(
-        t.screenChatInfo.communityChatsFooter,
-        style: TextStyle(fontSize: AppFontSizes.caption, color: secondary),
-      ),
+      // Заголовок и подпись — как у секций форм («Новое», «Изменить»).
+      header: createHeaderCupertino(t.screenChatInfo.communityChats),
+      footer: createNoteCupertino(t.screenChatInfo.communityChatsFooter),
       backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
       decoration: BoxDecoration(
         color: ThemesCupertino.groupedCard.resolveFrom(context),
@@ -111,6 +109,10 @@ class _ChatRow extends StatelessWidget {
             const SizedBox(width: 4),
             Icon(CupertinoIcons.lock_fill, size: 13, color: secondary),
           ],
+          if (chat.joinMode == models.ChatJoinMode.admins) ...[
+            const SizedBox(width: 4),
+            Icon(CupertinoIcons.eye_slash_fill, size: 13, color: secondary),
+          ],
           if (chat.muted) ...[const SizedBox(width: 4), Icon(CupertinoIcons.bell_slash_fill, size: 13, color: secondary)],
         ],
       ),
@@ -138,6 +140,8 @@ class _ChatRow extends StatelessWidget {
       );
     }
     if (chat.joinRequested) return Text(t.screenChatInfo.requestPending, style: TextStyle(fontSize: 15, color: secondary));
+    // В скрытую самому не вступить — добавляют админы (её видят только они).
+    if (chat.joinMode == models.ChatJoinMode.admins) return const CupertinoListTileChevron();
     return CupertinoButton.tinted(
       sizeStyle: CupertinoButtonSize.small,
       onPressed: () => context.read<ChatCubit>().joinCommunityChat(chat),

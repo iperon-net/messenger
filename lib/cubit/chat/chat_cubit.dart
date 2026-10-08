@@ -70,10 +70,17 @@ class ChatCubit extends Cubit<ChatState> {
         state.copyWith(
           chat: chat,
           status: Status.success,
+          // Скрытые группы ([models.ChatJoinMode.admins]) видят только их
+          // участники и админы сообщества.
           communityChats: community
               ? [
                   ...chats.where((c) => c.communityID == chatID && c.announcements),
-                  ...chats.where((c) => c.communityID == chatID && !c.announcements),
+                  ...chats.where(
+                    (c) =>
+                        c.communityID == chatID &&
+                        !c.announcements &&
+                        (c.isMember || c.joinMode != models.ChatJoinMode.admins || chat!.canManage),
+                  ),
                 ]
               : const [],
           community: chat != null && chat.inCommunity ? chats.where((c) => c.id == chat.communityID).firstOrNull : null,

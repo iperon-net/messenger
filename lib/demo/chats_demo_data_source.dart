@@ -337,7 +337,8 @@ class ChatsDemoDataSource implements ChatsDataSource {
           communityID: community.id,
           username: '',
           inviteLink: '',
-          joinMode: joinMode == models.ChatJoinMode.request ? models.ChatJoinMode.request : models.ChatJoinMode.open,
+          // Одним нажатием / по заявке (закрытая тема) / скрытая (добавляют админы).
+          joinMode: joinMode == models.ChatJoinMode.link ? models.ChatJoinMode.open : joinMode,
           defaultRole: type == models.ChatType.channel ? models.ChatRole.reader : community.defaultRole,
           slowMode: type == models.ChatType.channel ? 0 : community.slowMode,
           reactionsMode: community.reactionsMode,
@@ -846,7 +847,8 @@ class ChatsDemoDataSource implements ChatsDataSource {
   @override
   Future<void> joinChat(String chatID) async {
     final chat = _chats.where((c) => c.id == chatID).firstOrNull;
-    if (chat == null || chat.isMember) return;
+    // В скрытую группу сообщества самому не вступить — добавляют админы.
+    if (chat == null || chat.isMember || (chat.inCommunity && chat.joinMode == models.ChatJoinMode.admins)) return;
     if (chat.joinMode == models.ChatJoinMode.request) {
       _update(chatID, (c) => c.copyWith(joinRequested: true));
       // Демо: админ одобряет через несколько секунд.
@@ -983,7 +985,12 @@ class ChatsDemoDataSource implements ChatsDataSource {
     // «закрытых тем» (по заявке).
     if (chat.inCommunity) {
       return withProfile.copyWith(
-        joinMode: const {'spices_vip', 'coffee_staff'}.contains(chat.id) ? models.ChatJoinMode.request : models.ChatJoinMode.open,
+        joinMode: switch (chat.id) {
+          'spices_vip' => models.ChatJoinMode.request,
+          // Скрытые: гости их не видят («Персонал» ресторана нам не виден вовсе).
+          'coffee_staff' || 'spices_staff' => models.ChatJoinMode.admins,
+          _ => models.ChatJoinMode.open,
+        },
         defaultRole: chat.type == models.ChatType.channel ? models.ChatRole.reader : models.ChatRole.writer,
         commentsEnabled: chat.id == 'devs_jobs',
         membersHidden: chat.type == models.ChatType.channel,
@@ -1016,8 +1023,9 @@ class ChatsDemoDataSource implements ChatsDataSource {
       // подпишемся на «Iperon Dev» — первые сутки только текст.
       newcomerMediaDelay: const {'iperon_dev', 'flutter_msk'}.contains(chat.id) ? 86400 : 0,
       signMessages: const {'news', 'iperon_dev'}.contains(chat.id),
-      // Подписчиков канала по умолчанию видят только админы.
-      membersHidden: chat.type == models.ChatType.channel,
+      // Подписчиков канала по умолчанию видят только админы; у ресторана —
+      // и участников сообщества (гостям незачем видеть друг друга).
+      membersHidden: chat.type == models.ChatType.channel || chat.id == 'spices',
     );
   }
 
@@ -1983,6 +1991,14 @@ class ChatsDemoDataSource implements ChatsDataSource {
         'Для постоянных гостей',
         member: false,
         last: msg('Дегустация вин в пятницу', sender: 'Анна', date: ago(days: 2)),
+      ),
+      chat(
+        'spices',
+        'spices_staff',
+        group,
+        'Персонал',
+        member: false,
+        last: msg('Смена на субботу утверждена', sender: 'Ольга', date: ago(hours: 2)),
       ),
 
       chat(

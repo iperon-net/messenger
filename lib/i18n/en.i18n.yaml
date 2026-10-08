@@ -227,6 +227,8 @@
   "topicJoinRequest": "By Request"
   "topicJoinOpenFooter": "Any community member can join in one tap."
   "topicJoinRequestFooter": "Closed topic: community members send a request and join once an admin approves it."
+  "topicJoinHidden": "Hidden"
+  "topicJoinHiddenFooter": "Only its members and community admins can see the group. Members can't join on their own — admins add them."
 
 "screenChatInvites":
   "inviteLinks": "Invite Links"
@@ -647,6 +649,7 @@
   "communityChatsFooter": "Community members join groups and channels in one tap, closed topics by request."
   "announcements": "Announcements"
   "closedTopic": "By request"
+  "hiddenTopic": "Hidden"
   "createGroup": "Create Group"
   "createChannel": "Create Channel"
   "join": "Join"

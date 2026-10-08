@@ -363,6 +363,8 @@ class _Translations$screenNewChat$ru extends Translations$screenNewChat$en {
 	@override String get topicJoinRequest => 'По заявке';
 	@override String get topicJoinOpenFooter => 'Любой участник сообщества вступает одним нажатием.';
 	@override String get topicJoinRequestFooter => 'Закрытая тема: участник сообщества подаёт заявку, вступление — после одобрения админом.';
+	@override String get topicJoinHidden => 'Скрытая';
+	@override String get topicJoinHiddenFooter => 'Группу видят только её участники и админы сообщества. Вступить самостоятельно нельзя — участников добавляют админы.';
 }
 
 // Path: screenChatInvites
@@ -869,6 +871,7 @@ class _Translations$screenChatInfo$ru extends Translations$screenChatInfo$en {
 	@override String get communityChatsFooter => 'Участники сообщества вступают в группы и каналы одним нажатием, в закрытые темы — по заявке.';
 	@override String get announcements => 'Объявления';
 	@override String get closedTopic => 'По заявке';
+	@override String get hiddenTopic => 'Скрытая';
 	@override String get createGroup => 'Создать группу';
 	@override String get createChannel => 'Создать канал';
 	@override String get join => 'Вступить';
@@ -1637,6 +1640,8 @@ extension on TranslationsRu {
 			'screenNewChat.topicJoinRequest' => 'По заявке',
 			'screenNewChat.topicJoinOpenFooter' => 'Любой участник сообщества вступает одним нажатием.',
 			'screenNewChat.topicJoinRequestFooter' => 'Закрытая тема: участник сообщества подаёт заявку, вступление — после одобрения админом.',
+			'screenNewChat.topicJoinHidden' => 'Скрытая',
+			'screenNewChat.topicJoinHiddenFooter' => 'Группу видят только её участники и админы сообщества. Вступить самостоятельно нельзя — участников добавляют админы.',
 			'screenChatInvites.inviteLinks' => 'Ссылки-приглашения',
 			'screenChatInvites.joinRequests' => 'Заявки на вступление',
 			'screenChatInvites.primaryLink' => 'Основная ссылка',
@@ -1938,10 +1943,10 @@ extension on TranslationsRu {
 			'screenSettingsAppearance.colorThemeDefault' => 'По умолчанию',
 			'screenSettingsAppearance.colorThemeGreen' => 'Зелёная',
 			'screenSettingsAppearance.colorThemePurple' => 'Фиолетовая',
-			'screenSettingsAppearance.colorThemeOrange' => 'Оранжевая',
-			'screenSettingsAppearance.darkMode' => 'Тёмная тема',
 			_ => null,
 		} ?? switch (path) {
+			'screenSettingsAppearance.colorThemeOrange' => 'Оранжевая',
+			'screenSettingsAppearance.darkMode' => 'Тёмная тема',
 			'screenSettingsAppearance.darkModeSystem' => 'Системная',
 			'screenSettingsAppearance.darkModeAlwaysOn' => 'Всегда включена',
 			'screenSettingsAppearance.darkModeDisabled' => 'Отключена',
@@ -2024,6 +2029,7 @@ extension on TranslationsRu {
 			'screenChatInfo.communityChatsFooter' => 'Участники сообщества вступают в группы и каналы одним нажатием, в закрытые темы — по заявке.',
 			'screenChatInfo.announcements' => 'Объявления',
 			'screenChatInfo.closedTopic' => 'По заявке',
+			'screenChatInfo.hiddenTopic' => 'Скрытая',
 			'screenChatInfo.createGroup' => 'Создать группу',
 			'screenChatInfo.createChannel' => 'Создать канал',
 			'screenChatInfo.join' => 'Вступить',

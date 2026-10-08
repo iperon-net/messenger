@@ -10,6 +10,7 @@ import '../../i18n/translations.g.dart';
 import '../../models.dart' as models;
 import 'chat_info_material.dart';
 import 'chat_material.dart';
+import 'chats_new_material.dart';
 import 'community_common.dart';
 
 /// `/chats/chat/:id` (Android): у сообщества своей ленты нет — вместо окна
@@ -58,13 +59,8 @@ class CommunityChatsMaterial extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(28, 20, 28, 8),
-          child: Text(
-            t.screenChatInfo.communityChats,
-            style: TextStyle(color: scheme.primary, fontWeight: FontWeight.w500),
-          ),
-        ),
+        // Заголовок и подпись — как у карточек форм («Новое», «Изменить»).
+        createHeaderMaterial(context, t.screenChatInfo.communityChats),
         Card(
           margin: const EdgeInsets.symmetric(horizontal: 12),
           color: card,
@@ -87,13 +83,7 @@ class CommunityChatsMaterial extends StatelessWidget {
             ],
           ),
         ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(28, 8, 28, 0),
-          child: Text(
-            t.screenChatInfo.communityChatsFooter,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
-          ),
-        ),
+        createNoteMaterial(context, t.screenChatInfo.communityChatsFooter),
       ],
     );
   }
@@ -118,6 +108,10 @@ class _ChatRow extends StatelessWidget {
             const SizedBox(width: 4),
             HugeIcon(icon: HugeIcons.strokeRoundedSquareLock02, size: 15, color: scheme.onSurfaceVariant),
           ],
+          if (chat.joinMode == models.ChatJoinMode.admins) ...[
+            const SizedBox(width: 4),
+            HugeIcon(icon: HugeIcons.strokeRoundedViewOff, size: 15, color: scheme.onSurfaceVariant),
+          ],
           if (chat.muted) ...[
             const SizedBox(width: 4),
             HugeIcon(icon: HugeIcons.strokeRoundedNotificationOff01, size: 15, color: scheme.onSurfaceVariant),
@@ -140,6 +134,8 @@ class _ChatRow extends StatelessWidget {
       );
     }
     if (chat.joinRequested) return Text(t.screenChatInfo.requestPending, style: TextStyle(color: scheme.onSurfaceVariant));
+    // В скрытую самому не вступить — добавляют админы (её видят только они).
+    if (chat.joinMode == models.ChatJoinMode.admins) return null;
     return FilledButton.tonal(onPressed: () => context.read<ChatCubit>().joinCommunityChat(chat), child: Text(t.screenChatInfo.join));
   }
 }

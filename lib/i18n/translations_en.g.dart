@@ -777,6 +777,12 @@ class Translations$screenNewChat$en {
 
 	/// en: 'Closed topic: community members send a request and join once an admin approves it.'
 	String get topicJoinRequestFooter => 'Closed topic: community members send a request and join once an admin approves it.';
+
+	/// en: 'Hidden'
+	String get topicJoinHidden => 'Hidden';
+
+	/// en: 'Only its members and community admins can see the group. Members can't join on their own — admins add them.'
+	String get topicJoinHiddenFooter => 'Only its members and community admins can see the group. Members can\'t join on their own — admins add them.';
 }
 
 // Path: screenChatInvites
@@ -2037,6 +2043,9 @@ class Translations$screenChatInfo$en {
 
 	/// en: 'By request'
 	String get closedTopic => 'By request';
+
+	/// en: 'Hidden'
+	String get hiddenTopic => 'Hidden';
 
 	/// en: 'Create Group'
 	String get createGroup => 'Create Group';
@@ -3492,6 +3501,8 @@ extension on Translations {
 			'screenNewChat.topicJoinRequest' => 'By Request',
 			'screenNewChat.topicJoinOpenFooter' => 'Any community member can join in one tap.',
 			'screenNewChat.topicJoinRequestFooter' => 'Closed topic: community members send a request and join once an admin approves it.',
+			'screenNewChat.topicJoinHidden' => 'Hidden',
+			'screenNewChat.topicJoinHiddenFooter' => 'Only its members and community admins can see the group. Members can\'t join on their own — admins add them.',
 			'screenChatInvites.inviteLinks' => 'Invite Links',
 			'screenChatInvites.joinRequests' => 'Join Requests',
 			'screenChatInvites.primaryLink' => 'Primary Link',
@@ -3793,10 +3804,10 @@ extension on Translations {
 			'screenSettingsAppearance.colorThemeDefault' => 'Default',
 			'screenSettingsAppearance.colorThemeGreen' => 'Green',
 			'screenSettingsAppearance.colorThemePurple' => 'Purple',
-			'screenSettingsAppearance.colorThemeOrange' => 'Orange',
-			'screenSettingsAppearance.darkMode' => 'Dark mode',
 			_ => null,
 		} ?? switch (path) {
+			'screenSettingsAppearance.colorThemeOrange' => 'Orange',
+			'screenSettingsAppearance.darkMode' => 'Dark mode',
 			'screenSettingsAppearance.darkModeSystem' => 'System',
 			'screenSettingsAppearance.darkModeAlwaysOn' => 'Always on',
 			'screenSettingsAppearance.darkModeDisabled' => 'Disabled',
@@ -3879,6 +3890,7 @@ extension on Translations {
 			'screenChatInfo.communityChatsFooter' => 'Community members join groups and channels in one tap, closed topics by request.',
 			'screenChatInfo.announcements' => 'Announcements',
 			'screenChatInfo.closedTopic' => 'By request',
+			'screenChatInfo.hiddenTopic' => 'Hidden',
 			'screenChatInfo.createGroup' => 'Create Group',
 			'screenChatInfo.createChannel' => 'Create Channel',
 			'screenChatInfo.join' => 'Join',
