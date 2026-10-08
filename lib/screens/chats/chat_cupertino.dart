@@ -933,12 +933,7 @@ class _ComposeBar extends StatelessWidget {
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: primary),
                           ),
-                          Text(
-                            banner.text,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(fontSize: 14, color: secondary),
-                          ),
+                          composeBannerText(banner, const TextStyle(fontSize: 14), secondary, primary),
                         ],
                       ),
                     ),

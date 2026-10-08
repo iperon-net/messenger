@@ -57,6 +57,10 @@ class MessageText extends StatefulWidget {
   final (int, int)? mark;
   final Color markColor;
 
+  /// Предел строк с многоточием (цитата ответа, плашка над полем ввода);
+  /// `null` — без предела.
+  final int? maxLines;
+
   const MessageText({
     super.key,
     required this.text,
@@ -69,6 +73,7 @@ class MessageText extends StatefulWidget {
     this.highlightColor = const Color(0x66FFCC00),
     this.mark,
     this.markColor = const Color(0x66FFCC00),
+    this.maxLines,
   });
 
   @override
@@ -252,9 +257,15 @@ class _MessageTextState extends State<MessageText> with TickerProviderStateMixin
         ),
       );
     }
-    final paragraph = Text.rich(TextSpan(children: spans), key: _paragraph);
+    final paragraph = Text.rich(
+      TextSpan(children: spans),
+      key: _paragraph,
+      maxLines: widget.maxLines,
+      overflow: widget.maxLines == null ? TextOverflow.clip : TextOverflow.ellipsis,
+    );
     if (!dusty) return paragraph;
-    return Stack(
+    // С пределом строк спойлер может уйти за многоточие — пыль не вылезает.
+    final dust = Stack(
       children: [
         paragraph,
         Positioned.fill(
@@ -273,6 +284,7 @@ class _MessageTextState extends State<MessageText> with TickerProviderStateMixin
         ),
       ],
     );
+    return widget.maxLines == null ? dust : ClipRect(child: dust);
   }
 
   /// Прямоугольники скрытого текста (по строкам) в координатах абзаца.

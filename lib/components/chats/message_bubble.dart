@@ -945,12 +945,25 @@ class _ReplyQuote extends StatelessWidget {
                 FaIcon(FontAwesomeIcons.quoteRight, size: 10, color: colors.link),
               ],
             ),
-          Text(
-            quoted == null ? text.replaceAll('\n', ' ') : text,
-            maxLines: quoted == null ? 1 : 4,
-            overflow: TextOverflow.ellipsis,
-            style: style.textStyle.copyWith(fontSize: 13, color: colors.text),
-          ),
+          if (quoted == null)
+            Text(
+              text.replaceAll('\n', ' '),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: style.textStyle.copyWith(fontSize: 13, color: colors.text),
+            )
+          else
+            // С разметкой исходного (спойлер остаётся скрытым); тап по цитате
+            // — переход к исходному, поэтому ссылки и спойлер не нажимаются.
+            IgnorePointer(
+              child: MessageText(
+                text: quoted.text,
+                entities: quoted.entities,
+                style: style.textStyle.copyWith(fontSize: 13),
+                colors: colors,
+                maxLines: 4,
+              ),
+            ),
         ],
       ),
     );

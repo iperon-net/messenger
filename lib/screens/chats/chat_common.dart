@@ -758,8 +758,9 @@ class _ThumbBadge extends StatelessWidget {
 
 /// Плашка над полем ввода: «Ответ Анне: …» / «Редактирование: …».
 ///
-/// [quote] — отвечаем на фрагмент («Цитировать»): в [text] — цитата.
-({String title, String text, bool quote})? composeBanner(Translations t, ChatState state) {
+/// [quote] — отвечаем на фрагмент («Цитировать»): в [text] — цитата, её
+/// разметка — [entities] (рисовать через [composeBannerText]).
+({String title, String text, bool quote, List<models.MessageEntity> entities})? composeBanner(Translations t, ChatState state) {
   final forwarding = state.forwarding;
   if (forwarding.isNotEmpty && state.editing == null) {
     String nameOf(models.Message m) => (m.forward?.self ?? m.outgoing) ? t.screenChat.you : (m.forward?.name ?? m.senderName);
@@ -768,16 +769,52 @@ class _ThumbBadge extends StatelessWidget {
     final text = forwarding.length == 1
         ? (first.text.isNotEmpty ? first.text : messageKindLabel(t, first.kind))
         : t.screenChat.forwardFrom(names: {for (final m in forwarding) nameOf(m)}.where((n) => n.isNotEmpty).join(', '));
-    return (title: t.screenChat.forwardMessages(n: forwarding.length), text: text.replaceAll('\n', ' '), quote: false);
+    return (title: t.screenChat.forwardMessages(n: forwarding.length), text: text.replaceAll('\n', ' '), quote: false, entities: const []);
   }
   final message = state.editing ?? state.reply;
   if (message == null) return null;
   final text = message.text.isNotEmpty ? message.text : messageKindLabel(t, message.kind);
-  if (state.editing != null) return (title: t.screenChat.editing, text: text.replaceAll('\n', ' '), quote: false);
+  if (state.editing != null) return (title: t.screenChat.editing, text: text.replaceAll('\n', ' '), quote: false, entities: const []);
   final name = message.outgoing ? t.screenChat.you : (message.senderName.isNotEmpty ? message.senderName : state.chat?.title ?? '');
   final quote = state.replyQuote;
-  if (quote != null) return (title: t.screenChat.replyQuoteTo(name: name), text: quote.text.replaceAll('\n', ' '), quote: true);
-  return (title: name, text: text.replaceAll('\n', ' '), quote: false);
+  if (quote != null) {
+    // Замена \n пробелом длину не меняет — offset'ы разметки те же.
+    return (title: t.screenChat.replyQuoteTo(name: name), text: quote.text.replaceAll('\n', ' '), quote: true, entities: quote.entities);
+  }
+  return (title: name, text: text.replaceAll('\n', ' '), quote: false, entities: const []);
+}
+
+/// Строка текста плашки над полем ввода; у цитаты — с её разметкой (спойлер
+/// скрыт). [color] — цвет текста, [link] — ссылок.
+Widget composeBannerText(
+  ({String title, String text, bool quote, List<models.MessageEntity> entities}) banner,
+  TextStyle style,
+  Color color,
+  Color link,
+) {
+  if (banner.entities.isEmpty) {
+    return Text(
+      banner.text,
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      style: style.copyWith(color: color),
+    );
+  }
+  return IgnorePointer(
+    child: MessageText(
+      text: banner.text,
+      entities: banner.entities,
+      style: style,
+      maxLines: 1,
+      colors: MessageTextColors(
+        text: color,
+        link: link,
+        codeBackground: color.withValues(alpha: 0.12),
+        spoiler: color.withValues(alpha: 0.3),
+        quote: color,
+      ),
+    ),
+  );
 }
 
 /// Прокрутка ленты сообщений к строке с ключом [key] (поиск по чату). Лента
