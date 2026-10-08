@@ -313,17 +313,43 @@ class _ChatCreateFormMaterial extends State<ChatCreateFormMaterial> {
                         value: state.commentsEnabled,
                         onChanged: context.read<ChatCreateCubit>().setCommentsEnabled,
                       ),
-                      if (state.commentsEnabled)
+                      if (state.commentsEnabled) ...[
                         ListTile(
                           title: Text(t.screenNewChat.commentsLimit),
                           subtitle: Text(commentsLimitLabel(t, state.commentsTimeLimit)),
                           trailing: const Icon(Icons.chevron_right),
                           onTap: () async {
                             final cubit = context.read<ChatCreateCubit>();
-                            final seconds = await pickCommentsLimit(context, state.commentsTimeLimit);
+                            final seconds = await pickCommentsLimit(context, state.commentsTimeLimit, title: t.screenNewChat.commentsLimit);
                             if (seconds != null) cubit.setCommentsTimeLimit(seconds);
                           },
                         ),
+                        ListTile(
+                          title: Text(t.screenNewChat.commentsWho),
+                          subtitle: Text(commentsWhoLabel(t, state.commentsWho)),
+                          trailing: const Icon(Icons.chevron_right),
+                          onTap: () async {
+                            final cubit = context.read<ChatCreateCubit>();
+                            final who = await pickCommentsWho(context, state.commentsWho);
+                            if (who != null) cubit.setCommentsWho(who);
+                          },
+                        ),
+                        if (state.commentsWho == models.ChatCommentsWho.subscribers)
+                          ListTile(
+                            title: Text(t.screenNewChat.commentsMinSubscription),
+                            subtitle: Text(commentsLimitLabel(t, state.commentsMinSubscription)),
+                            trailing: const Icon(Icons.chevron_right),
+                            onTap: () async {
+                              final cubit = context.read<ChatCreateCubit>();
+                              final seconds = await pickCommentsLimit(
+                                context,
+                                state.commentsMinSubscription,
+                                title: t.screenNewChat.commentsMinSubscription,
+                              );
+                              if (seconds != null) cubit.setCommentsMinSubscription(seconds);
+                            },
+                          ),
+                      ],
                       SwitchListTile(
                         title: Text(t.screenNewChat.signSwitch),
                         value: state.signMessages,
@@ -335,6 +361,8 @@ class _ChatCreateFormMaterial extends State<ChatCreateFormMaterial> {
                       [
                         t.screenNewChat.commentsFooter,
                         if (state.commentsEnabled) t.screenNewChat.commentsLimitFooter,
+                        if (state.commentsEnabled && state.commentsWho == models.ChatCommentsWho.subscribers)
+                          t.screenNewChat.commentsWhoFooter,
                         t.screenNewChat.signFooter,
                       ].join(' '),
                     ),

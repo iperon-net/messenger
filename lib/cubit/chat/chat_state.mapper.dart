@@ -8,6 +8,60 @@
 
 part of 'chat_state.dart';
 
+class ChatCommentsBlockMapper extends EnumMapper<ChatCommentsBlock> {
+  ChatCommentsBlockMapper._();
+
+  static ChatCommentsBlockMapper? _instance;
+  static ChatCommentsBlockMapper ensureInitialized() {
+    if (_instance == null) {
+      MapperContainer.globals.use(_instance = ChatCommentsBlockMapper._());
+    }
+    return _instance!;
+  }
+
+  static ChatCommentsBlock fromValue(dynamic value) {
+    ensureInitialized();
+    return MapperContainer.globals.fromValue(value);
+  }
+
+  @override
+  ChatCommentsBlock decode(dynamic value) {
+    switch (value) {
+      case r'none':
+        return ChatCommentsBlock.none;
+      case r'closed':
+        return ChatCommentsBlock.closed;
+      case r'subscribe':
+        return ChatCommentsBlock.subscribe;
+      case r'wait':
+        return ChatCommentsBlock.wait;
+      default:
+        throw MapperException.unknownEnumValue(value);
+    }
+  }
+
+  @override
+  dynamic encode(ChatCommentsBlock self) {
+    switch (self) {
+      case ChatCommentsBlock.none:
+        return r'none';
+      case ChatCommentsBlock.closed:
+        return r'closed';
+      case ChatCommentsBlock.subscribe:
+        return r'subscribe';
+      case ChatCommentsBlock.wait:
+        return r'wait';
+    }
+  }
+}
+
+extension ChatCommentsBlockMapperExtension on ChatCommentsBlock {
+  String toValue() {
+    ChatCommentsBlockMapper.ensureInitialized();
+    return MapperContainer.globals.toValue<ChatCommentsBlock>(this) as String;
+  }
+}
+
 class ChatStateMapper extends ClassMapperBase<ChatState> {
   ChatStateMapper._();
 
@@ -19,6 +73,7 @@ class ChatStateMapper extends ClassMapperBase<ChatState> {
       models.MessageMapper.ensureInitialized();
       models.MessageQuoteMapper.ensureInitialized();
       models.ChatMemberMapper.ensureInitialized();
+      ChatCommentsBlockMapper.ensureInitialized();
     }
     return _instance!;
   }
@@ -161,12 +216,18 @@ class ChatStateMapper extends ClassMapperBase<ChatState> {
     opt: true,
     def: const [],
   );
-  static bool _$commentsClosed(ChatState v) => v.commentsClosed;
-  static const Field<ChatState, bool> _f$commentsClosed = Field(
-    'commentsClosed',
-    _$commentsClosed,
+  static ChatCommentsBlock _$commentsBlock(ChatState v) => v.commentsBlock;
+  static const Field<ChatState, ChatCommentsBlock> _f$commentsBlock = Field(
+    'commentsBlock',
+    _$commentsBlock,
     opt: true,
-    def: false,
+    def: ChatCommentsBlock.none,
+  );
+  static DateTime? _$commentsWaitUntil(ChatState v) => v.commentsWaitUntil;
+  static const Field<ChatState, DateTime> _f$commentsWaitUntil = Field(
+    'commentsWaitUntil',
+    _$commentsWaitUntil,
+    opt: true,
   );
 
   @override
@@ -191,7 +252,8 @@ class ChatStateMapper extends ClassMapperBase<ChatState> {
     #banned: _f$banned,
     #slowModeLeft: _f$slowModeLeft,
     #commentsClosedIDs: _f$commentsClosedIDs,
-    #commentsClosed: _f$commentsClosed,
+    #commentsBlock: _f$commentsBlock,
+    #commentsWaitUntil: _f$commentsWaitUntil,
   };
 
   static ChatState _instantiate(DecodingData data) {
@@ -216,7 +278,8 @@ class ChatStateMapper extends ClassMapperBase<ChatState> {
       banned: data.dec(_f$banned),
       slowModeLeft: data.dec(_f$slowModeLeft),
       commentsClosedIDs: data.dec(_f$commentsClosedIDs),
-      commentsClosed: data.dec(_f$commentsClosed),
+      commentsBlock: data.dec(_f$commentsBlock),
+      commentsWaitUntil: data.dec(_f$commentsWaitUntil),
     );
   }
 
@@ -340,7 +403,8 @@ abstract class ChatStateCopyWith<$R, $In extends ChatState, $Out>
     List<models.ChatMember>? banned,
     int? slowModeLeft,
     List<String>? commentsClosedIDs,
-    bool? commentsClosed,
+    ChatCommentsBlock? commentsBlock,
+    DateTime? commentsWaitUntil,
   });
   ChatStateCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
@@ -464,7 +528,8 @@ class _ChatStateCopyWithImpl<$R, $Out>
     List<models.ChatMember>? banned,
     int? slowModeLeft,
     List<String>? commentsClosedIDs,
-    bool? commentsClosed,
+    ChatCommentsBlock? commentsBlock,
+    Object? commentsWaitUntil = $none,
   }) => $apply(
     FieldCopyWithData({
       if (status != null) #status: status,
@@ -488,7 +553,8 @@ class _ChatStateCopyWithImpl<$R, $Out>
       if (banned != null) #banned: banned,
       if (slowModeLeft != null) #slowModeLeft: slowModeLeft,
       if (commentsClosedIDs != null) #commentsClosedIDs: commentsClosedIDs,
-      if (commentsClosed != null) #commentsClosed: commentsClosed,
+      if (commentsBlock != null) #commentsBlock: commentsBlock,
+      if (commentsWaitUntil != $none) #commentsWaitUntil: commentsWaitUntil,
     }),
   );
   @override
@@ -519,7 +585,11 @@ class _ChatStateCopyWithImpl<$R, $Out>
       #commentsClosedIDs,
       or: $value.commentsClosedIDs,
     ),
-    commentsClosed: data.get(#commentsClosed, or: $value.commentsClosed),
+    commentsBlock: data.get(#commentsBlock, or: $value.commentsBlock),
+    commentsWaitUntil: data.get(
+      #commentsWaitUntil,
+      or: $value.commentsWaitUntil,
+    ),
   );
 
   @override

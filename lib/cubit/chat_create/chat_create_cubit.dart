@@ -65,6 +65,8 @@ class ChatCreateCubit extends Cubit<ChatCreateState> {
         defaultRole: chat.defaultRole,
         commentsEnabled: chat.commentsEnabled,
         commentsTimeLimit: chat.commentsTimeLimit,
+        commentsWho: chat.commentsWho,
+        commentsMinSubscription: chat.commentsMinSubscription,
         signMessages: chat.signMessages,
         membersHidden: chat.membersHidden,
       ),
@@ -92,6 +94,10 @@ class ChatCreateCubit extends Cubit<ChatCreateState> {
   void setCommentsEnabled(bool enabled) => emit(state.copyWith(commentsEnabled: enabled));
 
   void setCommentsTimeLimit(int seconds) => emit(state.copyWith(commentsTimeLimit: seconds));
+
+  void setCommentsWho(models.ChatCommentsWho who) => emit(state.copyWith(commentsWho: who));
+
+  void setCommentsMinSubscription(int seconds) => emit(state.copyWith(commentsMinSubscription: seconds));
 
   void setSignMessages(bool enabled) => emit(state.copyWith(signMessages: enabled));
 
@@ -163,6 +169,8 @@ class ChatCreateCubit extends Cubit<ChatCreateState> {
       defaultRole: state.defaultRole,
       commentsEnabled: state.commentsEnabled,
       commentsTimeLimit: state.commentsTimeLimit,
+      commentsWho: state.commentsWho,
+      commentsMinSubscription: state.commentsMinSubscription,
       signMessages: state.signMessages,
       membersHidden: state.membersHidden,
     );

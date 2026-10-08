@@ -34,6 +34,11 @@ enum ChatRole { reader, writer, admin, owner }
 @MappableEnum()
 enum ChatJoinMode { open, link, request, admins }
 
+/// Канал: кто может комментировать посты — все, кто видит пост, или только
+/// подписчики (с [Chat.commentsMinSubscription] — подписанные не меньше срока).
+@MappableEnum()
+enum ChatCommentsWho { all, subscribers }
+
 /// Права админа — раздельные, как в Telegram (см.
 /// docs/plans/chats-groups-channels.md, «Приватность групп»). Набор в UI
 /// зависит от типа: у группы/сообщества — без [postMessages] / [editMessages],
@@ -285,6 +290,19 @@ class Chat with ChatMappable {
   /// закрыл досрочно); `null` — открыта бессрочно. После — только чтение.
   final DateTime? commentsCloseDate;
 
+  /// Канал: кто может комментировать. Читать комментарии могут все, кто видит
+  /// пост; админов канала ограничения не касаются.
+  final ChatCommentsWho commentsWho;
+
+  /// Канал, [ChatCommentsWho.subscribers]: комментировать — только подписанным
+  /// не меньше стольких секунд (защита от спама «подписался и пишет»); 0 —
+  /// без ограничения.
+  final int commentsMinSubscription;
+
+  /// Когда мы вступили / подписались (`null` — давно, до учёта): для
+  /// [commentsMinSubscription].
+  final DateTime? joinedAt;
+
   /// Канал: под постами — имя опубликовавшего админа.
   final bool signMessages;
 
@@ -352,6 +370,9 @@ class Chat with ChatMappable {
     this.commentsEnabled = false,
     this.commentsTimeLimit = 0,
     this.commentsCloseDate,
+    this.commentsWho = ChatCommentsWho.all,
+    this.commentsMinSubscription = 0,
+    this.joinedAt,
     this.signMessages = false,
     this.membersHidden = false,
     this.isMember = true,

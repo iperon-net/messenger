@@ -14,6 +14,7 @@ import '../../i18n/translations.g.dart';
 import '../../models.dart' as models;
 import '../../themes.dart';
 import 'chat_common.dart';
+import 'comments_limit.dart';
 import 'compose_format_menu.dart';
 import 'forward_picker.dart';
 import 'chat_info_material.dart';
@@ -504,7 +505,10 @@ class _ChatMaterialState extends State<ChatMaterial> {
                                       flashID: _flashID,
                                       flashRange: _tracker.flashRange,
                                       onReply:
-                                          chat.type == models.ChatType.channel || state.commentsClosed || state.searching || state.selecting
+                                          chat.type == models.ChatType.channel ||
+                                              state.commentsBlocked ||
+                                              state.searching ||
+                                              state.selecting
                                           ? null
                                           : _swipeReply,
                                       selecting: state.selecting,
@@ -546,9 +550,9 @@ class _ChatMaterialState extends State<ChatMaterial> {
                         // админ канала публикует посты обычным полем ввода.
                         else if (!chat.canPost)
                           _ChannelBar(chat: chat, color: barColor)
-                        // Срок комментариев к посту вышел / админ закрыл — только чтение.
-                        else if (state.commentsClosed)
-                          _CommentsClosedBar(color: barColor)
+                        // Комментарии закрыты / только подписчикам / мало подписаны.
+                        else if (state.commentsBlocked)
+                          _CommentsBlockedBar(state: state, color: barColor)
                         else ...[
                           // Подсказка «@» — над полем ввода.
                           MentionSuggestions(
@@ -582,7 +586,7 @@ class _ChatMaterialState extends State<ChatMaterial> {
   Future<void> _actions(BuildContext context, models.Chat chat, models.Message message) async {
     HapticFeedback.mediumImpact();
     final t = context.t.screenChat;
-    final canWrite = chat.canPost && !_cubit.state.commentsClosed;
+    final canWrite = chat.canPost && !_cubit.state.commentsBlocked;
     final commentsClosed = _cubit.state.commentsClosedIDs.contains(message.id);
     final error = Theme.of(context).colorScheme.error;
     final reactions = availableReactions(chat, message: message);
@@ -1046,16 +1050,35 @@ class _ChannelBar extends StatelessWidget {
   }
 }
 
-/// Ветка комментариев закрыта (срок вышел / админ закрыл): вместо поля ввода —
-/// «Комментарии закрыты», только чтение.
-class _CommentsClosedBar extends StatelessWidget {
+/// Писать в ветку комментариев нельзя — вместо поля ввода: «Комментарии
+/// закрыты» (срок вышел / админ закрыл), «Подписаться, чтобы комментировать»
+/// (канал «только подписчики») или «Комментировать можно с …» (подписаны
+/// меньше «Подписки не менее»).
+class _CommentsBlockedBar extends StatelessWidget {
+  final ChatState state;
   final Color color;
 
-  const _CommentsClosedBar({required this.color});
+  const _CommentsBlockedBar({required this.state, required this.color});
 
   @override
   Widget build(BuildContext context) {
+    final t = context.t;
     final secondary = Theme.of(context).colorScheme.onSurfaceVariant;
+    Widget note(IconData icon, String text) => Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(icon, size: 18, color: secondary),
+        const SizedBox(width: 6),
+        Flexible(
+          child: Text(
+            text,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(color: secondary),
+          ),
+        ),
+      ],
+    );
     return Material(
       color: color,
       child: SafeArea(
@@ -1063,14 +1086,17 @@ class _CommentsClosedBar extends StatelessWidget {
         child: SizedBox(
           width: double.infinity,
           height: 52,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.lock_outline, size: 18, color: secondary),
-              const SizedBox(width: 6),
-              Text(context.t.screenChat.commentsClosed, style: TextStyle(color: secondary)),
-            ],
-          ),
+          child: switch (state.commentsBlock) {
+            ChatCommentsBlock.subscribe => TextButton(
+              onPressed: context.read<ChatCubit>().subscribeToChannel,
+              child: Text(t.screenChat.commentsSubscribe),
+            ),
+            ChatCommentsBlock.wait when state.commentsWaitUntil != null => note(
+              Icons.schedule,
+              commentsWaitLabel(t, state.commentsWaitUntil!),
+            ),
+            _ => note(Icons.lock_outline, t.screenChat.commentsClosed),
+          },
         ),
       ),
     );

@@ -682,6 +682,21 @@ class Translations$screenNewChat$en {
 	/// en: '1 year'
 	String get commentsLimitYear => '1 year';
 
+	/// en: 'Who Can Comment'
+	String get commentsWho => 'Who Can Comment';
+
+	/// en: 'Everyone'
+	String get commentsWhoAll => 'Everyone';
+
+	/// en: 'Subscribers Only'
+	String get commentsWhoSubscribers => 'Subscribers Only';
+
+	/// en: 'Subscribed For At Least'
+	String get commentsMinSubscription => 'Subscribed For At Least';
+
+	/// en: 'Non-subscribers can read comments but not write them. The subscription period protects against spam: a new subscriber can comment once the chosen time has passed.'
+	String get commentsWhoFooter => 'Non-subscribers can read comments but not write them. The subscription period protects against spam: a new subscriber can comment once the chosen time has passed.';
+
 	/// en: 'Sign Messages'
 	String get signSwitch => 'Sign Messages';
 
@@ -1125,6 +1140,12 @@ class Translations$screenChat$en {
 
 	/// en: 'Comments are closed'
 	String get commentsClosed => 'Comments are closed';
+
+	/// en: 'Subscribe to Comment'
+	String get commentsSubscribe => 'Subscribe to Comment';
+
+	/// en: 'You can comment from {time}'
+	String commentsWaitUntil({required Object time}) => 'You can comment from ${time}';
 
 	/// en: 'Close Comments'
 	String get closeComments => 'Close Comments';
@@ -3358,6 +3379,11 @@ extension on Translations {
 			'screenNewChat.commentsLimitWeek' => '1 week',
 			'screenNewChat.commentsLimitMonth' => '1 month',
 			'screenNewChat.commentsLimitYear' => '1 year',
+			'screenNewChat.commentsWho' => 'Who Can Comment',
+			'screenNewChat.commentsWhoAll' => 'Everyone',
+			'screenNewChat.commentsWhoSubscribers' => 'Subscribers Only',
+			'screenNewChat.commentsMinSubscription' => 'Subscribed For At Least',
+			'screenNewChat.commentsWhoFooter' => 'Non-subscribers can read comments but not write them. The subscription period protects against spam: a new subscriber can comment once the chosen time has passed.',
 			'screenNewChat.signSwitch' => 'Sign Messages',
 			'screenNewChat.signFooter' => 'With signatures, posts show the name of the admin who published them.',
 			'screenNewChat.hideMembers' => 'Hide Members',
@@ -3491,6 +3517,8 @@ extension on Translations {
 			'screenChat.leaveComment' => 'Leave a Comment',
 			'screenChat.commentsTitle' => 'Comments',
 			'screenChat.commentsClosed' => 'Comments are closed',
+			'screenChat.commentsSubscribe' => 'Subscribe to Comment',
+			'screenChat.commentsWaitUntil' => ({required Object time}) => 'You can comment from ${time}',
 			'screenChat.closeComments' => 'Close Comments',
 			'screenChat.openComments' => 'Open Comments',
 			'screenChat.closeCommentsTitle' => 'Close comments?',
@@ -3686,6 +3714,8 @@ extension on Translations {
 			'screenSettingsAppearance.chatThemes' => 'Chat themes',
 			'screenSettingsAppearance.quickReaction' => 'Quick reaction',
 			'screenSettingsAppearance.quickReactionDescription' => 'Set by double-tapping a message',
+			_ => null,
+		} ?? switch (path) {
 			'screenChatInfo.mute' => 'Mute',
 			'screenChatInfo.unmute' => 'Unmute',
 			'screenChatInfo.sound' => 'Sound',
@@ -3693,8 +3723,6 @@ extension on Translations {
 			'screenChatInfo.about' => 'Bio',
 			'screenChatInfo.description' => 'Description',
 			'screenChatInfo.username' => 'Username',
-			_ => null,
-		} ?? switch (path) {
 			'screenChatInfo.link' => 'Link',
 			'screenChatInfo.tabMembers' => 'Members',
 			'screenChatInfo.tabSubscribers' => 'Subscribers',

@@ -15,6 +15,7 @@ import '../../i18n/translations.g.dart';
 import '../../models.dart' as models;
 import '../../themes.dart';
 import 'chat_common.dart';
+import 'comments_limit.dart';
 import 'compose_format_menu.dart';
 import 'forward_picker.dart';
 import 'chat_info_cupertino.dart';
@@ -519,7 +520,7 @@ class _ChatCupertinoState extends State<ChatCupertino> {
                                             flashRange: _tracker.flashRange,
                                             onReply:
                                                 chat.type == models.ChatType.channel ||
-                                                    state.commentsClosed ||
+                                                    state.commentsBlocked ||
                                                     state.searching ||
                                                     state.selecting
                                                 ? null
@@ -567,9 +568,9 @@ class _ChatCupertinoState extends State<ChatCupertino> {
                               // админ канала публикует посты обычным полем ввода.
                               else if (!chat.canPost)
                                 _ChannelBar(chat: chat)
-                              // Срок комментариев к посту вышел / админ закрыл — только чтение.
-                              else if (state.commentsClosed)
-                                const _CommentsClosedBar()
+                              // Комментарии закрыты / только подписчикам / мало подписаны.
+                              else if (state.commentsBlocked)
+                                _CommentsBlockedBar(state: state)
                               else ...[
                                 // Подсказка «@» — над полем ввода.
                                 MentionSuggestions(
@@ -624,13 +625,13 @@ class _ChatCupertinoState extends State<ChatCupertino> {
     return MessageContextMenuCupertino(
       actions: _menuActions(context, chat, message),
       bubble: bubble,
-      preview: (maxWidth) => preview(maxWidth, selectableText: chat.canPost && !_cubit.state.commentsClosed ? quotable : null),
+      preview: (maxWidth) => preview(maxWidth, selectableText: chat.canPost && !_cubit.state.commentsBlocked ? quotable : null),
     );
   }
 
   List<Widget> _menuActions(BuildContext context, models.Chat chat, models.Message message) {
     final t = context.t.screenChat;
-    final canWrite = chat.canPost && !_cubit.state.commentsClosed;
+    final canWrite = chat.canPost && !_cubit.state.commentsBlocked;
     final commentsClosed = _cubit.state.commentsClosedIDs.contains(message.id);
     final reactions = availableReactions(chat, message: message);
 
@@ -1052,14 +1053,34 @@ class _ChannelBar extends StatelessWidget {
   }
 }
 
-/// Ветка комментариев закрыта (срок вышел / админ закрыл): вместо поля ввода —
-/// «Комментарии закрыты», только чтение.
-class _CommentsClosedBar extends StatelessWidget {
-  const _CommentsClosedBar();
+/// Писать в ветку комментариев нельзя — вместо поля ввода: «Комментарии
+/// закрыты» (срок вышел / админ закрыл), «Подписаться, чтобы комментировать»
+/// (канал «только подписчики») или «Комментировать можно с …» (подписаны
+/// меньше «Подписки не менее»).
+class _CommentsBlockedBar extends StatelessWidget {
+  final ChatState state;
+
+  const _CommentsBlockedBar({required this.state});
 
   @override
   Widget build(BuildContext context) {
+    final t = context.t;
     final secondary = CupertinoColors.secondaryLabel.resolveFrom(context);
+    Widget note(IconData icon, String text) => Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(icon, size: 17, color: secondary),
+        const SizedBox(width: 6),
+        Flexible(
+          child: Text(
+            text,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(fontSize: 15, color: secondary),
+          ),
+        ),
+      ],
+    );
     return DecoratedBox(
       decoration: BoxDecoration(
         color: ThemesCupertino.appBackground.resolveFrom(context),
@@ -1070,14 +1091,17 @@ class _CommentsClosedBar extends StatelessWidget {
         child: SizedBox(
           width: double.infinity,
           height: 48,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(CupertinoIcons.lock, size: 17, color: secondary),
-              const SizedBox(width: 6),
-              Text(context.t.screenChat.commentsClosed, style: TextStyle(fontSize: 15, color: secondary)),
-            ],
-          ),
+          child: switch (state.commentsBlock) {
+            ChatCommentsBlock.subscribe => CupertinoButton(
+              onPressed: context.read<ChatCubit>().subscribeToChannel,
+              child: Text(t.screenChat.commentsSubscribe),
+            ),
+            ChatCommentsBlock.wait when state.commentsWaitUntil != null => note(
+              CupertinoIcons.clock,
+              commentsWaitLabel(t, state.commentsWaitUntil!),
+            ),
+            _ => note(CupertinoIcons.lock, t.screenChat.commentsClosed),
+          },
         ),
       ),
     );

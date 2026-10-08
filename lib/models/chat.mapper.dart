@@ -332,6 +332,52 @@ extension ChatJoinModeMapperExtension on ChatJoinMode {
   }
 }
 
+class ChatCommentsWhoMapper extends EnumMapper<ChatCommentsWho> {
+  ChatCommentsWhoMapper._();
+
+  static ChatCommentsWhoMapper? _instance;
+  static ChatCommentsWhoMapper ensureInitialized() {
+    if (_instance == null) {
+      MapperContainer.globals.use(_instance = ChatCommentsWhoMapper._());
+    }
+    return _instance!;
+  }
+
+  static ChatCommentsWho fromValue(dynamic value) {
+    ensureInitialized();
+    return MapperContainer.globals.fromValue(value);
+  }
+
+  @override
+  ChatCommentsWho decode(dynamic value) {
+    switch (value) {
+      case r'all':
+        return ChatCommentsWho.all;
+      case r'subscribers':
+        return ChatCommentsWho.subscribers;
+      default:
+        throw MapperException.unknownEnumValue(value);
+    }
+  }
+
+  @override
+  dynamic encode(ChatCommentsWho self) {
+    switch (self) {
+      case ChatCommentsWho.all:
+        return r'all';
+      case ChatCommentsWho.subscribers:
+        return r'subscribers';
+    }
+  }
+}
+
+extension ChatCommentsWhoMapperExtension on ChatCommentsWho {
+  String toValue() {
+    ChatCommentsWhoMapper.ensureInitialized();
+    return MapperContainer.globals.toValue<ChatCommentsWho>(this) as String;
+  }
+}
+
 class ChatAdminRightsMapper extends ClassMapperBase<ChatAdminRights> {
   ChatAdminRightsMapper._();
 
@@ -1008,6 +1054,7 @@ class ChatMapper extends ClassMapperBase<Chat> {
       ChatReactionsModeMapper.ensureInitialized();
       ChatJoinModeMapper.ensureInitialized();
       ChatRoleMapper.ensureInitialized();
+      ChatCommentsWhoMapper.ensureInitialized();
     }
     return _instance!;
   }
@@ -1206,6 +1253,26 @@ class ChatMapper extends ClassMapperBase<Chat> {
     _$commentsCloseDate,
     opt: true,
   );
+  static ChatCommentsWho _$commentsWho(Chat v) => v.commentsWho;
+  static const Field<Chat, ChatCommentsWho> _f$commentsWho = Field(
+    'commentsWho',
+    _$commentsWho,
+    opt: true,
+    def: ChatCommentsWho.all,
+  );
+  static int _$commentsMinSubscription(Chat v) => v.commentsMinSubscription;
+  static const Field<Chat, int> _f$commentsMinSubscription = Field(
+    'commentsMinSubscription',
+    _$commentsMinSubscription,
+    opt: true,
+    def: 0,
+  );
+  static DateTime? _$joinedAt(Chat v) => v.joinedAt;
+  static const Field<Chat, DateTime> _f$joinedAt = Field(
+    'joinedAt',
+    _$joinedAt,
+    opt: true,
+  );
   static bool _$signMessages(Chat v) => v.signMessages;
   static const Field<Chat, bool> _f$signMessages = Field(
     'signMessages',
@@ -1314,6 +1381,9 @@ class ChatMapper extends ClassMapperBase<Chat> {
     #commentsEnabled: _f$commentsEnabled,
     #commentsTimeLimit: _f$commentsTimeLimit,
     #commentsCloseDate: _f$commentsCloseDate,
+    #commentsWho: _f$commentsWho,
+    #commentsMinSubscription: _f$commentsMinSubscription,
+    #joinedAt: _f$joinedAt,
     #signMessages: _f$signMessages,
     #membersHidden: _f$membersHidden,
     #isMember: _f$isMember,
@@ -1359,6 +1429,9 @@ class ChatMapper extends ClassMapperBase<Chat> {
       commentsEnabled: data.dec(_f$commentsEnabled),
       commentsTimeLimit: data.dec(_f$commentsTimeLimit),
       commentsCloseDate: data.dec(_f$commentsCloseDate),
+      commentsWho: data.dec(_f$commentsWho),
+      commentsMinSubscription: data.dec(_f$commentsMinSubscription),
+      joinedAt: data.dec(_f$joinedAt),
       signMessages: data.dec(_f$signMessages),
       membersHidden: data.dec(_f$membersHidden),
       isMember: data.dec(_f$isMember),
@@ -1453,6 +1526,9 @@ abstract class ChatCopyWith<$R, $In extends Chat, $Out>
     bool? commentsEnabled,
     int? commentsTimeLimit,
     DateTime? commentsCloseDate,
+    ChatCommentsWho? commentsWho,
+    int? commentsMinSubscription,
+    DateTime? joinedAt,
     bool? signMessages,
     bool? membersHidden,
     bool? isMember,
@@ -1517,6 +1593,9 @@ class _ChatCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Chat, $Out>
     bool? commentsEnabled,
     int? commentsTimeLimit,
     Object? commentsCloseDate = $none,
+    ChatCommentsWho? commentsWho,
+    int? commentsMinSubscription,
+    Object? joinedAt = $none,
     bool? signMessages,
     bool? membersHidden,
     bool? isMember,
@@ -1560,6 +1639,10 @@ class _ChatCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Chat, $Out>
       if (commentsEnabled != null) #commentsEnabled: commentsEnabled,
       if (commentsTimeLimit != null) #commentsTimeLimit: commentsTimeLimit,
       if (commentsCloseDate != $none) #commentsCloseDate: commentsCloseDate,
+      if (commentsWho != null) #commentsWho: commentsWho,
+      if (commentsMinSubscription != null)
+        #commentsMinSubscription: commentsMinSubscription,
+      if (joinedAt != $none) #joinedAt: joinedAt,
       if (signMessages != null) #signMessages: signMessages,
       if (membersHidden != null) #membersHidden: membersHidden,
       if (isMember != null) #isMember: isMember,
@@ -1611,6 +1694,12 @@ class _ChatCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Chat, $Out>
       #commentsCloseDate,
       or: $value.commentsCloseDate,
     ),
+    commentsWho: data.get(#commentsWho, or: $value.commentsWho),
+    commentsMinSubscription: data.get(
+      #commentsMinSubscription,
+      or: $value.commentsMinSubscription,
+    ),
+    joinedAt: data.get(#joinedAt, or: $value.joinedAt),
     signMessages: data.get(#signMessages, or: $value.signMessages),
     membersHidden: data.get(#membersHidden, or: $value.membersHidden),
     isMember: data.get(#isMember, or: $value.isMember),

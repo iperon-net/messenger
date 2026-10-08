@@ -77,6 +77,7 @@ class ChatCreateStateMapper extends ClassMapperBase<ChatCreateState> {
       models.ChatMemberMapper.ensureInitialized();
       models.ChatJoinModeMapper.ensureInitialized();
       models.ChatRoleMapper.ensureInitialized();
+      models.ChatCommentsWhoMapper.ensureInitialized();
       ChatUsernameStatusMapper.ensureInitialized();
     }
     return _instance!;
@@ -189,6 +190,23 @@ class ChatCreateStateMapper extends ClassMapperBase<ChatCreateState> {
     opt: true,
     def: 0,
   );
+  static models.ChatCommentsWho _$commentsWho(ChatCreateState v) =>
+      v.commentsWho;
+  static const Field<ChatCreateState, models.ChatCommentsWho> _f$commentsWho =
+      Field(
+        'commentsWho',
+        _$commentsWho,
+        opt: true,
+        def: models.ChatCommentsWho.all,
+      );
+  static int _$commentsMinSubscription(ChatCreateState v) =>
+      v.commentsMinSubscription;
+  static const Field<ChatCreateState, int> _f$commentsMinSubscription = Field(
+    'commentsMinSubscription',
+    _$commentsMinSubscription,
+    opt: true,
+    def: 0,
+  );
   static bool _$membersHidden(ChatCreateState v) => v.membersHidden;
   static const Field<ChatCreateState, bool> _f$membersHidden = Field(
     'membersHidden',
@@ -252,6 +270,8 @@ class ChatCreateStateMapper extends ClassMapperBase<ChatCreateState> {
     #commentsEnabled: _f$commentsEnabled,
     #signMessages: _f$signMessages,
     #commentsTimeLimit: _f$commentsTimeLimit,
+    #commentsWho: _f$commentsWho,
+    #commentsMinSubscription: _f$commentsMinSubscription,
     #membersHidden: _f$membersHidden,
     #usernameStatus: _f$usernameStatus,
     #inviteLink: _f$inviteLink,
@@ -278,6 +298,8 @@ class ChatCreateStateMapper extends ClassMapperBase<ChatCreateState> {
       commentsEnabled: data.dec(_f$commentsEnabled),
       signMessages: data.dec(_f$signMessages),
       commentsTimeLimit: data.dec(_f$commentsTimeLimit),
+      commentsWho: data.dec(_f$commentsWho),
+      commentsMinSubscription: data.dec(_f$commentsMinSubscription),
       membersHidden: data.dec(_f$membersHidden),
       usernameStatus: data.dec(_f$usernameStatus),
       inviteLink: data.dec(_f$inviteLink),
@@ -378,6 +400,8 @@ abstract class ChatCreateStateCopyWith<$R, $In extends ChatCreateState, $Out>
     bool? commentsEnabled,
     bool? signMessages,
     int? commentsTimeLimit,
+    models.ChatCommentsWho? commentsWho,
+    int? commentsMinSubscription,
     bool? membersHidden,
     ChatUsernameStatus? usernameStatus,
     String? inviteLink,
@@ -438,6 +462,8 @@ class _ChatCreateStateCopyWithImpl<$R, $Out>
     bool? commentsEnabled,
     bool? signMessages,
     int? commentsTimeLimit,
+    models.ChatCommentsWho? commentsWho,
+    int? commentsMinSubscription,
     bool? membersHidden,
     ChatUsernameStatus? usernameStatus,
     String? inviteLink,
@@ -462,6 +488,9 @@ class _ChatCreateStateCopyWithImpl<$R, $Out>
       if (commentsEnabled != null) #commentsEnabled: commentsEnabled,
       if (signMessages != null) #signMessages: signMessages,
       if (commentsTimeLimit != null) #commentsTimeLimit: commentsTimeLimit,
+      if (commentsWho != null) #commentsWho: commentsWho,
+      if (commentsMinSubscription != null)
+        #commentsMinSubscription: commentsMinSubscription,
       if (membersHidden != null) #membersHidden: membersHidden,
       if (usernameStatus != null) #usernameStatus: usernameStatus,
       if (inviteLink != null) #inviteLink: inviteLink,
@@ -490,6 +519,11 @@ class _ChatCreateStateCopyWithImpl<$R, $Out>
     commentsTimeLimit: data.get(
       #commentsTimeLimit,
       or: $value.commentsTimeLimit,
+    ),
+    commentsWho: data.get(#commentsWho, or: $value.commentsWho),
+    commentsMinSubscription: data.get(
+      #commentsMinSubscription,
+      or: $value.commentsMinSubscription,
     ),
     membersHidden: data.get(#membersHidden, or: $value.membersHidden),
     usernameStatus: data.get(#usernameStatus, or: $value.usernameStatus),

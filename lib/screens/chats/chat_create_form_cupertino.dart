@@ -86,6 +86,30 @@ class _ChatCreateFormCupertino extends State<ChatCreateFormCupertino> {
     final background = ThemesCupertino.groupedBackground.resolveFrom(context);
     final card = ThemesCupertino.groupedCard.resolveFrom(context);
 
+    // Строка с выбором из вариантов: значение справа, тап — выпадающее меню.
+    Widget menuRow<T>({
+      required String title,
+      required List<T> values,
+      required T current,
+      required String Function(T value) label,
+      required ValueChanged<T> onSelected,
+    }) => CupertinoMenuAnchor(
+      menuChildren: [
+        for (final value in values)
+          CupertinoMenuItem(
+            trailing: value == current ? const Icon(CupertinoIcons.check_mark) : null,
+            onPressed: () => onSelected(value),
+            child: Text(label(value)),
+          ),
+      ],
+      builder: (context, controller, child) => CupertinoListTile(
+        title: Text(title, style: const TextStyle(fontSize: AppFontSizes.body)),
+        additionalInfo: Text(label(current)),
+        trailing: Icon(CupertinoIcons.chevron_up_chevron_down, size: 16, color: secondary),
+        onTap: () => controller.isOpen ? controller.close() : controller.open(),
+      ),
+    );
+
     Widget section({Widget? header, Widget? footer, required List<Widget> children}) => CupertinoListSection.insetGrouped(
       header: header,
       footer: footer,
@@ -288,6 +312,8 @@ class _ChatCreateFormCupertino extends State<ChatCreateFormCupertino> {
                         [
                           t.screenNewChat.commentsFooter,
                           if (state.commentsEnabled) t.screenNewChat.commentsLimitFooter,
+                          if (state.commentsEnabled && state.commentsWho == models.ChatCommentsWho.subscribers)
+                            t.screenNewChat.commentsWhoFooter,
                           t.screenNewChat.signFooter,
                         ].join(' '),
                       ),
@@ -299,24 +325,31 @@ class _ChatCreateFormCupertino extends State<ChatCreateFormCupertino> {
                             onChanged: context.read<ChatCreateCubit>().setCommentsEnabled,
                           ),
                         ),
-                        // Выбор срока — выпадающее меню у строки (как в настройках iOS).
-                        if (state.commentsEnabled)
-                          CupertinoMenuAnchor(
-                            menuChildren: [
-                              for (final seconds in commentsLimitOptions)
-                                CupertinoMenuItem(
-                                  trailing: state.commentsTimeLimit == seconds ? const Icon(CupertinoIcons.check_mark) : null,
-                                  onPressed: () => context.read<ChatCreateCubit>().setCommentsTimeLimit(seconds),
-                                  child: Text(commentsLimitLabel(t, seconds)),
-                                ),
-                            ],
-                            builder: (context, controller, child) => CupertinoListTile(
-                              title: Text(t.screenNewChat.commentsLimit, style: const TextStyle(fontSize: AppFontSizes.body)),
-                              additionalInfo: Text(commentsLimitLabel(t, state.commentsTimeLimit)),
-                              trailing: Icon(CupertinoIcons.chevron_up_chevron_down, size: 16, color: secondary),
-                              onTap: () => controller.isOpen ? controller.close() : controller.open(),
-                            ),
+                        // Выбор вариантов — выпадающее меню у строки (как в настройках iOS).
+                        if (state.commentsEnabled) ...[
+                          menuRow<int>(
+                            title: t.screenNewChat.commentsLimit,
+                            values: commentsLimitOptions,
+                            current: state.commentsTimeLimit,
+                            label: (value) => commentsLimitLabel(t, value),
+                            onSelected: context.read<ChatCreateCubit>().setCommentsTimeLimit,
                           ),
+                          menuRow<models.ChatCommentsWho>(
+                            title: t.screenNewChat.commentsWho,
+                            values: models.ChatCommentsWho.values,
+                            current: state.commentsWho,
+                            label: (value) => commentsWhoLabel(t, value),
+                            onSelected: context.read<ChatCreateCubit>().setCommentsWho,
+                          ),
+                          if (state.commentsWho == models.ChatCommentsWho.subscribers)
+                            menuRow<int>(
+                              title: t.screenNewChat.commentsMinSubscription,
+                              values: commentsLimitOptions,
+                              current: state.commentsMinSubscription,
+                              label: (value) => commentsLimitLabel(t, value),
+                              onSelected: context.read<ChatCreateCubit>().setCommentsMinSubscription,
+                            ),
+                        ],
                         CupertinoListTile(
                           title: Text(t.screenNewChat.signSwitch, style: const TextStyle(fontSize: AppFontSizes.body)),
                           trailing: CupertinoSwitch(value: state.signMessages, onChanged: context.read<ChatCreateCubit>().setSignMessages),

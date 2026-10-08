@@ -290,6 +290,8 @@ class ChatsDemoDataSource implements ChatsDataSource {
     required models.ChatRole defaultRole,
     bool commentsEnabled = false,
     int commentsTimeLimit = 0,
+    models.ChatCommentsWho commentsWho = models.ChatCommentsWho.all,
+    int commentsMinSubscription = 0,
     bool signMessages = false,
     bool membersHidden = false,
   }) async {
@@ -310,6 +312,8 @@ class ChatsDemoDataSource implements ChatsDataSource {
         defaultRole: defaultRole,
         commentsEnabled: chat.type == models.ChatType.channel && commentsEnabled,
         commentsTimeLimit: chat.type == models.ChatType.channel ? commentsTimeLimit : 0,
+        commentsWho: commentsWho,
+        commentsMinSubscription: commentsWho == models.ChatCommentsWho.subscribers ? commentsMinSubscription : 0,
         signMessages: chat.type == models.ChatType.channel && signMessages,
         membersHidden: membersHidden,
       ),
@@ -755,7 +759,14 @@ class ChatsDemoDataSource implements ChatsDataSource {
     final role = chat.type == models.ChatType.channel ? models.ChatRole.reader : chat.defaultRole;
     _update(
       chatID,
-      (c) => c.copyWith(isMember: true, joinRequested: false, myRole: role, membersCount: c.membersCount + 1, createdAt: DateTime.now()),
+      (c) => c.copyWith(
+        isMember: true,
+        joinRequested: false,
+        myRole: role,
+        membersCount: c.membersCount + 1,
+        createdAt: DateTime.now(),
+        joinedAt: DateTime.now(),
+      ),
     );
     _members.remove(chatID);
     _service(chatID, chat.type == models.ChatType.channel ? 'Вы подписались на канал' : 'Вы вступили в группу');
@@ -876,6 +887,10 @@ class ChatsDemoDataSource implements ChatsDataSource {
         'tech' => 86400,
         _ => 0,
       },
+      // Комментируют только подписчики: «Iperon Dev» (мы не подписаны —
+      // «Подписаться, чтобы комментировать»; подпишемся — ждать 1 час).
+      commentsWho: chat.id == 'iperon_dev' ? models.ChatCommentsWho.subscribers : models.ChatCommentsWho.all,
+      commentsMinSubscription: chat.id == 'iperon_dev' ? 3600 : 0,
       signMessages: const {'news', 'iperon_dev'}.contains(chat.id),
       // Подписчиков канала по умолчанию видят только админы.
       membersHidden: chat.type == models.ChatType.channel,

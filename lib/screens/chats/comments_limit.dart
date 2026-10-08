@@ -1,10 +1,14 @@
 import 'package:flutter/widgets.dart';
+import 'package:intl/intl.dart';
 import 'package:material_ui/material_ui.dart' as m;
 
 import '../../i18n/translations.g.dart';
+import '../../models.dart' as models;
 
-/// «Срок комментирования» канала: сколько секунд после публикации под постом
-/// можно комментировать; 0 — без ограничения (см. `Chat.commentsTimeLimit`).
+/// Сроки комментариев канала, в секундах; 0 — без ограничения. Одни и те же
+/// варианты у «Срока комментирования» (сколько после публикации можно
+/// комментировать, `Chat.commentsTimeLimit`) и «Подписки не менее» (сколько
+/// нужно быть подписанным, `Chat.commentsMinSubscription`).
 const commentsLimitOptions = [3600, 3 * 3600, 5 * 3600, 8 * 3600, 86400, 3 * 86400, 7 * 86400, 30 * 86400, 365 * 86400, 0];
 
 String commentsLimitLabel(Translations t, int seconds) {
@@ -19,11 +23,56 @@ String commentsLimitLabel(Translations t, int seconds) {
   };
 }
 
-/// Выбор срока на Android — нижний лист с отметкой текущего (на iOS —
+String commentsWhoLabel(Translations t, models.ChatCommentsWho who) => switch (who) {
+  models.ChatCommentsWho.all => t.screenNewChat.commentsWhoAll,
+  models.ChatCommentsWho.subscribers => t.screenNewChat.commentsWhoSubscribers,
+};
+
+/// «Комментировать можно с 18:30» (сегодня) / «… с 9.10, 18:30».
+String commentsWaitLabel(Translations t, DateTime until) {
+  final local = until.toLocal();
+  final now = DateTime.now();
+  final today = local.year == now.year && local.month == now.month && local.day == now.day;
+  final time = DateFormat.Hm().format(local);
+  return t.screenChat.commentsWaitUntil(time: today ? time : '${DateFormat.Md().format(local)}, $time');
+}
+
+/// Android: выбор срока — нижний лист с отметкой текущего (на iOS —
 /// выпадающее меню прямо у строки, `CupertinoMenuAnchor`). `null` — закрыли.
-Future<int?> pickCommentsLimit(BuildContext context, int current) {
+Future<int?> pickCommentsLimit(BuildContext context, int current, {required String title}) {
   final t = context.t;
-  return m.showModalBottomSheet<int>(
+  return _pick(
+    context,
+    title: title,
+    values: commentsLimitOptions,
+    current: current,
+    label: (value) => commentsLimitLabel(t, value),
+    icon: (value) => value == 0 ? m.Icons.all_inclusive : m.Icons.schedule,
+  );
+}
+
+/// Android: «Кто может комментировать».
+Future<models.ChatCommentsWho?> pickCommentsWho(BuildContext context, models.ChatCommentsWho current) {
+  final t = context.t;
+  return _pick(
+    context,
+    title: t.screenNewChat.commentsWho,
+    values: models.ChatCommentsWho.values,
+    current: current,
+    label: (value) => commentsWhoLabel(t, value),
+    icon: (value) => value == models.ChatCommentsWho.all ? m.Icons.public : m.Icons.how_to_reg_outlined,
+  );
+}
+
+Future<T?> _pick<T>(
+  BuildContext context, {
+  required String title,
+  required List<T> values,
+  required T current,
+  required String Function(T value) label,
+  required IconData Function(T value) icon,
+}) {
+  return m.showModalBottomSheet<T>(
     context: context,
     showDragHandle: true,
     isScrollControlled: true,
@@ -35,12 +84,12 @@ Future<int?> pickCommentsLimit(BuildContext context, int current) {
           children: [
             Padding(
               padding: const EdgeInsets.fromLTRB(24, 0, 24, 8),
-              child: Text(t.screenNewChat.commentsLimit, style: m.Theme.of(sheetContext).textTheme.titleMedium),
+              child: Text(title, style: m.Theme.of(sheetContext).textTheme.titleMedium),
             ),
-            for (final value in commentsLimitOptions)
+            for (final value in values)
               m.ListTile(
-                leading: m.Icon(value == 0 ? m.Icons.all_inclusive : m.Icons.schedule),
-                title: Text(commentsLimitLabel(t, value)),
+                leading: m.Icon(icon(value)),
+                title: Text(label(value)),
                 trailing: value == current ? m.Icon(m.Icons.check, color: m.Theme.of(sheetContext).colorScheme.primary) : null,
                 onTap: () => Navigator.of(sheetContext).pop(value),
               ),

@@ -5,6 +5,12 @@ import '../../models.dart' as models;
 
 part 'chat_state.mapper.dart';
 
+/// Почему нельзя комментировать: ветка закрыта (срок поста вышел / админ
+/// закрыл), канал «только подписчики», а мы не подписаны, или подписаны
+/// меньше `Chat.commentsMinSubscription`.
+@MappableEnum()
+enum ChatCommentsBlock { none, closed, subscribe, wait }
+
 /// Состояние окна чата: сам чат (шапка, «печатает…»), его сообщения и режим
 /// поля ввода (ответ / редактирование).
 @MappableClass()
@@ -72,8 +78,12 @@ class ChatState with ChatStateMappable {
   /// админ закрыл) — под постом замок, ветка только для чтения.
   final List<String> commentsClosedIDs;
 
-  /// Ветка комментариев закрыта — вместо поля ввода «Комментарии закрыты».
-  final bool commentsClosed;
+  /// Ветка комментариев: почему нам нельзя писать (вместо поля ввода —
+  /// плашка); [ChatCommentsBlock.none] — можно / не ветка.
+  final ChatCommentsBlock commentsBlock;
+
+  /// [ChatCommentsBlock.wait]: с какого момента можно комментировать.
+  final DateTime? commentsWaitUntil;
 
   const ChatState({
     this.status = Status.initialization,
@@ -96,8 +106,12 @@ class ChatState with ChatStateMappable {
     this.banned = const [],
     this.slowModeLeft = 0,
     this.commentsClosedIDs = const [],
-    this.commentsClosed = false,
+    this.commentsBlock = ChatCommentsBlock.none,
+    this.commentsWaitUntil,
   });
+
+  /// Писать в ветку нельзя (закрыта / не подписаны / мало подписаны).
+  bool get commentsBlocked => commentsBlock != ChatCommentsBlock.none;
 
   /// Закреплённые — от новых к старым (плашка показывает сначала последнее).
   List<models.Message> get pinnedMessages => [

@@ -331,6 +331,11 @@ class _Translations$screenNewChat$ru extends Translations$screenNewChat$en {
 	@override String get commentsLimitWeek => '1 неделя';
 	@override String get commentsLimitMonth => '1 месяц';
 	@override String get commentsLimitYear => '1 год';
+	@override String get commentsWho => 'Кто может комментировать';
+	@override String get commentsWhoAll => 'Все';
+	@override String get commentsWhoSubscribers => 'Только подписчики';
+	@override String get commentsMinSubscription => 'Подписка не менее';
+	@override String get commentsWhoFooter => 'Не подписанные читают комментарии, но не пишут. Срок подписки защищает от спама: только что подписавшийся сможет комментировать, когда пройдёт выбранное время.';
 	@override String get signSwitch => 'Подписывать сообщения';
 	@override String get signFooter => 'С подписями под постом видно имя админа, который его опубликовал.';
 	@override String get hideMembers => 'Скрыть участников';
@@ -515,6 +520,8 @@ class _Translations$screenChat$ru extends Translations$screenChat$en {
 	@override String get leaveComment => 'Прокомментировать';
 	@override String get commentsTitle => 'Комментарии';
 	@override String get commentsClosed => 'Комментарии закрыты';
+	@override String get commentsSubscribe => 'Подписаться, чтобы комментировать';
+	@override String commentsWaitUntil({required Object time}) => 'Комментировать можно с ${time}';
 	@override String get closeComments => 'Закрыть комментарии';
 	@override String get openComments => 'Открыть комментарии';
 	@override String get closeCommentsTitle => 'Закрыть комментарии?';
@@ -1571,6 +1578,11 @@ extension on TranslationsRu {
 			'screenNewChat.commentsLimitWeek' => '1 неделя',
 			'screenNewChat.commentsLimitMonth' => '1 месяц',
 			'screenNewChat.commentsLimitYear' => '1 год',
+			'screenNewChat.commentsWho' => 'Кто может комментировать',
+			'screenNewChat.commentsWhoAll' => 'Все',
+			'screenNewChat.commentsWhoSubscribers' => 'Только подписчики',
+			'screenNewChat.commentsMinSubscription' => 'Подписка не менее',
+			'screenNewChat.commentsWhoFooter' => 'Не подписанные читают комментарии, но не пишут. Срок подписки защищает от спама: только что подписавшийся сможет комментировать, когда пройдёт выбранное время.',
 			'screenNewChat.signSwitch' => 'Подписывать сообщения',
 			'screenNewChat.signFooter' => 'С подписями под постом видно имя админа, который его опубликовал.',
 			'screenNewChat.hideMembers' => 'Скрыть участников',
@@ -1704,6 +1716,8 @@ extension on TranslationsRu {
 			'screenChat.leaveComment' => 'Прокомментировать',
 			'screenChat.commentsTitle' => 'Комментарии',
 			'screenChat.commentsClosed' => 'Комментарии закрыты',
+			'screenChat.commentsSubscribe' => 'Подписаться, чтобы комментировать',
+			'screenChat.commentsWaitUntil' => ({required Object time}) => 'Комментировать можно с ${time}',
 			'screenChat.closeComments' => 'Закрыть комментарии',
 			'screenChat.openComments' => 'Открыть комментарии',
 			'screenChat.closeCommentsTitle' => 'Закрыть комментарии?',
@@ -1899,6 +1913,8 @@ extension on TranslationsRu {
 			'screenSettingsAppearance.chatThemes' => 'Темы для чатов',
 			'screenSettingsAppearance.quickReaction' => 'Быстрая реакция',
 			'screenSettingsAppearance.quickReactionDescription' => 'Ставится двойным тапом по сообщению',
+			_ => null,
+		} ?? switch (path) {
 			'screenChatInfo.mute' => 'Выкл. звук',
 			'screenChatInfo.unmute' => 'Вкл. звук',
 			'screenChatInfo.sound' => 'Звук',
@@ -1906,8 +1922,6 @@ extension on TranslationsRu {
 			'screenChatInfo.about' => 'О себе',
 			'screenChatInfo.description' => 'Описание',
 			'screenChatInfo.username' => 'Имя пользователя',
-			_ => null,
-		} ?? switch (path) {
 			'screenChatInfo.link' => 'Ссылка',
 			'screenChatInfo.tabMembers' => 'Участники',
 			'screenChatInfo.tabSubscribers' => 'Подписчики',
