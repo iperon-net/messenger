@@ -288,7 +288,7 @@ class _Translations$screenNewChat$ru extends Translations$screenNewChat$en {
 	@override String get description => 'Описание';
 	@override String get descriptionHint => 'Необязательно';
 	@override String get channelDescriptionFooter => 'Расскажите подписчикам, о чём канал.';
-	@override String get communityDescriptionFooter => 'Сообщество объединяет ваши группы и каналы.';
+	@override String get communityDescriptionFooter => 'Расскажите об организации: чем занимаетесь, адрес, часы работы. Внутри сообщества будут канал объявлений и группы по темам.';
 	@override String get members => 'Участники';
 	@override String get setPhoto => 'Выбрать фото';
 	@override String get changePhoto => 'Изменить фото';
@@ -359,6 +359,10 @@ class _Translations$screenNewChat$ru extends Translations$screenNewChat$en {
 	@override String get roleWriter => 'Чтение и сообщения';
 	@override String get roleReaderFooter => 'Вступившие читают, но не могут писать.';
 	@override String get roleWriterFooter => 'Вступившие могут читать и писать сообщения.';
+	@override String get topicJoinOpen => 'Одним нажатием';
+	@override String get topicJoinRequest => 'По заявке';
+	@override String get topicJoinOpenFooter => 'Любой участник сообщества вступает одним нажатием.';
+	@override String get topicJoinRequestFooter => 'Закрытая тема: участник сообщества подаёт заявку, вступление — после одобрения админом.';
 }
 
 // Path: screenChatInvites
@@ -854,6 +858,22 @@ class _Translations$screenChatInfo$ru extends Translations$screenChatInfo$en {
 	@override String get leaveShort => 'Покинуть';
 	@override String deleteChatTitle({required Object name}) => 'Удалить чат с ${name}?';
 	@override String leaveGroupTitle({required Object name}) => 'Покинуть «${name}»?';
+	@override String get deleteGroup => 'Удалить группу';
+	@override String get deleteChannel => 'Удалить канал';
+	@override String get deleteCommunity => 'Удалить сообщество';
+	@override String get deleteShort => 'Удалить';
+	@override String deleteInCommunityTitle({required Object name}) => 'Удалить «${name}»?';
+	@override String get deleteInCommunityMessage => 'Чат удалится у всех участников сообщества.';
+	@override String get deleteCommunityMessage => 'Сообщество удалится вместе со всеми его группами и каналами.';
+	@override String get communityChats => 'Чаты';
+	@override String get communityChatsFooter => 'Участники сообщества вступают в группы и каналы одним нажатием, в закрытые темы — по заявке.';
+	@override String get announcements => 'Объявления';
+	@override String get closedTopic => 'По заявке';
+	@override String get createGroup => 'Создать группу';
+	@override String get createChannel => 'Создать канал';
+	@override String get join => 'Вступить';
+	@override String get requestPending => 'Ждёт';
+	@override String get joinCommunity => 'Вступить в сообщество';
 	@override String lastSeenMinutes({required Object n}) => 'был(а) ${n} мин. назад';
 	@override String lastSeenAt({required Object time}) => 'был(а) в ${time}';
 	@override String lastSeenYesterday({required Object time}) => 'был(а) вчера в ${time}';
@@ -1552,7 +1572,7 @@ extension on TranslationsRu {
 			'screenNewChat.description' => 'Описание',
 			'screenNewChat.descriptionHint' => 'Необязательно',
 			'screenNewChat.channelDescriptionFooter' => 'Расскажите подписчикам, о чём канал.',
-			'screenNewChat.communityDescriptionFooter' => 'Сообщество объединяет ваши группы и каналы.',
+			'screenNewChat.communityDescriptionFooter' => 'Расскажите об организации: чем занимаетесь, адрес, часы работы. Внутри сообщества будут канал объявлений и группы по темам.',
 			'screenNewChat.members' => 'Участники',
 			'screenNewChat.setPhoto' => 'Выбрать фото',
 			'screenNewChat.changePhoto' => 'Изменить фото',
@@ -1613,6 +1633,10 @@ extension on TranslationsRu {
 			'screenNewChat.roleWriter' => 'Чтение и сообщения',
 			'screenNewChat.roleReaderFooter' => 'Вступившие читают, но не могут писать.',
 			'screenNewChat.roleWriterFooter' => 'Вступившие могут читать и писать сообщения.',
+			'screenNewChat.topicJoinOpen' => 'Одним нажатием',
+			'screenNewChat.topicJoinRequest' => 'По заявке',
+			'screenNewChat.topicJoinOpenFooter' => 'Любой участник сообщества вступает одним нажатием.',
+			'screenNewChat.topicJoinRequestFooter' => 'Закрытая тема: участник сообщества подаёт заявку, вступление — после одобрения админом.',
 			'screenChatInvites.inviteLinks' => 'Ссылки-приглашения',
 			'screenChatInvites.joinRequests' => 'Заявки на вступление',
 			'screenChatInvites.primaryLink' => 'Основная ссылка',
@@ -1916,12 +1940,12 @@ extension on TranslationsRu {
 			'screenSettingsAppearance.colorThemePurple' => 'Фиолетовая',
 			'screenSettingsAppearance.colorThemeOrange' => 'Оранжевая',
 			'screenSettingsAppearance.darkMode' => 'Тёмная тема',
+			_ => null,
+		} ?? switch (path) {
 			'screenSettingsAppearance.darkModeSystem' => 'Системная',
 			'screenSettingsAppearance.darkModeAlwaysOn' => 'Всегда включена',
 			'screenSettingsAppearance.darkModeDisabled' => 'Отключена',
 			'screenSettingsAppearance.darkModeSystemDescription' => 'Как в настройках устройства',
-			_ => null,
-		} ?? switch (path) {
 			'screenSettingsAppearance.darkModeAlwaysOnDescription' => 'Тёмная тема всегда включена',
 			'screenSettingsAppearance.darkModeDisabledDescription' => 'Тёмная тема отключена',
 			'screenSettingsAppearance.blurOnInactive' => 'Размытие в неактивном состоянии',
@@ -1989,6 +2013,22 @@ extension on TranslationsRu {
 			'screenChatInfo.leaveShort' => 'Покинуть',
 			'screenChatInfo.deleteChatTitle' => ({required Object name}) => 'Удалить чат с ${name}?',
 			'screenChatInfo.leaveGroupTitle' => ({required Object name}) => 'Покинуть «${name}»?',
+			'screenChatInfo.deleteGroup' => 'Удалить группу',
+			'screenChatInfo.deleteChannel' => 'Удалить канал',
+			'screenChatInfo.deleteCommunity' => 'Удалить сообщество',
+			'screenChatInfo.deleteShort' => 'Удалить',
+			'screenChatInfo.deleteInCommunityTitle' => ({required Object name}) => 'Удалить «${name}»?',
+			'screenChatInfo.deleteInCommunityMessage' => 'Чат удалится у всех участников сообщества.',
+			'screenChatInfo.deleteCommunityMessage' => 'Сообщество удалится вместе со всеми его группами и каналами.',
+			'screenChatInfo.communityChats' => 'Чаты',
+			'screenChatInfo.communityChatsFooter' => 'Участники сообщества вступают в группы и каналы одним нажатием, в закрытые темы — по заявке.',
+			'screenChatInfo.announcements' => 'Объявления',
+			'screenChatInfo.closedTopic' => 'По заявке',
+			'screenChatInfo.createGroup' => 'Создать группу',
+			'screenChatInfo.createChannel' => 'Создать канал',
+			'screenChatInfo.join' => 'Вступить',
+			'screenChatInfo.requestPending' => 'Ждёт',
+			'screenChatInfo.joinCommunity' => 'Вступить в сообщество',
 			'screenChatInfo.lastSeenMinutes' => ({required Object n}) => 'был(а) ${n} мин. назад',
 			'screenChatInfo.lastSeenAt' => ({required Object time}) => 'был(а) в ${time}',
 			'screenChatInfo.lastSeenYesterday' => ({required Object time}) => 'был(а) вчера в ${time}',

@@ -101,6 +101,19 @@ class ChatStateMapper extends ClassMapperBase<ChatState> {
     opt: true,
     def: const [],
   );
+  static List<models.Chat> _$communityChats(ChatState v) => v.communityChats;
+  static const Field<ChatState, List<models.Chat>> _f$communityChats = Field(
+    'communityChats',
+    _$communityChats,
+    opt: true,
+    def: const [],
+  );
+  static models.Chat? _$community(ChatState v) => v.community;
+  static const Field<ChatState, models.Chat> _f$community = Field(
+    'community',
+    _$community,
+    opt: true,
+  );
   static models.Message? _$reply(ChatState v) => v.reply;
   static const Field<ChatState, models.Message> _f$reply = Field(
     'reply',
@@ -248,6 +261,8 @@ class ChatStateMapper extends ClassMapperBase<ChatState> {
     #status: _f$status,
     #chat: _f$chat,
     #messages: _f$messages,
+    #communityChats: _f$communityChats,
+    #community: _f$community,
     #reply: _f$reply,
     #replyQuote: _f$replyQuote,
     #editing: _f$editing,
@@ -276,6 +291,8 @@ class ChatStateMapper extends ClassMapperBase<ChatState> {
       status: data.dec(_f$status),
       chat: data.dec(_f$chat),
       messages: data.dec(_f$messages),
+      communityChats: data.dec(_f$communityChats),
+      community: data.dec(_f$community),
       reply: data.dec(_f$reply),
       replyQuote: data.dec(_f$replyQuote),
       editing: data.dec(_f$editing),
@@ -366,6 +383,13 @@ abstract class ChatStateCopyWith<$R, $In extends ChatState, $Out>
     models.MessageCopyWith<$R, models.Message, models.Message>
   >
   get messages;
+  ListCopyWith<
+    $R,
+    models.Chat,
+    models.ChatCopyWith<$R, models.Chat, models.Chat>
+  >
+  get communityChats;
+  models.ChatCopyWith<$R, models.Chat, models.Chat>? get community;
   models.MessageCopyWith<$R, models.Message, models.Message>? get reply;
   models.MessageQuoteCopyWith<$R, models.MessageQuote, models.MessageQuote>?
   get replyQuote;
@@ -403,6 +427,8 @@ abstract class ChatStateCopyWith<$R, $In extends ChatState, $Out>
     Status? status,
     models.Chat? chat,
     List<models.Message>? messages,
+    List<models.Chat>? communityChats,
+    models.Chat? community,
     models.Message? reply,
     models.MessageQuote? replyQuote,
     models.Message? editing,
@@ -450,6 +476,20 @@ class _ChatStateCopyWithImpl<$R, $Out>
     (v, t) => v.copyWith.$chain(t),
     (v) => call(messages: v),
   );
+  @override
+  ListCopyWith<
+    $R,
+    models.Chat,
+    models.ChatCopyWith<$R, models.Chat, models.Chat>
+  >
+  get communityChats => ListCopyWith(
+    $value.communityChats,
+    (v, t) => v.copyWith.$chain(t),
+    (v) => call(communityChats: v),
+  );
+  @override
+  models.ChatCopyWith<$R, models.Chat, models.Chat>? get community =>
+      $value.community?.copyWith.$chain((v) => call(community: v));
   @override
   models.MessageCopyWith<$R, models.Message, models.Message>? get reply =>
       $value.reply?.copyWith.$chain((v) => call(reply: v));
@@ -530,6 +570,8 @@ class _ChatStateCopyWithImpl<$R, $Out>
     Status? status,
     Object? chat = $none,
     List<models.Message>? messages,
+    List<models.Chat>? communityChats,
+    Object? community = $none,
     Object? reply = $none,
     Object? replyQuote = $none,
     Object? editing = $none,
@@ -556,6 +598,8 @@ class _ChatStateCopyWithImpl<$R, $Out>
       if (status != null) #status: status,
       if (chat != $none) #chat: chat,
       if (messages != null) #messages: messages,
+      if (communityChats != null) #communityChats: communityChats,
+      if (community != $none) #community: community,
       if (reply != $none) #reply: reply,
       if (replyQuote != $none) #replyQuote: replyQuote,
       if (editing != $none) #editing: editing,
@@ -585,6 +629,8 @@ class _ChatStateCopyWithImpl<$R, $Out>
     status: data.get(#status, or: $value.status),
     chat: data.get(#chat, or: $value.chat),
     messages: data.get(#messages, or: $value.messages),
+    communityChats: data.get(#communityChats, or: $value.communityChats),
+    community: data.get(#community, or: $value.community),
     reply: data.get(#reply, or: $value.reply),
     replyQuote: data.get(#replyQuote, or: $value.replyQuote),
     editing: data.get(#editing, or: $value.editing),

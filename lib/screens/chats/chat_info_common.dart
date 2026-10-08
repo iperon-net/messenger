@@ -29,14 +29,42 @@ class ChatInfoResult {
 enum ChatInfoTab { members, media, files, links, voice }
 
 /// Вкладки профиля: первыми — участники (у канала — подписчики), если список
-/// не скрыт ([models.Chat.membersHidden]; админам виден всегда).
+/// не скрыт ([models.Chat.membersHidden]; админам виден всегда). У сообщества
+/// своей ленты нет — только участники.
 List<ChatInfoTab> chatInfoTabs(models.Chat chat) => [
   if (chat.type != models.ChatType.private && !chat.isThread && (!chat.membersHidden || chat.canManage)) ChatInfoTab.members,
-  ChatInfoTab.media,
-  ChatInfoTab.files,
-  ChatInfoTab.links,
-  ChatInfoTab.voice,
+  if (chat.type != models.ChatType.community) ...[ChatInfoTab.media, ChatInfoTab.files, ChatInfoTab.links, ChatInfoTab.voice],
 ];
+
+/// Кнопка выхода в профиле: владелец сообщества и его чатов — удаляет (у
+/// всех), остальные — покидают.
+bool chatInfoDeletes(models.Chat chat) =>
+    chat.myRole == models.ChatRole.owner && (chat.type == models.ChatType.community || chat.inCommunity);
+
+/// «Удалить чат» / «Покинуть группу / канал / сообщество» / «Удалить группу…».
+String chatLeaveLabel(Translations t, models.Chat chat) => switch (chat.type) {
+  models.ChatType.private => t.screenChatInfo.deleteChat,
+  models.ChatType.group when chatInfoDeletes(chat) => t.screenChatInfo.deleteGroup,
+  models.ChatType.channel when chatInfoDeletes(chat) => t.screenChatInfo.deleteChannel,
+  models.ChatType.community when chatInfoDeletes(chat) => t.screenChatInfo.deleteCommunity,
+  models.ChatType.group => t.screenChatInfo.leaveGroup,
+  models.ChatType.channel => t.screenChatInfo.leaveChannel,
+  models.ChatType.community => t.screenChatInfo.leaveCommunity,
+};
+
+/// Заголовок и текст подтверждения выхода / удаления.
+({String title, String? message}) chatLeaveConfirm(Translations t, models.Chat chat) {
+  final i = t.screenChatInfo;
+  if (chat.type == models.ChatType.private) return (title: i.deleteChatTitle(name: chat.title), message: null);
+  if (!chatInfoDeletes(chat)) return (title: i.leaveGroupTitle(name: chat.title), message: null);
+  return (
+    title: i.deleteInCommunityTitle(name: chat.title),
+    message: chat.type == models.ChatType.community ? i.deleteCommunityMessage : i.deleteInCommunityMessage,
+  );
+}
+
+/// После выхода: из чата сообщества — обратно в сообщество, иначе — в список.
+String chatLeaveRoute(models.Chat chat) => chat.inCommunity ? '/chats/chat/${chat.communityID}' : '/chats';
 
 String chatInfoTabLabel(Translations t, ChatInfoTab tab, models.Chat chat) => switch (tab) {
   ChatInfoTab.members => chat.type == models.ChatType.channel ? t.screenChatInfo.tabSubscribers : t.screenChatInfo.tabMembers,

@@ -61,10 +61,24 @@ class ChatCubit extends Cubit<ChatState> {
       final chat = chats.where((c) => c.id == chatID).firstOrNull;
       // Ветка комментариев: кто может писать — по настройкам канала.
       _channel = chat != null && chat.isThread ? chats.where((c) => c.id == chat.threadOf).firstOrNull : null;
+      final community = chat?.type == models.ChatType.community;
       _openUnread ??= chat?.unreadCount;
-      // Чат открыт — всё входящее сразу прочитано.
-      if (chat != null && chat.hasUnread) source.setRead(chatID, true);
-      emit(state.copyWith(chat: chat, status: Status.success));
+      // Чат открыт — всё входящее сразу прочитано (у сообщества своей ленты
+      // нет — его чаты читаются, когда их открывают).
+      if (chat != null && chat.hasUnread && !community) source.setRead(chatID, true);
+      emit(
+        state.copyWith(
+          chat: chat,
+          status: Status.success,
+          communityChats: community
+              ? [
+                  ...chats.where((c) => c.communityID == chatID && c.announcements),
+                  ...chats.where((c) => c.communityID == chatID && !c.announcements),
+                ]
+              : const [],
+          community: chat != null && chat.inCommunity ? chats.where((c) => c.id == chat.communityID).firstOrNull : null,
+        ),
+      );
       _placeUnread();
       _syncSlowMode();
       _syncLimits();
@@ -405,12 +419,17 @@ class ChatCubit extends Cubit<ChatState> {
     }
   }
 
-  /// Куда можно переслать: все чаты, кроме каналов (писать в них нельзя) —
+  /// Куда можно переслать: все чаты, кроме каналов (писать в них нельзя) и
+  /// сообществ (своей ленты нет — только их группы, где мы участник) —
   /// «Избранное» первым, архив в конце.
   Future<List<models.Chat>> forwardTargets() async {
     final source = _source;
     if (source == null) return const [];
-    final chats = (await source.watchChats().first).where((c) => c.type != models.ChatType.channel && !c.isThread).toList();
+    final chats = (await source.watchChats().first)
+        .where(
+          (c) => c.type != models.ChatType.channel && c.type != models.ChatType.community && !c.isThread && (!c.inCommunity || c.isMember),
+        )
+        .toList();
     int rank(models.Chat c) => c.isSelf ? 0 : (c.archived ? 2 : 1);
     // Внутри группы — порядок списка чатов (sort в Dart неустойчивый).
     final indexed = chats.indexed.toList()
@@ -489,6 +508,10 @@ class ChatCubit extends Cubit<ChatState> {
 
   /// «Подписаться» / «Вступить» / «Подать заявку».
   Future<void> join() async => _source?.joinChat(_chatID);
+
+  /// Сообщество: вступить в его группу / канал одним нажатием (закрытая тема —
+  /// заявка).
+  Future<void> joinCommunityChat(models.Chat chat) async => _source?.joinChat(chat.id);
 
   /// Комментарии к посту канала — id чата-ветки (пусто — не открыть).
   Future<String> openComments(models.Message post) async => await _source?.openComments(_chatID, post.id) ?? '';

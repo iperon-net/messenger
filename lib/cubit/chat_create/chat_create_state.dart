@@ -22,6 +22,10 @@ class ChatCreateState with ChatCreateStateMappable {
   /// Редактируемый чат («Изменить»); пусто — создание.
   final String chatID;
 
+  /// Группа / канал внутри этого сообщества: своих ссылок нет, вступление —
+  /// одним нажатием ([models.ChatJoinMode.open]) или по заявке.
+  final String communityID;
+
   /// Исходные название и описание — для полей формы «Изменить».
   final String title;
   final String about;
@@ -83,6 +87,7 @@ class ChatCreateState with ChatCreateStateMappable {
     this.status = Status.initialization,
     this.type = models.ChatType.private,
     this.chatID = '',
+    this.communityID = '',
     this.title = '',
     this.about = '',
     this.contacts = const [],
@@ -109,8 +114,10 @@ class ChatCreateState with ChatCreateStateMappable {
 
   bool get isEdit => chatID.isNotEmpty;
 
-  /// Публичный — по ссылке [username].
-  bool get isPublic => joinMode == models.ChatJoinMode.open;
+  bool get inCommunity => communityID.isNotEmpty;
+
+  /// Публичный — по ссылке [username] (у чата сообщества ссылок нет).
+  bool get isPublic => joinMode == models.ChatJoinMode.open && !inCommunity;
 
   List<models.ChatMember> get filtered {
     final q = query.trim().toLowerCase();

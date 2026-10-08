@@ -2,8 +2,9 @@ import 'package:dart_mappable/dart_mappable.dart';
 
 part 'chat.mapper.dart';
 
-/// Тип чата (см. docs/plans/chats-groups-channels.md). Сообщество — контейнер
-/// над группами и каналами; в списке чатов показывается одной строкой.
+/// Тип чата (см. docs/plans/chats-groups-channels.md). Сообщество — страница
+/// организации и контейнер над её группами и каналами ([Chat.communityID]);
+/// своей ленты у него нет, в списке чатов — одной строкой.
 @MappableEnum()
 enum ChatType { private, group, channel, community }
 
@@ -190,6 +191,10 @@ class ChatLastMessage with ChatLastMessageMappable {
   final MessageStatus status;
   final DateTime date;
 
+  /// Строка сообщества: из какого его чата сообщение («Группа › Анна»); пусто
+  /// — у обычных чатов и у канала объявлений.
+  final String chatTitle;
+
   const ChatLastMessage({
     this.kind = MessageKind.text,
     this.text = '',
@@ -197,6 +202,7 @@ class ChatLastMessage with ChatLastMessageMappable {
     this.outgoing = false,
     this.status = MessageStatus.sent,
     required this.date,
+    this.chatTitle = '',
   });
 }
 
@@ -328,6 +334,16 @@ class Chat with ChatMappable {
   final String threadOf;
   final String threadPostID;
 
+  /// Группа / канал сообщества — id сообщества (задаётся при создании и не
+  /// меняется: прикреплять чаты извне и выносить наружу нельзя). Пусто —
+  /// обычный чат. В общем списке такие чаты не видны — только внутри
+  /// сообщества.
+  final String communityID;
+
+  /// Канал объявлений сообщества — создаётся вместе с ним, покинуть или
+  /// удалить его отдельно нельзя.
+  final bool announcements;
+
   /// Заявок на вступление ждёт одобрения (бейдж в профиле для админа).
   final int pendingRequests;
 
@@ -386,6 +402,8 @@ class Chat with ChatMappable {
     this.joinRequested = false,
     this.threadOf = '',
     this.threadPostID = '',
+    this.communityID = '',
+    this.announcements = false,
     this.membersCount = 0,
     this.myRole = ChatRole.writer,
     this.online = false,
@@ -398,7 +416,11 @@ class Chat with ChatMappable {
 
   /// Путь ссылки на чат после `iperon.net/`: публичный [username] или
   /// [inviteLink] (если по ссылкам можно вступить); пусто — ссылки нет.
-  String get linkPath => username.isNotEmpty ? username : (joinMode == ChatJoinMode.admins ? '' : inviteLink);
+  /// У чатов сообщества своих ссылок нет — вступают через сообщество.
+  String get linkPath => inCommunity ? '' : (username.isNotEmpty ? username : (joinMode == ChatJoinMode.admins ? '' : inviteLink));
+
+  /// Группа / канал внутри сообщества.
+  bool get inCommunity => communityID.isNotEmpty;
 
   bool get hasUnread => unreadCount > 0 || markedUnread;
 
@@ -415,8 +437,9 @@ class Chat with ChatMappable {
   /// Ветка комментариев закрыта: писать нельзя, только читать.
   bool commentsClosed([DateTime? now]) => commentsCloseDate != null && !commentsCloseDate!.isAfter(now ?? DateTime.now());
 
-  /// В списке чатов не показывается: пустой личный или ветка комментариев.
-  bool get hiddenInList => isBlank || isThread || !isMember;
+  /// В списке чатов не показывается: пустой личный, ветка комментариев, чат
+  /// сообщества (он внутри строки сообщества).
+  bool get hiddenInList => isBlank || isThread || !isMember || inCommunity;
 
   /// Медленный режим действует на нас: включён в группе/сообществе, а мы не
   /// админ.

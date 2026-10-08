@@ -139,9 +139,26 @@ String joinModeLabel(Translations t, models.ChatType type, models.ChatJoinMode m
   models.ChatJoinMode.admins => t.screenNewChat.joinAdmins,
 };
 
+/// Варианты вступления в форме: в сообществе — одним нажатием / по заявке
+/// (закрытая тема); при создании — «Публичный / Частный»; в «Изменить» — см.
+/// [joinModesOf].
+List<models.ChatJoinMode> joinModesFor(ChatCreateState state) {
+  if (state.inCommunity) return const [models.ChatJoinMode.open, models.ChatJoinMode.request];
+  return state.isEdit ? joinModesOf(state.type) : const [models.ChatJoinMode.open, models.ChatJoinMode.link];
+}
+
+String joinModeTitle(Translations t, ChatCreateState state, models.ChatJoinMode mode) {
+  if (state.inCommunity) return mode == models.ChatJoinMode.request ? t.screenNewChat.topicJoinRequest : t.screenNewChat.topicJoinOpen;
+  if (state.isEdit) return joinModeLabel(t, state.type, mode);
+  return mode == models.ChatJoinMode.open ? t.screenNewChat.typePublic : t.screenNewChat.typePrivate;
+}
+
 /// Подпись под выбором вступления: у канала (и при создании) — как
 /// «Публичный / Частный».
 String joinModeFooter(Translations t, ChatCreateState state) {
+  if (state.inCommunity) {
+    return state.joinMode == models.ChatJoinMode.request ? t.screenNewChat.topicJoinRequestFooter : t.screenNewChat.topicJoinOpenFooter;
+  }
   if (state.type == models.ChatType.channel || !state.isEdit) return createTypeFooter(t, state.type, state.isPublic);
   return switch (state.joinMode) {
     models.ChatJoinMode.open => t.screenNewChat.joinOpenFooter,

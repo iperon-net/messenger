@@ -107,6 +107,13 @@ class ChatCreateStateMapper extends ClassMapperBase<ChatCreateState> {
     opt: true,
     def: '',
   );
+  static String _$communityID(ChatCreateState v) => v.communityID;
+  static const Field<ChatCreateState, String> _f$communityID = Field(
+    'communityID',
+    _$communityID,
+    opt: true,
+    def: '',
+  );
   static String _$title(ChatCreateState v) => v.title;
   static const Field<ChatCreateState, String> _f$title = Field(
     'title',
@@ -264,6 +271,7 @@ class ChatCreateStateMapper extends ClassMapperBase<ChatCreateState> {
     #status: _f$status,
     #type: _f$type,
     #chatID: _f$chatID,
+    #communityID: _f$communityID,
     #title: _f$title,
     #about: _f$about,
     #contacts: _f$contacts,
@@ -293,6 +301,7 @@ class ChatCreateStateMapper extends ClassMapperBase<ChatCreateState> {
       status: data.dec(_f$status),
       type: data.dec(_f$type),
       chatID: data.dec(_f$chatID),
+      communityID: data.dec(_f$communityID),
       title: data.dec(_f$title),
       about: data.dec(_f$about),
       contacts: data.dec(_f$contacts),
@@ -396,6 +405,7 @@ abstract class ChatCreateStateCopyWith<$R, $In extends ChatCreateState, $Out>
     Status? status,
     models.ChatType? type,
     String? chatID,
+    String? communityID,
     String? title,
     String? about,
     List<models.ChatMember>? contacts,
@@ -459,6 +469,7 @@ class _ChatCreateStateCopyWithImpl<$R, $Out>
     Status? status,
     models.ChatType? type,
     String? chatID,
+    String? communityID,
     String? title,
     String? about,
     List<models.ChatMember>? contacts,
@@ -486,6 +497,7 @@ class _ChatCreateStateCopyWithImpl<$R, $Out>
       if (status != null) #status: status,
       if (type != null) #type: type,
       if (chatID != null) #chatID: chatID,
+      if (communityID != null) #communityID: communityID,
       if (title != null) #title: title,
       if (about != null) #about: about,
       if (contacts != null) #contacts: contacts,
@@ -516,6 +528,7 @@ class _ChatCreateStateCopyWithImpl<$R, $Out>
     status: data.get(#status, or: $value.status),
     type: data.get(#type, or: $value.type),
     chatID: data.get(#chatID, or: $value.chatID),
+    communityID: data.get(#communityID, or: $value.communityID),
     title: data.get(#title, or: $value.title),
     about: data.get(#about, or: $value.about),
     contacts: data.get(#contacts, or: $value.contacts),

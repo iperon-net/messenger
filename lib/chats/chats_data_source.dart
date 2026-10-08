@@ -25,6 +25,9 @@ abstract class ChatsDataSource {
   /// Прочитать все чаты папки.
   Future<void> readAll(List<String> chatIDs);
 
+  /// Удалить чат / покинуть группу или канал. Сообщество — вместе со всеми его
+  /// чатами; группа / канал сообщества: владелец удаляет у всех, остальные
+  /// только выходят (чат остаётся в сообществе, можно вступить снова).
   Future<void> delete(String chatID);
 
   Future<void> deleteFolder(String folderID);
@@ -51,7 +54,10 @@ abstract class ChatsDataSource {
   /// Создать группу / канал / сообщество, мы — владелец. [memberIDs] — кого
   /// добавить сразу (группа); [username] — публичное имя (пусто — частный чат со
   /// ссылкой-приглашением [inviteLink]); [avatarPath] — локальный файл фото.
-  /// Возвращает id нового чата.
+  /// Сообщество создаётся сразу с каналом объявлений. [communityID] — группа /
+  /// канал внутри сообщества (своих ссылок нет, [joinMode] — одним нажатием
+  /// ([models.ChatJoinMode.open]) или по заявке; настройки по умолчанию — от
+  /// сообщества). Возвращает id нового чата.
   Future<String> createChat({
     required models.ChatType type,
     required String title,
@@ -60,6 +66,8 @@ abstract class ChatsDataSource {
     String username = '',
     String inviteLink = '',
     String avatarPath = '',
+    String communityID = '',
+    models.ChatJoinMode joinMode = models.ChatJoinMode.open,
   });
 
   /// Изменить группу/канал/сообщество (профиль чата → «Изменить», админ):
@@ -94,7 +102,9 @@ abstract class ChatsDataSource {
   Future<String> resolveLink(String path);
 
   /// «Подписаться» / «Вступить»: стать участником; у чата «По заявке» —
-  /// подать заявку (`Chat.joinRequested`), вступление — после одобрения.
+  /// подать заявку (`Chat.joinRequested`), вступление — после одобрения. В
+  /// сообщество — вместе с его каналом объявлений (в остальные чаты вступают
+  /// по отдельности).
   Future<void> joinChat(String chatID);
 
   /// Комментарии к посту [postID] канала [channelID]: id чата-ветки (создаётся

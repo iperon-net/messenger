@@ -28,15 +28,27 @@ class ChatCreateCubit extends Cubit<ChatCreateState> {
   static const aboutMaxLength = 255;
 
   /// [type] — что создаём; [selected] — участники, выбранные на прошлом шаге
-  /// (форма группы); [exclude] — кого не показывать в контактах.
+  /// (форма группы); [exclude] — кого не показывать в контактах;
+  /// [communityID] — создаём внутри сообщества (по умолчанию вступление одним
+  /// нажатием).
   Future<void> initialization({
     required bool demo,
     models.ChatType type = models.ChatType.private,
     List<models.ChatMember> selected = const [],
     Set<String> exclude = const {},
+    String communityID = '',
   }) async {
     _source = demo ? ChatsDemoDataSource.instance : null;
-    emit(state.copyWith(status: Status.loading, type: type, selected: selected, inviteLink: newInviteCode()));
+    emit(
+      state.copyWith(
+        status: Status.loading,
+        type: type,
+        selected: selected,
+        inviteLink: newInviteCode(),
+        communityID: communityID,
+        joinMode: communityID.isNotEmpty ? models.ChatJoinMode.open : state.joinMode,
+      ),
+    );
     // [exclude] — уже участники («Добавить участников» в профиле группы).
     final contacts = [
       for (final c in await _source?.contacts() ?? const <models.ChatMember>[])
@@ -54,6 +66,7 @@ class ChatCreateCubit extends Cubit<ChatCreateState> {
         status: Status.success,
         type: chat.type,
         chatID: chat.id,
+        communityID: chat.communityID,
         title: chat.title,
         about: chat.about,
         avatarPath: chat.avatarPath,
@@ -152,6 +165,8 @@ class ChatCreateCubit extends Cubit<ChatCreateState> {
       username: state.isPublic ? state.username : '',
       inviteLink: state.inviteLink,
       avatarPath: state.avatarPath,
+      communityID: state.communityID,
+      joinMode: state.joinMode,
     );
     if (!isClosed) emit(state.copyWith(creating: false, openChatID: chatID));
   }

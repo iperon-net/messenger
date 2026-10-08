@@ -577,8 +577,8 @@ class Translations$screenNewChat$en {
 	/// en: 'Tell subscribers what the channel is about.'
 	String get channelDescriptionFooter => 'Tell subscribers what the channel is about.';
 
-	/// en: 'A community brings together your groups and channels.'
-	String get communityDescriptionFooter => 'A community brings together your groups and channels.';
+	/// en: 'Tell people about your organization: what you do, address, opening hours. The community will have an announcements channel and topic groups.'
+	String get communityDescriptionFooter => 'Tell people about your organization: what you do, address, opening hours. The community will have an announcements channel and topic groups.';
 
 	/// en: 'Members'
 	String get members => 'Members';
@@ -765,6 +765,18 @@ class Translations$screenNewChat$en {
 
 	/// en: 'New members can read and send messages.'
 	String get roleWriterFooter => 'New members can read and send messages.';
+
+	/// en: 'In One Tap'
+	String get topicJoinOpen => 'In One Tap';
+
+	/// en: 'By Request'
+	String get topicJoinRequest => 'By Request';
+
+	/// en: 'Any community member can join in one tap.'
+	String get topicJoinOpenFooter => 'Any community member can join in one tap.';
+
+	/// en: 'Closed topic: community members send a request and join once an admin approves it.'
+	String get topicJoinRequestFooter => 'Closed topic: community members send a request and join once an admin approves it.';
 }
 
 // Path: screenChatInvites
@@ -1992,6 +2004,54 @@ class Translations$screenChatInfo$en {
 
 	/// en: 'Leave «{name}»?'
 	String leaveGroupTitle({required Object name}) => 'Leave «${name}»?';
+
+	/// en: 'Delete Group'
+	String get deleteGroup => 'Delete Group';
+
+	/// en: 'Delete Channel'
+	String get deleteChannel => 'Delete Channel';
+
+	/// en: 'Delete Community'
+	String get deleteCommunity => 'Delete Community';
+
+	/// en: 'Delete'
+	String get deleteShort => 'Delete';
+
+	/// en: 'Delete «{name}»?'
+	String deleteInCommunityTitle({required Object name}) => 'Delete «${name}»?';
+
+	/// en: 'The chat will be deleted for all community members.'
+	String get deleteInCommunityMessage => 'The chat will be deleted for all community members.';
+
+	/// en: 'The community will be deleted together with all its groups and channels.'
+	String get deleteCommunityMessage => 'The community will be deleted together with all its groups and channels.';
+
+	/// en: 'Chats'
+	String get communityChats => 'Chats';
+
+	/// en: 'Community members join groups and channels in one tap, closed topics by request.'
+	String get communityChatsFooter => 'Community members join groups and channels in one tap, closed topics by request.';
+
+	/// en: 'Announcements'
+	String get announcements => 'Announcements';
+
+	/// en: 'By request'
+	String get closedTopic => 'By request';
+
+	/// en: 'Create Group'
+	String get createGroup => 'Create Group';
+
+	/// en: 'Create Channel'
+	String get createChannel => 'Create Channel';
+
+	/// en: 'Join'
+	String get join => 'Join';
+
+	/// en: 'Pending'
+	String get requestPending => 'Pending';
+
+	/// en: 'Join Community'
+	String get joinCommunity => 'Join Community';
 
 	/// en: 'last seen {n} min ago'
 	String lastSeenMinutes({required Object n}) => 'last seen ${n} min ago';
@@ -3367,7 +3427,7 @@ extension on Translations {
 			'screenNewChat.description' => 'Description',
 			'screenNewChat.descriptionHint' => 'Optional',
 			'screenNewChat.channelDescriptionFooter' => 'Tell subscribers what the channel is about.',
-			'screenNewChat.communityDescriptionFooter' => 'A community brings together your groups and channels.',
+			'screenNewChat.communityDescriptionFooter' => 'Tell people about your organization: what you do, address, opening hours. The community will have an announcements channel and topic groups.',
 			'screenNewChat.members' => 'Members',
 			'screenNewChat.setPhoto' => 'Set Photo',
 			'screenNewChat.changePhoto' => 'Change Photo',
@@ -3428,6 +3488,10 @@ extension on Translations {
 			'screenNewChat.roleWriter' => 'Can Send Messages',
 			'screenNewChat.roleReaderFooter' => 'New members can read but not send messages.',
 			'screenNewChat.roleWriterFooter' => 'New members can read and send messages.',
+			'screenNewChat.topicJoinOpen' => 'In One Tap',
+			'screenNewChat.topicJoinRequest' => 'By Request',
+			'screenNewChat.topicJoinOpenFooter' => 'Any community member can join in one tap.',
+			'screenNewChat.topicJoinRequestFooter' => 'Closed topic: community members send a request and join once an admin approves it.',
 			'screenChatInvites.inviteLinks' => 'Invite Links',
 			'screenChatInvites.joinRequests' => 'Join Requests',
 			'screenChatInvites.primaryLink' => 'Primary Link',
@@ -3731,12 +3795,12 @@ extension on Translations {
 			'screenSettingsAppearance.colorThemePurple' => 'Purple',
 			'screenSettingsAppearance.colorThemeOrange' => 'Orange',
 			'screenSettingsAppearance.darkMode' => 'Dark mode',
+			_ => null,
+		} ?? switch (path) {
 			'screenSettingsAppearance.darkModeSystem' => 'System',
 			'screenSettingsAppearance.darkModeAlwaysOn' => 'Always on',
 			'screenSettingsAppearance.darkModeDisabled' => 'Disabled',
 			'screenSettingsAppearance.darkModeSystemDescription' => 'As in the device settings',
-			_ => null,
-		} ?? switch (path) {
 			'screenSettingsAppearance.darkModeAlwaysOnDescription' => 'Dark mode is always on',
 			'screenSettingsAppearance.darkModeDisabledDescription' => 'Dark mode is disabled',
 			'screenSettingsAppearance.blurOnInactive' => 'Blur on inactive',
@@ -3804,6 +3868,22 @@ extension on Translations {
 			'screenChatInfo.leaveShort' => 'Leave',
 			'screenChatInfo.deleteChatTitle' => ({required Object name}) => 'Delete chat with ${name}?',
 			'screenChatInfo.leaveGroupTitle' => ({required Object name}) => 'Leave «${name}»?',
+			'screenChatInfo.deleteGroup' => 'Delete Group',
+			'screenChatInfo.deleteChannel' => 'Delete Channel',
+			'screenChatInfo.deleteCommunity' => 'Delete Community',
+			'screenChatInfo.deleteShort' => 'Delete',
+			'screenChatInfo.deleteInCommunityTitle' => ({required Object name}) => 'Delete «${name}»?',
+			'screenChatInfo.deleteInCommunityMessage' => 'The chat will be deleted for all community members.',
+			'screenChatInfo.deleteCommunityMessage' => 'The community will be deleted together with all its groups and channels.',
+			'screenChatInfo.communityChats' => 'Chats',
+			'screenChatInfo.communityChatsFooter' => 'Community members join groups and channels in one tap, closed topics by request.',
+			'screenChatInfo.announcements' => 'Announcements',
+			'screenChatInfo.closedTopic' => 'By request',
+			'screenChatInfo.createGroup' => 'Create Group',
+			'screenChatInfo.createChannel' => 'Create Channel',
+			'screenChatInfo.join' => 'Join',
+			'screenChatInfo.requestPending' => 'Pending',
+			'screenChatInfo.joinCommunity' => 'Join Community',
 			'screenChatInfo.lastSeenMinutes' => ({required Object n}) => 'last seen ${n} min ago',
 			'screenChatInfo.lastSeenAt' => ({required Object time}) => 'last seen at ${time}',
 			'screenChatInfo.lastSeenYesterday' => ({required Object time}) => 'last seen yesterday at ${time}',

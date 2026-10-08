@@ -124,15 +124,17 @@ class _ChatCreateFormCupertino extends State<ChatCreateFormCupertino> {
       listener: (context, state) {
         // «Изменить» сохранено — обратно в профиль чата.
         if (state.saved) return Navigator.of(context).pop();
-        // Новый чат вместо всей цепочки «Новое» (назад — в список чатов).
+        // Чат сообщества — вместо формы (назад — на страницу сообщества);
+        // иначе новый чат вместо всей цепочки «Новое» (назад — в список чатов).
+        if (state.inCommunity) return context.pushReplacement('/chats/chat/${state.openChatID}');
         context.go('/chats/chat/${state.openChatID}');
       },
       builder: (context, state) {
         final type = state.type;
-        // Описание и вступление — у канала и сообщества, а в «Изменить» — и у
-        // группы.
-        final withLink = type == models.ChatType.channel || type == models.ChatType.community || state.isEdit;
-        final joinModes = state.isEdit ? joinModesOf(type) : const [models.ChatJoinMode.open, models.ChatJoinMode.link];
+        // Описание и вступление — у канала и сообщества, а в «Изменить» и
+        // внутри сообщества — и у группы.
+        final withLink = type == models.ChatType.channel || type == models.ChatType.community || state.isEdit || state.inCommunity;
+        final joinModes = joinModesFor(state);
         final canCreate = _nameController.text.trim().isNotEmpty && state.linkReady && !state.creating;
         final hint = usernameHint(t, state);
 
@@ -245,18 +247,15 @@ class _ChatCreateFormCupertino extends State<ChatCreateFormCupertino> {
                   ),
                   section(
                     header: createHeaderCupertino(
-                      state.isEdit && type != models.ChatType.channel ? t.screenNewChat.joinHeader : t.screenNewChat.type,
+                      (state.isEdit && type != models.ChatType.channel) || state.inCommunity
+                          ? t.screenNewChat.joinHeader
+                          : t.screenNewChat.type,
                     ),
                     footer: createNoteCupertino(joinModeFooter(t, state)),
                     children: [
                       for (final mode in joinModes)
                         CupertinoListTile(
-                          title: Text(
-                            state.isEdit
-                                ? joinModeLabel(t, type, mode)
-                                : (mode == models.ChatJoinMode.open ? t.screenNewChat.typePublic : t.screenNewChat.typePrivate),
-                            style: const TextStyle(fontSize: AppFontSizes.body),
-                          ),
+                          title: Text(joinModeTitle(t, state, mode), style: const TextStyle(fontSize: AppFontSizes.body)),
                           trailing: state.joinMode == mode ? Icon(CupertinoIcons.checkmark_alt, color: primary) : null,
                           onTap: () => context.read<ChatCreateCubit>().setJoinMode(mode),
                         ),
@@ -291,7 +290,7 @@ class _ChatCreateFormCupertino extends State<ChatCreateFormCupertino> {
                         ),
                       ],
                     )
-                  else if (state.joinMode != models.ChatJoinMode.admins)
+                  else if (state.joinMode != models.ChatJoinMode.admins && !state.inCommunity)
                     section(
                       header: createHeaderCupertino(t.screenNewChat.inviteLink),
                       footer: createNoteCupertino(t.screenNewChat.inviteLinkFooter),
@@ -392,7 +391,8 @@ class _ChatCreateFormCupertino extends State<ChatCreateFormCupertino> {
                     ),
                 ],
 
-                if (state.isEdit)
+                // Видимость участников — настройка сообщества, у его чатов своей нет.
+                if (state.isEdit && !state.inCommunity)
                   section(
                     footer: createNoteCupertino(t.screenNewChat.hideMembersFooter),
                     children: [
@@ -406,7 +406,7 @@ class _ChatCreateFormCupertino extends State<ChatCreateFormCupertino> {
                     ],
                   ),
 
-                if (type == models.ChatType.group && !state.isEdit)
+                if (type == models.ChatType.group && !state.isEdit && !state.inCommunity)
                   state.selected.isEmpty
                       ? Padding(
                           padding: const EdgeInsets.fromLTRB(32, 0, 32, 16),

@@ -903,6 +903,13 @@ class ChatLastMessageMapper extends ClassMapperBase<ChatLastMessage> {
   );
   static DateTime _$date(ChatLastMessage v) => v.date;
   static const Field<ChatLastMessage, DateTime> _f$date = Field('date', _$date);
+  static String _$chatTitle(ChatLastMessage v) => v.chatTitle;
+  static const Field<ChatLastMessage, String> _f$chatTitle = Field(
+    'chatTitle',
+    _$chatTitle,
+    opt: true,
+    def: '',
+  );
 
   @override
   final MappableFields<ChatLastMessage> fields = const {
@@ -912,6 +919,7 @@ class ChatLastMessageMapper extends ClassMapperBase<ChatLastMessage> {
     #outgoing: _f$outgoing,
     #status: _f$status,
     #date: _f$date,
+    #chatTitle: _f$chatTitle,
   };
 
   static ChatLastMessage _instantiate(DecodingData data) {
@@ -922,6 +930,7 @@ class ChatLastMessageMapper extends ClassMapperBase<ChatLastMessage> {
       outgoing: data.dec(_f$outgoing),
       status: data.dec(_f$status),
       date: data.dec(_f$date),
+      chatTitle: data.dec(_f$chatTitle),
     );
   }
 
@@ -994,6 +1003,7 @@ abstract class ChatLastMessageCopyWith<$R, $In extends ChatLastMessage, $Out>
     bool? outgoing,
     MessageStatus? status,
     DateTime? date,
+    String? chatTitle,
   });
   ChatLastMessageCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
     Then<$Out2, $R2> t,
@@ -1016,6 +1026,7 @@ class _ChatLastMessageCopyWithImpl<$R, $Out>
     bool? outgoing,
     MessageStatus? status,
     DateTime? date,
+    String? chatTitle,
   }) => $apply(
     FieldCopyWithData({
       if (kind != null) #kind: kind,
@@ -1024,6 +1035,7 @@ class _ChatLastMessageCopyWithImpl<$R, $Out>
       if (outgoing != null) #outgoing: outgoing,
       if (status != null) #status: status,
       if (date != null) #date: date,
+      if (chatTitle != null) #chatTitle: chatTitle,
     }),
   );
   @override
@@ -1034,6 +1046,7 @@ class _ChatLastMessageCopyWithImpl<$R, $Out>
     outgoing: data.get(#outgoing, or: $value.outgoing),
     status: data.get(#status, or: $value.status),
     date: data.get(#date, or: $value.date),
+    chatTitle: data.get(#chatTitle, or: $value.chatTitle),
   );
 
   @override
@@ -1322,6 +1335,20 @@ class ChatMapper extends ClassMapperBase<Chat> {
     opt: true,
     def: '',
   );
+  static String _$communityID(Chat v) => v.communityID;
+  static const Field<Chat, String> _f$communityID = Field(
+    'communityID',
+    _$communityID,
+    opt: true,
+    def: '',
+  );
+  static bool _$announcements(Chat v) => v.announcements;
+  static const Field<Chat, bool> _f$announcements = Field(
+    'announcements',
+    _$announcements,
+    opt: true,
+    def: false,
+  );
   static int _$membersCount(Chat v) => v.membersCount;
   static const Field<Chat, int> _f$membersCount = Field(
     'membersCount',
@@ -1398,6 +1425,8 @@ class ChatMapper extends ClassMapperBase<Chat> {
     #joinRequested: _f$joinRequested,
     #threadOf: _f$threadOf,
     #threadPostID: _f$threadPostID,
+    #communityID: _f$communityID,
+    #announcements: _f$announcements,
     #membersCount: _f$membersCount,
     #myRole: _f$myRole,
     #online: _f$online,
@@ -1447,6 +1476,8 @@ class ChatMapper extends ClassMapperBase<Chat> {
       joinRequested: data.dec(_f$joinRequested),
       threadOf: data.dec(_f$threadOf),
       threadPostID: data.dec(_f$threadPostID),
+      communityID: data.dec(_f$communityID),
+      announcements: data.dec(_f$announcements),
       membersCount: data.dec(_f$membersCount),
       myRole: data.dec(_f$myRole),
       online: data.dec(_f$online),
@@ -1545,6 +1576,8 @@ abstract class ChatCopyWith<$R, $In extends Chat, $Out>
     bool? joinRequested,
     String? threadOf,
     String? threadPostID,
+    String? communityID,
+    bool? announcements,
     int? membersCount,
     ChatRole? myRole,
     bool? online,
@@ -1613,6 +1646,8 @@ class _ChatCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Chat, $Out>
     bool? joinRequested,
     String? threadOf,
     String? threadPostID,
+    String? communityID,
+    bool? announcements,
     int? membersCount,
     ChatRole? myRole,
     bool? online,
@@ -1661,6 +1696,8 @@ class _ChatCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Chat, $Out>
       if (joinRequested != null) #joinRequested: joinRequested,
       if (threadOf != null) #threadOf: threadOf,
       if (threadPostID != null) #threadPostID: threadPostID,
+      if (communityID != null) #communityID: communityID,
+      if (announcements != null) #announcements: announcements,
       if (membersCount != null) #membersCount: membersCount,
       if (myRole != null) #myRole: myRole,
       if (online != null) #online: online,
@@ -1722,6 +1759,8 @@ class _ChatCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Chat, $Out>
     joinRequested: data.get(#joinRequested, or: $value.joinRequested),
     threadOf: data.get(#threadOf, or: $value.threadOf),
     threadPostID: data.get(#threadPostID, or: $value.threadPostID),
+    communityID: data.get(#communityID, or: $value.communityID),
+    announcements: data.get(#announcements, or: $value.announcements),
     membersCount: data.get(#membersCount, or: $value.membersCount),
     myRole: data.get(#myRole, or: $value.myRole),
     online: data.get(#online, or: $value.online),

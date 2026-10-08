@@ -23,6 +23,13 @@ class ChatState with ChatStateMappable {
   /// От старых к новым.
   final List<models.Message> messages;
 
+  /// Сообщество: его чаты — канал объявлений первым, затем группы и каналы
+  /// (и те, где мы не участник).
+  final List<models.Chat> communityChats;
+
+  /// Группа / канал сообщества: само сообщество.
+  final models.Chat? community;
+
   /// Отвечаем на это сообщение — над полем ввода плашка с цитатой.
   final models.Message? reply;
 
@@ -95,6 +102,8 @@ class ChatState with ChatStateMappable {
     this.status = Status.initialization,
     this.chat,
     this.messages = const [],
+    this.communityChats = const [],
+    this.community,
     this.reply,
     this.replyQuote,
     this.editing,
