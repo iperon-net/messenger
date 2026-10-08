@@ -107,23 +107,23 @@ dependencies:
   # что пинит livekit_client, иначе конфликт CocoaPods/ABI.
   #
   # livekit_client 2.13.0 (pub-релиз, 2026-09-15) содержит нативный libwebrtc m150
-  # (через flutter_webrtc 1.6.2+hotfix.3) — тот самый m150, ради которого раньше
+  # (через flutter_webrtc 1.6.2) — тот самый m150, ради которого раньше
   # сидели на git-коммите ed1dd712e (cold-start ICE-краш EXC_BAD_ACCESS 0x28 на
   # ICE-потоке; на m144 воспроизводился стабильно). Плюс фиксы переподключения:
   # session migration (server Leave{action: RESUME}) теперь не роняет удалённых
-  # участников. Держим flutter_webrtc ровно на той версии, что пинит livekit 2.13.0,
-  # иначе конфликт CocoaPods/ABI.
+  # участников. 2.13.1 (2026-10-08) пинит flutter_webrtc 1.6.2+hotfix.4, стартовый
+  # битрейт видео зависит от времени установки соединения, сбой negotiation уходит в
+  # reconnect вместо необработанного NegotiationError. Держим flutter_webrtc ровно на
+  # той версии, что пинит livekit_client, иначе конфликт CocoaPods/ABI.
   #
   # flutter_webrtc 1.6.2+hotfix.2 (#2172) убрал MissingPluginException на cancel для
   # FlutterWebRTC/peerConnectionEvent при dispose (наш teardown-краш из Crashlytics:
   # на iOS был non-fatal, на Android — FATAL «No active stream to cancel»), hotfix.3
-  # (#2174/#2175) — то же для data-channel event channel.
-  #
-  # Фактически резолвится 1.6.2+hotfix.4 через dependency_overrides (см. ниже): livekit
-  # 2.13.0 пинит ровно hotfix.3, а hotfix.4 несёт фикс крэша renderFrame: (#2190) при
-  # том же нативном WebRTC-SDK 150.7871.01 — ABI с подом livekit совпадает.
-  flutter_webrtc: 1.6.2+hotfix.3
-  livekit_client: ^2.13.0
+  # (#2174/#2175) — то же для data-channel event channel, hotfix.4 (#2190) — крэш
+  # EXC_BAD_ACCESS в `-[FlutterRTCVideoRenderer renderFrame:]` при уничтожении
+  # рендерера с живым потоком кадров (см. [[webrtc-renderer-recreation-crash]]).
+  flutter_webrtc: 1.6.2+hotfix.4
+  livekit_client: ^2.13.1
   hugeicons: ^1.2.0
   passkeys: ^2.23.1
   flutter_image_compress: ^2.5.1
@@ -168,21 +168,11 @@ dev_dependencies:
 #   KGP применяется только при android.builtInKotlin=false. Пакет сам по себе — лишь
 #   нативный ускоритель pure-Dart package:cryptography (AES-GCM/HMAC для медиа), поэтому
 #   форк выбран вместо удаления, чтобы не терять скорость. См. CLAUDE.md, раздел Kotlin.
-#
-# flutter_webrtc 1.6.2+hotfix.4 (pub.dev, НЕ форк) — override поверх hotfix.3, который
-#   пинит livekit_client 2.13.0. В hotfix.4 вошёл апстрим-фикс #2190: EXC_BAD_ACCESS в
-#   `-[FlutterRTCVideoRenderer renderFrame:]` при уничтожении рендерера с живым потоком
-#   кадров (см. [[webrtc-renderer-recreation-crash]]) — раньше держали его бэкпорт в
-#   third_party/flutter_webrtc. Нативные зависимости те же, что у hotfix.3
-#   (WebRTC-SDK / io.github.webrtc-sdk:android 150.7871.01), поэтому конфликта
-#   CocoaPods/ABI с livekit нет. Override убрать, когда livekit_client сам запинит
-#   >= hotfix.4.
 dependency_overrides:
   flutter_callkit_incoming:
     path: third_party/flutter_callkit_incoming
   cryptography_flutter:
     path: third_party/cryptography_flutter
-  flutter_webrtc: 1.6.2+hotfix.4
 
 # Configuration for the `dart_pre_commit` git hook (see .githooks/pre-commit).
 # Mirrors the CI checks in .github/workflows/build_and_deploy.yaml so problems are
