@@ -1993,6 +1993,15 @@ class Translations$screenChatInfo$en {
 	/// en: 'moderator'
 	String get roleModerator => 'moderator';
 
+	/// en: 'Name or @username'
+	String get membersSearch => 'Name or @username';
+
+	/// en: 'No one found'
+	String get membersNotFound => 'No one found';
+
+	/// en: 'Names match admins, recently active members and your contacts; others by @username.'
+	String get membersSearchNote => 'Names match admins, recently active members and your contacts; others by @username.';
+
 	/// en: 'Only admins can see the member list.'
 	String get membersHiddenNote => 'Only admins can see the member list.';
 
@@ -4026,6 +4035,9 @@ extension on Translations {
 			'screenChatInfo.roleCommunityOwner' => 'community owner',
 			'screenChatInfo.roleCommunityAdmin' => 'community admin',
 			'screenChatInfo.roleModerator' => 'moderator',
+			'screenChatInfo.membersSearch' => 'Name or @username',
+			'screenChatInfo.membersNotFound' => 'No one found',
+			'screenChatInfo.membersSearchNote' => 'Names match admins, recently active members and your contacts; others by @username.',
 			'screenChatInfo.membersHiddenNote' => 'Only admins can see the member list.',
 			'screenChatInfo.communityDefaults' => 'Same as Community',
 			'screenChatInfo.communityDefaultsOwn' => ({required Object list}) => 'Own: ${list}',

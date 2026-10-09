@@ -178,7 +178,10 @@ abstract class ChatsDataSource {
   /// [cursor] — `nextCursor` предыдущей страницы (пусто — с начала). В
   /// сообществе участников могут быть сотни тысяч — целиком не грузим. Скрытый
   /// список (`Chat.membersHidden`) не админу — только владелец и админы.
-  Future<ChatMembersPage> membersPage(String chatID, {String cursor = '', int limit = 50});
+  /// [query] — поиск (см. `memberMatches`): по `@username` у всех, по имени —
+  /// среди админов, недавно активных и наших контактов (имена на сервере
+  /// зашифрованы).
+  Future<ChatMembersPage> membersPage(String chatID, {String cursor = '', int limit = 50, String query = ''});
 
   /// Изменились участники / роли / блокировки чата [chatID] (в т.ч. на другом
   /// устройстве или в его сообществе) — перечитать [members] и [banned].

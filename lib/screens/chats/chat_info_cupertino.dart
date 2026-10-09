@@ -51,6 +51,9 @@ class _ChatInfoCupertinoState extends State<ChatInfoCupertino> {
   /// Открыта вкладка «Участники» — догружать страницы при прокрутке.
   bool _membersTab = false;
 
+  /// Поиск по «Участникам».
+  final _memberSearch = TextEditingController();
+
   /// Страница сообщества: панель навигации прозрачная поверх обложки, пока
   /// обложка не уехала под неё.
   bool _overCover = true;
@@ -72,6 +75,7 @@ class _ChatInfoCupertinoState extends State<ChatInfoCupertino> {
   @override
   void dispose() {
     _scroll.dispose();
+    _memberSearch.dispose();
     super.dispose();
   }
 
@@ -320,6 +324,7 @@ class _ChatInfoCupertinoState extends State<ChatInfoCupertino> {
                       top: !community,
                       child: CustomScrollView(
                         controller: _scroll,
+                        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                         slivers: [
                           SliverList.list(
                             children: [
@@ -524,6 +529,16 @@ class _ChatInfoCupertinoState extends State<ChatInfoCupertino> {
                               chat: chat,
                               members: state.memberPage,
                               loading: state.memberPageLoading,
+                              query: state.memberQuery,
+                              // Поиск — когда листать долго (скрытый список не админу —
+                              // только админы, искать незачем).
+                              search: !membersOnlyAdmins(chat) && (state.membersTotal > 20 || state.memberQuery.isNotEmpty)
+                                  ? SearchFieldCupertino(
+                                      controller: _memberSearch,
+                                      placeholder: t.screenChatInfo.membersSearch,
+                                      onChanged: context.read<ChatCubit>().searchMembers,
+                                    )
+                                  : null,
                               loader: const CupertinoActivityIndicator(),
                               style: ChatInfoStyle(
                                 text: label,

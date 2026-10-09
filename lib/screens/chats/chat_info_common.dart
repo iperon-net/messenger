@@ -92,6 +92,12 @@ String? communityOverridesText(Translations t, models.Chat chat) {
   return i.communityDefaultsOwn(list: names.join(', '));
 }
 
+/// Кого можно назначить админом / модератором: не мы и не уже админы.
+List<models.ChatMember> pickableMembers(List<models.ChatMember> members) => [
+  for (final m in members)
+    if (!m.isSelf && m.role != models.ChatRole.admin && m.role != models.ChatRole.owner) m,
+];
+
 /// Пункт меню участника: «Назначить админом / модератором» или «Права
 /// админа / модератора» (в чате сообщества свои админы — модераторы темы).
 String promoteMemberLabel(Translations t, models.Chat chat, models.ChatMember member) {
@@ -437,6 +443,11 @@ class ChatMembersSliver extends StatelessWidget {
   final VoidCallback? onAddMembers;
   final Widget Function(models.ChatMember member, Widget row)? memberWrapper;
 
+  /// Поле поиска первой строкой (`null` — без поиска) и текущий запрос: при
+  /// поиске внизу — «Никого не найдено» / пояснение, как ищется.
+  final Widget? search;
+  final String query;
+
   const ChatMembersSliver({
     super.key,
     required this.chat,
@@ -449,13 +460,23 @@ class ChatMembersSliver extends StatelessWidget {
     this.onMemberTap,
     this.onAddMembers,
     this.memberWrapper,
+    this.search,
+    this.query = '',
   });
 
   @override
   Widget build(BuildContext context) {
-    final add = onAddMembers != null ? 1 : 0;
-    // Скрытый список не админу — пояснение последней строкой.
-    final note = membersOnlyAdmins(chat) ? 1 : 0;
+    final t = context.t.screenChatInfo;
+    final searching = query.trim().isNotEmpty;
+    final head = search != null ? 1 : 0;
+    // «Добавить участников» — не во время поиска.
+    final add = onAddMembers != null && !searching ? 1 : 0;
+    // Последней строкой — пояснение: при поиске — как ищется (или «Никого не
+    // найдено»), у скрытого списка не админу — что список видят админы.
+    final note = searching
+        ? (!loading && members.isEmpty ? '${t.membersNotFound}. ${t.membersSearchNote}' : t.membersSearchNote)
+        : (membersOnlyAdmins(chat) ? t.membersHiddenNote : null);
+    final notes = note == null ? 0 : 1;
     final spinner = loading ? 1 : 0;
     return SliverPadding(
       padding: margin,
@@ -464,10 +485,11 @@ class ChatMembersSliver extends StatelessWidget {
         sliver: SliverPadding(
           padding: const EdgeInsets.symmetric(vertical: 6),
           sliver: SliverList.builder(
-            itemCount: add + members.length + spinner + note,
+            itemCount: head + add + members.length + spinner + notes,
             itemBuilder: (context, index) {
-              if (index < add) return _AddMembersRow(style: style, onTap: onAddMembers!);
-              final i = index - add;
+              if (index < head) return Padding(padding: const EdgeInsets.fromLTRB(12, 4, 12, 6), child: search);
+              if (index < head + add) return _AddMembersRow(style: style, onTap: onAddMembers!);
+              final i = index - head - add;
               if (i < members.length) {
                 final m = members[i];
                 final row = _MemberRow(member: m, chat: chat, style: style, onTap: onMemberTap == null ? null : () => onMemberTap!(m));
@@ -481,7 +503,7 @@ class ChatMembersSliver extends StatelessWidget {
               }
               return Padding(
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 6),
-                child: Text(context.t.screenChatInfo.membersHiddenNote, style: TextStyle(fontSize: 13, color: style.secondary)),
+                child: Text(note!, style: TextStyle(fontSize: 13, color: style.secondary)),
               );
             },
           ),

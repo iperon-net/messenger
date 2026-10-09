@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -43,13 +45,12 @@ class ChatAdminsMaterial extends StatelessWidget {
 
   Future<void> _add(BuildContext context, ChatState state) async {
     final cubit = context.read<ChatCubit>();
-    final candidates = [
-      for (final m in state.members)
-        if (!m.isSelf && m.role != models.ChatRole.admin && m.role != models.ChatRole.owner) m,
-    ];
-    final member = await Navigator.of(
-      context,
-    ).push<models.ChatMember>(FullSwipeBackRoute(builder: (_) => _PickMemberMaterial(candidates: candidates)));
+    final candidates = pickableMembers(state.members);
+    final member = await Navigator.of(context).push<models.ChatMember>(
+      FullSwipeBackRoute(
+        builder: (_) => _PickMemberMaterial(candidates: candidates, search: cubit.findMembers),
+      ),
+    );
     if (member != null && context.mounted) await showChatAdminRightsMaterial(context, cubit, member);
   }
 
@@ -106,34 +107,69 @@ class ChatAdminsMaterial extends StatelessWidget {
   }
 }
 
-/// Выбор участника для «Добавить админа».
-class _PickMemberMaterial extends StatelessWidget {
+/// Выбор участника для «Добавить админа / модератора»: недавно активные, а
+/// поиском — любой участник (в большом чате всех не перечислить).
+class _PickMemberMaterial extends StatefulWidget {
   final List<models.ChatMember> candidates;
+  final Future<List<models.ChatMember>> Function(String query) search;
 
-  const _PickMemberMaterial({required this.candidates});
+  const _PickMemberMaterial({required this.candidates, required this.search});
+
+  @override
+  State<_PickMemberMaterial> createState() => _PickMemberMaterialState();
+}
+
+class _PickMemberMaterialState extends State<_PickMemberMaterial> {
+  final _query = TextEditingController();
+  List<models.ChatMember>? _found;
+  Timer? _debounce;
+
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    _query.dispose();
+    super.dispose();
+  }
+
+  void _onChanged(String value) {
+    _debounce?.cancel();
+    if (value.trim().isEmpty) return setState(() => _found = null);
+    _debounce = Timer(const Duration(milliseconds: 300), () async {
+      final found = await widget.search(value);
+      if (mounted && _query.text == value) setState(() => _found = pickableMembers(found));
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     final t = context.t;
     final scheme = Theme.of(context).colorScheme;
+    final list = _found ?? widget.candidates;
     return Scaffold(
       backgroundColor: scheme.surfaceContainerLow,
       appBar: AppBar(backgroundColor: scheme.surfaceContainerLow, title: Text(t.screenChatAdmins.pickMember)),
       body: SafeArea(
         child: ListView(
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           padding: const EdgeInsets.only(top: 8),
           children: [
-            if (candidates.isEmpty)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
+              child: SearchFieldMaterial(controller: _query, hintText: t.screenChatInfo.membersSearch, onChanged: _onChanged),
+            ),
+            if (list.isEmpty)
               Padding(
                 padding: const EdgeInsets.all(32),
                 child: Text(
-                  t.screenChatAdmins.noCandidates,
+                  _found == null ? t.screenChatAdmins.noCandidates : t.screenChatInfo.membersNotFound,
                   textAlign: TextAlign.center,
                   style: TextStyle(color: scheme.onSurfaceVariant),
                 ),
               )
-            else
-              _card([for (final m in candidates) ContactTileMaterial(contact: m, onTap: () => Navigator.of(context).pop(m))]),
+            else ...[
+              _card([for (final m in list) ContactTileMaterial(contact: m, onTap: () => Navigator.of(context).pop(m))]),
+              if (_found != null) createNoteMaterial(context, t.screenChatInfo.membersSearchNote),
+            ],
           ],
         ),
       ),

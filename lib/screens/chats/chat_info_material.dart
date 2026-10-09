@@ -50,6 +50,9 @@ class _ChatInfoMaterialState extends State<ChatInfoMaterial> {
   /// Открыта вкладка «Участники» — догружать страницы при прокрутке.
   bool _membersTab = false;
 
+  /// Поиск по «Участникам».
+  final _memberSearch = TextEditingController();
+
   /// Страница сообщества: AppBar прозрачный поверх обложки, пока обложка не
   /// уехала под него.
   bool _overCover = true;
@@ -71,6 +74,7 @@ class _ChatInfoMaterialState extends State<ChatInfoMaterial> {
   @override
   void dispose() {
     _scroll.dispose();
+    _memberSearch.dispose();
     super.dispose();
   }
 
@@ -294,6 +298,7 @@ class _ChatInfoMaterialState extends State<ChatInfoMaterial> {
               ? const SizedBox.shrink()
               : CustomScrollView(
                   controller: _scroll,
+                  keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                   slivers: [
                     SliverList.list(
                       children: [
@@ -514,6 +519,16 @@ class _ChatInfoMaterialState extends State<ChatInfoMaterial> {
                         chat: chat,
                         members: state.memberPage,
                         loading: state.memberPageLoading,
+                        query: state.memberQuery,
+                        // Поиск — когда листать долго (скрытый список не админу —
+                        // только админы, искать незачем).
+                        search: !membersOnlyAdmins(chat) && (state.membersTotal > 20 || state.memberQuery.isNotEmpty)
+                            ? SearchFieldMaterial(
+                                controller: _memberSearch,
+                                hintText: t.screenChatInfo.membersSearch,
+                                onChanged: context.read<ChatCubit>().searchMembers,
+                              )
+                            : null,
                         loader: const SizedBox.square(dimension: 24, child: CircularProgressIndicator(strokeWidth: 2.5)),
                         style: ChatInfoStyle(
                           text: scheme.onSurface,

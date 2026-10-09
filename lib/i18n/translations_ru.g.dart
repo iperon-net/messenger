@@ -854,6 +854,9 @@ class _Translations$screenChatInfo$ru extends Translations$screenChatInfo$en {
 	@override String get roleCommunityOwner => 'владелец сообщества';
 	@override String get roleCommunityAdmin => 'админ сообщества';
 	@override String get roleModerator => 'модератор';
+	@override String get membersSearch => 'Имя или @username';
+	@override String get membersNotFound => 'Никого не найдено';
+	@override String get membersSearchNote => 'По имени ищутся админы, недавно активные и ваши контакты, остальные — по @username.';
 	@override String get membersHiddenNote => 'Список участников видят только админы.';
 	@override String get communityDefaults => 'Как в сообществе';
 	@override String communityDefaultsOwn({required Object list}) => 'Свои: ${list}';
@@ -2063,6 +2066,9 @@ extension on TranslationsRu {
 			'screenChatInfo.roleCommunityOwner' => 'владелец сообщества',
 			'screenChatInfo.roleCommunityAdmin' => 'админ сообщества',
 			'screenChatInfo.roleModerator' => 'модератор',
+			'screenChatInfo.membersSearch' => 'Имя или @username',
+			'screenChatInfo.membersNotFound' => 'Никого не найдено',
+			'screenChatInfo.membersSearchNote' => 'По имени ищутся админы, недавно активные и ваши контакты, остальные — по @username.',
 			'screenChatInfo.membersHiddenNote' => 'Список участников видят только админы.',
 			'screenChatInfo.communityDefaults' => 'Как в сообществе',
 			'screenChatInfo.communityDefaultsOwn' => ({required Object list}) => 'Свои: ${list}',

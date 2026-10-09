@@ -478,6 +478,7 @@ class ChatCubit extends Cubit<ChatState> {
       _chatID,
       cursor: more ? _memberCursor : '',
       limit: more ? 50 : math.max(50, state.memberPage.length),
+      query: state.memberQuery,
     );
     if (isClosed || generation != _memberGeneration) return;
     _memberCursor = page.nextCursor;
@@ -490,6 +491,27 @@ class ChatCubit extends Cubit<ChatState> {
       ),
     );
   }
+
+  Timer? _memberSearchTimer;
+
+  /// Поиск по «Участникам»: список перезагружается с запросом (с паузой на
+  /// набор — не на каждую букву).
+  void searchMembers(String query) {
+    if (query == state.memberQuery) return;
+    emit(state.copyWith(memberQuery: query));
+    _memberSearchTimer?.cancel();
+    _memberSearchTimer = Timer(const Duration(milliseconds: 300), () {
+      if (isClosed) return;
+      // Новый запрос — с первой страницы.
+      emit(state.copyWith(memberPage: const []));
+      loadMemberPage();
+    });
+  }
+
+  /// Найти участников по [query] (выбор модератора / админа) — первая
+  /// страница результатов.
+  Future<List<models.ChatMember>> findMembers(String query) async =>
+      (await _source?.membersPage(_chatID, query: query))?.members ?? const [];
 
   Future<void> loadMembers() async {
     final source = _source;
@@ -627,6 +649,7 @@ class ChatCubit extends Cubit<ChatState> {
     await _messagesSubscription?.cancel();
     await _scheduledSubscription?.cancel();
     await _membersSubscription?.cancel();
+    _memberSearchTimer?.cancel();
     _slowModeTimer?.cancel();
     _commentsTimer?.cancel();
     return super.close();

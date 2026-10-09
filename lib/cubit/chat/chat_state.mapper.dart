@@ -236,6 +236,13 @@ class ChatStateMapper extends ClassMapperBase<ChatState> {
     opt: true,
     def: 0,
   );
+  static String _$memberQuery(ChatState v) => v.memberQuery;
+  static const Field<ChatState, String> _f$memberQuery = Field(
+    'memberQuery',
+    _$memberQuery,
+    opt: true,
+    def: '',
+  );
   static List<models.ChatMember> _$banned(ChatState v) => v.banned;
   static const Field<ChatState, List<models.ChatMember>> _f$banned = Field(
     'banned',
@@ -309,6 +316,7 @@ class ChatStateMapper extends ClassMapperBase<ChatState> {
     #memberPageMore: _f$memberPageMore,
     #memberPageLoading: _f$memberPageLoading,
     #membersTotal: _f$membersTotal,
+    #memberQuery: _f$memberQuery,
     #banned: _f$banned,
     #slowModeLeft: _f$slowModeLeft,
     #commentsClosedIDs: _f$commentsClosedIDs,
@@ -343,6 +351,7 @@ class ChatStateMapper extends ClassMapperBase<ChatState> {
       memberPageMore: data.dec(_f$memberPageMore),
       memberPageLoading: data.dec(_f$memberPageLoading),
       membersTotal: data.dec(_f$membersTotal),
+      memberQuery: data.dec(_f$memberQuery),
       banned: data.dec(_f$banned),
       slowModeLeft: data.dec(_f$slowModeLeft),
       commentsClosedIDs: data.dec(_f$commentsClosedIDs),
@@ -489,6 +498,7 @@ abstract class ChatStateCopyWith<$R, $In extends ChatState, $Out>
     bool? memberPageMore,
     bool? memberPageLoading,
     int? membersTotal,
+    String? memberQuery,
     List<models.ChatMember>? banned,
     int? slowModeLeft,
     List<String>? commentsClosedIDs,
@@ -647,6 +657,7 @@ class _ChatStateCopyWithImpl<$R, $Out>
     bool? memberPageMore,
     bool? memberPageLoading,
     int? membersTotal,
+    String? memberQuery,
     List<models.ChatMember>? banned,
     int? slowModeLeft,
     List<String>? commentsClosedIDs,
@@ -680,6 +691,7 @@ class _ChatStateCopyWithImpl<$R, $Out>
       if (memberPageMore != null) #memberPageMore: memberPageMore,
       if (memberPageLoading != null) #memberPageLoading: memberPageLoading,
       if (membersTotal != null) #membersTotal: membersTotal,
+      if (memberQuery != null) #memberQuery: memberQuery,
       if (banned != null) #banned: banned,
       if (slowModeLeft != null) #slowModeLeft: slowModeLeft,
       if (commentsClosedIDs != null) #commentsClosedIDs: commentsClosedIDs,
@@ -720,6 +732,7 @@ class _ChatStateCopyWithImpl<$R, $Out>
       or: $value.memberPageLoading,
     ),
     membersTotal: data.get(#membersTotal, or: $value.membersTotal),
+    memberQuery: data.get(#memberQuery, or: $value.memberQuery),
     banned: data.get(#banned, or: $value.banned),
     slowModeLeft: data.get(#slowModeLeft, or: $value.slowModeLeft),
     commentsClosedIDs: data.get(

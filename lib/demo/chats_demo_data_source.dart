@@ -7,6 +7,7 @@ import '../auth.dart';
 import '../chats/invite_link.dart';
 import '../di.dart';
 import '../repositories.dart';
+import '../chats/member_search.dart';
 import '../chats/message_formatting.dart';
 import '../chats/reactions.dart';
 import '../models.dart' as models;
@@ -247,20 +248,26 @@ class ChatsDemoDataSource implements ChatsDataSource {
   }
 
   @override
-  Future<ChatMembersPage> membersPage(String chatID, {String cursor = '', int limit = 50}) async {
+  Future<ChatMembersPage> membersPage(String chatID, {String cursor = '', int limit = 50, String query = ''}) async {
     final chat = _chat(chatID);
     if (chat == null) return const ChatMembersPage(members: [], nextCursor: '', total: 0);
     var all = _byActivity(_allMembers(chatID));
     // Скрытый список — не админу только владелец и админы (сервер не отдаёт
     // остальных).
     if (chat.membersHidden && !chat.canManage) all = all.take(_staffCount(all)).toList();
+    final q = normalizeMemberQuery(query);
+    if (q.isNotEmpty) {
+      // По имени — только те, чьи имена знает клиент: «известные» и контакты.
+      final named = {for (final m in all.take(_staffCount(all) + _knownMembers)) m.id, for (final c in _contacts()) c.id};
+      all = all.where((m) => memberMatches(m, q, byName: named.contains(m.id))).toList();
+    }
     final from = min(int.tryParse(cursor) ?? 0, all.length);
     final to = min(from + limit, all.length);
     await Future<void>.delayed(const Duration(milliseconds: 250)); // как запрос к серверу
     return ChatMembersPage(
       members: all.sublist(from, to),
       nextCursor: to < all.length ? '$to' : '',
-      total: chat.membersHidden && !chat.canManage ? all.length : max(chat.membersCount, all.length),
+      total: q.isNotEmpty || (chat.membersHidden && !chat.canManage) ? all.length : max(chat.membersCount, all.length),
     );
   }
 

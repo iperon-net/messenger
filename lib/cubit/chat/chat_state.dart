@@ -82,6 +82,9 @@ class ChatState with ChatStateMappable {
   final bool memberPageLoading;
   final int membersTotal;
 
+  /// Поиск по «Участникам» (пусто — весь список).
+  final String memberQuery;
+
   /// Заблокированные в группе — для админа (профиль → «Заблокированные»).
   final List<models.ChatMember> banned;
 
@@ -130,6 +133,7 @@ class ChatState with ChatStateMappable {
     this.memberPageMore = false,
     this.memberPageLoading = false,
     this.membersTotal = 0,
+    this.memberQuery = '',
     this.banned = const [],
     this.slowModeLeft = 0,
     this.commentsClosedIDs = const [],
