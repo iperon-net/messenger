@@ -55,7 +55,7 @@ class ChatsDemoDataSource implements ChatsDataSource {
     }
     return [
       for (final c in _chats)
-        if (c.type == models.ChatType.community) _summary(c, byCommunity[c.id] ?? const []) else c,
+        if (c.type == models.ChatType.community) _summary(c, byCommunity[c.id] ?? const []) else _withRole(c),
     ];
   }
 
@@ -141,17 +141,87 @@ class ChatsDemoDataSource implements ChatsDataSource {
   /// `slowMode` секунд (настоящий сервер ещё и отклонит слишком раннее).
   void _slowModeSent(String chatID) {
     final chat = _chats.where((c) => c.id == chatID).firstOrNull;
-    if (chat == null || !chat.slowModeApplies) return;
+    if (chat == null || !_withRole(chat).slowModeApplies) return;
     _update(chatID, (c) => c.copyWith(slowModeUntil: DateTime.now().add(Duration(seconds: c.slowMode))));
   }
 
   final _members = <String, List<models.ChatMember>>{};
 
+  /// id чатов, у которых изменились участники / роли / блокировки.
+  final _membersController = StreamController<String>.broadcast();
+
+  @override
+  Stream<void> watchMembersChanged(String chatID) => _membersController.stream.where((id) => id == chatID);
+
+  /// Участники [chatID] изменились; у сообщества — и во всех его чатах
+  /// (владелец, админы и блокировки сообщества в них сквозные).
+  void _membersChanged(String chatID) {
+    _membersController.add(chatID);
+    for (final c in _chats) {
+      if (c.communityID == chatID) _membersController.add(c.id);
+    }
+  }
+
+  /// Сообщество чата [chat] (`null` — чат не в сообществе).
+  models.Chat? _communityOf(models.Chat chat) => chat.inCommunity ? _chats.where((c) => c.id == chat.communityID).firstOrNull : null;
+
+  /// Наша роль в чате с учётом сообщества (см. «Настройки групп и каналов
+  /// внутри сообщества» в docs/plans/chats-groups-channels.md): владелец и
+  /// админы сообщества — владелец и админы во всех его чатах, владельцем чата
+  /// сообщества может быть только владелец сообщества.
+  models.ChatRole _roleIn(models.Chat chat) {
+    final community = _communityOf(chat);
+    if (community == null) return chat.myRole;
+    if (community.myRole == models.ChatRole.owner || community.myRole == models.ChatRole.admin) return community.myRole;
+    return chat.myRole == models.ChatRole.owner ? models.ChatRole.admin : chat.myRole;
+  }
+
+  /// [chat] с нашей ролью с учётом сообщества — как его видят подписчики.
+  models.Chat _withRole(models.Chat chat) => chat.inCommunity ? chat.copyWith(myRole: _roleIn(chat)) : chat;
+
   @override
   Future<List<models.ChatMember>> members(String chatID) async {
     final chat = _chats.where((c) => c.id == chatID).firstOrNull;
     if (chat == null || chat.type == models.ChatType.private) return const [];
-    return _members.putIfAbsent(chatID, () {
+    final community = _communityOf(chat);
+    return community == null ? _own(chat) : _inherit(community, _own(chat));
+  }
+
+  /// Участники чата [chat] — свои, без учёта сообщества.
+  List<models.ChatMember> _ownByID(String chatID) {
+    final chat = _chats.where((c) => c.id == chatID).firstOrNull;
+    return chat == null || chat.type == models.ChatType.private ? const [] : _own(chat);
+  }
+
+  /// Участники чата сообщества: владелец и админы сообщества — с его ролью и
+  /// правами (`fromCommunity`, в самом чате не меняются), остальные — свои,
+  /// кроме заблокированных в сообществе. Свой «владелец» у чата сообщества
+  /// невозможен — такой остаётся админом (модератором темы).
+  List<models.ChatMember> _inherit(models.Chat community, List<models.ChatMember> own) {
+    final staff = [
+      for (final m in _own(community))
+        if (m.role == models.ChatRole.owner || m.role == models.ChatRole.admin) m.copyWith(fromCommunity: true),
+    ];
+    final staffIDs = {for (final m in staff) m.id};
+    final bannedIDs = {for (final m in _banned[community.id] ?? const <models.ChatMember>[]) m.id};
+    return _sortedMembers([
+      ...staff,
+      for (final m in own)
+        if (!staffIDs.contains(m.id) && !bannedIDs.contains(m.id))
+          m.role == models.ChatRole.owner ? m.copyWith(role: models.ChatRole.admin, rights: models.ChatAdminRights.standard) : m,
+    ]);
+  }
+
+  /// Владелец, затем админы, затем остальные (внутри — в прежнем порядке).
+  static List<models.ChatMember> _sortedMembers(List<models.ChatMember> members) {
+    int rank(models.ChatMember m) => m.role == models.ChatRole.owner ? 0 : (m.role == models.ChatRole.admin ? 1 : 2);
+    final indexed = members.indexed.toList()
+      ..sort((a, b) => rank(a.$2) != rank(b.$2) ? rank(a.$2).compareTo(rank(b.$2)) : a.$1.compareTo(b.$1));
+    return [for (final (_, m) in indexed) m];
+  }
+
+  List<models.ChatMember> _own(models.Chat chat) {
+    return _members.putIfAbsent(chat.id, () {
       final now = DateTime.now();
       // Демо: участники из имён истории + «Вы»; список — первые до 30.
       const surnames = ['Смирнова', 'Козлов', 'Иванова', 'Петров', 'Соколова', 'Морозов', 'Волкова', 'Новиков'];
@@ -188,10 +258,7 @@ class ChatsDemoDataSource implements ChatsDataSource {
           ),
         );
       }
-      int rank(models.ChatMember m) => m.role == models.ChatRole.owner ? 0 : (m.role == models.ChatRole.admin ? 1 : 2);
-      final indexed = result.indexed.toList()
-        ..sort((a, b) => rank(a.$2) != rank(b.$2) ? rank(a.$2).compareTo(rank(b.$2)) : a.$1.compareTo(b.$1));
-      return [for (final (_, m) in indexed) m];
+      return _sortedMembers(result);
     });
   }
 
@@ -629,7 +696,7 @@ class ChatsDemoDataSource implements ChatsDataSource {
   /// Заявки возможны: вступление «по заявке» или есть живая ссылка с
   /// одобрением.
   bool _acceptsRequests(models.Chat chat) {
-    if (!chat.canManage || chat.type == models.ChatType.private) return false;
+    if (!_withRole(chat).canManage || chat.type == models.ChatType.private) return false;
     if (chat.joinMode == models.ChatJoinMode.request) return true;
     final now = DateTime.now();
     return (_links[chat.id] ?? const <models.ChatInviteLink>[]).any((l) => l.requestApproval && l.isActive(now));
@@ -658,6 +725,7 @@ class ChatsDemoDataSource implements ChatsDataSource {
         ...members,
         for (final r in answered) models.ChatMember(id: r.userID, name: r.name, role: chat.defaultRole, online: true),
       ];
+      _membersChanged(chatID);
     }
     // Вступление по ссылке засчитывается ей.
     if (_links.containsKey(chatID)) {
@@ -700,77 +768,134 @@ class ChatsDemoDataSource implements ChatsDataSource {
 
   @override
   Future<void> setMemberRole(String chatID, String userID, models.ChatRole role) async {
-    final members = await this.members(chatID);
-    _members[chatID] = [for (final m in members) m.id == userID ? m.copyWith(role: role) : m];
+    _members[chatID] = [for (final m in _ownByID(chatID)) m.id == userID ? m.copyWith(role: role) : m];
+    _membersChanged(chatID);
   }
 
   @override
   Future<void> removeMember(String chatID, String userID, {bool ban = false}) async {
-    final members = await this.members(chatID);
-    final member = members.where((m) => m.id == userID).firstOrNull;
+    final chat = _chats.where((c) => c.id == chatID).firstOrNull;
+    if (chat == null) return;
+    final member = (await members(chatID)).where((m) => m.id == userID && !m.fromCommunity).firstOrNull;
     if (member == null) return;
-    _members[chatID] = members.where((m) => m.id != userID).toList();
-    if (ban) _banned[chatID] = [member, ...?_banned[chatID]];
-    _update(chatID, (c) => c.copyWith(membersCount: max(1, c.membersCount - 1)));
-    _service(chatID, 'Вы исключили ${member.name}');
+    final community = _communityOf(chat);
+    if (ban && community != null) {
+      // Своего списка блокировок у чата сообщества нет — блокируем в самом
+      // сообществе: исключён из него и из всех его чатов.
+      _expel(community.id, member, ban: true);
+      _service(chatID, 'Вы заблокировали ${member.name} в сообществе');
+    } else {
+      _expel(chatID, member, ban: ban);
+      if (chat.type != models.ChatType.community) _service(chatID, 'Вы исключили ${member.name}');
+    }
+    _membersChanged(community?.id ?? chatID);
+  }
+
+  /// Убрать [member] из участников [chatID] (и в [_banned], если [ban]).
+  /// Из сообщества — и из всех его чатов: выход из сообщества = выход из
+  /// всех его групп.
+  void _expel(String chatID, models.ChatMember member, {required bool ban}) {
+    void drop(String id) {
+      final own = _ownByID(id);
+      if (!own.any((m) => m.id == member.id)) return;
+      _members[id] = own.where((m) => m.id != member.id).toList();
+      _update(id, (c) => c.copyWith(membersCount: max(1, c.membersCount - 1)));
+    }
+
+    drop(chatID);
+    for (final c in _communityChats(chatID)) {
+      drop(c.id);
+    }
+    if (ban) _banned[chatID] = [member.copyWith(role: models.ChatRole.writer, fromCommunity: false), ...?_banned[chatID]];
+  }
+
+  /// Чьи блокировки действуют в [chatID]: у чата сообщества — сообщества.
+  String _banScope(String chatID) {
+    final chat = _chats.where((c) => c.id == chatID).firstOrNull;
+    return chat == null ? chatID : (_communityOf(chat)?.id ?? chatID);
   }
 
   @override
-  Future<List<models.ChatMember>> banned(String chatID) async => _banned[chatID] ?? const [];
+  Future<List<models.ChatMember>> banned(String chatID) async => _banned[_banScope(chatID)] ?? const [];
 
   @override
   Future<void> unbanMember(String chatID, String userID) async {
-    _banned[chatID] = [
-      for (final m in _banned[chatID] ?? const <models.ChatMember>[])
+    final scope = _banScope(chatID);
+    final list = _banned[scope] ?? const <models.ChatMember>[];
+    if (!list.any((m) => m.id == userID)) return;
+    _banned[scope] = [
+      for (final m in list)
         if (m.id != userID) m,
     ];
+    _membersChanged(scope);
   }
 
   @override
   Future<void> addMembers(String chatID, List<String> userIDs) async {
     final chat = _chats.where((c) => c.id == chatID).firstOrNull;
     if (chat == null) return;
-    final members = await this.members(chatID);
-    final present = {for (final m in members) m.id};
+    final present = {for (final m in await members(chatID)) m.id};
     final contacts = {for (final c in _contacts()) c.id: c};
     final added = [
       for (final id in userIDs)
         if (!present.contains(id) && contacts[id] != null) contacts[id]!.copyWith(role: chat.defaultRole),
     ];
     if (added.isEmpty) return;
-    _members[chatID] = [...members, ...added];
+    _members[chatID] = [..._ownByID(chatID), ...added];
+    _update(chatID, (c) => c.copyWith(membersCount: c.membersCount + added.length));
+    // В чат сообщества входят только его участники — добавленный становится и
+    // участником сообщества.
+    final community = _communityOf(chat);
+    if (community != null) {
+      final inCommunity = {for (final m in _own(community)) m.id};
+      final joined = added.where((m) => !inCommunity.contains(m.id)).toList();
+      if (joined.isNotEmpty) {
+        _members[community.id] = [..._own(community), for (final m in joined) m.copyWith(role: community.defaultRole)];
+        _update(community.id, (c) => c.copyWith(membersCount: c.membersCount + joined.length));
+      }
+    }
     for (final m in added) {
       await unbanMember(chatID, m.id);
     }
-    _update(chatID, (c) => c.copyWith(membersCount: c.membersCount + added.length));
     _service(chatID, 'Вы добавили ${added.map((m) => m.name).join(', ')}');
+    _membersChanged(community?.id ?? chatID);
   }
 
   // ─── Админы ───────────────────────────────────────────────────────────────
 
+  /// Владелец и админы сообщества в его чате — их роль и права меняются
+  /// только в сообществе.
+  Future<bool> _inheritedAdmin(String chatID, String userID) async => (await members(chatID)).any((m) => m.id == userID && m.fromCommunity);
+
   @override
   Future<void> setAdmin(String chatID, String userID, {required models.ChatAdminRights rights, String rank = ''}) async {
-    final members = await this.members(chatID);
+    if (await _inheritedAdmin(chatID, userID)) return;
     _members[chatID] = [
-      for (final m in members)
+      for (final m in _ownByID(chatID))
         m.id == userID && m.role != models.ChatRole.owner ? m.copyWith(role: models.ChatRole.admin, rights: rights, rank: rank) : m,
     ];
+    _membersChanged(chatID);
   }
 
   @override
   Future<void> removeAdmin(String chatID, String userID) async {
-    final members = await this.members(chatID);
+    if (await _inheritedAdmin(chatID, userID)) return;
     _members[chatID] = [
-      for (final m in members)
+      for (final m in _ownByID(chatID))
         m.id == userID && m.role == models.ChatRole.admin
             ? m.copyWith(role: models.ChatRole.writer, rights: const models.ChatAdminRights(), rank: '')
             : m,
     ];
+    _membersChanged(chatID);
   }
 
   @override
   Future<void> transferOwnership(String chatID, String userID) async {
-    final members = await this.members(chatID);
+    final chat = _chats.where((c) => c.id == chatID).firstOrNull;
+    // Владелец чата сообщества — всегда владелец сообщества: владение
+    // передаётся только у всего сообщества (вместе со всеми его чатами).
+    if (chat == null || chat.inCommunity) return;
+    final members = _own(chat);
     final target = members.where((m) => m.id == userID).firstOrNull;
     if (target == null) return;
     _members[chatID] = [
@@ -783,7 +908,8 @@ class ChatsDemoDataSource implements ChatsDataSource {
           m,
     ];
     _update(chatID, (c) => c.copyWith(myRole: models.ChatRole.admin));
-    _service(chatID, '${target.name} теперь владелец');
+    if (chat.type != models.ChatType.community) _service(chatID, '${target.name} теперь владелец');
+    _membersChanged(chatID);
   }
 
   // ─── Ссылки iperon.net и вступление ───────────────────────────────────────
@@ -1140,7 +1266,7 @@ class ChatsDemoDataSource implements ChatsDataSource {
     if (chat == null) return;
     // Из группы / канала сообщества выходим, но чат остаётся в сообществе —
     // можно вступить снова; удаляет его у всех только владелец.
-    if (chat.inCommunity && chat.myRole != models.ChatRole.owner) {
+    if (chat.inCommunity && _roleIn(chat) != models.ChatRole.owner) {
       _members.remove(chatID);
       _update(
         chatID,

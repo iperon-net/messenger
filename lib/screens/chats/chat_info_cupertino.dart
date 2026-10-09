@@ -153,12 +153,14 @@ class _ChatInfoCupertinoState extends State<ChatInfoCupertino> {
           () => cubit.setMemberRole(member, member.role == models.ChatRole.reader ? models.ChatRole.writer : models.ChatRole.reader),
         ),
         rowMenuAction(context, t.removeMember, CupertinoIcons.person_badge_minus, () async {
-          if (await confirm(t.removeMemberTitle(name: member.name), t.removeMemberMessage, t.removeMember)) {
+          final text = memberRemoveConfirm(context.t, chat, member, ban: false);
+          if (await confirm(text.title, text.message, t.removeMember)) {
             await cubit.removeMember(member);
           }
         }, destructive: true),
         rowMenuAction(context, t.banMember, CupertinoIcons.nosign, () async {
-          if (await confirm(t.banMemberTitle(name: member.name), t.banMemberMessage, t.banMember)) {
+          final text = memberRemoveConfirm(context.t, chat, member, ban: true);
+          if (await confirm(text.title, text.message, t.banMember)) {
             await cubit.removeMember(member, ban: true);
           }
         }, destructive: true),

@@ -1024,6 +1024,12 @@ class Translations$screenChatAdmins$en {
 	/// en: 'Admins help manage the chat. Each admin's rights are set separately.'
 	String get adminsFooter => 'Admins help manage the chat. Each admin\'s rights are set separately.';
 
+	/// en: 'Community admins are also admins in all its groups and channels, with the same rights.'
+	String get adminsFooterOfCommunity => 'Community admins are also admins in all its groups and channels, with the same rights.';
+
+	/// en: 'The community owner and admins manage all its chats — their rights are changed in the community. Here you can appoint moderators of this chat only.'
+	String get adminsFooterCommunity => 'The community owner and admins manage all its chats — their rights are changed in the community. Here you can appoint moderators of this chat only.';
+
 	/// en: 'Make Admin'
 	String get promote => 'Make Admin';
 
@@ -1951,6 +1957,12 @@ class Translations$screenChatInfo$en {
 	/// en: 'read only'
 	String get roleReader => 'read only';
 
+	/// en: 'community owner'
+	String get roleCommunityOwner => 'community owner';
+
+	/// en: 'community admin'
+	String get roleCommunityAdmin => 'community admin';
+
 	/// en: 'You'
 	String get you => 'You';
 
@@ -1986,6 +1998,15 @@ class Translations$screenChatInfo$en {
 
 	/// en: 'They will be removed and won't be able to come back via invite links until unbanned.'
 	String get banMemberMessage => 'They will be removed and won\'t be able to come back via invite links until unbanned.';
+
+	/// en: 'They will stay in the community and can join this chat again.'
+	String get removeInCommunityMessage => 'They will stay in the community and can join this chat again.';
+
+	/// en: 'Ban {name} from the community?'
+	String banInCommunityTitle({required Object name}) => 'Ban ${name} from the community?';
+
+	/// en: 'They will be removed from the community and all its chats and won't be able to come back until unbanned.'
+	String get banInCommunityMessage => 'They will be removed from the community and all its chats and won\'t be able to come back until unbanned.';
 
 	/// en: 'Banned'
 	String get banned => 'Banned';
@@ -3649,6 +3670,8 @@ extension on Translations {
 			'screenChatAdmins.admins' => 'Administrators',
 			'screenChatAdmins.addAdmin' => 'Add Admin',
 			'screenChatAdmins.adminsFooter' => 'Admins help manage the chat. Each admin\'s rights are set separately.',
+			'screenChatAdmins.adminsFooterOfCommunity' => 'Community admins are also admins in all its groups and channels, with the same rights.',
+			'screenChatAdmins.adminsFooterCommunity' => 'The community owner and admins manage all its chats — their rights are changed in the community. Here you can appoint moderators of this chat only.',
 			'screenChatAdmins.promote' => 'Make Admin',
 			'screenChatAdmins.adminRights' => 'Admin Rights',
 			'screenChatAdmins.newAdmin' => 'New Admin',
@@ -3874,10 +3897,10 @@ extension on Translations {
 			'screenSettingsNotifications.messagePreviewNote' => 'Without a preview, notifications show only who sent the message.',
 			'screenSettingsNotifications.settingsSyncNote' => 'Settings apply to all your devices.',
 			'screenSettingsNotifications.permissionMissingTitle' => 'Notifications are turned off',
-			'screenSettingsNotifications.permissionMissingMessage' => 'Iperon isn\'t allowed to show notifications on this device, so these settings won\'t take effect.',
-			'screenSettingsNotifications.enable' => 'Turn on',
 			_ => null,
 		} ?? switch (path) {
+			'screenSettingsNotifications.permissionMissingMessage' => 'Iperon isn\'t allowed to show notifications on this device, so these settings won\'t take effect.',
+			'screenSettingsNotifications.enable' => 'Turn on',
 			'screenSettingsNotifications.loadError' => 'Couldn\'t load the settings',
 			'screenSettingsNotifications.offlineNote' => 'No connection. You can change this once you\'re back online.',
 			'screenSettingsNotifications.retry' => 'Retry',
@@ -3931,6 +3954,8 @@ extension on Translations {
 			'screenChatInfo.roleOwner' => 'owner',
 			'screenChatInfo.roleAdmin' => 'admin',
 			'screenChatInfo.roleReader' => 'read only',
+			'screenChatInfo.roleCommunityOwner' => 'community owner',
+			'screenChatInfo.roleCommunityAdmin' => 'community admin',
 			'screenChatInfo.you' => 'You',
 			'screenChatInfo.addMembers' => 'Add Members',
 			'screenChatInfo.add' => 'Add',
@@ -3943,6 +3968,9 @@ extension on Translations {
 			'screenChatInfo.banMember' => 'Ban',
 			'screenChatInfo.banMemberTitle' => ({required Object name}) => 'Ban ${name}?',
 			'screenChatInfo.banMemberMessage' => 'They will be removed and won\'t be able to come back via invite links until unbanned.',
+			'screenChatInfo.removeInCommunityMessage' => 'They will stay in the community and can join this chat again.',
+			'screenChatInfo.banInCommunityTitle' => ({required Object name}) => 'Ban ${name} from the community?',
+			'screenChatInfo.banInCommunityMessage' => 'They will be removed from the community and all its chats and won\'t be able to come back until unbanned.',
 			'screenChatInfo.banned' => 'Banned',
 			'screenChatInfo.bannedEmpty' => 'No banned users',
 			'screenChatInfo.bannedFooter' => 'Banned users can\'t join via invite links. Adding them manually unbans them.',

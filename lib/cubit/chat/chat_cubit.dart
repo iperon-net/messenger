@@ -23,6 +23,7 @@ class ChatCubit extends Cubit<ChatState> {
   StreamSubscription<List<models.Chat>>? _chatsSubscription;
   StreamSubscription<List<models.Message>>? _messagesSubscription;
   StreamSubscription<List<models.Message>>? _scheduledSubscription;
+  StreamSubscription<void>? _membersSubscription;
 
   /// Медленный режим: до какого времени ждём и таймер обратного отсчёта.
   DateTime? _slowModeUntil;
@@ -89,6 +90,11 @@ class ChatCubit extends Cubit<ChatState> {
       _placeUnread();
       _syncSlowMode();
       _syncLimits();
+    });
+    // Участники / роли поменялись (в т.ч. в сообществе — его владелец, админы
+    // и блокировки действуют во всех его чатах) — перечитываем загруженные.
+    _membersSubscription = source.watchMembersChanged(chatID).listen((_) {
+      if (!isClosed && state.members.isNotEmpty) loadMembers();
     });
     _scheduledSubscription = source.watchScheduled(chatID).listen((scheduled) {
       if (!isClosed) emit(state.copyWith(scheduled: scheduled));
@@ -586,6 +592,7 @@ class ChatCubit extends Cubit<ChatState> {
     await _chatsSubscription?.cancel();
     await _messagesSubscription?.cancel();
     await _scheduledSubscription?.cancel();
+    await _membersSubscription?.cancel();
     _slowModeTimer?.cancel();
     _commentsTimer?.cancel();
     return super.close();

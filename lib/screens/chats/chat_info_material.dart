@@ -173,11 +173,13 @@ class _ChatInfoMaterialState extends State<ChatInfoMaterial> {
       case 'role':
         await cubit.setMemberRole(member, member.role == models.ChatRole.reader ? models.ChatRole.writer : models.ChatRole.reader);
       case 'remove':
-        if (await confirm(t.removeMemberTitle(name: member.name), t.removeMemberMessage, t.removeMember)) {
+        final text = memberRemoveConfirm(context.t, chat, member, ban: false);
+        if (await confirm(text.title, text.message, t.removeMember)) {
           await cubit.removeMember(member);
         }
       case 'ban':
-        if (await confirm(t.banMemberTitle(name: member.name), t.banMemberMessage, t.banMember)) {
+        final text = memberRemoveConfirm(context.t, chat, member, ban: true);
+        if (await confirm(text.title, text.message, t.banMember)) {
           await cubit.removeMember(member, ban: true);
         }
     }

@@ -457,6 +457,8 @@ class _Translations$screenChatAdmins$ru extends Translations$screenChatAdmins$en
 	@override String get admins => 'Администраторы';
 	@override String get addAdmin => 'Добавить админа';
 	@override String get adminsFooter => 'Админы помогают управлять чатом. Права каждого настраиваются отдельно.';
+	@override String get adminsFooterOfCommunity => 'Админы сообщества — админы и во всех его группах и каналах, с теми же правами.';
+	@override String get adminsFooterCommunity => 'Владелец и админы сообщества управляют всеми его чатами — их права меняются в сообществе. Здесь можно назначить модераторов только этого чата.';
 	@override String get promote => 'Назначить админом';
 	@override String get adminRights => 'Права админа';
 	@override String get newAdmin => 'Новый админ';
@@ -840,6 +842,8 @@ class _Translations$screenChatInfo$ru extends Translations$screenChatInfo$en {
 	@override String get roleOwner => 'владелец';
 	@override String get roleAdmin => 'админ';
 	@override String get roleReader => 'только чтение';
+	@override String get roleCommunityOwner => 'владелец сообщества';
+	@override String get roleCommunityAdmin => 'админ сообщества';
 	@override String get you => 'Вы';
 	@override String get addMembers => 'Добавить участников';
 	@override String get add => 'Добавить';
@@ -852,6 +856,9 @@ class _Translations$screenChatInfo$ru extends Translations$screenChatInfo$en {
 	@override String get banMember => 'Заблокировать';
 	@override String banMemberTitle({required Object name}) => 'Заблокировать ${name}?';
 	@override String get banMemberMessage => 'Участник будет исключён и не сможет вернуться по ссылкам-приглашениям, пока его не разблокируют.';
+	@override String get removeInCommunityMessage => 'Участник останется в сообществе и сможет вступить в чат снова.';
+	@override String banInCommunityTitle({required Object name}) => 'Заблокировать ${name} в сообществе?';
+	@override String get banInCommunityMessage => 'Участник будет исключён из сообщества и всех его чатов и не сможет вернуться, пока его не разблокируют.';
 	@override String get banned => 'Заблокированные';
 	@override String get bannedEmpty => 'Заблокированных нет';
 	@override String get bannedFooter => 'Заблокированные не могут вступить по ссылкам-приглашениям. Если добавить вручную — блокировка снимется.';
@@ -1740,6 +1747,8 @@ extension on TranslationsRu {
 			'screenChatAdmins.admins' => 'Администраторы',
 			'screenChatAdmins.addAdmin' => 'Добавить админа',
 			'screenChatAdmins.adminsFooter' => 'Админы помогают управлять чатом. Права каждого настраиваются отдельно.',
+			'screenChatAdmins.adminsFooterOfCommunity' => 'Админы сообщества — админы и во всех его группах и каналах, с теми же правами.',
+			'screenChatAdmins.adminsFooterCommunity' => 'Владелец и админы сообщества управляют всеми его чатами — их права меняются в сообществе. Здесь можно назначить модераторов только этого чата.',
 			'screenChatAdmins.promote' => 'Назначить админом',
 			'screenChatAdmins.adminRights' => 'Права админа',
 			'screenChatAdmins.newAdmin' => 'Новый админ',
@@ -1965,10 +1974,10 @@ extension on TranslationsRu {
 			'screenSettingsNotifications.messagePreviewNote' => 'Без предпросмотра в уведомлении видно только, от кого сообщение.',
 			'screenSettingsNotifications.settingsSyncNote' => 'Настройки действуют на всех ваших устройствах.',
 			'screenSettingsNotifications.permissionMissingTitle' => 'Уведомления выключены',
-			'screenSettingsNotifications.permissionMissingMessage' => 'Iperon не может показывать уведомления на этом устройстве — настройки ниже не сработают.',
-			'screenSettingsNotifications.enable' => 'Включить',
 			_ => null,
 		} ?? switch (path) {
+			'screenSettingsNotifications.permissionMissingMessage' => 'Iperon не может показывать уведомления на этом устройстве — настройки ниже не сработают.',
+			'screenSettingsNotifications.enable' => 'Включить',
 			'screenSettingsNotifications.loadError' => 'Не удалось загрузить настройки',
 			'screenSettingsNotifications.offlineNote' => 'Нет соединения. Изменение станет доступно, когда появится сеть.',
 			'screenSettingsNotifications.retry' => 'Повторить',
@@ -2022,6 +2031,8 @@ extension on TranslationsRu {
 			'screenChatInfo.roleOwner' => 'владелец',
 			'screenChatInfo.roleAdmin' => 'админ',
 			'screenChatInfo.roleReader' => 'только чтение',
+			'screenChatInfo.roleCommunityOwner' => 'владелец сообщества',
+			'screenChatInfo.roleCommunityAdmin' => 'админ сообщества',
 			'screenChatInfo.you' => 'Вы',
 			'screenChatInfo.addMembers' => 'Добавить участников',
 			'screenChatInfo.add' => 'Добавить',
@@ -2034,6 +2045,9 @@ extension on TranslationsRu {
 			'screenChatInfo.banMember' => 'Заблокировать',
 			'screenChatInfo.banMemberTitle' => ({required Object name}) => 'Заблокировать ${name}?',
 			'screenChatInfo.banMemberMessage' => 'Участник будет исключён и не сможет вернуться по ссылкам-приглашениям, пока его не разблокируют.',
+			'screenChatInfo.removeInCommunityMessage' => 'Участник останется в сообществе и сможет вступить в чат снова.',
+			'screenChatInfo.banInCommunityTitle' => ({required Object name}) => 'Заблокировать ${name} в сообществе?',
+			'screenChatInfo.banInCommunityMessage' => 'Участник будет исключён из сообщества и всех его чатов и не сможет вернуться, пока его не разблокируют.',
 			'screenChatInfo.banned' => 'Заблокированные',
 			'screenChatInfo.bannedEmpty' => 'Заблокированных нет',
 			'screenChatInfo.bannedFooter' => 'Заблокированные не могут вступить по ссылкам-приглашениям. Если добавить вручную — блокировка снимется.',

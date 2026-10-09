@@ -693,6 +693,13 @@ class ChatMemberMapper extends ClassMapperBase<ChatMember> {
     opt: true,
     def: '',
   );
+  static bool _$fromCommunity(ChatMember v) => v.fromCommunity;
+  static const Field<ChatMember, bool> _f$fromCommunity = Field(
+    'fromCommunity',
+    _$fromCommunity,
+    opt: true,
+    def: false,
+  );
 
   @override
   final MappableFields<ChatMember> fields = const {
@@ -705,6 +712,7 @@ class ChatMemberMapper extends ClassMapperBase<ChatMember> {
     #isSelf: _f$isSelf,
     #rights: _f$rights,
     #rank: _f$rank,
+    #fromCommunity: _f$fromCommunity,
   };
 
   static ChatMember _instantiate(DecodingData data) {
@@ -718,6 +726,7 @@ class ChatMemberMapper extends ClassMapperBase<ChatMember> {
       isSelf: data.dec(_f$isSelf),
       rights: data.dec(_f$rights),
       rank: data.dec(_f$rank),
+      fromCommunity: data.dec(_f$fromCommunity),
     );
   }
 
@@ -792,6 +801,7 @@ abstract class ChatMemberCopyWith<$R, $In extends ChatMember, $Out>
     bool? isSelf,
     ChatAdminRights? rights,
     String? rank,
+    bool? fromCommunity,
   });
   ChatMemberCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
@@ -818,6 +828,7 @@ class _ChatMemberCopyWithImpl<$R, $Out>
     bool? isSelf,
     ChatAdminRights? rights,
     String? rank,
+    bool? fromCommunity,
   }) => $apply(
     FieldCopyWithData({
       if (id != null) #id: id,
@@ -829,6 +840,7 @@ class _ChatMemberCopyWithImpl<$R, $Out>
       if (isSelf != null) #isSelf: isSelf,
       if (rights != null) #rights: rights,
       if (rank != null) #rank: rank,
+      if (fromCommunity != null) #fromCommunity: fromCommunity,
     }),
   );
   @override
@@ -842,6 +854,7 @@ class _ChatMemberCopyWithImpl<$R, $Out>
     isSelf: data.get(#isSelf, or: $value.isSelf),
     rights: data.get(#rights, or: $value.rights),
     rank: data.get(#rank, or: $value.rank),
+    fromCommunity: data.get(#fromCommunity, or: $value.fromCommunity),
   );
 
   @override

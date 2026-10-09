@@ -93,7 +93,7 @@ class ChatAdminsMaterial extends StatelessWidget {
                                 : null,
                           ),
                       ]),
-                      createNoteMaterial(context, t.screenChatAdmins.adminsFooter),
+                      createNoteMaterial(context, chatAdminsFooter(t, chat)),
                     ],
                   ),
                 ),
@@ -233,6 +233,9 @@ class _ChatAdminRightsMaterial extends State<ChatAdminRightsMaterial> {
         if (chat == null) return const SizedBox.shrink();
         final mine = myChatRights(chat, state.members);
         final owner = chat.myRole == models.ChatRole.owner;
+        // Владелец чата сообщества — всегда владелец сообщества: владение
+        // передаётся только у всего сообщества.
+        final canTransfer = owner && !chat.inCommunity;
         final status = contactStatus(t, widget.member);
         return Scaffold(
           backgroundColor: scheme.surfaceContainerLow,
@@ -296,10 +299,10 @@ class _ChatAdminRightsMaterial extends State<ChatAdminRightsMaterial> {
                   ),
                 ]),
                 createNoteMaterial(context, tc.rankFooter),
-                if (_isAdmin || owner) ...[
+                if (_isAdmin || canTransfer) ...[
                   const SizedBox(height: 8),
                   _card([
-                    if (owner)
+                    if (canTransfer)
                       ListTile(
                         title: Text(tc.transfer, style: TextStyle(color: scheme.error)),
                         onTap: _transfer,

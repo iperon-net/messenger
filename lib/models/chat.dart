@@ -154,6 +154,10 @@ class ChatMember with ChatMemberMappable {
   /// «Звание» админа — подпись вместо «админ» (пусто — «админ»).
   final String rank;
 
+  /// Чат сообщества: [role] и [rights] — от сообщества (его владелец и админы
+  /// — владелец и админы во всех его чатах), в самом чате их не изменить.
+  final bool fromCommunity;
+
   const ChatMember({
     required this.id,
     required this.name,
@@ -164,6 +168,7 @@ class ChatMember with ChatMemberMappable {
     this.isSelf = false,
     this.rights = const ChatAdminRights(),
     this.rank = '',
+    this.fromCommunity = false,
   });
 
   /// Права с учётом роли: владелец — все, не админ — никаких.

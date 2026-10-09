@@ -63,6 +63,24 @@ String chatLeaveLabel(Translations t, models.Chat chat) => switch (chat.type) {
   );
 }
 
+/// Пояснение под списком админов: у сообщества — что его админы действуют во
+/// всех его чатах, у чата сообщества — что их права меняются в сообществе.
+String chatAdminsFooter(Translations t, models.Chat chat) => chat.type == models.ChatType.community
+    ? t.screenChatAdmins.adminsFooterOfCommunity
+    : (chat.inCommunity ? t.screenChatAdmins.adminsFooterCommunity : t.screenChatAdmins.adminsFooter);
+
+/// Подтверждение «Исключить» / «Заблокировать» участника: в чате сообщества
+/// исключённый остаётся в сообществе, а блокировка — во всём сообществе.
+({String title, String message}) memberRemoveConfirm(Translations t, models.Chat chat, models.ChatMember member, {required bool ban}) {
+  final i = t.screenChatInfo;
+  if (ban) {
+    return chat.inCommunity
+        ? (title: i.banInCommunityTitle(name: member.name), message: i.banInCommunityMessage)
+        : (title: i.banMemberTitle(name: member.name), message: i.banMemberMessage);
+  }
+  return (title: i.removeMemberTitle(name: member.name), message: chat.inCommunity ? i.removeInCommunityMessage : i.removeMemberMessage);
+}
+
 /// После выхода: из чата сообщества — обратно в сообщество, иначе — в список.
 String chatLeaveRoute(models.Chat chat) => chat.inCommunity ? '/chats/chat/${chat.communityID}' : '/chats';
 
@@ -118,9 +136,10 @@ bool canRestrictMember(models.Chat chat, List<models.ChatMember> members, models
 
 /// Можно назначить [target] админом или изменить его права: нужно право
 /// назначать админов; чужого админа — только если наши права не уже его
-/// (владелец — любого).
+/// (владелец — любого). Владельца и админов сообщества в его чате — нельзя
+/// (их права меняются в сообществе).
 bool canPromoteMember(models.Chat chat, List<models.ChatMember> members, models.ChatMember target) {
-  if (target.isSelf || target.role == models.ChatRole.owner) return false;
+  if (target.isSelf || target.role == models.ChatRole.owner || target.fromCommunity) return false;
   final mine = myChatRights(chat, members);
   if (!mine.addAdmins) return false;
   return target.role != models.ChatRole.admin || chat.myRole == models.ChatRole.owner || mine.covers(target.rights);
@@ -202,8 +221,13 @@ models.ChatAdminRights withAdminRight(models.ChatAdminRights rights, ChatAdminRi
 
 /// Подпись роли в списке: «звание» админа, иначе «владелец» / «админ» /
 /// «только чтение».
-String? memberRoleLabel(Translations t, models.ChatMember member) =>
-    member.role == models.ChatRole.admin && member.rank.isNotEmpty ? member.rank : chatRoleLabel(t, member.role);
+String? memberRoleLabel(Translations t, models.ChatMember member) {
+  if (member.role == models.ChatRole.admin && member.rank.isNotEmpty) return member.rank;
+  // Владелец и админы сообщества в его чате.
+  if (member.fromCommunity && member.role == models.ChatRole.owner) return t.screenChatInfo.roleCommunityOwner;
+  if (member.fromCommunity && member.role == models.ChatRole.admin) return t.screenChatInfo.roleCommunityAdmin;
+  return chatRoleLabel(t, member.role);
+}
 
 /// Ссылки чата — из превью или первой ссылки текста, от новых к старым.
 List<({models.Message message, String url, models.MessageLinkPreview? preview})> chatLinks(List<models.Message> messages) => [

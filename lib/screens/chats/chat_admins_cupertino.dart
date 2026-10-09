@@ -90,7 +90,7 @@ class ChatAdminsCupertino extends StatelessWidget {
                     children: [
                       _section(
                         context,
-                        footer: t.screenChatAdmins.adminsFooter,
+                        footer: chatAdminsFooter(t, chat),
                         children: [
                           if (myChatRights(chat, state.members).addAdmins)
                             CupertinoListTile(
@@ -263,6 +263,9 @@ class _ChatAdminRightsCupertino extends State<ChatAdminRightsCupertino> {
         if (chat == null) return const SizedBox.shrink();
         final mine = myChatRights(chat, state.members);
         final owner = chat.myRole == models.ChatRole.owner;
+        // Владелец чата сообщества — всегда владелец сообщества: владение
+        // передаётся только у всего сообщества.
+        final canTransfer = owner && !chat.inCommunity;
         final rights = adminRightsFor(chat.type);
         final status = contactStatus(t, widget.member);
         return CupertinoPageScaffold(
@@ -340,11 +343,11 @@ class _ChatAdminRightsCupertino extends State<ChatAdminRightsCupertino> {
                     ),
                   ],
                 ),
-                if (_isAdmin || owner)
+                if (_isAdmin || canTransfer)
                   _section(
                     context,
                     children: [
-                      if (owner)
+                      if (canTransfer)
                         CupertinoListTile(
                           title: Text(tc.transfer, style: TextStyle(color: destructive)),
                           onTap: _transfer,

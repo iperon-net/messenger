@@ -152,17 +152,26 @@ abstract class ChatsDataSource {
   /// Принять / отклонить заявку ([userID] пусто — все).
   Future<void> answerJoinRequest(String chatID, {String userID = '', required bool approve});
 
-  /// Участники группы (профиль чата): владелец и админы первыми.
+  /// Участники группы (профиль чата): владелец и админы первыми. У чата
+  /// сообщества владелец и админы — от сообщества (`fromCommunity`, их роль и
+  /// права меняются только там), заблокированных в сообществе нет.
   Future<List<models.ChatMember>> members(String chatID);
+
+  /// Изменились участники / роли / блокировки чата [chatID] (в т.ч. на другом
+  /// устройстве или в его сообществе) — перечитать [members] и [banned].
+  Stream<void> watchMembersChanged(String chatID);
 
   /// Админ: роль участника — «Чтение» / «Запись» (админы — отдельно).
   Future<void> setMemberRole(String chatID, String userID, models.ChatRole role);
 
   /// Админ: исключить участника; [ban] — ещё и заблокировать (по ссылкам не
-  /// вернётся, пока не разблокируют).
+  /// вернётся, пока не разблокируют). В чате сообщества блокировка — в самом
+  /// сообществе (из него и всех его чатов); исключение из сообщества — и из
+  /// всех его чатов.
   Future<void> removeMember(String chatID, String userID, {bool ban = false});
 
-  /// Заблокированные в группе (профиль → «Заблокированные», админ).
+  /// Заблокированные в группе (профиль → «Заблокированные», админ); у чата
+  /// сообщества — заблокированные в сообществе.
   Future<List<models.ChatMember>> banned(String chatID);
 
   Future<void> unbanMember(String chatID, String userID);
@@ -171,14 +180,16 @@ abstract class ChatsDataSource {
   /// при этом разблокируются).
   Future<void> addMembers(String chatID, List<String> userIDs);
 
-  /// Назначить админом / изменить права и «звание» админа.
+  /// Назначить админом / изменить права и «звание» админа (у владельца и
+  /// админов сообщества в его чате — нельзя).
   Future<void> setAdmin(String chatID, String userID, {required models.ChatAdminRights rights, String rank = ''});
 
   /// Снять админа (останется участником с правом писать).
   Future<void> removeAdmin(String chatID, String userID);
 
   /// Владелец: передать владение — [userID] станет владельцем, мы — админом со
-  /// всеми правами. На сервере — с подтверждением облачным паролем.
+  /// всеми правами. На сервере — с подтверждением облачным паролем. У чата
+  /// сообщества нельзя — владение передаётся всего сообщества.
   Future<void> transferOwnership(String chatID, String userID);
 
   /// Реакции группы/канала (профиль чата → «Реакции», админ): все /
