@@ -16,6 +16,8 @@ Future<DateTime?> showScheduleDateCupertino(BuildContext context, {DateTime? ini
   final now = DateTime.now();
   final minimum = DateTime(now.year, now.month, now.day, now.hour, now.minute);
   var selected = initial != null && initial.isAfter(minimum) ? initial : minimum.add(const Duration(hours: 1));
+  // Лист снизу — клавиатура поля ввода закрыла бы колесо: убираем её.
+  FocusManager.instance.primaryFocus?.unfocus();
   return showCupertinoModalPopup<DateTime>(
     context: context,
     builder: (popupContext) => Container(

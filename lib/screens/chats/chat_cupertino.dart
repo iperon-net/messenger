@@ -329,8 +329,15 @@ class _ChatCupertinoState extends State<ChatCupertino> {
 
   /// «Отправить позже»: время → текст уходит в отложенные.
   Future<void> _sendLater(BuildContext context) async {
+    // Выбор даты убирает клавиатуру; передумали — возвращаем её.
+    final hadFocus = _focus.hasFocus;
     final date = await showScheduleDateCupertino(context);
-    if (date != null && mounted) _send(scheduleDate: date);
+    if (!mounted) return;
+    if (date != null) {
+      _send(scheduleDate: date);
+    } else if (hadFocus) {
+      _focus.requestFocus();
+    }
   }
 
   @override

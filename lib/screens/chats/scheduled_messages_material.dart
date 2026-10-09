@@ -14,6 +14,8 @@ import 'chat_material.dart';
 Future<DateTime?> showScheduleDateMaterial(BuildContext context, {DateTime? initial}) async {
   final now = DateTime.now();
   final start = initial != null && initial.isAfter(now) ? initial : now.add(const Duration(hours: 1));
+  // С открытой клавиатурой календарь ужимается — убираем её.
+  FocusManager.instance.primaryFocus?.unfocus();
   final day = await showDatePicker(
     context: context,
     initialDate: start,
