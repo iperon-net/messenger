@@ -8,6 +8,7 @@ import '../../models.dart' as models;
 import '../../themes.dart';
 import 'chat_common.dart';
 import 'chat_cupertino.dart';
+import 'message_context_menu_cupertino.dart';
 
 /// Экран «Закреплённые сообщения» (iOS) — значок списка в плашке
 /// закреплённого. Результат — id сообщения, к которому перейти в чате.
@@ -20,40 +21,39 @@ Future<String?> showPinnedMessagesCupertino(BuildContext context, ChatCubit cubi
 }
 
 /// Все закреплённые чата лентой, как в Telegram: тап — перейти к сообщению,
-/// удержание — «Перейти» / «Открепить», внизу — «Открепить все» (в канале
+/// удержание — контекстное меню «Перейти» / «Открепить», внизу — «Открепить все» (в канале
 /// подписчику — нет). Открепили последнее — экран закрывается.
 class PinnedMessagesCupertino extends StatelessWidget {
   const PinnedMessagesCupertino({super.key});
 
   void _goTo(BuildContext context, models.Message message) => Navigator.of(context).pop(message.id);
 
-  Future<void> _actions(BuildContext context, models.Message message, bool canUnpin) async {
+  /// Действия в контекстном меню пузыря (удержание): меню — маршрут
+  /// корневого навигатора, сначала закрываем его, потом действие.
+  List<Widget> _menuActions(BuildContext context, models.Message message, bool canUnpin) {
     final t = context.t.screenChat;
     final cubit = context.read<ChatCubit>();
-    await showCupertinoModalPopup<void>(
-      context: context,
-      builder: (sheetContext) => CupertinoActionSheet(
-        actions: [
-          CupertinoActionSheetAction(
-            onPressed: () {
-              Navigator.of(sheetContext).pop();
-              _goTo(context, message);
-            },
-            child: Text(t.goToMessage),
-          ),
-          if (canUnpin)
-            CupertinoActionSheetAction(
-              isDestructiveAction: true,
-              onPressed: () {
-                Navigator.of(sheetContext).pop();
-                cubit.setPinned(message, false);
-              },
-              child: Text(t.unpin),
-            ),
-        ],
-        cancelButton: CupertinoActionSheetAction(onPressed: () => Navigator.of(sheetContext).pop(), child: Text(context.t.common.cancel)),
+    void close() => Navigator.of(context, rootNavigator: true).pop();
+    return [
+      CupertinoContextMenuAction(
+        trailingIcon: CupertinoIcons.arrow_right_circle,
+        onPressed: () {
+          close();
+          _goTo(context, message);
+        },
+        child: Text(t.goToMessage),
       ),
-    );
+      if (canUnpin)
+        CupertinoContextMenuAction(
+          trailingIcon: CupertinoIcons.pin_slash,
+          isDestructiveAction: true,
+          onPressed: () {
+            close();
+            cubit.setPinned(message, false);
+          },
+          child: Text(t.unpin),
+        ),
+    ];
   }
 
   Future<void> _unpinAll(BuildContext context, int count) async {
@@ -112,7 +112,13 @@ class PinnedMessagesCupertino extends StatelessWidget {
                               chatType: chat.type,
                               style: ChatCupertino.bubbleStyle(context),
                               padding: const EdgeInsets.symmetric(vertical: 8),
-                              onLongPress: (message) => _actions(context, message, canUnpin),
+                              // Удержание — CupertinoContextMenu (menuWrapper).
+                              onLongPress: (_) {},
+                              menuWrapper: (message, bubble, preview) => MessageContextMenuCupertino(
+                                actions: _menuActions(context, message, canUnpin),
+                                bubble: bubble,
+                                preview: (maxWidth) => preview(maxWidth),
+                              ),
                               onTap: (message) => _goTo(context, message),
                               onMediaTap: (message, _) => _goTo(context, message),
                             ),

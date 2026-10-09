@@ -21,6 +21,8 @@ import 'chat_join_requests_cupertino.dart';
 import 'chat_info_common.dart';
 import 'chat_mute.dart';
 import 'chats_new_cupertino.dart';
+import 'community_common.dart';
+import 'community_cupertino.dart';
 
 /// Профиль чата (iOS) — тап по шапке окна чата. Результат — что сделать в
 /// чате: поиск или переход к сообщению.
@@ -44,41 +46,64 @@ class ChatInfoCupertino extends StatefulWidget {
 
 class _ChatInfoCupertinoState extends State<ChatInfoCupertino> {
   ChatInfoTab? _tab;
+  final _scroll = ScrollController();
+
+  /// Страница сообщества: панель навигации прозрачная поверх обложки, пока
+  /// обложка не уехала под неё.
+  bool _overCover = true;
 
   @override
   void initState() {
     super.initState();
     context.read<ChatCubit>().loadMembers();
+    _scroll.addListener(() {
+      final over = _scroll.offset < CommunityCover.height - 44;
+      if (over != _overCover) setState(() => _overCover = over);
+    });
+  }
+
+  @override
+  void dispose() {
+    _scroll.dispose();
+    super.dispose();
   }
 
   Future<void> _leave(BuildContext context, models.Chat chat) async {
-    final t = context.t.screenChatInfo;
-    final private = chat.type == models.ChatType.private;
+    final confirm = chatLeaveConfirm(context.t, chat);
     final confirmed = await showCupertinoDialog<bool>(
       context: context,
       builder: (dialogContext) => CupertinoAlertDialog(
-        title: Text(private ? t.deleteChatTitle(name: chat.title) : t.leaveGroupTitle(name: chat.title)),
+        title: Text(confirm.title),
+        content: confirm.message == null ? null : Text(confirm.message!),
         actions: [
           CupertinoDialogAction(onPressed: () => Navigator.of(dialogContext).pop(false), child: Text(context.t.common.cancel)),
           CupertinoDialogAction(
             isDestructiveAction: true,
             onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: Text(_leaveLabel(context.t, chat)),
+            child: Text(chatLeaveLabel(context.t, chat)),
           ),
         ],
       ),
     );
     if (!(confirmed ?? false) || !context.mounted) return;
     await context.read<ChatCubit>().deleteChat();
-    if (context.mounted) context.go('/chats');
+    if (context.mounted) context.go(chatLeaveRoute(chat));
   }
 
-  /// «Звук»: заглушённый — включить сразу, иначе — «Заглушить на…».
-  Future<void> _toggleMute(BuildContext context, models.Chat chat) async {
-    final cubit = context.read<ChatCubit>();
-    if (chat.muted) return cubit.setMuted(false);
-    final choice = await pickChatMute(context);
-    if (choice != null) await cubit.setMuted(true, until: chatMuteUntil(choice));
+  /// «Звук»: заглушённый — включить сразу, иначе — выпадающее меню
+  /// «Заглушить на…».
+  List<Widget>? _muteMenu(BuildContext context, models.Chat chat) {
+    if (chat.muted) return null;
+    final t = context.t;
+    return [
+      for (final value in ChatMuteFor.values)
+        CupertinoMenuItem(
+          isDestructiveAction: value == ChatMuteFor.forever,
+          trailing: Icon(value == ChatMuteFor.forever ? CupertinoIcons.bell_slash : CupertinoIcons.clock),
+          onPressed: () => context.read<ChatCubit>().setMuted(true, until: chatMuteUntil(value)),
+          child: Text(chatMuteLabel(t, value)),
+        ),
+    ];
   }
 
   /// Тап по участнику — личный чат с ним («Написать сообщение»).
@@ -181,239 +206,344 @@ class _ChatInfoCupertinoState extends State<ChatInfoCupertino> {
         final tabs = chat == null ? const <ChatInfoTab>[] : chatInfoTabs(chat);
         final tab = tabs.contains(_tab) ? _tab! : (tabs.firstOrNull ?? ChatInfoTab.media);
         final subtitle = chat == null ? null : chatSubtitle(t, chat);
+        final community = chat?.type == models.ChatType.community;
+        // У сообщества — обложка от верха экрана: пока она видна, панели нет,
+        // «назад» и «Изменить» — «стёкла» поверх обложки; уехала — обычная
+        // панель с названием. Фон панели чуть прозрачный — контент всегда под
+        // ней, и раскладка не прыгает.
+        final onCover = community && _overCover;
+        final canEdit = chat != null && chat.canManage && chat.type != models.ChatType.private;
+        final navBar = CupertinoNavigationBar(
+          previousPageTitle: '',
+          automaticBackgroundVisibility: false,
+          // Обложка уехала — название сообщества в панели.
+          middle: community && !onCover ? Text(chat!.title) : null,
+          backgroundColor: community ? background.withValues(alpha: 0.97) : background,
+          border: null,
+          // «Изменить» — админу группы / канала / сообщества.
+          trailing: canEdit
+              ? CupertinoButton(
+                  padding: EdgeInsets.zero,
+                  onPressed: () => showChatEditCupertino(context, chat),
+                  // У сообщества — карандаш, как на «стекле» поверх обложки.
+                  child: community
+                      ? Semantics(
+                          label: t.common.edit,
+                          child: HugeIcon(
+                            icon: HugeIcons.strokeRoundedPencilEdit02,
+                            color: ThemesCupertino.navActionColor(context),
+                            size: 22,
+                          ),
+                        )
+                      : Text(t.common.edit, style: TextStyle(color: ThemesCupertino.navActionColor(context))),
+                )
+              : null,
+        );
+        final header = chat == null
+            ? const <Widget>[]
+            : community
+            ? [
+                CommunityCover(
+                  chat: chat,
+                  subtitle: subtitle?.text ?? '',
+                  accentColor: primary,
+                  accentForeground: ThemesCupertino.onAccent(context),
+                ),
+              ]
+            : [
+                const SizedBox(height: 4),
+                Center(
+                  child: ChatAvatar(chat: chat, size: 96, accentColor: primary, accentForeground: ThemesCupertino.onAccent(context)),
+                ),
+                const SizedBox(height: 12),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Text(
+                    ChatTileContent.title(t, chat),
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.w600, color: label),
+                  ),
+                ),
+                if (subtitle != null && subtitle.text.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 2),
+                    child: Text(
+                      subtitle.text,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 15, color: subtitle.active ? primary : secondary),
+                    ),
+                  ),
+              ];
         return CupertinoPageScaffold(
           backgroundColor: background,
-          navigationBar: AppCupertinoNavigationBar(
-            child: CupertinoNavigationBar(
-              previousPageTitle: '',
-              automaticBackgroundVisibility: false,
-              backgroundColor: background,
-              border: null,
-              // «Изменить» — админу группы / канала / сообщества.
-              trailing: chat != null && chat.canManage && chat.type != models.ChatType.private
-                  ? CupertinoButton(
-                      padding: EdgeInsets.zero,
-                      onPressed: () => showChatEditCupertino(context, chat),
-                      child: Text(t.common.edit, style: TextStyle(color: ThemesCupertino.navActionColor(context))),
-                    )
-                  : null,
-            ),
-          ),
+          navigationBar: onCover ? null : AppCupertinoNavigationBar(child: navBar),
           child: chat == null
               ? const SizedBox.shrink()
-              : SafeArea(
-                  bottom: false,
-                  child: ListView(
-                    padding: const EdgeInsets.only(bottom: 32),
-                    children: [
-                      const SizedBox(height: 4),
-                      Center(
-                        child: ChatAvatar(chat: chat, size: 96, accentColor: primary, accentForeground: ThemesCupertino.onAccent(context)),
-                      ),
-                      const SizedBox(height: 12),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 24),
-                        child: Text(
-                          ChatTileContent.title(t, chat),
-                          textAlign: TextAlign.center,
-                          style: TextStyle(fontSize: 24, fontWeight: FontWeight.w600, color: label),
-                        ),
-                      ),
-                      if (subtitle != null && subtitle.text.isNotEmpty)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 2),
-                          child: Text(
-                            subtitle.text,
-                            textAlign: TextAlign.center,
-                            style: TextStyle(fontSize: 15, color: subtitle.active ? primary : secondary),
+              : Stack(
+                  children: [
+                    SafeArea(
+                      bottom: false,
+                      // Обложка — от самого верха экрана, под панелью.
+                      top: !community,
+                      child: ListView(
+                        controller: _scroll,
+                        padding: const EdgeInsets.only(bottom: 32),
+                        children: [
+                          ...header,
+                          const SizedBox(height: 16),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            child: Row(
+                              children: [
+                                if (!chat.isSelf)
+                                  _ActionButton(
+                                    // Значок — текущее состояние: звук включён / выключен.
+                                    icon: chat.muted ? HugeIcons.strokeRoundedNotificationOff01 : HugeIcons.strokeRoundedNotification01,
+                                    // Заглушён на время — «до 18:30» вместо «Звук».
+                                    label: chat.muted && chat.mutedUntil != null
+                                        ? chatMutedUntilLabel(t, chat.mutedUntil!)
+                                        : t.screenChatInfo.sound,
+                                    color: action,
+                                    onTap: () => context.read<ChatCubit>().setMuted(false),
+                                    menuChildren: _muteMenu(context, chat),
+                                  ),
+                                // У сообщества своей ленты нет — искать негде.
+                                if (!community)
+                                  _ActionButton(
+                                    icon: HugeIcons.strokeRoundedSearch01,
+                                    label: t.screenChatInfo.search,
+                                    color: action,
+                                    onTap: () => Navigator.of(context).pop(const ChatInfoResult.search()),
+                                  ),
+                                // Канал объявлений покидают только вместе с сообществом.
+                                if (!chat.isSelf && !chat.announcements && chat.isMember)
+                                  _ActionButton(
+                                    icon: chatInfoDeletes(chat)
+                                        ? HugeIcons.strokeRoundedDelete02
+                                        : HugeIcons.strokeRoundedSquareArrowRightExit,
+                                    label: chatInfoDeletes(chat) ? t.screenChatInfo.deleteShort : t.screenChatInfo.leaveShort,
+                                    color: CupertinoColors.destructiveRed.resolveFrom(context),
+                                    onTap: () => _leave(context, chat),
+                                  ),
+                              ],
+                            ),
                           ),
-                        ),
-                      const SizedBox(height: 16),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                          if (chat.about.isNotEmpty || chat.linkPath.isNotEmpty || (community && communityHasContacts(chat)))
+                            _section(context, [
+                              if (chat.about.isNotEmpty)
+                                CupertinoListTileIcon(
+                                  color: const Color(0xFF1368E6),
+                                  hugeIcon: HugeIcons.strokeRoundedInformationCircle,
+                                  title: Text(chat.about, maxLines: 6),
+                                  subtitle: Text(
+                                    chat.type == models.ChatType.private ? t.screenChatInfo.about : t.screenChatInfo.description,
+                                  ),
+                                  onTab: () async => _copy(chat.about),
+                                ),
+                              // Сообщество: телефон и адрес — под описанием.
+                              if (community) ...communityContactTilesCupertino(context, chat),
+                              if (chat.linkPath.isNotEmpty)
+                                chat.type == models.ChatType.private
+                                    ? CupertinoListTileIcon(
+                                        color: const Color(0xFF049A40),
+                                        hugeIcon: HugeIcons.strokeRoundedAt,
+                                        title: Text('@${chat.username}', style: TextStyle(color: action)),
+                                        subtitle: Text(t.screenChatInfo.username),
+                                        onTab: () async => _copy('@${chat.username}'),
+                                      )
+                                    : CupertinoListTileIcon(
+                                        color: const Color(0xFF049A40),
+                                        hugeIcon: HugeIcons.strokeRoundedLink01,
+                                        title: Text('iperon.net/${chat.linkPath}', style: TextStyle(color: action)),
+                                        subtitle: Text(t.screenChatInfo.link),
+                                        onTab: () async => _copy('https://iperon.net/${chat.linkPath}'),
+                                      ),
+                            ]),
+                          if (community && !chat.isMember)
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+                              child: CupertinoButton.filled(
+                                onPressed: chat.joinRequested ? null : () => context.read<ChatCubit>().join(),
+                                child: Text(
+                                  chat.joinRequested
+                                      ? t.screenChat.requestSent
+                                      : (chat.joinMode == models.ChatJoinMode.request
+                                            ? t.screenChat.requestJoin
+                                            : t.screenChatInfo.joinCommunity),
+                                  style: TextStyle(color: chat.joinRequested ? null : ThemesCupertino.onAccent(context)),
+                                ),
+                              ),
+                            ),
+                          if (community && chat.isMember) CommunityChatsCupertino(community: chat, chats: state.communityChats),
+                          if (chat.canManage && chat.type != models.ChatType.private)
+                            _section(context, [
+                              // У чатов сообщества своих ссылок и блокировок нет —
+                              // вступают и блокируются через сообщество.
+                              if (!chat.inCommunity)
+                                CupertinoListTileIcon(
+                                  color: const Color(0xFF049A40),
+                                  hugeIcon: HugeIcons.strokeRoundedLink01,
+                                  title: Text(t.screenChatInvites.inviteLinks),
+                                  isTrailing: true,
+                                  onTab: () => showChatInviteLinksCupertino(context, chat.id),
+                                ),
+                              if (!chat.inCommunity || chat.joinMode == models.ChatJoinMode.request)
+                                CupertinoListTileIcon(
+                                  color: const Color(0xFF1368E6),
+                                  hugeIcon: HugeIcons.strokeRoundedUserAdd01,
+                                  title: Text(t.screenChatInvites.joinRequests),
+                                  additionalInfo: chat.pendingRequests > 0
+                                      ? Container(
+                                          constraints: const BoxConstraints(minWidth: 22),
+                                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                                          decoration: BoxDecoration(
+                                            color: CupertinoColors.systemRed.resolveFrom(context),
+                                            borderRadius: BorderRadius.circular(11),
+                                          ),
+                                          child: Text(
+                                            '${chat.pendingRequests}',
+                                            textAlign: TextAlign.center,
+                                            style: const TextStyle(fontSize: 14, color: CupertinoColors.white),
+                                          ),
+                                        )
+                                      : null,
+                                  isTrailing: true,
+                                  onTab: () => showChatJoinRequestsCupertino(context, chat.id),
+                                ),
+                              CupertinoListTileIcon(
+                                color: const Color(0xFFFF9500),
+                                hugeIcon: HugeIcons.strokeRoundedSmile,
+                                title: Text(t.screenChatInfo.reactions),
+                                additionalInfo: Text(reactionsSummary(t, chat)),
+                                isTrailing: true,
+                                onTab: () => Navigator.of(context).push(
+                                  FullSwipeBackRoute<void>(
+                                    builder: (_) =>
+                                        BlocProvider.value(value: context.read<ChatCubit>(), child: const ChatReactionsSettingsCupertino()),
+                                  ),
+                                ),
+                              ),
+                              if (chat.type == models.ChatType.group || chat.type == models.ChatType.community)
+                                CupertinoListTileIcon(
+                                  color: const Color(0xFF34AADC),
+                                  hugeIcon: HugeIcons.strokeRoundedTimer02,
+                                  title: Text(t.screenChatInfo.slowMode),
+                                  additionalInfo: Text(slowModeLabel(t, chat.slowMode)),
+                                  isTrailing: true,
+                                  onTab: () => Navigator.of(context).push(
+                                    FullSwipeBackRoute<void>(
+                                      builder: (_) => BlocProvider.value(
+                                        value: context.read<ChatCubit>(),
+                                        child: const ChatSlowModeSettingsCupertino(),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              CupertinoListTileIcon(
+                                color: const Color(0xFF5856D6),
+                                hugeIcon: HugeIcons.strokeRoundedUserStar01,
+                                title: Text(t.screenChatAdmins.admins),
+                                additionalInfo: Text(
+                                  '${state.members.where((m) => m.role == models.ChatRole.admin || m.role == models.ChatRole.owner).length}',
+                                ),
+                                isTrailing: true,
+                                onTab: () => showChatAdminsCupertino(context, context.read<ChatCubit>()),
+                              ),
+                              if ((chat.type == models.ChatType.group || chat.type == models.ChatType.community) && !chat.inCommunity)
+                                CupertinoListTileIcon(
+                                  color: const Color(0xFFFF3B30),
+                                  hugeIcon: HugeIcons.strokeRoundedUserBlock01,
+                                  title: Text(t.screenChatInfo.banned),
+                                  additionalInfo: state.banned.isEmpty ? null : Text('${state.banned.length}'),
+                                  isTrailing: true,
+                                  onTab: () => showChatBannedCupertino(context, context.read<ChatCubit>()),
+                                ),
+                            ]),
+                          // Вкладки — полосой над карточкой (как папки на «Чатах»: при
+                          // переполнении листается по горизонтали), содержимое — карточкой.
+                          if (tabs.length > 1)
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
+                              child: ChatFolderTabsCupertino(
+                                tabs: [for (final item in tabs) ChatFolderTab(title: chatInfoTabLabel(t, item, chat))],
+                                selectedIndex: tabs.indexOf(tab),
+                                onTap: (index) => setState(() => _tab = tabs[index]),
+                              ),
+                            ),
+                          if (tabs.isNotEmpty)
+                            Container(
+                              margin: EdgeInsets.fromLTRB(20, tabs.length > 1 ? 0 : 20, 20, 0),
+                              clipBehavior: Clip.antiAlias,
+                              decoration: BoxDecoration(color: card, borderRadius: BorderRadius.circular(10)),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  Padding(
+                                    // Сетка медиа — до краёв карточки, списки — с отступом сверху.
+                                    padding: EdgeInsets.only(
+                                      top: tab == ChatInfoTab.media ? 0 : 6,
+                                      bottom: tab == ChatInfoTab.media ? 0 : 6,
+                                    ),
+                                    child: ChatInfoTabContent(
+                                      tab: tab,
+                                      chat: chat,
+                                      messages: state.messages,
+                                      members: state.members,
+                                      style: ChatInfoStyle(
+                                        text: label,
+                                        secondary: secondary,
+                                        accent: primary,
+                                        onAccent: ThemesCupertino.onAccent(context),
+                                        separator: CupertinoColors.separator.resolveFrom(context),
+                                        action: action,
+                                      ),
+                                      onOpenMessage: (id) => Navigator.of(context).pop(ChatInfoResult.goTo(id)),
+                                      onMemberTap: (member) => _messageMember(context, member),
+                                      memberWrapper: (member, row) => RowContextMenuCupertino(
+                                        background: card,
+                                        actions: _memberMenuActions(context, chat, member),
+                                        child: row,
+                                      ),
+                                      onAddMembers: chat.canManage ? () => _addMembers(context) : null,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                    // Светлые значки строки состояния поверх обложки.
+                    if (onCover)
+                      Positioned(
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        height: MediaQuery.viewPaddingOf(context).top,
+                        child: const AnnotatedRegion<SystemUiOverlayStyle>(value: SystemUiOverlayStyle.light, child: SizedBox.expand()),
+                      ),
+                    if (onCover)
+                      Positioned(
+                        top: MediaQuery.viewPaddingOf(context).top + 4,
+                        left: 8,
+                        right: 8,
                         child: Row(
                           children: [
-                            if (!chat.isSelf)
-                              _ActionButton(
-                                // Значок — текущее состояние: звук включён / выключен.
-                                icon: chat.muted ? HugeIcons.strokeRoundedNotificationOff01 : HugeIcons.strokeRoundedNotification01,
-                                // Заглушён на время — «до 18:30» вместо «Звук».
-                                label: chat.muted && chat.mutedUntil != null
-                                    ? chatMutedUntilLabel(t, chat.mutedUntil!)
-                                    : t.screenChatInfo.sound,
-                                color: action,
-                                onTap: () => _toggleMute(context, chat),
-                              ),
-                            _ActionButton(
-                              icon: HugeIcons.strokeRoundedSearch01,
-                              label: t.screenChatInfo.search,
-                              color: action,
-                              onTap: () => Navigator.of(context).pop(const ChatInfoResult.search()),
+                            CoverGlassButton(
+                              onTap: () => Navigator.of(context).maybePop(),
+                              child: const Padding(padding: EdgeInsets.only(right: 2), child: Icon(CupertinoIcons.back)),
                             ),
-                            if (!chat.isSelf)
-                              _ActionButton(
-                                icon: HugeIcons.strokeRoundedSquareArrowRightExit,
-                                label: t.screenChatInfo.leaveShort,
-                                color: CupertinoColors.destructiveRed.resolveFrom(context),
-                                onTap: () => _leave(context, chat),
+                            const Spacer(),
+                            if (canEdit)
+                              CoverGlassButton(
+                                label: t.common.edit,
+                                onTap: () => showChatEditCupertino(context, chat),
+                                child: const HugeIcon(icon: HugeIcons.strokeRoundedPencilEdit02, color: CupertinoColors.white, size: 20),
                               ),
                           ],
                         ),
                       ),
-                      if (chat.about.isNotEmpty || chat.linkPath.isNotEmpty)
-                        _section(context, [
-                          if (chat.about.isNotEmpty)
-                            CupertinoListTileIcon(
-                              color: const Color(0xFF1368E6),
-                              hugeIcon: HugeIcons.strokeRoundedInformationCircle,
-                              title: Text(chat.about, maxLines: 6),
-                              subtitle: Text(chat.type == models.ChatType.private ? t.screenChatInfo.about : t.screenChatInfo.description),
-                              onTab: () async => _copy(chat.about),
-                            ),
-                          if (chat.linkPath.isNotEmpty)
-                            chat.type == models.ChatType.private
-                                ? CupertinoListTileIcon(
-                                    color: const Color(0xFF049A40),
-                                    hugeIcon: HugeIcons.strokeRoundedAt,
-                                    title: Text('@${chat.username}', style: TextStyle(color: action)),
-                                    subtitle: Text(t.screenChatInfo.username),
-                                    onTab: () async => _copy('@${chat.username}'),
-                                  )
-                                : CupertinoListTileIcon(
-                                    color: const Color(0xFF049A40),
-                                    hugeIcon: HugeIcons.strokeRoundedLink01,
-                                    title: Text('iperon.net/${chat.linkPath}', style: TextStyle(color: action)),
-                                    subtitle: Text(t.screenChatInfo.link),
-                                    onTab: () async => _copy('https://iperon.net/${chat.linkPath}'),
-                                  ),
-                        ]),
-                      if (chat.canManage && chat.type != models.ChatType.private)
-                        _section(context, [
-                          CupertinoListTileIcon(
-                            color: const Color(0xFF049A40),
-                            hugeIcon: HugeIcons.strokeRoundedLink01,
-                            title: Text(t.screenChatInvites.inviteLinks),
-                            isTrailing: true,
-                            onTab: () => showChatInviteLinksCupertino(context, chat.id),
-                          ),
-                          CupertinoListTileIcon(
-                            color: const Color(0xFF1368E6),
-                            hugeIcon: HugeIcons.strokeRoundedUserAdd01,
-                            title: Text(t.screenChatInvites.joinRequests),
-                            additionalInfo: chat.pendingRequests > 0
-                                ? Container(
-                                    constraints: const BoxConstraints(minWidth: 22),
-                                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                                    decoration: BoxDecoration(
-                                      color: CupertinoColors.systemRed.resolveFrom(context),
-                                      borderRadius: BorderRadius.circular(11),
-                                    ),
-                                    child: Text(
-                                      '${chat.pendingRequests}',
-                                      textAlign: TextAlign.center,
-                                      style: const TextStyle(fontSize: 14, color: CupertinoColors.white),
-                                    ),
-                                  )
-                                : null,
-                            isTrailing: true,
-                            onTab: () => showChatJoinRequestsCupertino(context, chat.id),
-                          ),
-                          CupertinoListTileIcon(
-                            color: const Color(0xFFFF9500),
-                            hugeIcon: HugeIcons.strokeRoundedSmile,
-                            title: Text(t.screenChatInfo.reactions),
-                            additionalInfo: Text(reactionsSummary(t, chat)),
-                            isTrailing: true,
-                            onTab: () => Navigator.of(context).push(
-                              FullSwipeBackRoute<void>(
-                                builder: (_) =>
-                                    BlocProvider.value(value: context.read<ChatCubit>(), child: const ChatReactionsSettingsCupertino()),
-                              ),
-                            ),
-                          ),
-                          if (chat.type == models.ChatType.group || chat.type == models.ChatType.community)
-                            CupertinoListTileIcon(
-                              color: const Color(0xFF34AADC),
-                              hugeIcon: HugeIcons.strokeRoundedTimer02,
-                              title: Text(t.screenChatInfo.slowMode),
-                              additionalInfo: Text(slowModeLabel(t, chat.slowMode)),
-                              isTrailing: true,
-                              onTab: () => Navigator.of(context).push(
-                                FullSwipeBackRoute<void>(
-                                  builder: (_) =>
-                                      BlocProvider.value(value: context.read<ChatCubit>(), child: const ChatSlowModeSettingsCupertino()),
-                                ),
-                              ),
-                            ),
-                          CupertinoListTileIcon(
-                            color: const Color(0xFF5856D6),
-                            hugeIcon: HugeIcons.strokeRoundedUserStar01,
-                            title: Text(t.screenChatAdmins.admins),
-                            additionalInfo: Text(
-                              '${state.members.where((m) => m.role == models.ChatRole.admin || m.role == models.ChatRole.owner).length}',
-                            ),
-                            isTrailing: true,
-                            onTab: () => showChatAdminsCupertino(context, context.read<ChatCubit>()),
-                          ),
-                          if (chat.type == models.ChatType.group || chat.type == models.ChatType.community)
-                            CupertinoListTileIcon(
-                              color: const Color(0xFFFF3B30),
-                              hugeIcon: HugeIcons.strokeRoundedUserBlock01,
-                              title: Text(t.screenChatInfo.banned),
-                              additionalInfo: state.banned.isEmpty ? null : Text('${state.banned.length}'),
-                              isTrailing: true,
-                              onTab: () => showChatBannedCupertino(context, context.read<ChatCubit>()),
-                            ),
-                        ]),
-                      // Вкладки — полосой над карточкой (как папки на «Чатах»: при
-                      // переполнении листается по горизонтали), содержимое — карточкой.
-                      if (tabs.length > 1)
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
-                          child: ChatFolderTabsCupertino(
-                            tabs: [for (final item in tabs) ChatFolderTab(title: chatInfoTabLabel(t, item, chat))],
-                            selectedIndex: tabs.indexOf(tab),
-                            onTap: (index) => setState(() => _tab = tabs[index]),
-                          ),
-                        ),
-                      Container(
-                        margin: EdgeInsets.fromLTRB(20, tabs.length > 1 ? 0 : 20, 20, 0),
-                        clipBehavior: Clip.antiAlias,
-                        decoration: BoxDecoration(color: card, borderRadius: BorderRadius.circular(10)),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Padding(
-                              // Сетка медиа — до краёв карточки, списки — с отступом сверху.
-                              padding: EdgeInsets.only(top: tab == ChatInfoTab.media ? 0 : 6, bottom: tab == ChatInfoTab.media ? 0 : 6),
-                              child: ChatInfoTabContent(
-                                tab: tab,
-                                chat: chat,
-                                messages: state.messages,
-                                members: state.members,
-                                style: ChatInfoStyle(
-                                  text: label,
-                                  secondary: secondary,
-                                  accent: primary,
-                                  onAccent: ThemesCupertino.onAccent(context),
-                                  separator: CupertinoColors.separator.resolveFrom(context),
-                                  action: action,
-                                ),
-                                onOpenMessage: (id) => Navigator.of(context).pop(ChatInfoResult.goTo(id)),
-                                onMemberTap: (member) => _messageMember(context, member),
-                                memberWrapper: (member, row) => RowContextMenuCupertino(
-                                  background: card,
-                                  actions: _memberMenuActions(context, chat, member),
-                                  child: row,
-                                ),
-                                onAddMembers: chat.canManage ? () => _addMembers(context) : null,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
+                  ],
                 ),
         );
       },
@@ -430,14 +560,6 @@ class _ChatInfoCupertinoState extends State<ChatInfoCupertino> {
   );
 }
 
-/// «Удалить чат» / «Покинуть группу / канал / сообщество».
-String _leaveLabel(Translations t, models.Chat chat) => switch (chat.type) {
-  models.ChatType.private => t.screenChatInfo.deleteChat,
-  models.ChatType.group => t.screenChatInfo.leaveGroup,
-  models.ChatType.channel => t.screenChatInfo.leaveChannel,
-  models.ChatType.community => t.screenChatInfo.leaveCommunity,
-};
-
 /// Кнопка под шапкой профиля: значок и подпись на белой плашке; все кнопки
 /// ряда — одной ширины.
 class _ActionButton extends StatelessWidget {
@@ -447,46 +569,57 @@ class _ActionButton extends StatelessWidget {
   final Color color;
   final VoidCallback onTap;
 
-  const _ActionButton({required this.icon, required this.label, required this.color, required this.onTap});
+  /// Есть — по тапу выпадающее меню вместо [onTap].
+  final List<Widget>? menuChildren;
+
+  const _ActionButton({required this.icon, required this.label, required this.color, required this.onTap, this.menuChildren});
 
   @override
   Widget build(BuildContext context) {
+    final menu = menuChildren;
     return Expanded(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 4),
-        child: CupertinoButton(
-          padding: EdgeInsets.zero,
-          minimumSize: Size.zero,
-          onPressed: onTap,
-          child: Container(
-            // CupertinoButton центрирует содержимое — без этого плашка ужималась
-            // по подписи, и кнопки выходили разной ширины.
-            width: double.infinity,
-            // Отступы внутри — подпись не прилипает к краям плашки.
-            padding: const EdgeInsets.fromLTRB(8, 10, 8, 9),
-            // Белая плашка — цвет карточек (в тёмной теме — тёмная карточка).
-            decoration: BoxDecoration(color: ThemesCupertino.groupedCard.resolveFrom(context), borderRadius: BorderRadius.circular(12)),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                HugeIcon(icon: icon, size: 24, strokeWidth: 1.8, color: color),
-                const SizedBox(height: 4),
-                // Длинная подпись ужимается, а не обрезается.
-                FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Text(
-                    label,
-                    maxLines: 1,
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: color),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
+        child: menu == null
+            ? _button(context, onTap)
+            : CupertinoMenuAnchor(
+                menuChildren: menu,
+                builder: (context, controller, child) => _button(context, () => controller.isOpen ? controller.close() : controller.open()),
+              ),
       ),
     );
   }
+
+  Widget _button(BuildContext context, VoidCallback onPressed) => CupertinoButton(
+    padding: EdgeInsets.zero,
+    minimumSize: Size.zero,
+    onPressed: onPressed,
+    child: Container(
+      // CupertinoButton центрирует содержимое — без этого плашка ужималась
+      // по подписи, и кнопки выходили разной ширины.
+      width: double.infinity,
+      // Отступы внутри — подпись не прилипает к краям плашки.
+      padding: const EdgeInsets.fromLTRB(8, 10, 8, 9),
+      // Белая плашка — цвет карточек (в тёмной теме — тёмная карточка).
+      decoration: BoxDecoration(color: ThemesCupertino.groupedCard.resolveFrom(context), borderRadius: BorderRadius.circular(12)),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          HugeIcon(icon: icon, size: 24, strokeWidth: 1.8, color: color),
+          const SizedBox(height: 4),
+          // Длинная подпись ужимается, а не обрезается.
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              label,
+              maxLines: 1,
+              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: color),
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
 }
 
 /// Профиль чата → «Реакции» (iOS, админ): все / некоторые (сетка эмодзи) /

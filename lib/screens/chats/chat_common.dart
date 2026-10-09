@@ -13,6 +13,8 @@ import 'package:path/path.dart' as p;
 
 import '../../chats/media_prepare.dart';
 import '../../chats/message_formatting.dart';
+import '../../chats/message_quote.dart';
+import '../../chats/newcomer.dart';
 import '../../chats/slow_mode.dart';
 import '../../chats/video_prepare.dart';
 import '../../components.dart';
@@ -23,6 +25,7 @@ import '../../i18n/translations.g.dart';
 import '../../models.dart' as models;
 import 'chat_create_common.dart';
 import 'chat_info_common.dart';
+import 'comments_limit.dart';
 import 'media_caption_cupertino.dart';
 import 'media_caption_material.dart';
 import 'poll_create_cupertino.dart';
@@ -62,20 +65,37 @@ bool canClosePoll(models.Chat chat, models.Message message) {
 }
 
 /// «Завершить опрос?» — `true`, если подтвердили.
-Future<bool> confirmClosePoll(BuildContext context) async {
+Future<bool> confirmClosePoll(BuildContext context) {
   final t = context.t.screenChat;
+  return _confirmDestructive(context, title: t.closePollTitle, message: t.closePollMessage, action: t.closePoll);
+}
+
+/// Пост канала: «Закрыть комментарии» / «Открыть комментарии» — админ канала
+/// с включёнными комментариями.
+bool canToggleComments(models.Chat chat, models.Message message) =>
+    chat.type == models.ChatType.channel && chat.commentsEnabled && chat.canManage && !message.service;
+
+/// «Закрыть комментарии?» — `true`, если подтвердили.
+Future<bool> confirmCloseComments(BuildContext context) {
+  final t = context.t.screenChat;
+  return _confirmDestructive(context, title: t.closeCommentsTitle, message: t.closeCommentsMessage, action: t.closeComments);
+}
+
+/// Подтверждение необратимого действия: iOS — alert с красной кнопкой,
+/// Android — диалог. `true`, если подтвердили.
+Future<bool> _confirmDestructive(BuildContext context, {required String title, required String message, required String action}) async {
   if (Platform.isIOS) {
     return await c.showCupertinoDialog<bool>(
           context: context,
           builder: (dialogContext) => c.CupertinoAlertDialog(
-            title: Text(t.closePollTitle),
-            content: Text(t.closePollMessage),
+            title: Text(title),
+            content: Text(message),
             actions: [
               c.CupertinoDialogAction(onPressed: () => Navigator.of(dialogContext).pop(false), child: Text(context.t.common.cancel)),
               c.CupertinoDialogAction(
                 isDestructiveAction: true,
                 onPressed: () => Navigator.of(dialogContext).pop(true),
-                child: Text(t.closePoll),
+                child: Text(action),
               ),
             ],
           ),
@@ -85,11 +105,11 @@ Future<bool> confirmClosePoll(BuildContext context) async {
   return await m.showDialog<bool>(
         context: context,
         builder: (dialogContext) => m.AlertDialog(
-          title: Text(t.closePollTitle),
-          content: Text(t.closePollMessage),
+          title: Text(title),
+          content: Text(message),
           actions: [
             m.TextButton(onPressed: () => Navigator.of(dialogContext).pop(false), child: Text(context.t.common.cancel)),
-            m.TextButton(onPressed: () => Navigator.of(dialogContext).pop(true), child: Text(t.closePoll)),
+            m.TextButton(onPressed: () => Navigator.of(dialogContext).pop(true), child: Text(action)),
           ],
         ),
       ) ??
@@ -233,6 +253,22 @@ Future<void> _showNotice(BuildContext context, String text, {String? title}) asy
   }
 }
 
+/// «Новичкам — без ссылок и медиа»: можно ли нам отправить это — [media]
+/// (вложение, голосовое, опрос) или текст [raw] (с markdown-ярлыками) и
+/// пересылаемые. Нельзя — объясняем (до когда / «только подписчикам») и
+/// возвращаем `false`.
+bool checkNewcomer(BuildContext context, {bool media = false, String raw = '', List<models.Message> forwarding = const []}) {
+  final state = context.read<ChatCubit>().state;
+  if (!state.newcomerRestricted) return true;
+  final (text, entities) = parseMarkdownShortcuts(raw.trim());
+  if (!media && isLinkFree(text, entities) && forwarding.every(newcomerAllows)) return true;
+  final t = context.t;
+  final until = state.newcomerUntil;
+  final message = until == null ? t.screenChat.newcomerSubscribe : t.screenChat.newcomerWaitUntil(time: untilTimeLabel(until));
+  unawaited(_showNotice(context, message, title: t.screenChat.newcomerTitle));
+  return false;
+}
+
 /// Медленный режим: можно ли отправить сейчас [count] сообщений. Нельзя
 /// (ещё идёт отсчёт или сообщений больше одного) — объясняем и возвращаем
 /// `false`.
@@ -315,7 +351,7 @@ typedef MediaCaptionResult = ({String caption, bool spoiler, bool hd});
 Future<void> pickAndSendAttachments(BuildContext context, {TextEditingController? input}) async {
   final cubit = context.read<ChatCubit>();
   final chat = cubit.state.chat;
-  if (!checkSlowMode(context)) return;
+  if (!checkSlowMode(context) || !checkNewcomer(context, media: true)) return;
   // «Опрос» — в группах, сообществах, каналах и комментариях (не в личных).
   final polls = chat != null && chat.type != models.ChatType.private;
   final result = await showToolbarAttachments(
@@ -756,7 +792,10 @@ class _ThumbBadge extends StatelessWidget {
 }
 
 /// Плашка над полем ввода: «Ответ Анне: …» / «Редактирование: …».
-({String title, String text})? composeBanner(Translations t, ChatState state) {
+///
+/// [quote] — отвечаем на фрагмент («Цитировать»): в [text] — цитата, её
+/// разметка — [entities] (рисовать через [composeBannerText]).
+({String title, String text, bool quote, List<models.MessageEntity> entities})? composeBanner(Translations t, ChatState state) {
   final forwarding = state.forwarding;
   if (forwarding.isNotEmpty && state.editing == null) {
     String nameOf(models.Message m) => (m.forward?.self ?? m.outgoing) ? t.screenChat.you : (m.forward?.name ?? m.senderName);
@@ -765,14 +804,52 @@ class _ThumbBadge extends StatelessWidget {
     final text = forwarding.length == 1
         ? (first.text.isNotEmpty ? first.text : messageKindLabel(t, first.kind))
         : t.screenChat.forwardFrom(names: {for (final m in forwarding) nameOf(m)}.where((n) => n.isNotEmpty).join(', '));
-    return (title: t.screenChat.forwardMessages(n: forwarding.length), text: text.replaceAll('\n', ' '));
+    return (title: t.screenChat.forwardMessages(n: forwarding.length), text: text.replaceAll('\n', ' '), quote: false, entities: const []);
   }
   final message = state.editing ?? state.reply;
   if (message == null) return null;
   final text = message.text.isNotEmpty ? message.text : messageKindLabel(t, message.kind);
-  if (state.editing != null) return (title: t.screenChat.editing, text: text.replaceAll('\n', ' '));
+  if (state.editing != null) return (title: t.screenChat.editing, text: text.replaceAll('\n', ' '), quote: false, entities: const []);
   final name = message.outgoing ? t.screenChat.you : (message.senderName.isNotEmpty ? message.senderName : state.chat?.title ?? '');
-  return (title: name, text: text.replaceAll('\n', ' '));
+  final quote = state.replyQuote;
+  if (quote != null) {
+    // Замена \n пробелом длину не меняет — offset'ы разметки те же.
+    return (title: t.screenChat.replyQuoteTo(name: name), text: quote.text.replaceAll('\n', ' '), quote: true, entities: quote.entities);
+  }
+  return (title: name, text: text.replaceAll('\n', ' '), quote: false, entities: const []);
+}
+
+/// Строка текста плашки над полем ввода; у цитаты — с её разметкой (спойлер
+/// скрыт). [color] — цвет текста, [link] — ссылок.
+Widget composeBannerText(
+  ({String title, String text, bool quote, List<models.MessageEntity> entities}) banner,
+  TextStyle style,
+  Color color,
+  Color link,
+) {
+  if (banner.entities.isEmpty) {
+    return Text(
+      banner.text,
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      style: style.copyWith(color: color),
+    );
+  }
+  return IgnorePointer(
+    child: MessageText(
+      text: banner.text,
+      entities: banner.entities,
+      style: style,
+      maxLines: 1,
+      colors: MessageTextColors(
+        text: color,
+        link: link,
+        codeBackground: color.withValues(alpha: 0.12),
+        spoiler: color.withValues(alpha: 0.3),
+        quote: color,
+      ),
+    ),
+  );
 }
 
 /// Прокрутка ленты сообщений к строке с ключом [key] (поиск по чату). Лента
@@ -822,6 +899,9 @@ class ChatScrollTracker extends ChangeNotifier {
   bool showDown = false;
   int unread = 0;
   String? flashID;
+
+  /// Ответ на фрагмент: он подсвечен в тексте [flashID].
+  (int, int)? flashRange;
 
   List<models.Message> _messages = const [];
 
@@ -904,10 +984,12 @@ class ChatScrollTracker extends ChangeNotifier {
 
   /// Тап по цитате ответа в [from] — к исходному сообщению.
   Future<void> jumpToReply(models.Message from) async {
-    final id = from.reply?.messageID;
-    if (id == null || !_messages.any((m) => m.id == id)) return;
+    final reply = from.reply;
+    final original = _messages.where((m) => m.id == reply?.messageID).firstOrNull;
+    if (reply == null || original == null) return;
     _returnTo.add(from.id);
-    await _jumpTo(id);
+    final quote = reply.quote;
+    await _jumpTo(original.id, range: quote == null ? null : locateQuote(original.text, quote));
   }
 
   /// Кнопка «вниз»: назад к сообщению, с которого перешли по цитате, иначе —
@@ -931,13 +1013,17 @@ class ChatScrollTracker extends ChangeNotifier {
   /// Перейти к сообщению [id] с подсветкой (плашка закреплённых).
   Future<void> jumpTo(String id) => _jumpTo(id);
 
-  Future<void> _jumpTo(String id) async {
+  /// [range] — подсветить ещё и фрагмент текста (цитата); его держим
+  /// дольше, чтобы успеть прочитать.
+  Future<void> _jumpTo(String id, {(int, int)? range}) async {
     await scrollToMessage(scroll, keyFor(id));
     flashID = id;
+    flashRange = range;
     notifyListeners();
     _flashTimer?.cancel();
-    _flashTimer = Timer(const Duration(milliseconds: 900), () {
+    _flashTimer = Timer(Duration(milliseconds: range == null ? 900 : 1600), () {
       flashID = null;
+      flashRange = null;
       notifyListeners();
     });
   }

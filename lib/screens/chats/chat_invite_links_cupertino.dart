@@ -57,35 +57,10 @@ class ChatInviteLinksCupertino extends StatelessWidget {
     if (await _confirm(context, title: t.replaceTitle, message: t.replaceMessage, action: t.replace)) await cubit.revokeLink(link);
   }
 
-  Future<void> _linkActions(BuildContext context, models.ChatInviteLink link) async {
+  /// Действие из меню ссылки (тап по строке).
+  Future<void> _linkAction(BuildContext context, models.ChatInviteLink link, String action) async {
     final t = context.t.screenChatInvites;
     final cubit = context.read<ChatInvitesCubit>();
-    final action = await showCupertinoModalPopup<String>(
-      context: context,
-      builder: (sheetContext) => CupertinoActionSheet(
-        title: Text(inviteShort(link.link)),
-        actions: [
-          if (link.revoked)
-            CupertinoActionSheetAction(
-              isDestructiveAction: true,
-              onPressed: () => Navigator.of(sheetContext).pop('delete'),
-              child: Text(t.delete),
-            )
-          else ...[
-            CupertinoActionSheetAction(onPressed: () => Navigator.of(sheetContext).pop('copy'), child: Text(t.copy)),
-            CupertinoActionSheetAction(onPressed: () => Navigator.of(sheetContext).pop('share'), child: Text(t.share)),
-            CupertinoActionSheetAction(onPressed: () => Navigator.of(sheetContext).pop('edit'), child: Text(t.edit)),
-            CupertinoActionSheetAction(
-              isDestructiveAction: true,
-              onPressed: () => Navigator.of(sheetContext).pop('revoke'),
-              child: Text(t.revoke),
-            ),
-          ],
-        ],
-        cancelButton: CupertinoActionSheetAction(onPressed: () => Navigator.of(sheetContext).pop(), child: Text(context.t.common.cancel)),
-      ),
-    );
-    if (!context.mounted) return;
     switch (action) {
       case 'copy':
         _copy(link.link);
@@ -130,12 +105,30 @@ class ChatInviteLinksCupertino extends StatelessWidget {
 
     Widget linkTile(models.ChatInviteLink link, DateTime now) {
       final subtitle = inviteSubtitle(t, link, now);
-      return CupertinoListTile(
-        leadingSize: 28,
-        leading: linkIcon(link.isActive(now)),
-        title: Text(inviteTitle(link)),
-        subtitle: Text(subtitle.text, style: TextStyle(color: subtitle.warning ? destructive : secondary)),
-        onTap: () => _linkActions(context, link),
+      CupertinoMenuItem item(String action, String label, IconData icon, {bool destructive = false}) => CupertinoMenuItem(
+        isDestructiveAction: destructive,
+        trailing: Icon(icon),
+        onPressed: () => _linkAction(context, link, action),
+        child: Text(label),
+      );
+      final tl = t.screenChatInvites;
+      // Тап по строке — выпадающее меню действий со ссылкой.
+      return CupertinoMenuAnchor(
+        menuChildren: link.revoked
+            ? [item('delete', tl.delete, CupertinoIcons.delete, destructive: true)]
+            : [
+                item('copy', tl.copy, CupertinoIcons.doc_on_doc),
+                item('share', tl.share, CupertinoIcons.share),
+                item('edit', tl.edit, CupertinoIcons.pencil),
+                item('revoke', tl.revoke, CupertinoIcons.nosign, destructive: true),
+              ],
+        builder: (context, controller, child) => CupertinoListTile(
+          leadingSize: 28,
+          leading: linkIcon(link.isActive(now)),
+          title: Text(inviteTitle(link)),
+          subtitle: Text(subtitle.text, style: TextStyle(color: subtitle.warning ? destructive : secondary)),
+          onTap: () => controller.isOpen ? controller.close() : controller.open(),
+        ),
       );
     }
 

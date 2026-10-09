@@ -5,6 +5,12 @@ import '../../models.dart' as models;
 
 part 'chat_state.mapper.dart';
 
+/// Почему нельзя комментировать: ветка закрыта (срок поста вышел / админ
+/// закрыл), канал «только подписчики», а мы не подписаны, или подписаны
+/// меньше `Chat.commentsMinSubscription`.
+@MappableEnum()
+enum ChatCommentsBlock { none, closed, subscribe, wait }
+
 /// Состояние окна чата: сам чат (шапка, «печатает…»), его сообщения и режим
 /// поля ввода (ответ / редактирование).
 @MappableClass()
@@ -17,8 +23,18 @@ class ChatState with ChatStateMappable {
   /// От старых к новым.
   final List<models.Message> messages;
 
+  /// Сообщество: его чаты — канал объявлений первым, затем группы и каналы
+  /// (и те, где мы не участник).
+  final List<models.Chat> communityChats;
+
+  /// Группа / канал сообщества: само сообщество.
+  final models.Chat? community;
+
   /// Отвечаем на это сообщение — над полем ввода плашка с цитатой.
   final models.Message? reply;
+
+  /// Отвечаем не на всё [reply], а на его фрагмент («Цитировать»).
+  final models.MessageQuote? replyQuote;
 
   /// Редактируем это сообщение — поле ввода заполнено его текстом.
   final models.Message? editing;
@@ -65,11 +81,31 @@ class ChatState with ChatStateMappable {
   /// тикает раз в секунду, вместо кнопки отправки — обратный отсчёт.
   final int slowModeLeft;
 
+  /// Канал: посты (id), комментарии к которым уже закрыты (срок вышел или
+  /// админ закрыл) — под постом замок, ветка только для чтения.
+  final List<String> commentsClosedIDs;
+
+  /// Ветка комментариев: почему нам нельзя писать (вместо поля ввода —
+  /// плашка); [ChatCommentsBlock.none] — можно / не ветка.
+  final ChatCommentsBlock commentsBlock;
+
+  /// [ChatCommentsBlock.wait]: с какого момента можно комментировать.
+  final DateTime? commentsWaitUntil;
+
+  /// «Новичкам — без ссылок и медиа» действует на нас: только текст (без
+  /// ссылок, медиа, файлов, голосовых, опросов). [newcomerUntil] — до когда
+  /// (`null` при [newcomerRestricted] — пока не подпишемся на канал ветки).
+  final bool newcomerRestricted;
+  final DateTime? newcomerUntil;
+
   const ChatState({
     this.status = Status.initialization,
     this.chat,
     this.messages = const [],
+    this.communityChats = const [],
+    this.community,
     this.reply,
+    this.replyQuote,
     this.editing,
     this.unreadFromID,
     this.selecting = false,
@@ -84,7 +120,15 @@ class ChatState with ChatStateMappable {
     this.members = const [],
     this.banned = const [],
     this.slowModeLeft = 0,
+    this.commentsClosedIDs = const [],
+    this.commentsBlock = ChatCommentsBlock.none,
+    this.commentsWaitUntil,
+    this.newcomerRestricted = false,
+    this.newcomerUntil,
   });
+
+  /// Писать в ветку нельзя (закрыта / не подписаны / мало подписаны).
+  bool get commentsBlocked => commentsBlock != ChatCommentsBlock.none;
 
   /// Закреплённые — от новых к старым (плашка показывает сначала последнее).
   List<models.Message> get pinnedMessages => [

@@ -28,26 +28,6 @@ Future<void> showChatJoinRequestsCupertino(BuildContext context, String chatID) 
 class ChatJoinRequestsCupertino extends StatelessWidget {
   const ChatJoinRequestsCupertino({super.key});
 
-  Future<void> _all(BuildContext context) async {
-    final t = context.t.screenChatInvites;
-    final cubit = context.read<ChatInvitesCubit>();
-    final approve = await showCupertinoModalPopup<bool>(
-      context: context,
-      builder: (sheetContext) => CupertinoActionSheet(
-        actions: [
-          CupertinoActionSheetAction(onPressed: () => Navigator.of(sheetContext).pop(true), child: Text(t.approveAll)),
-          CupertinoActionSheetAction(
-            isDestructiveAction: true,
-            onPressed: () => Navigator.of(sheetContext).pop(false),
-            child: Text(t.declineAll),
-          ),
-        ],
-        cancelButton: CupertinoActionSheetAction(onPressed: () => Navigator.of(sheetContext).pop(), child: Text(context.t.common.cancel)),
-      ),
-    );
-    if (approve != null) await cubit.answer(approve: approve);
-  }
-
   @override
   Widget build(BuildContext context) {
     final t = context.t;
@@ -68,8 +48,28 @@ class ChatJoinRequestsCupertino extends StatelessWidget {
               automaticBackgroundVisibility: false,
               backgroundColor: ThemesCupertino.groupedBackground,
               middle: Text(tc.joinRequests),
+              // «Все» — выпадающее меню: принять / отклонить все.
               trailing: requests.length > 1
-                  ? CupertinoButton(padding: EdgeInsets.zero, onPressed: () => _all(context), child: Text(tc.all))
+                  ? CupertinoMenuAnchor(
+                      menuChildren: [
+                        CupertinoMenuItem(
+                          trailing: const Icon(CupertinoIcons.checkmark_circle),
+                          onPressed: () => context.read<ChatInvitesCubit>().answer(approve: true),
+                          child: Text(tc.approveAll),
+                        ),
+                        CupertinoMenuItem(
+                          isDestructiveAction: true,
+                          trailing: const Icon(CupertinoIcons.xmark_circle),
+                          onPressed: () => context.read<ChatInvitesCubit>().answer(approve: false),
+                          child: Text(tc.declineAll),
+                        ),
+                      ],
+                      builder: (context, controller, child) => CupertinoButton(
+                        padding: EdgeInsets.zero,
+                        onPressed: () => controller.isOpen ? controller.close() : controller.open(),
+                        child: Text(tc.all),
+                      ),
+                    )
                   : null,
             ),
           ),

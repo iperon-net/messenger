@@ -38,9 +38,48 @@ class ChatsDemoDataSource implements ChatsDataSource {
 
   @override
   Stream<List<models.Chat>> watchChats() async* {
-    yield _chats;
+    yield _present();
     yield* _chatsController.stream;
   }
+
+  void _emit() => _chatsController.add(_present());
+
+  /// Чаты для подписчиков: строки сообществ — сводкой по их чатам, где мы
+  /// участник (см. «Сообщества» в docs/plans/chats-groups-channels.md):
+  /// последнее сообщение с подписью «Группа › Отправитель» и суммарные
+  /// непрочитанные без заглушённых чатов.
+  List<models.Chat> _present() {
+    final byCommunity = <String, List<models.Chat>>{};
+    for (final c in _chats) {
+      if (c.inCommunity && c.isMember) (byCommunity[c.communityID] ??= []).add(c);
+    }
+    return [
+      for (final c in _chats)
+        if (c.type == models.ChatType.community) _summary(c, byCommunity[c.id] ?? const []) else c,
+    ];
+  }
+
+  models.Chat _summary(models.Chat community, List<models.Chat> chats) {
+    models.Chat? latest;
+    for (final c in chats) {
+      final date = c.lastMessage?.date;
+      if (date != null && (latest == null || date.isAfter(latest.lastMessage!.date))) latest = c;
+    }
+    final audible = chats.where((c) => !c.muted);
+    return community.copyWith(
+      lastMessage: latest == null
+          ? community.lastMessage
+          : latest.lastMessage!.copyWith(chatTitle: latest.announcements ? '' : latest.title),
+      unreadCount: audible.fold<int>(0, (sum, c) => sum + c.unreadCount),
+      unreadMentions: audible.fold<int>(0, (sum, c) => sum + c.unreadMentions),
+    );
+  }
+
+  /// Чаты сообщества [communityID]: канал объявлений первым.
+  List<models.Chat> _communityChats(String communityID) => [
+    ..._chats.where((c) => c.communityID == communityID && c.announcements),
+    ..._chats.where((c) => c.communityID == communityID && !c.announcements),
+  ];
 
   @override
   Stream<List<models.ChatFolder>> watchFolders() async* {
@@ -70,13 +109,25 @@ class ChatsDemoDataSource implements ChatsDataSource {
       _update(chatID, (c) => c.copyWith(archived: archived, pinned: archived ? false : c.pinned));
 
   @override
-  Future<void> setRead(String chatID, bool read) async =>
-      _update(chatID, (c) => read ? c.copyWith(unreadCount: 0, unreadMentions: 0, markedUnread: false) : c.copyWith(markedUnread: true));
+  Future<void> setRead(String chatID, bool read) async {
+    // Сообщество «прочитано» — прочитаны все его чаты.
+    if (read && _chats.any((c) => c.id == chatID && c.type == models.ChatType.community)) {
+      await readAll([chatID, for (final c in _communityChats(chatID)) c.id]);
+      return;
+    }
+    _update(chatID, (c) => read ? c.copyWith(unreadCount: 0, unreadMentions: 0, markedUnread: false) : c.copyWith(markedUnread: true));
+  }
 
   @override
   Future<void> readAll(List<String> chatIDs) async {
-    _chats = [for (final c in _chats) chatIDs.contains(c.id) ? c.copyWith(unreadCount: 0, unreadMentions: 0, markedUnread: false) : c];
-    _chatsController.add(_chats);
+    // Сообщество в папке — и все его чаты.
+    final ids = {
+      ...chatIDs,
+      for (final c in _chats)
+        if (chatIDs.contains(c.communityID)) c.id,
+    };
+    _chats = [for (final c in _chats) ids.contains(c.id) ? c.copyWith(unreadCount: 0, unreadMentions: 0, markedUnread: false) : c];
+    _emit();
   }
 
   @override
@@ -199,7 +250,7 @@ class ChatsDemoDataSource implements ChatsDataSource {
         createdAt: DateTime.now(),
       ),
     ];
-    _chatsController.add(_chats);
+    _emit();
     return userID;
   }
 
@@ -223,15 +274,21 @@ class ChatsDemoDataSource implements ChatsDataSource {
     String username = '',
     String inviteLink = '',
     String avatarPath = '',
+    String communityID = '',
+    models.ChatJoinMode joinMode = models.ChatJoinMode.open,
   }) async {
     final now = DateTime.now();
     final id = 'new${_nextChatID++}';
+    final community = _chats.where((c) => c.id == communityID && c.type == models.ChatType.community).firstOrNull;
     final contacts = {for (final m in _contacts()) m.id: m};
     final members = [
       for (final memberID in memberIDs)
         if (contacts[memberID] case final m?) m.copyWith(role: models.ChatRole.writer),
     ];
-    _members[id] = [const models.ChatMember(id: 'me', name: 'Вы', role: models.ChatRole.owner, online: true, isSelf: true), ...members];
+    // В сообществе наша роль — как в сообществе (его админы — админы во всех
+    // его чатах).
+    final myRole = community?.myRole ?? models.ChatRole.owner;
+    _members[id] = [models.ChatMember(id: 'me', name: 'Вы', role: myRole, online: true, isSelf: true), ...members];
 
     // Сервисное «создан» первым сообщением (в демо — по-русски, как прочие
     // сервисные; настоящие придут с сервера структурой и локализуются).
@@ -255,27 +312,72 @@ class ChatsDemoDataSource implements ChatsDataSource {
         ),
     ];
 
+    final chat = models.Chat(
+      id: id,
+      type: type,
+      title: title,
+      about: about,
+      username: username,
+      inviteLink: username.isEmpty ? inviteLink : '',
+      joinMode: username.isEmpty ? models.ChatJoinMode.link : models.ChatJoinMode.open,
+      avatarPath: avatarPath,
+      commentsEnabled: type == models.ChatType.channel,
+      membersHidden: type == models.ChatType.channel,
+      membersCount: 1 + members.length,
+      myRole: myRole,
+      createdAt: now,
+      lastMessage: type == models.ChatType.community ? null : models.ChatLastMessage(text: service, date: now),
+    );
     _chats = [
       ..._chats,
-      models.Chat(
-        id: id,
-        type: type,
-        title: title,
-        about: about,
-        username: username,
-        inviteLink: username.isEmpty ? inviteLink : '',
-        joinMode: username.isEmpty ? models.ChatJoinMode.link : models.ChatJoinMode.open,
-        avatarPath: avatarPath,
-        commentsEnabled: type == models.ChatType.channel,
-        membersHidden: type == models.ChatType.channel,
-        membersCount: 1 + members.length,
-        myRole: models.ChatRole.owner,
-        createdAt: now,
-        lastMessage: models.ChatLastMessage(text: service, date: now),
-      ),
+      if (community != null)
+        // Чат сообщества: своих ссылок нет, настройки по умолчанию — от
+        // сообщества (админ может поменять у конкретного чата).
+        chat.copyWith(
+          communityID: community.id,
+          username: '',
+          inviteLink: '',
+          // Одним нажатием / по заявке (закрытая тема) / скрытая (добавляют админы).
+          joinMode: joinMode == models.ChatJoinMode.link ? models.ChatJoinMode.open : joinMode,
+          defaultRole: type == models.ChatType.channel ? models.ChatRole.reader : community.defaultRole,
+          slowMode: type == models.ChatType.channel ? 0 : community.slowMode,
+          reactionsMode: community.reactionsMode,
+          reactions: community.reactions,
+          newcomerMediaDelay: community.newcomerMediaDelay,
+          membersHidden: false,
+        )
+      else
+        chat,
+      // У сообщества своей ленты нет — сразу канал объявлений.
+      if (type == models.ChatType.community) _announcementsFor(chat, now),
     ];
-    _chatsController.add(_chats);
+    _emit();
     return id;
+  }
+
+  /// Канал объявлений нового сообщества [community]: его название и фото, мы
+  /// — владелец; первым — сервисное «Сообщество создано».
+  models.Chat _announcementsFor(models.Chat community, DateTime now) {
+    final id = '${community.id}_news';
+    const service = 'Сообщество создано';
+    _members[id] = [const models.ChatMember(id: 'me', name: 'Вы', role: models.ChatRole.owner, online: true, isSelf: true)];
+    _messages[id] = [
+      models.Message(id: _id(), chatID: id, text: service, outgoing: true, service: true, status: models.MessageStatus.read, date: now),
+    ];
+    return models.Chat(
+      id: id,
+      type: models.ChatType.channel,
+      title: community.title,
+      avatarPath: community.avatarPath,
+      communityID: community.id,
+      announcements: true,
+      joinMode: models.ChatJoinMode.open,
+      membersHidden: true,
+      membersCount: 1,
+      myRole: models.ChatRole.owner,
+      createdAt: now,
+      lastMessage: models.ChatLastMessage(text: service, date: now),
+    );
   }
 
   @override
@@ -284,11 +386,20 @@ class ChatsDemoDataSource implements ChatsDataSource {
     required String title,
     required String about,
     required String avatarPath,
+    String coverPath = '',
+    String phone = '',
+    String address = '',
+    double? latitude,
+    double? longitude,
     required models.ChatJoinMode joinMode,
     required String username,
     required String inviteLink,
     required models.ChatRole defaultRole,
     bool commentsEnabled = false,
+    int commentsTimeLimit = 0,
+    models.ChatCommentsWho commentsWho = models.ChatCommentsWho.all,
+    int commentsMinSubscription = 0,
+    int newcomerMediaDelay = 0,
     bool signMessages = false,
     bool membersHidden = false,
   }) async {
@@ -301,6 +412,11 @@ class ChatsDemoDataSource implements ChatsDataSource {
         title: title,
         about: about,
         avatarPath: avatarPath,
+        coverPath: chat.type == models.ChatType.community ? coverPath : '',
+        phone: chat.type == models.ChatType.community ? phone : '',
+        address: chat.type == models.ChatType.community ? address : '',
+        latitude: chat.type == models.ChatType.community ? latitude : null,
+        longitude: chat.type == models.ChatType.community ? longitude : null,
         joinMode: joinMode,
         username: open ? username : '',
         // Ссылка-приглашение сохраняется и у публичного — вернётся при
@@ -308,6 +424,10 @@ class ChatsDemoDataSource implements ChatsDataSource {
         inviteLink: joinMode == models.ChatJoinMode.admins ? '' : inviteLink,
         defaultRole: defaultRole,
         commentsEnabled: chat.type == models.ChatType.channel && commentsEnabled,
+        commentsTimeLimit: chat.type == models.ChatType.channel ? commentsTimeLimit : 0,
+        commentsWho: commentsWho,
+        commentsMinSubscription: commentsWho == models.ChatCommentsWho.subscribers ? commentsMinSubscription : 0,
+        newcomerMediaDelay: newcomerMediaDelay,
         signMessages: chat.type == models.ChatType.channel && signMessages,
         membersHidden: membersHidden,
       ),
@@ -737,7 +857,8 @@ class ChatsDemoDataSource implements ChatsDataSource {
   @override
   Future<void> joinChat(String chatID) async {
     final chat = _chats.where((c) => c.id == chatID).firstOrNull;
-    if (chat == null || chat.isMember) return;
+    // В скрытую группу сообщества самому не вступить — добавляют админы.
+    if (chat == null || chat.isMember || (chat.inCommunity && chat.joinMode == models.ChatJoinMode.admins)) return;
     if (chat.joinMode == models.ChatJoinMode.request) {
       _update(chatID, (c) => c.copyWith(joinRequested: true));
       // Демо: админ одобряет через несколько секунд.
@@ -750,10 +871,25 @@ class ChatsDemoDataSource implements ChatsDataSource {
   void _becomeMember(String chatID) {
     final chat = _chats.where((c) => c.id == chatID).firstOrNull;
     if (chat == null || chat.isMember) return;
+    // В сообщество — вместе с каналом объявлений (своей ленты у него нет).
+    if (chat.type == models.ChatType.community) {
+      _update(chatID, (c) => c.copyWith(isMember: true, joinRequested: false, myRole: c.defaultRole, membersCount: c.membersCount + 1));
+      for (final news in _communityChats(chatID).where((c) => c.announcements)) {
+        _becomeMember(news.id);
+      }
+      return;
+    }
     final role = chat.type == models.ChatType.channel ? models.ChatRole.reader : chat.defaultRole;
     _update(
       chatID,
-      (c) => c.copyWith(isMember: true, joinRequested: false, myRole: role, membersCount: c.membersCount + 1, createdAt: DateTime.now()),
+      (c) => c.copyWith(
+        isMember: true,
+        joinRequested: false,
+        myRole: role,
+        membersCount: c.membersCount + 1,
+        createdAt: DateTime.now(),
+        joinedAt: DateTime.now(),
+      ),
     );
     _members.remove(chatID);
     _service(chatID, chat.type == models.ChatType.channel ? 'Вы подписались на канал' : 'Вы вступили в группу');
@@ -855,6 +991,21 @@ class ChatsDemoDataSource implements ChatsDataSource {
     final withProfile = _profileOf(chat);
     // Публичные (с username) — открытые; в рабочих и дружеских группах
     // вступившие сразу могут писать.
+    // Чаты сообществ: своих ссылок нет, вступление — одним нажатием, кроме
+    // «закрытых тем» (по заявке).
+    if (chat.inCommunity) {
+      return withProfile.copyWith(
+        joinMode: switch (chat.id) {
+          'spices_vip' => models.ChatJoinMode.request,
+          // Скрытые: гости их не видят («Персонал» ресторана нам не виден вовсе).
+          'coffee_staff' || 'spices_staff' || 'kuksu_staff' => models.ChatJoinMode.admins,
+          _ => models.ChatJoinMode.open,
+        },
+        defaultRole: chat.type == models.ChatType.channel ? models.ChatRole.reader : models.ChatRole.writer,
+        commentsEnabled: chat.id == 'devs_jobs',
+        membersHidden: chat.type == models.ChatType.channel,
+      );
+    }
     return withProfile.copyWith(
       joinMode: chat.id == 'designers'
           ? models.ChatJoinMode.request
@@ -864,13 +1015,27 @@ class ChatsDemoDataSource implements ChatsDataSource {
           : (withProfile.username.isEmpty && withProfile.type != models.ChatType.private
                 ? '+K${(chat.id.hashCode & 0xFFFFFFF).toRadixString(36)}hQ'
                 : ''),
-      defaultRole: const {'team', 'family', 'football', 'district', 'devs'}.contains(chat.id)
+      defaultRole: const {'team', 'family', 'football', 'district', 'devs', 'spices', 'coffee', 'kuksu'}.contains(chat.id)
           ? models.ChatRole.writer
           : models.ChatRole.reader,
       commentsEnabled: const {'news', 'flutter', 'tech', 'iperon_dev'}.contains(chat.id),
+      // Срок комментирования: у старых постов этих каналов ветки уже закрыты.
+      commentsTimeLimit: switch (chat.id) {
+        'flutter' => 3 * 86400,
+        'tech' => 86400,
+        _ => 0,
+      },
+      // Комментируют только подписчики: «Iperon Dev» (мы не подписаны —
+      // «Подписаться, чтобы комментировать»; подпишемся — ждать 1 час).
+      commentsWho: chat.id == 'iperon_dev' ? models.ChatCommentsWho.subscribers : models.ChatCommentsWho.all,
+      commentsMinSubscription: chat.id == 'iperon_dev' ? 3600 : 0,
+      // «Новичкам — без ссылок и медиа» на сутки: вступим в «Flutter Moscow» /
+      // подпишемся на «Iperon Dev» — первые сутки только текст.
+      newcomerMediaDelay: const {'iperon_dev', 'flutter_msk'}.contains(chat.id) ? 86400 : 0,
       signMessages: const {'news', 'iperon_dev'}.contains(chat.id),
-      // Подписчиков канала по умолчанию видят только админы.
-      membersHidden: chat.type == models.ChatType.channel,
+      // Подписчиков канала по умолчанию видят только админы; у ресторана —
+      // и участников сообщества (гостям незачем видеть друг друга).
+      membersHidden: chat.type == models.ChatType.channel || chat.id == 'spices',
     );
   }
 
@@ -892,13 +1057,47 @@ class ChatsDemoDataSource implements ChatsDataSource {
         username: 'severny_zhk',
         membersCount: 1340,
       ),
-      // Большое сообщество — с медленным режимом (мы обычный участник).
-      'devs' => chat.copyWith(
-        about: 'Русскоязычное сообщество Flutter-разработчиков.',
-        username: 'flutter_ru',
-        membersCount: 8420,
-        slowMode: 30,
+      'district_news' => chat.copyWith(membersCount: 1340),
+      'district_neighbors' => chat.copyWith(membersCount: 860),
+      'district_parking' => chat.copyWith(membersCount: 410),
+      'district_kids' => chat.copyWith(membersCount: 225),
+      'devs' => chat.copyWith(about: 'Русскоязычное сообщество Flutter-разработчиков.', username: 'flutter_ru', membersCount: 8420),
+      'devs_news' => chat.copyWith(membersCount: 8420),
+      // Большой общий чат — с медленным режимом (мы обычный участник).
+      'devs_chat' => chat.copyWith(about: 'Вопросы, обсуждения, новости.', membersCount: 6130, slowMode: 30),
+      'devs_jobs' => chat.copyWith(about: 'Вакансии и резюме. Публикуют админы.', membersCount: 3900),
+      'devs_newbies' => chat.copyWith(about: 'Здесь можно спрашивать что угодно.', membersCount: 1210),
+      'spices' => chat.copyWith(
+        about: 'Ресторан восточной кухни. Ежедневно 12:00–23:00, ул. Лесная, 5. Бронь столиков — +7 495 123-45-67.',
+        username: 'spices_rest',
+        membersCount: 2140,
+        myRole: models.ChatRole.writer,
       ),
+      'spices_news' => chat.copyWith(membersCount: 2140),
+      'spices_reviews' => chat.copyWith(about: 'Делитесь впечатлениями — мы читаем всё.', membersCount: 230),
+      'spices_vip' => chat.copyWith(about: 'Закрытый клуб гостей: дегустации и ранняя бронь.', membersCount: 48),
+      'coffee' => chat.copyWith(
+        about: 'Кофейня у метро «Сокол». Каждый день 7:30–21:00.',
+        username: 'zerno_coffee',
+        membersCount: 312,
+        myRole: models.ChatRole.owner,
+      ),
+      'coffee_news' => chat.copyWith(membersCount: 312),
+      'coffee_staff' => chat.copyWith(about: 'Смены, поставки, рабочие вопросы.', membersCount: 6),
+      'coffee_guests' => chat.copyWith(membersCount: 154),
+      'kuksu' => chat.copyWith(
+        about: 'Ресторан корейской кухни. Основан в 2014 году.',
+        username: 'domkuksu',
+        phone: '+79260906996',
+        address: 'Москва, Симферопольский бульвар, 22, корп. 3, стр. 2',
+        latitude: 55.650088,
+        longitude: 37.606609,
+        membersCount: 520,
+        myRole: models.ChatRole.owner,
+      ),
+      'kuksu_news' => chat.copyWith(avatarPath: 'assets/demo/domkuksu_logo.png', membersCount: 520),
+      'kuksu_guests' => chat.copyWith(about: 'Отзывы, вопросы, пожелания.', membersCount: 214),
+      'kuksu_staff' => chat.copyWith(about: 'Смены и рабочие вопросы.', membersCount: 12),
       'news' => chat.copyWith(
         about: 'Новости мессенджера Iperon.',
         username: 'iperon_news',
@@ -937,8 +1136,29 @@ class ChatsDemoDataSource implements ChatsDataSource {
 
   @override
   Future<void> delete(String chatID) async {
-    _chats = _chats.where((c) => c.id != chatID).toList();
-    _chatsController.add(_chats);
+    final chat = _chats.where((c) => c.id == chatID).firstOrNull;
+    if (chat == null) return;
+    // Из группы / канала сообщества выходим, но чат остаётся в сообществе —
+    // можно вступить снова; удаляет его у всех только владелец.
+    if (chat.inCommunity && chat.myRole != models.ChatRole.owner) {
+      _members.remove(chatID);
+      _update(
+        chatID,
+        (c) => c.copyWith(
+          isMember: false,
+          myRole: models.ChatRole.reader,
+          membersCount: max(0, c.membersCount - 1),
+          unreadCount: 0,
+          unreadMentions: 0,
+          markedUnread: false,
+          muted: false,
+        ),
+      );
+      return;
+    }
+    // Сообщество — вместе со всеми его чатами.
+    _chats = _chats.where((c) => c.id != chatID && c.communityID != chatID).toList();
+    _emit();
   }
 
   @override
@@ -1060,6 +1280,7 @@ class ChatsDemoDataSource implements ChatsDataSource {
         uploadTotal += known > 0 ? known : await _fileSize(path);
       }
     }
+    final now = DateTime.now();
     final message = models.Message(
       id: _id(),
       chatID: chatID,
@@ -1068,7 +1289,7 @@ class ChatsDemoDataSource implements ChatsDataSource {
       entities: entities,
       outgoing: true,
       status: models.MessageStatus.pending,
-      date: DateTime.now(),
+      date: now,
       reply: reply,
       localPath: localPath,
       fileName: fileName,
@@ -1083,6 +1304,7 @@ class ChatsDemoDataSource implements ChatsDataSource {
       // Пост канала: сразу 1 просмотр (наш), дальше растут.
       views: _isChannel(chatID) ? 1 : 0,
       authorSignature: _chats.any((c) => c.id == chatID && c.type == models.ChatType.channel && c.signMessages) ? await _selfName() : '',
+      commentsCloseDate: _commentsCloseDate(chatID, now),
     );
     _setMessages(chatID, [..._history(chatID), message]);
     _update(chatID, (c) => c.copyWith(lastMessage: _lastOf(message), draft: '', archived: false));
@@ -1348,6 +1570,7 @@ class ChatsDemoDataSource implements ChatsDataSource {
           media: m.media,
           fileSize: m.fileSize,
           poll: m.poll,
+          commentsCloseDate: _commentsCloseDate(toChatID, now),
           // Пересылка пересланного — автор оригинала остаётся прежним.
           forward:
               m.forward ??
@@ -1377,7 +1600,7 @@ class ChatsDemoDataSource implements ChatsDataSource {
 
   void _update(String chatID, models.Chat Function(models.Chat) change) {
     _chats = [for (final c in _chats) c.id == chatID ? change(c) : c];
-    _chatsController.add(_chats);
+    _emit();
   }
 
   // ─── Имитация жизни ───────────────────────────────────────────────────────
@@ -1425,7 +1648,9 @@ class ChatsDemoDataSource implements ChatsDataSource {
               !c.archived &&
               !c.isSelf &&
               c.type != models.ChatType.channel &&
+              c.type != models.ChatType.community &&
               c.draft.isEmpty &&
+              !c.commentsClosed() &&
               // Новая группа, где пока только мы, — писать некому.
               (c.type == models.ChatType.private || c.membersCount > 1),
         )
@@ -1531,14 +1756,9 @@ class ChatsDemoDataSource implements ChatsDataSource {
         draft: 'Напомни, пожалуйста, адрес',
         lastMessage: msg('Хорошо, до завтра', date: ago(hours: 2)),
       ),
-      models.Chat(
-        id: 'district',
-        type: models.ChatType.community,
-        title: 'Жители ЖК «Северный»',
-        unreadCount: 27,
-        muted: true,
-        lastMessage: msg('Завтра отключат горячую воду с 10:00', sender: 'УК', date: ago(hours: 3)),
-      ),
+      // Сообщества: строка в списке — сводка по их чатам (см. `_present`),
+      // сами чаты — ниже, в «Чатах сообществ».
+      models.Chat(id: 'district', type: models.ChatType.community, title: 'Жители ЖК «Северный»', muted: true),
       models.Chat(
         id: 'family',
         type: models.ChatType.group,
@@ -1588,11 +1808,18 @@ class ChatsDemoDataSource implements ChatsDataSource {
         isContact: true,
         lastMessage: msg('', kind: models.MessageKind.video, date: ago(days: 3)),
       ),
+      models.Chat(id: 'devs', type: models.ChatType.community, title: 'Flutter Russia'),
+      // Бизнес-страницы: ресторан (мы гость) и своя кофейня (мы владелец —
+      // можно создавать группы и каналы внутри).
+      models.Chat(id: 'spices', type: models.ChatType.community, title: 'Ресторан «Пряности»'),
+      models.Chat(id: 'coffee', type: models.ChatType.community, title: 'Кофейня «Зерно»', pinned: true),
+      // С настоящими логотипом и обложкой (ассеты демо) — мы владелец.
       models.Chat(
-        id: 'devs',
+        id: 'kuksu',
         type: models.ChatType.community,
-        title: 'Flutter Russia',
-        lastMessage: msg('Вопрос по go_router и вложенным навигаторам', sender: 'Екатерина', date: ago(days: 4)),
+        title: 'Ресторан «Дом куксу»',
+        avatarPath: 'assets/demo/domkuksu_logo.png',
+        coverPath: 'assets/demo/domkuksu_cover.jpg',
       ),
       models.Chat(
         id: 'tech',
@@ -1655,6 +1882,207 @@ class ChatsDemoDataSource implements ChatsDataSource {
         myRole: models.ChatRole.reader,
         lastMessage: msg('Скинула гайдлайны по иконкам', sender: 'Мария', date: ago(hours: 9)),
       ),
+      // ─── Чаты сообществ ───
+      ..._seedCommunityChats(ago, msg),
+    ];
+  }
+
+  /// Чаты демо-сообществ: канал объявлений + группы по темам (где-то мы
+  /// участник, где-то нет; «закрытые темы» — по заявке).
+  List<models.Chat> _seedCommunityChats(
+    DateTime Function({int days, int hours, int minutes}) ago,
+    models.ChatLastMessage Function(
+      String text, {
+      required DateTime date,
+      String sender,
+      bool out,
+      models.MessageStatus status,
+      models.MessageKind kind,
+    })
+    msg,
+  ) {
+    models.Chat chat(
+      String communityID,
+      String id,
+      models.ChatType type,
+      String title, {
+      bool announcements = false,
+      bool member = true,
+      int unread = 0,
+      models.ChatRole role = models.ChatRole.writer,
+      required models.ChatLastMessage last,
+    }) => models.Chat(
+      id: id,
+      type: type,
+      title: title,
+      communityID: communityID,
+      announcements: announcements,
+      isMember: member,
+      unreadCount: unread,
+      myRole: member ? role : models.ChatRole.reader,
+      lastMessage: last,
+    );
+
+    const group = models.ChatType.group;
+    const channel = models.ChatType.channel;
+    const reader = models.ChatRole.reader;
+    const owner = models.ChatRole.owner;
+    return [
+      chat(
+        'district',
+        'district_news',
+        channel,
+        'Жители ЖК «Северный»',
+        announcements: true,
+        unread: 2,
+        role: reader,
+        last: msg('Завтра отключат горячую воду с 10:00', date: ago(hours: 3)),
+      ),
+      chat(
+        'district',
+        'district_neighbors',
+        group,
+        'Соседи',
+        unread: 25,
+        last: msg('Кто-нибудь видел рыжего кота у 2-го подъезда?', sender: 'Ольга', date: ago(hours: 4)),
+      ),
+      chat(
+        'district',
+        'district_parking',
+        group,
+        'Парковка',
+        member: false,
+        last: msg('Шлагбаум снова не открывается', sender: 'Иван', date: ago(hours: 5)),
+      ),
+      chat(
+        'district',
+        'district_kids',
+        group,
+        'Детская площадка',
+        member: false,
+        last: msg('Завтра субботник в 11:00', sender: 'Мария', date: ago(days: 1)),
+      ),
+
+      chat(
+        'devs',
+        'devs_news',
+        channel,
+        'Flutter Russia',
+        announcements: true,
+        role: reader,
+        last: msg('Flutter 4.2: разбор релиза', date: ago(days: 5)),
+      ),
+      chat(
+        'devs',
+        'devs_chat',
+        group,
+        'Общий чат',
+        last: msg('Вопрос по go_router и вложенным навигаторам', sender: 'Екатерина', date: ago(days: 4)),
+      ),
+      chat(
+        'devs',
+        'devs_jobs',
+        channel,
+        'Вакансии',
+        member: false,
+        role: reader,
+        last: msg('Senior Flutter, удалёнка, от 350k', date: ago(days: 1)),
+      ),
+      chat(
+        'devs',
+        'devs_newbies',
+        group,
+        'Новичкам',
+        member: false,
+        last: msg('С чего начать изучение Dart?', sender: 'Алексей', date: ago(hours: 7)),
+      ),
+
+      chat(
+        'spices',
+        'spices_news',
+        channel,
+        'Ресторан «Пряности»',
+        announcements: true,
+        unread: 1,
+        role: reader,
+        last: msg('Новое осеннее меню уже в ресторане 🍂', kind: models.MessageKind.photo, date: ago(days: 1, hours: 3)),
+      ),
+      chat(
+        'spices',
+        'spices_reviews',
+        group,
+        'Отзывы гостей',
+        member: false,
+        last: msg('Плов — лучший в городе!', sender: 'Сергей', date: ago(hours: 8)),
+      ),
+      chat(
+        'spices',
+        'spices_vip',
+        group,
+        'Для постоянных гостей',
+        member: false,
+        last: msg('Дегустация вин в пятницу', sender: 'Анна', date: ago(days: 2)),
+      ),
+      chat(
+        'spices',
+        'spices_staff',
+        group,
+        'Персонал',
+        member: false,
+        last: msg('Смена на субботу утверждена', sender: 'Ольга', date: ago(hours: 2)),
+      ),
+
+      chat(
+        'coffee',
+        'coffee_news',
+        channel,
+        'Кофейня «Зерно»',
+        announcements: true,
+        role: owner,
+        last: msg('С понедельника открываемся в 7:30 ☕️', out: true, status: models.MessageStatus.read, date: ago(days: 2)),
+      ),
+      chat(
+        'coffee',
+        'coffee_staff',
+        group,
+        'Сотрудники',
+        role: owner,
+        last: msg('Завтра поставка зерна в 9:00', sender: 'Мария', date: ago(days: 1)),
+      ),
+      chat(
+        'coffee',
+        'coffee_guests',
+        group,
+        'Гости',
+        role: owner,
+        last: msg('А овсяное молоко есть?', sender: 'Иван', date: ago(hours: 10)),
+      ),
+
+      chat(
+        'kuksu',
+        'kuksu_news',
+        channel,
+        'Ресторан «Дом куксу»',
+        announcements: true,
+        role: owner,
+        last: msg('Добро пожаловать в сообщество ресторана!', out: true, status: models.MessageStatus.read, date: ago(hours: 1)),
+      ),
+      chat(
+        'kuksu',
+        'kuksu_guests',
+        group,
+        'Гости',
+        role: owner,
+        last: msg('Спасибо за вечер, всё было очень вкусно!', sender: 'Анна', date: ago(minutes: 40)),
+      ),
+      chat(
+        'kuksu',
+        'kuksu_staff',
+        group,
+        'Персонал',
+        role: owner,
+        last: msg('График на неделю в закрепе', sender: 'Мария', date: ago(hours: 5)),
+      ),
     ];
   }
 
@@ -1694,7 +2122,8 @@ class ChatsDemoDataSource implements ChatsDataSource {
   /// последним сообщением, что видно в списке.
   List<models.Message> _seedMessages(String chatID) {
     final chat = _chats.where((c) => c.id == chatID).firstOrNull;
-    if (chat == null) return [];
+    // У сообщества своей ленты нет — сообщения в его чатах.
+    if (chat == null || chat.type == models.ChatType.community) return [];
     final now = DateTime.now();
     final last = chat.lastMessage;
     final end = last?.date ?? now;
@@ -1865,6 +2294,7 @@ class ChatsDemoDataSource implements ChatsDataSource {
             authorSignature: chat.signMessages ? _signatures[i % _signatures.length] : '',
             commentsCount: chat.commentsEnabled ? (i * 7 + 3) % 19 : 0,
             commenters: chat.commentsEnabled ? _seedCommenters(m.id, (i * 7 + 3) % 19) : const [],
+            commentsCloseDate: chat.commentsTimeLimit > 0 ? m.date.add(Duration(seconds: chat.commentsTimeLimit)) : null,
           ),
     ];
   }
@@ -1967,15 +2397,32 @@ class ChatsDemoDataSource implements ChatsDataSource {
         title: channel.title,
         threadOf: channelID,
         threadPostID: postID,
+        commentsCloseDate: post.commentsCloseDate,
         membersCount: max(channel.membersCount, 2),
         reactionsMode: channel.reactionsMode,
         reactions: channel.reactions,
         createdAt: now,
       ),
     ];
-    _chatsController.add(_chats);
+    _emit();
     _setMessages(threadID, messages);
     return threadID;
+  }
+
+  /// Срок комментариев нового поста в канале [chatID] (по «Сроку
+  /// комментирования» на момент публикации); `null` — бессрочно / не канал.
+  DateTime? _commentsCloseDate(String chatID, DateTime date) {
+    final chat = _chats.where((c) => c.id == chatID).firstOrNull;
+    if (chat == null || chat.type != models.ChatType.channel || chat.commentsTimeLimit <= 0) return null;
+    return date.add(Duration(seconds: chat.commentsTimeLimit));
+  }
+
+  @override
+  Future<void> setCommentsClosed(String channelID, String postID, bool closed) async {
+    final date = closed ? DateTime.now() : null;
+    _updateMessage(channelID, postID, (m) => m.copyWith(commentsCloseDate: date));
+    final threadID = _threadID(channelID, postID);
+    if (_chats.any((c) => c.id == threadID)) _update(threadID, (c) => c.copyWith(commentsCloseDate: date));
   }
 
   /// Ветка изменилась — у поста в канале обновляются счётчик и комментаторы.

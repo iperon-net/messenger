@@ -46,7 +46,12 @@ abstract final class ChatTileContent {
     };
     final text = message.text.isNotEmpty ? (message.kind == models.MessageKind.poll ? '📊 ${message.text}' : message.text) : media;
     final showSender = chat.type == models.ChatType.group || chat.type == models.ChatType.community;
-    return ChatPreview(ChatPreviewKind.message, text, prefix: showSender ? message.senderName : '');
+    // Сообщество: из какого его чата — «Группа › Анна».
+    final prefix = [
+      if (message.chatTitle.isNotEmpty) message.chatTitle,
+      if (showSender && message.senderName.isNotEmpty) message.senderName,
+    ];
+    return ChatPreview(ChatPreviewKind.message, text, prefix: prefix.join(' › '));
   }
 
   /// Иконка типа перед названием (у личных чатов нет).

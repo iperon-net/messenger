@@ -30,7 +30,7 @@ permissions:
   contents: read
 
 env:
-  FLUTTER_VERSION: "3.47.2"
+  FLUTTER_VERSION: "3.47.7"
   BUNDLE_GEMFILE: ${{ github.workspace }}/ios/Gemfile
 
 jobs:

@@ -25,6 +25,9 @@ abstract class ChatsDataSource {
   /// Прочитать все чаты папки.
   Future<void> readAll(List<String> chatIDs);
 
+  /// Удалить чат / покинуть группу или канал. Сообщество — вместе со всеми его
+  /// чатами; группа / канал сообщества: владелец удаляет у всех, остальные
+  /// только выходят (чат остаётся в сообществе, можно вступить снова).
   Future<void> delete(String chatID);
 
   Future<void> deleteFolder(String folderID);
@@ -51,7 +54,10 @@ abstract class ChatsDataSource {
   /// Создать группу / канал / сообщество, мы — владелец. [memberIDs] — кого
   /// добавить сразу (группа); [username] — публичное имя (пусто — частный чат со
   /// ссылкой-приглашением [inviteLink]); [avatarPath] — локальный файл фото.
-  /// Возвращает id нового чата.
+  /// Сообщество создаётся сразу с каналом объявлений. [communityID] — группа /
+  /// канал внутри сообщества (своих ссылок нет, [joinMode] — одним нажатием
+  /// ([models.ChatJoinMode.open]) или по заявке; настройки по умолчанию — от
+  /// сообщества). Возвращает id нового чата.
   Future<String> createChat({
     required models.ChatType type,
     required String title,
@@ -60,22 +66,38 @@ abstract class ChatsDataSource {
     String username = '',
     String inviteLink = '',
     String avatarPath = '',
+    String communityID = '',
+    models.ChatJoinMode joinMode = models.ChatJoinMode.open,
   });
 
   /// Изменить группу/канал/сообщество (профиль чата → «Изменить», админ):
   /// название, описание, фото, способ вступления ([username] — для
   /// [models.ChatJoinMode.open], иначе действует [inviteLink]) и роль
-  /// вступивших.
+  /// вступивших; [coverPath] — обложка сообщества, [phone] / [address] /
+  /// [latitude] / [longitude] — контакты его заведения. [commentsTimeLimit] — «Срок комментирования» канала (секунд,
+  /// 0 — без ограничения), действует только на новые посты; [commentsWho] и
+  /// [commentsMinSubscription] — кто может комментировать (только подписчики —
+  /// подписанные не меньше стольких секунд); [newcomerMediaDelay] —
+  /// «Новичкам — без ссылок и медиа» (секунд, 0 — выключено).
   Future<void> updateChat(
     String chatID, {
     required String title,
     required String about,
     required String avatarPath,
+    String coverPath = '',
+    String phone = '',
+    String address = '',
+    double? latitude,
+    double? longitude,
     required models.ChatJoinMode joinMode,
     required String username,
     required String inviteLink,
     required models.ChatRole defaultRole,
     bool commentsEnabled = false,
+    int commentsTimeLimit = 0,
+    models.ChatCommentsWho commentsWho = models.ChatCommentsWho.all,
+    int commentsMinSubscription = 0,
+    int newcomerMediaDelay = 0,
     bool signMessages = false,
     bool membersHidden = false,
   });
@@ -86,12 +108,18 @@ abstract class ChatsDataSource {
   Future<String> resolveLink(String path);
 
   /// «Подписаться» / «Вступить»: стать участником; у чата «По заявке» —
-  /// подать заявку (`Chat.joinRequested`), вступление — после одобрения.
+  /// подать заявку (`Chat.joinRequested`), вступление — после одобрения. В
+  /// сообщество — вместе с его каналом объявлений (в остальные чаты вступают
+  /// по отдельности).
   Future<void> joinChat(String chatID);
 
   /// Комментарии к посту [postID] канала [channelID]: id чата-ветки (создаётся
   /// при первом открытии; первым в ней — сам пост). Пусто — комментариев нет.
   Future<String> openComments(String channelID, String postID);
+
+  /// Админ канала: закрыть комментарии к посту досрочно ([closed]) или снова
+  /// открыть (бессрочно). Закрытую ветку можно только читать.
+  Future<void> setCommentsClosed(String channelID, String postID, bool closed);
 
   /// Ссылки-приглашения чата (админ): основная первой, затем дополнительные
   /// (новые выше), отозванные — с `revoked`. Сразу при подписке, затем при

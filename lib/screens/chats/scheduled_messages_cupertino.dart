@@ -8,6 +8,7 @@ import '../../models.dart' as models;
 import '../../themes.dart';
 import 'chat_common.dart';
 import 'chat_cupertino.dart';
+import 'message_context_menu_cupertino.dart';
 
 /// «Отправить позже» (iOS): дата и время колесом, не раньше текущей минуты.
 /// `null` — отмена.
@@ -67,30 +68,34 @@ Future<void> showScheduledMessagesCupertino(BuildContext context, ChatCubit cubi
 }
 
 /// Отложенные лентой по дням отправки (время в пузыре — когда уйдёт), как в
-/// Telegram; удержание или тап — «Отправить сейчас» / «Изменить время» /
-/// «Удалить». Отложенных не осталось — экран закрывается.
+/// Telegram; удержание — контекстное меню «Отправить сейчас» / «Изменить
+/// время» / «Удалить». Отложенных не осталось — экран закрывается.
 class ScheduledMessagesCupertino extends StatelessWidget {
   const ScheduledMessagesCupertino({super.key});
 
-  Future<void> _actions(BuildContext context, models.Message message) async {
+  /// Действия в контекстном меню пузыря (удержание): меню — маршрут
+  /// корневого навигатора, сначала закрываем его, потом действие.
+  List<Widget> _menuActions(BuildContext context, models.Message message) {
+    final t = context.t.screenChat;
+    CupertinoContextMenuAction item(String action, String label, IconData icon, {bool destructive = false}) => CupertinoContextMenuAction(
+      trailingIcon: icon,
+      isDestructiveAction: destructive,
+      onPressed: () {
+        Navigator.of(context, rootNavigator: true).pop();
+        _action(context, message, action);
+      },
+      child: Text(label),
+    );
+    return [
+      item('now', t.sendNow, CupertinoIcons.paperplane),
+      item('reschedule', t.reschedule, CupertinoIcons.calendar),
+      item('delete', t.delete, CupertinoIcons.delete, destructive: true),
+    ];
+  }
+
+  Future<void> _action(BuildContext context, models.Message message, String action) async {
     final t = context.t.screenChat;
     final cubit = context.read<ChatCubit>();
-    final action = await showCupertinoModalPopup<String>(
-      context: context,
-      builder: (sheetContext) => CupertinoActionSheet(
-        actions: [
-          CupertinoActionSheetAction(onPressed: () => Navigator.of(sheetContext).pop('now'), child: Text(t.sendNow)),
-          CupertinoActionSheetAction(onPressed: () => Navigator.of(sheetContext).pop('reschedule'), child: Text(t.reschedule)),
-          CupertinoActionSheetAction(
-            isDestructiveAction: true,
-            onPressed: () => Navigator.of(sheetContext).pop('delete'),
-            child: Text(t.delete),
-          ),
-        ],
-        cancelButton: CupertinoActionSheetAction(onPressed: () => Navigator.of(sheetContext).pop(), child: Text(context.t.common.cancel)),
-      ),
-    );
-    if (!context.mounted) return;
     switch (action) {
       case 'now':
         await cubit.sendScheduledNow(message);
@@ -151,8 +156,13 @@ class ScheduledMessagesCupertino extends StatelessWidget {
                         chatType: chat.type,
                         style: ChatCupertino.bubbleStyle(context),
                         padding: const EdgeInsets.symmetric(vertical: 8),
-                        onLongPress: (message) => _actions(context, message),
-                        onTap: (message) => _actions(context, message),
+                        // Удержание — CupertinoContextMenu (menuWrapper).
+                        onLongPress: (_) {},
+                        menuWrapper: (message, bubble, preview) => MessageContextMenuCupertino(
+                          actions: _menuActions(context, message),
+                          bubble: bubble,
+                          preview: (maxWidth) => preview(maxWidth),
+                        ),
                       ),
               ),
             ],

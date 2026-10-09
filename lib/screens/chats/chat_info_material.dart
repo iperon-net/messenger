@@ -20,6 +20,8 @@ import 'chat_invite_links_material.dart';
 import 'chat_join_requests_material.dart';
 import 'chat_info_common.dart';
 import 'chat_mute.dart';
+import 'community_common.dart';
+import 'community_material.dart';
 
 /// Профиль чата (Android) — тап по шапке окна чата. Результат — что сделать в
 /// чате: поиск или переход к сообщению.
@@ -43,33 +45,48 @@ class ChatInfoMaterial extends StatefulWidget {
 
 class _ChatInfoMaterialState extends State<ChatInfoMaterial> {
   ChatInfoTab? _tab;
+  final _scroll = ScrollController();
+
+  /// Страница сообщества: AppBar прозрачный поверх обложки, пока обложка не
+  /// уехала под него.
+  bool _overCover = true;
 
   @override
   void initState() {
     super.initState();
     context.read<ChatCubit>().loadMembers();
+    _scroll.addListener(() {
+      final over = _scroll.offset < CommunityCover.height - kToolbarHeight;
+      if (over != _overCover) setState(() => _overCover = over);
+    });
+  }
+
+  @override
+  void dispose() {
+    _scroll.dispose();
+    super.dispose();
   }
 
   Future<void> _leave(BuildContext context, models.Chat chat) async {
-    final t = context.t.screenChatInfo;
-    final private = chat.type == models.ChatType.private;
+    final confirm = chatLeaveConfirm(context.t, chat);
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: Text(private ? t.deleteChatTitle(name: chat.title) : t.leaveGroupTitle(name: chat.title)),
+        title: Text(confirm.title),
+        content: confirm.message == null ? null : Text(confirm.message!),
         actions: [
           TextButton(onPressed: () => Navigator.of(dialogContext).pop(false), child: Text(context.t.common.cancel)),
           TextButton(
             style: TextButton.styleFrom(foregroundColor: Theme.of(dialogContext).colorScheme.error),
             onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: Text(_leaveLabel(context.t, chat)),
+            child: Text(chatLeaveLabel(context.t, chat)),
           ),
         ],
       ),
     );
     if (!(confirmed ?? false) || !context.mounted) return;
     await context.read<ChatCubit>().deleteChat();
-    if (context.mounted) context.go('/chats');
+    if (context.mounted) context.go(chatLeaveRoute(chat));
   }
 
   /// «Звук»: заглушённый — включить сразу, иначе — «Заглушить на…».
@@ -203,13 +220,42 @@ class _ChatInfoMaterialState extends State<ChatInfoMaterial> {
         final tabs = chat == null ? const <ChatInfoTab>[] : chatInfoTabs(chat);
         final tab = tabs.contains(_tab) ? _tab! : (tabs.firstOrNull ?? ChatInfoTab.media);
         final subtitle = chat == null ? null : chatSubtitle(t, chat);
+        final community = chat?.type == models.ChatType.community;
+        // У сообщества — обложка под AppBar: он прозрачный, «назад» и
+        // «Изменить» — «стёкла» поверх обложки, пока она видна.
+        final onCover = community && _overCover;
+        final canEdit = chat != null && chat.canManage && chat.type != models.ChatType.private;
         return Scaffold(
-          backgroundColor: dark ? const Color(0xFF000000) : scheme.surfaceContainerLow,
+          backgroundColor: scheme.surfaceContainerLow,
+          extendBodyBehindAppBar: community,
           appBar: AppBar(
-            backgroundColor: dark ? const Color(0xFF000000) : scheme.surfaceContainerLow,
+            backgroundColor: onCover ? Colors.transparent : scheme.surfaceContainerLow,
+            foregroundColor: onCover ? Colors.white : null,
+            scrolledUnderElevation: 0,
+            systemOverlayStyle: onCover ? SystemUiOverlayStyle.light : null,
+            leading: onCover
+                ? Center(
+                    child: CoverGlassButton(
+                      label: MaterialLocalizations.of(context).backButtonTooltip,
+                      onTap: () => Navigator.of(context).maybePop(),
+                      child: const Icon(Icons.arrow_back),
+                    ),
+                  )
+                : null,
+            // Обложка уехала — название сообщества в AppBar.
+            title: community && !onCover ? Text(chat!.title) : null,
             // «Изменить» — админу группы / канала / сообщества.
             actions: [
-              if (chat != null && chat.canManage && chat.type != models.ChatType.private)
+              if (canEdit && onCover)
+                Padding(
+                  padding: const EdgeInsets.only(right: 12),
+                  child: CoverGlassButton(
+                    label: t.common.edit,
+                    onTap: () => showChatEditMaterial(context, chat),
+                    child: const HugeIcon(icon: HugeIcons.strokeRoundedPencilEdit02, color: Colors.white, size: 20),
+                  ),
+                )
+              else if (canEdit)
                 IconButton(
                   tooltip: t.common.edit,
                   onPressed: () => showChatEditMaterial(context, chat),
@@ -220,29 +266,39 @@ class _ChatInfoMaterialState extends State<ChatInfoMaterial> {
           body: chat == null
               ? const SizedBox.shrink()
               : ListView(
+                  controller: _scroll,
                   padding: EdgeInsets.only(bottom: 24 + MediaQuery.paddingOf(context).bottom),
                   children: [
-                    Center(
-                      child: ChatAvatar(chat: chat, size: 96, accentColor: scheme.primary, accentForeground: scheme.onPrimary),
-                    ),
-                    const SizedBox(height: 12),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24),
-                      child: Text(
-                        ChatTileContent.title(t, chat),
-                        textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.headlineSmall,
+                    if (community)
+                      CommunityCover(
+                        chat: chat,
+                        subtitle: subtitle?.text ?? '',
+                        accentColor: scheme.primary,
+                        accentForeground: scheme.onPrimary,
+                      )
+                    else ...[
+                      Center(
+                        child: ChatAvatar(chat: chat, size: 96, accentColor: scheme.primary, accentForeground: scheme.onPrimary),
                       ),
-                    ),
-                    if (subtitle != null && subtitle.text.isNotEmpty)
+                      const SizedBox(height: 12),
                       Padding(
-                        padding: const EdgeInsets.only(top: 2),
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
                         child: Text(
-                          subtitle.text,
+                          ChatTileContent.title(t, chat),
                           textAlign: TextAlign.center,
-                          style: TextStyle(color: subtitle.active ? scheme.primary : scheme.onSurfaceVariant),
+                          style: Theme.of(context).textTheme.headlineSmall,
                         ),
                       ),
+                      if (subtitle != null && subtitle.text.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 2),
+                          child: Text(
+                            subtitle.text,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(color: subtitle.active ? scheme.primary : scheme.onSurfaceVariant),
+                          ),
+                        ),
+                    ],
                     const SizedBox(height: 16),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -260,17 +316,20 @@ class _ChatInfoMaterialState extends State<ChatInfoMaterial> {
                               background: card,
                               onTap: () => _toggleMute(context, chat),
                             ),
-                          _ActionButton(
-                            icon: HugeIcons.strokeRoundedSearch01,
-                            label: t.screenChatInfo.search,
-                            color: scheme.primary,
-                            background: card,
-                            onTap: () => Navigator.of(context).pop(const ChatInfoResult.search()),
-                          ),
-                          if (!chat.isSelf)
+                          // У сообщества своей ленты нет — искать негде.
+                          if (!community)
                             _ActionButton(
-                              icon: HugeIcons.strokeRoundedSquareArrowRightExit,
-                              label: t.screenChatInfo.leaveShort,
+                              icon: HugeIcons.strokeRoundedSearch01,
+                              label: t.screenChatInfo.search,
+                              color: scheme.primary,
+                              background: card,
+                              onTap: () => Navigator.of(context).pop(const ChatInfoResult.search()),
+                            ),
+                          // Канал объявлений покидают только вместе с сообществом.
+                          if (!chat.isSelf && !chat.announcements && chat.isMember)
+                            _ActionButton(
+                              icon: chatInfoDeletes(chat) ? HugeIcons.strokeRoundedDelete02 : HugeIcons.strokeRoundedSquareArrowRightExit,
+                              label: chatInfoDeletes(chat) ? t.screenChatInfo.deleteShort : t.screenChatInfo.leaveShort,
                               color: scheme.error,
                               background: card,
                               onTap: () => _leave(context, chat),
@@ -278,7 +337,7 @@ class _ChatInfoMaterialState extends State<ChatInfoMaterial> {
                         ],
                       ),
                     ),
-                    if (chat.about.isNotEmpty || chat.linkPath.isNotEmpty)
+                    if (chat.about.isNotEmpty || chat.linkPath.isNotEmpty || (community && communityHasContacts(chat)))
                       Card(
                         margin: const EdgeInsets.fromLTRB(12, 16, 12, 0),
                         color: card,
@@ -293,6 +352,8 @@ class _ChatInfoMaterialState extends State<ChatInfoMaterial> {
                                 ),
                                 onTap: () => _copy(context, chat.about),
                               ),
+                            // Сообщество: телефон и адрес — под описанием.
+                            if (community) ...communityContactTilesMaterial(context, chat),
                             if (chat.linkPath.isNotEmpty)
                               chat.type == models.ChatType.private
                                   ? ListTile(
@@ -310,6 +371,21 @@ class _ChatInfoMaterialState extends State<ChatInfoMaterial> {
                           ],
                         ),
                       ),
+                    if (community && !chat.isMember)
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(12, 16, 12, 0),
+                        child: FilledButton(
+                          onPressed: chat.joinRequested ? null : () => context.read<ChatCubit>().join(),
+                          child: Text(
+                            chat.joinRequested
+                                ? t.screenChat.requestSent
+                                : (chat.joinMode == models.ChatJoinMode.request
+                                      ? t.screenChat.requestJoin
+                                      : t.screenChatInfo.joinCommunity),
+                          ),
+                        ),
+                      ),
+                    if (community && chat.isMember) CommunityChatsMaterial(community: chat, chats: state.communityChats, card: card),
                     if (chat.canManage && chat.type != models.ChatType.private)
                       Card(
                         margin: const EdgeInsets.fromLTRB(12, 16, 12, 0),
@@ -317,17 +393,21 @@ class _ChatInfoMaterialState extends State<ChatInfoMaterial> {
                         clipBehavior: Clip.antiAlias,
                         child: Column(
                           children: [
-                            ListTile(
-                              leading: HugeIcon(icon: HugeIcons.strokeRoundedLink01, color: scheme.onSurfaceVariant),
-                              title: Text(t.screenChatInvites.inviteLinks),
-                              onTap: () => showChatInviteLinksMaterial(context, chat.id),
-                            ),
-                            ListTile(
-                              leading: HugeIcon(icon: HugeIcons.strokeRoundedUserAdd01, color: scheme.onSurfaceVariant),
-                              title: Text(t.screenChatInvites.joinRequests),
-                              trailing: chat.pendingRequests > 0 ? Badge(label: Text('${chat.pendingRequests}')) : null,
-                              onTap: () => showChatJoinRequestsMaterial(context, chat.id),
-                            ),
+                            // У чатов сообщества своих ссылок и блокировок нет —
+                            // вступают и блокируются через сообщество.
+                            if (!chat.inCommunity)
+                              ListTile(
+                                leading: HugeIcon(icon: HugeIcons.strokeRoundedLink01, color: scheme.onSurfaceVariant),
+                                title: Text(t.screenChatInvites.inviteLinks),
+                                onTap: () => showChatInviteLinksMaterial(context, chat.id),
+                              ),
+                            if (!chat.inCommunity || chat.joinMode == models.ChatJoinMode.request)
+                              ListTile(
+                                leading: HugeIcon(icon: HugeIcons.strokeRoundedUserAdd01, color: scheme.onSurfaceVariant),
+                                title: Text(t.screenChatInvites.joinRequests),
+                                trailing: chat.pendingRequests > 0 ? Badge(label: Text('${chat.pendingRequests}')) : null,
+                                onTap: () => showChatJoinRequestsMaterial(context, chat.id),
+                              ),
                             ListTile(
                               leading: HugeIcon(icon: HugeIcons.strokeRoundedSmile, color: scheme.onSurfaceVariant),
                               title: Text(t.screenChatInfo.reactions),
@@ -360,7 +440,7 @@ class _ChatInfoMaterialState extends State<ChatInfoMaterial> {
                               ),
                               onTap: () => showChatAdminsMaterial(context, context.read<ChatCubit>()),
                             ),
-                            if (chat.type == models.ChatType.group || chat.type == models.ChatType.community)
+                            if ((chat.type == models.ChatType.group || chat.type == models.ChatType.community) && !chat.inCommunity)
                               ListTile(
                                 leading: HugeIcon(icon: HugeIcons.strokeRoundedUserBlock01, color: scheme.onSurfaceVariant),
                                 title: Text(t.screenChatInfo.banned),
@@ -383,32 +463,33 @@ class _ChatInfoMaterialState extends State<ChatInfoMaterial> {
                           onTap: (index) => setState(() => _tab = tabs[index]),
                         ),
                       ),
-                    Card(
-                      margin: EdgeInsets.fromLTRB(12, tabs.length > 1 ? 0 : 16, 12, 0),
-                      color: card,
-                      clipBehavior: Clip.antiAlias,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          ChatInfoTabContent(
-                            tab: tab,
-                            chat: chat,
-                            messages: state.messages,
-                            members: state.members,
-                            style: ChatInfoStyle(
-                              text: scheme.onSurface,
-                              secondary: scheme.onSurfaceVariant,
-                              accent: scheme.primary,
-                              onAccent: scheme.onPrimary,
-                              separator: scheme.outlineVariant,
+                    if (tabs.isNotEmpty)
+                      Card(
+                        margin: EdgeInsets.fromLTRB(12, tabs.length > 1 ? 0 : 16, 12, 0),
+                        color: card,
+                        clipBehavior: Clip.antiAlias,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            ChatInfoTabContent(
+                              tab: tab,
+                              chat: chat,
+                              messages: state.messages,
+                              members: state.members,
+                              style: ChatInfoStyle(
+                                text: scheme.onSurface,
+                                secondary: scheme.onSurfaceVariant,
+                                accent: scheme.primary,
+                                onAccent: scheme.onPrimary,
+                                separator: scheme.outlineVariant,
+                              ),
+                              onOpenMessage: (id) => Navigator.of(context).pop(ChatInfoResult.goTo(id)),
+                              onMemberTap: (member) => _memberActions(context, chat, member),
+                              onAddMembers: chat.canManage ? () => _addMembers(context) : null,
                             ),
-                            onOpenMessage: (id) => Navigator.of(context).pop(ChatInfoResult.goTo(id)),
-                            onMemberTap: (member) => _memberActions(context, chat, member),
-                            onAddMembers: chat.canManage ? () => _addMembers(context) : null,
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
                   ],
                 ),
         );
@@ -416,14 +497,6 @@ class _ChatInfoMaterialState extends State<ChatInfoMaterial> {
     );
   }
 }
-
-/// «Удалить чат» / «Покинуть группу / канал / сообщество».
-String _leaveLabel(Translations t, models.Chat chat) => switch (chat.type) {
-  models.ChatType.private => t.screenChatInfo.deleteChat,
-  models.ChatType.group => t.screenChatInfo.leaveGroup,
-  models.ChatType.channel => t.screenChatInfo.leaveChannel,
-  models.ChatType.community => t.screenChatInfo.leaveCommunity,
-};
 
 /// Кнопка под шапкой профиля: значок и подпись на карточке; все кнопки ряда —
 /// одной ширины.
@@ -496,7 +569,7 @@ class ChatReactionsSettingsMaterial extends StatelessWidget {
         }
 
         return Scaffold(
-          backgroundColor: dark ? const Color(0xFF000000) : scheme.surfaceContainerLow,
+          backgroundColor: scheme.surfaceContainerLow,
           appBar: AppBar(title: Text(t.reactions)),
           body: ListView(
             padding: EdgeInsets.only(bottom: 16 + MediaQuery.paddingOf(context).bottom),
@@ -643,7 +716,7 @@ class ChatSlowModeSettingsMaterial extends StatelessWidget {
     return BlocBuilder<ChatCubit, ChatState>(
       builder: (context, state) {
         return Scaffold(
-          backgroundColor: dark ? const Color(0xFF000000) : scheme.surfaceContainerLow,
+          backgroundColor: scheme.surfaceContainerLow,
           appBar: AppBar(title: Text(t.screenChatInfo.slowMode)),
           body: ListView(
             padding: EdgeInsets.only(bottom: 16 + MediaQuery.paddingOf(context).bottom),

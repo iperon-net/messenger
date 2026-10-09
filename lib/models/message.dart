@@ -40,7 +40,18 @@ class MessageEntity with MessageEntityMappable {
   /// имени, у человека нет @username).
   final String userID;
 
-  const MessageEntity({required this.type, required this.offset, required this.length, this.url = '', this.userID = ''});
+  /// Для [MessageEntityType.blockquote] — сворачиваемая цитата: длинная
+  /// показывается свёрнутой, раскрывается по тапу (как в Telegram).
+  final bool expandable;
+
+  const MessageEntity({
+    required this.type,
+    required this.offset,
+    required this.length,
+    this.url = '',
+    this.userID = '',
+    this.expandable = false,
+  });
 
   int get end => offset + length;
 }
@@ -109,7 +120,27 @@ class MessageReply with MessageReplyMappable {
   final String text;
   final MessageKind kind;
 
-  const MessageReply({required this.messageID, required this.senderName, this.text = '', this.kind = MessageKind.text});
+  /// Ответ на фрагмент («Цитировать» в меню сообщения): в пузыре вместо
+  /// [text] — цитата, тап подсвечивает фрагмент в исходном.
+  final MessageQuote? quote;
+
+  const MessageReply({required this.messageID, required this.senderName, this.text = '', this.kind = MessageKind.text, this.quote});
+}
+
+/// Процитированный фрагмент исходного сообщения (как `quote_text` в Telegram):
+/// плоский [text] с разметкой [entities] (offset'ы — от начала фрагмента) и
+/// его начало [offset] в исходном тексте — по нему фрагмент находится, даже
+/// если такой же текст в сообщении встречается несколько раз.
+@MappableClass()
+class MessageQuote with MessageQuoteMappable {
+  /// Предел длины цитаты (как `quote_length_max` в Telegram).
+  static const maxLength = 1024;
+
+  final String text;
+  final List<MessageEntity> entities;
+  final int offset;
+
+  const MessageQuote({required this.text, this.entities = const [], this.offset = 0});
 }
 
 /// Пересланное сообщение: от кого (имя автора оригинала, для своих —
@@ -285,6 +316,10 @@ class Message with MessageMappable {
   final int commentsCount;
   final List<String> commenters;
 
+  /// Пост канала: с этого момента комментировать нельзя (срок канала на момент
+  /// публикации или админ закрыл досрочно); `null` — без ограничения.
+  final DateTime? commentsCloseDate;
+
   const Message({
     required this.id,
     required this.chatID,
@@ -318,7 +353,11 @@ class Message with MessageMappable {
     this.views = 0,
     this.commentsCount = 0,
     this.commenters = const [],
+    this.commentsCloseDate,
   });
+
+  /// Комментарии к посту закрыты — ветку можно только читать.
+  bool commentsClosed([DateTime? now]) => commentsCloseDate != null && !commentsCloseDate!.isAfter(now ?? DateTime.now());
 
   /// Наши реакции (до `maxReactionsPerUser` на сообщение), в порядке чипов.
   List<String> get myReactions => [

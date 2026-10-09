@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/widgets.dart';
 import 'package:flutter_boring_avatars/flutter_boring_avatars.dart';
 import 'package:image_cropper/image_cropper.dart';
@@ -43,6 +41,48 @@ Future<String?> pickChatPhoto(BuildContext context, models.ChatType type) async 
     ToolbarAttachmentImageResult(:final file) => file.path,
     _ => null,
   };
+}
+
+/// Обложка сообщества: галерея → кроп 16:9, до 1280 px по ширине. Возвращает
+/// путь к файлу или `null` (лист закрыли).
+Future<String?> pickCommunityCover(BuildContext context) async {
+  final title = context.t.screenNewChat.cover;
+  final result = await showToolbarAttachments(
+    context,
+    tabs: const [ToolbarAttachmentTabKind.gallery],
+    processImage: (file) async {
+      final cropped = await ImageCropper().cropImage(
+        sourcePath: file.path,
+        aspectRatio: const CropAspectRatio(ratioX: 16, ratioY: 9),
+        compressFormat: ImageCompressFormat.jpg,
+        compressQuality: 85,
+        maxWidth: 1280,
+        maxHeight: 720,
+        uiSettings: [
+          IOSUiSettings(title: title, aspectRatioLockEnabled: true, resetAspectRatioEnabled: false),
+          AndroidUiSettings(toolbarTitle: title, lockAspectRatio: true),
+        ],
+      );
+      return cropped == null ? null : XFile(cropped.path);
+    },
+  );
+  return switch (result) {
+    ToolbarAttachmentImageResult(:final file) => file.path,
+    _ => null,
+  };
+}
+
+/// Превью обложки в форме «Изменить» (16:9).
+class CommunityCoverPreview extends StatelessWidget {
+  final String path;
+
+  const CommunityCoverPreview({super.key, required this.path});
+
+  @override
+  Widget build(BuildContext context) => ClipRRect(
+    borderRadius: BorderRadius.circular(6),
+    child: chatImage(path, width: 64, height: 36, fit: BoxFit.cover, cacheWidth: 192),
+  );
 }
 
 /// Аватар контакта — тот же плейсхолдер, что у личного чата с ним (по id).
@@ -120,7 +160,7 @@ class ChatPhotoPreview extends StatelessWidget {
         : const CircleBorder();
     return ClipPath(
       clipper: ShapeBorderClipper(shape: shape),
-      child: Image.file(File(path), width: size, height: size, fit: BoxFit.cover, cacheWidth: (size * 3).round()),
+      child: chatImage(path, width: size, height: size, fit: BoxFit.cover, cacheWidth: (size * 3).round()),
     );
   }
 }
@@ -139,9 +179,36 @@ String joinModeLabel(Translations t, models.ChatType type, models.ChatJoinMode m
   models.ChatJoinMode.admins => t.screenNewChat.joinAdmins,
 };
 
+/// Варианты вступления в форме: в сообществе — одним нажатием / по заявке
+/// (закрытая тема); при создании — «Публичный / Частный»; в «Изменить» — см.
+/// [joinModesOf].
+List<models.ChatJoinMode> joinModesFor(ChatCreateState state) {
+  if (state.inCommunity) return const [models.ChatJoinMode.open, models.ChatJoinMode.request, models.ChatJoinMode.admins];
+  return state.isEdit ? joinModesOf(state.type) : const [models.ChatJoinMode.open, models.ChatJoinMode.link];
+}
+
+String joinModeTitle(Translations t, ChatCreateState state, models.ChatJoinMode mode) {
+  if (state.inCommunity) {
+    return switch (mode) {
+      models.ChatJoinMode.request => t.screenNewChat.topicJoinRequest,
+      models.ChatJoinMode.admins => t.screenNewChat.topicJoinHidden,
+      _ => t.screenNewChat.topicJoinOpen,
+    };
+  }
+  if (state.isEdit) return joinModeLabel(t, state.type, mode);
+  return mode == models.ChatJoinMode.open ? t.screenNewChat.typePublic : t.screenNewChat.typePrivate;
+}
+
 /// Подпись под выбором вступления: у канала (и при создании) — как
 /// «Публичный / Частный».
 String joinModeFooter(Translations t, ChatCreateState state) {
+  if (state.inCommunity) {
+    return switch (state.joinMode) {
+      models.ChatJoinMode.request => t.screenNewChat.topicJoinRequestFooter,
+      models.ChatJoinMode.admins => t.screenNewChat.topicJoinHiddenFooter,
+      _ => t.screenNewChat.topicJoinOpenFooter,
+    };
+  }
   if (state.type == models.ChatType.channel || !state.isEdit) return createTypeFooter(t, state.type, state.isPublic);
   return switch (state.joinMode) {
     models.ChatJoinMode.open => t.screenNewChat.joinOpenFooter,

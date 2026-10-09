@@ -144,6 +144,13 @@ class MessageEntityMapper extends ClassMapperBase<MessageEntity> {
     opt: true,
     def: '',
   );
+  static bool _$expandable(MessageEntity v) => v.expandable;
+  static const Field<MessageEntity, bool> _f$expandable = Field(
+    'expandable',
+    _$expandable,
+    opt: true,
+    def: false,
+  );
 
   @override
   final MappableFields<MessageEntity> fields = const {
@@ -152,6 +159,7 @@ class MessageEntityMapper extends ClassMapperBase<MessageEntity> {
     #length: _f$length,
     #url: _f$url,
     #userID: _f$userID,
+    #expandable: _f$expandable,
   };
 
   static MessageEntity _instantiate(DecodingData data) {
@@ -161,6 +169,7 @@ class MessageEntityMapper extends ClassMapperBase<MessageEntity> {
       length: data.dec(_f$length),
       url: data.dec(_f$url),
       userID: data.dec(_f$userID),
+      expandable: data.dec(_f$expandable),
     );
   }
 
@@ -232,6 +241,7 @@ abstract class MessageEntityCopyWith<$R, $In extends MessageEntity, $Out>
     int? length,
     String? url,
     String? userID,
+    bool? expandable,
   });
   MessageEntityCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
@@ -251,6 +261,7 @@ class _MessageEntityCopyWithImpl<$R, $Out>
     int? length,
     String? url,
     String? userID,
+    bool? expandable,
   }) => $apply(
     FieldCopyWithData({
       if (type != null) #type: type,
@@ -258,6 +269,7 @@ class _MessageEntityCopyWithImpl<$R, $Out>
       if (length != null) #length: length,
       if (url != null) #url: url,
       if (userID != null) #userID: userID,
+      if (expandable != null) #expandable: expandable,
     }),
   );
   @override
@@ -267,6 +279,7 @@ class _MessageEntityCopyWithImpl<$R, $Out>
     length: data.get(#length, or: $value.length),
     url: data.get(#url, or: $value.url),
     userID: data.get(#userID, or: $value.userID),
+    expandable: data.get(#expandable, or: $value.expandable),
   );
 
   @override
@@ -674,6 +687,7 @@ class MessageReplyMapper extends ClassMapperBase<MessageReply> {
     if (_instance == null) {
       MapperContainer.globals.use(_instance = MessageReplyMapper._());
       MessageKindMapper.ensureInitialized();
+      MessageQuoteMapper.ensureInitialized();
     }
     return _instance!;
   }
@@ -705,6 +719,12 @@ class MessageReplyMapper extends ClassMapperBase<MessageReply> {
     opt: true,
     def: MessageKind.text,
   );
+  static MessageQuote? _$quote(MessageReply v) => v.quote;
+  static const Field<MessageReply, MessageQuote> _f$quote = Field(
+    'quote',
+    _$quote,
+    opt: true,
+  );
 
   @override
   final MappableFields<MessageReply> fields = const {
@@ -712,6 +732,7 @@ class MessageReplyMapper extends ClassMapperBase<MessageReply> {
     #senderName: _f$senderName,
     #text: _f$text,
     #kind: _f$kind,
+    #quote: _f$quote,
   };
 
   static MessageReply _instantiate(DecodingData data) {
@@ -720,6 +741,7 @@ class MessageReplyMapper extends ClassMapperBase<MessageReply> {
       senderName: data.dec(_f$senderName),
       text: data.dec(_f$text),
       kind: data.dec(_f$kind),
+      quote: data.dec(_f$quote),
     );
   }
 
@@ -785,11 +807,13 @@ extension MessageReplyValueCopy<$R, $Out>
 
 abstract class MessageReplyCopyWith<$R, $In extends MessageReply, $Out>
     implements ClassCopyWith<$R, $In, $Out> {
+  MessageQuoteCopyWith<$R, MessageQuote, MessageQuote>? get quote;
   $R call({
     String? messageID,
     String? senderName,
     String? text,
     MessageKind? kind,
+    MessageQuote? quote,
   });
   MessageReplyCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
@@ -803,17 +827,22 @@ class _MessageReplyCopyWithImpl<$R, $Out>
   late final ClassMapperBase<MessageReply> $mapper =
       MessageReplyMapper.ensureInitialized();
   @override
+  MessageQuoteCopyWith<$R, MessageQuote, MessageQuote>? get quote =>
+      $value.quote?.copyWith.$chain((v) => call(quote: v));
+  @override
   $R call({
     String? messageID,
     String? senderName,
     String? text,
     MessageKind? kind,
+    Object? quote = $none,
   }) => $apply(
     FieldCopyWithData({
       if (messageID != null) #messageID: messageID,
       if (senderName != null) #senderName: senderName,
       if (text != null) #text: text,
       if (kind != null) #kind: kind,
+      if (quote != $none) #quote: quote,
     }),
   );
   @override
@@ -822,12 +851,172 @@ class _MessageReplyCopyWithImpl<$R, $Out>
     senderName: data.get(#senderName, or: $value.senderName),
     text: data.get(#text, or: $value.text),
     kind: data.get(#kind, or: $value.kind),
+    quote: data.get(#quote, or: $value.quote),
   );
 
   @override
   MessageReplyCopyWith<$R2, MessageReply, $Out2> $chain<$R2, $Out2>(
     Then<$Out2, $R2> t,
   ) => _MessageReplyCopyWithImpl<$R2, $Out2>($value, $cast, t);
+}
+
+class MessageQuoteMapper extends ClassMapperBase<MessageQuote> {
+  MessageQuoteMapper._();
+
+  static MessageQuoteMapper? _instance;
+  static MessageQuoteMapper ensureInitialized() {
+    if (_instance == null) {
+      MapperContainer.globals.use(_instance = MessageQuoteMapper._());
+      MessageEntityMapper.ensureInitialized();
+    }
+    return _instance!;
+  }
+
+  @override
+  final String id = 'MessageQuote';
+
+  static String _$text(MessageQuote v) => v.text;
+  static const Field<MessageQuote, String> _f$text = Field('text', _$text);
+  static List<MessageEntity> _$entities(MessageQuote v) => v.entities;
+  static const Field<MessageQuote, List<MessageEntity>> _f$entities = Field(
+    'entities',
+    _$entities,
+    opt: true,
+    def: const [],
+  );
+  static int _$offset(MessageQuote v) => v.offset;
+  static const Field<MessageQuote, int> _f$offset = Field(
+    'offset',
+    _$offset,
+    opt: true,
+    def: 0,
+  );
+
+  @override
+  final MappableFields<MessageQuote> fields = const {
+    #text: _f$text,
+    #entities: _f$entities,
+    #offset: _f$offset,
+  };
+
+  static MessageQuote _instantiate(DecodingData data) {
+    return MessageQuote(
+      text: data.dec(_f$text),
+      entities: data.dec(_f$entities),
+      offset: data.dec(_f$offset),
+    );
+  }
+
+  @override
+  final Function instantiate = _instantiate;
+
+  static MessageQuote fromMap(Map<String, dynamic> map) {
+    return ensureInitialized().decodeMap<MessageQuote>(map);
+  }
+
+  static MessageQuote fromJson(String json) {
+    return ensureInitialized().decodeJson<MessageQuote>(json);
+  }
+}
+
+mixin MessageQuoteMappable {
+  String toJson() {
+    return MessageQuoteMapper.ensureInitialized().encodeJson<MessageQuote>(
+      this as MessageQuote,
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return MessageQuoteMapper.ensureInitialized().encodeMap<MessageQuote>(
+      this as MessageQuote,
+    );
+  }
+
+  MessageQuoteCopyWith<MessageQuote, MessageQuote, MessageQuote> get copyWith =>
+      _MessageQuoteCopyWithImpl<MessageQuote, MessageQuote>(
+        this as MessageQuote,
+        $identity,
+        $identity,
+      );
+  @override
+  String toString() {
+    return MessageQuoteMapper.ensureInitialized().stringifyValue(
+      this as MessageQuote,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return MessageQuoteMapper.ensureInitialized().equalsValue(
+      this as MessageQuote,
+      other,
+    );
+  }
+
+  @override
+  int get hashCode {
+    return MessageQuoteMapper.ensureInitialized().hashValue(
+      this as MessageQuote,
+    );
+  }
+}
+
+extension MessageQuoteValueCopy<$R, $Out>
+    on ObjectCopyWith<$R, MessageQuote, $Out> {
+  MessageQuoteCopyWith<$R, MessageQuote, $Out> get $asMessageQuote =>
+      $base.as((v, t, t2) => _MessageQuoteCopyWithImpl<$R, $Out>(v, t, t2));
+}
+
+abstract class MessageQuoteCopyWith<$R, $In extends MessageQuote, $Out>
+    implements ClassCopyWith<$R, $In, $Out> {
+  ListCopyWith<
+    $R,
+    MessageEntity,
+    MessageEntityCopyWith<$R, MessageEntity, MessageEntity>
+  >
+  get entities;
+  $R call({String? text, List<MessageEntity>? entities, int? offset});
+  MessageQuoteCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
+}
+
+class _MessageQuoteCopyWithImpl<$R, $Out>
+    extends ClassCopyWithBase<$R, MessageQuote, $Out>
+    implements MessageQuoteCopyWith<$R, MessageQuote, $Out> {
+  _MessageQuoteCopyWithImpl(super.value, super.then, super.then2);
+
+  @override
+  late final ClassMapperBase<MessageQuote> $mapper =
+      MessageQuoteMapper.ensureInitialized();
+  @override
+  ListCopyWith<
+    $R,
+    MessageEntity,
+    MessageEntityCopyWith<$R, MessageEntity, MessageEntity>
+  >
+  get entities => ListCopyWith(
+    $value.entities,
+    (v, t) => v.copyWith.$chain(t),
+    (v) => call(entities: v),
+  );
+  @override
+  $R call({String? text, List<MessageEntity>? entities, int? offset}) => $apply(
+    FieldCopyWithData({
+      if (text != null) #text: text,
+      if (entities != null) #entities: entities,
+      if (offset != null) #offset: offset,
+    }),
+  );
+  @override
+  MessageQuote $make(CopyWithData data) => MessageQuote(
+    text: data.get(#text, or: $value.text),
+    entities: data.get(#entities, or: $value.entities),
+    offset: data.get(#offset, or: $value.offset),
+  );
+
+  @override
+  MessageQuoteCopyWith<$R2, MessageQuote, $Out2> $chain<$R2, $Out2>(
+    Then<$Out2, $R2> t,
+  ) => _MessageQuoteCopyWithImpl<$R2, $Out2>($value, $cast, t);
 }
 
 class MessageForwardMapper extends ClassMapperBase<MessageForward> {
@@ -1733,6 +1922,12 @@ class MessageMapper extends ClassMapperBase<Message> {
     opt: true,
     def: const [],
   );
+  static DateTime? _$commentsCloseDate(Message v) => v.commentsCloseDate;
+  static const Field<Message, DateTime> _f$commentsCloseDate = Field(
+    'commentsCloseDate',
+    _$commentsCloseDate,
+    opt: true,
+  );
 
   @override
   final MappableFields<Message> fields = const {
@@ -1768,6 +1963,7 @@ class MessageMapper extends ClassMapperBase<Message> {
     #views: _f$views,
     #commentsCount: _f$commentsCount,
     #commenters: _f$commenters,
+    #commentsCloseDate: _f$commentsCloseDate,
   };
 
   static Message _instantiate(DecodingData data) {
@@ -1804,6 +2000,7 @@ class MessageMapper extends ClassMapperBase<Message> {
       views: data.dec(_f$views),
       commentsCount: data.dec(_f$commentsCount),
       commenters: data.dec(_f$commenters),
+      commentsCloseDate: data.dec(_f$commentsCloseDate),
     );
   }
 
@@ -1922,6 +2119,7 @@ abstract class MessageCopyWith<$R, $In extends Message, $Out>
     int? views,
     int? commentsCount,
     List<String>? commenters,
+    DateTime? commentsCloseDate,
   });
   MessageCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
@@ -2028,6 +2226,7 @@ class _MessageCopyWithImpl<$R, $Out>
     int? views,
     int? commentsCount,
     List<String>? commenters,
+    Object? commentsCloseDate = $none,
   }) => $apply(
     FieldCopyWithData({
       if (id != null) #id: id,
@@ -2062,6 +2261,7 @@ class _MessageCopyWithImpl<$R, $Out>
       if (views != null) #views: views,
       if (commentsCount != null) #commentsCount: commentsCount,
       if (commenters != null) #commenters: commenters,
+      if (commentsCloseDate != $none) #commentsCloseDate: commentsCloseDate,
     }),
   );
   @override
@@ -2098,6 +2298,10 @@ class _MessageCopyWithImpl<$R, $Out>
     views: data.get(#views, or: $value.views),
     commentsCount: data.get(#commentsCount, or: $value.commentsCount),
     commenters: data.get(#commenters, or: $value.commenters),
+    commentsCloseDate: data.get(
+      #commentsCloseDate,
+      or: $value.commentsCloseDate,
+    ),
   );
 
   @override

@@ -8,6 +8,60 @@
 
 part of 'chat_state.dart';
 
+class ChatCommentsBlockMapper extends EnumMapper<ChatCommentsBlock> {
+  ChatCommentsBlockMapper._();
+
+  static ChatCommentsBlockMapper? _instance;
+  static ChatCommentsBlockMapper ensureInitialized() {
+    if (_instance == null) {
+      MapperContainer.globals.use(_instance = ChatCommentsBlockMapper._());
+    }
+    return _instance!;
+  }
+
+  static ChatCommentsBlock fromValue(dynamic value) {
+    ensureInitialized();
+    return MapperContainer.globals.fromValue(value);
+  }
+
+  @override
+  ChatCommentsBlock decode(dynamic value) {
+    switch (value) {
+      case r'none':
+        return ChatCommentsBlock.none;
+      case r'closed':
+        return ChatCommentsBlock.closed;
+      case r'subscribe':
+        return ChatCommentsBlock.subscribe;
+      case r'wait':
+        return ChatCommentsBlock.wait;
+      default:
+        throw MapperException.unknownEnumValue(value);
+    }
+  }
+
+  @override
+  dynamic encode(ChatCommentsBlock self) {
+    switch (self) {
+      case ChatCommentsBlock.none:
+        return r'none';
+      case ChatCommentsBlock.closed:
+        return r'closed';
+      case ChatCommentsBlock.subscribe:
+        return r'subscribe';
+      case ChatCommentsBlock.wait:
+        return r'wait';
+    }
+  }
+}
+
+extension ChatCommentsBlockMapperExtension on ChatCommentsBlock {
+  String toValue() {
+    ChatCommentsBlockMapper.ensureInitialized();
+    return MapperContainer.globals.toValue<ChatCommentsBlock>(this) as String;
+  }
+}
+
 class ChatStateMapper extends ClassMapperBase<ChatState> {
   ChatStateMapper._();
 
@@ -17,7 +71,9 @@ class ChatStateMapper extends ClassMapperBase<ChatState> {
       MapperContainer.globals.use(_instance = ChatStateMapper._());
       models.ChatMapper.ensureInitialized();
       models.MessageMapper.ensureInitialized();
+      models.MessageQuoteMapper.ensureInitialized();
       models.ChatMemberMapper.ensureInitialized();
+      ChatCommentsBlockMapper.ensureInitialized();
     }
     return _instance!;
   }
@@ -45,10 +101,29 @@ class ChatStateMapper extends ClassMapperBase<ChatState> {
     opt: true,
     def: const [],
   );
+  static List<models.Chat> _$communityChats(ChatState v) => v.communityChats;
+  static const Field<ChatState, List<models.Chat>> _f$communityChats = Field(
+    'communityChats',
+    _$communityChats,
+    opt: true,
+    def: const [],
+  );
+  static models.Chat? _$community(ChatState v) => v.community;
+  static const Field<ChatState, models.Chat> _f$community = Field(
+    'community',
+    _$community,
+    opt: true,
+  );
   static models.Message? _$reply(ChatState v) => v.reply;
   static const Field<ChatState, models.Message> _f$reply = Field(
     'reply',
     _$reply,
+    opt: true,
+  );
+  static models.MessageQuote? _$replyQuote(ChatState v) => v.replyQuote;
+  static const Field<ChatState, models.MessageQuote> _f$replyQuote = Field(
+    'replyQuote',
+    _$replyQuote,
     opt: true,
   );
   static models.Message? _$editing(ChatState v) => v.editing;
@@ -147,13 +222,49 @@ class ChatStateMapper extends ClassMapperBase<ChatState> {
     opt: true,
     def: 0,
   );
+  static List<String> _$commentsClosedIDs(ChatState v) => v.commentsClosedIDs;
+  static const Field<ChatState, List<String>> _f$commentsClosedIDs = Field(
+    'commentsClosedIDs',
+    _$commentsClosedIDs,
+    opt: true,
+    def: const [],
+  );
+  static ChatCommentsBlock _$commentsBlock(ChatState v) => v.commentsBlock;
+  static const Field<ChatState, ChatCommentsBlock> _f$commentsBlock = Field(
+    'commentsBlock',
+    _$commentsBlock,
+    opt: true,
+    def: ChatCommentsBlock.none,
+  );
+  static DateTime? _$commentsWaitUntil(ChatState v) => v.commentsWaitUntil;
+  static const Field<ChatState, DateTime> _f$commentsWaitUntil = Field(
+    'commentsWaitUntil',
+    _$commentsWaitUntil,
+    opt: true,
+  );
+  static bool _$newcomerRestricted(ChatState v) => v.newcomerRestricted;
+  static const Field<ChatState, bool> _f$newcomerRestricted = Field(
+    'newcomerRestricted',
+    _$newcomerRestricted,
+    opt: true,
+    def: false,
+  );
+  static DateTime? _$newcomerUntil(ChatState v) => v.newcomerUntil;
+  static const Field<ChatState, DateTime> _f$newcomerUntil = Field(
+    'newcomerUntil',
+    _$newcomerUntil,
+    opt: true,
+  );
 
   @override
   final MappableFields<ChatState> fields = const {
     #status: _f$status,
     #chat: _f$chat,
     #messages: _f$messages,
+    #communityChats: _f$communityChats,
+    #community: _f$community,
     #reply: _f$reply,
+    #replyQuote: _f$replyQuote,
     #editing: _f$editing,
     #unreadFromID: _f$unreadFromID,
     #selecting: _f$selecting,
@@ -168,6 +279,11 @@ class ChatStateMapper extends ClassMapperBase<ChatState> {
     #members: _f$members,
     #banned: _f$banned,
     #slowModeLeft: _f$slowModeLeft,
+    #commentsClosedIDs: _f$commentsClosedIDs,
+    #commentsBlock: _f$commentsBlock,
+    #commentsWaitUntil: _f$commentsWaitUntil,
+    #newcomerRestricted: _f$newcomerRestricted,
+    #newcomerUntil: _f$newcomerUntil,
   };
 
   static ChatState _instantiate(DecodingData data) {
@@ -175,7 +291,10 @@ class ChatStateMapper extends ClassMapperBase<ChatState> {
       status: data.dec(_f$status),
       chat: data.dec(_f$chat),
       messages: data.dec(_f$messages),
+      communityChats: data.dec(_f$communityChats),
+      community: data.dec(_f$community),
       reply: data.dec(_f$reply),
+      replyQuote: data.dec(_f$replyQuote),
       editing: data.dec(_f$editing),
       unreadFromID: data.dec(_f$unreadFromID),
       selecting: data.dec(_f$selecting),
@@ -190,6 +309,11 @@ class ChatStateMapper extends ClassMapperBase<ChatState> {
       members: data.dec(_f$members),
       banned: data.dec(_f$banned),
       slowModeLeft: data.dec(_f$slowModeLeft),
+      commentsClosedIDs: data.dec(_f$commentsClosedIDs),
+      commentsBlock: data.dec(_f$commentsBlock),
+      commentsWaitUntil: data.dec(_f$commentsWaitUntil),
+      newcomerRestricted: data.dec(_f$newcomerRestricted),
+      newcomerUntil: data.dec(_f$newcomerUntil),
     );
   }
 
@@ -259,7 +383,16 @@ abstract class ChatStateCopyWith<$R, $In extends ChatState, $Out>
     models.MessageCopyWith<$R, models.Message, models.Message>
   >
   get messages;
+  ListCopyWith<
+    $R,
+    models.Chat,
+    models.ChatCopyWith<$R, models.Chat, models.Chat>
+  >
+  get communityChats;
+  models.ChatCopyWith<$R, models.Chat, models.Chat>? get community;
   models.MessageCopyWith<$R, models.Message, models.Message>? get reply;
+  models.MessageQuoteCopyWith<$R, models.MessageQuote, models.MessageQuote>?
+  get replyQuote;
   models.MessageCopyWith<$R, models.Message, models.Message>? get editing;
   ListCopyWith<$R, String, ObjectCopyWith<$R, String, String>> get selectedIDs;
   ListCopyWith<
@@ -288,11 +421,16 @@ abstract class ChatStateCopyWith<$R, $In extends ChatState, $Out>
     models.ChatMemberCopyWith<$R, models.ChatMember, models.ChatMember>
   >
   get banned;
+  ListCopyWith<$R, String, ObjectCopyWith<$R, String, String>>
+  get commentsClosedIDs;
   $R call({
     Status? status,
     models.Chat? chat,
     List<models.Message>? messages,
+    List<models.Chat>? communityChats,
+    models.Chat? community,
     models.Message? reply,
+    models.MessageQuote? replyQuote,
     models.Message? editing,
     String? unreadFromID,
     bool? selecting,
@@ -307,6 +445,11 @@ abstract class ChatStateCopyWith<$R, $In extends ChatState, $Out>
     List<models.ChatMember>? members,
     List<models.ChatMember>? banned,
     int? slowModeLeft,
+    List<String>? commentsClosedIDs,
+    ChatCommentsBlock? commentsBlock,
+    DateTime? commentsWaitUntil,
+    bool? newcomerRestricted,
+    DateTime? newcomerUntil,
   });
   ChatStateCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
@@ -334,8 +477,26 @@ class _ChatStateCopyWithImpl<$R, $Out>
     (v) => call(messages: v),
   );
   @override
+  ListCopyWith<
+    $R,
+    models.Chat,
+    models.ChatCopyWith<$R, models.Chat, models.Chat>
+  >
+  get communityChats => ListCopyWith(
+    $value.communityChats,
+    (v, t) => v.copyWith.$chain(t),
+    (v) => call(communityChats: v),
+  );
+  @override
+  models.ChatCopyWith<$R, models.Chat, models.Chat>? get community =>
+      $value.community?.copyWith.$chain((v) => call(community: v));
+  @override
   models.MessageCopyWith<$R, models.Message, models.Message>? get reply =>
       $value.reply?.copyWith.$chain((v) => call(reply: v));
+  @override
+  models.MessageQuoteCopyWith<$R, models.MessageQuote, models.MessageQuote>?
+  get replyQuote =>
+      $value.replyQuote?.copyWith.$chain((v) => call(replyQuote: v));
   @override
   models.MessageCopyWith<$R, models.Message, models.Message>? get editing =>
       $value.editing?.copyWith.$chain((v) => call(editing: v));
@@ -398,11 +559,21 @@ class _ChatStateCopyWithImpl<$R, $Out>
     (v) => call(banned: v),
   );
   @override
+  ListCopyWith<$R, String, ObjectCopyWith<$R, String, String>>
+  get commentsClosedIDs => ListCopyWith(
+    $value.commentsClosedIDs,
+    (v, t) => ObjectCopyWith(v, $identity, t),
+    (v) => call(commentsClosedIDs: v),
+  );
+  @override
   $R call({
     Status? status,
     Object? chat = $none,
     List<models.Message>? messages,
+    List<models.Chat>? communityChats,
+    Object? community = $none,
     Object? reply = $none,
+    Object? replyQuote = $none,
     Object? editing = $none,
     Object? unreadFromID = $none,
     bool? selecting,
@@ -417,12 +588,20 @@ class _ChatStateCopyWithImpl<$R, $Out>
     List<models.ChatMember>? members,
     List<models.ChatMember>? banned,
     int? slowModeLeft,
+    List<String>? commentsClosedIDs,
+    ChatCommentsBlock? commentsBlock,
+    Object? commentsWaitUntil = $none,
+    bool? newcomerRestricted,
+    Object? newcomerUntil = $none,
   }) => $apply(
     FieldCopyWithData({
       if (status != null) #status: status,
       if (chat != $none) #chat: chat,
       if (messages != null) #messages: messages,
+      if (communityChats != null) #communityChats: communityChats,
+      if (community != $none) #community: community,
       if (reply != $none) #reply: reply,
+      if (replyQuote != $none) #replyQuote: replyQuote,
       if (editing != $none) #editing: editing,
       if (unreadFromID != $none) #unreadFromID: unreadFromID,
       if (selecting != null) #selecting: selecting,
@@ -438,6 +617,11 @@ class _ChatStateCopyWithImpl<$R, $Out>
       if (members != null) #members: members,
       if (banned != null) #banned: banned,
       if (slowModeLeft != null) #slowModeLeft: slowModeLeft,
+      if (commentsClosedIDs != null) #commentsClosedIDs: commentsClosedIDs,
+      if (commentsBlock != null) #commentsBlock: commentsBlock,
+      if (commentsWaitUntil != $none) #commentsWaitUntil: commentsWaitUntil,
+      if (newcomerRestricted != null) #newcomerRestricted: newcomerRestricted,
+      if (newcomerUntil != $none) #newcomerUntil: newcomerUntil,
     }),
   );
   @override
@@ -445,7 +629,10 @@ class _ChatStateCopyWithImpl<$R, $Out>
     status: data.get(#status, or: $value.status),
     chat: data.get(#chat, or: $value.chat),
     messages: data.get(#messages, or: $value.messages),
+    communityChats: data.get(#communityChats, or: $value.communityChats),
+    community: data.get(#community, or: $value.community),
     reply: data.get(#reply, or: $value.reply),
+    replyQuote: data.get(#replyQuote, or: $value.replyQuote),
     editing: data.get(#editing, or: $value.editing),
     unreadFromID: data.get(#unreadFromID, or: $value.unreadFromID),
     selecting: data.get(#selecting, or: $value.selecting),
@@ -463,6 +650,20 @@ class _ChatStateCopyWithImpl<$R, $Out>
     members: data.get(#members, or: $value.members),
     banned: data.get(#banned, or: $value.banned),
     slowModeLeft: data.get(#slowModeLeft, or: $value.slowModeLeft),
+    commentsClosedIDs: data.get(
+      #commentsClosedIDs,
+      or: $value.commentsClosedIDs,
+    ),
+    commentsBlock: data.get(#commentsBlock, or: $value.commentsBlock),
+    commentsWaitUntil: data.get(
+      #commentsWaitUntil,
+      or: $value.commentsWaitUntil,
+    ),
+    newcomerRestricted: data.get(
+      #newcomerRestricted,
+      or: $value.newcomerRestricted,
+    ),
+    newcomerUntil: data.get(#newcomerUntil, or: $value.newcomerUntil),
   );
 
   @override

@@ -10,6 +10,7 @@ import '../../extensions.dart';
 import '../../i18n/translations.g.dart';
 import '../../models.dart' as models;
 import 'chat_create_common.dart';
+import 'comments_limit.dart';
 import 'chats_new_material.dart';
 
 /// «Изменить» в профиле чата (админ): форма с полями [chat]; после
@@ -43,6 +44,10 @@ class _ChatCreateFormMaterial extends State<ChatCreateFormMaterial> {
   final _nameController = TextEditingController();
   final _aboutController = TextEditingController();
   final _usernameController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _addressController = TextEditingController();
+  final _latitudeController = TextEditingController();
+  final _longitudeController = TextEditingController();
 
   @override
   void initState() {
@@ -52,6 +57,10 @@ class _ChatCreateFormMaterial extends State<ChatCreateFormMaterial> {
     _nameController.text = state.title;
     _aboutController.text = state.about;
     _usernameController.text = state.username;
+    _phoneController.text = state.phone;
+    _addressController.text = state.address;
+    _latitudeController.text = state.latitude;
+    _longitudeController.text = state.longitude;
     // Кнопка ✓ доступна только с названием.
     _nameController.addListener(() => setState(() {}));
   }
@@ -61,6 +70,10 @@ class _ChatCreateFormMaterial extends State<ChatCreateFormMaterial> {
     _nameController.dispose();
     _aboutController.dispose();
     _usernameController.dispose();
+    _phoneController.dispose();
+    _addressController.dispose();
+    _latitudeController.dispose();
+    _longitudeController.dispose();
     super.dispose();
   }
 
@@ -133,19 +146,38 @@ class _ChatCreateFormMaterial extends State<ChatCreateFormMaterial> {
       listener: (context, state) {
         // «Изменить» сохранено — обратно в профиль чата.
         if (state.saved) return Navigator.of(context).pop();
-        // Новый чат вместо всей цепочки «Новое» (назад — в список чатов).
+        // Чат сообщества — вместо формы (назад — на страницу сообщества);
+        // иначе новый чат вместо всей цепочки «Новое» (назад — в список чатов).
+        if (state.inCommunity) return context.pushReplacement('/chats/chat/${state.openChatID}');
         context.go('/chats/chat/${state.openChatID}');
       },
       builder: (context, state) {
         final type = state.type;
-        // Описание и вступление — у канала и сообщества, а в «Изменить» — и у
-        // группы.
-        final withLink = type == models.ChatType.channel || type == models.ChatType.community || state.isEdit;
-        // Четыре способа вступления — списком, два («Публичный / Частный») —
-        // переключателем.
-        final joinList = state.isEdit && type != models.ChatType.channel;
-        final canCreate = _nameController.text.trim().isNotEmpty && state.linkReady && !state.creating;
+        // Описание и вступление — у канала и сообщества, а в «Изменить» и
+        // внутри сообщества — и у группы.
+        final withLink = type == models.ChatType.channel || type == models.ChatType.community || state.isEdit || state.inCommunity;
+        // Способы вступления — списком (в сообществе — одним нажатием / по
+        // заявке), «Публичный / Частный» — переключателем.
+        final joinList = (state.isEdit && type != models.ChatType.channel) || state.inCommunity;
+        final canCreate = _nameController.text.trim().isNotEmpty && state.linkReady && state.coordinatesValid && !state.creating;
         final hint = usernameHint(t, state);
+
+        // «Новичкам — без ссылок и медиа» (группа / комментарии канала).
+        Widget newcomerTile() => ListTile(
+          title: Text(t.screenNewChat.newcomerMedia),
+          subtitle: Text(newcomerMediaLabel(t, state.newcomerMediaDelay)),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () async {
+            final cubit = context.read<ChatCreateCubit>();
+            final seconds = await pickCommentsLimit(
+              context,
+              state.newcomerMediaDelay,
+              title: t.screenNewChat.newcomerMedia,
+              label: (value) => newcomerMediaLabel(t, value),
+            );
+            if (seconds != null) cubit.setNewcomerMediaDelay(seconds);
+          },
+        );
 
         return Scaffold(
           backgroundColor: scheme.surfaceContainerLow,
@@ -225,6 +257,73 @@ class _ChatCreateFormMaterial extends State<ChatCreateFormMaterial> {
                   ),
                 ]),
 
+                // Обложка страницы сообщества (в «Изменить»).
+                if (type == models.ChatType.community && state.isEdit) ...[
+                  const SizedBox(height: 16),
+                  card([
+                    ListTile(
+                      leading: HugeIcon(icon: HugeIcons.strokeRoundedImage02, color: scheme.onSurfaceVariant),
+                      title: Text(state.coverPath.isEmpty ? t.screenNewChat.setCover : t.screenNewChat.changeCover),
+                      trailing: state.coverPath.isEmpty ? null : CommunityCoverPreview(path: state.coverPath),
+                      onTap: () async {
+                        final cubit = context.read<ChatCreateCubit>();
+                        final path = await pickCommunityCover(context);
+                        if (path != null) cubit.setCover(path);
+                      },
+                    ),
+                    if (state.coverPath.isNotEmpty)
+                      ListTile(
+                        leading: HugeIcon(icon: HugeIcons.strokeRoundedDelete02, color: scheme.error),
+                        title: Text(t.screenNewChat.removeCover, style: TextStyle(color: scheme.error)),
+                        onTap: () => context.read<ChatCreateCubit>().setCover(''),
+                      ),
+                  ]),
+                  createNoteMaterial(context, t.screenNewChat.coverFooter),
+                ],
+
+                // Контакты заведения (в «Изменить» сообщества): телефон, адрес,
+                // координаты для маршрута.
+                if (type == models.ChatType.community && state.isEdit) ...[
+                  createHeaderMaterial(context, t.screenNewChat.contactsHeader),
+                  card([
+                    TextField(
+                      controller: _phoneController,
+                      keyboardType: TextInputType.phone,
+                      autofillHints: const [AutofillHints.telephoneNumber],
+                      decoration: _decoration(label: t.screenNewChat.phone),
+                      onChanged: context.read<ChatCreateCubit>().setPhone,
+                    ),
+                    TextField(
+                      controller: _addressController,
+                      textCapitalization: TextCapitalization.sentences,
+                      minLines: 1,
+                      maxLines: 3,
+                      decoration: _decoration(label: t.screenNewChat.address),
+                      onChanged: context.read<ChatCreateCubit>().setAddress,
+                    ),
+                    TextField(
+                      controller: _latitudeController,
+                      keyboardType: const TextInputType.numberWithOptions(signed: true, decimal: true),
+                      decoration: _decoration(label: t.screenNewChat.latitude, hint: t.screenNewChat.latitudeHint),
+                      onChanged: context.read<ChatCreateCubit>().setLatitude,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: TextField(
+                        controller: _longitudeController,
+                        keyboardType: const TextInputType.numberWithOptions(signed: true, decimal: true),
+                        decoration: _decoration(label: t.screenNewChat.longitude, hint: t.screenNewChat.longitudeHint),
+                        onChanged: context.read<ChatCreateCubit>().setLongitude,
+                      ),
+                    ),
+                  ]),
+                  createNoteMaterial(
+                    context,
+                    state.coordinatesValid ? t.screenNewChat.coordinatesFooter : t.screenNewChat.coordinatesInvalid,
+                    color: state.coordinatesValid ? null : scheme.error,
+                  ),
+                ],
+
                 if (withLink) ...[
                   const SizedBox(height: 16),
                   card([
@@ -245,9 +344,9 @@ class _ChatCreateFormMaterial extends State<ChatCreateFormMaterial> {
                   createHeaderMaterial(context, joinList ? t.screenNewChat.joinHeader : t.screenNewChat.type),
                   if (joinList)
                     card([
-                      for (final mode in joinModesOf(type))
+                      for (final mode in joinModesFor(state))
                         ListTile(
-                          title: Text(joinModeLabel(t, type, mode)),
+                          title: Text(joinModeTitle(t, state, mode)),
                           trailing: state.joinMode == mode ? Icon(Icons.check, color: scheme.primary) : null,
                           onTap: () => context.read<ChatCreateCubit>().setJoinMode(mode),
                         ),
@@ -292,7 +391,7 @@ class _ChatCreateFormMaterial extends State<ChatCreateFormMaterial> {
                       ),
                     ]),
                     createNoteMaterial(context, hint.text, color: hint.error ? scheme.error : (hint.ok ? const Color(0xFF2E7D32) : null)),
-                  ] else if (state.joinMode != models.ChatJoinMode.admins) ...[
+                  ] else if (state.joinMode != models.ChatJoinMode.admins && !state.inCommunity) ...[
                     createHeaderMaterial(context, t.screenNewChat.inviteLink),
                     card([
                       ListTile(
@@ -312,13 +411,61 @@ class _ChatCreateFormMaterial extends State<ChatCreateFormMaterial> {
                         value: state.commentsEnabled,
                         onChanged: context.read<ChatCreateCubit>().setCommentsEnabled,
                       ),
+                      if (state.commentsEnabled) ...[
+                        ListTile(
+                          title: Text(t.screenNewChat.commentsLimit),
+                          subtitle: Text(commentsLimitLabel(t, state.commentsTimeLimit)),
+                          trailing: const Icon(Icons.chevron_right),
+                          onTap: () async {
+                            final cubit = context.read<ChatCreateCubit>();
+                            final seconds = await pickCommentsLimit(context, state.commentsTimeLimit, title: t.screenNewChat.commentsLimit);
+                            if (seconds != null) cubit.setCommentsTimeLimit(seconds);
+                          },
+                        ),
+                        ListTile(
+                          title: Text(t.screenNewChat.commentsWho),
+                          subtitle: Text(commentsWhoLabel(t, state.commentsWho)),
+                          trailing: const Icon(Icons.chevron_right),
+                          onTap: () async {
+                            final cubit = context.read<ChatCreateCubit>();
+                            final who = await pickCommentsWho(context, state.commentsWho);
+                            if (who != null) cubit.setCommentsWho(who);
+                          },
+                        ),
+                        if (state.commentsWho == models.ChatCommentsWho.subscribers)
+                          ListTile(
+                            title: Text(t.screenNewChat.commentsMinSubscription),
+                            subtitle: Text(commentsLimitLabel(t, state.commentsMinSubscription)),
+                            trailing: const Icon(Icons.chevron_right),
+                            onTap: () async {
+                              final cubit = context.read<ChatCreateCubit>();
+                              final seconds = await pickCommentsLimit(
+                                context,
+                                state.commentsMinSubscription,
+                                title: t.screenNewChat.commentsMinSubscription,
+                              );
+                              if (seconds != null) cubit.setCommentsMinSubscription(seconds);
+                            },
+                          ),
+                        newcomerTile(),
+                      ],
                       SwitchListTile(
                         title: Text(t.screenNewChat.signSwitch),
                         value: state.signMessages,
                         onChanged: context.read<ChatCreateCubit>().setSignMessages,
                       ),
                     ]),
-                    createNoteMaterial(context, '${t.screenNewChat.commentsFooter} ${t.screenNewChat.signFooter}'),
+                    createNoteMaterial(
+                      context,
+                      [
+                        t.screenNewChat.commentsFooter,
+                        if (state.commentsEnabled) t.screenNewChat.commentsLimitFooter,
+                        if (state.commentsEnabled && state.commentsWho == models.ChatCommentsWho.subscribers)
+                          t.screenNewChat.commentsWhoFooter,
+                        if (state.commentsEnabled) t.screenNewChat.newcomerMediaFooterChannel,
+                        t.screenNewChat.signFooter,
+                      ].join(' '),
+                    ),
                   ],
                   if (state.isEdit && type != models.ChatType.channel) ...[
                     createHeaderMaterial(context, t.screenNewChat.defaultRoleHeader),
@@ -340,10 +487,14 @@ class _ChatCreateFormMaterial extends State<ChatCreateFormMaterial> {
                       ),
                     ]),
                     createNoteMaterial(context, defaultRoleFooter(t, state.defaultRole)),
+                    const SizedBox(height: 8),
+                    card([newcomerTile()]),
+                    createNoteMaterial(context, t.screenNewChat.newcomerMediaFooterGroup),
                   ],
                 ],
 
-                if (state.isEdit) ...[
+                // Видимость участников — настройка сообщества, у его чатов своей нет.
+                if (state.isEdit && !state.inCommunity) ...[
                   const SizedBox(height: 16),
                   card([
                     SwitchListTile(
@@ -355,7 +506,7 @@ class _ChatCreateFormMaterial extends State<ChatCreateFormMaterial> {
                   createNoteMaterial(context, t.screenNewChat.hideMembersFooter),
                 ],
 
-                if (type == models.ChatType.group && !state.isEdit)
+                if (type == models.ChatType.group && !state.isEdit && !state.inCommunity)
                   if (state.selected.isEmpty)
                     createNoteMaterial(context, t.screenNewChat.noMembersHint)
                   else ...[

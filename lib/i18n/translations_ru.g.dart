@@ -288,11 +288,25 @@ class _Translations$screenNewChat$ru extends Translations$screenNewChat$en {
 	@override String get description => 'Описание';
 	@override String get descriptionHint => 'Необязательно';
 	@override String get channelDescriptionFooter => 'Расскажите подписчикам, о чём канал.';
-	@override String get communityDescriptionFooter => 'Сообщество объединяет ваши группы и каналы.';
+	@override String get communityDescriptionFooter => 'Расскажите об организации: чем занимаетесь, адрес, часы работы. Внутри сообщества будут канал объявлений и группы по темам.';
 	@override String get members => 'Участники';
 	@override String get setPhoto => 'Выбрать фото';
 	@override String get changePhoto => 'Изменить фото';
 	@override String get removePhoto => 'Удалить фото';
+	@override String get cover => 'Обложка';
+	@override String get setCover => 'Выбрать обложку';
+	@override String get changeCover => 'Изменить обложку';
+	@override String get removeCover => 'Удалить обложку';
+	@override String get coverFooter => 'Фон шапки страницы сообщества — например, фото зала или витрины.';
+	@override String get contactsHeader => 'Контакты';
+	@override String get phone => 'Телефон';
+	@override String get address => 'Адрес';
+	@override String get latitude => 'Широта';
+	@override String get latitudeHint => '55.650088';
+	@override String get longitude => 'Долгота';
+	@override String get longitudeHint => '37.606609';
+	@override String get coordinatesFooter => 'По широте и долготе строится маршрут в Яндекс Картах и 2ГИС. В картах их можно скопировать, удерживая точку.';
+	@override String get coordinatesInvalid => 'Нужны обе координаты числами: широта от −90 до 90, долгота от −180 до 180.';
 	@override String get editPhoto => 'Фото';
 	@override String get type => 'Тип';
 	@override String get typePublic => 'Публичный';
@@ -313,6 +327,33 @@ class _Translations$screenNewChat$ru extends Translations$screenNewChat$en {
 	@override String get copied => 'Ссылка скопирована';
 	@override String get commentsSwitch => 'Комментарии';
 	@override String get commentsFooter => 'Подписчики смогут обсуждать каждый пост в комментариях.';
+	@override String get commentsLimit => 'Срок комментирования';
+	@override String get commentsLimitFooter => 'Сколько времени после публикации можно комментировать пост — дальше комментарии только читают. Действует на новые посты.';
+	@override String get commentsLimitOff => 'Без ограничения';
+	@override String commentsLimitHours({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n,
+		one: '${n} час',
+		few: '${n} часа',
+		many: '${n} часов',
+		other: '${n} часа',
+	);
+	@override String commentsLimitDays({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n,
+		one: '${n} день',
+		few: '${n} дня',
+		many: '${n} дней',
+		other: '${n} дня',
+	);
+	@override String get commentsLimitWeek => '1 неделя';
+	@override String get commentsLimitMonth => '1 месяц';
+	@override String get commentsLimitYear => '1 год';
+	@override String get commentsWho => 'Кто может комментировать';
+	@override String get commentsWhoAll => 'Все';
+	@override String get commentsWhoSubscribers => 'Только подписчики';
+	@override String get commentsMinSubscription => 'Подписка не менее';
+	@override String get commentsWhoFooter => 'Не подписанные читают комментарии, но не пишут. Срок подписки защищает от спама: только что подписавшийся сможет комментировать, когда пройдёт выбранное время.';
+	@override String get newcomerMedia => 'Новичкам — без ссылок и медиа';
+	@override String get newcomerMediaOff => 'Выкл.';
+	@override String get newcomerMediaFooterGroup => 'Вступившие меньше выбранного срока назад пишут только текст — без ссылок, фото, видео, файлов, голосовых и опросов: так спам-боты не сразу смогут рекламировать. На админов не действует.';
+	@override String get newcomerMediaFooterChannel => 'Новички — не подписанные или подписанные меньше выбранного срока назад — пишут в комментариях только текст, без ссылок, фото, видео, файлов, голосовых и опросов.';
 	@override String get signSwitch => 'Подписывать сообщения';
 	@override String get signFooter => 'С подписями под постом видно имя админа, который его опубликовал.';
 	@override String get hideMembers => 'Скрыть участников';
@@ -332,6 +373,12 @@ class _Translations$screenNewChat$ru extends Translations$screenNewChat$en {
 	@override String get roleWriter => 'Чтение и сообщения';
 	@override String get roleReaderFooter => 'Вступившие читают, но не могут писать.';
 	@override String get roleWriterFooter => 'Вступившие могут читать и писать сообщения.';
+	@override String get topicJoinOpen => 'Одним нажатием';
+	@override String get topicJoinRequest => 'По заявке';
+	@override String get topicJoinOpenFooter => 'Любой участник сообщества вступает одним нажатием.';
+	@override String get topicJoinRequestFooter => 'Закрытая тема: участник сообщества подаёт заявку, вступление — после одобрения админом.';
+	@override String get topicJoinHidden => 'Скрытая';
+	@override String get topicJoinHiddenFooter => 'Группу видят только её участники и админы сообщества. Вступить самостоятельно нельзя — участников добавляют админы.';
 }
 
 // Path: screenChatInvites
@@ -496,6 +543,16 @@ class _Translations$screenChat$ru extends Translations$screenChat$en {
 	);
 	@override String get leaveComment => 'Прокомментировать';
 	@override String get commentsTitle => 'Комментарии';
+	@override String get commentsClosed => 'Комментарии закрыты';
+	@override String get commentsSubscribe => 'Подписаться, чтобы комментировать';
+	@override String commentsWaitUntil({required Object time}) => 'Комментировать можно с ${time}';
+	@override String get newcomerTitle => 'Только текст';
+	@override String newcomerWaitUntil({required Object time}) => 'Ссылки, медиа, файлы и голосовые новичкам можно отправлять с ${time}.';
+	@override String get newcomerSubscribe => 'Ссылки, медиа, файлы и голосовые в комментариях могут отправлять только подписчики.';
+	@override String get closeComments => 'Закрыть комментарии';
+	@override String get openComments => 'Открыть комментарии';
+	@override String get closeCommentsTitle => 'Закрыть комментарии?';
+	@override String get closeCommentsMessage => 'Комментировать пост больше будет нельзя, оставленные комментарии останутся.';
 	@override String get subscribe => 'Подписаться';
 	@override String get joinGroup => 'Вступить в группу';
 	@override String get requestJoin => 'Подать заявку';
@@ -525,6 +582,8 @@ class _Translations$screenChat$ru extends Translations$screenChat$en {
 	@override String get empty => 'Сообщений пока нет';
 	@override String get notFound => 'Чат не найден';
 	@override String get reply => 'Ответить';
+	@override String get quote => 'Цитировать';
+	@override String replyQuoteTo({required Object name}) => 'Цитата · ${name}';
 	@override String get copy => 'Копировать';
 	@override String get copied => 'Скопировано';
 	@override String get edit => 'Изменить';
@@ -633,6 +692,11 @@ class _Translations$screenChat$ru extends Translations$screenChat$en {
 	@override String get formatLink => 'Ссылка';
 	@override String get formatQuote => 'Цитата';
 	@override String get formatPlain => 'Обычный';
+	@override String get formatUnderline => 'Подчёркнутый';
+	@override String get formatPre => 'Блок кода';
+	@override String get formatMention => 'Упомянуть';
+	@override String get formatQuoteExpandable => 'Сворачиваемая цитата';
+	@override String get mentionPickTitle => 'Кого упомянуть';
 	@override String get linkTitle => 'Добавить ссылку';
 	@override String get linkAdd => 'Добавить';
 	@override String uploadProgress({required Object done, required Object total}) => '${done} из ${total}';
@@ -815,6 +879,28 @@ class _Translations$screenChatInfo$ru extends Translations$screenChatInfo$en {
 	@override String get leaveShort => 'Покинуть';
 	@override String deleteChatTitle({required Object name}) => 'Удалить чат с ${name}?';
 	@override String leaveGroupTitle({required Object name}) => 'Покинуть «${name}»?';
+	@override String get deleteGroup => 'Удалить группу';
+	@override String get deleteChannel => 'Удалить канал';
+	@override String get deleteCommunity => 'Удалить сообщество';
+	@override String get deleteShort => 'Удалить';
+	@override String deleteInCommunityTitle({required Object name}) => 'Удалить «${name}»?';
+	@override String get deleteInCommunityMessage => 'Чат удалится у всех участников сообщества.';
+	@override String get deleteCommunityMessage => 'Сообщество удалится вместе со всеми его группами и каналами.';
+	@override String get communityChats => 'Чаты';
+	@override String get communityChatsFooter => 'Участники сообщества вступают в группы и каналы одним нажатием, в закрытые темы — по заявке.';
+	@override String get announcements => 'Объявления';
+	@override String get closedTopic => 'По заявке';
+	@override String get hiddenTopic => 'Скрытая';
+	@override String get createGroup => 'Создать группу';
+	@override String get createChannel => 'Создать канал';
+	@override String get join => 'Вступить';
+	@override String get requestPending => 'Ждёт';
+	@override String get joinCommunity => 'Вступить в сообщество';
+	@override String get phone => 'Телефон';
+	@override String get address => 'Адрес';
+	@override String get route => 'Маршрут';
+	@override String get routeYandex => 'Яндекс Карты';
+	@override String get route2gis => '2ГИС';
 	@override String lastSeenMinutes({required Object n}) => 'был(а) ${n} мин. назад';
 	@override String lastSeenAt({required Object time}) => 'был(а) в ${time}';
 	@override String lastSeenYesterday({required Object time}) => 'был(а) вчера в ${time}';
@@ -1513,11 +1599,25 @@ extension on TranslationsRu {
 			'screenNewChat.description' => 'Описание',
 			'screenNewChat.descriptionHint' => 'Необязательно',
 			'screenNewChat.channelDescriptionFooter' => 'Расскажите подписчикам, о чём канал.',
-			'screenNewChat.communityDescriptionFooter' => 'Сообщество объединяет ваши группы и каналы.',
+			'screenNewChat.communityDescriptionFooter' => 'Расскажите об организации: чем занимаетесь, адрес, часы работы. Внутри сообщества будут канал объявлений и группы по темам.',
 			'screenNewChat.members' => 'Участники',
 			'screenNewChat.setPhoto' => 'Выбрать фото',
 			'screenNewChat.changePhoto' => 'Изменить фото',
 			'screenNewChat.removePhoto' => 'Удалить фото',
+			'screenNewChat.cover' => 'Обложка',
+			'screenNewChat.setCover' => 'Выбрать обложку',
+			'screenNewChat.changeCover' => 'Изменить обложку',
+			'screenNewChat.removeCover' => 'Удалить обложку',
+			'screenNewChat.coverFooter' => 'Фон шапки страницы сообщества — например, фото зала или витрины.',
+			'screenNewChat.contactsHeader' => 'Контакты',
+			'screenNewChat.phone' => 'Телефон',
+			'screenNewChat.address' => 'Адрес',
+			'screenNewChat.latitude' => 'Широта',
+			'screenNewChat.latitudeHint' => '55.650088',
+			'screenNewChat.longitude' => 'Долгота',
+			'screenNewChat.longitudeHint' => '37.606609',
+			'screenNewChat.coordinatesFooter' => 'По широте и долготе строится маршрут в Яндекс Картах и 2ГИС. В картах их можно скопировать, удерживая точку.',
+			'screenNewChat.coordinatesInvalid' => 'Нужны обе координаты числами: широта от −90 до 90, долгота от −180 до 180.',
 			'screenNewChat.editPhoto' => 'Фото',
 			'screenNewChat.type' => 'Тип',
 			'screenNewChat.typePublic' => 'Публичный',
@@ -1538,6 +1638,23 @@ extension on TranslationsRu {
 			'screenNewChat.copied' => 'Ссылка скопирована',
 			'screenNewChat.commentsSwitch' => 'Комментарии',
 			'screenNewChat.commentsFooter' => 'Подписчики смогут обсуждать каждый пост в комментариях.',
+			'screenNewChat.commentsLimit' => 'Срок комментирования',
+			'screenNewChat.commentsLimitFooter' => 'Сколько времени после публикации можно комментировать пост — дальше комментарии только читают. Действует на новые посты.',
+			'screenNewChat.commentsLimitOff' => 'Без ограничения',
+			'screenNewChat.commentsLimitHours' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: '${n} час', few: '${n} часа', many: '${n} часов', other: '${n} часа', ), 
+			'screenNewChat.commentsLimitDays' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: '${n} день', few: '${n} дня', many: '${n} дней', other: '${n} дня', ), 
+			'screenNewChat.commentsLimitWeek' => '1 неделя',
+			'screenNewChat.commentsLimitMonth' => '1 месяц',
+			'screenNewChat.commentsLimitYear' => '1 год',
+			'screenNewChat.commentsWho' => 'Кто может комментировать',
+			'screenNewChat.commentsWhoAll' => 'Все',
+			'screenNewChat.commentsWhoSubscribers' => 'Только подписчики',
+			'screenNewChat.commentsMinSubscription' => 'Подписка не менее',
+			'screenNewChat.commentsWhoFooter' => 'Не подписанные читают комментарии, но не пишут. Срок подписки защищает от спама: только что подписавшийся сможет комментировать, когда пройдёт выбранное время.',
+			'screenNewChat.newcomerMedia' => 'Новичкам — без ссылок и медиа',
+			'screenNewChat.newcomerMediaOff' => 'Выкл.',
+			'screenNewChat.newcomerMediaFooterGroup' => 'Вступившие меньше выбранного срока назад пишут только текст — без ссылок, фото, видео, файлов, голосовых и опросов: так спам-боты не сразу смогут рекламировать. На админов не действует.',
+			'screenNewChat.newcomerMediaFooterChannel' => 'Новички — не подписанные или подписанные меньше выбранного срока назад — пишут в комментариях только текст, без ссылок, фото, видео, файлов, голосовых и опросов.',
 			'screenNewChat.signSwitch' => 'Подписывать сообщения',
 			'screenNewChat.signFooter' => 'С подписями под постом видно имя админа, который его опубликовал.',
 			'screenNewChat.hideMembers' => 'Скрыть участников',
@@ -1557,6 +1674,12 @@ extension on TranslationsRu {
 			'screenNewChat.roleWriter' => 'Чтение и сообщения',
 			'screenNewChat.roleReaderFooter' => 'Вступившие читают, но не могут писать.',
 			'screenNewChat.roleWriterFooter' => 'Вступившие могут читать и писать сообщения.',
+			'screenNewChat.topicJoinOpen' => 'Одним нажатием',
+			'screenNewChat.topicJoinRequest' => 'По заявке',
+			'screenNewChat.topicJoinOpenFooter' => 'Любой участник сообщества вступает одним нажатием.',
+			'screenNewChat.topicJoinRequestFooter' => 'Закрытая тема: участник сообщества подаёт заявку, вступление — после одобрения админом.',
+			'screenNewChat.topicJoinHidden' => 'Скрытая',
+			'screenNewChat.topicJoinHiddenFooter' => 'Группу видят только её участники и админы сообщества. Вступить самостоятельно нельзя — участников добавляют админы.',
 			'screenChatInvites.inviteLinks' => 'Ссылки-приглашения',
 			'screenChatInvites.joinRequests' => 'Заявки на вступление',
 			'screenChatInvites.primaryLink' => 'Основная ссылка',
@@ -1670,6 +1793,16 @@ extension on TranslationsRu {
 			'screenChat.comments' => ({required num n, required Object count}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: '${count} комментарий', few: '${count} комментария', many: '${count} комментариев', other: '${count} комментария', ), 
 			'screenChat.leaveComment' => 'Прокомментировать',
 			'screenChat.commentsTitle' => 'Комментарии',
+			'screenChat.commentsClosed' => 'Комментарии закрыты',
+			'screenChat.commentsSubscribe' => 'Подписаться, чтобы комментировать',
+			'screenChat.commentsWaitUntil' => ({required Object time}) => 'Комментировать можно с ${time}',
+			'screenChat.newcomerTitle' => 'Только текст',
+			'screenChat.newcomerWaitUntil' => ({required Object time}) => 'Ссылки, медиа, файлы и голосовые новичкам можно отправлять с ${time}.',
+			'screenChat.newcomerSubscribe' => 'Ссылки, медиа, файлы и голосовые в комментариях могут отправлять только подписчики.',
+			'screenChat.closeComments' => 'Закрыть комментарии',
+			'screenChat.openComments' => 'Открыть комментарии',
+			'screenChat.closeCommentsTitle' => 'Закрыть комментарии?',
+			'screenChat.closeCommentsMessage' => 'Комментировать пост больше будет нельзя, оставленные комментарии останутся.',
 			'screenChat.subscribe' => 'Подписаться',
 			'screenChat.joinGroup' => 'Вступить в группу',
 			'screenChat.requestJoin' => 'Подать заявку',
@@ -1694,6 +1827,8 @@ extension on TranslationsRu {
 			'screenChat.empty' => 'Сообщений пока нет',
 			'screenChat.notFound' => 'Чат не найден',
 			'screenChat.reply' => 'Ответить',
+			'screenChat.quote' => 'Цитировать',
+			'screenChat.replyQuoteTo' => ({required Object name}) => 'Цитата · ${name}',
 			'screenChat.copy' => 'Копировать',
 			'screenChat.copied' => 'Скопировано',
 			'screenChat.edit' => 'Изменить',
@@ -1782,6 +1917,11 @@ extension on TranslationsRu {
 			'screenChat.formatLink' => 'Ссылка',
 			'screenChat.formatQuote' => 'Цитата',
 			'screenChat.formatPlain' => 'Обычный',
+			'screenChat.formatUnderline' => 'Подчёркнутый',
+			'screenChat.formatPre' => 'Блок кода',
+			'screenChat.formatMention' => 'Упомянуть',
+			'screenChat.formatQuoteExpandable' => 'Сворачиваемая цитата',
+			'screenChat.mentionPickTitle' => 'Кого упомянуть',
 			'screenChat.linkTitle' => 'Добавить ссылку',
 			'screenChat.linkAdd' => 'Добавить',
 			'screenChat.uploadProgress' => ({required Object done, required Object total}) => '${done} из ${total}',
@@ -1827,6 +1967,8 @@ extension on TranslationsRu {
 			'screenSettingsNotifications.permissionMissingTitle' => 'Уведомления выключены',
 			'screenSettingsNotifications.permissionMissingMessage' => 'Iperon не может показывать уведомления на этом устройстве — настройки ниже не сработают.',
 			'screenSettingsNotifications.enable' => 'Включить',
+			_ => null,
+		} ?? switch (path) {
 			'screenSettingsNotifications.loadError' => 'Не удалось загрузить настройки',
 			'screenSettingsNotifications.offlineNote' => 'Нет соединения. Изменение станет доступно, когда появится сеть.',
 			'screenSettingsNotifications.retry' => 'Повторить',
@@ -1881,8 +2023,6 @@ extension on TranslationsRu {
 			'screenChatInfo.roleAdmin' => 'админ',
 			'screenChatInfo.roleReader' => 'только чтение',
 			'screenChatInfo.you' => 'Вы',
-			_ => null,
-		} ?? switch (path) {
 			'screenChatInfo.addMembers' => 'Добавить участников',
 			'screenChatInfo.add' => 'Добавить',
 			'screenChatInfo.sendMessage' => 'Написать сообщение',
@@ -1921,6 +2061,28 @@ extension on TranslationsRu {
 			'screenChatInfo.leaveShort' => 'Покинуть',
 			'screenChatInfo.deleteChatTitle' => ({required Object name}) => 'Удалить чат с ${name}?',
 			'screenChatInfo.leaveGroupTitle' => ({required Object name}) => 'Покинуть «${name}»?',
+			'screenChatInfo.deleteGroup' => 'Удалить группу',
+			'screenChatInfo.deleteChannel' => 'Удалить канал',
+			'screenChatInfo.deleteCommunity' => 'Удалить сообщество',
+			'screenChatInfo.deleteShort' => 'Удалить',
+			'screenChatInfo.deleteInCommunityTitle' => ({required Object name}) => 'Удалить «${name}»?',
+			'screenChatInfo.deleteInCommunityMessage' => 'Чат удалится у всех участников сообщества.',
+			'screenChatInfo.deleteCommunityMessage' => 'Сообщество удалится вместе со всеми его группами и каналами.',
+			'screenChatInfo.communityChats' => 'Чаты',
+			'screenChatInfo.communityChatsFooter' => 'Участники сообщества вступают в группы и каналы одним нажатием, в закрытые темы — по заявке.',
+			'screenChatInfo.announcements' => 'Объявления',
+			'screenChatInfo.closedTopic' => 'По заявке',
+			'screenChatInfo.hiddenTopic' => 'Скрытая',
+			'screenChatInfo.createGroup' => 'Создать группу',
+			'screenChatInfo.createChannel' => 'Создать канал',
+			'screenChatInfo.join' => 'Вступить',
+			'screenChatInfo.requestPending' => 'Ждёт',
+			'screenChatInfo.joinCommunity' => 'Вступить в сообщество',
+			'screenChatInfo.phone' => 'Телефон',
+			'screenChatInfo.address' => 'Адрес',
+			'screenChatInfo.route' => 'Маршрут',
+			'screenChatInfo.routeYandex' => 'Яндекс Карты',
+			'screenChatInfo.route2gis' => '2ГИС',
 			'screenChatInfo.lastSeenMinutes' => ({required Object n}) => 'был(а) ${n} мин. назад',
 			'screenChatInfo.lastSeenAt' => ({required Object time}) => 'был(а) в ${time}',
 			'screenChatInfo.lastSeenYesterday' => ({required Object time}) => 'был(а) вчера в ${time}',

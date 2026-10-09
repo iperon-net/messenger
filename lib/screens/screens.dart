@@ -66,6 +66,8 @@ export 'chats/chat_create_form_material.dart';
 export 'chats/chats_archive_material.dart';
 export 'chats/chat_cupertino.dart';
 export 'chats/chat_material.dart';
+export 'chats/community_cupertino.dart';
+export 'chats/community_material.dart';
 export 'call/call_cupertino.dart';
 export 'call/call_material.dart';
 export 'call/call_preview.dart';

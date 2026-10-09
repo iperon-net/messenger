@@ -14,6 +14,7 @@ import '../../i18n/translations.g.dart';
 import '../../models.dart' as models;
 import '../../themes.dart';
 import 'chat_common.dart';
+import 'comments_limit.dart';
 import 'compose_format_menu.dart';
 import 'forward_picker.dart';
 import 'chat_info_material.dart';
@@ -65,9 +66,10 @@ class ChatMaterial extends StatefulWidget {
 class _ChatMaterialState extends State<ChatMaterial> {
   final _input = TextEditingController();
   late final _mentions = ComposeMentions(_input);
-  late final _formatMenu = ComposeFormatMenu(_input);
+  late final _formatMenu = ComposeFormatMenu(_input, members: () => _mentions.enabled ? _mentions.members : const []);
   late final _recorder = VoiceRecorder(
     onSend: (path, seconds, waveform) => _cubit.sendVoice(localPath: path, duration: seconds, waveform: waveform),
+    canStart: () => checkNewcomer(context, media: true),
     onDenied: _micDenied,
   );
   final _focus = FocusNode();
@@ -325,6 +327,8 @@ class _ChatMaterialState extends State<ChatMaterial> {
     if (_cubit.state.editing == null && !checkSlowMode(context, count: (text.trim().isEmpty ? 0 : 1) + _cubit.state.forwarding.length)) {
       return;
     }
+    // Новичку — только текст без ссылок (и пересылать — тоже).
+    if (!checkNewcomer(context, raw: text, forwarding: _cubit.state.forwarding)) return;
     _input.clear();
     _cubit.send(text, silent: silent, scheduleDate: scheduleDate, mentions: _mentions.take());
   }
@@ -480,6 +484,7 @@ class _ChatMaterialState extends State<ChatMaterial> {
                                       chatType: chat.type,
                                       // Комментарии к постам — только в канале, где они включены.
                                       onCommentsTap: chat.type == models.ChatType.channel && chat.commentsEnabled ? _openComments : null,
+                                      commentsClosedIDs: state.commentsClosedIDs,
                                       // Опрос: голосовать — участникам (не подписавшимся — нет).
                                       onPollVote: chat.isMember ? (message, options) => _cubit.votePoll(message, options) : null,
                                       onPollVoters: (message) => showPollVoters(context, message.poll!),
@@ -501,7 +506,12 @@ class _ChatMaterialState extends State<ChatMaterial> {
                                       onPinnedServiceTap: _tracker.jumpTo,
                                       unreadFromID: state.unreadFromID,
                                       flashID: _flashID,
-                                      onReply: chat.type == models.ChatType.channel || state.searching || state.selecting
+                                      flashRange: _tracker.flashRange,
+                                      onReply:
+                                          chat.type == models.ChatType.channel ||
+                                              state.commentsBlocked ||
+                                              state.searching ||
+                                              state.selecting
                                           ? null
                                           : _swipeReply,
                                       selecting: state.selecting,
@@ -543,6 +553,9 @@ class _ChatMaterialState extends State<ChatMaterial> {
                         // админ канала публикует посты обычным полем ввода.
                         else if (!chat.canPost)
                           _ChannelBar(chat: chat, color: barColor)
+                        // Комментарии закрыты / только подписчикам / мало подписаны.
+                        else if (state.commentsBlocked)
+                          _CommentsBlockedBar(state: state, color: barColor)
                         else ...[
                           // Подсказка «@» — над полем ввода.
                           MentionSuggestions(
@@ -552,16 +565,20 @@ class _ChatMaterialState extends State<ChatMaterial> {
                             secondary: Theme.of(context).colorScheme.onSurfaceVariant,
                             separator: Theme.of(context).colorScheme.outlineVariant,
                           ),
-                          _ComposeBar(
-                            input: _input,
-                            formatMenu: _formatMenu,
-                            recorder: _recorder,
-                            focus: _focus,
-                            state: state,
-                            onSend: _send,
-                            onSendOptions: () => _sendOptions(context),
-                            onScheduled: () => showScheduledMessagesMaterial(context, _cubit),
-                            color: barColor,
+                          // Ctrl+B / I / U / K — форматирование с клавиатуры.
+                          _formatMenu.shortcuts(
+                            context,
+                            child: _ComposeBar(
+                              input: _input,
+                              formatMenu: _formatMenu,
+                              recorder: _recorder,
+                              focus: _focus,
+                              state: state,
+                              onSend: _send,
+                              onSendOptions: () => _sendOptions(context),
+                              onScheduled: () => showScheduledMessagesMaterial(context, _cubit),
+                              color: barColor,
+                            ),
                           ),
                         ],
                       ],
@@ -576,59 +593,101 @@ class _ChatMaterialState extends State<ChatMaterial> {
   Future<void> _actions(BuildContext context, models.Chat chat, models.Message message) async {
     HapticFeedback.mediumImpact();
     final t = context.t.screenChat;
-    final canWrite = chat.canPost;
+    final canWrite = chat.canPost && !_cubit.state.commentsBlocked;
+    final commentsClosed = _cubit.state.commentsClosedIDs.contains(message.id);
     final error = Theme.of(context).colorScheme.error;
     final reactions = availableReactions(chat, message: message);
+    // Сверху — текст сообщения, его можно выделить: «Копировать | Цитировать»
+    // (ответ на фрагмент, как в Telegram).
+    final quotable = canWrite && message.text.isNotEmpty && message.kind != models.MessageKind.poll;
+    final quoteText = GlobalKey<QuotableTextState>();
+    models.MessageQuote? quote;
     final action = await showModalBottomSheet<String>(
       context: context,
       showDragHandle: true,
+      isScrollControlled: true,
       builder: (sheetContext) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Сверху — полоса реакций (если в чате они разрешены).
-            if (reactions.isNotEmpty) ...[
-              ReactionPicker(
-                emojis: reactions,
-                selected: message.myReactions,
-                selectedBackground: Theme.of(sheetContext).colorScheme.secondaryContainer,
-                onSelected: (emoji) => Navigator.of(sheetContext).pop('react:$emoji'),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (quotable) ...[
+                _QuotePreview(
+                  quoteKey: quoteText,
+                  message: message,
+                  onQuote: (picked) {
+                    quote = picked;
+                    Navigator.of(sheetContext).pop('quote');
+                  },
+                ),
+                const SizedBox(height: 8),
+              ],
+              // Полоса реакций (если в чате они разрешены).
+              if (reactions.isNotEmpty) ...[
+                ReactionPicker(
+                  emojis: reactions,
+                  selected: message.myReactions,
+                  selectedBackground: Theme.of(sheetContext).colorScheme.secondaryContainer,
+                  onSelected: (emoji) => Navigator.of(sheetContext).pop('react:$emoji'),
+                ),
+                const Divider(),
+              ],
+              if (canWrite)
+                ListTile(leading: const Icon(Icons.reply), title: Text(t.reply), onTap: () => Navigator.of(sheetContext).pop('reply')),
+              if (quotable)
+                ListTile(leading: const Icon(Icons.format_quote), title: Text(t.quote), onTap: () => quoteText.currentState?.selectAll()),
+              if (message.text.isNotEmpty)
+                ListTile(leading: const Icon(Icons.copy), title: Text(t.copy), onTap: () => Navigator.of(sheetContext).pop('copy')),
+              if (canWrite)
+                ListTile(
+                  leading: Icon(message.pinned ? Icons.push_pin : Icons.push_pin_outlined),
+                  title: Text(message.pinned ? t.unpin : t.pin),
+                  onTap: () => Navigator.of(sheetContext).pop('pin'),
+                ),
+              ListTile(leading: const Icon(Icons.forward), title: Text(t.forward), onTap: () => Navigator.of(sheetContext).pop('forward')),
+              if (message.outgoing && message.kind == models.MessageKind.text)
+                ListTile(
+                  leading: const Icon(Icons.edit_outlined),
+                  title: Text(t.edit),
+                  onTap: () => Navigator.of(sheetContext).pop('edit'),
+                ),
+              if (message.outgoing || chat.type == models.ChatType.private)
+                ListTile(
+                  leading: Icon(Icons.delete_outline, color: error),
+                  title: Text(t.delete, style: TextStyle(color: error)),
+                  onTap: () => Navigator.of(sheetContext).pop('delete'),
+                ),
+              if (canRetractVote(message))
+                ListTile(
+                  leading: const Icon(Icons.undo),
+                  title: Text(t.retractVote),
+                  onTap: () => Navigator.of(sheetContext).pop('retract'),
+                ),
+              if (canClosePoll(chat, message))
+                ListTile(
+                  leading: Icon(Icons.stop_circle_outlined, color: error),
+                  title: Text(t.closePoll, style: TextStyle(color: error)),
+                  onTap: () => Navigator.of(sheetContext).pop('closePoll'),
+                ),
+              if (canToggleComments(chat, message))
+                commentsClosed
+                    ? ListTile(
+                        leading: const Icon(Icons.mode_comment_outlined),
+                        title: Text(t.openComments),
+                        onTap: () => Navigator.of(sheetContext).pop('openComments'),
+                      )
+                    : ListTile(
+                        leading: Icon(Icons.comments_disabled_outlined, color: error),
+                        title: Text(t.closeComments, style: TextStyle(color: error)),
+                        onTap: () => Navigator.of(sheetContext).pop('closeComments'),
+                      ),
+              ListTile(
+                leading: const Icon(Icons.check_circle_outline),
+                title: Text(t.select),
+                onTap: () => Navigator.of(sheetContext).pop('select'),
               ),
-              const Divider(),
             ],
-            if (canWrite)
-              ListTile(leading: const Icon(Icons.reply), title: Text(t.reply), onTap: () => Navigator.of(sheetContext).pop('reply')),
-            if (message.text.isNotEmpty)
-              ListTile(leading: const Icon(Icons.copy), title: Text(t.copy), onTap: () => Navigator.of(sheetContext).pop('copy')),
-            if (canWrite)
-              ListTile(
-                leading: Icon(message.pinned ? Icons.push_pin : Icons.push_pin_outlined),
-                title: Text(message.pinned ? t.unpin : t.pin),
-                onTap: () => Navigator.of(sheetContext).pop('pin'),
-              ),
-            ListTile(leading: const Icon(Icons.forward), title: Text(t.forward), onTap: () => Navigator.of(sheetContext).pop('forward')),
-            if (message.outgoing && message.kind == models.MessageKind.text)
-              ListTile(leading: const Icon(Icons.edit_outlined), title: Text(t.edit), onTap: () => Navigator.of(sheetContext).pop('edit')),
-            if (message.outgoing || chat.type == models.ChatType.private)
-              ListTile(
-                leading: Icon(Icons.delete_outline, color: error),
-                title: Text(t.delete, style: TextStyle(color: error)),
-                onTap: () => Navigator.of(sheetContext).pop('delete'),
-              ),
-            if (canRetractVote(message))
-              ListTile(leading: const Icon(Icons.undo), title: Text(t.retractVote), onTap: () => Navigator.of(sheetContext).pop('retract')),
-            if (canClosePoll(chat, message))
-              ListTile(
-                leading: Icon(Icons.stop_circle_outlined, color: error),
-                title: Text(t.closePoll, style: TextStyle(color: error)),
-                onTap: () => Navigator.of(sheetContext).pop('closePoll'),
-              ),
-            ListTile(
-              leading: const Icon(Icons.check_circle_outline),
-              title: Text(t.select),
-              onTap: () => Navigator.of(sheetContext).pop('select'),
-            ),
-          ],
+          ),
         ),
       ),
     );
@@ -640,6 +699,9 @@ class _ChatMaterialState extends State<ChatMaterial> {
     switch (action) {
       case 'reply':
         _cubit.startReply(message);
+        _focus.requestFocus();
+      case 'quote':
+        _cubit.startReply(message, quote: quote);
         _focus.requestFocus();
       case 'copy':
         await Clipboard.setData(ClipboardData(text: message.text));
@@ -655,12 +717,65 @@ class _ChatMaterialState extends State<ChatMaterial> {
         await _cubit.votePoll(message, const []);
       case 'closePoll':
         if (await confirmClosePoll(context)) await _cubit.closePoll(message);
+      case 'closeComments':
+        if (await confirmCloseComments(context)) await _cubit.setCommentsClosed(message, true);
+      case 'openComments':
+        await _cubit.setCommentsClosed(message, false);
       case 'select':
         _cubit.startSelection(message);
       case 'delete':
         final forEveryone = await _askDelete(context, chat, 1);
         if (forEveryone != null) await _cubit.delete(message, forEveryone: forEveryone);
     }
+  }
+}
+
+/// Текст сообщения вверху шторки действий — пузырём, как в ленте; можно
+/// выделить фрагмент и «Цитировать». Длинный — прокручивается.
+class _QuotePreview extends StatelessWidget {
+  final GlobalKey<QuotableTextState> quoteKey;
+  final models.Message message;
+  final ValueChanged<models.MessageQuote> onQuote;
+
+  const _QuotePreview({required this.quoteKey, required this.message, required this.onQuote});
+
+  @override
+  Widget build(BuildContext context) {
+    final style = ChatMaterial.bubbleStyle(context);
+    final out = message.outgoing;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Align(
+        alignment: out ? Alignment.centerRight : Alignment.centerLeft,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxHeight: MediaQuery.sizeOf(context).height * 0.3),
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: out ? style.outgoing : style.incoming,
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.5)),
+            ),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+              child: QuotableText(
+                key: quoteKey,
+                text: message.text,
+                entities: message.entities,
+                selectionControls: materialTextSelectionHandleControls,
+                toolbarBuilder: (context, anchors, items) => AdaptiveTextSelectionToolbar.buttonItems(anchors: anchors, buttonItems: items),
+                onQuote: onQuote,
+                child: MessageText(
+                  text: message.text,
+                  entities: message.entities,
+                  style: style.textStyle,
+                  colors: out ? style.outgoingText : style.incomingText,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 
@@ -795,6 +910,8 @@ class _ComposeBar extends StatelessWidget {
                           ? Icons.edit_outlined
                           : state.forwarding.isNotEmpty
                           ? Icons.forward
+                          : banner.quote
+                          ? Icons.format_quote
                           : Icons.reply,
                       color: scheme.primary,
                       size: 22,
@@ -810,12 +927,7 @@ class _ComposeBar extends StatelessWidget {
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(fontWeight: FontWeight.w600, color: scheme.primary),
                           ),
-                          Text(
-                            banner.text,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(color: scheme.onSurfaceVariant),
-                          ),
+                          composeBannerText(banner, const TextStyle(), scheme.onSurfaceVariant, scheme.primary),
                         ],
                       ),
                     ),
@@ -939,6 +1051,59 @@ class _ChannelBar extends StatelessWidget {
           width: double.infinity,
           height: 52,
           child: TextButton(onPressed: action, child: Text(label ?? (chat.muted ? t.unmute : t.mute))),
+        ),
+      ),
+    );
+  }
+}
+
+/// Писать в ветку комментариев нельзя — вместо поля ввода: «Комментарии
+/// закрыты» (срок вышел / админ закрыл), «Подписаться, чтобы комментировать»
+/// (канал «только подписчики») или «Комментировать можно с …» (подписаны
+/// меньше «Подписки не менее»).
+class _CommentsBlockedBar extends StatelessWidget {
+  final ChatState state;
+  final Color color;
+
+  const _CommentsBlockedBar({required this.state, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.t;
+    final secondary = Theme.of(context).colorScheme.onSurfaceVariant;
+    Widget note(IconData icon, String text) => Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(icon, size: 18, color: secondary),
+        const SizedBox(width: 6),
+        Flexible(
+          child: Text(
+            text,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(color: secondary),
+          ),
+        ),
+      ],
+    );
+    return Material(
+      color: color,
+      child: SafeArea(
+        top: false,
+        child: SizedBox(
+          width: double.infinity,
+          height: 52,
+          child: switch (state.commentsBlock) {
+            ChatCommentsBlock.subscribe => TextButton(
+              onPressed: context.read<ChatCubit>().subscribeToChannel,
+              child: Text(t.screenChat.commentsSubscribe),
+            ),
+            ChatCommentsBlock.wait when state.commentsWaitUntil != null => note(
+              Icons.schedule,
+              commentsWaitLabel(t, state.commentsWaitUntil!),
+            ),
+            _ => note(Icons.lock_outline, t.screenChat.commentsClosed),
+          },
         ),
       ),
     );

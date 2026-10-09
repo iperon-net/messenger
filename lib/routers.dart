@@ -136,7 +136,7 @@ class Routers {
                           chatID: state.pathParameters['id']!,
                           demo: context.read<CommonCubit>().state.settingsDevice.chatsDemo,
                         ),
-                      child: const ChatCupertino(),
+                      child: const ChatScreenCupertino(),
                     ),
                   ),
                 ),
@@ -179,6 +179,8 @@ class Routers {
                                   demo: context.read<CommonCubit>().state.settingsDevice.chatsDemo,
                                   type: models.ChatType.group,
                                   selected: state.extra is List<models.ChatMember> ? state.extra! as List<models.ChatMember> : const [],
+                                  // Группа внутри сообщества — сразу сюда, без выбора участников.
+                                  communityID: state.uri.queryParameters['community'] ?? '',
                                 ),
                               child: const ChatCreateFormCupertino(),
                             ),
@@ -193,9 +195,13 @@ class Routers {
                         pageBuilder: (context, state) => _page(
                           state,
                           BlocProvider<ChatCreateCubit>(
-                            create: (context) =>
-                                ChatCreateCubit()
-                                  ..initialization(demo: context.read<CommonCubit>().state.settingsDevice.chatsDemo, type: type),
+                            create: (context) => ChatCreateCubit()
+                              ..initialization(
+                                demo: context.read<CommonCubit>().state.settingsDevice.chatsDemo,
+                                type: type,
+                                // Канал внутри сообщества.
+                                communityID: state.uri.queryParameters['community'] ?? '',
+                              ),
                             child: const ChatCreateFormCupertino(),
                           ),
                         ),
@@ -779,7 +785,7 @@ class Routers {
                           chatID: state.pathParameters['id']!,
                           demo: context.read<CommonCubit>().state.settingsDevice.chatsDemo,
                         ),
-                      child: const ChatMaterial(),
+                      child: const ChatScreenMaterial(),
                     ),
                   ),
                 ),
@@ -822,6 +828,8 @@ class Routers {
                                   demo: context.read<CommonCubit>().state.settingsDevice.chatsDemo,
                                   type: models.ChatType.group,
                                   selected: state.extra is List<models.ChatMember> ? state.extra! as List<models.ChatMember> : const [],
+                                  // Группа внутри сообщества — сразу сюда, без выбора участников.
+                                  communityID: state.uri.queryParameters['community'] ?? '',
                                 ),
                               child: const ChatCreateFormMaterial(),
                             ),
@@ -836,9 +844,13 @@ class Routers {
                         pageBuilder: (context, state) => _pageMaterial(
                           state,
                           BlocProvider<ChatCreateCubit>(
-                            create: (context) =>
-                                ChatCreateCubit()
-                                  ..initialization(demo: context.read<CommonCubit>().state.settingsDevice.chatsDemo, type: type),
+                            create: (context) => ChatCreateCubit()
+                              ..initialization(
+                                demo: context.read<CommonCubit>().state.settingsDevice.chatsDemo,
+                                type: type,
+                                // Канал внутри сообщества.
+                                communityID: state.uri.queryParameters['community'] ?? '',
+                              ),
                             child: const ChatCreateFormMaterial(),
                           ),
                         ),

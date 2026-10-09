@@ -28,15 +28,27 @@ class ChatCreateCubit extends Cubit<ChatCreateState> {
   static const aboutMaxLength = 255;
 
   /// [type] — что создаём; [selected] — участники, выбранные на прошлом шаге
-  /// (форма группы); [exclude] — кого не показывать в контактах.
+  /// (форма группы); [exclude] — кого не показывать в контактах;
+  /// [communityID] — создаём внутри сообщества (по умолчанию вступление одним
+  /// нажатием).
   Future<void> initialization({
     required bool demo,
     models.ChatType type = models.ChatType.private,
     List<models.ChatMember> selected = const [],
     Set<String> exclude = const {},
+    String communityID = '',
   }) async {
     _source = demo ? ChatsDemoDataSource.instance : null;
-    emit(state.copyWith(status: Status.loading, type: type, selected: selected, inviteLink: newInviteCode()));
+    emit(
+      state.copyWith(
+        status: Status.loading,
+        type: type,
+        selected: selected,
+        inviteLink: newInviteCode(),
+        communityID: communityID,
+        joinMode: communityID.isNotEmpty ? models.ChatJoinMode.open : state.joinMode,
+      ),
+    );
     // [exclude] — уже участники («Добавить участников» в профиле группы).
     final contacts = [
       for (final c in await _source?.contacts() ?? const <models.ChatMember>[])
@@ -54,9 +66,15 @@ class ChatCreateCubit extends Cubit<ChatCreateState> {
         status: Status.success,
         type: chat.type,
         chatID: chat.id,
+        communityID: chat.communityID,
         title: chat.title,
         about: chat.about,
         avatarPath: chat.avatarPath,
+        coverPath: chat.coverPath,
+        phone: chat.phone,
+        address: chat.address,
+        latitude: chat.latitude?.toString() ?? '',
+        longitude: chat.longitude?.toString() ?? '',
         joinMode: chat.joinMode,
         username: chat.username,
         originalUsername: chat.username,
@@ -64,6 +82,10 @@ class ChatCreateCubit extends Cubit<ChatCreateState> {
         inviteLink: chat.inviteLink.isNotEmpty ? chat.inviteLink : newInviteCode(),
         defaultRole: chat.defaultRole,
         commentsEnabled: chat.commentsEnabled,
+        commentsTimeLimit: chat.commentsTimeLimit,
+        commentsWho: chat.commentsWho,
+        commentsMinSubscription: chat.commentsMinSubscription,
+        newcomerMediaDelay: chat.newcomerMediaDelay,
         signMessages: chat.signMessages,
         membersHidden: chat.membersHidden,
       ),
@@ -79,6 +101,16 @@ class ChatCreateCubit extends Cubit<ChatCreateState> {
 
   void setAvatar(String path) => emit(state.copyWith(avatarPath: path));
 
+  void setCover(String path) => emit(state.copyWith(coverPath: path));
+
+  void setPhone(String value) => emit(state.copyWith(phone: value.trim()));
+
+  void setAddress(String value) => emit(state.copyWith(address: value.trim()));
+
+  void setLatitude(String value) => emit(state.copyWith(latitude: value));
+
+  void setLongitude(String value) => emit(state.copyWith(longitude: value));
+
   void setPublic(bool isPublic) => setJoinMode(isPublic ? models.ChatJoinMode.open : models.ChatJoinMode.link);
 
   void setJoinMode(models.ChatJoinMode mode) {
@@ -89,6 +121,14 @@ class ChatCreateCubit extends Cubit<ChatCreateState> {
   void setDefaultRole(models.ChatRole role) => emit(state.copyWith(defaultRole: role));
 
   void setCommentsEnabled(bool enabled) => emit(state.copyWith(commentsEnabled: enabled));
+
+  void setCommentsTimeLimit(int seconds) => emit(state.copyWith(commentsTimeLimit: seconds));
+
+  void setCommentsWho(models.ChatCommentsWho who) => emit(state.copyWith(commentsWho: who));
+
+  void setCommentsMinSubscription(int seconds) => emit(state.copyWith(commentsMinSubscription: seconds));
+
+  void setNewcomerMediaDelay(int seconds) => emit(state.copyWith(newcomerMediaDelay: seconds));
 
   void setSignMessages(bool enabled) => emit(state.copyWith(signMessages: enabled));
 
@@ -140,6 +180,8 @@ class ChatCreateCubit extends Cubit<ChatCreateState> {
       username: state.isPublic ? state.username : '',
       inviteLink: state.inviteLink,
       avatarPath: state.avatarPath,
+      communityID: state.communityID,
+      joinMode: state.joinMode,
     );
     if (!isClosed) emit(state.copyWith(creating: false, openChatID: chatID));
   }
@@ -147,18 +189,27 @@ class ChatCreateCubit extends Cubit<ChatCreateState> {
   /// «Изменить» → «Сохранить».
   Future<void> save({required String title, required String about}) async {
     final source = _source;
-    if (source == null || state.creating || !state.isEdit || title.trim().isEmpty || !state.linkReady) return;
+    if (source == null || state.creating || !state.isEdit || title.trim().isEmpty || !state.linkReady || !state.coordinatesValid) return;
     emit(state.copyWith(creating: true));
     await source.updateChat(
       state.chatID,
       title: title.trim(),
       about: about.trim(),
       avatarPath: state.avatarPath,
+      coverPath: state.coverPath,
+      phone: state.phone,
+      address: state.address,
+      latitude: state.latitudeValue,
+      longitude: state.longitudeValue,
       joinMode: state.joinMode,
       username: state.isPublic ? state.username : '',
       inviteLink: state.inviteLink,
       defaultRole: state.defaultRole,
       commentsEnabled: state.commentsEnabled,
+      commentsTimeLimit: state.commentsTimeLimit,
+      commentsWho: state.commentsWho,
+      commentsMinSubscription: state.commentsMinSubscription,
+      newcomerMediaDelay: state.newcomerMediaDelay,
       signMessages: state.signMessages,
       membersHidden: state.membersHidden,
     );

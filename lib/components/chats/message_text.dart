@@ -3,7 +3,9 @@ import 'dart:io';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../chats/message_formatting.dart';
@@ -53,6 +55,14 @@ class MessageText extends StatefulWidget {
   final String highlight;
   final Color highlightColor;
 
+  /// Подсвеченный фрагмент [start, end) — переход по цитате ответа.
+  final (int, int)? mark;
+  final Color markColor;
+
+  /// Предел строк с многоточием (цитата ответа, плашка над полем ввода);
+  /// `null` — без предела.
+  final int? maxLines;
+
   const MessageText({
     super.key,
     required this.text,
@@ -63,6 +73,9 @@ class MessageText extends StatefulWidget {
     this.trailingStyle,
     this.highlight = '',
     this.highlightColor = const Color(0x66FFCC00),
+    this.mark,
+    this.markColor = const Color(0x66FFCC00),
+    this.maxLines,
   });
 
   @override
@@ -142,6 +155,12 @@ class _MessageTextState extends State<MessageText> with TickerProviderStateMixin
   @override
   Widget build(BuildContext context) {
     _disposeRecognizers();
+    // Блок кода и цитаты — отдельными блоками (плашка с «Копировать», полоса
+    // слева, сворачивание); в превью с пределом строк — как раньше, в строку.
+    if (widget.maxLines == null) {
+      final blocks = _blockEntities(widget.text, widget.entities);
+      if (blocks.isNotEmpty) return _MessageBlocks(source: widget, blocks: blocks);
+    }
     final text = widget.text;
     final colors = widget.colors;
     final all = [
@@ -165,6 +184,13 @@ class _MessageTextState extends State<MessageText> with TickerProviderStateMixin
           ..add(at)
           ..add(at + needle.length);
       }
+    }
+    final mark = widget.mark;
+    final marked = mark != null && mark.$1 < mark.$2 && mark.$2 <= text.length;
+    if (marked) {
+      bounds
+        ..add(mark.$1)
+        ..add(mark.$2);
     }
     final points = bounds.toList()..sort();
     final spoilers = [
@@ -220,6 +246,7 @@ class _MessageTextState extends State<MessageText> with TickerProviderStateMixin
       }
       if (decorations.isNotEmpty) style = style.copyWith(decoration: TextDecoration.combine(decorations), decorationColor: style.color);
       if (found.any((r) => r.$1 <= a && r.$2 >= b)) style = style.copyWith(backgroundColor: widget.highlightColor);
+      if (marked && mark.$1 <= a && mark.$2 >= b) style = style.copyWith(backgroundColor: widget.markColor);
       if (hidden || (spoilerHere(active) && hiddenAlpha < 1)) {
         final color = style.color ?? colors.text;
         style = style.copyWith(
@@ -238,9 +265,15 @@ class _MessageTextState extends State<MessageText> with TickerProviderStateMixin
         ),
       );
     }
-    final paragraph = Text.rich(TextSpan(children: spans), key: _paragraph);
+    final paragraph = Text.rich(
+      TextSpan(children: spans),
+      key: _paragraph,
+      maxLines: widget.maxLines,
+      overflow: widget.maxLines == null ? TextOverflow.clip : TextOverflow.ellipsis,
+    );
     if (!dusty) return paragraph;
-    return Stack(
+    // С пределом строк спойлер может уйти за многоточие — пыль не вылезает.
+    final dust = Stack(
       children: [
         paragraph,
         Positioned.fill(
@@ -259,6 +292,7 @@ class _MessageTextState extends State<MessageText> with TickerProviderStateMixin
         ),
       ],
     );
+    return widget.maxLines == null ? dust : ClipRect(child: dust);
   }
 
   /// Прямоугольники скрытого текста (по строкам) в координатах абзаца.
@@ -276,5 +310,245 @@ class _MessageTextState extends State<MessageText> with TickerProviderStateMixin
     final recognizer = TapGestureRecognizer()..onTapUp = onTapUp;
     _recognizers.add(recognizer);
     return recognizer;
+  }
+}
+
+/// Блочные entities верхнего уровня (блок кода, цитата) — по порядку, без
+/// вложенных друг в друга.
+List<models.MessageEntity> _blockEntities(String text, List<models.MessageEntity> entities) {
+  final blocks = [
+    for (final e in entities)
+      if ((e.type == models.MessageEntityType.pre || e.type == models.MessageEntityType.blockquote) && e.length > 0 && e.end <= text.length)
+        e,
+  ]..sort((a, b) => a.offset.compareTo(b.offset));
+  final result = <models.MessageEntity>[];
+  for (final e in blocks) {
+    if (result.isEmpty || e.offset >= result.last.end) result.add(e);
+  }
+  return result;
+}
+
+/// Entities внутри [start, end) — обрезаны и сдвинуты к началу участка; без
+/// блочных ([skipBlocks]).
+List<models.MessageEntity> _slice(List<models.MessageEntity> entities, int start, int end, {bool skipBlocks = true}) => [
+  for (final e in entities)
+    if (e.end > start && e.offset < end)
+      if (!skipBlocks || (e.type != models.MessageEntityType.pre && e.type != models.MessageEntityType.blockquote))
+        e.copyWith(
+          offset: (e.offset < start ? start : e.offset) - start,
+          length: (e.end > end ? end : e.end) - (e.offset < start ? start : e.offset),
+        ),
+];
+
+/// Текст с блоками: обычные участки — [MessageText] в строку, блок кода —
+/// моноширинная плашка с кнопкой «Копировать», цитата — с полосой слева
+/// (сворачиваемая — раскрывается по тапу). Хвост под время — у последнего
+/// участка.
+class _MessageBlocks extends StatelessWidget {
+  final MessageText source;
+  final List<models.MessageEntity> blocks;
+
+  const _MessageBlocks({required this.source, required this.blocks});
+
+  MessageText _part(int start, int end, {TextStyle? style, String trailing = ''}) {
+    final mark = source.mark;
+    return MessageText(
+      text: source.text.substring(start, end),
+      entities: _slice(source.entities, start, end),
+      style: style ?? source.style,
+      colors: source.colors,
+      trailing: trailing,
+      trailingStyle: source.trailingStyle,
+      highlight: source.highlight,
+      highlightColor: source.highlightColor,
+      mark: mark == null || mark.$2 <= start || mark.$1 >= end
+          ? null
+          : ((mark.$1 < start ? start : mark.$1) - start, (mark.$2 > end ? end : mark.$2) - start),
+      markColor: source.markColor,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final text = source.text;
+    final children = <Widget>[];
+    var pos = 0;
+    for (final (index, block) in blocks.indexed) {
+      // Перевод строки вплотную к блоку — граница блока, не пустая строка.
+      var end = block.offset;
+      if (end > pos && text[end - 1] == '\n') end--;
+      if (end > pos) children.add(_part(pos, end));
+      final last = index == blocks.length - 1 && block.end >= text.length;
+      if (block.type == models.MessageEntityType.pre) {
+        children.add(
+          _CodeBlock(
+            text: text.substring(block.offset, block.end),
+            colors: source.colors,
+            child: _part(
+              block.offset,
+              block.end,
+              style: source.style.copyWith(fontFamily: Platform.isIOS ? 'Menlo' : 'monospace', fontSize: (source.style.fontSize ?? 16) - 2),
+            ),
+          ),
+        );
+      } else {
+        children.add(
+          _QuoteBlock(
+            expandable: block.expandable,
+            colors: source.colors,
+            text: text.substring(block.offset, block.end),
+            builder: (maxLines) {
+              final part = _part(block.offset, block.end);
+              return maxLines == null
+                  ? part
+                  : MessageText(
+                      text: part.text,
+                      entities: part.entities,
+                      style: part.style,
+                      colors: part.colors,
+                      highlight: part.highlight,
+                      highlightColor: part.highlightColor,
+                      maxLines: maxLines,
+                    );
+            },
+          ),
+        );
+      }
+      pos = block.end;
+      if (pos < text.length && text[pos] == '\n') pos++;
+      // Последний — блок: место под время отдельной строкой под ним.
+      if (last && source.trailing.isNotEmpty) {
+        children.add(
+          Text(
+            source.trailing,
+            textAlign: TextAlign.right,
+            style: (source.trailingStyle ?? source.style).copyWith(color: const Color(0x00000000)),
+          ),
+        );
+      }
+    }
+    if (pos < text.length) children.add(_part(pos, text.length, trailing: source.trailing));
+    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, mainAxisSize: MainAxisSize.min, children: children);
+  }
+}
+
+/// Блок кода: моноширинный текст на плашке, справа сверху — «Копировать».
+class _CodeBlock extends StatefulWidget {
+  final String text;
+  final MessageTextColors colors;
+  final Widget child;
+
+  const _CodeBlock({required this.text, required this.colors, required this.child});
+
+  @override
+  State<_CodeBlock> createState() => _CodeBlockState();
+}
+
+class _CodeBlockState extends State<_CodeBlock> {
+  bool _copied = false;
+
+  Future<void> _copy() async {
+    await Clipboard.setData(ClipboardData(text: widget.text));
+    await HapticFeedback.selectionClick();
+    if (!mounted) return;
+    setState(() => _copied = true);
+    await Future<void>.delayed(const Duration(milliseconds: 1500));
+    if (mounted) setState(() => _copied = false);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 3),
+      padding: const EdgeInsets.fromLTRB(10, 8, 36, 8),
+      decoration: BoxDecoration(color: widget.colors.codeBackground, borderRadius: BorderRadius.circular(8)),
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          widget.child,
+          Positioned(
+            top: -4,
+            right: -30,
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: _copy,
+              child: Padding(
+                padding: const EdgeInsets.all(4),
+                child: FaIcon(_copied ? FontAwesomeIcons.check : FontAwesomeIcons.copy, size: 15, color: widget.colors.link),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Цитата: полоса слева на подложке; сворачиваемая ([expandable]) длинная —
+/// до трёх строк, по тапу раскрывается (и обратно), справа внизу — стрелка.
+class _QuoteBlock extends StatefulWidget {
+  final bool expandable;
+  final MessageTextColors colors;
+  final String text;
+  final Widget Function(int? maxLines) builder;
+
+  const _QuoteBlock({required this.expandable, required this.colors, required this.text, required this.builder});
+
+  static const collapsedLines = 3;
+
+  @override
+  State<_QuoteBlock> createState() => _QuoteBlockState();
+}
+
+class _QuoteBlockState extends State<_QuoteBlock> {
+  bool _expanded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final accent = widget.colors.link;
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 3),
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(color: accent.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(6)),
+      // Полоса — Positioned во всю высоту (IntrinsicHeight не дружит с
+      // LayoutBuilder сворачиваемой цитаты).
+      child: Stack(
+        children: [
+          Padding(padding: const EdgeInsets.fromLTRB(11, 4, 8, 4), child: widget.expandable ? _expandable(accent) : widget.builder(null)),
+          Positioned(left: 0, top: 0, bottom: 0, width: 3, child: ColoredBox(color: accent)),
+        ],
+      ),
+    );
+  }
+
+  /// Длинная ли цитата (сворачивать ли): больше [_QuoteBlock.collapsedLines]
+  /// строк или длинный текст. Без LayoutBuilder — пузырь меряется
+  /// IntrinsicWidth, а LayoutBuilder интринсики не поддерживает.
+  bool get _long =>
+      '\n'.allMatches(widget.text).length >= _QuoteBlock.collapsedLines || widget.text.length > 40 * _QuoteBlock.collapsedLines;
+
+  Widget _expandable(Color accent) {
+    if (!_long) return widget.builder(null);
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () => setState(() => _expanded = !_expanded),
+      child: Stack(
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(right: 20),
+            child: AnimatedSize(
+              duration: const Duration(milliseconds: 200),
+              alignment: Alignment.topCenter,
+              child: widget.builder(_expanded ? null : _QuoteBlock.collapsedLines),
+            ),
+          ),
+          Positioned(
+            right: 0,
+            bottom: 0,
+            child: FaIcon(_expanded ? FontAwesomeIcons.chevronUp : FontAwesomeIcons.chevronDown, size: 12, color: accent),
+          ),
+        ],
+      ),
+    );
   }
 }

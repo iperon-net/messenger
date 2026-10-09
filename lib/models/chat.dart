@@ -2,8 +2,9 @@ import 'package:dart_mappable/dart_mappable.dart';
 
 part 'chat.mapper.dart';
 
-/// Тип чата (см. docs/plans/chats-groups-channels.md). Сообщество — контейнер
-/// над группами и каналами; в списке чатов показывается одной строкой.
+/// Тип чата (см. docs/plans/chats-groups-channels.md). Сообщество — страница
+/// организации и контейнер над её группами и каналами ([Chat.communityID]);
+/// своей ленты у него нет, в списке чатов — одной строкой.
 @MappableEnum()
 enum ChatType { private, group, channel, community }
 
@@ -33,6 +34,11 @@ enum ChatRole { reader, writer, admin, owner }
 /// только [open] (публичный) / [link] (частный).
 @MappableEnum()
 enum ChatJoinMode { open, link, request, admins }
+
+/// Канал: кто может комментировать посты — все, кто видит пост, или только
+/// подписчики (с [Chat.commentsMinSubscription] — подписанные не меньше срока).
+@MappableEnum()
+enum ChatCommentsWho { all, subscribers }
 
 /// Права админа — раздельные, как в Telegram (см.
 /// docs/plans/chats-groups-channels.md, «Приватность групп»). Набор в UI
@@ -185,6 +191,10 @@ class ChatLastMessage with ChatLastMessageMappable {
   final MessageStatus status;
   final DateTime date;
 
+  /// Строка сообщества: из какого его чата сообщение («Группа › Анна»); пусто
+  /// — у обычных чатов и у канала объявлений.
+  final String chatTitle;
+
   const ChatLastMessage({
     this.kind = MessageKind.text,
     this.text = '',
@@ -192,6 +202,7 @@ class ChatLastMessage with ChatLastMessageMappable {
     this.outgoing = false,
     this.status = MessageStatus.sent,
     required this.date,
+    this.chatTitle = '',
   });
 }
 
@@ -266,6 +277,18 @@ class Chat with ChatMappable {
   /// аватарки придут с сервера по `cdnID`). Пусто — генеративный плейсхолдер.
   final String avatarPath;
 
+  /// Обложка сообщества — фон шапки его страницы (локальный файл, как
+  /// [avatarPath]). Пусто — генеративный фон.
+  final String coverPath;
+
+  /// Контакты заведения сообщества: телефон (как ввели, показывается
+  /// отформатированным), адрес и координаты — по ним маршрут в Яндекс Картах
+  /// и 2ГИС (`null` — не заданы).
+  final String phone;
+  final String address;
+  final double? latitude;
+  final double? longitude;
+
   /// Как вступить (группа/сообщество) / публичный ли канал.
   final ChatJoinMode joinMode;
 
@@ -275,6 +298,34 @@ class Chat with ChatMappable {
 
   /// Канал: под постами — комментарии (обсуждение каждого поста).
   final bool commentsEnabled;
+
+  /// Канал: сколько секунд после публикации под постом можно комментировать
+  /// (0 — без ограничения); действует на новые посты — срок записывается в
+  /// пост (`Message.commentsCloseDate`).
+  final int commentsTimeLimit;
+
+  /// Ветка комментариев ([isThread]): когда закрывается (срок поста или админ
+  /// закрыл досрочно); `null` — открыта бессрочно. После — только чтение.
+  final DateTime? commentsCloseDate;
+
+  /// Канал: кто может комментировать. Читать комментарии могут все, кто видит
+  /// пост; админов канала ограничения не касаются.
+  final ChatCommentsWho commentsWho;
+
+  /// Канал, [ChatCommentsWho.subscribers]: комментировать — только подписанным
+  /// не меньше стольких секунд (защита от спама «подписался и пишет»); 0 —
+  /// без ограничения.
+  final int commentsMinSubscription;
+
+  /// Группа/сообщество и комментарии канала: «Новичкам — без ссылок и медиа»
+  /// — вступившие (в канале — подписавшиеся; не подписанные — всегда) меньше
+  /// стольких секунд назад пишут только текст; 0 — выключено. Админов не
+  /// касается.
+  final int newcomerMediaDelay;
+
+  /// Когда мы вступили / подписались (`null` — давно, до учёта): для
+  /// [commentsMinSubscription].
+  final DateTime? joinedAt;
 
   /// Канал: под постами — имя опубликовавшего админа.
   final bool signMessages;
@@ -294,6 +345,16 @@ class Chat with ChatMappable {
   /// канала и поста. Пусто — обычный чат.
   final String threadOf;
   final String threadPostID;
+
+  /// Группа / канал сообщества — id сообщества (задаётся при создании и не
+  /// меняется: прикреплять чаты извне и выносить наружу нельзя). Пусто —
+  /// обычный чат. В общем списке такие чаты не видны — только внутри
+  /// сообщества.
+  final String communityID;
+
+  /// Канал объявлений сообщества — создаётся вместе с ним, покинуть или
+  /// удалить его отдельно нельзя.
+  final bool announcements;
 
   /// Заявок на вступление ждёт одобрения (бейдж в профиле для админа).
   final int pendingRequests;
@@ -337,16 +398,29 @@ class Chat with ChatMappable {
     this.username = '',
     this.inviteLink = '',
     this.avatarPath = '',
+    this.coverPath = '',
+    this.phone = '',
+    this.address = '',
+    this.latitude,
+    this.longitude,
     this.joinMode = ChatJoinMode.link,
     this.defaultRole = ChatRole.reader,
     this.pendingRequests = 0,
     this.commentsEnabled = false,
+    this.commentsTimeLimit = 0,
+    this.commentsCloseDate,
+    this.commentsWho = ChatCommentsWho.all,
+    this.commentsMinSubscription = 0,
+    this.joinedAt,
+    this.newcomerMediaDelay = 0,
     this.signMessages = false,
     this.membersHidden = false,
     this.isMember = true,
     this.joinRequested = false,
     this.threadOf = '',
     this.threadPostID = '',
+    this.communityID = '',
+    this.announcements = false,
     this.membersCount = 0,
     this.myRole = ChatRole.writer,
     this.online = false,
@@ -359,7 +433,11 @@ class Chat with ChatMappable {
 
   /// Путь ссылки на чат после `iperon.net/`: публичный [username] или
   /// [inviteLink] (если по ссылкам можно вступить); пусто — ссылки нет.
-  String get linkPath => username.isNotEmpty ? username : (joinMode == ChatJoinMode.admins ? '' : inviteLink);
+  /// У чатов сообщества своих ссылок нет — вступают через сообщество.
+  String get linkPath => inCommunity ? '' : (username.isNotEmpty ? username : (joinMode == ChatJoinMode.admins ? '' : inviteLink));
+
+  /// Группа / канал внутри сообщества.
+  bool get inCommunity => communityID.isNotEmpty;
 
   bool get hasUnread => unreadCount > 0 || markedUnread;
 
@@ -373,8 +451,12 @@ class Chat with ChatMappable {
   /// Комментарии к посту канала.
   bool get isThread => threadOf.isNotEmpty;
 
-  /// В списке чатов не показывается: пустой личный или ветка комментариев.
-  bool get hiddenInList => isBlank || isThread || !isMember;
+  /// Ветка комментариев закрыта: писать нельзя, только читать.
+  bool commentsClosed([DateTime? now]) => commentsCloseDate != null && !commentsCloseDate!.isAfter(now ?? DateTime.now());
+
+  /// В списке чатов не показывается: пустой личный, ветка комментариев, чат
+  /// сообщества (он внутри строки сообщества).
+  bool get hiddenInList => isBlank || isThread || !isMember || inCommunity;
 
   /// Медленный режим действует на нас: включён в группе/сообществе, а мы не
   /// админ.

@@ -577,8 +577,8 @@ class Translations$screenNewChat$en {
 	/// en: 'Tell subscribers what the channel is about.'
 	String get channelDescriptionFooter => 'Tell subscribers what the channel is about.';
 
-	/// en: 'A community brings together your groups and channels.'
-	String get communityDescriptionFooter => 'A community brings together your groups and channels.';
+	/// en: 'Tell people about your organization: what you do, address, opening hours. The community will have an announcements channel and topic groups.'
+	String get communityDescriptionFooter => 'Tell people about your organization: what you do, address, opening hours. The community will have an announcements channel and topic groups.';
 
 	/// en: 'Members'
 	String get members => 'Members';
@@ -591,6 +591,48 @@ class Translations$screenNewChat$en {
 
 	/// en: 'Remove Photo'
 	String get removePhoto => 'Remove Photo';
+
+	/// en: 'Cover'
+	String get cover => 'Cover';
+
+	/// en: 'Choose Cover'
+	String get setCover => 'Choose Cover';
+
+	/// en: 'Change Cover'
+	String get changeCover => 'Change Cover';
+
+	/// en: 'Remove Cover'
+	String get removeCover => 'Remove Cover';
+
+	/// en: 'The header background of the community page — e.g. a photo of your venue or storefront.'
+	String get coverFooter => 'The header background of the community page — e.g. a photo of your venue or storefront.';
+
+	/// en: 'Contacts'
+	String get contactsHeader => 'Contacts';
+
+	/// en: 'Phone'
+	String get phone => 'Phone';
+
+	/// en: 'Address'
+	String get address => 'Address';
+
+	/// en: 'Latitude'
+	String get latitude => 'Latitude';
+
+	/// en: '55.650088'
+	String get latitudeHint => '55.650088';
+
+	/// en: 'Longitude'
+	String get longitude => 'Longitude';
+
+	/// en: '37.606609'
+	String get longitudeHint => '37.606609';
+
+	/// en: 'Latitude and longitude are used to build a route in Yandex Maps and 2GIS. You can copy them in a maps app by holding the point.'
+	String get coordinatesFooter => 'Latitude and longitude are used to build a route in Yandex Maps and 2GIS. You can copy them in a maps app by holding the point.';
+
+	/// en: 'Enter both coordinates as numbers: latitude from −90 to 90, longitude from −180 to 180.'
+	String get coordinatesInvalid => 'Enter both coordinates as numbers: latitude from −90 to 90, longitude from −180 to 180.';
 
 	/// en: 'Edit Photo'
 	String get editPhoto => 'Edit Photo';
@@ -652,6 +694,63 @@ class Translations$screenNewChat$en {
 	/// en: 'Subscribers can discuss each post in its comments.'
 	String get commentsFooter => 'Subscribers can discuss each post in its comments.';
 
+	/// en: 'Comment Period'
+	String get commentsLimit => 'Comment Period';
+
+	/// en: 'How long after publishing a post can be commented on — after that, comments are read-only. Applies to new posts.'
+	String get commentsLimitFooter => 'How long after publishing a post can be commented on — after that, comments are read-only. Applies to new posts.';
+
+	/// en: 'No Limit'
+	String get commentsLimitOff => 'No Limit';
+
+	/// en: '(one) {{n} hour} (other) {{n} hours}'
+	String commentsLimitHours({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n,
+		one: '${n} hour',
+		other: '${n} hours',
+	);
+
+	/// en: '(one) {{n} day} (other) {{n} days}'
+	String commentsLimitDays({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n,
+		one: '${n} day',
+		other: '${n} days',
+	);
+
+	/// en: '1 week'
+	String get commentsLimitWeek => '1 week';
+
+	/// en: '1 month'
+	String get commentsLimitMonth => '1 month';
+
+	/// en: '1 year'
+	String get commentsLimitYear => '1 year';
+
+	/// en: 'Who Can Comment'
+	String get commentsWho => 'Who Can Comment';
+
+	/// en: 'Everyone'
+	String get commentsWhoAll => 'Everyone';
+
+	/// en: 'Subscribers Only'
+	String get commentsWhoSubscribers => 'Subscribers Only';
+
+	/// en: 'Subscribed For At Least'
+	String get commentsMinSubscription => 'Subscribed For At Least';
+
+	/// en: 'Non-subscribers can read comments but not write them. The subscription period protects against spam: a new subscriber can comment once the chosen time has passed.'
+	String get commentsWhoFooter => 'Non-subscribers can read comments but not write them. The subscription period protects against spam: a new subscriber can comment once the chosen time has passed.';
+
+	/// en: 'No Links or Media from Newcomers'
+	String get newcomerMedia => 'No Links or Media from Newcomers';
+
+	/// en: 'Off'
+	String get newcomerMediaOff => 'Off';
+
+	/// en: 'Members who joined less than the chosen time ago can send only text — no links, photos, videos, files, voice messages or polls — so spam bots can't advertise right away. Admins are not affected.'
+	String get newcomerMediaFooterGroup => 'Members who joined less than the chosen time ago can send only text — no links, photos, videos, files, voice messages or polls — so spam bots can\'t advertise right away. Admins are not affected.';
+
+	/// en: 'Newcomers — non-subscribers or those who subscribed less than the chosen time ago — can comment with text only, no links, photos, videos, files, voice messages or polls.'
+	String get newcomerMediaFooterChannel => 'Newcomers — non-subscribers or those who subscribed less than the chosen time ago — can comment with text only, no links, photos, videos, files, voice messages or polls.';
+
 	/// en: 'Sign Messages'
 	String get signSwitch => 'Sign Messages';
 
@@ -708,6 +807,24 @@ class Translations$screenNewChat$en {
 
 	/// en: 'New members can read and send messages.'
 	String get roleWriterFooter => 'New members can read and send messages.';
+
+	/// en: 'In One Tap'
+	String get topicJoinOpen => 'In One Tap';
+
+	/// en: 'By Request'
+	String get topicJoinRequest => 'By Request';
+
+	/// en: 'Any community member can join in one tap.'
+	String get topicJoinOpenFooter => 'Any community member can join in one tap.';
+
+	/// en: 'Closed topic: community members send a request and join once an admin approves it.'
+	String get topicJoinRequestFooter => 'Closed topic: community members send a request and join once an admin approves it.';
+
+	/// en: 'Hidden'
+	String get topicJoinHidden => 'Hidden';
+
+	/// en: 'Only its members and community admins can see the group. Members can't join on their own — admins add them.'
+	String get topicJoinHiddenFooter => 'Only its members and community admins can see the group. Members can\'t join on their own — admins add them.';
 }
 
 // Path: screenChatInvites
@@ -1093,6 +1210,36 @@ class Translations$screenChat$en {
 	/// en: 'Comments'
 	String get commentsTitle => 'Comments';
 
+	/// en: 'Comments are closed'
+	String get commentsClosed => 'Comments are closed';
+
+	/// en: 'Subscribe to Comment'
+	String get commentsSubscribe => 'Subscribe to Comment';
+
+	/// en: 'You can comment from {time}'
+	String commentsWaitUntil({required Object time}) => 'You can comment from ${time}';
+
+	/// en: 'Text Only'
+	String get newcomerTitle => 'Text Only';
+
+	/// en: 'As a newcomer, you can send links, media, files and voice messages from {time}.'
+	String newcomerWaitUntil({required Object time}) => 'As a newcomer, you can send links, media, files and voice messages from ${time}.';
+
+	/// en: 'Only subscribers can send links, media, files and voice messages in comments.'
+	String get newcomerSubscribe => 'Only subscribers can send links, media, files and voice messages in comments.';
+
+	/// en: 'Close Comments'
+	String get closeComments => 'Close Comments';
+
+	/// en: 'Open Comments'
+	String get openComments => 'Open Comments';
+
+	/// en: 'Close comments?'
+	String get closeCommentsTitle => 'Close comments?';
+
+	/// en: 'No one will be able to comment on this post anymore; existing comments will stay.'
+	String get closeCommentsMessage => 'No one will be able to comment on this post anymore; existing comments will stay.';
+
 	/// en: 'Subscribe'
 	String get subscribe => 'Subscribe';
 
@@ -1167,6 +1314,12 @@ class Translations$screenChat$en {
 
 	/// en: 'Reply'
 	String get reply => 'Reply';
+
+	/// en: 'Quote'
+	String get quote => 'Quote';
+
+	/// en: 'Quote · {name}'
+	String replyQuoteTo({required Object name}) => 'Quote · ${name}';
 
 	/// en: 'Copy'
 	String get copy => 'Copy';
@@ -1443,6 +1596,21 @@ class Translations$screenChat$en {
 
 	/// en: 'Regular'
 	String get formatPlain => 'Regular';
+
+	/// en: 'Underline'
+	String get formatUnderline => 'Underline';
+
+	/// en: 'Code Block'
+	String get formatPre => 'Code Block';
+
+	/// en: 'Mention'
+	String get formatMention => 'Mention';
+
+	/// en: 'Collapsible Quote'
+	String get formatQuoteExpandable => 'Collapsible Quote';
+
+	/// en: 'Mention'
+	String get mentionPickTitle => 'Mention';
 
 	/// en: 'Add link'
 	String get linkTitle => 'Add link';
@@ -1899,6 +2067,72 @@ class Translations$screenChatInfo$en {
 
 	/// en: 'Leave «{name}»?'
 	String leaveGroupTitle({required Object name}) => 'Leave «${name}»?';
+
+	/// en: 'Delete Group'
+	String get deleteGroup => 'Delete Group';
+
+	/// en: 'Delete Channel'
+	String get deleteChannel => 'Delete Channel';
+
+	/// en: 'Delete Community'
+	String get deleteCommunity => 'Delete Community';
+
+	/// en: 'Delete'
+	String get deleteShort => 'Delete';
+
+	/// en: 'Delete «{name}»?'
+	String deleteInCommunityTitle({required Object name}) => 'Delete «${name}»?';
+
+	/// en: 'The chat will be deleted for all community members.'
+	String get deleteInCommunityMessage => 'The chat will be deleted for all community members.';
+
+	/// en: 'The community will be deleted together with all its groups and channels.'
+	String get deleteCommunityMessage => 'The community will be deleted together with all its groups and channels.';
+
+	/// en: 'Chats'
+	String get communityChats => 'Chats';
+
+	/// en: 'Community members join groups and channels in one tap, closed topics by request.'
+	String get communityChatsFooter => 'Community members join groups and channels in one tap, closed topics by request.';
+
+	/// en: 'Announcements'
+	String get announcements => 'Announcements';
+
+	/// en: 'By request'
+	String get closedTopic => 'By request';
+
+	/// en: 'Hidden'
+	String get hiddenTopic => 'Hidden';
+
+	/// en: 'Create Group'
+	String get createGroup => 'Create Group';
+
+	/// en: 'Create Channel'
+	String get createChannel => 'Create Channel';
+
+	/// en: 'Join'
+	String get join => 'Join';
+
+	/// en: 'Pending'
+	String get requestPending => 'Pending';
+
+	/// en: 'Join Community'
+	String get joinCommunity => 'Join Community';
+
+	/// en: 'Phone'
+	String get phone => 'Phone';
+
+	/// en: 'Address'
+	String get address => 'Address';
+
+	/// en: 'Route'
+	String get route => 'Route';
+
+	/// en: 'Yandex Maps'
+	String get routeYandex => 'Yandex Maps';
+
+	/// en: '2GIS'
+	String get route2gis => '2GIS';
 
 	/// en: 'last seen {n} min ago'
 	String lastSeenMinutes({required Object n}) => 'last seen ${n} min ago';
@@ -3274,11 +3508,25 @@ extension on Translations {
 			'screenNewChat.description' => 'Description',
 			'screenNewChat.descriptionHint' => 'Optional',
 			'screenNewChat.channelDescriptionFooter' => 'Tell subscribers what the channel is about.',
-			'screenNewChat.communityDescriptionFooter' => 'A community brings together your groups and channels.',
+			'screenNewChat.communityDescriptionFooter' => 'Tell people about your organization: what you do, address, opening hours. The community will have an announcements channel and topic groups.',
 			'screenNewChat.members' => 'Members',
 			'screenNewChat.setPhoto' => 'Set Photo',
 			'screenNewChat.changePhoto' => 'Change Photo',
 			'screenNewChat.removePhoto' => 'Remove Photo',
+			'screenNewChat.cover' => 'Cover',
+			'screenNewChat.setCover' => 'Choose Cover',
+			'screenNewChat.changeCover' => 'Change Cover',
+			'screenNewChat.removeCover' => 'Remove Cover',
+			'screenNewChat.coverFooter' => 'The header background of the community page — e.g. a photo of your venue or storefront.',
+			'screenNewChat.contactsHeader' => 'Contacts',
+			'screenNewChat.phone' => 'Phone',
+			'screenNewChat.address' => 'Address',
+			'screenNewChat.latitude' => 'Latitude',
+			'screenNewChat.latitudeHint' => '55.650088',
+			'screenNewChat.longitude' => 'Longitude',
+			'screenNewChat.longitudeHint' => '37.606609',
+			'screenNewChat.coordinatesFooter' => 'Latitude and longitude are used to build a route in Yandex Maps and 2GIS. You can copy them in a maps app by holding the point.',
+			'screenNewChat.coordinatesInvalid' => 'Enter both coordinates as numbers: latitude from −90 to 90, longitude from −180 to 180.',
 			'screenNewChat.editPhoto' => 'Edit Photo',
 			'screenNewChat.type' => 'Type',
 			'screenNewChat.typePublic' => 'Public',
@@ -3299,6 +3547,23 @@ extension on Translations {
 			'screenNewChat.copied' => 'Link copied',
 			'screenNewChat.commentsSwitch' => 'Comments',
 			'screenNewChat.commentsFooter' => 'Subscribers can discuss each post in its comments.',
+			'screenNewChat.commentsLimit' => 'Comment Period',
+			'screenNewChat.commentsLimitFooter' => 'How long after publishing a post can be commented on — after that, comments are read-only. Applies to new posts.',
+			'screenNewChat.commentsLimitOff' => 'No Limit',
+			'screenNewChat.commentsLimitHours' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: '${n} hour', other: '${n} hours', ), 
+			'screenNewChat.commentsLimitDays' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: '${n} day', other: '${n} days', ), 
+			'screenNewChat.commentsLimitWeek' => '1 week',
+			'screenNewChat.commentsLimitMonth' => '1 month',
+			'screenNewChat.commentsLimitYear' => '1 year',
+			'screenNewChat.commentsWho' => 'Who Can Comment',
+			'screenNewChat.commentsWhoAll' => 'Everyone',
+			'screenNewChat.commentsWhoSubscribers' => 'Subscribers Only',
+			'screenNewChat.commentsMinSubscription' => 'Subscribed For At Least',
+			'screenNewChat.commentsWhoFooter' => 'Non-subscribers can read comments but not write them. The subscription period protects against spam: a new subscriber can comment once the chosen time has passed.',
+			'screenNewChat.newcomerMedia' => 'No Links or Media from Newcomers',
+			'screenNewChat.newcomerMediaOff' => 'Off',
+			'screenNewChat.newcomerMediaFooterGroup' => 'Members who joined less than the chosen time ago can send only text — no links, photos, videos, files, voice messages or polls — so spam bots can\'t advertise right away. Admins are not affected.',
+			'screenNewChat.newcomerMediaFooterChannel' => 'Newcomers — non-subscribers or those who subscribed less than the chosen time ago — can comment with text only, no links, photos, videos, files, voice messages or polls.',
 			'screenNewChat.signSwitch' => 'Sign Messages',
 			'screenNewChat.signFooter' => 'With signatures, posts show the name of the admin who published them.',
 			'screenNewChat.hideMembers' => 'Hide Members',
@@ -3318,6 +3583,12 @@ extension on Translations {
 			'screenNewChat.roleWriter' => 'Can Send Messages',
 			'screenNewChat.roleReaderFooter' => 'New members can read but not send messages.',
 			'screenNewChat.roleWriterFooter' => 'New members can read and send messages.',
+			'screenNewChat.topicJoinOpen' => 'In One Tap',
+			'screenNewChat.topicJoinRequest' => 'By Request',
+			'screenNewChat.topicJoinOpenFooter' => 'Any community member can join in one tap.',
+			'screenNewChat.topicJoinRequestFooter' => 'Closed topic: community members send a request and join once an admin approves it.',
+			'screenNewChat.topicJoinHidden' => 'Hidden',
+			'screenNewChat.topicJoinHiddenFooter' => 'Only its members and community admins can see the group. Members can\'t join on their own — admins add them.',
 			'screenChatInvites.inviteLinks' => 'Invite Links',
 			'screenChatInvites.joinRequests' => 'Join Requests',
 			'screenChatInvites.primaryLink' => 'Primary Link',
@@ -3431,6 +3702,16 @@ extension on Translations {
 			'screenChat.comments' => ({required num n, required Object count}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: '${count} comment', other: '${count} comments', ), 
 			'screenChat.leaveComment' => 'Leave a Comment',
 			'screenChat.commentsTitle' => 'Comments',
+			'screenChat.commentsClosed' => 'Comments are closed',
+			'screenChat.commentsSubscribe' => 'Subscribe to Comment',
+			'screenChat.commentsWaitUntil' => ({required Object time}) => 'You can comment from ${time}',
+			'screenChat.newcomerTitle' => 'Text Only',
+			'screenChat.newcomerWaitUntil' => ({required Object time}) => 'As a newcomer, you can send links, media, files and voice messages from ${time}.',
+			'screenChat.newcomerSubscribe' => 'Only subscribers can send links, media, files and voice messages in comments.',
+			'screenChat.closeComments' => 'Close Comments',
+			'screenChat.openComments' => 'Open Comments',
+			'screenChat.closeCommentsTitle' => 'Close comments?',
+			'screenChat.closeCommentsMessage' => 'No one will be able to comment on this post anymore; existing comments will stay.',
 			'screenChat.subscribe' => 'Subscribe',
 			'screenChat.joinGroup' => 'Join Group',
 			'screenChat.requestJoin' => 'Request to Join',
@@ -3455,6 +3736,8 @@ extension on Translations {
 			'screenChat.empty' => 'No messages yet',
 			'screenChat.notFound' => 'Chat not found',
 			'screenChat.reply' => 'Reply',
+			'screenChat.quote' => 'Quote',
+			'screenChat.replyQuoteTo' => ({required Object name}) => 'Quote · ${name}',
 			'screenChat.copy' => 'Copy',
 			'screenChat.copied' => 'Copied',
 			'screenChat.edit' => 'Edit',
@@ -3543,6 +3826,11 @@ extension on Translations {
 			'screenChat.formatLink' => 'Link',
 			'screenChat.formatQuote' => 'Quote',
 			'screenChat.formatPlain' => 'Regular',
+			'screenChat.formatUnderline' => 'Underline',
+			'screenChat.formatPre' => 'Code Block',
+			'screenChat.formatMention' => 'Mention',
+			'screenChat.formatQuoteExpandable' => 'Collapsible Quote',
+			'screenChat.mentionPickTitle' => 'Mention',
 			'screenChat.linkTitle' => 'Add link',
 			'screenChat.linkAdd' => 'Add',
 			'screenChat.uploadProgress' => ({required Object done, required Object total}) => '${done} of ${total}',
@@ -3588,6 +3876,8 @@ extension on Translations {
 			'screenSettingsNotifications.permissionMissingTitle' => 'Notifications are turned off',
 			'screenSettingsNotifications.permissionMissingMessage' => 'Iperon isn\'t allowed to show notifications on this device, so these settings won\'t take effect.',
 			'screenSettingsNotifications.enable' => 'Turn on',
+			_ => null,
+		} ?? switch (path) {
 			'screenSettingsNotifications.loadError' => 'Couldn\'t load the settings',
 			'screenSettingsNotifications.offlineNote' => 'No connection. You can change this once you\'re back online.',
 			'screenSettingsNotifications.retry' => 'Retry',
@@ -3642,8 +3932,6 @@ extension on Translations {
 			'screenChatInfo.roleAdmin' => 'admin',
 			'screenChatInfo.roleReader' => 'read only',
 			'screenChatInfo.you' => 'You',
-			_ => null,
-		} ?? switch (path) {
 			'screenChatInfo.addMembers' => 'Add Members',
 			'screenChatInfo.add' => 'Add',
 			'screenChatInfo.sendMessage' => 'Send Message',
@@ -3682,6 +3970,28 @@ extension on Translations {
 			'screenChatInfo.leaveShort' => 'Leave',
 			'screenChatInfo.deleteChatTitle' => ({required Object name}) => 'Delete chat with ${name}?',
 			'screenChatInfo.leaveGroupTitle' => ({required Object name}) => 'Leave «${name}»?',
+			'screenChatInfo.deleteGroup' => 'Delete Group',
+			'screenChatInfo.deleteChannel' => 'Delete Channel',
+			'screenChatInfo.deleteCommunity' => 'Delete Community',
+			'screenChatInfo.deleteShort' => 'Delete',
+			'screenChatInfo.deleteInCommunityTitle' => ({required Object name}) => 'Delete «${name}»?',
+			'screenChatInfo.deleteInCommunityMessage' => 'The chat will be deleted for all community members.',
+			'screenChatInfo.deleteCommunityMessage' => 'The community will be deleted together with all its groups and channels.',
+			'screenChatInfo.communityChats' => 'Chats',
+			'screenChatInfo.communityChatsFooter' => 'Community members join groups and channels in one tap, closed topics by request.',
+			'screenChatInfo.announcements' => 'Announcements',
+			'screenChatInfo.closedTopic' => 'By request',
+			'screenChatInfo.hiddenTopic' => 'Hidden',
+			'screenChatInfo.createGroup' => 'Create Group',
+			'screenChatInfo.createChannel' => 'Create Channel',
+			'screenChatInfo.join' => 'Join',
+			'screenChatInfo.requestPending' => 'Pending',
+			'screenChatInfo.joinCommunity' => 'Join Community',
+			'screenChatInfo.phone' => 'Phone',
+			'screenChatInfo.address' => 'Address',
+			'screenChatInfo.route' => 'Route',
+			'screenChatInfo.routeYandex' => 'Yandex Maps',
+			'screenChatInfo.route2gis' => '2GIS',
 			'screenChatInfo.lastSeenMinutes' => ({required Object n}) => 'last seen ${n} min ago',
 			'screenChatInfo.lastSeenAt' => ({required Object time}) => 'last seen at ${time}',
 			'screenChatInfo.lastSeenYesterday' => ({required Object time}) => 'last seen yesterday at ${time}',

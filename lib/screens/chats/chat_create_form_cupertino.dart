@@ -11,6 +11,7 @@ import '../../i18n/translations.g.dart';
 import '../../models.dart' as models;
 import '../../themes.dart';
 import 'chat_create_common.dart';
+import 'comments_limit.dart';
 import 'chats_new_cupertino.dart';
 
 /// «Изменить» в профиле чата (админ): форма с полями [chat]; после
@@ -44,6 +45,10 @@ class _ChatCreateFormCupertino extends State<ChatCreateFormCupertino> {
   final _nameController = TextEditingController();
   final _aboutController = TextEditingController();
   final _usernameController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _addressController = TextEditingController();
+  final _latitudeController = TextEditingController();
+  final _longitudeController = TextEditingController();
 
   @override
   void initState() {
@@ -53,6 +58,10 @@ class _ChatCreateFormCupertino extends State<ChatCreateFormCupertino> {
     _nameController.text = state.title;
     _aboutController.text = state.about;
     _usernameController.text = state.username;
+    _phoneController.text = state.phone;
+    _addressController.text = state.address;
+    _latitudeController.text = state.latitude;
+    _longitudeController.text = state.longitude;
     // «Создать» доступна только с названием.
     _nameController.addListener(() => setState(() {}));
   }
@@ -62,31 +71,16 @@ class _ChatCreateFormCupertino extends State<ChatCreateFormCupertino> {
     _nameController.dispose();
     _aboutController.dispose();
     _usernameController.dispose();
+    _phoneController.dispose();
+    _addressController.dispose();
+    _latitudeController.dispose();
+    _longitudeController.dispose();
     super.dispose();
   }
 
-  Future<void> _photo(BuildContext context, ChatCreateState state) async {
+  Future<void> _pickPhoto(BuildContext context, models.ChatType type) async {
     final cubit = context.read<ChatCreateCubit>();
-    if (state.avatarPath.isNotEmpty) {
-      final t = context.t.screenNewChat;
-      final action = await showCupertinoModalPopup<String>(
-        context: context,
-        builder: (sheetContext) => CupertinoActionSheet(
-          actions: [
-            CupertinoActionSheetAction(onPressed: () => Navigator.of(sheetContext).pop('change'), child: Text(t.changePhoto)),
-            CupertinoActionSheetAction(
-              isDestructiveAction: true,
-              onPressed: () => Navigator.of(sheetContext).pop('remove'),
-              child: Text(t.removePhoto),
-            ),
-          ],
-          cancelButton: CupertinoActionSheetAction(onPressed: () => Navigator.of(sheetContext).pop(), child: Text(context.t.common.cancel)),
-        ),
-      );
-      if (action == 'remove') cubit.setAvatar('');
-      if (action != 'change' || !context.mounted) return;
-    }
-    final path = await pickChatPhoto(context, state.type);
+    final path = await pickChatPhoto(context, type);
     if (path != null) cubit.setAvatar(path);
   }
 
@@ -104,6 +98,30 @@ class _ChatCreateFormCupertino extends State<ChatCreateFormCupertino> {
     final background = ThemesCupertino.groupedBackground.resolveFrom(context);
     final card = ThemesCupertino.groupedCard.resolveFrom(context);
 
+    // Строка с выбором из вариантов: значение справа, тап — выпадающее меню.
+    Widget menuRow<T>({
+      required String title,
+      required List<T> values,
+      required T current,
+      required String Function(T value) label,
+      required ValueChanged<T> onSelected,
+    }) => CupertinoMenuAnchor(
+      menuChildren: [
+        for (final value in values)
+          CupertinoMenuItem(
+            trailing: value == current ? const Icon(CupertinoIcons.check_mark) : null,
+            onPressed: () => onSelected(value),
+            child: Text(label(value)),
+          ),
+      ],
+      builder: (context, controller, child) => CupertinoListTile(
+        title: Text(title, style: const TextStyle(fontSize: AppFontSizes.body)),
+        additionalInfo: Text(label(current)),
+        trailing: Icon(CupertinoIcons.chevron_up_chevron_down, size: 16, color: secondary),
+        onTap: () => controller.isOpen ? controller.close() : controller.open(),
+      ),
+    );
+
     Widget section({Widget? header, Widget? footer, required List<Widget> children}) => CupertinoListSection.insetGrouped(
       header: header,
       footer: footer,
@@ -118,16 +136,18 @@ class _ChatCreateFormCupertino extends State<ChatCreateFormCupertino> {
       listener: (context, state) {
         // «Изменить» сохранено — обратно в профиль чата.
         if (state.saved) return Navigator.of(context).pop();
-        // Новый чат вместо всей цепочки «Новое» (назад — в список чатов).
+        // Чат сообщества — вместо формы (назад — на страницу сообщества);
+        // иначе новый чат вместо всей цепочки «Новое» (назад — в список чатов).
+        if (state.inCommunity) return context.pushReplacement('/chats/chat/${state.openChatID}');
         context.go('/chats/chat/${state.openChatID}');
       },
       builder: (context, state) {
         final type = state.type;
-        // Описание и вступление — у канала и сообщества, а в «Изменить» — и у
-        // группы.
-        final withLink = type == models.ChatType.channel || type == models.ChatType.community || state.isEdit;
-        final joinModes = state.isEdit ? joinModesOf(type) : const [models.ChatJoinMode.open, models.ChatJoinMode.link];
-        final canCreate = _nameController.text.trim().isNotEmpty && state.linkReady && !state.creating;
+        // Описание и вступление — у канала и сообщества, а в «Изменить» и
+        // внутри сообщества — и у группы.
+        final withLink = type == models.ChatType.channel || type == models.ChatType.community || state.isEdit || state.inCommunity;
+        final joinModes = joinModesFor(state);
+        final canCreate = _nameController.text.trim().isNotEmpty && state.linkReady && state.coordinatesValid && !state.creating;
         final hint = usernameHint(t, state);
 
         return CupertinoPageScaffold(
@@ -168,11 +188,30 @@ class _ChatCreateFormCupertino extends State<ChatCreateFormCupertino> {
                       padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
                       child: Row(
                         children: [
-                          GestureDetector(
-                            onTap: () => _photo(context, state),
-                            child: state.avatarPath.isNotEmpty
-                                ? ChatPhotoPreview(path: state.avatarPath, type: type, size: 64)
-                                : Container(
+                          // Фото нет — сразу выбор; есть — меню «Изменить» / «Удалить».
+                          state.avatarPath.isNotEmpty
+                              ? CupertinoMenuAnchor(
+                                  menuChildren: [
+                                    CupertinoMenuItem(
+                                      trailing: const Icon(CupertinoIcons.photo),
+                                      onPressed: () => _pickPhoto(context, type),
+                                      child: Text(t.screenNewChat.changePhoto),
+                                    ),
+                                    CupertinoMenuItem(
+                                      isDestructiveAction: true,
+                                      trailing: const Icon(CupertinoIcons.delete),
+                                      onPressed: () => context.read<ChatCreateCubit>().setAvatar(''),
+                                      child: Text(t.screenNewChat.removePhoto),
+                                    ),
+                                  ],
+                                  builder: (context, controller, child) => GestureDetector(
+                                    onTap: () => controller.isOpen ? controller.close() : controller.open(),
+                                    child: ChatPhotoPreview(path: state.avatarPath, type: type, size: 64),
+                                  ),
+                                )
+                              : GestureDetector(
+                                  onTap: () => _pickPhoto(context, type),
+                                  child: Container(
                                     width: 64,
                                     height: 64,
                                     decoration: BoxDecoration(
@@ -183,7 +222,7 @@ class _ChatCreateFormCupertino extends State<ChatCreateFormCupertino> {
                                     alignment: Alignment.center,
                                     child: HugeIcon(icon: HugeIcons.strokeRoundedCameraAdd01, color: action, size: 28),
                                   ),
-                          ),
+                                ),
                           const SizedBox(width: 14),
                           Expanded(
                             child: CupertinoTextField.borderless(
@@ -201,6 +240,90 @@ class _ChatCreateFormCupertino extends State<ChatCreateFormCupertino> {
                     ),
                   ],
                 ),
+
+                // Обложка страницы сообщества (в «Изменить»).
+                if (type == models.ChatType.community && state.isEdit)
+                  section(
+                    footer: createNoteCupertino(t.screenNewChat.coverFooter),
+                    children: [
+                      CupertinoListTile(
+                        title: Text(
+                          state.coverPath.isEmpty ? t.screenNewChat.setCover : t.screenNewChat.changeCover,
+                          style: TextStyle(fontSize: AppFontSizes.body, color: action),
+                        ),
+                        trailing: state.coverPath.isEmpty ? null : CommunityCoverPreview(path: state.coverPath),
+                        onTap: () async {
+                          final cubit = context.read<ChatCreateCubit>();
+                          final path = await pickCommunityCover(context);
+                          if (path != null) cubit.setCover(path);
+                        },
+                      ),
+                      if (state.coverPath.isNotEmpty)
+                        CupertinoListTile(
+                          title: Text(
+                            t.screenNewChat.removeCover,
+                            style: TextStyle(fontSize: AppFontSizes.body, color: CupertinoColors.destructiveRed.resolveFrom(context)),
+                          ),
+                          onTap: () => context.read<ChatCreateCubit>().setCover(''),
+                        ),
+                    ],
+                  ),
+
+                // Контакты заведения (в «Изменить» сообщества): телефон, адрес,
+                // координаты для маршрута.
+                if (type == models.ChatType.community && state.isEdit)
+                  section(
+                    header: createHeaderCupertino(t.screenNewChat.contactsHeader),
+                    footer: createNoteCupertino(
+                      state.coordinatesValid ? t.screenNewChat.coordinatesFooter : t.screenNewChat.coordinatesInvalid,
+                      color: state.coordinatesValid ? null : CupertinoColors.destructiveRed.resolveFrom(context),
+                    ),
+                    children: [
+                      CupertinoTextField.borderless(
+                        controller: _phoneController,
+                        placeholder: t.screenNewChat.phone,
+                        keyboardType: TextInputType.phone,
+                        autofillHints: const [AutofillHints.telephoneNumber],
+                        style: const TextStyle(fontSize: AppFontSizes.body),
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        onChanged: context.read<ChatCreateCubit>().setPhone,
+                      ),
+                      CupertinoTextField.borderless(
+                        controller: _addressController,
+                        placeholder: t.screenNewChat.address,
+                        textCapitalization: TextCapitalization.sentences,
+                        minLines: 1,
+                        maxLines: 3,
+                        style: const TextStyle(fontSize: AppFontSizes.body),
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        onChanged: context.read<ChatCreateCubit>().setAddress,
+                      ),
+                      for (final (controller, label, hint, onChanged) in [
+                        (
+                          _latitudeController,
+                          t.screenNewChat.latitude,
+                          t.screenNewChat.latitudeHint,
+                          context.read<ChatCreateCubit>().setLatitude,
+                        ),
+                        (
+                          _longitudeController,
+                          t.screenNewChat.longitude,
+                          t.screenNewChat.longitudeHint,
+                          context.read<ChatCreateCubit>().setLongitude,
+                        ),
+                      ])
+                        CupertinoTextField.borderless(
+                          controller: controller,
+                          placeholder: '$label ($hint)',
+                          keyboardType: const TextInputType.numberWithOptions(signed: true, decimal: true),
+                          autocorrect: false,
+                          enableSuggestions: false,
+                          style: const TextStyle(fontSize: AppFontSizes.body),
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                          onChanged: onChanged,
+                        ),
+                    ],
+                  ),
 
                 if (withLink) ...[
                   section(
@@ -220,18 +343,15 @@ class _ChatCreateFormCupertino extends State<ChatCreateFormCupertino> {
                   ),
                   section(
                     header: createHeaderCupertino(
-                      state.isEdit && type != models.ChatType.channel ? t.screenNewChat.joinHeader : t.screenNewChat.type,
+                      (state.isEdit && type != models.ChatType.channel) || state.inCommunity
+                          ? t.screenNewChat.joinHeader
+                          : t.screenNewChat.type,
                     ),
                     footer: createNoteCupertino(joinModeFooter(t, state)),
                     children: [
                       for (final mode in joinModes)
                         CupertinoListTile(
-                          title: Text(
-                            state.isEdit
-                                ? joinModeLabel(t, type, mode)
-                                : (mode == models.ChatJoinMode.open ? t.screenNewChat.typePublic : t.screenNewChat.typePrivate),
-                            style: const TextStyle(fontSize: AppFontSizes.body),
-                          ),
+                          title: Text(joinModeTitle(t, state, mode), style: const TextStyle(fontSize: AppFontSizes.body)),
                           trailing: state.joinMode == mode ? Icon(CupertinoIcons.checkmark_alt, color: primary) : null,
                           onTap: () => context.read<ChatCreateCubit>().setJoinMode(mode),
                         ),
@@ -266,7 +386,7 @@ class _ChatCreateFormCupertino extends State<ChatCreateFormCupertino> {
                         ),
                       ],
                     )
-                  else if (state.joinMode != models.ChatJoinMode.admins)
+                  else if (state.joinMode != models.ChatJoinMode.admins && !state.inCommunity)
                     section(
                       header: createHeaderCupertino(t.screenNewChat.inviteLink),
                       footer: createNoteCupertino(t.screenNewChat.inviteLinkFooter),
@@ -283,7 +403,16 @@ class _ChatCreateFormCupertino extends State<ChatCreateFormCupertino> {
                     ),
                   if (state.isEdit && type == models.ChatType.channel)
                     section(
-                      footer: createNoteCupertino('${t.screenNewChat.commentsFooter} ${t.screenNewChat.signFooter}'),
+                      footer: createNoteCupertino(
+                        [
+                          t.screenNewChat.commentsFooter,
+                          if (state.commentsEnabled) t.screenNewChat.commentsLimitFooter,
+                          if (state.commentsEnabled && state.commentsWho == models.ChatCommentsWho.subscribers)
+                            t.screenNewChat.commentsWhoFooter,
+                          if (state.commentsEnabled) t.screenNewChat.newcomerMediaFooterChannel,
+                          t.screenNewChat.signFooter,
+                        ].join(' '),
+                      ),
                       children: [
                         CupertinoListTile(
                           title: Text(t.screenNewChat.commentsSwitch, style: const TextStyle(fontSize: AppFontSizes.body)),
@@ -292,6 +421,38 @@ class _ChatCreateFormCupertino extends State<ChatCreateFormCupertino> {
                             onChanged: context.read<ChatCreateCubit>().setCommentsEnabled,
                           ),
                         ),
+                        // Выбор вариантов — выпадающее меню у строки (как в настройках iOS).
+                        if (state.commentsEnabled) ...[
+                          menuRow<int>(
+                            title: t.screenNewChat.commentsLimit,
+                            values: commentsLimitOptions,
+                            current: state.commentsTimeLimit,
+                            label: (value) => commentsLimitLabel(t, value),
+                            onSelected: context.read<ChatCreateCubit>().setCommentsTimeLimit,
+                          ),
+                          menuRow<models.ChatCommentsWho>(
+                            title: t.screenNewChat.commentsWho,
+                            values: models.ChatCommentsWho.values,
+                            current: state.commentsWho,
+                            label: (value) => commentsWhoLabel(t, value),
+                            onSelected: context.read<ChatCreateCubit>().setCommentsWho,
+                          ),
+                          if (state.commentsWho == models.ChatCommentsWho.subscribers)
+                            menuRow<int>(
+                              title: t.screenNewChat.commentsMinSubscription,
+                              values: commentsLimitOptions,
+                              current: state.commentsMinSubscription,
+                              label: (value) => commentsLimitLabel(t, value),
+                              onSelected: context.read<ChatCreateCubit>().setCommentsMinSubscription,
+                            ),
+                          menuRow<int>(
+                            title: t.screenNewChat.newcomerMedia,
+                            values: commentsLimitOptions,
+                            current: state.newcomerMediaDelay,
+                            label: (value) => newcomerMediaLabel(t, value),
+                            onSelected: context.read<ChatCreateCubit>().setNewcomerMediaDelay,
+                          ),
+                        ],
                         CupertinoListTile(
                           title: Text(t.screenNewChat.signSwitch, style: const TextStyle(fontSize: AppFontSizes.body)),
                           trailing: CupertinoSwitch(value: state.signMessages, onChanged: context.read<ChatCreateCubit>().setSignMessages),
@@ -311,9 +472,23 @@ class _ChatCreateFormCupertino extends State<ChatCreateFormCupertino> {
                           ),
                       ],
                     ),
+                  if (state.isEdit && type != models.ChatType.channel)
+                    section(
+                      footer: createNoteCupertino(t.screenNewChat.newcomerMediaFooterGroup),
+                      children: [
+                        menuRow<int>(
+                          title: t.screenNewChat.newcomerMedia,
+                          values: commentsLimitOptions,
+                          current: state.newcomerMediaDelay,
+                          label: (value) => newcomerMediaLabel(t, value),
+                          onSelected: context.read<ChatCreateCubit>().setNewcomerMediaDelay,
+                        ),
+                      ],
+                    ),
                 ],
 
-                if (state.isEdit)
+                // Видимость участников — настройка сообщества, у его чатов своей нет.
+                if (state.isEdit && !state.inCommunity)
                   section(
                     footer: createNoteCupertino(t.screenNewChat.hideMembersFooter),
                     children: [
@@ -327,7 +502,7 @@ class _ChatCreateFormCupertino extends State<ChatCreateFormCupertino> {
                     ],
                   ),
 
-                if (type == models.ChatType.group && !state.isEdit)
+                if (type == models.ChatType.group && !state.isEdit && !state.inCommunity)
                   state.selected.isEmpty
                       ? Padding(
                           padding: const EdgeInsets.fromLTRB(32, 0, 32, 16),

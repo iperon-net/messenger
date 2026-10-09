@@ -332,6 +332,52 @@ extension ChatJoinModeMapperExtension on ChatJoinMode {
   }
 }
 
+class ChatCommentsWhoMapper extends EnumMapper<ChatCommentsWho> {
+  ChatCommentsWhoMapper._();
+
+  static ChatCommentsWhoMapper? _instance;
+  static ChatCommentsWhoMapper ensureInitialized() {
+    if (_instance == null) {
+      MapperContainer.globals.use(_instance = ChatCommentsWhoMapper._());
+    }
+    return _instance!;
+  }
+
+  static ChatCommentsWho fromValue(dynamic value) {
+    ensureInitialized();
+    return MapperContainer.globals.fromValue(value);
+  }
+
+  @override
+  ChatCommentsWho decode(dynamic value) {
+    switch (value) {
+      case r'all':
+        return ChatCommentsWho.all;
+      case r'subscribers':
+        return ChatCommentsWho.subscribers;
+      default:
+        throw MapperException.unknownEnumValue(value);
+    }
+  }
+
+  @override
+  dynamic encode(ChatCommentsWho self) {
+    switch (self) {
+      case ChatCommentsWho.all:
+        return r'all';
+      case ChatCommentsWho.subscribers:
+        return r'subscribers';
+    }
+  }
+}
+
+extension ChatCommentsWhoMapperExtension on ChatCommentsWho {
+  String toValue() {
+    ChatCommentsWhoMapper.ensureInitialized();
+    return MapperContainer.globals.toValue<ChatCommentsWho>(this) as String;
+  }
+}
+
 class ChatAdminRightsMapper extends ClassMapperBase<ChatAdminRights> {
   ChatAdminRightsMapper._();
 
@@ -857,6 +903,13 @@ class ChatLastMessageMapper extends ClassMapperBase<ChatLastMessage> {
   );
   static DateTime _$date(ChatLastMessage v) => v.date;
   static const Field<ChatLastMessage, DateTime> _f$date = Field('date', _$date);
+  static String _$chatTitle(ChatLastMessage v) => v.chatTitle;
+  static const Field<ChatLastMessage, String> _f$chatTitle = Field(
+    'chatTitle',
+    _$chatTitle,
+    opt: true,
+    def: '',
+  );
 
   @override
   final MappableFields<ChatLastMessage> fields = const {
@@ -866,6 +919,7 @@ class ChatLastMessageMapper extends ClassMapperBase<ChatLastMessage> {
     #outgoing: _f$outgoing,
     #status: _f$status,
     #date: _f$date,
+    #chatTitle: _f$chatTitle,
   };
 
   static ChatLastMessage _instantiate(DecodingData data) {
@@ -876,6 +930,7 @@ class ChatLastMessageMapper extends ClassMapperBase<ChatLastMessage> {
       outgoing: data.dec(_f$outgoing),
       status: data.dec(_f$status),
       date: data.dec(_f$date),
+      chatTitle: data.dec(_f$chatTitle),
     );
   }
 
@@ -948,6 +1003,7 @@ abstract class ChatLastMessageCopyWith<$R, $In extends ChatLastMessage, $Out>
     bool? outgoing,
     MessageStatus? status,
     DateTime? date,
+    String? chatTitle,
   });
   ChatLastMessageCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
     Then<$Out2, $R2> t,
@@ -970,6 +1026,7 @@ class _ChatLastMessageCopyWithImpl<$R, $Out>
     bool? outgoing,
     MessageStatus? status,
     DateTime? date,
+    String? chatTitle,
   }) => $apply(
     FieldCopyWithData({
       if (kind != null) #kind: kind,
@@ -978,6 +1035,7 @@ class _ChatLastMessageCopyWithImpl<$R, $Out>
       if (outgoing != null) #outgoing: outgoing,
       if (status != null) #status: status,
       if (date != null) #date: date,
+      if (chatTitle != null) #chatTitle: chatTitle,
     }),
   );
   @override
@@ -988,6 +1046,7 @@ class _ChatLastMessageCopyWithImpl<$R, $Out>
     outgoing: data.get(#outgoing, or: $value.outgoing),
     status: data.get(#status, or: $value.status),
     date: data.get(#date, or: $value.date),
+    chatTitle: data.get(#chatTitle, or: $value.chatTitle),
   );
 
   @override
@@ -1008,6 +1067,7 @@ class ChatMapper extends ClassMapperBase<Chat> {
       ChatReactionsModeMapper.ensureInitialized();
       ChatJoinModeMapper.ensureInitialized();
       ChatRoleMapper.ensureInitialized();
+      ChatCommentsWhoMapper.ensureInitialized();
     }
     return _instance!;
   }
@@ -1165,6 +1225,39 @@ class ChatMapper extends ClassMapperBase<Chat> {
     opt: true,
     def: '',
   );
+  static String _$coverPath(Chat v) => v.coverPath;
+  static const Field<Chat, String> _f$coverPath = Field(
+    'coverPath',
+    _$coverPath,
+    opt: true,
+    def: '',
+  );
+  static String _$phone(Chat v) => v.phone;
+  static const Field<Chat, String> _f$phone = Field(
+    'phone',
+    _$phone,
+    opt: true,
+    def: '',
+  );
+  static String _$address(Chat v) => v.address;
+  static const Field<Chat, String> _f$address = Field(
+    'address',
+    _$address,
+    opt: true,
+    def: '',
+  );
+  static double? _$latitude(Chat v) => v.latitude;
+  static const Field<Chat, double> _f$latitude = Field(
+    'latitude',
+    _$latitude,
+    opt: true,
+  );
+  static double? _$longitude(Chat v) => v.longitude;
+  static const Field<Chat, double> _f$longitude = Field(
+    'longitude',
+    _$longitude,
+    opt: true,
+  );
   static ChatJoinMode _$joinMode(Chat v) => v.joinMode;
   static const Field<Chat, ChatJoinMode> _f$joinMode = Field(
     'joinMode',
@@ -1192,6 +1285,46 @@ class ChatMapper extends ClassMapperBase<Chat> {
     _$commentsEnabled,
     opt: true,
     def: false,
+  );
+  static int _$commentsTimeLimit(Chat v) => v.commentsTimeLimit;
+  static const Field<Chat, int> _f$commentsTimeLimit = Field(
+    'commentsTimeLimit',
+    _$commentsTimeLimit,
+    opt: true,
+    def: 0,
+  );
+  static DateTime? _$commentsCloseDate(Chat v) => v.commentsCloseDate;
+  static const Field<Chat, DateTime> _f$commentsCloseDate = Field(
+    'commentsCloseDate',
+    _$commentsCloseDate,
+    opt: true,
+  );
+  static ChatCommentsWho _$commentsWho(Chat v) => v.commentsWho;
+  static const Field<Chat, ChatCommentsWho> _f$commentsWho = Field(
+    'commentsWho',
+    _$commentsWho,
+    opt: true,
+    def: ChatCommentsWho.all,
+  );
+  static int _$commentsMinSubscription(Chat v) => v.commentsMinSubscription;
+  static const Field<Chat, int> _f$commentsMinSubscription = Field(
+    'commentsMinSubscription',
+    _$commentsMinSubscription,
+    opt: true,
+    def: 0,
+  );
+  static DateTime? _$joinedAt(Chat v) => v.joinedAt;
+  static const Field<Chat, DateTime> _f$joinedAt = Field(
+    'joinedAt',
+    _$joinedAt,
+    opt: true,
+  );
+  static int _$newcomerMediaDelay(Chat v) => v.newcomerMediaDelay;
+  static const Field<Chat, int> _f$newcomerMediaDelay = Field(
+    'newcomerMediaDelay',
+    _$newcomerMediaDelay,
+    opt: true,
+    def: 0,
   );
   static bool _$signMessages(Chat v) => v.signMessages;
   static const Field<Chat, bool> _f$signMessages = Field(
@@ -1234,6 +1367,20 @@ class ChatMapper extends ClassMapperBase<Chat> {
     _$threadPostID,
     opt: true,
     def: '',
+  );
+  static String _$communityID(Chat v) => v.communityID;
+  static const Field<Chat, String> _f$communityID = Field(
+    'communityID',
+    _$communityID,
+    opt: true,
+    def: '',
+  );
+  static bool _$announcements(Chat v) => v.announcements;
+  static const Field<Chat, bool> _f$announcements = Field(
+    'announcements',
+    _$announcements,
+    opt: true,
+    def: false,
   );
   static int _$membersCount(Chat v) => v.membersCount;
   static const Field<Chat, int> _f$membersCount = Field(
@@ -1295,16 +1442,29 @@ class ChatMapper extends ClassMapperBase<Chat> {
     #username: _f$username,
     #inviteLink: _f$inviteLink,
     #avatarPath: _f$avatarPath,
+    #coverPath: _f$coverPath,
+    #phone: _f$phone,
+    #address: _f$address,
+    #latitude: _f$latitude,
+    #longitude: _f$longitude,
     #joinMode: _f$joinMode,
     #defaultRole: _f$defaultRole,
     #pendingRequests: _f$pendingRequests,
     #commentsEnabled: _f$commentsEnabled,
+    #commentsTimeLimit: _f$commentsTimeLimit,
+    #commentsCloseDate: _f$commentsCloseDate,
+    #commentsWho: _f$commentsWho,
+    #commentsMinSubscription: _f$commentsMinSubscription,
+    #joinedAt: _f$joinedAt,
+    #newcomerMediaDelay: _f$newcomerMediaDelay,
     #signMessages: _f$signMessages,
     #membersHidden: _f$membersHidden,
     #isMember: _f$isMember,
     #joinRequested: _f$joinRequested,
     #threadOf: _f$threadOf,
     #threadPostID: _f$threadPostID,
+    #communityID: _f$communityID,
+    #announcements: _f$announcements,
     #membersCount: _f$membersCount,
     #myRole: _f$myRole,
     #online: _f$online,
@@ -1338,16 +1498,29 @@ class ChatMapper extends ClassMapperBase<Chat> {
       username: data.dec(_f$username),
       inviteLink: data.dec(_f$inviteLink),
       avatarPath: data.dec(_f$avatarPath),
+      coverPath: data.dec(_f$coverPath),
+      phone: data.dec(_f$phone),
+      address: data.dec(_f$address),
+      latitude: data.dec(_f$latitude),
+      longitude: data.dec(_f$longitude),
       joinMode: data.dec(_f$joinMode),
       defaultRole: data.dec(_f$defaultRole),
       pendingRequests: data.dec(_f$pendingRequests),
       commentsEnabled: data.dec(_f$commentsEnabled),
+      commentsTimeLimit: data.dec(_f$commentsTimeLimit),
+      commentsCloseDate: data.dec(_f$commentsCloseDate),
+      commentsWho: data.dec(_f$commentsWho),
+      commentsMinSubscription: data.dec(_f$commentsMinSubscription),
+      joinedAt: data.dec(_f$joinedAt),
+      newcomerMediaDelay: data.dec(_f$newcomerMediaDelay),
       signMessages: data.dec(_f$signMessages),
       membersHidden: data.dec(_f$membersHidden),
       isMember: data.dec(_f$isMember),
       joinRequested: data.dec(_f$joinRequested),
       threadOf: data.dec(_f$threadOf),
       threadPostID: data.dec(_f$threadPostID),
+      communityID: data.dec(_f$communityID),
+      announcements: data.dec(_f$announcements),
       membersCount: data.dec(_f$membersCount),
       myRole: data.dec(_f$myRole),
       online: data.dec(_f$online),
@@ -1430,16 +1603,29 @@ abstract class ChatCopyWith<$R, $In extends Chat, $Out>
     String? username,
     String? inviteLink,
     String? avatarPath,
+    String? coverPath,
+    String? phone,
+    String? address,
+    double? latitude,
+    double? longitude,
     ChatJoinMode? joinMode,
     ChatRole? defaultRole,
     int? pendingRequests,
     bool? commentsEnabled,
+    int? commentsTimeLimit,
+    DateTime? commentsCloseDate,
+    ChatCommentsWho? commentsWho,
+    int? commentsMinSubscription,
+    DateTime? joinedAt,
+    int? newcomerMediaDelay,
     bool? signMessages,
     bool? membersHidden,
     bool? isMember,
     bool? joinRequested,
     String? threadOf,
     String? threadPostID,
+    String? communityID,
+    bool? announcements,
     int? membersCount,
     ChatRole? myRole,
     bool? online,
@@ -1492,16 +1678,29 @@ class _ChatCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Chat, $Out>
     String? username,
     String? inviteLink,
     String? avatarPath,
+    String? coverPath,
+    String? phone,
+    String? address,
+    Object? latitude = $none,
+    Object? longitude = $none,
     ChatJoinMode? joinMode,
     ChatRole? defaultRole,
     int? pendingRequests,
     bool? commentsEnabled,
+    int? commentsTimeLimit,
+    Object? commentsCloseDate = $none,
+    ChatCommentsWho? commentsWho,
+    int? commentsMinSubscription,
+    Object? joinedAt = $none,
+    int? newcomerMediaDelay,
     bool? signMessages,
     bool? membersHidden,
     bool? isMember,
     bool? joinRequested,
     String? threadOf,
     String? threadPostID,
+    String? communityID,
+    bool? announcements,
     int? membersCount,
     ChatRole? myRole,
     bool? online,
@@ -1533,16 +1732,30 @@ class _ChatCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Chat, $Out>
       if (username != null) #username: username,
       if (inviteLink != null) #inviteLink: inviteLink,
       if (avatarPath != null) #avatarPath: avatarPath,
+      if (coverPath != null) #coverPath: coverPath,
+      if (phone != null) #phone: phone,
+      if (address != null) #address: address,
+      if (latitude != $none) #latitude: latitude,
+      if (longitude != $none) #longitude: longitude,
       if (joinMode != null) #joinMode: joinMode,
       if (defaultRole != null) #defaultRole: defaultRole,
       if (pendingRequests != null) #pendingRequests: pendingRequests,
       if (commentsEnabled != null) #commentsEnabled: commentsEnabled,
+      if (commentsTimeLimit != null) #commentsTimeLimit: commentsTimeLimit,
+      if (commentsCloseDate != $none) #commentsCloseDate: commentsCloseDate,
+      if (commentsWho != null) #commentsWho: commentsWho,
+      if (commentsMinSubscription != null)
+        #commentsMinSubscription: commentsMinSubscription,
+      if (joinedAt != $none) #joinedAt: joinedAt,
+      if (newcomerMediaDelay != null) #newcomerMediaDelay: newcomerMediaDelay,
       if (signMessages != null) #signMessages: signMessages,
       if (membersHidden != null) #membersHidden: membersHidden,
       if (isMember != null) #isMember: isMember,
       if (joinRequested != null) #joinRequested: joinRequested,
       if (threadOf != null) #threadOf: threadOf,
       if (threadPostID != null) #threadPostID: threadPostID,
+      if (communityID != null) #communityID: communityID,
+      if (announcements != null) #announcements: announcements,
       if (membersCount != null) #membersCount: membersCount,
       if (myRole != null) #myRole: myRole,
       if (online != null) #online: online,
@@ -1576,16 +1789,41 @@ class _ChatCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Chat, $Out>
     username: data.get(#username, or: $value.username),
     inviteLink: data.get(#inviteLink, or: $value.inviteLink),
     avatarPath: data.get(#avatarPath, or: $value.avatarPath),
+    coverPath: data.get(#coverPath, or: $value.coverPath),
+    phone: data.get(#phone, or: $value.phone),
+    address: data.get(#address, or: $value.address),
+    latitude: data.get(#latitude, or: $value.latitude),
+    longitude: data.get(#longitude, or: $value.longitude),
     joinMode: data.get(#joinMode, or: $value.joinMode),
     defaultRole: data.get(#defaultRole, or: $value.defaultRole),
     pendingRequests: data.get(#pendingRequests, or: $value.pendingRequests),
     commentsEnabled: data.get(#commentsEnabled, or: $value.commentsEnabled),
+    commentsTimeLimit: data.get(
+      #commentsTimeLimit,
+      or: $value.commentsTimeLimit,
+    ),
+    commentsCloseDate: data.get(
+      #commentsCloseDate,
+      or: $value.commentsCloseDate,
+    ),
+    commentsWho: data.get(#commentsWho, or: $value.commentsWho),
+    commentsMinSubscription: data.get(
+      #commentsMinSubscription,
+      or: $value.commentsMinSubscription,
+    ),
+    joinedAt: data.get(#joinedAt, or: $value.joinedAt),
+    newcomerMediaDelay: data.get(
+      #newcomerMediaDelay,
+      or: $value.newcomerMediaDelay,
+    ),
     signMessages: data.get(#signMessages, or: $value.signMessages),
     membersHidden: data.get(#membersHidden, or: $value.membersHidden),
     isMember: data.get(#isMember, or: $value.isMember),
     joinRequested: data.get(#joinRequested, or: $value.joinRequested),
     threadOf: data.get(#threadOf, or: $value.threadOf),
     threadPostID: data.get(#threadPostID, or: $value.threadPostID),
+    communityID: data.get(#communityID, or: $value.communityID),
+    announcements: data.get(#announcements, or: $value.announcements),
     membersCount: data.get(#membersCount, or: $value.membersCount),
     myRole: data.get(#myRole, or: $value.myRole),
     online: data.get(#online, or: $value.online),
