@@ -71,6 +71,10 @@ class ChatCreateCubit extends Cubit<ChatCreateState> {
         about: chat.about,
         avatarPath: chat.avatarPath,
         coverPath: chat.coverPath,
+        phone: chat.phone,
+        address: chat.address,
+        latitude: chat.latitude?.toString() ?? '',
+        longitude: chat.longitude?.toString() ?? '',
         joinMode: chat.joinMode,
         username: chat.username,
         originalUsername: chat.username,
@@ -98,6 +102,14 @@ class ChatCreateCubit extends Cubit<ChatCreateState> {
   void setAvatar(String path) => emit(state.copyWith(avatarPath: path));
 
   void setCover(String path) => emit(state.copyWith(coverPath: path));
+
+  void setPhone(String value) => emit(state.copyWith(phone: value.trim()));
+
+  void setAddress(String value) => emit(state.copyWith(address: value.trim()));
+
+  void setLatitude(String value) => emit(state.copyWith(latitude: value));
+
+  void setLongitude(String value) => emit(state.copyWith(longitude: value));
 
   void setPublic(bool isPublic) => setJoinMode(isPublic ? models.ChatJoinMode.open : models.ChatJoinMode.link);
 
@@ -177,7 +189,7 @@ class ChatCreateCubit extends Cubit<ChatCreateState> {
   /// «Изменить» → «Сохранить».
   Future<void> save({required String title, required String about}) async {
     final source = _source;
-    if (source == null || state.creating || !state.isEdit || title.trim().isEmpty || !state.linkReady) return;
+    if (source == null || state.creating || !state.isEdit || title.trim().isEmpty || !state.linkReady || !state.coordinatesValid) return;
     emit(state.copyWith(creating: true));
     await source.updateChat(
       state.chatID,
@@ -185,6 +197,10 @@ class ChatCreateCubit extends Cubit<ChatCreateState> {
       about: about.trim(),
       avatarPath: state.avatarPath,
       coverPath: state.coverPath,
+      phone: state.phone,
+      address: state.address,
+      latitude: state.latitudeValue,
+      longitude: state.longitudeValue,
       joinMode: state.joinMode,
       username: state.isPublic ? state.username : '',
       inviteLink: state.inviteLink,

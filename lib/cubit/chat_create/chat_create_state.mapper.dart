@@ -155,6 +155,34 @@ class ChatCreateStateMapper extends ClassMapperBase<ChatCreateState> {
     opt: true,
     def: '',
   );
+  static String _$phone(ChatCreateState v) => v.phone;
+  static const Field<ChatCreateState, String> _f$phone = Field(
+    'phone',
+    _$phone,
+    opt: true,
+    def: '',
+  );
+  static String _$address(ChatCreateState v) => v.address;
+  static const Field<ChatCreateState, String> _f$address = Field(
+    'address',
+    _$address,
+    opt: true,
+    def: '',
+  );
+  static String _$latitude(ChatCreateState v) => v.latitude;
+  static const Field<ChatCreateState, String> _f$latitude = Field(
+    'latitude',
+    _$latitude,
+    opt: true,
+    def: '',
+  );
+  static String _$longitude(ChatCreateState v) => v.longitude;
+  static const Field<ChatCreateState, String> _f$longitude = Field(
+    'longitude',
+    _$longitude,
+    opt: true,
+    def: '',
+  );
   static models.ChatJoinMode _$joinMode(ChatCreateState v) => v.joinMode;
   static const Field<ChatCreateState, models.ChatJoinMode> _f$joinMode = Field(
     'joinMode',
@@ -286,6 +314,10 @@ class ChatCreateStateMapper extends ClassMapperBase<ChatCreateState> {
     #selected: _f$selected,
     #avatarPath: _f$avatarPath,
     #coverPath: _f$coverPath,
+    #phone: _f$phone,
+    #address: _f$address,
+    #latitude: _f$latitude,
+    #longitude: _f$longitude,
     #joinMode: _f$joinMode,
     #username: _f$username,
     #originalUsername: _f$originalUsername,
@@ -317,6 +349,10 @@ class ChatCreateStateMapper extends ClassMapperBase<ChatCreateState> {
       selected: data.dec(_f$selected),
       avatarPath: data.dec(_f$avatarPath),
       coverPath: data.dec(_f$coverPath),
+      phone: data.dec(_f$phone),
+      address: data.dec(_f$address),
+      latitude: data.dec(_f$latitude),
+      longitude: data.dec(_f$longitude),
       joinMode: data.dec(_f$joinMode),
       username: data.dec(_f$username),
       originalUsername: data.dec(_f$originalUsername),
@@ -422,6 +458,10 @@ abstract class ChatCreateStateCopyWith<$R, $In extends ChatCreateState, $Out>
     List<models.ChatMember>? selected,
     String? avatarPath,
     String? coverPath,
+    String? phone,
+    String? address,
+    String? latitude,
+    String? longitude,
     models.ChatJoinMode? joinMode,
     String? username,
     String? originalUsername,
@@ -487,6 +527,10 @@ class _ChatCreateStateCopyWithImpl<$R, $Out>
     List<models.ChatMember>? selected,
     String? avatarPath,
     String? coverPath,
+    String? phone,
+    String? address,
+    String? latitude,
+    String? longitude,
     models.ChatJoinMode? joinMode,
     String? username,
     String? originalUsername,
@@ -516,6 +560,10 @@ class _ChatCreateStateCopyWithImpl<$R, $Out>
       if (selected != null) #selected: selected,
       if (avatarPath != null) #avatarPath: avatarPath,
       if (coverPath != null) #coverPath: coverPath,
+      if (phone != null) #phone: phone,
+      if (address != null) #address: address,
+      if (latitude != null) #latitude: latitude,
+      if (longitude != null) #longitude: longitude,
       if (joinMode != null) #joinMode: joinMode,
       if (username != null) #username: username,
       if (originalUsername != null) #originalUsername: originalUsername,
@@ -548,6 +596,10 @@ class _ChatCreateStateCopyWithImpl<$R, $Out>
     selected: data.get(#selected, or: $value.selected),
     avatarPath: data.get(#avatarPath, or: $value.avatarPath),
     coverPath: data.get(#coverPath, or: $value.coverPath),
+    phone: data.get(#phone, or: $value.phone),
+    address: data.get(#address, or: $value.address),
+    latitude: data.get(#latitude, or: $value.latitude),
+    longitude: data.get(#longitude, or: $value.longitude),
     joinMode: data.get(#joinMode, or: $value.joinMode),
     username: data.get(#username, or: $value.username),
     originalUsername: data.get(#originalUsername, or: $value.originalUsername),

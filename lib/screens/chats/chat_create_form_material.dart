@@ -44,6 +44,10 @@ class _ChatCreateFormMaterial extends State<ChatCreateFormMaterial> {
   final _nameController = TextEditingController();
   final _aboutController = TextEditingController();
   final _usernameController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _addressController = TextEditingController();
+  final _latitudeController = TextEditingController();
+  final _longitudeController = TextEditingController();
 
   @override
   void initState() {
@@ -53,6 +57,10 @@ class _ChatCreateFormMaterial extends State<ChatCreateFormMaterial> {
     _nameController.text = state.title;
     _aboutController.text = state.about;
     _usernameController.text = state.username;
+    _phoneController.text = state.phone;
+    _addressController.text = state.address;
+    _latitudeController.text = state.latitude;
+    _longitudeController.text = state.longitude;
     // Кнопка ✓ доступна только с названием.
     _nameController.addListener(() => setState(() {}));
   }
@@ -62,6 +70,10 @@ class _ChatCreateFormMaterial extends State<ChatCreateFormMaterial> {
     _nameController.dispose();
     _aboutController.dispose();
     _usernameController.dispose();
+    _phoneController.dispose();
+    _addressController.dispose();
+    _latitudeController.dispose();
+    _longitudeController.dispose();
     super.dispose();
   }
 
@@ -147,7 +159,7 @@ class _ChatCreateFormMaterial extends State<ChatCreateFormMaterial> {
         // Способы вступления — списком (в сообществе — одним нажатием / по
         // заявке), «Публичный / Частный» — переключателем.
         final joinList = (state.isEdit && type != models.ChatType.channel) || state.inCommunity;
-        final canCreate = _nameController.text.trim().isNotEmpty && state.linkReady && !state.creating;
+        final canCreate = _nameController.text.trim().isNotEmpty && state.linkReady && state.coordinatesValid && !state.creating;
         final hint = usernameHint(t, state);
 
         // «Новичкам — без ссылок и медиа» (группа / комментарии канала).
@@ -267,6 +279,49 @@ class _ChatCreateFormMaterial extends State<ChatCreateFormMaterial> {
                       ),
                   ]),
                   createNoteMaterial(context, t.screenNewChat.coverFooter),
+                ],
+
+                // Контакты заведения (в «Изменить» сообщества): телефон, адрес,
+                // координаты для маршрута.
+                if (type == models.ChatType.community && state.isEdit) ...[
+                  createHeaderMaterial(context, t.screenNewChat.contactsHeader),
+                  card([
+                    TextField(
+                      controller: _phoneController,
+                      keyboardType: TextInputType.phone,
+                      autofillHints: const [AutofillHints.telephoneNumber],
+                      decoration: _decoration(label: t.screenNewChat.phone),
+                      onChanged: context.read<ChatCreateCubit>().setPhone,
+                    ),
+                    TextField(
+                      controller: _addressController,
+                      textCapitalization: TextCapitalization.sentences,
+                      minLines: 1,
+                      maxLines: 3,
+                      decoration: _decoration(label: t.screenNewChat.address),
+                      onChanged: context.read<ChatCreateCubit>().setAddress,
+                    ),
+                    TextField(
+                      controller: _latitudeController,
+                      keyboardType: const TextInputType.numberWithOptions(signed: true, decimal: true),
+                      decoration: _decoration(label: t.screenNewChat.latitude, hint: t.screenNewChat.latitudeHint),
+                      onChanged: context.read<ChatCreateCubit>().setLatitude,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: TextField(
+                        controller: _longitudeController,
+                        keyboardType: const TextInputType.numberWithOptions(signed: true, decimal: true),
+                        decoration: _decoration(label: t.screenNewChat.longitude, hint: t.screenNewChat.longitudeHint),
+                        onChanged: context.read<ChatCreateCubit>().setLongitude,
+                      ),
+                    ),
+                  ]),
+                  createNoteMaterial(
+                    context,
+                    state.coordinatesValid ? t.screenNewChat.coordinatesFooter : t.screenNewChat.coordinatesInvalid,
+                    color: state.coordinatesValid ? null : scheme.error,
+                  ),
                 ],
 
                 if (withLink) ...[

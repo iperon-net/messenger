@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -154,4 +155,36 @@ class _CreateIcon extends StatelessWidget {
     alignment: Alignment.center,
     child: HugeIcon(icon: icon, size: 20, color: color),
   );
+}
+
+/// Контакты заведения — строки в верхнем блоке страницы сообщества (под
+/// описанием): телефон (тап — позвонить) и адрес в несколько строк (тап —
+/// скопировать); есть координаты — справа у адреса иконки Яндекс Карт и 2ГИС
+/// (маршрут).
+List<Widget> communityContactTilesMaterial(BuildContext context, models.Chat chat) {
+  final t = context.t;
+  final scheme = Theme.of(context).colorScheme;
+  final route = chat.latitude != null && chat.longitude != null;
+  return [
+    if (chat.phone.isNotEmpty)
+      ListTile(
+        leading: HugeIcon(icon: HugeIcons.strokeRoundedCall02, color: scheme.onSurfaceVariant),
+        title: Text(communityPhoneLabel(chat.phone)),
+        subtitle: Text(t.screenChatInfo.phone),
+        onTap: () => callCommunityPhone(chat.phone),
+      ),
+    if (chat.address.isNotEmpty || route)
+      ListTile(
+        leading: HugeIcon(icon: HugeIcons.strokeRoundedLocation01, color: scheme.onSurfaceVariant),
+        title: Text(chat.address.isNotEmpty ? chat.address : t.screenChatInfo.route),
+        subtitle: Text(t.screenChatInfo.address),
+        trailing: route ? CommunityRouteButtons(chat: chat) : null,
+        onTap: chat.address.isEmpty
+            ? null
+            : () {
+                Clipboard.setData(ClipboardData(text: chat.address));
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(t.screenChat.copied)));
+              },
+      ),
+  ];
 }

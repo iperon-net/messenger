@@ -281,6 +281,14 @@ class Chat with ChatMappable {
   /// [avatarPath]). Пусто — генеративный фон.
   final String coverPath;
 
+  /// Контакты заведения сообщества: телефон (как ввели, показывается
+  /// отформатированным), адрес и координаты — по ним маршрут в Яндекс Картах
+  /// и 2ГИС (`null` — не заданы).
+  final String phone;
+  final String address;
+  final double? latitude;
+  final double? longitude;
+
   /// Как вступить (группа/сообщество) / публичный ли канал.
   final ChatJoinMode joinMode;
 
@@ -391,6 +399,10 @@ class Chat with ChatMappable {
     this.inviteLink = '',
     this.avatarPath = '',
     this.coverPath = '',
+    this.phone = '',
+    this.address = '',
+    this.latitude,
+    this.longitude,
     this.joinMode = ChatJoinMode.link,
     this.defaultRole = ChatRole.reader,
     this.pendingRequests = 0,

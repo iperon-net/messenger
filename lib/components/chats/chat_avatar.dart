@@ -50,7 +50,7 @@ class ChatAvatar extends StatelessWidget {
     if (chat.avatarPath.isNotEmpty) {
       return ClipPath(
         clipper: ShapeBorderClipper(shape: shape),
-        child: Image.file(File(chat.avatarPath), width: size, height: size, fit: BoxFit.cover, cacheWidth: (size * 3).round()),
+        child: chatImage(chat.avatarPath, width: size, height: size, fit: BoxFit.cover, cacheWidth: (size * 3).round()),
       );
     }
 
@@ -66,3 +66,9 @@ class ChatAvatar extends StatelessWidget {
     );
   }
 }
+
+/// Картинка чата (аватар, обложка) по пути: файл с устройства или ассет
+/// демо-данных (`assets/…`).
+Image chatImage(String path, {double? width, double? height, BoxFit? fit, int? cacheWidth}) => path.startsWith('assets/')
+    ? Image.asset(path, width: width, height: height, fit: fit, cacheWidth: cacheWidth)
+    : Image.file(File(path), width: width, height: height, fit: fit, cacheWidth: cacheWidth);

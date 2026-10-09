@@ -1,5 +1,6 @@
 import 'package:dart_mappable/dart_mappable.dart';
 
+import '../../chats/coordinates.dart';
 import '../../constants.dart';
 import '../../models.dart' as models;
 
@@ -42,6 +43,13 @@ class ChatCreateState with ChatCreateStateMappable {
 
   /// Обложка сообщества — локальный файл (пусто — генеративный фон).
   final String coverPath;
+
+  /// Контакты заведения сообщества; [latitude] / [longitude] — как в полях
+  /// ввода, разбираются при сохранении.
+  final String phone;
+  final String address;
+  final String latitude;
+  final String longitude;
 
   /// Как вступить: [models.ChatJoinMode.open] — публичный (по ссылке
   /// [username]), иначе — по [inviteLink] (у `admins` ссылки нет). При
@@ -98,6 +106,10 @@ class ChatCreateState with ChatCreateStateMappable {
     this.selected = const [],
     this.avatarPath = '',
     this.coverPath = '',
+    this.phone = '',
+    this.address = '',
+    this.latitude = '',
+    this.longitude = '',
     this.joinMode = models.ChatJoinMode.link,
     this.username = '',
     this.originalUsername = '',
@@ -133,4 +145,10 @@ class ChatCreateState with ChatCreateStateMappable {
 
   /// Ссылку можно использовать: частный чат или свободное публичное имя.
   bool get linkReady => !isPublic || usernameStatus == ChatUsernameStatus.available;
+
+  double? get latitudeValue => parseCoordinate(latitude, limit: 90);
+  double? get longitudeValue => parseCoordinate(longitude, limit: 180);
+
+  /// Координаты не заданы вовсе или заданы обе и верно.
+  bool get coordinatesValid => (latitude.trim().isEmpty && longitude.trim().isEmpty) || (latitudeValue != null && longitudeValue != null);
 }

@@ -1,8 +1,12 @@
-import 'dart:io';
 import 'dart:ui' show ImageFilter;
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter_boring_avatars/flutter_boring_avatars.dart';
+import 'package:url_launcher/url_launcher.dart';
+
+import '../../chats/coordinates.dart';
+import '../../di.dart';
+import '../../utils.dart';
 
 import '../../components.dart';
 import '../../i18n/translations.g.dart';
@@ -58,7 +62,7 @@ class CommunityCover extends StatelessWidget {
         fit: StackFit.expand,
         children: [
           chat.coverPath.isNotEmpty
-              ? Image.file(File(chat.coverPath), fit: BoxFit.cover)
+              ? chatImage(chat.coverPath, fit: BoxFit.cover)
               : ClipRect(
                   child: FittedBox(
                     fit: BoxFit.cover,
@@ -161,4 +165,79 @@ class CoverGlassButton extends StatelessWidget {
       ),
     ),
   );
+}
+
+/// Есть контакты заведения (телефон, адрес или координаты).
+bool communityHasContacts(models.Chat chat) => chat.phone.isNotEmpty || chat.address.isNotEmpty || chat.latitude != null;
+
+/// Телефон заведения для показа: «+7 926 090-69-96»; не разобрался — как ввели.
+String communityPhoneLabel(String phone) {
+  final formatted = getIt.get<Utils>().phoneNormalization(phoneNumber: phone).international;
+  return formatted.isEmpty ? phone : formatted;
+}
+
+/// Позвонить в заведение.
+Future<void> callCommunityPhone(String phone) => getIt.get<Utils>().makePhoneCall(phone);
+
+/// Маршрут до заведения [chat] в картах [app]: приложение, а если его нет —
+/// сайт карт.
+Future<void> openCommunityRoute(models.Chat chat, MapsApp app) async {
+  final latitude = chat.latitude;
+  final longitude = chat.longitude;
+  if (latitude == null || longitude == null) return;
+  final uris = routeUris(app, latitude, longitude);
+  try {
+    if (await launchUrl(uris.app, mode: LaunchMode.externalApplication)) return;
+  } catch (_) {
+    // Схема не обработана (приложения нет) — дальше сайт.
+  }
+  await launchUrl(uris.web, mode: LaunchMode.externalApplication);
+}
+
+/// Иконка приложения карт (скруглённый квадрат, как на домашнем экране).
+class MapsAppIcon extends StatelessWidget {
+  final MapsApp app;
+  final double size;
+
+  const MapsAppIcon({super.key, required this.app, this.size = 30});
+
+  @override
+  Widget build(BuildContext context) => ClipRRect(
+    borderRadius: BorderRadius.circular(size * 0.23),
+    child: Image.asset(
+      app == MapsApp.yandex ? 'assets/icons/maps/yandex_maps.png' : 'assets/icons/maps/2gis.png',
+      width: size,
+      height: size,
+    ),
+  );
+}
+
+/// Иконки Яндекс Карт и 2ГИС справа у адреса: тап — маршрут до заведения.
+class CommunityRouteButtons extends StatelessWidget {
+  final models.Chat chat;
+
+  const CommunityRouteButtons({super.key, required this.chat});
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.t.screenChatInfo;
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        for (final app in MapsApp.values)
+          Semantics(
+            button: true,
+            label: app == MapsApp.yandex ? t.routeYandex : t.route2gis,
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () => openCommunityRoute(chat, app),
+              child: Padding(
+                padding: const EdgeInsets.only(left: 10),
+                child: MapsAppIcon(app: app, size: 32),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
 }

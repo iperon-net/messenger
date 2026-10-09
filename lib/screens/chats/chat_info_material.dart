@@ -337,7 +337,7 @@ class _ChatInfoMaterialState extends State<ChatInfoMaterial> {
                         ],
                       ),
                     ),
-                    if (chat.about.isNotEmpty || chat.linkPath.isNotEmpty)
+                    if (chat.about.isNotEmpty || chat.linkPath.isNotEmpty || (community && communityHasContacts(chat)))
                       Card(
                         margin: const EdgeInsets.fromLTRB(12, 16, 12, 0),
                         color: card,
@@ -352,6 +352,8 @@ class _ChatInfoMaterialState extends State<ChatInfoMaterial> {
                                 ),
                                 onTap: () => _copy(context, chat.about),
                               ),
+                            // Сообщество: телефон и адрес — под описанием.
+                            if (community) ...communityContactTilesMaterial(context, chat),
                             if (chat.linkPath.isNotEmpty)
                               chat.type == models.ChatType.private
                                   ? ListTile(

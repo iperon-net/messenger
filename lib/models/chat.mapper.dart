@@ -1232,6 +1232,32 @@ class ChatMapper extends ClassMapperBase<Chat> {
     opt: true,
     def: '',
   );
+  static String _$phone(Chat v) => v.phone;
+  static const Field<Chat, String> _f$phone = Field(
+    'phone',
+    _$phone,
+    opt: true,
+    def: '',
+  );
+  static String _$address(Chat v) => v.address;
+  static const Field<Chat, String> _f$address = Field(
+    'address',
+    _$address,
+    opt: true,
+    def: '',
+  );
+  static double? _$latitude(Chat v) => v.latitude;
+  static const Field<Chat, double> _f$latitude = Field(
+    'latitude',
+    _$latitude,
+    opt: true,
+  );
+  static double? _$longitude(Chat v) => v.longitude;
+  static const Field<Chat, double> _f$longitude = Field(
+    'longitude',
+    _$longitude,
+    opt: true,
+  );
   static ChatJoinMode _$joinMode(Chat v) => v.joinMode;
   static const Field<Chat, ChatJoinMode> _f$joinMode = Field(
     'joinMode',
@@ -1417,6 +1443,10 @@ class ChatMapper extends ClassMapperBase<Chat> {
     #inviteLink: _f$inviteLink,
     #avatarPath: _f$avatarPath,
     #coverPath: _f$coverPath,
+    #phone: _f$phone,
+    #address: _f$address,
+    #latitude: _f$latitude,
+    #longitude: _f$longitude,
     #joinMode: _f$joinMode,
     #defaultRole: _f$defaultRole,
     #pendingRequests: _f$pendingRequests,
@@ -1469,6 +1499,10 @@ class ChatMapper extends ClassMapperBase<Chat> {
       inviteLink: data.dec(_f$inviteLink),
       avatarPath: data.dec(_f$avatarPath),
       coverPath: data.dec(_f$coverPath),
+      phone: data.dec(_f$phone),
+      address: data.dec(_f$address),
+      latitude: data.dec(_f$latitude),
+      longitude: data.dec(_f$longitude),
       joinMode: data.dec(_f$joinMode),
       defaultRole: data.dec(_f$defaultRole),
       pendingRequests: data.dec(_f$pendingRequests),
@@ -1570,6 +1604,10 @@ abstract class ChatCopyWith<$R, $In extends Chat, $Out>
     String? inviteLink,
     String? avatarPath,
     String? coverPath,
+    String? phone,
+    String? address,
+    double? latitude,
+    double? longitude,
     ChatJoinMode? joinMode,
     ChatRole? defaultRole,
     int? pendingRequests,
@@ -1641,6 +1679,10 @@ class _ChatCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Chat, $Out>
     String? inviteLink,
     String? avatarPath,
     String? coverPath,
+    String? phone,
+    String? address,
+    Object? latitude = $none,
+    Object? longitude = $none,
     ChatJoinMode? joinMode,
     ChatRole? defaultRole,
     int? pendingRequests,
@@ -1691,6 +1733,10 @@ class _ChatCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Chat, $Out>
       if (inviteLink != null) #inviteLink: inviteLink,
       if (avatarPath != null) #avatarPath: avatarPath,
       if (coverPath != null) #coverPath: coverPath,
+      if (phone != null) #phone: phone,
+      if (address != null) #address: address,
+      if (latitude != $none) #latitude: latitude,
+      if (longitude != $none) #longitude: longitude,
       if (joinMode != null) #joinMode: joinMode,
       if (defaultRole != null) #defaultRole: defaultRole,
       if (pendingRequests != null) #pendingRequests: pendingRequests,
@@ -1744,6 +1790,10 @@ class _ChatCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Chat, $Out>
     inviteLink: data.get(#inviteLink, or: $value.inviteLink),
     avatarPath: data.get(#avatarPath, or: $value.avatarPath),
     coverPath: data.get(#coverPath, or: $value.coverPath),
+    phone: data.get(#phone, or: $value.phone),
+    address: data.get(#address, or: $value.address),
+    latitude: data.get(#latitude, or: $value.latitude),
+    longitude: data.get(#longitude, or: $value.longitude),
     joinMode: data.get(#joinMode, or: $value.joinMode),
     defaultRole: data.get(#defaultRole, or: $value.defaultRole),
     pendingRequests: data.get(#pendingRequests, or: $value.pendingRequests),

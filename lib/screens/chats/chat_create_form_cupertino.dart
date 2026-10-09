@@ -45,6 +45,10 @@ class _ChatCreateFormCupertino extends State<ChatCreateFormCupertino> {
   final _nameController = TextEditingController();
   final _aboutController = TextEditingController();
   final _usernameController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _addressController = TextEditingController();
+  final _latitudeController = TextEditingController();
+  final _longitudeController = TextEditingController();
 
   @override
   void initState() {
@@ -54,6 +58,10 @@ class _ChatCreateFormCupertino extends State<ChatCreateFormCupertino> {
     _nameController.text = state.title;
     _aboutController.text = state.about;
     _usernameController.text = state.username;
+    _phoneController.text = state.phone;
+    _addressController.text = state.address;
+    _latitudeController.text = state.latitude;
+    _longitudeController.text = state.longitude;
     // «Создать» доступна только с названием.
     _nameController.addListener(() => setState(() {}));
   }
@@ -63,6 +71,10 @@ class _ChatCreateFormCupertino extends State<ChatCreateFormCupertino> {
     _nameController.dispose();
     _aboutController.dispose();
     _usernameController.dispose();
+    _phoneController.dispose();
+    _addressController.dispose();
+    _latitudeController.dispose();
+    _longitudeController.dispose();
     super.dispose();
   }
 
@@ -135,7 +147,7 @@ class _ChatCreateFormCupertino extends State<ChatCreateFormCupertino> {
         // внутри сообщества — и у группы.
         final withLink = type == models.ChatType.channel || type == models.ChatType.community || state.isEdit || state.inCommunity;
         final joinModes = joinModesFor(state);
-        final canCreate = _nameController.text.trim().isNotEmpty && state.linkReady && !state.creating;
+        final canCreate = _nameController.text.trim().isNotEmpty && state.linkReady && state.coordinatesValid && !state.creating;
         final hint = usernameHint(t, state);
 
         return CupertinoPageScaffold(
@@ -253,6 +265,62 @@ class _ChatCreateFormCupertino extends State<ChatCreateFormCupertino> {
                             style: TextStyle(fontSize: AppFontSizes.body, color: CupertinoColors.destructiveRed.resolveFrom(context)),
                           ),
                           onTap: () => context.read<ChatCreateCubit>().setCover(''),
+                        ),
+                    ],
+                  ),
+
+                // Контакты заведения (в «Изменить» сообщества): телефон, адрес,
+                // координаты для маршрута.
+                if (type == models.ChatType.community && state.isEdit)
+                  section(
+                    header: createHeaderCupertino(t.screenNewChat.contactsHeader),
+                    footer: createNoteCupertino(
+                      state.coordinatesValid ? t.screenNewChat.coordinatesFooter : t.screenNewChat.coordinatesInvalid,
+                      color: state.coordinatesValid ? null : CupertinoColors.destructiveRed.resolveFrom(context),
+                    ),
+                    children: [
+                      CupertinoTextField.borderless(
+                        controller: _phoneController,
+                        placeholder: t.screenNewChat.phone,
+                        keyboardType: TextInputType.phone,
+                        autofillHints: const [AutofillHints.telephoneNumber],
+                        style: const TextStyle(fontSize: AppFontSizes.body),
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        onChanged: context.read<ChatCreateCubit>().setPhone,
+                      ),
+                      CupertinoTextField.borderless(
+                        controller: _addressController,
+                        placeholder: t.screenNewChat.address,
+                        textCapitalization: TextCapitalization.sentences,
+                        minLines: 1,
+                        maxLines: 3,
+                        style: const TextStyle(fontSize: AppFontSizes.body),
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        onChanged: context.read<ChatCreateCubit>().setAddress,
+                      ),
+                      for (final (controller, label, hint, onChanged) in [
+                        (
+                          _latitudeController,
+                          t.screenNewChat.latitude,
+                          t.screenNewChat.latitudeHint,
+                          context.read<ChatCreateCubit>().setLatitude,
+                        ),
+                        (
+                          _longitudeController,
+                          t.screenNewChat.longitude,
+                          t.screenNewChat.longitudeHint,
+                          context.read<ChatCreateCubit>().setLongitude,
+                        ),
+                      ])
+                        CupertinoTextField.borderless(
+                          controller: controller,
+                          placeholder: '$label ($hint)',
+                          keyboardType: const TextInputType.numberWithOptions(signed: true, decimal: true),
+                          autocorrect: false,
+                          enableSuggestions: false,
+                          style: const TextStyle(fontSize: AppFontSizes.body),
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                          onChanged: onChanged,
                         ),
                     ],
                   ),

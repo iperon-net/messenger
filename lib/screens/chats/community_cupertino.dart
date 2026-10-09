@@ -1,4 +1,5 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -164,4 +165,37 @@ class _CreateIcon extends StatelessWidget {
     alignment: Alignment.center,
     child: HugeIcon(icon: icon, size: 20, color: color),
   );
+}
+
+/// Контакты заведения — строки в верхнем блоке страницы сообщества (под
+/// описанием): телефон (тап — позвонить) и адрес в несколько строк (тап —
+/// скопировать); есть координаты — справа у адреса иконки Яндекс Карт и 2ГИС
+/// (маршрут).
+List<Widget> communityContactTilesCupertino(BuildContext context, models.Chat chat) {
+  final t = context.t.screenChatInfo;
+  final action = ThemesCupertino.actionColor(context);
+  final route = chat.latitude != null && chat.longitude != null;
+  return [
+    if (chat.phone.isNotEmpty)
+      CupertinoListTileIcon(
+        color: const Color(0xFF34C759),
+        hugeIcon: HugeIcons.strokeRoundedCall02,
+        title: Text(communityPhoneLabel(chat.phone), style: TextStyle(color: action)),
+        subtitle: Text(t.phone),
+        onTab: () => callCommunityPhone(chat.phone),
+      ),
+    if (chat.address.isNotEmpty || route)
+      CupertinoListTileIcon(
+        color: const Color(0xFFFF3B30),
+        hugeIcon: HugeIcons.strokeRoundedLocation01,
+        title: Text(chat.address.isNotEmpty ? chat.address : t.route, maxLines: 4),
+        subtitle: Text(t.address),
+        trailing: route ? CommunityRouteButtons(chat: chat) : null,
+        onTab: () async {
+          if (chat.address.isEmpty) return;
+          await Clipboard.setData(ClipboardData(text: chat.address));
+          await HapticFeedback.selectionClick();
+        },
+      ),
+  ];
 }

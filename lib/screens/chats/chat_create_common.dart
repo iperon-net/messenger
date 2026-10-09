@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/widgets.dart';
 import 'package:flutter_boring_avatars/flutter_boring_avatars.dart';
 import 'package:image_cropper/image_cropper.dart';
@@ -83,7 +81,7 @@ class CommunityCoverPreview extends StatelessWidget {
   @override
   Widget build(BuildContext context) => ClipRRect(
     borderRadius: BorderRadius.circular(6),
-    child: Image.file(File(path), width: 64, height: 36, fit: BoxFit.cover, cacheWidth: 192),
+    child: chatImage(path, width: 64, height: 36, fit: BoxFit.cover, cacheWidth: 192),
   );
 }
 
@@ -162,7 +160,7 @@ class ChatPhotoPreview extends StatelessWidget {
         : const CircleBorder();
     return ClipPath(
       clipper: ShapeBorderClipper(shape: shape),
-      child: Image.file(File(path), width: size, height: size, fit: BoxFit.cover, cacheWidth: (size * 3).round()),
+      child: chatImage(path, width: size, height: size, fit: BoxFit.cover, cacheWidth: (size * 3).round()),
     );
   }
 }

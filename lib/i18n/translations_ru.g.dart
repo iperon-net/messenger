@@ -298,6 +298,15 @@ class _Translations$screenNewChat$ru extends Translations$screenNewChat$en {
 	@override String get changeCover => 'Изменить обложку';
 	@override String get removeCover => 'Удалить обложку';
 	@override String get coverFooter => 'Фон шапки страницы сообщества — например, фото зала или витрины.';
+	@override String get contactsHeader => 'Контакты';
+	@override String get phone => 'Телефон';
+	@override String get address => 'Адрес';
+	@override String get latitude => 'Широта';
+	@override String get latitudeHint => '55.650088';
+	@override String get longitude => 'Долгота';
+	@override String get longitudeHint => '37.606609';
+	@override String get coordinatesFooter => 'По широте и долготе строится маршрут в Яндекс Картах и 2ГИС. В картах их можно скопировать, удерживая точку.';
+	@override String get coordinatesInvalid => 'Нужны обе координаты числами: широта от −90 до 90, долгота от −180 до 180.';
 	@override String get editPhoto => 'Фото';
 	@override String get type => 'Тип';
 	@override String get typePublic => 'Публичный';
@@ -882,6 +891,11 @@ class _Translations$screenChatInfo$ru extends Translations$screenChatInfo$en {
 	@override String get join => 'Вступить';
 	@override String get requestPending => 'Ждёт';
 	@override String get joinCommunity => 'Вступить в сообщество';
+	@override String get phone => 'Телефон';
+	@override String get address => 'Адрес';
+	@override String get route => 'Маршрут';
+	@override String get routeYandex => 'Яндекс Карты';
+	@override String get route2gis => '2ГИС';
 	@override String lastSeenMinutes({required Object n}) => 'был(а) ${n} мин. назад';
 	@override String lastSeenAt({required Object time}) => 'был(а) в ${time}';
 	@override String lastSeenYesterday({required Object time}) => 'был(а) вчера в ${time}';
@@ -1590,6 +1604,15 @@ extension on TranslationsRu {
 			'screenNewChat.changeCover' => 'Изменить обложку',
 			'screenNewChat.removeCover' => 'Удалить обложку',
 			'screenNewChat.coverFooter' => 'Фон шапки страницы сообщества — например, фото зала или витрины.',
+			'screenNewChat.contactsHeader' => 'Контакты',
+			'screenNewChat.phone' => 'Телефон',
+			'screenNewChat.address' => 'Адрес',
+			'screenNewChat.latitude' => 'Широта',
+			'screenNewChat.latitudeHint' => '55.650088',
+			'screenNewChat.longitude' => 'Долгота',
+			'screenNewChat.longitudeHint' => '37.606609',
+			'screenNewChat.coordinatesFooter' => 'По широте и долготе строится маршрут в Яндекс Картах и 2ГИС. В картах их можно скопировать, удерживая точку.',
+			'screenNewChat.coordinatesInvalid' => 'Нужны обе координаты числами: широта от −90 до 90, долгота от −180 до 180.',
 			'screenNewChat.editPhoto' => 'Фото',
 			'screenNewChat.type' => 'Тип',
 			'screenNewChat.typePublic' => 'Публичный',
@@ -1939,6 +1962,8 @@ extension on TranslationsRu {
 			'screenSettingsNotifications.retry' => 'Повторить',
 			'screenDeveloper.developer' => 'Разработчик',
 			'screenDeveloper.logs' => _root.screenSettings.logs,
+			_ => null,
+		} ?? switch (path) {
 			'screenDeveloper.exportLogs' => 'Экспорт логов',
 			'screenDeveloper.callPreview' => 'Превью экрана звонка',
 			'screenDeveloper.chatsDemo' => 'Демо чатов',
@@ -1948,8 +1973,6 @@ extension on TranslationsRu {
 			'screenDeveloper.testPushError' => ({required Object error}) => 'Не удалось отправить: ${error}',
 			'screenDeveloper.testPushEncrypted' => 'Тестовое уведомление (шифрованное)',
 			'screenDeveloper.testPushQueued' => 'Поставлено в очередь сервера. На Android придёт «Шифрованное тестовое уведомление: расшифровка работает», на iPhone пока — «Новое уведомление» (расшифровка на iOS появится позже).',
-			_ => null,
-		} ?? switch (path) {
 			'screenSettingsAppearance.appearance' => 'Оформление',
 			'screenSettingsAppearance.colorTheme' => 'Цветовая тема',
 			'screenSettingsAppearance.colorThemeDefault' => 'По умолчанию',
@@ -2045,6 +2068,11 @@ extension on TranslationsRu {
 			'screenChatInfo.join' => 'Вступить',
 			'screenChatInfo.requestPending' => 'Ждёт',
 			'screenChatInfo.joinCommunity' => 'Вступить в сообщество',
+			'screenChatInfo.phone' => 'Телефон',
+			'screenChatInfo.address' => 'Адрес',
+			'screenChatInfo.route' => 'Маршрут',
+			'screenChatInfo.routeYandex' => 'Яндекс Карты',
+			'screenChatInfo.route2gis' => '2ГИС',
 			'screenChatInfo.lastSeenMinutes' => ({required Object n}) => 'был(а) ${n} мин. назад',
 			'screenChatInfo.lastSeenAt' => ({required Object time}) => 'был(а) в ${time}',
 			'screenChatInfo.lastSeenYesterday' => ({required Object time}) => 'был(а) вчера в ${time}',

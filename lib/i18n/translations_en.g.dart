@@ -607,6 +607,33 @@ class Translations$screenNewChat$en {
 	/// en: 'The header background of the community page — e.g. a photo of your venue or storefront.'
 	String get coverFooter => 'The header background of the community page — e.g. a photo of your venue or storefront.';
 
+	/// en: 'Contacts'
+	String get contactsHeader => 'Contacts';
+
+	/// en: 'Phone'
+	String get phone => 'Phone';
+
+	/// en: 'Address'
+	String get address => 'Address';
+
+	/// en: 'Latitude'
+	String get latitude => 'Latitude';
+
+	/// en: '55.650088'
+	String get latitudeHint => '55.650088';
+
+	/// en: 'Longitude'
+	String get longitude => 'Longitude';
+
+	/// en: '37.606609'
+	String get longitudeHint => '37.606609';
+
+	/// en: 'Latitude and longitude are used to build a route in Yandex Maps and 2GIS. You can copy them in a maps app by holding the point.'
+	String get coordinatesFooter => 'Latitude and longitude are used to build a route in Yandex Maps and 2GIS. You can copy them in a maps app by holding the point.';
+
+	/// en: 'Enter both coordinates as numbers: latitude from −90 to 90, longitude from −180 to 180.'
+	String get coordinatesInvalid => 'Enter both coordinates as numbers: latitude from −90 to 90, longitude from −180 to 180.';
+
 	/// en: 'Edit Photo'
 	String get editPhoto => 'Edit Photo';
 
@@ -2077,6 +2104,21 @@ class Translations$screenChatInfo$en {
 	/// en: 'Join Community'
 	String get joinCommunity => 'Join Community';
 
+	/// en: 'Phone'
+	String get phone => 'Phone';
+
+	/// en: 'Address'
+	String get address => 'Address';
+
+	/// en: 'Route'
+	String get route => 'Route';
+
+	/// en: 'Yandex Maps'
+	String get routeYandex => 'Yandex Maps';
+
+	/// en: '2GIS'
+	String get route2gis => '2GIS';
+
 	/// en: 'last seen {n} min ago'
 	String lastSeenMinutes({required Object n}) => 'last seen ${n} min ago';
 
@@ -3461,6 +3503,15 @@ extension on Translations {
 			'screenNewChat.changeCover' => 'Change Cover',
 			'screenNewChat.removeCover' => 'Remove Cover',
 			'screenNewChat.coverFooter' => 'The header background of the community page — e.g. a photo of your venue or storefront.',
+			'screenNewChat.contactsHeader' => 'Contacts',
+			'screenNewChat.phone' => 'Phone',
+			'screenNewChat.address' => 'Address',
+			'screenNewChat.latitude' => 'Latitude',
+			'screenNewChat.latitudeHint' => '55.650088',
+			'screenNewChat.longitude' => 'Longitude',
+			'screenNewChat.longitudeHint' => '37.606609',
+			'screenNewChat.coordinatesFooter' => 'Latitude and longitude are used to build a route in Yandex Maps and 2GIS. You can copy them in a maps app by holding the point.',
+			'screenNewChat.coordinatesInvalid' => 'Enter both coordinates as numbers: latitude from −90 to 90, longitude from −180 to 180.',
 			'screenNewChat.editPhoto' => 'Edit Photo',
 			'screenNewChat.type' => 'Type',
 			'screenNewChat.typePublic' => 'Public',
@@ -3810,6 +3861,8 @@ extension on Translations {
 			'screenSettingsNotifications.retry' => 'Retry',
 			'screenDeveloper.developer' => 'Developer',
 			'screenDeveloper.logs' => _root.screenSettings.logs,
+			_ => null,
+		} ?? switch (path) {
 			'screenDeveloper.exportLogs' => 'Export logs',
 			'screenDeveloper.callPreview' => 'Call screen preview',
 			'screenDeveloper.chatsDemo' => 'Chats demo',
@@ -3819,8 +3872,6 @@ extension on Translations {
 			'screenDeveloper.testPushError' => ({required Object error}) => 'Failed to send: ${error}',
 			'screenDeveloper.testPushEncrypted' => 'Test notification (encrypted)',
 			'screenDeveloper.testPushQueued' => 'Queued on the server. Android shows "Encrypted test notification: decryption works"; iPhone shows "New notification" for now (iOS decryption comes later).',
-			_ => null,
-		} ?? switch (path) {
 			'screenSettingsAppearance.appearance' => 'Appearance',
 			'screenSettingsAppearance.colorTheme' => 'Color theme',
 			'screenSettingsAppearance.colorThemeDefault' => 'Default',
@@ -3916,6 +3967,11 @@ extension on Translations {
 			'screenChatInfo.join' => 'Join',
 			'screenChatInfo.requestPending' => 'Pending',
 			'screenChatInfo.joinCommunity' => 'Join Community',
+			'screenChatInfo.phone' => 'Phone',
+			'screenChatInfo.address' => 'Address',
+			'screenChatInfo.route' => 'Route',
+			'screenChatInfo.routeYandex' => 'Yandex Maps',
+			'screenChatInfo.route2gis' => '2GIS',
 			'screenChatInfo.lastSeenMinutes' => ({required Object n}) => 'last seen ${n} min ago',
 			'screenChatInfo.lastSeenAt' => ({required Object time}) => 'last seen at ${time}',
 			'screenChatInfo.lastSeenYesterday' => ({required Object time}) => 'last seen yesterday at ${time}',

@@ -387,6 +387,10 @@ class ChatsDemoDataSource implements ChatsDataSource {
     required String about,
     required String avatarPath,
     String coverPath = '',
+    String phone = '',
+    String address = '',
+    double? latitude,
+    double? longitude,
     required models.ChatJoinMode joinMode,
     required String username,
     required String inviteLink,
@@ -409,6 +413,10 @@ class ChatsDemoDataSource implements ChatsDataSource {
         about: about,
         avatarPath: avatarPath,
         coverPath: chat.type == models.ChatType.community ? coverPath : '',
+        phone: chat.type == models.ChatType.community ? phone : '',
+        address: chat.type == models.ChatType.community ? address : '',
+        latitude: chat.type == models.ChatType.community ? latitude : null,
+        longitude: chat.type == models.ChatType.community ? longitude : null,
         joinMode: joinMode,
         username: open ? username : '',
         // Ссылка-приглашение сохраняется и у публичного — вернётся при
@@ -990,7 +998,7 @@ class ChatsDemoDataSource implements ChatsDataSource {
         joinMode: switch (chat.id) {
           'spices_vip' => models.ChatJoinMode.request,
           // Скрытые: гости их не видят («Персонал» ресторана нам не виден вовсе).
-          'coffee_staff' || 'spices_staff' => models.ChatJoinMode.admins,
+          'coffee_staff' || 'spices_staff' || 'kuksu_staff' => models.ChatJoinMode.admins,
           _ => models.ChatJoinMode.open,
         },
         defaultRole: chat.type == models.ChatType.channel ? models.ChatRole.reader : models.ChatRole.writer,
@@ -1007,7 +1015,7 @@ class ChatsDemoDataSource implements ChatsDataSource {
           : (withProfile.username.isEmpty && withProfile.type != models.ChatType.private
                 ? '+K${(chat.id.hashCode & 0xFFFFFFF).toRadixString(36)}hQ'
                 : ''),
-      defaultRole: const {'team', 'family', 'football', 'district', 'devs', 'spices', 'coffee'}.contains(chat.id)
+      defaultRole: const {'team', 'family', 'football', 'district', 'devs', 'spices', 'coffee', 'kuksu'}.contains(chat.id)
           ? models.ChatRole.writer
           : models.ChatRole.reader,
       commentsEnabled: const {'news', 'flutter', 'tech', 'iperon_dev'}.contains(chat.id),
@@ -1077,6 +1085,19 @@ class ChatsDemoDataSource implements ChatsDataSource {
       'coffee_news' => chat.copyWith(membersCount: 312),
       'coffee_staff' => chat.copyWith(about: 'Смены, поставки, рабочие вопросы.', membersCount: 6),
       'coffee_guests' => chat.copyWith(membersCount: 154),
+      'kuksu' => chat.copyWith(
+        about: 'Ресторан корейской кухни. Основан в 2014 году.',
+        username: 'domkuksu',
+        phone: '+79260906996',
+        address: 'Москва, Симферопольский бульвар, 22, корп. 3, стр. 2',
+        latitude: 55.650088,
+        longitude: 37.606609,
+        membersCount: 520,
+        myRole: models.ChatRole.owner,
+      ),
+      'kuksu_news' => chat.copyWith(avatarPath: 'assets/demo/domkuksu_logo.png', membersCount: 520),
+      'kuksu_guests' => chat.copyWith(about: 'Отзывы, вопросы, пожелания.', membersCount: 214),
+      'kuksu_staff' => chat.copyWith(about: 'Смены и рабочие вопросы.', membersCount: 12),
       'news' => chat.copyWith(
         about: 'Новости мессенджера Iperon.',
         username: 'iperon_news',
@@ -1792,6 +1813,14 @@ class ChatsDemoDataSource implements ChatsDataSource {
       // можно создавать группы и каналы внутри).
       models.Chat(id: 'spices', type: models.ChatType.community, title: 'Ресторан «Пряности»'),
       models.Chat(id: 'coffee', type: models.ChatType.community, title: 'Кофейня «Зерно»', pinned: true),
+      // С настоящими логотипом и обложкой (ассеты демо) — мы владелец.
+      models.Chat(
+        id: 'kuksu',
+        type: models.ChatType.community,
+        title: 'Ресторан «Дом куксу»',
+        avatarPath: 'assets/demo/domkuksu_logo.png',
+        coverPath: 'assets/demo/domkuksu_cover.jpg',
+      ),
       models.Chat(
         id: 'tech',
         type: models.ChatType.channel,
@@ -2027,6 +2056,32 @@ class ChatsDemoDataSource implements ChatsDataSource {
         'Гости',
         role: owner,
         last: msg('А овсяное молоко есть?', sender: 'Иван', date: ago(hours: 10)),
+      ),
+
+      chat(
+        'kuksu',
+        'kuksu_news',
+        channel,
+        'Ресторан «Дом куксу»',
+        announcements: true,
+        role: owner,
+        last: msg('Добро пожаловать в сообщество ресторана!', out: true, status: models.MessageStatus.read, date: ago(hours: 1)),
+      ),
+      chat(
+        'kuksu',
+        'kuksu_guests',
+        group,
+        'Гости',
+        role: owner,
+        last: msg('Спасибо за вечер, всё было очень вкусно!', sender: 'Анна', date: ago(minutes: 40)),
+      ),
+      chat(
+        'kuksu',
+        'kuksu_staff',
+        group,
+        'Персонал',
+        role: owner,
+        last: msg('График на неделю в закрепе', sender: 'Мария', date: ago(hours: 5)),
       ),
     ];
   }

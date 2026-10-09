@@ -318,7 +318,7 @@ class _ChatInfoCupertinoState extends State<ChatInfoCupertino> {
                               ],
                             ),
                           ),
-                          if (chat.about.isNotEmpty || chat.linkPath.isNotEmpty)
+                          if (chat.about.isNotEmpty || chat.linkPath.isNotEmpty || (community && communityHasContacts(chat)))
                             _section(context, [
                               if (chat.about.isNotEmpty)
                                 CupertinoListTileIcon(
@@ -330,6 +330,8 @@ class _ChatInfoCupertinoState extends State<ChatInfoCupertino> {
                                   ),
                                   onTab: () async => _copy(chat.about),
                                 ),
+                              // Сообщество: телефон и адрес — под описанием.
+                              if (community) ...communityContactTilesCupertino(context, chat),
                               if (chat.linkPath.isNotEmpty)
                                 chat.type == models.ChatType.private
                                     ? CupertinoListTileIcon(
