@@ -33,6 +33,12 @@ class VoicePlayer extends ChangeNotifier {
 
   bool isPlaying(String id) => playing && id == currentID;
 
+  final _started = StreamController<models.Message>.broadcast();
+
+  /// Начало проигрывания голосового (не продолжение после паузы) — окно чата
+  /// отмечает входящее прослушанным.
+  Stream<models.Message> get started => _started.stream;
+
   /// Тап по кнопке в пузыре: играть / пауза / продолжить.
   Future<void> toggle(models.Message message) async {
     if (message.id == currentID) {
@@ -44,6 +50,7 @@ class VoicePlayer extends ChangeNotifier {
     position = Duration.zero;
     playing = true;
     notifyListeners();
+    _started.add(message);
     if (message.localPath.isEmpty || !File(message.localPath).existsSync()) {
       _startFake();
       return;

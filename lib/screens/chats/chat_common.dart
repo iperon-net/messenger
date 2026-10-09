@@ -15,6 +15,7 @@ import '../../chats/media_prepare.dart';
 import '../../chats/message_formatting.dart';
 import '../../chats/message_quote.dart';
 import '../../chats/newcomer.dart';
+import '../../chats/read_receipts.dart';
 import '../../chats/slow_mode.dart';
 import '../../chats/video_prepare.dart';
 import '../../components.dart';
@@ -190,6 +191,120 @@ Future<void> showPollVoters(BuildContext context, models.MessagePoll poll) {
       child: ConstrainedBox(
         constraints: BoxConstraints(maxHeight: MediaQuery.sizeOf(sheetContext).height * 0.7),
         child: body(sheetContext, m.Theme.of(sheetContext).colorScheme.onSurfaceVariant),
+      ),
+    ),
+  );
+}
+
+/// Строка «Прочитано сегодня в 12:30» / «Прочитали: 3» в меню своего
+/// сообщения (`null` — ещё загружается). Время скрыто собеседником — просто
+/// «Прочитано» (✓✓ видны всё равно).
+String readInfoLabel(Translations t, models.Chat chat, MessageReadInfo? info) {
+  final s = t.screenChat;
+  if (chat.type != models.ChatType.private) return info == null ? s.readByTitle : s.readBy(count: info.readers.length);
+  final date = info?.date;
+  return date == null ? s.read : s.readAt(date: date.relativeFormat(t));
+}
+
+/// Грузит «кто / когда прочитал», только когда строка показана (меню
+/// открыто), и перерисовывает её по ответу.
+class MessageReadInfoBuilder extends StatefulWidget {
+  final Future<MessageReadInfo> Function() load;
+  final Widget Function(BuildContext context, MessageReadInfo? info) builder;
+
+  const MessageReadInfoBuilder({super.key, required this.load, required this.builder});
+
+  @override
+  State<MessageReadInfoBuilder> createState() => _MessageReadInfoBuilderState();
+}
+
+class _MessageReadInfoBuilderState extends State<MessageReadInfoBuilder> {
+  late final Future<MessageReadInfo> _future = widget.load();
+
+  @override
+  Widget build(BuildContext context) =>
+      FutureBuilder<MessageReadInfo>(future: _future, builder: (context, snapshot) => widget.builder(context, snapshot.data));
+}
+
+/// «Прочитали» в группе: кто и когда (от последних), с его реакцией.
+Future<void> showMessageReaders(BuildContext context, List<MessageReader> readers) {
+  final t = context.t;
+  Widget body(Color secondary) => ListView(
+    shrinkWrap: true,
+    padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+    children: [
+      for (final r in readers)
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 6),
+          child: Row(
+            children: [
+              ContactAvatar(
+                contact: models.ChatMember(id: r.userID, name: r.name),
+                size: 36,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(r.name, maxLines: 1, overflow: TextOverflow.ellipsis),
+                    Text(r.date.relativeFormat(t), style: TextStyle(fontSize: 13, color: secondary)),
+                  ],
+                ),
+              ),
+              if (r.reaction.isNotEmpty) Text(r.reaction, style: const TextStyle(fontSize: 20)),
+            ],
+          ),
+        ),
+    ],
+  );
+  if (Platform.isIOS) {
+    return c.showCupertinoModalPopup<void>(
+      context: context,
+      builder: (sheetContext) => Container(
+        constraints: BoxConstraints(maxHeight: MediaQuery.sizeOf(sheetContext).height * 0.7),
+        decoration: BoxDecoration(
+          color: c.CupertinoColors.systemBackground.resolveFrom(sheetContext),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
+        ),
+        child: SafeArea(
+          top: false,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(top: 14),
+                child: Text(
+                  t.screenChat.readByTitle,
+                  style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600, color: c.CupertinoColors.label.resolveFrom(sheetContext)),
+                ),
+              ),
+              Flexible(
+                child: DefaultTextStyle(
+                  style: TextStyle(fontSize: 16, color: c.CupertinoColors.label.resolveFrom(sheetContext)),
+                  child: body(c.CupertinoColors.secondaryLabel.resolveFrom(sheetContext)),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+  return m.showModalBottomSheet<void>(
+    context: context,
+    showDragHandle: true,
+    isScrollControlled: true,
+    builder: (sheetContext) => SafeArea(
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxHeight: MediaQuery.sizeOf(sheetContext).height * 0.7),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(t.screenChat.readByTitle, style: m.Theme.of(sheetContext).textTheme.titleMedium),
+            Flexible(child: body(m.Theme.of(sheetContext).colorScheme.onSurfaceVariant)),
+          ],
+        ),
       ),
     ),
   );

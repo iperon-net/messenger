@@ -10,6 +10,7 @@ import '../repositories.dart';
 import '../chats/member_search.dart';
 import '../chats/message_formatting.dart';
 import '../chats/reactions.dart';
+import '../chats/read_receipts.dart';
 import '../models.dart' as models;
 
 /// Фейковые чаты и папки для UX-демо (флаг «Демо чатов» на экране
@@ -1576,6 +1577,8 @@ class ChatsDemoDataSource implements ChatsDataSource {
       media: media,
       duration: duration,
       waveform: waveform,
+      // Голосовое — «не прослушано», пока собеседник его не включит.
+      mediaUnread: kind == models.MessageKind.voice,
       fileSize: fileSize,
       uploadTotal: uploadTotal,
       silent: silent,
@@ -1740,6 +1743,12 @@ class ChatsDemoDataSource implements ChatsDataSource {
     if (chat.type == models.ChatType.channel) return;
     Timer(const Duration(milliseconds: 1800), () {
       _setStatus(chatID, message.id, models.MessageStatus.read);
+      // Голосовое собеседник прослушивает чуть позже, чем читает.
+      if (message.kind == models.MessageKind.voice) {
+        Timer(const Duration(seconds: 6), () {
+          if (_chats.any((c) => c.id == chatID)) _updateMessage(chatID, message.id, (m) => m.copyWith(mediaUnread: false));
+        });
+      }
       // Иногда собеседник отвечает реакцией на наше сообщение.
       if (_random.nextInt(3) == 0 && _history(chatID).any((m) => m.id == message.id)) {
         final emoji = ['❤️', '👍', '🔥', '😂'][_random.nextInt(4)];
@@ -1753,6 +1762,7 @@ class ChatsDemoDataSource implements ChatsDataSource {
 
   void _setStatus(String chatID, String messageID, models.MessageStatus status) {
     if (!_chats.any((c) => c.id == chatID)) return;
+    if (status == models.MessageStatus.read) _readAt[messageID] = DateTime.now();
     _updateMessage(chatID, messageID, (m) => m.copyWith(status: status));
     final last = _history(chatID).lastOrNull;
     if (last?.id == messageID) _update(chatID, (c) => c.copyWith(lastMessage: _lastOf(last!)));
@@ -1870,6 +1880,54 @@ class ChatsDemoDataSource implements ChatsDataSource {
     }
     _delivered(toChatID, copies.last.id);
   }
+
+  /// Когда собеседник прочитал наше сообщение (при прочтении в демо);
+  /// у истории — псевдослучайно вскоре после отправки.
+  final _readAt = <String, DateTime>{};
+
+  /// Собеседники, скрывающие время прочтения (демо — Ольга).
+  static const _readTimeHidden = {'olga'};
+
+  @override
+  Future<MessageReadInfo> readInfo(String chatID, String messageID) async {
+    final chat = _chat(chatID);
+    final message = _history(chatID).where((m) => m.id == messageID).firstOrNull;
+    if (chat == null || message == null) return const MessageReadInfo(MessageReadStatus.unavailable);
+    final now = DateTime.now();
+    if (!readReceiptsApply(chat, message, now)) {
+      final unread = message.outgoing && message.status != models.MessageStatus.read;
+      return MessageReadInfo(unread ? MessageReadStatus.notRead : MessageReadStatus.unavailable);
+    }
+    final random = Random(message.id.hashCode);
+    DateTime after(int maxMinutes) {
+      final date = message.date.add(Duration(minutes: 1 + random.nextInt(maxMinutes), seconds: random.nextInt(60)));
+      return date.isAfter(now) ? now : date;
+    }
+
+    if (chat.type == models.ChatType.private) {
+      if (_readTimeHidden.contains(chatID)) return const MessageReadInfo(MessageReadStatus.hidden);
+      return MessageReadInfo(MessageReadStatus.read, date: _readAt[messageID] ?? after(40));
+    }
+
+    // Группа: прочитала часть участников (минимум один — раз ✓✓), реакции
+    // под сообщением — от первых из них.
+    final others = _allMembers(chatID).where((m) => !m.isSelf).toList()..shuffle(random);
+    if (others.isEmpty) return const MessageReadInfo(MessageReadStatus.notRead);
+    final count = max(1, (others.length * (0.4 + random.nextDouble() * 0.5)).round());
+    final reactions = [
+      for (final r in message.reactions)
+        for (var i = 0; i < r.count - (r.chosen ? 1 : 0); i++) r.emoji,
+    ];
+    final readers = [
+      for (final (i, m) in others.take(count).indexed)
+        MessageReader(userID: m.id, name: m.name, date: after(180), reaction: i < reactions.length ? reactions[i] : ''),
+    ]..sort((a, b) => b.date.compareTo(a.date));
+    return MessageReadInfo(MessageReadStatus.read, readers: readers);
+  }
+
+  @override
+  Future<void> readMessageContents(String chatID, String messageID) async =>
+      _updateMessage(chatID, messageID, (m) => m.copyWith(mediaUnread: false));
 
   @override
   Future<void> setDraft(String chatID, String draft) async {
@@ -2551,6 +2609,7 @@ class ChatsDemoDataSource implements ChatsDataSource {
           entities: entities,
           fileName: last.kind == models.MessageKind.file ? last.text : '',
           duration: last.kind == models.MessageKind.voice ? 23 : 0,
+          mediaUnread: last.kind == models.MessageKind.voice && !last.outgoing,
           outgoing: last.outgoing,
           senderName: last.senderName,
           status: last.status,

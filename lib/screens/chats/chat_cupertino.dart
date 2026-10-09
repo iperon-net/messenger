@@ -7,6 +7,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import '../../chats/message_formatting.dart';
 import '../../chats/reactions.dart';
+import '../../chats/read_receipts.dart';
 import '../../chats/voice_player.dart';
 import '../../constants.dart';
 import '../../components.dart';
@@ -674,6 +675,21 @@ class _ChatCupertinoState extends State<ChatCupertino> {
             close();
             _cubit.toggleReaction(message, emoji);
           },
+        ),
+      // Кто / когда прочитал (как в Telegram): в группе — тап открывает список.
+      if (readReceiptsApply(chat, message))
+        MessageReadInfoBuilder(
+          load: () => _cubit.readInfo(message),
+          builder: (menuContext, info) => CupertinoContextMenuAction(
+            trailingIcon: chat.type == models.ChatType.private ? CupertinoIcons.checkmark_alt : CupertinoIcons.eye,
+            onPressed: info != null && info.readers.isNotEmpty
+                ? () {
+                    close();
+                    showMessageReaders(context, info.readers);
+                  }
+                : null,
+            child: Text(readInfoLabel(menuContext.t, chat, info)),
+          ),
         ),
       if (canWrite)
         action(t.reply, CupertinoIcons.reply, () {

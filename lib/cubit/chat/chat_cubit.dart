@@ -8,6 +8,8 @@ import '../../chats/chats_data_source.dart';
 import '../../chats/message_formatting.dart';
 import '../../chats/newcomer.dart';
 import '../../chats/reactions.dart';
+import '../../chats/read_receipts.dart';
+import '../../chats/voice_player.dart';
 import '../../demo/chats_demo_data_source.dart';
 import '../../models.dart' as models;
 
@@ -24,6 +26,7 @@ class ChatCubit extends Cubit<ChatState> {
   StreamSubscription<List<models.Message>>? _messagesSubscription;
   StreamSubscription<List<models.Message>>? _scheduledSubscription;
   StreamSubscription<void>? _membersSubscription;
+  StreamSubscription<models.Message>? _voiceSubscription;
 
   /// Медленный режим: до какого времени ждём и таймер обратного отсчёта.
   DateTime? _slowModeUntil;
@@ -97,6 +100,12 @@ class ChatCubit extends Cubit<ChatState> {
       if (isClosed) return;
       if (state.members.isNotEmpty) loadMembers();
       if (state.memberPage.isNotEmpty) loadMemberPage();
+    });
+    // Включили непрослушанное входящее голосовое этого чата — «прослушано».
+    _voiceSubscription = VoicePlayer.instance.started.listen((message) {
+      if (!isClosed && message.chatID == chatID && message.mediaUnread && !message.outgoing) {
+        source.readMessageContents(chatID, message.id);
+      }
     });
     _scheduledSubscription = source.watchScheduled(chatID).listen((scheduled) {
       if (!isClosed) emit(state.copyWith(scheduled: scheduled));
@@ -324,6 +333,11 @@ class ChatCubit extends Cubit<ChatState> {
     if (!mine.contains(emoji) && !availableReactions(chat, message: message).contains(emoji)) return;
     await _source?.setReactions(_chatID, message.id, toggleMyReaction(mine, emoji));
   }
+
+  /// Кто / когда прочитал наше сообщение — строка в меню сообщения (только
+  /// если `readReceiptsApply`).
+  Future<MessageReadInfo> readInfo(models.Message message) async =>
+      await _source?.readInfo(_chatID, message.id) ?? const MessageReadInfo(MessageReadStatus.unavailable);
 
   /// Двойной тап по сообщению — быстрая реакция [preferred] (из настроек).
   Future<void> quickReact(models.Message message, {String preferred = defaultQuickReaction}) async {
@@ -649,6 +663,7 @@ class ChatCubit extends Cubit<ChatState> {
     await _messagesSubscription?.cancel();
     await _scheduledSubscription?.cancel();
     await _membersSubscription?.cancel();
+    await _voiceSubscription?.cancel();
     _memberSearchTimer?.cancel();
     _slowModeTimer?.cancel();
     _commentsTimer?.cancel();

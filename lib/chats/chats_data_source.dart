@@ -1,4 +1,5 @@
 import '../models.dart' as models;
+import 'read_receipts.dart';
 
 /// Источник данных списка чатов. UI и cubit'ы работают только через него: сейчас
 /// единственная реализация — [ChatsDemoDataSource] (фейковые данные для UX-демо,
@@ -298,6 +299,16 @@ abstract class ChatsDataSource {
   /// Наши реакции на сообщение — весь набор целиком (пустой — снять все), как
   /// `sendReaction` в Telegram.
   Future<void> setReactions(String chatID, String messageID, List<String> emojis);
+
+  /// Кто / когда прочитал наше сообщение (меню сообщения, см.
+  /// `readReceiptsApply`): в личном чате — время, в группе — участники. На
+  /// сервере — по событиям прочтения за [readMarksExpire]; собеседник скрыл
+  /// время прочтения — [MessageReadStatus.hidden].
+  Future<MessageReadInfo> readInfo(String chatID, String messageID);
+
+  /// Мы прослушали входящее голосовое: снять `Message.mediaUnread` (у нас и у
+  /// отправителя — точка у длительности пропадает).
+  Future<void> readMessageContents(String chatID, String messageID);
 
   /// Сохранить черновик поля ввода (показывается в списке чатов).
   Future<void> setDraft(String chatID, String draft);

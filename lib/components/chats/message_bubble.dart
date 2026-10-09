@@ -1255,7 +1255,20 @@ class _VoiceRow extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 2),
-                Text(_time(seconds), style: metaStyle),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(_time(seconds), style: metaStyle),
+                    // Не прослушано (входящее — нами, исходящее — собеседником).
+                    if (message.mediaUnread)
+                      Container(
+                        width: 6,
+                        height: 6,
+                        margin: const EdgeInsets.only(left: 4),
+                        decoration: BoxDecoration(color: colors.link, shape: BoxShape.circle),
+                      ),
+                  ],
+                ),
               ],
             ),
           ],

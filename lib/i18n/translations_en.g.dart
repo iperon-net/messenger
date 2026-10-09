@@ -1336,6 +1336,18 @@ class Translations$screenChat$en {
 	/// en: 'Votes'
 	String get pollVoters => 'Votes';
 
+	/// en: 'Read'
+	String get read => 'Read';
+
+	/// en: 'Read {date}'
+	String readAt({required Object date}) => 'Read ${date}';
+
+	/// en: 'Seen by {count}'
+	String readBy({required Object count}) => 'Seen by ${count}';
+
+	/// en: 'Seen by'
+	String get readByTitle => 'Seen by';
+
 	/// en: 'Message'
 	String get message => 'Message';
 
@@ -3833,6 +3845,10 @@ extension on Translations {
 			'screenChat.closePollTitle' => 'Stop the poll?',
 			'screenChat.closePollMessage' => 'Nobody will be able to vote anymore; everyone will see the results.',
 			'screenChat.pollVoters' => 'Votes',
+			'screenChat.read' => 'Read',
+			'screenChat.readAt' => ({required Object date}) => 'Read ${date}',
+			'screenChat.readBy' => ({required Object count}) => 'Seen by ${count}',
+			'screenChat.readByTitle' => 'Seen by',
 			'screenChat.message' => 'Message',
 			'screenChat.empty' => 'No messages yet',
 			'screenChat.notFound' => 'Chat not found',
@@ -3962,12 +3978,12 @@ extension on Translations {
 			'screenSettingsNotifications.contactJoined' => 'Contact joined Iperon',
 			'screenSettingsNotifications.missedCalls' => 'Missed calls',
 			'screenSettingsNotifications.reactions' => 'Reactions',
+			_ => null,
+		} ?? switch (path) {
 			'screenSettingsNotifications.reactionsPrivate' => 'In private chats',
 			'screenSettingsNotifications.reactionsGroups' => 'In groups',
 			'screenSettingsNotifications.reactionsFrom' => 'Notify about reactions from',
 			'screenSettingsNotifications.reactionsFromShort' => 'From',
-			_ => null,
-		} ?? switch (path) {
 			'screenSettingsNotifications.reactionsFromAll' => 'Everybody',
 			'screenSettingsNotifications.reactionsFromContacts' => 'My contacts',
 			'screenSettingsNotifications.reactionsNote' => 'Notifications about reactions to your messages. Reactions in channels are anonymous, so there are no notifications for them.',

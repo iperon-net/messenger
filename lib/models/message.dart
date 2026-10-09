@@ -261,6 +261,11 @@ class Message with MessageMappable {
 
   static const voiceWaveformBars = 48;
 
+  /// Голосовое ещё не прослушано (точка у длительности, как в Telegram):
+  /// входящее — нами, исходящее — собеседником. «Прослушано» отмечается
+  /// отдельно от «прочитано» (`ChatsDataSource.readMessageContents`).
+  final bool mediaUnread;
+
   /// Альбом: до [maxAlbum] фото/видео одним сообщением (сеткой в пузыре), подпись
   /// — [text]. Один элемент — метаданные одиночного фото/видео (размеры,
   /// thumbhash); пусто — обычное сообщение ([kind] + [localPath]).
@@ -337,6 +342,7 @@ class Message with MessageMappable {
     this.localPath = '',
     this.duration = 0,
     this.waveform = const [],
+    this.mediaUnread = false,
     this.media = const [],
     this.fileSize = 0,
     this.uploadedBytes = 0,

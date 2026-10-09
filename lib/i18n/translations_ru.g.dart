@@ -589,6 +589,10 @@ class _Translations$screenChat$ru extends Translations$screenChat$en {
 	@override String get closePollTitle => 'Завершить опрос?';
 	@override String get closePollMessage => 'Голосовать больше будет нельзя, все увидят итоги.';
 	@override String get pollVoters => 'Голоса';
+	@override String get read => 'Прочитано';
+	@override String readAt({required Object date}) => 'Прочитано ${date}';
+	@override String readBy({required Object count}) => 'Прочитали: ${count}';
+	@override String get readByTitle => 'Прочитали';
 	@override String get message => 'Сообщение';
 	@override String get empty => 'Сообщений пока нет';
 	@override String get notFound => 'Чат не найден';
@@ -1864,6 +1868,10 @@ extension on TranslationsRu {
 			'screenChat.closePollTitle' => 'Завершить опрос?',
 			'screenChat.closePollMessage' => 'Голосовать больше будет нельзя, все увидят итоги.',
 			'screenChat.pollVoters' => 'Голоса',
+			'screenChat.read' => 'Прочитано',
+			'screenChat.readAt' => ({required Object date}) => 'Прочитано ${date}',
+			'screenChat.readBy' => ({required Object count}) => 'Прочитали: ${count}',
+			'screenChat.readByTitle' => 'Прочитали',
 			'screenChat.message' => 'Сообщение',
 			'screenChat.empty' => 'Сообщений пока нет',
 			'screenChat.notFound' => 'Чат не найден',
@@ -1993,12 +2001,12 @@ extension on TranslationsRu {
 			'screenSettingsNotifications.contactJoined' => 'Контакт присоединился к Iperon',
 			'screenSettingsNotifications.missedCalls' => 'Пропущенные звонки',
 			'screenSettingsNotifications.reactions' => 'Реакции',
+			_ => null,
+		} ?? switch (path) {
 			'screenSettingsNotifications.reactionsPrivate' => 'В личных чатах',
 			'screenSettingsNotifications.reactionsGroups' => 'В группах',
 			'screenSettingsNotifications.reactionsFrom' => 'Уведомлять о реакциях от',
 			'screenSettingsNotifications.reactionsFromShort' => 'От кого',
-			_ => null,
-		} ?? switch (path) {
 			'screenSettingsNotifications.reactionsFromAll' => 'Всех',
 			'screenSettingsNotifications.reactionsFromContacts' => 'Моих контактов',
 			'screenSettingsNotifications.reactionsNote' => 'Уведомления о реакциях на ваши сообщения. В каналах реакции анонимные — о них не уведомляем.',

@@ -6,6 +6,7 @@ import 'package:material_ui/material_ui.dart';
 
 import '../../chats/message_formatting.dart';
 import '../../chats/reactions.dart';
+import '../../chats/read_receipts.dart';
 import '../../chats/voice_player.dart';
 import '../../components.dart';
 import '../../constants.dart';
@@ -609,6 +610,7 @@ class _ChatMaterialState extends State<ChatMaterial> {
     final quotable = canWrite && message.text.isNotEmpty && message.kind != models.MessageKind.poll;
     final quoteText = GlobalKey<QuotableTextState>();
     models.MessageQuote? quote;
+    var readers = const <MessageReader>[];
     final action = await showModalBottomSheet<String>(
       context: context,
       showDragHandle: true,
@@ -639,6 +641,21 @@ class _ChatMaterialState extends State<ChatMaterial> {
                 ),
                 const Divider(),
               ],
+              // Кто / когда прочитал (как в Telegram): в группе — тап открывает список.
+              if (readReceiptsApply(chat, message))
+                MessageReadInfoBuilder(
+                  load: () => _cubit.readInfo(message),
+                  builder: (context, info) => ListTile(
+                    leading: Icon(chat.type == models.ChatType.private ? Icons.done_all : Icons.visibility_outlined),
+                    title: Text(readInfoLabel(context.t, chat, info)),
+                    onTap: info != null && info.readers.isNotEmpty
+                        ? () {
+                            readers = info.readers;
+                            Navigator.of(sheetContext).pop('readers');
+                          }
+                        : null,
+                  ),
+                ),
               if (canWrite)
                 ListTile(leading: const Icon(Icons.reply), title: Text(t.reply), onTap: () => Navigator.of(sheetContext).pop('reply')),
               if (quotable)
@@ -728,6 +745,8 @@ class _ChatMaterialState extends State<ChatMaterial> {
         if (await confirmCloseComments(context)) await _cubit.setCommentsClosed(message, true);
       case 'openComments':
         await _cubit.setCommentsClosed(message, false);
+      case 'readers':
+        await showMessageReaders(context, readers);
       case 'select':
         _cubit.startSelection(message);
       case 'delete':
