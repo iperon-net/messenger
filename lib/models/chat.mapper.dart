@@ -224,6 +224,61 @@ extension ChatReactionsModeMapperExtension on ChatReactionsMode {
   }
 }
 
+class ChatInheritedSettingMapper extends EnumMapper<ChatInheritedSetting> {
+  ChatInheritedSettingMapper._();
+
+  static ChatInheritedSettingMapper? _instance;
+  static ChatInheritedSettingMapper ensureInitialized() {
+    if (_instance == null) {
+      MapperContainer.globals.use(_instance = ChatInheritedSettingMapper._());
+    }
+    return _instance!;
+  }
+
+  static ChatInheritedSetting fromValue(dynamic value) {
+    ensureInitialized();
+    return MapperContainer.globals.fromValue(value);
+  }
+
+  @override
+  ChatInheritedSetting decode(dynamic value) {
+    switch (value) {
+      case r'defaultRole':
+        return ChatInheritedSetting.defaultRole;
+      case r'slowMode':
+        return ChatInheritedSetting.slowMode;
+      case r'reactions':
+        return ChatInheritedSetting.reactions;
+      case r'newcomerMediaDelay':
+        return ChatInheritedSetting.newcomerMediaDelay;
+      default:
+        throw MapperException.unknownEnumValue(value);
+    }
+  }
+
+  @override
+  dynamic encode(ChatInheritedSetting self) {
+    switch (self) {
+      case ChatInheritedSetting.defaultRole:
+        return r'defaultRole';
+      case ChatInheritedSetting.slowMode:
+        return r'slowMode';
+      case ChatInheritedSetting.reactions:
+        return r'reactions';
+      case ChatInheritedSetting.newcomerMediaDelay:
+        return r'newcomerMediaDelay';
+    }
+  }
+}
+
+extension ChatInheritedSettingMapperExtension on ChatInheritedSetting {
+  String toValue() {
+    ChatInheritedSettingMapper.ensureInitialized();
+    return MapperContainer.globals.toValue<ChatInheritedSetting>(this)
+        as String;
+  }
+}
+
 class ChatRoleMapper extends EnumMapper<ChatRole> {
   ChatRoleMapper._();
 
@@ -1081,6 +1136,7 @@ class ChatMapper extends ClassMapperBase<Chat> {
       ChatJoinModeMapper.ensureInitialized();
       ChatRoleMapper.ensureInitialized();
       ChatCommentsWhoMapper.ensureInitialized();
+      ChatInheritedSettingMapper.ensureInitialized();
     }
     return _instance!;
   }
@@ -1395,6 +1451,13 @@ class ChatMapper extends ClassMapperBase<Chat> {
     opt: true,
     def: false,
   );
+  static List<ChatInheritedSetting> _$overrides(Chat v) => v.overrides;
+  static const Field<Chat, List<ChatInheritedSetting>> _f$overrides = Field(
+    'overrides',
+    _$overrides,
+    opt: true,
+    def: const [],
+  );
   static int _$membersCount(Chat v) => v.membersCount;
   static const Field<Chat, int> _f$membersCount = Field(
     'membersCount',
@@ -1478,6 +1541,7 @@ class ChatMapper extends ClassMapperBase<Chat> {
     #threadPostID: _f$threadPostID,
     #communityID: _f$communityID,
     #announcements: _f$announcements,
+    #overrides: _f$overrides,
     #membersCount: _f$membersCount,
     #myRole: _f$myRole,
     #online: _f$online,
@@ -1534,6 +1598,7 @@ class ChatMapper extends ClassMapperBase<Chat> {
       threadPostID: data.dec(_f$threadPostID),
       communityID: data.dec(_f$communityID),
       announcements: data.dec(_f$announcements),
+      overrides: data.dec(_f$overrides),
       membersCount: data.dec(_f$membersCount),
       myRole: data.dec(_f$myRole),
       online: data.dec(_f$online),
@@ -1591,6 +1656,12 @@ abstract class ChatCopyWith<$R, $In extends Chat, $Out>
   ChatLastMessageCopyWith<$R, ChatLastMessage, ChatLastMessage>?
   get lastMessage;
   ListCopyWith<$R, String, ObjectCopyWith<$R, String, String>> get reactions;
+  ListCopyWith<
+    $R,
+    ChatInheritedSetting,
+    ObjectCopyWith<$R, ChatInheritedSetting, ChatInheritedSetting>
+  >
+  get overrides;
   $R call({
     String? id,
     ChatType? type,
@@ -1639,6 +1710,7 @@ abstract class ChatCopyWith<$R, $In extends Chat, $Out>
     String? threadPostID,
     String? communityID,
     bool? announcements,
+    List<ChatInheritedSetting>? overrides,
     int? membersCount,
     ChatRole? myRole,
     bool? online,
@@ -1665,6 +1737,17 @@ class _ChatCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Chat, $Out>
         (v, t) => ObjectCopyWith(v, $identity, t),
         (v) => call(reactions: v),
       );
+  @override
+  ListCopyWith<
+    $R,
+    ChatInheritedSetting,
+    ObjectCopyWith<$R, ChatInheritedSetting, ChatInheritedSetting>
+  >
+  get overrides => ListCopyWith(
+    $value.overrides,
+    (v, t) => ObjectCopyWith(v, $identity, t),
+    (v) => call(overrides: v),
+  );
   @override
   $R call({
     String? id,
@@ -1714,6 +1797,7 @@ class _ChatCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Chat, $Out>
     String? threadPostID,
     String? communityID,
     bool? announcements,
+    List<ChatInheritedSetting>? overrides,
     int? membersCount,
     ChatRole? myRole,
     bool? online,
@@ -1769,6 +1853,7 @@ class _ChatCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Chat, $Out>
       if (threadPostID != null) #threadPostID: threadPostID,
       if (communityID != null) #communityID: communityID,
       if (announcements != null) #announcements: announcements,
+      if (overrides != null) #overrides: overrides,
       if (membersCount != null) #membersCount: membersCount,
       if (myRole != null) #myRole: myRole,
       if (online != null) #online: online,
@@ -1837,6 +1922,7 @@ class _ChatCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Chat, $Out>
     threadPostID: data.get(#threadPostID, or: $value.threadPostID),
     communityID: data.get(#communityID, or: $value.communityID),
     announcements: data.get(#announcements, or: $value.announcements),
+    overrides: data.get(#overrides, or: $value.overrides),
     membersCount: data.get(#membersCount, or: $value.membersCount),
     myRole: data.get(#myRole, or: $value.myRole),
     online: data.get(#online, or: $value.online),

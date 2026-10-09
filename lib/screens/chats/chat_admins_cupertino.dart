@@ -104,7 +104,10 @@ class ChatAdminsCupertino extends StatelessWidget {
                                 alignment: Alignment.center,
                                 child: Icon(CupertinoIcons.person_badge_plus, color: action, size: 20),
                               ),
-                              title: Text(t.screenChatAdmins.addAdmin, style: TextStyle(color: action)),
+                              title: Text(
+                                chat.inCommunity ? t.screenChatAdmins.addModerator : t.screenChatAdmins.addAdmin,
+                                style: TextStyle(color: action),
+                              ),
                               onTap: () => _add(context, state),
                             ),
                           for (final admin in admins)
@@ -113,7 +116,7 @@ class ChatAdminsCupertino extends StatelessWidget {
                               leadingSize: 40,
                               leading: ContactAvatar(contact: admin),
                               title: Text(admin.isSelf ? t.screenChatInfo.you : admin.name),
-                              subtitle: Text(memberRoleLabel(t, admin) ?? ''),
+                              subtitle: Text(memberRoleLabel(t, admin, chat) ?? ''),
                               trailing: canPromoteMember(chat, state.members, admin) ? const CupertinoListTileChevron() : null,
                               onTap: canPromoteMember(chat, state.members, admin)
                                   ? () => showChatAdminRightsCupertino(context, context.read<ChatCubit>(), admin)
@@ -238,7 +241,12 @@ class _ChatAdminRightsCupertino extends State<ChatAdminRightsCupertino> {
   Future<void> _dismiss() async {
     final t = context.t.screenChatAdmins;
     final cubit = context.read<ChatCubit>();
-    if (!await _confirm(t.dismissTitle(name: widget.member.name), t.dismissMessage, t.dismiss)) return;
+    final moderator = cubit.state.chat?.inCommunity ?? false;
+    final name = widget.member.name;
+    final confirmed = moderator
+        ? await _confirm(t.dismissModeratorTitle(name: name), t.dismissModeratorMessage, t.dismissModerator)
+        : await _confirm(t.dismissTitle(name: name), t.dismissMessage, t.dismiss);
+    if (!confirmed) return;
     await cubit.removeAdmin(widget.member);
     if (mounted) Navigator.of(context).pop();
   }
@@ -266,7 +274,7 @@ class _ChatAdminRightsCupertino extends State<ChatAdminRightsCupertino> {
         // Владелец чата сообщества — всегда владелец сообщества: владение
         // передаётся только у всего сообщества.
         final canTransfer = owner && !chat.inCommunity;
-        final rights = adminRightsFor(chat.type);
+        final rights = adminRightsFor(chat);
         final status = contactStatus(t, widget.member);
         return CupertinoPageScaffold(
           backgroundColor: ThemesCupertino.groupedBackground,
@@ -275,7 +283,9 @@ class _ChatAdminRightsCupertino extends State<ChatAdminRightsCupertino> {
               previousPageTitle: '',
               automaticBackgroundVisibility: false,
               backgroundColor: ThemesCupertino.groupedBackground,
-              middle: Text(_isAdmin ? tc.adminRights : tc.newAdmin),
+              middle: Text(
+                chat.inCommunity ? (_isAdmin ? tc.moderatorRights : tc.newModerator) : (_isAdmin ? tc.adminRights : tc.newAdmin),
+              ),
               trailing: _saving
                   ? const CupertinoActivityIndicator()
                   : CupertinoButton(
@@ -308,7 +318,9 @@ class _ChatAdminRightsCupertino extends State<ChatAdminRightsCupertino> {
                 _section(
                   context,
                   header: tc.rightsHeader,
-                  footer: owner ? (chat.type == models.ChatType.channel ? null : tc.anonymousFooter) : tc.rightsFooterLimited,
+                  footer: chat.inCommunity
+                      ? tc.moderatorRightsFooter
+                      : (owner ? (chat.type == models.ChatType.channel ? null : tc.anonymousFooter) : tc.rightsFooterLimited),
                   children: [
                     for (final right in rights)
                       CupertinoListTile(
@@ -336,7 +348,7 @@ class _ChatAdminRightsCupertino extends State<ChatAdminRightsCupertino> {
                   children: [
                     CupertinoTextField.borderless(
                       controller: _rankController,
-                      placeholder: tc.rankHint,
+                      placeholder: chat.inCommunity ? tc.moderatorRankHint : tc.rankHint,
                       maxLength: 16,
                       style: const TextStyle(fontSize: AppFontSizes.body),
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -354,7 +366,7 @@ class _ChatAdminRightsCupertino extends State<ChatAdminRightsCupertino> {
                         ),
                       if (_isAdmin)
                         CupertinoListTile(
-                          title: Text(tc.dismiss, style: TextStyle(color: destructive)),
+                          title: Text(chat.inCommunity ? tc.dismissModerator : tc.dismiss, style: TextStyle(color: destructive)),
                           onTap: _dismiss,
                         ),
                     ],

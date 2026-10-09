@@ -70,9 +70,17 @@ class ChatState with ChatStateMappable {
   /// × на превью ссылки над полем ввода — отправить без превью (до отправки).
   final bool linkPreviewDisabled;
 
-  /// Участники группы — профиль чата (загружаются при открытии, см.
-  /// `ChatCubit.loadMembers`).
+  /// «Известные» участники: владелец, админы, мы и недавно активные — для
+  /// прав, упоминаний и выбора (см. `ChatCubit.loadMembers`).
   final List<models.ChatMember> members;
+
+  /// Список «Участники» в профиле — загруженные страницы (см.
+  /// `ChatCubit.loadMemberPage`); [memberPageMore] — есть ещё,
+  /// [memberPageLoading] — грузится, [membersTotal] — всего.
+  final List<models.ChatMember> memberPage;
+  final bool memberPageMore;
+  final bool memberPageLoading;
+  final int membersTotal;
 
   /// Заблокированные в группе — для админа (профиль → «Заблокированные»).
   final List<models.ChatMember> banned;
@@ -118,6 +126,10 @@ class ChatState with ChatStateMappable {
     this.scheduled = const [],
     this.linkPreviewDisabled = false,
     this.members = const [],
+    this.memberPage = const [],
+    this.memberPageMore = false,
+    this.memberPageLoading = false,
+    this.membersTotal = 0,
     this.banned = const [],
     this.slowModeLeft = 0,
     this.commentsClosedIDs = const [],

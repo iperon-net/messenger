@@ -1027,6 +1027,33 @@ class Translations$screenChatAdmins$en {
 	/// en: 'Community admins are also admins in all its groups and channels, with the same rights.'
 	String get adminsFooterOfCommunity => 'Community admins are also admins in all its groups and channels, with the same rights.';
 
+	/// en: 'Add Moderator'
+	String get addModerator => 'Add Moderator';
+
+	/// en: 'Make Moderator'
+	String get promoteModerator => 'Make Moderator';
+
+	/// en: 'Moderator Rights'
+	String get moderatorRights => 'Moderator Rights';
+
+	/// en: 'New Moderator'
+	String get newModerator => 'New Moderator';
+
+	/// en: 'moderator'
+	String get moderatorRankHint => 'moderator';
+
+	/// en: 'A moderator manages only this chat: they can restrict or remove members, but only community admins can ban from the community and appoint moderators.'
+	String get moderatorRightsFooter => 'A moderator manages only this chat: they can restrict or remove members, but only community admins can ban from the community and appoint moderators.';
+
+	/// en: 'Dismiss Moderator'
+	String get dismissModerator => 'Dismiss Moderator';
+
+	/// en: 'Dismiss {name} as moderator?'
+	String dismissModeratorTitle({required Object name}) => 'Dismiss ${name} as moderator?';
+
+	/// en: 'They will stay in the chat without moderator rights.'
+	String get dismissModeratorMessage => 'They will stay in the chat without moderator rights.';
+
 	/// en: 'The community owner and admins manage all its chats — their rights are changed in the community. Here you can appoint moderators of this chat only.'
 	String get adminsFooterCommunity => 'The community owner and admins manage all its chats — their rights are changed in the community. Here you can appoint moderators of this chat only.';
 
@@ -1962,6 +1989,39 @@ class Translations$screenChatInfo$en {
 
 	/// en: 'community admin'
 	String get roleCommunityAdmin => 'community admin';
+
+	/// en: 'moderator'
+	String get roleModerator => 'moderator';
+
+	/// en: 'Only admins can see the member list.'
+	String get membersHiddenNote => 'Only admins can see the member list.';
+
+	/// en: 'Same as Community'
+	String get communityDefaults => 'Same as Community';
+
+	/// en: 'Own: {list}'
+	String communityDefaultsOwn({required Object list}) => 'Own: ${list}';
+
+	/// en: 'Restore community settings?'
+	String get communityDefaultsTitle => 'Restore community settings?';
+
+	/// en: 'New member rights, slow mode, reactions and newcomer limits will follow the community again and change along with it.'
+	String get communityDefaultsMessage => 'New member rights, slow mode, reactions and newcomer limits will follow the community again and change along with it.';
+
+	/// en: 'Restore'
+	String get communityDefaultsReset => 'Restore';
+
+	/// en: 'new member rights'
+	String get inheritedDefaultRole => 'new member rights';
+
+	/// en: 'slow mode'
+	String get inheritedSlowMode => 'slow mode';
+
+	/// en: 'reactions'
+	String get inheritedReactions => 'reactions';
+
+	/// en: 'newcomer limits'
+	String get inheritedNewcomer => 'newcomer limits';
 
 	/// en: 'You'
 	String get you => 'You';
@@ -3671,6 +3731,15 @@ extension on Translations {
 			'screenChatAdmins.addAdmin' => 'Add Admin',
 			'screenChatAdmins.adminsFooter' => 'Admins help manage the chat. Each admin\'s rights are set separately.',
 			'screenChatAdmins.adminsFooterOfCommunity' => 'Community admins are also admins in all its groups and channels, with the same rights.',
+			'screenChatAdmins.addModerator' => 'Add Moderator',
+			'screenChatAdmins.promoteModerator' => 'Make Moderator',
+			'screenChatAdmins.moderatorRights' => 'Moderator Rights',
+			'screenChatAdmins.newModerator' => 'New Moderator',
+			'screenChatAdmins.moderatorRankHint' => 'moderator',
+			'screenChatAdmins.moderatorRightsFooter' => 'A moderator manages only this chat: they can restrict or remove members, but only community admins can ban from the community and appoint moderators.',
+			'screenChatAdmins.dismissModerator' => 'Dismiss Moderator',
+			'screenChatAdmins.dismissModeratorTitle' => ({required Object name}) => 'Dismiss ${name} as moderator?',
+			'screenChatAdmins.dismissModeratorMessage' => 'They will stay in the chat without moderator rights.',
 			'screenChatAdmins.adminsFooterCommunity' => 'The community owner and admins manage all its chats — their rights are changed in the community. Here you can appoint moderators of this chat only.',
 			'screenChatAdmins.promote' => 'Make Admin',
 			'screenChatAdmins.adminRights' => 'Admin Rights',
@@ -3888,6 +3957,8 @@ extension on Translations {
 			'screenSettingsNotifications.reactionsGroups' => 'In groups',
 			'screenSettingsNotifications.reactionsFrom' => 'Notify about reactions from',
 			'screenSettingsNotifications.reactionsFromShort' => 'From',
+			_ => null,
+		} ?? switch (path) {
 			'screenSettingsNotifications.reactionsFromAll' => 'Everybody',
 			'screenSettingsNotifications.reactionsFromContacts' => 'My contacts',
 			'screenSettingsNotifications.reactionsNote' => 'Notifications about reactions to your messages. Reactions in channels are anonymous, so there are no notifications for them.',
@@ -3897,8 +3968,6 @@ extension on Translations {
 			'screenSettingsNotifications.messagePreviewNote' => 'Without a preview, notifications show only who sent the message.',
 			'screenSettingsNotifications.settingsSyncNote' => 'Settings apply to all your devices.',
 			'screenSettingsNotifications.permissionMissingTitle' => 'Notifications are turned off',
-			_ => null,
-		} ?? switch (path) {
 			'screenSettingsNotifications.permissionMissingMessage' => 'Iperon isn\'t allowed to show notifications on this device, so these settings won\'t take effect.',
 			'screenSettingsNotifications.enable' => 'Turn on',
 			'screenSettingsNotifications.loadError' => 'Couldn\'t load the settings',
@@ -3956,6 +4025,17 @@ extension on Translations {
 			'screenChatInfo.roleReader' => 'read only',
 			'screenChatInfo.roleCommunityOwner' => 'community owner',
 			'screenChatInfo.roleCommunityAdmin' => 'community admin',
+			'screenChatInfo.roleModerator' => 'moderator',
+			'screenChatInfo.membersHiddenNote' => 'Only admins can see the member list.',
+			'screenChatInfo.communityDefaults' => 'Same as Community',
+			'screenChatInfo.communityDefaultsOwn' => ({required Object list}) => 'Own: ${list}',
+			'screenChatInfo.communityDefaultsTitle' => 'Restore community settings?',
+			'screenChatInfo.communityDefaultsMessage' => 'New member rights, slow mode, reactions and newcomer limits will follow the community again and change along with it.',
+			'screenChatInfo.communityDefaultsReset' => 'Restore',
+			'screenChatInfo.inheritedDefaultRole' => 'new member rights',
+			'screenChatInfo.inheritedSlowMode' => 'slow mode',
+			'screenChatInfo.inheritedReactions' => 'reactions',
+			'screenChatInfo.inheritedNewcomer' => 'newcomer limits',
 			'screenChatInfo.you' => 'You',
 			'screenChatInfo.addMembers' => 'Add Members',
 			'screenChatInfo.add' => 'Add',

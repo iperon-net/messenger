@@ -94,7 +94,9 @@ class ChatCubit extends Cubit<ChatState> {
     // Участники / роли поменялись (в т.ч. в сообществе — его владелец, админы
     // и блокировки действуют во всех его чатах) — перечитываем загруженные.
     _membersSubscription = source.watchMembersChanged(chatID).listen((_) {
-      if (!isClosed && state.members.isNotEmpty) loadMembers();
+      if (isClosed) return;
+      if (state.members.isNotEmpty) loadMembers();
+      if (state.memberPage.isNotEmpty) loadMemberPage();
     });
     _scheduledSubscription = source.watchScheduled(chatID).listen((scheduled) {
       if (!isClosed) emit(state.copyWith(scheduled: scheduled));
@@ -460,6 +462,35 @@ class ChatCubit extends Cubit<ChatState> {
   Future<void> setMuted(bool muted, {DateTime? until}) async => _source?.setMuted(_chatID, muted, until: until);
 
   /// Профиль чата: участники группы (и заблокированные — для админа).
+  /// Курсор следующей страницы «Участников» и номер загрузки (перезагрузка
+  /// списка отменяет догрузку, начатую до неё).
+  String _memberCursor = '';
+  int _memberGeneration = 0;
+
+  /// «Участники» в профиле: [more] — следующая страница (у конца списка),
+  /// иначе — заново с начала (столько же, сколько было загружено).
+  Future<void> loadMemberPage({bool more = false}) async {
+    final source = _source;
+    if (source == null || (more && (state.memberPageLoading || !state.memberPageMore))) return;
+    final generation = more ? _memberGeneration : ++_memberGeneration;
+    emit(state.copyWith(memberPageLoading: true));
+    final page = await source.membersPage(
+      _chatID,
+      cursor: more ? _memberCursor : '',
+      limit: more ? 50 : math.max(50, state.memberPage.length),
+    );
+    if (isClosed || generation != _memberGeneration) return;
+    _memberCursor = page.nextCursor;
+    emit(
+      state.copyWith(
+        memberPage: more ? [...state.memberPage, ...page.members] : page.members,
+        memberPageMore: page.nextCursor.isNotEmpty,
+        memberPageLoading: false,
+        membersTotal: page.total,
+      ),
+    );
+  }
+
   Future<void> loadMembers() async {
     final source = _source;
     if (source == null) return;
@@ -570,6 +601,9 @@ class ChatCubit extends Cubit<ChatState> {
 
   /// Профиль чата → «Медленный режим» (админ): интервал в секундах, 0 — выкл.
   Future<void> setSlowMode(int seconds) async => _source?.setSlowMode(_chatID, seconds);
+
+  /// Чат сообщества: настройки по умолчанию — снова от сообщества.
+  Future<void> resetToCommunity() async => _source?.resetToCommunity(_chatID);
 
   /// Профиль чата: «Удалить чат» / «Покинуть группу».
   Future<void> deleteChat() async => _source?.delete(_chatID);

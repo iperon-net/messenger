@@ -55,7 +55,7 @@ class ChatsDemoDataSource implements ChatsDataSource {
     }
     return [
       for (final c in _chats)
-        if (c.type == models.ChatType.community) _summary(c, byCommunity[c.id] ?? const []) else _withRole(c),
+        if (c.type == models.ChatType.community) _summary(c, byCommunity[c.id] ?? const []) else _effective(c),
     ];
   }
 
@@ -131,18 +131,35 @@ class ChatsDemoDataSource implements ChatsDataSource {
   }
 
   @override
-  Future<void> setChatReactions(String chatID, models.ChatReactionsMode mode, List<String> reactions, {int? maxReactions}) async =>
-      _update(chatID, (c) => c.copyWith(reactionsMode: mode, reactions: reactions, maxReactions: maxReactions ?? c.maxReactions));
+  Future<void> setChatReactions(String chatID, models.ChatReactionsMode mode, List<String> reactions, {int? maxReactions}) async {
+    _update(chatID, (c) {
+      final community = _communityOf(c);
+      final same =
+          community != null &&
+          community.reactionsMode == mode &&
+          (mode != models.ChatReactionsMode.some || _sameList(community.reactions, reactions));
+      return _override(
+        c.copyWith(reactionsMode: mode, reactions: reactions, maxReactions: maxReactions ?? c.maxReactions),
+        models.ChatInheritedSetting.reactions,
+        same,
+      );
+    });
+  }
+
+  static bool _sameList(List<String> a, List<String> b) => a.length == b.length && a.toSet().containsAll(b);
 
   @override
-  Future<void> setSlowMode(String chatID, int seconds) async => _update(chatID, (c) => c.copyWith(slowMode: seconds));
+  Future<void> setSlowMode(String chatID, int seconds) async => _update(
+    chatID,
+    (c) => _override(c.copyWith(slowMode: seconds), models.ChatInheritedSetting.slowMode, _communityOf(c)?.slowMode == seconds),
+  );
 
   /// Медленный режим: после нашей отправки следующее — не раньше чем через
   /// `slowMode` секунд (настоящий сервер ещё и отклонит слишком раннее).
   void _slowModeSent(String chatID) {
-    final chat = _chats.where((c) => c.id == chatID).firstOrNull;
-    if (chat == null || !_withRole(chat).slowModeApplies) return;
-    _update(chatID, (c) => c.copyWith(slowModeUntil: DateTime.now().add(Duration(seconds: c.slowMode))));
+    final chat = _chat(chatID);
+    if (chat == null || !_effective(chat).slowModeApplies) return;
+    _update(chatID, (c) => c.copyWith(slowModeUntil: DateTime.now().add(Duration(seconds: chat.slowMode))));
   }
 
   final _members = <String, List<models.ChatMember>>{};
@@ -176,20 +193,107 @@ class ChatsDemoDataSource implements ChatsDataSource {
     return chat.myRole == models.ChatRole.owner ? models.ChatRole.admin : chat.myRole;
   }
 
-  /// [chat] с нашей ролью с учётом сообщества — как его видят подписчики.
-  models.Chat _withRole(models.Chat chat) => chat.inCommunity ? chat.copyWith(myRole: _roleIn(chat)) : chat;
+  /// Чат по id — каким его видят подписчики (см. [_effective]).
+  models.Chat? _chat(String chatID) {
+    final chat = _chats.where((c) => c.id == chatID).firstOrNull;
+    return chat == null ? null : _effective(chat);
+  }
+
+  /// Чат сообщества с учётом сообщества — на лету: наша роль ([_roleIn]) и
+  /// настройки по умолчанию от сообщества, кроме заданных своими
+  /// ([models.Chat.overrides]). Обычный чат — как есть.
+  models.Chat _effective(models.Chat chat) {
+    final community = _communityOf(chat);
+    if (community == null) return chat;
+    bool own(models.ChatInheritedSetting setting) => chat.overrides.contains(setting);
+    final group = chat.type == models.ChatType.group;
+    final reactions = own(models.ChatInheritedSetting.reactions);
+    return chat.copyWith(
+      myRole: _roleIn(chat),
+      defaultRole: group && !own(models.ChatInheritedSetting.defaultRole) ? community.defaultRole : chat.defaultRole,
+      slowMode: group && !own(models.ChatInheritedSetting.slowMode) ? community.slowMode : chat.slowMode,
+      reactionsMode: reactions ? chat.reactionsMode : community.reactionsMode,
+      reactions: reactions ? chat.reactions : community.reactions,
+      newcomerMediaDelay: own(models.ChatInheritedSetting.newcomerMediaDelay) ? chat.newcomerMediaDelay : community.newcomerMediaDelay,
+      // Видимость списка участников — настройка только сообщества (у
+      // каналов подписчиков видят админы, как обычно).
+      membersHidden: group ? community.membersHidden : chat.membersHidden,
+    );
+  }
+
+  /// Записать свою настройку [setting] чата сообщества: совпала с сообществом
+  /// ([same]) — снова берётся от него, иначе — своя.
+  models.Chat _override(models.Chat chat, models.ChatInheritedSetting setting, bool same) {
+    if (!chat.inCommunity) return chat;
+    final rest = chat.overrides.where((s) => s != setting).toList();
+    return chat.copyWith(overrides: same ? rest : [...rest, setting]);
+  }
+
+  @override
+  Future<void> resetToCommunity(String chatID) async => _update(chatID, (c) => c.copyWith(overrides: const []));
+
+  /// Сколько «известных» участников отдаёт [members] сверх владельца, админов
+  /// и нас — недавно активные (для упоминаний и выбора).
+  static const _knownMembers = 200;
+
+  /// Демо-список участников не длиннее (у больших сообществ `membersCount` —
+  /// тысячи; остальные «за кадром»).
+  static const _demoMembersLimit = 5000;
 
   @override
   Future<List<models.ChatMember>> members(String chatID) async {
-    final chat = _chats.where((c) => c.id == chatID).firstOrNull;
+    final all = _byActivity(_allMembers(chatID));
+    return all.take(_staffCount(all) + _knownMembers).toList();
+  }
+
+  @override
+  Future<ChatMembersPage> membersPage(String chatID, {String cursor = '', int limit = 50}) async {
+    final chat = _chat(chatID);
+    if (chat == null) return const ChatMembersPage(members: [], nextCursor: '', total: 0);
+    var all = _byActivity(_allMembers(chatID));
+    // Скрытый список — не админу только владелец и админы (сервер не отдаёт
+    // остальных).
+    if (chat.membersHidden && !chat.canManage) all = all.take(_staffCount(all)).toList();
+    final from = min(int.tryParse(cursor) ?? 0, all.length);
+    final to = min(from + limit, all.length);
+    await Future<void>.delayed(const Duration(milliseconds: 250)); // как запрос к серверу
+    return ChatMembersPage(
+      members: all.sublist(from, to),
+      nextCursor: to < all.length ? '$to' : '',
+      total: chat.membersHidden && !chat.canManage ? all.length : max(chat.membersCount, all.length),
+    );
+  }
+
+  /// Все участники чата (у чата сообщества — с владельцем и админами
+  /// сообщества): владелец и админы первыми.
+  List<models.ChatMember> _allMembers(String chatID) {
+    final chat = _chat(chatID);
     if (chat == null || chat.type == models.ChatType.private) return const [];
     final community = _communityOf(chat);
     return community == null ? _own(chat) : _inherit(community, _own(chat));
   }
 
+  /// Владелец, админы (модераторы), затем по активности: в сети, потом по
+  /// времени последнего визита (давно / скрыто — в конце).
+  static List<models.ChatMember> _byActivity(List<models.ChatMember> members) {
+    int rank(models.ChatMember m) => m.role == models.ChatRole.owner ? 0 : (m.role == models.ChatRole.admin ? 1 : 2);
+    int seen(models.ChatMember m) => m.online || m.isSelf ? 1 << 62 : (m.lastSeen?.millisecondsSinceEpoch ?? 0);
+    final indexed = members.indexed.toList()
+      ..sort((a, b) {
+        final byRank = rank(a.$2).compareTo(rank(b.$2));
+        if (byRank != 0) return byRank;
+        final bySeen = seen(b.$2).compareTo(seen(a.$2));
+        return bySeen != 0 ? bySeen : a.$1.compareTo(b.$1);
+      });
+    return [for (final (_, m) in indexed) m];
+  }
+
+  static int _staffCount(List<models.ChatMember> members) =>
+      members.where((m) => m.role == models.ChatRole.owner || m.role == models.ChatRole.admin).length;
+
   /// Участники чата [chat] — свои, без учёта сообщества.
   List<models.ChatMember> _ownByID(String chatID) {
-    final chat = _chats.where((c) => c.id == chatID).firstOrNull;
+    final chat = _chat(chatID);
     return chat == null || chat.type == models.ChatType.private ? const [] : _own(chat);
   }
 
@@ -225,23 +329,30 @@ class ChatsDemoDataSource implements ChatsDataSource {
       final now = DateTime.now();
       // Демо: участники из имён истории + «Вы»; список — первые до 30.
       const surnames = ['Смирнова', 'Козлов', 'Иванова', 'Петров', 'Соколова', 'Морозов', 'Волкова', 'Новиков'];
-      final count = min(chat.membersCount, 30);
-      // Мы-админ — со всеми правами (в демо можно показать назначение админов).
+      final count = min(chat.membersCount, _demoMembersLimit);
+      // Мы-админ — со всеми правами (в демо можно показать назначение админов);
+      // в чате сообщества свой админ — модератор темы (без назначения админов).
+      final moderators = chat.inCommunity;
       final result = <models.ChatMember>[
-        models.ChatMember(
-          id: 'me',
-          name: 'Вы',
-          role: chat.myRole,
-          online: true,
-          isSelf: true,
-          rights: chat.myRole == models.ChatRole.admin ? models.ChatAdminRights.all : const models.ChatAdminRights(),
-        ),
+        if (chat.isMember)
+          models.ChatMember(
+            id: 'me',
+            name: 'Вы',
+            role: chat.myRole,
+            online: true,
+            isSelf: true,
+            rights: chat.myRole == models.ChatRole.admin
+                ? (moderators ? models.ChatAdminRights.standard : models.ChatAdminRights.all)
+                : const models.ChatAdminRights(),
+          ),
       ];
       for (var i = 0; result.length < count; i++) {
         final name = '${_names[i % _names.length]} ${surnames[(i * 3) % surnames.length]}';
         final role = i == 0 && chat.myRole != models.ChatRole.owner
             ? models.ChatRole.owner
-            : i < 2
+            // В группе сообщества u5 — модератор темы (u0 / u1 — админы
+            // сообщества, их роль берётся оттуда).
+            : i < 2 || (i == 5 && moderators && chat.type == models.ChatType.group)
             ? models.ChatRole.admin
             : (i % 4 == 3 ? models.ChatRole.reader : models.ChatRole.writer);
         result.add(
@@ -253,8 +364,9 @@ class ChatsDemoDataSource implements ChatsDataSource {
             role: role,
             rights: role == models.ChatRole.admin ? models.ChatAdminRights.standard : const models.ChatAdminRights(),
             rank: role == models.ChatRole.admin && i == 1 ? 'модератор' : '',
-            online: i % 3 == 0,
-            lastSeen: i % 3 == 0 ? null : now.subtract(Duration(minutes: 7 + i * 53)),
+            // В больших чатах в сети — немногие.
+            online: i % 3 == 0 && i < 60,
+            lastSeen: i % 3 == 0 && i < 60 ? null : now.subtract(Duration(minutes: 7 + (i * 53) % 200000)),
           ),
         );
       }
@@ -389,7 +501,9 @@ class ChatsDemoDataSource implements ChatsDataSource {
       joinMode: username.isEmpty ? models.ChatJoinMode.link : models.ChatJoinMode.open,
       avatarPath: avatarPath,
       commentsEnabled: type == models.ChatType.channel,
-      membersHidden: type == models.ChatType.channel,
+      // Подписчиков канала и участников сообщества (их могут быть сотни
+      // тысяч) по умолчанию видят только админы.
+      membersHidden: type == models.ChatType.channel || type == models.ChatType.community,
       membersCount: 1 + members.length,
       myRole: myRole,
       createdAt: now,
@@ -399,19 +513,13 @@ class ChatsDemoDataSource implements ChatsDataSource {
       ..._chats,
       if (community != null)
         // Чат сообщества: своих ссылок нет, настройки по умолчанию — от
-        // сообщества (админ может поменять у конкретного чата).
+        // сообщества на лету (см. [_effective]; админ может задать свои).
         chat.copyWith(
           communityID: community.id,
           username: '',
           inviteLink: '',
           // Одним нажатием / по заявке (закрытая тема) / скрытая (добавляют админы).
           joinMode: joinMode == models.ChatJoinMode.link ? models.ChatJoinMode.open : joinMode,
-          defaultRole: type == models.ChatType.channel ? models.ChatRole.reader : community.defaultRole,
-          slowMode: type == models.ChatType.channel ? 0 : community.slowMode,
-          reactionsMode: community.reactionsMode,
-          reactions: community.reactions,
-          newcomerMediaDelay: community.newcomerMediaDelay,
-          membersHidden: false,
         )
       else
         chat,
@@ -470,12 +578,27 @@ class ChatsDemoDataSource implements ChatsDataSource {
     bool signMessages = false,
     bool membersHidden = false,
   }) async {
-    final chat = _chats.where((c) => c.id == chatID).firstOrNull;
+    final chat = _chat(chatID);
     if (chat == null) return;
     final open = joinMode == models.ChatJoinMode.open;
+    // Чат сообщества: изменённая настройка по умолчанию становится своей
+    // (совпала с сообществом — снова от него); не трогали — как была.
+    final community = _communityOf(chat);
+    models.Chat inherit(models.Chat c) {
+      if (community == null) return c;
+      var result = c;
+      if (defaultRole != chat.defaultRole) {
+        result = _override(result, models.ChatInheritedSetting.defaultRole, defaultRole == community.defaultRole);
+      }
+      if (newcomerMediaDelay != chat.newcomerMediaDelay) {
+        result = _override(result, models.ChatInheritedSetting.newcomerMediaDelay, newcomerMediaDelay == community.newcomerMediaDelay);
+      }
+      return result;
+    }
+
     _update(
       chatID,
-      (c) => c.copyWith(
+      (c) => inherit(c).copyWith(
         title: title,
         about: about,
         avatarPath: avatarPath,
@@ -537,7 +660,7 @@ class ChatsDemoDataSource implements ChatsDataSource {
   /// Ссылки чата; при первом обращении — основная (из `Chat.inviteLink`) и у
   /// «Команды Iperon» несколько дополнительных для наглядности.
   List<models.ChatInviteLink> _linksOf(String chatID) => _links.putIfAbsent(chatID, () {
-    final chat = _chats.where((c) => c.id == chatID).firstOrNull;
+    final chat = _chat(chatID);
     final now = DateTime.now();
     var code = chat?.inviteLink ?? '';
     if (code.isEmpty) {
@@ -696,7 +819,7 @@ class ChatsDemoDataSource implements ChatsDataSource {
   /// Заявки возможны: вступление «по заявке» или есть живая ссылка с
   /// одобрением.
   bool _acceptsRequests(models.Chat chat) {
-    if (!_withRole(chat).canManage || chat.type == models.ChatType.private) return false;
+    if (!_effective(chat).canManage || chat.type == models.ChatType.private) return false;
     if (chat.joinMode == models.ChatJoinMode.request) return true;
     final now = DateTime.now();
     return (_links[chat.id] ?? const <models.ChatInviteLink>[]).any((l) => l.requestApproval && l.isActive(now));
@@ -716,7 +839,7 @@ class ChatsDemoDataSource implements ChatsDataSource {
     _setRequests(chatID, all.where((r) => !answered.contains(r)).toList());
     if (!approve) return;
 
-    final chat = _chats.where((c) => c.id == chatID).firstOrNull;
+    final chat = _chat(chatID);
     if (chat == null) return;
     _update(chatID, (c) => c.copyWith(membersCount: c.membersCount + answered.length));
     final members = _members[chatID];
@@ -774,12 +897,15 @@ class ChatsDemoDataSource implements ChatsDataSource {
 
   @override
   Future<void> removeMember(String chatID, String userID, {bool ban = false}) async {
-    final chat = _chats.where((c) => c.id == chatID).firstOrNull;
+    final chat = _chat(chatID);
     if (chat == null) return;
-    final member = (await members(chatID)).where((m) => m.id == userID && !m.fromCommunity).firstOrNull;
+    final member = _allMembers(chatID).where((m) => m.id == userID && !m.fromCommunity).firstOrNull;
     if (member == null) return;
     final community = _communityOf(chat);
     if (ban && community != null) {
+      // Блокировка в сообществе — только его владельцу и админам (модератор
+      // темы может ограничить и исключить из своего чата).
+      if (!_allMembers(chatID).any((m) => m.isSelf && m.fromCommunity)) return;
       // Своего списка блокировок у чата сообщества нет — блокируем в самом
       // сообществе: исключён из него и из всех его чатов.
       _expel(community.id, member, ban: true);
@@ -811,7 +937,7 @@ class ChatsDemoDataSource implements ChatsDataSource {
 
   /// Чьи блокировки действуют в [chatID]: у чата сообщества — сообщества.
   String _banScope(String chatID) {
-    final chat = _chats.where((c) => c.id == chatID).firstOrNull;
+    final chat = _chat(chatID);
     return chat == null ? chatID : (_communityOf(chat)?.id ?? chatID);
   }
 
@@ -832,9 +958,9 @@ class ChatsDemoDataSource implements ChatsDataSource {
 
   @override
   Future<void> addMembers(String chatID, List<String> userIDs) async {
-    final chat = _chats.where((c) => c.id == chatID).firstOrNull;
+    final chat = _chat(chatID);
     if (chat == null) return;
-    final present = {for (final m in await members(chatID)) m.id};
+    final present = {for (final m in _allMembers(chatID)) m.id};
     final contacts = {for (final c in _contacts()) c.id: c};
     final added = [
       for (final id in userIDs)
@@ -865,14 +991,18 @@ class ChatsDemoDataSource implements ChatsDataSource {
 
   /// Владелец и админы сообщества в его чате — их роль и права меняются
   /// только в сообществе.
-  Future<bool> _inheritedAdmin(String chatID, String userID) async => (await members(chatID)).any((m) => m.id == userID && m.fromCommunity);
+  Future<bool> _inheritedAdmin(String chatID, String userID) async => _allMembers(chatID).any((m) => m.id == userID && m.fromCommunity);
 
   @override
   Future<void> setAdmin(String chatID, String userID, {required models.ChatAdminRights rights, String rank = ''}) async {
     if (await _inheritedAdmin(chatID, userID)) return;
+    // Свой админ чата сообщества — модератор темы: других админов не назначает
+    // (это право админов сообщества).
+    final inCommunity = _chats.any((c) => c.id == chatID && c.inCommunity);
+    final granted = inCommunity ? rights.copyWith(addAdmins: false) : rights;
     _members[chatID] = [
       for (final m in _ownByID(chatID))
-        m.id == userID && m.role != models.ChatRole.owner ? m.copyWith(role: models.ChatRole.admin, rights: rights, rank: rank) : m,
+        m.id == userID && m.role != models.ChatRole.owner ? m.copyWith(role: models.ChatRole.admin, rights: granted, rank: rank) : m,
     ];
     _membersChanged(chatID);
   }
@@ -891,7 +1021,7 @@ class ChatsDemoDataSource implements ChatsDataSource {
 
   @override
   Future<void> transferOwnership(String chatID, String userID) async {
-    final chat = _chats.where((c) => c.id == chatID).firstOrNull;
+    final chat = _chat(chatID);
     // Владелец чата сообщества — всегда владелец сообщества: владение
     // передаётся только у всего сообщества (вместе со всеми его чатами).
     if (chat == null || chat.inCommunity) return;
@@ -982,7 +1112,7 @@ class ChatsDemoDataSource implements ChatsDataSource {
 
   @override
   Future<void> joinChat(String chatID) async {
-    final chat = _chats.where((c) => c.id == chatID).firstOrNull;
+    final chat = _chat(chatID);
     // В скрытую группу сообщества самому не вступить — добавляют админы.
     if (chat == null || chat.isMember || (chat.inCommunity && chat.joinMode == models.ChatJoinMode.admins)) return;
     if (chat.joinMode == models.ChatJoinMode.request) {
@@ -995,7 +1125,7 @@ class ChatsDemoDataSource implements ChatsDataSource {
   }
 
   void _becomeMember(String chatID) {
-    final chat = _chats.where((c) => c.id == chatID).firstOrNull;
+    final chat = _chat(chatID);
     if (chat == null || chat.isMember) return;
     // В сообщество — вместе с каналом объявлений (своей ленты у него нет).
     if (chat.type == models.ChatType.community) {
@@ -1017,8 +1147,20 @@ class ChatsDemoDataSource implements ChatsDataSource {
         joinedAt: DateTime.now(),
       ),
     );
-    _members.remove(chatID);
+    _setSelf(chatID, role);
     _service(chatID, chat.type == models.ChatType.channel ? 'Вы подписались на канал' : 'Вы вступили в группу');
+  }
+
+  /// Мы в участниках [chatID] с ролью [role] (`null` — вышли). Остальной
+  /// список не пересоздаём — иначе вернулись бы исключённые из демо-списка.
+  void _setSelf(String chatID, models.ChatRole? role) {
+    final own = _members[chatID];
+    if (own == null) return; // ещё не создан — создастся уже с нами
+    _members[chatID] = [
+      if (role != null) models.ChatMember(id: 'me', name: 'Вы', role: role, online: true, isSelf: true),
+      ...own.where((m) => !m.isSelf),
+    ];
+    _membersChanged(chatID);
   }
 
   // ─── Опросы ───────────────────────────────────────────────────────────────
@@ -1161,7 +1303,7 @@ class ChatsDemoDataSource implements ChatsDataSource {
       signMessages: const {'news', 'iperon_dev'}.contains(chat.id),
       // Подписчиков канала по умолчанию видят только админы; у ресторана —
       // и участников сообщества (гостям незачем видеть друг друга).
-      membersHidden: chat.type == models.ChatType.channel || chat.id == 'spices',
+      membersHidden: chat.type == models.ChatType.channel || const {'spices', 'devs', 'district'}.contains(chat.id),
     );
   }
 
@@ -1190,7 +1332,12 @@ class ChatsDemoDataSource implements ChatsDataSource {
       'devs' => chat.copyWith(about: 'Русскоязычное сообщество Flutter-разработчиков.', username: 'flutter_ru', membersCount: 8420),
       'devs_news' => chat.copyWith(membersCount: 8420),
       // Большой общий чат — с медленным режимом (мы обычный участник).
-      'devs_chat' => chat.copyWith(about: 'Вопросы, обсуждения, новости.', membersCount: 6130, slowMode: 30),
+      'devs_chat' => chat.copyWith(
+        about: 'Вопросы, обсуждения, новости.',
+        membersCount: 6130,
+        slowMode: 30,
+        overrides: const [models.ChatInheritedSetting.slowMode],
+      ),
       'devs_jobs' => chat.copyWith(about: 'Вакансии и резюме. Публикуют админы.', membersCount: 3900),
       'devs_newbies' => chat.copyWith(about: 'Здесь можно спрашивать что угодно.', membersCount: 1210),
       'spices' => chat.copyWith(
@@ -1262,12 +1409,12 @@ class ChatsDemoDataSource implements ChatsDataSource {
 
   @override
   Future<void> delete(String chatID) async {
-    final chat = _chats.where((c) => c.id == chatID).firstOrNull;
+    final chat = _chat(chatID);
     if (chat == null) return;
     // Из группы / канала сообщества выходим, но чат остаётся в сообществе —
     // можно вступить снова; удаляет его у всех только владелец.
     if (chat.inCommunity && _roleIn(chat) != models.ChatRole.owner) {
-      _members.remove(chatID);
+      _setSelf(chatID, null);
       _update(
         chatID,
         (c) => c.copyWith(
@@ -1338,7 +1485,7 @@ class ChatsDemoDataSource implements ChatsDataSource {
   void _setMessages(String chatID, List<models.Message> messages) {
     _messages[chatID] = messages;
     _messagesController.add(chatID);
-    final chat = _chats.where((c) => c.id == chatID).firstOrNull;
+    final chat = _chat(chatID);
     if (chat != null && chat.isThread) _syncComments(chat);
   }
 
@@ -1578,7 +1725,7 @@ class ChatsDemoDataSource implements ChatsDataSource {
     final message = _history(chatID).where((m) => m.id == messageID).firstOrNull;
     if (message == null) return;
     Timer(const Duration(milliseconds: 700), () => _setStatus(chatID, message.id, models.MessageStatus.sent));
-    final chat = _chats.where((c) => c.id == chatID).firstOrNull;
+    final chat = _chat(chatID);
     if (chat == null || chat.isSelf) {
       Timer(const Duration(milliseconds: 900), () => _setStatus(chatID, message.id, models.MessageStatus.read));
       return;
@@ -1606,7 +1753,7 @@ class ChatsDemoDataSource implements ChatsDataSource {
 
   /// Входящее в чат: в историю (если она уже открыта) и в список чатов.
   void _incoming(String chatID, {bool mention = false}) {
-    final chat = _chats.where((c) => c.id == chatID).firstOrNull;
+    final chat = _chat(chatID);
     if (chat == null) return;
     final sender = chat.typing.isNotEmpty
         ? chat.typing
@@ -1719,7 +1866,7 @@ class ChatsDemoDataSource implements ChatsDataSource {
 
   @override
   Future<void> setDraft(String chatID, String draft) async {
-    final chat = _chats.where((c) => c.id == chatID).firstOrNull;
+    final chat = _chat(chatID);
     if (chat == null || chat.draft == draft) return;
     _update(chatID, (c) => c.copyWith(draft: draft));
   }
@@ -2070,6 +2217,8 @@ class ChatsDemoDataSource implements ChatsDataSource {
         group,
         'Соседи',
         unread: 25,
+        // Мы — модератор темы (не админ сообщества).
+        role: models.ChatRole.admin,
         last: msg('Кто-нибудь видел рыжего кота у 2-го подъезда?', sender: 'Ольга', date: ago(hours: 4)),
       ),
       chat(
@@ -2247,7 +2396,7 @@ class ChatsDemoDataSource implements ChatsDataSource {
   /// История чата для демо: несколько дней переписки, кончается тем же
   /// последним сообщением, что видно в списке.
   List<models.Message> _seedMessages(String chatID) {
-    final chat = _chats.where((c) => c.id == chatID).firstOrNull;
+    final chat = _chat(chatID);
     // У сообщества своей ленты нет — сообщения в его чатах.
     if (chat == null || chat.type == models.ChatType.community) return [];
     final now = DateTime.now();
@@ -2472,7 +2621,7 @@ class ChatsDemoDataSource implements ChatsDataSource {
   Future<String> openComments(String channelID, String postID) async {
     final threadID = _threadID(channelID, postID);
     if (_chats.any((c) => c.id == threadID)) return threadID;
-    final channel = _chats.where((c) => c.id == channelID).firstOrNull;
+    final channel = _chat(channelID);
     final post = _history(channelID).where((m) => m.id == postID).firstOrNull;
     if (channel == null || post == null) return '';
 
@@ -2538,7 +2687,7 @@ class ChatsDemoDataSource implements ChatsDataSource {
   /// Срок комментариев нового поста в канале [chatID] (по «Сроку
   /// комментирования» на момент публикации); `null` — бессрочно / не канал.
   DateTime? _commentsCloseDate(String chatID, DateTime date) {
-    final chat = _chats.where((c) => c.id == chatID).firstOrNull;
+    final chat = _chat(chatID);
     if (chat == null || chat.type != models.ChatType.channel || chat.commentsTimeLimit <= 0) return null;
     return date.add(Duration(seconds: chat.commentsTimeLimit));
   }

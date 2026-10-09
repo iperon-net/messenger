@@ -208,6 +208,34 @@ class ChatStateMapper extends ClassMapperBase<ChatState> {
     opt: true,
     def: const [],
   );
+  static List<models.ChatMember> _$memberPage(ChatState v) => v.memberPage;
+  static const Field<ChatState, List<models.ChatMember>> _f$memberPage = Field(
+    'memberPage',
+    _$memberPage,
+    opt: true,
+    def: const [],
+  );
+  static bool _$memberPageMore(ChatState v) => v.memberPageMore;
+  static const Field<ChatState, bool> _f$memberPageMore = Field(
+    'memberPageMore',
+    _$memberPageMore,
+    opt: true,
+    def: false,
+  );
+  static bool _$memberPageLoading(ChatState v) => v.memberPageLoading;
+  static const Field<ChatState, bool> _f$memberPageLoading = Field(
+    'memberPageLoading',
+    _$memberPageLoading,
+    opt: true,
+    def: false,
+  );
+  static int _$membersTotal(ChatState v) => v.membersTotal;
+  static const Field<ChatState, int> _f$membersTotal = Field(
+    'membersTotal',
+    _$membersTotal,
+    opt: true,
+    def: 0,
+  );
   static List<models.ChatMember> _$banned(ChatState v) => v.banned;
   static const Field<ChatState, List<models.ChatMember>> _f$banned = Field(
     'banned',
@@ -277,6 +305,10 @@ class ChatStateMapper extends ClassMapperBase<ChatState> {
     #scheduled: _f$scheduled,
     #linkPreviewDisabled: _f$linkPreviewDisabled,
     #members: _f$members,
+    #memberPage: _f$memberPage,
+    #memberPageMore: _f$memberPageMore,
+    #memberPageLoading: _f$memberPageLoading,
+    #membersTotal: _f$membersTotal,
     #banned: _f$banned,
     #slowModeLeft: _f$slowModeLeft,
     #commentsClosedIDs: _f$commentsClosedIDs,
@@ -307,6 +339,10 @@ class ChatStateMapper extends ClassMapperBase<ChatState> {
       scheduled: data.dec(_f$scheduled),
       linkPreviewDisabled: data.dec(_f$linkPreviewDisabled),
       members: data.dec(_f$members),
+      memberPage: data.dec(_f$memberPage),
+      memberPageMore: data.dec(_f$memberPageMore),
+      memberPageLoading: data.dec(_f$memberPageLoading),
+      membersTotal: data.dec(_f$membersTotal),
       banned: data.dec(_f$banned),
       slowModeLeft: data.dec(_f$slowModeLeft),
       commentsClosedIDs: data.dec(_f$commentsClosedIDs),
@@ -420,6 +456,12 @@ abstract class ChatStateCopyWith<$R, $In extends ChatState, $Out>
     models.ChatMember,
     models.ChatMemberCopyWith<$R, models.ChatMember, models.ChatMember>
   >
+  get memberPage;
+  ListCopyWith<
+    $R,
+    models.ChatMember,
+    models.ChatMemberCopyWith<$R, models.ChatMember, models.ChatMember>
+  >
   get banned;
   ListCopyWith<$R, String, ObjectCopyWith<$R, String, String>>
   get commentsClosedIDs;
@@ -443,6 +485,10 @@ abstract class ChatStateCopyWith<$R, $In extends ChatState, $Out>
     List<models.Message>? scheduled,
     bool? linkPreviewDisabled,
     List<models.ChatMember>? members,
+    List<models.ChatMember>? memberPage,
+    bool? memberPageMore,
+    bool? memberPageLoading,
+    int? membersTotal,
     List<models.ChatMember>? banned,
     int? slowModeLeft,
     List<String>? commentsClosedIDs,
@@ -553,6 +599,17 @@ class _ChatStateCopyWithImpl<$R, $Out>
     models.ChatMember,
     models.ChatMemberCopyWith<$R, models.ChatMember, models.ChatMember>
   >
+  get memberPage => ListCopyWith(
+    $value.memberPage,
+    (v, t) => v.copyWith.$chain(t),
+    (v) => call(memberPage: v),
+  );
+  @override
+  ListCopyWith<
+    $R,
+    models.ChatMember,
+    models.ChatMemberCopyWith<$R, models.ChatMember, models.ChatMember>
+  >
   get banned => ListCopyWith(
     $value.banned,
     (v, t) => v.copyWith.$chain(t),
@@ -586,6 +643,10 @@ class _ChatStateCopyWithImpl<$R, $Out>
     List<models.Message>? scheduled,
     bool? linkPreviewDisabled,
     List<models.ChatMember>? members,
+    List<models.ChatMember>? memberPage,
+    bool? memberPageMore,
+    bool? memberPageLoading,
+    int? membersTotal,
     List<models.ChatMember>? banned,
     int? slowModeLeft,
     List<String>? commentsClosedIDs,
@@ -615,6 +676,10 @@ class _ChatStateCopyWithImpl<$R, $Out>
       if (linkPreviewDisabled != null)
         #linkPreviewDisabled: linkPreviewDisabled,
       if (members != null) #members: members,
+      if (memberPage != null) #memberPage: memberPage,
+      if (memberPageMore != null) #memberPageMore: memberPageMore,
+      if (memberPageLoading != null) #memberPageLoading: memberPageLoading,
+      if (membersTotal != null) #membersTotal: membersTotal,
       if (banned != null) #banned: banned,
       if (slowModeLeft != null) #slowModeLeft: slowModeLeft,
       if (commentsClosedIDs != null) #commentsClosedIDs: commentsClosedIDs,
@@ -648,6 +713,13 @@ class _ChatStateCopyWithImpl<$R, $Out>
       or: $value.linkPreviewDisabled,
     ),
     members: data.get(#members, or: $value.members),
+    memberPage: data.get(#memberPage, or: $value.memberPage),
+    memberPageMore: data.get(#memberPageMore, or: $value.memberPageMore),
+    memberPageLoading: data.get(
+      #memberPageLoading,
+      or: $value.memberPageLoading,
+    ),
+    membersTotal: data.get(#membersTotal, or: $value.membersTotal),
     banned: data.get(#banned, or: $value.banned),
     slowModeLeft: data.get(#slowModeLeft, or: $value.slowModeLeft),
     commentsClosedIDs: data.get(

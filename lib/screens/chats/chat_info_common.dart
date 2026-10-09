@@ -28,11 +28,15 @@ class ChatInfoResult {
 
 enum ChatInfoTab { members, media, files, links, voice }
 
-/// Вкладки профиля: первыми — участники (у канала — подписчики), если список
-/// не скрыт ([models.Chat.membersHidden]; админам виден всегда). У сообщества
+/// Вкладки профиля: первыми — участники (у канала — подписчики, если список не
+/// скрыт; админам виден всегда). Скрытый список группы / сообщества не админ
+/// видит только из владельца и админов ([membersOnlyAdmins]). У сообщества
 /// своей ленты нет — только участники.
 List<ChatInfoTab> chatInfoTabs(models.Chat chat) => [
-  if (chat.type != models.ChatType.private && !chat.isThread && (!chat.membersHidden || chat.canManage)) ChatInfoTab.members,
+  if (chat.type != models.ChatType.private &&
+      !chat.isThread &&
+      (!chat.membersHidden || chat.canManage || chat.type != models.ChatType.channel))
+    ChatInfoTab.members,
   if (chat.type != models.ChatType.community) ...[ChatInfoTab.media, ChatInfoTab.files, ChatInfoTab.links, ChatInfoTab.voice],
 ];
 
@@ -63,6 +67,45 @@ String chatLeaveLabel(Translations t, models.Chat chat) => switch (chat.type) {
   );
 }
 
+/// Свой админ чата сообщества (не админ сообщества) — модератор темы:
+/// управляет только этим чатом, других не назначает и в сообществе не
+/// блокирует (см. «Настройки групп и каналов внутри сообщества» в
+/// docs/plans/chats-groups-channels.md).
+bool isTopicModerator(models.Chat chat, models.ChatMember member) =>
+    chat.inCommunity && member.role == models.ChatRole.admin && !member.fromCommunity;
+
+/// «Свои: медленный режим, реакции» — какие настройки чата сообщества заданы
+/// свои, а не от сообщества; `null` — все от сообщества.
+String? communityOverridesText(Translations t, models.Chat chat) {
+  if (!chat.inCommunity || chat.overrides.isEmpty) return null;
+  final i = t.screenChatInfo;
+  final names = [
+    for (final setting in models.ChatInheritedSetting.values)
+      if (chat.overrides.contains(setting))
+        switch (setting) {
+          models.ChatInheritedSetting.defaultRole => i.inheritedDefaultRole,
+          models.ChatInheritedSetting.slowMode => i.inheritedSlowMode,
+          models.ChatInheritedSetting.reactions => i.inheritedReactions,
+          models.ChatInheritedSetting.newcomerMediaDelay => i.inheritedNewcomer,
+        },
+  ];
+  return i.communityDefaultsOwn(list: names.join(', '));
+}
+
+/// Пункт меню участника: «Назначить админом / модератором» или «Права
+/// админа / модератора» (в чате сообщества свои админы — модераторы темы).
+String promoteMemberLabel(Translations t, models.Chat chat, models.ChatMember member) {
+  final a = t.screenChatAdmins;
+  if (member.role == models.ChatRole.admin) return chat.inCommunity ? a.moderatorRights : a.adminRights;
+  return chat.inCommunity ? a.promoteModerator : a.promote;
+}
+
+/// «Заблокировать» [target]: в чате сообщества блокировка — во всём
+/// сообществе, поэтому только его владельцу и админам (модератор темы может
+/// лишь ограничить и исключить).
+bool canBanMember(models.Chat chat, List<models.ChatMember> members, models.ChatMember target) =>
+    canRestrictMember(chat, members, target) && (!chat.inCommunity || members.any((m) => m.isSelf && m.fromCommunity));
+
 /// Пояснение под списком админов: у сообщества — что его админы действуют во
 /// всех его чатах, у чата сообщества — что их права меняются в сообществе.
 String chatAdminsFooter(Translations t, models.Chat chat) => chat.type == models.ChatType.community
@@ -84,8 +127,14 @@ String chatAdminsFooter(Translations t, models.Chat chat) => chat.type == models
 /// После выхода: из чата сообщества — обратно в сообщество, иначе — в список.
 String chatLeaveRoute(models.Chat chat) => chat.inCommunity ? '/chats/chat/${chat.communityID}' : '/chats';
 
+/// Список участников скрыт, а мы не админ — видим только владельца и админов.
+bool membersOnlyAdmins(models.Chat chat) => chat.membersHidden && !chat.canManage;
+
 String chatInfoTabLabel(Translations t, ChatInfoTab tab, models.Chat chat) => switch (tab) {
-  ChatInfoTab.members => chat.type == models.ChatType.channel ? t.screenChatInfo.tabSubscribers : t.screenChatInfo.tabMembers,
+  ChatInfoTab.members =>
+    membersOnlyAdmins(chat)
+        ? t.screenChatAdmins.admins
+        : (chat.type == models.ChatType.channel ? t.screenChatInfo.tabSubscribers : t.screenChatInfo.tabMembers),
   ChatInfoTab.media => t.screenChatInfo.tabMedia,
   ChatInfoTab.files => t.screenChatInfo.tabFiles,
   ChatInfoTab.links => t.screenChatInfo.tabLinks,
@@ -159,7 +208,14 @@ enum ChatAdminRight {
   addAdmins,
 }
 
-List<ChatAdminRight> adminRightsFor(models.ChatType type) => type == models.ChatType.channel
+/// Права, которые можно выдать админу чата [chat]: модератору темы (в чате
+/// сообщества) — без назначения админов.
+List<ChatAdminRight> adminRightsFor(models.Chat chat) => [
+  for (final right in _adminRightsOf(chat.type))
+    if (!chat.inCommunity || right != ChatAdminRight.addAdmins) right,
+];
+
+List<ChatAdminRight> _adminRightsOf(models.ChatType type) => type == models.ChatType.channel
     ? const [
         ChatAdminRight.changeInfo,
         ChatAdminRight.postMessages,
@@ -221,8 +277,9 @@ models.ChatAdminRights withAdminRight(models.ChatAdminRights rights, ChatAdminRi
 
 /// Подпись роли в списке: «звание» админа, иначе «владелец» / «админ» /
 /// «только чтение».
-String? memberRoleLabel(Translations t, models.ChatMember member) {
+String? memberRoleLabel(Translations t, models.ChatMember member, models.Chat chat) {
   if (member.role == models.ChatRole.admin && member.rank.isNotEmpty) return member.rank;
+  if (isTopicModerator(chat, member)) return t.screenChatInfo.roleModerator;
   // Владелец и админы сообщества в его чате.
   if (member.fromCommunity && member.role == models.ChatRole.owner) return t.screenChatInfo.roleCommunityOwner;
   if (member.fromCommunity && member.role == models.ChatRole.admin) return t.screenChatInfo.roleCommunityAdmin;
@@ -299,7 +356,7 @@ class ChatInfoTabContent extends StatelessWidget {
         children: [
           if (onAddMembers != null) _AddMembersRow(style: style, onTap: onAddMembers!),
           for (final m in members)
-            _wrapMember(m, _MemberRow(member: m, style: style, onTap: onMemberTap == null ? null : () => onMemberTap!(m))),
+            _wrapMember(m, _MemberRow(member: m, chat: chat, style: style, onTap: onMemberTap == null ? null : () => onMemberTap!(m))),
         ],
       ),
       ChatInfoTab.media => _media(context),
@@ -362,6 +419,78 @@ class ChatInfoTabContent extends StatelessWidget {
   }
 }
 
+/// Вкладка «Участники» ленивым списком: строки строятся по мере прокрутки, а
+/// следующая страница догружается у конца (`ChatCubit.loadMemberPage`) — в
+/// сообществе участников могут быть сотни тысяч. Карточка — фоном под списком
+/// ([decoration]), отступы — [margin].
+class ChatMembersSliver extends StatelessWidget {
+  final models.Chat chat;
+  final List<models.ChatMember> members;
+
+  /// Грузится следующая страница — внизу [loader].
+  final bool loading;
+  final Widget loader;
+  final ChatInfoStyle style;
+  final Decoration decoration;
+  final EdgeInsets margin;
+  final ValueChanged<models.ChatMember>? onMemberTap;
+  final VoidCallback? onAddMembers;
+  final Widget Function(models.ChatMember member, Widget row)? memberWrapper;
+
+  const ChatMembersSliver({
+    super.key,
+    required this.chat,
+    required this.members,
+    required this.loading,
+    required this.loader,
+    required this.style,
+    required this.decoration,
+    required this.margin,
+    this.onMemberTap,
+    this.onAddMembers,
+    this.memberWrapper,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final add = onAddMembers != null ? 1 : 0;
+    // Скрытый список не админу — пояснение последней строкой.
+    final note = membersOnlyAdmins(chat) ? 1 : 0;
+    final spinner = loading ? 1 : 0;
+    return SliverPadding(
+      padding: margin,
+      sliver: DecoratedSliver(
+        decoration: decoration,
+        sliver: SliverPadding(
+          padding: const EdgeInsets.symmetric(vertical: 6),
+          sliver: SliverList.builder(
+            itemCount: add + members.length + spinner + note,
+            itemBuilder: (context, index) {
+              if (index < add) return _AddMembersRow(style: style, onTap: onAddMembers!);
+              final i = index - add;
+              if (i < members.length) {
+                final m = members[i];
+                final row = _MemberRow(member: m, chat: chat, style: style, onTap: onMemberTap == null ? null : () => onMemberTap!(m));
+                return memberWrapper?.call(m, row) ?? row;
+              }
+              if (i == members.length && loading) {
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  child: Center(child: loader),
+                );
+              }
+              return Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 6),
+                child: Text(context.t.screenChatInfo.membersHiddenNote, style: TextStyle(fontSize: 13, color: style.secondary)),
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 /// «Добавить участников» — кружок с «+» и подпись цветом действия.
 class _AddMembersRow extends StatelessWidget {
   final ChatInfoStyle style;
@@ -397,15 +526,16 @@ class _AddMembersRow extends StatelessWidget {
 
 class _MemberRow extends StatelessWidget {
   final models.ChatMember member;
+  final models.Chat chat;
   final ChatInfoStyle style;
   final VoidCallback? onTap;
 
-  const _MemberRow({required this.member, required this.style, this.onTap});
+  const _MemberRow({required this.member, required this.chat, required this.style, this.onTap});
 
   @override
   Widget build(BuildContext context) {
     final t = context.t;
-    final role = memberRoleLabel(t, member);
+    final role = memberRoleLabel(t, member, chat);
     final seen = member.lastSeen;
     final status = member.online || member.isSelf
         ? t.screenChat.online

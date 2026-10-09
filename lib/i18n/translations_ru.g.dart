@@ -458,6 +458,15 @@ class _Translations$screenChatAdmins$ru extends Translations$screenChatAdmins$en
 	@override String get addAdmin => 'Добавить админа';
 	@override String get adminsFooter => 'Админы помогают управлять чатом. Права каждого настраиваются отдельно.';
 	@override String get adminsFooterOfCommunity => 'Админы сообщества — админы и во всех его группах и каналах, с теми же правами.';
+	@override String get addModerator => 'Добавить модератора';
+	@override String get promoteModerator => 'Назначить модератором';
+	@override String get moderatorRights => 'Права модератора';
+	@override String get newModerator => 'Новый модератор';
+	@override String get moderatorRankHint => 'модератор';
+	@override String get moderatorRightsFooter => 'Модератор управляет только этим чатом: может ограничить или исключить участника, но блокировать в сообществе и назначать модераторов могут только админы сообщества.';
+	@override String get dismissModerator => 'Снять модератора';
+	@override String dismissModeratorTitle({required Object name}) => 'Снять ${name} с модераторов?';
+	@override String get dismissModeratorMessage => 'Участник останется в чате без прав модератора.';
 	@override String get adminsFooterCommunity => 'Владелец и админы сообщества управляют всеми его чатами — их права меняются в сообществе. Здесь можно назначить модераторов только этого чата.';
 	@override String get promote => 'Назначить админом';
 	@override String get adminRights => 'Права админа';
@@ -844,6 +853,17 @@ class _Translations$screenChatInfo$ru extends Translations$screenChatInfo$en {
 	@override String get roleReader => 'только чтение';
 	@override String get roleCommunityOwner => 'владелец сообщества';
 	@override String get roleCommunityAdmin => 'админ сообщества';
+	@override String get roleModerator => 'модератор';
+	@override String get membersHiddenNote => 'Список участников видят только админы.';
+	@override String get communityDefaults => 'Как в сообществе';
+	@override String communityDefaultsOwn({required Object list}) => 'Свои: ${list}';
+	@override String get communityDefaultsTitle => 'Вернуть настройки сообщества?';
+	@override String get communityDefaultsMessage => 'Права новых участников, медленный режим, реакции и ограничения для новичков снова будут как в сообществе и будут меняться вместе с ним.';
+	@override String get communityDefaultsReset => 'Вернуть';
+	@override String get inheritedDefaultRole => 'права новых участников';
+	@override String get inheritedSlowMode => 'медленный режим';
+	@override String get inheritedReactions => 'реакции';
+	@override String get inheritedNewcomer => 'ограничения для новичков';
 	@override String get you => 'Вы';
 	@override String get addMembers => 'Добавить участников';
 	@override String get add => 'Добавить';
@@ -1748,6 +1768,15 @@ extension on TranslationsRu {
 			'screenChatAdmins.addAdmin' => 'Добавить админа',
 			'screenChatAdmins.adminsFooter' => 'Админы помогают управлять чатом. Права каждого настраиваются отдельно.',
 			'screenChatAdmins.adminsFooterOfCommunity' => 'Админы сообщества — админы и во всех его группах и каналах, с теми же правами.',
+			'screenChatAdmins.addModerator' => 'Добавить модератора',
+			'screenChatAdmins.promoteModerator' => 'Назначить модератором',
+			'screenChatAdmins.moderatorRights' => 'Права модератора',
+			'screenChatAdmins.newModerator' => 'Новый модератор',
+			'screenChatAdmins.moderatorRankHint' => 'модератор',
+			'screenChatAdmins.moderatorRightsFooter' => 'Модератор управляет только этим чатом: может ограничить или исключить участника, но блокировать в сообществе и назначать модераторов могут только админы сообщества.',
+			'screenChatAdmins.dismissModerator' => 'Снять модератора',
+			'screenChatAdmins.dismissModeratorTitle' => ({required Object name}) => 'Снять ${name} с модераторов?',
+			'screenChatAdmins.dismissModeratorMessage' => 'Участник останется в чате без прав модератора.',
 			'screenChatAdmins.adminsFooterCommunity' => 'Владелец и админы сообщества управляют всеми его чатами — их права меняются в сообществе. Здесь можно назначить модераторов только этого чата.',
 			'screenChatAdmins.promote' => 'Назначить админом',
 			'screenChatAdmins.adminRights' => 'Права админа',
@@ -1965,6 +1994,8 @@ extension on TranslationsRu {
 			'screenSettingsNotifications.reactionsGroups' => 'В группах',
 			'screenSettingsNotifications.reactionsFrom' => 'Уведомлять о реакциях от',
 			'screenSettingsNotifications.reactionsFromShort' => 'От кого',
+			_ => null,
+		} ?? switch (path) {
 			'screenSettingsNotifications.reactionsFromAll' => 'Всех',
 			'screenSettingsNotifications.reactionsFromContacts' => 'Моих контактов',
 			'screenSettingsNotifications.reactionsNote' => 'Уведомления о реакциях на ваши сообщения. В каналах реакции анонимные — о них не уведомляем.',
@@ -1974,8 +2005,6 @@ extension on TranslationsRu {
 			'screenSettingsNotifications.messagePreviewNote' => 'Без предпросмотра в уведомлении видно только, от кого сообщение.',
 			'screenSettingsNotifications.settingsSyncNote' => 'Настройки действуют на всех ваших устройствах.',
 			'screenSettingsNotifications.permissionMissingTitle' => 'Уведомления выключены',
-			_ => null,
-		} ?? switch (path) {
 			'screenSettingsNotifications.permissionMissingMessage' => 'Iperon не может показывать уведомления на этом устройстве — настройки ниже не сработают.',
 			'screenSettingsNotifications.enable' => 'Включить',
 			'screenSettingsNotifications.loadError' => 'Не удалось загрузить настройки',
@@ -2033,6 +2062,17 @@ extension on TranslationsRu {
 			'screenChatInfo.roleReader' => 'только чтение',
 			'screenChatInfo.roleCommunityOwner' => 'владелец сообщества',
 			'screenChatInfo.roleCommunityAdmin' => 'админ сообщества',
+			'screenChatInfo.roleModerator' => 'модератор',
+			'screenChatInfo.membersHiddenNote' => 'Список участников видят только админы.',
+			'screenChatInfo.communityDefaults' => 'Как в сообществе',
+			'screenChatInfo.communityDefaultsOwn' => ({required Object list}) => 'Свои: ${list}',
+			'screenChatInfo.communityDefaultsTitle' => 'Вернуть настройки сообщества?',
+			'screenChatInfo.communityDefaultsMessage' => 'Права новых участников, медленный режим, реакции и ограничения для новичков снова будут как в сообществе и будут меняться вместе с ним.',
+			'screenChatInfo.communityDefaultsReset' => 'Вернуть',
+			'screenChatInfo.inheritedDefaultRole' => 'права новых участников',
+			'screenChatInfo.inheritedSlowMode' => 'медленный режим',
+			'screenChatInfo.inheritedReactions' => 'реакции',
+			'screenChatInfo.inheritedNewcomer' => 'ограничения для новичков',
 			'screenChatInfo.you' => 'Вы',
 			'screenChatInfo.addMembers' => 'Добавить участников',
 			'screenChatInfo.add' => 'Добавить',

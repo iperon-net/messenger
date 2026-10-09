@@ -22,6 +22,14 @@ enum MessageKind { text, photo, video, file, voice, poll }
 @MappableEnum()
 enum ChatReactionsMode { all, some, none }
 
+/// Настройки чата сообщества, которые по умолчанию берутся от сообщества
+/// (поменяли в сообществе — поменялись и в чате), пока админ чата не задал
+/// свои (см. «Настройки групп и каналов внутри сообщества» в
+/// docs/plans/chats-groups-channels.md). [defaultRole] и [slowMode] — только у
+/// групп.
+@MappableEnum()
+enum ChatInheritedSetting { defaultRole, slowMode, reactions, newcomerMediaDelay }
+
 /// Роль в группе/канале (см. docs/plans/chats-groups-channels.md, «Приватность
 /// групп»): по возрастанию прав. В канале подписчик — [reader].
 @MappableEnum()
@@ -361,6 +369,10 @@ class Chat with ChatMappable {
   /// удалить его отдельно нельзя.
   final bool announcements;
 
+  /// Чат сообщества: какие настройки заданы свои, а не от сообщества
+  /// (остальные приходят уже со значениями сообщества).
+  final List<ChatInheritedSetting> overrides;
+
   /// Заявок на вступление ждёт одобрения (бейдж в профиле для админа).
   final int pendingRequests;
 
@@ -426,6 +438,7 @@ class Chat with ChatMappable {
     this.threadPostID = '',
     this.communityID = '',
     this.announcements = false,
+    this.overrides = const [],
     this.membersCount = 0,
     this.myRole = ChatRole.writer,
     this.online = false,

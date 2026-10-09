@@ -47,6 +47,9 @@ class _ChatInfoMaterialState extends State<ChatInfoMaterial> {
   ChatInfoTab? _tab;
   final _scroll = ScrollController();
 
+  /// Открыта вкладка «Участники» — догружать страницы при прокрутке.
+  bool _membersTab = false;
+
   /// Страница сообщества: AppBar прозрачный поверх обложки, пока обложка не
   /// уехала под него.
   bool _overCover = true;
@@ -54,10 +57,14 @@ class _ChatInfoMaterialState extends State<ChatInfoMaterial> {
   @override
   void initState() {
     super.initState();
-    context.read<ChatCubit>().loadMembers();
+    context.read<ChatCubit>()
+      ..loadMembers()
+      ..loadMemberPage();
     _scroll.addListener(() {
       final over = _scroll.offset < CommunityCover.height - kToolbarHeight;
       if (over != _overCover) setState(() => _overCover = over);
+      // У конца «Участников» — следующая страница.
+      if (_membersTab && _scroll.position.extentAfter < 600) context.read<ChatCubit>().loadMemberPage(more: true);
     });
   }
 
@@ -97,6 +104,24 @@ class _ChatInfoMaterialState extends State<ChatInfoMaterial> {
     if (choice != null) await cubit.setMuted(true, until: chatMuteUntil(choice));
   }
 
+  /// «Как в сообществе»: вернуть чату сообщества его настройки по умолчанию.
+  Future<void> _resetToCommunity(BuildContext context) async {
+    final t = context.t.screenChatInfo;
+    final cubit = context.read<ChatCubit>();
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(t.communityDefaultsTitle),
+        content: Text(t.communityDefaultsMessage),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(dialogContext).pop(false), child: Text(context.t.common.cancel)),
+          TextButton(onPressed: () => Navigator.of(dialogContext).pop(true), child: Text(t.communityDefaultsReset)),
+        ],
+      ),
+    );
+    if (confirmed ?? false) await cubit.resetToCommunity();
+  }
+
   /// Тап по участнику: «Написать сообщение»; с правом блокировать (для
   /// «Чтения» / «Записи») — роль, «Исключить», «Заблокировать»; с правом
   /// назначать админов — «Назначить админом» / «Права админа».
@@ -108,6 +133,7 @@ class _ChatInfoMaterialState extends State<ChatInfoMaterial> {
     final members = cubit.state.members;
     final manage = canRestrictMember(chat, members, member);
     final promote = canPromoteMember(chat, members, member);
+    final ban = canBanMember(chat, members, member);
     final action = await showModalBottomSheet<String>(
       context: context,
       showDragHandle: true,
@@ -126,12 +152,7 @@ class _ChatInfoMaterialState extends State<ChatInfoMaterial> {
                 child: Text(member.name, style: Theme.of(sheetContext).textTheme.titleMedium),
               ),
               item(HugeIcons.strokeRoundedMessage01, t.sendMessage, 'message'),
-              if (promote)
-                item(
-                  HugeIcons.strokeRoundedUserStar01,
-                  member.role == models.ChatRole.admin ? context.t.screenChatAdmins.adminRights : context.t.screenChatAdmins.promote,
-                  'admin',
-                ),
+              if (promote) item(HugeIcons.strokeRoundedUserStar01, promoteMemberLabel(context.t, chat, member), 'admin'),
               if (manage) ...[
                 item(
                   member.role == models.ChatRole.reader ? HugeIcons.strokeRoundedPencilEdit02 : HugeIcons.strokeRoundedView,
@@ -139,7 +160,7 @@ class _ChatInfoMaterialState extends State<ChatInfoMaterial> {
                   'role',
                 ),
                 item(HugeIcons.strokeRoundedUserRemove01, t.removeMember, 'remove', destructive: true),
-                item(HugeIcons.strokeRoundedUserBlock01, t.banMember, 'ban', destructive: true),
+                if (ban) item(HugeIcons.strokeRoundedUserBlock01, t.banMember, 'ban', destructive: true),
               ],
             ],
           ),
@@ -167,7 +188,10 @@ class _ChatInfoMaterialState extends State<ChatInfoMaterial> {
     switch (action) {
       case 'message':
         final chatID = await cubit.privateChatWith(member);
-        if (chatID != null && chatID.isNotEmpty && context.mounted) context.go('/chats/chat/$chatID');
+        if (chatID != null && chatID.isNotEmpty && context.mounted) {
+          // Поверх профиля / сообщества — «назад» вернёт туда.
+          await context.push('/chats/chat/$chatID');
+        }
       case 'admin':
         await showChatAdminRightsMaterial(context, cubit, member);
       case 'role':
@@ -221,6 +245,7 @@ class _ChatInfoMaterialState extends State<ChatInfoMaterial> {
         final chat = state.chat;
         final tabs = chat == null ? const <ChatInfoTab>[] : chatInfoTabs(chat);
         final tab = tabs.contains(_tab) ? _tab! : (tabs.firstOrNull ?? ChatInfoTab.media);
+        _membersTab = tab == ChatInfoTab.members;
         final subtitle = chat == null ? null : chatSubtitle(t, chat);
         final community = chat?.type == models.ChatType.community;
         // У сообщества — обложка под AppBar: он прозрачный, «назад» и
@@ -267,231 +292,271 @@ class _ChatInfoMaterialState extends State<ChatInfoMaterial> {
           ),
           body: chat == null
               ? const SizedBox.shrink()
-              : ListView(
+              : CustomScrollView(
                   controller: _scroll,
-                  padding: EdgeInsets.only(bottom: 24 + MediaQuery.paddingOf(context).bottom),
-                  children: [
-                    if (community)
-                      CommunityCover(
-                        chat: chat,
-                        subtitle: subtitle?.text ?? '',
-                        accentColor: scheme.primary,
-                        accentForeground: scheme.onPrimary,
-                      )
-                    else ...[
-                      Center(
-                        child: ChatAvatar(chat: chat, size: 96, accentColor: scheme.primary, accentForeground: scheme.onPrimary),
-                      ),
-                      const SizedBox(height: 12),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 24),
-                        child: Text(
-                          ChatTileContent.title(t, chat),
-                          textAlign: TextAlign.center,
-                          style: Theme.of(context).textTheme.headlineSmall,
-                        ),
-                      ),
-                      if (subtitle != null && subtitle.text.isNotEmpty)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 2),
-                          child: Text(
-                            subtitle.text,
-                            textAlign: TextAlign.center,
-                            style: TextStyle(color: subtitle.active ? scheme.primary : scheme.onSurfaceVariant),
+                  slivers: [
+                    SliverList.list(
+                      children: [
+                        if (community)
+                          CommunityCover(
+                            chat: chat,
+                            subtitle: subtitle?.text ?? '',
+                            accentColor: scheme.primary,
+                            accentForeground: scheme.onPrimary,
+                          )
+                        else ...[
+                          Center(
+                            child: ChatAvatar(chat: chat, size: 96, accentColor: scheme.primary, accentForeground: scheme.onPrimary),
                           ),
-                        ),
-                    ],
-                    const SizedBox(height: 16),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      child: Row(
-                        children: [
-                          if (!chat.isSelf)
-                            _ActionButton(
-                              // Значок — текущее состояние: звук включён / выключен.
-                              icon: chat.muted ? HugeIcons.strokeRoundedNotificationOff01 : HugeIcons.strokeRoundedNotification01,
-                              // Заглушён на время — «до 18:30» вместо «Звук».
-                              label: chat.muted && chat.mutedUntil != null
-                                  ? chatMutedUntilLabel(t, chat.mutedUntil!)
-                                  : t.screenChatInfo.sound,
-                              color: scheme.primary,
-                              background: card,
-                              onTap: () => _toggleMute(context, chat),
+                          const SizedBox(height: 12),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 24),
+                            child: Text(
+                              ChatTileContent.title(t, chat),
+                              textAlign: TextAlign.center,
+                              style: Theme.of(context).textTheme.headlineSmall,
                             ),
-                          // У сообщества своей ленты нет — искать негде.
-                          if (!community)
-                            _ActionButton(
-                              icon: HugeIcons.strokeRoundedSearch01,
-                              label: t.screenChatInfo.search,
-                              color: scheme.primary,
-                              background: card,
-                              onTap: () => Navigator.of(context).pop(const ChatInfoResult.search()),
-                            ),
-                          // Канал объявлений покидают только вместе с сообществом.
-                          if (!chat.isSelf && !chat.announcements && chat.isMember)
-                            _ActionButton(
-                              icon: chatInfoDeletes(chat) ? HugeIcons.strokeRoundedDelete02 : HugeIcons.strokeRoundedSquareArrowRightExit,
-                              label: chatInfoDeletes(chat) ? t.screenChatInfo.deleteShort : t.screenChatInfo.leaveShort,
-                              color: scheme.error,
-                              background: card,
-                              onTap: () => _leave(context, chat),
+                          ),
+                          if (subtitle != null && subtitle.text.isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 2),
+                              child: Text(
+                                subtitle.text,
+                                textAlign: TextAlign.center,
+                                style: TextStyle(color: subtitle.active ? scheme.primary : scheme.onSurfaceVariant),
+                              ),
                             ),
                         ],
-                      ),
-                    ),
-                    if (chat.about.isNotEmpty || chat.linkPath.isNotEmpty || (community && communityHasContacts(chat)))
-                      Card(
-                        margin: const EdgeInsets.fromLTRB(12, 16, 12, 0),
-                        color: card,
-                        child: Column(
-                          children: [
-                            if (chat.about.isNotEmpty)
-                              ListTile(
-                                leading: HugeIcon(icon: HugeIcons.strokeRoundedInformationCircle, color: scheme.onSurfaceVariant),
-                                title: Text(chat.about),
-                                subtitle: Text(
-                                  chat.type == models.ChatType.private ? t.screenChatInfo.about : t.screenChatInfo.description,
+                        const SizedBox(height: 16),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          child: Row(
+                            children: [
+                              if (!chat.isSelf)
+                                _ActionButton(
+                                  // Значок — текущее состояние: звук включён / выключен.
+                                  icon: chat.muted ? HugeIcons.strokeRoundedNotificationOff01 : HugeIcons.strokeRoundedNotification01,
+                                  // Заглушён на время — «до 18:30» вместо «Звук».
+                                  label: chat.muted && chat.mutedUntil != null
+                                      ? chatMutedUntilLabel(t, chat.mutedUntil!)
+                                      : t.screenChatInfo.sound,
+                                  color: scheme.primary,
+                                  background: card,
+                                  onTap: () => _toggleMute(context, chat),
                                 ),
-                                onTap: () => _copy(context, chat.about),
-                              ),
-                            // Сообщество: телефон и адрес — под описанием.
-                            if (community) ...communityContactTilesMaterial(context, chat),
-                            if (chat.linkPath.isNotEmpty)
-                              chat.type == models.ChatType.private
-                                  ? ListTile(
-                                      leading: HugeIcon(icon: HugeIcons.strokeRoundedAt, color: scheme.onSurfaceVariant),
-                                      title: Text('@${chat.username}'),
-                                      subtitle: Text(t.screenChatInfo.username),
-                                      onTap: () => _copy(context, '@${chat.username}'),
-                                    )
-                                  : ListTile(
-                                      leading: HugeIcon(icon: HugeIcons.strokeRoundedLink01, color: scheme.onSurfaceVariant),
-                                      title: Text('iperon.net/${chat.linkPath}'),
-                                      subtitle: Text(t.screenChatInfo.link),
-                                      onTap: () => _copy(context, 'https://iperon.net/${chat.linkPath}'),
-                                    ),
-                          ],
+                              // У сообщества своей ленты нет — искать негде.
+                              if (!community)
+                                _ActionButton(
+                                  icon: HugeIcons.strokeRoundedSearch01,
+                                  label: t.screenChatInfo.search,
+                                  color: scheme.primary,
+                                  background: card,
+                                  onTap: () => Navigator.of(context).pop(const ChatInfoResult.search()),
+                                ),
+                              // Канал объявлений покидают только вместе с сообществом.
+                              if (!chat.isSelf && !chat.announcements && chat.isMember)
+                                _ActionButton(
+                                  icon: chatInfoDeletes(chat)
+                                      ? HugeIcons.strokeRoundedDelete02
+                                      : HugeIcons.strokeRoundedSquareArrowRightExit,
+                                  label: chatInfoDeletes(chat) ? t.screenChatInfo.deleteShort : t.screenChatInfo.leaveShort,
+                                  color: scheme.error,
+                                  background: card,
+                                  onTap: () => _leave(context, chat),
+                                ),
+                            ],
+                          ),
                         ),
-                      ),
-                    if (community && !chat.isMember)
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(12, 16, 12, 0),
-                        child: FilledButton(
-                          onPressed: chat.joinRequested ? null : () => context.read<ChatCubit>().join(),
-                          child: Text(
-                            chat.joinRequested
-                                ? t.screenChat.requestSent
-                                : (chat.joinMode == models.ChatJoinMode.request
-                                      ? t.screenChat.requestJoin
-                                      : t.screenChatInfo.joinCommunity),
+                        if (chat.about.isNotEmpty || chat.linkPath.isNotEmpty || (community && communityHasContacts(chat)))
+                          Card(
+                            margin: const EdgeInsets.fromLTRB(12, 16, 12, 0),
+                            color: card,
+                            child: Column(
+                              children: [
+                                if (chat.about.isNotEmpty)
+                                  ListTile(
+                                    leading: HugeIcon(icon: HugeIcons.strokeRoundedInformationCircle, color: scheme.onSurfaceVariant),
+                                    title: Text(chat.about),
+                                    subtitle: Text(
+                                      chat.type == models.ChatType.private ? t.screenChatInfo.about : t.screenChatInfo.description,
+                                    ),
+                                    onTap: () => _copy(context, chat.about),
+                                  ),
+                                // Сообщество: телефон и адрес — под описанием.
+                                if (community) ...communityContactTilesMaterial(context, chat),
+                                if (chat.linkPath.isNotEmpty)
+                                  chat.type == models.ChatType.private
+                                      ? ListTile(
+                                          leading: HugeIcon(icon: HugeIcons.strokeRoundedAt, color: scheme.onSurfaceVariant),
+                                          title: Text('@${chat.username}'),
+                                          subtitle: Text(t.screenChatInfo.username),
+                                          onTap: () => _copy(context, '@${chat.username}'),
+                                        )
+                                      : ListTile(
+                                          leading: HugeIcon(icon: HugeIcons.strokeRoundedLink01, color: scheme.onSurfaceVariant),
+                                          title: Text('iperon.net/${chat.linkPath}'),
+                                          subtitle: Text(t.screenChatInfo.link),
+                                          onTap: () => _copy(context, 'https://iperon.net/${chat.linkPath}'),
+                                        ),
+                              ],
+                            ),
+                          ),
+                        if (community && !chat.isMember)
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(12, 16, 12, 0),
+                            child: FilledButton(
+                              onPressed: chat.joinRequested ? null : () => context.read<ChatCubit>().join(),
+                              child: Text(
+                                chat.joinRequested
+                                    ? t.screenChat.requestSent
+                                    : (chat.joinMode == models.ChatJoinMode.request
+                                          ? t.screenChat.requestJoin
+                                          : t.screenChatInfo.joinCommunity),
+                              ),
+                            ),
+                          ),
+                        if (community && chat.isMember) CommunityChatsMaterial(community: chat, chats: state.communityChats, card: card),
+                        if (chat.canManage && chat.type != models.ChatType.private)
+                          Card(
+                            margin: const EdgeInsets.fromLTRB(12, 16, 12, 0),
+                            color: card,
+                            clipBehavior: Clip.antiAlias,
+                            child: Column(
+                              children: [
+                                // У чатов сообщества своих ссылок и блокировок нет —
+                                // вступают и блокируются через сообщество.
+                                if (!chat.inCommunity)
+                                  ListTile(
+                                    leading: HugeIcon(icon: HugeIcons.strokeRoundedLink01, color: scheme.onSurfaceVariant),
+                                    title: Text(t.screenChatInvites.inviteLinks),
+                                    onTap: () => showChatInviteLinksMaterial(context, chat.id),
+                                  ),
+                                if (!chat.inCommunity || chat.joinMode == models.ChatJoinMode.request)
+                                  ListTile(
+                                    leading: HugeIcon(icon: HugeIcons.strokeRoundedUserAdd01, color: scheme.onSurfaceVariant),
+                                    title: Text(t.screenChatInvites.joinRequests),
+                                    trailing: chat.pendingRequests > 0 ? Badge(label: Text('${chat.pendingRequests}')) : null,
+                                    onTap: () => showChatJoinRequestsMaterial(context, chat.id),
+                                  ),
+                                ListTile(
+                                  leading: HugeIcon(icon: HugeIcons.strokeRoundedSmile, color: scheme.onSurfaceVariant),
+                                  title: Text(t.screenChatInfo.reactions),
+                                  trailing: Text(reactionsSummary(t, chat), style: TextStyle(color: scheme.onSurfaceVariant)),
+                                  onTap: () => Navigator.of(context).push(
+                                    FullSwipeBackRoute<void>(
+                                      builder: (_) => BlocProvider.value(
+                                        value: context.read<ChatCubit>(),
+                                        child: const ChatReactionsSettingsMaterial(),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                if (chat.type == models.ChatType.group || chat.type == models.ChatType.community)
+                                  ListTile(
+                                    leading: HugeIcon(icon: HugeIcons.strokeRoundedTimer02, color: scheme.onSurfaceVariant),
+                                    title: Text(t.screenChatInfo.slowMode),
+                                    trailing: Text(slowModeLabel(t, chat.slowMode), style: TextStyle(color: scheme.onSurfaceVariant)),
+                                    onTap: () => Navigator.of(context).push(
+                                      FullSwipeBackRoute<void>(
+                                        builder: (_) => BlocProvider.value(
+                                          value: context.read<ChatCubit>(),
+                                          child: const ChatSlowModeSettingsMaterial(),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ListTile(
+                                  leading: HugeIcon(icon: HugeIcons.strokeRoundedUserStar01, color: scheme.onSurfaceVariant),
+                                  title: Text(t.screenChatAdmins.admins),
+                                  trailing: Text(
+                                    '${state.members.where((m) => m.role == models.ChatRole.admin || m.role == models.ChatRole.owner).length}',
+                                    style: TextStyle(color: scheme.onSurfaceVariant),
+                                  ),
+                                  onTap: () => showChatAdminsMaterial(context, context.read<ChatCubit>()),
+                                ),
+                                if ((chat.type == models.ChatType.group || chat.type == models.ChatType.community) && !chat.inCommunity)
+                                  ListTile(
+                                    leading: HugeIcon(icon: HugeIcons.strokeRoundedUserBlock01, color: scheme.onSurfaceVariant),
+                                    title: Text(t.screenChatInfo.banned),
+                                    trailing: state.banned.isEmpty
+                                        ? null
+                                        : Text('${state.banned.length}', style: TextStyle(color: scheme.onSurfaceVariant)),
+                                    onTap: () => showChatBannedMaterial(context, context.read<ChatCubit>()),
+                                  ),
+                                // Чат сообщества: какие настройки по умолчанию свои.
+                                if (communityOverridesText(t, chat) case final own?)
+                                  ListTile(
+                                    leading: HugeIcon(icon: HugeIcons.strokeRoundedArrowTurnBackward, color: scheme.onSurfaceVariant),
+                                    title: Text(t.screenChatInfo.communityDefaults),
+                                    subtitle: Text(own),
+                                    onTap: () => _resetToCommunity(context),
+                                  ),
+                              ],
+                            ),
+                          ),
+                        // Вкладки — полосой над карточкой (как папки на «Чатах»: при
+                        // переполнении листается по горизонтали), содержимое — карточкой.
+                        if (tabs.length > 1)
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(12, 16, 12, 8),
+                            child: ChatFolderTabsMaterial(
+                              tabs: [for (final item in tabs) ChatFolderTab(title: chatInfoTabLabel(t, item, chat))],
+                              selectedIndex: tabs.indexOf(tab),
+                              onTap: (index) => setState(() => _tab = tabs[index]),
+                            ),
+                          ),
+                      ],
+                    ),
+                    // Участники — ленивым списком со страницами (их могут быть сотни
+                    // тысяч), остальные вкладки — карточкой целиком.
+                    if (tab == ChatInfoTab.members)
+                      ChatMembersSliver(
+                        chat: chat,
+                        members: state.memberPage,
+                        loading: state.memberPageLoading,
+                        loader: const SizedBox.square(dimension: 24, child: CircularProgressIndicator(strokeWidth: 2.5)),
+                        style: ChatInfoStyle(
+                          text: scheme.onSurface,
+                          secondary: scheme.onSurfaceVariant,
+                          accent: scheme.primary,
+                          onAccent: scheme.onPrimary,
+                          separator: scheme.outlineVariant,
+                        ),
+                        decoration: BoxDecoration(color: card, borderRadius: BorderRadius.circular(12)),
+                        margin: EdgeInsets.fromLTRB(12, tabs.length > 1 ? 0 : 16, 12, 0),
+                        onMemberTap: (member) => _memberActions(context, chat, member),
+                        onAddMembers: chat.canManage ? () => _addMembers(context) : null,
+                      )
+                    else if (tabs.isNotEmpty)
+                      SliverToBoxAdapter(
+                        child: Card(
+                          margin: EdgeInsets.fromLTRB(12, tabs.length > 1 ? 0 : 16, 12, 0),
+                          color: card,
+                          clipBehavior: Clip.antiAlias,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              ChatInfoTabContent(
+                                tab: tab,
+                                chat: chat,
+                                messages: state.messages,
+                                members: state.members,
+                                style: ChatInfoStyle(
+                                  text: scheme.onSurface,
+                                  secondary: scheme.onSurfaceVariant,
+                                  accent: scheme.primary,
+                                  onAccent: scheme.onPrimary,
+                                  separator: scheme.outlineVariant,
+                                ),
+                                onOpenMessage: (id) => Navigator.of(context).pop(ChatInfoResult.goTo(id)),
+                                onMemberTap: (member) => _memberActions(context, chat, member),
+                                onAddMembers: chat.canManage ? () => _addMembers(context) : null,
+                              ),
+                            ],
                           ),
                         ),
                       ),
-                    if (community && chat.isMember) CommunityChatsMaterial(community: chat, chats: state.communityChats, card: card),
-                    if (chat.canManage && chat.type != models.ChatType.private)
-                      Card(
-                        margin: const EdgeInsets.fromLTRB(12, 16, 12, 0),
-                        color: card,
-                        clipBehavior: Clip.antiAlias,
-                        child: Column(
-                          children: [
-                            // У чатов сообщества своих ссылок и блокировок нет —
-                            // вступают и блокируются через сообщество.
-                            if (!chat.inCommunity)
-                              ListTile(
-                                leading: HugeIcon(icon: HugeIcons.strokeRoundedLink01, color: scheme.onSurfaceVariant),
-                                title: Text(t.screenChatInvites.inviteLinks),
-                                onTap: () => showChatInviteLinksMaterial(context, chat.id),
-                              ),
-                            if (!chat.inCommunity || chat.joinMode == models.ChatJoinMode.request)
-                              ListTile(
-                                leading: HugeIcon(icon: HugeIcons.strokeRoundedUserAdd01, color: scheme.onSurfaceVariant),
-                                title: Text(t.screenChatInvites.joinRequests),
-                                trailing: chat.pendingRequests > 0 ? Badge(label: Text('${chat.pendingRequests}')) : null,
-                                onTap: () => showChatJoinRequestsMaterial(context, chat.id),
-                              ),
-                            ListTile(
-                              leading: HugeIcon(icon: HugeIcons.strokeRoundedSmile, color: scheme.onSurfaceVariant),
-                              title: Text(t.screenChatInfo.reactions),
-                              trailing: Text(reactionsSummary(t, chat), style: TextStyle(color: scheme.onSurfaceVariant)),
-                              onTap: () => Navigator.of(context).push(
-                                FullSwipeBackRoute<void>(
-                                  builder: (_) =>
-                                      BlocProvider.value(value: context.read<ChatCubit>(), child: const ChatReactionsSettingsMaterial()),
-                                ),
-                              ),
-                            ),
-                            if (chat.type == models.ChatType.group || chat.type == models.ChatType.community)
-                              ListTile(
-                                leading: HugeIcon(icon: HugeIcons.strokeRoundedTimer02, color: scheme.onSurfaceVariant),
-                                title: Text(t.screenChatInfo.slowMode),
-                                trailing: Text(slowModeLabel(t, chat.slowMode), style: TextStyle(color: scheme.onSurfaceVariant)),
-                                onTap: () => Navigator.of(context).push(
-                                  FullSwipeBackRoute<void>(
-                                    builder: (_) =>
-                                        BlocProvider.value(value: context.read<ChatCubit>(), child: const ChatSlowModeSettingsMaterial()),
-                                  ),
-                                ),
-                              ),
-                            ListTile(
-                              leading: HugeIcon(icon: HugeIcons.strokeRoundedUserStar01, color: scheme.onSurfaceVariant),
-                              title: Text(t.screenChatAdmins.admins),
-                              trailing: Text(
-                                '${state.members.where((m) => m.role == models.ChatRole.admin || m.role == models.ChatRole.owner).length}',
-                                style: TextStyle(color: scheme.onSurfaceVariant),
-                              ),
-                              onTap: () => showChatAdminsMaterial(context, context.read<ChatCubit>()),
-                            ),
-                            if ((chat.type == models.ChatType.group || chat.type == models.ChatType.community) && !chat.inCommunity)
-                              ListTile(
-                                leading: HugeIcon(icon: HugeIcons.strokeRoundedUserBlock01, color: scheme.onSurfaceVariant),
-                                title: Text(t.screenChatInfo.banned),
-                                trailing: state.banned.isEmpty
-                                    ? null
-                                    : Text('${state.banned.length}', style: TextStyle(color: scheme.onSurfaceVariant)),
-                                onTap: () => showChatBannedMaterial(context, context.read<ChatCubit>()),
-                              ),
-                          ],
-                        ),
-                      ),
-                    // Вкладки — полосой над карточкой (как папки на «Чатах»: при
-                    // переполнении листается по горизонтали), содержимое — карточкой.
-                    if (tabs.length > 1)
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(12, 16, 12, 8),
-                        child: ChatFolderTabsMaterial(
-                          tabs: [for (final item in tabs) ChatFolderTab(title: chatInfoTabLabel(t, item, chat))],
-                          selectedIndex: tabs.indexOf(tab),
-                          onTap: (index) => setState(() => _tab = tabs[index]),
-                        ),
-                      ),
-                    if (tabs.isNotEmpty)
-                      Card(
-                        margin: EdgeInsets.fromLTRB(12, tabs.length > 1 ? 0 : 16, 12, 0),
-                        color: card,
-                        clipBehavior: Clip.antiAlias,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            ChatInfoTabContent(
-                              tab: tab,
-                              chat: chat,
-                              messages: state.messages,
-                              members: state.members,
-                              style: ChatInfoStyle(
-                                text: scheme.onSurface,
-                                secondary: scheme.onSurfaceVariant,
-                                accent: scheme.primary,
-                                onAccent: scheme.onPrimary,
-                                separator: scheme.outlineVariant,
-                              ),
-                              onOpenMessage: (id) => Navigator.of(context).pop(ChatInfoResult.goTo(id)),
-                              onMemberTap: (member) => _memberActions(context, chat, member),
-                              onAddMembers: chat.canManage ? () => _addMembers(context) : null,
-                            ),
-                          ],
-                        ),
-                      ),
+                    SliverToBoxAdapter(child: SizedBox(height: 24 + MediaQuery.paddingOf(context).bottom)),
                   ],
                 ),
         );

@@ -4,6 +4,20 @@ import '../models.dart' as models;
 /// единственная реализация — [ChatsDemoDataSource] (фейковые данные для UX-демо,
 /// включается на экране «Разработчик»), позже появится реализация на SQLite +
 /// gRPC, а экраны не изменятся. См. docs/plans/chats-groups-channels.md.
+/// Страница списка участников ([ChatsDataSource.membersPage]).
+class ChatMembersPage {
+  final List<models.ChatMember> members;
+
+  /// Курсор следующей страницы; пусто — это последняя.
+  final String nextCursor;
+
+  /// Всего участников (для подписи); у скрытого списка не админу — сколько
+  /// ему видно.
+  final int total;
+
+  const ChatMembersPage({required this.members, required this.nextCursor, required this.total});
+}
+
 abstract class ChatsDataSource {
   /// Текущий список чатов (включая архивные) — сразу при подписке, затем при
   /// каждом изменении.
@@ -152,10 +166,19 @@ abstract class ChatsDataSource {
   /// Принять / отклонить заявку ([userID] пусто — все).
   Future<void> answerJoinRequest(String chatID, {String userID = '', required bool approve});
 
-  /// Участники группы (профиль чата): владелец и админы первыми. У чата
+  /// «Известные» участники — не весь список: владелец, админы (модераторы),
+  /// мы и до ~200 недавно активных — для прав, упоминаний и выбора. У чата
   /// сообщества владелец и админы — от сообщества (`fromCommunity`, их роль и
-  /// права меняются только там), заблокированных в сообществе нет.
+  /// права меняются только там), заблокированных в сообществе нет. Весь
+  /// список — страницами через [membersPage].
   Future<List<models.ChatMember>> members(String chatID);
+
+  /// Страница списка участников (профиль → «Участники»): владелец, админы и
+  /// модераторы, затем по активности (в сети, недавно были, остальные).
+  /// [cursor] — `nextCursor` предыдущей страницы (пусто — с начала). В
+  /// сообществе участников могут быть сотни тысяч — целиком не грузим. Скрытый
+  /// список (`Chat.membersHidden`) не админу — только владелец и админы.
+  Future<ChatMembersPage> membersPage(String chatID, {String cursor = '', int limit = 50});
 
   /// Изменились участники / роли / блокировки чата [chatID] (в т.ч. на другом
   /// устройстве или в его сообществе) — перечитать [members] и [banned].
@@ -196,6 +219,11 @@ abstract class ChatsDataSource {
   /// выбранные [reactions] / никаких; у канала — ещё [maxReactions] (сколько
   /// разных под постом).
   Future<void> setChatReactions(String chatID, models.ChatReactionsMode mode, List<String> reactions, {int? maxReactions});
+
+  /// Чат сообщества: снова брать от сообщества все настройки по умолчанию
+  /// (роль вступивших, медленный режим, реакции, «Новичкам — без ссылок и
+  /// медиа»), заданные своими (`Chat.overrides`).
+  Future<void> resetToCommunity(String chatID);
 
   /// Медленный режим группы/сообщества (профиль чата → «Медленный режим»,
   /// админ): интервал в секундах, 0 — выключить.

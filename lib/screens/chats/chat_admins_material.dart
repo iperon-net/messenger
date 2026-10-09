@@ -80,14 +80,17 @@ class ChatAdminsMaterial extends StatelessWidget {
                               backgroundColor: scheme.primaryContainer,
                               child: Icon(Icons.person_add_alt, color: scheme.onPrimaryContainer),
                             ),
-                            title: Text(t.screenChatAdmins.addAdmin, style: TextStyle(color: scheme.primary)),
+                            title: Text(
+                              chat.inCommunity ? t.screenChatAdmins.addModerator : t.screenChatAdmins.addAdmin,
+                              style: TextStyle(color: scheme.primary),
+                            ),
                             onTap: () => _add(context, state),
                           ),
                         for (final admin in admins)
                           ListTile(
                             leading: ContactAvatar(contact: admin),
                             title: Text(admin.isSelf ? t.screenChatInfo.you : admin.name),
-                            subtitle: Text(memberRoleLabel(t, admin) ?? ''),
+                            subtitle: Text(memberRoleLabel(t, admin, chat) ?? ''),
                             onTap: canPromoteMember(chat, state.members, admin)
                                 ? () => showChatAdminRightsMaterial(context, context.read<ChatCubit>(), admin)
                                 : null,
@@ -208,7 +211,12 @@ class _ChatAdminRightsMaterial extends State<ChatAdminRightsMaterial> {
   Future<void> _dismiss() async {
     final t = context.t.screenChatAdmins;
     final cubit = context.read<ChatCubit>();
-    if (!await _confirm(t.dismissTitle(name: widget.member.name), t.dismissMessage, t.dismiss)) return;
+    final moderator = cubit.state.chat?.inCommunity ?? false;
+    final name = widget.member.name;
+    final confirmed = moderator
+        ? await _confirm(t.dismissModeratorTitle(name: name), t.dismissModeratorMessage, t.dismissModerator)
+        : await _confirm(t.dismissTitle(name: name), t.dismissMessage, t.dismiss);
+    if (!confirmed) return;
     await cubit.removeAdmin(widget.member);
     if (mounted) Navigator.of(context).pop();
   }
@@ -241,7 +249,7 @@ class _ChatAdminRightsMaterial extends State<ChatAdminRightsMaterial> {
           backgroundColor: scheme.surfaceContainerLow,
           appBar: AppBar(
             backgroundColor: scheme.surfaceContainerLow,
-            title: Text(_isAdmin ? tc.adminRights : tc.newAdmin),
+            title: Text(chat.inCommunity ? (_isAdmin ? tc.moderatorRights : tc.newModerator) : (_isAdmin ? tc.adminRights : tc.newAdmin)),
             actions: [
               _saving
                   ? const Padding(
@@ -265,7 +273,7 @@ class _ChatAdminRightsMaterial extends State<ChatAdminRightsMaterial> {
                 ]),
                 createHeaderMaterial(context, tc.rightsHeader),
                 _card([
-                  for (final right in adminRightsFor(chat.type))
+                  for (final right in adminRightsFor(chat))
                     SwitchListTile(
                       title: Text(adminRightLabel(t, right)),
                       value: adminRightOf(_rights, right),
@@ -275,7 +283,9 @@ class _ChatAdminRightsMaterial extends State<ChatAdminRightsMaterial> {
                           : null,
                     ),
                 ]),
-                if (!owner)
+                if (chat.inCommunity)
+                  createNoteMaterial(context, tc.moderatorRightsFooter)
+                else if (!owner)
                   createNoteMaterial(context, tc.rightsFooterLimited)
                 else if (chat.type != models.ChatType.channel)
                   createNoteMaterial(context, tc.anonymousFooter),
@@ -288,7 +298,7 @@ class _ChatAdminRightsMaterial extends State<ChatAdminRightsMaterial> {
                       maxLength: 16,
                       decoration: InputDecoration(
                         labelText: tc.rankHeader,
-                        hintText: tc.rankHint,
+                        hintText: chat.inCommunity ? tc.moderatorRankHint : tc.rankHint,
                         floatingLabelBehavior: FloatingLabelBehavior.always,
                         border: InputBorder.none,
                         enabledBorder: InputBorder.none,
@@ -309,7 +319,7 @@ class _ChatAdminRightsMaterial extends State<ChatAdminRightsMaterial> {
                       ),
                     if (_isAdmin)
                       ListTile(
-                        title: Text(tc.dismiss, style: TextStyle(color: scheme.error)),
+                        title: Text(chat.inCommunity ? tc.dismissModerator : tc.dismiss, style: TextStyle(color: scheme.error)),
                         onTap: _dismiss,
                       ),
                   ]),
