@@ -225,7 +225,17 @@ class _ChatInfoCupertinoState extends State<ChatInfoCupertino> {
               ? CupertinoButton(
                   padding: EdgeInsets.zero,
                   onPressed: () => showChatEditCupertino(context, chat),
-                  child: Text(t.common.edit, style: TextStyle(color: ThemesCupertino.navActionColor(context))),
+                  // У сообщества — карандаш, как на «стекле» поверх обложки.
+                  child: community
+                      ? Semantics(
+                          label: t.common.edit,
+                          child: HugeIcon(
+                            icon: HugeIcons.strokeRoundedPencilEdit02,
+                            color: ThemesCupertino.navActionColor(context),
+                            size: 22,
+                          ),
+                        )
+                      : Text(t.common.edit, style: TextStyle(color: ThemesCupertino.navActionColor(context))),
                 )
               : null,
         );
@@ -526,9 +536,9 @@ class _ChatInfoCupertinoState extends State<ChatInfoCupertino> {
                             const Spacer(),
                             if (canEdit)
                               CoverGlassButton(
-                                padding: const EdgeInsets.symmetric(horizontal: 14),
+                                label: t.common.edit,
                                 onTap: () => showChatEditCupertino(context, chat),
-                                child: Text(t.common.edit),
+                                child: const HugeIcon(icon: HugeIcons.strokeRoundedPencilEdit02, color: CupertinoColors.white, size: 20),
                               ),
                           ],
                         ),

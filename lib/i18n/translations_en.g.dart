@@ -1597,6 +1597,21 @@ class Translations$screenChat$en {
 	/// en: 'Regular'
 	String get formatPlain => 'Regular';
 
+	/// en: 'Underline'
+	String get formatUnderline => 'Underline';
+
+	/// en: 'Code Block'
+	String get formatPre => 'Code Block';
+
+	/// en: 'Mention'
+	String get formatMention => 'Mention';
+
+	/// en: 'Collapsible Quote'
+	String get formatQuoteExpandable => 'Collapsible Quote';
+
+	/// en: 'Mention'
+	String get mentionPickTitle => 'Mention';
+
 	/// en: 'Add link'
 	String get linkTitle => 'Add link';
 
@@ -3811,6 +3826,11 @@ extension on Translations {
 			'screenChat.formatLink' => 'Link',
 			'screenChat.formatQuote' => 'Quote',
 			'screenChat.formatPlain' => 'Regular',
+			'screenChat.formatUnderline' => 'Underline',
+			'screenChat.formatPre' => 'Code Block',
+			'screenChat.formatMention' => 'Mention',
+			'screenChat.formatQuoteExpandable' => 'Collapsible Quote',
+			'screenChat.mentionPickTitle' => 'Mention',
 			'screenChat.linkTitle' => 'Add link',
 			'screenChat.linkAdd' => 'Add',
 			'screenChat.uploadProgress' => ({required Object done, required Object total}) => '${done} of ${total}',
@@ -3856,13 +3876,13 @@ extension on Translations {
 			'screenSettingsNotifications.permissionMissingTitle' => 'Notifications are turned off',
 			'screenSettingsNotifications.permissionMissingMessage' => 'Iperon isn\'t allowed to show notifications on this device, so these settings won\'t take effect.',
 			'screenSettingsNotifications.enable' => 'Turn on',
+			_ => null,
+		} ?? switch (path) {
 			'screenSettingsNotifications.loadError' => 'Couldn\'t load the settings',
 			'screenSettingsNotifications.offlineNote' => 'No connection. You can change this once you\'re back online.',
 			'screenSettingsNotifications.retry' => 'Retry',
 			'screenDeveloper.developer' => 'Developer',
 			'screenDeveloper.logs' => _root.screenSettings.logs,
-			_ => null,
-		} ?? switch (path) {
 			'screenDeveloper.exportLogs' => 'Export logs',
 			'screenDeveloper.callPreview' => 'Call screen preview',
 			'screenDeveloper.chatsDemo' => 'Chats demo',

@@ -66,7 +66,7 @@ class ChatMaterial extends StatefulWidget {
 class _ChatMaterialState extends State<ChatMaterial> {
   final _input = TextEditingController();
   late final _mentions = ComposeMentions(_input);
-  late final _formatMenu = ComposeFormatMenu(_input);
+  late final _formatMenu = ComposeFormatMenu(_input, members: () => _mentions.enabled ? _mentions.members : const []);
   late final _recorder = VoiceRecorder(
     onSend: (path, seconds, waveform) => _cubit.sendVoice(localPath: path, duration: seconds, waveform: waveform),
     canStart: () => checkNewcomer(context, media: true),
@@ -565,16 +565,20 @@ class _ChatMaterialState extends State<ChatMaterial> {
                             secondary: Theme.of(context).colorScheme.onSurfaceVariant,
                             separator: Theme.of(context).colorScheme.outlineVariant,
                           ),
-                          _ComposeBar(
-                            input: _input,
-                            formatMenu: _formatMenu,
-                            recorder: _recorder,
-                            focus: _focus,
-                            state: state,
-                            onSend: _send,
-                            onSendOptions: () => _sendOptions(context),
-                            onScheduled: () => showScheduledMessagesMaterial(context, _cubit),
-                            color: barColor,
+                          // Ctrl+B / I / U / K — форматирование с клавиатуры.
+                          _formatMenu.shortcuts(
+                            context,
+                            child: _ComposeBar(
+                              input: _input,
+                              formatMenu: _formatMenu,
+                              recorder: _recorder,
+                              focus: _focus,
+                              state: state,
+                              onSend: _send,
+                              onSendOptions: () => _sendOptions(context),
+                              onScheduled: () => showScheduledMessagesMaterial(context, _cubit),
+                              color: barColor,
+                            ),
                           ),
                         ],
                       ],

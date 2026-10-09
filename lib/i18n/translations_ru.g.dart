@@ -692,6 +692,11 @@ class _Translations$screenChat$ru extends Translations$screenChat$en {
 	@override String get formatLink => 'Ссылка';
 	@override String get formatQuote => 'Цитата';
 	@override String get formatPlain => 'Обычный';
+	@override String get formatUnderline => 'Подчёркнутый';
+	@override String get formatPre => 'Блок кода';
+	@override String get formatMention => 'Упомянуть';
+	@override String get formatQuoteExpandable => 'Сворачиваемая цитата';
+	@override String get mentionPickTitle => 'Кого упомянуть';
 	@override String get linkTitle => 'Добавить ссылку';
 	@override String get linkAdd => 'Добавить';
 	@override String uploadProgress({required Object done, required Object total}) => '${done} из ${total}';
@@ -1912,6 +1917,11 @@ extension on TranslationsRu {
 			'screenChat.formatLink' => 'Ссылка',
 			'screenChat.formatQuote' => 'Цитата',
 			'screenChat.formatPlain' => 'Обычный',
+			'screenChat.formatUnderline' => 'Подчёркнутый',
+			'screenChat.formatPre' => 'Блок кода',
+			'screenChat.formatMention' => 'Упомянуть',
+			'screenChat.formatQuoteExpandable' => 'Сворачиваемая цитата',
+			'screenChat.mentionPickTitle' => 'Кого упомянуть',
 			'screenChat.linkTitle' => 'Добавить ссылку',
 			'screenChat.linkAdd' => 'Добавить',
 			'screenChat.uploadProgress' => ({required Object done, required Object total}) => '${done} из ${total}',
@@ -1957,13 +1967,13 @@ extension on TranslationsRu {
 			'screenSettingsNotifications.permissionMissingTitle' => 'Уведомления выключены',
 			'screenSettingsNotifications.permissionMissingMessage' => 'Iperon не может показывать уведомления на этом устройстве — настройки ниже не сработают.',
 			'screenSettingsNotifications.enable' => 'Включить',
+			_ => null,
+		} ?? switch (path) {
 			'screenSettingsNotifications.loadError' => 'Не удалось загрузить настройки',
 			'screenSettingsNotifications.offlineNote' => 'Нет соединения. Изменение станет доступно, когда появится сеть.',
 			'screenSettingsNotifications.retry' => 'Повторить',
 			'screenDeveloper.developer' => 'Разработчик',
 			'screenDeveloper.logs' => _root.screenSettings.logs,
-			_ => null,
-		} ?? switch (path) {
 			'screenDeveloper.exportLogs' => 'Экспорт логов',
 			'screenDeveloper.callPreview' => 'Превью экрана звонка',
 			'screenDeveloper.chatsDemo' => 'Демо чатов',

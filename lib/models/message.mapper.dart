@@ -144,6 +144,13 @@ class MessageEntityMapper extends ClassMapperBase<MessageEntity> {
     opt: true,
     def: '',
   );
+  static bool _$expandable(MessageEntity v) => v.expandable;
+  static const Field<MessageEntity, bool> _f$expandable = Field(
+    'expandable',
+    _$expandable,
+    opt: true,
+    def: false,
+  );
 
   @override
   final MappableFields<MessageEntity> fields = const {
@@ -152,6 +159,7 @@ class MessageEntityMapper extends ClassMapperBase<MessageEntity> {
     #length: _f$length,
     #url: _f$url,
     #userID: _f$userID,
+    #expandable: _f$expandable,
   };
 
   static MessageEntity _instantiate(DecodingData data) {
@@ -161,6 +169,7 @@ class MessageEntityMapper extends ClassMapperBase<MessageEntity> {
       length: data.dec(_f$length),
       url: data.dec(_f$url),
       userID: data.dec(_f$userID),
+      expandable: data.dec(_f$expandable),
     );
   }
 
@@ -232,6 +241,7 @@ abstract class MessageEntityCopyWith<$R, $In extends MessageEntity, $Out>
     int? length,
     String? url,
     String? userID,
+    bool? expandable,
   });
   MessageEntityCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
@@ -251,6 +261,7 @@ class _MessageEntityCopyWithImpl<$R, $Out>
     int? length,
     String? url,
     String? userID,
+    bool? expandable,
   }) => $apply(
     FieldCopyWithData({
       if (type != null) #type: type,
@@ -258,6 +269,7 @@ class _MessageEntityCopyWithImpl<$R, $Out>
       if (length != null) #length: length,
       if (url != null) #url: url,
       if (userID != null) #userID: userID,
+      if (expandable != null) #expandable: expandable,
     }),
   );
   @override
@@ -267,6 +279,7 @@ class _MessageEntityCopyWithImpl<$R, $Out>
     length: data.get(#length, or: $value.length),
     url: data.get(#url, or: $value.url),
     userID: data.get(#userID, or: $value.userID),
+    expandable: data.get(#expandable, or: $value.expandable),
   );
 
   @override

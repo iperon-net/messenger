@@ -71,7 +71,7 @@ class ChatCupertino extends StatefulWidget {
 class _ChatCupertinoState extends State<ChatCupertino> {
   final _input = TextEditingController();
   late final _mentions = ComposeMentions(_input);
-  late final _formatMenu = ComposeFormatMenu(_input);
+  late final _formatMenu = ComposeFormatMenu(_input, members: () => _mentions.enabled ? _mentions.members : const []);
   late final _recorder = VoiceRecorder(
     onSend: (path, seconds, waveform) => _cubit.sendVoice(localPath: path, duration: seconds, waveform: waveform),
     canStart: () => checkNewcomer(context, media: true),
@@ -583,16 +583,20 @@ class _ChatCupertinoState extends State<ChatCupertino> {
                                   secondary: CupertinoColors.secondaryLabel.resolveFrom(context),
                                   separator: CupertinoColors.separator.resolveFrom(context),
                                 ),
-                                _ComposeBar(
-                                  input: _input,
-                                  formatMenu: _formatMenu,
-                                  recorder: _recorder,
-                                  focus: _focus,
-                                  state: state,
-                                  onSend: _send,
-                                  onSendSilent: () => _send(silent: true),
-                                  onSendLater: () => _sendLater(context),
-                                  onScheduled: () => showScheduledMessagesCupertino(context, _cubit),
+                                // ⌘B / ⌘I / ⌘U / ⌘K — форматирование с клавиатуры.
+                                _formatMenu.shortcuts(
+                                  context,
+                                  child: _ComposeBar(
+                                    input: _input,
+                                    formatMenu: _formatMenu,
+                                    recorder: _recorder,
+                                    focus: _focus,
+                                    state: state,
+                                    onSend: _send,
+                                    onSendSilent: () => _send(silent: true),
+                                    onSendLater: () => _sendLater(context),
+                                    onScheduled: () => showScheduledMessagesCupertino(context, _cubit),
+                                  ),
                                 ),
                               ],
                             ],

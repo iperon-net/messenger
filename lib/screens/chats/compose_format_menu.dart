@@ -10,20 +10,54 @@ import 'package:material_ui/material_ui.dart' as m;
 
 import '../../chats/message_formatting.dart';
 import '../../i18n/translations.g.dart';
+import '../../models.dart' as models;
 
 /// Меню форматирования по выделению в поле ввода (как в Telegram): к обычным
 /// «Вырезать / Скопировать / Вставить» добавляется «Форматирование», оно открывает
-/// второе меню — вертикальный список со значками: жирный, курсив, зачёркнутый,
-/// спойлер, моноширинный, ссылка, цитата, обычный ([_FormatList]). Поле хранит markdown-ярлыки ([applyComposeFormat]), в
-/// entities они превращаются при отправке.
+/// второе меню — вертикальный список со значками ([_FormatList]): жирный,
+/// курсив, подчёркнутый, зачёркнутый, спойлер, моноширинный, блок кода,
+/// ссылка, упомянуть (в группе), цитата, сворачиваемая цитата, обычный; у
+/// уже стоящих — галочка, повторный выбор снимает только этот формат. Поле
+/// хранит markdown-ярлыки ([applyComposeFormat]), в entities они
+/// превращаются при отправке.
 ///
 /// Подключение: `contextMenuBuilder: menu.builder` у `CupertinoTextField` /
-/// `TextField` с тем же [input].
+/// `TextField` с тем же [input]; горячие клавиши (⌘/Ctrl + B, I, U, K) —
+/// [shortcuts] вокруг поля.
 class ComposeFormatMenu {
   final TextEditingController input;
 
-  ComposeFormatMenu(this.input) {
+  /// Участники чата для «Упомянуть» (пусто — пункта нет: личный чат, канал).
+  final List<models.ChatMember> Function()? members;
+
+  ComposeFormatMenu(this.input, {this.members}) {
     input.addListener(_onChange);
+  }
+
+  List<models.ChatMember> get _members => [
+    for (final m in members?.call() ?? const <models.ChatMember>[])
+      if (!m.isSelf) m,
+  ];
+
+  /// Горячие клавиши форматирования выделенного текста (iPad / внешняя
+  /// клавиатура): ⌘ (на Android — Ctrl) + B — жирный, I — курсив, U —
+  /// подчёркнутый, K — ссылка.
+  Widget shortcuts(BuildContext context, {required Widget child}) {
+    const keys = [
+      (LogicalKeyboardKey.keyB, ComposeFormat.bold),
+      (LogicalKeyboardKey.keyI, ComposeFormat.italic),
+      (LogicalKeyboardKey.keyU, ComposeFormat.underline),
+      (LogicalKeyboardKey.keyK, ComposeFormat.link),
+    ];
+    return CallbackShortcuts(
+      bindings: {
+        for (final (key, format) in keys) ...{
+          SingleActivator(key, meta: true): () => _apply(context, null, format),
+          SingleActivator(key, control: true): () => _apply(context, null, format),
+        },
+      },
+      child: child,
+    );
   }
 
   /// Открыто второе меню (форматы) для выделения [_selection].
@@ -40,7 +74,12 @@ class ComposeFormatMenu {
   Widget builder(BuildContext context, EditableTextState editable) {
     final selection = input.selection;
     if (_formats && selection.isValid && !selection.isCollapsed) {
-      return _FormatList(anchors: editable.contextMenuAnchors, onSelected: (format) => _apply(context, editable, format));
+      return _FormatList(
+        anchors: editable.contextMenuAnchors,
+        active: activeComposeFormats((text: input.text, start: selection.start, end: selection.end)),
+        mention: _members.isNotEmpty,
+        onSelected: (format) => _apply(context, editable, format),
+      );
     }
     final items = _items(context, editable);
     return Platform.isIOS
@@ -50,7 +89,15 @@ class ComposeFormatMenu {
 
   List<ContextMenuButtonItem> _items(BuildContext context, EditableTextState editable) {
     final selection = input.selection;
-    final items = [...editable.contextMenuButtonItems];
+    // Только Cut / Copy / Paste — подписи всегда по-английски (короткие,
+    // меню влезает без стрелки), за ними «Форматирование» на языке
+    // приложения. Системные «Найти», «Поделиться», «Выбрать всё» и т. п. не
+    // показываем.
+    const labels = {ContextMenuButtonType.cut: 'Cut', ContextMenuButtonType.copy: 'Copy', ContextMenuButtonType.paste: 'Paste'};
+    final items = [
+      for (final item in editable.contextMenuButtonItems)
+        if (labels[item.type] case final label?) item.copyWith(label: label),
+    ];
     if (!selection.isValid || selection.isCollapsed) return items;
     final format = ContextMenuButtonItem(
       label: context.t.screenChat.format,
@@ -62,26 +109,113 @@ class ComposeFormatMenu {
         editable.showToolbar();
       },
     );
-    // Сразу за «Вставить» (или «Скопировать», если вставлять нечего).
-    final paste = items.indexWhere((i) => i.type == ContextMenuButtonType.paste);
-    final at = paste >= 0 ? paste : items.indexWhere((i) => i.type == ContextMenuButtonType.copy);
-    items.insert(at >= 0 ? at + 1 : items.length, format);
-    return items;
+    return [...items, format];
   }
 
-  Future<void> _apply(BuildContext context, EditableTextState editable, ComposeFormat format) async {
+  /// Применить [format] к выделению (из меню — [editable], с клавиатуры —
+  /// `null`). Ссылка / упоминание, которых ещё нет, спрашивают адрес /
+  /// человека; уже стоящие — снимаются.
+  Future<void> _apply(BuildContext context, EditableTextState? editable, ComposeFormat format) async {
     _formats = false;
     final selection = input.selection;
-    editable.hideToolbar();
+    if (!selection.isValid || selection.isCollapsed) return;
+    editable?.hideToolbar();
+    final value = (text: input.text, start: selection.start, end: selection.end);
+    final adding = !activeComposeFormats(value).contains(format);
     var url = '';
-    if (format == ComposeFormat.link) {
+    var userID = '';
+    if (format == ComposeFormat.link && adding) {
       url = await _askUrl(context) ?? '';
       if (url.isEmpty) return;
     }
-    final edit = applyComposeFormat((text: input.text, start: selection.start, end: selection.end), format, url: url);
+    if (format == ComposeFormat.mention && adding) {
+      final members = _members;
+      if (members.isEmpty || !context.mounted) return;
+      userID = (await _pickMember(context, members))?.id ?? '';
+      if (userID.isEmpty) return;
+    }
+    // Пока спрашивали, текст могли поменять — применяем к прежнему выделению.
+    if (input.text != value.text) return;
+    final edit = applyComposeFormat(value, format, url: url, userID: userID);
     input.value = TextEditingValue(
       text: edit.text,
       selection: TextSelection(baseOffset: edit.start, extentOffset: edit.end),
+    );
+  }
+
+  /// «Упомянуть»: выбор участника чата (iOS — лист снизу, Android — шторка).
+  Future<models.ChatMember?> _pickMember(BuildContext context, List<models.ChatMember> members) {
+    final t = context.t.screenChat;
+    final height = MediaQuery.sizeOf(context).height * 0.6;
+    if (Platform.isIOS) {
+      return c.showCupertinoModalPopup<models.ChatMember>(
+        context: context,
+        builder: (sheetContext) {
+          final label = c.CupertinoColors.label.resolveFrom(sheetContext);
+          final secondary = c.CupertinoColors.secondaryLabel.resolveFrom(sheetContext);
+          return Container(
+            height: height,
+            decoration: BoxDecoration(
+              color: c.CupertinoColors.systemBackground.resolveFrom(sheetContext),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(13)),
+            ),
+            child: SafeArea(
+              top: false,
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(14),
+                    child: Text(
+                      t.mentionPickTitle,
+                      style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600, color: label),
+                    ),
+                  ),
+                  Expanded(
+                    child: ListView(
+                      children: [
+                        for (final member in members)
+                          c.CupertinoListTile(
+                            title: Text(member.name),
+                            subtitle: member.username.isEmpty ? null : Text('@${member.username}', style: TextStyle(color: secondary)),
+                            onTap: () => Navigator.of(sheetContext).pop(member),
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      );
+    }
+    return m.showModalBottomSheet<models.ChatMember>(
+      context: context,
+      showDragHandle: true,
+      builder: (sheetContext) => SizedBox(
+        height: height,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 0, 24, 8),
+              child: Text(t.mentionPickTitle, style: m.Theme.of(sheetContext).textTheme.titleMedium),
+            ),
+            Expanded(
+              child: ListView(
+                children: [
+                  for (final member in members)
+                    m.ListTile(
+                      title: Text(member.name),
+                      subtitle: member.username.isEmpty ? null : Text('@${member.username}'),
+                      onTap: () => Navigator.of(sheetContext).pop(member),
+                    ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -163,7 +297,13 @@ class _FormatList extends StatelessWidget {
   final TextSelectionToolbarAnchors anchors;
   final ValueChanged<ComposeFormat> onSelected;
 
-  const _FormatList({required this.anchors, required this.onSelected});
+  /// Уже стоящие на выделении — с галочкой.
+  final Set<ComposeFormat> active;
+
+  /// Есть «Упомянуть» (в чате есть участники).
+  final bool mention;
+
+  const _FormatList({required this.anchors, required this.onSelected, required this.active, required this.mention});
 
   static const _rowHeight = 44.0;
   static const _width = 220.0;
@@ -176,20 +316,35 @@ class _FormatList extends StatelessWidget {
     final rows = <(ComposeFormat, String, FaIconData, TextStyle)>[
       (ComposeFormat.bold, t.formatBold, FontAwesomeIcons.bold, const TextStyle(fontWeight: FontWeight.w700)),
       (ComposeFormat.italic, t.formatItalic, FontAwesomeIcons.italic, const TextStyle(fontStyle: FontStyle.italic)),
+      (ComposeFormat.underline, t.formatUnderline, FontAwesomeIcons.underline, const TextStyle(decoration: TextDecoration.underline)),
       (ComposeFormat.strike, t.formatStrike, FontAwesomeIcons.strikethrough, const TextStyle(decoration: TextDecoration.lineThrough)),
       (ComposeFormat.spoiler, t.formatSpoiler, FontAwesomeIcons.eyeSlash, const TextStyle()),
       (ComposeFormat.code, t.formatCode, FontAwesomeIcons.code, TextStyle(fontFamily: mono)),
+      (ComposeFormat.pre, t.formatPre, FontAwesomeIcons.fileCode, TextStyle(fontFamily: mono)),
       (ComposeFormat.link, t.formatLink, FontAwesomeIcons.link, const TextStyle()),
+      if (mention) (ComposeFormat.mention, t.formatMention, FontAwesomeIcons.at, const TextStyle()),
       (ComposeFormat.quote, t.formatQuote, FontAwesomeIcons.quoteLeft, const TextStyle()),
+      (ComposeFormat.quoteExpandable, t.formatQuoteExpandable, FontAwesomeIcons.angleDown, const TextStyle()),
       (ComposeFormat.plain, t.formatPlain, FontAwesomeIcons.textSlash, const TextStyle()),
     ];
     final height = rows.length * _rowHeight;
     final padding = MediaQuery.paddingOf(context);
-    final above = anchors.primaryAnchor.dy - _gap - height >= padding.top;
-    final anchor = above ? anchors.primaryAnchor : (anchors.secondaryAnchor ?? anchors.primaryAnchor);
+    final screen = MediaQuery.sizeOf(context).height;
+    // Над выделением, если помещается; иначе — где места больше, с прокруткой
+    // (пунктов много, а над полем ввода у открытой клавиатуры места мало).
+    final spaceAbove = anchors.primaryAnchor.dy - _gap - padding.top;
+    final below = anchors.secondaryAnchor ?? anchors.primaryAnchor;
+    final spaceBelow = screen - MediaQuery.viewInsetsOf(context).bottom - padding.bottom - below.dy - _gap;
+    final above = spaceAbove >= height || spaceAbove >= spaceBelow;
+    final anchor = above ? anchors.primaryAnchor : below;
+    final maxHeight = math.max(_rowHeight * 3, above ? spaceAbove : spaceBelow);
     return CustomSingleChildLayout(
       delegate: _FormatListLayout(anchor: anchor, above: above, padding: padding),
-      child: SizedBox(width: _width, child: Platform.isIOS ? _cupertino(context, rows) : _material(context, rows)),
+      child: SizedBox(
+        width: _width,
+        height: math.min(height, maxHeight),
+        child: Platform.isIOS ? _cupertino(context, rows) : _material(context, rows),
+      ),
     );
   }
 
@@ -208,22 +363,25 @@ class _FormatList extends StatelessWidget {
           filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
           child: ColoredBox(
             color: dark ? const Color(0xE6252525) : const Color(0xE6F9F9F9),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                for (final (index, (format, text, icon, style)) in rows.indexed)
-                  _row(
-                    format,
-                    divider: index > 0 ? separator : null,
-                    // Значок справа, как в контекстных меню iOS.
-                    children: [
-                      Expanded(
-                        child: Text(text, style: style.copyWith(fontSize: 17, color: label)),
-                      ),
-                      FaIcon(icon, size: 16, color: label),
-                    ],
-                  ),
-              ],
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  for (final (index, (format, text, icon, style)) in rows.indexed)
+                    _row(
+                      format,
+                      divider: index > 0 ? separator : null,
+                      // Галочка слева у стоящих, значок справа — как в контекстных меню iOS.
+                      children: [
+                        SizedBox(width: 22, child: active.contains(format) ? FaIcon(FontAwesomeIcons.check, size: 13, color: label) : null),
+                        Expanded(
+                          child: Text(text, style: style.copyWith(fontSize: 17, color: label)),
+                        ),
+                        FaIcon(icon, size: 16, color: label),
+                      ],
+                    ),
+                ],
+              ),
             ),
           ),
         ),
@@ -241,29 +399,33 @@ class _FormatList extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 4),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            for (final (format, text, icon, style) in rows)
-              m.InkWell(
-                onTap: () => onSelected(format),
-                child: SizedBox(
-                  height: _rowHeight - 1,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Row(
-                      children: [
-                        SizedBox(width: 24, child: FaIcon(icon, size: 16, color: scheme.onSurfaceVariant)),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(text, style: style.copyWith(fontSize: 15, color: scheme.onSurface)),
-                        ),
-                      ],
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              for (final (format, text, icon, style) in rows)
+                m.InkWell(
+                  onTap: () => onSelected(format),
+                  child: SizedBox(
+                    height: _rowHeight - 1,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Row(
+                        children: [
+                          SizedBox(width: 24, child: FaIcon(icon, size: 16, color: scheme.onSurfaceVariant)),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(text, style: style.copyWith(fontSize: 15, color: scheme.onSurface)),
+                          ),
+                          // Галочка у уже стоящих.
+                          if (active.contains(format)) m.Icon(m.Icons.check, size: 18, color: scheme.primary),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
-          ],
+            ],
+          ),
         ),
       ),
     );

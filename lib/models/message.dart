@@ -40,7 +40,18 @@ class MessageEntity with MessageEntityMappable {
   /// имени, у человека нет @username).
   final String userID;
 
-  const MessageEntity({required this.type, required this.offset, required this.length, this.url = '', this.userID = ''});
+  /// Для [MessageEntityType.blockquote] — сворачиваемая цитата: длинная
+  /// показывается свёрнутой, раскрывается по тапу (как в Telegram).
+  final bool expandable;
+
+  const MessageEntity({
+    required this.type,
+    required this.offset,
+    required this.length,
+    this.url = '',
+    this.userID = '',
+    this.expandable = false,
+  });
 
   int get end => offset + length;
 }
