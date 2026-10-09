@@ -202,14 +202,25 @@ class MapsAppIcon extends StatelessWidget {
   const MapsAppIcon({super.key, required this.app, this.size = 30});
 
   @override
-  Widget build(BuildContext context) => ClipRRect(
-    borderRadius: BorderRadius.circular(size * 0.23),
-    child: Image.asset(
-      app == MapsApp.yandex ? 'assets/icons/maps/yandex_maps.png' : 'assets/icons/maps/2gis.png',
-      width: size,
-      height: size,
-    ),
-  );
+  Widget build(BuildContext context) {
+    final radius = BorderRadius.circular(size * 0.23);
+    return Container(
+      // Тонкая обводка: у Яндекс Карт иконка на белом и сливается со светлой
+      // карточкой.
+      foregroundDecoration: BoxDecoration(
+        borderRadius: radius,
+        border: Border.all(color: const Color(0x33000000), width: 0.5),
+      ),
+      child: ClipRRect(
+        borderRadius: radius,
+        child: Image.asset(
+          app == MapsApp.yandex ? 'assets/icons/maps/yandex_maps.png' : 'assets/icons/maps/2gis.png',
+          width: size,
+          height: size,
+        ),
+      ),
+    );
+  }
 }
 
 /// Иконки Яндекс Карт и 2ГИС справа у адреса: тап — маршрут до заведения.
