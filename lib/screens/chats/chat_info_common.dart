@@ -40,9 +40,10 @@ List<ChatInfoTab> chatInfoTabs(models.Chat chat) => [
   if (chat.type != models.ChatType.community) ...[ChatInfoTab.media, ChatInfoTab.files, ChatInfoTab.links, ChatInfoTab.voice],
 ];
 
-/// Кнопка выхода в профиле: владелец сообщества и его чатов — удаляет (у
-/// всех), остальные — покидают.
+/// Кнопка выхода в профиле: личный чат — удаляют; владелец сообщества и его
+/// чатов — удаляет (у всех), остальные — покидают.
 bool chatInfoDeletes(models.Chat chat) =>
+    chat.type == models.ChatType.private ||
     chat.myRole == models.ChatRole.owner && (chat.type == models.ChatType.community || chat.inCommunity);
 
 /// «Удалить чат» / «Покинуть группу / канал / сообщество» / «Удалить группу…».

@@ -57,7 +57,10 @@ class _ChatsCupertino extends State<ChatsCupertino> with SearchHideOnScroll {
             child: CupertinoNavigationBar(
               automaticBackgroundVisibility: false,
               backgroundColor: ThemesCupertino.appBackground,
+              // min — по ширине содержимого: иначе Row занимает всё место между
+              // leading и карандашом справа, и замок с заголовком съезжают влево.
               middle: Row(
+                mainAxisSize: MainAxisSize.min,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   BlocBuilder<CommonCubit, CommonState>(
