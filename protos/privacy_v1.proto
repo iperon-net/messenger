@@ -58,6 +58,11 @@ message PrivacySettings {
     Audience messages = 14;
     repeated bytes messages_allow = 15;
     repeated bytes messages_deny = 16;
+    // «Скрывать время прочтения» — от тех, кому не видно моё последнее
+    // посещение (last_seen + исключения): «Прочитано в 12:30» в личном чате им
+    // не отдаётся (галочки ✓✓ остаются). ВЗАИМНО: включивший сам не видит
+    // чужое время прочтения.
+    bool hide_read_time = 17;
   }
 }
 
@@ -117,6 +122,15 @@ message PrivacyBirthdayDenyUpdate {
 
 // Переключение «скрывать год рождения и возраст».
 message PrivacyHideBirthYearUpdate {
+  message Request {
+    bool hide = 1;
+  }
+
+  message Response {}
+}
+
+// Переключение «скрывать время прочтения».
+message PrivacyHideReadTimeUpdate {
   message Request {
     bool hide = 1;
   }

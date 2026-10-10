@@ -42,6 +42,15 @@ class SettingsPrivacyLastSeenMaterial extends StatelessWidget {
 
   /// Открывает пикер списка-исключений ([kind]) для канала «последнее посещение»;
   /// по возврату перечитывает настройку, чтобы счётчик обновился.
+  /// Переключает «скрывать время прочтения»; при неудаче (offline/ошибка) — SnackBar.
+  Future<void> _onToggleHideReadTime(BuildContext context, bool value) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final message = context.t.common.noConnectionMessage;
+    final ok = await context.read<SettingsPrivacyAndSecurityCubit>().setHideReadTime(value);
+    if (ok) return;
+    _noConnectionSnack(messenger, message);
+  }
+
   Future<void> _openList(BuildContext context, SettingsPrivacyAndSecurityState state, CallsListKind kind) async {
     final cubit = context.read<SettingsPrivacyAndSecurityCubit>();
     final isAllow = kind == CallsListKind.allow;
@@ -167,6 +176,28 @@ class SettingsPrivacyLastSeenMaterial extends StatelessWidget {
                     count: state.lastSeenDeny.length,
                     onTap: state.callsReadOnly ? null : () => _openList(context, state, CallsListKind.deny),
                   ),
+                // «Скрывать время прочтения» — от тех, кому не видно последнее
+                // посещение; взаимно.
+                if (!state.callsLoadError) ...[
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(12, 16, 12, 0),
+                    child: Card(
+                      margin: EdgeInsets.zero,
+                      child: SwitchListTile(
+                        title: Text(context.t.sessionsPrivacyAndSecurity.hideReadTime),
+                        value: state.hideReadTime,
+                        onChanged: state.callsReadOnly ? null : (value) => _onToggleHideReadTime(context, value),
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(24, 8, 24, 8),
+                    child: Text(
+                      context.t.sessionsPrivacyAndSecurity.hideReadTimeNote,
+                      style: TextStyle(fontSize: AppFontSizes.caption, color: muted),
+                    ),
+                  ),
+                ],
               ],
             ),
           ),

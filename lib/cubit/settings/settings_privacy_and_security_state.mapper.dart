@@ -184,6 +184,10 @@ class SettingsPrivacyAndSecurityStateMapper
     opt: true,
     def: const [],
   );
+  static bool _$hideReadTime(SettingsPrivacyAndSecurityState v) =>
+      v.hideReadTime;
+  static const Field<SettingsPrivacyAndSecurityState, bool> _f$hideReadTime =
+      Field('hideReadTime', _$hideReadTime, opt: true, def: false);
 
   @override
   final MappableFields<SettingsPrivacyAndSecurityState> fields = const {
@@ -207,6 +211,7 @@ class SettingsPrivacyAndSecurityStateMapper
     #messagesAudience: _f$messagesAudience,
     #messagesAllow: _f$messagesAllow,
     #messagesDeny: _f$messagesDeny,
+    #hideReadTime: _f$hideReadTime,
   };
 
   static SettingsPrivacyAndSecurityState _instantiate(DecodingData data) {
@@ -231,6 +236,7 @@ class SettingsPrivacyAndSecurityStateMapper
       messagesAudience: data.dec(_f$messagesAudience),
       messagesAllow: data.dec(_f$messagesAllow),
       messagesDeny: data.dec(_f$messagesDeny),
+      hideReadTime: data.dec(_f$hideReadTime),
     );
   }
 
@@ -353,6 +359,7 @@ abstract class SettingsPrivacyAndSecurityStateCopyWith<
     CallsPrivacyAudience? messagesAudience,
     List<Uint8List>? messagesAllow,
     List<Uint8List>? messagesDeny,
+    bool? hideReadTime,
   });
   SettingsPrivacyAndSecurityStateCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
     Then<$Out2, $R2> t,
@@ -468,6 +475,7 @@ class _SettingsPrivacyAndSecurityStateCopyWithImpl<$R, $Out>
     CallsPrivacyAudience? messagesAudience,
     List<Uint8List>? messagesAllow,
     List<Uint8List>? messagesDeny,
+    bool? hideReadTime,
   }) => $apply(
     FieldCopyWithData({
       if (status != null) #status: status,
@@ -491,6 +499,7 @@ class _SettingsPrivacyAndSecurityStateCopyWithImpl<$R, $Out>
       if (messagesAudience != null) #messagesAudience: messagesAudience,
       if (messagesAllow != null) #messagesAllow: messagesAllow,
       if (messagesDeny != null) #messagesDeny: messagesDeny,
+      if (hideReadTime != null) #hideReadTime: hideReadTime,
     }),
   );
   @override
@@ -520,6 +529,7 @@ class _SettingsPrivacyAndSecurityStateCopyWithImpl<$R, $Out>
     messagesAudience: data.get(#messagesAudience, or: $value.messagesAudience),
     messagesAllow: data.get(#messagesAllow, or: $value.messagesAllow),
     messagesDeny: data.get(#messagesDeny, or: $value.messagesDeny),
+    hideReadTime: data.get(#hideReadTime, or: $value.hideReadTime),
   );
 
   @override

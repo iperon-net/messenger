@@ -814,6 +814,8 @@
   "whoCanSeeBirthday": "Who can see my birthday"
   "hideBirthYear": "Hide birth year"
   "hideBirthYearNote": "Contacts will see only the day and month — no birth year or age."
+  "hideReadTime": "Hide read time"
+  "hideReadTimeNote": "People who can't see your last seen won't know when you read their messages (the checkmarks stay). This works both ways: you won't see other people's read time either."
   "aboutMe": "About me"
   "whoCanSeeAboutMe": "Who can see my About me"
   "lastSeen": "Last seen"

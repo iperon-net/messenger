@@ -161,6 +161,7 @@ class MessageType extends $pb.ProtobufEnum {
   static const MessageType PRIVACY_MESSAGES_UPDATE = MessageType._(75, _omitEnumNames ? '' : 'PRIVACY_MESSAGES_UPDATE');
   static const MessageType PRIVACY_MESSAGES_ALLOW_UPDATE = MessageType._(76, _omitEnumNames ? '' : 'PRIVACY_MESSAGES_ALLOW_UPDATE');
   static const MessageType PRIVACY_MESSAGES_DENY_UPDATE = MessageType._(77, _omitEnumNames ? '' : 'PRIVACY_MESSAGES_DENY_UPDATE');
+  static const MessageType PRIVACY_HIDE_READ_TIME_UPDATE = MessageType._(78, _omitEnumNames ? '' : 'PRIVACY_HIDE_READ_TIME_UPDATE');
 
   static const $core.List<MessageType> values = <MessageType>[
     HEALTHCHECK,
@@ -237,9 +238,10 @@ class MessageType extends $pb.ProtobufEnum {
     PRIVACY_MESSAGES_UPDATE,
     PRIVACY_MESSAGES_ALLOW_UPDATE,
     PRIVACY_MESSAGES_DENY_UPDATE,
+    PRIVACY_HIDE_READ_TIME_UPDATE,
   ];
 
-  static final $core.List<MessageType?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 77);
+  static final $core.List<MessageType?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 78);
   static MessageType? valueOf($core.int value) => value < 0 || value >= _byValue.length ? null : _byValue[value];
 
   const MessageType._(super.value, super.name);

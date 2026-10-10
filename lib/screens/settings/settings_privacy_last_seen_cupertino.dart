@@ -53,6 +53,13 @@ class SettingsPrivacyLastSeenCupertino extends StatelessWidget {
 
   /// Открывает пикер списка-исключений ([kind]: allow под «Никто» / deny под
   /// «Мои контакты») для канала «последнее посещение»; по возврату перечитывает.
+  /// Переключает «скрывать время прочтения»; при неудаче (offline/ошибка) — диалог.
+  Future<void> _onToggleHideReadTime(BuildContext context, bool value) async {
+    final ok = await context.read<SettingsPrivacyAndSecurityCubit>().setHideReadTime(value);
+    if (ok || !context.mounted) return;
+    await _noConnectionDialog(context);
+  }
+
   Future<void> _openList(BuildContext context, SettingsPrivacyAndSecurityState state, CallsListKind kind) async {
     final cubit = context.read<SettingsPrivacyAndSecurityCubit>();
     final isAllow = kind == CallsListKind.allow;
@@ -188,6 +195,29 @@ class SettingsPrivacyLastSeenCupertino extends StatelessWidget {
                     label: context.t.sessionsPrivacyAndSecurity.callsAlwaysDeny,
                     count: state.lastSeenDeny.length,
                     onTap: state.callsReadOnly ? null : () => _openList(context, state, CallsListKind.deny),
+                  ),
+                // «Скрывать время прочтения» — от тех, кому не видно последнее
+                // посещение; взаимно.
+                if (!state.callsLoadError)
+                  CupertinoListSection.insetGrouped(
+                    footer: Padding(
+                      padding: const EdgeInsets.only(left: 13, right: 13),
+                      child: Text(context.t.sessionsPrivacyAndSecurity.hideReadTimeNote, style: TextStyle(fontSize: AppFontSizes.caption)),
+                    ),
+                    backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
+                    decoration: BoxDecoration(
+                      color: ThemesCupertino.groupedCard.resolveFrom(context),
+                      borderRadius: const BorderRadius.all(Radius.circular(10)),
+                    ),
+                    children: [
+                      CupertinoListTile(
+                        title: Text(context.t.sessionsPrivacyAndSecurity.hideReadTime),
+                        trailing: CupertinoSwitch(
+                          value: state.hideReadTime,
+                          onChanged: state.callsReadOnly ? null : (value) => _onToggleHideReadTime(context, value),
+                        ),
+                      ),
+                    ],
                   ),
               ],
             ),

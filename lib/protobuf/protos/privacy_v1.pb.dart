@@ -71,6 +71,7 @@ class PrivacySettings_Response extends $pb.GeneratedMessage {
     PrivacySettings_Audience? messages,
     $core.Iterable<$core.List<$core.int>>? messagesAllow,
     $core.Iterable<$core.List<$core.int>>? messagesDeny,
+    $core.bool? hideReadTime,
   }) {
     final result = create();
     if (calls != null) result.calls = calls;
@@ -89,6 +90,7 @@ class PrivacySettings_Response extends $pb.GeneratedMessage {
     if (messages != null) result.messages = messages;
     if (messagesAllow != null) result.messagesAllow.addAll(messagesAllow);
     if (messagesDeny != null) result.messagesDeny.addAll(messagesDeny);
+    if (hideReadTime != null) result.hideReadTime = hideReadTime;
     return result;
   }
 
@@ -117,6 +119,7 @@ class PrivacySettings_Response extends $pb.GeneratedMessage {
     ..aE<PrivacySettings_Audience>(14, _omitFieldNames ? '' : 'messages', enumValues: PrivacySettings_Audience.values)
     ..p<$core.List<$core.int>>(15, _omitFieldNames ? '' : 'messagesAllow', $pb.PbFieldType.PY)
     ..p<$core.List<$core.int>>(16, _omitFieldNames ? '' : 'messagesDeny', $pb.PbFieldType.PY)
+    ..aOB(17, _omitFieldNames ? '' : 'hideReadTime')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -241,6 +244,19 @@ class PrivacySettings_Response extends $pb.GeneratedMessage {
 
   @$pb.TagNumber(16)
   $pb.PbList<$core.List<$core.int>> get messagesDeny => $_getList(15);
+
+  /// «Скрывать время прочтения» — от тех, кому не видно моё последнее
+  /// посещение (last_seen + исключения): «Прочитано в 12:30» в личном чате им
+  /// не отдаётся (галочки ✓✓ остаются). ВЗАИМНО: включивший сам не видит
+  /// чужое время прочтения.
+  @$pb.TagNumber(17)
+  $core.bool get hideReadTime => $_getBF(16);
+  @$pb.TagNumber(17)
+  set hideReadTime($core.bool value) => $_setBool(16, value);
+  @$pb.TagNumber(17)
+  $core.bool hasHideReadTime() => $_has(16);
+  @$pb.TagNumber(17)
+  void clearHideReadTime() => $_clearField(17);
 }
 
 /// Настройки приватности per-channel (этап 1 — только звонки). Проверка «кто
@@ -1077,6 +1093,125 @@ class PrivacyHideBirthYearUpdate extends $pb.GeneratedMessage {
   static PrivacyHideBirthYearUpdate getDefault() =>
       _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<PrivacyHideBirthYearUpdate>(create);
   static PrivacyHideBirthYearUpdate? _defaultInstance;
+}
+
+class PrivacyHideReadTimeUpdate_Request extends $pb.GeneratedMessage {
+  factory PrivacyHideReadTimeUpdate_Request({
+    $core.bool? hide,
+  }) {
+    final result = create();
+    if (hide != null) result.hide = hide;
+    return result;
+  }
+
+  PrivacyHideReadTimeUpdate_Request._();
+
+  factory PrivacyHideReadTimeUpdate_Request.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory PrivacyHideReadTimeUpdate_Request.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'PrivacyHideReadTimeUpdate.Request',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..aOB(1, _omitFieldNames ? '' : 'hide')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyHideReadTimeUpdate_Request clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyHideReadTimeUpdate_Request copyWith(void Function(PrivacyHideReadTimeUpdate_Request) updates) =>
+      super.copyWith((message) => updates(message as PrivacyHideReadTimeUpdate_Request)) as PrivacyHideReadTimeUpdate_Request;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static PrivacyHideReadTimeUpdate_Request create() => PrivacyHideReadTimeUpdate_Request._();
+  @$core.override
+  PrivacyHideReadTimeUpdate_Request createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static PrivacyHideReadTimeUpdate_Request getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<PrivacyHideReadTimeUpdate_Request>(create);
+  static PrivacyHideReadTimeUpdate_Request? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.bool get hide => $_getBF(0);
+  @$pb.TagNumber(1)
+  set hide($core.bool value) => $_setBool(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasHide() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearHide() => $_clearField(1);
+}
+
+class PrivacyHideReadTimeUpdate_Response extends $pb.GeneratedMessage {
+  factory PrivacyHideReadTimeUpdate_Response() => create();
+
+  PrivacyHideReadTimeUpdate_Response._();
+
+  factory PrivacyHideReadTimeUpdate_Response.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory PrivacyHideReadTimeUpdate_Response.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'PrivacyHideReadTimeUpdate.Response',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyHideReadTimeUpdate_Response clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyHideReadTimeUpdate_Response copyWith(void Function(PrivacyHideReadTimeUpdate_Response) updates) =>
+      super.copyWith((message) => updates(message as PrivacyHideReadTimeUpdate_Response)) as PrivacyHideReadTimeUpdate_Response;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static PrivacyHideReadTimeUpdate_Response create() => PrivacyHideReadTimeUpdate_Response._();
+  @$core.override
+  PrivacyHideReadTimeUpdate_Response createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static PrivacyHideReadTimeUpdate_Response getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<PrivacyHideReadTimeUpdate_Response>(create);
+  static PrivacyHideReadTimeUpdate_Response? _defaultInstance;
+}
+
+/// Переключение «скрывать время прочтения».
+class PrivacyHideReadTimeUpdate extends $pb.GeneratedMessage {
+  factory PrivacyHideReadTimeUpdate() => create();
+
+  PrivacyHideReadTimeUpdate._();
+
+  factory PrivacyHideReadTimeUpdate.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory PrivacyHideReadTimeUpdate.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'PrivacyHideReadTimeUpdate',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyHideReadTimeUpdate clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyHideReadTimeUpdate copyWith(void Function(PrivacyHideReadTimeUpdate) updates) =>
+      super.copyWith((message) => updates(message as PrivacyHideReadTimeUpdate)) as PrivacyHideReadTimeUpdate;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static PrivacyHideReadTimeUpdate create() => PrivacyHideReadTimeUpdate._();
+  @$core.override
+  PrivacyHideReadTimeUpdate createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static PrivacyHideReadTimeUpdate getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<PrivacyHideReadTimeUpdate>(create);
+  static PrivacyHideReadTimeUpdate? _defaultInstance;
 }
 
 class PrivacyAboutMeUpdate_Request extends $pb.GeneratedMessage {

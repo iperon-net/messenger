@@ -117,6 +117,7 @@ class SettingsPrivacyAndSecurityCubit extends Cubit<SettingsPrivacyAndSecuritySt
         messagesAudience: _fromProto(response.messages),
         messagesAllow: response.messagesAllow.map(Uint8List.fromList).toList(growable: false),
         messagesDeny: response.messagesDeny.map(Uint8List.fromList).toList(growable: false),
+        hideReadTime: response.hideReadTime,
         callsLoadError: false,
         callsReadOnly: false,
       ),
@@ -145,6 +146,7 @@ class SettingsPrivacyAndSecurityCubit extends Cubit<SettingsPrivacyAndSecuritySt
         messages: _toProto(state.messagesAudience),
         messagesAllow: state.messagesAllow,
         messagesDeny: state.messagesDeny,
+        hideReadTime: state.hideReadTime,
       );
       await repositories.privacySettings.upsert(userID: auth.session.userID, payload: response.writeToBuffer());
     } catch (error, stackTrace) {
@@ -294,6 +296,31 @@ class SettingsPrivacyAndSecurityCubit extends Cubit<SettingsPrivacyAndSecuritySt
     }
 
     if (!isClosed) emit(state.copyWith(birthdayDeny: List<Uint8List>.unmodifiable(userIDs)));
+    await _persistFromState();
+    return true;
+  }
+
+  /// Переключает «скрывать время прочтения». Серверная операция, offline
+  /// недоступна. Возвращает `false`, если не применилось (offline/ошибка).
+  Future<bool> setHideReadTime(bool hide) async {
+    if (hide == state.hideReadTime && !state.callsLoadError && !state.callsReadOnly) return true;
+
+    if (!await utils.hasNetwork()) {
+      logger.info('privacy: set hide read time aborted, no network');
+      return false;
+    }
+
+    final status = await api.unaryEncoded(
+      MessageType.PRIVACY_HIDE_READ_TIME_UPDATE,
+      PrivacyHideReadTimeUpdate_Request(hide: hide).writeToBuffer(),
+    );
+
+    if (status.status != APIStatus.success) {
+      logger.warning('privacy: update hide read time failed (${status.error})');
+      return false;
+    }
+
+    if (!isClosed) emit(state.copyWith(hideReadTime: hide, callsLoadError: false, callsReadOnly: false));
     await _persistFromState();
     return true;
   }

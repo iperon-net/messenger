@@ -2557,6 +2557,12 @@ class Translations$sessionsPrivacyAndSecurity$en {
 	/// en: 'Contacts will see only the day and month — no birth year or age.'
 	String get hideBirthYearNote => 'Contacts will see only the day and month — no birth year or age.';
 
+	/// en: 'Hide read time'
+	String get hideReadTime => 'Hide read time';
+
+	/// en: 'People who can't see your last seen won't know when you read their messages (the checkmarks stay). This works both ways: you won't see other people's read time either.'
+	String get hideReadTimeNote => 'People who can\'t see your last seen won\'t know when you read their messages (the checkmarks stay). This works both ways: you won\'t see other people\'s read time either.';
+
 	/// en: 'About me'
 	String get aboutMe => 'About me';
 
@@ -4245,6 +4251,8 @@ extension on Translations {
 			'sessionsPrivacyAndSecurity.whoCanSeeBirthday' => 'Who can see my birthday',
 			'sessionsPrivacyAndSecurity.hideBirthYear' => 'Hide birth year',
 			'sessionsPrivacyAndSecurity.hideBirthYearNote' => 'Contacts will see only the day and month — no birth year or age.',
+			'sessionsPrivacyAndSecurity.hideReadTime' => 'Hide read time',
+			'sessionsPrivacyAndSecurity.hideReadTimeNote' => 'People who can\'t see your last seen won\'t know when you read their messages (the checkmarks stay). This works both ways: you won\'t see other people\'s read time either.',
 			'sessionsPrivacyAndSecurity.aboutMe' => 'About me',
 			'sessionsPrivacyAndSecurity.whoCanSeeAboutMe' => 'Who can see my About me',
 			'sessionsPrivacyAndSecurity.lastSeen' => 'Last seen',

@@ -1088,6 +1088,8 @@ class _Translations$sessionsPrivacyAndSecurity$ru extends Translations$sessionsP
 	@override String get whoCanSeeBirthday => 'Кто может видеть мой день рождения';
 	@override String get hideBirthYear => 'Скрывать год рождения';
 	@override String get hideBirthYearNote => 'Контакты увидят только день и месяц — без года рождения и возраста.';
+	@override String get hideReadTime => 'Скрывать время прочтения';
+	@override String get hideReadTimeNote => 'Те, кому не видно ваше время захода, не узнают, когда вы прочитали их сообщения (галочки останутся). Взаимно: вы тоже не будете видеть время прочтения других.';
 	@override String get aboutMe => 'О себе';
 	@override String get whoCanSeeAboutMe => 'Кто может видеть моё «О себе»';
 	@override String get lastSeen => 'Время захода';
@@ -2246,6 +2248,8 @@ extension on TranslationsRu {
 			'sessionsPrivacyAndSecurity.whoCanSeeBirthday' => 'Кто может видеть мой день рождения',
 			'sessionsPrivacyAndSecurity.hideBirthYear' => 'Скрывать год рождения',
 			'sessionsPrivacyAndSecurity.hideBirthYearNote' => 'Контакты увидят только день и месяц — без года рождения и возраста.',
+			'sessionsPrivacyAndSecurity.hideReadTime' => 'Скрывать время прочтения',
+			'sessionsPrivacyAndSecurity.hideReadTimeNote' => 'Те, кому не видно ваше время захода, не узнают, когда вы прочитали их сообщения (галочки останутся). Взаимно: вы тоже не будете видеть время прочтения других.',
 			'sessionsPrivacyAndSecurity.aboutMe' => 'О себе',
 			'sessionsPrivacyAndSecurity.whoCanSeeAboutMe' => 'Кто может видеть моё «О себе»',
 			'sessionsPrivacyAndSecurity.lastSeen' => 'Время захода',

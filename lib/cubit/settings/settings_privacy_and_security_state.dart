@@ -93,6 +93,11 @@ class SettingsPrivacyAndSecurityState with SettingsPrivacyAndSecurityStateMappab
   final List<Uint8List> messagesAllow;
   final List<Uint8List> messagesDeny;
 
+  /// «Скрывать время прочтения» (в «Последнем посещении»): «Прочитано в 12:30»
+  /// не видно тем, кому не видно моё последнее посещение. Взаимно — включив,
+  /// сам не видишь чужое. Галочки ✓✓ остаются.
+  final bool hideReadTime;
+
   const SettingsPrivacyAndSecurityState({
     this.status = Status.initialization,
     this.isBiometricAvailable = false,
@@ -114,5 +119,6 @@ class SettingsPrivacyAndSecurityState with SettingsPrivacyAndSecurityStateMappab
     this.messagesAudience = CallsPrivacyAudience.everybody,
     this.messagesAllow = const [],
     this.messagesDeny = const [],
+    this.hideReadTime = false,
   });
 }
