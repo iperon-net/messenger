@@ -269,6 +269,12 @@ class ChatsRepository {
     final keep = {for (final d in dialogs) _hex(d.chatID)};
     for (final row in await this.dialogs(userID: userID)) {
       if (keep.contains(_hex(row.chatID)) || (row.topMessageID == 0 && row.type == 0)) continue;
+      // Есть неотправленное — не теряем его вместе с диалогом.
+      if ((await outbox(userID: userID, chatID: row.chatID)).isNotEmpty) {
+        logger.warning('chats: dialog ${_hex(row.chatID)} missing on server, kept (outbox not empty)');
+        continue;
+      }
+      logger.info('chats: dialog ${_hex(row.chatID)} missing on server, deleted locally (top=${row.topMessageID})');
       await deleteDialog(userID: userID, chatID: row.chatID);
     }
     for (final d in dialogs) {

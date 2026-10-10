@@ -476,6 +476,7 @@ class ChatsSync {
         }
 
       case pb.Update_Update.dialogDeleted:
+        _logger.info('chats: dialog deleted ${idHex(update.dialogDeleted.chatID)} pts=${update.pts}');
         await tx.deleteDialog(userID: user, chatID: update.dialogDeleted.chatID);
         unawaited(PushManager.clearChatNotifications(update.dialogDeleted.chatID, all: true));
 

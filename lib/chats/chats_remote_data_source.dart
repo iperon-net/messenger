@@ -569,8 +569,11 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     if (!_auth.isAuthorized || chat.isEmpty) return const [];
     final me = _sync.me;
     final row = await _store.dialog(userID: me, chatID: chat);
-    if (row == null) return const [];
-    final peer = row.peerUserID;
+    // Диалога в кэше нет (удалён / ещё не пришёл), а окно открыто — всё равно
+    // показываем, что есть: историю и неотправленное, иначе отправленное
+    // «пропадает» из ленты.
+    if (row == null) _logger.warning('chats: open chat ${idHex(chat)} has no local dialog');
+    final peer = row?.peerUserID;
     final isSelf = peer != null && sameID(peer, me);
     final peerName = peer == null || isSelf ? '' : _Peers(await _loadPeers([peer])).of(peer).title;
     final history = await _store.messages(userID: me, chatID: chat, limit: _windows[chatID] ?? _initialWindow);
@@ -580,7 +583,7 @@ class ChatsRemoteDataSource implements ChatsDataSource {
       m,
       chatID: chatID,
       myUserID: me,
-      readOutboxMaxID: row.readOutboxMaxID,
+      readOutboxMaxID: row?.readOutboxMaxID ?? 0,
       isSelf: isSelf,
       replied: m.content.hasReplyTo() ? byID[m.content.replyTo.messageID.toInt()] : null,
       peerName: peerName,
