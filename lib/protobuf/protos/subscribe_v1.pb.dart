@@ -17,7 +17,13 @@ import 'package:protobuf/protobuf.dart' as $pb;
 export 'package:protobuf/protobuf.dart' show GeneratedMessageGenericExtensions;
 
 class Subscribe_Request extends $pb.GeneratedMessage {
-  factory Subscribe_Request() => create();
+  factory Subscribe_Request({
+    $core.bool? background,
+  }) {
+    final result = create();
+    if (background != null) result.background = background;
+    return result;
+  }
 
   Subscribe_Request._();
 
@@ -28,6 +34,7 @@ class Subscribe_Request extends $pb.GeneratedMessage {
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Subscribe.Request',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..aOB(1, _omitFieldNames ? '' : 'background')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -46,6 +53,20 @@ class Subscribe_Request extends $pb.GeneratedMessage {
   @$core.pragma('dart2js:noInline')
   static Subscribe_Request getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Subscribe_Request>(create);
   static Subscribe_Request? _defaultInstance;
+
+  /// background — приложение запущено системой в фоне (VoIP / тихий пуш), а не
+  /// открыто пользователем: сервер не ставит сессии presence online, иначе
+  /// push-уведомления ей не уходят, пока стрим не отвалится по keepalive.
+  /// Онлайн поставит APP_STATE{foreground:true}, когда приложение откроют.
+  /// Старые клиенты поле не шлют (false) — как раньше, открытие стрима = online.
+  @$pb.TagNumber(1)
+  $core.bool get background => $_getBF(0);
+  @$pb.TagNumber(1)
+  set background($core.bool value) => $_setBool(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasBackground() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearBackground() => $_clearField(1);
 }
 
 class Subscribe_Response extends $pb.GeneratedMessage {
@@ -111,4 +132,5 @@ class Subscribe extends $pb.GeneratedMessage {
   static Subscribe? _defaultInstance;
 }
 
+const $core.bool _omitFieldNames = $core.bool.fromEnvironment('protobuf.omit_field_names');
 const $core.bool _omitMessageNames = $core.bool.fromEnvironment('protobuf.omit_message_names');

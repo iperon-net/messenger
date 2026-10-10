@@ -182,6 +182,21 @@ class PushManager {
     }
   }
 
+  /// iOS: приложение запущено системой в фоне (VoIP / тихий пуш) и пользователь
+  /// его ещё не открыл — `UIApplication.applicationState == .background`.
+  /// Жизненный цикл Flutter в таком запуске не приходит, поэтому спрашиваем
+  /// натив. На прочих платформах и при ошибке — `false` (как раньше: стрим =
+  /// передний план).
+  static Future<bool> isLaunchedInBackground() async {
+    if (!Platform.isIOS) return false;
+    try {
+      return await _channel.invokeMethod<bool>('isInBackground') ?? false;
+    } catch (error, stackTrace) {
+      getIt.get<Logger>().handle(error, stackTrace);
+      return false;
+    }
+  }
+
   /// Снимает уже показанные уведомления чата [chatID]: прочитано или удалено
   /// здесь либо на другом устройстве (обновление из стрима / журнала). Устройства
   /// без живого стрима снимает тихий push `READ_HISTORY` / `MESSAGE_DELETED`.

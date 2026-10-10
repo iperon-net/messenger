@@ -469,8 +469,8 @@ message NotifySettings {
 
 - [ ] `Kind.MESSAGE` при новом сообщении: тип вложения в `args` (фото/видео/файл →
   локализованный текст на клиенте), учёт `PEER`-исключений и `muteUntil`.
-- [x] `READ_HISTORY` / `MESSAGE_DELETED` (написано 2026-10-10, на устройствах не проверено):
-  снять уведомления на всех устройствах пользователя. Сервер (`ServiceChats.notifyCleared`):
+- [x] `READ_HISTORY` / `MESSAGE_DELETED` (написано; проверено 2026-10-10 на двух телефонах
+  под одним аккаунтом): снять уведомления на всех устройствах пользователя. Сервер (`ServiceChats.notifyCleared`):
   READ_HISTORY читателю, когда прочтение сдвинуло inbox, и при «Удалить чат» с непрочитанными;
   MESSAGE_DELETED тем, у кого удалили непрочитанные входящие. Онлайн-сессии пуш не получают —
   они снимают уведомления сами, применив обновление из стрима (`ChatsSync` →
@@ -491,20 +491,32 @@ message NotifySettings {
   (RemoteInput) и «Прочитано» — нужен способ отправить без UI (headless Flutter
   engine или нативный gRPC-вызов); выбираем здесь, на этапе 7, не раньше.
 - [ ] In-app баннер вместо системного в foreground.
-- [ ] **Ложный «онлайн» после фонового запуска звонком (iOS) — до запуска MESSAGE.**
-  VoIP-пуш поднимает выгруженное приложение в фоне; `API._appActive` по умолчанию
-  `true`, lifecycle в таком запуске не приходит → стрим открывается (Subscribe →
-  presence online), `APP_STATE{foreground:false}` не уходит, и сессия числится
-  онлайн, пока iOS не усыпит процесс и стрим не отвалится по keepalive. Всё это
-  время сервер отбрасывает пуши по presence (`onlineSkipped`) — MESSAGE после
-  такого звонка потеряются. Найдено 2026-10-03 на CALL_MISSED (Loki:
-  `onlineSkipped:1, apnsSent:0`); для CALL_MISSED обошли на сервере
-  (`IgnorePresence: true` в `missed_calls.go`), для сообщений так нельзя.
-  Чинить на клиенте: стартовое `_appActive` брать из
-  `WidgetsBinding.instance.lifecycleState` / `UIApplication.applicationState`
-  (не `active` → `false`). Риск: `setCallActive(true)` ставится только на подключении к комнате, а пока звонок звонит, стрим нужен, чтобы дошёл `CALL_HANGUP` звонящего — его надо держать и на время звонка (или поднимать presence-нейтрально). Сначала
-  проверить на устройстве, какое состояние Flutter сообщает при фоновом запуске
-  (лог `lifecycle:` в файловом логе), и что cold-start входящий не ломается.
+- [x] **Ложный «онлайн» после фонового запуска (iOS) — до запуска MESSAGE.** Написано
+  2026-10-10, на устройстве не проверено.
+  Проблема: VoIP-пуш (а теперь и тихий `READ_HISTORY` / `MESSAGE_DELETED`) поднимает
+  выгруженное приложение в фоне; `API._appActive` по умолчанию `true`, lifecycle в таком
+  запуске не приходит → стрим открывается (Subscribe → presence online),
+  `APP_STATE{foreground:false}` не уходит, и сессия числится онлайн, пока iOS не усыпит
+  процесс и стрим не отвалится по keepalive. Всё это время сервер отбрасывает пуши по
+  presence (`onlineSkipped`). Найдено 2026-10-03 на CALL_MISSED (Loki: `onlineSkipped:1,
+  apnsSent:0`); для CALL_MISSED обошли на сервере (`IgnorePresence: true` в
+  `missed_calls.go`).
+  Решение — presence-нейтральный стрим (стрим нужен, чтобы пока звонок звонит дошёл
+  `CALL_HANGUP` звонящего, поэтому `_appActive` не трогаем):
+  - proto: `Subscribe.Request.background` (старые клиенты шлют false → как раньше);
+  - сервер (`api/v1.go`, `subscribe`): при `background` сессия сразу в
+    `backgroundSessions`, `Online` не зовётся, heartbeat не продлевает; лог
+    `subscribe active` с полем `background`;
+  - клиент: `PushManager.isLaunchedInBackground()` → нативный `isInBackground`
+    (`PushBridge`, `UIApplication.applicationState == .background`); `API._presenceForeground`
+    ведётся отдельно от `_appActive`: первое значение — от натива, дальше — `setForeground`;
+    `resumed` после фонового запуска шлёт `APP_STATE{foreground:true}` (раньше это был no-op,
+    т.к. `_appActive` уже true).
+  Проверить на устройстве: (1) выгрузить приложение, позвонить и сбросить → в Loki
+  `subscribe active background=true`, следующее сообщение приходит пушем; (2) после такого
+  запуска открыть приложение → presence online, пуши в foreground не дублируются; (3)
+  cold-start входящий отвечается и сбрасывается как раньше; (4) второй звонок, пока процесс
+  ещё жив в фоне, не даёт двойного входящего (CALL_RING по стриму + VoIP-пуш).
 
 ## Решения (2026-10-01)
 

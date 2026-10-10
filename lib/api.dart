@@ -14,6 +14,7 @@ import 'utils.dart';
 import 'crypto.dart';
 import 'di.dart';
 import 'logger.dart';
+import 'push.dart';
 import 'repositories.dart';
 import 'settings.dart';
 import 'protobuf.dart';
@@ -142,6 +143,13 @@ class API {
   // (CALL_HANGUP и т.п.). Пока звонок идёт, держим стрим живым независимо от
   // foreground. Ставит/снимает [Calls] (setCallActive).
   bool _callActive = false;
+  // Что сервер должен знать о сессии для presence: открыта ли она пользователем.
+  // Отдельно от [_appActive]: при фоновом запуске системой (VoIP / тихий пуш на
+  // iOS) жизненный цикл не приходит, [_appActive] остаётся true и стрим нужен
+  // (сигналинг звонка), но presence online ставить нельзя — иначе сервер не шлёт
+  // пуши, пока стрим не отвалится по keepalive. null — ещё не выяснили (см.
+  // [_resolvePresenceForeground]).
+  bool? _presenceForeground;
   Timer? _pauseTimer;
 
   // Задержка перед паузой при уходе в фон: быстрый «свернул-развернул» не должен
@@ -351,10 +359,28 @@ class API {
   /// Сообщает, на переднем ли плане приложение. Вызывается наблюдателем
   /// жизненного цикла (`didChangeAppLifecycleState`).
   void setForeground(bool value) {
+    // Presence — по фактическому состоянию, даже если [_appActive] не меняется:
+    // после фонового запуска [_appActive] уже true, а онлайн сессия ещё не
+    // ставилась. Пока [_presenceForeground] не выяснен, Subscribe ещё не уходил —
+    // он сам понесёт актуальное значение.
+    final previous = _presenceForeground;
+    _presenceForeground = value;
+    if (previous != null && previous != value) _sendAppState(value);
+
     if (_appActive == value) return;
     _appActive = value;
-    _sendAppState(value);
     _reconcile();
+  }
+
+  /// Открыто ли приложение пользователем — для Subscribe{background}. Первый раз
+  /// спрашиваем натив ([PushManager.isLaunchedInBackground]); дальше значение
+  /// ведёт [setForeground]. Если жизненный цикл успел прийти за время запроса —
+  /// он главнее.
+  Future<bool> _resolvePresenceForeground() async {
+    final known = _presenceForeground;
+    if (known != null) return known;
+    final background = await PushManager.isLaunchedInBackground();
+    return _presenceForeground ??= !background;
   }
 
   /// Сообщает серверу по ещё живому стриму, что приложение ушло в фон/вернулось
@@ -523,8 +549,14 @@ class API {
         final crypto = getIt.get<Crypto>();
         final auth = getIt.get<Auth>();
 
-        // Send subscribe
-        final encodedSubscribe = await crypto.syncer.encode(session: auth.session, message: Subscribe_Request().writeToBuffer());
+        // Send subscribe. background — запущены системой в фоне: стрим нужен, но
+        // presence online сервер не ставит (см. [_presenceForeground]).
+        final background = !await _resolvePresenceForeground();
+        if (background) logger.info('subscribe: background launch, presence stays offline');
+        final encodedSubscribe = await crypto.syncer.encode(
+          session: auth.session,
+          message: Subscribe_Request(background: background).writeToBuffer(),
+        );
 
         final outgoing = _outgoing;
         if (outgoing == null || outgoing.isClosed) {

@@ -24,6 +24,9 @@ const Subscribe$json = {
 @$core.Deprecated('Use subscribeDescriptor instead')
 const Subscribe_Request$json = {
   '1': 'Request',
+  '2': [
+    {'1': 'background', '3': 1, '4': 1, '5': 8, '10': 'background'},
+  ],
 };
 
 @$core.Deprecated('Use subscribeDescriptor instead')
@@ -32,4 +35,6 @@ const Subscribe_Response$json = {
 };
 
 /// Descriptor for `Subscribe`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List subscribeDescriptor = $convert.base64Decode('CglTdWJzY3JpYmUaCQoHUmVxdWVzdBoKCghSZXNwb25zZQ==');
+final $typed_data.Uint8List subscribeDescriptor =
+    $convert.base64Decode('CglTdWJzY3JpYmUaKQoHUmVxdWVzdBIeCgpiYWNrZ3JvdW5kGAEgASgIUgpiYWNrZ3JvdW5kGg'
+        'oKCFJlc3BvbnNl');

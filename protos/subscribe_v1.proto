@@ -4,6 +4,13 @@ package iperon.v1;
 option go_package = "internal/api/v1";
 
 message Subscribe {
-  message Request {}
+  message Request {
+    // background — приложение запущено системой в фоне (VoIP / тихий пуш), а не
+    // открыто пользователем: сервер не ставит сессии presence online, иначе
+    // push-уведомления ей не уходят, пока стрим не отвалится по keepalive.
+    // Онлайн поставит APP_STATE{foreground:true}, когда приложение откроют.
+    // Старые клиенты поле не шлют (false) — как раньше, открытие стрима = online.
+    bool background = 1;
+  }
   message Response {}
 }

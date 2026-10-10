@@ -1,4 +1,5 @@
 import Flutter
+import UIKit
 import UserNotifications
 
 /// iOS-сторона канала `net.iperon.messenger/push` (тот же контракт, что у
@@ -8,6 +9,7 @@ import UserNotifications
 ///   кладёт в общий Keychain то, что нужно Notification Service Extension для
 ///   расшифровки ([PushKeychain]);
 /// - `takeInitialTap` — тап, открывший приложение до готовности Dart;
+/// - `isInBackground` — запущено ли приложение системой в фоне (presence);
 /// - `onNotificationTap` (натив → Dart) — тап по уведомлению в живом приложении.
 ///
 /// Плюс решения делегата UNUserNotificationCenter для наших зашифрованных пушей
@@ -63,6 +65,10 @@ final class PushBridge {
         messageIDs: ids,
         all: (args["all"] as? Bool) ?? false
       ) { result(nil) }
+    case "isInBackground":
+      // Фоновый запуск системой (VoIP / тихий пуш): Dart не ставит presence
+      // online (Subscribe{background}). См. PushManager.isLaunchedInBackground.
+      result(UIApplication.shared.applicationState == .background)
     case "takeInitialTap":
       dartReady = true
       result(pendingTap)
