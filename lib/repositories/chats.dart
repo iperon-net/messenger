@@ -69,6 +69,10 @@ class ChatOutboxRow {
   final bool failed;
   final int createdAt;
 
+  /// Локальные файлы вложений (JSON `OutboxMedia`, см. chats_media.dart);
+  /// пусто — без вложений.
+  final String media;
+
   const ChatOutboxRow({
     required this.randomID,
     required this.chatID,
@@ -77,6 +81,7 @@ class ChatOutboxRow {
     required this.silent,
     required this.failed,
     required this.createdAt,
+    this.media = '',
   });
 
   factory ChatOutboxRow._fromRow(Map<String, dynamic> row) => ChatOutboxRow(
@@ -87,6 +92,7 @@ class ChatOutboxRow {
     silent: (row['silent'] as int) != 0,
     failed: (row['failed'] as int) != 0,
     createdAt: row['createdAt'] as int,
+    media: row['media'] as String? ?? '',
   );
 }
 
@@ -426,11 +432,19 @@ class ChatsRepository {
     List<int>? peerUserID,
     required Uint8List content,
     bool silent = false,
+    String media = '',
   }) async {
     await ctx.execute(
-      'INSERT INTO chatOutbox (userID, randomID, chatID, peerUserID, content, silent, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?);',
-      [userID, randomID, chatID, peerUserID, content, silent ? 1 : 0, DateTime.now().millisecondsSinceEpoch],
+      'INSERT INTO chatOutbox (userID, randomID, chatID, peerUserID, content, silent, createdAt, media) VALUES (?, ?, ?, ?, ?, ?, ?, ?);',
+      [userID, randomID, chatID, peerUserID, content, silent ? 1 : 0, DateTime.now().millisecondsSinceEpoch, media],
     );
+  }
+
+  /// Файлы вложений всех неотправленных (всех пользователей) — чтобы не
+  /// удалить нужное при чистке каталога outbox.
+  Future<List<String>> outboxMediaAll() async {
+    final rows = await ctx.getAll("SELECT media FROM chatOutbox WHERE media != '';");
+    return [for (final row in rows) row['media'] as String];
   }
 
   /// Неотправленные — по порядку создания; [chatID] — только этого чата.

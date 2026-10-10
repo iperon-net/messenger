@@ -547,6 +547,16 @@ class Repositories {
         await tx.execute("INSERT INTO chatMessagesFts(chatMessagesFts) VALUES ('rebuild');");
       }),
     );
+    migrations.add(
+      SqliteMigration(19, (tx) async {
+        // Вложения неотправленных сообщений: локальные копии файлов (JSON
+        // `OutboxMedia`, по элементу на content.media — пути относительно
+        // каталога outbox, см. lib/chats/chats_media.dart). Загруженные на CDN
+        // помечаются cdnID прямо в content — докачка продолжается с
+        // незагруженных.
+        await tx.execute("ALTER TABLE chatOutbox ADD COLUMN media TEXT NOT NULL DEFAULT '';");
+      }),
+    );
 
     if (settings.isDeleteDatabase) {
       logger.warning("Deleting the database, flag set IS_DELETE_DATABASE: 1");

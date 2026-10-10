@@ -16,6 +16,7 @@ import 'package:fixnum/fixnum.dart' as $fixnum;
 import 'package:protobuf/protobuf.dart' as $pb;
 
 import 'chats_v1.pbenum.dart';
+import 'models.pb.dart' as $0;
 
 export 'package:protobuf/protobuf.dart' show GeneratedMessageGenericExtensions;
 
@@ -133,7 +134,8 @@ class MessageEntity extends $pb.GeneratedMessage {
   void clearExpandable() => $_clearField(6);
 }
 
-/// Файл вложения: загружен заранее через Upload (UPLOAD_CONFIRM → cdnID).
+/// Файл вложения: загружен заранее через Upload (UPLOAD_CONFIRM → cdnID) —
+/// самим отправителем, иначе отправка отклоняется (PERMISSION_DENIED).
 class MessageMedia extends $pb.GeneratedMessage {
   factory MessageMedia({
     MessageKind? kind,
@@ -147,6 +149,9 @@ class MessageMedia extends $pb.GeneratedMessage {
     $core.String? fileName,
     $core.String? mimeType,
     $core.List<$core.int>? waveform,
+    $0.CDN? file,
+    $core.List<$core.int>? thumbCdnID,
+    $0.CDN? thumbFile,
   }) {
     final result = create();
     if (kind != null) result.kind = kind;
@@ -160,6 +165,9 @@ class MessageMedia extends $pb.GeneratedMessage {
     if (fileName != null) result.fileName = fileName;
     if (mimeType != null) result.mimeType = mimeType;
     if (waveform != null) result.waveform = waveform;
+    if (file != null) result.file = file;
+    if (thumbCdnID != null) result.thumbCdnID = thumbCdnID;
+    if (thumbFile != null) result.thumbFile = thumbFile;
     return result;
   }
 
@@ -183,6 +191,9 @@ class MessageMedia extends $pb.GeneratedMessage {
     ..aOS(9, _omitFieldNames ? '' : 'fileName', protoName: 'fileName')
     ..aOS(10, _omitFieldNames ? '' : 'mimeType', protoName: 'mimeType')
     ..a<$core.List<$core.int>>(11, _omitFieldNames ? '' : 'waveform', $pb.PbFieldType.OY)
+    ..aOM<$0.CDN>(12, _omitFieldNames ? '' : 'file', subBuilder: $0.CDN.create)
+    ..a<$core.List<$core.int>>(13, _omitFieldNames ? '' : 'thumbCdnID', $pb.PbFieldType.OY, protoName: 'thumbCdnID')
+    ..aOM<$0.CDN>(14, _omitFieldNames ? '' : 'thumbFile', protoName: 'thumbFile', subBuilder: $0.CDN.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -302,6 +313,43 @@ class MessageMedia extends $pb.GeneratedMessage {
   $core.bool hasWaveform() => $_has(10);
   @$pb.TagNumber(11)
   void clearWaveform() => $_clearField(11);
+
+  /// Как скачать: адрес, ключ, соль, хеш шифротекста. Заполняет сервер при
+  /// выдаче сообщения (история, обновления, догон, ответ на отправку) — адрес
+  /// собирается в момент выдачи (горячее/холодное хранилище). При отправке
+  /// клиент поле не заполняет (сервер его отбрасывает); в БД не хранится.
+  @$pb.TagNumber(12)
+  $0.CDN get file => $_getN(11);
+  @$pb.TagNumber(12)
+  set file($0.CDN value) => $_setField(12, value);
+  @$pb.TagNumber(12)
+  $core.bool hasFile() => $_has(11);
+  @$pb.TagNumber(12)
+  void clearFile() => $_clearField(12);
+  @$pb.TagNumber(12)
+  $0.CDN ensureFile() => $_ensure(11);
+
+  /// Видео — кадр-обложка (JPEG ~320 px), загружен так же, как сам файл, чтобы
+  /// получатель видел превью до скачивания видео. thumbFile — как file.
+  @$pb.TagNumber(13)
+  $core.List<$core.int> get thumbCdnID => $_getN(12);
+  @$pb.TagNumber(13)
+  set thumbCdnID($core.List<$core.int> value) => $_setBytes(12, value);
+  @$pb.TagNumber(13)
+  $core.bool hasThumbCdnID() => $_has(12);
+  @$pb.TagNumber(13)
+  void clearThumbCdnID() => $_clearField(13);
+
+  @$pb.TagNumber(14)
+  $0.CDN get thumbFile => $_getN(13);
+  @$pb.TagNumber(14)
+  set thumbFile($0.CDN value) => $_setField(14, value);
+  @$pb.TagNumber(14)
+  $core.bool hasThumbFile() => $_has(13);
+  @$pb.TagNumber(14)
+  void clearThumbFile() => $_clearField(14);
+  @$pb.TagNumber(14)
+  $0.CDN ensureThumbFile() => $_ensure(13);
 }
 
 /// Ответ на сообщение (того же чата).

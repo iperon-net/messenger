@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:fixnum/fixnum.dart';
@@ -7,6 +8,7 @@ import 'package:grpc/grpc.dart';
 
 import '../api.dart';
 import '../auth.dart';
+import '../cdn.dart';
 import '../di.dart';
 import '../logger.dart';
 import '../protobuf.dart';
@@ -14,6 +16,7 @@ import '../protobuf/protos/chats_v1.pb.dart' as pb;
 import '../repositories.dart';
 import '../utils.dart';
 import 'chats_mapping.dart';
+import 'chats_media.dart';
 import 'updates_plan.dart';
 
 /// Действие требует сети, а её нет (или сервер недоступен): ничего не
@@ -571,6 +574,7 @@ class ChatsSync {
       _logger.handle(error, stackTrace);
     } finally {
       _flushing = false;
+      unawaited(_cleanOutboxFiles());
     }
   }
 
@@ -580,6 +584,21 @@ class ChatsSync {
     for (final row in await _store.outbox(userID: user)) {
       if (row.failed) continue;
       if (!await hasNetwork()) return false;
+      var content = pb.MessageContent.fromBuffer(row.content);
+      if (row.media.isNotEmpty) {
+        switch (await _uploadMedia(user, row, content)) {
+          case _Upload.done:
+            break;
+          case _Upload.stop:
+            return false;
+          case _Upload.skip:
+            continue;
+        }
+        // Вложения загружены (cdnID записаны) — шлём с ними.
+        final saved = await _store.outboxByRandomID(userID: user, randomID: row.randomID);
+        if (saved == null) continue;
+        content = pb.MessageContent.fromBuffer(saved.content);
+      }
       final pb.Messages_Response response;
       try {
         response = await messages(
@@ -588,7 +607,7 @@ class ChatsSync {
               chatID: row.chatID,
               peerUserID: row.peerUserID,
               randomID: Int64(row.randomID),
-              content: pb.MessageContent.fromBuffer(row.content),
+              content: content,
               silent: row.silent,
             ),
           ),
@@ -623,7 +642,136 @@ class ChatsSync {
     }
     return true;
   }
+
+  // --- вложения outbox ---
+
+  /// Прогресс загрузки вложений неотправленных (randomID → байты исходных
+  /// файлов: загружено / всего). Нет записи — не грузится сейчас.
+  final _uploads = <int, ({int sent, int total})>{};
+
+  /// Отменённые пользователем загрузки (randomID) — `CDNManager` проверяет
+  /// между чанками.
+  final _cancelledUploads = <int>{};
+
+  final _uploadChanged = StreamController<void>.broadcast();
+
+  /// Изменился прогресс загрузки вложений (экран чата перечитывает ленту).
+  Stream<void> get uploadChanged => _uploadChanged.stream;
+
+  ({int sent, int total})? uploadProgress(int randomID) => _uploads[randomID];
+
+  /// Отменить загрузку и само неотправленное сообщение.
+  Future<void> cancelUpload(int randomID) async {
+    _cancelledUploads.add(randomID);
+    await _store.deleteOutbox(userID: me, randomID: randomID);
+  }
+
+  /// Загрузить на CDN ещё не загруженные вложения [row] (cdnID пишется в
+  /// outbox после каждого файла — обрыв не заставит грузить всё заново).
+  Future<_Upload> _uploadMedia(Uint8List user, ChatOutboxRow row, pb.MessageContent content) async {
+    final randomID = row.randomID;
+    // Отменили, пока ждало очереди.
+    if (await _store.outboxByRandomID(userID: user, randomID: randomID) == null) return _Upload.skip;
+    final local = OutboxMedia.decode(row.media);
+    final dir = await outboxMediaDir();
+    final cdn = getIt.get<CDNManager>();
+
+    // Что грузить: (индекс вложения, обложка ли, файл).
+    final jobs = <({int index, bool thumb, File file})>[];
+    for (final (i, media) in content.media.indexed) {
+      final item = i < local.length ? local[i] : null;
+      if (item == null) continue;
+      if (media.cdnID.isEmpty) jobs.add((index: i, thumb: false, file: File(outboxFilePath(dir, item.path))));
+      if (item.thumb.isNotEmpty && media.thumbCdnID.isEmpty) {
+        jobs.add((index: i, thumb: true, file: File(outboxFilePath(dir, item.thumb))));
+      }
+    }
+    if (jobs.isEmpty) return _Upload.done;
+
+    final sizes = <int>[];
+    try {
+      for (final job in jobs) {
+        sizes.add(await job.file.length());
+      }
+    } on FileSystemException catch (error) {
+      // Файл пропал (удалили / очистили данные) — отправить уже не выйдет.
+      _logger.warning('chats: outbox media missing randomID=$randomID: $error');
+      await _store.markOutboxFailed(userID: user, randomID: randomID);
+      return _Upload.skip;
+    }
+    final total = sizes.fold(0, (a, b) => a + b);
+    var done = 0;
+    var lastNotify = DateTime.fromMillisecondsSinceEpoch(0);
+    void progress(int sent) {
+      _uploads[randomID] = (sent: sent, total: total);
+      final now = DateTime.now();
+      if (now.difference(lastNotify) < const Duration(milliseconds: 200)) return;
+      lastNotify = now;
+      _uploadChanged.add(null);
+    }
+
+    progress(0);
+    try {
+      for (final (j, job) in jobs.indexed) {
+        final file = await cdn.uploadFile(
+          file: job.file,
+          folder: chatMediaFolder,
+          contentType: chatMediaContentType(job.file.path),
+          isCancelled: () => _cancelledUploads.contains(randomID),
+          onProgress: (sent, cipherTotal) => progress(uploadedBytes(done: done, current: sizes[j], sent: sent, total: cipherTotal)),
+        );
+        done += sizes[j];
+        progress(done);
+        final media = content.media[job.index];
+        if (job.thumb) {
+          media.thumbCdnID = file.cdnID;
+        } else {
+          media.cdnID = file.cdnID;
+        }
+        // Строку могли удалить (отменили), пока грузился последний файл.
+        if (await _store.outboxByRandomID(userID: user, randomID: randomID) == null) return _Upload.skip;
+        await _store.updateOutboxContent(userID: user, randomID: randomID, content: content.writeToBuffer());
+      }
+      return _Upload.done;
+    } on UploadCancelledException {
+      return _Upload.skip;
+    } on FileSystemException catch (error) {
+      _logger.warning('chats: outbox media unreadable randomID=$randomID: $error');
+      await _store.markOutboxFailed(userID: user, randomID: randomID);
+      return _Upload.skip;
+    } catch (error, stackTrace) {
+      // Сеть / сервер: попробуем позже (при подключении или по таймеру).
+      _logger.handle(error, stackTrace);
+      _retryTimer ??= Timer(const Duration(seconds: 30), () {
+        _retryTimer = null;
+        unawaited(flushOutbox());
+      });
+      return _Upload.stop;
+    } finally {
+      _uploads.remove(randomID);
+      _cancelledUploads.remove(randomID);
+      _uploadChanged.add(null);
+    }
+  }
+
+  Timer? _retryTimer;
+
+  /// Копии файлов уже отправленных / удалённых сообщений больше не нужны:
+  /// отправленные лежат в кэше скачиваний под своим cdnID.
+  Future<void> _cleanOutboxFiles() async {
+    try {
+      final keep = <String>{for (final raw in await _store.outboxMediaAll()) ...OutboxMedia.names(raw)};
+      await cleanOutboxFiles(keep);
+    } catch (error, stackTrace) {
+      _logger.handle(error, stackTrace);
+    }
+  }
 }
+
+/// Итог загрузки вложений одного неотправленного: [done] — можно отправлять,
+/// [stop] — прервать проход (нет сети), [skip] — к следующему (отменено или
+/// помечено `failed`).
+enum _Upload { done, stop, skip }
 
 class _FollowUps {
   bool reloadDialogs = false;

@@ -1,8 +1,10 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:math';
 
 import 'package:fixnum/fixnum.dart';
 import 'package:flutter/foundation.dart';
+import 'package:path/path.dart' as p;
 
 import '../api.dart';
 import '../auth.dart';
@@ -16,6 +18,7 @@ import '../repositories.dart';
 import '../demo/chats_demo_data_source.dart';
 import 'chats_data_source.dart';
 import 'chats_mapping.dart';
+import 'chats_media.dart';
 import 'chats_sync.dart';
 import 'message_search.dart';
 import 'read_receipts.dart';
@@ -483,6 +486,7 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     late final StreamController<List<models.Message>> out;
     StreamSubscription<void>? changes;
     StreamSubscription<String>? refresh;
+    StreamSubscription<void>? uploads;
     var pending = Future<void>.value();
     void reload() {
       pending = pending
@@ -497,10 +501,12 @@ class ChatsRemoteDataSource implements ChatsDataSource {
       onListen: () {
         changes = _repositories.db.onChange(_messageTables).listen((_) => reload());
         refresh = _windowChanged.stream.where((id) => id == chatID).listen((_) => reload());
+        uploads = _sync.uploadChanged.listen((_) => reload());
       },
       onCancel: () async {
         await changes?.cancel();
         await refresh?.cancel();
+        await uploads?.cancel();
         _windows.remove(chatID);
       },
     );
@@ -575,19 +581,159 @@ class ChatsRemoteDataSource implements ChatsDataSource {
       peerName: peerName,
     );
 
+    final outboxDir = await outboxMediaDir();
     return [
-      for (final m in history) map(m),
+      for (final m in history) await _withServerMedia(map(m), m.content, chatID),
       for (final queued in await _store.outbox(userID: me, chatID: chat))
-        map(
-          pb.ChatMessage(
-            chatID: chat,
-            fromUserID: me,
-            date: Int64(queued.createdAt),
-            content: pb.MessageContent.fromBuffer(queued.content),
-            silent: queued.silent,
-          ),
-        ).copyWith(id: localMessageID(queued.randomID), status: models.MessageStatus.pending),
+        _withOutboxMedia(
+          map(
+            pb.ChatMessage(
+              chatID: chat,
+              fromUserID: me,
+              date: Int64(queued.createdAt),
+              content: pb.MessageContent.fromBuffer(queued.content),
+              silent: queued.silent,
+            ),
+          ).copyWith(id: localMessageID(queued.randomID), status: models.MessageStatus.pending),
+          queued,
+          outboxDir,
+        ),
     ];
+  }
+
+  // --- вложения ---
+
+  CDNManager get _cdn => getIt.get<CDNManager>();
+
+  /// Скачанные файлы вложений: cdnID (hex) → путь в кэше.
+  final _mediaPaths = <String, String>{};
+
+  /// Скачивания в очереди и идущие: cdnID (hex) → получено / всего байт
+  /// шифротекста (0 / 0 — ещё ждёт очереди).
+  final _downloads = <String, ({int received, int total})>{};
+  final _downloadQueue = <({String key, models.CDN cdn, String chatID})>[];
+  var _activeDownloads = 0;
+  static const _maxDownloads = 3;
+
+  /// Неудачные скачивания (нет сети, ошибка CDN): повтор не раньше чем через
+  /// [_downloadRetry] — иначе каждое перечитывание ленты дёргало бы сеть.
+  final _downloadFailed = <String, DateTime>{};
+  static const _downloadRetry = Duration(minutes: 1);
+
+  /// Перечитать ленту чата не чаще раза в 250 мс (прогресс скачивания).
+  final _mediaNotify = <String, Timer>{};
+
+  void _notifyMedia(String chatID) {
+    _mediaNotify[chatID] ??= Timer(const Duration(milliseconds: 250), () {
+      _mediaNotify.remove(chatID);
+      _windowChanged.add(chatID);
+    });
+  }
+
+  /// Путь к скачанному файлу [file]; ещё не скачан — ставит в очередь
+  /// (автозагрузка всех вложений открытого чата) и отдаёт пусто.
+  Future<String> _mediaFile(CDN file, String chatID) async {
+    if (file.cdnID.isEmpty) return '';
+    final key = idHex(file.cdnID);
+    final known = _mediaPaths[key];
+    if (known != null) return known;
+    if (_downloads.containsKey(key)) return '';
+    final cached = await _cdn.cachedFile(Uint8List.fromList(file.cdnID));
+    if (cached != null) return _mediaPaths[key] = cached.path;
+    final failed = _downloadFailed[key];
+    if (failed != null && DateTime.now().difference(failed) < _downloadRetry) return '';
+    _downloads[key] = (received: 0, total: 0);
+    _downloadQueue.add((key: key, cdn: models.CDN.fromProto(file), chatID: chatID));
+    _pumpDownloads();
+    return '';
+  }
+
+  void _pumpDownloads() {
+    while (_activeDownloads < _maxDownloads && _downloadQueue.isNotEmpty) {
+      final job = _downloadQueue.removeAt(0);
+      _activeDownloads++;
+      unawaited(
+        _download(job.key, job.cdn, job.chatID).whenComplete(() {
+          _activeDownloads--;
+          _pumpDownloads();
+        }),
+      );
+    }
+  }
+
+  Future<void> _download(String key, models.CDN cdn, String chatID) async {
+    try {
+      if (!await _sync.hasNetwork()) throw const ChatsOfflineException();
+      final file = await _cdn.download(
+        cdn: cdn,
+        onProgress: (received, total) {
+          _downloads[key] = (received: received, total: total);
+          _notifyMedia(chatID);
+        },
+      );
+      _mediaPaths[key] = file.path;
+      _downloadFailed.remove(key);
+    } catch (error, stackTrace) {
+      _downloadFailed[key] = DateTime.now();
+      if (error is! ChatsOfflineException) _logger.handle(error, stackTrace);
+    } finally {
+      _downloads.remove(key);
+      _notifyMedia(chatID);
+    }
+  }
+
+  /// Пути скачанных вложений сообщения с сервера и прогресс скачивания (у
+  /// видео, файлов и голосовых — кольцо в пузыре, фото проявляются из
+  /// размытого превью).
+  Future<models.Message> _withServerMedia(models.Message message, pb.MessageContent content, String chatID) async {
+    if (content.media.isEmpty) return message;
+    final paths = <String>[];
+    final thumbs = <String>[];
+    var received = 0;
+    var total = 0;
+    for (final media in content.media) {
+      final path = media.hasFile() ? await _mediaFile(media.file, chatID) : '';
+      paths.add(path);
+      thumbs.add(media.hasThumbFile() ? await _mediaFile(media.thumbFile, chatID) : '');
+      final progress = media.hasFile() ? _downloads[idHex(media.file.cdnID)] : null;
+      if (path.isEmpty && progress != null && message.kind != models.MessageKind.photo) {
+        final size = media.size.toInt();
+        total += size;
+        if (progress.total > 0) received += (size * progress.received / progress.total).round();
+      }
+    }
+    return message.copyWith(
+      localPath: paths.first,
+      media: [
+        for (final (i, item) in message.media.indexed)
+          if (i < paths.length) item.copyWith(localPath: paths[i], thumbPath: thumbs[i]) else item,
+      ],
+      uploadedBytes: total > 0 ? received : 0,
+      uploadTotal: total,
+    );
+  }
+
+  /// Неотправленное: вложения — локальные копии из outbox, прогресс — загрузка
+  /// на CDN (ждёт сети — кольцо на нуле, его крестик отменяет отправку).
+  models.Message _withOutboxMedia(models.Message message, ChatOutboxRow row, Directory dir) {
+    final local = OutboxMedia.decode(row.media);
+    if (local.isEmpty) return message;
+    final content = pb.MessageContent.fromBuffer(row.content);
+    final progress = _sync.uploadProgress(row.randomID);
+    final total = progress?.total ?? content.media.fold<int>(0, (sum, m) => sum + m.size.toInt());
+    return message.copyWith(
+      localPath: outboxFilePath(dir, local.first.path),
+      media: [
+        for (final (i, item) in message.media.indexed)
+          if (i < local.length)
+            item.copyWith(localPath: outboxFilePath(dir, local[i].path), thumbPath: outboxFilePath(dir, local[i].thumb))
+          else
+            item,
+      ],
+      uploadedBytes: progress?.sent ?? 0,
+      // Без размера (0) кольца не будет — хотя бы 1 байт.
+      uploadTotal: max(total, 1),
+    );
   }
 
   /// randomID отправки: случайное положительное 63-битное, не 0.
@@ -598,8 +744,9 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     }
   }
 
-  /// Пока только текст (+ разметка, ответ): в outbox, затем — на сервер, если
-  /// есть сеть; нет — уйдёт при подключении (⏱ в ленте).
+  /// Текст, фото/видео (альбом), файл, голосовое: в outbox (файлы — копией
+  /// в каталог outbox), затем — загрузка вложений и отправка, если есть сеть;
+  /// нет — уйдёт при подключении (⏱ в ленте).
   @override
   Future<void> sendMessage(
     String chatID, {
@@ -617,12 +764,63 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     bool linkPreview = true,
     models.MessagePoll? poll,
   }) async {
-    if (kind != models.MessageKind.text || media.isNotEmpty || localPath.isNotEmpty || poll != null) _unsupported('Медиа и опросы');
+    if (kind == models.MessageKind.poll || poll != null) _unsupported('Опросы');
     if (scheduleDate != null) _unsupported('Отложенные сообщения');
     final chat = idBytes(chatID);
-    if (chat.isEmpty || text.isEmpty) return;
+    if (chat.isEmpty) return;
     final content = textContent(text: text, entities: entities, reply: reply, linkPreview: linkPreview);
-    await _store.addOutbox(userID: _sync.me, randomID: _randomID(), chatID: chat, content: content.writeToBuffer(), silent: silent);
+    final local = <OutboxMedia>[];
+    switch (kind) {
+      case models.MessageKind.text:
+        if (text.isEmpty) return;
+      case models.MessageKind.photo || models.MessageKind.video:
+        final items = media.isNotEmpty ? media : [models.MessageMedia(kind: kind, localPath: localPath)];
+        for (final item in items) {
+          if (item.localPath.isEmpty) continue;
+          final video = item.kind == models.MessageKind.video;
+          content.media.add(
+            pb.MessageMedia(
+              kind: video ? pb.MessageKind.MESSAGE_KIND_VIDEO : pb.MessageKind.MESSAGE_KIND_PHOTO,
+              width: item.width,
+              height: item.height,
+              size: Int64(item.size > 0 ? item.size : await File(item.localPath).length()),
+              thumbhash: item.thumbhash,
+              spoiler: item.spoiler,
+              duration: item.duration,
+              fileName: p.basename(item.localPath),
+              mimeType: chatMediaContentType(item.localPath),
+            ),
+          );
+          local.add(OutboxMedia(path: await stashOutboxFile(item.localPath), thumb: video ? await stashOutboxFile(item.thumbPath) : ''));
+        }
+      case models.MessageKind.file || models.MessageKind.voice:
+        if (localPath.isEmpty) return;
+        final voice = kind == models.MessageKind.voice;
+        content.media.add(
+          pb.MessageMedia(
+            kind: voice ? pb.MessageKind.MESSAGE_KIND_VOICE : pb.MessageKind.MESSAGE_KIND_FILE,
+            size: Int64(await File(localPath).length()),
+            duration: duration,
+            fileName: fileName.isNotEmpty ? fileName : p.basename(localPath),
+            mimeType: chatMediaContentType(localPath),
+            waveform: voice ? waveformToPb(waveform) : null,
+          ),
+        );
+        local.add(OutboxMedia(path: await stashOutboxFile(localPath)));
+      case models.MessageKind.poll:
+        return;
+    }
+    if (kind != models.MessageKind.text && local.isEmpty) return;
+    // Подпись к медиа — без превью ссылки.
+    if (local.isNotEmpty) content.clearNoLinkPreview();
+    await _store.addOutbox(
+      userID: _sync.me,
+      randomID: _randomID(),
+      chatID: chat,
+      content: content.writeToBuffer(),
+      silent: silent,
+      media: OutboxMedia.encode(local),
+    );
     unawaited(_sync.flushOutbox());
   }
 
@@ -676,12 +874,13 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     await _sync.applyUpdates(response.edit.updates);
   }
 
-  /// Неотправленное — просто убрать из outbox; отправленное — на сервере.
+  /// Неотправленное — убрать из outbox (и остановить загрузку вложений);
+  /// отправленное — на сервере.
   @override
   Future<void> deleteMessage(String chatID, String messageID, {bool forEveryone = true}) async {
     final randomID = randomIDOfLocal(messageID);
     if (randomID != null) {
-      await _store.deleteOutbox(userID: _sync.me, randomID: randomID);
+      await _sync.cancelUpload(randomID);
       return;
     }
     final id = serverMessageID(messageID);
@@ -705,10 +904,13 @@ class ChatsRemoteDataSource implements ChatsDataSource {
   @override
   Future<void> forwardMessages(String toChatID, List<models.Message> messages) async => _unsupported('Пересылка');
 
-  /// Вложения пока не отправляются — отменять нечего, кроме неотправленного.
+  /// Крестик на кольце: у неотправленного — отменить загрузку и отправку. У
+  /// полученного кольцо — скачивание, его не прерываем (файл всё равно нужен
+  /// для показа).
   @override
   Future<void> cancelUpload(String chatID, String messageID) async {
-    if (randomIDOfLocal(messageID) != null) await deleteMessage(chatID, messageID);
+    final randomID = randomIDOfLocal(messageID);
+    if (randomID != null) await _sync.cancelUpload(randomID);
   }
 
   @override

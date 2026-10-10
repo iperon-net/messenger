@@ -30,6 +30,21 @@ class UploadException implements Exception {
   String toString() => 'UploadException: $message';
 }
 
+/// Загрузку отменил вызывающий код (`isCancelled` у [CDNManager.uploadFile]) —
+/// не ретраится.
+class UploadCancelledException implements Exception {
+  const UploadCancelledException();
+
+  @override
+  String toString() => 'UploadCancelledException';
+}
+
+/// Сервер больше не знает `uploadID` (рестарт сервера — реестр загрузок в
+/// памяти — или истёк TTL недокачанной): начинать заново.
+class _UploadExpiredException implements Exception {
+  const _UploadExpiredException();
+}
+
 /// Фатальная (не-транзиентная) ошибка скачивания/расшифровки файла: сервер
 /// вернул осмысленный отказ (4xx), не сошёлся хеш ciphertext или провалилась
 /// AEAD-проверка при расшифровке. В отличие от сетевого обрыва повтор тут не
@@ -121,11 +136,41 @@ class CDNManager {
     }
   }
 
+  ///
+  /// [isCancelled] — опрашивается между чанками: `true` — бросить
+  /// [UploadCancelledException] (без ретраев; серверный temp-файл истечёт по TTL).
   Future<models.CDN> uploadFile({
     required File file,
     required String folder,
     required String contentType,
     void Function(int sentBytes, int totalBytes)? onProgress,
+    bool Function()? isCancelled,
+  }) async {
+    try {
+      return await _uploadFile(file: file, folder: folder, contentType: contentType, onProgress: onProgress, isCancelled: isCancelled);
+    } on _UploadExpiredException {
+      // Сервер потерял недокачанную/неподтверждённую загрузку — один раз
+      // начинаем с нуля (новые ключ и uploadID).
+      final stale = await repositories.uploads.getByFilePath(file.path);
+      if (stale != null) await repositories.uploads.delete(stale.localID);
+      try {
+        return await _uploadFile(file: file, folder: folder, contentType: contentType, onProgress: onProgress, isCancelled: isCancelled);
+      } on _UploadExpiredException {
+        throw const UploadException('upload: server lost the upload twice');
+      }
+    } on UploadCancelledException {
+      final stale = await repositories.uploads.getByFilePath(file.path);
+      if (stale != null) await repositories.uploads.delete(stale.localID);
+      rethrow;
+    }
+  }
+
+  Future<models.CDN> _uploadFile({
+    required File file,
+    required String folder,
+    required String contentType,
+    void Function(int sentBytes, int totalBytes)? onProgress,
+    bool Function()? isCancelled,
   }) async {
     var state = await _resolveUploadState(file: file, folder: folder, contentType: contentType);
 
@@ -143,13 +188,19 @@ class CDNManager {
       try {
         state = await _runUploadStream(
           state,
+          isCancelled: isCancelled,
           onProgress: (sentBytes, totalBytes) {
             if (sentBytes > maxReceived) maxReceived = sentBytes;
             onProgress?.call(sentBytes, totalBytes);
           },
         );
         break;
+      } on UploadCancelledException {
+        rethrow;
       } catch (error, stackTrace) {
+        if (error is GrpcError && error.code == StatusCode.notFound && state.uploadID != null) {
+          throw const _UploadExpiredException();
+        }
         logger.handle(error, stackTrace);
 
         if (maxReceived > receivedBefore) {
@@ -256,7 +307,11 @@ class CDNManager {
   /// докачка по `state.uploadID`) → чанки → `Done`. Кидает исключение при
   /// любом обрыве до `CompleteAck` — вызывающий код (см. [uploadFile]) решает,
   /// переоткрывать стрим или нет; сама функция стрим не переоткрывает.
-  Future<models.UploadState> _runUploadStream(models.UploadState state, {void Function(int sentBytes, int totalBytes)? onProgress}) async {
+  Future<models.UploadState> _runUploadStream(
+    models.UploadState state, {
+    void Function(int sentBytes, int totalBytes)? onProgress,
+    bool Function()? isCancelled,
+  }) async {
     final outgoing = StreamController<Upload_Request>();
     final responses = StreamIterator(api.uploadClient.upload(outgoing.stream));
     var completedCleanly = false;
@@ -305,6 +360,7 @@ class CDNManager {
       // Строго последовательно: следующий чанк уходит только после ack на
       // предыдущий (сервер пайплайнинг не поддерживает, см. серверный план).
       await for (final cipherChunk in chunks) {
+        if (isCancelled?.call() ?? false) throw const UploadCancelledException();
         outgoing.add(Upload_Request(chunk: Upload_Chunk(data: cipherChunk)));
 
         if (!await responses.moveNext()) {
@@ -369,6 +425,7 @@ class CDNManager {
       // локальную строку не удаляем в любом случае, чтобы вызывающий код мог
       // повторить именно confirm (без повторной заливки файла) даже после
       // исчерпания автоматических попыток здесь.
+      if (status.isGrpc && status.statusCode == StatusCode.notFound) throw const _UploadExpiredException();
       final retryable = status.isGrpc && _transientStatusCodes.contains(status.statusCode);
       if (!retryable || attempt >= _maxConfirmAttempts) {
         throw UploadException('upload: confirm failed: $status');
@@ -663,6 +720,9 @@ class CDNManager {
         return '.mp3';
       case 'audio/aac':
         return '.aac';
+      case 'audio/mp4':
+      case 'audio/x-m4a':
+        return '.m4a';
       case 'application/pdf':
         return '.pdf';
       default:
