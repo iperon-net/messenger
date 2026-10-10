@@ -205,6 +205,8 @@ class PushManager {
   /// число на иконке рисует лаунчер по уведомлениям.
   static Future<void> setBadge(int count) async {
     if (!Platform.isIOS) return;
+    // info — в файловый лог: по нему видно, ставило ли приложение счётчик.
+    getIt.get<Logger>().info('badge: set $count');
     try {
       await _channel.invokeMethod<void>('setBadge', count);
     } catch (error, stackTrace) {
