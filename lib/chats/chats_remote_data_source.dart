@@ -18,6 +18,7 @@ import '../repositories.dart';
 import '../demo/chats_demo_data_source.dart';
 import 'chats_data_source.dart';
 import 'chats_mapping.dart';
+import 'chats_presence.dart';
 import 'chats_media.dart';
 import 'chats_sync.dart';
 import 'message_search.dart';
@@ -67,7 +68,34 @@ class ChatsRemoteDataSource implements ChatsDataSource {
   // --- список чатов ---
 
   @override
-  Stream<List<models.Chat>> watchChats() => _repositories.db.onChange(_chatTables).asyncMap((_) => _loadChats());
+  Stream<List<models.Chat>> watchChats() {
+    // Перечитываем при изменении таблиц и «в сети» собеседников; загрузки по
+    // очереди, чтобы старый результат не пришёл после нового.
+    late final StreamController<List<models.Chat>> out;
+    StreamSubscription<void>? changes;
+    StreamSubscription<void>? presence;
+    var pending = Future<void>.value();
+    void reload() {
+      pending = pending
+          .then((_) async {
+            final chats = await _loadChats();
+            if (!out.isClosed) out.add(chats);
+          })
+          .catchError((Object error, StackTrace stackTrace) => _logger.handle(error, stackTrace));
+    }
+
+    out = StreamController<List<models.Chat>>(
+      onListen: () {
+        changes = _repositories.db.onChange(_chatTables).listen((_) => reload());
+        presence = ChatsPresence.instance.changed.listen((_) => reload());
+      },
+      onCancel: () async {
+        await changes?.cancel();
+        await presence?.cancel();
+      },
+    );
+    return out.stream;
+  }
 
   /// Уже запрошенные профили собеседников (hex userID) — по разу за запуск.
   final _profilesRequested = <String>{};
@@ -139,6 +167,7 @@ class ChatsRemoteDataSource implements ChatsDataSource {
           username: info?.profile?.username ?? '',
           avatarPath: await _avatarPath(info?.profile?.avatarCdnID),
           phone: info?.profile?.phoneNumber ?? '',
+          online: peer != null && !isSelf && ChatsPresence.instance.isOnline(idHex(peer)),
           lastSeen: info?.profile?.lastSeenAt,
           createdAt: row.createdAt > 0 ? DateTime.fromMillisecondsSinceEpoch(row.createdAt) : null,
         ),

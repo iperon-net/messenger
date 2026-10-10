@@ -16,6 +16,7 @@ import '../../chats/read_receipts.dart';
 import '../../chats/voice_player.dart';
 import '../../chats/chats_remote_data_source.dart';
 import '../../chats/chats_mapping.dart';
+import '../../chats/chats_presence.dart';
 import '../../chats/chats_sync.dart';
 import '../../models.dart' as models;
 
@@ -44,6 +45,10 @@ class ChatCubit extends Cubit<ChatState> {
 
   /// `canWrite` уже спросили (один раз за открытие окна).
   bool _writeChecked = false;
+
+  /// Собеседник личного чата, чьё «в сети» держим свежим, пока окно открыто
+  /// ([ChatsPresence.watch]).
+  Uint8List? _presencePeer;
 
   /// Пока плашка — переспрашиваем `canWrite`: собеседник мог снять
   /// ограничение («Все» / добавил в контакты), не написав нам, а пуша об этом
@@ -139,6 +144,7 @@ class ChatCubit extends Cubit<ChatState> {
       _syncSlowMode();
       _syncLimits();
       _checkCanWrite(source, chat);
+      _watchPresence(source, chat);
     });
     // Участники / роли поменялись (в т.ч. в сообществе — его владелец, админы
     // и блокировки действуют во всех его чатах) — перечитываем загруженные.
@@ -188,6 +194,16 @@ class ChatCubit extends Cubit<ChatState> {
     _writeRecheckTimer = Timer.periodic(_writeRecheckInterval, (_) {
       if (!isClosed && _writeRestricted) unawaited(ChatsSync.instance.canWrite(idBytes(_chatID)));
     });
+  }
+
+  /// Личный чат: «в сети» собеседника — спрашиваем при открытии и держим
+  /// свежим, пока окно открыто (сам статус приходит в [models.Chat.online]).
+  void _watchPresence(ChatsDataSource source, models.Chat? chat) {
+    if (_presencePeer != null || source is! ChatsRemoteDataSource || chat == null) return;
+    if (chat.type != models.ChatType.private || chat.isSelf || chat.peerUserID.isEmpty) return;
+    final peer = idBytes(chat.peerUserID);
+    _presencePeer = peer;
+    ChatsPresence.instance.watch(peer);
   }
 
   /// Последнее входящее, при котором спрашивали `canWrite`.
@@ -852,6 +868,8 @@ class ChatCubit extends Cubit<ChatState> {
     await _floodSubscription?.cancel();
     await _writeSubscription?.cancel();
     await _connectionSubscription?.cancel();
+    final peer = _presencePeer;
+    if (peer != null) ChatsPresence.instance.unwatch(peer);
     _writeRecheckTimer?.cancel();
     _floodTimer?.cancel();
     _memberSearchTimer?.cancel();
