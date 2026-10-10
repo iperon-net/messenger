@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:math' as math;
+import 'dart:typed_data';
 
 import 'package:bloc/bloc.dart';
 
@@ -13,6 +14,7 @@ import '../../chats/reactions.dart';
 import '../../chats/read_receipts.dart';
 import '../../chats/voice_player.dart';
 import '../../chats/chats_remote_data_source.dart';
+import '../../chats/chats_mapping.dart';
 import '../../chats/chats_sync.dart';
 import '../../models.dart' as models;
 
@@ -33,6 +35,14 @@ class ChatCubit extends Cubit<ChatState> {
   StreamSubscription<models.Message>? _voiceSubscription;
   StreamSubscription<DateTime?>? _floodSubscription;
   Timer? _floodTimer;
+  StreamSubscription<({Uint8List chatID, Uint8List? peerUserID, bool restricted})>? _writeSubscription;
+
+  /// Собеседник ограничил, кто может ему писать (ответ `canWrite` при открытии
+  /// или отказ сервера при отправке) — вместо поля ввода плашка.
+  bool _writeRestricted = false;
+
+  /// `canWrite` уже спросили (один раз за открытие окна).
+  bool _writeChecked = false;
 
   /// Медленный режим: до какого времени ждём и таймер обратного отсчёта.
   DateTime? _slowModeUntil;
@@ -72,6 +82,15 @@ class ChatCubit extends Cubit<ChatState> {
     if (source is ChatsRemoteDataSource) {
       _syncFlood(ChatsSync.instance.floodUntil);
       _floodSubscription = ChatsSync.instance.floodChanged.listen(_syncFlood);
+      _writeSubscription = ChatsSync.instance.writeRestricted.listen((event) {
+        final chat = state.chat;
+        final ours =
+            (event.chatID.isNotEmpty && idHex(event.chatID) == chatID) ||
+            (event.peerUserID != null && chat != null && chat.peerUserID.isNotEmpty && idHex(event.peerUserID!) == chat.peerUserID);
+        if (isClosed || !ours || event.restricted == _writeRestricted) return;
+        _writeRestricted = event.restricted;
+        _syncLimits();
+      });
     }
     _chatsSubscription = source.watchChats().listen((chats) {
       if (isClosed) return;
@@ -106,6 +125,7 @@ class ChatCubit extends Cubit<ChatState> {
       _placeUnread();
       _syncSlowMode();
       _syncLimits();
+      _checkCanWrite(source, chat);
     });
     // Участники / роли поменялись (в т.ч. в сообществе — его владелец, админы
     // и блокировки действуют во всех его чатах) — перечитываем загруженные.
@@ -128,10 +148,36 @@ class ChatCubit extends Cubit<ChatState> {
       emit(state.copyWith(messages: messages));
       _placeUnread();
       _syncLimits();
+      _recheckCanWrite(messages);
       // Пришло/удалилось сообщение во время поиска — пересчитываем, оставаясь
       // на текущем найденном.
       if (state.searching) unawaited(_search(state.searchQuery, keepID: state.searchCurrentID));
     });
+  }
+
+  /// Личный чат: заранее узнать, можно ли писать собеседнику (его «кто может
+  /// мне писать»), — чтобы показать плашку до попытки отправить. Нет сети —
+  /// не знаем, поле ввода остаётся (отказ при отправке покажет плашку).
+  void _checkCanWrite(ChatsDataSource source, models.Chat? chat) {
+    if (_writeChecked || source is! ChatsRemoteDataSource || chat == null) return;
+    if (chat.type != models.ChatType.private || chat.isSelf || chat.peerUserID.isEmpty) return;
+    _writeChecked = true;
+    // Ответ придёт и в [ChatsSync.writeRestricted] — его ловит подписка.
+    unawaited(ChatsSync.instance.canWrite(idBytes(_chatID)));
+  }
+
+  /// Последнее входящее, при котором спрашивали `canWrite`.
+  String? _lastIncomingID;
+
+  /// Собеседник, ограничивший сообщения, написал сам — теперь ему можно
+  /// ответить: переспрашиваем сервер, чтобы убрать плашку.
+  void _recheckCanWrite(List<models.Message> messages) {
+    final last = messages.where((m) => !m.outgoing && !m.service).lastOrNull?.id ?? '';
+    if (last == _lastIncomingID) return;
+    final first = _lastIncomingID == null;
+    _lastIncomingID = last;
+    if (first || !_writeRestricted) return;
+    unawaited(ChatsSync.instance.canWrite(idBytes(_chatID)));
   }
 
   /// Разделитель «Непрочитанные сообщения» — один раз, когда известны и
@@ -242,9 +288,11 @@ class ChatCubit extends Cubit<ChatState> {
     _commentsTimer = Timer(next.difference(now) + const Duration(milliseconds: 50), _syncLimits);
   }
 
-  /// Почему нам нельзя писать в ветку [chat] (и до когда ждать). Закрытая —
-  /// для всех; «только подписчики» и срок подписки админов канала не касаются.
+  /// Почему нам нельзя писать в [chat] (и до когда ждать): собеседник ограничил
+  /// личные сообщения; ветка комментариев закрытая — для всех; «только
+  /// подписчики» и срок подписки админов канала не касаются.
   (ChatCommentsBlock, DateTime?) _commentsBlock(models.Chat? chat, DateTime now) {
+    if (_writeRestricted) return (ChatCommentsBlock.privacy, null);
     if (chat == null || !chat.isThread) return (ChatCommentsBlock.none, null);
     if (chat.commentsClosed(now)) return (ChatCommentsBlock.closed, null);
     final channel = _channel;
@@ -775,6 +823,7 @@ class ChatCubit extends Cubit<ChatState> {
     await _membersSubscription?.cancel();
     await _voiceSubscription?.cancel();
     await _floodSubscription?.cancel();
+    await _writeSubscription?.cancel();
     _floodTimer?.cancel();
     _memberSearchTimer?.cancel();
     _slowModeTimer?.cancel();

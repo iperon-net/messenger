@@ -2465,7 +2465,106 @@ class Chats_ReadDateResult extends $pb.GeneratedMessage {
   void clearDate() => $_clearField(2);
 }
 
-enum Chats_Request_Request { list, openPrivate, readHistory, setDialog, deleteDialog, readDate, notSet }
+/// Могу ли я писать в чат (в личном — приватность собеседника «кто может мне
+/// писать»). Окно чата спрашивает при открытии, чтобы заранее показать
+/// плашку вместо поля ввода. Отправку всё равно проверяет сервер.
+class Chats_CanWrite extends $pb.GeneratedMessage {
+  factory Chats_CanWrite({
+    $core.List<$core.int>? chatID,
+  }) {
+    final result = create();
+    if (chatID != null) result.chatID = chatID;
+    return result;
+  }
+
+  Chats_CanWrite._();
+
+  factory Chats_CanWrite.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Chats_CanWrite.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Chats.CanWrite',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..a<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'chatID', $pb.PbFieldType.OY, protoName: 'chatID')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_CanWrite clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_CanWrite copyWith(void Function(Chats_CanWrite) updates) =>
+      super.copyWith((message) => updates(message as Chats_CanWrite)) as Chats_CanWrite;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static Chats_CanWrite create() => Chats_CanWrite._();
+  @$core.override
+  Chats_CanWrite createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static Chats_CanWrite getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Chats_CanWrite>(create);
+  static Chats_CanWrite? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.List<$core.int> get chatID => $_getN(0);
+  @$pb.TagNumber(1)
+  set chatID($core.List<$core.int> value) => $_setBytes(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasChatID() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearChatID() => $_clearField(1);
+}
+
+class Chats_CanWriteResult extends $pb.GeneratedMessage {
+  factory Chats_CanWriteResult({
+    $core.bool? allowed,
+  }) {
+    final result = create();
+    if (allowed != null) result.allowed = allowed;
+    return result;
+  }
+
+  Chats_CanWriteResult._();
+
+  factory Chats_CanWriteResult.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Chats_CanWriteResult.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Chats.CanWriteResult',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..aOB(1, _omitFieldNames ? '' : 'allowed')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_CanWriteResult clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_CanWriteResult copyWith(void Function(Chats_CanWriteResult) updates) =>
+      super.copyWith((message) => updates(message as Chats_CanWriteResult)) as Chats_CanWriteResult;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static Chats_CanWriteResult create() => Chats_CanWriteResult._();
+  @$core.override
+  Chats_CanWriteResult createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static Chats_CanWriteResult getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Chats_CanWriteResult>(create);
+  static Chats_CanWriteResult? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.bool get allowed => $_getBF(0);
+  @$pb.TagNumber(1)
+  set allowed($core.bool value) => $_setBool(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasAllowed() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearAllowed() => $_clearField(1);
+}
+
+enum Chats_Request_Request { list, openPrivate, readHistory, setDialog, deleteDialog, readDate, canWrite, notSet }
 
 class Chats_Request extends $pb.GeneratedMessage {
   factory Chats_Request({
@@ -2475,6 +2574,7 @@ class Chats_Request extends $pb.GeneratedMessage {
     Chats_SetDialog? setDialog,
     Chats_DeleteDialog? deleteDialog,
     Chats_ReadDate? readDate,
+    Chats_CanWrite? canWrite,
   }) {
     final result = create();
     if (list != null) result.list = list;
@@ -2483,6 +2583,7 @@ class Chats_Request extends $pb.GeneratedMessage {
     if (setDialog != null) result.setDialog = setDialog;
     if (deleteDialog != null) result.deleteDialog = deleteDialog;
     if (readDate != null) result.readDate = readDate;
+    if (canWrite != null) result.canWrite = canWrite;
     return result;
   }
 
@@ -2500,17 +2601,19 @@ class Chats_Request extends $pb.GeneratedMessage {
     4: Chats_Request_Request.setDialog,
     5: Chats_Request_Request.deleteDialog,
     6: Chats_Request_Request.readDate,
+    7: Chats_Request_Request.canWrite,
     0: Chats_Request_Request.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Chats.Request',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
-    ..oo(0, [1, 2, 3, 4, 5, 6])
+    ..oo(0, [1, 2, 3, 4, 5, 6, 7])
     ..aOM<Chats_List>(1, _omitFieldNames ? '' : 'list', subBuilder: Chats_List.create)
     ..aOM<Chats_OpenPrivate>(2, _omitFieldNames ? '' : 'openPrivate', protoName: 'openPrivate', subBuilder: Chats_OpenPrivate.create)
     ..aOM<Chats_ReadHistory>(3, _omitFieldNames ? '' : 'readHistory', protoName: 'readHistory', subBuilder: Chats_ReadHistory.create)
     ..aOM<Chats_SetDialog>(4, _omitFieldNames ? '' : 'setDialog', protoName: 'setDialog', subBuilder: Chats_SetDialog.create)
     ..aOM<Chats_DeleteDialog>(5, _omitFieldNames ? '' : 'deleteDialog', protoName: 'deleteDialog', subBuilder: Chats_DeleteDialog.create)
     ..aOM<Chats_ReadDate>(6, _omitFieldNames ? '' : 'readDate', protoName: 'readDate', subBuilder: Chats_ReadDate.create)
+    ..aOM<Chats_CanWrite>(7, _omitFieldNames ? '' : 'canWrite', protoName: 'canWrite', subBuilder: Chats_CanWrite.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -2536,6 +2639,7 @@ class Chats_Request extends $pb.GeneratedMessage {
   @$pb.TagNumber(4)
   @$pb.TagNumber(5)
   @$pb.TagNumber(6)
+  @$pb.TagNumber(7)
   Chats_Request_Request whichRequest() => _Chats_Request_RequestByTag[$_whichOneof(0)]!;
   @$pb.TagNumber(1)
   @$pb.TagNumber(2)
@@ -2543,6 +2647,7 @@ class Chats_Request extends $pb.GeneratedMessage {
   @$pb.TagNumber(4)
   @$pb.TagNumber(5)
   @$pb.TagNumber(6)
+  @$pb.TagNumber(7)
   void clearRequest() => $_clearField($_whichOneof(0));
 
   @$pb.TagNumber(1)
@@ -2610,9 +2715,20 @@ class Chats_Request extends $pb.GeneratedMessage {
   void clearReadDate() => $_clearField(6);
   @$pb.TagNumber(6)
   Chats_ReadDate ensureReadDate() => $_ensure(5);
+
+  @$pb.TagNumber(7)
+  Chats_CanWrite get canWrite => $_getN(6);
+  @$pb.TagNumber(7)
+  set canWrite(Chats_CanWrite value) => $_setField(7, value);
+  @$pb.TagNumber(7)
+  $core.bool hasCanWrite() => $_has(6);
+  @$pb.TagNumber(7)
+  void clearCanWrite() => $_clearField(7);
+  @$pb.TagNumber(7)
+  Chats_CanWrite ensureCanWrite() => $_ensure(6);
 }
 
-enum Chats_Response_Response { list, openPrivate, readHistory, setDialog, deleteDialog, readDate, notSet }
+enum Chats_Response_Response { list, openPrivate, readHistory, setDialog, deleteDialog, readDate, canWrite, notSet }
 
 class Chats_Response extends $pb.GeneratedMessage {
   factory Chats_Response({
@@ -2622,6 +2738,7 @@ class Chats_Response extends $pb.GeneratedMessage {
     Chats_SetDialogResult? setDialog,
     Chats_DeleteDialogResult? deleteDialog,
     Chats_ReadDateResult? readDate,
+    Chats_CanWriteResult? canWrite,
   }) {
     final result = create();
     if (list != null) result.list = list;
@@ -2630,6 +2747,7 @@ class Chats_Response extends $pb.GeneratedMessage {
     if (setDialog != null) result.setDialog = setDialog;
     if (deleteDialog != null) result.deleteDialog = deleteDialog;
     if (readDate != null) result.readDate = readDate;
+    if (canWrite != null) result.canWrite = canWrite;
     return result;
   }
 
@@ -2647,11 +2765,12 @@ class Chats_Response extends $pb.GeneratedMessage {
     4: Chats_Response_Response.setDialog,
     5: Chats_Response_Response.deleteDialog,
     6: Chats_Response_Response.readDate,
+    7: Chats_Response_Response.canWrite,
     0: Chats_Response_Response.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Chats.Response',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
-    ..oo(0, [1, 2, 3, 4, 5, 6])
+    ..oo(0, [1, 2, 3, 4, 5, 6, 7])
     ..aOM<Chats_ListResult>(1, _omitFieldNames ? '' : 'list', subBuilder: Chats_ListResult.create)
     ..aOM<Chats_OpenPrivateResult>(2, _omitFieldNames ? '' : 'openPrivate',
         protoName: 'openPrivate', subBuilder: Chats_OpenPrivateResult.create)
@@ -2661,6 +2780,7 @@ class Chats_Response extends $pb.GeneratedMessage {
     ..aOM<Chats_DeleteDialogResult>(5, _omitFieldNames ? '' : 'deleteDialog',
         protoName: 'deleteDialog', subBuilder: Chats_DeleteDialogResult.create)
     ..aOM<Chats_ReadDateResult>(6, _omitFieldNames ? '' : 'readDate', protoName: 'readDate', subBuilder: Chats_ReadDateResult.create)
+    ..aOM<Chats_CanWriteResult>(7, _omitFieldNames ? '' : 'canWrite', protoName: 'canWrite', subBuilder: Chats_CanWriteResult.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -2686,6 +2806,7 @@ class Chats_Response extends $pb.GeneratedMessage {
   @$pb.TagNumber(4)
   @$pb.TagNumber(5)
   @$pb.TagNumber(6)
+  @$pb.TagNumber(7)
   Chats_Response_Response whichResponse() => _Chats_Response_ResponseByTag[$_whichOneof(0)]!;
   @$pb.TagNumber(1)
   @$pb.TagNumber(2)
@@ -2693,6 +2814,7 @@ class Chats_Response extends $pb.GeneratedMessage {
   @$pb.TagNumber(4)
   @$pb.TagNumber(5)
   @$pb.TagNumber(6)
+  @$pb.TagNumber(7)
   void clearResponse() => $_clearField($_whichOneof(0));
 
   @$pb.TagNumber(1)
@@ -2760,6 +2882,17 @@ class Chats_Response extends $pb.GeneratedMessage {
   void clearReadDate() => $_clearField(6);
   @$pb.TagNumber(6)
   Chats_ReadDateResult ensureReadDate() => $_ensure(5);
+
+  @$pb.TagNumber(7)
+  Chats_CanWriteResult get canWrite => $_getN(6);
+  @$pb.TagNumber(7)
+  set canWrite(Chats_CanWriteResult value) => $_setField(7, value);
+  @$pb.TagNumber(7)
+  $core.bool hasCanWrite() => $_has(6);
+  @$pb.TagNumber(7)
+  void clearCanWrite() => $_clearField(7);
+  @$pb.TagNumber(7)
+  Chats_CanWriteResult ensureCanWrite() => $_ensure(6);
 }
 
 /// CHATS — диалоги.

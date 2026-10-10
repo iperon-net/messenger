@@ -312,6 +312,17 @@ message Chats {
     int64 date = 2; // unix millis
   }
 
+  // Могу ли я писать в чат (в личном — приватность собеседника «кто может мне
+  // писать»). Окно чата спрашивает при открытии, чтобы заранее показать
+  // плашку вместо поля ввода. Отправку всё равно проверяет сервер.
+  message CanWrite {
+    bytes chatID = 1;
+  }
+
+  message CanWriteResult {
+    bool allowed = 1;
+  }
+
   message Request {
     oneof request {
       List list = 1;
@@ -320,6 +331,7 @@ message Chats {
       SetDialog setDialog = 4;
       DeleteDialog deleteDialog = 5;
       ReadDate readDate = 6;
+      CanWrite canWrite = 7;
     }
   }
 
@@ -331,6 +343,7 @@ message Chats {
       SetDialogResult setDialog = 4;
       DeleteDialogResult deleteDialog = 5;
       ReadDateResult readDate = 6;
+      CanWriteResult canWrite = 7;
     }
   }
 }

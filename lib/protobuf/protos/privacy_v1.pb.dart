@@ -68,6 +68,9 @@ class PrivacySettings_Response extends $pb.GeneratedMessage {
     PrivacySettings_Audience? lastSeen,
     $core.Iterable<$core.List<$core.int>>? lastSeenAllow,
     $core.Iterable<$core.List<$core.int>>? lastSeenDeny,
+    PrivacySettings_Audience? messages,
+    $core.Iterable<$core.List<$core.int>>? messagesAllow,
+    $core.Iterable<$core.List<$core.int>>? messagesDeny,
   }) {
     final result = create();
     if (calls != null) result.calls = calls;
@@ -83,6 +86,9 @@ class PrivacySettings_Response extends $pb.GeneratedMessage {
     if (lastSeen != null) result.lastSeen = lastSeen;
     if (lastSeenAllow != null) result.lastSeenAllow.addAll(lastSeenAllow);
     if (lastSeenDeny != null) result.lastSeenDeny.addAll(lastSeenDeny);
+    if (messages != null) result.messages = messages;
+    if (messagesAllow != null) result.messagesAllow.addAll(messagesAllow);
+    if (messagesDeny != null) result.messagesDeny.addAll(messagesDeny);
     return result;
   }
 
@@ -108,6 +114,9 @@ class PrivacySettings_Response extends $pb.GeneratedMessage {
     ..aE<PrivacySettings_Audience>(11, _omitFieldNames ? '' : 'lastSeen', enumValues: PrivacySettings_Audience.values)
     ..p<$core.List<$core.int>>(12, _omitFieldNames ? '' : 'lastSeenAllow', $pb.PbFieldType.PY)
     ..p<$core.List<$core.int>>(13, _omitFieldNames ? '' : 'lastSeenDeny', $pb.PbFieldType.PY)
+    ..aE<PrivacySettings_Audience>(14, _omitFieldNames ? '' : 'messages', enumValues: PrivacySettings_Audience.values)
+    ..p<$core.List<$core.int>>(15, _omitFieldNames ? '' : 'messagesAllow', $pb.PbFieldType.PY)
+    ..p<$core.List<$core.int>>(16, _omitFieldNames ? '' : 'messagesDeny', $pb.PbFieldType.PY)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -211,6 +220,27 @@ class PrivacySettings_Response extends $pb.GeneratedMessage {
 
   @$pb.TagNumber(13)
   $pb.PbList<$core.List<$core.int>> get lastSeenDeny => $_getList(12);
+
+  /// Аудитория «кто может мне писать» (личные сообщения) + её allow/deny-списки
+  /// (та же семантика). ДЕФОЛТ — EVERYBODY (как в Telegram; у остальных
+  /// каналов — CONTACTS). Гейт — при отправке в личный чат по стороне
+  /// получателя; отказ — PermissionDenied «privacyRestricted». Если получатель
+  /// уже писал в этот чат (после своей последней очистки истории) — отвечать
+  /// можно и при CONTACTS/NOBODY (deny-list перекрывает и это).
+  @$pb.TagNumber(14)
+  PrivacySettings_Audience get messages => $_getN(13);
+  @$pb.TagNumber(14)
+  set messages(PrivacySettings_Audience value) => $_setField(14, value);
+  @$pb.TagNumber(14)
+  $core.bool hasMessages() => $_has(13);
+  @$pb.TagNumber(14)
+  void clearMessages() => $_clearField(14);
+
+  @$pb.TagNumber(15)
+  $pb.PbList<$core.List<$core.int>> get messagesAllow => $_getList(14);
+
+  @$pb.TagNumber(16)
+  $pb.PbList<$core.List<$core.int>> get messagesDeny => $_getList(15);
 }
 
 /// Настройки приватности per-channel (этап 1 — только звонки). Проверка «кто
@@ -1731,6 +1761,349 @@ class PrivacyLastSeenDenyUpdate extends $pb.GeneratedMessage {
   static PrivacyLastSeenDenyUpdate getDefault() =>
       _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<PrivacyLastSeenDenyUpdate>(create);
   static PrivacyLastSeenDenyUpdate? _defaultInstance;
+}
+
+class PrivacyMessagesUpdate_Request extends $pb.GeneratedMessage {
+  factory PrivacyMessagesUpdate_Request({
+    PrivacySettings_Audience? messages,
+  }) {
+    final result = create();
+    if (messages != null) result.messages = messages;
+    return result;
+  }
+
+  PrivacyMessagesUpdate_Request._();
+
+  factory PrivacyMessagesUpdate_Request.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory PrivacyMessagesUpdate_Request.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'PrivacyMessagesUpdate.Request',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..aE<PrivacySettings_Audience>(1, _omitFieldNames ? '' : 'messages', enumValues: PrivacySettings_Audience.values)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyMessagesUpdate_Request clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyMessagesUpdate_Request copyWith(void Function(PrivacyMessagesUpdate_Request) updates) =>
+      super.copyWith((message) => updates(message as PrivacyMessagesUpdate_Request)) as PrivacyMessagesUpdate_Request;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static PrivacyMessagesUpdate_Request create() => PrivacyMessagesUpdate_Request._();
+  @$core.override
+  PrivacyMessagesUpdate_Request createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static PrivacyMessagesUpdate_Request getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<PrivacyMessagesUpdate_Request>(create);
+  static PrivacyMessagesUpdate_Request? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  PrivacySettings_Audience get messages => $_getN(0);
+  @$pb.TagNumber(1)
+  set messages(PrivacySettings_Audience value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasMessages() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearMessages() => $_clearField(1);
+}
+
+class PrivacyMessagesUpdate_Response extends $pb.GeneratedMessage {
+  factory PrivacyMessagesUpdate_Response() => create();
+
+  PrivacyMessagesUpdate_Response._();
+
+  factory PrivacyMessagesUpdate_Response.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory PrivacyMessagesUpdate_Response.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'PrivacyMessagesUpdate.Response',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyMessagesUpdate_Response clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyMessagesUpdate_Response copyWith(void Function(PrivacyMessagesUpdate_Response) updates) =>
+      super.copyWith((message) => updates(message as PrivacyMessagesUpdate_Response)) as PrivacyMessagesUpdate_Response;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static PrivacyMessagesUpdate_Response create() => PrivacyMessagesUpdate_Response._();
+  @$core.override
+  PrivacyMessagesUpdate_Response createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static PrivacyMessagesUpdate_Response getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<PrivacyMessagesUpdate_Response>(create);
+  static PrivacyMessagesUpdate_Response? _defaultInstance;
+}
+
+/// Изменение аудитории «кто может мне писать».
+class PrivacyMessagesUpdate extends $pb.GeneratedMessage {
+  factory PrivacyMessagesUpdate() => create();
+
+  PrivacyMessagesUpdate._();
+
+  factory PrivacyMessagesUpdate.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory PrivacyMessagesUpdate.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'PrivacyMessagesUpdate',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyMessagesUpdate clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyMessagesUpdate copyWith(void Function(PrivacyMessagesUpdate) updates) =>
+      super.copyWith((message) => updates(message as PrivacyMessagesUpdate)) as PrivacyMessagesUpdate;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static PrivacyMessagesUpdate create() => PrivacyMessagesUpdate._();
+  @$core.override
+  PrivacyMessagesUpdate createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static PrivacyMessagesUpdate getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<PrivacyMessagesUpdate>(create);
+  static PrivacyMessagesUpdate? _defaultInstance;
+}
+
+class PrivacyMessagesAllowUpdate_Request extends $pb.GeneratedMessage {
+  factory PrivacyMessagesAllowUpdate_Request({
+    $core.Iterable<$core.List<$core.int>>? userIds,
+  }) {
+    final result = create();
+    if (userIds != null) result.userIds.addAll(userIds);
+    return result;
+  }
+
+  PrivacyMessagesAllowUpdate_Request._();
+
+  factory PrivacyMessagesAllowUpdate_Request.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory PrivacyMessagesAllowUpdate_Request.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'PrivacyMessagesAllowUpdate.Request',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..p<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'userIds', $pb.PbFieldType.PY)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyMessagesAllowUpdate_Request clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyMessagesAllowUpdate_Request copyWith(void Function(PrivacyMessagesAllowUpdate_Request) updates) =>
+      super.copyWith((message) => updates(message as PrivacyMessagesAllowUpdate_Request)) as PrivacyMessagesAllowUpdate_Request;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static PrivacyMessagesAllowUpdate_Request create() => PrivacyMessagesAllowUpdate_Request._();
+  @$core.override
+  PrivacyMessagesAllowUpdate_Request createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static PrivacyMessagesAllowUpdate_Request getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<PrivacyMessagesAllowUpdate_Request>(create);
+  static PrivacyMessagesAllowUpdate_Request? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $pb.PbList<$core.List<$core.int>> get userIds => $_getList(0);
+}
+
+class PrivacyMessagesAllowUpdate_Response extends $pb.GeneratedMessage {
+  factory PrivacyMessagesAllowUpdate_Response() => create();
+
+  PrivacyMessagesAllowUpdate_Response._();
+
+  factory PrivacyMessagesAllowUpdate_Response.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory PrivacyMessagesAllowUpdate_Response.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'PrivacyMessagesAllowUpdate.Response',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyMessagesAllowUpdate_Response clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyMessagesAllowUpdate_Response copyWith(void Function(PrivacyMessagesAllowUpdate_Response) updates) =>
+      super.copyWith((message) => updates(message as PrivacyMessagesAllowUpdate_Response)) as PrivacyMessagesAllowUpdate_Response;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static PrivacyMessagesAllowUpdate_Response create() => PrivacyMessagesAllowUpdate_Response._();
+  @$core.override
+  PrivacyMessagesAllowUpdate_Response createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static PrivacyMessagesAllowUpdate_Response getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<PrivacyMessagesAllowUpdate_Response>(create);
+  static PrivacyMessagesAllowUpdate_Response? _defaultInstance;
+}
+
+/// Полная замена allow-list «всегда разрешать» для сообщений.
+class PrivacyMessagesAllowUpdate extends $pb.GeneratedMessage {
+  factory PrivacyMessagesAllowUpdate() => create();
+
+  PrivacyMessagesAllowUpdate._();
+
+  factory PrivacyMessagesAllowUpdate.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory PrivacyMessagesAllowUpdate.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'PrivacyMessagesAllowUpdate',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyMessagesAllowUpdate clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyMessagesAllowUpdate copyWith(void Function(PrivacyMessagesAllowUpdate) updates) =>
+      super.copyWith((message) => updates(message as PrivacyMessagesAllowUpdate)) as PrivacyMessagesAllowUpdate;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static PrivacyMessagesAllowUpdate create() => PrivacyMessagesAllowUpdate._();
+  @$core.override
+  PrivacyMessagesAllowUpdate createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static PrivacyMessagesAllowUpdate getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<PrivacyMessagesAllowUpdate>(create);
+  static PrivacyMessagesAllowUpdate? _defaultInstance;
+}
+
+class PrivacyMessagesDenyUpdate_Request extends $pb.GeneratedMessage {
+  factory PrivacyMessagesDenyUpdate_Request({
+    $core.Iterable<$core.List<$core.int>>? userIds,
+  }) {
+    final result = create();
+    if (userIds != null) result.userIds.addAll(userIds);
+    return result;
+  }
+
+  PrivacyMessagesDenyUpdate_Request._();
+
+  factory PrivacyMessagesDenyUpdate_Request.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory PrivacyMessagesDenyUpdate_Request.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'PrivacyMessagesDenyUpdate.Request',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..p<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'userIds', $pb.PbFieldType.PY)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyMessagesDenyUpdate_Request clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyMessagesDenyUpdate_Request copyWith(void Function(PrivacyMessagesDenyUpdate_Request) updates) =>
+      super.copyWith((message) => updates(message as PrivacyMessagesDenyUpdate_Request)) as PrivacyMessagesDenyUpdate_Request;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static PrivacyMessagesDenyUpdate_Request create() => PrivacyMessagesDenyUpdate_Request._();
+  @$core.override
+  PrivacyMessagesDenyUpdate_Request createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static PrivacyMessagesDenyUpdate_Request getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<PrivacyMessagesDenyUpdate_Request>(create);
+  static PrivacyMessagesDenyUpdate_Request? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $pb.PbList<$core.List<$core.int>> get userIds => $_getList(0);
+}
+
+class PrivacyMessagesDenyUpdate_Response extends $pb.GeneratedMessage {
+  factory PrivacyMessagesDenyUpdate_Response() => create();
+
+  PrivacyMessagesDenyUpdate_Response._();
+
+  factory PrivacyMessagesDenyUpdate_Response.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory PrivacyMessagesDenyUpdate_Response.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'PrivacyMessagesDenyUpdate.Response',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyMessagesDenyUpdate_Response clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyMessagesDenyUpdate_Response copyWith(void Function(PrivacyMessagesDenyUpdate_Response) updates) =>
+      super.copyWith((message) => updates(message as PrivacyMessagesDenyUpdate_Response)) as PrivacyMessagesDenyUpdate_Response;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static PrivacyMessagesDenyUpdate_Response create() => PrivacyMessagesDenyUpdate_Response._();
+  @$core.override
+  PrivacyMessagesDenyUpdate_Response createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static PrivacyMessagesDenyUpdate_Response getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<PrivacyMessagesDenyUpdate_Response>(create);
+  static PrivacyMessagesDenyUpdate_Response? _defaultInstance;
+}
+
+/// Полная замена deny-list «всегда запрещать» для сообщений.
+class PrivacyMessagesDenyUpdate extends $pb.GeneratedMessage {
+  factory PrivacyMessagesDenyUpdate() => create();
+
+  PrivacyMessagesDenyUpdate._();
+
+  factory PrivacyMessagesDenyUpdate.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory PrivacyMessagesDenyUpdate.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'PrivacyMessagesDenyUpdate',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyMessagesDenyUpdate clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyMessagesDenyUpdate copyWith(void Function(PrivacyMessagesDenyUpdate) updates) =>
+      super.copyWith((message) => updates(message as PrivacyMessagesDenyUpdate)) as PrivacyMessagesDenyUpdate;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static PrivacyMessagesDenyUpdate create() => PrivacyMessagesDenyUpdate._();
+  @$core.override
+  PrivacyMessagesDenyUpdate createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static PrivacyMessagesDenyUpdate getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<PrivacyMessagesDenyUpdate>(create);
+  static PrivacyMessagesDenyUpdate? _defaultInstance;
 }
 
 const $core.bool _omitFieldNames = $core.bool.fromEnvironment('protobuf.omit_field_names');

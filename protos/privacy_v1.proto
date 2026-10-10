@@ -49,6 +49,15 @@ message PrivacySettings {
     Audience last_seen = 11;
     repeated bytes last_seen_allow = 12;
     repeated bytes last_seen_deny = 13;
+    // Аудитория «кто может мне писать» (личные сообщения) + её allow/deny-списки
+    // (та же семантика). ДЕФОЛТ — EVERYBODY (как в Telegram; у остальных
+    // каналов — CONTACTS). Гейт — при отправке в личный чат по стороне
+    // получателя; отказ — PermissionDenied «privacyRestricted». Если получатель
+    // уже писал в этот чат (после своей последней очистки истории) — отвечать
+    // можно и при CONTACTS/NOBODY (deny-list перекрывает и это).
+    Audience messages = 14;
+    repeated bytes messages_allow = 15;
+    repeated bytes messages_deny = 16;
   }
 }
 
@@ -162,6 +171,33 @@ message PrivacyLastSeenAllowUpdate {
 
 // Полная замена deny-list «всегда запрещать» для последнего посещения.
 message PrivacyLastSeenDenyUpdate {
+  message Request {
+    repeated bytes user_ids = 1;
+  }
+
+  message Response {}
+}
+
+// Изменение аудитории «кто может мне писать».
+message PrivacyMessagesUpdate {
+  message Request {
+    PrivacySettings.Audience messages = 1;
+  }
+
+  message Response {}
+}
+
+// Полная замена allow-list «всегда разрешать» для сообщений.
+message PrivacyMessagesAllowUpdate {
+  message Request {
+    repeated bytes user_ids = 1;
+  }
+
+  message Response {}
+}
+
+// Полная замена deny-list «всегда запрещать» для сообщений.
+message PrivacyMessagesDenyUpdate {
   message Request {
     repeated bytes user_ids = 1;
   }

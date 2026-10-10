@@ -58,6 +58,10 @@ class ChatsRequestException implements Exception {
 
   const ChatsRequestException(this.error, this.statusCode);
 
+  /// Собеседник ограничил, кто может ему писать (`PermissionDenied`
+  /// «privacyRestricted»).
+  bool get isPrivacyRestricted => statusCode == StatusCode.permissionDenied && error == 'privacyRestricted';
+
   @override
   String toString() => 'ChatsRequestException($statusCode): $error';
 }
@@ -127,6 +131,32 @@ class ChatsSync {
 
   Future<pb.Chats_Response> chats(pb.Chats_Request request) async =>
       pb.Chats_Response.fromBuffer(await _request(MessageType.CHATS, request.writeToBuffer()));
+
+  /// Могу ли я писать в чат (приватность собеседника «кто может мне писать»).
+  /// `null` — не удалось узнать (нет сети / ошибка): поле ввода не прячем,
+  /// отправку всё равно проверит сервер.
+  Future<bool?> canWrite(List<int> chatID) async {
+    if (!await hasNetwork()) return null;
+    try {
+      final response = await chats(pb.Chats_Request(canWrite: pb.Chats_CanWrite(chatID: chatID)));
+      if (!response.hasCanWrite()) return null;
+      final allowed = response.canWrite.allowed;
+      _writeRestricted.add((chatID: Uint8List.fromList(chatID), peerUserID: null, restricted: !allowed));
+      return allowed;
+    } on ChatsOfflineException {
+      return null;
+    } on ChatsRequestException catch (error) {
+      _logger.warning('chats: can write failed: $error');
+      return null;
+    }
+  }
+
+  final _writeRestricted = StreamController<({Uint8List chatID, Uint8List? peerUserID, bool restricted})>.broadcast();
+
+  /// Узнали, можно ли писать в чат: ответ [canWrite] или отказ сервера при
+  /// отправке из outbox (тогда [chatID] может быть пустым — чат по
+  /// [peerUserID] ещё не создан). Окно чата меняет поле ввода на плашку.
+  Stream<({Uint8List chatID, Uint8List? peerUserID, bool restricted})> get writeRestricted => _writeRestricted.stream;
 
   Future<pb.Messages_Response> messages(pb.Messages_Request request) async =>
       pb.Messages_Response.fromBuffer(await _request(MessageType.MESSAGES, request.writeToBuffer()));
@@ -717,6 +747,9 @@ class ChatsSync {
         if (error.statusCode == StatusCode.unauthenticated) return false;
         _logger.warning('chats: send rejected randomID=${row.randomID}: $error');
         await _store.markOutboxFailed(userID: user, randomID: row.randomID);
+        if (error.isPrivacyRestricted) {
+          _writeRestricted.add((chatID: row.chatID ?? Uint8List(0), peerUserID: row.peerUserID, restricted: true));
+        }
         continue;
       }
       final result = response.send;

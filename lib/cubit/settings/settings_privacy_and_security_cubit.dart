@@ -75,6 +75,9 @@ class SettingsPrivacyAndSecurityCubit extends Cubit<SettingsPrivacyAndSecuritySt
   /// Алиас [reloadCalls] для читаемости на экране «Последнее посещение».
   Future<void> reloadLastSeen() => _refresh();
 
+  /// Алиас [reloadCalls] для читаемости на экране «Сообщения».
+  Future<void> reloadMessages() => _refresh();
+
   /// Поднимает последнее известное значение из локальной БД. Кэша нет
   /// ([callsLoadError] останется, пока не придёт ответ сервера) — первый запуск.
   Future<void> _loadFromCache() async {
@@ -111,6 +114,9 @@ class SettingsPrivacyAndSecurityCubit extends Cubit<SettingsPrivacyAndSecuritySt
         lastSeenAudience: _fromProto(response.lastSeen),
         lastSeenAllow: response.lastSeenAllow.map(Uint8List.fromList).toList(growable: false),
         lastSeenDeny: response.lastSeenDeny.map(Uint8List.fromList).toList(growable: false),
+        messagesAudience: _fromProto(response.messages),
+        messagesAllow: response.messagesAllow.map(Uint8List.fromList).toList(growable: false),
+        messagesDeny: response.messagesDeny.map(Uint8List.fromList).toList(growable: false),
         callsLoadError: false,
         callsReadOnly: false,
       ),
@@ -136,6 +142,9 @@ class SettingsPrivacyAndSecurityCubit extends Cubit<SettingsPrivacyAndSecuritySt
         lastSeen: _toProto(state.lastSeenAudience),
         lastSeenAllow: state.lastSeenAllow,
         lastSeenDeny: state.lastSeenDeny,
+        messages: _toProto(state.messagesAudience),
+        messagesAllow: state.messagesAllow,
+        messagesDeny: state.messagesDeny,
       );
       await repositories.privacySettings.upsert(userID: auth.session.userID, payload: response.writeToBuffer());
     } catch (error, stackTrace) {
@@ -448,6 +457,75 @@ class SettingsPrivacyAndSecurityCubit extends Cubit<SettingsPrivacyAndSecuritySt
     }
 
     if (!isClosed) emit(state.copyWith(lastSeenDeny: List<Uint8List>.unmodifiable(userIDs)));
+    await _persistFromState();
+    return true;
+  }
+
+  /// Меняет настройку «кто может мне писать». Серверная операция, offline
+  /// недоступна. Возвращает `false`, если не применилось.
+  Future<bool> setMessagesAudience(CallsPrivacyAudience audience) async {
+    if (audience == state.messagesAudience && !state.callsLoadError && !state.callsReadOnly) return true;
+
+    if (!await utils.hasNetwork()) {
+      logger.info('privacy: set messages audience aborted, no network');
+      return false;
+    }
+
+    final status = await api.unaryEncoded(
+      MessageType.PRIVACY_MESSAGES_UPDATE,
+      PrivacyMessagesUpdate_Request(messages: _toProto(audience)).writeToBuffer(),
+    );
+
+    if (status.status != APIStatus.success) {
+      logger.warning('privacy: update messages audience failed (${status.error})');
+      return false;
+    }
+
+    if (!isClosed) emit(state.copyWith(messagesAudience: audience, callsLoadError: false, callsReadOnly: false));
+    await _persistFromState();
+    return true;
+  }
+
+  /// Полностью заменяет allow-list «всегда разрешать» для сообщений.
+  Future<bool> setMessagesAllow(List<Uint8List> userIDs) async {
+    if (!await utils.hasNetwork()) {
+      logger.info('privacy: set messages allow aborted, no network');
+      return false;
+    }
+
+    final status = await api.unaryEncoded(
+      MessageType.PRIVACY_MESSAGES_ALLOW_UPDATE,
+      PrivacyMessagesAllowUpdate_Request(userIds: userIDs).writeToBuffer(),
+    );
+
+    if (status.status != APIStatus.success) {
+      logger.warning('privacy: update messages allow failed (${status.error})');
+      return false;
+    }
+
+    if (!isClosed) emit(state.copyWith(messagesAllow: List<Uint8List>.unmodifiable(userIDs)));
+    await _persistFromState();
+    return true;
+  }
+
+  /// Полностью заменяет deny-list «всегда запрещать» для сообщений.
+  Future<bool> setMessagesDeny(List<Uint8List> userIDs) async {
+    if (!await utils.hasNetwork()) {
+      logger.info('privacy: set messages deny aborted, no network');
+      return false;
+    }
+
+    final status = await api.unaryEncoded(
+      MessageType.PRIVACY_MESSAGES_DENY_UPDATE,
+      PrivacyMessagesDenyUpdate_Request(userIds: userIDs).writeToBuffer(),
+    );
+
+    if (status.status != APIStatus.success) {
+      logger.warning('privacy: update messages deny failed (${status.error})');
+      return false;
+    }
+
+    if (!isClosed) emit(state.copyWith(messagesDeny: List<Uint8List>.unmodifiable(userIDs)));
     await _persistFromState();
     return true;
   }

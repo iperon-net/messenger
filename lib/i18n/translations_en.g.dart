@@ -1498,6 +1498,9 @@ class Translations$screenChat$en {
 	/// en: 'You are starting new chats too often. Try again in {time}.'
 	String floodNewChats({required Object time}) => 'You are starting new chats too often. Try again in ${time}.';
 
+	/// en: '{name} restricts who can message them.'
+	String privacyRestricted({required Object name}) => '${name} restricts who can message them.';
+
 	/// en: 'In slow mode you can send only one message at a time.'
 	String get slowModeOneMessage => 'In slow mode you can send only one message at a time.';
 
@@ -2565,6 +2568,15 @@ class Translations$sessionsPrivacyAndSecurity$en {
 
 	/// en: 'If you choose Nobody, you won't see others' last seen or online status either.'
 	String get lastSeenReciprocityNote => 'If you choose Nobody, you won\'t see others\' last seen or online status either.';
+
+	/// en: 'Messages'
+	String get messages => 'Messages';
+
+	/// en: 'Who can message me'
+	String get whoCanMessage => 'Who can message me';
+
+	/// en: 'People you message first can always reply to you.'
+	String get messagesReplyNote => 'People you message first can always reply to you.';
 }
 
 // Path: cloudPassword
@@ -3915,6 +3927,7 @@ extension on Translations {
 			'screenChat.floodTitle' => 'Too many requests',
 			'screenChat.floodWait' => ({required Object time}) => 'You are sending messages too often. You can send the next one in ${time}.',
 			'screenChat.floodNewChats' => ({required Object time}) => 'You are starting new chats too often. Try again in ${time}.',
+			'screenChat.privacyRestricted' => ({required Object name}) => '${name} restricts who can message them.',
 			'screenChat.slowModeOneMessage' => 'In slow mode you can send only one message at a time.',
 			'screenChat.scheduledTitle' => 'Scheduled messages',
 			'screenChat.schedule' => 'Schedule',
@@ -3995,9 +4008,9 @@ extension on Translations {
 			'screenSettingsNotifications.channels' => 'Channels',
 			'screenSettingsNotifications.on' => 'On',
 			'screenSettingsNotifications.off' => 'Off',
-			'screenSettingsNotifications.events' => 'Events',
 			_ => null,
 		} ?? switch (path) {
+			'screenSettingsNotifications.events' => 'Events',
 			'screenSettingsNotifications.contactJoined' => 'Contact joined Iperon',
 			'screenSettingsNotifications.missedCalls' => 'Missed calls',
 			'screenSettingsNotifications.reactions' => 'Reactions',
@@ -4233,6 +4246,9 @@ extension on Translations {
 			'sessionsPrivacyAndSecurity.lastSeen' => 'Last seen',
 			'sessionsPrivacyAndSecurity.whoCanSeeLastSeen' => 'Who can see my last seen',
 			'sessionsPrivacyAndSecurity.lastSeenReciprocityNote' => 'If you choose Nobody, you won\'t see others\' last seen or online status either.',
+			'sessionsPrivacyAndSecurity.messages' => 'Messages',
+			'sessionsPrivacyAndSecurity.whoCanMessage' => 'Who can message me',
+			'sessionsPrivacyAndSecurity.messagesReplyNote' => 'People you message first can always reply to you.',
 			'cloudPassword.title' => 'Cloud password',
 			'cloudPassword.description' => 'An additional password asked when signing in on a new device. Add an email so you can recover access if you forget it.',
 			'cloudPassword.enterPasswordHint' => 'Enter your cloud password',

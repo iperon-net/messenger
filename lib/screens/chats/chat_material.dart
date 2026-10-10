@@ -1103,10 +1103,10 @@ class _ChannelBar extends StatelessWidget {
   }
 }
 
-/// Писать в ветку комментариев нельзя — вместо поля ввода: «Комментарии
-/// закрыты» (срок вышел / админ закрыл), «Подписаться, чтобы комментировать»
-/// (канал «только подписчики») или «Комментировать можно с …» (подписаны
-/// меньше «Подписки не менее»).
+/// Писать нельзя — вместо поля ввода: «Комментарии закрыты» (срок вышел /
+/// админ закрыл), «Подписаться, чтобы комментировать» (канал «только
+/// подписчики»), «Комментировать можно с …» (подписаны меньше «Подписки не
+/// менее») или в личном чате «… ограничивает, кто может писать».
 class _CommentsBlockedBar extends StatelessWidget {
   final ChatState state;
   final Color color;
@@ -1125,7 +1125,8 @@ class _CommentsBlockedBar extends StatelessWidget {
         Flexible(
           child: Text(
             text,
-            maxLines: 1,
+            maxLines: 2,
+            textAlign: TextAlign.center,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(color: secondary),
           ),
@@ -1148,6 +1149,7 @@ class _CommentsBlockedBar extends StatelessWidget {
               Icons.schedule,
               commentsWaitLabel(t, state.commentsWaitUntil!),
             ),
+            ChatCommentsBlock.privacy => note(Icons.lock_outline, t.screenChat.privacyRestricted(name: state.chat?.title ?? '')),
             _ => note(Icons.lock_outline, t.screenChat.commentsClosed),
           },
         ),

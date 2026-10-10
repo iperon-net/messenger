@@ -156,6 +156,12 @@ class MessageType extends $pb.ProtobufEnum {
   static const MessageType UPDATES = MessageType._(73, _omitEnumNames ? '' : 'UPDATES');
   static const MessageType GET_DIFFERENCE = MessageType._(74, _omitEnumNames ? '' : 'GET_DIFFERENCE');
 
+  /// Приватность «кто может мне писать» (аудитория + allow/deny). Гейт — при
+  /// отправке в личный чат. См. privacy_v1.proto (PrivacyMessages*Update).
+  static const MessageType PRIVACY_MESSAGES_UPDATE = MessageType._(75, _omitEnumNames ? '' : 'PRIVACY_MESSAGES_UPDATE');
+  static const MessageType PRIVACY_MESSAGES_ALLOW_UPDATE = MessageType._(76, _omitEnumNames ? '' : 'PRIVACY_MESSAGES_ALLOW_UPDATE');
+  static const MessageType PRIVACY_MESSAGES_DENY_UPDATE = MessageType._(77, _omitEnumNames ? '' : 'PRIVACY_MESSAGES_DENY_UPDATE');
+
   static const $core.List<MessageType> values = <MessageType>[
     HEALTHCHECK,
     META_DATA_INFO,
@@ -228,9 +234,12 @@ class MessageType extends $pb.ProtobufEnum {
     MESSAGES,
     UPDATES,
     GET_DIFFERENCE,
+    PRIVACY_MESSAGES_UPDATE,
+    PRIVACY_MESSAGES_ALLOW_UPDATE,
+    PRIVACY_MESSAGES_DENY_UPDATE,
   ];
 
-  static final $core.List<MessageType?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 74);
+  static final $core.List<MessageType?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 77);
   static MessageType? valueOf($core.int value) => value < 0 || value >= _byValue.length ? null : _byValue[value];
 
   const MessageType._(super.value, super.name);

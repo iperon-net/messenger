@@ -166,6 +166,21 @@ class _SettingsPrivacyAndSecurityCupertino extends State<SettingsPrivacyAndSecur
                         await cubit.reloadLastSeen();
                       },
                     ),
+                    CupertinoListTileIcon(
+                      title: Text(context.t.sessionsPrivacyAndSecurity.messages),
+                      color: Color(0xFF5AC8FA),
+                      icon: FontAwesomeIcons.solidComment,
+                      isTrailing: true,
+                      additionalInfo: Text(
+                        state.callsLoadError ? "—" : _audienceLabel(context, state.messagesAudience),
+                        style: TextStyle(color: CupertinoColors.secondaryLabel.resolveFrom(context)),
+                      ),
+                      onTab: () async {
+                        final cubit = context.read<SettingsPrivacyAndSecurityCubit>();
+                        await context.push("/settings/privacy_and_security/messages");
+                        await cubit.reloadMessages();
+                      },
+                    ),
                   ],
                 ),
               ],

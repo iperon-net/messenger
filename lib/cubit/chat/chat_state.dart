@@ -5,11 +5,12 @@ import '../../models.dart' as models;
 
 part 'chat_state.mapper.dart';
 
-/// Почему нельзя комментировать: ветка закрыта (срок поста вышел / админ
-/// закрыл), канал «только подписчики», а мы не подписаны, или подписаны
-/// меньше `Chat.commentsMinSubscription`.
+/// Почему нельзя писать: ветка закрыта (срок поста вышел / админ закрыл),
+/// канал «только подписчики», а мы не подписаны, или подписаны меньше
+/// `Chat.commentsMinSubscription`; [privacy] — личный чат, собеседник
+/// ограничил, кто может ему писать.
 @MappableEnum()
-enum ChatCommentsBlock { none, closed, subscribe, wait }
+enum ChatCommentsBlock { none, closed, subscribe, wait, privacy }
 
 /// Состояние окна чата: сам чат (шапка, «печатает…»), его сообщения и режим
 /// поля ввода (ответ / редактирование).

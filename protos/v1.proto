@@ -131,6 +131,11 @@ enum MessageType {
   MESSAGES = 72;
   UPDATES = 73;
   GET_DIFFERENCE = 74;
+  // Приватность «кто может мне писать» (аудитория + allow/deny). Гейт — при
+  // отправке в личный чат. См. privacy_v1.proto (PrivacyMessages*Update).
+  PRIVACY_MESSAGES_UPDATE = 75;
+  PRIVACY_MESSAGES_ALLOW_UPDATE = 76;
+  PRIVACY_MESSAGES_DENY_UPDATE = 77;
 }
 
 service Iperon {

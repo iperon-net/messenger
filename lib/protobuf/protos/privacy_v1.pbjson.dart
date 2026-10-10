@@ -44,6 +44,9 @@ const PrivacySettings_Response$json = {
     {'1': 'last_seen', '3': 11, '4': 1, '5': 14, '6': '.iperon.v1.PrivacySettings.Audience', '10': 'lastSeen'},
     {'1': 'last_seen_allow', '3': 12, '4': 3, '5': 12, '10': 'lastSeenAllow'},
     {'1': 'last_seen_deny', '3': 13, '4': 3, '5': 12, '10': 'lastSeenDeny'},
+    {'1': 'messages', '3': 14, '4': 1, '5': 14, '6': '.iperon.v1.PrivacySettings.Audience', '10': 'messages'},
+    {'1': 'messages_allow', '3': 15, '4': 3, '5': 12, '10': 'messagesAllow'},
+    {'1': 'messages_deny', '3': 16, '4': 3, '5': 12, '10': 'messagesDeny'},
   ],
 };
 
@@ -59,7 +62,7 @@ const PrivacySettings_Audience$json = {
 
 /// Descriptor for `PrivacySettings`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List privacySettingsDescriptor =
-    $convert.base64Decode('Cg9Qcml2YWN5U2V0dGluZ3MaCQoHUmVxdWVzdBrUBAoIUmVzcG9uc2USOQoFY2FsbHMYASABKA'
+    $convert.base64Decode('Cg9Qcml2YWN5U2V0dGluZ3MaCQoHUmVxdWVzdBrhBQoIUmVzcG9uc2USOQoFY2FsbHMYASABKA'
         '4yIy5pcGVyb24udjEuUHJpdmFjeVNldHRpbmdzLkF1ZGllbmNlUgVjYWxscxIfCgtjYWxsc19h'
         'bGxvdxgCIAMoDFIKY2FsbHNBbGxvdxIdCgpjYWxsc19kZW55GAMgAygMUgljYWxsc0RlbnkSPw'
         'oIYmlydGhkYXkYBCABKA4yIy5pcGVyb24udjEuUHJpdmFjeVNldHRpbmdzLkF1ZGllbmNlUghi'
@@ -70,8 +73,10 @@ final $typed_data.Uint8List privacySettingsDescriptor =
         'bG93EiIKDWFib3V0X21lX2RlbnkYCiADKAxSC2Fib3V0TWVEZW55EkAKCWxhc3Rfc2VlbhgLIA'
         'EoDjIjLmlwZXJvbi52MS5Qcml2YWN5U2V0dGluZ3MuQXVkaWVuY2VSCGxhc3RTZWVuEiYKD2xh'
         'c3Rfc2Vlbl9hbGxvdxgMIAMoDFINbGFzdFNlZW5BbGxvdxIkCg5sYXN0X3NlZW5fZGVueRgNIA'
-        'MoDFIMbGFzdFNlZW5EZW55IjMKCEF1ZGllbmNlEg0KCUVWRVJZQk9EWRAAEgwKCENPTlRBQ1RT'
-        'EAESCgoGTk9CT0RZEAI=');
+        'MoDFIMbGFzdFNlZW5EZW55Ej8KCG1lc3NhZ2VzGA4gASgOMiMuaXBlcm9uLnYxLlByaXZhY3lT'
+        'ZXR0aW5ncy5BdWRpZW5jZVIIbWVzc2FnZXMSJQoObWVzc2FnZXNfYWxsb3cYDyADKAxSDW1lc3'
+        'NhZ2VzQWxsb3cSIwoNbWVzc2FnZXNfZGVueRgQIAMoDFIMbWVzc2FnZXNEZW55IjMKCEF1ZGll'
+        'bmNlEg0KCUVWRVJZQk9EWRAAEgwKCENPTlRBQ1RTEAESCgoGTk9CT0RZEAI=');
 
 @$core.Deprecated('Use privacySettingsUpdateDescriptor instead')
 const PrivacySettingsUpdate$json = {
@@ -384,4 +389,76 @@ const PrivacyLastSeenDenyUpdate_Response$json = {
 /// Descriptor for `PrivacyLastSeenDenyUpdate`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List privacyLastSeenDenyUpdateDescriptor =
     $convert.base64Decode('ChlQcml2YWN5TGFzdFNlZW5EZW55VXBkYXRlGiQKB1JlcXVlc3QSGQoIdXNlcl9pZHMYASADKA'
+        'xSB3VzZXJJZHMaCgoIUmVzcG9uc2U=');
+
+@$core.Deprecated('Use privacyMessagesUpdateDescriptor instead')
+const PrivacyMessagesUpdate$json = {
+  '1': 'PrivacyMessagesUpdate',
+  '3': [PrivacyMessagesUpdate_Request$json, PrivacyMessagesUpdate_Response$json],
+};
+
+@$core.Deprecated('Use privacyMessagesUpdateDescriptor instead')
+const PrivacyMessagesUpdate_Request$json = {
+  '1': 'Request',
+  '2': [
+    {'1': 'messages', '3': 1, '4': 1, '5': 14, '6': '.iperon.v1.PrivacySettings.Audience', '10': 'messages'},
+  ],
+};
+
+@$core.Deprecated('Use privacyMessagesUpdateDescriptor instead')
+const PrivacyMessagesUpdate_Response$json = {
+  '1': 'Response',
+};
+
+/// Descriptor for `PrivacyMessagesUpdate`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List privacyMessagesUpdateDescriptor =
+    $convert.base64Decode('ChVQcml2YWN5TWVzc2FnZXNVcGRhdGUaSgoHUmVxdWVzdBI/CghtZXNzYWdlcxgBIAEoDjIjLm'
+        'lwZXJvbi52MS5Qcml2YWN5U2V0dGluZ3MuQXVkaWVuY2VSCG1lc3NhZ2VzGgoKCFJlc3BvbnNl');
+
+@$core.Deprecated('Use privacyMessagesAllowUpdateDescriptor instead')
+const PrivacyMessagesAllowUpdate$json = {
+  '1': 'PrivacyMessagesAllowUpdate',
+  '3': [PrivacyMessagesAllowUpdate_Request$json, PrivacyMessagesAllowUpdate_Response$json],
+};
+
+@$core.Deprecated('Use privacyMessagesAllowUpdateDescriptor instead')
+const PrivacyMessagesAllowUpdate_Request$json = {
+  '1': 'Request',
+  '2': [
+    {'1': 'user_ids', '3': 1, '4': 3, '5': 12, '10': 'userIds'},
+  ],
+};
+
+@$core.Deprecated('Use privacyMessagesAllowUpdateDescriptor instead')
+const PrivacyMessagesAllowUpdate_Response$json = {
+  '1': 'Response',
+};
+
+/// Descriptor for `PrivacyMessagesAllowUpdate`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List privacyMessagesAllowUpdateDescriptor =
+    $convert.base64Decode('ChpQcml2YWN5TWVzc2FnZXNBbGxvd1VwZGF0ZRokCgdSZXF1ZXN0EhkKCHVzZXJfaWRzGAEgAy'
+        'gMUgd1c2VySWRzGgoKCFJlc3BvbnNl');
+
+@$core.Deprecated('Use privacyMessagesDenyUpdateDescriptor instead')
+const PrivacyMessagesDenyUpdate$json = {
+  '1': 'PrivacyMessagesDenyUpdate',
+  '3': [PrivacyMessagesDenyUpdate_Request$json, PrivacyMessagesDenyUpdate_Response$json],
+};
+
+@$core.Deprecated('Use privacyMessagesDenyUpdateDescriptor instead')
+const PrivacyMessagesDenyUpdate_Request$json = {
+  '1': 'Request',
+  '2': [
+    {'1': 'user_ids', '3': 1, '4': 3, '5': 12, '10': 'userIds'},
+  ],
+};
+
+@$core.Deprecated('Use privacyMessagesDenyUpdateDescriptor instead')
+const PrivacyMessagesDenyUpdate_Response$json = {
+  '1': 'Response',
+};
+
+/// Descriptor for `PrivacyMessagesDenyUpdate`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List privacyMessagesDenyUpdateDescriptor =
+    $convert.base64Decode('ChlQcml2YWN5TWVzc2FnZXNEZW55VXBkYXRlGiQKB1JlcXVlc3QSGQoIdXNlcl9pZHMYASADKA'
         'xSB3VzZXJJZHMaCgoIUmVzcG9uc2U=');

@@ -469,6 +469,7 @@
   "floodTitle": "Too many requests"
   "floodWait": "You are sending messages too often. You can send the next one in {time}."
   "floodNewChats": "You are starting new chats too often. Try again in {time}."
+  "privacyRestricted": "{name} restricts who can message them."
   "slowModeOneMessage": "In slow mode you can send only one message at a time."
   "scheduledTitle": "Scheduled messages"
   "schedule": "Schedule"
@@ -817,6 +818,9 @@
   "lastSeen": "Last seen"
   "whoCanSeeLastSeen": "Who can see my last seen"
   "lastSeenReciprocityNote": "If you choose Nobody, you won't see others' last seen or online status either."
+  "messages": "Messages"
+  "whoCanMessage": "Who can message me"
+  "messagesReplyNote": "People you message first can always reply to you."
 
 "cloudPassword":
   "title": "Cloud password"

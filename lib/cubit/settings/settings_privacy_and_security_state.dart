@@ -17,10 +17,10 @@ enum CallsPrivacyAudience { everybody, contacts, nobody }
 enum CallsListKind { allow, deny }
 
 /// Канал приватности, к которому относится экран-пикер исключений: звонки, день
-/// рождения, «О себе» или последнее посещение. Пикер контактов один на все —
+/// рождения, «О себе», последнее посещение или «кто может мне писать». Пикер контактов один на все —
 /// различается только тем, какой список настройки он заменяет через
 /// [SettingsPrivacyAndSecurityCubit].
-enum PrivacyChannel { calls, birthday, aboutMe, lastSeen }
+enum PrivacyChannel { calls, birthday, aboutMe, lastSeen, messages }
 
 @MappableClass(includeCustomMappers: [Uint8ListMapper()])
 class SettingsPrivacyAndSecurityState with SettingsPrivacyAndSecurityStateMappable {
@@ -84,6 +84,15 @@ class SettingsPrivacyAndSecurityState with SettingsPrivacyAndSecurityStateMappab
   final List<Uint8List> lastSeenAllow;
   final List<Uint8List> lastSeenDeny;
 
+  /// Настройка «кто может мне писать» (личные сообщения). Дефолт — ВСЕ (как в
+  /// Telegram и на сервере; у остальных каналов — контакты). Гейт серверный: при
+  /// отправке по стороне получателя; ответить тому, кто уже написал, можно всегда.
+  final CallsPrivacyAudience messagesAudience;
+
+  /// Allow/deny-списки исключений для сообщений (см. [callsAllow]/[callsDeny]).
+  final List<Uint8List> messagesAllow;
+  final List<Uint8List> messagesDeny;
+
   const SettingsPrivacyAndSecurityState({
     this.status = Status.initialization,
     this.isBiometricAvailable = false,
@@ -102,5 +111,8 @@ class SettingsPrivacyAndSecurityState with SettingsPrivacyAndSecurityStateMappab
     this.lastSeenAudience = CallsPrivacyAudience.contacts,
     this.lastSeenAllow = const [],
     this.lastSeenDeny = const [],
+    this.messagesAudience = CallsPrivacyAudience.everybody,
+    this.messagesAllow = const [],
+    this.messagesDeny = const [],
   });
 }

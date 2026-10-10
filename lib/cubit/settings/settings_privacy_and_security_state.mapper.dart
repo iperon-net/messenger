@@ -156,6 +156,34 @@ class SettingsPrivacyAndSecurityStateMapper
     opt: true,
     def: const [],
   );
+  static CallsPrivacyAudience _$messagesAudience(
+    SettingsPrivacyAndSecurityState v,
+  ) => v.messagesAudience;
+  static const Field<SettingsPrivacyAndSecurityState, CallsPrivacyAudience>
+  _f$messagesAudience = Field(
+    'messagesAudience',
+    _$messagesAudience,
+    opt: true,
+    def: CallsPrivacyAudience.everybody,
+  );
+  static List<Uint8List> _$messagesAllow(SettingsPrivacyAndSecurityState v) =>
+      v.messagesAllow;
+  static const Field<SettingsPrivacyAndSecurityState, List<Uint8List>>
+  _f$messagesAllow = Field(
+    'messagesAllow',
+    _$messagesAllow,
+    opt: true,
+    def: const [],
+  );
+  static List<Uint8List> _$messagesDeny(SettingsPrivacyAndSecurityState v) =>
+      v.messagesDeny;
+  static const Field<SettingsPrivacyAndSecurityState, List<Uint8List>>
+  _f$messagesDeny = Field(
+    'messagesDeny',
+    _$messagesDeny,
+    opt: true,
+    def: const [],
+  );
 
   @override
   final MappableFields<SettingsPrivacyAndSecurityState> fields = const {
@@ -176,6 +204,9 @@ class SettingsPrivacyAndSecurityStateMapper
     #lastSeenAudience: _f$lastSeenAudience,
     #lastSeenAllow: _f$lastSeenAllow,
     #lastSeenDeny: _f$lastSeenDeny,
+    #messagesAudience: _f$messagesAudience,
+    #messagesAllow: _f$messagesAllow,
+    #messagesDeny: _f$messagesDeny,
   };
 
   static SettingsPrivacyAndSecurityState _instantiate(DecodingData data) {
@@ -197,6 +228,9 @@ class SettingsPrivacyAndSecurityStateMapper
       lastSeenAudience: data.dec(_f$lastSeenAudience),
       lastSeenAllow: data.dec(_f$lastSeenAllow),
       lastSeenDeny: data.dec(_f$lastSeenDeny),
+      messagesAudience: data.dec(_f$messagesAudience),
+      messagesAllow: data.dec(_f$messagesAllow),
+      messagesDeny: data.dec(_f$messagesDeny),
     );
   }
 
@@ -294,6 +328,10 @@ abstract class SettingsPrivacyAndSecurityStateCopyWith<
   get lastSeenAllow;
   ListCopyWith<$R, Uint8List, ObjectCopyWith<$R, Uint8List, Uint8List>>
   get lastSeenDeny;
+  ListCopyWith<$R, Uint8List, ObjectCopyWith<$R, Uint8List, Uint8List>>
+  get messagesAllow;
+  ListCopyWith<$R, Uint8List, ObjectCopyWith<$R, Uint8List, Uint8List>>
+  get messagesDeny;
   $R call({
     Status? status,
     bool? isBiometricAvailable,
@@ -312,6 +350,9 @@ abstract class SettingsPrivacyAndSecurityStateCopyWith<
     CallsPrivacyAudience? lastSeenAudience,
     List<Uint8List>? lastSeenAllow,
     List<Uint8List>? lastSeenDeny,
+    CallsPrivacyAudience? messagesAudience,
+    List<Uint8List>? messagesAllow,
+    List<Uint8List>? messagesDeny,
   });
   SettingsPrivacyAndSecurityStateCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
     Then<$Out2, $R2> t,
@@ -392,6 +433,20 @@ class _SettingsPrivacyAndSecurityStateCopyWithImpl<$R, $Out>
     (v) => call(lastSeenDeny: v),
   );
   @override
+  ListCopyWith<$R, Uint8List, ObjectCopyWith<$R, Uint8List, Uint8List>>
+  get messagesAllow => ListCopyWith(
+    $value.messagesAllow,
+    (v, t) => ObjectCopyWith(v, $identity, t),
+    (v) => call(messagesAllow: v),
+  );
+  @override
+  ListCopyWith<$R, Uint8List, ObjectCopyWith<$R, Uint8List, Uint8List>>
+  get messagesDeny => ListCopyWith(
+    $value.messagesDeny,
+    (v, t) => ObjectCopyWith(v, $identity, t),
+    (v) => call(messagesDeny: v),
+  );
+  @override
   $R call({
     Status? status,
     bool? isBiometricAvailable,
@@ -410,6 +465,9 @@ class _SettingsPrivacyAndSecurityStateCopyWithImpl<$R, $Out>
     CallsPrivacyAudience? lastSeenAudience,
     List<Uint8List>? lastSeenAllow,
     List<Uint8List>? lastSeenDeny,
+    CallsPrivacyAudience? messagesAudience,
+    List<Uint8List>? messagesAllow,
+    List<Uint8List>? messagesDeny,
   }) => $apply(
     FieldCopyWithData({
       if (status != null) #status: status,
@@ -430,6 +488,9 @@ class _SettingsPrivacyAndSecurityStateCopyWithImpl<$R, $Out>
       if (lastSeenAudience != null) #lastSeenAudience: lastSeenAudience,
       if (lastSeenAllow != null) #lastSeenAllow: lastSeenAllow,
       if (lastSeenDeny != null) #lastSeenDeny: lastSeenDeny,
+      if (messagesAudience != null) #messagesAudience: messagesAudience,
+      if (messagesAllow != null) #messagesAllow: messagesAllow,
+      if (messagesDeny != null) #messagesDeny: messagesDeny,
     }),
   );
   @override
@@ -456,6 +517,9 @@ class _SettingsPrivacyAndSecurityStateCopyWithImpl<$R, $Out>
     lastSeenAudience: data.get(#lastSeenAudience, or: $value.lastSeenAudience),
     lastSeenAllow: data.get(#lastSeenAllow, or: $value.lastSeenAllow),
     lastSeenDeny: data.get(#lastSeenDeny, or: $value.lastSeenDeny),
+    messagesAudience: data.get(#messagesAudience, or: $value.messagesAudience),
+    messagesAllow: data.get(#messagesAllow, or: $value.messagesAllow),
+    messagesDeny: data.get(#messagesDeny, or: $value.messagesDeny),
   );
 
   @override

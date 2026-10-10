@@ -651,6 +651,7 @@ class _Translations$screenChat$ru extends Translations$screenChat$en {
 	@override String get floodTitle => 'Слишком часто';
 	@override String floodWait({required Object time}) => 'Вы отправляете сообщения слишком часто. Следующее можно отправить через ${time}.';
 	@override String floodNewChats({required Object time}) => 'Вы начинаете новые чаты слишком часто. Попробуйте через ${time}.';
+	@override String privacyRestricted({required Object name}) => '${name} ограничивает, кто может писать в этот чат.';
 	@override String get slowModeOneMessage => 'В медленном режиме можно отправить только одно сообщение за раз.';
 	@override String get scheduledTitle => 'Отложенные сообщения';
 	@override String get schedule => 'Запланировать';
@@ -1091,6 +1092,9 @@ class _Translations$sessionsPrivacyAndSecurity$ru extends Translations$sessionsP
 	@override String get lastSeen => 'Время захода';
 	@override String get whoCanSeeLastSeen => 'Кто может видеть время моего захода';
 	@override String get lastSeenReciprocityNote => 'Если выбрано «Никто», вы тоже не будете видеть время захода и статус других.';
+	@override String get messages => 'Сообщения';
+	@override String get whoCanMessage => 'Кто может мне писать';
+	@override String get messagesReplyNote => 'Тем, кому вы написали сами, ответить можно всегда.';
 }
 
 // Path: cloudPassword
@@ -1926,6 +1930,7 @@ extension on TranslationsRu {
 			'screenChat.floodTitle' => 'Слишком часто',
 			'screenChat.floodWait' => ({required Object time}) => 'Вы отправляете сообщения слишком часто. Следующее можно отправить через ${time}.',
 			'screenChat.floodNewChats' => ({required Object time}) => 'Вы начинаете новые чаты слишком часто. Попробуйте через ${time}.',
+			'screenChat.privacyRestricted' => ({required Object name}) => '${name} ограничивает, кто может писать в этот чат.',
 			'screenChat.slowModeOneMessage' => 'В медленном режиме можно отправить только одно сообщение за раз.',
 			'screenChat.scheduledTitle' => 'Отложенные сообщения',
 			'screenChat.schedule' => 'Запланировать',
@@ -2006,9 +2011,9 @@ extension on TranslationsRu {
 			'screenSettingsNotifications.channels' => 'Каналы',
 			'screenSettingsNotifications.on' => 'Вкл.',
 			'screenSettingsNotifications.off' => 'Выкл.',
-			'screenSettingsNotifications.events' => 'События',
 			_ => null,
 		} ?? switch (path) {
+			'screenSettingsNotifications.events' => 'События',
 			'screenSettingsNotifications.contactJoined' => 'Контакт присоединился к Iperon',
 			'screenSettingsNotifications.missedCalls' => 'Пропущенные звонки',
 			'screenSettingsNotifications.reactions' => 'Реакции',
@@ -2244,6 +2249,9 @@ extension on TranslationsRu {
 			'sessionsPrivacyAndSecurity.lastSeen' => 'Время захода',
 			'sessionsPrivacyAndSecurity.whoCanSeeLastSeen' => 'Кто может видеть время моего захода',
 			'sessionsPrivacyAndSecurity.lastSeenReciprocityNote' => 'Если выбрано «Никто», вы тоже не будете видеть время захода и статус других.',
+			'sessionsPrivacyAndSecurity.messages' => 'Сообщения',
+			'sessionsPrivacyAndSecurity.whoCanMessage' => 'Кто может мне писать',
+			'sessionsPrivacyAndSecurity.messagesReplyNote' => 'Тем, кому вы написали сами, ответить можно всегда.',
 			'cloudPassword.title' => 'Облачный пароль',
 			'cloudPassword.description' => 'Дополнительный пароль, будет запрашивается при входе с нового устройства. Укажите email чтобы восстановить доступ, если забудете пароль.',
 			'cloudPassword.enterPasswordHint' => 'Введите облачный пароль',
