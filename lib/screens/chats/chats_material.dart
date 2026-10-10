@@ -245,9 +245,9 @@ class _ArchiveTileMaterial extends StatelessWidget {
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       leading: CircleAvatar(
-        radius: 27,
+        radius: 23,
         backgroundColor: scheme.outline,
-        child: FaIcon(FontAwesomeIcons.boxArchive, size: 20, color: scheme.surface),
+        child: FaIcon(FontAwesomeIcons.boxArchive, size: 17, color: scheme.surface),
       ),
       title: Text(context.t.screenChats.archive, style: const TextStyle(fontWeight: FontWeight.w600)),
       subtitle: Text(archived.map((c) => ChatTileContent.title(context.t, c)).join(', '), maxLines: 1, overflow: TextOverflow.ellipsis),

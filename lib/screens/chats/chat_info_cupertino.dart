@@ -335,6 +335,22 @@ class _ChatInfoCupertinoState extends State<ChatInfoCupertino> {
                                 padding: const EdgeInsets.symmetric(horizontal: 16),
                                 child: Row(
                                   children: [
+                                    // Звонок — только собеседнику личного чата (в демо
+                                    // peerUserID пуст: звонить некому).
+                                    if (chat.peerUserID.isNotEmpty) ...[
+                                      _ActionButton(
+                                        icon: HugeIcons.strokeRoundedCall02,
+                                        label: t.screenChatInfo.call,
+                                        color: action,
+                                        onTap: () => chatInfoCall(chat, video: false),
+                                      ),
+                                      _ActionButton(
+                                        icon: HugeIcons.strokeRoundedVideo01,
+                                        label: t.screenChatInfo.video,
+                                        color: action,
+                                        onTap: () => chatInfoCall(chat, video: true),
+                                      ),
+                                    ],
                                     if (!chat.isSelf)
                                       _ActionButton(
                                         // Значок — текущее состояние: звук включён / выключен.

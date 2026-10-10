@@ -1164,6 +1164,13 @@ class ChatMapper extends ClassMapperBase<Chat> {
     opt: true,
     def: false,
   );
+  static String _$peerUserID(Chat v) => v.peerUserID;
+  static const Field<Chat, String> _f$peerUserID = Field(
+    'peerUserID',
+    _$peerUserID,
+    opt: true,
+    def: '',
+  );
   static ChatLastMessage? _$lastMessage(Chat v) => v.lastMessage;
   static const Field<Chat, ChatLastMessage> _f$lastMessage = Field(
     'lastMessage',
@@ -1499,6 +1506,7 @@ class ChatMapper extends ClassMapperBase<Chat> {
     #title: _f$title,
     #isContact: _f$isContact,
     #isSelf: _f$isSelf,
+    #peerUserID: _f$peerUserID,
     #lastMessage: _f$lastMessage,
     #unreadCount: _f$unreadCount,
     #unreadMentions: _f$unreadMentions,
@@ -1556,6 +1564,7 @@ class ChatMapper extends ClassMapperBase<Chat> {
       title: data.dec(_f$title),
       isContact: data.dec(_f$isContact),
       isSelf: data.dec(_f$isSelf),
+      peerUserID: data.dec(_f$peerUserID),
       lastMessage: data.dec(_f$lastMessage),
       unreadCount: data.dec(_f$unreadCount),
       unreadMentions: data.dec(_f$unreadMentions),
@@ -1668,6 +1677,7 @@ abstract class ChatCopyWith<$R, $In extends Chat, $Out>
     String? title,
     bool? isContact,
     bool? isSelf,
+    String? peerUserID,
     ChatLastMessage? lastMessage,
     int? unreadCount,
     int? unreadMentions,
@@ -1755,6 +1765,7 @@ class _ChatCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Chat, $Out>
     String? title,
     bool? isContact,
     bool? isSelf,
+    String? peerUserID,
     Object? lastMessage = $none,
     int? unreadCount,
     int? unreadMentions,
@@ -1810,6 +1821,7 @@ class _ChatCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Chat, $Out>
       if (title != null) #title: title,
       if (isContact != null) #isContact: isContact,
       if (isSelf != null) #isSelf: isSelf,
+      if (peerUserID != null) #peerUserID: peerUserID,
       if (lastMessage != $none) #lastMessage: lastMessage,
       if (unreadCount != null) #unreadCount: unreadCount,
       if (unreadMentions != null) #unreadMentions: unreadMentions,
@@ -1868,6 +1880,7 @@ class _ChatCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Chat, $Out>
     title: data.get(#title, or: $value.title),
     isContact: data.get(#isContact, or: $value.isContact),
     isSelf: data.get(#isSelf, or: $value.isSelf),
+    peerUserID: data.get(#peerUserID, or: $value.peerUserID),
     lastMessage: data.get(#lastMessage, or: $value.lastMessage),
     unreadCount: data.get(#unreadCount, or: $value.unreadCount),
     unreadMentions: data.get(#unreadMentions, or: $value.unreadMentions),

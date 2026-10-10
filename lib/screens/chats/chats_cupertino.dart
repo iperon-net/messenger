@@ -261,11 +261,11 @@ class _ArchiveTileCupertino extends StatelessWidget {
         child: Row(
           children: [
             Container(
-              width: 58,
-              height: 58,
+              width: 49,
+              height: 49,
               decoration: BoxDecoration(color: grey, shape: BoxShape.circle),
               alignment: Alignment.center,
-              child: const FaIcon(FontAwesomeIcons.boxArchive, size: 22, color: CupertinoColors.white),
+              child: const FaIcon(FontAwesomeIcons.boxArchive, size: 19, color: CupertinoColors.white),
             ),
             const SizedBox(width: 10),
             Expanded(

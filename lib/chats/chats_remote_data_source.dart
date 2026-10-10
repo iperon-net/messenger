@@ -126,6 +126,7 @@ class ChatsRemoteDataSource implements ChatsDataSource {
           title: info?.title ?? '',
           isContact: info?.isContact ?? false,
           isSelf: isSelf,
+          peerUserID: peer == null || isSelf ? '' : idHex(peer),
           lastMessage: lastMessage,
           unreadCount: row.unreadCount,
           markedUnread: row.markedUnread,

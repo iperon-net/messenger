@@ -19,7 +19,7 @@ class ChatTileCupertino extends StatefulWidget {
   const ChatTileCupertino({super.key, required this.chat, this.onTap, this.onLongPress});
 
   /// Отступ разделителя слева — под текстом, не под аватаром.
-  static const dividerIndent = 78.0;
+  static const dividerIndent = 69.0;
 
   @override
   State<ChatTileCupertino> createState() => _ChatTileCupertinoState();
@@ -65,7 +65,7 @@ class _ChatTileCupertinoState extends State<ChatTileCupertino> {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              ChatAvatar(chat: chat, accentColor: primary, accentForeground: ThemesCupertino.onAccent(context), size: 58),
+              ChatAvatar(chat: chat, accentColor: primary, accentForeground: ThemesCupertino.onAccent(context), size: 49),
               const SizedBox(width: 10),
               Expanded(
                 child: Column(

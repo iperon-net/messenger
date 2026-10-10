@@ -5,9 +5,12 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../calls.dart';
+import '../../chats/chats_mapping.dart';
 import '../../chats/message_formatting.dart';
 import '../../chats/reactions.dart';
 import '../../components.dart';
+import '../../di.dart';
 import '../../i18n/translations.g.dart';
 import '../../models.dart' as models;
 
@@ -39,6 +42,13 @@ List<ChatInfoTab> chatInfoTabs(models.Chat chat) => [
     ChatInfoTab.members,
   if (chat.type != models.ChatType.community) ...[ChatInfoTab.media, ChatInfoTab.files, ChatInfoTab.links, ChatInfoTab.voice],
 ];
+
+/// «Звонок» / «Видео» в профиле личного чата — как кнопки в профиле
+/// пользователя (`profile_*.dart`): нет сети — разрулит [Calls.startCall].
+Future<void> chatInfoCall(models.Chat chat, {required bool video}) async {
+  await ensureCallMicPermission();
+  await getIt.get<Calls>().startCall(toUserID: idBytes(chat.peerUserID), video: video);
+}
 
 /// Кнопка выхода в профиле: личный чат — удаляют; владелец сообщества и его
 /// чатов — удаляет (у всех), остальные — покидают.

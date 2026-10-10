@@ -234,6 +234,10 @@ class Chat with ChatMappable {
   /// «Избранное» — чат с самим собой (иконка-закладка вместо аватара).
   final bool isSelf;
 
+  /// Собеседник личного чата — userID в hex (для звонка из профиля). Пусто —
+  /// не личный чат, «Избранное» или демо.
+  final String peerUserID;
+
   final ChatLastMessage? lastMessage;
 
   /// Непрочитанные сообщения.
@@ -396,6 +400,7 @@ class Chat with ChatMappable {
     required this.title,
     this.isContact = false,
     this.isSelf = false,
+    this.peerUserID = '',
     this.lastMessage,
     this.unreadCount = 0,
     this.unreadMentions = 0,

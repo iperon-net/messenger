@@ -613,6 +613,8 @@
 
 
 "screenChatInfo":
+  "call": "Call"
+  "video": "Video"
   "mute": "Mute"
   "unmute": "Unmute"
   "sound": "Sound"

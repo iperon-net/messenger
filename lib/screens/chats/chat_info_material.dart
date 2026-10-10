@@ -338,6 +338,24 @@ class _ChatInfoMaterialState extends State<ChatInfoMaterial> {
                           padding: const EdgeInsets.symmetric(horizontal: 12),
                           child: Row(
                             children: [
+                              // Звонок — только собеседнику личного чата (в демо
+                              // peerUserID пуст: звонить некому).
+                              if (chat.peerUserID.isNotEmpty) ...[
+                                _ActionButton(
+                                  icon: HugeIcons.strokeRoundedCall02,
+                                  label: t.screenChatInfo.call,
+                                  color: scheme.primary,
+                                  background: card,
+                                  onTap: () => chatInfoCall(chat, video: false),
+                                ),
+                                _ActionButton(
+                                  icon: HugeIcons.strokeRoundedVideo01,
+                                  label: t.screenChatInfo.video,
+                                  color: scheme.primary,
+                                  background: card,
+                                  onTap: () => chatInfoCall(chat, video: true),
+                                ),
+                              ],
                               if (!chat.isSelf)
                                 _ActionButton(
                                   // Значок — текущее состояние: звук включён / выключен.

@@ -1936,6 +1936,12 @@ class Translations$screenChatInfo$en {
 
 	// Translations
 
+	/// en: 'Call'
+	String get call => 'Call';
+
+	/// en: 'Video'
+	String get video => 'Video';
+
 	/// en: 'Mute'
 	String get mute => 'Mute';
 
@@ -4031,6 +4037,8 @@ extension on Translations {
 			'screenSettingsAppearance.chatThemes' => 'Chat themes',
 			'screenSettingsAppearance.quickReaction' => 'Quick reaction',
 			'screenSettingsAppearance.quickReactionDescription' => 'Set by double-tapping a message',
+			'screenChatInfo.call' => 'Call',
+			'screenChatInfo.video' => 'Video',
 			'screenChatInfo.mute' => 'Mute',
 			'screenChatInfo.unmute' => 'Unmute',
 			'screenChatInfo.sound' => 'Sound',
