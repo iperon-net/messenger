@@ -1498,8 +1498,8 @@ class Translations$screenChat$en {
 	/// en: 'You are starting new chats too often. Try again in {time}.'
 	String floodNewChats({required Object time}) => 'You are starting new chats too often. Try again in ${time}.';
 
-	/// en: '{name} restricts who can message them.'
-	String privacyRestricted({required Object name}) => '${name} restricts who can message them.';
+	/// en: 'You can't message this chat.'
+	String get privacyRestricted => 'You can\'t message this chat.';
 
 	/// en: 'Send again'
 	String get retrySend => 'Send again';
@@ -3930,7 +3930,7 @@ extension on Translations {
 			'screenChat.floodTitle' => 'Too many requests',
 			'screenChat.floodWait' => ({required Object time}) => 'You are sending messages too often. You can send the next one in ${time}.',
 			'screenChat.floodNewChats' => ({required Object time}) => 'You are starting new chats too often. Try again in ${time}.',
-			'screenChat.privacyRestricted' => ({required Object name}) => '${name} restricts who can message them.',
+			'screenChat.privacyRestricted' => 'You can\'t message this chat.',
 			'screenChat.retrySend' => 'Send again',
 			'screenChat.slowModeOneMessage' => 'In slow mode you can send only one message at a time.',
 			'screenChat.scheduledTitle' => 'Scheduled messages',

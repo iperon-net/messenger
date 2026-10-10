@@ -1154,7 +1154,7 @@ class _CommentsBlockedBar extends StatelessWidget {
               CupertinoIcons.clock,
               commentsWaitLabel(t, state.commentsWaitUntil!),
             ),
-            ChatCommentsBlock.privacy => note(CupertinoIcons.lock, t.screenChat.privacyRestricted(name: state.chat?.title ?? '')),
+            ChatCommentsBlock.privacy => note(CupertinoIcons.lock, t.screenChat.privacyRestricted),
             _ => note(CupertinoIcons.lock, t.screenChat.commentsClosed),
           },
         ),

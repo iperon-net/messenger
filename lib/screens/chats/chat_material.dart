@@ -1157,7 +1157,7 @@ class _CommentsBlockedBar extends StatelessWidget {
               Icons.schedule,
               commentsWaitLabel(t, state.commentsWaitUntil!),
             ),
-            ChatCommentsBlock.privacy => note(Icons.lock_outline, t.screenChat.privacyRestricted(name: state.chat?.title ?? '')),
+            ChatCommentsBlock.privacy => note(Icons.lock_outline, t.screenChat.privacyRestricted),
             _ => note(Icons.lock_outline, t.screenChat.commentsClosed),
           },
         ),

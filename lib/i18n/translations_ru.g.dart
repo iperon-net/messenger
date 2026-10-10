@@ -651,7 +651,7 @@ class _Translations$screenChat$ru extends Translations$screenChat$en {
 	@override String get floodTitle => 'Слишком часто';
 	@override String floodWait({required Object time}) => 'Вы отправляете сообщения слишком часто. Следующее можно отправить через ${time}.';
 	@override String floodNewChats({required Object time}) => 'Вы начинаете новые чаты слишком часто. Попробуйте через ${time}.';
-	@override String privacyRestricted({required Object name}) => '${name} ограничивает, кто может писать в этот чат.';
+	@override String get privacyRestricted => 'Вы не можете написать в этот чат.';
 	@override String get retrySend => 'Отправить ещё раз';
 	@override String get slowModeOneMessage => 'В медленном режиме можно отправить только одно сообщение за раз.';
 	@override String get scheduledTitle => 'Отложенные сообщения';
@@ -1931,7 +1931,7 @@ extension on TranslationsRu {
 			'screenChat.floodTitle' => 'Слишком часто',
 			'screenChat.floodWait' => ({required Object time}) => 'Вы отправляете сообщения слишком часто. Следующее можно отправить через ${time}.',
 			'screenChat.floodNewChats' => ({required Object time}) => 'Вы начинаете новые чаты слишком часто. Попробуйте через ${time}.',
-			'screenChat.privacyRestricted' => ({required Object name}) => '${name} ограничивает, кто может писать в этот чат.',
+			'screenChat.privacyRestricted' => 'Вы не можете написать в этот чат.',
 			'screenChat.retrySend' => 'Отправить ещё раз',
 			'screenChat.slowModeOneMessage' => 'В медленном режиме можно отправить только одно сообщение за раз.',
 			'screenChat.scheduledTitle' => 'Отложенные сообщения',
