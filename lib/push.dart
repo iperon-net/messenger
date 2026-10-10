@@ -155,6 +155,8 @@ class PushManager {
       final session = auth.session;
       if (!auth.isAuthorized || session.session.length < _pushKeyIdLength || session.sharedKey.isEmpty) {
         await _channel.invokeMethod<void>('clearPushKeys');
+        // Разлогинились — непрочитанные старой сессии на иконке не нужны.
+        await setBadge(0);
         return;
       }
 
@@ -194,6 +196,19 @@ class PushManager {
     } catch (error, stackTrace) {
       getIt.get<Logger>().handle(error, stackTrace);
       return false;
+    }
+  }
+
+  /// Счётчик непрочитанных на иконке приложения (iOS; 0 — снять). Пока
+  /// приложение открыто, его ведёт [ChatsSync] по локальному списку диалогов, в
+  /// фоне — пуши (alert — `aps.badge`, тихий — `PushPayload.badge`). На Android
+  /// число на иконке рисует лаунчер по уведомлениям.
+  static Future<void> setBadge(int count) async {
+    if (!Platform.isIOS) return;
+    try {
+      await _channel.invokeMethod<void>('setBadge', count);
+    } catch (error, stackTrace) {
+      getIt.get<Logger>().handle(error, stackTrace);
     }
   }
 

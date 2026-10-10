@@ -125,9 +125,49 @@ class ChatsSync {
   void setEnabled(bool value) {
     if (_enabled == value) return;
     _enabled = value;
+    _watchBadge(value);
     if (value && getIt.isRegistered<API>() && getIt.get<API>().connectionStatus == ApiConnectionStatus.connected) {
       unawaited(onConnected());
     }
+  }
+
+  StreamSubscription<int>? _badgeSub;
+
+  /// Бейдж на иконке (iOS) — из локального списка диалогов при каждом его
+  /// изменении: так он сходится с тем, что видно в «Чатах», и падает сразу после
+  /// прочтения здесь. В фоне его ведут пуши (сервер считает так же, см. `badge`
+  /// в `services/chats.go`). Выключили серверные чаты — снимаем.
+  void _watchBadge(bool enabled) {
+    if (!Platform.isIOS) return;
+    unawaited(_badgeSub?.cancel());
+    _badgeSub = null;
+    if (!enabled) {
+      unawaited(PushManager.setBadge(0));
+      return;
+    }
+    _badgeSub = getIt
+        .get<Repositories>()
+        .db
+        .onChange([ChatsRepository.dialogsTable])
+        .asyncMap((_) => _badge())
+        .distinct()
+        .listen(
+          (count) => unawaited(PushManager.setBadge(count)),
+          onError: (Object error, StackTrace stackTrace) => _logger.handle(error, stackTrace),
+        );
+  }
+
+  /// Непрочитанные во всех незаглушённых диалогах; ручная пометка без
+  /// непрочитанных — 1 (как на сервере).
+  Future<int> _badge() async {
+    if (!_auth.isAuthorized) return 0;
+    final now = DateTime.now();
+    var total = 0;
+    for (final row in await _store.dialogs(userID: me)) {
+      if (mutedFromPb(row.mutedUntil, now).muted) continue;
+      total += row.unreadCount > 0 ? row.unreadCount : (row.markedUnread ? 1 : 0);
+    }
+    return total;
   }
 
   /// Для кого уже убедились, что «Избранное» есть (hex userID).

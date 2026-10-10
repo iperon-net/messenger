@@ -172,6 +172,9 @@ class PushPayload extends $pb.GeneratedMessage {
   @$pb.TagNumber(8)
   $pb.PbList<$core.String> get args => $_getList(7);
 
+  /// Счётчик на иконке приложения (непрочитанные в незаглушённых чатах). Не
+  /// задан — не трогать, 0 — снять. На iOS alert-пуш несёт его ещё и в
+  /// aps.badge (система ставит сама), тихий — только здесь (ставит приложение).
   @$pb.TagNumber(9)
   $core.int get badge => $_getIZ(8);
   @$pb.TagNumber(9)

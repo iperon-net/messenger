@@ -27,11 +27,14 @@ const PushPayload$json = {
     {'1': 'title', '3': 6, '4': 1, '5': 9, '10': 'title'},
     {'1': 'body', '3': 7, '4': 1, '5': 9, '10': 'body'},
     {'1': 'args', '3': 8, '4': 3, '5': 9, '10': 'args'},
-    {'1': 'badge', '3': 9, '4': 1, '5': 5, '10': 'badge'},
+    {'1': 'badge', '3': 9, '4': 1, '5': 5, '9': 0, '10': 'badge', '17': true},
     {'1': 'date', '3': 10, '4': 1, '5': 3, '10': 'date'},
     {'1': 'messageIDs', '3': 11, '4': 3, '5': 3, '10': 'messageIDs'},
   ],
   '4': [PushPayload_Kind$json],
+  '8': [
+    {'1': '_badge'},
+  ],
 };
 
 @$core.Deprecated('Use pushPayloadDescriptor instead')
@@ -54,7 +57,7 @@ final $typed_data.Uint8List pushPayloadDescriptor =
         'RSBGtpbmQSDgoCaWQYAiABKAlSAmlkEh4KCmZyb21Vc2VySUQYAyABKAxSCmZyb21Vc2VySUQS'
         'FgoGY2hhdElEGAQgASgMUgZjaGF0SUQSHAoJbWVzc2FnZUlEGAUgASgDUgltZXNzYWdlSUQSFA'
         'oFdGl0bGUYBiABKAlSBXRpdGxlEhIKBGJvZHkYByABKAlSBGJvZHkSEgoEYXJncxgIIAMoCVIE'
-        'YXJncxIUCgViYWRnZRgJIAEoBVIFYmFkZ2USEgoEZGF0ZRgKIAEoA1IEZGF0ZRIeCgptZXNzYW'
-        'dlSURzGAsgAygDUgptZXNzYWdlSURzInYKBEtpbmQSCwoHVU5LTk9XThAAEggKBFRFU1QQARIS'
-        'Cg5DT05UQUNUX0pPSU5FRBACEg8KC0NBTExfTUlTU0VEEAMSCwoHTUVTU0FHRRAKEhAKDFJFQU'
-        'RfSElTVE9SWRALEhMKD01FU1NBR0VfREVMRVRFRBAM');
+        'YXJncxIZCgViYWRnZRgJIAEoBUgAUgViYWRnZYgBARISCgRkYXRlGAogASgDUgRkYXRlEh4KCm'
+        '1lc3NhZ2VJRHMYCyADKANSCm1lc3NhZ2VJRHMidgoES2luZBILCgdVTktOT1dOEAASCAoEVEVT'
+        'VBABEhIKDkNPTlRBQ1RfSk9JTkVEEAISDwoLQ0FMTF9NSVNTRUQQAxILCgdNRVNTQUdFEAoSEA'
+        'oMUkVBRF9ISVNUT1JZEAsSEwoPTUVTU0FHRV9ERUxFVEVEEAxCCAoGX2JhZGdl');

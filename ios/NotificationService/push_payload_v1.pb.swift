@@ -64,8 +64,17 @@ nonisolated struct Iperon_V1_PushPayload: Sendable {
 
   var args: [String] = []
 
-  /// 0 — не трогать
-  var badge: Int32 = 0
+  /// Счётчик на иконке приложения (непрочитанные в незаглушённых чатах). Не
+  /// задан — не трогать, 0 — снять. На iOS alert-пуш несёт его ещё и в
+  /// aps.badge (система ставит сама), тихий — только здесь (ставит приложение).
+  var badge: Int32 {
+    get {_badge ?? 0}
+    set {_badge = newValue}
+  }
+  /// Returns true if `badge` has been explicitly set.
+  var hasBadge: Bool {self._badge != nil}
+  /// Clears the value of `badge`. Subsequent reads from it will return its default value.
+  mutating func clearBadge() {self._badge = nil}
 
   /// unix millis события
   var date: Int64 = 0
@@ -85,7 +94,7 @@ nonisolated struct Iperon_V1_PushPayload: Sendable {
     /// контакт из книги зарегистрировался
     case contactJoined // = 2
 
-    /// пропущенный звонок (только iOS)
+    /// пропущенный звонок
     case callMissed // = 3
 
     /// новое сообщение (этап 7)
@@ -142,6 +151,8 @@ nonisolated struct Iperon_V1_PushPayload: Sendable {
   }
 
   init() {}
+
+  fileprivate var _badge: Int32? = nil
 }
 
 // MARK: - Code below here is support for the SwiftProtobuf runtime.
@@ -166,7 +177,7 @@ nonisolated extension Iperon_V1_PushPayload: SwiftProtobuf.Message, SwiftProtobu
       case 6: try { try decoder.decodeSingularStringField(value: &self.title) }()
       case 7: try { try decoder.decodeSingularStringField(value: &self.body) }()
       case 8: try { try decoder.decodeRepeatedStringField(value: &self.args) }()
-      case 9: try { try decoder.decodeSingularInt32Field(value: &self.badge) }()
+      case 9: try { try decoder.decodeSingularInt32Field(value: &self._badge) }()
       case 10: try { try decoder.decodeSingularInt64Field(value: &self.date) }()
       case 11: try { try decoder.decodeRepeatedInt64Field(value: &self.messageIds) }()
       default: break
@@ -175,6 +186,10 @@ nonisolated extension Iperon_V1_PushPayload: SwiftProtobuf.Message, SwiftProtobu
   }
 
   func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
     if self.kind != .unknown {
       try visitor.visitSingularEnumField(value: self.kind, fieldNumber: 1)
     }
@@ -199,9 +214,9 @@ nonisolated extension Iperon_V1_PushPayload: SwiftProtobuf.Message, SwiftProtobu
     if !self.args.isEmpty {
       try visitor.visitRepeatedStringField(value: self.args, fieldNumber: 8)
     }
-    if self.badge != 0 {
-      try visitor.visitSingularInt32Field(value: self.badge, fieldNumber: 9)
-    }
+    try { if let v = self._badge {
+      try visitor.visitSingularInt32Field(value: v, fieldNumber: 9)
+    } }()
     if self.date != 0 {
       try visitor.visitSingularInt64Field(value: self.date, fieldNumber: 10)
     }
@@ -220,7 +235,7 @@ nonisolated extension Iperon_V1_PushPayload: SwiftProtobuf.Message, SwiftProtobu
     if lhs.title != rhs.title {return false}
     if lhs.body != rhs.body {return false}
     if lhs.args != rhs.args {return false}
-    if lhs.badge != rhs.badge {return false}
+    if lhs._badge != rhs._badge {return false}
     if lhs.date != rhs.date {return false}
     if lhs.messageIds != rhs.messageIds {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}

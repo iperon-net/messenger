@@ -10,6 +10,7 @@ import UserNotifications
 ///   расшифровки ([PushKeychain]);
 /// - `takeInitialTap` — тап, открывший приложение до готовности Dart;
 /// - `isInBackground` — запущено ли приложение системой в фоне (presence);
+/// - `setBadge` — счётчик на иконке (непрочитанные, считает Dart);
 /// - `onNotificationTap` (натив → Dart) — тап по уведомлению в живом приложении.
 ///
 /// Плюс решения делегата UNUserNotificationCenter для наших зашифрованных пушей
@@ -65,6 +66,10 @@ final class PushBridge {
         messageIDs: ids,
         all: (args["all"] as? Bool) ?? false
       ) { result(nil) }
+    case "setBadge":
+      // Dart: непрочитанные по локальному списку чатов (приложение открыто).
+      Self.setBadge((call.arguments as? Int) ?? 0)
+      result(nil)
     case "isInBackground":
       // Фоновый запуск системой (VoIP / тихий пуш): Dart не ставит presence
       // online (Subscribe{background}). См. PushManager.isLaunchedInBackground.
@@ -115,6 +120,11 @@ final class PushBridge {
       return true
     }
 
+    // Прочитано / удалено — непрочитанных стало меньше: бейдж из пуша.
+    if let badge = signal.badge {
+      setBadge(badge)
+    }
+
     let chatID = PushKeychain.hex(signal.chatID)
     switch signal.kind {
     case SilentSignal.kindReadHistory:
@@ -125,6 +135,18 @@ final class PushBridge {
       completion()
     }
     return true
+  }
+
+  /// Счётчик на иконке приложения (0 — снять).
+  static func setBadge(_ count: Int) {
+    let value = max(count, 0)
+    if #available(iOS 16.0, *) {
+      UNUserNotificationCenter.current().setBadgeCount(value) { error in
+        if let error { NSLog("IperonPush: set badge failed: \(error)") }
+      }
+    } else {
+      DispatchQueue.main.async { UIApplication.shared.applicationIconBadgeNumber = value }
+    }
   }
 
   /// Снимает доставленные уведомления чата: до [maxID] включительно (у
@@ -177,6 +199,8 @@ struct SilentSignal {
   var chatID = Data()
   var messageID: Int64 = 0
   var messageIDs: [Int64] = []
+  // PushPayload.badge (optional): nil — поле не пришло, бейдж не трогаем.
+  var badge: Int?
 
   static func parse(_ data: Data) -> SilentSignal? {
     var reader = Reader(data: [UInt8](data))
@@ -195,6 +219,9 @@ struct SilentSignal {
       case (5, 0):
         guard let value = reader.varint() else { return nil }
         signal.messageID = Int64(bitPattern: value)
+      case (9, 0):
+        guard let value = reader.varint() else { return nil }
+        signal.badge = Int(Int32(truncatingIfNeeded: value))
       case (11, 2):
         // repeated int64: proto3 пишет packed, но принимаем и unpacked.
         guard let value = reader.bytes() else { return nil }
