@@ -123,6 +123,14 @@ enum MessageType {
   // См. notify_settings_v1.proto.
   NOTIFY_SETTINGS = 69;
   NOTIFY_SETTINGS_UPDATE = 70;
+  // Чаты и сообщения (первый срез — личные чаты). Протокол по доменам: внутри
+  // запроса/ответа — oneof действия. UPDATES — push по стриму (журнал
+  // обновлений с pts), GET_DIFFERENCE — догон после переподключения. См.
+  // chats_v1.proto.
+  CHATS = 71;
+  MESSAGES = 72;
+  UPDATES = 73;
+  GET_DIFFERENCE = 74;
 }
 
 service Iperon {

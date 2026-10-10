@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 import 'package:flutter/foundation.dart';
+import 'package:fixnum/fixnum.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
@@ -14,6 +15,7 @@ import '../i18n/translations.g.dart';
 import '../logger.dart';
 import '../settings.dart';
 import '../models.dart' as models;
+import '../protobuf/protos/chats_v1.pb.dart' as pb;
 
 part "cache.dart";
 part "settings_device.dart";
@@ -29,6 +31,7 @@ part "call_logs.dart";
 part "hidden_profiles.dart";
 part "privacy_settings.dart";
 part "notify_settings.dart";
+part "chats.dart";
 
 base class _AppSqliteOpenFactory extends NativeSqliteOpenFactory {
   final String? password;
@@ -69,6 +72,7 @@ class Repositories {
   late HiddenProfiles hiddenProfiles;
   late PrivacySettings privacySettings;
   late NotifySettings notifySettings;
+  late ChatsRepository chats;
 
   static Future<Repositories> initialization() async {
     final repositories = Repositories._();
@@ -428,6 +432,92 @@ class Repositories {
       }),
     );
 
+    migrations.add(
+      SqliteMigration(16, (tx) async {
+        // Чаты, первый срез — личные (и «Избранное»). Локальная копия серверного
+        // состояния (см. ChatsRemoteDataSource / ChatsSync): видно offline,
+        // догоняется по журналу обновлений (pts). Всё — по userID, чтобы на
+        // одном устройстве не смешивались аккаунты.
+        //
+        // chatDialogs — мой диалог: собеседник, последнее сообщение (целиком,
+        // сериализованный ChatMessage — список рисуется без истории), до какого
+        // messageID прочитано мной / собеседником, счётчик и настройки. draft —
+        // только локально (на сервер не уходит).
+        await tx.execute("""
+        CREATE TABLE chatDialogs (
+          userID BLOB NOT NULL,
+          chatID BLOB NOT NULL,
+          type INTEGER NOT NULL DEFAULT 0,
+          peerUserID BLOB NULL,
+          topMessageID INTEGER NOT NULL DEFAULT 0,
+          topMessageDate INTEGER NOT NULL DEFAULT 0,
+          topMessage BLOB NULL,
+          readInboxMaxID INTEGER NOT NULL DEFAULT 0,
+          readOutboxMaxID INTEGER NOT NULL DEFAULT 0,
+          unreadCount INTEGER NOT NULL DEFAULT 0,
+          pinned INTEGER NOT NULL DEFAULT 0,
+          archived INTEGER NOT NULL DEFAULT 0,
+          markedUnread INTEGER NOT NULL DEFAULT 0,
+          mutedUntil INTEGER NOT NULL DEFAULT 0,
+          draft TEXT NOT NULL DEFAULT '',
+          createdAt INTEGER NOT NULL DEFAULT 0,
+          PRIMARY KEY (userID, chatID),
+          FOREIGN KEY (userID) REFERENCES users(userID) ON DELETE CASCADE ON UPDATE CASCADE
+        );
+      """);
+        await tx.execute("CREATE INDEX idx_chatDialogs_peer ON chatDialogs(userID, peerUserID);");
+
+        // chatMessages — кэш истории. Открыты те же поля, что и на сервере;
+        // содержимое — сериализованный MessageContent одним BLOB. Первичный ключ
+        // (userID, chatID, messageID) — он же индекс для страниц истории.
+        await tx.execute("""
+        CREATE TABLE chatMessages (
+          userID BLOB NOT NULL,
+          chatID BLOB NOT NULL,
+          messageID INTEGER NOT NULL,
+          fromUserID BLOB NOT NULL,
+          date INTEGER NOT NULL,
+          editDate INTEGER NOT NULL DEFAULT 0,
+          randomID INTEGER NOT NULL DEFAULT 0,
+          mediaUnread INTEGER NOT NULL DEFAULT 0,
+          silent INTEGER NOT NULL DEFAULT 0,
+          content BLOB NOT NULL,
+          PRIMARY KEY (userID, chatID, messageID),
+          FOREIGN KEY (userID) REFERENCES users(userID) ON DELETE CASCADE ON UPDATE CASCADE
+        );
+      """);
+
+        // chatOutbox — ещё не дошедшие до сервера (offline / обрыв): уходят при
+        // переподключении, randomID делает повтор идемпотентным. chatID пуст —
+        // чата ещё нет, адресуем peerUserID. failed — сервер отклонил (не
+        // транзиентная ошибка), повторно не шлём.
+        await tx.execute("""
+        CREATE TABLE chatOutbox (
+          userID BLOB NOT NULL,
+          randomID INTEGER NOT NULL,
+          chatID BLOB NULL,
+          peerUserID BLOB NULL,
+          content BLOB NOT NULL,
+          silent INTEGER NOT NULL DEFAULT 0,
+          failed INTEGER NOT NULL DEFAULT 0,
+          createdAt INTEGER NOT NULL,
+          PRIMARY KEY (userID, randomID),
+          FOREIGN KEY (userID) REFERENCES users(userID) ON DELETE CASCADE ON UPDATE CASCADE
+        );
+      """);
+
+        // chatUpdatesState — последний применённый pts журнала обновлений.
+        await tx.execute("""
+        CREATE TABLE chatUpdatesState (
+          userID BLOB PRIMARY KEY,
+          pts INTEGER NOT NULL,
+          date INTEGER NOT NULL DEFAULT 0,
+          FOREIGN KEY (userID) REFERENCES users(userID) ON DELETE CASCADE ON UPDATE CASCADE
+        );
+      """);
+      }),
+    );
+
     if (settings.isDeleteDatabase) {
       logger.warning("Deleting the database, flag set IS_DELETE_DATABASE: 1");
 
@@ -489,6 +579,7 @@ class Repositories {
     hiddenProfiles = HiddenProfiles(logger: logger, db: db);
     privacySettings = PrivacySettings(logger: logger, db: db);
     notifySettings = NotifySettings(logger: logger, db: db);
+    chats = ChatsRepository(logger: logger, db: db);
   }
 
   // Generate password

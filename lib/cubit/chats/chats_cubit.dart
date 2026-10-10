@@ -7,6 +7,7 @@ import '../../constants.dart';
 import '../../di.dart';
 import '../../logger.dart';
 import '../../chats/chats_data_source.dart';
+import '../../chats/chats_remote_data_source.dart';
 import '../../demo/chats_demo_data_source.dart';
 import '../../models.dart' as models;
 
@@ -33,13 +34,13 @@ class ChatsCubit extends Cubit<ChatsState> {
     emit(state.copyWith(status: Status.success));
   }
 
-  /// Переключает источник данных: демо — фейковые чаты, иначе пусто (настоящих
-  /// чатов пока нет).
+  /// Переключает источник данных: демо — фейковые чаты, иначе настоящие
+  /// ([ChatsRemoteDataSource]: SQLite-кэш + сервер, пока только личные).
   void setDemo(bool demo) {
     if (_source != null && demo == state.demo) return;
     _chatsSubscription?.cancel();
     _foldersSubscription?.cancel();
-    _source = demo ? ChatsDemoDataSource.instance : null;
+    _source = demo ? ChatsDemoDataSource.instance : ChatsRemoteDataSource.instance;
     emit(state.copyWith(demo: demo, chats: const [], folders: const [], folderIndex: 0));
 
     final source = _source;

@@ -5,6 +5,7 @@ import 'package:bloc/bloc.dart';
 import '../../constants.dart';
 import '../../chats/chats_data_source.dart';
 import '../../chats/invite_link.dart';
+import '../../chats/chats_remote_data_source.dart';
 import '../../demo/chats_demo_data_source.dart';
 import '../../models.dart' as models;
 
@@ -38,7 +39,7 @@ class ChatCreateCubit extends Cubit<ChatCreateState> {
     Set<String> exclude = const {},
     String communityID = '',
   }) async {
-    _source = demo ? ChatsDemoDataSource.instance : null;
+    _source = demo ? ChatsDemoDataSource.instance : ChatsRemoteDataSource.instance;
     emit(
       state.copyWith(
         status: Status.loading,
@@ -60,7 +61,7 @@ class ChatCreateCubit extends Cubit<ChatCreateState> {
 
   /// Форма «Изменить» для [chat] (профиль чата, админ): поля — из чата.
   void edit({required bool demo, required models.Chat chat}) {
-    _source = demo ? ChatsDemoDataSource.instance : null;
+    _source = demo ? ChatsDemoDataSource.instance : ChatsRemoteDataSource.instance;
     emit(
       state.copyWith(
         status: Status.success,

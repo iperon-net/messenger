@@ -1,0 +1,428 @@
+syntax = "proto3";
+
+package iperon.v1;
+option go_package = "internal/api/v1";
+
+// Чаты и сообщения — первый срез: личные чаты (и «Избранное» — личный чат с
+// самим собой). Модель как в Telegram: сервер — источник истины, у каждого
+// пользователя свой журнал обновлений с монотонным pts; клиент держит копию в
+// SQLite и догоняет пропущенное через GET_DIFFERENCE. См.
+// docs/plans/chats-groups-channels.md («Этап 1+. Реализация»).
+//
+// Протокол — по доменам (а не MessageType на действие): CHATS (диалоги),
+// MESSAGES (сообщения), UPDATES (push по стриму), GET_DIFFERENCE (догон).
+// Идентификаторы: chatID — ObjectID (12 байт), userID — ObjectID (12 байт),
+// messageID — монотонный int64 внутри чата (1, 2, 3 …).
+
+// Тип чата. Пока только личные; группы/каналы/сообщества — следующие срезы.
+enum ChatType {
+  CHAT_TYPE_PRIVATE = 0;
+  CHAT_TYPE_GROUP = 1;
+  CHAT_TYPE_CHANNEL = 2;
+  CHAT_TYPE_COMMUNITY = 3;
+}
+
+enum MessageKind {
+  MESSAGE_KIND_TEXT = 0;
+  MESSAGE_KIND_PHOTO = 1;
+  MESSAGE_KIND_VIDEO = 2;
+  MESSAGE_KIND_FILE = 3;
+  MESSAGE_KIND_VOICE = 4;
+  MESSAGE_KIND_POLL = 5;
+}
+
+// Разметка текста (как MessageEntity на клиенте, смещения — в UTF-16).
+message MessageEntity {
+  enum Type {
+    BOLD = 0;
+    ITALIC = 1;
+    UNDERLINE = 2;
+    STRIKE = 3;
+    SPOILER = 4;
+    CODE = 5;
+    PRE = 6;
+    TEXT_URL = 7;
+    URL = 8;
+    MENTION = 9;
+    MENTION_NAME = 10;
+    HASHTAG = 11;
+    EMAIL = 12;
+    PHONE = 13;
+    BLOCKQUOTE = 14;
+  }
+
+  Type type = 1;
+  int32 offset = 2;
+  int32 length = 3;
+  // TEXT_URL — адрес; PRE — язык.
+  string url = 4;
+  // MENTION_NAME — кого упомянули.
+  bytes userID = 5;
+  // BLOCKQUOTE — свёрнутая цитата.
+  bool expandable = 6;
+}
+
+// Файл вложения: загружен заранее через Upload (UPLOAD_CONFIRM → cdnID).
+message MessageMedia {
+  MessageKind kind = 1;
+  bytes cdnID = 2;
+  int32 width = 3;
+  int32 height = 4;
+  int64 size = 5;
+  string thumbhash = 6;
+  bool spoiler = 7;
+  // Видео / голосовое — секунд.
+  int32 duration = 8;
+  string fileName = 9;
+  string mimeType = 10;
+  // Голосовое — уровни громкости (0..255), Message.voiceWaveformBars столбцов.
+  bytes waveform = 11;
+}
+
+// Ответ на сообщение (того же чата).
+message MessageReplyTo {
+  int64 messageID = 1;
+  // Цитата — выделенный фрагмент исходного сообщения.
+  string quoteText = 2;
+  repeated MessageEntity quoteEntities = 3;
+  int32 quoteOffset = 4;
+}
+
+// Пересланное: от кого (имя на момент пересылки; self — «Вы»).
+message MessageForward {
+  bytes fromUserID = 1;
+  string fromName = 2;
+  int64 date = 3;
+}
+
+// Содержимое сообщения. На сервере хранится ОДНИМ зашифрованным блобом
+// (messages.contentEncrypted, crypto.Encryptor) — открыты только chatID,
+// messageID, отправитель, дата и флаги.
+message MessageContent {
+  string text = 1;
+  repeated MessageEntity entities = 2;
+  // Альбом — несколько; один файл / голосовое — один элемент.
+  repeated MessageMedia media = 3;
+  MessageReplyTo replyTo = 4;
+  MessageForward forward = 5;
+  // true — отправитель убрал превью ссылки.
+  bool noLinkPreview = 6;
+}
+
+// Сообщение «глазами получателя»: outgoing = fromUserID == я; прочитано ли
+// исходящее — сравнением messageID с Dialog.readOutboxMaxID.
+message ChatMessage {
+  bytes chatID = 1;
+  int64 messageID = 2;
+  bytes fromUserID = 3;
+  int64 date = 4;      // unix millis
+  int64 editDate = 5;  // unix millis, 0 — не правилось
+  MessageContent content = 6;
+  // Голосовое ещё не прослушано получателем (точка у длительности).
+  bool mediaUnread = 7;
+  bool silent = 8;
+  // Отправитель задал при отправке (идемпотентность, сопоставление с outbox).
+  int64 randomID = 9;
+}
+
+// Диалог пользователя: общий чат + моё состояние в нём.
+message Dialog {
+  bytes chatID = 1;
+  ChatType type = 2;
+  // Личный чат — собеседник (у «Избранного» — я сам).
+  bytes peerUserID = 3;
+  // Последнее сообщение (нет — пустой чат).
+  ChatMessage topMessage = 4;
+  // До какого messageID я прочитал входящие.
+  int64 readInboxMaxID = 5;
+  // До какого messageID собеседник прочитал мои.
+  int64 readOutboxMaxID = 6;
+  int32 unreadCount = 7;
+  bool pinned = 8;
+  bool archived = 9;
+  bool markedUnread = 10;
+  int64 mutedUntil = 11; // unix millis; 0 — не заглушён; max int64 — навсегда
+  int64 createdAt = 12;  // unix millis
+}
+
+// Состояние журнала обновлений пользователя.
+message UpdatesState {
+  int64 pts = 1;
+  int64 date = 2;
+}
+
+// Одно обновление журнала. pts — номер обновления у пользователя (без дыр:
+// клиент, получив pts > своего + 1, догоняет через GET_DIFFERENCE).
+message Update {
+  int64 pts = 1;
+  int64 date = 2;
+
+  message NewMessage {
+    ChatMessage message = 1;
+    // Чат появился у пользователя этим сообщением (первое в личном чате).
+    Dialog dialog = 2;
+  }
+
+  message EditMessage {
+    ChatMessage message = 1;
+  }
+
+  message DeleteMessages {
+    bytes chatID = 1;
+    repeated int64 messageIDs = 2;
+  }
+
+  // Я прочитал входящие до maxID (на этом или другом устройстве).
+  message ReadInbox {
+    bytes chatID = 1;
+    int64 maxID = 2;
+    int32 unreadCount = 3;
+  }
+
+  // Собеседник прочитал мои до maxID (✓✓).
+  message ReadOutbox {
+    bytes chatID = 1;
+    int64 maxID = 2;
+  }
+
+  // Голосовые прослушаны.
+  message ReadContents {
+    bytes chatID = 1;
+    repeated int64 messageIDs = 2;
+  }
+
+  // Изменились мои настройки диалога (закреп/архив/звук/пометка).
+  message DialogSettings {
+    Dialog dialog = 1;
+  }
+
+  // Диалог удалён у меня (история очищена).
+  message DialogDeleted {
+    bytes chatID = 1;
+  }
+
+  oneof update {
+    NewMessage newMessage = 3;
+    EditMessage editMessage = 4;
+    DeleteMessages deleteMessages = 5;
+    ReadInbox readInbox = 6;
+    ReadOutbox readOutbox = 7;
+    ReadContents readContents = 8;
+    DialogSettings dialogSettings = 9;
+    DialogDeleted dialogDeleted = 10;
+  }
+}
+
+// UPDATES — push по стриму (сервер → клиент): одно или несколько обновлений
+// подряд. Ответ на запросы MESSAGES тоже несёт обновления, которые запрос
+// породил (клиент применяет их сразу, не дожидаясь push).
+message Updates {
+  repeated Update updates = 1;
+  UpdatesState state = 2;
+}
+
+// CHATS — диалоги.
+message Chats {
+  // Страница списка диалогов: по убыванию даты последнего сообщения.
+  message List {
+    // Курсор: дата последнего сообщения последнего диалога предыдущей
+    // страницы (unix millis) + его chatID; 0/пусто — с начала.
+    int64 offsetDate = 1;
+    bytes offsetChatID = 2;
+    int32 limit = 3;
+  }
+
+  message ListResult {
+    repeated Dialog dialogs = 1;
+    // Есть ещё страницы.
+    bool hasMore = 2;
+    // Текущий pts — после загрузки списка клиент догоняет от него.
+    UpdatesState state = 3;
+  }
+
+  // Личный чат с пользователем: существующий или новый (создаётся сразу,
+  // пустой; у собеседника появится с первым сообщением).
+  message OpenPrivate {
+    bytes userID = 1;
+  }
+
+  message OpenPrivateResult {
+    Dialog dialog = 1;
+  }
+
+  // Прочитать входящие до maxID.
+  message ReadHistory {
+    bytes chatID = 1;
+    int64 maxID = 2;
+  }
+
+  message ReadHistoryResult {
+    Updates updates = 1;
+  }
+
+  // Мои настройки диалога. Отсутствующее поле — не менять.
+  message SetDialog {
+    bytes chatID = 1;
+    optional bool pinned = 2;
+    optional bool archived = 3;
+    optional bool markedUnread = 4;
+    optional int64 mutedUntil = 5;
+  }
+
+  message SetDialogResult {
+    Updates updates = 1;
+  }
+
+  // Удалить диалог у себя (очистить историю); forEveryone — у собеседника тоже.
+  message DeleteDialog {
+    bytes chatID = 1;
+    bool forEveryone = 2;
+  }
+
+  message DeleteDialogResult {
+    Updates updates = 1;
+  }
+
+  // Когда собеседник прочитал моё сообщение (личный чат, ≤ 7 дней).
+  message ReadDate {
+    bytes chatID = 1;
+    int64 messageID = 2;
+  }
+
+  message ReadDateResult {
+    enum Status {
+      READ = 0;
+      NOT_READ = 1;
+      HIDDEN = 2;
+      UNAVAILABLE = 3;
+    }
+    Status status = 1;
+    int64 date = 2; // unix millis
+  }
+
+  message Request {
+    oneof request {
+      List list = 1;
+      OpenPrivate openPrivate = 2;
+      ReadHistory readHistory = 3;
+      SetDialog setDialog = 4;
+      DeleteDialog deleteDialog = 5;
+      ReadDate readDate = 6;
+    }
+  }
+
+  message Response {
+    oneof response {
+      ListResult list = 1;
+      OpenPrivateResult openPrivate = 2;
+      ReadHistoryResult readHistory = 3;
+      SetDialogResult setDialog = 4;
+      DeleteDialogResult deleteDialog = 5;
+      ReadDateResult readDate = 6;
+    }
+  }
+}
+
+// MESSAGES — сообщения.
+message Messages {
+  // История чата: сообщения с messageID < offsetID (0 — с последнего), по
+  // убыванию messageID.
+  message History {
+    bytes chatID = 1;
+    int64 offsetID = 2;
+    int32 limit = 3;
+  }
+
+  message HistoryResult {
+    repeated ChatMessage messages = 1;
+    bool hasMore = 2;
+  }
+
+  // Отправить. Личный чат адресуется chatID (из OpenPrivate) или, если чата
+  // ещё нет, peerUserID. randomID — случайное число клиента: повтор с тем же
+  // randomID (обрыв связи, outbox) не создаст дубль — вернётся уже созданное.
+  message Send {
+    bytes chatID = 1;
+    bytes peerUserID = 2;
+    int64 randomID = 3;
+    MessageContent content = 4;
+    bool silent = 5;
+  }
+
+  message SendResult {
+    ChatMessage message = 1;
+    Updates updates = 2;
+  }
+
+  // Изменить своё (текст / разметку; медиа не меняются).
+  message Edit {
+    bytes chatID = 1;
+    int64 messageID = 2;
+    string text = 3;
+    repeated MessageEntity entities = 4;
+  }
+
+  message EditResult {
+    Updates updates = 1;
+  }
+
+  // Удалить: forEveryone — у всех (в личном чате — и чужие, как в Telegram),
+  // иначе только у себя.
+  message Delete {
+    bytes chatID = 1;
+    repeated int64 messageIDs = 2;
+    bool forEveryone = 3;
+  }
+
+  message DeleteResult {
+    Updates updates = 1;
+  }
+
+  // Голосовое прослушано (снять mediaUnread у обоих).
+  message ReadContents {
+    bytes chatID = 1;
+    repeated int64 messageIDs = 2;
+  }
+
+  message ReadContentsResult {
+    Updates updates = 1;
+  }
+
+  message Request {
+    oneof request {
+      History history = 1;
+      Send send = 2;
+      Edit edit = 3;
+      Delete delete = 4;
+      ReadContents readContents = 5;
+    }
+  }
+
+  message Response {
+    oneof response {
+      HistoryResult history = 1;
+      SendResult send = 2;
+      EditResult edit = 3;
+      DeleteResult delete = 4;
+      ReadContentsResult readContents = 5;
+    }
+  }
+}
+
+// GET_DIFFERENCE — догон после переподключения: обновления с pts > запрошенного.
+message GetDifference {
+  message Request {
+    int64 pts = 1;
+    int32 limit = 2;
+  }
+
+  message Response {
+    repeated Update updates = 1;
+    UpdatesState state = 2;
+    // Есть ещё — запросить снова с state.pts.
+    bool hasMore = 3;
+    // Отстали слишком сильно (журнал уже обрезан): перезагрузить диалоги
+    // (Chats.List) и историю открытых чатов, затем продолжать от state.pts.
+    bool tooLong = 4;
+  }
+}

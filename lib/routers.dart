@@ -111,7 +111,7 @@ class Routers {
               ),
               routes: [
                 // «Архив» — полноэкранно поверх таб-бара. Свой ChatsCubit: данные
-                // общие через источник (ChatsDemoDataSource — один на приложение).
+                // общие через источник (демо / ChatsRemoteDataSource — один на приложение).
                 GoRoute(
                   path: "archive",
                   parentNavigatorKey: rootNavigatorKey,
@@ -760,7 +760,7 @@ class Routers {
               ),
               routes: [
                 // «Архив» — полноэкранно поверх таб-бара. Свой ChatsCubit: данные
-                // общие через источник (ChatsDemoDataSource — один на приложение).
+                // общие через источник (демо / ChatsRemoteDataSource — один на приложение).
                 GoRoute(
                   path: "archive",
                   parentNavigatorKey: rootNavigatorKey,

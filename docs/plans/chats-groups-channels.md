@@ -987,6 +987,29 @@ Anti-Spam (группы от 200 участников, вкл/выкл, журн
 2. Реакции, закрепы, пересылка, черновики, папки, отметки о прочтении.
 3. Группы → каналы → сообщества.
 
+**Срез 1 написан** (2026-10-09, не закоммичено, на устройствах не проверялось):
+- **Протокол** — один файл `protos/chats_v1.proto` (вместо трёх), домены с `oneof`: `CHATS = 71`
+  (list / openPrivate / readHistory / setDialog / deleteDialog / readDate), `MESSAGES = 72`
+  (history / send / edit / delete / readContents), `UPDATES = 73` (push), `GET_DIFFERENCE = 74`.
+  Изменяющие запросы возвращают свои `Updates`; те же обновления идут push'ем на все устройства
+  (дубль отбрасывается по pts). Обновление без `oneof` — только сдвиг pts (сообщение удалили позже).
+- **Сервер** — `repositories/chats.go` (коллекции `chats` с `pairKey`, `chatMembers`, `messages`
+  с `contentEncrypted`, `updates`/`updatesState` — журнал pts, TTL 14 дней, `chatReads` — TTL 7
+  дней), `services/chats.go` (`ServiceChats`, `ChatsFanout`), `api/chats.go`. Открытый, но пустой
+  личный чат скрыт до первого сообщения; «Удалить чат» — `clearedMaxId` + скрытие; правка — 48 ч;
+  удаление у всех — любые сообщения личного чата; push MESSAGE получателю (кроме «Избранного» и
+  заглушённых). Свежая дыра в журнале (< 1 мин) — параллельная запись, не `tooLong`. Тесты на
+  memongo.
+- **Клиент** — миграция 16 (`chatDialogs`, `chatMessages`, `chatOutbox`, `chatUpdatesState`),
+  `lib/repositories/chats.dart`, `lib/chats/chats_sync.dart` (pts, догон, outbox),
+  `chats_mapping.dart`, `updates_plan.dart` (+ тесты), `ChatsRemoteDataSource` — выбирается в
+  cubit'ах при выключенном демо. Отправка — только текст (разметка, ответ).
+- **Не сделано:** медиа и голосовые в отправке; подгрузка старой истории (только последние 100 при
+  открытии); обратная связь «нет сети» в UI (`ChatsOfflineException` из pin/mute/archive/delete/
+  edit/readInfo/openPrivate пока не ловится); папки, группы и прочее — `UnsupportedError`, кнопки
+  не скрыты; лимит частоты и «кто может мне писать»; проверка владельца `cdnID`; тихие
+  `READ_HISTORY`/`MESSAGE_DELETED` (этап 7 пушей); «Скрывать время прочтения».
+
 **Приватность** (вместе с соответствующими этапами): «кто может добавлять меня в группы»,
 «ссылка на аккаунт при пересылке», плашка для сообщений от незнакомых, «Скрывать время
 прочтения».

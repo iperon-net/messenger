@@ -4,6 +4,7 @@ import 'package:bloc/bloc.dart';
 
 import '../../constants.dart';
 import '../../chats/chats_data_source.dart';
+import '../../chats/chats_remote_data_source.dart';
 import '../../demo/chats_demo_data_source.dart';
 import '../../models.dart' as models;
 
@@ -21,7 +22,7 @@ class ChatFoldersCubit extends Cubit<ChatFoldersState> {
   final _subscriptions = <StreamSubscription<Object?>>[];
 
   void initialization({required bool demo}) {
-    _source = demo ? ChatsDemoDataSource.instance : null;
+    _source = demo ? ChatsDemoDataSource.instance : ChatsRemoteDataSource.instance;
     final source = _source;
     if (source == null) {
       emit(state.copyWith(status: Status.success));

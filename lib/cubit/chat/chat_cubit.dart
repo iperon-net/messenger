@@ -10,13 +10,15 @@ import '../../chats/newcomer.dart';
 import '../../chats/reactions.dart';
 import '../../chats/read_receipts.dart';
 import '../../chats/voice_player.dart';
+import '../../chats/chats_remote_data_source.dart';
 import '../../demo/chats_demo_data_source.dart';
 import '../../models.dart' as models;
 
 import 'chat_state.dart';
 
-/// Окно чата. Данные — из того же [ChatsDataSource], что и список чатов (пока
-/// только демо, см. docs/plans/chats-groups-channels.md, «Этап 0»).
+/// Окно чата. Данные — из того же [ChatsDataSource], что и список чатов: демо
+/// или настоящие ([ChatsRemoteDataSource], см.
+/// docs/plans/chats-groups-channels.md, «Этап 1+»).
 class ChatCubit extends Cubit<ChatState> {
   ChatCubit() : super(const ChatState());
 
@@ -52,7 +54,7 @@ class ChatCubit extends Cubit<ChatState> {
   /// [demo] — флаг «Демо чатов» из `settingsDevice`.
   void initialization({required String chatID, required bool demo}) {
     _chatID = chatID;
-    _source = demo ? ChatsDemoDataSource.instance : null;
+    _source = demo ? ChatsDemoDataSource.instance : ChatsRemoteDataSource.instance;
     final source = _source;
     if (source == null) {
       emit(state.copyWith(status: Status.success));

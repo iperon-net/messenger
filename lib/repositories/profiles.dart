@@ -18,6 +18,18 @@ class Profiles {
     return models.ProfileMapper.fromMap(rows.first);
   }
 
+  /// Профили набора userID одним запросом (список чатов) — карта
+  /// `userID(hex) -> Profile` только по тем, кто есть в кэше.
+  Future<Map<String, models.Profile>> getByUserIDs({required List<List<int>> userIDs, required String Function(List<int>) toHex}) async {
+    if (userIDs.isEmpty) return {};
+    final placeholders = List.filled(userIDs.length, '?').join(',');
+    final rows = await db.execute(
+      "SELECT userID, username, fistName, lastName, birthDate, hideBirthYear, aboutMe, phoneNumber, avatarCdnID, lastSeenAt FROM profiles WHERE userID IN ($placeholders);",
+      userIDs,
+    );
+    return {for (final row in rows) toHex(row["userID"] as List<int>): models.ProfileMapper.fromMap(row)};
+  }
+
   /// Кэш last-seen по набору userID для мгновенного показа на cold-start (батч,
   /// один запрос). Возвращает карту `userID(hex) -> DateTime` только по тем, у
   /// кого дата известна. [toHex] — Utils.bytesToHex (ключ, совместимый с кубитом).

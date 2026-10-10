@@ -11,6 +11,9 @@ import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart' as m;
 import 'package:path/path.dart' as p;
 
+import '../../chats/chats_data_source.dart';
+import '../../chats/chats_remote_data_source.dart';
+import '../../chats/chats_sync.dart';
 import '../../chats/media_prepare.dart';
 import '../../chats/message_formatting.dart';
 import '../../chats/message_quote.dart';
@@ -311,9 +314,19 @@ Future<void> showMessageReaders(BuildContext context, List<MessageReader> reader
 }
 
 /// Тап по упоминанию по имени (без @username) — личный чат с человеком.
+/// Источник — как у экранов: демо или настоящие чаты.
 void openMentionName(BuildContext context, String userID) async {
-  if (userID.isEmpty || !context.read<CommonCubit>().state.settingsDevice.chatsDemo) return;
-  final chatID = await ChatsDemoDataSource.instance.openPrivateChat(userID);
+  if (userID.isEmpty) return;
+  final ChatsDataSource source = context.read<CommonCubit>().state.settingsDevice.chatsDemo
+      ? ChatsDemoDataSource.instance
+      : ChatsRemoteDataSource.instance;
+  final String chatID;
+  try {
+    chatID = await source.openPrivateChat(userID);
+  } on ChatsOfflineException {
+    // TODO: показать «нет сети» (новый личный чат создаёт сервер).
+    return;
+  }
   if (chatID.isNotEmpty && context.mounted) await context.push('/chats/chat/$chatID');
 }
 

@@ -8,6 +8,7 @@ import 'package:talker_grpc_logger/talker_grpc_logger.dart';
 
 import 'auth.dart';
 import 'cdn.dart';
+import 'chats/chats_sync.dart';
 import 'models.dart' as models;
 import 'utils.dart';
 import 'crypto.dart';
@@ -181,6 +182,9 @@ class API {
   /// Текущее состояние gRPC-стрима без подписки (для стартового значения в UI).
   ApiConnectionStatus get connectionStatus => _connectionStatus;
 
+  /// Чаты уже догнаны на текущем открытии стрима (см. [_setConnectionStatus]).
+  bool _chatsCaughtUp = false;
+
   /// Изменения состояния gRPC-стрима. Широковещательный поток — можно слушать из
   /// нескольких мест (например, из кубита статуса соединения). Значения приходят
   /// только при смене статуса; текущее берётся из [connectionStatus].
@@ -194,6 +198,12 @@ class API {
   void _setConnectionStatus(ApiConnectionStatus status) {
     if (_connectionStatus == status) return;
     _connectionStatus = status;
+    // Первый «в покое» после (пере)открытия стрима — догнать чаты (pts /
+    // GET_DIFFERENCE) и отправить outbox. Сбрасывается в [_teardownStream].
+    if (status == ApiConnectionStatus.connected && !_chatsCaughtUp) {
+      _chatsCaughtUp = true;
+      unawaited(ChatsSync.instance.onConnected());
+    }
     final controller = _connectionStatusController;
     if (controller != null && !controller.isClosed) {
       controller.add(status);
@@ -716,6 +726,12 @@ class API {
           await getIt.get<Auth>().logout();
         }
 
+      case MessageType.UPDATES:
+        // Журнал обновлений чатов (pts): применяет ChatsSync — по порядку, с
+        // пропуском повторов и догоном дыр через GET_DIFFERENCE. Не ждём —
+        // догон идёт по сети и не должен держать очередь стрима.
+        ChatsSync.instance.handlePush(message.payload);
+
       // TODO: добавить ветки под реальные серверные типы. Репозитории берутся
       // лениво — API не зависит от Repositories в графе DI, но к моменту прихода
       // сообщений по стриму они гарантированно готовы. Пример записи в БД:
@@ -846,6 +862,7 @@ class API {
     // Стрим рвётся (разрыв/пауза/закрытие) — «в покое» больше не находимся:
     // сбрасываем счётчик разбора и возвращаем статус «соединяемся».
     _pendingIncoming = 0;
+    _chatsCaughtUp = false;
     _setConnectionStatus(ApiConnectionStatus.connecting);
 
     final subscription = _incomingSubscription;

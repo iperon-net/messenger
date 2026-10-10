@@ -147,6 +147,15 @@ class MessageType extends $pb.ProtobufEnum {
   static const MessageType NOTIFY_SETTINGS = MessageType._(69, _omitEnumNames ? '' : 'NOTIFY_SETTINGS');
   static const MessageType NOTIFY_SETTINGS_UPDATE = MessageType._(70, _omitEnumNames ? '' : 'NOTIFY_SETTINGS_UPDATE');
 
+  /// Чаты и сообщения (первый срез — личные чаты). Протокол по доменам: внутри
+  /// запроса/ответа — oneof действия. UPDATES — push по стриму (журнал
+  /// обновлений с pts), GET_DIFFERENCE — догон после переподключения. См.
+  /// chats_v1.proto.
+  static const MessageType CHATS = MessageType._(71, _omitEnumNames ? '' : 'CHATS');
+  static const MessageType MESSAGES = MessageType._(72, _omitEnumNames ? '' : 'MESSAGES');
+  static const MessageType UPDATES = MessageType._(73, _omitEnumNames ? '' : 'UPDATES');
+  static const MessageType GET_DIFFERENCE = MessageType._(74, _omitEnumNames ? '' : 'GET_DIFFERENCE');
+
   static const $core.List<MessageType> values = <MessageType>[
     HEALTHCHECK,
     META_DATA_INFO,
@@ -215,9 +224,13 @@ class MessageType extends $pb.ProtobufEnum {
     APP_STATE,
     NOTIFY_SETTINGS,
     NOTIFY_SETTINGS_UPDATE,
+    CHATS,
+    MESSAGES,
+    UPDATES,
+    GET_DIFFERENCE,
   ];
 
-  static final $core.List<MessageType?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 70);
+  static final $core.List<MessageType?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 74);
   static MessageType? valueOf($core.int value) => value < 0 || value >= _byValue.length ? null : _byValue[value];
 
   const MessageType._(super.value, super.name);

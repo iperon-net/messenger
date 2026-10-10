@@ -17,7 +17,9 @@ class ChatsState with ChatsStateMappable {
   final bool notificationsBannerDismissed;
 
   /// UX-демо включено (флаг на экране «Разработчик») — данные из
-  /// `ChatsDemoDataSource`. Выключено — пока пустой список: настоящих чатов ещё нет.
+  /// `ChatsDemoDataSource`. Выключено — настоящие чаты из
+  /// `ChatsRemoteDataSource` (SQLite-кэш + сервер; пока только личные и
+  /// «Избранное»).
   final bool demo;
 
   /// Все чаты, включая архивные (фильтрация по папке/архиву/поиску — в UI).

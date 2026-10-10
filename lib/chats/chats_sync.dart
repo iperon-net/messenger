@@ -1,0 +1,506 @@
+import 'dart:async';
+import 'dart:math' as math;
+
+import 'package:fixnum/fixnum.dart';
+import 'package:flutter/foundation.dart';
+import 'package:grpc/grpc.dart';
+
+import '../api.dart';
+import '../auth.dart';
+import '../di.dart';
+import '../logger.dart';
+import '../protobuf.dart';
+import '../protobuf/protos/chats_v1.pb.dart' as pb;
+import '../repositories.dart';
+import '../utils.dart';
+import 'chats_mapping.dart';
+import 'updates_plan.dart';
+
+/// Действие требует сети, а её нет (или сервер недоступен): ничего не
+/// изменилось — UI должен честно сказать «нет сети», а не делать вид, что
+/// получилось.
+class ChatsOfflineException implements Exception {
+  const ChatsOfflineException();
+
+  @override
+  String toString() => 'ChatsOfflineException: нет сети';
+}
+
+/// Сервер отклонил запрос чатов; [error] — i18n-ключ или текст ошибки из
+/// [APICallStatus].
+class ChatsRequestException implements Exception {
+  final String error;
+  final int statusCode;
+
+  const ChatsRequestException(this.error, this.statusCode);
+
+  @override
+  String toString() => 'ChatsRequestException($statusCode): $error';
+}
+
+/// Синхронизация чатов с сервером по модели Telegram (см.
+/// docs/plans/chats-groups-channels.md, «Этап 1+»): у пользователя журнал
+/// обновлений с монотонным pts, клиент держит копию в SQLite
+/// ([ChatsRepository]) и применяет обновления строго по порядку
+/// ([planUpdates]): повтор — пропуск, дыра — догон через GET_DIFFERENCE.
+///
+/// Источники обновлений: ответы на запросы (применяются сразу) и push
+/// `UPDATES` по стриму (те же обновления приходят на все мои устройства,
+/// включая это, — отсюда идемпотентность по pts). При (пере)подключении
+/// стрима ([onConnected]) — догон и отправка outbox.
+///
+/// Всё, что меняет локальное состояние, идёт последовательно через [_locked]:
+/// push, ответ на запрос и догон не применяются наперегонки.
+class ChatsSync {
+  ChatsSync._();
+
+  static final ChatsSync instance = ChatsSync._();
+
+  Logger get _logger => getIt.get<Logger>();
+  API get _api => getIt.get<API>();
+  ChatsRepository get _store => getIt.get<Repositories>().chats;
+  Auth get _auth => getIt.get<Auth>();
+
+  /// Мой userID (активная сессия).
+  Uint8List get me => Uint8List.fromList(_auth.session.userID);
+
+  /// Размер страницы списка диалогов / истории / догона.
+  static const _pageLimit = 100;
+
+  /// Предел страниц догона за раз — защита от бесконечного цикла, если сервер
+  /// всё время отвечает `hasMore`.
+  static const _maxDifferencePages = 50;
+
+  Future<void> _queue = Future.value();
+
+  /// Выполнить [action] после всех ранее поставленных (мьютекс на Future).
+  Future<T> _locked<T>(Future<T> Function() action) {
+    final completer = Completer<T>();
+    _queue = _queue.then((_) async {
+      try {
+        completer.complete(await action());
+      } catch (error, stackTrace) {
+        completer.completeError(error, stackTrace);
+      }
+    });
+    return completer.future;
+  }
+
+  // --- запросы ---
+
+  /// Unary-запрос с шифрованием; ошибки → [ChatsOfflineException] (нет связи) /
+  /// [ChatsRequestException].
+  Future<Uint8List> _request(MessageType type, Uint8List payload) async {
+    final (status, body) = await _api.unaryEncodedWithResponse(type, payload);
+    if (status.status == APIStatus.success && body != null) return body;
+    if (const [StatusCode.unavailable, StatusCode.deadlineExceeded, StatusCode.unknown].contains(status.statusCode)) {
+      throw const ChatsOfflineException();
+    }
+    throw ChatsRequestException(status.error, status.statusCode);
+  }
+
+  Future<pb.Chats_Response> chats(pb.Chats_Request request) async =>
+      pb.Chats_Response.fromBuffer(await _request(MessageType.CHATS, request.writeToBuffer()));
+
+  Future<pb.Messages_Response> messages(pb.Messages_Request request) async =>
+      pb.Messages_Response.fromBuffer(await _request(MessageType.MESSAGES, request.writeToBuffer()));
+
+  /// Есть ли сеть у устройства (быстрая проверка до запроса).
+  Future<bool> hasNetwork() => getIt.get<Utils>().hasNetwork();
+
+  // --- подключение ---
+
+  /// Для кого уже убедились, что «Избранное» есть (hex userID).
+  final _selfEnsured = <String>{};
+
+  bool _connecting = false;
+
+  /// Стрим (пере)подключился (зовёт [API]): догнать журнал — с нуля полным
+  /// списком диалогов, если pts ещё нет, иначе GET_DIFFERENCE, — затем
+  /// отправить outbox.
+  Future<void> onConnected() async {
+    if (!_auth.isAuthorized || _connecting) return;
+    _connecting = true;
+    try {
+      await _locked(_catchUp);
+    } catch (error, stackTrace) {
+      _logger.handle(error, stackTrace);
+    } finally {
+      _connecting = false;
+    }
+    await flushOutbox();
+  }
+
+  Future<void> _catchUp() async {
+    final user = me;
+    if (await _store.getPts(userID: user) == null) await _reloadDialogs();
+    // Пока листали страницы списка, могли прийти обновления — догоняем от pts
+    // первой страницы (повторное применение идемпотентно).
+    await _getDifference();
+    await _ensureSelfChat(user);
+  }
+
+  /// «Избранное» (личный чат с собой) должно быть в списке всегда: нет — просим
+  /// сервер создать (раз за запуск).
+  Future<void> _ensureSelfChat(Uint8List user) async {
+    final key = idHex(user);
+    if (_selfEnsured.contains(key)) return;
+    if (await _store.dialogByPeer(userID: user, peerUserID: user) == null) {
+      final response = await chats(pb.Chats_Request(openPrivate: pb.Chats_OpenPrivate(userID: user)));
+      if (response.hasOpenPrivate() && response.openPrivate.hasDialog()) {
+        await _store.upsertDialog(userID: user, dialog: response.openPrivate.dialog);
+      }
+    }
+    _selfEnsured.add(key);
+  }
+
+  /// Полный список диалогов (все страницы) заменяет локальный; pts — с первой
+  /// страницы. [dropHistory] — журнал отстал (`tooLong`): сбросить и кэш истории.
+  Future<void> _reloadDialogs({bool dropHistory = false}) async {
+    final user = me;
+    final dialogs = <pb.Dialog>[];
+    pb.UpdatesState? state;
+    var offsetDate = Int64.ZERO;
+    List<int> offsetChatID = const [];
+    while (true) {
+      final response = await chats(
+        pb.Chats_Request(
+          list: pb.Chats_List(offsetDate: offsetDate, offsetChatID: offsetChatID, limit: _pageLimit),
+        ),
+      );
+      final list = response.list;
+      state ??= list.state;
+      dialogs.addAll(list.dialogs);
+      if (!list.hasMore || list.dialogs.isEmpty) break;
+      // Курсор — дата последнего сообщения последнего диалога страницы (у
+      // пустого диалога — дата создания) + его chatID.
+      final last = list.dialogs.last;
+      offsetDate = last.hasTopMessage() ? last.topMessage.date : last.createdAt;
+      offsetChatID = last.chatID;
+    }
+    final pts = state.pts.toInt();
+    final date = state.date.toInt();
+    await _store.transaction((tx) async {
+      await tx.replaceDialogs(userID: user, dialogs: dialogs, dropHistory: dropHistory);
+      await tx.setPts(userID: user, pts: pts, date: date);
+    });
+  }
+
+  /// GET_DIFFERENCE от локального pts, пока сервер говорит `hasMore`.
+  Future<void> _getDifference() async {
+    final user = me;
+    for (var page = 0; page < _maxDifferencePages; page++) {
+      final pts = await _store.getPts(userID: user);
+      if (pts == null) {
+        await _reloadDialogs();
+        return;
+      }
+      final response = pb.GetDifference_Response.fromBuffer(
+        await _request(MessageType.GET_DIFFERENCE, pb.GetDifference_Request(pts: Int64(pts), limit: _pageLimit).writeToBuffer()),
+      );
+      if (response.tooLong) {
+        // Журнал на сервере уже обрезан — перезагружаем диалоги с нуля, а кэш
+        // истории сбрасываем: он мог разойтись с сервером.
+        await _reloadDialogs(dropHistory: true);
+        return;
+      }
+      // Пустой ответ с state.pts == нашему (параллельная запись ещё идёт) —
+      // pts остаётся, обновление придёт push'ем.
+      await _applyBatch(response.updates, setPts: response.state.pts.toInt());
+      if (!response.hasMore) return;
+    }
+  }
+
+  // --- обновления ---
+
+  /// Push `UPDATES` по стриму (зовёт `API._handleMessage`). Не ждём: догон по
+  /// дыре идёт по сети и не должен держать очередь входящих стрима.
+  void handlePush(Uint8List payload) {
+    final updates = pb.Updates.fromBuffer(payload);
+    unawaited(applyUpdates(updates).catchError((Object error, StackTrace stackTrace) => _logger.handle(error, stackTrace)));
+  }
+
+  /// Обновления из ответа на запрос или push: применить подряд идущие, при
+  /// дыре — догнать.
+  Future<void> applyUpdates(pb.Updates updates) => _locked(() => _applyUpdatesLocked(updates));
+
+  Future<void> _applyUpdatesLocked(pb.Updates updates) async {
+    final gap = await _applyBatch(updates.updates, statePts: updates.hasState() ? updates.state.pts.toInt() : 0);
+    if (gap) {
+      try {
+        await _getDifference();
+      } on ChatsOfflineException {
+        // Догоним при следующем подключении.
+      }
+    }
+  }
+
+  /// Применяет пачку в одной транзакции (диалоги + сообщения + pts атомарно).
+  /// [setPts] — pts, до которого пачка покрывает журнал (ответ GET_DIFFERENCE).
+  /// Возвращает, есть ли дыра.
+  Future<bool> _applyBatch(List<pb.Update> updates, {int statePts = 0, int? setPts}) async {
+    final user = me;
+    final followUps = _FollowUps();
+    final gap = await _store.transaction((tx) async {
+      final local = await tx.getPts(userID: user);
+      // Журнал ещё не загружен — всё придёт полным списком при подключении.
+      if (local == null) return false;
+      final plan = planUpdates(local, [for (final u in updates) u.pts.toInt()], statePts: setPts == null ? statePts : 0);
+      for (final i in plan.apply) {
+        await _applyOne(tx, user, updates[i], followUps);
+      }
+      final pts = setPts == null ? plan.pts : math.max(plan.pts, setPts);
+      if (pts != local) await tx.setPts(userID: user, pts: pts);
+      return plan.gap;
+    });
+    if (followUps.reloadDialogs || followUps.refreshTop.isNotEmpty) unawaited(_runFollowUps(followUps));
+    return gap;
+  }
+
+  Future<void> _applyOne(ChatsRepository tx, Uint8List user, pb.Update update, _FollowUps followUps) async {
+    switch (update.whichUpdate()) {
+      case pb.Update_Update.newMessage:
+        final message = update.newMessage.message;
+        final chatID = message.chatID;
+        final outgoing = sameID(message.fromUserID, user);
+        final fresh = update.newMessage.hasDialog();
+        // Чат появился этим сообщением — диалог с сервера (счётчики уже в нём).
+        if (fresh) await tx.upsertDialog(userID: user, dialog: update.newMessage.dialog);
+        var dialog = await tx.dialog(userID: user, chatID: chatID);
+        if (dialog == null) {
+          // Диалога у нас нет, а сервер его не прислал — заводим пустой и
+          // перечитываем список (у исходящего с другого устройства собеседник
+          // неизвестен).
+          await tx.ensureDialog(userID: user, chatID: chatID, peerUserID: outgoing ? null : message.fromUserID);
+          followUps.reloadDialogs = true;
+          dialog = await tx.dialog(userID: user, chatID: chatID);
+        }
+        await tx.upsertMessage(userID: user, message: message);
+        final id = message.messageID.toInt();
+        final top = dialog?.topMessageID ?? 0;
+        if (id >= top) await tx.setTopMessage(userID: user, chatID: chatID, message: message);
+        if (outgoing) {
+          // Наше (с этого или другого устройства) — из outbox, если оно оттуда.
+          if (message.randomID != 0) await tx.deleteOutbox(userID: user, randomID: message.randomID.toInt());
+        } else if (!fresh && dialog != null && id > top && id > dialog.readInboxMaxID) {
+          // Новое входящее: счётчик локально, точное значение — с ReadInbox/Dialog.
+          await tx.updateDialog(userID: user, chatID: chatID, fields: {'unreadCount': dialog.unreadCount + 1});
+        }
+
+      case pb.Update_Update.editMessage:
+        final message = update.editMessage.message;
+        final chatID = message.chatID;
+        final id = message.messageID.toInt();
+        final dialog = await tx.dialog(userID: user, chatID: chatID);
+        final cached = await tx.message(userID: user, chatID: chatID, messageID: id);
+        // Нет в кэше — не заводим «островок» в истории, подтянется с историей.
+        if (cached != null || dialog?.topMessageID == id) await tx.upsertMessage(userID: user, message: message);
+        if (dialog != null && dialog.topMessageID == id) await tx.setTopMessage(userID: user, chatID: chatID, message: message);
+
+      case pb.Update_Update.deleteMessages:
+        final chatID = update.deleteMessages.chatID;
+        final ids = [for (final id in update.deleteMessages.messageIDs) id.toInt()];
+        final dialog = await tx.dialog(userID: user, chatID: chatID);
+        final unread = await tx.deleteMessages(userID: user, chatID: chatID, messageIDs: ids, readInboxMaxID: dialog?.readInboxMaxID ?? 0);
+        if (dialog == null) return;
+        if (unread > 0) {
+          await tx.updateDialog(userID: user, chatID: chatID, fields: {'unreadCount': math.max(0, dialog.unreadCount - unread)});
+        }
+        if (ids.contains(dialog.topMessageID)) {
+          // Удалили последнее — новое последнее из кэша; кэш пуст — спросим сервер.
+          final latest = await tx.latestMessage(userID: user, chatID: chatID);
+          await tx.setTopMessage(userID: user, chatID: chatID, message: latest);
+          if (latest == null) followUps.refreshTop.add(Uint8List.fromList(chatID));
+        }
+
+      case pb.Update_Update.readInbox:
+        final read = update.readInbox;
+        final dialog = await tx.dialog(userID: user, chatID: read.chatID);
+        if (dialog == null) return;
+        await tx.updateDialog(
+          userID: user,
+          chatID: read.chatID,
+          fields: {'readInboxMaxID': math.max(dialog.readInboxMaxID, read.maxID.toInt()), 'unreadCount': read.unreadCount},
+        );
+
+      case pb.Update_Update.readOutbox:
+        final read = update.readOutbox;
+        final dialog = await tx.dialog(userID: user, chatID: read.chatID);
+        if (dialog == null) return;
+        await tx.updateDialog(
+          userID: user,
+          chatID: read.chatID,
+          fields: {'readOutboxMaxID': math.max(dialog.readOutboxMaxID, read.maxID.toInt())},
+        );
+
+      case pb.Update_Update.readContents:
+        final read = update.readContents;
+        await tx.readContents(userID: user, chatID: read.chatID, messageIDs: [for (final id in read.messageIDs) id.toInt()]);
+
+      case pb.Update_Update.dialogSettings:
+        final dialog = update.dialogSettings.dialog;
+        if (await tx.dialog(userID: user, chatID: dialog.chatID) == null) {
+          await tx.upsertDialog(userID: user, dialog: dialog);
+        } else {
+          // Только настройки: последнее сообщение и счётчики ведут свои обновления.
+          await tx.updateDialog(
+            userID: user,
+            chatID: dialog.chatID,
+            fields: {
+              'pinned': dialog.pinned ? 1 : 0,
+              'archived': dialog.archived ? 1 : 0,
+              'markedUnread': dialog.markedUnread ? 1 : 0,
+              'mutedUntil': dialog.mutedUntil.toInt(),
+            },
+          );
+        }
+
+      case pb.Update_Update.dialogDeleted:
+        await tx.deleteDialog(userID: user, chatID: update.dialogDeleted.chatID);
+
+      case pb.Update_Update.notSet:
+        // Пустое обновление (например, новое сообщение, которое потом удалили):
+        // ничего не меняем, но pts сдвигается — это не дыра.
+        _logger.debug('chats: empty update pts=${update.pts}');
+    }
+  }
+
+  /// Дозапросы после применения (вне транзакции и очереди): последнее
+  /// сообщение чата, у которого кэш опустел, и список диалогов.
+  Future<void> _runFollowUps(_FollowUps followUps) async {
+    try {
+      for (final chatID in followUps.refreshTop) {
+        await loadHistory(chatID, limit: 1);
+      }
+      if (followUps.reloadDialogs) {
+        await _locked(() async {
+          await _reloadDialogs();
+          await _getDifference();
+        });
+      }
+    } on ChatsOfflineException {
+      // Подтянется при следующем подключении.
+    } catch (error, stackTrace) {
+      _logger.handle(error, stackTrace);
+    }
+  }
+
+  /// Диалог из ответа (OpenPrivate) — в кэш, в общей очереди с обновлениями.
+  Future<void> saveDialog(pb.Dialog dialog) {
+    final user = me;
+    return _locked(() => _store.upsertDialog(userID: user, dialog: dialog));
+  }
+
+  // --- история ---
+
+  /// Последние [limit] сообщений чата с сервера — в кэш (открытие чата). Нет
+  /// сети — молча: показываем кэш.
+  Future<void> loadHistory(Uint8List chatID, {int limit = _pageLimit}) async {
+    if (!await hasNetwork()) return;
+    final response = await messages(
+      pb.Messages_Request(
+        history: pb.Messages_History(chatID: chatID, offsetID: Int64.ZERO, limit: limit),
+      ),
+    );
+    final history = response.history.messages;
+    final user = me;
+    await _locked(
+      () => _store.transaction((tx) async {
+        final dialog = await tx.dialog(userID: user, chatID: chatID);
+        if (dialog == null) return;
+        for (final message in history) {
+          await tx.upsertMessage(userID: user, message: message);
+        }
+        // История DESC: первое — самое новое.
+        final newest = history.isEmpty ? null : history.first;
+        if (newest != null && newest.messageID.toInt() >= dialog.topMessageID) {
+          await tx.setTopMessage(userID: user, chatID: chatID, message: newest);
+        }
+      }),
+    );
+  }
+
+  // --- outbox ---
+
+  bool _flushing = false;
+
+  /// Пока шла отправка, в outbox добавили ещё — пройти снова.
+  bool _flushAgain = false;
+
+  /// Отправить накопленное в outbox по порядку. Нет сети / сервер недоступен —
+  /// остаётся до следующего подключения; сервер отклонил — помечаем `failed`
+  /// и больше не шлём.
+  Future<void> flushOutbox() async {
+    if (!_auth.isAuthorized) return;
+    if (_flushing) {
+      _flushAgain = true;
+      return;
+    }
+    _flushing = true;
+    try {
+      do {
+        _flushAgain = false;
+        if (!await _flushOnce()) return;
+      } while (_flushAgain);
+    } catch (error, stackTrace) {
+      _logger.handle(error, stackTrace);
+    } finally {
+      _flushing = false;
+    }
+  }
+
+  /// Один проход по outbox; `false` — прервались (нет сети / разлогин).
+  Future<bool> _flushOnce() async {
+    final user = me;
+    for (final row in await _store.outbox(userID: user)) {
+      if (row.failed) continue;
+      if (!await hasNetwork()) return false;
+      final pb.Messages_Response response;
+      try {
+        response = await messages(
+          pb.Messages_Request(
+            send: pb.Messages_Send(
+              chatID: row.chatID,
+              peerUserID: row.peerUserID,
+              randomID: Int64(row.randomID),
+              content: pb.MessageContent.fromBuffer(row.content),
+              silent: row.silent,
+            ),
+          ),
+        );
+      } on ChatsOfflineException {
+        return false;
+      } on ChatsRequestException catch (error) {
+        if (error.statusCode == StatusCode.unauthenticated) return false;
+        _logger.warning('chats: send rejected randomID=${row.randomID}: $error');
+        await _store.markOutboxFailed(userID: user, randomID: row.randomID);
+        continue;
+      }
+      final result = response.send;
+      await _locked(() async {
+        await _store.transaction((tx) async {
+          if (result.hasMessage()) {
+            final message = result.message;
+            var dialog = await tx.dialog(userID: user, chatID: message.chatID);
+            if (dialog == null) {
+              await tx.ensureDialog(userID: user, chatID: message.chatID, peerUserID: row.peerUserID);
+              dialog = await tx.dialog(userID: user, chatID: message.chatID);
+            }
+            await tx.upsertMessage(userID: user, message: message);
+            if (message.messageID.toInt() >= (dialog?.topMessageID ?? 0)) {
+              await tx.setTopMessage(userID: user, chatID: message.chatID, message: message);
+            }
+          }
+          await tx.deleteOutbox(userID: user, randomID: row.randomID);
+        });
+        if (result.hasUpdates()) await _applyUpdatesLocked(result.updates);
+      });
+    }
+    return true;
+  }
+}
+
+class _FollowUps {
+  bool reloadDialogs = false;
+  final refreshTop = <Uint8List>[];
+}
