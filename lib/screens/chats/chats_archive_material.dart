@@ -9,6 +9,7 @@ import '../../i18n/translations.g.dart';
 import '../../components.dart';
 import 'chat_actions_material.dart';
 import 'chat_swipe_actions.dart';
+import 'chat_common.dart';
 
 /// «Архив» (Android): архивные чаты, те же строки и long-press-действия, что в
 /// списке («Из архива» вместо «В архив»).
@@ -20,30 +21,33 @@ class ChatsArchiveMaterial extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final background = isDark ? ThemesCupertino.groupedCard.darkColor : ThemesCupertino.groupedCard.color;
 
-    return Scaffold(
-      backgroundColor: background,
-      appBar: AppBar(backgroundColor: background, title: Text(context.t.screenChats.archive)),
-      body: BlocBuilder<ChatsCubit, ChatsState>(
-        builder: (context, state) {
-          final chats = state.archived;
-          if (chats.isEmpty) return Center(child: Text(context.t.screenChats.emptyArchive));
-          return SlidableAutoCloseBehavior(
-            child: ListView.builder(
-              itemCount: chats.length,
-              itemBuilder: (context, index) => ChatSwipeActions(
-                key: ValueKey(chats[index].id),
-                chat: chats[index],
-                enabled: true,
-                confirmDelete: () => confirmDeleteChatMaterial(context, chats[index]),
-                child: ChatTileMaterial(
+    return ChatsOfflineListener<ChatsCubit, ChatsState>(
+      notice: (state) => state.offlineNotice,
+      child: Scaffold(
+        backgroundColor: background,
+        appBar: AppBar(backgroundColor: background, title: Text(context.t.screenChats.archive)),
+        body: BlocBuilder<ChatsCubit, ChatsState>(
+          builder: (context, state) {
+            final chats = state.archived;
+            if (chats.isEmpty) return Center(child: Text(context.t.screenChats.emptyArchive));
+            return SlidableAutoCloseBehavior(
+              child: ListView.builder(
+                itemCount: chats.length,
+                itemBuilder: (context, index) => ChatSwipeActions(
+                  key: ValueKey(chats[index].id),
                   chat: chats[index],
-                  onTap: () => context.push('/chats/chat/${chats[index].id}'),
-                  onLongPress: () => showChatActionsMaterial(context, chats[index]),
+                  enabled: true,
+                  confirmDelete: () => confirmDeleteChatMaterial(context, chats[index]),
+                  child: ChatTileMaterial(
+                    chat: chats[index],
+                    onTap: () => context.push('/chats/chat/${chats[index].id}'),
+                    onLongPress: () => showChatActionsMaterial(context, chats[index]),
+                  ),
                 ),
               ),
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }

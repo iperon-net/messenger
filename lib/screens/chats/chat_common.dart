@@ -312,6 +312,44 @@ Future<void> showMessageReaders(BuildContext context, List<MessageReader> reader
   );
 }
 
+/// «Нет соединения» — серверное действие чатов не выполнено без сети
+/// (`ChatsOfflineException`): iOS — диалог, Android — SnackBar.
+void showChatsNoConnection(BuildContext context) {
+  final t = context.t;
+  if (Platform.isIOS) {
+    c.showCupertinoDialog<void>(
+      context: context,
+      builder: (dialogContext) => c.CupertinoAlertDialog(
+        title: Text(t.common.noConnectionTitle),
+        content: Text(t.common.noConnectionMessage),
+        actions: [
+          c.CupertinoDialogAction(isDefaultAction: true, onPressed: () => Navigator.of(dialogContext).pop(), child: Text(t.common.close)),
+        ],
+      ),
+    );
+    return;
+  }
+  m.ScaffoldMessenger.maybeOf(context)?.showSnackBar(m.SnackBar(content: Text(t.common.noConnectionTitle)));
+}
+
+/// Показывает [showChatsNoConnection], когда cubit сообщает о действии без
+/// сети (растёт счётчик [notice], например `offlineNotice`). Ставится на
+/// экран-владелец cubit'а (список, окно чата, «Новое сообщение»), чтобы
+/// сообщение не показывалось дважды.
+class ChatsOfflineListener<B extends StateStreamable<S>, S> extends StatelessWidget {
+  final int Function(S state) notice;
+  final Widget child;
+
+  const ChatsOfflineListener({super.key, required this.notice, required this.child});
+
+  @override
+  Widget build(BuildContext context) => BlocListener<B, S>(
+    listenWhen: (previous, current) => notice(current) > notice(previous),
+    listener: (context, _) => showChatsNoConnection(context),
+    child: child,
+  );
+}
+
 /// Тап по упоминанию по имени (без @username) — личный чат с человеком.
 /// Источник — как у экранов: демо или настоящие чаты.
 void openMentionName(BuildContext context, String userID) async {
@@ -322,7 +360,8 @@ void openMentionName(BuildContext context, String userID) async {
   try {
     chatID = await source.openPrivateChat(userID);
   } on ChatsOfflineException {
-    // TODO: показать «нет сети» (новый личный чат создаёт сервер).
+    // Новый личный чат создаёт сервер.
+    if (context.mounted) showChatsNoConnection(context);
     return;
   }
   if (chatID.isNotEmpty && context.mounted) await context.push('/chats/chat/$chatID');

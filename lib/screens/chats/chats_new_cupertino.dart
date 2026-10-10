@@ -10,6 +10,7 @@ import '../../i18n/translations.g.dart';
 import '../../models.dart' as models;
 import '../../themes.dart';
 import 'chat_create_common.dart';
+import 'chat_common.dart';
 
 /// «Новое сообщение» (iOS) — кнопка «Новое» на вкладке «Чаты», как в Telegram:
 /// сверху поиск и «Новая группа / Новый канал / Новое сообщество», ниже
@@ -51,64 +52,67 @@ class _ChatsNewCupertino extends State<ChatsNewCupertino> {
       onTap: () => context.push(path),
     );
 
-    return BlocListener<ChatCreateCubit, ChatCreateState>(
-      listenWhen: (previous, current) => current.openChatID.isNotEmpty && previous.openChatID != current.openChatID,
-      // Вместо «Нового сообщения» — сам чат (назад — в список чатов).
-      listener: (context, state) => context.go('/chats/chat/${state.openChatID}'),
-      child: CupertinoPageScaffold(
-        backgroundColor: ThemesCupertino.groupedBackground,
-        navigationBar: AppCupertinoNavigationBar(
-          child: CupertinoNavigationBar(
-            previousPageTitle: '',
-            automaticBackgroundVisibility: false,
-            backgroundColor: ThemesCupertino.groupedBackground,
-            middle: Text(t.screenNewChat.title),
+    return ChatsOfflineListener<ChatCreateCubit, ChatCreateState>(
+      notice: (state) => state.offlineNotice,
+      child: BlocListener<ChatCreateCubit, ChatCreateState>(
+        listenWhen: (previous, current) => current.openChatID.isNotEmpty && previous.openChatID != current.openChatID,
+        // Вместо «Нового сообщения» — сам чат (назад — в список чатов).
+        listener: (context, state) => context.go('/chats/chat/${state.openChatID}'),
+        child: CupertinoPageScaffold(
+          backgroundColor: ThemesCupertino.groupedBackground,
+          navigationBar: AppCupertinoNavigationBar(
+            child: CupertinoNavigationBar(
+              previousPageTitle: '',
+              automaticBackgroundVisibility: false,
+              backgroundColor: ThemesCupertino.groupedBackground,
+              middle: Text(t.screenNewChat.title),
+            ),
           ),
-        ),
-        child: SafeArea(
-          child: BlocBuilder<ChatCreateCubit, ChatCreateState>(
-            builder: (context, state) {
-              final contacts = state.filtered;
-              return ListView(
-                keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-                    child: SearchFieldCupertino(
-                      controller: _searchController,
-                      placeholder: t.screenNewChat.search,
-                      onChanged: (value) => context.read<ChatCreateCubit>().search(value),
-                    ),
-                  ),
-                  // Группы, каналы и сообщества — пока только в демо (на сервере — личные).
-                  if (state.query.trim().isEmpty && context.read<CommonCubit>().state.settingsDevice.chatsDemo)
-                    section(
-                      children: [
-                        action(HugeIcons.strokeRoundedUserGroup, t.screenNewChat.newGroup, '/chats/new/group'),
-                        action(HugeIcons.strokeRoundedMegaphone01, t.screenNewChat.newChannel, '/chats/new/channel'),
-                        action(HugeIcons.strokeRoundedBuilding03, t.screenNewChat.newCommunity, '/chats/new/community'),
-                      ],
-                    ),
-                  if (contacts.isEmpty && state.status != Status.loading)
+          child: SafeArea(
+            child: BlocBuilder<ChatCreateCubit, ChatCreateState>(
+              builder: (context, state) {
+                final contacts = state.filtered;
+                return ListView(
+                  keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                  children: [
                     Padding(
-                      padding: const EdgeInsets.all(32),
-                      child: Text(
-                        t.screenNewChat.noContacts,
-                        textAlign: TextAlign.center,
-                        style: TextStyle(color: secondary),
+                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                      child: SearchFieldCupertino(
+                        controller: _searchController,
+                        placeholder: t.screenNewChat.search,
+                        onChanged: (value) => context.read<ChatCreateCubit>().search(value),
                       ),
-                    )
-                  else if (contacts.isNotEmpty)
-                    section(
-                      header: createHeaderCupertino(t.screenNewChat.contacts),
-                      children: [
-                        for (final contact in contacts)
-                          ContactTileCupertino(contact: contact, onTap: () => context.read<ChatCreateCubit>().openPrivateChat(contact)),
-                      ],
                     ),
-                ],
-              );
-            },
+                    // Группы, каналы и сообщества — пока только в демо (на сервере — личные).
+                    if (state.query.trim().isEmpty && context.read<CommonCubit>().state.settingsDevice.chatsDemo)
+                      section(
+                        children: [
+                          action(HugeIcons.strokeRoundedUserGroup, t.screenNewChat.newGroup, '/chats/new/group'),
+                          action(HugeIcons.strokeRoundedMegaphone01, t.screenNewChat.newChannel, '/chats/new/channel'),
+                          action(HugeIcons.strokeRoundedBuilding03, t.screenNewChat.newCommunity, '/chats/new/community'),
+                        ],
+                      ),
+                    if (contacts.isEmpty && state.status != Status.loading)
+                      Padding(
+                        padding: const EdgeInsets.all(32),
+                        child: Text(
+                          t.screenNewChat.noContacts,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(color: secondary),
+                        ),
+                      )
+                    else if (contacts.isNotEmpty)
+                      section(
+                        header: createHeaderCupertino(t.screenNewChat.contacts),
+                        children: [
+                          for (final contact in contacts)
+                            ContactTileCupertino(contact: contact, onTap: () => context.read<ChatCreateCubit>().openPrivateChat(contact)),
+                        ],
+                      ),
+                  ],
+                );
+              },
+            ),
           ),
         ),
       ),

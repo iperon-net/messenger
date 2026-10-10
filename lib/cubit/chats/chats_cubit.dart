@@ -8,6 +8,7 @@ import '../../di.dart';
 import '../../logger.dart';
 import '../../chats/chats_data_source.dart';
 import '../../chats/chats_remote_data_source.dart';
+import '../../chats/chats_sync.dart';
 import '../../models.dart' as models;
 
 import 'chats_state.dart';
@@ -67,11 +68,23 @@ class ChatsCubit extends Cubit<ChatsState> {
 
   void search(String query) => emit(state.copyWith(query: query.trim()));
 
-  Future<void> setPinned(models.Chat chat, bool pinned) async => _source?.setPinned(chat.id, pinned);
-  Future<void> setMuted(models.Chat chat, bool muted, {DateTime? until}) async => _source?.setMuted(chat.id, muted, until: until);
-  Future<void> setArchived(models.Chat chat, bool archived) async => _source?.setArchived(chat.id, archived);
-  Future<void> setRead(models.Chat chat, bool read) async => _source?.setRead(chat.id, read);
-  Future<void> delete(models.Chat chat) async => _source?.delete(chat.id);
+  /// Серверное действие без сети: не делаем вид, что получилось, — экран
+  /// покажет «Нет соединения» (см. `offlineNotice`). false — не выполнено.
+  Future<bool> _online(Future<void>? Function() action) async {
+    try {
+      await action();
+      return true;
+    } on ChatsOfflineException {
+      if (!isClosed) emit(state.copyWith(offlineNotice: state.offlineNotice + 1));
+      return false;
+    }
+  }
+
+  Future<void> setPinned(models.Chat chat, bool pinned) => _online(() => _source?.setPinned(chat.id, pinned));
+  Future<void> setMuted(models.Chat chat, bool muted, {DateTime? until}) => _online(() => _source?.setMuted(chat.id, muted, until: until));
+  Future<void> setArchived(models.Chat chat, bool archived) => _online(() => _source?.setArchived(chat.id, archived));
+  Future<void> setRead(models.Chat chat, bool read) => _online(() => _source?.setRead(chat.id, read));
+  Future<void> delete(models.Chat chat) => _online(() => _source?.delete(chat.id));
 
   Future<void> readAll(models.ChatFolder folder) async =>
       _source?.readAll(state.chats.where((c) => folder.matches(c)).map((c) => c.id).toList());

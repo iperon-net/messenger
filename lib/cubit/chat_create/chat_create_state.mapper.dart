@@ -93,6 +93,13 @@ class ChatCreateStateMapper extends ClassMapperBase<ChatCreateState> {
     opt: true,
     def: Status.initialization,
   );
+  static int _$offlineNotice(ChatCreateState v) => v.offlineNotice;
+  static const Field<ChatCreateState, int> _f$offlineNotice = Field(
+    'offlineNotice',
+    _$offlineNotice,
+    opt: true,
+    def: 0,
+  );
   static models.ChatType _$type(ChatCreateState v) => v.type;
   static const Field<ChatCreateState, models.ChatType> _f$type = Field(
     'type',
@@ -304,6 +311,7 @@ class ChatCreateStateMapper extends ClassMapperBase<ChatCreateState> {
   @override
   final MappableFields<ChatCreateState> fields = const {
     #status: _f$status,
+    #offlineNotice: _f$offlineNotice,
     #type: _f$type,
     #chatID: _f$chatID,
     #communityID: _f$communityID,
@@ -339,6 +347,7 @@ class ChatCreateStateMapper extends ClassMapperBase<ChatCreateState> {
   static ChatCreateState _instantiate(DecodingData data) {
     return ChatCreateState(
       status: data.dec(_f$status),
+      offlineNotice: data.dec(_f$offlineNotice),
       type: data.dec(_f$type),
       chatID: data.dec(_f$chatID),
       communityID: data.dec(_f$communityID),
@@ -448,6 +457,7 @@ abstract class ChatCreateStateCopyWith<$R, $In extends ChatCreateState, $Out>
   get selected;
   $R call({
     Status? status,
+    int? offlineNotice,
     models.ChatType? type,
     String? chatID,
     String? communityID,
@@ -517,6 +527,7 @@ class _ChatCreateStateCopyWithImpl<$R, $Out>
   @override
   $R call({
     Status? status,
+    int? offlineNotice,
     models.ChatType? type,
     String? chatID,
     String? communityID,
@@ -550,6 +561,7 @@ class _ChatCreateStateCopyWithImpl<$R, $Out>
   }) => $apply(
     FieldCopyWithData({
       if (status != null) #status: status,
+      if (offlineNotice != null) #offlineNotice: offlineNotice,
       if (type != null) #type: type,
       if (chatID != null) #chatID: chatID,
       if (communityID != null) #communityID: communityID,
@@ -586,6 +598,7 @@ class _ChatCreateStateCopyWithImpl<$R, $Out>
   @override
   ChatCreateState $make(CopyWithData data) => ChatCreateState(
     status: data.get(#status, or: $value.status),
+    offlineNotice: data.get(#offlineNotice, or: $value.offlineNotice),
     type: data.get(#type, or: $value.type),
     chatID: data.get(#chatID, or: $value.chatID),
     communityID: data.get(#communityID, or: $value.communityID),

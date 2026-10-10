@@ -32,8 +32,13 @@ class ChatsState with ChatsStateMappable {
 
   final String query;
 
+  /// Растёт, когда действие не выполнено из-за отсутствия сети
+  /// (`ChatsOfflineException`): экран показывает «Нет соединения».
+  final int offlineNotice;
+
   const ChatsState({
     this.status = Status.initialization,
+    this.offlineNotice = 0,
     this.notificationsMissing = false,
     this.notificationsBannerDismissed = false,
     this.demo = false,

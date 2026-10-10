@@ -96,7 +96,8 @@ class _ChatInfoMaterialState extends State<ChatInfoMaterial> {
       ),
     );
     if (!(confirmed ?? false) || !context.mounted) return;
-    await context.read<ChatCubit>().deleteChat();
+    // Без сети чат не удалён — остаёмся (окно чата покажет «Нет соединения»).
+    if (!await context.read<ChatCubit>().deleteChat()) return;
     if (context.mounted) context.go(chatLeaveRoute(chat));
   }
 

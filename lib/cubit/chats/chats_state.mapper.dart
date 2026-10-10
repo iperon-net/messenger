@@ -31,6 +31,13 @@ class ChatsStateMapper extends ClassMapperBase<ChatsState> {
     opt: true,
     def: Status.initialization,
   );
+  static int _$offlineNotice(ChatsState v) => v.offlineNotice;
+  static const Field<ChatsState, int> _f$offlineNotice = Field(
+    'offlineNotice',
+    _$offlineNotice,
+    opt: true,
+    def: 0,
+  );
   static bool _$notificationsMissing(ChatsState v) => v.notificationsMissing;
   static const Field<ChatsState, bool> _f$notificationsMissing = Field(
     'notificationsMissing',
@@ -85,6 +92,7 @@ class ChatsStateMapper extends ClassMapperBase<ChatsState> {
   @override
   final MappableFields<ChatsState> fields = const {
     #status: _f$status,
+    #offlineNotice: _f$offlineNotice,
     #notificationsMissing: _f$notificationsMissing,
     #notificationsBannerDismissed: _f$notificationsBannerDismissed,
     #demo: _f$demo,
@@ -97,6 +105,7 @@ class ChatsStateMapper extends ClassMapperBase<ChatsState> {
   static ChatsState _instantiate(DecodingData data) {
     return ChatsState(
       status: data.dec(_f$status),
+      offlineNotice: data.dec(_f$offlineNotice),
       notificationsMissing: data.dec(_f$notificationsMissing),
       notificationsBannerDismissed: data.dec(_f$notificationsBannerDismissed),
       demo: data.dec(_f$demo),
@@ -181,6 +190,7 @@ abstract class ChatsStateCopyWith<$R, $In extends ChatsState, $Out>
   get folders;
   $R call({
     Status? status,
+    int? offlineNotice,
     bool? notificationsMissing,
     bool? notificationsBannerDismissed,
     bool? demo,
@@ -225,6 +235,7 @@ class _ChatsStateCopyWithImpl<$R, $Out>
   @override
   $R call({
     Status? status,
+    int? offlineNotice,
     bool? notificationsMissing,
     bool? notificationsBannerDismissed,
     bool? demo,
@@ -235,6 +246,7 @@ class _ChatsStateCopyWithImpl<$R, $Out>
   }) => $apply(
     FieldCopyWithData({
       if (status != null) #status: status,
+      if (offlineNotice != null) #offlineNotice: offlineNotice,
       if (notificationsMissing != null)
         #notificationsMissing: notificationsMissing,
       if (notificationsBannerDismissed != null)
@@ -249,6 +261,7 @@ class _ChatsStateCopyWithImpl<$R, $Out>
   @override
   ChatsState $make(CopyWithData data) => ChatsState(
     status: data.get(#status, or: $value.status),
+    offlineNotice: data.get(#offlineNotice, or: $value.offlineNotice),
     notificationsMissing: data.get(
       #notificationsMissing,
       or: $value.notificationsMissing,

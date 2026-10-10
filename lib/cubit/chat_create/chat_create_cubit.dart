@@ -6,6 +6,7 @@ import '../../constants.dart';
 import '../../chats/chats_data_source.dart';
 import '../../chats/invite_link.dart';
 import '../../chats/chats_remote_data_source.dart';
+import '../../chats/chats_sync.dart';
 import '../../models.dart' as models;
 
 import 'chat_create_state.dart';
@@ -164,8 +165,22 @@ class ChatCreateCubit extends Cubit<ChatCreateState> {
   Future<void> openPrivateChat(models.ChatMember contact) async {
     final source = _source;
     if (source == null) return;
-    final chatID = await source.openPrivateChat(contact.id);
+    var chatID = '';
+    // Новый личный чат создаёт сервер — без сети «Нет соединения».
+    await _online(() async => chatID = await source.openPrivateChat(contact.id));
     if (!isClosed && chatID.isNotEmpty) emit(state.copyWith(openChatID: chatID));
+  }
+
+  /// Серверное действие без сети: не делаем вид, что получилось, — экран
+  /// покажет «Нет соединения» (см. `offlineNotice`). false — не выполнено.
+  Future<bool> _online(Future<void>? Function() action) async {
+    try {
+      await action();
+      return true;
+    } on ChatsOfflineException {
+      if (!isClosed) emit(state.copyWith(offlineNotice: state.offlineNotice + 1));
+      return false;
+    }
   }
 
   Future<void> create({required String title, String about = ''}) async {

@@ -109,8 +109,13 @@ class ChatState with ChatStateMappable {
   final bool newcomerRestricted;
   final DateTime? newcomerUntil;
 
+  /// Растёт, когда действие не выполнено из-за отсутствия сети
+  /// (`ChatsOfflineException`): экран показывает «Нет соединения».
+  final int offlineNotice;
+
   const ChatState({
     this.status = Status.initialization,
+    this.offlineNotice = 0,
     this.chat,
     this.messages = const [],
     this.communityChats = const [],

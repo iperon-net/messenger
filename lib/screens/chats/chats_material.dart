@@ -12,6 +12,7 @@ import '../../components.dart';
 import '../../models.dart' as models;
 import 'chat_actions_material.dart';
 import 'chat_swipe_actions.dart';
+import 'chat_common.dart';
 
 /// Вкладка «Чаты» (Android). Сверху поиск и табы-папки в стиле
 /// `SegmentedButton` «Звонков»; папки листаются свайпом влево/вправо
@@ -45,133 +46,136 @@ class _ChatsMaterial extends State<ChatsMaterial> with SearchHideOnScroll {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final background = isDark ? ThemesCupertino.groupedCard.darkColor : ThemesCupertino.groupedCard.color;
 
-    return BlocListener<CommonCubit, CommonState>(
-      // Тумблеры «Демо чатов» / «Серверные чаты» могли переключиться, пока вкладка жива.
-      listenWhen: (previous, current) =>
-          previous.settingsDevice.chatsDemo != current.settingsDevice.chatsDemo ||
-          previous.settingsDevice.chatsServer != current.settingsDevice.chatsServer,
-      listener: (context, state) => context.read<ChatsCubit>().setDemo(state.settingsDevice.chatsDemo),
-      child: Scaffold(
-        backgroundColor: background,
-        appBar: AppBar(
+    return ChatsOfflineListener<ChatsCubit, ChatsState>(
+      notice: (state) => state.offlineNotice,
+      child: BlocListener<CommonCubit, CommonState>(
+        // Тумблеры «Демо чатов» / «Серверные чаты» могли переключиться, пока вкладка жива.
+        listenWhen: (previous, current) =>
+            previous.settingsDevice.chatsDemo != current.settingsDevice.chatsDemo ||
+            previous.settingsDevice.chatsServer != current.settingsDevice.chatsServer,
+        listener: (context, state) => context.read<ChatsCubit>().setDemo(state.settingsDevice.chatsDemo),
+        child: Scaffold(
           backgroundColor: background,
-          centerTitle: true,
-          title: ConnectionTitle(
-            title: context.t.screenChats.chats,
-            leading: BlocBuilder<CommonCubit, CommonState>(
-              builder: (context, stateCommon) {
-                if (stateCommon.settingsDevice.passcode.isNotEmpty) {
+          appBar: AppBar(
+            backgroundColor: background,
+            centerTitle: true,
+            title: ConnectionTitle(
+              title: context.t.screenChats.chats,
+              leading: BlocBuilder<CommonCubit, CommonState>(
+                builder: (context, stateCommon) {
+                  if (stateCommon.settingsDevice.passcode.isNotEmpty) {
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: GestureDetector(
+                        onTap: () async => await context.read<CommonCubit>().forceLock(biometrics: false),
+                        child: const FaIcon(FontAwesomeIcons.lockOpen, size: 18),
+                      ),
+                    );
+                  }
+                  return const SizedBox.shrink();
+                },
+              ),
+            ),
+            // «Новое» — карандаш справа от заголовка; в демо и с флагом
+            // «Серверные чаты» (без него чатов нет).
+            actions: [
+              BlocSelector<CommonCubit, CommonState, bool>(
+                selector: (state) => state.settingsDevice.chatsDemo || state.settingsDevice.chatsServer,
+                builder: (context, enabled) {
+                  if (!enabled) return const SizedBox.shrink();
+                  return IconButton(
+                    tooltip: context.t.screenNewChat.title,
+                    onPressed: () => context.push('/chats/new'),
+                    icon: const HugeIcon(icon: HugeIcons.strokeRoundedPencilEdit02),
+                  );
+                },
+              ),
+            ],
+          ),
+          // Шапка (поиск, баннер, табы) поверх списков: поиск уезжает вместе со
+          // списком, как в Telegram (см. SearchHideOnScroll).
+          body: searchHideOnScrollBody(
+            body: BlocConsumer<ChatsCubit, ChatsState>(
+              // Папку удалили/список сменился — держим PageView на активной папке.
+              listenWhen: (previous, current) => previous.folderIndex != current.folderIndex || previous.folders != current.folders,
+              listener: (context, state) {
+                if (!_pageController.hasClients) return;
+                if (_pageController.page?.round() != state.folderIndex) _pageController.jumpToPage(state.folderIndex);
+              },
+              builder: (context, state) {
+                if (state.folders.isEmpty) return _empty(context, context.t.screenChats.empty);
+                // Открытая свайпом строка закрывается при прокрутке и тапе мимо.
+                return SlidableAutoCloseBehavior(
+                  child: PageView.builder(
+                    controller: _pageController,
+                    itemCount: state.folders.length,
+                    onPageChanged: (index) {
+                      onSearchListChanged(state.folders[index].id);
+                      context.read<ChatsCubit>().setFolderIndex(index);
+                    },
+                    itemBuilder: (context, index) => _folderPage(context, state, state.folders[index]),
+                  ),
+                );
+              },
+            ),
+            background: background,
+            // Поле поиска — вне BlocBuilder, чтобы не терять фокус на каждый emit.
+            search: Padding(
+              padding: const EdgeInsets.fromLTRB(12, 4, 12, 8),
+              child: SearchFieldMaterial(
+                controller: searchController,
+                focusNode: searchFocus,
+                hintText: context.t.screenChats.search,
+                onChanged: (value) => context.read<ChatsCubit>().search(value),
+              ),
+            ),
+            header: [
+              // Мягкий баннер-объяснение о разрешении на уведомления. Виден, только
+              // пока разрешения нет и пользователь его не закрыл.
+              BlocSelector<ChatsCubit, ChatsState, bool>(
+                selector: (state) => state.showNotificationsBanner,
+                builder: (context, show) {
+                  if (!show) return const SizedBox.shrink();
                   return Padding(
-                    padding: const EdgeInsets.only(right: 8),
-                    child: GestureDetector(
-                      onTap: () async => await context.read<CommonCubit>().forceLock(biometrics: false),
-                      child: const FaIcon(FontAwesomeIcons.lockOpen, size: 18),
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: PermissionBannerMaterial(
+                      icon: HugeIcons.strokeRoundedNotification03,
+                      title: context.t.screenChats.notificationPermissionTitle,
+                      message: context.t.screenChats.notificationPermissionMessage,
+                      actionLabel: context.t.screenChats.allowAccess,
+                      onAction: () => context.read<ChatsCubit>().requestNotificationPermission(),
+                      onDismiss: () => context.read<ChatsCubit>().dismissNotificationsBanner(),
+                      dismissTooltip: context.t.common.notNow,
                     ),
                   );
-                }
-                return const SizedBox.shrink();
-              },
-            ),
+                },
+              ),
+              BlocBuilder<ChatsCubit, ChatsState>(
+                builder: (context, state) {
+                  if (state.folders.length < 2) return const SizedBox.shrink();
+                  return Padding(
+                    padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
+                    child: ChatFolderTabsMaterial(
+                      controller: _pageController,
+                      selectedIndex: state.folderIndex,
+                      tabs: [
+                        for (final folder in state.folders)
+                          ChatFolderTab(
+                            title: _folderTitle(context, folder),
+                            badge: state.unreadOf(folder).count,
+                            badgeMuted: state.unreadOf(folder).muted,
+                          ),
+                      ],
+                      onTap: (index) =>
+                          _pageController.animateToPage(index, duration: const Duration(milliseconds: 300), curve: Curves.easeOutCubic),
+                      onLongPress: (index) =>
+                          showFolderActionsMaterial(context, state.folders[index], _folderTitle(context, state.folders[index])),
+                    ),
+                  );
+                },
+              ),
+            ],
           ),
-          // «Новое» — карандаш справа от заголовка; в демо и с флагом
-          // «Серверные чаты» (без него чатов нет).
-          actions: [
-            BlocSelector<CommonCubit, CommonState, bool>(
-              selector: (state) => state.settingsDevice.chatsDemo || state.settingsDevice.chatsServer,
-              builder: (context, enabled) {
-                if (!enabled) return const SizedBox.shrink();
-                return IconButton(
-                  tooltip: context.t.screenNewChat.title,
-                  onPressed: () => context.push('/chats/new'),
-                  icon: const HugeIcon(icon: HugeIcons.strokeRoundedPencilEdit02),
-                );
-              },
-            ),
-          ],
-        ),
-        // Шапка (поиск, баннер, табы) поверх списков: поиск уезжает вместе со
-        // списком, как в Telegram (см. SearchHideOnScroll).
-        body: searchHideOnScrollBody(
-          body: BlocConsumer<ChatsCubit, ChatsState>(
-            // Папку удалили/список сменился — держим PageView на активной папке.
-            listenWhen: (previous, current) => previous.folderIndex != current.folderIndex || previous.folders != current.folders,
-            listener: (context, state) {
-              if (!_pageController.hasClients) return;
-              if (_pageController.page?.round() != state.folderIndex) _pageController.jumpToPage(state.folderIndex);
-            },
-            builder: (context, state) {
-              if (state.folders.isEmpty) return _empty(context, context.t.screenChats.empty);
-              // Открытая свайпом строка закрывается при прокрутке и тапе мимо.
-              return SlidableAutoCloseBehavior(
-                child: PageView.builder(
-                  controller: _pageController,
-                  itemCount: state.folders.length,
-                  onPageChanged: (index) {
-                    onSearchListChanged(state.folders[index].id);
-                    context.read<ChatsCubit>().setFolderIndex(index);
-                  },
-                  itemBuilder: (context, index) => _folderPage(context, state, state.folders[index]),
-                ),
-              );
-            },
-          ),
-          background: background,
-          // Поле поиска — вне BlocBuilder, чтобы не терять фокус на каждый emit.
-          search: Padding(
-            padding: const EdgeInsets.fromLTRB(12, 4, 12, 8),
-            child: SearchFieldMaterial(
-              controller: searchController,
-              focusNode: searchFocus,
-              hintText: context.t.screenChats.search,
-              onChanged: (value) => context.read<ChatsCubit>().search(value),
-            ),
-          ),
-          header: [
-            // Мягкий баннер-объяснение о разрешении на уведомления. Виден, только
-            // пока разрешения нет и пользователь его не закрыл.
-            BlocSelector<ChatsCubit, ChatsState, bool>(
-              selector: (state) => state.showNotificationsBanner,
-              builder: (context, show) {
-                if (!show) return const SizedBox.shrink();
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: PermissionBannerMaterial(
-                    icon: HugeIcons.strokeRoundedNotification03,
-                    title: context.t.screenChats.notificationPermissionTitle,
-                    message: context.t.screenChats.notificationPermissionMessage,
-                    actionLabel: context.t.screenChats.allowAccess,
-                    onAction: () => context.read<ChatsCubit>().requestNotificationPermission(),
-                    onDismiss: () => context.read<ChatsCubit>().dismissNotificationsBanner(),
-                    dismissTooltip: context.t.common.notNow,
-                  ),
-                );
-              },
-            ),
-            BlocBuilder<ChatsCubit, ChatsState>(
-              builder: (context, state) {
-                if (state.folders.length < 2) return const SizedBox.shrink();
-                return Padding(
-                  padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
-                  child: ChatFolderTabsMaterial(
-                    controller: _pageController,
-                    selectedIndex: state.folderIndex,
-                    tabs: [
-                      for (final folder in state.folders)
-                        ChatFolderTab(
-                          title: _folderTitle(context, folder),
-                          badge: state.unreadOf(folder).count,
-                          badgeMuted: state.unreadOf(folder).muted,
-                        ),
-                    ],
-                    onTap: (index) =>
-                        _pageController.animateToPage(index, duration: const Duration(milliseconds: 300), curve: Curves.easeOutCubic),
-                    onLongPress: (index) =>
-                        showFolderActionsMaterial(context, state.folders[index], _folderTitle(context, state.folders[index])),
-                  ),
-                );
-              },
-            ),
-          ],
         ),
       ),
     );

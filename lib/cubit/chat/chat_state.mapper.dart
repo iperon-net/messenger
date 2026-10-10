@@ -88,6 +88,13 @@ class ChatStateMapper extends ClassMapperBase<ChatState> {
     opt: true,
     def: Status.initialization,
   );
+  static int _$offlineNotice(ChatState v) => v.offlineNotice;
+  static const Field<ChatState, int> _f$offlineNotice = Field(
+    'offlineNotice',
+    _$offlineNotice,
+    opt: true,
+    def: 0,
+  );
   static models.Chat? _$chat(ChatState v) => v.chat;
   static const Field<ChatState, models.Chat> _f$chat = Field(
     'chat',
@@ -294,6 +301,7 @@ class ChatStateMapper extends ClassMapperBase<ChatState> {
   @override
   final MappableFields<ChatState> fields = const {
     #status: _f$status,
+    #offlineNotice: _f$offlineNotice,
     #chat: _f$chat,
     #messages: _f$messages,
     #communityChats: _f$communityChats,
@@ -329,6 +337,7 @@ class ChatStateMapper extends ClassMapperBase<ChatState> {
   static ChatState _instantiate(DecodingData data) {
     return ChatState(
       status: data.dec(_f$status),
+      offlineNotice: data.dec(_f$offlineNotice),
       chat: data.dec(_f$chat),
       messages: data.dec(_f$messages),
       communityChats: data.dec(_f$communityChats),
@@ -476,6 +485,7 @@ abstract class ChatStateCopyWith<$R, $In extends ChatState, $Out>
   get commentsClosedIDs;
   $R call({
     Status? status,
+    int? offlineNotice,
     models.Chat? chat,
     List<models.Message>? messages,
     List<models.Chat>? communityChats,
@@ -635,6 +645,7 @@ class _ChatStateCopyWithImpl<$R, $Out>
   @override
   $R call({
     Status? status,
+    int? offlineNotice,
     Object? chat = $none,
     List<models.Message>? messages,
     List<models.Chat>? communityChats,
@@ -668,6 +679,7 @@ class _ChatStateCopyWithImpl<$R, $Out>
   }) => $apply(
     FieldCopyWithData({
       if (status != null) #status: status,
+      if (offlineNotice != null) #offlineNotice: offlineNotice,
       if (chat != $none) #chat: chat,
       if (messages != null) #messages: messages,
       if (communityChats != null) #communityChats: communityChats,
@@ -704,6 +716,7 @@ class _ChatStateCopyWithImpl<$R, $Out>
   @override
   ChatState $make(CopyWithData data) => ChatState(
     status: data.get(#status, or: $value.status),
+    offlineNotice: data.get(#offlineNotice, or: $value.offlineNotice),
     chat: data.get(#chat, or: $value.chat),
     messages: data.get(#messages, or: $value.messages),
     communityChats: data.get(#communityChats, or: $value.communityChats),

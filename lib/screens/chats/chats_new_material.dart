@@ -10,6 +10,7 @@ import '../../i18n/translations.g.dart';
 import '../../models.dart' as models;
 import '../../themes.dart';
 import 'chat_create_common.dart';
+import 'chat_common.dart';
 
 /// «Новое сообщение» (Android) — кнопка-карандаш на вкладке «Чаты», как в
 /// Telegram: сверху поиск и «Новая группа / Новый канал / Новое сообщество»,
@@ -47,67 +48,70 @@ class _ChatsNewMaterial extends State<ChatsNewMaterial> {
       onTap: () => context.push(path),
     );
 
-    return BlocListener<ChatCreateCubit, ChatCreateState>(
-      listenWhen: (previous, current) => current.openChatID.isNotEmpty && previous.openChatID != current.openChatID,
-      // Вместо «Нового сообщения» — сам чат (назад — в список чатов).
-      listener: (context, state) => context.go('/chats/chat/${state.openChatID}'),
-      child: Scaffold(
-        backgroundColor: scheme.surfaceContainerLow,
-        appBar: AppBar(backgroundColor: scheme.surfaceContainerLow, title: Text(t.screenNewChat.title)),
-        body: SafeArea(
-          child: BlocBuilder<ChatCreateCubit, ChatCreateState>(
-            builder: (context, state) {
-              final contacts = state.filtered;
-              return ListView(
-                keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(12, 4, 12, 8),
-                    child: SearchFieldMaterial(
-                      controller: _searchController,
-                      hintText: t.screenNewChat.search,
-                      onChanged: (value) => context.read<ChatCreateCubit>().search(value),
-                    ),
-                  ),
-                  // Группы, каналы и сообщества — пока только в демо (на сервере — личные).
-                  if (state.query.trim().isEmpty && context.read<CommonCubit>().state.settingsDevice.chatsDemo)
-                    Card(
-                      margin: const EdgeInsets.symmetric(horizontal: 12),
-                      clipBehavior: Clip.antiAlias,
-                      child: Column(
-                        children: [
-                          action(HugeIcons.strokeRoundedUserGroup, t.screenNewChat.newGroup, '/chats/new/group'),
-                          action(HugeIcons.strokeRoundedMegaphone01, t.screenNewChat.newChannel, '/chats/new/channel'),
-                          action(HugeIcons.strokeRoundedBuilding03, t.screenNewChat.newCommunity, '/chats/new/community'),
-                        ],
-                      ),
-                    ),
-                  if (contacts.isEmpty && state.status != Status.loading)
+    return ChatsOfflineListener<ChatCreateCubit, ChatCreateState>(
+      notice: (state) => state.offlineNotice,
+      child: BlocListener<ChatCreateCubit, ChatCreateState>(
+        listenWhen: (previous, current) => current.openChatID.isNotEmpty && previous.openChatID != current.openChatID,
+        // Вместо «Нового сообщения» — сам чат (назад — в список чатов).
+        listener: (context, state) => context.go('/chats/chat/${state.openChatID}'),
+        child: Scaffold(
+          backgroundColor: scheme.surfaceContainerLow,
+          appBar: AppBar(backgroundColor: scheme.surfaceContainerLow, title: Text(t.screenNewChat.title)),
+          body: SafeArea(
+            child: BlocBuilder<ChatCreateCubit, ChatCreateState>(
+              builder: (context, state) {
+                final contacts = state.filtered;
+                return ListView(
+                  keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                  children: [
                     Padding(
-                      padding: const EdgeInsets.all(32),
-                      child: Text(
-                        t.screenNewChat.noContacts,
-                        textAlign: TextAlign.center,
-                        style: TextStyle(color: scheme.onSurfaceVariant),
-                      ),
-                    )
-                  else if (contacts.isNotEmpty) ...[
-                    createHeaderMaterial(context, t.screenNewChat.contacts),
-                    Card(
-                      margin: const EdgeInsets.symmetric(horizontal: 12),
-                      clipBehavior: Clip.antiAlias,
-                      child: Column(
-                        children: [
-                          for (final contact in contacts)
-                            ContactTileMaterial(contact: contact, onTap: () => context.read<ChatCreateCubit>().openPrivateChat(contact)),
-                        ],
+                      padding: const EdgeInsets.fromLTRB(12, 4, 12, 8),
+                      child: SearchFieldMaterial(
+                        controller: _searchController,
+                        hintText: t.screenNewChat.search,
+                        onChanged: (value) => context.read<ChatCreateCubit>().search(value),
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    // Группы, каналы и сообщества — пока только в демо (на сервере — личные).
+                    if (state.query.trim().isEmpty && context.read<CommonCubit>().state.settingsDevice.chatsDemo)
+                      Card(
+                        margin: const EdgeInsets.symmetric(horizontal: 12),
+                        clipBehavior: Clip.antiAlias,
+                        child: Column(
+                          children: [
+                            action(HugeIcons.strokeRoundedUserGroup, t.screenNewChat.newGroup, '/chats/new/group'),
+                            action(HugeIcons.strokeRoundedMegaphone01, t.screenNewChat.newChannel, '/chats/new/channel'),
+                            action(HugeIcons.strokeRoundedBuilding03, t.screenNewChat.newCommunity, '/chats/new/community'),
+                          ],
+                        ),
+                      ),
+                    if (contacts.isEmpty && state.status != Status.loading)
+                      Padding(
+                        padding: const EdgeInsets.all(32),
+                        child: Text(
+                          t.screenNewChat.noContacts,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(color: scheme.onSurfaceVariant),
+                        ),
+                      )
+                    else if (contacts.isNotEmpty) ...[
+                      createHeaderMaterial(context, t.screenNewChat.contacts),
+                      Card(
+                        margin: const EdgeInsets.symmetric(horizontal: 12),
+                        clipBehavior: Clip.antiAlias,
+                        child: Column(
+                          children: [
+                            for (final contact in contacts)
+                              ContactTileMaterial(contact: contact, onTap: () => context.read<ChatCreateCubit>().openPrivateChat(contact)),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                    ],
                   ],
-                ],
-              );
-            },
+                );
+              },
+            ),
           ),
         ),
       ),

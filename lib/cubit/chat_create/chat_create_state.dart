@@ -94,8 +94,13 @@ class ChatCreateState with ChatCreateStateMappable {
   /// «Изменить» сохранено — экран закрывается.
   final bool saved;
 
+  /// Растёт, когда действие не выполнено из-за отсутствия сети
+  /// (`ChatsOfflineException`): экран показывает «Нет соединения».
+  final int offlineNotice;
+
   const ChatCreateState({
     this.status = Status.initialization,
+    this.offlineNotice = 0,
     this.type = models.ChatType.private,
     this.chatID = '',
     this.communityID = '',

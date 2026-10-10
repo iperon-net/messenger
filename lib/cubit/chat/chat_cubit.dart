@@ -11,6 +11,7 @@ import '../../chats/reactions.dart';
 import '../../chats/read_receipts.dart';
 import '../../chats/voice_player.dart';
 import '../../chats/chats_remote_data_source.dart';
+import '../../chats/chats_sync.dart';
 import '../../models.dart' as models;
 
 import 'chat_state.dart';
@@ -251,7 +252,14 @@ class ChatCubit extends Cubit<ChatState> {
     final linkPreview = !state.linkPreviewDisabled;
     emit(state.copyWith(editing: null, forwarding: const [], linkPreviewDisabled: false));
     if (editing != null) {
-      await source.editMessage(_chatID, editing.id, text, entities);
+      // Без сети правка не уходит — возвращаем её в поле ввода с новым текстом.
+      if (!await _online(() => source.editMessage(_chatID, editing.id, text, entities)) && !isClosed) {
+        emit(
+          state.copyWith(
+            editing: editing.copyWith(text: text, entities: entities),
+          ),
+        );
+      }
       return;
     }
     // Как в Telegram: сначала комментарий, за ним пересылаемые.
@@ -420,7 +428,8 @@ class ChatCubit extends Cubit<ChatState> {
     final messages = state.selectedMessages;
     clearSelection();
     for (final m in messages) {
-      if (canDelete(m)) await delete(m, forEveryone: forEveryone);
+      // Нет сети — одно «Нет соединения», остальные не пробуем.
+      if (canDelete(m) && !await delete(m, forEveryone: forEveryone)) return;
     }
   }
 
@@ -468,13 +477,15 @@ class ChatCubit extends Cubit<ChatState> {
   }
 
   /// [forEveryone] — см. [ChatsDataSource.deleteMessage].
-  Future<void> delete(models.Message message, {bool forEveryone = true}) async {
-    if (state.editing?.id == message.id || state.reply?.id == message.id) cancelCompose();
-    await _source?.deleteMessage(_chatID, message.id, forEveryone: forEveryone);
+  /// false — не удалено (нет сети).
+  Future<bool> delete(models.Message message, {bool forEveryone = true}) async {
+    final ok = await _online(() => _source?.deleteMessage(_chatID, message.id, forEveryone: forEveryone));
+    if (ok && (state.editing?.id == message.id || state.reply?.id == message.id)) cancelCompose();
+    return ok;
   }
 
   /// [until] — выключить до этого времени (`null` — навсегда).
-  Future<void> setMuted(bool muted, {DateTime? until}) async => _source?.setMuted(_chatID, muted, until: until);
+  Future<void> setMuted(bool muted, {DateTime? until}) => _online(() => _source?.setMuted(_chatID, muted, until: until));
 
   /// Профиль чата: участники группы (и заблокированные — для админа).
   /// Курсор следующей страницы «Участников» и номер загрузки (перезагрузка
@@ -643,7 +654,20 @@ class ChatCubit extends Cubit<ChatState> {
   Future<void> resetToCommunity() async => _source?.resetToCommunity(_chatID);
 
   /// Профиль чата: «Удалить чат» / «Покинуть группу».
-  Future<void> deleteChat() async => _source?.delete(_chatID);
+  /// false — не удалён (нет сети): экран остаётся на месте.
+  Future<bool> deleteChat() => _online(() => _source?.delete(_chatID));
+
+  /// Серверное действие без сети: не делаем вид, что получилось, — экран
+  /// покажет «Нет соединения» (см. `offlineNotice`). false — не выполнено.
+  Future<bool> _online(Future<void>? Function() action) async {
+    try {
+      await action();
+      return true;
+    } on ChatsOfflineException {
+      if (!isClosed) emit(state.copyWith(offlineNotice: state.offlineNotice + 1));
+      return false;
+    }
+  }
 
   /// Отложенные (экран «Отложенные сообщения»).
   Future<void> sendScheduledNow(models.Message message) async => _source?.sendScheduledNow(_chatID, message.id);
