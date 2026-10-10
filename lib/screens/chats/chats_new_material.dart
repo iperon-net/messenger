@@ -69,7 +69,8 @@ class _ChatsNewMaterial extends State<ChatsNewMaterial> {
                       onChanged: (value) => context.read<ChatCreateCubit>().search(value),
                     ),
                   ),
-                  if (state.query.trim().isEmpty)
+                  // Группы, каналы и сообщества — пока только в демо (на сервере — личные).
+                  if (state.query.trim().isEmpty && context.read<CommonCubit>().state.settingsDevice.chatsDemo)
                     Card(
                       margin: const EdgeInsets.symmetric(horizontal: 12),
                       clipBehavior: Clip.antiAlias,

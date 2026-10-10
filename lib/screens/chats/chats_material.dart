@@ -73,13 +73,13 @@ class _ChatsMaterial extends State<ChatsMaterial> with SearchHideOnScroll {
               },
             ),
           ),
-          // «Новое» — карандаш справа от заголовка; пока только в демо
-          // (настоящих чатов ещё нет).
+          // «Новое» — карандаш справа от заголовка; в демо и с флагом
+          // «Серверные чаты» (без него чатов нет).
           actions: [
-            BlocSelector<ChatsCubit, ChatsState, bool>(
-              selector: (state) => state.demo,
-              builder: (context, demo) {
-                if (!demo) return const SizedBox.shrink();
+            BlocSelector<CommonCubit, CommonState, bool>(
+              selector: (state) => state.settingsDevice.chatsDemo || state.settingsDevice.chatsServer,
+              builder: (context, enabled) {
+                if (!enabled) return const SizedBox.shrink();
                 return IconButton(
                   tooltip: context.t.screenNewChat.title,
                   onPressed: () => context.push('/chats/new'),

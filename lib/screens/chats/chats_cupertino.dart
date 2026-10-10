@@ -76,11 +76,11 @@ class _ChatsCupertino extends State<ChatsCupertino> with SearchHideOnScroll {
                 ConnectionTitle(title: context.t.screenChats.chats),
               ],
             ),
-            // «Новое» — пока только в демо (настоящих чатов ещё нет).
-            trailing: BlocSelector<ChatsCubit, ChatsState, bool>(
-              selector: (state) => state.demo,
-              builder: (context, demo) {
-                if (!demo) return const SizedBox.shrink();
+            // «Новое» — в демо и с флагом «Серверные чаты» (без него чатов нет).
+            trailing: BlocSelector<CommonCubit, CommonState, bool>(
+              selector: (state) => state.settingsDevice.chatsDemo || state.settingsDevice.chatsServer,
+              builder: (context, enabled) {
+                if (!enabled) return const SizedBox.shrink();
                 return CupertinoButton(
                   padding: EdgeInsets.zero,
                   onPressed: () => context.push('/chats/new'),

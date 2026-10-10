@@ -80,7 +80,8 @@ class _ChatsNewCupertino extends State<ChatsNewCupertino> {
                       onChanged: (value) => context.read<ChatCreateCubit>().search(value),
                     ),
                   ),
-                  if (state.query.trim().isEmpty)
+                  // Группы, каналы и сообщества — пока только в демо (на сервере — личные).
+                  if (state.query.trim().isEmpty && context.read<CommonCubit>().state.settingsDevice.chatsDemo)
                     section(
                       children: [
                         action(HugeIcons.strokeRoundedUserGroup, t.screenNewChat.newGroup, '/chats/new/group'),
