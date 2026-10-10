@@ -590,26 +590,39 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     );
 
     final outboxDir = await outboxMediaDir();
-    return [
-      for (final m in history) await _withServerMedia(map(m), m.content, chatID),
-      for (final queued in await _store.outbox(userID: me, chatID: chat))
-        _withOutboxMedia(
-          map(
-            pb.ChatMessage(
-              chatID: chat,
-              fromUserID: me,
-              date: Int64(queued.createdAt),
-              content: pb.MessageContent.fromBuffer(queued.content),
-              silent: queued.silent,
-            ),
-          ).copyWith(
-            id: localMessageID(queued.randomID),
-            status: queued.failed ? models.MessageStatus.failed : models.MessageStatus.pending,
-          ),
-          queued,
-          outboxDir,
+    models.Message queuedMessage(ChatOutboxRow queued) => _withOutboxMedia(
+      map(
+        pb.ChatMessage(
+          chatID: chat,
+          fromUserID: me,
+          date: Int64(queued.createdAt),
+          content: pb.MessageContent.fromBuffer(queued.content),
+          silent: queued.silent,
         ),
-    ];
+      ).copyWith(id: localMessageID(queued.randomID), status: queued.failed ? models.MessageStatus.failed : models.MessageStatus.pending),
+      queued,
+      outboxDir,
+    );
+
+    final messages = [for (final m in history) await _withServerMedia(map(m), m.content, chatID)];
+    final pending = <models.Message>[];
+    for (final queued in await _store.outbox(userID: me, chatID: chat)) {
+      final message = queuedMessage(queued);
+      if (!queued.failed) {
+        pending.add(message);
+        continue;
+      }
+      // Отклонённое — на своём месте по времени (как в Telegram), а не внизу
+      // под всем, что отправили и получили после него. Старше окна истории —
+      // не показываем, пока окно не дойдёт.
+      if (messages.isNotEmpty && message.date.isBefore(messages.first.date) && history.length >= (_windows[chatID] ?? _initialWindow)) {
+        continue;
+      }
+      final at = messages.indexWhere((m) => m.date.isAfter(message.date));
+      messages.insert(at < 0 ? messages.length : at, message);
+    }
+    // Ещё отправляющиеся — внизу: они новее всего, что есть на сервере.
+    return [...messages, ...pending];
   }
 
   // --- вложения ---

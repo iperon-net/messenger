@@ -270,7 +270,7 @@ class ChatsRepository {
     for (final row in await this.dialogs(userID: userID)) {
       if (keep.contains(_hex(row.chatID)) || (row.topMessageID == 0 && row.type == 0)) continue;
       // Есть неотправленное — не теряем его вместе с диалогом.
-      if ((await outbox(userID: userID, chatID: row.chatID)).isNotEmpty) {
+      if ((await outbox(userID: userID, chatID: row.chatID)).any((r) => !r.failed)) {
         logger.warning('chats: dialog ${_hex(row.chatID)} missing on server, kept (outbox not empty)');
         continue;
       }
