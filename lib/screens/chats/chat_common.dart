@@ -11,7 +11,6 @@ import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart' as m;
 import 'package:path/path.dart' as p;
 
-import '../../chats/chats_data_source.dart';
 import '../../chats/chats_remote_data_source.dart';
 import '../../chats/chats_sync.dart';
 import '../../chats/media_prepare.dart';
@@ -317,9 +316,8 @@ Future<void> showMessageReaders(BuildContext context, List<MessageReader> reader
 /// Источник — как у экранов: демо или настоящие чаты.
 void openMentionName(BuildContext context, String userID) async {
   if (userID.isEmpty) return;
-  final ChatsDataSource source = context.read<CommonCubit>().state.settingsDevice.chatsDemo
-      ? ChatsDemoDataSource.instance
-      : ChatsRemoteDataSource.instance;
+  final source = chatsDataSource(demo: context.read<CommonCubit>().state.settingsDevice.chatsDemo);
+  if (source == null) return;
   final String chatID;
   try {
     chatID = await source.openPrivateChat(userID);

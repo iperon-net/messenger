@@ -5,7 +5,6 @@ import 'package:bloc/bloc.dart';
 import '../../constants.dart';
 import '../../chats/chats_data_source.dart';
 import '../../chats/chats_remote_data_source.dart';
-import '../../demo/chats_demo_data_source.dart';
 import '../../models.dart' as models;
 
 import 'chat_invites_state.dart';
@@ -24,7 +23,7 @@ class ChatInvitesCubit extends Cubit<ChatInvitesState> {
 
   void initialization({required String chatID, required bool demo}) {
     _chatID = chatID;
-    _source = demo ? ChatsDemoDataSource.instance : ChatsRemoteDataSource.instance;
+    _source = chatsDataSource(demo: demo);
     final source = _source;
     if (source == null) {
       emit(state.copyWith(status: Status.success));

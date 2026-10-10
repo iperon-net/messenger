@@ -19,6 +19,10 @@ class SettingsDeviceModel with SettingsDeviceModelMappable {
   /// UX-демо чатов (экран «Разработчик»): вкладка «Чаты» на фейковых данных.
   final bool chatsDemo;
 
+  /// Фича-флаг «Серверные чаты» (экран «Разработчик»): настоящие чаты через
+  /// сервер (`ChatsRemoteDataSource`). Выключен — вкладка пуста (кроме демо).
+  final bool chatsServer;
+
   /// Обои чатов («Темы для чатов»): id узора (`assets/wallpapers/<id>.svg`,
   /// неизвестный — узор по умолчанию) и индекс цвета в палитре `ChatWallpaperColors`.
   final String chatWallpaper;
@@ -46,6 +50,7 @@ class SettingsDeviceModel with SettingsDeviceModelMappable {
     this.passcodeForceLocked = false,
     this.passcodeBackgroundedAt = 0,
     this.chatsDemo = false,
+    this.chatsServer = false,
     this.chatWallpaper = 'chat',
     this.chatWallpaperColor = 0,
     this.chatWallpaperIntensity = 40,
@@ -64,6 +69,7 @@ class SettingsDeviceModel with SettingsDeviceModelMappable {
     final passcodeForceLocked = data['passcodeForceLocked'] ?? 0;
     final passcodeBackgroundedAt = data['passcodeBackgroundedAt'] ?? 0;
     final chatsDemo = data['chatsDemo'] ?? 0;
+    final chatsServer = data['chatsServer'] ?? 0;
     final chatWallpaper = data['chatWallpaper'] as String?;
     final chatWallpaperColor = data['chatWallpaperColor'] as int?;
     final chatWallpaperIntensity = data['chatWallpaperIntensity'] as int?;
@@ -123,6 +129,10 @@ class SettingsDeviceModel with SettingsDeviceModelMappable {
 
     if (chatsDemo > 0) {
       settingsDeviceModel = settingsDeviceModel.copyWith(chatsDemo: true);
+    }
+
+    if (chatsServer > 0) {
+      settingsDeviceModel = settingsDeviceModel.copyWith(chatsServer: true);
     }
 
     if (chatWallpaper != null && chatWallpaper.isNotEmpty) {

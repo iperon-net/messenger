@@ -57,6 +57,10 @@ class SettingsDevice {
     await db.execute("UPDATE settingsDevice SET chatsDemo = ?", [value ? 1 : 0]);
   }
 
+  Future<void> setChatsServer(bool value) async {
+    await db.execute("UPDATE settingsDevice SET chatsServer = ?", [value ? 1 : 0]);
+  }
+
   Future<void> setChatWallpaper({required String pattern, required int color}) async {
     await db.execute("UPDATE settingsDevice SET chatWallpaper = ?, chatWallpaperColor = ?", [pattern, color]);
   }

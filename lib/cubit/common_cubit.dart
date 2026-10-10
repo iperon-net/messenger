@@ -1,3 +1,4 @@
+import '../chats/chats_sync.dart';
 import 'dart:async';
 import 'dart:convert';
 
@@ -52,6 +53,7 @@ class CommonCubit extends Cubit<CommonState> {
       final away = DateTime.now().difference(backgroundedAt);
       locked = away.inSeconds >= settingsDevice.passcodeAutoLock;
     }
+    ChatsSync.instance.setEnabled(settingsDevice.chatsServer);
     // При холодном старте после принудительной блокировки биометрию сама не
     // показываем — только по кнопке. Обычная авто-блокировка биометрию разрешает.
     emit(
@@ -236,6 +238,14 @@ class CommonCubit extends Cubit<CommonState> {
   Future<void> setChatsDemo({required bool value}) async {
     await repositories.settingsDevice.setChatsDemo(value);
     emit(state.copyWith(settingsDevice: state.settingsDevice.copyWith(chatsDemo: value)));
+  }
+
+  /// Фича-флаг «Серверные чаты» на экране «Разработчик»: включает синхронизацию
+  /// с сервером и настоящий источник чатов.
+  Future<void> setChatsServer({required bool value}) async {
+    await repositories.settingsDevice.setChatsServer(value);
+    ChatsSync.instance.setEnabled(value);
+    emit(state.copyWith(settingsDevice: state.settingsDevice.copyWith(chatsServer: value)));
   }
 
   /// «Темы для чатов»: узор и цвет обоев.

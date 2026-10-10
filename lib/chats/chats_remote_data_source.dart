@@ -13,6 +13,7 @@ import '../models.dart' as models;
 import '../protobuf.dart';
 import '../protobuf/protos/chats_v1.pb.dart' as pb;
 import '../repositories.dart';
+import '../demo/chats_demo_data_source.dart';
 import 'chats_data_source.dart';
 import 'chats_mapping.dart';
 import 'chats_sync.dart';
@@ -706,4 +707,12 @@ class _Peers {
   const _Peers(this.byID);
 
   _PeerInfo of(List<int> userID) => byID[idHex(userID)] ?? const _PeerInfo(title: '', isContact: false, profile: null);
+}
+
+/// Источник чатов для экранов: демо (фейковые данные), настоящие чаты — только
+/// при включённом фича-флаге «Серверные чаты» ([ChatsSync.enabled]), иначе
+/// `null` (вкладка пуста).
+ChatsDataSource? chatsDataSource({required bool demo}) {
+  if (demo) return ChatsDemoDataSource.instance;
+  return ChatsSync.instance.enabled ? ChatsRemoteDataSource.instance : null;
 }

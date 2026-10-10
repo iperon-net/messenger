@@ -792,6 +792,7 @@ class _Translations$screenDeveloper$ru extends Translations$screenDeveloper$en {
 	@override String get exportLogs => 'Экспорт логов';
 	@override String get callPreview => 'Превью экрана звонка';
 	@override String get chatsDemo => 'Демо чатов';
+	@override String get chatsServer => 'Серверные чаты';
 	@override String get testPush => 'Тестовое уведомление';
 	@override String testPushSent({required Object apns, required Object fcm, required Object failed}) => 'Отправлено: APNs — ${apns}, FCM — ${fcm}, ошибок — ${failed}. Сверните приложение или заблокируйте экран, чтобы проверить доставку в фоне.';
 	@override String get testPushNoTokens => 'Ни у одного вашего устройства нет push-токена. Проверьте, что уведомления разрешены, и перезапустите приложение.';
@@ -2026,6 +2027,7 @@ extension on TranslationsRu {
 			'screenDeveloper.exportLogs' => 'Экспорт логов',
 			'screenDeveloper.callPreview' => 'Превью экрана звонка',
 			'screenDeveloper.chatsDemo' => 'Демо чатов',
+			'screenDeveloper.chatsServer' => 'Серверные чаты',
 			'screenDeveloper.testPush' => 'Тестовое уведомление',
 			'screenDeveloper.testPushSent' => ({required Object apns, required Object fcm, required Object failed}) => 'Отправлено: APNs — ${apns}, FCM — ${fcm}, ошибок — ${failed}. Сверните приложение или заблокируйте экран, чтобы проверить доставку в фоне.',
 			'screenDeveloper.testPushNoTokens' => 'Ни у одного вашего устройства нет push-токена. Проверьте, что уведомления разрешены, и перезапустите приложение.',

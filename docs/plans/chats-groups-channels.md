@@ -1002,8 +1002,10 @@ Anti-Spam (группы от 200 участников, вкл/выкл, журн
   memongo.
 - **Клиент** — миграция 16 (`chatDialogs`, `chatMessages`, `chatOutbox`, `chatUpdatesState`),
   `lib/repositories/chats.dart`, `lib/chats/chats_sync.dart` (pts, догон, outbox),
-  `chats_mapping.dart`, `updates_plan.dart` (+ тесты), `ChatsRemoteDataSource` — выбирается в
-  cubit'ах при выключенном демо. Отправка — только текст (разметка, ответ).
+  `chats_mapping.dart`, `updates_plan.dart` (+ тесты), `ChatsRemoteDataSource`. **Под фича-флагом**
+  «Серверные чаты» (экран «Разработчик», `settingsDevice.chatsServer`, миграция 17; по умолчанию
+  выключен): без него синхронизации нет и вкладка пуста, источник выбирает `chatsDataSource()`
+  (демо важнее флага). Отправка — только текст (разметка, ответ).
 - **Не сделано:** медиа и голосовые в отправке; подгрузка старой истории (только последние 100 при
   открытии); обратная связь «нет сети» в UI (`ChatsOfflineException` из pin/mute/archive/delete/
   edit/readInfo/openPrivate пока не ловится); папки, группы и прочее — `UnsupportedError`, кнопки

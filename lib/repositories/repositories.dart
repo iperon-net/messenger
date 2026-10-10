@@ -518,6 +518,15 @@ class Repositories {
       }),
     );
 
+    migrations.add(
+      SqliteMigration(17, (tx) async {
+        // Фича-флаг «Серверные чаты» (экран «Разработчик»): вкладка «Чаты»
+        // работает с сервером (ChatsRemoteDataSource + ChatsSync). Выключен —
+        // синхронизации нет, список пуст (если не включено демо). Локально.
+        await tx.execute("ALTER TABLE settingsDevice ADD COLUMN chatsServer INTEGER NOT NULL DEFAULT 0;");
+      }),
+    );
+
     if (settings.isDeleteDatabase) {
       logger.warning("Deleting the database, flag set IS_DELETE_DATABASE: 1");
 

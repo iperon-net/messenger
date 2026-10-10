@@ -11,7 +11,6 @@ import '../../chats/reactions.dart';
 import '../../chats/read_receipts.dart';
 import '../../chats/voice_player.dart';
 import '../../chats/chats_remote_data_source.dart';
-import '../../demo/chats_demo_data_source.dart';
 import '../../models.dart' as models;
 
 import 'chat_state.dart';
@@ -54,7 +53,7 @@ class ChatCubit extends Cubit<ChatState> {
   /// [demo] — флаг «Демо чатов» из `settingsDevice`.
   void initialization({required String chatID, required bool demo}) {
     _chatID = chatID;
-    _source = demo ? ChatsDemoDataSource.instance : ChatsRemoteDataSource.instance;
+    _source = chatsDataSource(demo: demo);
     final source = _source;
     if (source == null) {
       emit(state.copyWith(status: Status.success));

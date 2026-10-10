@@ -92,6 +92,21 @@ class SettingsDeveloperMaterial extends StatelessWidget {
                       onTab: () => context.read<CommonCubit>().setChatsDemo(value: !chatsDemo),
                     ),
                   ),
+                  // Фича-флаг: настоящие чаты через сервер (первый срез — личные,
+                  // см. docs/plans/chats-groups-channels.md, «Этап 1+»).
+                  BlocSelector<CommonCubit, CommonState, bool>(
+                    selector: (state) => state.settingsDevice.chatsServer,
+                    builder: (context, chatsServer) => MaterialListTileIcon(
+                      title: Text(context.t.screenDeveloper.chatsServer),
+                      color: const Color(0xFF34C759),
+                      icon: FontAwesomeIcons.server,
+                      trailing: Switch(
+                        value: chatsServer,
+                        onChanged: (value) => context.read<CommonCubit>().setChatsServer(value: value),
+                      ),
+                      onTab: () => context.read<CommonCubit>().setChatsServer(value: !chatsServer),
+                    ),
+                  ),
                   if (kDebugMode)
                     MaterialListTileIcon(
                       title: Text(context.t.screenDeveloper.callPreview),

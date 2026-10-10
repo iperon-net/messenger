@@ -110,6 +110,22 @@ class ChatsSync {
 
   // --- подключение ---
 
+  bool _enabled = false;
+
+  /// Фича-флаг «Серверные чаты» (экран «Разработчик»). Выключен — журнал не
+  /// догоняется и push'и UPDATES не применяются (сервер их всё равно шлёт).
+  bool get enabled => _enabled;
+
+  /// Ставит [CommonCubit] при старте и при переключении. Включили при живом
+  /// стриме — догнать сразу, не дожидаясь переподключения.
+  void setEnabled(bool value) {
+    if (_enabled == value) return;
+    _enabled = value;
+    if (value && getIt.isRegistered<API>() && getIt.get<API>().connectionStatus == ApiConnectionStatus.connected) {
+      unawaited(onConnected());
+    }
+  }
+
   /// Для кого уже убедились, что «Избранное» есть (hex userID).
   final _selfEnsured = <String>{};
 
@@ -119,7 +135,7 @@ class ChatsSync {
   /// списком диалогов, если pts ещё нет, иначе GET_DIFFERENCE, — затем
   /// отправить outbox.
   Future<void> onConnected() async {
-    if (!_auth.isAuthorized || _connecting) return;
+    if (!_enabled || !_auth.isAuthorized || _connecting) return;
     _connecting = true;
     try {
       await _locked(_catchUp);
@@ -216,6 +232,7 @@ class ChatsSync {
   /// Push `UPDATES` по стриму (зовёт `API._handleMessage`). Не ждём: догон по
   /// дыре идёт по сети и не должен держать очередь входящих стрима.
   void handlePush(Uint8List payload) {
+    if (!_enabled) return;
     final updates = pb.Updates.fromBuffer(payload);
     unawaited(applyUpdates(updates).catchError((Object error, StackTrace stackTrace) => _logger.handle(error, stackTrace)));
   }

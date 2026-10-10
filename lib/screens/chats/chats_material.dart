@@ -46,8 +46,10 @@ class _ChatsMaterial extends State<ChatsMaterial> with SearchHideOnScroll {
     final background = isDark ? ThemesCupertino.groupedCard.darkColor : ThemesCupertino.groupedCard.color;
 
     return BlocListener<CommonCubit, CommonState>(
-      // Тумблер «Демо чатов» мог переключиться, пока вкладка жива.
-      listenWhen: (previous, current) => previous.settingsDevice.chatsDemo != current.settingsDevice.chatsDemo,
+      // Тумблеры «Демо чатов» / «Серверные чаты» могли переключиться, пока вкладка жива.
+      listenWhen: (previous, current) =>
+          previous.settingsDevice.chatsDemo != current.settingsDevice.chatsDemo ||
+          previous.settingsDevice.chatsServer != current.settingsDevice.chatsServer,
       listener: (context, state) => context.read<ChatsCubit>().setDemo(state.settingsDevice.chatsDemo),
       child: Scaffold(
         backgroundColor: background,
