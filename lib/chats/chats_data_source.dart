@@ -234,8 +234,20 @@ abstract class ChatsDataSource {
   Future<void> setSlowMode(String chatID, int seconds);
 
   /// Сообщения чата (от старых к новым) — сразу при подписке, затем при каждом
-  /// изменении.
+  /// изменении. Сначала — последние; старше — по [loadOlderMessages].
   Stream<List<models.Message>> watchMessages(String chatID);
+
+  /// Прокрутили к началу ленты: добавить в [watchMessages] страницу более
+  /// старых сообщений (из кэша или с сервера). false — старше нет.
+  Future<bool> loadOlderMessages(String chatID);
+
+  /// Поиск в чате (лупа в окне чата): id найденных сообщений, от новых к
+  /// старым. Настоящие чаты ищут локально по всей скачанной истории (FTS5).
+  Future<List<String>> searchMessages(String chatID, String query);
+
+  /// Добавить в [watchMessages] всё от последнего до [messageID] (переход к
+  /// найденному, которого ещё нет в ленте).
+  Future<void> revealMessage(String chatID, String messageID);
 
   /// Отправить сообщение: текст уже разобран в entities (см.
   /// `parseMarkdownShortcuts`), для медиа — [kind] + [localPath]/[fileName],

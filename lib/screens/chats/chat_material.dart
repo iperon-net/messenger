@@ -95,6 +95,9 @@ class _ChatMaterialState extends State<ChatMaterial> {
     MessageText.linkHandler = openIperonLink;
     MessageText.mentionNameHandler = openMentionName;
     _cubit = context.read<ChatCubit>();
+    // Прокрутили к началу ленты (список перевёрнут — это конец прокрутки) —
+    // подгрузить более старые сообщения.
+    _scroll.addListener(_maybeLoadOlder);
     // Участники — для подсказки «@» (у личного чата список пустой).
     _cubit.loadMembers();
     // Подсветка после перехода по цитате — перестроить ленту.
@@ -315,6 +318,10 @@ class _ChatMaterialState extends State<ChatMaterial> {
       ),
     );
     if (open ?? false) await openAppSettings();
+  }
+
+  void _maybeLoadOlder() {
+    if (_scroll.hasClients && _scroll.position.extentAfter < 800) _cubit.loadOlder();
   }
 
   GlobalKey _keyFor(String messageID) => _messageKeys.putIfAbsent(messageID, GlobalKey.new);

@@ -145,6 +145,8 @@ class ChatsSync {
       _connecting = false;
     }
     await flushOutbox();
+    // Докачка истории открытых чатов, прерванная обрывом связи.
+    unawaited(_runBackfill());
   }
 
   Future<void> _catchUp() async {
@@ -174,6 +176,8 @@ class ChatsSync {
   /// страницы. [dropHistory] — журнал отстал (`tooLong`): сбросить и кэш истории.
   Future<void> _reloadDialogs({bool dropHistory = false}) async {
     final user = me;
+    // История сброшена — «старше нет» больше не верно.
+    if (dropHistory) _noOlder.clear();
     final dialogs = <pb.Dialog>[];
     pb.UpdatesState? state;
     var offsetDate = Int64.ZERO;
@@ -412,6 +416,12 @@ class ChatsSync {
 
   /// Последние [limit] сообщений чата с сервера — в кэш (открытие чата). Нет
   /// сети — молча: показываем кэш.
+  ///
+  /// Кэш истории всегда непрерывен: от самого старого загруженного до
+  /// последнего (новые приходят журналом без дыр, старые — [loadOlder] от
+  /// самого старого). Свежая страница не дотянулась до кэша (были вне сети
+  /// долго, а журнал догнан перезагрузкой) — между ними могла быть дыра:
+  /// старый хвост выбрасываем, его снова подгрузит [loadOlder].
   Future<void> loadHistory(Uint8List chatID, {int limit = _pageLimit}) async {
     if (!await hasNetwork()) return;
     final response = await messages(
@@ -420,11 +430,20 @@ class ChatsSync {
       ),
     );
     final history = response.history.messages;
+    final hasMore = response.history.hasMore;
     final user = me;
+    if (!hasMore) _noOlder.add(idHex(chatID));
     await _locked(
       () => _store.transaction((tx) async {
         final dialog = await tx.dialog(userID: user, chatID: chatID);
         if (dialog == null) return;
+        final cachedNewest = await tx.newestMessageID(userID: user, chatID: chatID);
+        // История DESC: последнее — самое старое на странице.
+        final pageOldest = history.isEmpty ? 0 : history.last.messageID.toInt();
+        if (hasMore && cachedNewest > 0 && pageOldest > cachedNewest + 1) {
+          await tx.deleteMessagesBelow(userID: user, chatID: chatID, messageID: pageOldest);
+          _noOlder.remove(idHex(chatID));
+        }
         for (final message in history) {
           await tx.upsertMessage(userID: user, message: message);
         }
@@ -435,6 +454,95 @@ class ChatsSync {
         }
       }),
     );
+  }
+
+  /// Чаты, у которых на сервере старше уже нет (hex chatID).
+  final _noOlder = <String>{};
+
+  /// Следующая страница истории старше самого старого в кэше. Возвращает,
+  /// сколько сообщений пришло, и есть ли ещё (false — дошли до начала). Нет
+  /// сети — (0, true): попробуем при следующей прокрутке.
+  Future<({int loaded, bool hasMore})> loadOlder(Uint8List chatID) {
+    // Прокрутка и фоновая докачка могут попросить одну и ту же страницу —
+    // один запрос на чат за раз.
+    final key = idHex(chatID);
+    return _olderInFlight[key] ??= _loadOlder(chatID).whenComplete(() => _olderInFlight.remove(key));
+  }
+
+  final _olderInFlight = <String, Future<({int loaded, bool hasMore})>>{};
+
+  Future<({int loaded, bool hasMore})> _loadOlder(Uint8List chatID) async {
+    final key = idHex(chatID);
+    if (_noOlder.contains(key)) return (loaded: 0, hasMore: false);
+    if (!await hasNetwork()) return (loaded: 0, hasMore: true);
+    final user = me;
+    final oldest = await _store.oldestMessageID(userID: user, chatID: chatID);
+    // Самое старое — №1: старше нет.
+    if (oldest == 1) {
+      _noOlder.add(key);
+      return (loaded: 0, hasMore: false);
+    }
+    final response = await messages(
+      pb.Messages_Request(
+        history: pb.Messages_History(chatID: chatID, offsetID: Int64(oldest), limit: _pageLimit),
+      ),
+    );
+    final history = response.history.messages;
+    await _locked(
+      () => _store.transaction((tx) async {
+        if (await tx.dialog(userID: user, chatID: chatID) == null) return;
+        for (final message in history) {
+          await tx.upsertMessage(userID: user, message: message);
+        }
+      }),
+    );
+    if (!response.history.hasMore) _noOlder.add(key);
+    return (loaded: history.length, hasMore: response.history.hasMore);
+  }
+
+  // --- докачка всей истории ---
+
+  /// Чаты, чью историю докачиваем (hex chatID → chatID), по очереди открытия.
+  final _backfillQueue = <String, Uint8List>{};
+  bool _backfilling = false;
+
+  /// Пауза между страницами докачки — не забивать канал и сервер.
+  static const _backfillPause = Duration(milliseconds: 300);
+
+  /// Докачать в фоне всю историю открытого чата — от самого старого в кэше до
+  /// первого сообщения, страницами по [_pageLimit]. Сервер искать не может
+  /// (содержимое зашифровано), поэтому поиск в чате — по скачанному. По
+  /// одному чату за раз; нет сети — остановится и продолжит при следующем
+  /// подключении ([onConnected]).
+  void backfill(Uint8List chatID) {
+    if (!_enabled) return;
+    final key = idHex(chatID);
+    if (_noOlder.contains(key)) return;
+    _backfillQueue[key] = chatID;
+    unawaited(_runBackfill());
+  }
+
+  Future<void> _runBackfill() async {
+    if (_backfilling) return;
+    _backfilling = true;
+    try {
+      while (_backfillQueue.isNotEmpty && _enabled && _auth.isAuthorized) {
+        final key = _backfillQueue.keys.first;
+        final result = await loadOlder(_backfillQueue[key]!);
+        if (!result.hasMore) {
+          _backfillQueue.remove(key);
+          continue;
+        }
+        // Ничего не пришло, а старше есть — нет сети: ждём подключения.
+        if (result.loaded == 0) return;
+        await Future<void>.delayed(_backfillPause);
+      }
+    } catch (error, stackTrace) {
+      // Чат остаётся в очереди — повторим при следующем подключении.
+      if (error is! ChatsOfflineException) _logger.handle(error, stackTrace);
+    } finally {
+      _backfilling = false;
+    }
   }
 
   // --- outbox ---

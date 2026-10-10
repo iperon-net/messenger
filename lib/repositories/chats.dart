@@ -277,8 +277,8 @@ class ChatsRepository {
   Future<void> upsertMessage({required List<int> userID, required pb.ChatMessage message}) async {
     await ctx.execute(
       '''
-      INSERT INTO chatMessages (userID, chatID, messageID, fromUserID, date, editDate, randomID, mediaUnread, silent, content)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO chatMessages (userID, chatID, messageID, fromUserID, date, editDate, randomID, mediaUnread, silent, content, searchText)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       ON CONFLICT(userID, chatID, messageID) DO UPDATE SET
         fromUserID = excluded.fromUserID,
         date = excluded.date,
@@ -286,7 +286,8 @@ class ChatsRepository {
         randomID = excluded.randomID,
         mediaUnread = excluded.mediaUnread,
         silent = excluded.silent,
-        content = excluded.content;
+        content = excluded.content,
+        searchText = excluded.searchText;
       ''',
       [
         userID,
@@ -299,6 +300,7 @@ class ChatsRepository {
         message.mediaUnread ? 1 : 0,
         message.silent ? 1 : 0,
         message.content.writeToBuffer(),
+        messageSearchText(message.content),
       ],
     );
   }
@@ -319,6 +321,46 @@ class ChatsRepository {
       [userID, chatID, limit],
     );
     return rows.map(_messageFromRow).toList(growable: false);
+  }
+
+  /// Сколько сообщений чата в кэше.
+  Future<int> countMessages({required List<int> userID, required List<int> chatID}) async {
+    final row = await ctx.get('SELECT COUNT(*) AS n FROM chatMessages WHERE userID = ? AND chatID = ?;', [userID, chatID]);
+    return row['n'] as int;
+  }
+
+  /// Самый старый messageID в кэше (0 — кэш пуст).
+  Future<int> oldestMessageID({required List<int> userID, required List<int> chatID}) async {
+    final row = await ctx.get('SELECT MIN(messageID) AS id FROM chatMessages WHERE userID = ? AND chatID = ?;', [userID, chatID]);
+    return (row['id'] as int?) ?? 0;
+  }
+
+  /// Самый новый messageID в кэше (0 — кэш пуст).
+  Future<int> newestMessageID({required List<int> userID, required List<int> chatID}) async {
+    final row = await ctx.get('SELECT MAX(messageID) AS id FROM chatMessages WHERE userID = ? AND chatID = ?;', [userID, chatID]);
+    return (row['id'] as int?) ?? 0;
+  }
+
+  /// Удаляет из кэша сообщения старше [messageID] (не стыкуются с новыми).
+  Future<void> deleteMessagesBelow({required List<int> userID, required List<int> chatID, required int messageID}) async {
+    await ctx.execute('DELETE FROM chatMessages WHERE userID = ? AND chatID = ? AND messageID < ?;', [userID, chatID, messageID]);
+  }
+
+  /// Поиск по истории чата в кэше (FTS5): messageID найденных, от новых к
+  /// старым. [match] — выражение из `ftsMatchQuery`.
+  Future<List<int>> searchMessages({required List<int> userID, required List<int> chatID, required String match, int limit = 1000}) async {
+    final rows = await ctx.getAll(chatMessagesSearchSql, [match, userID, chatID, limit]);
+    return [for (final row in rows) row['messageID'] as int];
+  }
+
+  /// Сколько сообщений чата в кэше не старше [messageID] (окно, чтобы его показать).
+  Future<int> countMessagesFrom({required List<int> userID, required List<int> chatID, required int messageID}) async {
+    final row = await ctx.get('SELECT COUNT(*) AS n FROM chatMessages WHERE userID = ? AND chatID = ? AND messageID >= ?;', [
+      userID,
+      chatID,
+      messageID,
+    ]);
+    return row['n'] as int;
   }
 
   /// Самое новое сообщение из кэша (новое «последнее» после удаления).

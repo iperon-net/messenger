@@ -17,6 +17,7 @@ import '../demo/chats_demo_data_source.dart';
 import 'chats_data_source.dart';
 import 'chats_mapping.dart';
 import 'chats_sync.dart';
+import 'message_search.dart';
 import 'read_receipts.dart';
 
 /// Настоящие чаты: SQLite-кэш ([ChatsRepository]) + сервер (chats_v1.proto).
@@ -472,8 +473,85 @@ class ChatsRemoteDataSource implements ChatsDataSource {
           if (error is! ChatsOfflineException) _logger.handle(error, stackTrace);
         }),
       );
+      // Открытый чат — докачиваем всю его историю в фоне: сервер искать не
+      // может (содержимое зашифровано), поиск — только по скачанному.
+      _sync.backfill(chat);
     }
-    return _repositories.db.onChange(_messageTables).asyncMap((_) => _loadMessages(chatID, chat));
+    // Перечитываем при изменении таблиц и при расширении окна истории
+    // ([loadOlderMessages] из кэша — без записи в БД). Загрузки — по очереди,
+    // чтобы старый результат не пришёл после нового.
+    late final StreamController<List<models.Message>> out;
+    StreamSubscription<void>? changes;
+    StreamSubscription<String>? refresh;
+    var pending = Future<void>.value();
+    void reload() {
+      pending = pending
+          .then((_) async {
+            final messages = await _loadMessages(chatID, chat);
+            if (!out.isClosed) out.add(messages);
+          })
+          .catchError((Object error, StackTrace stackTrace) => _logger.handle(error, stackTrace));
+    }
+
+    out = StreamController<List<models.Message>>(
+      onListen: () {
+        changes = _repositories.db.onChange(_messageTables).listen((_) => reload());
+        refresh = _windowChanged.stream.where((id) => id == chatID).listen((_) => reload());
+      },
+      onCancel: () async {
+        await changes?.cancel();
+        await refresh?.cancel();
+        _windows.remove(chatID);
+      },
+    );
+    return out.stream;
+  }
+
+  /// Сколько последних сообщений чата показывать (окно истории): растёт по
+  /// [loadOlderMessages], сбрасывается, когда чат закрыли.
+  final _windows = <String, int>{};
+  static const _initialWindow = 200;
+  static const _windowStep = 100;
+  final _windowChanged = StreamController<String>.broadcast();
+
+  @override
+  Future<List<String>> searchMessages(String chatID, String query) async {
+    final chat = idBytes(chatID);
+    final match = ftsMatchQuery(query);
+    if (chat.isEmpty || match == null || !_auth.isAuthorized) return const [];
+    final ids = await _store.searchMessages(userID: _sync.me, chatID: chat, match: match);
+    return [for (final id in ids) id.toString()];
+  }
+
+  @override
+  Future<void> revealMessage(String chatID, String messageID) async {
+    final chat = idBytes(chatID);
+    final id = int.tryParse(messageID);
+    if (chat.isEmpty || id == null || !_auth.isAuthorized) return;
+    final needed = await _store.countMessagesFrom(userID: _sync.me, chatID: chat, messageID: id) + _windowStep ~/ 2;
+    if (needed <= (_windows[chatID] ?? _initialWindow)) return;
+    _windows[chatID] = needed;
+    _windowChanged.add(chatID);
+  }
+
+  @override
+  Future<bool> loadOlderMessages(String chatID) async {
+    final chat = idBytes(chatID);
+    if (chat.isEmpty || !_auth.isAuthorized) return false;
+    final me = _sync.me;
+    final shown = _windows[chatID] ?? _initialWindow;
+    // В кэше есть старше показанного — просто расширяем окно.
+    if (await _store.countMessages(userID: me, chatID: chat) > shown) {
+      _windows[chatID] = shown + _windowStep;
+      _windowChanged.add(chatID);
+      return true;
+    }
+    final result = await _sync.loadOlder(chat);
+    if (result.loaded > 0) {
+      _windows[chatID] = shown + result.loaded;
+      _windowChanged.add(chatID);
+    }
+    return result.hasMore;
   }
 
   Future<List<models.Message>> _loadMessages(String chatID, Uint8List chat) async {
@@ -484,7 +562,7 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     final peer = row.peerUserID;
     final isSelf = peer != null && sameID(peer, me);
     final peerName = peer == null || isSelf ? '' : _Peers(await _loadPeers([peer])).of(peer).title;
-    final history = await _store.messages(userID: me, chatID: chat);
+    final history = await _store.messages(userID: me, chatID: chat, limit: _windows[chatID] ?? _initialWindow);
     final byID = {for (final m in history) m.messageID.toInt(): m};
 
     models.Message map(pb.ChatMessage m) => messageFromPb(

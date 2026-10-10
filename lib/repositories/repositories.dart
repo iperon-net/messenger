@@ -16,6 +16,7 @@ import '../logger.dart';
 import '../settings.dart';
 import '../models.dart' as models;
 import '../protobuf/protos/chats_v1.pb.dart' as pb;
+import '../chats/message_search.dart';
 
 part "cache.dart";
 part "settings_device.dart";
@@ -524,6 +525,26 @@ class Repositories {
         // работает с сервером (ChatsRemoteDataSource + ChatsSync). Выключен —
         // синхронизации нет, список пуст (если не включено демо). Локально.
         await tx.execute("ALTER TABLE settingsDevice ADD COLUMN chatsServer INTEGER NOT NULL DEFAULT 0;");
+      }),
+    );
+
+    migrations.add(
+      SqliteMigration(18, (tx) async {
+        // Локальный поиск по сообщениям (сервер не ищет — содержимое
+        // зашифровано). searchText — текст и имена файлов из content (BLOB
+        // protobuf, триггеры его не разберут — заполняет репозиторий при
+        // записи). chatMessagesFts — FTS5 с внешним содержимым (сама таблица
+        // chatMessages по rowid), триггеры держат индекс в синхроне при любых
+        // вставках/правках/удалениях (в т.ч. удалении диалога целиком).
+        await tx.execute("ALTER TABLE chatMessages ADD COLUMN searchText TEXT NOT NULL DEFAULT '';");
+        for (final row in await tx.getAll('SELECT rowid, content FROM chatMessages;')) {
+          final text = messageSearchText(pb.MessageContent.fromBuffer(row['content'] as List<int>));
+          if (text.isNotEmpty) await tx.execute('UPDATE chatMessages SET searchText = ? WHERE rowid = ?;', [text, row['rowid']]);
+        }
+        for (final statement in chatMessagesFtsSchema) {
+          await tx.execute(statement);
+        }
+        await tx.execute("INSERT INTO chatMessagesFts(chatMessagesFts) VALUES ('rebuild');");
       }),
     );
 

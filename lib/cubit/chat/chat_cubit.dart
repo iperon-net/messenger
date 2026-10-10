@@ -4,6 +4,8 @@ import 'dart:math' as math;
 import 'package:bloc/bloc.dart';
 
 import '../../constants.dart';
+import '../../di.dart';
+import '../../logger.dart';
 import '../../chats/chats_data_source.dart';
 import '../../chats/message_formatting.dart';
 import '../../chats/newcomer.dart';
@@ -119,7 +121,7 @@ class ChatCubit extends Cubit<ChatState> {
       _syncLimits();
       // Пришло/удалилось сообщение во время поиска — пересчитываем, оставаясь
       // на текущем найденном.
-      if (state.searching) _search(state.searchQuery, keepID: state.searchCurrentID);
+      if (state.searching) unawaited(_search(state.searchQuery, keepID: state.searchCurrentID));
     });
   }
 
@@ -277,6 +279,27 @@ class ChatCubit extends Cubit<ChatState> {
     if (forwarding.isNotEmpty) await source.forwardMessages(_chatID, forwarding);
   }
 
+  bool _loadingOlder = false;
+  bool _noOlder = false;
+
+  /// Прокрутили к началу ленты — подгрузить более старые сообщения (по одной
+  /// странице за раз; дошли до начала — больше не спрашиваем). Нет сети —
+  /// молча: история из кэша уже показана, попробуем при следующей прокрутке.
+  Future<void> loadOlder() async {
+    final source = _source;
+    if (source == null || _loadingOlder || _noOlder) return;
+    _loadingOlder = true;
+    try {
+      _noOlder = !await source.loadOlderMessages(_chatID);
+    } on ChatsOfflineException {
+      // Нет сети — повторим при следующей прокрутке.
+    } catch (error, stackTrace) {
+      getIt.get<Logger>().handle(error, stackTrace);
+    } finally {
+      _loadingOlder = false;
+    }
+  }
+
   /// Фото/видео из галереи или файл; [media] (2+) — альбом одним сообщением.
   /// [caption] — подпись под медиа (markdown-ярлыки → entities).
   Future<void> sendMedia({
@@ -363,28 +386,61 @@ class ChatCubit extends Cubit<ChatState> {
 
   void closeSearch() => emit(state.copyWith(searching: false, searchQuery: '', searchResults: const [], searchIndex: 0));
 
-  void setSearchQuery(String query) => _search(query);
+  void setSearchQuery(String query) => unawaited(_search(query));
 
   /// Стрелка «вверх» — к более старому найденному, «вниз» — к более новому.
   void searchOlder() {
-    if (state.searchIndex + 1 < state.searchResults.length) emit(state.copyWith(searchIndex: state.searchIndex + 1));
+    if (state.searchIndex + 1 < state.searchResults.length) unawaited(_showResult(state.searchIndex + 1));
   }
 
   void searchNewer() {
-    if (state.searchIndex > 0) emit(state.copyWith(searchIndex: state.searchIndex - 1));
+    if (state.searchIndex > 0) unawaited(_showResult(state.searchIndex - 1));
   }
 
-  /// Без учёта регистра по тексту/подписи и имени файла; от новых к старым.
-  void _search(String query, {String? keepID}) {
-    final needle = query.trim().toLowerCase();
-    final results = needle.isEmpty
-        ? const <String>[]
-        : [
-            for (final m in state.messages.reversed)
-              if (!m.service && (m.text.toLowerCase().contains(needle) || m.fileName.toLowerCase().contains(needle))) m.id,
-          ];
+  /// Номер запроса: ответ на устаревший (пока искали, ввели ещё букву) — не
+  /// показываем.
+  int _searchGeneration = 0;
+
+  /// Ищет источник: настоящие чаты — по всей скачанной истории (FTS5, не
+  /// только по ленте на экране), демо — по тексту и имени файла. От новых к
+  /// старым. [keepID] — остаться на этом найденном (лента обновилась).
+  Future<void> _search(String query, {String? keepID}) async {
+    final source = _source;
+    final generation = ++_searchGeneration;
+    final results = source == null || query.trim().isEmpty ? const <String>[] : await source.searchMessages(_chatID, query);
+    if (isClosed || generation != _searchGeneration || !state.searching) return;
     final kept = keepID == null ? -1 : results.indexOf(keepID);
+    // Новый переход — к самому новому найденному; сначала дотягиваем ленту до
+    // него, чтобы экран мог к нему прокрутиться.
+    if (kept < 0 && results.isNotEmpty) {
+      await _reveal(results.first);
+      if (isClosed || generation != _searchGeneration || !state.searching) return;
+    }
     emit(state.copyWith(searchQuery: query, searchResults: results, searchIndex: kept < 0 ? 0 : kept));
+  }
+
+  /// Перейти к найденному [index].
+  Future<void> _showResult(int index) async {
+    final id = state.searchResults[index];
+    await _reveal(id);
+    if (!isClosed && state.searchResults.length > index && state.searchResults[index] == id) {
+      emit(state.copyWith(searchIndex: index));
+    }
+  }
+
+  /// Сообщения [id] ещё нет в ленте (старое, за окном истории) — расширить
+  /// ленту до него и дождаться, пока оно придёт.
+  Future<void> _reveal(String id) async {
+    final source = _source;
+    if (source == null || state.messages.any((m) => m.id == id)) return;
+    await source.revealMessage(_chatID, id);
+    try {
+      await stream.firstWhere((s) => s.messages.any((m) => m.id == id)).timeout(const Duration(seconds: 3));
+    } on TimeoutException {
+      // Не дождались — переходим как есть (лента прокрутится, как сможет).
+    } on StateError {
+      // cubit закрыт.
+    }
   }
 
   /// Ответить на [message]; [quote] — на его фрагмент («Цитировать»).

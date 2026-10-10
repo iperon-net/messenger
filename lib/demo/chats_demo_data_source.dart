@@ -1485,6 +1485,22 @@ class ChatsDemoDataSource implements ChatsDataSource {
   List<models.Message> _history(String chatID) => _messages.putIfAbsent(chatID, () => _seedMessages(chatID));
 
   @override
+  Future<bool> loadOlderMessages(String chatID) async => false;
+
+  @override
+  Future<List<String>> searchMessages(String chatID, String query) async {
+    final needle = query.trim().toLowerCase();
+    if (needle.isEmpty) return const [];
+    return [
+      for (final m in _history(chatID).reversed)
+        if (!m.service && (m.text.toLowerCase().contains(needle) || m.fileName.toLowerCase().contains(needle))) m.id,
+    ];
+  }
+
+  @override
+  Future<void> revealMessage(String chatID, String messageID) async {}
+
+  @override
   Stream<List<models.Message>> watchMessages(String chatID) async* {
     yield _history(chatID);
     yield* _messagesController.stream.where((id) => id == chatID).map((_) => _history(chatID));
