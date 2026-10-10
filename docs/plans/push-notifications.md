@@ -440,9 +440,8 @@ message NotifySettings {
   пустые `body`/`args`, без звука → `Silent`. `TEST` и тихие служебные типы настройки не
   гасят. Ошибка чтения → шлём (fail open). Redis-кэш не делали: один `FindOne` по
   индексу на уведомление — дёшево; вернёмся, если станет узким местом.
-- [x] Android-пропущенный (рисует плагин звонков): сервер кладёт `showMissed=false` в
-  incoming call-пуш, клиент передаёт плагину `missedCallNotification.showNotification =
-  false` (фоновый isolate), в foreground-пути читает настройку из кэша.
+- [x] Android-пропущенный — с 2026-10-10 серверный `CALL_MISSED`, как на iOS (см.
+  «Решения», п. 1); плагину звонков свой пропущенный выключен всегда (`showMissed=false`).
 - [x] Клиент: SQLite-кэш (миграция 11, `notifySettings`, BLOB ответа на userID, пишется в
   `API._handleMessage`) + `SettingsNotificationsCubit`: чтение offline, запись online с
   гардом `hasNetwork()`, без оптимистичного отката.
@@ -527,7 +526,14 @@ message NotifySettings {
 ## Решения (2026-10-01)
 
 1. `CALL_MISSED`: на Android остаётся локальное уведомление плагина звонков,
-   серверный пуш — только iOS.
+   серверный пуш — только iOS. **Пересмотрено 2026-10-10:** плагин рисует пропущенный
+   лишь по своему 60-с таймауту баннера, а на отбой звонящего (cancel-пуш → `endCall`) —
+   нет, поэтому на Android пропущенного почти никогда не было. Теперь серверный
+   `CALL_MISSED` идёт на все платформы (`missed_calls.go` без `Platform`), на Android его
+   рисует `MessagePushHandler` (`KIND_CALL_MISSED`, тап → «Звонки»); локальный плагина
+   выключен всегда — сервер шлёт `showMissed=false` в каждом incoming-пуше (это гасит его и
+   у старых клиентов), клиент (`call_push.dart`) тоже не включает. Гейт настройки
+   «Пропущенные звонки» — только в воркере (`applyNotifySettings`). Написано, не проверено.
 2. NSE разбирает `PushPayload` через **SwiftProtobuf**.
 3. **Huawei (HMS Push)** — нужен, но позже, отдельным этапом после основного
    конвейера: `TokenType.HMS`, канал в `ServicePush`, `HmsMessageService` на

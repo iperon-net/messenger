@@ -13,7 +13,6 @@ import 'calls.dart';
 import 'di.dart';
 import 'firebase_options.dart';
 import 'logger.dart';
-import 'protobuf.dart';
 import 'push.dart';
 import 'repositories.dart';
 import 'utils.dart';
@@ -28,10 +27,6 @@ const _kAction = 'action';
 // Сервер кладёт его из профиля звонящего (имя/фамилия, иначе телефон); см.
 // internal/services/push.go. Пусто/нет ключа — показываем 'Iperon'.
 const _kNameCaller = 'nameCaller';
-// "false" — у получателя выключены уведомления о пропущенных звонках (настройка
-// «Пропущенные звонки»; сервер кладёт её в incoming-пуш, т.к. в фоновом isolate
-// БД нет). Пропущенный на Android рисует плагин звонков — гасим его здесь.
-const _kShowMissed = 'showMissed';
 const _kActionIncoming = 'incoming';
 const _kActionCancel = 'cancel';
 
@@ -103,7 +98,6 @@ CallKitParams _incomingParams(Map<String, dynamic> data, String callId) {
   final isVideo = (data[_kVideo] ?? '').toString() == 'true';
   final fromUserID = (data[_kFromUserID] ?? '').toString();
   final nameCaller = (data[_kNameCaller] ?? '').toString();
-  final showMissed = (data[_kShowMissed] ?? '').toString() != 'false';
 
   return CallKitParams(
     id: callId,
@@ -116,8 +110,9 @@ CallKitParams _incomingParams(Map<String, dynamic> data, String callId) {
     duration: _kIncomingBannerTimeoutMs,
     // extra доедет до события accept/decline — оттуда берём собеседника и тип.
     extra: {_kFromUserID: fromUserID, _kVideo: isVideo},
-    // null — уведомление о пропущенном по умолчанию плагина (с «Перезвонить»).
-    missedCallNotification: showMissed ? null : const NotificationParams(showNotification: false),
+    // Пропущенный — серверный CALL_MISSED (MessagePushHandler): плагин рисует свой
+    // только по таймауту баннера, а на отбой звонящего — нет. Свой не показываем.
+    missedCallNotification: const NotificationParams(showNotification: false),
     android: AndroidParams(
       isCustomNotification: true,
       isShowFullLockedScreen: true,
@@ -333,30 +328,16 @@ class CallPush {
     // баннер поверх нативного. Приём/отбой прилетают в [_onEvent] из CallKit.
     if (Platform.isIOS) return;
     final name = await _resolveDisplayName(snapshot.remoteUserID);
-    final showMissed = await _missedCallsEnabled();
-    // Пока имя и настройка читались, звонок мог завершиться/смениться (звонящий
+    // Пока имя читалось, звонок мог завершиться/смениться (звонящий
     // отменил, приняли из push) — не поднимаем устаревший входящий.
     if (calls.snapshot.status != CallStatus.incoming || calls.snapshot.callId != snapshot.callId) return;
-    await FlutterCallkitIncoming.showCallkitIncoming(_incomingParamsFromSnapshot(snapshot, name, showMissed: showMissed));
-  }
-
-  /// Настройка «Пропущенные звонки» из локального кэша настроек уведомлений.
-  /// Кэша нет или не читается — дефолт (включено).
-  Future<bool> _missedCallsEnabled() async {
-    try {
-      final buffer = await repositories.notifySettings.get(userID: auth.session.userID);
-      if (buffer == null) return true;
-      return NotifySettings_Response.fromBuffer(buffer).missedCalls;
-    } catch (error, stackTrace) {
-      logger.handle(error, stackTrace);
-      return true;
-    }
+    await FlutterCallkitIncoming.showCallkitIncoming(_incomingParamsFromSnapshot(snapshot, name));
   }
 
   /// [CallKitParams] для foreground-входящего из [CallSnapshot] (данные ring'а
   /// пришли по стриму, а не из push). Формат extra совпадает с [_incomingParams],
   /// чтобы [_onEvent] разбирал их единообразно.
-  CallKitParams _incomingParamsFromSnapshot(CallSnapshot snapshot, String nameCaller, {required bool showMissed}) {
+  CallKitParams _incomingParamsFromSnapshot(CallSnapshot snapshot, String nameCaller) {
     final isVideo = snapshot.video;
     final fromUserIDHex = utils.bytesToHex(Uint8List.fromList(snapshot.remoteUserID));
     return CallKitParams(
@@ -368,7 +349,8 @@ class CallPush {
       // Авто-снятие баннера как пропущенного, если не ответили (см. _kIncomingBannerTimeoutMs).
       duration: _kIncomingBannerTimeoutMs,
       extra: {_kFromUserID: fromUserIDHex, _kVideo: isVideo},
-      missedCallNotification: showMissed ? null : const NotificationParams(showNotification: false),
+      // См. _incomingParams: пропущенный — серверный CALL_MISSED.
+      missedCallNotification: const NotificationParams(showNotification: false),
       android: AndroidParams(
         isCustomNotification: true,
         isShowFullLockedScreen: true,
