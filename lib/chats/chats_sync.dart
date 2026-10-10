@@ -141,6 +141,7 @@ class ChatsSync {
       final response = await chats(pb.Chats_Request(canWrite: pb.Chats_CanWrite(chatID: chatID)));
       if (!response.hasCanWrite()) return null;
       final allowed = response.canWrite.allowed;
+      _logger.debug('chats: can write chat=${idHex(chatID)} allowed=$allowed');
       _writeRestricted.add((chatID: Uint8List.fromList(chatID), peerUserID: null, restricted: !allowed));
       return allowed;
     } on ChatsOfflineException {
@@ -753,6 +754,10 @@ class ChatsSync {
         continue;
       }
       final result = response.send;
+      _logger.debug(
+        'chats: sent randomID=${row.randomID} chat=${idHex(result.message.chatID)} messageID=${result.message.messageID} '
+        'outboxChat=${row.chatID == null ? '-' : idHex(row.chatID!)} updates=${result.updates.updates.length}',
+      );
       await _locked(() async {
         await _store.transaction((tx) async {
           if (result.hasMessage()) {
@@ -791,6 +796,13 @@ class ChatsSync {
   Stream<void> get uploadChanged => _uploadChanged.stream;
 
   ({int sent, int total})? uploadProgress(int randomID) => _uploads[randomID];
+
+  /// Отклонённое сервером — снова в очередь (тот же randomID: если сервер его
+  /// всё-таки принял, дубля не будет).
+  Future<void> retryOutbox(int randomID) async {
+    await _store.unmarkOutboxFailed(userID: me, randomID: randomID);
+    unawaited(flushOutbox());
+  }
 
   /// Отменить загрузку и само неотправленное сообщение.
   Future<void> cancelUpload(int randomID) async {

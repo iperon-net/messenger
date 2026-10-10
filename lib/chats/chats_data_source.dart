@@ -323,6 +323,10 @@ abstract class ChatsDataSource {
   /// исходящие сообщения с тем же содержимым и пометкой «Переслано от».
   Future<void> forwardMessages(String toChatID, List<models.Message> messages);
 
+  /// Отправить ещё раз сообщение, отклонённое сервером
+  /// ([models.MessageStatus.failed]).
+  Future<void> retrySend(String chatID, String messageID);
+
   /// Отменить загрузку вложений (крестик на прогрессе) — сообщение удаляется,
   /// так и не дойдя до собеседника.
   Future<void> cancelUpload(String chatID, String messageID);

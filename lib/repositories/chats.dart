@@ -471,6 +471,10 @@ class ChatsRepository {
     await ctx.execute('UPDATE chatOutbox SET failed = 1 WHERE userID = ? AND randomID = ?;', [userID, randomID]);
   }
 
+  Future<void> unmarkOutboxFailed({required List<int> userID, required int randomID}) async {
+    await ctx.execute('UPDATE chatOutbox SET failed = 0 WHERE userID = ? AND randomID = ?;', [userID, randomID]);
+  }
+
   Future<void> deleteOutbox({required List<int> userID, required int randomID}) async {
     await ctx.execute('DELETE FROM chatOutbox WHERE userID = ? AND randomID = ?;', [userID, randomID]);
   }

@@ -17,6 +17,10 @@ import 'message_text.dart';
 import 'spoiler_dust.dart';
 import 'swipe_to_reply.dart';
 
+/// Значок «не отправлено» ([models.MessageStatus.failed]) — красный, как в
+/// iOS-системных ошибках.
+const failedStatusColor = Color(0xFFFF3B30);
+
 /// Пузырь для превью меню сообщения с предельной шириной [maxWidth], без
 /// жестов. [selectableText] — обёртка текста, которую оставляют живой (iOS:
 /// выделить фрагмент и «Цитировать»), остальное пузыря жесты не получает.
@@ -604,9 +608,10 @@ class MessageBubble extends StatelessWidget {
               models.MessageStatus.pending => FontAwesomeIcons.clock,
               models.MessageStatus.sent => FontAwesomeIcons.check,
               models.MessageStatus.read => FontAwesomeIcons.checkDouble,
+              models.MessageStatus.failed => FontAwesomeIcons.circleExclamation,
             },
             size: 11,
-            color: metaColor,
+            color: m.status == models.MessageStatus.failed ? failedStatusColor : metaColor,
           ),
         ],
       ],

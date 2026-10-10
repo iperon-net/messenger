@@ -70,6 +70,7 @@ abstract final class ChatTileContent {
       models.MessageStatus.pending => FontAwesomeIcons.clock,
       models.MessageStatus.sent => FontAwesomeIcons.check,
       models.MessageStatus.read => FontAwesomeIcons.checkDouble,
+      models.MessageStatus.failed => FontAwesomeIcons.circleExclamation,
     };
   }
 

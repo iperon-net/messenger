@@ -1742,6 +1742,10 @@ class ChatsDemoDataSource implements ChatsDataSource {
     _updateMessage(chatID, messageID, (m) => m.copyWith(reactions: applyMyReactions(m.reactions, emojis)));
   }
 
+  /// В демо сервер ничего не отклоняет.
+  @override
+  Future<void> retrySend(String chatID, String messageID) async {}
+
   @override
   Future<void> cancelUpload(String chatID, String messageID) async {
     _uploads.remove(messageID)?.cancel();

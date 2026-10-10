@@ -87,6 +87,8 @@ class MessageStatusMapper extends EnumMapper<MessageStatus> {
         return MessageStatus.sent;
       case r'read':
         return MessageStatus.read;
+      case r'failed':
+        return MessageStatus.failed;
       default:
         throw MapperException.unknownEnumValue(value);
     }
@@ -101,6 +103,8 @@ class MessageStatusMapper extends EnumMapper<MessageStatus> {
         return r'sent';
       case MessageStatus.read:
         return r'read';
+      case MessageStatus.failed:
+        return r'failed';
     }
   }
 }

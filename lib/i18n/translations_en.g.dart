@@ -1501,6 +1501,9 @@ class Translations$screenChat$en {
 	/// en: '{name} restricts who can message them.'
 	String privacyRestricted({required Object name}) => '${name} restricts who can message them.';
 
+	/// en: 'Send again'
+	String get retrySend => 'Send again';
+
 	/// en: 'In slow mode you can send only one message at a time.'
 	String get slowModeOneMessage => 'In slow mode you can send only one message at a time.';
 
@@ -3928,6 +3931,7 @@ extension on Translations {
 			'screenChat.floodWait' => ({required Object time}) => 'You are sending messages too often. You can send the next one in ${time}.',
 			'screenChat.floodNewChats' => ({required Object time}) => 'You are starting new chats too often. Try again in ${time}.',
 			'screenChat.privacyRestricted' => ({required Object name}) => '${name} restricts who can message them.',
+			'screenChat.retrySend' => 'Send again',
 			'screenChat.slowModeOneMessage' => 'In slow mode you can send only one message at a time.',
 			'screenChat.scheduledTitle' => 'Scheduled messages',
 			'screenChat.schedule' => 'Schedule',
@@ -4007,9 +4011,9 @@ extension on Translations {
 			'screenSettingsNotifications.groups' => 'Groups',
 			'screenSettingsNotifications.channels' => 'Channels',
 			'screenSettingsNotifications.on' => 'On',
-			'screenSettingsNotifications.off' => 'Off',
 			_ => null,
 		} ?? switch (path) {
+			'screenSettingsNotifications.off' => 'Off',
 			'screenSettingsNotifications.events' => 'Events',
 			'screenSettingsNotifications.contactJoined' => 'Contact joined Iperon',
 			'screenSettingsNotifications.missedCalls' => 'Missed calls',

@@ -113,7 +113,7 @@ class ChatsRemoteDataSource implements ChatsDataSource {
             kind: contentKind(content),
             text: content.text,
             outgoing: true,
-            status: models.MessageStatus.pending,
+            status: queued.failed ? models.MessageStatus.failed : models.MessageStatus.pending,
             date: date,
           );
         }
@@ -599,7 +599,10 @@ class ChatsRemoteDataSource implements ChatsDataSource {
               content: pb.MessageContent.fromBuffer(queued.content),
               silent: queued.silent,
             ),
-          ).copyWith(id: localMessageID(queued.randomID), status: models.MessageStatus.pending),
+          ).copyWith(
+            id: localMessageID(queued.randomID),
+            status: queued.failed ? models.MessageStatus.failed : models.MessageStatus.pending,
+          ),
           queued,
           outboxDir,
         ),
@@ -908,6 +911,13 @@ class ChatsRemoteDataSource implements ChatsDataSource {
 
   @override
   Future<void> forwardMessages(String toChatID, List<models.Message> messages) async => _unsupported('Пересылка');
+
+  /// Отклонённое сервером ([models.MessageStatus.failed]) — снова в очередь.
+  @override
+  Future<void> retrySend(String chatID, String messageID) async {
+    final randomID = randomIDOfLocal(messageID);
+    if (randomID != null) await _sync.retryOutbox(randomID);
+  }
 
   /// Крестик на кольце: у неотправленного — отменить загрузку и отправку. У
   /// полученного кольцо — скачивание, его не прерываем (файл всё равно нужен

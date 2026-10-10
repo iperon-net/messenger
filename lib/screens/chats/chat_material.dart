@@ -671,6 +671,12 @@ class _ChatMaterialState extends State<ChatMaterial> {
                         : null,
                   ),
                 ),
+              if (message.status == models.MessageStatus.failed)
+                ListTile(
+                  leading: const Icon(Icons.refresh),
+                  title: Text(t.retrySend),
+                  onTap: () => Navigator.of(sheetContext).pop('retry'),
+                ),
               if (canWrite)
                 ListTile(leading: const Icon(Icons.reply), title: Text(t.reply), onTap: () => Navigator.of(sheetContext).pop('reply')),
               if (quotable)
@@ -741,6 +747,8 @@ class _ChatMaterialState extends State<ChatMaterial> {
       return;
     }
     switch (action) {
+      case 'retry':
+        await _cubit.retrySend(message);
       case 'reply':
         _cubit.startReply(message);
         _focus.requestFocus();

@@ -705,6 +705,8 @@ class _ChatCupertinoState extends State<ChatCupertino> {
             child: Text(readInfoLabel(menuContext.t, chat, info)),
           ),
         ),
+      if (message.status == models.MessageStatus.failed)
+        action(t.retrySend, CupertinoIcons.arrow_clockwise, () => _cubit.retrySend(message)),
       if (canWrite)
         action(t.reply, CupertinoIcons.reply, () {
           _cubit.startReply(message);

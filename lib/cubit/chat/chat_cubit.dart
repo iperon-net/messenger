@@ -4,6 +4,7 @@ import 'dart:typed_data';
 
 import 'package:bloc/bloc.dart';
 
+import '../../api.dart';
 import '../../constants.dart';
 import '../../di.dart';
 import '../../logger.dart';
@@ -43,6 +44,12 @@ class ChatCubit extends Cubit<ChatState> {
 
   /// `canWrite` уже спросили (один раз за открытие окна).
   bool _writeChecked = false;
+
+  /// Пока плашка — переспрашиваем `canWrite`: собеседник мог снять
+  /// ограничение («Все» / добавил в контакты), не написав нам, а пуша об этом
+  /// нет. По таймеру и после переподключения стрима.
+  Timer? _writeRecheckTimer;
+  StreamSubscription<ApiConnectionStatus>? _connectionSubscription;
 
   /// Медленный режим: до какого времени ждём и таймер обратного отсчёта.
   DateTime? _slowModeUntil;
@@ -89,7 +96,13 @@ class ChatCubit extends Cubit<ChatState> {
             (event.peerUserID != null && chat != null && chat.peerUserID.isNotEmpty && idHex(event.peerUserID!) == chat.peerUserID);
         if (isClosed || !ours || event.restricted == _writeRestricted) return;
         _writeRestricted = event.restricted;
+        _syncWriteRecheck();
         _syncLimits();
+      });
+      _connectionSubscription = getIt.get<API>().connectionStatusStream.listen((status) {
+        if (!isClosed && _writeRestricted && status == ApiConnectionStatus.connected) {
+          unawaited(ChatsSync.instance.canWrite(idBytes(_chatID)));
+        }
       });
     }
     _chatsSubscription = source.watchChats().listen((chats) {
@@ -164,6 +177,17 @@ class ChatCubit extends Cubit<ChatState> {
     _writeChecked = true;
     // Ответ придёт и в [ChatsSync.writeRestricted] — его ловит подписка.
     unawaited(ChatsSync.instance.canWrite(idBytes(_chatID)));
+  }
+
+  static const _writeRecheckInterval = Duration(seconds: 15);
+
+  void _syncWriteRecheck() {
+    _writeRecheckTimer?.cancel();
+    _writeRecheckTimer = null;
+    if (!_writeRestricted) return;
+    _writeRecheckTimer = Timer.periodic(_writeRecheckInterval, (_) {
+      if (!isClosed && _writeRestricted) unawaited(ChatsSync.instance.canWrite(idBytes(_chatID)));
+    });
   }
 
   /// Последнее входящее, при котором спрашивали `canWrite`.
@@ -454,6 +478,9 @@ class ChatCubit extends Cubit<ChatState> {
     final emoji = chat == null ? null : quickReaction(chat, message: message, preferred: preferred);
     if (emoji != null) await toggleReaction(message, emoji);
   }
+
+  /// Меню отклонённого сообщения — «Отправить ещё раз».
+  Future<void> retrySend(models.Message message) async => _source?.retrySend(_chatID, message.id);
 
   /// Крестик на прогрессе загрузки — отменить отправку вложений.
   Future<void> cancelUpload(models.Message message) async => _source?.cancelUpload(_chatID, message.id);
@@ -824,6 +851,8 @@ class ChatCubit extends Cubit<ChatState> {
     await _voiceSubscription?.cancel();
     await _floodSubscription?.cancel();
     await _writeSubscription?.cancel();
+    await _connectionSubscription?.cancel();
+    _writeRecheckTimer?.cancel();
     _floodTimer?.cancel();
     _memberSearchTimer?.cancel();
     _slowModeTimer?.cancel();

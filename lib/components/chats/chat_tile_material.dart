@@ -6,6 +6,7 @@ import '../../i18n/translations.g.dart';
 import '../../models.dart' as models;
 import 'chat_avatar.dart';
 import 'chat_tile.dart';
+import 'message_bubble.dart' show failedStatusColor;
 
 /// Строка списка чатов (Android, по мотивам Telegram): аватар, название с иконкой
 /// типа, дата с галочками; ниже — превью в одну строку и бейджи (упоминания,
@@ -67,7 +68,14 @@ class ChatTileMaterial extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: 6),
-                      if (statusIcon != null) ...[FaIcon(statusIcon, size: 12, color: scheme.primary), const SizedBox(width: 4)],
+                      if (statusIcon != null) ...[
+                        FaIcon(
+                          statusIcon,
+                          size: 12,
+                          color: statusIcon == FontAwesomeIcons.circleExclamation ? failedStatusColor : scheme.primary,
+                        ),
+                        const SizedBox(width: 4),
+                      ],
                       if (date != null) Text(date.chatListFormat(), style: theme.textTheme.bodySmall?.copyWith(color: secondary)),
                     ],
                   ),

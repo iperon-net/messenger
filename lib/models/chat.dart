@@ -9,8 +9,10 @@ part 'chat.mapper.dart';
 enum ChatType { private, group, channel, community }
 
 /// Статус исходящего сообщения: ⏱ отправляется → ✓ на сервере → ✓✓ прочитано.
+/// [failed] — сервер отклонил (например, приватность собеседника): само уже
+/// не уйдёт, можно отправить ещё раз или удалить.
 @MappableEnum()
-enum MessageStatus { pending, sent, read }
+enum MessageStatus { pending, sent, read, failed }
 
 /// Вид последнего сообщения — для превью в списке («Фото», «Файл» …).
 @MappableEnum()

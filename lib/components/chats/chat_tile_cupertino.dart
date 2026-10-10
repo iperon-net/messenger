@@ -6,6 +6,7 @@ import '../../i18n/translations.g.dart';
 import '../../models.dart' as models;
 import 'chat_avatar.dart';
 import 'chat_tile.dart';
+import 'message_bubble.dart' show failedStatusColor;
 import '../../themes.dart';
 
 /// Строка списка чатов (iOS, по мотивам Telegram): аватар, название с иконкой
@@ -96,7 +97,14 @@ class _ChatTileCupertinoState extends State<ChatTileCupertino> {
                           ),
                         ),
                         const SizedBox(width: 6),
-                        if (statusIcon != null) ...[FaIcon(statusIcon, size: 12, color: primary), const SizedBox(width: 4)],
+                        if (statusIcon != null) ...[
+                          FaIcon(
+                            statusIcon,
+                            size: 12,
+                            color: statusIcon == FontAwesomeIcons.circleExclamation ? failedStatusColor : primary,
+                          ),
+                          const SizedBox(width: 4),
+                        ],
                         if (date != null) Text(date.chatListFormat(), style: TextStyle(fontSize: 14, color: secondary)),
                       ],
                     ),
