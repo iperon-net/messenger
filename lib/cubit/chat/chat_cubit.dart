@@ -31,6 +31,8 @@ class ChatCubit extends Cubit<ChatState> {
   StreamSubscription<List<models.Message>>? _scheduledSubscription;
   StreamSubscription<void>? _membersSubscription;
   StreamSubscription<models.Message>? _voiceSubscription;
+  StreamSubscription<DateTime?>? _floodSubscription;
+  Timer? _floodTimer;
 
   /// Медленный режим: до какого времени ждём и таймер обратного отсчёта.
   DateTime? _slowModeUntil;
@@ -67,6 +69,10 @@ class ChatCubit extends Cubit<ChatState> {
     }
     final pending = _pendingForwards.remove(chatID);
     if (pending != null) emit(state.copyWith(forwarding: pending));
+    if (source is ChatsRemoteDataSource) {
+      _syncFlood(ChatsSync.instance.floodUntil);
+      _floodSubscription = ChatsSync.instance.floodChanged.listen(_syncFlood);
+    }
     _chatsSubscription = source.watchChats().listen((chats) {
       if (isClosed) return;
       final chat = chats.where((c) => c.id == chatID).firstOrNull;
@@ -167,6 +173,26 @@ class ChatCubit extends Cubit<ChatState> {
     }
   }
 
+  /// Лимит частоты: сервер велел подождать до [until] — отсчёт на кнопке
+  /// отправки, как у медленного режима.
+  void _syncFlood(DateTime? until) {
+    _floodTimer?.cancel();
+    _floodTimer = null;
+    void tick() {
+      if (isClosed) return;
+      final ms = until == null ? 0 : until.difference(DateTime.now()).inMilliseconds;
+      final left = ms <= 0 ? 0 : (ms / 1000).ceil();
+      if (left != state.floodLeft) emit(state.copyWith(floodLeft: left));
+      if (left == 0) {
+        _floodTimer?.cancel();
+        _floodTimer = null;
+      }
+    }
+
+    tick();
+    if (state.floodLeft > 0) _floodTimer = Timer.periodic(const Duration(seconds: 1), (_) => tick());
+  }
+
   /// Ограничения на запись: какие посты канала уже закрыты для комментариев,
   /// можно ли нам писать в эту ветку (срок, «только подписчики», «подписка не
   /// менее») и действует ли «Новичкам — без ссылок и медиа»; таймер — на
@@ -234,7 +260,7 @@ class ChatCubit extends Cubit<ChatState> {
 
   /// Медленный режим не даёт отправить сейчас (UI заранее объясняет почему,
   /// см. `checkSlowMode`; здесь — страховка).
-  bool get _slowModeWaiting => state.slowModeLeft > 0;
+  bool get _slowModeWaiting => state.slowModeLeft > 0 || state.floodLeft > 0;
 
   /// Отправить текст из поля ввода (markdown-ярлыки → entities). В режиме
   /// редактирования — правит сообщение. [silent] — без звука у получателя;
@@ -748,6 +774,8 @@ class ChatCubit extends Cubit<ChatState> {
     await _scheduledSubscription?.cancel();
     await _membersSubscription?.cancel();
     await _voiceSubscription?.cancel();
+    await _floodSubscription?.cancel();
+    _floodTimer?.cancel();
     _memberSearchTimer?.cancel();
     _slowModeTimer?.cancel();
     _commentsTimer?.cancel();

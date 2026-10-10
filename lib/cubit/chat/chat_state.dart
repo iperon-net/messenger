@@ -92,6 +92,11 @@ class ChatState with ChatStateMappable {
   /// тикает раз в секунду, вместо кнопки отправки — обратный отсчёт.
   final int slowModeLeft;
 
+  /// Лимит частоты отправки на сервере (флуд): секунд до следующего сообщения
+  /// (0 — можно). Как [slowModeLeft], но для всех чатов сразу и только для
+  /// серверных: outbox стоит и сам отправит, когда отсчёт кончится.
+  final int floodLeft;
+
   /// Канал: посты (id), комментарии к которым уже закрыты (срок вышел или
   /// админ закрыл) — под постом замок, ветка только для чтения.
   final List<String> commentsClosedIDs;
@@ -141,6 +146,7 @@ class ChatState with ChatStateMappable {
     this.memberQuery = '',
     this.banned = const [],
     this.slowModeLeft = 0,
+    this.floodLeft = 0,
     this.commentsClosedIDs = const [],
     this.commentsBlock = ChatCommentsBlock.none,
     this.commentsWaitUntil,

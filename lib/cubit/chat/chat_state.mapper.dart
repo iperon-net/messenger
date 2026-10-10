@@ -264,6 +264,13 @@ class ChatStateMapper extends ClassMapperBase<ChatState> {
     opt: true,
     def: 0,
   );
+  static int _$floodLeft(ChatState v) => v.floodLeft;
+  static const Field<ChatState, int> _f$floodLeft = Field(
+    'floodLeft',
+    _$floodLeft,
+    opt: true,
+    def: 0,
+  );
   static List<String> _$commentsClosedIDs(ChatState v) => v.commentsClosedIDs;
   static const Field<ChatState, List<String>> _f$commentsClosedIDs = Field(
     'commentsClosedIDs',
@@ -327,6 +334,7 @@ class ChatStateMapper extends ClassMapperBase<ChatState> {
     #memberQuery: _f$memberQuery,
     #banned: _f$banned,
     #slowModeLeft: _f$slowModeLeft,
+    #floodLeft: _f$floodLeft,
     #commentsClosedIDs: _f$commentsClosedIDs,
     #commentsBlock: _f$commentsBlock,
     #commentsWaitUntil: _f$commentsWaitUntil,
@@ -363,6 +371,7 @@ class ChatStateMapper extends ClassMapperBase<ChatState> {
       memberQuery: data.dec(_f$memberQuery),
       banned: data.dec(_f$banned),
       slowModeLeft: data.dec(_f$slowModeLeft),
+      floodLeft: data.dec(_f$floodLeft),
       commentsClosedIDs: data.dec(_f$commentsClosedIDs),
       commentsBlock: data.dec(_f$commentsBlock),
       commentsWaitUntil: data.dec(_f$commentsWaitUntil),
@@ -511,6 +520,7 @@ abstract class ChatStateCopyWith<$R, $In extends ChatState, $Out>
     String? memberQuery,
     List<models.ChatMember>? banned,
     int? slowModeLeft,
+    int? floodLeft,
     List<String>? commentsClosedIDs,
     ChatCommentsBlock? commentsBlock,
     DateTime? commentsWaitUntil,
@@ -671,6 +681,7 @@ class _ChatStateCopyWithImpl<$R, $Out>
     String? memberQuery,
     List<models.ChatMember>? banned,
     int? slowModeLeft,
+    int? floodLeft,
     List<String>? commentsClosedIDs,
     ChatCommentsBlock? commentsBlock,
     Object? commentsWaitUntil = $none,
@@ -706,6 +717,7 @@ class _ChatStateCopyWithImpl<$R, $Out>
       if (memberQuery != null) #memberQuery: memberQuery,
       if (banned != null) #banned: banned,
       if (slowModeLeft != null) #slowModeLeft: slowModeLeft,
+      if (floodLeft != null) #floodLeft: floodLeft,
       if (commentsClosedIDs != null) #commentsClosedIDs: commentsClosedIDs,
       if (commentsBlock != null) #commentsBlock: commentsBlock,
       if (commentsWaitUntil != $none) #commentsWaitUntil: commentsWaitUntil,
@@ -748,6 +760,7 @@ class _ChatStateCopyWithImpl<$R, $Out>
     memberQuery: data.get(#memberQuery, or: $value.memberQuery),
     banned: data.get(#banned, or: $value.banned),
     slowModeLeft: data.get(#slowModeLeft, or: $value.slowModeLeft),
+    floodLeft: data.get(#floodLeft, or: $value.floodLeft),
     commentsClosedIDs: data.get(
       #commentsClosedIDs,
       or: $value.commentsClosedIDs,

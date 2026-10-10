@@ -648,6 +648,9 @@ class _Translations$screenChat$ru extends Translations$screenChat$en {
 	@override String get sendLater => 'Отправить позже';
 	@override String get slowMode => 'Медленный режим';
 	@override String slowModeWait({required Object time}) => 'В этом чате включён медленный режим. Следующее сообщение можно отправить через ${time}.';
+	@override String get floodTitle => 'Слишком часто';
+	@override String floodWait({required Object time}) => 'Вы отправляете сообщения слишком часто. Следующее можно отправить через ${time}.';
+	@override String floodNewChats({required Object time}) => 'Вы начинаете новые чаты слишком часто. Попробуйте через ${time}.';
 	@override String get slowModeOneMessage => 'В медленном режиме можно отправить только одно сообщение за раз.';
 	@override String get scheduledTitle => 'Отложенные сообщения';
 	@override String get schedule => 'Запланировать';
@@ -1920,6 +1923,9 @@ extension on TranslationsRu {
 			'screenChat.sendLater' => 'Отправить позже',
 			'screenChat.slowMode' => 'Медленный режим',
 			'screenChat.slowModeWait' => ({required Object time}) => 'В этом чате включён медленный режим. Следующее сообщение можно отправить через ${time}.',
+			'screenChat.floodTitle' => 'Слишком часто',
+			'screenChat.floodWait' => ({required Object time}) => 'Вы отправляете сообщения слишком часто. Следующее можно отправить через ${time}.',
+			'screenChat.floodNewChats' => ({required Object time}) => 'Вы начинаете новые чаты слишком часто. Попробуйте через ${time}.',
 			'screenChat.slowModeOneMessage' => 'В медленном режиме можно отправить только одно сообщение за раз.',
 			'screenChat.scheduledTitle' => 'Отложенные сообщения',
 			'screenChat.schedule' => 'Запланировать',
@@ -2001,11 +2007,11 @@ extension on TranslationsRu {
 			'screenSettingsNotifications.on' => 'Вкл.',
 			'screenSettingsNotifications.off' => 'Выкл.',
 			'screenSettingsNotifications.events' => 'События',
+			_ => null,
+		} ?? switch (path) {
 			'screenSettingsNotifications.contactJoined' => 'Контакт присоединился к Iperon',
 			'screenSettingsNotifications.missedCalls' => 'Пропущенные звонки',
 			'screenSettingsNotifications.reactions' => 'Реакции',
-			_ => null,
-		} ?? switch (path) {
 			'screenSettingsNotifications.reactionsPrivate' => 'В личных чатах',
 			'screenSettingsNotifications.reactionsGroups' => 'В группах',
 			'screenSettingsNotifications.reactionsFrom' => 'Уведомлять о реакциях от',

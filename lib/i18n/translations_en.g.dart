@@ -1489,6 +1489,15 @@ class Translations$screenChat$en {
 	/// en: 'Slow mode is enabled in this chat. You can send your next message in {time}.'
 	String slowModeWait({required Object time}) => 'Slow mode is enabled in this chat. You can send your next message in ${time}.';
 
+	/// en: 'Too many requests'
+	String get floodTitle => 'Too many requests';
+
+	/// en: 'You are sending messages too often. You can send the next one in {time}.'
+	String floodWait({required Object time}) => 'You are sending messages too often. You can send the next one in ${time}.';
+
+	/// en: 'You are starting new chats too often. Try again in {time}.'
+	String floodNewChats({required Object time}) => 'You are starting new chats too often. Try again in ${time}.';
+
 	/// en: 'In slow mode you can send only one message at a time.'
 	String get slowModeOneMessage => 'In slow mode you can send only one message at a time.';
 
@@ -3903,6 +3912,9 @@ extension on Translations {
 			'screenChat.sendLater' => 'Schedule message',
 			'screenChat.slowMode' => 'Slow mode',
 			'screenChat.slowModeWait' => ({required Object time}) => 'Slow mode is enabled in this chat. You can send your next message in ${time}.',
+			'screenChat.floodTitle' => 'Too many requests',
+			'screenChat.floodWait' => ({required Object time}) => 'You are sending messages too often. You can send the next one in ${time}.',
+			'screenChat.floodNewChats' => ({required Object time}) => 'You are starting new chats too often. Try again in ${time}.',
 			'screenChat.slowModeOneMessage' => 'In slow mode you can send only one message at a time.',
 			'screenChat.scheduledTitle' => 'Scheduled messages',
 			'screenChat.schedule' => 'Schedule',
@@ -3984,11 +3996,11 @@ extension on Translations {
 			'screenSettingsNotifications.on' => 'On',
 			'screenSettingsNotifications.off' => 'Off',
 			'screenSettingsNotifications.events' => 'Events',
+			_ => null,
+		} ?? switch (path) {
 			'screenSettingsNotifications.contactJoined' => 'Contact joined Iperon',
 			'screenSettingsNotifications.missedCalls' => 'Missed calls',
 			'screenSettingsNotifications.reactions' => 'Reactions',
-			_ => null,
-		} ?? switch (path) {
 			'screenSettingsNotifications.reactionsPrivate' => 'In private chats',
 			'screenSettingsNotifications.reactionsGroups' => 'In groups',
 			'screenSettingsNotifications.reactionsFrom' => 'Notify about reactions from',

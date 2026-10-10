@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -1044,10 +1045,10 @@ class _ComposeBar extends StatelessWidget {
                           // дёргается при смене кнопки.
                           return ComposeActionSlot(
                             size: const Size(48, 48),
-                            child: state.slowModeLeft > 0 && !editing
+                            child: (state.slowModeLeft > 0 || state.floodLeft > 0) && !editing
                                 ? SlowModeCountdown(
                                     key: const ValueKey('slow'),
-                                    seconds: state.slowModeLeft,
+                                    seconds: math.max(state.slowModeLeft, state.floodLeft),
                                     color: scheme.onSurfaceVariant,
                                   )
                                 : !canSend && !editing

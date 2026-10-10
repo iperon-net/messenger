@@ -30,6 +30,26 @@ class ChatsOfflineException implements Exception {
   String toString() => 'ChatsOfflineException: нет сети';
 }
 
+/// Лимит частоты на сервере (`ResourceExhausted` «floodWait:<секунды>»):
+/// повторить можно через [seconds].
+class ChatsFloodException implements Exception {
+  final int seconds;
+
+  const ChatsFloodException(this.seconds);
+
+  /// Разбор ответа сервера; `null` — это не лимит частоты.
+  static ChatsFloodException? parse(int statusCode, String error) {
+    if (statusCode != StatusCode.resourceExhausted || !error.startsWith(_prefix)) return null;
+    final seconds = int.tryParse(error.substring(_prefix.length));
+    return seconds == null ? null : ChatsFloodException(seconds < 1 ? 1 : seconds);
+  }
+
+  static const _prefix = 'floodWait:';
+
+  @override
+  String toString() => 'ChatsFloodException: повторить через $seconds с';
+}
+
 /// Сервер отклонил запрос чатов; [error] — i18n-ключ или текст ошибки из
 /// [APICallStatus].
 class ChatsRequestException implements Exception {
@@ -100,6 +120,8 @@ class ChatsSync {
     if (const [StatusCode.unavailable, StatusCode.deadlineExceeded, StatusCode.unknown].contains(status.statusCode)) {
       throw const ChatsOfflineException();
     }
+    final flood = ChatsFloodException.parse(status.statusCode, status.error);
+    if (flood != null) throw flood;
     throw ChatsRequestException(status.error, status.statusCode);
   }
 
@@ -599,6 +621,32 @@ class ChatsSync {
   /// Пока шла отправка, в outbox добавили ещё — пройти снова.
   bool _flushAgain = false;
 
+  /// Лимит частоты отправки: до этого момента outbox стоит (сообщения ждут с
+  /// часиками), потом [_floodTimer] сам его отправит. `null` — не ждём.
+  DateTime? _floodUntil;
+  Timer? _floodTimer;
+  final _floodChanged = StreamController<DateTime?>.broadcast();
+
+  DateTime? get floodUntil {
+    final until = _floodUntil;
+    return until != null && until.isAfter(DateTime.now()) ? until : null;
+  }
+
+  /// Изменился [floodUntil] — окно чата ведёт по нему обратный отсчёт.
+  Stream<DateTime?> get floodChanged => _floodChanged.stream;
+
+  void _setFlood(int seconds) {
+    final until = DateTime.now().add(Duration(seconds: seconds));
+    _floodUntil = until;
+    _floodTimer?.cancel();
+    _floodTimer = Timer(until.difference(DateTime.now()), () {
+      _floodUntil = null;
+      _floodChanged.add(null);
+      unawaited(flushOutbox());
+    });
+    _floodChanged.add(until);
+  }
+
   /// Отправить накопленное в outbox по порядку. Нет сети / сервер недоступен —
   /// остаётся до следующего подключения; сервер отклонил — помечаем `failed`
   /// и больше не шлём.
@@ -625,6 +673,8 @@ class ChatsSync {
   /// Один проход по outbox; `false` — прервались (нет сети / разлогин).
   Future<bool> _flushOnce() async {
     final user = me;
+    // Ждём лимит частоты — отправит таймер (_setFlood).
+    if (floodUntil != null) return false;
     for (final row in await _store.outbox(userID: user)) {
       if (row.failed) continue;
       if (!await hasNetwork()) return false;
@@ -657,6 +707,11 @@ class ChatsSync {
           ),
         );
       } on ChatsOfflineException {
+        return false;
+      } on ChatsFloodException catch (error) {
+        // Не ошибка сообщения: ждём и шлём его же (randomID тот же — дубля не будет).
+        _logger.info('chats: send flood wait ${error.seconds}s randomID=${row.randomID}');
+        _setFlood(error.seconds);
         return false;
       } on ChatsRequestException catch (error) {
         if (error.statusCode == StatusCode.unauthenticated) return false;

@@ -100,6 +100,20 @@ class ChatCreateStateMapper extends ClassMapperBase<ChatCreateState> {
     opt: true,
     def: 0,
   );
+  static int _$floodNotice(ChatCreateState v) => v.floodNotice;
+  static const Field<ChatCreateState, int> _f$floodNotice = Field(
+    'floodNotice',
+    _$floodNotice,
+    opt: true,
+    def: 0,
+  );
+  static int _$floodSeconds(ChatCreateState v) => v.floodSeconds;
+  static const Field<ChatCreateState, int> _f$floodSeconds = Field(
+    'floodSeconds',
+    _$floodSeconds,
+    opt: true,
+    def: 0,
+  );
   static models.ChatType _$type(ChatCreateState v) => v.type;
   static const Field<ChatCreateState, models.ChatType> _f$type = Field(
     'type',
@@ -312,6 +326,8 @@ class ChatCreateStateMapper extends ClassMapperBase<ChatCreateState> {
   final MappableFields<ChatCreateState> fields = const {
     #status: _f$status,
     #offlineNotice: _f$offlineNotice,
+    #floodNotice: _f$floodNotice,
+    #floodSeconds: _f$floodSeconds,
     #type: _f$type,
     #chatID: _f$chatID,
     #communityID: _f$communityID,
@@ -348,6 +364,8 @@ class ChatCreateStateMapper extends ClassMapperBase<ChatCreateState> {
     return ChatCreateState(
       status: data.dec(_f$status),
       offlineNotice: data.dec(_f$offlineNotice),
+      floodNotice: data.dec(_f$floodNotice),
+      floodSeconds: data.dec(_f$floodSeconds),
       type: data.dec(_f$type),
       chatID: data.dec(_f$chatID),
       communityID: data.dec(_f$communityID),
@@ -458,6 +476,8 @@ abstract class ChatCreateStateCopyWith<$R, $In extends ChatCreateState, $Out>
   $R call({
     Status? status,
     int? offlineNotice,
+    int? floodNotice,
+    int? floodSeconds,
     models.ChatType? type,
     String? chatID,
     String? communityID,
@@ -528,6 +548,8 @@ class _ChatCreateStateCopyWithImpl<$R, $Out>
   $R call({
     Status? status,
     int? offlineNotice,
+    int? floodNotice,
+    int? floodSeconds,
     models.ChatType? type,
     String? chatID,
     String? communityID,
@@ -562,6 +584,8 @@ class _ChatCreateStateCopyWithImpl<$R, $Out>
     FieldCopyWithData({
       if (status != null) #status: status,
       if (offlineNotice != null) #offlineNotice: offlineNotice,
+      if (floodNotice != null) #floodNotice: floodNotice,
+      if (floodSeconds != null) #floodSeconds: floodSeconds,
       if (type != null) #type: type,
       if (chatID != null) #chatID: chatID,
       if (communityID != null) #communityID: communityID,
@@ -599,6 +623,8 @@ class _ChatCreateStateCopyWithImpl<$R, $Out>
   ChatCreateState $make(CopyWithData data) => ChatCreateState(
     status: data.get(#status, or: $value.status),
     offlineNotice: data.get(#offlineNotice, or: $value.offlineNotice),
+    floodNotice: data.get(#floodNotice, or: $value.floodNotice),
+    floodSeconds: data.get(#floodSeconds, or: $value.floodSeconds),
     type: data.get(#type, or: $value.type),
     chatID: data.get(#chatID, or: $value.chatID),
     communityID: data.get(#communityID, or: $value.communityID),

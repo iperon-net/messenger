@@ -350,6 +350,29 @@ class ChatsOfflineListener<B extends StateStreamable<S>, S> extends StatelessWid
   );
 }
 
+/// Лимит частоты сервера на новые чаты: «попробуйте через …».
+void showChatsFlood(BuildContext context, int seconds) {
+  final t = context.t.screenChat;
+  unawaited(_showNotice(context, t.floodNewChats(time: formatSlowModeLeft(seconds)), title: t.floodTitle));
+}
+
+/// Показывает [showChatsFlood], когда cubit сообщает об отказе по лимиту
+/// частоты (растёт счётчик [notice]; [seconds] — сколько ждать).
+class ChatsFloodListener<B extends StateStreamable<S>, S> extends StatelessWidget {
+  final int Function(S state) notice;
+  final int Function(S state) seconds;
+  final Widget child;
+
+  const ChatsFloodListener({super.key, required this.notice, required this.seconds, required this.child});
+
+  @override
+  Widget build(BuildContext context) => BlocListener<B, S>(
+    listenWhen: (previous, current) => notice(current) > notice(previous),
+    listener: (context, state) => showChatsFlood(context, seconds(state)),
+    child: child,
+  );
+}
+
 /// Тап по упоминанию по имени (без @username) — личный чат с человеком.
 /// Источник — как у экранов: демо или настоящие чаты.
 void openMentionName(BuildContext context, String userID) async {
@@ -362,6 +385,9 @@ void openMentionName(BuildContext context, String userID) async {
   } on ChatsOfflineException {
     // Новый личный чат создаёт сервер.
     if (context.mounted) showChatsNoConnection(context);
+    return;
+  } on ChatsFloodException catch (error) {
+    if (context.mounted) showChatsFlood(context, error.seconds);
     return;
   }
   if (chatID.isNotEmpty && context.mounted) await context.push('/chats/chat/$chatID');
@@ -439,8 +465,13 @@ bool checkNewcomer(BuildContext context, {bool media = false, String raw = '', L
 /// `false`.
 bool checkSlowMode(BuildContext context, {int count = 1}) {
   final state = context.read<ChatCubit>().state;
-  if (!(state.chat?.slowModeApplies ?? false)) return true;
   final t = context.t.screenChat;
+  // Лимит частоты сервера — раньше медленного режима: действует во всех чатах.
+  if (state.floodLeft > 0) {
+    unawaited(_showNotice(context, t.floodWait(time: formatSlowModeLeft(state.floodLeft)), title: t.floodTitle));
+    return false;
+  }
+  if (!(state.chat?.slowModeApplies ?? false)) return true;
   final text = state.slowModeLeft > 0
       ? t.slowModeWait(time: formatSlowModeLeft(state.slowModeLeft))
       : (count > 1 ? t.slowModeOneMessage : null);

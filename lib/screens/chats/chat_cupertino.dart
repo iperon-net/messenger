@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -968,8 +969,12 @@ class _ComposeBar extends StatelessWidget {
                           // Слот фиксированный: поле ввода не дёргается при смене кнопки.
                           return ComposeActionSlot(
                             size: const Size(44, 34),
-                            child: state.slowModeLeft > 0 && !editing
-                                ? SlowModeCountdown(key: const ValueKey('slow'), seconds: state.slowModeLeft, color: secondary)
+                            child: (state.slowModeLeft > 0 || state.floodLeft > 0) && !editing
+                                ? SlowModeCountdown(
+                                    key: const ValueKey('slow'),
+                                    seconds: math.max(state.slowModeLeft, state.floodLeft),
+                                    color: secondary,
+                                  )
                                 : !canSend && !editing
                                 ? VoiceRecordButton(key: const ValueKey('mic'), recorder: recorder, style: voiceStyle)
                                 : CupertinoMenuAnchor(

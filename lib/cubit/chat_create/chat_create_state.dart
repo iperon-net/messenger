@@ -98,9 +98,16 @@ class ChatCreateState with ChatCreateStateMappable {
   /// (`ChatsOfflineException`): экран показывает «Нет соединения».
   final int offlineNotice;
 
+  /// Сервер отказал по лимиту частоты новых чатов: растёт на каждый отказ,
+  /// [floodSeconds] — через сколько можно снова (экран показывает пояснение).
+  final int floodNotice;
+  final int floodSeconds;
+
   const ChatCreateState({
     this.status = Status.initialization,
     this.offlineNotice = 0,
+    this.floodNotice = 0,
+    this.floodSeconds = 0,
     this.type = models.ChatType.private,
     this.chatID = '',
     this.communityID = '',

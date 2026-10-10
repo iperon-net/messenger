@@ -180,6 +180,9 @@ class ChatCreateCubit extends Cubit<ChatCreateState> {
     } on ChatsOfflineException {
       if (!isClosed) emit(state.copyWith(offlineNotice: state.offlineNotice + 1));
       return false;
+    } on ChatsFloodException catch (error) {
+      if (!isClosed) emit(state.copyWith(floodNotice: state.floodNotice + 1, floodSeconds: error.seconds));
+      return false;
     }
   }
 
