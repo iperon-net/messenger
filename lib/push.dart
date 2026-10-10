@@ -182,6 +182,25 @@ class PushManager {
     }
   }
 
+  /// Снимает уже показанные уведомления чата [chatID]: прочитано или удалено
+  /// здесь либо на другом устройстве (обновление из стрима / журнала). Устройства
+  /// без живого стрима снимает тихий push `READ_HISTORY` / `MESSAGE_DELETED`.
+  /// [maxID] — все сообщения до него включительно, [messageIDs] — только эти,
+  /// [all] — все уведомления чата.
+  static Future<void> clearChatNotifications(List<int> chatID, {int maxID = 0, List<int> messageIDs = const [], bool all = false}) async {
+    if (!_hasNativePush) return;
+    try {
+      await _channel.invokeMethod<void>('clearChatNotifications', {
+        'chatID': [for (final b in chatID) b.toRadixString(16).padLeft(2, '0')].join(),
+        'maxID': maxID,
+        'messageIDs': messageIDs,
+        'all': all,
+      });
+    } catch (error, stackTrace) {
+      getIt.get<Logger>().handle(error, stackTrace);
+    }
+  }
+
   Future<dynamic> _onNativeCall(MethodCall call) async {
     if (call.method == 'onNotificationTap') _handleTap(call.arguments);
     return null;

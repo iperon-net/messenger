@@ -175,6 +175,20 @@ import flutter_callkit_incoming
 
   // MARK: - Уведомления (UNUserNotificationCenterDelegate)
 
+  /// Тихий background-пуш (READ_HISTORY / MESSAGE_DELETED) — снимаем показанные
+  /// уведомления нативно (PushBridge.handleSilent), не будя Dart. Прочие —
+  /// плагинам (firebase_messaging), как раньше.
+  override func application(
+    _ application: UIApplication,
+    didReceiveRemoteNotification userInfo: [AnyHashable: Any],
+    fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void
+  ) {
+    if PushBridge.handleSilent(userInfo, completion: { completionHandler(.noData) }) {
+      return
+    }
+    super.application(application, didReceiveRemoteNotification: userInfo, fetchCompletionHandler: completionHandler)
+  }
+
   override func userNotificationCenter(
     _ center: UNUserNotificationCenter,
     willPresent notification: UNNotification,

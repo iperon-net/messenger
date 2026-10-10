@@ -60,6 +60,10 @@ class ChatsRemoteDataSource implements ChatsDataSource {
 
   static Never _unsupported(String what) => throw UnsupportedError('$what — пока только в демо (личные чаты — первый срез)');
 
+  /// Реакции, закрепы, пересылка и отложенные — второй срез.
+  @override
+  ChatsFeatures get features => const ChatsFeatures.none();
+
   // --- список чатов ---
 
   @override

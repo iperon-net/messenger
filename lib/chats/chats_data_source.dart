@@ -19,7 +19,26 @@ class ChatMembersPage {
   const ChatMembersPage({required this.members, required this.nextCursor, required this.total});
 }
 
+/// Что из действий над сообщениями умеет источник: демо — всё, серверный —
+/// пока только первый срез (личные чаты). Экраны прячут недоступное, а не
+/// падают с [UnsupportedError].
+class ChatsFeatures {
+  final bool reactions;
+  final bool pinnedMessages;
+  final bool forward;
+  final bool scheduled;
+
+  const ChatsFeatures({required this.reactions, required this.pinnedMessages, required this.forward, required this.scheduled});
+
+  const ChatsFeatures.all() : reactions = true, pinnedMessages = true, forward = true, scheduled = true;
+
+  const ChatsFeatures.none() : reactions = false, pinnedMessages = false, forward = false, scheduled = false;
+}
+
 abstract class ChatsDataSource {
+  /// Какие действия над сообщениями доступны (см. [ChatsFeatures]).
+  ChatsFeatures get features;
+
   /// Текущий список чатов (включая архивные) — сразу при подписке, затем при
   /// каждом изменении.
   Stream<List<models.Chat>> watchChats();

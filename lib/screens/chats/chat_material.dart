@@ -171,7 +171,8 @@ class _ChatMaterialState extends State<ChatMaterial> {
       actions: [
         IconButton(icon: const Icon(Icons.copy), onPressed: canCopy ? () => _copySelected(context) : null),
         IconButton(icon: const Icon(Icons.delete_outline), onPressed: canDelete ? () => _deleteSelected(context) : null),
-        IconButton(icon: const Icon(Icons.forward), onPressed: selected.isEmpty ? null : () => _forward(context)),
+        if (_cubit.features.forward)
+          IconButton(icon: const Icon(Icons.forward), onPressed: selected.isEmpty ? null : () => _forward(context)),
       ],
     );
   }
@@ -358,7 +359,7 @@ class _ChatMaterialState extends State<ChatMaterial> {
   /// текст, без пересылаемых.
   Future<void> _sendOptions(BuildContext context) async {
     final t = context.t.screenChat;
-    final canSchedule = _input.text.trim().isNotEmpty && _cubit.state.forwarding.isEmpty;
+    final canSchedule = _input.text.trim().isNotEmpty && _cubit.state.forwarding.isEmpty && _cubit.features.scheduled;
     HapticFeedback.mediumImpact();
     final action = await showModalBottomSheet<String>(
       context: context,
@@ -514,11 +515,13 @@ class _ChatMaterialState extends State<ChatMaterial> {
                                         controller: _scroll,
                                         keyFor: _keyFor,
                                         onCancelUpload: _cubit.cancelUpload,
-                                        onReaction: _cubit.toggleReaction,
-                                        onDoubleTap: (message) => _cubit.quickReact(
-                                          message,
-                                          preferred: context.read<CommonCubit>().state.settingsDevice.quickReaction,
-                                        ),
+                                        onReaction: _cubit.features.reactions ? _cubit.toggleReaction : null,
+                                        onDoubleTap: _cubit.features.reactions
+                                            ? (message) => _cubit.quickReact(
+                                                message,
+                                                preferred: context.read<CommonCubit>().state.settingsDevice.quickReaction,
+                                              )
+                                            : null,
                                         onReplyTap: _tracker.jumpToReply,
                                         onPinnedServiceTap: _tracker.jumpTo,
                                         unreadFromID: state.unreadFromID,
@@ -614,7 +617,8 @@ class _ChatMaterialState extends State<ChatMaterial> {
     final canWrite = chat.canPost && !_cubit.state.commentsBlocked;
     final commentsClosed = _cubit.state.commentsClosedIDs.contains(message.id);
     final error = Theme.of(context).colorScheme.error;
-    final reactions = availableReactions(chat, message: message);
+    final features = _cubit.features;
+    final reactions = features.reactions ? availableReactions(chat, message: message) : const <String>[];
     // Сверху — текст сообщения, его можно выделить: «Копировать | Цитировать»
     // (ответ на фрагмент, как в Telegram).
     final quotable = canWrite && message.text.isNotEmpty && message.kind != models.MessageKind.poll;
@@ -672,13 +676,18 @@ class _ChatMaterialState extends State<ChatMaterial> {
                 ListTile(leading: const Icon(Icons.format_quote), title: Text(t.quote), onTap: () => quoteText.currentState?.selectAll()),
               if (message.text.isNotEmpty)
                 ListTile(leading: const Icon(Icons.copy), title: Text(t.copy), onTap: () => Navigator.of(sheetContext).pop('copy')),
-              if (canWrite)
+              if (canWrite && features.pinnedMessages)
                 ListTile(
                   leading: Icon(message.pinned ? Icons.push_pin : Icons.push_pin_outlined),
                   title: Text(message.pinned ? t.unpin : t.pin),
                   onTap: () => Navigator.of(sheetContext).pop('pin'),
                 ),
-              ListTile(leading: const Icon(Icons.forward), title: Text(t.forward), onTap: () => Navigator.of(sheetContext).pop('forward')),
+              if (features.forward)
+                ListTile(
+                  leading: const Icon(Icons.forward),
+                  title: Text(t.forward),
+                  onTap: () => Navigator.of(sheetContext).pop('forward'),
+                ),
               if (message.outgoing && message.kind == models.MessageKind.text)
                 ListTile(
                   leading: const Icon(Icons.edit_outlined),

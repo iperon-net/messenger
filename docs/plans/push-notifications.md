@@ -469,11 +469,20 @@ message NotifySettings {
 
 - [ ] `Kind.MESSAGE` при новом сообщении: тип вложения в `args` (фото/видео/файл →
   локализованный текст на клиенте), учёт `PEER`-исключений и `muteUntil`.
-- [ ] `READ_HISTORY` / `MESSAGE_DELETED`: снять уведомления на всех устройствах
-  пользователя. iOS: с filtering entitlement NSE снимает
-  (`removeDeliveredNotifications`) и подавляет показ; без него — фолбэк
-  background-push (`content-available`, priority 5, троттлится системой). Android —
-  `cancel` нативно.
+- [x] `READ_HISTORY` / `MESSAGE_DELETED` (написано 2026-10-10, на устройствах не проверено):
+  снять уведомления на всех устройствах пользователя. Сервер (`ServiceChats.notifyCleared`):
+  READ_HISTORY читателю, когда прочтение сдвинуло inbox, и при «Удалить чат» с непрочитанными;
+  MESSAGE_DELETED тем, у кого удалили непрочитанные входящие. Онлайн-сессии пуш не получают —
+  они снимают уведомления сами, применив обновление из стрима (`ChatsSync` →
+  `PushManager.clearChatNotifications` → канал `clearChatNotifications`). iOS — background
+  push (`content-available`, priority 5), `AppDelegate` → `PushBridge.handleSilent`: расшифровка
+  (`PushCrypto` теперь и в target'е Runner), свой мини-декодер `SilentSignal`,
+  `removeDeliveredNotifications` по `chatID` / `messageID` из userInfo (их кладёт NSE). Не
+  доходит до приложения, выгруженного свайпом, и троттлится — тогда уведомления снимутся при
+  следующем запуске. Filtering entitlement (NSE подавляет сам пуш) — позже, если понадобится
+  надёжнее. Android — FCM `normal`, `MessagePushHandler.clearChat`: messageID сообщений
+  MessagingStyle хранятся в extras уведомления, снимаются только прочитанные / удалённые,
+  остаток пересобирается без звука.
 - [ ] Бейдж: серверные счётчики непрочитанных → `aps.badge` / `PushPayload.badge`.
 - [ ] Communication Notifications (iOS 15+): `INSendMessageIntent` + `INPerson` с
   аватаркой — кэш аватарок должен лежать в контейнере App Group (связано с

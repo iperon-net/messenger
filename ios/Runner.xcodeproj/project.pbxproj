@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		9A1C0DE5A1B2C3D4E5F60718 /* PushCrypto.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D17B862DC8799D1F5CB0080 /* PushCrypto.swift */; };
 		04536D59CCC8D64AFB90ADC8 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = BBDB682CA67179BD7415F26E /* GoogleService-Info.plist */; };
 		04B9D5B5F87EC77D789781E0 /* push_payload_v1.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = B43642EF433DF1C83E4BB1AE /* push_payload_v1.pb.swift */; };
 		1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */ = {isa = PBXBuildFile; fileRef = 1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */; };
@@ -606,6 +607,7 @@
 				7884E8682EC3CC0700C636F2 /* SceneDelegate.swift in Sources */,
 				F65B9B96E565B9A73657DD88 /* PushKeychain.swift in Sources */,
 				906036BF5950DBD9B5BDC516 /* PushBridge.swift in Sources */,
+				9A1C0DE5A1B2C3D4E5F60718 /* PushCrypto.swift in Sources */,
 				5B918FC2A891D826225921DB /* VideoCompressor.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

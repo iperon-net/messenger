@@ -33,6 +33,10 @@ object MessagePushHandler {
     // Сколько последних сообщений чата держать в MessagingStyle.
     private const val MAX_STYLE_MESSAGES = 7
 
+    // messageID сообщений MessagingStyle (в том же порядке) — в extras самого
+    // уведомления: по ним READ_HISTORY / MESSAGE_DELETED снимают только своё.
+    private const val EXTRA_MESSAGE_IDS = "iperon_message_ids"
+
     fun handle(context: Context, encrypted: String) {
         val payload = try {
             val plaintext = PushCrypto.open(encrypted) { keyId -> PushKeyStore.get(context, keyId) }
@@ -48,10 +52,13 @@ object MessagePushHandler {
         }
 
         when (payload.kind) {
-            // Прочитано/удалено на другом устройстве — снимаем уведомление чата.
-            // TODO(этап 7): MESSAGE_DELETED — снимать только удалённые сообщения.
-            PushPayload.KIND_READ_HISTORY, PushPayload.KIND_MESSAGE_DELETED -> {
-                NotificationManagerCompat.from(context).cancel(chatTag(payload), 0)
+            // Прочитано / удалено на другом устройстве — снимаем показанное.
+            PushPayload.KIND_READ_HISTORY -> {
+                clearChat(context, hex(payload.chatID), maxID = payload.messageID)
+                return
+            }
+            PushPayload.KIND_MESSAGE_DELETED -> {
+                clearChat(context, hex(payload.chatID), messageIDs = payload.messageIDs.toSet())
                 return
             }
         }
@@ -97,13 +104,20 @@ object MessagePushHandler {
             isMessage -> {
                 val sender = Person.Builder().setName(payload.title.ifEmpty { appName }).build()
                 val text = payload.body.ifEmpty { context.getString(R.string.push_message_no_preview) }
-                val style = existingStyle(context, tag)
+                val active = activeNotification(context, tag)
+                val style = active?.let { NotificationCompat.MessagingStyle.extractMessagingStyleFromNotification(it) }
                     ?: NotificationCompat.MessagingStyle(Person.Builder().setName(appName).build())
+                val ids = messageIDs(active, style.messages.size)
                 style.addMessage(text, payload.date.takeIf { it > 0 } ?: System.currentTimeMillis(), sender)
-                while (style.messages.size > MAX_STYLE_MESSAGES) style.messages.removeAt(0)
+                ids += payload.messageID
+                while (style.messages.size > MAX_STYLE_MESSAGES) {
+                    style.messages.removeAt(0)
+                    ids.removeAt(0)
+                }
                 builder.setStyle(style)
                     .setContentTitle(payload.title.ifEmpty { appName })
                     .setContentText(text)
+                    .addExtras(android.os.Bundle().apply { putLongArray(EXTRA_MESSAGE_IDS, ids.toLongArray()) })
             }
 
             else -> {
@@ -151,12 +165,61 @@ object MessagePushHandler {
         }
     }
 
-    /// MessagingStyle уже показанного уведомления чата — чтобы дописать новое
-    /// сообщение, а не заменить ленту одним последним.
-    private fun existingStyle(context: Context, tag: String): NotificationCompat.MessagingStyle? {
+    /// Уже показанное уведомление с тегом [tag] — чтобы дописать новое
+    /// сообщение в его MessagingStyle, а не заменить ленту одним последним.
+    private fun activeNotification(context: Context, tag: String): android.app.Notification? {
         val manager = context.getSystemService(NotificationManager::class.java) ?: return null
-        val active = manager.activeNotifications.firstOrNull { it.tag == tag } ?: return null
-        return NotificationCompat.MessagingStyle.extractMessagingStyleFromNotification(active.notification)
+        return manager.activeNotifications.firstOrNull { it.tag == tag }?.notification
+    }
+
+    /// messageID сообщений стиля уведомления [notification] (выровнены по
+    /// концу: у уведомлений старой версии без списка — 0, «неизвестно»).
+    private fun messageIDs(notification: android.app.Notification?, count: Int): MutableList<Long> {
+        val stored = notification?.extras?.getLongArray(EXTRA_MESSAGE_IDS)?.toList().orEmpty().takeLast(count)
+        return (List(count - stored.size) { 0L } + stored).toMutableList()
+    }
+
+    /// Снимает показанные сообщения чата [chatHex]: до [maxID] включительно
+    /// (прочитано; сообщения с неизвестным id — тоже), [messageIDs] (удалены)
+    /// или все ([all]). Осталось что-то — уведомление пересобирается без звука,
+    /// иначе снимается целиком. Зовётся из тихого пуша и из Dart (прочитано /
+    /// удалено при живом стриме).
+    fun clearChat(context: Context, chatHex: String, maxID: Long = 0, messageIDs: Set<Long> = emptySet(), all: Boolean = false) {
+        val manager = NotificationManagerCompat.from(context)
+        val tag = "chat:$chatHex"
+        val active = activeNotification(context, tag) ?: return
+        val style = NotificationCompat.MessagingStyle.extractMessagingStyleFromNotification(active)
+        if (all || style == null) {
+            if (all || maxID > 0) manager.cancel(tag, 0)
+            return
+        }
+
+        val ids = messageIDs(active, style.messages.size)
+        val keep = ids.indices.filterNot { i ->
+            val id = ids[i]
+            (maxID > 0 && id <= maxID) || (id != 0L && id in messageIDs)
+        }
+        if (keep.size == ids.size) return
+        if (keep.isEmpty()) {
+            manager.cancel(tag, 0)
+            return
+        }
+
+        val messages = keep.map { style.messages[it] }
+        style.messages.clear()
+        style.messages.addAll(messages)
+        val last = messages.last()
+        val builder = NotificationCompat.Builder(context, active)
+            .setStyle(style)
+            .setContentText(last.text)
+            .setOnlyAlertOnce(true)
+            .setSilent(true)
+            .addExtras(android.os.Bundle().apply { putLongArray(EXTRA_MESSAGE_IDS, keep.map { ids[it] }.toLongArray()) })
+        try {
+            manager.notify(tag, 0, builder.build())
+        } catch (error: SecurityException) {
+            Log.w(LOG_TAG, "push: re-notify denied", error)
+        }
     }
 
     /// Тап открывает приложение (MainActivity в singleTask) с данными

@@ -274,6 +274,17 @@ class MainActivity : FlutterFragmentActivity() {
                         PushKeyStore.clear(applicationContext)
                         result.success(null)
                     }
+                    // Прочитано / удалено (обновление из стрима) — снять показанное.
+                    "clearChatNotifications" -> {
+                        MessagePushHandler.clearChat(
+                            applicationContext,
+                            chatHex = call.argument<String>("chatID") ?: "",
+                            maxID = call.argument<Number>("maxID")?.toLong() ?: 0,
+                            messageIDs = call.argument<List<Number>>("messageIDs").orEmpty().map { it.toLong() }.toSet(),
+                            all = call.argument<Boolean>("all") ?: false,
+                        )
+                        result.success(null)
+                    }
                     "setPasscodeEnabled" -> {
                         PushKeyStore.setPasscodeEnabled(applicationContext, call.arguments as? Boolean ?: false)
                         result.success(null)

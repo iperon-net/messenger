@@ -39,6 +39,9 @@ class ChatsDemoDataSource implements ChatsDataSource {
   Timer? _timer;
 
   @override
+  ChatsFeatures get features => const ChatsFeatures.all();
+
+  @override
   Stream<List<models.Chat>> watchChats() async* {
     yield _present();
     yield* _chatsController.stream;

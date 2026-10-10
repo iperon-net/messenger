@@ -13,6 +13,7 @@ import '../di.dart';
 import '../logger.dart';
 import '../protobuf.dart';
 import '../protobuf/protos/chats_v1.pb.dart' as pb;
+import '../push.dart';
 import '../repositories.dart';
 import '../utils.dart';
 import 'chats_mapping.dart';
@@ -326,6 +327,7 @@ class ChatsSync {
         final ids = [for (final id in update.deleteMessages.messageIDs) id.toInt()];
         final dialog = await tx.dialog(userID: user, chatID: chatID);
         final unread = await tx.deleteMessages(userID: user, chatID: chatID, messageIDs: ids, readInboxMaxID: dialog?.readInboxMaxID ?? 0);
+        unawaited(PushManager.clearChatNotifications(chatID, messageIDs: ids));
         if (dialog == null) return;
         if (unread > 0) {
           await tx.updateDialog(userID: user, chatID: chatID, fields: {'unreadCount': math.max(0, dialog.unreadCount - unread)});
@@ -339,6 +341,7 @@ class ChatsSync {
 
       case pb.Update_Update.readInbox:
         final read = update.readInbox;
+        unawaited(PushManager.clearChatNotifications(read.chatID, maxID: read.maxID.toInt()));
         final dialog = await tx.dialog(userID: user, chatID: read.chatID);
         if (dialog == null) return;
         await tx.updateDialog(
@@ -381,6 +384,7 @@ class ChatsSync {
 
       case pb.Update_Update.dialogDeleted:
         await tx.deleteDialog(userID: user, chatID: update.dialogDeleted.chatID);
+        unawaited(PushManager.clearChatNotifications(update.dialogDeleted.chatID, all: true));
 
       case pb.Update_Update.notSet:
         // Пустое обновление (например, новое сообщение, которое потом удалили):

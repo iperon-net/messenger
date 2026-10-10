@@ -53,6 +53,9 @@ class ChatCubit extends Cubit<ChatState> {
 
   static void forwardTo(String chatID, List<models.Message> messages) => _pendingForwards[chatID] = messages;
 
+  /// Что доступно в источнике — экраны прячут остальное (реакции, закреп …).
+  ChatsFeatures get features => _source?.features ?? const ChatsFeatures.none();
+
   /// [demo] — флаг «Демо чатов» из `settingsDevice`.
   void initialization({required String chatID, required bool demo}) {
     _chatID = chatID;

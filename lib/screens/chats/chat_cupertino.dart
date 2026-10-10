@@ -528,11 +528,13 @@ class _ChatCupertinoState extends State<ChatCupertino> {
                                               controller: _scroll,
                                               keyFor: _keyFor,
                                               onCancelUpload: _cubit.cancelUpload,
-                                              onReaction: _cubit.toggleReaction,
-                                              onDoubleTap: (message) => _cubit.quickReact(
-                                                message,
-                                                preferred: context.read<CommonCubit>().state.settingsDevice.quickReaction,
-                                              ),
+                                              onReaction: _cubit.features.reactions ? _cubit.toggleReaction : null,
+                                              onDoubleTap: _cubit.features.reactions
+                                                  ? (message) => _cubit.quickReact(
+                                                      message,
+                                                      preferred: context.read<CommonCubit>().state.settingsDevice.quickReaction,
+                                                    )
+                                                  : null,
                                               onReplyTap: _tracker.jumpToReply,
                                               onPinnedServiceTap: _tracker.jumpTo,
                                               unreadFromID: state.unreadFromID,
@@ -658,7 +660,8 @@ class _ChatCupertinoState extends State<ChatCupertino> {
     final t = context.t.screenChat;
     final canWrite = chat.canPost && !_cubit.state.commentsBlocked;
     final commentsClosed = _cubit.state.commentsClosedIDs.contains(message.id);
-    final reactions = availableReactions(chat, message: message);
+    final features = _cubit.features;
+    final reactions = features.reactions ? availableReactions(chat, message: message) : const <String>[];
 
     // Меню — маршрут корневого навигатора: сначала закрываем его, потом
     // действие (иначе превью «мигнёт» уже изменённым пузырём).
@@ -707,12 +710,13 @@ class _ChatCupertinoState extends State<ChatCupertino> {
           _focus.requestFocus();
         }),
       if (message.text.isNotEmpty) action(t.copy, CupertinoIcons.doc_on_doc, () => Clipboard.setData(ClipboardData(text: message.text))),
-      if (canWrite)
+      if (canWrite && features.pinnedMessages)
         action(message.pinned ? t.unpin : t.pin, message.pinned ? CupertinoIcons.pin_slash : CupertinoIcons.pin, () => _pin(chat, message)),
-      action(t.forward, CupertinoIcons.arrowshape_turn_up_right, () {
-        _cubit.startSelection(message);
-        _forward(context, single: true);
-      }),
+      if (features.forward)
+        action(t.forward, CupertinoIcons.arrowshape_turn_up_right, () {
+          _cubit.startSelection(message);
+          _forward(context, single: true);
+        }),
       if (message.outgoing && message.kind == models.MessageKind.text)
         action(t.edit, CupertinoIcons.pencil, () => _cubit.startEdit(message)),
       if (message.outgoing || chat.type == models.ChatType.private)
@@ -976,7 +980,9 @@ class _ComposeBar extends StatelessWidget {
                                         onPressed: onSendSilent,
                                         child: Text(t.screenChat.sendSilent),
                                       ),
-                                      if (value.text.trim().isNotEmpty && state.forwarding.isEmpty)
+                                      if (value.text.trim().isNotEmpty &&
+                                          state.forwarding.isEmpty &&
+                                          context.read<ChatCubit>().features.scheduled)
                                         CupertinoMenuItem(
                                           trailing: const Icon(CupertinoIcons.calendar),
                                           onPressed: onSendLater,
@@ -1058,7 +1064,7 @@ class _SelectionBar extends StatelessWidget {
           children: [
             button(CupertinoIcons.delete, canDelete ? onDelete : null, destructive: true),
             button(CupertinoIcons.doc_on_doc, canCopy ? onCopy : null),
-            button(CupertinoIcons.arrowshape_turn_up_right, selected.isEmpty ? null : onForward),
+            if (cubit.features.forward) button(CupertinoIcons.arrowshape_turn_up_right, selected.isEmpty ? null : onForward),
           ],
         ),
       ),

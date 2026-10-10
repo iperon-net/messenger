@@ -61,6 +61,8 @@ class NotificationService: UNNotificationServiceExtension {
     userInfo["id"] = payload.id
     userInfo["chatID"] = PushKeychain.hex(payload.chatID)
     userInfo["fromUserID"] = PushKeychain.hex(payload.fromUserID)
+    // По нему READ_HISTORY / MESSAGE_DELETED снимают только своё (PushBridge).
+    userInfo["messageID"] = NSNumber(value: payload.messageID)
     content.userInfo = userInfo
 
     let appName = Self.text("PUSH_APP_NAME")
@@ -91,8 +93,8 @@ class NotificationService: UNNotificationServiceExtension {
       content.body = payload.body.isEmpty ? Self.text("PUSH_MESSAGE_NO_PREVIEW") : payload.body
       content.threadIdentifier = "chat:" + PushKeychain.hex(payload.chatID)
     default:
-      // TODO(этап 7): READ_HISTORY / MESSAGE_DELETED — тихие, снимать уведомления
-      // чата (нужен filtering entitlement, чтобы не показывать сам пуш).
+      // READ_HISTORY / MESSAGE_DELETED сюда не попадают: сервер шлёт их
+      // background-пушем, их разбирает приложение (PushBridge.handleSilent).
       content.title = title
       content.body = payload.body.isEmpty ? Self.text("PUSH_FALLBACK_BODY") : payload.body
     }
