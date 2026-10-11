@@ -589,7 +589,7 @@ class ChatCubit extends Cubit<ChatState> {
       _online(() => _source?.setMessagePinned(_chatID, message.id, pinned, forEveryone: forEveryone));
 
   /// Открепить все (экран «Закреплённые сообщения»).
-  Future<bool> unpinAll() => _online(() => _source?.unpinAllMessages(_chatID));
+  Future<bool> unpinAll({bool forEveryone = true}) => _online(() => _source?.unpinAllMessages(_chatID, forEveryone: forEveryone));
 
   /// Режим выделения: «Выбрать» в меню сообщения.
   void startSelection(models.Message message) =>

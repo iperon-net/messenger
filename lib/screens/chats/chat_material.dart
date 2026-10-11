@@ -23,6 +23,7 @@ import 'compose_format_menu.dart';
 import 'forward_picker.dart';
 import 'chat_info_material.dart';
 import 'pinned_messages_material.dart';
+import 'pin_scope_material.dart';
 import 'scheduled_messages_material.dart';
 import 'voice_recorder.dart';
 
@@ -277,7 +278,7 @@ class _ChatMaterialState extends State<ChatMaterial> {
         unawaited(_jumpTo(pinned[index].id));
         setState(() => _pinIndex = (index + 1) % pinned.length);
       },
-      onUnpin: chat.type == models.ChatType.channel ? null : () => _confirmUnpin(context, pinned[index]),
+      onUnpin: chat.type == models.ChatType.channel ? null : () => _pin(chat, pinned[index]),
       onList: () => _openPinned(context),
     );
   }
@@ -300,23 +301,12 @@ class _ChatMaterialState extends State<ChatMaterial> {
     if (mounted) await _tracker.jumpTo(id);
   }
 
-  /// «Закрепить» — сразу, без диалога: в «Избранном» только у себя, иначе
-  /// у всех (с сервисным «Вы закрепили «…»»). «Открепить» — тоже сразу.
-  Future<void> _pin(models.Chat chat, models.Message message) => _cubit.setPinned(message, !message.pinned, forEveryone: !chat.isSelf);
-
-  Future<void> _confirmUnpin(BuildContext context, models.Message message) async {
-    final t = context.t.screenChat;
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(t.unpinTitle),
-        actions: [
-          TextButton(onPressed: () => Navigator.of(dialogContext).pop(false), child: Text(context.t.common.cancel)),
-          TextButton(onPressed: () => Navigator.of(dialogContext).pop(true), child: Text(t.unpin)),
-        ],
-      ),
-    );
-    if (confirmed ?? false) await _cubit.setPinned(message, false);
+  /// «Закрепить» / «Открепить»: в личном чате — у меня и у собеседника или
+  /// только у меня (см. [askPinScopeMaterial]).
+  Future<void> _pin(models.Chat chat, models.Message message) async {
+    final pinned = !message.pinned;
+    final forEveryone = await askPinScopeMaterial(context, chat, pin: pinned);
+    if (forEveryone != null) await _cubit.setPinned(message, pinned, forEveryone: forEveryone);
   }
 
   /// Нет доступа к микрофону (запись голосового).

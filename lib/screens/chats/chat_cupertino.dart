@@ -25,6 +25,7 @@ import 'forward_picker.dart';
 import 'chat_info_cupertino.dart';
 import 'message_context_menu_cupertino.dart';
 import 'pinned_messages_cupertino.dart';
+import 'pin_scope_cupertino.dart';
 import 'scheduled_messages_cupertino.dart';
 import 'voice_recorder.dart';
 
@@ -266,7 +267,7 @@ class _ChatCupertinoState extends State<ChatCupertino> {
         unawaited(_jumpTo(pinned[index].id));
         setState(() => _pinIndex = (index + 1) % pinned.length);
       },
-      onUnpin: chat.type == models.ChatType.channel ? null : () => _confirmUnpin(context, pinned[index]),
+      onUnpin: chat.type == models.ChatType.channel ? null : () => _pin(chat, pinned[index]),
       onList: () => _openPinned(context),
     );
   }
@@ -289,23 +290,12 @@ class _ChatCupertinoState extends State<ChatCupertino> {
     if (mounted) await _tracker.jumpTo(id);
   }
 
-  /// «Закрепить» — сразу, без диалога: в «Избранном» только у себя, иначе
-  /// у всех (с сервисным «Вы закрепили «…»»). «Открепить» — тоже сразу.
-  Future<void> _pin(models.Chat chat, models.Message message) => _cubit.setPinned(message, !message.pinned, forEveryone: !chat.isSelf);
-
-  Future<void> _confirmUnpin(BuildContext context, models.Message message) async {
-    final t = context.t.screenChat;
-    final confirmed = await showCupertinoDialog<bool>(
-      context: context,
-      builder: (dialogContext) => CupertinoAlertDialog(
-        title: Text(t.unpinTitle),
-        actions: [
-          CupertinoDialogAction(onPressed: () => Navigator.of(dialogContext).pop(false), child: Text(context.t.common.cancel)),
-          CupertinoDialogAction(isDestructiveAction: true, onPressed: () => Navigator.of(dialogContext).pop(true), child: Text(t.unpin)),
-        ],
-      ),
-    );
-    if (confirmed ?? false) await _cubit.setPinned(message, false);
+  /// «Закрепить» / «Открепить»: в личном чате — у меня и у собеседника или
+  /// только у меня (см. [askPinScopeCupertino]).
+  Future<void> _pin(models.Chat chat, models.Message message) async {
+    final pinned = !message.pinned;
+    final forEveryone = await askPinScopeCupertino(context, chat, pin: pinned);
+    if (forEveryone != null) await _cubit.setPinned(message, pinned, forEveryone: forEveryone);
   }
 
   /// Нет доступа к микрофону (запись голосового).

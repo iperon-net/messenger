@@ -1480,6 +1480,27 @@ class Translations$screenChat$en {
 	/// en: 'Unpin message?'
 	String get unpinTitle => 'Unpin message?';
 
+	/// en: 'Pin message?'
+	String get pinTitle => 'Pin message?';
+
+	/// en: 'Pin for me and {name}'
+	String pinForBoth({required Object name}) => 'Pin for me and ${name}';
+
+	/// en: 'Pin for me'
+	String get pinForMe => 'Pin for me';
+
+	/// en: 'Also pin for {name}'
+	String pinAlsoFor({required Object name}) => 'Also pin for ${name}';
+
+	/// en: 'Unpin for me and {name}'
+	String unpinForBoth({required Object name}) => 'Unpin for me and ${name}';
+
+	/// en: 'Unpin for me'
+	String get unpinForMe => 'Unpin for me';
+
+	/// en: 'Also unpin for {name}'
+	String unpinAlsoFor({required Object name}) => 'Also unpin for ${name}';
+
 	/// en: 'You pinned «{text}»'
 	String pinnedServiceYou({required Object text}) => 'You pinned «${text}»';
 
@@ -3968,6 +3989,13 @@ extension on Translations {
 			'screenChat.pinnedTitle' => 'Pinned message',
 			'screenChat.pinnedNumber' => ({required Object n}) => 'Pinned message #${n}',
 			'screenChat.unpinTitle' => 'Unpin message?',
+			'screenChat.pinTitle' => 'Pin message?',
+			'screenChat.pinForBoth' => ({required Object name}) => 'Pin for me and ${name}',
+			'screenChat.pinForMe' => 'Pin for me',
+			'screenChat.pinAlsoFor' => ({required Object name}) => 'Also pin for ${name}',
+			'screenChat.unpinForBoth' => ({required Object name}) => 'Unpin for me and ${name}',
+			'screenChat.unpinForMe' => 'Unpin for me',
+			'screenChat.unpinAlsoFor' => ({required Object name}) => 'Also unpin for ${name}',
 			'screenChat.pinnedServiceYou' => ({required Object text}) => 'You pinned «${text}»',
 			'screenChat.pinnedServiceYouMessage' => 'You pinned a message',
 			'screenChat.pinnedService' => ({required Object name, required Object text}) => '${name} pinned «${text}»',
@@ -4046,6 +4074,8 @@ extension on Translations {
 			'screenChat.kb' => 'KB',
 			'screenChat.mb' => 'MB',
 			'screenChat.gb' => 'GB',
+			_ => null,
+		} ?? switch (path) {
 			'screenChat.mediaCounter' => ({required Object current, required Object total}) => '${current} of ${total}',
 			'screenChat.addCaption' => 'Add a caption…',
 			'screenSettings.settings' => 'Settings',
@@ -4053,8 +4083,6 @@ extension on Translations {
 			'screenSettings.devices' => _root.screenSettingsDevices.devices,
 			'screenSettings.language' => 'Language',
 			'screenSettings.appearance' => _root.screenSettingsAppearance.appearance,
-			_ => null,
-		} ?? switch (path) {
 			'screenSettings.folders' => _root.screenChatFolders.folders,
 			'screenSettings.notifications' => _root.screenSettingsNotifications.notifications,
 			'screenSettings.privacyAndSecurity' => 'Privacy and security',
@@ -4560,6 +4588,8 @@ extension on Translations {
 			'passkey.retry' => 'Retry',
 			'passkey.verificationFailed' => 'Couldn\'t verify the passkey. Please try again.',
 			'passkey.ceremonyExpired' => 'The request expired. Please try again.',
+			_ => null,
+		} ?? switch (path) {
 			'passkey.unknownCredential' => 'This passkey isn\'t recognized.',
 			'passkey.alreadyRegistered' => 'This passkey is already registered.',
 			'passkey.notFound' => 'Passkey not found.',
@@ -4567,8 +4597,6 @@ extension on Translations {
 			'yandex.invalidToken' => 'Couldn\'t verify the Yandex sign-in. Please try again.',
 			'yandex.phoneMissing' => 'Your Yandex ID has no phone number. Add one in Yandex ID or sign in with your phone number.',
 			'yandex.invalidPhone' => 'The phone number in your Yandex ID can\'t be used to sign in. Sign in with your phone number.',
-			_ => null,
-		} ?? switch (path) {
 			'yandex.unavailable' => 'Yandex ID is unavailable right now. Please try again later.',
 			_ => null,
 		};

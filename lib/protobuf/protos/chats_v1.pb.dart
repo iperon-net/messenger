@@ -3841,8 +3841,8 @@ class Messages_ReadContentsResult extends $pb.GeneratedMessage {
 
 /// Закрепить / открепить. forEveryone — закрепить и у собеседника (в ленте
 /// появляется служебное MessagePin); собеседник ограничил, кто может ему
-/// писать, — закрепится только у себя. Открепление — у обоих (как в
-/// Telegram). Служебные сообщения не закрепляются.
+/// писать, — закрепится только у себя. Открепление с forEveryone — у обоих,
+/// без — только у себя (служебного нет). Служебные сообщения не закрепляются.
 class Messages_Pin extends $pb.GeneratedMessage {
   factory Messages_Pin({
     $core.List<$core.int>? chatID,
@@ -3977,13 +3977,16 @@ class Messages_PinResult extends $pb.GeneratedMessage {
   Updates ensureUpdates() => $_ensure(0);
 }
 
-/// Открепить все мои закреплённые в чате (у обоих).
+/// Открепить все мои закреплённые в чате: forEveryone — и у собеседника,
+/// иначе только у себя.
 class Messages_UnpinAll extends $pb.GeneratedMessage {
   factory Messages_UnpinAll({
     $core.List<$core.int>? chatID,
+    $core.bool? forEveryone,
   }) {
     final result = create();
     if (chatID != null) result.chatID = chatID;
+    if (forEveryone != null) result.forEveryone = forEveryone;
     return result;
   }
 
@@ -3997,6 +4000,7 @@ class Messages_UnpinAll extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Messages.UnpinAll',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
     ..a<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'chatID', $pb.PbFieldType.OY, protoName: 'chatID')
+    ..aOB(2, _omitFieldNames ? '' : 'forEveryone', protoName: 'forEveryone')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -4024,6 +4028,15 @@ class Messages_UnpinAll extends $pb.GeneratedMessage {
   $core.bool hasChatID() => $_has(0);
   @$pb.TagNumber(1)
   void clearChatID() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.bool get forEveryone => $_getBF(1);
+  @$pb.TagNumber(2)
+  set forEveryone($core.bool value) => $_setBool(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasForEveryone() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearForEveryone() => $_clearField(2);
 }
 
 class Messages_UnpinAllResult extends $pb.GeneratedMessage {

@@ -316,8 +316,9 @@ abstract class ChatsDataSource {
   /// «Вы закрепили «…»»; `false` — только у себя, без сервисного.
   Future<void> setMessagePinned(String chatID, String messageID, bool pinned, {bool forEveryone = true});
 
-  /// Открепить все сообщения чата (экран «Закреплённые сообщения»).
-  Future<void> unpinAllMessages(String chatID);
+  /// Открепить все сообщения чата (экран «Закреплённые сообщения»):
+  /// [forEveryone] — и у собеседника, иначе только у себя.
+  Future<void> unpinAllMessages(String chatID, {bool forEveryone = true});
 
   /// Закреплённые сообщения чата — от новых к старым; сразу при подписке,
   /// затем при каждом изменении. Не зависят от окна [watchMessages]:

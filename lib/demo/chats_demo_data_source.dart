@@ -1865,7 +1865,7 @@ class ChatsDemoDataSource implements ChatsDataSource {
   );
 
   @override
-  Future<void> unpinAllMessages(String chatID) async {
+  Future<void> unpinAllMessages(String chatID, {bool forEveryone = true}) async {
     _setMessages(chatID, [for (final m in _history(chatID)) m.pinned ? m.copyWith(pinned: false) : m]);
   }
 

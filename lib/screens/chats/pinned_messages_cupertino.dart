@@ -9,6 +9,7 @@ import '../../themes.dart';
 import 'chat_common.dart';
 import 'chat_cupertino.dart';
 import 'message_context_menu_cupertino.dart';
+import 'pin_scope_cupertino.dart';
 
 /// Экран «Закреплённые сообщения» (iOS) — значок списка в плашке
 /// закреплённого. Результат — id сообщения, к которому перейти в чате.
@@ -30,7 +31,7 @@ class PinnedMessagesCupertino extends StatelessWidget {
 
   /// Действия в контекстном меню пузыря (удержание): меню — маршрут
   /// корневого навигатора, сначала закрываем его, потом действие.
-  List<Widget> _menuActions(BuildContext context, models.Message message, bool canUnpin) {
+  List<Widget> _menuActions(BuildContext context, models.Chat chat, models.Message message, bool canUnpin) {
     final t = context.t.screenChat;
     final cubit = context.read<ChatCubit>();
     void close() => Navigator.of(context, rootNavigator: true).pop();
@@ -47,29 +48,20 @@ class PinnedMessagesCupertino extends StatelessWidget {
         CupertinoContextMenuAction(
           trailingIcon: CupertinoIcons.pin_slash,
           isDestructiveAction: true,
-          onPressed: () {
+          onPressed: () async {
             close();
-            cubit.setPinned(message, false);
+            final forEveryone = await askPinScopeCupertino(context, chat, pin: false);
+            if (forEveryone != null) await cubit.setPinned(message, false, forEveryone: forEveryone);
           },
           child: Text(t.unpin),
         ),
     ];
   }
 
-  Future<void> _unpinAll(BuildContext context, int count) async {
-    final t = context.t.screenChat;
+  Future<void> _unpinAll(BuildContext context, models.Chat chat, int count) async {
     final cubit = context.read<ChatCubit>();
-    final confirmed = await showCupertinoDialog<bool>(
-      context: context,
-      builder: (dialogContext) => CupertinoAlertDialog(
-        title: Text(t.unpinAllTitle(n: count)),
-        actions: [
-          CupertinoDialogAction(onPressed: () => Navigator.of(dialogContext).pop(false), child: Text(context.t.common.cancel)),
-          CupertinoDialogAction(isDestructiveAction: true, onPressed: () => Navigator.of(dialogContext).pop(true), child: Text(t.unpin)),
-        ],
-      ),
-    );
-    if (confirmed ?? false) await cubit.unpinAll();
+    final forEveryone = await askPinScopeCupertino(context, chat, pin: false, allCount: count);
+    if (forEveryone != null) await cubit.unpinAll(forEveryone: forEveryone);
   }
 
   @override
@@ -115,7 +107,7 @@ class PinnedMessagesCupertino extends StatelessWidget {
                               // Удержание — CupertinoContextMenu (menuWrapper).
                               onLongPress: (_) {},
                               menuWrapper: (message, bubble, preview) => MessageContextMenuCupertino(
-                                actions: _menuActions(context, message, canUnpin),
+                                actions: _menuActions(context, chat, message, canUnpin),
                                 bubble: bubble,
                                 preview: (maxWidth) => preview(maxWidth),
                               ),
@@ -131,7 +123,7 @@ class PinnedMessagesCupertino extends StatelessWidget {
                           child: SizedBox(
                             width: double.infinity,
                             child: CupertinoButton(
-                              onPressed: () => _unpinAll(context, pinned.length),
+                              onPressed: () => _unpinAll(context, chat, pinned.length),
                               child: Text(t.unpinAll, style: TextStyle(color: CupertinoColors.destructiveRed.resolveFrom(context))),
                             ),
                           ),

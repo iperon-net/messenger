@@ -1,0 +1,38 @@
+import 'package:cupertino_ui/cupertino_ui.dart';
+
+import '../../i18n/translations.g.dart';
+import '../../models.dart' as models;
+
+/// Закрепить ([pin]) / открепить сообщение, [allCount] — «Открепить все».
+/// Личный чат — как в Telegram, «… у меня и у {name}» / «… только у меня»;
+/// иначе закреп сразу (в «Избранном» — у себя), открепление — с
+/// подтверждением. Результат — forEveryone, `null` — отмена.
+Future<bool?> askPinScopeCupertino(BuildContext context, models.Chat chat, {required bool pin, int? allCount}) async {
+  final t = context.t.screenChat;
+  final private = chat.type == models.ChatType.private && !chat.isSelf;
+  if (pin && !private) return !chat.isSelf;
+  final title = pin ? t.pinTitle : (allCount != null ? t.unpinAllTitle(n: allCount) : t.unpinTitle);
+  return showCupertinoDialog<bool>(
+    context: context,
+    builder: (dialogContext) => CupertinoAlertDialog(
+      title: Text(title),
+      actions: [
+        if (private) ...[
+          CupertinoDialogAction(
+            isDefaultAction: pin,
+            isDestructiveAction: !pin,
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(pin ? t.pinForBoth(name: chat.title) : t.unpinForBoth(name: chat.title)),
+          ),
+          CupertinoDialogAction(
+            isDestructiveAction: !pin,
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(pin ? t.pinForMe : t.unpinForMe),
+          ),
+        ] else
+          CupertinoDialogAction(isDestructiveAction: true, onPressed: () => Navigator.of(dialogContext).pop(true), child: Text(t.unpin)),
+        CupertinoDialogAction(onPressed: () => Navigator.of(dialogContext).pop(), child: Text(context.t.common.cancel)),
+      ],
+    ),
+  );
+}

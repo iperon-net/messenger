@@ -1018,9 +1018,13 @@ class ChatsRemoteDataSource implements ChatsDataSource {
   }
 
   @override
-  Future<void> unpinAllMessages(String chatID) async {
+  Future<void> unpinAllMessages(String chatID, {bool forEveryone = true}) async {
     await _requireNetwork();
-    final response = await _sync.messages(pb.Messages_Request(unpinAll: pb.Messages_UnpinAll(chatID: idBytes(chatID))));
+    final response = await _sync.messages(
+      pb.Messages_Request(
+        unpinAll: pb.Messages_UnpinAll(chatID: idBytes(chatID), forEveryone: forEveryone),
+      ),
+    );
     await _sync.applyUpdates(response.unpinAll.updates);
   }
 

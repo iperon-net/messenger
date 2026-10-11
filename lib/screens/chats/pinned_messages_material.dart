@@ -8,6 +8,7 @@ import '../../models.dart' as models;
 import '../../themes.dart';
 import 'chat_common.dart';
 import 'chat_material.dart';
+import 'pin_scope_material.dart';
 
 /// Экран «Закреплённые сообщения» (Android) — значок списка в плашке
 /// закреплённого. Результат — id сообщения, к которому перейти в чате.
@@ -27,7 +28,7 @@ class PinnedMessagesMaterial extends StatelessWidget {
 
   void _goTo(BuildContext context, models.Message message) => Navigator.of(context).pop(message.id);
 
-  Future<void> _actions(BuildContext context, models.Message message, bool canUnpin) async {
+  Future<void> _actions(BuildContext context, models.Chat chat, models.Message message, bool canUnpin) async {
     final t = context.t.screenChat;
     final cubit = context.read<ChatCubit>();
     final action = await showModalBottomSheet<String>(
@@ -57,24 +58,15 @@ class PinnedMessagesMaterial extends StatelessWidget {
       case 'go':
         _goTo(context, message);
       case 'unpin':
-        await cubit.setPinned(message, false);
+        final forEveryone = await askPinScopeMaterial(context, chat, pin: false);
+        if (forEveryone != null) await cubit.setPinned(message, false, forEveryone: forEveryone);
     }
   }
 
-  Future<void> _unpinAll(BuildContext context, int count) async {
-    final t = context.t.screenChat;
+  Future<void> _unpinAll(BuildContext context, models.Chat chat, int count) async {
     final cubit = context.read<ChatCubit>();
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(t.unpinAllTitle(n: count)),
-        actions: [
-          TextButton(onPressed: () => Navigator.of(dialogContext).pop(false), child: Text(context.t.common.cancel)),
-          TextButton(onPressed: () => Navigator.of(dialogContext).pop(true), child: Text(t.unpin)),
-        ],
-      ),
-    );
-    if (confirmed ?? false) await cubit.unpinAll();
+    final forEveryone = await askPinScopeMaterial(context, chat, pin: false, allCount: count);
+    if (forEveryone != null) await cubit.unpinAll(forEveryone: forEveryone);
   }
 
   @override
@@ -111,7 +103,7 @@ class PinnedMessagesMaterial extends StatelessWidget {
                         chatType: chat.type,
                         style: ChatMaterial.bubbleStyle(context),
                         padding: const EdgeInsets.symmetric(vertical: 8),
-                        onLongPress: (message) => _actions(context, message, canUnpin),
+                        onLongPress: (message) => _actions(context, chat, message, canUnpin),
                         onTap: (message) => _goTo(context, message),
                         onMediaTap: (message, _) => _goTo(context, message),
                       ),
@@ -127,7 +119,7 @@ class PinnedMessagesMaterial extends StatelessWidget {
                       width: double.infinity,
                       child: TextButton(
                         style: TextButton.styleFrom(foregroundColor: scheme.error, padding: const EdgeInsets.symmetric(vertical: 16)),
-                        onPressed: () => _unpinAll(context, pinned.length),
+                        onPressed: () => _unpinAll(context, chat, pinned.length),
                         child: Text(t.unpinAll),
                       ),
                     ),

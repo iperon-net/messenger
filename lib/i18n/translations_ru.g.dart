@@ -637,6 +637,13 @@ class _Translations$screenChat$ru extends Translations$screenChat$en {
 	@override String get pinnedTitle => 'Закреплённое сообщение';
 	@override String pinnedNumber({required Object n}) => 'Закреплённое сообщение #${n}';
 	@override String get unpinTitle => 'Открепить сообщение?';
+	@override String get pinTitle => 'Закрепить сообщение?';
+	@override String pinForBoth({required Object name}) => 'Закрепить у меня и у ${name}';
+	@override String get pinForMe => 'Закрепить только у меня';
+	@override String pinAlsoFor({required Object name}) => 'Также закрепить для ${name}';
+	@override String unpinForBoth({required Object name}) => 'Открепить у меня и у ${name}';
+	@override String get unpinForMe => 'Открепить только у меня';
+	@override String unpinAlsoFor({required Object name}) => 'Также открепить для ${name}';
 	@override String pinnedServiceYou({required Object text}) => 'Вы закрепили «${text}»';
 	@override String get pinnedServiceYouMessage => 'Вы закрепили сообщение';
 	@override String pinnedService({required Object name, required Object text}) => '${name} закрепил(а) «${text}»';
@@ -1941,6 +1948,13 @@ extension on TranslationsRu {
 			'screenChat.pinnedTitle' => 'Закреплённое сообщение',
 			'screenChat.pinnedNumber' => ({required Object n}) => 'Закреплённое сообщение #${n}',
 			'screenChat.unpinTitle' => 'Открепить сообщение?',
+			'screenChat.pinTitle' => 'Закрепить сообщение?',
+			'screenChat.pinForBoth' => ({required Object name}) => 'Закрепить у меня и у ${name}',
+			'screenChat.pinForMe' => 'Закрепить только у меня',
+			'screenChat.pinAlsoFor' => ({required Object name}) => 'Также закрепить для ${name}',
+			'screenChat.unpinForBoth' => ({required Object name}) => 'Открепить у меня и у ${name}',
+			'screenChat.unpinForMe' => 'Открепить только у меня',
+			'screenChat.unpinAlsoFor' => ({required Object name}) => 'Также открепить для ${name}',
 			'screenChat.pinnedServiceYou' => ({required Object text}) => 'Вы закрепили «${text}»',
 			'screenChat.pinnedServiceYouMessage' => 'Вы закрепили сообщение',
 			'screenChat.pinnedService' => ({required Object name, required Object text}) => '${name} закрепил(а) «${text}»',
@@ -2019,6 +2033,8 @@ extension on TranslationsRu {
 			'screenChat.kb' => 'КБ',
 			'screenChat.mb' => 'МБ',
 			'screenChat.gb' => 'ГБ',
+			_ => null,
+		} ?? switch (path) {
 			'screenChat.mediaCounter' => ({required Object current, required Object total}) => '${current} из ${total}',
 			'screenChat.addCaption' => 'Добавить подпись…',
 			'screenSettings.settings' => 'Настройки',
@@ -2026,8 +2042,6 @@ extension on TranslationsRu {
 			'screenSettings.devices' => _root.screenSettingsDevices.devices,
 			'screenSettings.language' => 'Язык',
 			'screenSettings.appearance' => _root.screenSettingsAppearance.appearance,
-			_ => null,
-		} ?? switch (path) {
 			'screenSettings.folders' => _root.screenChatFolders.folders,
 			'screenSettings.notifications' => _root.screenSettingsNotifications.notifications,
 			'screenSettings.privacyAndSecurity' => 'Конфиденциальность',
@@ -2533,6 +2547,8 @@ extension on TranslationsRu {
 			'passkey.retry' => 'Повторить',
 			'passkey.verificationFailed' => 'Не удалось проверить ключ. Попробуйте ещё раз.',
 			'passkey.ceremonyExpired' => 'Срок запроса истёк. Попробуйте ещё раз.',
+			_ => null,
+		} ?? switch (path) {
 			'passkey.unknownCredential' => 'Этот ключ не распознан.',
 			'passkey.alreadyRegistered' => 'Этот ключ уже зарегистрирован.',
 			'passkey.notFound' => 'Ключ не найден.',
@@ -2540,8 +2556,6 @@ extension on TranslationsRu {
 			'yandex.invalidToken' => 'Не удалось подтвердить вход через Яндекс. Попробуйте ещё раз.',
 			'yandex.phoneMissing' => 'К аккаунту Яндекс ID не привязан номер телефона. Добавьте его в Яндекс ID или войдите по номеру.',
 			'yandex.invalidPhone' => 'Номер телефона в Яндекс ID не подходит для входа. Войдите по номеру.',
-			_ => null,
-		} ?? switch (path) {
 			'yandex.unavailable' => 'Яндекс ID сейчас недоступен. Попробуйте позже.',
 			_ => null,
 		};
