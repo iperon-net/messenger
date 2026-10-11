@@ -33,6 +33,7 @@ class ChatCubit extends Cubit<ChatState> {
   StreamSubscription<List<models.Chat>>? _chatsSubscription;
   StreamSubscription<List<models.Message>>? _messagesSubscription;
   StreamSubscription<List<models.Message>>? _scheduledSubscription;
+  StreamSubscription<List<models.Message>>? _pinnedSubscription;
   StreamSubscription<void>? _membersSubscription;
   StreamSubscription<models.Message>? _voiceSubscription;
   StreamSubscription<DateTime?>? _floodSubscription;
@@ -161,6 +162,9 @@ class ChatCubit extends Cubit<ChatState> {
     });
     _scheduledSubscription = source.watchScheduled(chatID).listen((scheduled) {
       if (!isClosed) emit(state.copyWith(scheduled: scheduled));
+    });
+    _pinnedSubscription = source.watchPinnedMessages(chatID).listen((pinned) {
+      if (!isClosed) emit(state.copyWith(pinned: pinned));
     });
     _messagesSubscription = source.watchMessages(chatID).listen((messages) {
       if (isClosed) return;
@@ -548,6 +552,10 @@ class ChatCubit extends Cubit<ChatState> {
     }
   }
 
+  /// Перейти к сообщению [id] (плашка закреплённых, «закрепил «…»»): старое,
+  /// за окном истории, — сначала расширить ленту до него.
+  Future<void> reveal(String id) => _reveal(id);
+
   /// Сообщения [id] ещё нет в ленте (старое, за окном истории) — расширить
   /// ленту до него и дождаться, пока оно придёт.
   Future<void> _reveal(String id) async {
@@ -576,11 +584,12 @@ class ChatCubit extends Cubit<ChatState> {
 
   /// Закрепить / открепить (меню сообщения, крестик в плашке); [forEveryone]
   /// — см. [ChatsDataSource.setMessagePinned].
-  Future<void> setPinned(models.Message message, bool pinned, {bool forEveryone = true}) async =>
-      _source?.setMessagePinned(_chatID, message.id, pinned, forEveryone: forEveryone);
+  /// Без сети — «Нет соединения» (`offlineNotice`), false.
+  Future<bool> setPinned(models.Message message, bool pinned, {bool forEveryone = true}) =>
+      _online(() => _source?.setMessagePinned(_chatID, message.id, pinned, forEveryone: forEveryone));
 
   /// Открепить все (экран «Закреплённые сообщения»).
-  Future<void> unpinAll() async => _source?.unpinAllMessages(_chatID);
+  Future<bool> unpinAll() => _online(() => _source?.unpinAllMessages(_chatID));
 
   /// Режим выделения: «Выбрать» в меню сообщения.
   void startSelection(models.Message message) =>
@@ -863,6 +872,7 @@ class ChatCubit extends Cubit<ChatState> {
     await _chatsSubscription?.cancel();
     await _messagesSubscription?.cancel();
     await _scheduledSubscription?.cancel();
+    await _pinnedSubscription?.cancel();
     await _membersSubscription?.cancel();
     await _voiceSubscription?.cancel();
     await _floodSubscription?.cancel();

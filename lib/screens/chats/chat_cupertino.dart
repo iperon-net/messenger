@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:flutter/services.dart';
@@ -262,7 +263,7 @@ class _ChatCupertinoState extends State<ChatCupertino> {
       ),
       // Тап — к показанному, затем плашка показывает следующее (старее).
       onTap: () {
-        _tracker.jumpTo(pinned[index].id);
+        unawaited(_jumpTo(pinned[index].id));
         setState(() => _pinIndex = (index + 1) % pinned.length);
       },
       onUnpin: chat.type == models.ChatType.channel ? null : () => _confirmUnpin(context, pinned[index]),
@@ -273,7 +274,19 @@ class _ChatCupertinoState extends State<ChatCupertino> {
   /// «Закреплённые сообщения» — оттуда тап по сообщению ведёт к нему в ленте.
   Future<void> _openPinned(BuildContext context) async {
     final id = await showPinnedMessagesCupertino(context, _cubit);
-    if (id != null && mounted) await _tracker.jumpTo(id);
+    if (id != null && mounted) await _jumpTo(id);
+  }
+
+  /// Закрепить можно отправленное (не ⏱ / «!») и не звонок.
+  bool _pinnable(models.Message message) =>
+      message.kind != models.MessageKind.call &&
+      message.status != models.MessageStatus.pending &&
+      message.status != models.MessageStatus.failed;
+
+  /// К сообщению [id]: старое, за окном ленты, — сначала подгрузить до него.
+  Future<void> _jumpTo(String id) async {
+    await _cubit.reveal(id);
+    if (mounted) await _tracker.jumpTo(id);
   }
 
   /// «Закрепить» — сразу, без диалога: в «Избранном» только у себя, иначе
@@ -542,7 +555,8 @@ class _ChatCupertinoState extends State<ChatCupertino> {
                                                     )
                                                   : null,
                                               onReplyTap: _tracker.jumpToReply,
-                                              onPinnedServiceTap: _tracker.jumpTo,
+                                              onPinnedServiceTap: _jumpTo,
+                                              pinned: state.pinnedMessages,
                                               unreadFromID: state.unreadFromID,
                                               flashID: _flashID,
                                               flashRange: _tracker.flashRange,
@@ -718,7 +732,7 @@ class _ChatCupertinoState extends State<ChatCupertino> {
           _focus.requestFocus();
         }),
       if (message.text.isNotEmpty) action(t.copy, CupertinoIcons.doc_on_doc, () => Clipboard.setData(ClipboardData(text: message.text))),
-      if (canWrite && features.pinnedMessages)
+      if (canWrite && features.pinnedMessages && _pinnable(message))
         action(message.pinned ? t.unpin : t.pin, message.pinned ? CupertinoIcons.pin_slash : CupertinoIcons.pin, () => _pin(chat, message)),
       if (features.forward)
         action(t.forward, CupertinoIcons.arrowshape_turn_up_right, () {

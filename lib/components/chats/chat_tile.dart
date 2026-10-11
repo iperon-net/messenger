@@ -40,6 +40,16 @@ abstract final class ChatTileContent {
       // Пустое «Избранное» — подсказка вместо пустой строки.
       return ChatPreview(ChatPreviewKind.message, chat.isSelf ? s.savedMessagesEmpty : '');
     }
+    // «Закрепил сообщение» — как плашка в ленте; собеседник — по названию чата.
+    if (message.pin) {
+      final tc = t.screenChat;
+      final text = message.outgoing
+          ? (message.pinText.isEmpty ? tc.pinnedServiceYouMessage : tc.pinnedServiceYou(text: message.pinText))
+          : (message.pinText.isEmpty
+                ? tc.pinnedServiceMessage(name: chat.title)
+                : tc.pinnedService(name: chat.title, text: message.pinText));
+      return ChatPreview(ChatPreviewKind.message, text);
+    }
     final media = switch (message.kind) {
       models.MessageKind.text => '',
       models.MessageKind.photo => s.photo,
@@ -70,8 +80,10 @@ abstract final class ChatTileContent {
   /// Галочки исходящего: ⏱ / ✓ / ✓✓. `null` — не наше сообщение (или черновик).
   static FaIconData? statusIcon(models.Chat chat) {
     final message = chat.lastMessage;
-    // У звонка галочек нет (как в Telegram).
-    if (message == null || !message.outgoing || chat.draft.isNotEmpty || message.kind == models.MessageKind.call) return null;
+    // У звонка и «закрепил сообщение» галочек нет (как в Telegram).
+    if (message == null || !message.outgoing || chat.draft.isNotEmpty || message.kind == models.MessageKind.call || message.pin) {
+      return null;
+    }
     return switch (message.status) {
       models.MessageStatus.pending => FontAwesomeIcons.clock,
       models.MessageStatus.sent => FontAwesomeIcons.check,

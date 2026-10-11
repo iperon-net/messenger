@@ -114,6 +114,7 @@ class ChatsRepository {
   static const dialogsTable = 'chatDialogs';
   static const messagesTable = 'chatMessages';
   static const outboxTable = 'chatOutbox';
+  static const pinnedTable = 'chatPinned';
 
   static const _dialogColumns =
       'chatID, type, peerUserID, topMessageID, topMessageDate, topMessage, readInboxMaxID, readOutboxMaxID, unreadCount, '
@@ -255,6 +256,7 @@ class ChatsRepository {
   Future<void> deleteDialog({required List<int> userID, required List<int> chatID}) async {
     await ctx.execute('DELETE FROM chatMessages WHERE userID = ? AND chatID = ?;', [userID, chatID]);
     await ctx.execute('DELETE FROM chatOutbox WHERE userID = ? AND chatID = ?;', [userID, chatID]);
+    await ctx.execute('DELETE FROM chatPinned WHERE userID = ? AND chatID = ?;', [userID, chatID]);
     await ctx.execute('DELETE FROM chatDialogs WHERE userID = ? AND chatID = ?;', [userID, chatID]);
   }
 
@@ -316,6 +318,13 @@ class ChatsRepository {
       ],
     );
     if (message.content.hasCall()) await _upsertCallLog(userID: userID, message: message);
+    // Закреплённое правили — и в плашке новый текст.
+    await ctx.execute('UPDATE chatPinned SET message = ? WHERE userID = ? AND chatID = ? AND messageID = ?;', [
+      message.writeToBuffer(),
+      userID,
+      message.chatID,
+      message.messageID.toInt(),
+    ]);
   }
 
   /// Звонок из чата → журнал «Звонков» (`callLogs`): строку, записанную
@@ -448,6 +457,11 @@ class ChatsRepository {
       chatID,
       ...messageIDs,
     ]);
+    await ctx.execute('DELETE FROM chatPinned WHERE userID = ? AND chatID = ? AND messageID IN ($placeholders);', [
+      userID,
+      chatID,
+      ...messageIDs,
+    ]);
     return unread?['n'] as int? ?? 0;
   }
 
@@ -460,6 +474,71 @@ class ChatsRepository {
       chatID,
       ...messageIDs,
     ]);
+  }
+
+  // --- закреплённые ---
+
+  /// Мои закреплённые сообщения чата — от новых к старым.
+  Future<List<pb.ChatMessage>> pinned({required List<int> userID, required List<int> chatID}) async {
+    final rows = await ctx.getAll('SELECT message FROM chatPinned WHERE userID = ? AND chatID = ? ORDER BY messageID DESC;', [
+      userID,
+      chatID,
+    ]);
+    return [for (final row in rows) pb.ChatMessage.fromBuffer(row['message'] as List<int>)];
+  }
+
+  /// Список с сервера (Messages.Pinned) заменяет локальный.
+  Future<void> replacePinned({required List<int> userID, required List<int> chatID, required List<pb.ChatMessage> messages}) async {
+    await ctx.execute('DELETE FROM chatPinned WHERE userID = ? AND chatID = ?;', [userID, chatID]);
+    for (final message in messages) {
+      await ctx.execute('INSERT OR REPLACE INTO chatPinned (userID, chatID, messageID, message) VALUES (?, ?, ?, ?);', [
+        userID,
+        chatID,
+        message.messageID.toInt(),
+        message.writeToBuffer(),
+      ]);
+    }
+  }
+
+  /// Закрепили / открепили [messageIDs] (Update.pinnedMessages). Закреплённые
+  /// берём из кэша истории; возвращает тех, кого там нет (содержимое — с
+  /// сервера, Messages.Pinned).
+  Future<List<int>> setPinned({
+    required List<int> userID,
+    required List<int> chatID,
+    required List<int> messageIDs,
+    required bool pinned,
+  }) async {
+    if (messageIDs.isEmpty) return const [];
+    if (!pinned) {
+      final placeholders = List.filled(messageIDs.length, '?').join(',');
+      await ctx.execute('DELETE FROM chatPinned WHERE userID = ? AND chatID = ? AND messageID IN ($placeholders);', [
+        userID,
+        chatID,
+        ...messageIDs,
+      ]);
+      return const [];
+    }
+    final missing = <int>[];
+    for (final id in messageIDs) {
+      final cached = await message(userID: userID, chatID: chatID, messageID: id);
+      if (cached == null) {
+        final known = await ctx.getOptional('SELECT 1 FROM chatPinned WHERE userID = ? AND chatID = ? AND messageID = ?;', [
+          userID,
+          chatID,
+          id,
+        ]);
+        if (known == null) missing.add(id);
+        continue;
+      }
+      await ctx.execute('INSERT OR REPLACE INTO chatPinned (userID, chatID, messageID, message) VALUES (?, ?, ?, ?);', [
+        userID,
+        chatID,
+        id,
+        cached.writeToBuffer(),
+      ]);
+    }
+    return missing;
   }
 
   pb.ChatMessage _messageFromRow(Map<String, dynamic> row) => pb.ChatMessage(

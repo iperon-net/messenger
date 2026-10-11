@@ -480,6 +480,17 @@ class ChatsSync {
         await tx.deleteDialog(userID: user, chatID: update.dialogDeleted.chatID);
         unawaited(PushManager.clearChatNotifications(update.dialogDeleted.chatID, all: true));
 
+      case pb.Update_Update.pinnedMessages:
+        final pins = update.pinnedMessages;
+        final missing = await tx.setPinned(
+          userID: user,
+          chatID: pins.chatID,
+          messageIDs: [for (final id in pins.messageIDs) id.toInt()],
+          pinned: pins.pinned,
+        );
+        // Закрепили сообщение старше скачанной истории — содержимое с сервера.
+        if (missing.isNotEmpty) followUps.refreshPinned.add(Uint8List.fromList(pins.chatID));
+
       case pb.Update_Update.notSet:
         // Пустое обновление (например, новое сообщение, которое потом удалили):
         // ничего не меняем, но pts сдвигается — это не дыра.
@@ -493,6 +504,9 @@ class ChatsSync {
     try {
       for (final chatID in followUps.refreshTop) {
         await loadHistory(chatID, limit: 1);
+      }
+      for (final chatID in followUps.refreshPinned) {
+        await loadPinned(chatID);
       }
       if (followUps.reloadDialogs) {
         await _locked(() async {
@@ -553,6 +567,21 @@ class ChatsSync {
         if (newest != null && newest.messageID.toInt() >= dialog.topMessageID) {
           await tx.setTopMessage(userID: user, chatID: chatID, message: newest);
         }
+      }),
+    );
+  }
+
+  /// Закреплённые сообщения чата с сервера — в кэш (открытие чата; закрепили
+  /// то, чего нет в кэше истории). Нет сети — молча: показываем кэш.
+  Future<void> loadPinned(Uint8List chatID) async {
+    if (!await hasNetwork()) return;
+    final response = await messages(pb.Messages_Request(pinned: pb.Messages_Pinned(chatID: chatID)));
+    final pinned = response.pinned.messages;
+    final user = me;
+    await _locked(
+      () => _store.transaction((tx) async {
+        if (await tx.dialog(userID: user, chatID: chatID) == null) return;
+        await tx.replacePinned(userID: user, chatID: chatID, messages: pinned);
       }),
     );
   }
@@ -921,4 +950,5 @@ enum _Upload { done, stop, skip }
 class _FollowUps {
   bool reloadDialogs = false;
   final refreshTop = <Uint8List>[];
+  final refreshPinned = <Uint8List>[];
 }

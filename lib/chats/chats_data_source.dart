@@ -319,6 +319,11 @@ abstract class ChatsDataSource {
   /// Открепить все сообщения чата (экран «Закреплённые сообщения»).
   Future<void> unpinAllMessages(String chatID);
 
+  /// Закреплённые сообщения чата — от новых к старым; сразу при подписке,
+  /// затем при каждом изменении. Не зависят от окна [watchMessages]:
+  /// закреплённое может быть старше загруженной истории.
+  Stream<List<models.Message>> watchPinnedMessages(String chatID);
+
   /// Переслать [messages] (из любых чатов, по порядку) в чат [toChatID]: новые
   /// исходящие сообщения с тем же содержимым и пометкой «Переслано от».
   Future<void> forwardMessages(String toChatID, List<models.Message> messages);

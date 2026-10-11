@@ -68,6 +68,9 @@ class ChatState with ChatStateMappable {
   /// в поле ввода значок календаря.
   final List<models.Message> scheduled;
 
+  /// Закреплённые — от новых к старым ([ChatsDataSource.watchPinnedMessages]).
+  final List<models.Message> pinned;
+
   /// × на превью ссылки над полем ввода — отправить без превью (до отправки).
   final bool linkPreviewDisabled;
 
@@ -138,6 +141,7 @@ class ChatState with ChatStateMappable {
     this.searchResults = const [],
     this.searchIndex = 0,
     this.scheduled = const [],
+    this.pinned = const [],
     this.linkPreviewDisabled = false,
     this.members = const [],
     this.memberPage = const [],
@@ -159,10 +163,7 @@ class ChatState with ChatStateMappable {
   bool get commentsBlocked => commentsBlock != ChatCommentsBlock.none;
 
   /// Закреплённые — от новых к старым (плашка показывает сначала последнее).
-  List<models.Message> get pinnedMessages => [
-    for (final m in messages.reversed)
-      if (m.pinned && !m.service) m,
-  ];
+  List<models.Message> get pinnedMessages => pinned;
 
   /// Отмеченные сообщения — в порядке ленты (от старых к новым).
   List<models.Message> get selectedMessages => [

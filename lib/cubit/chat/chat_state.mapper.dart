@@ -205,6 +205,13 @@ class ChatStateMapper extends ClassMapperBase<ChatState> {
     opt: true,
     def: const [],
   );
+  static List<models.Message> _$pinned(ChatState v) => v.pinned;
+  static const Field<ChatState, List<models.Message>> _f$pinned = Field(
+    'pinned',
+    _$pinned,
+    opt: true,
+    def: const [],
+  );
   static bool _$linkPreviewDisabled(ChatState v) => v.linkPreviewDisabled;
   static const Field<ChatState, bool> _f$linkPreviewDisabled = Field(
     'linkPreviewDisabled',
@@ -329,6 +336,7 @@ class ChatStateMapper extends ClassMapperBase<ChatState> {
     #searchResults: _f$searchResults,
     #searchIndex: _f$searchIndex,
     #scheduled: _f$scheduled,
+    #pinned: _f$pinned,
     #linkPreviewDisabled: _f$linkPreviewDisabled,
     #members: _f$members,
     #memberPage: _f$memberPage,
@@ -366,6 +374,7 @@ class ChatStateMapper extends ClassMapperBase<ChatState> {
       searchResults: data.dec(_f$searchResults),
       searchIndex: data.dec(_f$searchIndex),
       scheduled: data.dec(_f$scheduled),
+      pinned: data.dec(_f$pinned),
       linkPreviewDisabled: data.dec(_f$linkPreviewDisabled),
       members: data.dec(_f$members),
       memberPage: data.dec(_f$memberPage),
@@ -478,6 +487,12 @@ abstract class ChatStateCopyWith<$R, $In extends ChatState, $Out>
   get scheduled;
   ListCopyWith<
     $R,
+    models.Message,
+    models.MessageCopyWith<$R, models.Message, models.Message>
+  >
+  get pinned;
+  ListCopyWith<
+    $R,
     models.ChatMember,
     models.ChatMemberCopyWith<$R, models.ChatMember, models.ChatMember>
   >
@@ -515,6 +530,7 @@ abstract class ChatStateCopyWith<$R, $In extends ChatState, $Out>
     List<String>? searchResults,
     int? searchIndex,
     List<models.Message>? scheduled,
+    List<models.Message>? pinned,
     bool? linkPreviewDisabled,
     List<models.ChatMember>? members,
     List<models.ChatMember>? memberPage,
@@ -619,6 +635,17 @@ class _ChatStateCopyWithImpl<$R, $Out>
   @override
   ListCopyWith<
     $R,
+    models.Message,
+    models.MessageCopyWith<$R, models.Message, models.Message>
+  >
+  get pinned => ListCopyWith(
+    $value.pinned,
+    (v, t) => v.copyWith.$chain(t),
+    (v) => call(pinned: v),
+  );
+  @override
+  ListCopyWith<
+    $R,
     models.ChatMember,
     models.ChatMemberCopyWith<$R, models.ChatMember, models.ChatMember>
   >
@@ -676,6 +703,7 @@ class _ChatStateCopyWithImpl<$R, $Out>
     List<String>? searchResults,
     int? searchIndex,
     List<models.Message>? scheduled,
+    List<models.Message>? pinned,
     bool? linkPreviewDisabled,
     List<models.ChatMember>? members,
     List<models.ChatMember>? memberPage,
@@ -711,6 +739,7 @@ class _ChatStateCopyWithImpl<$R, $Out>
       if (searchResults != null) #searchResults: searchResults,
       if (searchIndex != null) #searchIndex: searchIndex,
       if (scheduled != null) #scheduled: scheduled,
+      if (pinned != null) #pinned: pinned,
       if (linkPreviewDisabled != null)
         #linkPreviewDisabled: linkPreviewDisabled,
       if (members != null) #members: members,
@@ -749,6 +778,7 @@ class _ChatStateCopyWithImpl<$R, $Out>
     searchResults: data.get(#searchResults, or: $value.searchResults),
     searchIndex: data.get(#searchIndex, or: $value.searchIndex),
     scheduled: data.get(#scheduled, or: $value.scheduled),
+    pinned: data.get(#pinned, or: $value.pinned),
     linkPreviewDisabled: data.get(
       #linkPreviewDisabled,
       or: $value.linkPreviewDisabled,

@@ -231,6 +231,11 @@ class ChatLastMessage with ChatLastMessageMappable {
   /// [MessageKind.call] — звонок.
   final MessageCall? phoneCall;
 
+  /// Служебное «закрепил сообщение»: превью — «Вы закрепили «[pinText]»»
+  /// ([pinText] пусто — закреплённого нет в кэше, «… закрепили сообщение»).
+  final bool pin;
+  final String pinText;
+
   /// Строка сообщества: из какого его чата сообщение («Группа › Анна»); пусто
   /// — у обычных чатов и у канала объявлений.
   final String chatTitle;
@@ -244,6 +249,8 @@ class ChatLastMessage with ChatLastMessageMappable {
     required this.date,
     this.chatTitle = '',
     this.phoneCall,
+    this.pin = false,
+    this.pinText = '',
   });
 }
 

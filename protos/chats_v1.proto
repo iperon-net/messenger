@@ -128,6 +128,13 @@ message MessageCall {
   int32 duration = 4; // секунды, у ENDED
 }
 
+// Закрепление сообщения — служебное (как messageActionPinMessage в Telegram).
+// Пишет сервер, когда сообщение закрепили «у всех», от закрепившего; клиент
+// его не отправляет. messageID — закреплённое сообщение того же чата.
+message MessagePin {
+  int64 messageID = 1;
+}
+
 // Содержимое сообщения. На сервере хранится ОДНИМ зашифрованным блобом
 // (messages.contentEncrypted, crypto.Encryptor) — открыты только chatID,
 // messageID, отправитель, дата и флаги.
@@ -142,6 +149,8 @@ message MessageContent {
   bool noLinkPreview = 6;
   // Служебное «звонок» (только от сервера; при отправке клиентом — отказ).
   MessageCall call = 7;
+  // Служебное «закрепил сообщение» (только от сервера; при отправке — отказ).
+  MessagePin pin = 8;
 }
 
 // Сообщение «глазами получателя»: outgoing = fromUserID == я; прочитано ли
@@ -236,6 +245,15 @@ message Update {
     bytes chatID = 1;
   }
 
+  // Сообщения закреплены (pinned) / откреплены у меня — на этом или другом
+  // устройстве, мной или собеседником (закреп «у всех»). Содержимое
+  // закреплённых, которых нет в кэше, клиент берёт запросом Messages.Pinned.
+  message PinnedMessages {
+    bytes chatID = 1;
+    repeated int64 messageIDs = 2;
+    bool pinned = 3;
+  }
+
   oneof update {
     NewMessage newMessage = 3;
     EditMessage editMessage = 4;
@@ -245,6 +263,7 @@ message Update {
     ReadContents readContents = 8;
     DialogSettings dialogSettings = 9;
     DialogDeleted dialogDeleted = 10;
+    PinnedMessages pinnedMessages = 11;
   }
 }
 
@@ -436,6 +455,41 @@ message Messages {
     Updates updates = 1;
   }
 
+  // Закрепить / открепить. forEveryone — закрепить и у собеседника (в ленте
+  // появляется служебное MessagePin); собеседник ограничил, кто может ему
+  // писать, — закрепится только у себя. Открепление — у обоих (как в
+  // Telegram). Служебные сообщения не закрепляются.
+  message Pin {
+    bytes chatID = 1;
+    int64 messageID = 2;
+    bool pinned = 3;
+    bool forEveryone = 4;
+  }
+
+  message PinResult {
+    Updates updates = 1;
+  }
+
+  // Открепить все мои закреплённые в чате (у обоих).
+  message UnpinAll {
+    bytes chatID = 1;
+  }
+
+  message UnpinAllResult {
+    Updates updates = 1;
+  }
+
+  // Мои закреплённые сообщения чата — по убыванию messageID (не больше 100).
+  // Окно чата спрашивает при открытии: закреплённые могут быть старше
+  // скачанной истории.
+  message Pinned {
+    bytes chatID = 1;
+  }
+
+  message PinnedResult {
+    repeated ChatMessage messages = 1;
+  }
+
   message Request {
     oneof request {
       History history = 1;
@@ -443,6 +497,9 @@ message Messages {
       Edit edit = 3;
       Delete delete = 4;
       ReadContents readContents = 5;
+      Pin pin = 6;
+      UnpinAll unpinAll = 7;
+      Pinned pinned = 8;
     }
   }
 
@@ -453,6 +510,9 @@ message Messages {
       EditResult edit = 3;
       DeleteResult delete = 4;
       ReadContentsResult readContents = 5;
+      PinResult pin = 6;
+      UnpinAllResult unpinAll = 7;
+      PinnedResult pinned = 8;
     }
   }
 }

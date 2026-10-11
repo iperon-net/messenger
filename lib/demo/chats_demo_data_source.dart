@@ -1857,6 +1857,14 @@ class ChatsDemoDataSource implements ChatsDataSource {
   }
 
   @override
+  Stream<List<models.Message>> watchPinnedMessages(String chatID) => watchMessages(chatID).map(
+    (messages) => [
+      for (final m in messages.reversed)
+        if (m.pinned && !m.service) m,
+    ],
+  );
+
+  @override
   Future<void> unpinAllMessages(String chatID) async {
     _setMessages(chatID, [for (final m in _history(chatID)) m.pinned ? m.copyWith(pinned: false) : m]);
   }

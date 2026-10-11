@@ -114,6 +114,10 @@ class ChatMessagesView extends StatelessWidget {
   /// Тап по сервисному «закрепил «…»» — id закреплённого сообщения.
   final ValueChanged<String>? onPinnedServiceTap;
 
+  /// Закреплённые чата — текст для «закрепил «…»», когда закреплённое старше
+  /// загруженной ленты.
+  final List<models.Message> pinned;
+
   /// Над этим сообщением — разделитель «Непрочитанные сообщения» (ключ строки —
   /// `keyFor(unreadDividerID)`).
   final String? unreadFromID;
@@ -171,6 +175,7 @@ class ChatMessagesView extends StatelessWidget {
     this.onReplyTap,
     this.onTap,
     this.onPinnedServiceTap,
+    this.pinned = const [],
     this.unreadFromID,
     this.flashID,
     this.flashRange,
@@ -218,7 +223,11 @@ class ChatMessagesView extends StatelessWidget {
         items.add(
           _Pill(
             key: keyFor?.call(m.id),
-            text: pinnedServiceText(context.t, m, messages.where((x) => x.id == pinnedID).firstOrNull),
+            text: pinnedServiceText(
+              context.t,
+              m,
+              messages.where((x) => x.id == pinnedID).firstOrNull ?? pinned.where((x) => x.id == pinnedID).firstOrNull,
+            ),
             style: style,
             onTap: onPinnedServiceTap == null ? null : () => onPinnedServiceTap!(pinnedID),
           ),

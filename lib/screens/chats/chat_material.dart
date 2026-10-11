@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -273,7 +274,7 @@ class _ChatMaterialState extends State<ChatMaterial> {
       ),
       // Тап — к показанному, затем плашка показывает следующее (старее).
       onTap: () {
-        _tracker.jumpTo(pinned[index].id);
+        unawaited(_jumpTo(pinned[index].id));
         setState(() => _pinIndex = (index + 1) % pinned.length);
       },
       onUnpin: chat.type == models.ChatType.channel ? null : () => _confirmUnpin(context, pinned[index]),
@@ -284,7 +285,19 @@ class _ChatMaterialState extends State<ChatMaterial> {
   /// «Закреплённые сообщения» — оттуда тап по сообщению ведёт к нему в ленте.
   Future<void> _openPinned(BuildContext context) async {
     final id = await showPinnedMessagesMaterial(context, _cubit);
-    if (id != null && mounted) await _tracker.jumpTo(id);
+    if (id != null && mounted) await _jumpTo(id);
+  }
+
+  /// Закрепить можно отправленное (не ⏱ / «!») и не звонок.
+  bool _pinnable(models.Message message) =>
+      message.kind != models.MessageKind.call &&
+      message.status != models.MessageStatus.pending &&
+      message.status != models.MessageStatus.failed;
+
+  /// К сообщению [id]: старое, за окном ленты, — сначала подгрузить до него.
+  Future<void> _jumpTo(String id) async {
+    await _cubit.reveal(id);
+    if (mounted) await _tracker.jumpTo(id);
   }
 
   /// «Закрепить» — сразу, без диалога: в «Избранном» только у себя, иначе
@@ -529,7 +542,8 @@ class _ChatMaterialState extends State<ChatMaterial> {
                                               )
                                             : null,
                                         onReplyTap: _tracker.jumpToReply,
-                                        onPinnedServiceTap: _tracker.jumpTo,
+                                        onPinnedServiceTap: _jumpTo,
+                                        pinned: state.pinnedMessages,
                                         unreadFromID: state.unreadFromID,
                                         flashID: _flashID,
                                         flashRange: _tracker.flashRange,
@@ -688,7 +702,7 @@ class _ChatMaterialState extends State<ChatMaterial> {
                 ListTile(leading: const Icon(Icons.format_quote), title: Text(t.quote), onTap: () => quoteText.currentState?.selectAll()),
               if (message.text.isNotEmpty)
                 ListTile(leading: const Icon(Icons.copy), title: Text(t.copy), onTap: () => Navigator.of(sheetContext).pop('copy')),
-              if (canWrite && features.pinnedMessages)
+              if (canWrite && features.pinnedMessages && _pinnable(message))
                 ListTile(
                   leading: Icon(message.pinned ? Icons.push_pin : Icons.push_pin_outlined),
                   title: Text(message.pinned ? t.unpin : t.pin),

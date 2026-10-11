@@ -191,6 +191,17 @@ final $typed_data.Uint8List messageCallDescriptor =
         'dXRjb21lEhoKCGR1cmF0aW9uGAQgASgFUghkdXJhdGlvbiI4CgdPdXRjb21lEgkKBUVOREVEEA'
         'ASCgoGTUlTU0VEEAESDAoIREVDTElORUQQAhIICgRCVVNZEAM=');
 
+@$core.Deprecated('Use messagePinDescriptor instead')
+const MessagePin$json = {
+  '1': 'MessagePin',
+  '2': [
+    {'1': 'messageID', '3': 1, '4': 1, '5': 3, '10': 'messageID'},
+  ],
+};
+
+/// Descriptor for `MessagePin`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List messagePinDescriptor = $convert.base64Decode('CgpNZXNzYWdlUGluEhwKCW1lc3NhZ2VJRBgBIAEoA1IJbWVzc2FnZUlE');
+
 @$core.Deprecated('Use messageContentDescriptor instead')
 const MessageContent$json = {
   '1': 'MessageContent',
@@ -202,6 +213,7 @@ const MessageContent$json = {
     {'1': 'forward', '3': 5, '4': 1, '5': 11, '6': '.iperon.v1.MessageForward', '10': 'forward'},
     {'1': 'noLinkPreview', '3': 6, '4': 1, '5': 8, '10': 'noLinkPreview'},
     {'1': 'call', '3': 7, '4': 1, '5': 11, '6': '.iperon.v1.MessageCall', '10': 'call'},
+    {'1': 'pin', '3': 8, '4': 1, '5': 11, '6': '.iperon.v1.MessagePin', '10': 'pin'},
   ],
 };
 
@@ -212,7 +224,8 @@ final $typed_data.Uint8List messageContentDescriptor =
         'cm9uLnYxLk1lc3NhZ2VNZWRpYVIFbWVkaWESMwoHcmVwbHlUbxgEIAEoCzIZLmlwZXJvbi52MS'
         '5NZXNzYWdlUmVwbHlUb1IHcmVwbHlUbxIzCgdmb3J3YXJkGAUgASgLMhkuaXBlcm9uLnYxLk1l'
         'c3NhZ2VGb3J3YXJkUgdmb3J3YXJkEiQKDW5vTGlua1ByZXZpZXcYBiABKAhSDW5vTGlua1ByZX'
-        'ZpZXcSKgoEY2FsbBgHIAEoCzIWLmlwZXJvbi52MS5NZXNzYWdlQ2FsbFIEY2FsbA==');
+        'ZpZXcSKgoEY2FsbBgHIAEoCzIWLmlwZXJvbi52MS5NZXNzYWdlQ2FsbFIEY2FsbBInCgNwaW4Y'
+        'CCABKAsyFS5pcGVyb24udjEuTWVzc2FnZVBpblIDcGlu');
 
 @$core.Deprecated('Use chatMessageDescriptor instead')
 const ChatMessage$json = {
@@ -296,6 +309,7 @@ const Update$json = {
     {'1': 'readContents', '3': 8, '4': 1, '5': 11, '6': '.iperon.v1.Update.ReadContents', '9': 0, '10': 'readContents'},
     {'1': 'dialogSettings', '3': 9, '4': 1, '5': 11, '6': '.iperon.v1.Update.DialogSettings', '9': 0, '10': 'dialogSettings'},
     {'1': 'dialogDeleted', '3': 10, '4': 1, '5': 11, '6': '.iperon.v1.Update.DialogDeleted', '9': 0, '10': 'dialogDeleted'},
+    {'1': 'pinnedMessages', '3': 11, '4': 1, '5': 11, '6': '.iperon.v1.Update.PinnedMessages', '9': 0, '10': 'pinnedMessages'},
   ],
   '3': [
     Update_NewMessage$json,
@@ -305,7 +319,8 @@ const Update$json = {
     Update_ReadOutbox$json,
     Update_ReadContents$json,
     Update_DialogSettings$json,
-    Update_DialogDeleted$json
+    Update_DialogDeleted$json,
+    Update_PinnedMessages$json
   ],
   '8': [
     {'1': 'update'},
@@ -382,6 +397,16 @@ const Update_DialogDeleted$json = {
   ],
 };
 
+@$core.Deprecated('Use updateDescriptor instead')
+const Update_PinnedMessages$json = {
+  '1': 'PinnedMessages',
+  '2': [
+    {'1': 'chatID', '3': 1, '4': 1, '5': 12, '10': 'chatID'},
+    {'1': 'messageIDs', '3': 2, '4': 3, '5': 3, '10': 'messageIDs'},
+    {'1': 'pinned', '3': 3, '4': 1, '5': 8, '10': 'pinned'},
+  ],
+};
+
 /// Descriptor for `Update`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List updateDescriptor =
     $convert.base64Decode('CgZVcGRhdGUSEAoDcHRzGAEgASgDUgNwdHMSEgoEZGF0ZRgCIAEoA1IEZGF0ZRI+CgpuZXdNZX'
@@ -394,18 +419,21 @@ final $typed_data.Uint8List updateDescriptor =
         '50ZW50cxgIIAEoCzIeLmlwZXJvbi52MS5VcGRhdGUuUmVhZENvbnRlbnRzSABSDHJlYWRDb250'
         'ZW50cxJKCg5kaWFsb2dTZXR0aW5ncxgJIAEoCzIgLmlwZXJvbi52MS5VcGRhdGUuRGlhbG9nU2'
         'V0dGluZ3NIAFIOZGlhbG9nU2V0dGluZ3MSRwoNZGlhbG9nRGVsZXRlZBgKIAEoCzIfLmlwZXJv'
-        'bi52MS5VcGRhdGUuRGlhbG9nRGVsZXRlZEgAUg1kaWFsb2dEZWxldGVkGmkKCk5ld01lc3NhZ2'
-        'USMAoHbWVzc2FnZRgBIAEoCzIWLmlwZXJvbi52MS5DaGF0TWVzc2FnZVIHbWVzc2FnZRIpCgZk'
-        'aWFsb2cYAiABKAsyES5pcGVyb24udjEuRGlhbG9nUgZkaWFsb2caPwoLRWRpdE1lc3NhZ2USMA'
-        'oHbWVzc2FnZRgBIAEoCzIWLmlwZXJvbi52MS5DaGF0TWVzc2FnZVIHbWVzc2FnZRpICg5EZWxl'
-        'dGVNZXNzYWdlcxIWCgZjaGF0SUQYASABKAxSBmNoYXRJRBIeCgptZXNzYWdlSURzGAIgAygDUg'
-        'ptZXNzYWdlSURzGlsKCVJlYWRJbmJveBIWCgZjaGF0SUQYASABKAxSBmNoYXRJRBIUCgVtYXhJ'
-        'RBgCIAEoA1IFbWF4SUQSIAoLdW5yZWFkQ291bnQYAyABKAVSC3VucmVhZENvdW50GjoKClJlYW'
-        'RPdXRib3gSFgoGY2hhdElEGAEgASgMUgZjaGF0SUQSFAoFbWF4SUQYAiABKANSBW1heElEGkYK'
-        'DFJlYWRDb250ZW50cxIWCgZjaGF0SUQYASABKAxSBmNoYXRJRBIeCgptZXNzYWdlSURzGAIgAy'
-        'gDUgptZXNzYWdlSURzGjsKDkRpYWxvZ1NldHRpbmdzEikKBmRpYWxvZxgBIAEoCzIRLmlwZXJv'
-        'bi52MS5EaWFsb2dSBmRpYWxvZxonCg1EaWFsb2dEZWxldGVkEhYKBmNoYXRJRBgBIAEoDFIGY2'
-        'hhdElEQggKBnVwZGF0ZQ==');
+        'bi52MS5VcGRhdGUuRGlhbG9nRGVsZXRlZEgAUg1kaWFsb2dEZWxldGVkEkoKDnBpbm5lZE1lc3'
+        'NhZ2VzGAsgASgLMiAuaXBlcm9uLnYxLlVwZGF0ZS5QaW5uZWRNZXNzYWdlc0gAUg5waW5uZWRN'
+        'ZXNzYWdlcxppCgpOZXdNZXNzYWdlEjAKB21lc3NhZ2UYASABKAsyFi5pcGVyb24udjEuQ2hhdE'
+        '1lc3NhZ2VSB21lc3NhZ2USKQoGZGlhbG9nGAIgASgLMhEuaXBlcm9uLnYxLkRpYWxvZ1IGZGlh'
+        'bG9nGj8KC0VkaXRNZXNzYWdlEjAKB21lc3NhZ2UYASABKAsyFi5pcGVyb24udjEuQ2hhdE1lc3'
+        'NhZ2VSB21lc3NhZ2UaSAoORGVsZXRlTWVzc2FnZXMSFgoGY2hhdElEGAEgASgMUgZjaGF0SUQS'
+        'HgoKbWVzc2FnZUlEcxgCIAMoA1IKbWVzc2FnZUlEcxpbCglSZWFkSW5ib3gSFgoGY2hhdElEGA'
+        'EgASgMUgZjaGF0SUQSFAoFbWF4SUQYAiABKANSBW1heElEEiAKC3VucmVhZENvdW50GAMgASgF'
+        'Ugt1bnJlYWRDb3VudBo6CgpSZWFkT3V0Ym94EhYKBmNoYXRJRBgBIAEoDFIGY2hhdElEEhQKBW'
+        '1heElEGAIgASgDUgVtYXhJRBpGCgxSZWFkQ29udGVudHMSFgoGY2hhdElEGAEgASgMUgZjaGF0'
+        'SUQSHgoKbWVzc2FnZUlEcxgCIAMoA1IKbWVzc2FnZUlEcxo7Cg5EaWFsb2dTZXR0aW5ncxIpCg'
+        'ZkaWFsb2cYASABKAsyES5pcGVyb24udjEuRGlhbG9nUgZkaWFsb2caJwoNRGlhbG9nRGVsZXRl'
+        'ZBIWCgZjaGF0SUQYASABKAxSBmNoYXRJRBpgCg5QaW5uZWRNZXNzYWdlcxIWCgZjaGF0SUQYAS'
+        'ABKAxSBmNoYXRJRBIeCgptZXNzYWdlSURzGAIgAygDUgptZXNzYWdlSURzEhYKBnBpbm5lZBgD'
+        'IAEoCFIGcGlubmVkQggKBnVwZGF0ZQ==');
 
 @$core.Deprecated('Use updatesDescriptor instead')
 const Updates$json = {
@@ -676,6 +704,12 @@ const Messages$json = {
     Messages_DeleteResult$json,
     Messages_ReadContents$json,
     Messages_ReadContentsResult$json,
+    Messages_Pin$json,
+    Messages_PinResult$json,
+    Messages_UnpinAll$json,
+    Messages_UnpinAllResult$json,
+    Messages_Pinned$json,
+    Messages_PinnedResult$json,
     Messages_Request$json,
     Messages_Response$json
   ],
@@ -776,6 +810,57 @@ const Messages_ReadContentsResult$json = {
 };
 
 @$core.Deprecated('Use messagesDescriptor instead')
+const Messages_Pin$json = {
+  '1': 'Pin',
+  '2': [
+    {'1': 'chatID', '3': 1, '4': 1, '5': 12, '10': 'chatID'},
+    {'1': 'messageID', '3': 2, '4': 1, '5': 3, '10': 'messageID'},
+    {'1': 'pinned', '3': 3, '4': 1, '5': 8, '10': 'pinned'},
+    {'1': 'forEveryone', '3': 4, '4': 1, '5': 8, '10': 'forEveryone'},
+  ],
+};
+
+@$core.Deprecated('Use messagesDescriptor instead')
+const Messages_PinResult$json = {
+  '1': 'PinResult',
+  '2': [
+    {'1': 'updates', '3': 1, '4': 1, '5': 11, '6': '.iperon.v1.Updates', '10': 'updates'},
+  ],
+};
+
+@$core.Deprecated('Use messagesDescriptor instead')
+const Messages_UnpinAll$json = {
+  '1': 'UnpinAll',
+  '2': [
+    {'1': 'chatID', '3': 1, '4': 1, '5': 12, '10': 'chatID'},
+  ],
+};
+
+@$core.Deprecated('Use messagesDescriptor instead')
+const Messages_UnpinAllResult$json = {
+  '1': 'UnpinAllResult',
+  '2': [
+    {'1': 'updates', '3': 1, '4': 1, '5': 11, '6': '.iperon.v1.Updates', '10': 'updates'},
+  ],
+};
+
+@$core.Deprecated('Use messagesDescriptor instead')
+const Messages_Pinned$json = {
+  '1': 'Pinned',
+  '2': [
+    {'1': 'chatID', '3': 1, '4': 1, '5': 12, '10': 'chatID'},
+  ],
+};
+
+@$core.Deprecated('Use messagesDescriptor instead')
+const Messages_PinnedResult$json = {
+  '1': 'PinnedResult',
+  '2': [
+    {'1': 'messages', '3': 1, '4': 3, '5': 11, '6': '.iperon.v1.ChatMessage', '10': 'messages'},
+  ],
+};
+
+@$core.Deprecated('Use messagesDescriptor instead')
 const Messages_Request$json = {
   '1': 'Request',
   '2': [
@@ -784,6 +869,9 @@ const Messages_Request$json = {
     {'1': 'edit', '3': 3, '4': 1, '5': 11, '6': '.iperon.v1.Messages.Edit', '9': 0, '10': 'edit'},
     {'1': 'delete', '3': 4, '4': 1, '5': 11, '6': '.iperon.v1.Messages.Delete', '9': 0, '10': 'delete'},
     {'1': 'readContents', '3': 5, '4': 1, '5': 11, '6': '.iperon.v1.Messages.ReadContents', '9': 0, '10': 'readContents'},
+    {'1': 'pin', '3': 6, '4': 1, '5': 11, '6': '.iperon.v1.Messages.Pin', '9': 0, '10': 'pin'},
+    {'1': 'unpinAll', '3': 7, '4': 1, '5': 11, '6': '.iperon.v1.Messages.UnpinAll', '9': 0, '10': 'unpinAll'},
+    {'1': 'pinned', '3': 8, '4': 1, '5': 11, '6': '.iperon.v1.Messages.Pinned', '9': 0, '10': 'pinned'},
   ],
   '8': [
     {'1': 'request'},
@@ -799,6 +887,9 @@ const Messages_Response$json = {
     {'1': 'edit', '3': 3, '4': 1, '5': 11, '6': '.iperon.v1.Messages.EditResult', '9': 0, '10': 'edit'},
     {'1': 'delete', '3': 4, '4': 1, '5': 11, '6': '.iperon.v1.Messages.DeleteResult', '9': 0, '10': 'delete'},
     {'1': 'readContents', '3': 5, '4': 1, '5': 11, '6': '.iperon.v1.Messages.ReadContentsResult', '9': 0, '10': 'readContents'},
+    {'1': 'pin', '3': 6, '4': 1, '5': 11, '6': '.iperon.v1.Messages.PinResult', '9': 0, '10': 'pin'},
+    {'1': 'unpinAll', '3': 7, '4': 1, '5': 11, '6': '.iperon.v1.Messages.UnpinAllResult', '9': 0, '10': 'unpinAll'},
+    {'1': 'pinned', '3': 8, '4': 1, '5': 11, '6': '.iperon.v1.Messages.PinnedResult', '9': 0, '10': 'pinned'},
   ],
   '8': [
     {'1': 'response'},
@@ -824,18 +915,31 @@ final $typed_data.Uint8List messagesDescriptor =
         'UmVzdWx0EiwKB3VwZGF0ZXMYASABKAsyEi5pcGVyb24udjEuVXBkYXRlc1IHdXBkYXRlcxpGCg'
         'xSZWFkQ29udGVudHMSFgoGY2hhdElEGAEgASgMUgZjaGF0SUQSHgoKbWVzc2FnZUlEcxgCIAMo'
         'A1IKbWVzc2FnZUlEcxpCChJSZWFkQ29udGVudHNSZXN1bHQSLAoHdXBkYXRlcxgBIAEoCzISLm'
-        'lwZXJvbi52MS5VcGRhdGVzUgd1cGRhdGVzGqsCCgdSZXF1ZXN0EjcKB2hpc3RvcnkYASABKAsy'
-        'Gy5pcGVyb24udjEuTWVzc2FnZXMuSGlzdG9yeUgAUgdoaXN0b3J5Ei4KBHNlbmQYAiABKAsyGC'
-        '5pcGVyb24udjEuTWVzc2FnZXMuU2VuZEgAUgRzZW5kEi4KBGVkaXQYAyABKAsyGC5pcGVyb24u'
-        'djEuTWVzc2FnZXMuRWRpdEgAUgRlZGl0EjQKBmRlbGV0ZRgEIAEoCzIaLmlwZXJvbi52MS5NZX'
-        'NzYWdlcy5EZWxldGVIAFIGZGVsZXRlEkYKDHJlYWRDb250ZW50cxgFIAEoCzIgLmlwZXJvbi52'
-        'MS5NZXNzYWdlcy5SZWFkQ29udGVudHNIAFIMcmVhZENvbnRlbnRzQgkKB3JlcXVlc3QaywIKCF'
-        'Jlc3BvbnNlEj0KB2hpc3RvcnkYASABKAsyIS5pcGVyb24udjEuTWVzc2FnZXMuSGlzdG9yeVJl'
-        'c3VsdEgAUgdoaXN0b3J5EjQKBHNlbmQYAiABKAsyHi5pcGVyb24udjEuTWVzc2FnZXMuU2VuZF'
-        'Jlc3VsdEgAUgRzZW5kEjQKBGVkaXQYAyABKAsyHi5pcGVyb24udjEuTWVzc2FnZXMuRWRpdFJl'
-        'c3VsdEgAUgRlZGl0EjoKBmRlbGV0ZRgEIAEoCzIgLmlwZXJvbi52MS5NZXNzYWdlcy5EZWxldG'
-        'VSZXN1bHRIAFIGZGVsZXRlEkwKDHJlYWRDb250ZW50cxgFIAEoCzImLmlwZXJvbi52MS5NZXNz'
-        'YWdlcy5SZWFkQ29udGVudHNSZXN1bHRIAFIMcmVhZENvbnRlbnRzQgoKCHJlc3BvbnNl');
+        'lwZXJvbi52MS5VcGRhdGVzUgd1cGRhdGVzGnUKA1BpbhIWCgZjaGF0SUQYASABKAxSBmNoYXRJ'
+        'RBIcCgltZXNzYWdlSUQYAiABKANSCW1lc3NhZ2VJRBIWCgZwaW5uZWQYAyABKAhSBnBpbm5lZB'
+        'IgCgtmb3JFdmVyeW9uZRgEIAEoCFILZm9yRXZlcnlvbmUaOQoJUGluUmVzdWx0EiwKB3VwZGF0'
+        'ZXMYASABKAsyEi5pcGVyb24udjEuVXBkYXRlc1IHdXBkYXRlcxoiCghVbnBpbkFsbBIWCgZjaG'
+        'F0SUQYASABKAxSBmNoYXRJRBo+Cg5VbnBpbkFsbFJlc3VsdBIsCgd1cGRhdGVzGAEgASgLMhIu'
+        'aXBlcm9uLnYxLlVwZGF0ZXNSB3VwZGF0ZXMaIAoGUGlubmVkEhYKBmNoYXRJRBgBIAEoDFIGY2'
+        'hhdElEGkIKDFBpbm5lZFJlc3VsdBIyCghtZXNzYWdlcxgBIAMoCzIWLmlwZXJvbi52MS5DaGF0'
+        'TWVzc2FnZVIIbWVzc2FnZXMaygMKB1JlcXVlc3QSNwoHaGlzdG9yeRgBIAEoCzIbLmlwZXJvbi'
+        '52MS5NZXNzYWdlcy5IaXN0b3J5SABSB2hpc3RvcnkSLgoEc2VuZBgCIAEoCzIYLmlwZXJvbi52'
+        'MS5NZXNzYWdlcy5TZW5kSABSBHNlbmQSLgoEZWRpdBgDIAEoCzIYLmlwZXJvbi52MS5NZXNzYW'
+        'dlcy5FZGl0SABSBGVkaXQSNAoGZGVsZXRlGAQgASgLMhouaXBlcm9uLnYxLk1lc3NhZ2VzLkRl'
+        'bGV0ZUgAUgZkZWxldGUSRgoMcmVhZENvbnRlbnRzGAUgASgLMiAuaXBlcm9uLnYxLk1lc3NhZ2'
+        'VzLlJlYWRDb250ZW50c0gAUgxyZWFkQ29udGVudHMSKwoDcGluGAYgASgLMhcuaXBlcm9uLnYx'
+        'Lk1lc3NhZ2VzLlBpbkgAUgNwaW4SOgoIdW5waW5BbGwYByABKAsyHC5pcGVyb24udjEuTWVzc2'
+        'FnZXMuVW5waW5BbGxIAFIIdW5waW5BbGwSNAoGcGlubmVkGAggASgLMhouaXBlcm9uLnYxLk1l'
+        'c3NhZ2VzLlBpbm5lZEgAUgZwaW5uZWRCCQoHcmVxdWVzdBr8AwoIUmVzcG9uc2USPQoHaGlzdG'
+        '9yeRgBIAEoCzIhLmlwZXJvbi52MS5NZXNzYWdlcy5IaXN0b3J5UmVzdWx0SABSB2hpc3RvcnkS'
+        'NAoEc2VuZBgCIAEoCzIeLmlwZXJvbi52MS5NZXNzYWdlcy5TZW5kUmVzdWx0SABSBHNlbmQSNA'
+        'oEZWRpdBgDIAEoCzIeLmlwZXJvbi52MS5NZXNzYWdlcy5FZGl0UmVzdWx0SABSBGVkaXQSOgoG'
+        'ZGVsZXRlGAQgASgLMiAuaXBlcm9uLnYxLk1lc3NhZ2VzLkRlbGV0ZVJlc3VsdEgAUgZkZWxldG'
+        'USTAoMcmVhZENvbnRlbnRzGAUgASgLMiYuaXBlcm9uLnYxLk1lc3NhZ2VzLlJlYWRDb250ZW50'
+        'c1Jlc3VsdEgAUgxyZWFkQ29udGVudHMSMQoDcGluGAYgASgLMh0uaXBlcm9uLnYxLk1lc3NhZ2'
+        'VzLlBpblJlc3VsdEgAUgNwaW4SQAoIdW5waW5BbGwYByABKAsyIi5pcGVyb24udjEuTWVzc2Fn'
+        'ZXMuVW5waW5BbGxSZXN1bHRIAFIIdW5waW5BbGwSOgoGcGlubmVkGAggASgLMiAuaXBlcm9uLn'
+        'YxLk1lc3NhZ2VzLlBpbm5lZFJlc3VsdEgAUgZwaW5uZWRCCgoIcmVzcG9uc2U=');
 
 @$core.Deprecated('Use getDifferenceDescriptor instead')
 const GetDifference$json = {

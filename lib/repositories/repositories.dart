@@ -568,6 +568,26 @@ class Repositories {
       }),
     );
 
+    migrations.add(
+      SqliteMigration(21, (tx) async {
+        // chatPinned — мои закреплённые сообщения чата (плашка над лентой и
+        // экран «Закреплённые»): message — сериализованный ChatMessage целиком,
+        // т.к. закреплённое может быть старше скачанной истории (её кэш
+        // непрерывен, «островков» в нём нет). Источник — Messages.Pinned при
+        // открытии чата и Update.pinnedMessages.
+        await tx.execute("""
+        CREATE TABLE chatPinned (
+          userID BLOB NOT NULL,
+          chatID BLOB NOT NULL,
+          messageID INTEGER NOT NULL,
+          message BLOB NOT NULL,
+          PRIMARY KEY (userID, chatID, messageID),
+          FOREIGN KEY (userID) REFERENCES users(userID) ON DELETE CASCADE ON UPDATE CASCADE
+        );
+      """);
+      }),
+    );
+
     if (settings.isDeleteDatabase) {
       logger.warning("Deleting the database, flag set IS_DELETE_DATABASE: 1");
 

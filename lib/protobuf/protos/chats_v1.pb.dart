@@ -592,6 +592,56 @@ class MessageCall extends $pb.GeneratedMessage {
   void clearDuration() => $_clearField(4);
 }
 
+/// Закрепление сообщения — служебное (как messageActionPinMessage в Telegram).
+/// Пишет сервер, когда сообщение закрепили «у всех», от закрепившего; клиент
+/// его не отправляет. messageID — закреплённое сообщение того же чата.
+class MessagePin extends $pb.GeneratedMessage {
+  factory MessagePin({
+    $fixnum.Int64? messageID,
+  }) {
+    final result = create();
+    if (messageID != null) result.messageID = messageID;
+    return result;
+  }
+
+  MessagePin._();
+
+  factory MessagePin.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory MessagePin.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'MessagePin',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..aInt64(1, _omitFieldNames ? '' : 'messageID', protoName: 'messageID')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  MessagePin clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  MessagePin copyWith(void Function(MessagePin) updates) => super.copyWith((message) => updates(message as MessagePin)) as MessagePin;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static MessagePin create() => MessagePin._();
+  @$core.override
+  MessagePin createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static MessagePin getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<MessagePin>(create);
+  static MessagePin? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $fixnum.Int64 get messageID => $_getI64(0);
+  @$pb.TagNumber(1)
+  set messageID($fixnum.Int64 value) => $_setInt64(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasMessageID() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearMessageID() => $_clearField(1);
+}
+
 /// Содержимое сообщения. На сервере хранится ОДНИМ зашифрованным блобом
 /// (messages.contentEncrypted, crypto.Encryptor) — открыты только chatID,
 /// messageID, отправитель, дата и флаги.
@@ -604,6 +654,7 @@ class MessageContent extends $pb.GeneratedMessage {
     MessageForward? forward,
     $core.bool? noLinkPreview,
     MessageCall? call,
+    MessagePin? pin,
   }) {
     final result = create();
     if (text != null) result.text = text;
@@ -613,6 +664,7 @@ class MessageContent extends $pb.GeneratedMessage {
     if (forward != null) result.forward = forward;
     if (noLinkPreview != null) result.noLinkPreview = noLinkPreview;
     if (call != null) result.call = call;
+    if (pin != null) result.pin = pin;
     return result;
   }
 
@@ -632,6 +684,7 @@ class MessageContent extends $pb.GeneratedMessage {
     ..aOM<MessageForward>(5, _omitFieldNames ? '' : 'forward', subBuilder: MessageForward.create)
     ..aOB(6, _omitFieldNames ? '' : 'noLinkPreview', protoName: 'noLinkPreview')
     ..aOM<MessageCall>(7, _omitFieldNames ? '' : 'call', subBuilder: MessageCall.create)
+    ..aOM<MessagePin>(8, _omitFieldNames ? '' : 'pin', subBuilder: MessagePin.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -710,6 +763,18 @@ class MessageContent extends $pb.GeneratedMessage {
   void clearCall() => $_clearField(7);
   @$pb.TagNumber(7)
   MessageCall ensureCall() => $_ensure(6);
+
+  /// Служебное «закрепил сообщение» (только от сервера; при отправке — отказ).
+  @$pb.TagNumber(8)
+  MessagePin get pin => $_getN(7);
+  @$pb.TagNumber(8)
+  set pin(MessagePin value) => $_setField(8, value);
+  @$pb.TagNumber(8)
+  $core.bool hasPin() => $_has(7);
+  @$pb.TagNumber(8)
+  void clearPin() => $_clearField(8);
+  @$pb.TagNumber(8)
+  MessagePin ensurePin() => $_ensure(7);
 }
 
 /// Сообщение «глазами получателя»: outgoing = fromUserID == я; прочитано ли
@@ -1566,7 +1631,87 @@ class Update_DialogDeleted extends $pb.GeneratedMessage {
   void clearChatID() => $_clearField(1);
 }
 
-enum Update_Update { newMessage, editMessage, deleteMessages, readInbox, readOutbox, readContents, dialogSettings, dialogDeleted, notSet }
+/// Сообщения закреплены (pinned) / откреплены у меня — на этом или другом
+/// устройстве, мной или собеседником (закреп «у всех»). Содержимое
+/// закреплённых, которых нет в кэше, клиент берёт запросом Messages.Pinned.
+class Update_PinnedMessages extends $pb.GeneratedMessage {
+  factory Update_PinnedMessages({
+    $core.List<$core.int>? chatID,
+    $core.Iterable<$fixnum.Int64>? messageIDs,
+    $core.bool? pinned,
+  }) {
+    final result = create();
+    if (chatID != null) result.chatID = chatID;
+    if (messageIDs != null) result.messageIDs.addAll(messageIDs);
+    if (pinned != null) result.pinned = pinned;
+    return result;
+  }
+
+  Update_PinnedMessages._();
+
+  factory Update_PinnedMessages.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Update_PinnedMessages.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Update.PinnedMessages',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..a<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'chatID', $pb.PbFieldType.OY, protoName: 'chatID')
+    ..p<$fixnum.Int64>(2, _omitFieldNames ? '' : 'messageIDs', $pb.PbFieldType.K6, protoName: 'messageIDs')
+    ..aOB(3, _omitFieldNames ? '' : 'pinned')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Update_PinnedMessages clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Update_PinnedMessages copyWith(void Function(Update_PinnedMessages) updates) =>
+      super.copyWith((message) => updates(message as Update_PinnedMessages)) as Update_PinnedMessages;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static Update_PinnedMessages create() => Update_PinnedMessages._();
+  @$core.override
+  Update_PinnedMessages createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static Update_PinnedMessages getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Update_PinnedMessages>(create);
+  static Update_PinnedMessages? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.List<$core.int> get chatID => $_getN(0);
+  @$pb.TagNumber(1)
+  set chatID($core.List<$core.int> value) => $_setBytes(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasChatID() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearChatID() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $pb.PbList<$fixnum.Int64> get messageIDs => $_getList(1);
+
+  @$pb.TagNumber(3)
+  $core.bool get pinned => $_getBF(2);
+  @$pb.TagNumber(3)
+  set pinned($core.bool value) => $_setBool(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasPinned() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearPinned() => $_clearField(3);
+}
+
+enum Update_Update {
+  newMessage,
+  editMessage,
+  deleteMessages,
+  readInbox,
+  readOutbox,
+  readContents,
+  dialogSettings,
+  dialogDeleted,
+  pinnedMessages,
+  notSet
+}
 
 /// Одно обновление журнала. pts — номер обновления у пользователя (без дыр:
 /// клиент, получив pts > своего + 1, догоняет через GET_DIFFERENCE).
@@ -1582,6 +1727,7 @@ class Update extends $pb.GeneratedMessage {
     Update_ReadContents? readContents,
     Update_DialogSettings? dialogSettings,
     Update_DialogDeleted? dialogDeleted,
+    Update_PinnedMessages? pinnedMessages,
   }) {
     final result = create();
     if (pts != null) result.pts = pts;
@@ -1594,6 +1740,7 @@ class Update extends $pb.GeneratedMessage {
     if (readContents != null) result.readContents = readContents;
     if (dialogSettings != null) result.dialogSettings = dialogSettings;
     if (dialogDeleted != null) result.dialogDeleted = dialogDeleted;
+    if (pinnedMessages != null) result.pinnedMessages = pinnedMessages;
     return result;
   }
 
@@ -1613,11 +1760,12 @@ class Update extends $pb.GeneratedMessage {
     8: Update_Update.readContents,
     9: Update_Update.dialogSettings,
     10: Update_Update.dialogDeleted,
+    11: Update_Update.pinnedMessages,
     0: Update_Update.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Update',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
-    ..oo(0, [3, 4, 5, 6, 7, 8, 9, 10])
+    ..oo(0, [3, 4, 5, 6, 7, 8, 9, 10, 11])
     ..aInt64(1, _omitFieldNames ? '' : 'pts')
     ..aInt64(2, _omitFieldNames ? '' : 'date')
     ..aOM<Update_NewMessage>(3, _omitFieldNames ? '' : 'newMessage', protoName: 'newMessage', subBuilder: Update_NewMessage.create)
@@ -1631,6 +1779,8 @@ class Update extends $pb.GeneratedMessage {
         protoName: 'dialogSettings', subBuilder: Update_DialogSettings.create)
     ..aOM<Update_DialogDeleted>(10, _omitFieldNames ? '' : 'dialogDeleted',
         protoName: 'dialogDeleted', subBuilder: Update_DialogDeleted.create)
+    ..aOM<Update_PinnedMessages>(11, _omitFieldNames ? '' : 'pinnedMessages',
+        protoName: 'pinnedMessages', subBuilder: Update_PinnedMessages.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -1657,6 +1807,7 @@ class Update extends $pb.GeneratedMessage {
   @$pb.TagNumber(8)
   @$pb.TagNumber(9)
   @$pb.TagNumber(10)
+  @$pb.TagNumber(11)
   Update_Update whichUpdate() => _Update_UpdateByTag[$_whichOneof(0)]!;
   @$pb.TagNumber(3)
   @$pb.TagNumber(4)
@@ -1666,6 +1817,7 @@ class Update extends $pb.GeneratedMessage {
   @$pb.TagNumber(8)
   @$pb.TagNumber(9)
   @$pb.TagNumber(10)
+  @$pb.TagNumber(11)
   void clearUpdate() => $_clearField($_whichOneof(0));
 
   @$pb.TagNumber(1)
@@ -1773,6 +1925,17 @@ class Update extends $pb.GeneratedMessage {
   void clearDialogDeleted() => $_clearField(10);
   @$pb.TagNumber(10)
   Update_DialogDeleted ensureDialogDeleted() => $_ensure(9);
+
+  @$pb.TagNumber(11)
+  Update_PinnedMessages get pinnedMessages => $_getN(10);
+  @$pb.TagNumber(11)
+  set pinnedMessages(Update_PinnedMessages value) => $_setField(11, value);
+  @$pb.TagNumber(11)
+  $core.bool hasPinnedMessages() => $_has(10);
+  @$pb.TagNumber(11)
+  void clearPinnedMessages() => $_clearField(11);
+  @$pb.TagNumber(11)
+  Update_PinnedMessages ensurePinnedMessages() => $_ensure(10);
 }
 
 /// UPDATES — push по стриму (сервер → клиент): одно или несколько обновлений
@@ -3676,7 +3839,337 @@ class Messages_ReadContentsResult extends $pb.GeneratedMessage {
   Updates ensureUpdates() => $_ensure(0);
 }
 
-enum Messages_Request_Request { history, send, edit, delete, readContents, notSet }
+/// Закрепить / открепить. forEveryone — закрепить и у собеседника (в ленте
+/// появляется служебное MessagePin); собеседник ограничил, кто может ему
+/// писать, — закрепится только у себя. Открепление — у обоих (как в
+/// Telegram). Служебные сообщения не закрепляются.
+class Messages_Pin extends $pb.GeneratedMessage {
+  factory Messages_Pin({
+    $core.List<$core.int>? chatID,
+    $fixnum.Int64? messageID,
+    $core.bool? pinned,
+    $core.bool? forEveryone,
+  }) {
+    final result = create();
+    if (chatID != null) result.chatID = chatID;
+    if (messageID != null) result.messageID = messageID;
+    if (pinned != null) result.pinned = pinned;
+    if (forEveryone != null) result.forEveryone = forEveryone;
+    return result;
+  }
+
+  Messages_Pin._();
+
+  factory Messages_Pin.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Messages_Pin.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Messages.Pin',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..a<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'chatID', $pb.PbFieldType.OY, protoName: 'chatID')
+    ..aInt64(2, _omitFieldNames ? '' : 'messageID', protoName: 'messageID')
+    ..aOB(3, _omitFieldNames ? '' : 'pinned')
+    ..aOB(4, _omitFieldNames ? '' : 'forEveryone', protoName: 'forEveryone')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Messages_Pin clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Messages_Pin copyWith(void Function(Messages_Pin) updates) =>
+      super.copyWith((message) => updates(message as Messages_Pin)) as Messages_Pin;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static Messages_Pin create() => Messages_Pin._();
+  @$core.override
+  Messages_Pin createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static Messages_Pin getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Messages_Pin>(create);
+  static Messages_Pin? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.List<$core.int> get chatID => $_getN(0);
+  @$pb.TagNumber(1)
+  set chatID($core.List<$core.int> value) => $_setBytes(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasChatID() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearChatID() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $fixnum.Int64 get messageID => $_getI64(1);
+  @$pb.TagNumber(2)
+  set messageID($fixnum.Int64 value) => $_setInt64(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasMessageID() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearMessageID() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.bool get pinned => $_getBF(2);
+  @$pb.TagNumber(3)
+  set pinned($core.bool value) => $_setBool(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasPinned() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearPinned() => $_clearField(3);
+
+  @$pb.TagNumber(4)
+  $core.bool get forEveryone => $_getBF(3);
+  @$pb.TagNumber(4)
+  set forEveryone($core.bool value) => $_setBool(3, value);
+  @$pb.TagNumber(4)
+  $core.bool hasForEveryone() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearForEveryone() => $_clearField(4);
+}
+
+class Messages_PinResult extends $pb.GeneratedMessage {
+  factory Messages_PinResult({
+    Updates? updates,
+  }) {
+    final result = create();
+    if (updates != null) result.updates = updates;
+    return result;
+  }
+
+  Messages_PinResult._();
+
+  factory Messages_PinResult.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Messages_PinResult.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Messages.PinResult',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..aOM<Updates>(1, _omitFieldNames ? '' : 'updates', subBuilder: Updates.create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Messages_PinResult clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Messages_PinResult copyWith(void Function(Messages_PinResult) updates) =>
+      super.copyWith((message) => updates(message as Messages_PinResult)) as Messages_PinResult;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static Messages_PinResult create() => Messages_PinResult._();
+  @$core.override
+  Messages_PinResult createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static Messages_PinResult getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Messages_PinResult>(create);
+  static Messages_PinResult? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  Updates get updates => $_getN(0);
+  @$pb.TagNumber(1)
+  set updates(Updates value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasUpdates() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearUpdates() => $_clearField(1);
+  @$pb.TagNumber(1)
+  Updates ensureUpdates() => $_ensure(0);
+}
+
+/// Открепить все мои закреплённые в чате (у обоих).
+class Messages_UnpinAll extends $pb.GeneratedMessage {
+  factory Messages_UnpinAll({
+    $core.List<$core.int>? chatID,
+  }) {
+    final result = create();
+    if (chatID != null) result.chatID = chatID;
+    return result;
+  }
+
+  Messages_UnpinAll._();
+
+  factory Messages_UnpinAll.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Messages_UnpinAll.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Messages.UnpinAll',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..a<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'chatID', $pb.PbFieldType.OY, protoName: 'chatID')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Messages_UnpinAll clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Messages_UnpinAll copyWith(void Function(Messages_UnpinAll) updates) =>
+      super.copyWith((message) => updates(message as Messages_UnpinAll)) as Messages_UnpinAll;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static Messages_UnpinAll create() => Messages_UnpinAll._();
+  @$core.override
+  Messages_UnpinAll createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static Messages_UnpinAll getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Messages_UnpinAll>(create);
+  static Messages_UnpinAll? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.List<$core.int> get chatID => $_getN(0);
+  @$pb.TagNumber(1)
+  set chatID($core.List<$core.int> value) => $_setBytes(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasChatID() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearChatID() => $_clearField(1);
+}
+
+class Messages_UnpinAllResult extends $pb.GeneratedMessage {
+  factory Messages_UnpinAllResult({
+    Updates? updates,
+  }) {
+    final result = create();
+    if (updates != null) result.updates = updates;
+    return result;
+  }
+
+  Messages_UnpinAllResult._();
+
+  factory Messages_UnpinAllResult.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Messages_UnpinAllResult.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Messages.UnpinAllResult',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..aOM<Updates>(1, _omitFieldNames ? '' : 'updates', subBuilder: Updates.create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Messages_UnpinAllResult clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Messages_UnpinAllResult copyWith(void Function(Messages_UnpinAllResult) updates) =>
+      super.copyWith((message) => updates(message as Messages_UnpinAllResult)) as Messages_UnpinAllResult;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static Messages_UnpinAllResult create() => Messages_UnpinAllResult._();
+  @$core.override
+  Messages_UnpinAllResult createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static Messages_UnpinAllResult getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Messages_UnpinAllResult>(create);
+  static Messages_UnpinAllResult? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  Updates get updates => $_getN(0);
+  @$pb.TagNumber(1)
+  set updates(Updates value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasUpdates() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearUpdates() => $_clearField(1);
+  @$pb.TagNumber(1)
+  Updates ensureUpdates() => $_ensure(0);
+}
+
+/// Мои закреплённые сообщения чата — по убыванию messageID (не больше 100).
+/// Окно чата спрашивает при открытии: закреплённые могут быть старше
+/// скачанной истории.
+class Messages_Pinned extends $pb.GeneratedMessage {
+  factory Messages_Pinned({
+    $core.List<$core.int>? chatID,
+  }) {
+    final result = create();
+    if (chatID != null) result.chatID = chatID;
+    return result;
+  }
+
+  Messages_Pinned._();
+
+  factory Messages_Pinned.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Messages_Pinned.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Messages.Pinned',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..a<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'chatID', $pb.PbFieldType.OY, protoName: 'chatID')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Messages_Pinned clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Messages_Pinned copyWith(void Function(Messages_Pinned) updates) =>
+      super.copyWith((message) => updates(message as Messages_Pinned)) as Messages_Pinned;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static Messages_Pinned create() => Messages_Pinned._();
+  @$core.override
+  Messages_Pinned createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static Messages_Pinned getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Messages_Pinned>(create);
+  static Messages_Pinned? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.List<$core.int> get chatID => $_getN(0);
+  @$pb.TagNumber(1)
+  set chatID($core.List<$core.int> value) => $_setBytes(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasChatID() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearChatID() => $_clearField(1);
+}
+
+class Messages_PinnedResult extends $pb.GeneratedMessage {
+  factory Messages_PinnedResult({
+    $core.Iterable<ChatMessage>? messages,
+  }) {
+    final result = create();
+    if (messages != null) result.messages.addAll(messages);
+    return result;
+  }
+
+  Messages_PinnedResult._();
+
+  factory Messages_PinnedResult.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Messages_PinnedResult.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Messages.PinnedResult',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..pPM<ChatMessage>(1, _omitFieldNames ? '' : 'messages', subBuilder: ChatMessage.create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Messages_PinnedResult clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Messages_PinnedResult copyWith(void Function(Messages_PinnedResult) updates) =>
+      super.copyWith((message) => updates(message as Messages_PinnedResult)) as Messages_PinnedResult;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static Messages_PinnedResult create() => Messages_PinnedResult._();
+  @$core.override
+  Messages_PinnedResult createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static Messages_PinnedResult getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Messages_PinnedResult>(create);
+  static Messages_PinnedResult? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $pb.PbList<ChatMessage> get messages => $_getList(0);
+}
+
+enum Messages_Request_Request { history, send, edit, delete, readContents, pin, unpinAll, pinned, notSet }
 
 class Messages_Request extends $pb.GeneratedMessage {
   factory Messages_Request({
@@ -3685,6 +4178,9 @@ class Messages_Request extends $pb.GeneratedMessage {
     Messages_Edit? edit,
     Messages_Delete? delete,
     Messages_ReadContents? readContents,
+    Messages_Pin? pin,
+    Messages_UnpinAll? unpinAll,
+    Messages_Pinned? pinned,
   }) {
     final result = create();
     if (history != null) result.history = history;
@@ -3692,6 +4188,9 @@ class Messages_Request extends $pb.GeneratedMessage {
     if (edit != null) result.edit = edit;
     if (delete != null) result.delete = delete;
     if (readContents != null) result.readContents = readContents;
+    if (pin != null) result.pin = pin;
+    if (unpinAll != null) result.unpinAll = unpinAll;
+    if (pinned != null) result.pinned = pinned;
     return result;
   }
 
@@ -3708,17 +4207,23 @@ class Messages_Request extends $pb.GeneratedMessage {
     3: Messages_Request_Request.edit,
     4: Messages_Request_Request.delete,
     5: Messages_Request_Request.readContents,
+    6: Messages_Request_Request.pin,
+    7: Messages_Request_Request.unpinAll,
+    8: Messages_Request_Request.pinned,
     0: Messages_Request_Request.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Messages.Request',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
-    ..oo(0, [1, 2, 3, 4, 5])
+    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8])
     ..aOM<Messages_History>(1, _omitFieldNames ? '' : 'history', subBuilder: Messages_History.create)
     ..aOM<Messages_Send>(2, _omitFieldNames ? '' : 'send', subBuilder: Messages_Send.create)
     ..aOM<Messages_Edit>(3, _omitFieldNames ? '' : 'edit', subBuilder: Messages_Edit.create)
     ..aOM<Messages_Delete>(4, _omitFieldNames ? '' : 'delete', subBuilder: Messages_Delete.create)
     ..aOM<Messages_ReadContents>(5, _omitFieldNames ? '' : 'readContents',
         protoName: 'readContents', subBuilder: Messages_ReadContents.create)
+    ..aOM<Messages_Pin>(6, _omitFieldNames ? '' : 'pin', subBuilder: Messages_Pin.create)
+    ..aOM<Messages_UnpinAll>(7, _omitFieldNames ? '' : 'unpinAll', protoName: 'unpinAll', subBuilder: Messages_UnpinAll.create)
+    ..aOM<Messages_Pinned>(8, _omitFieldNames ? '' : 'pinned', subBuilder: Messages_Pinned.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -3743,12 +4248,18 @@ class Messages_Request extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   @$pb.TagNumber(4)
   @$pb.TagNumber(5)
+  @$pb.TagNumber(6)
+  @$pb.TagNumber(7)
+  @$pb.TagNumber(8)
   Messages_Request_Request whichRequest() => _Messages_Request_RequestByTag[$_whichOneof(0)]!;
   @$pb.TagNumber(1)
   @$pb.TagNumber(2)
   @$pb.TagNumber(3)
   @$pb.TagNumber(4)
   @$pb.TagNumber(5)
+  @$pb.TagNumber(6)
+  @$pb.TagNumber(7)
+  @$pb.TagNumber(8)
   void clearRequest() => $_clearField($_whichOneof(0));
 
   @$pb.TagNumber(1)
@@ -3805,9 +4316,42 @@ class Messages_Request extends $pb.GeneratedMessage {
   void clearReadContents() => $_clearField(5);
   @$pb.TagNumber(5)
   Messages_ReadContents ensureReadContents() => $_ensure(4);
+
+  @$pb.TagNumber(6)
+  Messages_Pin get pin => $_getN(5);
+  @$pb.TagNumber(6)
+  set pin(Messages_Pin value) => $_setField(6, value);
+  @$pb.TagNumber(6)
+  $core.bool hasPin() => $_has(5);
+  @$pb.TagNumber(6)
+  void clearPin() => $_clearField(6);
+  @$pb.TagNumber(6)
+  Messages_Pin ensurePin() => $_ensure(5);
+
+  @$pb.TagNumber(7)
+  Messages_UnpinAll get unpinAll => $_getN(6);
+  @$pb.TagNumber(7)
+  set unpinAll(Messages_UnpinAll value) => $_setField(7, value);
+  @$pb.TagNumber(7)
+  $core.bool hasUnpinAll() => $_has(6);
+  @$pb.TagNumber(7)
+  void clearUnpinAll() => $_clearField(7);
+  @$pb.TagNumber(7)
+  Messages_UnpinAll ensureUnpinAll() => $_ensure(6);
+
+  @$pb.TagNumber(8)
+  Messages_Pinned get pinned => $_getN(7);
+  @$pb.TagNumber(8)
+  set pinned(Messages_Pinned value) => $_setField(8, value);
+  @$pb.TagNumber(8)
+  $core.bool hasPinned() => $_has(7);
+  @$pb.TagNumber(8)
+  void clearPinned() => $_clearField(8);
+  @$pb.TagNumber(8)
+  Messages_Pinned ensurePinned() => $_ensure(7);
 }
 
-enum Messages_Response_Response { history, send, edit, delete, readContents, notSet }
+enum Messages_Response_Response { history, send, edit, delete, readContents, pin, unpinAll, pinned, notSet }
 
 class Messages_Response extends $pb.GeneratedMessage {
   factory Messages_Response({
@@ -3816,6 +4360,9 @@ class Messages_Response extends $pb.GeneratedMessage {
     Messages_EditResult? edit,
     Messages_DeleteResult? delete,
     Messages_ReadContentsResult? readContents,
+    Messages_PinResult? pin,
+    Messages_UnpinAllResult? unpinAll,
+    Messages_PinnedResult? pinned,
   }) {
     final result = create();
     if (history != null) result.history = history;
@@ -3823,6 +4370,9 @@ class Messages_Response extends $pb.GeneratedMessage {
     if (edit != null) result.edit = edit;
     if (delete != null) result.delete = delete;
     if (readContents != null) result.readContents = readContents;
+    if (pin != null) result.pin = pin;
+    if (unpinAll != null) result.unpinAll = unpinAll;
+    if (pinned != null) result.pinned = pinned;
     return result;
   }
 
@@ -3839,17 +4389,23 @@ class Messages_Response extends $pb.GeneratedMessage {
     3: Messages_Response_Response.edit,
     4: Messages_Response_Response.delete,
     5: Messages_Response_Response.readContents,
+    6: Messages_Response_Response.pin,
+    7: Messages_Response_Response.unpinAll,
+    8: Messages_Response_Response.pinned,
     0: Messages_Response_Response.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Messages.Response',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
-    ..oo(0, [1, 2, 3, 4, 5])
+    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8])
     ..aOM<Messages_HistoryResult>(1, _omitFieldNames ? '' : 'history', subBuilder: Messages_HistoryResult.create)
     ..aOM<Messages_SendResult>(2, _omitFieldNames ? '' : 'send', subBuilder: Messages_SendResult.create)
     ..aOM<Messages_EditResult>(3, _omitFieldNames ? '' : 'edit', subBuilder: Messages_EditResult.create)
     ..aOM<Messages_DeleteResult>(4, _omitFieldNames ? '' : 'delete', subBuilder: Messages_DeleteResult.create)
     ..aOM<Messages_ReadContentsResult>(5, _omitFieldNames ? '' : 'readContents',
         protoName: 'readContents', subBuilder: Messages_ReadContentsResult.create)
+    ..aOM<Messages_PinResult>(6, _omitFieldNames ? '' : 'pin', subBuilder: Messages_PinResult.create)
+    ..aOM<Messages_UnpinAllResult>(7, _omitFieldNames ? '' : 'unpinAll', protoName: 'unpinAll', subBuilder: Messages_UnpinAllResult.create)
+    ..aOM<Messages_PinnedResult>(8, _omitFieldNames ? '' : 'pinned', subBuilder: Messages_PinnedResult.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -3874,12 +4430,18 @@ class Messages_Response extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   @$pb.TagNumber(4)
   @$pb.TagNumber(5)
+  @$pb.TagNumber(6)
+  @$pb.TagNumber(7)
+  @$pb.TagNumber(8)
   Messages_Response_Response whichResponse() => _Messages_Response_ResponseByTag[$_whichOneof(0)]!;
   @$pb.TagNumber(1)
   @$pb.TagNumber(2)
   @$pb.TagNumber(3)
   @$pb.TagNumber(4)
   @$pb.TagNumber(5)
+  @$pb.TagNumber(6)
+  @$pb.TagNumber(7)
+  @$pb.TagNumber(8)
   void clearResponse() => $_clearField($_whichOneof(0));
 
   @$pb.TagNumber(1)
@@ -3936,6 +4498,39 @@ class Messages_Response extends $pb.GeneratedMessage {
   void clearReadContents() => $_clearField(5);
   @$pb.TagNumber(5)
   Messages_ReadContentsResult ensureReadContents() => $_ensure(4);
+
+  @$pb.TagNumber(6)
+  Messages_PinResult get pin => $_getN(5);
+  @$pb.TagNumber(6)
+  set pin(Messages_PinResult value) => $_setField(6, value);
+  @$pb.TagNumber(6)
+  $core.bool hasPin() => $_has(5);
+  @$pb.TagNumber(6)
+  void clearPin() => $_clearField(6);
+  @$pb.TagNumber(6)
+  Messages_PinResult ensurePin() => $_ensure(5);
+
+  @$pb.TagNumber(7)
+  Messages_UnpinAllResult get unpinAll => $_getN(6);
+  @$pb.TagNumber(7)
+  set unpinAll(Messages_UnpinAllResult value) => $_setField(7, value);
+  @$pb.TagNumber(7)
+  $core.bool hasUnpinAll() => $_has(6);
+  @$pb.TagNumber(7)
+  void clearUnpinAll() => $_clearField(7);
+  @$pb.TagNumber(7)
+  Messages_UnpinAllResult ensureUnpinAll() => $_ensure(6);
+
+  @$pb.TagNumber(8)
+  Messages_PinnedResult get pinned => $_getN(7);
+  @$pb.TagNumber(8)
+  set pinned(Messages_PinnedResult value) => $_setField(8, value);
+  @$pb.TagNumber(8)
+  $core.bool hasPinned() => $_has(7);
+  @$pb.TagNumber(8)
+  void clearPinned() => $_clearField(8);
+  @$pb.TagNumber(8)
+  Messages_PinnedResult ensurePinned() => $_ensure(7);
 }
 
 /// MESSAGES — сообщения.

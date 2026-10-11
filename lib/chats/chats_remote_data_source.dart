@@ -36,7 +36,7 @@ import 'read_receipts.dart';
 /// отправка сообщений: они честно ждут в outbox (⏱) и уходят при подключении.
 ///
 /// Группы, каналы, сообщества, папки, приглашения, опросы, реакции,
-/// отложенные, пересылка и закрепы — следующие срезы: их действия бросают
+/// отложенные и пересылка — следующие срезы: их действия бросают
 /// [UnsupportedError], а то, что экраны читают при открытии любого чата
 /// (участники, отложенные, ссылки), отдаёт пустое.
 class ChatsRemoteDataSource implements ChatsDataSource {
@@ -52,8 +52,19 @@ class ChatsRemoteDataSource implements ChatsDataSource {
 
   final _random = Random.secure();
 
-  static const _chatTables = [ChatsRepository.dialogsTable, ChatsRepository.outboxTable, 'profiles', 'contacts'];
-  static const _messageTables = [ChatsRepository.messagesTable, ChatsRepository.outboxTable, ChatsRepository.dialogsTable];
+  static const _chatTables = [
+    ChatsRepository.dialogsTable,
+    ChatsRepository.outboxTable,
+    ChatsRepository.pinnedTable,
+    'profiles',
+    'contacts',
+  ];
+  static const _messageTables = [
+    ChatsRepository.messagesTable,
+    ChatsRepository.outboxTable,
+    ChatsRepository.dialogsTable,
+    ChatsRepository.pinnedTable,
+  ];
 
   Future<void> _requireNetwork() async {
     if (!await _sync.hasNetwork()) throw const ChatsOfflineException();
@@ -61,9 +72,9 @@ class ChatsRemoteDataSource implements ChatsDataSource {
 
   static Never _unsupported(String what) => throw UnsupportedError('$what — пока только в демо (личные чаты — первый срез)');
 
-  /// Реакции, закрепы, пересылка и отложенные — второй срез.
+  /// Закреплённые сообщения — есть; реакции, пересылка и отложенные — второй срез.
   @override
-  ChatsFeatures get features => const ChatsFeatures.none();
+  ChatsFeatures get features => const ChatsFeatures(reactions: false, pinnedMessages: true, forward: false, scheduled: false);
 
   // --- список чатов ---
 
@@ -136,9 +147,16 @@ class ChatsRemoteDataSource implements ChatsDataSource {
       final isSelf = peer != null && sameID(peer, me);
       final info = peer == null || isSelf ? null : peers.of(peer);
       final topBlob = row.topMessage;
-      var lastMessage = topBlob == null
+      final top = topBlob == null ? null : pb.ChatMessage.fromBuffer(topBlob);
+      var lastMessage = top == null
           ? null
-          : lastMessageFromPb(pb.ChatMessage.fromBuffer(topBlob), myUserID: me, readOutboxMaxID: row.readOutboxMaxID, isSelf: isSelf);
+          : lastMessageFromPb(
+              top,
+              myUserID: me,
+              readOutboxMaxID: row.readOutboxMaxID,
+              isSelf: isSelf,
+              pinned: top.content.hasPin() ? await _pinnedMessage(row.chatID, top.content.pin.messageID.toInt()) : null,
+            );
       final queued = pending[id];
       if (queued != null) {
         final date = DateTime.fromMillisecondsSinceEpoch(queued.createdAt);
@@ -192,6 +210,18 @@ class ChatsRemoteDataSource implements ChatsDataSource {
         if (row.peerUserID case final peer? when !sameID(peer, me) && (peers.of(peer).profile?.fistName ?? '').isEmpty) peer,
     ]);
     return chats;
+  }
+
+  /// Закреплённое сообщение — из кэша истории или закреплённых (превью
+  /// служебного «закрепил «…»» в списке чатов).
+  Future<pb.ChatMessage?> _pinnedMessage(List<int> chatID, int messageID) async {
+    final me = _sync.me;
+    final cached = await _store.message(userID: me, chatID: chatID, messageID: messageID);
+    if (cached != null) return cached;
+    for (final m in await _store.pinned(userID: me, chatID: chatID)) {
+      if (m.messageID.toInt() == messageID) return m;
+    }
+    return null;
   }
 
   /// Имена собеседников: из адресной книги (как подписан у нас), иначе из
@@ -566,6 +596,9 @@ class ChatsRemoteDataSource implements ChatsDataSource {
   final _windows = <String, int>{};
   static const _initialWindow = 200;
   static const _windowStep = 100;
+
+  /// Сколько страниц истории докачивать ради перехода к старому сообщению.
+  static const _revealMaxPages = 20;
   final _windowChanged = StreamController<String>.broadcast();
 
   @override
@@ -582,6 +615,13 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     final chat = idBytes(chatID);
     final id = int.tryParse(messageID);
     if (chat.isEmpty || id == null || !_auth.isAuthorized) return;
+    // Старше скачанной истории (закреплённое) — докачать до него.
+    for (var page = 0; page < _revealMaxPages; page++) {
+      final oldest = await _store.oldestMessageID(userID: _sync.me, chatID: chat);
+      if (oldest == 0 || oldest <= id) break;
+      final result = await _sync.loadOlder(chat);
+      if (result.loaded == 0) break;
+    }
     final needed = await _store.countMessagesFrom(userID: _sync.me, chatID: chat, messageID: id) + _windowStep ~/ 2;
     if (needed <= (_windows[chatID] ?? _initialWindow)) return;
     _windows[chatID] = needed;
@@ -621,6 +661,7 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     final peerName = peer == null || isSelf ? '' : _Peers(await _loadPeers([peer])).of(peer).title;
     final history = await _store.messages(userID: me, chatID: chat, limit: _windows[chatID] ?? _initialWindow);
     final byID = {for (final m in history) m.messageID.toInt(): m};
+    final pinnedIDs = {for (final m in await _store.pinned(userID: me, chatID: chat)) m.messageID.toInt()};
 
     models.Message map(pb.ChatMessage m) => messageFromPb(
       m,
@@ -630,6 +671,7 @@ class ChatsRemoteDataSource implements ChatsDataSource {
       isSelf: isSelf,
       replied: m.content.hasReplyTo() ? byID[m.content.replyTo.messageID.toInt()] : null,
       peerName: peerName,
+      pinned: pinnedIDs.contains(m.messageID.toInt()),
     );
 
     final outboxDir = await outboxMediaDir();
@@ -963,11 +1005,88 @@ class ChatsRemoteDataSource implements ChatsDataSource {
   }
 
   @override
-  Future<void> setMessagePinned(String chatID, String messageID, bool pinned, {bool forEveryone = true}) async =>
-      _unsupported('Закреплённые сообщения');
+  Future<void> setMessagePinned(String chatID, String messageID, bool pinned, {bool forEveryone = true}) async {
+    final id = serverMessageID(messageID);
+    if (id == null) return;
+    await _requireNetwork();
+    final response = await _sync.messages(
+      pb.Messages_Request(
+        pin: pb.Messages_Pin(chatID: idBytes(chatID), messageID: Int64(id), pinned: pinned, forEveryone: forEveryone),
+      ),
+    );
+    await _sync.applyUpdates(response.pin.updates);
+  }
 
   @override
-  Future<void> unpinAllMessages(String chatID) async => _unsupported('Закреплённые сообщения');
+  Future<void> unpinAllMessages(String chatID) async {
+    await _requireNetwork();
+    final response = await _sync.messages(pb.Messages_Request(unpinAll: pb.Messages_UnpinAll(chatID: idBytes(chatID))));
+    await _sync.applyUpdates(response.unpinAll.updates);
+  }
+
+  /// Из кэша закреплённых ([ChatsRepository.pinned]); при подписке — свежий
+  /// список с сервера (нет сети — показываем кэш).
+  @override
+  Stream<List<models.Message>> watchPinnedMessages(String chatID) {
+    final chat = idBytes(chatID);
+    if (chat.isNotEmpty) {
+      unawaited(
+        _sync.loadPinned(chat).catchError((Object error, StackTrace stackTrace) {
+          if (error is! ChatsOfflineException) _logger.handle(error, stackTrace);
+        }),
+      );
+    }
+    late final StreamController<List<models.Message>> out;
+    StreamSubscription<void>? changes;
+    StreamSubscription<String>? refresh;
+    var pending = Future<void>.value();
+    void reload() {
+      pending = pending
+          .then((_) async {
+            final pinned = await _loadPinned(chatID, chat);
+            if (!out.isClosed) out.add(pinned);
+          })
+          .catchError((Object error, StackTrace stackTrace) => _logger.handle(error, stackTrace));
+    }
+
+    out = StreamController<List<models.Message>>(
+      onListen: () {
+        changes = _repositories.db.onChange([ChatsRepository.pinnedTable, ChatsRepository.dialogsTable]).listen((_) => reload());
+        // Скачалось превью вложения закреплённого.
+        refresh = _windowChanged.stream.where((id) => id == chatID).listen((_) => reload());
+      },
+      onCancel: () async {
+        await changes?.cancel();
+        await refresh?.cancel();
+      },
+    );
+    return out.stream;
+  }
+
+  Future<List<models.Message>> _loadPinned(String chatID, Uint8List chat) async {
+    if (!_auth.isAuthorized || chat.isEmpty) return const [];
+    final me = _sync.me;
+    final row = await _store.dialog(userID: me, chatID: chat);
+    final peer = row?.peerUserID;
+    final isSelf = peer != null && sameID(peer, me);
+    final peerName = peer == null || isSelf ? '' : _Peers(await _loadPeers([peer])).of(peer).title;
+    return [
+      for (final m in await _store.pinned(userID: me, chatID: chat))
+        await _withServerMedia(
+          messageFromPb(
+            m,
+            chatID: chatID,
+            myUserID: me,
+            readOutboxMaxID: row?.readOutboxMaxID ?? 0,
+            isSelf: isSelf,
+            peerName: peerName,
+            pinned: true,
+          ),
+          m.content,
+          chatID,
+        ),
+    ];
+  }
 
   @override
   Future<void> forwardMessages(String toChatID, List<models.Message> messages) async => _unsupported('Пересылка');

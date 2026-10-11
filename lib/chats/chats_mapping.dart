@@ -100,9 +100,22 @@ models.MessageCall? callFromPb(pb.MessageContent content) {
   );
 }
 
-/// Входящее, которое не считается непрочитанным: звонок, кроме пропущенного
-/// (как на сервере, `noUnread`).
-bool skipsUnread(pb.MessageContent content) => content.hasCall() && callFromPb(content)?.unanswered != true;
+/// Входящее, которое не считается непрочитанным: звонок, кроме пропущенного,
+/// и «закрепил сообщение» (как на сервере, `noUnread`).
+bool skipsUnread(pb.MessageContent content) => content.hasPin() || (content.hasCall() && callFromPb(content)?.unanswered != true);
+
+/// Текст закреплённого для «закрепил «…»»: подпись / текст, у файла — имя,
+/// у остального — пусто (тогда подпись вида — на стороне экрана).
+String pinSnippet(pb.ChatMessage? pinned) {
+  if (pinned == null) return '';
+  final content = pinned.content;
+  var text = content.text;
+  if (text.isEmpty && content.media.isNotEmpty && content.media.first.kind == pb.MessageKind.MESSAGE_KIND_FILE) {
+    text = content.media.first.fileName;
+  }
+  text = text.replaceAll('\n', ' ');
+  return text.length > 30 ? '${text.substring(0, 30).trimRight()}…' : text;
+}
 
 /// ✓ / ✓✓ исходящего: прочитано, если собеседник дочитал до него
 /// (`readOutboxMaxID`). В «Избранном» читать некому — всегда прочитано.
@@ -120,6 +133,7 @@ models.Message messageFromPb(
   required bool isSelf,
   pb.ChatMessage? replied,
   String peerName = '',
+  bool pinned = false,
 }) {
   final outgoing = sameID(m.fromUserID, myUserID);
   final content = m.content;
@@ -129,6 +143,11 @@ models.Message messageFromPb(
     id: m.messageID.toString(),
     chatID: chatID,
     kind: kind,
+    // «Закрепил сообщение» — служебная плашка (тап — к закреплённому).
+    service: content.hasPin(),
+    pinnedMessageID: content.hasPin() ? content.pin.messageID.toString() : '',
+    senderName: content.hasPin() && !outgoing ? peerName : '',
+    pinned: pinned,
     text: content.text,
     entities: [for (final e in content.entities) entityFromPb(e)],
     outgoing: outgoing,
@@ -211,12 +230,14 @@ pb.MessageContent textContent({
   );
 }
 
-/// Последнее сообщение для строки списка чатов.
+/// Последнее сообщение для строки списка чатов. [pinned] — закреплённое
+/// (у служебного «закрепил сообщение», если есть в кэше).
 models.ChatLastMessage lastMessageFromPb(
   pb.ChatMessage m, {
   required List<int> myUserID,
   required int readOutboxMaxID,
   required bool isSelf,
+  pb.ChatMessage? pinned,
 }) {
   final outgoing = sameID(m.fromUserID, myUserID);
   return models.ChatLastMessage(
@@ -228,6 +249,8 @@ models.ChatLastMessage lastMessageFromPb(
         : models.MessageStatus.read,
     date: DateTime.fromMillisecondsSinceEpoch(m.date.toInt()),
     phoneCall: callFromPb(m.content),
+    pin: m.content.hasPin(),
+    pinText: m.content.hasPin() ? pinSnippet(pinned) : '',
   );
 }
 

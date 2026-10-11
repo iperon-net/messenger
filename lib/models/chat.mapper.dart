@@ -1192,6 +1192,20 @@ class ChatLastMessageMapper extends ClassMapperBase<ChatLastMessage> {
     _$phoneCall,
     opt: true,
   );
+  static bool _$pin(ChatLastMessage v) => v.pin;
+  static const Field<ChatLastMessage, bool> _f$pin = Field(
+    'pin',
+    _$pin,
+    opt: true,
+    def: false,
+  );
+  static String _$pinText(ChatLastMessage v) => v.pinText;
+  static const Field<ChatLastMessage, String> _f$pinText = Field(
+    'pinText',
+    _$pinText,
+    opt: true,
+    def: '',
+  );
 
   @override
   final MappableFields<ChatLastMessage> fields = const {
@@ -1203,6 +1217,8 @@ class ChatLastMessageMapper extends ClassMapperBase<ChatLastMessage> {
     #date: _f$date,
     #chatTitle: _f$chatTitle,
     #phoneCall: _f$phoneCall,
+    #pin: _f$pin,
+    #pinText: _f$pinText,
   };
 
   static ChatLastMessage _instantiate(DecodingData data) {
@@ -1215,6 +1231,8 @@ class ChatLastMessageMapper extends ClassMapperBase<ChatLastMessage> {
       date: data.dec(_f$date),
       chatTitle: data.dec(_f$chatTitle),
       phoneCall: data.dec(_f$phoneCall),
+      pin: data.dec(_f$pin),
+      pinText: data.dec(_f$pinText),
     );
   }
 
@@ -1290,6 +1308,8 @@ abstract class ChatLastMessageCopyWith<$R, $In extends ChatLastMessage, $Out>
     DateTime? date,
     String? chatTitle,
     MessageCall? phoneCall,
+    bool? pin,
+    String? pinText,
   });
   ChatLastMessageCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
     Then<$Out2, $R2> t,
@@ -1317,6 +1337,8 @@ class _ChatLastMessageCopyWithImpl<$R, $Out>
     DateTime? date,
     String? chatTitle,
     Object? phoneCall = $none,
+    bool? pin,
+    String? pinText,
   }) => $apply(
     FieldCopyWithData({
       if (kind != null) #kind: kind,
@@ -1327,6 +1349,8 @@ class _ChatLastMessageCopyWithImpl<$R, $Out>
       if (date != null) #date: date,
       if (chatTitle != null) #chatTitle: chatTitle,
       if (phoneCall != $none) #phoneCall: phoneCall,
+      if (pin != null) #pin: pin,
+      if (pinText != null) #pinText: pinText,
     }),
   );
   @override
@@ -1339,6 +1363,8 @@ class _ChatLastMessageCopyWithImpl<$R, $Out>
     date: data.get(#date, or: $value.date),
     chatTitle: data.get(#chatTitle, or: $value.chatTitle),
     phoneCall: data.get(#phoneCall, or: $value.phoneCall),
+    pin: data.get(#pin, or: $value.pin),
+    pinText: data.get(#pinText, or: $value.pinText),
   );
 
   @override
