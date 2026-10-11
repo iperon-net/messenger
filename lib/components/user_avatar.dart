@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
@@ -20,10 +21,10 @@ import '../utils.dart';
 /// Стоимость показа — не картинка (её `CDNManager` кэширует навсегда по `cdnID`),
 /// а знание актуального `cdnID`. Поэтому:
 ///   • cache-hit ([CDNManager.cachedFile]) отдаёт аватар без сети;
-///   • при промахе — **один** запрос `PROFILE` за сессию на пользователя
-///     ([_requested]); ответ (скачивание + привязка `avatarCdnID`) обрабатывает
-///     `API._handleMessage`, а мы подхватываем аватар из того же (дедуплицируемого)
-///     `download`. Запрос уходит только для видимых строк с известным [userID],
+///   • при промахе — **один** запрос `PROFILE` за сессию на пользователя,
+///     общий для всех его строк ([_UserAvatarState._requests]); ответ
+///     (скачивание + привязка `avatarCdnID`) обрабатывает и `API._handleMessage`,
+///     а мы подхватываем аватар из того же (дедуплицируемого) `download`. Запрос уходит только для видимых строк с известным [userID],
 ///     поэтому список без аватарок не порождает пачку из сотен запросов.
 ///
 /// Незарегистрированные контакты ([userID] == null) показывают только плейсхолдер.
@@ -44,18 +45,21 @@ class UserAvatar extends StatefulWidget {
 }
 
 class _UserAvatarState extends State<UserAvatar> {
-  // userID (hex), по которым PROFILE уже запрашивался в этой сессии — прокрутка
-  // списка туда-обратно (пересоздание строк) не должна слать повторные запросы.
-  static final Set<String> _requested = {};
+  // Запрос PROFILE (и скачивание аватара) по userID (hex) — один на сессию и
+  // общий для всех строк этого пользователя: в «Звонках» один человек занимает
+  // много строк подряд, и каждая должна получить картинку, а не только первая.
+  // Прокрутка туда-обратно (пересоздание строк) повторных запросов не шлёт.
+  static final Map<String, Future<File?>> _requests = {};
+
+  // Ответа нет (стрим не поднят / нет сети) — забываем запрос, чтобы строка,
+  // построенная позже, спросила снова.
+  static const _requestTimeout = Duration(seconds: 30);
 
   final _cdn = getIt.get<CDNManager>();
   final _repositories = getIt.get<Repositories>();
-  final _api = getIt.get<API>();
-  final _utils = getIt.get<Utils>();
   final _logger = getIt.get<Logger>();
 
   Uint8List? _bytes;
-  StreamSubscription<Uint8List>? _subscription;
 
   @override
   void initState() {
@@ -68,17 +72,9 @@ class _UserAvatarState extends State<UserAvatar> {
     super.didUpdateWidget(oldWidget);
     // Элемент списка переиспользован под другой userID — перезагружаем.
     if (!_sameUser(oldWidget.userID, widget.userID)) {
-      _subscription?.cancel();
-      _subscription = null;
       setState(() => _bytes = null);
       _load();
     }
-  }
-
-  @override
-  void dispose() {
-    _subscription?.cancel();
-    super.dispose();
   }
 
   bool _sameUser(Uint8List? a, Uint8List? b) {
@@ -96,11 +92,8 @@ class _UserAvatarState extends State<UserAvatar> {
       final cdnID = profile.avatarCdnID;
       if (cdnID != null && cdnID.isNotEmpty) {
         final file = await _cdn.cachedFile(Uint8List.fromList(cdnID));
-        if (!mounted) return;
         if (file != null) {
-          final bytes = await file.readAsBytes();
-          if (!mounted) return;
-          setState(() => _bytes = bytes);
+          await _show(userID, file);
           return;
         }
       }
@@ -108,41 +101,56 @@ class _UserAvatarState extends State<UserAvatar> {
       _logger.handle(error, stackTrace);
     }
 
-    // 2. Промах кэша — один запрос PROFILE на пользователя за сессию.
-    final hex = _utils.bytesToHex(userID);
-    if (!_requested.add(hex)) return;
-    _requestProfile(userID);
+    // 2. Промах кэша — ждём общий на пользователя запрос PROFILE.
+    final hex = getIt.get<Utils>().bytesToHex(userID);
+    final file = await _requests.putIfAbsent(hex, () => _requestProfile(hex, userID));
+    if (file != null) await _show(userID, file);
   }
 
-  void _requestProfile(Uint8List userID) {
+  Future<void> _show(Uint8List userID, File file) async {
+    if (!mounted || !_sameUser(widget.userID, userID)) return;
+    try {
+      final bytes = await file.readAsBytes();
+      if (!mounted || !_sameUser(widget.userID, userID)) return;
+      setState(() => _bytes = bytes);
+    } catch (error, stackTrace) {
+      _logger.handle(error, stackTrace);
+    }
+  }
+
+  /// PROFILE-запрос по [userID]: файл аватара или `null` (аватара нет / не
+  /// дождались ответа). Ответ (привязку `avatarCdnID`) пишет и
+  /// `API._handleMessage`; `download` дедуплицируется, так что скачивание одно.
+  static Future<File?> _requestProfile(String hex, Uint8List userID) async {
+    final api = getIt.get<API>();
     // Слушаем ДО отправки, чтобы не пропустить ответ (broadcast-стрим).
-    _subscription = _api.on(MessageType.PROFILE).listen((raw) async {
-      final response = Profile_Response.fromBuffer(raw);
-      if (!listEquals(response.userID, userID)) return;
-
-      // Наш профиль пришёл — больше слушать нечего.
-      _subscription?.cancel();
-      _subscription = null;
-      if (!response.hasAvatar()) return;
-
-      try {
-        final file = await _cdn.download(cdn: models.CDN.fromProto(response.avatar));
-        final bytes = await file.readAsBytes();
-        if (!mounted) return;
-        setState(() => _bytes = bytes);
-      } catch (error, stackTrace) {
-        _logger.handle(error, stackTrace);
-      }
-    });
+    final response = api
+        .on(MessageType.PROFILE)
+        .map(Profile_Response.fromBuffer)
+        .firstWhere((response) => listEquals(response.userID, userID))
+        .timeout(_requestTimeout);
 
     unawaited(
-      _api.sendEncoded(MessageType.PROFILE, Profile_Request(userID: userID).writeToBuffer()).catchError((
+      api.sendEncoded(MessageType.PROFILE, Profile_Request(userID: userID).writeToBuffer()).catchError((
         Object error,
         StackTrace stackTrace,
       ) {
-        _logger.handle(error, stackTrace);
+        getIt.get<Logger>().handle(error, stackTrace);
       }),
     );
+
+    try {
+      final profile = await response;
+      if (!profile.hasAvatar()) return null;
+      return await getIt.get<CDNManager>().download(cdn: models.CDN.fromProto(profile.avatar));
+    } on TimeoutException {
+      _requests.remove(hex);
+      return null;
+    } catch (error, stackTrace) {
+      getIt.get<Logger>().handle(error, stackTrace);
+      _requests.remove(hex);
+      return null;
+    }
   }
 
   @override
