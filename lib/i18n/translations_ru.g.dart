@@ -570,6 +570,17 @@ class _Translations$screenChat$ru extends Translations$screenChat$en {
 	@override String get requestSent => 'Заявка отправлена';
 	@override String get linkInvalid => 'Ссылка недействительна или устарела.';
 	@override String get poll => 'Опрос';
+	@override String get callOutgoing => 'Исходящий звонок';
+	@override String get callIncoming => 'Входящий звонок';
+	@override String get callMissed => 'Пропущенный звонок';
+	@override String get callCancelled => 'Отменённый звонок';
+	@override String get callDeclined => 'Отклонённый звонок';
+	@override String get callBusy => 'Абонент был занят';
+	@override String get videoCallOutgoing => 'Исходящий видеозвонок';
+	@override String get videoCallIncoming => 'Входящий видеозвонок';
+	@override String get videoCallMissed => 'Пропущенный видеозвонок';
+	@override String get videoCallCancelled => 'Отменённый видеозвонок';
+	@override String get videoCallDeclined => 'Отклонённый видеозвонок';
 	@override String get quiz => 'Викторина';
 	@override String get anonymousPoll => 'Анонимный опрос';
 	@override String get publicPoll => 'Открытый опрос';
@@ -1867,6 +1878,17 @@ extension on TranslationsRu {
 			'screenChat.requestSent' => 'Заявка отправлена',
 			'screenChat.linkInvalid' => 'Ссылка недействительна или устарела.',
 			'screenChat.poll' => 'Опрос',
+			'screenChat.callOutgoing' => 'Исходящий звонок',
+			'screenChat.callIncoming' => 'Входящий звонок',
+			'screenChat.callMissed' => 'Пропущенный звонок',
+			'screenChat.callCancelled' => 'Отменённый звонок',
+			'screenChat.callDeclined' => 'Отклонённый звонок',
+			'screenChat.callBusy' => 'Абонент был занят',
+			'screenChat.videoCallOutgoing' => 'Исходящий видеозвонок',
+			'screenChat.videoCallIncoming' => 'Входящий видеозвонок',
+			'screenChat.videoCallMissed' => 'Пропущенный видеозвонок',
+			'screenChat.videoCallCancelled' => 'Отменённый видеозвонок',
+			'screenChat.videoCallDeclined' => 'Отклонённый видеозвонок',
 			'screenChat.quiz' => 'Викторина',
 			'screenChat.anonymousPoll' => 'Анонимный опрос',
 			'screenChat.publicPoll' => 'Открытый опрос',
@@ -2003,6 +2025,8 @@ extension on TranslationsRu {
 			'screenSettings.language' => 'Язык',
 			'screenSettings.appearance' => _root.screenSettingsAppearance.appearance,
 			'screenSettings.folders' => _root.screenChatFolders.folders,
+			_ => null,
+		} ?? switch (path) {
 			'screenSettings.notifications' => _root.screenSettingsNotifications.notifications,
 			'screenSettings.privacyAndSecurity' => 'Конфиденциальность',
 			'screenSettings.aboutApplication' => 'О приложении',
@@ -2014,8 +2038,6 @@ extension on TranslationsRu {
 			'screenSettingsNotifications.groups' => 'Группы',
 			'screenSettingsNotifications.channels' => 'Каналы',
 			'screenSettingsNotifications.on' => 'Вкл.',
-			_ => null,
-		} ?? switch (path) {
 			'screenSettingsNotifications.off' => 'Выкл.',
 			'screenSettingsNotifications.events' => 'События',
 			'screenSettingsNotifications.contactJoined' => 'Контакт присоединился к Iperon',

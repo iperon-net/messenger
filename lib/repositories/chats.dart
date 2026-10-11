@@ -315,6 +315,51 @@ class ChatsRepository {
         messageSearchText(message.content),
       ],
     );
+    if (message.content.hasCall()) await _upsertCallLog(userID: userID, message: message);
+  }
+
+  /// Звонок из чата → журнал «Звонков» (`callLogs`): строку, записанную
+  /// локально при завершении звонка (тот же callID), уточняем данными сервера,
+  /// иначе добавляем (выгруженное приложение, другое устройство, новая
+  /// установка). Удалённую во вкладке (hidden) не возвращаем. Собеседник
+  /// исходящего — из диалога (неизвестен — пропускаем).
+  Future<void> _upsertCallLog({required List<int> userID, required pb.ChatMessage message}) async {
+    final call = message.content.call;
+    if (call.callID.isEmpty) return;
+    final outgoing = _sameBytes(message.fromUserID, userID);
+    List<int>? peer = outgoing ? null : message.fromUserID;
+    if (outgoing) {
+      final row = await ctx.getOptional('SELECT peerUserID FROM chatDialogs WHERE userID = ? AND chatID = ?;', [userID, message.chatID]);
+      peer = row?['peerUserID'] as List<int>?;
+    }
+    if (peer == null || peer.isEmpty) return;
+    final unanswered = call.outcome == pb.MessageCall_Outcome.MISSED || call.outcome == pb.MessageCall_Outcome.BUSY;
+    final values = [
+      outgoing ? models.CallDirection.outgoing.name : models.CallDirection.incoming.name,
+      call.video ? 1 : 0,
+      !outgoing && unanswered ? 1 : 0,
+      call.outcome == pb.MessageCall_Outcome.ENDED ? call.duration : 0,
+      message.date.toInt(),
+    ];
+    await ctx.execute('UPDATE callLogs SET direction = ?, video = ?, missed = ?, durationSeconds = ?, createdAt = ? WHERE callID = ?;', [
+      ...values,
+      call.callID,
+    ]);
+    await ctx.execute(
+      '''
+      INSERT INTO callLogs (direction, video, missed, durationSeconds, createdAt, callID, userID, displayName)
+      SELECT ?, ?, ?, ?, ?, ?, ?, '' WHERE NOT EXISTS (SELECT 1 FROM callLogs WHERE callID = ?);
+      ''',
+      [...values, call.callID, peer, call.callID],
+    );
+  }
+
+  static bool _sameBytes(List<int> a, List<int> b) {
+    if (a.length != b.length) return false;
+    for (var i = 0; i < a.length; i++) {
+      if (a[i] != b[i]) return false;
+    }
+    return true;
   }
 
   Future<pb.ChatMessage?> message({required List<int> userID, required List<int> chatID, required int messageID}) async {

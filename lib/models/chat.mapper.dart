@@ -147,6 +147,8 @@ class MessageKindMapper extends EnumMapper<MessageKind> {
         return MessageKind.voice;
       case r'poll':
         return MessageKind.poll;
+      case r'call':
+        return MessageKind.call;
       default:
         throw MapperException.unknownEnumValue(value);
     }
@@ -167,6 +169,8 @@ class MessageKindMapper extends EnumMapper<MessageKind> {
         return r'voice';
       case MessageKind.poll:
         return r'poll';
+      case MessageKind.call:
+        return r'call';
     }
   }
 }
@@ -175,6 +179,60 @@ extension MessageKindMapperExtension on MessageKind {
   String toValue() {
     MessageKindMapper.ensureInitialized();
     return MapperContainer.globals.toValue<MessageKind>(this) as String;
+  }
+}
+
+class CallOutcomeMapper extends EnumMapper<CallOutcome> {
+  CallOutcomeMapper._();
+
+  static CallOutcomeMapper? _instance;
+  static CallOutcomeMapper ensureInitialized() {
+    if (_instance == null) {
+      MapperContainer.globals.use(_instance = CallOutcomeMapper._());
+    }
+    return _instance!;
+  }
+
+  static CallOutcome fromValue(dynamic value) {
+    ensureInitialized();
+    return MapperContainer.globals.fromValue(value);
+  }
+
+  @override
+  CallOutcome decode(dynamic value) {
+    switch (value) {
+      case r'ended':
+        return CallOutcome.ended;
+      case r'missed':
+        return CallOutcome.missed;
+      case r'declined':
+        return CallOutcome.declined;
+      case r'busy':
+        return CallOutcome.busy;
+      default:
+        throw MapperException.unknownEnumValue(value);
+    }
+  }
+
+  @override
+  dynamic encode(CallOutcome self) {
+    switch (self) {
+      case CallOutcome.ended:
+        return r'ended';
+      case CallOutcome.missed:
+        return r'missed';
+      case CallOutcome.declined:
+        return r'declined';
+      case CallOutcome.busy:
+        return r'busy';
+    }
+  }
+}
+
+extension CallOutcomeMapperExtension on CallOutcome {
+  String toValue() {
+    CallOutcomeMapper.ensureInitialized();
+    return MapperContainer.globals.toValue<CallOutcome>(this) as String;
   }
 }
 
@@ -435,6 +493,151 @@ extension ChatCommentsWhoMapperExtension on ChatCommentsWho {
     ChatCommentsWhoMapper.ensureInitialized();
     return MapperContainer.globals.toValue<ChatCommentsWho>(this) as String;
   }
+}
+
+class MessageCallMapper extends ClassMapperBase<MessageCall> {
+  MessageCallMapper._();
+
+  static MessageCallMapper? _instance;
+  static MessageCallMapper ensureInitialized() {
+    if (_instance == null) {
+      MapperContainer.globals.use(_instance = MessageCallMapper._());
+      CallOutcomeMapper.ensureInitialized();
+    }
+    return _instance!;
+  }
+
+  @override
+  final String id = 'MessageCall';
+
+  static bool _$video(MessageCall v) => v.video;
+  static const Field<MessageCall, bool> _f$video = Field(
+    'video',
+    _$video,
+    opt: true,
+    def: false,
+  );
+  static CallOutcome _$outcome(MessageCall v) => v.outcome;
+  static const Field<MessageCall, CallOutcome> _f$outcome = Field(
+    'outcome',
+    _$outcome,
+    opt: true,
+    def: CallOutcome.ended,
+  );
+  static int _$duration(MessageCall v) => v.duration;
+  static const Field<MessageCall, int> _f$duration = Field(
+    'duration',
+    _$duration,
+    opt: true,
+    def: 0,
+  );
+
+  @override
+  final MappableFields<MessageCall> fields = const {
+    #video: _f$video,
+    #outcome: _f$outcome,
+    #duration: _f$duration,
+  };
+
+  static MessageCall _instantiate(DecodingData data) {
+    return MessageCall(
+      video: data.dec(_f$video),
+      outcome: data.dec(_f$outcome),
+      duration: data.dec(_f$duration),
+    );
+  }
+
+  @override
+  final Function instantiate = _instantiate;
+
+  static MessageCall fromMap(Map<String, dynamic> map) {
+    return ensureInitialized().decodeMap<MessageCall>(map);
+  }
+
+  static MessageCall fromJson(String json) {
+    return ensureInitialized().decodeJson<MessageCall>(json);
+  }
+}
+
+mixin MessageCallMappable {
+  String toJson() {
+    return MessageCallMapper.ensureInitialized().encodeJson<MessageCall>(
+      this as MessageCall,
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return MessageCallMapper.ensureInitialized().encodeMap<MessageCall>(
+      this as MessageCall,
+    );
+  }
+
+  MessageCallCopyWith<MessageCall, MessageCall, MessageCall> get copyWith =>
+      _MessageCallCopyWithImpl<MessageCall, MessageCall>(
+        this as MessageCall,
+        $identity,
+        $identity,
+      );
+  @override
+  String toString() {
+    return MessageCallMapper.ensureInitialized().stringifyValue(
+      this as MessageCall,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return MessageCallMapper.ensureInitialized().equalsValue(
+      this as MessageCall,
+      other,
+    );
+  }
+
+  @override
+  int get hashCode {
+    return MessageCallMapper.ensureInitialized().hashValue(this as MessageCall);
+  }
+}
+
+extension MessageCallValueCopy<$R, $Out>
+    on ObjectCopyWith<$R, MessageCall, $Out> {
+  MessageCallCopyWith<$R, MessageCall, $Out> get $asMessageCall =>
+      $base.as((v, t, t2) => _MessageCallCopyWithImpl<$R, $Out>(v, t, t2));
+}
+
+abstract class MessageCallCopyWith<$R, $In extends MessageCall, $Out>
+    implements ClassCopyWith<$R, $In, $Out> {
+  $R call({bool? video, CallOutcome? outcome, int? duration});
+  MessageCallCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
+}
+
+class _MessageCallCopyWithImpl<$R, $Out>
+    extends ClassCopyWithBase<$R, MessageCall, $Out>
+    implements MessageCallCopyWith<$R, MessageCall, $Out> {
+  _MessageCallCopyWithImpl(super.value, super.then, super.then2);
+
+  @override
+  late final ClassMapperBase<MessageCall> $mapper =
+      MessageCallMapper.ensureInitialized();
+  @override
+  $R call({bool? video, CallOutcome? outcome, int? duration}) => $apply(
+    FieldCopyWithData({
+      if (video != null) #video: video,
+      if (outcome != null) #outcome: outcome,
+      if (duration != null) #duration: duration,
+    }),
+  );
+  @override
+  MessageCall $make(CopyWithData data) => MessageCall(
+    video: data.get(#video, or: $value.video),
+    outcome: data.get(#outcome, or: $value.outcome),
+    duration: data.get(#duration, or: $value.duration),
+  );
+
+  @override
+  MessageCallCopyWith<$R2, MessageCall, $Out2> $chain<$R2, $Out2>(
+    Then<$Out2, $R2> t,
+  ) => _MessageCallCopyWithImpl<$R2, $Out2>($value, $cast, t);
 }
 
 class ChatAdminRightsMapper extends ClassMapperBase<ChatAdminRights> {
@@ -931,6 +1134,7 @@ class ChatLastMessageMapper extends ClassMapperBase<ChatLastMessage> {
       MapperContainer.globals.use(_instance = ChatLastMessageMapper._());
       MessageKindMapper.ensureInitialized();
       MessageStatusMapper.ensureInitialized();
+      MessageCallMapper.ensureInitialized();
     }
     return _instance!;
   }
@@ -982,6 +1186,12 @@ class ChatLastMessageMapper extends ClassMapperBase<ChatLastMessage> {
     opt: true,
     def: '',
   );
+  static MessageCall? _$phoneCall(ChatLastMessage v) => v.phoneCall;
+  static const Field<ChatLastMessage, MessageCall> _f$phoneCall = Field(
+    'phoneCall',
+    _$phoneCall,
+    opt: true,
+  );
 
   @override
   final MappableFields<ChatLastMessage> fields = const {
@@ -992,6 +1202,7 @@ class ChatLastMessageMapper extends ClassMapperBase<ChatLastMessage> {
     #status: _f$status,
     #date: _f$date,
     #chatTitle: _f$chatTitle,
+    #phoneCall: _f$phoneCall,
   };
 
   static ChatLastMessage _instantiate(DecodingData data) {
@@ -1003,6 +1214,7 @@ class ChatLastMessageMapper extends ClassMapperBase<ChatLastMessage> {
       status: data.dec(_f$status),
       date: data.dec(_f$date),
       chatTitle: data.dec(_f$chatTitle),
+      phoneCall: data.dec(_f$phoneCall),
     );
   }
 
@@ -1068,6 +1280,7 @@ extension ChatLastMessageValueCopy<$R, $Out>
 
 abstract class ChatLastMessageCopyWith<$R, $In extends ChatLastMessage, $Out>
     implements ClassCopyWith<$R, $In, $Out> {
+  MessageCallCopyWith<$R, MessageCall, MessageCall>? get phoneCall;
   $R call({
     MessageKind? kind,
     String? text,
@@ -1076,6 +1289,7 @@ abstract class ChatLastMessageCopyWith<$R, $In extends ChatLastMessage, $Out>
     MessageStatus? status,
     DateTime? date,
     String? chatTitle,
+    MessageCall? phoneCall,
   });
   ChatLastMessageCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
     Then<$Out2, $R2> t,
@@ -1091,6 +1305,9 @@ class _ChatLastMessageCopyWithImpl<$R, $Out>
   late final ClassMapperBase<ChatLastMessage> $mapper =
       ChatLastMessageMapper.ensureInitialized();
   @override
+  MessageCallCopyWith<$R, MessageCall, MessageCall>? get phoneCall =>
+      $value.phoneCall?.copyWith.$chain((v) => call(phoneCall: v));
+  @override
   $R call({
     MessageKind? kind,
     String? text,
@@ -1099,6 +1316,7 @@ class _ChatLastMessageCopyWithImpl<$R, $Out>
     MessageStatus? status,
     DateTime? date,
     String? chatTitle,
+    Object? phoneCall = $none,
   }) => $apply(
     FieldCopyWithData({
       if (kind != null) #kind: kind,
@@ -1108,6 +1326,7 @@ class _ChatLastMessageCopyWithImpl<$R, $Out>
       if (status != null) #status: status,
       if (date != null) #date: date,
       if (chatTitle != null) #chatTitle: chatTitle,
+      if (phoneCall != $none) #phoneCall: phoneCall,
     }),
   );
   @override
@@ -1119,6 +1338,7 @@ class _ChatLastMessageCopyWithImpl<$R, $Out>
     status: data.get(#status, or: $value.status),
     date: data.get(#date, or: $value.date),
     chatTitle: data.get(#chatTitle, or: $value.chatTitle),
+    phoneCall: data.get(#phoneCall, or: $value.phoneCall),
   );
 
   @override

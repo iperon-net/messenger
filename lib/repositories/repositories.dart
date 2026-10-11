@@ -557,6 +557,16 @@ class Repositories {
         await tx.execute("ALTER TABLE chatOutbox ADD COLUMN media TEXT NOT NULL DEFAULT '';");
       }),
     );
+    migrations.add(
+      SqliteMigration(20, (tx) async {
+        // Журнал звонков наполняется и из служебных сообщений «звонок» (сервер,
+        // см. ChatsRepository.upsertMessage) — сопоставление по callID.
+        // hidden — удалён во вкладке «Звонки»: строка остаётся, чтобы то же
+        // сообщение (история чата перекачалась) не вернуло её.
+        await tx.execute("ALTER TABLE callLogs ADD COLUMN hidden INTEGER NOT NULL DEFAULT 0;");
+        await tx.execute("CREATE INDEX idx_callLogs_callID ON callLogs(callID);");
+      }),
+    );
 
     if (settings.isDeleteDatabase) {
       logger.warning("Deleting the database, flag set IS_DELETE_DATABASE: 1");

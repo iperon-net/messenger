@@ -17,6 +17,7 @@ import '../../i18n/translations.g.dart';
 import '../../models.dart' as models;
 import '../../themes.dart';
 import 'chat_common.dart';
+import 'chat_info_common.dart';
 import 'comments_limit.dart';
 import 'compose_format_menu.dart';
 import 'forward_picker.dart';
@@ -518,6 +519,10 @@ class _ChatCupertinoState extends State<ChatCupertino> {
                                               // Опрос: голосовать — участникам (не подписавшимся — нет).
                                               onPollVote: chat.isMember ? (message, options) => _cubit.votePoll(message, options) : null,
                                               onPollVoters: (message) => showPollVoters(context, message.poll!),
+                                              // Звонок в ленте — перезвонить тем же видом.
+                                              onCallTap: chat.type == models.ChatType.private && !chat.isSelf
+                                                  ? (message) => chatInfoCall(chat, video: message.phoneCall?.video ?? false)
+                                                  : null,
                                               style: ChatCupertino.bubbleStyle(context),
                                               padding: EdgeInsets.only(
                                                 top: 8 + (state.pinnedMessages.isEmpty ? 0 : PinnedMessageBar.height),

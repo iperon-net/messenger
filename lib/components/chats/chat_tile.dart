@@ -2,6 +2,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import '../../i18n/translations.g.dart';
 import '../../models.dart' as models;
+import 'message_bubble.dart' show callPreview;
 
 export 'chat_tile_cupertino.dart';
 export 'chat_tile_material.dart';
@@ -43,6 +44,7 @@ abstract final class ChatTileContent {
       models.MessageKind.file => s.file,
       models.MessageKind.voice => s.voice,
       models.MessageKind.poll => '📊 ${t.screenChat.poll}',
+      models.MessageKind.call => message.phoneCall == null ? '' : callPreview(t, outgoing: message.outgoing, call: message.phoneCall!),
     };
     final text = message.text.isNotEmpty ? (message.kind == models.MessageKind.poll ? '📊 ${message.text}' : message.text) : media;
     final showSender = chat.type == models.ChatType.group || chat.type == models.ChatType.community;
@@ -65,7 +67,8 @@ abstract final class ChatTileContent {
   /// Галочки исходящего: ⏱ / ✓ / ✓✓. `null` — не наше сообщение (или черновик).
   static FaIconData? statusIcon(models.Chat chat) {
     final message = chat.lastMessage;
-    if (message == null || !message.outgoing || chat.draft.isNotEmpty) return null;
+    // У звонка галочек нет (как в Telegram).
+    if (message == null || !message.outgoing || chat.draft.isNotEmpty || message.kind == models.MessageKind.call) return null;
     return switch (message.status) {
       models.MessageStatus.pending => FontAwesomeIcons.clock,
       models.MessageStatus.sent => FontAwesomeIcons.check,

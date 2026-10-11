@@ -161,6 +161,36 @@ final $typed_data.Uint8List messageForwardDescriptor =
     $convert.base64Decode('Cg5NZXNzYWdlRm9yd2FyZBIeCgpmcm9tVXNlcklEGAEgASgMUgpmcm9tVXNlcklEEhoKCGZyb2'
         '1OYW1lGAIgASgJUghmcm9tTmFtZRISCgRkYXRlGAMgASgDUgRkYXRl');
 
+@$core.Deprecated('Use messageCallDescriptor instead')
+const MessageCall$json = {
+  '1': 'MessageCall',
+  '2': [
+    {'1': 'callID', '3': 1, '4': 1, '5': 9, '10': 'callID'},
+    {'1': 'video', '3': 2, '4': 1, '5': 8, '10': 'video'},
+    {'1': 'outcome', '3': 3, '4': 1, '5': 14, '6': '.iperon.v1.MessageCall.Outcome', '10': 'outcome'},
+    {'1': 'duration', '3': 4, '4': 1, '5': 5, '10': 'duration'},
+  ],
+  '4': [MessageCall_Outcome$json],
+};
+
+@$core.Deprecated('Use messageCallDescriptor instead')
+const MessageCall_Outcome$json = {
+  '1': 'Outcome',
+  '2': [
+    {'1': 'ENDED', '2': 0},
+    {'1': 'MISSED', '2': 1},
+    {'1': 'DECLINED', '2': 2},
+    {'1': 'BUSY', '2': 3},
+  ],
+};
+
+/// Descriptor for `MessageCall`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List messageCallDescriptor =
+    $convert.base64Decode('CgtNZXNzYWdlQ2FsbBIWCgZjYWxsSUQYASABKAlSBmNhbGxJRBIUCgV2aWRlbxgCIAEoCFIFdm'
+        'lkZW8SOAoHb3V0Y29tZRgDIAEoDjIeLmlwZXJvbi52MS5NZXNzYWdlQ2FsbC5PdXRjb21lUgdv'
+        'dXRjb21lEhoKCGR1cmF0aW9uGAQgASgFUghkdXJhdGlvbiI4CgdPdXRjb21lEgkKBUVOREVEEA'
+        'ASCgoGTUlTU0VEEAESDAoIREVDTElORUQQAhIICgRCVVNZEAM=');
+
 @$core.Deprecated('Use messageContentDescriptor instead')
 const MessageContent$json = {
   '1': 'MessageContent',
@@ -171,6 +201,7 @@ const MessageContent$json = {
     {'1': 'replyTo', '3': 4, '4': 1, '5': 11, '6': '.iperon.v1.MessageReplyTo', '10': 'replyTo'},
     {'1': 'forward', '3': 5, '4': 1, '5': 11, '6': '.iperon.v1.MessageForward', '10': 'forward'},
     {'1': 'noLinkPreview', '3': 6, '4': 1, '5': 8, '10': 'noLinkPreview'},
+    {'1': 'call', '3': 7, '4': 1, '5': 11, '6': '.iperon.v1.MessageCall', '10': 'call'},
   ],
 };
 
@@ -181,7 +212,7 @@ final $typed_data.Uint8List messageContentDescriptor =
         'cm9uLnYxLk1lc3NhZ2VNZWRpYVIFbWVkaWESMwoHcmVwbHlUbxgEIAEoCzIZLmlwZXJvbi52MS'
         '5NZXNzYWdlUmVwbHlUb1IHcmVwbHlUbxIzCgdmb3J3YXJkGAUgASgLMhkuaXBlcm9uLnYxLk1l'
         'c3NhZ2VGb3J3YXJkUgdmb3J3YXJkEiQKDW5vTGlua1ByZXZpZXcYBiABKAhSDW5vTGlua1ByZX'
-        'ZpZXc=');
+        'ZpZXcSKgoEY2FsbBgHIAEoCzIWLmlwZXJvbi52MS5NZXNzYWdlQ2FsbFIEY2FsbA==');
 
 @$core.Deprecated('Use chatMessageDescriptor instead')
 const ChatMessage$json = {

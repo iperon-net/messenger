@@ -809,6 +809,22 @@ class Calls {
     await _teardown(reason);
   }
 
+  /// Разговор оборвался без отбоя (собеседник пропал из комнаты / нас
+  /// отключило от SFU) — всё равно шлём `CALL_HANGUP`: по нему сервер
+  /// записывает звонок с длительностью в чат (журнал «Звонков»). Собеседнику
+  /// он безвреден — его звонок уже не активен. Best-effort, без ожидания.
+  void _notifyCallEnded() {
+    if (!_hasActiveCall || _snapshot.callId.isEmpty) return;
+    unawaited(
+      _sendRing(
+        MessageType.CALL_HANGUP,
+        toUserID: _snapshot.remoteUserID,
+        callId: _snapshot.callId,
+        video: _snapshot.video,
+      ).then((_) {}, onError: (Object error, StackTrace stackTrace) => logger.handle(error, stackTrace)),
+    );
+  }
+
   /// Включает/выключает микрофон.
   Future<void> toggleMic() async {
     final muted = !_snapshot.micMuted;
@@ -1603,6 +1619,7 @@ class Calls {
       ..on<ParticipantDisconnectedEvent>((event) {
         // Собеседник вышел из комнаты — для звонка 1-на-1 это конец разговора.
         _dbg('peer left');
+        _notifyCallEnded();
         _teardown(CallEndReason.hangup);
       })
       ..on<RoomDisconnectedEvent>((event) {
@@ -1614,6 +1631,7 @@ class Calls {
         // и дал бы ложный ICE-таймаут (см. [_roomConnected]).
         if (_hasActiveCall && _roomConnected) {
           _dbg('room disconnected');
+          _notifyCallEnded();
           _teardown(CallEndReason.failed);
         }
       });

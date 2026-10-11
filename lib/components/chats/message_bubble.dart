@@ -149,6 +149,9 @@ class ChatMessagesView extends StatelessWidget {
   final void Function(models.Message message, List<int> options)? onPollVote;
   final ValueChanged<models.Message>? onPollVoters;
 
+  /// Тап по звонку — перезвонить.
+  final ValueChanged<models.Message>? onCallTap;
+
   const ChatMessagesView({
     super.key,
     required this.messages,
@@ -181,6 +184,7 @@ class ChatMessagesView extends StatelessWidget {
     this.commentsClosedIDs = const [],
     this.onPollVote,
     this.onPollVoters,
+    this.onCallTap,
   });
 
   static bool _sameDay(DateTime a, DateTime b) {
@@ -272,6 +276,7 @@ class ChatMessagesView extends StatelessWidget {
                             commentsClosed: commentsClosedIDs.contains(m.id),
                             onPollVote: onPollVote == null ? null : (options) => onPollVote!(m, options),
                             onPollVoters: onPollVoters == null ? null : () => onPollVoters!(m),
+                            onCallTap: onCallTap == null ? null : () => onCallTap!(m),
                           ),
                         ),
                       ),
@@ -513,6 +518,9 @@ class MessageBubble extends StatelessWidget {
   /// Открытый опрос: «N голосов» — кто за что.
   final VoidCallback? onPollVoters;
 
+  /// Тап по звонку ([models.MessageKind.call]) — перезвонить.
+  final VoidCallback? onCallTap;
+
   const MessageBubble({
     super.key,
     required this.message,
@@ -534,6 +542,7 @@ class MessageBubble extends StatelessWidget {
     this.commentsClosed = false,
     this.onPollVote,
     this.onPollVoters,
+    this.onCallTap,
   });
 
   static const _radius = Radius.circular(18);
@@ -601,7 +610,7 @@ class MessageBubble extends StatelessWidget {
         ],
         if (m.pinned) ...[FaIcon(FontAwesomeIcons.thumbtack, size: 10, color: metaColor), const SizedBox(width: 3)],
         Text(metaText, style: metaStyle),
-        if (out) ...[
+        if (out && m.kind != models.MessageKind.call) ...[
           const SizedBox(width: 3),
           FaIcon(
             switch (m.status) {
@@ -618,7 +627,7 @@ class MessageBubble extends StatelessWidget {
     );
     // Невидимый хвост под время: nbsp, чтобы не переносился отдельно.
     final trailing =
-        '  ${m.authorSignature.isNotEmpty ? '${m.authorSignature.replaceAll(' ', '\u00a0')}\u00a0\u00a0' : ''}${views.isNotEmpty ? '\u00a0\u00a0\u00a0\u00a0$views\u00a0\u00a0' : ''}${m.pinned ? '\u00a0\u00a0\u00a0' : ''}$metaText${out ? '     ' : ''}';
+        '  ${m.authorSignature.isNotEmpty ? '${m.authorSignature.replaceAll(' ', '\u00a0')}\u00a0\u00a0' : ''}${views.isNotEmpty ? '\u00a0\u00a0\u00a0\u00a0$views\u00a0\u00a0' : ''}${m.pinned ? '\u00a0\u00a0\u00a0' : ''}$metaText${out && m.kind != models.MessageKind.call ? '     ' : ''}';
 
     // Пока вложения грузятся — тап по медиа не открывает просмотр.
     final mediaTap = m.isUploading ? null : onMediaTap;
@@ -642,7 +651,16 @@ class MessageBubble extends StatelessWidget {
         onVote: onPollVote,
         onVoters: onPollVoters,
       ),
-      models.MessageKind.text || models.MessageKind.poll => null,
+      models.MessageKind.call when m.phoneCall != null => _CallRow(
+        message: m,
+        call: m.phoneCall!,
+        colors: colors,
+        iconColor: iconColor,
+        metaStyle: metaStyle,
+        textStyle: style.textStyle.copyWith(color: colors.text),
+        onTap: onCallTap,
+      ),
+      models.MessageKind.text || models.MessageKind.poll || models.MessageKind.call => null,
     };
     // Подпись и имя у фото — с отступами пузыря (само фото почти до краёв).
     final visual = m.kind == models.MessageKind.photo || m.kind == models.MessageKind.video || m.isAlbum;
@@ -995,8 +1013,36 @@ String messageKindLabel(Translations t, models.MessageKind kind) => switch (kind
   models.MessageKind.file => t.screenChat.file,
   models.MessageKind.voice => t.screenChat.voice,
   models.MessageKind.poll => t.screenChat.poll,
+  models.MessageKind.call => t.screenChat.callOutgoing,
   models.MessageKind.text => '',
 };
+
+/// Подпись звонка по направлению: у звонящего неотвеченный — «Отменённый»
+/// («Абонент был занят»), у вызываемого — «Пропущенный».
+String callLabel(Translations t, {required bool outgoing, required models.MessageCall call}) {
+  final s = t.screenChat;
+  final video = call.video;
+  return switch (call.outcome) {
+    models.CallOutcome.ended => outgoing ? (video ? s.videoCallOutgoing : s.callOutgoing) : (video ? s.videoCallIncoming : s.callIncoming),
+    models.CallOutcome.missed => outgoing ? (video ? s.videoCallCancelled : s.callCancelled) : (video ? s.videoCallMissed : s.callMissed),
+    models.CallOutcome.busy => outgoing ? s.callBusy : (video ? s.videoCallMissed : s.callMissed),
+    models.CallOutcome.declined => video ? s.videoCallDeclined : s.callDeclined,
+  };
+}
+
+/// Длительность разговора: «2:15», «1:02:15».
+String callDurationText(int seconds) {
+  final h = seconds ~/ 3600;
+  final m = (seconds % 3600) ~/ 60;
+  final s = (seconds % 60).toString().padLeft(2, '0');
+  return h > 0 ? '$h:${m.toString().padLeft(2, '0')}:$s' : '$m:$s';
+}
+
+/// Подпись звонка с длительностью — для превью в списке чатов и цитат.
+String callPreview(Translations t, {required bool outgoing, required models.MessageCall call}) {
+  final label = callLabel(t, outgoing: outgoing, call: call);
+  return call.outcome == models.CallOutcome.ended && call.duration > 0 ? '$label (${callDurationText(call.duration)})' : label;
+}
 
 /// Фото/видео: выбранный файл или (в демо-истории) цветная заглушка.
 /// Миниатюра в пузыре: Hero для перехода в полноэкранный просмотр + тап.
@@ -1176,6 +1222,74 @@ class _FileRow extends StatelessWidget {
         ),
       ],
     );
+  }
+}
+
+/// Звонок: кружок с трубкой / камерой, подпись и длительность; тап —
+/// перезвонить (как в Telegram).
+class _CallRow extends StatelessWidget {
+  final models.Message message;
+  final models.MessageCall call;
+  final MessageTextColors colors;
+  final Color iconColor;
+  final TextStyle metaStyle;
+  final TextStyle textStyle;
+  final VoidCallback? onTap;
+
+  const _CallRow({
+    required this.message,
+    required this.call,
+    required this.colors,
+    required this.iconColor,
+    required this.metaStyle,
+    required this.textStyle,
+    this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.t;
+    final missed = !message.outgoing && call.unanswered;
+    final ended = call.outcome == models.CallOutcome.ended;
+    final row = Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(color: colors.link, shape: BoxShape.circle),
+          alignment: Alignment.center,
+          child: FaIcon(call.video ? FontAwesomeIcons.video : FontAwesomeIcons.phone, size: 15, color: iconColor),
+        ),
+        const SizedBox(width: 10),
+        Flexible(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                callLabel(t, outgoing: message.outgoing, call: call),
+                style: textStyle.copyWith(fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 2),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  FaIcon(
+                    message.outgoing ? FontAwesomeIcons.arrowUp : FontAwesomeIcons.arrowDown,
+                    size: 10,
+                    color: missed ? failedStatusColor : metaStyle.color,
+                  ),
+                  if (ended && call.duration > 0) ...[const SizedBox(width: 4), Text(callDurationText(call.duration), style: metaStyle)],
+                ],
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+    if (onTap == null) return row;
+    return GestureDetector(behavior: HitTestBehavior.opaque, onTap: onTap, child: row);
   }
 }
 

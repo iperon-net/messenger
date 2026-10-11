@@ -98,6 +98,32 @@ class MessageEntity_Type extends $pb.ProtobufEnum {
   const MessageEntity_Type._(super.value, super.name);
 }
 
+class MessageCall_Outcome extends $pb.ProtobufEnum {
+  /// Разговор состоялся (duration — длительность).
+  static const MessageCall_Outcome ENDED = MessageCall_Outcome._(0, _omitEnumNames ? '' : 'ENDED');
+
+  /// Не ответили: звонящий отменил / не дождался ответа.
+  static const MessageCall_Outcome MISSED = MessageCall_Outcome._(1, _omitEnumNames ? '' : 'MISSED');
+
+  /// Вызываемый отклонил.
+  static const MessageCall_Outcome DECLINED = MessageCall_Outcome._(2, _omitEnumNames ? '' : 'DECLINED');
+
+  /// Вызываемый был занят другим звонком (и звонка не видел).
+  static const MessageCall_Outcome BUSY = MessageCall_Outcome._(3, _omitEnumNames ? '' : 'BUSY');
+
+  static const $core.List<MessageCall_Outcome> values = <MessageCall_Outcome>[
+    ENDED,
+    MISSED,
+    DECLINED,
+    BUSY,
+  ];
+
+  static final $core.List<MessageCall_Outcome?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 3);
+  static MessageCall_Outcome? valueOf($core.int value) => value < 0 || value >= _byValue.length ? null : _byValue[value];
+
+  const MessageCall_Outcome._(super.value, super.name);
+}
+
 class Chats_ReadDateResult_Status extends $pb.ProtobufEnum {
   static const Chats_ReadDateResult_Status READ = Chats_ReadDateResult_Status._(0, _omitEnumNames ? '' : 'READ');
   static const Chats_ReadDateResult_Status NOT_READ = Chats_ReadDateResult_Status._(1, _omitEnumNames ? '' : 'NOT_READ');

@@ -309,6 +309,9 @@ class Message with MessageMappable {
   /// Опрос ([MessageKind.poll]).
   final MessagePoll? poll;
 
+  /// [MessageKind.call] — звонок (служебное сообщение от сервера).
+  final MessageCall? phoneCall;
+
   /// Подпись автора поста канала (канал с «Подписывать сообщения»); пусто —
   /// без подписи.
   final String authorSignature;
@@ -355,6 +358,7 @@ class Message with MessageMappable {
     this.scheduledDate,
     this.linkPreview,
     this.poll,
+    this.phoneCall,
     this.authorSignature = '',
     this.views = 0,
     this.commentsCount = 0,

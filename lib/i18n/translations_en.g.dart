@@ -1291,6 +1291,39 @@ class Translations$screenChat$en {
 	/// en: 'Poll'
 	String get poll => 'Poll';
 
+	/// en: 'Outgoing call'
+	String get callOutgoing => 'Outgoing call';
+
+	/// en: 'Incoming call'
+	String get callIncoming => 'Incoming call';
+
+	/// en: 'Missed call'
+	String get callMissed => 'Missed call';
+
+	/// en: 'Cancelled call'
+	String get callCancelled => 'Cancelled call';
+
+	/// en: 'Declined call'
+	String get callDeclined => 'Declined call';
+
+	/// en: 'Line was busy'
+	String get callBusy => 'Line was busy';
+
+	/// en: 'Outgoing video call'
+	String get videoCallOutgoing => 'Outgoing video call';
+
+	/// en: 'Incoming video call'
+	String get videoCallIncoming => 'Incoming video call';
+
+	/// en: 'Missed video call'
+	String get videoCallMissed => 'Missed video call';
+
+	/// en: 'Cancelled video call'
+	String get videoCallCancelled => 'Cancelled video call';
+
+	/// en: 'Declined video call'
+	String get videoCallDeclined => 'Declined video call';
+
 	/// en: 'Quiz'
 	String get quiz => 'Quiz';
 
@@ -3870,6 +3903,17 @@ extension on Translations {
 			'screenChat.requestSent' => 'Request Sent',
 			'screenChat.linkInvalid' => 'This link is invalid or has expired.',
 			'screenChat.poll' => 'Poll',
+			'screenChat.callOutgoing' => 'Outgoing call',
+			'screenChat.callIncoming' => 'Incoming call',
+			'screenChat.callMissed' => 'Missed call',
+			'screenChat.callCancelled' => 'Cancelled call',
+			'screenChat.callDeclined' => 'Declined call',
+			'screenChat.callBusy' => 'Line was busy',
+			'screenChat.videoCallOutgoing' => 'Outgoing video call',
+			'screenChat.videoCallIncoming' => 'Incoming video call',
+			'screenChat.videoCallMissed' => 'Missed video call',
+			'screenChat.videoCallCancelled' => 'Cancelled video call',
+			'screenChat.videoCallDeclined' => 'Declined video call',
 			'screenChat.quiz' => 'Quiz',
 			'screenChat.anonymousPoll' => 'Anonymous Poll',
 			'screenChat.publicPoll' => 'Public Poll',
@@ -4006,6 +4050,8 @@ extension on Translations {
 			'screenSettings.language' => 'Language',
 			'screenSettings.appearance' => _root.screenSettingsAppearance.appearance,
 			'screenSettings.folders' => _root.screenChatFolders.folders,
+			_ => null,
+		} ?? switch (path) {
 			'screenSettings.notifications' => _root.screenSettingsNotifications.notifications,
 			'screenSettings.privacyAndSecurity' => 'Privacy and security',
 			'screenSettings.aboutApplication' => 'About the application',
@@ -4017,8 +4063,6 @@ extension on Translations {
 			'screenSettingsNotifications.groups' => 'Groups',
 			'screenSettingsNotifications.channels' => 'Channels',
 			'screenSettingsNotifications.on' => 'On',
-			_ => null,
-		} ?? switch (path) {
 			'screenSettingsNotifications.off' => 'Off',
 			'screenSettingsNotifications.events' => 'Events',
 			'screenSettingsNotifications.contactJoined' => 'Contact joined Iperon',

@@ -860,7 +860,8 @@ class ChatsRemoteDataSource implements ChatsDataSource {
           ),
         );
         local.add(OutboxMedia(path: await stashOutboxFile(localPath)));
-      case models.MessageKind.poll:
+      // Звонок пишет только сервер.
+      case models.MessageKind.poll || models.MessageKind.call:
         return;
     }
     if (kind != models.MessageKind.text && local.isEmpty) return;

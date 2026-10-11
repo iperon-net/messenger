@@ -9,13 +9,17 @@ class CallLogs {
 
   CallLogs({required this.logger, required this.db});
 
-  /// Добавляет запись о завершённом звонке.
+  static const table = 'callLogs';
+
+  /// Добавляет запись о завершённом звонке. Звонок с тем же callID уже есть
+  /// (успело прийти служебное сообщение «звонок» с сервера) — не дублируем.
   Future<void> insert(models.CallLog log) async {
     await db.execute(
       """
       INSERT INTO callLogs
         (callID, userID, displayName, direction, video, missed, durationSeconds, createdAt)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+      SELECT ?, ?, ?, ?, ?, ?, ?, ?
+      WHERE ?1 = '' OR NOT EXISTS (SELECT 1 FROM callLogs WHERE callID = ?1);
       """,
       [
         log.callID,
@@ -33,17 +37,17 @@ class CallLogs {
   /// Все звонки, новые сверху. [limit] ограничивает выборку — журнал локальный
   /// и большего показывать смысла нет.
   Future<List<models.CallLog>> getAll({int limit = 500}) async {
-    final rows = await db.execute("SELECT * FROM callLogs ORDER BY createdAt DESC LIMIT ?;", [limit]);
+    final rows = await db.execute("SELECT * FROM callLogs WHERE hidden = 0 ORDER BY createdAt DESC LIMIT ?;", [limit]);
     return rows.map((row) => models.CallLogMapper.fromMap(row)).toList();
   }
 
-  /// Удаляет одну запись по локальному id.
+  /// Удаляет одну запись по локальному id (скрывает — см. миграцию 20).
   Future<void> deleteByID(int id) async {
-    await db.execute("DELETE FROM callLogs WHERE id = ?;", [id]);
+    await db.execute("UPDATE callLogs SET hidden = 1 WHERE id = ?;", [id]);
   }
 
   /// Очищает весь журнал.
   Future<void> deleteAll() async {
-    await db.execute("DELETE FROM callLogs;");
+    await db.execute("UPDATE callLogs SET hidden = 1;");
   }
 }

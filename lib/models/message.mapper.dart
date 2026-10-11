@@ -1711,6 +1711,7 @@ class MessageMapper extends ClassMapperBase<Message> {
       MessageForwardMapper.ensureInitialized();
       MessageLinkPreviewMapper.ensureInitialized();
       MessagePollMapper.ensureInitialized();
+      MessageCallMapper.ensureInitialized();
     }
     return _instance!;
   }
@@ -1901,6 +1902,12 @@ class MessageMapper extends ClassMapperBase<Message> {
     _$poll,
     opt: true,
   );
+  static MessageCall? _$phoneCall(Message v) => v.phoneCall;
+  static const Field<Message, MessageCall> _f$phoneCall = Field(
+    'phoneCall',
+    _$phoneCall,
+    opt: true,
+  );
   static String _$authorSignature(Message v) => v.authorSignature;
   static const Field<Message, String> _f$authorSignature = Field(
     'authorSignature',
@@ -1967,6 +1974,7 @@ class MessageMapper extends ClassMapperBase<Message> {
     #scheduledDate: _f$scheduledDate,
     #linkPreview: _f$linkPreview,
     #poll: _f$poll,
+    #phoneCall: _f$phoneCall,
     #authorSignature: _f$authorSignature,
     #views: _f$views,
     #commentsCount: _f$commentsCount,
@@ -2005,6 +2013,7 @@ class MessageMapper extends ClassMapperBase<Message> {
       scheduledDate: data.dec(_f$scheduledDate),
       linkPreview: data.dec(_f$linkPreview),
       poll: data.dec(_f$poll),
+      phoneCall: data.dec(_f$phoneCall),
       authorSignature: data.dec(_f$authorSignature),
       views: data.dec(_f$views),
       commentsCount: data.dec(_f$commentsCount),
@@ -2094,6 +2103,7 @@ abstract class MessageCopyWith<$R, $In extends Message, $Out>
   MessageLinkPreviewCopyWith<$R, MessageLinkPreview, MessageLinkPreview>?
   get linkPreview;
   MessagePollCopyWith<$R, MessagePoll, MessagePoll>? get poll;
+  MessageCallCopyWith<$R, MessageCall, MessageCall>? get phoneCall;
   ListCopyWith<$R, String, ObjectCopyWith<$R, String, String>> get commenters;
   $R call({
     String? id,
@@ -2125,6 +2135,7 @@ abstract class MessageCopyWith<$R, $In extends Message, $Out>
     DateTime? scheduledDate,
     MessageLinkPreview? linkPreview,
     MessagePoll? poll,
+    MessageCall? phoneCall,
     String? authorSignature,
     int? views,
     int? commentsCount,
@@ -2196,6 +2207,9 @@ class _MessageCopyWithImpl<$R, $Out>
   MessagePollCopyWith<$R, MessagePoll, MessagePoll>? get poll =>
       $value.poll?.copyWith.$chain((v) => call(poll: v));
   @override
+  MessageCallCopyWith<$R, MessageCall, MessageCall>? get phoneCall =>
+      $value.phoneCall?.copyWith.$chain((v) => call(phoneCall: v));
+  @override
   ListCopyWith<$R, String, ObjectCopyWith<$R, String, String>> get commenters =>
       ListCopyWith(
         $value.commenters,
@@ -2233,6 +2247,7 @@ class _MessageCopyWithImpl<$R, $Out>
     Object? scheduledDate = $none,
     Object? linkPreview = $none,
     Object? poll = $none,
+    Object? phoneCall = $none,
     String? authorSignature,
     int? views,
     int? commentsCount,
@@ -2269,6 +2284,7 @@ class _MessageCopyWithImpl<$R, $Out>
       if (scheduledDate != $none) #scheduledDate: scheduledDate,
       if (linkPreview != $none) #linkPreview: linkPreview,
       if (poll != $none) #poll: poll,
+      if (phoneCall != $none) #phoneCall: phoneCall,
       if (authorSignature != null) #authorSignature: authorSignature,
       if (views != null) #views: views,
       if (commentsCount != null) #commentsCount: commentsCount,
@@ -2307,6 +2323,7 @@ class _MessageCopyWithImpl<$R, $Out>
     scheduledDate: data.get(#scheduledDate, or: $value.scheduledDate),
     linkPreview: data.get(#linkPreview, or: $value.linkPreview),
     poll: data.get(#poll, or: $value.poll),
+    phoneCall: data.get(#phoneCall, or: $value.phoneCall),
     authorSignature: data.get(#authorSignature, or: $value.authorSignature),
     views: data.get(#views, or: $value.views),
     commentsCount: data.get(#commentsCount, or: $value.commentsCount),

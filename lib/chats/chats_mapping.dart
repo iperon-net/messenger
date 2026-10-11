@@ -83,8 +83,26 @@ models.MessageKind kindFromPb(pb.MessageKind kind) => switch (kind) {
 
 /// Вид сообщения по содержимому: первое вложение задаёт вид (альбом — по
 /// первому элементу), без вложений — текст.
-models.MessageKind contentKind(pb.MessageContent content) =>
-    content.media.isEmpty ? models.MessageKind.text : kindFromPb(content.media.first.kind);
+models.MessageKind contentKind(pb.MessageContent content) {
+  if (content.hasCall()) return models.MessageKind.call;
+  return content.media.isEmpty ? models.MessageKind.text : kindFromPb(content.media.first.kind);
+}
+
+/// Звонок из содержимого (`null` — не звонок).
+models.MessageCall? callFromPb(pb.MessageContent content) {
+  if (!content.hasCall()) return null;
+  final call = content.call;
+  final outcome = call.outcome.value;
+  return models.MessageCall(
+    video: call.video,
+    outcome: outcome < models.CallOutcome.values.length ? models.CallOutcome.values[outcome] : models.CallOutcome.ended,
+    duration: call.duration,
+  );
+}
+
+/// Входящее, которое не считается непрочитанным: звонок, кроме пропущенного
+/// (как на сервере, `noUnread`).
+bool skipsUnread(pb.MessageContent content) => content.hasCall() && callFromPb(content)?.unanswered != true;
 
 /// ✓ / ✓✓ исходящего: прочитано, если собеседник дочитал до него
 /// (`readOutboxMaxID`). В «Избранном» читать некому — всегда прочитано.
@@ -141,6 +159,7 @@ models.Message messageFromPb(
     ],
     forward: content.hasForward() ? forwardFromPb(content.forward, myUserID: myUserID) : null,
     silent: m.silent,
+    phoneCall: callFromPb(content),
   );
 }
 
@@ -208,6 +227,7 @@ models.ChatLastMessage lastMessageFromPb(
         ? outgoingStatus(messageID: m.messageID.toInt(), readOutboxMaxID: readOutboxMaxID, isSelf: isSelf)
         : models.MessageStatus.read,
     date: DateTime.fromMillisecondsSinceEpoch(m.date.toInt()),
+    phoneCall: callFromPb(m.content),
   );
 }
 

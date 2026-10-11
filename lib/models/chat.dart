@@ -16,7 +16,29 @@ enum MessageStatus { pending, sent, read, failed }
 
 /// Вид последнего сообщения — для превью в списке («Фото», «Файл» …).
 @MappableEnum()
-enum MessageKind { text, photo, video, file, voice, poll }
+enum MessageKind { text, photo, video, file, voice, poll, call }
+
+/// Исход звонка — служебное сообщение «звонок» ([MessageCall]); порядок как в
+/// proto `MessageCall.Outcome`.
+@MappableEnum()
+enum CallOutcome { ended, missed, declined, busy }
+
+/// Звонок в личном чате (пишет сервер по завершении, от звонящего). Подпись
+/// зависит от направления: исходящий [CallOutcome.missed] — «Отменённый»,
+/// входящий — «Пропущенный».
+@MappableClass()
+class MessageCall with MessageCallMappable {
+  final bool video;
+  final CallOutcome outcome;
+
+  /// Длительность разговора, секунды ([CallOutcome.ended]).
+  final int duration;
+
+  const MessageCall({this.video = false, this.outcome = CallOutcome.ended, this.duration = 0});
+
+  /// Вызываемый не ответил (не видел звонка) — у него пропущенный.
+  bool get unanswered => outcome == CallOutcome.missed || outcome == CallOutcome.busy;
+}
 
 /// Какие реакции разрешены в группе/канале (настраивает админ, см.
 /// docs/plans/chats-groups-channels.md, «Реакции»). В личных чатах — всегда
@@ -206,6 +228,9 @@ class ChatLastMessage with ChatLastMessageMappable {
   final MessageStatus status;
   final DateTime date;
 
+  /// [MessageKind.call] — звонок.
+  final MessageCall? phoneCall;
+
   /// Строка сообщества: из какого его чата сообщение («Группа › Анна»); пусто
   /// — у обычных чатов и у канала объявлений.
   final String chatTitle;
@@ -218,6 +243,7 @@ class ChatLastMessage with ChatLastMessageMappable {
     this.status = MessageStatus.sent,
     required this.date,
     this.chatTitle = '',
+    this.phoneCall,
   });
 }
 

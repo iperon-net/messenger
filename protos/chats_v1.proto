@@ -107,6 +107,27 @@ message MessageForward {
   int64 date = 3;
 }
 
+// Звонок — служебное сообщение в личном чате (как messageActionPhoneCall в
+// Telegram). Пишет сервер по завершении звонка, от звонящего; клиент его не
+// отправляет. Исход — с точки зрения звонка, подпись («Пропущенный» /
+// «Отменённый» …) клиент выбирает по направлению.
+message MessageCall {
+  enum Outcome {
+    // Разговор состоялся (duration — длительность).
+    ENDED = 0;
+    // Не ответили: звонящий отменил / не дождался ответа.
+    MISSED = 1;
+    // Вызываемый отклонил.
+    DECLINED = 2;
+    // Вызываемый был занят другим звонком (и звонка не видел).
+    BUSY = 3;
+  }
+  string callID = 1;
+  bool video = 2;
+  Outcome outcome = 3;
+  int32 duration = 4; // секунды, у ENDED
+}
+
 // Содержимое сообщения. На сервере хранится ОДНИМ зашифрованным блобом
 // (messages.contentEncrypted, crypto.Encryptor) — открыты только chatID,
 // messageID, отправитель, дата и флаги.
@@ -119,6 +140,8 @@ message MessageContent {
   MessageForward forward = 5;
   // true — отправитель убрал превью ссылки.
   bool noLinkPreview = 6;
+  // Служебное «звонок» (только от сервера; при отправке клиентом — отказ).
+  MessageCall call = 7;
 }
 
 // Сообщение «глазами получателя»: outgoing = fromUserID == я; прочитано ли

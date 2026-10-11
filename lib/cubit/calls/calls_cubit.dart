@@ -38,9 +38,13 @@ class CallsCubit extends Cubit<CallsState> {
   StreamSubscription<void>? _sub;
   StreamSubscription<Uint8List>? _profileSub;
   StreamSubscription<void>? _hiddenSub;
+  StreamSubscription<void>? _tableSub;
 
   void initialization() {
     _sub = _calls.callLogged.listen((_) => load());
+    // Звонки из чатов (служебные сообщения с сервера) пишутся в журнал при
+    // синхронизации — перечитываем по изменению таблицы.
+    _tableSub = repositories.db.onChange([CallLogs.table], triggerImmediately: false).listen((_) => load());
     // Обновление профиля собеседника (пришло по стриму или в ответ на запрос,
     // который шлёт, например, аватар в списке) — освежаем его имя в журнале.
     _profileSub = api.on(MessageType.PROFILE).listen(_onProfile);
@@ -264,6 +268,7 @@ class CallsCubit extends Cubit<CallsState> {
     _sub?.cancel();
     _profileSub?.cancel();
     _hiddenSub?.cancel();
+    _tableSub?.cancel();
     return super.close();
   }
 }

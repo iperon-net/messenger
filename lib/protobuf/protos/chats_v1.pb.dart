@@ -505,6 +505,93 @@ class MessageForward extends $pb.GeneratedMessage {
   void clearDate() => $_clearField(3);
 }
 
+/// Звонок — служебное сообщение в личном чате (как messageActionPhoneCall в
+/// Telegram). Пишет сервер по завершении звонка, от звонящего; клиент его не
+/// отправляет. Исход — с точки зрения звонка, подпись («Пропущенный» /
+/// «Отменённый» …) клиент выбирает по направлению.
+class MessageCall extends $pb.GeneratedMessage {
+  factory MessageCall({
+    $core.String? callID,
+    $core.bool? video,
+    MessageCall_Outcome? outcome,
+    $core.int? duration,
+  }) {
+    final result = create();
+    if (callID != null) result.callID = callID;
+    if (video != null) result.video = video;
+    if (outcome != null) result.outcome = outcome;
+    if (duration != null) result.duration = duration;
+    return result;
+  }
+
+  MessageCall._();
+
+  factory MessageCall.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory MessageCall.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'MessageCall',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..aOS(1, _omitFieldNames ? '' : 'callID', protoName: 'callID')
+    ..aOB(2, _omitFieldNames ? '' : 'video')
+    ..aE<MessageCall_Outcome>(3, _omitFieldNames ? '' : 'outcome', enumValues: MessageCall_Outcome.values)
+    ..aI(4, _omitFieldNames ? '' : 'duration')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  MessageCall clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  MessageCall copyWith(void Function(MessageCall) updates) => super.copyWith((message) => updates(message as MessageCall)) as MessageCall;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static MessageCall create() => MessageCall._();
+  @$core.override
+  MessageCall createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static MessageCall getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<MessageCall>(create);
+  static MessageCall? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.String get callID => $_getSZ(0);
+  @$pb.TagNumber(1)
+  set callID($core.String value) => $_setString(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasCallID() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearCallID() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.bool get video => $_getBF(1);
+  @$pb.TagNumber(2)
+  set video($core.bool value) => $_setBool(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasVideo() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearVideo() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  MessageCall_Outcome get outcome => $_getN(2);
+  @$pb.TagNumber(3)
+  set outcome(MessageCall_Outcome value) => $_setField(3, value);
+  @$pb.TagNumber(3)
+  $core.bool hasOutcome() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearOutcome() => $_clearField(3);
+
+  @$pb.TagNumber(4)
+  $core.int get duration => $_getIZ(3);
+  @$pb.TagNumber(4)
+  set duration($core.int value) => $_setSignedInt32(3, value);
+  @$pb.TagNumber(4)
+  $core.bool hasDuration() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearDuration() => $_clearField(4);
+}
+
 /// Содержимое сообщения. На сервере хранится ОДНИМ зашифрованным блобом
 /// (messages.contentEncrypted, crypto.Encryptor) — открыты только chatID,
 /// messageID, отправитель, дата и флаги.
@@ -516,6 +603,7 @@ class MessageContent extends $pb.GeneratedMessage {
     MessageReplyTo? replyTo,
     MessageForward? forward,
     $core.bool? noLinkPreview,
+    MessageCall? call,
   }) {
     final result = create();
     if (text != null) result.text = text;
@@ -524,6 +612,7 @@ class MessageContent extends $pb.GeneratedMessage {
     if (replyTo != null) result.replyTo = replyTo;
     if (forward != null) result.forward = forward;
     if (noLinkPreview != null) result.noLinkPreview = noLinkPreview;
+    if (call != null) result.call = call;
     return result;
   }
 
@@ -542,6 +631,7 @@ class MessageContent extends $pb.GeneratedMessage {
     ..aOM<MessageReplyTo>(4, _omitFieldNames ? '' : 'replyTo', protoName: 'replyTo', subBuilder: MessageReplyTo.create)
     ..aOM<MessageForward>(5, _omitFieldNames ? '' : 'forward', subBuilder: MessageForward.create)
     ..aOB(6, _omitFieldNames ? '' : 'noLinkPreview', protoName: 'noLinkPreview')
+    ..aOM<MessageCall>(7, _omitFieldNames ? '' : 'call', subBuilder: MessageCall.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -608,6 +698,18 @@ class MessageContent extends $pb.GeneratedMessage {
   $core.bool hasNoLinkPreview() => $_has(5);
   @$pb.TagNumber(6)
   void clearNoLinkPreview() => $_clearField(6);
+
+  /// Служебное «звонок» (только от сервера; при отправке клиентом — отказ).
+  @$pb.TagNumber(7)
+  MessageCall get call => $_getN(6);
+  @$pb.TagNumber(7)
+  set call(MessageCall value) => $_setField(7, value);
+  @$pb.TagNumber(7)
+  $core.bool hasCall() => $_has(6);
+  @$pb.TagNumber(7)
+  void clearCall() => $_clearField(7);
+  @$pb.TagNumber(7)
+  MessageCall ensureCall() => $_ensure(6);
 }
 
 /// Сообщение «глазами получателя»: outgoing = fromUserID == я; прочитано ли

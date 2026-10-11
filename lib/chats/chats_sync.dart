@@ -400,7 +400,7 @@ class ChatsSync {
         if (outgoing) {
           // Наше (с этого или другого устройства) — из outbox, если оно оттуда.
           if (message.randomID != 0) await tx.deleteOutbox(userID: user, randomID: message.randomID.toInt());
-        } else if (!fresh && dialog != null && id > top && id > dialog.readInboxMaxID) {
+        } else if (!fresh && dialog != null && id > top && id > dialog.readInboxMaxID && !skipsUnread(message.content)) {
           // Новое входящее: счётчик локально, точное значение — с ReadInbox/Dialog.
           await tx.updateDialog(userID: user, chatID: chatID, fields: {'unreadCount': dialog.unreadCount + 1});
         }
