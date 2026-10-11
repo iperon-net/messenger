@@ -46,6 +46,7 @@
   "emptyArchive": "Архив пуст"
   "archive": "Архив"
   "savedMessages": "Избранное"
+  "savedMessagesEmpty": "Ваши избранные сообщения"
   "draft": "Черновик:"
   "typing": "печатает…"
   "typingName": "{name} печатает…"

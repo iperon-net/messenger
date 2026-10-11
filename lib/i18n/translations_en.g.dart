@@ -241,6 +241,9 @@ class Translations$screenChats$en {
 	/// en: 'Saved Messages'
 	String get savedMessages => 'Saved Messages';
 
+	/// en: 'Your saved messages'
+	String get savedMessagesEmpty => 'Your saved messages';
+
 	/// en: 'Draft:'
 	String get draft => 'Draft:';
 
@@ -3577,6 +3580,7 @@ extension on Translations {
 			'screenChats.emptyArchive' => 'Archive is empty',
 			'screenChats.archive' => 'Archive',
 			'screenChats.savedMessages' => 'Saved Messages',
+			'screenChats.savedMessagesEmpty' => 'Your saved messages',
 			'screenChats.draft' => 'Draft:',
 			'screenChats.typing' => 'typing…',
 			'screenChats.typingName' => ({required Object name}) => '${name} is typing…',
@@ -4049,9 +4053,9 @@ extension on Translations {
 			'screenSettings.devices' => _root.screenSettingsDevices.devices,
 			'screenSettings.language' => 'Language',
 			'screenSettings.appearance' => _root.screenSettingsAppearance.appearance,
-			'screenSettings.folders' => _root.screenChatFolders.folders,
 			_ => null,
 		} ?? switch (path) {
+			'screenSettings.folders' => _root.screenChatFolders.folders,
 			'screenSettings.notifications' => _root.screenSettingsNotifications.notifications,
 			'screenSettings.privacyAndSecurity' => 'Privacy and security',
 			'screenSettings.aboutApplication' => 'About the application',
@@ -4563,6 +4567,8 @@ extension on Translations {
 			'yandex.invalidToken' => 'Couldn\'t verify the Yandex sign-in. Please try again.',
 			'yandex.phoneMissing' => 'Your Yandex ID has no phone number. Add one in Yandex ID or sign in with your phone number.',
 			'yandex.invalidPhone' => 'The phone number in your Yandex ID can\'t be used to sign in. Sign in with your phone number.',
+			_ => null,
+		} ?? switch (path) {
 			'yandex.unavailable' => 'Yandex ID is unavailable right now. Please try again later.',
 			_ => null,
 		};

@@ -86,16 +86,23 @@ class ChatsRemoteDataSource implements ChatsDataSource {
 
     out = StreamController<List<models.Chat>>(
       onListen: () {
+        _listShown = true;
         changes = _repositories.db.onChange(_chatTables).listen((_) => reload());
         presence = ChatsPresence.instance.changed.listen((_) => reload());
       },
       onCancel: () async {
+        _listShown = false;
+        ChatsPresence.instance.setListPeers(const []);
         await changes?.cancel();
         await presence?.cancel();
       },
     );
     return out.stream;
   }
+
+  /// Список чатов подписан ([watchChats]) — только тогда держим «в сети»
+  /// собеседников свежим (загрузка, закончившаяся после отписки, не включит).
+  var _listShown = false;
 
   /// Уже запрошенные профили собеседников (hex userID) — по разу за запуск.
   final _profilesRequested = <String>{};
@@ -172,6 +179,13 @@ class ChatsRemoteDataSource implements ChatsDataSource {
           createdAt: row.createdAt > 0 ? DateTime.fromMillisecondsSinceEpoch(row.createdAt) : null,
         ),
       );
+    }
+    // «В сети» у аватаров списка — собеседники личных чатов.
+    if (_listShown) {
+      ChatsPresence.instance.setListPeers([
+        for (final row in rows)
+          if (row.peerUserID case final peer? when row.type == pb.ChatType.CHAT_TYPE_PRIVATE.value && !sameID(peer, me)) peer,
+      ]);
     }
     _requestProfiles([
       for (final row in rows)

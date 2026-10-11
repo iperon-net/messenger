@@ -7,6 +7,7 @@ import '../../models.dart' as models;
 import 'chat_avatar.dart';
 import 'chat_tile.dart';
 import 'message_bubble.dart' show failedStatusColor;
+import '../../themes.dart';
 
 /// Строка списка чатов (Android, по мотивам Telegram): аватар, название с иконкой
 /// типа, дата с галочками; ниже — превью в одну строку и бейджи (упоминания,
@@ -37,7 +38,15 @@ class ChatTileMaterial extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         child: Row(
           children: [
-            ChatAvatar(chat: chat, accentColor: scheme.primary, accentForeground: scheme.onPrimary, size: 46),
+            ChatAvatar(
+              chat: chat,
+              accentColor: scheme.primary,
+              accentForeground: scheme.onPrimary,
+              size: 46,
+              onlineRingColor: theme.brightness == Brightness.dark
+                  ? ThemesCupertino.groupedCard.darkColor
+                  : ThemesCupertino.groupedCard.color,
+            ),
             const SizedBox(width: 14),
             Expanded(
               child: Column(

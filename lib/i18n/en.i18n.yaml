@@ -46,6 +46,7 @@
   "emptyArchive": "Archive is empty"
   "archive": "Archive"
   "savedMessages": "Saved Messages"
+  "savedMessagesEmpty": "Your saved messages"
   "draft": "Draft:"
   "typing": "typing…"
   "typingName": "{name} is typing…"

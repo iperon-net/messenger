@@ -66,7 +66,15 @@ class _ChatTileCupertinoState extends State<ChatTileCupertino> {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              ChatAvatar(chat: chat, accentColor: primary, accentForeground: ThemesCupertino.onAccent(context), size: 49),
+              ChatAvatar(
+                chat: chat,
+                accentColor: primary,
+                accentForeground: ThemesCupertino.onAccent(context),
+                size: 49,
+                onlineRingColor: _pressed
+                    ? CupertinoColors.systemGrey5.resolveFrom(context)
+                    : ThemesCupertino.appBackground.resolveFrom(context),
+              ),
               const SizedBox(width: 10),
               Expanded(
                 child: Column(

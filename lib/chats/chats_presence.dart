@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 import 'dart:typed_data';
 
 import '../api.dart';
@@ -11,8 +12,9 @@ import 'chats_mapping.dart';
 /// «В сети» собеседников личных чатов. Сервер шлёт PRESENCE-push только тем,
 /// у кого человек в контактах, поэтому для открытого окна чата (собеседник
 /// может быть и не в контактах) присутствие спрашиваем сами: при открытии,
-/// после переподключения и раз в [_pollInterval], пока окно открыто. Push'и
-/// (контакты) тоже ловим. Видимость гейтит сервер («Время захода»): скрыто —
+/// после переподключения и раз в [_pollInterval], пока окно открыто. То же —
+/// для собеседников всех личных чатов, пока открыт список ([setListPeers]):
+/// зелёная точка у аватара. Push'и (контакты) тоже ловим. Видимость гейтит сервер («Время захода»): скрыто —
 /// item не приходит, показываем «был(а) недавно».
 ///
 /// `online` эфемерный — только в памяти; время захода пишем в кэш профилей
@@ -24,6 +26,9 @@ class ChatsPresence {
 
   static const _pollInterval = Duration(seconds: 30);
 
+  /// Сервер принимает до 1024 userID за запрос.
+  static const _batchLimit = 1000;
+
   API get _api => getIt.get<API>();
   Logger get _logger => getIt.get<Logger>();
 
@@ -32,6 +37,9 @@ class ChatsPresence {
 
   /// Открытые окна: hex userID → (байты, сколько окон смотрят).
   final _watched = <String, ({Uint8List userID, int count})>{};
+
+  /// Собеседники личных чатов из списка чатов (hex userID → байты).
+  var _listPeers = <String, Uint8List>{};
 
   final _changed = StreamController<void>.broadcast();
   StreamSubscription<Uint8List>? _pushSubscription;
@@ -51,7 +59,33 @@ class ChatsPresence {
     final current = _watched[key];
     _watched[key] = (userID: userID, count: (current?.count ?? 0) + 1);
     if (current == null) unawaited(_refresh([userID]));
-    _poll ??= Timer.periodic(_pollInterval, (_) => _refreshWatched());
+    _ensurePoll();
+  }
+
+  /// Список чатов показан с собеседниками [userIDs] — держим их «в сети»
+  /// свежим; новые в списке спрашиваем сразу. Пустой список — перестать.
+  void setListPeers(Iterable<Uint8List> userIDs) {
+    final next = {for (final userID in userIDs) idHex(userID): userID};
+    final added = [
+      for (final entry in next.entries)
+        if (!_listPeers.containsKey(entry.key) && !_watched.containsKey(entry.key)) entry.value,
+    ];
+    _listPeers = next;
+    if (next.isNotEmpty) {
+      _start();
+      _ensurePoll();
+    } else {
+      _stopPollIfIdle();
+    }
+    if (added.isNotEmpty) unawaited(_refresh(added));
+  }
+
+  void _ensurePoll() => _poll ??= Timer.periodic(_pollInterval, (_) => _refreshWatched());
+
+  void _stopPollIfIdle() {
+    if (_watched.isNotEmpty || _listPeers.isNotEmpty) return;
+    _poll?.cancel();
+    _poll = null;
   }
 
   void unwatch(Uint8List userID) {
@@ -63,10 +97,7 @@ class ChatsPresence {
       return;
     }
     _watched.remove(key);
-    if (_watched.isEmpty) {
-      _poll?.cancel();
-      _poll = null;
-    }
+    _stopPollIfIdle();
   }
 
   void _start() {
@@ -80,12 +111,22 @@ class ChatsPresence {
   }
 
   void _refreshWatched() {
-    if (_watched.isEmpty) return;
-    unawaited(_refresh([for (final w in _watched.values) w.userID]));
+    // Стрима нет (фон, нет сети) — не дёргаем сервер впустую; после
+    // переподключения освежит connectionStatusStream.
+    if (_api.connectionStatus != ApiConnectionStatus.connected) return;
+    final userIDs = {for (final w in _watched.values) idHex(w.userID): w.userID, ..._listPeers};
+    if (userIDs.isEmpty) return;
+    unawaited(_refresh(userIDs.values.toList()));
   }
 
   Future<void> _refresh(List<Uint8List> userIDs) async {
     if (userIDs.isEmpty) return;
+    if (userIDs.length > _batchLimit) {
+      for (var i = 0; i < userIDs.length; i += _batchLimit) {
+        await _refresh(userIDs.sublist(i, min(i + _batchLimit, userIDs.length)));
+      }
+      return;
+    }
     final (status, payload) = await _api.unaryEncodedWithResponse(MessageType.PRESENCE, Presence_Request(userIDs: userIDs).writeToBuffer());
     // Нет сети — остаёмся на прошлом (онлайн снимет следующий удачный опрос).
     if (status.status != APIStatus.success || payload == null) return;

@@ -22,16 +22,56 @@ class ChatAvatar extends StatelessWidget {
   /// тёмной темы).
   final Color accentForeground;
 
+  /// Цвет фона под аватаром: задан — у собеседника «в сети» рисуем зелёную
+  /// точку справа внизу с обводкой этим цветом (строки списка чатов).
+  final Color? onlineRingColor;
+
   const ChatAvatar({
     super.key,
     required this.chat,
     required this.accentColor,
     this.accentForeground = const Color(0xFFFFFFFF),
     this.size = 56,
+    this.onlineRingColor,
   });
+
+  /// Зелёный «в сети» (systemGreen iOS).
+  static const onlineColor = Color(0xFF34C759);
 
   @override
   Widget build(BuildContext context) {
+    final ring = onlineRingColor;
+    final avatar = _avatar();
+    if (ring == null || !chat.online || chat.isSelf || chat.type != models.ChatType.private) return avatar;
+
+    final dot = size * 0.28;
+    final border = (size * 0.05).clamp(1.5, 3.0);
+    return SizedBox(
+      width: size,
+      height: size,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          avatar,
+          Positioned(
+            right: 0,
+            bottom: 0,
+            child: Container(
+              width: dot,
+              height: dot,
+              decoration: BoxDecoration(
+                color: onlineColor,
+                shape: BoxShape.circle,
+                border: Border.all(color: ring, width: border),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _avatar() {
     if (chat.isSelf) {
       return Container(
         width: size,

@@ -36,7 +36,10 @@ abstract final class ChatTileContent {
     if (chat.draft.isNotEmpty) return ChatPreview(ChatPreviewKind.draft, chat.draft, prefix: s.draft);
 
     final message = chat.lastMessage;
-    if (message == null) return const ChatPreview(ChatPreviewKind.message, '');
+    if (message == null) {
+      // Пустое «Избранное» — подсказка вместо пустой строки.
+      return ChatPreview(ChatPreviewKind.message, chat.isSelf ? s.savedMessagesEmpty : '');
+    }
     final media = switch (message.kind) {
       models.MessageKind.text => '',
       models.MessageKind.photo => s.photo,

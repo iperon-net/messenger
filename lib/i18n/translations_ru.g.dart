@@ -160,6 +160,7 @@ class _Translations$screenChats$ru extends Translations$screenChats$en {
 	@override String get emptyArchive => 'Архив пуст';
 	@override String get archive => 'Архив';
 	@override String get savedMessages => 'Избранное';
+	@override String get savedMessagesEmpty => 'Ваши избранные сообщения';
 	@override String get draft => 'Черновик:';
 	@override String get typing => 'печатает…';
 	@override String typingName({required Object name}) => '${name} печатает…';
@@ -1552,6 +1553,7 @@ extension on TranslationsRu {
 			'screenChats.emptyArchive' => 'Архив пуст',
 			'screenChats.archive' => 'Архив',
 			'screenChats.savedMessages' => 'Избранное',
+			'screenChats.savedMessagesEmpty' => 'Ваши избранные сообщения',
 			'screenChats.draft' => 'Черновик:',
 			'screenChats.typing' => 'печатает…',
 			'screenChats.typingName' => ({required Object name}) => '${name} печатает…',
@@ -2024,9 +2026,9 @@ extension on TranslationsRu {
 			'screenSettings.devices' => _root.screenSettingsDevices.devices,
 			'screenSettings.language' => 'Язык',
 			'screenSettings.appearance' => _root.screenSettingsAppearance.appearance,
-			'screenSettings.folders' => _root.screenChatFolders.folders,
 			_ => null,
 		} ?? switch (path) {
+			'screenSettings.folders' => _root.screenChatFolders.folders,
 			'screenSettings.notifications' => _root.screenSettingsNotifications.notifications,
 			'screenSettings.privacyAndSecurity' => 'Конфиденциальность',
 			'screenSettings.aboutApplication' => 'О приложении',
@@ -2538,6 +2540,8 @@ extension on TranslationsRu {
 			'yandex.invalidToken' => 'Не удалось подтвердить вход через Яндекс. Попробуйте ещё раз.',
 			'yandex.phoneMissing' => 'К аккаунту Яндекс ID не привязан номер телефона. Добавьте его в Яндекс ID или войдите по номеру.',
 			'yandex.invalidPhone' => 'Номер телефона в Яндекс ID не подходит для входа. Войдите по номеру.',
+			_ => null,
+		} ?? switch (path) {
 			'yandex.unavailable' => 'Яндекс ID сейчас недоступен. Попробуйте позже.',
 			_ => null,
 		};
