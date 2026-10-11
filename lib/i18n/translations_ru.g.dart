@@ -1427,6 +1427,8 @@ class _Translations$screenCall$ru extends Translations$screenCall$en {
 	@override String get returnToCall => 'Коснитесь, чтобы вернуться к звонку';
 	@override String get bannerRinging => 'Вызов';
 	@override String get bannerActive => 'Идёт разговор';
+	@override String get bannerOnHold => 'Собеседник на другой линии';
+	@override String get bannerReconnecting => 'Переподключение…';
 	@override String get incomingAudio => 'Входящий звонок';
 	@override String get incomingVideo => 'Входящий видеозвонок';
 	@override String get calling => 'Вызов…';
@@ -1442,6 +1444,7 @@ class _Translations$screenCall$ru extends Translations$screenCall$en {
 	@override String get deviceBusyMessage => 'Телефон занят другим звонком. Завершите текущий звонок, чтобы позвонить.';
 	@override String get endedNoConnection => 'Нет соединения с интернетом';
 	@override String get endedUnavailable => 'Абонент недоступен';
+	@override String get endedConnectionLost => 'Связь прервалась';
 	@override String get ended => 'Звонок завершён';
 	@override String get decline => 'Отклонить';
 	@override String get accept => 'Принять';
@@ -1468,6 +1471,9 @@ class _Translations$screenCall$ru extends Translations$screenCall$en {
 	@override String get qualityGood => 'Хорошее соединение';
 	@override String get qualityExcellent => 'Отличное соединение';
 	@override String get remoteMicMuted => 'Микрофон собеседника выключен';
+	@override String get remoteOnHold => 'Собеседник на другой линии';
+	@override String get reconnecting => 'Переподключение…';
+	@override String get remoteReconnecting => 'Собеседник переподключается…';
 	@override String get encrypted => 'Сквозное шифрование';
 	@override String get notEncrypted => 'Без сквозного шифрования';
 	@override String get verifyEmoji => 'Сверьте эмодзи с собеседником';
@@ -2489,6 +2495,8 @@ extension on TranslationsRu {
 			'screenCall.returnToCall' => 'Коснитесь, чтобы вернуться к звонку',
 			'screenCall.bannerRinging' => 'Вызов',
 			'screenCall.bannerActive' => 'Идёт разговор',
+			'screenCall.bannerOnHold' => 'Собеседник на другой линии',
+			'screenCall.bannerReconnecting' => 'Переподключение…',
 			'screenCall.incomingAudio' => 'Входящий звонок',
 			'screenCall.incomingVideo' => 'Входящий видеозвонок',
 			'screenCall.calling' => 'Вызов…',
@@ -2504,6 +2512,7 @@ extension on TranslationsRu {
 			'screenCall.deviceBusyMessage' => 'Телефон занят другим звонком. Завершите текущий звонок, чтобы позвонить.',
 			'screenCall.endedNoConnection' => 'Нет соединения с интернетом',
 			'screenCall.endedUnavailable' => 'Абонент недоступен',
+			'screenCall.endedConnectionLost' => 'Связь прервалась',
 			'screenCall.ended' => 'Звонок завершён',
 			'screenCall.decline' => 'Отклонить',
 			'screenCall.accept' => 'Принять',
@@ -2530,6 +2539,9 @@ extension on TranslationsRu {
 			'screenCall.qualityGood' => 'Хорошее соединение',
 			'screenCall.qualityExcellent' => 'Отличное соединение',
 			'screenCall.remoteMicMuted' => 'Микрофон собеседника выключен',
+			'screenCall.remoteOnHold' => 'Собеседник на другой линии',
+			'screenCall.reconnecting' => 'Переподключение…',
+			'screenCall.remoteReconnecting' => 'Собеседник переподключается…',
 			'screenCall.encrypted' => 'Сквозное шифрование',
 			'screenCall.notEncrypted' => 'Без сквозного шифрования',
 			'screenCall.verifyEmoji' => 'Сверьте эмодзи с собеседником',
@@ -2541,14 +2553,14 @@ extension on TranslationsRu {
 			'passkey.lastUsed' => ({required Object date}) => 'Вход ${date}',
 			'passkey.alreadyOnThisDevice' => 'На этом устройстве уже есть ключ доступа для этого аккаунта. Добавьте ключ на другом устройстве или в другом менеджере паролей.',
 			'passkey.delete' => 'Удалить',
+			_ => null,
+		} ?? switch (path) {
 			'passkey.deleteConfirmTitle' => 'Удалить ключ доступа?',
 			'passkey.deleteConfirmMessage' => 'Войти с помощью этого ключа больше не получится.',
 			'passkey.loadError' => 'Не удалось загрузить ключи',
 			'passkey.retry' => 'Повторить',
 			'passkey.verificationFailed' => 'Не удалось проверить ключ. Попробуйте ещё раз.',
 			'passkey.ceremonyExpired' => 'Срок запроса истёк. Попробуйте ещё раз.',
-			_ => null,
-		} ?? switch (path) {
 			'passkey.unknownCredential' => 'Этот ключ не распознан.',
 			'passkey.alreadyRegistered' => 'Этот ключ уже зарегистрирован.',
 			'passkey.notFound' => 'Ключ не найден.',

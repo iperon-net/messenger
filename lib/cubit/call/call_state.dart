@@ -30,6 +30,15 @@ class CallState with CallStateMappable {
   /// (см. [CallSnapshot.remoteVideoOff]).
   final bool remoteVideoOff;
 
+  /// Собеседник на другой линии (см. [CallSnapshot.remoteOnHold]).
+  final bool remoteOnHold;
+
+  /// Мы переподключаемся к серверу звонков (см. [CallSnapshot.reconnecting]).
+  final bool reconnecting;
+
+  /// Собеседник пропал и ждём его возвращения (см. [CallSnapshot.remoteReconnecting]).
+  final bool remoteReconnecting;
+
   final CallEndReason endReason;
   final String debug;
 
@@ -82,6 +91,9 @@ class CallState with CallStateMappable {
     this.speakerOn = false,
     this.remoteMicMuted = false,
     this.remoteVideoOff = true,
+    this.remoteOnHold = false,
+    this.reconnecting = false,
+    this.remoteReconnecting = false,
     this.endReason = CallEndReason.none,
     this.debug = '',
     this.connectedAt,

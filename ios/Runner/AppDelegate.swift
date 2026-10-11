@@ -166,6 +166,12 @@ import flutter_callkit_incoming
           let args = call.arguments as? [String: Any]
           let exclude = (args?["exclude"] as? [String])?.map { $0.lowercased() } ?? []
           result(SystemCallMonitor.shared.hasActiveExternalCall(excluding: Set(exclude)))
+        // Опрос удержания во время нашего звонка (lib/calls.dart _checkHold).
+        case "isOnOtherCall":
+          let args = call.arguments as? [String: Any]
+          let exclude = (args?["exclude"] as? [String])?.map { $0.lowercased() } ?? []
+          let includeRinging = args?["includeRinging"] as? Bool ?? true
+          result(SystemCallMonitor.shared.isOnOtherCall(excluding: Set(exclude), includeRinging: includeRinging))
         default:
           result(FlutterMethodNotImplemented)
         }
@@ -286,7 +292,11 @@ import flutter_callkit_incoming
     // appName → CXProviderConfiguration.localizedName (подпись «Аудиовызов
     // <appName>»). Иначе плагин подставит дефолт "Callkit".
     data.appName = "Iperon"
-    data.supportsHolding = false
+    // Удержание разрешено: на входящий сотовый iOS предложит «Удержать и
+    // ответить» — наш звонок встаёт на паузу (собеседнику уходит сигнал
+    // удержания, см. lib/calls.dart _checkHold) и продолжается после сотового.
+    // Без него был только «Завершить и ответить» — наш звонок обрывался.
+    data.supportsHolding = true
     data.supportsGrouping = false
     data.supportsUngrouping = false
     // Не добавляем звонки приложения в системный журнал iOS «Недавние»/историю
@@ -442,6 +452,19 @@ class SystemCallMonitor: NSObject, CXCallObserverDelegate {
     for call in observer.calls where !call.hasEnded {
       if excluding.contains(call.uuid.uuidString.lowercased()) { continue }
       return true
+    }
+    return false
+  }
+
+  /// Занят ли пользователь ДРУГИМ системным звонком прямо во время нашего —
+  /// для сигнала удержания собеседнику. Звонок на удержании (`isOnHold`) не
+  /// считаем: значит, активен какой-то другой. Входящий, ещё не отвеченный
+  /// (`!hasConnected && !isOutgoing`), считаем только при [includeRinging]:
+  /// звонок мимо CallKit iOS прерывает уже на звонке, CallKit-звонок — нет.
+  func isOnOtherCall(excluding: Set<String>, includeRinging: Bool) -> Bool {
+    for call in observer.calls where !call.hasEnded && !call.isOnHold {
+      if excluding.contains(call.uuid.uuidString.lowercased()) { continue }
+      if call.hasConnected || call.isOutgoing || includeRinging { return true }
     }
     return false
   }

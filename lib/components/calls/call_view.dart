@@ -516,14 +516,17 @@ class _CallViewState extends State<CallView> with WidgetsBindingObserver {
                   // камере его mute уже показан бейджем на аватаре (см. [_Avatar]).
                   // Слой не перехватывает жесты (нет GestureDetector) — тап по экрану
                   // проходит сквозь него к слою [_toggleOverlay] ниже.
-                  if (!_inPip && mainOn && state.remoteMicMuted)
+                  // Та же плашка показывает и состояние связи — переподключение /
+                  // «собеседник на другой линии» (приоритетнее mute: звука его в
+                  // этот момент всё равно нет). См. [_CallNotice].
+                  if (!_inPip && mainOn && (state.remoteMicMuted || _CallNotice.of(state) != null))
                     Positioned.fill(
                       child: SafeArea(
                         child: Align(
                           alignment: Alignment.bottomCenter,
                           child: Padding(
                             padding: const EdgeInsets.only(bottom: 32 + _Overlay.mediaControlsHeight + 12),
-                            child: _RemoteMicPill(),
+                            child: _RemoteMicPill(notice: _CallNotice.of(state)),
                           ),
                         ),
                       ),
@@ -779,6 +782,25 @@ class _Overlay extends StatelessWidget {
                                   textAlign: TextAlign.center,
                                   style: TextStyle(color: palette.status, fontSize: 15),
                                 ),
+                              // Состояние связи (переподключение / собеседник на
+                              // другой линии) — поясняем, почему его не слышно.
+                              if (_CallNotice.of(state) case final notice? when active) ...[
+                                const SizedBox(height: 6),
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    HugeIcon(icon: notice.icon, color: palette.status, size: 16),
+                                    const SizedBox(width: 6),
+                                    Flexible(
+                                      child: Text(
+                                        notice.text(context),
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(color: palette.status, fontSize: 15),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
                               // Сквозное шифрование: замок + подпись, тап раскрывает
                               // SAS. Виджет сам решает, показывать ли себя.
                               _E2eeBadge(state: state, palette: palette),
@@ -977,6 +999,8 @@ class _Overlay extends StatelessWidget {
             return t.endedNotAllowed;
           case CallEndReason.noConnection:
             return t.endedNoConnection;
+          case CallEndReason.connectionLost:
+            return t.endedConnectionLost;
           case CallEndReason.unavailable:
             return t.endedUnavailable;
           // deviceBusy блокирует исходящий ещё до открытия экрана `/call`
@@ -1320,8 +1344,13 @@ class _MicBadge extends StatelessWidget {
 /// ([_MicBadge]), живёт вне автоскрывающейся панели — виден всё время, пока у
 /// собеседника выключен микрофон. Цвета фиксированные (не из палитры): плашка
 /// всегда лежит поверх видео, где нужен светлый текст на тёмном.
+///
+/// [notice] — вместо mute показывает состояние связи (переподключение, «на
+/// другой линии»), см. [_CallNotice].
 class _RemoteMicPill extends StatelessWidget {
-  const _RemoteMicPill();
+  final _CallNotice? notice;
+
+  const _RemoteMicPill({this.notice});
 
   @override
   Widget build(BuildContext context) {
@@ -1331,15 +1360,47 @@ class _RemoteMicPill extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const HugeIcon(icon: HugeIcons.strokeRoundedMicOff01, color: CallView._red, size: 18),
+          notice != null
+              ? HugeIcon(icon: notice!.icon, color: CallView._onAccent, size: 18)
+              : const HugeIcon(icon: HugeIcons.strokeRoundedMicOff01, color: CallView._red, size: 18),
           const SizedBox(width: 6),
           Text(
-            context.t.screenCall.remoteMicMuted,
+            notice?.text(context) ?? context.t.screenCall.remoteMicMuted,
             style: const TextStyle(color: CallView._onAccent, fontSize: 13, fontWeight: FontWeight.w500),
           ),
         ],
       ),
     );
+  }
+}
+
+/// Пояснение к активному звонку, когда собеседника не слышно не по его воле.
+/// Приоритет: наше переподключение → его переподключение → он на другой линии.
+/// `null` — всё в порядке.
+enum _CallNotice {
+  reconnecting(HugeIcons.strokeRoundedWifiDisconnected01),
+  remoteReconnecting(HugeIcons.strokeRoundedWifiDisconnected01),
+  remoteOnHold(HugeIcons.strokeRoundedPause);
+
+  // Иконка HugeIcons (формат пакета hugeicons — список SVG-фигур).
+  final List<List<dynamic>> icon;
+
+  const _CallNotice(this.icon);
+
+  static _CallNotice? of(CallState state) {
+    if (state.reconnecting) return reconnecting;
+    if (state.remoteReconnecting) return remoteReconnecting;
+    if (state.remoteOnHold) return remoteOnHold;
+    return null;
+  }
+
+  String text(BuildContext context) {
+    final t = context.t.screenCall;
+    return switch (this) {
+      reconnecting => t.reconnecting,
+      remoteReconnecting => t.remoteReconnecting,
+      remoteOnHold => t.remoteOnHold,
+    };
   }
 }
 

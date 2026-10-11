@@ -132,7 +132,14 @@ CallKitParams _incomingParams(Map<String, dynamic> data, String callId) {
     // на платформы/пути, где showCallkitIncoming зовётся из Dart (Android).
     // includesCallsInRecents: false — не пишем звонки приложения в системный
     // журнал iOS «Недавние»/историю «Телефона».
-    ios: const IOSParams(handleType: 'generic', supportsVideo: true, configureAudioSession: true, includesCallsInRecents: false),
+    ios: const IOSParams(
+      handleType: 'generic',
+      supportsVideo: true,
+      configureAudioSession: true,
+      includesCallsInRecents: false,
+      // «Удержать и ответить» на чужой звонок (см. ios/Runner/AppDelegate.swift).
+      supportsHolding: true,
+    ),
   );
 }
 
@@ -364,7 +371,14 @@ class CallPush {
       // CXProvider шлёт didActivate → ACTION_CALL_TOGGLE_AUDIO_SESSION →
       // Calls.setAudioEngineActive (движок LiveKit в `externalCallSystem`). Тот же
       // механизм, что и на cold-start из VoIP-push.
-      ios: const IOSParams(handleType: 'generic', supportsVideo: true, configureAudioSession: true, includesCallsInRecents: false),
+      ios: const IOSParams(
+        handleType: 'generic',
+        supportsVideo: true,
+        configureAudioSession: true,
+        includesCallsInRecents: false,
+        // «Удержать и ответить» на чужой звонок (см. ios/Runner/AppDelegate.swift).
+        supportsHolding: true,
+      ),
     );
   }
 
@@ -445,6 +459,12 @@ class CallPush {
         final callId = callKitParams.id;
         if (callId.isEmpty || callId == _acceptedCallId) _acceptedCallId = null;
         if (callId.isEmpty || callId == calls.snapshot.callId) await calls.hangup();
+      case CallEventActionCallToggleHold(:final id, :final isOnHold):
+        // CallKit поставил наш звонок на удержание (ответили на чужой) или снял.
+        // Звук гейтится по ToggleAudioSession выше; здесь лишь ускоряем сигнал
+        // удержания собеседнику (см. Calls.onSystemHold).
+        logger.info('call: CallKit hold=$isOnHold ($id)');
+        if (id.isEmpty || id.toLowerCase() == calls.snapshot.callId.toLowerCase()) calls.onSystemHold();
       case CallEventActionDidUpdateDevicePushTokenVoip():
         // iOS выдал/сменил VoIP-токен PushKit — событие не несёт сам токен,
         // забираем актуальный из плагина и регистрируем на сервере.

@@ -3337,6 +3337,12 @@ class Translations$screenCall$en {
 	/// en: 'In call'
 	String get bannerActive => 'In call';
 
+	/// en: 'On another call'
+	String get bannerOnHold => 'On another call';
+
+	/// en: 'Reconnecting…'
+	String get bannerReconnecting => 'Reconnecting…';
+
 	/// en: 'Incoming call'
 	String get incomingAudio => 'Incoming call';
 
@@ -3381,6 +3387,9 @@ class Translations$screenCall$en {
 
 	/// en: 'Subscriber unavailable'
 	String get endedUnavailable => 'Subscriber unavailable';
+
+	/// en: 'Connection lost'
+	String get endedConnectionLost => 'Connection lost';
 
 	/// en: 'Call ended'
 	String get ended => 'Call ended';
@@ -3459,6 +3468,15 @@ class Translations$screenCall$en {
 
 	/// en: 'Their microphone is off'
 	String get remoteMicMuted => 'Their microphone is off';
+
+	/// en: 'They're on another call'
+	String get remoteOnHold => 'They\'re on another call';
+
+	/// en: 'Reconnecting…'
+	String get reconnecting => 'Reconnecting…';
+
+	/// en: 'Waiting for them to reconnect…'
+	String get remoteReconnecting => 'Waiting for them to reconnect…';
 
 	/// en: 'End-to-end encrypted'
 	String get encrypted => 'End-to-end encrypted';
@@ -4530,6 +4548,8 @@ extension on Translations {
 			'screenCall.returnToCall' => 'Tap to return to the call',
 			'screenCall.bannerRinging' => 'Call',
 			'screenCall.bannerActive' => 'In call',
+			'screenCall.bannerOnHold' => 'On another call',
+			'screenCall.bannerReconnecting' => 'Reconnecting…',
 			'screenCall.incomingAudio' => 'Incoming call',
 			'screenCall.incomingVideo' => 'Incoming video call',
 			'screenCall.calling' => 'Calling…',
@@ -4545,6 +4565,7 @@ extension on Translations {
 			'screenCall.deviceBusyMessage' => 'Your phone is busy with another call. End the current call before making a new one.',
 			'screenCall.endedNoConnection' => 'No internet connection',
 			'screenCall.endedUnavailable' => 'Subscriber unavailable',
+			'screenCall.endedConnectionLost' => 'Connection lost',
 			'screenCall.ended' => 'Call ended',
 			'screenCall.decline' => 'Decline',
 			'screenCall.accept' => 'Accept',
@@ -4571,6 +4592,9 @@ extension on Translations {
 			'screenCall.qualityGood' => 'Good connection',
 			'screenCall.qualityExcellent' => 'Excellent connection',
 			'screenCall.remoteMicMuted' => 'Their microphone is off',
+			'screenCall.remoteOnHold' => 'They\'re on another call',
+			'screenCall.reconnecting' => 'Reconnecting…',
+			'screenCall.remoteReconnecting' => 'Waiting for them to reconnect…',
 			'screenCall.encrypted' => 'End-to-end encrypted',
 			'screenCall.notEncrypted' => 'Not end-to-end encrypted',
 			'screenCall.verifyEmoji' => 'Compare these emoji with the other person',
@@ -4582,14 +4606,14 @@ extension on Translations {
 			'passkey.lastUsed' => ({required Object date}) => 'Signed in ${date}',
 			'passkey.alreadyOnThisDevice' => 'This account already has a passkey on this device. Add one on another device or in a different password manager.',
 			'passkey.delete' => 'Delete',
+			_ => null,
+		} ?? switch (path) {
 			'passkey.deleteConfirmTitle' => 'Delete passkey?',
 			'passkey.deleteConfirmMessage' => 'You won\'t be able to sign in with this passkey anymore.',
 			'passkey.loadError' => 'Couldn\'t load passkeys',
 			'passkey.retry' => 'Retry',
 			'passkey.verificationFailed' => 'Couldn\'t verify the passkey. Please try again.',
 			'passkey.ceremonyExpired' => 'The request expired. Please try again.',
-			_ => null,
-		} ?? switch (path) {
 			'passkey.unknownCredential' => 'This passkey isn\'t recognized.',
 			'passkey.alreadyRegistered' => 'This passkey is already registered.',
 			'passkey.notFound' => 'Passkey not found.',

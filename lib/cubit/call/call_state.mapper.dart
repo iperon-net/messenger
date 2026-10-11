@@ -93,6 +93,27 @@ class CallStateMapper extends ClassMapperBase<CallState> {
     opt: true,
     def: true,
   );
+  static bool _$remoteOnHold(CallState v) => v.remoteOnHold;
+  static const Field<CallState, bool> _f$remoteOnHold = Field(
+    'remoteOnHold',
+    _$remoteOnHold,
+    opt: true,
+    def: false,
+  );
+  static bool _$reconnecting(CallState v) => v.reconnecting;
+  static const Field<CallState, bool> _f$reconnecting = Field(
+    'reconnecting',
+    _$reconnecting,
+    opt: true,
+    def: false,
+  );
+  static bool _$remoteReconnecting(CallState v) => v.remoteReconnecting;
+  static const Field<CallState, bool> _f$remoteReconnecting = Field(
+    'remoteReconnecting',
+    _$remoteReconnecting,
+    opt: true,
+    def: false,
+  );
   static CallEndReason _$endReason(CallState v) => v.endReason;
   static const Field<CallState, CallEndReason> _f$endReason = Field(
     'endReason',
@@ -181,6 +202,9 @@ class CallStateMapper extends ClassMapperBase<CallState> {
     #speakerOn: _f$speakerOn,
     #remoteMicMuted: _f$remoteMicMuted,
     #remoteVideoOff: _f$remoteVideoOff,
+    #remoteOnHold: _f$remoteOnHold,
+    #reconnecting: _f$reconnecting,
+    #remoteReconnecting: _f$remoteReconnecting,
     #endReason: _f$endReason,
     #debug: _f$debug,
     #connectedAt: _f$connectedAt,
@@ -206,6 +230,9 @@ class CallStateMapper extends ClassMapperBase<CallState> {
       speakerOn: data.dec(_f$speakerOn),
       remoteMicMuted: data.dec(_f$remoteMicMuted),
       remoteVideoOff: data.dec(_f$remoteVideoOff),
+      remoteOnHold: data.dec(_f$remoteOnHold),
+      reconnecting: data.dec(_f$reconnecting),
+      remoteReconnecting: data.dec(_f$remoteReconnecting),
       endReason: data.dec(_f$endReason),
       debug: data.dec(_f$debug),
       connectedAt: data.dec(_f$connectedAt),
@@ -293,6 +320,9 @@ abstract class CallStateCopyWith<$R, $In extends CallState, $Out>
     bool? speakerOn,
     bool? remoteMicMuted,
     bool? remoteVideoOff,
+    bool? remoteOnHold,
+    bool? reconnecting,
+    bool? remoteReconnecting,
     CallEndReason? endReason,
     String? debug,
     DateTime? connectedAt,
@@ -349,6 +379,9 @@ class _CallStateCopyWithImpl<$R, $Out>
     bool? speakerOn,
     bool? remoteMicMuted,
     bool? remoteVideoOff,
+    bool? remoteOnHold,
+    bool? reconnecting,
+    bool? remoteReconnecting,
     CallEndReason? endReason,
     String? debug,
     Object? connectedAt = $none,
@@ -372,6 +405,9 @@ class _CallStateCopyWithImpl<$R, $Out>
       if (speakerOn != null) #speakerOn: speakerOn,
       if (remoteMicMuted != null) #remoteMicMuted: remoteMicMuted,
       if (remoteVideoOff != null) #remoteVideoOff: remoteVideoOff,
+      if (remoteOnHold != null) #remoteOnHold: remoteOnHold,
+      if (reconnecting != null) #reconnecting: reconnecting,
+      if (remoteReconnecting != null) #remoteReconnecting: remoteReconnecting,
       if (endReason != null) #endReason: endReason,
       if (debug != null) #debug: debug,
       if (connectedAt != $none) #connectedAt: connectedAt,
@@ -397,6 +433,12 @@ class _CallStateCopyWithImpl<$R, $Out>
     speakerOn: data.get(#speakerOn, or: $value.speakerOn),
     remoteMicMuted: data.get(#remoteMicMuted, or: $value.remoteMicMuted),
     remoteVideoOff: data.get(#remoteVideoOff, or: $value.remoteVideoOff),
+    remoteOnHold: data.get(#remoteOnHold, or: $value.remoteOnHold),
+    reconnecting: data.get(#reconnecting, or: $value.reconnecting),
+    remoteReconnecting: data.get(
+      #remoteReconnecting,
+      or: $value.remoteReconnecting,
+    ),
     endReason: data.get(#endReason, or: $value.endReason),
     debug: data.get(#debug, or: $value.debug),
     connectedAt: data.get(#connectedAt, or: $value.connectedAt),

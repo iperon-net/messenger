@@ -824,14 +824,22 @@ public class SwiftFlutterCallkitIncomingPlugin: NSObject, FlutterPlugin, CXProvi
             appDelegate.didActivateAudioSession(audioSession)
         }
 
+        // IPERON: повторная активация уже соединённого звонка — снятие с удержания
+        // (CXSetHeldCallAction false после чужого звонка). Приложение гейтит
+        // аудиодвижок WebRTC по TOGGLE_AUDIO_SESSION, поэтому шлём его и здесь —
+        // иначе движок, остановленный на didDeactivate при удержании, не поднимется
+        // и после возврата к звонку не было бы звука. Повтор isActive=true для уже
+        // активного движка на стороне Dart — no-op.
         if(self.answerCall?.hasConnected ?? false){
-            NSLog("IPERON_CALL didActivate early-return (answer hasConnected) — TOGGLE_AUDIO_SESSION NOT sent")
+            NSLog("IPERON_CALL didActivate (answer hasConnected, resume) — sending TOGGLE_AUDIO_SESSION isActive=true")
             sendDefaultAudioInterruptionNotificationToStartAudioResource()
+            self.sendEvent(SwiftFlutterCallkitIncomingPlugin.ACTION_CALL_TOGGLE_AUDIO_SESSION, [ "isActive": true ])
             return
         }
         if(self.outgoingCall?.hasConnected ?? false){
-            NSLog("IPERON_CALL didActivate early-return (outgoing hasConnected) — TOGGLE_AUDIO_SESSION NOT sent")
+            NSLog("IPERON_CALL didActivate (outgoing hasConnected, resume) — sending TOGGLE_AUDIO_SESSION isActive=true")
             sendDefaultAudioInterruptionNotificationToStartAudioResource()
+            self.sendEvent(SwiftFlutterCallkitIncomingPlugin.ACTION_CALL_TOGGLE_AUDIO_SESSION, [ "isActive": true ])
             return
         }
         self.outgoingCall?.startCall(withAudioSession: audioSession) {success in
@@ -859,11 +867,13 @@ public class SwiftFlutterCallkitIncomingPlugin: NSObject, FlutterPlugin, CXProvi
             appDelegate.didDeactivateAudioSession(audioSession)
         }
 
+        // IPERON: при удержании тоже сообщаем приложению — оно останавливает
+        // аудиодвижок WebRTC на время чужого звонка и поднимает его обратно по
+        // didActivate (см. выше). Раньше здесь был ранний return для isOnHold.
         if self.outgoingCall?.isOnHold ?? false || self.answerCall?.isOnHold ?? false{
-            print("Call is on hold")
-            return
+            NSLog("IPERON_CALL didDeactivate: call is on hold")
         }
-        
+
         self.sendEvent(SwiftFlutterCallkitIncomingPlugin.ACTION_CALL_TOGGLE_AUDIO_SESSION, [ "isActive": false ])
     }
     

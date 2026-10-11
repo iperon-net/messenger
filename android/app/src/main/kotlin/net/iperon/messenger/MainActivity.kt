@@ -304,6 +304,7 @@ class MainActivity : FlutterFragmentActivity() {
             .also { it.setMethodCallHandler { call, result ->
                 when (call.method) {
                     "hasActiveExternalCall" -> result.success(hasActiveExternalCall())
+                    "isOnOtherCall" -> result.success(isOnOtherCall())
                     else -> result.notImplemented()
                 }
             } }
@@ -324,6 +325,16 @@ class MainActivity : FlutterFragmentActivity() {
             AudioManager.MODE_IN_CALL, AudioManager.MODE_IN_COMMUNICATION -> true
             else -> false
         }
+    }
+
+    /// Идёт ли сотовый разговор прямо во время нашего звонка — для сигнала
+    /// удержания собеседнику (lib/calls.dart `_checkHold`). Только `MODE_IN_CALL`:
+    /// `MODE_IN_COMMUNICATION` выставляет наш же звонок, а звонящий (`MODE_RINGING`)
+    /// сотовый звук нашего разговора не отбирает. Аргументы exclude/includeRinging
+    /// на Android не нужны.
+    private fun isOnOtherCall(): Boolean {
+        val audioManager = getSystemService(Context.AUDIO_SERVICE) as? AudioManager ?: return false
+        return audioManager.mode == AudioManager.MODE_IN_CALL
     }
 
     /// Поддерживает ли устройство/ОС PiP. Android 8.0+ и системная фича

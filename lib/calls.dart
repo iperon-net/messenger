@@ -15,6 +15,7 @@ import 'package:cryptography/cryptography.dart' show SimpleKeyPair;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart' show AppLifecycleState, WidgetsBinding;
+import 'package:flutter_callkit_incoming/flutter_callkit_incoming.dart' show FlutterCallkitIncoming;
 import 'package:flutter_webrtc/flutter_webrtc.dart' show WebRTC;
 import 'package:grpc/grpc.dart' show StatusCode;
 import 'package:livekit_client/livekit_client.dart';
@@ -48,7 +49,9 @@ enum CallStatus { idle, outgoing, incoming, connecting, active, ended }
 // исходящий блокируется до его завершения (в отличие от busy — «занят абонент»).
 // unavailable — исходящий не отвечен за таймаут дозвона (абонент недоступен/не
 // берёт трубку): в отличие от hangup («я сам сбросил») показываем это звонящему.
-enum CallEndReason { none, hangup, rejected, failed, busy, notAllowed, noConnection, deviceBusy, unavailable }
+/// [connectionLost] — разговор шёл, но связь с собеседником (или наша с SFU) так и
+/// не восстановилась за окно переподключения (см. [Calls._peerGraceTimeout]).
+enum CallEndReason { none, hangup, rejected, failed, busy, notAllowed, noConnection, deviceBusy, unavailable, connectionLost }
 
 /// Качество соединения звонка для индикатора на экране. Агрегируем из LiveKit
 /// [ConnectionQuality] собеседника (см. [Calls._mapQuality]); `unknown` — пока
@@ -93,6 +96,22 @@ class CallSnapshot {
   /// вместо рендера. Актуально только для видеозвонка.
   final bool remoteVideoOff;
 
+  /// СОБЕСЕДНИК на удержании: его телефон занят другим (сотовым/системным)
+  /// звонком, и звук нашего разговора у него прерван. Приходит от собеседника
+  /// data-сообщением LiveKit (см. [Calls._holdTopic]). UI показывает «Собеседник
+  /// на другой линии» вместо непонятной тишины. `false` вне активного звонка.
+  final bool remoteOnHold;
+
+  /// МЫ переподключаемся к SFU (сеть пропала/сменилась) — LiveKit-SDK сам
+  /// восстанавливает соединение ([RoomReconnectingEvent] → [RoomReconnectedEvent]).
+  /// UI показывает «Переподключение…» вместо таймера.
+  final bool reconnecting;
+
+  /// СОБЕСЕДНИК пропал из комнаты без отбоя (у него пропала сеть) — ждём его
+  /// возвращения [Calls._peerGraceTimeout], а не завершаем звонок сразу. UI
+  /// показывает «Собеседник переподключается…».
+  final bool remoteReconnecting;
+
   final CallEndReason endReason;
 
   /// Монотонный счётчик смены медиадорожек (local/remote video track). Дорожки
@@ -132,6 +151,9 @@ class CallSnapshot {
     this.speakerOn = false,
     this.remoteMicMuted = false,
     this.remoteVideoOff = true,
+    this.remoteOnHold = false,
+    this.reconnecting = false,
+    this.remoteReconnecting = false,
     this.endReason = CallEndReason.none,
     this.mediaEpoch = 0,
     this.debug = '',
@@ -151,6 +173,9 @@ class CallSnapshot {
     bool? speakerOn,
     bool? remoteMicMuted,
     bool? remoteVideoOff,
+    bool? remoteOnHold,
+    bool? reconnecting,
+    bool? remoteReconnecting,
     CallEndReason? endReason,
     int? mediaEpoch,
     String? debug,
@@ -169,6 +194,9 @@ class CallSnapshot {
       speakerOn: speakerOn ?? this.speakerOn,
       remoteMicMuted: remoteMicMuted ?? this.remoteMicMuted,
       remoteVideoOff: remoteVideoOff ?? this.remoteVideoOff,
+      remoteOnHold: remoteOnHold ?? this.remoteOnHold,
+      reconnecting: reconnecting ?? this.reconnecting,
+      remoteReconnecting: remoteReconnecting ?? this.remoteReconnecting,
       endReason: endReason ?? this.endReason,
       mediaEpoch: mediaEpoch ?? this.mediaEpoch,
       debug: debug ?? this.debug,
@@ -452,6 +480,36 @@ class Calls {
   // #1186. Флаг сериализует разбор: первый вызов делает работу, остальные —
   // no-op. Сбрасывается в самом конце `_teardown`.
   bool _tearingDown = false;
+
+  // Удержание: пока идёт звонок, раз в [_holdPollInterval] спрашиваем нативную
+  // сторону, не занят ли телефон ДРУГИМ звонком (сотовым/чужим системным) —
+  // тогда звук нашего разговора у нас прерван (iOS) или микрофон отдан телефонии
+  // (Android). Смену состояния сообщаем собеседнику reliable data-сообщением
+  // LiveKit с топиком [_holdTopic] (без proto/сервера — SFU просто релеит;
+  // права publishData есть по умолчанию), и у него на экране появляется
+  // «Собеседник на другой линии» вместо непонятной тишины. Опрос, а не события:
+  // один и тот же канал на обеих платформах, а на Android режим аудио без
+  // разрешений иначе не отследить. См. [_startHoldMonitor]/[_checkHold].
+  static const _holdTopic = 'call.hold';
+  static const _holdPollInterval = Duration(seconds: 1);
+  Timer? _holdTimer;
+  bool _holdCheckInFlight = false;
+
+  // Мы сами на удержании (последнее отправленное собеседнику состояние).
+  bool _localOnHold = false;
+
+  // Переподключение. Пропажа собеседника из комнаты (`ParticipantDisconnected`)
+  // больше не означает конец разговора: так же выглядит и обрыв сети у него (в
+  // т.ч. CSFB — на время сотового звонка без VoLTE мобильный интернет пропадает),
+  // и наш собственный полный реконнект (SDK при full restart эмитит disconnect
+  // для всех удалённых участников). Настоящий отбой собеседник подтверждает
+  // data-сообщением [_byeTopic] перед выходом (плюс `CALL_HANGUP` по стриму) —
+  // тогда завершаем сразу. Иначе ждём его возвращения [_peerGraceTimeout] (окно
+  // реконнекта LiveKit-SDK ≈ 45 с, см. `defaultRetryDelaysInMs`) и только потом
+  // завершаем как [CallEndReason.connectionLost]. См. [_onPeerGone].
+  static const _byeTopic = 'call.bye';
+  static const _peerGraceTimeout = Duration(seconds: 45);
+  Timer? _peerGoneTimer;
 
   /// Текущий снимок без подписки (стартовое значение для UI).
   CallSnapshot get snapshot => _snapshot;
@@ -805,6 +863,10 @@ class Calls {
   /// недоступен» вместо «Звонок завершён».
   Future<void> hangup({CallEndReason reason = CallEndReason.hangup}) async {
     if (!_hasActiveCall) return;
+    // Сначала — «пока» собеседнику через комнату: по нему он завершит звонок
+    // сразу, а не будет ждать нашего возвращения (см. [_byeTopic]). Не ждём
+    // дольше доли секунды — отбой не должен тормозить.
+    await _publishBye();
     await _sendRing(MessageType.CALL_HANGUP, toUserID: _snapshot.remoteUserID, callId: _snapshot.callId, video: _snapshot.video);
     await _teardown(reason);
   }
@@ -1252,6 +1314,7 @@ class Calls {
     _connectingRoom = false;
     _roomConnected = true;
     _dbg('room connected');
+    _startHoldMonitor();
 
     // Собеседник уже в комнате (мы принимаем звонок) — решаем E2EE по его атрибуту
     // ДО публикации своего медиа. Если его ещё нет (мы звоним), решим на
@@ -1550,7 +1613,12 @@ class Calls {
     listener
       ..on<ParticipantConnectedEvent>((event) {
         _dbg('peer joined');
+        // Собеседник вернулся после обрыва — продолжаем разговор.
+        _cancelPeerGone();
         _markActive();
+        // Мы уже на удержании, а собеседник вошёл (пере-вошёл) только сейчас —
+        // прошлое сообщение он не видел, повторяем.
+        if (_localOnHold) unawaited(_publishHold(true));
         // Атрибуты из JWT приходят вместе с ParticipantInfo — раньше его дорожек.
         if (_e2eeKeyProvider != null) unawaited(_applyPeerE2ee(event.participant));
       })
@@ -1616,11 +1684,38 @@ class Calls {
         if (quality == _snapshot.quality) return;
         _emit(_snapshot.copyWith(quality: quality));
       })
+      // Собеседник сообщил о (снятии) удержания — его телефон занят другим
+      // звонком. См. [_holdTopic].
+      ..on<DataReceivedEvent>((event) {
+        if (!_hasActiveCall) return;
+        // Собеседник положил трубку — завершаем сразу, не дожидаясь
+        // ParticipantDisconnected и окна переподключения.
+        if (event.topic == _byeTopic) {
+          _dbg('peer bye');
+          unawaited(_teardown(CallEndReason.hangup));
+          return;
+        }
+        if (event.topic != _holdTopic) return;
+        final onHold = utf8.decode(event.data, allowMalformed: true) == '1';
+        logger.info('call: remote on hold=$onHold');
+        if (onHold != _snapshot.remoteOnHold) _emit(_snapshot.copyWith(remoteOnHold: onHold));
+      })
       ..on<ParticipantDisconnectedEvent>((event) {
-        // Собеседник вышел из комнаты — для звонка 1-на-1 это конец разговора.
+        // Собеседник пропал из комнаты без «пока» ([_byeTopic]) — обрыв связи
+        // (у него или наш full restart), а не отбой. Ждём возвращения.
         _dbg('peer left');
-        _notifyCallEnded();
-        _teardown(CallEndReason.hangup);
+        _onPeerGone();
+      })
+      ..on<RoomReconnectingEvent>((event) {
+        _dbg('reconnecting');
+        if (_hasActiveCall) _emit(_snapshot.copyWith(reconnecting: true));
+      })
+      ..on<RoomReconnectedEvent>((event) {
+        _dbg('reconnected');
+        if (!_hasActiveCall) return;
+        _emit(_snapshot.copyWith(reconnecting: false));
+        // Пока нас не было, собеседник мог пропустить смену удержания.
+        if (_localOnHold) unawaited(_publishHold(true));
       })
       ..on<RoomDisconnectedEvent>((event) {
         _diag2('RoomDisconnected reason=${event.reason} _roomConnected=$_roomConnected status=${_snapshot.status}');
@@ -1629,10 +1724,11 @@ class Calls {
         // самой фазы подключения disconnect может прийти от выбитого дубля при
         // внутреннем реконнекте SDK — teardown тут прибил бы ещё живой connect
         // и дал бы ложный ICE-таймаут (см. [_roomConnected]).
+        // SDK исчерпал попытки реконнекта (≈45 с) — связь не вернулась.
         if (_hasActiveCall && _roomConnected) {
           _dbg('room disconnected');
           _notifyCallEnded();
-          _teardown(CallEndReason.failed);
+          _teardown(_snapshot.connectedAt != null ? CallEndReason.connectionLost : CallEndReason.failed);
         }
       });
   }
@@ -1737,13 +1833,40 @@ class Calls {
   // затихает — цикл не включаем). Ошибки глушим: сигнал косметика. Вызывается из
   // [_teardown] уже после разбора звонка, поэтому переиспользует не call-сессию, а
   // собственную playback-сессию audioplayers.
-  Future<void> _startBusyTone() async {
+  Future<void> _startBusyTone() => _playTone('audio/busy.wav', volume: 0.6);
+
+  /// Сигнал «звонок завершён» (assets/audio/call_end.wav, два нисходящих тона
+  /// ~0.4 с). Тот же плеер и контекст, что у «занято».
+  Future<void> _startEndTone() => _playTone('audio/call_end.wav', volume: 0.5);
+
+  /// Нужен ли сигнал завершения: разговор состоялся (любой исход), либо наш
+  /// исходящий закончился без ответа (отклонён/недоступен/не соединилось). Не
+  /// звучит на входящем без ответа (отклонили/пропустили — рингтон и так был) и
+  /// на служебных исходах (блок до старта, запрет звонков).
+  static bool _shouldPlayEndTone(CallEndReason reason, {required models.CallDirection? direction, required DateTime? connectedAt}) {
+    switch (reason) {
+      case CallEndReason.none:
+      case CallEndReason.busy:
+      case CallEndReason.deviceBusy:
+      case CallEndReason.notAllowed:
+        return false;
+      case CallEndReason.hangup:
+      case CallEndReason.rejected:
+      case CallEndReason.failed:
+      case CallEndReason.noConnection:
+      case CallEndReason.unavailable:
+      case CallEndReason.connectionLost:
+        return connectedAt != null || direction == models.CallDirection.outgoing;
+    }
+  }
+
+  Future<void> _playTone(String asset, {required double volume}) async {
     try {
       final player = _busyTone ??= AudioPlayer();
       await player.setAudioContext(_busyToneAudioContext);
       await player.setReleaseMode(ReleaseMode.stop);
-      await player.setVolume(0.6);
-      await player.play(AssetSource('audio/busy.wav'));
+      await player.setVolume(volume);
+      await player.play(AssetSource(asset));
     } catch (error, stackTrace) {
       logger.handle(error, stackTrace);
     }
@@ -1878,6 +2001,8 @@ class Calls {
       _cancelRingTimeout();
       _cancelIncomingTimeout();
       _cancelConnectTimeout();
+      _stopHoldMonitor();
+      _cancelPeerGone();
 
       _pushAcceptedCallId = null;
       _handlingCallId = null;
@@ -1961,7 +2086,13 @@ class Calls {
       // сигнал звучал на собственной playback-сессии audioplayers, а не поверх
       // умирающей call-сессии. Файл затихает сам за ~3с; снимок к тому времени
       // сбросится в idle ([_scheduleIdleReset]) — это плеер не останавливает.
-      if (reason == CallEndReason.busy) unawaited(_startBusyTone());
+      if (reason == CallEndReason.busy) {
+        unawaited(_startBusyTone());
+      } else if (_shouldPlayEndTone(reason, direction: direction, connectedAt: connectedAt)) {
+        // Короткий сигнал «звонок завершён» (как в Telegram) — на той же
+        // playback-сессии, что и «занято».
+        unawaited(_startEndTone());
+      }
 
       // Пишем строку журнала звонков (сервер историю не хранит). Только для
       // реального звонка: направление известно (взведено в startCall/_onRing/
@@ -2070,6 +2201,119 @@ class Calls {
   ///  - Android: `AudioManager.getMode()` без разрешений (см. MainActivity);
   ///    [excludeCallId] там не нужен — свой звонок в окно проверки не попадает.
   /// На прочих платформах и при отсутствии канала — false, чтобы не ломать звонки.
+  // Собеседник пропал из комнаты без «пока». Если звонок ещё не был в разговоре
+  // (дозвон/соединение) — прежнее поведение: сразу конец. Иначе показываем
+  // «Собеседник переподключается…» и ждём его [_peerGraceTimeout]; вернулся
+  // ([ParticipantConnectedEvent]) — продолжаем, нет — завершаем.
+  void _onPeerGone() {
+    if (!_hasActiveCall || _tearingDown) return;
+    if (_snapshot.status != CallStatus.active) {
+      _notifyCallEnded();
+      unawaited(_teardown(CallEndReason.hangup));
+      return;
+    }
+    if (_peerGoneTimer != null) return;
+    final callId = _snapshot.callId;
+    // Удержание собеседника больше не актуально — вернётся, пришлёт заново.
+    _emit(_snapshot.copyWith(remoteReconnecting: true, remoteOnHold: false));
+    _peerGoneTimer = Timer(_peerGraceTimeout, () {
+      _peerGoneTimer = null;
+      if (!_hasActiveCall || _snapshot.callId != callId) return;
+      if (_room?.remoteParticipants.isNotEmpty ?? false) {
+        _emit(_snapshot.copyWith(remoteReconnecting: false));
+        return;
+      }
+      _dbg('peer did not return');
+      _notifyCallEnded();
+      unawaited(_teardown(CallEndReason.connectionLost));
+    });
+  }
+
+  void _cancelPeerGone() {
+    _peerGoneTimer?.cancel();
+    _peerGoneTimer = null;
+    if (_hasActiveCall && _snapshot.remoteReconnecting) _emit(_snapshot.copyWith(remoteReconnecting: false));
+  }
+
+  Future<void> _publishBye() async {
+    final participant = _room?.localParticipant;
+    if (participant == null || !_roomConnected) return;
+    try {
+      await participant.publishData(utf8.encode('1'), reliable: true, topic: _byeTopic).timeout(const Duration(milliseconds: 500));
+    } catch (error, stackTrace) {
+      logger.handle(error, stackTrace);
+    }
+  }
+
+  /// CallKit сменил удержание нашего звонка (см. lib/call_push.dart) — сверяем
+  /// состояние сразу, не дожидаясь следующего тика опроса.
+  void onSystemHold() {
+    if (_holdTimer != null) unawaited(_checkHold());
+  }
+
+  void _startHoldMonitor() {
+    _stopHoldMonitor();
+    _holdTimer = Timer.periodic(_holdPollInterval, (_) => unawaited(_checkHold()));
+  }
+
+  void _stopHoldMonitor() {
+    _holdTimer?.cancel();
+    _holdTimer = null;
+    _holdCheckInFlight = false;
+    _localOnHold = false;
+  }
+
+  // Один тик опроса удержания: сверяем занятость телефона другим звонком с
+  // последним отправленным состоянием и при смене шлём его собеседнику.
+  Future<void> _checkHold() async {
+    if (_holdCheckInFlight || !_roomConnected || !Platform.isIOS && !Platform.isAndroid) return;
+    _holdCheckInFlight = true;
+    try {
+      final callId = _snapshot.callId;
+      final onHold =
+          await _systemCallChannel.invokeMethod<bool>('isOnOtherCall', {
+            // Свой CallKit-звонок (UUID = callId) — не «другой».
+            'exclude': [callId],
+            // iOS: звонящий (ещё не отвеченный) сотовый уже прерывает нашу
+            // аудиосессию, если звонок идёт мимо CallKit; при CallKit-звонке
+            // звук прерывается только при ответе (а он у нас = завершение
+            // нашего, supportsHolding=false), поэтому ringing там не считаем.
+            'includeRinging': !_viaCallKit,
+          }) ??
+          false;
+      // Звонок мог смениться/завершиться, пока ждали ответа канала.
+      if (_holdTimer == null || callId != _snapshot.callId || onHold == _localOnHold) return;
+      _localOnHold = onHold;
+      logger.info('call: local on hold=$onHold');
+      await _publishHold(onHold);
+      // Другой звонок закончился — возвращаем себе звук. iOS без CallKit: после
+      // прерывания сессия могла остаться неактивной, поднимаем её заново
+      // (повторная активация активной сессии — no-op) и переиздаём динамик.
+      if (!onHold) {
+        if (_iosManualAudioSession) await _setIosAudioSessionActive(true);
+        // CallKit-звонок мог остаться на удержании после чужого звонка (iOS не
+        // всегда снимает его сам) — просим снять. Уже снятый — no-op у плагина.
+        // Звук поднимется по didActivate → ToggleAudioSession.
+        if (Platform.isIOS && _viaCallKit) await FlutterCallkitIncoming.holdCall(callId, isOnHold: false);
+        await _reassertSpeakerRoute();
+      }
+    } catch (error, stackTrace) {
+      logger.handle(error, stackTrace);
+    } finally {
+      _holdCheckInFlight = false;
+    }
+  }
+
+  Future<void> _publishHold(bool onHold) async {
+    final room = _room;
+    if (room == null) return;
+    try {
+      await room.localParticipant?.publishData(utf8.encode(onHold ? '1' : '0'), reliable: true, topic: _holdTopic);
+    } catch (error, stackTrace) {
+      logger.handle(error, stackTrace);
+    }
+  }
+
   Future<bool> _systemBusyByOtherCall({String? excludeCallId}) async {
     if (!Platform.isIOS && !Platform.isAndroid) return false;
     try {

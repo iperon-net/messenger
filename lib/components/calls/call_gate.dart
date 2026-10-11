@@ -279,7 +279,11 @@ class _CallReturnBannerState extends State<_CallReturnBanner> {
   // разговоре.
   String _statusWord(BuildContext context) {
     final t = context.t.screenCall;
-    return widget.snapshot.status == CallStatus.active ? t.bannerActive : t.bannerRinging;
+    if (widget.snapshot.status != CallStatus.active) return t.bannerRinging;
+    // Собеседник на другой линии — поясняем тишину прямо в полоске возврата.
+    final snapshot = widget.snapshot;
+    if (snapshot.reconnecting || snapshot.remoteReconnecting) return t.bannerReconnecting;
+    return snapshot.remoteOnHold ? t.bannerOnHold : t.bannerActive;
   }
 
   // Таймер разговора (пусто, пока не active) — рядом со статусом, без подчёркивания.
