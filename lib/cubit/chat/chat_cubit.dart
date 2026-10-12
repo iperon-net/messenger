@@ -162,6 +162,9 @@ class ChatCubit extends Cubit<ChatState> {
     });
     // Включили непрослушанное входящее голосовое этого чата — «прослушано».
     _voiceSubscription = VoicePlayer.instance.started.listen((message) {
+      getIt.get<Logger>().info(
+        'chat: voice started id=${message.id} chat=${message.chatID == chatID} unread=${message.mediaUnread} outgoing=${message.outgoing}',
+      );
       if (!isClosed && message.chatID == chatID && message.mediaUnread && !message.outgoing) {
         source.readMessageContents(chatID, message.id);
       }

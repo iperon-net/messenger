@@ -467,6 +467,7 @@ class ChatsSync {
 
       case pb.Update_Update.readContents:
         final read = update.readContents;
+        _logger.info('chats: read contents applied chat=${idHex(read.chatID)} ids=${read.messageIDs} pts=${update.pts}');
         await tx.readContents(userID: user, chatID: read.chatID, messageIDs: [for (final id in read.messageIDs) id.toInt()]);
 
       case pb.Update_Update.dialogSettings:
@@ -971,6 +972,7 @@ class ChatsSync {
   /// подключении (точка у длительности снимется по ответу — у обоих).
   Future<void> readContents(List<int> chatID, List<int> messageIDs) async {
     if (messageIDs.isEmpty) return;
+    _logger.info('chats: read contents queued chat=${idHex(chatID)} ids=$messageIDs');
     (_pendingContents[idHex(chatID)] ??= {}).addAll(messageIDs);
     await flushContents();
   }
@@ -980,7 +982,10 @@ class ChatsSync {
     for (final chat in _pendingContents.keys.toList()) {
       final ids = _pendingContents[chat];
       if (ids == null || ids.isEmpty) continue;
-      if (!await hasNetwork()) return;
+      if (!await hasNetwork()) {
+        _logger.info('chats: read contents waits for network');
+        return;
+      }
       final sent = ids.toList();
       try {
         final response = await messages(
@@ -989,8 +994,14 @@ class ChatsSync {
           ),
         );
         _pendingContents[chat]?.removeAll(sent);
-        await applyUpdates(response.readContents.updates);
+        final updates = response.readContents.updates;
+        _logger.info(
+          'chats: read contents sent chat=$chat ids=$sent updates=${updates.updates.length} '
+          'pts=${[for (final u in updates.updates) u.pts.toInt()]}',
+        );
+        await applyUpdates(updates);
       } on ChatsOfflineException {
+        _logger.info('chats: read contents offline, retry on connect');
         return;
       } on ChatsRequestException catch (error) {
         if (error.statusCode == StatusCode.unauthenticated) return;
