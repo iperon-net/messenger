@@ -478,12 +478,15 @@ class ChatCubit extends Cubit<ChatState> {
   }
 
   /// Реакция: тап по своей — снять, по другой — добавить (до
-  /// [maxReactionsPerUser], сверх — вытесняется самая ранняя наша).
+  /// [maxReactionsPerUser], сверх — вытесняется самая ранняя наша). На
+  /// служебные (звонок, «закрепил») реакций нет; собеседник ограничил, кто
+  /// может ему писать, — новые нельзя, снять свои можно.
   Future<void> toggleReaction(models.Message message, String emoji) async {
     final chat = state.chat;
-    if (chat == null) return;
+    if (chat == null || message.service || message.phoneCall != null) return;
     final mine = message.myReactions;
-    if (!mine.contains(emoji) && !availableReactions(chat, message: message).contains(emoji)) return;
+    final adds = !mine.contains(emoji);
+    if (adds && (_writeRestricted || !availableReactions(chat, message: message).contains(emoji))) return;
     await _source?.setReactions(_chatID, message.id, toggleMyReaction(mine, emoji));
   }
 

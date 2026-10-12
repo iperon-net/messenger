@@ -102,6 +102,26 @@ class ChatOutboxRow {
 ///
 /// Работает поверх [ctx]: сама БД или транзакция ([transaction]) — обновление,
 /// задевающее несколько таблиц (диалог + сообщения + pts), пишется атомарно.
+/// Мой набор реакций на сообщение, ещё не принятый сервером.
+class ChatPendingReactionsRow {
+  final Uint8List chatID;
+  final int messageID;
+  final List<String> emojis;
+  final int createdAt;
+
+  const ChatPendingReactionsRow({required this.chatID, required this.messageID, required this.emojis, required this.createdAt});
+
+  factory ChatPendingReactionsRow._fromRow(Map<String, dynamic> row) {
+    final emojis = row['emojis'] as String;
+    return ChatPendingReactionsRow(
+      chatID: Uint8List.fromList(row['chatID'] as List<int>),
+      messageID: row['messageID'] as int,
+      emojis: emojis.isEmpty ? const [] : emojis.split('\n'),
+      createdAt: row['createdAt'] as int,
+    );
+  }
+}
+
 class ChatsRepository {
   final Logger logger;
   final SqliteWriteContext ctx;
@@ -115,6 +135,7 @@ class ChatsRepository {
   static const messagesTable = 'chatMessages';
   static const outboxTable = 'chatOutbox';
   static const pinnedTable = 'chatPinned';
+  static const pendingReactionsTable = 'chatPendingReactions';
 
   static const _dialogColumns =
       'chatID, type, peerUserID, topMessageID, topMessageDate, topMessage, readInboxMaxID, readOutboxMaxID, unreadCount, '
@@ -257,6 +278,7 @@ class ChatsRepository {
     await ctx.execute('DELETE FROM chatMessages WHERE userID = ? AND chatID = ?;', [userID, chatID]);
     await ctx.execute('DELETE FROM chatOutbox WHERE userID = ? AND chatID = ?;', [userID, chatID]);
     await ctx.execute('DELETE FROM chatPinned WHERE userID = ? AND chatID = ?;', [userID, chatID]);
+    await ctx.execute('DELETE FROM chatPendingReactions WHERE userID = ? AND chatID = ?;', [userID, chatID]);
     await ctx.execute('DELETE FROM chatDialogs WHERE userID = ? AND chatID = ?;', [userID, chatID]);
   }
 
@@ -291,8 +313,8 @@ class ChatsRepository {
   Future<void> upsertMessage({required List<int> userID, required pb.ChatMessage message}) async {
     await ctx.execute(
       '''
-      INSERT INTO chatMessages (userID, chatID, messageID, fromUserID, date, editDate, randomID, mediaUnread, silent, content, searchText)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO chatMessages (userID, chatID, messageID, fromUserID, date, editDate, randomID, mediaUnread, silent, content, searchText, reactions)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       ON CONFLICT(userID, chatID, messageID) DO UPDATE SET
         fromUserID = excluded.fromUserID,
         date = excluded.date,
@@ -301,7 +323,8 @@ class ChatsRepository {
         mediaUnread = excluded.mediaUnread,
         silent = excluded.silent,
         content = excluded.content,
-        searchText = excluded.searchText;
+        searchText = excluded.searchText,
+        reactions = excluded.reactions;
       ''',
       [
         userID,
@@ -315,6 +338,7 @@ class ChatsRepository {
         message.silent ? 1 : 0,
         message.content.writeToBuffer(),
         messageSearchText(message.content),
+        _reactionsBlob(message.hasReactions() ? message.reactions : null),
       ],
     );
     if (message.content.hasCall()) await _upsertCallLog(userID: userID, message: message);
@@ -462,7 +486,70 @@ class ChatsRepository {
       chatID,
       ...messageIDs,
     ]);
+    await ctx.execute('DELETE FROM chatPendingReactions WHERE userID = ? AND chatID = ? AND messageID IN ($placeholders);', [
+      userID,
+      chatID,
+      ...messageIDs,
+    ]);
     return unread?['n'] as int? ?? 0;
+  }
+
+  // --- реакции ---
+
+  static Uint8List? _reactionsBlob(pb.MessageReactions? reactions) =>
+      reactions == null || reactions.reactions.isEmpty ? null : reactions.writeToBuffer();
+
+  /// Реакции на сообщение изменились (Update.messageReactions). Нет в кэше —
+  /// ничего: подтянутся с историей.
+  Future<void> setReactions({
+    required List<int> userID,
+    required List<int> chatID,
+    required int messageID,
+    required pb.MessageReactions reactions,
+  }) async {
+    await ctx.execute('UPDATE chatMessages SET reactions = ? WHERE userID = ? AND chatID = ? AND messageID = ?;', [
+      _reactionsBlob(reactions),
+      userID,
+      chatID,
+      messageID,
+    ]);
+  }
+
+  /// Мой набор реакций, ещё не принятый сервером, — заменяет прежний.
+  Future<void> setPendingReactions({
+    required List<int> userID,
+    required List<int> chatID,
+    required int messageID,
+    required List<String> emojis,
+  }) async {
+    await ctx.execute(
+      'INSERT OR REPLACE INTO chatPendingReactions (userID, chatID, messageID, emojis, createdAt) VALUES (?, ?, ?, ?, ?);',
+      [userID, chatID, messageID, emojis.join('\n'), DateTime.now().microsecondsSinceEpoch],
+    );
+  }
+
+  /// Неотправленные наборы реакций — по порядку; [chatID] — только этого чата.
+  Future<List<ChatPendingReactionsRow>> pendingReactions({required List<int> userID, List<int>? chatID}) async {
+    final rows = chatID == null
+        ? await ctx.getAll('SELECT * FROM chatPendingReactions WHERE userID = ? ORDER BY createdAt ASC;', [userID])
+        : await ctx.getAll('SELECT * FROM chatPendingReactions WHERE userID = ? AND chatID = ? ORDER BY createdAt ASC;', [userID, chatID]);
+    return rows.map(ChatPendingReactionsRow._fromRow).toList(growable: false);
+  }
+
+  /// Убрать отправленный набор — только если с тех пор его не сменили
+  /// ([createdAt] тот же), иначе уйдёт и новый.
+  Future<void> deletePendingReactions({
+    required List<int> userID,
+    required List<int> chatID,
+    required int messageID,
+    required int createdAt,
+  }) async {
+    await ctx.execute('DELETE FROM chatPendingReactions WHERE userID = ? AND chatID = ? AND messageID = ? AND createdAt = ?;', [
+      userID,
+      chatID,
+      messageID,
+      createdAt,
+    ]);
   }
 
   /// Голосовые прослушаны — снять mediaUnread.
@@ -551,6 +638,7 @@ class ChatsRepository {
     mediaUnread: (row['mediaUnread'] as int) != 0,
     silent: (row['silent'] as int) != 0,
     content: pb.MessageContent.fromBuffer(row['content'] as List<int>),
+    reactions: row['reactions'] == null ? null : pb.MessageReactions.fromBuffer(row['reactions'] as List<int>),
   );
 
   // --- outbox ---

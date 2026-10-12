@@ -22,6 +22,7 @@ import 'chats_presence.dart';
 import 'chats_media.dart';
 import 'chats_sync.dart';
 import 'message_search.dart';
+import 'reactions.dart';
 import 'read_receipts.dart';
 
 /// Настоящие чаты: SQLite-кэш ([ChatsRepository]) + сервер (chats_v1.proto).
@@ -33,10 +34,11 @@ import 'read_receipts.dart';
 /// (ответы сервера и push `UPDATES`). Запись — через сервер: без сети
 /// серверные действия (закреп, звук, архив, удаление, правка …) бросают
 /// [ChatsOfflineException] — ничего не меняем «понарошку». Исключение —
-/// отправка сообщений: они честно ждут в outbox (⏱) и уходят при подключении.
+/// отправка сообщений (честно ждут в outbox (⏱) и уходят при подключении) и
+/// реакции (ждут в `chatPendingReactions` так же).
 ///
-/// Группы, каналы, сообщества, папки, приглашения, опросы, реакции,
-/// отложенные и пересылка — следующие срезы: их действия бросают
+/// Группы, каналы, сообщества, папки, приглашения, опросы, отложенные и
+/// пересылка — следующие срезы: их действия бросают
 /// [UnsupportedError], а то, что экраны читают при открытии любого чата
 /// (участники, отложенные, ссылки), отдаёт пустое.
 class ChatsRemoteDataSource implements ChatsDataSource {
@@ -64,6 +66,7 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     ChatsRepository.outboxTable,
     ChatsRepository.dialogsTable,
     ChatsRepository.pinnedTable,
+    ChatsRepository.pendingReactionsTable,
   ];
 
   Future<void> _requireNetwork() async {
@@ -72,9 +75,9 @@ class ChatsRemoteDataSource implements ChatsDataSource {
 
   static Never _unsupported(String what) => throw UnsupportedError('$what — пока только в демо (личные чаты — первый срез)');
 
-  /// Закреплённые сообщения — есть; реакции, пересылка и отложенные — второй срез.
+  /// Закреплённые сообщения и реакции — есть; пересылка и отложенные — второй срез.
   @override
-  ChatsFeatures get features => const ChatsFeatures(reactions: false, pinnedMessages: true, forward: false, scheduled: false);
+  ChatsFeatures get features => const ChatsFeatures(reactions: true, pinnedMessages: true, forward: false, scheduled: false);
 
   // --- список чатов ---
 
@@ -662,17 +665,23 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     final history = await _store.messages(userID: me, chatID: chat, limit: _windows[chatID] ?? _initialWindow);
     final byID = {for (final m in history) m.messageID.toInt(): m};
     final pinnedIDs = {for (final m in await _store.pinned(userID: me, chatID: chat)) m.messageID.toInt()};
+    final pendingReactions = {for (final r in await _store.pendingReactions(userID: me, chatID: chat)) r.messageID: r.emojis};
 
-    models.Message map(pb.ChatMessage m) => messageFromPb(
-      m,
-      chatID: chatID,
-      myUserID: me,
-      readOutboxMaxID: row?.readOutboxMaxID ?? 0,
-      isSelf: isSelf,
-      replied: m.content.hasReplyTo() ? byID[m.content.replyTo.messageID.toInt()] : null,
-      peerName: peerName,
-      pinned: pinnedIDs.contains(m.messageID.toInt()),
-    );
+    models.Message map(pb.ChatMessage m) {
+      final message = messageFromPb(
+        m,
+        chatID: chatID,
+        myUserID: me,
+        readOutboxMaxID: row?.readOutboxMaxID ?? 0,
+        isSelf: isSelf,
+        replied: m.content.hasReplyTo() ? byID[m.content.replyTo.messageID.toInt()] : null,
+        peerName: peerName,
+        pinned: pinnedIDs.contains(m.messageID.toInt()),
+      );
+      // Мой набор, ещё не принятый сервером, — поверх серверных.
+      final mine = pendingReactions[m.messageID.toInt()];
+      return mine == null ? message : message.copyWith(reactions: applyMyReactions(message.reactions, mine));
+    }
 
     final outboxDir = await outboxMediaDir();
     models.Message queuedMessage(ChatOutboxRow queued) => _withOutboxMedia(
@@ -1111,8 +1120,18 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     if (randomID != null) await _sync.cancelUpload(randomID);
   }
 
+  /// Мой новый набор реакций: сразу в очередь (лента показывает его поверх
+  /// серверных), на сервер — сейчас или при подключении, как outbox. Без сети
+  /// не ошибка: реакция честно ждёт, а не «прыгает» обратно.
   @override
-  Future<void> setReactions(String chatID, String messageID, List<String> emojis) async => _unsupported('Реакции');
+  Future<void> setReactions(String chatID, String messageID, List<String> emojis) async {
+    final chat = idBytes(chatID);
+    final id = serverMessageID(messageID);
+    // Неотправленное (⏱) — реакции некуда ставить, пока сервер его не принял.
+    if (chat.isEmpty || id == null || !_auth.isAuthorized) return;
+    await _store.setPendingReactions(userID: _sync.me, chatID: chat, messageID: id, emojis: emojis);
+    unawaited(_sync.flushReactions());
+  }
 
   /// Личный чат: когда собеседник прочитал (сервер, ≤ 7 дней). Группы — позже.
   @override

@@ -117,6 +117,20 @@ String pinSnippet(pb.ChatMessage? pinned) {
   return text.length > 30 ? '${text.substring(0, 30).trimRight()}…' : text;
 }
 
+/// Реакции сервера (кто, чем, когда — от ранних к поздним) → чипы под
+/// сообщением: по эмодзи в порядке первой постановки, с числом; наши —
+/// [models.MessageReaction.chosen] с порядком нашей постановки.
+List<models.MessageReaction> reactionsFromPb(pb.MessageReactions reactions, {required List<int> myUserID}) {
+  final chips = <String, models.MessageReaction>{};
+  var mine = 0;
+  for (final r in reactions.reactions) {
+    final chosen = sameID(r.userID, myUserID);
+    final chip = chips[r.emoji] ?? models.MessageReaction(emoji: r.emoji, count: 0);
+    chips[r.emoji] = chip.copyWith(count: chip.count + 1, chosen: chip.chosen || chosen, chosenOrder: chosen ? ++mine : chip.chosenOrder);
+  }
+  return chips.values.toList(growable: false);
+}
+
 /// ✓ / ✓✓ исходящего: прочитано, если собеседник дочитал до него
 /// (`readOutboxMaxID`). В «Избранном» читать некому — всегда прочитано.
 models.MessageStatus outgoingStatus({required int messageID, required int readOutboxMaxID, required bool isSelf}) =>
@@ -179,6 +193,7 @@ models.Message messageFromPb(
     forward: content.hasForward() ? forwardFromPb(content.forward, myUserID: myUserID) : null,
     silent: m.silent,
     phoneCall: callFromPb(content),
+    reactions: m.hasReactions() ? reactionsFromPb(m.reactions, myUserID: myUserID) : const [],
   );
 }
 

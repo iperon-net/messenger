@@ -161,7 +161,11 @@ class MessageReaction with MessageReactionMappable {
   final int count;
   final bool chosen;
 
-  const MessageReaction({required this.emoji, this.count = 1, this.chosen = false});
+  /// Когда мы её поставили относительно других наших (1 — раньше всех; 0 —
+  /// неизвестно, тогда порядок чипов): сверх лимита вытесняется самая ранняя.
+  final int chosenOrder;
+
+  const MessageReaction({required this.emoji, this.count = 1, this.chosen = false, this.chosenOrder = 0});
 }
 
 /// Превью ссылки под текстом (как в Telegram): сайт, заголовок, описание.
@@ -369,11 +373,15 @@ class Message with MessageMappable {
   /// Комментарии к посту закрыты — ветку можно только читать.
   bool commentsClosed([DateTime? now]) => commentsCloseDate != null && !commentsCloseDate!.isAfter(now ?? DateTime.now());
 
-  /// Наши реакции (до `maxReactionsPerUser` на сообщение), в порядке чипов.
-  List<String> get myReactions => [
-    for (final r in reactions)
-      if (r.chosen) r.emoji,
-  ];
+  /// Наши реакции (до `maxReactionsPerUser` на сообщение), в порядке
+  /// постановки ([MessageReaction.chosenOrder], иначе — чипов).
+  List<String> get myReactions {
+    final mine = [
+      for (final (i, r) in reactions.indexed)
+        if (r.chosen) (i: i, r: r),
+    ]..sort((a, b) => a.r.chosenOrder != b.r.chosenOrder ? a.r.chosenOrder.compareTo(b.r.chosenOrder) : a.i.compareTo(b.i));
+    return [for (final m in mine) m.r.emoji];
+  }
 
   bool get isAlbum => media.length > 1;
 

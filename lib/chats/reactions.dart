@@ -70,23 +70,24 @@ List<String> toggleMyReaction(List<String> mine, String emoji) {
   return result.length > maxReactionsPerUser ? result.sublist(result.length - maxReactionsPerUser) : result;
 }
 
-/// Применить наш набор реакций [mine] к сообщению: снять наши, которых в
-/// наборе больше нет, и добавить новые.
+/// Применить наш набор реакций [mine] (в порядке постановки) к сообщению:
+/// снять наши, которых в наборе больше нет, и добавить новые.
 List<models.MessageReaction> applyMyReactions(List<models.MessageReaction> reactions, List<String> mine) {
   final result = <models.MessageReaction>[];
   for (final r in reactions) {
     if (!r.chosen || mine.contains(r.emoji)) {
       result.add(r);
     } else if (r.count > 1) {
-      result.add(r.copyWith(count: r.count - 1, chosen: false));
+      result.add(r.copyWith(count: r.count - 1, chosen: false, chosenOrder: 0));
     }
   }
-  for (final emoji in mine) {
+  for (final (order, emoji) in mine.indexed) {
     final i = result.indexWhere((r) => r.emoji == emoji);
     if (i < 0) {
-      result.add(models.MessageReaction(emoji: emoji, chosen: true));
-    } else if (!result[i].chosen) {
-      result[i] = result[i].copyWith(count: result[i].count + 1, chosen: true);
+      result.add(models.MessageReaction(emoji: emoji, chosen: true, chosenOrder: order + 1));
+    } else {
+      final r = result[i];
+      result[i] = r.copyWith(count: r.chosen ? r.count : r.count + 1, chosen: true, chosenOrder: order + 1);
     }
   }
   return result;

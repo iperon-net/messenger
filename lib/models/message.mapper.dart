@@ -1186,12 +1186,20 @@ class MessageReactionMapper extends ClassMapperBase<MessageReaction> {
     opt: true,
     def: false,
   );
+  static int _$chosenOrder(MessageReaction v) => v.chosenOrder;
+  static const Field<MessageReaction, int> _f$chosenOrder = Field(
+    'chosenOrder',
+    _$chosenOrder,
+    opt: true,
+    def: 0,
+  );
 
   @override
   final MappableFields<MessageReaction> fields = const {
     #emoji: _f$emoji,
     #count: _f$count,
     #chosen: _f$chosen,
+    #chosenOrder: _f$chosenOrder,
   };
 
   static MessageReaction _instantiate(DecodingData data) {
@@ -1199,6 +1207,7 @@ class MessageReactionMapper extends ClassMapperBase<MessageReaction> {
       emoji: data.dec(_f$emoji),
       count: data.dec(_f$count),
       chosen: data.dec(_f$chosen),
+      chosenOrder: data.dec(_f$chosenOrder),
     );
   }
 
@@ -1264,7 +1273,7 @@ extension MessageReactionValueCopy<$R, $Out>
 
 abstract class MessageReactionCopyWith<$R, $In extends MessageReaction, $Out>
     implements ClassCopyWith<$R, $In, $Out> {
-  $R call({String? emoji, int? count, bool? chosen});
+  $R call({String? emoji, int? count, bool? chosen, int? chosenOrder});
   MessageReactionCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
     Then<$Out2, $R2> t,
   );
@@ -1279,18 +1288,21 @@ class _MessageReactionCopyWithImpl<$R, $Out>
   late final ClassMapperBase<MessageReaction> $mapper =
       MessageReactionMapper.ensureInitialized();
   @override
-  $R call({String? emoji, int? count, bool? chosen}) => $apply(
-    FieldCopyWithData({
-      if (emoji != null) #emoji: emoji,
-      if (count != null) #count: count,
-      if (chosen != null) #chosen: chosen,
-    }),
-  );
+  $R call({String? emoji, int? count, bool? chosen, int? chosenOrder}) =>
+      $apply(
+        FieldCopyWithData({
+          if (emoji != null) #emoji: emoji,
+          if (count != null) #count: count,
+          if (chosen != null) #chosen: chosen,
+          if (chosenOrder != null) #chosenOrder: chosenOrder,
+        }),
+      );
   @override
   MessageReaction $make(CopyWithData data) => MessageReaction(
     emoji: data.get(#emoji, or: $value.emoji),
     count: data.get(#count, or: $value.count),
     chosen: data.get(#chosen, or: $value.chosen),
+    chosenOrder: data.get(#chosenOrder, or: $value.chosenOrder),
   );
 
   @override

@@ -242,6 +242,7 @@ class ChatsSync {
       _connecting = false;
     }
     await flushOutbox();
+    await flushReactions();
     // Докачка истории открытых чатов, прерванная обрывом связи.
     unawaited(_runBackfill());
   }
@@ -490,6 +491,10 @@ class ChatsSync {
         );
         // Закрепили сообщение старше скачанной истории — содержимое с сервера.
         if (missing.isNotEmpty) followUps.refreshPinned.add(Uint8List.fromList(pins.chatID));
+
+      case pb.Update_Update.messageReactions:
+        final changed = update.messageReactions;
+        await tx.setReactions(userID: user, chatID: changed.chatID, messageID: changed.messageID.toInt(), reactions: changed.reactions);
 
       case pb.Update_Update.notSet:
         // Пустое обновление (например, новое сообщение, которое потом удалили):
@@ -805,6 +810,74 @@ class ChatsSync {
           await tx.deleteOutbox(userID: user, randomID: row.randomID);
         });
         if (result.hasUpdates()) await _applyUpdatesLocked(result.updates);
+      });
+    }
+    return true;
+  }
+
+  // --- реакции ---
+
+  bool _flushingReactions = false;
+  bool _flushReactionsAgain = false;
+
+  /// Лимит частоты реакций (отдельный от отправки: у сервера свои окна, и
+  /// отсчёт в окне чата — только про сообщения): по таймеру — снова.
+  Timer? _reactionsFloodTimer;
+
+  /// Отправить мои неотправленные наборы реакций (как outbox: без сети ждут
+  /// подключения). Сервер отклонил (сообщение удалено, собеседник ограничил,
+  /// кто может ему писать) — набор выбрасываем: в ленте снова серверные.
+  Future<void> flushReactions() async {
+    if (!_auth.isAuthorized) return;
+    if (_flushingReactions) {
+      _flushReactionsAgain = true;
+      return;
+    }
+    _flushingReactions = true;
+    try {
+      do {
+        _flushReactionsAgain = false;
+        if (!await _flushReactionsOnce()) return;
+      } while (_flushReactionsAgain);
+    } catch (error, stackTrace) {
+      _logger.handle(error, stackTrace);
+    } finally {
+      _flushingReactions = false;
+    }
+  }
+
+  /// Один проход; `false` — прервались (нет сети / лимит / разлогин).
+  Future<bool> _flushReactionsOnce() async {
+    final user = me;
+    if (_reactionsFloodTimer?.isActive ?? false) return false;
+    for (final row in await _store.pendingReactions(userID: user)) {
+      if (!await hasNetwork()) return false;
+      final pb.Messages_Response response;
+      try {
+        response = await messages(
+          pb.Messages_Request(
+            setReactions: pb.Messages_SetReactions(chatID: row.chatID, messageID: Int64(row.messageID), emojis: row.emojis),
+          ),
+        );
+      } on ChatsOfflineException {
+        return false;
+      } on ChatsFloodException catch (error) {
+        _logger.info('chats: reactions flood wait ${error.seconds}s message=${row.messageID}');
+        _reactionsFloodTimer?.cancel();
+        _reactionsFloodTimer = Timer(Duration(seconds: error.seconds), () => unawaited(flushReactions()));
+        return false;
+      } on ChatsRequestException catch (error) {
+        if (error.statusCode == StatusCode.unauthenticated) return false;
+        _logger.warning('chats: reactions rejected chat=${idHex(row.chatID)} message=${row.messageID}: $error');
+        if (error.isPrivacyRestricted) _writeRestricted.add((chatID: row.chatID, peerUserID: null, restricted: true));
+        await _store.deletePendingReactions(userID: user, chatID: row.chatID, messageID: row.messageID, createdAt: row.createdAt);
+        continue;
+      }
+      // Сначала серверные реакции, потом убираем свой набор — без мигания
+      // старым состоянием между ними.
+      await _locked(() async {
+        await _applyUpdatesLocked(response.setReactions.updates);
+        await _store.deletePendingReactions(userID: user, chatID: row.chatID, messageID: row.messageID, createdAt: row.createdAt);
       });
     }
     return true;

@@ -777,6 +777,125 @@ class MessageContent extends $pb.GeneratedMessage {
   MessagePin ensurePin() => $_ensure(7);
 }
 
+/// Реакция участника на сообщение: кто, каким эмодзи и когда поставил.
+class MessageReaction extends $pb.GeneratedMessage {
+  factory MessageReaction({
+    $core.List<$core.int>? userID,
+    $core.String? emoji,
+    $fixnum.Int64? date,
+  }) {
+    final result = create();
+    if (userID != null) result.userID = userID;
+    if (emoji != null) result.emoji = emoji;
+    if (date != null) result.date = date;
+    return result;
+  }
+
+  MessageReaction._();
+
+  factory MessageReaction.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory MessageReaction.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'MessageReaction',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..a<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'userID', $pb.PbFieldType.OY, protoName: 'userID')
+    ..aOS(2, _omitFieldNames ? '' : 'emoji')
+    ..aInt64(3, _omitFieldNames ? '' : 'date')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  MessageReaction clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  MessageReaction copyWith(void Function(MessageReaction) updates) =>
+      super.copyWith((message) => updates(message as MessageReaction)) as MessageReaction;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static MessageReaction create() => MessageReaction._();
+  @$core.override
+  MessageReaction createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static MessageReaction getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<MessageReaction>(create);
+  static MessageReaction? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.List<$core.int> get userID => $_getN(0);
+  @$pb.TagNumber(1)
+  set userID($core.List<$core.int> value) => $_setBytes(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasUserID() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearUserID() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.String get emoji => $_getSZ(1);
+  @$pb.TagNumber(2)
+  set emoji($core.String value) => $_setString(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasEmoji() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearEmoji() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $fixnum.Int64 get date => $_getI64(2);
+  @$pb.TagNumber(3)
+  set date($fixnum.Int64 value) => $_setInt64(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasDate() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearDate() => $_clearField(3);
+}
+
+/// Реакции на сообщение (как MessageReactions в Telegram). Личный чат —
+/// полный список, от ранних к поздним: чипы и «мои» клиент собирает сам.
+/// Группы/каналы позже добавят счётчики «эмодзи → число» (там список авторов
+/// — только последние или вовсе скрыт).
+class MessageReactions extends $pb.GeneratedMessage {
+  factory MessageReactions({
+    $core.Iterable<MessageReaction>? reactions,
+  }) {
+    final result = create();
+    if (reactions != null) result.reactions.addAll(reactions);
+    return result;
+  }
+
+  MessageReactions._();
+
+  factory MessageReactions.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory MessageReactions.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'MessageReactions',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..pPM<MessageReaction>(1, _omitFieldNames ? '' : 'reactions', subBuilder: MessageReaction.create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  MessageReactions clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  MessageReactions copyWith(void Function(MessageReactions) updates) =>
+      super.copyWith((message) => updates(message as MessageReactions)) as MessageReactions;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static MessageReactions create() => MessageReactions._();
+  @$core.override
+  MessageReactions createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static MessageReactions getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<MessageReactions>(create);
+  static MessageReactions? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $pb.PbList<MessageReaction> get reactions => $_getList(0);
+}
+
 /// Сообщение «глазами получателя»: outgoing = fromUserID == я; прочитано ли
 /// исходящее — сравнением messageID с Dialog.readOutboxMaxID.
 class ChatMessage extends $pb.GeneratedMessage {
@@ -790,6 +909,7 @@ class ChatMessage extends $pb.GeneratedMessage {
     $core.bool? mediaUnread,
     $core.bool? silent,
     $fixnum.Int64? randomID,
+    MessageReactions? reactions,
   }) {
     final result = create();
     if (chatID != null) result.chatID = chatID;
@@ -801,6 +921,7 @@ class ChatMessage extends $pb.GeneratedMessage {
     if (mediaUnread != null) result.mediaUnread = mediaUnread;
     if (silent != null) result.silent = silent;
     if (randomID != null) result.randomID = randomID;
+    if (reactions != null) result.reactions = reactions;
     return result;
   }
 
@@ -822,6 +943,7 @@ class ChatMessage extends $pb.GeneratedMessage {
     ..aOB(7, _omitFieldNames ? '' : 'mediaUnread', protoName: 'mediaUnread')
     ..aOB(8, _omitFieldNames ? '' : 'silent')
     ..aInt64(9, _omitFieldNames ? '' : 'randomID', protoName: 'randomID')
+    ..aOM<MessageReactions>(10, _omitFieldNames ? '' : 'reactions', subBuilder: MessageReactions.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -924,6 +1046,18 @@ class ChatMessage extends $pb.GeneratedMessage {
   $core.bool hasRandomID() => $_has(8);
   @$pb.TagNumber(9)
   void clearRandomID() => $_clearField(9);
+
+  /// Реакции (нет — пусто). Текущие на момент выдачи.
+  @$pb.TagNumber(10)
+  MessageReactions get reactions => $_getN(9);
+  @$pb.TagNumber(10)
+  set reactions(MessageReactions value) => $_setField(10, value);
+  @$pb.TagNumber(10)
+  $core.bool hasReactions() => $_has(9);
+  @$pb.TagNumber(10)
+  void clearReactions() => $_clearField(10);
+  @$pb.TagNumber(10)
+  MessageReactions ensureReactions() => $_ensure(9);
 }
 
 /// Диалог пользователя: общий чат + моё состояние в нём.
@@ -1700,6 +1834,84 @@ class Update_PinnedMessages extends $pb.GeneratedMessage {
   void clearPinned() => $_clearField(3);
 }
 
+/// Изменились реакции на сообщение (мои — на этом или другом устройстве — или
+/// собеседника). reactions — текущие целиком (заменяют прежние).
+class Update_MessageReactionsChanged extends $pb.GeneratedMessage {
+  factory Update_MessageReactionsChanged({
+    $core.List<$core.int>? chatID,
+    $fixnum.Int64? messageID,
+    MessageReactions? reactions,
+  }) {
+    final result = create();
+    if (chatID != null) result.chatID = chatID;
+    if (messageID != null) result.messageID = messageID;
+    if (reactions != null) result.reactions = reactions;
+    return result;
+  }
+
+  Update_MessageReactionsChanged._();
+
+  factory Update_MessageReactionsChanged.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Update_MessageReactionsChanged.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Update.MessageReactionsChanged',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..a<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'chatID', $pb.PbFieldType.OY, protoName: 'chatID')
+    ..aInt64(2, _omitFieldNames ? '' : 'messageID', protoName: 'messageID')
+    ..aOM<MessageReactions>(3, _omitFieldNames ? '' : 'reactions', subBuilder: MessageReactions.create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Update_MessageReactionsChanged clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Update_MessageReactionsChanged copyWith(void Function(Update_MessageReactionsChanged) updates) =>
+      super.copyWith((message) => updates(message as Update_MessageReactionsChanged)) as Update_MessageReactionsChanged;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static Update_MessageReactionsChanged create() => Update_MessageReactionsChanged._();
+  @$core.override
+  Update_MessageReactionsChanged createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static Update_MessageReactionsChanged getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Update_MessageReactionsChanged>(create);
+  static Update_MessageReactionsChanged? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.List<$core.int> get chatID => $_getN(0);
+  @$pb.TagNumber(1)
+  set chatID($core.List<$core.int> value) => $_setBytes(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasChatID() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearChatID() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $fixnum.Int64 get messageID => $_getI64(1);
+  @$pb.TagNumber(2)
+  set messageID($fixnum.Int64 value) => $_setInt64(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasMessageID() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearMessageID() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  MessageReactions get reactions => $_getN(2);
+  @$pb.TagNumber(3)
+  set reactions(MessageReactions value) => $_setField(3, value);
+  @$pb.TagNumber(3)
+  $core.bool hasReactions() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearReactions() => $_clearField(3);
+  @$pb.TagNumber(3)
+  MessageReactions ensureReactions() => $_ensure(2);
+}
+
 enum Update_Update {
   newMessage,
   editMessage,
@@ -1710,6 +1922,7 @@ enum Update_Update {
   dialogSettings,
   dialogDeleted,
   pinnedMessages,
+  messageReactions,
   notSet
 }
 
@@ -1728,6 +1941,7 @@ class Update extends $pb.GeneratedMessage {
     Update_DialogSettings? dialogSettings,
     Update_DialogDeleted? dialogDeleted,
     Update_PinnedMessages? pinnedMessages,
+    Update_MessageReactionsChanged? messageReactions,
   }) {
     final result = create();
     if (pts != null) result.pts = pts;
@@ -1741,6 +1955,7 @@ class Update extends $pb.GeneratedMessage {
     if (dialogSettings != null) result.dialogSettings = dialogSettings;
     if (dialogDeleted != null) result.dialogDeleted = dialogDeleted;
     if (pinnedMessages != null) result.pinnedMessages = pinnedMessages;
+    if (messageReactions != null) result.messageReactions = messageReactions;
     return result;
   }
 
@@ -1761,11 +1976,12 @@ class Update extends $pb.GeneratedMessage {
     9: Update_Update.dialogSettings,
     10: Update_Update.dialogDeleted,
     11: Update_Update.pinnedMessages,
+    12: Update_Update.messageReactions,
     0: Update_Update.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Update',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
-    ..oo(0, [3, 4, 5, 6, 7, 8, 9, 10, 11])
+    ..oo(0, [3, 4, 5, 6, 7, 8, 9, 10, 11, 12])
     ..aInt64(1, _omitFieldNames ? '' : 'pts')
     ..aInt64(2, _omitFieldNames ? '' : 'date')
     ..aOM<Update_NewMessage>(3, _omitFieldNames ? '' : 'newMessage', protoName: 'newMessage', subBuilder: Update_NewMessage.create)
@@ -1781,6 +1997,8 @@ class Update extends $pb.GeneratedMessage {
         protoName: 'dialogDeleted', subBuilder: Update_DialogDeleted.create)
     ..aOM<Update_PinnedMessages>(11, _omitFieldNames ? '' : 'pinnedMessages',
         protoName: 'pinnedMessages', subBuilder: Update_PinnedMessages.create)
+    ..aOM<Update_MessageReactionsChanged>(12, _omitFieldNames ? '' : 'messageReactions',
+        protoName: 'messageReactions', subBuilder: Update_MessageReactionsChanged.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -1808,6 +2026,7 @@ class Update extends $pb.GeneratedMessage {
   @$pb.TagNumber(9)
   @$pb.TagNumber(10)
   @$pb.TagNumber(11)
+  @$pb.TagNumber(12)
   Update_Update whichUpdate() => _Update_UpdateByTag[$_whichOneof(0)]!;
   @$pb.TagNumber(3)
   @$pb.TagNumber(4)
@@ -1818,6 +2037,7 @@ class Update extends $pb.GeneratedMessage {
   @$pb.TagNumber(9)
   @$pb.TagNumber(10)
   @$pb.TagNumber(11)
+  @$pb.TagNumber(12)
   void clearUpdate() => $_clearField($_whichOneof(0));
 
   @$pb.TagNumber(1)
@@ -1936,6 +2156,17 @@ class Update extends $pb.GeneratedMessage {
   void clearPinnedMessages() => $_clearField(11);
   @$pb.TagNumber(11)
   Update_PinnedMessages ensurePinnedMessages() => $_ensure(10);
+
+  @$pb.TagNumber(12)
+  Update_MessageReactionsChanged get messageReactions => $_getN(11);
+  @$pb.TagNumber(12)
+  set messageReactions(Update_MessageReactionsChanged value) => $_setField(12, value);
+  @$pb.TagNumber(12)
+  $core.bool hasMessageReactions() => $_has(11);
+  @$pb.TagNumber(12)
+  void clearMessageReactions() => $_clearField(12);
+  @$pb.TagNumber(12)
+  Update_MessageReactionsChanged ensureMessageReactions() => $_ensure(11);
 }
 
 /// UPDATES — push по стриму (сервер → клиент): одно или несколько обновлений
@@ -4182,7 +4413,131 @@ class Messages_PinnedResult extends $pb.GeneratedMessage {
   $pb.PbList<ChatMessage> get messages => $_getList(0);
 }
 
-enum Messages_Request_Request { history, send, edit, delete, readContents, pin, unpinAll, pinned, notSet }
+/// Мои реакции на сообщение — весь набор целиком (как sendReaction в
+/// Telegram): пусто — снять все. Порядок — порядок постановки; не больше
+/// трёх разных, только из разрешённых в чате (личный чат — фиксированный
+/// набор). Новые нельзя, если собеседник ограничил, кто может ему писать
+/// (PERMISSION_DENIED «privacyRestricted»); снять свои можно всегда.
+/// Служебные сообщения реакций не принимают.
+class Messages_SetReactions extends $pb.GeneratedMessage {
+  factory Messages_SetReactions({
+    $core.List<$core.int>? chatID,
+    $fixnum.Int64? messageID,
+    $core.Iterable<$core.String>? emojis,
+  }) {
+    final result = create();
+    if (chatID != null) result.chatID = chatID;
+    if (messageID != null) result.messageID = messageID;
+    if (emojis != null) result.emojis.addAll(emojis);
+    return result;
+  }
+
+  Messages_SetReactions._();
+
+  factory Messages_SetReactions.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Messages_SetReactions.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Messages.SetReactions',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..a<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'chatID', $pb.PbFieldType.OY, protoName: 'chatID')
+    ..aInt64(2, _omitFieldNames ? '' : 'messageID', protoName: 'messageID')
+    ..pPS(3, _omitFieldNames ? '' : 'emojis')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Messages_SetReactions clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Messages_SetReactions copyWith(void Function(Messages_SetReactions) updates) =>
+      super.copyWith((message) => updates(message as Messages_SetReactions)) as Messages_SetReactions;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static Messages_SetReactions create() => Messages_SetReactions._();
+  @$core.override
+  Messages_SetReactions createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static Messages_SetReactions getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Messages_SetReactions>(create);
+  static Messages_SetReactions? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.List<$core.int> get chatID => $_getN(0);
+  @$pb.TagNumber(1)
+  set chatID($core.List<$core.int> value) => $_setBytes(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasChatID() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearChatID() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $fixnum.Int64 get messageID => $_getI64(1);
+  @$pb.TagNumber(2)
+  set messageID($fixnum.Int64 value) => $_setInt64(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasMessageID() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearMessageID() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $pb.PbList<$core.String> get emojis => $_getList(2);
+}
+
+class Messages_SetReactionsResult extends $pb.GeneratedMessage {
+  factory Messages_SetReactionsResult({
+    Updates? updates,
+  }) {
+    final result = create();
+    if (updates != null) result.updates = updates;
+    return result;
+  }
+
+  Messages_SetReactionsResult._();
+
+  factory Messages_SetReactionsResult.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Messages_SetReactionsResult.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Messages.SetReactionsResult',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..aOM<Updates>(1, _omitFieldNames ? '' : 'updates', subBuilder: Updates.create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Messages_SetReactionsResult clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Messages_SetReactionsResult copyWith(void Function(Messages_SetReactionsResult) updates) =>
+      super.copyWith((message) => updates(message as Messages_SetReactionsResult)) as Messages_SetReactionsResult;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static Messages_SetReactionsResult create() => Messages_SetReactionsResult._();
+  @$core.override
+  Messages_SetReactionsResult createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static Messages_SetReactionsResult getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Messages_SetReactionsResult>(create);
+  static Messages_SetReactionsResult? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  Updates get updates => $_getN(0);
+  @$pb.TagNumber(1)
+  set updates(Updates value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasUpdates() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearUpdates() => $_clearField(1);
+  @$pb.TagNumber(1)
+  Updates ensureUpdates() => $_ensure(0);
+}
+
+enum Messages_Request_Request { history, send, edit, delete, readContents, pin, unpinAll, pinned, setReactions, notSet }
 
 class Messages_Request extends $pb.GeneratedMessage {
   factory Messages_Request({
@@ -4194,6 +4549,7 @@ class Messages_Request extends $pb.GeneratedMessage {
     Messages_Pin? pin,
     Messages_UnpinAll? unpinAll,
     Messages_Pinned? pinned,
+    Messages_SetReactions? setReactions,
   }) {
     final result = create();
     if (history != null) result.history = history;
@@ -4204,6 +4560,7 @@ class Messages_Request extends $pb.GeneratedMessage {
     if (pin != null) result.pin = pin;
     if (unpinAll != null) result.unpinAll = unpinAll;
     if (pinned != null) result.pinned = pinned;
+    if (setReactions != null) result.setReactions = setReactions;
     return result;
   }
 
@@ -4223,11 +4580,12 @@ class Messages_Request extends $pb.GeneratedMessage {
     6: Messages_Request_Request.pin,
     7: Messages_Request_Request.unpinAll,
     8: Messages_Request_Request.pinned,
+    9: Messages_Request_Request.setReactions,
     0: Messages_Request_Request.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Messages.Request',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
-    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8])
+    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 9])
     ..aOM<Messages_History>(1, _omitFieldNames ? '' : 'history', subBuilder: Messages_History.create)
     ..aOM<Messages_Send>(2, _omitFieldNames ? '' : 'send', subBuilder: Messages_Send.create)
     ..aOM<Messages_Edit>(3, _omitFieldNames ? '' : 'edit', subBuilder: Messages_Edit.create)
@@ -4237,6 +4595,8 @@ class Messages_Request extends $pb.GeneratedMessage {
     ..aOM<Messages_Pin>(6, _omitFieldNames ? '' : 'pin', subBuilder: Messages_Pin.create)
     ..aOM<Messages_UnpinAll>(7, _omitFieldNames ? '' : 'unpinAll', protoName: 'unpinAll', subBuilder: Messages_UnpinAll.create)
     ..aOM<Messages_Pinned>(8, _omitFieldNames ? '' : 'pinned', subBuilder: Messages_Pinned.create)
+    ..aOM<Messages_SetReactions>(9, _omitFieldNames ? '' : 'setReactions',
+        protoName: 'setReactions', subBuilder: Messages_SetReactions.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -4264,6 +4624,7 @@ class Messages_Request extends $pb.GeneratedMessage {
   @$pb.TagNumber(6)
   @$pb.TagNumber(7)
   @$pb.TagNumber(8)
+  @$pb.TagNumber(9)
   Messages_Request_Request whichRequest() => _Messages_Request_RequestByTag[$_whichOneof(0)]!;
   @$pb.TagNumber(1)
   @$pb.TagNumber(2)
@@ -4273,6 +4634,7 @@ class Messages_Request extends $pb.GeneratedMessage {
   @$pb.TagNumber(6)
   @$pb.TagNumber(7)
   @$pb.TagNumber(8)
+  @$pb.TagNumber(9)
   void clearRequest() => $_clearField($_whichOneof(0));
 
   @$pb.TagNumber(1)
@@ -4362,9 +4724,20 @@ class Messages_Request extends $pb.GeneratedMessage {
   void clearPinned() => $_clearField(8);
   @$pb.TagNumber(8)
   Messages_Pinned ensurePinned() => $_ensure(7);
+
+  @$pb.TagNumber(9)
+  Messages_SetReactions get setReactions => $_getN(8);
+  @$pb.TagNumber(9)
+  set setReactions(Messages_SetReactions value) => $_setField(9, value);
+  @$pb.TagNumber(9)
+  $core.bool hasSetReactions() => $_has(8);
+  @$pb.TagNumber(9)
+  void clearSetReactions() => $_clearField(9);
+  @$pb.TagNumber(9)
+  Messages_SetReactions ensureSetReactions() => $_ensure(8);
 }
 
-enum Messages_Response_Response { history, send, edit, delete, readContents, pin, unpinAll, pinned, notSet }
+enum Messages_Response_Response { history, send, edit, delete, readContents, pin, unpinAll, pinned, setReactions, notSet }
 
 class Messages_Response extends $pb.GeneratedMessage {
   factory Messages_Response({
@@ -4376,6 +4749,7 @@ class Messages_Response extends $pb.GeneratedMessage {
     Messages_PinResult? pin,
     Messages_UnpinAllResult? unpinAll,
     Messages_PinnedResult? pinned,
+    Messages_SetReactionsResult? setReactions,
   }) {
     final result = create();
     if (history != null) result.history = history;
@@ -4386,6 +4760,7 @@ class Messages_Response extends $pb.GeneratedMessage {
     if (pin != null) result.pin = pin;
     if (unpinAll != null) result.unpinAll = unpinAll;
     if (pinned != null) result.pinned = pinned;
+    if (setReactions != null) result.setReactions = setReactions;
     return result;
   }
 
@@ -4405,11 +4780,12 @@ class Messages_Response extends $pb.GeneratedMessage {
     6: Messages_Response_Response.pin,
     7: Messages_Response_Response.unpinAll,
     8: Messages_Response_Response.pinned,
+    9: Messages_Response_Response.setReactions,
     0: Messages_Response_Response.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Messages.Response',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
-    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8])
+    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 9])
     ..aOM<Messages_HistoryResult>(1, _omitFieldNames ? '' : 'history', subBuilder: Messages_HistoryResult.create)
     ..aOM<Messages_SendResult>(2, _omitFieldNames ? '' : 'send', subBuilder: Messages_SendResult.create)
     ..aOM<Messages_EditResult>(3, _omitFieldNames ? '' : 'edit', subBuilder: Messages_EditResult.create)
@@ -4419,6 +4795,8 @@ class Messages_Response extends $pb.GeneratedMessage {
     ..aOM<Messages_PinResult>(6, _omitFieldNames ? '' : 'pin', subBuilder: Messages_PinResult.create)
     ..aOM<Messages_UnpinAllResult>(7, _omitFieldNames ? '' : 'unpinAll', protoName: 'unpinAll', subBuilder: Messages_UnpinAllResult.create)
     ..aOM<Messages_PinnedResult>(8, _omitFieldNames ? '' : 'pinned', subBuilder: Messages_PinnedResult.create)
+    ..aOM<Messages_SetReactionsResult>(9, _omitFieldNames ? '' : 'setReactions',
+        protoName: 'setReactions', subBuilder: Messages_SetReactionsResult.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -4446,6 +4824,7 @@ class Messages_Response extends $pb.GeneratedMessage {
   @$pb.TagNumber(6)
   @$pb.TagNumber(7)
   @$pb.TagNumber(8)
+  @$pb.TagNumber(9)
   Messages_Response_Response whichResponse() => _Messages_Response_ResponseByTag[$_whichOneof(0)]!;
   @$pb.TagNumber(1)
   @$pb.TagNumber(2)
@@ -4455,6 +4834,7 @@ class Messages_Response extends $pb.GeneratedMessage {
   @$pb.TagNumber(6)
   @$pb.TagNumber(7)
   @$pb.TagNumber(8)
+  @$pb.TagNumber(9)
   void clearResponse() => $_clearField($_whichOneof(0));
 
   @$pb.TagNumber(1)
@@ -4544,6 +4924,17 @@ class Messages_Response extends $pb.GeneratedMessage {
   void clearPinned() => $_clearField(8);
   @$pb.TagNumber(8)
   Messages_PinnedResult ensurePinned() => $_ensure(7);
+
+  @$pb.TagNumber(9)
+  Messages_SetReactionsResult get setReactions => $_getN(8);
+  @$pb.TagNumber(9)
+  set setReactions(Messages_SetReactionsResult value) => $_setField(9, value);
+  @$pb.TagNumber(9)
+  $core.bool hasSetReactions() => $_has(8);
+  @$pb.TagNumber(9)
+  void clearSetReactions() => $_clearField(9);
+  @$pb.TagNumber(9)
+  Messages_SetReactionsResult ensureSetReactions() => $_ensure(8);
 }
 
 /// MESSAGES — сообщения.

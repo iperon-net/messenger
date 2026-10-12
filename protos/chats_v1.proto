@@ -153,6 +153,21 @@ message MessageContent {
   MessagePin pin = 8;
 }
 
+// Реакция участника на сообщение: кто, каким эмодзи и когда поставил.
+message MessageReaction {
+  bytes userID = 1;
+  string emoji = 2;
+  int64 date = 3; // unix millis
+}
+
+// Реакции на сообщение (как MessageReactions в Telegram). Личный чат —
+// полный список, от ранних к поздним: чипы и «мои» клиент собирает сам.
+// Группы/каналы позже добавят счётчики «эмодзи → число» (там список авторов
+// — только последние или вовсе скрыт).
+message MessageReactions {
+  repeated MessageReaction reactions = 1;
+}
+
 // Сообщение «глазами получателя»: outgoing = fromUserID == я; прочитано ли
 // исходящее — сравнением messageID с Dialog.readOutboxMaxID.
 message ChatMessage {
@@ -167,6 +182,8 @@ message ChatMessage {
   bool silent = 8;
   // Отправитель задал при отправке (идемпотентность, сопоставление с outbox).
   int64 randomID = 9;
+  // Реакции (нет — пусто). Текущие на момент выдачи.
+  MessageReactions reactions = 10;
 }
 
 // Диалог пользователя: общий чат + моё состояние в нём.
@@ -254,6 +271,14 @@ message Update {
     bool pinned = 3;
   }
 
+  // Изменились реакции на сообщение (мои — на этом или другом устройстве — или
+  // собеседника). reactions — текущие целиком (заменяют прежние).
+  message MessageReactionsChanged {
+    bytes chatID = 1;
+    int64 messageID = 2;
+    MessageReactions reactions = 3;
+  }
+
   oneof update {
     NewMessage newMessage = 3;
     EditMessage editMessage = 4;
@@ -264,6 +289,7 @@ message Update {
     DialogSettings dialogSettings = 9;
     DialogDeleted dialogDeleted = 10;
     PinnedMessages pinnedMessages = 11;
+    MessageReactionsChanged messageReactions = 12;
   }
 }
 
@@ -492,6 +518,22 @@ message Messages {
     repeated ChatMessage messages = 1;
   }
 
+  // Мои реакции на сообщение — весь набор целиком (как sendReaction в
+  // Telegram): пусто — снять все. Порядок — порядок постановки; не больше
+  // трёх разных, только из разрешённых в чате (личный чат — фиксированный
+  // набор). Новые нельзя, если собеседник ограничил, кто может ему писать
+  // (PERMISSION_DENIED «privacyRestricted»); снять свои можно всегда.
+  // Служебные сообщения реакций не принимают.
+  message SetReactions {
+    bytes chatID = 1;
+    int64 messageID = 2;
+    repeated string emojis = 3;
+  }
+
+  message SetReactionsResult {
+    Updates updates = 1;
+  }
+
   message Request {
     oneof request {
       History history = 1;
@@ -502,6 +544,7 @@ message Messages {
       Pin pin = 6;
       UnpinAll unpinAll = 7;
       Pinned pinned = 8;
+      SetReactions setReactions = 9;
     }
   }
 
@@ -515,6 +558,7 @@ message Messages {
       PinResult pin = 6;
       UnpinAllResult unpinAll = 7;
       PinnedResult pinned = 8;
+      SetReactionsResult setReactions = 9;
     }
   }
 }

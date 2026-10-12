@@ -588,6 +588,29 @@ class Repositories {
       }),
     );
 
+    migrations.add(
+      SqliteMigration(22, (tx) async {
+        // Реакции на сообщения: chatMessages.reactions — сериализованный
+        // MessageReactions с сервера (кто, чем, когда; NULL — нет).
+        // chatPendingReactions — мой новый набор реакций, ещё не принятый
+        // сервером (offline / обрыв): лента показывает его поверх серверных и
+        // уходит при подключении (как outbox). emojis — через '\n', пусто —
+        // снять все.
+        await tx.execute('ALTER TABLE chatMessages ADD COLUMN reactions BLOB NULL;');
+        await tx.execute("""
+        CREATE TABLE chatPendingReactions (
+          userID BLOB NOT NULL,
+          chatID BLOB NOT NULL,
+          messageID INTEGER NOT NULL,
+          emojis TEXT NOT NULL,
+          createdAt INTEGER NOT NULL,
+          PRIMARY KEY (userID, chatID, messageID),
+          FOREIGN KEY (userID) REFERENCES users(userID) ON DELETE CASCADE ON UPDATE CASCADE
+        );
+      """);
+      }),
+    );
+
     if (settings.isDeleteDatabase) {
       logger.warning("Deleting the database, flag set IS_DELETE_DATABASE: 1");
 
