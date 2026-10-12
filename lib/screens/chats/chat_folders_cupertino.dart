@@ -8,6 +8,7 @@ import '../../i18n/translations.g.dart';
 import '../../models.dart' as models;
 import '../../themes.dart';
 import 'chat_folder_edit_cupertino.dart';
+import 'chat_common.dart';
 import 'chat_folders_common.dart';
 import 'chats_new_cupertino.dart';
 
@@ -156,7 +157,9 @@ class ChatFoldersCupertino extends StatelessWidget {
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
                         itemCount: folders.length,
-                        onReorderItem: cubit.reorder,
+                        onReorderItem: (oldIndex, newIndex) async {
+                          if (!await cubit.reorder(oldIndex, newIndex) && context.mounted) showChatsNoConnection(context);
+                        },
                         proxyDecorator: (child, index, animation) => Container(
                           decoration: BoxDecoration(
                             color: card,
@@ -179,7 +182,11 @@ class ChatFoldersCupertino extends StatelessWidget {
                           subtitle: Text(chatFolderPresetAbout(t, preset)),
                           trailing: CupertinoButton.tinted(
                             sizeStyle: CupertinoButtonSize.small,
-                            onPressed: () => cubit.addPreset(preset, chatFolderPresetTitle(t, preset)),
+                            onPressed: () async {
+                              if (!await cubit.addPreset(preset, chatFolderPresetTitle(t, preset)) && context.mounted) {
+                                showChatsNoConnection(context);
+                              }
+                            },
                             child: Text(s.add, style: TextStyle(color: action)),
                           ),
                         ),

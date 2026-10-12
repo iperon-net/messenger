@@ -251,7 +251,12 @@ class ChatsSync {
 
   Future<void> _catchUp() async {
     final user = me;
-    if (await _store.getPts(userID: user) == null) await _reloadDialogs();
+    if (await _store.getPts(userID: user) == null) {
+      await _reloadDialogs();
+    } else if (await _store.folders(userID: user) == null) {
+      // Журнал уже был до папок (обновили приложение) — снимок отдельно.
+      await _loadFolders();
+    }
     // Пока листали страницы списка, могли прийти обновления — догоняем от pts
     // первой страницы (повторное применение идемпотентно).
     await _getDifference();
@@ -304,6 +309,21 @@ class ChatsSync {
       await tx.replaceDialogs(userID: user, dialogs: dialogs, dropHistory: dropHistory);
       await tx.setPts(userID: user, pts: pts, date: date);
     });
+    // Изменения папок после этого pts придут обновлениями folders.
+    await _loadFolders();
+  }
+
+  /// Снимок папок (первый вход, перезагрузка диалогов). Сбой — не повод
+  /// ронять догон: без папок список чатов работает, повторим при подключении.
+  Future<void> _loadFolders() async {
+    final user = me;
+    try {
+      final response = await chats(pb.Chats_Request(getFolders: pb.Chats_GetFolders()));
+      if (!response.hasGetFolders()) return;
+      await _store.setFolders(userID: user, folders: response.getFolders.folders);
+    } on ChatsRequestException catch (error) {
+      _logger.warning('chats: get folders failed: $error');
+    }
   }
 
   /// GET_DIFFERENCE от локального pts, пока сервер говорит `hasMore`.
@@ -523,6 +543,9 @@ class ChatsSync {
         await tx.updateDialog(userID: user, chatID: read.chatID, fields: {'unreadReactions': read.unreadReactionsCount});
         // Пуш о реакции несёт id моего сообщения — снимаем по нему.
         unawaited(PushManager.clearChatNotifications(read.chatID, messageIDs: ids));
+
+      case pb.Update_Update.folders:
+        await tx.setFolders(userID: user, folders: update.folders);
 
       case pb.Update_Update.notSet:
         // Пустое обновление (например, новое сообщение, которое потом удалили):

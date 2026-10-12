@@ -74,8 +74,8 @@ class _SettingsMaterial extends State<SettingsMaterial> {
                     onTab: () async => context.go("/settings/appearance"),
                     isTrailing: true,
                   ),
-                  // Папки чатов — пока только в UX-демо (флаг на экране «Разработчик»).
-                  if (context.select((CommonCubit cubit) => cubit.state.settingsDevice.chatsDemo))
+                  // Папки чатов — с флагом «Демо чатов» или «Серверные чаты» (экран «Разработчик»).
+                  if (context.select((CommonCubit cubit) => cubit.state.settingsDevice.chatsDemo || cubit.state.settingsDevice.chatsServer))
                     MaterialListTileIcon(
                       title: Text(context.t.screenSettings.folders),
                       color: const Color(0xFF00A3D9),

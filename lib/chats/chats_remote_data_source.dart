@@ -37,7 +37,7 @@ import 'read_receipts.dart';
 /// отправка сообщений (честно ждут в outbox (⏱) и уходят при подключении) и
 /// реакции (ждут в `chatPendingReactions` так же).
 ///
-/// Группы, каналы, сообщества, папки, приглашения, опросы, отложенные и
+/// Группы, каналы, сообщества, приглашения, опросы, отложенные и
 /// пересылка — следующие срезы: их действия бросают
 /// [UnsupportedError], а то, что экраны читают при открытии любого чата
 /// (участники, отложенные, ссылки), отдаёт пустое.
@@ -285,8 +285,13 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     }
   }
 
+  /// Папки — из снимка в SQLite (видны без сети), перечитываются при каждой
+  /// его записи (ответ GetFolders / обновление folders).
   @override
-  Stream<List<models.ChatFolder>> watchFolders() => Stream.value(const [models.ChatFolder(id: 'all', isAll: true)]);
+  Stream<List<models.ChatFolder>> watchFolders() => _repositories.db
+      .onChange(const [ChatsRepository.foldersTable])
+      .asyncMap((_) async => foldersFromPb(_auth.isAuthorized ? await _store.folders(userID: _sync.me) : null))
+      .distinct(listEquals);
 
   /// Мои настройки диалога на сервере; результат приходит обновлением
   /// `DialogSettings`.
@@ -365,14 +370,44 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     await _sync.applyUpdates(response.deleteDialog.updates);
   }
 
-  @override
-  Future<void> deleteFolder(String folderID) async => _unsupported('Папки');
+  // Папки — серверная настройка: без сети не меняем (ChatsOfflineException),
+  // результат приходит обновлением folders (снимок в SQLite).
 
   @override
-  Future<void> saveFolder(models.ChatFolder folder) async => _unsupported('Папки');
+  Future<void> deleteFolder(String folderID) async {
+    final id = folderIDToPb(folderID);
+    if (id == 0) return;
+    await _requireNetwork();
+    final response = await _folderRequest(pb.Chats_Request(deleteFolder: pb.Chats_DeleteFolder(id: id)));
+    if (response != null) await _sync.applyUpdates(response.deleteFolder.updates);
+  }
 
   @override
-  Future<void> reorderFolders(List<String> folderIDs) async => _unsupported('Папки');
+  Future<void> saveFolder(models.ChatFolder folder) async {
+    await _requireNetwork();
+    final response = await _folderRequest(pb.Chats_Request(saveFolder: pb.Chats_SaveFolder(folder: folderToPb(folder))));
+    if (response != null) await _sync.applyUpdates(response.saveFolder.updates);
+  }
+
+  @override
+  Future<void> reorderFolders(List<String> folderIDs) async {
+    await _requireNetwork();
+    final ids = [for (final id in folderIDs) folderIDToPb(id)].where((id) => id > 0);
+    final response = await _folderRequest(pb.Chats_Request(reorderFolders: pb.Chats_ReorderFolders(ids: ids)));
+    if (response != null) await _sync.applyUpdates(response.reorderFolders.updates);
+  }
+
+  /// Отказ сервера (папку удалили на другом устройстве, лимит) — не ошибка
+  /// экрана: снимок папок и так придёт обновлением, его и покажем. `null` —
+  /// отказ.
+  Future<pb.Chats_Response?> _folderRequest(pb.Chats_Request request) async {
+    try {
+      return await _sync.chats(request);
+    } on ChatsRequestException catch (error) {
+      _logger.warning('chats: folder request failed: $error');
+      return null;
+    }
+  }
 
   /// Зарегистрированные контакты из локального снимка адресной книги (без
   /// себя и скрытых профилей) — по алфавиту.

@@ -8,6 +8,7 @@ import '../../i18n/translations.g.dart';
 import '../../models.dart' as models;
 import '../../themes.dart';
 import 'chat_folder_edit_material.dart';
+import 'chat_common.dart';
 import 'chat_folders_common.dart';
 import 'chats_new_material.dart';
 
@@ -99,7 +100,9 @@ class ChatFoldersMaterial extends StatelessWidget {
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
                       itemCount: folders.length,
-                      onReorderItem: cubit.reorder,
+                      onReorderItem: (oldIndex, newIndex) async {
+                        if (!await cubit.reorder(oldIndex, newIndex) && context.mounted) showChatsNoConnection(context);
+                      },
                       // Перетаскиваемая строка рисуется в оверлее — вне Card,
                       // поэтому свой Material (фон и тень).
                       proxyDecorator: (child, index, animation) => Material(
@@ -123,7 +126,11 @@ class ChatFoldersMaterial extends StatelessWidget {
                         title: Text(chatFolderPresetTitle(t, preset)),
                         subtitle: Text(chatFolderPresetAbout(t, preset)),
                         trailing: FilledButton.tonal(
-                          onPressed: () => cubit.addPreset(preset, chatFolderPresetTitle(t, preset)),
+                          onPressed: () async {
+                            if (!await cubit.addPreset(preset, chatFolderPresetTitle(t, preset)) && context.mounted) {
+                              showChatsNoConnection(context);
+                            }
+                          },
                           child: Text(s.add),
                         ),
                       ),

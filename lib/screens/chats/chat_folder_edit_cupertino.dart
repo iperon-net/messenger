@@ -7,6 +7,7 @@ import '../../i18n/translations.g.dart';
 import '../../models.dart' as models;
 import '../../themes.dart';
 import 'chat_folder_chats_cupertino.dart';
+import 'chat_common.dart';
 import 'chat_folders_common.dart';
 import 'chats_new_cupertino.dart';
 
@@ -65,9 +66,20 @@ class _ChatFolderEditCupertino extends State<ChatFolderEditCupertino> {
       );
       return;
     }
-    await context.read<ChatFoldersCubit>().save(_folder);
-    if (mounted) Navigator.of(context).pop();
+    // Повторный тап, пока папка уходит на сервер, — не создаём вторую.
+    if (_saving) return;
+    _saving = true;
+    final ok = await context.read<ChatFoldersCubit>().save(_folder);
+    _saving = false;
+    if (!mounted) return;
+    if (!ok) {
+      showChatsNoConnection(context);
+      return;
+    }
+    Navigator.of(context).pop();
   }
+
+  bool _saving = false;
 
   Future<void> _delete() async {
     final folder = widget.folder;
@@ -90,8 +102,13 @@ class _ChatFolderEditCupertino extends State<ChatFolderEditCupertino> {
       ),
     );
     if (!(confirmed ?? false)) return;
-    await cubit.delete(folder);
-    if (mounted) Navigator.of(context).pop();
+    final ok = await cubit.delete(folder);
+    if (!mounted) return;
+    if (!ok) {
+      showChatsNoConnection(context);
+      return;
+    }
+    Navigator.of(context).pop();
   }
 
   Future<void> _confirmDiscard() async {

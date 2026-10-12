@@ -90,7 +90,7 @@ class ChatsCubit extends Cubit<ChatsState> {
   Future<void> readAll(models.ChatFolder folder) async =>
       _source?.readAll(state.chats.where((c) => folder.matches(c)).map((c) => c.id).toList());
 
-  Future<void> deleteFolder(models.ChatFolder folder) async => _source?.deleteFolder(folder.id);
+  Future<void> deleteFolder(models.ChatFolder folder) => _online(() => _source?.deleteFolder(folder.id));
 
   @override
   Future<void> close() async {

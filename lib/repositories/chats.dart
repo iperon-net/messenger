@@ -152,6 +152,7 @@ class ChatsRepository {
   static const outboxTable = 'chatOutbox';
   static const pinnedTable = 'chatPinned';
   static const pendingReactionsTable = 'chatPendingReactions';
+  static const foldersTable = 'chatFolders';
 
   static const _dialogColumns =
       'chatID, type, peerUserID, topMessageID, topMessageDate, topMessage, readInboxMaxID, readOutboxMaxID, unreadCount, '
@@ -183,6 +184,27 @@ class ChatsRepository {
       ON CONFLICT(userID) DO UPDATE SET pts = excluded.pts, date = excluded.date;
       ''',
       [userID, pts, date],
+    );
+  }
+
+  // --- папки ---
+
+  /// Снимок папок с сервера; `null` — ещё не загружали.
+  Future<pb.ChatFolders?> folders({required List<int> userID}) async {
+    final row = await ctx.getOptional('SELECT folders FROM chatFolders WHERE userID = ?;', [userID]);
+    return row == null ? null : pb.ChatFolders.fromBuffer(row['folders'] as List<int>);
+  }
+
+  /// Записать снимок, если он не старше сохранённого (ответ GetFolders и
+  /// обновление folders могут прийти в любом порядке).
+  Future<void> setFolders({required List<int> userID, required pb.ChatFolders folders}) async {
+    await ctx.execute(
+      '''
+      INSERT INTO chatFolders (userID, folders, version) VALUES (?, ?, ?)
+      ON CONFLICT(userID) DO UPDATE SET folders = excluded.folders, version = excluded.version
+      WHERE excluded.version >= chatFolders.version;
+      ''',
+      [userID, folders.writeToBuffer(), folders.version.toInt()],
     );
   }
 

@@ -286,3 +286,51 @@ bool sameID(List<int> a, List<int> b) {
   }
   return true;
 }
+
+/// id «Все чаты» — у сервера её нет, у клиента всегда первая.
+const allChatsFolderID = 'all';
+
+/// Папки с сервера (снимок `ChatFolders`) → список экранов: «Все чаты»
+/// первой, затем мои по порядку (id папки — номер с сервера строкой).
+List<models.ChatFolder> foldersFromPb(pb.ChatFolders? folders) => [
+  const models.ChatFolder(id: allChatsFolderID, isAll: true),
+  for (final f in folders?.folders ?? const <pb.ChatFolder>[])
+    models.ChatFolder(
+      id: '${f.id}',
+      title: f.title,
+      includeContacts: f.includeContacts,
+      includeNonContacts: f.includeNonContacts,
+      includeGroups: f.includeGroups,
+      includeChannels: f.includeChannels,
+      includeCommunities: f.includeCommunities,
+      includeChatIDs: [for (final id in f.includeChatIDs) idHex(id)],
+      excludeChatIDs: [for (final id in f.excludeChatIDs) idHex(id)],
+      excludeMuted: f.excludeMuted,
+      excludeRead: f.excludeRead,
+    ),
+];
+
+/// Номер папки на сервере; новая (id ещё локальный) — 0.
+int folderIDToPb(String id) => int.tryParse(id) ?? 0;
+
+/// Папка для `SaveFolder`. Чаты, которых ещё нет на сервере (не ObjectID), —
+/// не уходят.
+pb.ChatFolder folderToPb(models.ChatFolder folder) {
+  List<List<int>> ids(List<String> chatIDs) => [
+    for (final id in chatIDs)
+      if (idBytes(id) case final bytes when bytes.length == 12) bytes,
+  ];
+  return pb.ChatFolder(
+    id: folderIDToPb(folder.id),
+    title: folder.title,
+    includeContacts: folder.includeContacts,
+    includeNonContacts: folder.includeNonContacts,
+    includeGroups: folder.includeGroups,
+    includeChannels: folder.includeChannels,
+    includeCommunities: folder.includeCommunities,
+    includeChatIDs: ids(folder.includeChatIDs),
+    excludeChatIDs: ids(folder.excludeChatIDs),
+    excludeMuted: folder.excludeMuted,
+    excludeRead: folder.excludeRead,
+  );
+}

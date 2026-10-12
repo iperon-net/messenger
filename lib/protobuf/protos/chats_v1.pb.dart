@@ -1305,6 +1305,220 @@ class Dialog extends $pb.GeneratedMessage {
   void clearDraftDate() => $_clearField(15);
 }
 
+/// Папка (таб) списка чатов — как dialogFilter в Telegram. «Все чаты» — не
+/// папка (у клиента всегда первая). id выдаёт сервер; у SaveFolder 0 — новая.
+/// Чат попадает в папку, если он в includeChatIDs или подходит по типу и не
+/// исключён (excludeChatIDs, флаги exclude*); архивные — никогда.
+class ChatFolder extends $pb.GeneratedMessage {
+  factory ChatFolder({
+    $core.int? id,
+    $core.String? title,
+    $core.bool? includeContacts,
+    $core.bool? includeNonContacts,
+    $core.bool? includeGroups,
+    $core.bool? includeChannels,
+    $core.bool? includeCommunities,
+    $core.Iterable<$core.List<$core.int>>? includeChatIDs,
+    $core.Iterable<$core.List<$core.int>>? excludeChatIDs,
+    $core.bool? excludeMuted,
+    $core.bool? excludeRead,
+  }) {
+    final result = create();
+    if (id != null) result.id = id;
+    if (title != null) result.title = title;
+    if (includeContacts != null) result.includeContacts = includeContacts;
+    if (includeNonContacts != null) result.includeNonContacts = includeNonContacts;
+    if (includeGroups != null) result.includeGroups = includeGroups;
+    if (includeChannels != null) result.includeChannels = includeChannels;
+    if (includeCommunities != null) result.includeCommunities = includeCommunities;
+    if (includeChatIDs != null) result.includeChatIDs.addAll(includeChatIDs);
+    if (excludeChatIDs != null) result.excludeChatIDs.addAll(excludeChatIDs);
+    if (excludeMuted != null) result.excludeMuted = excludeMuted;
+    if (excludeRead != null) result.excludeRead = excludeRead;
+    return result;
+  }
+
+  ChatFolder._();
+
+  factory ChatFolder.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory ChatFolder.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'ChatFolder',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..aI(1, _omitFieldNames ? '' : 'id')
+    ..aOS(2, _omitFieldNames ? '' : 'title')
+    ..aOB(3, _omitFieldNames ? '' : 'includeContacts', protoName: 'includeContacts')
+    ..aOB(4, _omitFieldNames ? '' : 'includeNonContacts', protoName: 'includeNonContacts')
+    ..aOB(5, _omitFieldNames ? '' : 'includeGroups', protoName: 'includeGroups')
+    ..aOB(6, _omitFieldNames ? '' : 'includeChannels', protoName: 'includeChannels')
+    ..aOB(7, _omitFieldNames ? '' : 'includeCommunities', protoName: 'includeCommunities')
+    ..p<$core.List<$core.int>>(8, _omitFieldNames ? '' : 'includeChatIDs', $pb.PbFieldType.PY, protoName: 'includeChatIDs')
+    ..p<$core.List<$core.int>>(9, _omitFieldNames ? '' : 'excludeChatIDs', $pb.PbFieldType.PY, protoName: 'excludeChatIDs')
+    ..aOB(10, _omitFieldNames ? '' : 'excludeMuted', protoName: 'excludeMuted')
+    ..aOB(11, _omitFieldNames ? '' : 'excludeRead', protoName: 'excludeRead')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ChatFolder clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ChatFolder copyWith(void Function(ChatFolder) updates) => super.copyWith((message) => updates(message as ChatFolder)) as ChatFolder;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static ChatFolder create() => ChatFolder._();
+  @$core.override
+  ChatFolder createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static ChatFolder getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<ChatFolder>(create);
+  static ChatFolder? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.int get id => $_getIZ(0);
+  @$pb.TagNumber(1)
+  set id($core.int value) => $_setSignedInt32(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasId() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearId() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.String get title => $_getSZ(1);
+  @$pb.TagNumber(2)
+  set title($core.String value) => $_setString(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasTitle() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearTitle() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.bool get includeContacts => $_getBF(2);
+  @$pb.TagNumber(3)
+  set includeContacts($core.bool value) => $_setBool(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasIncludeContacts() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearIncludeContacts() => $_clearField(3);
+
+  @$pb.TagNumber(4)
+  $core.bool get includeNonContacts => $_getBF(3);
+  @$pb.TagNumber(4)
+  set includeNonContacts($core.bool value) => $_setBool(3, value);
+  @$pb.TagNumber(4)
+  $core.bool hasIncludeNonContacts() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearIncludeNonContacts() => $_clearField(4);
+
+  @$pb.TagNumber(5)
+  $core.bool get includeGroups => $_getBF(4);
+  @$pb.TagNumber(5)
+  set includeGroups($core.bool value) => $_setBool(4, value);
+  @$pb.TagNumber(5)
+  $core.bool hasIncludeGroups() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearIncludeGroups() => $_clearField(5);
+
+  @$pb.TagNumber(6)
+  $core.bool get includeChannels => $_getBF(5);
+  @$pb.TagNumber(6)
+  set includeChannels($core.bool value) => $_setBool(5, value);
+  @$pb.TagNumber(6)
+  $core.bool hasIncludeChannels() => $_has(5);
+  @$pb.TagNumber(6)
+  void clearIncludeChannels() => $_clearField(6);
+
+  @$pb.TagNumber(7)
+  $core.bool get includeCommunities => $_getBF(6);
+  @$pb.TagNumber(7)
+  set includeCommunities($core.bool value) => $_setBool(6, value);
+  @$pb.TagNumber(7)
+  $core.bool hasIncludeCommunities() => $_has(6);
+  @$pb.TagNumber(7)
+  void clearIncludeCommunities() => $_clearField(7);
+
+  @$pb.TagNumber(8)
+  $pb.PbList<$core.List<$core.int>> get includeChatIDs => $_getList(7);
+
+  @$pb.TagNumber(9)
+  $pb.PbList<$core.List<$core.int>> get excludeChatIDs => $_getList(8);
+
+  @$pb.TagNumber(10)
+  $core.bool get excludeMuted => $_getBF(9);
+  @$pb.TagNumber(10)
+  set excludeMuted($core.bool value) => $_setBool(9, value);
+  @$pb.TagNumber(10)
+  $core.bool hasExcludeMuted() => $_has(9);
+  @$pb.TagNumber(10)
+  void clearExcludeMuted() => $_clearField(10);
+
+  @$pb.TagNumber(11)
+  $core.bool get excludeRead => $_getBF(10);
+  @$pb.TagNumber(11)
+  set excludeRead($core.bool value) => $_setBool(10, value);
+  @$pb.TagNumber(11)
+  $core.bool hasExcludeRead() => $_has(10);
+  @$pb.TagNumber(11)
+  void clearExcludeRead() => $_clearField(11);
+}
+
+/// Все мои папки по порядку (до 9, без «Все чаты»). version растёт с каждым
+/// изменением: клиент не перезаписывает новый снимок старым.
+class ChatFolders extends $pb.GeneratedMessage {
+  factory ChatFolders({
+    $core.Iterable<ChatFolder>? folders,
+    $fixnum.Int64? version,
+  }) {
+    final result = create();
+    if (folders != null) result.folders.addAll(folders);
+    if (version != null) result.version = version;
+    return result;
+  }
+
+  ChatFolders._();
+
+  factory ChatFolders.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory ChatFolders.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'ChatFolders',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..pPM<ChatFolder>(1, _omitFieldNames ? '' : 'folders', subBuilder: ChatFolder.create)
+    ..aInt64(2, _omitFieldNames ? '' : 'version')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ChatFolders clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ChatFolders copyWith(void Function(ChatFolders) updates) => super.copyWith((message) => updates(message as ChatFolders)) as ChatFolders;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static ChatFolders create() => ChatFolders._();
+  @$core.override
+  ChatFolders createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static ChatFolders getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<ChatFolders>(create);
+  static ChatFolders? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $pb.PbList<ChatFolder> get folders => $_getList(0);
+
+  @$pb.TagNumber(2)
+  $fixnum.Int64 get version => $_getI64(1);
+  @$pb.TagNumber(2)
+  set version($fixnum.Int64 value) => $_setInt64(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasVersion() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearVersion() => $_clearField(2);
+}
+
 /// Состояние журнала обновлений пользователя.
 class UpdatesState extends $pb.GeneratedMessage {
   factory UpdatesState({
@@ -2077,6 +2291,7 @@ enum Update_Update {
   pinnedMessages,
   messageReactions,
   readReactions,
+  folders,
   notSet
 }
 
@@ -2097,6 +2312,7 @@ class Update extends $pb.GeneratedMessage {
     Update_PinnedMessages? pinnedMessages,
     Update_MessageReactionsChanged? messageReactions,
     Update_ReadReactions? readReactions,
+    ChatFolders? folders,
   }) {
     final result = create();
     if (pts != null) result.pts = pts;
@@ -2112,6 +2328,7 @@ class Update extends $pb.GeneratedMessage {
     if (pinnedMessages != null) result.pinnedMessages = pinnedMessages;
     if (messageReactions != null) result.messageReactions = messageReactions;
     if (readReactions != null) result.readReactions = readReactions;
+    if (folders != null) result.folders = folders;
     return result;
   }
 
@@ -2134,11 +2351,12 @@ class Update extends $pb.GeneratedMessage {
     11: Update_Update.pinnedMessages,
     12: Update_Update.messageReactions,
     13: Update_Update.readReactions,
+    14: Update_Update.folders,
     0: Update_Update.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Update',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
-    ..oo(0, [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13])
+    ..oo(0, [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14])
     ..aInt64(1, _omitFieldNames ? '' : 'pts')
     ..aInt64(2, _omitFieldNames ? '' : 'date')
     ..aOM<Update_NewMessage>(3, _omitFieldNames ? '' : 'newMessage', protoName: 'newMessage', subBuilder: Update_NewMessage.create)
@@ -2158,6 +2376,7 @@ class Update extends $pb.GeneratedMessage {
         protoName: 'messageReactions', subBuilder: Update_MessageReactionsChanged.create)
     ..aOM<Update_ReadReactions>(13, _omitFieldNames ? '' : 'readReactions',
         protoName: 'readReactions', subBuilder: Update_ReadReactions.create)
+    ..aOM<ChatFolders>(14, _omitFieldNames ? '' : 'folders', subBuilder: ChatFolders.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -2187,6 +2406,7 @@ class Update extends $pb.GeneratedMessage {
   @$pb.TagNumber(11)
   @$pb.TagNumber(12)
   @$pb.TagNumber(13)
+  @$pb.TagNumber(14)
   Update_Update whichUpdate() => _Update_UpdateByTag[$_whichOneof(0)]!;
   @$pb.TagNumber(3)
   @$pb.TagNumber(4)
@@ -2199,6 +2419,7 @@ class Update extends $pb.GeneratedMessage {
   @$pb.TagNumber(11)
   @$pb.TagNumber(12)
   @$pb.TagNumber(13)
+  @$pb.TagNumber(14)
   void clearUpdate() => $_clearField($_whichOneof(0));
 
   @$pb.TagNumber(1)
@@ -2339,6 +2560,19 @@ class Update extends $pb.GeneratedMessage {
   void clearReadReactions() => $_clearField(13);
   @$pb.TagNumber(13)
   Update_ReadReactions ensureReadReactions() => $_ensure(12);
+
+  /// Мои папки изменились (на этом или другом устройстве) — снимок целиком,
+  /// всегда текущий.
+  @$pb.TagNumber(14)
+  ChatFolders get folders => $_getN(13);
+  @$pb.TagNumber(14)
+  set folders(ChatFolders value) => $_setField(14, value);
+  @$pb.TagNumber(14)
+  $core.bool hasFolders() => $_has(13);
+  @$pb.TagNumber(14)
+  void clearFolders() => $_clearField(14);
+  @$pb.TagNumber(14)
+  ChatFolders ensureFolders() => $_ensure(13);
 }
 
 /// UPDATES — push по стриму (сервер → клиент): одно или несколько обновлений
@@ -3345,7 +3579,414 @@ class Chats_SaveDraftResult extends $pb.GeneratedMessage {
   Updates ensureUpdates() => $_ensure(0);
 }
 
-enum Chats_Request_Request { list, openPrivate, readHistory, setDialog, deleteDialog, readDate, canWrite, saveDraft, notSet }
+/// Папки: снимок — при первом входе и перезагрузке диалогов; изменения
+/// приходят обновлением folders на все мои устройства.
+class Chats_GetFolders extends $pb.GeneratedMessage {
+  factory Chats_GetFolders() => create();
+
+  Chats_GetFolders._();
+
+  factory Chats_GetFolders.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Chats_GetFolders.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Chats.GetFolders',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_GetFolders clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_GetFolders copyWith(void Function(Chats_GetFolders) updates) =>
+      super.copyWith((message) => updates(message as Chats_GetFolders)) as Chats_GetFolders;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static Chats_GetFolders create() => Chats_GetFolders._();
+  @$core.override
+  Chats_GetFolders createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static Chats_GetFolders getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Chats_GetFolders>(create);
+  static Chats_GetFolders? _defaultInstance;
+}
+
+class Chats_GetFoldersResult extends $pb.GeneratedMessage {
+  factory Chats_GetFoldersResult({
+    ChatFolders? folders,
+  }) {
+    final result = create();
+    if (folders != null) result.folders = folders;
+    return result;
+  }
+
+  Chats_GetFoldersResult._();
+
+  factory Chats_GetFoldersResult.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Chats_GetFoldersResult.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Chats.GetFoldersResult',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..aOM<ChatFolders>(1, _omitFieldNames ? '' : 'folders', subBuilder: ChatFolders.create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_GetFoldersResult clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_GetFoldersResult copyWith(void Function(Chats_GetFoldersResult) updates) =>
+      super.copyWith((message) => updates(message as Chats_GetFoldersResult)) as Chats_GetFoldersResult;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static Chats_GetFoldersResult create() => Chats_GetFoldersResult._();
+  @$core.override
+  Chats_GetFoldersResult createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static Chats_GetFoldersResult getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Chats_GetFoldersResult>(create);
+  static Chats_GetFoldersResult? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  ChatFolders get folders => $_getN(0);
+  @$pb.TagNumber(1)
+  set folders(ChatFolders value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasFolders() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearFolders() => $_clearField(1);
+  @$pb.TagNumber(1)
+  ChatFolders ensureFolders() => $_ensure(0);
+}
+
+/// Создать (id = 0, в конец; не больше 9) или изменить папку. Нет такой
+/// (удалили на другом устройстве) — NOT_FOUND; лимит — FAILED_PRECONDITION
+/// «foldersLimit». Без изменений — без обновлений.
+class Chats_SaveFolder extends $pb.GeneratedMessage {
+  factory Chats_SaveFolder({
+    ChatFolder? folder,
+  }) {
+    final result = create();
+    if (folder != null) result.folder = folder;
+    return result;
+  }
+
+  Chats_SaveFolder._();
+
+  factory Chats_SaveFolder.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Chats_SaveFolder.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Chats.SaveFolder',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..aOM<ChatFolder>(1, _omitFieldNames ? '' : 'folder', subBuilder: ChatFolder.create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_SaveFolder clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_SaveFolder copyWith(void Function(Chats_SaveFolder) updates) =>
+      super.copyWith((message) => updates(message as Chats_SaveFolder)) as Chats_SaveFolder;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static Chats_SaveFolder create() => Chats_SaveFolder._();
+  @$core.override
+  Chats_SaveFolder createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static Chats_SaveFolder getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Chats_SaveFolder>(create);
+  static Chats_SaveFolder? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  ChatFolder get folder => $_getN(0);
+  @$pb.TagNumber(1)
+  set folder(ChatFolder value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasFolder() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearFolder() => $_clearField(1);
+  @$pb.TagNumber(1)
+  ChatFolder ensureFolder() => $_ensure(0);
+}
+
+class Chats_SaveFolderResult extends $pb.GeneratedMessage {
+  factory Chats_SaveFolderResult({
+    Updates? updates,
+    $core.int? id,
+  }) {
+    final result = create();
+    if (updates != null) result.updates = updates;
+    if (id != null) result.id = id;
+    return result;
+  }
+
+  Chats_SaveFolderResult._();
+
+  factory Chats_SaveFolderResult.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Chats_SaveFolderResult.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Chats.SaveFolderResult',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..aOM<Updates>(1, _omitFieldNames ? '' : 'updates', subBuilder: Updates.create)
+    ..aI(2, _omitFieldNames ? '' : 'id')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_SaveFolderResult clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_SaveFolderResult copyWith(void Function(Chats_SaveFolderResult) updates) =>
+      super.copyWith((message) => updates(message as Chats_SaveFolderResult)) as Chats_SaveFolderResult;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static Chats_SaveFolderResult create() => Chats_SaveFolderResult._();
+  @$core.override
+  Chats_SaveFolderResult createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static Chats_SaveFolderResult getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Chats_SaveFolderResult>(create);
+  static Chats_SaveFolderResult? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  Updates get updates => $_getN(0);
+  @$pb.TagNumber(1)
+  set updates(Updates value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasUpdates() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearUpdates() => $_clearField(1);
+  @$pb.TagNumber(1)
+  Updates ensureUpdates() => $_ensure(0);
+
+  @$pb.TagNumber(2)
+  $core.int get id => $_getIZ(1);
+  @$pb.TagNumber(2)
+  set id($core.int value) => $_setSignedInt32(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasId() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearId() => $_clearField(2);
+}
+
+/// Удалить папку (уже нет — ничего).
+class Chats_DeleteFolder extends $pb.GeneratedMessage {
+  factory Chats_DeleteFolder({
+    $core.int? id,
+  }) {
+    final result = create();
+    if (id != null) result.id = id;
+    return result;
+  }
+
+  Chats_DeleteFolder._();
+
+  factory Chats_DeleteFolder.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Chats_DeleteFolder.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Chats.DeleteFolder',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..aI(1, _omitFieldNames ? '' : 'id')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_DeleteFolder clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_DeleteFolder copyWith(void Function(Chats_DeleteFolder) updates) =>
+      super.copyWith((message) => updates(message as Chats_DeleteFolder)) as Chats_DeleteFolder;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static Chats_DeleteFolder create() => Chats_DeleteFolder._();
+  @$core.override
+  Chats_DeleteFolder createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static Chats_DeleteFolder getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Chats_DeleteFolder>(create);
+  static Chats_DeleteFolder? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.int get id => $_getIZ(0);
+  @$pb.TagNumber(1)
+  set id($core.int value) => $_setSignedInt32(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasId() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearId() => $_clearField(1);
+}
+
+class Chats_DeleteFolderResult extends $pb.GeneratedMessage {
+  factory Chats_DeleteFolderResult({
+    Updates? updates,
+  }) {
+    final result = create();
+    if (updates != null) result.updates = updates;
+    return result;
+  }
+
+  Chats_DeleteFolderResult._();
+
+  factory Chats_DeleteFolderResult.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Chats_DeleteFolderResult.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Chats.DeleteFolderResult',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..aOM<Updates>(1, _omitFieldNames ? '' : 'updates', subBuilder: Updates.create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_DeleteFolderResult clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_DeleteFolderResult copyWith(void Function(Chats_DeleteFolderResult) updates) =>
+      super.copyWith((message) => updates(message as Chats_DeleteFolderResult)) as Chats_DeleteFolderResult;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static Chats_DeleteFolderResult create() => Chats_DeleteFolderResult._();
+  @$core.override
+  Chats_DeleteFolderResult createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static Chats_DeleteFolderResult getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Chats_DeleteFolderResult>(create);
+  static Chats_DeleteFolderResult? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  Updates get updates => $_getN(0);
+  @$pb.TagNumber(1)
+  set updates(Updates value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasUpdates() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearUpdates() => $_clearField(1);
+  @$pb.TagNumber(1)
+  Updates ensureUpdates() => $_ensure(0);
+}
+
+/// Новый порядок папок: ids — по порядку; не названные — в конец.
+class Chats_ReorderFolders extends $pb.GeneratedMessage {
+  factory Chats_ReorderFolders({
+    $core.Iterable<$core.int>? ids,
+  }) {
+    final result = create();
+    if (ids != null) result.ids.addAll(ids);
+    return result;
+  }
+
+  Chats_ReorderFolders._();
+
+  factory Chats_ReorderFolders.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Chats_ReorderFolders.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Chats.ReorderFolders',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..p<$core.int>(1, _omitFieldNames ? '' : 'ids', $pb.PbFieldType.K3)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_ReorderFolders clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_ReorderFolders copyWith(void Function(Chats_ReorderFolders) updates) =>
+      super.copyWith((message) => updates(message as Chats_ReorderFolders)) as Chats_ReorderFolders;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static Chats_ReorderFolders create() => Chats_ReorderFolders._();
+  @$core.override
+  Chats_ReorderFolders createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static Chats_ReorderFolders getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Chats_ReorderFolders>(create);
+  static Chats_ReorderFolders? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $pb.PbList<$core.int> get ids => $_getList(0);
+}
+
+class Chats_ReorderFoldersResult extends $pb.GeneratedMessage {
+  factory Chats_ReorderFoldersResult({
+    Updates? updates,
+  }) {
+    final result = create();
+    if (updates != null) result.updates = updates;
+    return result;
+  }
+
+  Chats_ReorderFoldersResult._();
+
+  factory Chats_ReorderFoldersResult.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Chats_ReorderFoldersResult.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Chats.ReorderFoldersResult',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..aOM<Updates>(1, _omitFieldNames ? '' : 'updates', subBuilder: Updates.create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_ReorderFoldersResult clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_ReorderFoldersResult copyWith(void Function(Chats_ReorderFoldersResult) updates) =>
+      super.copyWith((message) => updates(message as Chats_ReorderFoldersResult)) as Chats_ReorderFoldersResult;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static Chats_ReorderFoldersResult create() => Chats_ReorderFoldersResult._();
+  @$core.override
+  Chats_ReorderFoldersResult createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static Chats_ReorderFoldersResult getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Chats_ReorderFoldersResult>(create);
+  static Chats_ReorderFoldersResult? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  Updates get updates => $_getN(0);
+  @$pb.TagNumber(1)
+  set updates(Updates value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasUpdates() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearUpdates() => $_clearField(1);
+  @$pb.TagNumber(1)
+  Updates ensureUpdates() => $_ensure(0);
+}
+
+enum Chats_Request_Request {
+  list,
+  openPrivate,
+  readHistory,
+  setDialog,
+  deleteDialog,
+  readDate,
+  canWrite,
+  saveDraft,
+  getFolders,
+  saveFolder,
+  deleteFolder,
+  reorderFolders,
+  notSet
+}
 
 class Chats_Request extends $pb.GeneratedMessage {
   factory Chats_Request({
@@ -3357,6 +3998,10 @@ class Chats_Request extends $pb.GeneratedMessage {
     Chats_ReadDate? readDate,
     Chats_CanWrite? canWrite,
     Chats_SaveDraft? saveDraft,
+    Chats_GetFolders? getFolders,
+    Chats_SaveFolder? saveFolder,
+    Chats_DeleteFolder? deleteFolder,
+    Chats_ReorderFolders? reorderFolders,
   }) {
     final result = create();
     if (list != null) result.list = list;
@@ -3367,6 +4012,10 @@ class Chats_Request extends $pb.GeneratedMessage {
     if (readDate != null) result.readDate = readDate;
     if (canWrite != null) result.canWrite = canWrite;
     if (saveDraft != null) result.saveDraft = saveDraft;
+    if (getFolders != null) result.getFolders = getFolders;
+    if (saveFolder != null) result.saveFolder = saveFolder;
+    if (deleteFolder != null) result.deleteFolder = deleteFolder;
+    if (reorderFolders != null) result.reorderFolders = reorderFolders;
     return result;
   }
 
@@ -3386,11 +4035,15 @@ class Chats_Request extends $pb.GeneratedMessage {
     6: Chats_Request_Request.readDate,
     7: Chats_Request_Request.canWrite,
     8: Chats_Request_Request.saveDraft,
+    9: Chats_Request_Request.getFolders,
+    10: Chats_Request_Request.saveFolder,
+    11: Chats_Request_Request.deleteFolder,
+    12: Chats_Request_Request.reorderFolders,
     0: Chats_Request_Request.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Chats.Request',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
-    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8])
+    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12])
     ..aOM<Chats_List>(1, _omitFieldNames ? '' : 'list', subBuilder: Chats_List.create)
     ..aOM<Chats_OpenPrivate>(2, _omitFieldNames ? '' : 'openPrivate', protoName: 'openPrivate', subBuilder: Chats_OpenPrivate.create)
     ..aOM<Chats_ReadHistory>(3, _omitFieldNames ? '' : 'readHistory', protoName: 'readHistory', subBuilder: Chats_ReadHistory.create)
@@ -3399,6 +4052,11 @@ class Chats_Request extends $pb.GeneratedMessage {
     ..aOM<Chats_ReadDate>(6, _omitFieldNames ? '' : 'readDate', protoName: 'readDate', subBuilder: Chats_ReadDate.create)
     ..aOM<Chats_CanWrite>(7, _omitFieldNames ? '' : 'canWrite', protoName: 'canWrite', subBuilder: Chats_CanWrite.create)
     ..aOM<Chats_SaveDraft>(8, _omitFieldNames ? '' : 'saveDraft', protoName: 'saveDraft', subBuilder: Chats_SaveDraft.create)
+    ..aOM<Chats_GetFolders>(9, _omitFieldNames ? '' : 'getFolders', protoName: 'getFolders', subBuilder: Chats_GetFolders.create)
+    ..aOM<Chats_SaveFolder>(10, _omitFieldNames ? '' : 'saveFolder', protoName: 'saveFolder', subBuilder: Chats_SaveFolder.create)
+    ..aOM<Chats_DeleteFolder>(11, _omitFieldNames ? '' : 'deleteFolder', protoName: 'deleteFolder', subBuilder: Chats_DeleteFolder.create)
+    ..aOM<Chats_ReorderFolders>(12, _omitFieldNames ? '' : 'reorderFolders',
+        protoName: 'reorderFolders', subBuilder: Chats_ReorderFolders.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -3426,6 +4084,10 @@ class Chats_Request extends $pb.GeneratedMessage {
   @$pb.TagNumber(6)
   @$pb.TagNumber(7)
   @$pb.TagNumber(8)
+  @$pb.TagNumber(9)
+  @$pb.TagNumber(10)
+  @$pb.TagNumber(11)
+  @$pb.TagNumber(12)
   Chats_Request_Request whichRequest() => _Chats_Request_RequestByTag[$_whichOneof(0)]!;
   @$pb.TagNumber(1)
   @$pb.TagNumber(2)
@@ -3435,6 +4097,10 @@ class Chats_Request extends $pb.GeneratedMessage {
   @$pb.TagNumber(6)
   @$pb.TagNumber(7)
   @$pb.TagNumber(8)
+  @$pb.TagNumber(9)
+  @$pb.TagNumber(10)
+  @$pb.TagNumber(11)
+  @$pb.TagNumber(12)
   void clearRequest() => $_clearField($_whichOneof(0));
 
   @$pb.TagNumber(1)
@@ -3524,9 +4190,67 @@ class Chats_Request extends $pb.GeneratedMessage {
   void clearSaveDraft() => $_clearField(8);
   @$pb.TagNumber(8)
   Chats_SaveDraft ensureSaveDraft() => $_ensure(7);
+
+  @$pb.TagNumber(9)
+  Chats_GetFolders get getFolders => $_getN(8);
+  @$pb.TagNumber(9)
+  set getFolders(Chats_GetFolders value) => $_setField(9, value);
+  @$pb.TagNumber(9)
+  $core.bool hasGetFolders() => $_has(8);
+  @$pb.TagNumber(9)
+  void clearGetFolders() => $_clearField(9);
+  @$pb.TagNumber(9)
+  Chats_GetFolders ensureGetFolders() => $_ensure(8);
+
+  @$pb.TagNumber(10)
+  Chats_SaveFolder get saveFolder => $_getN(9);
+  @$pb.TagNumber(10)
+  set saveFolder(Chats_SaveFolder value) => $_setField(10, value);
+  @$pb.TagNumber(10)
+  $core.bool hasSaveFolder() => $_has(9);
+  @$pb.TagNumber(10)
+  void clearSaveFolder() => $_clearField(10);
+  @$pb.TagNumber(10)
+  Chats_SaveFolder ensureSaveFolder() => $_ensure(9);
+
+  @$pb.TagNumber(11)
+  Chats_DeleteFolder get deleteFolder => $_getN(10);
+  @$pb.TagNumber(11)
+  set deleteFolder(Chats_DeleteFolder value) => $_setField(11, value);
+  @$pb.TagNumber(11)
+  $core.bool hasDeleteFolder() => $_has(10);
+  @$pb.TagNumber(11)
+  void clearDeleteFolder() => $_clearField(11);
+  @$pb.TagNumber(11)
+  Chats_DeleteFolder ensureDeleteFolder() => $_ensure(10);
+
+  @$pb.TagNumber(12)
+  Chats_ReorderFolders get reorderFolders => $_getN(11);
+  @$pb.TagNumber(12)
+  set reorderFolders(Chats_ReorderFolders value) => $_setField(12, value);
+  @$pb.TagNumber(12)
+  $core.bool hasReorderFolders() => $_has(11);
+  @$pb.TagNumber(12)
+  void clearReorderFolders() => $_clearField(12);
+  @$pb.TagNumber(12)
+  Chats_ReorderFolders ensureReorderFolders() => $_ensure(11);
 }
 
-enum Chats_Response_Response { list, openPrivate, readHistory, setDialog, deleteDialog, readDate, canWrite, saveDraft, notSet }
+enum Chats_Response_Response {
+  list,
+  openPrivate,
+  readHistory,
+  setDialog,
+  deleteDialog,
+  readDate,
+  canWrite,
+  saveDraft,
+  getFolders,
+  saveFolder,
+  deleteFolder,
+  reorderFolders,
+  notSet
+}
 
 class Chats_Response extends $pb.GeneratedMessage {
   factory Chats_Response({
@@ -3538,6 +4262,10 @@ class Chats_Response extends $pb.GeneratedMessage {
     Chats_ReadDateResult? readDate,
     Chats_CanWriteResult? canWrite,
     Chats_SaveDraftResult? saveDraft,
+    Chats_GetFoldersResult? getFolders,
+    Chats_SaveFolderResult? saveFolder,
+    Chats_DeleteFolderResult? deleteFolder,
+    Chats_ReorderFoldersResult? reorderFolders,
   }) {
     final result = create();
     if (list != null) result.list = list;
@@ -3548,6 +4276,10 @@ class Chats_Response extends $pb.GeneratedMessage {
     if (readDate != null) result.readDate = readDate;
     if (canWrite != null) result.canWrite = canWrite;
     if (saveDraft != null) result.saveDraft = saveDraft;
+    if (getFolders != null) result.getFolders = getFolders;
+    if (saveFolder != null) result.saveFolder = saveFolder;
+    if (deleteFolder != null) result.deleteFolder = deleteFolder;
+    if (reorderFolders != null) result.reorderFolders = reorderFolders;
     return result;
   }
 
@@ -3567,11 +4299,15 @@ class Chats_Response extends $pb.GeneratedMessage {
     6: Chats_Response_Response.readDate,
     7: Chats_Response_Response.canWrite,
     8: Chats_Response_Response.saveDraft,
+    9: Chats_Response_Response.getFolders,
+    10: Chats_Response_Response.saveFolder,
+    11: Chats_Response_Response.deleteFolder,
+    12: Chats_Response_Response.reorderFolders,
     0: Chats_Response_Response.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Chats.Response',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
-    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8])
+    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12])
     ..aOM<Chats_ListResult>(1, _omitFieldNames ? '' : 'list', subBuilder: Chats_ListResult.create)
     ..aOM<Chats_OpenPrivateResult>(2, _omitFieldNames ? '' : 'openPrivate',
         protoName: 'openPrivate', subBuilder: Chats_OpenPrivateResult.create)
@@ -3583,6 +4319,14 @@ class Chats_Response extends $pb.GeneratedMessage {
     ..aOM<Chats_ReadDateResult>(6, _omitFieldNames ? '' : 'readDate', protoName: 'readDate', subBuilder: Chats_ReadDateResult.create)
     ..aOM<Chats_CanWriteResult>(7, _omitFieldNames ? '' : 'canWrite', protoName: 'canWrite', subBuilder: Chats_CanWriteResult.create)
     ..aOM<Chats_SaveDraftResult>(8, _omitFieldNames ? '' : 'saveDraft', protoName: 'saveDraft', subBuilder: Chats_SaveDraftResult.create)
+    ..aOM<Chats_GetFoldersResult>(9, _omitFieldNames ? '' : 'getFolders',
+        protoName: 'getFolders', subBuilder: Chats_GetFoldersResult.create)
+    ..aOM<Chats_SaveFolderResult>(10, _omitFieldNames ? '' : 'saveFolder',
+        protoName: 'saveFolder', subBuilder: Chats_SaveFolderResult.create)
+    ..aOM<Chats_DeleteFolderResult>(11, _omitFieldNames ? '' : 'deleteFolder',
+        protoName: 'deleteFolder', subBuilder: Chats_DeleteFolderResult.create)
+    ..aOM<Chats_ReorderFoldersResult>(12, _omitFieldNames ? '' : 'reorderFolders',
+        protoName: 'reorderFolders', subBuilder: Chats_ReorderFoldersResult.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -3610,6 +4354,10 @@ class Chats_Response extends $pb.GeneratedMessage {
   @$pb.TagNumber(6)
   @$pb.TagNumber(7)
   @$pb.TagNumber(8)
+  @$pb.TagNumber(9)
+  @$pb.TagNumber(10)
+  @$pb.TagNumber(11)
+  @$pb.TagNumber(12)
   Chats_Response_Response whichResponse() => _Chats_Response_ResponseByTag[$_whichOneof(0)]!;
   @$pb.TagNumber(1)
   @$pb.TagNumber(2)
@@ -3619,6 +4367,10 @@ class Chats_Response extends $pb.GeneratedMessage {
   @$pb.TagNumber(6)
   @$pb.TagNumber(7)
   @$pb.TagNumber(8)
+  @$pb.TagNumber(9)
+  @$pb.TagNumber(10)
+  @$pb.TagNumber(11)
+  @$pb.TagNumber(12)
   void clearResponse() => $_clearField($_whichOneof(0));
 
   @$pb.TagNumber(1)
@@ -3708,6 +4460,50 @@ class Chats_Response extends $pb.GeneratedMessage {
   void clearSaveDraft() => $_clearField(8);
   @$pb.TagNumber(8)
   Chats_SaveDraftResult ensureSaveDraft() => $_ensure(7);
+
+  @$pb.TagNumber(9)
+  Chats_GetFoldersResult get getFolders => $_getN(8);
+  @$pb.TagNumber(9)
+  set getFolders(Chats_GetFoldersResult value) => $_setField(9, value);
+  @$pb.TagNumber(9)
+  $core.bool hasGetFolders() => $_has(8);
+  @$pb.TagNumber(9)
+  void clearGetFolders() => $_clearField(9);
+  @$pb.TagNumber(9)
+  Chats_GetFoldersResult ensureGetFolders() => $_ensure(8);
+
+  @$pb.TagNumber(10)
+  Chats_SaveFolderResult get saveFolder => $_getN(9);
+  @$pb.TagNumber(10)
+  set saveFolder(Chats_SaveFolderResult value) => $_setField(10, value);
+  @$pb.TagNumber(10)
+  $core.bool hasSaveFolder() => $_has(9);
+  @$pb.TagNumber(10)
+  void clearSaveFolder() => $_clearField(10);
+  @$pb.TagNumber(10)
+  Chats_SaveFolderResult ensureSaveFolder() => $_ensure(9);
+
+  @$pb.TagNumber(11)
+  Chats_DeleteFolderResult get deleteFolder => $_getN(10);
+  @$pb.TagNumber(11)
+  set deleteFolder(Chats_DeleteFolderResult value) => $_setField(11, value);
+  @$pb.TagNumber(11)
+  $core.bool hasDeleteFolder() => $_has(10);
+  @$pb.TagNumber(11)
+  void clearDeleteFolder() => $_clearField(11);
+  @$pb.TagNumber(11)
+  Chats_DeleteFolderResult ensureDeleteFolder() => $_ensure(10);
+
+  @$pb.TagNumber(12)
+  Chats_ReorderFoldersResult get reorderFolders => $_getN(11);
+  @$pb.TagNumber(12)
+  set reorderFolders(Chats_ReorderFoldersResult value) => $_setField(12, value);
+  @$pb.TagNumber(12)
+  $core.bool hasReorderFolders() => $_has(11);
+  @$pb.TagNumber(12)
+  void clearReorderFolders() => $_clearField(12);
+  @$pb.TagNumber(12)
+  Chats_ReorderFoldersResult ensureReorderFolders() => $_ensure(11);
 }
 
 /// CHATS — диалоги.

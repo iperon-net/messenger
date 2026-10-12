@@ -640,6 +640,22 @@ class Repositories {
       }),
     );
 
+    migrations.add(
+      SqliteMigration(26, (tx) async {
+        // Папки чатов — снимок с сервера (сериализованный `ChatFolders`),
+        // один на пользователя: видны без сети. Нет строки — ещё не
+        // загружали (запросим при подключении).
+        await tx.execute("""
+        CREATE TABLE chatFolders (
+          userID BLOB PRIMARY KEY,
+          folders BLOB NOT NULL,
+          version INTEGER NOT NULL DEFAULT 0,
+          FOREIGN KEY (userID) REFERENCES users(userID) ON DELETE CASCADE ON UPDATE CASCADE
+        );
+      """);
+      }),
+    );
+
     if (settings.isDeleteDatabase) {
       logger.warning("Deleting the database, flag set IS_DELETE_DATABASE: 1");
 

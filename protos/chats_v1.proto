@@ -221,6 +221,31 @@ message Dialog {
   int64 draftDate = 15; // unix millis
 }
 
+// Папка (таб) списка чатов — как dialogFilter в Telegram. «Все чаты» — не
+// папка (у клиента всегда первая). id выдаёт сервер; у SaveFolder 0 — новая.
+// Чат попадает в папку, если он в includeChatIDs или подходит по типу и не
+// исключён (excludeChatIDs, флаги exclude*); архивные — никогда.
+message ChatFolder {
+  int32 id = 1;
+  string title = 2;
+  bool includeContacts = 3;
+  bool includeNonContacts = 4;
+  bool includeGroups = 5;
+  bool includeChannels = 6;
+  bool includeCommunities = 7;
+  repeated bytes includeChatIDs = 8;
+  repeated bytes excludeChatIDs = 9;
+  bool excludeMuted = 10;
+  bool excludeRead = 11;
+}
+
+// Все мои папки по порядку (до 9, без «Все чаты»). version растёт с каждым
+// изменением: клиент не перезаписывает новый снимок старым.
+message ChatFolders {
+  repeated ChatFolder folders = 1;
+  int64 version = 2;
+}
+
 // Состояние журнала обновлений пользователя.
 message UpdatesState {
   int64 pts = 1;
@@ -318,6 +343,9 @@ message Update {
     PinnedMessages pinnedMessages = 11;
     MessageReactionsChanged messageReactions = 12;
     ReadReactions readReactions = 13;
+    // Мои папки изменились (на этом или другом устройстве) — снимок целиком,
+    // всегда текущий.
+    ChatFolders folders = 14;
   }
 }
 
@@ -431,6 +459,44 @@ message Chats {
     Updates updates = 1;
   }
 
+  // Папки: снимок — при первом входе и перезагрузке диалогов; изменения
+  // приходят обновлением folders на все мои устройства.
+  message GetFolders {}
+
+  message GetFoldersResult {
+    ChatFolders folders = 1;
+  }
+
+  // Создать (id = 0, в конец; не больше 9) или изменить папку. Нет такой
+  // (удалили на другом устройстве) — NOT_FOUND; лимит — FAILED_PRECONDITION
+  // «foldersLimit». Без изменений — без обновлений.
+  message SaveFolder {
+    ChatFolder folder = 1;
+  }
+
+  message SaveFolderResult {
+    Updates updates = 1;
+    int32 id = 2;
+  }
+
+  // Удалить папку (уже нет — ничего).
+  message DeleteFolder {
+    int32 id = 1;
+  }
+
+  message DeleteFolderResult {
+    Updates updates = 1;
+  }
+
+  // Новый порядок папок: ids — по порядку; не названные — в конец.
+  message ReorderFolders {
+    repeated int32 ids = 1;
+  }
+
+  message ReorderFoldersResult {
+    Updates updates = 1;
+  }
+
   message Request {
     oneof request {
       List list = 1;
@@ -441,6 +507,10 @@ message Chats {
       ReadDate readDate = 6;
       CanWrite canWrite = 7;
       SaveDraft saveDraft = 8;
+      GetFolders getFolders = 9;
+      SaveFolder saveFolder = 10;
+      DeleteFolder deleteFolder = 11;
+      ReorderFolders reorderFolders = 12;
     }
   }
 
@@ -454,6 +524,10 @@ message Chats {
       ReadDateResult readDate = 6;
       CanWriteResult canWrite = 7;
       SaveDraftResult saveDraft = 8;
+      GetFoldersResult getFolders = 9;
+      SaveFolderResult saveFolder = 10;
+      DeleteFolderResult deleteFolder = 11;
+      ReorderFoldersResult reorderFolders = 12;
     }
   }
 }
