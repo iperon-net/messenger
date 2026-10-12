@@ -78,6 +78,7 @@
   "deleteChatTitle": "Удалить чат?"
   "deleteChatMessage": "Чат «{title}» будет удалён из списка."
   "readAll": "Прочитать все"
+  "readReactions": "Прочитать реакции"
   "deleteFolder": "Удалить папку"
   "deleteFolderTitle": "Удалить папку «{title}»?"
   "deleteFolderMessage": "Чаты из папки не удаляются."

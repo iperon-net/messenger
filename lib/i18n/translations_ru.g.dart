@@ -192,6 +192,7 @@ class _Translations$screenChats$ru extends Translations$screenChats$en {
 	@override String get deleteChatTitle => 'Удалить чат?';
 	@override String deleteChatMessage({required Object title}) => 'Чат «${title}» будет удалён из списка.';
 	@override String get readAll => 'Прочитать все';
+	@override String get readReactions => 'Прочитать реакции';
 	@override String get deleteFolder => 'Удалить папку';
 	@override String deleteFolderTitle({required Object title}) => 'Удалить папку «${title}»?';
 	@override String get deleteFolderMessage => 'Чаты из папки не удаляются.';
@@ -1592,6 +1593,7 @@ extension on TranslationsRu {
 			'screenChats.deleteChatTitle' => 'Удалить чат?',
 			'screenChats.deleteChatMessage' => ({required Object title}) => 'Чат «${title}» будет удалён из списка.',
 			'screenChats.readAll' => 'Прочитать все',
+			'screenChats.readReactions' => 'Прочитать реакции',
 			'screenChats.deleteFolder' => 'Удалить папку',
 			'screenChats.deleteFolderTitle' => ({required Object title}) => 'Удалить папку «${title}»?',
 			'screenChats.deleteFolderMessage' => 'Чаты из папки не удаляются.',
@@ -2032,9 +2034,9 @@ extension on TranslationsRu {
 			'screenSettings.settings' => 'Настройки',
 			'screenSettings.myProfile' => 'Мой профиль',
 			'screenSettings.devices' => _root.screenSettingsDevices.devices,
-			'screenSettings.language' => 'Язык',
 			_ => null,
 		} ?? switch (path) {
+			'screenSettings.language' => 'Язык',
 			'screenSettings.appearance' => _root.screenSettingsAppearance.appearance,
 			'screenSettings.folders' => _root.screenChatFolders.folders,
 			'screenSettings.notifications' => _root.screenSettingsNotifications.notifications,
@@ -2546,9 +2548,9 @@ extension on TranslationsRu {
 			'passkey.loadError' => 'Не удалось загрузить ключи',
 			'passkey.retry' => 'Повторить',
 			'passkey.verificationFailed' => 'Не удалось проверить ключ. Попробуйте ещё раз.',
-			'passkey.ceremonyExpired' => 'Срок запроса истёк. Попробуйте ещё раз.',
 			_ => null,
 		} ?? switch (path) {
+			'passkey.ceremonyExpired' => 'Срок запроса истёк. Попробуйте ещё раз.',
 			'passkey.unknownCredential' => 'Этот ключ не распознан.',
 			'passkey.alreadyRegistered' => 'Этот ключ уже зарегистрирован.',
 			'passkey.notFound' => 'Ключ не найден.',

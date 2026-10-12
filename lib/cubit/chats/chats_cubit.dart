@@ -84,6 +84,7 @@ class ChatsCubit extends Cubit<ChatsState> {
   Future<void> setMuted(models.Chat chat, bool muted, {DateTime? until}) => _online(() => _source?.setMuted(chat.id, muted, until: until));
   Future<void> setArchived(models.Chat chat, bool archived) => _online(() => _source?.setArchived(chat.id, archived));
   Future<void> setRead(models.Chat chat, bool read) => _online(() => _source?.setRead(chat.id, read));
+  Future<void> readReactions(models.Chat chat) => _online(() => _source?.readAllReactions(chat.id));
   Future<void> delete(models.Chat chat) => _online(() => _source?.delete(chat.id));
 
   Future<void> readAll(models.ChatFolder folder) async =>

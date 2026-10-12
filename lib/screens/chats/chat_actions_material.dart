@@ -46,6 +46,7 @@ Future<void> showChatActionsMaterial(BuildContext context, models.Chat chat) asy
             chat.hasUnread ? t.markRead : t.markUnread,
             () => cubit.setRead(chat, chat.hasUnread),
           ),
+          if (chat.unreadReactions > 0) action(sheetContext, Icons.favorite_border, t.readReactions, () => cubit.readReactions(chat)),
           action(
             sheetContext,
             chat.muted ? Icons.notifications_outlined : Icons.notifications_off_outlined,

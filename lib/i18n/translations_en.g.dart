@@ -337,6 +337,9 @@ class Translations$screenChats$en {
 	/// en: 'Read all'
 	String get readAll => 'Read all';
 
+	/// en: 'Read reactions'
+	String get readReactions => 'Read reactions';
+
 	/// en: 'Delete folder'
 	String get deleteFolder => 'Delete folder';
 
@@ -3633,6 +3636,7 @@ extension on Translations {
 			'screenChats.deleteChatTitle' => 'Delete chat?',
 			'screenChats.deleteChatMessage' => ({required Object title}) => 'Chat "${title}" will be removed from the list.',
 			'screenChats.readAll' => 'Read all',
+			'screenChats.readReactions' => 'Read reactions',
 			'screenChats.deleteFolder' => 'Delete folder',
 			'screenChats.deleteFolderTitle' => ({required Object title}) => 'Delete folder "${title}"?',
 			'screenChats.deleteFolderMessage' => 'Chats in the folder are not deleted.',
@@ -4073,9 +4077,9 @@ extension on Translations {
 			'screenSettings.settings' => 'Settings',
 			'screenSettings.myProfile' => 'My profile',
 			'screenSettings.devices' => _root.screenSettingsDevices.devices,
-			'screenSettings.language' => 'Language',
 			_ => null,
 		} ?? switch (path) {
+			'screenSettings.language' => 'Language',
 			'screenSettings.appearance' => _root.screenSettingsAppearance.appearance,
 			'screenSettings.folders' => _root.screenChatFolders.folders,
 			'screenSettings.notifications' => _root.screenSettingsNotifications.notifications,
@@ -4587,9 +4591,9 @@ extension on Translations {
 			'passkey.loadError' => 'Couldn\'t load passkeys',
 			'passkey.retry' => 'Retry',
 			'passkey.verificationFailed' => 'Couldn\'t verify the passkey. Please try again.',
-			'passkey.ceremonyExpired' => 'The request expired. Please try again.',
 			_ => null,
 		} ?? switch (path) {
+			'passkey.ceremonyExpired' => 'The request expired. Please try again.',
 			'passkey.unknownCredential' => 'This passkey isn\'t recognized.',
 			'passkey.alreadyRegistered' => 'This passkey is already registered.',
 			'passkey.notFound' => 'Passkey not found.',

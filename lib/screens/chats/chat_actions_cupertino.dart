@@ -52,6 +52,7 @@ class ChatContextMenuCupertino extends StatelessWidget {
           chat.hasUnread ? CupertinoIcons.chat_bubble : CupertinoIcons.chat_bubble_fill,
           () => cubit.setRead(chat, chat.hasUnread),
         ),
+        if (chat.unreadReactions > 0) action(t.readReactions, CupertinoIcons.heart, () => cubit.readReactions(chat)),
         action(
           chat.muted ? t.unmute : t.mute,
           chat.muted ? CupertinoIcons.bell : CupertinoIcons.bell_slash,

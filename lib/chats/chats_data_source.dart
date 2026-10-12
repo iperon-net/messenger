@@ -355,6 +355,10 @@ abstract class ChatsDataSource {
   /// `Message.reactionsUnread` и уменьшить бейдж ❤️ (`Chat.unreadReactions`).
   Future<void> readReactions(String chatID, List<String> messageIDs);
 
+  /// «Прочитать реакции» из меню чата в списке: снять все непрочитанные
+  /// реакции чата. Серверное действие — без сети [ChatsOfflineException].
+  Future<void> readAllReactions(String chatID);
+
   /// Кнопка ❤️ в окне чата: самое старое наше сообщение с непрочитанными
   /// реакциями; `null` — таких нет.
   Future<String?> nextUnreadReaction(String chatID);

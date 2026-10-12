@@ -1203,6 +1203,21 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     }
   }
 
+  /// Пустой список id — сервер снимает со всех. Ничего не снял — счётчик в
+  /// кэше устарел, обнуляем сами.
+  @override
+  Future<void> readAllReactions(String chatID) async {
+    final chat = idBytes(chatID);
+    if (chat.isEmpty || !_auth.isAuthorized) return;
+    await _requireNetwork();
+    final response = await _sync.messages(pb.Messages_Request(readReactions: pb.Messages_ReadReactions(chatID: chat)));
+    final updates = response.readReactions.updates;
+    if (updates.updates.isNotEmpty) return _sync.applyUpdates(updates);
+    final ids = await _store.unreadReactionIDs(userID: _sync.me, chatID: chat);
+    await _store.readReactions(userID: _sync.me, chatID: chat, messageIDs: ids);
+    await _store.updateDialog(userID: _sync.me, chatID: chat, fields: {'unreadReactions': 0});
+  }
+
   /// С сервера (старых сообщений может не быть в кэше), без сети — из кэша.
   /// Сервер ответил «нет» — счётчик в кэше устарел, обнуляем.
   @override
