@@ -139,6 +139,12 @@ class ChatTileMaterial extends StatelessWidget {
     final unreadColor = chat.muted ? scheme.outline : scheme.primary;
     final text = TextStyle(fontSize: 13, color: scheme.onPrimary, fontWeight: FontWeight.w600);
     final children = <Widget>[
+      // Непрочитанные реакции на мои сообщения — красный ❤️ (как в Telegram).
+      if (chat.unreadReactions > 0)
+        _pill(
+          child: FaIcon(FontAwesomeIcons.solidHeart, size: 11, color: scheme.onError),
+          color: scheme.error,
+        ),
       if (chat.unreadMentions > 0)
         _pill(
           child: Text('@', style: text),

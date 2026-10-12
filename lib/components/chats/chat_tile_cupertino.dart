@@ -185,6 +185,12 @@ class _ChatTileCupertinoState extends State<ChatTileCupertino> {
     // На акценте — onAccent (в тёмной теме акцент светлый), на сером — белый.
     final onAccent = _badgeText.copyWith(color: ThemesCupertino.onAccent(context));
     final children = <Widget>[
+      // Непрочитанные реакции на мои сообщения — красный ❤️ (как в Telegram).
+      if (chat.unreadReactions > 0)
+        _pill(
+          child: const FaIcon(FontAwesomeIcons.solidHeart, size: 10, color: CupertinoColors.white),
+          color: CupertinoColors.systemRed.resolveFrom(context),
+        ),
       if (chat.unreadMentions > 0)
         _pill(
           child: Text('@', style: onAccent),

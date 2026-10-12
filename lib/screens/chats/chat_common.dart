@@ -1298,6 +1298,90 @@ class ChatScrollDownButton extends StatelessWidget {
   }
 }
 
+/// Круглая кнопка ❤️ над кнопкой «вниз» (как в Telegram): есть наши
+/// сообщения с непрочитанными реакциями ([count]); тап — к самому старому.
+/// Кнопка «вниз» спрятана — опускается на её место. Положение — сама
+/// (Positioned), класть прямо в Stack ленты.
+class ChatReactionsButton extends StatelessWidget {
+  final ChatScrollTracker tracker;
+  final int count;
+  final VoidCallback onTap;
+  final Color background;
+  final Color iconColor;
+  final Color badgeColor;
+  final Color badgeTextColor;
+
+  const ChatReactionsButton({
+    super.key,
+    required this.tracker,
+    required this.count,
+    required this.onTap,
+    required this.background,
+    required this.iconColor,
+    required this.badgeColor,
+    this.badgeTextColor = const Color(0xFFFFFFFF),
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final visible = count > 0;
+    return ListenableBuilder(
+      listenable: tracker,
+      builder: (context, _) => AnimatedPositioned(
+        duration: const Duration(milliseconds: 180),
+        curve: Curves.easeOutCubic,
+        right: 10,
+        bottom: tracker.showDown ? 62 : 10,
+        child: IgnorePointer(
+          ignoring: !visible,
+          child: AnimatedOpacity(
+            opacity: visible ? 1 : 0,
+            duration: const Duration(milliseconds: 180),
+            child: AnimatedScale(
+              scale: visible ? 1 : 0.6,
+              duration: const Duration(milliseconds: 180),
+              child: GestureDetector(
+                onTap: onTap,
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  alignment: Alignment.topCenter,
+                  children: [
+                    Container(
+                      width: 42,
+                      height: 42,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: background,
+                        shape: BoxShape.circle,
+                        boxShadow: const [BoxShadow(color: Color(0x33000000), blurRadius: 6, offset: Offset(0, 1))],
+                      ),
+                      child: FaIcon(FontAwesomeIcons.heart, size: 18, color: iconColor),
+                    ),
+                    if (visible)
+                      Positioned(
+                        top: -9,
+                        child: Container(
+                          constraints: const BoxConstraints(minWidth: 20),
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(color: badgeColor, borderRadius: BorderRadius.circular(10)),
+                          child: Text(
+                            '$count',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: badgeTextColor),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 /// Цвета плашки закреплённого — свои у Cupertino и Material.
 class PinnedBarStyle {
   final Color background;

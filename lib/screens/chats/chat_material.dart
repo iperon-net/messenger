@@ -302,6 +302,12 @@ class _ChatMaterialState extends State<ChatMaterial> {
     if (mounted) await _tracker.jumpTo(id);
   }
 
+  /// Кнопка ❤️ — к самому старому нашему сообщению с непрочитанными реакциями.
+  Future<void> _nextReaction() async {
+    final id = await _cubit.nextUnreadReaction();
+    if (id != null && mounted) await _tracker.jumpTo(id);
+  }
+
   /// «Закрепить» / «Открепить»: в личном чате — у меня и у собеседника или
   /// только у меня (см. [askPinScopeMaterial]).
   Future<void> _pin(models.Chat chat, models.Message message) async {
@@ -534,6 +540,7 @@ class _ChatMaterialState extends State<ChatMaterial> {
                                             : null,
                                         onReplyTap: _tracker.jumpToReply,
                                         onPinnedServiceTap: _jumpTo,
+                                        onReactionsShown: _cubit.reactionsShown,
                                         pinned: state.pinnedMessages,
                                         unreadFromID: state.unreadFromID,
                                         flashID: _flashID,
@@ -561,6 +568,15 @@ class _ChatMaterialState extends State<ChatMaterial> {
                                         ),
                                       ),
                                 Positioned(top: 0, left: 0, right: 0, child: _pinnedBar(context, chat, state)),
+                                ChatReactionsButton(
+                                  tracker: _tracker,
+                                  count: chat.unreadReactions,
+                                  onTap: _nextReaction,
+                                  background: barColor,
+                                  iconColor: Theme.of(context).colorScheme.onSurfaceVariant,
+                                  badgeColor: Theme.of(context).colorScheme.primary,
+                                  badgeTextColor: Theme.of(context).colorScheme.onPrimary,
+                                ),
                                 Positioned(
                                   right: 10,
                                   bottom: 10,

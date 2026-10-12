@@ -1961,6 +1961,20 @@ class ChatsDemoDataSource implements ChatsDataSource {
       _updateMessage(chatID, messageID, (m) => m.copyWith(mediaUnread: false));
 
   @override
+  Future<void> readReactions(String chatID, List<String> messageIDs) async {
+    final unread = (_messages[chatID] ?? const <models.Message>[]).where((m) => m.reactionsUnread && messageIDs.contains(m.id)).length;
+    if (unread == 0) return;
+    for (final id in messageIDs) {
+      _updateMessage(chatID, id, (m) => m.copyWith(reactionsUnread: false));
+    }
+    _update(chatID, (c) => c.copyWith(unreadReactions: (c.unreadReactions - unread).clamp(0, c.unreadReactions)));
+  }
+
+  @override
+  Future<String?> nextUnreadReaction(String chatID) async =>
+      (_messages[chatID] ?? const <models.Message>[]).where((m) => m.reactionsUnread).firstOrNull?.id;
+
+  @override
   Future<void> setDraft(String chatID, String draft) async {
     final chat = _chat(chatID);
     if (chat == null || chat.draft == draft) return;

@@ -420,11 +420,20 @@ class ChatsSync {
         final chatID = update.deleteMessages.chatID;
         final ids = [for (final id in update.deleteMessages.messageIDs) id.toInt()];
         final dialog = await tx.dialog(userID: user, chatID: chatID);
+        // Удаляются мои с непрочитанными реакциями — бейдж ❤️ меньше.
+        final reactions = await tx.countUnreadReactions(userID: user, chatID: chatID, messageIDs: ids);
         final unread = await tx.deleteMessages(userID: user, chatID: chatID, messageIDs: ids, readInboxMaxID: dialog?.readInboxMaxID ?? 0);
         unawaited(PushManager.clearChatNotifications(chatID, messageIDs: ids));
         if (dialog == null) return;
-        if (unread > 0) {
-          await tx.updateDialog(userID: user, chatID: chatID, fields: {'unreadCount': math.max(0, dialog.unreadCount - unread)});
+        if (unread > 0 || reactions > 0) {
+          await tx.updateDialog(
+            userID: user,
+            chatID: chatID,
+            fields: {
+              'unreadCount': math.max(0, dialog.unreadCount - unread),
+              'unreadReactions': math.max(0, dialog.unreadReactions - reactions),
+            },
+          );
         }
         if (ids.contains(dialog.topMessageID)) {
           // Удалили последнее — новое последнее из кэша; кэш пуст — спросим сервер.
@@ -494,7 +503,22 @@ class ChatsSync {
 
       case pb.Update_Update.messageReactions:
         final changed = update.messageReactions;
-        await tx.setReactions(userID: user, chatID: changed.chatID, messageID: changed.messageID.toInt(), reactions: changed.reactions);
+        await tx.setReactions(
+          userID: user,
+          chatID: changed.chatID,
+          messageID: changed.messageID.toInt(),
+          reactions: changed.reactions,
+          unread: changed.reactionsUnread,
+        );
+        await tx.updateDialog(userID: user, chatID: changed.chatID, fields: {'unreadReactions': changed.unreadReactionsCount});
+
+      case pb.Update_Update.readReactions:
+        final read = update.readReactions;
+        final ids = [for (final id in read.messageIDs) id.toInt()];
+        await tx.readReactions(userID: user, chatID: read.chatID, messageIDs: ids);
+        await tx.updateDialog(userID: user, chatID: read.chatID, fields: {'unreadReactions': read.unreadReactionsCount});
+        // Пуш о реакции несёт id моего сообщения — снимаем по нему.
+        unawaited(PushManager.clearChatNotifications(read.chatID, messageIDs: ids));
 
       case pb.Update_Update.notSet:
         // Пустое обновление (например, новое сообщение, которое потом удалили):

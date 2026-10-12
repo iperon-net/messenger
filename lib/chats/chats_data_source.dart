@@ -351,6 +351,14 @@ abstract class ChatsDataSource {
   /// отправителя — точка у длительности пропадает).
   Future<void> readMessageContents(String chatID, String messageID);
 
+  /// Реакции на наши сообщения [messageIDs] увидели на экране: снять
+  /// `Message.reactionsUnread` и уменьшить бейдж ❤️ (`Chat.unreadReactions`).
+  Future<void> readReactions(String chatID, List<String> messageIDs);
+
+  /// Кнопка ❤️ в окне чата: самое старое наше сообщение с непрочитанными
+  /// реакциями; `null` — таких нет.
+  Future<String?> nextUnreadReaction(String chatID);
+
   /// Сохранить черновик поля ввода (показывается в списке чатов).
   Future<void> setDraft(String chatID, String draft);
 }

@@ -185,6 +185,7 @@ class ChatsRemoteDataSource implements ChatsDataSource {
           peerUserID: peer == null || isSelf ? '' : idHex(peer),
           lastMessage: lastMessage,
           unreadCount: row.unreadCount,
+          unreadReactions: row.unreadReactions,
           markedUnread: row.markedUnread,
           muted: muted.muted,
           mutedUntil: muted.until,
@@ -1179,6 +1180,50 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     } catch (error, stackTrace) {
       _logger.handle(error, stackTrace);
     }
+  }
+
+  /// Реакции увидели — фоновое, как «прослушано»: без сети молча пропускаем,
+  /// отметка останется до следующего показа (бейдж не «прыгает» обратно).
+  @override
+  Future<void> readReactions(String chatID, List<String> messageIDs) async {
+    final ids = [for (final id in messageIDs.map(serverMessageID)) ?id];
+    if (ids.isEmpty || !_auth.isAuthorized) return;
+    try {
+      if (!await _sync.hasNetwork()) return;
+      final response = await _sync.messages(
+        pb.Messages_Request(
+          readReactions: pb.Messages_ReadReactions(chatID: idBytes(chatID), messageIDs: [for (final id in ids) Int64(id)]),
+        ),
+      );
+      await _sync.applyUpdates(response.readReactions.updates);
+    } on ChatsOfflineException {
+      // Отметим в следующий раз.
+    } catch (error, stackTrace) {
+      _logger.handle(error, stackTrace);
+    }
+  }
+
+  /// С сервера (старых сообщений может не быть в кэше), без сети — из кэша.
+  /// Сервер ответил «нет» — счётчик в кэше устарел, обнуляем.
+  @override
+  Future<String?> nextUnreadReaction(String chatID) async {
+    final chat = idBytes(chatID);
+    if (chat.isEmpty || !_auth.isAuthorized) return null;
+    try {
+      if (await _sync.hasNetwork()) {
+        final response = await _sync.messages(pb.Messages_Request(unreadReactions: pb.Messages_UnreadReactions(chatID: chat, limit: 1)));
+        final messages = response.unreadReactions.messages;
+        if (messages.isNotEmpty) return messages.first.messageID.toString();
+        await _store.updateDialog(userID: _sync.me, chatID: chat, fields: {'unreadReactions': 0});
+        return null;
+      }
+    } on ChatsOfflineException {
+      // Ниже — из кэша.
+    } catch (error, stackTrace) {
+      _logger.handle(error, stackTrace);
+    }
+    final ids = await _store.unreadReactionIDs(userID: _sync.me, chatID: chat);
+    return ids.isEmpty ? null : ids.first.toString();
   }
 
   /// Черновик — только локально (на сервер не уходит).

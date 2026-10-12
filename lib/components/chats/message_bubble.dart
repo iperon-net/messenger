@@ -156,6 +156,10 @@ class ChatMessagesView extends StatelessWidget {
   /// Тап по звонку — перезвонить.
   final ValueChanged<models.Message>? onCallTap;
 
+  /// Наше сообщение с непрочитанными реакциями оказалось на экране (строка
+  /// построена — лента ленивая) или получило их, уже будучи на экране.
+  final ValueChanged<models.Message>? onReactionsShown;
+
   const ChatMessagesView({
     super.key,
     required this.messages,
@@ -190,6 +194,7 @@ class ChatMessagesView extends StatelessWidget {
     this.onPollVote,
     this.onPollVoters,
     this.onCallTap,
+    this.onReactionsShown,
   });
 
   static bool _sameDay(DateTime a, DateTime b) {
@@ -242,73 +247,77 @@ class ChatMessagesView extends StatelessWidget {
             // Режим выделения: тап по строке отмечает, слева — кружок, жесты
             // пузыря (меню, медиа, реакции) выключены. Дерево одно и то же в
             // обоих режимах — пузыри не пересоздаются.
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: selecting ? (onSelect == null ? null : () => onSelect!(m)) : (onTap == null ? null : () => onTap!(m)),
-              child: AnimatedContainer(
-                duration: Duration(milliseconds: selecting ? 150 : 400),
-                color: selecting && selectedIDs.contains(m.id)
-                    ? selectionColor.withValues(alpha: 0.18)
-                    : style.outgoing.withValues(alpha: m.id == flashID ? 0.25 : 0),
-                child: Stack(
-                  children: [
-                    AnimatedPadding(
-                      duration: const Duration(milliseconds: 200),
-                      curve: Curves.easeOutCubic,
-                      padding: EdgeInsets.only(left: selecting ? 38 : 0),
-                      child: IgnorePointer(
-                        ignoring: selecting,
-                        child: SwipeToReply(
-                          onReply: onReply == null ? null : () => onReply!(m),
-                          background: style.pill,
-                          iconColor: style.pillText,
-                          child: MessageBubble(
-                            key: ValueKey(m.id),
-                            message: m,
-                            style: style,
-                            tail: !groupedWithNewer,
-                            showSender: group && !m.outgoing && !groupedWithOlder,
-                            avatar: group && !m.outgoing
-                                ? (groupedWithNewer ? const SizedBox(width: 34) : _SenderAvatar(name: m.senderName))
-                                : null,
-                            onLongPress: () => onLongPress(m),
-                            onMediaTap: onMediaTap == null ? null : (index) => onMediaTap!(m, index),
-                            highlight: highlight,
-                            focused: m.id == focusedID,
-                            mark: m.id == flashID ? flashRange : null,
-                            onCancelUpload: onCancelUpload == null ? null : () => onCancelUpload!(m),
-                            onReaction: onReaction == null ? null : (emoji) => onReaction!(m, emoji),
-                            onDoubleTap: onDoubleTap == null ? null : () => onDoubleTap!(m),
-                            onReplyTap: onReplyTap == null ? null : () => onReplyTap!(m),
-                            menuWrapper: menuWrapper == null ? null : (bubble, preview) => menuWrapper!(m, bubble, preview),
-                            onCommentsTap: onCommentsTap == null ? null : () => onCommentsTap!(m),
-                            commentsClosed: commentsClosedIDs.contains(m.id),
-                            onPollVote: onPollVote == null ? null : (options) => onPollVote!(m, options),
-                            onPollVoters: onPollVoters == null ? null : () => onPollVoters!(m),
-                            onCallTap: onCallTap == null ? null : () => onCallTap!(m),
-                          ),
-                        ),
-                      ),
-                    ),
-                    Positioned(
-                      left: 10,
-                      top: 0,
-                      bottom: 0,
-                      child: IgnorePointer(
-                        child: AnimatedOpacity(
-                          duration: const Duration(milliseconds: 200),
-                          opacity: selecting ? 1 : 0,
-                          child: Center(
-                            child: _SelectCheck(
-                              selected: selectedIDs.contains(m.id),
-                              color: selectionColor,
-                              checkColor: selectionCheckColor,
+            child: _ReactionsShown(
+              message: m,
+              onShown: onReactionsShown,
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: selecting ? (onSelect == null ? null : () => onSelect!(m)) : (onTap == null ? null : () => onTap!(m)),
+                child: AnimatedContainer(
+                  duration: Duration(milliseconds: selecting ? 150 : 400),
+                  color: selecting && selectedIDs.contains(m.id)
+                      ? selectionColor.withValues(alpha: 0.18)
+                      : style.outgoing.withValues(alpha: m.id == flashID ? 0.25 : 0),
+                  child: Stack(
+                    children: [
+                      AnimatedPadding(
+                        duration: const Duration(milliseconds: 200),
+                        curve: Curves.easeOutCubic,
+                        padding: EdgeInsets.only(left: selecting ? 38 : 0),
+                        child: IgnorePointer(
+                          ignoring: selecting,
+                          child: SwipeToReply(
+                            onReply: onReply == null ? null : () => onReply!(m),
+                            background: style.pill,
+                            iconColor: style.pillText,
+                            child: MessageBubble(
+                              key: ValueKey(m.id),
+                              message: m,
+                              style: style,
+                              tail: !groupedWithNewer,
+                              showSender: group && !m.outgoing && !groupedWithOlder,
+                              avatar: group && !m.outgoing
+                                  ? (groupedWithNewer ? const SizedBox(width: 34) : _SenderAvatar(name: m.senderName))
+                                  : null,
+                              onLongPress: () => onLongPress(m),
+                              onMediaTap: onMediaTap == null ? null : (index) => onMediaTap!(m, index),
+                              highlight: highlight,
+                              focused: m.id == focusedID,
+                              mark: m.id == flashID ? flashRange : null,
+                              onCancelUpload: onCancelUpload == null ? null : () => onCancelUpload!(m),
+                              onReaction: onReaction == null ? null : (emoji) => onReaction!(m, emoji),
+                              onDoubleTap: onDoubleTap == null ? null : () => onDoubleTap!(m),
+                              onReplyTap: onReplyTap == null ? null : () => onReplyTap!(m),
+                              menuWrapper: menuWrapper == null ? null : (bubble, preview) => menuWrapper!(m, bubble, preview),
+                              onCommentsTap: onCommentsTap == null ? null : () => onCommentsTap!(m),
+                              commentsClosed: commentsClosedIDs.contains(m.id),
+                              onPollVote: onPollVote == null ? null : (options) => onPollVote!(m, options),
+                              onPollVoters: onPollVoters == null ? null : () => onPollVoters!(m),
+                              onCallTap: onCallTap == null ? null : () => onCallTap!(m),
                             ),
                           ),
                         ),
                       ),
-                    ),
-                  ],
+                      Positioned(
+                        left: 10,
+                        top: 0,
+                        bottom: 0,
+                        child: IgnorePointer(
+                          child: AnimatedOpacity(
+                            duration: const Duration(milliseconds: 200),
+                            opacity: selecting ? 1 : 0,
+                            child: Center(
+                              child: _SelectCheck(
+                                selected: selectedIDs.contains(m.id),
+                                color: selectionColor,
+                                checkColor: selectionCheckColor,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -1903,4 +1912,45 @@ class _PollViewState extends State<_PollView> {
       ),
     );
   }
+}
+
+/// Строка ленты: наше сообщение с непрочитанными реакциями построено (лента
+/// ленивая — оно на экране или у края) или получило их, уже будучи
+/// построенным, — сообщает [onShown] после кадра. Обёртка есть всегда (дерево
+/// не меняется, когда флаг появляется / пропадает).
+class _ReactionsShown extends StatefulWidget {
+  final models.Message message;
+  final ValueChanged<models.Message>? onShown;
+  final Widget child;
+
+  const _ReactionsShown({required this.message, required this.onShown, required this.child});
+
+  @override
+  State<_ReactionsShown> createState() => _ReactionsShownState();
+}
+
+class _ReactionsShownState extends State<_ReactionsShown> {
+  @override
+  void initState() {
+    super.initState();
+    _notify();
+  }
+
+  @override
+  void didUpdateWidget(_ReactionsShown old) {
+    super.didUpdateWidget(old);
+    if (!old.message.reactionsUnread) _notify();
+  }
+
+  void _notify() {
+    final onShown = widget.onShown;
+    final message = widget.message;
+    if (onShown == null || !message.outgoing || !message.reactionsUnread) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) onShown(message);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.child;
 }

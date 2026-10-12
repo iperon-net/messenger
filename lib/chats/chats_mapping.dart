@@ -177,6 +177,7 @@ models.Message messageFromPb(
     // Волна в proto — 0..255, в модели — 0..31 (5 бит, как в Telegram).
     waveform: [for (final v in first?.waveform ?? const <int>[]) v >> 3],
     mediaUnread: m.mediaUnread,
+    reactionsUnread: outgoing && m.reactionsUnread,
     media: [
       if (kind == models.MessageKind.photo || kind == models.MessageKind.video)
         for (final media in content.media)

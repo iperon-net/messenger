@@ -1834,6 +1834,13 @@ class MessageMapper extends ClassMapperBase<Message> {
     opt: true,
     def: false,
   );
+  static bool _$reactionsUnread(Message v) => v.reactionsUnread;
+  static const Field<Message, bool> _f$reactionsUnread = Field(
+    'reactionsUnread',
+    _$reactionsUnread,
+    opt: true,
+    def: false,
+  );
   static List<MessageMedia> _$media(Message v) => v.media;
   static const Field<Message, List<MessageMedia>> _f$media = Field(
     'media',
@@ -1974,6 +1981,7 @@ class MessageMapper extends ClassMapperBase<Message> {
     #duration: _f$duration,
     #waveform: _f$waveform,
     #mediaUnread: _f$mediaUnread,
+    #reactionsUnread: _f$reactionsUnread,
     #media: _f$media,
     #fileSize: _f$fileSize,
     #uploadedBytes: _f$uploadedBytes,
@@ -2013,6 +2021,7 @@ class MessageMapper extends ClassMapperBase<Message> {
       duration: data.dec(_f$duration),
       waveform: data.dec(_f$waveform),
       mediaUnread: data.dec(_f$mediaUnread),
+      reactionsUnread: data.dec(_f$reactionsUnread),
       media: data.dec(_f$media),
       fileSize: data.dec(_f$fileSize),
       uploadedBytes: data.dec(_f$uploadedBytes),
@@ -2135,6 +2144,7 @@ abstract class MessageCopyWith<$R, $In extends Message, $Out>
     int? duration,
     List<int>? waveform,
     bool? mediaUnread,
+    bool? reactionsUnread,
     List<MessageMedia>? media,
     int? fileSize,
     int? uploadedBytes,
@@ -2247,6 +2257,7 @@ class _MessageCopyWithImpl<$R, $Out>
     int? duration,
     List<int>? waveform,
     bool? mediaUnread,
+    bool? reactionsUnread,
     List<MessageMedia>? media,
     int? fileSize,
     int? uploadedBytes,
@@ -2284,6 +2295,7 @@ class _MessageCopyWithImpl<$R, $Out>
       if (duration != null) #duration: duration,
       if (waveform != null) #waveform: waveform,
       if (mediaUnread != null) #mediaUnread: mediaUnread,
+      if (reactionsUnread != null) #reactionsUnread: reactionsUnread,
       if (media != null) #media: media,
       if (fileSize != null) #fileSize: fileSize,
       if (uploadedBytes != null) #uploadedBytes: uploadedBytes,
@@ -2323,6 +2335,7 @@ class _MessageCopyWithImpl<$R, $Out>
     duration: data.get(#duration, or: $value.duration),
     waveform: data.get(#waveform, or: $value.waveform),
     mediaUnread: data.get(#mediaUnread, or: $value.mediaUnread),
+    reactionsUnread: data.get(#reactionsUnread, or: $value.reactionsUnread),
     media: data.get(#media, or: $value.media),
     fileSize: data.get(#fileSize, or: $value.fileSize),
     uploadedBytes: data.get(#uploadedBytes, or: $value.uploadedBytes),

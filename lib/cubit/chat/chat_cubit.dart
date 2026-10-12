@@ -68,6 +68,12 @@ class ChatCubit extends Cubit<ChatState> {
   /// Канал, к посту которого эта ветка комментариев (`null` — не ветка).
   models.Chat? _channel;
 
+  /// Наши сообщения с непрочитанными реакциями, показанные на экране и ещё
+  /// не отмеченные сервером «просмотренными»; отправка — пачкой по таймеру,
+  /// без сети — повтор после переподключения.
+  final _reactionsSeen = <String>{};
+  Timer? _reactionsSeenTimer;
+
   /// Непрочитанных при открытии (до `setRead`) и поставлен ли уже разделитель.
   int? _openUnread;
   bool _unreadPlaced = false;
@@ -106,9 +112,9 @@ class ChatCubit extends Cubit<ChatState> {
         _syncLimits();
       });
       _connectionSubscription = getIt.get<API>().connectionStatusStream.listen((status) {
-        if (!isClosed && _writeRestricted && status == ApiConnectionStatus.connected) {
-          unawaited(ChatsSync.instance.canWrite(idBytes(_chatID)));
-        }
+        if (isClosed || status != ApiConnectionStatus.connected) return;
+        if (_writeRestricted) unawaited(ChatsSync.instance.canWrite(idBytes(_chatID)));
+        if (_reactionsSeen.isNotEmpty) _scheduleReactionsSeen();
       });
     }
     _chatsSubscription = source.watchChats().listen((chats) {
@@ -169,6 +175,8 @@ class ChatCubit extends Cubit<ChatState> {
     _messagesSubscription = source.watchMessages(chatID).listen((messages) {
       if (isClosed) return;
       emit(state.copyWith(messages: messages));
+      // Отмечено сервером (здесь или на другом устройстве) — больше не ждём.
+      _reactionsSeen.removeWhere((id) => !messages.any((m) => m.id == id && m.reactionsUnread));
       _placeUnread();
       _syncLimits();
       _recheckCanWrite(messages);
@@ -488,6 +496,34 @@ class ChatCubit extends Cubit<ChatState> {
     final adds = !mine.contains(emoji);
     if (adds && (_writeRestricted || !availableReactions(chat, message: message).contains(emoji))) return;
     await _source?.setReactions(_chatID, message.id, toggleMyReaction(mine, emoji));
+  }
+
+  /// Строка ленты с нашим сообщением, на котором есть непрочитанные реакции,
+  /// оказалась на экране — «просмотрено» (пачкой).
+  void reactionsShown(models.Message message) {
+    if (!message.outgoing || !message.reactionsUnread || !_reactionsSeen.add(message.id)) return;
+    _scheduleReactionsSeen();
+  }
+
+  void _scheduleReactionsSeen() {
+    _reactionsSeenTimer?.cancel();
+    _reactionsSeenTimer = Timer(const Duration(milliseconds: 300), () {
+      final ids = _reactionsSeen.toList();
+      if (!isClosed && ids.isNotEmpty) unawaited(_source?.readReactions(_chatID, ids));
+    });
+  }
+
+  /// Кнопка ❤️: id самого старого нашего сообщения с непрочитанными
+  /// реакциями (лента расширяется до него) — экран переходит к нему. Оно же
+  /// сразу «просмотрено»: флага в кэше может не быть (сообщение старше).
+  Future<String?> nextUnreadReaction() async {
+    final source = _source;
+    if (source == null) return null;
+    final id = await source.nextUnreadReaction(_chatID);
+    if (id == null || isClosed) return null;
+    await _reveal(id);
+    unawaited(source.readReactions(_chatID, [id]));
+    return id;
   }
 
   /// Кто / когда прочитал наше сообщение — строка в меню сообщения (только
@@ -888,6 +924,7 @@ class ChatCubit extends Cubit<ChatState> {
     _memberSearchTimer?.cancel();
     _slowModeTimer?.cancel();
     _commentsTimer?.cancel();
+    _reactionsSeenTimer?.cancel();
     return super.close();
   }
 }

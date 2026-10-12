@@ -1441,6 +1441,13 @@ class ChatMapper extends ClassMapperBase<Chat> {
     opt: true,
     def: 0,
   );
+  static int _$unreadReactions(Chat v) => v.unreadReactions;
+  static const Field<Chat, int> _f$unreadReactions = Field(
+    'unreadReactions',
+    _$unreadReactions,
+    opt: true,
+    def: 0,
+  );
   static bool _$markedUnread(Chat v) => v.markedUnread;
   static const Field<Chat, bool> _f$markedUnread = Field(
     'markedUnread',
@@ -1760,6 +1767,7 @@ class ChatMapper extends ClassMapperBase<Chat> {
     #lastMessage: _f$lastMessage,
     #unreadCount: _f$unreadCount,
     #unreadMentions: _f$unreadMentions,
+    #unreadReactions: _f$unreadReactions,
     #markedUnread: _f$markedUnread,
     #muted: _f$muted,
     #mutedUntil: _f$mutedUntil,
@@ -1818,6 +1826,7 @@ class ChatMapper extends ClassMapperBase<Chat> {
       lastMessage: data.dec(_f$lastMessage),
       unreadCount: data.dec(_f$unreadCount),
       unreadMentions: data.dec(_f$unreadMentions),
+      unreadReactions: data.dec(_f$unreadReactions),
       markedUnread: data.dec(_f$markedUnread),
       muted: data.dec(_f$muted),
       mutedUntil: data.dec(_f$mutedUntil),
@@ -1931,6 +1940,7 @@ abstract class ChatCopyWith<$R, $In extends Chat, $Out>
     ChatLastMessage? lastMessage,
     int? unreadCount,
     int? unreadMentions,
+    int? unreadReactions,
     bool? markedUnread,
     bool? muted,
     DateTime? mutedUntil,
@@ -2019,6 +2029,7 @@ class _ChatCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Chat, $Out>
     Object? lastMessage = $none,
     int? unreadCount,
     int? unreadMentions,
+    int? unreadReactions,
     bool? markedUnread,
     bool? muted,
     Object? mutedUntil = $none,
@@ -2075,6 +2086,7 @@ class _ChatCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Chat, $Out>
       if (lastMessage != $none) #lastMessage: lastMessage,
       if (unreadCount != null) #unreadCount: unreadCount,
       if (unreadMentions != null) #unreadMentions: unreadMentions,
+      if (unreadReactions != null) #unreadReactions: unreadReactions,
       if (markedUnread != null) #markedUnread: markedUnread,
       if (muted != null) #muted: muted,
       if (mutedUntil != $none) #mutedUntil: mutedUntil,
@@ -2134,6 +2146,7 @@ class _ChatCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Chat, $Out>
     lastMessage: data.get(#lastMessage, or: $value.lastMessage),
     unreadCount: data.get(#unreadCount, or: $value.unreadCount),
     unreadMentions: data.get(#unreadMentions, or: $value.unreadMentions),
+    unreadReactions: data.get(#unreadReactions, or: $value.unreadReactions),
     markedUnread: data.get(#markedUnread, or: $value.markedUnread),
     muted: data.get(#muted, or: $value.muted),
     mutedUntil: data.get(#mutedUntil, or: $value.mutedUntil),

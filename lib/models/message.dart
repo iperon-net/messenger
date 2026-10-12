@@ -270,6 +270,10 @@ class Message with MessageMappable {
   /// отдельно от «прочитано» (`ChatsDataSource.readMessageContents`).
   final bool mediaUnread;
 
+  /// Моё сообщение с реакциями, которых я ещё не видел (кнопка ❤️ в окне
+  /// чата ведёт к нему; показ на экране — «просмотрено»).
+  final bool reactionsUnread;
+
   /// Альбом: до [maxAlbum] фото/видео одним сообщением (сеткой в пузыре), подпись
   /// — [text]. Один элемент — метаданные одиночного фото/видео (размеры,
   /// thumbhash); пусто — обычное сообщение ([kind] + [localPath]).
@@ -350,6 +354,7 @@ class Message with MessageMappable {
     this.duration = 0,
     this.waveform = const [],
     this.mediaUnread = false,
+    this.reactionsUnread = false,
     this.media = const [],
     this.fileSize = 0,
     this.uploadedBytes = 0,

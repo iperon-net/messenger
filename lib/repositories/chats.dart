@@ -13,6 +13,9 @@ class ChatDialogRow {
   final int readInboxMaxID;
   final int readOutboxMaxID;
   final int unreadCount;
+
+  /// Моих сообщений с непрочитанными реакциями (бейдж ❤️).
+  final int unreadReactions;
   final bool pinned;
   final bool archived;
   final bool markedUnread;
@@ -30,6 +33,7 @@ class ChatDialogRow {
     required this.readInboxMaxID,
     required this.readOutboxMaxID,
     required this.unreadCount,
+    this.unreadReactions = 0,
     required this.pinned,
     required this.archived,
     required this.markedUnread,
@@ -48,6 +52,7 @@ class ChatDialogRow {
     readInboxMaxID: row['readInboxMaxID'] as int,
     readOutboxMaxID: row['readOutboxMaxID'] as int,
     unreadCount: row['unreadCount'] as int,
+    unreadReactions: row['unreadReactions'] as int? ?? 0,
     pinned: (row['pinned'] as int) != 0,
     archived: (row['archived'] as int) != 0,
     markedUnread: (row['markedUnread'] as int) != 0,
@@ -96,12 +101,6 @@ class ChatOutboxRow {
   );
 }
 
-/// Локальная копия чатов: диалоги, история, outbox и pts журнала обновлений
-/// (таблицы миграции 16). Пишет её `ChatsSync` (ответы сервера и push
-/// `UPDATES`), читает `ChatsRemoteDataSource` — список и история видны offline.
-///
-/// Работает поверх [ctx]: сама БД или транзакция ([transaction]) — обновление,
-/// задевающее несколько таблиц (диалог + сообщения + pts), пишется атомарно.
 /// Мой набор реакций на сообщение, ещё не принятый сервером.
 class ChatPendingReactionsRow {
   final Uint8List chatID;
@@ -122,6 +121,12 @@ class ChatPendingReactionsRow {
   }
 }
 
+/// Локальная копия чатов: диалоги, история, outbox и pts журнала обновлений
+/// (таблицы миграции 16). Пишет её `ChatsSync` (ответы сервера и push
+/// `UPDATES`), читает `ChatsRemoteDataSource` — список и история видны offline.
+///
+/// Работает поверх [ctx]: сама БД или транзакция ([transaction]) — обновление,
+/// задевающее несколько таблиц (диалог + сообщения + pts), пишется атомарно.
 class ChatsRepository {
   final Logger logger;
   final SqliteWriteContext ctx;
@@ -139,7 +144,7 @@ class ChatsRepository {
 
   static const _dialogColumns =
       'chatID, type, peerUserID, topMessageID, topMessageDate, topMessage, readInboxMaxID, readOutboxMaxID, unreadCount, '
-      'pinned, archived, markedUnread, mutedUntil, draft, createdAt';
+      'unreadReactions, pinned, archived, markedUnread, mutedUntil, draft, createdAt';
 
   /// Выполнить [action] в одной транзакции записи. Уже внутри транзакции —
   /// просто выполняет.
@@ -198,8 +203,8 @@ class ChatsRepository {
     await ctx.execute(
       '''
       INSERT INTO chatDialogs (userID, chatID, type, peerUserID, topMessageID, topMessageDate, topMessage, readInboxMaxID,
-        readOutboxMaxID, unreadCount, pinned, archived, markedUnread, mutedUntil, createdAt)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        readOutboxMaxID, unreadCount, unreadReactions, pinned, archived, markedUnread, mutedUntil, createdAt)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       ON CONFLICT(userID, chatID) DO UPDATE SET
         type = excluded.type,
         peerUserID = excluded.peerUserID,
@@ -209,6 +214,7 @@ class ChatsRepository {
         readInboxMaxID = excluded.readInboxMaxID,
         readOutboxMaxID = excluded.readOutboxMaxID,
         unreadCount = excluded.unreadCount,
+        unreadReactions = excluded.unreadReactions,
         pinned = excluded.pinned,
         archived = excluded.archived,
         markedUnread = excluded.markedUnread,
@@ -226,6 +232,7 @@ class ChatsRepository {
         dialog.readInboxMaxID.toInt(),
         dialog.readOutboxMaxID.toInt(),
         dialog.unreadCount,
+        dialog.unreadReactionsCount,
         dialog.pinned ? 1 : 0,
         dialog.archived ? 1 : 0,
         dialog.markedUnread ? 1 : 0,
@@ -313,8 +320,9 @@ class ChatsRepository {
   Future<void> upsertMessage({required List<int> userID, required pb.ChatMessage message}) async {
     await ctx.execute(
       '''
-      INSERT INTO chatMessages (userID, chatID, messageID, fromUserID, date, editDate, randomID, mediaUnread, silent, content, searchText, reactions)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO chatMessages (userID, chatID, messageID, fromUserID, date, editDate, randomID, mediaUnread, silent, content, searchText, reactions,
+        reactionsUnread)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       ON CONFLICT(userID, chatID, messageID) DO UPDATE SET
         fromUserID = excluded.fromUserID,
         date = excluded.date,
@@ -324,7 +332,8 @@ class ChatsRepository {
         silent = excluded.silent,
         content = excluded.content,
         searchText = excluded.searchText,
-        reactions = excluded.reactions;
+        reactions = excluded.reactions,
+        reactionsUnread = excluded.reactionsUnread;
       ''',
       [
         userID,
@@ -339,6 +348,7 @@ class ChatsRepository {
         message.content.writeToBuffer(),
         messageSearchText(message.content),
         _reactionsBlob(message.hasReactions() ? message.reactions : null),
+        _reactionsUnread(userID, message) ? 1 : 0,
       ],
     );
     if (message.content.hasCall()) await _upsertCallLog(userID: userID, message: message);
@@ -499,20 +509,56 @@ class ChatsRepository {
   static Uint8List? _reactionsBlob(pb.MessageReactions? reactions) =>
       reactions == null || reactions.reactions.isEmpty ? null : reactions.writeToBuffer();
 
+  /// Флаг сервера значим только для автора: на чужом сообщении — игнорируем.
+  static bool _reactionsUnread(List<int> userID, pb.ChatMessage message) =>
+      message.reactionsUnread && _sameBytes(message.fromUserID, userID);
+
   /// Реакции на сообщение изменились (Update.messageReactions). Нет в кэше —
-  /// ничего: подтянутся с историей.
+  /// ничего: подтянутся с историей. [unread] — на моём сообщении есть
+  /// непросмотренные реакции (на чужом не ставится).
   Future<void> setReactions({
     required List<int> userID,
     required List<int> chatID,
     required int messageID,
     required pb.MessageReactions reactions,
+    bool unread = false,
   }) async {
-    await ctx.execute('UPDATE chatMessages SET reactions = ? WHERE userID = ? AND chatID = ? AND messageID = ?;', [
-      _reactionsBlob(reactions),
+    await ctx.execute(
+      'UPDATE chatMessages SET reactions = ?, reactionsUnread = (? AND fromUserID = ?) WHERE userID = ? AND chatID = ? AND messageID = ?;',
+      [_reactionsBlob(reactions), unread ? 1 : 0, userID, userID, chatID, messageID],
+    );
+  }
+
+  /// Реакции на мои сообщения [messageIDs] просмотрены (Update.readReactions).
+  Future<void> readReactions({required List<int> userID, required List<int> chatID, required List<int> messageIDs}) async {
+    if (messageIDs.isEmpty) return;
+    final placeholders = List.filled(messageIDs.length, '?').join(',');
+    await ctx.execute('UPDATE chatMessages SET reactionsUnread = 0 WHERE userID = ? AND chatID = ? AND messageID IN ($placeholders);', [
       userID,
       chatID,
-      messageID,
+      ...messageIDs,
     ]);
+  }
+
+  /// Мои сообщения чата с непрочитанными реакциями в кэше — от старых к новым.
+  Future<List<int>> unreadReactionIDs({required List<int> userID, required List<int> chatID}) async {
+    final rows = await ctx.getAll(
+      'SELECT messageID FROM chatMessages WHERE userID = ? AND chatID = ? AND reactionsUnread = 1 ORDER BY messageID ASC;',
+      [userID, chatID],
+    );
+    return [for (final row in rows) row['messageID'] as int];
+  }
+
+  /// Сколько из [messageIDs] — мои с непрочитанными реакциями (удаляются —
+  /// счётчик диалога уменьшается).
+  Future<int> countUnreadReactions({required List<int> userID, required List<int> chatID, required List<int> messageIDs}) async {
+    if (messageIDs.isEmpty) return 0;
+    final placeholders = List.filled(messageIDs.length, '?').join(',');
+    final row = await ctx.get(
+      'SELECT COUNT(*) AS n FROM chatMessages WHERE userID = ? AND chatID = ? AND reactionsUnread = 1 AND messageID IN ($placeholders);',
+      [userID, chatID, ...messageIDs],
+    );
+    return row['n'] as int;
   }
 
   /// Мой набор реакций, ещё не принятый сервером, — заменяет прежний.
@@ -639,6 +685,7 @@ class ChatsRepository {
     silent: (row['silent'] as int) != 0,
     content: pb.MessageContent.fromBuffer(row['content'] as List<int>),
     reactions: row['reactions'] == null ? null : pb.MessageReactions.fromBuffer(row['reactions'] as List<int>),
+    reactionsUnread: (row['reactionsUnread'] as int? ?? 0) != 0,
   );
 
   // --- outbox ---

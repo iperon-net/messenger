@@ -611,6 +611,17 @@ class Repositories {
       }),
     );
 
+    migrations.add(
+      SqliteMigration(23, (tx) async {
+        // Непрочитанные реакции на мои сообщения (как в Telegram):
+        // chatDialogs.unreadReactions — счётчик сервера (бейдж ❤️),
+        // chatMessages.reactionsUnread — на моём сообщении есть реакции,
+        // которых я не видел (кнопка ❤️ в окне чата ведёт к ним).
+        await tx.execute('ALTER TABLE chatDialogs ADD COLUMN unreadReactions INTEGER NOT NULL DEFAULT 0;');
+        await tx.execute('ALTER TABLE chatMessages ADD COLUMN reactionsUnread INTEGER NOT NULL DEFAULT 0;');
+      }),
+    );
+
     if (settings.isDeleteDatabase) {
       logger.warning("Deleting the database, flag set IS_DELETE_DATABASE: 1");
 

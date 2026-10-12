@@ -290,6 +290,12 @@ class _ChatCupertinoState extends State<ChatCupertino> {
     if (mounted) await _tracker.jumpTo(id);
   }
 
+  /// Кнопка ❤️ — к самому старому нашему сообщению с непрочитанными реакциями.
+  Future<void> _nextReaction() async {
+    final id = await _cubit.nextUnreadReaction();
+    if (id != null && mounted) await _tracker.jumpTo(id);
+  }
+
   /// «Закрепить» / «Открепить»: в личном чате — у меня и у собеседника или
   /// только у меня (см. [askPinScopeCupertino]).
   Future<void> _pin(models.Chat chat, models.Message message) async {
@@ -546,6 +552,7 @@ class _ChatCupertinoState extends State<ChatCupertino> {
                                                   : null,
                                               onReplyTap: _tracker.jumpToReply,
                                               onPinnedServiceTap: _jumpTo,
+                                              onReactionsShown: _cubit.reactionsShown,
                                               pinned: state.pinnedMessages,
                                               unreadFromID: state.unreadFromID,
                                               flashID: _flashID,
@@ -573,6 +580,15 @@ class _ChatCupertinoState extends State<ChatCupertino> {
                                               ),
                                             ),
                                       Positioned(top: 0, left: 0, right: 0, child: _pinnedBar(context, chat, state)),
+                                      ChatReactionsButton(
+                                        tracker: _tracker,
+                                        count: chat.unreadReactions,
+                                        onTap: _nextReaction,
+                                        background: ThemesCupertino.appBackground.resolveFrom(context).withValues(alpha: 0.92),
+                                        iconColor: CupertinoColors.secondaryLabel.resolveFrom(context),
+                                        badgeColor: CupertinoTheme.of(context).primaryColor,
+                                        badgeTextColor: ThemesCupertino.onAccent(context),
+                                      ),
                                       Positioned(
                                         right: 10,
                                         bottom: 10,

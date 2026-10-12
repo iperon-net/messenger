@@ -184,6 +184,9 @@ message ChatMessage {
   int64 randomID = 9;
   // Реакции (нет — пусто). Текущие на момент выдачи.
   MessageReactions reactions = 10;
+  // Автор ещё не видел новые реакции собеседника на это сообщение (значимо
+  // только для автора: у получателя — игнорировать).
+  bool reactionsUnread = 11;
 }
 
 // Диалог пользователя: общий чат + моё состояние в нём.
@@ -204,6 +207,8 @@ message Dialog {
   bool markedUnread = 10;
   int64 mutedUntil = 11; // unix millis; 0 — не заглушён; max int64 — навсегда
   int64 createdAt = 12;  // unix millis
+  // Моих сообщений с непрочитанными реакциями (бейдж ❤️ в списке).
+  int32 unreadReactionsCount = 13;
 }
 
 // Состояние журнала обновлений пользователя.
@@ -277,6 +282,18 @@ message Update {
     bytes chatID = 1;
     int64 messageID = 2;
     MessageReactions reactions = 3;
+    // Мой текущий счётчик Dialog.unreadReactionsCount в этом чате.
+    int32 unreadReactionsCount = 4;
+    // ChatMessage.reactionsUnread сообщения (значим только для автора).
+    bool reactionsUnread = 5;
+  }
+
+  // Реакции на мои сообщения messageIDs просмотрены (на этом или другом
+  // устройстве): снять reactionsUnread; unreadReactionsCount — текущий.
+  message ReadReactions {
+    bytes chatID = 1;
+    repeated int64 messageIDs = 2;
+    int32 unreadReactionsCount = 3;
   }
 
   oneof update {
@@ -290,6 +307,7 @@ message Update {
     DialogDeleted dialogDeleted = 10;
     PinnedMessages pinnedMessages = 11;
     MessageReactionsChanged messageReactions = 12;
+    ReadReactions readReactions = 13;
   }
 }
 
@@ -534,6 +552,28 @@ message Messages {
     Updates updates = 1;
   }
 
+  // Реакции на мои сообщения просмотрены (как readReactions в Telegram):
+  // messageIDs — показанные на экране, пусто — все в чате.
+  message ReadReactions {
+    bytes chatID = 1;
+    repeated int64 messageIDs = 2;
+  }
+
+  message ReadReactionsResult {
+    Updates updates = 1;
+  }
+
+  // Мои сообщения с непрочитанными реакциями, от старых к новым (как
+  // getUnreadReactions в Telegram) — куда вести кнопку ❤️ в окне чата.
+  message UnreadReactions {
+    bytes chatID = 1;
+    int32 limit = 2;
+  }
+
+  message UnreadReactionsResult {
+    repeated ChatMessage messages = 1;
+  }
+
   message Request {
     oneof request {
       History history = 1;
@@ -545,6 +585,8 @@ message Messages {
       UnpinAll unpinAll = 7;
       Pinned pinned = 8;
       SetReactions setReactions = 9;
+      ReadReactions readReactions = 10;
+      UnreadReactions unreadReactions = 11;
     }
   }
 
@@ -559,6 +601,8 @@ message Messages {
       UnpinAllResult unpinAll = 7;
       PinnedResult pinned = 8;
       SetReactionsResult setReactions = 9;
+      ReadReactionsResult readReactions = 10;
+      UnreadReactionsResult unreadReactions = 11;
     }
   }
 }

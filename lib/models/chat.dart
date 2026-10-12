@@ -281,6 +281,9 @@ class Chat with ChatMappable {
   /// Непрочитанные упоминания (@) — отдельный бейдж.
   final int unreadMentions;
 
+  /// Мои сообщения с непрочитанными реакциями — бейдж ❤️.
+  final int unreadReactions;
+
   /// Помечен «непрочитанным» вручную (без счётчика).
   final bool markedUnread;
 
@@ -439,6 +442,7 @@ class Chat with ChatMappable {
     this.lastMessage,
     this.unreadCount = 0,
     this.unreadMentions = 0,
+    this.unreadReactions = 0,
     this.markedUnread = false,
     this.muted = false,
     this.mutedUntil,
