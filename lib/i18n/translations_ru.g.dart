@@ -638,12 +638,13 @@ class _Translations$screenChat$ru extends Translations$screenChat$en {
 	@override String pinnedNumber({required Object n}) => 'Закреплённое сообщение #${n}';
 	@override String get unpinTitle => 'Открепить сообщение?';
 	@override String get pinTitle => 'Закрепить сообщение?';
+	@override String get peerFallback => 'собеседника';
 	@override String pinForBoth({required Object name}) => 'Закрепить у меня и у ${name}';
 	@override String get pinForMe => 'Закрепить только у меня';
-	@override String pinAlsoFor({required Object name}) => 'Также закрепить для ${name}';
+	@override String pinAlsoFor({required Object name}) => 'Закрепить для ${name}';
 	@override String unpinForBoth({required Object name}) => 'Открепить у меня и у ${name}';
 	@override String get unpinForMe => 'Открепить только у меня';
-	@override String unpinAlsoFor({required Object name}) => 'Также открепить для ${name}';
+	@override String unpinAlsoFor({required Object name}) => 'Открепить для ${name}';
 	@override String pinnedServiceYou({required Object text}) => 'Вы закрепили «${text}»';
 	@override String get pinnedServiceYouMessage => 'Вы закрепили сообщение';
 	@override String pinnedService({required Object name, required Object text}) => '${name} закрепил(а) «${text}»';
@@ -699,7 +700,7 @@ class _Translations$screenChat$ru extends Translations$screenChat$en {
 	@override String get deleteSelectedMessage => 'Сообщения будут удалены у всех участников чата.';
 	@override String deleteForBoth({required Object name}) => 'Удалить у меня и у ${name}';
 	@override String get deleteForMe => 'Удалить только у меня';
-	@override String deleteAlsoFor({required Object name}) => 'Также удалить для ${name}';
+	@override String deleteAlsoFor({required Object name}) => 'Удалить для ${name}';
 	@override String get deleteMessageSelf => 'Сообщение будет удалено из «Избранного».';
 	@override String get deleteSelectedMessageSelf => 'Сообщения будут удалены из «Избранного».';
 	@override String get voiceSlideToCancel => 'Влево — отмена';
@@ -1955,12 +1956,13 @@ extension on TranslationsRu {
 			'screenChat.pinnedNumber' => ({required Object n}) => 'Закреплённое сообщение #${n}',
 			'screenChat.unpinTitle' => 'Открепить сообщение?',
 			'screenChat.pinTitle' => 'Закрепить сообщение?',
+			'screenChat.peerFallback' => 'собеседника',
 			'screenChat.pinForBoth' => ({required Object name}) => 'Закрепить у меня и у ${name}',
 			'screenChat.pinForMe' => 'Закрепить только у меня',
-			'screenChat.pinAlsoFor' => ({required Object name}) => 'Также закрепить для ${name}',
+			'screenChat.pinAlsoFor' => ({required Object name}) => 'Закрепить для ${name}',
 			'screenChat.unpinForBoth' => ({required Object name}) => 'Открепить у меня и у ${name}',
 			'screenChat.unpinForMe' => 'Открепить только у меня',
-			'screenChat.unpinAlsoFor' => ({required Object name}) => 'Также открепить для ${name}',
+			'screenChat.unpinAlsoFor' => ({required Object name}) => 'Открепить для ${name}',
 			'screenChat.pinnedServiceYou' => ({required Object text}) => 'Вы закрепили «${text}»',
 			'screenChat.pinnedServiceYouMessage' => 'Вы закрепили сообщение',
 			'screenChat.pinnedService' => ({required Object name, required Object text}) => '${name} закрепил(а) «${text}»',
@@ -1996,7 +1998,7 @@ extension on TranslationsRu {
 			'screenChat.deleteSelectedMessage' => 'Сообщения будут удалены у всех участников чата.',
 			'screenChat.deleteForBoth' => ({required Object name}) => 'Удалить у меня и у ${name}',
 			'screenChat.deleteForMe' => 'Удалить только у меня',
-			'screenChat.deleteAlsoFor' => ({required Object name}) => 'Также удалить для ${name}',
+			'screenChat.deleteAlsoFor' => ({required Object name}) => 'Удалить для ${name}',
 			'screenChat.deleteMessageSelf' => 'Сообщение будет удалено из «Избранного».',
 			'screenChat.deleteSelectedMessageSelf' => 'Сообщения будут удалены из «Избранного».',
 			'screenChat.voiceSlideToCancel' => 'Влево — отмена',
@@ -2038,9 +2040,9 @@ extension on TranslationsRu {
 			'screenChat.uploadProgress' => ({required Object done, required Object total}) => '${done} из ${total}',
 			'screenChat.kb' => 'КБ',
 			'screenChat.mb' => 'МБ',
-			'screenChat.gb' => 'ГБ',
 			_ => null,
 		} ?? switch (path) {
+			'screenChat.gb' => 'ГБ',
 			'screenChat.mediaCounter' => ({required Object current, required Object total}) => '${current} из ${total}',
 			'screenChat.addCaption' => 'Добавить подпись…',
 			'screenSettings.settings' => 'Настройки',
@@ -2552,9 +2554,9 @@ extension on TranslationsRu {
 			'passkey.created' => ({required Object date}) => 'Добавлен ${date}',
 			'passkey.lastUsed' => ({required Object date}) => 'Вход ${date}',
 			'passkey.alreadyOnThisDevice' => 'На этом устройстве уже есть ключ доступа для этого аккаунта. Добавьте ключ на другом устройстве или в другом менеджере паролей.',
-			'passkey.delete' => 'Удалить',
 			_ => null,
 		} ?? switch (path) {
+			'passkey.delete' => 'Удалить',
 			'passkey.deleteConfirmTitle' => 'Удалить ключ доступа?',
 			'passkey.deleteConfirmMessage' => 'Войти с помощью этого ключа больше не получится.',
 			'passkey.loadError' => 'Не удалось загрузить ключи',

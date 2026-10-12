@@ -22,7 +22,7 @@ Future<bool?> askPinScopeCupertino(BuildContext context, models.Chat chat, {requ
             isDefaultAction: pin,
             isDestructiveAction: !pin,
             onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: Text(pin ? t.pinForBoth(name: chat.title) : t.unpinForBoth(name: chat.title)),
+            child: Text(pin ? t.pinForBoth(name: chat.shortTitle(t.peerFallback)) : t.unpinForBoth(name: chat.shortTitle(t.peerFallback))),
           ),
           CupertinoDialogAction(
             isDestructiveAction: !pin,

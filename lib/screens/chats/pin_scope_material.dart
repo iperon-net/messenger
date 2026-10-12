@@ -22,9 +22,12 @@ Future<bool?> askPinScopeMaterial(BuildContext context, models.Chat chat, {requi
             ? CheckboxListTile(
                 contentPadding: EdgeInsets.zero,
                 controlAffinity: ListTileControlAffinity.leading,
+                horizontalTitleGap: 4,
                 value: forBoth,
                 onChanged: (value) => setDialogState(() => forBoth = value ?? false),
-                title: Text(pin ? t.pinAlsoFor(name: chat.title) : t.unpinAlsoFor(name: chat.title)),
+                title: Text(
+                  pin ? t.pinAlsoFor(name: chat.shortTitle(t.peerFallback)) : t.unpinAlsoFor(name: chat.shortTitle(t.peerFallback)),
+                ),
               )
             : null,
         actions: [

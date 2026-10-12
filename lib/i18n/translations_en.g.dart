@@ -1483,14 +1483,17 @@ class Translations$screenChat$en {
 	/// en: 'Pin message?'
 	String get pinTitle => 'Pin message?';
 
+	/// en: 'the other person'
+	String get peerFallback => 'the other person';
+
 	/// en: 'Pin for me and {name}'
 	String pinForBoth({required Object name}) => 'Pin for me and ${name}';
 
 	/// en: 'Pin for me'
 	String get pinForMe => 'Pin for me';
 
-	/// en: 'Also pin for {name}'
-	String pinAlsoFor({required Object name}) => 'Also pin for ${name}';
+	/// en: 'Pin for {name}'
+	String pinAlsoFor({required Object name}) => 'Pin for ${name}';
 
 	/// en: 'Unpin for me and {name}'
 	String unpinForBoth({required Object name}) => 'Unpin for me and ${name}';
@@ -1498,8 +1501,8 @@ class Translations$screenChat$en {
 	/// en: 'Unpin for me'
 	String get unpinForMe => 'Unpin for me';
 
-	/// en: 'Also unpin for {name}'
-	String unpinAlsoFor({required Object name}) => 'Also unpin for ${name}';
+	/// en: 'Unpin for {name}'
+	String unpinAlsoFor({required Object name}) => 'Unpin for ${name}';
 
 	/// en: 'You pinned «{text}»'
 	String pinnedServiceYou({required Object text}) => 'You pinned «${text}»';
@@ -1618,8 +1621,8 @@ class Translations$screenChat$en {
 	/// en: 'Delete for me'
 	String get deleteForMe => 'Delete for me';
 
-	/// en: 'Also delete for {name}'
-	String deleteAlsoFor({required Object name}) => 'Also delete for ${name}';
+	/// en: 'Delete for {name}'
+	String deleteAlsoFor({required Object name}) => 'Delete for ${name}';
 
 	/// en: 'The message will be deleted from Saved Messages.'
 	String get deleteMessageSelf => 'The message will be deleted from Saved Messages.';
@@ -4008,12 +4011,13 @@ extension on Translations {
 			'screenChat.pinnedNumber' => ({required Object n}) => 'Pinned message #${n}',
 			'screenChat.unpinTitle' => 'Unpin message?',
 			'screenChat.pinTitle' => 'Pin message?',
+			'screenChat.peerFallback' => 'the other person',
 			'screenChat.pinForBoth' => ({required Object name}) => 'Pin for me and ${name}',
 			'screenChat.pinForMe' => 'Pin for me',
-			'screenChat.pinAlsoFor' => ({required Object name}) => 'Also pin for ${name}',
+			'screenChat.pinAlsoFor' => ({required Object name}) => 'Pin for ${name}',
 			'screenChat.unpinForBoth' => ({required Object name}) => 'Unpin for me and ${name}',
 			'screenChat.unpinForMe' => 'Unpin for me',
-			'screenChat.unpinAlsoFor' => ({required Object name}) => 'Also unpin for ${name}',
+			'screenChat.unpinAlsoFor' => ({required Object name}) => 'Unpin for ${name}',
 			'screenChat.pinnedServiceYou' => ({required Object text}) => 'You pinned «${text}»',
 			'screenChat.pinnedServiceYouMessage' => 'You pinned a message',
 			'screenChat.pinnedService' => ({required Object name, required Object text}) => '${name} pinned «${text}»',
@@ -4049,7 +4053,7 @@ extension on Translations {
 			'screenChat.deleteSelectedMessage' => 'Messages will be deleted for everyone in the chat.',
 			'screenChat.deleteForBoth' => ({required Object name}) => 'Delete for me and ${name}',
 			'screenChat.deleteForMe' => 'Delete for me',
-			'screenChat.deleteAlsoFor' => ({required Object name}) => 'Also delete for ${name}',
+			'screenChat.deleteAlsoFor' => ({required Object name}) => 'Delete for ${name}',
 			'screenChat.deleteMessageSelf' => 'The message will be deleted from Saved Messages.',
 			'screenChat.deleteSelectedMessageSelf' => 'The messages will be deleted from Saved Messages.',
 			'screenChat.voiceSlideToCancel' => 'Slide to cancel',
@@ -4091,9 +4095,9 @@ extension on Translations {
 			'screenChat.uploadProgress' => ({required Object done, required Object total}) => '${done} of ${total}',
 			'screenChat.kb' => 'KB',
 			'screenChat.mb' => 'MB',
-			'screenChat.gb' => 'GB',
 			_ => null,
 		} ?? switch (path) {
+			'screenChat.gb' => 'GB',
 			'screenChat.mediaCounter' => ({required Object current, required Object total}) => '${current} of ${total}',
 			'screenChat.addCaption' => 'Add a caption…',
 			'screenSettings.settings' => 'Settings',
@@ -4605,9 +4609,9 @@ extension on Translations {
 			'passkey.created' => ({required Object date}) => 'Added ${date}',
 			'passkey.lastUsed' => ({required Object date}) => 'Signed in ${date}',
 			'passkey.alreadyOnThisDevice' => 'This account already has a passkey on this device. Add one on another device or in a different password manager.',
-			'passkey.delete' => 'Delete',
 			_ => null,
 		} ?? switch (path) {
+			'passkey.delete' => 'Delete',
 			'passkey.deleteConfirmTitle' => 'Delete passkey?',
 			'passkey.deleteConfirmMessage' => 'You won\'t be able to sign in with this passkey anymore.',
 			'passkey.loadError' => 'Couldn\'t load passkeys',

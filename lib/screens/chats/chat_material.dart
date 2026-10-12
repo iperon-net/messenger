@@ -234,9 +234,10 @@ class _ChatMaterialState extends State<ChatMaterial> {
               ? CheckboxListTile(
                   contentPadding: EdgeInsets.zero,
                   controlAffinity: ListTileControlAffinity.leading,
+                  horizontalTitleGap: 4,
                   value: forBoth,
                   onChanged: (value) => setDialogState(() => forBoth = value ?? false),
-                  title: Text(t.deleteAlsoFor(name: chat.title)),
+                  title: Text(t.deleteAlsoFor(name: chat.shortTitle(t.peerFallback))),
                 )
               : Text(
                   chat.isSelf

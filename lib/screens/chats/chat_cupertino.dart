@@ -217,7 +217,7 @@ class _ChatCupertinoState extends State<ChatCupertino> {
             CupertinoActionSheetAction(
               isDestructiveAction: true,
               onPressed: () => Navigator.of(sheetContext).pop(true),
-              child: Text(t.deleteForBoth(name: chat.title)),
+              child: Text(t.deleteForBoth(name: chat.shortTitle(t.peerFallback))),
             ),
             CupertinoActionSheetAction(
               isDestructiveAction: true,

@@ -499,6 +499,16 @@ class Chat with ChatMappable {
 
   bool get hasUnread => unreadCount > 0 || markedUnread;
 
+  /// Короткое имя собеседника — первое слово [title] («Анна» из «Анна
+  /// Иванова»), как в Telegram; номер телефона (имени нет) — целиком; ни
+  /// имени, ни номера — [fallback] («собеседника»).
+  String shortTitle(String fallback) {
+    final name = title.trim();
+    if (name.isEmpty) return fallback;
+    if (name.startsWith('+') || RegExp(r'^\d').hasMatch(name)) return name;
+    return name.split(RegExp(r'\s+')).first;
+  }
+
   /// Дата для сортировки (последнее сообщение).
   DateTime get sortDate => lastMessage?.date ?? createdAt ?? DateTime.fromMillisecondsSinceEpoch(0);
 
