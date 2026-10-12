@@ -500,6 +500,9 @@
   "forwardTo": "Forward to…"
   "forwardedFrom": "Forwarded from {name}"
   "forwardFrom": "From: {names}"
+  "savedToFavorites(plural)":
+    one: "Message saved to Saved Messages"
+    other: "Messages saved to Saved Messages"
   "forwardMessages(plural)":
     one: "Forward {n} message"
     other: "Forward {n} messages"

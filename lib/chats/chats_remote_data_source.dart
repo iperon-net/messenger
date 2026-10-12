@@ -77,7 +77,7 @@ class ChatsRemoteDataSource implements ChatsDataSource {
 
   /// Закреплённые сообщения и реакции — есть; пересылка и отложенные — второй срез.
   @override
-  ChatsFeatures get features => const ChatsFeatures(reactions: true, pinnedMessages: true, forward: false, scheduled: false);
+  ChatsFeatures get features => const ChatsFeatures(reactions: true, pinnedMessages: true, forward: true, scheduled: false);
 
   // --- список чатов ---
 
@@ -685,24 +685,19 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     }
 
     final outboxDir = await outboxMediaDir();
-    models.Message queuedMessage(ChatOutboxRow queued) => _withOutboxMedia(
-      map(
-        pb.ChatMessage(
-          chatID: chat,
-          fromUserID: me,
-          date: Int64(queued.createdAt),
-          content: pb.MessageContent.fromBuffer(queued.content),
-          silent: queued.silent,
-        ),
-      ).copyWith(id: localMessageID(queued.randomID), status: queued.failed ? models.MessageStatus.failed : models.MessageStatus.pending),
-      queued,
-      outboxDir,
-    );
+    Future<models.Message> queuedMessage(ChatOutboxRow queued) async {
+      final content = pb.MessageContent.fromBuffer(queued.content);
+      final message = map(
+        pb.ChatMessage(chatID: chat, fromUserID: me, date: Int64(queued.createdAt), content: content, silent: queued.silent),
+      ).copyWith(id: localMessageID(queued.randomID), status: queued.failed ? models.MessageStatus.failed : models.MessageStatus.pending);
+      // Пересылаемое — вложения уже на CDN (описания — из кэша исходного).
+      return queued.isForward ? _withServerMedia(message, content, chatID) : _withOutboxMedia(message, queued, outboxDir);
+    }
 
     final messages = [for (final m in history) await _withServerMedia(map(m), m.content, chatID)];
     final pending = <models.Message>[];
     for (final queued in await _store.outbox(userID: me, chatID: chat)) {
-      final message = queuedMessage(queued);
+      final message = await queuedMessage(queued);
       if (!queued.failed) {
         pending.add(message);
         continue;
@@ -1102,8 +1097,42 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     ];
   }
 
+  /// Пересылка: каждое — отдельной отправкой через outbox (сразу или при
+  /// подключении, ⏱ в ленте). На сервер уходит ссылка на исходное
+  /// (`Messages.Send.forwardFrom`) — содержимое он берёт сам; в outbox —
+  /// только превью для ленты: копия из кэша без ответа, с «Переслано от».
+  /// Чего нет в кэше / ещё не на сервере — пропускаем.
   @override
-  Future<void> forwardMessages(String toChatID, List<models.Message> messages) async => _unsupported('Пересылка');
+  Future<void> forwardMessages(String toChatID, List<models.Message> messages) async {
+    final to = idBytes(toChatID);
+    if (to.isEmpty || !_auth.isAuthorized) return;
+    final me = _sync.me;
+    // Порядок outbox — по createdAt: у пачки он должен строго расти.
+    final now = DateTime.now().millisecondsSinceEpoch;
+    var added = 0;
+    for (final m in messages) {
+      final from = idBytes(m.chatID);
+      final id = serverMessageID(m.id);
+      if (from.isEmpty || id == null) continue;
+      final source = await _store.message(userID: me, chatID: from, messageID: id);
+      if (source == null) continue;
+      final content = pb.MessageContent.fromBuffer(source.content.writeToBuffer())..clearReplyTo();
+      if (!content.hasForward()) {
+        content.forward = pb.MessageForward(fromUserID: source.fromUserID, fromName: m.forward?.name ?? '', date: source.date);
+      }
+      await _store.addOutbox(
+        userID: me,
+        randomID: _randomID(),
+        chatID: to,
+        content: content.writeToBuffer(),
+        forwardChatID: from,
+        forwardMessageID: id,
+        createdAt: now + added,
+      );
+      added++;
+    }
+    if (added > 0) unawaited(_sync.flushOutbox());
+  }
 
   /// Отклонённое сервером ([models.MessageStatus.failed]) — снова в очередь.
   @override

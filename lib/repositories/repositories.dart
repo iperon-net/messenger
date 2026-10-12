@@ -622,6 +622,15 @@ class Repositories {
       }),
     );
 
+    migrations.add(
+      SqliteMigration(24, (tx) async {
+        // Пересылка: исходное сообщение (чат + messageID) — на сервер уходит
+        // ссылка на него, content в outbox — только превью для ленты.
+        await tx.execute('ALTER TABLE chatOutbox ADD COLUMN forwardChatID BLOB NULL;');
+        await tx.execute('ALTER TABLE chatOutbox ADD COLUMN forwardMessageID INTEGER NOT NULL DEFAULT 0;');
+      }),
+    );
+
     if (settings.isDeleteDatabase) {
       logger.warning("Deleting the database, flag set IS_DELETE_DATABASE: 1");
 

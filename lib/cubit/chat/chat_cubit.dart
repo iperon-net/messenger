@@ -657,13 +657,16 @@ class ChatCubit extends Cubit<ChatState> {
     }
   }
 
-  /// Переслать отмеченные: в этот же чат — сразу в плашку над полем ввода,
-  /// в другой — отложить до открытия его окна ([forwardTo]).
-  void forwardSelected(String toChatID) {
-    // Автор оригинала — сейчас, пока известен этот чат (в личном у входящих
-    // имени отправителя нет — это название чата).
-    final messages = [
-      for (final m in state.selectedMessages)
+  /// Можно ли переслать: не звонок и уже на сервере (неотправленное
+  /// пересылать не из чего).
+  static bool forwardable(models.Message m) =>
+      m.kind != models.MessageKind.call && m.status != models.MessageStatus.pending && m.status != models.MessageStatus.failed;
+
+  /// Отмеченные для пересылки, с автором оригинала — сейчас, пока известен
+  /// этот чат (в личном у входящих имени отправителя нет — это название чата).
+  List<models.Message> _forwardSelection() => [
+    for (final m in state.selectedMessages)
+      if (forwardable(m))
         m.forward != null
             ? m
             : m.copyWith(
@@ -672,7 +675,12 @@ class ChatCubit extends Cubit<ChatState> {
                   name: m.outgoing ? '' : (m.senderName.isNotEmpty ? m.senderName : state.chat?.title ?? ''),
                 ),
               ),
-    ];
+  ];
+
+  /// Переслать отмеченные: в этот же чат — сразу в плашку над полем ввода,
+  /// в другой — отложить до открытия его окна ([forwardTo]).
+  void forwardSelected(String toChatID) {
+    final messages = _forwardSelection();
     if (messages.isEmpty) return;
     if (toChatID == _chatID) {
       emit(state.copyWith(selecting: false, selectedIDs: const [], forwarding: messages, reply: null, replyQuote: null, editing: null));
@@ -680,6 +688,18 @@ class ChatCubit extends Cubit<ChatState> {
       forwardTo(toChatID, messages);
       clearSelection();
     }
+  }
+
+  /// «Избранное» в списке «Переслать в…» (как в Telegram): отмеченные уходят
+  /// туда сразу, без перехода и без плашки (без сети — ⏱ в outbox, уйдут
+  /// при подключении). Возвращает, сколько переслали.
+  Future<int> saveSelected(String savedChatID) async {
+    final source = _source;
+    final messages = _forwardSelection();
+    clearSelection();
+    if (source == null || messages.isEmpty) return 0;
+    await source.forwardMessages(savedChatID, messages);
+    return messages.length;
   }
 
   /// Куда можно переслать: все чаты, кроме каналов (писать в них нельзя) и

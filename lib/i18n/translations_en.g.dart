@@ -1591,6 +1591,12 @@ class Translations$screenChat$en {
 	/// en: 'From: {names}'
 	String forwardFrom({required Object names}) => 'From: ${names}';
 
+	/// en: '(one) {Message saved to Saved Messages} (other) {Messages saved to Saved Messages}'
+	String savedToFavorites({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n,
+		one: 'Message saved to Saved Messages',
+		other: 'Messages saved to Saved Messages',
+	);
+
 	/// en: '(one) {Forward {n} message} (other) {Forward {n} messages}'
 	String forwardMessages({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n,
 		one: 'Forward ${n} message',
@@ -4027,6 +4033,7 @@ extension on Translations {
 			'screenChat.forwardTo' => 'Forward to…',
 			'screenChat.forwardedFrom' => ({required Object name}) => 'Forwarded from ${name}',
 			'screenChat.forwardFrom' => ({required Object names}) => 'From: ${names}',
+			'screenChat.savedToFavorites' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: 'Message saved to Saved Messages', other: 'Messages saved to Saved Messages', ), 
 			'screenChat.forwardMessages' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: 'Forward ${n} message', other: 'Forward ${n} messages', ), 
 			'screenChat.deleteSelectedTitle' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: 'Delete ${n} message?', other: 'Delete ${n} messages?', ), 
 			'screenChat.deleteSelectedMessage' => 'Messages will be deleted for everyone in the chat.',
@@ -4076,9 +4083,9 @@ extension on Translations {
 			'screenChat.addCaption' => 'Add a caption…',
 			'screenSettings.settings' => 'Settings',
 			'screenSettings.myProfile' => 'My profile',
-			'screenSettings.devices' => _root.screenSettingsDevices.devices,
 			_ => null,
 		} ?? switch (path) {
+			'screenSettings.devices' => _root.screenSettingsDevices.devices,
 			'screenSettings.language' => 'Language',
 			'screenSettings.appearance' => _root.screenSettingsAppearance.appearance,
 			'screenSettings.folders' => _root.screenChatFolders.folders,
@@ -4590,9 +4597,9 @@ extension on Translations {
 			'passkey.deleteConfirmMessage' => 'You won\'t be able to sign in with this passkey anymore.',
 			'passkey.loadError' => 'Couldn\'t load passkeys',
 			'passkey.retry' => 'Retry',
-			'passkey.verificationFailed' => 'Couldn\'t verify the passkey. Please try again.',
 			_ => null,
 		} ?? switch (path) {
+			'passkey.verificationFailed' => 'Couldn\'t verify the passkey. Please try again.',
 			'passkey.ceremonyExpired' => 'The request expired. Please try again.',
 			'passkey.unknownCredential' => 'This passkey isn\'t recognized.',
 			'passkey.alreadyRegistered' => 'This passkey is already registered.',

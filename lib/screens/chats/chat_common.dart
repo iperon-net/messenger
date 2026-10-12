@@ -332,6 +332,52 @@ void showChatsNoConnection(BuildContext context) {
   m.ScaffoldMessenger.maybeOf(context)?.showSnackBar(m.SnackBar(content: Text(t.common.noConnectionTitle)));
 }
 
+/// Короткое уведомление «сделано» (например, «Сохранено в Избранном»): на iOS
+/// — плашка под шапкой, сама исчезает через 2 с (тап — сразу); на Android —
+/// SnackBar.
+void showChatToast(BuildContext context, String text) {
+  if (!Platform.isIOS) {
+    m.ScaffoldMessenger.maybeOf(context)?.showSnackBar(m.SnackBar(content: Text(text)));
+    return;
+  }
+  final overlay = Overlay.maybeOf(context, rootOverlay: true);
+  if (overlay == null) return;
+  late final OverlayEntry entry;
+  var removed = false;
+  void remove() {
+    if (removed) return;
+    removed = true;
+    entry.remove();
+  }
+
+  entry = OverlayEntry(
+    builder: (context) => Positioned(
+      top: MediaQuery.paddingOf(context).top + 52,
+      left: 16,
+      right: 16,
+      child: GestureDetector(
+        onTap: remove,
+        child: TweenAnimationBuilder<double>(
+          tween: Tween(begin: 0, end: 1),
+          duration: const Duration(milliseconds: 200),
+          builder: (context, value, child) => Opacity(opacity: value, child: child),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(color: const Color(0xE6303030), borderRadius: BorderRadius.circular(12)),
+            child: Text(
+              text,
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: Color(0xFFFFFFFF), fontSize: 15, decoration: TextDecoration.none),
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
+  overlay.insert(entry);
+  Timer(const Duration(seconds: 2), remove);
+}
+
 /// Показывает [showChatsNoConnection], когда cubit сообщает о действии без
 /// сети (растёт счётчик [notice], например `offlineNotice`). Ставится на
 /// экран-владелец cubit'а (список, окно чата, «Новое сообщение»), чтобы

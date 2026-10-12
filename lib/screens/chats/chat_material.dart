@@ -194,6 +194,12 @@ class _ChatMaterialState extends State<ChatMaterial> {
       if (single) _cubit.clearSelection();
       return;
     }
+    // «Избранное» из другого чата — сразу туда, остаёмся здесь (как в Telegram).
+    if (target.isSelf && target.id != _cubit.state.chat?.id) {
+      final saved = await _cubit.saveSelected(target.id);
+      if (saved > 0 && context.mounted) showChatToast(context, context.t.screenChat.savedToFavorites(n: saved));
+      return;
+    }
     _cubit.forwardSelected(target.id);
     if (target.id == _cubit.state.chat?.id) {
       _focus.requestFocus();
@@ -715,13 +721,14 @@ class _ChatMaterialState extends State<ChatMaterial> {
                   title: Text(message.pinned ? t.unpin : t.pin),
                   onTap: () => Navigator.of(sheetContext).pop('pin'),
                 ),
-              if (features.forward)
+              if (features.forward && ChatCubit.forwardable(message))
                 ListTile(
                   leading: const Icon(Icons.forward),
                   title: Text(t.forward),
                   onTap: () => Navigator.of(sheetContext).pop('forward'),
                 ),
-              if (message.outgoing && message.kind == models.MessageKind.text)
+              // Пересланное не правится (как в Telegram).
+              if (message.outgoing && message.kind == models.MessageKind.text && message.forward == null)
                 ListTile(
                   leading: const Icon(Icons.edit_outlined),
                   title: Text(t.edit),

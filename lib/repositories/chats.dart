@@ -78,6 +78,13 @@ class ChatOutboxRow {
   /// пусто — без вложений.
   final String media;
 
+  /// Пересылка: исходное сообщение (чат + messageID на сервере); `null` /
+  /// 0 — обычное сообщение.
+  final Uint8List? forwardChatID;
+  final int forwardMessageID;
+
+  bool get isForward => forwardChatID != null && forwardMessageID > 0;
+
   const ChatOutboxRow({
     required this.randomID,
     required this.chatID,
@@ -87,6 +94,8 @@ class ChatOutboxRow {
     required this.failed,
     required this.createdAt,
     this.media = '',
+    this.forwardChatID,
+    this.forwardMessageID = 0,
   });
 
   factory ChatOutboxRow._fromRow(Map<String, dynamic> row) => ChatOutboxRow(
@@ -98,6 +107,8 @@ class ChatOutboxRow {
     failed: (row['failed'] as int) != 0,
     createdAt: row['createdAt'] as int,
     media: row['media'] as String? ?? '',
+    forwardChatID: row['forwardChatID'] == null ? null : Uint8List.fromList(row['forwardChatID'] as List<int>),
+    forwardMessageID: row['forwardMessageID'] as int? ?? 0,
   );
 }
 
@@ -698,10 +709,25 @@ class ChatsRepository {
     required Uint8List content,
     bool silent = false,
     String media = '',
+    List<int>? forwardChatID,
+    int forwardMessageID = 0,
+    int? createdAt,
   }) async {
     await ctx.execute(
-      'INSERT INTO chatOutbox (userID, randomID, chatID, peerUserID, content, silent, createdAt, media) VALUES (?, ?, ?, ?, ?, ?, ?, ?);',
-      [userID, randomID, chatID, peerUserID, content, silent ? 1 : 0, DateTime.now().millisecondsSinceEpoch, media],
+      'INSERT INTO chatOutbox (userID, randomID, chatID, peerUserID, content, silent, createdAt, media, forwardChatID, forwardMessageID) '
+      'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);',
+      [
+        userID,
+        randomID,
+        chatID,
+        peerUserID,
+        content,
+        silent ? 1 : 0,
+        createdAt ?? DateTime.now().millisecondsSinceEpoch,
+        media,
+        forwardChatID,
+        forwardMessageID,
+      ],
     );
   }
 

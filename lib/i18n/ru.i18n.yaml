@@ -518,6 +518,11 @@
   "forwardTo": "Переслать в…"
   "forwardedFrom": "Переслано от {name}"
   "forwardFrom": "От: {names}"
+  "savedToFavorites(plural)":
+    one: "Сообщение сохранено в Избранном"
+    few: "Сообщения сохранены в Избранном"
+    many: "Сообщения сохранены в Избранном"
+    other: "Сообщения сохранены в Избранном"
   "forwardMessages(plural)":
     one: "Переслать {n} сообщение"
     few: "Переслать {n} сообщения"

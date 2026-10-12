@@ -682,6 +682,12 @@ class _Translations$screenChat$ru extends Translations$screenChat$en {
 	@override String get forwardTo => 'Переслать в…';
 	@override String forwardedFrom({required Object name}) => 'Переслано от ${name}';
 	@override String forwardFrom({required Object names}) => 'От: ${names}';
+	@override String savedToFavorites({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n,
+		one: 'Сообщение сохранено в Избранном',
+		few: 'Сообщения сохранены в Избранном',
+		many: 'Сообщения сохранены в Избранном',
+		other: 'Сообщения сохранены в Избранном',
+	);
 	@override String forwardMessages({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n,
 		one: 'Переслать ${n} сообщение',
 		few: 'Переслать ${n} сообщения',
@@ -1984,6 +1990,7 @@ extension on TranslationsRu {
 			'screenChat.forwardTo' => 'Переслать в…',
 			'screenChat.forwardedFrom' => ({required Object name}) => 'Переслано от ${name}',
 			'screenChat.forwardFrom' => ({required Object names}) => 'От: ${names}',
+			'screenChat.savedToFavorites' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: 'Сообщение сохранено в Избранном', few: 'Сообщения сохранены в Избранном', many: 'Сообщения сохранены в Избранном', other: 'Сообщения сохранены в Избранном', ), 
 			'screenChat.forwardMessages' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: 'Переслать ${n} сообщение', few: 'Переслать ${n} сообщения', many: 'Переслать ${n} сообщений', other: 'Переслать ${n} сообщения', ), 
 			'screenChat.deleteSelectedTitle' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: 'Удалить ${n} сообщение?', few: 'Удалить ${n} сообщения?', many: 'Удалить ${n} сообщений?', other: 'Удалить ${n} сообщения?', ), 
 			'screenChat.deleteSelectedMessage' => 'Сообщения будут удалены у всех участников чата.',
@@ -2033,9 +2040,9 @@ extension on TranslationsRu {
 			'screenChat.addCaption' => 'Добавить подпись…',
 			'screenSettings.settings' => 'Настройки',
 			'screenSettings.myProfile' => 'Мой профиль',
-			'screenSettings.devices' => _root.screenSettingsDevices.devices,
 			_ => null,
 		} ?? switch (path) {
+			'screenSettings.devices' => _root.screenSettingsDevices.devices,
 			'screenSettings.language' => 'Язык',
 			'screenSettings.appearance' => _root.screenSettingsAppearance.appearance,
 			'screenSettings.folders' => _root.screenChatFolders.folders,
@@ -2547,9 +2554,9 @@ extension on TranslationsRu {
 			'passkey.deleteConfirmMessage' => 'Войти с помощью этого ключа больше не получится.',
 			'passkey.loadError' => 'Не удалось загрузить ключи',
 			'passkey.retry' => 'Повторить',
-			'passkey.verificationFailed' => 'Не удалось проверить ключ. Попробуйте ещё раз.',
 			_ => null,
 		} ?? switch (path) {
+			'passkey.verificationFailed' => 'Не удалось проверить ключ. Попробуйте ещё раз.',
 			'passkey.ceremonyExpired' => 'Срок запроса истёк. Попробуйте ещё раз.',
 			'passkey.unknownCredential' => 'Этот ключ не распознан.',
 			'passkey.alreadyRegistered' => 'Этот ключ уже зарегистрирован.',

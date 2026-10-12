@@ -432,7 +432,10 @@ class MessageReplyTo extends $pb.GeneratedMessage {
   void clearQuoteOffset() => $_clearField(4);
 }
 
-/// Пересланное: от кого (имя на момент пересылки; self — «Вы»).
+/// Пересланное: автор оригинала (fromName — его имя в профиле на момент
+/// пересылки, на случай если профиль получателю не виден) и дата оригинала.
+/// Ставит только сервер (Messages.Send.forwardFrom); в обычной отправке
+/// отбрасывается.
 class MessageForward extends $pb.GeneratedMessage {
   factory MessageForward({
     $core.List<$core.int>? fromUserID,
@@ -3701,6 +3704,7 @@ class Messages_Send extends $pb.GeneratedMessage {
     $fixnum.Int64? randomID,
     MessageContent? content,
     $core.bool? silent,
+    Messages_ForwardFrom? forwardFrom,
   }) {
     final result = create();
     if (chatID != null) result.chatID = chatID;
@@ -3708,6 +3712,7 @@ class Messages_Send extends $pb.GeneratedMessage {
     if (randomID != null) result.randomID = randomID;
     if (content != null) result.content = content;
     if (silent != null) result.silent = silent;
+    if (forwardFrom != null) result.forwardFrom = forwardFrom;
     return result;
   }
 
@@ -3725,6 +3730,7 @@ class Messages_Send extends $pb.GeneratedMessage {
     ..aInt64(3, _omitFieldNames ? '' : 'randomID', protoName: 'randomID')
     ..aOM<MessageContent>(4, _omitFieldNames ? '' : 'content', subBuilder: MessageContent.create)
     ..aOB(5, _omitFieldNames ? '' : 'silent')
+    ..aOM<Messages_ForwardFrom>(6, _omitFieldNames ? '' : 'forwardFrom', protoName: 'forwardFrom', subBuilder: Messages_ForwardFrom.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -3790,6 +3796,82 @@ class Messages_Send extends $pb.GeneratedMessage {
   $core.bool hasSilent() => $_has(4);
   @$pb.TagNumber(5)
   void clearSilent() => $_clearField(5);
+
+  /// Пересылка (как forwardMessages в Telegram): содержимое сервер берёт из
+  /// исходного сообщения (без ответа, с заголовком forward; пересланное
+  /// остаётся «от» автора оригинала) — content клиент не заполняет. Доступ —
+  /// через исходное сообщение, а не владение файлами вложений.
+  @$pb.TagNumber(6)
+  Messages_ForwardFrom get forwardFrom => $_getN(5);
+  @$pb.TagNumber(6)
+  set forwardFrom(Messages_ForwardFrom value) => $_setField(6, value);
+  @$pb.TagNumber(6)
+  $core.bool hasForwardFrom() => $_has(5);
+  @$pb.TagNumber(6)
+  void clearForwardFrom() => $_clearField(6);
+  @$pb.TagNumber(6)
+  Messages_ForwardFrom ensureForwardFrom() => $_ensure(5);
+}
+
+/// Исходное сообщение пересылки — в чате, где я участник и оно мне видно.
+class Messages_ForwardFrom extends $pb.GeneratedMessage {
+  factory Messages_ForwardFrom({
+    $core.List<$core.int>? chatID,
+    $fixnum.Int64? messageID,
+  }) {
+    final result = create();
+    if (chatID != null) result.chatID = chatID;
+    if (messageID != null) result.messageID = messageID;
+    return result;
+  }
+
+  Messages_ForwardFrom._();
+
+  factory Messages_ForwardFrom.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Messages_ForwardFrom.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Messages.ForwardFrom',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..a<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'chatID', $pb.PbFieldType.OY, protoName: 'chatID')
+    ..aInt64(2, _omitFieldNames ? '' : 'messageID', protoName: 'messageID')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Messages_ForwardFrom clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Messages_ForwardFrom copyWith(void Function(Messages_ForwardFrom) updates) =>
+      super.copyWith((message) => updates(message as Messages_ForwardFrom)) as Messages_ForwardFrom;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static Messages_ForwardFrom create() => Messages_ForwardFrom._();
+  @$core.override
+  Messages_ForwardFrom createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static Messages_ForwardFrom getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Messages_ForwardFrom>(create);
+  static Messages_ForwardFrom? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.List<$core.int> get chatID => $_getN(0);
+  @$pb.TagNumber(1)
+  set chatID($core.List<$core.int> value) => $_setBytes(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasChatID() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearChatID() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $fixnum.Int64 get messageID => $_getI64(1);
+  @$pb.TagNumber(2)
+  set messageID($fixnum.Int64 value) => $_setInt64(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasMessageID() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearMessageID() => $_clearField(2);
 }
 
 class Messages_SendResult extends $pb.GeneratedMessage {

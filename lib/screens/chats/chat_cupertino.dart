@@ -180,6 +180,12 @@ class _ChatCupertinoState extends State<ChatCupertino> {
       if (single) _cubit.clearSelection();
       return;
     }
+    // «Избранное» из другого чата — сразу туда, остаёмся здесь (как в Telegram).
+    if (target.isSelf && target.id != _cubit.state.chat?.id) {
+      final saved = await _cubit.saveSelected(target.id);
+      if (saved > 0 && context.mounted) showChatToast(context, context.t.screenChat.savedToFavorites(n: saved));
+      return;
+    }
     _cubit.forwardSelected(target.id);
     if (target.id == _cubit.state.chat?.id) {
       _focus.requestFocus();
@@ -740,12 +746,13 @@ class _ChatCupertinoState extends State<ChatCupertino> {
       if (message.text.isNotEmpty) action(t.copy, CupertinoIcons.doc_on_doc, () => Clipboard.setData(ClipboardData(text: message.text))),
       if (canWrite && features.pinnedMessages && _pinnable(message))
         action(message.pinned ? t.unpin : t.pin, message.pinned ? CupertinoIcons.pin_slash : CupertinoIcons.pin, () => _pin(chat, message)),
-      if (features.forward)
+      if (features.forward && ChatCubit.forwardable(message))
         action(t.forward, CupertinoIcons.arrowshape_turn_up_right, () {
           _cubit.startSelection(message);
           _forward(context, single: true);
         }),
-      if (message.outgoing && message.kind == models.MessageKind.text)
+      // Пересланное не правится (как в Telegram).
+      if (message.outgoing && message.kind == models.MessageKind.text && message.forward == null)
         action(t.edit, CupertinoIcons.pencil, () => _cubit.startEdit(message)),
       if (message.outgoing || chat.type == models.ChatType.private)
         action(t.delete, CupertinoIcons.delete, () => _confirmDelete(context, chat, message), destructive: true),

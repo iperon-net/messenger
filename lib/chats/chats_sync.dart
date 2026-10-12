@@ -791,7 +791,11 @@ class ChatsSync {
               chatID: row.chatID,
               peerUserID: row.peerUserID,
               randomID: Int64(row.randomID),
-              content: content,
+              // Пересылка — только ссылка на исходное, содержимое соберёт сервер.
+              content: row.isForward ? null : content,
+              forwardFrom: row.isForward
+                  ? pb.Messages_ForwardFrom(chatID: row.forwardChatID, messageID: Int64(row.forwardMessageID))
+                  : null,
               silent: row.silent,
             ),
           ),

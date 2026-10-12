@@ -100,7 +100,10 @@ message MessageReplyTo {
   int32 quoteOffset = 4;
 }
 
-// Пересланное: от кого (имя на момент пересылки; self — «Вы»).
+// Пересланное: автор оригинала (fromName — его имя в профиле на момент
+// пересылки, на случай если профиль получателю не виден) и дата оригинала.
+// Ставит только сервер (Messages.Send.forwardFrom); в обычной отправке
+// отбрасывается.
 message MessageForward {
   bytes fromUserID = 1;
   string fromName = 2;
@@ -458,6 +461,17 @@ message Messages {
     int64 randomID = 3;
     MessageContent content = 4;
     bool silent = 5;
+    // Пересылка (как forwardMessages в Telegram): содержимое сервер берёт из
+    // исходного сообщения (без ответа, с заголовком forward; пересланное
+    // остаётся «от» автора оригинала) — content клиент не заполняет. Доступ —
+    // через исходное сообщение, а не владение файлами вложений.
+    ForwardFrom forwardFrom = 6;
+  }
+
+  // Исходное сообщение пересылки — в чате, где я участник и оно мне видно.
+  message ForwardFrom {
+    bytes chatID = 1;
+    int64 messageID = 2;
   }
 
   message SendResult {
