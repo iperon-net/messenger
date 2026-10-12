@@ -7,3 +7,11 @@
 "PUSH_TEST_ENCRYPTED_BODY" = "Encrypted test notification: decryption works.";
 "PUSH_CONTACT_JOINED_BODY" = "joined Iperon";
 "PUSH_CALL_MISSED_BODY" = "Missed call";
+"PUSH_REACTION_TEXT" = "%1$@ to your message “%2$@”";
+"PUSH_REACTION_MESSAGE" = "%@ to your message";
+"PUSH_REACTION_PHOTO" = "%@ to your photo";
+"PUSH_REACTION_VIDEO" = "%@ to your video";
+"PUSH_REACTION_FILE" = "%@ to your file";
+"PUSH_REACTION_VOICE" = "%@ to your voice message";
+"PUSH_REACTION_POLL" = "%@ to your poll";
+"PUSH_REACTION_NO_PREVIEW" = "New reaction";

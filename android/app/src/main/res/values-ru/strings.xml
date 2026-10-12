@@ -14,4 +14,12 @@
     <string name="push_message_no_preview">Новое сообщение</string>
     <string name="push_contact_joined_body">теперь в Iperon</string>
     <string name="push_call_missed_body">Пропущенный звонок</string>
+    <string name="push_reaction_text">%1$s к вашему сообщению «%2$s»</string>
+    <string name="push_reaction_message">%1$s к вашему сообщению</string>
+    <string name="push_reaction_photo">%1$s к вашему фото</string>
+    <string name="push_reaction_video">%1$s к вашему видео</string>
+    <string name="push_reaction_file">%1$s к вашему файлу</string>
+    <string name="push_reaction_voice">%1$s к вашему голосовому сообщению</string>
+    <string name="push_reaction_poll">%1$s к вашему опросу</string>
+    <string name="push_reaction_no_preview">Новая реакция</string>
 </resources>

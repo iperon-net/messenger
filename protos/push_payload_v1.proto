@@ -24,6 +24,10 @@ message PushPayload {
     MESSAGE = 10;        // новое сообщение (этап 7)
     READ_HISTORY = 11;   // прочитано на другом устройстве — снять (тихий)
     MESSAGE_DELETED = 12; // сообщения удалены — снять (тихий)
+    // Реакция на моё сообщение (messageID): args[0] — эмодзи; body — начало
+    // текста сообщения, без текста args[1] — вид вложения («photo», «voice»…);
+    // без превью args и body пустые.
+    MESSAGE_REACTION = 13;
   }
 
   Kind kind = 1;

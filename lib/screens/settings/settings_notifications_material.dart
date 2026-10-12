@@ -156,12 +156,9 @@ class _SettingsNotificationsMaterial extends State<SettingsNotificationsMaterial
                         onTap: () => _openScope(context, scope),
                       ),
                   ]),
-                  // Реакции — пока только с демо чатов (настоящих чатов ещё нет).
-                  if (context.read<CommonCubit>().state.settingsDevice.chatsDemo) ...[
-                    _header(context, context.t.screenSettingsNotifications.reactions),
-                    _reactionsCard(context, state),
-                    _note(context, context.t.screenSettingsNotifications.reactionsNote),
-                  ],
+                  _header(context, context.t.screenSettingsNotifications.reactions),
+                  _reactionsCard(context, state),
+                  _note(context, context.t.screenSettingsNotifications.reactionsNote),
                   _header(context, context.t.screenSettingsNotifications.events),
                   _card([
                     SwitchListTile(

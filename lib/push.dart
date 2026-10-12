@@ -268,7 +268,7 @@ class PushManager {
   static String? routeForKind(PushPayload_Kind? kind) => switch (kind) {
     PushPayload_Kind.CONTACT_JOINED => '/contacts',
     PushPayload_Kind.CALL_MISSED => '/calls',
-    PushPayload_Kind.MESSAGE => '/chats',
+    PushPayload_Kind.MESSAGE || PushPayload_Kind.MESSAGE_REACTION => '/chats',
     _ => null,
   };
 

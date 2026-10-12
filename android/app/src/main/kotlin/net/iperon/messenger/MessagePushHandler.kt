@@ -20,7 +20,9 @@ import androidx.core.app.Person
 ///
 /// Тег системного уведомления: для сообщений — `chat:<chatHex>` (одно
 /// уведомление на чат, новые сообщения дописываются в MessagingStyle), для
-/// прочих — id уведомления (повтор доставки заменяет, а не дублирует).
+/// прочих — id уведомления (повтор доставки заменяет, а не дублирует). У
+/// реакций id — `reaction:<chatHex>:<messageID>:<кто>`: по нему [clearChat]
+/// снимает их вместе с сообщениями чата.
 object MessagePushHandler {
     private const val LOG_TAG = "IperonPush"
 
@@ -87,13 +89,14 @@ object MessagePushHandler {
         // Включён код-пароль — ни имени, ни текста на экране блокировки/в шторке.
         val hidden = PushKeyStore.isPasscodeEnabled(context)
         val isMessage = payload.kind == PushPayload.KIND_MESSAGE
+        val isChat = isMessage || payload.kind == PushPayload.KIND_MESSAGE_REACTION
         val tag = if (isMessage) chatTag(payload) else payload.id.ifEmpty { "kind:${payload.kind}" }
 
-        val builder = NotificationCompat.Builder(context, if (isMessage) NotificationChannels.MESSAGES else NotificationChannels.OTHER)
+        val builder = NotificationCompat.Builder(context, if (isChat) NotificationChannels.MESSAGES else NotificationChannels.OTHER)
             .setSmallIcon(R.drawable.ic_stat_notification)
             .setAutoCancel(true)
             .setContentIntent(tapIntent(context, payload, tag))
-            .setCategory(if (isMessage) NotificationCompat.CATEGORY_MESSAGE else NotificationCompat.CATEGORY_SOCIAL)
+            .setCategory(if (isChat) NotificationCompat.CATEGORY_MESSAGE else NotificationCompat.CATEGORY_SOCIAL)
         if (payload.date > 0) builder.setWhen(payload.date).setShowWhen(true)
 
         when {
@@ -146,8 +149,26 @@ object MessagePushHandler {
             ) to context.getString(R.string.push_contact_joined_body)
         PushPayload.KIND_CALL_MISSED -> payload.title.ifEmpty { appName } to
             context.getString(R.string.push_call_missed_body)
+        PushPayload.KIND_MESSAGE_REACTION -> payload.title.ifEmpty { appName } to reactionText(context, payload)
         else -> payload.title.ifEmpty { appName } to
             payload.body.ifEmpty { context.getString(R.string.push_fallback_body) }
+    }
+
+    /// «❤️ к вашему сообщению «…»» / «❤️ к вашему фото»: args[0] — эмодзи,
+    /// body — начало текста, без текста args[1] — вид вложения. Без превью
+    /// (args пустые) — «Новая реакция».
+    private fun reactionText(context: Context, payload: PushPayload): String {
+        val emoji = payload.args.firstOrNull() ?: return context.getString(R.string.push_reaction_no_preview)
+        if (payload.body.isNotEmpty()) return context.getString(R.string.push_reaction_text, emoji, payload.body)
+        val res = when (payload.args.getOrNull(1)) {
+            "photo" -> R.string.push_reaction_photo
+            "video" -> R.string.push_reaction_video
+            "file" -> R.string.push_reaction_file
+            "voice" -> R.string.push_reaction_voice
+            "poll" -> R.string.push_reaction_poll
+            else -> R.string.push_reaction_message
+        }
+        return context.getString(res, emoji)
     }
 
     /// Имя контакта из адресной книги по номеру (PhoneLookup сам нормализует
@@ -186,6 +207,7 @@ object MessagePushHandler {
     /// удалено при живом стриме).
     fun clearChat(context: Context, chatHex: String, maxID: Long = 0, messageIDs: Set<Long> = emptySet(), all: Boolean = false) {
         val manager = NotificationManagerCompat.from(context)
+        clearReactions(context, chatHex, maxID, messageIDs, all)
         val tag = "chat:$chatHex"
         val active = activeNotification(context, tag) ?: return
         val style = NotificationCompat.MessagingStyle.extractMessagingStyleFromNotification(active)
@@ -219,6 +241,21 @@ object MessagePushHandler {
             manager.notify(tag, 0, builder.build())
         } catch (error: SecurityException) {
             Log.w(LOG_TAG, "push: re-notify denied", error)
+        }
+    }
+
+    /// Снимает уведомления о реакциях чата [chatHex] по тем же правилам, что
+    /// [clearChat]: messageID — из тега `reaction:<chatHex>:<messageID>:…`.
+    private fun clearReactions(context: Context, chatHex: String, maxID: Long, messageIDs: Set<Long>, all: Boolean) {
+        val manager = context.getSystemService(NotificationManager::class.java) ?: return
+        val prefix = "reaction:$chatHex:"
+        for (active in manager.activeNotifications) {
+            val tag = active.tag ?: continue
+            if (!tag.startsWith(prefix)) continue
+            val id = tag.removePrefix(prefix).substringBefore(':').toLongOrNull() ?: 0L
+            if (all || (maxID > 0 && id <= maxID) || (id != 0L && id in messageIDs)) {
+                manager.cancel(tag, active.id)
+            }
         }
     }
 

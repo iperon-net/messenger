@@ -198,8 +198,7 @@ class _SettingsNotificationsCupertino extends State<SettingsNotificationsCuperti
                         ),
                     ],
                   ),
-                  // Реакции — пока только с демо чатов (настоящих чатов ещё нет).
-                  if (context.read<CommonCubit>().state.settingsDevice.chatsDemo) ..._reactionsSections(context, state),
+                  ..._reactionsSections(context, state),
                   _section(
                     context,
                     header: context.t.screenSettingsNotifications.events,

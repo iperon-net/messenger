@@ -7,6 +7,7 @@ void main() {
     expect(PushManager.routeForKind(PushPayload_Kind.CONTACT_JOINED), '/contacts');
     expect(PushManager.routeForKind(PushPayload_Kind.CALL_MISSED), '/calls');
     expect(PushManager.routeForKind(PushPayload_Kind.MESSAGE), '/chats');
+    expect(PushManager.routeForKind(PushPayload_Kind.MESSAGE_REACTION), '/chats');
     expect(PushManager.routeForKind(PushPayload_Kind.TEST), isNull);
     expect(PushManager.routeForKind(null), isNull);
   });

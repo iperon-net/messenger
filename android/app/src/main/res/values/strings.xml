@@ -18,4 +18,12 @@
     <string name="push_message_no_preview">New message</string>
     <string name="push_contact_joined_body">joined Iperon</string>
     <string name="push_call_missed_body">Missed call</string>
+    <string name="push_reaction_text">%1$s to your message “%2$s”</string>
+    <string name="push_reaction_message">%1$s to your message</string>
+    <string name="push_reaction_photo">%1$s to your photo</string>
+    <string name="push_reaction_video">%1$s to your video</string>
+    <string name="push_reaction_file">%1$s to your file</string>
+    <string name="push_reaction_voice">%1$s to your voice message</string>
+    <string name="push_reaction_poll">%1$s to your poll</string>
+    <string name="push_reaction_no_preview">New reaction</string>
 </resources>

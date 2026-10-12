@@ -92,12 +92,38 @@ class NotificationService: UNNotificationServiceExtension {
       content.title = title
       content.body = payload.body.isEmpty ? Self.text("PUSH_MESSAGE_NO_PREVIEW") : payload.body
       content.threadIdentifier = "chat:" + PushKeychain.hex(payload.chatID)
+    case .messageReaction:
+      // messageID — моё сообщение: прочитал чат на другом устройстве —
+      // READ_HISTORY снимет и это уведомление.
+      content.title = title
+      content.body = Self.reactionBody(payload)
+      content.threadIdentifier = "chat:" + PushKeychain.hex(payload.chatID)
     default:
       // READ_HISTORY / MESSAGE_DELETED сюда не попадают: сервер шлёт их
       // background-пушем, их разбирает приложение (PushBridge.handleSilent).
       content.title = title
       content.body = payload.body.isEmpty ? Self.text("PUSH_FALLBACK_BODY") : payload.body
     }
+  }
+
+  /// «❤️ к вашему сообщению «…»» / «❤️ к вашему фото»: args[0] — эмодзи,
+  /// body — начало текста, без текста args[1] — вид вложения. Без превью
+  /// (args пустые) — «Новая реакция».
+  private static func reactionBody(_ payload: Iperon_V1_PushPayload) -> String {
+    guard let emoji = payload.args.first else { return text("PUSH_REACTION_NO_PREVIEW") }
+    if !payload.body.isEmpty {
+      return String(format: text("PUSH_REACTION_TEXT"), emoji, payload.body)
+    }
+    let key: String
+    switch payload.args.count > 1 ? payload.args[1] : "" {
+    case "photo": key = "PUSH_REACTION_PHOTO"
+    case "video": key = "PUSH_REACTION_VIDEO"
+    case "file": key = "PUSH_REACTION_FILE"
+    case "voice": key = "PUSH_REACTION_VOICE"
+    case "poll": key = "PUSH_REACTION_POLL"
+    default: key = "PUSH_REACTION_MESSAGE"
+    }
+    return String(format: text(key), emoji)
   }
 
   private static func text(_ key: String) -> String {

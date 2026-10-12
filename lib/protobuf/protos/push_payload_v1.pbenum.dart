@@ -23,6 +23,11 @@ class PushPayload_Kind extends $pb.ProtobufEnum {
   static const PushPayload_Kind READ_HISTORY = PushPayload_Kind._(11, _omitEnumNames ? '' : 'READ_HISTORY');
   static const PushPayload_Kind MESSAGE_DELETED = PushPayload_Kind._(12, _omitEnumNames ? '' : 'MESSAGE_DELETED');
 
+  /// Реакция на моё сообщение (messageID): args[0] — эмодзи; body — начало
+  /// текста сообщения, без текста args[1] — вид вложения («photo», «voice»…);
+  /// без превью args и body пустые.
+  static const PushPayload_Kind MESSAGE_REACTION = PushPayload_Kind._(13, _omitEnumNames ? '' : 'MESSAGE_REACTION');
+
   static const $core.List<PushPayload_Kind> values = <PushPayload_Kind>[
     UNKNOWN,
     TEST,
@@ -31,6 +36,7 @@ class PushPayload_Kind extends $pb.ProtobufEnum {
     MESSAGE,
     READ_HISTORY,
     MESSAGE_DELETED,
+    MESSAGE_REACTION,
   ];
 
   static final $core.Map<$core.int, PushPayload_Kind> _byValue = $pb.ProtobufEnum.initByValue(values);

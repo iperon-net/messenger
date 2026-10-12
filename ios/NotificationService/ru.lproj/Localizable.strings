@@ -7,3 +7,11 @@
 "PUSH_TEST_ENCRYPTED_BODY" = "Шифрованное тестовое уведомление: расшифровка работает.";
 "PUSH_CONTACT_JOINED_BODY" = "теперь в Iperon";
 "PUSH_CALL_MISSED_BODY" = "Пропущенный звонок";
+"PUSH_REACTION_TEXT" = "%1$@ к вашему сообщению «%2$@»";
+"PUSH_REACTION_MESSAGE" = "%@ к вашему сообщению";
+"PUSH_REACTION_PHOTO" = "%@ к вашему фото";
+"PUSH_REACTION_VIDEO" = "%@ к вашему видео";
+"PUSH_REACTION_FILE" = "%@ к вашему файлу";
+"PUSH_REACTION_VOICE" = "%@ к вашему голосовому сообщению";
+"PUSH_REACTION_POLL" = "%@ к вашему опросу";
+"PUSH_REACTION_NO_PREVIEW" = "Новая реакция";
