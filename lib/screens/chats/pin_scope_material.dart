@@ -4,7 +4,7 @@ import '../../i18n/translations.g.dart';
 import '../../models.dart' as models;
 
 /// Закрепить ([pin]) / открепить сообщение, [allCount] — «Открепить все».
-/// Личный чат — как в Telegram, галочка «Также … для {name}» (по умолчанию
+/// Личный чат — как в Telegram, галочка «Для собеседника» (по умолчанию
 /// стоит); иначе закреп сразу (в «Избранном» — у себя), открепление — с
 /// подтверждением. Результат — forEveryone, `null` — отмена.
 Future<bool?> askPinScopeMaterial(BuildContext context, models.Chat chat, {required bool pin, int? allCount}) async {
@@ -25,9 +25,7 @@ Future<bool?> askPinScopeMaterial(BuildContext context, models.Chat chat, {requi
                 horizontalTitleGap: 4,
                 value: forBoth,
                 onChanged: (value) => setDialogState(() => forBoth = value ?? false),
-                title: Text(
-                  pin ? t.pinAlsoFor(name: chat.shortTitle(t.peerFallback)) : t.unpinAlsoFor(name: chat.shortTitle(t.peerFallback)),
-                ),
+                title: Text(t.forPeer),
               )
             : null,
         actions: [

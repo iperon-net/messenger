@@ -4,7 +4,7 @@ import '../../i18n/translations.g.dart';
 import '../../models.dart' as models;
 
 /// Закрепить ([pin]) / открепить сообщение, [allCount] — «Открепить все».
-/// Личный чат — как в Telegram, «… у меня и у {name}» / «… только у меня»;
+/// Личный чат — как в Telegram, «У меня и у собеседника» / «Только у меня»;
 /// иначе закреп сразу (в «Избранном» — у себя), открепление — с
 /// подтверждением. Результат — forEveryone, `null` — отмена.
 Future<bool?> askPinScopeCupertino(BuildContext context, models.Chat chat, {required bool pin, int? allCount}) async {
@@ -22,12 +22,12 @@ Future<bool?> askPinScopeCupertino(BuildContext context, models.Chat chat, {requ
             isDefaultAction: pin,
             isDestructiveAction: !pin,
             onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: Text(pin ? t.pinForBoth(name: chat.shortTitle(t.peerFallback)) : t.unpinForBoth(name: chat.shortTitle(t.peerFallback))),
+            child: Text(t.scopeForBoth),
           ),
           CupertinoDialogAction(
             isDestructiveAction: !pin,
             onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: Text(pin ? t.pinForMe : t.unpinForMe),
+            child: Text(t.scopeForMe),
           ),
         ] else
           CupertinoDialogAction(isDestructiveAction: true, onPressed: () => Navigator.of(dialogContext).pop(true), child: Text(t.unpin)),

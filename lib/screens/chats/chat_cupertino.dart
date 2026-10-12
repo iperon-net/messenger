@@ -203,7 +203,7 @@ class _ChatCupertinoState extends State<ChatCupertino> {
   }
 
   /// Подтверждение удаления [count] сообщений. Личный чат — как в Telegram,
-  /// лист «Удалить у меня и у …» / «Удалить только у меня»; группа — у всех;
+  /// лист «У меня и у собеседника» / «Только у меня»; группа — у всех;
   /// «Избранное» — только у себя. Результат — «у всех?», `null` — отмена.
   Future<bool?> _askDelete(BuildContext context, models.Chat chat, int count) {
     final t = context.t.screenChat;
@@ -217,12 +217,12 @@ class _ChatCupertinoState extends State<ChatCupertino> {
             CupertinoActionSheetAction(
               isDestructiveAction: true,
               onPressed: () => Navigator.of(sheetContext).pop(true),
-              child: Text(t.deleteForBoth(name: chat.shortTitle(t.peerFallback))),
+              child: Text(t.scopeForBoth),
             ),
             CupertinoActionSheetAction(
               isDestructiveAction: true,
               onPressed: () => Navigator.of(sheetContext).pop(false),
-              child: Text(t.deleteForMe),
+              child: Text(t.scopeForMe),
             ),
           ],
           cancelButton: CupertinoActionSheetAction(onPressed: () => Navigator.of(sheetContext).pop(), child: Text(context.t.common.cancel)),

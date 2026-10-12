@@ -237,7 +237,7 @@ class _ChatMaterialState extends State<ChatMaterial> {
                   horizontalTitleGap: 4,
                   value: forBoth,
                   onChanged: (value) => setDialogState(() => forBoth = value ?? false),
-                  title: Text(t.deleteAlsoFor(name: chat.shortTitle(t.peerFallback))),
+                  title: Text(t.forPeer),
                 )
               : Text(
                   chat.isSelf

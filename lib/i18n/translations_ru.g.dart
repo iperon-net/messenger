@@ -638,13 +638,9 @@ class _Translations$screenChat$ru extends Translations$screenChat$en {
 	@override String pinnedNumber({required Object n}) => 'Закреплённое сообщение #${n}';
 	@override String get unpinTitle => 'Открепить сообщение?';
 	@override String get pinTitle => 'Закрепить сообщение?';
-	@override String get peerFallback => 'собеседника';
-	@override String pinForBoth({required Object name}) => 'Закрепить у меня и у ${name}';
-	@override String get pinForMe => 'Закрепить только у меня';
-	@override String pinAlsoFor({required Object name}) => 'Закрепить для ${name}';
-	@override String unpinForBoth({required Object name}) => 'Открепить у меня и у ${name}';
-	@override String get unpinForMe => 'Открепить только у меня';
-	@override String unpinAlsoFor({required Object name}) => 'Открепить для ${name}';
+	@override String get scopeForBoth => 'У меня и у собеседника';
+	@override String get scopeForMe => 'Только у меня';
+	@override String get forPeer => 'Для собеседника';
 	@override String pinnedServiceYou({required Object text}) => 'Вы закрепили «${text}»';
 	@override String get pinnedServiceYouMessage => 'Вы закрепили сообщение';
 	@override String pinnedService({required Object name, required Object text}) => '${name} закрепил(а) «${text}»';
@@ -698,9 +694,6 @@ class _Translations$screenChat$ru extends Translations$screenChat$en {
 		other: 'Удалить ${n} сообщения?',
 	);
 	@override String get deleteSelectedMessage => 'Сообщения будут удалены у всех участников чата.';
-	@override String deleteForBoth({required Object name}) => 'Удалить у меня и у ${name}';
-	@override String get deleteForMe => 'Удалить только у меня';
-	@override String deleteAlsoFor({required Object name}) => 'Удалить для ${name}';
 	@override String get deleteMessageSelf => 'Сообщение будет удалено из «Избранного».';
 	@override String get deleteSelectedMessageSelf => 'Сообщения будут удалены из «Избранного».';
 	@override String get voiceSlideToCancel => 'Влево — отмена';
@@ -1956,13 +1949,9 @@ extension on TranslationsRu {
 			'screenChat.pinnedNumber' => ({required Object n}) => 'Закреплённое сообщение #${n}',
 			'screenChat.unpinTitle' => 'Открепить сообщение?',
 			'screenChat.pinTitle' => 'Закрепить сообщение?',
-			'screenChat.peerFallback' => 'собеседника',
-			'screenChat.pinForBoth' => ({required Object name}) => 'Закрепить у меня и у ${name}',
-			'screenChat.pinForMe' => 'Закрепить только у меня',
-			'screenChat.pinAlsoFor' => ({required Object name}) => 'Закрепить для ${name}',
-			'screenChat.unpinForBoth' => ({required Object name}) => 'Открепить у меня и у ${name}',
-			'screenChat.unpinForMe' => 'Открепить только у меня',
-			'screenChat.unpinAlsoFor' => ({required Object name}) => 'Открепить для ${name}',
+			'screenChat.scopeForBoth' => 'У меня и у собеседника',
+			'screenChat.scopeForMe' => 'Только у меня',
+			'screenChat.forPeer' => 'Для собеседника',
 			'screenChat.pinnedServiceYou' => ({required Object text}) => 'Вы закрепили «${text}»',
 			'screenChat.pinnedServiceYouMessage' => 'Вы закрепили сообщение',
 			'screenChat.pinnedService' => ({required Object name, required Object text}) => '${name} закрепил(а) «${text}»',
@@ -1996,9 +1985,6 @@ extension on TranslationsRu {
 			'screenChat.forwardMessages' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: 'Переслать ${n} сообщение', few: 'Переслать ${n} сообщения', many: 'Переслать ${n} сообщений', other: 'Переслать ${n} сообщения', ), 
 			'screenChat.deleteSelectedTitle' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: 'Удалить ${n} сообщение?', few: 'Удалить ${n} сообщения?', many: 'Удалить ${n} сообщений?', other: 'Удалить ${n} сообщения?', ), 
 			'screenChat.deleteSelectedMessage' => 'Сообщения будут удалены у всех участников чата.',
-			'screenChat.deleteForBoth' => ({required Object name}) => 'Удалить у меня и у ${name}',
-			'screenChat.deleteForMe' => 'Удалить только у меня',
-			'screenChat.deleteAlsoFor' => ({required Object name}) => 'Удалить для ${name}',
 			'screenChat.deleteMessageSelf' => 'Сообщение будет удалено из «Избранного».',
 			'screenChat.deleteSelectedMessageSelf' => 'Сообщения будут удалены из «Избранного».',
 			'screenChat.voiceSlideToCancel' => 'Влево — отмена',
@@ -2040,8 +2026,6 @@ extension on TranslationsRu {
 			'screenChat.uploadProgress' => ({required Object done, required Object total}) => '${done} из ${total}',
 			'screenChat.kb' => 'КБ',
 			'screenChat.mb' => 'МБ',
-			_ => null,
-		} ?? switch (path) {
 			'screenChat.gb' => 'ГБ',
 			'screenChat.mediaCounter' => ({required Object current, required Object total}) => '${current} из ${total}',
 			'screenChat.addCaption' => 'Добавить подпись…',
@@ -2049,6 +2033,8 @@ extension on TranslationsRu {
 			'screenSettings.myProfile' => 'Мой профиль',
 			'screenSettings.devices' => _root.screenSettingsDevices.devices,
 			'screenSettings.language' => 'Язык',
+			_ => null,
+		} ?? switch (path) {
 			'screenSettings.appearance' => _root.screenSettingsAppearance.appearance,
 			'screenSettings.folders' => _root.screenChatFolders.folders,
 			'screenSettings.notifications' => _root.screenSettingsNotifications.notifications,
@@ -2554,8 +2540,6 @@ extension on TranslationsRu {
 			'passkey.created' => ({required Object date}) => 'Добавлен ${date}',
 			'passkey.lastUsed' => ({required Object date}) => 'Вход ${date}',
 			'passkey.alreadyOnThisDevice' => 'На этом устройстве уже есть ключ доступа для этого аккаунта. Добавьте ключ на другом устройстве или в другом менеджере паролей.',
-			_ => null,
-		} ?? switch (path) {
 			'passkey.delete' => 'Удалить',
 			'passkey.deleteConfirmTitle' => 'Удалить ключ доступа?',
 			'passkey.deleteConfirmMessage' => 'Войти с помощью этого ключа больше не получится.',
@@ -2563,6 +2547,8 @@ extension on TranslationsRu {
 			'passkey.retry' => 'Повторить',
 			'passkey.verificationFailed' => 'Не удалось проверить ключ. Попробуйте ещё раз.',
 			'passkey.ceremonyExpired' => 'Срок запроса истёк. Попробуйте ещё раз.',
+			_ => null,
+		} ?? switch (path) {
 			'passkey.unknownCredential' => 'Этот ключ не распознан.',
 			'passkey.alreadyRegistered' => 'Этот ключ уже зарегистрирован.',
 			'passkey.notFound' => 'Ключ не найден.',
