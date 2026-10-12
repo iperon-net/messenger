@@ -89,7 +89,12 @@ class _ChatMaterialState extends State<ChatMaterial> {
 
   /// Какое закреплённое показано в плашке (по кругу от новых к старым).
   int _pinIndex = 0;
-  bool _draftLoaded = false;
+
+  /// Черновик, подставленный в поле (из списка / с другого устройства).
+  /// Пока поле с ним совпадает (не трогали), новый черновик с другого
+  /// устройства подставляется сам, а при уходе ничего не сохраняем — иначе
+  /// нетронутое поле затёрло бы черновик, пришедший позже.
+  String _shownDraft = '';
   String? _editingID;
 
   @override
@@ -110,11 +115,24 @@ class _ChatMaterialState extends State<ChatMaterial> {
     });
     // Сообщения могли прийти до подписки слушателя.
     _tracker.update(_cubit.state.messages, _cubit.state.unreadFromID);
+    // Чат (с черновиком) — тоже: переход «нет чата → есть» слушатель не увидит.
+    _applyDraft(_cubit.state.chat?.draft ?? '');
+  }
+
+  /// Подставить черновик [draft], если поле не трогали и не правим сообщение.
+  void _applyDraft(String draft) {
+    if (_cubit.state.editing != null || _input.text != _shownDraft || draft == _shownDraft) return;
+    _shownDraft = draft;
+    _input.value = TextEditingValue(
+      text: draft,
+      selection: TextSelection.collapsed(offset: draft.length),
+    );
   }
 
   @override
   void dispose() {
-    _cubit.saveDraft(_input.text);
+    // Поле не трогали — черновик прежний (или пришёл с другого устройства).
+    if (_input.text != _shownDraft) _cubit.saveDraft(_input.text);
     _formatMenu.dispose();
     _recorder.dispose();
     VoicePlayer.instance.stop();
@@ -424,18 +442,15 @@ class _ChatMaterialState extends State<ChatMaterial> {
         child: BlocConsumer<ChatCubit, ChatState>(
           listenWhen: (previous, current) =>
               previous.editing != current.editing ||
-              previous.chat == null && current.chat != null ||
+              previous.chat?.draft != current.chat?.draft ||
               previous.searchCurrentID != current.searchCurrentID,
           listener: (context, state) {
             if (state.editing == null) _editingID = null;
             // Поиск: к текущему найденному.
             final found = state.searchCurrentID;
             if (found != null) scrollToMessage(_scroll, _keyFor(found));
-            // Черновик из списка — один раз при открытии.
-            if (!_draftLoaded && state.chat != null) {
-              _draftLoaded = true;
-              if (_input.text.isEmpty && state.chat!.draft.isNotEmpty) _input.text = state.chat!.draft;
-            }
+            // Черновик из списка / с другого устройства — в поле, если его не трогали.
+            _applyDraft(state.chat?.draft ?? '');
             final editing = state.editing;
             // Только при смене редактируемого (слушатель срабатывает и на поиск).
             if (editing != null && editing.id != _editingID) {
