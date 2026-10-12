@@ -108,6 +108,9 @@ class ChatMessagesView extends StatelessWidget {
   /// Тап по цитате ответа — перейти к исходному сообщению.
   final ValueChanged<models.Message>? onReplyTap;
 
+  /// Тап по «Переслано от …» — к автору оригинала (или «аккаунт скрыт»).
+  final ValueChanged<models.Message>? onForwardTap;
+
   /// Тап по строке сообщения вне режима выделения (экран «Закреплённые»).
   final ValueChanged<models.Message>? onTap;
 
@@ -177,6 +180,7 @@ class ChatMessagesView extends StatelessWidget {
     this.onDoubleTap,
     this.onReply,
     this.onReplyTap,
+    this.onForwardTap,
     this.onTap,
     this.onPinnedServiceTap,
     this.pinned = const [],
@@ -288,6 +292,7 @@ class ChatMessagesView extends StatelessWidget {
                               onReaction: onReaction == null ? null : (emoji) => onReaction!(m, emoji),
                               onDoubleTap: onDoubleTap == null ? null : () => onDoubleTap!(m),
                               onReplyTap: onReplyTap == null ? null : () => onReplyTap!(m),
+                              onForwardTap: onForwardTap == null ? null : () => onForwardTap!(m),
                               menuWrapper: menuWrapper == null ? null : (bubble, preview) => menuWrapper!(m, bubble, preview),
                               onCommentsTap: onCommentsTap == null ? null : () => onCommentsTap!(m),
                               commentsClosed: commentsClosedIDs.contains(m.id),
@@ -518,6 +523,9 @@ class MessageBubble extends StatelessWidget {
   /// Тап по цитате ответа.
   final VoidCallback? onReplyTap;
 
+  /// Тап по «Переслано от …».
+  final VoidCallback? onForwardTap;
+
   /// Обёртка пузыря контекстным меню (iOS — `CupertinoContextMenu`): [bubble] —
   /// пузырь в ленте, [preview] — он же для превью меню, без жестов, с заданной
   /// предельной шириной. С обёрткой [onLongPress] не используется.
@@ -555,6 +563,7 @@ class MessageBubble extends StatelessWidget {
     this.onReaction,
     this.onDoubleTap,
     this.onReplyTap,
+    this.onForwardTap,
     this.menuWrapper,
     this.onCommentsTap,
     this.commentsClosed = false,
@@ -704,23 +713,29 @@ class MessageBubble extends StatelessWidget {
         final label = t.screenChat.forwardedFrom(name: '\u0000');
         final split = label.indexOf('\u0000');
         final linkStyle = style.textStyle.copyWith(fontSize: 13.5, height: 1.2, color: colors.link);
+        // Своё — тап ничего не открывает.
+        final onTap = forward.self ? null : onForwardTap;
         content.add(
-          Padding(
-            padding: EdgeInsets.fromLTRB(captionInset, captionInset / 2, captionInset, 4),
-            child: Text.rich(
-              TextSpan(
-                style: linkStyle,
-                children: [
-                  TextSpan(text: label.substring(0, split)),
-                  TextSpan(
-                    text: name,
-                    style: const TextStyle(fontWeight: FontWeight.w600),
-                  ),
-                  TextSpan(text: label.substring(split + 1)),
-                ],
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: onTap,
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(captionInset, captionInset / 2, captionInset, 4),
+              child: Text.rich(
+                TextSpan(
+                  style: linkStyle,
+                  children: [
+                    TextSpan(text: label.substring(0, split)),
+                    TextSpan(
+                      text: name,
+                      style: const TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                    TextSpan(text: label.substring(split + 1)),
+                  ],
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
               ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
             ),
           ),
         );

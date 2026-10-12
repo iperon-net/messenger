@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:messenger/chats/chats_mapping.dart';
 import 'package:messenger/logger.dart';
 import 'package:messenger/protobuf/protos/chats_v1.pb.dart' as pb;
 import 'package:messenger/repositories/repositories.dart';
@@ -76,5 +77,22 @@ void main() {
     expect(rows.first.forwardChatID, source);
     expect(pb.MessageContent.fromBuffer(rows.first.content).forward.fromName, 'Анна');
     expect(rows.last.isForward, isFalse);
+  });
+
+  // Заголовок пересылки: без fromUserID — автор скрыл ссылку на аккаунт.
+  test('ссылка на автора пересланного', () {
+    final author = List<int>.filled(12, 5);
+    final linked = forwardFromPb(
+      pb.MessageForward(fromUserID: author, fromName: 'Анна'),
+      myUserID: me,
+    );
+    expect(linked.userID, '050505050505050505050505');
+    expect(linked.hidden, isFalse);
+    final hidden = forwardFromPb(pb.MessageForward(fromName: 'Анна'), myUserID: me);
+    expect(hidden.userID, isEmpty);
+    expect(hidden.hidden, isTrue);
+    final own = forwardFromPb(pb.MessageForward(fromUserID: me), myUserID: me);
+    expect(own.self, isTrue);
+    expect(own.userID, isEmpty);
   });
 }

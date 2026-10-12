@@ -1588,6 +1588,9 @@ class Translations$screenChat$en {
 	/// en: 'Forwarded from {name}'
 	String forwardedFrom({required Object name}) => 'Forwarded from ${name}';
 
+	/// en: 'The account was hidden by the user'
+	String get forwardHidden => 'The account was hidden by the user';
+
 	/// en: 'From: {names}'
 	String forwardFrom({required Object names}) => 'From: ${names}';
 
@@ -2634,6 +2637,15 @@ class Translations$sessionsPrivacyAndSecurity$en {
 
 	/// en: 'People you message first can always reply to you.'
 	String get messagesReplyNote => 'People you message first can always reply to you.';
+
+	/// en: 'Forwarded messages'
+	String get forwards => 'Forwarded messages';
+
+	/// en: 'Who can add a link to my account when forwarding my messages'
+	String get whoCanLinkForwards => 'Who can add a link to my account when forwarding my messages';
+
+	/// en: 'Everyone else will see only your name in "Forwarded from…", without a link to your profile.'
+	String get forwardsNote => 'Everyone else will see only your name in "Forwarded from…", without a link to your profile.';
 }
 
 // Path: cloudPassword
@@ -4032,6 +4044,7 @@ extension on Translations {
 			'screenChat.forward' => 'Forward',
 			'screenChat.forwardTo' => 'Forward to…',
 			'screenChat.forwardedFrom' => ({required Object name}) => 'Forwarded from ${name}',
+			'screenChat.forwardHidden' => 'The account was hidden by the user',
 			'screenChat.forwardFrom' => ({required Object names}) => 'From: ${names}',
 			'screenChat.savedToFavorites' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: 'Message saved to Saved Messages', other: 'Messages saved to Saved Messages', ), 
 			'screenChat.forwardMessages' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: 'Forward ${n} message', other: 'Forward ${n} messages', ), 
@@ -4082,9 +4095,9 @@ extension on Translations {
 			'screenChat.mediaCounter' => ({required Object current, required Object total}) => '${current} of ${total}',
 			'screenChat.addCaption' => 'Add a caption…',
 			'screenSettings.settings' => 'Settings',
-			'screenSettings.myProfile' => 'My profile',
 			_ => null,
 		} ?? switch (path) {
+			'screenSettings.myProfile' => 'My profile',
 			'screenSettings.devices' => _root.screenSettingsDevices.devices,
 			'screenSettings.language' => 'Language',
 			'screenSettings.appearance' => _root.screenSettingsAppearance.appearance,
@@ -4342,6 +4355,9 @@ extension on Translations {
 			'sessionsPrivacyAndSecurity.messages' => 'Messages',
 			'sessionsPrivacyAndSecurity.whoCanMessage' => 'Who can message me',
 			'sessionsPrivacyAndSecurity.messagesReplyNote' => 'People you message first can always reply to you.',
+			'sessionsPrivacyAndSecurity.forwards' => 'Forwarded messages',
+			'sessionsPrivacyAndSecurity.whoCanLinkForwards' => 'Who can add a link to my account when forwarding my messages',
+			'sessionsPrivacyAndSecurity.forwardsNote' => 'Everyone else will see only your name in "Forwarded from…", without a link to your profile.',
 			'cloudPassword.title' => 'Cloud password',
 			'cloudPassword.description' => 'An additional password asked when signing in on a new device. Add an email so you can recover access if you forget it.',
 			'cloudPassword.enterPasswordHint' => 'Enter your cloud password',
@@ -4593,12 +4609,12 @@ extension on Translations {
 			'passkey.lastUsed' => ({required Object date}) => 'Signed in ${date}',
 			'passkey.alreadyOnThisDevice' => 'This account already has a passkey on this device. Add one on another device or in a different password manager.',
 			'passkey.delete' => 'Delete',
+			_ => null,
+		} ?? switch (path) {
 			'passkey.deleteConfirmTitle' => 'Delete passkey?',
 			'passkey.deleteConfirmMessage' => 'You won\'t be able to sign in with this passkey anymore.',
 			'passkey.loadError' => 'Couldn\'t load passkeys',
 			'passkey.retry' => 'Retry',
-			_ => null,
-		} ?? switch (path) {
 			'passkey.verificationFailed' => 'Couldn\'t verify the passkey. Please try again.',
 			'passkey.ceremonyExpired' => 'The request expired. Please try again.',
 			'passkey.unknownCredential' => 'This passkey isn\'t recognized.',

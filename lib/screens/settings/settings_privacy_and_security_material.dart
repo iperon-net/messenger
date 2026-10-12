@@ -144,6 +144,18 @@ class _SettingsPrivacyAndSecurityMaterial extends State<SettingsPrivacyAndSecuri
                           await cubit.reloadMessages();
                         },
                       ),
+                      MaterialListTileIcon(
+                        title: Text(context.t.sessionsPrivacyAndSecurity.forwards),
+                        color: const Color(0xFF5856D6),
+                        icon: FontAwesomeIcons.share,
+                        isTrailing: true,
+                        additionalInfo: Text(state.callsLoadError ? "—" : _audienceLabel(context, state.forwardsAudience)),
+                        onTab: () async {
+                          final cubit = context.read<SettingsPrivacyAndSecurityCubit>();
+                          await context.push("/settings/privacy_and_security/forwards");
+                          await cubit.reloadForwards();
+                        },
+                      ),
                     ],
                   ),
                 ),

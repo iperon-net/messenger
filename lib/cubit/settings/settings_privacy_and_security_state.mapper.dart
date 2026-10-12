@@ -184,6 +184,34 @@ class SettingsPrivacyAndSecurityStateMapper
     opt: true,
     def: const [],
   );
+  static CallsPrivacyAudience _$forwardsAudience(
+    SettingsPrivacyAndSecurityState v,
+  ) => v.forwardsAudience;
+  static const Field<SettingsPrivacyAndSecurityState, CallsPrivacyAudience>
+  _f$forwardsAudience = Field(
+    'forwardsAudience',
+    _$forwardsAudience,
+    opt: true,
+    def: CallsPrivacyAudience.everybody,
+  );
+  static List<Uint8List> _$forwardsAllow(SettingsPrivacyAndSecurityState v) =>
+      v.forwardsAllow;
+  static const Field<SettingsPrivacyAndSecurityState, List<Uint8List>>
+  _f$forwardsAllow = Field(
+    'forwardsAllow',
+    _$forwardsAllow,
+    opt: true,
+    def: const [],
+  );
+  static List<Uint8List> _$forwardsDeny(SettingsPrivacyAndSecurityState v) =>
+      v.forwardsDeny;
+  static const Field<SettingsPrivacyAndSecurityState, List<Uint8List>>
+  _f$forwardsDeny = Field(
+    'forwardsDeny',
+    _$forwardsDeny,
+    opt: true,
+    def: const [],
+  );
   static bool _$hideReadTime(SettingsPrivacyAndSecurityState v) =>
       v.hideReadTime;
   static const Field<SettingsPrivacyAndSecurityState, bool> _f$hideReadTime =
@@ -211,6 +239,9 @@ class SettingsPrivacyAndSecurityStateMapper
     #messagesAudience: _f$messagesAudience,
     #messagesAllow: _f$messagesAllow,
     #messagesDeny: _f$messagesDeny,
+    #forwardsAudience: _f$forwardsAudience,
+    #forwardsAllow: _f$forwardsAllow,
+    #forwardsDeny: _f$forwardsDeny,
     #hideReadTime: _f$hideReadTime,
   };
 
@@ -236,6 +267,9 @@ class SettingsPrivacyAndSecurityStateMapper
       messagesAudience: data.dec(_f$messagesAudience),
       messagesAllow: data.dec(_f$messagesAllow),
       messagesDeny: data.dec(_f$messagesDeny),
+      forwardsAudience: data.dec(_f$forwardsAudience),
+      forwardsAllow: data.dec(_f$forwardsAllow),
+      forwardsDeny: data.dec(_f$forwardsDeny),
       hideReadTime: data.dec(_f$hideReadTime),
     );
   }
@@ -338,6 +372,10 @@ abstract class SettingsPrivacyAndSecurityStateCopyWith<
   get messagesAllow;
   ListCopyWith<$R, Uint8List, ObjectCopyWith<$R, Uint8List, Uint8List>>
   get messagesDeny;
+  ListCopyWith<$R, Uint8List, ObjectCopyWith<$R, Uint8List, Uint8List>>
+  get forwardsAllow;
+  ListCopyWith<$R, Uint8List, ObjectCopyWith<$R, Uint8List, Uint8List>>
+  get forwardsDeny;
   $R call({
     Status? status,
     bool? isBiometricAvailable,
@@ -359,6 +397,9 @@ abstract class SettingsPrivacyAndSecurityStateCopyWith<
     CallsPrivacyAudience? messagesAudience,
     List<Uint8List>? messagesAllow,
     List<Uint8List>? messagesDeny,
+    CallsPrivacyAudience? forwardsAudience,
+    List<Uint8List>? forwardsAllow,
+    List<Uint8List>? forwardsDeny,
     bool? hideReadTime,
   });
   SettingsPrivacyAndSecurityStateCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
@@ -454,6 +495,20 @@ class _SettingsPrivacyAndSecurityStateCopyWithImpl<$R, $Out>
     (v) => call(messagesDeny: v),
   );
   @override
+  ListCopyWith<$R, Uint8List, ObjectCopyWith<$R, Uint8List, Uint8List>>
+  get forwardsAllow => ListCopyWith(
+    $value.forwardsAllow,
+    (v, t) => ObjectCopyWith(v, $identity, t),
+    (v) => call(forwardsAllow: v),
+  );
+  @override
+  ListCopyWith<$R, Uint8List, ObjectCopyWith<$R, Uint8List, Uint8List>>
+  get forwardsDeny => ListCopyWith(
+    $value.forwardsDeny,
+    (v, t) => ObjectCopyWith(v, $identity, t),
+    (v) => call(forwardsDeny: v),
+  );
+  @override
   $R call({
     Status? status,
     bool? isBiometricAvailable,
@@ -475,6 +530,9 @@ class _SettingsPrivacyAndSecurityStateCopyWithImpl<$R, $Out>
     CallsPrivacyAudience? messagesAudience,
     List<Uint8List>? messagesAllow,
     List<Uint8List>? messagesDeny,
+    CallsPrivacyAudience? forwardsAudience,
+    List<Uint8List>? forwardsAllow,
+    List<Uint8List>? forwardsDeny,
     bool? hideReadTime,
   }) => $apply(
     FieldCopyWithData({
@@ -499,6 +557,9 @@ class _SettingsPrivacyAndSecurityStateCopyWithImpl<$R, $Out>
       if (messagesAudience != null) #messagesAudience: messagesAudience,
       if (messagesAllow != null) #messagesAllow: messagesAllow,
       if (messagesDeny != null) #messagesDeny: messagesDeny,
+      if (forwardsAudience != null) #forwardsAudience: forwardsAudience,
+      if (forwardsAllow != null) #forwardsAllow: forwardsAllow,
+      if (forwardsDeny != null) #forwardsDeny: forwardsDeny,
       if (hideReadTime != null) #hideReadTime: hideReadTime,
     }),
   );
@@ -529,6 +590,9 @@ class _SettingsPrivacyAndSecurityStateCopyWithImpl<$R, $Out>
     messagesAudience: data.get(#messagesAudience, or: $value.messagesAudience),
     messagesAllow: data.get(#messagesAllow, or: $value.messagesAllow),
     messagesDeny: data.get(#messagesDeny, or: $value.messagesDeny),
+    forwardsAudience: data.get(#forwardsAudience, or: $value.forwardsAudience),
+    forwardsAllow: data.get(#forwardsAllow, or: $value.forwardsAllow),
+    forwardsDeny: data.get(#forwardsDeny, or: $value.forwardsDeny),
     hideReadTime: data.get(#hideReadTime, or: $value.hideReadTime),
   );
 

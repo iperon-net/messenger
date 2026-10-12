@@ -681,6 +681,7 @@ class _Translations$screenChat$ru extends Translations$screenChat$en {
 	@override String get forward => 'Переслать';
 	@override String get forwardTo => 'Переслать в…';
 	@override String forwardedFrom({required Object name}) => 'Переслано от ${name}';
+	@override String get forwardHidden => 'Аккаунт скрыт пользователем';
 	@override String forwardFrom({required Object names}) => 'От: ${names}';
 	@override String savedToFavorites({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n,
 		one: 'Сообщение сохранено в Избранном',
@@ -1118,6 +1119,9 @@ class _Translations$sessionsPrivacyAndSecurity$ru extends Translations$sessionsP
 	@override String get messages => 'Сообщения';
 	@override String get whoCanMessage => 'Кто может мне писать';
 	@override String get messagesReplyNote => 'Тем, кому вы написали сами, ответить можно всегда.';
+	@override String get forwards => 'Пересылка сообщений';
+	@override String get whoCanLinkForwards => 'Кто может добавлять ссылку на мой аккаунт при пересылке моих сообщений';
+	@override String get forwardsNote => 'Остальные увидят в «Переслано от …» только ваше имя — без перехода в ваш профиль.';
 }
 
 // Path: cloudPassword
@@ -1989,6 +1993,7 @@ extension on TranslationsRu {
 			'screenChat.forward' => 'Переслать',
 			'screenChat.forwardTo' => 'Переслать в…',
 			'screenChat.forwardedFrom' => ({required Object name}) => 'Переслано от ${name}',
+			'screenChat.forwardHidden' => 'Аккаунт скрыт пользователем',
 			'screenChat.forwardFrom' => ({required Object names}) => 'От: ${names}',
 			'screenChat.savedToFavorites' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: 'Сообщение сохранено в Избранном', few: 'Сообщения сохранены в Избранном', many: 'Сообщения сохранены в Избранном', other: 'Сообщения сохранены в Избранном', ), 
 			'screenChat.forwardMessages' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: 'Переслать ${n} сообщение', few: 'Переслать ${n} сообщения', many: 'Переслать ${n} сообщений', other: 'Переслать ${n} сообщения', ), 
@@ -2039,9 +2044,9 @@ extension on TranslationsRu {
 			'screenChat.mediaCounter' => ({required Object current, required Object total}) => '${current} из ${total}',
 			'screenChat.addCaption' => 'Добавить подпись…',
 			'screenSettings.settings' => 'Настройки',
-			'screenSettings.myProfile' => 'Мой профиль',
 			_ => null,
 		} ?? switch (path) {
+			'screenSettings.myProfile' => 'Мой профиль',
 			'screenSettings.devices' => _root.screenSettingsDevices.devices,
 			'screenSettings.language' => 'Язык',
 			'screenSettings.appearance' => _root.screenSettingsAppearance.appearance,
@@ -2299,6 +2304,9 @@ extension on TranslationsRu {
 			'sessionsPrivacyAndSecurity.messages' => 'Сообщения',
 			'sessionsPrivacyAndSecurity.whoCanMessage' => 'Кто может мне писать',
 			'sessionsPrivacyAndSecurity.messagesReplyNote' => 'Тем, кому вы написали сами, ответить можно всегда.',
+			'sessionsPrivacyAndSecurity.forwards' => 'Пересылка сообщений',
+			'sessionsPrivacyAndSecurity.whoCanLinkForwards' => 'Кто может добавлять ссылку на мой аккаунт при пересылке моих сообщений',
+			'sessionsPrivacyAndSecurity.forwardsNote' => 'Остальные увидят в «Переслано от …» только ваше имя — без перехода в ваш профиль.',
 			'cloudPassword.title' => 'Облачный пароль',
 			'cloudPassword.description' => 'Дополнительный пароль, будет запрашивается при входе с нового устройства. Укажите email чтобы восстановить доступ, если забудете пароль.',
 			'cloudPassword.enterPasswordHint' => 'Введите облачный пароль',
@@ -2550,12 +2558,12 @@ extension on TranslationsRu {
 			'passkey.lastUsed' => ({required Object date}) => 'Вход ${date}',
 			'passkey.alreadyOnThisDevice' => 'На этом устройстве уже есть ключ доступа для этого аккаунта. Добавьте ключ на другом устройстве или в другом менеджере паролей.',
 			'passkey.delete' => 'Удалить',
+			_ => null,
+		} ?? switch (path) {
 			'passkey.deleteConfirmTitle' => 'Удалить ключ доступа?',
 			'passkey.deleteConfirmMessage' => 'Войти с помощью этого ключа больше не получится.',
 			'passkey.loadError' => 'Не удалось загрузить ключи',
 			'passkey.retry' => 'Повторить',
-			_ => null,
-		} ?? switch (path) {
 			'passkey.verificationFailed' => 'Не удалось проверить ключ. Попробуйте ещё раз.',
 			'passkey.ceremonyExpired' => 'Срок запроса истёк. Попробуйте ещё раз.',
 			'passkey.unknownCredential' => 'Этот ключ не распознан.',

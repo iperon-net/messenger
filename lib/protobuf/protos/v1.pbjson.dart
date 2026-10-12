@@ -15,6 +15,8 @@ import 'dart:convert' as $convert;
 import 'dart:core' as $core;
 import 'dart:typed_data' as $typed_data;
 
+import 'package:protobuf/well_known_types/google/protobuf/timestamp.pbjson.dart' as $0;
+
 @$core.Deprecated('Use messageTypeDescriptor instead')
 const MessageType$json = {
   '1': 'MessageType',
@@ -94,6 +96,9 @@ const MessageType$json = {
     {'1': 'PRIVACY_MESSAGES_ALLOW_UPDATE', '2': 76},
     {'1': 'PRIVACY_MESSAGES_DENY_UPDATE', '2': 77},
     {'1': 'PRIVACY_HIDE_READ_TIME_UPDATE', '2': 78},
+    {'1': 'PRIVACY_FORWARDS_UPDATE', '2': 79},
+    {'1': 'PRIVACY_FORWARDS_ALLOW_UPDATE', '2': 80},
+    {'1': 'PRIVACY_FORWARDS_DENY_UPDATE', '2': 81},
   ],
   '4': [
     {'1': 16, '2': 16},
@@ -139,8 +144,10 @@ final $typed_data.Uint8List messageTypeDescriptor =
         'oWTk9USUZZX1NFVFRJTkdTX1VQREFURRBGEgkKBUNIQVRTEEcSDAoITUVTU0FHRVMQSBILCgdV'
         'UERBVEVTEEkSEgoOR0VUX0RJRkZFUkVOQ0UQShIbChdQUklWQUNZX01FU1NBR0VTX1VQREFURR'
         'BLEiEKHVBSSVZBQ1lfTUVTU0FHRVNfQUxMT1dfVVBEQVRFEEwSIAocUFJJVkFDWV9NRVNTQUdF'
-        'U19ERU5ZX1VQREFURRBNEiEKHVBSSVZBQ1lfSElERV9SRUFEX1RJTUVfVVBEQVRFEE4iBAgQEB'
-        'AiBAgREBEiBAgSEBIiBAgVEBU=');
+        'U19ERU5ZX1VQREFURRBNEiEKHVBSSVZBQ1lfSElERV9SRUFEX1RJTUVfVVBEQVRFEE4SGwoXUF'
+        'JJVkFDWV9GT1JXQVJEU19VUERBVEUQTxIhCh1QUklWQUNZX0ZPUldBUkRTX0FMTE9XX1VQREFU'
+        'RRBQEiAKHFBSSVZBQ1lfRk9SV0FSRFNfREVOWV9VUERBVEUQUSIECBAQECIECBEQESIECBIQEi'
+        'IECBUQFQ==');
 
 @$core.Deprecated('Use messageDescriptor instead')
 const Message$json = {
@@ -266,3 +273,32 @@ final $typed_data.Uint8List uploadDescriptor =
         'KAsyEi52MS5VcGxvYWQuSW5pdEFja0gAUgdpbml0QWNrEjEKCGNodW5rQWNrGAIgASgLMhMudj'
         'EuVXBsb2FkLkNodW5rQWNrSABSCGNodW5rQWNrEjoKC2NvbXBsZXRlQWNrGAMgASgLMhYudjEu'
         'VXBsb2FkLkNvbXBsZXRlQWNrSABSC2NvbXBsZXRlQWNrQgkKB3BheWxvYWQ=');
+
+const $core.Map<$core.String, $core.dynamic> IperonServiceBase$json = {
+  '1': 'Iperon',
+  '2': [
+    {'1': 'Unary', '2': '.v1.Message', '3': '.v1.Message', '4': {}},
+    {'1': 'Stream', '2': '.v1.Message', '3': '.v1.Message', '4': {}, '5': true, '6': true},
+    {'1': 'Upload', '2': '.v1.Upload.Request', '3': '.v1.Upload.Response', '4': {}, '5': true, '6': true},
+  ],
+};
+
+@$core.Deprecated('Use iperonServiceDescriptor instead')
+const $core.Map<$core.String, $core.Map<$core.String, $core.dynamic>> IperonServiceBase$messageJson = {
+  '.v1.Message': Message$json,
+  '.google.protobuf.Timestamp': $0.Timestamp$json,
+  '.v1.Upload.Request': Upload_Request$json,
+  '.v1.Upload.Init': Upload_Init$json,
+  '.v1.Upload.Chunk': Upload_Chunk$json,
+  '.v1.Upload.Done': Upload_Done$json,
+  '.v1.Upload.Response': Upload_Response$json,
+  '.v1.Upload.InitAck': Upload_InitAck$json,
+  '.v1.Upload.ChunkAck': Upload_ChunkAck$json,
+  '.v1.Upload.CompleteAck': Upload_CompleteAck$json,
+};
+
+/// Descriptor for `Iperon`. Decode as a `google.protobuf.ServiceDescriptorProto`.
+final $typed_data.Uint8List iperonServiceDescriptor =
+    $convert.base64Decode('CgZJcGVyb24SIwoFVW5hcnkSCy52MS5NZXNzYWdlGgsudjEuTWVzc2FnZSIAEigKBlN0cmVhbR'
+        'ILLnYxLk1lc3NhZ2UaCy52MS5NZXNzYWdlIgAoATABEjcKBlVwbG9hZBISLnYxLlVwbG9hZC5S'
+        'ZXF1ZXN0GhMudjEuVXBsb2FkLlJlc3BvbnNlIgAoATAB');

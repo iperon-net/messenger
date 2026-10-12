@@ -72,6 +72,9 @@ class PrivacySettings_Response extends $pb.GeneratedMessage {
     $core.Iterable<$core.List<$core.int>>? messagesAllow,
     $core.Iterable<$core.List<$core.int>>? messagesDeny,
     $core.bool? hideReadTime,
+    PrivacySettings_Audience? forwards,
+    $core.Iterable<$core.List<$core.int>>? forwardsAllow,
+    $core.Iterable<$core.List<$core.int>>? forwardsDeny,
   }) {
     final result = create();
     if (calls != null) result.calls = calls;
@@ -91,6 +94,9 @@ class PrivacySettings_Response extends $pb.GeneratedMessage {
     if (messagesAllow != null) result.messagesAllow.addAll(messagesAllow);
     if (messagesDeny != null) result.messagesDeny.addAll(messagesDeny);
     if (hideReadTime != null) result.hideReadTime = hideReadTime;
+    if (forwards != null) result.forwards = forwards;
+    if (forwardsAllow != null) result.forwardsAllow.addAll(forwardsAllow);
+    if (forwardsDeny != null) result.forwardsDeny.addAll(forwardsDeny);
     return result;
   }
 
@@ -120,6 +126,9 @@ class PrivacySettings_Response extends $pb.GeneratedMessage {
     ..p<$core.List<$core.int>>(15, _omitFieldNames ? '' : 'messagesAllow', $pb.PbFieldType.PY)
     ..p<$core.List<$core.int>>(16, _omitFieldNames ? '' : 'messagesDeny', $pb.PbFieldType.PY)
     ..aOB(17, _omitFieldNames ? '' : 'hideReadTime')
+    ..aE<PrivacySettings_Audience>(18, _omitFieldNames ? '' : 'forwards', enumValues: PrivacySettings_Audience.values)
+    ..p<$core.List<$core.int>>(19, _omitFieldNames ? '' : 'forwardsAllow', $pb.PbFieldType.PY)
+    ..p<$core.List<$core.int>>(20, _omitFieldNames ? '' : 'forwardsDeny', $pb.PbFieldType.PY)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -257,6 +266,26 @@ class PrivacySettings_Response extends $pb.GeneratedMessage {
   $core.bool hasHideReadTime() => $_has(16);
   @$pb.TagNumber(17)
   void clearHideReadTime() => $_clearField(17);
+
+  /// Аудитория «кто может добавить ссылку на мой аккаунт при пересылке моих
+  /// сообщений» + её allow/deny-списки (та же семантика). ДЕФОЛТ — EVERYBODY
+  /// (как в Telegram). Проверяется на сервере при пересылке по пересылающему:
+  /// не разрешено — в MessageForward остаётся только имя (без fromUserID),
+  /// «Переслано от …» не ведёт в профиль. Свои сообщения — всегда со ссылкой.
+  @$pb.TagNumber(18)
+  PrivacySettings_Audience get forwards => $_getN(17);
+  @$pb.TagNumber(18)
+  set forwards(PrivacySettings_Audience value) => $_setField(18, value);
+  @$pb.TagNumber(18)
+  $core.bool hasForwards() => $_has(17);
+  @$pb.TagNumber(18)
+  void clearForwards() => $_clearField(18);
+
+  @$pb.TagNumber(19)
+  $pb.PbList<$core.List<$core.int>> get forwardsAllow => $_getList(18);
+
+  @$pb.TagNumber(20)
+  $pb.PbList<$core.List<$core.int>> get forwardsDeny => $_getList(19);
 }
 
 /// Настройки приватности per-channel (этап 1 — только звонки). Проверка «кто
@@ -2239,6 +2268,349 @@ class PrivacyMessagesDenyUpdate extends $pb.GeneratedMessage {
   static PrivacyMessagesDenyUpdate getDefault() =>
       _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<PrivacyMessagesDenyUpdate>(create);
   static PrivacyMessagesDenyUpdate? _defaultInstance;
+}
+
+class PrivacyForwardsUpdate_Request extends $pb.GeneratedMessage {
+  factory PrivacyForwardsUpdate_Request({
+    PrivacySettings_Audience? forwards,
+  }) {
+    final result = create();
+    if (forwards != null) result.forwards = forwards;
+    return result;
+  }
+
+  PrivacyForwardsUpdate_Request._();
+
+  factory PrivacyForwardsUpdate_Request.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory PrivacyForwardsUpdate_Request.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'PrivacyForwardsUpdate.Request',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..aE<PrivacySettings_Audience>(1, _omitFieldNames ? '' : 'forwards', enumValues: PrivacySettings_Audience.values)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyForwardsUpdate_Request clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyForwardsUpdate_Request copyWith(void Function(PrivacyForwardsUpdate_Request) updates) =>
+      super.copyWith((message) => updates(message as PrivacyForwardsUpdate_Request)) as PrivacyForwardsUpdate_Request;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static PrivacyForwardsUpdate_Request create() => PrivacyForwardsUpdate_Request._();
+  @$core.override
+  PrivacyForwardsUpdate_Request createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static PrivacyForwardsUpdate_Request getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<PrivacyForwardsUpdate_Request>(create);
+  static PrivacyForwardsUpdate_Request? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  PrivacySettings_Audience get forwards => $_getN(0);
+  @$pb.TagNumber(1)
+  set forwards(PrivacySettings_Audience value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasForwards() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearForwards() => $_clearField(1);
+}
+
+class PrivacyForwardsUpdate_Response extends $pb.GeneratedMessage {
+  factory PrivacyForwardsUpdate_Response() => create();
+
+  PrivacyForwardsUpdate_Response._();
+
+  factory PrivacyForwardsUpdate_Response.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory PrivacyForwardsUpdate_Response.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'PrivacyForwardsUpdate.Response',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyForwardsUpdate_Response clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyForwardsUpdate_Response copyWith(void Function(PrivacyForwardsUpdate_Response) updates) =>
+      super.copyWith((message) => updates(message as PrivacyForwardsUpdate_Response)) as PrivacyForwardsUpdate_Response;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static PrivacyForwardsUpdate_Response create() => PrivacyForwardsUpdate_Response._();
+  @$core.override
+  PrivacyForwardsUpdate_Response createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static PrivacyForwardsUpdate_Response getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<PrivacyForwardsUpdate_Response>(create);
+  static PrivacyForwardsUpdate_Response? _defaultInstance;
+}
+
+/// Изменение аудитории «кто может добавить ссылку на мой аккаунт при пересылке».
+class PrivacyForwardsUpdate extends $pb.GeneratedMessage {
+  factory PrivacyForwardsUpdate() => create();
+
+  PrivacyForwardsUpdate._();
+
+  factory PrivacyForwardsUpdate.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory PrivacyForwardsUpdate.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'PrivacyForwardsUpdate',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyForwardsUpdate clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyForwardsUpdate copyWith(void Function(PrivacyForwardsUpdate) updates) =>
+      super.copyWith((message) => updates(message as PrivacyForwardsUpdate)) as PrivacyForwardsUpdate;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static PrivacyForwardsUpdate create() => PrivacyForwardsUpdate._();
+  @$core.override
+  PrivacyForwardsUpdate createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static PrivacyForwardsUpdate getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<PrivacyForwardsUpdate>(create);
+  static PrivacyForwardsUpdate? _defaultInstance;
+}
+
+class PrivacyForwardsAllowUpdate_Request extends $pb.GeneratedMessage {
+  factory PrivacyForwardsAllowUpdate_Request({
+    $core.Iterable<$core.List<$core.int>>? userIds,
+  }) {
+    final result = create();
+    if (userIds != null) result.userIds.addAll(userIds);
+    return result;
+  }
+
+  PrivacyForwardsAllowUpdate_Request._();
+
+  factory PrivacyForwardsAllowUpdate_Request.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory PrivacyForwardsAllowUpdate_Request.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'PrivacyForwardsAllowUpdate.Request',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..p<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'userIds', $pb.PbFieldType.PY)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyForwardsAllowUpdate_Request clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyForwardsAllowUpdate_Request copyWith(void Function(PrivacyForwardsAllowUpdate_Request) updates) =>
+      super.copyWith((message) => updates(message as PrivacyForwardsAllowUpdate_Request)) as PrivacyForwardsAllowUpdate_Request;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static PrivacyForwardsAllowUpdate_Request create() => PrivacyForwardsAllowUpdate_Request._();
+  @$core.override
+  PrivacyForwardsAllowUpdate_Request createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static PrivacyForwardsAllowUpdate_Request getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<PrivacyForwardsAllowUpdate_Request>(create);
+  static PrivacyForwardsAllowUpdate_Request? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $pb.PbList<$core.List<$core.int>> get userIds => $_getList(0);
+}
+
+class PrivacyForwardsAllowUpdate_Response extends $pb.GeneratedMessage {
+  factory PrivacyForwardsAllowUpdate_Response() => create();
+
+  PrivacyForwardsAllowUpdate_Response._();
+
+  factory PrivacyForwardsAllowUpdate_Response.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory PrivacyForwardsAllowUpdate_Response.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'PrivacyForwardsAllowUpdate.Response',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyForwardsAllowUpdate_Response clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyForwardsAllowUpdate_Response copyWith(void Function(PrivacyForwardsAllowUpdate_Response) updates) =>
+      super.copyWith((message) => updates(message as PrivacyForwardsAllowUpdate_Response)) as PrivacyForwardsAllowUpdate_Response;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static PrivacyForwardsAllowUpdate_Response create() => PrivacyForwardsAllowUpdate_Response._();
+  @$core.override
+  PrivacyForwardsAllowUpdate_Response createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static PrivacyForwardsAllowUpdate_Response getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<PrivacyForwardsAllowUpdate_Response>(create);
+  static PrivacyForwardsAllowUpdate_Response? _defaultInstance;
+}
+
+/// Полная замена allow-list «всегда разрешать» для пересылки.
+class PrivacyForwardsAllowUpdate extends $pb.GeneratedMessage {
+  factory PrivacyForwardsAllowUpdate() => create();
+
+  PrivacyForwardsAllowUpdate._();
+
+  factory PrivacyForwardsAllowUpdate.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory PrivacyForwardsAllowUpdate.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'PrivacyForwardsAllowUpdate',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyForwardsAllowUpdate clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyForwardsAllowUpdate copyWith(void Function(PrivacyForwardsAllowUpdate) updates) =>
+      super.copyWith((message) => updates(message as PrivacyForwardsAllowUpdate)) as PrivacyForwardsAllowUpdate;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static PrivacyForwardsAllowUpdate create() => PrivacyForwardsAllowUpdate._();
+  @$core.override
+  PrivacyForwardsAllowUpdate createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static PrivacyForwardsAllowUpdate getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<PrivacyForwardsAllowUpdate>(create);
+  static PrivacyForwardsAllowUpdate? _defaultInstance;
+}
+
+class PrivacyForwardsDenyUpdate_Request extends $pb.GeneratedMessage {
+  factory PrivacyForwardsDenyUpdate_Request({
+    $core.Iterable<$core.List<$core.int>>? userIds,
+  }) {
+    final result = create();
+    if (userIds != null) result.userIds.addAll(userIds);
+    return result;
+  }
+
+  PrivacyForwardsDenyUpdate_Request._();
+
+  factory PrivacyForwardsDenyUpdate_Request.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory PrivacyForwardsDenyUpdate_Request.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'PrivacyForwardsDenyUpdate.Request',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..p<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'userIds', $pb.PbFieldType.PY)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyForwardsDenyUpdate_Request clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyForwardsDenyUpdate_Request copyWith(void Function(PrivacyForwardsDenyUpdate_Request) updates) =>
+      super.copyWith((message) => updates(message as PrivacyForwardsDenyUpdate_Request)) as PrivacyForwardsDenyUpdate_Request;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static PrivacyForwardsDenyUpdate_Request create() => PrivacyForwardsDenyUpdate_Request._();
+  @$core.override
+  PrivacyForwardsDenyUpdate_Request createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static PrivacyForwardsDenyUpdate_Request getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<PrivacyForwardsDenyUpdate_Request>(create);
+  static PrivacyForwardsDenyUpdate_Request? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $pb.PbList<$core.List<$core.int>> get userIds => $_getList(0);
+}
+
+class PrivacyForwardsDenyUpdate_Response extends $pb.GeneratedMessage {
+  factory PrivacyForwardsDenyUpdate_Response() => create();
+
+  PrivacyForwardsDenyUpdate_Response._();
+
+  factory PrivacyForwardsDenyUpdate_Response.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory PrivacyForwardsDenyUpdate_Response.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'PrivacyForwardsDenyUpdate.Response',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyForwardsDenyUpdate_Response clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyForwardsDenyUpdate_Response copyWith(void Function(PrivacyForwardsDenyUpdate_Response) updates) =>
+      super.copyWith((message) => updates(message as PrivacyForwardsDenyUpdate_Response)) as PrivacyForwardsDenyUpdate_Response;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static PrivacyForwardsDenyUpdate_Response create() => PrivacyForwardsDenyUpdate_Response._();
+  @$core.override
+  PrivacyForwardsDenyUpdate_Response createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static PrivacyForwardsDenyUpdate_Response getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<PrivacyForwardsDenyUpdate_Response>(create);
+  static PrivacyForwardsDenyUpdate_Response? _defaultInstance;
+}
+
+/// Полная замена deny-list «всегда запрещать» для пересылки.
+class PrivacyForwardsDenyUpdate extends $pb.GeneratedMessage {
+  factory PrivacyForwardsDenyUpdate() => create();
+
+  PrivacyForwardsDenyUpdate._();
+
+  factory PrivacyForwardsDenyUpdate.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory PrivacyForwardsDenyUpdate.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'PrivacyForwardsDenyUpdate',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyForwardsDenyUpdate clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyForwardsDenyUpdate copyWith(void Function(PrivacyForwardsDenyUpdate) updates) =>
+      super.copyWith((message) => updates(message as PrivacyForwardsDenyUpdate)) as PrivacyForwardsDenyUpdate;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static PrivacyForwardsDenyUpdate create() => PrivacyForwardsDenyUpdate._();
+  @$core.override
+  PrivacyForwardsDenyUpdate createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static PrivacyForwardsDenyUpdate getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<PrivacyForwardsDenyUpdate>(create);
+  static PrivacyForwardsDenyUpdate? _defaultInstance;
 }
 
 const $core.bool _omitFieldNames = $core.bool.fromEnvironment('protobuf.omit_field_names');

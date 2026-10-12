@@ -63,6 +63,14 @@ message PrivacySettings {
     // не отдаётся (галочки ✓✓ остаются). ВЗАИМНО: включивший сам не видит
     // чужое время прочтения.
     bool hide_read_time = 17;
+    // Аудитория «кто может добавить ссылку на мой аккаунт при пересылке моих
+    // сообщений» + её allow/deny-списки (та же семантика). ДЕФОЛТ — EVERYBODY
+    // (как в Telegram). Проверяется на сервере при пересылке по пересылающему:
+    // не разрешено — в MessageForward остаётся только имя (без fromUserID),
+    // «Переслано от …» не ведёт в профиль. Свои сообщения — всегда со ссылкой.
+    Audience forwards = 18;
+    repeated bytes forwards_allow = 19;
+    repeated bytes forwards_deny = 20;
   }
 }
 
@@ -212,6 +220,33 @@ message PrivacyMessagesAllowUpdate {
 
 // Полная замена deny-list «всегда запрещать» для сообщений.
 message PrivacyMessagesDenyUpdate {
+  message Request {
+    repeated bytes user_ids = 1;
+  }
+
+  message Response {}
+}
+
+// Изменение аудитории «кто может добавить ссылку на мой аккаунт при пересылке».
+message PrivacyForwardsUpdate {
+  message Request {
+    PrivacySettings.Audience forwards = 1;
+  }
+
+  message Response {}
+}
+
+// Полная замена allow-list «всегда разрешать» для пересылки.
+message PrivacyForwardsAllowUpdate {
+  message Request {
+    repeated bytes user_ids = 1;
+  }
+
+  message Response {}
+}
+
+// Полная замена deny-list «всегда запрещать» для пересылки.
+message PrivacyForwardsDenyUpdate {
   message Request {
     repeated bytes user_ids = 1;
   }

@@ -78,6 +78,9 @@ class SettingsPrivacyAndSecurityCubit extends Cubit<SettingsPrivacyAndSecuritySt
   /// Алиас [reloadCalls] для читаемости на экране «Сообщения».
   Future<void> reloadMessages() => _refresh();
 
+  /// Алиас [reloadCalls] для читаемости на экране «Пересылка сообщений».
+  Future<void> reloadForwards() => _refresh();
+
   /// Поднимает последнее известное значение из локальной БД. Кэша нет
   /// ([callsLoadError] останется, пока не придёт ответ сервера) — первый запуск.
   Future<void> _loadFromCache() async {
@@ -117,6 +120,9 @@ class SettingsPrivacyAndSecurityCubit extends Cubit<SettingsPrivacyAndSecuritySt
         messagesAudience: _fromProto(response.messages),
         messagesAllow: response.messagesAllow.map(Uint8List.fromList).toList(growable: false),
         messagesDeny: response.messagesDeny.map(Uint8List.fromList).toList(growable: false),
+        forwardsAudience: _fromProto(response.forwards),
+        forwardsAllow: response.forwardsAllow.map(Uint8List.fromList).toList(growable: false),
+        forwardsDeny: response.forwardsDeny.map(Uint8List.fromList).toList(growable: false),
         hideReadTime: response.hideReadTime,
         callsLoadError: false,
         callsReadOnly: false,
@@ -146,6 +152,9 @@ class SettingsPrivacyAndSecurityCubit extends Cubit<SettingsPrivacyAndSecuritySt
         messages: _toProto(state.messagesAudience),
         messagesAllow: state.messagesAllow,
         messagesDeny: state.messagesDeny,
+        forwards: _toProto(state.forwardsAudience),
+        forwardsAllow: state.forwardsAllow,
+        forwardsDeny: state.forwardsDeny,
         hideReadTime: state.hideReadTime,
       );
       await repositories.privacySettings.upsert(userID: auth.session.userID, payload: response.writeToBuffer());
@@ -553,6 +562,75 @@ class SettingsPrivacyAndSecurityCubit extends Cubit<SettingsPrivacyAndSecuritySt
     }
 
     if (!isClosed) emit(state.copyWith(messagesDeny: List<Uint8List>.unmodifiable(userIDs)));
+    await _persistFromState();
+    return true;
+  }
+
+  /// Меняет настройку «ссылка на аккаунт при пересылке». Серверная операция, offline
+  /// недоступна. Возвращает `false`, если не применилось.
+  Future<bool> setForwardsAudience(CallsPrivacyAudience audience) async {
+    if (audience == state.forwardsAudience && !state.callsLoadError && !state.callsReadOnly) return true;
+
+    if (!await utils.hasNetwork()) {
+      logger.info('privacy: set forwards audience aborted, no network');
+      return false;
+    }
+
+    final status = await api.unaryEncoded(
+      MessageType.PRIVACY_FORWARDS_UPDATE,
+      PrivacyForwardsUpdate_Request(forwards: _toProto(audience)).writeToBuffer(),
+    );
+
+    if (status.status != APIStatus.success) {
+      logger.warning('privacy: update forwards audience failed (${status.error})');
+      return false;
+    }
+
+    if (!isClosed) emit(state.copyWith(forwardsAudience: audience, callsLoadError: false, callsReadOnly: false));
+    await _persistFromState();
+    return true;
+  }
+
+  /// Полностью заменяет allow-list «всегда разрешать» для пересылки.
+  Future<bool> setForwardsAllow(List<Uint8List> userIDs) async {
+    if (!await utils.hasNetwork()) {
+      logger.info('privacy: set forwards allow aborted, no network');
+      return false;
+    }
+
+    final status = await api.unaryEncoded(
+      MessageType.PRIVACY_FORWARDS_ALLOW_UPDATE,
+      PrivacyForwardsAllowUpdate_Request(userIds: userIDs).writeToBuffer(),
+    );
+
+    if (status.status != APIStatus.success) {
+      logger.warning('privacy: update forwards allow failed (${status.error})');
+      return false;
+    }
+
+    if (!isClosed) emit(state.copyWith(forwardsAllow: List<Uint8List>.unmodifiable(userIDs)));
+    await _persistFromState();
+    return true;
+  }
+
+  /// Полностью заменяет deny-list «всегда запрещать» для пересылки.
+  Future<bool> setForwardsDeny(List<Uint8List> userIDs) async {
+    if (!await utils.hasNetwork()) {
+      logger.info('privacy: set forwards deny aborted, no network');
+      return false;
+    }
+
+    final status = await api.unaryEncoded(
+      MessageType.PRIVACY_FORWARDS_DENY_UPDATE,
+      PrivacyForwardsDenyUpdate_Request(userIds: userIDs).writeToBuffer(),
+    );
+
+    if (status.status != APIStatus.success) {
+      logger.warning('privacy: update forwards deny failed (${status.error})');
+      return false;
+    }
+
+    if (!isClosed) emit(state.copyWith(forwardsDeny: List<Uint8List>.unmodifiable(userIDs)));
     await _persistFromState();
     return true;
   }

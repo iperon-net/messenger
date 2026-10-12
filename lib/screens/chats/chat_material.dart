@@ -545,6 +545,7 @@ class _ChatMaterialState extends State<ChatMaterial> {
                                               )
                                             : null,
                                         onReplyTap: _tracker.jumpToReply,
+                                        onForwardTap: (message) => openForwardAuthor(context, message),
                                         onPinnedServiceTap: _jumpTo,
                                         onReactionsShown: _cubit.reactionsShown,
                                         pinned: state.pinnedMessages,

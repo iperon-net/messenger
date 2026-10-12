@@ -163,6 +163,13 @@ class MessageType extends $pb.ProtobufEnum {
   static const MessageType PRIVACY_MESSAGES_DENY_UPDATE = MessageType._(77, _omitEnumNames ? '' : 'PRIVACY_MESSAGES_DENY_UPDATE');
   static const MessageType PRIVACY_HIDE_READ_TIME_UPDATE = MessageType._(78, _omitEnumNames ? '' : 'PRIVACY_HIDE_READ_TIME_UPDATE');
 
+  /// Приватность «ссылка на аккаунт при пересылке» (аудитория + allow/deny).
+  /// Гейт — при пересылке (Messages.Send.forwardFrom). См. privacy_v1.proto
+  /// (PrivacyForwards*Update).
+  static const MessageType PRIVACY_FORWARDS_UPDATE = MessageType._(79, _omitEnumNames ? '' : 'PRIVACY_FORWARDS_UPDATE');
+  static const MessageType PRIVACY_FORWARDS_ALLOW_UPDATE = MessageType._(80, _omitEnumNames ? '' : 'PRIVACY_FORWARDS_ALLOW_UPDATE');
+  static const MessageType PRIVACY_FORWARDS_DENY_UPDATE = MessageType._(81, _omitEnumNames ? '' : 'PRIVACY_FORWARDS_DENY_UPDATE');
+
   static const $core.List<MessageType> values = <MessageType>[
     HEALTHCHECK,
     META_DATA_INFO,
@@ -239,9 +246,12 @@ class MessageType extends $pb.ProtobufEnum {
     PRIVACY_MESSAGES_ALLOW_UPDATE,
     PRIVACY_MESSAGES_DENY_UPDATE,
     PRIVACY_HIDE_READ_TIME_UPDATE,
+    PRIVACY_FORWARDS_UPDATE,
+    PRIVACY_FORWARDS_ALLOW_UPDATE,
+    PRIVACY_FORWARDS_DENY_UPDATE,
   ];
 
-  static final $core.List<MessageType?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 78);
+  static final $core.List<MessageType?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 81);
   static MessageType? valueOf($core.int value) => value < 0 || value >= _byValue.length ? null : _byValue[value];
 
   const MessageType._(super.value, super.name);

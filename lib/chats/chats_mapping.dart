@@ -218,8 +218,16 @@ models.MessageReply replyFromPb(pb.MessageReplyTo r, {pb.ChatMessage? replied, r
   );
 }
 
-models.MessageForward forwardFromPb(pb.MessageForward f, {required List<int> myUserID}) =>
-    models.MessageForward(name: f.fromName, self: f.fromUserID.isNotEmpty && sameID(f.fromUserID, myUserID));
+/// Без fromUserID — автор запретил ссылку на аккаунт при пересылке.
+models.MessageForward forwardFromPb(pb.MessageForward f, {required List<int> myUserID}) {
+  final self = f.fromUserID.isNotEmpty && sameID(f.fromUserID, myUserID);
+  return models.MessageForward(
+    name: f.fromName,
+    self: self,
+    userID: f.fromUserID.isEmpty || self ? '' : idHex(f.fromUserID),
+    hidden: f.fromUserID.isEmpty,
+  );
+}
 
 /// Содержимое отправляемого текстового сообщения. [reply] — id исходного (с
 /// цитатой, если отвечают на фрагмент).

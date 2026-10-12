@@ -1047,15 +1047,36 @@ class MessageForwardMapper extends ClassMapperBase<MessageForward> {
     opt: true,
     def: false,
   );
+  static String _$userID(MessageForward v) => v.userID;
+  static const Field<MessageForward, String> _f$userID = Field(
+    'userID',
+    _$userID,
+    opt: true,
+    def: '',
+  );
+  static bool _$hidden(MessageForward v) => v.hidden;
+  static const Field<MessageForward, bool> _f$hidden = Field(
+    'hidden',
+    _$hidden,
+    opt: true,
+    def: false,
+  );
 
   @override
   final MappableFields<MessageForward> fields = const {
     #name: _f$name,
     #self: _f$self,
+    #userID: _f$userID,
+    #hidden: _f$hidden,
   };
 
   static MessageForward _instantiate(DecodingData data) {
-    return MessageForward(name: data.dec(_f$name), self: data.dec(_f$self));
+    return MessageForward(
+      name: data.dec(_f$name),
+      self: data.dec(_f$self),
+      userID: data.dec(_f$userID),
+      hidden: data.dec(_f$hidden),
+    );
   }
 
   @override
@@ -1120,7 +1141,7 @@ extension MessageForwardValueCopy<$R, $Out>
 
 abstract class MessageForwardCopyWith<$R, $In extends MessageForward, $Out>
     implements ClassCopyWith<$R, $In, $Out> {
-  $R call({String? name, bool? self});
+  $R call({String? name, bool? self, String? userID, bool? hidden});
   MessageForwardCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
     Then<$Out2, $R2> t,
   );
@@ -1135,16 +1156,20 @@ class _MessageForwardCopyWithImpl<$R, $Out>
   late final ClassMapperBase<MessageForward> $mapper =
       MessageForwardMapper.ensureInitialized();
   @override
-  $R call({String? name, bool? self}) => $apply(
+  $R call({String? name, bool? self, String? userID, bool? hidden}) => $apply(
     FieldCopyWithData({
       if (name != null) #name: name,
       if (self != null) #self: self,
+      if (userID != null) #userID: userID,
+      if (hidden != null) #hidden: hidden,
     }),
   );
   @override
   MessageForward $make(CopyWithData data) => MessageForward(
     name: data.get(#name, or: $value.name),
     self: data.get(#self, or: $value.self),
+    userID: data.get(#userID, or: $value.userID),
+    hidden: data.get(#hidden, or: $value.hidden),
   );
 
   @override

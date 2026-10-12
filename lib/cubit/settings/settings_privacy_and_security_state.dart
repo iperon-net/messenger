@@ -20,7 +20,7 @@ enum CallsListKind { allow, deny }
 /// рождения, «О себе», последнее посещение или «кто может мне писать». Пикер контактов один на все —
 /// различается только тем, какой список настройки он заменяет через
 /// [SettingsPrivacyAndSecurityCubit].
-enum PrivacyChannel { calls, birthday, aboutMe, lastSeen, messages }
+enum PrivacyChannel { calls, birthday, aboutMe, lastSeen, messages, forwards }
 
 @MappableClass(includeCustomMappers: [Uint8ListMapper()])
 class SettingsPrivacyAndSecurityState with SettingsPrivacyAndSecurityStateMappable {
@@ -93,6 +93,15 @@ class SettingsPrivacyAndSecurityState with SettingsPrivacyAndSecurityStateMappab
   final List<Uint8List> messagesAllow;
   final List<Uint8List> messagesDeny;
 
+  /// «Кто может добавить ссылку на мой аккаунт при пересылке моих сообщений».
+  /// Дефолт — ВСЕ (как в Telegram и на сервере). Гейт серверный, по
+  /// пересылающему: нельзя — «Переслано от …» только с именем, без профиля.
+  final CallsPrivacyAudience forwardsAudience;
+
+  /// Allow/deny-списки исключений для пересылки (см. [callsAllow]/[callsDeny]).
+  final List<Uint8List> forwardsAllow;
+  final List<Uint8List> forwardsDeny;
+
   /// «Скрывать время прочтения» (в «Последнем посещении»): «Прочитано в 12:30»
   /// не видно тем, кому не видно моё последнее посещение. Взаимно — включив,
   /// сам не видишь чужое. Галочки ✓✓ остаются.
@@ -119,6 +128,9 @@ class SettingsPrivacyAndSecurityState with SettingsPrivacyAndSecurityStateMappab
     this.messagesAudience = CallsPrivacyAudience.everybody,
     this.messagesAllow = const [],
     this.messagesDeny = const [],
+    this.forwardsAudience = CallsPrivacyAudience.everybody,
+    this.forwardsAllow = const [],
+    this.forwardsDeny = const [],
     this.hideReadTime = false,
   });
 }

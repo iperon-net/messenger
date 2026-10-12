@@ -144,13 +144,17 @@ class MessageQuote with MessageQuoteMappable {
 }
 
 /// Пересланное сообщение: от кого (имя автора оригинала, для своих —
-/// [self], в пузыре «Вы»). В пузыре — «Переслано от …» над содержимым.
+/// [self], в пузыре «Вы»). В пузыре — «Переслано от …» над содержимым; тап
+/// ведёт к автору ([userID], hex), а если автор запретил ссылку на аккаунт
+/// при пересылке ([hidden]) — «Аккаунт скрыт пользователем».
 @MappableClass()
 class MessageForward with MessageForwardMappable {
   final String name;
   final bool self;
+  final String userID;
+  final bool hidden;
 
-  const MessageForward({this.name = '', this.self = false});
+  const MessageForward({this.name = '', this.self = false, this.userID = '', this.hidden = false});
 }
 
 /// Реакция на сообщение: эмодзи, сколько человек поставили и есть ли среди

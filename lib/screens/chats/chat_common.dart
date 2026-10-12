@@ -332,6 +332,18 @@ void showChatsNoConnection(BuildContext context) {
   m.ScaffoldMessenger.maybeOf(context)?.showSnackBar(m.SnackBar(content: Text(t.common.noConnectionTitle)));
 }
 
+/// Тап по «Переслано от …»: личный чат с автором оригинала; автор запретил
+/// ссылку на аккаунт при пересылке — «Аккаунт скрыт пользователем».
+void openForwardAuthor(BuildContext context, models.Message message) {
+  final forward = message.forward;
+  if (forward == null || forward.self) return;
+  if (forward.userID.isNotEmpty) {
+    openMentionName(context, forward.userID);
+  } else if (forward.hidden) {
+    showChatToast(context, context.t.screenChat.forwardHidden);
+  }
+}
+
 /// Короткое уведомление «сделано» (например, «Сохранено в Избранном»): на iOS
 /// — плашка под шапкой, сама исчезает через 2 с (тап — сразу); на Android —
 /// SnackBar.

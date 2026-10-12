@@ -137,6 +137,12 @@ enum MessageType {
   PRIVACY_MESSAGES_ALLOW_UPDATE = 76;
   PRIVACY_MESSAGES_DENY_UPDATE = 77;
   PRIVACY_HIDE_READ_TIME_UPDATE = 78;
+  // Приватность «ссылка на аккаунт при пересылке» (аудитория + allow/deny).
+  // Гейт — при пересылке (Messages.Send.forwardFrom). См. privacy_v1.proto
+  // (PrivacyForwards*Update).
+  PRIVACY_FORWARDS_UPDATE = 79;
+  PRIVACY_FORWARDS_ALLOW_UPDATE = 80;
+  PRIVACY_FORWARDS_DENY_UPDATE = 81;
 }
 
 service Iperon {

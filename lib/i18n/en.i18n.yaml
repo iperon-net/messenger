@@ -499,6 +499,7 @@
   "forward": "Forward"
   "forwardTo": "Forward to…"
   "forwardedFrom": "Forwarded from {name}"
+  "forwardHidden": "The account was hidden by the user"
   "forwardFrom": "From: {names}"
   "savedToFavorites(plural)":
     one: "Message saved to Saved Messages"
@@ -841,6 +842,9 @@
   "messages": "Messages"
   "whoCanMessage": "Who can message me"
   "messagesReplyNote": "People you message first can always reply to you."
+  "forwards": "Forwarded messages"
+  "whoCanLinkForwards": "Who can add a link to my account when forwarding my messages"
+  "forwardsNote": "Everyone else will see only your name in \"Forwarded from…\", without a link to your profile."
 
 "cloudPassword":
   "title": "Cloud password"

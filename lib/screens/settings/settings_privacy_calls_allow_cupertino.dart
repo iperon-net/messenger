@@ -99,6 +99,8 @@ class _SettingsPrivacyCallsAllowCupertino extends State<SettingsPrivacyCallsAllo
         ok = isAllow ? await cubit.setLastSeenAllow(selectedIDs) : await cubit.setLastSeenDeny(selectedIDs);
       case PrivacyChannel.messages:
         ok = isAllow ? await cubit.setMessagesAllow(selectedIDs) : await cubit.setMessagesDeny(selectedIDs);
+      case PrivacyChannel.forwards:
+        ok = isAllow ? await cubit.setForwardsAllow(selectedIDs) : await cubit.setForwardsDeny(selectedIDs);
     }
     if (!mounted) return;
     if (ok) {

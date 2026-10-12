@@ -434,6 +434,8 @@ class MessageReplyTo extends $pb.GeneratedMessage {
 
 /// Пересланное: автор оригинала (fromName — его имя в профиле на момент
 /// пересылки, на случай если профиль получателю не виден) и дата оригинала.
+/// fromUserID пуст — автор запретил ссылку на свой аккаунт при пересылке
+/// (PrivacySettings.forwards): только имя, без перехода в профиль.
 /// Ставит только сервер (Messages.Send.forwardFrom); в обычной отправке
 /// отбрасывается.
 class MessageForward extends $pb.GeneratedMessage {
