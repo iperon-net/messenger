@@ -631,6 +631,15 @@ class Repositories {
       }),
     );
 
+    migrations.add(
+      SqliteMigration(25, (tx) async {
+        // Черновик синхронизируется между устройствами: draftPending — мой
+        // черновик ещё не на сервере (без сети / не успели) — серверный его
+        // не перезаписывает, уйдёт при подключении.
+        await tx.execute('ALTER TABLE chatDialogs ADD COLUMN draftPending INTEGER NOT NULL DEFAULT 0;');
+      }),
+    );
+
     if (settings.isDeleteDatabase) {
       logger.warning("Deleting the database, flag set IS_DELETE_DATABASE: 1");
 

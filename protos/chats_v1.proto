@@ -214,6 +214,11 @@ message Dialog {
   int64 createdAt = 12;  // unix millis
   // Моих сообщений с непрочитанными реакциями (бейдж ❤️ в списке).
   int32 unreadReactionsCount = 13;
+  // Мой черновик (текст поля ввода, как есть — с markdown-ярлыками); пусто —
+  // нет. Синхронизируется между моими устройствами (Chats.SaveDraft →
+  // Update.dialogSettings).
+  string draft = 14;
+  int64 draftDate = 15; // unix millis
 }
 
 // Состояние журнала обновлений пользователя.
@@ -414,6 +419,18 @@ message Chats {
     bool allowed = 1;
   }
 
+  // Сохранить черновик (как saveDraft в Telegram; пусто — удалить). Уходит на
+  // все мои устройства обновлением dialogSettings (Dialog.draft); отправка
+  // сообщения в чат черновик удаляет. Тот же текст — без обновлений.
+  message SaveDraft {
+    bytes chatID = 1;
+    string text = 2;
+  }
+
+  message SaveDraftResult {
+    Updates updates = 1;
+  }
+
   message Request {
     oneof request {
       List list = 1;
@@ -423,6 +440,7 @@ message Chats {
       DeleteDialog deleteDialog = 5;
       ReadDate readDate = 6;
       CanWrite canWrite = 7;
+      SaveDraft saveDraft = 8;
     }
   }
 
@@ -435,6 +453,7 @@ message Chats {
       DeleteDialogResult deleteDialog = 5;
       ReadDateResult readDate = 6;
       CanWriteResult canWrite = 7;
+      SaveDraftResult saveDraft = 8;
     }
   }
 }

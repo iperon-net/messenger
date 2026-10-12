@@ -1190,22 +1190,15 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     };
   }
 
-  /// «Прослушано» — фоновое (началось проигрывание): без сети молча
-  /// пропускаем, точка останется до следующего раза.
+  /// «Прослушано» — фоновое (началось проигрывание): сейчас или при
+  /// подключении; точка снимется ответом сервера, а не заранее.
   @override
   Future<void> readMessageContents(String chatID, String messageID) async {
     final id = serverMessageID(messageID);
-    if (id == null) return;
+    final chat = idBytes(chatID);
+    if (id == null || chat.isEmpty || !_auth.isAuthorized) return;
     try {
-      if (!await _sync.hasNetwork()) return;
-      final response = await _sync.messages(
-        pb.Messages_Request(
-          readContents: pb.Messages_ReadContents(chatID: idBytes(chatID), messageIDs: [Int64(id)]),
-        ),
-      );
-      await _sync.applyUpdates(response.readContents.updates);
-    } on ChatsOfflineException {
-      // Отметим в следующий раз.
+      await _sync.readContents(chat, [id]);
     } catch (error, stackTrace) {
       _logger.handle(error, stackTrace);
     }
@@ -1270,12 +1263,13 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     return ids.isEmpty ? null : ids.first.toString();
   }
 
-  /// Черновик — только локально (на сервер не уходит).
+  /// Черновик — сразу локально (виден и без сети) и на сервер — на мои
+  /// остальные устройства; без сети уйдёт при подключении.
   @override
   Future<void> setDraft(String chatID, String draft) async {
     final chat = idBytes(chatID);
-    if (chat.isEmpty) return;
-    await _store.setDraft(userID: _sync.me, chatID: chat, draft: draft);
+    if (chat.isEmpty || !_auth.isAuthorized) return;
+    if (await _store.setDraft(userID: _sync.me, chatID: chat, draft: draft)) unawaited(_sync.flushDrafts());
   }
 }
 

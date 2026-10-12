@@ -243,6 +243,8 @@ class ChatsSync {
     }
     await flushOutbox();
     await flushReactions();
+    await flushDrafts();
+    await flushContents();
     // Докачка истории открытых чатов, прерванная обрывом связи.
     unawaited(_runBackfill());
   }
@@ -483,6 +485,7 @@ class ChatsSync {
               'mutedUntil': dialog.mutedUntil.toInt(),
             },
           );
+          await tx.setServerDraft(userID: user, chatID: dialog.chatID, draft: dialog.draft);
         }
 
       case pb.Update_Update.dialogDeleted:
@@ -909,6 +912,93 @@ class ChatsSync {
       });
     }
     return true;
+  }
+
+  // --- черновики ---
+
+  bool _flushingDrafts = false;
+  bool _flushDraftsAgain = false;
+
+  /// Отправить мои черновики, ещё не принятые сервером (без сети ждут
+  /// подключения). Сервер отклонил (чата нет, слишком длинный) — оставляем
+  /// только локально.
+  Future<void> flushDrafts() async {
+    if (!_auth.isAuthorized) return;
+    if (_flushingDrafts) {
+      _flushDraftsAgain = true;
+      return;
+    }
+    _flushingDrafts = true;
+    try {
+      do {
+        _flushDraftsAgain = false;
+        final user = me;
+        for (final row in await _store.pendingDrafts(userID: user)) {
+          if (!await hasNetwork()) return;
+          try {
+            final response = await chats(
+              pb.Chats_Request(
+                saveDraft: pb.Chats_SaveDraft(chatID: row.chatID, text: row.draft),
+              ),
+            );
+            await _locked(() async {
+              await _store.draftSent(userID: user, chatID: row.chatID, draft: row.draft);
+              await _applyUpdatesLocked(response.saveDraft.updates);
+            });
+          } on ChatsOfflineException {
+            return;
+          } on ChatsRequestException catch (error) {
+            if (error.statusCode == StatusCode.unauthenticated) return;
+            _logger.warning('chats: draft rejected chat=${idHex(row.chatID)}: $error');
+            await _store.draftSent(userID: user, chatID: row.chatID, draft: row.draft);
+          }
+        }
+      } while (_flushDraftsAgain);
+    } catch (error, stackTrace) {
+      _logger.handle(error, stackTrace);
+    } finally {
+      _flushingDrafts = false;
+    }
+  }
+
+  // --- «прослушано» ---
+
+  /// Прослушанные без сети (chatID hex → messageID) — уйдут при подключении
+  /// (до перезапуска приложения; потом точка останется до следующего раза).
+  final _pendingContents = <String, Set<int>>{};
+
+  /// Голосовые [messageIDs] чата прослушаны: на сервер сейчас или при
+  /// подключении (точка у длительности снимется по ответу — у обоих).
+  Future<void> readContents(List<int> chatID, List<int> messageIDs) async {
+    if (messageIDs.isEmpty) return;
+    (_pendingContents[idHex(chatID)] ??= {}).addAll(messageIDs);
+    await flushContents();
+  }
+
+  Future<void> flushContents() async {
+    if (!_auth.isAuthorized) return;
+    for (final chat in _pendingContents.keys.toList()) {
+      final ids = _pendingContents[chat];
+      if (ids == null || ids.isEmpty) continue;
+      if (!await hasNetwork()) return;
+      final sent = ids.toList();
+      try {
+        final response = await messages(
+          pb.Messages_Request(
+            readContents: pb.Messages_ReadContents(chatID: idBytes(chat), messageIDs: [for (final id in sent) Int64(id)]),
+          ),
+        );
+        _pendingContents[chat]?.removeAll(sent);
+        await applyUpdates(response.readContents.updates);
+      } on ChatsOfflineException {
+        return;
+      } on ChatsRequestException catch (error) {
+        if (error.statusCode == StatusCode.unauthenticated) return;
+        _logger.warning('chats: read contents rejected chat=$chat: $error');
+        _pendingContents[chat]?.removeAll(sent);
+      }
+    }
+    _pendingContents.removeWhere((_, ids) => ids.isEmpty);
   }
 
   // --- вложения outbox ---

@@ -300,6 +300,8 @@ const Dialog$json = {
     {'1': 'mutedUntil', '3': 11, '4': 1, '5': 3, '10': 'mutedUntil'},
     {'1': 'createdAt', '3': 12, '4': 1, '5': 3, '10': 'createdAt'},
     {'1': 'unreadReactionsCount', '3': 13, '4': 1, '5': 5, '10': 'unreadReactionsCount'},
+    {'1': 'draft', '3': 14, '4': 1, '5': 9, '10': 'draft'},
+    {'1': 'draftDate', '3': 15, '4': 1, '5': 3, '10': 'draftDate'},
   ],
 };
 
@@ -313,7 +315,8 @@ final $typed_data.Uint8List dialogDescriptor =
         'IWCgZwaW5uZWQYCCABKAhSBnBpbm5lZBIaCghhcmNoaXZlZBgJIAEoCFIIYXJjaGl2ZWQSIgoM'
         'bWFya2VkVW5yZWFkGAogASgIUgxtYXJrZWRVbnJlYWQSHgoKbXV0ZWRVbnRpbBgLIAEoA1IKbX'
         'V0ZWRVbnRpbBIcCgljcmVhdGVkQXQYDCABKANSCWNyZWF0ZWRBdBIyChR1bnJlYWRSZWFjdGlv'
-        'bnNDb3VudBgNIAEoBVIUdW5yZWFkUmVhY3Rpb25zQ291bnQ=');
+        'bnNDb3VudBgNIAEoBVIUdW5yZWFkUmVhY3Rpb25zQ291bnQSFAoFZHJhZnQYDiABKAlSBWRyYW'
+        'Z0EhwKCWRyYWZ0RGF0ZRgPIAEoA1IJZHJhZnREYXRl');
 
 @$core.Deprecated('Use updatesStateDescriptor instead')
 const UpdatesState$json = {
@@ -535,6 +538,8 @@ const Chats$json = {
     Chats_ReadDateResult$json,
     Chats_CanWrite$json,
     Chats_CanWriteResult$json,
+    Chats_SaveDraft$json,
+    Chats_SaveDraftResult$json,
     Chats_Request$json,
     Chats_Response$json
   ],
@@ -683,6 +688,23 @@ const Chats_CanWriteResult$json = {
 };
 
 @$core.Deprecated('Use chatsDescriptor instead')
+const Chats_SaveDraft$json = {
+  '1': 'SaveDraft',
+  '2': [
+    {'1': 'chatID', '3': 1, '4': 1, '5': 12, '10': 'chatID'},
+    {'1': 'text', '3': 2, '4': 1, '5': 9, '10': 'text'},
+  ],
+};
+
+@$core.Deprecated('Use chatsDescriptor instead')
+const Chats_SaveDraftResult$json = {
+  '1': 'SaveDraftResult',
+  '2': [
+    {'1': 'updates', '3': 1, '4': 1, '5': 11, '6': '.iperon.v1.Updates', '10': 'updates'},
+  ],
+};
+
+@$core.Deprecated('Use chatsDescriptor instead')
 const Chats_Request$json = {
   '1': 'Request',
   '2': [
@@ -693,6 +715,7 @@ const Chats_Request$json = {
     {'1': 'deleteDialog', '3': 5, '4': 1, '5': 11, '6': '.iperon.v1.Chats.DeleteDialog', '9': 0, '10': 'deleteDialog'},
     {'1': 'readDate', '3': 6, '4': 1, '5': 11, '6': '.iperon.v1.Chats.ReadDate', '9': 0, '10': 'readDate'},
     {'1': 'canWrite', '3': 7, '4': 1, '5': 11, '6': '.iperon.v1.Chats.CanWrite', '9': 0, '10': 'canWrite'},
+    {'1': 'saveDraft', '3': 8, '4': 1, '5': 11, '6': '.iperon.v1.Chats.SaveDraft', '9': 0, '10': 'saveDraft'},
   ],
   '8': [
     {'1': 'request'},
@@ -710,6 +733,7 @@ const Chats_Response$json = {
     {'1': 'deleteDialog', '3': 5, '4': 1, '5': 11, '6': '.iperon.v1.Chats.DeleteDialogResult', '9': 0, '10': 'deleteDialog'},
     {'1': 'readDate', '3': 6, '4': 1, '5': 11, '6': '.iperon.v1.Chats.ReadDateResult', '9': 0, '10': 'readDate'},
     {'1': 'canWrite', '3': 7, '4': 1, '5': 11, '6': '.iperon.v1.Chats.CanWriteResult', '9': 0, '10': 'canWrite'},
+    {'1': 'saveDraft', '3': 8, '4': 1, '5': 11, '6': '.iperon.v1.Chats.SaveDraftResult', '9': 0, '10': 'saveDraft'},
   ],
   '8': [
     {'1': 'response'},
@@ -740,23 +764,28 @@ final $typed_data.Uint8List chatsDescriptor =
         'RhdHVzEhIKBGRhdGUYAiABKANSBGRhdGUiPQoGU3RhdHVzEggKBFJFQUQQABIMCghOT1RfUkVB'
         'RBABEgoKBkhJRERFThACEg8KC1VOQVZBSUxBQkxFEAMaIgoIQ2FuV3JpdGUSFgoGY2hhdElEGA'
         'EgASgMUgZjaGF0SUQaKgoOQ2FuV3JpdGVSZXN1bHQSGAoHYWxsb3dlZBgBIAEoCFIHYWxsb3dl'
-        'ZBq4AwoHUmVxdWVzdBIrCgRsaXN0GAEgASgLMhUuaXBlcm9uLnYxLkNoYXRzLkxpc3RIAFIEbG'
-        'lzdBJACgtvcGVuUHJpdmF0ZRgCIAEoCzIcLmlwZXJvbi52MS5DaGF0cy5PcGVuUHJpdmF0ZUgA'
-        'UgtvcGVuUHJpdmF0ZRJACgtyZWFkSGlzdG9yeRgDIAEoCzIcLmlwZXJvbi52MS5DaGF0cy5SZW'
-        'FkSGlzdG9yeUgAUgtyZWFkSGlzdG9yeRI6CglzZXREaWFsb2cYBCABKAsyGi5pcGVyb24udjEu'
-        'Q2hhdHMuU2V0RGlhbG9nSABSCXNldERpYWxvZxJDCgxkZWxldGVEaWFsb2cYBSABKAsyHS5pcG'
-        'Vyb24udjEuQ2hhdHMuRGVsZXRlRGlhbG9nSABSDGRlbGV0ZURpYWxvZxI3CghyZWFkRGF0ZRgG'
-        'IAEoCzIZLmlwZXJvbi52MS5DaGF0cy5SZWFkRGF0ZUgAUghyZWFkRGF0ZRI3CghjYW5Xcml0ZR'
-        'gHIAEoCzIZLmlwZXJvbi52MS5DaGF0cy5DYW5Xcml0ZUgAUghjYW5Xcml0ZUIJCgdyZXF1ZXN0'
-        'GuQDCghSZXNwb25zZRIxCgRsaXN0GAEgASgLMhsuaXBlcm9uLnYxLkNoYXRzLkxpc3RSZXN1bH'
-        'RIAFIEbGlzdBJGCgtvcGVuUHJpdmF0ZRgCIAEoCzIiLmlwZXJvbi52MS5DaGF0cy5PcGVuUHJp'
-        'dmF0ZVJlc3VsdEgAUgtvcGVuUHJpdmF0ZRJGCgtyZWFkSGlzdG9yeRgDIAEoCzIiLmlwZXJvbi'
-        '52MS5DaGF0cy5SZWFkSGlzdG9yeVJlc3VsdEgAUgtyZWFkSGlzdG9yeRJACglzZXREaWFsb2cY'
-        'BCABKAsyIC5pcGVyb24udjEuQ2hhdHMuU2V0RGlhbG9nUmVzdWx0SABSCXNldERpYWxvZxJJCg'
-        'xkZWxldGVEaWFsb2cYBSABKAsyIy5pcGVyb24udjEuQ2hhdHMuRGVsZXRlRGlhbG9nUmVzdWx0'
-        'SABSDGRlbGV0ZURpYWxvZxI9CghyZWFkRGF0ZRgGIAEoCzIfLmlwZXJvbi52MS5DaGF0cy5SZW'
-        'FkRGF0ZVJlc3VsdEgAUghyZWFkRGF0ZRI9CghjYW5Xcml0ZRgHIAEoCzIfLmlwZXJvbi52MS5D'
-        'aGF0cy5DYW5Xcml0ZVJlc3VsdEgAUghjYW5Xcml0ZUIKCghyZXNwb25zZQ==');
+        'ZBo3CglTYXZlRHJhZnQSFgoGY2hhdElEGAEgASgMUgZjaGF0SUQSEgoEdGV4dBgCIAEoCVIEdG'
+        'V4dBo/Cg9TYXZlRHJhZnRSZXN1bHQSLAoHdXBkYXRlcxgBIAEoCzISLmlwZXJvbi52MS5VcGRh'
+        'dGVzUgd1cGRhdGVzGvQDCgdSZXF1ZXN0EisKBGxpc3QYASABKAsyFS5pcGVyb24udjEuQ2hhdH'
+        'MuTGlzdEgAUgRsaXN0EkAKC29wZW5Qcml2YXRlGAIgASgLMhwuaXBlcm9uLnYxLkNoYXRzLk9w'
+        'ZW5Qcml2YXRlSABSC29wZW5Qcml2YXRlEkAKC3JlYWRIaXN0b3J5GAMgASgLMhwuaXBlcm9uLn'
+        'YxLkNoYXRzLlJlYWRIaXN0b3J5SABSC3JlYWRIaXN0b3J5EjoKCXNldERpYWxvZxgEIAEoCzIa'
+        'LmlwZXJvbi52MS5DaGF0cy5TZXREaWFsb2dIAFIJc2V0RGlhbG9nEkMKDGRlbGV0ZURpYWxvZx'
+        'gFIAEoCzIdLmlwZXJvbi52MS5DaGF0cy5EZWxldGVEaWFsb2dIAFIMZGVsZXRlRGlhbG9nEjcK'
+        'CHJlYWREYXRlGAYgASgLMhkuaXBlcm9uLnYxLkNoYXRzLlJlYWREYXRlSABSCHJlYWREYXRlEj'
+        'cKCGNhbldyaXRlGAcgASgLMhkuaXBlcm9uLnYxLkNoYXRzLkNhbldyaXRlSABSCGNhbldyaXRl'
+        'EjoKCXNhdmVEcmFmdBgIIAEoCzIaLmlwZXJvbi52MS5DaGF0cy5TYXZlRHJhZnRIAFIJc2F2ZU'
+        'RyYWZ0QgkKB3JlcXVlc3QapgQKCFJlc3BvbnNlEjEKBGxpc3QYASABKAsyGy5pcGVyb24udjEu'
+        'Q2hhdHMuTGlzdFJlc3VsdEgAUgRsaXN0EkYKC29wZW5Qcml2YXRlGAIgASgLMiIuaXBlcm9uLn'
+        'YxLkNoYXRzLk9wZW5Qcml2YXRlUmVzdWx0SABSC29wZW5Qcml2YXRlEkYKC3JlYWRIaXN0b3J5'
+        'GAMgASgLMiIuaXBlcm9uLnYxLkNoYXRzLlJlYWRIaXN0b3J5UmVzdWx0SABSC3JlYWRIaXN0b3'
+        'J5EkAKCXNldERpYWxvZxgEIAEoCzIgLmlwZXJvbi52MS5DaGF0cy5TZXREaWFsb2dSZXN1bHRI'
+        'AFIJc2V0RGlhbG9nEkkKDGRlbGV0ZURpYWxvZxgFIAEoCzIjLmlwZXJvbi52MS5DaGF0cy5EZW'
+        'xldGVEaWFsb2dSZXN1bHRIAFIMZGVsZXRlRGlhbG9nEj0KCHJlYWREYXRlGAYgASgLMh8uaXBl'
+        'cm9uLnYxLkNoYXRzLlJlYWREYXRlUmVzdWx0SABSCHJlYWREYXRlEj0KCGNhbldyaXRlGAcgAS'
+        'gLMh8uaXBlcm9uLnYxLkNoYXRzLkNhbldyaXRlUmVzdWx0SABSCGNhbldyaXRlEkAKCXNhdmVE'
+        'cmFmdBgIIAEoCzIgLmlwZXJvbi52MS5DaGF0cy5TYXZlRHJhZnRSZXN1bHRIAFIJc2F2ZURyYW'
+        'Z0QgoKCHJlc3BvbnNl');
 
 @$core.Deprecated('Use messagesDescriptor instead')
 const Messages$json = {

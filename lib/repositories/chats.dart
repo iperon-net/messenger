@@ -214,9 +214,11 @@ class ChatsRepository {
     await ctx.execute(
       '''
       INSERT INTO chatDialogs (userID, chatID, type, peerUserID, topMessageID, topMessageDate, topMessage, readInboxMaxID,
-        readOutboxMaxID, unreadCount, unreadReactions, pinned, archived, markedUnread, mutedUntil, createdAt)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        readOutboxMaxID, unreadCount, unreadReactions, pinned, archived, markedUnread, mutedUntil, createdAt, draft)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       ON CONFLICT(userID, chatID) DO UPDATE SET
+        -- Свой неотправленный черновик серверный не перезаписывает.
+        draft = CASE WHEN chatDialogs.draftPending = 1 THEN chatDialogs.draft ELSE excluded.draft END,
         type = excluded.type,
         peerUserID = excluded.peerUserID,
         topMessageID = excluded.topMessageID,
@@ -249,6 +251,7 @@ class ChatsRepository {
         dialog.markedUnread ? 1 : 0,
         dialog.mutedUntil.toInt(),
         dialog.createdAt.toInt(),
+        dialog.draft,
       ],
     );
     if (top != null) await upsertMessage(userID: userID, message: top);
@@ -287,8 +290,32 @@ class ChatsRepository {
     );
   }
 
-  Future<void> setDraft({required List<int> userID, required List<int> chatID, required String draft}) async {
-    await updateDialog(userID: userID, chatID: chatID, fields: {'draft': draft});
+  /// Мой черновик (с этого устройства): сразу локально и в очередь на сервер
+  /// (`draftPending`). `false` — не изменился.
+  Future<bool> setDraft({required List<int> userID, required List<int> chatID, required String draft}) async {
+    final result = await ctx.execute(
+      'UPDATE chatDialogs SET draft = ?, draftPending = 1 WHERE userID = ? AND chatID = ? AND draft != ? RETURNING chatID;',
+      [draft, userID, chatID, draft],
+    );
+    return result.isNotEmpty;
+  }
+
+  /// Черновик с сервера (другое устройство / отправка сообщения) — если свой
+  /// не ждёт отправки.
+  Future<void> setServerDraft({required List<int> userID, required List<int> chatID, required String draft}) async {
+    await ctx.execute('UPDATE chatDialogs SET draft = ? WHERE userID = ? AND chatID = ? AND draftPending = 0;', [draft, userID, chatID]);
+  }
+
+  /// Черновики, ещё не отправленные на сервер.
+  Future<List<({Uint8List chatID, String draft})>> pendingDrafts({required List<int> userID}) async {
+    final rows = await ctx.getAll('SELECT chatID, draft FROM chatDialogs WHERE userID = ? AND draftPending = 1;', [userID]);
+    return [for (final row in rows) (chatID: Uint8List.fromList(row['chatID'] as List<int>), draft: row['draft'] as String)];
+  }
+
+  /// Сервер принял черновик [draft] — снять очередь (если его не успели
+  /// поменять снова).
+  Future<void> draftSent({required List<int> userID, required List<int> chatID, required String draft}) async {
+    await ctx.execute('UPDATE chatDialogs SET draftPending = 0 WHERE userID = ? AND chatID = ? AND draft = ?;', [userID, chatID, draft]);
   }
 
   /// Диалог удалён у меня — вместе с историей и неотправленным.
