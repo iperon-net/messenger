@@ -627,6 +627,7 @@ class _Translations$screenChat$ru extends Translations$screenChat$en {
 	@override String get galleryDenied => 'Нет доступа к галерее — разрешите его в настройках';
 	@override String get saveFailed => 'Не удалось сохранить';
 	@override String get copyFailed => 'Не удалось скопировать';
+	@override String get pasteFailed => 'Не удалось вставить фото или видео';
 	@override String get edit => 'Изменить';
 	@override String get editing => 'Редактирование';
 	@override String get edited => 'изм.';
@@ -1962,6 +1963,7 @@ extension on TranslationsRu {
 			'screenChat.galleryDenied' => 'Нет доступа к галерее — разрешите его в настройках',
 			'screenChat.saveFailed' => 'Не удалось сохранить',
 			'screenChat.copyFailed' => 'Не удалось скопировать',
+			'screenChat.pasteFailed' => 'Не удалось вставить фото или видео',
 			'screenChat.edit' => 'Изменить',
 			'screenChat.editing' => 'Редактирование',
 			'screenChat.edited' => 'изм.',
@@ -2056,9 +2058,9 @@ extension on TranslationsRu {
 			'screenChat.formatLink' => 'Ссылка',
 			'screenChat.formatQuote' => 'Цитата',
 			'screenChat.formatPlain' => 'Обычный',
-			'screenChat.formatUnderline' => 'Подчёркнутый',
 			_ => null,
 		} ?? switch (path) {
+			'screenChat.formatUnderline' => 'Подчёркнутый',
 			'screenChat.formatPre' => 'Блок кода',
 			'screenChat.formatMention' => 'Упомянуть',
 			'screenChat.formatQuoteExpandable' => 'Сворачиваемая цитата',
@@ -2570,9 +2572,9 @@ extension on TranslationsRu {
 			'screenCall.qualityGood' => 'Хорошее соединение',
 			'screenCall.qualityExcellent' => 'Отличное соединение',
 			'screenCall.remoteMicMuted' => 'Микрофон собеседника выключен',
-			'screenCall.remoteOnHold' => 'Собеседник на другой линии',
 			_ => null,
 		} ?? switch (path) {
+			'screenCall.remoteOnHold' => 'Собеседник на другой линии',
 			'screenCall.reconnecting' => 'Переподключение…',
 			'screenCall.remoteReconnecting' => 'Собеседник переподключается…',
 			'screenCall.encrypted' => 'Сквозное шифрование',

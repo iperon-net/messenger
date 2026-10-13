@@ -620,7 +620,8 @@ Future<void> sendPastedMedia(BuildContext context, List<String> paths, {TextEdit
 /// «Копировать» в галерее): они — файлами и в превью с подписью.
 Future<void> pasteClipboardMedia(BuildContext context, {TextEditingController? input}) async {
   final paths = await MediaFiles.pasteMedia();
-  if (paths.isEmpty || !context.mounted) return;
+  if (!context.mounted) return;
+  if (paths.isEmpty) return showChatToast(context, context.t.screenChat.pasteFailed);
   await sendPastedMedia(context, paths, input: input);
 }
 

@@ -451,6 +451,7 @@
   "galleryDenied": "No access to the gallery — allow it in Settings"
   "saveFailed": "Couldn't save"
   "copyFailed": "Couldn't copy"
+  "pasteFailed": "Couldn't paste the photo or video"
   "edit": "Edit"
   "editing": "Editing"
   "edited": "edited"

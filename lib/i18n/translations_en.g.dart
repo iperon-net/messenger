@@ -1450,6 +1450,9 @@ class Translations$screenChat$en {
 	/// en: 'Couldn't copy'
 	String get copyFailed => 'Couldn\'t copy';
 
+	/// en: 'Couldn't paste the photo or video'
+	String get pasteFailed => 'Couldn\'t paste the photo or video';
+
 	/// en: 'Edit'
 	String get edit => 'Edit';
 
@@ -4039,6 +4042,7 @@ extension on Translations {
 			'screenChat.galleryDenied' => 'No access to the gallery — allow it in Settings',
 			'screenChat.saveFailed' => 'Couldn\'t save',
 			'screenChat.copyFailed' => 'Couldn\'t copy',
+			'screenChat.pasteFailed' => 'Couldn\'t paste the photo or video',
 			'screenChat.edit' => 'Edit',
 			'screenChat.editing' => 'Editing',
 			'screenChat.edited' => 'edited',
@@ -4133,9 +4137,9 @@ extension on Translations {
 			'screenChat.formatLink' => 'Link',
 			'screenChat.formatQuote' => 'Quote',
 			'screenChat.formatPlain' => 'Regular',
-			'screenChat.formatUnderline' => 'Underline',
 			_ => null,
 		} ?? switch (path) {
+			'screenChat.formatUnderline' => 'Underline',
 			'screenChat.formatPre' => 'Code Block',
 			'screenChat.formatMention' => 'Mention',
 			'screenChat.formatQuoteExpandable' => 'Collapsible Quote',
@@ -4647,9 +4651,9 @@ extension on Translations {
 			'screenCall.qualityGood' => 'Good connection',
 			'screenCall.qualityExcellent' => 'Excellent connection',
 			'screenCall.remoteMicMuted' => 'Their microphone is off',
-			'screenCall.remoteOnHold' => 'They\'re on another call',
 			_ => null,
 		} ?? switch (path) {
+			'screenCall.remoteOnHold' => 'They\'re on another call',
 			'screenCall.reconnecting' => 'Reconnecting…',
 			'screenCall.remoteReconnecting' => 'Waiting for them to reconnect…',
 			'screenCall.encrypted' => 'End-to-end encrypted',

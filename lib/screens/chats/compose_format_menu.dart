@@ -123,8 +123,11 @@ class ComposeFormatMenu {
           type: ContextMenuButtonType.paste,
           label: 'Paste',
           onPressed: () {
+            // Контекст самого поля (под провайдером чата): [context] меню живёт
+            // в оверлее и пропадает вместе с ним.
+            final field = editable.context;
             editable.hideToolbar();
-            pasteMedia(context);
+            pasteMedia(field);
           },
         ),
     ];

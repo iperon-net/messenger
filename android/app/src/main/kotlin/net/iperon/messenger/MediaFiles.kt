@@ -16,6 +16,7 @@ import android.os.Environment
 import android.os.Handler
 import android.os.Looper
 import android.provider.MediaStore
+import android.util.Log
 import android.webkit.MimeTypeMap
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
@@ -134,21 +135,26 @@ class MediaFiles(
         val clip = clipboard.primaryClip ?: return result.success(emptyList<Map<String, Any>>())
         val resolver = context.contentResolver
         val uris = (0 until clip.itemCount).mapNotNull { clip.getItemAt(it).uri }
+        // Тип — у провайдера ссылки; не отдаёт — из описания клипа.
+        val described = (0 until clip.description.mimeTypeCount)
+            .map { clip.description.getMimeType(it) }
+            .firstOrNull { it.startsWith("image/") || it.startsWith("video/") }
         io.execute {
             val pasted = mutableListOf<Map<String, Any>>()
             dir.mkdirs()
             val stamp = System.currentTimeMillis()
             uris.forEachIndexed { i, uri ->
                 try {
-                    val mime = resolver.getType(uri) ?: return@forEachIndexed
+                    val mime = resolver.getType(uri) ?: described ?: return@forEachIndexed
                     val video = mime.startsWith("video/")
                     if (!video && !mime.startsWith("image/")) return@forEachIndexed
                     val ext = MimeTypeMap.getSingleton().getExtensionFromMimeType(mime) ?: if (video) "mp4" else "jpg"
                     val out = File(dir, "paste_${stamp}_$i.$ext")
                     resolver.openInputStream(uri)?.use { input -> out.outputStream().use { input.copyTo(it) } } ?: return@forEachIndexed
                     pasted.add(mapOf("path" to out.absolutePath, "video" to video))
-                } catch (_: Exception) {
+                } catch (e: Exception) {
                     // Нет доступа к ссылке / файл пропал — пропускаем.
+                    Log.w("MediaFiles", "paste $uri failed", e)
                 }
             }
             main.post { result.success(pasted) }
