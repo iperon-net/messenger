@@ -4246,6 +4246,110 @@ class Chats_ReorderFoldersResult extends $pb.GeneratedMessage {
   Updates ensureUpdates() => $_ensure(0);
 }
 
+/// Пользователь по имени (ссылка iperon.net/<username>, @username): его
+/// личный чат со мной — существующий или новый (как openPrivate); своё имя
+/// — «Избранное». Нет такого — NOT_FOUND. Свой лимит частоты (перебор
+/// имён), новый чат — ещё и лимит openPrivate.
+class Chats_ResolveUsername extends $pb.GeneratedMessage {
+  factory Chats_ResolveUsername({
+    $core.String? username,
+  }) {
+    final result = create();
+    if (username != null) result.username = username;
+    return result;
+  }
+
+  Chats_ResolveUsername._();
+
+  factory Chats_ResolveUsername.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Chats_ResolveUsername.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Chats.ResolveUsername',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..aOS(1, _omitFieldNames ? '' : 'username')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_ResolveUsername clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_ResolveUsername copyWith(void Function(Chats_ResolveUsername) updates) =>
+      super.copyWith((message) => updates(message as Chats_ResolveUsername)) as Chats_ResolveUsername;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static Chats_ResolveUsername create() => Chats_ResolveUsername._();
+  @$core.override
+  Chats_ResolveUsername createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static Chats_ResolveUsername getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Chats_ResolveUsername>(create);
+  static Chats_ResolveUsername? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.String get username => $_getSZ(0);
+  @$pb.TagNumber(1)
+  set username($core.String value) => $_setString(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasUsername() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearUsername() => $_clearField(1);
+}
+
+class Chats_ResolveUsernameResult extends $pb.GeneratedMessage {
+  factory Chats_ResolveUsernameResult({
+    Dialog? dialog,
+  }) {
+    final result = create();
+    if (dialog != null) result.dialog = dialog;
+    return result;
+  }
+
+  Chats_ResolveUsernameResult._();
+
+  factory Chats_ResolveUsernameResult.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Chats_ResolveUsernameResult.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Chats.ResolveUsernameResult',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..aOM<Dialog>(1, _omitFieldNames ? '' : 'dialog', subBuilder: Dialog.create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_ResolveUsernameResult clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_ResolveUsernameResult copyWith(void Function(Chats_ResolveUsernameResult) updates) =>
+      super.copyWith((message) => updates(message as Chats_ResolveUsernameResult)) as Chats_ResolveUsernameResult;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static Chats_ResolveUsernameResult create() => Chats_ResolveUsernameResult._();
+  @$core.override
+  Chats_ResolveUsernameResult createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static Chats_ResolveUsernameResult getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Chats_ResolveUsernameResult>(create);
+  static Chats_ResolveUsernameResult? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  Dialog get dialog => $_getN(0);
+  @$pb.TagNumber(1)
+  set dialog(Dialog value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasDialog() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearDialog() => $_clearField(1);
+  @$pb.TagNumber(1)
+  Dialog ensureDialog() => $_ensure(0);
+}
+
 enum Chats_Request_Request {
   list,
   openPrivate,
@@ -4259,6 +4363,7 @@ enum Chats_Request_Request {
   saveFolder,
   deleteFolder,
   reorderFolders,
+  resolveUsername,
   notSet
 }
 
@@ -4276,6 +4381,7 @@ class Chats_Request extends $pb.GeneratedMessage {
     Chats_SaveFolder? saveFolder,
     Chats_DeleteFolder? deleteFolder,
     Chats_ReorderFolders? reorderFolders,
+    Chats_ResolveUsername? resolveUsername,
   }) {
     final result = create();
     if (list != null) result.list = list;
@@ -4290,6 +4396,7 @@ class Chats_Request extends $pb.GeneratedMessage {
     if (saveFolder != null) result.saveFolder = saveFolder;
     if (deleteFolder != null) result.deleteFolder = deleteFolder;
     if (reorderFolders != null) result.reorderFolders = reorderFolders;
+    if (resolveUsername != null) result.resolveUsername = resolveUsername;
     return result;
   }
 
@@ -4313,11 +4420,12 @@ class Chats_Request extends $pb.GeneratedMessage {
     10: Chats_Request_Request.saveFolder,
     11: Chats_Request_Request.deleteFolder,
     12: Chats_Request_Request.reorderFolders,
+    13: Chats_Request_Request.resolveUsername,
     0: Chats_Request_Request.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Chats.Request',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
-    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12])
+    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13])
     ..aOM<Chats_List>(1, _omitFieldNames ? '' : 'list', subBuilder: Chats_List.create)
     ..aOM<Chats_OpenPrivate>(2, _omitFieldNames ? '' : 'openPrivate', protoName: 'openPrivate', subBuilder: Chats_OpenPrivate.create)
     ..aOM<Chats_ReadHistory>(3, _omitFieldNames ? '' : 'readHistory', protoName: 'readHistory', subBuilder: Chats_ReadHistory.create)
@@ -4331,6 +4439,8 @@ class Chats_Request extends $pb.GeneratedMessage {
     ..aOM<Chats_DeleteFolder>(11, _omitFieldNames ? '' : 'deleteFolder', protoName: 'deleteFolder', subBuilder: Chats_DeleteFolder.create)
     ..aOM<Chats_ReorderFolders>(12, _omitFieldNames ? '' : 'reorderFolders',
         protoName: 'reorderFolders', subBuilder: Chats_ReorderFolders.create)
+    ..aOM<Chats_ResolveUsername>(13, _omitFieldNames ? '' : 'resolveUsername',
+        protoName: 'resolveUsername', subBuilder: Chats_ResolveUsername.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -4362,6 +4472,7 @@ class Chats_Request extends $pb.GeneratedMessage {
   @$pb.TagNumber(10)
   @$pb.TagNumber(11)
   @$pb.TagNumber(12)
+  @$pb.TagNumber(13)
   Chats_Request_Request whichRequest() => _Chats_Request_RequestByTag[$_whichOneof(0)]!;
   @$pb.TagNumber(1)
   @$pb.TagNumber(2)
@@ -4375,6 +4486,7 @@ class Chats_Request extends $pb.GeneratedMessage {
   @$pb.TagNumber(10)
   @$pb.TagNumber(11)
   @$pb.TagNumber(12)
+  @$pb.TagNumber(13)
   void clearRequest() => $_clearField($_whichOneof(0));
 
   @$pb.TagNumber(1)
@@ -4508,6 +4620,17 @@ class Chats_Request extends $pb.GeneratedMessage {
   void clearReorderFolders() => $_clearField(12);
   @$pb.TagNumber(12)
   Chats_ReorderFolders ensureReorderFolders() => $_ensure(11);
+
+  @$pb.TagNumber(13)
+  Chats_ResolveUsername get resolveUsername => $_getN(12);
+  @$pb.TagNumber(13)
+  set resolveUsername(Chats_ResolveUsername value) => $_setField(13, value);
+  @$pb.TagNumber(13)
+  $core.bool hasResolveUsername() => $_has(12);
+  @$pb.TagNumber(13)
+  void clearResolveUsername() => $_clearField(13);
+  @$pb.TagNumber(13)
+  Chats_ResolveUsername ensureResolveUsername() => $_ensure(12);
 }
 
 enum Chats_Response_Response {
@@ -4523,6 +4646,7 @@ enum Chats_Response_Response {
   saveFolder,
   deleteFolder,
   reorderFolders,
+  resolveUsername,
   notSet
 }
 
@@ -4540,6 +4664,7 @@ class Chats_Response extends $pb.GeneratedMessage {
     Chats_SaveFolderResult? saveFolder,
     Chats_DeleteFolderResult? deleteFolder,
     Chats_ReorderFoldersResult? reorderFolders,
+    Chats_ResolveUsernameResult? resolveUsername,
   }) {
     final result = create();
     if (list != null) result.list = list;
@@ -4554,6 +4679,7 @@ class Chats_Response extends $pb.GeneratedMessage {
     if (saveFolder != null) result.saveFolder = saveFolder;
     if (deleteFolder != null) result.deleteFolder = deleteFolder;
     if (reorderFolders != null) result.reorderFolders = reorderFolders;
+    if (resolveUsername != null) result.resolveUsername = resolveUsername;
     return result;
   }
 
@@ -4577,11 +4703,12 @@ class Chats_Response extends $pb.GeneratedMessage {
     10: Chats_Response_Response.saveFolder,
     11: Chats_Response_Response.deleteFolder,
     12: Chats_Response_Response.reorderFolders,
+    13: Chats_Response_Response.resolveUsername,
     0: Chats_Response_Response.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Chats.Response',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
-    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12])
+    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13])
     ..aOM<Chats_ListResult>(1, _omitFieldNames ? '' : 'list', subBuilder: Chats_ListResult.create)
     ..aOM<Chats_OpenPrivateResult>(2, _omitFieldNames ? '' : 'openPrivate',
         protoName: 'openPrivate', subBuilder: Chats_OpenPrivateResult.create)
@@ -4601,6 +4728,8 @@ class Chats_Response extends $pb.GeneratedMessage {
         protoName: 'deleteFolder', subBuilder: Chats_DeleteFolderResult.create)
     ..aOM<Chats_ReorderFoldersResult>(12, _omitFieldNames ? '' : 'reorderFolders',
         protoName: 'reorderFolders', subBuilder: Chats_ReorderFoldersResult.create)
+    ..aOM<Chats_ResolveUsernameResult>(13, _omitFieldNames ? '' : 'resolveUsername',
+        protoName: 'resolveUsername', subBuilder: Chats_ResolveUsernameResult.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -4632,6 +4761,7 @@ class Chats_Response extends $pb.GeneratedMessage {
   @$pb.TagNumber(10)
   @$pb.TagNumber(11)
   @$pb.TagNumber(12)
+  @$pb.TagNumber(13)
   Chats_Response_Response whichResponse() => _Chats_Response_ResponseByTag[$_whichOneof(0)]!;
   @$pb.TagNumber(1)
   @$pb.TagNumber(2)
@@ -4645,6 +4775,7 @@ class Chats_Response extends $pb.GeneratedMessage {
   @$pb.TagNumber(10)
   @$pb.TagNumber(11)
   @$pb.TagNumber(12)
+  @$pb.TagNumber(13)
   void clearResponse() => $_clearField($_whichOneof(0));
 
   @$pb.TagNumber(1)
@@ -4778,6 +4909,17 @@ class Chats_Response extends $pb.GeneratedMessage {
   void clearReorderFolders() => $_clearField(12);
   @$pb.TagNumber(12)
   Chats_ReorderFoldersResult ensureReorderFolders() => $_ensure(11);
+
+  @$pb.TagNumber(13)
+  Chats_ResolveUsernameResult get resolveUsername => $_getN(12);
+  @$pb.TagNumber(13)
+  set resolveUsername(Chats_ResolveUsernameResult value) => $_setField(13, value);
+  @$pb.TagNumber(13)
+  $core.bool hasResolveUsername() => $_has(12);
+  @$pb.TagNumber(13)
+  void clearResolveUsername() => $_clearField(13);
+  @$pb.TagNumber(13)
+  Chats_ResolveUsernameResult ensureResolveUsername() => $_ensure(12);
 }
 
 /// CHATS — диалоги.

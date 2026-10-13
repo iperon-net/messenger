@@ -18,6 +18,13 @@ class Profiles {
     return models.ProfileMapper.fromMap(rows.first);
   }
 
+  /// userID закэшированного профиля по имени (без учёта регистра); `null` —
+  /// такого в кэше нет.
+  Future<Uint8List?> userIDByUsername(String username) async {
+    final rows = await db.execute("SELECT userID FROM profiles WHERE lower(username) = ? LIMIT 1;", [username.toLowerCase()]);
+    return rows.isEmpty ? null : Uint8List.fromList(rows.first["userID"] as List<int>);
+  }
+
   /// Профили набора userID одним запросом (список чатов) — карта
   /// `userID(hex) -> Profile` только по тем, кто есть в кэше.
   Future<Map<String, models.Profile>> getByUserIDs({required List<List<int>> userIDs, required String Function(List<int>) toHex}) async {

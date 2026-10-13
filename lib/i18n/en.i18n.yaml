@@ -398,6 +398,7 @@
   "requestJoin": "Request to Join"
   "requestSent": "Request Sent"
   "linkInvalid": "This link is invalid or has expired."
+  "userNotFound": "No user with this username."
   "poll": "Poll"
   "callOutgoing": "Outgoing call"
   "callIncoming": "Incoming call"

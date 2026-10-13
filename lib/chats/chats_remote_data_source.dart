@@ -488,9 +488,39 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     bool membersHidden = false,
   }) async => _unsupported('Группы, каналы и сообщества');
 
-  /// Ссылки на группы/каналы — следующие срезы: «не найдено».
+  /// Имя пользователя (как на сервере, без учёта регистра).
+  static final _usernamePattern = RegExp(r'^[A-Za-z0-9_]{5,24}$');
+
+  /// `iperon.net/<username>` — личный чат с пользователем: знакомый (своё имя
+  /// — «Избранное», собеседник с чатом в кэше) — без сети, иначе — сервер.
+  /// Приглашения (`+код`) и публичные имена групп / каналов — следующие
+  /// срезы: «не найдено».
   @override
-  Future<String> resolveLink(String path) async => '';
+  Future<String> resolveLink(String path) async {
+    final name = path.trim().replaceFirst(RegExp(r'^/+'), '').split('/').first.replaceFirst('@', '');
+    if (!_usernamePattern.hasMatch(name) || !_auth.isAuthorized) return '';
+    final username = name.toLowerCase();
+    final me = _sync.me;
+
+    final mine = await _repositories.myProfile.getByUserID(userID: me);
+    final peer = mine.username.toLowerCase() == username ? me : await _repositories.profiles.userIDByUsername(username);
+    if (peer != null) {
+      final local = await _store.dialogByPeer(userID: me, peerUserID: peer);
+      if (local != null) return idHex(local.chatID);
+    }
+
+    await _requireNetwork();
+    try {
+      final response = await _sync.chats(pb.Chats_Request(resolveUsername: pb.Chats_ResolveUsername(username: username)));
+      if (!response.hasResolveUsername() || !response.resolveUsername.hasDialog()) return '';
+      final dialog = response.resolveUsername.dialog;
+      await _sync.saveDialog(dialog);
+      return idHex(dialog.chatID);
+    } on ChatsRequestException catch (error) {
+      if (!error.isNotFound) _logger.warning('chats: resolve username failed: $error');
+      return '';
+    }
+  }
 
   @override
   Future<void> joinChat(String chatID) async => _unsupported('Группы и каналы');

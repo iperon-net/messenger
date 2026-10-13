@@ -1294,6 +1294,9 @@ class Translations$screenChat$en {
 	/// en: 'This link is invalid or has expired.'
 	String get linkInvalid => 'This link is invalid or has expired.';
 
+	/// en: 'No user with this username.'
+	String get userNotFound => 'No user with this username.';
+
 	/// en: 'Poll'
 	String get poll => 'Poll';
 
@@ -3949,6 +3952,7 @@ extension on Translations {
 			'screenChat.requestJoin' => 'Request to Join',
 			'screenChat.requestSent' => 'Request Sent',
 			'screenChat.linkInvalid' => 'This link is invalid or has expired.',
+			'screenChat.userNotFound' => 'No user with this username.',
 			'screenChat.poll' => 'Poll',
 			'screenChat.callOutgoing' => 'Outgoing call',
 			'screenChat.callIncoming' => 'Incoming call',
@@ -4094,9 +4098,9 @@ extension on Translations {
 			'screenChat.gb' => 'GB',
 			'screenChat.mediaCounter' => ({required Object current, required Object total}) => '${current} of ${total}',
 			'screenChat.addCaption' => 'Add a caption…',
-			'screenSettings.settings' => 'Settings',
 			_ => null,
 		} ?? switch (path) {
+			'screenSettings.settings' => 'Settings',
 			'screenSettings.myProfile' => 'My profile',
 			'screenSettings.devices' => _root.screenSettingsDevices.devices,
 			'screenSettings.language' => 'Language',
@@ -4608,9 +4612,9 @@ extension on Translations {
 			'passkey.created' => ({required Object date}) => 'Added ${date}',
 			'passkey.lastUsed' => ({required Object date}) => 'Signed in ${date}',
 			'passkey.alreadyOnThisDevice' => 'This account already has a passkey on this device. Add one on another device or in a different password manager.',
-			'passkey.delete' => 'Delete',
 			_ => null,
 		} ?? switch (path) {
+			'passkey.delete' => 'Delete',
 			'passkey.deleteConfirmTitle' => 'Delete passkey?',
 			'passkey.deleteConfirmMessage' => 'You won\'t be able to sign in with this passkey anymore.',
 			'passkey.loadError' => 'Couldn\'t load passkeys',

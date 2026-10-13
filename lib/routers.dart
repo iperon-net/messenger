@@ -14,6 +14,7 @@ import 'models.dart' as models;
 import 'repositories.dart';
 import 'screens.dart';
 import 'auth.dart';
+import 'deep_links.dart';
 import 'utils.dart';
 
 class Routers {
@@ -54,6 +55,12 @@ class Routers {
       NotifyScope.values.firstWhere((scope) => scope.name == name, orElse: () => NotifyScope.privateChats);
 
   String? _redirect(BuildContext context, GoRouterState state) {
+    // Ссылка iperon.net/<имя> снаружи — не маршрут: запоминаем, откроет
+    // DeepLinkGate (после входа, если ещё не вошли).
+    if (DeepLinks.instance.capture(state.uri)) {
+      return auth.isAuthorized ? "/chats" : "/auth";
+    }
+
     final isAuthRoute = state.matchedLocation.startsWith("/auth");
 
     if (!auth.isAuthorized) {
@@ -75,7 +82,9 @@ class Routers {
           // список уже был показан из кэша и (при выданном доступе) освежён.
           BlocProvider<ContactsCubit>(create: (_) => ContactsCubit()..bootstrap()),
         ],
-        child: CallGate(child: HomeCupertino(navigationShell: navigationShell)),
+        child: CallGate(
+          child: DeepLinkGate(child: HomeCupertino(navigationShell: navigationShell)),
+        ),
       ),
       branches: [
         StatefulShellBranch(
@@ -810,7 +819,9 @@ class Routers {
           // список уже был показан из кэша и (при выданном доступе) освежён.
           BlocProvider<ContactsCubit>(create: (_) => ContactsCubit()..bootstrap()),
         ],
-        child: CallGate(child: HomeMaterial(navigationShell: navigationShell)),
+        child: CallGate(
+          child: DeepLinkGate(child: HomeMaterial(navigationShell: navigationShell)),
+        ),
       ),
       branches: [
         StatefulShellBranch(

@@ -22,7 +22,6 @@ import '../../chats/slow_mode.dart';
 import '../../chats/video_prepare.dart';
 import '../../components.dart';
 import '../../cubit.dart';
-import '../../demo/chats_demo_data_source.dart';
 import '../../extensions.dart';
 import '../../i18n/translations.g.dart';
 import '../../models.dart' as models;
@@ -464,24 +463,42 @@ void openMentionName(BuildContext context, String userID) async {
   return (label, cubit.join);
 }
 
-/// Ссылка `iperon.net/<имя>` или `iperon.net/+код` из сообщения — открыть
-/// канал / группу в приложении (не подписаны — с «Подписаться» внизу).
+/// Имя пользователя в ссылке `iperon.net/<имя>` (как на сервере).
+final _linkUsername = RegExp(r'^[A-Za-z0-9_]{5,24}$');
+
+/// Ссылка `iperon.net/<имя>` или `iperon.net/+код` (из сообщения, `@имя` или
+/// снаружи — см. `DeepLinkGate`) — открыть в приложении: пользователя —
+/// личный чат с ним, канал / группу — не подписаны — с «Подписаться» внизу.
 /// `false` — не наша ссылка (`/blog`, другой сайт): открыть в браузере.
-/// Недействительное приглашение — сообщение об этом.
+/// Нет такого пользователя / недействительное приглашение — сообщение об
+/// этом; без сети — «Нет соединения».
 Future<bool> openIperonLink(BuildContext context, Uri uri) async {
   final host = uri.host.toLowerCase().replaceFirst(RegExp(r'^www\.'), '');
   if (host != 'iperon.net') return false;
   final path = uri.pathSegments.firstOrNull ?? '';
   if (path.isEmpty) return false;
   final demo = context.read<CommonCubit>().state.settingsDevice.chatsDemo;
-  final chatID = demo ? await ChatsDemoDataSource.instance.resolveLink(path) : '';
+  // В демо публичные имена каналов бывают короче.
+  final username = uri.pathSegments.length == 1 && (demo ? !path.startsWith('+') : _linkUsername.hasMatch(path));
+  if (!username && !path.startsWith('+')) return false;
+  final source = chatsDataSource(demo: demo);
+  if (source == null) return false;
+  final String chatID;
+  try {
+    chatID = await source.resolveLink(path);
+  } on ChatsOfflineException {
+    if (context.mounted) showChatsNoConnection(context);
+    return true;
+  } on ChatsFloodException catch (error) {
+    if (context.mounted) showChatsFlood(context, error.seconds);
+    return true;
+  }
   if (!context.mounted) return true;
   if (chatID.isNotEmpty) {
     await context.push('/chats/chat/$chatID');
     return true;
   }
-  if (!path.startsWith('+')) return false;
-  await _showNotice(context, context.t.screenChat.linkInvalid);
+  await _showNotice(context, username ? context.t.screenChat.userNotFound : context.t.screenChat.linkInvalid);
   return true;
 }
 

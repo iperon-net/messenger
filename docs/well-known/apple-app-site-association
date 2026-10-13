@@ -1,0 +1,27 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": ["BPXUY5LQZC.net.iperon.messenger"],
+        "components": [
+          { "/": "/.well-known/*", "exclude": true, "comment": "служебные файлы" },
+          { "/": "/*/*", "exclude": true, "comment": "вложенные пути — страницы сайта" },
+          { "/": "/*.*", "exclude": true, "comment": "файлы (в имени пользователя точек нет)" },
+          { "/": "/privacy", "exclude": true },
+          { "/": "/terms", "exclude": true },
+          { "/": "/download", "exclude": true },
+          { "/": "/about", "exclude": true },
+          { "/": "/support", "exclude": true },
+          { "/": "/login", "exclude": true },
+          { "/": "/share", "exclude": true },
+          { "/": "/admin", "exclude": true },
+          { "/": "/iperon", "exclude": true },
+          { "/": "/?????*", "comment": "iperon.net/<имя> (от 5 символов) — личный чат в приложении" }
+        ]
+      }
+    ]
+  },
+  "webcredentials": {
+    "apps": ["BPXUY5LQZC.net.iperon.messenger"]
+  }
+}

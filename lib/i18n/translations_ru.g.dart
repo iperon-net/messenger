@@ -571,6 +571,7 @@ class _Translations$screenChat$ru extends Translations$screenChat$en {
 	@override String get requestJoin => 'Подать заявку';
 	@override String get requestSent => 'Заявка отправлена';
 	@override String get linkInvalid => 'Ссылка недействительна или устарела.';
+	@override String get userNotFound => 'Пользователь с таким именем не найден.';
 	@override String get poll => 'Опрос';
 	@override String get callOutgoing => 'Исходящий звонок';
 	@override String get callIncoming => 'Входящий звонок';
@@ -1898,6 +1899,7 @@ extension on TranslationsRu {
 			'screenChat.requestJoin' => 'Подать заявку',
 			'screenChat.requestSent' => 'Заявка отправлена',
 			'screenChat.linkInvalid' => 'Ссылка недействительна или устарела.',
+			'screenChat.userNotFound' => 'Пользователь с таким именем не найден.',
 			'screenChat.poll' => 'Опрос',
 			'screenChat.callOutgoing' => 'Исходящий звонок',
 			'screenChat.callIncoming' => 'Входящий звонок',
@@ -2043,9 +2045,9 @@ extension on TranslationsRu {
 			'screenChat.gb' => 'ГБ',
 			'screenChat.mediaCounter' => ({required Object current, required Object total}) => '${current} из ${total}',
 			'screenChat.addCaption' => 'Добавить подпись…',
-			'screenSettings.settings' => 'Настройки',
 			_ => null,
 		} ?? switch (path) {
+			'screenSettings.settings' => 'Настройки',
 			'screenSettings.myProfile' => 'Мой профиль',
 			'screenSettings.devices' => _root.screenSettingsDevices.devices,
 			'screenSettings.language' => 'Язык',
@@ -2557,9 +2559,9 @@ extension on TranslationsRu {
 			'passkey.created' => ({required Object date}) => 'Добавлен ${date}',
 			'passkey.lastUsed' => ({required Object date}) => 'Вход ${date}',
 			'passkey.alreadyOnThisDevice' => 'На этом устройстве уже есть ключ доступа для этого аккаунта. Добавьте ключ на другом устройстве или в другом менеджере паролей.',
-			'passkey.delete' => 'Удалить',
 			_ => null,
 		} ?? switch (path) {
+			'passkey.delete' => 'Удалить',
 			'passkey.deleteConfirmTitle' => 'Удалить ключ доступа?',
 			'passkey.deleteConfirmMessage' => 'Войти с помощью этого ключа больше не получится.',
 			'passkey.loadError' => 'Не удалось загрузить ключи',

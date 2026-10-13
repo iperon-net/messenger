@@ -62,6 +62,9 @@ class ChatsRequestException implements Exception {
   /// «privacyRestricted»).
   bool get isPrivacyRestricted => statusCode == StatusCode.permissionDenied && error == 'privacyRestricted';
 
+  /// Не найдено (`NotFound`): например, пользователя с таким именем нет.
+  bool get isNotFound => statusCode == StatusCode.notFound;
+
   @override
   String toString() => 'ChatsRequestException($statusCode): $error';
 }

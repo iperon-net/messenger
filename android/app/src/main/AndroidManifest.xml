@@ -52,6 +52,20 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
+            <!-- Ссылки https://iperon.net/<имя> (App Links): открывают личный чат
+                 (lib/deep_links.dart). Проверка домена — assetlinks.json на
+                 iperon.net (handle_all_urls). pathAdvancedPattern — с Android 12;
+                 на старых он не действует и в приложение идут все пути сайта —
+                 чужие приложение открывает во встроенном браузере. -->
+            <meta-data android:name="flutter_deeplinking_enabled" android:value="true" />
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" />
+                <data android:host="iperon.net" />
+                <data android:pathAdvancedPattern="/[a-zA-Z0-9_]{5,24}" />
+            </intent-filter>
         </activity>
         <!-- image_cropper (uCrop) — экран обрезки аватара -->
         <activity

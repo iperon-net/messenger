@@ -532,6 +532,18 @@ message Chats {
     Updates updates = 1;
   }
 
+  // Пользователь по имени (ссылка iperon.net/<username>, @username): его
+  // личный чат со мной — существующий или новый (как openPrivate); своё имя
+  // — «Избранное». Нет такого — NOT_FOUND. Свой лимит частоты (перебор
+  // имён), новый чат — ещё и лимит openPrivate.
+  message ResolveUsername {
+    string username = 1;
+  }
+
+  message ResolveUsernameResult {
+    Dialog dialog = 1;
+  }
+
   message Request {
     oneof request {
       List list = 1;
@@ -546,6 +558,7 @@ message Chats {
       SaveFolder saveFolder = 10;
       DeleteFolder deleteFolder = 11;
       ReorderFolders reorderFolders = 12;
+      ResolveUsername resolveUsername = 13;
     }
   }
 
@@ -563,6 +576,7 @@ message Chats {
       SaveFolderResult saveFolder = 10;
       DeleteFolderResult deleteFolder = 11;
       ReorderFoldersResult reorderFolders = 12;
+      ResolveUsernameResult resolveUsername = 13;
     }
   }
 }

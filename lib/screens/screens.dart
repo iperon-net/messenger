@@ -8,6 +8,7 @@ export 'auth/auth_cloud_password_cupertino.dart';
 export 'auth/auth_cloud_password_material.dart';
 export 'home/home_cupertino.dart';
 export 'home/home_material.dart';
+export 'home/deep_link_gate.dart';
 export 'home/contacts_cupertino.dart';
 export 'home/contacts_material.dart';
 export 'home/contacts_add_cupertino.dart';
