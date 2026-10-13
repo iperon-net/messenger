@@ -593,13 +593,15 @@ class _ChatCupertinoState extends State<ChatCupertino> {
                                               selectionCheckColor: ThemesCupertino.onAccent(context),
                                               highlight: state.searching ? state.searchQuery : '',
                                               focusedID: state.searchCurrentID,
-                                              onMediaTap: (message, index) => showChatMediaViewer(
-                                                context,
-                                                messages: state.messages,
-                                                message: message,
-                                                index: index,
-                                                chatTitle: chat.title,
-                                              ),
+                                              onMediaTap: (message, index) => message.kind == models.MessageKind.file
+                                                  ? openChatFile(context, message)
+                                                  : showChatMediaViewer(
+                                                      context,
+                                                      messages: state.messages,
+                                                      message: message,
+                                                      index: index,
+                                                      chatTitle: chat.title,
+                                                    ),
                                             ),
                                       Positioned(top: 0, left: 0, right: 0, child: _pinnedBar(context, chat, state)),
                                       ChatReactionsButton(
@@ -726,6 +728,7 @@ class _ChatCupertinoState extends State<ChatCupertino> {
       );
     }
 
+    final mediaCopyable = chatMediaActionable(message) && message.kind != models.MessageKind.file;
     return [
       if (reactions.isNotEmpty)
         ReactionPicker(
@@ -759,7 +762,17 @@ class _ChatCupertinoState extends State<ChatCupertino> {
           _cubit.startReply(message);
           _focus.requestFocus();
         }),
-      if (message.text.isNotEmpty) action(t.copy, CupertinoIcons.doc_on_doc, () => Clipboard.setData(ClipboardData(text: message.text))),
+      // Фото / видео — копируются сами (вставить в другой мессенджер), подпись — отдельно.
+      if (mediaCopyable)
+        action(t.copy, CupertinoIcons.doc_on_doc, () => copyChatMedia(context, message))
+      else if (message.text.isNotEmpty)
+        action(t.copy, CupertinoIcons.doc_on_doc, () => Clipboard.setData(ClipboardData(text: message.text))),
+      if (mediaCopyable && message.text.isNotEmpty)
+        action(t.copyText, CupertinoIcons.text_quote, () => Clipboard.setData(ClipboardData(text: message.text))),
+      if (chatMediaActionable(message)) ...[
+        action(chatMediaSaveLabel(context.t, message), CupertinoIcons.arrow_down_to_line, () => saveChatMedia(context, message)),
+        action(t.shareMedia, CupertinoIcons.share, () => shareChatMedia(context, message)),
+      ],
       if (canWrite && features.pinnedMessages && _pinnable(message))
         action(message.pinned ? t.unpin : t.pin, message.pinned ? CupertinoIcons.pin_slash : CupertinoIcons.pin, () => _pin(chat, message)),
       if (features.forward && ChatCubit.forwardable(message))

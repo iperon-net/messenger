@@ -104,6 +104,10 @@ class MainActivity : FlutterFragmentActivity() {
     // Сжатие видео перед отправкой в чат (VideoCompressor, lib/chats/video_prepare.dart).
     private var videoCompressor: VideoCompressor? = null
 
+    // Файлы и медиа чата: открыть, копировать, сохранить (MediaFiles,
+    // lib/chats/media_files.dart).
+    private var mediaFiles: MediaFiles? = null
+
     /// Имя кэшированного движка, к которому цепляется `FlutterFragment`. Сам движок
     /// кладётся в кэш в [onCreate] ДО `super.onCreate` (см. [ensureEngine]) — иначе
     /// восстановленный из saved-state фрагмент на cold-start не найдёт его и упадёт
@@ -186,6 +190,9 @@ class MainActivity : FlutterFragmentActivity() {
         audioDevicesHandler = AudioDevicesHandler(applicationContext, flutterEngine.dartExecutor.binaryMessenger)
         videoCompressor?.dispose()
         videoCompressor = VideoCompressor(applicationContext, flutterEngine.dartExecutor.binaryMessenger)
+        // Контекст — эта Activity: открытый файл — поверх неё, «назад» вернёт в чат.
+        mediaFiles?.dispose()
+        mediaFiles = MediaFiles(this, flutterEngine.dartExecutor.binaryMessenger)
         callWindowChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, channelName)
             .also { it.setMethodCallHandler { call, result ->
                 when (call.method) {

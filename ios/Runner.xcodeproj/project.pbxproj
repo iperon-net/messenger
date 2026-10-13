@@ -21,6 +21,7 @@
 		8F33B5EE2613D63CC15A1CA3 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = D09EE822DB9418094420808A /* InfoPlist.strings */; };
 		906036BF5950DBD9B5BDC516 /* PushBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 451D159417CE84290F818AA2 /* PushBridge.swift */; };
 		5B918FC2A891D826225921DB /* VideoCompressor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D5A0156868EAF364C769561 /* VideoCompressor.swift */; };
+		E599A2A210F1E5DE20463F18 /* MediaFiles.swift in Sources */ = {isa = PBXBuildFile; fileRef = 198A0B1D2155D167BCC53DAC /* MediaFiles.swift */; };
 		97C146FC1CF9000F007C117D /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FA1CF9000F007C117D /* Main.storyboard */; };
 		97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FD1CF9000F007C117D /* Assets.xcassets */; };
 		97C147011CF9000F007C117D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */; };
@@ -90,6 +91,7 @@
 		3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = AppFrameworkInfo.plist; path = Flutter/AppFrameworkInfo.plist; sourceTree = "<group>"; };
 		451D159417CE84290F818AA2 /* PushBridge.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PushBridge.swift; sourceTree = "<group>"; };
 		9D5A0156868EAF364C769561 /* VideoCompressor.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = VideoCompressor.swift; sourceTree = "<group>"; };
+		198A0B1D2155D167BCC53DAC /* MediaFiles.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MediaFiles.swift; sourceTree = "<group>"; };
 		451E97318838C8C39DEF1B62 /* Pods_Runner.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Runner.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		4D2FF335F76E1E1CA1DEC2B1 /* Pods-RunnerTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.debug.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.debug.xcconfig"; sourceTree = "<group>"; };
 		52E90E29963DE745113F37EB /* Pods-NotificationService.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NotificationService.debug.xcconfig"; path = "Target Support Files/Pods-NotificationService/Pods-NotificationService.debug.xcconfig"; sourceTree = "<group>"; };
@@ -255,6 +257,7 @@
 				74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */,
 				451D159417CE84290F818AA2 /* PushBridge.swift */,
 				9D5A0156868EAF364C769561 /* VideoCompressor.swift */,
+				198A0B1D2155D167BCC53DAC /* MediaFiles.swift */,
 			);
 			path = Runner;
 			sourceTree = "<group>";
@@ -609,6 +612,7 @@
 				906036BF5950DBD9B5BDC516 /* PushBridge.swift in Sources */,
 				9A1C0DE5A1B2C3D4E5F60718 /* PushCrypto.swift in Sources */,
 				5B918FC2A891D826225921DB /* VideoCompressor.swift in Sources */,
+				E599A2A210F1E5DE20463F18 /* MediaFiles.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -24,6 +24,11 @@
     <!-- flutter_contacts: приватный поиск контактов (чтение телефонной книги;
          номера не покидают устройство в открытом виде — сверка через OPRF). -->
     <uses-permission android:name="android.permission.READ_CONTACTS" />
+    <!-- Сохранение медиа и файлов из чатов до Android 10 (общие папки);
+         с Android 10 — через MediaStore без разрешения. -->
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="28" />
     <application
         android:label="Iperon"
         android:name="${applicationName}"
@@ -67,6 +72,17 @@
                 <data android:pathAdvancedPattern="/[a-zA-Z0-9_]{5,24}" />
             </intent-filter>
         </activity>
+        <!-- Файлы чата для других приложений (открыть, буфер обмена): ссылки
+             content:// на кэш и файлы приложения. См. MediaFiles.kt. -->
+        <provider
+            android:name=".MediaFileProvider"
+            android:authorities="${applicationId}.files"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/media_file_paths" />
+        </provider>
         <!-- image_cropper (uCrop) — экран обрезки аватара -->
         <activity
             android:name="com.yalantis.ucrop.UCropActivity"

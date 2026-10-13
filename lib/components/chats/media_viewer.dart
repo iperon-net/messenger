@@ -13,6 +13,7 @@ import '../../chats/media_prepare.dart';
 import '../../extensions.dart';
 import '../../i18n/translations.g.dart';
 import '../../models.dart' as models;
+import 'media_actions.dart';
 
 /// Фото/видео чата для полноэкранного просмотра: одиночное медиа или элемент
 /// альбома ([index] в [models.Message.media]).
@@ -351,6 +352,22 @@ class _MediaViewerState extends State<_MediaViewer> with SingleTickerProviderSta
                                   t.screenChat.mediaCounter(current: _current + 1, total: widget.items.length),
                                   style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
                                 ),
+                              // Скопировать (вставить в другой мессенджер), сохранить в галерею, поделиться.
+                              if (!m.service) ...[
+                                const SizedBox(width: 4),
+                                _ChromeButton(
+                                  icon: FontAwesomeIcons.copy,
+                                  onTap: () => copyChatMedia(context, m, index: item.index, overlay: true),
+                                ),
+                                _ChromeButton(
+                                  icon: FontAwesomeIcons.download,
+                                  onTap: () => saveChatMedia(context, m, index: item.index, overlay: true),
+                                ),
+                                _ChromeButton(
+                                  icon: Platform.isIOS ? FontAwesomeIcons.arrowUpFromBracket : FontAwesomeIcons.shareNodes,
+                                  onTap: () => shareChatMedia(context, m, index: item.index, overlay: true),
+                                ),
+                              ],
                             ],
                           ),
                         ),
@@ -391,6 +408,24 @@ class _MediaViewerState extends State<_MediaViewer> with SingleTickerProviderSta
       ),
     );
   }
+}
+
+/// Кнопка-значок на верхней панели просмотрщика.
+class _ChromeButton extends StatelessWidget {
+  final FaIconData icon;
+  final VoidCallback onTap;
+
+  const _ChromeButton({required this.icon, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) => GestureDetector(
+    behavior: HitTestBehavior.opaque,
+    onTap: onTap,
+    child: Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 12),
+      child: FaIcon(icon, size: 19, color: const Color(0xFFFFFFFF)),
+    ),
+  );
 }
 
 /// Страница просмотрщика: щипок и двойной тап — зум, в зуме — панорама.

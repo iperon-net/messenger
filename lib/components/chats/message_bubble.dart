@@ -667,6 +667,7 @@ class MessageBubble extends StatelessWidget {
         iconColor: iconColor,
         metaStyle: metaStyle,
         onCancelUpload: onCancelUpload,
+        onTap: mediaTap == null ? null : () => mediaTap(0),
       ),
       models.MessageKind.voice => _VoiceRow(message: m, colors: colors, iconColor: iconColor, metaStyle: metaStyle),
       models.MessageKind.poll when m.poll != null => _PollView(
@@ -1206,7 +1207,17 @@ class _FileRow extends StatelessWidget {
   final TextStyle metaStyle;
   final VoidCallback? onCancelUpload;
 
-  const _FileRow({required this.message, required this.colors, required this.iconColor, required this.metaStyle, this.onCancelUpload});
+  /// Тап — открыть файл (пока грузится — нет).
+  final VoidCallback? onTap;
+
+  const _FileRow({
+    required this.message,
+    required this.colors,
+    required this.iconColor,
+    required this.metaStyle,
+    this.onCancelUpload,
+    this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -1217,7 +1228,7 @@ class _FileRow extends StatelessWidget {
     // стабильный для сообщения.
     final size = message.fileSize > 0 ? message.fileSize : 200000 + (message.id.hashCode.abs() % 480) * 10000;
     final uploading = message.isUploading;
-    return Row(
+    final row = Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         uploading
@@ -1255,6 +1266,7 @@ class _FileRow extends StatelessWidget {
         ),
       ],
     );
+    return onTap == null || uploading ? row : GestureDetector(behavior: HitTestBehavior.opaque, onTap: onTap, child: row);
   }
 }
 

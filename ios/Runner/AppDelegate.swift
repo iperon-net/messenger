@@ -50,6 +50,12 @@ import flutter_callkit_incoming
       VideoCompressor.shared.attach(messenger: messenger)
     }
 
+    // Файлы и медиа чата: открыть (Quick Look), копировать в буфер обмена,
+    // сохранить в «Фото» / «Файлы». См. MediaFiles и lib/chats/media_files.dart.
+    if let messenger = engineBridge.pluginRegistry.registrar(forPlugin: "IperonFiles")?.messenger() {
+      MediaFiles.shared.attach(messenger: messenger)
+    }
+
     // PlatformView системного пикера аудио-маршрутов (AVRoutePickerView) для
     // экрана звонка — «полный» выбор выхода на iOS (iPhone/Speaker/BT/CarPlay/
     // AirPlay). См. RoutePickerViewFactory и lib/components/calls/route_picker_button.dart.

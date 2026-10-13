@@ -15,6 +15,8 @@ export './components/shimmer.dart';
 export './components/user_avatar.dart';
 export './components/calls/call_gate.dart';
 export './components/chats/chat_avatar.dart';
+export './components/chats/chat_toast.dart';
+export './components/chats/media_actions.dart';
 export './components/chats/chat_folder_tabs.dart';
 export './components/chats/chat_tile.dart';
 export './components/search_field_material.dart';

@@ -581,13 +581,15 @@ class _ChatMaterialState extends State<ChatMaterial> {
                                         selectionCheckColor: Theme.of(context).colorScheme.onPrimary,
                                         highlight: state.searching ? state.searchQuery : '',
                                         focusedID: state.searchCurrentID,
-                                        onMediaTap: (message, index) => showChatMediaViewer(
-                                          context,
-                                          messages: state.messages,
-                                          message: message,
-                                          index: index,
-                                          chatTitle: chat.title,
-                                        ),
+                                        onMediaTap: (message, index) => message.kind == models.MessageKind.file
+                                            ? openChatFile(context, message)
+                                            : showChatMediaViewer(
+                                                context,
+                                                messages: state.messages,
+                                                message: message,
+                                                index: index,
+                                                chatTitle: chat.title,
+                                              ),
                                       ),
                                 Positioned(top: 0, left: 0, right: 0, child: _pinnedBar(context, chat, state)),
                                 ChatReactionsButton(
@@ -671,6 +673,7 @@ class _ChatMaterialState extends State<ChatMaterial> {
     // Сверху — текст сообщения, его можно выделить: «Копировать | Цитировать»
     // (ответ на фрагмент, как в Telegram).
     final quotable = canWrite && message.text.isNotEmpty && message.kind != models.MessageKind.poll;
+    final mediaCopyable = chatMediaActionable(message) && message.kind != models.MessageKind.file;
     final quoteText = GlobalKey<QuotableTextState>();
     models.MessageQuote? quote;
     var readers = const <MessageReader>[];
@@ -729,8 +732,27 @@ class _ChatMaterialState extends State<ChatMaterial> {
                 ListTile(leading: const Icon(Icons.reply), title: Text(t.reply), onTap: () => Navigator.of(sheetContext).pop('reply')),
               if (quotable)
                 ListTile(leading: const Icon(Icons.format_quote), title: Text(t.quote), onTap: () => quoteText.currentState?.selectAll()),
-              if (message.text.isNotEmpty)
-                ListTile(leading: const Icon(Icons.copy), title: Text(t.copy), onTap: () => Navigator.of(sheetContext).pop('copy')),
+              // Фото / видео — копируются сами (вставить в другой мессенджер), подпись — отдельно.
+              if (mediaCopyable || message.text.isNotEmpty)
+                ListTile(
+                  leading: const Icon(Icons.copy),
+                  title: Text(t.copy),
+                  onTap: () => Navigator.of(sheetContext).pop(mediaCopyable ? 'copyMedia' : 'copy'),
+                ),
+              if (mediaCopyable && message.text.isNotEmpty)
+                ListTile(leading: const Icon(Icons.notes), title: Text(t.copyText), onTap: () => Navigator.of(sheetContext).pop('copy')),
+              if (chatMediaActionable(message)) ...[
+                ListTile(
+                  leading: const Icon(Icons.download_outlined),
+                  title: Text(chatMediaSaveLabel(context.t, message)),
+                  onTap: () => Navigator.of(sheetContext).pop('saveMedia'),
+                ),
+                ListTile(
+                  leading: const Icon(Icons.share_outlined),
+                  title: Text(t.shareMedia),
+                  onTap: () => Navigator.of(sheetContext).pop('shareMedia'),
+                ),
+              ],
               if (canWrite && features.pinnedMessages && _pinnable(message))
                 ListTile(
                   leading: Icon(message.pinned ? Icons.push_pin : Icons.push_pin_outlined),
@@ -807,6 +829,12 @@ class _ChatMaterialState extends State<ChatMaterial> {
       case 'copy':
         await Clipboard.setData(ClipboardData(text: message.text));
         if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(t.copied)));
+      case 'copyMedia':
+        await copyChatMedia(context, message);
+      case 'saveMedia':
+        await saveChatMedia(context, message);
+      case 'shareMedia':
+        await shareChatMedia(context, message);
       case 'edit':
         _cubit.startEdit(message);
       case 'pin':

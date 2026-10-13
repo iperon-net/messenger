@@ -1414,6 +1414,42 @@ class Translations$screenChat$en {
 	/// en: 'Copied'
 	String get copied => 'Copied';
 
+	/// en: 'Copy Text'
+	String get copyText => 'Copy Text';
+
+	/// en: 'Share'
+	String get shareMedia => 'Share';
+
+	/// en: 'Save to Gallery'
+	String get saveToGallery => 'Save to Gallery';
+
+	/// en: 'Save to Files'
+	String get saveToFiles => 'Save to Files';
+
+	/// en: 'Save to Downloads'
+	String get saveToDownloads => 'Save to Downloads';
+
+	/// en: 'Saved to Gallery'
+	String get savedToGallery => 'Saved to Gallery';
+
+	/// en: 'Saved to Downloads'
+	String get savedToDownloads => 'Saved to Downloads';
+
+	/// en: 'The file is still loading'
+	String get mediaNotReady => 'The file is still loading';
+
+	/// en: 'No app to open this file'
+	String get noAppToOpen => 'No app to open this file';
+
+	/// en: 'No access to the gallery — allow it in Settings'
+	String get galleryDenied => 'No access to the gallery — allow it in Settings';
+
+	/// en: 'Couldn't save'
+	String get saveFailed => 'Couldn\'t save';
+
+	/// en: 'Couldn't copy'
+	String get copyFailed => 'Couldn\'t copy';
+
 	/// en: 'Edit'
 	String get edit => 'Edit';
 
@@ -3991,6 +4027,18 @@ extension on Translations {
 			'screenChat.replyQuoteTo' => ({required Object name}) => 'Quote · ${name}',
 			'screenChat.copy' => 'Copy',
 			'screenChat.copied' => 'Copied',
+			'screenChat.copyText' => 'Copy Text',
+			'screenChat.shareMedia' => 'Share',
+			'screenChat.saveToGallery' => 'Save to Gallery',
+			'screenChat.saveToFiles' => 'Save to Files',
+			'screenChat.saveToDownloads' => 'Save to Downloads',
+			'screenChat.savedToGallery' => 'Saved to Gallery',
+			'screenChat.savedToDownloads' => 'Saved to Downloads',
+			'screenChat.mediaNotReady' => 'The file is still loading',
+			'screenChat.noAppToOpen' => 'No app to open this file',
+			'screenChat.galleryDenied' => 'No access to the gallery — allow it in Settings',
+			'screenChat.saveFailed' => 'Couldn\'t save',
+			'screenChat.copyFailed' => 'Couldn\'t copy',
 			'screenChat.edit' => 'Edit',
 			'screenChat.editing' => 'Editing',
 			'screenChat.edited' => 'edited',
@@ -4086,6 +4134,8 @@ extension on Translations {
 			'screenChat.formatQuote' => 'Quote',
 			'screenChat.formatPlain' => 'Regular',
 			'screenChat.formatUnderline' => 'Underline',
+			_ => null,
+		} ?? switch (path) {
 			'screenChat.formatPre' => 'Code Block',
 			'screenChat.formatMention' => 'Mention',
 			'screenChat.formatQuoteExpandable' => 'Collapsible Quote',
@@ -4098,8 +4148,6 @@ extension on Translations {
 			'screenChat.gb' => 'GB',
 			'screenChat.mediaCounter' => ({required Object current, required Object total}) => '${current} of ${total}',
 			'screenChat.addCaption' => 'Add a caption…',
-			_ => null,
-		} ?? switch (path) {
 			'screenSettings.settings' => 'Settings',
 			'screenSettings.myProfile' => 'My profile',
 			'screenSettings.devices' => _root.screenSettingsDevices.devices,
@@ -4600,6 +4648,8 @@ extension on Translations {
 			'screenCall.qualityExcellent' => 'Excellent connection',
 			'screenCall.remoteMicMuted' => 'Their microphone is off',
 			'screenCall.remoteOnHold' => 'They\'re on another call',
+			_ => null,
+		} ?? switch (path) {
 			'screenCall.reconnecting' => 'Reconnecting…',
 			'screenCall.remoteReconnecting' => 'Waiting for them to reconnect…',
 			'screenCall.encrypted' => 'End-to-end encrypted',
@@ -4612,8 +4662,6 @@ extension on Translations {
 			'passkey.created' => ({required Object date}) => 'Added ${date}',
 			'passkey.lastUsed' => ({required Object date}) => 'Signed in ${date}',
 			'passkey.alreadyOnThisDevice' => 'This account already has a passkey on this device. Add one on another device or in a different password manager.',
-			_ => null,
-		} ?? switch (path) {
 			'passkey.delete' => 'Delete',
 			'passkey.deleteConfirmTitle' => 'Delete passkey?',
 			'passkey.deleteConfirmMessage' => 'You won\'t be able to sign in with this passkey anymore.',

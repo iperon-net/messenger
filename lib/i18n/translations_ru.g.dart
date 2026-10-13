@@ -615,6 +615,18 @@ class _Translations$screenChat$ru extends Translations$screenChat$en {
 	@override String replyQuoteTo({required Object name}) => 'Цитата · ${name}';
 	@override String get copy => 'Копировать';
 	@override String get copied => 'Скопировано';
+	@override String get copyText => 'Копировать текст';
+	@override String get shareMedia => 'Поделиться';
+	@override String get saveToGallery => 'Сохранить в галерею';
+	@override String get saveToFiles => 'Сохранить в Файлы';
+	@override String get saveToDownloads => 'Сохранить в Загрузки';
+	@override String get savedToGallery => 'Сохранено в галерею';
+	@override String get savedToDownloads => 'Сохранено в Загрузки';
+	@override String get mediaNotReady => 'Файл ещё загружается';
+	@override String get noAppToOpen => 'Нет приложения, чтобы открыть этот файл';
+	@override String get galleryDenied => 'Нет доступа к галерее — разрешите его в настройках';
+	@override String get saveFailed => 'Не удалось сохранить';
+	@override String get copyFailed => 'Не удалось скопировать';
 	@override String get edit => 'Изменить';
 	@override String get editing => 'Редактирование';
 	@override String get edited => 'изм.';
@@ -1938,6 +1950,18 @@ extension on TranslationsRu {
 			'screenChat.replyQuoteTo' => ({required Object name}) => 'Цитата · ${name}',
 			'screenChat.copy' => 'Копировать',
 			'screenChat.copied' => 'Скопировано',
+			'screenChat.copyText' => 'Копировать текст',
+			'screenChat.shareMedia' => 'Поделиться',
+			'screenChat.saveToGallery' => 'Сохранить в галерею',
+			'screenChat.saveToFiles' => 'Сохранить в Файлы',
+			'screenChat.saveToDownloads' => 'Сохранить в Загрузки',
+			'screenChat.savedToGallery' => 'Сохранено в галерею',
+			'screenChat.savedToDownloads' => 'Сохранено в Загрузки',
+			'screenChat.mediaNotReady' => 'Файл ещё загружается',
+			'screenChat.noAppToOpen' => 'Нет приложения, чтобы открыть этот файл',
+			'screenChat.galleryDenied' => 'Нет доступа к галерее — разрешите его в настройках',
+			'screenChat.saveFailed' => 'Не удалось сохранить',
+			'screenChat.copyFailed' => 'Не удалось скопировать',
 			'screenChat.edit' => 'Изменить',
 			'screenChat.editing' => 'Редактирование',
 			'screenChat.edited' => 'изм.',
@@ -2033,6 +2057,8 @@ extension on TranslationsRu {
 			'screenChat.formatQuote' => 'Цитата',
 			'screenChat.formatPlain' => 'Обычный',
 			'screenChat.formatUnderline' => 'Подчёркнутый',
+			_ => null,
+		} ?? switch (path) {
 			'screenChat.formatPre' => 'Блок кода',
 			'screenChat.formatMention' => 'Упомянуть',
 			'screenChat.formatQuoteExpandable' => 'Сворачиваемая цитата',
@@ -2045,8 +2071,6 @@ extension on TranslationsRu {
 			'screenChat.gb' => 'ГБ',
 			'screenChat.mediaCounter' => ({required Object current, required Object total}) => '${current} из ${total}',
 			'screenChat.addCaption' => 'Добавить подпись…',
-			_ => null,
-		} ?? switch (path) {
 			'screenSettings.settings' => 'Настройки',
 			'screenSettings.myProfile' => 'Мой профиль',
 			'screenSettings.devices' => _root.screenSettingsDevices.devices,
@@ -2547,6 +2571,8 @@ extension on TranslationsRu {
 			'screenCall.qualityExcellent' => 'Отличное соединение',
 			'screenCall.remoteMicMuted' => 'Микрофон собеседника выключен',
 			'screenCall.remoteOnHold' => 'Собеседник на другой линии',
+			_ => null,
+		} ?? switch (path) {
 			'screenCall.reconnecting' => 'Переподключение…',
 			'screenCall.remoteReconnecting' => 'Собеседник переподключается…',
 			'screenCall.encrypted' => 'Сквозное шифрование',
@@ -2559,8 +2585,6 @@ extension on TranslationsRu {
 			'passkey.created' => ({required Object date}) => 'Добавлен ${date}',
 			'passkey.lastUsed' => ({required Object date}) => 'Вход ${date}',
 			'passkey.alreadyOnThisDevice' => 'На этом устройстве уже есть ключ доступа для этого аккаунта. Добавьте ключ на другом устройстве или в другом менеджере паролей.',
-			_ => null,
-		} ?? switch (path) {
 			'passkey.delete' => 'Удалить',
 			'passkey.deleteConfirmTitle' => 'Удалить ключ доступа?',
 			'passkey.deleteConfirmMessage' => 'Войти с помощью этого ключа больше не получится.',
