@@ -21,7 +21,7 @@ void main() {
   setUp(() async {
     dir = await Directory.systemTemp.createTemp('forward');
     db = SqliteDatabase(path: '${dir.path}/test.db');
-    // Столбцы chatOutbox — как после миграции 24.
+    // Столбцы chatOutbox — как после миграции 27.
     await db.execute('''
       CREATE TABLE chatOutbox (
         userID BLOB NOT NULL,
@@ -35,6 +35,7 @@ void main() {
         media TEXT NOT NULL DEFAULT '',
         forwardChatID BLOB NULL,
         forwardMessageID INTEGER NOT NULL DEFAULT 0,
+        scheduleDate INTEGER NOT NULL DEFAULT 0,
         PRIMARY KEY (userID, randomID)
       );
     ''');

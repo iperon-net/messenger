@@ -221,6 +221,19 @@ message Dialog {
   int64 draftDate = 15; // unix millis
 }
 
+// Отложенное сообщение — моё, ещё не отправленное (как scheduled messages в
+// Telegram). Видно только мне (на всех моих устройствах); в момент date сервер
+// отправляет его обычным сообщением (новый messageID, дата — момент
+// отправки). scheduledID — номер внутри (я, чат), не messageID.
+message ScheduledMessage {
+  bytes chatID = 1;
+  int64 scheduledID = 2;
+  int64 date = 3; // unix millis — когда уйдёт
+  MessageContent content = 4;
+  bool silent = 5;
+  int64 randomID = 6;
+}
+
 // Папка (таб) списка чатов — как dialogFilter в Telegram. «Все чаты» — не
 // папка (у клиента всегда первая). id выдаёт сервер; у SaveFolder 0 — новая.
 // Чат попадает в папку, если он в includeChatIDs или подходит по типу и не
@@ -331,6 +344,26 @@ message Update {
     int32 unreadReactionsCount = 3;
   }
 
+  // Моё отложенное создано или перенесено (всегда текущее).
+  message ScheduledMessageChanged {
+    ScheduledMessage message = 1;
+  }
+
+  // Мои отложенные scheduledIDs больше не ждут: отправлены (сообщение придёт
+  // своим newMessage), удалены или не отправлены — сервер отказал в момент
+  // отправки (чат удалён, собеседник ограничил, кто может ему писать).
+  message ScheduledDeleted {
+    enum Reason {
+      DELETED = 0;
+      SENT = 1;
+      FAILED = 2;
+    }
+
+    bytes chatID = 1;
+    repeated int64 scheduledIDs = 2;
+    Reason reason = 3;
+  }
+
   oneof update {
     NewMessage newMessage = 3;
     EditMessage editMessage = 4;
@@ -346,6 +379,8 @@ message Update {
     // Мои папки изменились (на этом или другом устройстве) — снимок целиком,
     // всегда текущий.
     ChatFolders folders = 14;
+    ScheduledMessageChanged scheduledMessage = 15;
+    ScheduledDeleted scheduledDeleted = 16;
   }
 }
 
@@ -561,6 +596,11 @@ message Messages {
     // остаётся «от» автора оригинала) — content клиент не заполняет. Доступ —
     // через исходное сообщение, а не владение файлами вложений.
     ForwardFrom forwardFrom = 6;
+    // Отложить до этого времени (unix millis; 0 — отправить сейчас): в ответе
+    // scheduled вместо message. Уже прошедшее (ждало в outbox без сети) —
+    // уйдёт в ближайшие секунды. Не дальше года; до 100 на чат
+    // (FAILED_PRECONDITION «scheduledLimit»); пересылку отложить нельзя.
+    int64 scheduleDate = 7;
   }
 
   // Исходное сообщение пересылки — в чате, где я участник и оно мне видно.
@@ -572,6 +612,47 @@ message Messages {
   message SendResult {
     ChatMessage message = 1;
     Updates updates = 2;
+    ScheduledMessage scheduled = 3;
+  }
+
+  // Мои отложенные в чате — по времени отправки.
+  message Scheduled {
+    bytes chatID = 1;
+  }
+
+  message ScheduledResult {
+    repeated ScheduledMessage messages = 1;
+  }
+
+  // Отправить отложенные сейчас (уже ушедшие — пропускаются).
+  message SendScheduledNow {
+    bytes chatID = 1;
+    repeated int64 scheduledIDs = 2;
+  }
+
+  message SendScheduledNowResult {
+    Updates updates = 1;
+  }
+
+  // Перенести отложенное (уже ушедшее — NOT_FOUND).
+  message Reschedule {
+    bytes chatID = 1;
+    int64 scheduledID = 2;
+    int64 date = 3; // unix millis
+  }
+
+  message RescheduleResult {
+    Updates updates = 1;
+  }
+
+  // Удалить отложенные.
+  message DeleteScheduled {
+    bytes chatID = 1;
+    repeated int64 scheduledIDs = 2;
+  }
+
+  message DeleteScheduledResult {
+    Updates updates = 1;
   }
 
   // Изменить своё (текст / разметку; медиа не меняются).
@@ -696,6 +777,10 @@ message Messages {
       SetReactions setReactions = 9;
       ReadReactions readReactions = 10;
       UnreadReactions unreadReactions = 11;
+      Scheduled scheduled = 12;
+      SendScheduledNow sendScheduledNow = 13;
+      Reschedule reschedule = 14;
+      DeleteScheduled deleteScheduled = 15;
     }
   }
 
@@ -712,6 +797,10 @@ message Messages {
       SetReactionsResult setReactions = 9;
       ReadReactionsResult readReactions = 10;
       UnreadReactionsResult unreadReactions = 11;
+      ScheduledResult scheduled = 12;
+      SendScheduledNowResult sendScheduledNow = 13;
+      RescheduleResult reschedule = 14;
+      DeleteScheduledResult deleteScheduled = 15;
     }
   }
 }

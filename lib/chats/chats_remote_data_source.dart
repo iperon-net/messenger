@@ -75,9 +75,9 @@ class ChatsRemoteDataSource implements ChatsDataSource {
 
   static Never _unsupported(String what) => throw UnsupportedError('$what — пока только в демо (личные чаты — первый срез)');
 
-  /// Закреплённые сообщения и реакции — есть; пересылка и отложенные — второй срез.
+  /// Закреплённые, реакции, пересылка и отложенные — есть.
   @override
-  ChatsFeatures get features => const ChatsFeatures(reactions: true, pinnedMessages: true, forward: true, scheduled: false);
+  ChatsFeatures get features => const ChatsFeatures(reactions: true, pinnedMessages: true, forward: true, scheduled: true);
 
   // --- список чатов ---
 
@@ -138,7 +138,8 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     final pending = <String, ChatOutboxRow>{};
     for (final row in outbox) {
       final chatID = row.chatID;
-      if (chatID != null) pending[idHex(chatID)] = row;
+      // Отложенное — не в чате, а на экране «Отложенные».
+      if (chatID != null && !row.isScheduled) pending[idHex(chatID)] = row;
     }
 
     final chats = <models.Chat>[];
@@ -732,6 +733,7 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     final messages = [for (final m in history) await _withServerMedia(map(m), m.content, chatID)];
     final pending = <models.Message>[];
     for (final queued in await _store.outbox(userID: me, chatID: chat)) {
+      if (queued.isScheduled) continue;
       final message = await queuedMessage(queued);
       if (!queued.failed) {
         pending.add(message);
@@ -914,7 +916,6 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     models.MessagePoll? poll,
   }) async {
     if (kind == models.MessageKind.poll || poll != null) _unsupported('Опросы');
-    if (scheduleDate != null) _unsupported('Отложенные сообщения');
     final chat = idBytes(chatID);
     if (chat.isEmpty) return;
     final content = textContent(text: text, entities: entities, reply: reply, linkPreview: linkPreview);
@@ -970,6 +971,8 @@ class ChatsRemoteDataSource implements ChatsDataSource {
       content: content.writeToBuffer(),
       silent: silent,
       media: OutboxMedia.encode(local),
+      // Отложенное ждёт в outbox, только пока сервер его не принял.
+      scheduleDate: scheduleDate?.millisecondsSinceEpoch ?? 0,
     );
     unawaited(_sync.flushOutbox());
   }
@@ -980,17 +983,124 @@ class ChatsRemoteDataSource implements ChatsDataSource {
   @override
   Future<void> closePoll(String chatID, String messageID) async => _unsupported('Опросы');
 
+  // --- отложенные ---
+
+  /// Принятые сервером (кэш, при подписке — свежий список с сервера) и ещё
+  /// ждущие в outbox (без сети) — по времени отправки.
   @override
-  Stream<List<models.Message>> watchScheduled(String chatID) => Stream.value(const []);
+  Stream<List<models.Message>> watchScheduled(String chatID) {
+    final chat = idBytes(chatID);
+    if (chat.isEmpty || !_auth.isAuthorized) return Stream.value(const []);
+    unawaited(_sync.loadScheduled(chat));
+    return _repositories.db
+        .onChange(const [ChatsRepository.scheduledTable, ChatsRepository.outboxTable])
+        .asyncMap((_) => _loadScheduled(chatID, chat))
+        .distinct(listEquals);
+  }
+
+  Future<List<models.Message>> _loadScheduled(String chatID, Uint8List chat) async {
+    if (!_auth.isAuthorized) return const [];
+    final me = _sync.me;
+    final row = await _store.dialog(userID: me, chatID: chat);
+    final peer = row?.peerUserID;
+    final isSelf = peer != null && sameID(peer, me);
+    final peerName = peer == null || isSelf ? '' : _Peers(await _loadPeers([peer])).of(peer).title;
+
+    Future<models.Message> map(pb.MessageContent content, {required int date, required bool silent}) async {
+      final replied = content.hasReplyTo()
+          ? await _store.message(userID: me, chatID: chat, messageID: content.replyTo.messageID.toInt())
+          : null;
+      return messageFromPb(
+        pb.ChatMessage(chatID: chat, fromUserID: me, date: Int64(date), content: content, silent: silent),
+        chatID: chatID,
+        myUserID: me,
+        readOutboxMaxID: 0,
+        isSelf: isSelf,
+        replied: replied,
+        peerName: peerName,
+      ).copyWith(scheduledDate: DateTime.fromMillisecondsSinceEpoch(date), status: models.MessageStatus.pending);
+    }
+
+    final result = <models.Message>[
+      for (final scheduled in await _store.scheduled(userID: me, chatID: chat))
+        (await map(
+          scheduled.content,
+          date: scheduled.date.toInt(),
+          silent: scheduled.silent,
+        )).copyWith(id: scheduledMessageID(scheduled.scheduledID.toInt())),
+      for (final queued in await _store.outbox(userID: me, chatID: chat))
+        if (queued.isScheduled)
+          (await map(pb.MessageContent.fromBuffer(queued.content), date: queued.scheduleDate, silent: queued.silent)).copyWith(
+            id: localMessageID(queued.randomID),
+            status: queued.failed ? models.MessageStatus.failed : models.MessageStatus.pending,
+          ),
+    ];
+    result.sort((a, b) => a.scheduledDate!.compareTo(b.scheduledDate!));
+    return result;
+  }
+
+  /// Ещё не принятое сервером (в outbox) меняется локально и без сети;
+  /// принятое — на сервере, результат приходит обновлениями.
+  @override
+  Future<void> sendScheduledNow(String chatID, String messageID) async {
+    final randomID = randomIDOfLocal(messageID);
+    if (randomID != null) {
+      // Станет обычным неотправленным — уйдёт с outbox.
+      await _store.setOutboxScheduleDate(userID: _sync.me, randomID: randomID, scheduleDate: 0);
+      unawaited(_sync.flushOutbox());
+      return;
+    }
+    final scheduledID = scheduledIDOf(messageID);
+    if (scheduledID == null) return;
+    await _requireNetwork();
+    final response = await _sync.messages(
+      pb.Messages_Request(
+        sendScheduledNow: pb.Messages_SendScheduledNow(chatID: idBytes(chatID), scheduledIDs: [Int64(scheduledID)]),
+      ),
+    );
+    await _sync.applyUpdates(response.sendScheduledNow.updates);
+  }
 
   @override
-  Future<void> sendScheduledNow(String chatID, String messageID) async => _unsupported('Отложенные сообщения');
+  Future<void> rescheduleMessage(String chatID, String messageID, DateTime date) async {
+    final randomID = randomIDOfLocal(messageID);
+    if (randomID != null) {
+      await _store.setOutboxScheduleDate(userID: _sync.me, randomID: randomID, scheduleDate: date.millisecondsSinceEpoch);
+      unawaited(_sync.flushOutbox());
+      return;
+    }
+    final scheduledID = scheduledIDOf(messageID);
+    if (scheduledID == null) return;
+    await _requireNetwork();
+    final response = await _sync.messages(
+      pb.Messages_Request(
+        reschedule: pb.Messages_Reschedule(
+          chatID: idBytes(chatID),
+          scheduledID: Int64(scheduledID),
+          date: Int64(date.millisecondsSinceEpoch),
+        ),
+      ),
+    );
+    await _sync.applyUpdates(response.reschedule.updates);
+  }
 
   @override
-  Future<void> rescheduleMessage(String chatID, String messageID, DateTime date) async => _unsupported('Отложенные сообщения');
-
-  @override
-  Future<void> deleteScheduled(String chatID, String messageID) async => _unsupported('Отложенные сообщения');
+  Future<void> deleteScheduled(String chatID, String messageID) async {
+    final randomID = randomIDOfLocal(messageID);
+    if (randomID != null) {
+      await _store.deleteOutbox(userID: _sync.me, randomID: randomID);
+      return;
+    }
+    final scheduledID = scheduledIDOf(messageID);
+    if (scheduledID == null) return;
+    await _requireNetwork();
+    final response = await _sync.messages(
+      pb.Messages_Request(
+        deleteScheduled: pb.Messages_DeleteScheduled(chatID: idBytes(chatID), scheduledIDs: [Int64(scheduledID)]),
+      ),
+    );
+    await _sync.applyUpdates(response.deleteScheduled.updates);
+  }
 
   /// Неотправленное правится прямо в outbox (уйдёт уже исправленным);
   /// отправленное — на сервере.

@@ -85,6 +85,12 @@ class ChatOutboxRow {
 
   bool get isForward => forwardChatID != null && forwardMessageID > 0;
 
+  /// Отложенное (unix millis; 0 — обычное): уйдёт на сервер отложенным, в
+  /// ленте его нет — оно на экране «Отложенные».
+  final int scheduleDate;
+
+  bool get isScheduled => scheduleDate > 0;
+
   const ChatOutboxRow({
     required this.randomID,
     required this.chatID,
@@ -96,6 +102,7 @@ class ChatOutboxRow {
     this.media = '',
     this.forwardChatID,
     this.forwardMessageID = 0,
+    this.scheduleDate = 0,
   });
 
   factory ChatOutboxRow._fromRow(Map<String, dynamic> row) => ChatOutboxRow(
@@ -109,6 +116,7 @@ class ChatOutboxRow {
     media: row['media'] as String? ?? '',
     forwardChatID: row['forwardChatID'] == null ? null : Uint8List.fromList(row['forwardChatID'] as List<int>),
     forwardMessageID: row['forwardMessageID'] as int? ?? 0,
+    scheduleDate: row['scheduleDate'] as int? ?? 0,
   );
 }
 
@@ -153,6 +161,7 @@ class ChatsRepository {
   static const pinnedTable = 'chatPinned';
   static const pendingReactionsTable = 'chatPendingReactions';
   static const foldersTable = 'chatFolders';
+  static const scheduledTable = 'chatScheduled';
 
   static const _dialogColumns =
       'chatID, type, peerUserID, topMessageID, topMessageDate, topMessage, readInboxMaxID, readOutboxMaxID, unreadCount, '
@@ -761,10 +770,11 @@ class ChatsRepository {
     List<int>? forwardChatID,
     int forwardMessageID = 0,
     int? createdAt,
+    int scheduleDate = 0,
   }) async {
     await ctx.execute(
-      'INSERT INTO chatOutbox (userID, randomID, chatID, peerUserID, content, silent, createdAt, media, forwardChatID, forwardMessageID) '
-      'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);',
+      'INSERT INTO chatOutbox (userID, randomID, chatID, peerUserID, content, silent, createdAt, media, forwardChatID, forwardMessageID, '
+      'scheduleDate) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);',
       [
         userID,
         randomID,
@@ -776,8 +786,19 @@ class ChatsRepository {
         media,
         forwardChatID,
         forwardMessageID,
+        scheduleDate,
       ],
     );
+  }
+
+  /// Отложенное из outbox: перенести ([scheduleDate] > 0) или отправить сразу
+  /// (0 — становится обычным неотправленным).
+  Future<void> setOutboxScheduleDate({required List<int> userID, required int randomID, required int scheduleDate}) async {
+    await ctx.execute('UPDATE chatOutbox SET scheduleDate = ?, failed = 0 WHERE userID = ? AND randomID = ?;', [
+      scheduleDate,
+      userID,
+      randomID,
+    ]);
   }
 
   /// Файлы вложений всех неотправленных (всех пользователей) — чтобы не
@@ -817,5 +838,47 @@ class ChatsRepository {
 
   Future<void> deleteOutbox({required List<int> userID, required int randomID}) async {
     await ctx.execute('DELETE FROM chatOutbox WHERE userID = ? AND randomID = ?;', [userID, randomID]);
+  }
+
+  // --- отложенные ---
+
+  /// Мои отложенные в чате, принятые сервером, — по времени отправки.
+  Future<List<pb.ScheduledMessage>> scheduled({required List<int> userID, required List<int> chatID}) async {
+    final rows = await ctx.getAll('SELECT message FROM chatScheduled WHERE userID = ? AND chatID = ? ORDER BY date ASC, scheduledID ASC;', [
+      userID,
+      chatID,
+    ]);
+    return [for (final row in rows) pb.ScheduledMessage.fromBuffer(row['message'] as List<int>)];
+  }
+
+  /// Создано или перенесено (с сервера); его неотправленная копия в outbox
+  /// больше не нужна.
+  Future<void> upsertScheduled({required List<int> userID, required pb.ScheduledMessage message}) async {
+    await ctx.execute(
+      '''
+      INSERT INTO chatScheduled (userID, chatID, scheduledID, date, message) VALUES (?, ?, ?, ?, ?)
+      ON CONFLICT(userID, chatID, scheduledID) DO UPDATE SET date = excluded.date, message = excluded.message;
+      ''',
+      [userID, message.chatID, message.scheduledID.toInt(), message.date.toInt(), message.writeToBuffer()],
+    );
+    if (message.randomID != 0) await deleteOutbox(userID: userID, randomID: message.randomID.toInt());
+  }
+
+  Future<void> deleteScheduled({required List<int> userID, required List<int> chatID, required List<int> scheduledIDs}) async {
+    if (scheduledIDs.isEmpty) return;
+    final placeholders = List.filled(scheduledIDs.length, '?').join(', ');
+    await ctx.execute('DELETE FROM chatScheduled WHERE userID = ? AND chatID = ? AND scheduledID IN ($placeholders);', [
+      userID,
+      chatID,
+      ...scheduledIDs,
+    ]);
+  }
+
+  /// Полный список чата с сервера заменяет локальный.
+  Future<void> replaceScheduled({required List<int> userID, required List<int> chatID, required List<pb.ScheduledMessage> messages}) async {
+    await ctx.execute('DELETE FROM chatScheduled WHERE userID = ? AND chatID = ?;', [userID, chatID]);
+    for (final message in messages) {
+      await upsertScheduled(userID: userID, message: message);
+    }
   }
 }

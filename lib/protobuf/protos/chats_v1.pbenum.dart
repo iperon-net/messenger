@@ -124,6 +124,23 @@ class MessageCall_Outcome extends $pb.ProtobufEnum {
   const MessageCall_Outcome._(super.value, super.name);
 }
 
+class Update_ScheduledDeleted_Reason extends $pb.ProtobufEnum {
+  static const Update_ScheduledDeleted_Reason DELETED = Update_ScheduledDeleted_Reason._(0, _omitEnumNames ? '' : 'DELETED');
+  static const Update_ScheduledDeleted_Reason SENT = Update_ScheduledDeleted_Reason._(1, _omitEnumNames ? '' : 'SENT');
+  static const Update_ScheduledDeleted_Reason FAILED = Update_ScheduledDeleted_Reason._(2, _omitEnumNames ? '' : 'FAILED');
+
+  static const $core.List<Update_ScheduledDeleted_Reason> values = <Update_ScheduledDeleted_Reason>[
+    DELETED,
+    SENT,
+    FAILED,
+  ];
+
+  static final $core.List<Update_ScheduledDeleted_Reason?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 2);
+  static Update_ScheduledDeleted_Reason? valueOf($core.int value) => value < 0 || value >= _byValue.length ? null : _byValue[value];
+
+  const Update_ScheduledDeleted_Reason._(super.value, super.name);
+}
+
 class Chats_ReadDateResult_Status extends $pb.ProtobufEnum {
   static const Chats_ReadDateResult_Status READ = Chats_ReadDateResult_Status._(0, _omitEnumNames ? '' : 'READ');
   static const Chats_ReadDateResult_Status NOT_READ = Chats_ReadDateResult_Status._(1, _omitEnumNames ? '' : 'NOT_READ');

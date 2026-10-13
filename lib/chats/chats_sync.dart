@@ -311,6 +311,31 @@ class ChatsSync {
     });
     // Изменения папок после этого pts придут обновлениями folders.
     await _loadFolders();
+    // Отложенные могли разойтись — перечитаем при открытии чата.
+    _scheduledLoaded.clear();
+  }
+
+  /// Чаты, отложенные которых уже загружены за этот запуск (hex chatID):
+  /// дальше их ведут обновления scheduledMessage / scheduledDeleted.
+  final _scheduledLoaded = <String>{};
+
+  /// Мои отложенные в чате с сервера (открыли чат) — раз за запуск; без сети
+  /// — из кэша, попробуем при следующем открытии.
+  Future<void> loadScheduled(Uint8List chatID) async {
+    final key = idHex(chatID);
+    if (!_enabled || _scheduledLoaded.contains(key) || !await hasNetwork()) return;
+    try {
+      final response = await messages(pb.Messages_Request(scheduled: pb.Messages_Scheduled(chatID: chatID)));
+      final user = me;
+      await _locked(
+        () => _store.transaction((tx) => tx.replaceScheduled(userID: user, chatID: chatID, messages: response.scheduled.messages)),
+      );
+      _scheduledLoaded.add(key);
+    } on ChatsOfflineException {
+      // Попробуем при следующем открытии.
+    } on ChatsRequestException catch (error) {
+      _logger.warning('chats: scheduled load failed: $error');
+    }
   }
 
   /// Снимок папок (первый вход, перезагрузка диалогов). Сбой — не повод
@@ -543,6 +568,16 @@ class ChatsSync {
         await tx.updateDialog(userID: user, chatID: read.chatID, fields: {'unreadReactions': read.unreadReactionsCount});
         // Пуш о реакции несёт id моего сообщения — снимаем по нему.
         unawaited(PushManager.clearChatNotifications(read.chatID, messageIDs: ids));
+
+      case pb.Update_Update.scheduledMessage:
+        await tx.upsertScheduled(userID: user, message: update.scheduledMessage.message);
+
+      case pb.Update_Update.scheduledDeleted:
+        final deleted = update.scheduledDeleted;
+        if (deleted.reason == pb.Update_ScheduledDeleted_Reason.FAILED) {
+          _logger.warning('chats: scheduled not sent chat=${idHex(deleted.chatID)} ids=${deleted.scheduledIDs}');
+        }
+        await tx.deleteScheduled(userID: user, chatID: deleted.chatID, scheduledIDs: [for (final id in deleted.scheduledIDs) id.toInt()]);
 
       case pb.Update_Update.folders:
         await tx.setFolders(userID: user, folders: update.folders);
@@ -824,6 +859,7 @@ class ChatsSync {
                   ? pb.Messages_ForwardFrom(chatID: row.forwardChatID, messageID: Int64(row.forwardMessageID))
                   : null,
               silent: row.silent,
+              scheduleDate: row.isScheduled ? Int64(row.scheduleDate) : null,
             ),
           ),
         );
@@ -850,6 +886,8 @@ class ChatsSync {
       );
       await _locked(() async {
         await _store.transaction((tx) async {
+          // Отложенное принято — на экран «Отложенные» с сервера.
+          if (result.hasScheduled()) await tx.upsertScheduled(userID: user, message: result.scheduled);
           if (result.hasMessage()) {
             final message = result.message;
             var dialog = await tx.dialog(userID: user, chatID: message.chatID);

@@ -656,6 +656,26 @@ class Repositories {
       }),
     );
 
+    migrations.add(
+      SqliteMigration(27, (tx) async {
+        // Отложенные сообщения: chatScheduled — мои, принятые сервером
+        // (сериализованный `ScheduledMessage`); chatOutbox.scheduleDate — ещё
+        // не принятые (без сети), уйдут на сервер отложенными.
+        await tx.execute("""
+        CREATE TABLE chatScheduled (
+          userID BLOB NOT NULL,
+          chatID BLOB NOT NULL,
+          scheduledID INTEGER NOT NULL,
+          date INTEGER NOT NULL,
+          message BLOB NOT NULL,
+          PRIMARY KEY (userID, chatID, scheduledID),
+          FOREIGN KEY (userID) REFERENCES users(userID) ON DELETE CASCADE ON UPDATE CASCADE
+        );
+      """);
+        await tx.execute('ALTER TABLE chatOutbox ADD COLUMN scheduleDate INTEGER NOT NULL DEFAULT 0;');
+      }),
+    );
+
     if (settings.isDeleteDatabase) {
       logger.warning("Deleting the database, flag set IS_DELETE_DATABASE: 1");
 

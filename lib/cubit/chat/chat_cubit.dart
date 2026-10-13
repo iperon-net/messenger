@@ -917,11 +917,12 @@ class ChatCubit extends Cubit<ChatState> {
   }
 
   /// Отложенные (экран «Отложенные сообщения»).
-  Future<void> sendScheduledNow(models.Message message) async => _source?.sendScheduledNow(_chatID, message.id);
+  /// Принятые сервером без сети не меняются — «Нет соединения».
+  Future<void> sendScheduledNow(models.Message message) => _online(() => _source?.sendScheduledNow(_chatID, message.id));
 
-  Future<void> reschedule(models.Message message, DateTime date) async => _source?.rescheduleMessage(_chatID, message.id, date);
+  Future<void> reschedule(models.Message message, DateTime date) => _online(() => _source?.rescheduleMessage(_chatID, message.id, date));
 
-  Future<void> deleteScheduled(models.Message message) async => _source?.deleteScheduled(_chatID, message.id);
+  Future<void> deleteScheduled(models.Message message) => _online(() => _source?.deleteScheduled(_chatID, message.id));
 
   /// Черновик — при уходе с экрана (видно в списке чатов).
   Future<void> saveDraft(String text) async {

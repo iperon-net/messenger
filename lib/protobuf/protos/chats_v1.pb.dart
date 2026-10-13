@@ -1305,6 +1305,120 @@ class Dialog extends $pb.GeneratedMessage {
   void clearDraftDate() => $_clearField(15);
 }
 
+/// Отложенное сообщение — моё, ещё не отправленное (как scheduled messages в
+/// Telegram). Видно только мне (на всех моих устройствах); в момент date сервер
+/// отправляет его обычным сообщением (новый messageID, дата — момент
+/// отправки). scheduledID — номер внутри (я, чат), не messageID.
+class ScheduledMessage extends $pb.GeneratedMessage {
+  factory ScheduledMessage({
+    $core.List<$core.int>? chatID,
+    $fixnum.Int64? scheduledID,
+    $fixnum.Int64? date,
+    MessageContent? content,
+    $core.bool? silent,
+    $fixnum.Int64? randomID,
+  }) {
+    final result = create();
+    if (chatID != null) result.chatID = chatID;
+    if (scheduledID != null) result.scheduledID = scheduledID;
+    if (date != null) result.date = date;
+    if (content != null) result.content = content;
+    if (silent != null) result.silent = silent;
+    if (randomID != null) result.randomID = randomID;
+    return result;
+  }
+
+  ScheduledMessage._();
+
+  factory ScheduledMessage.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory ScheduledMessage.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'ScheduledMessage',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..a<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'chatID', $pb.PbFieldType.OY, protoName: 'chatID')
+    ..aInt64(2, _omitFieldNames ? '' : 'scheduledID', protoName: 'scheduledID')
+    ..aInt64(3, _omitFieldNames ? '' : 'date')
+    ..aOM<MessageContent>(4, _omitFieldNames ? '' : 'content', subBuilder: MessageContent.create)
+    ..aOB(5, _omitFieldNames ? '' : 'silent')
+    ..aInt64(6, _omitFieldNames ? '' : 'randomID', protoName: 'randomID')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ScheduledMessage clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ScheduledMessage copyWith(void Function(ScheduledMessage) updates) =>
+      super.copyWith((message) => updates(message as ScheduledMessage)) as ScheduledMessage;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static ScheduledMessage create() => ScheduledMessage._();
+  @$core.override
+  ScheduledMessage createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static ScheduledMessage getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<ScheduledMessage>(create);
+  static ScheduledMessage? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.List<$core.int> get chatID => $_getN(0);
+  @$pb.TagNumber(1)
+  set chatID($core.List<$core.int> value) => $_setBytes(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasChatID() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearChatID() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $fixnum.Int64 get scheduledID => $_getI64(1);
+  @$pb.TagNumber(2)
+  set scheduledID($fixnum.Int64 value) => $_setInt64(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasScheduledID() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearScheduledID() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $fixnum.Int64 get date => $_getI64(2);
+  @$pb.TagNumber(3)
+  set date($fixnum.Int64 value) => $_setInt64(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasDate() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearDate() => $_clearField(3);
+
+  @$pb.TagNumber(4)
+  MessageContent get content => $_getN(3);
+  @$pb.TagNumber(4)
+  set content(MessageContent value) => $_setField(4, value);
+  @$pb.TagNumber(4)
+  $core.bool hasContent() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearContent() => $_clearField(4);
+  @$pb.TagNumber(4)
+  MessageContent ensureContent() => $_ensure(3);
+
+  @$pb.TagNumber(5)
+  $core.bool get silent => $_getBF(4);
+  @$pb.TagNumber(5)
+  set silent($core.bool value) => $_setBool(4, value);
+  @$pb.TagNumber(5)
+  $core.bool hasSilent() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearSilent() => $_clearField(5);
+
+  @$pb.TagNumber(6)
+  $fixnum.Int64 get randomID => $_getI64(5);
+  @$pb.TagNumber(6)
+  set randomID($fixnum.Int64 value) => $_setInt64(5, value);
+  @$pb.TagNumber(6)
+  $core.bool hasRandomID() => $_has(5);
+  @$pb.TagNumber(6)
+  void clearRandomID() => $_clearField(6);
+}
+
 /// Папка (таб) списка чатов — как dialogFilter в Telegram. «Все чаты» — не
 /// папка (у клиента всегда первая). id выдаёт сервер; у SaveFolder 0 — новая.
 /// Чат попадает в папку, если он в includeChatIDs или подходит по типу и не
@@ -2279,6 +2393,128 @@ class Update_ReadReactions extends $pb.GeneratedMessage {
   void clearUnreadReactionsCount() => $_clearField(3);
 }
 
+/// Моё отложенное создано или перенесено (всегда текущее).
+class Update_ScheduledMessageChanged extends $pb.GeneratedMessage {
+  factory Update_ScheduledMessageChanged({
+    ScheduledMessage? message,
+  }) {
+    final result = create();
+    if (message != null) result.message = message;
+    return result;
+  }
+
+  Update_ScheduledMessageChanged._();
+
+  factory Update_ScheduledMessageChanged.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Update_ScheduledMessageChanged.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Update.ScheduledMessageChanged',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..aOM<ScheduledMessage>(1, _omitFieldNames ? '' : 'message', subBuilder: ScheduledMessage.create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Update_ScheduledMessageChanged clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Update_ScheduledMessageChanged copyWith(void Function(Update_ScheduledMessageChanged) updates) =>
+      super.copyWith((message) => updates(message as Update_ScheduledMessageChanged)) as Update_ScheduledMessageChanged;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static Update_ScheduledMessageChanged create() => Update_ScheduledMessageChanged._();
+  @$core.override
+  Update_ScheduledMessageChanged createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static Update_ScheduledMessageChanged getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Update_ScheduledMessageChanged>(create);
+  static Update_ScheduledMessageChanged? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  ScheduledMessage get message => $_getN(0);
+  @$pb.TagNumber(1)
+  set message(ScheduledMessage value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasMessage() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearMessage() => $_clearField(1);
+  @$pb.TagNumber(1)
+  ScheduledMessage ensureMessage() => $_ensure(0);
+}
+
+/// Мои отложенные scheduledIDs больше не ждут: отправлены (сообщение придёт
+/// своим newMessage), удалены или не отправлены — сервер отказал в момент
+/// отправки (чат удалён, собеседник ограничил, кто может ему писать).
+class Update_ScheduledDeleted extends $pb.GeneratedMessage {
+  factory Update_ScheduledDeleted({
+    $core.List<$core.int>? chatID,
+    $core.Iterable<$fixnum.Int64>? scheduledIDs,
+    Update_ScheduledDeleted_Reason? reason,
+  }) {
+    final result = create();
+    if (chatID != null) result.chatID = chatID;
+    if (scheduledIDs != null) result.scheduledIDs.addAll(scheduledIDs);
+    if (reason != null) result.reason = reason;
+    return result;
+  }
+
+  Update_ScheduledDeleted._();
+
+  factory Update_ScheduledDeleted.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Update_ScheduledDeleted.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Update.ScheduledDeleted',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..a<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'chatID', $pb.PbFieldType.OY, protoName: 'chatID')
+    ..p<$fixnum.Int64>(2, _omitFieldNames ? '' : 'scheduledIDs', $pb.PbFieldType.K6, protoName: 'scheduledIDs')
+    ..aE<Update_ScheduledDeleted_Reason>(3, _omitFieldNames ? '' : 'reason', enumValues: Update_ScheduledDeleted_Reason.values)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Update_ScheduledDeleted clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Update_ScheduledDeleted copyWith(void Function(Update_ScheduledDeleted) updates) =>
+      super.copyWith((message) => updates(message as Update_ScheduledDeleted)) as Update_ScheduledDeleted;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static Update_ScheduledDeleted create() => Update_ScheduledDeleted._();
+  @$core.override
+  Update_ScheduledDeleted createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static Update_ScheduledDeleted getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Update_ScheduledDeleted>(create);
+  static Update_ScheduledDeleted? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.List<$core.int> get chatID => $_getN(0);
+  @$pb.TagNumber(1)
+  set chatID($core.List<$core.int> value) => $_setBytes(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasChatID() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearChatID() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $pb.PbList<$fixnum.Int64> get scheduledIDs => $_getList(1);
+
+  @$pb.TagNumber(3)
+  Update_ScheduledDeleted_Reason get reason => $_getN(2);
+  @$pb.TagNumber(3)
+  set reason(Update_ScheduledDeleted_Reason value) => $_setField(3, value);
+  @$pb.TagNumber(3)
+  $core.bool hasReason() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearReason() => $_clearField(3);
+}
+
 enum Update_Update {
   newMessage,
   editMessage,
@@ -2292,6 +2528,8 @@ enum Update_Update {
   messageReactions,
   readReactions,
   folders,
+  scheduledMessage,
+  scheduledDeleted,
   notSet
 }
 
@@ -2313,6 +2551,8 @@ class Update extends $pb.GeneratedMessage {
     Update_MessageReactionsChanged? messageReactions,
     Update_ReadReactions? readReactions,
     ChatFolders? folders,
+    Update_ScheduledMessageChanged? scheduledMessage,
+    Update_ScheduledDeleted? scheduledDeleted,
   }) {
     final result = create();
     if (pts != null) result.pts = pts;
@@ -2329,6 +2569,8 @@ class Update extends $pb.GeneratedMessage {
     if (messageReactions != null) result.messageReactions = messageReactions;
     if (readReactions != null) result.readReactions = readReactions;
     if (folders != null) result.folders = folders;
+    if (scheduledMessage != null) result.scheduledMessage = scheduledMessage;
+    if (scheduledDeleted != null) result.scheduledDeleted = scheduledDeleted;
     return result;
   }
 
@@ -2352,11 +2594,13 @@ class Update extends $pb.GeneratedMessage {
     12: Update_Update.messageReactions,
     13: Update_Update.readReactions,
     14: Update_Update.folders,
+    15: Update_Update.scheduledMessage,
+    16: Update_Update.scheduledDeleted,
     0: Update_Update.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Update',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
-    ..oo(0, [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14])
+    ..oo(0, [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16])
     ..aInt64(1, _omitFieldNames ? '' : 'pts')
     ..aInt64(2, _omitFieldNames ? '' : 'date')
     ..aOM<Update_NewMessage>(3, _omitFieldNames ? '' : 'newMessage', protoName: 'newMessage', subBuilder: Update_NewMessage.create)
@@ -2377,6 +2621,10 @@ class Update extends $pb.GeneratedMessage {
     ..aOM<Update_ReadReactions>(13, _omitFieldNames ? '' : 'readReactions',
         protoName: 'readReactions', subBuilder: Update_ReadReactions.create)
     ..aOM<ChatFolders>(14, _omitFieldNames ? '' : 'folders', subBuilder: ChatFolders.create)
+    ..aOM<Update_ScheduledMessageChanged>(15, _omitFieldNames ? '' : 'scheduledMessage',
+        protoName: 'scheduledMessage', subBuilder: Update_ScheduledMessageChanged.create)
+    ..aOM<Update_ScheduledDeleted>(16, _omitFieldNames ? '' : 'scheduledDeleted',
+        protoName: 'scheduledDeleted', subBuilder: Update_ScheduledDeleted.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -2407,6 +2655,8 @@ class Update extends $pb.GeneratedMessage {
   @$pb.TagNumber(12)
   @$pb.TagNumber(13)
   @$pb.TagNumber(14)
+  @$pb.TagNumber(15)
+  @$pb.TagNumber(16)
   Update_Update whichUpdate() => _Update_UpdateByTag[$_whichOneof(0)]!;
   @$pb.TagNumber(3)
   @$pb.TagNumber(4)
@@ -2420,6 +2670,8 @@ class Update extends $pb.GeneratedMessage {
   @$pb.TagNumber(12)
   @$pb.TagNumber(13)
   @$pb.TagNumber(14)
+  @$pb.TagNumber(15)
+  @$pb.TagNumber(16)
   void clearUpdate() => $_clearField($_whichOneof(0));
 
   @$pb.TagNumber(1)
@@ -2573,6 +2825,28 @@ class Update extends $pb.GeneratedMessage {
   void clearFolders() => $_clearField(14);
   @$pb.TagNumber(14)
   ChatFolders ensureFolders() => $_ensure(13);
+
+  @$pb.TagNumber(15)
+  Update_ScheduledMessageChanged get scheduledMessage => $_getN(14);
+  @$pb.TagNumber(15)
+  set scheduledMessage(Update_ScheduledMessageChanged value) => $_setField(15, value);
+  @$pb.TagNumber(15)
+  $core.bool hasScheduledMessage() => $_has(14);
+  @$pb.TagNumber(15)
+  void clearScheduledMessage() => $_clearField(15);
+  @$pb.TagNumber(15)
+  Update_ScheduledMessageChanged ensureScheduledMessage() => $_ensure(14);
+
+  @$pb.TagNumber(16)
+  Update_ScheduledDeleted get scheduledDeleted => $_getN(15);
+  @$pb.TagNumber(16)
+  set scheduledDeleted(Update_ScheduledDeleted value) => $_setField(16, value);
+  @$pb.TagNumber(16)
+  $core.bool hasScheduledDeleted() => $_has(15);
+  @$pb.TagNumber(16)
+  void clearScheduledDeleted() => $_clearField(16);
+  @$pb.TagNumber(16)
+  Update_ScheduledDeleted ensureScheduledDeleted() => $_ensure(15);
 }
 
 /// UPDATES — push по стриму (сервер → клиент): одно или несколько обновлений
@@ -4677,6 +4951,7 @@ class Messages_Send extends $pb.GeneratedMessage {
     MessageContent? content,
     $core.bool? silent,
     Messages_ForwardFrom? forwardFrom,
+    $fixnum.Int64? scheduleDate,
   }) {
     final result = create();
     if (chatID != null) result.chatID = chatID;
@@ -4685,6 +4960,7 @@ class Messages_Send extends $pb.GeneratedMessage {
     if (content != null) result.content = content;
     if (silent != null) result.silent = silent;
     if (forwardFrom != null) result.forwardFrom = forwardFrom;
+    if (scheduleDate != null) result.scheduleDate = scheduleDate;
     return result;
   }
 
@@ -4703,6 +4979,7 @@ class Messages_Send extends $pb.GeneratedMessage {
     ..aOM<MessageContent>(4, _omitFieldNames ? '' : 'content', subBuilder: MessageContent.create)
     ..aOB(5, _omitFieldNames ? '' : 'silent')
     ..aOM<Messages_ForwardFrom>(6, _omitFieldNames ? '' : 'forwardFrom', protoName: 'forwardFrom', subBuilder: Messages_ForwardFrom.create)
+    ..aInt64(7, _omitFieldNames ? '' : 'scheduleDate', protoName: 'scheduleDate')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -4783,6 +5060,19 @@ class Messages_Send extends $pb.GeneratedMessage {
   void clearForwardFrom() => $_clearField(6);
   @$pb.TagNumber(6)
   Messages_ForwardFrom ensureForwardFrom() => $_ensure(5);
+
+  /// Отложить до этого времени (unix millis; 0 — отправить сейчас): в ответе
+  /// scheduled вместо message. Уже прошедшее (ждало в outbox без сети) —
+  /// уйдёт в ближайшие секунды. Не дальше года; до 100 на чат
+  /// (FAILED_PRECONDITION «scheduledLimit»); пересылку отложить нельзя.
+  @$pb.TagNumber(7)
+  $fixnum.Int64 get scheduleDate => $_getI64(6);
+  @$pb.TagNumber(7)
+  set scheduleDate($fixnum.Int64 value) => $_setInt64(6, value);
+  @$pb.TagNumber(7)
+  $core.bool hasScheduleDate() => $_has(6);
+  @$pb.TagNumber(7)
+  void clearScheduleDate() => $_clearField(7);
 }
 
 /// Исходное сообщение пересылки — в чате, где я участник и оно мне видно.
@@ -4850,10 +5140,12 @@ class Messages_SendResult extends $pb.GeneratedMessage {
   factory Messages_SendResult({
     ChatMessage? message,
     Updates? updates,
+    ScheduledMessage? scheduled,
   }) {
     final result = create();
     if (message != null) result.message = message;
     if (updates != null) result.updates = updates;
+    if (scheduled != null) result.scheduled = scheduled;
     return result;
   }
 
@@ -4868,6 +5160,7 @@ class Messages_SendResult extends $pb.GeneratedMessage {
       package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
     ..aOM<ChatMessage>(1, _omitFieldNames ? '' : 'message', subBuilder: ChatMessage.create)
     ..aOM<Updates>(2, _omitFieldNames ? '' : 'updates', subBuilder: Updates.create)
+    ..aOM<ScheduledMessage>(3, _omitFieldNames ? '' : 'scheduled', subBuilder: ScheduledMessage.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -4908,6 +5201,449 @@ class Messages_SendResult extends $pb.GeneratedMessage {
   void clearUpdates() => $_clearField(2);
   @$pb.TagNumber(2)
   Updates ensureUpdates() => $_ensure(1);
+
+  @$pb.TagNumber(3)
+  ScheduledMessage get scheduled => $_getN(2);
+  @$pb.TagNumber(3)
+  set scheduled(ScheduledMessage value) => $_setField(3, value);
+  @$pb.TagNumber(3)
+  $core.bool hasScheduled() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearScheduled() => $_clearField(3);
+  @$pb.TagNumber(3)
+  ScheduledMessage ensureScheduled() => $_ensure(2);
+}
+
+/// Мои отложенные в чате — по времени отправки.
+class Messages_Scheduled extends $pb.GeneratedMessage {
+  factory Messages_Scheduled({
+    $core.List<$core.int>? chatID,
+  }) {
+    final result = create();
+    if (chatID != null) result.chatID = chatID;
+    return result;
+  }
+
+  Messages_Scheduled._();
+
+  factory Messages_Scheduled.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Messages_Scheduled.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Messages.Scheduled',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..a<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'chatID', $pb.PbFieldType.OY, protoName: 'chatID')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Messages_Scheduled clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Messages_Scheduled copyWith(void Function(Messages_Scheduled) updates) =>
+      super.copyWith((message) => updates(message as Messages_Scheduled)) as Messages_Scheduled;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static Messages_Scheduled create() => Messages_Scheduled._();
+  @$core.override
+  Messages_Scheduled createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static Messages_Scheduled getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Messages_Scheduled>(create);
+  static Messages_Scheduled? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.List<$core.int> get chatID => $_getN(0);
+  @$pb.TagNumber(1)
+  set chatID($core.List<$core.int> value) => $_setBytes(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasChatID() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearChatID() => $_clearField(1);
+}
+
+class Messages_ScheduledResult extends $pb.GeneratedMessage {
+  factory Messages_ScheduledResult({
+    $core.Iterable<ScheduledMessage>? messages,
+  }) {
+    final result = create();
+    if (messages != null) result.messages.addAll(messages);
+    return result;
+  }
+
+  Messages_ScheduledResult._();
+
+  factory Messages_ScheduledResult.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Messages_ScheduledResult.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Messages.ScheduledResult',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..pPM<ScheduledMessage>(1, _omitFieldNames ? '' : 'messages', subBuilder: ScheduledMessage.create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Messages_ScheduledResult clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Messages_ScheduledResult copyWith(void Function(Messages_ScheduledResult) updates) =>
+      super.copyWith((message) => updates(message as Messages_ScheduledResult)) as Messages_ScheduledResult;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static Messages_ScheduledResult create() => Messages_ScheduledResult._();
+  @$core.override
+  Messages_ScheduledResult createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static Messages_ScheduledResult getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Messages_ScheduledResult>(create);
+  static Messages_ScheduledResult? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $pb.PbList<ScheduledMessage> get messages => $_getList(0);
+}
+
+/// Отправить отложенные сейчас (уже ушедшие — пропускаются).
+class Messages_SendScheduledNow extends $pb.GeneratedMessage {
+  factory Messages_SendScheduledNow({
+    $core.List<$core.int>? chatID,
+    $core.Iterable<$fixnum.Int64>? scheduledIDs,
+  }) {
+    final result = create();
+    if (chatID != null) result.chatID = chatID;
+    if (scheduledIDs != null) result.scheduledIDs.addAll(scheduledIDs);
+    return result;
+  }
+
+  Messages_SendScheduledNow._();
+
+  factory Messages_SendScheduledNow.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Messages_SendScheduledNow.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Messages.SendScheduledNow',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..a<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'chatID', $pb.PbFieldType.OY, protoName: 'chatID')
+    ..p<$fixnum.Int64>(2, _omitFieldNames ? '' : 'scheduledIDs', $pb.PbFieldType.K6, protoName: 'scheduledIDs')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Messages_SendScheduledNow clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Messages_SendScheduledNow copyWith(void Function(Messages_SendScheduledNow) updates) =>
+      super.copyWith((message) => updates(message as Messages_SendScheduledNow)) as Messages_SendScheduledNow;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static Messages_SendScheduledNow create() => Messages_SendScheduledNow._();
+  @$core.override
+  Messages_SendScheduledNow createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static Messages_SendScheduledNow getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Messages_SendScheduledNow>(create);
+  static Messages_SendScheduledNow? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.List<$core.int> get chatID => $_getN(0);
+  @$pb.TagNumber(1)
+  set chatID($core.List<$core.int> value) => $_setBytes(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasChatID() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearChatID() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $pb.PbList<$fixnum.Int64> get scheduledIDs => $_getList(1);
+}
+
+class Messages_SendScheduledNowResult extends $pb.GeneratedMessage {
+  factory Messages_SendScheduledNowResult({
+    Updates? updates,
+  }) {
+    final result = create();
+    if (updates != null) result.updates = updates;
+    return result;
+  }
+
+  Messages_SendScheduledNowResult._();
+
+  factory Messages_SendScheduledNowResult.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Messages_SendScheduledNowResult.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Messages.SendScheduledNowResult',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..aOM<Updates>(1, _omitFieldNames ? '' : 'updates', subBuilder: Updates.create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Messages_SendScheduledNowResult clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Messages_SendScheduledNowResult copyWith(void Function(Messages_SendScheduledNowResult) updates) =>
+      super.copyWith((message) => updates(message as Messages_SendScheduledNowResult)) as Messages_SendScheduledNowResult;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static Messages_SendScheduledNowResult create() => Messages_SendScheduledNowResult._();
+  @$core.override
+  Messages_SendScheduledNowResult createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static Messages_SendScheduledNowResult getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Messages_SendScheduledNowResult>(create);
+  static Messages_SendScheduledNowResult? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  Updates get updates => $_getN(0);
+  @$pb.TagNumber(1)
+  set updates(Updates value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasUpdates() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearUpdates() => $_clearField(1);
+  @$pb.TagNumber(1)
+  Updates ensureUpdates() => $_ensure(0);
+}
+
+/// Перенести отложенное (уже ушедшее — NOT_FOUND).
+class Messages_Reschedule extends $pb.GeneratedMessage {
+  factory Messages_Reschedule({
+    $core.List<$core.int>? chatID,
+    $fixnum.Int64? scheduledID,
+    $fixnum.Int64? date,
+  }) {
+    final result = create();
+    if (chatID != null) result.chatID = chatID;
+    if (scheduledID != null) result.scheduledID = scheduledID;
+    if (date != null) result.date = date;
+    return result;
+  }
+
+  Messages_Reschedule._();
+
+  factory Messages_Reschedule.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Messages_Reschedule.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Messages.Reschedule',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..a<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'chatID', $pb.PbFieldType.OY, protoName: 'chatID')
+    ..aInt64(2, _omitFieldNames ? '' : 'scheduledID', protoName: 'scheduledID')
+    ..aInt64(3, _omitFieldNames ? '' : 'date')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Messages_Reschedule clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Messages_Reschedule copyWith(void Function(Messages_Reschedule) updates) =>
+      super.copyWith((message) => updates(message as Messages_Reschedule)) as Messages_Reschedule;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static Messages_Reschedule create() => Messages_Reschedule._();
+  @$core.override
+  Messages_Reschedule createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static Messages_Reschedule getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Messages_Reschedule>(create);
+  static Messages_Reschedule? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.List<$core.int> get chatID => $_getN(0);
+  @$pb.TagNumber(1)
+  set chatID($core.List<$core.int> value) => $_setBytes(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasChatID() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearChatID() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $fixnum.Int64 get scheduledID => $_getI64(1);
+  @$pb.TagNumber(2)
+  set scheduledID($fixnum.Int64 value) => $_setInt64(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasScheduledID() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearScheduledID() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $fixnum.Int64 get date => $_getI64(2);
+  @$pb.TagNumber(3)
+  set date($fixnum.Int64 value) => $_setInt64(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasDate() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearDate() => $_clearField(3);
+}
+
+class Messages_RescheduleResult extends $pb.GeneratedMessage {
+  factory Messages_RescheduleResult({
+    Updates? updates,
+  }) {
+    final result = create();
+    if (updates != null) result.updates = updates;
+    return result;
+  }
+
+  Messages_RescheduleResult._();
+
+  factory Messages_RescheduleResult.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Messages_RescheduleResult.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Messages.RescheduleResult',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..aOM<Updates>(1, _omitFieldNames ? '' : 'updates', subBuilder: Updates.create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Messages_RescheduleResult clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Messages_RescheduleResult copyWith(void Function(Messages_RescheduleResult) updates) =>
+      super.copyWith((message) => updates(message as Messages_RescheduleResult)) as Messages_RescheduleResult;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static Messages_RescheduleResult create() => Messages_RescheduleResult._();
+  @$core.override
+  Messages_RescheduleResult createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static Messages_RescheduleResult getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Messages_RescheduleResult>(create);
+  static Messages_RescheduleResult? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  Updates get updates => $_getN(0);
+  @$pb.TagNumber(1)
+  set updates(Updates value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasUpdates() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearUpdates() => $_clearField(1);
+  @$pb.TagNumber(1)
+  Updates ensureUpdates() => $_ensure(0);
+}
+
+/// Удалить отложенные.
+class Messages_DeleteScheduled extends $pb.GeneratedMessage {
+  factory Messages_DeleteScheduled({
+    $core.List<$core.int>? chatID,
+    $core.Iterable<$fixnum.Int64>? scheduledIDs,
+  }) {
+    final result = create();
+    if (chatID != null) result.chatID = chatID;
+    if (scheduledIDs != null) result.scheduledIDs.addAll(scheduledIDs);
+    return result;
+  }
+
+  Messages_DeleteScheduled._();
+
+  factory Messages_DeleteScheduled.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Messages_DeleteScheduled.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Messages.DeleteScheduled',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..a<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'chatID', $pb.PbFieldType.OY, protoName: 'chatID')
+    ..p<$fixnum.Int64>(2, _omitFieldNames ? '' : 'scheduledIDs', $pb.PbFieldType.K6, protoName: 'scheduledIDs')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Messages_DeleteScheduled clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Messages_DeleteScheduled copyWith(void Function(Messages_DeleteScheduled) updates) =>
+      super.copyWith((message) => updates(message as Messages_DeleteScheduled)) as Messages_DeleteScheduled;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static Messages_DeleteScheduled create() => Messages_DeleteScheduled._();
+  @$core.override
+  Messages_DeleteScheduled createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static Messages_DeleteScheduled getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Messages_DeleteScheduled>(create);
+  static Messages_DeleteScheduled? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.List<$core.int> get chatID => $_getN(0);
+  @$pb.TagNumber(1)
+  set chatID($core.List<$core.int> value) => $_setBytes(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasChatID() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearChatID() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $pb.PbList<$fixnum.Int64> get scheduledIDs => $_getList(1);
+}
+
+class Messages_DeleteScheduledResult extends $pb.GeneratedMessage {
+  factory Messages_DeleteScheduledResult({
+    Updates? updates,
+  }) {
+    final result = create();
+    if (updates != null) result.updates = updates;
+    return result;
+  }
+
+  Messages_DeleteScheduledResult._();
+
+  factory Messages_DeleteScheduledResult.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Messages_DeleteScheduledResult.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Messages.DeleteScheduledResult',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..aOM<Updates>(1, _omitFieldNames ? '' : 'updates', subBuilder: Updates.create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Messages_DeleteScheduledResult clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Messages_DeleteScheduledResult copyWith(void Function(Messages_DeleteScheduledResult) updates) =>
+      super.copyWith((message) => updates(message as Messages_DeleteScheduledResult)) as Messages_DeleteScheduledResult;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static Messages_DeleteScheduledResult create() => Messages_DeleteScheduledResult._();
+  @$core.override
+  Messages_DeleteScheduledResult createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static Messages_DeleteScheduledResult getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Messages_DeleteScheduledResult>(create);
+  static Messages_DeleteScheduledResult? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  Updates get updates => $_getN(0);
+  @$pb.TagNumber(1)
+  set updates(Updates value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasUpdates() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearUpdates() => $_clearField(1);
+  @$pb.TagNumber(1)
+  Updates ensureUpdates() => $_ensure(0);
 }
 
 /// Изменить своё (текст / разметку; медиа не меняются).
@@ -5957,6 +6693,10 @@ enum Messages_Request_Request {
   setReactions,
   readReactions,
   unreadReactions,
+  scheduled,
+  sendScheduledNow,
+  reschedule,
+  deleteScheduled,
   notSet
 }
 
@@ -5973,6 +6713,10 @@ class Messages_Request extends $pb.GeneratedMessage {
     Messages_SetReactions? setReactions,
     Messages_ReadReactions? readReactions,
     Messages_UnreadReactions? unreadReactions,
+    Messages_Scheduled? scheduled,
+    Messages_SendScheduledNow? sendScheduledNow,
+    Messages_Reschedule? reschedule,
+    Messages_DeleteScheduled? deleteScheduled,
   }) {
     final result = create();
     if (history != null) result.history = history;
@@ -5986,6 +6730,10 @@ class Messages_Request extends $pb.GeneratedMessage {
     if (setReactions != null) result.setReactions = setReactions;
     if (readReactions != null) result.readReactions = readReactions;
     if (unreadReactions != null) result.unreadReactions = unreadReactions;
+    if (scheduled != null) result.scheduled = scheduled;
+    if (sendScheduledNow != null) result.sendScheduledNow = sendScheduledNow;
+    if (reschedule != null) result.reschedule = reschedule;
+    if (deleteScheduled != null) result.deleteScheduled = deleteScheduled;
     return result;
   }
 
@@ -6008,11 +6756,15 @@ class Messages_Request extends $pb.GeneratedMessage {
     9: Messages_Request_Request.setReactions,
     10: Messages_Request_Request.readReactions,
     11: Messages_Request_Request.unreadReactions,
+    12: Messages_Request_Request.scheduled,
+    13: Messages_Request_Request.sendScheduledNow,
+    14: Messages_Request_Request.reschedule,
+    15: Messages_Request_Request.deleteScheduled,
     0: Messages_Request_Request.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Messages.Request',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
-    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11])
+    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15])
     ..aOM<Messages_History>(1, _omitFieldNames ? '' : 'history', subBuilder: Messages_History.create)
     ..aOM<Messages_Send>(2, _omitFieldNames ? '' : 'send', subBuilder: Messages_Send.create)
     ..aOM<Messages_Edit>(3, _omitFieldNames ? '' : 'edit', subBuilder: Messages_Edit.create)
@@ -6028,6 +6780,12 @@ class Messages_Request extends $pb.GeneratedMessage {
         protoName: 'readReactions', subBuilder: Messages_ReadReactions.create)
     ..aOM<Messages_UnreadReactions>(11, _omitFieldNames ? '' : 'unreadReactions',
         protoName: 'unreadReactions', subBuilder: Messages_UnreadReactions.create)
+    ..aOM<Messages_Scheduled>(12, _omitFieldNames ? '' : 'scheduled', subBuilder: Messages_Scheduled.create)
+    ..aOM<Messages_SendScheduledNow>(13, _omitFieldNames ? '' : 'sendScheduledNow',
+        protoName: 'sendScheduledNow', subBuilder: Messages_SendScheduledNow.create)
+    ..aOM<Messages_Reschedule>(14, _omitFieldNames ? '' : 'reschedule', subBuilder: Messages_Reschedule.create)
+    ..aOM<Messages_DeleteScheduled>(15, _omitFieldNames ? '' : 'deleteScheduled',
+        protoName: 'deleteScheduled', subBuilder: Messages_DeleteScheduled.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -6058,6 +6816,10 @@ class Messages_Request extends $pb.GeneratedMessage {
   @$pb.TagNumber(9)
   @$pb.TagNumber(10)
   @$pb.TagNumber(11)
+  @$pb.TagNumber(12)
+  @$pb.TagNumber(13)
+  @$pb.TagNumber(14)
+  @$pb.TagNumber(15)
   Messages_Request_Request whichRequest() => _Messages_Request_RequestByTag[$_whichOneof(0)]!;
   @$pb.TagNumber(1)
   @$pb.TagNumber(2)
@@ -6070,6 +6832,10 @@ class Messages_Request extends $pb.GeneratedMessage {
   @$pb.TagNumber(9)
   @$pb.TagNumber(10)
   @$pb.TagNumber(11)
+  @$pb.TagNumber(12)
+  @$pb.TagNumber(13)
+  @$pb.TagNumber(14)
+  @$pb.TagNumber(15)
   void clearRequest() => $_clearField($_whichOneof(0));
 
   @$pb.TagNumber(1)
@@ -6192,6 +6958,50 @@ class Messages_Request extends $pb.GeneratedMessage {
   void clearUnreadReactions() => $_clearField(11);
   @$pb.TagNumber(11)
   Messages_UnreadReactions ensureUnreadReactions() => $_ensure(10);
+
+  @$pb.TagNumber(12)
+  Messages_Scheduled get scheduled => $_getN(11);
+  @$pb.TagNumber(12)
+  set scheduled(Messages_Scheduled value) => $_setField(12, value);
+  @$pb.TagNumber(12)
+  $core.bool hasScheduled() => $_has(11);
+  @$pb.TagNumber(12)
+  void clearScheduled() => $_clearField(12);
+  @$pb.TagNumber(12)
+  Messages_Scheduled ensureScheduled() => $_ensure(11);
+
+  @$pb.TagNumber(13)
+  Messages_SendScheduledNow get sendScheduledNow => $_getN(12);
+  @$pb.TagNumber(13)
+  set sendScheduledNow(Messages_SendScheduledNow value) => $_setField(13, value);
+  @$pb.TagNumber(13)
+  $core.bool hasSendScheduledNow() => $_has(12);
+  @$pb.TagNumber(13)
+  void clearSendScheduledNow() => $_clearField(13);
+  @$pb.TagNumber(13)
+  Messages_SendScheduledNow ensureSendScheduledNow() => $_ensure(12);
+
+  @$pb.TagNumber(14)
+  Messages_Reschedule get reschedule => $_getN(13);
+  @$pb.TagNumber(14)
+  set reschedule(Messages_Reschedule value) => $_setField(14, value);
+  @$pb.TagNumber(14)
+  $core.bool hasReschedule() => $_has(13);
+  @$pb.TagNumber(14)
+  void clearReschedule() => $_clearField(14);
+  @$pb.TagNumber(14)
+  Messages_Reschedule ensureReschedule() => $_ensure(13);
+
+  @$pb.TagNumber(15)
+  Messages_DeleteScheduled get deleteScheduled => $_getN(14);
+  @$pb.TagNumber(15)
+  set deleteScheduled(Messages_DeleteScheduled value) => $_setField(15, value);
+  @$pb.TagNumber(15)
+  $core.bool hasDeleteScheduled() => $_has(14);
+  @$pb.TagNumber(15)
+  void clearDeleteScheduled() => $_clearField(15);
+  @$pb.TagNumber(15)
+  Messages_DeleteScheduled ensureDeleteScheduled() => $_ensure(14);
 }
 
 enum Messages_Response_Response {
@@ -6206,6 +7016,10 @@ enum Messages_Response_Response {
   setReactions,
   readReactions,
   unreadReactions,
+  scheduled,
+  sendScheduledNow,
+  reschedule,
+  deleteScheduled,
   notSet
 }
 
@@ -6222,6 +7036,10 @@ class Messages_Response extends $pb.GeneratedMessage {
     Messages_SetReactionsResult? setReactions,
     Messages_ReadReactionsResult? readReactions,
     Messages_UnreadReactionsResult? unreadReactions,
+    Messages_ScheduledResult? scheduled,
+    Messages_SendScheduledNowResult? sendScheduledNow,
+    Messages_RescheduleResult? reschedule,
+    Messages_DeleteScheduledResult? deleteScheduled,
   }) {
     final result = create();
     if (history != null) result.history = history;
@@ -6235,6 +7053,10 @@ class Messages_Response extends $pb.GeneratedMessage {
     if (setReactions != null) result.setReactions = setReactions;
     if (readReactions != null) result.readReactions = readReactions;
     if (unreadReactions != null) result.unreadReactions = unreadReactions;
+    if (scheduled != null) result.scheduled = scheduled;
+    if (sendScheduledNow != null) result.sendScheduledNow = sendScheduledNow;
+    if (reschedule != null) result.reschedule = reschedule;
+    if (deleteScheduled != null) result.deleteScheduled = deleteScheduled;
     return result;
   }
 
@@ -6257,11 +7079,15 @@ class Messages_Response extends $pb.GeneratedMessage {
     9: Messages_Response_Response.setReactions,
     10: Messages_Response_Response.readReactions,
     11: Messages_Response_Response.unreadReactions,
+    12: Messages_Response_Response.scheduled,
+    13: Messages_Response_Response.sendScheduledNow,
+    14: Messages_Response_Response.reschedule,
+    15: Messages_Response_Response.deleteScheduled,
     0: Messages_Response_Response.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Messages.Response',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
-    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11])
+    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15])
     ..aOM<Messages_HistoryResult>(1, _omitFieldNames ? '' : 'history', subBuilder: Messages_HistoryResult.create)
     ..aOM<Messages_SendResult>(2, _omitFieldNames ? '' : 'send', subBuilder: Messages_SendResult.create)
     ..aOM<Messages_EditResult>(3, _omitFieldNames ? '' : 'edit', subBuilder: Messages_EditResult.create)
@@ -6277,6 +7103,12 @@ class Messages_Response extends $pb.GeneratedMessage {
         protoName: 'readReactions', subBuilder: Messages_ReadReactionsResult.create)
     ..aOM<Messages_UnreadReactionsResult>(11, _omitFieldNames ? '' : 'unreadReactions',
         protoName: 'unreadReactions', subBuilder: Messages_UnreadReactionsResult.create)
+    ..aOM<Messages_ScheduledResult>(12, _omitFieldNames ? '' : 'scheduled', subBuilder: Messages_ScheduledResult.create)
+    ..aOM<Messages_SendScheduledNowResult>(13, _omitFieldNames ? '' : 'sendScheduledNow',
+        protoName: 'sendScheduledNow', subBuilder: Messages_SendScheduledNowResult.create)
+    ..aOM<Messages_RescheduleResult>(14, _omitFieldNames ? '' : 'reschedule', subBuilder: Messages_RescheduleResult.create)
+    ..aOM<Messages_DeleteScheduledResult>(15, _omitFieldNames ? '' : 'deleteScheduled',
+        protoName: 'deleteScheduled', subBuilder: Messages_DeleteScheduledResult.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -6307,6 +7139,10 @@ class Messages_Response extends $pb.GeneratedMessage {
   @$pb.TagNumber(9)
   @$pb.TagNumber(10)
   @$pb.TagNumber(11)
+  @$pb.TagNumber(12)
+  @$pb.TagNumber(13)
+  @$pb.TagNumber(14)
+  @$pb.TagNumber(15)
   Messages_Response_Response whichResponse() => _Messages_Response_ResponseByTag[$_whichOneof(0)]!;
   @$pb.TagNumber(1)
   @$pb.TagNumber(2)
@@ -6319,6 +7155,10 @@ class Messages_Response extends $pb.GeneratedMessage {
   @$pb.TagNumber(9)
   @$pb.TagNumber(10)
   @$pb.TagNumber(11)
+  @$pb.TagNumber(12)
+  @$pb.TagNumber(13)
+  @$pb.TagNumber(14)
+  @$pb.TagNumber(15)
   void clearResponse() => $_clearField($_whichOneof(0));
 
   @$pb.TagNumber(1)
@@ -6441,6 +7281,50 @@ class Messages_Response extends $pb.GeneratedMessage {
   void clearUnreadReactions() => $_clearField(11);
   @$pb.TagNumber(11)
   Messages_UnreadReactionsResult ensureUnreadReactions() => $_ensure(10);
+
+  @$pb.TagNumber(12)
+  Messages_ScheduledResult get scheduled => $_getN(11);
+  @$pb.TagNumber(12)
+  set scheduled(Messages_ScheduledResult value) => $_setField(12, value);
+  @$pb.TagNumber(12)
+  $core.bool hasScheduled() => $_has(11);
+  @$pb.TagNumber(12)
+  void clearScheduled() => $_clearField(12);
+  @$pb.TagNumber(12)
+  Messages_ScheduledResult ensureScheduled() => $_ensure(11);
+
+  @$pb.TagNumber(13)
+  Messages_SendScheduledNowResult get sendScheduledNow => $_getN(12);
+  @$pb.TagNumber(13)
+  set sendScheduledNow(Messages_SendScheduledNowResult value) => $_setField(13, value);
+  @$pb.TagNumber(13)
+  $core.bool hasSendScheduledNow() => $_has(12);
+  @$pb.TagNumber(13)
+  void clearSendScheduledNow() => $_clearField(13);
+  @$pb.TagNumber(13)
+  Messages_SendScheduledNowResult ensureSendScheduledNow() => $_ensure(12);
+
+  @$pb.TagNumber(14)
+  Messages_RescheduleResult get reschedule => $_getN(13);
+  @$pb.TagNumber(14)
+  set reschedule(Messages_RescheduleResult value) => $_setField(14, value);
+  @$pb.TagNumber(14)
+  $core.bool hasReschedule() => $_has(13);
+  @$pb.TagNumber(14)
+  void clearReschedule() => $_clearField(14);
+  @$pb.TagNumber(14)
+  Messages_RescheduleResult ensureReschedule() => $_ensure(13);
+
+  @$pb.TagNumber(15)
+  Messages_DeleteScheduledResult get deleteScheduled => $_getN(14);
+  @$pb.TagNumber(15)
+  set deleteScheduled(Messages_DeleteScheduledResult value) => $_setField(15, value);
+  @$pb.TagNumber(15)
+  $core.bool hasDeleteScheduled() => $_has(14);
+  @$pb.TagNumber(15)
+  void clearDeleteScheduled() => $_clearField(15);
+  @$pb.TagNumber(15)
+  Messages_DeleteScheduledResult ensureDeleteScheduled() => $_ensure(14);
 }
 
 /// MESSAGES — сообщения.

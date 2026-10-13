@@ -19,6 +19,15 @@ Uint8List idBytes(String hex) {
   return Uint8List.fromList([for (var i = 0; i < hex.length; i += 2) int.parse(hex.substring(i, i + 2), radix: 16)]);
 }
 
+/// id отложенного, принятого сервером: `scheduled:<scheduledID>`.
+const scheduledMessagePrefix = 'scheduled:';
+
+String scheduledMessageID(int scheduledID) => '$scheduledMessagePrefix$scheduledID';
+
+/// scheduledID по id отложенного; `null` — не с сервера (из outbox).
+int? scheduledIDOf(String messageID) =>
+    messageID.startsWith(scheduledMessagePrefix) ? int.tryParse(messageID.substring(scheduledMessagePrefix.length)) : null;
+
 /// id сообщения из outbox (ещё не дошло до сервера): `local:<randomID>`.
 const localMessagePrefix = 'local:';
 
