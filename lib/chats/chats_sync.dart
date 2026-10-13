@@ -281,11 +281,13 @@ class ChatsSync {
   }
 
   /// Полный список диалогов (все страницы) заменяет локальный; pts — с первой
-  /// страницы. [dropHistory] — журнал отстал (`tooLong`): сбросить и кэш истории.
-  Future<void> _reloadDialogs({bool dropHistory = false}) async {
+  /// страницы. [staleHistory] — журнал отстал (`tooLong`): кэш истории не
+  /// стирается, а становится несверенным — сверится страницами при открытии
+  /// чатов ([loadHistory], [loadOlder]).
+  Future<void> _reloadDialogs({bool staleHistory = false}) async {
     final user = me;
-    // История сброшена — «старше нет» больше не верно.
-    if (dropHistory) _noOlder.clear();
+    // Кэш несверен — «старше нет» больше не верно.
+    if (staleHistory) _noOlder.clear();
     final dialogs = <pb.Dialog>[];
     pb.UpdatesState? state;
     var offsetDate = Int64.ZERO;
@@ -309,7 +311,7 @@ class ChatsSync {
     final pts = state.pts.toInt();
     final date = state.date.toInt();
     await _store.transaction((tx) async {
-      await tx.replaceDialogs(userID: user, dialogs: dialogs, dropHistory: dropHistory);
+      await tx.replaceDialogs(userID: user, dialogs: dialogs, staleHistory: staleHistory);
       await tx.setPts(userID: user, pts: pts, date: date);
     });
     // Изменения папок после этого pts придут обновлениями folders.
@@ -368,8 +370,9 @@ class ChatsSync {
       );
       if (response.tooLong) {
         // Журнал на сервере уже обрезан — перезагружаем диалоги с нуля, а кэш
-        // истории сбрасываем: он мог разойтись с сервером.
-        await _reloadDialogs(dropHistory: true);
+        // истории помечаем несверенным: он мог разойтись с сервером, но
+        // стирать его незачем — сверится при открытии чатов.
+        await _reloadDialogs(staleHistory: true);
         return;
       }
       // Пустой ответ с state.pts == нашему (параллельная запись ещё идёт) —
@@ -626,11 +629,12 @@ class ChatsSync {
   /// Последние [limit] сообщений чата с сервера — в кэш (открытие чата). Нет
   /// сети — молча: показываем кэш.
   ///
-  /// Кэш истории всегда непрерывен: от самого старого загруженного до
-  /// последнего (новые приходят журналом без дыр, старые — [loadOlder] от
-  /// самого старого). Свежая страница не дотянулась до кэша (были вне сети
-  /// долго, а журнал догнан перезагрузкой) — между ними могла быть дыра:
-  /// старый хвост выбрасываем, его снова подгрузит [loadOlder].
+  /// Кэш истории сверен с сервером и непрерывен выше границы
+  /// `historyStaleBelow` (новые приходят журналом без дыр, старые — страницами
+  /// [loadOlder]). Ниже неё — несверенное после долгого офлайна (`tooLong`)
+  /// или дыры (свежая страница не дотянулась до кэша): его показываем, а
+  /// страницы с сервера сверяют и сдвигают границу вниз
+  /// ([ChatsRepository.applyHistoryPage]).
   Future<void> loadHistory(Uint8List chatID, {int limit = _pageLimit}) async {
     if (!await hasNetwork()) return;
     final response = await messages(
@@ -646,16 +650,9 @@ class ChatsSync {
       () => _store.transaction((tx) async {
         final dialog = await tx.dialog(userID: user, chatID: chatID);
         if (dialog == null) return;
-        final cachedNewest = await tx.newestMessageID(userID: user, chatID: chatID);
-        // История DESC: последнее — самое старое на странице.
-        final pageOldest = history.isEmpty ? 0 : history.last.messageID.toInt();
-        if (hasMore && cachedNewest > 0 && pageOldest > cachedNewest + 1) {
-          await tx.deleteMessagesBelow(userID: user, chatID: chatID, messageID: pageOldest);
-          _noOlder.remove(idHex(chatID));
-        }
-        for (final message in history) {
-          await tx.upsertMessage(userID: user, message: message);
-        }
+        final stale = await tx.applyHistoryPage(userID: user, chatID: chatID, messages: history, offsetID: 0, hasMore: hasMore);
+        // Ниже есть несверенное — [loadOlder] пойдёт к нему.
+        if (stale > 0) _noOlder.remove(idHex(chatID));
         // История DESC: первое — самое новое.
         final newest = history.isEmpty ? null : history.first;
         if (newest != null && newest.messageID.toInt() >= dialog.topMessageID) {
@@ -683,7 +680,9 @@ class ChatsSync {
   /// Чаты, у которых на сервере старше уже нет (hex chatID).
   final _noOlder = <String>{};
 
-  /// Следующая страница истории старше самого старого в кэше. Возвращает,
+  /// Следующая страница истории старше сверенной части кэша (несверенной
+  /// нет — старше самого старого в кэше); несверенное в её диапазоне
+  /// сверяется ([ChatsRepository.applyHistoryPage]). Возвращает,
   /// сколько сообщений пришло, и есть ли ещё (false — дошли до начала). Нет
   /// сети — (0, true): попробуем при следующей прокрутке.
   Future<({int loaded, bool hasMore})> loadOlder(Uint8List chatID) {
@@ -700,24 +699,24 @@ class ChatsSync {
     if (_noOlder.contains(key)) return (loaded: 0, hasMore: false);
     if (!await hasNetwork()) return (loaded: 0, hasMore: true);
     final user = me;
-    final oldest = await _store.oldestMessageID(userID: user, chatID: chatID);
-    // Самое старое — №1: старше нет.
-    if (oldest == 1) {
+    final stale = await _store.historyStaleBelow(userID: user, chatID: chatID);
+    final offset = stale > 0 ? stale : await _store.oldestMessageID(userID: user, chatID: chatID);
+    // Самое старое (сверенное) — №1: старше нет.
+    if (offset == 1) {
       _noOlder.add(key);
       return (loaded: 0, hasMore: false);
     }
     final response = await messages(
       pb.Messages_Request(
-        history: pb.Messages_History(chatID: chatID, offsetID: Int64(oldest), limit: _pageLimit),
+        history: pb.Messages_History(chatID: chatID, offsetID: Int64(offset), limit: _pageLimit),
       ),
     );
     final history = response.history.messages;
     await _locked(
       () => _store.transaction((tx) async {
         if (await tx.dialog(userID: user, chatID: chatID) == null) return;
-        for (final message in history) {
-          await tx.upsertMessage(userID: user, message: message);
-        }
+        // Пустой кэш (offset 0) — это самая новая страница.
+        await tx.applyHistoryPage(userID: user, chatID: chatID, messages: history, offsetID: offset, hasMore: response.history.hasMore);
       }),
     );
     if (!response.history.hasMore) _noOlder.add(key);

@@ -362,10 +362,12 @@ class ChatsRepository {
   /// (с историей), остальные перезаписываются (черновики остаются). Пустые
   /// локальные (открыли личный чат, ещё ничего не написали) остаются: сервер
   /// не показывает такой чат в списке до первого сообщения.
-  /// [dropHistory] — журнал слишком отстал (`tooLong`): кэш истории мог
-  /// разойтись с сервером, сбрасываем его целиком.
-  Future<void> replaceDialogs({required List<int> userID, required List<pb.Dialog> dialogs, bool dropHistory = false}) async {
-    if (dropHistory) await ctx.execute('DELETE FROM chatMessages WHERE userID = ?;', [userID]);
+  /// [staleHistory] — журнал слишком отстал (`tooLong`): кэш истории мог
+  /// разойтись с сервером — не стираем, а помечаем несверенным
+  /// ([markHistoryStale]), сверится страницами ([applyHistoryPage]).
+  Future<void> replaceDialogs({required List<int> userID, required List<pb.Dialog> dialogs, bool staleHistory = false}) async {
+    // До записи диалогов: их последние сообщения (новее кэша) — уже сверены.
+    if (staleHistory) await markHistoryStale(userID: userID);
     final keep = {for (final d in dialogs) _hex(d.chatID)};
     for (final row in await this.dialogs(userID: userID)) {
       if (keep.contains(_hex(row.chatID)) || (row.topMessageID == 0 && row.type == 0)) continue;
@@ -510,9 +512,89 @@ class ChatsRepository {
     return (row['id'] as int?) ?? 0;
   }
 
-  /// Удаляет из кэша сообщения старше [messageID] (не стыкуются с новыми).
-  Future<void> deleteMessagesBelow({required List<int> userID, required List<int> chatID, required int messageID}) async {
-    await ctx.execute('DELETE FROM chatMessages WHERE userID = ? AND chatID = ? AND messageID < ?;', [userID, chatID, messageID]);
+  /// Весь кэш истории — несверенный (журнал на сервере обрезан, `tooLong`):
+  /// у каждого чата с историей граница — выше самого нового в кэше.
+  Future<void> markHistoryStale({required List<int> userID}) async {
+    await ctx.execute(
+      '''
+      UPDATE chatDialogs SET historyStaleBelow = (
+        SELECT MAX(m.messageID) + 1 FROM chatMessages m WHERE m.userID = chatDialogs.userID AND m.chatID = chatDialogs.chatID
+      )
+      WHERE userID = ? AND EXISTS (
+        SELECT 1 FROM chatMessages m WHERE m.userID = chatDialogs.userID AND m.chatID = chatDialogs.chatID
+      );
+      ''',
+      [userID],
+    );
+  }
+
+  /// Граница несверенной истории чата: сообщения с messageID ниже неё не
+  /// сверены с сервером (0 — всё сверено).
+  Future<int> historyStaleBelow({required List<int> userID, required List<int> chatID}) async {
+    final row = await ctx.getOptional('SELECT historyStaleBelow FROM chatDialogs WHERE userID = ? AND chatID = ?;', [userID, chatID]);
+    return (row?['historyStaleBelow'] as int?) ?? 0;
+  }
+
+  /// Страница истории с сервера (по убыванию messageID) — в кэш со сверкой.
+  /// [offsetID] — граница запроса (сообщения ниже неё; 0 — самые новые),
+  /// [hasMore] — на сервере есть старше страницы.
+  ///
+  /// Страница покрывает диапазон: от её самого старого (старше нет — от
+  /// начала) до [offsetID] − 1 (у самой новой — до её самого нового). Чего в
+  /// этом диапазоне нет в ответе — на сервере удалено (или скрыто от меня),
+  /// удаляется и из кэша; остальное перезаписывается (правки, реакции).
+  /// Граница несверенной истории сдвигается вниз до начала страницы; самая
+  /// новая страница, не дотянувшаяся до кэша (дыра после долгого офлайна),
+  /// старое не стирает, а делает несверенным. Возвращает новую границу (0 —
+  /// всё сверено).
+  Future<int> applyHistoryPage({
+    required List<int> userID,
+    required List<int> chatID,
+    required List<pb.ChatMessage> messages,
+    required int offsetID,
+    required bool hasMore,
+  }) async {
+    final stale = await historyStaleBelow(userID: userID, chatID: chatID);
+    final cachedNewest = await newestMessageID(userID: userID, chatID: chatID);
+    final ids = {for (final m in messages) m.messageID.toInt()};
+    // По убыванию: первое — самое новое, последнее — самое старое.
+    final from = !hasMore ? 1 : (messages.isEmpty ? null : messages.last.messageID.toInt());
+    // Пустая самая новая страница, старше нет — у меня в чате ничего не
+    // видно: сверяем несверенное (свежее, пришедшее после ответа, не трогаем).
+    final to = offsetID > 0
+        ? offsetID - 1
+        : messages.isNotEmpty
+        ? messages.first.messageID.toInt()
+        : (!hasMore && stale > 0 ? stale - 1 : null);
+    if (from != null && to != null && from <= to) {
+      final rows = await ctx.getAll('SELECT messageID FROM chatMessages WHERE userID = ? AND chatID = ? AND messageID BETWEEN ? AND ?;', [
+        userID,
+        chatID,
+        from,
+        to,
+      ]);
+      final gone = [
+        for (final row in rows)
+          if (!ids.contains(row['messageID'] as int)) row['messageID'] as int,
+      ];
+      await deleteMessages(userID: userID, chatID: chatID, messageIDs: gone);
+    }
+    for (final message in messages) {
+      await upsertMessage(userID: userID, message: message);
+    }
+
+    var next = stale;
+    if (!hasMore) {
+      next = 0;
+    } else if (from != null) {
+      final gap = offsetID == 0 && stale == 0 && cachedNewest > 0 && from > cachedNewest + 1;
+      if (stale > 0 || gap) next = from;
+    }
+    if (next <= 1) next = 0;
+    if (next != stale) {
+      await updateDialog(userID: userID, chatID: chatID, fields: {'historyStaleBelow': next});
+    }
+    return next;
   }
 
   /// Поиск по истории чата в кэше (FTS5): messageID найденных, от новых к

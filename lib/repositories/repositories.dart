@@ -676,6 +676,17 @@ class Repositories {
       }),
     );
 
+    migrations.add(
+      SqliteMigration(28, (tx) async {
+        // Сверка истории после долгого офлайна: журнал на сервере обрезан
+        // (`tooLong`) — кэш истории не стирается, а помечается: сообщения
+        // чата с messageID < historyStaleBelow не сверены с сервером (могли
+        // удалить / изменить, выше них могла быть дыра). Сверяются страницами
+        // при открытии чата и докачке; 0 — всё сверено.
+        await tx.execute('ALTER TABLE chatDialogs ADD COLUMN historyStaleBelow INTEGER NOT NULL DEFAULT 0;');
+      }),
+    );
+
     if (settings.isDeleteDatabase) {
       logger.warning("Deleting the database, flag set IS_DELETE_DATABASE: 1");
 
