@@ -106,7 +106,11 @@ final class MediaFiles: NSObject {
   private static func clipboardHasMedia() -> Bool {
     let pasteboard = UIPasteboard.general
     if pasteboard.hasImages { return true }
-    return pasteboard.types.contains { UTType($0)?.conforms(to: .movie) ?? false }
+    // hasImages знает не все форматы (HEIC из «Фото») — смотрим и по типам.
+    return pasteboard.types.contains { type in
+      guard let type = UTType(type) else { return false }
+      return type.conforms(to: .image) || type.conforms(to: .movie)
+    }
   }
 
   private func pasteMedia(into dir: URL, result: @escaping FlutterResult) {

@@ -8,6 +8,9 @@ import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:share_plus/share_plus.dart';
 
+import '../di.dart';
+import '../logger.dart';
+
 /// Файл вложения для системы: [path] — где лежит (кэш скачанного / outbox),
 /// [name] — как его назвать снаружи (имя файла из сообщения; пусто — как
 /// есть), [video] — для галереи.
@@ -35,6 +38,8 @@ class MediaFiles {
 
   static const _channel = MethodChannel('net.iperon.messenger/files');
 
+  static Logger get _logger => getIt.get<Logger>();
+
   /// Копии с настоящими именами старше этого удаляются при следующем экспорте.
   static const _exportTtl = Duration(hours: 1);
 
@@ -52,8 +57,10 @@ class MediaFiles {
       await _channel.invokeMethod<void>('copy', {
         'paths': [for (final f in files) f.path],
       });
+      _logger.info('media files: copied ${files.length} ${[for (final f in files) p.basename(f.path)]}');
       return true;
-    } on PlatformException {
+    } catch (error, stackTrace) {
+      _logger.handle(error, stackTrace, 'media files: copy');
       return false;
     }
   }
@@ -85,8 +92,11 @@ class MediaFiles {
   static Future<List<String>> pasteMedia() async {
     try {
       final pasted = await _channel.invokeListMethod<Map<Object?, Object?>>('pasteMedia', {'dir': await _pasteDir()});
-      return [for (final item in pasted ?? const <Map<Object?, Object?>>[]) item['path'] as String];
-    } on PlatformException {
+      final paths = [for (final item in pasted ?? const <Map<Object?, Object?>>[]) item['path'] as String];
+      _logger.info('media files: pasted ${paths.length} ${[for (final path in paths) p.basename(path)]}');
+      return paths;
+    } catch (error, stackTrace) {
+      _logger.handle(error, stackTrace, 'media files: paste');
       return const [];
     }
   }
@@ -188,5 +198,8 @@ class ClipboardMedia extends ValueNotifier<bool> {
   // ignore: unused_field
   late final AppLifecycleListener _lifecycle;
 
-  Future<void> refresh() async => value = await MediaFiles.clipboardHasMedia();
+  Future<void> refresh() async {
+    value = await MediaFiles.clipboardHasMedia();
+    MediaFiles._logger.debug('media files: clipboard has media=$value');
+  }
 }
