@@ -19,6 +19,7 @@ import UniformTypeIdentifiers
 ///   без чтения содержимого — iOS не спрашивает «Разрешить вставку»);
 /// - `pasteMedia` {dir} → фото / видео из буфера обмена файлами в `dir`
 ///   (картинки не JPEG / PNG / GIF — перекодируются в JPEG) → [{path, video}].
+/// Буфер сменился, пока приложение на экране, — вызов `clipboardChanged` в Dart.
 final class MediaFiles: NSObject {
   static let shared = MediaFiles()
 
@@ -32,6 +33,12 @@ final class MediaFiles: NSObject {
       self?.handle(call, result: result)
     }
     self.channel = channel
+    // Буфер сменился, пока мы на экране (скопировали здесь же) — сказать Dart.
+    NotificationCenter.default.addObserver(
+      forName: UIPasteboard.changedNotification, object: nil, queue: .main
+    ) { [weak self] _ in
+      self?.channel?.invokeMethod("clipboardChanged", arguments: nil)
+    }
   }
 
   private func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {

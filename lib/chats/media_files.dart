@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
@@ -58,6 +59,8 @@ class MediaFiles {
         'paths': [for (final f in files) f.path],
       });
       _logger.info('media files: copied ${files.length} ${[for (final f in files) p.basename(f.path)]}');
+      // Своё «Копировать» — «Вставить» в поле ввода уже знает про медиа.
+      unawaited(ClipboardMedia.instance.refresh());
       return true;
     } catch (error, stackTrace) {
       _logger.handle(error, stackTrace, 'media files: copy');

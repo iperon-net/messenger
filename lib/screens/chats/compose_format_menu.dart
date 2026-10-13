@@ -98,6 +98,14 @@ class ComposeFormatMenu {
         onSelected: (format) => _apply(context, editable, format),
       );
     }
+    if (onPasteMedia == null) return _toolbar(context, editable);
+    // Буфер мог смениться (скопировали в этом же приложении, iOS не сообщает) —
+    // проверяем при каждом открытии меню, «Вставить» появится, как узнаем.
+    unawaited(ClipboardMedia.instance.refresh());
+    return ValueListenableBuilder<bool>(valueListenable: ClipboardMedia.instance, builder: (context, _, _) => _toolbar(context, editable));
+  }
+
+  Widget _toolbar(BuildContext context, EditableTextState editable) {
     final items = _items(context, editable);
     return Platform.isIOS
         ? c.CupertinoAdaptiveTextSelectionToolbar.buttonItems(anchors: editable.contextMenuAnchors, buttonItems: items)
