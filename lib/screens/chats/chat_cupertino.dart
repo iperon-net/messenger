@@ -76,7 +76,12 @@ class ChatCupertino extends StatefulWidget {
 class _ChatCupertinoState extends State<ChatCupertino> {
   final _input = TextEditingController();
   late final _mentions = ComposeMentions(_input);
-  late final _formatMenu = ComposeFormatMenu(_input, members: () => _mentions.enabled ? _mentions.members : const []);
+  late final _formatMenu = ComposeFormatMenu(
+    _input,
+    members: () => _mentions.enabled ? _mentions.members : const [],
+    onPasteMedia: (context) => pasteClipboardMedia(context, input: _input),
+    focus: _focus,
+  );
   late final _recorder = VoiceRecorder(
     onSend: (path, seconds, waveform) => _cubit.sendVoice(localPath: path, duration: seconds, waveform: waveform),
     canStart: () => checkNewcomer(context, media: true),

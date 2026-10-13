@@ -14,7 +14,11 @@ import UniformTypeIdentifiers
 /// - `saveToGallery` {path, video} → в «Фото» (доступ только на добавление);
 ///   ошибка `denied` — доступа нет;
 /// - `saveFile` {path} → «Сохранить в Файлы» (экспорт копии); `false` —
-///   отменили.
+///   отменили;
+/// - `clipboardHasMedia` → есть ли в буфере обмена фото / видео (по типам,
+///   без чтения содержимого — iOS не спрашивает «Разрешить вставку»);
+/// - `pasteMedia` {dir} → фото / видео из буфера обмена файлами в `dir`
+///   (картинки не JPEG / PNG / GIF — перекодируются в JPEG) → [{path, video}].
 final class MediaFiles: NSObject {
   static let shared = MediaFiles()
 
@@ -48,6 +52,13 @@ final class MediaFiles: NSObject {
         return result(FlutterError(code: "args", message: "path", details: nil))
       }
       saveToGallery(URL(fileURLWithPath: path), video: args["video"] as? Bool ?? false, result: result)
+    case "clipboardHasMedia":
+      result(Self.clipboardHasMedia())
+    case "pasteMedia":
+      guard let dir = args["dir"] as? String else {
+        return result(FlutterError(code: "args", message: "dir", details: nil))
+      }
+      pasteMedia(into: URL(fileURLWithPath: dir), result: result)
     case "saveFile":
       guard let path = args["path"] as? String else {
         return result(FlutterError(code: "args", message: "path", details: nil))
@@ -88,6 +99,54 @@ final class MediaFiles: NSObject {
         UIPasteboard.general.setItems(items, options: [:])
         result(nil)
       }
+    }
+  }
+
+  /// Фото / видео в буфере — по типам элементов.
+  private static func clipboardHasMedia() -> Bool {
+    let pasteboard = UIPasteboard.general
+    if pasteboard.hasImages { return true }
+    return pasteboard.types.contains { UTType($0)?.conforms(to: .movie) ?? false }
+  }
+
+  private func pasteMedia(into dir: URL, result: @escaping FlutterResult) {
+    let items = UIPasteboard.general.items
+    DispatchQueue.global(qos: .userInitiated).async {
+      try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+      let stamp = Int(Date().timeIntervalSince1970 * 1000)
+      var pasted: [[String: Any]] = []
+      for (i, item) in items.enumerated() {
+        let types = item.keys.compactMap { key in UTType(key).map { (key, $0) } }
+        if let (key, type) = types.first(where: { $0.1.conforms(to: .movie) }),
+           let data = Self.data(item[key]) {
+          let url = dir.appendingPathComponent("paste_\(stamp)_\(i).\(type.preferredFilenameExtension ?? "mp4")")
+          if (try? data.write(to: url)) != nil { pasted.append(["path": url.path, "video": true]) }
+          continue
+        }
+        guard let (key, type) = types.first(where: { $0.1.conforms(to: .image) }) else { continue }
+        var data = Self.data(item[key])
+        var ext = type.preferredFilenameExtension ?? "jpg"
+        // HEIC, TIFF и прочее — в JPEG: так фото уйдёт как обычное.
+        if ![UTType.jpeg, .png, .gif].contains(type) {
+          let image = item[key] as? UIImage ?? data.flatMap { UIImage(data: $0) }
+          data = image?.jpegData(compressionQuality: 0.95)
+          ext = "jpg"
+        }
+        guard let data else { continue }
+        let url = dir.appendingPathComponent("paste_\(stamp)_\(i).\(ext)")
+        if (try? data.write(to: url)) != nil { pasted.append(["path": url.path, "video": false]) }
+      }
+      DispatchQueue.main.async { result(pasted) }
+    }
+  }
+
+  /// Содержимое элемента буфера: данные, картинка или ссылка на файл.
+  private static func data(_ value: Any?) -> Data? {
+    switch value {
+    case let data as Data: return data
+    case let image as UIImage: return image.pngData()
+    case let url as URL: return try? Data(contentsOf: url, options: .mappedIfSafe)
+    default: return nil
     }
   }
 

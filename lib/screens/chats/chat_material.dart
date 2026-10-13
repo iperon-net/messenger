@@ -71,7 +71,12 @@ class ChatMaterial extends StatefulWidget {
 class _ChatMaterialState extends State<ChatMaterial> {
   final _input = TextEditingController();
   late final _mentions = ComposeMentions(_input);
-  late final _formatMenu = ComposeFormatMenu(_input, members: () => _mentions.enabled ? _mentions.members : const []);
+  late final _formatMenu = ComposeFormatMenu(
+    _input,
+    members: () => _mentions.enabled ? _mentions.members : const [],
+    onPasteMedia: (context) => pasteClipboardMedia(context, input: _input),
+    focus: _focus,
+  );
   late final _recorder = VoiceRecorder(
     onSend: (path, seconds, waveform) => _cubit.sendVoice(localPath: path, duration: seconds, waveform: waveform),
     canStart: () => checkNewcomer(context, media: true),
@@ -1096,6 +1101,11 @@ class _ComposeBar extends StatelessWidget {
                               controller: input,
                               focusNode: focus,
                               contextMenuBuilder: formatMenu.builder,
+                              // Картинка / видео с клавиатуры (буфер Gboard, GIF).
+                              contentInsertionConfiguration: ContentInsertionConfiguration(
+                                allowedMimeTypes: chatInsertMimeTypes,
+                                onContentInserted: (content) => insertKeyboardMedia(context, content, input: input),
+                              ),
                               minLines: 1,
                               maxLines: 6,
                               keyboardType: TextInputType.multiline,

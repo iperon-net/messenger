@@ -1,6 +1,8 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -69,6 +71,52 @@ class MediaFiles {
   /// Download/Iperon.
   static Future<MediaSaveResult> saveFile(MediaFile file) async => _save('saveFile', {'path': await _named(file)});
 
+  /// Есть ли в буфере обмена фото / видео (без чтения содержимого).
+  static Future<bool> clipboardHasMedia() async {
+    try {
+      return await _channel.invokeMethod<bool>('clipboardHasMedia') ?? false;
+    } on PlatformException {
+      return false;
+    }
+  }
+
+  /// Фото / видео из буфера обмена — файлами во временном каталоге (пусто —
+  /// там их нет).
+  static Future<List<String>> pasteMedia() async {
+    try {
+      final pasted = await _channel.invokeListMethod<Map<Object?, Object?>>('pasteMedia', {'dir': await _pasteDir()});
+      return [for (final item in pasted ?? const <Map<Object?, Object?>>[]) item['path'] as String];
+    } on PlatformException {
+      return const [];
+    }
+  }
+
+  /// Картинка / видео с клавиатуры (Android: вставка из буфера Gboard,
+  /// GIF-клавиатура) — файлом во временном каталоге; `null` — данных нет.
+  static Future<String?> saveInserted(Uint8List? data, String mimeType) async {
+    if (data == null || data.isEmpty) return null;
+    final ext = switch (mimeType) {
+      'image/png' => 'png',
+      'image/gif' => 'gif',
+      'image/webp' => 'webp',
+      'image/heic' || 'image/heif' => 'heic',
+      'video/mp4' => 'mp4',
+      'video/3gpp' => '3gp',
+      'video/webm' => 'webm',
+      _ => mimeType.startsWith('video/') ? 'mp4' : 'jpg',
+    };
+    final file = File(p.join(await _pasteDir(), 'paste_${DateTime.now().microsecondsSinceEpoch}.$ext'));
+    await file.writeAsBytes(data, flush: true);
+    return file.path;
+  }
+
+  static Future<String> _pasteDir() async {
+    final dir = Directory(p.join((await getTemporaryDirectory()).path, 'media_paste'));
+    await _cleanExports(dir);
+    await dir.create(recursive: true);
+    return dir.path;
+  }
+
   /// Системное «Поделиться».
   static Future<void> share(List<MediaFile> files) async {
     final named = [for (final f in files) XFile(await _named(f))];
@@ -121,4 +169,24 @@ class MediaFiles {
       }
     }
   }
+}
+
+/// Есть ли в буфере обмена фото / видео — для «Вставить» в меню поля ввода
+/// (меню строится синхронно, поэтому знаем заранее). Обновляется, когда поле
+/// получает фокус ([refresh]), при возврате в приложение и по сигналу
+/// Android о смене буфера.
+class ClipboardMedia extends ValueNotifier<bool> {
+  ClipboardMedia._() : super(false) {
+    MediaFiles._channel.setMethodCallHandler((call) async {
+      if (call.method == 'clipboardChanged') await refresh();
+    });
+    _lifecycle = AppLifecycleListener(onResume: refresh);
+  }
+
+  static final ClipboardMedia instance = ClipboardMedia._();
+
+  // ignore: unused_field
+  late final AppLifecycleListener _lifecycle;
+
+  Future<void> refresh() async => value = await MediaFiles.clipboardHasMedia();
 }

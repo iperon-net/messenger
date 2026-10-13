@@ -36,7 +36,12 @@ class MediaFileProvider : FileProvider()
  *  - `copy` {paths} → в буфер обмена ссылками content:// (фото и видео вставляются
  *    в другие приложения: доступ к ссылке система выдаёт тому, кто вставляет);
  *  - `saveToGallery` {path, video} → Pictures/Iperon или Movies/Iperon;
- *  - `saveFile` {path} → Download/Iperon.
+ *  - `saveFile` {path} → Download/Iperon;
+ *  - `clipboardHasMedia` → есть ли в буфере обмена фото / видео (по описанию —
+ *    без чтения, Android не показывает «вставлено из буфера»);
+ *  - `pasteMedia` {dir} → фото / видео из буфера обмена (ссылки content://, например
+ *    «Копировать» в галерее) файлами в `dir` → [{path, video}].
+ * Буфер обмена сменился — вызов `clipboardChanged` в Dart.
  * До Android 10 сохранение пишет в общую папку — нужно WRITE_EXTERNAL_STORAGE:
  * нет его — ошибка `permission` (Dart попросит и повторит).
  */
@@ -47,8 +52,17 @@ class MediaFiles(
     private val channel = MethodChannel(messenger, CHANNEL).also { it.setMethodCallHandler(this) }
     private val main = Handler(Looper.getMainLooper())
     private val io = Executors.newSingleThreadExecutor()
+    private val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+    private val clipboardListener = ClipboardManager.OnPrimaryClipChangedListener {
+        channel.invokeMethod("clipboardChanged", null)
+    }
+
+    init {
+        clipboard.addPrimaryClipChangedListener(clipboardListener)
+    }
 
     fun dispose() {
+        clipboard.removePrimaryClipChangedListener(clipboardListener)
         channel.setMethodCallHandler(null)
         io.shutdown()
     }
@@ -72,6 +86,11 @@ class MediaFiles(
             "saveFile" -> {
                 val path = call.argument<String>("path") ?: return result.error("args", "path", null)
                 save(File(path), Target.DOWNLOADS, result)
+            }
+            "clipboardHasMedia" -> result.success(clipboardHasMedia())
+            "pasteMedia" -> {
+                val dir = call.argument<String>("dir") ?: return result.error("args", "dir", null)
+                pasteMedia(File(dir), result)
             }
             else -> result.notImplemented()
         }
@@ -99,11 +118,40 @@ class MediaFiles(
             if (uris.isEmpty()) return result.error("failed", "no readable files", null)
             val clip = ClipData.newUri(resolver, "Iperon", uris.first())
             uris.drop(1).forEach { clip.addItem(ClipData.Item(it)) }
-            val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
             clipboard.setPrimaryClip(clip)
             result.success(null)
         } catch (e: Exception) {
             result.error("failed", e.message, null)
+        }
+    }
+
+    private fun clipboardHasMedia(): Boolean {
+        val description = clipboard.primaryClipDescription ?: return false
+        return description.hasMimeType("image/*") || description.hasMimeType("video/*")
+    }
+
+    private fun pasteMedia(dir: File, result: MethodChannel.Result) {
+        val clip = clipboard.primaryClip ?: return result.success(emptyList<Map<String, Any>>())
+        val resolver = context.contentResolver
+        val uris = (0 until clip.itemCount).mapNotNull { clip.getItemAt(it).uri }
+        io.execute {
+            val pasted = mutableListOf<Map<String, Any>>()
+            dir.mkdirs()
+            val stamp = System.currentTimeMillis()
+            uris.forEachIndexed { i, uri ->
+                try {
+                    val mime = resolver.getType(uri) ?: return@forEachIndexed
+                    val video = mime.startsWith("video/")
+                    if (!video && !mime.startsWith("image/")) return@forEachIndexed
+                    val ext = MimeTypeMap.getSingleton().getExtensionFromMimeType(mime) ?: if (video) "mp4" else "jpg"
+                    val out = File(dir, "paste_${stamp}_$i.$ext")
+                    resolver.openInputStream(uri)?.use { input -> out.outputStream().use { input.copyTo(it) } } ?: return@forEachIndexed
+                    pasted.add(mapOf("path" to out.absolutePath, "video" to video))
+                } catch (_: Exception) {
+                    // Нет доступа к ссылке / файл пропал — пропускаем.
+                }
+            }
+            main.post { result.success(pasted) }
         }
     }
 

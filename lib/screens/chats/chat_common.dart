@@ -13,6 +13,7 @@ import 'package:path/path.dart' as p;
 
 import '../../chats/chats_remote_data_source.dart';
 import '../../chats/chats_sync.dart';
+import '../../chats/media_files.dart';
 import '../../chats/media_prepare.dart';
 import '../../chats/message_formatting.dart';
 import '../../chats/message_quote.dart';
@@ -603,6 +604,41 @@ Future<void> pickAndSendAttachments(BuildContext context, {TextEditingController
     ],
     ToolbarAttachmentEmojiResult() || ToolbarAttachmentLinkResult() || ToolbarAttachmentPollResult() || null => const <AttachmentDraft>[],
   };
+  if (!context.mounted) return;
+  await sendAttachmentDrafts(context, items, input: input);
+}
+
+/// Вставка из буфера обмена (меню «Вставить» в поле ввода, картинка с
+/// клавиатуры на Android): фото и видео — тем же превью с подписью, что и
+/// из скрепки.
+Future<void> sendPastedMedia(BuildContext context, List<String> paths, {TextEditingController? input}) async {
+  if (paths.isEmpty || !checkSlowMode(context) || !checkNewcomer(context, media: true)) return;
+  await sendAttachmentDrafts(context, [for (final path in paths) _draft(path)], input: input);
+}
+
+/// «Вставить» в поле ввода, когда в буфере обмена фото / видео (например,
+/// «Копировать» в галерее): они — файлами и в превью с подписью.
+Future<void> pasteClipboardMedia(BuildContext context, {TextEditingController? input}) async {
+  final paths = await MediaFiles.pasteMedia();
+  if (paths.isEmpty || !context.mounted) return;
+  await sendPastedMedia(context, paths, input: input);
+}
+
+/// Что поле ввода принимает с клавиатуры (Android: вставка картинки из буфера
+/// Gboard, GIF-клавиатура).
+const chatInsertMimeTypes = [...kDefaultContentInsertionMimeTypes, 'video/mp4', 'video/3gpp', 'video/webm'];
+
+/// Картинка / видео с клавиатуры — как вставка из буфера.
+Future<void> insertKeyboardMedia(BuildContext context, KeyboardInsertedContent content, {TextEditingController? input}) async {
+  final path = await MediaFiles.saveInserted(content.data, content.mimeType);
+  if (path == null || !context.mounted) return;
+  await sendPastedMedia(context, [path], input: input);
+}
+
+/// Превью с подписью и отправка выбранных вложений [items] (см.
+/// [pickAndSendAttachments]).
+Future<void> sendAttachmentDrafts(BuildContext context, List<AttachmentDraft> items, {TextEditingController? input}) async {
+  final cubit = context.read<ChatCubit>();
   if (items.isEmpty || !context.mounted) return;
   // Медленный режим — только одно сообщение: один альбом или один файл.
   final mediaCount = items.where((i) => i.isMedia).length;

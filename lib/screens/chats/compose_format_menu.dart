@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:math' as math;
 import 'dart:ui' show ImageFilter;
@@ -8,6 +9,7 @@ import 'package:flutter/widgets.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:material_ui/material_ui.dart' as m;
 
+import '../../chats/media_files.dart';
 import '../../chats/message_formatting.dart';
 import '../../i18n/translations.g.dart';
 import '../../models.dart' as models;
@@ -30,8 +32,20 @@ class ComposeFormatMenu {
   /// Участники чата для «Упомянуть» (пусто — пункта нет: личный чат, канал).
   final List<models.ChatMember> Function()? members;
 
-  ComposeFormatMenu(this.input, {this.members}) {
+  /// «Вставить», когда в буфере обмена фото / видео (`null` — только текст):
+  /// получает контекст поля ввода. Есть ли они там — [ClipboardMedia],
+  /// проверяется, когда поле получает фокус ([focus]).
+  final void Function(BuildContext context)? onPasteMedia;
+  final FocusNode? focus;
+
+  ComposeFormatMenu(this.input, {this.members, this.onPasteMedia, this.focus}) {
     input.addListener(_onChange);
+    focus?.addListener(_onFocus);
+    if (onPasteMedia != null) unawaited(ClipboardMedia.instance.refresh());
+  }
+
+  void _onFocus() {
+    if (onPasteMedia != null && (focus?.hasFocus ?? false)) unawaited(ClipboardMedia.instance.refresh());
   }
 
   List<models.ChatMember> get _members => [
@@ -64,7 +78,10 @@ class ComposeFormatMenu {
   bool _formats = false;
   TextSelection? _selection;
 
-  void dispose() => input.removeListener(_onChange);
+  void dispose() {
+    input.removeListener(_onChange);
+    focus?.removeListener(_onFocus);
+  }
 
   // Выделение сменилось — снова обычное меню.
   void _onChange() {
@@ -94,9 +111,22 @@ class ComposeFormatMenu {
     // приложения. Системные «Найти», «Поделиться», «Выбрать всё» и т. п. не
     // показываем.
     const labels = {ContextMenuButtonType.cut: 'Cut', ContextMenuButtonType.copy: 'Copy', ContextMenuButtonType.paste: 'Paste'};
+    final pasteMedia = onPasteMedia;
+    // Фото / видео в буфере — «Вставить» отправляет их (как в Telegram), а не
+    // текст, который может лежать рядом.
+    final media = pasteMedia != null && ClipboardMedia.instance.value;
     final items = [
       for (final item in editable.contextMenuButtonItems)
-        if (labels[item.type] case final label?) item.copyWith(label: label),
+        if (labels[item.type] case final label? when !(media && item.type == ContextMenuButtonType.paste)) item.copyWith(label: label),
+      if (media)
+        ContextMenuButtonItem(
+          type: ContextMenuButtonType.paste,
+          label: 'Paste',
+          onPressed: () {
+            editable.hideToolbar();
+            pasteMedia(context);
+          },
+        ),
     ];
     if (!selection.isValid || selection.isCollapsed) return items;
     final format = ContextMenuButtonItem(
