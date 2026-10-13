@@ -249,8 +249,9 @@ class PushManager {
   }
 
   void _handleTap(Object? arguments) {
-    final kind = PushPayload_Kind.valueOf(((arguments as Map?)?['kind'] as int?) ?? 0);
-    final route = routeForKind(kind);
+    final tap = arguments as Map?;
+    final kind = PushPayload_Kind.valueOf((tap?['kind'] as int?) ?? 0);
+    final route = routeForKind(kind, chatID: (tap?['chatID'] as String?) ?? '');
     logger.info('push: notification tap kind=$kind route=$route');
     if (route == null) return;
 
@@ -262,15 +263,20 @@ class PushManager {
     }
   }
 
-  /// Куда вести по тапу. null — просто открыть приложение. Экрана чата пока нет —
-  /// сообщения ведут в список чатов.
+  /// Куда вести по тапу. null — просто открыть приложение. Сообщение и
+  /// реакция — в чат [chatID] (hex, натив кладёт его из расшифрованного
+  /// пуша); без него — в список чатов.
   @visibleForTesting
-  static String? routeForKind(PushPayload_Kind? kind) => switch (kind) {
+  static String? routeForKind(PushPayload_Kind? kind, {String chatID = ''}) => switch (kind) {
     PushPayload_Kind.CONTACT_JOINED => '/contacts',
     PushPayload_Kind.CALL_MISSED => '/calls',
-    PushPayload_Kind.MESSAGE || PushPayload_Kind.MESSAGE_REACTION => '/chats',
+    PushPayload_Kind.MESSAGE ||
+    PushPayload_Kind.MESSAGE_REACTION => _chatIDPattern.hasMatch(chatID) ? '/chats/chat/${chatID.toLowerCase()}' : '/chats',
     _ => null,
   };
+
+  /// chatID из пуша — ObjectID в hex.
+  static final _chatIDPattern = RegExp(r'^[0-9a-fA-F]{24}$');
 
   /// Android: FCM-токен + подписка на его обновление.
   Future<void> _syncFcmToken() async {
