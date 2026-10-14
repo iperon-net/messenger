@@ -52,7 +52,10 @@ class _UploadExpiredException implements Exception {
 /// сразу.
 class DownloadException implements Exception {
   final String message;
-  const DownloadException(this.message);
+
+  /// HTTP-код отказа CDN (4xx), если ошибка — ответ сервера.
+  final int? statusCode;
+  const DownloadException(this.message, {this.statusCode});
 
   @override
   String toString() => 'DownloadException: $message';
@@ -471,12 +474,23 @@ class CDNManager {
   ///
   /// Бросает [DownloadException] при фатальной ошибке (отказ сервера, битый хеш,
   /// провал расшифровки); сетевые обрывы обрабатывает докачкой и ретраями.
-  Future<File> download({required models.CDN cdn, void Function(int receivedBytes, int totalBytes)? onProgress}) async {
+  ///
+  /// [refresh] — как получить свежее описание файла у сервера, когда ссылка
+  /// больше не открывается ([_staleLinkStatuses]: 403 — истёк срок ссылки с
+  /// токеном, 404 / 410 — файл переехал в другое хранилище). Вызывается один
+  /// раз за скачивание; `null` — файла больше нет (или нет доступа), тогда
+  /// [DownloadException]. Объект в хранилище тот же (тот же `cdnID` и хеш),
+  /// поэтому докачка продолжается с того же места.
+  Future<File> download({
+    required models.CDN cdn,
+    void Function(int receivedBytes, int totalBytes)? onProgress,
+    Future<models.CDN?> Function()? refresh,
+  }) async {
     final key = utils.bytesToHex(cdn.cdnID);
     final existing = _inFlightDownloads[key];
     if (existing != null) return existing;
 
-    final future = _download(cdn: cdn, onProgress: onProgress);
+    final future = _download(cdn: cdn, onProgress: onProgress, refresh: refresh);
     _inFlightDownloads[key] = future;
     try {
       return await future;
@@ -485,7 +499,15 @@ class CDNManager {
     }
   }
 
-  Future<File> _download({required models.CDN cdn, void Function(int receivedBytes, int totalBytes)? onProgress}) async {
+  /// HTTP-коды, при которых ссылка на файл устарела, а не файл пропал:
+  /// [download] берёт свежую через `refresh` и повторяет.
+  static const Set<int> _staleLinkStatuses = {HttpStatus.forbidden, HttpStatus.notFound, HttpStatus.gone};
+
+  Future<File> _download({
+    required models.CDN cdn,
+    void Function(int receivedBytes, int totalBytes)? onProgress,
+    Future<models.CDN?> Function()? refresh,
+  }) async {
     var state = await _resolveDownloadState(cdn);
 
     // Cache-hit: файл уже скачан и расшифрован.
@@ -501,13 +523,31 @@ class CDNManager {
       state = await _resolveDownloadState(cdn);
     }
 
-    // 1. Закачка ciphertext с докачкой; сетевые обрывы — ретраим.
+    // 1. Закачка ciphertext с докачкой; сетевые обрывы — ретраим, устаревшую
+    //    ссылку — один раз меняем на свежую.
+    var refreshed = false;
     for (var attempt = 1; ; attempt++) {
       try {
         await _runDownloadPass(state, onProgress: onProgress);
         break;
       } catch (error, stackTrace) {
-        if (error is DownloadException) rethrow;
+        if (error is DownloadException) {
+          if (refresh == null || refreshed || !_staleLinkStatuses.contains(error.statusCode)) rethrow;
+          refreshed = true;
+          final fresh = await refresh();
+          if (fresh == null || utils.bytesToHex(fresh.cdnID) != utils.bytesToHex(cdn.cdnID)) {
+            throw DownloadException('download: file is gone (${error.statusCode})', statusCode: error.statusCode);
+          }
+          logger.info('download: stale link (${error.statusCode}), retrying with a fresh one');
+          await repositories.downloads.setUrl(cdnID: cdn.cdnID, url: fresh.url);
+          final reloaded = await repositories.downloads.getByCdnID(cdn.cdnID);
+          if (reloaded == null) {
+            throw const DownloadException('download: local state disappeared after link refresh');
+          }
+          state = reloaded;
+          attempt--;
+          continue;
+        }
 
         logger.handle(error, stackTrace);
         if (attempt >= _maxStreamAttempts) {
@@ -625,7 +665,7 @@ class CDNManager {
             // 5xx — транзиентно, пусть ретраит download.
             throw HttpException('download: server error ${response.statusCode}', uri: Uri.parse(state.url));
           }
-          throw DownloadException('download: unexpected HTTP status ${response.statusCode}');
+          throw DownloadException('download: unexpected HTTP status ${response.statusCode}', statusCode: response.statusCode);
       }
 
       if (total != null) {

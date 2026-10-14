@@ -760,7 +760,7 @@ class ChatsRemoteDataSource implements ChatsDataSource {
       return queued.isForward ? _withServerMedia(message, content, chatID) : _withOutboxMedia(message, queued, outboxDir);
     }
 
-    final messages = [for (final m in history) await _withServerMedia(map(m), m.content, chatID)];
+    final messages = [for (final m in history) await _withServerMedia(map(m), m.content, chatID, messageID: m.messageID.toInt())];
     final pending = <models.Message>[];
     for (final queued in await _store.outbox(userID: me, chatID: chat)) {
       if (queued.isScheduled) continue;
@@ -792,7 +792,7 @@ class ChatsRemoteDataSource implements ChatsDataSource {
   /// Скачивания в очереди и идущие: cdnID (hex) → получено / всего байт
   /// шифротекста (0 / 0 — ещё ждёт очереди).
   final _downloads = <String, ({int received, int total})>{};
-  final _downloadQueue = <({String key, models.CDN cdn, String chatID})>[];
+  final _downloadQueue = <({String key, models.CDN cdn, String chatID, int? messageID})>[];
   var _activeDownloads = 0;
   static const _maxDownloads = 3;
 
@@ -812,8 +812,10 @@ class ChatsRemoteDataSource implements ChatsDataSource {
   }
 
   /// Путь к скачанному файлу [file]; ещё не скачан — ставит в очередь
-  /// (автозагрузка всех вложений открытого чата) и отдаёт пусто.
-  Future<String> _mediaFile(CDN file, String chatID) async {
+  /// (автозагрузка всех вложений открытого чата) и отдаёт пусто. [messageID] —
+  /// серверное сообщение с этим файлом: по нему берётся свежая ссылка, если
+  /// старая не открывается (null — неотправленная пересылка, без обновления).
+  Future<String> _mediaFile(CDN file, String chatID, int? messageID) async {
     if (file.cdnID.isEmpty) return '';
     final key = idHex(file.cdnID);
     final known = _mediaPaths[key];
@@ -824,7 +826,7 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     final failed = _downloadFailed[key];
     if (failed != null && DateTime.now().difference(failed) < _downloadRetry) return '';
     _downloads[key] = (received: 0, total: 0);
-    _downloadQueue.add((key: key, cdn: models.CDN.fromProto(file), chatID: chatID));
+    _downloadQueue.add((key: key, cdn: models.CDN.fromProto(file), chatID: chatID, messageID: messageID));
     _pumpDownloads();
     return '';
   }
@@ -834,7 +836,7 @@ class ChatsRemoteDataSource implements ChatsDataSource {
       final job = _downloadQueue.removeAt(0);
       _activeDownloads++;
       unawaited(
-        _download(job.key, job.cdn, job.chatID).whenComplete(() {
+        _download(job.key, job.cdn, job.chatID, job.messageID).whenComplete(() {
           _activeDownloads--;
           _pumpDownloads();
         }),
@@ -842,7 +844,7 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     }
   }
 
-  Future<void> _download(String key, models.CDN cdn, String chatID) async {
+  Future<void> _download(String key, models.CDN cdn, String chatID, int? messageID) async {
     try {
       if (!await _sync.hasNetwork()) throw const ChatsOfflineException();
       final file = await _cdn.download(
@@ -851,6 +853,7 @@ class ChatsRemoteDataSource implements ChatsDataSource {
           _downloads[key] = (received: received, total: total);
           _notifyMedia(chatID);
         },
+        refresh: messageID == null ? null : () => _freshFile(cdn.cdnID, chatID, messageID),
       );
       _mediaPaths[key] = file.path;
       _downloadFailed.remove(key);
@@ -863,19 +866,32 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     }
   }
 
+  /// Свежее описание файла [cdnID] из сообщения [messageID] (Messages.Get):
+  /// ссылка на вложение устарела. Сообщения или файла больше нет — null.
+  Future<models.CDN?> _freshFile(Uint8List cdnID, String chatID, int messageID) async {
+    final message = await _sync.refreshMessage(idBytes(chatID), messageID);
+    if (message == null) return null;
+    for (final media in message.content.media) {
+      for (final file in [if (media.hasFile()) media.file, if (media.hasThumbFile()) media.thumbFile]) {
+        if (sameID(file.cdnID, cdnID)) return models.CDN.fromProto(file);
+      }
+    }
+    return null;
+  }
+
   /// Пути скачанных вложений сообщения с сервера и прогресс скачивания (у
   /// видео, файлов и голосовых — кольцо в пузыре, фото проявляются из
   /// размытого превью).
-  Future<models.Message> _withServerMedia(models.Message message, pb.MessageContent content, String chatID) async {
+  Future<models.Message> _withServerMedia(models.Message message, pb.MessageContent content, String chatID, {int? messageID}) async {
     if (content.media.isEmpty) return message;
     final paths = <String>[];
     final thumbs = <String>[];
     var received = 0;
     var total = 0;
     for (final media in content.media) {
-      final path = media.hasFile() ? await _mediaFile(media.file, chatID) : '';
+      final path = media.hasFile() ? await _mediaFile(media.file, chatID, messageID) : '';
       paths.add(path);
-      thumbs.add(media.hasThumbFile() ? await _mediaFile(media.thumbFile, chatID) : '');
+      thumbs.add(media.hasThumbFile() ? await _mediaFile(media.thumbFile, chatID, messageID) : '');
       final progress = media.hasFile() ? _downloads[idHex(media.file.cdnID)] : null;
       if (path.isEmpty && progress != null && message.kind != models.MessageKind.photo) {
         final size = media.size.toInt();
@@ -1268,6 +1284,7 @@ class ChatsRemoteDataSource implements ChatsDataSource {
           ),
           m.content,
           chatID,
+          messageID: m.messageID.toInt(),
         ),
     ];
   }

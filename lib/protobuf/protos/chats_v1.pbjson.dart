@@ -1049,6 +1049,8 @@ const Messages$json = {
     Messages_ReadReactionsResult$json,
     Messages_UnreadReactions$json,
     Messages_UnreadReactionsResult$json,
+    Messages_Get$json,
+    Messages_GetResult$json,
     Messages_Request$json,
     Messages_Response$json
   ],
@@ -1333,6 +1335,23 @@ const Messages_UnreadReactionsResult$json = {
 };
 
 @$core.Deprecated('Use messagesDescriptor instead')
+const Messages_Get$json = {
+  '1': 'Get',
+  '2': [
+    {'1': 'chatID', '3': 1, '4': 1, '5': 12, '10': 'chatID'},
+    {'1': 'messageIDs', '3': 2, '4': 3, '5': 3, '10': 'messageIDs'},
+  ],
+};
+
+@$core.Deprecated('Use messagesDescriptor instead')
+const Messages_GetResult$json = {
+  '1': 'GetResult',
+  '2': [
+    {'1': 'messages', '3': 1, '4': 3, '5': 11, '6': '.iperon.v1.ChatMessage', '10': 'messages'},
+  ],
+};
+
+@$core.Deprecated('Use messagesDescriptor instead')
 const Messages_Request$json = {
   '1': 'Request',
   '2': [
@@ -1351,6 +1370,7 @@ const Messages_Request$json = {
     {'1': 'sendScheduledNow', '3': 13, '4': 1, '5': 11, '6': '.iperon.v1.Messages.SendScheduledNow', '9': 0, '10': 'sendScheduledNow'},
     {'1': 'reschedule', '3': 14, '4': 1, '5': 11, '6': '.iperon.v1.Messages.Reschedule', '9': 0, '10': 'reschedule'},
     {'1': 'deleteScheduled', '3': 15, '4': 1, '5': 11, '6': '.iperon.v1.Messages.DeleteScheduled', '9': 0, '10': 'deleteScheduled'},
+    {'1': 'get', '3': 16, '4': 1, '5': 11, '6': '.iperon.v1.Messages.Get', '9': 0, '10': 'get'},
   ],
   '8': [
     {'1': 'request'},
@@ -1384,6 +1404,7 @@ const Messages_Response$json = {
     },
     {'1': 'reschedule', '3': 14, '4': 1, '5': 11, '6': '.iperon.v1.Messages.RescheduleResult', '9': 0, '10': 'reschedule'},
     {'1': 'deleteScheduled', '3': 15, '4': 1, '5': 11, '6': '.iperon.v1.Messages.DeleteScheduledResult', '9': 0, '10': 'deleteScheduled'},
+    {'1': 'get', '3': 16, '4': 1, '5': 11, '6': '.iperon.v1.Messages.GetResult', '9': 0, '10': 'get'},
   ],
   '8': [
     {'1': 'response'},
@@ -1439,44 +1460,48 @@ final $typed_data.Uint8List messagesDescriptor =
         'c3VsdBIsCgd1cGRhdGVzGAEgASgLMhIuaXBlcm9uLnYxLlVwZGF0ZXNSB3VwZGF0ZXMaPwoPVW'
         '5yZWFkUmVhY3Rpb25zEhYKBmNoYXRJRBgBIAEoDFIGY2hhdElEEhQKBWxpbWl0GAIgASgFUgVs'
         'aW1pdBpLChVVbnJlYWRSZWFjdGlvbnNSZXN1bHQSMgoIbWVzc2FnZXMYASADKAsyFi5pcGVyb2'
-        '4udjEuQ2hhdE1lc3NhZ2VSCG1lc3NhZ2VzGtQHCgdSZXF1ZXN0EjcKB2hpc3RvcnkYASABKAsy'
-        'Gy5pcGVyb24udjEuTWVzc2FnZXMuSGlzdG9yeUgAUgdoaXN0b3J5Ei4KBHNlbmQYAiABKAsyGC'
-        '5pcGVyb24udjEuTWVzc2FnZXMuU2VuZEgAUgRzZW5kEi4KBGVkaXQYAyABKAsyGC5pcGVyb24u'
-        'djEuTWVzc2FnZXMuRWRpdEgAUgRlZGl0EjQKBmRlbGV0ZRgEIAEoCzIaLmlwZXJvbi52MS5NZX'
-        'NzYWdlcy5EZWxldGVIAFIGZGVsZXRlEkYKDHJlYWRDb250ZW50cxgFIAEoCzIgLmlwZXJvbi52'
-        'MS5NZXNzYWdlcy5SZWFkQ29udGVudHNIAFIMcmVhZENvbnRlbnRzEisKA3BpbhgGIAEoCzIXLm'
-        'lwZXJvbi52MS5NZXNzYWdlcy5QaW5IAFIDcGluEjoKCHVucGluQWxsGAcgASgLMhwuaXBlcm9u'
-        'LnYxLk1lc3NhZ2VzLlVucGluQWxsSABSCHVucGluQWxsEjQKBnBpbm5lZBgIIAEoCzIaLmlwZX'
-        'Jvbi52MS5NZXNzYWdlcy5QaW5uZWRIAFIGcGlubmVkEkYKDHNldFJlYWN0aW9ucxgJIAEoCzIg'
-        'LmlwZXJvbi52MS5NZXNzYWdlcy5TZXRSZWFjdGlvbnNIAFIMc2V0UmVhY3Rpb25zEkkKDXJlYW'
-        'RSZWFjdGlvbnMYCiABKAsyIS5pcGVyb24udjEuTWVzc2FnZXMuUmVhZFJlYWN0aW9uc0gAUg1y'
-        'ZWFkUmVhY3Rpb25zEk8KD3VucmVhZFJlYWN0aW9ucxgLIAEoCzIjLmlwZXJvbi52MS5NZXNzYW'
-        'dlcy5VbnJlYWRSZWFjdGlvbnNIAFIPdW5yZWFkUmVhY3Rpb25zEj0KCXNjaGVkdWxlZBgMIAEo'
-        'CzIdLmlwZXJvbi52MS5NZXNzYWdlcy5TY2hlZHVsZWRIAFIJc2NoZWR1bGVkElIKEHNlbmRTY2'
-        'hlZHVsZWROb3cYDSABKAsyJC5pcGVyb24udjEuTWVzc2FnZXMuU2VuZFNjaGVkdWxlZE5vd0gA'
-        'UhBzZW5kU2NoZWR1bGVkTm93EkAKCnJlc2NoZWR1bGUYDiABKAsyHi5pcGVyb24udjEuTWVzc2'
-        'FnZXMuUmVzY2hlZHVsZUgAUgpyZXNjaGVkdWxlEk8KD2RlbGV0ZVNjaGVkdWxlZBgPIAEoCzIj'
-        'LmlwZXJvbi52MS5NZXNzYWdlcy5EZWxldGVTY2hlZHVsZWRIAFIPZGVsZXRlU2NoZWR1bGVkQg'
-        'kKB3JlcXVlc3QasAgKCFJlc3BvbnNlEj0KB2hpc3RvcnkYASABKAsyIS5pcGVyb24udjEuTWVz'
-        'c2FnZXMuSGlzdG9yeVJlc3VsdEgAUgdoaXN0b3J5EjQKBHNlbmQYAiABKAsyHi5pcGVyb24udj'
-        'EuTWVzc2FnZXMuU2VuZFJlc3VsdEgAUgRzZW5kEjQKBGVkaXQYAyABKAsyHi5pcGVyb24udjEu'
-        'TWVzc2FnZXMuRWRpdFJlc3VsdEgAUgRlZGl0EjoKBmRlbGV0ZRgEIAEoCzIgLmlwZXJvbi52MS'
-        '5NZXNzYWdlcy5EZWxldGVSZXN1bHRIAFIGZGVsZXRlEkwKDHJlYWRDb250ZW50cxgFIAEoCzIm'
-        'LmlwZXJvbi52MS5NZXNzYWdlcy5SZWFkQ29udGVudHNSZXN1bHRIAFIMcmVhZENvbnRlbnRzEj'
-        'EKA3BpbhgGIAEoCzIdLmlwZXJvbi52MS5NZXNzYWdlcy5QaW5SZXN1bHRIAFIDcGluEkAKCHVu'
-        'cGluQWxsGAcgASgLMiIuaXBlcm9uLnYxLk1lc3NhZ2VzLlVucGluQWxsUmVzdWx0SABSCHVucG'
-        'luQWxsEjoKBnBpbm5lZBgIIAEoCzIgLmlwZXJvbi52MS5NZXNzYWdlcy5QaW5uZWRSZXN1bHRI'
-        'AFIGcGlubmVkEkwKDHNldFJlYWN0aW9ucxgJIAEoCzImLmlwZXJvbi52MS5NZXNzYWdlcy5TZX'
-        'RSZWFjdGlvbnNSZXN1bHRIAFIMc2V0UmVhY3Rpb25zEk8KDXJlYWRSZWFjdGlvbnMYCiABKAsy'
-        'Jy5pcGVyb24udjEuTWVzc2FnZXMuUmVhZFJlYWN0aW9uc1Jlc3VsdEgAUg1yZWFkUmVhY3Rpb2'
-        '5zElUKD3VucmVhZFJlYWN0aW9ucxgLIAEoCzIpLmlwZXJvbi52MS5NZXNzYWdlcy5VbnJlYWRS'
-        'ZWFjdGlvbnNSZXN1bHRIAFIPdW5yZWFkUmVhY3Rpb25zEkMKCXNjaGVkdWxlZBgMIAEoCzIjLm'
-        'lwZXJvbi52MS5NZXNzYWdlcy5TY2hlZHVsZWRSZXN1bHRIAFIJc2NoZWR1bGVkElgKEHNlbmRT'
-        'Y2hlZHVsZWROb3cYDSABKAsyKi5pcGVyb24udjEuTWVzc2FnZXMuU2VuZFNjaGVkdWxlZE5vd1'
-        'Jlc3VsdEgAUhBzZW5kU2NoZWR1bGVkTm93EkYKCnJlc2NoZWR1bGUYDiABKAsyJC5pcGVyb24u'
-        'djEuTWVzc2FnZXMuUmVzY2hlZHVsZVJlc3VsdEgAUgpyZXNjaGVkdWxlElUKD2RlbGV0ZVNjaG'
-        'VkdWxlZBgPIAEoCzIpLmlwZXJvbi52MS5NZXNzYWdlcy5EZWxldGVTY2hlZHVsZWRSZXN1bHRI'
-        'AFIPZGVsZXRlU2NoZWR1bGVkQgoKCHJlc3BvbnNl');
+        '4udjEuQ2hhdE1lc3NhZ2VSCG1lc3NhZ2VzGj0KA0dldBIWCgZjaGF0SUQYASABKAxSBmNoYXRJ'
+        'RBIeCgptZXNzYWdlSURzGAIgAygDUgptZXNzYWdlSURzGj8KCUdldFJlc3VsdBIyCghtZXNzYW'
+        'dlcxgBIAMoCzIWLmlwZXJvbi52MS5DaGF0TWVzc2FnZVIIbWVzc2FnZXMagQgKB1JlcXVlc3QS'
+        'NwoHaGlzdG9yeRgBIAEoCzIbLmlwZXJvbi52MS5NZXNzYWdlcy5IaXN0b3J5SABSB2hpc3Rvcn'
+        'kSLgoEc2VuZBgCIAEoCzIYLmlwZXJvbi52MS5NZXNzYWdlcy5TZW5kSABSBHNlbmQSLgoEZWRp'
+        'dBgDIAEoCzIYLmlwZXJvbi52MS5NZXNzYWdlcy5FZGl0SABSBGVkaXQSNAoGZGVsZXRlGAQgAS'
+        'gLMhouaXBlcm9uLnYxLk1lc3NhZ2VzLkRlbGV0ZUgAUgZkZWxldGUSRgoMcmVhZENvbnRlbnRz'
+        'GAUgASgLMiAuaXBlcm9uLnYxLk1lc3NhZ2VzLlJlYWRDb250ZW50c0gAUgxyZWFkQ29udGVudH'
+        'MSKwoDcGluGAYgASgLMhcuaXBlcm9uLnYxLk1lc3NhZ2VzLlBpbkgAUgNwaW4SOgoIdW5waW5B'
+        'bGwYByABKAsyHC5pcGVyb24udjEuTWVzc2FnZXMuVW5waW5BbGxIAFIIdW5waW5BbGwSNAoGcG'
+        'lubmVkGAggASgLMhouaXBlcm9uLnYxLk1lc3NhZ2VzLlBpbm5lZEgAUgZwaW5uZWQSRgoMc2V0'
+        'UmVhY3Rpb25zGAkgASgLMiAuaXBlcm9uLnYxLk1lc3NhZ2VzLlNldFJlYWN0aW9uc0gAUgxzZX'
+        'RSZWFjdGlvbnMSSQoNcmVhZFJlYWN0aW9ucxgKIAEoCzIhLmlwZXJvbi52MS5NZXNzYWdlcy5S'
+        'ZWFkUmVhY3Rpb25zSABSDXJlYWRSZWFjdGlvbnMSTwoPdW5yZWFkUmVhY3Rpb25zGAsgASgLMi'
+        'MuaXBlcm9uLnYxLk1lc3NhZ2VzLlVucmVhZFJlYWN0aW9uc0gAUg91bnJlYWRSZWFjdGlvbnMS'
+        'PQoJc2NoZWR1bGVkGAwgASgLMh0uaXBlcm9uLnYxLk1lc3NhZ2VzLlNjaGVkdWxlZEgAUglzY2'
+        'hlZHVsZWQSUgoQc2VuZFNjaGVkdWxlZE5vdxgNIAEoCzIkLmlwZXJvbi52MS5NZXNzYWdlcy5T'
+        'ZW5kU2NoZWR1bGVkTm93SABSEHNlbmRTY2hlZHVsZWROb3cSQAoKcmVzY2hlZHVsZRgOIAEoCz'
+        'IeLmlwZXJvbi52MS5NZXNzYWdlcy5SZXNjaGVkdWxlSABSCnJlc2NoZWR1bGUSTwoPZGVsZXRl'
+        'U2NoZWR1bGVkGA8gASgLMiMuaXBlcm9uLnYxLk1lc3NhZ2VzLkRlbGV0ZVNjaGVkdWxlZEgAUg'
+        '9kZWxldGVTY2hlZHVsZWQSKwoDZ2V0GBAgASgLMhcuaXBlcm9uLnYxLk1lc3NhZ2VzLkdldEgA'
+        'UgNnZXRCCQoHcmVxdWVzdBrjCAoIUmVzcG9uc2USPQoHaGlzdG9yeRgBIAEoCzIhLmlwZXJvbi'
+        '52MS5NZXNzYWdlcy5IaXN0b3J5UmVzdWx0SABSB2hpc3RvcnkSNAoEc2VuZBgCIAEoCzIeLmlw'
+        'ZXJvbi52MS5NZXNzYWdlcy5TZW5kUmVzdWx0SABSBHNlbmQSNAoEZWRpdBgDIAEoCzIeLmlwZX'
+        'Jvbi52MS5NZXNzYWdlcy5FZGl0UmVzdWx0SABSBGVkaXQSOgoGZGVsZXRlGAQgASgLMiAuaXBl'
+        'cm9uLnYxLk1lc3NhZ2VzLkRlbGV0ZVJlc3VsdEgAUgZkZWxldGUSTAoMcmVhZENvbnRlbnRzGA'
+        'UgASgLMiYuaXBlcm9uLnYxLk1lc3NhZ2VzLlJlYWRDb250ZW50c1Jlc3VsdEgAUgxyZWFkQ29u'
+        'dGVudHMSMQoDcGluGAYgASgLMh0uaXBlcm9uLnYxLk1lc3NhZ2VzLlBpblJlc3VsdEgAUgNwaW'
+        '4SQAoIdW5waW5BbGwYByABKAsyIi5pcGVyb24udjEuTWVzc2FnZXMuVW5waW5BbGxSZXN1bHRI'
+        'AFIIdW5waW5BbGwSOgoGcGlubmVkGAggASgLMiAuaXBlcm9uLnYxLk1lc3NhZ2VzLlBpbm5lZF'
+        'Jlc3VsdEgAUgZwaW5uZWQSTAoMc2V0UmVhY3Rpb25zGAkgASgLMiYuaXBlcm9uLnYxLk1lc3Nh'
+        'Z2VzLlNldFJlYWN0aW9uc1Jlc3VsdEgAUgxzZXRSZWFjdGlvbnMSTwoNcmVhZFJlYWN0aW9ucx'
+        'gKIAEoCzInLmlwZXJvbi52MS5NZXNzYWdlcy5SZWFkUmVhY3Rpb25zUmVzdWx0SABSDXJlYWRS'
+        'ZWFjdGlvbnMSVQoPdW5yZWFkUmVhY3Rpb25zGAsgASgLMikuaXBlcm9uLnYxLk1lc3NhZ2VzLl'
+        'VucmVhZFJlYWN0aW9uc1Jlc3VsdEgAUg91bnJlYWRSZWFjdGlvbnMSQwoJc2NoZWR1bGVkGAwg'
+        'ASgLMiMuaXBlcm9uLnYxLk1lc3NhZ2VzLlNjaGVkdWxlZFJlc3VsdEgAUglzY2hlZHVsZWQSWA'
+        'oQc2VuZFNjaGVkdWxlZE5vdxgNIAEoCzIqLmlwZXJvbi52MS5NZXNzYWdlcy5TZW5kU2NoZWR1'
+        'bGVkTm93UmVzdWx0SABSEHNlbmRTY2hlZHVsZWROb3cSRgoKcmVzY2hlZHVsZRgOIAEoCzIkLm'
+        'lwZXJvbi52MS5NZXNzYWdlcy5SZXNjaGVkdWxlUmVzdWx0SABSCnJlc2NoZWR1bGUSVQoPZGVs'
+        'ZXRlU2NoZWR1bGVkGA8gASgLMikuaXBlcm9uLnYxLk1lc3NhZ2VzLkRlbGV0ZVNjaGVkdWxlZF'
+        'Jlc3VsdEgAUg9kZWxldGVTY2hlZHVsZWQSMQoDZ2V0GBAgASgLMh0uaXBlcm9uLnYxLk1lc3Nh'
+        'Z2VzLkdldFJlc3VsdEgAUgNnZXRCCgoIcmVzcG9uc2U=');
 
 @$core.Deprecated('Use getDifferenceDescriptor instead')
 const GetDifference$json = {

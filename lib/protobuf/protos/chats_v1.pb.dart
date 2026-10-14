@@ -6823,6 +6823,107 @@ class Messages_UnreadReactionsResult extends $pb.GeneratedMessage {
   $pb.PbList<ChatMessage> get messages => $_getList(0);
 }
 
+/// Сообщения чата по номерам (как messages.getMessages в Telegram) — со
+/// свежими ссылками на файлы: клиент берёт их, когда старая ссылка на
+/// вложение не открывается (403 — истёк токен, 404 — файл переехал в другое
+/// хранилище). Отдаются только видимые пользователю (не удалённые у него и не
+/// в очищенной истории); остальные номера пропускаются. Не больше 100.
+class Messages_Get extends $pb.GeneratedMessage {
+  factory Messages_Get({
+    $core.List<$core.int>? chatID,
+    $core.Iterable<$fixnum.Int64>? messageIDs,
+  }) {
+    final result = create();
+    if (chatID != null) result.chatID = chatID;
+    if (messageIDs != null) result.messageIDs.addAll(messageIDs);
+    return result;
+  }
+
+  Messages_Get._();
+
+  factory Messages_Get.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Messages_Get.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Messages.Get',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..a<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'chatID', $pb.PbFieldType.OY, protoName: 'chatID')
+    ..p<$fixnum.Int64>(2, _omitFieldNames ? '' : 'messageIDs', $pb.PbFieldType.K6, protoName: 'messageIDs')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Messages_Get clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Messages_Get copyWith(void Function(Messages_Get) updates) =>
+      super.copyWith((message) => updates(message as Messages_Get)) as Messages_Get;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static Messages_Get create() => Messages_Get._();
+  @$core.override
+  Messages_Get createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static Messages_Get getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Messages_Get>(create);
+  static Messages_Get? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.List<$core.int> get chatID => $_getN(0);
+  @$pb.TagNumber(1)
+  set chatID($core.List<$core.int> value) => $_setBytes(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasChatID() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearChatID() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $pb.PbList<$fixnum.Int64> get messageIDs => $_getList(1);
+}
+
+class Messages_GetResult extends $pb.GeneratedMessage {
+  factory Messages_GetResult({
+    $core.Iterable<ChatMessage>? messages,
+  }) {
+    final result = create();
+    if (messages != null) result.messages.addAll(messages);
+    return result;
+  }
+
+  Messages_GetResult._();
+
+  factory Messages_GetResult.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Messages_GetResult.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Messages.GetResult',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..pPM<ChatMessage>(1, _omitFieldNames ? '' : 'messages', subBuilder: ChatMessage.create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Messages_GetResult clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Messages_GetResult copyWith(void Function(Messages_GetResult) updates) =>
+      super.copyWith((message) => updates(message as Messages_GetResult)) as Messages_GetResult;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static Messages_GetResult create() => Messages_GetResult._();
+  @$core.override
+  Messages_GetResult createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static Messages_GetResult getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Messages_GetResult>(create);
+  static Messages_GetResult? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $pb.PbList<ChatMessage> get messages => $_getList(0);
+}
+
 enum Messages_Request_Request {
   history,
   send,
@@ -6839,6 +6940,7 @@ enum Messages_Request_Request {
   sendScheduledNow,
   reschedule,
   deleteScheduled,
+  get,
   notSet
 }
 
@@ -6859,6 +6961,7 @@ class Messages_Request extends $pb.GeneratedMessage {
     Messages_SendScheduledNow? sendScheduledNow,
     Messages_Reschedule? reschedule,
     Messages_DeleteScheduled? deleteScheduled,
+    Messages_Get? get,
   }) {
     final result = create();
     if (history != null) result.history = history;
@@ -6876,6 +6979,7 @@ class Messages_Request extends $pb.GeneratedMessage {
     if (sendScheduledNow != null) result.sendScheduledNow = sendScheduledNow;
     if (reschedule != null) result.reschedule = reschedule;
     if (deleteScheduled != null) result.deleteScheduled = deleteScheduled;
+    if (get != null) result.get = get;
     return result;
   }
 
@@ -6902,11 +7006,12 @@ class Messages_Request extends $pb.GeneratedMessage {
     13: Messages_Request_Request.sendScheduledNow,
     14: Messages_Request_Request.reschedule,
     15: Messages_Request_Request.deleteScheduled,
+    16: Messages_Request_Request.get,
     0: Messages_Request_Request.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Messages.Request',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
-    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15])
+    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16])
     ..aOM<Messages_History>(1, _omitFieldNames ? '' : 'history', subBuilder: Messages_History.create)
     ..aOM<Messages_Send>(2, _omitFieldNames ? '' : 'send', subBuilder: Messages_Send.create)
     ..aOM<Messages_Edit>(3, _omitFieldNames ? '' : 'edit', subBuilder: Messages_Edit.create)
@@ -6928,6 +7033,7 @@ class Messages_Request extends $pb.GeneratedMessage {
     ..aOM<Messages_Reschedule>(14, _omitFieldNames ? '' : 'reschedule', subBuilder: Messages_Reschedule.create)
     ..aOM<Messages_DeleteScheduled>(15, _omitFieldNames ? '' : 'deleteScheduled',
         protoName: 'deleteScheduled', subBuilder: Messages_DeleteScheduled.create)
+    ..aOM<Messages_Get>(16, _omitFieldNames ? '' : 'get', subBuilder: Messages_Get.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -6962,6 +7068,7 @@ class Messages_Request extends $pb.GeneratedMessage {
   @$pb.TagNumber(13)
   @$pb.TagNumber(14)
   @$pb.TagNumber(15)
+  @$pb.TagNumber(16)
   Messages_Request_Request whichRequest() => _Messages_Request_RequestByTag[$_whichOneof(0)]!;
   @$pb.TagNumber(1)
   @$pb.TagNumber(2)
@@ -6978,6 +7085,7 @@ class Messages_Request extends $pb.GeneratedMessage {
   @$pb.TagNumber(13)
   @$pb.TagNumber(14)
   @$pb.TagNumber(15)
+  @$pb.TagNumber(16)
   void clearRequest() => $_clearField($_whichOneof(0));
 
   @$pb.TagNumber(1)
@@ -7144,6 +7252,17 @@ class Messages_Request extends $pb.GeneratedMessage {
   void clearDeleteScheduled() => $_clearField(15);
   @$pb.TagNumber(15)
   Messages_DeleteScheduled ensureDeleteScheduled() => $_ensure(14);
+
+  @$pb.TagNumber(16)
+  Messages_Get get get => $_getN(15);
+  @$pb.TagNumber(16)
+  set get(Messages_Get value) => $_setField(16, value);
+  @$pb.TagNumber(16)
+  $core.bool hasGet() => $_has(15);
+  @$pb.TagNumber(16)
+  void clearGet() => $_clearField(16);
+  @$pb.TagNumber(16)
+  Messages_Get ensureGet() => $_ensure(15);
 }
 
 enum Messages_Response_Response {
@@ -7162,6 +7281,7 @@ enum Messages_Response_Response {
   sendScheduledNow,
   reschedule,
   deleteScheduled,
+  get,
   notSet
 }
 
@@ -7182,6 +7302,7 @@ class Messages_Response extends $pb.GeneratedMessage {
     Messages_SendScheduledNowResult? sendScheduledNow,
     Messages_RescheduleResult? reschedule,
     Messages_DeleteScheduledResult? deleteScheduled,
+    Messages_GetResult? get,
   }) {
     final result = create();
     if (history != null) result.history = history;
@@ -7199,6 +7320,7 @@ class Messages_Response extends $pb.GeneratedMessage {
     if (sendScheduledNow != null) result.sendScheduledNow = sendScheduledNow;
     if (reschedule != null) result.reschedule = reschedule;
     if (deleteScheduled != null) result.deleteScheduled = deleteScheduled;
+    if (get != null) result.get = get;
     return result;
   }
 
@@ -7225,11 +7347,12 @@ class Messages_Response extends $pb.GeneratedMessage {
     13: Messages_Response_Response.sendScheduledNow,
     14: Messages_Response_Response.reschedule,
     15: Messages_Response_Response.deleteScheduled,
+    16: Messages_Response_Response.get,
     0: Messages_Response_Response.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Messages.Response',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
-    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15])
+    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16])
     ..aOM<Messages_HistoryResult>(1, _omitFieldNames ? '' : 'history', subBuilder: Messages_HistoryResult.create)
     ..aOM<Messages_SendResult>(2, _omitFieldNames ? '' : 'send', subBuilder: Messages_SendResult.create)
     ..aOM<Messages_EditResult>(3, _omitFieldNames ? '' : 'edit', subBuilder: Messages_EditResult.create)
@@ -7251,6 +7374,7 @@ class Messages_Response extends $pb.GeneratedMessage {
     ..aOM<Messages_RescheduleResult>(14, _omitFieldNames ? '' : 'reschedule', subBuilder: Messages_RescheduleResult.create)
     ..aOM<Messages_DeleteScheduledResult>(15, _omitFieldNames ? '' : 'deleteScheduled',
         protoName: 'deleteScheduled', subBuilder: Messages_DeleteScheduledResult.create)
+    ..aOM<Messages_GetResult>(16, _omitFieldNames ? '' : 'get', subBuilder: Messages_GetResult.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -7285,6 +7409,7 @@ class Messages_Response extends $pb.GeneratedMessage {
   @$pb.TagNumber(13)
   @$pb.TagNumber(14)
   @$pb.TagNumber(15)
+  @$pb.TagNumber(16)
   Messages_Response_Response whichResponse() => _Messages_Response_ResponseByTag[$_whichOneof(0)]!;
   @$pb.TagNumber(1)
   @$pb.TagNumber(2)
@@ -7301,6 +7426,7 @@ class Messages_Response extends $pb.GeneratedMessage {
   @$pb.TagNumber(13)
   @$pb.TagNumber(14)
   @$pb.TagNumber(15)
+  @$pb.TagNumber(16)
   void clearResponse() => $_clearField($_whichOneof(0));
 
   @$pb.TagNumber(1)
@@ -7467,6 +7593,17 @@ class Messages_Response extends $pb.GeneratedMessage {
   void clearDeleteScheduled() => $_clearField(15);
   @$pb.TagNumber(15)
   Messages_DeleteScheduledResult ensureDeleteScheduled() => $_ensure(14);
+
+  @$pb.TagNumber(16)
+  Messages_GetResult get get => $_getN(15);
+  @$pb.TagNumber(16)
+  set get(Messages_GetResult value) => $_setField(16, value);
+  @$pb.TagNumber(16)
+  $core.bool hasGet() => $_has(15);
+  @$pb.TagNumber(16)
+  void clearGet() => $_clearField(16);
+  @$pb.TagNumber(16)
+  Messages_GetResult ensureGet() => $_ensure(15);
 }
 
 /// MESSAGES — сообщения.

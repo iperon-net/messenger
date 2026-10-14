@@ -59,6 +59,12 @@ class Downloads {
     return _fromRow(rows.first);
   }
 
+  /// Ссылка устарела (истёк токен, файл переехал) — свежая от сервера; объект
+  /// тот же, прогресс докачки сохраняется.
+  Future<void> setUrl({required Uint8List cdnID, required String url}) async {
+    await db.execute("UPDATE downloads SET url = ? WHERE cdnID = ?;", [url, cdnID]);
+  }
+
   Future<void> setCipherSize({required Uint8List cdnID, required int cipherSize}) async {
     await db.execute("UPDATE downloads SET cipherSize = ? WHERE cdnID = ?;", [cipherSize, cdnID]);
   }

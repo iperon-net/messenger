@@ -778,6 +778,20 @@ message Messages {
     repeated ChatMessage messages = 1;
   }
 
+  // Сообщения чата по номерам (как messages.getMessages в Telegram) — со
+  // свежими ссылками на файлы: клиент берёт их, когда старая ссылка на
+  // вложение не открывается (403 — истёк токен, 404 — файл переехал в другое
+  // хранилище). Отдаются только видимые пользователю (не удалённые у него и не
+  // в очищенной истории); остальные номера пропускаются. Не больше 100.
+  message Get {
+    bytes chatID = 1;
+    repeated int64 messageIDs = 2;
+  }
+
+  message GetResult {
+    repeated ChatMessage messages = 1;
+  }
+
   message Request {
     oneof request {
       History history = 1;
@@ -795,6 +809,7 @@ message Messages {
       SendScheduledNow sendScheduledNow = 13;
       Reschedule reschedule = 14;
       DeleteScheduled deleteScheduled = 15;
+      Get get = 16;
     }
   }
 
@@ -815,6 +830,7 @@ message Messages {
       SendScheduledNowResult sendScheduledNow = 13;
       RescheduleResult reschedule = 14;
       DeleteScheduledResult deleteScheduled = 15;
+      GetResult get = 16;
     }
   }
 }

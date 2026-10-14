@@ -677,6 +677,28 @@ class ChatsSync {
     );
   }
 
+  /// Сообщение с сервера заново (Messages.Get) — со свежими ссылками на файлы:
+  /// старая ссылка на вложение не открылась (истёк срок, файл переехал в другое
+  /// хранилище). Есть в кэше — обновляем там. Не видно / удалено — null.
+  Future<pb.ChatMessage?> refreshMessage(Uint8List chatID, int messageID) async {
+    final response = await messages(
+      pb.Messages_Request(
+        get: pb.Messages_Get(chatID: chatID, messageIDs: [Int64(messageID)]),
+      ),
+    );
+    final found = response.get.messages.where((m) => m.messageID.toInt() == messageID).firstOrNull;
+    if (found == null) return null;
+    final user = me;
+    await _locked(
+      () => _store.transaction((tx) async {
+        if (await tx.message(userID: user, chatID: chatID, messageID: messageID) != null) {
+          await tx.upsertMessage(userID: user, message: found);
+        }
+      }),
+    );
+    return found;
+  }
+
   /// Чаты, у которых на сервере старше уже нет (hex chatID).
   final _noOlder = <String>{};
 
