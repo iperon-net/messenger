@@ -32,6 +32,10 @@ message RegisterPushToken {
     FCM = 0;       // Android FCM high-priority data-message.
     APNS_VOIP = 1; // iOS PushKit VoIP через APNs (обязателен для CallKit).
     APNS = 2;      // iOS обычные alert-уведомления через APNs (topic = bundleID).
+    // Android FCM по FID (Firebase Installation ID; register() / onRegistered в
+    // firebase_messaging 17+) вместо регистрационного токена getToken(). Тот же
+    // канал, что FCM: заменяет его токен, сервер шлёт по Message.Fid.
+    FCM_FID = 3;
   }
 
   enum Platform {

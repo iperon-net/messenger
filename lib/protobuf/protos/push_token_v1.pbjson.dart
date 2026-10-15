@@ -48,6 +48,7 @@ const RegisterPushToken_TokenType$json = {
     {'1': 'FCM', '2': 0},
     {'1': 'APNS_VOIP', '2': 1},
     {'1': 'APNS', '2': 2},
+    {'1': 'FCM_FID', '2': 3},
   ],
 };
 
@@ -67,5 +68,6 @@ final $typed_data.Uint8List registerPushTokenDescriptor =
         'oEdHlwZRgCIAEoDjImLmlwZXJvbi52MS5SZWdpc3RlclB1c2hUb2tlbi5Ub2tlblR5cGVSBHR5'
         'cGUSQQoIcGxhdGZvcm0YAyABKA4yJS5pcGVyb24udjEuUmVnaXN0ZXJQdXNoVG9rZW4uUGxhdG'
         'Zvcm1SCHBsYXRmb3JtEh0KB3NhbmRib3gYBCABKAhIAFIHc2FuZGJveIgBAUIKCghfc2FuZGJv'
-        'eBoKCghSZXNwb25zZSItCglUb2tlblR5cGUSBwoDRkNNEAASDQoJQVBOU19WT0lQEAESCAoEQV'
-        'BOUxACIi0KCFBsYXRmb3JtEgsKB1VOS05PV04QABILCgdBTkRST0lEEAESBwoDSU9TEAI=');
+        'eBoKCghSZXNwb25zZSI6CglUb2tlblR5cGUSBwoDRkNNEAASDQoJQVBOU19WT0lQEAESCAoEQV'
+        'BOUxACEgsKB0ZDTV9GSUQQAyItCghQbGF0Zm9ybRILCgdVTktOT1dOEAASCwoHQU5EUk9JRBAB'
+        'EgcKA0lPUxAC');

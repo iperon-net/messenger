@@ -177,6 +177,13 @@ Id уведомления: `<kind>:<chatHex>:<messageID>` — по нему по
 - [x] Тестовый пуш рисуется нативно в `CallFcmService` (без Flutter-isolate), иконка
   `ic_stat_notification`.
 - [x] FCM-токен синкается и на resume.
+- [ ] **FID вместо регистрационного токена (2026-10-16, не проверено на устройстве)**:
+  firebase_messaging 17 объявил `getToken` / `onTokenRefresh` устаревшими. Клиент на каждой
+  синхронизации зовёт `register()` и шлёт FID (`FirebaseInstallations.getId`, смена — по
+  `onRegistered`) с типом `FCM_FID`; сервер пишет его в тот же `fcmToken` с флагом `fcmFid` и шлёт
+  через `Message.Fid` (старые клиенты — `Message.Token`). Проверить на Android: после обновления
+  в Mongo у сессии `fcmFid: true`, входящий звонок из выгруженного состояния, сообщение пушем,
+  тестовый пуш.
 
 **Общее:**
 

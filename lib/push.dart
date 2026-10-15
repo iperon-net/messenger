@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:cryptography/cryptography.dart';
+import 'package:firebase_app_installations/firebase_app_installations.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -20,11 +21,12 @@ import 'repositories.dart';
 /// `docs/plans/melodic-beaming-elephant.md`.
 ///
 /// Каналы (у каждого свой токен):
-/// - **Android** — FCM data-message. Регистрационный токен из `getToken`,
-///   переотправляется при `onTokenRefresh`. В firebase_messaging 17 оба
-///   помечены deprecated в пользу `register()` / `onRegistered`, но те отдают
-///   FID (Installation ID), а сервер шлёт по регистрационному токену
-///   (`Message.Token`); переход на FID — вместе с сервером.
+/// - **Android** — FCM data-message по FID (Firebase Installation ID, тип
+///   `FCM_FID`, сервер шлёт через `Message.Fid`): [FirebaseMessaging.register]
+///   на каждой синхронизации, FID — [FirebaseInstallations.getId], смена — по
+///   [FirebaseMessaging.onRegistered]. Регистрационный токен `getToken` (тип
+///   `FCM`) в firebase_messaging 17 deprecated; сервер держит его только для
+///   старых клиентов.
 /// - **iOS, звонки** — VoIP-токен PushKit; получаем в нативном коде и передаём
 ///   сюда ([registerVoipToken]).
 /// - **iOS, уведомления** — обычный APNs-токен. На remote notifications
@@ -56,7 +58,9 @@ class PushManager {
   // Ключи кэша последнего отправленного токена (дедуп по каналу). VoIP — `_v2`:
   // старые клиенты слали VoIP-токен без флага sandbox, новый ключ заставляет
   // один раз переотправить его уже с окружением.
-  static const _fcmCacheKey = 'push_token_fcm_sent';
+  // FCM — `_fid`: после перехода с регистрационного токена на FID новый ключ
+  // заставляет один раз отправить FID.
+  static const _fcmCacheKey = 'push_token_fcm_fid_sent';
   static const _voipCacheKey = 'push_token_voip_sent_v2';
   static const _apnsCacheKey = 'push_token_apns_sent';
 
@@ -281,34 +285,29 @@ class PushManager {
   /// chatID из пуша — ObjectID в hex.
   static final _chatIDPattern = RegExp(r'^[0-9a-fA-F]{24}$');
 
-  /// Android: FCM-токен + подписка на его обновление.
+  /// Android: регистрация установки в FCM + её FID на сервер, подписка на
+  /// смену FID. `register()` — на каждой синхронизации (как раньше `getToken`):
+  /// FCM мог снять регистрацию, пока приложение было выгружено. FID берём из
+  /// Installations, а не ждём `onRegistered`: событие может не прийти, если
+  /// установка уже была зарегистрирована.
   Future<void> _syncFcmToken() async {
     try {
-      // ignore: deprecated_member_use — FID вместо токена ломает сервер (см. шапку).
-      final token = await FirebaseMessaging.instance.getToken();
-      if (token != null && token.isNotEmpty) {
-        await _register(
-          token: token,
-          type: RegisterPushToken_TokenType.FCM,
-          platform: RegisterPushToken_Platform.ANDROID,
-          cacheKey: _fcmCacheKey,
-        );
-      }
-
-      // ignore: deprecated_member_use — см. шапку.
-      _fcmRefreshSub ??= FirebaseMessaging.instance.onTokenRefresh.listen((token) {
-        unawaited(
-          _register(
-            token: token,
-            type: RegisterPushToken_TokenType.FCM,
-            platform: RegisterPushToken_Platform.ANDROID,
-            cacheKey: _fcmCacheKey,
-          ),
-        );
-      });
+      _fcmRefreshSub ??= FirebaseMessaging.instance.onRegistered.listen((fid) => unawaited(_registerFid(fid)));
+      await FirebaseMessaging.instance.register();
+      await _registerFid(await FirebaseInstallations.instance.getId());
     } catch (error, stackTrace) {
       logger.handle(error, stackTrace);
     }
+  }
+
+  Future<void> _registerFid(String fid) async {
+    if (fid.isEmpty) return;
+    await _register(
+      token: fid,
+      type: RegisterPushToken_TokenType.FCM_FID,
+      platform: RegisterPushToken_Platform.ANDROID,
+      cacheKey: _fcmCacheKey,
+    );
   }
 
   /// iOS: APNs-токен обычных уведомлений. Если APNs ещё не выдал токен —
