@@ -27,6 +27,12 @@ import '../utils.dart';
 ///     а мы подхватываем аватар из того же (дедуплицируемого) `download`. Запрос уходит только для видимых строк с известным [userID],
 ///     поэтому список без аватарок не порождает пачку из сотен запросов.
 ///
+/// Показанная картинка держится в памяти ([_UserAvatarState._memory]): строка
+/// того же пользователя, построенная позже (другая вкладка, прокрутка), рисует
+/// её сразу, без плейсхолдера и чтения с диска. Смена / снятие аватара
+/// (`Profiles.avatarChanges`, например после открытия профиля) обновляет уже
+/// построенные строки.
+///
 /// Незарегистрированные контакты ([userID] == null) показывают только плейсхолдер.
 class UserAvatar extends StatefulWidget {
   /// Сырые байты userID пользователя; `null` для незарегистрированных.
@@ -55,15 +61,25 @@ class _UserAvatarState extends State<UserAvatar> {
   // построенная позже, спросила снова.
   static const _requestTimeout = Duration(seconds: 30);
 
+  // Показанные картинки по userID (hex): cdnID + байты. Ограничена — сотни
+  // аватарок по ~десяткам КБ; самые старые вытесняются.
+  static final Map<String, ({String cdnID, Uint8List bytes})> _memory = {};
+  static const _memoryLimit = 500;
+
   final _cdn = getIt.get<CDNManager>();
   final _repositories = getIt.get<Repositories>();
   final _logger = getIt.get<Logger>();
 
   Uint8List? _bytes;
+  StreamSubscription<Uint8List>? _changes;
 
   @override
   void initState() {
     super.initState();
+    _bytes = _remembered(widget.userID);
+    _changes = _repositories.profiles.avatarChanges.listen((userID) {
+      if (_sameUser(widget.userID, userID)) _load();
+    });
     _load();
   }
 
@@ -72,9 +88,22 @@ class _UserAvatarState extends State<UserAvatar> {
     super.didUpdateWidget(oldWidget);
     // Элемент списка переиспользован под другой userID — перезагружаем.
     if (!_sameUser(oldWidget.userID, widget.userID)) {
-      setState(() => _bytes = null);
+      setState(() => _bytes = _remembered(widget.userID));
       _load();
     }
+  }
+
+  @override
+  void dispose() {
+    _changes?.cancel();
+    super.dispose();
+  }
+
+  static String _hex(Uint8List bytes) => getIt.get<Utils>().bytesToHex(bytes);
+
+  static Uint8List? _remembered(Uint8List? userID) {
+    if (userID == null || userID.isEmpty) return null;
+    return _memory[_hex(userID)]?.bytes;
   }
 
   bool _sameUser(Uint8List? a, Uint8List? b) {
@@ -86,36 +115,57 @@ class _UserAvatarState extends State<UserAvatar> {
     final userID = widget.userID;
     if (userID == null || userID.isEmpty) return;
 
-    // 1. Уже есть в кэше — показать без сети.
+    final hex = _hex(userID);
+
+    // 1. Уже есть в кэше — показать без сети. Привязанный cdnID совпал с
+    // показанным — файл не перечитываем.
     try {
       final profile = await _repositories.profiles.getByUserID(userID: userID);
       final cdnID = profile.avatarCdnID;
       if (cdnID != null && cdnID.isNotEmpty) {
-        final file = await _cdn.cachedFile(Uint8List.fromList(cdnID));
-        if (file != null) {
-          await _show(userID, file);
+        final cdnHex = _hex(Uint8List.fromList(cdnID));
+        final remembered = _memory[hex];
+        if (remembered != null && remembered.cdnID == cdnHex) {
+          _set(userID, remembered.bytes);
           return;
         }
+        final file = await _cdn.cachedFile(Uint8List.fromList(cdnID));
+        if (file != null) {
+          await _show(userID, file, cdnHex);
+          return;
+        }
+      } else if (_memory.remove(hex) != null) {
+        // Аватар снят.
+        _set(userID, null);
       }
     } catch (error, stackTrace) {
       _logger.handle(error, stackTrace);
     }
 
     // 2. Промах кэша — ждём общий на пользователя запрос PROFILE.
-    final hex = getIt.get<Utils>().bytesToHex(userID);
     final file = await _requests.putIfAbsent(hex, () => _requestProfile(hex, userID));
-    if (file != null) await _show(userID, file);
+    if (file != null) await _show(userID, file, null);
   }
 
-  Future<void> _show(Uint8List userID, File file) async {
+  /// [cdnHex] — cdnID файла (null — неизвестен: файл из запроса PROFILE; его
+  /// привязку пишет `API._handleMessage`, следующий [_load] сверит).
+  Future<void> _show(Uint8List userID, File file, String? cdnHex) async {
     if (!mounted || !_sameUser(widget.userID, userID)) return;
     try {
       final bytes = await file.readAsBytes();
-      if (!mounted || !_sameUser(widget.userID, userID)) return;
-      setState(() => _bytes = bytes);
+      final hex = _hex(userID);
+      _memory.remove(hex);
+      if (_memory.length >= _memoryLimit) _memory.remove(_memory.keys.first);
+      _memory[hex] = (cdnID: cdnHex ?? '', bytes: bytes);
+      _set(userID, bytes);
     } catch (error, stackTrace) {
       _logger.handle(error, stackTrace);
     }
+  }
+
+  void _set(Uint8List userID, Uint8List? bytes) {
+    if (!mounted || !_sameUser(widget.userID, userID) || identical(_bytes, bytes)) return;
+    setState(() => _bytes = bytes);
   }
 
   /// PROFILE-запрос по [userID]: файл аватара или `null` (аватара нет / не

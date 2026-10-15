@@ -743,6 +743,8 @@ class API {
           } catch (error, stackTrace) {
             logger.handle(error, stackTrace);
           }
+        } else {
+          await repositories.profiles.clearAvatar(userID: userID);
         }
 
       case MessageType.LOGOUT:

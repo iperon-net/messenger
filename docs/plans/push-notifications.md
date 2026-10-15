@@ -177,14 +177,12 @@ Id уведомления: `<kind>:<chatHex>:<messageID>` — по нему по
 - [x] Тестовый пуш рисуется нативно в `CallFcmService` (без Flutter-isolate), иконка
   `ic_stat_notification`.
 - [x] FCM-токен синкается и на resume.
-- [ ] **FID вместо регистрационного токена (2026-10-16, не проверено на устройстве)**:
+- [x] **FID вместо регистрационного токена (2026-10-16; проверено на Android 2026-10-16: тестовые пуши, входящий звонок из выгруженного, сообщение)**:
   firebase_messaging 17 объявил `getToken` / `onTokenRefresh` устаревшими. Клиент на каждой
   синхронизации зовёт `register()` и шлёт FID (`FirebaseInstallations.getId`, смена — по
   `onRegistered`) с типом `FCM_FID`; сервер пишет его в тот же `fcmToken` с флагом `fcmFid` и шлёт
-  через `Message.Fid` (старые клиенты — `Message.Token`). Проверить на Android: после обновления
-  в Mongo у сессии `fcmFid: true`, входящий звонок из выгруженного состояния, сообщение пушем,
-  тестовый пуш.
-- [ ] **iOS: незашифрованные пуши в foreground после firebase_messaging 17 (2026-10-16)**: плагин
+  через `Message.Fid` (старые клиенты — `Message.Token`).
+- [x] **iOS: незашифрованные пуши в foreground после firebase_messaging 17 (2026-10-16, проверено на iPhone 2026-10-16)**: плагин
   теперь отвечает в `willPresent` / `didReceive` только на FCM-пуши (`gcm.message_id`), а наши
   идут напрямую в APNs — «обычный» тестовый пуш в открытом приложении не показывался.
   `AppDelegate` отвечает сам для удалённых пушей без `gcm.message_id` (опции как раньше:

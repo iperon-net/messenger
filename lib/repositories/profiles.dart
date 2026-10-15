@@ -9,6 +9,13 @@ class Profiles {
 
   Profiles({required this.logger, required this.db});
 
+  final _avatarChanges = StreamController<Uint8List>.broadcast();
+
+  /// userID, у которого сменился (или снят) аватар — для живого обновления
+  /// уже построенных [UserAvatar] (вкладки держатся в памяти, строки не
+  /// пересоздаются).
+  Stream<Uint8List> get avatarChanges => _avatarChanges.stream;
+
   Future<models.Profile> getByUserID({required List<int> userID}) async {
     final rows = await db.execute(
       "SELECT userID, username, fistName, lastName, birthDate, hideBirthYear, aboutMe, phoneNumber, avatarCdnID, lastSeenAt FROM profiles WHERE userID = ?;",
@@ -115,5 +122,15 @@ class Profiles {
       """,
       [userID, cdnID],
     );
+    _avatarChanges.add(Uint8List.fromList(userID));
+  }
+
+  /// Аватар снят (в ответе PROFILE его нет) — отвязываем, чтобы не показывать
+  /// прежний. Событие — только если что-то было привязано.
+  Future<void> clearAvatar({required List<int> userID}) async {
+    final rows = await db.execute("UPDATE profiles SET avatarCdnID = NULL WHERE userID = ? AND avatarCdnID IS NOT NULL RETURNING userID;", [
+      userID,
+    ]);
+    if (rows.isNotEmpty) _avatarChanges.add(Uint8List.fromList(userID));
   }
 }
