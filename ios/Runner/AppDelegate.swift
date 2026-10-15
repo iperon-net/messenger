@@ -208,6 +208,15 @@ import flutter_callkit_incoming
   ) {
     let userInfo = notification.request.content.userInfo
     guard PushBridge.isEncrypted(userInfo) else {
+      // Наши пуши идут напрямую в APNs, без FCM (нет gcm.message_id).
+      // firebase_messaging 17 в willPresent отвечает только на FCM-пуши — без
+      // ответа незашифрованный пуш (тестовый «обычный») в foreground не
+      // показывается. Отвечаем сами, как отвечал плагин до 17
+      // (setForegroundNotificationPresentationOptions в push.dart).
+      if notification.request.trigger is UNPushNotificationTrigger, userInfo["gcm.message_id"] == nil {
+        completionHandler([.banner, .list, .badge, .sound])
+        return
+      }
       super.userNotificationCenter(center, willPresent: notification, withCompletionHandler: completionHandler)
       return
     }
@@ -221,6 +230,12 @@ import flutter_callkit_incoming
   ) {
     let userInfo = response.notification.request.content.userInfo
     guard PushBridge.isEncrypted(userInfo) else {
+      // Как в willPresent: тап по нашему незашифрованному APNs-пушу плагин 17
+      // не подтверждает — подтверждаем сами (обрабатывать в нём нечего).
+      if response.notification.request.trigger is UNPushNotificationTrigger, userInfo["gcm.message_id"] == nil {
+        completionHandler()
+        return
+      }
       super.userNotificationCenter(center, didReceive: response, withCompletionHandler: completionHandler)
       return
     }
