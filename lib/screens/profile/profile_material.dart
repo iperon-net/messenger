@@ -129,6 +129,13 @@ class _ProfileMaterial extends State<ProfileMaterial> {
                           ),
                   ),
                 ),
+                if (state.displayName.isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Text(state.displayName, textAlign: TextAlign.center, style: Theme.of(context).textTheme.headlineSmall),
+                  ),
+                ],
                 const SizedBox(height: 20),
                 if (hasSection)
                   Card(

@@ -28,6 +28,7 @@ import 'crypto.dart';
 import 'di.dart';
 import 'logger.dart';
 import 'models.dart' as models;
+import 'peer_names.dart';
 import 'protobuf.dart';
 import 'repositories/repositories.dart';
 import 'settings.dart';
@@ -2147,14 +2148,7 @@ class Calls {
       final repositories = getIt.get<Repositories>();
       var displayName = '';
       try {
-        final profile = await repositories.profiles.getByUserID(userID: remoteUserID);
-        final phone = utils.phoneNormalization(phoneNumber: profile.phoneNumber);
-        displayName = utils.composeDisplayName(
-          firstName: profile.fistName,
-          lastName: profile.lastName,
-          phoneNumber: phone.international,
-          username: profile.username,
-        );
+        displayName = await peerDisplayName(remoteUserID);
       } catch (error, stackTrace) {
         logger.handle(error, stackTrace);
       }

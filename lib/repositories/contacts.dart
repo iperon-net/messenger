@@ -72,6 +72,32 @@ class Contacts {
     );
   }
 
+  /// Имена «как я его записал» по userID (hex через [toHex]) — для общего
+  /// правила имени (`Utils.composeDisplayName`): облачный контакт главнее
+  /// книжного; без имени (в `displayName` подставлен номер) — не имя, такого
+  /// userID в карте нет. [userIDs] пустой — все.
+  Future<Map<String, String>> namesByUserID({required String Function(List<int>) toHex, List<List<int>>? userIDs}) async {
+    final ids = userIDs ?? const [];
+    final filter = ids.isEmpty ? '' : ' AND userID IN (${List.filled(ids.length, '?').join(',')})';
+    final rows = await db.execute(
+      "SELECT userID, displayName, phone FROM contacts WHERE userID IS NOT NULL$filter ORDER BY isCloud DESC;",
+      ids,
+    );
+    final names = <String, String>{};
+    for (final row in rows) {
+      final name = (row["displayName"] as String).trim();
+      if (name.isEmpty || name == row["phone"] as String) continue;
+      names.putIfAbsent(toHex(row["userID"] as List<int>), () => name);
+    }
+    return names;
+  }
+
+  /// Номер контакта по userID — запасной, когда профиля ещё нет в кэше.
+  Future<String?> phoneByUserID(List<int> userID) async {
+    final rows = await db.execute("SELECT phone FROM contacts WHERE userID = ? ORDER BY isCloud DESC LIMIT 1;", [userID]);
+    return rows.isEmpty ? null : rows.first["phone"] as String;
+  }
+
   /// Полностью заменяет книжную часть снимка (isCloud=0) свежим OPRF-проходом.
   /// Облачные строки не трогаем; `OR IGNORE` не даёт книжной записи затереть
   /// облачную с тем же номером (облачная в показе главнее).

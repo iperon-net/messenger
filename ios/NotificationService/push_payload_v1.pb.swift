@@ -82,6 +82,15 @@ nonisolated struct Iperon_V1_PushPayload: Sendable {
   /// READ_HISTORY / MESSAGE_DELETED
   var messageIds: [Int64] = []
 
+  /// Номер отправителя (E.164, «+7…»). titleFromContact = false — устройство
+  /// ищет номер в своей адресной книге и, если нашло, показывает имя оттуда
+  /// вместо title (имён из книги на сервере нет). Порядок имени везде:
+  /// облачный контакт → адресная книга → профиль → номер.
+  var senderPhone: String = String()
+
+  /// title — имя из облачного контакта получателя: главнее адресной книги.
+  var titleFromContact: Bool = false
+
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
   nonisolated enum Kind: SwiftProtobuf.Enum, Swift.CaseIterable {
@@ -169,7 +178,7 @@ fileprivate nonisolated let _protobuf_package = "iperon.v1"
 
 nonisolated extension Iperon_V1_PushPayload: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   static let protoMessageName: String = _protobuf_package + ".PushPayload"
-  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}kind\0\u{1}id\0\u{1}fromUserID\0\u{1}chatID\0\u{1}messageID\0\u{1}title\0\u{1}body\0\u{1}args\0\u{1}badge\0\u{1}date\0\u{1}messageIDs\0")
+  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}kind\0\u{1}id\0\u{1}fromUserID\0\u{1}chatID\0\u{1}messageID\0\u{1}title\0\u{1}body\0\u{1}args\0\u{1}badge\0\u{1}date\0\u{1}messageIDs\0\u{1}senderPhone\0\u{1}titleFromContact\0")
 
   mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -188,6 +197,8 @@ nonisolated extension Iperon_V1_PushPayload: SwiftProtobuf.Message, SwiftProtobu
       case 9: try { try decoder.decodeSingularInt32Field(value: &self._badge) }()
       case 10: try { try decoder.decodeSingularInt64Field(value: &self.date) }()
       case 11: try { try decoder.decodeRepeatedInt64Field(value: &self.messageIds) }()
+      case 12: try { try decoder.decodeSingularStringField(value: &self.senderPhone) }()
+      case 13: try { try decoder.decodeSingularBoolField(value: &self.titleFromContact) }()
       default: break
       }
     }
@@ -231,6 +242,12 @@ nonisolated extension Iperon_V1_PushPayload: SwiftProtobuf.Message, SwiftProtobu
     if !self.messageIds.isEmpty {
       try visitor.visitPackedInt64Field(value: self.messageIds, fieldNumber: 11)
     }
+    if !self.senderPhone.isEmpty {
+      try visitor.visitSingularStringField(value: self.senderPhone, fieldNumber: 12)
+    }
+    if self.titleFromContact != false {
+      try visitor.visitSingularBoolField(value: self.titleFromContact, fieldNumber: 13)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -246,6 +263,8 @@ nonisolated extension Iperon_V1_PushPayload: SwiftProtobuf.Message, SwiftProtobu
     if lhs._badge != rhs._badge {return false}
     if lhs.date != rhs.date {return false}
     if lhs.messageIds != rhs.messageIds {return false}
+    if lhs.senderPhone != rhs.senderPhone {return false}
+    if lhs.titleFromContact != rhs.titleFromContact {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

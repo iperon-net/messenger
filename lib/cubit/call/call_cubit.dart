@@ -11,6 +11,7 @@ import '../../constants.dart';
 import '../../di.dart';
 import '../../i18n/translations.g.dart';
 import '../../logger.dart';
+import '../../peer_names.dart';
 import '../../models.dart' as models;
 import '../../protobuf.dart';
 import '../../repositories/repositories.dart';
@@ -84,16 +85,9 @@ class CallCubit extends Cubit<CallState> {
       final response = Profile_Response.fromBuffer(payload);
       if (!listEquals(response.userID, userID)) return;
 
-      // Форматируем номер (как в кэш-пути ниже и в CallKit): при пустом имени
-      // фолбэк на номер должен быть в международном виде, а не «сырыми» цифрами.
-      // Если распарсить не удалось — оставляем исходный номер.
-      final phone = utils.phoneNormalization(phoneNumber: response.phoneNumber).international;
-      final lines = utils.composeNameLines(
-        firstName: response.firstName,
-        lastName: response.lastName,
-        phoneNumber: phone.isNotEmpty ? phone : response.phoneNumber,
-        username: response.username,
-      );
+      // Общее правило имени (контакт → профиль → @username → номер).
+      final lines = await peerNameLines(userID, fresh: response);
+      if (isClosed) return;
       emit(state.copyWith(displayName: lines.join(' '), nameLines: lines));
       _pushNowPlaying();
 
@@ -116,7 +110,6 @@ class CallCubit extends Cubit<CallState> {
     final profile = await profileFuture;
     if (isClosed) return;
 
-    final phoneNormalization = utils.phoneNormalization(phoneNumber: profile.phoneNumber);
     Uint8List? avatarBytes;
     final avatarCdnID = profile.avatarCdnID;
     if (avatarCdnID != null && avatarCdnID.isNotEmpty) {
@@ -130,12 +123,8 @@ class CallCubit extends Cubit<CallState> {
     }
     if (isClosed) return;
 
-    final lines = utils.composeNameLines(
-      firstName: profile.fistName,
-      lastName: profile.lastName,
-      phoneNumber: phoneNormalization.international,
-      username: profile.username,
-    );
+    final lines = await peerNameLines(userID);
+    if (isClosed) return;
     final name = lines.join(' ');
     var next = name.isNotEmpty ? state.copyWith(displayName: name, nameLines: lines) : state;
     // copyWith(avatarBytes: null) не отличает «не менять» от «обнулить», поэтому

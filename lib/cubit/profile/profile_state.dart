@@ -20,6 +20,10 @@ class ProfileState with ProfileStateMappable {
   /// экрана можно было инициировать звонок (`Calls.startCall`).
   final List<int> userID;
 
+  /// Имя по общему правилу (как я его записал → профиль → @username → номер)
+  /// — заголовок под аватаром; поля профиля ниже — его настоящие данные.
+  final String displayName;
+
   final String firstName;
   final String lastName;
   final String aboutMe;
@@ -44,6 +48,7 @@ class ProfileState with ProfileStateMappable {
     this.locale = AppLocale.en,
     this.userID = const [],
 
+    this.displayName = "",
     this.firstName = "",
     this.lastName = "",
     this.aboutMe = "",

@@ -7,12 +7,14 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_callkit_incoming/entities/entities.dart';
 import 'package:flutter_callkit_incoming/flutter_callkit_incoming.dart';
+import 'package:flutter_contacts/flutter_contacts.dart';
 
 import 'auth.dart';
 import 'calls.dart';
 import 'di.dart';
 import 'firebase_options.dart';
 import 'logger.dart';
+import 'peer_names.dart';
 import 'push.dart';
 import 'repositories.dart';
 import 'utils.dart';
@@ -24,9 +26,13 @@ const _kFromUserID = 'fromUserID';
 const _kVideo = 'video';
 const _kAction = 'action';
 // Имя звонящего для показа в системной звонилке (CallKit/ConnectionService).
-// Сервер кладёт его из профиля звонящего (имя/фамилия, иначе телефон); см.
-// internal/services/push.go. Пусто/нет ключа — показываем 'Iperon'.
+// Сервер кладёт облачный контакт получателя (тогда nameFromContact=true), иначе
+// имя из профиля, иначе телефон; см. internal/services/push.go. Пусто/нет
+// ключа — показываем 'Iperon'. callerPhone (E.164) — для имени из адресной
+// книги, когда оно не из облачного контакта.
 const _kNameCaller = 'nameCaller';
+const _kCallerPhone = 'callerPhone';
+const _kNameFromContact = 'nameFromContact';
 const _kActionIncoming = 'incoming';
 const _kActionCancel = 'cancel';
 
@@ -90,14 +96,35 @@ Future<void> _handleCallData(Map<String, dynamic> data) async {
   }
 
   if (action == _kActionIncoming) {
-    await FlutterCallkitIncoming.showCallkitIncoming(_incomingParams(data, callId));
+    await FlutterCallkitIncoming.showCallkitIncoming(_incomingParams(data, callId, await _addressBookName(data)));
   }
 }
 
-CallKitParams _incomingParams(Map<String, dynamic> data, String callId) {
+/// Имя звонящего из адресной книги устройства (Android; на iOS — натив в
+/// AppDelegate): сервер знает облачный контакт и профиль, а книги у него нет.
+/// Порядок как везде — облачный контакт (`nameFromContact`) главнее книги.
+/// Без разрешения на контакты не спрашиваем (фон), поиск ограничен по времени:
+/// звонилку нельзя задерживать.
+Future<String> _addressBookName(Map<String, dynamic> data) async {
+  final phone = (data[_kCallerPhone] ?? '').toString();
+  if (!Platform.isAndroid || phone.isEmpty || data[_kNameFromContact] == 'true') return '';
+  try {
+    if (!await FlutterContacts.permissions.has(PermissionType.read)) return '';
+    final found = await FlutterContacts.getAll(
+      properties: {ContactProperty.name},
+      filter: ContactFilter.phone(phone),
+      limit: 1,
+    ).timeout(const Duration(milliseconds: 800));
+    return found.firstOrNull?.displayName?.trim() ?? '';
+  } catch (_) {
+    return '';
+  }
+}
+
+CallKitParams _incomingParams(Map<String, dynamic> data, String callId, String bookName) {
   final isVideo = (data[_kVideo] ?? '').toString() == 'true';
   final fromUserID = (data[_kFromUserID] ?? '').toString();
-  final nameCaller = (data[_kNameCaller] ?? '').toString();
+  final nameCaller = bookName.isNotEmpty ? bookName : (data[_kNameCaller] ?? '').toString();
 
   return CallKitParams(
     id: callId,
@@ -383,20 +410,14 @@ class CallPush {
   }
 
   /// Отображаемое имя абонента по [userID] из локального кэша профилей
-  /// (имя/фамилия → телефон → username). Пусто, если профиля в кэше ещё нет —
-  /// тогда вызывающий покажет фолбэк 'Iperon'. Без сети: имя для системной
-  /// звонилки должно резолвиться мгновенно.
+  /// по общему правилу (контакт → профиль → @username → номер, см.
+  /// [peerDisplayName]). Пусто, если ничего нет — тогда вызывающий покажет
+  /// фолбэк 'Iperon'. Без сети: имя для системной звонилки должно резолвиться
+  /// мгновенно.
   Future<String> _resolveDisplayName(List<int> userID) async {
     if (userID.isEmpty) return '';
     try {
-      final profile = await repositories.profiles.getByUserID(userID: userID);
-      final phone = utils.phoneNormalization(phoneNumber: profile.phoneNumber).international;
-      return utils.composeDisplayName(
-        firstName: profile.fistName,
-        lastName: profile.lastName,
-        phoneNumber: phone.isNotEmpty ? phone : profile.phoneNumber,
-        username: profile.username,
-      );
+      return await peerDisplayName(userID);
     } catch (error, stackTrace) {
       logger.handle(error, stackTrace);
       return '';

@@ -50,4 +50,11 @@ message PushPayload {
   optional int32 badge = 9;
   int64 date = 10;       // unix millis события
   repeated int64 messageIDs = 11; // READ_HISTORY / MESSAGE_DELETED
+  // Номер отправителя (E.164, «+7…»). titleFromContact = false — устройство
+  // ищет номер в своей адресной книге и, если нашло, показывает имя оттуда
+  // вместо title (имён из книги на сервере нет). Порядок имени везде:
+  // облачный контакт → адресная книга → профиль → номер.
+  string senderPhone = 12;
+  // title — имя из облачного контакта получателя: главнее адресной книги.
+  bool titleFromContact = 13;
 }

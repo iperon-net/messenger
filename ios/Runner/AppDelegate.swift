@@ -2,6 +2,7 @@ import Flutter
 import UIKit
 import PushKit
 import CallKit
+import Contacts
 import AVFoundation
 import AVKit
 import MediaPlayer
@@ -247,6 +248,25 @@ import flutter_callkit_incoming
 
   // MARK: - PushKit (VoIP)
 
+  /// Имя контакта из адресной книги по номеру (как в NotificationService). nil —
+  /// нет доступа к контактам, номера нет или ошибка.
+  static func addressBookName(_ phone: String) -> String? {
+    let status = CNContactStore.authorizationStatus(for: .contacts)
+    var allowed = status == .authorized
+    if #available(iOS 18.0, *) {
+      allowed = allowed || status == .limited
+    }
+    guard allowed else { return nil }
+
+    let predicate = CNContact.predicateForContacts(matching: CNPhoneNumber(stringValue: phone))
+    let keys = [CNContactFormatter.descriptorForRequiredKeys(for: .fullName)]
+    guard let contact = try? CNContactStore().unifiedContacts(matching: predicate, keysToFetch: keys).first,
+          let name = CNContactFormatter.string(from: contact, style: .fullName),
+          !name.trimmingCharacters(in: .whitespaces).isEmpty
+    else { return nil }
+    return name
+  }
+
   /// Новый/обновлённый VoIP-токен. Передаём плагину — он сохранит его и пришлёт
   /// Dart-событие actionDidUpdateDevicePushTokenVoip, откуда токен уходит на
   /// сервер (см. CallPush).
@@ -281,9 +301,16 @@ import flutter_callkit_incoming
     let callId = (dict["callId"] as? String) ?? ""
     let action = (dict["action"] as? String) ?? "incoming"
     let fromUserID = (dict["fromUserID"] as? String) ?? ""
-    // Имя звонящего для CallKit-баннера — сервер кладёт его из профиля
-    // (имя/фамилия, иначе телефон). Пусто — фолбэк на "Iperon".
-    let nameCaller = (dict["nameCaller"] as? String) ?? ""
+    // Имя звонящего для CallKit-баннера, порядок как во всём приложении:
+    // облачный контакт (сервер, nameFromContact) → адресная книга устройства по
+    // callerPhone (её на сервере нет) → профиль / телефон (сервер, nameCaller).
+    // Пусто — фолбэк на "Iperon".
+    var nameCaller = (dict["nameCaller"] as? String) ?? ""
+    if (dict["nameFromContact"] as? String) != "true",
+       let phone = dict["callerPhone"] as? String, !phone.isEmpty,
+       let bookName = Self.addressBookName(phone) {
+      nameCaller = bookName
+    }
     // video приходит строкой "true"/"false" (map<string,string> у FCM/APNs).
     let isVideo = ((dict["video"] as? String) ?? "false") == "true" || (dict["video"] as? Bool ?? false)
     NSLog("IPERON_CALL voip push received: callId=\(callId) action=\(action) video=\(isVideo)")

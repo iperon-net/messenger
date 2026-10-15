@@ -16,6 +16,9 @@ data class PushPayload(
     val badge: Int = 0,
     val date: Long = 0,
     val messageIDs: List<Long> = emptyList(),
+    // Номер отправителя (E.164): не titleFromContact — имя ищем в адресной книге.
+    val senderPhone: String = "",
+    val titleFromContact: Boolean = false,
 ) {
     companion object {
         // PushPayload.Kind
@@ -68,6 +71,8 @@ data class PushPayload(
                         }
                         payload
                     }
+                    12 -> payload.copy(senderPhone = reader.expectString(wire))
+                    13 -> payload.copy(titleFromContact = reader.expectVarint(wire) != 0L)
                     else -> { reader.skip(wire); payload }
                 }
             }

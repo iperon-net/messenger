@@ -97,6 +97,59 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
     // живёт в IndexedStack и сама бы не обновилась).
     _hiddenSub = repositories.hiddenProfiles.changes.listen((_) => _reloadHidden());
     _reloadHidden();
+    // Профиль контакта без имени пришёл/обновился — его имя в строку.
+    _profileSub = api.on(MessageType.PROFILE).listen((payload) {
+      try {
+        final userID = Profile_Response.fromBuffer(payload).userID;
+        if (_namelessKeys.contains(utils.bytesToHex(Uint8List.fromList(userID)))) unawaited(_refreshProfileNames());
+      } catch (error, stackTrace) {
+        logger.handle(error, stackTrace);
+      }
+    });
+  }
+
+  StreamSubscription<Uint8List>? _profileSub;
+
+  /// Имена из профилей для контактов без имени (в `displayName` — номер):
+  /// hex(userID) → имя / @username. Общее правило имени — контакт → профиль.
+  final _profileNames = <String, String>{};
+
+  /// userID (hex) зарегистрированных контактов без имени — по ним читаем профили.
+  var _namelessKeys = <String>{};
+
+  ContactItem _withName(ContactItem item) {
+    final userID = item.userID;
+    if (userID == null || item.displayName != item.phone) return item;
+    final name = _profileNames[utils.bytesToHex(userID)];
+    return name == null ? item : item.copyWith(displayName: name);
+  }
+
+  Future<void> _refreshProfileNames() async {
+    final keys = _namelessKeys;
+    if (keys.isEmpty) return;
+    try {
+      final profiles = await repositories.profiles.getByUserIDs(
+        userIDs: [for (final key in keys) utils.hexToBytes(key)],
+        toHex: (id) => utils.bytesToHex(Uint8List.fromList(id)),
+      );
+      if (isClosed) return;
+      var changed = false;
+      for (final entry in profiles.entries) {
+        final name = utils.composeDisplayName(
+          firstName: entry.value.fistName,
+          lastName: entry.value.lastName,
+          username: entry.value.username,
+          phoneNumber: '',
+        );
+        if (name.isNotEmpty && _profileNames[entry.key] != name) {
+          _profileNames[entry.key] = name;
+          changed = true;
+        }
+      }
+      if (changed) _emitAll();
+    } catch (error, stackTrace) {
+      logger.handle(error, stackTrace);
+    }
   }
 
   final logger = getIt.get<Logger>();
@@ -358,6 +411,7 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
     _presenceSub?.cancel();
     _connectionSub?.cancel();
     _hiddenSub?.cancel();
+    _profileSub?.cancel();
     return super.close();
   }
 
@@ -1019,7 +1073,7 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
       if (cloudKeys.contains(item.phoneE164)) continue;
       // Присутствие только у зарегистрированных (есть userID); приглашаемым не нужно.
       if (item.userID != null) {
-        registered.add(_withPresence(item));
+        registered.add(_withName(_withPresence(item)));
       } else {
         invitable.add(item);
       }
@@ -1027,8 +1081,25 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
 
     final cloud = [
       for (final contact in _cloud.values)
-        _withPresence(ContactItem(displayName: contact.displayName, phone: contact.phone, phoneE164: contact.e164, userID: contact.userID)),
+        _withName(
+          _withPresence(
+            ContactItem(displayName: contact.displayName, phone: contact.phone, phoneE164: contact.e164, userID: contact.userID),
+          ),
+        ),
     ];
+
+    // Контакты без имени — имя из профиля (читаем, когда набор изменился).
+    final nameless = <String>{
+      for (final item in _book)
+        if (item.userID case final userID? when item.displayName == item.phone && !cloudKeys.contains(item.phoneE164))
+          utils.bytesToHex(userID),
+      for (final contact in _cloud.values)
+        if (contact.userID case final userID? when contact.displayName == contact.phone) utils.bytesToHex(userID),
+    };
+    if (nameless.length != _namelessKeys.length || !nameless.containsAll(_namelessKeys)) {
+      _namelessKeys = nameless;
+      unawaited(_refreshProfileNames());
+    }
 
     int byName(ContactItem a, ContactItem b) => a.displayName.toLowerCase().compareTo(b.displayName.toLowerCase());
 

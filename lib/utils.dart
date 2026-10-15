@@ -44,30 +44,49 @@ class Utils {
     _connectivityKeepAlive = null;
   }
 
-  /// Отображаемое имя человека из полей профиля с учётом локали (RU: «Фамилия
-  /// Имя»), с фолбэком на телефон, затем username. Общая точка для экрана звонка
-  /// ([CallCubit]) и регистрации звонка в системной звонилке ([CallPush]) —
-  /// чтобы «Iperon» в CallKit/недавних заменялось единообразно.
-  String composeDisplayName({required String firstName, required String lastName, required String phoneNumber, required String username}) {
-    return composeNameLines(firstName: firstName, lastName: lastName, phoneNumber: phoneNumber, username: username).join(' ');
-  }
-
-  /// То же имя, что и [composeDisplayName], но разнесённое по строкам для показа
-  /// на экране звонка: RU — [Фамилия, Имя] (фамилия сверху), остальные локали —
-  /// [Имя, Фамилия]. Возвращает 1–2 непустые части; при отсутствии имени —
-  /// одну строку-фолбэк (телефон, затем username), либо пусто. `join(' ')` даёт
-  /// обратно однострочный [composeDisplayName] (для CallKit/логов).
-  List<String> composeNameLines({
+  /// Имя человека — одно правило для всего приложения (чаты, «Звонки»,
+  /// «Контакты», экран звонка, системная звонилка), как в Telegram:
+  ///   1. [contactName] — как я его записал: облачный контакт, затем адресная
+  ///      книга (`Contacts.namesByUserID`; только настоящее имя, не номер);
+  ///   2. имя из профиля с учётом локали (RU: «Фамилия Имя»);
+  ///   3. `@username`;
+  ///   4. [phoneNumber] (международный формат).
+  /// Те же уровни ищут и пуши (сервер — облачный контакт и профиль, устройство
+  /// — адресную книгу по номеру).
+  String composeDisplayName({
+    String contactName = '',
     required String firstName,
     required String lastName,
     required String phoneNumber,
     required String username,
   }) {
+    return composeNameLines(
+      contactName: contactName,
+      firstName: firstName,
+      lastName: lastName,
+      phoneNumber: phoneNumber,
+      username: username,
+    ).join(' ');
+  }
+
+  /// То же имя, что и [composeDisplayName], но разнесённое по строкам для показа
+  /// на экране звонка: имя из профиля — RU [Фамилия, Имя] (фамилия сверху),
+  /// остальные локали [Имя, Фамилия]. Имя контакта и фолбэки — одной строкой.
+  /// `join(' ')` даёт обратно однострочный [composeDisplayName].
+  List<String> composeNameLines({
+    String contactName = '',
+    required String firstName,
+    required String lastName,
+    required String phoneNumber,
+    required String username,
+  }) {
+    final contact = contactName.trim();
+    if (contact.isNotEmpty) return [contact];
     final ru = LocaleSettings.currentLocale == AppLocale.ru;
-    final parts = (ru ? [lastName, firstName] : [firstName, lastName]).where((p) => p.isNotEmpty).toList();
+    final parts = (ru ? [lastName, firstName] : [firstName, lastName]).map((p) => p.trim()).where((p) => p.isNotEmpty).toList();
     if (parts.isNotEmpty) return parts;
+    if (username.isNotEmpty) return ['@$username'];
     if (phoneNumber.isNotEmpty) return [phoneNumber];
-    if (username.isNotEmpty) return [username];
     return const [];
   }
 

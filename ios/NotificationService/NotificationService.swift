@@ -66,7 +66,14 @@ class NotificationService: UNNotificationServiceExtension {
     content.userInfo = userInfo
 
     let appName = Self.text("PUSH_APP_NAME")
-    let title = payload.title.isEmpty ? appName : payload.title
+    // Имя как в приложении: облачный контакт (title, titleFromContact) →
+    // адресная книга устройства по номеру → профиль / номер (title).
+    var senderName = payload.title
+    if !payload.titleFromContact, !payload.senderPhone.isEmpty,
+       let bookName = Self.addressBookName(payload.senderPhone) {
+      senderName = bookName
+    }
+    let title = senderName.isEmpty ? appName : senderName
 
     // Включён код-пароль — ни имени, ни текста на экране блокировки.
     if PushKeychain.isPasscodeEnabled {

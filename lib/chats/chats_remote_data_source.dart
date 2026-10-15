@@ -10,6 +10,7 @@ import '../api.dart';
 import '../auth.dart';
 import '../cdn.dart';
 import '../di.dart';
+import '../utils.dart';
 import '../logger.dart';
 import '../models.dart' as models;
 import '../protobuf.dart';
@@ -62,6 +63,9 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     'contacts',
   ];
   static const _messageTables = [
+    // Контакты — имена в ленте (отправитель, ответ, «Переслано от») по общему
+    // правилу: переименовал контакт — лента обновилась.
+    'contacts',
     ChatsRepository.messagesTable,
     ChatsRepository.outboxTable,
     ChatsRepository.dialogsTable,
@@ -120,6 +124,10 @@ class ChatsRemoteDataSource implements ChatsDataSource {
 
   /// Уже запрошенные профили собеседников (hex userID) — по разу за запуск.
   final _profilesRequested = <String>{};
+
+  /// Номера профилей в международном формате (libphonenumber не на каждое
+  /// перечитывание списка).
+  final _formattedPhones = <String, String>{};
 
   /// Пути к аватарам по cdnID (hex) — чтобы не ходить в `downloads` на каждое
   /// изменение списка.
@@ -229,26 +237,43 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     return null;
   }
 
-  /// Имена собеседников: из адресной книги (как подписан у нас), иначе из
-  /// кэша профилей.
+  /// Имена собеседников по общему правилу (`Utils.composeDisplayName`): как я
+  /// его записал (облачный контакт главнее книжного; контакт без имени — не
+  /// имя), имя из профиля, @username, номер.
   Future<Map<String, _PeerInfo>> _loadPeers(List<Uint8List> userIDs) async {
     if (userIDs.isEmpty) return const {};
+    final utils = getIt.get<Utils>();
     final profiles = await _repositories.profiles.getByUserIDs(userIDs: userIDs, toHex: idHex);
-    final contacts = <String, String>{};
-    for (final c in await _repositories.contacts.getAll()) {
-      final userID = c.userID;
-      if (userID != null && c.displayName.isNotEmpty) contacts.putIfAbsent(idHex(userID), () => c.displayName);
+    final contactNames = <String, String>{};
+    final contactPhones = <String, String>{};
+    // Облачные — первыми: их имя главнее книжного.
+    final contacts = (await _repositories.contacts.getAll()).where((c) => c.userID != null).toList()
+      ..sort((a, b) => (b.isCloud ? 1 : 0) - (a.isCloud ? 1 : 0));
+    for (final c in contacts) {
+      final key = idHex(c.userID!);
+      contactPhones.putIfAbsent(key, () => c.phone);
+      final name = c.displayName.trim();
+      if (name.isNotEmpty && name != c.phone) contactNames.putIfAbsent(key, () => name);
     }
     return {
       for (final userID in userIDs)
         idHex(userID): () {
           final key = idHex(userID);
           final profile = profiles[key];
-          final contactName = contacts[key];
-          final profileName = profile == null ? '' : '${profile.fistName} ${profile.lastName}'.trim();
+          final rawPhone = profile?.phoneNumber ?? '';
+          final phone = rawPhone.isEmpty
+              ? ''
+              : _formattedPhones.putIfAbsent(rawPhone, () => utils.phoneNormalization(phoneNumber: rawPhone).international);
           return _PeerInfo(
-            title: contactName ?? (profileName.isNotEmpty ? profileName : profile?.phoneNumber ?? ''),
-            isContact: contactName != null,
+            title: utils.composeDisplayName(
+              contactName: contactNames[key] ?? '',
+              firstName: profile?.fistName ?? '',
+              lastName: profile?.lastName ?? '',
+              username: profile?.username ?? '',
+              phoneNumber: phone.isNotEmpty ? phone : (rawPhone.isNotEmpty ? rawPhone : contactPhones[key] ?? ''),
+            ),
+            isContact: contactPhones.containsKey(key),
+            hasContactName: contactNames.containsKey(key),
             profile: profile,
           );
         }(),
@@ -779,7 +804,7 @@ class ChatsRemoteDataSource implements ChatsDataSource {
       messages.insert(at < 0 ? messages.length : at, message);
     }
     // Ещё отправляющиеся — внизу: они новее всего, что есть на сервере.
-    return [...messages, ...pending];
+    return _withForwardNames([...messages, ...pending]);
   }
 
   // --- вложения ---
@@ -1082,7 +1107,7 @@ class ChatsRemoteDataSource implements ChatsDataSource {
           ),
     ];
     result.sort((a, b) => a.scheduledDate!.compareTo(b.scheduledDate!));
-    return result;
+    return _withForwardNames(result);
   }
 
   /// Ещё не принятое сервером (в outbox) меняется локально и без сети;
@@ -1289,6 +1314,29 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     ];
   }
 
+  /// «Переслано от» по общему правилу имени: автор оригинала у меня в
+  /// контактах — моё имя для него; иначе имя, записанное сервером при
+  /// пересылке (без него — из кэша профиля: превью ещё не отправленного).
+  Future<List<models.Message>> _withForwardNames(List<models.Message> messages) async {
+    final ids = <String>{
+      for (final m in messages)
+        if (m.forward case final f? when f.userID.isNotEmpty && !f.self) f.userID,
+    };
+    if (ids.isEmpty) return messages;
+    final peers = _Peers(await _loadPeers([for (final id in ids) idBytes(id)]));
+    return [
+      for (final m in messages)
+        if (m.forward case final f? when f.userID.isNotEmpty && !f.self)
+          () {
+            final info = peers.of(idBytes(f.userID));
+            final name = info.hasContactName || f.name.isEmpty ? info.title : f.name;
+            return name == f.name || name.isEmpty ? m : m.copyWith(forward: f.copyWith(name: name));
+          }()
+        else
+          m,
+    ];
+  }
+
   /// Пересылка: каждое — отдельной отправкой через outbox (сразу или при
   /// подключении, ⏱ в ленте). На сервер уходит ссылка на исходное
   /// (`Messages.Send.forwardFrom`) — содержимое он берёт сам; в outbox —
@@ -1468,9 +1516,12 @@ class ChatsRemoteDataSource implements ChatsDataSource {
 class _PeerInfo {
   final String title;
   final bool isContact;
+
+  /// [title] — имя контакта («как я его записал»).
+  final bool hasContactName;
   final models.Profile? profile;
 
-  const _PeerInfo({required this.title, required this.isContact, required this.profile});
+  const _PeerInfo({required this.title, required this.isContact, this.hasContactName = false, required this.profile});
 }
 
 class _Peers {

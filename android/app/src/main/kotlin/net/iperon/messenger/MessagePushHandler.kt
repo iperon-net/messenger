@@ -77,7 +77,14 @@ object MessagePushHandler {
         show(context, payload)
     }
 
-    private fun show(context: Context, payload: PushPayload) {
+    private fun show(context: Context, received: PushPayload) {
+        // Имя как в приложении: облачный контакт (title, titleFromContact) →
+        // адресная книга устройства по номеру → профиль / номер (title).
+        val payload = if (!received.titleFromContact && received.senderPhone.isNotEmpty()) {
+            addressBookName(context, received.senderPhone)?.let { received.copy(title = it) } ?: received
+        } else {
+            received
+        }
         NotificationChannels.ensure(context)
         val manager = NotificationManagerCompat.from(context)
         if (!manager.areNotificationsEnabled()) {

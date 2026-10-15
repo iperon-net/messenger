@@ -30,6 +30,8 @@ const PushPayload$json = {
     {'1': 'badge', '3': 9, '4': 1, '5': 5, '9': 0, '10': 'badge', '17': true},
     {'1': 'date', '3': 10, '4': 1, '5': 3, '10': 'date'},
     {'1': 'messageIDs', '3': 11, '4': 3, '5': 3, '10': 'messageIDs'},
+    {'1': 'senderPhone', '3': 12, '4': 1, '5': 9, '10': 'senderPhone'},
+    {'1': 'titleFromContact', '3': 13, '4': 1, '5': 8, '10': 'titleFromContact'},
   ],
   '4': [PushPayload_Kind$json],
   '8': [
@@ -59,7 +61,8 @@ final $typed_data.Uint8List pushPayloadDescriptor =
         'FgoGY2hhdElEGAQgASgMUgZjaGF0SUQSHAoJbWVzc2FnZUlEGAUgASgDUgltZXNzYWdlSUQSFA'
         'oFdGl0bGUYBiABKAlSBXRpdGxlEhIKBGJvZHkYByABKAlSBGJvZHkSEgoEYXJncxgIIAMoCVIE'
         'YXJncxIZCgViYWRnZRgJIAEoBUgAUgViYWRnZYgBARISCgRkYXRlGAogASgDUgRkYXRlEh4KCm'
-        '1lc3NhZ2VJRHMYCyADKANSCm1lc3NhZ2VJRHMijAEKBEtpbmQSCwoHVU5LTk9XThAAEggKBFRF'
-        'U1QQARISCg5DT05UQUNUX0pPSU5FRBACEg8KC0NBTExfTUlTU0VEEAMSCwoHTUVTU0FHRRAKEh'
-        'AKDFJFQURfSElTVE9SWRALEhMKD01FU1NBR0VfREVMRVRFRBAMEhQKEE1FU1NBR0VfUkVBQ1RJ'
-        'T04QDUIICgZfYmFkZ2U=');
+        '1lc3NhZ2VJRHMYCyADKANSCm1lc3NhZ2VJRHMSIAoLc2VuZGVyUGhvbmUYDCABKAlSC3NlbmRl'
+        'clBob25lEioKEHRpdGxlRnJvbUNvbnRhY3QYDSABKAhSEHRpdGxlRnJvbUNvbnRhY3QijAEKBE'
+        'tpbmQSCwoHVU5LTk9XThAAEggKBFRFU1QQARISCg5DT05UQUNUX0pPSU5FRBACEg8KC0NBTExf'
+        'TUlTU0VEEAMSCwoHTUVTU0FHRRAKEhAKDFJFQURfSElTVE9SWRALEhMKD01FU1NBR0VfREVMRV'
+        'RFRBAMEhQKEE1FU1NBR0VfUkVBQ1RJT04QDUIICgZfYmFkZ2U=');

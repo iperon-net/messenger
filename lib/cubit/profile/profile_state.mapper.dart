@@ -51,6 +51,13 @@ class ProfileStateMapper extends ClassMapperBase<ProfileState> {
     opt: true,
     def: const [],
   );
+  static String _$displayName(ProfileState v) => v.displayName;
+  static const Field<ProfileState, String> _f$displayName = Field(
+    'displayName',
+    _$displayName,
+    opt: true,
+    def: "",
+  );
   static String _$firstName(ProfileState v) => v.firstName;
   static const Field<ProfileState, String> _f$firstName = Field(
     'firstName',
@@ -128,6 +135,7 @@ class ProfileStateMapper extends ClassMapperBase<ProfileState> {
     #error: _f$error,
     #locale: _f$locale,
     #userID: _f$userID,
+    #displayName: _f$displayName,
     #firstName: _f$firstName,
     #lastName: _f$lastName,
     #aboutMe: _f$aboutMe,
@@ -146,6 +154,7 @@ class ProfileStateMapper extends ClassMapperBase<ProfileState> {
       error: data.dec(_f$error),
       locale: data.dec(_f$locale),
       userID: data.dec(_f$userID),
+      displayName: data.dec(_f$displayName),
       firstName: data.dec(_f$firstName),
       lastName: data.dec(_f$lastName),
       aboutMe: data.dec(_f$aboutMe),
@@ -227,6 +236,7 @@ abstract class ProfileStateCopyWith<$R, $In extends ProfileState, $Out>
     String? error,
     AppLocale? locale,
     List<int>? userID,
+    String? displayName,
     String? firstName,
     String? lastName,
     String? aboutMe,
@@ -262,6 +272,7 @@ class _ProfileStateCopyWithImpl<$R, $Out>
     String? error,
     AppLocale? locale,
     List<int>? userID,
+    String? displayName,
     String? firstName,
     String? lastName,
     String? aboutMe,
@@ -278,6 +289,7 @@ class _ProfileStateCopyWithImpl<$R, $Out>
       if (error != null) #error: error,
       if (locale != null) #locale: locale,
       if (userID != null) #userID: userID,
+      if (displayName != null) #displayName: displayName,
       if (firstName != null) #firstName: firstName,
       if (lastName != null) #lastName: lastName,
       if (aboutMe != null) #aboutMe: aboutMe,
@@ -296,6 +308,7 @@ class _ProfileStateCopyWithImpl<$R, $Out>
     error: data.get(#error, or: $value.error),
     locale: data.get(#locale, or: $value.locale),
     userID: data.get(#userID, or: $value.userID),
+    displayName: data.get(#displayName, or: $value.displayName),
     firstName: data.get(#firstName, or: $value.firstName),
     lastName: data.get(#lastName, or: $value.lastName),
     aboutMe: data.get(#aboutMe, or: $value.aboutMe),

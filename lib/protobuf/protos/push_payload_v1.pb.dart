@@ -46,6 +46,8 @@ class PushPayload extends $pb.GeneratedMessage {
     $core.int? badge,
     $fixnum.Int64? date,
     $core.Iterable<$fixnum.Int64>? messageIDs,
+    $core.String? senderPhone,
+    $core.bool? titleFromContact,
   }) {
     final result = create();
     if (kind != null) result.kind = kind;
@@ -59,6 +61,8 @@ class PushPayload extends $pb.GeneratedMessage {
     if (badge != null) result.badge = badge;
     if (date != null) result.date = date;
     if (messageIDs != null) result.messageIDs.addAll(messageIDs);
+    if (senderPhone != null) result.senderPhone = senderPhone;
+    if (titleFromContact != null) result.titleFromContact = titleFromContact;
     return result;
   }
 
@@ -82,6 +86,8 @@ class PushPayload extends $pb.GeneratedMessage {
     ..aI(9, _omitFieldNames ? '' : 'badge')
     ..aInt64(10, _omitFieldNames ? '' : 'date')
     ..p<$fixnum.Int64>(11, _omitFieldNames ? '' : 'messageIDs', $pb.PbFieldType.K6, protoName: 'messageIDs')
+    ..aOS(12, _omitFieldNames ? '' : 'senderPhone', protoName: 'senderPhone')
+    ..aOB(13, _omitFieldNames ? '' : 'titleFromContact', protoName: 'titleFromContact')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -195,6 +201,29 @@ class PushPayload extends $pb.GeneratedMessage {
 
   @$pb.TagNumber(11)
   $pb.PbList<$fixnum.Int64> get messageIDs => $_getList(10);
+
+  /// Номер отправителя (E.164, «+7…»). titleFromContact = false — устройство
+  /// ищет номер в своей адресной книге и, если нашло, показывает имя оттуда
+  /// вместо title (имён из книги на сервере нет). Порядок имени везде:
+  /// облачный контакт → адресная книга → профиль → номер.
+  @$pb.TagNumber(12)
+  $core.String get senderPhone => $_getSZ(11);
+  @$pb.TagNumber(12)
+  set senderPhone($core.String value) => $_setString(11, value);
+  @$pb.TagNumber(12)
+  $core.bool hasSenderPhone() => $_has(11);
+  @$pb.TagNumber(12)
+  void clearSenderPhone() => $_clearField(12);
+
+  /// title — имя из облачного контакта получателя: главнее адресной книги.
+  @$pb.TagNumber(13)
+  $core.bool get titleFromContact => $_getBF(12);
+  @$pb.TagNumber(13)
+  set titleFromContact($core.bool value) => $_setBool(12, value);
+  @$pb.TagNumber(13)
+  $core.bool hasTitleFromContact() => $_has(12);
+  @$pb.TagNumber(13)
+  void clearTitleFromContact() => $_clearField(13);
 }
 
 const $core.bool _omitFieldNames = $core.bool.fromEnvironment('protobuf.omit_field_names');

@@ -8,6 +8,7 @@ import '../../api.dart';
 import '../../constants.dart';
 import '../../di.dart';
 import '../../logger.dart';
+import '../../peer_names.dart';
 import '../../protobuf.dart';
 import '../../repositories/repositories.dart';
 import '../../cdn.dart';
@@ -42,9 +43,12 @@ class ProfileCubit extends Cubit<ProfileState> {
       if (!listEquals(response.userID, userID)) return;
 
       final phoneNormalization = utils.phoneNormalization(phoneNumber: response.phoneNumber);
+      final displayName = await peerDisplayName(userID, fresh: response);
+      if (isClosed) return;
       emit(
         state.copyWith(
           status: Status.success,
+          displayName: displayName,
           firstName: response.firstName,
           lastName: response.lastName,
           aboutMe: response.aboutMe,
@@ -97,7 +101,10 @@ class ProfileCubit extends Cubit<ProfileState> {
     if (isClosed) return;
 
     final phoneNormalization = utils.phoneNormalization(phoneNumber: profile.phoneNumber);
+    final displayName = await peerDisplayName(userID);
+    if (isClosed) return;
     var next = state.copyWith(
+      displayName: displayName,
       firstName: profile.fistName,
       lastName: profile.lastName,
       aboutMe: profile.aboutMe,

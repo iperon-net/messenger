@@ -162,6 +162,17 @@ class _ProfileCupertino extends State<ProfileCupertino> {
                           ),
                   ),
                 ),
+                if (state.displayName.isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Text(
+                      state.displayName,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 20),
                 if (hasSection)
                   CupertinoListSection.insetGrouped(
