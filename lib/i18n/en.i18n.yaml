@@ -77,6 +77,7 @@
   "swipeUnarchive": "Unarchive"
   "deleteChatTitle": "Delete chat?"
   "deleteChatMessage": "Chat \"{title}\" will be removed from the list."
+  "deleteChatForPeer": "Also delete for {name}"
   "readAll": "Read all"
   "readReactions": "Read reactions"
   "deleteFolder": "Delete folder"

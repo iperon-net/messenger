@@ -334,6 +334,9 @@ class Translations$screenChats$en {
 	/// en: 'Chat "{title}" will be removed from the list.'
 	String deleteChatMessage({required Object title}) => 'Chat "${title}" will be removed from the list.';
 
+	/// en: 'Also delete for {name}'
+	String deleteChatForPeer({required Object name}) => 'Also delete for ${name}';
+
 	/// en: 'Read all'
 	String get readAll => 'Read all';
 
@@ -3695,6 +3698,7 @@ extension on Translations {
 			'screenChats.swipeUnarchive' => 'Unarchive',
 			'screenChats.deleteChatTitle' => 'Delete chat?',
 			'screenChats.deleteChatMessage' => ({required Object title}) => 'Chat "${title}" will be removed from the list.',
+			'screenChats.deleteChatForPeer' => ({required Object name}) => 'Also delete for ${name}',
 			'screenChats.readAll' => 'Read all',
 			'screenChats.readReactions' => 'Read reactions',
 			'screenChats.deleteFolder' => 'Delete folder',
@@ -4136,9 +4140,9 @@ extension on Translations {
 			'screenChat.formatCode' => 'Monospace',
 			'screenChat.formatLink' => 'Link',
 			'screenChat.formatQuote' => 'Quote',
-			'screenChat.formatPlain' => 'Regular',
 			_ => null,
 		} ?? switch (path) {
+			'screenChat.formatPlain' => 'Regular',
 			'screenChat.formatUnderline' => 'Underline',
 			'screenChat.formatPre' => 'Code Block',
 			'screenChat.formatMention' => 'Mention',
@@ -4650,9 +4654,9 @@ extension on Translations {
 			'screenCall.qualityPoor' => 'Poor connection',
 			'screenCall.qualityGood' => 'Good connection',
 			'screenCall.qualityExcellent' => 'Excellent connection',
-			'screenCall.remoteMicMuted' => 'Their microphone is off',
 			_ => null,
 		} ?? switch (path) {
+			'screenCall.remoteMicMuted' => 'Their microphone is off',
 			'screenCall.remoteOnHold' => 'They\'re on another call',
 			'screenCall.reconnecting' => 'Reconnecting…',
 			'screenCall.remoteReconnecting' => 'Waiting for them to reconnect…',

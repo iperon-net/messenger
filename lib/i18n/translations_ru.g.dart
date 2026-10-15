@@ -191,6 +191,7 @@ class _Translations$screenChats$ru extends Translations$screenChats$en {
 	@override String get swipeUnarchive => 'Вернуть';
 	@override String get deleteChatTitle => 'Удалить чат?';
 	@override String deleteChatMessage({required Object title}) => 'Чат «${title}» будет удалён из списка.';
+	@override String deleteChatForPeer({required Object name}) => 'Также удалить для ${name}';
 	@override String get readAll => 'Прочитать все';
 	@override String get readReactions => 'Прочитать реакции';
 	@override String get deleteFolder => 'Удалить папку';
@@ -1616,6 +1617,7 @@ extension on TranslationsRu {
 			'screenChats.swipeUnarchive' => 'Вернуть',
 			'screenChats.deleteChatTitle' => 'Удалить чат?',
 			'screenChats.deleteChatMessage' => ({required Object title}) => 'Чат «${title}» будет удалён из списка.',
+			'screenChats.deleteChatForPeer' => ({required Object name}) => 'Также удалить для ${name}',
 			'screenChats.readAll' => 'Прочитать все',
 			'screenChats.readReactions' => 'Прочитать реакции',
 			'screenChats.deleteFolder' => 'Удалить папку',
@@ -2057,9 +2059,9 @@ extension on TranslationsRu {
 			'screenChat.formatCode' => 'Моноширинный',
 			'screenChat.formatLink' => 'Ссылка',
 			'screenChat.formatQuote' => 'Цитата',
-			'screenChat.formatPlain' => 'Обычный',
 			_ => null,
 		} ?? switch (path) {
+			'screenChat.formatPlain' => 'Обычный',
 			'screenChat.formatUnderline' => 'Подчёркнутый',
 			'screenChat.formatPre' => 'Блок кода',
 			'screenChat.formatMention' => 'Упомянуть',
@@ -2571,9 +2573,9 @@ extension on TranslationsRu {
 			'screenCall.qualityPoor' => 'Слабый сигнал',
 			'screenCall.qualityGood' => 'Хорошее соединение',
 			'screenCall.qualityExcellent' => 'Отличное соединение',
-			'screenCall.remoteMicMuted' => 'Микрофон собеседника выключен',
 			_ => null,
 		} ?? switch (path) {
+			'screenCall.remoteMicMuted' => 'Микрофон собеседника выключен',
 			'screenCall.remoteOnHold' => 'Собеседник на другой линии',
 			'screenCall.reconnecting' => 'Переподключение…',
 			'screenCall.remoteReconnecting' => 'Собеседник переподключается…',

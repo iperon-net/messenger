@@ -37,7 +37,7 @@ class ChatsArchiveMaterial extends StatelessWidget {
                   key: ValueKey(chats[index].id),
                   chat: chats[index],
                   enabled: true,
-                  confirmDelete: () => confirmDeleteChatMaterial(context, chats[index]),
+                  confirmDelete: () => askDeleteChatMaterial(context, chats[index]),
                   child: ChatTileMaterial(
                     chat: chats[index],
                     onTap: () => context.push('/chats/chat/${chats[index].id}'),

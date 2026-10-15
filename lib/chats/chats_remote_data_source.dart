@@ -390,9 +390,13 @@ class ChatsRemoteDataSource implements ChatsDataSource {
   }
 
   @override
-  Future<void> delete(String chatID) async {
+  Future<void> delete(String chatID, {bool forEveryone = false}) async {
     await _requireNetwork();
-    final response = await _sync.chats(pb.Chats_Request(deleteDialog: pb.Chats_DeleteDialog(chatID: idBytes(chatID))));
+    final response = await _sync.chats(
+      pb.Chats_Request(
+        deleteDialog: pb.Chats_DeleteDialog(chatID: idBytes(chatID), forEveryone: forEveryone),
+      ),
+    );
     await _sync.applyUpdates(response.deleteDialog.updates);
   }
 

@@ -20,7 +20,8 @@ class ChatSwipeActions extends StatelessWidget {
   final Widget child;
 
   /// Подтверждение удаления — платформенный диалог.
-  final Future<bool> Function() confirmDelete;
+  /// Подтверждение удаления: «и у собеседника?», `null` — отмена.
+  final Future<bool?> Function() confirmDelete;
 
   const ChatSwipeActions({super.key, required this.chat, required this.enabled, required this.confirmDelete, required this.child});
 
@@ -60,7 +61,8 @@ class ChatSwipeActions extends StatelessWidget {
         () => cubit.setMuted(chat, !chat.muted),
       ),
       _action(FontAwesomeIcons.solidTrashCan, t.delete, _red, () async {
-        if (await confirmDelete()) await cubit.delete(chat);
+        final forEveryone = await confirmDelete();
+        if (forEveryone != null) await cubit.delete(chat, forEveryone: forEveryone);
       }),
       if (canArchive)
         _action(

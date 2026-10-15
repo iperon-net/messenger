@@ -62,7 +62,7 @@ abstract class ChatsDataSource {
   /// Удалить чат / покинуть группу или канал. Сообщество — вместе со всеми его
   /// чатами; группа / канал сообщества: владелец удаляет у всех, остальные
   /// только выходят (чат остаётся в сообществе, можно вступить снова).
-  Future<void> delete(String chatID);
+  Future<void> delete(String chatID, {bool forEveryone = false});
 
   Future<void> deleteFolder(String folderID);
 

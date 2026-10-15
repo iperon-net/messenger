@@ -55,7 +55,7 @@ class ChatsArchiveCupertino extends StatelessWidget {
                     key: ValueKey(chats[index].id),
                     chat: chats[index],
                     enabled: true,
-                    confirmDelete: () => confirmDeleteChatCupertino(context, chats[index]),
+                    confirmDelete: () => askDeleteChatCupertino(context, chats[index]),
                     child: ChatContextMenuCupertino(chat: chats[index], onTap: () => context.push('/chats/chat/${chats[index].id}')),
                   ),
                 ),

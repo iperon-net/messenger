@@ -85,7 +85,9 @@ class ChatsCubit extends Cubit<ChatsState> {
   Future<void> setArchived(models.Chat chat, bool archived) => _online(() => _source?.setArchived(chat.id, archived));
   Future<void> setRead(models.Chat chat, bool read) => _online(() => _source?.setRead(chat.id, read));
   Future<void> readReactions(models.Chat chat) => _online(() => _source?.readAllReactions(chat.id));
-  Future<void> delete(models.Chat chat) => _online(() => _source?.delete(chat.id));
+
+  /// [forEveryone] — и у собеседника (личный чат: его история тоже очищается).
+  Future<void> delete(models.Chat chat, {bool forEveryone = false}) => _online(() => _source?.delete(chat.id, forEveryone: forEveryone));
 
   Future<void> readAll(models.ChatFolder folder) async =>
       _source?.readAll(state.chats.where((c) => folder.matches(c)).map((c) => c.id).toList());

@@ -205,7 +205,7 @@ class _ChatsMaterial extends State<ChatsMaterial> with SearchHideOnScroll {
           chat: chat,
           // Несколько папок — свайп листает их (действия — по удержанию).
           enabled: state.folders.length < 2,
-          confirmDelete: () => confirmDeleteChatMaterial(context, chat),
+          confirmDelete: () => askDeleteChatMaterial(context, chat),
           child: ChatTileMaterial(
             chat: chat,
             onTap: () => context.push('/chats/chat/${chat.id}'),

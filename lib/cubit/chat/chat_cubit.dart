@@ -902,7 +902,8 @@ class ChatCubit extends Cubit<ChatState> {
 
   /// Профиль чата: «Удалить чат» / «Покинуть группу».
   /// false — не удалён (нет сети): экран остаётся на месте.
-  Future<bool> deleteChat() => _online(() => _source?.delete(_chatID));
+  /// [forEveryone] — и у собеседника.
+  Future<bool> deleteChat({bool forEveryone = false}) => _online(() => _source?.delete(_chatID, forEveryone: forEveryone));
 
   /// Серверное действие без сети: не делаем вид, что получилось, — экран
   /// покажет «Нет соединения» (см. `offlineNotice`). false — не выполнено.

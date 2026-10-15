@@ -76,24 +76,51 @@ Future<void> showChatActionsMaterial(BuildContext context, models.Chat chat) asy
   );
 
   if (delete != true || !context.mounted) return;
-  if (await confirmDeleteChatMaterial(context, chat)) await cubit.delete(chat);
+  final forEveryone = await askDeleteChatMaterial(context, chat);
+  if (forEveryone != null) await cubit.delete(chat, forEveryone: forEveryone);
 }
 
-/// «Удалить чат?» — `true`, если подтвердили.
-Future<bool> confirmDeleteChatMaterial(BuildContext context, models.Chat chat) async {
+/// «Удалить чат?» Личный (не «Избранное») — как удаление сообщений: галочка
+/// «Также удалить для …» (по умолчанию снята; у собеседника история тоже
+/// очищается, чат пропадает из его списка). Результат — «и у собеседника?»,
+/// `null` — отмена.
+Future<bool?> askDeleteChatMaterial(BuildContext context, models.Chat chat) {
   final t = context.t.screenChats;
-  final confirmed = await showDialog<bool>(
+  final title = ChatTileContent.title(context.t, chat);
+  final private = chat.type == models.ChatType.private && !chat.isSelf;
+  var forBoth = false;
+  return showDialog<bool>(
     context: context,
-    builder: (dialogContext) => AlertDialog(
-      title: Text(t.deleteChatTitle),
-      content: Text(t.deleteChatMessage(title: ChatTileContent.title(context.t, chat))),
-      actions: [
-        TextButton(onPressed: () => Navigator.of(dialogContext).pop(false), child: Text(context.t.common.cancel)),
-        TextButton(onPressed: () => Navigator.of(dialogContext).pop(true), child: Text(t.delete)),
-      ],
+    builder: (dialogContext) => StatefulBuilder(
+      builder: (dialogContext, setDialogState) => AlertDialog(
+        title: Text(t.deleteChatTitle),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(t.deleteChatMessage(title: title)),
+            if (private)
+              CheckboxListTile(
+                contentPadding: EdgeInsets.zero,
+                controlAffinity: ListTileControlAffinity.leading,
+                horizontalTitleGap: 4,
+                value: forBoth,
+                onChanged: (value) => setDialogState(() => forBoth = value ?? false),
+                title: Text(t.deleteChatForPeer(name: title)),
+              ),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: Text(context.t.common.cancel)),
+          TextButton(
+            style: TextButton.styleFrom(foregroundColor: Theme.of(dialogContext).colorScheme.error),
+            onPressed: () => Navigator.of(dialogContext).pop(private && forBoth),
+            child: Text(t.delete),
+          ),
+        ],
+      ),
     ),
   );
-  return confirmed ?? false;
 }
 
 /// Действия над папкой по long-press на табе: у «Все чаты» — «Прочитать все»,

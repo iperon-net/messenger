@@ -23,6 +23,7 @@ import 'chat_mute.dart';
 import 'chats_new_cupertino.dart';
 import 'community_common.dart';
 import 'community_cupertino.dart';
+import 'chat_actions_cupertino.dart';
 
 /// Профиль чата (iOS) — тап по шапке окна чата. Результат — что сделать в
 /// чате: поиск или переход к сообщению.
@@ -80,6 +81,14 @@ class _ChatInfoCupertinoState extends State<ChatInfoCupertino> {
   }
 
   Future<void> _leave(BuildContext context, models.Chat chat) async {
+    // Личный — с выбором «и у собеседника» (как в списке чатов).
+    if (chat.type == models.ChatType.private) {
+      final forEveryone = await askDeleteChatCupertino(context, chat);
+      if (forEveryone == null || !context.mounted) return;
+      if (!await context.read<ChatCubit>().deleteChat(forEveryone: forEveryone)) return;
+      if (context.mounted) context.go(chatLeaveRoute(chat));
+      return;
+    }
     final confirm = chatLeaveConfirm(context.t, chat);
     final confirmed = await showCupertinoDialog<bool>(
       context: context,

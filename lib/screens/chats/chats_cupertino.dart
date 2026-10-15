@@ -215,7 +215,7 @@ class _ChatsCupertino extends State<ChatsCupertino> with SearchHideOnScroll {
           chat: chat,
           // Несколько папок — свайп листает их (действия — по удержанию).
           enabled: state.folders.length < 2,
-          confirmDelete: () => confirmDeleteChatCupertino(context, chat),
+          confirmDelete: () => askDeleteChatCupertino(context, chat),
           child: ChatContextMenuCupertino(chat: chat, onTap: () => context.push('/chats/chat/${chat.id}')),
         );
       },

@@ -70,7 +70,8 @@ class ChatContextMenuCupertino extends StatelessWidget {
             () => cubit.setArchived(chat, !chat.archived),
           ),
         action(t.delete, CupertinoIcons.delete, () async {
-          if (await confirmDeleteChatCupertino(context, chat)) await cubit.delete(chat);
+          final forEveryone = await askDeleteChatCupertino(context, chat);
+          if (forEveryone != null) await cubit.delete(chat, forEveryone: forEveryone);
         }, destructive: true),
       ],
       builder: (context, animation) {
@@ -108,9 +109,35 @@ class ChatContextMenuCupertino extends StatelessWidget {
   }
 }
 
-/// «Удалить чат?» — `true`, если подтвердили.
-Future<bool> confirmDeleteChatCupertino(BuildContext context, models.Chat chat) async {
+/// «Удалить чат?» Личный (не «Избранное») — как удаление сообщений: лист
+/// «У меня и у собеседника» / «Только у меня» (у собеседника история тоже
+/// очищается, чат пропадает из его списка). Результат — «и у собеседника?»,
+/// `null` — отмена.
+Future<bool?> askDeleteChatCupertino(BuildContext context, models.Chat chat) async {
   final t = context.t.screenChats;
+  if (chat.type == models.ChatType.private && !chat.isSelf) {
+    final scope = context.t.screenChat;
+    return showCupertinoModalPopup<bool>(
+      context: context,
+      builder: (sheetContext) => CupertinoActionSheet(
+        title: Text(t.deleteChatTitle),
+        message: Text(t.deleteChatMessage(title: ChatTileContent.title(context.t, chat))),
+        actions: [
+          CupertinoActionSheetAction(
+            isDestructiveAction: true,
+            onPressed: () => Navigator.of(sheetContext).pop(true),
+            child: Text(scope.scopeForBoth),
+          ),
+          CupertinoActionSheetAction(
+            isDestructiveAction: true,
+            onPressed: () => Navigator.of(sheetContext).pop(false),
+            child: Text(scope.scopeForMe),
+          ),
+        ],
+        cancelButton: CupertinoActionSheetAction(onPressed: () => Navigator.of(sheetContext).pop(), child: Text(context.t.common.cancel)),
+      ),
+    );
+  }
   final confirmed = await showCupertinoDialog<bool>(
     context: context,
     builder: (dialogContext) => CupertinoAlertDialog(
@@ -122,7 +149,7 @@ Future<bool> confirmDeleteChatCupertino(BuildContext context, models.Chat chat) 
       ],
     ),
   );
-  return confirmed ?? false;
+  return (confirmed ?? false) ? false : null;
 }
 
 /// Действия меню папки по удержанию таба (`CupertinoContextMenu` в

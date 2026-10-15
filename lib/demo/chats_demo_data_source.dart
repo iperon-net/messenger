@@ -1419,7 +1419,7 @@ class ChatsDemoDataSource implements ChatsDataSource {
   }
 
   @override
-  Future<void> delete(String chatID) async {
+  Future<void> delete(String chatID, {bool forEveryone = false}) async {
     final chat = _chat(chatID);
     if (chat == null) return;
     // Из группы / канала сообщества выходим, но чат остаётся в сообществе —
