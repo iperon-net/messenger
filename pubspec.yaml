@@ -39,13 +39,13 @@ dependencies:
   cupertino_ui: ^1.0.0
   cupertino_icons: ^2.0.0
   fixnum: ^1.1.1
-  firebase_remote_config: ^6.5.5
-  firebase_core: ^4.12.1
-  firebase_messaging: ^16.4.3
+  firebase_remote_config: ^7.0.0
+  firebase_core: ^5.0.0
+  firebase_messaging: ^17.0.0
   talker: ^5.1.19
   flutter_bloc: ^9.1.1
   get_it: ^9.2.1
-  firebase_crashlytics: ^5.2.6
+  firebase_crashlytics: ^6.0.0
   dart_mappable: ^4.8.0
   bloc: ^9.2.1
   flutter_dotenv: ^6.0.1

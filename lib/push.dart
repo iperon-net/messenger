@@ -20,8 +20,11 @@ import 'repositories.dart';
 /// `docs/plans/melodic-beaming-elephant.md`.
 ///
 /// Каналы (у каждого свой токен):
-/// - **Android** — FCM data-message. Токен из [FirebaseMessaging.getToken],
-///   переотправляется при `onTokenRefresh`.
+/// - **Android** — FCM data-message. Регистрационный токен из `getToken`,
+///   переотправляется при `onTokenRefresh`. В firebase_messaging 17 оба
+///   помечены deprecated в пользу `register()` / `onRegistered`, но те отдают
+///   FID (Installation ID), а сервер шлёт по регистрационному токену
+///   (`Message.Token`); переход на FID — вместе с сервером.
 /// - **iOS, звонки** — VoIP-токен PushKit; получаем в нативном коде и передаём
 ///   сюда ([registerVoipToken]).
 /// - **iOS, уведомления** — обычный APNs-токен. На remote notifications
@@ -281,6 +284,7 @@ class PushManager {
   /// Android: FCM-токен + подписка на его обновление.
   Future<void> _syncFcmToken() async {
     try {
+      // ignore: deprecated_member_use — FID вместо токена ломает сервер (см. шапку).
       final token = await FirebaseMessaging.instance.getToken();
       if (token != null && token.isNotEmpty) {
         await _register(
@@ -291,6 +295,7 @@ class PushManager {
         );
       }
 
+      // ignore: deprecated_member_use — см. шапку.
       _fcmRefreshSub ??= FirebaseMessaging.instance.onTokenRefresh.listen((token) {
         unawaited(
           _register(
