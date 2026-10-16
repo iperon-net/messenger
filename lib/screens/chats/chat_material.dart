@@ -1192,6 +1192,7 @@ class _ComposeBar extends StatelessWidget {
                 background: scheme.surfaceContainerLow,
                 icon: scheme.onSurfaceVariant,
                 accent: scheme.primary,
+                text: scheme.onSurface,
                 cupertino: false,
               ),
             ),

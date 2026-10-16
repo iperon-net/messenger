@@ -1022,10 +1022,10 @@ class _ComposeBar extends StatelessWidget {
                               textCapitalization: TextCapitalization.sentences,
                               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
                               // Эмодзи ↔ клавиатура (как в Telegram).
-                              suffix: ListenableBuilder(
+                              prefix: ListenableBuilder(
                                 listenable: emoji,
                                 builder: (context, _) => CupertinoButton(
-                                  padding: const EdgeInsets.fromLTRB(4, 4, 8, 4),
+                                  padding: const EdgeInsets.fromLTRB(8, 4, 0, 4),
                                   minimumSize: Size.zero,
                                   onPressed: emoji.toggle,
                                   child: Icon(
@@ -1036,7 +1036,7 @@ class _ComposeBar extends StatelessWidget {
                                   ),
                                 ),
                               ),
-                              suffixMode: OverlayVisibilityMode.always,
+                              prefixMode: OverlayVisibilityMode.always,
                               style: TextStyle(fontSize: 16, color: CupertinoColors.label.resolveFrom(context)),
                               decoration: BoxDecoration(
                                 color: CupertinoColors.tertiarySystemFill.resolveFrom(context),
@@ -1122,6 +1122,7 @@ class _ComposeBar extends StatelessWidget {
                 background: CupertinoColors.secondarySystemBackground.resolveFrom(context),
                 icon: secondary,
                 accent: primary,
+                text: CupertinoColors.label.resolveFrom(context),
                 cupertino: true,
               ),
             ),
