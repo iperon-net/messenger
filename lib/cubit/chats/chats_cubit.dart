@@ -10,6 +10,8 @@ import '../../chats/chats_data_source.dart';
 import '../../chats/chats_remote_data_source.dart';
 import '../../chats/chats_sync.dart';
 import '../../models.dart' as models;
+import '../../repositories/repositories.dart';
+import '../../utils.dart';
 
 import 'chats_state.dart';
 
@@ -17,15 +19,24 @@ class ChatsCubit extends Cubit<ChatsState> {
   ChatsCubit() : super(ChatsState());
 
   final logger = getIt.get<Logger>();
+  final utils = getIt.get<Utils>();
+  final repositories = getIt.get<Repositories>();
 
   ChatsDataSource? _source;
   StreamSubscription<List<models.Chat>>? _chatsSubscription;
   StreamSubscription<List<models.ChatFolder>>? _foldersSubscription;
+  StreamSubscription<void>? _hiddenSubscription;
 
   /// [demo] — флаг «Демо чатов» из `settingsDevice`. [archive] — экран «Архив»:
   /// баннер уведомлений там не нужен.
   Future<void> initialization({required bool demo, bool archive = false}) async {
     emit(state.copyWith(status: Status.loading));
+
+    // Локально скрытые профили: читаем сразу и перечитываем по сигналу (профиль
+    // скрыли/показали на отдельном экране — вкладка живёт в IndexedStack).
+    _hiddenSubscription ??= repositories.hiddenProfiles.changes.listen((_) => _reloadHidden());
+    await _reloadHidden();
+    if (isClosed) return;
 
     setDemo(demo);
     if (!archive) await checkNotificationPermission();
@@ -66,7 +77,36 @@ class ChatsCubit extends Cubit<ChatsState> {
     if (index != state.folderIndex) emit(state.copyWith(folderIndex: index));
   }
 
-  void search(String query) => emit(state.copyWith(query: query.trim()));
+  /// Поиск + раскрытие скрытых по «/код-фразе». Асинхронный из-за sha256 фразы
+  /// (считаем на ввод, не в build).
+  Future<void> search(String query) async {
+    final trimmed = query.trim();
+    final revealed = await _revealedFor(trimmed, state.hiddenHashByHex);
+    if (isClosed) return;
+    emit(state.copyWith(query: trimmed, revealedHex: revealed));
+  }
+
+  /// hex(userID) скрытых профилей, чью код-фразу содержит запрос «/фраза».
+  Future<Set<String>> _revealedFor(String query, Map<String, String> hidden) async {
+    if (!query.startsWith('/') || hidden.isEmpty) return const {};
+    final phrase = query.substring(1);
+    if (phrase.trim().isEmpty) return const {};
+    final hash = await utils.passphraseHash(phrase);
+    return hidden.entries.where((e) => e.value == hash).map((e) => e.key).toSet();
+  }
+
+  /// Перечитывает набор скрытых профилей из БД и пересчитывает раскрытые под
+  /// текущий запрос.
+  Future<void> _reloadHidden() async {
+    try {
+      final hidden = await repositories.hiddenProfiles.hashByHex();
+      final revealed = await _revealedFor(state.query, hidden);
+      if (isClosed) return;
+      emit(state.copyWith(hiddenHashByHex: hidden, revealedHex: revealed));
+    } catch (error, stackTrace) {
+      logger.handle(error, stackTrace);
+    }
+  }
 
   /// Серверное действие без сети: не делаем вид, что получилось, — экран
   /// покажет «Нет соединения» (см. `offlineNotice`). false — не выполнено.
@@ -98,6 +138,7 @@ class ChatsCubit extends Cubit<ChatsState> {
   Future<void> close() async {
     await _chatsSubscription?.cancel();
     await _foldersSubscription?.cancel();
+    await _hiddenSubscription?.cancel();
     return super.close();
   }
 

@@ -19,6 +19,7 @@ import '../../chats/chats_mapping.dart';
 import '../../chats/chats_presence.dart';
 import '../../chats/chats_sync.dart';
 import '../../models.dart' as models;
+import '../../repositories/repositories.dart';
 
 import 'chat_state.dart';
 import '../../chats/animated_emoji.dart';
@@ -708,15 +709,22 @@ class ChatCubit extends Cubit<ChatState> {
     return messages.length;
   }
 
-  /// Куда можно переслать: все чаты, кроме каналов (писать в них нельзя) и
-  /// сообществ (своей ленты нет — только их группы, где мы участник) —
-  /// «Избранное» первым, архив в конце.
+  /// Куда можно переслать: все чаты, кроме каналов (писать в них нельзя),
+  /// сообществ (своей ленты нет — только их группы, где мы участник) и личных
+  /// с локально скрытыми профилями (см. HiddenProfiles) — «Избранное» первым,
+  /// архив в конце.
   Future<List<models.Chat>> forwardTargets() async {
     final source = _source;
     if (source == null) return const [];
+    final hidden = await getIt.get<Repositories>().hiddenProfiles.hashByHex();
     final chats = (await source.watchChats().first)
         .where(
-          (c) => c.type != models.ChatType.channel && c.type != models.ChatType.community && !c.isThread && (!c.inCommunity || c.isMember),
+          (c) =>
+              c.type != models.ChatType.channel &&
+              c.type != models.ChatType.community &&
+              !c.isThread &&
+              (!c.inCommunity || c.isMember) &&
+              !(c.type == models.ChatType.private && hidden.containsKey(c.peerUserID)),
         )
         .toList();
     int rank(models.Chat c) => c.isSelf ? 0 : (c.archived ? 2 : 1);

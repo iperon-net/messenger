@@ -3,6 +3,9 @@ import 'dart:async';
 import 'package:bloc/bloc.dart';
 
 import '../../constants.dart';
+import '../../di.dart';
+import '../../logger.dart';
+import '../../repositories/repositories.dart';
 import '../../chats/chats_data_source.dart';
 import '../../chats/chats_remote_data_source.dart';
 import '../../chats/chats_sync.dart';
@@ -40,7 +43,19 @@ class ChatFoldersCubit extends Cubit<ChatFoldersState> {
       source.watchChats().listen((chats) {
         if (!isClosed) emit(state.copyWith(chats: chats));
       }),
+      getIt.get<Repositories>().hiddenProfiles.changes.listen((_) => _reloadHidden()),
     ]);
+    _reloadHidden();
+  }
+
+  /// Локально скрытые профили — личные чаты с ними в папках не участвуют.
+  Future<void> _reloadHidden() async {
+    try {
+      final hidden = await getIt.get<Repositories>().hiddenProfiles.hashByHex();
+      if (!isClosed) emit(state.copyWith(hiddenPeers: hidden.keys.toSet()));
+    } catch (error, stackTrace) {
+      getIt.get<Logger>().handle(error, stackTrace);
+    }
   }
 
   /// id для новой папки (настоящий выдаст сервер).

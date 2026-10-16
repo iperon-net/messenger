@@ -2,7 +2,7 @@ import Foundation
 import Security
 
 /// Общее хранилище приложения и Notification Service Extension: ключ расшифровки
-/// push-уведомлений и флаг «включён код-пароль». NSE — отдельный процесс без
+/// push-уведомлений, флаг «включён код-пароль» и локально скрытые профили. NSE — отдельный процесс без
 /// Flutter и без доступа к зашифрованной SQLCipher-базе, поэтому всё нужное ему
 /// лежит в Keychain с общей access group `<TeamID>.net.iperon.messenger.shared`
 /// (`keychain-access-groups` в entitlements обоих target'ов). Аналог
@@ -22,6 +22,7 @@ enum PushKeychain {
   private static let service = "net.iperon.messenger.push"
   private static let keyPrefix = "key_"
   private static let passcodeAccount = "passcode_enabled"
+  private static let hiddenUsersAccount = "hidden_users"
   private static let sharedGroupSuffix = "net.iperon.messenger.shared"
 
   /// `<TeamID>.net.iperon.messenger.shared`. Префикс команды берём из Info.plist
@@ -76,6 +77,26 @@ enum PushKeychain {
 
   static var isPasscodeEnabled: Bool {
     read(account: passcodeAccount) != nil
+  }
+
+  // MARK: - Скрытые профили
+
+  /// hex(userID) локально скрытых профилей («Скрыть профиль», HiddenProfiles в
+  /// Dart): их уведомления — без имени и текста, как при код-пароле.
+  static func setHiddenUsers(_ users: [String]) {
+    if users.isEmpty {
+      delete(account: hiddenUsersAccount)
+    } else {
+      write(account: hiddenUsersAccount, value: Data(users.map { $0.lowercased() }.joined(separator: ",").utf8))
+    }
+  }
+
+  static func isHiddenUser(_ userID: Data) -> Bool {
+    guard !userID.isEmpty,
+          let data = read(account: hiddenUsersAccount),
+          let list = String(data: data, encoding: .utf8)
+    else { return false }
+    return list.split(separator: ",").contains(Substring(hex(userID)))
   }
 
   // MARK: - Keychain

@@ -88,6 +88,17 @@ class ChatsStateMapper extends ClassMapperBase<ChatsState> {
     opt: true,
     def: '',
   );
+  static Map<String, String> _$hiddenHashByHex(ChatsState v) =>
+      v.hiddenHashByHex;
+  static const Field<ChatsState, Map<String, String>> _f$hiddenHashByHex =
+      Field('hiddenHashByHex', _$hiddenHashByHex, opt: true, def: const {});
+  static Set<String> _$revealedHex(ChatsState v) => v.revealedHex;
+  static const Field<ChatsState, Set<String>> _f$revealedHex = Field(
+    'revealedHex',
+    _$revealedHex,
+    opt: true,
+    def: const {},
+  );
 
   @override
   final MappableFields<ChatsState> fields = const {
@@ -100,6 +111,8 @@ class ChatsStateMapper extends ClassMapperBase<ChatsState> {
     #folders: _f$folders,
     #folderIndex: _f$folderIndex,
     #query: _f$query,
+    #hiddenHashByHex: _f$hiddenHashByHex,
+    #revealedHex: _f$revealedHex,
   };
 
   static ChatsState _instantiate(DecodingData data) {
@@ -113,6 +126,8 @@ class ChatsStateMapper extends ClassMapperBase<ChatsState> {
       folders: data.dec(_f$folders),
       folderIndex: data.dec(_f$folderIndex),
       query: data.dec(_f$query),
+      hiddenHashByHex: data.dec(_f$hiddenHashByHex),
+      revealedHex: data.dec(_f$revealedHex),
     );
   }
 
@@ -188,6 +203,8 @@ abstract class ChatsStateCopyWith<$R, $In extends ChatsState, $Out>
     models.ChatFolderCopyWith<$R, models.ChatFolder, models.ChatFolder>
   >
   get folders;
+  MapCopyWith<$R, String, String, ObjectCopyWith<$R, String, String>>
+  get hiddenHashByHex;
   $R call({
     Status? status,
     int? offlineNotice,
@@ -198,6 +215,8 @@ abstract class ChatsStateCopyWith<$R, $In extends ChatsState, $Out>
     List<models.ChatFolder>? folders,
     int? folderIndex,
     String? query,
+    Map<String, String>? hiddenHashByHex,
+    Set<String>? revealedHex,
   });
   ChatsStateCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
@@ -233,6 +252,13 @@ class _ChatsStateCopyWithImpl<$R, $Out>
     (v) => call(folders: v),
   );
   @override
+  MapCopyWith<$R, String, String, ObjectCopyWith<$R, String, String>>
+  get hiddenHashByHex => MapCopyWith(
+    $value.hiddenHashByHex,
+    (v, t) => ObjectCopyWith(v, $identity, t),
+    (v) => call(hiddenHashByHex: v),
+  );
+  @override
   $R call({
     Status? status,
     int? offlineNotice,
@@ -243,6 +269,8 @@ class _ChatsStateCopyWithImpl<$R, $Out>
     List<models.ChatFolder>? folders,
     int? folderIndex,
     String? query,
+    Map<String, String>? hiddenHashByHex,
+    Set<String>? revealedHex,
   }) => $apply(
     FieldCopyWithData({
       if (status != null) #status: status,
@@ -256,6 +284,8 @@ class _ChatsStateCopyWithImpl<$R, $Out>
       if (folders != null) #folders: folders,
       if (folderIndex != null) #folderIndex: folderIndex,
       if (query != null) #query: query,
+      if (hiddenHashByHex != null) #hiddenHashByHex: hiddenHashByHex,
+      if (revealedHex != null) #revealedHex: revealedHex,
     }),
   );
   @override
@@ -275,6 +305,8 @@ class _ChatsStateCopyWithImpl<$R, $Out>
     folders: data.get(#folders, or: $value.folders),
     folderIndex: data.get(#folderIndex, or: $value.folderIndex),
     query: data.get(#query, or: $value.query),
+    hiddenHashByHex: data.get(#hiddenHashByHex, or: $value.hiddenHashByHex),
+    revealedHex: data.get(#revealedHex, or: $value.revealedHex),
   );
 
   @override

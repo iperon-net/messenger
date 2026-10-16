@@ -300,6 +300,11 @@ class MainActivity : FlutterFragmentActivity() {
                         PushKeyStore.setPasscodeEnabled(applicationContext, call.arguments as? Boolean ?: false)
                         result.success(null)
                     }
+                    // Локально скрытые профили — их пуши без имени и текста.
+                    "setHiddenUsers" -> {
+                        PushKeyStore.setHiddenUsers(applicationContext, (call.arguments as? List<*>).orEmpty().filterIsInstance<String>())
+                        result.success(null)
+                    }
                     // Dart готов принимать тапы; заодно забирает отложенный тап
                     // холодного старта.
                     "takeInitialTap" -> {

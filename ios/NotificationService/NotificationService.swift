@@ -75,8 +75,9 @@ class NotificationService: UNNotificationServiceExtension {
     }
     let title = senderName.isEmpty ? appName : senderName
 
-    // Включён код-пароль — ни имени, ни текста на экране блокировки.
-    if PushKeychain.isPasscodeEnabled {
+    // Включён код-пароль или отправитель — локально скрытый профиль («Скрыть
+    // профиль») — ни имени, ни текста на экране блокировки.
+    if PushKeychain.isPasscodeEnabled || PushKeychain.isHiddenUser(payload.fromUserID) {
       content.title = appName
       content.body = Self.text("PUSH_FALLBACK_BODY")
       return

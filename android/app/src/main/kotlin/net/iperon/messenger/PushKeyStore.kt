@@ -22,11 +22,14 @@ import javax.crypto.spec.GCMParameterSpec
 /// хранить по ключу на keyID и чистить по сессиям.
 ///
 /// Здесь же — флаг «включён код-пароль»: тогда уведомления показываются без
-/// имени и текста (аналог Telegram updateDeviceLocked, только на клиенте).
+/// имени и текста (аналог Telegram updateDeviceLocked, только на клиенте), — и
+/// hex(userID) локально скрытых профилей («Скрыть профиль»): их уведомления
+/// показываются так же.
 object PushKeyStore {
     private const val PREFS = "iperon_push"
     private const val KEY_PREFIX = "key_"
     private const val PASSCODE_ENABLED = "passcode_enabled"
+    private const val HIDDEN_USERS = "hidden_users"
     private const val KEYSTORE = "AndroidKeyStore"
     private const val WRAP_ALIAS = "iperon_push_wrap"
     private const val IV_LENGTH = 12
@@ -66,6 +69,13 @@ object PushKeyStore {
     }
 
     fun isPasscodeEnabled(context: Context): Boolean = prefs(context).getBoolean(PASSCODE_ENABLED, false)
+
+    fun setHiddenUsers(context: Context, users: List<String>) {
+        prefs(context).edit().putStringSet(HIDDEN_USERS, users.map { it.lowercase() }.toSet()).apply()
+    }
+
+    fun isHiddenUser(context: Context, userID: ByteArray): Boolean =
+        userID.isNotEmpty() && prefs(context).getStringSet(HIDDEN_USERS, null)?.contains(hex(userID)) == true
 
     private fun prefs(context: Context) = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
 

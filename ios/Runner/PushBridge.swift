@@ -5,7 +5,8 @@ import UserNotifications
 /// iOS-сторона канала `net.iperon.messenger/push` (тот же контракт, что у
 /// MainActivity/MessagePushHandler на Android, см. lib/push.dart):
 ///
-/// - `setPushKey {keyId, key}` / `clearPushKeys` / `setPasscodeEnabled` — Dart
+/// - `setPushKey {keyId, key}` / `clearPushKeys` / `setPasscodeEnabled` /
+///   `setHiddenUsers` — Dart
 ///   кладёт в общий Keychain то, что нужно Notification Service Extension для
 ///   расшифровки ([PushKeychain]);
 /// - `takeInitialTap` — тап, открывший приложение до готовности Dart;
@@ -53,6 +54,9 @@ final class PushBridge {
       result(nil)
     case "setPasscodeEnabled":
       PushKeychain.setPasscodeEnabled((call.arguments as? Bool) ?? false)
+      result(nil)
+    case "setHiddenUsers":
+      PushKeychain.setHiddenUsers((call.arguments as? [String]) ?? [])
       result(nil)
     case "clearChatNotifications":
       guard let args = call.arguments as? [String: Any], let chatID = args["chatID"] as? String else {

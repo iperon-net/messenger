@@ -12,8 +12,9 @@ class HiddenProfileEntry {
 }
 
 /// Локально скрытые профили (таблица `hiddenProfiles`). Прячет собеседника из
-/// списков Контактов/Звонков (и будущих Чатов) на этом устройстве. Источник
-/// истины — только локальная БД; на сервер ничего не уходит.
+/// списков Контактов/Звонков/Чатов на этом устройстве, а его пуши показываются
+/// без имени и текста (набор уходит в натив — `PushManager.setHiddenUsers`).
+/// Источник истины — только локальная БД; на сервер ничего не уходит.
 ///
 /// [changes] — широковещательный сигнал «набор скрытых изменился». Списки
 /// (`ContactsCubit`/`CallsCubit`) живут в долгоживущем IndexedStack и не
@@ -36,6 +37,12 @@ class HiddenProfiles {
         .map((row) => HiddenProfileEntry(userID: row["userID"] as List<int>, phraseHash: row["phraseHash"] as String))
         .toList(growable: false);
   }
+
+  /// Набор в виде hex(userID) → sha256 код-фразы (hex) — как его держат
+  /// состояния списков (сверка с `Chat.peerUserID` / `ChatMember.id`).
+  Future<Map<String, String>> hashByHex() async => {
+    for (final e in await getAll()) e.userID.map((b) => b.toRadixString(16).padLeft(2, '0')).join(): e.phraseHash,
+  };
 
   /// Скрыт ли профиль с этим [userID].
   Future<bool> isHidden(List<int> userID) async {

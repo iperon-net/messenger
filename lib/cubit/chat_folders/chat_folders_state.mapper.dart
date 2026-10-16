@@ -41,12 +41,20 @@ class ChatFoldersStateMapper extends ClassMapperBase<ChatFoldersState> {
     opt: true,
     def: const [],
   );
+  static Set<String> _$hiddenPeers(ChatFoldersState v) => v.hiddenPeers;
+  static const Field<ChatFoldersState, Set<String>> _f$hiddenPeers = Field(
+    'hiddenPeers',
+    _$hiddenPeers,
+    opt: true,
+    def: const {},
+  );
 
   @override
   final MappableFields<ChatFoldersState> fields = const {
     #status: _f$status,
     #folders: _f$folders,
     #chats: _f$chats,
+    #hiddenPeers: _f$hiddenPeers,
   };
 
   static ChatFoldersState _instantiate(DecodingData data) {
@@ -54,6 +62,7 @@ class ChatFoldersStateMapper extends ClassMapperBase<ChatFoldersState> {
       status: data.dec(_f$status),
       folders: data.dec(_f$folders),
       chats: data.dec(_f$chats),
+      hiddenPeers: data.dec(_f$hiddenPeers),
     );
   }
 
@@ -135,6 +144,7 @@ abstract class ChatFoldersStateCopyWith<$R, $In extends ChatFoldersState, $Out>
     Status? status,
     List<models.ChatFolder>? folders,
     List<models.Chat>? chats,
+    Set<String>? hiddenPeers,
   });
   ChatFoldersStateCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
     Then<$Out2, $R2> t,
@@ -176,11 +186,13 @@ class _ChatFoldersStateCopyWithImpl<$R, $Out>
     Status? status,
     List<models.ChatFolder>? folders,
     List<models.Chat>? chats,
+    Set<String>? hiddenPeers,
   }) => $apply(
     FieldCopyWithData({
       if (status != null) #status: status,
       if (folders != null) #folders: folders,
       if (chats != null) #chats: chats,
+      if (hiddenPeers != null) #hiddenPeers: hiddenPeers,
     }),
   );
   @override
@@ -188,6 +200,7 @@ class _ChatFoldersStateCopyWithImpl<$R, $Out>
     status: data.get(#status, or: $value.status),
     folders: data.get(#folders, or: $value.folders),
     chats: data.get(#chats, or: $value.chats),
+    hiddenPeers: data.get(#hiddenPeers, or: $value.hiddenPeers),
   );
 
   @override

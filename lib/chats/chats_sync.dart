@@ -205,10 +205,16 @@ class ChatsSync {
       unawaited(PushManager.setBadge(0));
       return;
     }
-    _badgeSub = getIt
-        .get<Repositories>()
-        .db
-        .onChange([ChatsRepository.dialogsTable])
+    final repositories = getIt.get<Repositories>();
+    // Скрыли/показали профиль — его личный чат входит в бейдж или выходит.
+    final changes = StreamController<void>();
+    final dialogsSub = repositories.db.onChange([ChatsRepository.dialogsTable]).listen(changes.add, onError: changes.addError);
+    final hiddenSub = repositories.hiddenProfiles.changes.listen(changes.add);
+    changes.onCancel = () async {
+      await dialogsSub.cancel();
+      await hiddenSub.cancel();
+    };
+    _badgeSub = changes.stream
         .asyncMap((_) => _badge())
         .distinct()
         .listen(
@@ -218,13 +224,17 @@ class ChatsSync {
   }
 
   /// Непрочитанные во всех незаглушённых диалогах; ручная пометка без
-  /// непрочитанных — 1 (как на сервере).
+  /// непрочитанных — 1 (как на сервере). Личные чаты с локально скрытыми
+  /// профилями (HiddenProfiles) не считаем — сервер о них не знает, поэтому
+  /// бейдж из пуша в фоне их ещё включает.
   Future<int> _badge() async {
     if (!_auth.isAuthorized) return 0;
     final now = DateTime.now();
+    final hidden = await getIt.get<Repositories>().hiddenProfiles.hashByHex();
     var total = 0;
     for (final row in await _store.dialogs(userID: me)) {
       if (mutedFromPb(row.mutedUntil, now).muted) continue;
+      if (row.peerUserID case final peer? when hidden.containsKey(idHex(peer))) continue;
       total += row.unreadCount > 0 ? row.unreadCount : (row.markedUnread ? 1 : 0);
     }
     return total;

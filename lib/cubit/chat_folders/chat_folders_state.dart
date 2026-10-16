@@ -17,7 +17,16 @@ class ChatFoldersState with ChatFoldersStateMappable {
   /// Все чаты, включая архивные.
   final List<models.Chat> chats;
 
-  const ChatFoldersState({this.status = Status.initialization, this.folders = const [], this.chats = const []});
+  /// hex(userID) локально скрытых профилей (см. `HiddenProfiles`): личные чаты
+  /// с ними не предлагаются в папки и не входят в счётчики.
+  final Set<String> hiddenPeers;
+
+  const ChatFoldersState({
+    this.status = Status.initialization,
+    this.folders = const [],
+    this.chats = const [],
+    this.hiddenPeers = const {},
+  });
 
   /// Папки пользователя — без «Все чаты» (её нельзя менять и двигать).
   List<models.ChatFolder> get userFolders => folders.where((f) => !f.isAll).toList();
@@ -34,12 +43,14 @@ class ChatFoldersState with ChatFoldersStateMappable {
   /// Чаты, которые можно включить в папку или исключить из неё: видимые в
   /// списке и не архивные (архивные в папки не попадают) — по дате.
   List<models.Chat> get pickable {
-    final list = chats.where((c) => !c.hiddenInList && !c.archived).toList();
+    final list = chats.where((c) => _listed(c) && !c.archived).toList();
     list.sort((a, b) => b.sortDate.compareTo(a.sortDate));
     return list;
   }
 
-  int chatsCount(models.ChatFolder folder) => chats.where((c) => !c.hiddenInList && folder.matches(c)).length;
+  int chatsCount(models.ChatFolder folder) => chats.where((c) => _listed(c) && folder.matches(c)).length;
+
+  bool _listed(models.Chat chat) => !chat.hiddenInList && !(chat.type == models.ChatType.private && hiddenPeers.contains(chat.peerUserID));
 
   models.Chat? chat(String id) => chats.where((c) => c.id == id).firstOrNull;
 }

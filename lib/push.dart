@@ -41,8 +41,9 @@ import 'repositories.dart';
 /// Уведомления приходят зашифрованными (поле `p`, см.
 /// `protos/push_payload_v1.proto`). Расшифровывает и показывает их натив без
 /// Flutter-движка: на Android — FCM-сервис, на iOS — Notification Service
-/// Extension. Поэтому ключ расшифровки (HKDF от sharedKey сессии) и флаг
-/// код-пароля отдаём в натив ([_syncPushKey], [setPasscodeEnabled]) по каналу
+/// Extension. Поэтому ключ расшифровки (HKDF от sharedKey сессии), флаг
+/// код-пароля и скрытые профили отдаём в натив ([_syncPushKey],
+/// [setPasscodeEnabled], [_syncHiddenUsers]) по каналу
 /// `net.iperon.messenger/push` (Android — хранилище на Keystore, iOS — общий с
 /// NSE Keychain); тот же канал приносит тапы по уведомлениям ([onRoute]).
 ///
@@ -82,6 +83,7 @@ class PushManager {
   static bool get _hasNativePush => Platform.isAndroid || Platform.isIOS;
 
   StreamSubscription<String>? _fcmRefreshSub;
+  StreamSubscription<void>? _hiddenSub;
   Timer? _apnsRetryTimer;
   bool _started = false;
 
@@ -110,6 +112,9 @@ class PushManager {
       if (_hasNativePush) {
         _channel.setMethodCallHandler(_onNativeCall);
         unawaited(setPasscodeEnabled(passcodeEnabled));
+        // Локально скрытые профили: их пуши натив показывает без имени и текста.
+        _hiddenSub = repositories.hiddenProfiles.changes.listen((_) => unawaited(_syncHiddenUsers()));
+        unawaited(_syncHiddenUsers());
         unawaited(_takeInitialTap());
       }
 
@@ -191,6 +196,18 @@ class PushManager {
     }
   }
 
+  /// Отдаёт нативу hex(userID) локально скрытых профилей (см. HiddenProfiles):
+  /// уведомления от них — без имени и текста, как при код-пароле. Зовётся на
+  /// старте и при каждом скрытии/показе профиля.
+  Future<void> _syncHiddenUsers() async {
+    try {
+      final hidden = await repositories.hiddenProfiles.hashByHex();
+      await _channel.invokeMethod<void>('setHiddenUsers', hidden.keys.toList());
+    } catch (error, stackTrace) {
+      logger.handle(error, stackTrace);
+    }
+  }
+
   /// iOS: приложение запущено системой в фоне (VoIP / тихий пуш) и пользователь
   /// его ещё не открыл — `UIApplication.applicationState == .background`.
   /// Жизненный цикл Flutter в таком запуске не приходит, поэтому спрашиваем
@@ -241,7 +258,7 @@ class PushManager {
   }
 
   Future<dynamic> _onNativeCall(MethodCall call) async {
-    if (call.method == 'onNotificationTap') _handleTap(call.arguments);
+    if (call.method == 'onNotificationTap') await _handleTap(call.arguments);
     return null;
   }
 
@@ -249,16 +266,19 @@ class PushManager {
   Future<void> _takeInitialTap() async {
     try {
       final tap = await _channel.invokeMethod<Object?>('takeInitialTap');
-      if (tap != null) _handleTap(tap);
+      if (tap != null) await _handleTap(tap);
     } catch (error, stackTrace) {
       logger.handle(error, stackTrace);
     }
   }
 
-  void _handleTap(Object? arguments) {
+  Future<void> _handleTap(Object? arguments) async {
     final tap = arguments as Map?;
     final kind = PushPayload_Kind.valueOf((tap?['kind'] as int?) ?? 0);
-    final route = routeForKind(kind, chatID: (tap?['chatID'] as String?) ?? '');
+    var route = routeForKind(kind, chatID: (tap?['chatID'] as String?) ?? '');
+    // От скрытого профиля — не открываем его чат (он бы выдал собеседника),
+    // только список: раскрыть его можно «/код-фразой» в поиске.
+    if (route != null && route.startsWith('/chats/') && await _fromHiddenUser(tap)) route = '/chats';
     logger.info('push: notification tap kind=$kind route=$route');
     if (route == null) return;
 
@@ -267,6 +287,17 @@ class PushManager {
       handler(route);
     } else {
       _pendingRoute = route;
+    }
+  }
+
+  Future<bool> _fromHiddenUser(Map? tap) async {
+    final fromUserID = ((tap?['fromUserID'] as String?) ?? '').toLowerCase();
+    if (fromUserID.isEmpty) return false;
+    try {
+      return (await repositories.hiddenProfiles.hashByHex()).containsKey(fromUserID);
+    } catch (error, stackTrace) {
+      logger.handle(error, stackTrace);
+      return true;
     }
   }
 
@@ -411,5 +442,7 @@ class PushManager {
     _apnsRetryTimer = null;
     await _fcmRefreshSub?.cancel();
     _fcmRefreshSub = null;
+    await _hiddenSub?.cancel();
+    _hiddenSub = null;
   }
 }

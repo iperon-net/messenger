@@ -93,8 +93,9 @@ object MessagePushHandler {
         }
 
         val appName = context.getString(R.string.push_app_name)
-        // Включён код-пароль — ни имени, ни текста на экране блокировки/в шторке.
-        val hidden = PushKeyStore.isPasscodeEnabled(context)
+        // Включён код-пароль или отправитель — локально скрытый профиль («Скрыть
+        // профиль») — ни имени, ни текста на экране блокировки/в шторке.
+        val hidden = PushKeyStore.isPasscodeEnabled(context) || PushKeyStore.isHiddenUser(context, payload.fromUserID)
         val isMessage = payload.kind == PushPayload.KIND_MESSAGE
         val isChat = isMessage || payload.kind == PushPayload.KIND_MESSAGE_REACTION
         val tag = if (isMessage) chatTag(payload) else payload.id.ifEmpty { "kind:${payload.kind}" }
