@@ -46,10 +46,8 @@ class _ChatsCupertino extends State<ChatsCupertino> with SearchHideOnScroll {
     return ChatsOfflineListener<ChatsCubit, ChatsState>(
       notice: (state) => state.offlineNotice,
       child: BlocListener<CommonCubit, CommonState>(
-        // Тумблеры «Демо чатов» / «Серверные чаты» могли переключиться, пока вкладка жива.
-        listenWhen: (previous, current) =>
-            previous.settingsDevice.chatsDemo != current.settingsDevice.chatsDemo ||
-            previous.settingsDevice.chatsServer != current.settingsDevice.chatsServer,
+        // Тумблер «Демо чатов» мог переключиться, пока вкладка жива.
+        listenWhen: (previous, current) => previous.settingsDevice.chatsDemo != current.settingsDevice.chatsDemo,
         listener: (context, state) => context.read<ChatsCubit>().setDemo(state.settingsDevice.chatsDemo),
         child: CupertinoPageScaffold(
           backgroundColor: ThemesCupertino.appBackground,
@@ -82,17 +80,11 @@ class _ChatsCupertino extends State<ChatsCupertino> with SearchHideOnScroll {
                   ConnectionTitle(title: context.t.screenChats.chats),
                 ],
               ),
-              // «Новое» — в демо и с флагом «Серверные чаты» (без него чатов нет).
-              trailing: BlocSelector<CommonCubit, CommonState, bool>(
-                selector: (state) => state.settingsDevice.chatsDemo || state.settingsDevice.chatsServer,
-                builder: (context, enabled) {
-                  if (!enabled) return const SizedBox.shrink();
-                  return CupertinoButton(
-                    padding: EdgeInsets.zero,
-                    onPressed: () => context.push('/chats/new'),
-                    child: const Icon(CupertinoIcons.square_pencil, size: 25),
-                  );
-                },
+              // «Новое».
+              trailing: CupertinoButton(
+                padding: EdgeInsets.zero,
+                onPressed: () => context.push('/chats/new'),
+                child: const Icon(CupertinoIcons.square_pencil, size: 25),
               ),
             ),
           ),

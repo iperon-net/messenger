@@ -92,13 +92,6 @@ class SettingsDeviceModelMapper extends ClassMapperBase<SettingsDeviceModel> {
     opt: true,
     def: false,
   );
-  static bool _$chatsServer(SettingsDeviceModel v) => v.chatsServer;
-  static const Field<SettingsDeviceModel, bool> _f$chatsServer = Field(
-    'chatsServer',
-    _$chatsServer,
-    opt: true,
-    def: false,
-  );
   static String _$chatWallpaper(SettingsDeviceModel v) => v.chatWallpaper;
   static const Field<SettingsDeviceModel, String> _f$chatWallpaper = Field(
     'chatWallpaper',
@@ -150,7 +143,6 @@ class SettingsDeviceModelMapper extends ClassMapperBase<SettingsDeviceModel> {
     #passcodeForceLocked: _f$passcodeForceLocked,
     #passcodeBackgroundedAt: _f$passcodeBackgroundedAt,
     #chatsDemo: _f$chatsDemo,
-    #chatsServer: _f$chatsServer,
     #chatWallpaper: _f$chatWallpaper,
     #chatWallpaperColor: _f$chatWallpaperColor,
     #chatWallpaperIntensity: _f$chatWallpaperIntensity,
@@ -170,7 +162,6 @@ class SettingsDeviceModelMapper extends ClassMapperBase<SettingsDeviceModel> {
       passcodeForceLocked: data.dec(_f$passcodeForceLocked),
       passcodeBackgroundedAt: data.dec(_f$passcodeBackgroundedAt),
       chatsDemo: data.dec(_f$chatsDemo),
-      chatsServer: data.dec(_f$chatsServer),
       chatWallpaper: data.dec(_f$chatWallpaper),
       chatWallpaperColor: data.dec(_f$chatWallpaperColor),
       chatWallpaperIntensity: data.dec(_f$chatWallpaperIntensity),
@@ -261,7 +252,6 @@ abstract class SettingsDeviceModelCopyWith<
     bool? passcodeForceLocked,
     int? passcodeBackgroundedAt,
     bool? chatsDemo,
-    bool? chatsServer,
     String? chatWallpaper,
     int? chatWallpaperColor,
     int? chatWallpaperIntensity,
@@ -300,7 +290,6 @@ class _SettingsDeviceModelCopyWithImpl<$R, $Out>
     bool? passcodeForceLocked,
     int? passcodeBackgroundedAt,
     bool? chatsDemo,
-    bool? chatsServer,
     String? chatWallpaper,
     int? chatWallpaperColor,
     int? chatWallpaperIntensity,
@@ -320,7 +309,6 @@ class _SettingsDeviceModelCopyWithImpl<$R, $Out>
       if (passcodeBackgroundedAt != null)
         #passcodeBackgroundedAt: passcodeBackgroundedAt,
       if (chatsDemo != null) #chatsDemo: chatsDemo,
-      if (chatsServer != null) #chatsServer: chatsServer,
       if (chatWallpaper != null) #chatWallpaper: chatWallpaper,
       if (chatWallpaperColor != null) #chatWallpaperColor: chatWallpaperColor,
       if (chatWallpaperIntensity != null)
@@ -350,7 +338,6 @@ class _SettingsDeviceModelCopyWithImpl<$R, $Out>
       or: $value.passcodeBackgroundedAt,
     ),
     chatsDemo: data.get(#chatsDemo, or: $value.chatsDemo),
-    chatsServer: data.get(#chatsServer, or: $value.chatsServer),
     chatWallpaper: data.get(#chatWallpaper, or: $value.chatWallpaper),
     chatWallpaperColor: data.get(
       #chatWallpaperColor,

@@ -96,17 +96,14 @@ class _SettingsCupertino extends State<SettingsCupertino> {
                       onTab: () async => context.go("/settings/appearance"),
                       isTrailing: true,
                     ),
-                    // Папки чатов — с флагом «Демо чатов» или «Серверные чаты» (экран «Разработчик»).
-                    if (context.select(
-                      (CommonCubit cubit) => cubit.state.settingsDevice.chatsDemo || cubit.state.settingsDevice.chatsServer,
-                    ))
-                      CupertinoListTileIcon(
-                        title: Text(context.t.screenSettings.folders),
-                        color: Color(0xFF00A3D9),
-                        icon: FontAwesomeIcons.solidFolder,
-                        onTab: () async => showChatFoldersCupertino(context),
-                        isTrailing: true,
-                      ),
+                    // Папки чатов.
+                    CupertinoListTileIcon(
+                      title: Text(context.t.screenSettings.folders),
+                      color: Color(0xFF00A3D9),
+                      icon: FontAwesomeIcons.solidFolder,
+                      onTab: () async => showChatFoldersCupertino(context),
+                      isTrailing: true,
+                    ),
                     CupertinoListTileIcon(
                       title: Text(context.t.screenSettings.devices),
                       color: Color(0xFFFF6B00),

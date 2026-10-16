@@ -50,9 +50,7 @@ class _ChatsMaterial extends State<ChatsMaterial> with SearchHideOnScroll {
       notice: (state) => state.offlineNotice,
       child: BlocListener<CommonCubit, CommonState>(
         // Тумблеры «Демо чатов» / «Серверные чаты» могли переключиться, пока вкладка жива.
-        listenWhen: (previous, current) =>
-            previous.settingsDevice.chatsDemo != current.settingsDevice.chatsDemo ||
-            previous.settingsDevice.chatsServer != current.settingsDevice.chatsServer,
+        listenWhen: (previous, current) => previous.settingsDevice.chatsDemo != current.settingsDevice.chatsDemo,
         listener: (context, state) => context.read<ChatsCubit>().setDemo(state.settingsDevice.chatsDemo),
         child: Scaffold(
           backgroundColor: background,
@@ -76,19 +74,12 @@ class _ChatsMaterial extends State<ChatsMaterial> with SearchHideOnScroll {
                 },
               ),
             ),
-            // «Новое» — карандаш справа от заголовка; в демо и с флагом
-            // «Серверные чаты» (без него чатов нет).
+            // «Новое» — карандаш справа от заголовка.
             actions: [
-              BlocSelector<CommonCubit, CommonState, bool>(
-                selector: (state) => state.settingsDevice.chatsDemo || state.settingsDevice.chatsServer,
-                builder: (context, enabled) {
-                  if (!enabled) return const SizedBox.shrink();
-                  return IconButton(
-                    tooltip: context.t.screenNewChat.title,
-                    onPressed: () => context.push('/chats/new'),
-                    icon: const HugeIcon(icon: HugeIcons.strokeRoundedPencilEdit02),
-                  );
-                },
+              IconButton(
+                tooltip: context.t.screenNewChat.title,
+                onPressed: () => context.push('/chats/new'),
+                icon: const HugeIcon(icon: HugeIcons.strokeRoundedPencilEdit02),
               ),
             ],
           ),

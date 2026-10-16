@@ -1963,9 +1963,6 @@ class Translations$screenDeveloper$en {
 	/// en: 'Chats demo'
 	String get chatsDemo => 'Chats demo';
 
-	/// en: 'Server chats'
-	String get chatsServer => 'Server chats';
-
 	/// en: 'Test notification'
 	String get testPush => 'Test notification';
 
@@ -4213,7 +4210,6 @@ extension on Translations {
 			'screenDeveloper.exportLogs' => 'Export logs',
 			'screenDeveloper.callPreview' => 'Call screen preview',
 			'screenDeveloper.chatsDemo' => 'Chats demo',
-			'screenDeveloper.chatsServer' => 'Server chats',
 			'screenDeveloper.testPush' => 'Test notification',
 			'screenDeveloper.testPushSent' => ({required Object apns, required Object fcm, required Object failed}) => 'Sent: APNs — ${apns}, FCM — ${fcm}, failed — ${failed}. Minimize the app or lock the screen to check background delivery.',
 			'screenDeveloper.testPushNoTokens' => 'None of your devices has a push token. Make sure notifications are allowed and restart the app.',
@@ -4663,9 +4659,9 @@ extension on Translations {
 			'screenCall.cameraOff' => 'Camera off',
 			'screenCall.startVideo' => 'Video',
 			'screenCall.switchCamera' => 'Flip camera',
+			'screenCall.qualityPoor' => 'Poor connection',
 			_ => null,
 		} ?? switch (path) {
-			'screenCall.qualityPoor' => 'Poor connection',
 			'screenCall.qualityGood' => 'Good connection',
 			'screenCall.qualityExcellent' => 'Excellent connection',
 			'screenCall.remoteMicMuted' => 'Their microphone is off',
