@@ -57,6 +57,12 @@ import flutter_callkit_incoming
       MediaFiles.shared.attach(messenger: messenger)
     }
 
+    // Класс производительности: память, ядра, режим энергосбережения. См.
+    // DevicePerformanceBridge и lib/device_performance.dart.
+    if let messenger = engineBridge.pluginRegistry.registrar(forPlugin: "IperonDevicePerformance")?.messenger() {
+      DevicePerformanceBridge.shared.attach(messenger: messenger)
+    }
+
     // PlatformView системного пикера аудио-маршрутов (AVRoutePickerView) для
     // экрана звонка — «полный» выбор выхода на iOS (iPhone/Speaker/BT/CarPlay/
     // AirPlay). См. RoutePickerViewFactory и lib/components/calls/route_picker_button.dart.
@@ -564,5 +570,40 @@ private class RoutePickerPlatformView: NSObject, FlutterPlatformView {
     let g = CGFloat((argb >> 8) & 0xFF) / 255.0
     let b = CGFloat(argb & 0xFF) / 255.0
     return UIColor(red: r, green: g, blue: b, alpha: a)
+  }
+}
+
+/// Признаки производительности для `DevicePerformance` (lib/device_performance.dart).
+/// Канал `net.iperon.messenger/device_performance`, протокол как у Android
+/// (DevicePerformance.kt): `info` → {ram (байты), cores, powerSave}; из натива —
+/// `powerSave` (bool), когда включили / выключили режим энергосбережения.
+final class DevicePerformanceBridge {
+  static let shared = DevicePerformanceBridge()
+
+  private var channel: FlutterMethodChannel?
+  private var observer: NSObjectProtocol?
+
+  func attach(messenger: FlutterBinaryMessenger) {
+    let channel = FlutterMethodChannel(name: "net.iperon.messenger/device_performance", binaryMessenger: messenger)
+    channel.setMethodCallHandler { call, result in
+      switch call.method {
+      case "info":
+        let info = ProcessInfo.processInfo
+        result([
+          "ram": NSNumber(value: info.physicalMemory),
+          "cores": info.activeProcessorCount,
+          "powerSave": info.isLowPowerModeEnabled,
+        ])
+      default:
+        result(FlutterMethodNotImplemented)
+      }
+    }
+    self.channel = channel
+    if let observer { NotificationCenter.default.removeObserver(observer) }
+    observer = NotificationCenter.default.addObserver(
+      forName: .NSProcessInfoPowerStateDidChange, object: nil, queue: .main
+    ) { [weak self] _ in
+      self?.channel?.invokeMethod("powerSave", arguments: ProcessInfo.processInfo.isLowPowerModeEnabled)
+    }
   }
 }

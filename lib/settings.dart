@@ -41,6 +41,8 @@ class Settings {
       "CALL_CONNECT_MAX_ATTEMPTS": 3,
       "CALL_PEER_CONNECTION_TIMEOUT_SECONDS": 7,
       "CALL_RING_TIMEOUT_SECONDS": 45,
+      // Анимированные эмодзи (Noto, Lottie JSON): `<url><имя>.json`.
+      "ANIMATED_EMOJI_URL": "https://staging-cdn.iperon.net/emoji/noto/",
     });
 
     try {
@@ -55,6 +57,14 @@ class Settings {
   int get databaseVersion => dotenv.getInt('DATABASE_VERSION', fallback: 1);
   String get publicKeyEDDSAFingerprint => remoteConfig.getString("PUBLIC_KEY_EDDSA_FINGERPRINT");
   String get yandexOauthClientID => remoteConfig.getString("YANDEX_OAUTH_CLIENT_ID");
+
+  /// Откуда докачивать анимированные эмодзи, которых нет в приложении
+  /// (`<url><имя>.json`, имена — как в пакете animated_emoji).
+  String get animatedEmojiUrl {
+    final res = dotenv.get('ANIMATED_EMOJI_URL', fallback: "");
+    if (res.isNotEmpty) return res;
+    return remoteConfig.getString("ANIMATED_EMOJI_URL");
+  }
 
   String get apiHost {
     final res = dotenv.get('API_HOST', fallback: "");

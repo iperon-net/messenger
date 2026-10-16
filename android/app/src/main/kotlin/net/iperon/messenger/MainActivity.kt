@@ -103,6 +103,7 @@ class MainActivity : FlutterFragmentActivity() {
 
     // Сжатие видео перед отправкой в чат (VideoCompressor, lib/chats/video_prepare.dart).
     private var videoCompressor: VideoCompressor? = null
+    private var devicePerformance: DevicePerformance? = null
 
     // Файлы и медиа чата: открыть, копировать, сохранить (MediaFiles,
     // lib/chats/media_files.dart).
@@ -190,6 +191,9 @@ class MainActivity : FlutterFragmentActivity() {
         audioDevicesHandler = AudioDevicesHandler(applicationContext, flutterEngine.dartExecutor.binaryMessenger)
         videoCompressor?.dispose()
         videoCompressor = VideoCompressor(applicationContext, flutterEngine.dartExecutor.binaryMessenger)
+        // Класс производительности (память, ядра, частота, экономия батареи).
+        devicePerformance?.dispose()
+        devicePerformance = DevicePerformance(applicationContext, flutterEngine.dartExecutor.binaryMessenger)
         // Контекст — эта Activity: открытый файл — поверх неё, «назад» вернёт в чат.
         mediaFiles?.dispose()
         mediaFiles = MediaFiles(this, flutterEngine.dartExecutor.binaryMessenger)

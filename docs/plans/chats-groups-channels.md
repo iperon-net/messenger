@@ -1481,6 +1481,22 @@ Anti-Spam (группы от 200 участников, вкл/выкл, журн
   вложений, ответа и пересылки — крупно (56/46/38) и без пузыря, время в плашке
   (`lib/chats/big_emoji.dart`). Дальше: анимированные эмодзи (Noto Animated), панель для «все
   реакции», единый шрифт эмодзи на Android.
+- **Анимированные эмодзи (написано 2026-10-16, на устройствах не проверено)**: Google Noto Animated
+  Emoji (Lottie, CC BY 4.0) через пакет `animated_emoji` (`lib/chats/animated_emoji.dart`). Крупные
+  эмодзи — анимацией, если она есть у каждого (один раз при появлении, тап — повтор); реакция, которую
+  мы только что поставили, — один раз анимацией в плашке. В тексте, панели, превью — статичные.
+  Откуда: 40 популярных встроены (ассеты пакета в pubspec), остальные — с нашего CDN
+  `ANIMATED_EMOJI_URL` (Remote Config, по умолчанию `https://staging-cdn.iperon.net/emoji/noto/`) с
+  кэшем на диске; Google не используется. Набор (859 файлов, ~65 МБ) залит 2026-10-16 в бакет стенда
+  `iperon-staging-cdn` → `emoji/noto/<имя>.json`; в nginx стенда нужен `location /emoji/`
+  (`iperon/docs/nginx/staging-cdn.iperon.net.conf`). Авторство — `LicenseRegistry` (экрана лицензий
+  пока нет). Прод: залить набор в CDN-бакет прода + location + `ANIMATED_EMOJI_URL`.
+- **Класс производительности (написано 2026-10-16, не проверено)**: `lib/device_performance.dart`
+  (`DevicePerformance.instance`: low / average / high + режим энергосбережения → low). Android
+  (`DevicePerformance.kt`): общий объём памяти, `isLowRamDevice`, ядра, макс. частота, media
+  performance class — пороги как у Telegram; iOS (`DevicePerformanceBridge` в AppDelegate): по
+  памяти (≤ 3 ГБ — средние). Эмодзи: high — сетка по кругу; average — по кругу, стоит во время
+  прокрутки; low — сетка, крупные и реакции статичные (предпросмотр по удержанию — анимацией).
 
 - **Очистка файлов на устройстве (написано 2026-10-16, не проверено)**: удалены сообщения или чат (у
   себя, на другом устройстве, собеседником «у обоих») — `ChatsRepository` отдаёт cdnID вложений в

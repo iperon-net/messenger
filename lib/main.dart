@@ -20,6 +20,7 @@ import 'i18n/translations.g.dart';
 import 'models.dart';
 import 'repositories.dart';
 import 'utils.dart';
+import 'device_performance.dart';
 
 // @pragma('vm:entry-point')
 // Future<bool> helloWorldWorker(Map<String, dynamic>? input) async {
@@ -31,6 +32,16 @@ import 'utils.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // Авторство анимированных эмодзи (CC BY 4.0) — в списке лицензий приложения.
+  LicenseRegistry.addLicense(
+    () => Stream.value(
+      const LicenseEntryWithLineBreaks(
+        ['Noto Animated Emoji'],
+        'Animated emoji: Google Noto Emoji Animation (https://googlefonts.github.io/noto-emoji-animation/), '
+        'licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/).',
+      ),
+    ),
+  );
 
   // Пакет cryptography_flutter подключён как зависимость намеренно: он
   // автоматически (через регистрацию плагина) подменяет pure-Dart реализации
@@ -91,6 +102,10 @@ Future<void> main() async {
   // Подробные логи LiveKit (FINE) → talker: диагностика ICE/TURN звонков видна в
   // экране «Логи» и в экспорте логов (экран «Разработчик»).
   attachLiveKitLogging();
+
+  // Класс производительности (упрощение анимаций на слабых и в энергосбережении).
+  // Не ждём: до ответа натива — «мощное», как было.
+  unawaited(DevicePerformance.instance.init());
 
   final repositories = getIt.get<Repositories>();
 

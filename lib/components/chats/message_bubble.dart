@@ -16,6 +16,7 @@ import 'media_viewer.dart';
 import 'message_text.dart';
 import 'spoiler_dust.dart';
 import 'swipe_to_reply.dart';
+import '../../chats/animated_emoji.dart';
 import '../../chats/big_emoji.dart';
 
 /// Значок «не отправлено» ([models.MessageStatus.failed]) — красный, как в
@@ -775,8 +776,13 @@ class MessageBubble extends StatelessWidget {
       // У опроса текст (= вопрос) рисует сам опрос.
       final showText = m.text.isNotEmpty && m.kind != models.MessageKind.poll;
       if (showText && bigEmoji > 0) {
-        final text = Text(m.text, style: style.textStyle.copyWith(fontSize: bigEmojiFontSize(bigEmoji), height: 1.15));
-        content.add(textBlock = selectableText == null ? text : selectableText(text));
+        final emojiStyle = style.textStyle.copyWith(fontSize: bigEmojiFontSize(bigEmoji), height: 1.15);
+        // В ленте — анимацией (Noto), в превью меню — обычным текстом.
+        content.add(
+          textBlock = selectableText == null
+              ? AnimatedBigEmoji(text: m.text, style: emojiStyle)
+              : selectableText(Text(m.text, style: emojiStyle)),
+        );
       } else if (showText) {
         final text = MessageText(
           text: m.text,
@@ -825,6 +831,7 @@ class MessageBubble extends StatelessWidget {
                     children: [
                       for (final r in m.reactions)
                         _ReactionChip(
+                          messageID: m.id,
                           reaction: r,
                           colors: colors,
                           chosenText: iconColor,
@@ -1571,6 +1578,7 @@ class _RingPainter extends CustomPainter {
 
 /// Реакция под сообщением: эмодзи + число. Наша — залита цветом ссылки.
 class _ReactionChip extends StatelessWidget {
+  final String messageID;
   final models.MessageReaction reaction;
   final MessageTextColors colors;
 
@@ -1579,7 +1587,14 @@ class _ReactionChip extends StatelessWidget {
   final TextStyle textStyle;
   final VoidCallback? onTap;
 
-  const _ReactionChip({required this.reaction, required this.colors, required this.chosenText, required this.textStyle, this.onTap});
+  const _ReactionChip({
+    required this.messageID,
+    required this.reaction,
+    required this.colors,
+    required this.chosenText,
+    required this.textStyle,
+    this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -1597,7 +1612,12 @@ class _ReactionChip extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             // Непрозрачный цвет: у полупрозрачного эмодзи «выцветает».
-            Text(reaction.emoji, style: textStyle.copyWith(fontSize: 15, color: const Color(0xFF000000))),
+            ReactionEmoji(
+              messageID: messageID,
+              emoji: reaction.emoji,
+              chosen: chosen,
+              style: textStyle.copyWith(fontSize: 15, color: const Color(0xFF000000)),
+            ),
             const SizedBox(width: 4),
             Text(
               '${reaction.count}',

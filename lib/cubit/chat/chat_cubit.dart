@@ -21,6 +21,7 @@ import '../../chats/chats_sync.dart';
 import '../../models.dart' as models;
 
 import 'chat_state.dart';
+import '../../chats/animated_emoji.dart';
 
 /// Окно чата. Данные — из того же [ChatsDataSource], что и список чатов: демо
 /// или настоящие ([ChatsRemoteDataSource], см.
@@ -498,6 +499,8 @@ class ChatCubit extends Cubit<ChatState> {
     final mine = message.myReactions;
     final adds = !mine.contains(emoji);
     if (adds && (_writeRestricted || !availableReactions(chat, message: message).contains(emoji))) return;
+    // Поставили — в плашке её эмодзи проиграется анимацией.
+    if (adds) ReactionAnimations.mark(message.id, emoji);
     await _source?.setReactions(_chatID, message.id, toggleMyReaction(mine, emoji));
   }
 

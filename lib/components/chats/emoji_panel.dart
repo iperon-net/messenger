@@ -2,11 +2,15 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' hide Category;
 import 'package:flutter/services.dart';
-import 'package:flutter/material.dart' show Material, MaterialType, IconButton, Icons, Icon, TextField, InputDecoration, InputBorder;
+import 'package:flutter/material.dart'
+    show Material, MaterialType, IconButton, Icons, Icon, TextField, InputDecoration, InputBorder, TabController;
+import 'package:lottie/lottie.dart';
 import 'package:flutter/widgets.dart';
 
+import '../../chats/animated_emoji.dart';
+import '../../device_performance.dart';
 import '../../i18n/translations.g.dart';
 
 /// Панель эмодзи вместо клавиатуры (как в Telegram): кнопка в поле ввода
@@ -182,6 +186,8 @@ class EmojiPanel extends StatelessWidget {
       data: const IconThemeData(size: 21),
       child: EmojiPicker(
         textEditingController: input,
+        // Своя сетка: отклик на нажатие и предпросмотр по удержанию.
+        customWidget: (config, state, showSearchBar) => _PanelEmojiView(config, state, showSearchBar, style: style),
         onBackspacePressed: () => HapticFeedback.selectionClick(),
         config: Config(
           height: height,
@@ -305,6 +311,387 @@ class _PanelSearchViewState extends SearchViewState<_PanelSearchView> {
           ),
         );
       },
+    );
+  }
+}
+
+/// Сетка панели — как стандартная (`DefaultEmojiPickerView` пакета), но со
+/// своими ячейками [_PanelEmojiCell].
+class _PanelEmojiView extends EmojiPickerView {
+  final EmojiPanelStyle style;
+
+  const _PanelEmojiView(super.config, super.state, super.showSearchBar, {required this.style});
+
+  @override
+  State<_PanelEmojiView> createState() => _PanelEmojiViewState();
+}
+
+class _PanelEmojiViewState extends State<_PanelEmojiView> with SingleTickerProviderStateMixin, SkinToneOverlayStateMixin {
+  late TabController _tabController;
+  late PageController _pageController;
+  final _scrollController = ScrollController();
+  final _utils = EmojiPickerUtils();
+  String? _rememberedSkinTone;
+
+  /// Сетка прокручивается (на средних устройствах анимации в это время стоят).
+  final _scrolling = ValueNotifier(false);
+
+  @override
+  void initState() {
+    final target = widget.state.currentCategory ?? widget.config.categoryViewConfig.initCategory;
+    final index = math.max(0, widget.state.categoryEmoji.indexWhere((e) => e.category == target));
+    _tabController = TabController(initialIndex: index, length: widget.state.categoryEmoji.length, vsync: this);
+    _pageController = PageController(initialPage: index)..addListener(closeSkinToneOverlay);
+    _scrollController.addListener(closeSkinToneOverlay);
+    widget.state.categoryNavigationNotifier.addListener(_onCategoryNavigation);
+    if (widget.config.skinToneConfig.rememberSkinTone) {
+      _utils.getRememberedSkinTone().then((tone) {
+        if (mounted && tone != null) setState(() => _rememberedSkinTone = tone);
+      });
+    }
+    super.initState();
+  }
+
+  void _onCategoryNavigation() {
+    final target = widget.state.categoryNavigationNotifier.value;
+    if (target == null) return;
+    final index = widget.state.categoryEmoji.indexWhere((e) => e.category == target);
+    if (index != -1 && index != _pageController.page?.round()) _pageController.jumpToPage(index);
+  }
+
+  @override
+  void dispose() {
+    widget.state.categoryNavigationNotifier.removeListener(_onCategoryNavigation);
+    closeSkinToneOverlay();
+    _pageController.dispose();
+    _scrollController.dispose();
+    _tabController.dispose();
+    _scrolling.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final config = widget.config;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final emojiSize = config.emojiViewConfig.getEmojiSize(constraints.maxWidth);
+        final boxSize = config.emojiViewConfig.getEmojiBoxSize(constraints.maxWidth);
+        return EmojiContainer(
+          color: config.emojiViewConfig.backgroundColor,
+          buttonMode: config.emojiViewConfig.buttonMode,
+          child: ClipRect(
+            child: Column(
+              children: [
+                DefaultCategoryView(config, widget.state, _tabController, _pageController),
+                Flexible(
+                  child: PageView.builder(
+                    itemCount: widget.state.categoryEmoji.length,
+                    controller: _pageController,
+                    onPageChanged: (index) {
+                      _tabController.animateTo(index, duration: config.categoryViewConfig.tabIndicatorAnimDuration);
+                      widget.state.onCategoryChanged?.call(widget.state.categoryEmoji[index].category);
+                    },
+                    itemBuilder: (context, index) => _page(emojiSize, boxSize, widget.state.categoryEmoji[index]),
+                  ),
+                ),
+                config.bottomActionBarConfig.customBottomActionBar!(config, widget.state, widget.showSearchBar),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _page(double emojiSize, double boxSize, CategoryEmoji category) {
+    if (category.category == Category.RECENT && category.emoji.isEmpty) return const SizedBox.shrink();
+    final config = widget.config;
+    final grid = GridView.builder(
+      key: const Key('emojiScrollView'),
+      controller: _scrollController,
+      primary: false,
+      padding: config.emojiViewConfig.gridPadding,
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: config.emojiViewConfig.columns),
+      itemCount: category.emoji.length,
+      itemBuilder: (context, index) {
+        final emoji = _utils.applyDisplaySkinTone(category.emoji[index], config.skinToneConfig, _rememberedSkinTone);
+        final tones = emoji.hasSkinTone && config.skinToneConfig.enabled;
+        return addSkinToneTargetIfAvailable(
+          hasSkinTone: emoji.hasSkinTone,
+          linkKey: category.category.name + emoji.emoji,
+          child: _PanelEmojiCell(
+            // Состояние (отклик) — за эмодзи, а не за позицией: «Недавние» перестраиваются.
+            key: ValueKey(emoji.emoji),
+            emoji: emoji,
+            emojiSize: emojiSize,
+            boxSize: boxSize,
+            style: widget.style,
+            skinToneIndicator: tones ? config.skinToneConfig.indicatorColor : null,
+            onSelected: () => _select(category.category, emoji),
+            scrolling: _scrolling,
+            // С оттенками — удержание открывает выбор оттенка (как было).
+            onSkinTones: tones ? (position) => _openSkinTones(position, emoji, emojiSize, category) : null,
+          ),
+        );
+      },
+    );
+    // Начало / конец прокрутки — для паузы анимаций на средних устройствах.
+    return NotificationListener<ScrollNotification>(
+      onNotification: (notification) {
+        if (notification is ScrollStartNotification) _scrolling.value = true;
+        if (notification is ScrollEndNotification) _scrolling.value = false;
+        return false;
+      },
+      child: grid,
+    );
+  }
+
+  void _openSkinTones(Offset position, Emoji emoji, double emojiSize, CategoryEmoji category) {
+    closeSkinToneOverlay();
+    showSkinToneOverlay(position, emoji, emojiSize, category, widget.config, _select, links[category.category.name + emoji.emoji]!);
+  }
+
+  void _select(Category? category, Emoji emoji) {
+    if (widget.config.skinToneConfig.rememberSkinTone && emoji.hasSkinTone) {
+      final tone = _utils.extractSkinTone(emoji);
+      if (tone != _rememberedSkinTone) {
+        _utils.setRememberedSkinTone(tone);
+        setState(() => _rememberedSkinTone = tone);
+      }
+    }
+    widget.state.onEmojiSelected(category, emoji);
+    closeSkinToneOverlay();
+  }
+}
+
+/// Ячейка эмодзи: нажатие — эмодзи «пружинит» (с лёгкой вибрацией) и
+/// вставляется; удержание — крупный предпросмотр над ячейкой (анимацией Noto,
+/// если она есть), отпустил — закрывается, ничего не вставляя. У эмодзи с оттенками кожи
+/// удержание открывает выбор оттенка.
+class _PanelEmojiCell extends StatefulWidget {
+  final Emoji emoji;
+  final double emojiSize;
+  final double boxSize;
+  final EmojiPanelStyle style;
+  final Color? skinToneIndicator;
+  final VoidCallback onSelected;
+  final void Function(Offset position)? onSkinTones;
+
+  /// Сетка прокручивается.
+  final ValueListenable<bool> scrolling;
+
+  const _PanelEmojiCell({
+    required this.scrolling,
+    super.key,
+    required this.emoji,
+    required this.emojiSize,
+    required this.boxSize,
+    required this.style,
+    required this.skinToneIndicator,
+    required this.onSelected,
+    required this.onSkinTones,
+  });
+
+  @override
+  State<_PanelEmojiCell> createState() => _PanelEmojiCellState();
+}
+
+class _PanelEmojiCellState extends State<_PanelEmojiCell> with TickerProviderStateMixin {
+  /// Встроенная анимация (40 популярных): крутится по кругу, пока ячейка на
+  /// экране (как в Telegram); нажатие — «пружинка» и для неё. Остальные —
+  /// обычный глиф.
+  LottieComposition? _composition;
+  AnimationController? _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    // Слабое устройство / энергосбережение — без анимаций в сетке.
+    if (!DevicePerformance.instance.loopAnimations) return;
+    final data = AnimatedEmojiStore.lookup(widget.emoji.emoji);
+    if (data == null || !bundledAnimatedEmoji.contains(data.name)) return;
+    widget.scrolling.addListener(_onScrolling);
+    final ready = AnimatedEmojiStore.ready(data);
+    if (ready != null) {
+      _animate(ready);
+    } else {
+      AnimatedEmojiStore.load(data).then((composition) {
+        if (mounted && composition != null) setState(() => _animate(composition));
+      });
+    }
+  }
+
+  void _animate(LottieComposition composition) {
+    _composition = composition;
+    _animation = AnimationController(vsync: this, duration: composition.duration);
+    _onScrolling();
+  }
+
+  /// Среднее устройство — во время прокрутки анимации стоят.
+  void _onScrolling() {
+    final animation = _animation;
+    if (animation == null) return;
+    final pause = widget.scrolling.value && DevicePerformance.instance.current == PerformanceClass.average;
+    if (pause) {
+      animation.stop();
+    } else if (!animation.isAnimating) {
+      animation.repeat();
+    }
+  }
+
+  late final _bounce = AnimationController(vsync: this, duration: const Duration(milliseconds: 260));
+  late final _scale = TweenSequence<double>([
+    TweenSequenceItem(tween: Tween<double>(begin: 1, end: 1.35).chain(CurveTween(curve: Curves.easeOut)), weight: 40),
+    TweenSequenceItem(tween: Tween<double>(begin: 1.35, end: 1).chain(CurveTween(curve: Curves.elasticOut)), weight: 60),
+  ]).animate(_bounce);
+  OverlayEntry? _preview;
+
+  void _tap() {
+    HapticFeedback.selectionClick();
+    _bounce.forward(from: 0);
+    widget.onSelected();
+  }
+
+  void _longPressStart(LongPressStartDetails details) {
+    final box = context.findRenderObject() as RenderBox;
+    final position = box.localToGlobal(Offset.zero);
+    if (widget.onSkinTones case final onSkinTones?) {
+      onSkinTones(position);
+      return;
+    }
+    HapticFeedback.lightImpact();
+    _showPreview(position, box.size);
+  }
+
+  void _showPreview(Offset position, Size cell) {
+    _hidePreview();
+    const size = 112.0;
+    final screen = MediaQuery.sizeOf(context);
+    final left = (position.dx + cell.width / 2 - size / 2).clamp(8.0, screen.width - size - 8);
+    final top = math.max(MediaQuery.paddingOf(context).top + 8, position.dy - size - 8);
+    final entry = _preview = OverlayEntry(
+      builder: (context) => Positioned(
+        left: left,
+        top: top,
+        child: IgnorePointer(
+          child: _EmojiPreview(emoji: widget.emoji.emoji, size: size, style: widget.style),
+        ),
+      ),
+    );
+    Overlay.of(context, rootOverlay: true).insert(entry);
+  }
+
+  void _hidePreview() {
+    _preview?.remove();
+    _preview = null;
+  }
+
+  @override
+  void dispose() {
+    _hidePreview();
+    widget.scrolling.removeListener(_onScrolling);
+    _bounce.dispose();
+    _animation?.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final composition = _composition;
+    final Widget text = composition != null
+        ? Lottie(
+            composition: composition,
+            controller: _animation,
+            width: widget.emojiSize * 1.2,
+            height: widget.emojiSize * 1.2,
+            // Десятки по кругу: кэш команд отрисовки — меньше работы на кадр.
+            renderCache: RenderCache.drawingCommands,
+          )
+        : Text(
+            widget.emoji.emoji,
+            textScaler: TextScaler.noScaling,
+            style: DefaultEmojiTextStyle.copyWith(fontSize: widget.emojiSize, inherit: true),
+          );
+    final indicator = widget.skinToneIndicator;
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: _tap,
+      onLongPressStart: _longPressStart,
+      // Отпустил — только закрыть: удержание — просмотр, не выбор.
+      onLongPressEnd: (_) => _hidePreview(),
+      onLongPressCancel: _hidePreview,
+      child: SizedBox(
+        width: widget.boxSize,
+        height: widget.boxSize,
+        child: Center(
+          child: ScaleTransition(
+            scale: _scale,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: indicator == null
+                  ? text
+                  : DecoratedBox(
+                      decoration: TriangleDecoration(color: indicator, size: 8),
+                      child: text,
+                    ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Карточка предпросмотра: анимация Noto (крутится, пока держат) или крупный
+/// статичный эмодзи, если анимации нет / ещё грузится.
+class _EmojiPreview extends StatefulWidget {
+  final String emoji;
+  final double size;
+  final EmojiPanelStyle style;
+
+  const _EmojiPreview({required this.emoji, required this.size, required this.style});
+
+  @override
+  State<_EmojiPreview> createState() => _EmojiPreviewState();
+}
+
+class _EmojiPreviewState extends State<_EmojiPreview> {
+  LottieComposition? _composition;
+
+  @override
+  void initState() {
+    super.initState();
+    final data = AnimatedEmojiStore.lookup(widget.emoji);
+    if (data == null) return;
+    _composition = AnimatedEmojiStore.ready(data);
+    if (_composition == null) {
+      AnimatedEmojiStore.load(data).then((composition) {
+        if (mounted && composition != null) setState(() => _composition = composition);
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final inner = widget.size - 24;
+    final composition = _composition;
+    return Container(
+      width: widget.size,
+      height: widget.size,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: widget.style.background,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: const [BoxShadow(color: Color(0x40000000), blurRadius: 16, offset: Offset(0, 4))],
+      ),
+      child: composition != null
+          ? Lottie(composition: composition, width: inner, height: inner)
+          : Text(
+              widget.emoji,
+              textScaler: TextScaler.noScaling,
+              style: DefaultEmojiTextStyle.copyWith(fontSize: inner * 0.8, inherit: true),
+            ),
     );
   }
 }
