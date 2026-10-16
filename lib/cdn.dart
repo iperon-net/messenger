@@ -602,6 +602,28 @@ class CDNManager {
     return await file.exists() ? file : null;
   }
 
+  /// Удаляет файл из кэша скачиваний (строку `downloads`, расшифрованный файл
+  /// и недокачанный шифротекст) — на него больше ничто не ссылается
+  /// (`ChatsMediaCleanup`). Идущее скачивание не трогаем. `true` — удалён.
+  Future<bool> evict(Uint8List cdnID) async {
+    if (_inFlightDownloads.containsKey(utils.bytesToHex(cdnID))) return false;
+    final state = await repositories.downloads.getByCdnID(cdnID);
+    if (state == null) return false;
+    await repositories.downloads.delete(cdnID);
+    // Только свои файлы кэша — не трогаем ничего вне папки media.
+    final mediaDir = (await _mediaDir()).path;
+    for (final path in [state.targetPath, state.tmpPath]) {
+      if (path == null || path.isEmpty || !p.isWithin(mediaDir, path)) continue;
+      try {
+        final file = File(path);
+        if (await file.exists()) await file.delete();
+      } catch (error, stackTrace) {
+        logger.handle(error, stackTrace);
+      }
+    }
+    return true;
+  }
+
   Future<models.DownloadState> _resolveDownloadState(models.CDN cdn) async {
     final existing = await repositories.downloads.getByCdnID(cdn.cdnID);
     if (existing != null) {

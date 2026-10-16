@@ -19,6 +19,7 @@ import '../utils.dart';
 import 'chats_mapping.dart';
 import 'chats_media.dart';
 import 'updates_plan.dart';
+import 'chats_media_cleanup.dart';
 
 /// Действие требует сети, а её нет (или сервер недоступен): ничего не
 /// изменилось — UI должен честно сказать «нет сети», а не делать вид, что
@@ -83,7 +84,10 @@ class ChatsRequestException implements Exception {
 /// Всё, что меняет локальное состояние, идёт последовательно через [_locked]:
 /// push, ответ на запрос и догон не применяются наперегонки.
 class ChatsSync {
-  ChatsSync._();
+  ChatsSync._() {
+    // Удалённые сообщения / чаты — их файлы с устройства, если больше не нужны.
+    ChatsRepository.onMediaReleased = ChatsMediaCleanup.release;
+  }
 
   static final ChatsSync instance = ChatsSync._();
 

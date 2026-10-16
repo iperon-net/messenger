@@ -154,6 +154,30 @@ class ChatsRepository {
 
   ChatsRepository._tx({required this.logger, required this.ctx});
 
+  /// Удалённые сообщения отдают cdnID своих вложений — кандидаты на удаление
+  /// файлов с устройства (`ChatsMediaCleanup`, ставит `ChatsSync`).
+  static void Function(Iterable<List<int>> cdnIDs)? onMediaReleased;
+
+  /// cdnID вложений (файл и обложка) сообщений, выбранных [where].
+  Future<void> _releaseMedia(String table, String column, String where, List<Object?> args, {bool chatMessage = false}) async {
+    final hook = onMediaReleased;
+    if (hook == null) return;
+    final ids = <List<int>>[];
+    for (final row in await ctx.getAll('SELECT $column AS c FROM $table WHERE $where AND $column IS NOT NULL;', args)) {
+      try {
+        final blob = row['c'] as List<int>;
+        final content = chatMessage ? pb.ChatMessage.fromBuffer(blob).content : pb.MessageContent.fromBuffer(blob);
+        for (final media in content.media) {
+          if (media.cdnID.isNotEmpty) ids.add(media.cdnID);
+          if (media.thumbCdnID.isNotEmpty) ids.add(media.thumbCdnID);
+        }
+      } catch (error, stackTrace) {
+        logger.handle(error, stackTrace);
+      }
+    }
+    if (ids.isNotEmpty) hook(ids);
+  }
+
   /// Таблицы — для подписки на изменения (`db.onChange`).
   static const dialogsTable = 'chatDialogs';
   static const messagesTable = 'chatMessages';
@@ -351,6 +375,9 @@ class ChatsRepository {
 
   /// Диалог удалён у меня — вместе с историей и неотправленным.
   Future<void> deleteDialog({required List<int> userID, required List<int> chatID}) async {
+    await _releaseMedia('chatMessages', 'content', 'userID = ? AND chatID = ?', [userID, chatID]);
+    await _releaseMedia('chatPinned', 'message', 'userID = ? AND chatID = ?', [userID, chatID], chatMessage: true);
+    await _releaseMedia('chatDialogs', 'topMessage', 'userID = ? AND chatID = ?', [userID, chatID], chatMessage: true);
     await ctx.execute('DELETE FROM chatMessages WHERE userID = ? AND chatID = ?;', [userID, chatID]);
     await ctx.execute('DELETE FROM chatOutbox WHERE userID = ? AND chatID = ?;', [userID, chatID]);
     await ctx.execute('DELETE FROM chatPinned WHERE userID = ? AND chatID = ?;', [userID, chatID]);
@@ -637,6 +664,11 @@ class ChatsRepository {
       'SELECT COUNT(*) AS n FROM chatMessages WHERE userID = ? AND chatID = ? AND messageID IN ($placeholders) AND messageID > ? AND fromUserID != ?;',
       [userID, chatID, ...messageIDs, readInboxMaxID, userID],
     );
+    await _releaseMedia('chatMessages', 'content', 'userID = ? AND chatID = ? AND messageID IN ($placeholders)', [
+      userID,
+      chatID,
+      ...messageIDs,
+    ]);
     await ctx.execute('DELETE FROM chatMessages WHERE userID = ? AND chatID = ? AND messageID IN ($placeholders);', [
       userID,
       chatID,

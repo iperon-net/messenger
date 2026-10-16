@@ -8,6 +8,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import '../../chats/message_formatting.dart';
+import '../../components/chats/emoji_panel.dart';
 import '../../chats/reactions.dart';
 import '../../chats/read_receipts.dart';
 import '../../chats/voice_player.dart';
@@ -88,6 +89,7 @@ class _ChatCupertinoState extends State<ChatCupertino> {
     onDenied: _micDenied,
   );
   final _focus = FocusNode();
+  late final _emoji = EmojiPanelController(focus: _focus);
   final _scroll = ScrollController();
   final _searchInput = TextEditingController();
 
@@ -148,6 +150,7 @@ class _ChatCupertinoState extends State<ChatCupertino> {
     VoicePlayer.instance.stop();
     _mentions.dispose();
     _input.dispose();
+    _emoji.dispose();
     _focus.dispose();
     _tracker.dispose();
     _scroll.dispose();
@@ -665,6 +668,7 @@ class _ChatCupertinoState extends State<ChatCupertino> {
                                       formatMenu: _formatMenu,
                                       recorder: _recorder,
                                       focus: _focus,
+                                      emoji: _emoji,
                                       state: state,
                                       onSend: _send,
                                       onSendSilent: () => _send(silent: true),
@@ -845,6 +849,9 @@ class _ComposeBar extends StatelessWidget {
   final ComposeFormatMenu formatMenu;
   final VoiceRecorder recorder;
   final FocusNode focus;
+
+  /// Панель эмодзи вместо клавиатуры.
+  final EmojiPanelController emoji;
   final ChatState state;
   final VoidCallback onSend;
 
@@ -861,6 +868,7 @@ class _ComposeBar extends StatelessWidget {
     required this.formatMenu,
     required this.recorder,
     required this.focus,
+    required this.emoji,
     required this.state,
     required this.onSend,
     required this.onSendSilent,
@@ -889,8 +897,10 @@ class _ComposeBar extends StatelessWidget {
         color: ThemesCupertino.appBackground.resolveFrom(context),
         border: Border(top: BorderSide(color: CupertinoColors.separator.resolveFrom(context), width: 0.5)),
       ),
-      child: SafeArea(
-        top: false,
+      // Панель эмодзи открыта — она сама доходит до низа экрана.
+      child: ListenableBuilder(
+        listenable: emoji,
+        builder: (context, child) => SafeArea(top: false, bottom: emoji.reserved == 0, child: child!),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -1011,6 +1021,22 @@ class _ComposeBar extends StatelessWidget {
                               keyboardType: TextInputType.multiline,
                               textCapitalization: TextCapitalization.sentences,
                               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                              // Эмодзи ↔ клавиатура (как в Telegram).
+                              suffix: ListenableBuilder(
+                                listenable: emoji,
+                                builder: (context, _) => CupertinoButton(
+                                  padding: const EdgeInsets.fromLTRB(4, 4, 8, 4),
+                                  minimumSize: Size.zero,
+                                  onPressed: emoji.toggle,
+                                  child: Icon(
+                                    emoji.open ? CupertinoIcons.keyboard : CupertinoIcons.smiley,
+                                    size: 24,
+                                    color: secondary,
+                                    semanticLabel: emoji.open ? t.screenChat.keyboard : t.screenChat.emoji,
+                                  ),
+                                ),
+                              ),
+                              suffixMode: OverlayVisibilityMode.always,
                               style: TextStyle(fontSize: 16, color: CupertinoColors.label.resolveFrom(context)),
                               decoration: BoxDecoration(
                                 color: CupertinoColors.tertiarySystemFill.resolveFrom(context),
@@ -1087,6 +1113,16 @@ class _ComposeBar extends StatelessWidget {
                     ),
                   ],
                 ),
+              ),
+            ),
+            EmojiPanel(
+              controller: emoji,
+              input: input,
+              style: EmojiPanelStyle(
+                background: CupertinoColors.secondarySystemBackground.resolveFrom(context),
+                icon: secondary,
+                accent: primary,
+                cupertino: true,
               ),
             ),
           ],

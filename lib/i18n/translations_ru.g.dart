@@ -656,6 +656,9 @@ class _Translations$screenChat$ru extends Translations$screenChat$en {
 	@override String get pinTitle => 'Закрепить сообщение?';
 	@override String get scopeForBoth => 'У меня и у собеседника';
 	@override String get scopeForMe => 'Только у меня';
+	@override String get emojiSearch => 'Поиск эмодзи';
+	@override String get emoji => 'Эмодзи';
+	@override String get keyboard => 'Клавиатура';
 	@override String get forPeer => 'Для собеседника';
 	@override String pinnedServiceYou({required Object text}) => 'Вы закрепили «${text}»';
 	@override String get pinnedServiceYouMessage => 'Вы закрепили сообщение';
@@ -1993,6 +1996,9 @@ extension on TranslationsRu {
 			'screenChat.pinTitle' => 'Закрепить сообщение?',
 			'screenChat.scopeForBoth' => 'У меня и у собеседника',
 			'screenChat.scopeForMe' => 'Только у меня',
+			'screenChat.emojiSearch' => 'Поиск эмодзи',
+			'screenChat.emoji' => 'Эмодзи',
+			'screenChat.keyboard' => 'Клавиатура',
 			'screenChat.forPeer' => 'Для собеседника',
 			'screenChat.pinnedServiceYou' => ({required Object text}) => 'Вы закрепили «${text}»',
 			'screenChat.pinnedServiceYouMessage' => 'Вы закрепили сообщение',
@@ -2056,11 +2062,11 @@ extension on TranslationsRu {
 			'screenChat.formatItalic' => 'Курсив',
 			'screenChat.formatStrike' => 'Зачёркнутый',
 			'screenChat.formatSpoiler' => 'Спойлер',
+			_ => null,
+		} ?? switch (path) {
 			'screenChat.formatCode' => 'Моноширинный',
 			'screenChat.formatLink' => 'Ссылка',
 			'screenChat.formatQuote' => 'Цитата',
-			_ => null,
-		} ?? switch (path) {
 			'screenChat.formatPlain' => 'Обычный',
 			'screenChat.formatUnderline' => 'Подчёркнутый',
 			'screenChat.formatPre' => 'Блок кода',
@@ -2570,11 +2576,11 @@ extension on TranslationsRu {
 			'screenCall.cameraOff' => 'Выкл. камеру',
 			'screenCall.startVideo' => 'Видео',
 			'screenCall.switchCamera' => 'Сменить камеру',
+			_ => null,
+		} ?? switch (path) {
 			'screenCall.qualityPoor' => 'Слабый сигнал',
 			'screenCall.qualityGood' => 'Хорошее соединение',
 			'screenCall.qualityExcellent' => 'Отличное соединение',
-			_ => null,
-		} ?? switch (path) {
 			'screenCall.remoteMicMuted' => 'Микрофон собеседника выключен',
 			'screenCall.remoteOnHold' => 'Собеседник на другой линии',
 			'screenCall.reconnecting' => 'Переподключение…',

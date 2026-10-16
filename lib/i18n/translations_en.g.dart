@@ -1537,6 +1537,15 @@ class Translations$screenChat$en {
 	/// en: 'Only for me'
 	String get scopeForMe => 'Only for me';
 
+	/// en: 'Search emoji'
+	String get emojiSearch => 'Search emoji';
+
+	/// en: 'Emoji'
+	String get emoji => 'Emoji';
+
+	/// en: 'Keyboard'
+	String get keyboard => 'Keyboard';
+
 	/// en: 'For the other person'
 	String get forPeer => 'For the other person';
 
@@ -4074,6 +4083,9 @@ extension on Translations {
 			'screenChat.pinTitle' => 'Pin message?',
 			'screenChat.scopeForBoth' => 'For me and the other person',
 			'screenChat.scopeForMe' => 'Only for me',
+			'screenChat.emojiSearch' => 'Search emoji',
+			'screenChat.emoji' => 'Emoji',
+			'screenChat.keyboard' => 'Keyboard',
 			'screenChat.forPeer' => 'For the other person',
 			'screenChat.pinnedServiceYou' => ({required Object text}) => 'You pinned «${text}»',
 			'screenChat.pinnedServiceYouMessage' => 'You pinned a message',
@@ -4137,11 +4149,11 @@ extension on Translations {
 			'screenChat.formatItalic' => 'Italic',
 			'screenChat.formatStrike' => 'Strikethrough',
 			'screenChat.formatSpoiler' => 'Spoiler',
+			_ => null,
+		} ?? switch (path) {
 			'screenChat.formatCode' => 'Monospace',
 			'screenChat.formatLink' => 'Link',
 			'screenChat.formatQuote' => 'Quote',
-			_ => null,
-		} ?? switch (path) {
 			'screenChat.formatPlain' => 'Regular',
 			'screenChat.formatUnderline' => 'Underline',
 			'screenChat.formatPre' => 'Code Block',
@@ -4651,11 +4663,11 @@ extension on Translations {
 			'screenCall.cameraOff' => 'Camera off',
 			'screenCall.startVideo' => 'Video',
 			'screenCall.switchCamera' => 'Flip camera',
+			_ => null,
+		} ?? switch (path) {
 			'screenCall.qualityPoor' => 'Poor connection',
 			'screenCall.qualityGood' => 'Good connection',
 			'screenCall.qualityExcellent' => 'Excellent connection',
-			_ => null,
-		} ?? switch (path) {
 			'screenCall.remoteMicMuted' => 'Their microphone is off',
 			'screenCall.remoteOnHold' => 'They\'re on another call',
 			'screenCall.reconnecting' => 'Reconnecting…',

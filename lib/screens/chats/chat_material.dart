@@ -7,6 +7,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../chats/message_formatting.dart';
+import '../../components/chats/emoji_panel.dart';
 import '../../chats/reactions.dart';
 import '../../chats/read_receipts.dart';
 import '../../chats/voice_player.dart';
@@ -83,6 +84,7 @@ class _ChatMaterialState extends State<ChatMaterial> {
     onDenied: _micDenied,
   );
   final _focus = FocusNode();
+  late final _emoji = EmojiPanelController(focus: _focus);
   final _scroll = ScrollController();
   final _searchInput = TextEditingController();
 
@@ -143,6 +145,7 @@ class _ChatMaterialState extends State<ChatMaterial> {
     VoicePlayer.instance.stop();
     _mentions.dispose();
     _input.dispose();
+    _emoji.dispose();
     _focus.dispose();
     _tracker.dispose();
     _scroll.dispose();
@@ -649,6 +652,7 @@ class _ChatMaterialState extends State<ChatMaterial> {
                                 formatMenu: _formatMenu,
                                 recorder: _recorder,
                                 focus: _focus,
+                                emoji: _emoji,
                                 state: state,
                                 onSend: _send,
                                 onSendOptions: () => _sendOptions(context),
@@ -955,6 +959,9 @@ class _ComposeBar extends StatelessWidget {
   final ComposeFormatMenu formatMenu;
   final VoiceRecorder recorder;
   final FocusNode focus;
+
+  /// Панель эмодзи вместо клавиатуры.
+  final EmojiPanelController emoji;
   final ChatState state;
   final VoidCallback onSend;
 
@@ -970,6 +977,7 @@ class _ComposeBar extends StatelessWidget {
     required this.formatMenu,
     required this.recorder,
     required this.focus,
+    required this.emoji,
     required this.state,
     required this.onSend,
     required this.onSendOptions,
@@ -994,8 +1002,10 @@ class _ComposeBar extends StatelessWidget {
 
     return Material(
       color: color,
-      child: SafeArea(
-        top: false,
+      // Панель эмодзи открыта — она сама доходит до низа экрана.
+      child: ListenableBuilder(
+        listenable: emoji,
+        builder: (context, child) => SafeArea(top: false, bottom: emoji.reserved == 0, child: child!),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -1112,6 +1122,16 @@ class _ComposeBar extends StatelessWidget {
                               textCapitalization: TextCapitalization.sentences,
                               decoration: InputDecoration(
                                 hintText: t.screenChat.message,
+                                // Эмодзи ↔ клавиатура (как в Telegram).
+                                prefixIcon: ListenableBuilder(
+                                  listenable: emoji,
+                                  builder: (context, _) => IconButton(
+                                    icon: Icon(emoji.open ? Icons.keyboard_outlined : Icons.emoji_emotions_outlined),
+                                    color: scheme.onSurfaceVariant,
+                                    tooltip: emoji.open ? t.screenChat.keyboard : t.screenChat.emoji,
+                                    onPressed: emoji.toggle,
+                                  ),
+                                ),
                                 filled: true,
                                 fillColor: scheme.surfaceContainerHighest,
                                 isDense: true,
@@ -1163,6 +1183,16 @@ class _ComposeBar extends StatelessWidget {
                     ),
                   ],
                 ),
+              ),
+            ),
+            EmojiPanel(
+              controller: emoji,
+              input: input,
+              style: EmojiPanelStyle(
+                background: scheme.surfaceContainerLow,
+                icon: scheme.onSurfaceVariant,
+                accent: scheme.primary,
+                cupertino: false,
               ),
             ),
           ],

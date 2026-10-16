@@ -16,6 +16,7 @@ import 'media_viewer.dart';
 import 'message_text.dart';
 import 'spoiler_dust.dart';
 import 'swipe_to_reply.dart';
+import '../../chats/big_emoji.dart';
 
 /// Значок «не отправлено» ([models.MessageStatus.failed]) — красный, как в
 /// iOS-системных ошибках.
@@ -614,16 +615,30 @@ class MessageBubble extends StatelessWidget {
     final m = message;
     final out = m.outgoing;
     final colors = out ? style.outgoingText : style.incomingText;
-    final metaColor = out ? style.outgoingMeta : style.incomingMeta;
     // Значок в кружке цвета ссылки (файл, голосовое). У исходящих на iOS ссылка
     // белая — белый значок пропал бы, поэтому он цвета пузыря.
     final iconColor = out ? style.outgoing : style.incomingOnLink;
-    final metaStyle = style.textStyle.copyWith(fontSize: 12, color: metaColor);
     final time = DateFormat.Hm().format(m.date.toLocal());
     final metaText = '${m.edited ? '${t.screenChat.edited} ' : ''}$time';
 
+    // Крупные эмодзи (1–3 без текста, вложений, ответа, пересылки) — без
+    // пузыря, время — в плашке, как у дат.
+    final bigEmoji =
+        m.kind == models.MessageKind.text &&
+            !m.isAlbum &&
+            m.entities.isEmpty &&
+            m.linkPreview == null &&
+            m.reply == null &&
+            m.forward == null &&
+            onCommentsTap == null &&
+            !(showSender && m.senderName.isNotEmpty)
+        ? bigEmojiCount(m.text)
+        : 0;
+    final metaColor = bigEmoji > 0 ? style.pillText : (out ? style.outgoingMeta : style.incomingMeta);
+    final metaStyle = style.textStyle.copyWith(fontSize: 12, color: metaColor);
+
     final views = m.views > 0 ? compactCount(m.views) : '';
-    final meta = Row(
+    final metaRow = Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         // Подпись автора поста канала.
@@ -652,6 +667,12 @@ class MessageBubble extends StatelessWidget {
         ],
       ],
     );
+    final Widget meta = bigEmoji > 0
+        ? DecoratedBox(
+            decoration: BoxDecoration(color: style.pill, borderRadius: BorderRadius.circular(10)),
+            child: Padding(padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2), child: metaRow),
+          )
+        : metaRow;
     // Невидимый хвост под время: nbsp, чтобы не переносился отдельно.
     final trailing =
         '  ${m.authorSignature.isNotEmpty ? '${m.authorSignature.replaceAll(' ', '\u00a0')}\u00a0\u00a0' : ''}${views.isNotEmpty ? '\u00a0\u00a0\u00a0\u00a0$views\u00a0\u00a0' : ''}${m.pinned ? '\u00a0\u00a0\u00a0' : ''}$metaText${out && m.kind != models.MessageKind.call ? '     ' : ''}';
@@ -750,10 +771,13 @@ class MessageBubble extends StatelessWidget {
       // превью ссылки — под карточку.
       final hasReactions = m.reactions.isNotEmpty;
       final preview = m.linkPreview;
-      final metaInText = !hasReactions && preview == null;
+      final metaInText = !hasReactions && preview == null && bigEmoji == 0;
       // У опроса текст (= вопрос) рисует сам опрос.
       final showText = m.text.isNotEmpty && m.kind != models.MessageKind.poll;
-      if (showText) {
+      if (showText && bigEmoji > 0) {
+        final text = Text(m.text, style: style.textStyle.copyWith(fontSize: bigEmojiFontSize(bigEmoji), height: 1.15));
+        content.add(textBlock = selectableText == null ? text : selectableText(text));
+      } else if (showText) {
         final text = MessageText(
           text: m.text,
           entities: m.entities,
@@ -821,7 +845,7 @@ class MessageBubble extends StatelessWidget {
             ),
           ),
         );
-      } else if (!showText || preview != null) {
+      } else if (!showText || preview != null || bigEmoji > 0) {
         content.add(
           Align(
             alignment: Alignment.centerRight,
@@ -864,7 +888,7 @@ class MessageBubble extends StatelessWidget {
               },
         child: DecoratedBox(
           decoration: BoxDecoration(
-            color: out ? style.outgoing : style.incoming,
+            color: bigEmoji > 0 ? null : (out ? style.outgoing : style.incoming),
             borderRadius: BorderRadius.only(
               topLeft: _radius,
               topRight: _radius,
@@ -873,7 +897,9 @@ class MessageBubble extends StatelessWidget {
             ),
           ),
           child: Padding(
-            padding: EdgeInsets.fromLTRB(visual ? 4 : 11, visual ? 4 : 7, visual ? 4 : 11, 7),
+            padding: bigEmoji > 0
+                ? const EdgeInsets.fromLTRB(2, 0, 2, 2)
+                : EdgeInsets.fromLTRB(visual ? 4 : 11, visual ? 4 : 7, visual ? 4 : 11, 7),
             child: IntrinsicWidth(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
