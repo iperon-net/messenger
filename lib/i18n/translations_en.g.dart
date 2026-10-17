@@ -376,6 +376,15 @@ class Translations$screenChats$en {
 	/// en: 'Delete only for me'
 	String get deleteForMe => 'Delete only for me';
 
+	/// en: 'Delete chat'
+	String get deleteChat => 'Delete chat';
+
+	/// en: 'For me'
+	String get scopeMe => 'For me';
+
+	/// en: 'For me and the other person'
+	String get scopeBoth => 'For me and the other person';
+
 	/// en: 'Read all'
 	String get readAll => 'Read all';
 
@@ -3756,6 +3765,9 @@ extension on Translations {
 			'screenChats.deleteChatForPeer' => 'Also delete for the other person',
 			'screenChats.deleteForBoth' => 'Delete for both',
 			'screenChats.deleteForMe' => 'Delete only for me',
+			'screenChats.deleteChat' => 'Delete chat',
+			'screenChats.scopeMe' => 'For me',
+			'screenChats.scopeBoth' => 'For me and the other person',
 			'screenChats.readAll' => 'Read all',
 			'screenChats.readReactions' => 'Read reactions',
 			'screenChats.deleteFolder' => 'Delete folder',
@@ -4182,11 +4194,11 @@ extension on Translations {
 			'screenChat.videoHdOn' => 'HD video: 1080p',
 			'screenChat.videoHdOff' => 'Standard quality: 720p',
 			'screenChat.videoSound' => 'Sound',
+			_ => null,
+		} ?? switch (path) {
 			'screenChat.videoMuted' => 'Muted',
 			'screenChat.videoCover' => 'Cover',
 			'screenChat.videoCoverSet' => 'Cover set',
-			_ => null,
-		} ?? switch (path) {
 			'screenChat.videoReset' => 'Reset',
 			'screenChat.videoCrop' => 'Crop',
 			'screenChat.videoRotate' => 'Rotate',
@@ -4696,11 +4708,11 @@ extension on Translations {
 			'screenCall.micOff' => 'Mute',
 			'screenCall.speakerOn' => 'Speaker on',
 			'screenCall.speakerOff' => 'Speaker off',
+			_ => null,
+		} ?? switch (path) {
 			'screenCall.audioOutput' => 'Speaker',
 			'screenCall.audioOutputTitle' => 'Audio output',
 			'screenCall.routeEarpiece' => 'Phone',
-			_ => null,
-		} ?? switch (path) {
 			'screenCall.routeSpeaker' => 'Speaker',
 			'screenCall.routeWiredHeadset' => 'Headphones',
 			'screenCall.routeBluetooth' => 'Bluetooth',

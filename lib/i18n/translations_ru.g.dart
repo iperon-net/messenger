@@ -209,6 +209,9 @@ class _Translations$screenChats$ru extends Translations$screenChats$en {
 	@override String get deleteChatForPeer => 'Также удалить у собеседника';
 	@override String get deleteForBoth => 'Удалить у обоих';
 	@override String get deleteForMe => 'Удалить только у меня';
+	@override String get deleteChat => 'Удалить чат';
+	@override String get scopeMe => 'У меня';
+	@override String get scopeBoth => 'У меня и собеседника';
 	@override String get readAll => 'Прочитать все';
 	@override String get readReactions => 'Прочитать реакции';
 	@override String get deleteFolder => 'Удалить папку';
@@ -1649,6 +1652,9 @@ extension on TranslationsRu {
 			'screenChats.deleteChatForPeer' => 'Также удалить у собеседника',
 			'screenChats.deleteForBoth' => 'Удалить у обоих',
 			'screenChats.deleteForMe' => 'Удалить только у меня',
+			'screenChats.deleteChat' => 'Удалить чат',
+			'screenChats.scopeMe' => 'У меня',
+			'screenChats.scopeBoth' => 'У меня и собеседника',
 			'screenChats.readAll' => 'Прочитать все',
 			'screenChats.readReactions' => 'Прочитать реакции',
 			'screenChats.deleteFolder' => 'Удалить папку',
@@ -2075,11 +2081,11 @@ extension on TranslationsRu {
 			'screenChat.videoHdOn' => 'Видео в HD: 1080p',
 			'screenChat.videoHdOff' => 'Стандартное качество: 720p',
 			'screenChat.videoSound' => 'Звук',
+			_ => null,
+		} ?? switch (path) {
 			'screenChat.videoMuted' => 'Без звука',
 			'screenChat.videoCover' => 'Обложка',
 			'screenChat.videoCoverSet' => 'Обложка выбрана',
-			_ => null,
-		} ?? switch (path) {
 			'screenChat.videoReset' => 'Сбросить',
 			'screenChat.videoCrop' => 'Кадрировать',
 			'screenChat.videoRotate' => 'Повернуть',
@@ -2589,11 +2595,11 @@ extension on TranslationsRu {
 			'screenCall.micOff' => 'Выкл. звук',
 			'screenCall.speakerOn' => 'Вкл. динамик',
 			'screenCall.speakerOff' => 'Выкл. динамик',
+			_ => null,
+		} ?? switch (path) {
 			'screenCall.audioOutput' => 'Динамик',
 			'screenCall.audioOutputTitle' => 'Вывод звука',
 			'screenCall.routeEarpiece' => 'Телефон',
-			_ => null,
-		} ?? switch (path) {
 			'screenCall.routeSpeaker' => 'Динамик',
 			'screenCall.routeWiredHeadset' => 'Наушники',
 			'screenCall.routeBluetooth' => 'Bluetooth',

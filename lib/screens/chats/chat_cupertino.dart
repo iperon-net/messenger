@@ -736,6 +736,7 @@ class _ChatCupertinoState extends State<ChatCupertino> {
     }
 
     final mediaCopyable = chatMediaActionable(message) && message.kind != models.MessageKind.file;
+    final scopes = context.t.screenChats;
     return [
       if (reactions.isNotEmpty)
         ReactionPicker(
@@ -781,7 +782,22 @@ class _ChatCupertinoState extends State<ChatCupertino> {
         action(t.shareMedia, CupertinoIcons.share, () => shareChatMedia(context, message)),
       ],
       if (canWrite && features.pinnedMessages && _pinnable(message))
-        action(message.pinned ? t.unpin : t.pin, message.pinned ? CupertinoIcons.pin_slash : CupertinoIcons.pin, () => _pin(chat, message)),
+        // Личный — «Закрепить» / «Открепить» раскрывает подменю «У меня» / «У
+        // меня и собеседника»; в остальных выбора нет (см. [askPinScopeCupertino]).
+        if (chatDeleteScoped(chat))
+          CupertinoContextSubmenuAction(
+            children: [
+              action(scopes.scopeMe, CupertinoIcons.person, () => _cubit.setPinned(message, !message.pinned, forEveryone: false)),
+              action(scopes.scopeBoth, CupertinoIcons.person_2, () => _cubit.setPinned(message, !message.pinned)),
+            ],
+            child: Text(message.pinned ? t.unpin : t.pin),
+          )
+        else
+          action(
+            message.pinned ? t.unpin : t.pin,
+            message.pinned ? CupertinoIcons.pin_slash : CupertinoIcons.pin,
+            () => _pin(chat, message),
+          ),
       if (features.forward && ChatCubit.forwardable(message))
         action(t.forward, CupertinoIcons.arrowshape_turn_up_right, () {
           _cubit.startSelection(message);
@@ -791,16 +807,18 @@ class _ChatCupertinoState extends State<ChatCupertino> {
       if (message.outgoing && message.kind == models.MessageKind.text && message.forward == null)
         action(t.edit, CupertinoIcons.pencil, () => _cubit.startEdit(message)),
       if (message.outgoing || chat.type == models.ChatType.private) ...[
-        // Личный — выбор прямо в меню (без всплывающего листа поверх).
-        if (chatDeleteScoped(chat)) ...[
-          action(context.t.screenChats.deleteForBoth, CupertinoIcons.delete, () => _cubit.delete(message), destructive: true),
-          action(
-            context.t.screenChats.deleteForMe,
-            CupertinoIcons.delete,
-            () => _cubit.delete(message, forEveryone: false),
-            destructive: true,
-          ),
-        ] else
+        // Личный — «Удалить» раскрывает подменю «У меня» / «У меня и
+        // собеседника» (без всплывающего листа поверх).
+        if (chatDeleteScoped(chat))
+          CupertinoContextSubmenuAction(
+            isDestructiveAction: true,
+            children: [
+              action(scopes.scopeMe, CupertinoIcons.person, () => _cubit.delete(message, forEveryone: false), destructive: true),
+              action(scopes.scopeBoth, CupertinoIcons.person_2, () => _cubit.delete(message), destructive: true),
+            ],
+            child: Text(t.delete),
+          )
+        else
           action(t.delete, CupertinoIcons.delete, () => _confirmDelete(context, chat, message), destructive: true),
       ],
       if (canRetractVote(message)) action(t.retractVote, CupertinoIcons.arrow_uturn_left, () => _cubit.votePoll(message, const [])),

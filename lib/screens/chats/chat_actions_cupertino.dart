@@ -71,12 +71,19 @@ class ChatContextMenuCupertino extends StatelessWidget {
             chat.archived ? CupertinoIcons.tray_arrow_up : CupertinoIcons.archivebox,
             () => cubit.setArchived(chat, !chat.archived),
           ),
-        // Личный — выбор прямо в меню (без всплывающего листа поверх).
-        if (chatDeleteScoped(chat)) ...[
-          action(t.deleteForBoth, CupertinoIcons.delete, () => cubit.delete(chat, forEveryone: true), destructive: true),
-          action(t.deleteForMe, CupertinoIcons.delete, () => cubit.delete(chat), destructive: true),
-        ] else
-          action(t.delete, CupertinoIcons.delete, () async {
+        // Личный — «Удалить чат» раскрывает подменю «У меня» / «У меня и
+        // собеседника» (без всплывающего листа поверх).
+        if (chatDeleteScoped(chat))
+          CupertinoContextSubmenuAction(
+            isDestructiveAction: true,
+            children: [
+              action(t.scopeMe, CupertinoIcons.person, () => cubit.delete(chat), destructive: true),
+              action(t.scopeBoth, CupertinoIcons.person_2, () => cubit.delete(chat, forEveryone: true), destructive: true),
+            ],
+            child: Text(t.deleteChat),
+          )
+        else
+          action(t.deleteChat, CupertinoIcons.delete, () async {
             if (await askDeleteChatCupertino(context, chat) != null) await cubit.delete(chat);
           }, destructive: true),
       ],
