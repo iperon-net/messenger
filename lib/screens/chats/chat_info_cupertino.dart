@@ -84,7 +84,7 @@ class _ChatInfoCupertinoState extends State<ChatInfoCupertino> {
   /// (см. [chatDeleteScoped]); `null` — без выбора, подтверждение в [_leave].
   List<Widget>? _deleteMenu(BuildContext context, models.Chat chat) {
     if (!chatDeleteScoped(chat)) return null;
-    return chatDeleteMenuCupertino(context, (forEveryone) async {
+    return deleteScopeMenuCupertino(context, (forEveryone) async {
       // Без сети чат не удалён — остаёмся (окно чата покажет «Нет соединения»).
       if (!await context.read<ChatCubit>().deleteChat(forEveryone: forEveryone)) return;
       if (context.mounted) context.go(chatLeaveRoute(chat));

@@ -18,6 +18,7 @@ import '../../cubit.dart';
 import '../../i18n/translations.g.dart';
 import '../../models.dart' as models;
 import '../../themes.dart';
+import 'chat_actions_cupertino.dart';
 import 'chat_common.dart';
 import 'chat_info_common.dart';
 import 'comments_limit.dart';
@@ -234,33 +235,13 @@ class _ChatCupertinoState extends State<ChatCupertino> {
     if (forEveryone != null) await _cubit.deleteSelected(forEveryone: forEveryone);
   }
 
-  /// Подтверждение удаления [count] сообщений. Личный чат — как в Telegram,
-  /// лист «У меня и у собеседника» / «Только у меня»; группа — у всех;
-  /// «Избранное» — только у себя. Результат — «у всех?», `null` — отмена.
+  /// Подтверждение удаления [count] сообщений без выбора: группа — у всех;
+  /// «Избранное» — только у себя. Личный чат сюда не попадает — там выбор «у
+  /// обоих» / «только у меня» пунктами меню (см. [chatDeleteScoped]).
+  /// Результат — «у всех?», `null` — отмена.
   Future<bool?> _askDelete(BuildContext context, models.Chat chat, int count) {
     final t = context.t.screenChat;
     final title = count == 1 ? t.deleteTitle : t.deleteSelectedTitle(n: count);
-    if (chat.type == models.ChatType.private && !chat.isSelf) {
-      return showCupertinoModalPopup<bool>(
-        context: context,
-        builder: (sheetContext) => CupertinoActionSheet(
-          title: Text(title),
-          actions: [
-            CupertinoActionSheetAction(
-              isDestructiveAction: true,
-              onPressed: () => Navigator.of(sheetContext).pop(true),
-              child: Text(t.scopeForBoth),
-            ),
-            CupertinoActionSheetAction(
-              isDestructiveAction: true,
-              onPressed: () => Navigator.of(sheetContext).pop(false),
-              child: Text(t.scopeForMe),
-            ),
-          ],
-          cancelButton: CupertinoActionSheetAction(onPressed: () => Navigator.of(sheetContext).pop(), child: Text(context.t.common.cancel)),
-        ),
-      );
-    }
     final self = chat.isSelf;
     return showCupertinoDialog<bool>(
       context: context,
@@ -639,6 +620,7 @@ class _ChatCupertinoState extends State<ChatCupertino> {
                                   _SelectionBar(
                                     state: state,
                                     onDelete: () => _deleteSelected(context),
+                                    onDeleteScoped: (forEveryone) => _cubit.deleteSelected(forEveryone: forEveryone),
                                     onCopy: _copySelected,
                                     onForward: () => _forward(context),
                                   )
@@ -792,8 +774,19 @@ class _ChatCupertinoState extends State<ChatCupertino> {
       // Пересланное не правится (как в Telegram).
       if (message.outgoing && message.kind == models.MessageKind.text && message.forward == null)
         action(t.edit, CupertinoIcons.pencil, () => _cubit.startEdit(message)),
-      if (message.outgoing || chat.type == models.ChatType.private)
-        action(t.delete, CupertinoIcons.delete, () => _confirmDelete(context, chat, message), destructive: true),
+      if (message.outgoing || chat.type == models.ChatType.private) ...[
+        // Личный — выбор прямо в меню (без всплывающего листа поверх).
+        if (chatDeleteScoped(chat)) ...[
+          action(context.t.screenChats.deleteForBoth, CupertinoIcons.delete, () => _cubit.delete(message), destructive: true),
+          action(
+            context.t.screenChats.deleteForMe,
+            CupertinoIcons.delete,
+            () => _cubit.delete(message, forEveryone: false),
+            destructive: true,
+          ),
+        ] else
+          action(t.delete, CupertinoIcons.delete, () => _confirmDelete(context, chat, message), destructive: true),
+      ],
       if (canRetractVote(message)) action(t.retractVote, CupertinoIcons.arrow_uturn_left, () => _cubit.votePoll(message, const [])),
       if (canClosePoll(chat, message))
         action(t.closePoll, CupertinoIcons.stop_circle, () async {
@@ -1137,11 +1130,22 @@ class _ComposeBar extends StatelessWidget {
 /// удалить), «Копировать» (если есть текст), «Переслать».
 class _SelectionBar extends StatelessWidget {
   final ChatState state;
+
+  /// Без выбора (группа, «Избранное») — с подтверждением алертом.
   final VoidCallback onDelete;
+
+  /// Личный чат — выбор «у обоих» / «только у меня» выпадающим меню от корзины.
+  final void Function(bool forEveryone) onDeleteScoped;
   final VoidCallback onCopy;
   final VoidCallback onForward;
 
-  const _SelectionBar({required this.state, required this.onDelete, required this.onCopy, required this.onForward});
+  const _SelectionBar({
+    required this.state,
+    required this.onDelete,
+    required this.onDeleteScoped,
+    required this.onCopy,
+    required this.onForward,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -1172,7 +1176,14 @@ class _SelectionBar extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            button(CupertinoIcons.delete, canDelete ? onDelete : null, destructive: true),
+            if (canDelete && state.chat != null && chatDeleteScoped(state.chat!))
+              CupertinoMenuAnchor(
+                menuChildren: deleteScopeMenuCupertino(context, onDeleteScoped),
+                builder: (context, controller, child) =>
+                    button(CupertinoIcons.delete, () => controller.isOpen ? controller.close() : controller.open(), destructive: true),
+              )
+            else
+              button(CupertinoIcons.delete, canDelete ? onDelete : null, destructive: true),
             button(CupertinoIcons.doc_on_doc, canCopy ? onCopy : null),
             if (cubit.features.forward) button(CupertinoIcons.arrowshape_turn_up_right, selected.isEmpty ? null : onForward),
           ],

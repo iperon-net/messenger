@@ -117,13 +117,15 @@ class ChatContextMenuCupertino extends StatelessWidget {
 
 /// Удаление чата с выбором «у обоих» / «только у меня» — личный, кроме
 /// «Избранного» (у собеседника история тоже очищается, чат пропадает из его
-/// списка). На iOS выбор — пунктами меню: контекстного ([ChatContextMenuCupertino])
-/// или выпадающего ([chatDeleteMenuCupertino]), без всплывающего листа.
+/// списка). Так же — удаление сообщений в нём. На iOS выбор — пунктами меню:
+/// контекстного ([ChatContextMenuCupertino], меню сообщения) или выпадающего
+/// ([deleteScopeMenuCupertino]), без всплывающего листа.
 bool chatDeleteScoped(models.Chat chat) => chat.type == models.ChatType.private && !chat.isSelf;
 
-/// Пункты выпадающего меню (`CupertinoMenuAnchor`) удаления чата с выбором —
-/// см. [chatDeleteScoped]. [onDelete] получает «и у собеседника?».
-List<Widget> chatDeleteMenuCupertino(BuildContext context, void Function(bool forEveryone) onDelete) {
+/// Пункты выпадающего меню (`CupertinoMenuAnchor`) удаления с выбором «у
+/// обоих» / «только у меня» — чата (см. [chatDeleteScoped]) или выделенных
+/// сообщений личного чата. [onDelete] получает «и у собеседника?».
+List<Widget> deleteScopeMenuCupertino(BuildContext context, void Function(bool forEveryone) onDelete) {
   final t = context.t.screenChats;
   return [
     CupertinoMenuItem(
@@ -161,7 +163,7 @@ Future<bool?> askDeleteChatCupertino(BuildContext context, models.Chat chat) asy
 }
 
 /// Строка чата, от которой свайп «Удалить» открывает выпадающее меню выбора
-/// ([chatDeleteMenuCupertino]) — у кнопки свайпа своего якоря нет. [builder]
+/// ([deleteScopeMenuCupertino]) — у кнопки свайпа своего якоря нет. [builder]
 /// получает подтверждение для `ChatSwipeActions.confirmDelete`: с выбором —
 /// меню у строки, без — алерт ([askDeleteChatCupertino]).
 class ChatDeleteMenuAnchorCupertino extends StatefulWidget {
@@ -204,7 +206,7 @@ class _ChatDeleteMenuAnchorCupertinoState extends State<ChatDeleteMenuAnchorCupe
       controller: _controller,
       // Закрыли мимо пунктов — отмена (пункт успевает ответить раньше).
       onClose: () => _finish(null),
-      menuChildren: chatDeleteMenuCupertino(context, _finish),
+      menuChildren: deleteScopeMenuCupertino(context, _finish),
       builder: (context, controller, child) => widget.builder(context, _confirm),
     );
   }
