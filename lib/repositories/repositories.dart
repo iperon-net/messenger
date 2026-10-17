@@ -709,6 +709,14 @@ class Repositories {
       }),
     );
 
+    migrations.add(
+      SqliteMigration(31, (tx) async {
+        // Защита содержимого (Dialog.noForwards / noForwardsMine): 0 —
+        // выключена, 1 — включил я, 2 — собеседник.
+        await tx.execute('ALTER TABLE chatDialogs ADD COLUMN noForwards INTEGER NOT NULL DEFAULT 0;');
+      }),
+    );
+
     if (settings.isDeleteDatabase) {
       logger.warning("Deleting the database, flag set IS_DELETE_DATABASE: 1");
 

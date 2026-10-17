@@ -134,6 +134,7 @@ Future<void> showChatMediaViewer(
   required models.Message message,
   required int index,
   String chatTitle = '',
+  bool noForwards = false,
 }) {
   final items = ChatMediaItem.of(messages);
   final initial = items.indexWhere((i) => i.message.id == message.id && i.index == index);
@@ -144,7 +145,7 @@ Future<void> showChatMediaViewer(
       barrierColor: null,
       transitionDuration: const Duration(milliseconds: 250),
       reverseTransitionDuration: const Duration(milliseconds: 220),
-      pageBuilder: (context, animation, _) => _MediaViewer(items: items, initial: initial, chatTitle: chatTitle),
+      pageBuilder: (context, animation, _) => _MediaViewer(items: items, initial: initial, chatTitle: chatTitle, noForwards: noForwards),
       transitionsBuilder: (context, animation, _, child) => FadeTransition(opacity: animation, child: child),
     ),
   );
@@ -155,7 +156,10 @@ class _MediaViewer extends StatefulWidget {
   final int initial;
   final String chatTitle;
 
-  const _MediaViewer({required this.items, required this.initial, required this.chatTitle});
+  /// Защита содержимого в чате: без «Скопировать / Сохранить / Поделиться».
+  final bool noForwards;
+
+  const _MediaViewer({required this.items, required this.initial, required this.chatTitle, this.noForwards = false});
 
   @override
   State<_MediaViewer> createState() => _MediaViewerState();
@@ -353,7 +357,7 @@ class _MediaViewerState extends State<_MediaViewer> with SingleTickerProviderSta
                                   style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
                                 ),
                               // Скопировать (вставить в другой мессенджер), сохранить в галерею, поделиться.
-                              if (!m.service) ...[
+                              if (!m.service && !widget.noForwards) ...[
                                 const SizedBox(width: 4),
                                 _ChromeButton(
                                   icon: FontAwesomeIcons.copy,

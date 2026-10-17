@@ -25,6 +25,7 @@ import 'comments_limit.dart';
 import 'compose_format_menu.dart';
 import 'forward_picker.dart';
 import 'chat_info_cupertino.dart';
+import 'chat_no_forwards.dart';
 import 'message_context_menu_cupertino.dart';
 import 'pinned_messages_cupertino.dart';
 import 'pin_scope_cupertino.dart';
@@ -391,6 +392,14 @@ class _ChatCupertinoState extends State<ChatCupertino> {
   @override
   Widget build(BuildContext context) {
     final t = context.t;
+    // Защита содержимого — экран не попадает на скриншоты и запись.
+    return BlocSelector<ChatCubit, ChatState, bool>(
+      selector: (state) => state.chat?.noForwards ?? false,
+      builder: (context, noForwards) => ChatScreenProtector(enabled: noForwards, child: _body(context, t)),
+    );
+  }
+
+  Widget _body(BuildContext context, Translations t) {
     return ChatsOfflineListener<ChatCubit, ChatState>(
       notice: (state) => state.offlineNotice,
       child: BlocListener<ChatCubit, ChatState>(
@@ -600,15 +609,22 @@ class _ChatCupertinoState extends State<ChatCupertino> {
                                               selectionCheckColor: ThemesCupertino.onAccent(context),
                                               highlight: state.searching ? state.searchQuery : '',
                                               focusedID: state.searchCurrentID,
+                                              // Защита содержимого: файл не открыть в другом приложении,
+                                              // в просмотре — без сохранения.
                                               onMediaTap: (message, index) => message.kind == models.MessageKind.file
-                                                  ? openChatFile(context, message)
+                                                  ? (chat.noForwards
+                                                        ? showChatNoForwardsRestricted(context)
+                                                        : openChatFile(context, message))
                                                   : showChatMediaViewer(
                                                       context,
                                                       messages: state.messages,
                                                       message: message,
                                                       index: index,
                                                       chatTitle: chat.title,
+                                                      noForwards: chat.noForwards,
                                                     ),
+                                              onNoForwardsAnswer: (request, accept) =>
+                                                  setChatNoForwards(context, _cubit, !accept, requestID: request.id),
                                             ),
                                       Positioned(top: 0, left: 0, right: 0, child: _pinnedBar(context, chat, state)),
                                       ChatReactionsButton(
@@ -714,7 +730,9 @@ class _ChatCupertinoState extends State<ChatCupertino> {
       builder: (context, ask) => MessageContextMenuCupertino(
         actions: _menuActions(context, chat, message, ask),
         bubble: bubble,
-        preview: (maxWidth) => preview(maxWidth, selectableText: chat.canPost && !_cubit.state.commentsBlocked ? quotable : null),
+        // Защита содержимого — текст не выделить (копирование через «Цитировать»).
+        preview: (maxWidth) =>
+            preview(maxWidth, selectableText: chat.canPost && !_cubit.state.commentsBlocked && !chat.noForwards ? quotable : null),
       ),
     );
   }
@@ -776,13 +794,14 @@ class _ChatCupertinoState extends State<ChatCupertino> {
           _focus.requestFocus();
         }),
       // Фото / видео — копируются сами (вставить в другой мессенджер), подпись — отдельно.
-      if (mediaCopyable)
+      // Защита содержимого — ни копирования, ни сохранения, ни пересылки.
+      if (mediaCopyable && !chat.noForwards)
         action(t.copy, CupertinoIcons.doc_on_doc, () => copyChatMedia(context, message))
-      else if (message.text.isNotEmpty)
+      else if (message.text.isNotEmpty && !chat.noForwards)
         action(t.copy, CupertinoIcons.doc_on_doc, () => Clipboard.setData(ClipboardData(text: message.text))),
-      if (mediaCopyable && message.text.isNotEmpty)
+      if (mediaCopyable && message.text.isNotEmpty && !chat.noForwards)
         action(t.copyText, CupertinoIcons.text_quote, () => Clipboard.setData(ClipboardData(text: message.text))),
-      if (chatMediaActionable(message)) ...[
+      if (chatMediaActionable(message) && !chat.noForwards) ...[
         action(chatMediaSaveLabel(context.t, message), CupertinoIcons.arrow_down_to_line, () => saveChatMedia(context, message)),
         action(t.shareMedia, CupertinoIcons.share, () => shareChatMedia(context, message)),
       ],
@@ -795,7 +814,7 @@ class _ChatCupertinoState extends State<ChatCupertino> {
           final forEveryone = await ask(destructive: !pinned, afterContextMenu: true);
           if (forEveryone != null) await _cubit.setPinned(message, pinned, forEveryone: forEveryone);
         }),
-      if (features.forward && ChatCubit.forwardable(message))
+      if (features.forward && ChatCubit.forwardable(message) && !chat.noForwards)
         action(t.forward, CupertinoIcons.arrowshape_turn_up_right, () {
           _cubit.startSelection(message);
           _forward(context, single: true);
@@ -1178,7 +1197,9 @@ class _SelectionBar extends StatelessWidget {
     final cubit = context.read<ChatCubit>();
     final selected = state.selectedMessages;
     final canDelete = selected.isNotEmpty && selected.every(cubit.canDelete);
-    final canCopy = selected.any((m) => m.text.isNotEmpty);
+    // Защита содержимого — ни копирования, ни пересылки.
+    final noForwards = state.chat?.noForwards ?? false;
+    final canCopy = !noForwards && selected.any((m) => m.text.isNotEmpty);
     Widget button(IconData icon, VoidCallback? onPressed, {bool destructive = false}) => CupertinoButton(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       onPressed: onPressed,
@@ -1211,7 +1232,7 @@ class _SelectionBar extends StatelessWidget {
             else
               button(CupertinoIcons.delete, canDelete ? onDelete : null, destructive: true),
             button(CupertinoIcons.doc_on_doc, canCopy ? onCopy : null),
-            if (cubit.features.forward) button(CupertinoIcons.arrowshape_turn_up_right, selected.isEmpty ? null : onForward),
+            if (cubit.features.forward) button(CupertinoIcons.arrowshape_turn_up_right, selected.isEmpty || noForwards ? null : onForward),
           ],
         ),
       ),

@@ -2,7 +2,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import '../../i18n/translations.g.dart';
 import '../../models.dart' as models;
-import 'message_bubble.dart' show callPreview, chatTTLServiceText;
+import 'message_bubble.dart' show callPreview, chatNoForwardsServiceText, chatTTLServiceText;
 
 export 'chat_tile_cupertino.dart';
 export 'chat_tile_material.dart';
@@ -60,6 +60,17 @@ abstract final class ChatTileContent {
       return ChatPreview(ChatPreviewKind.message, chat.isSelf ? s.savedMessagesEmpty : '');
     }
     // «Изменил автоудаление» — как плашка в ленте; собеседник — по названию чата.
+    if (message.noForwardsChange != null || message.noForwardsRequest) {
+      final text = chatNoForwardsServiceText(
+        t,
+        change: message.noForwardsChange,
+        prev: message.noForwardsPrev,
+        refusal: message.noForwardsChange == message.noForwardsPrev,
+        outgoing: message.outgoing,
+        name: chat.title,
+      );
+      return ChatPreview(ChatPreviewKind.message, text);
+    }
     if (message.ttlChange case final period?) {
       return ChatPreview(ChatPreviewKind.message, chatTTLServiceText(t, period: period, outgoing: message.outgoing, name: chat.title));
     }

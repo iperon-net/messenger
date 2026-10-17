@@ -310,6 +310,20 @@ class Message with MessageMappable {
   /// таймер чата (секунды; 0 — выключила); `null` — не оно.
   final int? ttlChange;
 
+  /// Сервисное «запретил / разрешил копирование» (`null` — не оно):
+  /// [noForwardsChange] — защита после, [noForwardsPrev] — до (равны —
+  /// отклонил запрос [noForwardsRequestID]).
+  final bool? noForwardsChange;
+  final bool noForwardsPrev;
+
+  /// Ответ на запрос снять защиту: id сервисного «просит разрешить» (пусто —
+  /// не ответ).
+  final String noForwardsRequestID;
+
+  /// Сервисное «просит разрешить копирование»: включивший защиту отвечает
+  /// «Разрешить» / «Отклонить», пока запрос не отвечен и не старше суток.
+  final bool noForwardsRequest;
+
   /// Сервисное «Анна закрепила «…»» ([service]): id закреплённого сообщения
   /// (тап — к нему); автор — [senderName], у своего — [outgoing].
   final String pinnedMessageID;
@@ -376,6 +390,10 @@ class Message with MessageMappable {
     this.pinned = false,
     this.pinnedOnlyMe = false,
     this.ttlChange,
+    this.noForwardsChange,
+    this.noForwardsPrev = false,
+    this.noForwardsRequestID = '',
+    this.noForwardsRequest = false,
     this.pinnedMessageID = '',
     this.silent = false,
     this.scheduledDate,

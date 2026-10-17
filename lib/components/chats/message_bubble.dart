@@ -120,6 +120,10 @@ class ChatMessagesView extends StatelessWidget {
   /// Тап по сервисному «закрепил «…»» — id закреплённого сообщения.
   final ValueChanged<String>? onPinnedServiceTap;
 
+  /// Ответ на запрос снять защиту содержимого (`true` — разрешить): кнопки у
+  /// плашки «… просит разрешить копирование», пока запрос живой.
+  final void Function(models.Message request, bool accept)? onNoForwardsAnswer;
+
   /// Закреплённые чата — текст для «закрепил «…»», когда закреплённое старше
   /// загруженной ленты.
   final List<models.Message> pinned;
@@ -186,6 +190,7 @@ class ChatMessagesView extends StatelessWidget {
     this.onForwardTap,
     this.onTap,
     this.onPinnedServiceTap,
+    this.onNoForwardsAnswer,
     this.pinned = const [],
     this.unreadFromID,
     this.flashID,
@@ -242,6 +247,25 @@ class ChatMessagesView extends StatelessWidget {
             ),
             style: style,
             onTap: onPinnedServiceTap == null ? null : () => onPinnedServiceTap!(pinnedID),
+          ),
+        );
+      } else if (m.service && (m.noForwardsChange != null || m.noForwardsRequest)) {
+        final answer = onNoForwardsAnswer;
+        items.add(
+          _Pill(
+            key: keyFor?.call(m.id),
+            text: chatNoForwardsServiceText(
+              context.t,
+              change: m.noForwardsChange,
+              prev: m.noForwardsPrev,
+              refusal: m.noForwardsRequestID.isNotEmpty,
+              outgoing: m.outgoing,
+              name: m.senderName,
+            ),
+            style: style,
+            actions: answer != null && m.noForwardsRequest && noForwardsRequestPending(m, messages)
+                ? [(context.t.chatNoForwards.refuse, () => answer(m, false)), (context.t.chatNoForwards.accept, () => answer(m, true))]
+                : const [],
           ),
         );
       } else if (m.service && m.ttlChange != null) {
@@ -431,10 +455,14 @@ class _Pill extends StatelessWidget {
   final MessageBubbleStyle style;
   final VoidCallback? onTap;
 
-  const _Pill({super.key, required this.text, required this.style, this.onTap});
+  /// Кнопки под текстом (запрос снять защиту: «Отклонить» / «Разрешить»).
+  final List<(String, VoidCallback)> actions;
+
+  const _Pill({super.key, required this.text, required this.style, this.onTap, this.actions = const []});
 
   @override
   Widget build(BuildContext context) {
+    final label = style.textStyle.copyWith(fontSize: 13, fontWeight: FontWeight.w500, color: style.pillText);
     final pill = Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Center(
@@ -442,11 +470,31 @@ class _Pill extends StatelessWidget {
           decoration: BoxDecoration(color: style.pill, borderRadius: BorderRadius.circular(12)),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-            child: Text(
-              text,
-              textAlign: TextAlign.center,
-              style: style.textStyle.copyWith(fontSize: 13, fontWeight: FontWeight.w500, color: style.pillText),
-            ),
+            child: actions.isEmpty
+                ? Text(text, textAlign: TextAlign.center, style: label)
+                : Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(top: 3),
+                        child: Text(text, textAlign: TextAlign.center, style: label),
+                      ),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          for (final (title, onPressed) in actions)
+                            GestureDetector(
+                              behavior: HitTestBehavior.opaque,
+                              onTap: onPressed,
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                child: Text(title, style: label.copyWith(fontWeight: FontWeight.w700)),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ],
+                  ),
           ),
         ),
       ),
@@ -474,6 +522,31 @@ String pinnedServiceText(Translations t, models.Message service, models.Message?
   if (service.outgoing) return snippet.isEmpty ? tc.pinnedServiceYouMessage : tc.pinnedServiceYou(text: snippet);
   return snippet.isEmpty ? tc.pinnedServiceMessage(name: service.senderName) : tc.pinnedService(name: service.senderName, text: snippet);
 }
+
+/// Служебное о защите содержимого: [change] — защита после («запретил /
+/// разрешил»; `null` — это запрос «просит разрешить»), [prev] — до; ответ на
+/// запрос ([refusal]) без изменения — «отклонил запрос».
+String chatNoForwardsServiceText(
+  Translations t, {
+  required bool? change,
+  required bool prev,
+  required bool refusal,
+  required bool outgoing,
+  required String name,
+}) {
+  final tc = t.chatNoForwards;
+  if (change == null) return outgoing ? tc.requestYou : tc.request(name: name);
+  if (refusal && change == prev) return outgoing ? tc.serviceYouRefused : tc.serviceRefused(name: name);
+  if (change) return outgoing ? tc.serviceYouOn : tc.serviceOn(name: name);
+  return outgoing ? tc.serviceYouOff : tc.serviceOff(name: name);
+}
+
+/// Запрос снять защиту [request] ещё ждёт ответа: не мой, не старше суток и
+/// в ленте нет ответа на него.
+bool noForwardsRequestPending(models.Message request, List<models.Message> messages) =>
+    !request.outgoing &&
+    DateTime.now().difference(request.date) < const Duration(days: 1) &&
+    !messages.any((m) => m.noForwardsRequestID == request.id);
 
 /// Сутки — шаг таймера автоудаления (как в Telegram: кратно суткам).
 const chatTTLDay = 24 * 60 * 60;

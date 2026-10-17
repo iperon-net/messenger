@@ -79,6 +79,7 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	late final Translations$passkey$en passkey = Translations$passkey$en.internal(_root);
 	late final Translations$yandex$en yandex = Translations$yandex$en.internal(_root);
 	late final Translations$chatTtl$en chatTtl = Translations$chatTtl$en.internal(_root);
+	late final Translations$chatNoForwards$en chatNoForwards = Translations$chatNoForwards$en.internal(_root);
 }
 
 // Path: common
@@ -3747,6 +3748,60 @@ class Translations$chatTtl$en {
 	String get restricted => 'The other person has restricted who can message them, so auto-delete can\'t be changed.';
 }
 
+// Path: chatNoForwards
+class Translations$chatNoForwards$en {
+	Translations$chatNoForwards$en.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// en: 'Disable sharing'
+	String get disable => 'Disable sharing';
+
+	/// en: 'Enable sharing'
+	String get allow => 'Enable sharing';
+
+	/// en: 'Ask to enable sharing'
+	String get requestAllow => 'Ask to enable sharing';
+
+	/// en: 'You disabled copying and forwarding in this chat'
+	String get serviceYouOn => 'You disabled copying and forwarding in this chat';
+
+	/// en: 'You enabled copying and forwarding in this chat'
+	String get serviceYouOff => 'You enabled copying and forwarding in this chat';
+
+	/// en: '{name} disabled copying and forwarding in this chat'
+	String serviceOn({required Object name}) => '${name} disabled copying and forwarding in this chat';
+
+	/// en: '{name} enabled copying and forwarding in this chat'
+	String serviceOff({required Object name}) => '${name} enabled copying and forwarding in this chat';
+
+	/// en: 'You declined the request to enable sharing'
+	String get serviceYouRefused => 'You declined the request to enable sharing';
+
+	/// en: '{name} declined the request to enable sharing'
+	String serviceRefused({required Object name}) => '${name} declined the request to enable sharing';
+
+	/// en: 'You asked to enable copying and forwarding'
+	String get requestYou => 'You asked to enable copying and forwarding';
+
+	/// en: '{name} asks to enable copying and forwarding'
+	String request({required Object name}) => '${name} asks to enable copying and forwarding';
+
+	/// en: 'Enable'
+	String get accept => 'Enable';
+
+	/// en: 'Decline'
+	String get refuse => 'Decline';
+
+	/// en: 'This request is no longer valid.'
+	String get requestExpired => 'This request is no longer valid.';
+
+	/// en: 'Copying and forwarding are disabled in this chat.'
+	String get restricted => 'Copying and forwarding are disabled in this chat.';
+}
+
 /// The flat map containing all translations for locale <en>.
 /// Only for edge cases! For simple maps, use the map function of this library.
 ///
@@ -4846,6 +4901,21 @@ extension on Translations {
 			'chatTtl.service' => ({required Object name, required Object period}) => '${name} set messages to auto-delete in ${period}',
 			'chatTtl.serviceOff' => ({required Object name}) => '${name} disabled auto-delete',
 			'chatTtl.restricted' => 'The other person has restricted who can message them, so auto-delete can\'t be changed.',
+			'chatNoForwards.disable' => 'Disable sharing',
+			'chatNoForwards.allow' => 'Enable sharing',
+			'chatNoForwards.requestAllow' => 'Ask to enable sharing',
+			'chatNoForwards.serviceYouOn' => 'You disabled copying and forwarding in this chat',
+			'chatNoForwards.serviceYouOff' => 'You enabled copying and forwarding in this chat',
+			'chatNoForwards.serviceOn' => ({required Object name}) => '${name} disabled copying and forwarding in this chat',
+			'chatNoForwards.serviceOff' => ({required Object name}) => '${name} enabled copying and forwarding in this chat',
+			'chatNoForwards.serviceYouRefused' => 'You declined the request to enable sharing',
+			'chatNoForwards.serviceRefused' => ({required Object name}) => '${name} declined the request to enable sharing',
+			'chatNoForwards.requestYou' => 'You asked to enable copying and forwarding',
+			'chatNoForwards.request' => ({required Object name}) => '${name} asks to enable copying and forwarding',
+			'chatNoForwards.accept' => 'Enable',
+			'chatNoForwards.refuse' => 'Decline',
+			'chatNoForwards.requestExpired' => 'This request is no longer valid.',
+			'chatNoForwards.restricted' => 'Copying and forwarding are disabled in this chat.',
 			_ => null,
 		};
 	}

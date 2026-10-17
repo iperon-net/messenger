@@ -223,6 +223,8 @@ class ChatsRemoteDataSource implements ChatsDataSource {
           pinned: row.pinned,
           archived: row.archived,
           ttlPeriod: isSelf ? 0 : row.ttlPeriod,
+          noForwards: !isSelf && row.noForwards > 0,
+          noForwardsMine: row.noForwards == 1,
           draft: row.draft,
           about: info?.profile?.aboutMe ?? '',
           username: info?.profile?.username ?? '',
@@ -368,6 +370,21 @@ class ChatsRemoteDataSource implements ChatsDataSource {
 
   @override
   Future<void> setArchived(String chatID, bool archived) => _setDialog(chatID, archived: archived);
+
+  @override
+  Future<void> setNoForwards(String chatID, bool enabled, {String requestID = ''}) async {
+    await _requireNetwork();
+    final response = await _sync.chats(
+      pb.Chats_Request(
+        setNoForwards: pb.Chats_SetNoForwards(
+          chatID: idBytes(chatID),
+          enabled: enabled,
+          requestID: requestID.isEmpty ? null : Int64.parseInt(requestID),
+        ),
+      ),
+    );
+    await _sync.applyUpdates(response.setNoForwards.updates);
+  }
 
   @override
   Future<void> setTTL(String chatID, int period) async {

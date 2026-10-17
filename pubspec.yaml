@@ -136,6 +136,7 @@ dependencies:
   emoji_picker_flutter: ^4.5.4
   animated_emoji: ^3.3.0
   lottie: ^3.6.1
+  screen_protector: ^1.5.3
 
 dev_dependencies:
   flutter_test:

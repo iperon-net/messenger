@@ -149,6 +149,27 @@ message MessageTTLChanged {
   bool auto = 2;
 }
 
+// Служебное «запретил / разрешил копирование» (только от сервера; как
+// messageActionNoForwardsToggle в Telegram): prevValue → newValue — защита
+// чата до и после. requestID — ответ на запрос MessageNoForwardsRequest
+// (messageID запроса; тогда prevValue может равняться newValue), 0 — без
+// запроса. Ответ на запрос гасит его (клиент — сам, по этому полю).
+message MessageNoForwards {
+  bool prevValue = 1;
+  bool newValue = 2;
+  int64 requestID = 3;
+}
+
+// Служебное «просит разрешить копирование» (только от сервера; как
+// messageActionNoForwardsRequest): собеседник включившего хочет снять защиту.
+// Включивший отвечает Chats.SetNoForwards с requestID; без ответа запрос
+// гаснет через сутки (date + 24 ч) или когда пришёл MessageNoForwards с его
+// requestID.
+message MessageNoForwardsRequest {
+  bool prevValue = 1;
+  bool newValue = 2;
+}
+
 // «Печатает…» / «отправляет фото…» — эфемерный сигнал по стриму
 // (MessageType CHAT_TYPING) в обе стороны, без ответа, без журнала pts и
 // без пушей. Клиент повторяет его, пока действие идёт (раз в ~5 с), и шлёт
@@ -190,6 +211,10 @@ message MessageContent {
   MessagePin pin = 8;
   // Служебное «изменил автоудаление» (только от сервера; при отправке — отказ).
   MessageTTLChanged ttlChanged = 9;
+  // Служебные «запретил / разрешил копирование» и «просит разрешить» (только
+  // от сервера; при отправке — отказ).
+  MessageNoForwards noForwards = 10;
+  MessageNoForwardsRequest noForwardsRequest = 11;
 }
 
 // Реакция участника на сообщение: кто, каким эмодзи и когда поставил.
@@ -260,6 +285,12 @@ message Dialog {
   // Автоудаление в чате (общее для участников, Chats.SetTTL): новые сообщения
   // удаляются через столько секунд после отправки; 0 — выключено.
   int32 ttlPeriod = 16;
+  // Защита содержимого (Chats.SetNoForwards, как noforwards в Telegram):
+  // пересылка (сервер отказывает), копирование, сохранение медиа и скриншоты
+  // в чате запрещены обоим участникам, а пуши — без текста. noForwardsMine —
+  // включил я (снять могу сам), иначе — собеседник (могу только попросить).
+  bool noForwards = 17;
+  bool noForwardsMine = 18;
 }
 
 // Отложенное сообщение — моё, ещё не отправленное (как scheduled messages в
@@ -608,6 +639,27 @@ message Chats {
     Updates updates = 1;
   }
 
+  // Защита содержимого в личном чате (как messages.toggleNoForwards в
+  // Telegram; «Избранное» — PERMISSION_DENIED). enabled = true — включить
+  // (уже включено кем угодно — без изменений). enabled = false: включил я —
+  // выключить; включил собеседник — не выключается, а в ленту уходит запрос
+  // MessageNoForwardsRequest. requestID — ответ включившего на запрос
+  // (enabled = false — принять и выключить, true — отклонить и оставить):
+  // всегда служебное MessageNoForwards с этим requestID; запрос не от
+  // собеседника, уже отвеченный или старше суток — FAILED_PRECONDITION
+  // «requestExpired». Изменение — служебное в ленту и Update.dialogSettings
+  // обоим; собеседник ограничил, кто может писать, — PERMISSION_DENIED
+  // «privacyRestricted».
+  message SetNoForwards {
+    bytes chatID = 1;
+    bool enabled = 2;
+    int64 requestID = 3;
+  }
+
+  message SetNoForwardsResult {
+    Updates updates = 1;
+  }
+
   message Request {
     oneof request {
       List list = 1;
@@ -624,6 +676,7 @@ message Chats {
       ReorderFolders reorderFolders = 12;
       ResolveUsername resolveUsername = 13;
       SetTTL setTTL = 14;
+      SetNoForwards setNoForwards = 15;
     }
   }
 
@@ -643,6 +696,7 @@ message Chats {
       ReorderFoldersResult reorderFolders = 12;
       ResolveUsernameResult resolveUsername = 13;
       SetTTLResult setTTL = 14;
+      SetNoForwardsResult setNoForwards = 15;
     }
   }
 }
@@ -674,7 +728,9 @@ message Messages {
     // Пересылка (как forwardMessages в Telegram): содержимое сервер берёт из
     // исходного сообщения (без ответа, с заголовком forward; пересланное
     // остаётся «от» автора оригинала) — content клиент не заполняет. Доступ —
-    // через исходное сообщение, а не владение файлами вложений.
+    // через исходное сообщение, а не владение файлами вложений. Из чата с
+    // защитой содержимого (Dialog.noForwards) — PERMISSION_DENIED
+    // «forwardsRestricted».
     ForwardFrom forwardFrom = 6;
     // Отложить до этого времени (unix millis; 0 — отправить сейчас): в ответе
     // scheduled вместо message. Уже прошедшее (ждало в outbox без сети) —

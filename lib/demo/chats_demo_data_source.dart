@@ -132,6 +132,30 @@ class ChatsDemoDataSource implements ChatsDataSource {
     }
   }
 
+  /// Защита содержимого: включаю / снимаю сам (запросов в демо нет —
+  /// собеседник «соглашается» сразу), служебное в ленту.
+  @override
+  Future<void> setNoForwards(String chatID, bool enabled, {String requestID = ''}) async {
+    final chat = _chat(chatID);
+    if (chat == null || chat.noForwards == enabled) return;
+    _update(chatID, (c) => c.copyWith(noForwards: enabled, noForwardsMine: enabled));
+    if (_messages.containsKey(chatID)) {
+      _setMessages(chatID, [
+        ..._history(chatID),
+        models.Message(
+          id: _id(),
+          chatID: chatID,
+          outgoing: true,
+          service: true,
+          status: models.MessageStatus.read,
+          date: DateTime.now(),
+          noForwardsChange: enabled,
+          noForwardsPrev: !enabled,
+        ),
+      ]);
+    }
+  }
+
   /// В архив / из архива — без закрепа (как сервер и Telegram).
   @override
   Future<void> setArchived(String chatID, bool archived) async => _update(chatID, (c) => c.copyWith(archived: archived, pinned: false));

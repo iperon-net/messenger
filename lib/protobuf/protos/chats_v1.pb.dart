@@ -711,6 +711,148 @@ class MessageTTLChanged extends $pb.GeneratedMessage {
   void clearAuto() => $_clearField(2);
 }
 
+/// Служебное «запретил / разрешил копирование» (только от сервера; как
+/// messageActionNoForwardsToggle в Telegram): prevValue → newValue — защита
+/// чата до и после. requestID — ответ на запрос MessageNoForwardsRequest
+/// (messageID запроса; тогда prevValue может равняться newValue), 0 — без
+/// запроса. Ответ на запрос гасит его (клиент — сам, по этому полю).
+class MessageNoForwards extends $pb.GeneratedMessage {
+  factory MessageNoForwards({
+    $core.bool? prevValue,
+    $core.bool? newValue,
+    $fixnum.Int64? requestID,
+  }) {
+    final result = create();
+    if (prevValue != null) result.prevValue = prevValue;
+    if (newValue != null) result.newValue = newValue;
+    if (requestID != null) result.requestID = requestID;
+    return result;
+  }
+
+  MessageNoForwards._();
+
+  factory MessageNoForwards.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory MessageNoForwards.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'MessageNoForwards',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..aOB(1, _omitFieldNames ? '' : 'prevValue', protoName: 'prevValue')
+    ..aOB(2, _omitFieldNames ? '' : 'newValue', protoName: 'newValue')
+    ..aInt64(3, _omitFieldNames ? '' : 'requestID', protoName: 'requestID')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  MessageNoForwards clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  MessageNoForwards copyWith(void Function(MessageNoForwards) updates) =>
+      super.copyWith((message) => updates(message as MessageNoForwards)) as MessageNoForwards;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static MessageNoForwards create() => MessageNoForwards._();
+  @$core.override
+  MessageNoForwards createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static MessageNoForwards getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<MessageNoForwards>(create);
+  static MessageNoForwards? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.bool get prevValue => $_getBF(0);
+  @$pb.TagNumber(1)
+  set prevValue($core.bool value) => $_setBool(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasPrevValue() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearPrevValue() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.bool get newValue => $_getBF(1);
+  @$pb.TagNumber(2)
+  set newValue($core.bool value) => $_setBool(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasNewValue() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearNewValue() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $fixnum.Int64 get requestID => $_getI64(2);
+  @$pb.TagNumber(3)
+  set requestID($fixnum.Int64 value) => $_setInt64(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasRequestID() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearRequestID() => $_clearField(3);
+}
+
+/// Служебное «просит разрешить копирование» (только от сервера; как
+/// messageActionNoForwardsRequest): собеседник включившего хочет снять защиту.
+/// Включивший отвечает Chats.SetNoForwards с requestID; без ответа запрос
+/// гаснет через сутки (date + 24 ч) или когда пришёл MessageNoForwards с его
+/// requestID.
+class MessageNoForwardsRequest extends $pb.GeneratedMessage {
+  factory MessageNoForwardsRequest({
+    $core.bool? prevValue,
+    $core.bool? newValue,
+  }) {
+    final result = create();
+    if (prevValue != null) result.prevValue = prevValue;
+    if (newValue != null) result.newValue = newValue;
+    return result;
+  }
+
+  MessageNoForwardsRequest._();
+
+  factory MessageNoForwardsRequest.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory MessageNoForwardsRequest.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'MessageNoForwardsRequest',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..aOB(1, _omitFieldNames ? '' : 'prevValue', protoName: 'prevValue')
+    ..aOB(2, _omitFieldNames ? '' : 'newValue', protoName: 'newValue')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  MessageNoForwardsRequest clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  MessageNoForwardsRequest copyWith(void Function(MessageNoForwardsRequest) updates) =>
+      super.copyWith((message) => updates(message as MessageNoForwardsRequest)) as MessageNoForwardsRequest;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static MessageNoForwardsRequest create() => MessageNoForwardsRequest._();
+  @$core.override
+  MessageNoForwardsRequest createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static MessageNoForwardsRequest getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<MessageNoForwardsRequest>(create);
+  static MessageNoForwardsRequest? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.bool get prevValue => $_getBF(0);
+  @$pb.TagNumber(1)
+  set prevValue($core.bool value) => $_setBool(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasPrevValue() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearPrevValue() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.bool get newValue => $_getBF(1);
+  @$pb.TagNumber(2)
+  set newValue($core.bool value) => $_setBool(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasNewValue() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearNewValue() => $_clearField(2);
+}
+
 /// «Печатает…» / «отправляет фото…» — эфемерный сигнал по стриму
 /// (MessageType CHAT_TYPING) в обе стороны, без ответа, без журнала pts и
 /// без пушей. Клиент повторяет его, пока действие идёт (раз в ~5 с), и шлёт
@@ -804,6 +946,8 @@ class MessageContent extends $pb.GeneratedMessage {
     MessageCall? call,
     MessagePin? pin,
     MessageTTLChanged? ttlChanged,
+    MessageNoForwards? noForwards,
+    MessageNoForwardsRequest? noForwardsRequest,
   }) {
     final result = create();
     if (text != null) result.text = text;
@@ -815,6 +959,8 @@ class MessageContent extends $pb.GeneratedMessage {
     if (call != null) result.call = call;
     if (pin != null) result.pin = pin;
     if (ttlChanged != null) result.ttlChanged = ttlChanged;
+    if (noForwards != null) result.noForwards = noForwards;
+    if (noForwardsRequest != null) result.noForwardsRequest = noForwardsRequest;
     return result;
   }
 
@@ -836,6 +982,9 @@ class MessageContent extends $pb.GeneratedMessage {
     ..aOM<MessageCall>(7, _omitFieldNames ? '' : 'call', subBuilder: MessageCall.create)
     ..aOM<MessagePin>(8, _omitFieldNames ? '' : 'pin', subBuilder: MessagePin.create)
     ..aOM<MessageTTLChanged>(9, _omitFieldNames ? '' : 'ttlChanged', protoName: 'ttlChanged', subBuilder: MessageTTLChanged.create)
+    ..aOM<MessageNoForwards>(10, _omitFieldNames ? '' : 'noForwards', protoName: 'noForwards', subBuilder: MessageNoForwards.create)
+    ..aOM<MessageNoForwardsRequest>(11, _omitFieldNames ? '' : 'noForwardsRequest',
+        protoName: 'noForwardsRequest', subBuilder: MessageNoForwardsRequest.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -938,6 +1087,30 @@ class MessageContent extends $pb.GeneratedMessage {
   void clearTtlChanged() => $_clearField(9);
   @$pb.TagNumber(9)
   MessageTTLChanged ensureTtlChanged() => $_ensure(8);
+
+  /// Служебные «запретил / разрешил копирование» и «просит разрешить» (только
+  /// от сервера; при отправке — отказ).
+  @$pb.TagNumber(10)
+  MessageNoForwards get noForwards => $_getN(9);
+  @$pb.TagNumber(10)
+  set noForwards(MessageNoForwards value) => $_setField(10, value);
+  @$pb.TagNumber(10)
+  $core.bool hasNoForwards() => $_has(9);
+  @$pb.TagNumber(10)
+  void clearNoForwards() => $_clearField(10);
+  @$pb.TagNumber(10)
+  MessageNoForwards ensureNoForwards() => $_ensure(9);
+
+  @$pb.TagNumber(11)
+  MessageNoForwardsRequest get noForwardsRequest => $_getN(10);
+  @$pb.TagNumber(11)
+  set noForwardsRequest(MessageNoForwardsRequest value) => $_setField(11, value);
+  @$pb.TagNumber(11)
+  $core.bool hasNoForwardsRequest() => $_has(10);
+  @$pb.TagNumber(11)
+  void clearNoForwardsRequest() => $_clearField(11);
+  @$pb.TagNumber(11)
+  MessageNoForwardsRequest ensureNoForwardsRequest() => $_ensure(10);
 }
 
 /// Реакция участника на сообщение: кто, каким эмодзи и когда поставил.
@@ -1271,6 +1444,8 @@ class Dialog extends $pb.GeneratedMessage {
     $core.String? draft,
     $fixnum.Int64? draftDate,
     $core.int? ttlPeriod,
+    $core.bool? noForwards,
+    $core.bool? noForwardsMine,
   }) {
     final result = create();
     if (chatID != null) result.chatID = chatID;
@@ -1289,6 +1464,8 @@ class Dialog extends $pb.GeneratedMessage {
     if (draft != null) result.draft = draft;
     if (draftDate != null) result.draftDate = draftDate;
     if (ttlPeriod != null) result.ttlPeriod = ttlPeriod;
+    if (noForwards != null) result.noForwards = noForwards;
+    if (noForwardsMine != null) result.noForwardsMine = noForwardsMine;
     return result;
   }
 
@@ -1317,6 +1494,8 @@ class Dialog extends $pb.GeneratedMessage {
     ..aOS(14, _omitFieldNames ? '' : 'draft')
     ..aInt64(15, _omitFieldNames ? '' : 'draftDate', protoName: 'draftDate')
     ..aI(16, _omitFieldNames ? '' : 'ttlPeriod', protoName: 'ttlPeriod')
+    ..aOB(17, _omitFieldNames ? '' : 'noForwards', protoName: 'noForwards')
+    ..aOB(18, _omitFieldNames ? '' : 'noForwardsMine', protoName: 'noForwardsMine')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -1490,6 +1669,28 @@ class Dialog extends $pb.GeneratedMessage {
   $core.bool hasTtlPeriod() => $_has(15);
   @$pb.TagNumber(16)
   void clearTtlPeriod() => $_clearField(16);
+
+  /// Защита содержимого (Chats.SetNoForwards, как noforwards в Telegram):
+  /// пересылка (сервер отказывает), копирование, сохранение медиа и скриншоты
+  /// в чате запрещены обоим участникам, а пуши — без текста. noForwardsMine —
+  /// включил я (снять могу сам), иначе — собеседник (могу только попросить).
+  @$pb.TagNumber(17)
+  $core.bool get noForwards => $_getBF(16);
+  @$pb.TagNumber(17)
+  set noForwards($core.bool value) => $_setBool(16, value);
+  @$pb.TagNumber(17)
+  $core.bool hasNoForwards() => $_has(16);
+  @$pb.TagNumber(17)
+  void clearNoForwards() => $_clearField(17);
+
+  @$pb.TagNumber(18)
+  $core.bool get noForwardsMine => $_getBF(17);
+  @$pb.TagNumber(18)
+  set noForwardsMine($core.bool value) => $_setBool(17, value);
+  @$pb.TagNumber(18)
+  $core.bool hasNoForwardsMine() => $_has(17);
+  @$pb.TagNumber(18)
+  void clearNoForwardsMine() => $_clearField(18);
 }
 
 /// Отложенное сообщение — моё, ещё не отправленное (как scheduled messages в
@@ -4672,6 +4873,141 @@ class Chats_SetTTLResult extends $pb.GeneratedMessage {
   Updates ensureUpdates() => $_ensure(0);
 }
 
+/// Защита содержимого в личном чате (как messages.toggleNoForwards в
+/// Telegram; «Избранное» — PERMISSION_DENIED). enabled = true — включить
+/// (уже включено кем угодно — без изменений). enabled = false: включил я —
+/// выключить; включил собеседник — не выключается, а в ленту уходит запрос
+/// MessageNoForwardsRequest. requestID — ответ включившего на запрос
+/// (enabled = false — принять и выключить, true — отклонить и оставить):
+/// всегда служебное MessageNoForwards с этим requestID; запрос не от
+/// собеседника, уже отвеченный или старше суток — FAILED_PRECONDITION
+/// «requestExpired». Изменение — служебное в ленту и Update.dialogSettings
+/// обоим; собеседник ограничил, кто может писать, — PERMISSION_DENIED
+/// «privacyRestricted».
+class Chats_SetNoForwards extends $pb.GeneratedMessage {
+  factory Chats_SetNoForwards({
+    $core.List<$core.int>? chatID,
+    $core.bool? enabled,
+    $fixnum.Int64? requestID,
+  }) {
+    final result = create();
+    if (chatID != null) result.chatID = chatID;
+    if (enabled != null) result.enabled = enabled;
+    if (requestID != null) result.requestID = requestID;
+    return result;
+  }
+
+  Chats_SetNoForwards._();
+
+  factory Chats_SetNoForwards.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Chats_SetNoForwards.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Chats.SetNoForwards',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..a<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'chatID', $pb.PbFieldType.OY, protoName: 'chatID')
+    ..aOB(2, _omitFieldNames ? '' : 'enabled')
+    ..aInt64(3, _omitFieldNames ? '' : 'requestID', protoName: 'requestID')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_SetNoForwards clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_SetNoForwards copyWith(void Function(Chats_SetNoForwards) updates) =>
+      super.copyWith((message) => updates(message as Chats_SetNoForwards)) as Chats_SetNoForwards;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static Chats_SetNoForwards create() => Chats_SetNoForwards._();
+  @$core.override
+  Chats_SetNoForwards createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static Chats_SetNoForwards getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Chats_SetNoForwards>(create);
+  static Chats_SetNoForwards? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.List<$core.int> get chatID => $_getN(0);
+  @$pb.TagNumber(1)
+  set chatID($core.List<$core.int> value) => $_setBytes(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasChatID() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearChatID() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.bool get enabled => $_getBF(1);
+  @$pb.TagNumber(2)
+  set enabled($core.bool value) => $_setBool(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasEnabled() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearEnabled() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $fixnum.Int64 get requestID => $_getI64(2);
+  @$pb.TagNumber(3)
+  set requestID($fixnum.Int64 value) => $_setInt64(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasRequestID() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearRequestID() => $_clearField(3);
+}
+
+class Chats_SetNoForwardsResult extends $pb.GeneratedMessage {
+  factory Chats_SetNoForwardsResult({
+    Updates? updates,
+  }) {
+    final result = create();
+    if (updates != null) result.updates = updates;
+    return result;
+  }
+
+  Chats_SetNoForwardsResult._();
+
+  factory Chats_SetNoForwardsResult.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Chats_SetNoForwardsResult.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Chats.SetNoForwardsResult',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..aOM<Updates>(1, _omitFieldNames ? '' : 'updates', subBuilder: Updates.create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_SetNoForwardsResult clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_SetNoForwardsResult copyWith(void Function(Chats_SetNoForwardsResult) updates) =>
+      super.copyWith((message) => updates(message as Chats_SetNoForwardsResult)) as Chats_SetNoForwardsResult;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static Chats_SetNoForwardsResult create() => Chats_SetNoForwardsResult._();
+  @$core.override
+  Chats_SetNoForwardsResult createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static Chats_SetNoForwardsResult getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Chats_SetNoForwardsResult>(create);
+  static Chats_SetNoForwardsResult? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  Updates get updates => $_getN(0);
+  @$pb.TagNumber(1)
+  set updates(Updates value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasUpdates() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearUpdates() => $_clearField(1);
+  @$pb.TagNumber(1)
+  Updates ensureUpdates() => $_ensure(0);
+}
+
 enum Chats_Request_Request {
   list,
   openPrivate,
@@ -4687,6 +5023,7 @@ enum Chats_Request_Request {
   reorderFolders,
   resolveUsername,
   setTTL,
+  setNoForwards,
   notSet
 }
 
@@ -4706,6 +5043,7 @@ class Chats_Request extends $pb.GeneratedMessage {
     Chats_ReorderFolders? reorderFolders,
     Chats_ResolveUsername? resolveUsername,
     Chats_SetTTL? setTTL,
+    Chats_SetNoForwards? setNoForwards,
   }) {
     final result = create();
     if (list != null) result.list = list;
@@ -4722,6 +5060,7 @@ class Chats_Request extends $pb.GeneratedMessage {
     if (reorderFolders != null) result.reorderFolders = reorderFolders;
     if (resolveUsername != null) result.resolveUsername = resolveUsername;
     if (setTTL != null) result.setTTL = setTTL;
+    if (setNoForwards != null) result.setNoForwards = setNoForwards;
     return result;
   }
 
@@ -4747,11 +5086,12 @@ class Chats_Request extends $pb.GeneratedMessage {
     12: Chats_Request_Request.reorderFolders,
     13: Chats_Request_Request.resolveUsername,
     14: Chats_Request_Request.setTTL,
+    15: Chats_Request_Request.setNoForwards,
     0: Chats_Request_Request.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Chats.Request',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
-    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14])
+    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15])
     ..aOM<Chats_List>(1, _omitFieldNames ? '' : 'list', subBuilder: Chats_List.create)
     ..aOM<Chats_OpenPrivate>(2, _omitFieldNames ? '' : 'openPrivate', protoName: 'openPrivate', subBuilder: Chats_OpenPrivate.create)
     ..aOM<Chats_ReadHistory>(3, _omitFieldNames ? '' : 'readHistory', protoName: 'readHistory', subBuilder: Chats_ReadHistory.create)
@@ -4768,6 +5108,8 @@ class Chats_Request extends $pb.GeneratedMessage {
     ..aOM<Chats_ResolveUsername>(13, _omitFieldNames ? '' : 'resolveUsername',
         protoName: 'resolveUsername', subBuilder: Chats_ResolveUsername.create)
     ..aOM<Chats_SetTTL>(14, _omitFieldNames ? '' : 'setTTL', protoName: 'setTTL', subBuilder: Chats_SetTTL.create)
+    ..aOM<Chats_SetNoForwards>(15, _omitFieldNames ? '' : 'setNoForwards',
+        protoName: 'setNoForwards', subBuilder: Chats_SetNoForwards.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -4801,6 +5143,7 @@ class Chats_Request extends $pb.GeneratedMessage {
   @$pb.TagNumber(12)
   @$pb.TagNumber(13)
   @$pb.TagNumber(14)
+  @$pb.TagNumber(15)
   Chats_Request_Request whichRequest() => _Chats_Request_RequestByTag[$_whichOneof(0)]!;
   @$pb.TagNumber(1)
   @$pb.TagNumber(2)
@@ -4816,6 +5159,7 @@ class Chats_Request extends $pb.GeneratedMessage {
   @$pb.TagNumber(12)
   @$pb.TagNumber(13)
   @$pb.TagNumber(14)
+  @$pb.TagNumber(15)
   void clearRequest() => $_clearField($_whichOneof(0));
 
   @$pb.TagNumber(1)
@@ -4971,6 +5315,17 @@ class Chats_Request extends $pb.GeneratedMessage {
   void clearSetTTL() => $_clearField(14);
   @$pb.TagNumber(14)
   Chats_SetTTL ensureSetTTL() => $_ensure(13);
+
+  @$pb.TagNumber(15)
+  Chats_SetNoForwards get setNoForwards => $_getN(14);
+  @$pb.TagNumber(15)
+  set setNoForwards(Chats_SetNoForwards value) => $_setField(15, value);
+  @$pb.TagNumber(15)
+  $core.bool hasSetNoForwards() => $_has(14);
+  @$pb.TagNumber(15)
+  void clearSetNoForwards() => $_clearField(15);
+  @$pb.TagNumber(15)
+  Chats_SetNoForwards ensureSetNoForwards() => $_ensure(14);
 }
 
 enum Chats_Response_Response {
@@ -4988,6 +5343,7 @@ enum Chats_Response_Response {
   reorderFolders,
   resolveUsername,
   setTTL,
+  setNoForwards,
   notSet
 }
 
@@ -5007,6 +5363,7 @@ class Chats_Response extends $pb.GeneratedMessage {
     Chats_ReorderFoldersResult? reorderFolders,
     Chats_ResolveUsernameResult? resolveUsername,
     Chats_SetTTLResult? setTTL,
+    Chats_SetNoForwardsResult? setNoForwards,
   }) {
     final result = create();
     if (list != null) result.list = list;
@@ -5023,6 +5380,7 @@ class Chats_Response extends $pb.GeneratedMessage {
     if (reorderFolders != null) result.reorderFolders = reorderFolders;
     if (resolveUsername != null) result.resolveUsername = resolveUsername;
     if (setTTL != null) result.setTTL = setTTL;
+    if (setNoForwards != null) result.setNoForwards = setNoForwards;
     return result;
   }
 
@@ -5048,11 +5406,12 @@ class Chats_Response extends $pb.GeneratedMessage {
     12: Chats_Response_Response.reorderFolders,
     13: Chats_Response_Response.resolveUsername,
     14: Chats_Response_Response.setTTL,
+    15: Chats_Response_Response.setNoForwards,
     0: Chats_Response_Response.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Chats.Response',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
-    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14])
+    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15])
     ..aOM<Chats_ListResult>(1, _omitFieldNames ? '' : 'list', subBuilder: Chats_ListResult.create)
     ..aOM<Chats_OpenPrivateResult>(2, _omitFieldNames ? '' : 'openPrivate',
         protoName: 'openPrivate', subBuilder: Chats_OpenPrivateResult.create)
@@ -5075,6 +5434,8 @@ class Chats_Response extends $pb.GeneratedMessage {
     ..aOM<Chats_ResolveUsernameResult>(13, _omitFieldNames ? '' : 'resolveUsername',
         protoName: 'resolveUsername', subBuilder: Chats_ResolveUsernameResult.create)
     ..aOM<Chats_SetTTLResult>(14, _omitFieldNames ? '' : 'setTTL', protoName: 'setTTL', subBuilder: Chats_SetTTLResult.create)
+    ..aOM<Chats_SetNoForwardsResult>(15, _omitFieldNames ? '' : 'setNoForwards',
+        protoName: 'setNoForwards', subBuilder: Chats_SetNoForwardsResult.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -5108,6 +5469,7 @@ class Chats_Response extends $pb.GeneratedMessage {
   @$pb.TagNumber(12)
   @$pb.TagNumber(13)
   @$pb.TagNumber(14)
+  @$pb.TagNumber(15)
   Chats_Response_Response whichResponse() => _Chats_Response_ResponseByTag[$_whichOneof(0)]!;
   @$pb.TagNumber(1)
   @$pb.TagNumber(2)
@@ -5123,6 +5485,7 @@ class Chats_Response extends $pb.GeneratedMessage {
   @$pb.TagNumber(12)
   @$pb.TagNumber(13)
   @$pb.TagNumber(14)
+  @$pb.TagNumber(15)
   void clearResponse() => $_clearField($_whichOneof(0));
 
   @$pb.TagNumber(1)
@@ -5278,6 +5641,17 @@ class Chats_Response extends $pb.GeneratedMessage {
   void clearSetTTL() => $_clearField(14);
   @$pb.TagNumber(14)
   Chats_SetTTLResult ensureSetTTL() => $_ensure(13);
+
+  @$pb.TagNumber(15)
+  Chats_SetNoForwardsResult get setNoForwards => $_getN(14);
+  @$pb.TagNumber(15)
+  set setNoForwards(Chats_SetNoForwardsResult value) => $_setField(15, value);
+  @$pb.TagNumber(15)
+  $core.bool hasSetNoForwards() => $_has(14);
+  @$pb.TagNumber(15)
+  void clearSetNoForwards() => $_clearField(15);
+  @$pb.TagNumber(15)
+  Chats_SetNoForwardsResult ensureSetNoForwards() => $_ensure(14);
 }
 
 /// CHATS — диалоги.
@@ -5549,7 +5923,9 @@ class Messages_Send extends $pb.GeneratedMessage {
   /// Пересылка (как forwardMessages в Telegram): содержимое сервер берёт из
   /// исходного сообщения (без ответа, с заголовком forward; пересланное
   /// остаётся «от» автора оригинала) — content клиент не заполняет. Доступ —
-  /// через исходное сообщение, а не владение файлами вложений.
+  /// через исходное сообщение, а не владение файлами вложений. Из чата с
+  /// защитой содержимого (Dialog.noForwards) — PERMISSION_DENIED
+  /// «forwardsRestricted».
   @$pb.TagNumber(6)
   Messages_ForwardFrom get forwardFrom => $_getN(5);
   @$pb.TagNumber(6)

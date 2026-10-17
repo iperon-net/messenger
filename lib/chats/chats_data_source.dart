@@ -59,6 +59,13 @@ abstract class ChatsDataSource {
   /// кто может писать, — `ChatsRequestException.isPrivacyRestricted`.
   Future<void> setTTL(String chatID, int period);
 
+  /// Защита содержимого в личном чате: [enabled] — включить; выключить сам
+  /// может только включивший, у собеседника — запрос в ленту. [requestID] —
+  /// ответ включившего на такой запрос (false — принять, true — отклонить).
+  /// Без сети — [ChatsOfflineException]; запрос уже отвечен / просрочен —
+  /// `ChatsRequestException.isRequestExpired`.
+  Future<void> setNoForwards(String chatID, bool enabled, {String requestID = ''});
+
   /// Прочитать (сбросить счётчики и ручную пометку) или пометить непрочитанным.
   Future<void> setRead(String chatID, bool read);
 

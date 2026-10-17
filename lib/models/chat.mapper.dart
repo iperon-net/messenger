@@ -1410,6 +1410,26 @@ class ChatLastMessageMapper extends ClassMapperBase<ChatLastMessage> {
     _$ttlChange,
     opt: true,
   );
+  static bool? _$noForwardsChange(ChatLastMessage v) => v.noForwardsChange;
+  static const Field<ChatLastMessage, bool> _f$noForwardsChange = Field(
+    'noForwardsChange',
+    _$noForwardsChange,
+    opt: true,
+  );
+  static bool _$noForwardsPrev(ChatLastMessage v) => v.noForwardsPrev;
+  static const Field<ChatLastMessage, bool> _f$noForwardsPrev = Field(
+    'noForwardsPrev',
+    _$noForwardsPrev,
+    opt: true,
+    def: false,
+  );
+  static bool _$noForwardsRequest(ChatLastMessage v) => v.noForwardsRequest;
+  static const Field<ChatLastMessage, bool> _f$noForwardsRequest = Field(
+    'noForwardsRequest',
+    _$noForwardsRequest,
+    opt: true,
+    def: false,
+  );
 
   @override
   final MappableFields<ChatLastMessage> fields = const {
@@ -1424,6 +1444,9 @@ class ChatLastMessageMapper extends ClassMapperBase<ChatLastMessage> {
     #pin: _f$pin,
     #pinText: _f$pinText,
     #ttlChange: _f$ttlChange,
+    #noForwardsChange: _f$noForwardsChange,
+    #noForwardsPrev: _f$noForwardsPrev,
+    #noForwardsRequest: _f$noForwardsRequest,
   };
 
   static ChatLastMessage _instantiate(DecodingData data) {
@@ -1439,6 +1462,9 @@ class ChatLastMessageMapper extends ClassMapperBase<ChatLastMessage> {
       pin: data.dec(_f$pin),
       pinText: data.dec(_f$pinText),
       ttlChange: data.dec(_f$ttlChange),
+      noForwardsChange: data.dec(_f$noForwardsChange),
+      noForwardsPrev: data.dec(_f$noForwardsPrev),
+      noForwardsRequest: data.dec(_f$noForwardsRequest),
     );
   }
 
@@ -1517,6 +1543,9 @@ abstract class ChatLastMessageCopyWith<$R, $In extends ChatLastMessage, $Out>
     bool? pin,
     String? pinText,
     int? ttlChange,
+    bool? noForwardsChange,
+    bool? noForwardsPrev,
+    bool? noForwardsRequest,
   });
   ChatLastMessageCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
     Then<$Out2, $R2> t,
@@ -1547,6 +1576,9 @@ class _ChatLastMessageCopyWithImpl<$R, $Out>
     bool? pin,
     String? pinText,
     Object? ttlChange = $none,
+    Object? noForwardsChange = $none,
+    bool? noForwardsPrev,
+    bool? noForwardsRequest,
   }) => $apply(
     FieldCopyWithData({
       if (kind != null) #kind: kind,
@@ -1560,6 +1592,9 @@ class _ChatLastMessageCopyWithImpl<$R, $Out>
       if (pin != null) #pin: pin,
       if (pinText != null) #pinText: pinText,
       if (ttlChange != $none) #ttlChange: ttlChange,
+      if (noForwardsChange != $none) #noForwardsChange: noForwardsChange,
+      if (noForwardsPrev != null) #noForwardsPrev: noForwardsPrev,
+      if (noForwardsRequest != null) #noForwardsRequest: noForwardsRequest,
     }),
   );
   @override
@@ -1575,6 +1610,12 @@ class _ChatLastMessageCopyWithImpl<$R, $Out>
     pin: data.get(#pin, or: $value.pin),
     pinText: data.get(#pinText, or: $value.pinText),
     ttlChange: data.get(#ttlChange, or: $value.ttlChange),
+    noForwardsChange: data.get(#noForwardsChange, or: $value.noForwardsChange),
+    noForwardsPrev: data.get(#noForwardsPrev, or: $value.noForwardsPrev),
+    noForwardsRequest: data.get(
+      #noForwardsRequest,
+      or: $value.noForwardsRequest,
+    ),
   );
 
   @override
@@ -1685,6 +1726,20 @@ class ChatMapper extends ClassMapperBase<Chat> {
     _$ttlPeriod,
     opt: true,
     def: 0,
+  );
+  static bool _$noForwards(Chat v) => v.noForwards;
+  static const Field<Chat, bool> _f$noForwards = Field(
+    'noForwards',
+    _$noForwards,
+    opt: true,
+    def: false,
+  );
+  static bool _$noForwardsMine(Chat v) => v.noForwardsMine;
+  static const Field<Chat, bool> _f$noForwardsMine = Field(
+    'noForwardsMine',
+    _$noForwardsMine,
+    opt: true,
+    def: false,
   );
   static bool _$pinned(Chat v) => v.pinned;
   static const Field<Chat, bool> _f$pinned = Field(
@@ -1990,6 +2045,8 @@ class ChatMapper extends ClassMapperBase<Chat> {
     #muted: _f$muted,
     #mutedUntil: _f$mutedUntil,
     #ttlPeriod: _f$ttlPeriod,
+    #noForwards: _f$noForwards,
+    #noForwardsMine: _f$noForwardsMine,
     #pinned: _f$pinned,
     #archived: _f$archived,
     #draft: _f$draft,
@@ -2050,6 +2107,8 @@ class ChatMapper extends ClassMapperBase<Chat> {
       muted: data.dec(_f$muted),
       mutedUntil: data.dec(_f$mutedUntil),
       ttlPeriod: data.dec(_f$ttlPeriod),
+      noForwards: data.dec(_f$noForwards),
+      noForwardsMine: data.dec(_f$noForwardsMine),
       pinned: data.dec(_f$pinned),
       archived: data.dec(_f$archived),
       draft: data.dec(_f$draft),
@@ -2167,6 +2226,8 @@ abstract class ChatCopyWith<$R, $In extends Chat, $Out>
     bool? muted,
     DateTime? mutedUntil,
     int? ttlPeriod,
+    bool? noForwards,
+    bool? noForwardsMine,
     bool? pinned,
     bool? archived,
     String? draft,
@@ -2264,6 +2325,8 @@ class _ChatCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Chat, $Out>
     bool? muted,
     Object? mutedUntil = $none,
     int? ttlPeriod,
+    bool? noForwards,
+    bool? noForwardsMine,
     bool? pinned,
     bool? archived,
     String? draft,
@@ -2322,6 +2385,8 @@ class _ChatCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Chat, $Out>
       if (muted != null) #muted: muted,
       if (mutedUntil != $none) #mutedUntil: mutedUntil,
       if (ttlPeriod != null) #ttlPeriod: ttlPeriod,
+      if (noForwards != null) #noForwards: noForwards,
+      if (noForwardsMine != null) #noForwardsMine: noForwardsMine,
       if (pinned != null) #pinned: pinned,
       if (archived != null) #archived: archived,
       if (draft != null) #draft: draft,
@@ -2383,6 +2448,8 @@ class _ChatCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Chat, $Out>
     muted: data.get(#muted, or: $value.muted),
     mutedUntil: data.get(#mutedUntil, or: $value.mutedUntil),
     ttlPeriod: data.get(#ttlPeriod, or: $value.ttlPeriod),
+    noForwards: data.get(#noForwards, or: $value.noForwards),
+    noForwardsMine: data.get(#noForwardsMine, or: $value.noForwardsMine),
     pinned: data.get(#pinned, or: $value.pinned),
     archived: data.get(#archived, or: $value.archived),
     draft: data.get(#draft, or: $value.draft),

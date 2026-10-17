@@ -26,6 +26,9 @@ class ChatDialogRow {
   /// Автоудаление в чате (секунды; 0 — выключено).
   final int ttlPeriod;
 
+  /// Защита содержимого: 0 — выключена, 1 — включил я, 2 — собеседник.
+  final int noForwards;
+
   const ChatDialogRow({
     required this.chatID,
     required this.type,
@@ -44,6 +47,7 @@ class ChatDialogRow {
     required this.draft,
     required this.createdAt,
     this.ttlPeriod = 0,
+    this.noForwards = 0,
   });
 
   factory ChatDialogRow._fromRow(Map<String, dynamic> row) => ChatDialogRow(
@@ -64,6 +68,7 @@ class ChatDialogRow {
     draft: row['draft'] as String,
     createdAt: row['createdAt'] as int,
     ttlPeriod: row['ttlPeriod'] as int? ?? 0,
+    noForwards: row['noForwards'] as int? ?? 0,
   );
 }
 
@@ -194,7 +199,10 @@ class ChatsRepository {
 
   static const _dialogColumns =
       'chatID, type, peerUserID, topMessageID, topMessageDate, topMessage, readInboxMaxID, readOutboxMaxID, unreadCount, '
-      'unreadReactions, pinned, archived, markedUnread, mutedUntil, draft, createdAt, ttlPeriod';
+      'unreadReactions, pinned, archived, markedUnread, mutedUntil, draft, createdAt, ttlPeriod, noForwards';
+
+  /// Dialog.noForwards / noForwardsMine → столбец noForwards.
+  static int noForwardsColumn(pb.Dialog dialog) => !dialog.noForwards ? 0 : (dialog.noForwardsMine ? 1 : 2);
 
   /// Выполнить [action] в одной транзакции записи. Уже внутри транзакции —
   /// просто выполняет.
@@ -274,8 +282,8 @@ class ChatsRepository {
     await ctx.execute(
       '''
       INSERT INTO chatDialogs (userID, chatID, type, peerUserID, topMessageID, topMessageDate, topMessage, readInboxMaxID,
-        readOutboxMaxID, unreadCount, unreadReactions, pinned, archived, markedUnread, mutedUntil, createdAt, draft, ttlPeriod)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        readOutboxMaxID, unreadCount, unreadReactions, pinned, archived, markedUnread, mutedUntil, createdAt, draft, ttlPeriod, noForwards)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       ON CONFLICT(userID, chatID) DO UPDATE SET
         -- Свой неотправленный черновик серверный не перезаписывает.
         draft = CASE WHEN chatDialogs.draftPending = 1 THEN chatDialogs.draft ELSE excluded.draft END,
@@ -293,7 +301,8 @@ class ChatsRepository {
         markedUnread = excluded.markedUnread,
         mutedUntil = excluded.mutedUntil,
         createdAt = excluded.createdAt,
-        ttlPeriod = excluded.ttlPeriod;
+        ttlPeriod = excluded.ttlPeriod,
+        noForwards = excluded.noForwards;
       ''',
       [
         userID,
@@ -314,6 +323,7 @@ class ChatsRepository {
         dialog.createdAt.toInt(),
         dialog.draft,
         dialog.ttlPeriod,
+        noForwardsColumn(dialog),
       ],
     );
     if (top != null) await upsertMessage(userID: userID, message: top);

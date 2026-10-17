@@ -258,6 +258,15 @@ class ChatLastMessage with ChatLastMessageMappable {
   /// `null` — не оно.
   final int? ttlChange;
 
+  /// Служебное «запретил / разрешил копирование» (`null` — не оно):
+  /// [noForwardsChange] — защита после, [noForwardsPrev] — до (равны —
+  /// отклонил запрос).
+  final bool? noForwardsChange;
+  final bool noForwardsPrev;
+
+  /// Служебное «просит разрешить копирование».
+  final bool noForwardsRequest;
+
   /// Строка сообщества: из какого его чата сообщение («Группа › Анна»); пусто
   /// — у обычных чатов и у канала объявлений.
   final String chatTitle;
@@ -274,6 +283,9 @@ class ChatLastMessage with ChatLastMessageMappable {
     this.pin = false,
     this.pinText = '',
     this.ttlChange,
+    this.noForwardsChange,
+    this.noForwardsPrev = false,
+    this.noForwardsRequest = false,
   });
 }
 
@@ -321,6 +333,12 @@ class Chat with ChatMappable {
   /// Автоудаление (секунды; 0 — выключено): новые сообщения удаляются у всех
   /// через столько после отправки. Значок таймера на аватаре в шапке.
   final int ttlPeriod;
+
+  /// Защита содержимого: пересылка, копирование, сохранение медиа и
+  /// скриншоты запрещены обоим. [noForwardsMine] — включил я (снять могу
+  /// сам), иначе — собеседник (могу только попросить).
+  final bool noForwards;
+  final bool noForwardsMine;
 
   /// Черновик — показывается вместо последнего сообщения.
   final String draft;
@@ -474,6 +492,8 @@ class Chat with ChatMappable {
     this.muted = false,
     this.mutedUntil,
     this.ttlPeriod = 0,
+    this.noForwards = false,
+    this.noForwardsMine = false,
     this.pinned = false,
     this.archived = false,
     this.draft = '',

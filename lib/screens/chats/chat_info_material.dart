@@ -20,6 +20,7 @@ import 'chat_invite_links_material.dart';
 import 'chat_join_requests_material.dart';
 import 'chat_info_common.dart';
 import 'chat_mute.dart';
+import 'chat_no_forwards.dart';
 import 'chat_ttl.dart';
 import 'community_common.dart';
 import 'community_material.dart';
@@ -99,6 +100,13 @@ class _ChatInfoMaterialState extends State<ChatInfoMaterial> {
                 subtitle: Text(chatTTLLabel(t, chat.ttlPeriod)),
                 onTap: () => Navigator.of(sheetContext).pop('ttl'),
               ),
+            // Защита содержимого: включить; включил я — снять; собеседник — попросить.
+            if (chat.type == models.ChatType.private)
+              ListTile(
+                leading: Icon(chat.noForwards ? Icons.lock_open_outlined : Icons.shield_outlined),
+                title: Text(chatNoForwardsActionLabel(t, noForwards: chat.noForwards, mine: chat.noForwardsMine)),
+                onTap: () => Navigator.of(sheetContext).pop('noForwards'),
+              ),
             if (!chat.announcements)
               ListTile(
                 leading: Icon(chatInfoDeletes(chat) ? Icons.delete_outline : Icons.logout, color: error),
@@ -115,6 +123,8 @@ class _ChatInfoMaterialState extends State<ChatInfoMaterial> {
         final cubit = context.read<ChatCubit>();
         final period = await pickChatTTLMaterial(context, chat.ttlPeriod);
         if (period != null && period != chat.ttlPeriod && context.mounted) await setChatTTL(context, cubit, period);
+      case 'noForwards':
+        await setChatNoForwards(context, context.read<ChatCubit>(), !chat.noForwards);
       case 'leave':
         await _leave(context, chat);
     }

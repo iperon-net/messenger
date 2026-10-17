@@ -77,6 +77,7 @@ class TranslationsRu extends Translations with BaseTranslations<AppLocale, Trans
 	@override late final _Translations$passkey$ru passkey = _Translations$passkey$ru._(_root);
 	@override late final _Translations$yandex$ru yandex = _Translations$yandex$ru._(_root);
 	@override late final _Translations$chatTtl$ru chatTtl = _Translations$chatTtl$ru._(_root);
+	@override late final _Translations$chatNoForwards$ru chatNoForwards = _Translations$chatNoForwards$ru._(_root);
 }
 
 // Path: common
@@ -1606,6 +1607,30 @@ class _Translations$chatTtl$ru extends Translations$chatTtl$en {
 	@override String get restricted => 'Собеседник ограничил, кто может ему писать, — изменить автоудаление нельзя.';
 }
 
+// Path: chatNoForwards
+class _Translations$chatNoForwards$ru extends Translations$chatNoForwards$en {
+	_Translations$chatNoForwards$ru._(TranslationsRu root) : this._root = root, super.internal(root);
+
+	final TranslationsRu _root; // ignore: unused_field
+
+	// Translations
+	@override String get disable => 'Запретить копирование';
+	@override String get allow => 'Разрешить копирование';
+	@override String get requestAllow => 'Попросить разрешить копирование';
+	@override String get serviceYouOn => 'Вы запретили копирование и пересылку в этом чате';
+	@override String get serviceYouOff => 'Вы разрешили копирование и пересылку в этом чате';
+	@override String serviceOn({required Object name}) => '${name} запретил(а) копирование и пересылку в этом чате';
+	@override String serviceOff({required Object name}) => '${name} разрешил(а) копирование и пересылку в этом чате';
+	@override String get serviceYouRefused => 'Вы отклонили запрос разрешить копирование';
+	@override String serviceRefused({required Object name}) => '${name} отклонил(а) запрос разрешить копирование';
+	@override String get requestYou => 'Вы попросили разрешить копирование и пересылку';
+	@override String request({required Object name}) => '${name} просит разрешить копирование и пересылку';
+	@override String get accept => 'Разрешить';
+	@override String get refuse => 'Отклонить';
+	@override String get requestExpired => 'Запрос уже неактуален.';
+	@override String get restricted => 'Копирование и пересылка в этом чате запрещены.';
+}
+
 /// The flat map containing all translations for locale <ru>.
 /// Only for edge cases! For simple maps, use the map function of this library.
 ///
@@ -2705,6 +2730,21 @@ extension on TranslationsRu {
 			'chatTtl.service' => ({required Object name, required Object period}) => '${name} включил(а) автоудаление сообщений: ${period}',
 			'chatTtl.serviceOff' => ({required Object name}) => '${name} выключил(а) автоудаление сообщений',
 			'chatTtl.restricted' => 'Собеседник ограничил, кто может ему писать, — изменить автоудаление нельзя.',
+			'chatNoForwards.disable' => 'Запретить копирование',
+			'chatNoForwards.allow' => 'Разрешить копирование',
+			'chatNoForwards.requestAllow' => 'Попросить разрешить копирование',
+			'chatNoForwards.serviceYouOn' => 'Вы запретили копирование и пересылку в этом чате',
+			'chatNoForwards.serviceYouOff' => 'Вы разрешили копирование и пересылку в этом чате',
+			'chatNoForwards.serviceOn' => ({required Object name}) => '${name} запретил(а) копирование и пересылку в этом чате',
+			'chatNoForwards.serviceOff' => ({required Object name}) => '${name} разрешил(а) копирование и пересылку в этом чате',
+			'chatNoForwards.serviceYouRefused' => 'Вы отклонили запрос разрешить копирование',
+			'chatNoForwards.serviceRefused' => ({required Object name}) => '${name} отклонил(а) запрос разрешить копирование',
+			'chatNoForwards.requestYou' => 'Вы попросили разрешить копирование и пересылку',
+			'chatNoForwards.request' => ({required Object name}) => '${name} просит разрешить копирование и пересылку',
+			'chatNoForwards.accept' => 'Разрешить',
+			'chatNoForwards.refuse' => 'Отклонить',
+			'chatNoForwards.requestExpired' => 'Запрос уже неактуален.',
+			'chatNoForwards.restricted' => 'Копирование и пересылка в этом чате запрещены.',
 			_ => null,
 		};
 	}

@@ -19,6 +19,7 @@ import '../../models.dart' as models;
 import '../../themes.dart';
 import 'chat_actions_material.dart';
 import 'chat_common.dart';
+import 'chat_no_forwards.dart';
 import 'chat_info_common.dart';
 import 'comments_limit.dart';
 import 'compose_format_menu.dart';
@@ -210,7 +211,9 @@ class _ChatMaterialState extends State<ChatMaterial> {
   PreferredSizeWidget _selectionAppBar(BuildContext context, ChatState state, Color color) {
     final selected = state.selectedMessages;
     final canDelete = selected.isNotEmpty && selected.every(_cubit.canDelete);
-    final canCopy = selected.any((m) => m.text.isNotEmpty);
+    // Защита содержимого — ни копирования, ни пересылки.
+    final noForwards = state.chat?.noForwards ?? false;
+    final canCopy = !noForwards && selected.any((m) => m.text.isNotEmpty);
     return AppBar(
       backgroundColor: color,
       leading: IconButton(icon: const Icon(Icons.close), onPressed: _cubit.clearSelection),
@@ -219,7 +222,7 @@ class _ChatMaterialState extends State<ChatMaterial> {
         IconButton(icon: const Icon(Icons.copy), onPressed: canCopy ? () => _copySelected(context) : null),
         IconButton(icon: const Icon(Icons.delete_outline), onPressed: canDelete ? () => _deleteSelected(context) : null),
         if (_cubit.features.forward)
-          IconButton(icon: const Icon(Icons.forward), onPressed: selected.isEmpty ? null : () => _forward(context)),
+          IconButton(icon: const Icon(Icons.forward), onPressed: selected.isEmpty || noForwards ? null : () => _forward(context)),
       ],
     );
   }
@@ -444,6 +447,14 @@ class _ChatMaterialState extends State<ChatMaterial> {
 
   @override
   Widget build(BuildContext context) {
+    // Защита содержимого — экран не попадает на скриншоты и запись.
+    return BlocSelector<ChatCubit, ChatState, bool>(
+      selector: (state) => state.chat?.noForwards ?? false,
+      builder: (context, noForwards) => ChatScreenProtector(enabled: noForwards, child: _body(context)),
+    );
+  }
+
+  Widget _body(BuildContext context) {
     final t = context.t;
     final dark = Theme.of(context).brightness == Brightness.dark;
     final barColor = dark ? ThemesCupertino.groupedCard.darkColor : ThemesCupertino.groupedCard.color;
@@ -595,15 +606,20 @@ class _ChatMaterialState extends State<ChatMaterial> {
                                         selectionCheckColor: Theme.of(context).colorScheme.onPrimary,
                                         highlight: state.searching ? state.searchQuery : '',
                                         focusedID: state.searchCurrentID,
+                                        // Защита содержимого: файл не открыть в другом приложении,
+                                        // в просмотре — без сохранения.
                                         onMediaTap: (message, index) => message.kind == models.MessageKind.file
-                                            ? openChatFile(context, message)
+                                            ? (chat.noForwards ? showChatNoForwardsRestricted(context) : openChatFile(context, message))
                                             : showChatMediaViewer(
                                                 context,
                                                 messages: state.messages,
                                                 message: message,
                                                 index: index,
                                                 chatTitle: chat.title,
+                                                noForwards: chat.noForwards,
                                               ),
+                                        onNoForwardsAnswer: (request, accept) =>
+                                            setChatNoForwards(context, _cubit, !accept, requestID: request.id),
                                       ),
                                 Positioned(top: 0, left: 0, right: 0, child: _pinnedBar(context, chat, state)),
                                 ChatReactionsButton(
@@ -687,8 +703,10 @@ class _ChatMaterialState extends State<ChatMaterial> {
     final reactions = features.reactions ? availableReactions(chat, message: message) : const <String>[];
     // Сверху — текст сообщения, его можно выделить: «Копировать | Цитировать»
     // (ответ на фрагмент, как в Telegram).
-    final quotable = canWrite && message.text.isNotEmpty && message.kind != models.MessageKind.poll;
-    final mediaCopyable = chatMediaActionable(message) && message.kind != models.MessageKind.file;
+    // Защита содержимого — ни выделения текста, ни копирования, сохранения и пересылки.
+    final protected = chat.noForwards;
+    final quotable = canWrite && message.text.isNotEmpty && message.kind != models.MessageKind.poll && !protected;
+    final mediaCopyable = chatMediaActionable(message) && message.kind != models.MessageKind.file && !protected;
     final quoteText = GlobalKey<QuotableTextState>();
     models.MessageQuote? quote;
     var readers = const <MessageReader>[];
@@ -748,7 +766,7 @@ class _ChatMaterialState extends State<ChatMaterial> {
               if (quotable)
                 ListTile(leading: const Icon(Icons.format_quote), title: Text(t.quote), onTap: () => quoteText.currentState?.selectAll()),
               // Фото / видео — копируются сами (вставить в другой мессенджер), подпись — отдельно.
-              if (mediaCopyable || message.text.isNotEmpty)
+              if (mediaCopyable || (message.text.isNotEmpty && !protected))
                 ListTile(
                   leading: const Icon(Icons.copy),
                   title: Text(t.copy),
@@ -756,7 +774,7 @@ class _ChatMaterialState extends State<ChatMaterial> {
                 ),
               if (mediaCopyable && message.text.isNotEmpty)
                 ListTile(leading: const Icon(Icons.notes), title: Text(t.copyText), onTap: () => Navigator.of(sheetContext).pop('copy')),
-              if (chatMediaActionable(message)) ...[
+              if (chatMediaActionable(message) && !protected) ...[
                 ListTile(
                   leading: const Icon(Icons.download_outlined),
                   title: Text(chatMediaSaveLabel(context.t, message)),
@@ -774,7 +792,7 @@ class _ChatMaterialState extends State<ChatMaterial> {
                   title: Text(message.pinned ? t.unpin : t.pin),
                   onTap: () => Navigator.of(sheetContext).pop('pin'),
                 ),
-              if (features.forward && ChatCubit.forwardable(message))
+              if (features.forward && ChatCubit.forwardable(message) && !protected)
                 ListTile(
                   leading: const Icon(Icons.forward),
                   title: Text(t.forward),

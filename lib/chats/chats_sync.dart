@@ -69,6 +69,14 @@ class ChatsRequestException implements Exception {
   /// «pinnedLimit»; например, закрепили на другом устройстве).
   bool get isPinnedLimit => statusCode == StatusCode.failedPrecondition && error == 'pinnedLimit';
 
+  /// Пересылка из чата с защитой содержимого (`PermissionDenied`
+  /// «forwardsRestricted»).
+  bool get isForwardsRestricted => statusCode == StatusCode.permissionDenied && error == 'forwardsRestricted';
+
+  /// Запрос снять защиту уже отвечен или просрочен (`FailedPrecondition`
+  /// «requestExpired»).
+  bool get isRequestExpired => statusCode == StatusCode.failedPrecondition && error == 'requestExpired';
+
   /// Не найдено (`NotFound`): например, пользователя с таким именем нет.
   bool get isNotFound => statusCode == StatusCode.notFound;
 
@@ -541,6 +549,8 @@ class ChatsSync {
               'mutedUntil': dialog.mutedUntil.toInt(),
               // Автоудаление (Chats.SetTTL — мной, собеседником или таймер по умолчанию).
               'ttlPeriod': dialog.ttlPeriod,
+              // Защита содержимого (Chats.SetNoForwards).
+              'noForwards': ChatsRepository.noForwardsColumn(dialog),
             },
           );
           await tx.setServerDraft(userID: user, chatID: dialog.chatID, draft: dialog.draft);

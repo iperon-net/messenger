@@ -1927,6 +1927,33 @@ class MessageMapper extends ClassMapperBase<Message> {
     _$ttlChange,
     opt: true,
   );
+  static bool? _$noForwardsChange(Message v) => v.noForwardsChange;
+  static const Field<Message, bool> _f$noForwardsChange = Field(
+    'noForwardsChange',
+    _$noForwardsChange,
+    opt: true,
+  );
+  static bool _$noForwardsPrev(Message v) => v.noForwardsPrev;
+  static const Field<Message, bool> _f$noForwardsPrev = Field(
+    'noForwardsPrev',
+    _$noForwardsPrev,
+    opt: true,
+    def: false,
+  );
+  static String _$noForwardsRequestID(Message v) => v.noForwardsRequestID;
+  static const Field<Message, String> _f$noForwardsRequestID = Field(
+    'noForwardsRequestID',
+    _$noForwardsRequestID,
+    opt: true,
+    def: '',
+  );
+  static bool _$noForwardsRequest(Message v) => v.noForwardsRequest;
+  static const Field<Message, bool> _f$noForwardsRequest = Field(
+    'noForwardsRequest',
+    _$noForwardsRequest,
+    opt: true,
+    def: false,
+  );
   static String _$pinnedMessageID(Message v) => v.pinnedMessageID;
   static const Field<Message, String> _f$pinnedMessageID = Field(
     'pinnedMessageID',
@@ -2029,6 +2056,10 @@ class MessageMapper extends ClassMapperBase<Message> {
     #pinned: _f$pinned,
     #pinnedOnlyMe: _f$pinnedOnlyMe,
     #ttlChange: _f$ttlChange,
+    #noForwardsChange: _f$noForwardsChange,
+    #noForwardsPrev: _f$noForwardsPrev,
+    #noForwardsRequestID: _f$noForwardsRequestID,
+    #noForwardsRequest: _f$noForwardsRequest,
     #pinnedMessageID: _f$pinnedMessageID,
     #silent: _f$silent,
     #scheduledDate: _f$scheduledDate,
@@ -2071,6 +2102,10 @@ class MessageMapper extends ClassMapperBase<Message> {
       pinned: data.dec(_f$pinned),
       pinnedOnlyMe: data.dec(_f$pinnedOnlyMe),
       ttlChange: data.dec(_f$ttlChange),
+      noForwardsChange: data.dec(_f$noForwardsChange),
+      noForwardsPrev: data.dec(_f$noForwardsPrev),
+      noForwardsRequestID: data.dec(_f$noForwardsRequestID),
+      noForwardsRequest: data.dec(_f$noForwardsRequest),
       pinnedMessageID: data.dec(_f$pinnedMessageID),
       silent: data.dec(_f$silent),
       scheduledDate: data.dec(_f$scheduledDate),
@@ -2196,6 +2231,10 @@ abstract class MessageCopyWith<$R, $In extends Message, $Out>
     bool? pinned,
     bool? pinnedOnlyMe,
     int? ttlChange,
+    bool? noForwardsChange,
+    bool? noForwardsPrev,
+    String? noForwardsRequestID,
+    bool? noForwardsRequest,
     String? pinnedMessageID,
     bool? silent,
     DateTime? scheduledDate,
@@ -2311,6 +2350,10 @@ class _MessageCopyWithImpl<$R, $Out>
     bool? pinned,
     bool? pinnedOnlyMe,
     Object? ttlChange = $none,
+    Object? noForwardsChange = $none,
+    bool? noForwardsPrev,
+    String? noForwardsRequestID,
+    bool? noForwardsRequest,
     String? pinnedMessageID,
     bool? silent,
     Object? scheduledDate = $none,
@@ -2351,6 +2394,11 @@ class _MessageCopyWithImpl<$R, $Out>
       if (pinned != null) #pinned: pinned,
       if (pinnedOnlyMe != null) #pinnedOnlyMe: pinnedOnlyMe,
       if (ttlChange != $none) #ttlChange: ttlChange,
+      if (noForwardsChange != $none) #noForwardsChange: noForwardsChange,
+      if (noForwardsPrev != null) #noForwardsPrev: noForwardsPrev,
+      if (noForwardsRequestID != null)
+        #noForwardsRequestID: noForwardsRequestID,
+      if (noForwardsRequest != null) #noForwardsRequest: noForwardsRequest,
       if (pinnedMessageID != null) #pinnedMessageID: pinnedMessageID,
       if (silent != null) #silent: silent,
       if (scheduledDate != $none) #scheduledDate: scheduledDate,
@@ -2393,6 +2441,16 @@ class _MessageCopyWithImpl<$R, $Out>
     pinned: data.get(#pinned, or: $value.pinned),
     pinnedOnlyMe: data.get(#pinnedOnlyMe, or: $value.pinnedOnlyMe),
     ttlChange: data.get(#ttlChange, or: $value.ttlChange),
+    noForwardsChange: data.get(#noForwardsChange, or: $value.noForwardsChange),
+    noForwardsPrev: data.get(#noForwardsPrev, or: $value.noForwardsPrev),
+    noForwardsRequestID: data.get(
+      #noForwardsRequestID,
+      or: $value.noForwardsRequestID,
+    ),
+    noForwardsRequest: data.get(
+      #noForwardsRequest,
+      or: $value.noForwardsRequest,
+    ),
     pinnedMessageID: data.get(#pinnedMessageID, or: $value.pinnedMessageID),
     silent: data.get(#silent, or: $value.silent),
     scheduledDate: data.get(#scheduledDate, or: $value.scheduledDate),

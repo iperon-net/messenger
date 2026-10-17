@@ -752,6 +752,11 @@ class ChatCubit extends Cubit<ChatState> {
   /// пробрасывается — экран объясняет.
   Future<bool> setTTL(int period) => _online(() => _source?.setTTL(_chatID, period));
 
+  /// Защита содержимого (см. ChatsDataSource.setNoForwards). Без сети — «Нет
+  /// соединения»; отказ сервера пробрасывается — экран объясняет.
+  Future<bool> setNoForwards(bool enabled, {String requestID = ''}) =>
+      _online(() => _source?.setNoForwards(_chatID, enabled, requestID: requestID));
+
   /// Профиль чата: участники группы (и заблокированные — для админа).
   /// Курсор следующей страницы «Участников» и номер загрузки (перезагрузка
   /// списка отменяет догрузку, начатую до неё).

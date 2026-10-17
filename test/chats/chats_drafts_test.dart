@@ -41,6 +41,7 @@ void main() {
         draftPending INTEGER NOT NULL DEFAULT 0,
         createdAt INTEGER NOT NULL DEFAULT 0,
         ttlPeriod INTEGER NOT NULL DEFAULT 0,
+        noForwards INTEGER NOT NULL DEFAULT 0,
         PRIMARY KEY (userID, chatID)
       );
     ''');

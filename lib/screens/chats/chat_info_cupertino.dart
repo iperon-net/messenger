@@ -20,6 +20,7 @@ import 'chat_invite_links_cupertino.dart';
 import 'chat_join_requests_cupertino.dart';
 import 'chat_info_common.dart';
 import 'chat_mute.dart';
+import 'chat_no_forwards.dart';
 import 'chat_ttl.dart';
 import 'chats_new_cupertino.dart';
 import 'community_common.dart';
@@ -105,6 +106,13 @@ class _ChatInfoCupertinoState extends State<ChatInfoCupertino> {
           subtitle: chatTTLLabel(t, chat.ttlPeriod),
           icon: CupertinoIcons.timer,
           submenu: chatTTLMenuCupertino(context, chat.ttlPeriod, (period) => setChatTTL(context, context.read<ChatCubit>(), period)),
+        ),
+      // Защита содержимого: включить; включил я — снять; собеседник — попросить.
+      if (chat.type == models.ChatType.private)
+        _MoreItem(
+          title: chatNoForwardsActionLabel(t, noForwards: chat.noForwards, mine: chat.noForwardsMine),
+          icon: chat.noForwards ? CupertinoIcons.lock_open : CupertinoIcons.lock_shield,
+          onTap: () => setChatNoForwards(context, context.read<ChatCubit>(), !chat.noForwards),
         ),
       if (!chat.announcements)
         _MoreItem(

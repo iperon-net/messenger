@@ -624,6 +624,18 @@ Anti-Spam (группы от 200 участников, вкл/выкл, журн
   `chatDialogs.ttlPeriod` (миграция 30), `ChatsSync.sweepExpired` раз в 5 с удаляет истёкшие у
   себя сам (и без сети), значок таймера на аватаре в шапке, «Автоудаление сообщений» в профиле
   чата (iOS — меню, Android — шторка) и в «Конфиденциальности» (по умолчанию).
+- [ ] Защита содержимого в личном чате (как «Disable Sharing» / messages.toggleNoForwards в Telegram,
+  core.telegram.org/api/content-protection) — написано 2026-10-18, не проверено на устройствах.
+  Флаг на чат (`chats.noForwardsBy`, копия в `chatMembers`), действует на обоих и на всю историю.
+  Сервер: `Chats.SetNoForwards` — включить может любой; снять сразу — только включивший, второй
+  шлёт запрос (`MessageContent.noForwardsRequest`, `chats.noForwardsRequests`), включивший отвечает
+  с `requestID` (принять — снять, отклонить — оставить; всегда служебное `MessageContent.noForwards`
+  с `requestID`), запрос гаснет через сутки; пересылка из чата — PERMISSION_DENIED
+  «forwardsRestricted»; пуши сообщений и реакций — без текста. Клиент: `chatDialogs.noForwards`
+  (миграция 31), «Ещё» в профиле («Запретить / Разрешить / Попросить разрешить копирование»),
+  плашка запроса с «Отклонить / Разрешить», в защищённом чате нет копирования / выделения текста /
+  сохранения / «Поделиться» / пересылки, файлы не открываются в других приложениях, экран — без
+  скриншотов и записи (`screen_protector`: Android FLAG_SECURE, iOS «защищённый» слой).
 - [x] Сжатие видео (`lib/chats/video_prepare.dart` + нативные `VideoCompressor` — iOS
   AVAssetReader/Writer, Android Media3 Transformer): 720p по короткой стороне, HEVC 1,6 Мбит/с (нет аппаратного HEVC — H.264 2,5 Мбит/с);
   «HD» в превью — 1080p, HEVC 3 Мбит/с (H.264 4,5); не больше 30 к/с (прореживание);

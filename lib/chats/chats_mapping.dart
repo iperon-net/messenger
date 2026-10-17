@@ -111,8 +111,12 @@ models.MessageCall? callFromPb(pb.MessageContent content) {
 
 /// Входящее, которое не считается непрочитанным: звонок, кроме пропущенного,
 /// и «закрепил сообщение» (как на сервере, `noUnread`).
-bool skipsUnread(pb.MessageContent content) =>
-    content.hasPin() || content.hasTtlChanged() || (content.hasCall() && callFromPb(content)?.unanswered != true);
+/// Служебное от сервера (плашка по центру ленты): закреп, автоудаление,
+/// защита содержимого и запрос её снять.
+bool _isService(pb.MessageContent content) =>
+    content.hasPin() || content.hasTtlChanged() || content.hasNoForwards() || content.hasNoForwardsRequest();
+
+bool skipsUnread(pb.MessageContent content) => _isService(content) || (content.hasCall() && callFromPb(content)?.unanswered != true);
 
 /// Текст закреплённого для «закрепил «…»»: подпись / текст, у файла — имя,
 /// у остального — пусто (тогда подпись вида — на стороне экрана).
@@ -170,10 +174,14 @@ models.Message messageFromPb(
     kind: kind,
     // «Закрепил сообщение» / «изменил автоудаление» — служебная плашка (тап по
     // закрепу — к закреплённому).
-    service: content.hasPin() || content.hasTtlChanged(),
+    service: _isService(content),
     pinnedMessageID: content.hasPin() ? content.pin.messageID.toString() : '',
     ttlChange: content.hasTtlChanged() ? content.ttlChanged.period : null,
-    senderName: (content.hasPin() || content.hasTtlChanged()) && !outgoing ? peerName : '',
+    noForwardsChange: content.hasNoForwards() ? content.noForwards.newValue : null,
+    noForwardsPrev: content.noForwards.prevValue,
+    noForwardsRequestID: content.noForwards.requestID > 0 ? content.noForwards.requestID.toString() : '',
+    noForwardsRequest: content.hasNoForwardsRequest(),
+    senderName: _isService(content) && !outgoing ? peerName : '',
     pinned: pinned,
     pinnedOnlyMe: pinned && pinnedOnlyMe,
     text: content.text,
@@ -290,6 +298,9 @@ models.ChatLastMessage lastMessageFromPb(
     pin: m.content.hasPin(),
     pinText: m.content.hasPin() ? pinSnippet(pinned) : '',
     ttlChange: m.content.hasTtlChanged() ? m.content.ttlChanged.period : null,
+    noForwardsChange: m.content.hasNoForwards() ? m.content.noForwards.newValue : null,
+    noForwardsPrev: m.content.noForwards.prevValue,
+    noForwardsRequest: m.content.hasNoForwardsRequest(),
   );
 }
 
