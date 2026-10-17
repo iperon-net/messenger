@@ -11,7 +11,7 @@ Future<bool?> askPinScopeMaterial(BuildContext context, models.Chat chat, {requi
   final t = context.t.screenChat;
   final private = chat.type == models.ChatType.private && !chat.isSelf;
   if (pin && !private) return !chat.isSelf;
-  final title = pin ? t.pinTitle : (allCount != null ? t.unpinAllTitle(n: allCount) : t.unpinTitle);
+  final title = pin ? t.pinTitle : (allCount != null ? t.unpinAllTitle : t.unpinTitle);
   var forBoth = true;
   return showDialog<bool>(
     context: context,

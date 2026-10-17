@@ -508,9 +508,7 @@
     other: "{n} pinned messages"
   "pinnedAll": "All pinned messages"
   "unpinAll": "Unpin all messages"
-  "unpinAllTitle(plural)":
-    one: "Unpin {n} message?"
-    other: "Unpin all {n} messages?"
+  "unpinAllTitle": "Unpin all messages?"
   "goToMessage": "Go to message"
   "sendSilent": "Send without sound"
   "sendLater": "Schedule message"

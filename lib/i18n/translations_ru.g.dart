@@ -690,12 +690,7 @@ class _Translations$screenChat$ru extends Translations$screenChat$en {
 	);
 	@override String get pinnedAll => 'Все закреплённые';
 	@override String get unpinAll => 'Открепить все сообщения';
-	@override String unpinAllTitle({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n,
-		one: 'Открепить ${n} сообщение?',
-		few: 'Открепить все ${n} сообщения?',
-		many: 'Открепить все ${n} сообщений?',
-		other: 'Открепить все ${n} сообщения?',
-	);
+	@override String get unpinAllTitle => 'Открепить все сообщения?';
 	@override String get goToMessage => 'Перейти к сообщению';
 	@override String get sendSilent => 'Отправить без звука';
 	@override String get sendLater => 'Отправить позже';
@@ -2037,7 +2032,7 @@ extension on TranslationsRu {
 			'screenChat.pinnedList' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: '${n} закреплённое сообщение', few: '${n} закреплённых сообщения', many: '${n} закреплённых сообщений', other: '${n} закреплённых сообщения', ), 
 			'screenChat.pinnedAll' => 'Все закреплённые',
 			'screenChat.unpinAll' => 'Открепить все сообщения',
-			'screenChat.unpinAllTitle' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: 'Открепить ${n} сообщение?', few: 'Открепить все ${n} сообщения?', many: 'Открепить все ${n} сообщений?', other: 'Открепить все ${n} сообщения?', ), 
+			'screenChat.unpinAllTitle' => 'Открепить все сообщения?',
 			'screenChat.goToMessage' => 'Перейти к сообщению',
 			'screenChat.sendSilent' => 'Отправить без звука',
 			'screenChat.sendLater' => 'Отправить позже',

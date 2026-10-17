@@ -1615,11 +1615,8 @@ class Translations$screenChat$en {
 	/// en: 'Unpin all messages'
 	String get unpinAll => 'Unpin all messages';
 
-	/// en: '(one) {Unpin {n} message?} (other) {Unpin all {n} messages?}'
-	String unpinAllTitle({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n,
-		one: 'Unpin ${n} message?',
-		other: 'Unpin all ${n} messages?',
-	);
+	/// en: 'Unpin all messages?'
+	String get unpinAllTitle => 'Unpin all messages?';
 
 	/// en: 'Go to message'
 	String get goToMessage => 'Go to message';
@@ -4146,7 +4143,7 @@ extension on Translations {
 			'screenChat.pinnedList' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: '${n} pinned message', other: '${n} pinned messages', ), 
 			'screenChat.pinnedAll' => 'All pinned messages',
 			'screenChat.unpinAll' => 'Unpin all messages',
-			'screenChat.unpinAllTitle' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: 'Unpin ${n} message?', other: 'Unpin all ${n} messages?', ), 
+			'screenChat.unpinAllTitle' => 'Unpin all messages?',
 			'screenChat.goToMessage' => 'Go to message',
 			'screenChat.sendSilent' => 'Send without sound',
 			'screenChat.sendLater' => 'Schedule message',
