@@ -109,9 +109,9 @@ class ChatsDemoDataSource implements ChatsDataSource {
     }
   }
 
+  /// В архив / из архива — без закрепа (как сервер и Telegram).
   @override
-  Future<void> setArchived(String chatID, bool archived) async =>
-      _update(chatID, (c) => c.copyWith(archived: archived, pinned: archived ? false : c.pinned));
+  Future<void> setArchived(String chatID, bool archived) async => _update(chatID, (c) => c.copyWith(archived: archived, pinned: false));
 
   @override
   Future<void> setRead(String chatID, bool read) async {
