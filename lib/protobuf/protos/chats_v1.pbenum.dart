@@ -124,6 +124,29 @@ class MessageCall_Outcome extends $pb.ProtobufEnum {
   const MessageCall_Outcome._(super.value, super.name);
 }
 
+class ChatTyping_Action extends $pb.ProtobufEnum {
+  static const ChatTyping_Action CANCEL = ChatTyping_Action._(0, _omitEnumNames ? '' : 'CANCEL');
+  static const ChatTyping_Action TYPING = ChatTyping_Action._(1, _omitEnumNames ? '' : 'TYPING');
+  static const ChatTyping_Action RECORD_VOICE = ChatTyping_Action._(2, _omitEnumNames ? '' : 'RECORD_VOICE');
+  static const ChatTyping_Action UPLOAD_PHOTO = ChatTyping_Action._(3, _omitEnumNames ? '' : 'UPLOAD_PHOTO');
+  static const ChatTyping_Action UPLOAD_VIDEO = ChatTyping_Action._(4, _omitEnumNames ? '' : 'UPLOAD_VIDEO');
+  static const ChatTyping_Action UPLOAD_FILE = ChatTyping_Action._(5, _omitEnumNames ? '' : 'UPLOAD_FILE');
+
+  static const $core.List<ChatTyping_Action> values = <ChatTyping_Action>[
+    CANCEL,
+    TYPING,
+    RECORD_VOICE,
+    UPLOAD_PHOTO,
+    UPLOAD_VIDEO,
+    UPLOAD_FILE,
+  ];
+
+  static final $core.List<ChatTyping_Action?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 5);
+  static ChatTyping_Action? valueOf($core.int value) => value < 0 || value >= _byValue.length ? null : _byValue[value];
+
+  const ChatTyping_Action._(super.value, super.name);
+}
+
 class Update_ScheduledDeleted_Reason extends $pb.ProtobufEnum {
   static const Update_ScheduledDeleted_Reason DELETED = Update_ScheduledDeleted_Reason._(0, _omitEnumNames ? '' : 'DELETED');
   static const Update_ScheduledDeleted_Reason SENT = Update_ScheduledDeleted_Reason._(1, _omitEnumNames ? '' : 'SENT');

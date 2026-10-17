@@ -11,6 +11,7 @@ import '../auth.dart';
 import '../cdn.dart';
 import '../di.dart';
 import '../logger.dart';
+import '../models.dart' as models;
 import '../protobuf.dart';
 import '../protobuf/protos/chats_v1.pb.dart' as pb;
 import '../push.dart';
@@ -20,6 +21,7 @@ import 'chats_mapping.dart';
 import 'chats_media.dart';
 import 'updates_plan.dart';
 import 'chats_media_cleanup.dart';
+import 'chats_typing.dart';
 
 /// Действие требует сети, а её нет (или сервер недоступен): ничего не
 /// изменилось — UI должен честно сказать «нет сети», а не делать вид, что
@@ -462,6 +464,8 @@ class ChatsSync {
           dialog = await tx.dialog(userID: user, chatID: chatID);
         }
         await tx.upsertMessage(userID: user, message: message);
+        // Написал — больше не «печатает…».
+        if (!outgoing) ChatsTyping.instance.clear(chatID, message.fromUserID);
         final id = message.messageID.toInt();
         final top = dialog?.topMessageID ?? 0;
         if (id >= top) await tx.setTopMessage(userID: user, chatID: chatID, message: message);
@@ -1186,6 +1190,10 @@ class ChatsSync {
     }
 
     progress(0);
+    // Собеседник видит «отправляет фото / видео / файл…», пока грузится.
+    final chatID = row.chatID;
+    final activity = _uploadActivity(content);
+    final typing = chatID == null || activity == null ? null : ChatsTyping.instance.begin(idHex(chatID), activity);
     try {
       for (final (j, job) in jobs.indexed) {
         final file = await cdn.uploadFile(
@@ -1223,10 +1231,22 @@ class ChatsSync {
       });
       return _Upload.stop;
     } finally {
+      if (typing != null) ChatsTyping.instance.end(typing);
       _uploads.remove(randomID);
       _cancelledUploads.remove(randomID);
       _uploadChanged.add(null);
     }
+  }
+
+  /// Что показать собеседнику при загрузке вложений: видео, если оно есть в
+  /// альбоме, иначе фото; файл. Голосовое грузится за миг (а «записывает
+  /// аудио…» уже показали при записи) — `null`, ничего.
+  static models.ChatActivity? _uploadActivity(pb.MessageContent content) {
+    final kinds = {for (final media in content.media) media.kind};
+    if (kinds.contains(pb.MessageKind.MESSAGE_KIND_VIDEO)) return models.ChatActivity.uploadVideo;
+    if (kinds.contains(pb.MessageKind.MESSAGE_KIND_PHOTO)) return models.ChatActivity.uploadPhoto;
+    if (kinds.contains(pb.MessageKind.MESSAGE_KIND_FILE)) return models.ChatActivity.uploadFile;
+    return null;
   }
 
   Timer? _retryTimer;

@@ -1778,9 +1778,16 @@ class ChatsDemoDataSource implements ChatsDataSource {
         _updateMessage(chatID, message.id, (m) => m.copyWith(reactions: addOtherReaction(m.reactions, emoji)));
       }
       final sender = chat.type == models.ChatType.private ? chat.title : _names[_random.nextInt(_names.length)];
-      _update(chatID, (c) => c.copyWith(typing: sender));
+      _update(chatID, (c) => c.copyWith(typing: [_typingOf(sender)]));
     });
     Timer(const Duration(milliseconds: 4200), () => _incoming(chatID));
+  }
+
+  /// «Печатает» от [name]; изредка — «отправляет фото / записывает аудио».
+  models.ChatTyping _typingOf(String name) {
+    const rare = [models.ChatActivity.uploadPhoto, models.ChatActivity.recordVoice];
+    final activity = _random.nextInt(4) == 0 ? rare[_random.nextInt(rare.length)] : models.ChatActivity.typing;
+    return models.ChatTyping(userID: name, name: name, activity: activity);
   }
 
   void _setStatus(String chatID, String messageID, models.MessageStatus status) {
@@ -1796,7 +1803,7 @@ class ChatsDemoDataSource implements ChatsDataSource {
     final chat = _chat(chatID);
     if (chat == null) return;
     final sender = chat.typing.isNotEmpty
-        ? chat.typing
+        ? chat.typing.first.name
         : (chat.type == models.ChatType.private ? chat.title : _names[_random.nextInt(_names.length)]);
     final (text, entities) = parseMarkdownShortcuts(
       mention ? '@you ${_phrases[_random.nextInt(_phrases.length)]}' : _phrases[_random.nextInt(_phrases.length)],
@@ -1813,7 +1820,7 @@ class ChatsDemoDataSource implements ChatsDataSource {
     _update(
       chatID,
       (c) => c.copyWith(
-        typing: '',
+        typing: const [],
         unreadCount: c.unreadCount + 1,
         unreadMentions: c.unreadMentions + (mention ? 1 : 0),
         lastMessage: _lastOf(message),
@@ -2050,7 +2057,7 @@ class ChatsDemoDataSource implements ChatsDataSource {
     final chat = candidates[_random.nextInt(candidates.length)];
     final sender = chat.type == models.ChatType.private ? chat.title : _names[_random.nextInt(_names.length)];
 
-    _update(chat.id, (c) => c.copyWith(typing: sender));
+    _update(chat.id, (c) => c.copyWith(typing: [_typingOf(sender)]));
 
     Timer(const Duration(seconds: 3), () {
       if (!_chats.any((c) => c.id == chat.id)) return;

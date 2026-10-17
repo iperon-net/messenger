@@ -124,6 +124,22 @@ class _ChatMaterialState extends State<ChatMaterial> {
     _tracker.update(_cubit.state.messages, _cubit.state.unreadFromID);
     // Чат (с черновиком) — тоже: переход «нет чата → есть» слушатель не увидит.
     _applyDraft(_cubit.state.chat?.draft ?? '');
+    // «Печатает…» / «записывает аудио…» собеседнику.
+    _typedText = _input.text;
+    _input.addListener(_onInputChanged);
+    _recorder.addListener(() => _cubit.setRecording(_recorder.active));
+  }
+
+  /// Последний текст поля — отличить ввод от смены выделения.
+  String _typedText = '';
+
+  void _onInputChanged() {
+    final text = _input.text;
+    if (text == _typedText) return;
+    _typedText = text;
+    // Подставленный черновик — не набор.
+    if (text.isNotEmpty && text == _shownDraft) return;
+    _cubit.composeChanged(text);
   }
 
   /// Подставить черновик [draft], если поле не трогали и не правим сообщение.
@@ -940,12 +956,15 @@ class _Header extends StatelessWidget {
             children: [
               Text(ChatTileContent.title(t, chat), maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 18)),
               if (subtitle.text.isNotEmpty)
-                Text(
-                  subtitle.text,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontSize: 13, color: subtitle.active ? scheme.primary : scheme.onSurfaceVariant),
-                ),
+                // «печатает…» — с бегущими точками.
+                chat.typing.isNotEmpty
+                    ? TypingText(subtitle.text, style: TextStyle(fontSize: 13, color: scheme.primary))
+                    : Text(
+                        subtitle.text,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(fontSize: 13, color: subtitle.active ? scheme.primary : scheme.onSurfaceVariant),
+                      ),
             ],
           ),
         ),

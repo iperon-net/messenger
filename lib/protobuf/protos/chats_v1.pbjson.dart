@@ -202,6 +202,37 @@ const MessagePin$json = {
 /// Descriptor for `MessagePin`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List messagePinDescriptor = $convert.base64Decode('CgpNZXNzYWdlUGluEhwKCW1lc3NhZ2VJRBgBIAEoA1IJbWVzc2FnZUlE');
 
+@$core.Deprecated('Use chatTypingDescriptor instead')
+const ChatTyping$json = {
+  '1': 'ChatTyping',
+  '2': [
+    {'1': 'chatID', '3': 1, '4': 1, '5': 12, '10': 'chatID'},
+    {'1': 'userID', '3': 2, '4': 1, '5': 12, '10': 'userID'},
+    {'1': 'action', '3': 3, '4': 1, '5': 14, '6': '.iperon.v1.ChatTyping.Action', '10': 'action'},
+  ],
+  '4': [ChatTyping_Action$json],
+};
+
+@$core.Deprecated('Use chatTypingDescriptor instead')
+const ChatTyping_Action$json = {
+  '1': 'Action',
+  '2': [
+    {'1': 'CANCEL', '2': 0},
+    {'1': 'TYPING', '2': 1},
+    {'1': 'RECORD_VOICE', '2': 2},
+    {'1': 'UPLOAD_PHOTO', '2': 3},
+    {'1': 'UPLOAD_VIDEO', '2': 4},
+    {'1': 'UPLOAD_FILE', '2': 5},
+  ],
+};
+
+/// Descriptor for `ChatTyping`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List chatTypingDescriptor =
+    $convert.base64Decode('CgpDaGF0VHlwaW5nEhYKBmNoYXRJRBgBIAEoDFIGY2hhdElEEhYKBnVzZXJJRBgCIAEoDFIGdX'
+        'NlcklEEjQKBmFjdGlvbhgDIAEoDjIcLmlwZXJvbi52MS5DaGF0VHlwaW5nLkFjdGlvblIGYWN0'
+        'aW9uImcKBkFjdGlvbhIKCgZDQU5DRUwQABIKCgZUWVBJTkcQARIQCgxSRUNPUkRfVk9JQ0UQAh'
+        'IQCgxVUExPQURfUEhPVE8QAxIQCgxVUExPQURfVklERU8QBBIPCgtVUExPQURfRklMRRAF');
+
 @$core.Deprecated('Use messageContentDescriptor instead')
 const MessageContent$json = {
   '1': 'MessageContent',

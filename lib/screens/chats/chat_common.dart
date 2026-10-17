@@ -42,9 +42,7 @@ export '../../components/chats/chat_toast.dart' show showChatToast;
 /// Подзаголовок шапки: «печатает…», «был(а) недавно», «N участников» /
 /// «N подписчиков». Счётчики в демо — псевдослучайные, стабильные по id.
 ({String text, bool active}) chatSubtitle(Translations t, models.Chat chat) {
-  if (chat.typing.isNotEmpty) {
-    return (text: chat.type == models.ChatType.private ? t.screenChats.typing : t.screenChats.typingName(name: chat.typing), active: true);
-  }
+  if (chat.typing.isNotEmpty) return (text: ChatTileContent.typing(t, chat), active: true);
   // Комментарии к посту — название канала под «Комментарии».
   if (chat.isThread) return (text: chat.title, active: false);
   final seed = chat.id.hashCode.abs();
@@ -654,6 +652,9 @@ Future<void> sendAttachmentDrafts(BuildContext context, List<AttachmentDraft> it
   final caption = sheet.caption;
 
   // Фото — параллельно; видео — по очереди, с окном прогресса и «Отмена».
+  // Сжатие видео бывает долгим — собеседник видит «отправляет видео…» уже
+  // сейчас (дальше его продолжит загрузка, см. ChatsSync).
+  final compressing = items.any((i) => i.kind == models.MessageKind.video) ? cubit.beginActivity(models.ChatActivity.uploadVideo) : null;
   final List<models.MessageMedia> media;
   try {
     media = await _prepareMedia(
@@ -667,6 +668,8 @@ Future<void> sendAttachmentDrafts(BuildContext context, List<AttachmentDraft> it
     );
   } on ChatVideoCancelled {
     return;
+  } finally {
+    cubit.endActivity(compressing);
   }
   // Текст из поля ввода ушёл в подпись (после отмены сжатия — остаётся).
   if (initial.isNotEmpty) input?.clear();

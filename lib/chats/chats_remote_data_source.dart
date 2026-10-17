@@ -20,6 +20,7 @@ import '../demo/chats_demo_data_source.dart';
 import 'chats_data_source.dart';
 import 'chats_mapping.dart';
 import 'chats_presence.dart';
+import 'chats_typing.dart';
 import 'chats_media.dart';
 import 'chats_sync.dart';
 import 'message_search.dart';
@@ -88,16 +89,20 @@ class ChatsRemoteDataSource implements ChatsDataSource {
   @override
   Stream<List<models.Chat>> watchChats() {
     // Перечитываем при изменении таблиц и «в сети» собеседников; загрузки по
-    // очереди, чтобы старый результат не пришёл после нового.
+    // очереди, чтобы старый результат не пришёл после нового. «Печатает…»
+    // меняется часто и в БД не лежит — накладываем на последний загруженный
+    // список без перечитывания.
     late final StreamController<List<models.Chat>> out;
     StreamSubscription<void>? changes;
     StreamSubscription<void>? presence;
+    StreamSubscription<void>? typing;
+    List<models.Chat>? loaded;
     var pending = Future<void>.value();
     void reload() {
       pending = pending
           .then((_) async {
-            final chats = await _loadChats();
-            if (!out.isClosed) out.add(chats);
+            final chats = loaded = await _loadChats();
+            if (!out.isClosed) out.add(_withTyping(chats));
           })
           .catchError((Object error, StackTrace stackTrace) => _logger.handle(error, stackTrace));
     }
@@ -107,16 +112,33 @@ class ChatsRemoteDataSource implements ChatsDataSource {
         _listShown = true;
         changes = _repositories.db.onChange(_chatTables).listen((_) => reload());
         presence = ChatsPresence.instance.changed.listen((_) => reload());
+        typing = ChatsTyping.instance.changed.listen((_) {
+          final chats = loaded;
+          if (chats != null && !out.isClosed) out.add(_withTyping(chats));
+        });
       },
       onCancel: () async {
         _listShown = false;
         ChatsPresence.instance.setListPeers(const []);
         await changes?.cancel();
         await presence?.cancel();
+        await typing?.cancel();
       },
     );
     return out.stream;
   }
+
+  /// «Печатает…» / «отправляет фото…» из [ChatsTyping] — поверх загруженного.
+  /// В личном чате имя не нужно (собеседник один) — берём заголовок.
+  static List<models.Chat> _withTyping(List<models.Chat> chats) => [
+    for (final chat in chats)
+      switch (ChatsTyping.instance.of(chat.id)) {
+        final typing when typing.isEmpty => chat,
+        final typing => chat.copyWith(
+          typing: [for (final t in typing) models.ChatTyping(userID: t.userID, name: chat.title, activity: t.activity)],
+        ),
+      },
+  ];
 
   /// Список чатов подписан ([watchChats]) — только тогда держим «в сети»
   /// собеседников свежим (загрузка, закончившаяся после отписки, не включит).

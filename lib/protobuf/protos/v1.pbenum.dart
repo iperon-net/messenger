@@ -170,6 +170,11 @@ class MessageType extends $pb.ProtobufEnum {
   static const MessageType PRIVACY_FORWARDS_ALLOW_UPDATE = MessageType._(80, _omitEnumNames ? '' : 'PRIVACY_FORWARDS_ALLOW_UPDATE');
   static const MessageType PRIVACY_FORWARDS_DENY_UPDATE = MessageType._(81, _omitEnumNames ? '' : 'PRIVACY_FORWARDS_DENY_UPDATE');
 
+  /// «Печатает…» / «отправляет фото…» — эфемерный сигнал по стриму в обе
+  /// стороны (клиент → сервер → участники чата), без ответа. См.
+  /// chats_v1.proto (ChatTyping).
+  static const MessageType CHAT_TYPING = MessageType._(82, _omitEnumNames ? '' : 'CHAT_TYPING');
+
   static const $core.List<MessageType> values = <MessageType>[
     HEALTHCHECK,
     META_DATA_INFO,
@@ -249,9 +254,10 @@ class MessageType extends $pb.ProtobufEnum {
     PRIVACY_FORWARDS_UPDATE,
     PRIVACY_FORWARDS_ALLOW_UPDATE,
     PRIVACY_FORWARDS_DENY_UPDATE,
+    CHAT_TYPING,
   ];
 
-  static final $core.List<MessageType?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 81);
+  static final $core.List<MessageType?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 82);
   static MessageType? valueOf($core.int value) => value < 0 || value >= _byValue.length ? null : _byValue[value];
 
   const MessageType._(super.value, super.name);

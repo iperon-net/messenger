@@ -6,6 +6,7 @@ import 'message_bubble.dart' show callPreview;
 
 export 'chat_tile_cupertino.dart';
 export 'chat_tile_material.dart';
+export 'typing_text.dart';
 
 /// Что показывать второй строкой в списке чатов.
 enum ChatPreviewKind { message, draft, typing }
@@ -27,12 +28,30 @@ abstract final class ChatTileContent {
   static String title(Translations t, models.Chat chat) =>
       chat.isSelf ? t.screenChats.savedMessages : (chat.isThread ? t.screenChat.commentsTitle : chat.title);
 
+  /// «печатает…» / «Анна отправляет фото…» / «Анна и Олег печатают…»; пусто
+  /// — никто ничего не делает. Общее для строки списка и шапки чата.
+  static String typing(Translations t, models.Chat chat) {
+    final s = t.screenChats;
+    final typing = chat.typing;
+    if (typing.isEmpty) return '';
+    if (typing.length > 2) return s.typingMany(n: typing.length);
+    if (typing.length == 2) return s.typingTwo(first: typing[0].name, second: typing[1].name);
+    final one = typing.single;
+    // Личный чат — без имени: собеседник один и он в шапке.
+    final name = chat.type == models.ChatType.private || one.name.isEmpty ? null : one.name;
+    return switch (one.activity) {
+      models.ChatActivity.typing => name == null ? s.typing : s.typingName(name: name),
+      models.ChatActivity.recordVoice => name == null ? s.recordingVoice : s.recordingVoiceName(name: name),
+      models.ChatActivity.uploadPhoto => name == null ? s.sendingPhoto : s.sendingPhotoName(name: name),
+      models.ChatActivity.uploadVideo => name == null ? s.sendingVideo : s.sendingVideoName(name: name),
+      models.ChatActivity.uploadFile => name == null ? s.sendingFile : s.sendingFileName(name: name),
+    };
+  }
+
   /// Приоритет как в Telegram: «печатает…» → черновик → последнее сообщение.
   static ChatPreview preview(Translations t, models.Chat chat) {
     final s = t.screenChats;
-    if (chat.typing.isNotEmpty) {
-      return ChatPreview(ChatPreviewKind.typing, chat.type == models.ChatType.private ? s.typing : s.typingName(name: chat.typing));
-    }
+    if (chat.typing.isNotEmpty) return ChatPreview(ChatPreviewKind.typing, typing(t, chat));
     if (chat.draft.isNotEmpty) return ChatPreview(ChatPreviewKind.draft, chat.draft, prefix: s.draft);
 
     final message = chat.lastMessage;

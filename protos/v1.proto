@@ -143,6 +143,10 @@ enum MessageType {
   PRIVACY_FORWARDS_UPDATE = 79;
   PRIVACY_FORWARDS_ALLOW_UPDATE = 80;
   PRIVACY_FORWARDS_DENY_UPDATE = 81;
+  // «Печатает…» / «отправляет фото…» — эфемерный сигнал по стриму в обе
+  // стороны (клиент → сервер → участники чата), без ответа. См.
+  // chats_v1.proto (ChatTyping).
+  CHAT_TYPING = 82;
 }
 
 service Iperon {

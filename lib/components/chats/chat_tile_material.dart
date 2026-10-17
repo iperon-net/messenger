@@ -91,7 +91,11 @@ class ChatTileMaterial extends StatelessWidget {
                   const SizedBox(height: 4),
                   Row(
                     children: [
-                      Expanded(child: Text.rich(_span(preview, body, scheme), maxLines: 1, overflow: TextOverflow.ellipsis)),
+                      Expanded(
+                        child: preview.kind == ChatPreviewKind.typing
+                            ? TypingText(preview.text, style: body.copyWith(color: scheme.primary))
+                            : Text.rich(_span(preview, body, scheme), maxLines: 1, overflow: TextOverflow.ellipsis),
+                      ),
                       const SizedBox(width: 6),
                       _badges(scheme),
                     ],

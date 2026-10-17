@@ -236,6 +236,64 @@ extension CallOutcomeMapperExtension on CallOutcome {
   }
 }
 
+class ChatActivityMapper extends EnumMapper<ChatActivity> {
+  ChatActivityMapper._();
+
+  static ChatActivityMapper? _instance;
+  static ChatActivityMapper ensureInitialized() {
+    if (_instance == null) {
+      MapperContainer.globals.use(_instance = ChatActivityMapper._());
+    }
+    return _instance!;
+  }
+
+  static ChatActivity fromValue(dynamic value) {
+    ensureInitialized();
+    return MapperContainer.globals.fromValue(value);
+  }
+
+  @override
+  ChatActivity decode(dynamic value) {
+    switch (value) {
+      case r'typing':
+        return ChatActivity.typing;
+      case r'recordVoice':
+        return ChatActivity.recordVoice;
+      case r'uploadPhoto':
+        return ChatActivity.uploadPhoto;
+      case r'uploadVideo':
+        return ChatActivity.uploadVideo;
+      case r'uploadFile':
+        return ChatActivity.uploadFile;
+      default:
+        throw MapperException.unknownEnumValue(value);
+    }
+  }
+
+  @override
+  dynamic encode(ChatActivity self) {
+    switch (self) {
+      case ChatActivity.typing:
+        return r'typing';
+      case ChatActivity.recordVoice:
+        return r'recordVoice';
+      case ChatActivity.uploadPhoto:
+        return r'uploadPhoto';
+      case ChatActivity.uploadVideo:
+        return r'uploadVideo';
+      case ChatActivity.uploadFile:
+        return r'uploadFile';
+    }
+  }
+}
+
+extension ChatActivityMapperExtension on ChatActivity {
+  String toValue() {
+    ChatActivityMapper.ensureInitialized();
+    return MapperContainer.globals.toValue<ChatActivity>(this) as String;
+  }
+}
+
 class ChatReactionsModeMapper extends EnumMapper<ChatReactionsMode> {
   ChatReactionsModeMapper._();
 
@@ -493,6 +551,146 @@ extension ChatCommentsWhoMapperExtension on ChatCommentsWho {
     ChatCommentsWhoMapper.ensureInitialized();
     return MapperContainer.globals.toValue<ChatCommentsWho>(this) as String;
   }
+}
+
+class ChatTypingMapper extends ClassMapperBase<ChatTyping> {
+  ChatTypingMapper._();
+
+  static ChatTypingMapper? _instance;
+  static ChatTypingMapper ensureInitialized() {
+    if (_instance == null) {
+      MapperContainer.globals.use(_instance = ChatTypingMapper._());
+      ChatActivityMapper.ensureInitialized();
+    }
+    return _instance!;
+  }
+
+  @override
+  final String id = 'ChatTyping';
+
+  static String _$userID(ChatTyping v) => v.userID;
+  static const Field<ChatTyping, String> _f$userID = Field('userID', _$userID);
+  static String _$name(ChatTyping v) => v.name;
+  static const Field<ChatTyping, String> _f$name = Field(
+    'name',
+    _$name,
+    opt: true,
+    def: '',
+  );
+  static ChatActivity _$activity(ChatTyping v) => v.activity;
+  static const Field<ChatTyping, ChatActivity> _f$activity = Field(
+    'activity',
+    _$activity,
+    opt: true,
+    def: ChatActivity.typing,
+  );
+
+  @override
+  final MappableFields<ChatTyping> fields = const {
+    #userID: _f$userID,
+    #name: _f$name,
+    #activity: _f$activity,
+  };
+
+  static ChatTyping _instantiate(DecodingData data) {
+    return ChatTyping(
+      userID: data.dec(_f$userID),
+      name: data.dec(_f$name),
+      activity: data.dec(_f$activity),
+    );
+  }
+
+  @override
+  final Function instantiate = _instantiate;
+
+  static ChatTyping fromMap(Map<String, dynamic> map) {
+    return ensureInitialized().decodeMap<ChatTyping>(map);
+  }
+
+  static ChatTyping fromJson(String json) {
+    return ensureInitialized().decodeJson<ChatTyping>(json);
+  }
+}
+
+mixin ChatTypingMappable {
+  String toJson() {
+    return ChatTypingMapper.ensureInitialized().encodeJson<ChatTyping>(
+      this as ChatTyping,
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return ChatTypingMapper.ensureInitialized().encodeMap<ChatTyping>(
+      this as ChatTyping,
+    );
+  }
+
+  ChatTypingCopyWith<ChatTyping, ChatTyping, ChatTyping> get copyWith =>
+      _ChatTypingCopyWithImpl<ChatTyping, ChatTyping>(
+        this as ChatTyping,
+        $identity,
+        $identity,
+      );
+  @override
+  String toString() {
+    return ChatTypingMapper.ensureInitialized().stringifyValue(
+      this as ChatTyping,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return ChatTypingMapper.ensureInitialized().equalsValue(
+      this as ChatTyping,
+      other,
+    );
+  }
+
+  @override
+  int get hashCode {
+    return ChatTypingMapper.ensureInitialized().hashValue(this as ChatTyping);
+  }
+}
+
+extension ChatTypingValueCopy<$R, $Out>
+    on ObjectCopyWith<$R, ChatTyping, $Out> {
+  ChatTypingCopyWith<$R, ChatTyping, $Out> get $asChatTyping =>
+      $base.as((v, t, t2) => _ChatTypingCopyWithImpl<$R, $Out>(v, t, t2));
+}
+
+abstract class ChatTypingCopyWith<$R, $In extends ChatTyping, $Out>
+    implements ClassCopyWith<$R, $In, $Out> {
+  $R call({String? userID, String? name, ChatActivity? activity});
+  ChatTypingCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
+}
+
+class _ChatTypingCopyWithImpl<$R, $Out>
+    extends ClassCopyWithBase<$R, ChatTyping, $Out>
+    implements ChatTypingCopyWith<$R, ChatTyping, $Out> {
+  _ChatTypingCopyWithImpl(super.value, super.then, super.then2);
+
+  @override
+  late final ClassMapperBase<ChatTyping> $mapper =
+      ChatTypingMapper.ensureInitialized();
+  @override
+  $R call({String? userID, String? name, ChatActivity? activity}) => $apply(
+    FieldCopyWithData({
+      if (userID != null) #userID: userID,
+      if (name != null) #name: name,
+      if (activity != null) #activity: activity,
+    }),
+  );
+  @override
+  ChatTyping $make(CopyWithData data) => ChatTyping(
+    userID: data.get(#userID, or: $value.userID),
+    name: data.get(#name, or: $value.name),
+    activity: data.get(#activity, or: $value.activity),
+  );
+
+  @override
+  ChatTypingCopyWith<$R2, ChatTyping, $Out2> $chain<$R2, $Out2>(
+    Then<$Out2, $R2> t,
+  ) => _ChatTypingCopyWithImpl<$R2, $Out2>($value, $cast, t);
 }
 
 class MessageCallMapper extends ClassMapperBase<MessageCall> {
@@ -1382,6 +1580,7 @@ class ChatMapper extends ClassMapperBase<Chat> {
       MapperContainer.globals.use(_instance = ChatMapper._());
       ChatTypeMapper.ensureInitialized();
       ChatLastMessageMapper.ensureInitialized();
+      ChatTypingMapper.ensureInitialized();
       ChatReactionsModeMapper.ensureInitialized();
       ChatJoinModeMapper.ensureInitialized();
       ChatRoleMapper.ensureInitialized();
@@ -1489,12 +1688,12 @@ class ChatMapper extends ClassMapperBase<Chat> {
     opt: true,
     def: '',
   );
-  static String _$typing(Chat v) => v.typing;
-  static const Field<Chat, String> _f$typing = Field(
+  static List<ChatTyping> _$typing(Chat v) => v.typing;
+  static const Field<Chat, List<ChatTyping>> _f$typing = Field(
     'typing',
     _$typing,
     opt: true,
-    def: '',
+    def: const [],
   );
   static ChatReactionsMode _$reactionsMode(Chat v) => v.reactionsMode;
   static const Field<Chat, ChatReactionsMode> _f$reactionsMode = Field(
@@ -1923,6 +2122,8 @@ abstract class ChatCopyWith<$R, $In extends Chat, $Out>
     implements ClassCopyWith<$R, $In, $Out> {
   ChatLastMessageCopyWith<$R, ChatLastMessage, ChatLastMessage>?
   get lastMessage;
+  ListCopyWith<$R, ChatTyping, ChatTypingCopyWith<$R, ChatTyping, ChatTyping>>
+  get typing;
   ListCopyWith<$R, String, ObjectCopyWith<$R, String, String>> get reactions;
   ListCopyWith<
     $R,
@@ -1947,7 +2148,7 @@ abstract class ChatCopyWith<$R, $In extends Chat, $Out>
     bool? pinned,
     bool? archived,
     String? draft,
-    String? typing,
+    List<ChatTyping>? typing,
     ChatReactionsMode? reactionsMode,
     List<String>? reactions,
     int? maxReactions,
@@ -2001,6 +2202,13 @@ class _ChatCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Chat, $Out>
   get lastMessage =>
       $value.lastMessage?.copyWith.$chain((v) => call(lastMessage: v));
   @override
+  ListCopyWith<$R, ChatTyping, ChatTypingCopyWith<$R, ChatTyping, ChatTyping>>
+  get typing => ListCopyWith(
+    $value.typing,
+    (v, t) => v.copyWith.$chain(t),
+    (v) => call(typing: v),
+  );
+  @override
   ListCopyWith<$R, String, ObjectCopyWith<$R, String, String>> get reactions =>
       ListCopyWith(
         $value.reactions,
@@ -2036,7 +2244,7 @@ class _ChatCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Chat, $Out>
     bool? pinned,
     bool? archived,
     String? draft,
-    String? typing,
+    List<ChatTyping>? typing,
     ChatReactionsMode? reactionsMode,
     List<String>? reactions,
     int? maxReactions,

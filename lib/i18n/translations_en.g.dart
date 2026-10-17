@@ -253,6 +253,39 @@ class Translations$screenChats$en {
 	/// en: '{name} is typing…'
 	String typingName({required Object name}) => '${name} is typing…';
 
+	/// en: 'recording audio…'
+	String get recordingVoice => 'recording audio…';
+
+	/// en: '{name} is recording audio…'
+	String recordingVoiceName({required Object name}) => '${name} is recording audio…';
+
+	/// en: 'sending a photo…'
+	String get sendingPhoto => 'sending a photo…';
+
+	/// en: '{name} is sending a photo…'
+	String sendingPhotoName({required Object name}) => '${name} is sending a photo…';
+
+	/// en: 'sending a video…'
+	String get sendingVideo => 'sending a video…';
+
+	/// en: '{name} is sending a video…'
+	String sendingVideoName({required Object name}) => '${name} is sending a video…';
+
+	/// en: 'sending a file…'
+	String get sendingFile => 'sending a file…';
+
+	/// en: '{name} is sending a file…'
+	String sendingFileName({required Object name}) => '${name} is sending a file…';
+
+	/// en: '{first} and {second} are typing…'
+	String typingTwo({required Object first, required Object second}) => '${first} and ${second} are typing…';
+
+	/// en: '(one) {{n} person is typing…} (other) {{n} people are typing…}'
+	String typingMany({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n,
+		one: '${n} person is typing…',
+		other: '${n} people are typing…',
+	);
+
 	/// en: 'Photo'
 	String get photo => 'Photo';
 
@@ -3683,6 +3716,16 @@ extension on Translations {
 			'screenChats.draft' => 'Draft:',
 			'screenChats.typing' => 'typing…',
 			'screenChats.typingName' => ({required Object name}) => '${name} is typing…',
+			'screenChats.recordingVoice' => 'recording audio…',
+			'screenChats.recordingVoiceName' => ({required Object name}) => '${name} is recording audio…',
+			'screenChats.sendingPhoto' => 'sending a photo…',
+			'screenChats.sendingPhotoName' => ({required Object name}) => '${name} is sending a photo…',
+			'screenChats.sendingVideo' => 'sending a video…',
+			'screenChats.sendingVideoName' => ({required Object name}) => '${name} is sending a video…',
+			'screenChats.sendingFile' => 'sending a file…',
+			'screenChats.sendingFileName' => ({required Object name}) => '${name} is sending a file…',
+			'screenChats.typingTwo' => ({required Object first, required Object second}) => '${first} and ${second} are typing…',
+			'screenChats.typingMany' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: '${n} person is typing…', other: '${n} people are typing…', ), 
 			'screenChats.photo' => 'Photo',
 			'screenChats.video' => 'Video',
 			'screenChats.file' => 'File',
@@ -4142,6 +4185,8 @@ extension on Translations {
 			'screenChat.videoMuted' => 'Muted',
 			'screenChat.videoCover' => 'Cover',
 			'screenChat.videoCoverSet' => 'Cover set',
+			_ => null,
+		} ?? switch (path) {
 			'screenChat.videoReset' => 'Reset',
 			'screenChat.videoCrop' => 'Crop',
 			'screenChat.videoRotate' => 'Rotate',
@@ -4152,8 +4197,6 @@ extension on Translations {
 			'screenChat.format' => 'Formatting',
 			'screenChat.formatBold' => 'Bold',
 			'screenChat.formatItalic' => 'Italic',
-			_ => null,
-		} ?? switch (path) {
 			'screenChat.formatStrike' => 'Strikethrough',
 			'screenChat.formatSpoiler' => 'Spoiler',
 			'screenChat.formatCode' => 'Monospace',
@@ -4656,6 +4699,8 @@ extension on Translations {
 			'screenCall.audioOutput' => 'Speaker',
 			'screenCall.audioOutputTitle' => 'Audio output',
 			'screenCall.routeEarpiece' => 'Phone',
+			_ => null,
+		} ?? switch (path) {
 			'screenCall.routeSpeaker' => 'Speaker',
 			'screenCall.routeWiredHeadset' => 'Headphones',
 			'screenCall.routeBluetooth' => 'Bluetooth',
@@ -4666,8 +4711,6 @@ extension on Translations {
 			'screenCall.cameraOn' => 'Camera on',
 			'screenCall.cameraOff' => 'Camera off',
 			'screenCall.startVideo' => 'Video',
-			_ => null,
-		} ?? switch (path) {
 			'screenCall.switchCamera' => 'Flip camera',
 			'screenCall.qualityPoor' => 'Poor connection',
 			'screenCall.qualityGood' => 'Good connection',

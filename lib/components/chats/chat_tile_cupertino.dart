@@ -175,7 +175,12 @@ class _ChatTileCupertinoState extends State<ChatTileCupertino> {
     return SizedBox(
       // Высота ровно под две строки — строки списка одной высоты.
       height: 2 * 15 * 1.25 * MediaQuery.textScalerOf(context).scale(1),
-      child: Text.rich(span, maxLines: 2, overflow: TextOverflow.ellipsis),
+      child: preview.kind == ChatPreviewKind.typing
+          ? Align(
+              alignment: AlignmentDirectional.topStart,
+              child: TypingText(preview.text, style: span.style!),
+            )
+          : Text.rich(span, maxLines: 2, overflow: TextOverflow.ellipsis),
     );
   }
 

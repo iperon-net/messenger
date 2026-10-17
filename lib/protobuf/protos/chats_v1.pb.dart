@@ -647,6 +647,85 @@ class MessagePin extends $pb.GeneratedMessage {
   void clearMessageID() => $_clearField(1);
 }
 
+/// «Печатает…» / «отправляет фото…» — эфемерный сигнал по стриму
+/// (MessageType CHAT_TYPING) в обе стороны, без ответа, без журнала pts и
+/// без пушей. Клиент повторяет его, пока действие идёт (раз в ~5 с), и шлёт
+/// CANCEL, когда закончил; у получателя запись живёт ~6 с, если её не продлили,
+/// и снимается сразу новым сообщением от того же человека. Сервер проверяет
+/// членство и «кто может писать», ограничивает частоту и рассылает остальным
+/// участникам (не каналы, не «Избранное»).
+class ChatTyping extends $pb.GeneratedMessage {
+  factory ChatTyping({
+    $core.List<$core.int>? chatID,
+    $core.List<$core.int>? userID,
+    ChatTyping_Action? action,
+  }) {
+    final result = create();
+    if (chatID != null) result.chatID = chatID;
+    if (userID != null) result.userID = userID;
+    if (action != null) result.action = action;
+    return result;
+  }
+
+  ChatTyping._();
+
+  factory ChatTyping.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory ChatTyping.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'ChatTyping',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..a<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'chatID', $pb.PbFieldType.OY, protoName: 'chatID')
+    ..a<$core.List<$core.int>>(2, _omitFieldNames ? '' : 'userID', $pb.PbFieldType.OY, protoName: 'userID')
+    ..aE<ChatTyping_Action>(3, _omitFieldNames ? '' : 'action', enumValues: ChatTyping_Action.values)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ChatTyping clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ChatTyping copyWith(void Function(ChatTyping) updates) => super.copyWith((message) => updates(message as ChatTyping)) as ChatTyping;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static ChatTyping create() => ChatTyping._();
+  @$core.override
+  ChatTyping createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static ChatTyping getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<ChatTyping>(create);
+  static ChatTyping? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.List<$core.int> get chatID => $_getN(0);
+  @$pb.TagNumber(1)
+  set chatID($core.List<$core.int> value) => $_setBytes(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasChatID() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearChatID() => $_clearField(1);
+
+  /// Кто — заполняет сервер при рассылке (от клиента игнорируется).
+  @$pb.TagNumber(2)
+  $core.List<$core.int> get userID => $_getN(1);
+  @$pb.TagNumber(2)
+  set userID($core.List<$core.int> value) => $_setBytes(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasUserID() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearUserID() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  ChatTyping_Action get action => $_getN(2);
+  @$pb.TagNumber(3)
+  set action(ChatTyping_Action value) => $_setField(3, value);
+  @$pb.TagNumber(3)
+  $core.bool hasAction() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearAction() => $_clearField(3);
+}
+
 /// Содержимое сообщения. На сервере хранится ОДНИМ зашифрованным блобом
 /// (messages.contentEncrypted, crypto.Encryptor) — открыты только chatID,
 /// messageID, отправитель, дата и флаги.

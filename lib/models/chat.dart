@@ -23,6 +23,24 @@ enum MessageKind { text, photo, video, file, voice, poll, call }
 @MappableEnum()
 enum CallOutcome { ended, missed, declined, busy }
 
+/// Что сейчас делает участник чата — «печатает…», «отправляет фото…»;
+/// порядок как в proto `ChatTyping.Action` (без CANCEL).
+@MappableEnum()
+enum ChatActivity { typing, recordVoice, uploadPhoto, uploadVideo, uploadFile }
+
+/// Участник чата что-то делает прямо сейчас (эфемерно, см. `ChatsTyping`).
+@MappableClass()
+class ChatTyping with ChatTypingMappable {
+  /// hex userID.
+  final String userID;
+
+  /// Имя — для групп («Анна печатает…»); в личном чате не нужно.
+  final String name;
+  final ChatActivity activity;
+
+  const ChatTyping({required this.userID, this.name = '', this.activity = ChatActivity.typing});
+}
+
 /// Звонок в личном чате (пишет сервер по завершении, от звонящего). Подпись
 /// зависит от направления: исходящий [CallOutcome.missed] — «Отменённый»,
 /// входящий — «Пропущенный».
@@ -298,9 +316,9 @@ class Chat with ChatMappable {
   /// Черновик — показывается вместо последнего сообщения.
   final String draft;
 
-  /// Кто печатает: пусто — никто; в личном чате достаточно непустого значения,
-  /// в группе — имя («Анна печатает…»).
-  final String typing;
+  /// Кто что делает прямо сейчас («печатает…», «отправляет фото…»): пусто —
+  /// никто. Порядок — кто начал раньше.
+  final List<ChatTyping> typing;
 
   /// Реакции группы/канала: все, выбранные ([reactions]) или никаких.
   final ChatReactionsMode reactionsMode;
@@ -449,7 +467,7 @@ class Chat with ChatMappable {
     this.pinned = false,
     this.archived = false,
     this.draft = '',
-    this.typing = '',
+    this.typing = const [],
     this.reactionsMode = ChatReactionsMode.all,
     this.reactions = const [],
     this.maxReactions = 11,

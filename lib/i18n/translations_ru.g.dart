@@ -164,6 +164,21 @@ class _Translations$screenChats$ru extends Translations$screenChats$en {
 	@override String get draft => 'Черновик:';
 	@override String get typing => 'печатает…';
 	@override String typingName({required Object name}) => '${name} печатает…';
+	@override String get recordingVoice => 'записывает аудио…';
+	@override String recordingVoiceName({required Object name}) => '${name} записывает аудио…';
+	@override String get sendingPhoto => 'отправляет фото…';
+	@override String sendingPhotoName({required Object name}) => '${name} отправляет фото…';
+	@override String get sendingVideo => 'отправляет видео…';
+	@override String sendingVideoName({required Object name}) => '${name} отправляет видео…';
+	@override String get sendingFile => 'отправляет файл…';
+	@override String sendingFileName({required Object name}) => '${name} отправляет файл…';
+	@override String typingTwo({required Object first, required Object second}) => '${first} и ${second} печатают…';
+	@override String typingMany({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n,
+		one: '${n} человек печатает…',
+		few: '${n} человека печатают…',
+		many: '${n} человек печатают…',
+		other: '${n} человека печатают…',
+	);
 	@override String get photo => 'Фото';
 	@override String get video => 'Видео';
 	@override String get file => 'Файл';
@@ -1594,6 +1609,16 @@ extension on TranslationsRu {
 			'screenChats.draft' => 'Черновик:',
 			'screenChats.typing' => 'печатает…',
 			'screenChats.typingName' => ({required Object name}) => '${name} печатает…',
+			'screenChats.recordingVoice' => 'записывает аудио…',
+			'screenChats.recordingVoiceName' => ({required Object name}) => '${name} записывает аудио…',
+			'screenChats.sendingPhoto' => 'отправляет фото…',
+			'screenChats.sendingPhotoName' => ({required Object name}) => '${name} отправляет фото…',
+			'screenChats.sendingVideo' => 'отправляет видео…',
+			'screenChats.sendingVideoName' => ({required Object name}) => '${name} отправляет видео…',
+			'screenChats.sendingFile' => 'отправляет файл…',
+			'screenChats.sendingFileName' => ({required Object name}) => '${name} отправляет файл…',
+			'screenChats.typingTwo' => ({required Object first, required Object second}) => '${first} и ${second} печатают…',
+			'screenChats.typingMany' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: '${n} человек печатает…', few: '${n} человека печатают…', many: '${n} человек печатают…', other: '${n} человека печатают…', ), 
 			'screenChats.photo' => 'Фото',
 			'screenChats.video' => 'Видео',
 			'screenChats.file' => 'Файл',
@@ -2053,6 +2078,8 @@ extension on TranslationsRu {
 			'screenChat.videoMuted' => 'Без звука',
 			'screenChat.videoCover' => 'Обложка',
 			'screenChat.videoCoverSet' => 'Обложка выбрана',
+			_ => null,
+		} ?? switch (path) {
 			'screenChat.videoReset' => 'Сбросить',
 			'screenChat.videoCrop' => 'Кадрировать',
 			'screenChat.videoRotate' => 'Повернуть',
@@ -2063,8 +2090,6 @@ extension on TranslationsRu {
 			'screenChat.format' => 'Форматирование',
 			'screenChat.formatBold' => 'Жирный',
 			'screenChat.formatItalic' => 'Курсив',
-			_ => null,
-		} ?? switch (path) {
 			'screenChat.formatStrike' => 'Зачёркнутый',
 			'screenChat.formatSpoiler' => 'Спойлер',
 			'screenChat.formatCode' => 'Моноширинный',
@@ -2567,6 +2592,8 @@ extension on TranslationsRu {
 			'screenCall.audioOutput' => 'Динамик',
 			'screenCall.audioOutputTitle' => 'Вывод звука',
 			'screenCall.routeEarpiece' => 'Телефон',
+			_ => null,
+		} ?? switch (path) {
 			'screenCall.routeSpeaker' => 'Динамик',
 			'screenCall.routeWiredHeadset' => 'Наушники',
 			'screenCall.routeBluetooth' => 'Bluetooth',
@@ -2577,8 +2604,6 @@ extension on TranslationsRu {
 			'screenCall.cameraOn' => 'Вкл. камеру',
 			'screenCall.cameraOff' => 'Выкл. камеру',
 			'screenCall.startVideo' => 'Видео',
-			_ => null,
-		} ?? switch (path) {
 			'screenCall.switchCamera' => 'Сменить камеру',
 			'screenCall.qualityPoor' => 'Слабый сигнал',
 			'screenCall.qualityGood' => 'Хорошее соединение',

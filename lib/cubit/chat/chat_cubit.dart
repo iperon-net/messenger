@@ -18,6 +18,7 @@ import '../../chats/chats_remote_data_source.dart';
 import '../../chats/chats_mapping.dart';
 import '../../chats/chats_presence.dart';
 import '../../chats/chats_sync.dart';
+import '../../chats/chats_typing.dart';
 import '../../models.dart' as models;
 import '../../repositories/repositories.dart';
 
@@ -376,6 +377,7 @@ class ChatCubit extends Cubit<ChatState> {
     final source = _source;
     final forwarding = state.forwarding;
     if (source == null || (raw.trim().isEmpty && forwarding.isEmpty)) return;
+    if (_sendsTyping) ChatsTyping.instance.cancel(_chatID);
     // Правка сообщения медленным режимом не ограничена.
     if (state.editing == null && (_slowModeWaiting || state.commentsBlocked)) return;
     final (text, parsed) = parseMarkdownShortcuts(raw.trim());
@@ -936,6 +938,44 @@ class ChatCubit extends Cubit<ChatState> {
 
   Future<void> deleteScheduled(models.Message message) => _online(() => _source?.deleteScheduled(_chatID, message.id));
 
+  // --- «печатает…» собеседнику (см. ChatsTyping) ---
+
+  /// Только в настоящих чатах (в демо сигналы слать некуда).
+  bool get _sendsTyping => _source is ChatsRemoteDataSource;
+
+  ChatTypingHandle? _recording;
+
+  /// Текст в поле изменился (не подстановка черновика): набирают — «печатает…»,
+  /// очистили — снять. Правка сообщения не в счёт.
+  void composeChanged(String text) {
+    if (!_sendsTyping || state.editing != null) return;
+    if (text.trim().isEmpty) {
+      ChatsTyping.instance.cancel(_chatID);
+    } else {
+      ChatsTyping.instance.typing(_chatID);
+    }
+  }
+
+  /// Идёт запись голосового — «записывает аудио…».
+  void setRecording(bool recording) {
+    if (recording == (_recording != null)) return;
+    final handle = _recording;
+    _recording = null;
+    if (handle != null) {
+      ChatsTyping.instance.end(handle);
+    } else if (_sendsTyping) {
+      _recording = ChatsTyping.instance.begin(_chatID, models.ChatActivity.recordVoice);
+    }
+  }
+
+  /// Долгое действие до отправки (сжатие видео) — «отправляет видео…»;
+  /// парный вызов — [endActivity].
+  ChatTypingHandle? beginActivity(models.ChatActivity activity) => _sendsTyping ? ChatsTyping.instance.begin(_chatID, activity) : null;
+
+  void endActivity(ChatTypingHandle? handle) {
+    if (handle != null) ChatsTyping.instance.end(handle);
+  }
+
   /// Черновик — при уходе с экрана (видно в списке чатов).
   Future<void> saveDraft(String text) async {
     if (state.editing != null) return;
@@ -955,6 +995,8 @@ class ChatCubit extends Cubit<ChatState> {
     await _connectionSubscription?.cancel();
     final peer = _presencePeer;
     if (peer != null) ChatsPresence.instance.unwatch(peer);
+    setRecording(false);
+    if (_sendsTyping) ChatsTyping.instance.cancel(_chatID);
     _writeRecheckTimer?.cancel();
     _floodTimer?.cancel();
     _memberSearchTimer?.cancel();
