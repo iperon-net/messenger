@@ -5,6 +5,7 @@ import '../../components.dart';
 import '../../cubit.dart';
 import '../../i18n/translations.g.dart';
 import '../../models.dart' as models;
+import 'chat_common.dart';
 import 'chat_folder_edit_material.dart';
 import 'chat_folders_material.dart';
 import 'chat_mute.dart';
@@ -67,7 +68,7 @@ Future<void> showChatActionsMaterial(BuildContext context, models.Chat chat) asy
             ),
           ListTile(
             leading: Icon(Icons.delete_outline, color: Theme.of(sheetContext).colorScheme.error),
-            title: Text(t.delete, style: TextStyle(color: Theme.of(sheetContext).colorScheme.error)),
+            title: Text(t.deleteChat, style: TextStyle(color: Theme.of(sheetContext).colorScheme.error)),
             onTap: () => Navigator.of(sheetContext).pop(true),
           ),
         ],
@@ -80,46 +81,62 @@ Future<void> showChatActionsMaterial(BuildContext context, models.Chat chat) asy
   if (forEveryone != null) await cubit.delete(chat, forEveryone: forEveryone);
 }
 
-/// «Удалить чат?» Личный (не «Избранное») — как удаление сообщений: галочка
-/// «Также удалить для …» (по умолчанию снята; у собеседника история тоже
-/// очищается, чат пропадает из его списка). Результат — «и у собеседника?»,
-/// `null` — отмена.
-Future<bool?> askDeleteChatMaterial(BuildContext context, models.Chat chat) {
+/// «Удалить чат?» Личный (см. [chatDeleteScoped]) — шторка «У меня» / «У
+/// меня и собеседника» ([pickScopeMaterial]; у собеседника история тоже
+/// очищается, чат пропадает из его списка); остальные — подтверждение алертом.
+/// Результат — «и у собеседника?», `null` — отмена.
+Future<bool?> askDeleteChatMaterial(BuildContext context, models.Chat chat) async {
   final t = context.t.screenChats;
-  final title = ChatTileContent.title(context.t, chat);
-  final private = chat.type == models.ChatType.private && !chat.isSelf;
-  var forBoth = false;
-  return showDialog<bool>(
+  if (chatDeleteScoped(chat)) return pickScopeMaterial(context, title: t.deleteChatTitle);
+  final confirmed = await showDialog<bool>(
     context: context,
-    builder: (dialogContext) => StatefulBuilder(
-      builder: (dialogContext, setDialogState) => AlertDialog(
-        title: Text(t.deleteChatTitle),
-        content: Column(
+    builder: (dialogContext) => AlertDialog(
+      title: Text(t.deleteChatTitle),
+      content: Text(t.deleteChatMessage(title: ChatTileContent.title(context.t, chat))),
+      actions: [
+        TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: Text(context.t.common.cancel)),
+        TextButton(
+          style: TextButton.styleFrom(foregroundColor: Theme.of(dialogContext).colorScheme.error),
+          onPressed: () => Navigator.of(dialogContext).pop(true),
+          child: Text(t.delete),
+        ),
+      ],
+    ),
+  );
+  return (confirmed ?? false) ? false : null;
+}
+
+/// Выбор «У меня» / «У меня и собеседника» отдельной шторкой поверх
+/// закрытой шторки действий (как отдельное меню на iOS) — для личного чата
+/// ([chatDeleteScoped]): удаление чата и сообщений, закрепление. Результат —
+/// «и у собеседника?», `null` — отмена.
+Future<bool?> pickScopeMaterial(BuildContext context, {required String title, bool destructive = true}) {
+  final t = context.t.screenChats;
+  return showModalBottomSheet<bool>(
+    context: context,
+    showDragHandle: true,
+    builder: (sheetContext) {
+      final color = destructive ? Theme.of(sheetContext).colorScheme.error : null;
+      Widget option(IconData icon, String label, bool forEveryone) => ListTile(
+        leading: Icon(icon, color: color),
+        title: Text(label, style: TextStyle(color: color)),
+        onTap: () => Navigator.of(sheetContext).pop(forEveryone),
+      );
+      return SafeArea(
+        child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(t.deleteChatMessage(title: title)),
-            if (private)
-              CheckboxListTile(
-                contentPadding: EdgeInsets.zero,
-                controlAffinity: ListTileControlAffinity.leading,
-                horizontalTitleGap: 4,
-                value: forBoth,
-                onChanged: (value) => setDialogState(() => forBoth = value ?? false),
-                title: Text(t.deleteChatForPeer),
-              ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+              child: Text(title, style: Theme.of(sheetContext).textTheme.titleMedium),
+            ),
+            option(Icons.person_outline, t.scopeMe, false),
+            option(Icons.people_outline, t.scopeBoth, true),
           ],
         ),
-        actions: [
-          TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: Text(context.t.common.cancel)),
-          TextButton(
-            style: TextButton.styleFrom(foregroundColor: Theme.of(dialogContext).colorScheme.error),
-            onPressed: () => Navigator.of(dialogContext).pop(private && forBoth),
-            child: Text(t.delete),
-          ),
-        ],
-      ),
-    ),
+      );
+    },
   );
 }
 

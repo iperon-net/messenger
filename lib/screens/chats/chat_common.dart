@@ -1786,3 +1786,11 @@ class MentionSuggestions extends StatelessWidget {
     );
   }
 }
+
+/// Удаление чата с выбором «У меня» / «У меня и собеседника» — личный, кроме
+/// «Избранного» (у собеседника история тоже очищается, чат пропадает из его
+/// списка). Так же — удаление и закрепление сообщений в нём. Выбор — отдельным
+/// меню после пункта действий: на iOS выпадающим ([scopeMenuCupertino] в
+/// chat_actions_cupertino.dart), на Android шторкой ([pickScopeMaterial] в
+/// chat_actions_material.dart).
+bool chatDeleteScoped(models.Chat chat) => chat.type == models.ChatType.private && !chat.isSelf;

@@ -7,6 +7,7 @@ import '../../components.dart';
 import '../../cubit.dart';
 import '../../i18n/translations.g.dart';
 import '../../models.dart' as models;
+import 'chat_common.dart';
 import 'chat_folder_edit_cupertino.dart';
 import 'chat_folders_cupertino.dart';
 import 'chat_mute.dart';
@@ -115,12 +116,6 @@ class ChatContextMenuCupertino extends StatelessWidget {
     );
   }
 }
-
-/// Удаление чата с выбором «У меня» / «У меня и собеседника» — личный, кроме
-/// «Избранного» (у собеседника история тоже очищается, чат пропадает из его
-/// списка). Так же — удаление и закрепление сообщений в нём. На iOS выбор —
-/// отдельным выпадающим меню ([scopeMenuCupertino]), без всплывающего листа.
-bool chatDeleteScoped(models.Chat chat) => chat.type == models.ChatType.private && !chat.isSelf;
 
 /// Пункты выпадающего меню (`CupertinoMenuAnchor`) выбора «У меня» / «У меня и
 /// собеседника»: удаление чата (см. [chatDeleteScoped]) или сообщений личного

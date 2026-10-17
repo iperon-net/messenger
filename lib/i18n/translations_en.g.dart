@@ -367,9 +367,6 @@ class Translations$screenChats$en {
 	/// en: 'Chat "{title}" will be removed from the list.'
 	String deleteChatMessage({required Object title}) => 'Chat "${title}" will be removed from the list.';
 
-	/// en: 'Also delete for the other person'
-	String get deleteChatForPeer => 'Also delete for the other person';
-
 	/// en: 'Delete chat'
 	String get deleteChat => 'Delete chat';
 
@@ -1587,9 +1584,6 @@ class Translations$screenChat$en {
 
 	/// en: 'Keyboard'
 	String get keyboard => 'Keyboard';
-
-	/// en: 'For the other person'
-	String get forPeer => 'For the other person';
 
 	/// en: 'You pinned «{text}»'
 	String pinnedServiceYou({required Object text}) => 'You pinned «${text}»';
@@ -3753,7 +3747,6 @@ extension on Translations {
 			'screenChats.swipeUnarchive' => 'Unarchive',
 			'screenChats.deleteChatTitle' => 'Delete chat?',
 			'screenChats.deleteChatMessage' => ({required Object title}) => 'Chat "${title}" will be removed from the list.',
-			'screenChats.deleteChatForPeer' => 'Also delete for the other person',
 			'screenChats.deleteChat' => 'Delete chat',
 			'screenChats.scopeMe' => 'For me',
 			'screenChats.scopeBoth' => 'For me and the other person',
@@ -4135,7 +4128,6 @@ extension on Translations {
 			'screenChat.emojiSearch' => 'Search emoji',
 			'screenChat.emoji' => 'Emoji',
 			'screenChat.keyboard' => 'Keyboard',
-			'screenChat.forPeer' => 'For the other person',
 			'screenChat.pinnedServiceYou' => ({required Object text}) => 'You pinned «${text}»',
 			'screenChat.pinnedServiceYouMessage' => 'You pinned a message',
 			'screenChat.pinnedService' => ({required Object name, required Object text}) => '${name} pinned «${text}»',
@@ -4185,10 +4177,10 @@ extension on Translations {
 			'screenChat.videoSound' => 'Sound',
 			'screenChat.videoMuted' => 'Muted',
 			'screenChat.videoCover' => 'Cover',
-			_ => null,
-		} ?? switch (path) {
 			'screenChat.videoCoverSet' => 'Cover set',
 			'screenChat.videoReset' => 'Reset',
+			_ => null,
+		} ?? switch (path) {
 			'screenChat.videoCrop' => 'Crop',
 			'screenChat.videoRotate' => 'Rotate',
 			'screenChat.videoAspectFree' => 'Free',
@@ -4699,10 +4691,10 @@ extension on Translations {
 			'screenCall.speakerOff' => 'Speaker off',
 			'screenCall.audioOutput' => 'Speaker',
 			'screenCall.audioOutputTitle' => 'Audio output',
-			_ => null,
-		} ?? switch (path) {
 			'screenCall.routeEarpiece' => 'Phone',
 			'screenCall.routeSpeaker' => 'Speaker',
+			_ => null,
+		} ?? switch (path) {
 			'screenCall.routeWiredHeadset' => 'Headphones',
 			'screenCall.routeBluetooth' => 'Bluetooth',
 			'screenCall.routeHearingAid' => 'Hearing aid',

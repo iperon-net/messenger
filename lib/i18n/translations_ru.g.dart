@@ -206,7 +206,6 @@ class _Translations$screenChats$ru extends Translations$screenChats$en {
 	@override String get swipeUnarchive => 'Вернуть';
 	@override String get deleteChatTitle => 'Удалить чат?';
 	@override String deleteChatMessage({required Object title}) => 'Чат «${title}» будет удалён из списка.';
-	@override String get deleteChatForPeer => 'Также удалить у собеседника';
 	@override String get deleteChat => 'Удалить чат';
 	@override String get scopeMe => 'У меня';
 	@override String get scopeBoth => 'У меня и собеседника';
@@ -677,7 +676,6 @@ class _Translations$screenChat$ru extends Translations$screenChat$en {
 	@override String get emojiSearch => 'Поиск эмодзи';
 	@override String get emoji => 'Эмодзи';
 	@override String get keyboard => 'Клавиатура';
-	@override String get forPeer => 'Для собеседника';
 	@override String pinnedServiceYou({required Object text}) => 'Вы закрепили «${text}»';
 	@override String get pinnedServiceYouMessage => 'Вы закрепили сообщение';
 	@override String pinnedService({required Object name, required Object text}) => '${name} закрепил(а) «${text}»';
@@ -1642,7 +1640,6 @@ extension on TranslationsRu {
 			'screenChats.swipeUnarchive' => 'Вернуть',
 			'screenChats.deleteChatTitle' => 'Удалить чат?',
 			'screenChats.deleteChatMessage' => ({required Object title}) => 'Чат «${title}» будет удалён из списка.',
-			'screenChats.deleteChatForPeer' => 'Также удалить у собеседника',
 			'screenChats.deleteChat' => 'Удалить чат',
 			'screenChats.scopeMe' => 'У меня',
 			'screenChats.scopeBoth' => 'У меня и собеседника',
@@ -2024,7 +2021,6 @@ extension on TranslationsRu {
 			'screenChat.emojiSearch' => 'Поиск эмодзи',
 			'screenChat.emoji' => 'Эмодзи',
 			'screenChat.keyboard' => 'Клавиатура',
-			'screenChat.forPeer' => 'Для собеседника',
 			'screenChat.pinnedServiceYou' => ({required Object text}) => 'Вы закрепили «${text}»',
 			'screenChat.pinnedServiceYouMessage' => 'Вы закрепили сообщение',
 			'screenChat.pinnedService' => ({required Object name, required Object text}) => '${name} закрепил(а) «${text}»',
@@ -2074,10 +2070,10 @@ extension on TranslationsRu {
 			'screenChat.videoSound' => 'Звук',
 			'screenChat.videoMuted' => 'Без звука',
 			'screenChat.videoCover' => 'Обложка',
-			_ => null,
-		} ?? switch (path) {
 			'screenChat.videoCoverSet' => 'Обложка выбрана',
 			'screenChat.videoReset' => 'Сбросить',
+			_ => null,
+		} ?? switch (path) {
 			'screenChat.videoCrop' => 'Кадрировать',
 			'screenChat.videoRotate' => 'Повернуть',
 			'screenChat.videoAspectFree' => 'Свободно',
@@ -2588,10 +2584,10 @@ extension on TranslationsRu {
 			'screenCall.speakerOff' => 'Выкл. динамик',
 			'screenCall.audioOutput' => 'Динамик',
 			'screenCall.audioOutputTitle' => 'Вывод звука',
-			_ => null,
-		} ?? switch (path) {
 			'screenCall.routeEarpiece' => 'Телефон',
 			'screenCall.routeSpeaker' => 'Динамик',
+			_ => null,
+		} ?? switch (path) {
 			'screenCall.routeWiredHeadset' => 'Наушники',
 			'screenCall.routeBluetooth' => 'Bluetooth',
 			'screenCall.routeHearingAid' => 'Слуховой аппарат',

@@ -17,6 +17,7 @@ import '../../cubit.dart';
 import '../../i18n/translations.g.dart';
 import '../../models.dart' as models;
 import '../../themes.dart';
+import 'chat_actions_material.dart';
 import 'chat_common.dart';
 import 'chat_info_common.dart';
 import 'comments_limit.dart';
@@ -266,41 +267,30 @@ class _ChatMaterialState extends State<ChatMaterial> {
     if (forEveryone != null) await _cubit.deleteSelected(forEveryone: forEveryone);
   }
 
-  /// Подтверждение удаления [count] сообщений. Личный чат — как в Telegram,
-  /// галочка «Также удалить для …» (по умолчанию снята); группа — у всех;
+  /// Подтверждение удаления [count] сообщений. Личный чат — шторка «У меня» /
+  /// «У меня и собеседника» ([pickScopeMaterial]); группа — у всех;
   /// «Избранное» — только у себя. Результат — «у всех?», `null` — отмена.
   Future<bool?> _askDelete(BuildContext context, models.Chat chat, int count) {
     final t = context.t.screenChat;
-    final private = chat.type == models.ChatType.private && !chat.isSelf;
-    var forBoth = false;
+    final title = count == 1 ? t.deleteTitle : t.deleteSelectedTitle(n: count);
+    if (chatDeleteScoped(chat)) return pickScopeMaterial(context, title: title);
     return showDialog<bool>(
       context: context,
-      builder: (dialogContext) => StatefulBuilder(
-        builder: (dialogContext, setDialogState) => AlertDialog(
-          title: Text(count == 1 ? t.deleteTitle : t.deleteSelectedTitle(n: count)),
-          content: private
-              ? CheckboxListTile(
-                  contentPadding: EdgeInsets.zero,
-                  controlAffinity: ListTileControlAffinity.leading,
-                  horizontalTitleGap: 4,
-                  value: forBoth,
-                  onChanged: (value) => setDialogState(() => forBoth = value ?? false),
-                  title: Text(t.forPeer),
-                )
-              : Text(
-                  chat.isSelf
-                      ? (count == 1 ? t.deleteMessageSelf : t.deleteSelectedMessageSelf)
-                      : (count == 1 ? t.deleteMessage : t.deleteSelectedMessage),
-                ),
-          actions: [
-            TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: Text(context.t.common.cancel)),
-            TextButton(
-              style: TextButton.styleFrom(foregroundColor: Theme.of(dialogContext).colorScheme.error),
-              onPressed: () => Navigator.of(dialogContext).pop(private ? forBoth : !chat.isSelf),
-              child: Text(t.delete),
-            ),
-          ],
+      builder: (dialogContext) => AlertDialog(
+        title: Text(title),
+        content: Text(
+          chat.isSelf
+              ? (count == 1 ? t.deleteMessageSelf : t.deleteSelectedMessageSelf)
+              : (count == 1 ? t.deleteMessage : t.deleteSelectedMessage),
         ),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: Text(context.t.common.cancel)),
+          TextButton(
+            style: TextButton.styleFrom(foregroundColor: Theme.of(dialogContext).colorScheme.error),
+            onPressed: () => Navigator.of(dialogContext).pop(!chat.isSelf),
+            child: Text(t.delete),
+          ),
+        ],
       ),
     );
   }
