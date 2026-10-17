@@ -76,6 +76,7 @@ class TranslationsRu extends Translations with BaseTranslations<AppLocale, Trans
 	@override late final _Translations$screenCall$ru screenCall = _Translations$screenCall$ru._(_root);
 	@override late final _Translations$passkey$ru passkey = _Translations$passkey$ru._(_root);
 	@override late final _Translations$yandex$ru yandex = _Translations$yandex$ru._(_root);
+	@override late final _Translations$chatTtl$ru chatTtl = _Translations$chatTtl$ru._(_root);
 }
 
 // Path: common
@@ -1557,6 +1558,53 @@ class _Translations$yandex$ru extends Translations$yandex$en {
 	@override String get unavailable => 'Яндекс ID сейчас недоступен. Попробуйте позже.';
 }
 
+// Path: chatTtl
+class _Translations$chatTtl$ru extends Translations$chatTtl$en {
+	_Translations$chatTtl$ru._(TranslationsRu root) : this._root = root, super.internal(root);
+
+	final TranslationsRu _root; // ignore: unused_field
+
+	// Translations
+	@override String get title => 'Автоудаление';
+	@override String get titleLong => 'Автоудаление сообщений';
+	@override String get off => 'Выключено';
+	@override String get turnOff => 'Выключить';
+	@override String get other => 'Другое…';
+	@override String get customTitle => 'Удалять через';
+	@override String get done => 'Готово';
+	@override String days({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n,
+		one: '${n} день',
+		few: '${n} дня',
+		many: '${n} дней',
+		other: '${n} дня',
+	);
+	@override String weeks({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n,
+		one: '${n} неделя',
+		few: '${n} недели',
+		many: '${n} недель',
+		other: '${n} недели',
+	);
+	@override String months({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n,
+		one: '${n} месяц',
+		few: '${n} месяца',
+		many: '${n} месяцев',
+		other: '${n} месяца',
+	);
+	@override String years({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n,
+		one: '${n} год',
+		few: '${n} года',
+		many: '${n} лет',
+		other: '${n} года',
+	);
+	@override String get chatFooter => 'Новые сообщения в этом чате будут удаляться у вас и у собеседника через выбранное время после отправки.';
+	@override String get defaultFooter => 'В чатах, которые вы начинаете, новые сообщения будут удаляться через выбранное время после отправки. Существующие чаты не меняются.';
+	@override String serviceYou({required Object period}) => 'Вы включили автоудаление сообщений: ${period}';
+	@override String get serviceYouOff => 'Вы выключили автоудаление сообщений';
+	@override String service({required Object name, required Object period}) => '${name} включил(а) автоудаление сообщений: ${period}';
+	@override String serviceOff({required Object name}) => '${name} выключил(а) автоудаление сообщений';
+	@override String get restricted => 'Собеседник ограничил, кто может ему писать, — изменить автоудаление нельзя.';
+}
+
 /// The flat map containing all translations for locale <ru>.
 /// Only for edge cases! For simple maps, use the map function of this library.
 ///
@@ -2637,6 +2685,24 @@ extension on TranslationsRu {
 			'yandex.phoneMissing' => 'К аккаунту Яндекс ID не привязан номер телефона. Добавьте его в Яндекс ID или войдите по номеру.',
 			'yandex.invalidPhone' => 'Номер телефона в Яндекс ID не подходит для входа. Войдите по номеру.',
 			'yandex.unavailable' => 'Яндекс ID сейчас недоступен. Попробуйте позже.',
+			'chatTtl.title' => 'Автоудаление',
+			'chatTtl.titleLong' => 'Автоудаление сообщений',
+			'chatTtl.off' => 'Выключено',
+			'chatTtl.turnOff' => 'Выключить',
+			'chatTtl.other' => 'Другое…',
+			'chatTtl.customTitle' => 'Удалять через',
+			'chatTtl.done' => 'Готово',
+			'chatTtl.days' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: '${n} день', few: '${n} дня', many: '${n} дней', other: '${n} дня', ), 
+			'chatTtl.weeks' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: '${n} неделя', few: '${n} недели', many: '${n} недель', other: '${n} недели', ), 
+			'chatTtl.months' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: '${n} месяц', few: '${n} месяца', many: '${n} месяцев', other: '${n} месяца', ), 
+			'chatTtl.years' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: '${n} год', few: '${n} года', many: '${n} лет', other: '${n} года', ), 
+			'chatTtl.chatFooter' => 'Новые сообщения в этом чате будут удаляться у вас и у собеседника через выбранное время после отправки.',
+			'chatTtl.defaultFooter' => 'В чатах, которые вы начинаете, новые сообщения будут удаляться через выбранное время после отправки. Существующие чаты не меняются.',
+			'chatTtl.serviceYou' => ({required Object period}) => 'Вы включили автоудаление сообщений: ${period}',
+			'chatTtl.serviceYouOff' => 'Вы выключили автоудаление сообщений',
+			'chatTtl.service' => ({required Object name, required Object period}) => '${name} включил(а) автоудаление сообщений: ${period}',
+			'chatTtl.serviceOff' => ({required Object name}) => '${name} выключил(а) автоудаление сообщений',
+			'chatTtl.restricted' => 'Собеседник ограничил, кто может ему писать, — изменить автоудаление нельзя.',
 			_ => null,
 		};
 	}

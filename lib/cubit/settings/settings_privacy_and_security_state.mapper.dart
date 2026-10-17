@@ -216,6 +216,9 @@ class SettingsPrivacyAndSecurityStateMapper
       v.hideReadTime;
   static const Field<SettingsPrivacyAndSecurityState, bool> _f$hideReadTime =
       Field('hideReadTime', _$hideReadTime, opt: true, def: false);
+  static int _$messagesTTL(SettingsPrivacyAndSecurityState v) => v.messagesTTL;
+  static const Field<SettingsPrivacyAndSecurityState, int> _f$messagesTTL =
+      Field('messagesTTL', _$messagesTTL, opt: true, def: 0);
 
   @override
   final MappableFields<SettingsPrivacyAndSecurityState> fields = const {
@@ -243,6 +246,7 @@ class SettingsPrivacyAndSecurityStateMapper
     #forwardsAllow: _f$forwardsAllow,
     #forwardsDeny: _f$forwardsDeny,
     #hideReadTime: _f$hideReadTime,
+    #messagesTTL: _f$messagesTTL,
   };
 
   static SettingsPrivacyAndSecurityState _instantiate(DecodingData data) {
@@ -271,6 +275,7 @@ class SettingsPrivacyAndSecurityStateMapper
       forwardsAllow: data.dec(_f$forwardsAllow),
       forwardsDeny: data.dec(_f$forwardsDeny),
       hideReadTime: data.dec(_f$hideReadTime),
+      messagesTTL: data.dec(_f$messagesTTL),
     );
   }
 
@@ -401,6 +406,7 @@ abstract class SettingsPrivacyAndSecurityStateCopyWith<
     List<Uint8List>? forwardsAllow,
     List<Uint8List>? forwardsDeny,
     bool? hideReadTime,
+    int? messagesTTL,
   });
   SettingsPrivacyAndSecurityStateCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
     Then<$Out2, $R2> t,
@@ -534,6 +540,7 @@ class _SettingsPrivacyAndSecurityStateCopyWithImpl<$R, $Out>
     List<Uint8List>? forwardsAllow,
     List<Uint8List>? forwardsDeny,
     bool? hideReadTime,
+    int? messagesTTL,
   }) => $apply(
     FieldCopyWithData({
       if (status != null) #status: status,
@@ -561,6 +568,7 @@ class _SettingsPrivacyAndSecurityStateCopyWithImpl<$R, $Out>
       if (forwardsAllow != null) #forwardsAllow: forwardsAllow,
       if (forwardsDeny != null) #forwardsDeny: forwardsDeny,
       if (hideReadTime != null) #hideReadTime: hideReadTime,
+      if (messagesTTL != null) #messagesTTL: messagesTTL,
     }),
   );
   @override
@@ -594,6 +602,7 @@ class _SettingsPrivacyAndSecurityStateCopyWithImpl<$R, $Out>
     forwardsAllow: data.get(#forwardsAllow, or: $value.forwardsAllow),
     forwardsDeny: data.get(#forwardsDeny, or: $value.forwardsDeny),
     hideReadTime: data.get(#hideReadTime, or: $value.hideReadTime),
+    messagesTTL: data.get(#messagesTTL, or: $value.messagesTTL),
   );
 
   @override

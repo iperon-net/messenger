@@ -111,7 +111,8 @@ models.MessageCall? callFromPb(pb.MessageContent content) {
 
 /// Входящее, которое не считается непрочитанным: звонок, кроме пропущенного,
 /// и «закрепил сообщение» (как на сервере, `noUnread`).
-bool skipsUnread(pb.MessageContent content) => content.hasPin() || (content.hasCall() && callFromPb(content)?.unanswered != true);
+bool skipsUnread(pb.MessageContent content) =>
+    content.hasPin() || content.hasTtlChanged() || (content.hasCall() && callFromPb(content)?.unanswered != true);
 
 /// Текст закреплённого для «закрепил «…»»: подпись / текст, у файла — имя,
 /// у остального — пусто (тогда подпись вида — на стороне экрана).
@@ -167,10 +168,12 @@ models.Message messageFromPb(
     id: m.messageID.toString(),
     chatID: chatID,
     kind: kind,
-    // «Закрепил сообщение» — служебная плашка (тап — к закреплённому).
-    service: content.hasPin(),
+    // «Закрепил сообщение» / «изменил автоудаление» — служебная плашка (тап по
+    // закрепу — к закреплённому).
+    service: content.hasPin() || content.hasTtlChanged(),
     pinnedMessageID: content.hasPin() ? content.pin.messageID.toString() : '',
-    senderName: content.hasPin() && !outgoing ? peerName : '',
+    ttlChange: content.hasTtlChanged() ? content.ttlChanged.period : null,
+    senderName: (content.hasPin() || content.hasTtlChanged()) && !outgoing ? peerName : '',
     pinned: pinned,
     pinnedOnlyMe: pinned && pinnedOnlyMe,
     text: content.text,
@@ -286,6 +289,7 @@ models.ChatLastMessage lastMessageFromPb(
     phoneCall: callFromPb(m.content),
     pin: m.content.hasPin(),
     pinText: m.content.hasPin() ? pinSnippet(pinned) : '',
+    ttlChange: m.content.hasTtlChanged() ? m.content.ttlChanged.period : null,
   );
 }
 

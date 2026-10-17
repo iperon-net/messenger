@@ -697,6 +697,18 @@ class Repositories {
       }),
     );
 
+    migrations.add(
+      SqliteMigration(30, (tx) async {
+        // Автоудаление (ChatMessage.ttlPeriod): chatMessages.expireAt — когда
+        // сообщение удалить у себя самим (unix millis; 0 — никогда), по нему
+        // ChatsSync.sweepExpired; chatDialogs.ttlPeriod — таймер чата
+        // (секунды; 0 — выключен).
+        await tx.execute('ALTER TABLE chatMessages ADD COLUMN expireAt INTEGER NOT NULL DEFAULT 0;');
+        await tx.execute('CREATE INDEX idx_chatMessages_expireAt ON chatMessages(userID, expireAt) WHERE expireAt > 0;');
+        await tx.execute('ALTER TABLE chatDialogs ADD COLUMN ttlPeriod INTEGER NOT NULL DEFAULT 0;');
+      }),
+    );
+
     if (settings.isDeleteDatabase) {
       logger.warning("Deleting the database, flag set IS_DELETE_DATABASE: 1");
 

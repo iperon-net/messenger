@@ -1173,3 +1173,31 @@ dateTime:
   "phoneMissing": "Your Yandex ID has no phone number. Add one in Yandex ID or sign in with your phone number."
   "invalidPhone": "The phone number in your Yandex ID can't be used to sign in. Sign in with your phone number."
   "unavailable": "Yandex ID is unavailable right now. Please try again later."
+
+"chatTtl":
+  "title": "Auto-delete"
+  "titleLong": "Auto-delete messages"
+  "off": "Off"
+  "turnOff": "Turn off"
+  "other": "Other…"
+  "customTitle": "Delete after"
+  "done": "Done"
+  "days(plural)":
+    one: "{n} day"
+    other: "{n} days"
+  "weeks(plural)":
+    one: "{n} week"
+    other: "{n} weeks"
+  "months(plural)":
+    one: "{n} month"
+    other: "{n} months"
+  "years(plural)":
+    one: "{n} year"
+    other: "{n} years"
+  "chatFooter": "New messages in this chat will be deleted for you and the other person after the selected time."
+  "defaultFooter": "In chats you start, new messages will be deleted after the selected time. Existing chats are not affected."
+  "serviceYou": "You set messages to auto-delete in {period}"
+  "serviceYouOff": "You disabled auto-delete"
+  "service": "{name} set messages to auto-delete in {period}"
+  "serviceOff": "{name} disabled auto-delete"
+  "restricted": "The other person has restricted who can message them, so auto-delete can't be changed."

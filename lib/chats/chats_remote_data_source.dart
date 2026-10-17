@@ -222,6 +222,7 @@ class ChatsRemoteDataSource implements ChatsDataSource {
           mutedUntil: muted.until,
           pinned: row.pinned,
           archived: row.archived,
+          ttlPeriod: isSelf ? 0 : row.ttlPeriod,
           draft: row.draft,
           about: info?.profile?.aboutMe ?? '',
           username: info?.profile?.username ?? '',
@@ -367,6 +368,17 @@ class ChatsRemoteDataSource implements ChatsDataSource {
 
   @override
   Future<void> setArchived(String chatID, bool archived) => _setDialog(chatID, archived: archived);
+
+  @override
+  Future<void> setTTL(String chatID, int period) async {
+    await _requireNetwork();
+    final response = await _sync.chats(
+      pb.Chats_Request(
+        setTTL: pb.Chats_SetTTL(chatID: idBytes(chatID), period: period),
+      ),
+    );
+    await _sync.applyUpdates(response.setTTL.updates);
+  }
 
   /// Чаты, по которым сейчас уходит «прочитано» (cubit окна чата зовёт
   /// [setRead] на каждое изменение, пока счётчик не обнулится).

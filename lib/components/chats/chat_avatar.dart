@@ -26,6 +26,10 @@ class ChatAvatar extends StatelessWidget {
   /// точку справа внизу с обводкой этим цветом (строки списка чатов).
   final Color? onlineRingColor;
 
+  /// Задан — при автоудалении в чате ([models.Chat.ttlPeriod]) значок таймера
+  /// справа внизу на этом цвете (аватар в шапке чата, как в Telegram).
+  final Color? ttlBadgeColor;
+
   const ChatAvatar({
     super.key,
     required this.chat,
@@ -33,6 +37,7 @@ class ChatAvatar extends StatelessWidget {
     this.accentForeground = const Color(0xFFFFFFFF),
     this.size = 56,
     this.onlineRingColor,
+    this.ttlBadgeColor,
   });
 
   /// Зелёный «в сети» (systemGreen iOS).
@@ -40,6 +45,31 @@ class ChatAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final badge = ttlBadgeColor;
+    if (badge != null && chat.ttlPeriod > 0) {
+      final dot = size * 0.46;
+      return SizedBox(
+        width: size,
+        height: size,
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            _avatar(),
+            Positioned(
+              right: -dot * 0.15,
+              bottom: -dot * 0.15,
+              child: Container(
+                width: dot,
+                height: dot,
+                decoration: BoxDecoration(color: badge, shape: BoxShape.circle),
+                alignment: Alignment.center,
+                child: FaIcon(FontAwesomeIcons.stopwatch, size: dot * 0.58, color: const Color(0xFFFFFFFF)),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
     final ring = onlineRingColor;
     final avatar = _avatar();
     if (ring == null || !chat.online || chat.isSelf || chat.type != models.ChatType.private) return avatar;

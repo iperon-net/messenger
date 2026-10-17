@@ -937,7 +937,8 @@ class _Header extends StatelessWidget {
     final subtitle = chatSubtitle(t, chat);
     return Row(
       children: [
-        ChatAvatar(chat: chat, size: 40, accentColor: scheme.primary, accentForeground: scheme.onPrimary),
+        // Автоудаление — значок таймера на аватаре (как в Telegram).
+        ChatAvatar(chat: chat, size: 40, accentColor: scheme.primary, accentForeground: scheme.onPrimary, ttlBadgeColor: scheme.outline),
         const SizedBox(width: 12),
         Expanded(
           child: Column(

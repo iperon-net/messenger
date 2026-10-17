@@ -2,7 +2,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import '../../i18n/translations.g.dart';
 import '../../models.dart' as models;
-import 'message_bubble.dart' show callPreview;
+import 'message_bubble.dart' show callPreview, chatTTLServiceText;
 
 export 'chat_tile_cupertino.dart';
 export 'chat_tile_material.dart';
@@ -58,6 +58,10 @@ abstract final class ChatTileContent {
     if (message == null) {
       // Пустое «Избранное» — подсказка вместо пустой строки.
       return ChatPreview(ChatPreviewKind.message, chat.isSelf ? s.savedMessagesEmpty : '');
+    }
+    // «Изменил автоудаление» — как плашка в ленте; собеседник — по названию чата.
+    if (message.ttlChange case final period?) {
+      return ChatPreview(ChatPreviewKind.message, chatTTLServiceText(t, period: period, outgoing: message.outgoing, name: chat.title));
     }
     // «Закрепил сообщение» — как плашка в ленте; собеседник — по названию чата.
     if (message.pin) {

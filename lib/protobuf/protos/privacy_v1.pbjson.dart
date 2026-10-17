@@ -51,6 +51,7 @@ const PrivacySettings_Response$json = {
     {'1': 'forwards', '3': 18, '4': 1, '5': 14, '6': '.iperon.v1.PrivacySettings.Audience', '10': 'forwards'},
     {'1': 'forwards_allow', '3': 19, '4': 3, '5': 12, '10': 'forwardsAllow'},
     {'1': 'forwards_deny', '3': 20, '4': 3, '5': 12, '10': 'forwardsDeny'},
+    {'1': 'messages_ttl', '3': 21, '4': 1, '5': 5, '10': 'messagesTtl'},
   ],
 };
 
@@ -66,7 +67,7 @@ const PrivacySettings_Audience$json = {
 
 /// Descriptor for `PrivacySettings`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List privacySettingsDescriptor =
-    $convert.base64Decode('Cg9Qcml2YWN5U2V0dGluZ3MaCQoHUmVxdWVzdBqUBwoIUmVzcG9uc2USOQoFY2FsbHMYASABKA'
+    $convert.base64Decode('Cg9Qcml2YWN5U2V0dGluZ3MaCQoHUmVxdWVzdBq3BwoIUmVzcG9uc2USOQoFY2FsbHMYASABKA'
         '4yIy5pcGVyb24udjEuUHJpdmFjeVNldHRpbmdzLkF1ZGllbmNlUgVjYWxscxIfCgtjYWxsc19h'
         'bGxvdxgCIAMoDFIKY2FsbHNBbGxvdxIdCgpjYWxsc19kZW55GAMgAygMUgljYWxsc0RlbnkSPw'
         'oIYmlydGhkYXkYBCABKA4yIy5pcGVyb24udjEuUHJpdmFjeVNldHRpbmdzLkF1ZGllbmNlUghi'
@@ -83,8 +84,8 @@ final $typed_data.Uint8List privacySettingsDescriptor =
         'cmVhZF90aW1lGBEgASgIUgxoaWRlUmVhZFRpbWUSPwoIZm9yd2FyZHMYEiABKA4yIy5pcGVyb2'
         '4udjEuUHJpdmFjeVNldHRpbmdzLkF1ZGllbmNlUghmb3J3YXJkcxIlCg5mb3J3YXJkc19hbGxv'
         'dxgTIAMoDFINZm9yd2FyZHNBbGxvdxIjCg1mb3J3YXJkc19kZW55GBQgAygMUgxmb3J3YXJkc0'
-        'RlbnkiMwoIQXVkaWVuY2USDQoJRVZFUllCT0RZEAASDAoIQ09OVEFDVFMQARIKCgZOT0JPRFkQ'
-        'Ag==');
+        'RlbnkSIQoMbWVzc2FnZXNfdHRsGBUgASgFUgttZXNzYWdlc1R0bCIzCghBdWRpZW5jZRINCglF'
+        'VkVSWUJPRFkQABIMCghDT05UQUNUUxABEgoKBk5PQk9EWRAC');
 
 @$core.Deprecated('Use privacySettingsUpdateDescriptor instead')
 const PrivacySettingsUpdate$json = {
@@ -566,3 +567,27 @@ const PrivacyForwardsDenyUpdate_Response$json = {
 final $typed_data.Uint8List privacyForwardsDenyUpdateDescriptor =
     $convert.base64Decode('ChlQcml2YWN5Rm9yd2FyZHNEZW55VXBkYXRlGiQKB1JlcXVlc3QSGQoIdXNlcl9pZHMYASADKA'
         'xSB3VzZXJJZHMaCgoIUmVzcG9uc2U=');
+
+@$core.Deprecated('Use privacyMessagesTTLUpdateDescriptor instead')
+const PrivacyMessagesTTLUpdate$json = {
+  '1': 'PrivacyMessagesTTLUpdate',
+  '3': [PrivacyMessagesTTLUpdate_Request$json, PrivacyMessagesTTLUpdate_Response$json],
+};
+
+@$core.Deprecated('Use privacyMessagesTTLUpdateDescriptor instead')
+const PrivacyMessagesTTLUpdate_Request$json = {
+  '1': 'Request',
+  '2': [
+    {'1': 'period', '3': 1, '4': 1, '5': 5, '10': 'period'},
+  ],
+};
+
+@$core.Deprecated('Use privacyMessagesTTLUpdateDescriptor instead')
+const PrivacyMessagesTTLUpdate_Response$json = {
+  '1': 'Response',
+};
+
+/// Descriptor for `PrivacyMessagesTTLUpdate`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List privacyMessagesTTLUpdateDescriptor =
+    $convert.base64Decode('ChhQcml2YWN5TWVzc2FnZXNUVExVcGRhdGUaIQoHUmVxdWVzdBIWCgZwZXJpb2QYASABKAVSBn'
+        'BlcmlvZBoKCghSZXNwb25zZQ==');

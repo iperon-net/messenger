@@ -20,6 +20,7 @@ import 'chat_invite_links_cupertino.dart';
 import 'chat_join_requests_cupertino.dart';
 import 'chat_info_common.dart';
 import 'chat_mute.dart';
+import 'chat_ttl.dart';
 import 'chats_new_cupertino.dart';
 import 'community_common.dart';
 import 'community_cupertino.dart';
@@ -428,6 +429,33 @@ class _ChatInfoCupertinoState extends State<ChatInfoCupertino> {
                                             onTab: () async => _copy('https://iperon.net/${chat.linkPath}'),
                                           ),
                                 ]),
+                              // Автоудаление — личный чат с собеседником («Избранное» — без).
+                              if (chat.type == models.ChatType.private && !chat.isSelf && chat.isMember) ...[
+                                _section(context, [
+                                  CupertinoMenuAnchor(
+                                    menuChildren: chatTTLMenuCupertino(
+                                      context,
+                                      chat.ttlPeriod,
+                                      (period) => setChatTTL(context, context.read<ChatCubit>(), period),
+                                    ),
+                                    builder: (context, controller, child) => CupertinoListTileIcon(
+                                      color: const Color(0xFF8E8E93),
+                                      hugeIcon: HugeIcons.strokeRoundedTimer02,
+                                      title: Text(t.chatTtl.titleLong),
+                                      additionalInfo: Text(chatTTLLabel(t, chat.ttlPeriod)),
+                                      isTrailing: true,
+                                      onTab: () async => controller.isOpen ? controller.close() : controller.open(),
+                                    ),
+                                  ),
+                                ]),
+                                Padding(
+                                  padding: const EdgeInsets.fromLTRB(36, 6, 36, 0),
+                                  child: Text(
+                                    t.chatTtl.chatFooter,
+                                    style: TextStyle(fontSize: 13, color: CupertinoColors.secondaryLabel.resolveFrom(context)),
+                                  ),
+                                ),
+                              ],
                               if (community && !chat.isMember)
                                 Padding(
                                   padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),

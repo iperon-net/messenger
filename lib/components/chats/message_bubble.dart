@@ -244,6 +244,14 @@ class ChatMessagesView extends StatelessWidget {
             onTap: onPinnedServiceTap == null ? null : () => onPinnedServiceTap!(pinnedID),
           ),
         );
+      } else if (m.service && m.ttlChange != null) {
+        items.add(
+          _Pill(
+            key: keyFor?.call(m.id),
+            text: chatTTLServiceText(context.t, period: m.ttlChange!, outgoing: m.outgoing, name: m.senderName),
+            style: style,
+          ),
+        );
       } else if (m.service) {
         items.add(_Pill(text: m.text, style: style));
       } else {
@@ -465,6 +473,29 @@ String pinnedServiceText(Translations t, models.Message service, models.Message?
   }
   if (service.outgoing) return snippet.isEmpty ? tc.pinnedServiceYouMessage : tc.pinnedServiceYou(text: snippet);
   return snippet.isEmpty ? tc.pinnedServiceMessage(name: service.senderName) : tc.pinnedService(name: service.senderName, text: snippet);
+}
+
+/// Сутки — шаг таймера автоудаления (как в Telegram: кратно суткам).
+const chatTTLDay = 24 * 60 * 60;
+
+/// Срок автоудаления словами: «1 день» / «2 недели» / «3 месяца» (месяц —
+/// 31 день) / «1 год»; 0 — «Выключено».
+String chatTTLLabel(Translations t, int period) {
+  final tc = t.chatTtl;
+  if (period <= 0) return tc.off;
+  final days = period ~/ chatTTLDay;
+  if (days % 365 == 0) return tc.years(n: days ~/ 365);
+  if (days % 31 == 0) return tc.months(n: days ~/ 31);
+  if (days % 7 == 0) return tc.weeks(n: days ~/ 7);
+  return tc.days(n: days);
+}
+
+/// Служебное «Вы включили автоудаление сообщений: 1 неделя» / «Анна
+/// выключила автоудаление сообщений»; [name] — кто изменил (не я).
+String chatTTLServiceText(Translations t, {required int period, required bool outgoing, required String name}) {
+  final tc = t.chatTtl;
+  if (outgoing) return period > 0 ? tc.serviceYou(period: chatTTLLabel(t, period)) : tc.serviceYouOff;
+  return period > 0 ? tc.service(name: name, period: chatTTLLabel(t, period)) : tc.serviceOff(name: name);
 }
 
 /// Маленькое превью фото/видео сообщения [message] (плашка закреплённого);

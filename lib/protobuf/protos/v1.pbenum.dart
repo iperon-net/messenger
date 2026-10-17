@@ -175,6 +175,10 @@ class MessageType extends $pb.ProtobufEnum {
   /// chats_v1.proto (ChatTyping).
   static const MessageType CHAT_TYPING = MessageType._(82, _omitEnumNames ? '' : 'CHAT_TYPING');
 
+  /// Автоудаление по умолчанию для новых чатов (PrivacySettings.messages_ttl).
+  /// См. privacy_v1.proto (PrivacyMessagesTTLUpdate).
+  static const MessageType PRIVACY_MESSAGES_TTL_UPDATE = MessageType._(83, _omitEnumNames ? '' : 'PRIVACY_MESSAGES_TTL_UPDATE');
+
   static const $core.List<MessageType> values = <MessageType>[
     HEALTHCHECK,
     META_DATA_INFO,
@@ -255,9 +259,10 @@ class MessageType extends $pb.ProtobufEnum {
     PRIVACY_FORWARDS_ALLOW_UPDATE,
     PRIVACY_FORWARDS_DENY_UPDATE,
     CHAT_TYPING,
+    PRIVACY_MESSAGES_TTL_UPDATE,
   ];
 
-  static final $core.List<MessageType?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 82);
+  static final $core.List<MessageType?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 83);
   static MessageType? valueOf($core.int value) => value < 0 || value >= _byValue.length ? null : _byValue[value];
 
   const MessageType._(super.value, super.name);

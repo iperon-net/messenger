@@ -75,6 +75,7 @@ class PrivacySettings_Response extends $pb.GeneratedMessage {
     PrivacySettings_Audience? forwards,
     $core.Iterable<$core.List<$core.int>>? forwardsAllow,
     $core.Iterable<$core.List<$core.int>>? forwardsDeny,
+    $core.int? messagesTtl,
   }) {
     final result = create();
     if (calls != null) result.calls = calls;
@@ -97,6 +98,7 @@ class PrivacySettings_Response extends $pb.GeneratedMessage {
     if (forwards != null) result.forwards = forwards;
     if (forwardsAllow != null) result.forwardsAllow.addAll(forwardsAllow);
     if (forwardsDeny != null) result.forwardsDeny.addAll(forwardsDeny);
+    if (messagesTtl != null) result.messagesTtl = messagesTtl;
     return result;
   }
 
@@ -129,6 +131,7 @@ class PrivacySettings_Response extends $pb.GeneratedMessage {
     ..aE<PrivacySettings_Audience>(18, _omitFieldNames ? '' : 'forwards', enumValues: PrivacySettings_Audience.values)
     ..p<$core.List<$core.int>>(19, _omitFieldNames ? '' : 'forwardsAllow', $pb.PbFieldType.PY)
     ..p<$core.List<$core.int>>(20, _omitFieldNames ? '' : 'forwardsDeny', $pb.PbFieldType.PY)
+    ..aI(21, _omitFieldNames ? '' : 'messagesTtl')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -286,6 +289,19 @@ class PrivacySettings_Response extends $pb.GeneratedMessage {
 
   @$pb.TagNumber(20)
   $pb.PbList<$core.List<$core.int>> get forwardsDeny => $_getList(19);
+
+  /// Автоудаление по умолчанию для новых чатов (как setDefaultHistoryTTL в
+  /// Telegram): секунды, 0 — выключено. Личный чат без таймера, в который
+  /// этот пользователь пишет первым, получает такой таймер (со служебным
+  /// MessageTTLChanged.auto); существующие не меняются, «Избранное» — без.
+  @$pb.TagNumber(21)
+  $core.int get messagesTtl => $_getIZ(20);
+  @$pb.TagNumber(21)
+  set messagesTtl($core.int value) => $_setSignedInt32(20, value);
+  @$pb.TagNumber(21)
+  $core.bool hasMessagesTtl() => $_has(20);
+  @$pb.TagNumber(21)
+  void clearMessagesTtl() => $_clearField(21);
 }
 
 /// Настройки приватности per-channel (этап 1 — только звонки). Проверка «кто
@@ -2611,6 +2627,124 @@ class PrivacyForwardsDenyUpdate extends $pb.GeneratedMessage {
   static PrivacyForwardsDenyUpdate getDefault() =>
       _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<PrivacyForwardsDenyUpdate>(create);
   static PrivacyForwardsDenyUpdate? _defaultInstance;
+}
+
+class PrivacyMessagesTTLUpdate_Request extends $pb.GeneratedMessage {
+  factory PrivacyMessagesTTLUpdate_Request({
+    $core.int? period,
+  }) {
+    final result = create();
+    if (period != null) result.period = period;
+    return result;
+  }
+
+  PrivacyMessagesTTLUpdate_Request._();
+
+  factory PrivacyMessagesTTLUpdate_Request.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory PrivacyMessagesTTLUpdate_Request.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'PrivacyMessagesTTLUpdate.Request',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..aI(1, _omitFieldNames ? '' : 'period')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyMessagesTTLUpdate_Request clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyMessagesTTLUpdate_Request copyWith(void Function(PrivacyMessagesTTLUpdate_Request) updates) =>
+      super.copyWith((message) => updates(message as PrivacyMessagesTTLUpdate_Request)) as PrivacyMessagesTTLUpdate_Request;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static PrivacyMessagesTTLUpdate_Request create() => PrivacyMessagesTTLUpdate_Request._();
+  @$core.override
+  PrivacyMessagesTTLUpdate_Request createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static PrivacyMessagesTTLUpdate_Request getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<PrivacyMessagesTTLUpdate_Request>(create);
+  static PrivacyMessagesTTLUpdate_Request? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.int get period => $_getIZ(0);
+  @$pb.TagNumber(1)
+  set period($core.int value) => $_setSignedInt32(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasPeriod() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearPeriod() => $_clearField(1);
+}
+
+class PrivacyMessagesTTLUpdate_Response extends $pb.GeneratedMessage {
+  factory PrivacyMessagesTTLUpdate_Response() => create();
+
+  PrivacyMessagesTTLUpdate_Response._();
+
+  factory PrivacyMessagesTTLUpdate_Response.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory PrivacyMessagesTTLUpdate_Response.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'PrivacyMessagesTTLUpdate.Response',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyMessagesTTLUpdate_Response clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyMessagesTTLUpdate_Response copyWith(void Function(PrivacyMessagesTTLUpdate_Response) updates) =>
+      super.copyWith((message) => updates(message as PrivacyMessagesTTLUpdate_Response)) as PrivacyMessagesTTLUpdate_Response;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static PrivacyMessagesTTLUpdate_Response create() => PrivacyMessagesTTLUpdate_Response._();
+  @$core.override
+  PrivacyMessagesTTLUpdate_Response createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static PrivacyMessagesTTLUpdate_Response getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<PrivacyMessagesTTLUpdate_Response>(create);
+  static PrivacyMessagesTTLUpdate_Response? _defaultInstance;
+}
+
+/// Автоудаление по умолчанию для новых чатов: period — секунды, 0 — выключить,
+/// иначе от суток до года, кратно суткам (иначе INVALID_ARGUMENT «ttlInvalid»).
+class PrivacyMessagesTTLUpdate extends $pb.GeneratedMessage {
+  factory PrivacyMessagesTTLUpdate() => create();
+
+  PrivacyMessagesTTLUpdate._();
+
+  factory PrivacyMessagesTTLUpdate.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory PrivacyMessagesTTLUpdate.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'PrivacyMessagesTTLUpdate',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyMessagesTTLUpdate clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyMessagesTTLUpdate copyWith(void Function(PrivacyMessagesTTLUpdate) updates) =>
+      super.copyWith((message) => updates(message as PrivacyMessagesTTLUpdate)) as PrivacyMessagesTTLUpdate;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static PrivacyMessagesTTLUpdate create() => PrivacyMessagesTTLUpdate._();
+  @$core.override
+  PrivacyMessagesTTLUpdate createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static PrivacyMessagesTTLUpdate getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<PrivacyMessagesTTLUpdate>(create);
+  static PrivacyMessagesTTLUpdate? _defaultInstance;
 }
 
 const $core.bool _omitFieldNames = $core.bool.fromEnvironment('protobuf.omit_field_names');

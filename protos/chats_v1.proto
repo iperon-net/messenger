@@ -140,6 +140,15 @@ message MessagePin {
   int64 messageID = 1;
 }
 
+// Служебное «изменил автоудаление» (только от сервера; при отправке — отказ):
+// period — новый таймер чата в секундах (0 — выключил). Само не удаляется.
+// auto — таймер по умолчанию для новых чатов (настройка приватности
+// отправителя), а не изменение в этом чате.
+message MessageTTLChanged {
+  int32 period = 1;
+  bool auto = 2;
+}
+
 // «Печатает…» / «отправляет фото…» — эфемерный сигнал по стриму
 // (MessageType CHAT_TYPING) в обе стороны, без ответа, без журнала pts и
 // без пушей. Клиент повторяет его, пока действие идёт (раз в ~5 с), и шлёт
@@ -179,6 +188,8 @@ message MessageContent {
   MessageCall call = 7;
   // Служебное «закрепил сообщение» (только от сервера; при отправке — отказ).
   MessagePin pin = 8;
+  // Служебное «изменил автоудаление» (только от сервера; при отправке — отказ).
+  MessageTTLChanged ttlChanged = 9;
 }
 
 // Реакция участника на сообщение: кто, каким эмодзи и когда поставил.
@@ -215,6 +226,10 @@ message ChatMessage {
   // Автор ещё не видел новые реакции собеседника на это сообщение (значимо
   // только для автора: у получателя — игнорировать).
   bool reactionsUnread = 11;
+  // Автоудаление (как ttl_period в Telegram): в date + ttlPeriod (секунды)
+  // сервер удалит сообщение у всех, клиент удаляет его у себя в тот же момент
+  // сам (и без сети). 0 — не удаляется. Таймер чата на момент отправки.
+  int32 ttlPeriod = 12;
 }
 
 // Диалог пользователя: общий чат + моё состояние в нём.
@@ -242,6 +257,9 @@ message Dialog {
   // Update.dialogSettings).
   string draft = 14;
   int64 draftDate = 15; // unix millis
+  // Автоудаление в чате (общее для участников, Chats.SetTTL): новые сообщения
+  // удаляются через столько секунд после отправки; 0 — выключено.
+  int32 ttlPeriod = 16;
 }
 
 // Отложенное сообщение — моё, ещё не отправленное (как scheduled messages в
@@ -573,6 +591,23 @@ message Chats {
     Dialog dialog = 1;
   }
 
+  // Автоудаление в чате (как messages.setHistoryTTL в Telegram): period —
+  // секунды, 0 — выключить, иначе от суток до года, кратно суткам (иначе
+  // INVALID_ARGUMENT «ttlInvalid»). Только личный чат с собеседником (в
+  // «Избранном» — PERMISSION_DENIED); менять может любой из двоих, таймер
+  // общий. В ленте — служебное MessageTTLChanged от изменившего, у обоих —
+  // Update.dialogSettings с новым Dialog.ttlPeriod. Действует на сообщения,
+  // отправленные после. Собеседник ограничил, кто может писать, —
+  // PERMISSION_DENIED «privacyRestricted»; тот же таймер — без обновлений.
+  message SetTTL {
+    bytes chatID = 1;
+    int32 period = 2;
+  }
+
+  message SetTTLResult {
+    Updates updates = 1;
+  }
+
   message Request {
     oneof request {
       List list = 1;
@@ -588,6 +623,7 @@ message Chats {
       DeleteFolder deleteFolder = 11;
       ReorderFolders reorderFolders = 12;
       ResolveUsername resolveUsername = 13;
+      SetTTL setTTL = 14;
     }
   }
 
@@ -606,6 +642,7 @@ message Chats {
       DeleteFolderResult deleteFolder = 11;
       ReorderFoldersResult reorderFolders = 12;
       ResolveUsernameResult resolveUsername = 13;
+      SetTTLResult setTTL = 14;
     }
   }
 }

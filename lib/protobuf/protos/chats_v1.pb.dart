@@ -647,6 +647,70 @@ class MessagePin extends $pb.GeneratedMessage {
   void clearMessageID() => $_clearField(1);
 }
 
+/// Служебное «изменил автоудаление» (только от сервера; при отправке — отказ):
+/// period — новый таймер чата в секундах (0 — выключил). Само не удаляется.
+/// auto — таймер по умолчанию для новых чатов (настройка приватности
+/// отправителя), а не изменение в этом чате.
+class MessageTTLChanged extends $pb.GeneratedMessage {
+  factory MessageTTLChanged({
+    $core.int? period,
+    $core.bool? auto,
+  }) {
+    final result = create();
+    if (period != null) result.period = period;
+    if (auto != null) result.auto = auto;
+    return result;
+  }
+
+  MessageTTLChanged._();
+
+  factory MessageTTLChanged.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory MessageTTLChanged.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'MessageTTLChanged',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..aI(1, _omitFieldNames ? '' : 'period')
+    ..aOB(2, _omitFieldNames ? '' : 'auto')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  MessageTTLChanged clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  MessageTTLChanged copyWith(void Function(MessageTTLChanged) updates) =>
+      super.copyWith((message) => updates(message as MessageTTLChanged)) as MessageTTLChanged;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static MessageTTLChanged create() => MessageTTLChanged._();
+  @$core.override
+  MessageTTLChanged createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static MessageTTLChanged getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<MessageTTLChanged>(create);
+  static MessageTTLChanged? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.int get period => $_getIZ(0);
+  @$pb.TagNumber(1)
+  set period($core.int value) => $_setSignedInt32(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasPeriod() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearPeriod() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.bool get auto => $_getBF(1);
+  @$pb.TagNumber(2)
+  set auto($core.bool value) => $_setBool(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasAuto() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearAuto() => $_clearField(2);
+}
+
 /// «Печатает…» / «отправляет фото…» — эфемерный сигнал по стриму
 /// (MessageType CHAT_TYPING) в обе стороны, без ответа, без журнала pts и
 /// без пушей. Клиент повторяет его, пока действие идёт (раз в ~5 с), и шлёт
@@ -739,6 +803,7 @@ class MessageContent extends $pb.GeneratedMessage {
     $core.bool? noLinkPreview,
     MessageCall? call,
     MessagePin? pin,
+    MessageTTLChanged? ttlChanged,
   }) {
     final result = create();
     if (text != null) result.text = text;
@@ -749,6 +814,7 @@ class MessageContent extends $pb.GeneratedMessage {
     if (noLinkPreview != null) result.noLinkPreview = noLinkPreview;
     if (call != null) result.call = call;
     if (pin != null) result.pin = pin;
+    if (ttlChanged != null) result.ttlChanged = ttlChanged;
     return result;
   }
 
@@ -769,6 +835,7 @@ class MessageContent extends $pb.GeneratedMessage {
     ..aOB(6, _omitFieldNames ? '' : 'noLinkPreview', protoName: 'noLinkPreview')
     ..aOM<MessageCall>(7, _omitFieldNames ? '' : 'call', subBuilder: MessageCall.create)
     ..aOM<MessagePin>(8, _omitFieldNames ? '' : 'pin', subBuilder: MessagePin.create)
+    ..aOM<MessageTTLChanged>(9, _omitFieldNames ? '' : 'ttlChanged', protoName: 'ttlChanged', subBuilder: MessageTTLChanged.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -859,6 +926,18 @@ class MessageContent extends $pb.GeneratedMessage {
   void clearPin() => $_clearField(8);
   @$pb.TagNumber(8)
   MessagePin ensurePin() => $_ensure(7);
+
+  /// Служебное «изменил автоудаление» (только от сервера; при отправке — отказ).
+  @$pb.TagNumber(9)
+  MessageTTLChanged get ttlChanged => $_getN(8);
+  @$pb.TagNumber(9)
+  set ttlChanged(MessageTTLChanged value) => $_setField(9, value);
+  @$pb.TagNumber(9)
+  $core.bool hasTtlChanged() => $_has(8);
+  @$pb.TagNumber(9)
+  void clearTtlChanged() => $_clearField(9);
+  @$pb.TagNumber(9)
+  MessageTTLChanged ensureTtlChanged() => $_ensure(8);
 }
 
 /// Реакция участника на сообщение: кто, каким эмодзи и когда поставил.
@@ -995,6 +1074,7 @@ class ChatMessage extends $pb.GeneratedMessage {
     $fixnum.Int64? randomID,
     MessageReactions? reactions,
     $core.bool? reactionsUnread,
+    $core.int? ttlPeriod,
   }) {
     final result = create();
     if (chatID != null) result.chatID = chatID;
@@ -1008,6 +1088,7 @@ class ChatMessage extends $pb.GeneratedMessage {
     if (randomID != null) result.randomID = randomID;
     if (reactions != null) result.reactions = reactions;
     if (reactionsUnread != null) result.reactionsUnread = reactionsUnread;
+    if (ttlPeriod != null) result.ttlPeriod = ttlPeriod;
     return result;
   }
 
@@ -1031,6 +1112,7 @@ class ChatMessage extends $pb.GeneratedMessage {
     ..aInt64(9, _omitFieldNames ? '' : 'randomID', protoName: 'randomID')
     ..aOM<MessageReactions>(10, _omitFieldNames ? '' : 'reactions', subBuilder: MessageReactions.create)
     ..aOB(11, _omitFieldNames ? '' : 'reactionsUnread', protoName: 'reactionsUnread')
+    ..aI(12, _omitFieldNames ? '' : 'ttlPeriod', protoName: 'ttlPeriod')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -1156,6 +1238,18 @@ class ChatMessage extends $pb.GeneratedMessage {
   $core.bool hasReactionsUnread() => $_has(10);
   @$pb.TagNumber(11)
   void clearReactionsUnread() => $_clearField(11);
+
+  /// Автоудаление (как ttl_period в Telegram): в date + ttlPeriod (секунды)
+  /// сервер удалит сообщение у всех, клиент удаляет его у себя в тот же момент
+  /// сам (и без сети). 0 — не удаляется. Таймер чата на момент отправки.
+  @$pb.TagNumber(12)
+  $core.int get ttlPeriod => $_getIZ(11);
+  @$pb.TagNumber(12)
+  set ttlPeriod($core.int value) => $_setSignedInt32(11, value);
+  @$pb.TagNumber(12)
+  $core.bool hasTtlPeriod() => $_has(11);
+  @$pb.TagNumber(12)
+  void clearTtlPeriod() => $_clearField(12);
 }
 
 /// Диалог пользователя: общий чат + моё состояние в нём.
@@ -1176,6 +1270,7 @@ class Dialog extends $pb.GeneratedMessage {
     $core.int? unreadReactionsCount,
     $core.String? draft,
     $fixnum.Int64? draftDate,
+    $core.int? ttlPeriod,
   }) {
     final result = create();
     if (chatID != null) result.chatID = chatID;
@@ -1193,6 +1288,7 @@ class Dialog extends $pb.GeneratedMessage {
     if (unreadReactionsCount != null) result.unreadReactionsCount = unreadReactionsCount;
     if (draft != null) result.draft = draft;
     if (draftDate != null) result.draftDate = draftDate;
+    if (ttlPeriod != null) result.ttlPeriod = ttlPeriod;
     return result;
   }
 
@@ -1220,6 +1316,7 @@ class Dialog extends $pb.GeneratedMessage {
     ..aI(13, _omitFieldNames ? '' : 'unreadReactionsCount', protoName: 'unreadReactionsCount')
     ..aOS(14, _omitFieldNames ? '' : 'draft')
     ..aInt64(15, _omitFieldNames ? '' : 'draftDate', protoName: 'draftDate')
+    ..aI(16, _omitFieldNames ? '' : 'ttlPeriod', protoName: 'ttlPeriod')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -1382,6 +1479,17 @@ class Dialog extends $pb.GeneratedMessage {
   $core.bool hasDraftDate() => $_has(14);
   @$pb.TagNumber(15)
   void clearDraftDate() => $_clearField(15);
+
+  /// Автоудаление в чате (общее для участников, Chats.SetTTL): новые сообщения
+  /// удаляются через столько секунд после отправки; 0 — выключено.
+  @$pb.TagNumber(16)
+  $core.int get ttlPeriod => $_getIZ(15);
+  @$pb.TagNumber(16)
+  set ttlPeriod($core.int value) => $_setSignedInt32(15, value);
+  @$pb.TagNumber(16)
+  $core.bool hasTtlPeriod() => $_has(15);
+  @$pb.TagNumber(16)
+  void clearTtlPeriod() => $_clearField(16);
 }
 
 /// Отложенное сообщение — моё, ещё не отправленное (как scheduled messages в
@@ -4446,6 +4554,124 @@ class Chats_ResolveUsernameResult extends $pb.GeneratedMessage {
   Dialog ensureDialog() => $_ensure(0);
 }
 
+/// Автоудаление в чате (как messages.setHistoryTTL в Telegram): period —
+/// секунды, 0 — выключить, иначе от суток до года, кратно суткам (иначе
+/// INVALID_ARGUMENT «ttlInvalid»). Только личный чат с собеседником (в
+/// «Избранном» — PERMISSION_DENIED); менять может любой из двоих, таймер
+/// общий. В ленте — служебное MessageTTLChanged от изменившего, у обоих —
+/// Update.dialogSettings с новым Dialog.ttlPeriod. Действует на сообщения,
+/// отправленные после. Собеседник ограничил, кто может писать, —
+/// PERMISSION_DENIED «privacyRestricted»; тот же таймер — без обновлений.
+class Chats_SetTTL extends $pb.GeneratedMessage {
+  factory Chats_SetTTL({
+    $core.List<$core.int>? chatID,
+    $core.int? period,
+  }) {
+    final result = create();
+    if (chatID != null) result.chatID = chatID;
+    if (period != null) result.period = period;
+    return result;
+  }
+
+  Chats_SetTTL._();
+
+  factory Chats_SetTTL.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Chats_SetTTL.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Chats.SetTTL',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..a<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'chatID', $pb.PbFieldType.OY, protoName: 'chatID')
+    ..aI(2, _omitFieldNames ? '' : 'period')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_SetTTL clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_SetTTL copyWith(void Function(Chats_SetTTL) updates) =>
+      super.copyWith((message) => updates(message as Chats_SetTTL)) as Chats_SetTTL;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static Chats_SetTTL create() => Chats_SetTTL._();
+  @$core.override
+  Chats_SetTTL createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static Chats_SetTTL getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Chats_SetTTL>(create);
+  static Chats_SetTTL? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.List<$core.int> get chatID => $_getN(0);
+  @$pb.TagNumber(1)
+  set chatID($core.List<$core.int> value) => $_setBytes(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasChatID() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearChatID() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.int get period => $_getIZ(1);
+  @$pb.TagNumber(2)
+  set period($core.int value) => $_setSignedInt32(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasPeriod() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearPeriod() => $_clearField(2);
+}
+
+class Chats_SetTTLResult extends $pb.GeneratedMessage {
+  factory Chats_SetTTLResult({
+    Updates? updates,
+  }) {
+    final result = create();
+    if (updates != null) result.updates = updates;
+    return result;
+  }
+
+  Chats_SetTTLResult._();
+
+  factory Chats_SetTTLResult.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Chats_SetTTLResult.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Chats.SetTTLResult',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..aOM<Updates>(1, _omitFieldNames ? '' : 'updates', subBuilder: Updates.create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_SetTTLResult clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_SetTTLResult copyWith(void Function(Chats_SetTTLResult) updates) =>
+      super.copyWith((message) => updates(message as Chats_SetTTLResult)) as Chats_SetTTLResult;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static Chats_SetTTLResult create() => Chats_SetTTLResult._();
+  @$core.override
+  Chats_SetTTLResult createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static Chats_SetTTLResult getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Chats_SetTTLResult>(create);
+  static Chats_SetTTLResult? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  Updates get updates => $_getN(0);
+  @$pb.TagNumber(1)
+  set updates(Updates value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasUpdates() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearUpdates() => $_clearField(1);
+  @$pb.TagNumber(1)
+  Updates ensureUpdates() => $_ensure(0);
+}
+
 enum Chats_Request_Request {
   list,
   openPrivate,
@@ -4460,6 +4686,7 @@ enum Chats_Request_Request {
   deleteFolder,
   reorderFolders,
   resolveUsername,
+  setTTL,
   notSet
 }
 
@@ -4478,6 +4705,7 @@ class Chats_Request extends $pb.GeneratedMessage {
     Chats_DeleteFolder? deleteFolder,
     Chats_ReorderFolders? reorderFolders,
     Chats_ResolveUsername? resolveUsername,
+    Chats_SetTTL? setTTL,
   }) {
     final result = create();
     if (list != null) result.list = list;
@@ -4493,6 +4721,7 @@ class Chats_Request extends $pb.GeneratedMessage {
     if (deleteFolder != null) result.deleteFolder = deleteFolder;
     if (reorderFolders != null) result.reorderFolders = reorderFolders;
     if (resolveUsername != null) result.resolveUsername = resolveUsername;
+    if (setTTL != null) result.setTTL = setTTL;
     return result;
   }
 
@@ -4517,11 +4746,12 @@ class Chats_Request extends $pb.GeneratedMessage {
     11: Chats_Request_Request.deleteFolder,
     12: Chats_Request_Request.reorderFolders,
     13: Chats_Request_Request.resolveUsername,
+    14: Chats_Request_Request.setTTL,
     0: Chats_Request_Request.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Chats.Request',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
-    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13])
+    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14])
     ..aOM<Chats_List>(1, _omitFieldNames ? '' : 'list', subBuilder: Chats_List.create)
     ..aOM<Chats_OpenPrivate>(2, _omitFieldNames ? '' : 'openPrivate', protoName: 'openPrivate', subBuilder: Chats_OpenPrivate.create)
     ..aOM<Chats_ReadHistory>(3, _omitFieldNames ? '' : 'readHistory', protoName: 'readHistory', subBuilder: Chats_ReadHistory.create)
@@ -4537,6 +4767,7 @@ class Chats_Request extends $pb.GeneratedMessage {
         protoName: 'reorderFolders', subBuilder: Chats_ReorderFolders.create)
     ..aOM<Chats_ResolveUsername>(13, _omitFieldNames ? '' : 'resolveUsername',
         protoName: 'resolveUsername', subBuilder: Chats_ResolveUsername.create)
+    ..aOM<Chats_SetTTL>(14, _omitFieldNames ? '' : 'setTTL', protoName: 'setTTL', subBuilder: Chats_SetTTL.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -4569,6 +4800,7 @@ class Chats_Request extends $pb.GeneratedMessage {
   @$pb.TagNumber(11)
   @$pb.TagNumber(12)
   @$pb.TagNumber(13)
+  @$pb.TagNumber(14)
   Chats_Request_Request whichRequest() => _Chats_Request_RequestByTag[$_whichOneof(0)]!;
   @$pb.TagNumber(1)
   @$pb.TagNumber(2)
@@ -4583,6 +4815,7 @@ class Chats_Request extends $pb.GeneratedMessage {
   @$pb.TagNumber(11)
   @$pb.TagNumber(12)
   @$pb.TagNumber(13)
+  @$pb.TagNumber(14)
   void clearRequest() => $_clearField($_whichOneof(0));
 
   @$pb.TagNumber(1)
@@ -4727,6 +4960,17 @@ class Chats_Request extends $pb.GeneratedMessage {
   void clearResolveUsername() => $_clearField(13);
   @$pb.TagNumber(13)
   Chats_ResolveUsername ensureResolveUsername() => $_ensure(12);
+
+  @$pb.TagNumber(14)
+  Chats_SetTTL get setTTL => $_getN(13);
+  @$pb.TagNumber(14)
+  set setTTL(Chats_SetTTL value) => $_setField(14, value);
+  @$pb.TagNumber(14)
+  $core.bool hasSetTTL() => $_has(13);
+  @$pb.TagNumber(14)
+  void clearSetTTL() => $_clearField(14);
+  @$pb.TagNumber(14)
+  Chats_SetTTL ensureSetTTL() => $_ensure(13);
 }
 
 enum Chats_Response_Response {
@@ -4743,6 +4987,7 @@ enum Chats_Response_Response {
   deleteFolder,
   reorderFolders,
   resolveUsername,
+  setTTL,
   notSet
 }
 
@@ -4761,6 +5006,7 @@ class Chats_Response extends $pb.GeneratedMessage {
     Chats_DeleteFolderResult? deleteFolder,
     Chats_ReorderFoldersResult? reorderFolders,
     Chats_ResolveUsernameResult? resolveUsername,
+    Chats_SetTTLResult? setTTL,
   }) {
     final result = create();
     if (list != null) result.list = list;
@@ -4776,6 +5022,7 @@ class Chats_Response extends $pb.GeneratedMessage {
     if (deleteFolder != null) result.deleteFolder = deleteFolder;
     if (reorderFolders != null) result.reorderFolders = reorderFolders;
     if (resolveUsername != null) result.resolveUsername = resolveUsername;
+    if (setTTL != null) result.setTTL = setTTL;
     return result;
   }
 
@@ -4800,11 +5047,12 @@ class Chats_Response extends $pb.GeneratedMessage {
     11: Chats_Response_Response.deleteFolder,
     12: Chats_Response_Response.reorderFolders,
     13: Chats_Response_Response.resolveUsername,
+    14: Chats_Response_Response.setTTL,
     0: Chats_Response_Response.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Chats.Response',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
-    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13])
+    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14])
     ..aOM<Chats_ListResult>(1, _omitFieldNames ? '' : 'list', subBuilder: Chats_ListResult.create)
     ..aOM<Chats_OpenPrivateResult>(2, _omitFieldNames ? '' : 'openPrivate',
         protoName: 'openPrivate', subBuilder: Chats_OpenPrivateResult.create)
@@ -4826,6 +5074,7 @@ class Chats_Response extends $pb.GeneratedMessage {
         protoName: 'reorderFolders', subBuilder: Chats_ReorderFoldersResult.create)
     ..aOM<Chats_ResolveUsernameResult>(13, _omitFieldNames ? '' : 'resolveUsername',
         protoName: 'resolveUsername', subBuilder: Chats_ResolveUsernameResult.create)
+    ..aOM<Chats_SetTTLResult>(14, _omitFieldNames ? '' : 'setTTL', protoName: 'setTTL', subBuilder: Chats_SetTTLResult.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -4858,6 +5107,7 @@ class Chats_Response extends $pb.GeneratedMessage {
   @$pb.TagNumber(11)
   @$pb.TagNumber(12)
   @$pb.TagNumber(13)
+  @$pb.TagNumber(14)
   Chats_Response_Response whichResponse() => _Chats_Response_ResponseByTag[$_whichOneof(0)]!;
   @$pb.TagNumber(1)
   @$pb.TagNumber(2)
@@ -4872,6 +5122,7 @@ class Chats_Response extends $pb.GeneratedMessage {
   @$pb.TagNumber(11)
   @$pb.TagNumber(12)
   @$pb.TagNumber(13)
+  @$pb.TagNumber(14)
   void clearResponse() => $_clearField($_whichOneof(0));
 
   @$pb.TagNumber(1)
@@ -5016,6 +5267,17 @@ class Chats_Response extends $pb.GeneratedMessage {
   void clearResolveUsername() => $_clearField(13);
   @$pb.TagNumber(13)
   Chats_ResolveUsernameResult ensureResolveUsername() => $_ensure(12);
+
+  @$pb.TagNumber(14)
+  Chats_SetTTLResult get setTTL => $_getN(13);
+  @$pb.TagNumber(14)
+  set setTTL(Chats_SetTTLResult value) => $_setField(14, value);
+  @$pb.TagNumber(14)
+  $core.bool hasSetTTL() => $_has(13);
+  @$pb.TagNumber(14)
+  void clearSetTTL() => $_clearField(14);
+  @$pb.TagNumber(14)
+  Chats_SetTTLResult ensureSetTTL() => $_ensure(13);
 }
 
 /// CHATS — диалоги.

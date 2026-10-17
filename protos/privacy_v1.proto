@@ -71,6 +71,11 @@ message PrivacySettings {
     Audience forwards = 18;
     repeated bytes forwards_allow = 19;
     repeated bytes forwards_deny = 20;
+    // Автоудаление по умолчанию для новых чатов (как setDefaultHistoryTTL в
+    // Telegram): секунды, 0 — выключено. Личный чат без таймера, в который
+    // этот пользователь пишет первым, получает такой таймер (со служебным
+    // MessageTTLChanged.auto); существующие не меняются, «Избранное» — без.
+    int32 messages_ttl = 21;
   }
 }
 
@@ -249,6 +254,16 @@ message PrivacyForwardsAllowUpdate {
 message PrivacyForwardsDenyUpdate {
   message Request {
     repeated bytes user_ids = 1;
+  }
+
+  message Response {}
+}
+
+// Автоудаление по умолчанию для новых чатов: period — секунды, 0 — выключить,
+// иначе от суток до года, кратно суткам (иначе INVALID_ARGUMENT «ttlInvalid»).
+message PrivacyMessagesTTLUpdate {
+  message Request {
+    int32 period = 1;
   }
 
   message Response {}

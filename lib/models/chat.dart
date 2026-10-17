@@ -254,6 +254,10 @@ class ChatLastMessage with ChatLastMessageMappable {
   final bool pin;
   final String pinText;
 
+  /// Служебное «изменил автоудаление»: новый таймер (секунды; 0 — выключил);
+  /// `null` — не оно.
+  final int? ttlChange;
+
   /// Строка сообщества: из какого его чата сообщение («Группа › Анна»); пусто
   /// — у обычных чатов и у канала объявлений.
   final String chatTitle;
@@ -269,6 +273,7 @@ class ChatLastMessage with ChatLastMessageMappable {
     this.phoneCall,
     this.pin = false,
     this.pinText = '',
+    this.ttlChange,
   });
 }
 
@@ -312,6 +317,10 @@ class Chat with ChatMappable {
   final DateTime? mutedUntil;
   final bool pinned;
   final bool archived;
+
+  /// Автоудаление (секунды; 0 — выключено): новые сообщения удаляются у всех
+  /// через столько после отправки. Значок таймера на аватаре в шапке.
+  final int ttlPeriod;
 
   /// Черновик — показывается вместо последнего сообщения.
   final String draft;
@@ -464,6 +473,7 @@ class Chat with ChatMappable {
     this.markedUnread = false,
     this.muted = false,
     this.mutedUntil,
+    this.ttlPeriod = 0,
     this.pinned = false,
     this.archived = false,
     this.draft = '',

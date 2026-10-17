@@ -40,6 +40,7 @@ void main() {
         draft TEXT NOT NULL DEFAULT '',
         draftPending INTEGER NOT NULL DEFAULT 0,
         createdAt INTEGER NOT NULL DEFAULT 0,
+        ttlPeriod INTEGER NOT NULL DEFAULT 0,
         PRIMARY KEY (userID, chatID)
       );
     ''');

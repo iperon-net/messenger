@@ -53,6 +53,12 @@ abstract class ChatsDataSource {
   Future<void> setMuted(String chatID, bool muted, {DateTime? until});
   Future<void> setArchived(String chatID, bool archived);
 
+  /// Автоудаление в личном чате ([period] — секунды, 0 — выключить; от суток
+  /// до года, кратно суткам): общее для обоих, в ленте — служебное «… включил
+  /// автоудаление». Без сети — [ChatsOfflineException]; собеседник ограничил,
+  /// кто может писать, — `ChatsRequestException.isPrivacyRestricted`.
+  Future<void> setTTL(String chatID, int period);
+
   /// Прочитать (сбросить счётчики и ручную пометку) или пометить непрочитанным.
   Future<void> setRead(String chatID, bool read);
 

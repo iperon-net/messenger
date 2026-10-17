@@ -147,6 +147,9 @@ enum MessageType {
   // стороны (клиент → сервер → участники чата), без ответа. См.
   // chats_v1.proto (ChatTyping).
   CHAT_TYPING = 82;
+  // Автоудаление по умолчанию для новых чатов (PrivacySettings.messages_ttl).
+  // См. privacy_v1.proto (PrivacyMessagesTTLUpdate).
+  PRIVACY_MESSAGES_TTL_UPDATE = 83;
 }
 
 service Iperon {

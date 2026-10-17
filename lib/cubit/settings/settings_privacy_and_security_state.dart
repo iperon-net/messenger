@@ -107,6 +107,10 @@ class SettingsPrivacyAndSecurityState with SettingsPrivacyAndSecurityStateMappab
   /// сам не видишь чужое. Галочки ✓✓ остаются.
   final bool hideReadTime;
 
+  /// Автоудаление по умолчанию для новых чатов (секунды; 0 — выключено): чат,
+  /// который я начинаю, получает такой таймер.
+  final int messagesTTL;
+
   const SettingsPrivacyAndSecurityState({
     this.status = Status.initialization,
     this.isBiometricAvailable = false,
@@ -132,5 +136,6 @@ class SettingsPrivacyAndSecurityState with SettingsPrivacyAndSecurityStateMappab
     this.forwardsAllow = const [],
     this.forwardsDeny = const [],
     this.hideReadTime = false,
+    this.messagesTTL = 0,
   });
 }

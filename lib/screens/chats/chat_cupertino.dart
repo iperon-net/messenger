@@ -499,6 +499,8 @@ class _ChatCupertinoState extends State<ChatCupertino> {
                                     size: 36,
                                     accentColor: CupertinoTheme.of(context).primaryColor,
                                     accentForeground: ThemesCupertino.onAccent(context),
+                                    // Автоудаление — значок таймера (как в Telegram).
+                                    ttlBadgeColor: CupertinoColors.systemGrey.resolveFrom(context),
                                   ),
                                 ),
                         ),

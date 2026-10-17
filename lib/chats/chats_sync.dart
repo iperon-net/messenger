@@ -192,6 +192,7 @@ class ChatsSync {
     if (_enabled == value) return;
     _enabled = value;
     _watchBadge(value);
+    _watchExpired(value);
     if (value && getIt.isRegistered<API>() && getIt.get<API>().connectionStatus == ApiConnectionStatus.connected) {
       unawaited(onConnected());
     }
@@ -445,7 +446,9 @@ class ChatsSync {
       if (pts != local) await tx.setPts(userID: user, pts: pts);
       return plan.gap;
     });
-    if (followUps.reloadDialogs || followUps.refreshTop.isNotEmpty) unawaited(_runFollowUps(followUps));
+    if (followUps.reloadDialogs || followUps.refreshTop.isNotEmpty || followUps.refreshPinned.isNotEmpty) {
+      unawaited(_runFollowUps(followUps));
+    }
     return gap;
   }
 
@@ -494,28 +497,7 @@ class ChatsSync {
       case pb.Update_Update.deleteMessages:
         final chatID = update.deleteMessages.chatID;
         final ids = [for (final id in update.deleteMessages.messageIDs) id.toInt()];
-        final dialog = await tx.dialog(userID: user, chatID: chatID);
-        // Удаляются мои с непрочитанными реакциями — бейдж ❤️ меньше.
-        final reactions = await tx.countUnreadReactions(userID: user, chatID: chatID, messageIDs: ids);
-        final unread = await tx.deleteMessages(userID: user, chatID: chatID, messageIDs: ids, readInboxMaxID: dialog?.readInboxMaxID ?? 0);
-        unawaited(PushManager.clearChatNotifications(chatID, messageIDs: ids));
-        if (dialog == null) return;
-        if (unread > 0 || reactions > 0) {
-          await tx.updateDialog(
-            userID: user,
-            chatID: chatID,
-            fields: {
-              'unreadCount': math.max(0, dialog.unreadCount - unread),
-              'unreadReactions': math.max(0, dialog.unreadReactions - reactions),
-            },
-          );
-        }
-        if (ids.contains(dialog.topMessageID)) {
-          // Удалили последнее — новое последнее из кэша; кэш пуст — спросим сервер.
-          final latest = await tx.latestMessage(userID: user, chatID: chatID);
-          await tx.setTopMessage(userID: user, chatID: chatID, message: latest);
-          if (latest == null) followUps.refreshTop.add(Uint8List.fromList(chatID));
-        }
+        await _deleteLocally(tx, user, chatID, ids, followUps);
 
       case pb.Update_Update.readInbox:
         final read = update.readInbox;
@@ -615,6 +597,75 @@ class ChatsSync {
         // Пустое обновление (например, новое сообщение, которое потом удалили):
         // ничего не меняем, но pts сдвигается — это не дыра.
         _logger.debug('chats: empty update pts=${update.pts}');
+    }
+  }
+
+  /// Удаляет сообщения из кэша (Update.deleteMessages, автоудаление) и
+  /// поправляет счётчики и последнее сообщение диалога.
+  Future<void> _deleteLocally(ChatsRepository tx, Uint8List user, List<int> chatID, List<int> ids, _FollowUps followUps) async {
+    final dialog = await tx.dialog(userID: user, chatID: chatID);
+    // Удаляются мои с непрочитанными реакциями — бейдж ❤️ меньше.
+    final reactions = await tx.countUnreadReactions(userID: user, chatID: chatID, messageIDs: ids);
+    final unread = await tx.deleteMessages(userID: user, chatID: chatID, messageIDs: ids, readInboxMaxID: dialog?.readInboxMaxID ?? 0);
+    unawaited(PushManager.clearChatNotifications(chatID, messageIDs: ids));
+    if (dialog == null) return;
+    if (unread > 0 || reactions > 0) {
+      await tx.updateDialog(
+        userID: user,
+        chatID: chatID,
+        fields: {
+          'unreadCount': math.max(0, dialog.unreadCount - unread),
+          'unreadReactions': math.max(0, dialog.unreadReactions - reactions),
+        },
+      );
+    }
+    if (ids.contains(dialog.topMessageID)) {
+      // Удалили последнее — новое последнее из кэша; кэш пуст — спросим сервер.
+      final latest = await tx.latestMessage(userID: user, chatID: chatID);
+      await tx.setTopMessage(userID: user, chatID: chatID, message: latest);
+      if (latest == null) followUps.refreshTop.add(Uint8List.fromList(chatID));
+    }
+  }
+
+  // --- автоудаление ---
+
+  /// Как часто проверять истёкшие (сообщение пропадает не позже чем через
+  /// столько после срока).
+  static const _sweepEvery = Duration(seconds: 5);
+
+  Timer? _sweepTimer;
+
+  /// Автоудаление на этом устройстве — пока включены серверные чаты.
+  void _watchExpired(bool enabled) {
+    _sweepTimer?.cancel();
+    _sweepTimer = null;
+    if (!enabled) return;
+    unawaited(sweepExpired());
+    _sweepTimer = Timer.periodic(_sweepEvery, (_) => unawaited(sweepExpired()));
+  }
+
+  /// Удаляет у себя сообщения с истёкшим автоудалением (ChatMessage.ttlPeriod)
+  /// — в срок и без сети, как в Telegram; сервер удалит их у всех сам
+  /// (Update.deleteMessages потом ничего не найдёт).
+  Future<void> sweepExpired() async {
+    if (!_auth.isAuthorized) return;
+    try {
+      final user = me;
+      // Чаще всего истёкших нет — без очереди и транзакции записи.
+      if ((await _store.expiredMessages(userID: user, now: DateTime.now().millisecondsSinceEpoch)).isEmpty) return;
+      final followUps = _FollowUps();
+      await _locked(
+        () => _store.transaction((tx) async {
+          final expired = await tx.expiredMessages(userID: user, now: DateTime.now().millisecondsSinceEpoch);
+          for (final chat in expired.values) {
+            _logger.debug('chats: expired ${chat.messageIDs.length} in ${idHex(chat.chatID)}');
+            await _deleteLocally(tx, user, chat.chatID, chat.messageIDs, followUps);
+          }
+        }),
+      );
+      if (followUps.refreshTop.isNotEmpty) unawaited(_runFollowUps(followUps));
+    } catch (error, stackTrace) {
+      _logger.handle(error, stackTrace);
     }
   }
 

@@ -9,6 +9,7 @@ import '../../di.dart';
 import '../../i18n/translations.g.dart';
 import '../../themes.dart';
 import '../../utils.dart';
+import '../chats/chat_ttl.dart';
 
 class SettingsPrivacyAndSecurityMaterial extends StatefulWidget {
   const SettingsPrivacyAndSecurityMaterial({super.key});
@@ -157,6 +158,34 @@ class _SettingsPrivacyAndSecurityMaterial extends State<SettingsPrivacyAndSecuri
                         },
                       ),
                     ],
+                  ),
+                ),
+                // Автоудаление по умолчанию для новых чатов (как в Telegram).
+                Card(
+                  margin: const EdgeInsets.fromLTRB(12, 16, 12, 0),
+                  child: MaterialListTileIcon(
+                    title: Text(context.t.chatTtl.titleLong),
+                    color: const Color(0xFF8E8E93),
+                    icon: FontAwesomeIcons.stopwatch,
+                    isTrailing: true,
+                    additionalInfo: Text(state.callsLoadError ? "—" : chatTTLLabel(context.t, state.messagesTTL)),
+                    onTab: state.callsReadOnly
+                        ? null
+                        : () async {
+                            final cubit = context.read<SettingsPrivacyAndSecurityCubit>();
+                            final messenger = ScaffoldMessenger.of(context);
+                            final message = context.t.common.noConnectionMessage;
+                            final period = await pickChatTTLMaterial(context, state.messagesTTL);
+                            if (period == null || period == state.messagesTTL) return;
+                            if (!await cubit.setMessagesTTL(period)) messenger.showSnackBar(SnackBar(content: Text(message)));
+                          },
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 8, 24, 16),
+                  child: Text(
+                    context.t.chatTtl.defaultFooter,
+                    style: TextStyle(fontSize: AppFontSizes.caption, color: Theme.of(context).colorScheme.onSurfaceVariant),
                   ),
                 ),
               ],

@@ -20,6 +20,7 @@ import 'chat_invite_links_material.dart';
 import 'chat_join_requests_material.dart';
 import 'chat_info_common.dart';
 import 'chat_mute.dart';
+import 'chat_ttl.dart';
 import 'community_common.dart';
 import 'community_material.dart';
 import 'chat_actions_material.dart';
@@ -432,6 +433,22 @@ class _ChatInfoMaterialState extends State<ChatInfoMaterial> {
                                           onTap: () => _copy(context, 'https://iperon.net/${chat.linkPath}'),
                                         ),
                               ],
+                            ),
+                          ),
+                        // Автоудаление — личный чат с собеседником («Избранное» — без).
+                        if (chat.type == models.ChatType.private && !chat.isSelf && chat.isMember)
+                          Card(
+                            margin: const EdgeInsets.fromLTRB(12, 16, 12, 0),
+                            color: card,
+                            child: ListTile(
+                              leading: HugeIcon(icon: HugeIcons.strokeRoundedTimer02, color: scheme.onSurfaceVariant),
+                              title: Text(t.chatTtl.titleLong),
+                              subtitle: Text(chatTTLLabel(t, chat.ttlPeriod)),
+                              onTap: () async {
+                                final cubit = context.read<ChatCubit>();
+                                final period = await pickChatTTLMaterial(context, chat.ttlPeriod);
+                                if (period != null && period != chat.ttlPeriod && context.mounted) await setChatTTL(context, cubit, period);
+                              },
                             ),
                           ),
                         if (community && !chat.isMember)

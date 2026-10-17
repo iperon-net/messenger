@@ -124,6 +124,7 @@ class SettingsPrivacyAndSecurityCubit extends Cubit<SettingsPrivacyAndSecuritySt
         forwardsAllow: response.forwardsAllow.map(Uint8List.fromList).toList(growable: false),
         forwardsDeny: response.forwardsDeny.map(Uint8List.fromList).toList(growable: false),
         hideReadTime: response.hideReadTime,
+        messagesTTL: response.messagesTtl,
         callsLoadError: false,
         callsReadOnly: false,
       ),
@@ -156,6 +157,7 @@ class SettingsPrivacyAndSecurityCubit extends Cubit<SettingsPrivacyAndSecuritySt
         forwardsAllow: state.forwardsAllow,
         forwardsDeny: state.forwardsDeny,
         hideReadTime: state.hideReadTime,
+        messagesTtl: state.messagesTTL,
       );
       await repositories.privacySettings.upsert(userID: auth.session.userID, payload: response.writeToBuffer());
     } catch (error, stackTrace) {
@@ -305,6 +307,32 @@ class SettingsPrivacyAndSecurityCubit extends Cubit<SettingsPrivacyAndSecuritySt
     }
 
     if (!isClosed) emit(state.copyWith(birthdayDeny: List<Uint8List>.unmodifiable(userIDs)));
+    await _persistFromState();
+    return true;
+  }
+
+  /// Автоудаление по умолчанию для новых чатов (секунды; 0 — выключить).
+  /// Серверная операция, offline недоступна. Возвращает `false`, если не
+  /// применилось (offline/ошибка).
+  Future<bool> setMessagesTTL(int period) async {
+    if (period == state.messagesTTL && !state.callsLoadError && !state.callsReadOnly) return true;
+
+    if (!await utils.hasNetwork()) {
+      logger.info('privacy: set messages ttl aborted, no network');
+      return false;
+    }
+
+    final status = await api.unaryEncoded(
+      MessageType.PRIVACY_MESSAGES_TTL_UPDATE,
+      PrivacyMessagesTTLUpdate_Request(period: period).writeToBuffer(),
+    );
+
+    if (status.status != APIStatus.success) {
+      logger.warning('privacy: update messages ttl failed (${status.error})');
+      return false;
+    }
+
+    if (!isClosed) emit(state.copyWith(messagesTTL: period, callsLoadError: false, callsReadOnly: false));
     await _persistFromState();
     return true;
   }

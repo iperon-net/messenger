@@ -9,6 +9,7 @@ import '../../cubit.dart';
 import '../../di.dart';
 import '../../i18n/translations.g.dart';
 import '../../utils.dart';
+import '../chats/chat_ttl.dart';
 
 class SettingsPrivacyAndSecurityCupertino extends StatefulWidget {
   const SettingsPrivacyAndSecurityCupertino({super.key});
@@ -41,6 +42,26 @@ class _SettingsPrivacyAndSecurityCupertino extends State<SettingsPrivacyAndSecur
       case CallsPrivacyAudience.nobody:
         return context.t.sessionsPrivacyAndSecurity.callsNobody;
     }
+  }
+
+  /// Автоудаление по умолчанию; без сети / ошибка — «Нет соединения».
+  Future<void> _setMessagesTTL(BuildContext context, int period) async {
+    final ok = await context.read<SettingsPrivacyAndSecurityCubit>().setMessagesTTL(period);
+    if (ok || !context.mounted) return;
+    await showCupertinoDialog<void>(
+      context: context,
+      builder: (dialogContext) => CupertinoAlertDialog(
+        title: Text(context.t.common.noConnectionTitle),
+        content: Text(context.t.common.noConnectionMessage),
+        actions: [
+          CupertinoDialogAction(
+            isDefaultAction: true,
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: Text(context.t.common.close),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -195,6 +216,34 @@ class _SettingsPrivacyAndSecurityCupertino extends State<SettingsPrivacyAndSecur
                         await context.push("/settings/privacy_and_security/forwards");
                         await cubit.reloadForwards();
                       },
+                    ),
+                  ],
+                ),
+                // Автоудаление по умолчанию для новых чатов (как в Telegram).
+                CupertinoListSection.insetGrouped(
+                  backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
+                  decoration: BoxDecoration(
+                    color: ThemesCupertino.groupedCard.resolveFrom(context),
+                    borderRadius: const BorderRadius.all(Radius.circular(10)),
+                  ),
+                  footer: Text(
+                    context.t.chatTtl.defaultFooter,
+                    style: TextStyle(fontSize: 13, color: CupertinoColors.secondaryLabel.resolveFrom(context)),
+                  ),
+                  children: [
+                    CupertinoMenuAnchor(
+                      menuChildren: chatTTLMenuCupertino(context, state.messagesTTL, (period) => _setMessagesTTL(context, period)),
+                      builder: (context, controller, child) => CupertinoListTileIcon(
+                        title: Text(context.t.chatTtl.titleLong),
+                        color: const Color(0xFF8E8E93),
+                        icon: FontAwesomeIcons.stopwatch,
+                        isTrailing: true,
+                        additionalInfo: Text(
+                          state.callsLoadError ? "—" : chatTTLLabel(context.t, state.messagesTTL),
+                          style: TextStyle(color: CupertinoColors.secondaryLabel.resolveFrom(context)),
+                        ),
+                        onTab: state.callsReadOnly ? null : () async => controller.isOpen ? controller.close() : controller.open(),
+                      ),
                     ),
                   ],
                 ),

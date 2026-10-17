@@ -306,6 +306,10 @@ class Message with MessageMappable {
   /// булавка, открепление — без выбора «у меня / у обоих».
   final bool pinnedOnlyMe;
 
+  /// Сервисное «Анна включила автоудаление: 1 неделя» ([service]): новый
+  /// таймер чата (секунды; 0 — выключила); `null` — не оно.
+  final int? ttlChange;
+
   /// Сервисное «Анна закрепила «…»» ([service]): id закреплённого сообщения
   /// (тап — к нему); автор — [senderName], у своего — [outgoing].
   final String pinnedMessageID;
@@ -371,6 +375,7 @@ class Message with MessageMappable {
     this.forward,
     this.pinned = false,
     this.pinnedOnlyMe = false,
+    this.ttlChange,
     this.pinnedMessageID = '',
     this.silent = false,
     this.scheduledDate,

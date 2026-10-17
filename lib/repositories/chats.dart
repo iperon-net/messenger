@@ -23,6 +23,9 @@ class ChatDialogRow {
   final String draft;
   final int createdAt;
 
+  /// Автоудаление в чате (секунды; 0 — выключено).
+  final int ttlPeriod;
+
   const ChatDialogRow({
     required this.chatID,
     required this.type,
@@ -40,6 +43,7 @@ class ChatDialogRow {
     required this.mutedUntil,
     required this.draft,
     required this.createdAt,
+    this.ttlPeriod = 0,
   });
 
   factory ChatDialogRow._fromRow(Map<String, dynamic> row) => ChatDialogRow(
@@ -59,6 +63,7 @@ class ChatDialogRow {
     mutedUntil: row['mutedUntil'] as int,
     draft: row['draft'] as String,
     createdAt: row['createdAt'] as int,
+    ttlPeriod: row['ttlPeriod'] as int? ?? 0,
   );
 }
 
@@ -189,7 +194,7 @@ class ChatsRepository {
 
   static const _dialogColumns =
       'chatID, type, peerUserID, topMessageID, topMessageDate, topMessage, readInboxMaxID, readOutboxMaxID, unreadCount, '
-      'unreadReactions, pinned, archived, markedUnread, mutedUntil, draft, createdAt';
+      'unreadReactions, pinned, archived, markedUnread, mutedUntil, draft, createdAt, ttlPeriod';
 
   /// Выполнить [action] в одной транзакции записи. Уже внутри транзакции —
   /// просто выполняет.
@@ -269,8 +274,8 @@ class ChatsRepository {
     await ctx.execute(
       '''
       INSERT INTO chatDialogs (userID, chatID, type, peerUserID, topMessageID, topMessageDate, topMessage, readInboxMaxID,
-        readOutboxMaxID, unreadCount, unreadReactions, pinned, archived, markedUnread, mutedUntil, createdAt, draft)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        readOutboxMaxID, unreadCount, unreadReactions, pinned, archived, markedUnread, mutedUntil, createdAt, draft, ttlPeriod)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       ON CONFLICT(userID, chatID) DO UPDATE SET
         -- Свой неотправленный черновик серверный не перезаписывает.
         draft = CASE WHEN chatDialogs.draftPending = 1 THEN chatDialogs.draft ELSE excluded.draft END,
@@ -287,7 +292,8 @@ class ChatsRepository {
         archived = excluded.archived,
         markedUnread = excluded.markedUnread,
         mutedUntil = excluded.mutedUntil,
-        createdAt = excluded.createdAt;
+        createdAt = excluded.createdAt,
+        ttlPeriod = excluded.ttlPeriod;
       ''',
       [
         userID,
@@ -307,6 +313,7 @@ class ChatsRepository {
         dialog.mutedUntil.toInt(),
         dialog.createdAt.toInt(),
         dialog.draft,
+        dialog.ttlPeriod,
       ],
     );
     if (top != null) await upsertMessage(userID: userID, message: top);
@@ -419,8 +426,8 @@ class ChatsRepository {
     await ctx.execute(
       '''
       INSERT INTO chatMessages (userID, chatID, messageID, fromUserID, date, editDate, randomID, mediaUnread, silent, content, searchText, reactions,
-        reactionsUnread)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        reactionsUnread, expireAt)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       ON CONFLICT(userID, chatID, messageID) DO UPDATE SET
         fromUserID = excluded.fromUserID,
         date = excluded.date,
@@ -431,7 +438,8 @@ class ChatsRepository {
         content = excluded.content,
         searchText = excluded.searchText,
         reactions = excluded.reactions,
-        reactionsUnread = excluded.reactionsUnread;
+        reactionsUnread = excluded.reactionsUnread,
+        expireAt = excluded.expireAt;
       ''',
       [
         userID,
@@ -447,6 +455,7 @@ class ChatsRepository {
         messageSearchText(message.content),
         _reactionsBlob(message.hasReactions() ? message.reactions : null),
         _reactionsUnread(userID, message) ? 1 : 0,
+        messageExpireAt(message),
       ],
     );
     if (message.content.hasCall()) await _upsertCallLog(userID: userID, message: message);
@@ -896,7 +905,43 @@ class ChatsRepository {
     content: pb.MessageContent.fromBuffer(row['content'] as List<int>),
     reactions: row['reactions'] == null ? null : pb.MessageReactions.fromBuffer(row['reactions'] as List<int>),
     reactionsUnread: (row['reactionsUnread'] as int? ?? 0) != 0,
+    ttlPeriod: _ttlFromRow(row),
   );
+
+  static int _ttlFromRow(Map<String, dynamic> row) {
+    final expireAt = row['expireAt'] as int? ?? 0;
+    return expireAt > 0 ? (expireAt - (row['date'] as int)) ~/ 1000 : 0;
+  }
+
+  /// Когда сообщение удалить у себя (автоудаление; unix millis, 0 — никогда).
+  static int messageExpireAt(pb.ChatMessage message) => message.ttlPeriod > 0 ? message.date.toInt() + message.ttlPeriod * 1000 : 0;
+
+  // --- автоудаление ---
+
+  /// Сообщения с истёкшим автоудалением (в истории и закреплённых) по чатам:
+  /// hex(chatID) → (chatID, номера).
+  Future<Map<String, ({Uint8List chatID, List<int> messageIDs})>> expiredMessages({required List<int> userID, required int now}) async {
+    final result = <String, ({Uint8List chatID, List<int> messageIDs})>{};
+    void add(List<int> chatID, int messageID) {
+      final entry = result.putIfAbsent(_hex(chatID), () => (chatID: Uint8List.fromList(chatID), messageIDs: <int>[]));
+      if (!entry.messageIDs.contains(messageID)) entry.messageIDs.add(messageID);
+    }
+
+    final rows = await ctx.getAll('SELECT chatID, messageID FROM chatMessages WHERE userID = ? AND expireAt > 0 AND expireAt <= ?;', [
+      userID,
+      now,
+    ]);
+    for (final row in rows) {
+      add(row['chatID'] as List<int>, row['messageID'] as int);
+    }
+    // Закреплённые старше скачанной истории — только в chatPinned.
+    for (final row in await ctx.getAll('SELECT chatID, messageID, message FROM chatPinned WHERE userID = ?;', [userID])) {
+      final message = pb.ChatMessage.fromBuffer(row['message'] as List<int>);
+      final expireAt = messageExpireAt(message);
+      if (expireAt > 0 && expireAt <= now) add(row['chatID'] as List<int>, row['messageID'] as int);
+    }
+    return result;
+  }
 
   // --- outbox ---
 

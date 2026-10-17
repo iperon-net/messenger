@@ -109,6 +109,29 @@ class ChatsDemoDataSource implements ChatsDataSource {
     }
   }
 
+  /// Автоудаление: таймер чата и служебное «Вы включили автоудаление» (сами
+  /// сообщения в демо не удаляются).
+  @override
+  Future<void> setTTL(String chatID, int period) async {
+    final chat = _chat(chatID);
+    if (chat == null || chat.ttlPeriod == period) return;
+    _update(chatID, (c) => c.copyWith(ttlPeriod: period));
+    if (_messages.containsKey(chatID)) {
+      _setMessages(chatID, [
+        ..._history(chatID),
+        models.Message(
+          id: _id(),
+          chatID: chatID,
+          outgoing: true,
+          service: true,
+          status: models.MessageStatus.read,
+          date: DateTime.now(),
+          ttlChange: period,
+        ),
+      ]);
+    }
+  }
+
   /// В архив / из архива — без закрепа (как сервер и Telegram).
   @override
   Future<void> setArchived(String chatID, bool archived) async => _update(chatID, (c) => c.copyWith(archived: archived, pinned: false));

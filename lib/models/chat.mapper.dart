@@ -1404,6 +1404,12 @@ class ChatLastMessageMapper extends ClassMapperBase<ChatLastMessage> {
     opt: true,
     def: '',
   );
+  static int? _$ttlChange(ChatLastMessage v) => v.ttlChange;
+  static const Field<ChatLastMessage, int> _f$ttlChange = Field(
+    'ttlChange',
+    _$ttlChange,
+    opt: true,
+  );
 
   @override
   final MappableFields<ChatLastMessage> fields = const {
@@ -1417,6 +1423,7 @@ class ChatLastMessageMapper extends ClassMapperBase<ChatLastMessage> {
     #phoneCall: _f$phoneCall,
     #pin: _f$pin,
     #pinText: _f$pinText,
+    #ttlChange: _f$ttlChange,
   };
 
   static ChatLastMessage _instantiate(DecodingData data) {
@@ -1431,6 +1438,7 @@ class ChatLastMessageMapper extends ClassMapperBase<ChatLastMessage> {
       phoneCall: data.dec(_f$phoneCall),
       pin: data.dec(_f$pin),
       pinText: data.dec(_f$pinText),
+      ttlChange: data.dec(_f$ttlChange),
     );
   }
 
@@ -1508,6 +1516,7 @@ abstract class ChatLastMessageCopyWith<$R, $In extends ChatLastMessage, $Out>
     MessageCall? phoneCall,
     bool? pin,
     String? pinText,
+    int? ttlChange,
   });
   ChatLastMessageCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
     Then<$Out2, $R2> t,
@@ -1537,6 +1546,7 @@ class _ChatLastMessageCopyWithImpl<$R, $Out>
     Object? phoneCall = $none,
     bool? pin,
     String? pinText,
+    Object? ttlChange = $none,
   }) => $apply(
     FieldCopyWithData({
       if (kind != null) #kind: kind,
@@ -1549,6 +1559,7 @@ class _ChatLastMessageCopyWithImpl<$R, $Out>
       if (phoneCall != $none) #phoneCall: phoneCall,
       if (pin != null) #pin: pin,
       if (pinText != null) #pinText: pinText,
+      if (ttlChange != $none) #ttlChange: ttlChange,
     }),
   );
   @override
@@ -1563,6 +1574,7 @@ class _ChatLastMessageCopyWithImpl<$R, $Out>
     phoneCall: data.get(#phoneCall, or: $value.phoneCall),
     pin: data.get(#pin, or: $value.pin),
     pinText: data.get(#pinText, or: $value.pinText),
+    ttlChange: data.get(#ttlChange, or: $value.ttlChange),
   );
 
   @override
@@ -1666,6 +1678,13 @@ class ChatMapper extends ClassMapperBase<Chat> {
     'mutedUntil',
     _$mutedUntil,
     opt: true,
+  );
+  static int _$ttlPeriod(Chat v) => v.ttlPeriod;
+  static const Field<Chat, int> _f$ttlPeriod = Field(
+    'ttlPeriod',
+    _$ttlPeriod,
+    opt: true,
+    def: 0,
   );
   static bool _$pinned(Chat v) => v.pinned;
   static const Field<Chat, bool> _f$pinned = Field(
@@ -1970,6 +1989,7 @@ class ChatMapper extends ClassMapperBase<Chat> {
     #markedUnread: _f$markedUnread,
     #muted: _f$muted,
     #mutedUntil: _f$mutedUntil,
+    #ttlPeriod: _f$ttlPeriod,
     #pinned: _f$pinned,
     #archived: _f$archived,
     #draft: _f$draft,
@@ -2029,6 +2049,7 @@ class ChatMapper extends ClassMapperBase<Chat> {
       markedUnread: data.dec(_f$markedUnread),
       muted: data.dec(_f$muted),
       mutedUntil: data.dec(_f$mutedUntil),
+      ttlPeriod: data.dec(_f$ttlPeriod),
       pinned: data.dec(_f$pinned),
       archived: data.dec(_f$archived),
       draft: data.dec(_f$draft),
@@ -2145,6 +2166,7 @@ abstract class ChatCopyWith<$R, $In extends Chat, $Out>
     bool? markedUnread,
     bool? muted,
     DateTime? mutedUntil,
+    int? ttlPeriod,
     bool? pinned,
     bool? archived,
     String? draft,
@@ -2241,6 +2263,7 @@ class _ChatCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Chat, $Out>
     bool? markedUnread,
     bool? muted,
     Object? mutedUntil = $none,
+    int? ttlPeriod,
     bool? pinned,
     bool? archived,
     String? draft,
@@ -2298,6 +2321,7 @@ class _ChatCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Chat, $Out>
       if (markedUnread != null) #markedUnread: markedUnread,
       if (muted != null) #muted: muted,
       if (mutedUntil != $none) #mutedUntil: mutedUntil,
+      if (ttlPeriod != null) #ttlPeriod: ttlPeriod,
       if (pinned != null) #pinned: pinned,
       if (archived != null) #archived: archived,
       if (draft != null) #draft: draft,
@@ -2358,6 +2382,7 @@ class _ChatCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Chat, $Out>
     markedUnread: data.get(#markedUnread, or: $value.markedUnread),
     muted: data.get(#muted, or: $value.muted),
     mutedUntil: data.get(#mutedUntil, or: $value.mutedUntil),
+    ttlPeriod: data.get(#ttlPeriod, or: $value.ttlPeriod),
     pinned: data.get(#pinned, or: $value.pinned),
     archived: data.get(#archived, or: $value.archived),
     draft: data.get(#draft, or: $value.draft),

@@ -78,6 +78,7 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	late final Translations$screenCall$en screenCall = Translations$screenCall$en.internal(_root);
 	late final Translations$passkey$en passkey = Translations$passkey$en.internal(_root);
 	late final Translations$yandex$en yandex = Translations$yandex$en.internal(_root);
+	late final Translations$chatTtl$en chatTtl = Translations$chatTtl$en.internal(_root);
 }
 
 // Path: common
@@ -3668,6 +3669,81 @@ class Translations$yandex$en {
 	String get unavailable => 'Yandex ID is unavailable right now. Please try again later.';
 }
 
+// Path: chatTtl
+class Translations$chatTtl$en {
+	Translations$chatTtl$en.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// en: 'Auto-delete'
+	String get title => 'Auto-delete';
+
+	/// en: 'Auto-delete messages'
+	String get titleLong => 'Auto-delete messages';
+
+	/// en: 'Off'
+	String get off => 'Off';
+
+	/// en: 'Turn off'
+	String get turnOff => 'Turn off';
+
+	/// en: 'Other…'
+	String get other => 'Other…';
+
+	/// en: 'Delete after'
+	String get customTitle => 'Delete after';
+
+	/// en: 'Done'
+	String get done => 'Done';
+
+	/// en: '(one) {{n} day} (other) {{n} days}'
+	String days({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n,
+		one: '${n} day',
+		other: '${n} days',
+	);
+
+	/// en: '(one) {{n} week} (other) {{n} weeks}'
+	String weeks({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n,
+		one: '${n} week',
+		other: '${n} weeks',
+	);
+
+	/// en: '(one) {{n} month} (other) {{n} months}'
+	String months({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n,
+		one: '${n} month',
+		other: '${n} months',
+	);
+
+	/// en: '(one) {{n} year} (other) {{n} years}'
+	String years({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n,
+		one: '${n} year',
+		other: '${n} years',
+	);
+
+	/// en: 'New messages in this chat will be deleted for you and the other person after the selected time.'
+	String get chatFooter => 'New messages in this chat will be deleted for you and the other person after the selected time.';
+
+	/// en: 'In chats you start, new messages will be deleted after the selected time. Existing chats are not affected.'
+	String get defaultFooter => 'In chats you start, new messages will be deleted after the selected time. Existing chats are not affected.';
+
+	/// en: 'You set messages to auto-delete in {period}'
+	String serviceYou({required Object period}) => 'You set messages to auto-delete in ${period}';
+
+	/// en: 'You disabled auto-delete'
+	String get serviceYouOff => 'You disabled auto-delete';
+
+	/// en: '{name} set messages to auto-delete in {period}'
+	String service({required Object name, required Object period}) => '${name} set messages to auto-delete in ${period}';
+
+	/// en: '{name} disabled auto-delete'
+	String serviceOff({required Object name}) => '${name} disabled auto-delete';
+
+	/// en: 'The other person has restricted who can message them, so auto-delete can't be changed.'
+	String get restricted => 'The other person has restricted who can message them, so auto-delete can\'t be changed.';
+}
+
 /// The flat map containing all translations for locale <en>.
 /// Only for edge cases! For simple maps, use the map function of this library.
 ///
@@ -4748,6 +4824,24 @@ extension on Translations {
 			'yandex.phoneMissing' => 'Your Yandex ID has no phone number. Add one in Yandex ID or sign in with your phone number.',
 			'yandex.invalidPhone' => 'The phone number in your Yandex ID can\'t be used to sign in. Sign in with your phone number.',
 			'yandex.unavailable' => 'Yandex ID is unavailable right now. Please try again later.',
+			'chatTtl.title' => 'Auto-delete',
+			'chatTtl.titleLong' => 'Auto-delete messages',
+			'chatTtl.off' => 'Off',
+			'chatTtl.turnOff' => 'Turn off',
+			'chatTtl.other' => 'Other…',
+			'chatTtl.customTitle' => 'Delete after',
+			'chatTtl.done' => 'Done',
+			'chatTtl.days' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: '${n} day', other: '${n} days', ), 
+			'chatTtl.weeks' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: '${n} week', other: '${n} weeks', ), 
+			'chatTtl.months' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: '${n} month', other: '${n} months', ), 
+			'chatTtl.years' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: '${n} year', other: '${n} years', ), 
+			'chatTtl.chatFooter' => 'New messages in this chat will be deleted for you and the other person after the selected time.',
+			'chatTtl.defaultFooter' => 'In chats you start, new messages will be deleted after the selected time. Existing chats are not affected.',
+			'chatTtl.serviceYou' => ({required Object period}) => 'You set messages to auto-delete in ${period}',
+			'chatTtl.serviceYouOff' => 'You disabled auto-delete',
+			'chatTtl.service' => ({required Object name, required Object period}) => '${name} set messages to auto-delete in ${period}',
+			'chatTtl.serviceOff' => ({required Object name}) => '${name} disabled auto-delete',
+			'chatTtl.restricted' => 'The other person has restricted who can message them, so auto-delete can\'t be changed.',
 			_ => null,
 		};
 	}
