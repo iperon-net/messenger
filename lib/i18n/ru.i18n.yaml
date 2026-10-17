@@ -92,8 +92,6 @@
   "deleteChatTitle": "Удалить чат?"
   "deleteChatMessage": "Чат «{title}» будет удалён из списка."
   "deleteChatForPeer": "Также удалить у собеседника"
-  "deleteForBoth": "Удалить у обоих"
-  "deleteForMe": "Удалить только у меня"
   "deleteChat": "Удалить чат"
   "scopeMe": "У меня"
   "scopeBoth": "У меня и собеседника"

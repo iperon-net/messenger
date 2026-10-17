@@ -706,14 +706,18 @@ class _ChatCupertinoState extends State<ChatCupertino> {
       },
       child: text,
     );
-    return MessageContextMenuCupertino(
-      actions: _menuActions(context, chat, message),
-      bubble: bubble,
-      preview: (maxWidth) => preview(maxWidth, selectableText: chat.canPost && !_cubit.state.commentsBlocked ? quotable : null),
+    // Выбор «У меня» / «У меня и собеседника» (удалить, закрепить) — отдельное
+    // меню у пузыря после закрытия контекстного.
+    return ScopeMenuAnchorCupertino(
+      builder: (context, ask) => MessageContextMenuCupertino(
+        actions: _menuActions(context, chat, message, ask),
+        bubble: bubble,
+        preview: (maxWidth) => preview(maxWidth, selectableText: chat.canPost && !_cubit.state.commentsBlocked ? quotable : null),
+      ),
     );
   }
 
-  List<Widget> _menuActions(BuildContext context, models.Chat chat, models.Message message) {
+  List<Widget> _menuActions(BuildContext context, models.Chat chat, models.Message message, ScopeAsk ask) {
     final t = context.t.screenChat;
     final canWrite = chat.canPost && !_cubit.state.commentsBlocked;
     final commentsClosed = _cubit.state.commentsClosedIDs.contains(message.id);
@@ -736,7 +740,6 @@ class _ChatCupertinoState extends State<ChatCupertino> {
     }
 
     final mediaCopyable = chatMediaActionable(message) && message.kind != models.MessageKind.file;
-    final scopes = context.t.screenChats;
     return [
       if (reactions.isNotEmpty)
         ReactionPicker(
@@ -782,22 +785,14 @@ class _ChatCupertinoState extends State<ChatCupertino> {
         action(t.shareMedia, CupertinoIcons.share, () => shareChatMedia(context, message)),
       ],
       if (canWrite && features.pinnedMessages && _pinnable(message))
-        // Личный — «Закрепить» / «Открепить» раскрывает подменю «У меня» / «У
-        // меня и собеседника»; в остальных выбора нет (см. [askPinScopeCupertino]).
-        if (chatDeleteScoped(chat))
-          CupertinoContextSubmenuAction(
-            children: [
-              action(scopes.scopeMe, CupertinoIcons.person, () => _cubit.setPinned(message, !message.pinned, forEveryone: false)),
-              action(scopes.scopeBoth, CupertinoIcons.person_2, () => _cubit.setPinned(message, !message.pinned)),
-            ],
-            child: Text(message.pinned ? t.unpin : t.pin),
-          )
-        else
-          action(
-            message.pinned ? t.unpin : t.pin,
-            message.pinned ? CupertinoIcons.pin_slash : CupertinoIcons.pin,
-            () => _pin(chat, message),
-          ),
+        action(message.pinned ? t.unpin : t.pin, message.pinned ? CupertinoIcons.pin_slash : CupertinoIcons.pin, () async {
+          // Личный — меню «У меня» / «У меня и собеседника»; в остальных выбора
+          // нет (см. [askPinScopeCupertino]).
+          if (!chatDeleteScoped(chat)) return _pin(chat, message);
+          final pinned = !message.pinned;
+          final forEveryone = await ask(destructive: !pinned, afterContextMenu: true);
+          if (forEveryone != null) await _cubit.setPinned(message, pinned, forEveryone: forEveryone);
+        }),
       if (features.forward && ChatCubit.forwardable(message))
         action(t.forward, CupertinoIcons.arrowshape_turn_up_right, () {
           _cubit.startSelection(message);
@@ -807,19 +802,12 @@ class _ChatCupertinoState extends State<ChatCupertino> {
       if (message.outgoing && message.kind == models.MessageKind.text && message.forward == null)
         action(t.edit, CupertinoIcons.pencil, () => _cubit.startEdit(message)),
       if (message.outgoing || chat.type == models.ChatType.private) ...[
-        // Личный — «Удалить» раскрывает подменю «У меня» / «У меня и
-        // собеседника» (без всплывающего листа поверх).
-        if (chatDeleteScoped(chat))
-          CupertinoContextSubmenuAction(
-            isDestructiveAction: true,
-            children: [
-              action(scopes.scopeMe, CupertinoIcons.person, () => _cubit.delete(message, forEveryone: false), destructive: true),
-              action(scopes.scopeBoth, CupertinoIcons.person_2, () => _cubit.delete(message), destructive: true),
-            ],
-            child: Text(t.delete),
-          )
-        else
-          action(t.delete, CupertinoIcons.delete, () => _confirmDelete(context, chat, message), destructive: true),
+        action(t.delete, CupertinoIcons.delete, () async {
+          // Личный — меню «У меня» / «У меня и собеседника»; остальные — алерт.
+          if (!chatDeleteScoped(chat)) return _confirmDelete(context, chat, message);
+          final forEveryone = await ask(afterContextMenu: true);
+          if (forEveryone != null) await _cubit.delete(message, forEveryone: forEveryone);
+        }, destructive: true),
       ],
       if (canRetractVote(message)) action(t.retractVote, CupertinoIcons.arrow_uturn_left, () => _cubit.votePoll(message, const [])),
       if (canClosePoll(chat, message))
@@ -1214,7 +1202,7 @@ class _SelectionBar extends StatelessWidget {
           children: [
             if (canDelete && state.chat != null && chatDeleteScoped(state.chat!))
               CupertinoMenuAnchor(
-                menuChildren: deleteScopeMenuCupertino(context, onDeleteScoped),
+                menuChildren: scopeMenuCupertino(context, onDeleteScoped),
                 builder: (context, controller, child) =>
                     button(CupertinoIcons.delete, () => controller.isOpen ? controller.close() : controller.open(), destructive: true),
               )

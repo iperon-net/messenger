@@ -370,12 +370,6 @@ class Translations$screenChats$en {
 	/// en: 'Also delete for the other person'
 	String get deleteChatForPeer => 'Also delete for the other person';
 
-	/// en: 'Delete for both'
-	String get deleteForBoth => 'Delete for both';
-
-	/// en: 'Delete only for me'
-	String get deleteForMe => 'Delete only for me';
-
 	/// en: 'Delete chat'
 	String get deleteChat => 'Delete chat';
 
@@ -3763,8 +3757,6 @@ extension on Translations {
 			'screenChats.deleteChatTitle' => 'Delete chat?',
 			'screenChats.deleteChatMessage' => ({required Object title}) => 'Chat "${title}" will be removed from the list.',
 			'screenChats.deleteChatForPeer' => 'Also delete for the other person',
-			'screenChats.deleteForBoth' => 'Delete for both',
-			'screenChats.deleteForMe' => 'Delete only for me',
 			'screenChats.deleteChat' => 'Delete chat',
 			'screenChats.scopeMe' => 'For me',
 			'screenChats.scopeBoth' => 'For me and the other person',
@@ -4194,10 +4186,10 @@ extension on Translations {
 			'screenChat.videoHdOn' => 'HD video: 1080p',
 			'screenChat.videoHdOff' => 'Standard quality: 720p',
 			'screenChat.videoSound' => 'Sound',
-			_ => null,
-		} ?? switch (path) {
 			'screenChat.videoMuted' => 'Muted',
 			'screenChat.videoCover' => 'Cover',
+			_ => null,
+		} ?? switch (path) {
 			'screenChat.videoCoverSet' => 'Cover set',
 			'screenChat.videoReset' => 'Reset',
 			'screenChat.videoCrop' => 'Crop',
@@ -4708,10 +4700,10 @@ extension on Translations {
 			'screenCall.micOff' => 'Mute',
 			'screenCall.speakerOn' => 'Speaker on',
 			'screenCall.speakerOff' => 'Speaker off',
-			_ => null,
-		} ?? switch (path) {
 			'screenCall.audioOutput' => 'Speaker',
 			'screenCall.audioOutputTitle' => 'Audio output',
+			_ => null,
+		} ?? switch (path) {
 			'screenCall.routeEarpiece' => 'Phone',
 			'screenCall.routeSpeaker' => 'Speaker',
 			'screenCall.routeWiredHeadset' => 'Headphones',

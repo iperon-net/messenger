@@ -207,8 +207,6 @@ class _Translations$screenChats$ru extends Translations$screenChats$en {
 	@override String get deleteChatTitle => 'Удалить чат?';
 	@override String deleteChatMessage({required Object title}) => 'Чат «${title}» будет удалён из списка.';
 	@override String get deleteChatForPeer => 'Также удалить у собеседника';
-	@override String get deleteForBoth => 'Удалить у обоих';
-	@override String get deleteForMe => 'Удалить только у меня';
 	@override String get deleteChat => 'Удалить чат';
 	@override String get scopeMe => 'У меня';
 	@override String get scopeBoth => 'У меня и собеседника';
@@ -1650,8 +1648,6 @@ extension on TranslationsRu {
 			'screenChats.deleteChatTitle' => 'Удалить чат?',
 			'screenChats.deleteChatMessage' => ({required Object title}) => 'Чат «${title}» будет удалён из списка.',
 			'screenChats.deleteChatForPeer' => 'Также удалить у собеседника',
-			'screenChats.deleteForBoth' => 'Удалить у обоих',
-			'screenChats.deleteForMe' => 'Удалить только у меня',
 			'screenChats.deleteChat' => 'Удалить чат',
 			'screenChats.scopeMe' => 'У меня',
 			'screenChats.scopeBoth' => 'У меня и собеседника',
@@ -2081,10 +2077,10 @@ extension on TranslationsRu {
 			'screenChat.videoHdOn' => 'Видео в HD: 1080p',
 			'screenChat.videoHdOff' => 'Стандартное качество: 720p',
 			'screenChat.videoSound' => 'Звук',
-			_ => null,
-		} ?? switch (path) {
 			'screenChat.videoMuted' => 'Без звука',
 			'screenChat.videoCover' => 'Обложка',
+			_ => null,
+		} ?? switch (path) {
 			'screenChat.videoCoverSet' => 'Обложка выбрана',
 			'screenChat.videoReset' => 'Сбросить',
 			'screenChat.videoCrop' => 'Кадрировать',
@@ -2595,10 +2591,10 @@ extension on TranslationsRu {
 			'screenCall.micOff' => 'Выкл. звук',
 			'screenCall.speakerOn' => 'Вкл. динамик',
 			'screenCall.speakerOff' => 'Выкл. динамик',
-			_ => null,
-		} ?? switch (path) {
 			'screenCall.audioOutput' => 'Динамик',
 			'screenCall.audioOutputTitle' => 'Вывод звука',
+			_ => null,
+		} ?? switch (path) {
 			'screenCall.routeEarpiece' => 'Телефон',
 			'screenCall.routeSpeaker' => 'Динамик',
 			'screenCall.routeWiredHeadset' => 'Наушники',

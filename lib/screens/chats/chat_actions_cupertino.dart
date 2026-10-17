@@ -19,7 +19,10 @@ class ChatContextMenuCupertino extends StatelessWidget {
   final models.Chat chat;
   final VoidCallback? onTap;
 
-  const ChatContextMenuCupertino({super.key, required this.chat, this.onTap});
+  /// Подтверждение удаления от [ChatDeleteMenuAnchorCupertino] строки.
+  final ChatDeleteConfirm confirmDelete;
+
+  const ChatContextMenuCupertino({super.key, required this.chat, required this.confirmDelete, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -71,21 +74,12 @@ class ChatContextMenuCupertino extends StatelessWidget {
             chat.archived ? CupertinoIcons.tray_arrow_up : CupertinoIcons.archivebox,
             () => cubit.setArchived(chat, !chat.archived),
           ),
-        // Личный — «Удалить чат» раскрывает подменю «У меня» / «У меня и
-        // собеседника» (без всплывающего листа поверх).
-        if (chatDeleteScoped(chat))
-          CupertinoContextSubmenuAction(
-            isDestructiveAction: true,
-            children: [
-              action(t.scopeMe, CupertinoIcons.person, () => cubit.delete(chat), destructive: true),
-              action(t.scopeBoth, CupertinoIcons.person_2, () => cubit.delete(chat, forEveryone: true), destructive: true),
-            ],
-            child: Text(t.deleteChat),
-          )
-        else
-          action(t.deleteChat, CupertinoIcons.delete, () async {
-            if (await askDeleteChatCupertino(context, chat) != null) await cubit.delete(chat);
-          }, destructive: true),
+        // Личный — после закрытия меню отдельное меню «У меня» / «У меня и
+        // собеседника» у строки; остальные — алерт.
+        action(t.deleteChat, CupertinoIcons.delete, () async {
+          final forEveryone = await confirmDelete(afterContextMenu: true);
+          if (forEveryone != null) await cubit.delete(chat, forEveryone: forEveryone);
+        }, destructive: true),
       ],
       builder: (context, animation) {
         // До animationOpensAt — «нажатие» (строка как в списке), после —
@@ -122,30 +116,29 @@ class ChatContextMenuCupertino extends StatelessWidget {
   }
 }
 
-/// Удаление чата с выбором «у обоих» / «только у меня» — личный, кроме
+/// Удаление чата с выбором «У меня» / «У меня и собеседника» — личный, кроме
 /// «Избранного» (у собеседника история тоже очищается, чат пропадает из его
-/// списка). Так же — удаление сообщений в нём. На iOS выбор — пунктами меню:
-/// контекстного ([ChatContextMenuCupertino], меню сообщения) или выпадающего
-/// ([deleteScopeMenuCupertino]), без всплывающего листа.
+/// списка). Так же — удаление и закрепление сообщений в нём. На iOS выбор —
+/// отдельным выпадающим меню ([scopeMenuCupertino]), без всплывающего листа.
 bool chatDeleteScoped(models.Chat chat) => chat.type == models.ChatType.private && !chat.isSelf;
 
-/// Пункты выпадающего меню (`CupertinoMenuAnchor`) удаления с выбором «у
-/// обоих» / «только у меня» — чата (см. [chatDeleteScoped]) или выделенных
-/// сообщений личного чата. [onDelete] получает «и у собеседника?».
-List<Widget> deleteScopeMenuCupertino(BuildContext context, void Function(bool forEveryone) onDelete) {
+/// Пункты выпадающего меню (`CupertinoMenuAnchor`) выбора «У меня» / «У меня и
+/// собеседника»: удаление чата (см. [chatDeleteScoped]) или сообщений личного
+/// чата, закрепление сообщения. [onSelected] получает «и у собеседника?».
+List<Widget> scopeMenuCupertino(BuildContext context, void Function(bool forEveryone) onSelected, {bool destructive = true}) {
   final t = context.t.screenChats;
   return [
     CupertinoMenuItem(
-      isDestructiveAction: true,
-      trailing: const Icon(CupertinoIcons.delete),
-      onPressed: () => onDelete(true),
-      child: Text(t.deleteForBoth),
+      isDestructiveAction: destructive,
+      trailing: const Icon(CupertinoIcons.person),
+      onPressed: () => onSelected(false),
+      child: Text(t.scopeMe),
     ),
     CupertinoMenuItem(
-      isDestructiveAction: true,
-      trailing: const Icon(CupertinoIcons.delete),
-      onPressed: () => onDelete(false),
-      child: Text(t.deleteForMe),
+      isDestructiveAction: destructive,
+      trailing: const Icon(CupertinoIcons.person_2),
+      onPressed: () => onSelected(true),
+      child: Text(t.scopeBoth),
     ),
   ];
 }
@@ -169,28 +162,44 @@ Future<bool?> askDeleteChatCupertino(BuildContext context, models.Chat chat) asy
   return (confirmed ?? false) ? false : null;
 }
 
-/// Строка чата, от которой свайп «Удалить» открывает выпадающее меню выбора
-/// ([deleteScopeMenuCupertino]) — у кнопки свайпа своего якоря нет. [builder]
-/// получает подтверждение для `ChatSwipeActions.confirmDelete`: с выбором —
-/// меню у строки, без — алерт ([askDeleteChatCupertino]).
-class ChatDeleteMenuAnchorCupertino extends StatefulWidget {
-  final models.Chat chat;
-  final Widget Function(BuildContext context, Future<bool?> Function() confirmDelete) builder;
+/// Открыть меню [ScopeMenuAnchorCupertino]. [afterContextMenu] — зовут из
+/// пункта `CupertinoContextMenu`: оно маршрут корневого навигатора поверх
+/// выпадающего меню, поэтому то открывается, когда контекстное доиграет
+/// закрытие. Результат — «и у собеседника?», `null` — закрыли мимо пунктов.
+typedef ScopeAsk = Future<bool?> Function({bool destructive, bool afterContextMenu});
 
-  const ChatDeleteMenuAnchorCupertino({super.key, required this.chat, required this.builder});
+/// Подтверждение удаления чата: с выбором — меню у строки, без — алерт.
+typedef ChatDeleteConfirm = Future<bool?> Function({bool afterContextMenu});
+
+/// Длительность закрытия `CupertinoContextMenu` (`_kModalPopupTransitionDuration`
+/// в cupertino_ui).
+const _contextMenuCloseDuration = Duration(milliseconds: 335);
+
+/// Виджет [builder] с отдельным выпадающим меню «У меня» / «У меня и
+/// собеседника» ([scopeMenuCupertino]) — открывается вызовом [ScopeAsk]: из
+/// свайпа «Удалить» (у кнопки свайпа своего якоря нет) или из пункта
+/// контекстного меню (после его закрытия).
+class ScopeMenuAnchorCupertino extends StatefulWidget {
+  final Widget Function(BuildContext context, ScopeAsk ask) builder;
+
+  const ScopeMenuAnchorCupertino({super.key, required this.builder});
 
   @override
-  State<ChatDeleteMenuAnchorCupertino> createState() => _ChatDeleteMenuAnchorCupertinoState();
+  State<ScopeMenuAnchorCupertino> createState() => _ScopeMenuAnchorCupertinoState();
 }
 
-class _ChatDeleteMenuAnchorCupertinoState extends State<ChatDeleteMenuAnchorCupertino> {
+class _ScopeMenuAnchorCupertinoState extends State<ScopeMenuAnchorCupertino> {
   final _controller = MenuController();
   Completer<bool?>? _choice;
+  bool _destructive = true;
 
-  Future<bool?> _confirm() {
-    if (!chatDeleteScoped(widget.chat)) return askDeleteChatCupertino(context, widget.chat);
+  Future<bool?> _ask({bool destructive = true, bool afterContextMenu = false}) async {
     _finish(null);
     final choice = _choice = Completer<bool?>();
+    if (afterContextMenu) await Future<void>.delayed(_contextMenuCloseDuration);
+    // За время ожидания строку убрали или позвали снова — уже завершён.
+    if (!mounted || choice.isCompleted) return choice.future;
+    setState(() => _destructive = destructive);
     _controller.open();
     return choice.future;
   }
@@ -213,8 +222,29 @@ class _ChatDeleteMenuAnchorCupertinoState extends State<ChatDeleteMenuAnchorCupe
       controller: _controller,
       // Закрыли мимо пунктов — отмена (пункт успевает ответить раньше).
       onClose: () => _finish(null),
-      menuChildren: deleteScopeMenuCupertino(context, _finish),
-      builder: (context, controller, child) => widget.builder(context, _confirm),
+      menuChildren: scopeMenuCupertino(context, _finish, destructive: _destructive),
+      builder: (context, controller, child) => widget.builder(context, _ask),
+    );
+  }
+}
+
+/// Строка чата с меню удаления ([ScopeMenuAnchorCupertino]) для свайпа
+/// «Удалить» и пункта «Удалить чат» контекстного меню. [builder] получает
+/// подтверждение (`ChatSwipeActions.confirmDelete`): с выбором
+/// ([chatDeleteScoped]) — меню у строки, без — алерт ([askDeleteChatCupertino]).
+class ChatDeleteMenuAnchorCupertino extends StatelessWidget {
+  final models.Chat chat;
+  final Widget Function(BuildContext context, ChatDeleteConfirm confirmDelete) builder;
+
+  const ChatDeleteMenuAnchorCupertino({super.key, required this.chat, required this.builder});
+
+  @override
+  Widget build(BuildContext context) {
+    return ScopeMenuAnchorCupertino(
+      builder: (context, ask) => builder(context, ({bool afterContextMenu = false}) {
+        if (!chatDeleteScoped(chat)) return askDeleteChatCupertino(context, chat);
+        return ask(afterContextMenu: afterContextMenu);
+      }),
     );
   }
 }
