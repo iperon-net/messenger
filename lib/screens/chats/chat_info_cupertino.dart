@@ -80,15 +80,18 @@ class _ChatInfoCupertinoState extends State<ChatInfoCupertino> {
     super.dispose();
   }
 
-  Future<void> _leave(BuildContext context, models.Chat chat) async {
-    // Личный — с выбором «и у собеседника» (как в списке чатов).
-    if (chat.type == models.ChatType.private) {
-      final forEveryone = await askDeleteChatCupertino(context, chat);
-      if (forEveryone == null || !context.mounted) return;
+  /// Личный — выбор «у обоих» / «только у меня» выпадающим меню от кнопки
+  /// (см. [chatDeleteScoped]); `null` — без выбора, подтверждение в [_leave].
+  List<Widget>? _deleteMenu(BuildContext context, models.Chat chat) {
+    if (!chatDeleteScoped(chat)) return null;
+    return chatDeleteMenuCupertino(context, (forEveryone) async {
+      // Без сети чат не удалён — остаёмся (окно чата покажет «Нет соединения»).
       if (!await context.read<ChatCubit>().deleteChat(forEveryone: forEveryone)) return;
       if (context.mounted) context.go(chatLeaveRoute(chat));
-      return;
-    }
+    });
+  }
+
+  Future<void> _leave(BuildContext context, models.Chat chat) async {
     final confirm = chatLeaveConfirm(context.t, chat);
     final confirmed = await showCupertinoDialog<bool>(
       context: context,
@@ -389,6 +392,7 @@ class _ChatInfoCupertinoState extends State<ChatInfoCupertino> {
                                         label: chatInfoDeletes(chat) ? t.screenChatInfo.deleteShort : t.screenChatInfo.leaveShort,
                                         color: CupertinoColors.destructiveRed.resolveFrom(context),
                                         onTap: () => _leave(context, chat),
+                                        menuChildren: _deleteMenu(context, chat),
                                       ),
                                   ],
                                 ),

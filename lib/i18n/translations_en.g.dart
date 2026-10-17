@@ -334,8 +334,14 @@ class Translations$screenChats$en {
 	/// en: 'Chat "{title}" will be removed from the list.'
 	String deleteChatMessage({required Object title}) => 'Chat "${title}" will be removed from the list.';
 
-	/// en: 'Also delete for {name}'
-	String deleteChatForPeer({required Object name}) => 'Also delete for ${name}';
+	/// en: 'Also delete for the other person'
+	String get deleteChatForPeer => 'Also delete for the other person';
+
+	/// en: 'Delete for both'
+	String get deleteForBoth => 'Delete for both';
+
+	/// en: 'Delete only for me'
+	String get deleteForMe => 'Delete only for me';
 
 	/// en: 'Read all'
 	String get readAll => 'Read all';
@@ -3704,7 +3710,9 @@ extension on Translations {
 			'screenChats.swipeUnarchive' => 'Unarchive',
 			'screenChats.deleteChatTitle' => 'Delete chat?',
 			'screenChats.deleteChatMessage' => ({required Object title}) => 'Chat "${title}" will be removed from the list.',
-			'screenChats.deleteChatForPeer' => ({required Object name}) => 'Also delete for ${name}',
+			'screenChats.deleteChatForPeer' => 'Also delete for the other person',
+			'screenChats.deleteForBoth' => 'Delete for both',
+			'screenChats.deleteForMe' => 'Delete only for me',
 			'screenChats.readAll' => 'Read all',
 			'screenChats.readReactions' => 'Read reactions',
 			'screenChats.deleteFolder' => 'Delete folder',
@@ -4144,10 +4152,10 @@ extension on Translations {
 			'screenChat.format' => 'Formatting',
 			'screenChat.formatBold' => 'Bold',
 			'screenChat.formatItalic' => 'Italic',
-			'screenChat.formatStrike' => 'Strikethrough',
-			'screenChat.formatSpoiler' => 'Spoiler',
 			_ => null,
 		} ?? switch (path) {
+			'screenChat.formatStrike' => 'Strikethrough',
+			'screenChat.formatSpoiler' => 'Spoiler',
 			'screenChat.formatCode' => 'Monospace',
 			'screenChat.formatLink' => 'Link',
 			'screenChat.formatQuote' => 'Quote',
@@ -4658,10 +4666,10 @@ extension on Translations {
 			'screenCall.cameraOn' => 'Camera on',
 			'screenCall.cameraOff' => 'Camera off',
 			'screenCall.startVideo' => 'Video',
-			'screenCall.switchCamera' => 'Flip camera',
-			'screenCall.qualityPoor' => 'Poor connection',
 			_ => null,
 		} ?? switch (path) {
+			'screenCall.switchCamera' => 'Flip camera',
+			'screenCall.qualityPoor' => 'Poor connection',
 			'screenCall.qualityGood' => 'Good connection',
 			'screenCall.qualityExcellent' => 'Excellent connection',
 			'screenCall.remoteMicMuted' => 'Their microphone is off',

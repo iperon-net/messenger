@@ -51,12 +51,15 @@ class ChatsArchiveCupertino extends StatelessWidget {
                 child: ListView.separated(
                   itemCount: chats.length,
                   separatorBuilder: (_, _) => divider,
-                  itemBuilder: (context, index) => ChatSwipeActions(
+                  itemBuilder: (context, index) => ChatDeleteMenuAnchorCupertino(
                     key: ValueKey(chats[index].id),
                     chat: chats[index],
-                    enabled: true,
-                    confirmDelete: () => askDeleteChatCupertino(context, chats[index]),
-                    child: ChatContextMenuCupertino(chat: chats[index], onTap: () => context.push('/chats/chat/${chats[index].id}')),
+                    builder: (context, confirmDelete) => ChatSwipeActions(
+                      chat: chats[index],
+                      enabled: true,
+                      confirmDelete: confirmDelete,
+                      child: ChatContextMenuCupertino(chat: chats[index], onTap: () => context.push('/chats/chat/${chats[index].id}')),
+                    ),
                   ),
                 ),
               );

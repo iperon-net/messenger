@@ -191,7 +191,9 @@ class _Translations$screenChats$ru extends Translations$screenChats$en {
 	@override String get swipeUnarchive => 'Вернуть';
 	@override String get deleteChatTitle => 'Удалить чат?';
 	@override String deleteChatMessage({required Object title}) => 'Чат «${title}» будет удалён из списка.';
-	@override String deleteChatForPeer({required Object name}) => 'Также удалить для ${name}';
+	@override String get deleteChatForPeer => 'Также удалить у собеседника';
+	@override String get deleteForBoth => 'Удалить у обоих';
+	@override String get deleteForMe => 'Удалить только у меня';
 	@override String get readAll => 'Прочитать все';
 	@override String get readReactions => 'Прочитать реакции';
 	@override String get deleteFolder => 'Удалить папку';
@@ -1619,7 +1621,9 @@ extension on TranslationsRu {
 			'screenChats.swipeUnarchive' => 'Вернуть',
 			'screenChats.deleteChatTitle' => 'Удалить чат?',
 			'screenChats.deleteChatMessage' => ({required Object title}) => 'Чат «${title}» будет удалён из списка.',
-			'screenChats.deleteChatForPeer' => ({required Object name}) => 'Также удалить для ${name}',
+			'screenChats.deleteChatForPeer' => 'Также удалить у собеседника',
+			'screenChats.deleteForBoth' => 'Удалить у обоих',
+			'screenChats.deleteForMe' => 'Удалить только у меня',
 			'screenChats.readAll' => 'Прочитать все',
 			'screenChats.readReactions' => 'Прочитать реакции',
 			'screenChats.deleteFolder' => 'Удалить папку',
@@ -2059,10 +2063,10 @@ extension on TranslationsRu {
 			'screenChat.format' => 'Форматирование',
 			'screenChat.formatBold' => 'Жирный',
 			'screenChat.formatItalic' => 'Курсив',
-			'screenChat.formatStrike' => 'Зачёркнутый',
-			'screenChat.formatSpoiler' => 'Спойлер',
 			_ => null,
 		} ?? switch (path) {
+			'screenChat.formatStrike' => 'Зачёркнутый',
+			'screenChat.formatSpoiler' => 'Спойлер',
 			'screenChat.formatCode' => 'Моноширинный',
 			'screenChat.formatLink' => 'Ссылка',
 			'screenChat.formatQuote' => 'Цитата',
@@ -2573,10 +2577,10 @@ extension on TranslationsRu {
 			'screenCall.cameraOn' => 'Вкл. камеру',
 			'screenCall.cameraOff' => 'Выкл. камеру',
 			'screenCall.startVideo' => 'Видео',
-			'screenCall.switchCamera' => 'Сменить камеру',
-			'screenCall.qualityPoor' => 'Слабый сигнал',
 			_ => null,
 		} ?? switch (path) {
+			'screenCall.switchCamera' => 'Сменить камеру',
+			'screenCall.qualityPoor' => 'Слабый сигнал',
 			'screenCall.qualityGood' => 'Хорошее соединение',
 			'screenCall.qualityExcellent' => 'Отличное соединение',
 			'screenCall.remoteMicMuted' => 'Микрофон собеседника выключен',

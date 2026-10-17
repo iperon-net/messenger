@@ -106,7 +106,7 @@ Future<bool?> askDeleteChatMaterial(BuildContext context, models.Chat chat) {
                 horizontalTitleGap: 4,
                 value: forBoth,
                 onChanged: (value) => setDialogState(() => forBoth = value ?? false),
-                title: Text(t.deleteChatForPeer(name: title)),
+                title: Text(t.deleteChatForPeer),
               ),
           ],
         ),

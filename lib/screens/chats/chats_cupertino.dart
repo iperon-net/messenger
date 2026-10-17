@@ -202,13 +202,16 @@ class _ChatsCupertino extends State<ChatsCupertino> with SearchHideOnScroll {
       itemBuilder: (context, index) {
         if (index < offset) return _ArchiveTileCupertino(archived: archived, onTap: () => context.push('/chats/archive'));
         final chat = chats[index - offset];
-        return ChatSwipeActions(
+        return ChatDeleteMenuAnchorCupertino(
           key: ValueKey(chat.id),
           chat: chat,
-          // Несколько папок — свайп листает их (действия — по удержанию).
-          enabled: state.folders.length < 2,
-          confirmDelete: () => askDeleteChatCupertino(context, chat),
-          child: ChatContextMenuCupertino(chat: chat, onTap: () => context.push('/chats/chat/${chat.id}')),
+          builder: (context, confirmDelete) => ChatSwipeActions(
+            chat: chat,
+            // Несколько папок — свайп листает их (действия — по удержанию).
+            enabled: state.folders.length < 2,
+            confirmDelete: confirmDelete,
+            child: ChatContextMenuCupertino(chat: chat, onTap: () => context.push('/chats/chat/${chat.id}')),
+          ),
         );
       },
     );
