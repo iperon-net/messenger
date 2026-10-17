@@ -179,6 +179,10 @@ dependency_overrides:
     path: third_party/flutter_callkit_incoming
   cryptography_flutter:
     path: third_party/cryptography_flutter
+  # Форк 1.5.3: KGP-guard в android/build.gradle (апстрим не компилирует Kotlin при
+  # AGP 9 + android.builtInKotlin=false — «cannot find symbol ScreenProtectorPlugin»).
+  screen_protector:
+    path: third_party/screen_protector
 
 # Configuration for the `dart_pre_commit` git hook (see .githooks/pre-commit).
 # Mirrors the CI checks in .github/workflows/build_and_deploy.yaml so problems are
