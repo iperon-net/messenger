@@ -6,11 +6,14 @@ import '../../models.dart' as models;
 /// Закрепить ([pin]) / открепить сообщение, [allCount] — «Открепить все».
 /// Личный чат — как в Telegram, «У меня и у собеседника» / «Только у меня»;
 /// иначе закреп сразу (в «Избранном» — у себя), открепление — с
-/// подтверждением. Результат — forEveryone, `null` — отмена.
-Future<bool?> askPinScopeCupertino(BuildContext context, models.Chat chat, {required bool pin, int? allCount}) async {
+/// подтверждением. Открепление закреплённого только у меня ([shared] —
+/// false; у «Открепить все» — ни одного общего) — сразу, без выбора.
+/// Результат — forEveryone, `null` — отмена.
+Future<bool?> askPinScopeCupertino(BuildContext context, models.Chat chat, {required bool pin, int? allCount, bool shared = true}) async {
   final t = context.t.screenChat;
   final private = chat.type == models.ChatType.private && !chat.isSelf;
   if (pin && !private) return !chat.isSelf;
+  if (!pin && private && !shared) return false;
   final title = pin ? t.pinTitle : (allCount != null ? t.unpinAllTitle : t.unpinTitle);
   return showCupertinoDialog<bool>(
     context: context,

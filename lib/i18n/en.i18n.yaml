@@ -68,6 +68,10 @@
   "voice": "Voice message"
   "pin": "Pin"
   "unpin": "Unpin"
+  "pinnedLimitTitle": "Too many pinned chats"
+  "pinnedLimitMessage(plural)":
+    one: "You can pin up to {n} chat. Unpin one of your pinned chats to pin this one."
+    other: "You can pin up to {n} chats. Unpin one of your pinned chats to pin this one."
   "markRead": "Mark as read"
   "markUnread": "Mark as unread"
   "mute": "Mute"

@@ -803,27 +803,44 @@ class ChatsRepository {
     return [for (final row in rows) pb.ChatMessage.fromBuffer(row['message'] as List<int>)];
   }
 
-  /// Список с сервера (Messages.Pinned) заменяет локальный.
-  Future<void> replacePinned({required List<int> userID, required List<int> chatID, required List<pb.ChatMessage> messages}) async {
+  /// Какие из моих закреплённых в чате закреплены у всех участников (личный:
+  /// у обоих); остальные — только у меня.
+  Future<Set<int>> sharedPinnedIDs({required List<int> userID, required List<int> chatID}) async {
+    final rows = await ctx.getAll('SELECT messageID FROM chatPinned WHERE userID = ? AND chatID = ? AND shared != 0;', [userID, chatID]);
+    return {for (final row in rows) row['messageID'] as int};
+  }
+
+  /// Список с сервера (Messages.Pinned) заменяет локальный; [sharedIDs] —
+  /// закреплённые у всех.
+  Future<void> replacePinned({
+    required List<int> userID,
+    required List<int> chatID,
+    required List<pb.ChatMessage> messages,
+    required Set<int> sharedIDs,
+  }) async {
     await ctx.execute('DELETE FROM chatPinned WHERE userID = ? AND chatID = ?;', [userID, chatID]);
     for (final message in messages) {
-      await ctx.execute('INSERT OR REPLACE INTO chatPinned (userID, chatID, messageID, message) VALUES (?, ?, ?, ?);', [
+      final id = message.messageID.toInt();
+      await ctx.execute('INSERT OR REPLACE INTO chatPinned (userID, chatID, messageID, message, shared) VALUES (?, ?, ?, ?, ?);', [
         userID,
         chatID,
-        message.messageID.toInt(),
+        id,
         message.writeToBuffer(),
+        sharedIDs.contains(id) ? 1 : 0,
       ]);
     }
   }
 
-  /// Закрепили / открепили [messageIDs] (Update.pinnedMessages). Закреплённые
-  /// берём из кэша истории; возвращает тех, кого там нет (содержимое — с
-  /// сервера, Messages.Pinned).
+  /// Закрепили / открепили [messageIDs] (Update.pinnedMessages; [shared] — у
+  /// всех участников, может прийти и для уже закреплённых). Закреплённые
+  /// берём из кэша истории; возвращает тех, кого нет ни там, ни в
+  /// закреплённых (содержимое — с сервера, Messages.Pinned).
   Future<List<int>> setPinned({
     required List<int> userID,
     required List<int> chatID,
     required List<int> messageIDs,
     required bool pinned,
+    required bool shared,
   }) async {
     if (messageIDs.isEmpty) return const [];
     if (!pinned) {
@@ -844,14 +861,24 @@ class ChatsRepository {
           chatID,
           id,
         ]);
-        if (known == null) missing.add(id);
+        if (known == null) {
+          missing.add(id);
+        } else {
+          await ctx.execute('UPDATE chatPinned SET shared = ? WHERE userID = ? AND chatID = ? AND messageID = ?;', [
+            shared ? 1 : 0,
+            userID,
+            chatID,
+            id,
+          ]);
+        }
         continue;
       }
-      await ctx.execute('INSERT OR REPLACE INTO chatPinned (userID, chatID, messageID, message) VALUES (?, ?, ?, ?);', [
+      await ctx.execute('INSERT OR REPLACE INTO chatPinned (userID, chatID, messageID, message, shared) VALUES (?, ?, ?, ?, ?);', [
         userID,
         chatID,
         id,
         cached.writeToBuffer(),
+        shared ? 1 : 0,
       ]);
     }
     return missing;

@@ -44,4 +44,24 @@ void main() {
     expect(last.pinText, 'очень длинный текст закреплённ…');
     expect(lastMessageFromPb(pin(from: me), myUserID: me, readOutboxMaxID: 0, isSelf: false).pinText, '');
   });
+
+  test('закреплено только у меня — только у закреплённого', () {
+    final text = pb.ChatMessage(
+      messageID: Int64(3),
+      fromUserID: me,
+      content: pb.MessageContent(text: 'привет'),
+    );
+    pinnedOnlyMe({required bool pinned, required bool onlyMe}) => messageFromPb(
+      text,
+      chatID: 'c',
+      myUserID: me,
+      readOutboxMaxID: 0,
+      isSelf: false,
+      pinned: pinned,
+      pinnedOnlyMe: onlyMe,
+    ).pinnedOnlyMe;
+    expect(pinnedOnlyMe(pinned: true, onlyMe: true), isTrue);
+    expect(pinnedOnlyMe(pinned: true, onlyMe: false), isFalse);
+    expect(pinnedOnlyMe(pinned: false, onlyMe: true), isFalse);
+  });
 }

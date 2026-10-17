@@ -8,10 +8,13 @@ import 'chat_common.dart';
 /// Закрепить ([pin]) / открепить сообщение, [allCount] — «Открепить все».
 /// Личный чат ([chatDeleteScoped]) — шторка «У меня» / «У меня и собеседника»
 /// ([pickScopeMaterial]); иначе закреп сразу (в «Избранном» — у себя),
-/// открепление — с подтверждением. Результат — forEveryone, `null` — отмена.
-Future<bool?> askPinScopeMaterial(BuildContext context, models.Chat chat, {required bool pin, int? allCount}) async {
+/// открепление — с подтверждением. Открепление закреплённого только у меня
+/// ([shared] — false; у «Открепить все» — ни одного общего) — сразу, без
+/// выбора. Результат — forEveryone, `null` — отмена.
+Future<bool?> askPinScopeMaterial(BuildContext context, models.Chat chat, {required bool pin, int? allCount, bool shared = true}) async {
   final t = context.t.screenChat;
   final title = pin ? t.pinTitle : (allCount != null ? t.unpinAllTitle : t.unpinTitle);
+  if (!pin && chatDeleteScoped(chat) && !shared) return false;
   if (chatDeleteScoped(chat)) return pickScopeMaterial(context, title: title, destructive: !pin);
   if (pin) return !chat.isSelf;
   return showDialog<bool>(

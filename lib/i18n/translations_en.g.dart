@@ -304,6 +304,15 @@ class Translations$screenChats$en {
 	/// en: 'Unpin'
 	String get unpin => 'Unpin';
 
+	/// en: 'Too many pinned chats'
+	String get pinnedLimitTitle => 'Too many pinned chats';
+
+	/// en: '(one) {You can pin up to {n} chat. Unpin one of your pinned chats to pin this one.} (other) {You can pin up to {n} chats. Unpin one of your pinned chats to pin this one.}'
+	String pinnedLimitMessage({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n,
+		one: 'You can pin up to ${n} chat. Unpin one of your pinned chats to pin this one.',
+		other: 'You can pin up to ${n} chats. Unpin one of your pinned chats to pin this one.',
+	);
+
 	/// en: 'Mark as read'
 	String get markRead => 'Mark as read';
 
@@ -3726,6 +3735,8 @@ extension on Translations {
 			'screenChats.voice' => 'Voice message',
 			'screenChats.pin' => 'Pin',
 			'screenChats.unpin' => 'Unpin',
+			'screenChats.pinnedLimitTitle' => 'Too many pinned chats',
+			'screenChats.pinnedLimitMessage' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: 'You can pin up to ${n} chat. Unpin one of your pinned chats to pin this one.', other: 'You can pin up to ${n} chats. Unpin one of your pinned chats to pin this one.', ), 
 			'screenChats.markRead' => 'Mark as read',
 			'screenChats.markUnread' => 'Mark as unread',
 			'screenChats.mute' => 'Mute',
@@ -4177,10 +4188,10 @@ extension on Translations {
 			'screenChat.videoSound' => 'Sound',
 			'screenChat.videoMuted' => 'Muted',
 			'screenChat.videoCover' => 'Cover',
-			'screenChat.videoCoverSet' => 'Cover set',
-			'screenChat.videoReset' => 'Reset',
 			_ => null,
 		} ?? switch (path) {
+			'screenChat.videoCoverSet' => 'Cover set',
+			'screenChat.videoReset' => 'Reset',
 			'screenChat.videoCrop' => 'Crop',
 			'screenChat.videoRotate' => 'Rotate',
 			'screenChat.videoAspectFree' => 'Free',
@@ -4691,10 +4702,10 @@ extension on Translations {
 			'screenCall.speakerOff' => 'Speaker off',
 			'screenCall.audioOutput' => 'Speaker',
 			'screenCall.audioOutputTitle' => 'Audio output',
-			'screenCall.routeEarpiece' => 'Phone',
-			'screenCall.routeSpeaker' => 'Speaker',
 			_ => null,
 		} ?? switch (path) {
+			'screenCall.routeEarpiece' => 'Phone',
+			'screenCall.routeSpeaker' => 'Speaker',
 			'screenCall.routeWiredHeadset' => 'Headphones',
 			'screenCall.routeBluetooth' => 'Bluetooth',
 			'screenCall.routeHearingAid' => 'Hearing aid',

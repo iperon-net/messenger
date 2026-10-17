@@ -1847,7 +1847,10 @@ class ChatsDemoDataSource implements ChatsDataSource {
 
   @override
   Future<void> setMessagePinned(String chatID, String messageID, bool pinned, {bool forEveryone = true}) async {
-    _updateMessage(chatID, messageID, (m) => m.copyWith(pinned: pinned));
+    // Только у себя — в личном с собеседником (в «Избранном» и группах выбора нет).
+    final chat = _chat(chatID);
+    final onlyMe = pinned && !forEveryone && chat != null && chat.type == models.ChatType.private && !chat.isSelf;
+    _updateMessage(chatID, messageID, (m) => m.copyWith(pinned: pinned, pinnedOnlyMe: onlyMe));
     if (!pinned || !forEveryone) return;
     _setMessages(chatID, [
       ..._history(chatID),
@@ -1873,7 +1876,7 @@ class ChatsDemoDataSource implements ChatsDataSource {
 
   @override
   Future<void> unpinAllMessages(String chatID, {bool forEveryone = true}) async {
-    _setMessages(chatID, [for (final m in _history(chatID)) m.pinned ? m.copyWith(pinned: false) : m]);
+    _setMessages(chatID, [for (final m in _history(chatID)) m.pinned ? m.copyWith(pinned: false, pinnedOnlyMe: false) : m]);
   }
 
   @override

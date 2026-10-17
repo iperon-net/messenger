@@ -120,7 +120,26 @@ class ChatsCubit extends Cubit<ChatsState> {
     }
   }
 
-  Future<void> setPinned(models.Chat chat, bool pinned) => _online(() => _source?.setPinned(chat.id, pinned));
+  /// Закрепить — не больше [models.chatPinnedLimit] в списке (без архива):
+  /// сверх — объяснение без запроса; сервер проверяет тот же лимит (закреп с
+  /// другого устройства мог ещё не долететь).
+  Future<void> setPinned(models.Chat chat, bool pinned) async {
+    if (pinned && !chat.pinned) {
+      final count = state.chats.where((c) => c.pinned && !c.archived && !c.hiddenInList).length;
+      if (count >= models.chatPinnedLimit) return _pinnedLimit();
+    }
+    try {
+      await _online(() => _source?.setPinned(chat.id, pinned));
+    } on ChatsRequestException catch (error) {
+      if (!error.isPinnedLimit) rethrow;
+      _pinnedLimit();
+    }
+  }
+
+  void _pinnedLimit() {
+    if (!isClosed) emit(state.copyWith(pinnedLimitNotice: state.pinnedLimitNotice + 1));
+  }
+
   Future<void> setMuted(models.Chat chat, bool muted, {DateTime? until}) => _online(() => _source?.setMuted(chat.id, muted, until: until));
   Future<void> setArchived(models.Chat chat, bool archived) => _online(() => _source?.setArchived(chat.id, archived));
   Future<void> setRead(models.Chat chat, bool read) => _online(() => _source?.setRead(chat.id, read));

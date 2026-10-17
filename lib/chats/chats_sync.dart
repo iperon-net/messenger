@@ -65,6 +65,10 @@ class ChatsRequestException implements Exception {
   /// «privacyRestricted»).
   bool get isPrivacyRestricted => statusCode == StatusCode.permissionDenied && error == 'privacyRestricted';
 
+  /// Закреплённых чатов уже [models.chatPinnedLimit] (`FailedPrecondition`
+  /// «pinnedLimit»; например, закрепили на другом устройстве).
+  bool get isPinnedLimit => statusCode == StatusCode.failedPrecondition && error == 'pinnedLimit';
+
   /// Не найдено (`NotFound`): например, пользователя с таким именем нет.
   bool get isNotFound => statusCode == StatusCode.notFound;
 
@@ -570,6 +574,7 @@ class ChatsSync {
           chatID: pins.chatID,
           messageIDs: [for (final id in pins.messageIDs) id.toInt()],
           pinned: pins.pinned,
+          shared: pins.shared,
         );
         // Закрепили сообщение старше скачанной истории — содержимое с сервера.
         if (missing.isNotEmpty) followUps.refreshPinned.add(Uint8List.fromList(pins.chatID));
@@ -690,7 +695,12 @@ class ChatsSync {
     await _locked(
       () => _store.transaction((tx) async {
         if (await tx.dialog(userID: user, chatID: chatID) == null) return;
-        await tx.replacePinned(userID: user, chatID: chatID, messages: pinned);
+        await tx.replacePinned(
+          userID: user,
+          chatID: chatID,
+          messages: pinned,
+          sharedIDs: {for (final id in response.pinned.sharedIDs) id.toInt()},
+        );
       }),
     );
   }

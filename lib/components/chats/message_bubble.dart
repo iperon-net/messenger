@@ -6,6 +6,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_boring_avatars/flutter_boring_avatars.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
+import 'package:material_ui/material_ui.dart' as mi show Icons;
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../chats/voice_player.dart';
@@ -651,7 +652,7 @@ class MessageBubble extends StatelessWidget {
           Text(views, style: metaStyle),
           const SizedBox(width: 6),
         ],
-        if (m.pinned) ...[FaIcon(FontAwesomeIcons.thumbtack, size: 10, color: metaColor), const SizedBox(width: 3)],
+        if (m.pinned) ...[PinIcon(onlyMe: m.pinnedOnlyMe, size: 12, color: metaColor), const SizedBox(width: 2)],
         Text(metaText, style: metaStyle),
         if (out && m.kind != models.MessageKind.call) ...[
           const SizedBox(width: 3),
@@ -2026,4 +2027,17 @@ class _ReactionsShownState extends State<_ReactionsShown> {
 
   @override
   Widget build(BuildContext context) => widget.child;
+}
+
+/// Булавка закреплённого: залитая — у всех (личный: у обоих), контурная —
+/// только у меня ([models.Message.pinnedOnlyMe]).
+class PinIcon extends StatelessWidget {
+  final bool onlyMe;
+  final double size;
+  final Color color;
+
+  const PinIcon({super.key, required this.onlyMe, required this.size, required this.color});
+
+  @override
+  Widget build(BuildContext context) => Icon(onlyMe ? mi.Icons.push_pin_outlined : mi.Icons.push_pin, size: size, color: color);
 }

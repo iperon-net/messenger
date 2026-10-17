@@ -350,7 +350,7 @@ class _ChatMaterialState extends State<ChatMaterial> {
   /// только у меня (см. [askPinScopeMaterial]).
   Future<void> _pin(models.Chat chat, models.Message message) async {
     final pinned = !message.pinned;
-    final forEveryone = await askPinScopeMaterial(context, chat, pin: pinned);
+    final forEveryone = await askPinScopeMaterial(context, chat, pin: pinned, shared: !message.pinnedOnlyMe);
     if (forEveryone != null) await _cubit.setPinned(message, pinned, forEveryone: forEveryone);
   }
 

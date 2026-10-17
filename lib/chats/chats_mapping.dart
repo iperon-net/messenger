@@ -157,6 +157,7 @@ models.Message messageFromPb(
   pb.ChatMessage? replied,
   String peerName = '',
   bool pinned = false,
+  bool pinnedOnlyMe = false,
 }) {
   final outgoing = sameID(m.fromUserID, myUserID);
   final content = m.content;
@@ -171,6 +172,7 @@ models.Message messageFromPb(
     pinnedMessageID: content.hasPin() ? content.pin.messageID.toString() : '',
     senderName: content.hasPin() && !outgoing ? peerName : '',
     pinned: pinned,
+    pinnedOnlyMe: pinned && pinnedOnlyMe,
     text: content.text,
     entities: [for (final e in content.entities) entityFromPb(e)],
     outgoing: outgoing,

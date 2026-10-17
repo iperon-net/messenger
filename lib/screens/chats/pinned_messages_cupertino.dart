@@ -50,7 +50,7 @@ class PinnedMessagesCupertino extends StatelessWidget {
           isDestructiveAction: true,
           onPressed: () async {
             close();
-            final forEveryone = await askPinScopeCupertino(context, chat, pin: false);
+            final forEveryone = await askPinScopeCupertino(context, chat, pin: false, shared: !message.pinnedOnlyMe);
             if (forEveryone != null) await cubit.setPinned(message, false, forEveryone: forEveryone);
           },
           child: Text(t.unpin),
@@ -58,9 +58,10 @@ class PinnedMessagesCupertino extends StatelessWidget {
     ];
   }
 
-  Future<void> _unpinAll(BuildContext context, models.Chat chat, int count) async {
+  /// [shared] — среди закреплённых есть общие (иначе выбора нет).
+  Future<void> _unpinAll(BuildContext context, models.Chat chat, int count, {required bool shared}) async {
     final cubit = context.read<ChatCubit>();
-    final forEveryone = await askPinScopeCupertino(context, chat, pin: false, allCount: count);
+    final forEveryone = await askPinScopeCupertino(context, chat, pin: false, allCount: count, shared: shared);
     if (forEveryone != null) await cubit.unpinAll(forEveryone: forEveryone);
   }
 
@@ -123,7 +124,7 @@ class PinnedMessagesCupertino extends StatelessWidget {
                           child: SizedBox(
                             width: double.infinity,
                             child: CupertinoButton(
-                              onPressed: () => _unpinAll(context, chat, pinned.length),
+                              onPressed: () => _unpinAll(context, chat, pinned.length, shared: pinned.any((m) => !m.pinnedOnlyMe)),
                               child: Text(t.unpinAll, style: TextStyle(color: CupertinoColors.destructiveRed.resolveFrom(context))),
                             ),
                           ),

@@ -38,6 +38,13 @@ class ChatsStateMapper extends ClassMapperBase<ChatsState> {
     opt: true,
     def: 0,
   );
+  static int _$pinnedLimitNotice(ChatsState v) => v.pinnedLimitNotice;
+  static const Field<ChatsState, int> _f$pinnedLimitNotice = Field(
+    'pinnedLimitNotice',
+    _$pinnedLimitNotice,
+    opt: true,
+    def: 0,
+  );
   static bool _$notificationsMissing(ChatsState v) => v.notificationsMissing;
   static const Field<ChatsState, bool> _f$notificationsMissing = Field(
     'notificationsMissing',
@@ -104,6 +111,7 @@ class ChatsStateMapper extends ClassMapperBase<ChatsState> {
   final MappableFields<ChatsState> fields = const {
     #status: _f$status,
     #offlineNotice: _f$offlineNotice,
+    #pinnedLimitNotice: _f$pinnedLimitNotice,
     #notificationsMissing: _f$notificationsMissing,
     #notificationsBannerDismissed: _f$notificationsBannerDismissed,
     #demo: _f$demo,
@@ -119,6 +127,7 @@ class ChatsStateMapper extends ClassMapperBase<ChatsState> {
     return ChatsState(
       status: data.dec(_f$status),
       offlineNotice: data.dec(_f$offlineNotice),
+      pinnedLimitNotice: data.dec(_f$pinnedLimitNotice),
       notificationsMissing: data.dec(_f$notificationsMissing),
       notificationsBannerDismissed: data.dec(_f$notificationsBannerDismissed),
       demo: data.dec(_f$demo),
@@ -208,6 +217,7 @@ abstract class ChatsStateCopyWith<$R, $In extends ChatsState, $Out>
   $R call({
     Status? status,
     int? offlineNotice,
+    int? pinnedLimitNotice,
     bool? notificationsMissing,
     bool? notificationsBannerDismissed,
     bool? demo,
@@ -262,6 +272,7 @@ class _ChatsStateCopyWithImpl<$R, $Out>
   $R call({
     Status? status,
     int? offlineNotice,
+    int? pinnedLimitNotice,
     bool? notificationsMissing,
     bool? notificationsBannerDismissed,
     bool? demo,
@@ -275,6 +286,7 @@ class _ChatsStateCopyWithImpl<$R, $Out>
     FieldCopyWithData({
       if (status != null) #status: status,
       if (offlineNotice != null) #offlineNotice: offlineNotice,
+      if (pinnedLimitNotice != null) #pinnedLimitNotice: pinnedLimitNotice,
       if (notificationsMissing != null)
         #notificationsMissing: notificationsMissing,
       if (notificationsBannerDismissed != null)
@@ -292,6 +304,10 @@ class _ChatsStateCopyWithImpl<$R, $Out>
   ChatsState $make(CopyWithData data) => ChatsState(
     status: data.get(#status, or: $value.status),
     offlineNotice: data.get(#offlineNotice, or: $value.offlineNotice),
+    pinnedLimitNotice: data.get(
+      #pinnedLimitNotice,
+      or: $value.pinnedLimitNotice,
+    ),
     notificationsMissing: data.get(
       #notificationsMissing,
       or: $value.notificationsMissing,

@@ -2232,18 +2232,23 @@ class Update_DialogDeleted extends $pb.GeneratedMessage {
 }
 
 /// Сообщения закреплены (pinned) / откреплены у меня — на этом или другом
-/// устройстве, мной или собеседником (закреп «у всех»). Содержимое
+/// устройстве, мной или собеседником (закреп «у всех»). shared — закреплены
+/// у всех участников (личный: у обоих; «Избранное» — всегда), иначе только у
+/// меня. Приходит и когда у меня ничего не поменялось, а поменялось shared
+/// (собеседник закрепил то же или открепил общее у себя). Содержимое
 /// закреплённых, которых нет в кэше, клиент берёт запросом Messages.Pinned.
 class Update_PinnedMessages extends $pb.GeneratedMessage {
   factory Update_PinnedMessages({
     $core.List<$core.int>? chatID,
     $core.Iterable<$fixnum.Int64>? messageIDs,
     $core.bool? pinned,
+    $core.bool? shared,
   }) {
     final result = create();
     if (chatID != null) result.chatID = chatID;
     if (messageIDs != null) result.messageIDs.addAll(messageIDs);
     if (pinned != null) result.pinned = pinned;
+    if (shared != null) result.shared = shared;
     return result;
   }
 
@@ -2259,6 +2264,7 @@ class Update_PinnedMessages extends $pb.GeneratedMessage {
     ..a<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'chatID', $pb.PbFieldType.OY, protoName: 'chatID')
     ..p<$fixnum.Int64>(2, _omitFieldNames ? '' : 'messageIDs', $pb.PbFieldType.K6, protoName: 'messageIDs')
     ..aOB(3, _omitFieldNames ? '' : 'pinned')
+    ..aOB(4, _omitFieldNames ? '' : 'shared')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -2298,6 +2304,15 @@ class Update_PinnedMessages extends $pb.GeneratedMessage {
   $core.bool hasPinned() => $_has(2);
   @$pb.TagNumber(3)
   void clearPinned() => $_clearField(3);
+
+  @$pb.TagNumber(4)
+  $core.bool get shared => $_getBF(3);
+  @$pb.TagNumber(4)
+  set shared($core.bool value) => $_setBool(3, value);
+  @$pb.TagNumber(4)
+  $core.bool hasShared() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearShared() => $_clearField(4);
 }
 
 /// Изменились реакции на сообщение (мои — на этом или другом устройстве — или
@@ -3341,7 +3356,9 @@ class Chats_ReadHistoryResult extends $pb.GeneratedMessage {
   Updates ensureUpdates() => $_ensure(0);
 }
 
-/// Мои настройки диалога. Отсутствующее поле — не менять.
+/// Мои настройки диалога. Отсутствующее поле — не менять. Закрепить, когда
+/// в списке (без архива) уже 10 закреплённых, — FAILED_PRECONDITION
+/// «pinnedLimit».
 class Chats_SetDialog extends $pb.GeneratedMessage {
   factory Chats_SetDialog({
     $core.List<$core.int>? chatID,
@@ -6525,9 +6542,11 @@ class Messages_Pinned extends $pb.GeneratedMessage {
 class Messages_PinnedResult extends $pb.GeneratedMessage {
   factory Messages_PinnedResult({
     $core.Iterable<ChatMessage>? messages,
+    $core.Iterable<$fixnum.Int64>? sharedIDs,
   }) {
     final result = create();
     if (messages != null) result.messages.addAll(messages);
+    if (sharedIDs != null) result.sharedIDs.addAll(sharedIDs);
     return result;
   }
 
@@ -6541,6 +6560,7 @@ class Messages_PinnedResult extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Messages.PinnedResult',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
     ..pPM<ChatMessage>(1, _omitFieldNames ? '' : 'messages', subBuilder: ChatMessage.create)
+    ..p<$fixnum.Int64>(2, _omitFieldNames ? '' : 'sharedIDs', $pb.PbFieldType.K6, protoName: 'sharedIDs')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -6562,6 +6582,11 @@ class Messages_PinnedResult extends $pb.GeneratedMessage {
 
   @$pb.TagNumber(1)
   $pb.PbList<ChatMessage> get messages => $_getList(0);
+
+  /// Какие из messages закреплены у всех участников (см.
+  /// Update.PinnedMessages.shared), остальные — только у меня.
+  @$pb.TagNumber(2)
+  $pb.PbList<$fixnum.Int64> get sharedIDs => $_getList(1);
 }
 
 /// Мои реакции на сообщение — весь набор целиком (как sendReaction в

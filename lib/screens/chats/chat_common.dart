@@ -362,6 +362,24 @@ class ChatsOfflineListener<B extends StateStreamable<S>, S> extends StatelessWid
   );
 }
 
+/// «Закрепить» сверх [models.chatPinnedLimit] — объяснение, когда растёт
+/// `ChatsState.pinnedLimitNotice`. Ставится на экран списка чатов.
+class ChatsPinnedLimitListener extends StatelessWidget {
+  final Widget child;
+
+  const ChatsPinnedLimitListener({super.key, required this.child});
+
+  @override
+  Widget build(BuildContext context) => BlocListener<ChatsCubit, ChatsState>(
+    listenWhen: (previous, current) => current.pinnedLimitNotice > previous.pinnedLimitNotice,
+    listener: (context, _) {
+      final t = context.t.screenChats;
+      unawaited(_showNotice(context, t.pinnedLimitMessage(n: models.chatPinnedLimit), title: t.pinnedLimitTitle));
+    },
+    child: child,
+  );
+}
+
 /// Лимит частоты сервера на новые чаты: «попробуйте через …».
 void showChatsFlood(BuildContext context, int seconds) {
   final t = context.t.screenChat;
@@ -1559,11 +1577,20 @@ class PinnedMessageBar extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            pinned.length > 1 ? t.screenChat.pinnedNumber(n: number) : t.screenChat.pinnedTitle,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: style.accent),
+                          Row(
+                            children: [
+                              Flexible(
+                                child: Text(
+                                  pinned.length > 1 ? t.screenChat.pinnedNumber(n: number) : t.screenChat.pinnedTitle,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: style.accent),
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              // Залитая — у обоих, контурная — только у меня.
+                              PinIcon(onlyMe: message.pinnedOnlyMe, size: 13, color: style.accent),
+                            ],
                           ),
                           const SizedBox(height: 1),
                           Text(

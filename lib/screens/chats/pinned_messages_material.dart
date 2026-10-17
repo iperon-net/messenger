@@ -58,14 +58,15 @@ class PinnedMessagesMaterial extends StatelessWidget {
       case 'go':
         _goTo(context, message);
       case 'unpin':
-        final forEveryone = await askPinScopeMaterial(context, chat, pin: false);
+        final forEveryone = await askPinScopeMaterial(context, chat, pin: false, shared: !message.pinnedOnlyMe);
         if (forEveryone != null) await cubit.setPinned(message, false, forEveryone: forEveryone);
     }
   }
 
-  Future<void> _unpinAll(BuildContext context, models.Chat chat, int count) async {
+  /// [shared] — среди закреплённых есть общие (иначе выбора нет).
+  Future<void> _unpinAll(BuildContext context, models.Chat chat, int count, {required bool shared}) async {
     final cubit = context.read<ChatCubit>();
-    final forEveryone = await askPinScopeMaterial(context, chat, pin: false, allCount: count);
+    final forEveryone = await askPinScopeMaterial(context, chat, pin: false, allCount: count, shared: shared);
     if (forEveryone != null) await cubit.unpinAll(forEveryone: forEveryone);
   }
 
@@ -119,7 +120,7 @@ class PinnedMessagesMaterial extends StatelessWidget {
                       width: double.infinity,
                       child: TextButton(
                         style: TextButton.styleFrom(foregroundColor: scheme.error, padding: const EdgeInsets.symmetric(vertical: 16)),
-                        onPressed: () => _unpinAll(context, chat, pinned.length),
+                        onPressed: () => _unpinAll(context, chat, pinned.length, shared: pinned.any((m) => !m.pinnedOnlyMe)),
                         child: Text(t.unpinAll),
                       ),
                     ),

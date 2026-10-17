@@ -302,6 +302,10 @@ class Message with MessageMappable {
   /// Закреплено в чате — в плашке под шапкой (закреплённых может быть несколько).
   final bool pinned;
 
+  /// Закреплено только у меня (личный чат: у собеседника — нет): контурная
+  /// булавка, открепление — без выбора «у меня / у обоих».
+  final bool pinnedOnlyMe;
+
   /// Сервисное «Анна закрепила «…»» ([service]): id закреплённого сообщения
   /// (тап — к нему); автор — [senderName], у своего — [outgoing].
   final String pinnedMessageID;
@@ -366,6 +370,7 @@ class Message with MessageMappable {
     this.reactions = const [],
     this.forward,
     this.pinned = false,
+    this.pinnedOnlyMe = false,
     this.pinnedMessageID = '',
     this.silent = false,
     this.scheduledDate,

@@ -185,6 +185,11 @@ class _Translations$screenChats$ru extends Translations$screenChats$en {
 	@override String get voice => 'Голосовое сообщение';
 	@override String get pin => 'Закрепить';
 	@override String get unpin => 'Открепить';
+	@override String get pinnedLimitTitle => 'Закреплено слишком много чатов';
+	@override String pinnedLimitMessage({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n,
+		one: 'Можно закрепить не больше ${n} чата. Открепите один из закреплённых, чтобы закрепить этот.',
+		other: 'Можно закрепить не больше ${n} чатов. Открепите один из закреплённых, чтобы закрепить этот.',
+	);
 	@override String get markRead => 'Прочитано';
 	@override String get markUnread => 'Непрочитано';
 	@override String get mute => 'Выключить уведомления';
@@ -1619,6 +1624,8 @@ extension on TranslationsRu {
 			'screenChats.voice' => 'Голосовое сообщение',
 			'screenChats.pin' => 'Закрепить',
 			'screenChats.unpin' => 'Открепить',
+			'screenChats.pinnedLimitTitle' => 'Закреплено слишком много чатов',
+			'screenChats.pinnedLimitMessage' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: 'Можно закрепить не больше ${n} чата. Открепите один из закреплённых, чтобы закрепить этот.', other: 'Можно закрепить не больше ${n} чатов. Открепите один из закреплённых, чтобы закрепить этот.', ), 
 			'screenChats.markRead' => 'Прочитано',
 			'screenChats.markUnread' => 'Непрочитано',
 			'screenChats.mute' => 'Выключить уведомления',
@@ -2070,10 +2077,10 @@ extension on TranslationsRu {
 			'screenChat.videoSound' => 'Звук',
 			'screenChat.videoMuted' => 'Без звука',
 			'screenChat.videoCover' => 'Обложка',
-			'screenChat.videoCoverSet' => 'Обложка выбрана',
-			'screenChat.videoReset' => 'Сбросить',
 			_ => null,
 		} ?? switch (path) {
+			'screenChat.videoCoverSet' => 'Обложка выбрана',
+			'screenChat.videoReset' => 'Сбросить',
 			'screenChat.videoCrop' => 'Кадрировать',
 			'screenChat.videoRotate' => 'Повернуть',
 			'screenChat.videoAspectFree' => 'Свободно',
@@ -2584,10 +2591,10 @@ extension on TranslationsRu {
 			'screenCall.speakerOff' => 'Выкл. динамик',
 			'screenCall.audioOutput' => 'Динамик',
 			'screenCall.audioOutputTitle' => 'Вывод звука',
-			'screenCall.routeEarpiece' => 'Телефон',
-			'screenCall.routeSpeaker' => 'Динамик',
 			_ => null,
 		} ?? switch (path) {
+			'screenCall.routeEarpiece' => 'Телефон',
+			'screenCall.routeSpeaker' => 'Динамик',
 			'screenCall.routeWiredHeadset' => 'Наушники',
 			'screenCall.routeBluetooth' => 'Bluetooth',
 			'screenCall.routeHearingAid' => 'Слуховой аппарат',

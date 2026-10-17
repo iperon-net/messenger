@@ -783,6 +783,7 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     final history = await _store.messages(userID: me, chatID: chat, limit: _windows[chatID] ?? _initialWindow);
     final byID = {for (final m in history) m.messageID.toInt(): m};
     final pinnedIDs = {for (final m in await _store.pinned(userID: me, chatID: chat)) m.messageID.toInt()};
+    final sharedPinnedIDs = await _store.sharedPinnedIDs(userID: me, chatID: chat);
     final pendingReactions = {for (final r in await _store.pendingReactions(userID: me, chatID: chat)) r.messageID: r.emojis};
 
     models.Message map(pb.ChatMessage m) {
@@ -795,6 +796,7 @@ class ChatsRemoteDataSource implements ChatsDataSource {
         replied: m.content.hasReplyTo() ? byID[m.content.replyTo.messageID.toInt()] : null,
         peerName: peerName,
         pinned: pinnedIDs.contains(m.messageID.toInt()),
+        pinnedOnlyMe: !sharedPinnedIDs.contains(m.messageID.toInt()),
       );
       // Мой набор, ещё не принятый сервером, — поверх серверных.
       final mine = pendingReactions[m.messageID.toInt()];
@@ -1321,6 +1323,7 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     final peer = row?.peerUserID;
     final isSelf = peer != null && sameID(peer, me);
     final peerName = peer == null || isSelf ? '' : _Peers(await _loadPeers([peer])).of(peer).title;
+    final sharedIDs = await _store.sharedPinnedIDs(userID: me, chatID: chat);
     return [
       for (final m in await _store.pinned(userID: me, chatID: chat))
         await _withServerMedia(
@@ -1332,6 +1335,7 @@ class ChatsRemoteDataSource implements ChatsDataSource {
             isSelf: isSelf,
             peerName: peerName,
             pinned: true,
+            pinnedOnlyMe: !sharedIDs.contains(m.messageID.toInt()),
           ),
           m.content,
           chatID,

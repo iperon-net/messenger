@@ -687,6 +687,16 @@ class Repositories {
       }),
     );
 
+    migrations.add(
+      SqliteMigration(29, (tx) async {
+        // chatPinned.shared — закреплено у всех участников (личный: у обоих),
+        // 0 — только у меня (контурная булавка, открепление без выбора).
+        // Прежние строки — как общие; при открытии чата Messages.Pinned
+        // присылает точное значение.
+        await tx.execute('ALTER TABLE chatPinned ADD COLUMN shared INTEGER NOT NULL DEFAULT 1;');
+      }),
+    );
+
     if (settings.isDeleteDatabase) {
       logger.warning("Deleting the database, flag set IS_DELETE_DATABASE: 1");
 

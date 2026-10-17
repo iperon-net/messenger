@@ -329,7 +329,7 @@ class _ChatCupertinoState extends State<ChatCupertino> {
   /// только у меня (см. [askPinScopeCupertino]).
   Future<void> _pin(models.Chat chat, models.Message message) async {
     final pinned = !message.pinned;
-    final forEveryone = await askPinScopeCupertino(context, chat, pin: pinned);
+    final forEveryone = await askPinScopeCupertino(context, chat, pin: pinned, shared: !message.pinnedOnlyMe);
     if (forEveryone != null) await _cubit.setPinned(message, pinned, forEveryone: forEveryone);
   }
 
@@ -786,9 +786,9 @@ class _ChatCupertinoState extends State<ChatCupertino> {
       ],
       if (canWrite && features.pinnedMessages && _pinnable(message))
         action(message.pinned ? t.unpin : t.pin, message.pinned ? CupertinoIcons.pin_slash : CupertinoIcons.pin, () async {
-          // Личный — меню «У меня» / «У меня и собеседника»; в остальных выбора
-          // нет (см. [askPinScopeCupertino]).
-          if (!chatDeleteScoped(chat)) return _pin(chat, message);
+          // Личный — меню «У меня» / «У меня и собеседника»; в остальных и у
+          // закреплённого только у меня выбора нет (см. [askPinScopeCupertino]).
+          if (!chatDeleteScoped(chat) || message.pinnedOnlyMe) return _pin(chat, message);
           final pinned = !message.pinned;
           final forEveryone = await ask(destructive: !pinned, afterContextMenu: true);
           if (forEveryone != null) await _cubit.setPinned(message, pinned, forEveryone: forEveryone);

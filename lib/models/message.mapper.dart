@@ -1914,6 +1914,13 @@ class MessageMapper extends ClassMapperBase<Message> {
     opt: true,
     def: false,
   );
+  static bool _$pinnedOnlyMe(Message v) => v.pinnedOnlyMe;
+  static const Field<Message, bool> _f$pinnedOnlyMe = Field(
+    'pinnedOnlyMe',
+    _$pinnedOnlyMe,
+    opt: true,
+    def: false,
+  );
   static String _$pinnedMessageID(Message v) => v.pinnedMessageID;
   static const Field<Message, String> _f$pinnedMessageID = Field(
     'pinnedMessageID',
@@ -2014,6 +2021,7 @@ class MessageMapper extends ClassMapperBase<Message> {
     #reactions: _f$reactions,
     #forward: _f$forward,
     #pinned: _f$pinned,
+    #pinnedOnlyMe: _f$pinnedOnlyMe,
     #pinnedMessageID: _f$pinnedMessageID,
     #silent: _f$silent,
     #scheduledDate: _f$scheduledDate,
@@ -2054,6 +2062,7 @@ class MessageMapper extends ClassMapperBase<Message> {
       reactions: data.dec(_f$reactions),
       forward: data.dec(_f$forward),
       pinned: data.dec(_f$pinned),
+      pinnedOnlyMe: data.dec(_f$pinnedOnlyMe),
       pinnedMessageID: data.dec(_f$pinnedMessageID),
       silent: data.dec(_f$silent),
       scheduledDate: data.dec(_f$scheduledDate),
@@ -2177,6 +2186,7 @@ abstract class MessageCopyWith<$R, $In extends Message, $Out>
     List<MessageReaction>? reactions,
     MessageForward? forward,
     bool? pinned,
+    bool? pinnedOnlyMe,
     String? pinnedMessageID,
     bool? silent,
     DateTime? scheduledDate,
@@ -2290,6 +2300,7 @@ class _MessageCopyWithImpl<$R, $Out>
     List<MessageReaction>? reactions,
     Object? forward = $none,
     bool? pinned,
+    bool? pinnedOnlyMe,
     String? pinnedMessageID,
     bool? silent,
     Object? scheduledDate = $none,
@@ -2328,6 +2339,7 @@ class _MessageCopyWithImpl<$R, $Out>
       if (reactions != null) #reactions: reactions,
       if (forward != $none) #forward: forward,
       if (pinned != null) #pinned: pinned,
+      if (pinnedOnlyMe != null) #pinnedOnlyMe: pinnedOnlyMe,
       if (pinnedMessageID != null) #pinnedMessageID: pinnedMessageID,
       if (silent != null) #silent: silent,
       if (scheduledDate != $none) #scheduledDate: scheduledDate,
@@ -2368,6 +2380,7 @@ class _MessageCopyWithImpl<$R, $Out>
     reactions: data.get(#reactions, or: $value.reactions),
     forward: data.get(#forward, or: $value.forward),
     pinned: data.get(#pinned, or: $value.pinned),
+    pinnedOnlyMe: data.get(#pinnedOnlyMe, or: $value.pinnedOnlyMe),
     pinnedMessageID: data.get(#pinnedMessageID, or: $value.pinnedMessageID),
     silent: data.get(#silent, or: $value.silent),
     scheduledDate: data.get(#scheduledDate, or: $value.scheduledDate),

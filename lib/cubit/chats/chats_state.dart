@@ -36,6 +36,10 @@ class ChatsState with ChatsStateMappable {
   /// (`ChatsOfflineException`): экран показывает «Нет соединения».
   final int offlineNotice;
 
+  /// Растёт, когда закрепить чат нельзя — закреплено уже
+  /// [models.chatPinnedLimit]: экран объясняет.
+  final int pinnedLimitNotice;
+
   /// Локально скрытые профили: hex(userID) → sha256 код-фразы (hex). Личные
   /// чаты с ними не показываются и не входят в счётчики непрочитанных, пока
   /// поиск «/код-фраза» их не раскроет (см. `HiddenProfiles`).
@@ -48,6 +52,7 @@ class ChatsState with ChatsStateMappable {
   const ChatsState({
     this.status = Status.initialization,
     this.offlineNotice = 0,
+    this.pinnedLimitNotice = 0,
     this.notificationsMissing = false,
     this.notificationsBannerDismissed = false,
     this.demo = false,
