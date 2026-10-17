@@ -80,6 +80,46 @@ class _ChatInfoMaterialState extends State<ChatInfoMaterial> {
     super.dispose();
   }
 
+  /// «Ещё»: шторка — «Автоудаление сообщений» (личный чат) и удалить /
+  /// покинуть; выбор у пункта — следующей шторкой.
+  Future<void> _more(BuildContext context, models.Chat chat) async {
+    final t = context.t;
+    final error = Theme.of(context).colorScheme.error;
+    final action = await showModalBottomSheet<String>(
+      context: context,
+      showDragHandle: true,
+      builder: (sheetContext) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (chat.type == models.ChatType.private)
+              ListTile(
+                leading: const Icon(Icons.timer_outlined),
+                title: Text(t.chatTtl.titleLong),
+                subtitle: Text(chatTTLLabel(t, chat.ttlPeriod)),
+                onTap: () => Navigator.of(sheetContext).pop('ttl'),
+              ),
+            if (!chat.announcements)
+              ListTile(
+                leading: Icon(chatInfoDeletes(chat) ? Icons.delete_outline : Icons.logout, color: error),
+                title: Text(chatLeaveLabel(t, chat), style: TextStyle(color: error)),
+                onTap: () => Navigator.of(sheetContext).pop('leave'),
+              ),
+          ],
+        ),
+      ),
+    );
+    if (!context.mounted) return;
+    switch (action) {
+      case 'ttl':
+        final cubit = context.read<ChatCubit>();
+        final period = await pickChatTTLMaterial(context, chat.ttlPeriod);
+        if (period != null && period != chat.ttlPeriod && context.mounted) await setChatTTL(context, cubit, period);
+      case 'leave':
+        await _leave(context, chat);
+    }
+  }
+
   Future<void> _leave(BuildContext context, models.Chat chat) async {
     // Личный — с выбором «и у собеседника» (как в списке чатов).
     if (chat.type == models.ChatType.private) {
@@ -387,16 +427,15 @@ class _ChatInfoMaterialState extends State<ChatInfoMaterial> {
                                   background: card,
                                   onTap: () => Navigator.of(context).pop(const ChatInfoResult.search()),
                                 ),
-                              // Канал объявлений покидают только вместе с сообществом.
-                              if (!chat.isSelf && !chat.announcements && chat.isMember)
+                              // «Ещё» (как в Telegram): автоудаление и удалить / покинуть
+                              // (канал объявлений покидают только вместе с сообществом).
+                              if (!chat.isSelf && chat.isMember && (chat.type == models.ChatType.private || !chat.announcements))
                                 _ActionButton(
-                                  icon: chatInfoDeletes(chat)
-                                      ? HugeIcons.strokeRoundedDelete02
-                                      : HugeIcons.strokeRoundedSquareArrowRightExit,
-                                  label: chatInfoDeletes(chat) ? t.screenChatInfo.deleteShort : t.screenChatInfo.leaveShort,
-                                  color: scheme.error,
+                                  icon: HugeIcons.strokeRoundedMoreHorizontal,
+                                  label: t.screenChatInfo.more,
+                                  color: scheme.primary,
                                   background: card,
-                                  onTap: () => _leave(context, chat),
+                                  onTap: () => _more(context, chat),
                                 ),
                             ],
                           ),
@@ -433,22 +472,6 @@ class _ChatInfoMaterialState extends State<ChatInfoMaterial> {
                                           onTap: () => _copy(context, 'https://iperon.net/${chat.linkPath}'),
                                         ),
                               ],
-                            ),
-                          ),
-                        // Автоудаление — личный чат с собеседником («Избранное» — без).
-                        if (chat.type == models.ChatType.private && !chat.isSelf && chat.isMember)
-                          Card(
-                            margin: const EdgeInsets.fromLTRB(12, 16, 12, 0),
-                            color: card,
-                            child: ListTile(
-                              leading: HugeIcon(icon: HugeIcons.strokeRoundedTimer02, color: scheme.onSurfaceVariant),
-                              title: Text(t.chatTtl.titleLong),
-                              subtitle: Text(chatTTLLabel(t, chat.ttlPeriod)),
-                              onTap: () async {
-                                final cubit = context.read<ChatCubit>();
-                                final period = await pickChatTTLMaterial(context, chat.ttlPeriod);
-                                if (period != null && period != chat.ttlPeriod && context.mounted) await setChatTTL(context, cubit, period);
-                              },
                             ),
                           ),
                         if (community && !chat.isMember)

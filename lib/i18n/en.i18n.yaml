@@ -753,6 +753,7 @@
   "deleteChannel": "Delete Channel"
   "deleteCommunity": "Delete Community"
   "deleteShort": "Delete"
+  "more": "More"
   "deleteInCommunityTitle": "Delete «{name}»?"
   "deleteInCommunityMessage": "The chat will be deleted for all community members."
   "deleteCommunityMessage": "The community will be deleted together with all its groups and channels."

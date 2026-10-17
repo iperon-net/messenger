@@ -980,6 +980,7 @@ class _Translations$screenChatInfo$ru extends Translations$screenChatInfo$en {
 	@override String get deleteChannel => 'Удалить канал';
 	@override String get deleteCommunity => 'Удалить сообщество';
 	@override String get deleteShort => 'Удалить';
+	@override String get more => 'Ещё';
 	@override String deleteInCommunityTitle({required Object name}) => 'Удалить «${name}»?';
 	@override String get deleteInCommunityMessage => 'Чат удалится у всех участников сообщества.';
 	@override String get deleteCommunityMessage => 'Сообщество удалится вместе со всеми его группами и каналами.';
@@ -1567,7 +1568,7 @@ class _Translations$chatTtl$ru extends Translations$chatTtl$en {
 	// Translations
 	@override String get title => 'Автоудаление';
 	@override String get titleLong => 'Автоудаление сообщений';
-	@override String get off => 'Выключено';
+	@override String get off => 'Выкл';
 	@override String get turnOff => 'Выключить';
 	@override String get other => 'Другое…';
 	@override String get customTitle => 'Удалять через';
@@ -2311,6 +2312,7 @@ extension on TranslationsRu {
 			'screenChatInfo.deleteChannel' => 'Удалить канал',
 			'screenChatInfo.deleteCommunity' => 'Удалить сообщество',
 			'screenChatInfo.deleteShort' => 'Удалить',
+			'screenChatInfo.more' => 'Ещё',
 			'screenChatInfo.deleteInCommunityTitle' => ({required Object name}) => 'Удалить «${name}»?',
 			'screenChatInfo.deleteInCommunityMessage' => 'Чат удалится у всех участников сообщества.',
 			'screenChatInfo.deleteCommunityMessage' => 'Сообщество удалится вместе со всеми его группами и каналами.',
@@ -2638,9 +2640,9 @@ extension on TranslationsRu {
 			'screenCall.speakerOn' => 'Вкл. динамик',
 			'screenCall.speakerOff' => 'Выкл. динамик',
 			'screenCall.audioOutput' => 'Динамик',
-			'screenCall.audioOutputTitle' => 'Вывод звука',
 			_ => null,
 		} ?? switch (path) {
+			'screenCall.audioOutputTitle' => 'Вывод звука',
 			'screenCall.routeEarpiece' => 'Телефон',
 			'screenCall.routeSpeaker' => 'Динамик',
 			'screenCall.routeWiredHeadset' => 'Наушники',
@@ -2687,7 +2689,7 @@ extension on TranslationsRu {
 			'yandex.unavailable' => 'Яндекс ID сейчас недоступен. Попробуйте позже.',
 			'chatTtl.title' => 'Автоудаление',
 			'chatTtl.titleLong' => 'Автоудаление сообщений',
-			'chatTtl.off' => 'Выключено',
+			'chatTtl.off' => 'Выкл',
 			'chatTtl.turnOff' => 'Выключить',
 			'chatTtl.other' => 'Другое…',
 			'chatTtl.customTitle' => 'Удалять через',

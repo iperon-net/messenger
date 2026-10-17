@@ -92,6 +92,31 @@ class _ChatInfoCupertinoState extends State<ChatInfoCupertino> {
     });
   }
 
+  /// Пункты «Ещё»: автоудаление (личный чат с собеседником) и удалить /
+  /// покинуть (канал объявлений покидают только вместе с сообществом). Выбор
+  /// у пункта — отдельным меню от той же кнопки.
+  List<_MoreItem> _moreItems(BuildContext context, models.Chat chat) {
+    if (chat.isSelf || !chat.isMember) return const [];
+    final t = context.t;
+    return [
+      if (chat.type == models.ChatType.private)
+        _MoreItem(
+          title: t.chatTtl.titleLong,
+          subtitle: chatTTLLabel(t, chat.ttlPeriod),
+          icon: CupertinoIcons.timer,
+          submenu: chatTTLMenuCupertino(context, chat.ttlPeriod, (period) => setChatTTL(context, context.read<ChatCubit>(), period)),
+        ),
+      if (!chat.announcements)
+        _MoreItem(
+          title: chatLeaveLabel(t, chat),
+          icon: chatInfoDeletes(chat) ? CupertinoIcons.delete : CupertinoIcons.square_arrow_right,
+          destructive: true,
+          submenu: _deleteMenu(context, chat),
+          onTap: () => _leave(context, chat),
+        ),
+    ];
+  }
+
   Future<void> _leave(BuildContext context, models.Chat chat) async {
     final confirm = chatLeaveConfirm(context.t, chat);
     final confirmed = await showCupertinoDialog<bool>(
@@ -384,17 +409,9 @@ class _ChatInfoCupertinoState extends State<ChatInfoCupertino> {
                                         color: action,
                                         onTap: () => Navigator.of(context).pop(const ChatInfoResult.search()),
                                       ),
-                                    // Канал объявлений покидают только вместе с сообществом.
-                                    if (!chat.isSelf && !chat.announcements && chat.isMember)
-                                      _ActionButton(
-                                        icon: chatInfoDeletes(chat)
-                                            ? HugeIcons.strokeRoundedDelete02
-                                            : HugeIcons.strokeRoundedSquareArrowRightExit,
-                                        label: chatInfoDeletes(chat) ? t.screenChatInfo.deleteShort : t.screenChatInfo.leaveShort,
-                                        color: CupertinoColors.destructiveRed.resolveFrom(context),
-                                        onTap: () => _leave(context, chat),
-                                        menuChildren: _deleteMenu(context, chat),
-                                      ),
+                                    // «Ещё» (как в Telegram): автоудаление и удалить / покинуть.
+                                    if (_moreItems(context, chat) case final items when items.isNotEmpty)
+                                      _MoreActionButton(label: t.screenChatInfo.more, color: action, items: items),
                                   ],
                                 ),
                               ),
@@ -429,33 +446,6 @@ class _ChatInfoCupertinoState extends State<ChatInfoCupertino> {
                                             onTab: () async => _copy('https://iperon.net/${chat.linkPath}'),
                                           ),
                                 ]),
-                              // Автоудаление — личный чат с собеседником («Избранное» — без).
-                              if (chat.type == models.ChatType.private && !chat.isSelf && chat.isMember) ...[
-                                _section(context, [
-                                  CupertinoMenuAnchor(
-                                    menuChildren: chatTTLMenuCupertino(
-                                      context,
-                                      chat.ttlPeriod,
-                                      (period) => setChatTTL(context, context.read<ChatCubit>(), period),
-                                    ),
-                                    builder: (context, controller, child) => CupertinoListTileIcon(
-                                      color: const Color(0xFF8E8E93),
-                                      hugeIcon: HugeIcons.strokeRoundedTimer02,
-                                      title: Text(t.chatTtl.titleLong),
-                                      additionalInfo: Text(chatTTLLabel(t, chat.ttlPeriod)),
-                                      isTrailing: true,
-                                      onTab: () async => controller.isOpen ? controller.close() : controller.open(),
-                                    ),
-                                  ),
-                                ]),
-                                Padding(
-                                  padding: const EdgeInsets.fromLTRB(36, 6, 36, 0),
-                                  child: Text(
-                                    t.chatTtl.chatFooter,
-                                    style: TextStyle(fontSize: 13, color: CupertinoColors.secondaryLabel.resolveFrom(context)),
-                                  ),
-                                ),
-                              ],
                               if (community && !chat.isMember)
                                 Padding(
                                   padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
@@ -706,6 +696,86 @@ class _ChatInfoCupertinoState extends State<ChatInfoCupertino> {
   );
 }
 
+/// Пункт меню «Ещё»: [submenu] — следующее меню от той же кнопки (выбор
+/// срока, «у меня / у обоих»), иначе [onTap].
+class _MoreItem {
+  final String title;
+  final String? subtitle;
+  final IconData icon;
+  final bool destructive;
+  final List<Widget>? submenu;
+  final VoidCallback? onTap;
+
+  const _MoreItem({required this.title, required this.icon, this.subtitle, this.destructive = false, this.submenu, this.onTap});
+}
+
+/// Кнопка «Ещё» под шапкой профиля: выпадающее меню [items]; пункт с
+/// подменю закрывает меню и открывает от той же кнопки следующее (вложенных
+/// меню на iOS нет — как и в контекстном меню чата).
+class _MoreActionButton extends StatefulWidget {
+  final String label;
+  final Color color;
+  final List<_MoreItem> items;
+
+  const _MoreActionButton({required this.label, required this.color, required this.items});
+
+  @override
+  State<_MoreActionButton> createState() => _MoreActionButtonState();
+}
+
+class _MoreActionButtonState extends State<_MoreActionButton> {
+  final _controller = MenuController();
+
+  /// Открытое подменю (`null` — главное).
+  List<Widget>? _submenu;
+
+  /// Подменю, которое открыть, когда главное доиграет закрытие.
+  List<Widget>? _next;
+
+  void _onClose() {
+    final next = _next;
+    _next = null;
+    setState(() => _submenu = next);
+    if (next != null) WidgetsBinding.instance.addPostFrameCallback((_) => mounted ? _controller.open() : null);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final main = [
+      for (final item in widget.items)
+        CupertinoMenuItem(
+          isDestructiveAction: item.destructive,
+          trailing: Icon(item.icon),
+          subtitle: item.subtitle == null ? null : Text(item.subtitle!),
+          onPressed: () {
+            if (item.submenu != null) {
+              _next = item.submenu;
+            } else {
+              item.onTap?.call();
+            }
+          },
+          child: Text(item.title),
+        ),
+    ];
+    return Expanded(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4),
+        child: CupertinoMenuAnchor(
+          controller: _controller,
+          onClose: _onClose,
+          menuChildren: _submenu ?? main,
+          builder: (context, controller, child) => _ActionButton(
+            icon: HugeIcons.strokeRoundedMoreHorizontal,
+            label: widget.label,
+            color: widget.color,
+            onTap: () => controller.isOpen ? controller.close() : controller.open(),
+          ).buildButton(context),
+        ),
+      ),
+    );
+  }
+}
+
 /// Кнопка под шапкой профиля: значок и подпись на белой плашке; все кнопки
 /// ряда — одной ширины.
 class _ActionButton extends StatelessWidget {
@@ -735,6 +805,9 @@ class _ActionButton extends StatelessWidget {
       ),
     );
   }
+
+  /// Сама плашка (без Expanded) — для кнопки «Ещё» со своим меню.
+  Widget buildButton(BuildContext context) => _button(context, onTap);
 
   Widget _button(BuildContext context, VoidCallback onPressed) => CupertinoButton(
     padding: EdgeInsets.zero,

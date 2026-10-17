@@ -777,6 +777,7 @@
   "deleteChannel": "Удалить канал"
   "deleteCommunity": "Удалить сообщество"
   "deleteShort": "Удалить"
+  "more": "Ещё"
   "deleteInCommunityTitle": "Удалить «{name}»?"
   "deleteInCommunityMessage": "Чат удалится у всех участников сообщества."
   "deleteCommunityMessage": "Сообщество удалится вместе со всеми его группами и каналами."
@@ -1204,7 +1205,7 @@ dateTime:
 "chatTtl":
   "title": "Автоудаление"
   "titleLong": "Автоудаление сообщений"
-  "off": "Выключено"
+  "off": "Выкл"
   "turnOff": "Выключить"
   "other": "Другое…"
   "customTitle": "Удалять через"

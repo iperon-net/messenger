@@ -2351,6 +2351,9 @@ class Translations$screenChatInfo$en {
 	/// en: 'Delete'
 	String get deleteShort => 'Delete';
 
+	/// en: 'More'
+	String get more => 'More';
+
 	/// en: 'Delete «{name}»?'
 	String deleteInCommunityTitle({required Object name}) => 'Delete «${name}»?';
 
@@ -4450,6 +4453,7 @@ extension on Translations {
 			'screenChatInfo.deleteChannel' => 'Delete Channel',
 			'screenChatInfo.deleteCommunity' => 'Delete Community',
 			'screenChatInfo.deleteShort' => 'Delete',
+			'screenChatInfo.more' => 'More',
 			'screenChatInfo.deleteInCommunityTitle' => ({required Object name}) => 'Delete «${name}»?',
 			'screenChatInfo.deleteInCommunityMessage' => 'The chat will be deleted for all community members.',
 			'screenChatInfo.deleteCommunityMessage' => 'The community will be deleted together with all its groups and channels.',
@@ -4777,9 +4781,9 @@ extension on Translations {
 			'screenCall.speakerOn' => 'Speaker on',
 			'screenCall.speakerOff' => 'Speaker off',
 			'screenCall.audioOutput' => 'Speaker',
-			'screenCall.audioOutputTitle' => 'Audio output',
 			_ => null,
 		} ?? switch (path) {
+			'screenCall.audioOutputTitle' => 'Audio output',
 			'screenCall.routeEarpiece' => 'Phone',
 			'screenCall.routeSpeaker' => 'Speaker',
 			'screenCall.routeWiredHeadset' => 'Headphones',

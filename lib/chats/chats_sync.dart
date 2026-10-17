@@ -539,6 +539,8 @@ class ChatsSync {
               'archived': dialog.archived ? 1 : 0,
               'markedUnread': dialog.markedUnread ? 1 : 0,
               'mutedUntil': dialog.mutedUntil.toInt(),
+              // Автоудаление (Chats.SetTTL — мной, собеседником или таймер по умолчанию).
+              'ttlPeriod': dialog.ttlPeriod,
             },
           );
           await tx.setServerDraft(userID: user, chatID: dialog.chatID, draft: dialog.draft);

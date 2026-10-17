@@ -28,7 +28,7 @@ void main() {
 
   test('срок словами: дни, недели, месяцы (31 день), год', () async {
     final t = await AppLocale.ru.build();
-    expect(chatTTLLabel(t, 0), 'Выключено');
+    expect(chatTTLLabel(t, 0), 'Выкл');
     expect(chatTTLLabel(t, chatTTLDay), '1 день');
     expect(chatTTLLabel(t, 2 * chatTTLDay), '2 дня');
     expect(chatTTLLabel(t, 7 * chatTTLDay), '1 неделя');
