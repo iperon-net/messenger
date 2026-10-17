@@ -710,8 +710,8 @@ class _MoreItem {
 }
 
 /// Кнопка «Ещё» под шапкой профиля: выпадающее меню [items]; пункт с
-/// подменю закрывает меню и открывает от той же кнопки следующее (вложенных
-/// меню на iOS нет — как и в контекстном меню чата).
+/// подменю не закрывает меню, а сразу подменяет его пункты следующими
+/// (вложенных меню на iOS нет — как и в контекстном меню чата).
 class _MoreActionButton extends StatefulWidget {
   final String label;
   final Color color;
@@ -724,20 +724,8 @@ class _MoreActionButton extends StatefulWidget {
 }
 
 class _MoreActionButtonState extends State<_MoreActionButton> {
-  final _controller = MenuController();
-
-  /// Открытое подменю (`null` — главное).
+  /// Открытое подменю (`null` — главное); закрыли меню — снова главное.
   List<Widget>? _submenu;
-
-  /// Подменю, которое открыть, когда главное доиграет закрытие.
-  List<Widget>? _next;
-
-  void _onClose() {
-    final next = _next;
-    _next = null;
-    setState(() => _submenu = next);
-    if (next != null) WidgetsBinding.instance.addPostFrameCallback((_) => mounted ? _controller.open() : null);
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -747,9 +735,11 @@ class _MoreActionButtonState extends State<_MoreActionButton> {
           isDestructiveAction: item.destructive,
           trailing: Icon(item.icon),
           subtitle: item.subtitle == null ? null : Text(item.subtitle!),
+          // С подменю — меню остаётся открытым, пункты меняются сразу.
+          requestCloseOnActivate: item.submenu == null,
           onPressed: () {
             if (item.submenu != null) {
-              _next = item.submenu;
+              setState(() => _submenu = item.submenu);
             } else {
               item.onTap?.call();
             }
@@ -761,8 +751,7 @@ class _MoreActionButtonState extends State<_MoreActionButton> {
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 4),
         child: CupertinoMenuAnchor(
-          controller: _controller,
-          onClose: _onClose,
+          onClose: () => mounted ? setState(() => _submenu = null) : null,
           menuChildren: _submenu ?? main,
           builder: (context, controller, child) => _ActionButton(
             icon: HugeIcons.strokeRoundedMoreHorizontal,
