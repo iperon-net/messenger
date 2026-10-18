@@ -251,7 +251,7 @@ class CDNManager {
   /// глотается в лог.
   Future<void> _seedDownloadCache({required File file, required models.CDN cdn}) async {
     try {
-      if (await repositories.downloads.getByCdnID(cdn.cdnID) != null) {
+      if (await _downloadState(cdn.cdnID) != null) {
         return;
       }
 
@@ -551,7 +551,7 @@ class CDNManager {
           }
           logger.info('download: stale link (${error.statusCode}), retrying with a fresh one');
           await repositories.downloads.setUrl(cdnID: cdn.cdnID, url: fresh.url);
-          final reloaded = await repositories.downloads.getByCdnID(cdn.cdnID);
+          final reloaded = await _downloadState(cdn.cdnID);
           if (reloaded == null) {
             throw const DownloadException('download: local state disappeared after link refresh');
           }
@@ -567,7 +567,7 @@ class CDNManager {
 
         await Future.delayed(_retryDelay * attempt);
 
-        final reloaded = await repositories.downloads.getByCdnID(cdn.cdnID);
+        final reloaded = await _downloadState(cdn.cdnID);
         if (reloaded == null) {
           throw const DownloadException('download: local state disappeared between retries');
         }
@@ -605,7 +605,7 @@ class CDNManager {
   /// отличие от [download] сюда не ходит в сеть и ничего не качает, поэтому
   /// годится для «показать, если уже есть» (аватар из локального профиля и т.п.).
   Future<File?> cachedFile(Uint8List cdnID) async {
-    final state = await repositories.downloads.getByCdnID(cdnID);
+    final state = await _downloadState(cdnID);
     if (state == null || state.status != models.DownloadStatus.ready || state.targetPath == null) {
       return null;
     }
@@ -618,7 +618,7 @@ class CDNManager {
   /// (`ChatsMediaCleanup`). Идущее скачивание не трогаем. `true` — удалён.
   Future<bool> evict(Uint8List cdnID) async {
     if (_inFlightDownloads.containsKey(utils.bytesToHex(cdnID))) return false;
-    final state = await repositories.downloads.getByCdnID(cdnID);
+    final state = await _downloadState(cdnID);
     if (state == null) return false;
     await repositories.downloads.delete(cdnID);
     // Только свои файлы кэша — не трогаем ничего вне папки media.
@@ -636,7 +636,7 @@ class CDNManager {
   }
 
   Future<models.DownloadState> _resolveDownloadState(models.CDN cdn) async {
-    final existing = await repositories.downloads.getByCdnID(cdn.cdnID);
+    final existing = await _downloadState(cdn.cdnID);
     if (existing != null) {
       return existing;
     }
@@ -756,6 +756,23 @@ class CDNManager {
       if (a[i] != b[i]) return false;
     }
     return true;
+  }
+
+  /// Строка кэша скачиваний [cdnID] с путями в **текущем** каталоге media.
+  /// В БД пути абсолютные, а iOS при обновлении приложения (TestFlight / App
+  /// Store) переносит контейнер — путь меняется, файлы остаются. Без пересчёта
+  /// весь кэш (аватары, вложения) после обновления выглядел бы пустым, а
+  /// недокачанное писалось бы в несуществующий каталог.
+  Future<models.DownloadState?> _downloadState(Uint8List cdnID) async {
+    final state = await repositories.downloads.getByCdnID(cdnID);
+    if (state == null) return null;
+    final mediaDir = (await _mediaDir()).path;
+    final tmpPath = p.join(mediaDir, '.part', p.basename(state.tmpPath));
+    final target = state.targetPath;
+    final targetPath = target == null || target.isEmpty ? target : p.join(mediaDir, p.basename(target));
+    if (tmpPath == state.tmpPath && targetPath == state.targetPath) return state;
+    await repositories.downloads.setPaths(cdnID: cdnID, tmpPath: tmpPath, targetPath: targetPath);
+    return state.withPaths(tmpPath: tmpPath, targetPath: targetPath);
   }
 
   Future<Directory> _mediaDir() async {

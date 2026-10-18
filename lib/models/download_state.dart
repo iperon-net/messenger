@@ -62,4 +62,20 @@ class DownloadState {
     required this.status,
     required this.createdAt,
   });
+
+  /// Те же файлы в другом каталоге (переехал контейнер приложения).
+  DownloadState withPaths({required String tmpPath, required String? targetPath}) => DownloadState(
+    cdnID: cdnID,
+    url: url,
+    tmpPath: tmpPath,
+    targetPath: targetPath,
+    encryptionKey: encryptionKey,
+    hkdfSalt: hkdfSalt,
+    contentType: contentType,
+    hashSumEncrypted: hashSumEncrypted,
+    cipherSize: cipherSize,
+    receivedBytes: receivedBytes,
+    status: status,
+    createdAt: createdAt,
+  );
 }

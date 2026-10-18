@@ -5,8 +5,10 @@ import 'package:image_picker/image_picker.dart' show XFile;
 
 import '../../components.dart';
 import '../../cubit.dart';
+import '../../di.dart';
 import '../../i18n/translations.g.dart';
 import '../../models.dart' as models;
+import '../../utils.dart';
 import 'chat_info_common.dart';
 
 /// Общее для экранов «Новое» (Cupertino + Material): выбор фото чата, аватар и
@@ -92,8 +94,16 @@ class ContactAvatar extends StatelessWidget {
 
   const ContactAvatar({super.key, required this.contact, this.size = 40});
 
+  /// id участника — userID в hex (у демо-данных — нет).
+  static final _userID = RegExp(r'^[0-9a-fA-F]{24}$');
+
   @override
   Widget build(BuildContext context) {
+    // Настоящий пользователь — его фото (как в «Контактах»), пока нет —
+    // та же заглушка.
+    if (_userID.hasMatch(contact.id)) {
+      return UserAvatar(userID: getIt.get<Utils>().hexToBytes(contact.id), placeholderName: contact.id, size: size);
+    }
     return SizedBox(
       width: size,
       height: size,

@@ -73,6 +73,12 @@ class Downloads {
     await db.execute("UPDATE downloads SET receivedBytes = ? WHERE cdnID = ?;", [receivedBytes, cdnID]);
   }
 
+  /// Пути файлов кэша — после переезда контейнера приложения (iOS меняет
+  /// путь к нему при обновлении).
+  Future<void> setPaths({required Uint8List cdnID, required String tmpPath, required String? targetPath}) async {
+    await db.execute("UPDATE downloads SET tmpPath = ?, targetPath = ? WHERE cdnID = ?;", [tmpPath, targetPath, cdnID]);
+  }
+
   Future<void> markReady({required Uint8List cdnID, required String targetPath}) async {
     await db.execute("UPDATE downloads SET status = ?, targetPath = ? WHERE cdnID = ?;", [
       models.DownloadStatus.ready.name,
