@@ -669,6 +669,12 @@
   "testPushError": "Не удалось отправить: {error}"
   "testPushEncrypted": "Тестовое уведомление (шифрованное)"
   "testPushQueued": "Поставлено в очередь сервера. На Android придёт «Шифрованное тестовое уведомление: расшифровка работает», на iPhone пока — «Новое уведомление» (расшифровка на iOS появится позже)."
+  "remoteConfig": "Обновить Remote Config"
+  "remoteConfigFetched": "Загружено {time}"
+  "remoteConfigNever": "Ещё не загружался"
+  "remoteConfigUpdated": "Новые значения применены. Экраны подхватят их при следующем открытии; адрес сервера — после перезапуска приложения."
+  "remoteConfigUnchanged": "Изменений нет — значения уже актуальные. Если только что поменяли в консоли Firebase, подождите минуту и повторите."
+  "remoteConfigError": "Не удалось загрузить: {error}"
 
 "screenSettingsAppearance":
   "appearance": "Оформление"

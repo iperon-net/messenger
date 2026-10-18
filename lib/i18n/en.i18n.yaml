@@ -645,6 +645,12 @@
   "testPushError": "Failed to send: {error}"
   "testPushEncrypted": "Test notification (encrypted)"
   "testPushQueued": "Queued on the server. Android shows \"Encrypted test notification: decryption works\"; iPhone shows \"New notification\" for now (iOS decryption comes later)."
+  "remoteConfig": "Refresh Remote Config"
+  "remoteConfigFetched": "Fetched {time}"
+  "remoteConfigNever": "Not fetched yet"
+  "remoteConfigUpdated": "New values applied. Screens pick them up the next time they open; the server address — after an app restart."
+  "remoteConfigUnchanged": "No changes — values are already up to date. If you just changed them in the Firebase console, wait a minute and retry."
+  "remoteConfigError": "Failed to fetch: {error}"
 
 "screenSettingsAppearance":
   "appearance": "Appearance"

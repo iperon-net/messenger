@@ -10,6 +10,7 @@ import '../../cubit.dart';
 import '../../di.dart';
 import '../../logger.dart';
 import 'developer_export_logs.dart';
+import 'developer_remote_config.dart';
 import 'developer_test_push.dart';
 
 /// Скрытый экран «Разработчик». Открывается 5 быстрыми тапами по кнопке
@@ -76,6 +77,25 @@ class SettingsDeveloperMaterial extends StatelessWidget {
                         ..showSnackBar(SnackBar(content: Text(message)));
                     },
                     isTrailing: false,
+                  ),
+                  // Remote Config мимо интервала 24 ч — чтобы проверить флаг,
+                  // только что изменённый в консоли Firebase.
+                  StatefulBuilder(
+                    builder: (context, setState) => MaterialListTileIcon(
+                      title: Text(context.t.screenDeveloper.remoteConfig),
+                      subtitle: Text(remoteConfigFetchedText(context.t)),
+                      color: const Color(0xFFFFCC00),
+                      icon: FontAwesomeIcons.arrowsRotate,
+                      onTab: () async {
+                        final message = await refreshRemoteConfig(context.t);
+                        if (!context.mounted) return;
+                        setState(() {});
+                        ScaffoldMessenger.of(context)
+                          ..hideCurrentSnackBar()
+                          ..showSnackBar(SnackBar(content: Text(message)));
+                      },
+                      isTrailing: false,
+                    ),
                   ),
                   // UX-демо чатов: вкладка «Чаты» на фейковых данных (см.
                   // docs/plans/chats-groups-channels.md, этап 0).

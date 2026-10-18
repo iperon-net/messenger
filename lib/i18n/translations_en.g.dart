@@ -2025,6 +2025,24 @@ class Translations$screenDeveloper$en {
 
 	/// en: 'Queued on the server. Android shows "Encrypted test notification: decryption works"; iPhone shows "New notification" for now (iOS decryption comes later).'
 	String get testPushQueued => 'Queued on the server. Android shows "Encrypted test notification: decryption works"; iPhone shows "New notification" for now (iOS decryption comes later).';
+
+	/// en: 'Refresh Remote Config'
+	String get remoteConfig => 'Refresh Remote Config';
+
+	/// en: 'Fetched {time}'
+	String remoteConfigFetched({required Object time}) => 'Fetched ${time}';
+
+	/// en: 'Not fetched yet'
+	String get remoteConfigNever => 'Not fetched yet';
+
+	/// en: 'New values applied. Screens pick them up the next time they open; the server address — after an app restart.'
+	String get remoteConfigUpdated => 'New values applied. Screens pick them up the next time they open; the server address — after an app restart.';
+
+	/// en: 'No changes — values are already up to date. If you just changed them in the Firebase console, wait a minute and retry.'
+	String get remoteConfigUnchanged => 'No changes — values are already up to date. If you just changed them in the Firebase console, wait a minute and retry.';
+
+	/// en: 'Failed to fetch: {error}'
+	String remoteConfigError({required Object error}) => 'Failed to fetch: ${error}';
 }
 
 // Path: screenSettingsAppearance
@@ -4484,6 +4502,12 @@ extension on Translations {
 			'screenDeveloper.testPushError' => ({required Object error}) => 'Failed to send: ${error}',
 			'screenDeveloper.testPushEncrypted' => 'Test notification (encrypted)',
 			'screenDeveloper.testPushQueued' => 'Queued on the server. Android shows "Encrypted test notification: decryption works"; iPhone shows "New notification" for now (iOS decryption comes later).',
+			'screenDeveloper.remoteConfig' => 'Refresh Remote Config',
+			'screenDeveloper.remoteConfigFetched' => ({required Object time}) => 'Fetched ${time}',
+			'screenDeveloper.remoteConfigNever' => 'Not fetched yet',
+			'screenDeveloper.remoteConfigUpdated' => 'New values applied. Screens pick them up the next time they open; the server address — after an app restart.',
+			'screenDeveloper.remoteConfigUnchanged' => 'No changes — values are already up to date. If you just changed them in the Firebase console, wait a minute and retry.',
+			'screenDeveloper.remoteConfigError' => ({required Object error}) => 'Failed to fetch: ${error}',
 			'screenSettingsAppearance.appearance' => 'Appearance',
 			'screenSettingsAppearance.colorTheme' => 'Color theme',
 			'screenSettingsAppearance.colorThemeDefault' => 'Default',
@@ -4909,14 +4933,14 @@ extension on Translations {
 			'screenCall.ended' => 'Call ended',
 			'screenCall.decline' => 'Decline',
 			'screenCall.accept' => 'Accept',
+			_ => null,
+		} ?? switch (path) {
 			'screenCall.hangup' => 'End',
 			'screenCall.micOn' => 'Unmute',
 			'screenCall.micOff' => 'Mute',
 			'screenCall.speakerOn' => 'Speaker on',
 			'screenCall.speakerOff' => 'Speaker off',
 			'screenCall.audioOutput' => 'Speaker',
-			_ => null,
-		} ?? switch (path) {
 			'screenCall.audioOutputTitle' => 'Audio output',
 			'screenCall.routeEarpiece' => 'Phone',
 			'screenCall.routeSpeaker' => 'Speaker',

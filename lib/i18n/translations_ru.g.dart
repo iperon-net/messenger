@@ -861,6 +861,12 @@ class _Translations$screenDeveloper$ru extends Translations$screenDeveloper$en {
 	@override String testPushError({required Object error}) => 'Не удалось отправить: ${error}';
 	@override String get testPushEncrypted => 'Тестовое уведомление (шифрованное)';
 	@override String get testPushQueued => 'Поставлено в очередь сервера. На Android придёт «Шифрованное тестовое уведомление: расшифровка работает», на iPhone пока — «Новое уведомление» (расшифровка на iOS появится позже).';
+	@override String get remoteConfig => 'Обновить Remote Config';
+	@override String remoteConfigFetched({required Object time}) => 'Загружено ${time}';
+	@override String get remoteConfigNever => 'Ещё не загружался';
+	@override String get remoteConfigUpdated => 'Новые значения применены. Экраны подхватят их при следующем открытии; адрес сервера — после перезапуска приложения.';
+	@override String get remoteConfigUnchanged => 'Изменений нет — значения уже актуальные. Если только что поменяли в консоли Firebase, подождите минуту и повторите.';
+	@override String remoteConfigError({required Object error}) => 'Не удалось загрузить: ${error}';
 }
 
 // Path: screenSettingsAppearance
@@ -2267,6 +2273,12 @@ extension on TranslationsRu {
 			'screenDeveloper.testPushError' => ({required Object error}) => 'Не удалось отправить: ${error}',
 			'screenDeveloper.testPushEncrypted' => 'Тестовое уведомление (шифрованное)',
 			'screenDeveloper.testPushQueued' => 'Поставлено в очередь сервера. На Android придёт «Шифрованное тестовое уведомление: расшифровка работает», на iPhone пока — «Новое уведомление» (расшифровка на iOS появится позже).',
+			'screenDeveloper.remoteConfig' => 'Обновить Remote Config',
+			'screenDeveloper.remoteConfigFetched' => ({required Object time}) => 'Загружено ${time}',
+			'screenDeveloper.remoteConfigNever' => 'Ещё не загружался',
+			'screenDeveloper.remoteConfigUpdated' => 'Новые значения применены. Экраны подхватят их при следующем открытии; адрес сервера — после перезапуска приложения.',
+			'screenDeveloper.remoteConfigUnchanged' => 'Изменений нет — значения уже актуальные. Если только что поменяли в консоли Firebase, подождите минуту и повторите.',
+			'screenDeveloper.remoteConfigError' => ({required Object error}) => 'Не удалось загрузить: ${error}',
 			'screenSettingsAppearance.appearance' => 'Оформление',
 			'screenSettingsAppearance.colorTheme' => 'Цветовая тема',
 			'screenSettingsAppearance.colorThemeDefault' => 'По умолчанию',
@@ -2692,14 +2704,14 @@ extension on TranslationsRu {
 			'screenCall.ended' => 'Звонок завершён',
 			'screenCall.decline' => 'Отклонить',
 			'screenCall.accept' => 'Принять',
+			_ => null,
+		} ?? switch (path) {
 			'screenCall.hangup' => 'Завершить',
 			'screenCall.micOn' => 'Вкл. звук',
 			'screenCall.micOff' => 'Выкл. звук',
 			'screenCall.speakerOn' => 'Вкл. динамик',
 			'screenCall.speakerOff' => 'Выкл. динамик',
 			'screenCall.audioOutput' => 'Динамик',
-			_ => null,
-		} ?? switch (path) {
 			'screenCall.audioOutputTitle' => 'Вывод звука',
 			'screenCall.routeEarpiece' => 'Телефон',
 			'screenCall.routeSpeaker' => 'Динамик',

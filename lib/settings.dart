@@ -57,6 +57,20 @@ class Settings {
     }
   }
 
+  /// Принудительная загрузка Remote Config мимо интервала 24 ч (меню
+  /// «Разработчик»): обычный `fetchAndActivate` на старте берёт кэш, пока он
+  /// моложе `minimumFetchInterval`. Возвращает true, если активированы новые
+  /// значения. Бросает при ошибке (нет сети, throttling Firebase).
+  Future<bool> forceFetchRemoteConfig() async {
+    final current = remoteConfig.settings;
+    await remoteConfig.setConfigSettings(RemoteConfigSettings(fetchTimeout: current.fetchTimeout, minimumFetchInterval: Duration.zero));
+    try {
+      return await remoteConfig.fetchAndActivate();
+    } finally {
+      await remoteConfig.setConfigSettings(current);
+    }
+  }
+
   String get databaseName => dotenv.get('DATABASE_NAME', fallback: "iperon.db");
   bool get isDeleteDatabase => dotenv.getBool('IS_DELETE_DATABASE', fallback: false);
   int get databaseVersion => dotenv.getInt('DATABASE_VERSION', fallback: 1);
