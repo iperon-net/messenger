@@ -9,6 +9,7 @@ import 'package:talker_grpc_logger/talker_grpc_logger.dart';
 import 'auth.dart';
 import 'cdn.dart';
 import 'chats/chats_sync.dart';
+import 'chats/secret/secret_chats_sync.dart';
 import 'models.dart' as models;
 import 'utils.dart';
 import 'crypto.dart';
@@ -211,6 +212,7 @@ class API {
     if (status == ApiConnectionStatus.connected && !_chatsCaughtUp) {
       _chatsCaughtUp = true;
       unawaited(ChatsSync.instance.onConnected());
+      unawaited(SecretChatsSync.instance.onConnected());
     }
     final controller = _connectionStatusController;
     if (controller != null && !controller.isClosed) {
@@ -555,7 +557,7 @@ class API {
         if (background) logger.info('subscribe: background launch, presence stays offline');
         final encodedSubscribe = await crypto.syncer.encode(
           session: auth.session,
-          message: Subscribe_Request(background: background).writeToBuffer(),
+          message: Subscribe_Request(background: background, capabilities: const [secretChatsCapability]).writeToBuffer(),
         );
 
         final outgoing = _outgoing;
@@ -711,6 +713,7 @@ class API {
           birthDate: payload.hasBirthDate() ? payload.birthDate.toDateTime(toLocal: true) : null,
           aboutMe: payload.aboutMe,
         );
+        await repositories.myProfile.setPremium(userID: session.userID, isPremium: payload.isPremium);
 
       case MessageType.PROFILE:
         // Публичный профиль чужого пользователя. userID приходит в самом ответе
@@ -765,6 +768,12 @@ class API {
         // пропуском повторов и догоном дыр через GET_DIFFERENCE. Не ждём —
         // догон идёт по сети и не должен держать очередь стрима.
         ChatsSync.instance.handlePush(message.payload);
+
+      case MessageType.SECRET_UPDATES:
+        // Очередь устройства для секретных чатов (qts): применяет
+        // SecretChatsSync по порядку, дыра — догон через GetUpdates. Не ждём —
+        // применение может идти в сеть (принять запрос, раскрыть ключ).
+        SecretChatsSync.instance.handlePush(message.payload);
 
       // TODO: добавить ветки под реальные серверные типы. Репозитории берутся
       // лениво — API не зависит от Repositories в графе DI, но к моменту прихода

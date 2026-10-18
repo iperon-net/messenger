@@ -150,6 +150,11 @@ enum MessageType {
   // Автоудаление по умолчанию для новых чатов (PrivacySettings.messages_ttl).
   // См. privacy_v1.proto (PrivacyMessagesTTLUpdate).
   PRIVACY_MESSAGES_TTL_UPDATE = 83;
+  // Секретные чаты (E2EE, чат = пара устройств): SECRET_CHATS — запрос/ответ
+  // (oneof действия), SECRET_UPDATES — push по стриму в сессию (очередь
+  // устройства с qts). См. secret_chats_v1.proto.
+  SECRET_CHATS = 84;
+  SECRET_UPDATES = 85;
 }
 
 service Iperon {

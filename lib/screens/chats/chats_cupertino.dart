@@ -9,6 +9,7 @@ import '../../themes.dart';
 import '../../cubit.dart';
 import '../../i18n/translations.g.dart';
 import '../../components.dart';
+import 'secret_chat_common.dart';
 import '../../models.dart' as models;
 import 'chat_actions_cupertino.dart';
 import 'chat_swipe_actions.dart';
@@ -212,9 +213,10 @@ class _ChatsCupertino extends State<ChatsCupertino> with SearchHideOnScroll {
           builder: (context, confirmDelete) => ChatSwipeActions(
             chat: chat,
             // Несколько папок — свайп листает их (действия — по удержанию).
-            enabled: state.folders.length < 2,
+            // Секретный — без свайп-действий (они про серверные чаты).
+            enabled: state.folders.length < 2 && !chat.isSecret,
             confirmDelete: confirmDelete,
-            child: ChatContextMenuCupertino(chat: chat, confirmDelete: confirmDelete, onTap: () => context.push('/chats/chat/${chat.id}')),
+            child: ChatContextMenuCupertino(chat: chat, confirmDelete: confirmDelete, onTap: () => context.push(chatRoute(chat))),
           ),
         );
       },

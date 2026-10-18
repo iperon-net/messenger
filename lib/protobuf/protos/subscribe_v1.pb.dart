@@ -19,9 +19,11 @@ export 'package:protobuf/protobuf.dart' show GeneratedMessageGenericExtensions;
 class Subscribe_Request extends $pb.GeneratedMessage {
   factory Subscribe_Request({
     $core.bool? background,
+    $core.Iterable<$core.String>? capabilities,
   }) {
     final result = create();
     if (background != null) result.background = background;
+    if (capabilities != null) result.capabilities.addAll(capabilities);
     return result;
   }
 
@@ -35,6 +37,7 @@ class Subscribe_Request extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Subscribe.Request',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
     ..aOB(1, _omitFieldNames ? '' : 'background')
+    ..pPS(2, _omitFieldNames ? '' : 'capabilities')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -67,6 +70,11 @@ class Subscribe_Request extends $pb.GeneratedMessage {
   $core.bool hasBackground() => $_has(0);
   @$pb.TagNumber(1)
   void clearBackground() => $_clearField(1);
+
+  /// Что умеет эта сборка клиента (сервер помнит на сессии). "secretChats" —
+  /// секретные чаты: запрос на секретный чат уходит только таким сессиям.
+  @$pb.TagNumber(2)
+  $pb.PbList<$core.String> get capabilities => $_getList(1);
 }
 
 class Subscribe_Response extends $pb.GeneratedMessage {

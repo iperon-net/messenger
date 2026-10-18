@@ -78,6 +78,7 @@ class TranslationsRu extends Translations with BaseTranslations<AppLocale, Trans
 	@override late final _Translations$yandex$ru yandex = _Translations$yandex$ru._(_root);
 	@override late final _Translations$chatTtl$ru chatTtl = _Translations$chatTtl$ru._(_root);
 	@override late final _Translations$chatNoForwards$ru chatNoForwards = _Translations$chatNoForwards$ru._(_root);
+	@override late final _Translations$secretChat$ru secretChat = _Translations$secretChat$ru._(_root);
 }
 
 // Path: common
@@ -1631,6 +1632,38 @@ class _Translations$chatNoForwards$ru extends Translations$chatNoForwards$en {
 	@override String get restricted => 'Копирование и пересылка в этом чате запрещены.';
 }
 
+// Path: secretChat
+class _Translations$secretChat$ru extends Translations$secretChat$en {
+	_Translations$secretChat$ru._(TranslationsRu root) : this._root = root, super.internal(root);
+
+	final TranslationsRu _root; // ignore: unused_field
+
+	// Translations
+	@override String get start => 'Начать секретный чат';
+	@override String get title => 'Секретный чат';
+	@override String waitingFor({required Object name}) => 'Ожидание, пока ${name} появится в сети…';
+	@override String get waitingShort => 'Ожидание собеседника…';
+	@override String get created => 'Секретный чат создан';
+	@override String get closed => 'Секретный чат закрыт';
+	@override String get intro => 'Сообщения в этом чате защищены сквозным шифрованием: их видите только вы и собеседник, сервер прочитать их не может. Чат есть только на этом устройстве — на других ваших устройствах его нет, и он не сохраняется в облаке.';
+	@override String get inputPlaceholder => 'Секретное сообщение';
+	@override String get encryptionKey => 'Ключ шифрования';
+	@override String keyDescription({required Object name}) => 'Если эти эмодзи совпадают с теми, что видит ${name}, ваш чат защищён сквозным шифрованием на 100%. Сверьте их лично или во время звонка.';
+	@override String get keyNotReady => 'Ключ появится, когда собеседник подключится.';
+	@override String get delete => 'Удалить секретный чат';
+	@override String get deleteConfirm => 'Чат будет закрыт и удалён у вас и у собеседника.';
+	@override String get deleteMessage => 'Удалить у обоих';
+	@override String get copy => 'Копировать';
+	@override String get sendFailed => 'Сообщение не отправлено: чат ещё не готов.';
+	@override String get errorPremiumRequired => 'Секретные чаты доступны в Premium.';
+	@override String get errorPeerUnsupported => 'У собеседника нет устройства с поддержкой секретных чатов. Попросите его обновить приложение.';
+	@override String get errorDisabled => 'Секретные чаты сейчас недоступны.';
+	@override String get errorFrozen => 'Секретные чаты временно приостановлены.';
+	@override String get errorPrivacyRestricted => 'Собеседник ограничил, кто может ему писать.';
+	@override String get errorFlood => 'Слишком много запросов. Попробуйте позже.';
+	@override String get errorGeneric => 'Не удалось начать секретный чат.';
+}
+
 /// The flat map containing all translations for locale <ru>.
 /// Only for edge cases! For simple maps, use the map function of this library.
 ///
@@ -2745,6 +2778,29 @@ extension on TranslationsRu {
 			'chatNoForwards.refuse' => 'Отклонить',
 			'chatNoForwards.requestExpired' => 'Запрос уже неактуален.',
 			'chatNoForwards.restricted' => 'Копирование и пересылка в этом чате запрещены.',
+			'secretChat.start' => 'Начать секретный чат',
+			'secretChat.title' => 'Секретный чат',
+			'secretChat.waitingFor' => ({required Object name}) => 'Ожидание, пока ${name} появится в сети…',
+			'secretChat.waitingShort' => 'Ожидание собеседника…',
+			'secretChat.created' => 'Секретный чат создан',
+			'secretChat.closed' => 'Секретный чат закрыт',
+			'secretChat.intro' => 'Сообщения в этом чате защищены сквозным шифрованием: их видите только вы и собеседник, сервер прочитать их не может. Чат есть только на этом устройстве — на других ваших устройствах его нет, и он не сохраняется в облаке.',
+			'secretChat.inputPlaceholder' => 'Секретное сообщение',
+			'secretChat.encryptionKey' => 'Ключ шифрования',
+			'secretChat.keyDescription' => ({required Object name}) => 'Если эти эмодзи совпадают с теми, что видит ${name}, ваш чат защищён сквозным шифрованием на 100%. Сверьте их лично или во время звонка.',
+			'secretChat.keyNotReady' => 'Ключ появится, когда собеседник подключится.',
+			'secretChat.delete' => 'Удалить секретный чат',
+			'secretChat.deleteConfirm' => 'Чат будет закрыт и удалён у вас и у собеседника.',
+			'secretChat.deleteMessage' => 'Удалить у обоих',
+			'secretChat.copy' => 'Копировать',
+			'secretChat.sendFailed' => 'Сообщение не отправлено: чат ещё не готов.',
+			'secretChat.errorPremiumRequired' => 'Секретные чаты доступны в Premium.',
+			'secretChat.errorPeerUnsupported' => 'У собеседника нет устройства с поддержкой секретных чатов. Попросите его обновить приложение.',
+			'secretChat.errorDisabled' => 'Секретные чаты сейчас недоступны.',
+			'secretChat.errorFrozen' => 'Секретные чаты временно приостановлены.',
+			'secretChat.errorPrivacyRestricted' => 'Собеседник ограничил, кто может ему писать.',
+			'secretChat.errorFlood' => 'Слишком много запросов. Попробуйте позже.',
+			'secretChat.errorGeneric' => 'Не удалось начать секретный чат.',
 			_ => null,
 		};
 	}

@@ -149,6 +149,32 @@ class Routers {
                     ),
                   ),
                 ),
+                // Секретный чат (E2EE, только на этом устройстве) и его «Ключ
+                // шифрования» — у каждого экрана свой SecretChatCubit.
+                GoRoute(
+                  path: "secret/:id",
+                  parentNavigatorKey: rootNavigatorKey,
+                  pageBuilder: (context, state) => _page(
+                    state,
+                    BlocProvider<SecretChatCubit>(
+                      create: (context) => SecretChatCubit()..initialization(chatID: state.pathParameters['id']!),
+                      child: const SecretChatCupertino(),
+                    ),
+                  ),
+                  routes: [
+                    GoRoute(
+                      path: "info",
+                      parentNavigatorKey: rootNavigatorKey,
+                      pageBuilder: (context, state) => _page(
+                        state,
+                        BlocProvider<SecretChatCubit>(
+                          create: (context) => SecretChatCubit()..initialization(chatID: state.pathParameters['id']!, markRead: false),
+                          child: const SecretChatInfoCupertino(),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
                 // «Новое»: «Новое сообщение» (контакты) → личный чат, или
                 // группа (участники → название), канал, сообщество. Свой
                 // ChatCreateCubit на каждом экране: участники группы
@@ -885,6 +911,32 @@ class Routers {
                       child: const ChatScreenMaterial(),
                     ),
                   ),
+                ),
+                // Секретный чат (E2EE, только на этом устройстве) и его «Ключ
+                // шифрования» — у каждого экрана свой SecretChatCubit.
+                GoRoute(
+                  path: "secret/:id",
+                  parentNavigatorKey: rootNavigatorKey,
+                  pageBuilder: (context, state) => _pageMaterial(
+                    state,
+                    BlocProvider<SecretChatCubit>(
+                      create: (context) => SecretChatCubit()..initialization(chatID: state.pathParameters['id']!),
+                      child: const SecretChatMaterial(),
+                    ),
+                  ),
+                  routes: [
+                    GoRoute(
+                      path: "info",
+                      parentNavigatorKey: rootNavigatorKey,
+                      pageBuilder: (context, state) => _pageMaterial(
+                        state,
+                        BlocProvider<SecretChatCubit>(
+                          create: (context) => SecretChatCubit()..initialization(chatID: state.pathParameters['id']!, markRead: false),
+                          child: const SecretChatInfoMaterial(),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
                 // «Новое»: «Новое сообщение» (контакты) → личный чат, или
                 // группа (участники → название), канал, сообщество. Свой

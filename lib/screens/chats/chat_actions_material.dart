@@ -15,6 +15,7 @@ import 'chat_mute.dart';
 Future<void> showChatActionsMaterial(BuildContext context, models.Chat chat) async {
   final cubit = context.read<ChatsCubit>();
   final t = context.t.screenChats;
+  if (chat.isSecret) return _secretChatActionsMaterial(context, chat, cubit);
 
   Widget action(BuildContext sheetContext, IconData icon, String label, Future<void> Function() onTap) {
     return ListTile(
@@ -203,4 +204,34 @@ Future<void> showFolderActionsMaterial(BuildContext context, models.ChatFolder f
     ),
   );
   if (confirmed ?? false) await cubit.deleteFolder(folder);
+}
+
+/// Секретный чат в списке: только удаление (закрепы, папки, архив — у
+/// обычных чатов на сервере, секретный живёт только на устройстве).
+Future<void> _secretChatActionsMaterial(BuildContext context, models.Chat chat, ChatsCubit cubit) async {
+  final t = context.t.secretChat;
+  final delete = await showModalBottomSheet<bool>(
+    context: context,
+    showDragHandle: true,
+    builder: (sheetContext) => SafeArea(
+      child: ListTile(
+        leading: Icon(Icons.delete_outline, color: Theme.of(sheetContext).colorScheme.error),
+        title: Text(t.delete, style: TextStyle(color: Theme.of(sheetContext).colorScheme.error)),
+        onTap: () => Navigator.of(sheetContext).pop(true),
+      ),
+    ),
+  );
+  if (delete != true || !context.mounted) return;
+  final confirmed = await showDialog<bool>(
+    context: context,
+    builder: (dialogContext) => AlertDialog(
+      title: Text(t.delete),
+      content: Text(t.deleteConfirm),
+      actions: [
+        TextButton(onPressed: () => Navigator.of(dialogContext).pop(false), child: Text(context.t.common.cancel)),
+        TextButton(onPressed: () => Navigator.of(dialogContext).pop(true), child: Text(t.delete)),
+      ],
+    ),
+  );
+  if (confirmed == true) await cubit.deleteSecret(chat);
 }

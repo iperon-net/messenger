@@ -3,6 +3,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_boring_avatars/flutter_boring_avatars.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
@@ -28,6 +29,19 @@ class ProfileMaterial extends StatefulWidget {
 }
 
 class _ProfileMaterial extends State<ProfileMaterial> {
+  /// «Начать секретный чат»: создать и открыть; ошибка (нет сети, нет Premium,
+  /// у собеседника нет поддержки) — SnackBar.
+  Future<void> _startSecretChat(BuildContext context) async {
+    final result = await context.read<ProfileCubit>().startSecretChat(context.t);
+    if (!context.mounted) return;
+    if (result.chatID case final chatID?) {
+      await context.push('/chats/secret/$chatID');
+      return;
+    }
+    final error = result.error;
+    if (error != null) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error)));
+  }
+
   final logger = getIt.get<Logger>();
 
   /// Свой ли это профиль — на нём кнопку звонка не показываем.
@@ -168,6 +182,18 @@ class _ProfileMaterial extends State<ProfileMaterial> {
                   ),
                 // «Скрыть профиль» — только для чужого профиля (свой прятать из
                 // своих же списков смысла нет).
+                if (state.secretChatAvailable)
+                  Card(
+                    margin: const EdgeInsets.fromLTRB(12, 16, 12, 0),
+                    clipBehavior: Clip.antiAlias,
+                    child: MaterialListTileIcon(
+                      title: Text(context.t.secretChat.start),
+                      color: ChatTileContent.secretColor,
+                      icon: FontAwesomeIcons.lock,
+                      isTrailing: true,
+                      onTab: state.secretChatStarting ? null : () => _startSecretChat(context),
+                    ),
+                  ),
                 if (state.userID.isNotEmpty && !_isSelf(state.userID))
                   Card(
                     margin: const EdgeInsets.fromLTRB(12, 16, 12, 12),

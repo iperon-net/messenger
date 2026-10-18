@@ -33,6 +33,7 @@ part "hidden_profiles.dart";
 part "privacy_settings.dart";
 part "notify_settings.dart";
 part "chats.dart";
+part "secret_chats.dart";
 
 base class _AppSqliteOpenFactory extends NativeSqliteOpenFactory {
   final String? password;
@@ -74,6 +75,7 @@ class Repositories {
   late PrivacySettings privacySettings;
   late NotifySettings notifySettings;
   late ChatsRepository chats;
+  late SecretChatsRepository secretChats;
 
   static Future<Repositories> initialization() async {
     final repositories = Repositories._();
@@ -717,6 +719,19 @@ class Repositories {
       }),
     );
 
+    migrations.add(
+      SqliteMigration(32, (tx) async {
+        // Секретные чаты (E2EE, чат = пара устройств): чаты, переписка, outbox
+        // зашифрованных конвертов и номер события очереди устройства (qts).
+        // Схема — в SecretChatsRepository.schema. myProfile.isPremium — из
+        // MY_PROFILE (создавать секретные чаты может только Premium).
+        for (final statement in SecretChatsRepository.schema) {
+          await tx.execute(statement);
+        }
+        await tx.execute('ALTER TABLE myProfile ADD COLUMN isPremium INTEGER NOT NULL DEFAULT 0;');
+      }),
+    );
+
     if (settings.isDeleteDatabase) {
       logger.warning("Deleting the database, flag set IS_DELETE_DATABASE: 1");
 
@@ -779,6 +794,7 @@ class Repositories {
     privacySettings = PrivacySettings(logger: logger, db: db);
     notifySettings = NotifySettings(logger: logger, db: db);
     chats = ChatsRepository(logger: logger, db: db);
+    secretChats = SecretChatsRepository(logger: logger, db: db);
   }
 
   // Generate password

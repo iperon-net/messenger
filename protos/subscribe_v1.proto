@@ -11,6 +11,9 @@ message Subscribe {
     // Онлайн поставит APP_STATE{foreground:true}, когда приложение откроют.
     // Старые клиенты поле не шлют (false) — как раньше, открытие стрима = online.
     bool background = 1;
+    // Что умеет эта сборка клиента (сервер помнит на сессии). "secretChats" —
+    // секретные чаты: запрос на секретный чат уходит только таким сессиям.
+    repeated string capabilities = 2;
   }
   message Response {}
 }

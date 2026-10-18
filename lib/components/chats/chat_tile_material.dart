@@ -63,13 +63,19 @@ class ChatTileMaterial extends StatelessWidget {
                       Expanded(
                         child: Row(
                           children: [
-                            if (typeIcon != null) ...[FaIcon(typeIcon, size: 12, color: scheme.onSurface), const SizedBox(width: 6)],
+                            if (typeIcon != null) ...[
+                              FaIcon(typeIcon, size: 12, color: chat.isSecret ? ChatTileContent.secretColor : scheme.onSurface),
+                              const SizedBox(width: 6),
+                            ],
                             Flexible(
                               child: Text(
                                 ChatTileContent.title(t, chat),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+                                style: theme.textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                  color: chat.isSecret ? ChatTileContent.secretColor : null,
+                                ),
                               ),
                             ),
                             if (chat.muted) ...[const SizedBox(width: 4), FaIcon(FontAwesomeIcons.bellSlash, size: 11, color: secondary)],

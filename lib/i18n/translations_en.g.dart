@@ -80,6 +80,7 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	late final Translations$yandex$en yandex = Translations$yandex$en.internal(_root);
 	late final Translations$chatTtl$en chatTtl = Translations$chatTtl$en.internal(_root);
 	late final Translations$chatNoForwards$en chatNoForwards = Translations$chatNoForwards$en.internal(_root);
+	late final Translations$secretChat$en secretChat = Translations$secretChat$en.internal(_root);
 }
 
 // Path: common
@@ -3802,6 +3803,84 @@ class Translations$chatNoForwards$en {
 	String get restricted => 'Copying and forwarding are disabled in this chat.';
 }
 
+// Path: secretChat
+class Translations$secretChat$en {
+	Translations$secretChat$en.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// en: 'Start Secret Chat'
+	String get start => 'Start Secret Chat';
+
+	/// en: 'Secret Chat'
+	String get title => 'Secret Chat';
+
+	/// en: 'Waiting for {name} to get online…'
+	String waitingFor({required Object name}) => 'Waiting for ${name} to get online…';
+
+	/// en: 'Waiting for the contact…'
+	String get waitingShort => 'Waiting for the contact…';
+
+	/// en: 'Secret chat created'
+	String get created => 'Secret chat created';
+
+	/// en: 'Secret chat closed'
+	String get closed => 'Secret chat closed';
+
+	/// en: 'Messages in this chat use end-to-end encryption: only you and your contact can read them, the server can't. The chat exists only on this device — it isn't on your other devices and isn't stored in the cloud.'
+	String get intro => 'Messages in this chat use end-to-end encryption: only you and your contact can read them, the server can\'t. The chat exists only on this device — it isn\'t on your other devices and isn\'t stored in the cloud.';
+
+	/// en: 'Secret message'
+	String get inputPlaceholder => 'Secret message';
+
+	/// en: 'Encryption Key'
+	String get encryptionKey => 'Encryption Key';
+
+	/// en: 'If these emoji match the ones {name} sees, your chat is 100% end-to-end encrypted. Compare them in person or during a call.'
+	String keyDescription({required Object name}) => 'If these emoji match the ones ${name} sees, your chat is 100% end-to-end encrypted. Compare them in person or during a call.';
+
+	/// en: 'The key will appear once your contact connects.'
+	String get keyNotReady => 'The key will appear once your contact connects.';
+
+	/// en: 'Delete Secret Chat'
+	String get delete => 'Delete Secret Chat';
+
+	/// en: 'The chat will be closed and deleted for you and your contact.'
+	String get deleteConfirm => 'The chat will be closed and deleted for you and your contact.';
+
+	/// en: 'Delete for both'
+	String get deleteMessage => 'Delete for both';
+
+	/// en: 'Copy'
+	String get copy => 'Copy';
+
+	/// en: 'Message not sent: the chat isn't ready yet.'
+	String get sendFailed => 'Message not sent: the chat isn\'t ready yet.';
+
+	/// en: 'Secret chats are available with Premium.'
+	String get errorPremiumRequired => 'Secret chats are available with Premium.';
+
+	/// en: 'Your contact has no device that supports secret chats. Ask them to update the app.'
+	String get errorPeerUnsupported => 'Your contact has no device that supports secret chats. Ask them to update the app.';
+
+	/// en: 'Secret chats are unavailable right now.'
+	String get errorDisabled => 'Secret chats are unavailable right now.';
+
+	/// en: 'Secret chats are temporarily paused.'
+	String get errorFrozen => 'Secret chats are temporarily paused.';
+
+	/// en: 'This person restricted who can message them.'
+	String get errorPrivacyRestricted => 'This person restricted who can message them.';
+
+	/// en: 'Too many requests. Try again later.'
+	String get errorFlood => 'Too many requests. Try again later.';
+
+	/// en: 'Couldn't start a secret chat.'
+	String get errorGeneric => 'Couldn\'t start a secret chat.';
+}
+
 /// The flat map containing all translations for locale <en>.
 /// Only for edge cases! For simple maps, use the map function of this library.
 ///
@@ -4916,6 +4995,29 @@ extension on Translations {
 			'chatNoForwards.refuse' => 'Decline',
 			'chatNoForwards.requestExpired' => 'This request is no longer valid.',
 			'chatNoForwards.restricted' => 'Copying and forwarding are disabled in this chat.',
+			'secretChat.start' => 'Start Secret Chat',
+			'secretChat.title' => 'Secret Chat',
+			'secretChat.waitingFor' => ({required Object name}) => 'Waiting for ${name} to get online…',
+			'secretChat.waitingShort' => 'Waiting for the contact…',
+			'secretChat.created' => 'Secret chat created',
+			'secretChat.closed' => 'Secret chat closed',
+			'secretChat.intro' => 'Messages in this chat use end-to-end encryption: only you and your contact can read them, the server can\'t. The chat exists only on this device — it isn\'t on your other devices and isn\'t stored in the cloud.',
+			'secretChat.inputPlaceholder' => 'Secret message',
+			'secretChat.encryptionKey' => 'Encryption Key',
+			'secretChat.keyDescription' => ({required Object name}) => 'If these emoji match the ones ${name} sees, your chat is 100% end-to-end encrypted. Compare them in person or during a call.',
+			'secretChat.keyNotReady' => 'The key will appear once your contact connects.',
+			'secretChat.delete' => 'Delete Secret Chat',
+			'secretChat.deleteConfirm' => 'The chat will be closed and deleted for you and your contact.',
+			'secretChat.deleteMessage' => 'Delete for both',
+			'secretChat.copy' => 'Copy',
+			'secretChat.sendFailed' => 'Message not sent: the chat isn\'t ready yet.',
+			'secretChat.errorPremiumRequired' => 'Secret chats are available with Premium.',
+			'secretChat.errorPeerUnsupported' => 'Your contact has no device that supports secret chats. Ask them to update the app.',
+			'secretChat.errorDisabled' => 'Secret chats are unavailable right now.',
+			'secretChat.errorFrozen' => 'Secret chats are temporarily paused.',
+			'secretChat.errorPrivacyRestricted' => 'This person restricted who can message them.',
+			'secretChat.errorFlood' => 'Too many requests. Try again later.',
+			'secretChat.errorGeneric' => 'Couldn\'t start a secret chat.',
 			_ => null,
 		};
 	}

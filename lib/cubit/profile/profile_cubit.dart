@@ -5,6 +5,10 @@ import 'package:flutter/foundation.dart';
 import 'package:messenger/i18n/translations.g.dart';
 
 import '../../api.dart';
+import '../../auth.dart';
+import '../../chats/chats_sync.dart' show ChatsOfflineException, ChatsFloodException;
+import '../../chats/secret/secret_chats_sync.dart';
+import '../../settings.dart';
 import '../../constants.dart';
 import '../../di.dart';
 import '../../logger.dart';
@@ -119,11 +123,57 @@ class ProfileCubit extends Cubit<ProfileState> {
     if (avatarBytes != null) {
       next = next.copyWith(avatarBytes: avatarBytes);
     }
+    next = next.copyWith(secretChatAvailable: await _secretChatAvailable(userID));
+    if (isClosed) return;
     emit(next);
 
     // Отправку ждём в конце: она не должна задерживать показ кэша. Await сохраняем,
     // чтобы ошибка шифрования/отправки всплыла в лог, а не потерялась молча.
     await sendFuture;
+  }
+
+  /// «Начать секретный чат»: не себе, фича включена, при «только Premium» —
+  /// у меня Premium (принять запрос может любой — это не про кнопку).
+  Future<bool> _secretChatAvailable(List<int> userID) async {
+    final settings = getIt.get<Settings>();
+    final me = getIt.get<Auth>().session.userID;
+    if (listEquals(me, userID) || !settings.secretChatsEnabled) return false;
+    if (!settings.secretChatsPremiumOnly) return true;
+    return repositories.myProfile.isPremium(userID: me);
+  }
+
+  /// Начать секретный чат: id нового чата (hex) или текст ошибки для показа.
+  /// Нужна сеть — без неё сразу «Нет соединения».
+  Future<({String? chatID, String? error})> startSecretChat(Translations t) async {
+    if (state.secretChatStarting) return (chatID: null, error: null);
+    emit(state.copyWith(secretChatStarting: true));
+    try {
+      final chatID = await SecretChatsSync.instance.create(state.userID);
+      return (chatID: utils.bytesToHex(chatID), error: null);
+    } on ChatsOfflineException {
+      return (chatID: null, error: t.common.noConnectionTitle);
+    } on ChatsFloodException {
+      return (chatID: null, error: t.secretChat.errorFlood);
+    } on SecretChatRequestException catch (error) {
+      final ts = t.secretChat;
+      final message = error.isPremiumRequired
+          ? ts.errorPremiumRequired
+          : error.isPeerUnsupported
+          ? ts.errorPeerUnsupported
+          : error.isDisabled
+          ? ts.errorDisabled
+          : error.isFrozen
+          ? ts.errorFrozen
+          : error.isPrivacyRestricted
+          ? ts.errorPrivacyRestricted
+          : ts.errorGeneric;
+      return (chatID: null, error: message);
+    } catch (error, stackTrace) {
+      logger.handle(error, stackTrace);
+      return (chatID: null, error: t.secretChat.errorGeneric);
+    } finally {
+      if (!isClosed) emit(state.copyWith(secretChatStarting: false));
+    }
   }
 
   @override

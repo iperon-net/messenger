@@ -36,6 +36,7 @@ const MyProfile_Response$json = {
     {'1': 'birthDate', '3': 3, '4': 1, '5': 11, '6': '.google.protobuf.Timestamp', '9': 3, '10': 'birthDate', '17': true},
     {'1': 'avatar', '3': 5, '4': 1, '5': 11, '6': '.iperon.v1.CDN', '9': 4, '10': 'avatar', '17': true},
     {'1': 'username', '3': 6, '4': 1, '5': 9, '9': 5, '10': 'username', '17': true},
+    {'1': 'isPremium', '3': 7, '4': 1, '5': 8, '10': 'isPremium'},
   ],
   '8': [
     {'1': '_firstName'},
@@ -49,13 +50,13 @@ const MyProfile_Response$json = {
 
 /// Descriptor for `MyProfile`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List myProfileDescriptor =
-    $convert.base64Decode('CglNeVByb2ZpbGUaCQoHUmVxdWVzdBrHAgoIUmVzcG9uc2USIQoJZmlyc3ROYW1lGAEgASgJSA'
+    $convert.base64Decode('CglNeVByb2ZpbGUaCQoHUmVxdWVzdBrlAgoIUmVzcG9uc2USIQoJZmlyc3ROYW1lGAEgASgJSA'
         'BSCWZpcnN0TmFtZYgBARIfCghsYXN0TmFtZRgCIAEoCUgBUghsYXN0TmFtZYgBARIdCgdhYm91'
         'dE1lGAQgASgJSAJSB2Fib3V0TWWIAQESPQoJYmlydGhEYXRlGAMgASgLMhouZ29vZ2xlLnByb3'
         'RvYnVmLlRpbWVzdGFtcEgDUgliaXJ0aERhdGWIAQESKwoGYXZhdGFyGAUgASgLMg4uaXBlcm9u'
-        'LnYxLkNETkgEUgZhdmF0YXKIAQESHwoIdXNlcm5hbWUYBiABKAlIBVIIdXNlcm5hbWWIAQFCDA'
-        'oKX2ZpcnN0TmFtZUILCglfbGFzdE5hbWVCCgoIX2Fib3V0TWVCDAoKX2JpcnRoRGF0ZUIJCgdf'
-        'YXZhdGFyQgsKCV91c2VybmFtZQ==');
+        'LnYxLkNETkgEUgZhdmF0YXKIAQESHwoIdXNlcm5hbWUYBiABKAlIBVIIdXNlcm5hbWWIAQESHA'
+        'oJaXNQcmVtaXVtGAcgASgIUglpc1ByZW1pdW1CDAoKX2ZpcnN0TmFtZUILCglfbGFzdE5hbWVC'
+        'CgoIX2Fib3V0TWVCDAoKX2JpcnRoRGF0ZUIJCgdfYXZhdGFyQgsKCV91c2VybmFtZQ==');
 
 @$core.Deprecated('Use myProfileUpdateDescriptor instead')
 const MyProfileUpdate$json = {

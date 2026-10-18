@@ -1,3 +1,5 @@
+import 'dart:ui' show Color;
+
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import '../../i18n/translations.g.dart';
@@ -56,6 +58,15 @@ abstract final class ChatTileContent {
 
     final message = chat.lastMessage;
     if (message == null) {
+      // Пустой секретный чат — его состояние (как в Telegram).
+      if (chat.secretStatus case final status?) {
+        final ts = t.secretChat;
+        return ChatPreview(ChatPreviewKind.message, switch (status) {
+          models.SecretChatStatus.waiting => ts.waitingFor(name: chat.title),
+          models.SecretChatStatus.ready => ts.created,
+          models.SecretChatStatus.closed => ts.closed,
+        });
+      }
       // Пустое «Избранное» — подсказка вместо пустой строки.
       return ChatPreview(ChatPreviewKind.message, chat.isSelf ? s.savedMessagesEmpty : '');
     }
@@ -103,8 +114,12 @@ abstract final class ChatTileContent {
     return ChatPreview(ChatPreviewKind.message, text, prefix: prefix.join(' › '));
   }
 
+  /// Цвет замка и названия секретного чата (как в Telegram — зелёный).
+  static const secretColor = Color(0xFF34C759);
+
   /// Иконка типа перед названием (у личных чатов нет).
   static FaIconData? typeIcon(models.Chat chat) => switch (chat.type) {
+    _ when chat.isSecret => FontAwesomeIcons.lock,
     models.ChatType.private => null,
     models.ChatType.group => FontAwesomeIcons.userGroup,
     models.ChatType.channel => FontAwesomeIcons.bullhorn,

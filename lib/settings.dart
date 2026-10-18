@@ -43,6 +43,11 @@ class Settings {
       "CALL_RING_TIMEOUT_SECONDS": 45,
       // Анимированные эмодзи (Noto, Lottie JSON): `<url><имя>.json`.
       "ANIMATED_EMOJI_URL": "https://staging-cdn.iperon.net/emoji/noto/",
+      // Секретные чаты (E2EE): показывать «Начать секретный чат»; создавать —
+      // только Premium. Принимать запросы клиент умеет всегда, флаги — только
+      // о создании (то же правило дублирует сервер, secretChats.*).
+      "SECRET_CHATS_ENABLED": false,
+      "SECRET_CHATS_PREMIUM_ONLY": false,
     });
 
     try {
@@ -94,6 +99,18 @@ class Settings {
       return dotenv.getBool('PHONE_NUMBER_MODERATION_APPLICATION_STORE_ENABLE', fallback: false);
     }
     return remoteConfig.getBool("PHONE_NUMBER_MODERATION_APPLICATION_STORE_ENABLE");
+  }
+
+  /// Показывать «Начать секретный чат» (Remote Config; в debug — `.env.development`).
+  bool get secretChatsEnabled {
+    if (kDebugMode) return dotenv.getBool('SECRET_CHATS_ENABLED', fallback: false);
+    return remoteConfig.getBool("SECRET_CHATS_ENABLED");
+  }
+
+  /// Создавать секретные чаты может только Premium (принять — любой).
+  bool get secretChatsPremiumOnly {
+    if (kDebugMode) return dotenv.getBool('SECRET_CHATS_PREMIUM_ONLY', fallback: false);
+    return remoteConfig.getBool("SECRET_CHATS_PREMIUM_ONLY");
   }
 
   /// Сколько раз пробовать начальный connect к комнате LiveKit перед провалом

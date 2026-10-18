@@ -91,13 +91,20 @@ class _ChatTileCupertinoState extends State<ChatTileCupertino> {
                         Expanded(
                           child: Row(
                             children: [
-                              if (typeIcon != null) ...[FaIcon(typeIcon, size: 12, color: label), const SizedBox(width: 5)],
+                              if (typeIcon != null) ...[
+                                FaIcon(typeIcon, size: 12, color: chat.isSecret ? ChatTileContent.secretColor : label),
+                                const SizedBox(width: 5),
+                              ],
                               Flexible(
                                 child: Text(
                                   ChatTileContent.title(t, chat),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: label),
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    color: chat.isSecret ? ChatTileContent.secretColor : label,
+                                  ),
                                 ),
                               ),
                               if (chat.muted) ...[const SizedBox(width: 4), FaIcon(FontAwesomeIcons.bellSlash, size: 11, color: secondary)],

@@ -59,3 +59,5 @@ export 'call/call_cubit.dart';
 export 'call/call_state.dart';
 export 'calls/calls_cubit.dart';
 export 'calls/calls_state.dart';
+export 'secret_chat/secret_chat_cubit.dart';
+export 'secret_chat/secret_chat_state.dart';

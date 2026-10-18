@@ -30,6 +30,25 @@ class MyProfile {
     );
   }
 
+  /// Premium-тариф (из MY_PROFILE): кэш, чтобы и без сети было видно, можно
+  /// ли создавать секретные чаты.
+  Future<bool> isPremium({required List<int> userID}) async {
+    final row = await db.getOptional('SELECT isPremium FROM myProfile WHERE userID = ?;', [userID]);
+    return row?['isPremium'] == 1;
+  }
+
+  Future<void> setPremium({required List<int> userID, required bool isPremium}) async {
+    await db.execute(
+      """
+      INSERT INTO myProfile (userID, isPremium)
+      VALUES(?, ?)
+      ON CONFLICT(userID) DO UPDATE SET
+        isPremium = excluded.isPremium;
+      """,
+      [userID, isPremium ? 1 : 0],
+    );
+  }
+
   /// Сохраняет локально выбранное имя пользователя. Сервер хранит его в
   /// нижнем регистре и обеспечивает уникальность (unique-индекс), поэтому
   /// пишем уже нормализованное значение. Upsert — на случай, если строки

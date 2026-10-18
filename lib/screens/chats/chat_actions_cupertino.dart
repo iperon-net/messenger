@@ -46,42 +46,50 @@ class ChatContextMenuCupertino extends StatelessWidget {
 
     return CupertinoContextMenu.builder(
       enableHapticFeedback: true,
-      actions: [
-        if (!chat.archived)
-          action(
-            chat.pinned ? t.unpin : t.pin,
-            chat.pinned ? CupertinoIcons.pin_slash : CupertinoIcons.pin,
-            () => cubit.setPinned(chat, !chat.pinned),
-          ),
-        action(
-          chat.hasUnread ? t.markRead : t.markUnread,
-          chat.hasUnread ? CupertinoIcons.chat_bubble : CupertinoIcons.chat_bubble_fill,
-          () => cubit.setRead(chat, chat.hasUnread),
-        ),
-        if (chat.unreadReactions > 0) action(t.readReactions, CupertinoIcons.heart, () => cubit.readReactions(chat)),
-        action(
-          chat.muted ? t.unmute : t.mute,
-          chat.muted ? CupertinoIcons.bell : CupertinoIcons.bell_slash,
-          // Выключить — «Заглушить на…» (после закрытия меню).
-          () async {
-            if (chat.muted) return cubit.setMuted(chat, false);
-            final choice = await pickChatMute(context);
-            if (choice != null) await cubit.setMuted(chat, true, until: chatMuteUntil(choice));
-          },
-        ),
-        if (!chat.isSelf)
-          action(
-            chat.archived ? t.fromArchive : t.toArchive,
-            chat.archived ? CupertinoIcons.tray_arrow_up : CupertinoIcons.archivebox,
-            () => cubit.setArchived(chat, !chat.archived),
-          ),
-        // Личный — после закрытия меню отдельное меню «У меня» / «У меня и
-        // собеседника» у строки; остальные — алерт.
-        action(t.deleteChat, CupertinoIcons.delete, () async {
-          final forEveryone = await confirmDelete(afterContextMenu: true);
-          if (forEveryone != null) await cubit.delete(chat, forEveryone: forEveryone);
-        }, destructive: true),
-      ],
+      actions: chat.isSecret
+          // Секретный живёт только на устройстве — закрепы, папки и архив у
+          // него нет, только удаление.
+          ? [
+              action(context.t.secretChat.delete, CupertinoIcons.delete, () async {
+                if (await _confirmSecretDelete(context)) await cubit.deleteSecret(chat);
+              }, destructive: true),
+            ]
+          : [
+              if (!chat.archived)
+                action(
+                  chat.pinned ? t.unpin : t.pin,
+                  chat.pinned ? CupertinoIcons.pin_slash : CupertinoIcons.pin,
+                  () => cubit.setPinned(chat, !chat.pinned),
+                ),
+              action(
+                chat.hasUnread ? t.markRead : t.markUnread,
+                chat.hasUnread ? CupertinoIcons.chat_bubble : CupertinoIcons.chat_bubble_fill,
+                () => cubit.setRead(chat, chat.hasUnread),
+              ),
+              if (chat.unreadReactions > 0) action(t.readReactions, CupertinoIcons.heart, () => cubit.readReactions(chat)),
+              action(
+                chat.muted ? t.unmute : t.mute,
+                chat.muted ? CupertinoIcons.bell : CupertinoIcons.bell_slash,
+                // Выключить — «Заглушить на…» (после закрытия меню).
+                () async {
+                  if (chat.muted) return cubit.setMuted(chat, false);
+                  final choice = await pickChatMute(context);
+                  if (choice != null) await cubit.setMuted(chat, true, until: chatMuteUntil(choice));
+                },
+              ),
+              if (!chat.isSelf)
+                action(
+                  chat.archived ? t.fromArchive : t.toArchive,
+                  chat.archived ? CupertinoIcons.tray_arrow_up : CupertinoIcons.archivebox,
+                  () => cubit.setArchived(chat, !chat.archived),
+                ),
+              // Личный — после закрытия меню отдельное меню «У меня» / «У меня и
+              // собеседника» у строки; остальные — алерт.
+              action(t.deleteChat, CupertinoIcons.delete, () async {
+                final forEveryone = await confirmDelete(afterContextMenu: true);
+                if (forEveryone != null) await cubit.delete(chat, forEveryone: forEveryone);
+              }, destructive: true),
+            ],
       builder: (context, animation) {
         // До animationOpensAt — «нажатие» (строка как в списке), после —
         // открытое превью: непрозрачная карточка со скруглением.
@@ -293,4 +301,21 @@ Future<void> _confirmDeleteFolder(BuildContext context, ChatsCubit cubit, models
     ),
   );
   if (confirmed ?? false) await cubit.deleteFolder(folder);
+}
+
+/// Подтверждение удаления секретного чата (у обоих, с перепиской).
+Future<bool> _confirmSecretDelete(BuildContext context) async {
+  final t = context.t.secretChat;
+  final confirmed = await showCupertinoDialog<bool>(
+    context: context,
+    builder: (dialogContext) => CupertinoAlertDialog(
+      title: Text(t.delete),
+      content: Text(t.deleteConfirm),
+      actions: [
+        CupertinoDialogAction(onPressed: () => Navigator.of(dialogContext).pop(false), child: Text(context.t.common.cancel)),
+        CupertinoDialogAction(isDestructiveAction: true, onPressed: () => Navigator.of(dialogContext).pop(true), child: Text(t.delete)),
+      ],
+    ),
+  );
+  return confirmed == true;
 }

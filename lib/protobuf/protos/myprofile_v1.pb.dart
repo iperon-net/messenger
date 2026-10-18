@@ -59,6 +59,7 @@ class MyProfile_Response extends $pb.GeneratedMessage {
     $core.String? aboutMe,
     $1.CDN? avatar,
     $core.String? username,
+    $core.bool? isPremium,
   }) {
     final result = create();
     if (firstName != null) result.firstName = firstName;
@@ -67,6 +68,7 @@ class MyProfile_Response extends $pb.GeneratedMessage {
     if (aboutMe != null) result.aboutMe = aboutMe;
     if (avatar != null) result.avatar = avatar;
     if (username != null) result.username = username;
+    if (isPremium != null) result.isPremium = isPremium;
     return result;
   }
 
@@ -85,6 +87,7 @@ class MyProfile_Response extends $pb.GeneratedMessage {
     ..aOS(4, _omitFieldNames ? '' : 'aboutMe', protoName: 'aboutMe')
     ..aOM<$1.CDN>(5, _omitFieldNames ? '' : 'avatar', subBuilder: $1.CDN.create)
     ..aOS(6, _omitFieldNames ? '' : 'username')
+    ..aOB(7, _omitFieldNames ? '' : 'isPremium', protoName: 'isPremium')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -161,6 +164,16 @@ class MyProfile_Response extends $pb.GeneratedMessage {
   $core.bool hasUsername() => $_has(5);
   @$pb.TagNumber(6)
   void clearUsername() => $_clearField(6);
+
+  /// Premium-тариф (создание секретных чатов и т.п.). Пока ставится вручную в БД.
+  @$pb.TagNumber(7)
+  $core.bool get isPremium => $_getBF(6);
+  @$pb.TagNumber(7)
+  set isPremium($core.bool value) => $_setBool(6, value);
+  @$pb.TagNumber(7)
+  $core.bool hasIsPremium() => $_has(6);
+  @$pb.TagNumber(7)
+  void clearIsPremium() => $_clearField(7);
 }
 
 class MyProfile extends $pb.GeneratedMessage {

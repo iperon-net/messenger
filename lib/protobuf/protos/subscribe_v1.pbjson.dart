@@ -26,6 +26,7 @@ const Subscribe_Request$json = {
   '1': 'Request',
   '2': [
     {'1': 'background', '3': 1, '4': 1, '5': 8, '10': 'background'},
+    {'1': 'capabilities', '3': 2, '4': 3, '5': 9, '10': 'capabilities'},
   ],
 };
 
@@ -36,5 +37,5 @@ const Subscribe_Response$json = {
 
 /// Descriptor for `Subscribe`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List subscribeDescriptor =
-    $convert.base64Decode('CglTdWJzY3JpYmUaKQoHUmVxdWVzdBIeCgpiYWNrZ3JvdW5kGAEgASgIUgpiYWNrZ3JvdW5kGg'
-        'oKCFJlc3BvbnNl');
+    $convert.base64Decode('CglTdWJzY3JpYmUaTQoHUmVxdWVzdBIeCgpiYWNrZ3JvdW5kGAEgASgIUgpiYWNrZ3JvdW5kEi'
+        'IKDGNhcGFiaWxpdGllcxgCIAMoCVIMY2FwYWJpbGl0aWVzGgoKCFJlc3BvbnNl');

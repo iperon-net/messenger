@@ -6,6 +6,7 @@ import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
 import 'package:cryptography/helpers.dart';
+import 'package:pqcrypto/pqcrypto.dart' show PqcKem;
 import 'package:ristretto255/ristretto255.dart';
 
 import '../di.dart';
@@ -17,6 +18,8 @@ part 'syncer.dart';
 part 'file_encryptor.dart';
 part 'oprf.dart';
 part 'call_keys.dart';
+part 'secret_chat.dart';
+part 'secret_chat_state.dart';
 
 class Crypto {
   final logger = getIt.get<Logger>();
@@ -26,11 +29,13 @@ class Crypto {
   late final FileEncryptor fileEncryptor;
   late final Oprf oprf;
   late final CallKeys callKeys;
+  late final SecretChatCrypto secretChat;
 
   Crypto() {
     syncer = Syncer(logger: logger, utils: utils);
     fileEncryptor = FileEncryptor(logger: logger);
     oprf = Oprf(logger: logger);
     callKeys = CallKeys(logger: logger);
+    secretChat = SecretChatCrypto(logger: logger);
   }
 }

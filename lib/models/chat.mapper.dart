@@ -116,6 +116,56 @@ extension MessageStatusMapperExtension on MessageStatus {
   }
 }
 
+class SecretChatStatusMapper extends EnumMapper<SecretChatStatus> {
+  SecretChatStatusMapper._();
+
+  static SecretChatStatusMapper? _instance;
+  static SecretChatStatusMapper ensureInitialized() {
+    if (_instance == null) {
+      MapperContainer.globals.use(_instance = SecretChatStatusMapper._());
+    }
+    return _instance!;
+  }
+
+  static SecretChatStatus fromValue(dynamic value) {
+    ensureInitialized();
+    return MapperContainer.globals.fromValue(value);
+  }
+
+  @override
+  SecretChatStatus decode(dynamic value) {
+    switch (value) {
+      case r'waiting':
+        return SecretChatStatus.waiting;
+      case r'ready':
+        return SecretChatStatus.ready;
+      case r'closed':
+        return SecretChatStatus.closed;
+      default:
+        throw MapperException.unknownEnumValue(value);
+    }
+  }
+
+  @override
+  dynamic encode(SecretChatStatus self) {
+    switch (self) {
+      case SecretChatStatus.waiting:
+        return r'waiting';
+      case SecretChatStatus.ready:
+        return r'ready';
+      case SecretChatStatus.closed:
+        return r'closed';
+    }
+  }
+}
+
+extension SecretChatStatusMapperExtension on SecretChatStatus {
+  String toValue() {
+    SecretChatStatusMapper.ensureInitialized();
+    return MapperContainer.globals.toValue<SecretChatStatus>(this) as String;
+  }
+}
+
 class MessageKindMapper extends EnumMapper<MessageKind> {
   MessageKindMapper._();
 
@@ -1639,6 +1689,7 @@ class ChatMapper extends ClassMapperBase<Chat> {
       ChatRoleMapper.ensureInitialized();
       ChatCommentsWhoMapper.ensureInitialized();
       ChatInheritedSettingMapper.ensureInitialized();
+      SecretChatStatusMapper.ensureInitialized();
     }
     return _instance!;
   }
@@ -2009,6 +2060,12 @@ class ChatMapper extends ClassMapperBase<Chat> {
     opt: true,
     def: ChatRole.writer,
   );
+  static SecretChatStatus? _$secretStatus(Chat v) => v.secretStatus;
+  static const Field<Chat, SecretChatStatus> _f$secretStatus = Field(
+    'secretStatus',
+    _$secretStatus,
+    opt: true,
+  );
   static bool _$online(Chat v) => v.online;
   static const Field<Chat, bool> _f$online = Field(
     'online',
@@ -2086,6 +2143,7 @@ class ChatMapper extends ClassMapperBase<Chat> {
     #overrides: _f$overrides,
     #membersCount: _f$membersCount,
     #myRole: _f$myRole,
+    #secretStatus: _f$secretStatus,
     #online: _f$online,
     #lastSeen: _f$lastSeen,
     #createdAt: _f$createdAt,
@@ -2148,6 +2206,7 @@ class ChatMapper extends ClassMapperBase<Chat> {
       overrides: data.dec(_f$overrides),
       membersCount: data.dec(_f$membersCount),
       myRole: data.dec(_f$myRole),
+      secretStatus: data.dec(_f$secretStatus),
       online: data.dec(_f$online),
       lastSeen: data.dec(_f$lastSeen),
       createdAt: data.dec(_f$createdAt),
@@ -2267,6 +2326,7 @@ abstract class ChatCopyWith<$R, $In extends Chat, $Out>
     List<ChatInheritedSetting>? overrides,
     int? membersCount,
     ChatRole? myRole,
+    SecretChatStatus? secretStatus,
     bool? online,
     DateTime? lastSeen,
     DateTime? createdAt,
@@ -2366,6 +2426,7 @@ class _ChatCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Chat, $Out>
     List<ChatInheritedSetting>? overrides,
     int? membersCount,
     ChatRole? myRole,
+    Object? secretStatus = $none,
     bool? online,
     Object? lastSeen = $none,
     Object? createdAt = $none,
@@ -2427,6 +2488,7 @@ class _ChatCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Chat, $Out>
       if (overrides != null) #overrides: overrides,
       if (membersCount != null) #membersCount: membersCount,
       if (myRole != null) #myRole: myRole,
+      if (secretStatus != $none) #secretStatus: secretStatus,
       if (online != null) #online: online,
       if (lastSeen != $none) #lastSeen: lastSeen,
       if (createdAt != $none) #createdAt: createdAt,
@@ -2501,6 +2563,7 @@ class _ChatCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Chat, $Out>
     overrides: data.get(#overrides, or: $value.overrides),
     membersCount: data.get(#membersCount, or: $value.membersCount),
     myRole: data.get(#myRole, or: $value.myRole),
+    secretStatus: data.get(#secretStatus, or: $value.secretStatus),
     online: data.get(#online, or: $value.online),
     lastSeen: data.get(#lastSeen, or: $value.lastSeen),
     createdAt: data.get(#createdAt, or: $value.createdAt),

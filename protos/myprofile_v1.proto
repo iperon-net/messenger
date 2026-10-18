@@ -17,6 +17,8 @@ message MyProfile {
     optional google.protobuf.Timestamp birthDate = 3;
     optional CDN avatar = 5;
     optional string username = 6;
+    // Premium-тариф (создание секретных чатов и т.п.). Пока ставится вручную в БД.
+    bool isPremium = 7;
   }
 }
 
@@ -41,6 +43,7 @@ message MyProfileAvatarUpdate {
     optional CDN avatar = 1;
   }
 }
+
 
 message MyProfileUserNameUpdate {
   message Request {

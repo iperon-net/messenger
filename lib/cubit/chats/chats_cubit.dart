@@ -9,6 +9,8 @@ import '../../logger.dart';
 import '../../chats/chats_data_source.dart';
 import '../../chats/chats_remote_data_source.dart';
 import '../../chats/chats_sync.dart';
+import '../../chats/secret/secret_chats_list.dart';
+import '../../chats/secret/secret_chats_sync.dart';
 import '../../models.dart' as models;
 import '../../repositories/repositories.dart';
 import '../../utils.dart';
@@ -24,6 +26,12 @@ class ChatsCubit extends Cubit<ChatsState> {
 
   ChatsDataSource? _source;
   StreamSubscription<List<models.Chat>>? _chatsSubscription;
+  StreamSubscription<List<models.Chat>>? _secretSubscription;
+
+  /// Обычные (из источника) и секретные (только этого устройства) чаты —
+  /// список показывает их вместе.
+  List<models.Chat> _regular = const [];
+  List<models.Chat> _secret = const [];
   StreamSubscription<List<models.ChatFolder>>? _foldersSubscription;
   StreamSubscription<void>? _hiddenSubscription;
 
@@ -54,14 +62,26 @@ class ChatsCubit extends Cubit<ChatsState> {
     if (next != null && identical(next, _source)) return;
     _chatsSubscription?.cancel();
     _foldersSubscription?.cancel();
+    _secretSubscription?.cancel();
+    _secretSubscription = null;
     _source = next;
+    _regular = const [];
+    _secret = const [];
     emit(state.copyWith(demo: demo, chats: const [], folders: const [], folderIndex: 0));
 
     final source = _source;
     if (source == null) return;
     _chatsSubscription = source.watchChats().listen((chats) {
-      if (!isClosed) emit(state.copyWith(chats: chats));
+      _regular = chats;
+      _emitChats();
     });
+    // Секретные чаты — только у настоящих (не в демо).
+    if (!demo) {
+      _secretSubscription = watchSecretChats().listen((chats) {
+        _secret = chats;
+        _emitChats();
+      });
+    }
     _foldersSubscription = source.watchFolders().listen((folders) {
       if (isClosed) return;
       // Папки переставили / изменили на экране «Папки» — остаёмся на той же
@@ -71,6 +91,10 @@ class ChatsCubit extends Cubit<ChatsState> {
       final index = kept >= 0 ? kept : state.folderIndex.clamp(0, folders.isEmpty ? 0 : folders.length - 1);
       emit(state.copyWith(folders: folders, folderIndex: index));
     });
+  }
+
+  void _emitChats() {
+    if (!isClosed) emit(state.copyWith(chats: [..._regular, ..._secret]));
   }
 
   void setFolderIndex(int index) {
@@ -149,7 +173,18 @@ class ChatsCubit extends Cubit<ChatsState> {
   Future<void> delete(models.Chat chat, {bool forEveryone = false}) => _online(() => _source?.delete(chat.id, forEveryone: forEveryone));
 
   Future<void> readAll(models.ChatFolder folder) async =>
-      _source?.readAll(state.chats.where((c) => folder.matches(c)).map((c) => c.id).toList());
+      _source?.readAll(state.chats.where((c) => folder.matches(c) && !c.isSecret).map((c) => c.id).toList());
+
+  /// Удалить секретный чат: закрыть у собеседника (с перепиской) и убрать с
+  /// устройства. Без сети — «Нет соединения» (закрыть на сервере нужно сразу,
+  /// иначе собеседник продолжит писать в него).
+  Future<void> deleteSecret(models.Chat chat) => _online(
+    () => SecretChatsSync.instance.discard(
+      utils.hexToBytes(chat.id.substring(secretChatIDPrefix.length)),
+      deleteHistory: true,
+      removeLocal: true,
+    ),
+  );
 
   Future<void> deleteFolder(models.ChatFolder folder) => _online(() => _source?.deleteFolder(folder.id));
 
@@ -157,6 +192,7 @@ class ChatsCubit extends Cubit<ChatsState> {
   Future<void> close() async {
     await _chatsSubscription?.cancel();
     await _foldersSubscription?.cancel();
+    await _secretSubscription?.cancel();
     await _hiddenSubscription?.cancel();
     return super.close();
   }

@@ -14,6 +14,11 @@ enum ChatType { private, group, channel, community }
 @MappableEnum()
 enum MessageStatus { pending, sent, read, failed }
 
+/// Секретный чат (E2EE, только на этом устройстве): ждём собеседника, готов,
+/// закрыт.
+@MappableEnum()
+enum SecretChatStatus { waiting, ready, closed }
+
 /// Вид последнего сообщения — для превью в списке («Фото», «Файл» …).
 @MappableEnum()
 enum MessageKind { text, photo, video, file, voice, poll, call }
@@ -469,6 +474,10 @@ class Chat with ChatMappable {
   /// Наша роль в группе/канале (в личном чате не важна).
   final ChatRole myRole;
 
+  /// Секретный чат (E2EE, только на этом устройстве; id — `secret:<hex>`):
+  /// его состояние. `null` — обычный чат.
+  final SecretChatStatus? secretStatus;
+
   /// Собеседник в сети (личный чат); иначе — [lastSeen].
   final bool online;
   final DateTime? lastSeen;
@@ -533,6 +542,7 @@ class Chat with ChatMappable {
     this.overrides = const [],
     this.membersCount = 0,
     this.myRole = ChatRole.writer,
+    this.secretStatus,
     this.online = false,
     this.lastSeen,
     this.createdAt,
@@ -556,7 +566,10 @@ class Chat with ChatMappable {
 
   /// Личный чат, в котором ещё ничего нет (открыли из «Нового сообщения» и
   /// ничего не отправили) — в списке не показывается, как в Telegram.
-  bool get isBlank => type == ChatType.private && !isSelf && lastMessage == null && draft.isEmpty;
+  bool get isBlank => type == ChatType.private && !isSelf && !isSecret && lastMessage == null && draft.isEmpty;
+
+  /// Секретный чат (см. [secretStatus]).
+  bool get isSecret => secretStatus != null;
 
   /// Комментарии к посту канала.
   bool get isThread => threadOf.isNotEmpty;

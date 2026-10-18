@@ -128,6 +128,20 @@ class ProfileStateMapper extends ClassMapperBase<ProfileState> {
     _$avatarBytes,
     opt: true,
   );
+  static bool _$secretChatAvailable(ProfileState v) => v.secretChatAvailable;
+  static const Field<ProfileState, bool> _f$secretChatAvailable = Field(
+    'secretChatAvailable',
+    _$secretChatAvailable,
+    opt: true,
+    def: false,
+  );
+  static bool _$secretChatStarting(ProfileState v) => v.secretChatStarting;
+  static const Field<ProfileState, bool> _f$secretChatStarting = Field(
+    'secretChatStarting',
+    _$secretChatStarting,
+    opt: true,
+    def: false,
+  );
 
   @override
   final MappableFields<ProfileState> fields = const {
@@ -146,6 +160,8 @@ class ProfileStateMapper extends ClassMapperBase<ProfileState> {
     #boringAvatarHash: _f$boringAvatarHash,
     #boringAvatarType: _f$boringAvatarType,
     #avatarBytes: _f$avatarBytes,
+    #secretChatAvailable: _f$secretChatAvailable,
+    #secretChatStarting: _f$secretChatStarting,
   };
 
   static ProfileState _instantiate(DecodingData data) {
@@ -165,6 +181,8 @@ class ProfileStateMapper extends ClassMapperBase<ProfileState> {
       boringAvatarHash: data.dec(_f$boringAvatarHash),
       boringAvatarType: data.dec(_f$boringAvatarType),
       avatarBytes: data.dec(_f$avatarBytes),
+      secretChatAvailable: data.dec(_f$secretChatAvailable),
+      secretChatStarting: data.dec(_f$secretChatStarting),
     );
   }
 
@@ -247,6 +265,8 @@ abstract class ProfileStateCopyWith<$R, $In extends ProfileState, $Out>
     String? boringAvatarHash,
     BoringAvatarType? boringAvatarType,
     Uint8List? avatarBytes,
+    bool? secretChatAvailable,
+    bool? secretChatStarting,
   });
   ProfileStateCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
@@ -283,6 +303,8 @@ class _ProfileStateCopyWithImpl<$R, $Out>
     String? boringAvatarHash,
     BoringAvatarType? boringAvatarType,
     Object? avatarBytes = $none,
+    bool? secretChatAvailable,
+    bool? secretChatStarting,
   }) => $apply(
     FieldCopyWithData({
       if (status != null) #status: status,
@@ -300,6 +322,9 @@ class _ProfileStateCopyWithImpl<$R, $Out>
       if (boringAvatarHash != null) #boringAvatarHash: boringAvatarHash,
       if (boringAvatarType != null) #boringAvatarType: boringAvatarType,
       if (avatarBytes != $none) #avatarBytes: avatarBytes,
+      if (secretChatAvailable != null)
+        #secretChatAvailable: secretChatAvailable,
+      if (secretChatStarting != null) #secretChatStarting: secretChatStarting,
     }),
   );
   @override
@@ -319,6 +344,14 @@ class _ProfileStateCopyWithImpl<$R, $Out>
     boringAvatarHash: data.get(#boringAvatarHash, or: $value.boringAvatarHash),
     boringAvatarType: data.get(#boringAvatarType, or: $value.boringAvatarType),
     avatarBytes: data.get(#avatarBytes, or: $value.avatarBytes),
+    secretChatAvailable: data.get(
+      #secretChatAvailable,
+      or: $value.secretChatAvailable,
+    ),
+    secretChatStarting: data.get(
+      #secretChatStarting,
+      or: $value.secretChatStarting,
+    ),
   );
 
   @override
