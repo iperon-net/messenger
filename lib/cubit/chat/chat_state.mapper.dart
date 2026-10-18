@@ -37,6 +37,8 @@ class ChatCommentsBlockMapper extends EnumMapper<ChatCommentsBlock> {
         return ChatCommentsBlock.wait;
       case r'privacy':
         return ChatCommentsBlock.privacy;
+      case r'blocked':
+        return ChatCommentsBlock.blocked;
       default:
         throw MapperException.unknownEnumValue(value);
     }
@@ -55,6 +57,8 @@ class ChatCommentsBlockMapper extends EnumMapper<ChatCommentsBlock> {
         return r'wait';
       case ChatCommentsBlock.privacy:
         return r'privacy';
+      case ChatCommentsBlock.blocked:
+        return r'blocked';
     }
   }
 }

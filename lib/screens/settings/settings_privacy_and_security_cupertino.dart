@@ -112,6 +112,16 @@ class _SettingsPrivacyAndSecurityCupertino extends State<SettingsPrivacyAndSecur
                       onTab: () async => context.go("/settings/privacy_and_security/passkeys"),
                       isTrailing: true,
                     ),
+                    CupertinoListTileIcon(
+                      title: Text(context.t.sessionsPrivacyAndSecurity.blocked),
+                      color: const Color(0xFFFF3B30),
+                      icon: FontAwesomeIcons.ban,
+                      additionalInfo: state.blocked.isEmpty
+                          ? null
+                          : Text('${state.blocked.length}', style: TextStyle(color: CupertinoColors.secondaryLabel.resolveFrom(context))),
+                      onTab: () async => context.push("/settings/privacy_and_security/blocked"),
+                      isTrailing: true,
+                    ),
                   ],
                 ),
                 CupertinoListSection.insetGrouped(

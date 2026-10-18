@@ -17,6 +17,7 @@ import '../chats/chat_mute.dart';
 import '../chats/chat_no_forwards.dart';
 import '../chats/chat_ttl.dart';
 import '../chats/secret_chat_common.dart';
+import '../home/contacts_add_cupertino.dart';
 import 'profile_common.dart';
 
 /// Профиль пользователя (iOS) — один экран, откуда бы его ни открыли:
@@ -72,6 +73,9 @@ class _ProfileView extends StatefulWidget {
 
 class _ProfileViewState extends State<_ProfileView> {
   ChatInfoTab? _tab;
+
+  /// Hero аватара в шапке и в полноэкранном просмотре.
+  final _avatarHero = Object();
 
   /// «Начать секретный чат» в «Ещё» (проверка асинхронная: флаги и Premium
   /// из кэша).
@@ -144,7 +148,58 @@ class _ProfileViewState extends State<_ProfileView> {
     if (context.mounted) await _afterDelete(context, profileCubit, chat);
   }
 
-  /// Пункты «Ещё»: секретный чат, автоудаление и защита содержимого (есть
+  /// Заблокировать (с подтверждением) / разблокировать. Серверная операция:
+  /// без сети — общий алерт, ничего не меняем.
+  Future<void> _setBlocked(BuildContext context, ProfileState profile, bool blocked) async {
+    final cubit = context.read<ProfileCubit>();
+    if (blocked) {
+      final t = context.t.screenProfile;
+      final confirmed = await showCupertinoDialog<bool>(
+        context: context,
+        builder: (dialogContext) => CupertinoAlertDialog(
+          title: Text(t.blockTitle(name: profile.displayName)),
+          content: Text(t.blockMessage),
+          actions: [
+            CupertinoDialogAction(onPressed: () => Navigator.of(dialogContext).pop(false), child: Text(context.t.common.cancel)),
+            CupertinoDialogAction(isDestructiveAction: true, onPressed: () => Navigator.of(dialogContext).pop(true), child: Text(t.block)),
+          ],
+        ),
+      );
+      if (!(confirmed ?? false)) return;
+    }
+    if (!await cubit.setBlocked(blocked) && context.mounted) await showNoConnectionAlert(context);
+  }
+
+  /// «Изменить» (контакт) / «Добавить в контакты»: форма контакта (как в
+  /// Контактах), затем добавить / переименовать / удалить.
+  Future<void> _editContact(BuildContext context, ProfileState profile) async {
+    final input = await Navigator.of(context).push<ContactAddInput>(
+      FullSwipeBackRoute(
+        builder: (_) => ContactsAddCupertino(
+          initial: profileContactInitial(profile),
+          edit: profile.isContact,
+          removable: profile.isContact && profileContactRemovable(profile),
+        ),
+      ),
+    );
+    if (input == null || !context.mounted) return;
+    final t = context.t;
+    final result = await profileApplyContact(t, profile, input);
+    if (!context.mounted) return;
+    if (result.noConnection) {
+      await showNoConnectionAlert(context);
+    } else if (result.error case final error?) {
+      await showCupertinoDialog<void>(
+        context: context,
+        builder: (dialogContext) => CupertinoAlertDialog(
+          content: Text(error),
+          actions: [CupertinoDialogAction(onPressed: () => Navigator.of(dialogContext).pop(), child: Text(t.common.done))],
+        ),
+      );
+    }
+  }
+
+  /// Пункты «Ещё»: «Добавить в контакты» (не контакт, номер известен), секретный чат, автоудаление и защита содержимого (есть
   /// переписка), «Скрыть профиль», удалить чат («у обоих / только у меня» —
   /// меню от той же кнопки).
   List<ChatInfoMoreItem> _moreItems(BuildContext context, ProfileState profile, models.Chat? chat) {
@@ -153,6 +208,12 @@ class _ProfileViewState extends State<_ProfileView> {
     final chatCubit = chat == null ? null : context.read<ChatCubit>();
     final profileCubit = context.read<ProfileCubit>();
     return [
+      if (!profile.isContact && profile.phoneNumber.isNotEmpty)
+        ChatInfoMoreItem(
+          title: t.screenContacts.addToContacts,
+          icon: CupertinoIcons.person_badge_plus,
+          onTap: () => _editContact(context, profile),
+        ),
       if (_secretAvailable)
         ChatInfoMoreItem(title: t.secretChat.start, icon: CupertinoIcons.lock, onTap: () => startSecretChat(context, profile.userID)),
       if (chat != null && chatCubit != null) ...[
@@ -172,6 +233,12 @@ class _ProfileViewState extends State<_ProfileView> {
         title: t.screenProfile.hideProfile,
         icon: CupertinoIcons.eye_slash,
         onTap: () => context.push('/profile/${profileHex(profile.userID)}/hide'),
+      ),
+      ChatInfoMoreItem(
+        title: profile.blocked ? t.screenProfile.unblock : t.screenProfile.block,
+        icon: profile.blocked ? CupertinoIcons.hand_raised_slash : CupertinoIcons.hand_raised,
+        destructive: !profile.blocked,
+        onTap: () => _setBlocked(context, profile, !profile.blocked),
       ),
       if (chat != null && chatCubit != null)
         ChatInfoMoreItem(
@@ -221,21 +288,28 @@ class _ProfileViewState extends State<_ProfileView> {
     ),
   );
 
-  Widget _avatar(BuildContext context, ProfileState profile) => SizedBox(
+  /// Аватар: есть фото — тап открывает его во весь экран.
+  Widget _avatar(BuildContext context, ProfileState profile, String name) => SizedBox(
     width: 96,
     height: 96,
     child: profile.avatarBytes != null
-        ? ClipOval(
-            child: Image.memory(
-              profile.avatarBytes!,
-              width: 96,
-              height: 96,
-              fit: BoxFit.cover,
-              gaplessPlayback: true,
-              // Декодируем под размер слота, а не в полный битмап исходной
-              // (крупной) аватарки.
-              cacheWidth: (96 * MediaQuery.devicePixelRatioOf(context)).round(),
-              cacheHeight: (96 * MediaQuery.devicePixelRatioOf(context)).round(),
+        ? GestureDetector(
+            onTap: () => showAvatarViewer(context, bytes: profile.avatarBytes!, heroTag: _avatarHero, title: name),
+            child: Hero(
+              tag: _avatarHero,
+              child: ClipOval(
+                child: Image.memory(
+                  profile.avatarBytes!,
+                  width: 96,
+                  height: 96,
+                  fit: BoxFit.cover,
+                  gaplessPlayback: true,
+                  // Декодируем под размер слота, а не в полный битмап исходной
+                  // (крупной) аватарки.
+                  cacheWidth: (96 * MediaQuery.devicePixelRatioOf(context)).round(),
+                  cacheHeight: (96 * MediaQuery.devicePixelRatioOf(context)).round(),
+                ),
+              ),
             ),
           )
         : AnimatedBoringAvatar(
@@ -284,6 +358,14 @@ class _ProfileViewState extends State<_ProfileView> {
           automaticBackgroundVisibility: false,
           backgroundColor: background,
           border: null,
+          // Контакт — «Изменить»: имя, как я его записал, или удалить.
+          trailing: profile.isContact && !self
+              ? CupertinoButton(
+                  padding: EdgeInsets.zero,
+                  onPressed: () => _editContact(context, profile),
+                  child: Text(t.common.edit, style: TextStyle(color: ThemesCupertino.navActionColor(context))),
+                )
+              : null,
         ),
       ),
       child: SafeArea(
@@ -291,7 +373,7 @@ class _ProfileViewState extends State<_ProfileView> {
         child: ListView(
           children: [
             const SizedBox(height: 4),
-            Center(child: _avatar(context, profile)),
+            Center(child: _avatar(context, profile, name)),
             if (name.isNotEmpty) ...[
               const SizedBox(height: 12),
               Padding(
@@ -326,7 +408,8 @@ class _ProfileViewState extends State<_ProfileView> {
                         color: action,
                         onTap: () => _message(context, profile),
                       ),
-                    if (!self) ...[
+                    // Заблокированному не звоним (сервер и так не пропустит).
+                    if (!self && !profile.blocked) ...[
                       ChatInfoActionButton(
                         icon: HugeIcons.strokeRoundedCall02,
                         label: t.screenChatInfo.call,
@@ -396,6 +479,14 @@ class _ProfileViewState extends State<_ProfileView> {
                     value: profileBirthDateText(t, birthDate, hideYear: profile.hideBirthYear),
                     label: t.screenProfile.birthDate,
                   ),
+              ]),
+            if (profile.blocked)
+              _section(context, [
+                CupertinoListTile(
+                  title: Text(t.screenProfile.unblock, style: TextStyle(color: action)),
+                  subtitle: Text(t.screenProfile.blockedNote),
+                  onTap: () => _setBlocked(context, profile, false),
+                ),
               ]),
             // Вкладки — полосой над карточкой (как в профиле чата), содержимое — карточкой.
             if (chat != null && chatState != null && tabs.isNotEmpty) ...[

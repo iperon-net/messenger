@@ -219,6 +219,10 @@ class SettingsPrivacyAndSecurityStateMapper
   static int _$messagesTTL(SettingsPrivacyAndSecurityState v) => v.messagesTTL;
   static const Field<SettingsPrivacyAndSecurityState, int> _f$messagesTTL =
       Field('messagesTTL', _$messagesTTL, opt: true, def: 0);
+  static List<Uint8List> _$blocked(SettingsPrivacyAndSecurityState v) =>
+      v.blocked;
+  static const Field<SettingsPrivacyAndSecurityState, List<Uint8List>>
+  _f$blocked = Field('blocked', _$blocked, opt: true, def: const []);
 
   @override
   final MappableFields<SettingsPrivacyAndSecurityState> fields = const {
@@ -247,6 +251,7 @@ class SettingsPrivacyAndSecurityStateMapper
     #forwardsDeny: _f$forwardsDeny,
     #hideReadTime: _f$hideReadTime,
     #messagesTTL: _f$messagesTTL,
+    #blocked: _f$blocked,
   };
 
   static SettingsPrivacyAndSecurityState _instantiate(DecodingData data) {
@@ -276,6 +281,7 @@ class SettingsPrivacyAndSecurityStateMapper
       forwardsDeny: data.dec(_f$forwardsDeny),
       hideReadTime: data.dec(_f$hideReadTime),
       messagesTTL: data.dec(_f$messagesTTL),
+      blocked: data.dec(_f$blocked),
     );
   }
 
@@ -381,6 +387,8 @@ abstract class SettingsPrivacyAndSecurityStateCopyWith<
   get forwardsAllow;
   ListCopyWith<$R, Uint8List, ObjectCopyWith<$R, Uint8List, Uint8List>>
   get forwardsDeny;
+  ListCopyWith<$R, Uint8List, ObjectCopyWith<$R, Uint8List, Uint8List>>
+  get blocked;
   $R call({
     Status? status,
     bool? isBiometricAvailable,
@@ -407,6 +415,7 @@ abstract class SettingsPrivacyAndSecurityStateCopyWith<
     List<Uint8List>? forwardsDeny,
     bool? hideReadTime,
     int? messagesTTL,
+    List<Uint8List>? blocked,
   });
   SettingsPrivacyAndSecurityStateCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
     Then<$Out2, $R2> t,
@@ -515,6 +524,13 @@ class _SettingsPrivacyAndSecurityStateCopyWithImpl<$R, $Out>
     (v) => call(forwardsDeny: v),
   );
   @override
+  ListCopyWith<$R, Uint8List, ObjectCopyWith<$R, Uint8List, Uint8List>>
+  get blocked => ListCopyWith(
+    $value.blocked,
+    (v, t) => ObjectCopyWith(v, $identity, t),
+    (v) => call(blocked: v),
+  );
+  @override
   $R call({
     Status? status,
     bool? isBiometricAvailable,
@@ -541,6 +557,7 @@ class _SettingsPrivacyAndSecurityStateCopyWithImpl<$R, $Out>
     List<Uint8List>? forwardsDeny,
     bool? hideReadTime,
     int? messagesTTL,
+    List<Uint8List>? blocked,
   }) => $apply(
     FieldCopyWithData({
       if (status != null) #status: status,
@@ -569,6 +586,7 @@ class _SettingsPrivacyAndSecurityStateCopyWithImpl<$R, $Out>
       if (forwardsDeny != null) #forwardsDeny: forwardsDeny,
       if (hideReadTime != null) #hideReadTime: hideReadTime,
       if (messagesTTL != null) #messagesTTL: messagesTTL,
+      if (blocked != null) #blocked: blocked,
     }),
   );
   @override
@@ -603,6 +621,7 @@ class _SettingsPrivacyAndSecurityStateCopyWithImpl<$R, $Out>
     forwardsDeny: data.get(#forwardsDeny, or: $value.forwardsDeny),
     hideReadTime: data.get(#hideReadTime, or: $value.hideReadTime),
     messagesTTL: data.get(#messagesTTL, or: $value.messagesTTL),
+    blocked: data.get(#blocked, or: $value.blocked),
   );
 
   @override

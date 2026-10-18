@@ -17,6 +17,7 @@ import '../chats/chat_mute.dart';
 import '../chats/chat_no_forwards.dart';
 import '../chats/chat_ttl.dart';
 import '../chats/secret_chat_common.dart';
+import '../home/contacts_add_material.dart';
 import 'profile_common.dart';
 
 /// Профиль пользователя (Android) — один экран, откуда бы его ни открыли:
@@ -73,6 +74,9 @@ class _ProfileView extends StatefulWidget {
 class _ProfileViewState extends State<_ProfileView> {
   ChatInfoTab? _tab;
 
+  /// Hero аватара в шапке и в полноэкранном просмотре.
+  final _avatarHero = Object();
+
   /// «Начать секретный чат» в «Ещё» (проверка асинхронная: флаги и Premium
   /// из кэша).
   bool _secretAvailable = false;
@@ -109,7 +113,55 @@ class _ProfileViewState extends State<_ProfileView> {
     if (!cubit.isClosed) await cubit.resolveChat();
   }
 
-  /// «Ещё»: шторка — секретный чат, автоудаление и защита содержимого (есть
+  /// Заблокировать (с подтверждением) / разблокировать. Серверная операция:
+  /// без сети — общий алерт, ничего не меняем.
+  Future<void> _setBlocked(BuildContext context, ProfileState profile, bool blocked) async {
+    final cubit = context.read<ProfileCubit>();
+    if (blocked) {
+      final t = context.t.screenProfile;
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: Text(t.blockTitle(name: profile.displayName)),
+          content: Text(t.blockMessage),
+          actions: [
+            TextButton(onPressed: () => Navigator.of(dialogContext).pop(false), child: Text(context.t.common.cancel)),
+            TextButton(
+              style: TextButton.styleFrom(foregroundColor: Theme.of(dialogContext).colorScheme.error),
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: Text(t.block),
+            ),
+          ],
+        ),
+      );
+      if (!(confirmed ?? false)) return;
+    }
+    if (!await cubit.setBlocked(blocked) && context.mounted) await showNoConnectionAlert(context);
+  }
+
+  /// «Изменить» (контакт) / «Добавить в контакты»: форма контакта (как в
+  /// Контактах), затем добавить / переименовать / удалить.
+  Future<void> _editContact(BuildContext context, ProfileState profile) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final input = await Navigator.of(context).push<ContactAddInput>(
+      FullSwipeBackRoute(
+        builder: (_) => ContactsAddMaterial(
+          initial: profileContactInitial(profile),
+          edit: profile.isContact,
+          removable: profile.isContact && profileContactRemovable(profile),
+        ),
+      ),
+    );
+    if (input == null || !context.mounted) return;
+    final result = await profileApplyContact(context.t, profile, input);
+    if (result.noConnection) {
+      if (context.mounted) await showNoConnectionAlert(context);
+    } else if (result.error case final error?) {
+      messenger.showSnackBar(SnackBar(content: Text(error)));
+    }
+  }
+
+  /// «Ещё»: шторка — «Добавить в контакты» (не контакт, номер известен), секретный чат, автоудаление и защита содержимого (есть
   /// переписка), «Скрыть профиль», удалить чат; выбор у пункта — следующей
   /// шторкой.
   Future<void> _more(BuildContext context, ProfileState profile, models.Chat? chat) async {
@@ -122,6 +174,12 @@ class _ProfileViewState extends State<_ProfileView> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            if (!profile.isContact && profile.phoneNumber.isNotEmpty)
+              ListTile(
+                leading: const Icon(Icons.person_add_alt_outlined),
+                title: Text(t.screenContacts.addToContacts),
+                onTap: () => Navigator.of(sheetContext).pop('addContact'),
+              ),
             if (_secretAvailable)
               ListTile(
                 leading: const Icon(Icons.lock_outline),
@@ -146,6 +204,14 @@ class _ProfileViewState extends State<_ProfileView> {
               title: Text(t.screenProfile.hideProfile),
               onTap: () => Navigator.of(sheetContext).pop('hide'),
             ),
+            ListTile(
+              leading: Icon(Icons.block, color: profile.blocked ? null : error),
+              title: Text(
+                profile.blocked ? t.screenProfile.unblock : t.screenProfile.block,
+                style: profile.blocked ? null : TextStyle(color: error),
+              ),
+              onTap: () => Navigator.of(sheetContext).pop('block'),
+            ),
             if (chat != null)
               ListTile(
                 leading: Icon(Icons.delete_outline, color: error),
@@ -158,6 +224,8 @@ class _ProfileViewState extends State<_ProfileView> {
     );
     if (!context.mounted) return;
     switch (action) {
+      case 'addContact':
+        await _editContact(context, profile);
       case 'secret':
         await startSecretChat(context, profile.userID);
       case 'ttl':
@@ -168,6 +236,8 @@ class _ProfileViewState extends State<_ProfileView> {
         await setChatNoForwards(context, context.read<ChatCubit>(), !chat!.noForwards);
       case 'hide':
         await context.push('/profile/${profileHex(profile.userID)}/hide');
+      case 'block':
+        await _setBlocked(context, profile, !profile.blocked);
       case 'delete':
         await _delete(context, chat!);
     }
@@ -208,24 +278,31 @@ class _ProfileViewState extends State<_ProfileView> {
     ),
   );
 
-  Widget _avatar(BuildContext context, ProfileState profile) => SizedBox(
+  /// Аватар: есть фото — тап открывает его во весь экран.
+  Widget _avatar(BuildContext context, ProfileState profile, String name) => SizedBox(
     width: 96,
     height: 96,
     child: profile.avatarBytes != null
-        ? ClipOval(
-            child: Image.memory(
-              profile.avatarBytes!,
-              width: 96,
-              height: 96,
-              fit: BoxFit.cover,
-              gaplessPlayback: true,
-              // Аватар может прийти в исходном разрешении (2000+ px, ~1 МБ).
-              // Без cacheWidth/cacheHeight движок декодирует его в полный
-              // битмап (для 2316² это ~21 МБ) на слот 96×96 — отсюда сотни мс
-              // декода и дропнутые кадры при открытии. Декодируем сразу под
-              // размер слота в физических пикселях.
-              cacheWidth: (96 * MediaQuery.devicePixelRatioOf(context)).round(),
-              cacheHeight: (96 * MediaQuery.devicePixelRatioOf(context)).round(),
+        ? GestureDetector(
+            onTap: () => showAvatarViewer(context, bytes: profile.avatarBytes!, heroTag: _avatarHero, title: name),
+            child: Hero(
+              tag: _avatarHero,
+              child: ClipOval(
+                child: Image.memory(
+                  profile.avatarBytes!,
+                  width: 96,
+                  height: 96,
+                  fit: BoxFit.cover,
+                  gaplessPlayback: true,
+                  // Аватар может прийти в исходном разрешении (2000+ px, ~1 МБ).
+                  // Без cacheWidth/cacheHeight движок декодирует его в полный
+                  // битмап (для 2316² это ~21 МБ) на слот 96×96 — отсюда сотни мс
+                  // декода и дропнутые кадры при открытии. Декодируем сразу под
+                  // размер слота в физических пикселях.
+                  cacheWidth: (96 * MediaQuery.devicePixelRatioOf(context)).round(),
+                  cacheHeight: (96 * MediaQuery.devicePixelRatioOf(context)).round(),
+                ),
+              ),
             ),
           )
         : AnimatedBoringAvatar(
@@ -256,10 +333,22 @@ class _ProfileViewState extends State<_ProfileView> {
 
     return Scaffold(
       backgroundColor: scheme.surfaceContainerLow,
-      appBar: AppBar(backgroundColor: scheme.surfaceContainerLow, scrolledUnderElevation: 0),
+      appBar: AppBar(
+        backgroundColor: scheme.surfaceContainerLow,
+        scrolledUnderElevation: 0,
+        actions: [
+          // Контакт — «Изменить»: имя, как я его записал, или удалить.
+          if (profile.isContact && !self)
+            IconButton(
+              tooltip: t.screenContacts.editContact,
+              onPressed: () => _editContact(context, profile),
+              icon: const HugeIcon(icon: HugeIcons.strokeRoundedPencilEdit02),
+            ),
+        ],
+      ),
       body: ListView(
         children: [
-          Center(child: _avatar(context, profile)),
+          Center(child: _avatar(context, profile, name)),
           if (name.isNotEmpty) ...[
             const SizedBox(height: 12),
             Padding(
@@ -291,7 +380,8 @@ class _ProfileViewState extends State<_ProfileView> {
                       background: card,
                       onTap: () => _message(context, profile),
                     ),
-                  if (!self) ...[
+                  // Заблокированному не звоним (сервер и так не пропустит).
+                  if (!self && !profile.blocked) ...[
                     ChatInfoActionButton(
                       icon: HugeIcons.strokeRoundedCall02,
                       label: t.screenChatInfo.call,
@@ -368,6 +458,17 @@ class _ProfileViewState extends State<_ProfileView> {
                       label: t.screenProfile.birthDate,
                     ),
                 ],
+              ),
+            ),
+          if (profile.blocked)
+            Card(
+              margin: const EdgeInsets.fromLTRB(12, 16, 12, 0),
+              color: card,
+              clipBehavior: Clip.antiAlias,
+              child: ListTile(
+                title: Text(t.screenProfile.unblock, style: TextStyle(color: scheme.primary)),
+                subtitle: Text(t.screenProfile.blockedNote),
+                onTap: () => _setBlocked(context, profile, false),
               ),
             ),
           // Вкладки — полосой над карточкой (как в профиле чата), содержимое — карточкой.

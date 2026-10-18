@@ -185,6 +185,10 @@ class MessageType extends $pb.ProtobufEnum {
   static const MessageType SECRET_CHATS = MessageType._(84, _omitEnumNames ? '' : 'SECRET_CHATS');
   static const MessageType SECRET_UPDATES = MessageType._(85, _omitEnumNames ? '' : 'SECRET_UPDATES');
 
+  /// Заблокировать / разблокировать пользователя (PrivacySettings.blocked). См.
+  /// privacy_v1.proto (PrivacyBlockUpdate).
+  static const MessageType PRIVACY_BLOCK_UPDATE = MessageType._(86, _omitEnumNames ? '' : 'PRIVACY_BLOCK_UPDATE');
+
   static const $core.List<MessageType> values = <MessageType>[
     HEALTHCHECK,
     META_DATA_INFO,
@@ -268,9 +272,10 @@ class MessageType extends $pb.ProtobufEnum {
     PRIVACY_MESSAGES_TTL_UPDATE,
     SECRET_CHATS,
     SECRET_UPDATES,
+    PRIVACY_BLOCK_UPDATE,
   ];
 
-  static final $core.List<MessageType?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 85);
+  static final $core.List<MessageType?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 86);
   static MessageType? valueOf($core.int value) => value < 0 || value >= _byValue.length ? null : _byValue[value];
 
   const MessageType._(super.value, super.name);

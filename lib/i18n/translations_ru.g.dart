@@ -706,6 +706,8 @@ class _Translations$screenChat$ru extends Translations$screenChat$en {
 	@override String floodWait({required Object time}) => 'Вы отправляете сообщения слишком часто. Следующее можно отправить через ${time}.';
 	@override String floodNewChats({required Object time}) => 'Вы начинаете новые чаты слишком часто. Попробуйте через ${time}.';
 	@override String get privacyRestricted => 'Вы не можете написать в этот чат.';
+	@override String get blockedNote => 'Вы заблокировали этого пользователя';
+	@override String get unblock => 'Разблокировать';
 	@override String get retrySend => 'Отправить ещё раз';
 	@override String get slowModeOneMessage => 'В медленном режиме можно отправить только одно сообщение за раз.';
 	@override String get scheduledTitle => 'Отложенные сообщения';
@@ -1166,6 +1168,11 @@ class _Translations$sessionsPrivacyAndSecurity$ru extends Translations$sessionsP
 	@override String get forwards => 'Пересылка сообщений';
 	@override String get whoCanLinkForwards => 'Кто может добавлять ссылку на мой аккаунт при пересылке моих сообщений';
 	@override String get forwardsNote => 'Остальные увидят в «Переслано от …» только ваше имя — без перехода в ваш профиль.';
+	@override String get blocked => 'Заблокированные';
+	@override String get blockedEmpty => 'Вы никого не заблокировали';
+	@override String get blockedNote => 'Заблокированные не могут писать вам и звонить, не видят ваше время захода, фото, «О себе» и день рождения. Заблокировать можно в профиле пользователя.';
+	@override String get unblock => 'Разблокировать';
+	@override String get unknownUser => 'Пользователь';
 }
 
 // Path: cloudPassword
@@ -1300,6 +1307,11 @@ class _Translations$screenProfile$ru extends Translations$screenProfile$en {
 	);
 	@override String get copy => _root.screenMyProfile.copy;
 	@override String get hideProfile => 'Скрыть профиль';
+	@override String get block => 'Заблокировать';
+	@override String get unblock => 'Разблокировать';
+	@override String blockTitle({required Object name}) => 'Заблокировать ${name}?';
+	@override String get blockMessage => 'Пользователь не сможет писать вам и звонить, не увидит ваше время захода, фото, «О себе» и день рождения. Сообщать ему об этом мы не будем.';
+	@override String get blockedNote => 'Вы заблокировали этого пользователя';
 }
 
 // Path: screenHideProfile
@@ -1353,6 +1365,10 @@ class _Translations$screenContacts$ru extends Translations$screenContacts$en {
 	@override String get remove => 'Удалить';
 	@override String get removeTitle => 'Удалить контакт?';
 	@override String get removeMessage => 'Он больше не сможет вам звонить, если в настройках приватности не разрешены звонки от всех.';
+	@override String get editContact => 'Изменить контакт';
+	@override String get addToContacts => 'Добавить в контакты';
+	@override String get removeContact => 'Удалить контакт';
+	@override String get removeFailed => 'Не удалось удалить контакт';
 }
 
 // Path: screenCalls
@@ -2203,6 +2219,8 @@ extension on TranslationsRu {
 			'screenChat.floodWait' => ({required Object time}) => 'Вы отправляете сообщения слишком часто. Следующее можно отправить через ${time}.',
 			'screenChat.floodNewChats' => ({required Object time}) => 'Вы начинаете новые чаты слишком часто. Попробуйте через ${time}.',
 			'screenChat.privacyRestricted' => 'Вы не можете написать в этот чат.',
+			'screenChat.blockedNote' => 'Вы заблокировали этого пользователя',
+			'screenChat.unblock' => 'Разблокировать',
 			'screenChat.retrySend' => 'Отправить ещё раз',
 			'screenChat.slowModeOneMessage' => 'В медленном режиме можно отправить только одно сообщение за раз.',
 			'screenChat.scheduledTitle' => 'Отложенные сообщения',
@@ -2233,10 +2251,10 @@ extension on TranslationsRu {
 			'screenChat.videoHdOn' => 'Видео в HD: 1080p',
 			'screenChat.videoHdOff' => 'Стандартное качество: 720p',
 			'screenChat.videoSound' => 'Звук',
-			'screenChat.videoMuted' => 'Без звука',
-			'screenChat.videoCover' => 'Обложка',
 			_ => null,
 		} ?? switch (path) {
+			'screenChat.videoMuted' => 'Без звука',
+			'screenChat.videoCover' => 'Обложка',
 			'screenChat.videoCoverSet' => 'Обложка выбрана',
 			'screenChat.videoReset' => 'Сбросить',
 			'screenChat.videoCrop' => 'Кадрировать',
@@ -2536,6 +2554,11 @@ extension on TranslationsRu {
 			'sessionsPrivacyAndSecurity.forwards' => 'Пересылка сообщений',
 			'sessionsPrivacyAndSecurity.whoCanLinkForwards' => 'Кто может добавлять ссылку на мой аккаунт при пересылке моих сообщений',
 			'sessionsPrivacyAndSecurity.forwardsNote' => 'Остальные увидят в «Переслано от …» только ваше имя — без перехода в ваш профиль.',
+			'sessionsPrivacyAndSecurity.blocked' => 'Заблокированные',
+			'sessionsPrivacyAndSecurity.blockedEmpty' => 'Вы никого не заблокировали',
+			'sessionsPrivacyAndSecurity.blockedNote' => 'Заблокированные не могут писать вам и звонить, не видят ваше время захода, фото, «О себе» и день рождения. Заблокировать можно в профиле пользователя.',
+			'sessionsPrivacyAndSecurity.unblock' => 'Разблокировать',
+			'sessionsPrivacyAndSecurity.unknownUser' => 'Пользователь',
 			'cloudPassword.title' => 'Облачный пароль',
 			'cloudPassword.description' => 'Дополнительный пароль, будет запрашивается при входе с нового устройства. Укажите email чтобы восстановить доступ, если забудете пароль.',
 			'cloudPassword.enterPasswordHint' => 'Введите облачный пароль',
@@ -2634,6 +2657,11 @@ extension on TranslationsRu {
 			'screenProfile.age' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: '${n} год', few: '${n} года', many: '${n} лет', other: '${n} года', ), 
 			'screenProfile.copy' => _root.screenMyProfile.copy,
 			'screenProfile.hideProfile' => 'Скрыть профиль',
+			'screenProfile.block' => 'Заблокировать',
+			'screenProfile.unblock' => 'Разблокировать',
+			'screenProfile.blockTitle' => ({required Object name}) => 'Заблокировать ${name}?',
+			'screenProfile.blockMessage' => 'Пользователь не сможет писать вам и звонить, не увидит ваше время захода, фото, «О себе» и день рождения. Сообщать ему об этом мы не будем.',
+			'screenProfile.blockedNote' => 'Вы заблокировали этого пользователя',
 			'screenHideProfile.title' => 'Скрыть профиль',
 			'screenHideProfile.description' => 'Собеседник исчезнет из ваших Контактов, Звонков и Чатов на этом устройстве. Чтобы снова показать его, введите в поиске «/код-фразу». Код-фраза хранится только в виде хеша и не покидает устройство.',
 			'screenHideProfile.phrasePlaceholder' => 'Код-фраза',
@@ -2669,6 +2697,10 @@ extension on TranslationsRu {
 			'screenContacts.remove' => 'Удалить',
 			'screenContacts.removeTitle' => 'Удалить контакт?',
 			'screenContacts.removeMessage' => 'Он больше не сможет вам звонить, если в настройках приватности не разрешены звонки от всех.',
+			'screenContacts.editContact' => 'Изменить контакт',
+			'screenContacts.addToContacts' => 'Добавить в контакты',
+			'screenContacts.removeContact' => 'Удалить контакт',
+			'screenContacts.removeFailed' => 'Не удалось удалить контакт',
 			'screenCalls.title' => 'Звонки',
 			'screenCalls.empty' => 'Здесь появятся ваши звонки',
 			'screenCalls.emptyMissed' => 'Нет пропущенных звонков',
@@ -2733,6 +2765,8 @@ extension on TranslationsRu {
 			'screenCall.bannerReconnecting' => 'Переподключение…',
 			'screenCall.incomingAudio' => 'Входящий звонок',
 			'screenCall.incomingVideo' => 'Входящий видеозвонок',
+			_ => null,
+		} ?? switch (path) {
 			'screenCall.calling' => 'Вызов…',
 			'screenCall.connecting' => 'Соединение…',
 			'screenCall.talking' => 'Идёт разговор',
@@ -2749,8 +2783,6 @@ extension on TranslationsRu {
 			'screenCall.endedConnectionLost' => 'Связь прервалась',
 			'screenCall.ended' => 'Звонок завершён',
 			'screenCall.decline' => 'Отклонить',
-			_ => null,
-		} ?? switch (path) {
 			'screenCall.accept' => 'Принять',
 			'screenCall.hangup' => 'Завершить',
 			'screenCall.micOn' => 'Вкл. звук',

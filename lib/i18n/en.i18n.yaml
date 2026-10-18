@@ -520,6 +520,8 @@
   "floodWait": "You are sending messages too often. You can send the next one in {time}."
   "floodNewChats": "You are starting new chats too often. Try again in {time}."
   "privacyRestricted": "You can't message this chat."
+  "blockedNote": "You blocked this user"
+  "unblock": "Unblock"
   "retrySend": "Send again"
   "slowModeOneMessage": "In slow mode you can send only one message at a time."
   "scheduledTitle": "Scheduled messages"
@@ -885,6 +887,11 @@
   "forwards": "Forwarded messages"
   "whoCanLinkForwards": "Who can add a link to my account when forwarding my messages"
   "forwardsNote": "Everyone else will see only your name in \"Forwarded from…\", without a link to your profile."
+  "blocked": "Blocked Users"
+  "blockedEmpty": "You haven't blocked anyone"
+  "blockedNote": "Blocked users can't message or call you and can't see your last seen, photo, bio or birthday. You can block someone from their profile."
+  "unblock": "Unblock"
+  "unknownUser": "User"
 
 "cloudPassword":
   "title": "Cloud password"
@@ -993,6 +1000,11 @@
     other: "{n} years"
   "copy": "@:screenMyProfile.copy"
   "hideProfile": "Hide profile"
+  "block": "Block"
+  "unblock": "Unblock"
+  "blockTitle": "Block {name}?"
+  "blockMessage": "They won't be able to message or call you or see your last seen, photo, bio or birthday. We won't tell them."
+  "blockedNote": "You blocked this user"
 
 "screenHideProfile":
   "title": "Hide profile"
@@ -1032,6 +1044,10 @@
   "remove": "Remove"
   "removeTitle": "Remove contact?"
   "removeMessage": "They will no longer be able to call you unless your call privacy allows everyone."
+  "editContact": "Edit Contact"
+  "addToContacts": "Add to Contacts"
+  "removeContact": "Delete Contact"
+  "removeFailed": "Couldn't delete the contact"
 
 "screenCalls":
   "title": "Calls"

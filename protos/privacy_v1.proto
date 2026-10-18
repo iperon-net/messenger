@@ -76,6 +76,13 @@ message PrivacySettings {
     // этот пользователь пишет первым, получает такой таймер (со служебным
     // MessageTTLChanged.auto); существующие не меняются, «Избранное» — без.
     int32 messages_ttl = 21;
+    // Заблокированные пользователи (userID, ObjectID 12 байт), как в Telegram:
+    // не могут писать мне в личные чаты (и я им — пока не разблокирую), звонить
+    // (в обе стороны), начинать секретный чат; не видят моё «в сети» / время
+    // захода, «О себе», день рождения и аватар, их пересылки — без ссылки на
+    // мой аккаунт. Заблокированный об этом не узнаёт: для него это обычные
+    // отказы приватности («privacyRestricted», «call not allowed»).
+    repeated bytes blocked = 22;
   }
 }
 
@@ -264,6 +271,18 @@ message PrivacyForwardsDenyUpdate {
 message PrivacyMessagesTTLUpdate {
   message Request {
     int32 period = 1;
+  }
+
+  message Response {}
+}
+
+// Заблокировать / разблокировать одного пользователя (PrivacySettings.blocked).
+// Свой userID — INVALID_ARGUMENT. После записи снимок настроек рассылается на
+// все устройства владельца (PRIVACY_SETTINGS).
+message PrivacyBlockUpdate {
+  message Request {
+    bytes user_id = 1;
+    bool blocked = 2;
   }
 
   message Response {}

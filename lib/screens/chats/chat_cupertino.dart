@@ -1315,6 +1315,11 @@ class _CommentsBlockedBar extends StatelessWidget {
               CupertinoIcons.clock,
               commentsWaitLabel(t, state.commentsWaitUntil!),
             ),
+            // Собеседник у меня в «Заблокированных» — писать нельзя, пока не разблокирую.
+            ChatCommentsBlock.blocked => CupertinoButton(
+              onPressed: context.read<ChatCubit>().unblockPeer,
+              child: Text(t.screenChat.unblock),
+            ),
             ChatCommentsBlock.privacy => note(CupertinoIcons.lock, t.screenChat.privacyRestricted),
             _ => note(CupertinoIcons.lock, t.screenChat.commentsClosed),
           },

@@ -31,6 +31,8 @@ export 'settings/settings_device_sessions_cupertino.dart';
 export 'settings/settings_device_sessions_material.dart';
 export 'settings/settings_privacy_and_security_cupertino.dart';
 export 'settings/settings_privacy_and_security_material.dart';
+export 'settings/settings_blocked_cupertino.dart';
+export 'settings/settings_blocked_material.dart';
 export 'settings/settings_privacy_calls_cupertino.dart';
 export 'settings/settings_privacy_calls_material.dart';
 export 'settings/settings_privacy_calls_allow_cupertino.dart';

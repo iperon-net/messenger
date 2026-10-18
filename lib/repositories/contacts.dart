@@ -54,12 +54,14 @@ class Contacts {
         .toList(growable: false);
   }
 
-  /// Первая запись контакта с этим [userID] (имя/номер) — для показа в журнале
-  /// звонков, когда профиль ещё не попал в кэш. `null`, если такого нет.
+  /// Запись контакта с этим [userID] (имя/номер; облачная главнее книжной) —
+  /// для журнала звонков, когда профиль ещё не попал в кэш, и для профиля
+  /// пользователя («в контактах ли»). `null`, если такого нет.
   Future<ContactCacheEntry?> getByUserID(List<int> userID) async {
-    final rows = await db.execute("SELECT phoneE164, displayName, phone, userID, isCloud, oprf FROM contacts WHERE userID = ? LIMIT 1;", [
-      userID,
-    ]);
+    final rows = await db.execute(
+      "SELECT phoneE164, displayName, phone, userID, isCloud, oprf FROM contacts WHERE userID = ? ORDER BY isCloud DESC LIMIT 1;",
+      [userID],
+    );
     if (rows.isEmpty) return null;
     final row = rows.first;
     return ContactCacheEntry(

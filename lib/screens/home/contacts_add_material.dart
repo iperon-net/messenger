@@ -1,7 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_multi_formatter/flutter_multi_formatter.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:go_router/go_router.dart';
 
 import '../../cubit.dart';
 import '../../i18n/translations.g.dart';
@@ -10,19 +9,27 @@ import '../../i18n/translations.g.dart';
 /// форматированием). Экран не имеет доступа к [ContactsCubit] (он живёт на уровне
 /// shell, а этот экран пушится на root-навигаторе), поэтому по «Добавить» просто
 /// возвращает [ContactAddInput] через pop — вызов cubit делает список контактов.
+///
+/// Та же форма — правка контакта из профиля пользователя ([edit]): поля
+/// заполнены [initial], номер не меняется, [removable] — внизу «Удалить
+/// контакт» (pop с `remove: true`).
 class ContactsAddMaterial extends StatefulWidget {
-  const ContactsAddMaterial({super.key});
+  final ContactAddInput? initial;
+  final bool edit;
+  final bool removable;
+
+  const ContactsAddMaterial({super.key, this.initial, this.edit = false, this.removable = false});
 
   @override
   State<ContactsAddMaterial> createState() => _ContactsAddMaterialState();
 }
 
 class _ContactsAddMaterialState extends State<ContactsAddMaterial> {
-  final _firstNameController = TextEditingController();
+  late final _firstNameController = TextEditingController(text: widget.initial?.firstName);
   final _firstNameFocus = FocusNode();
-  final _lastNameController = TextEditingController();
+  late final _lastNameController = TextEditingController(text: widget.initial?.lastName);
   final _lastNameFocus = FocusNode();
-  final _phoneController = TextEditingController();
+  late final _phoneController = TextEditingController(text: widget.initial?.phone);
   final _phoneFocus = FocusNode();
 
   @override
@@ -39,7 +46,32 @@ class _ContactsAddMaterialState extends State<ContactsAddMaterial> {
   void _submit() {
     final phone = _phoneController.text.trim();
     if (phone.isEmpty) return;
-    context.pop(ContactAddInput(firstName: _firstNameController.text.trim(), lastName: _lastNameController.text.trim(), phone: phone));
+    // Navigator, а не go_router: из профиля форма открывается императивно.
+    Navigator.of(
+      context,
+    ).pop(ContactAddInput(firstName: _firstNameController.text.trim(), lastName: _lastNameController.text.trim(), phone: phone));
+  }
+
+  Future<void> _remove() async {
+    final t = context.t.screenContacts;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(t.removeTitle),
+        content: Text(t.removeMessage),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(dialogContext).pop(false), child: Text(context.t.common.cancel)),
+          TextButton(
+            style: TextButton.styleFrom(foregroundColor: Theme.of(dialogContext).colorScheme.error),
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(t.remove),
+          ),
+        ],
+      ),
+    );
+    if ((confirmed ?? false) && mounted) {
+      Navigator.of(context).pop(const ContactAddInput(firstName: '', lastName: '', phone: '', remove: true));
+    }
   }
 
   @override
@@ -90,7 +122,7 @@ class _ContactsAddMaterialState extends State<ContactsAddMaterial> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(t.addContact),
+        title: Text(widget.edit ? t.editContact : t.addContact),
         actions: [
           TextButton(
             onPressed: _submit,
@@ -115,6 +147,8 @@ class _ContactsAddMaterialState extends State<ContactsAddMaterial> {
                     child: TextFormField(
                       controller: _phoneController,
                       focusNode: _phoneFocus,
+                      // Номер — адрес контакта: при правке не меняется.
+                      enabled: !widget.edit,
                       keyboardType: TextInputType.phone,
                       inputFormatters: [PhoneInputFormatter()],
                       decoration: decoration(label: t.addByNumberHint),
@@ -130,6 +164,15 @@ class _ContactsAddMaterialState extends State<ContactsAddMaterial> {
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
               child: Text(t.addSyncHint, style: TextStyle(fontSize: 13, color: Theme.of(context).colorScheme.onSurfaceVariant)),
             ),
+            if (widget.removable)
+              Card(
+                margin: const EdgeInsets.only(top: 16),
+                clipBehavior: Clip.antiAlias,
+                child: ListTile(
+                  title: Text(t.removeContact, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+                  onTap: _remove,
+                ),
+              ),
           ],
         ),
       ),

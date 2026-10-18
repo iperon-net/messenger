@@ -1651,6 +1651,12 @@ class Translations$screenChat$en {
 	/// en: 'You can't message this chat.'
 	String get privacyRestricted => 'You can\'t message this chat.';
 
+	/// en: 'You blocked this user'
+	String get blockedNote => 'You blocked this user';
+
+	/// en: 'Unblock'
+	String get unblock => 'Unblock';
+
 	/// en: 'Send again'
 	String get retrySend => 'Send again';
 
@@ -2766,6 +2772,21 @@ class Translations$sessionsPrivacyAndSecurity$en {
 
 	/// en: 'Everyone else will see only your name in "Forwarded from…", without a link to your profile.'
 	String get forwardsNote => 'Everyone else will see only your name in "Forwarded from…", without a link to your profile.';
+
+	/// en: 'Blocked Users'
+	String get blocked => 'Blocked Users';
+
+	/// en: 'You haven't blocked anyone'
+	String get blockedEmpty => 'You haven\'t blocked anyone';
+
+	/// en: 'Blocked users can't message or call you and can't see your last seen, photo, bio or birthday. You can block someone from their profile.'
+	String get blockedNote => 'Blocked users can\'t message or call you and can\'t see your last seen, photo, bio or birthday. You can block someone from their profile.';
+
+	/// en: 'Unblock'
+	String get unblock => 'Unblock';
+
+	/// en: 'User'
+	String get unknownUser => 'User';
 }
 
 // Path: cloudPassword
@@ -3093,6 +3114,21 @@ class Translations$screenProfile$en {
 
 	/// en: 'Hide profile'
 	String get hideProfile => 'Hide profile';
+
+	/// en: 'Block'
+	String get block => 'Block';
+
+	/// en: 'Unblock'
+	String get unblock => 'Unblock';
+
+	/// en: 'Block {name}?'
+	String blockTitle({required Object name}) => 'Block ${name}?';
+
+	/// en: 'They won't be able to message or call you or see your last seen, photo, bio or birthday. We won't tell them.'
+	String get blockMessage => 'They won\'t be able to message or call you or see your last seen, photo, bio or birthday. We won\'t tell them.';
+
+	/// en: 'You blocked this user'
+	String get blockedNote => 'You blocked this user';
 }
 
 // Path: screenHideProfile
@@ -3216,6 +3252,18 @@ class Translations$screenContacts$en {
 
 	/// en: 'They will no longer be able to call you unless your call privacy allows everyone.'
 	String get removeMessage => 'They will no longer be able to call you unless your call privacy allows everyone.';
+
+	/// en: 'Edit Contact'
+	String get editContact => 'Edit Contact';
+
+	/// en: 'Add to Contacts'
+	String get addToContacts => 'Add to Contacts';
+
+	/// en: 'Delete Contact'
+	String get removeContact => 'Delete Contact';
+
+	/// en: 'Couldn't delete the contact'
+	String get removeFailed => 'Couldn\'t delete the contact';
 }
 
 // Path: screenCalls
@@ -4462,6 +4510,8 @@ extension on Translations {
 			'screenChat.floodWait' => ({required Object time}) => 'You are sending messages too often. You can send the next one in ${time}.',
 			'screenChat.floodNewChats' => ({required Object time}) => 'You are starting new chats too often. Try again in ${time}.',
 			'screenChat.privacyRestricted' => 'You can\'t message this chat.',
+			'screenChat.blockedNote' => 'You blocked this user',
+			'screenChat.unblock' => 'Unblock',
 			'screenChat.retrySend' => 'Send again',
 			'screenChat.slowModeOneMessage' => 'In slow mode you can send only one message at a time.',
 			'screenChat.scheduledTitle' => 'Scheduled messages',
@@ -4492,10 +4542,10 @@ extension on Translations {
 			'screenChat.videoHdOn' => 'HD video: 1080p',
 			'screenChat.videoHdOff' => 'Standard quality: 720p',
 			'screenChat.videoSound' => 'Sound',
-			'screenChat.videoMuted' => 'Muted',
-			'screenChat.videoCover' => 'Cover',
 			_ => null,
 		} ?? switch (path) {
+			'screenChat.videoMuted' => 'Muted',
+			'screenChat.videoCover' => 'Cover',
 			'screenChat.videoCoverSet' => 'Cover set',
 			'screenChat.videoReset' => 'Reset',
 			'screenChat.videoCrop' => 'Crop',
@@ -4795,6 +4845,11 @@ extension on Translations {
 			'sessionsPrivacyAndSecurity.forwards' => 'Forwarded messages',
 			'sessionsPrivacyAndSecurity.whoCanLinkForwards' => 'Who can add a link to my account when forwarding my messages',
 			'sessionsPrivacyAndSecurity.forwardsNote' => 'Everyone else will see only your name in "Forwarded from…", without a link to your profile.',
+			'sessionsPrivacyAndSecurity.blocked' => 'Blocked Users',
+			'sessionsPrivacyAndSecurity.blockedEmpty' => 'You haven\'t blocked anyone',
+			'sessionsPrivacyAndSecurity.blockedNote' => 'Blocked users can\'t message or call you and can\'t see your last seen, photo, bio or birthday. You can block someone from their profile.',
+			'sessionsPrivacyAndSecurity.unblock' => 'Unblock',
+			'sessionsPrivacyAndSecurity.unknownUser' => 'User',
 			'cloudPassword.title' => 'Cloud password',
 			'cloudPassword.description' => 'An additional password asked when signing in on a new device. Add an email so you can recover access if you forget it.',
 			'cloudPassword.enterPasswordHint' => 'Enter your cloud password',
@@ -4893,6 +4948,11 @@ extension on Translations {
 			'screenProfile.age' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: '${n} year', other: '${n} years', ), 
 			'screenProfile.copy' => _root.screenMyProfile.copy,
 			'screenProfile.hideProfile' => 'Hide profile',
+			'screenProfile.block' => 'Block',
+			'screenProfile.unblock' => 'Unblock',
+			'screenProfile.blockTitle' => ({required Object name}) => 'Block ${name}?',
+			'screenProfile.blockMessage' => 'They won\'t be able to message or call you or see your last seen, photo, bio or birthday. We won\'t tell them.',
+			'screenProfile.blockedNote' => 'You blocked this user',
 			'screenHideProfile.title' => 'Hide profile',
 			'screenHideProfile.description' => 'The person disappears from your Contacts, Calls, and Chats on this device. To show them again, type “/passphrase” in search. The passphrase is stored only as a hash and never leaves the device.',
 			'screenHideProfile.phrasePlaceholder' => 'Passphrase',
@@ -4928,6 +4988,10 @@ extension on Translations {
 			'screenContacts.remove' => 'Remove',
 			'screenContacts.removeTitle' => 'Remove contact?',
 			'screenContacts.removeMessage' => 'They will no longer be able to call you unless your call privacy allows everyone.',
+			'screenContacts.editContact' => 'Edit Contact',
+			'screenContacts.addToContacts' => 'Add to Contacts',
+			'screenContacts.removeContact' => 'Delete Contact',
+			'screenContacts.removeFailed' => 'Couldn\'t delete the contact',
 			'screenCalls.title' => 'Calls',
 			'screenCalls.empty' => 'Your calls will appear here',
 			'screenCalls.emptyMissed' => 'No missed calls',
@@ -4992,6 +5056,8 @@ extension on Translations {
 			'screenCall.bannerReconnecting' => 'Reconnecting…',
 			'screenCall.incomingAudio' => 'Incoming call',
 			'screenCall.incomingVideo' => 'Incoming video call',
+			_ => null,
+		} ?? switch (path) {
 			'screenCall.calling' => 'Calling…',
 			'screenCall.connecting' => 'Connecting…',
 			'screenCall.talking' => 'In call',
@@ -5008,8 +5074,6 @@ extension on Translations {
 			'screenCall.endedConnectionLost' => 'Connection lost',
 			'screenCall.ended' => 'Call ended',
 			'screenCall.decline' => 'Decline',
-			_ => null,
-		} ?? switch (path) {
 			'screenCall.accept' => 'Accept',
 			'screenCall.hangup' => 'End',
 			'screenCall.micOn' => 'Unmute',

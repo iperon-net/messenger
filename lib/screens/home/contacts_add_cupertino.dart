@@ -1,6 +1,5 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:flutter_multi_formatter/flutter_multi_formatter.dart';
-import 'package:go_router/go_router.dart';
 
 import '../../cubit.dart';
 import '../../themes.dart';
@@ -11,17 +10,25 @@ import '../../i18n/translations.g.dart';
 /// форматированием). Экран не имеет доступа к [ContactsCubit] (он живёт на уровне
 /// shell, а этот экран пушится на root-навигаторе), поэтому по «Добавить» просто
 /// возвращает [ContactAddInput] через pop — вызов cubit делает список контактов.
+///
+/// Та же форма — правка контакта из профиля пользователя ([edit]): поля
+/// заполнены [initial], номер не меняется, [removable] — внизу «Удалить
+/// контакт» (pop с `remove: true`).
 class ContactsAddCupertino extends StatefulWidget {
-  const ContactsAddCupertino({super.key});
+  final ContactAddInput? initial;
+  final bool edit;
+  final bool removable;
+
+  const ContactsAddCupertino({super.key, this.initial, this.edit = false, this.removable = false});
 
   @override
   State<ContactsAddCupertino> createState() => _ContactsAddCupertinoState();
 }
 
 class _ContactsAddCupertinoState extends State<ContactsAddCupertino> {
-  final _firstNameController = TextEditingController();
-  final _lastNameController = TextEditingController();
-  final _phoneController = TextEditingController();
+  late final _firstNameController = TextEditingController(text: widget.initial?.firstName);
+  late final _lastNameController = TextEditingController(text: widget.initial?.lastName);
+  late final _phoneController = TextEditingController(text: widget.initial?.phone);
 
   @override
   void dispose() {
@@ -34,7 +41,28 @@ class _ContactsAddCupertinoState extends State<ContactsAddCupertino> {
   void _submit() {
     final phone = _phoneController.text.trim();
     if (phone.isEmpty) return;
-    context.pop(ContactAddInput(firstName: _firstNameController.text.trim(), lastName: _lastNameController.text.trim(), phone: phone));
+    // Navigator, а не go_router: из профиля форма открывается императивно.
+    Navigator.of(
+      context,
+    ).pop(ContactAddInput(firstName: _firstNameController.text.trim(), lastName: _lastNameController.text.trim(), phone: phone));
+  }
+
+  Future<void> _remove() async {
+    final t = context.t.screenContacts;
+    final confirmed = await showCupertinoDialog<bool>(
+      context: context,
+      builder: (dialogContext) => CupertinoAlertDialog(
+        title: Text(t.removeTitle),
+        content: Text(t.removeMessage),
+        actions: [
+          CupertinoDialogAction(onPressed: () => Navigator.of(dialogContext).pop(false), child: Text(context.t.common.cancel)),
+          CupertinoDialogAction(isDestructiveAction: true, onPressed: () => Navigator.of(dialogContext).pop(true), child: Text(t.remove)),
+        ],
+      ),
+    );
+    if ((confirmed ?? false) && mounted) {
+      Navigator.of(context).pop(const ContactAddInput(firstName: '', lastName: '', phone: '', remove: true));
+    }
   }
 
   @override
@@ -48,8 +76,8 @@ class _ContactsAddCupertinoState extends State<ContactsAddCupertino> {
           previousPageTitle: '',
           automaticBackgroundVisibility: false,
           backgroundColor: ThemesCupertino.groupedBackground,
-          middle: Text(t.addContact),
-          trailing: CupertinoButton(padding: EdgeInsets.zero, onPressed: _submit, child: Text(t.add)),
+          middle: Text(widget.edit ? t.editContact : t.addContact),
+          trailing: CupertinoButton(padding: EdgeInsets.zero, onPressed: _submit, child: Text(widget.edit ? context.t.common.done : t.add)),
         ),
       ),
       child: SafeArea(
@@ -84,6 +112,11 @@ class _ContactsAddCupertinoState extends State<ContactsAddCupertino> {
                 ),
                 CupertinoTextFormFieldRow(
                   controller: _phoneController,
+                  // Номер — адрес контакта: при правке не меняется.
+                  enabled: !widget.edit,
+                  // Без своей decoration выключенное поле залито почти чёрным в
+                  // тёмной теме (см. CLAUDE.md, «Form fields — gotchas»).
+                  decoration: const BoxDecoration(),
                   keyboardType: TextInputType.phone,
                   inputFormatters: [PhoneInputFormatter()],
                   placeholder: t.addByNumberHint,
@@ -91,6 +124,20 @@ class _ContactsAddCupertinoState extends State<ContactsAddCupertino> {
                 ),
               ],
             ),
+            if (widget.removable)
+              CupertinoListSection.insetGrouped(
+                backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
+                decoration: BoxDecoration(
+                  color: ThemesCupertino.groupedCard.resolveFrom(context),
+                  borderRadius: const BorderRadius.all(Radius.circular(10)),
+                ),
+                children: [
+                  CupertinoListTile(
+                    title: Text(t.removeContact, style: TextStyle(color: CupertinoColors.destructiveRed.resolveFrom(context))),
+                    onTap: _remove,
+                  ),
+                ],
+              ),
           ],
         ),
       ),

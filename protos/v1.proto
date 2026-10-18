@@ -155,6 +155,9 @@ enum MessageType {
   // устройства с qts). См. secret_chats_v1.proto.
   SECRET_CHATS = 84;
   SECRET_UPDATES = 85;
+  // Заблокировать / разблокировать пользователя (PrivacySettings.blocked). См.
+  // privacy_v1.proto (PrivacyBlockUpdate).
+  PRIVACY_BLOCK_UPDATE = 86;
 }
 
 service Iperon {

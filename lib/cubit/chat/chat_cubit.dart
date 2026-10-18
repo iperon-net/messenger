@@ -20,6 +20,7 @@ import '../../chats/chats_presence.dart';
 import '../../chats/chats_sync.dart';
 import '../../chats/chats_typing.dart';
 import '../../models.dart' as models;
+import '../../privacy_blocks.dart';
 import '../../repositories/repositories.dart';
 
 import 'chat_state.dart';
@@ -46,6 +47,12 @@ class ChatCubit extends Cubit<ChatState> {
   /// Собеседник ограничил, кто может ему писать (ответ `canWrite` при открытии
   /// или отказ сервера при отправке) — вместо поля ввода плашка.
   bool _writeRestricted = false;
+
+  /// Личный чат: собеседник у меня в «Заблокированных» — вместо поля ввода
+  /// «Разблокировать» (сервер и так не примет сообщение). Из кэша настроек
+  /// приватности, следим за его изменениями ([PrivacyBlocks]).
+  bool _peerBlocked = false;
+  StreamSubscription<void>? _blocksSubscription;
 
   /// `canWrite` уже спросили (один раз за открытие окна).
   bool _writeChecked = false;
@@ -162,6 +169,7 @@ class ChatCubit extends Cubit<ChatState> {
       _syncLimits();
       _checkCanWrite(source, chat);
       _watchPresence(source, chat);
+      _watchBlocks(source, chat);
     });
     // Участники / роли поменялись (в т.ч. в сообществе — его владелец, админы
     // и блокировки действуют во всех его чатах) — перечитываем загруженные.
@@ -229,6 +237,35 @@ class ChatCubit extends Cubit<ChatState> {
     final peer = idBytes(chat.peerUserID);
     _presencePeer = peer;
     ChatsPresence.instance.watch(peer);
+  }
+
+  /// Личный чат: следим, не заблокирован ли собеседник (один раз за окно).
+  void _watchBlocks(ChatsDataSource source, models.Chat? chat) {
+    if (_blocksSubscription != null || source is! ChatsRemoteDataSource || chat == null) return;
+    if (chat.type != models.ChatType.private || chat.isSelf || chat.peerUserID.isEmpty) return;
+    _blocksSubscription = PrivacyBlocks.changes().listen((_) => unawaited(_readBlocked()));
+    unawaited(_readBlocked());
+    unawaited(PrivacyBlocks.refreshOnce());
+  }
+
+  Future<void> _readBlocked() async {
+    final peer = state.chat?.peerUserID ?? '';
+    if (peer.isEmpty) return;
+    final blocked = await PrivacyBlocks.isBlocked(idBytes(peer));
+    if (isClosed || blocked == _peerBlocked) return;
+    _peerBlocked = blocked;
+    // Разблокировали — сервер мог успеть ответить «нельзя писать»: переспросим.
+    if (!blocked && _writeRestricted) unawaited(ChatsSync.instance.canWrite(idBytes(_chatID)));
+    _syncLimits();
+  }
+
+  /// «Разблокировать» вместо поля ввода. Без сети — «Нет соединения».
+  Future<bool> unblockPeer() async {
+    final peer = state.chat?.peerUserID ?? '';
+    if (peer.isEmpty) return false;
+    final ok = await PrivacyBlocks.setBlocked(idBytes(peer), false);
+    if (!ok && !isClosed) emit(state.copyWith(offlineNotice: state.offlineNotice + 1));
+    return ok;
   }
 
   /// Последнее входящее, при котором спрашивали `canWrite`.
@@ -357,6 +394,7 @@ class ChatCubit extends Cubit<ChatState> {
   /// личные сообщения; ветка комментариев закрытая — для всех; «только
   /// подписчики» и срок подписки админов канала не касаются.
   (ChatCommentsBlock, DateTime?) _commentsBlock(models.Chat? chat, DateTime now) {
+    if (_peerBlocked) return (ChatCommentsBlock.blocked, null);
     if (_writeRestricted) return (ChatCommentsBlock.privacy, null);
     if (chat == null || !chat.isThread) return (ChatCommentsBlock.none, null);
     if (chat.commentsClosed(now)) return (ChatCommentsBlock.closed, null);
@@ -508,7 +546,7 @@ class ChatCubit extends Cubit<ChatState> {
     if (chat == null || message.service || message.phoneCall != null) return;
     final mine = message.myReactions;
     final adds = !mine.contains(emoji);
-    if (adds && (_writeRestricted || !availableReactions(chat, message: message).contains(emoji))) return;
+    if (adds && (_writeRestricted || _peerBlocked || !availableReactions(chat, message: message).contains(emoji))) return;
     // Поставили — в плашке её эмодзи проиграется анимацией.
     if (adds) ReactionAnimations.mark(message.id, emoji);
     await _source?.setReactions(_chatID, message.id, toggleMyReaction(mine, emoji));
@@ -1010,6 +1048,7 @@ class ChatCubit extends Cubit<ChatState> {
     await _floodSubscription?.cancel();
     await _writeSubscription?.cancel();
     await _connectionSubscription?.cancel();
+    await _blocksSubscription?.cancel();
     final peer = _presencePeer;
     if (peer != null) ChatsPresence.instance.unwatch(peer);
     setRecording(false);

@@ -76,6 +76,7 @@ class PrivacySettings_Response extends $pb.GeneratedMessage {
     $core.Iterable<$core.List<$core.int>>? forwardsAllow,
     $core.Iterable<$core.List<$core.int>>? forwardsDeny,
     $core.int? messagesTtl,
+    $core.Iterable<$core.List<$core.int>>? blocked,
   }) {
     final result = create();
     if (calls != null) result.calls = calls;
@@ -99,6 +100,7 @@ class PrivacySettings_Response extends $pb.GeneratedMessage {
     if (forwardsAllow != null) result.forwardsAllow.addAll(forwardsAllow);
     if (forwardsDeny != null) result.forwardsDeny.addAll(forwardsDeny);
     if (messagesTtl != null) result.messagesTtl = messagesTtl;
+    if (blocked != null) result.blocked.addAll(blocked);
     return result;
   }
 
@@ -132,6 +134,7 @@ class PrivacySettings_Response extends $pb.GeneratedMessage {
     ..p<$core.List<$core.int>>(19, _omitFieldNames ? '' : 'forwardsAllow', $pb.PbFieldType.PY)
     ..p<$core.List<$core.int>>(20, _omitFieldNames ? '' : 'forwardsDeny', $pb.PbFieldType.PY)
     ..aI(21, _omitFieldNames ? '' : 'messagesTtl')
+    ..p<$core.List<$core.int>>(22, _omitFieldNames ? '' : 'blocked', $pb.PbFieldType.PY)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -302,6 +305,15 @@ class PrivacySettings_Response extends $pb.GeneratedMessage {
   $core.bool hasMessagesTtl() => $_has(20);
   @$pb.TagNumber(21)
   void clearMessagesTtl() => $_clearField(21);
+
+  /// Заблокированные пользователи (userID, ObjectID 12 байт), как в Telegram:
+  /// не могут писать мне в личные чаты (и я им — пока не разблокирую), звонить
+  /// (в обе стороны), начинать секретный чат; не видят моё «в сети» / время
+  /// захода, «О себе», день рождения и аватар, их пересылки — без ссылки на
+  /// мой аккаунт. Заблокированный об этом не узнаёт: для него это обычные
+  /// отказы приватности («privacyRestricted», «call not allowed»).
+  @$pb.TagNumber(22)
+  $pb.PbList<$core.List<$core.int>> get blocked => $_getList(21);
 }
 
 /// Настройки приватности per-channel (этап 1 — только звонки). Проверка «кто
@@ -2745,6 +2757,137 @@ class PrivacyMessagesTTLUpdate extends $pb.GeneratedMessage {
   @$core.pragma('dart2js:noInline')
   static PrivacyMessagesTTLUpdate getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<PrivacyMessagesTTLUpdate>(create);
   static PrivacyMessagesTTLUpdate? _defaultInstance;
+}
+
+class PrivacyBlockUpdate_Request extends $pb.GeneratedMessage {
+  factory PrivacyBlockUpdate_Request({
+    $core.List<$core.int>? userId,
+    $core.bool? blocked,
+  }) {
+    final result = create();
+    if (userId != null) result.userId = userId;
+    if (blocked != null) result.blocked = blocked;
+    return result;
+  }
+
+  PrivacyBlockUpdate_Request._();
+
+  factory PrivacyBlockUpdate_Request.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory PrivacyBlockUpdate_Request.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'PrivacyBlockUpdate.Request',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..a<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'userId', $pb.PbFieldType.OY)
+    ..aOB(2, _omitFieldNames ? '' : 'blocked')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyBlockUpdate_Request clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyBlockUpdate_Request copyWith(void Function(PrivacyBlockUpdate_Request) updates) =>
+      super.copyWith((message) => updates(message as PrivacyBlockUpdate_Request)) as PrivacyBlockUpdate_Request;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static PrivacyBlockUpdate_Request create() => PrivacyBlockUpdate_Request._();
+  @$core.override
+  PrivacyBlockUpdate_Request createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static PrivacyBlockUpdate_Request getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<PrivacyBlockUpdate_Request>(create);
+  static PrivacyBlockUpdate_Request? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.List<$core.int> get userId => $_getN(0);
+  @$pb.TagNumber(1)
+  set userId($core.List<$core.int> value) => $_setBytes(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasUserId() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearUserId() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.bool get blocked => $_getBF(1);
+  @$pb.TagNumber(2)
+  set blocked($core.bool value) => $_setBool(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasBlocked() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearBlocked() => $_clearField(2);
+}
+
+class PrivacyBlockUpdate_Response extends $pb.GeneratedMessage {
+  factory PrivacyBlockUpdate_Response() => create();
+
+  PrivacyBlockUpdate_Response._();
+
+  factory PrivacyBlockUpdate_Response.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory PrivacyBlockUpdate_Response.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'PrivacyBlockUpdate.Response',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyBlockUpdate_Response clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyBlockUpdate_Response copyWith(void Function(PrivacyBlockUpdate_Response) updates) =>
+      super.copyWith((message) => updates(message as PrivacyBlockUpdate_Response)) as PrivacyBlockUpdate_Response;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static PrivacyBlockUpdate_Response create() => PrivacyBlockUpdate_Response._();
+  @$core.override
+  PrivacyBlockUpdate_Response createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static PrivacyBlockUpdate_Response getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<PrivacyBlockUpdate_Response>(create);
+  static PrivacyBlockUpdate_Response? _defaultInstance;
+}
+
+/// Заблокировать / разблокировать одного пользователя (PrivacySettings.blocked).
+/// Свой userID — INVALID_ARGUMENT. После записи снимок настроек рассылается на
+/// все устройства владельца (PRIVACY_SETTINGS).
+class PrivacyBlockUpdate extends $pb.GeneratedMessage {
+  factory PrivacyBlockUpdate() => create();
+
+  PrivacyBlockUpdate._();
+
+  factory PrivacyBlockUpdate.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory PrivacyBlockUpdate.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'PrivacyBlockUpdate',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyBlockUpdate clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyBlockUpdate copyWith(void Function(PrivacyBlockUpdate) updates) =>
+      super.copyWith((message) => updates(message as PrivacyBlockUpdate)) as PrivacyBlockUpdate;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static PrivacyBlockUpdate create() => PrivacyBlockUpdate._();
+  @$core.override
+  PrivacyBlockUpdate createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static PrivacyBlockUpdate getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<PrivacyBlockUpdate>(create);
+  static PrivacyBlockUpdate? _defaultInstance;
 }
 
 const $core.bool _omitFieldNames = $core.bool.fromEnvironment('protobuf.omit_field_names');

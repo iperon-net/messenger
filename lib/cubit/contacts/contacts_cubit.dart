@@ -48,6 +48,9 @@ class _CloudContact {
 /// Итог ручного добавления контакта по номеру (для текста пользователю).
 enum ContactAddResult { addedRegistered, addedPending, invalidNumber, limitReached, noConnection, failed }
 
+/// Итог удаления контакта.
+enum ContactRemoveResult { removed, noConnection, failed }
+
 /// Данные формы добавления контакта — возвращаются экраном добавления в список
 /// контактов, который затем вызывает [ContactsCubit.addByNumber].
 class ContactAddInput {
@@ -55,7 +58,10 @@ class ContactAddInput {
   final String lastName;
   final String phone;
 
-  const ContactAddInput({required this.firstName, required this.lastName, required this.phone});
+  /// Форма правки контакта: нажали «Удалить контакт» (имя и номер не важны).
+  final bool remove;
+
+  const ContactAddInput({required this.firstName, required this.lastName, required this.phone, this.remove = false});
 }
 
 /// Экран «Контакты». Держит две дорожки:
@@ -68,7 +74,12 @@ class ContactAddInput {
 ///     — push). Источник истины по ним — сервер.
 /// См. docs/plans/functional-stirring-giraffe.md и docs/plans/cloud-contacts-sync.md.
 class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
+  /// Живой экземпляр (один на shell) — для экранов на root-навигаторе (профиль
+  /// пользователя), куда BlocProvider shell не дотягивается.
+  static ContactsCubit? active;
+
   ContactsCubit() : super(const ContactsState()) {
+    active = this;
     // Реагируем на изменения книги устройства (добавили/изменили/удалили
     // контакт), пока приложение открыто, и на возврат в foreground — иначе
     // discover() крутится лишь при старте shell, первом показе вкладки и
@@ -404,6 +415,7 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
 
   @override
   Future<void> close() {
+    if (identical(active, this)) active = null;
     WidgetsBinding.instance.removeObserver(this);
     _bookChangeDebounce?.cancel();
     _bookChangeSub?.cancel();
@@ -780,33 +792,44 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
   /// книжный список (источник истины — книга) и НЕ трогаем exclusion-set. Иначе
   /// (чисто ручной контакт, номера в книге нет) заносим в exclusion-set, чтобы
   /// следующий discovery не вернул его обратно рёбром OPRF.
-  Future<void> removeContact(ContactItem item) async {
-    final normalization = utils.phoneNormalization(phoneNumber: item.phoneE164);
-    if (normalization.raw.isEmpty) return;
+  Future<ContactRemoveResult> removeContact(ContactItem item) => removeByPhone(item.phoneE164);
+
+  /// Номер есть в последнем снимке телефонной книги — такой контакт в
+  /// приложении не удаляют (источник истины — системная книга).
+  bool isInBook(String phoneE164) => _book.any((c) => c.phoneE164 == phoneE164);
+
+  /// [removeContact] по номеру (e164) — из профиля пользователя.
+  Future<ContactRemoveResult> removeByPhone(String phoneE164) async {
+    final normalization = utils.phoneNormalization(phoneNumber: phoneE164);
+    if (normalization.raw.isEmpty) return ContactRemoveResult.failed;
+    // Нет сети — сразу говорим об этом (OPRF/CONTACTS_REMOVE висли бы до таймаута).
+    if (!await utils.hasNetwork()) return ContactRemoveResult.noConnection;
 
     try {
       final oprfOutputs = await _oprfOutputs([utf8.encode(normalization.raw)]);
-      if (oprfOutputs.isEmpty) return;
+      if (oprfOutputs.isEmpty) return ContactRemoveResult.failed;
 
       final status = await api.unaryEncoded(MessageType.CONTACTS_REMOVE, ContactsRemove_Request(oprf: [oprfOutputs.first]).writeToBuffer());
       if (status.status != APIStatus.success) {
         logger.warning('contacts: remove failed (${status.error})');
-        return;
+        return ContactRemoveResult.failed;
       }
 
-      _cloud.remove(item.phoneE164);
-      await repositories.contacts.removeCloudOne(item.phoneE164);
+      _cloud.remove(phoneE164);
+      await repositories.contacts.removeCloudOne(phoneE164);
 
       // Если номер всё ещё книжный — вернули книжную строку в БД (helper), иначе
       // это чисто ручной контакт: прячем его от будущего discovery.
-      if (!await _restoreBookRowIfPresent(item.phoneE164)) {
-        await _exclude(item.phoneE164);
-        _book = _book.where((c) => c.phoneE164 != item.phoneE164).toList(growable: false);
+      if (!await _restoreBookRowIfPresent(phoneE164)) {
+        await _exclude(phoneE164);
+        _book = _book.where((c) => c.phoneE164 != phoneE164).toList(growable: false);
       }
 
       if (!isClosed) _emitAll();
+      return ContactRemoveResult.removed;
     } catch (error, stackTrace) {
       logger.handle(error, stackTrace);
+      return ContactRemoveResult.failed;
     }
   }
 

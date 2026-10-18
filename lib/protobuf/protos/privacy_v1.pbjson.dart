@@ -52,6 +52,7 @@ const PrivacySettings_Response$json = {
     {'1': 'forwards_allow', '3': 19, '4': 3, '5': 12, '10': 'forwardsAllow'},
     {'1': 'forwards_deny', '3': 20, '4': 3, '5': 12, '10': 'forwardsDeny'},
     {'1': 'messages_ttl', '3': 21, '4': 1, '5': 5, '10': 'messagesTtl'},
+    {'1': 'blocked', '3': 22, '4': 3, '5': 12, '10': 'blocked'},
   ],
 };
 
@@ -67,7 +68,7 @@ const PrivacySettings_Audience$json = {
 
 /// Descriptor for `PrivacySettings`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List privacySettingsDescriptor =
-    $convert.base64Decode('Cg9Qcml2YWN5U2V0dGluZ3MaCQoHUmVxdWVzdBq3BwoIUmVzcG9uc2USOQoFY2FsbHMYASABKA'
+    $convert.base64Decode('Cg9Qcml2YWN5U2V0dGluZ3MaCQoHUmVxdWVzdBrRBwoIUmVzcG9uc2USOQoFY2FsbHMYASABKA'
         '4yIy5pcGVyb24udjEuUHJpdmFjeVNldHRpbmdzLkF1ZGllbmNlUgVjYWxscxIfCgtjYWxsc19h'
         'bGxvdxgCIAMoDFIKY2FsbHNBbGxvdxIdCgpjYWxsc19kZW55GAMgAygMUgljYWxsc0RlbnkSPw'
         'oIYmlydGhkYXkYBCABKA4yIy5pcGVyb24udjEuUHJpdmFjeVNldHRpbmdzLkF1ZGllbmNlUghi'
@@ -84,8 +85,9 @@ final $typed_data.Uint8List privacySettingsDescriptor =
         'cmVhZF90aW1lGBEgASgIUgxoaWRlUmVhZFRpbWUSPwoIZm9yd2FyZHMYEiABKA4yIy5pcGVyb2'
         '4udjEuUHJpdmFjeVNldHRpbmdzLkF1ZGllbmNlUghmb3J3YXJkcxIlCg5mb3J3YXJkc19hbGxv'
         'dxgTIAMoDFINZm9yd2FyZHNBbGxvdxIjCg1mb3J3YXJkc19kZW55GBQgAygMUgxmb3J3YXJkc0'
-        'RlbnkSIQoMbWVzc2FnZXNfdHRsGBUgASgFUgttZXNzYWdlc1R0bCIzCghBdWRpZW5jZRINCglF'
-        'VkVSWUJPRFkQABIMCghDT05UQUNUUxABEgoKBk5PQk9EWRAC');
+        'RlbnkSIQoMbWVzc2FnZXNfdHRsGBUgASgFUgttZXNzYWdlc1R0bBIYCgdibG9ja2VkGBYgAygM'
+        'UgdibG9ja2VkIjMKCEF1ZGllbmNlEg0KCUVWRVJZQk9EWRAAEgwKCENPTlRBQ1RTEAESCgoGTk'
+        '9CT0RZEAI=');
 
 @$core.Deprecated('Use privacySettingsUpdateDescriptor instead')
 const PrivacySettingsUpdate$json = {
@@ -591,3 +593,28 @@ const PrivacyMessagesTTLUpdate_Response$json = {
 final $typed_data.Uint8List privacyMessagesTTLUpdateDescriptor =
     $convert.base64Decode('ChhQcml2YWN5TWVzc2FnZXNUVExVcGRhdGUaIQoHUmVxdWVzdBIWCgZwZXJpb2QYASABKAVSBn'
         'BlcmlvZBoKCghSZXNwb25zZQ==');
+
+@$core.Deprecated('Use privacyBlockUpdateDescriptor instead')
+const PrivacyBlockUpdate$json = {
+  '1': 'PrivacyBlockUpdate',
+  '3': [PrivacyBlockUpdate_Request$json, PrivacyBlockUpdate_Response$json],
+};
+
+@$core.Deprecated('Use privacyBlockUpdateDescriptor instead')
+const PrivacyBlockUpdate_Request$json = {
+  '1': 'Request',
+  '2': [
+    {'1': 'user_id', '3': 1, '4': 1, '5': 12, '10': 'userId'},
+    {'1': 'blocked', '3': 2, '4': 1, '5': 8, '10': 'blocked'},
+  ],
+};
+
+@$core.Deprecated('Use privacyBlockUpdateDescriptor instead')
+const PrivacyBlockUpdate_Response$json = {
+  '1': 'Response',
+};
+
+/// Descriptor for `PrivacyBlockUpdate`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List privacyBlockUpdateDescriptor =
+    $convert.base64Decode('ChJQcml2YWN5QmxvY2tVcGRhdGUaPAoHUmVxdWVzdBIXCgd1c2VyX2lkGAEgASgMUgZ1c2VySW'
+        'QSGAoHYmxvY2tlZBgCIAEoCFIHYmxvY2tlZBoKCghSZXNwb25zZQ==');

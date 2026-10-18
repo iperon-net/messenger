@@ -155,6 +155,34 @@ class ProfileStateMapper extends ClassMapperBase<ProfileState> {
     opt: true,
     def: false,
   );
+  static String _$contactPhoneE164(ProfileState v) => v.contactPhoneE164;
+  static const Field<ProfileState, String> _f$contactPhoneE164 = Field(
+    'contactPhoneE164',
+    _$contactPhoneE164,
+    opt: true,
+    def: "",
+  );
+  static String _$contactName(ProfileState v) => v.contactName;
+  static const Field<ProfileState, String> _f$contactName = Field(
+    'contactName',
+    _$contactName,
+    opt: true,
+    def: "",
+  );
+  static bool _$contactCloud(ProfileState v) => v.contactCloud;
+  static const Field<ProfileState, bool> _f$contactCloud = Field(
+    'contactCloud',
+    _$contactCloud,
+    opt: true,
+    def: false,
+  );
+  static bool _$blocked(ProfileState v) => v.blocked;
+  static const Field<ProfileState, bool> _f$blocked = Field(
+    'blocked',
+    _$blocked,
+    opt: true,
+    def: false,
+  );
 
   @override
   final MappableFields<ProfileState> fields = const {
@@ -177,6 +205,10 @@ class ProfileStateMapper extends ClassMapperBase<ProfileState> {
     #lastSeen: _f$lastSeen,
     #chatID: _f$chatID,
     #chatResolved: _f$chatResolved,
+    #contactPhoneE164: _f$contactPhoneE164,
+    #contactName: _f$contactName,
+    #contactCloud: _f$contactCloud,
+    #blocked: _f$blocked,
   };
 
   static ProfileState _instantiate(DecodingData data) {
@@ -200,6 +232,10 @@ class ProfileStateMapper extends ClassMapperBase<ProfileState> {
       lastSeen: data.dec(_f$lastSeen),
       chatID: data.dec(_f$chatID),
       chatResolved: data.dec(_f$chatResolved),
+      contactPhoneE164: data.dec(_f$contactPhoneE164),
+      contactName: data.dec(_f$contactName),
+      contactCloud: data.dec(_f$contactCloud),
+      blocked: data.dec(_f$blocked),
     );
   }
 
@@ -286,6 +322,10 @@ abstract class ProfileStateCopyWith<$R, $In extends ProfileState, $Out>
     DateTime? lastSeen,
     String? chatID,
     bool? chatResolved,
+    String? contactPhoneE164,
+    String? contactName,
+    bool? contactCloud,
+    bool? blocked,
   });
   ProfileStateCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
@@ -326,6 +366,10 @@ class _ProfileStateCopyWithImpl<$R, $Out>
     Object? lastSeen = $none,
     String? chatID,
     bool? chatResolved,
+    String? contactPhoneE164,
+    String? contactName,
+    bool? contactCloud,
+    bool? blocked,
   }) => $apply(
     FieldCopyWithData({
       if (status != null) #status: status,
@@ -347,6 +391,10 @@ class _ProfileStateCopyWithImpl<$R, $Out>
       if (lastSeen != $none) #lastSeen: lastSeen,
       if (chatID != null) #chatID: chatID,
       if (chatResolved != null) #chatResolved: chatResolved,
+      if (contactPhoneE164 != null) #contactPhoneE164: contactPhoneE164,
+      if (contactName != null) #contactName: contactName,
+      if (contactCloud != null) #contactCloud: contactCloud,
+      if (blocked != null) #blocked: blocked,
     }),
   );
   @override
@@ -370,6 +418,10 @@ class _ProfileStateCopyWithImpl<$R, $Out>
     lastSeen: data.get(#lastSeen, or: $value.lastSeen),
     chatID: data.get(#chatID, or: $value.chatID),
     chatResolved: data.get(#chatResolved, or: $value.chatResolved),
+    contactPhoneE164: data.get(#contactPhoneE164, or: $value.contactPhoneE164),
+    contactName: data.get(#contactName, or: $value.contactName),
+    contactCloud: data.get(#contactCloud, or: $value.contactCloud),
+    blocked: data.get(#blocked, or: $value.blocked),
   );
 
   @override

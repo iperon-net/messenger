@@ -9,6 +9,7 @@ import '../../constants.dart';
 import '../../di.dart';
 import '../../logger.dart';
 import '../../peer_names.dart';
+import '../../privacy_blocks.dart';
 import '../../protobuf.dart';
 import '../../repositories/repositories.dart';
 import '../../cdn.dart';
@@ -33,6 +34,8 @@ class ProfileCubit extends Cubit<ProfileState> {
 
   StreamSubscription<Uint8List>? _subscription;
   StreamSubscription<void>? _presenceSubscription;
+  StreamSubscription<Object?>? _contactsSubscription;
+  StreamSubscription<void>? _blocksSubscription;
   Uint8List? _presenceUser;
   bool _demo = false;
 
@@ -44,6 +47,15 @@ class ProfileCubit extends Cubit<ProfileState> {
     emit(state.copyWith(status: Status.loading, locale: locale, userID: userID, chatID: chatID ?? '', chatResolved: chatID != null));
     if (chatID == null) unawaited(resolveChat());
     _watchPresence(Uint8List.fromList(userID));
+    // Добавили / переименовали / удалили контакт (здесь или на другом
+    // устройстве) — пересчитываем и имя в шапке.
+    _contactsSubscription = repositories.db
+        .onChange(['contacts'], triggerImmediately: false)
+        .listen((_) => _readContact(refreshName: true));
+    unawaited(_readContact());
+    _blocksSubscription = PrivacyBlocks.changes().listen((_) => unawaited(_readBlocked()));
+    unawaited(_readBlocked());
+    unawaited(PrivacyBlocks.refreshOnce());
 
     // Слушаем PROFILE: сервер отвечает на наш запрос тем же типом. Фильтруем по
     // userID (в одном стриме могут прийти профили разных пользователей).
@@ -138,6 +150,30 @@ class ProfileCubit extends Cubit<ProfileState> {
     await sendFuture;
   }
 
+  Future<void> _readBlocked() async {
+    final blocked = await PrivacyBlocks.isBlocked(state.userID);
+    if (!isClosed && blocked != state.blocked) emit(state.copyWith(blocked: blocked));
+  }
+
+  /// Заблокировать / разблокировать. Без сети / ошибка — `false` (экран
+  /// показывает «нет соединения»); успех — кэш обновлён, [_readBlocked] сам.
+  Future<bool> setBlocked(bool blocked) => PrivacyBlocks.setBlocked(state.userID, blocked);
+
+  Future<void> _readContact({bool refreshName = false}) async {
+    final entry = await repositories.contacts.getByUserID(state.userID);
+    final name = entry == null || entry.displayName.trim() == entry.phone ? '' : entry.displayName.trim();
+    final displayName = refreshName ? await peerDisplayName(state.userID) : state.displayName;
+    if (isClosed) return;
+    emit(
+      state.copyWith(
+        contactPhoneE164: entry?.phoneE164 ?? '',
+        contactName: name,
+        contactCloud: entry?.isCloud ?? false,
+        displayName: displayName,
+      ),
+    );
+  }
+
   /// Найти личный чат с пользователем в локальном кэше (без сервера) —
   /// при открытии и после «Сообщение» / удаления чата (он мог появиться или
   /// исчезнуть).
@@ -170,6 +206,8 @@ class ProfileCubit extends Cubit<ProfileState> {
   Future<void> close() {
     _subscription?.cancel();
     _presenceSubscription?.cancel();
+    _contactsSubscription?.cancel();
+    _blocksSubscription?.cancel();
     final userID = _presenceUser;
     if (userID != null) ChatsPresence.instance.unwatch(userID);
     return super.close();

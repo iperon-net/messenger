@@ -1303,6 +1303,8 @@ class _CommentsBlockedBar extends StatelessWidget {
               Icons.schedule,
               commentsWaitLabel(t, state.commentsWaitUntil!),
             ),
+            // Собеседник у меня в «Заблокированных» — писать нельзя, пока не разблокирую.
+            ChatCommentsBlock.blocked => TextButton(onPressed: context.read<ChatCubit>().unblockPeer, child: Text(t.screenChat.unblock)),
             ChatCommentsBlock.privacy => note(Icons.lock_outline, t.screenChat.privacyRestricted),
             _ => note(Icons.lock_outline, t.screenChat.commentsClosed),
           },

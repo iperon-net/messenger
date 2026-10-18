@@ -125,6 +125,7 @@ class SettingsPrivacyAndSecurityCubit extends Cubit<SettingsPrivacyAndSecuritySt
         forwardsDeny: response.forwardsDeny.map(Uint8List.fromList).toList(growable: false),
         hideReadTime: response.hideReadTime,
         messagesTTL: response.messagesTtl,
+        blocked: response.blocked.map(Uint8List.fromList).toList(growable: false),
         callsLoadError: false,
         callsReadOnly: false,
       ),
@@ -158,6 +159,7 @@ class SettingsPrivacyAndSecurityCubit extends Cubit<SettingsPrivacyAndSecuritySt
         forwardsDeny: state.forwardsDeny,
         hideReadTime: state.hideReadTime,
         messagesTtl: state.messagesTTL,
+        blocked: state.blocked,
       );
       await repositories.privacySettings.upsert(userID: auth.session.userID, payload: response.writeToBuffer());
     } catch (error, stackTrace) {

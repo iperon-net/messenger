@@ -1182,9 +1182,10 @@ class SecretChatsSync {
           ),
         );
       } on SecretChatRequestException catch (error) {
-        if (error.isFileForbidden) {
-          // Файл пропал на сервере — это сообщение не уйдёт; храповик
-          // собеседника пропуск переживёт.
+        if (error.isFileForbidden || error.isPrivacyRestricted) {
+          // Файл пропал на сервере или один из нас заблокировал другого — это
+          // сообщение не уйдёт (без повторов, иначе встанет вся очередь);
+          // храповик собеседника пропуск переживёт.
           await store.outboxFailed(sessionID: _sessionID, secretChatID: item.secretChatID, randomID: item.randomID);
           continue;
         }

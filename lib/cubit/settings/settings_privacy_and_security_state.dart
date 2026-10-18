@@ -111,6 +111,10 @@ class SettingsPrivacyAndSecurityState with SettingsPrivacyAndSecurityStateMappab
   /// который я начинаю, получает такой таймер.
   final int messagesTTL;
 
+  /// Заблокированные пользователи (userID) — строка «Заблокированные» и её
+  /// счётчик; меняются поштучно (`PrivacyBlocks.setBlocked`).
+  final List<Uint8List> blocked;
+
   const SettingsPrivacyAndSecurityState({
     this.status = Status.initialization,
     this.isBiometricAvailable = false,
@@ -137,5 +141,6 @@ class SettingsPrivacyAndSecurityState with SettingsPrivacyAndSecurityStateMappab
     this.forwardsDeny = const [],
     this.hideReadTime = false,
     this.messagesTTL = 0,
+    this.blocked = const [],
   });
 }

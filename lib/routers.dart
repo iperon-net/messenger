@@ -334,6 +334,18 @@ class Routers {
                     ),
                   ),
                   routes: [
+                    // «Заблокированные»: блокируют из профиля, здесь — список и «Разблокировать».
+                    GoRoute(
+                      path: "blocked",
+                      parentNavigatorKey: rootNavigatorKey,
+                      pageBuilder: (context, state) => _page(
+                        state,
+                        BlocProvider<SettingsBlockedCubit>(
+                          create: (_) => SettingsBlockedCubit()..initialization(),
+                          child: const SettingsBlockedCupertino(),
+                        ),
+                      ),
+                    ),
                     GoRoute(
                       path: "calls",
                       parentNavigatorKey: rootNavigatorKey,
@@ -1094,6 +1106,18 @@ class Routers {
                     ),
                   ),
                   routes: [
+                    // «Заблокированные»: блокируют из профиля, здесь — список и «Разблокировать».
+                    GoRoute(
+                      path: "blocked",
+                      parentNavigatorKey: rootNavigatorKey,
+                      pageBuilder: (context, state) => _pageMaterial(
+                        state,
+                        BlocProvider<SettingsBlockedCubit>(
+                          create: (_) => SettingsBlockedCubit()..initialization(),
+                          child: const SettingsBlockedMaterial(),
+                        ),
+                      ),
+                    ),
                     GoRoute(
                       path: "calls",
                       parentNavigatorKey: rootNavigatorKey,

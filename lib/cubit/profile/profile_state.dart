@@ -51,6 +51,16 @@ class ProfileState with ProfileStateMappable {
   /// тогда в профиле его секции: звук, медиа, «Ещё». Пусто — чата нет.
   final String chatID;
 
+  /// Человек в моих контактах: номер-ключ (e164; пусто — не контакт), имя,
+  /// как я его записал (пусто — без имени), и облачный ли контакт (добавлен
+  /// или переименован в приложении, синхронизируется между устройствами).
+  final String contactPhoneE164;
+  final String contactName;
+  final bool contactCloud;
+
+  /// Человек у меня в «Заблокированных» (кэш настроек приватности).
+  final bool blocked;
+
   /// Чат искали ([chatID] уже достоверен) — до этого секции чата не рисуем,
   /// чтобы экран не перестраивался.
   final bool chatResolved;
@@ -77,5 +87,11 @@ class ProfileState with ProfileStateMappable {
     this.lastSeen,
     this.chatID = "",
     this.chatResolved = false,
+    this.contactPhoneE164 = "",
+    this.contactName = "",
+    this.contactCloud = false,
+    this.blocked = false,
   });
+
+  bool get isContact => contactPhoneE164.isNotEmpty;
 }
