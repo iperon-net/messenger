@@ -17,6 +17,7 @@ class ChatsStateMapper extends ClassMapperBase<ChatsState> {
       MapperContainer.globals.use(_instance = ChatsStateMapper._());
       models.ChatMapper.ensureInitialized();
       models.ChatFolderMapper.ensureInitialized();
+      models.ChatMemberMapper.ensureInitialized();
     }
     return _instance!;
   }
@@ -95,6 +96,17 @@ class ChatsStateMapper extends ClassMapperBase<ChatsState> {
     opt: true,
     def: '',
   );
+  static UsersSearchStatus _$globalStatus(ChatsState v) => v.globalStatus;
+  static const Field<ChatsState, UsersSearchStatus> _f$globalStatus = Field(
+    'globalStatus',
+    _$globalStatus,
+    opt: true,
+    def: UsersSearchStatus.idle,
+  );
+  static List<models.ChatMember> _$globalResults(ChatsState v) =>
+      v.globalResults;
+  static const Field<ChatsState, List<models.ChatMember>> _f$globalResults =
+      Field('globalResults', _$globalResults, opt: true, def: const []);
   static Map<String, String> _$hiddenHashByHex(ChatsState v) =>
       v.hiddenHashByHex;
   static const Field<ChatsState, Map<String, String>> _f$hiddenHashByHex =
@@ -119,6 +131,8 @@ class ChatsStateMapper extends ClassMapperBase<ChatsState> {
     #folders: _f$folders,
     #folderIndex: _f$folderIndex,
     #query: _f$query,
+    #globalStatus: _f$globalStatus,
+    #globalResults: _f$globalResults,
     #hiddenHashByHex: _f$hiddenHashByHex,
     #revealedHex: _f$revealedHex,
   };
@@ -135,6 +149,8 @@ class ChatsStateMapper extends ClassMapperBase<ChatsState> {
       folders: data.dec(_f$folders),
       folderIndex: data.dec(_f$folderIndex),
       query: data.dec(_f$query),
+      globalStatus: data.dec(_f$globalStatus),
+      globalResults: data.dec(_f$globalResults),
       hiddenHashByHex: data.dec(_f$hiddenHashByHex),
       revealedHex: data.dec(_f$revealedHex),
     );
@@ -212,6 +228,12 @@ abstract class ChatsStateCopyWith<$R, $In extends ChatsState, $Out>
     models.ChatFolderCopyWith<$R, models.ChatFolder, models.ChatFolder>
   >
   get folders;
+  ListCopyWith<
+    $R,
+    models.ChatMember,
+    models.ChatMemberCopyWith<$R, models.ChatMember, models.ChatMember>
+  >
+  get globalResults;
   MapCopyWith<$R, String, String, ObjectCopyWith<$R, String, String>>
   get hiddenHashByHex;
   $R call({
@@ -225,6 +247,8 @@ abstract class ChatsStateCopyWith<$R, $In extends ChatsState, $Out>
     List<models.ChatFolder>? folders,
     int? folderIndex,
     String? query,
+    UsersSearchStatus? globalStatus,
+    List<models.ChatMember>? globalResults,
     Map<String, String>? hiddenHashByHex,
     Set<String>? revealedHex,
   });
@@ -262,6 +286,17 @@ class _ChatsStateCopyWithImpl<$R, $Out>
     (v) => call(folders: v),
   );
   @override
+  ListCopyWith<
+    $R,
+    models.ChatMember,
+    models.ChatMemberCopyWith<$R, models.ChatMember, models.ChatMember>
+  >
+  get globalResults => ListCopyWith(
+    $value.globalResults,
+    (v, t) => v.copyWith.$chain(t),
+    (v) => call(globalResults: v),
+  );
+  @override
   MapCopyWith<$R, String, String, ObjectCopyWith<$R, String, String>>
   get hiddenHashByHex => MapCopyWith(
     $value.hiddenHashByHex,
@@ -280,6 +315,8 @@ class _ChatsStateCopyWithImpl<$R, $Out>
     List<models.ChatFolder>? folders,
     int? folderIndex,
     String? query,
+    UsersSearchStatus? globalStatus,
+    List<models.ChatMember>? globalResults,
     Map<String, String>? hiddenHashByHex,
     Set<String>? revealedHex,
   }) => $apply(
@@ -296,6 +333,8 @@ class _ChatsStateCopyWithImpl<$R, $Out>
       if (folders != null) #folders: folders,
       if (folderIndex != null) #folderIndex: folderIndex,
       if (query != null) #query: query,
+      if (globalStatus != null) #globalStatus: globalStatus,
+      if (globalResults != null) #globalResults: globalResults,
       if (hiddenHashByHex != null) #hiddenHashByHex: hiddenHashByHex,
       if (revealedHex != null) #revealedHex: revealedHex,
     }),
@@ -321,6 +360,8 @@ class _ChatsStateCopyWithImpl<$R, $Out>
     folders: data.get(#folders, or: $value.folders),
     folderIndex: data.get(#folderIndex, or: $value.folderIndex),
     query: data.get(#query, or: $value.query),
+    globalStatus: data.get(#globalStatus, or: $value.globalStatus),
+    globalResults: data.get(#globalResults, or: $value.globalResults),
     hiddenHashByHex: data.get(#hiddenHashByHex, or: $value.hiddenHashByHex),
     revealedHex: data.get(#revealedHex, or: $value.revealedHex),
   );

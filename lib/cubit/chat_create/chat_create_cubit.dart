@@ -7,6 +7,7 @@ import '../../chats/chats_data_source.dart';
 import '../../chats/invite_link.dart';
 import '../../chats/chats_remote_data_source.dart';
 import '../../chats/chats_sync.dart';
+import '../../chats/users_search.dart';
 import '../../models.dart' as models;
 
 import 'chat_create_state.dart';
@@ -20,6 +21,20 @@ class ChatCreateCubit extends Cubit<ChatCreateState> {
 
   ChatsDataSource? _source;
   Timer? _usernameTimer;
+
+  late final _usersSearch = UsersSearch((status, results) {
+    if (isClosed) return;
+    final known = {for (final c in state.contacts) c.id};
+    emit(
+      state.copyWith(
+        globalStatus: status,
+        globalResults: [
+          for (final r in results)
+            if (!known.contains(r.id)) r,
+        ],
+      ),
+    );
+  });
 
   /// Публичное имя — как у профиля (`SettingsMyProfileUsernameCubit`): одно
   /// пространство имён на пользователей и чаты.
@@ -93,7 +108,12 @@ class ChatCreateCubit extends Cubit<ChatCreateState> {
     );
   }
 
-  void search(String query) => emit(state.copyWith(query: query));
+  /// Фильтр контактов + глобальный поиск людей (только «Новое сообщение» —
+  /// [models.ChatType.private]; при выборе участников группы — нет).
+  void search(String query) {
+    emit(state.copyWith(query: query));
+    if (state.type == models.ChatType.private) _usersSearch.search(_source, query);
+  }
 
   void toggle(models.ChatMember member) {
     final selected = state.isSelected(member) ? state.selected.where((m) => m.id != member.id).toList() : [...state.selected, member];
@@ -237,6 +257,7 @@ class ChatCreateCubit extends Cubit<ChatCreateState> {
   @override
   Future<void> close() {
     _usernameTimer?.cancel();
+    _usersSearch.cancel();
     return super.close();
   }
 }

@@ -83,6 +83,19 @@ message PrivacySettings {
     // мой аккаунт. Заблокированный об этом не узнаёт: для него это обычные
     // отказы приватности («privacyRestricted», «call not allowed»).
     repeated bytes blocked = 22;
+    // Аудитория «кто видит мой номер телефона» + её allow/deny-списки (та же
+    // семантика, что у звонков; дефолт — CONTACTS, как в Telegram). Гейт — на
+    // стороне владельца при отдаче Profile.Response: не разрешено — phoneNumber
+    // не отдаётся. Тот, у кого мой номер уже есть в книге (ребро с номером),
+    // видит его всегда — номер ему и так известен.
+    Audience phone_number = 23;
+    repeated bytes phone_number_allow = 24;
+    repeated bytes phone_number_deny = 25;
+    // «Кто может найти меня по номеру» (поиск по номеру, сопоставление книги
+    // контактов): EVERYBODY (дефолт) или CONTACTS (NOBODY не бывает — как в
+    // Telegram). Те, кому номер виден (phone_number + исключения), находят
+    // всегда.
+    Audience phone_number_find = 26;
   }
 }
 
@@ -283,6 +296,43 @@ message PrivacyBlockUpdate {
   message Request {
     bytes user_id = 1;
     bool blocked = 2;
+  }
+
+  message Response {}
+}
+
+// Изменение аудитории «кто видит мой номер телефона».
+message PrivacyPhoneNumberUpdate {
+  message Request {
+    PrivacySettings.Audience phone_number = 1;
+  }
+
+  message Response {}
+}
+
+// Полная замена allow-list «всегда разрешать» для номера телефона.
+message PrivacyPhoneNumberAllowUpdate {
+  message Request {
+    repeated bytes user_ids = 1;
+  }
+
+  message Response {}
+}
+
+// Полная замена deny-list «всегда запрещать» для номера телефона.
+message PrivacyPhoneNumberDenyUpdate {
+  message Request {
+    repeated bytes user_ids = 1;
+  }
+
+  message Response {}
+}
+
+// Изменение «кто может найти меня по номеру»: только EVERYBODY или CONTACTS
+// (NOBODY — INVALID_ARGUMENT).
+message PrivacyPhoneNumberFindUpdate {
+  message Request {
+    PrivacySettings.Audience phone_number_find = 1;
   }
 
   message Response {}

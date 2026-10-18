@@ -595,6 +595,18 @@ class Translations$screenNewChat$en {
 	/// en: 'No contacts found'
 	String get noContacts => 'No contacts found';
 
+	/// en: 'Global search'
+	String get globalSearch => 'Global search';
+
+	/// en: 'No one found'
+	String get globalSearchEmpty => 'No one found';
+
+	/// en: 'No connection — searching by @username and phone number is unavailable right now.'
+	String get globalSearchOffline => 'No connection — searching by @username and phone number is unavailable right now.';
+
+	/// en: 'Too many requests. Try again later.'
+	String get globalSearchFlood => 'Too many requests. Try again later.';
+
 	/// en: 'Add Members'
 	String get addMembers => 'Add Members';
 
@@ -2773,6 +2785,21 @@ class Translations$sessionsPrivacyAndSecurity$en {
 	/// en: 'Everyone else will see only your name in "Forwarded from…", without a link to your profile.'
 	String get forwardsNote => 'Everyone else will see only your name in "Forwarded from…", without a link to your profile.';
 
+	/// en: 'Phone number'
+	String get phoneNumber => 'Phone number';
+
+	/// en: 'Who can see my phone number'
+	String get whoCanSeePhoneNumber => 'Who can see my phone number';
+
+	/// en: 'People who already have your number saved in their contacts will always see it.'
+	String get phoneNumberNote => 'People who already have your number saved in their contacts will always see it.';
+
+	/// en: 'Who can find me by my number'
+	String get whoCanFindByPhone => 'Who can find me by my number';
+
+	/// en: 'Others won't be able to find you by searching for your phone number.'
+	String get phoneNumberFindNote => 'Others won\'t be able to find you by searching for your phone number.';
+
 	/// en: 'Blocked Users'
 	String get blocked => 'Blocked Users';
 
@@ -4186,6 +4213,10 @@ extension on Translations {
 			'screenNewChat.newCommunity' => 'New Community',
 			'screenNewChat.contacts' => 'Contacts',
 			'screenNewChat.noContacts' => 'No contacts found',
+			'screenNewChat.globalSearch' => 'Global search',
+			'screenNewChat.globalSearchEmpty' => 'No one found',
+			'screenNewChat.globalSearchOffline' => 'No connection — searching by @username and phone number is unavailable right now.',
+			'screenNewChat.globalSearchFlood' => 'Too many requests. Try again later.',
 			'screenNewChat.addMembers' => 'Add Members',
 			'screenNewChat.next' => 'Next',
 			'screenNewChat.selected' => ({required Object n}) => 'Selected: ${n}',
@@ -4547,12 +4578,12 @@ extension on Translations {
 			'screenChat.micDeniedMessage' => 'Allow microphone access in Settings to record voice messages.',
 			'screenChat.openSettings' => 'Settings',
 			'screenChat.hideWithSpoiler' => 'Hide with spoiler',
+			_ => null,
+		} ?? switch (path) {
 			'screenChat.removeSpoiler' => 'Remove spoiler',
 			'screenChat.videoHdOn' => 'HD video: 1080p',
 			'screenChat.videoHdOff' => 'Standard quality: 720p',
 			'screenChat.videoSound' => 'Sound',
-			_ => null,
-		} ?? switch (path) {
 			'screenChat.videoMuted' => 'Muted',
 			'screenChat.videoCover' => 'Cover',
 			'screenChat.videoCoverSet' => 'Cover set',
@@ -4854,6 +4885,11 @@ extension on Translations {
 			'sessionsPrivacyAndSecurity.forwards' => 'Forwarded messages',
 			'sessionsPrivacyAndSecurity.whoCanLinkForwards' => 'Who can add a link to my account when forwarding my messages',
 			'sessionsPrivacyAndSecurity.forwardsNote' => 'Everyone else will see only your name in "Forwarded from…", without a link to your profile.',
+			'sessionsPrivacyAndSecurity.phoneNumber' => 'Phone number',
+			'sessionsPrivacyAndSecurity.whoCanSeePhoneNumber' => 'Who can see my phone number',
+			'sessionsPrivacyAndSecurity.phoneNumberNote' => 'People who already have your number saved in their contacts will always see it.',
+			'sessionsPrivacyAndSecurity.whoCanFindByPhone' => 'Who can find me by my number',
+			'sessionsPrivacyAndSecurity.phoneNumberFindNote' => 'Others won\'t be able to find you by searching for your phone number.',
 			'sessionsPrivacyAndSecurity.blocked' => 'Blocked Users',
 			'sessionsPrivacyAndSecurity.blockedEmpty' => 'You haven\'t blocked anyone',
 			'sessionsPrivacyAndSecurity.blockedNote' => 'Blocked users can\'t message or call you and can\'t see your last seen, photo, bio or birthday. You can also block someone from their profile.',
@@ -5056,6 +5092,8 @@ extension on Translations {
 			'grpcError.unauthenticated' => 'Unauthenticated',
 			'grpcError.unableConnectServer' => 'Unable to connect to the server',
 			'grpcError.internalServerError' => 'Internal server error',
+			_ => null,
+		} ?? switch (path) {
 			'grpcError.unknownError' => 'Unknown error',
 			'dateTime.relativeDateTimeToday' => ({required Object time}) => 'today at ${time}',
 			'dateTime.relativeDateTimeYesterday' => ({required Object time}) => 'yesterday at ${time}',
@@ -5065,8 +5103,6 @@ extension on Translations {
 			'screenCall.bannerRinging' => 'Call',
 			'screenCall.bannerActive' => 'In call',
 			'screenCall.bannerOnHold' => 'On another call',
-			_ => null,
-		} ?? switch (path) {
 			'screenCall.bannerReconnecting' => 'Reconnecting…',
 			'screenCall.incomingAudio' => 'Incoming call',
 			'screenCall.incomingVideo' => 'Incoming video call',

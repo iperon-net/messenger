@@ -664,6 +664,48 @@ class API {
   /// Это единственное место, куда стоит добавлять персистентность входящих
   /// сообщений: `<Тип>_Response.fromBuffer(message.payload)` в зависимости от
   /// `message.messageType`.
+  /// Кладёт чужой профиль [payload] в кэш `profiles` (PROFILE по стриму,
+  /// глобальный поиск людей). Отсутствующие поля (скрытые приватностью) затирают
+  /// кэш пустыми. Аватар скачиваем и привязываем: download cache-aware, поэтому
+  /// повторный вызов из ProfileCubit даст cache-hit; [waitAvatar] false — не
+  /// ждём скачивания (поиск: строки показываем сразу, фото подтянется).
+  Future<void> cacheProfile(Profile_Response payload, {bool waitAvatar = true}) async {
+    final repositories = getIt.get<Repositories>();
+    final userID = Uint8List.fromList(payload.userID);
+    if (userID.isEmpty) return;
+
+    await repositories.profiles.upsert(
+      userID: userID,
+      username: payload.username,
+      fistName: payload.firstName,
+      lastName: payload.lastName,
+      birthDate: payload.hasBirthDate() ? payload.birthDate.toDateTime(toLocal: true) : null,
+      hideBirthYear: payload.hideBirthYear,
+      aboutMe: payload.aboutMe,
+      phoneNumber: payload.phoneNumber,
+    );
+
+    Future<void> avatar() async {
+      if (payload.hasAvatar()) {
+        try {
+          final cdn = models.CDN.fromProto(payload.avatar);
+          await getIt.get<CDNManager>().download(cdn: cdn);
+          await repositories.profiles.updateAvatarByCdnID(userID: userID, cdnID: cdn.cdnID);
+        } catch (error, stackTrace) {
+          logger.handle(error, stackTrace);
+        }
+      } else {
+        await repositories.profiles.clearAvatar(userID: userID);
+      }
+    }
+
+    if (waitAvatar) {
+      await avatar();
+    } else {
+      unawaited(avatar());
+    }
+  }
+
   Future<void> _handleMessage(IncomingMessage message, models.Session session) async {
     final repositories = getIt.get<Repositories>();
 
@@ -718,37 +760,13 @@ class API {
       case MessageType.PROFILE:
         // Публичный профиль чужого пользователя. userID приходит в самом ответе
         // (в отличие от MY_PROFILE, где это всегда текущая сессия) — по нему
-        // раскладываем в локальный кэш. Аватар скачиваем и привязываем: download
-        // cache-aware, поэтому повторный вызов из ProfileCubit даст cache-hit.
+        // раскладываем в локальный кэш.
         final payload = Profile_Response.fromBuffer(message.payload);
-        final userID = Uint8List.fromList(payload.userID);
-        if (userID.isEmpty) {
+        if (payload.userID.isEmpty) {
           logger.warning('PROFILE message without userID, skipping');
           break;
         }
-
-        await repositories.profiles.upsert(
-          userID: userID,
-          username: payload.username,
-          fistName: payload.firstName,
-          lastName: payload.lastName,
-          birthDate: payload.hasBirthDate() ? payload.birthDate.toDateTime(toLocal: true) : null,
-          hideBirthYear: payload.hideBirthYear,
-          aboutMe: payload.aboutMe,
-          phoneNumber: payload.phoneNumber,
-        );
-
-        if (payload.hasAvatar()) {
-          try {
-            final cdn = models.CDN.fromProto(payload.avatar);
-            await getIt.get<CDNManager>().download(cdn: cdn);
-            await repositories.profiles.updateAvatarByCdnID(userID: userID, cdnID: cdn.cdnID);
-          } catch (error, stackTrace) {
-            logger.handle(error, stackTrace);
-          }
-        } else {
-          await repositories.profiles.clearAvatar(userID: userID);
-        }
+        await cacheProfile(payload);
 
       case MessageType.LOGOUT:
         // Сервер принудительно отзывает сессии (например, разлогин с другого

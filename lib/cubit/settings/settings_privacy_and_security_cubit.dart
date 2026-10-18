@@ -81,6 +81,9 @@ class SettingsPrivacyAndSecurityCubit extends Cubit<SettingsPrivacyAndSecuritySt
   /// Алиас [reloadCalls] для читаемости на экране «Пересылка сообщений».
   Future<void> reloadForwards() => _refresh();
 
+  /// Алиас [reloadCalls] для читаемости на экране «Номер телефона».
+  Future<void> reloadPhoneNumber() => _refresh();
+
   /// Поднимает последнее известное значение из локальной БД. Кэша нет
   /// ([callsLoadError] останется, пока не придёт ответ сервера) — первый запуск.
   Future<void> _loadFromCache() async {
@@ -126,6 +129,13 @@ class SettingsPrivacyAndSecurityCubit extends Cubit<SettingsPrivacyAndSecuritySt
         hideReadTime: response.hideReadTime,
         messagesTTL: response.messagesTtl,
         blocked: response.blocked.map(Uint8List.fromList).toList(growable: false),
+        phoneNumberAudience: _fromProto(response.phoneNumber),
+        phoneNumberAllow: response.phoneNumberAllow.map(Uint8List.fromList).toList(growable: false),
+        phoneNumberDeny: response.phoneNumberDeny.map(Uint8List.fromList).toList(growable: false),
+        // У «найти по номеру» нет «Никто»: всё, кроме «Мои контакты», — «Все».
+        phoneNumberFind: response.phoneNumberFind == PrivacySettings_Audience.CONTACTS
+            ? CallsPrivacyAudience.contacts
+            : CallsPrivacyAudience.everybody,
         callsLoadError: false,
         callsReadOnly: false,
       ),
@@ -160,6 +170,10 @@ class SettingsPrivacyAndSecurityCubit extends Cubit<SettingsPrivacyAndSecuritySt
         hideReadTime: state.hideReadTime,
         messagesTtl: state.messagesTTL,
         blocked: state.blocked,
+        phoneNumber: _toProto(state.phoneNumberAudience),
+        phoneNumberAllow: state.phoneNumberAllow,
+        phoneNumberDeny: state.phoneNumberDeny,
+        phoneNumberFind: _toProto(state.phoneNumberFind),
       );
       await repositories.privacySettings.upsert(userID: auth.session.userID, payload: response.writeToBuffer());
     } catch (error, stackTrace) {
@@ -661,6 +675,102 @@ class SettingsPrivacyAndSecurityCubit extends Cubit<SettingsPrivacyAndSecuritySt
     }
 
     if (!isClosed) emit(state.copyWith(forwardsDeny: List<Uint8List>.unmodifiable(userIDs)));
+    await _persistFromState();
+    return true;
+  }
+
+  /// Меняет настройку «кто видит мой номер телефона». Серверная операция,
+  /// offline недоступна. Возвращает `false`, если не применилось.
+  Future<bool> setPhoneNumberAudience(CallsPrivacyAudience audience) async {
+    if (audience == state.phoneNumberAudience && !state.callsLoadError && !state.callsReadOnly) return true;
+
+    if (!await utils.hasNetwork()) {
+      logger.info('privacy: set phone number audience aborted, no network');
+      return false;
+    }
+
+    final status = await api.unaryEncoded(
+      MessageType.PRIVACY_PHONE_NUMBER_UPDATE,
+      PrivacyPhoneNumberUpdate_Request(phoneNumber: _toProto(audience)).writeToBuffer(),
+    );
+
+    if (status.status != APIStatus.success) {
+      logger.warning('privacy: update phone number audience failed (${status.error})');
+      return false;
+    }
+
+    if (!isClosed) emit(state.copyWith(phoneNumberAudience: audience, callsLoadError: false, callsReadOnly: false));
+    await _persistFromState();
+    return true;
+  }
+
+  /// Полностью заменяет allow-list «всегда разрешать» для номера телефона.
+  Future<bool> setPhoneNumberAllow(List<Uint8List> userIDs) async {
+    if (!await utils.hasNetwork()) {
+      logger.info('privacy: set phone number allow aborted, no network');
+      return false;
+    }
+
+    final status = await api.unaryEncoded(
+      MessageType.PRIVACY_PHONE_NUMBER_ALLOW_UPDATE,
+      PrivacyPhoneNumberAllowUpdate_Request(userIds: userIDs).writeToBuffer(),
+    );
+
+    if (status.status != APIStatus.success) {
+      logger.warning('privacy: update phone number allow failed (${status.error})');
+      return false;
+    }
+
+    if (!isClosed) emit(state.copyWith(phoneNumberAllow: List<Uint8List>.unmodifiable(userIDs)));
+    await _persistFromState();
+    return true;
+  }
+
+  /// Полностью заменяет deny-list «всегда запрещать» для номера телефона.
+  Future<bool> setPhoneNumberDeny(List<Uint8List> userIDs) async {
+    if (!await utils.hasNetwork()) {
+      logger.info('privacy: set phone number deny aborted, no network');
+      return false;
+    }
+
+    final status = await api.unaryEncoded(
+      MessageType.PRIVACY_PHONE_NUMBER_DENY_UPDATE,
+      PrivacyPhoneNumberDenyUpdate_Request(userIds: userIDs).writeToBuffer(),
+    );
+
+    if (status.status != APIStatus.success) {
+      logger.warning('privacy: update phone number deny failed (${status.error})');
+      return false;
+    }
+
+    if (!isClosed) emit(state.copyWith(phoneNumberDeny: List<Uint8List>.unmodifiable(userIDs)));
+    await _persistFromState();
+    return true;
+  }
+
+  /// Меняет «кто может найти меня по номеру» (только «Все» / «Мои контакты»).
+  /// Серверная операция, offline недоступна. Возвращает `false`, если не
+  /// применилось.
+  Future<bool> setPhoneNumberFind(CallsPrivacyAudience audience) async {
+    assert(audience != CallsPrivacyAudience.nobody);
+    if (audience == state.phoneNumberFind && !state.callsLoadError && !state.callsReadOnly) return true;
+
+    if (!await utils.hasNetwork()) {
+      logger.info('privacy: set phone number find aborted, no network');
+      return false;
+    }
+
+    final status = await api.unaryEncoded(
+      MessageType.PRIVACY_PHONE_NUMBER_FIND_UPDATE,
+      PrivacyPhoneNumberFindUpdate_Request(phoneNumberFind: _toProto(audience)).writeToBuffer(),
+    );
+
+    if (status.status != APIStatus.success) {
+      logger.warning('privacy: update phone number find failed (${status.error})');
+      return false;
+    }
+
+    if (!isClosed) emit(state.copyWith(phoneNumberFind: audience, callsLoadError: false, callsReadOnly: false));
     await _persistFromState();
     return true;
   }

@@ -14,6 +14,7 @@ import '../../models.dart' as models;
 import 'chat_actions_material.dart';
 import 'chat_swipe_actions.dart';
 import 'chat_common.dart';
+import 'chats_new_material.dart';
 
 /// Вкладка «Чаты» (Android). Сверху поиск и табы-папки в стиле
 /// `SegmentedButton` «Звонков»; папки листаются свайпом влево/вправо
@@ -180,7 +181,16 @@ class _ChatsMaterial extends State<ChatsMaterial> with SearchHideOnScroll {
   Widget _folderPage(BuildContext context, ChatsState state, models.ChatFolder folder) {
     final chats = state.chatsOf(folder);
     final archived = folder.isAll && state.query.isEmpty ? state.archived : const <models.Chat>[];
-    if (chats.isEmpty && archived.isEmpty) {
+    // Глобальный поиск людей (номер / @username) — секцией после чатов.
+    final global = state.query.isEmpty
+        ? const <Widget>[]
+        : usersSearchSectionMaterial(
+            context,
+            status: state.globalStatus,
+            results: state.globalResults,
+            onTap: (member) => _openGlobal(context, member),
+          );
+    if (chats.isEmpty && archived.isEmpty && global.isEmpty) {
       return _empty(context, state.query.isEmpty ? context.t.screenChats.emptyFolder : context.t.screenChats.empty, folder: folder);
     }
     final offset = archived.isEmpty ? 0 : 1;
@@ -190,8 +200,9 @@ class _ChatsMaterial extends State<ChatsMaterial> with SearchHideOnScroll {
     return searchListView(
       key: PageStorageKey('chats_folder_${folder.id}'),
       listKey: folder.id,
-      itemCount: chats.length + offset,
+      itemCount: chats.length + offset + (global.isEmpty ? 0 : 1),
       itemBuilder: (context, index) {
+        if (index == chats.length + offset) return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: global);
         if (index < offset) return _ArchiveTileMaterial(archived: archived, onTap: () => context.push('/chats/archive'));
         final chat = chats[index - offset];
         return ChatSwipeActions(
@@ -209,6 +220,11 @@ class _ChatsMaterial extends State<ChatsMaterial> with SearchHideOnScroll {
         );
       },
     );
+  }
+
+  Future<void> _openGlobal(BuildContext context, models.ChatMember member) async {
+    final chatID = await context.read<ChatsCubit>().openPrivateChat(member);
+    if (chatID.isNotEmpty && context.mounted) await context.push('/chats/chat/$chatID');
   }
 
   /// Пусто — тоже прокручиваемый список папки (см. searchListView): иначе

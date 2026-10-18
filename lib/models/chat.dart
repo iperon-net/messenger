@@ -213,6 +213,10 @@ class ChatMember with ChatMemberMappable {
   /// — владелец и админы во всех его чатах), в самом чате их не изменить.
   final bool fromCommunity;
 
+  /// Номер (международный формат) — у найденного глобальным поиском, если он
+  /// мне виден: подпись строки вместо статуса. Обычно пусто.
+  final String phone;
+
   const ChatMember({
     required this.id,
     required this.name,
@@ -224,6 +228,7 @@ class ChatMember with ChatMemberMappable {
     this.rights = const ChatAdminRights(),
     this.rank = '',
     this.fromCommunity = false,
+    this.phone = '',
   });
 
   /// Права с учётом роли: владелец — все, не админ — никаких.

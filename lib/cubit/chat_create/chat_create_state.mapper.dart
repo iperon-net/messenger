@@ -159,6 +159,23 @@ class ChatCreateStateMapper extends ClassMapperBase<ChatCreateState> {
     opt: true,
     def: '',
   );
+  static UsersSearchStatus _$globalStatus(ChatCreateState v) => v.globalStatus;
+  static const Field<ChatCreateState, UsersSearchStatus> _f$globalStatus =
+      Field(
+        'globalStatus',
+        _$globalStatus,
+        opt: true,
+        def: UsersSearchStatus.idle,
+      );
+  static List<models.ChatMember> _$globalResults(ChatCreateState v) =>
+      v.globalResults;
+  static const Field<ChatCreateState, List<models.ChatMember>>
+  _f$globalResults = Field(
+    'globalResults',
+    _$globalResults,
+    opt: true,
+    def: const [],
+  );
   static List<models.ChatMember> _$selected(ChatCreateState v) => v.selected;
   static const Field<ChatCreateState, List<models.ChatMember>> _f$selected =
       Field('selected', _$selected, opt: true, def: const []);
@@ -335,6 +352,8 @@ class ChatCreateStateMapper extends ClassMapperBase<ChatCreateState> {
     #about: _f$about,
     #contacts: _f$contacts,
     #query: _f$query,
+    #globalStatus: _f$globalStatus,
+    #globalResults: _f$globalResults,
     #selected: _f$selected,
     #avatarPath: _f$avatarPath,
     #coverPath: _f$coverPath,
@@ -373,6 +392,8 @@ class ChatCreateStateMapper extends ClassMapperBase<ChatCreateState> {
       about: data.dec(_f$about),
       contacts: data.dec(_f$contacts),
       query: data.dec(_f$query),
+      globalStatus: data.dec(_f$globalStatus),
+      globalResults: data.dec(_f$globalResults),
       selected: data.dec(_f$selected),
       avatarPath: data.dec(_f$avatarPath),
       coverPath: data.dec(_f$coverPath),
@@ -472,6 +493,12 @@ abstract class ChatCreateStateCopyWith<$R, $In extends ChatCreateState, $Out>
     models.ChatMember,
     models.ChatMemberCopyWith<$R, models.ChatMember, models.ChatMember>
   >
+  get globalResults;
+  ListCopyWith<
+    $R,
+    models.ChatMember,
+    models.ChatMemberCopyWith<$R, models.ChatMember, models.ChatMember>
+  >
   get selected;
   $R call({
     Status? status,
@@ -485,6 +512,8 @@ abstract class ChatCreateStateCopyWith<$R, $In extends ChatCreateState, $Out>
     String? about,
     List<models.ChatMember>? contacts,
     String? query,
+    UsersSearchStatus? globalStatus,
+    List<models.ChatMember>? globalResults,
     List<models.ChatMember>? selected,
     String? avatarPath,
     String? coverPath,
@@ -539,6 +568,17 @@ class _ChatCreateStateCopyWithImpl<$R, $Out>
     models.ChatMember,
     models.ChatMemberCopyWith<$R, models.ChatMember, models.ChatMember>
   >
+  get globalResults => ListCopyWith(
+    $value.globalResults,
+    (v, t) => v.copyWith.$chain(t),
+    (v) => call(globalResults: v),
+  );
+  @override
+  ListCopyWith<
+    $R,
+    models.ChatMember,
+    models.ChatMemberCopyWith<$R, models.ChatMember, models.ChatMember>
+  >
   get selected => ListCopyWith(
     $value.selected,
     (v, t) => v.copyWith.$chain(t),
@@ -557,6 +597,8 @@ class _ChatCreateStateCopyWithImpl<$R, $Out>
     String? about,
     List<models.ChatMember>? contacts,
     String? query,
+    UsersSearchStatus? globalStatus,
+    List<models.ChatMember>? globalResults,
     List<models.ChatMember>? selected,
     String? avatarPath,
     String? coverPath,
@@ -593,6 +635,8 @@ class _ChatCreateStateCopyWithImpl<$R, $Out>
       if (about != null) #about: about,
       if (contacts != null) #contacts: contacts,
       if (query != null) #query: query,
+      if (globalStatus != null) #globalStatus: globalStatus,
+      if (globalResults != null) #globalResults: globalResults,
       if (selected != null) #selected: selected,
       if (avatarPath != null) #avatarPath: avatarPath,
       if (coverPath != null) #coverPath: coverPath,
@@ -632,6 +676,8 @@ class _ChatCreateStateCopyWithImpl<$R, $Out>
     about: data.get(#about, or: $value.about),
     contacts: data.get(#contacts, or: $value.contacts),
     query: data.get(#query, or: $value.query),
+    globalStatus: data.get(#globalStatus, or: $value.globalStatus),
+    globalResults: data.get(#globalResults, or: $value.globalResults),
     selected: data.get(#selected, or: $value.selected),
     avatarPath: data.get(#avatarPath, or: $value.avatarPath),
     coverPath: data.get(#coverPath, or: $value.coverPath),

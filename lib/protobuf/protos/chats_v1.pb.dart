@@ -17,6 +17,7 @@ import 'package:protobuf/protobuf.dart' as $pb;
 
 import 'chats_v1.pbenum.dart';
 import 'models.pb.dart' as $0;
+import 'profile_v1.pb.dart' as $1;
 
 export 'package:protobuf/protobuf.dart' show GeneratedMessageGenericExtensions;
 
@@ -5008,6 +5009,117 @@ class Chats_SetNoForwardsResult extends $pb.GeneratedMessage {
   Updates ensureUpdates() => $_ensure(0);
 }
 
+/// Глобальный поиск людей (как contacts.search / resolvePhone в Telegram).
+/// query — номер телефона (целиком, в любом формате; без кода страны —
+/// российский) или username (ведущий «@» не важен, регистр тоже). Номер —
+/// точное совпадение, если владелец разрешает найти себя по номеру
+/// (PrivacySettings.phone_number_find), — номер в ответе тогда есть всегда
+/// (ищущий его знает). Username — точное совпадение и по префиксу (от 3
+/// символов), до limit (≤ 50, 0 — 20) человек. Себя в ответе нет. Профили —
+/// глазами ищущего (гейты приватности, как PROFILE). Свои лимиты частоты
+/// (по номеру — строже); короче / не подходит — пустой ответ.
+class Chats_SearchUsers extends $pb.GeneratedMessage {
+  factory Chats_SearchUsers({
+    $core.String? query,
+    $core.int? limit,
+  }) {
+    final result = create();
+    if (query != null) result.query = query;
+    if (limit != null) result.limit = limit;
+    return result;
+  }
+
+  Chats_SearchUsers._();
+
+  factory Chats_SearchUsers.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Chats_SearchUsers.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Chats.SearchUsers',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..aOS(1, _omitFieldNames ? '' : 'query')
+    ..aI(2, _omitFieldNames ? '' : 'limit')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_SearchUsers clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_SearchUsers copyWith(void Function(Chats_SearchUsers) updates) =>
+      super.copyWith((message) => updates(message as Chats_SearchUsers)) as Chats_SearchUsers;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static Chats_SearchUsers create() => Chats_SearchUsers._();
+  @$core.override
+  Chats_SearchUsers createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static Chats_SearchUsers getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Chats_SearchUsers>(create);
+  static Chats_SearchUsers? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.String get query => $_getSZ(0);
+  @$pb.TagNumber(1)
+  set query($core.String value) => $_setString(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasQuery() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearQuery() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.int get limit => $_getIZ(1);
+  @$pb.TagNumber(2)
+  set limit($core.int value) => $_setSignedInt32(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasLimit() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearLimit() => $_clearField(2);
+}
+
+class Chats_SearchUsersResult extends $pb.GeneratedMessage {
+  factory Chats_SearchUsersResult({
+    $core.Iterable<$1.Profile_Response>? profiles,
+  }) {
+    final result = create();
+    if (profiles != null) result.profiles.addAll(profiles);
+    return result;
+  }
+
+  Chats_SearchUsersResult._();
+
+  factory Chats_SearchUsersResult.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Chats_SearchUsersResult.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Chats.SearchUsersResult',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..pPM<$1.Profile_Response>(1, _omitFieldNames ? '' : 'profiles', subBuilder: $1.Profile_Response.create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_SearchUsersResult clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_SearchUsersResult copyWith(void Function(Chats_SearchUsersResult) updates) =>
+      super.copyWith((message) => updates(message as Chats_SearchUsersResult)) as Chats_SearchUsersResult;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static Chats_SearchUsersResult create() => Chats_SearchUsersResult._();
+  @$core.override
+  Chats_SearchUsersResult createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static Chats_SearchUsersResult getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Chats_SearchUsersResult>(create);
+  static Chats_SearchUsersResult? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $pb.PbList<$1.Profile_Response> get profiles => $_getList(0);
+}
+
 enum Chats_Request_Request {
   list,
   openPrivate,
@@ -5024,6 +5136,7 @@ enum Chats_Request_Request {
   resolveUsername,
   setTTL,
   setNoForwards,
+  searchUsers,
   notSet
 }
 
@@ -5044,6 +5157,7 @@ class Chats_Request extends $pb.GeneratedMessage {
     Chats_ResolveUsername? resolveUsername,
     Chats_SetTTL? setTTL,
     Chats_SetNoForwards? setNoForwards,
+    Chats_SearchUsers? searchUsers,
   }) {
     final result = create();
     if (list != null) result.list = list;
@@ -5061,6 +5175,7 @@ class Chats_Request extends $pb.GeneratedMessage {
     if (resolveUsername != null) result.resolveUsername = resolveUsername;
     if (setTTL != null) result.setTTL = setTTL;
     if (setNoForwards != null) result.setNoForwards = setNoForwards;
+    if (searchUsers != null) result.searchUsers = searchUsers;
     return result;
   }
 
@@ -5087,11 +5202,12 @@ class Chats_Request extends $pb.GeneratedMessage {
     13: Chats_Request_Request.resolveUsername,
     14: Chats_Request_Request.setTTL,
     15: Chats_Request_Request.setNoForwards,
+    16: Chats_Request_Request.searchUsers,
     0: Chats_Request_Request.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Chats.Request',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
-    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15])
+    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16])
     ..aOM<Chats_List>(1, _omitFieldNames ? '' : 'list', subBuilder: Chats_List.create)
     ..aOM<Chats_OpenPrivate>(2, _omitFieldNames ? '' : 'openPrivate', protoName: 'openPrivate', subBuilder: Chats_OpenPrivate.create)
     ..aOM<Chats_ReadHistory>(3, _omitFieldNames ? '' : 'readHistory', protoName: 'readHistory', subBuilder: Chats_ReadHistory.create)
@@ -5110,6 +5226,7 @@ class Chats_Request extends $pb.GeneratedMessage {
     ..aOM<Chats_SetTTL>(14, _omitFieldNames ? '' : 'setTTL', protoName: 'setTTL', subBuilder: Chats_SetTTL.create)
     ..aOM<Chats_SetNoForwards>(15, _omitFieldNames ? '' : 'setNoForwards',
         protoName: 'setNoForwards', subBuilder: Chats_SetNoForwards.create)
+    ..aOM<Chats_SearchUsers>(16, _omitFieldNames ? '' : 'searchUsers', protoName: 'searchUsers', subBuilder: Chats_SearchUsers.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -5144,6 +5261,7 @@ class Chats_Request extends $pb.GeneratedMessage {
   @$pb.TagNumber(13)
   @$pb.TagNumber(14)
   @$pb.TagNumber(15)
+  @$pb.TagNumber(16)
   Chats_Request_Request whichRequest() => _Chats_Request_RequestByTag[$_whichOneof(0)]!;
   @$pb.TagNumber(1)
   @$pb.TagNumber(2)
@@ -5160,6 +5278,7 @@ class Chats_Request extends $pb.GeneratedMessage {
   @$pb.TagNumber(13)
   @$pb.TagNumber(14)
   @$pb.TagNumber(15)
+  @$pb.TagNumber(16)
   void clearRequest() => $_clearField($_whichOneof(0));
 
   @$pb.TagNumber(1)
@@ -5326,6 +5445,17 @@ class Chats_Request extends $pb.GeneratedMessage {
   void clearSetNoForwards() => $_clearField(15);
   @$pb.TagNumber(15)
   Chats_SetNoForwards ensureSetNoForwards() => $_ensure(14);
+
+  @$pb.TagNumber(16)
+  Chats_SearchUsers get searchUsers => $_getN(15);
+  @$pb.TagNumber(16)
+  set searchUsers(Chats_SearchUsers value) => $_setField(16, value);
+  @$pb.TagNumber(16)
+  $core.bool hasSearchUsers() => $_has(15);
+  @$pb.TagNumber(16)
+  void clearSearchUsers() => $_clearField(16);
+  @$pb.TagNumber(16)
+  Chats_SearchUsers ensureSearchUsers() => $_ensure(15);
 }
 
 enum Chats_Response_Response {
@@ -5344,6 +5474,7 @@ enum Chats_Response_Response {
   resolveUsername,
   setTTL,
   setNoForwards,
+  searchUsers,
   notSet
 }
 
@@ -5364,6 +5495,7 @@ class Chats_Response extends $pb.GeneratedMessage {
     Chats_ResolveUsernameResult? resolveUsername,
     Chats_SetTTLResult? setTTL,
     Chats_SetNoForwardsResult? setNoForwards,
+    Chats_SearchUsersResult? searchUsers,
   }) {
     final result = create();
     if (list != null) result.list = list;
@@ -5381,6 +5513,7 @@ class Chats_Response extends $pb.GeneratedMessage {
     if (resolveUsername != null) result.resolveUsername = resolveUsername;
     if (setTTL != null) result.setTTL = setTTL;
     if (setNoForwards != null) result.setNoForwards = setNoForwards;
+    if (searchUsers != null) result.searchUsers = searchUsers;
     return result;
   }
 
@@ -5407,11 +5540,12 @@ class Chats_Response extends $pb.GeneratedMessage {
     13: Chats_Response_Response.resolveUsername,
     14: Chats_Response_Response.setTTL,
     15: Chats_Response_Response.setNoForwards,
+    16: Chats_Response_Response.searchUsers,
     0: Chats_Response_Response.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Chats.Response',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
-    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15])
+    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16])
     ..aOM<Chats_ListResult>(1, _omitFieldNames ? '' : 'list', subBuilder: Chats_ListResult.create)
     ..aOM<Chats_OpenPrivateResult>(2, _omitFieldNames ? '' : 'openPrivate',
         protoName: 'openPrivate', subBuilder: Chats_OpenPrivateResult.create)
@@ -5436,6 +5570,8 @@ class Chats_Response extends $pb.GeneratedMessage {
     ..aOM<Chats_SetTTLResult>(14, _omitFieldNames ? '' : 'setTTL', protoName: 'setTTL', subBuilder: Chats_SetTTLResult.create)
     ..aOM<Chats_SetNoForwardsResult>(15, _omitFieldNames ? '' : 'setNoForwards',
         protoName: 'setNoForwards', subBuilder: Chats_SetNoForwardsResult.create)
+    ..aOM<Chats_SearchUsersResult>(16, _omitFieldNames ? '' : 'searchUsers',
+        protoName: 'searchUsers', subBuilder: Chats_SearchUsersResult.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -5470,6 +5606,7 @@ class Chats_Response extends $pb.GeneratedMessage {
   @$pb.TagNumber(13)
   @$pb.TagNumber(14)
   @$pb.TagNumber(15)
+  @$pb.TagNumber(16)
   Chats_Response_Response whichResponse() => _Chats_Response_ResponseByTag[$_whichOneof(0)]!;
   @$pb.TagNumber(1)
   @$pb.TagNumber(2)
@@ -5486,6 +5623,7 @@ class Chats_Response extends $pb.GeneratedMessage {
   @$pb.TagNumber(13)
   @$pb.TagNumber(14)
   @$pb.TagNumber(15)
+  @$pb.TagNumber(16)
   void clearResponse() => $_clearField($_whichOneof(0));
 
   @$pb.TagNumber(1)
@@ -5652,6 +5790,17 @@ class Chats_Response extends $pb.GeneratedMessage {
   void clearSetNoForwards() => $_clearField(15);
   @$pb.TagNumber(15)
   Chats_SetNoForwardsResult ensureSetNoForwards() => $_ensure(14);
+
+  @$pb.TagNumber(16)
+  Chats_SearchUsersResult get searchUsers => $_getN(15);
+  @$pb.TagNumber(16)
+  set searchUsers(Chats_SearchUsersResult value) => $_setField(16, value);
+  @$pb.TagNumber(16)
+  $core.bool hasSearchUsers() => $_has(15);
+  @$pb.TagNumber(16)
+  void clearSearchUsers() => $_clearField(16);
+  @$pb.TagNumber(16)
+  Chats_SearchUsersResult ensureSearchUsers() => $_ensure(15);
 }
 
 /// CHATS — диалоги.

@@ -77,6 +77,10 @@ class PrivacySettings_Response extends $pb.GeneratedMessage {
     $core.Iterable<$core.List<$core.int>>? forwardsDeny,
     $core.int? messagesTtl,
     $core.Iterable<$core.List<$core.int>>? blocked,
+    PrivacySettings_Audience? phoneNumber,
+    $core.Iterable<$core.List<$core.int>>? phoneNumberAllow,
+    $core.Iterable<$core.List<$core.int>>? phoneNumberDeny,
+    PrivacySettings_Audience? phoneNumberFind,
   }) {
     final result = create();
     if (calls != null) result.calls = calls;
@@ -101,6 +105,10 @@ class PrivacySettings_Response extends $pb.GeneratedMessage {
     if (forwardsDeny != null) result.forwardsDeny.addAll(forwardsDeny);
     if (messagesTtl != null) result.messagesTtl = messagesTtl;
     if (blocked != null) result.blocked.addAll(blocked);
+    if (phoneNumber != null) result.phoneNumber = phoneNumber;
+    if (phoneNumberAllow != null) result.phoneNumberAllow.addAll(phoneNumberAllow);
+    if (phoneNumberDeny != null) result.phoneNumberDeny.addAll(phoneNumberDeny);
+    if (phoneNumberFind != null) result.phoneNumberFind = phoneNumberFind;
     return result;
   }
 
@@ -135,6 +143,10 @@ class PrivacySettings_Response extends $pb.GeneratedMessage {
     ..p<$core.List<$core.int>>(20, _omitFieldNames ? '' : 'forwardsDeny', $pb.PbFieldType.PY)
     ..aI(21, _omitFieldNames ? '' : 'messagesTtl')
     ..p<$core.List<$core.int>>(22, _omitFieldNames ? '' : 'blocked', $pb.PbFieldType.PY)
+    ..aE<PrivacySettings_Audience>(23, _omitFieldNames ? '' : 'phoneNumber', enumValues: PrivacySettings_Audience.values)
+    ..p<$core.List<$core.int>>(24, _omitFieldNames ? '' : 'phoneNumberAllow', $pb.PbFieldType.PY)
+    ..p<$core.List<$core.int>>(25, _omitFieldNames ? '' : 'phoneNumberDeny', $pb.PbFieldType.PY)
+    ..aE<PrivacySettings_Audience>(26, _omitFieldNames ? '' : 'phoneNumberFind', enumValues: PrivacySettings_Audience.values)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -314,6 +326,39 @@ class PrivacySettings_Response extends $pb.GeneratedMessage {
   /// отказы приватности («privacyRestricted», «call not allowed»).
   @$pb.TagNumber(22)
   $pb.PbList<$core.List<$core.int>> get blocked => $_getList(21);
+
+  /// Аудитория «кто видит мой номер телефона» + её allow/deny-списки (та же
+  /// семантика, что у звонков; дефолт — CONTACTS, как в Telegram). Гейт — на
+  /// стороне владельца при отдаче Profile.Response: не разрешено — phoneNumber
+  /// не отдаётся. Тот, у кого мой номер уже есть в книге (ребро с номером),
+  /// видит его всегда — номер ему и так известен.
+  @$pb.TagNumber(23)
+  PrivacySettings_Audience get phoneNumber => $_getN(22);
+  @$pb.TagNumber(23)
+  set phoneNumber(PrivacySettings_Audience value) => $_setField(23, value);
+  @$pb.TagNumber(23)
+  $core.bool hasPhoneNumber() => $_has(22);
+  @$pb.TagNumber(23)
+  void clearPhoneNumber() => $_clearField(23);
+
+  @$pb.TagNumber(24)
+  $pb.PbList<$core.List<$core.int>> get phoneNumberAllow => $_getList(23);
+
+  @$pb.TagNumber(25)
+  $pb.PbList<$core.List<$core.int>> get phoneNumberDeny => $_getList(24);
+
+  /// «Кто может найти меня по номеру» (поиск по номеру, сопоставление книги
+  /// контактов): EVERYBODY (дефолт) или CONTACTS (NOBODY не бывает — как в
+  /// Telegram). Те, кому номер виден (phone_number + исключения), находят
+  /// всегда.
+  @$pb.TagNumber(26)
+  PrivacySettings_Audience get phoneNumberFind => $_getN(25);
+  @$pb.TagNumber(26)
+  set phoneNumberFind(PrivacySettings_Audience value) => $_setField(26, value);
+  @$pb.TagNumber(26)
+  $core.bool hasPhoneNumberFind() => $_has(25);
+  @$pb.TagNumber(26)
+  void clearPhoneNumberFind() => $_clearField(26);
 }
 
 /// Настройки приватности per-channel (этап 1 — только звонки). Проверка «кто
@@ -2888,6 +2933,475 @@ class PrivacyBlockUpdate extends $pb.GeneratedMessage {
   @$core.pragma('dart2js:noInline')
   static PrivacyBlockUpdate getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<PrivacyBlockUpdate>(create);
   static PrivacyBlockUpdate? _defaultInstance;
+}
+
+class PrivacyPhoneNumberUpdate_Request extends $pb.GeneratedMessage {
+  factory PrivacyPhoneNumberUpdate_Request({
+    PrivacySettings_Audience? phoneNumber,
+  }) {
+    final result = create();
+    if (phoneNumber != null) result.phoneNumber = phoneNumber;
+    return result;
+  }
+
+  PrivacyPhoneNumberUpdate_Request._();
+
+  factory PrivacyPhoneNumberUpdate_Request.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory PrivacyPhoneNumberUpdate_Request.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'PrivacyPhoneNumberUpdate.Request',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..aE<PrivacySettings_Audience>(1, _omitFieldNames ? '' : 'phoneNumber', enumValues: PrivacySettings_Audience.values)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyPhoneNumberUpdate_Request clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyPhoneNumberUpdate_Request copyWith(void Function(PrivacyPhoneNumberUpdate_Request) updates) =>
+      super.copyWith((message) => updates(message as PrivacyPhoneNumberUpdate_Request)) as PrivacyPhoneNumberUpdate_Request;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static PrivacyPhoneNumberUpdate_Request create() => PrivacyPhoneNumberUpdate_Request._();
+  @$core.override
+  PrivacyPhoneNumberUpdate_Request createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static PrivacyPhoneNumberUpdate_Request getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<PrivacyPhoneNumberUpdate_Request>(create);
+  static PrivacyPhoneNumberUpdate_Request? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  PrivacySettings_Audience get phoneNumber => $_getN(0);
+  @$pb.TagNumber(1)
+  set phoneNumber(PrivacySettings_Audience value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasPhoneNumber() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearPhoneNumber() => $_clearField(1);
+}
+
+class PrivacyPhoneNumberUpdate_Response extends $pb.GeneratedMessage {
+  factory PrivacyPhoneNumberUpdate_Response() => create();
+
+  PrivacyPhoneNumberUpdate_Response._();
+
+  factory PrivacyPhoneNumberUpdate_Response.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory PrivacyPhoneNumberUpdate_Response.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'PrivacyPhoneNumberUpdate.Response',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyPhoneNumberUpdate_Response clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyPhoneNumberUpdate_Response copyWith(void Function(PrivacyPhoneNumberUpdate_Response) updates) =>
+      super.copyWith((message) => updates(message as PrivacyPhoneNumberUpdate_Response)) as PrivacyPhoneNumberUpdate_Response;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static PrivacyPhoneNumberUpdate_Response create() => PrivacyPhoneNumberUpdate_Response._();
+  @$core.override
+  PrivacyPhoneNumberUpdate_Response createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static PrivacyPhoneNumberUpdate_Response getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<PrivacyPhoneNumberUpdate_Response>(create);
+  static PrivacyPhoneNumberUpdate_Response? _defaultInstance;
+}
+
+/// Изменение аудитории «кто видит мой номер телефона».
+class PrivacyPhoneNumberUpdate extends $pb.GeneratedMessage {
+  factory PrivacyPhoneNumberUpdate() => create();
+
+  PrivacyPhoneNumberUpdate._();
+
+  factory PrivacyPhoneNumberUpdate.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory PrivacyPhoneNumberUpdate.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'PrivacyPhoneNumberUpdate',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyPhoneNumberUpdate clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyPhoneNumberUpdate copyWith(void Function(PrivacyPhoneNumberUpdate) updates) =>
+      super.copyWith((message) => updates(message as PrivacyPhoneNumberUpdate)) as PrivacyPhoneNumberUpdate;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static PrivacyPhoneNumberUpdate create() => PrivacyPhoneNumberUpdate._();
+  @$core.override
+  PrivacyPhoneNumberUpdate createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static PrivacyPhoneNumberUpdate getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<PrivacyPhoneNumberUpdate>(create);
+  static PrivacyPhoneNumberUpdate? _defaultInstance;
+}
+
+class PrivacyPhoneNumberAllowUpdate_Request extends $pb.GeneratedMessage {
+  factory PrivacyPhoneNumberAllowUpdate_Request({
+    $core.Iterable<$core.List<$core.int>>? userIds,
+  }) {
+    final result = create();
+    if (userIds != null) result.userIds.addAll(userIds);
+    return result;
+  }
+
+  PrivacyPhoneNumberAllowUpdate_Request._();
+
+  factory PrivacyPhoneNumberAllowUpdate_Request.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory PrivacyPhoneNumberAllowUpdate_Request.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'PrivacyPhoneNumberAllowUpdate.Request',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..p<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'userIds', $pb.PbFieldType.PY)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyPhoneNumberAllowUpdate_Request clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyPhoneNumberAllowUpdate_Request copyWith(void Function(PrivacyPhoneNumberAllowUpdate_Request) updates) =>
+      super.copyWith((message) => updates(message as PrivacyPhoneNumberAllowUpdate_Request)) as PrivacyPhoneNumberAllowUpdate_Request;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static PrivacyPhoneNumberAllowUpdate_Request create() => PrivacyPhoneNumberAllowUpdate_Request._();
+  @$core.override
+  PrivacyPhoneNumberAllowUpdate_Request createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static PrivacyPhoneNumberAllowUpdate_Request getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<PrivacyPhoneNumberAllowUpdate_Request>(create);
+  static PrivacyPhoneNumberAllowUpdate_Request? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $pb.PbList<$core.List<$core.int>> get userIds => $_getList(0);
+}
+
+class PrivacyPhoneNumberAllowUpdate_Response extends $pb.GeneratedMessage {
+  factory PrivacyPhoneNumberAllowUpdate_Response() => create();
+
+  PrivacyPhoneNumberAllowUpdate_Response._();
+
+  factory PrivacyPhoneNumberAllowUpdate_Response.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory PrivacyPhoneNumberAllowUpdate_Response.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'PrivacyPhoneNumberAllowUpdate.Response',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyPhoneNumberAllowUpdate_Response clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyPhoneNumberAllowUpdate_Response copyWith(void Function(PrivacyPhoneNumberAllowUpdate_Response) updates) =>
+      super.copyWith((message) => updates(message as PrivacyPhoneNumberAllowUpdate_Response)) as PrivacyPhoneNumberAllowUpdate_Response;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static PrivacyPhoneNumberAllowUpdate_Response create() => PrivacyPhoneNumberAllowUpdate_Response._();
+  @$core.override
+  PrivacyPhoneNumberAllowUpdate_Response createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static PrivacyPhoneNumberAllowUpdate_Response getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<PrivacyPhoneNumberAllowUpdate_Response>(create);
+  static PrivacyPhoneNumberAllowUpdate_Response? _defaultInstance;
+}
+
+/// Полная замена allow-list «всегда разрешать» для номера телефона.
+class PrivacyPhoneNumberAllowUpdate extends $pb.GeneratedMessage {
+  factory PrivacyPhoneNumberAllowUpdate() => create();
+
+  PrivacyPhoneNumberAllowUpdate._();
+
+  factory PrivacyPhoneNumberAllowUpdate.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory PrivacyPhoneNumberAllowUpdate.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'PrivacyPhoneNumberAllowUpdate',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyPhoneNumberAllowUpdate clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyPhoneNumberAllowUpdate copyWith(void Function(PrivacyPhoneNumberAllowUpdate) updates) =>
+      super.copyWith((message) => updates(message as PrivacyPhoneNumberAllowUpdate)) as PrivacyPhoneNumberAllowUpdate;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static PrivacyPhoneNumberAllowUpdate create() => PrivacyPhoneNumberAllowUpdate._();
+  @$core.override
+  PrivacyPhoneNumberAllowUpdate createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static PrivacyPhoneNumberAllowUpdate getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<PrivacyPhoneNumberAllowUpdate>(create);
+  static PrivacyPhoneNumberAllowUpdate? _defaultInstance;
+}
+
+class PrivacyPhoneNumberDenyUpdate_Request extends $pb.GeneratedMessage {
+  factory PrivacyPhoneNumberDenyUpdate_Request({
+    $core.Iterable<$core.List<$core.int>>? userIds,
+  }) {
+    final result = create();
+    if (userIds != null) result.userIds.addAll(userIds);
+    return result;
+  }
+
+  PrivacyPhoneNumberDenyUpdate_Request._();
+
+  factory PrivacyPhoneNumberDenyUpdate_Request.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory PrivacyPhoneNumberDenyUpdate_Request.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'PrivacyPhoneNumberDenyUpdate.Request',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..p<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'userIds', $pb.PbFieldType.PY)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyPhoneNumberDenyUpdate_Request clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyPhoneNumberDenyUpdate_Request copyWith(void Function(PrivacyPhoneNumberDenyUpdate_Request) updates) =>
+      super.copyWith((message) => updates(message as PrivacyPhoneNumberDenyUpdate_Request)) as PrivacyPhoneNumberDenyUpdate_Request;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static PrivacyPhoneNumberDenyUpdate_Request create() => PrivacyPhoneNumberDenyUpdate_Request._();
+  @$core.override
+  PrivacyPhoneNumberDenyUpdate_Request createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static PrivacyPhoneNumberDenyUpdate_Request getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<PrivacyPhoneNumberDenyUpdate_Request>(create);
+  static PrivacyPhoneNumberDenyUpdate_Request? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $pb.PbList<$core.List<$core.int>> get userIds => $_getList(0);
+}
+
+class PrivacyPhoneNumberDenyUpdate_Response extends $pb.GeneratedMessage {
+  factory PrivacyPhoneNumberDenyUpdate_Response() => create();
+
+  PrivacyPhoneNumberDenyUpdate_Response._();
+
+  factory PrivacyPhoneNumberDenyUpdate_Response.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory PrivacyPhoneNumberDenyUpdate_Response.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'PrivacyPhoneNumberDenyUpdate.Response',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyPhoneNumberDenyUpdate_Response clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyPhoneNumberDenyUpdate_Response copyWith(void Function(PrivacyPhoneNumberDenyUpdate_Response) updates) =>
+      super.copyWith((message) => updates(message as PrivacyPhoneNumberDenyUpdate_Response)) as PrivacyPhoneNumberDenyUpdate_Response;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static PrivacyPhoneNumberDenyUpdate_Response create() => PrivacyPhoneNumberDenyUpdate_Response._();
+  @$core.override
+  PrivacyPhoneNumberDenyUpdate_Response createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static PrivacyPhoneNumberDenyUpdate_Response getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<PrivacyPhoneNumberDenyUpdate_Response>(create);
+  static PrivacyPhoneNumberDenyUpdate_Response? _defaultInstance;
+}
+
+/// Полная замена deny-list «всегда запрещать» для номера телефона.
+class PrivacyPhoneNumberDenyUpdate extends $pb.GeneratedMessage {
+  factory PrivacyPhoneNumberDenyUpdate() => create();
+
+  PrivacyPhoneNumberDenyUpdate._();
+
+  factory PrivacyPhoneNumberDenyUpdate.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory PrivacyPhoneNumberDenyUpdate.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'PrivacyPhoneNumberDenyUpdate',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyPhoneNumberDenyUpdate clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyPhoneNumberDenyUpdate copyWith(void Function(PrivacyPhoneNumberDenyUpdate) updates) =>
+      super.copyWith((message) => updates(message as PrivacyPhoneNumberDenyUpdate)) as PrivacyPhoneNumberDenyUpdate;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static PrivacyPhoneNumberDenyUpdate create() => PrivacyPhoneNumberDenyUpdate._();
+  @$core.override
+  PrivacyPhoneNumberDenyUpdate createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static PrivacyPhoneNumberDenyUpdate getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<PrivacyPhoneNumberDenyUpdate>(create);
+  static PrivacyPhoneNumberDenyUpdate? _defaultInstance;
+}
+
+class PrivacyPhoneNumberFindUpdate_Request extends $pb.GeneratedMessage {
+  factory PrivacyPhoneNumberFindUpdate_Request({
+    PrivacySettings_Audience? phoneNumberFind,
+  }) {
+    final result = create();
+    if (phoneNumberFind != null) result.phoneNumberFind = phoneNumberFind;
+    return result;
+  }
+
+  PrivacyPhoneNumberFindUpdate_Request._();
+
+  factory PrivacyPhoneNumberFindUpdate_Request.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory PrivacyPhoneNumberFindUpdate_Request.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'PrivacyPhoneNumberFindUpdate.Request',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..aE<PrivacySettings_Audience>(1, _omitFieldNames ? '' : 'phoneNumberFind', enumValues: PrivacySettings_Audience.values)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyPhoneNumberFindUpdate_Request clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyPhoneNumberFindUpdate_Request copyWith(void Function(PrivacyPhoneNumberFindUpdate_Request) updates) =>
+      super.copyWith((message) => updates(message as PrivacyPhoneNumberFindUpdate_Request)) as PrivacyPhoneNumberFindUpdate_Request;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static PrivacyPhoneNumberFindUpdate_Request create() => PrivacyPhoneNumberFindUpdate_Request._();
+  @$core.override
+  PrivacyPhoneNumberFindUpdate_Request createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static PrivacyPhoneNumberFindUpdate_Request getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<PrivacyPhoneNumberFindUpdate_Request>(create);
+  static PrivacyPhoneNumberFindUpdate_Request? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  PrivacySettings_Audience get phoneNumberFind => $_getN(0);
+  @$pb.TagNumber(1)
+  set phoneNumberFind(PrivacySettings_Audience value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasPhoneNumberFind() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearPhoneNumberFind() => $_clearField(1);
+}
+
+class PrivacyPhoneNumberFindUpdate_Response extends $pb.GeneratedMessage {
+  factory PrivacyPhoneNumberFindUpdate_Response() => create();
+
+  PrivacyPhoneNumberFindUpdate_Response._();
+
+  factory PrivacyPhoneNumberFindUpdate_Response.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory PrivacyPhoneNumberFindUpdate_Response.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'PrivacyPhoneNumberFindUpdate.Response',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyPhoneNumberFindUpdate_Response clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyPhoneNumberFindUpdate_Response copyWith(void Function(PrivacyPhoneNumberFindUpdate_Response) updates) =>
+      super.copyWith((message) => updates(message as PrivacyPhoneNumberFindUpdate_Response)) as PrivacyPhoneNumberFindUpdate_Response;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static PrivacyPhoneNumberFindUpdate_Response create() => PrivacyPhoneNumberFindUpdate_Response._();
+  @$core.override
+  PrivacyPhoneNumberFindUpdate_Response createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static PrivacyPhoneNumberFindUpdate_Response getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<PrivacyPhoneNumberFindUpdate_Response>(create);
+  static PrivacyPhoneNumberFindUpdate_Response? _defaultInstance;
+}
+
+/// Изменение «кто может найти меня по номеру»: только EVERYBODY или CONTACTS
+/// (NOBODY — INVALID_ARGUMENT).
+class PrivacyPhoneNumberFindUpdate extends $pb.GeneratedMessage {
+  factory PrivacyPhoneNumberFindUpdate() => create();
+
+  PrivacyPhoneNumberFindUpdate._();
+
+  factory PrivacyPhoneNumberFindUpdate.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory PrivacyPhoneNumberFindUpdate.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'PrivacyPhoneNumberFindUpdate',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyPhoneNumberFindUpdate clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyPhoneNumberFindUpdate copyWith(void Function(PrivacyPhoneNumberFindUpdate) updates) =>
+      super.copyWith((message) => updates(message as PrivacyPhoneNumberFindUpdate)) as PrivacyPhoneNumberFindUpdate;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static PrivacyPhoneNumberFindUpdate create() => PrivacyPhoneNumberFindUpdate._();
+  @$core.override
+  PrivacyPhoneNumberFindUpdate createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static PrivacyPhoneNumberFindUpdate getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<PrivacyPhoneNumberFindUpdate>(create);
+  static PrivacyPhoneNumberFindUpdate? _defaultInstance;
 }
 
 const $core.bool _omitFieldNames = $core.bool.fromEnvironment('protobuf.omit_field_names');

@@ -98,6 +98,8 @@ class _SettingsPrivacyCallsAllowMaterial extends State<SettingsPrivacyCallsAllow
         ok = isAllow ? await cubit.setMessagesAllow(selectedIDs) : await cubit.setMessagesDeny(selectedIDs);
       case PrivacyChannel.forwards:
         ok = isAllow ? await cubit.setForwardsAllow(selectedIDs) : await cubit.setForwardsDeny(selectedIDs);
+      case PrivacyChannel.phoneNumber:
+        ok = isAllow ? await cubit.setPhoneNumberAllow(selectedIDs) : await cubit.setPhoneNumberDeny(selectedIDs);
     }
     if (!mounted) return;
     if (ok) {

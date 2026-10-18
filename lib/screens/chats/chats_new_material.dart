@@ -7,6 +7,7 @@ import '../../components.dart';
 import '../../constants.dart';
 import '../../cubit.dart';
 import '../../i18n/translations.g.dart';
+import '../../chats/users_search.dart';
 import '../../models.dart' as models;
 import '../../themes.dart';
 import 'chat_create_common.dart';
@@ -88,7 +89,11 @@ class _ChatsNewMaterial extends State<ChatsNewMaterial> {
                             ],
                           ),
                         ),
-                      if (contacts.isEmpty && state.status != Status.loading)
+                      // С глобальным поиском «Контакты не найдены» не показываем —
+                      // ниже его секция (и своё «Никого не найдено»).
+                      if (contacts.isEmpty && state.status != Status.loading && state.globalStatus != UsersSearchStatus.idle)
+                        const SizedBox.shrink()
+                      else if (contacts.isEmpty && state.status != Status.loading)
                         Padding(
                           padding: const EdgeInsets.all(32),
                           child: Text(
@@ -114,6 +119,12 @@ class _ChatsNewMaterial extends State<ChatsNewMaterial> {
                         ),
                         const SizedBox(height: 16),
                       ],
+                      ...usersSearchSectionMaterial(
+                        context,
+                        status: state.globalStatus,
+                        results: state.globalResults,
+                        onTap: (member) => context.read<ChatCreateCubit>().openPrivateChat(member),
+                      ),
                     ],
                   );
                 },
@@ -144,24 +155,74 @@ Widget createNoteMaterial(BuildContext context, String text, {Color? color}) => 
   ),
 );
 
+/// Секция «Глобальный поиск» под контактами (номер / @username, см.
+/// [UsersSearch]): найденные, «ищем…», «никого», без сети / лимит — пояснение.
+/// [UsersSearchStatus.idle] — секции нет.
+List<Widget> usersSearchSectionMaterial(
+  BuildContext context, {
+  required UsersSearchStatus status,
+  required List<models.ChatMember> results,
+  required void Function(models.ChatMember member) onTap,
+}) {
+  final t = context.t;
+  if (status == UsersSearchStatus.idle) return const [];
+  final note = switch (status) {
+    UsersSearchStatus.offline => t.screenNewChat.globalSearchOffline,
+    UsersSearchStatus.flood => t.screenNewChat.globalSearchFlood,
+    UsersSearchStatus.done when results.isEmpty => t.screenNewChat.globalSearchEmpty,
+    _ => null,
+  };
+  final muted = Theme.of(context).colorScheme.onSurfaceVariant;
+  return [
+    createHeaderMaterial(context, t.screenNewChat.globalSearch),
+    Card(
+      margin: const EdgeInsets.symmetric(horizontal: 12),
+      clipBehavior: Clip.antiAlias,
+      child: status == UsersSearchStatus.loading
+          ? const Padding(
+              padding: EdgeInsets.all(16),
+              child: Center(child: SizedBox.square(dimension: 24, child: CircularProgressIndicator(strokeWidth: 2.5))),
+            )
+          : note != null
+          ? Padding(
+              padding: const EdgeInsets.all(16),
+              child: Text(
+                note,
+                textAlign: TextAlign.center,
+                style: TextStyle(color: muted),
+              ),
+            )
+          : Column(
+              children: [for (final member in results) ContactTileMaterial(contact: member, global: true, onTap: () => onTap(member))],
+            ),
+    ),
+    const SizedBox(height: 16),
+  ];
+}
+
 /// Строка контакта: аватар, имя, «в сети» / «был(а) …»; [selected] не `null` —
-/// галочка справа (выбор участников группы).
+/// галочка справа (выбор участников группы). [global] — найден глобальным
+/// поиском: под именем @username / номер.
 class ContactTileMaterial extends StatelessWidget {
   final models.ChatMember contact;
   final bool? selected;
+  final bool global;
   final VoidCallback? onTap;
 
-  const ContactTileMaterial({super.key, required this.contact, this.selected, this.onTap});
+  const ContactTileMaterial({super.key, required this.contact, this.selected, this.global = false, this.onTap});
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final status = contactStatus(context.t, contact);
+    final globalSubtitle = global ? globalSearchSubtitle(contact) : '';
     final isSelected = selected;
     return ListTile(
       leading: ContactAvatar(contact: contact),
       title: Text(contact.name),
-      subtitle: Text(status.text, style: TextStyle(color: status.online ? scheme.primary : scheme.onSurfaceVariant)),
+      subtitle: globalSubtitle.isNotEmpty
+          ? Text(globalSubtitle, style: TextStyle(color: scheme.onSurfaceVariant))
+          : Text(status.text, style: TextStyle(color: status.online ? scheme.primary : scheme.onSurfaceVariant)),
       trailing: isSelected == null ? null : Checkbox(value: isSelected, onChanged: (_) => onTap?.call()),
       onTap: onTap,
     );

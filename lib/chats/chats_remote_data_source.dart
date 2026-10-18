@@ -17,6 +17,7 @@ import '../protobuf.dart';
 import '../protobuf/protos/chats_v1.pb.dart' as pb;
 import '../repositories.dart';
 import '../demo/chats_demo_data_source.dart';
+import '../i18n/translations.g.dart';
 import 'chats_data_source.dart';
 import 'chats_mapping.dart';
 import 'chats_presence.dart';
@@ -308,14 +309,17 @@ class ChatsRemoteDataSource implements ChatsDataSource {
           final phone = rawPhone.isEmpty
               ? ''
               : _formattedPhones.putIfAbsent(rawPhone, () => utils.phoneNormalization(phoneNumber: rawPhone).international);
+          final title = utils.composeDisplayName(
+            contactName: contactNames[key] ?? '',
+            firstName: profile?.fistName ?? '',
+            lastName: profile?.lastName ?? '',
+            username: profile?.username ?? '',
+            phoneNumber: phone.isNotEmpty ? phone : (rawPhone.isNotEmpty ? rawPhone : contactPhones[key] ?? ''),
+          );
           return _PeerInfo(
-            title: utils.composeDisplayName(
-              contactName: contactNames[key] ?? '',
-              firstName: profile?.fistName ?? '',
-              lastName: profile?.lastName ?? '',
-              username: profile?.username ?? '',
-              phoneNumber: phone.isNotEmpty ? phone : (rawPhone.isNotEmpty ? rawPhone : contactPhones[key] ?? ''),
-            ),
+            // Профиль уже есть, но ни имени, ни @username, а номер скрыт
+            // приватностью — «Пользователь» (профиля ещё нет — пусто, как было).
+            title: title.isEmpty && profile != null ? t.sessionsPrivacyAndSecurity.unknownUser : title,
             isContact: contactPhones.containsKey(key),
             hasContactName: contactNames.containsKey(key),
             profile: profile,
@@ -536,6 +540,37 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     final members = [for (final m in byID.values) lastSeen[m.id] == null ? m : m.copyWith(lastSeen: lastSeen[m.id])];
     members.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
     return members;
+  }
+
+  @override
+  Future<List<models.ChatMember>> searchUsers(String query) async {
+    await _requireNetwork();
+    final response = await _sync.chats(pb.Chats_Request(searchUsers: pb.Chats_SearchUsers(query: query)));
+    if (!response.hasSearchUsers()) return const [];
+    final me = _sync.me;
+    final hidden = {for (final h in await _repositories.hiddenProfiles.getAll()) idHex(h.userID)};
+    final api = getIt.get<API>();
+    final userIDs = <Uint8List>[];
+    for (final profile in response.searchUsers.profiles) {
+      final userID = Uint8List.fromList(profile.userID);
+      if (userID.isEmpty || sameID(userID, me) || hidden.contains(idHex(userID))) continue;
+      // В кэш профилей — имя по общему правилу, аватар (UserAvatar) и профиль
+      // по тапу берутся оттуда; фото докачается само.
+      await api.cacheProfile(profile, waitAvatar: false);
+      userIDs.add(userID);
+    }
+    final peers = await _loadPeers(userIDs);
+    final utils = getIt.get<Utils>();
+    return [
+      for (final userID in userIDs)
+        if (peers[idHex(userID)] case final peer?)
+          models.ChatMember(
+            id: idHex(userID),
+            name: peer.title,
+            username: peer.profile?.username ?? '',
+            phone: utils.phoneNormalization(phoneNumber: peer.profile?.phoneNumber ?? '').international,
+          ),
+    ];
   }
 
   /// Существующий личный чат — сразу из кэша (и offline); новый создаёт сервер

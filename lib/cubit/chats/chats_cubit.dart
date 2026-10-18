@@ -9,6 +9,7 @@ import '../../logger.dart';
 import '../../chats/chats_data_source.dart';
 import '../../chats/chats_remote_data_source.dart';
 import '../../chats/chats_sync.dart';
+import '../../chats/users_search.dart';
 import '../../chats/secret/secret_chats_list.dart';
 import '../../chats/secret/secret_chats_sync.dart';
 import '../../models.dart' as models;
@@ -34,6 +35,23 @@ class ChatsCubit extends Cubit<ChatsState> {
   List<models.Chat> _secret = const [];
   StreamSubscription<List<models.ChatFolder>>? _foldersSubscription;
   StreamSubscription<void>? _hiddenSubscription;
+
+  late final _usersSearch = UsersSearch((status, results) {
+    if (isClosed) return;
+    final known = {
+      for (final c in state.chats)
+        if (c.type == models.ChatType.private && !c.hiddenInList) c.peerUserID,
+    };
+    emit(
+      state.copyWith(
+        globalStatus: status,
+        globalResults: [
+          for (final r in results)
+            if (!known.contains(r.id)) r,
+        ],
+      ),
+    );
+  });
 
   /// [demo] — флаг «Демо чатов» из `settingsDevice`. [archive] — экран «Архив»:
   /// баннер уведомлений там не нужен.
@@ -108,6 +126,22 @@ class ChatsCubit extends Cubit<ChatsState> {
     final revealed = await _revealedFor(trimmed, state.hiddenHashByHex);
     if (isClosed) return;
     emit(state.copyWith(query: trimmed, revealedHex: revealed));
+    // «/код-фраза» — локальная, на сервер не уходит.
+    _usersSearch.search(trimmed.startsWith('/') ? null : _source, trimmed);
+  }
+
+  /// Найденный глобальным поиском → его личный чат (существующий или новый).
+  /// Пусто — не открылся (без сети — «Нет соединения»).
+  Future<String> openPrivateChat(models.ChatMember member) async {
+    var chatID = '';
+    try {
+      await _online(() async => chatID = await _source?.openPrivateChat(member.id) ?? '');
+    } on ChatsFloodException catch (error) {
+      logger.warning('chats: open private chat flood ${error.seconds}s');
+    } on ChatsRequestException catch (error) {
+      logger.warning('chats: open private chat failed: $error');
+    }
+    return chatID;
   }
 
   /// hex(userID) скрытых профилей, чью код-фразу содержит запрос «/фраза».
@@ -194,6 +228,7 @@ class ChatsCubit extends Cubit<ChatsState> {
     await _foldersSubscription?.cancel();
     await _secretSubscription?.cancel();
     await _hiddenSubscription?.cancel();
+    _usersSearch.cancel();
     return super.close();
   }
 

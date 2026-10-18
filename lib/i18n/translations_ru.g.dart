@@ -302,6 +302,10 @@ class _Translations$screenNewChat$ru extends Translations$screenNewChat$en {
 	@override String get newCommunity => 'Новое сообщество';
 	@override String get contacts => 'Контакты';
 	@override String get noContacts => 'Контакты не найдены';
+	@override String get globalSearch => 'Глобальный поиск';
+	@override String get globalSearchEmpty => 'Никого не найдено';
+	@override String get globalSearchOffline => 'Нет соединения — искать по @username и номеру телефона сейчас нельзя.';
+	@override String get globalSearchFlood => 'Слишком много запросов. Попробуйте позже.';
 	@override String get addMembers => 'Добавить участников';
 	@override String get next => 'Далее';
 	@override String selected({required Object n}) => 'Выбрано: ${n}';
@@ -1168,6 +1172,11 @@ class _Translations$sessionsPrivacyAndSecurity$ru extends Translations$sessionsP
 	@override String get forwards => 'Пересылка сообщений';
 	@override String get whoCanLinkForwards => 'Кто может добавлять ссылку на мой аккаунт при пересылке моих сообщений';
 	@override String get forwardsNote => 'Остальные увидят в «Переслано от …» только ваше имя — без перехода в ваш профиль.';
+	@override String get phoneNumber => 'Номер телефона';
+	@override String get whoCanSeePhoneNumber => 'Кто видит мой номер телефона';
+	@override String get phoneNumberNote => 'Тот, у кого ваш номер уже записан в контактах, видит его всегда.';
+	@override String get whoCanFindByPhone => 'Кто может найти меня по номеру';
+	@override String get phoneNumberFindNote => 'Остальные не найдут вас поиском по номеру телефона.';
 	@override String get blocked => 'Заблокированные';
 	@override String get blockedEmpty => 'Вы никого не заблокировали';
 	@override String get blockedNote => 'Заблокированные не могут писать вам и звонить, не видят ваше время захода, фото, «О себе» и день рождения. Заблокировать можно и в профиле пользователя.';
@@ -1889,6 +1898,10 @@ extension on TranslationsRu {
 			'screenNewChat.newCommunity' => 'Новое сообщество',
 			'screenNewChat.contacts' => 'Контакты',
 			'screenNewChat.noContacts' => 'Контакты не найдены',
+			'screenNewChat.globalSearch' => 'Глобальный поиск',
+			'screenNewChat.globalSearchEmpty' => 'Никого не найдено',
+			'screenNewChat.globalSearchOffline' => 'Нет соединения — искать по @username и номеру телефона сейчас нельзя.',
+			'screenNewChat.globalSearchFlood' => 'Слишком много запросов. Попробуйте позже.',
 			'screenNewChat.addMembers' => 'Добавить участников',
 			'screenNewChat.next' => 'Далее',
 			'screenNewChat.selected' => ({required Object n}) => 'Выбрано: ${n}',
@@ -2250,12 +2263,12 @@ extension on TranslationsRu {
 			'screenChat.micDeniedMessage' => 'Разрешите доступ к микрофону в настройках, чтобы записывать голосовые сообщения.',
 			'screenChat.openSettings' => 'Настройки',
 			'screenChat.hideWithSpoiler' => 'Скрыть под спойлер',
+			_ => null,
+		} ?? switch (path) {
 			'screenChat.removeSpoiler' => 'Убрать спойлер',
 			'screenChat.videoHdOn' => 'Видео в HD: 1080p',
 			'screenChat.videoHdOff' => 'Стандартное качество: 720p',
 			'screenChat.videoSound' => 'Звук',
-			_ => null,
-		} ?? switch (path) {
 			'screenChat.videoMuted' => 'Без звука',
 			'screenChat.videoCover' => 'Обложка',
 			'screenChat.videoCoverSet' => 'Обложка выбрана',
@@ -2557,6 +2570,11 @@ extension on TranslationsRu {
 			'sessionsPrivacyAndSecurity.forwards' => 'Пересылка сообщений',
 			'sessionsPrivacyAndSecurity.whoCanLinkForwards' => 'Кто может добавлять ссылку на мой аккаунт при пересылке моих сообщений',
 			'sessionsPrivacyAndSecurity.forwardsNote' => 'Остальные увидят в «Переслано от …» только ваше имя — без перехода в ваш профиль.',
+			'sessionsPrivacyAndSecurity.phoneNumber' => 'Номер телефона',
+			'sessionsPrivacyAndSecurity.whoCanSeePhoneNumber' => 'Кто видит мой номер телефона',
+			'sessionsPrivacyAndSecurity.phoneNumberNote' => 'Тот, у кого ваш номер уже записан в контактах, видит его всегда.',
+			'sessionsPrivacyAndSecurity.whoCanFindByPhone' => 'Кто может найти меня по номеру',
+			'sessionsPrivacyAndSecurity.phoneNumberFindNote' => 'Остальные не найдут вас поиском по номеру телефона.',
 			'sessionsPrivacyAndSecurity.blocked' => 'Заблокированные',
 			'sessionsPrivacyAndSecurity.blockedEmpty' => 'Вы никого не заблокировали',
 			'sessionsPrivacyAndSecurity.blockedNote' => 'Заблокированные не могут писать вам и звонить, не видят ваше время захода, фото, «О себе» и день рождения. Заблокировать можно и в профиле пользователя.',
@@ -2759,6 +2777,8 @@ extension on TranslationsRu {
 			'grpcError.unauthenticated' => 'Неавторизован',
 			'grpcError.unableConnectServer' => 'Не удалось подключиться к серверу',
 			'grpcError.internalServerError' => 'Внутренняя ошибка сервера',
+			_ => null,
+		} ?? switch (path) {
 			'grpcError.unknownError' => 'Unknown error',
 			'dateTime.relativeDateTimeToday' => ({required Object time}) => 'сегодня в ${time}',
 			'dateTime.relativeDateTimeYesterday' => ({required Object time}) => 'вчера в ${time}',
@@ -2768,8 +2788,6 @@ extension on TranslationsRu {
 			'screenCall.bannerRinging' => 'Вызов',
 			'screenCall.bannerActive' => 'Идёт разговор',
 			'screenCall.bannerOnHold' => 'Собеседник на другой линии',
-			_ => null,
-		} ?? switch (path) {
 			'screenCall.bannerReconnecting' => 'Переподключение…',
 			'screenCall.incomingAudio' => 'Входящий звонок',
 			'screenCall.incomingVideo' => 'Входящий видеозвонок',

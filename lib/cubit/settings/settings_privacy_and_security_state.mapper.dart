@@ -223,6 +223,45 @@ class SettingsPrivacyAndSecurityStateMapper
       v.blocked;
   static const Field<SettingsPrivacyAndSecurityState, List<Uint8List>>
   _f$blocked = Field('blocked', _$blocked, opt: true, def: const []);
+  static CallsPrivacyAudience _$phoneNumberAudience(
+    SettingsPrivacyAndSecurityState v,
+  ) => v.phoneNumberAudience;
+  static const Field<SettingsPrivacyAndSecurityState, CallsPrivacyAudience>
+  _f$phoneNumberAudience = Field(
+    'phoneNumberAudience',
+    _$phoneNumberAudience,
+    opt: true,
+    def: CallsPrivacyAudience.contacts,
+  );
+  static List<Uint8List> _$phoneNumberAllow(
+    SettingsPrivacyAndSecurityState v,
+  ) => v.phoneNumberAllow;
+  static const Field<SettingsPrivacyAndSecurityState, List<Uint8List>>
+  _f$phoneNumberAllow = Field(
+    'phoneNumberAllow',
+    _$phoneNumberAllow,
+    opt: true,
+    def: const [],
+  );
+  static List<Uint8List> _$phoneNumberDeny(SettingsPrivacyAndSecurityState v) =>
+      v.phoneNumberDeny;
+  static const Field<SettingsPrivacyAndSecurityState, List<Uint8List>>
+  _f$phoneNumberDeny = Field(
+    'phoneNumberDeny',
+    _$phoneNumberDeny,
+    opt: true,
+    def: const [],
+  );
+  static CallsPrivacyAudience _$phoneNumberFind(
+    SettingsPrivacyAndSecurityState v,
+  ) => v.phoneNumberFind;
+  static const Field<SettingsPrivacyAndSecurityState, CallsPrivacyAudience>
+  _f$phoneNumberFind = Field(
+    'phoneNumberFind',
+    _$phoneNumberFind,
+    opt: true,
+    def: CallsPrivacyAudience.everybody,
+  );
 
   @override
   final MappableFields<SettingsPrivacyAndSecurityState> fields = const {
@@ -252,6 +291,10 @@ class SettingsPrivacyAndSecurityStateMapper
     #hideReadTime: _f$hideReadTime,
     #messagesTTL: _f$messagesTTL,
     #blocked: _f$blocked,
+    #phoneNumberAudience: _f$phoneNumberAudience,
+    #phoneNumberAllow: _f$phoneNumberAllow,
+    #phoneNumberDeny: _f$phoneNumberDeny,
+    #phoneNumberFind: _f$phoneNumberFind,
   };
 
   static SettingsPrivacyAndSecurityState _instantiate(DecodingData data) {
@@ -282,6 +325,10 @@ class SettingsPrivacyAndSecurityStateMapper
       hideReadTime: data.dec(_f$hideReadTime),
       messagesTTL: data.dec(_f$messagesTTL),
       blocked: data.dec(_f$blocked),
+      phoneNumberAudience: data.dec(_f$phoneNumberAudience),
+      phoneNumberAllow: data.dec(_f$phoneNumberAllow),
+      phoneNumberDeny: data.dec(_f$phoneNumberDeny),
+      phoneNumberFind: data.dec(_f$phoneNumberFind),
     );
   }
 
@@ -389,6 +436,10 @@ abstract class SettingsPrivacyAndSecurityStateCopyWith<
   get forwardsDeny;
   ListCopyWith<$R, Uint8List, ObjectCopyWith<$R, Uint8List, Uint8List>>
   get blocked;
+  ListCopyWith<$R, Uint8List, ObjectCopyWith<$R, Uint8List, Uint8List>>
+  get phoneNumberAllow;
+  ListCopyWith<$R, Uint8List, ObjectCopyWith<$R, Uint8List, Uint8List>>
+  get phoneNumberDeny;
   $R call({
     Status? status,
     bool? isBiometricAvailable,
@@ -416,6 +467,10 @@ abstract class SettingsPrivacyAndSecurityStateCopyWith<
     bool? hideReadTime,
     int? messagesTTL,
     List<Uint8List>? blocked,
+    CallsPrivacyAudience? phoneNumberAudience,
+    List<Uint8List>? phoneNumberAllow,
+    List<Uint8List>? phoneNumberDeny,
+    CallsPrivacyAudience? phoneNumberFind,
   });
   SettingsPrivacyAndSecurityStateCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
     Then<$Out2, $R2> t,
@@ -531,6 +586,20 @@ class _SettingsPrivacyAndSecurityStateCopyWithImpl<$R, $Out>
     (v) => call(blocked: v),
   );
   @override
+  ListCopyWith<$R, Uint8List, ObjectCopyWith<$R, Uint8List, Uint8List>>
+  get phoneNumberAllow => ListCopyWith(
+    $value.phoneNumberAllow,
+    (v, t) => ObjectCopyWith(v, $identity, t),
+    (v) => call(phoneNumberAllow: v),
+  );
+  @override
+  ListCopyWith<$R, Uint8List, ObjectCopyWith<$R, Uint8List, Uint8List>>
+  get phoneNumberDeny => ListCopyWith(
+    $value.phoneNumberDeny,
+    (v, t) => ObjectCopyWith(v, $identity, t),
+    (v) => call(phoneNumberDeny: v),
+  );
+  @override
   $R call({
     Status? status,
     bool? isBiometricAvailable,
@@ -558,6 +627,10 @@ class _SettingsPrivacyAndSecurityStateCopyWithImpl<$R, $Out>
     bool? hideReadTime,
     int? messagesTTL,
     List<Uint8List>? blocked,
+    CallsPrivacyAudience? phoneNumberAudience,
+    List<Uint8List>? phoneNumberAllow,
+    List<Uint8List>? phoneNumberDeny,
+    CallsPrivacyAudience? phoneNumberFind,
   }) => $apply(
     FieldCopyWithData({
       if (status != null) #status: status,
@@ -587,6 +660,11 @@ class _SettingsPrivacyAndSecurityStateCopyWithImpl<$R, $Out>
       if (hideReadTime != null) #hideReadTime: hideReadTime,
       if (messagesTTL != null) #messagesTTL: messagesTTL,
       if (blocked != null) #blocked: blocked,
+      if (phoneNumberAudience != null)
+        #phoneNumberAudience: phoneNumberAudience,
+      if (phoneNumberAllow != null) #phoneNumberAllow: phoneNumberAllow,
+      if (phoneNumberDeny != null) #phoneNumberDeny: phoneNumberDeny,
+      if (phoneNumberFind != null) #phoneNumberFind: phoneNumberFind,
     }),
   );
   @override
@@ -622,6 +700,13 @@ class _SettingsPrivacyAndSecurityStateCopyWithImpl<$R, $Out>
     hideReadTime: data.get(#hideReadTime, or: $value.hideReadTime),
     messagesTTL: data.get(#messagesTTL, or: $value.messagesTTL),
     blocked: data.get(#blocked, or: $value.blocked),
+    phoneNumberAudience: data.get(
+      #phoneNumberAudience,
+      or: $value.phoneNumberAudience,
+    ),
+    phoneNumberAllow: data.get(#phoneNumberAllow, or: $value.phoneNumberAllow),
+    phoneNumberDeny: data.get(#phoneNumberDeny, or: $value.phoneNumberDeny),
+    phoneNumberFind: data.get(#phoneNumberFind, or: $value.phoneNumberFind),
   );
 
   @override

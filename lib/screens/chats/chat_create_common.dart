@@ -119,6 +119,10 @@ class ContactAvatar extends StatelessWidget {
   return (text: seen == null ? t.screenChat.lastSeenRecently : lastSeenText(t, seen), online: false);
 }
 
+/// Подпись под найденным глобальным поиском: @username, иначе номер; пусто —
+/// как у контакта ([contactStatus]).
+String globalSearchSubtitle(models.ChatMember member) => member.username.isNotEmpty ? '@${member.username}' : member.phone;
+
 /// Заголовок формы создания.
 String createTitle(Translations t, models.ChatType type) => switch (type) {
   models.ChatType.channel => t.screenNewChat.channelTitle,

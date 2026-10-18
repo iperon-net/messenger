@@ -90,6 +90,12 @@ abstract class ChatsDataSource {
   /// («Новое сообщение», выбор участников) — по алфавиту.
   Future<List<models.ChatMember>> contacts();
 
+  /// Глобальный поиск людей (сервер, как contacts.search / resolvePhone в
+  /// Telegram): [query] — номер телефона целиком или username (см.
+  /// `UsersSearch.qualifies`). Без меня и локально скрытых; без сети —
+  /// [ChatsOfflineException], лимит — [ChatsFloodException].
+  Future<List<models.ChatMember>> searchUsers(String query);
+
   /// Личный чат с пользователем [userID] (контакт или участник группы):
   /// существующий или новый пустой. Возвращает id чата (пусто — не найден).
   Future<String> openPrivateChat(String userID);

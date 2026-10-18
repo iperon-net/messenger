@@ -4,6 +4,7 @@ package iperon.v1;
 option go_package = "internal/api/v1";
 
 import "protos/models.proto";
+import "protos/profile_v1.proto";
 
 // Чаты и сообщения — первый срез: личные чаты (и «Избранное» — личный чат с
 // самим собой). Модель как в Telegram: сервер — источник истины, у каждого
@@ -660,6 +661,24 @@ message Chats {
     Updates updates = 1;
   }
 
+  // Глобальный поиск людей (как contacts.search / resolvePhone в Telegram).
+  // query — номер телефона (целиком, в любом формате; без кода страны —
+  // российский) или username (ведущий «@» не важен, регистр тоже). Номер —
+  // точное совпадение, если владелец разрешает найти себя по номеру
+  // (PrivacySettings.phone_number_find), — номер в ответе тогда есть всегда
+  // (ищущий его знает). Username — точное совпадение и по префиксу (от 3
+  // символов), до limit (≤ 50, 0 — 20) человек. Себя в ответе нет. Профили —
+  // глазами ищущего (гейты приватности, как PROFILE). Свои лимиты частоты
+  // (по номеру — строже); короче / не подходит — пустой ответ.
+  message SearchUsers {
+    string query = 1;
+    int32 limit = 2;
+  }
+
+  message SearchUsersResult {
+    repeated Profile.Response profiles = 1;
+  }
+
   message Request {
     oneof request {
       List list = 1;
@@ -677,6 +696,7 @@ message Chats {
       ResolveUsername resolveUsername = 13;
       SetTTL setTTL = 14;
       SetNoForwards setNoForwards = 15;
+      SearchUsers searchUsers = 16;
     }
   }
 
@@ -697,6 +717,7 @@ message Chats {
       ResolveUsernameResult resolveUsername = 13;
       SetTTLResult setTTL = 14;
       SetNoForwardsResult setNoForwards = 15;
+      SearchUsersResult searchUsers = 16;
     }
   }
 }

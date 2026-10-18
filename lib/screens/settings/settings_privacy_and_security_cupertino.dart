@@ -136,6 +136,21 @@ class _SettingsPrivacyAndSecurityCupertino extends State<SettingsPrivacyAndSecur
                   ),
                   children: [
                     CupertinoListTileIcon(
+                      title: Text(context.t.sessionsPrivacyAndSecurity.phoneNumber),
+                      color: Color(0xFFFF9500),
+                      icon: FontAwesomeIcons.mobileScreenButton,
+                      isTrailing: true,
+                      additionalInfo: Text(
+                        state.callsLoadError ? "—" : _audienceLabel(context, state.phoneNumberAudience),
+                        style: TextStyle(color: CupertinoColors.secondaryLabel.resolveFrom(context)),
+                      ),
+                      onTab: () async {
+                        final cubit = context.read<SettingsPrivacyAndSecurityCubit>();
+                        await context.push("/settings/privacy_and_security/phone_number");
+                        await cubit.reloadPhoneNumber();
+                      },
+                    ),
+                    CupertinoListTileIcon(
                       title: Text(context.t.sessionsPrivacyAndSecurity.calls),
                       color: Color(0xFF007AFF),
                       icon: FontAwesomeIcons.phone,

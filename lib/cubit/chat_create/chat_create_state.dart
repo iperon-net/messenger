@@ -1,6 +1,7 @@
 import 'package:dart_mappable/dart_mappable.dart';
 
 import '../../chats/coordinates.dart';
+import '../../chats/users_search.dart';
 import '../../constants.dart';
 import '../../models.dart' as models;
 
@@ -34,6 +35,11 @@ class ChatCreateState with ChatCreateStateMappable {
   /// Контакты по алфавиту (фильтр по [query] — в [filtered]).
   final List<models.ChatMember> contacts;
   final String query;
+
+  /// Глобальный поиск людей по [query] (номер / username, см. [UsersSearch]):
+  /// найденные — без тех, кто уже в [contacts].
+  final UsersSearchStatus globalStatus;
+  final List<models.ChatMember> globalResults;
 
   /// Выбранные участники группы — в порядке выбора (чипы сверху).
   final List<models.ChatMember> selected;
@@ -115,6 +121,8 @@ class ChatCreateState with ChatCreateStateMappable {
     this.about = '',
     this.contacts = const [],
     this.query = '',
+    this.globalStatus = UsersSearchStatus.idle,
+    this.globalResults = const [],
     this.selected = const [],
     this.avatarPath = '',
     this.coverPath = '',

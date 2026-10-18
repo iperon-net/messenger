@@ -1,5 +1,6 @@
 import 'package:dart_mappable/dart_mappable.dart';
 
+import '../../chats/users_search.dart';
 import '../../constants.dart';
 import '../../models.dart' as models;
 
@@ -32,6 +33,11 @@ class ChatsState with ChatsStateMappable {
 
   final String query;
 
+  /// Глобальный поиск людей по [query] (номер / username, см. [UsersSearch]):
+  /// найденные — без тех, с кем личный чат уже в списке.
+  final UsersSearchStatus globalStatus;
+  final List<models.ChatMember> globalResults;
+
   /// Растёт, когда действие не выполнено из-за отсутствия сети
   /// (`ChatsOfflineException`): экран показывает «Нет соединения».
   final int offlineNotice;
@@ -60,6 +66,8 @@ class ChatsState with ChatsStateMappable {
     this.folders = const [],
     this.folderIndex = 0,
     this.query = '',
+    this.globalStatus = UsersSearchStatus.idle,
+    this.globalResults = const [],
     this.hiddenHashByHex = const {},
     this.revealedHex = const {},
   });

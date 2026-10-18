@@ -189,6 +189,13 @@ class MessageType extends $pb.ProtobufEnum {
   /// privacy_v1.proto (PrivacyBlockUpdate).
   static const MessageType PRIVACY_BLOCK_UPDATE = MessageType._(86, _omitEnumNames ? '' : 'PRIVACY_BLOCK_UPDATE');
 
+  /// «Кто видит мой номер телефона» (+ исключения) и «кто может найти меня по
+  /// номеру» (PrivacySettings.phone_number*). См. privacy_v1.proto.
+  static const MessageType PRIVACY_PHONE_NUMBER_UPDATE = MessageType._(87, _omitEnumNames ? '' : 'PRIVACY_PHONE_NUMBER_UPDATE');
+  static const MessageType PRIVACY_PHONE_NUMBER_ALLOW_UPDATE = MessageType._(88, _omitEnumNames ? '' : 'PRIVACY_PHONE_NUMBER_ALLOW_UPDATE');
+  static const MessageType PRIVACY_PHONE_NUMBER_DENY_UPDATE = MessageType._(89, _omitEnumNames ? '' : 'PRIVACY_PHONE_NUMBER_DENY_UPDATE');
+  static const MessageType PRIVACY_PHONE_NUMBER_FIND_UPDATE = MessageType._(90, _omitEnumNames ? '' : 'PRIVACY_PHONE_NUMBER_FIND_UPDATE');
+
   static const $core.List<MessageType> values = <MessageType>[
     HEALTHCHECK,
     META_DATA_INFO,
@@ -273,9 +280,13 @@ class MessageType extends $pb.ProtobufEnum {
     SECRET_CHATS,
     SECRET_UPDATES,
     PRIVACY_BLOCK_UPDATE,
+    PRIVACY_PHONE_NUMBER_UPDATE,
+    PRIVACY_PHONE_NUMBER_ALLOW_UPDATE,
+    PRIVACY_PHONE_NUMBER_DENY_UPDATE,
+    PRIVACY_PHONE_NUMBER_FIND_UPDATE,
   ];
 
-  static final $core.List<MessageType?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 86);
+  static final $core.List<MessageType?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 90);
   static MessageType? valueOf($core.int value) => value < 0 || value >= _byValue.length ? null : _byValue[value];
 
   const MessageType._(super.value, super.name);

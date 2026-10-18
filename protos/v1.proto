@@ -158,6 +158,12 @@ enum MessageType {
   // Заблокировать / разблокировать пользователя (PrivacySettings.blocked). См.
   // privacy_v1.proto (PrivacyBlockUpdate).
   PRIVACY_BLOCK_UPDATE = 86;
+  // «Кто видит мой номер телефона» (+ исключения) и «кто может найти меня по
+  // номеру» (PrivacySettings.phone_number*). См. privacy_v1.proto.
+  PRIVACY_PHONE_NUMBER_UPDATE = 87;
+  PRIVACY_PHONE_NUMBER_ALLOW_UPDATE = 88;
+  PRIVACY_PHONE_NUMBER_DENY_UPDATE = 89;
+  PRIVACY_PHONE_NUMBER_FIND_UPDATE = 90;
 }
 
 service Iperon {

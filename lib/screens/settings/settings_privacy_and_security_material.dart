@@ -92,6 +92,18 @@ class _SettingsPrivacyAndSecurityMaterial extends State<SettingsPrivacyAndSecuri
                   child: Column(
                     children: [
                       MaterialListTileIcon(
+                        title: Text(context.t.sessionsPrivacyAndSecurity.phoneNumber),
+                        color: const Color(0xFFFF9500),
+                        icon: FontAwesomeIcons.mobileScreenButton,
+                        isTrailing: true,
+                        additionalInfo: Text(state.callsLoadError ? "—" : _audienceLabel(context, state.phoneNumberAudience)),
+                        onTab: () async {
+                          final cubit = context.read<SettingsPrivacyAndSecurityCubit>();
+                          await context.push("/settings/privacy_and_security/phone_number");
+                          await cubit.reloadPhoneNumber();
+                        },
+                      ),
+                      MaterialListTileIcon(
                         title: Text(context.t.sessionsPrivacyAndSecurity.calls),
                         color: const Color(0xFF007AFF),
                         icon: FontAwesomeIcons.phone,

@@ -7,6 +7,7 @@ import '../../components.dart';
 import '../../constants.dart';
 import '../../cubit.dart';
 import '../../i18n/translations.g.dart';
+import '../../chats/users_search.dart';
 import '../../models.dart' as models;
 import '../../themes.dart';
 import 'chat_create_common.dart';
@@ -95,7 +96,11 @@ class _ChatsNewCupertino extends State<ChatsNewCupertino> {
                             action(HugeIcons.strokeRoundedBuilding03, t.screenNewChat.newCommunity, '/chats/new/community'),
                           ],
                         ),
-                      if (contacts.isEmpty && state.status != Status.loading)
+                      // С глобальным поиском «Контакты не найдены» не показываем —
+                      // ниже его секция (и своё «Никого не найдено»).
+                      if (contacts.isEmpty && state.status != Status.loading && state.globalStatus != UsersSearchStatus.idle)
+                        const SizedBox.shrink()
+                      else if (contacts.isEmpty && state.status != Status.loading)
                         Padding(
                           padding: const EdgeInsets.all(32),
                           child: Text(
@@ -112,6 +117,12 @@ class _ChatsNewCupertino extends State<ChatsNewCupertino> {
                               ContactTileCupertino(contact: contact, onTap: () => context.read<ChatCreateCubit>().openPrivateChat(contact)),
                           ],
                         ),
+                      ...usersSearchSectionCupertino(
+                        context,
+                        status: state.globalStatus,
+                        results: state.globalResults,
+                        onTap: (member) => context.read<ChatCreateCubit>().openPrivateChat(member),
+                      ),
                     ],
                   );
                 },
@@ -140,27 +151,77 @@ Widget createNoteCupertino(String text, {Color? color}) => Padding(
   ),
 );
 
+/// Секция «Глобальный поиск» под контактами (номер / @username, см.
+/// [UsersSearch]): найденные, «ищем…», «никого», без сети / лимит — пояснение.
+/// [UsersSearchStatus.idle] — секции нет.
+List<Widget> usersSearchSectionCupertino(
+  BuildContext context, {
+  required UsersSearchStatus status,
+  required List<models.ChatMember> results,
+  required void Function(models.ChatMember member) onTap,
+}) {
+  final t = context.t;
+  if (status == UsersSearchStatus.idle) return const [];
+  final note = switch (status) {
+    UsersSearchStatus.offline => t.screenNewChat.globalSearchOffline,
+    UsersSearchStatus.flood => t.screenNewChat.globalSearchFlood,
+    UsersSearchStatus.done when results.isEmpty => t.screenNewChat.globalSearchEmpty,
+    _ => null,
+  };
+  final secondary = CupertinoColors.secondaryLabel.resolveFrom(context);
+  return [
+    CupertinoListSection.insetGrouped(
+      header: createHeaderCupertino(t.screenNewChat.globalSearch),
+      backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
+      decoration: BoxDecoration(
+        color: ThemesCupertino.groupedCard.resolveFrom(context),
+        borderRadius: const BorderRadius.all(Radius.circular(10)),
+      ),
+      children: [
+        if (status == UsersSearchStatus.loading)
+          const Padding(padding: EdgeInsets.all(16), child: CupertinoActivityIndicator())
+        else if (note != null)
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Text(
+              note,
+              textAlign: TextAlign.center,
+              style: TextStyle(color: secondary),
+            ),
+          )
+        else
+          for (final member in results) ContactTileCupertino(contact: member, global: true, onTap: () => onTap(member)),
+      ],
+    ),
+  ];
+}
+
 /// Строка контакта: аватар, имя, «в сети» / «был(а) …»; [selected] не `null` —
-/// кружок выбора справа (выбор участников группы).
+/// кружок выбора справа (выбор участников группы). [global] — найден
+/// глобальным поиском: под именем @username / номер.
 class ContactTileCupertino extends StatelessWidget {
   final models.ChatMember contact;
   final bool? selected;
+  final bool global;
   final VoidCallback? onTap;
 
-  const ContactTileCupertino({super.key, required this.contact, this.selected, this.onTap});
+  const ContactTileCupertino({super.key, required this.contact, this.selected, this.global = false, this.onTap});
 
   @override
   Widget build(BuildContext context) {
     final t = context.t;
     final primary = CupertinoTheme.of(context).primaryColor;
     final status = contactStatus(t, contact);
+    final globalSubtitle = global ? globalSearchSubtitle(contact) : '';
     final isSelected = selected;
     return CupertinoListTile(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       leadingSize: 40,
       leading: ContactAvatar(contact: contact),
       title: Text(contact.name),
-      subtitle: Text(status.text, style: TextStyle(color: status.online ? primary : CupertinoColors.secondaryLabel.resolveFrom(context))),
+      subtitle: globalSubtitle.isNotEmpty
+          ? Text(globalSubtitle, style: TextStyle(color: CupertinoColors.secondaryLabel.resolveFrom(context)))
+          : Text(status.text, style: TextStyle(color: status.online ? primary : CupertinoColors.secondaryLabel.resolveFrom(context))),
       trailing: isSelected == null
           ? null
           : Icon(

@@ -460,6 +460,10 @@ class ChatsDemoDataSource implements ChatsDataSource {
   @override
   Future<List<models.ChatMember>> contacts() async => _contacts();
 
+  /// Глобального поиска в демо нет — люди только из контактов и чатов.
+  @override
+  Future<List<models.ChatMember>> searchUsers(String query) async => const [];
+
   @override
   Future<String> findPrivateChat(String userID) async => _chats.any((c) => c.id == userID) ? userID : '';
 

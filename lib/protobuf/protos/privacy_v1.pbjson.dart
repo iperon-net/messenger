@@ -53,6 +53,10 @@ const PrivacySettings_Response$json = {
     {'1': 'forwards_deny', '3': 20, '4': 3, '5': 12, '10': 'forwardsDeny'},
     {'1': 'messages_ttl', '3': 21, '4': 1, '5': 5, '10': 'messagesTtl'},
     {'1': 'blocked', '3': 22, '4': 3, '5': 12, '10': 'blocked'},
+    {'1': 'phone_number', '3': 23, '4': 1, '5': 14, '6': '.iperon.v1.PrivacySettings.Audience', '10': 'phoneNumber'},
+    {'1': 'phone_number_allow', '3': 24, '4': 3, '5': 12, '10': 'phoneNumberAllow'},
+    {'1': 'phone_number_deny', '3': 25, '4': 3, '5': 12, '10': 'phoneNumberDeny'},
+    {'1': 'phone_number_find', '3': 26, '4': 1, '5': 14, '6': '.iperon.v1.PrivacySettings.Audience', '10': 'phoneNumberFind'},
   ],
 };
 
@@ -68,7 +72,7 @@ const PrivacySettings_Audience$json = {
 
 /// Descriptor for `PrivacySettings`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List privacySettingsDescriptor =
-    $convert.base64Decode('Cg9Qcml2YWN5U2V0dGluZ3MaCQoHUmVxdWVzdBrRBwoIUmVzcG9uc2USOQoFY2FsbHMYASABKA'
+    $convert.base64Decode('Cg9Qcml2YWN5U2V0dGluZ3MaCQoHUmVxdWVzdBrECQoIUmVzcG9uc2USOQoFY2FsbHMYASABKA'
         '4yIy5pcGVyb24udjEuUHJpdmFjeVNldHRpbmdzLkF1ZGllbmNlUgVjYWxscxIfCgtjYWxsc19h'
         'bGxvdxgCIAMoDFIKY2FsbHNBbGxvdxIdCgpjYWxsc19kZW55GAMgAygMUgljYWxsc0RlbnkSPw'
         'oIYmlydGhkYXkYBCABKA4yIy5pcGVyb24udjEuUHJpdmFjeVNldHRpbmdzLkF1ZGllbmNlUghi'
@@ -86,8 +90,12 @@ final $typed_data.Uint8List privacySettingsDescriptor =
         '4udjEuUHJpdmFjeVNldHRpbmdzLkF1ZGllbmNlUghmb3J3YXJkcxIlCg5mb3J3YXJkc19hbGxv'
         'dxgTIAMoDFINZm9yd2FyZHNBbGxvdxIjCg1mb3J3YXJkc19kZW55GBQgAygMUgxmb3J3YXJkc0'
         'RlbnkSIQoMbWVzc2FnZXNfdHRsGBUgASgFUgttZXNzYWdlc1R0bBIYCgdibG9ja2VkGBYgAygM'
-        'UgdibG9ja2VkIjMKCEF1ZGllbmNlEg0KCUVWRVJZQk9EWRAAEgwKCENPTlRBQ1RTEAESCgoGTk'
-        '9CT0RZEAI=');
+        'UgdibG9ja2VkEkYKDHBob25lX251bWJlchgXIAEoDjIjLmlwZXJvbi52MS5Qcml2YWN5U2V0dG'
+        'luZ3MuQXVkaWVuY2VSC3Bob25lTnVtYmVyEiwKEnBob25lX251bWJlcl9hbGxvdxgYIAMoDFIQ'
+        'cGhvbmVOdW1iZXJBbGxvdxIqChFwaG9uZV9udW1iZXJfZGVueRgZIAMoDFIPcGhvbmVOdW1iZX'
+        'JEZW55Ek8KEXBob25lX251bWJlcl9maW5kGBogASgOMiMuaXBlcm9uLnYxLlByaXZhY3lTZXR0'
+        'aW5ncy5BdWRpZW5jZVIPcGhvbmVOdW1iZXJGaW5kIjMKCEF1ZGllbmNlEg0KCUVWRVJZQk9EWR'
+        'AAEgwKCENPTlRBQ1RTEAESCgoGTk9CT0RZEAI=');
 
 @$core.Deprecated('Use privacySettingsUpdateDescriptor instead')
 const PrivacySettingsUpdate$json = {
@@ -618,3 +626,101 @@ const PrivacyBlockUpdate_Response$json = {
 final $typed_data.Uint8List privacyBlockUpdateDescriptor =
     $convert.base64Decode('ChJQcml2YWN5QmxvY2tVcGRhdGUaPAoHUmVxdWVzdBIXCgd1c2VyX2lkGAEgASgMUgZ1c2VySW'
         'QSGAoHYmxvY2tlZBgCIAEoCFIHYmxvY2tlZBoKCghSZXNwb25zZQ==');
+
+@$core.Deprecated('Use privacyPhoneNumberUpdateDescriptor instead')
+const PrivacyPhoneNumberUpdate$json = {
+  '1': 'PrivacyPhoneNumberUpdate',
+  '3': [PrivacyPhoneNumberUpdate_Request$json, PrivacyPhoneNumberUpdate_Response$json],
+};
+
+@$core.Deprecated('Use privacyPhoneNumberUpdateDescriptor instead')
+const PrivacyPhoneNumberUpdate_Request$json = {
+  '1': 'Request',
+  '2': [
+    {'1': 'phone_number', '3': 1, '4': 1, '5': 14, '6': '.iperon.v1.PrivacySettings.Audience', '10': 'phoneNumber'},
+  ],
+};
+
+@$core.Deprecated('Use privacyPhoneNumberUpdateDescriptor instead')
+const PrivacyPhoneNumberUpdate_Response$json = {
+  '1': 'Response',
+};
+
+/// Descriptor for `PrivacyPhoneNumberUpdate`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List privacyPhoneNumberUpdateDescriptor =
+    $convert.base64Decode('ChhQcml2YWN5UGhvbmVOdW1iZXJVcGRhdGUaUQoHUmVxdWVzdBJGCgxwaG9uZV9udW1iZXIYAS'
+        'ABKA4yIy5pcGVyb24udjEuUHJpdmFjeVNldHRpbmdzLkF1ZGllbmNlUgtwaG9uZU51bWJlchoK'
+        'CghSZXNwb25zZQ==');
+
+@$core.Deprecated('Use privacyPhoneNumberAllowUpdateDescriptor instead')
+const PrivacyPhoneNumberAllowUpdate$json = {
+  '1': 'PrivacyPhoneNumberAllowUpdate',
+  '3': [PrivacyPhoneNumberAllowUpdate_Request$json, PrivacyPhoneNumberAllowUpdate_Response$json],
+};
+
+@$core.Deprecated('Use privacyPhoneNumberAllowUpdateDescriptor instead')
+const PrivacyPhoneNumberAllowUpdate_Request$json = {
+  '1': 'Request',
+  '2': [
+    {'1': 'user_ids', '3': 1, '4': 3, '5': 12, '10': 'userIds'},
+  ],
+};
+
+@$core.Deprecated('Use privacyPhoneNumberAllowUpdateDescriptor instead')
+const PrivacyPhoneNumberAllowUpdate_Response$json = {
+  '1': 'Response',
+};
+
+/// Descriptor for `PrivacyPhoneNumberAllowUpdate`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List privacyPhoneNumberAllowUpdateDescriptor =
+    $convert.base64Decode('Ch1Qcml2YWN5UGhvbmVOdW1iZXJBbGxvd1VwZGF0ZRokCgdSZXF1ZXN0EhkKCHVzZXJfaWRzGA'
+        'EgAygMUgd1c2VySWRzGgoKCFJlc3BvbnNl');
+
+@$core.Deprecated('Use privacyPhoneNumberDenyUpdateDescriptor instead')
+const PrivacyPhoneNumberDenyUpdate$json = {
+  '1': 'PrivacyPhoneNumberDenyUpdate',
+  '3': [PrivacyPhoneNumberDenyUpdate_Request$json, PrivacyPhoneNumberDenyUpdate_Response$json],
+};
+
+@$core.Deprecated('Use privacyPhoneNumberDenyUpdateDescriptor instead')
+const PrivacyPhoneNumberDenyUpdate_Request$json = {
+  '1': 'Request',
+  '2': [
+    {'1': 'user_ids', '3': 1, '4': 3, '5': 12, '10': 'userIds'},
+  ],
+};
+
+@$core.Deprecated('Use privacyPhoneNumberDenyUpdateDescriptor instead')
+const PrivacyPhoneNumberDenyUpdate_Response$json = {
+  '1': 'Response',
+};
+
+/// Descriptor for `PrivacyPhoneNumberDenyUpdate`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List privacyPhoneNumberDenyUpdateDescriptor =
+    $convert.base64Decode('ChxQcml2YWN5UGhvbmVOdW1iZXJEZW55VXBkYXRlGiQKB1JlcXVlc3QSGQoIdXNlcl9pZHMYAS'
+        'ADKAxSB3VzZXJJZHMaCgoIUmVzcG9uc2U=');
+
+@$core.Deprecated('Use privacyPhoneNumberFindUpdateDescriptor instead')
+const PrivacyPhoneNumberFindUpdate$json = {
+  '1': 'PrivacyPhoneNumberFindUpdate',
+  '3': [PrivacyPhoneNumberFindUpdate_Request$json, PrivacyPhoneNumberFindUpdate_Response$json],
+};
+
+@$core.Deprecated('Use privacyPhoneNumberFindUpdateDescriptor instead')
+const PrivacyPhoneNumberFindUpdate_Request$json = {
+  '1': 'Request',
+  '2': [
+    {'1': 'phone_number_find', '3': 1, '4': 1, '5': 14, '6': '.iperon.v1.PrivacySettings.Audience', '10': 'phoneNumberFind'},
+  ],
+};
+
+@$core.Deprecated('Use privacyPhoneNumberFindUpdateDescriptor instead')
+const PrivacyPhoneNumberFindUpdate_Response$json = {
+  '1': 'Response',
+};
+
+/// Descriptor for `PrivacyPhoneNumberFindUpdate`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List privacyPhoneNumberFindUpdateDescriptor =
+    $convert.base64Decode('ChxQcml2YWN5UGhvbmVOdW1iZXJGaW5kVXBkYXRlGloKB1JlcXVlc3QSTwoRcGhvbmVfbnVtYm'
+        'VyX2ZpbmQYASABKA4yIy5pcGVyb24udjEuUHJpdmFjeVNldHRpbmdzLkF1ZGllbmNlUg9waG9u'
+        'ZU51bWJlckZpbmQaCgoIUmVzcG9uc2U=');

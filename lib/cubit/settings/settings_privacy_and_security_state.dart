@@ -20,7 +20,7 @@ enum CallsListKind { allow, deny }
 /// рождения, «О себе», последнее посещение или «кто может мне писать». Пикер контактов один на все —
 /// различается только тем, какой список настройки он заменяет через
 /// [SettingsPrivacyAndSecurityCubit].
-enum PrivacyChannel { calls, birthday, aboutMe, lastSeen, messages, forwards }
+enum PrivacyChannel { calls, birthday, aboutMe, lastSeen, messages, forwards, phoneNumber }
 
 @MappableClass(includeCustomMappers: [Uint8ListMapper()])
 class SettingsPrivacyAndSecurityState with SettingsPrivacyAndSecurityStateMappable {
@@ -115,6 +115,20 @@ class SettingsPrivacyAndSecurityState with SettingsPrivacyAndSecurityStateMappab
   /// счётчик; меняются поштучно (`PrivacyBlocks.setBlocked`).
   final List<Uint8List> blocked;
 
+  /// «Кто видит мой номер телефона». Дефолт — контакты (как в Telegram и на
+  /// сервере). Гейт серверный, при отдаче профиля; у кого номер уже есть в
+  /// книге, тот видит его всегда.
+  final CallsPrivacyAudience phoneNumberAudience;
+
+  /// Allow/deny-списки исключений для номера (см. [callsAllow]/[callsDeny]).
+  final List<Uint8List> phoneNumberAllow;
+  final List<Uint8List> phoneNumberDeny;
+
+  /// «Кто может найти меня по номеру»: только [CallsPrivacyAudience.everybody]
+  /// (дефолт) или [CallsPrivacyAudience.contacts]. Показывается, когда номер
+  /// виден не всем.
+  final CallsPrivacyAudience phoneNumberFind;
+
   const SettingsPrivacyAndSecurityState({
     this.status = Status.initialization,
     this.isBiometricAvailable = false,
@@ -142,5 +156,9 @@ class SettingsPrivacyAndSecurityState with SettingsPrivacyAndSecurityStateMappab
     this.hideReadTime = false,
     this.messagesTTL = 0,
     this.blocked = const [],
+    this.phoneNumberAudience = CallsPrivacyAudience.contacts,
+    this.phoneNumberAllow = const [],
+    this.phoneNumberDeny = const [],
+    this.phoneNumberFind = CallsPrivacyAudience.everybody,
   });
 }
